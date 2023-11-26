@@ -237,8 +237,8 @@ celeritas_build_sphinx(latex "${_doc_tex}")
 if(Sphinx_FOUND)
   # Download ornltm class
   ExternalProject_Add(ornltm
-    GIT_REPOSITORY https://code.ornl.gov/s3j/ornltm.git
-    GIT_TAG 05a4b22f104abd53ac7cae72fe03768710b56b86
+    GIT_REPOSITORY https://code.ornl.gov/sethrj/ornltm.git
+    GIT_TAG c9d2ddcce2bfc8d7d51db8f4a131d71883f46528
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ""
