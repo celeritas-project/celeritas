@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/track/detail/VecgeomParams.surface.cu
+//! \file celeritas/ext/detail/VecgeomParams.surface.cu
 //---------------------------------------------------------------------------//
 #include "VecgeomParams.hh"
 

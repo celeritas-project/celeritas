@@ -6,10 +6,11 @@
 /*! \file celeritas_config.h
  * Configuration-specific options for Celeritas.
  *
- * Note that the nonzero values for \c CELERITAS_CORE_RNG and \c CELERITAS_CORE_GEO
- * values *must not* be used directly: only compare between (e.g.)
- * \c CELERITAS_CORE_RNG and \c CELERITAS_CORE_RNG_HIPRAND; options that are *invalid*
- * (e.g.  for missing libraries such as HIP) will have a value of zero.
+ * Note that the nonzero values for \c CELERITAS_CORE_RNG and \c
+ * CELERITAS_CORE_GEO values *must not* be used directly: only compare between
+ * (e.g.) \c CELERITAS_CORE_RNG and \c CELERITAS_CORE_RNG_HIPRAND; options that
+ * are *invalid* (e.g. for missing libraries such as HIP) will have a value of
+ * zero.
  *---------------------------------------------------------------------------*/
 #ifndef celeritas_config_h
 #define celeritas_config_h
