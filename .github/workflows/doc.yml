@@ -36,15 +36,24 @@ jobs:
         run: |
           mkdir build && cd build
           cmake -DCELERITAS_BUILD_DOCS=ON -GNinja ..
-      - name: Build documentation
+      - name: Build user documentation
         working-directory: build
         run: |
           ninja doc
-      - name: Upload pages artifacts
-        id: upload-pages
+      - name: Build developer documentation
+        working-directory: build
+        run: |
+          ninja doxygen
+      - name: Upload user artifacts
+        id: upload-pages-user
         uses: actions/upload-pages-artifact@v2
         with:
           path: build/doc/html
+      - name: Upload developer artifacts
+        id: upload-pages-dev
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: build/doc/doxgen
 #TODO: deploy with actions/deploy-pages@v2 ?
 
 # vim: set nowrap tw=100:
