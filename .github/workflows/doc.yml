@@ -8,8 +8,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  dev:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: |
+            sudo apt-get -y update
+            sudo apt-get -y install \
+                cmake graphviz ninja-build doxygen gcc
+      - name: Check out Celeritas
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 255
+          fetch-tags: true
+      - name: Configure celeritas
+        run: |
+          mkdir build && cd build
+          cmake -DCELERITAS_BUILD_DOCS=ON -GNinja ..
+      - name: Build documentation
+        working-directory: build
+        run: |
+          ninja doxygen
+      - name: Upload pages artifacts
+        id: upload-pages-user
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: build/doxygen/html
   user:
-    name: user
     runs-on: ubuntu-latest
     steps:
       - name: Install dependencies
@@ -37,20 +62,11 @@ jobs:
         working-directory: build
         run: |
           ninja doc
-      - name: Build developer documentation
-        working-directory: build
-        run: |
-          ninja doxygen
-      - name: Upload user artifacts
+      - name: Upload pages artifacts
         id: upload-pages-user
         uses: actions/upload-pages-artifact@v2
         with:
           path: build/doc/html
-      - name: Upload developer artifacts
-        id: upload-pages-dev
-        uses: actions/upload-pages-artifact@v2
-        with:
-          path: build/doc/doxygen
 #TODO: deploy with actions/deploy-pages@v2 ?
 
 # vim: set nowrap tw=100:

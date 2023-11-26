@@ -21,17 +21,19 @@ jobs:
   build:
     uses: ./.github/workflows/build-full.yml
   doc:
-    if: ${{ contains(github.ref_name, 'release-v')
-           || contains(github.ref_name, 'doc-') }}
+    if: ${{ contains(github.head_ref, 'release-v')
+           || contains(github.head_ref, 'doc-') }}
     uses: ./.github/workflows/doc.yml
 
   # Specifying a dependent job allows us to select a single "requires" check
   all:
+    # Complete if jobs were skipped (but not if any failed or were cancelled)
     if: ${{ always() && !failure() && !cancelled() }}
     needs: [build, doc]
     runs-on: ubuntu-latest
     steps:
     - name: Success
-      run: "true"
+      run: |
+        echo 'Checks passed {"head_ref": "${{github.head_ref}}"}'
 
 # vim: set nowrap tw=100:
