@@ -21,8 +21,7 @@ jobs:
   build:
     uses: ./.github/workflows/build-full.yml
   doc:
-    if: ${{ contains(github.head_ref, 'release-v')
-           || contains(github.head_ref, 'doc-') }}
+    if: ${{contains(github.head_ref, 'release-v') || contains(github.head_ref, 'doc-')}}
     uses: ./.github/workflows/doc.yml
 
   # Specifying a dependent job allows us to select a single "requires" check

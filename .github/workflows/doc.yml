@@ -24,7 +24,12 @@ jobs:
       - name: Configure celeritas
         run: |
           mkdir build && cd build
-          cmake -DCELERITAS_BUILD_DOCS=ON -GNinja ..
+          cmake \
+            -DCELERITAS_BUILD_DOCS=ON \
+            -DDOXYGEN_WARN_AS_ERROR="YES" \
+            -DDOXYGEN_QUIET="NO" \
+            -GNinja \
+            ..
       - name: Build documentation
         working-directory: build
         run: |
@@ -33,7 +38,7 @@ jobs:
         id: upload-pages-user
         uses: actions/upload-pages-artifact@v2
         with:
-          path: build/doxygen/html
+          path: build/doc/doxygen
   user:
     runs-on: ubuntu-latest
     steps:
