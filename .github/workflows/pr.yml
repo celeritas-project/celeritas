@@ -18,7 +18,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  build-local:
+    uses: ./.github/workflows/build-local.yml
+  all-prechecks:
+    needs: [build-local]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Success
+      run: "true"
   build:
+    needs: [all-prechecks]
     uses: ./.github/workflows/build-full.yml
 
   # Specifying a dependent job allows us to select a single "requires" check

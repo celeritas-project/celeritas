@@ -1,0 +1,76 @@
+# Build directly on the GitHub runner
+name: build-local
+on:
+  workflow_dispatch:
+  workflow_call:
+
+concurrency:
+  group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  cancel-in-progress: true
+
+jobs:
+  ubuntu-latest:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: ['gcc-10', 'gcc-12', 'clang-11', 'clang-15']
+    env:
+      CCACHE_DIR: "${{github.workspace}}/.ccache"
+      CCACHE_MAXSIZE: "10G"
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get -y update
+          sudo apt-get -y install \
+            ccache cmake ninja-build python3 \
+            nlohmann-json3-dev libgtest-dev libhepmc3-dev \
+            ${{matrix.compiler}}
+      - name: Check out Celeritas
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 255
+          fetch-tags: true
+      - name: Cache ccache
+        uses: actions/cache@v3
+        with:
+          path: ${{env.CCACHE_DIR}}
+          key: ccache-${{github.job}}-${{matrix.compiler}}-${{github.run_id}}
+          restore-keys: ccache-${{github.job}}-${{matrix.compiler}}
+      - name: Zero ccache stats
+        run: |
+          ccache -z
+      - name: Configure Celeritas
+        run: |
+          mkdir build && cd build
+          cmake -GNinja \
+            -DCELERITAS_BUILD_DEMOS:BOOL=ON \
+            -DCELERITAS_BUILD_TESTS:BOOL=ON \
+            -DCELERITAS_USE_SWIG=OFF \
+            -DCELERITAS_DEBUG:BOOL=ON \
+            -DCMAKE_BUILD_TYPE="Release" \
+            -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install" \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_FLAGS="-Wall -Wextra -pedantic -Werror -Wno-error=deprecated-declarations" \
+            ..
+      - name: Build all
+        working-directory: build
+        run: |
+          ninja
+      - name: Run tests
+        working-directory: build
+        run: |
+          ctest --parallel 2 --timeout 15 --output-on-failure \
+            --test-output-size-passed=32768 --test-output-size-failed=1048576
+      - name: Install
+        working-directory: build
+        run: |
+          ninja install
+      - name: Check installation
+        working-directory: install
+        run: |
+          ./bin/celer-sim --version
+      - name: Show ccache stats
+        run: |
+          ccache -s
+
+# vim: set nowrap tw=100:
