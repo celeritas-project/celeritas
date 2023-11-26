@@ -2,9 +2,6 @@ name: doc
 on:
   workflow_dispatch:
   workflow_call:
-  push:
-    branches:
-      - release-v*
 
 concurrency:
   group: doc-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
@@ -53,7 +50,7 @@ jobs:
         id: upload-pages-dev
         uses: actions/upload-pages-artifact@v2
         with:
-          path: build/doc/doxgen
+          path: build/doc/doxygen
 #TODO: deploy with actions/deploy-pages@v2 ?
 
 # vim: set nowrap tw=100:

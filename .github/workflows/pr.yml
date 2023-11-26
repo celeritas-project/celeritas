@@ -21,10 +21,13 @@ jobs:
   build:
     uses: ./.github/workflows/build-full.yml
   doc:
+    if: ${{ contains(github.ref_name, 'release-v')
+           || contains(github.ref_name, 'doc-') }}
     uses: ./.github/workflows/doc.yml
 
   # Specifying a dependent job allows us to select a single "requires" check
   all:
+    if: ${{ always() && !failure() && !cancelled() }}
     needs: [build, doc]
     runs-on: ubuntu-latest
     steps:
