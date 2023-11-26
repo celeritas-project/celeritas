@@ -20,10 +20,12 @@ concurrency:
 jobs:
   build:
     uses: ./.github/workflows/build-full.yml
+  doc:
+    uses: ./.github/workflows/doc.yml
 
   # Specifying a dependent job allows us to select a single "requires" check
   all:
-    needs: [build]
+    needs: [build, doc]
     runs-on: ubuntu-latest
     steps:
     - name: Success
