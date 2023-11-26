@@ -22,11 +22,12 @@ jobs:
           fetch-depth: 255
           fetch-tags: true
       - name: Configure celeritas
+        # TODO: decltype(auto) breaks doxygen :(
+        #    -DDOXYGEN_WARN_AS_ERROR="YES" \
         run: |
           mkdir build && cd build
           cmake \
             -DCELERITAS_BUILD_DOCS=ON \
-            -DDOXYGEN_WARN_AS_ERROR="YES" \
             -DDOXYGEN_QUIET="NO" \
             -GNinja \
             ..
