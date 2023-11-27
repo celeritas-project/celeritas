@@ -2,11 +2,11 @@
 
 _celer_base=$PROJWORK/csc404/celeritas-frontier
 
-# From spack compiler toolchain clang@14.0.0-rocm5.1.0
-module load amd/5.1.0 PrgEnv-amd/8.3.3 craype-x86-trento libfabric/1.15.2.0 cray-pmi/6.1.8
+# From spack compiler toolchain
+module load amd/5.6.0 PrgEnv-amd/8.3.3 craype-x86-trento libfabric/1.15.2.0 cray-pmi/6.1.8
 export RFE_811452_DISABLE=1
 export LD_LIBRARY_PATH=/opt/cray/pe/pmi/6.1.8/lib:$LD_LIBRARY_PATH:/opt/cray/pe/gcc-libs:/opt/cray/libfabric/1.15.2.0/lib64
-export LIBRARY_PATH=/opt/rocm-5.1.0/lib:/opt/rocm-5.1.0/lib64:$LIBRARY_PATH
+export LIBRARY_PATH=/opt/rocm-5.6.0/lib:/opt/rocm-5.6.0/lib64:$LIBRARY_PATH
 
 # Avoid linking multiple different libsci (one with openmp, one without)
 module unload cray-libsci

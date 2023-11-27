@@ -10,8 +10,9 @@
       "generator": "Ninja",
       "cacheVariables": {
         "Celeritas_GIT_DESCRIBE": "",
-        "CELERITAS_BUILD_TESTS":{"type": "BOOL",   "value": "ON"},
-        "CELERITAS_USE_SWIG":   {"type": "BOOL",   "value": "OFF"},
+        "CELERITAS_BUILD_DEMOS":{"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_TESTS":{"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_SWIG":   {"type": "BOOL", "value": "OFF"},
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-${presetName}"
       }
     },

@@ -1,0 +1,4 @@
+Sphinx>=4.0.0
+breathe
+furo
+sphinxcontrib-bibtex
