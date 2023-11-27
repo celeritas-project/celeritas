@@ -5,7 +5,7 @@ on:
   workflow_call:
 
 concurrency:
-  group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  group: build-local-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
   cancel-in-progress: true
 
 jobs:
@@ -51,9 +51,6 @@ jobs:
           $CXX --version | head -1
       - name: Check out Celeritas
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 255
-          fetch-tags: true
       - name: Cache ccache
         uses: actions/cache@v3
         with:
