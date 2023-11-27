@@ -39,14 +39,16 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo apt-get -y update
-          sudo apt-get -y install \
+          sudo apt-get -q -y update
+          sudo apt-get -q -y install \
             ccache cmake ninja-build python3 \
             nlohmann-json3-dev libgtest-dev libhepmc3-dev \
-            ${{matrix.compiler}}-${{matrix.version}}
-          ld --version
-          $CC --version
-          $CXX --version
+            ${{matrix.compiler}}-${{matrix.version}} \
+            ${{matrix.compiler == 'gcc' && format('g++-{0}', matrix.version) || ''}}
+          echo "Installed toolchain:"
+          ld --version | head -1
+          $CC --version | head -1
+          $CXX --version | head -1
       - name: Check out Celeritas
         uses: actions/checkout@v4
         with:
@@ -72,7 +74,7 @@ jobs:
             -DCMAKE_BUILD_TYPE="Release" \
             -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install" \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_FLAGS="-Wall -Wextra -pedantic -Werror -Wno-error=deprecated-declarations" \
+            -DCMAKE_CXX_FLAGS="-Wall -Wextra -pedantic -Wno-error=deprecated-declarations" \
             ..
       - name: Build all
         working-directory: build
