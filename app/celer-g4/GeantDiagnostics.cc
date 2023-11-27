@@ -76,7 +76,7 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
         output_reg->insert(std::make_shared<BuildOutput>());
     }
 
-    // Create shared exception handler (note: make_shared acts screwy here...)
+    // Create shared exception handler
     meh_ = std::make_shared<MultiExceptionHandler>();
 
     CELER_ENSURE(*this);
