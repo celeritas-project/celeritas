@@ -124,7 +124,7 @@ TransformVisitor::make_transform(OpaqueId<real_type> data_offset) const
     constexpr size_type size{T::StorageSpan::extent};
     CELER_ASSERT(data_offset + size <= reals_.size());
 
-    return T{reals_[{data_offset, data_offset + size}]};
+    return T{reals_[Reals::ItemRangeT{data_offset, data_offset + size}]};
 }
 
 //---------------------------------------------------------------------------//
