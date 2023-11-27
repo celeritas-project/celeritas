@@ -10,11 +10,9 @@ concurrency:
 
 jobs:
   linux:
+    name: ${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}
     strategy:
       matrix:
-        runner: []
-        compiler: []
-        version: []
         include:
           - runner: focal
             compiler: gcc
