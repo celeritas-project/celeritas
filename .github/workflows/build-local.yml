@@ -64,6 +64,7 @@ jobs:
         run: |
           mkdir build && cd build
           cmake -GNinja \
+            -DCeleritas_GIT_DESCRIBE=";-pr.${{github.event.pull_request.number}};" \
             -DCELERITAS_BUILD_DEMOS:BOOL=ON \
             -DCELERITAS_BUILD_TESTS:BOOL=ON \
             -DCELERITAS_USE_SWIG=OFF \
