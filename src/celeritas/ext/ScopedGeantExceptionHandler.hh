@@ -23,6 +23,10 @@ namespace celeritas
  * Note that creating a \c G4RunManagerKernel resets the exception
  * handler, so errors thrown during setup *CANNOT* be caught by Celeritas, and
  * this class can only be used after creating the \c G4RunManager.
+ *
+ * \note This error is suitable only for single-threaded runs and multithreaded
+ * manager thread. The exceptions it throws will terminate a Geant4 worker
+ * thread.
  */
 class ScopedGeantExceptionHandler
 {

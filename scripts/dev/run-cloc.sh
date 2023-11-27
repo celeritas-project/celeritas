@@ -21,10 +21,10 @@ function run_cloc() {
 
 cd $SOURCE_DIR
 comment "Library code"
-run_cloc --exclude-dir=app,generated,scripts,test $@
-comment "Auto-generated code"
-run_cloc --match-d='generated' $@
+run_cloc --exclude-dir=app,example,scripts,test $@
 comment "App code"
 run_cloc --fullpath --match-d='/app/' $@
+comment "Example code"
+run_cloc --fullpath --match-d='/example/' $@
 comment "Test code"
 run_cloc --fullpath --match-d='/test/' $@

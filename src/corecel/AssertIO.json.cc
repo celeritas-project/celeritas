@@ -11,11 +11,11 @@
 
 namespace celeritas
 {
-namespace
-{
 //---------------------------------------------------------------------------//
-template<class T>
-void details_to_json(nlohmann::json& j, T const& d)
+/*!
+ * Write details of a debug error to JSON output.
+ */
+void to_json(nlohmann::json& j, DebugErrorDetails const& d)
 {
     j["which"] = to_cstring(d.which);
     if (d.condition)
@@ -33,25 +33,25 @@ void details_to_json(nlohmann::json& j, T const& d)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace
-
-//---------------------------------------------------------------------------//
-/*!
- * Write details of a debug error to JSON output.
- */
-void to_json(nlohmann::json& j, DebugErrorDetails const& d)
-{
-    details_to_json(j, d);
-}
-
-//---------------------------------------------------------------------------//
 /*!
  * Write details of a runtime error to JSON output.
  */
 void to_json(nlohmann::json& j, RuntimeErrorDetails const& d)
 {
     j["what"] = d.what;
-    details_to_json(j, d);
+    j["which"] = to_cstring(d.which);
+    if (!d.condition.empty())
+    {
+        j["condition"] = d.condition;
+    }
+    if (!d.file.empty())
+    {
+        j["file"] = d.file;
+    }
+    if (d.line != 0)
+    {
+        j["line"] = d.line;
+    }
 }
 
 //---------------------------------------------------------------------------//

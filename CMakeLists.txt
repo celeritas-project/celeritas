@@ -50,17 +50,16 @@ celeritas_optional_package(ROOT "Enable ROOT I/O")
 celeritas_optional_package(VecGeom "Use VecGeom geometry")
 
 if(CELERITAS_USE_Python)
-  celeritas_optional_package(SWIG "Build SWIG Python bindings")
+  celeritas_optional_package(SWIG SWIG@4.1 "Build SWIG Python bindings")
 endif()
 
 # Components
 option(CELERITAS_BUILD_DOCS "Build Celeritas documentation" OFF)
-option(CELERITAS_BUILD_DEMOS "Build Celeritas demonstration mini-apps"
-  ${CELERITAS_USE_JSON})
-option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" ON)
+option(CELERITAS_BUILD_DEMOS "Build Celeritas demonstration mini-apps" OFF)
+option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" OFF)
 
 # Assertion handling
-option(CELERITAS_DEBUG "Enable runtime assertions" ON)
+option(CELERITAS_DEBUG "Enable runtime assertions" OFF)
 
 # Secondary testing options (only applies to CTest)
 if(NOT CELERITAS_DEBUG OR CELERITAS_USE_VecGeom)

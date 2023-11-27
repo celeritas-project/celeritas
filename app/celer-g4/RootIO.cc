@@ -22,6 +22,7 @@
 #include "corecel/io/Logger.hh"
 #include "celeritas/ext/GeantUtils.hh"
 #include "celeritas/ext/RootFileManager.hh"
+#include "accel/ExceptionConverter.hh"
 #include "accel/SetupOptions.hh"
 
 #include "GlobalSetup.hh"

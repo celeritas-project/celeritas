@@ -32,6 +32,12 @@ namespace celeritas
     }
     log_and_rethrow(std::move(capture_exception));
  * \endcode
+ *
+ * \note This class implements an OpenMP \c critical mutex, not a \c std
+ * mutex. If using this class in a \c std::thread context, wrap the call
+ * operator in a lambda with a \c std::scoped_lock . We could refactor as a
+ * CRTP class with a protected \c push_back function that lets us specialize
+ * the mutex implementation.
  */
 class MultiExceptionHandler
 {

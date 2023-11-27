@@ -18,6 +18,13 @@ concurrency:
 jobs:
   build:
     uses: ./.github/workflows/build-full.yml
-  # TODO: build and push documentation
+  doc:
+    uses: ./.github/workflows/doc.yml
+  all:
+    needs: [build, doc]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Success
+      run: "true"
 
 # vim: set nowrap tw=100:
