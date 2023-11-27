@@ -9,11 +9,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  ubuntu-latest:
-    runs-on: ubuntu-latest
+  linux:
     strategy:
       matrix:
-        compiler: ['gcc-10', 'gcc-12', 'clang-11', 'clang-15']
+        # Newest supported OS/compilers
+        runner: ['ubuntu-22.04']
+        compiler: ['gcc-12', 'clang-15']
+        # Oldest supported OS/compilers
+        include:
+          - runner: 'ubuntu-20.04'
+            compiler: 'gcc-8'
+          - runner: 'ubuntu-20.04'
+            compiler: 'clang-10'
+    runs-on: ${{matrix.runner}}
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "10G"
@@ -34,8 +42,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{env.CCACHE_DIR}}
-          key: ccache-${{github.job}}-${{matrix.compiler}}-${{github.run_id}}
-          restore-keys: ccache-${{github.job}}-${{matrix.compiler}}
+          key: ccache-${{runner}}-${{matrix.compiler}}-${{github.run_id}}
+          restore-keys: ccache-${{runner}}-${{matrix.compiler}}
       - name: Zero ccache stats
         run: |
           ccache -z
