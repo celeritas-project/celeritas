@@ -12,19 +12,32 @@ jobs:
   linux:
     strategy:
       matrix:
-        # Newest supported OS/compilers
-        runner: ['ubuntu-22.04']
-        compiler: ['gcc-12', 'clang-15']
-        # Oldest supported OS/compilers
+        runner: []
+        compiler: []
+        version: []
         include:
-          - runner: 'ubuntu-20.04'
-            compiler: 'gcc-8'
-          - runner: 'ubuntu-20.04'
-            compiler: 'clang-10'
-    runs-on: ${{matrix.runner}}
+          - runner: focal
+            compiler: gcc
+            version: 8
+          - runner: jammy
+            compiler: gcc
+            version: 12
+          - runner: focal
+            compiler: clang
+            version: 10
+          - runner: jammy
+            compiler: clang
+            version: 15
+    runs-on: >-
+      ${{  matrix.runner == 'focal' && 'ubuntu-20.04'
+        || matrix.runner == 'jammy' && 'ubuntu-22.04'
+        || null
+      }}
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "10G"
+      CC: ${{matrix.compiler}}-${{matrix.version}}
+      CXX: ${{matrix.compiler == 'gcc' && 'g++' || 'clang++'}}-${{matrix.version}}
     steps:
       - name: Install dependencies
         run: |
@@ -32,7 +45,10 @@ jobs:
           sudo apt-get -y install \
             ccache cmake ninja-build python3 \
             nlohmann-json3-dev libgtest-dev libhepmc3-dev \
-            ${{matrix.compiler}}
+            ${{matrix.compiler}}-${{matrix.version}}
+          ld --version
+          $CC --version
+          $CXX --version
       - name: Check out Celeritas
         uses: actions/checkout@v4
         with:
@@ -42,8 +58,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{env.CCACHE_DIR}}
-          key: ccache-${{runner}}-${{matrix.compiler}}-${{github.run_id}}
-          restore-keys: ccache-${{runner}}-${{matrix.compiler}}
+          key: ccache-${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}-${{github.run_id}}
+          restore-keys: ccache-${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}
       - name: Zero ccache stats
         run: |
           ccache -z
