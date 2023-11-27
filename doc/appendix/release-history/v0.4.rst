@@ -1,0 +1,250 @@
+.. Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+.. See the doc/COPYRIGHT file for details.
+.. SPDX-License-Identifier: CC-BY-4.0
+
+
+.. _release_v0.4.0:
+
+Version 0.4.0
+=============
+
+*Released 2023/11/27*
+
+Version 0.4.0 is a major update to Celeritas that focuses on performance and
+integration with Geant4. It also contains major improvements to the ORANGE
+navigation engine.
+
+This is the first version of ORANGE that supports GPU neutron transport in SCALE.
+It is also the first version to fully support integration into ATLAS FullSimLight
+and CMSSW.
+
+Key enhancements compared to version 0.3.2 are:
+
+- Addition of the single Coulomb scattering process and Wentzel model
+- Major performance improvements when running Celeritas to accelerate
+  multithreaded Geant4
+- Major performance improvements when using ORANGE
+- A new ``G4VFastSimulationModel`` interface to Celeritas for offloading tracks
+  with Geant4 11.1
+- Experimental support for surface-based VecGeom
+- Experimental support for Windows and for single-precision arithmetic
+
+Key changes are:
+
+- The interface for ``celer-g4`` now takes JSON input and writes JSON output,
+  as the app is to be less of an example and more of a Celeritas front end to
+  Geant4 with support for offloading.
+- The hit output from ``celer-g4`` has been rewritten so that it can be opened
+  in downstream applications that have ``celeritas`` in their library path.
+
+
+New features
+------------
+
+* Launch kernels only with active tracks using "action range" *(@esseivaju, #765)*
+* Add utility for constructing SD "force_volumes" option *(@sethrj, #825)*
+* Add scoped NVTX ranges for improved profiling *(@esseivaju, #827)*
+* Add isotope data to ``MaterialParams`` *(@stognini, #831)*
+* Add ``ScopedProfiling`` to device actions *(@esseivaju, #836)*
+* Gather and set more Step/Track attributes when calling sensitive detectors *(@sethrj, #839)*
+* Add isotope selector *(@stognini, #843)*
+* Add a HepMC3 event writer *(@sethrj, #851)*
+* Add option to disable Celeritas offloading in celer-g4 *(@amandalund, #860)*
+* Add option to dump offloaded tracks as an event file *(@sethrj, #854)*
+* Expose SDSetupOptions "enabled" flag in SetupOptionsMessenger *(@drbenmorgan, #859)*
+* Add track step counter to celer-g4 *(@amandalund, #862)*
+* Define arithmetic operators for Array *(@sethrj, #868)*
+* Support Geant4@10.5 *(@sethrj, #869)*
+* Add ``__launch_bounds__`` to kernels based on Executor properties *(@esseivaju, #853)*
+* Add option to use RZ magnetic field and along step action in the celer-g4 application *(@whokion, #874)*
+* Add basic field driver option support to RZ map field *(@sethrj, #880)*
+* Implement BIH tree *(@elliottbiondo, #849)*
+* Implement new matrix utilities for ORANGE *(@sethrj, #885)*
+* Implement remaining quadric surfaces *(@sethrj, #867)*
+* Add Wentzel single Coulomb scattering model *(@hhollenb, #861)*
+* Accelerate ORANGE track initialization with Bounding Interval Hierarchy *(@elliottbiondo, #881)*
+* Implement GPU-compatible transformations with ORANGE *(@sethrj, #872)*
+* Add e-/e+ single Coulomb scattering process *(@hhollenb, #899)*
+* Add JSON input and more control options to celer-g4 *(@amandalund, #890)*
+* Implement surface promotion in ORANGE *(@sethrj, #893)*
+* Refactor StepLimit to SoA *(@esseivaju, #901)*
+* Implement surface translation and transformation *(@sethrj, #887)*
+* Add more bounding box utilities *(@sethrj, #889)*
+* Add surface "variant" class for host processing *(@sethrj, #895)*
+* Add ROOT-based event exporter *(@stognini, #900)*
+* Use radix sort for ordering tracks *(@esseivaju, #903)*
+* Implement chained transformations/translations *(@sethrj, #897)*
+* Connect ROOT event writer to accel and reader to celer-sim *(@sethrj, #904)*
+* Define CELER_ASSUME for simpler always-on compiler assumptions *(@sethrj, #905)*
+* Implement surface simplification *(@sethrj, #894)*
+* Accelerate ORANGE boundary crossing with BIH *(@elliottbiondo, #909)*
+* Add bounding box transformation *(@sethrj, #906)*
+* Add surface clipping helper class *(@sethrj, #896)*
+* Add option to generate primaries without an event file in celer-g4 *(@amandalund, #914)*
+* Automatically calculate ORANGE universe depth *(@elliottbiondo, #915)*
+* Use par_nosync execution policy to execute thrust algorithms *(@esseivaju, #908)*
+* Implement generic transforms in multi-universe ORANGE *(@sethrj, #917)*
+* Implement CSG tree simplification in ORANGE *(@sethrj, #923)*
+* Add Windows support *(@sethrj, #930)*
+* Add soft equivalence for quadric surfaces *(@sethrj, #933)*
+* Add pinned allocator and asynchronous memory operations *(@esseivaju, #910)*
+* Add option to disable SD hit collection in celer-g4 *(@amandalund, #943)*
+* Define unified tolerances class for ORANGE *(@sethrj, #941)*
+* Add timers to celer-g4 *(@amandalund, #944)*
+* Implement asynchronous ``DeviceAllocation`` *(@esseivaju, #953)*
+* Support energy loss fluctuations in uniform field along-step *(@amandalund, #954)*
+* Add collection builder that deduplicates on insertion *(@sethrj, #955)*
+* Improve CPU along-step performance *(@amandalund, #961)*
+* Implement TrackerVisitor for multiply-dispatched tracker types *(@elliottbiondo, #959)*
+* Deduplicate ORANGE geometry on insertion *(@sethrj, #956)*
+* Implement CSG tree simplification algorithms *(@sethrj, #939)*
+* Improve JSON conversion for bounding box edge cases *(@sethrj, #962)*
+* Add unified memory support *(@esseivaju, #965)*
+* Implement ScopedProfiling for HIP/ROCM *(@esseivaju, #970)*
+* Enable tracking through rectangular arrays *(@elliottbiondo, #973)*
+* Export ORANGE input from JSON and add full support for transforms *(@sethrj, #976)*
+* Improve Quantity for field conversions and non-real_type use cases *(@sethrj, #987)*
+* Adapt to the new BVH navigator from VecGeom *(@mrguilima, #978)*
+* Implement concrete G4VFastSimulationModel for offload to Celeritas *(@drbenmorgan, #992)*
+* Add compile-time support for single-precision Celeritas *(@sethrj, #988)*
+* Implement LdgIterator abstraction *(@esseivaju, #996)*
+* Use LdgIterator in Collection and Span *(@esseivaju, #1000)*
+* Add ORANGE surface construction components *(@sethrj, #1001)*
+* Allow ``celer-g4`` hit output to be opened in downstream ROOT *(@stognini, #999)*
+* Add environment variable to disable ROOT and update celer-g4 input *(@sethrj, #1011)*
+* Refactor ParticleState and ParticleParams to SoA *(@esseivaju, #1012)*
+* Use Celeritas error and output handling in celer-g4 app *(@sethrj, #1013)*
+* Add support for VecGeom surface model *(@mrguilima, #1016)*
+* Add G4SD "simple calorimeter" that outputs to JSON *(@sethrj, #1014)*
+* Optimize data access through ORANGE visitors *(@esseivaju, #1018)*
+* Add multithread exception support and logging to Geant4 app *(@sethrj, #1026)*
+
+Reviewers: @sethrj *(38)*, @elliottbiondo *(19)*, @amandalund *(16)*, @whokion *(5)*, @stognini *(2)*, @hhollenb *(1)*, @drbenmorgan *(1)*, @esseivaju *(1)*, @pcanal *(1)*
+
+Bug fixes
+---------
+
+* Fix errors when building and loading Celeritas through CMSSW *(@sethrj, #821)*
+* Divide initializer capacity by number of streams in celer-sim *(@amandalund, #824)*
+* Fix build errors from Geant4@10 *(@drbenmorgan, #830)*
+* Fix default ``combined_brems`` option to work with multiple-element materials *(@sethrj, #837)*
+* Fix app/demo-geo-check test failure when using MPI *(@stognini, #838)*
+* Unify convergence criteria in field driver *(@sethrj, #829)*
+* Fix minor issues with exceptions *(@sethrj, #846)*
+* Fix linking errors with CUDA+VecGeom caused by #847 *(@pcanal, #856)*
+* Fix inconsistencies in Geant4-to-VecGeom boolean conversion *(@sethrj, #857)*
+* Fix HepMC3 reading of vertices and status codes *(@sethrj, #863)*
+* Restore "small step updates momentum" condition (part of #875) in field propagator *(@sethrj, #882)*
+* Fix sampling of secondary gamma energies in EPlusGGInteractor *(@whokion, #888)*
+* Fix multi-level ORANGE direction change *(@tmdelellis, #912)*
+* Fix unit conversion errors when reading from event file *(@amandalund, #916)*
+* Fix Seltzer-Berger max xs for positrons *(@amandalund, #922)*
+* Fix Geant4 step limiter when ionization is disabled *(@amandalund, #920)*
+* Fix resetting of CUDA streams when running through accel *(@sethrj, #927)*
+* Fix uniform field unit conversion *(@amandalund, #931)*
+* Correctly map HepMC3 events to Geant4 events *(@sethrj, #938)*
+* Improve and fix Geant4 volume conversion on boundaries *(@sethrj, #936)*
+* Fix ORANGE multi-level surface crossing *(@tmdelellis, #929)*
+* Fix ORANGE bounding box bumping to be consistent with tracking tolerances *(@sethrj, #940)*
+* Fix Geant4 field construction in celer-g4 *(@amandalund, #942)*
+* Fix accumulated action times in celer-sim *(@amandalund, #951)*
+* Fix using ORANGE  geometry with pointer-appended GDML *(@sethrj, #960)*
+* Fix performance regression on HIP *(@sethrj, #968)*
+* Fix uninitialized memory access in ``TrackInitParams`` *(@amandalund, #974)*
+* Run "warmup step" to hide once-off overhead from total run time *(@sethrj, #985)*
+* Fix linking to CUDA toolkit when using VecGeom *(@esseivaju, #989)*
+
+Reviewers: @sethrj *(15)*, @amandalund *(9)*, @esseivaju *(4)*, @whokion *(2)*, @mrguilima *(1)*, @stognini *(1)*, @tmdelellis *(1)*
+
+Documentation improvements
+--------------------------
+
+* Document how to link loadable shared libraries with Celeritas *(@drbenmorgan, #842)*
+* Extend geometry robustness testing *(@sethrj, #858)*
+* Release v0.3.1 *(@sethrj, #876)*
+* Fix density correction calculation in Seltzer-Berger test *(@amandalund, #921)*
+* Release v0.3.2 *(@sethrj, #925)*
+* Update roles to distinguish "core advisor" *(@sethrj, #947)*
+* Add environment scripts for exalearn4 *(@esseivaju, #971)*
+* Stop previous builds when new changes are pushed *(@aprokop, #997)*
+* Fix test build with single precision and disable failing tests *(@sethrj, #998)*
+* Add Orange Shift tracking flow control test *(@tmdelellis, #1003)*
+* Use consistent energy intervals for model applicability and selection *(@amandalund, #1015)*
+* Update cmake presets for Zeus *(@esseivaju, #1028)*
+
+Reviewers: @sethrj *(7)*, @amandalund *(4)*, @paulromano *(1)*, @pcanal *(1)*, @stognini *(1)*
+
+Minor internal changes
+----------------------
+
+* Add field template deduction and parameterized test *(@sethrj, #820)*
+* Update CI to VecGeom 1.2.3 *(@sethrj, #819)*
+* Improve logger construction and add test helper class *(@sethrj, #826)*
+* Hotfix: fix warning when building with Geant4@11 *(@sethrj, #833)*
+* Remove variadic templating from track executor *(@sethrj, #832)*
+* Refactor hit manager SD mapping *(@sethrj, #835)*
+* Apply C++ core guidelines for copy/move assignment/construction *(@esseivaju, #834)*
+* Add ``screening_factor`` to ``ImportEmParameters`` *(@stognini, #840)*
+* cmake-rdc: add support for MODULE library. *(@pcanal, #848)*
+* Add some quality-of-life CMake defaults *(@sethrj, #847)*
+* Require semicolon for statement-like CELER_X_COPY_MOVE macros *(@sethrj, #855)*
+* Hotfix: fix duplicate HepMC3 symbols by creating a wrapper function *(@sethrj, #865)*
+* Fix large function warnings by disabling device debug code by default *(@sethrj, #866)*
+* Add PolyEvaluator deduction guides *(@hhollenb, #871)*
+* Add thread-safe assertion to RootStepWriter *(@stognini, #873)*
+* Export full Celeritas version string as well as defaulted CMake variables *(@sethrj, #870)*
+* Reuse chord length between successive field advances *(@sethrj, #875)*
+* Improve polynomial deduction guide *(@sethrj, #878)*
+* Validate ``KernelParamCalculator`` block size using CUDA/HIP function attributes *(@esseivaju, #877)*
+* Refactor and extend BoundingBox *(@elliottbiondo, #879)*
+* Allow downstream packages to find a newer version of Celeritas *(@sethrj, #884)*
+* Hotfix: fix missing include from #849 *(@stognini, #898)*
+* Refactor event IO test for reusability *(@sethrj, #902)*
+* Hardcode ``PrimaryGenerator`` RNG engine and inherit from ``EventReaderInterface`` *(@amandalund, #913)*
+* Define variant helpers and refactor surface type dispatch *(@sethrj, #911)*
+* Use trailing underscore for "sentinel" classes in OpaqueId *(@sethrj, #919)*
+* Bikeshedding changes to BIH *(@sethrj, #918)*
+* Hotfix: fix crash when running celer-g4 without cuda *(@sethrj, #928)*
+* Rewrite soft equality for simplicity *(@sethrj, #932)*
+* Optimize ORANGE surface intersection testing *(@sethrj, #934)*
+* Hotfix: warning in ipow template instantiation *(@sethrj, #937)*
+* Update documentation and precalculate Wenzel nuclear form factor constants *(@sethrj, #926)*
+* Use async allocation for temporary track sorting storage. *(@esseivaju, #946)*
+* Fix build errors on macOS *(@stognini, #950)*
+* Add defaults and runtime checking to primary generator *(@sethrj, #957)*
+* Simplify nearly-zero surface displacements to zero *(@sethrj, #945)*
+* Avoid maybe_unused attribute because of old GCC *(@sethrj, #952)*
+* Fix ORANGE rectangular array construction from SCALE *(@elliottbiondo, #958)*
+* Fix build errors in SCALE CI *(@sethrj, #963)*
+* Add option to disable track count output in celer-sim *(@amandalund, #964)*
+* Hotfix: windows build error and missing bbox construction *(@sethrj, #966)*
+* Hotfix: build errors due to ``if constexpr`` on NVCC < 11.5 *(@sethrj, #969)*
+* Reorganize JSON input and unit test for ORANGE *(@sethrj, #972)*
+* Improve inlining and warning messages for scoped profiling *(@sethrj, #975)*
+* Drop trailing underscores for private functions and leading ``this->`` for private data *(@sethrj, #980)*
+* Support HIP 5.1.0 and add Frontier build scripts *(@sethrj, #981)*
+* Add more profiling ranges and fix return code checks *(@sethrj, #982)*
+* Refactor surface input with vector of variants *(@sethrj, #924)*
+* Improve performance with lower launch bounds *(@sethrj, #984)*
+* Refactor universe insertion and add universe accessors to orange params *(@sethrj, #977)*
+* Unify names for celer-sim and celer-g4 input *(@amandalund, #993)*
+* Use fused multiply-add to improve performance and numerical accuracy *(@sethrj, #995)*
+* Support device-specific launch bounds *(@esseivaju, #986)*
+* Make boundary distance persistent to improve Shift performance *(@sethrj, #1002)*
+* Fix exception handling flags for Windows MSVC builds *(@sethrj, #1005)*
+* Optimize ORANGE surface crossings and checks *(@sethrj, #1004)*
+* Refactor detector construction and SharedParams output *(@sethrj, #1007)*
+* Add GitHub actions to CI *(@sethrj, #1020)*
+* Fix unchecked merge train wreck *(@sethrj, #1021)*
+* Refactor vecgeom setup in preparation for surface support *(@sethrj, #1017)*
+* Fix CI for "push" events *(@sethrj, #1022)*
+* Use default field driver options in celer-g4 test *(@amandalund, #1024)*
+* Fix duplicate libvecgeom.a in some components' build *(@mrguilima, #1027)*
+* Simplify data access for host collections *(@esseivaju, #1029)*
+* Update Celeritas CMake defaults and add documentation build *(@sethrj, #1030)*
+* Hotfix: CUDA 12.3.52 build error *(@sethrj, #1033)*
+* Add preflight github action *(@sethrj, #1032)*
+
+Reviewers: @amandalund *(19)*, @sethrj *(18)*, @pcanal *(13)*, @elliottbiondo *(8)*, @esseivaju *(7)*, @drbenmorgan *(3)*, @hhollenb *(3)*, @whokion *(1)*, @tmdelellis *(1)*, @mrguilima *(1)*
+
+**Full Changelog**: https://github.com/celeritas-project/celeritas/compare/v0.3.0...v0.4.0
