@@ -110,7 +110,8 @@ struct LdgLoader<T const, std::enable_if_t<std::is_enum_v<T>>>
     }
 };
 
-// True if T is supported by a LdgLoader specialization
+//---------------------------------------------------------------------------//
+//! True if T is supported by a LdgLoader specialization
 template<class T>
 inline constexpr bool is_ldg_supported_v
     = std::is_const_v<T>

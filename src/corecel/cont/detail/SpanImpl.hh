@@ -19,6 +19,7 @@ namespace celeritas
 {
 namespace detail
 {
+//---------------------------------------------------------------------------//
 /*!
  * Default type aliases for Span.
  */
@@ -34,8 +35,11 @@ struct SpanTraits
     using const_reference = std::add_lvalue_reference_t<element_type const>;
 };
 
+//---------------------------------------------------------------------------//
 /*!
- * Type aliases when data is read using __ldg. \c LdgValue checks that T is a
+ * Type aliases when data is read using __ldg.
+ *
+ * \c LdgValue checks that T is a
  * valid type (const arithmetic or OpaqueId). Since \c LdgIterator returns a
  * copy of the data read, we can't return a reference to the original data, we
  * need to return a copy as well.
@@ -43,8 +47,7 @@ struct SpanTraits
 template<class T>
 struct SpanTraits<LdgValue<T>>
 {
-    // element_type is always const
-    using element_type = typename LdgValue<T>::value_type;
+    using element_type = typename LdgValue<T>::value_type;  // Always const!
     using pointer = std::add_pointer_t<element_type const>;
     using const_pointer = pointer;
     using iterator = LdgIterator<element_type const>;
@@ -52,6 +55,7 @@ struct SpanTraits<LdgValue<T>>
     using reference = std::remove_const_t<element_type>;
     using const_reference = std::remove_const_t<element_type>;
 };
+
 //---------------------------------------------------------------------------//
 //! Sentinel value for span of dynamic type
 constexpr std::size_t dynamic_extent = std::size_t(-1);

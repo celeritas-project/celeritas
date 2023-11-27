@@ -15,12 +15,14 @@
 #include "accel/SetupOptions.hh"
 #include "accel/SharedParams.hh"
 
-#include "GeantDiagnostics.hh"
+class G4VExceptionHandler;
 
 namespace celeritas
 {
 namespace app
 {
+class ExceptionHandler;
+class GeantDiagnostics;
 //---------------------------------------------------------------------------//
 /*!
  * Set up and tear down Celeritas.
@@ -58,8 +60,10 @@ class RunAction final : public G4UserRunAction
     SPParams params_;
     SPTransporter transport_;
     SPDiagnostics diagnostics_;
+    std::shared_ptr<ExceptionHandler> exception_handler_;
     bool init_shared_;
     Stopwatch get_transport_time_;
+    G4VExceptionHandler* orig_eh_{nullptr};
 };
 
 //---------------------------------------------------------------------------//

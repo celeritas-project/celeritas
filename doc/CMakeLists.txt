@@ -60,13 +60,8 @@ set(DOXYGEN_PREDEFINED "__DOXYGEN__")
 set(DOXYGEN_USE_MATHJAX YES)
 
 # Verbosity/warning levels
-if(NOT DEFINED DOXYGEN_QUIET)
-  set(DOXYGEN_QUIET YES)
-endif()
-if(NOT DEFINED DOXYGEN_WARN_IF_UNDOCUMENTED)
-  # Missing parameters and members have many false positives
-  set(DOXYGEN_WARN_IF_UNDOCUMENTED NO)
-endif()
+celeritas_set_default(DOXYGEN_QUIET YES)
+celeritas_set_default(DOXYGEN_WARN_IF_UNDOCUMENTED NO)
 
 # Output options
 set(DOXYGEN_PROJECT_LOGO

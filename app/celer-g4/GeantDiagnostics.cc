@@ -11,10 +11,10 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/MemRegistry.hh"
+#include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
 
-#include "G4RunManager.hh"
 #include "GlobalSetup.hh"
 
 #if CELERITAS_USE_JSON
@@ -76,6 +76,9 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
         output_reg->insert(std::make_shared<BuildOutput>());
     }
 
+    // Create shared exception handler
+    meh_ = std::make_shared<MultiExceptionHandler>();
+
     CELER_ENSURE(*this);
 }
 
@@ -90,6 +93,10 @@ void GeantDiagnostics::Finalize()
 {
     // Reset all data
     CELER_LOG_LOCAL(debug) << "Resetting diagnostics";
+    if (meh_)
+    {
+        log_and_rethrow(std::move(*meh_));
+    }
     *this = {};
 
     CELER_ENSURE(!*this);
