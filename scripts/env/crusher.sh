@@ -2,12 +2,13 @@
 
 _celer_base=$PROJWORK/csc404/celeritas-crusher
 
-# From %clang@14.0.0-rocm5.1.0 in OLCF's spack compilers:
-module load PrgEnv-amd/8.3.3 amd/5.1.0 craype-x86-trento libfabric \
+# From %clang@14.0.0-rocm5.6.0 in OLCF's spack compilers
+# but upgraded to newer amd
+module load PrgEnv-amd/8.3.3 amd/5.6.0 craype-x86-trento libfabric \
   cray-pmi/6.1.2 cray-python/3.9.13.1
 export RFE_811452_DISABLE=1
 export LD_LIBRARY_PATH=/opt/cray/pe/pmi/6.1.2/lib:$LD_LIBRARY_PATH:/opt/cray/pe/gcc-libs:/opt/cray/libfabric/1.15.0.0/lib64
-export LIBRARY_PATH=/opt/rocm-5.1.0/lib:/opt/rocm-5.1.0/lib64:$LIBRARY_PATH
+export LIBRARY_PATH=/opt/rocm-5.6.0/lib:$LIBRARY_PATH
 
 # Avoid linking multiple different libsci (one with openmp, one without)
 module unload cray-libsci
