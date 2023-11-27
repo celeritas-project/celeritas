@@ -131,15 +131,17 @@ LocalSurfaceVisitor::operator()(F&& func, LocalSurfaceId id)
 template<class T>
 CELER_FUNCTION T LocalSurfaceVisitor::make_surface(LocalSurfaceId id) const
 {
-    using ItemIdT = typename decltype(params_.reals)::ItemIdT;
+    using Reals = decltype(params_.reals);
+    using ItemIdT = typename Reals::ItemIdT;
+    using ItemRangeT = typename Reals::ItemRangeT;
     ItemIdT offset
         = this->get_item(params_.real_ids, surfaces_.data_offsets, id);
     constexpr size_type size{T::StorageSpan::extent};
     CELER_ASSERT(offset + size <= params_.reals.size());
-    // Construct a range used to index into collection using the appropriate
-    // operator[] overload then convert to a statically sized span using the
-    // first() member template function as required by surface ctor
-    return T{params_.reals[{offset, offset + size}].template first<size>()};
+    auto storage_span = params_.reals[ItemRangeT{offset, offset + size}];
+    // Convert to a statically sized span using the first() member template
+    // function, then construct a surface, for LdgSpan to work correctly.
+    return T{storage_span.template first<size>()};
 }
 
 //---------------------------------------------------------------------------//
