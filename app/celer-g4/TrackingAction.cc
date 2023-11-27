@@ -15,6 +15,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "accel/ExceptionConverter.hh"
 
 namespace celeritas
 {
@@ -59,7 +60,8 @@ void TrackingAction::PreUserTrackingAction(G4Track const* track)
         != std::end(allowed_particles))
     {
         // Celeritas is transporting this track
-        transport_->Push(*track);
+        ExceptionConverter call_g4exception{"celer0003", params_.get()};
+        CELER_TRY_HANDLE(transport_->Push(*track), call_g4exception);
         const_cast<G4Track*>(track)->SetTrackStatus(fStopAndKill);
     }
 }
@@ -70,9 +72,9 @@ void TrackingAction::PreUserTrackingAction(G4Track const* track)
  */
 void TrackingAction::PostUserTrackingAction(G4Track const* track)
 {
-    if (diagnostics_->StepDiagnostic())
+    if (diagnostics_->step_diagnostic())
     {
-        diagnostics_->StepDiagnostic()->Update(track);
+        diagnostics_->step_diagnostic()->Update(track);
     }
 }
 

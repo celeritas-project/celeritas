@@ -183,7 +183,7 @@ void ExceptionConverter::operator()(std::exception_ptr eptr) const
     {
         // Translate a runtime error into a G4Exception call
         std::ostringstream where;
-        if (e.details().file)
+        if (!e.details().file.empty())
         {
             where << strip_source_dir(e.details().file);
         }

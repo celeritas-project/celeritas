@@ -19,6 +19,7 @@
 
 namespace celeritas
 {
+class MultiExceptionHandler;
 namespace app
 {
 //---------------------------------------------------------------------------//
@@ -37,6 +38,7 @@ class GeantDiagnostics
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
     using SPStepDiagnostic = std::shared_ptr<GeantStepDiagnostic>;
     using SPTimerOutput = std::shared_ptr<TimerOutput>;
+    using SPMultiExceptionHandler = std::shared_ptr<MultiExceptionHandler>;
     //!@}
 
   public:
@@ -53,10 +55,13 @@ class GeantDiagnostics
     void Finalize();
 
     // Access the step diagnostic
-    inline SPStepDiagnostic const& StepDiagnostic() const;
+    inline SPStepDiagnostic const& step_diagnostic() const;
 
     // Access the timer output
-    inline SPTimerOutput const& Timer() const;
+    inline SPTimerOutput const& timer() const;
+
+    // Access the exception handler
+    inline SPMultiExceptionHandler const& multi_exception_handler() const;
 
     //! Whether this instance is initialized
     explicit operator bool() const { return static_cast<bool>(timer_output_); }
@@ -67,6 +72,7 @@ class GeantDiagnostics
     SPOutputRegistry output_reg_;
     SPStepDiagnostic step_diagnostic_;
     SPTimerOutput timer_output_;
+    SPMultiExceptionHandler meh_;
 };
 
 //---------------------------------------------------------------------------//
@@ -82,7 +88,7 @@ void GeantDiagnostics::Initialize(SharedParams const& params)
 /*!
  * Access the step diagnostic.
  */
-auto GeantDiagnostics::StepDiagnostic() const -> SPStepDiagnostic const&
+auto GeantDiagnostics::step_diagnostic() const -> SPStepDiagnostic const&
 {
     CELER_EXPECT(*this);
     return step_diagnostic_;
@@ -92,11 +98,23 @@ auto GeantDiagnostics::StepDiagnostic() const -> SPStepDiagnostic const&
 /*!
  * Access the timer output.
  */
-auto GeantDiagnostics::Timer() const -> SPTimerOutput const&
+auto GeantDiagnostics::timer() const -> SPTimerOutput const&
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(timer_output_);
     return timer_output_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access the multi-exception handler.
+ */
+auto GeantDiagnostics::multi_exception_handler() const
+    -> SPMultiExceptionHandler const&
+{
+    CELER_EXPECT(*this);
+    CELER_EXPECT(meh_);
+    return meh_;
 }
 
 //---------------------------------------------------------------------------//
