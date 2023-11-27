@@ -309,11 +309,10 @@ TEST_F(SimpleCollectionTest, accessors)
     EXPECT_EQ(321, host_ref_cref[AllInts<host>{}].back());
 
     CRef<host> host_cref{host_val};
-    EXPECT_TRUE((std::is_same_v<decltype(host_cref[IntId{0}]), int>));
+    EXPECT_TRUE((std::is_same_v<decltype(host_cref[IntId{0}]), int const&>));
+    EXPECT_TRUE((std::is_same_v<decltype(host_cref[irange]), Span<int const>>));
     EXPECT_TRUE((
-        std::is_same_v<decltype(host_cref[irange]), Span<LdgValue<int const>>>));
-    EXPECT_TRUE((std::is_same_v<decltype(host_cref[AllInts<host>{}]),
-                                Span<LdgValue<int const>>>));
+        std::is_same_v<decltype(host_cref[AllInts<host>{}]), Span<int const>>));
     EXPECT_EQ(4, host_ref.size());
     EXPECT_EQ(123, host_cref[IntId{0}]);
     EXPECT_EQ(123, host_cref[irange].front());
@@ -341,6 +340,14 @@ TEST_F(SimpleCollectionTest, TEST_IF_CELER_DEVICE(algo_device))
     Value<device> src;
     resize(&src, 2);
     fill(123, &src);
+
+    CRef<device> device_cref{src};
+    EXPECT_TRUE((std::is_same_v<decltype(device_cref[IntId{0}]), int>));
+    EXPECT_TRUE(
+        (std::is_same_v<decltype(device_cref[IntRange{IntId{0}, IntId{2}}]),
+                        LdgSpan<int const>>));
+    EXPECT_TRUE((std::is_same_v<decltype(device_cref[AllInts<device>{}]),
+                                LdgSpan<int const>>));
 
     // Test 'copy_to_host'
     std::vector<int> dst(src.size());

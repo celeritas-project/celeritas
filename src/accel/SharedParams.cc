@@ -298,12 +298,13 @@ int SharedParams::num_streams() const
         std::lock_guard scoped_lock{updating_mutex()};
         if (!num_streams_)
         {
-            CELER_LOG_LOCAL(debug) << "Setting number of streams";
-
             // Default to setting the maximum number of streams based on Geant4
             // run manager.
             const_cast<SharedParams*>(this)->num_streams_
                 = celeritas::get_geant_num_threads();
+
+            CELER_LOG_LOCAL(debug)
+                << "Set number of streams to " << num_streams_;
         }
     }
 
@@ -486,6 +487,14 @@ void SharedParams::initialize_core(SetupOptions const& options)
         // Save number of streams... no other thread should be updating this
         // simultaneously but we just make sure of it
         std::lock_guard scoped_lock{updating_mutex()};
+        if (num_streams_ != 0 && num_streams_ != num_streams)
+        {
+            // This could happen if someone queries the number of streams
+            // before initializing celeritas
+            CELER_LOG(warning)
+                << "Changing number of streams from " << num_streams_
+                << " to user-specified " << num_streams;
+        }
         num_streams_ = num_streams;
     }
     else

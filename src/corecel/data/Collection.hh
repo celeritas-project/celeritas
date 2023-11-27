@@ -238,7 +238,7 @@ class Collection
     static_assert(std::is_trivially_destructible<T>::value || CELERITAS_USE_HIP,
                   "Collection element is not trivially destructible");
 
-    using CollectionTraitsT = detail::CollectionTraits<T, W>;
+    using CollectionTraitsT = detail::CollectionTraits<T, W, M>;
     using const_value_type = typename CollectionTraitsT::const_type;
 
   public:

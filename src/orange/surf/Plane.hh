@@ -58,7 +58,8 @@ class Plane
     explicit inline CELER_FUNCTION Plane(Real3 const& n, real_type d);
 
     // Construct from raw data
-    explicit inline CELER_FUNCTION Plane(Storage);
+    template<class R>
+    explicit inline CELER_FUNCTION Plane(Span<R, StorageSpan::extent>);
 
     // Promote from an axis-aligned plane
     template<Axis T>
@@ -121,7 +122,8 @@ CELER_FUNCTION Plane::Plane(Real3 const& n, real_type d) : normal_{n}, d_{d}
 /*!
  * Construct from raw data.
  */
-CELER_FUNCTION Plane::Plane(Storage data)
+template<class R>
+CELER_FUNCTION Plane::Plane(Span<R, StorageSpan::extent> data)
     : normal_{data[0], data[1], data[2]}, d_{data[3]}
 {
 }
