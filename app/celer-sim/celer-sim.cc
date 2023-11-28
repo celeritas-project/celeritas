@@ -85,7 +85,7 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
 #if CELERITAS_USE_JSON
     nlohmann::json::parse(*is).get_to(*run_input);
 #else
-    CELER_NOT_CONFIGURED("nlohmann_json");
+    CELER_ASSERT_UNREACHABLE();
 #endif
     output->insert(std::make_shared<OutputInterfaceAdapter<RunnerInput>>(
         OutputInterface::Category::input, "*", run_input));

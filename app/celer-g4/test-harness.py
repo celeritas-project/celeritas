@@ -102,3 +102,9 @@ with open(out_file) as f:
     result = json.load(f)
 
 pprint(result["result"])
+
+# Rewrite with indentation
+with open(out_file, 'w') as f:
+    json.dump(result, f, indent=1)
+
+

@@ -21,6 +21,8 @@
 #    include "corecel/io/OutputInterfaceAdapter.hh"
 #    include "corecel/sys/EnvironmentIO.json.hh"
 #    include "corecel/sys/MemRegistryIO.json.hh"
+
+#    include "RunInputIO.json.hh"
 #endif
 
 namespace celeritas
@@ -51,11 +53,12 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
     timer_output_ = std::make_shared<TimerOutput>(num_threads);
     output_reg->insert(timer_output_);
 
-    if (GlobalSetup::Instance()->StepDiagnostic())
+    auto& global_setup = *GlobalSetup::Instance();
+    if (global_setup.StepDiagnostic())
     {
         // Create the track step diagnostic and add to output registry
         step_diagnostic_ = std::make_shared<GeantStepDiagnostic>(
-            GlobalSetup::Instance()->GetStepDiagnosticBins(), num_threads);
+            global_setup.GetStepDiagnosticBins(), num_threads);
         output_reg->insert(step_diagnostic_);
     }
 
@@ -75,6 +78,12 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
 #endif
         output_reg->insert(std::make_shared<BuildOutput>());
     }
+
+#if CELERITAS_USE_JSON
+    // Save input options
+    output_reg->insert(OutputInterfaceAdapter<RunInput>::from_const_ref(
+        OutputInterface::Category::input, "*", global_setup.input()));
+#endif
 
     // Create shared exception handler
     meh_ = std::make_shared<MultiExceptionHandler>();
