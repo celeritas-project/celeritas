@@ -16,12 +16,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-fast:
+    uses: ./.github/workflows/build-fast.yml
+  build-full:
     uses: ./.github/workflows/build-full.yml
   doc:
     uses: ./.github/workflows/doc.yml
   all:
-    needs: [build, doc]
+    needs: [build-fast, build-full, doc]
     runs-on: ubuntu-latest
     steps:
     - name: Success
