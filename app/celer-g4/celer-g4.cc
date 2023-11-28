@@ -11,16 +11,14 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 #include <CLHEP/Random/Random.h>
+#include <FTFP_BERT.hh>
 #include <G4ParticleTable.hh>
 #include <G4RunManager.hh>
 #include <G4UIExecutive.hh>
 #include <G4Version.hh>
-
-#include "accel/SharedParams.hh"
-
-#include "GlobalSetup.hh"
 
 #if G4VERSION_NUMBER >= 1100
 #    include <G4RunManagerFactory.hh>
@@ -31,8 +29,14 @@
 #    include <G4GlobalConfig.hh>
 #endif
 
-#include <FTFP_BERT.hh>
+#include "celeritas_config.h"
+#if CELERITAS_USE_JSON
+#    include <nlohmann/json.hpp>
 
+#    include "RunInputIO.json.hh"
+#endif
+
+#include "celeritas_version.h"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/ExceptionOutput.hh"
@@ -52,6 +56,7 @@
 #include "celeritas/ext/ScopedGeantLogger.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/ext/detail/GeantPhysicsList.hh"
+#include "accel/SharedParams.hh"
 
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
@@ -66,6 +71,28 @@ namespace app
 {
 namespace
 {
+//---------------------------------------------------------------------------//
+void print_usage(std::string_view exec_name)
+{
+    // clang-format off
+    std::cerr << "usage: " << exec_name << " {input}.json\n"
+                 "       " << exec_name << " {commands}.mac\n"
+                 "       " << exec_name << " --interactive\n"
+                 "       " << exec_name << " [--help|-h]\n"
+                 "       " << exec_name << " --version\n"
+                 "       " << exec_name << " --dump-default\n"
+                 "Environment variables:\n"
+                 "  G4FORCE_RUN_MANAGER_TYPE: MT or Serial\n"
+                 "  G4FORCENUMBEROFTHREADS: set CPU worker thread count\n"
+                 "  CELER_DISABLE: nonempty disables offloading\n"
+                 "  CELER_DISABLE_DEVICE: nonempty disables CUDA\n"
+                 "  CELER_DISABLE_ROOT: nonempty disables ROOT I/O\n"
+                 "  CELER_LOG: global logging level\n"
+                 "  CELER_LOG_LOCAL: thread-local logging level\n"
+              << std::endl;
+    // clang-format on
+}
+
 //---------------------------------------------------------------------------//
 void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
 {
@@ -202,23 +229,6 @@ void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
  */
 int main(int argc, char* argv[])
 {
-    if (argc != 2 || argv[1] == "--help"sv || argv[1] == "-h"sv)
-    {
-        std::cerr << "usage: " << argv[0] << " {input}.json\n"
-                  << "       " << argv[0] << " {commands}.mac\n"
-                  << "       " << argv[0] << " --interactive\n"
-                  << "Environment variables:\n"
-                  << "  G4FORCE_RUN_MANAGER_TYPE: MT or Serial\n"
-                  << "  G4FORCENUMBEROFTHREADS: set CPU worker thread count\n"
-                  << "  CELER_DISABLE: nonempty disables offloading\n"
-                  << "  CELER_DISABLE_DEVICE: nonempty disables CUDA\n"
-                  << "  CELER_DISABLE_ROOT: nonempty disables ROOT I/O\n"
-                  << "  CELER_LOG: global logging level\n"
-                  << "  CELER_LOG_LOCAL: thread-local logging level\n"
-                  << std::endl;
-        return EXIT_FAILURE;
-    }
-
     using celeritas::MpiCommunicator;
     using celeritas::ScopedMpiInit;
 
@@ -234,6 +244,36 @@ int main(int argc, char* argv[])
     {
         CELER_LOG(critical) << "This app cannot run with MPI parallelism.";
         return EXIT_FAILURE;
+    }
+
+    // Process input arguments
+    if (argc != 2)
+    {
+        celeritas::app::print_usage(argv[0]);
+        return EXIT_FAILURE;
+    }
+    std::string_view filename{argv[1]};
+    if (filename == "--help"sv || filename == "-h"sv)
+    {
+        celeritas::app::print_usage(argv[0]);
+        return EXIT_SUCCESS;
+    }
+    if (filename == "--version"sv || filename == "-v"sv)
+    {
+        std::cout << celeritas_version << std::endl;
+        return EXIT_SUCCESS;
+    }
+    if (filename == "--dump-default"sv)
+    {
+#if CELERITAS_USE_JSON
+        std::cout << nlohmann::json{celeritas::app::RunInput{}}.dump(1)
+                  << std::endl;
+        return EXIT_SUCCESS;
+#else
+        CELER_LOG(critical) << "JSON is not enabled in this build of "
+                               "Celeritas";
+        return EXIT_FAILURE;
+#endif
     }
 
     // Create params, which need to be shared with detectors as well as

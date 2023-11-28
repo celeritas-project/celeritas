@@ -150,7 +150,7 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
 }
 
 //---------------------------------------------------------------------------//
-void print_usage(char const* exec_name)
+void print_usage(std::string_view exec_name)
 {
     // clang-format off
     std::cerr << "usage: " << exec_name << " {input}.json\n"
