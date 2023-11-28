@@ -85,7 +85,7 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
 #if CELERITAS_USE_JSON
     nlohmann::json::parse(*is).get_to(*run_input);
 #else
-    CELER_NOT_CONFIGURED("nlohmann_json");
+    CELER_ASSERT_UNREACHABLE();
 #endif
     output->insert(std::make_shared<OutputInterfaceAdapter<RunnerInput>>(
         OutputInterface::Category::input, "*", run_input));
@@ -150,7 +150,7 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
 }
 
 //---------------------------------------------------------------------------//
-void print_usage(char const* exec_name)
+void print_usage(std::string_view exec_name)
 {
     // clang-format off
     std::cerr << "usage: " << exec_name << " {input}.json\n"
@@ -227,7 +227,7 @@ int main(int argc, char* argv[])
     if (filename == "--dump-default"sv)
     {
 #if CELERITAS_USE_JSON
-        std::cout << nlohmann::json{celeritas::app::RunnerInput{}}.dump(1)
+        std::cout << nlohmann::json(celeritas::app::RunnerInput{}).dump(1)
                   << std::endl;
 #endif
         return EXIT_SUCCESS;

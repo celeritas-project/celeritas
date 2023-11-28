@@ -111,15 +111,7 @@ void GlobalSetup::SetIgnoreProcesses(SetupOptions::VecString ignored)
  */
 void GlobalSetup::ReadInput(std::string const& filename)
 {
-    if (ends_with(filename, ".mac"))
-    {
-        CELER_LOG(status) << "Executing macro commands from '" << filename
-                          << "'";
-        G4UImanager* ui = G4UImanager::GetUIpointer();
-        CELER_ASSERT(ui);
-        ui->ApplyCommand(std::string("/control/execute ") + filename);
-    }
-    else
+    if (ends_with(filename, ".json"))
     {
 #if CELERITAS_USE_JSON
         using std::to_string;
@@ -153,17 +145,23 @@ void GlobalSetup::ReadInput(std::string const& filename)
         options_->cuda_heap_size = input_.cuda_heap_size;
         options_->sync = input_.sync;
         options_->default_stream = input_.default_stream;
-
-        // Execute macro for Geant4 commands (e.g. to set verbosity)
-        if (!input_.macro_file.empty())
-        {
-            G4UImanager* ui = G4UImanager::GetUIpointer();
-            CELER_ASSERT(ui);
-            ui->ApplyCommand("/control/execute " + input_.macro_file);
-        }
 #else
         CELER_NOT_CONFIGURED("nlohmann_json");
 #endif
+    }
+    else if (ends_with(filename, ".mac"))
+    {
+        input_.macro_file = filename;
+    }
+
+    // Execute macro for Geant4 commands (e.g. to set verbosity)
+    if (!input_.macro_file.empty())
+    {
+        CELER_LOG(status) << "Executing macro commands from '" << filename
+                          << "'";
+        G4UImanager* ui = G4UImanager::GetUIpointer();
+        CELER_ASSERT(ui);
+        ui->ApplyCommand("/control/execute " + input_.macro_file);
     }
 
     // Set the filename for JSON output
