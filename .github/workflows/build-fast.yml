@@ -1,11 +1,11 @@
-# Build directly on the GitHub runner
-name: build-local
+# Build directly on the GitHub runner with caching
+name: build-fast
 on:
   workflow_dispatch:
   workflow_call:
 
 concurrency:
-  group: build-local-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  group: build-fast-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
   cancel-in-progress: true
 
 jobs:
@@ -64,7 +64,9 @@ jobs:
         run: |
           mkdir build && cd build
           cmake -GNinja \
-            -DCeleritas_GIT_DESCRIBE=";-pr.${{github.event.pull_request.number}};" \
+            -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
+              && format(';-pr.{0};', github.event.pull_request.number)
+              || format(';-{0};', github.ref_name)}}" \
             -DCELERITAS_BUILD_DEMOS:BOOL=ON \
             -DCELERITAS_BUILD_TESTS:BOOL=ON \
             -DCELERITAS_USE_SWIG=OFF \
