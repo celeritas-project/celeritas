@@ -18,10 +18,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-local:
-    uses: ./.github/workflows/build-local.yml
+  build-fast:
+    uses: ./.github/workflows/build-fast.yml
   all-prechecks:
-    needs: [build-local]
+    needs: [build-fast]
     runs-on: ubuntu-latest
     steps:
     - name: Success
