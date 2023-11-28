@@ -262,9 +262,10 @@ void DetectorConstruction::ConstructSDandField()
     }
     else if (sd_type == SensitiveDetectorType::simple_calo)
     {
-        CELER_LOG_LOCAL(status) << "Attaching simple calorimeters";
         for (auto& calo : simple_calos_)
         {
+            CELER_LOG_LOCAL(status) << "Attaching simple calorimeter '"
+                << calo->label() << '\'';
             // Create and attach SD
             auto detector = calo->MakeSensitiveDetector();
             CELER_ASSERT(detector);
