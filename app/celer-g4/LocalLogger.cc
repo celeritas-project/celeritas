@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "LocalLogger.hh"
 
+#include <mutex>
 #include <G4Threading.hh>
 
 #include "corecel/io/ColorUtils.hh"
@@ -21,29 +22,37 @@ namespace app
  */
 void LocalLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
 {
+    // Write preamble to a buffer first
+    std::ostringstream os;
+
     int local_thread = G4Threading::G4GetThreadId();
-    std::clog << color_code('W') << '[';
+    os << color_code('W') << '[';
     if (local_thread >= 0)
     {
-        std::clog << local_thread + 1;
+        os << local_thread + 1;
     }
     else
     {
-        std::clog << 'M';
+        os << 'M';
     }
-    std::clog << '/' << num_threads_ << "] " << color_code(' ');
+    os << '/' << num_threads_ << "] " << color_code(' ');
 
     if (lev == LogLevel::debug || lev >= LogLevel::warning)
     {
         // Output problem line/file for debugging or high level
-        std::clog << color_code('x') << prov.file;
+        os << color_code('x') << prov.file;
         if (prov.line)
-            std::clog << ':' << prov.line;
-        std::clog << color_code(' ') << ": ";
+            os << ':' << prov.line;
+        os << color_code(' ') << ": ";
     }
+    os << to_color_code(lev) << to_cstring(lev) << ": " << color_code(' ');
 
-    std::clog << to_color_code(lev) << to_cstring(lev) << ": "
-              << color_code(' ') << msg << std::endl;
+    {
+        // Write buffered content and message with a mutex, then flush
+        static std::mutex clog_mutex;
+        std::lock_guard scoped_lock{clog_mutex};
+        std::clog << os.str() << msg << std::endl;
+    }
 }
 
 //---------------------------------------------------------------------------//
