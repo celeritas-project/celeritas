@@ -23,7 +23,7 @@ methods needed to integrate into a Geant4 application's UserActions or other use
 CMake infrastructure
 --------------------
 
-.. literalinclude:: ../../example/accel/CMakeLists.txt
+.. literalinclude:: ../../../example/accel/CMakeLists.txt
    :language: cmake
    :start-at: project(
    :end-before: END EXAMPLE CODE
@@ -38,11 +38,11 @@ frameworks or other apps that use a task-based runner.
 Offload using a concrete G4UserTrackingAction
 ---------------------------------------------
 
-.. literalinclude:: ../../example/accel/simple-offload.cc
+.. literalinclude:: ../../../example/accel/simple-offload.cc
    :start-at: #include
 
 Offload using a concrete G4VFastSimulationModel
 -----------------------------------------------
 
-.. literalinclude:: ../../example/accel/fastsim-offload.cc
+.. literalinclude:: ../../../example/accel/fastsim-offload.cc
    :start-at: #include

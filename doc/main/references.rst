@@ -15,6 +15,6 @@ References
 
    .. _sphinxbib: https://pypi.org/project/sphinxcontrib-bibtex/
 
-.. bibliography:: _static/references.bib
+.. bibliography:: ../_static/references.bib
    :all:
 

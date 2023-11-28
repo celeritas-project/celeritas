@@ -19,14 +19,15 @@ all_authors = [
  # Remaining core team in alphabetical order
  'Philippe Canal',
  'Julien Esseiva',
- 'Tom Evans',
  'Soon Yung Jun',
  'Guilherme Lima',
  'Amanda Lund',
- 'Paul Romano',
- 'Stefano C Tognini',
- # Notable contributors to code and documenation
  'Ben Morgan'
+ 'Stefano C Tognini',
+ # Core advisors
+ 'Thomas M Evans',
+ 'Marcel Demarteau',
+ 'Paul Romano',
 ]
 author = " and ".join(all_authors)
 copyright = '{:%Y}, UT–Battelle/ORNL and Celeritas team'.format(
