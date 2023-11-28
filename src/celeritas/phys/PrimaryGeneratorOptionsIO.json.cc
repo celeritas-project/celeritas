@@ -48,6 +48,11 @@ void from_json(nlohmann::json const& j, DistributionOptions& opts)
 
 void to_json(nlohmann::json& j, DistributionOptions const& opts)
 {
+    if (!opts)
+    {
+        j = nlohmann::json::object();
+        return;
+    }
     j = nlohmann::json{{"distribution", opts.distribution},
                        {"params", opts.params}};
 }
