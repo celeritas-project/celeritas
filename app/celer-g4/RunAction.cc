@@ -115,7 +115,7 @@ void RunAction::EndOfRunAction(G4Run const*)
 {
     ExceptionConverter call_g4exception{"celer0005"};
 
-    if (RootIO::use_root())
+    if (GlobalSetup::Instance()->root_sd_io())
     {
         // Close ROOT output of sensitive hits
         CELER_TRY_HANDLE(RootIO::Instance()->Close(), call_g4exception);

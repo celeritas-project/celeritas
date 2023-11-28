@@ -292,7 +292,7 @@ void DetectorConstruction::ConstructSDandField()
             sd_manager->AddNewDetector(detector.release());
 
             // Add to ROOT output
-            if (RootIO::use_root())
+            if (GlobalSetup::Instance()->root_sd_io())
             {
                 RootIO::Instance()->AddSensitiveDetector(start->first);
             }
