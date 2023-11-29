@@ -50,5 +50,8 @@ test -x "${CELER_SOURCE_DIR}/install/bin/celer-g4"
 # Test examples against installed celeritas
 export CMAKE_PRESET
 export CELER_SOURCE_DIR
+if [ "${CMAKE_PRESET#*"-vecgeom"}" != "${CMAKE_PRESET}" ]; then
+  # VecGeom is in use: ubuntu flags are too strict for it
+  export LDFLAGS=-Wl,--no-as-needed
+fi
 exec ${CELER_SOURCE_DIR}/scripts/ci/test-examples.sh
-
