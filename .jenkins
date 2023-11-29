@@ -9,52 +9,6 @@ pipeline {
   stages {
     stage('Build') {
       parallel {
-        stage('clang-minitest') {
-          agent {
-            docker {
-              image 'celeritas/ci-centos7-rocm5:2022-12-14.2'
-              // Note: this image does not require CUDA or HIP
-            }
-          }
-          steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh  centos-rocm minitest'
-          }
-          post {
-            always {
-              xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/*.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
-            }
-          }
-        }
-        stage('clang-asan') {
-          agent {
-            docker {
-              image 'celeritas/ci-centos7-rocm5:2022-12-14.2'
-            }
-          }
-          steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh centos-rocm asan'
-          }
-          post {
-            always {
-              xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/*.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
-            }
-          }
-        }
-        stage('clang-float') {
-          agent {
-            docker {
-              image 'celeritas/ci-centos7-rocm5:2022-12-14.2'
-            }
-          }
-          steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh centos-rocm float'
-          }
-          post {
-            always {
-              xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/*.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
-            }
-          }
-        }
         stage('hip-ndebug') {
           agent {
             docker {
@@ -149,22 +103,6 @@ pipeline {
           post {
             always {
               xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/Test.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
-            }
-          }
-        }
-        stage('clang-geant4') {
-          agent {
-            docker {
-              image 'celeritas/ci-centos7-rocm5:2022-12-14.2'
-              // Note: this image does not require CUDA or HIP
-            }
-          }
-          steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh  centos-rocm geant4'
-          }
-          post {
-            always {
-              xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/*.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
             }
           }
         }
