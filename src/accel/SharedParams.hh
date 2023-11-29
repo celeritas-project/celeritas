@@ -124,6 +124,9 @@ class SharedParams
     // Initialize shared data on the "master" thread with existing output
     // registry
     void Initialize(SetupOptions const& options, SPOutputRegistry reg);
+
+    // Set the output filename when celeritas is disabled
+    void set_output_filename(std::string const&);
     //!@}
 
   private:

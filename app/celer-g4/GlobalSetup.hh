@@ -82,6 +82,9 @@ class GlobalSetup
 
     //// NEW INTERFACE ////
 
+    //! Get setup options
+    SetupOptions const& setup_options() const { return *options_; }
+
     //! Get user input options
     RunInput const& input() const { return input_; }
 

@@ -18,7 +18,6 @@
 #include <G4ParticleTable.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
-#include <G4UImanager.hh>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
@@ -251,6 +250,19 @@ void SharedParams::Initialize(SetupOptions const& options, SPOutputRegistry reg)
 {
     CELER_EXPECT(reg);
     *this = SharedParams(options, std::move(reg));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Save a diagnostic output filename from a Geant4 app when Celeritas is off.
+ *
+ * This will be overwritten when calling Initialized with setup options.
+ *
+ * TODO: this hack should be deleted in v0.5.
+ */
+void SharedParams::set_output_filename(std::string const& filename)
+{
+    output_filename_ = filename;
 }
 
 //---------------------------------------------------------------------------//
@@ -594,17 +606,8 @@ void SharedParams::try_output() const
     if (CELERITAS_USE_JSON && !params_ && filename.empty())
     {
         // Setup was not called but JSON is available: make a default filename
-        G4UImanager* ui = G4UImanager::GetUIpointer();
-        filename = ui->GetCurrentValues("/celer/outputFile");
-        if (!filename.empty())
-        {
-            CELER_LOG(debug) << "Set Celeritas output filename from G4UI";
-        }
-        else
-        {
-            filename = "celeritas.json";
-            CELER_LOG(debug) << "Set default Celeritas output filename";
-        }
+        filename = "celeritas.json";
+        CELER_LOG(debug) << "Set default Celeritas output filename";
     }
 
     if (filename.empty())
