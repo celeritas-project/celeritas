@@ -173,17 +173,18 @@ bool SharedParams::CeleritasDisabled()
 
 //---------------------------------------------------------------------------//
 /*!
- * Set up Celeritas using Geant4 data.
+ * Set up Celeritas using Geant4 data and existing output registery.
  *
- * This is a separate step from construction because it has to happen at the
- * beginning of the run, not when user classes are created. It should be called
- * from the "master" thread (for MT mode) or from the main thread (for Serial),
- * and it must complete before any worker thread tries to access the shared
- * data.
+ * A design oversight in the \c GeantSimpleCalo means that the action registry
+ * *must* be created before \c SharedParams is initialized, and in the case
+ * where Celeritas is not disabled, initialization clears the existing
+ * registry. This prevents the calorimeter from writing output.
  */
-SharedParams::SharedParams(SetupOptions const& options)
+SharedParams::SharedParams(SetupOptions const& options, SPOutputRegistry oreg)
 {
     CELER_EXPECT(!*this);
+    output_reg_ = std::move(oreg);
+
     CELER_VALIDATE(!CeleritasDisabled(),
                    << "Celeritas shared params cannot be initialized when "
                       "Celeritas offloading is disabled via "
@@ -238,6 +239,33 @@ SharedParams::SharedParams(SetupOptions const& options)
     }
 
     CELER_ENSURE(*this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize shared data with existing output registry.
+ *
+ * TODO: this is a hack to be deleted in v0.5.
+ */
+void SharedParams::Initialize(SetupOptions const& options, SPOutputRegistry reg)
+{
+    CELER_EXPECT(reg);
+    *this = SharedParams(options, std::move(reg));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set up Celeritas using Geant4 data.
+ *
+ * This is a separate step from construction because it has to happen at the
+ * beginning of the run, not when user classes are created. It should be called
+ * from the "master" thread (for MT mode) or from the main thread (for Serial),
+ * and it must complete before any worker thread tries to access the shared
+ * data.
+ */
+SharedParams::SharedParams(SetupOptions const& options)
+    : SharedParams(options, nullptr)
+{
 }
 
 //---------------------------------------------------------------------------//
@@ -395,13 +423,8 @@ void SharedParams::initialize_core(SetupOptions const& options)
     CoreParams::Input params;
 
     // Create registries
-    if (!output_reg_)
-    {
-        output_reg_ = std::make_shared<OutputRegistry>();
-    }
-
     params.action_reg = std::make_shared<ActionRegistry>();
-    params.output_reg = output_reg_;
+    params.output_reg = this->output_reg();
 
     // Load geometry
     params.geometry = [&options] {
