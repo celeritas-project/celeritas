@@ -9,7 +9,7 @@
       "binaryDir": "${sourceDir}/build-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
-        "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "OFF"},
+        "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_DOCS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
@@ -18,16 +18,15 @@
         "CELERITAS_USE_HIP":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_MPI":    {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"},
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -Wno-psabi -pedantic -pedantic-errors",
-        "CMAKE_CUDA_FLAGS": "-Xcompiler -Wno-psabi",
+        "CMAKE_CUDA_FLAGS": "-lineinfo -Xptxas=-v -Xcompiler -Wno-psabi",
         "CMAKE_CUDA_ARCHITECTURES": {"type": "STRING", "value": "80"},
         "CMAKE_CXX_STANDARD": {"type": "STRING", "value": "17"},
         "CMAKE_CXX_EXTENSIONS": {"type": "BOOL", "value": "OFF"},
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-${presetName}",
-        "CMAKE_CXX_COMPILER": "CC",
         "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG -march=znver3 -mtune=znver3",
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"}
       }
@@ -37,6 +36,15 @@
       "displayName": "Perlmutter default options (GCC, debug)",
       "inherits": [".base"],
       "binaryDir": "${sourceDir}/build"
+    },
+    {
+      "name": "base-novg",
+      "displayName": "Perlmutter default options (GCC, debug)",
+      "inherits": [".debug", ".base"],
+      "binaryDir": "${sourceDir}/build-novg",
+      "cacheVariables": {
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
+      }
     },
     {
       "name": "reldeb-novg",
@@ -56,13 +64,17 @@
       "displayName": "Perlmutter release mode",
       "inherits": [".ndebug", ".base"],
       "cacheVariables": {
+        "BUILD_SHARED_LIBS":{"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
       }
     },
     {
       "name": "ndebug",
       "displayName": "Perlmutter release mode",
-      "inherits": [".ndebug", ".base"]
+      "inherits": [".ndebug", ".base"],
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS":{"type": "BOOL",   "value": "ON"}
+      }
     }
   ],
   "buildPresets": [
@@ -72,6 +84,7 @@
       "jobs": 8,
       "nativeToolOptions": ["-k0"]
     },
+    {"name": "base-novg", "configurePreset": "base-novg", "inherits": "base"},
     {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"},
     {"name": "ndebug-novg", "configurePreset": "ndebug-novg", "inherits": "base"},
     {"name": "reldeb", "configurePreset": "reldeb", "inherits": "base"},
@@ -84,6 +97,7 @@
       "output": {"outputOnFailure": true},
       "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 8}
     },
+    {"name": "base-novg", "configurePreset": "base-novg", "inherits": "base"},
     {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"},
     {"name": "ndebug-novg", "configurePreset": "ndebug-novg", "inherits": "base"},
     {"name": "reldeb", "configurePreset": "reldeb", "inherits": "base"},

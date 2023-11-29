@@ -18,3 +18,4 @@ fi
 
 . ${_SPACK_SOURCE_FILE}
 spack env activate celeritas
+export LD_LIBRARY_PATH=$SPACK_ENV/.spack-env/view/lib64:$LD_LIBRARY_PATH
