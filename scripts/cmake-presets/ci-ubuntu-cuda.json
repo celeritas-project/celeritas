@@ -20,7 +20,7 @@
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_TEST_VERBOSE": {"type": "BOOL", "value": "OFF"}, 
+        "CELERITAS_TEST_VERBOSE": {"type": "BOOL", "value": "OFF"},
         "CMAKE_CXX_STANDARD": "17",
         "CMAKE_CXX_EXTENSIONS": {"type": "BOOL", "value": "OFF"},
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror -Wno-error=deprecated-declarations",
@@ -49,39 +49,43 @@
       }
     },
     {
-      "name": "full-novg",
-      "description": "Build with debug, everything but VecGeom",
-      "inherits": [".mpi", "base"],
+      "name": "debug-orange",
+      "description": "Build with debug ORANGE and MPI",
+      "inherits": [".mpi", ".debug", "base"],
       "cacheVariables": {
-        "CELERITAS_TEST_VERBOSE": {"type": "BOOL", "value": "ON"}, 
         "CELERITAS_USE_SWIG": {"type": "BOOL", "value": "OFF"}
       }
     },
     {
-      "name": "full-novg-ndebug",
-      "description": "Build everything but VecGeom in release mode",
-      "inherits": [".ndebug", "full-novg"]
+      "name": "ndebug-orange",
+      "description": "Build with release ORANGE",
+      "inherits": [".ndebug", "base"],
+      "cacheVariables": {
+        "CELERITAS_USE_ROOT": {"type": "BOOL", "value": "OFF"}
+      }
     },
     {
-      "name": "vecgeom-reldeb",
+      "name": "debug-vecgeom",
+      "description": "Build tests in debug with vecgeom",
+      "inherits": [".vecgeom", "base"],
+      "cacheVariables": {
+        "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "reldeb-vecgeom",
       "description": "Build with RelWithDebInfo, assertions, and VecGeom",
       "inherits": [".reldeb", ".vecgeom", "base"]
     },
     {
-      "name": "vecgeom-tests",
-      "description": "Build tests in debug with vecgeom",
-      "inherits": [".vecgeom", "base"],
-      "cacheVariables": {
-        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"}
-      }
-    },
-    {
-      "name": "vecgeom-demos",
-      "description": "Build demonstration with vecgeom",
+      "name": "ndebug-vecgeom",
+      "description": "Build release with vecgeom for testing *only* demos",
       "inherits": [".ndebug", ".vecgeom", "base"],
       "cacheVariables": {
-        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"}
+        "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "ON"},
+        "BUILD_TESTING":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
       }
     }
   ],
@@ -93,11 +97,11 @@
       "verbose": true,
       "jobs": 16
     },
-    {"name": "full-novg"       , "configurePreset": "full-novg"       , "inherits": "base"},
-    {"name": "full-novg-ndebug", "configurePreset": "full-novg-ndebug", "inherits": "base", "targets": ["all", "install"]},
-    {"name": "vecgeom-reldeb"  , "configurePreset": "vecgeom-reldeb"  , "inherits": "base", "targets": ["all", "install"]},
-    {"name": "vecgeom-tests"   , "configurePreset": "vecgeom-tests"   , "inherits": "base", "jobs": 8},
-    {"name": "vecgeom-demos"   , "configurePreset": "vecgeom-demos"   , "inherits": "base", "jobs": 8, "targets": ["app/all", "install"]}
+    {"name": "debug-orange"       , "configurePreset": "debug-orange"       , "inherits": "base"},
+    {"name": "ndebug-orange", "configurePreset": "ndebug-orange", "inherits": "base", "targets": ["all", "install"]},
+    {"name": "reldeb-vecgeom"  , "configurePreset": "reldeb-vecgeom"  , "inherits": "base", "targets": ["all", "install"]},
+    {"name": "debug-vecgeom"   , "configurePreset": "debug-vecgeom"   , "inherits": "base", "jobs": 8},
+    {"name": "ndebug-vecgeom"   , "configurePreset": "ndebug-vecgeom"   , "inherits": "base", "jobs": 8, "targets": ["app/all", "install"]}
   ],
   "testPresets": [
     {
@@ -115,14 +119,10 @@
         "outputOnFailure": true
       }
     },
-    {"name": "full-novg"       , "configurePreset": "full-novg"       , "inherits": "base"},
-    {"name": "full-novg-ndebug", "configurePreset": "full-novg-ndebug", "inherits": "base"},
-    {"name": "vecgeom-reldeb"  , "configurePreset": "vecgeom-reldeb"  , "inherits": "base"},
-    {"name": "vecgeom-tests"   , "configurePreset": "vecgeom-tests"   , "inherits": "base"},
-    {"name": "vecgeom-demos"   , "configurePreset": "vecgeom-demos"   , "inherits": "base",
-      "filter": {
-        "include": {"label": "app"}
-      }
-    }
+    {"name": "debug-orange"       , "configurePreset": "debug-orange"       , "inherits": "base"},
+    {"name": "ndebug-orange", "configurePreset": "ndebug-orange", "inherits": "base"},
+    {"name": "reldeb-vecgeom"  , "configurePreset": "reldeb-vecgeom"  , "inherits": "base"},
+    {"name": "debug-vecgeom"   , "configurePreset": "debug-vecgeom"   , "inherits": "base"},
+    {"name": "ndebug-vecgeom"   , "configurePreset": "ndebug-vecgeom"   , "inherits": "base"}
   ]
 }
