@@ -1,6 +1,7 @@
 pipeline {
   options {
     disableConcurrentBuilds(abortPrevious: true)
+    newContainerPerStage()
   }
   triggers {
     issueCommentTrigger('.*do: test')
