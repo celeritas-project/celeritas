@@ -9,49 +9,15 @@ pipeline {
   stages {
     stage('Build') {
       parallel {
-        stage('rocm-ndebug-orange') {
+        stage('full-novg') {
           agent {
             docker {
-              image 'celeritas/ci-centos7-rocm5:2022-12-14.2'
-              label 'AMD_Radeon_Instinct_MI100 && rocm-docker'
-              args '--device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined'
-            }
-          }
-          steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh centos-rocm ndebug-orange'
-          }
-          post {
-            always {
-              xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/*.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
-            }
-          }
-        }
-        stage('rocm-ndebug-orange-float') {
-          agent {
-            docker {
-              image 'celeritas/ci-centos7-rocm5:2022-12-14.2'
-              label 'AMD_Radeon_Instinct_MI100 && rocm-docker'
-              args '--device=/dev/kfd --device=/dev/dri --security-opt seccomp=unconfined'
-            }
-          }
-          steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh centos-rocm ndebug-orange-float'
-          }
-          post {
-            always {
-              xunit reduceLog: false, tools:[CTest(deleteOutputFiles: true, failIfNotNew: true, pattern: 'build/Testing/**/*.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
-            }
-          }
-        }
-        stage('cuda-debug-orange') {
-          agent {
-            docker {
-              image 'celeritas/ci-jammy-cuda11:2023-08-02'
+              image 'celeritas/ci-jammy-cuda11:2023-03-13'
               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker && large_images'
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda debug-orange'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda full-novg'
           }
           post {
             always {
@@ -59,15 +25,15 @@ pipeline {
             }
           }
         }
-        stage('cuda-ndebug-orange') {
+        stage('full-novg-ndebug') {
           agent {
             docker {
-              image 'celeritas/ci-jammy-cuda11:2023-08-02'
+              image 'celeritas/ci-jammy-cuda11:2023-03-13'
               label 'NVIDIA_Tesla_V100-PCIE-32GB && nvidia-docker && large_images'
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda ndebug-orange'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda full-novg-ndebug'
           }
           post {
             always {
@@ -75,7 +41,7 @@ pipeline {
             }
           }
         }
-        stage('cuda-debug-vecgeom') {
+        stage('vecgeom-reldeb') {
           agent {
             docker {
               image 'celeritas/ci-jammy-cuda11:2023-08-02'
@@ -83,7 +49,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda debug-vecgeom'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda vecgeom-reldeb'
           }
           post {
             always {
@@ -91,7 +57,7 @@ pipeline {
             }
           }
         }
-        stage('cuda-reldeb-vecgeom') {
+        stage('vecgeom-demos') {
           agent {
             docker {
               image 'celeritas/ci-jammy-cuda11:2023-08-02'
@@ -99,7 +65,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda reldeb-vecgeom'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda vecgeom-demos'
           }
           post {
             always {
@@ -107,7 +73,7 @@ pipeline {
             }
           }
         }
-        stage('cuda-ndebug-vecgeom') {
+        stage('vecgeom-tests') {
           agent {
             docker {
               image 'celeritas/ci-jammy-cuda11:2023-08-02'
@@ -115,7 +81,7 @@ pipeline {
             }
           }
           steps {
-            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda ndebug-vecgeom'
+            sh 'entrypoint-shell ./scripts/ci/run-ci.sh ubuntu-cuda vecgeom-tests'
           }
           post {
             always {
