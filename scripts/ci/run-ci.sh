@@ -37,7 +37,7 @@ export CELER_TEST_STRICT=1
 
 # Run tests
 cd build
-ctest \
+ctest -T Test \
   -j16 --timeout 180 \
   --no-compress-output --output-on-failure \
   --test-output-size-passed=65536 --test-output-size-failed=1048576 \
