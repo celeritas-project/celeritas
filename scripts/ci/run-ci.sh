@@ -22,6 +22,8 @@ fi
 
 # Fetch tags for version provenance
 git fetch --tags
+# Clean older builds from jenkins
+git clean -fxd
 # Configure
 cmake --preset=${CMAKE_PRESET}
 # Build and (optionally) install
