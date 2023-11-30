@@ -7,10 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
 #include <G4VUserPrimaryGeneratorAction.hh>
 
 namespace celeritas
 {
+class HepMC3PrimaryGenerator;
 namespace app
 {
 //---------------------------------------------------------------------------//
@@ -20,14 +22,20 @@ namespace app
 class HepMC3PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 {
   public:
-    // Get the total number of events available in the HepMC3 file
-    static int NumEvents();
+    //!@{
+    //! \name Type aliases
+    using SPGenerator = std::shared_ptr<HepMC3PrimaryGenerator>;
+    //!@}
 
-    // Construct primary action
-    HepMC3PrimaryGeneratorAction() = default;
+  public:
+    // Construct from a shared generator
+    explicit HepMC3PrimaryGeneratorAction(SPGenerator);
 
     // Generate events
     void GeneratePrimaries(G4Event* event) final;
+
+  private:
+    SPGenerator generator_;
 };
 
 //---------------------------------------------------------------------------//

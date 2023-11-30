@@ -76,7 +76,8 @@ class CylCentered
     explicit inline CELER_FUNCTION CylCentered(real_type radius);
 
     // Construct from raw data
-    explicit inline CELER_FUNCTION CylCentered(Storage);
+    template<class R>
+    explicit inline CELER_FUNCTION CylCentered(Span<R, StorageSpan::extent>);
 
     //// ACCESSORS ////
 
@@ -161,7 +162,8 @@ CELER_FUNCTION CylCentered<T>::CylCentered(real_type radius)
  * Construct from raw data.
  */
 template<Axis T>
-CELER_FUNCTION CylCentered<T>::CylCentered(Storage data) : radius_sq_(data[0])
+template<class R>
+CELER_FUNCTION CylCentered<T>::CylCentered(Span<R, StorageSpan::extent> data) : radius_sq_(data[0])
 {
 }
 

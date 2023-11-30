@@ -12,6 +12,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/Quantity.hh"
 
 namespace celeritas
 {
@@ -64,6 +65,30 @@ struct LdgLoader<OpaqueId<I, T> const, void>
     }
 };
 
+/*!
+ * Specialization when T == Quantity.
+ * Wraps the underlying value in a Quantity when returning it.
+ */
+template<class I, class T>
+struct LdgLoader<Quantity<I, T> const, void>
+{
+    static_assert(std::is_arithmetic_v<T>,
+                  "Quantity needs to be represented by a type supported by "
+                  "__ldg");
+    using value_type = Quantity<I, T>;
+    using pointer = std::add_pointer_t<value_type const>;
+    using reference = value_type;
+
+    CELER_CONSTEXPR_FUNCTION static reference read(pointer p)
+    {
+#if CELER_DEVICE_COMPILE
+        return value_type{__ldg(&p->value_)};
+#else
+        return value_type{p->value_};
+#endif
+    }
+};
+
 template<class T>
 struct LdgLoader<T const, std::enable_if_t<std::is_enum_v<T>>>
 {
@@ -85,11 +110,13 @@ struct LdgLoader<T const, std::enable_if_t<std::is_enum_v<T>>>
     }
 };
 
-// True if T is supported by a LdgLoader specialization
+//---------------------------------------------------------------------------//
+//! True if T is supported by a LdgLoader specialization
 template<class T>
 inline constexpr bool is_ldg_supported_v
     = std::is_const_v<T>
-      && (std::is_arithmetic_v<T> || is_opaque_id_v<T> || std::is_enum_v<T>);
+      && (std::is_arithmetic_v<T> || is_opaque_id_v<T> || is_quantity_v<T>
+          || std::is_enum_v<T>);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

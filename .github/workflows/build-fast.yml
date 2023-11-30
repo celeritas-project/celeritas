@@ -1,0 +1,100 @@
+# Build directly on the GitHub runner with caching
+name: build-fast
+on:
+  workflow_dispatch:
+  workflow_call:
+
+concurrency:
+  group: build-fast-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  cancel-in-progress: true
+
+jobs:
+  linux:
+    name: ${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}
+    strategy:
+      matrix:
+        include:
+          - runner: focal
+            compiler: gcc
+            version: 8
+          - runner: jammy
+            compiler: gcc
+            version: 12
+          - runner: focal
+            compiler: clang
+            version: 10
+          - runner: jammy
+            compiler: clang
+            version: 15
+    runs-on: >-
+      ${{  matrix.runner == 'focal' && 'ubuntu-20.04'
+        || matrix.runner == 'jammy' && 'ubuntu-22.04'
+        || null
+      }}
+    env:
+      CCACHE_DIR: "${{github.workspace}}/.ccache"
+      CCACHE_MAXSIZE: "10G"
+      CC: ${{matrix.compiler}}-${{matrix.version}}
+      CXX: ${{matrix.compiler == 'gcc' && 'g++' || 'clang++'}}-${{matrix.version}}
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get -q -y update
+          sudo apt-get -q -y install \
+            ccache cmake ninja-build python3 \
+            nlohmann-json3-dev libgtest-dev libhepmc3-dev \
+            ${{matrix.compiler}}-${{matrix.version}} \
+            ${{matrix.compiler == 'gcc' && format('g++-{0}', matrix.version) || ''}}
+          echo "Installed toolchain:"
+          ld --version | head -1
+          $CC --version | head -1
+          $CXX --version | head -1
+      - name: Check out Celeritas
+        uses: actions/checkout@v4
+      - name: Cache ccache
+        uses: actions/cache@v3
+        with:
+          path: ${{env.CCACHE_DIR}}
+          key: ccache-${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}-${{github.run_id}}
+          restore-keys: ccache-${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}
+      - name: Zero ccache stats
+        run: |
+          ccache -z
+      - name: Configure Celeritas
+        run: |
+          mkdir build && cd build
+          cmake -GNinja \
+            -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
+              && format(';-pr.{0};', github.event.pull_request.number)
+              || format(';-{0};', github.ref_name)}}" \
+            -DCELERITAS_BUILD_DEMOS:BOOL=ON \
+            -DCELERITAS_BUILD_TESTS:BOOL=ON \
+            -DCELERITAS_USE_SWIG=OFF \
+            -DCELERITAS_DEBUG:BOOL=ON \
+            -DCMAKE_BUILD_TYPE="Release" \
+            -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install" \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_FLAGS="-Wall -Wextra -pedantic -Wno-error=deprecated-declarations" \
+            ..
+      - name: Build all
+        working-directory: build
+        run: |
+          ninja
+      - name: Run tests
+        working-directory: build
+        run: |
+          ctest --parallel 2 --timeout 15 --output-on-failure \
+            --test-output-size-passed=32768 --test-output-size-failed=1048576
+      - name: Install
+        working-directory: build
+        run: |
+          ninja install
+      - name: Check installation
+        working-directory: install
+        run: |
+          ./bin/celer-sim --version
+      - name: Show ccache stats
+        run: |
+          ccache -s
+
+# vim: set nowrap tw=100:

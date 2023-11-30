@@ -50,16 +50,16 @@ namespace app
 std::shared_ptr<ParticleParams> load_params()
 {
     using namespace celeritas::units;
+    using namespace constants;
     constexpr auto zero = zero_quantity();
-    constexpr auto stable = ParticleRecord::stable_decay_constant();
 
-    return std::make_shared<ParticleParams>(
-        ParticleParams::Input{{"electron",
-                               pdg::electron(),
-                               MevMass{0.5109989461},
-                               ElementaryCharge{-1},
-                               stable},
-                              {"gamma", pdg::gamma(), zero, zero, stable}});
+    return std::make_shared<ParticleParams>(ParticleParams::Input{
+        {"electron",
+         pdg::electron(),
+         MevMass{0.5109989461},
+         ElementaryCharge{-1},
+         stable_decay_constant},
+        {"gamma", pdg::gamma(), zero, zero, stable_decay_constant}});
 }
 
 //---------------------------------------------------------------------------//

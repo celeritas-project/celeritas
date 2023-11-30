@@ -108,7 +108,7 @@ dependencies:
 
 The current Spack environment for full-featured development is:
 
-.. literalinclude:: ../scripts/spack.yaml
+.. literalinclude:: ../../scripts/spack.yaml
    :language: yaml
 
 With this environment (with CUDA enabled), all Celeritas tests should be

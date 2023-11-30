@@ -52,7 +52,8 @@ class SphereCentered
     explicit inline CELER_FUNCTION SphereCentered(real_type radius);
 
     // Construct from raw data
-    explicit inline CELER_FUNCTION SphereCentered(Storage);
+    template<class R>
+    explicit inline CELER_FUNCTION SphereCentered(Span<R, StorageSpan::extent>);
 
     //// ACCESSORS ////
 
@@ -112,7 +113,8 @@ CELER_FUNCTION SphereCentered::SphereCentered(real_type radius)
 /*!
  * Construct from raw data.
  */
-CELER_FUNCTION SphereCentered::SphereCentered(Storage data)
+template<class R>
+CELER_FUNCTION SphereCentered::SphereCentered(Span<R, StorageSpan::extent> data)
     : radius_sq_{data[0]}
 {
 }

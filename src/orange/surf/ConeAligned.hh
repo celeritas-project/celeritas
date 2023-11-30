@@ -70,7 +70,8 @@ class ConeAligned
     inline CELER_FUNCTION ConeAligned(Real3 const& origin, real_type tangent);
 
     // Construct from raw data
-    explicit inline CELER_FUNCTION ConeAligned(Storage);
+    template<class R>
+    explicit inline CELER_FUNCTION ConeAligned(Span<R, StorageSpan::extent>);
 
     //// ACCESSORS ////
 
@@ -159,7 +160,8 @@ ConeAligned<T>::ConeAligned(Real3 const& origin, real_type tangent)
  * Construct from raw data.
  */
 template<Axis T>
-CELER_FUNCTION ConeAligned<T>::ConeAligned(Storage data)
+template<class R>
+CELER_FUNCTION ConeAligned<T>::ConeAligned(Span<R, StorageSpan::extent> data)
     : origin_{data[0], data[1], data[2]}, tsq_{data[3]}
 {
 }

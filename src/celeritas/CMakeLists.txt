@@ -27,6 +27,7 @@ list(APPEND SOURCES
   em/process/PhotoelectricProcess.cc
   em/process/RayleighProcess.cc
   ext/GeantPhysicsOptions.cc
+  field/FieldDriverOptions.cc
   field/RZMapFieldParams.cc
   geo/GeoMaterialParams.cc
   geo/GeoParamsOutput.cc
@@ -232,7 +233,13 @@ if(CELERITAS_USE_VecGeom)
     ext/VecgeomParams.cc
     ext/detail/VecgeomNavCollection.cc
   )
-  list(APPEND PRIVATE_DEPS VecGeom::vgdml VecGeom::vecgeom)
+  list(APPEND PRIVATE_DEPS VecGeom::vgdml)
+  if(VecGeom_CUDA_FOUND AND VecGeom_SURF_FOUND)
+    # Special routines needed for surface
+    list(APPEND SOURCES
+      ext/VecgeomParams.surface.cu
+    )
+  endif()
 endif()
 
 if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)

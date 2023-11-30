@@ -35,8 +35,17 @@
     {
       "name": "base",
       "displayName": "Zeus default options (GCC, debug)",
-      "inherits": [".base"],
+      "inherits": [".debug", ".base"],
       "binaryDir": "${sourceDir}/build"
+    },
+    {
+      "name": "base-novg",
+      "displayName": "Zeus default options (GCC, debug)",
+      "inherits": [".debug", ".base"],
+      "binaryDir": "${sourceDir}/build-novg",
+      "cacheVariables": {
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
+      }
     },
     {
       "name": "reldeb-novg",
@@ -56,13 +65,17 @@
       "displayName": "Zeus release with Orange",
       "inherits": [".ndebug", ".base"],
       "cacheVariables": {
+        "BUILD_SHARED_LIBS":{"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
       }
     },
     {
       "name": "ndebug",
       "displayName": "Zeus release",
-      "inherits": [".ndebug", ".base"]
+      "inherits": [".ndebug", ".base"],
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS":{"type": "BOOL",   "value": "ON"}
+      }
     }
   ],
   "buildPresets": [
@@ -72,6 +85,7 @@
       "jobs": 8,
       "nativeToolOptions": ["-k0"]
     },
+    {"name": "base-novg", "configurePreset": "base-novg", "inherits": "base"},
     {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"},
     {"name": "ndebug-novg", "configurePreset": "ndebug-novg", "inherits": "base"},
     {"name": "reldeb", "configurePreset": "reldeb", "inherits": "base"},
@@ -84,6 +98,7 @@
       "output": {"outputOnFailure": true},
       "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 8}
     },
+    {"name": "base-novg", "configurePreset": "base-novg", "inherits": "base"},
     {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"},
     {"name": "ndebug-novg", "configurePreset": "ndebug-novg", "inherits": "base"},
     {"name": "reldeb", "configurePreset": "reldeb", "inherits": "base"},

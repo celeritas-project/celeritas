@@ -39,8 +39,8 @@ class ScopedRootErrorHandler
   private:
     using ErrorHandlerFuncPtr = void (*)(int, bool, char const*, char const*);
 
-    ErrorHandlerFuncPtr previous_;
-    bool prev_errored_;
+    ErrorHandlerFuncPtr previous_{nullptr};
+    bool prev_errored_{false};
 };
 
 #if !CELERITAS_USE_ROOT

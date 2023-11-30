@@ -50,17 +50,16 @@ celeritas_optional_package(ROOT "Enable ROOT I/O")
 celeritas_optional_package(VecGeom "Use VecGeom geometry")
 
 if(CELERITAS_USE_Python)
-  celeritas_optional_package(SWIG "Build SWIG Python bindings")
+  celeritas_optional_package(SWIG SWIG@4.1 "Build SWIG Python bindings")
 endif()
 
 # Components
 option(CELERITAS_BUILD_DOCS "Build Celeritas documentation" OFF)
-option(CELERITAS_BUILD_DEMOS "Build Celeritas demonstration mini-apps"
-  ${CELERITAS_USE_JSON})
-option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" ON)
+option(CELERITAS_BUILD_DEMOS "Build Celeritas demonstration mini-apps" OFF)
+option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" OFF)
 
 # Assertion handling
-option(CELERITAS_DEBUG "Enable runtime assertions" ON)
+option(CELERITAS_DEBUG "Enable runtime assertions" OFF)
 
 # Secondary testing options (only applies to CTest)
 if(NOT CELERITAS_DEBUG OR CELERITAS_USE_VecGeom)
@@ -168,6 +167,8 @@ celeritas_set_default(CMAKE_FIND_USE_PACKAGE_REGISTRY FALSE)
 celeritas_set_default(CMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY FALSE)
 
 ### Build flags ###
+# Default to building CTest tree if using Celeritas tests
+celeritas_set_default(BUILD_TESTING ${CELERITAS_BUILD_TESTS})
 # Default to debug or released based on value of CELERITAS_DEBUG
 if(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE)
   if(CELERITAS_DEBUG)
@@ -228,6 +229,11 @@ set(CELERITAS_RUNTIME_OUTPUT_DIRECTORY
 # DEPENDENCIES
 #----------------------------------------------------------------------------#
 
+if(BUILD_TESTING)
+  # Build the test tree for unit and/or app tests
+  include(CTest)
+endif()
+
 if(CELERITAS_USE_CUDA)
   # Use host compiler by default to ensure ABI consistency
   set(CMAKE_CUDA_HOST_COMPILER "${CMAKE_CXX_COMPILER}" CACHE STRING
@@ -236,6 +242,14 @@ if(CELERITAS_USE_CUDA)
   find_package(CUDAToolkit REQUIRED QUIET)
 elseif(CELERITAS_USE_HIP)
   enable_language(HIP)
+  # NOTE: known broken up to 5.6; unknown after
+  if(CELERITAS_DEBUG AND "${hip-lang_VERSION}" VERSION_LESS 5.7)
+    celeritas_error_incompatible_option(
+      "HIP cannot build debug code (unhandled SGPR spill to memory)"
+      CELERITAS_DEBUG
+      OFF
+    )
+  endif()
 endif()
 
 if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
@@ -278,6 +292,13 @@ if(CELERITAS_USE_Python)
 endif()
 
 if(CELERITAS_USE_ROOT)
+  if(NOT BUILD_SHARED_LIBS)
+    celeritas_error_incompatible_option(
+      "ROOT PCM fails at runtime without shared libraries"
+      BUILD_SHARED_LIBS
+      ON
+    )
+  endif()
   # Older ROOT versions are missing CMake macros
   find_package(ROOT 6.24 REQUIRED)
 endif()
@@ -364,7 +385,7 @@ endif()
 if(CELERITAS_BUILD_TESTS)
   # TODO: download and build GTest as a subproject if not available
   if(NOT GTest_FOUND)
-    find_package(GTest)
+    find_package(GTest 1.10)
   endif()
   if(NOT GTest_FOUND)
     celeritas_error_incompatible_option(
@@ -406,6 +427,8 @@ elseif(CELERITAS_USE_HIP)
     set(CELERITAS_HAVE_ROCTX ON)
     target_link_libraries(celeritas_device_toolkit INTERFACE ${ROCTX_LIBRARY})
   endif()
+  # TODO: downstream libs don't link against correct HIP dependencies when using
+  # static libraries
 endif()
 
 install(TARGETS celeritas_device_toolkit
@@ -429,7 +452,6 @@ endif()
 #----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILD_TESTS)
-  include(CTest)
   add_subdirectory(test)
 endif()
 

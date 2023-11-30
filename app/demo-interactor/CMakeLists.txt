@@ -47,7 +47,7 @@ endif()
 # TESTS
 #-----------------------------------------------------------------------------#
 
-if(NOT CELERITAS_BUILD_TESTS)
+if(NOT BUILD_TESTING)
   return()
 endif()
 
@@ -77,12 +77,16 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-interactor>"
     "CELER_DISABLE_PARALLEL=1"
   )
+  set(_props ${CELER_PROCESSORS} ${CELER_NEEDS_PYTHON})
+  if(CELER_DISABLE_DEVICE)
+    list(APPEND _props DISABLED true)
+  endif()
   set_tests_properties("app/demo-interactor" PROPERTIES
     ENVIRONMENT "${_env}"
     RESOURCE_LOCK gpu
     REQUIRED_FILES "${_driver}"
     LABELS "app;nomemcheck;gpu"
-    ${CELER_NEEDS_PYTHON}
+    ${_props}
   )
 endif()
 

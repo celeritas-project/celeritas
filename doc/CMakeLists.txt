@@ -60,13 +60,8 @@ set(DOXYGEN_PREDEFINED "__DOXYGEN__")
 set(DOXYGEN_USE_MATHJAX YES)
 
 # Verbosity/warning levels
-if(NOT DEFINED DOXYGEN_QUIET)
-  set(DOXYGEN_QUIET YES)
-endif()
-if(NOT DEFINED DOXYGEN_WARN_IF_UNDOCUMENTED)
-  # Missing parameters and members have many false positives
-  set(DOXYGEN_WARN_IF_UNDOCUMENTED NO)
-endif()
+celeritas_set_default(DOXYGEN_QUIET YES)
+celeritas_set_default(DOXYGEN_WARN_IF_UNDOCUMENTED NO)
 
 # Output options
 set(DOXYGEN_PROJECT_LOGO
@@ -237,8 +232,8 @@ celeritas_build_sphinx(latex "${_doc_tex}")
 if(Sphinx_FOUND)
   # Download ornltm class
   ExternalProject_Add(ornltm
-    GIT_REPOSITORY https://code.ornl.gov/s3j/ornltm.git
-    GIT_TAG 05a4b22f104abd53ac7cae72fe03768710b56b86
+    GIT_REPOSITORY https://code.ornl.gov/sethrj/ornltm.git
+    GIT_TAG c9d2ddcce2bfc8d7d51db8f4a131d71883f46528
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
     INSTALL_COMMAND ""

@@ -76,25 +76,22 @@ inp = {
     "secondary_stack_factor": 2,
     "physics_list": "ftfp_bert",
     "field_type": "uniform",
-    "field": [
-     0.0,
-     0.0,
-     1.0
-    ],
+    "field": [ 0.0, 0.0, 1.0 ],
     "field_options": {
-     "minimum_step": 0.0001,
+     "minimum_step": 0.000001,
      "delta_chord": 0.025,
-     "delta_intersection": 0.001,
-     "epsilon_step": 0.01
+     "delta_intersection": 0.00001,
+     "epsilon_step": 0.00001
     },
+    "sd_type": "event_hit" if use_root else "simple_calo",
     "step_diagnostic": ext == "none",
-    "step_diagnostic_bins": 10
+    "step_diagnostic_bins": 8,
 }
 
 with open(inp_file, "w") as f:
     json.dump(inp, f, indent=1)
 
-print("Running", exe, file=stderr)
+print("Running", exe, inp_file, file=stderr)
 result = subprocess.run([exe, inp_file])
 
 if result.returncode:
@@ -105,3 +102,9 @@ with open(out_file) as f:
     result = json.load(f)
 
 pprint(result["result"])
+
+# Rewrite with indentation
+with open(out_file, 'w') as f:
+    json.dump(result, f, indent=1)
+
+

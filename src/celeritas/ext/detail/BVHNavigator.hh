@@ -21,6 +21,8 @@
 #ifdef VECGEOM_ENABLE_CUDA
 #    include <VecGeom/backend/cuda/Interface.h>
 #endif
+#include <limits>
+
 #include "corecel/Macros.hh"
 
 namespace celeritas
@@ -212,7 +214,7 @@ class BVHNavigator
     CELER_FUNCTION static double
     ComputeSafety(Vector3D const& globalpoint,
                   vecgeom::NavigationState const& state,
-                  Precision safety)
+                  Precision safety = std::numeric_limits<Precision>::infinity())
     {
         VPlacedVolumePtr_t pvol = state.Top();
         vecgeom::Transformation3D m;

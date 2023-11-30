@@ -81,20 +81,19 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     HP_SETUP_POINT(post, Post);
 #undef HP_SETUP_POINT
 #undef HP_CLEAR_STEP_POINT
-
-    // Create navigator
-    G4VPhysicalVolume* world_volume
-        = G4TransportationManager::GetTransportationManager()
-              ->GetNavigatorForTracking()
-              ->GetWorldVolume();
     if (locate_touchable)
     {
         CELER_ASSERT(selection.points[StepPoint::pre].pos
                      && selection.points[StepPoint::pre].dir);
+
+        // Create navigator
+        G4VPhysicalVolume* world_volume
+            = G4TransportationManager::GetTransportationManager()
+                  ->GetNavigatorForTracking()
+                  ->GetWorldVolume();
         navi_ = std::make_unique<G4Navigator>();
         navi_->SetWorldVolume(world_volume);
 
-        // Create "touchable handle" (shared pointer to G4TouchableHistory)
         touch_handle_ = new G4TouchableHistory;
         step_->GetPreStepPoint()->SetTouchableHandle(touch_handle_);
     }

@@ -413,8 +413,8 @@ struct RuntimeErrorDetails
 {
     RuntimeErrorType which{RuntimeErrorType::validate};
     std::string what{};
-    char const* condition{nullptr};
-    char const* file{nullptr};
+    std::string condition{};
+    std::string file{};
     int line{0};
 };
 

@@ -60,12 +60,12 @@ void EventIOTestBase::ReadAllResult::print_expected() const
 //---------------------------------------------------------------------------//
 void EventIOTestBase::SetUp()
 {
+    using namespace constants;
     using units::ElementaryCharge;
     using units::MevMass;
     using units::second;
 
     auto zero = zero_quantity();
-    constexpr auto stable = ParticleRecord::stable_decay_constant();
 
     // Create shared standard model particle data
     particles_ = std::make_shared<ParticleParams>(ParticleParams::Input{
@@ -73,19 +73,23 @@ void EventIOTestBase::SetUp()
          pdg::proton(),
          MevMass{938.27208816},
          ElementaryCharge{1},
-         stable},
-        {"d_quark", PDGNumber(1), MevMass{4.7}, ElementaryCharge{-1.0 / 3}, stable},
+         stable_decay_constant},
+        {"d_quark",
+         PDGNumber(1),
+         MevMass{4.7},
+         ElementaryCharge{-1.0 / 3},
+         stable_decay_constant},
         {"anti_u_quark",
          PDGNumber(-2),
          MevMass{2.2},
          ElementaryCharge{-2.0 / 3},
-         stable},
+         stable_decay_constant},
         {"w_minus",
          PDGNumber(-24),
          MevMass{8.0379e4},
          zero,
          1.0 / (3.157e-25 * second)},
-        {"gamma", pdg::gamma(), zero, zero, stable},
+        {"gamma", pdg::gamma(), zero, zero, stable_decay_constant},
     });
 }
 

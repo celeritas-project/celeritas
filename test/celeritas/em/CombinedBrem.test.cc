@@ -271,7 +271,6 @@ TEST_F(CombinedBremTest, stress_test_combined)
         for (real_type inc_e : test_energy)
         {
             SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
-            //            this->set_inc_particle(particle, MevEnergy{inc_e});
 
             RandomEngine& rng_engine = this->rng();
             RandomEngine::size_type num_particles_sampled = 0;
@@ -320,37 +319,37 @@ TEST_F(CombinedBremTest, stress_test_combined)
                                                          12.9641,
                                                          12.5832,
                                                          12.4988,
-                                                         12.3433,
-                                                         12.4378,
-                                                         13.2556,
-                                                         15.3633,
-                                                         14.2262,
-                                                         13.262,
-                                                         12.9294,
-                                                         12.5754,
-                                                         12.508,
-                                                         12.3334,
-                                                         12.4193,
-                                                         13.293,
-                                                         15.3784};
+                                                         12.31,
+                                                         12.4381,
+                                                         13.2552,
+                                                         15.3604,
+                                                         14.2257,
+                                                         13.2616,
+                                                         12.9286,
+                                                         12.5763,
+                                                         12.5076,
+                                                         12.3059,
+                                                         12.4207,
+                                                         13.2906,
+                                                         15.3809};
     static double const expected_avg_energy_samples[] = {0.20338654094171,
                                                          0.53173619503507,
                                                          0.99638562846318,
                                                          4.4359411867158,
                                                          8.7590072534526,
-                                                         85.185116736899,
-                                                         905.94487251514,
-                                                         10719.081816783,
-                                                         149600.77957549,
-                                                         0.18914626656986,
-                                                         0.52230134540886,
-                                                         0.98770452529095,
-                                                         4.4238993615396,
-                                                         8.4950149725315,
-                                                         85.418339892001,
-                                                         917.61799096706,
-                                                         10758.713294023,
-                                                         146932.68621334};
+                                                         85.769352932541,
+                                                         905.74010590236,
+                                                         10724.127172904,
+                                                         149587.47778726,
+                                                         0.18927693789863,
+                                                         0.52259561993542,
+                                                         0.98783539434815,
+                                                         4.4286338859014,
+                                                         8.495313663667,
+                                                         85.853825010643,
+                                                         917.26619467326,
+                                                         10760.512214274,
+                                                         146925.51055711};
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
     EXPECT_VEC_SOFT_EQ(expected_avg_energy_samples, avg_energy_samples);

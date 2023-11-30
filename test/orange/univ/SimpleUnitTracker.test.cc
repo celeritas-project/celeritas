@@ -16,6 +16,7 @@
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/sys/Device.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "orange/OrangeGeoTestBase.hh"
 #include "orange/OrangeParams.hh"
@@ -410,7 +411,6 @@ TEST_F(OneVolumeTest, safety)
 TEST_F(OneVolumeTest, heuristic_init)
 {
     size_type num_tracks = 1024;
-
     static double const expected_vol_fractions[] = {1.0};
 
     {
@@ -420,7 +420,8 @@ TEST_F(OneVolumeTest, heuristic_init)
         EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
         EXPECT_SOFT_EQ(0, result.failed);
     }
-    if (CELER_USE_DEVICE)
+
+    if (celeritas::device())
     {
         SCOPED_TRACE("Device heuristic");
         auto result = this->run_heuristic_init_device(num_tracks);
@@ -647,7 +648,7 @@ TEST_F(TwoVolumeTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
         EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
         EXPECT_SOFT_EQ(0, result.failed);
     }
-    if (CELER_USE_DEVICE)
+    if (celeritas::device())
     {
         SCOPED_TRACE("Device heuristic");
         auto result = this->run_heuristic_init_device(num_tracks);
@@ -760,7 +761,7 @@ TEST_F(FieldLayersTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
         EXPECT_SOFT_EQ(0, result.failed);
     }
 
-    if (CELER_USE_DEVICE)
+    if (celeritas::device())
     {
         SCOPED_TRACE("Device heuristic");
         auto result = this->run_heuristic_init_device(num_tracks);
@@ -956,7 +957,7 @@ TEST_F(FiveVolumesTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
         EXPECT_VEC_SOFT_EQ(expected_vol_fractions, result.vol_fractions);
         EXPECT_SOFT_EQ(0, result.failed);
     }
-    if (CELER_USE_DEVICE)
+    if (celeritas::device())
     {
         SCOPED_TRACE("Device heuristic");
         auto result = this->run_heuristic_init_device(num_tracks);

@@ -33,6 +33,7 @@ enum class PhysicsListSelection
 enum class SensitiveDetectorType
 {
     none,  //!< No SDs
+    simple_calo,  //!< Integrated energy deposition over all events
     event_hit,  //!< Record basic hit data
     size_,
 };
@@ -40,6 +41,8 @@ enum class SensitiveDetectorType
 //---------------------------------------------------------------------------//
 /*!
  * Input for a single run.
+ *
+ * TODO: field type should be std::variant
  */
 struct RunInput
 {

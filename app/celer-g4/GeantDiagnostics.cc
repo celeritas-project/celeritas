@@ -9,11 +9,21 @@
 
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/Environment.hh"
+#include "corecel/sys/MemRegistry.hh"
+#include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
 
-#include "G4RunManager.hh"
 #include "GlobalSetup.hh"
+
+#if CELERITAS_USE_JSON
+#    include "corecel/io/OutputInterfaceAdapter.hh"
+#    include "corecel/sys/EnvironmentIO.json.hh"
+#    include "corecel/sys/MemRegistryIO.json.hh"
+
+#    include "RunInputIO.json.hh"
+#endif
 
 namespace celeritas
 {
@@ -43,19 +53,40 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
     timer_output_ = std::make_shared<TimerOutput>(num_threads);
     output_reg->insert(timer_output_);
 
-    if (GlobalSetup::Instance()->StepDiagnostic())
+    auto& global_setup = *GlobalSetup::Instance();
+    if (global_setup.StepDiagnostic())
     {
         // Create the track step diagnostic and add to output registry
         step_diagnostic_ = std::make_shared<GeantStepDiagnostic>(
-            GlobalSetup::Instance()->GetStepDiagnosticBins(), num_threads);
+            global_setup.GetStepDiagnosticBins(), num_threads);
         output_reg->insert(step_diagnostic_);
     }
 
     if (!params)
     {
         // Celeritas core params didn't add system metadata: do it ourselves
+#if CELERITAS_USE_JSON
+        // Save system diagnostic information
+        output_reg->insert(OutputInterfaceAdapter<MemRegistry>::from_const_ref(
+            OutputInterface::Category::system,
+            "memory",
+            celeritas::mem_registry()));
+        output_reg->insert(OutputInterfaceAdapter<Environment>::from_const_ref(
+            OutputInterface::Category::system,
+            "environ",
+            celeritas::environment()));
+#endif
         output_reg->insert(std::make_shared<BuildOutput>());
     }
+
+#if CELERITAS_USE_JSON
+    // Save input options
+    output_reg->insert(OutputInterfaceAdapter<RunInput>::from_const_ref(
+        OutputInterface::Category::input, "*", global_setup.input()));
+#endif
+
+    // Create shared exception handler
+    meh_ = std::make_shared<MultiExceptionHandler>();
 
     CELER_ENSURE(*this);
 }
@@ -71,6 +102,10 @@ void GeantDiagnostics::Finalize()
 {
     // Reset all data
     CELER_LOG_LOCAL(debug) << "Resetting diagnostics";
+    if (meh_)
+    {
+        log_and_rethrow(std::move(*meh_));
+    }
     *this = {};
 
     CELER_ENSURE(!*this);

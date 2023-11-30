@@ -8,18 +8,23 @@
 #include "RunAction.hh"
 
 #include <functional>
+#include <mutex>
 #include <string>
 #include <type_traits>
 #include <utility>
 #include <G4RunManager.hh>
+#include <G4StateManager.hh>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "accel/ExceptionConverter.hh"
 
+#include "ExceptionHandler.hh"
+#include "GeantDiagnostics.hh"
 #include "GlobalSetup.hh"
 #include "RootIO.hh"
 
@@ -86,10 +91,20 @@ void RunAction::BeginOfRunAction(G4Run const* run)
         CELER_TRY_HANDLE(diagnostics_->Initialize(*params_), call_g4exception);
         CELER_ASSERT(*diagnostics_);
 
-        diagnostics_->Timer()->RecordSetupTime(
+        diagnostics_->timer()->RecordSetupTime(
             GlobalSetup::Instance()->GetSetupTime());
         get_transport_time_ = {};
     }
+
+    // Create a G4VExceptionHandler that dispatches to the shared
+    // MultiException
+    orig_eh_ = G4StateManager::GetStateManager()->GetExceptionHandler();
+    static std::mutex exception_handle_mutex;
+    exception_handler_ = std::make_shared<ExceptionHandler>(
+        [meh = diagnostics_->multi_exception_handler()](std::exception_ptr ptr) {
+            std::lock_guard scoped_lock{exception_handle_mutex};
+            return (*meh)(ptr);
+        });
 }
 
 //---------------------------------------------------------------------------//
@@ -106,13 +121,17 @@ void RunAction::EndOfRunAction(G4Run const*)
         CELER_TRY_HANDLE(RootIO::Instance()->Close(), call_g4exception);
     }
 
+    // Reset exception handler before finalizing diagnostics
+    G4StateManager::GetStateManager()->SetExceptionHandler(orig_eh_);
+
     if (transport_ && !SharedParams::CeleritasDisabled())
     {
-        diagnostics_->Timer()->RecordActionTime(transport_->GetActionTime());
+        diagnostics_->timer()->RecordActionTime(transport_->GetActionTime());
     }
     if (init_shared_)
     {
-        diagnostics_->Timer()->RecordTotalTime(get_transport_time_());
+        diagnostics_->timer()->RecordTotalTime(get_transport_time_());
+
         CELER_TRY_HANDLE(diagnostics_->Finalize(), call_g4exception);
     }
 

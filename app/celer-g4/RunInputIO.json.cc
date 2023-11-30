@@ -146,49 +146,56 @@ void to_json(nlohmann::json& j, RunInput const& v)
         if (!(v.NAME == default_args.NAME)) \
             j[#NAME] = v.NAME;              \
     } while (0)
-#define RI_SAVE_REQUIRED(NAME) j[#NAME] = v.NAME
+#define RI_SAVE(NAME) j[#NAME] = v.NAME
 
-    RI_SAVE_REQUIRED(geometry_file);
+    RI_SAVE(geometry_file);
     RI_SAVE_OPTION(event_file);
 
     if (v.event_file.empty())
     {
-        RI_SAVE_REQUIRED(primary_options);
+        RI_SAVE(primary_options);
     }
 
-    RI_SAVE_OPTION(num_track_slots);
-    RI_SAVE_OPTION(max_events);
+    RI_SAVE(num_track_slots);
+    RI_SAVE(max_events);
     RI_SAVE_OPTION(max_steps);
-    RI_SAVE_OPTION(initializer_capacity);
-    RI_SAVE_OPTION(secondary_stack_factor);
+    RI_SAVE(initializer_capacity);
+    RI_SAVE(secondary_stack_factor);
     RI_SAVE_OPTION(cuda_stack_size);
     RI_SAVE_OPTION(cuda_heap_size);
-    RI_SAVE_OPTION(sync);
-    RI_SAVE_OPTION(default_stream);
+    RI_SAVE(sync);
+    RI_SAVE(default_stream);
 
-    RI_SAVE_OPTION(physics_list);
+    RI_SAVE(physics_list);
     if (v.physics_list == PhysicsListSelection::geant_physics_list)
     {
-        RI_SAVE_OPTION(physics_options);
+        RI_SAVE(physics_options);
     }
 
-    RI_SAVE_OPTION(field_type);
-    RI_SAVE_OPTION(field_file);
-    RI_SAVE_OPTION(field);
-    RI_SAVE_OPTION(field_options);
+    RI_SAVE(field_type);
+    if (v.field_type == "rzmap")
+    {
+        RI_SAVE(field_file);
+        RI_SAVE(field_options);
+    }
+    else if (v.field != RunInput::no_field())
+    {
+        RI_SAVE(field);
+        RI_SAVE(field_options);
+    }
 
-    RI_SAVE_OPTION(sd_type);
+    RI_SAVE(sd_type);
 
-    RI_SAVE_OPTION(output_file);
-    RI_SAVE_OPTION(physics_output_file);
-    RI_SAVE_OPTION(offload_output_file);
-    RI_SAVE_OPTION(macro_file);
+    RI_SAVE(output_file);
+    RI_SAVE(physics_output_file);
+    RI_SAVE(offload_output_file);
+    RI_SAVE(macro_file);
 
-    RI_SAVE_OPTION(step_diagnostic);
+    RI_SAVE(step_diagnostic);
     RI_SAVE_OPTION(step_diagnostic_bins);
 
 #undef RI_SAVE_OPTION
-#undef RI_SAVE_REQUIRED
+#undef RI_SAVE
 }
 
 //---------------------------------------------------------------------------//

@@ -28,6 +28,7 @@
 #include "corecel/sys/ScopedProfiling.hh"
 
 #include "GeantGeoUtils.hh"
+#include "GeantUtils.hh"
 #include "ScopedGeantExceptionHandler.hh"
 #include "ScopedGeantLogger.hh"
 #include "detail/GeantPhysicsList.hh"
@@ -59,19 +60,6 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 
 //---------------------------------------------------------------------------//
 /*!
- * Clear ROOT's signal handlers that get installed on startup/activation.
- */
-void GeantSetup::disable_signal_handler()
-{
-#if G4VERSION_NUMBER >= 1070
-    CELER_LOG(debug) << "Disabling Geant4 signal handlers";
-    // Disable geant4 signal interception
-    G4Backtrace::DefaultSignals() = {};
-#endif
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct from a GDML file and physics options.
  */
 GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
@@ -99,7 +87,7 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
         ++geant_launch_count;
 
         // Disable signal handling
-        this->disable_signal_handler();
+        disable_geant_signal_handler();
 
 #if G4VERSION_NUMBER >= 1100
         run_manager_.reset(

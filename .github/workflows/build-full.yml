@@ -1,0 +1,122 @@
+name: build-full
+on:
+  workflow_dispatch:
+  workflow_call:
+
+concurrency:
+  group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  cancel-in-progress: true
+
+jobs:
+  # TODO: this currently includes non-GPU builds as well
+  # and won't actually run on device
+  gpu:
+    name: gpu
+    strategy:
+      matrix:
+        special: [null]
+        geometry: ['orange', 'vecgeom']
+        buildtype: ['debug', 'ndebug']
+        image: ['ubuntu-cuda', 'centos-rocm']
+        exclude:
+          - geometry: 'vecgeom'
+            image: 'centos-rocm' # VecGeom not installed on HIP
+          - buildtype: 'debug'
+            image: 'centos-rocm' # Debug builds don't work with HIP
+        include:
+          - special: 'asan'
+            geometry: 'orange'
+            buildtype: 'reldeb'
+            image: 'centos-rocm'
+          - special: 'minimal'
+            geometry: 'orange'
+            buildtype: 'debug'
+            image: 'centos-rocm'
+          - special: 'float'
+            geometry: 'orange'
+            buildtype: 'debug'
+            image: 'centos-rocm'
+          - special: 'float'
+            geometry: 'orange'
+            buildtype: 'ndebug'
+            image: 'centos-rocm'
+          - geometry: 'geant4'
+            buildtype: 'reldeb'
+            image: 'centos-rocm'
+          - geometry: 'vecgeom'
+            buildtype: 'reldeb'
+            image: 'ubuntu-cuda'
+    env:
+      ASAN_OPTIONS: "detect_leaks=0"
+      CELER_TEST_STRICT: 1
+      CELER_DISABLE_DEVICE: 1 # IMPORTANT
+      CMAKE_PRESET: >-
+        ${{matrix.buildtype}}-${{matrix.geometry}}${{matrix.special && '-' || ''}}${{matrix.special}}
+    runs-on: ubuntu-latest
+    container:
+      image: >-
+        docker.io/celeritas/${{
+             matrix.image == 'ubuntu-cuda' && 'ci-jammy-cuda11:2023-08-02'
+          || matrix.image == 'centos-rocm' && 'ci-centos7-rocm5:2022-12-14.2'
+          || null
+        }}
+      # See https://github.com/actions/checkout/issues/956
+      options: --user root
+    steps:
+      - name: Set up environment
+        run: |
+          . /etc/profile
+          echo "/opt/view/bin" >> $GITHUB_PATH
+          echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
+      # NOTE: checkout must occur *after* setting up environment for git tags to work
+      # NOTE: checkout v4 fails: https://github.com/actions/checkout/issues/1487
+      # NOTE: depth must be enough to include the previous tag
+      - name: Check out Celeritas
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 255
+          fetch-tags: true
+      - name: Configure Celeritas
+        run: |
+          git config --global --add safe.directory ${PWD}
+          ln -fs scripts/cmake-presets/ci-${{matrix.image}}.json CMakeUserPresets.json
+          cmake --preset=${CMAKE_PRESET}
+      - name: Build Celeritas
+        working-directory: build
+        run: |
+          ninja
+      - name: Test Celeritas
+        working-directory: build
+        run: |
+          ctest --parallel 2 --timeout 180 --output-on-failure \
+            --test-output-size-passed=65536 --test-output-size-failed=1048576
+      - name: Install Celeritas
+        working-directory: build
+        run: |
+          cmake --install .
+      - name: Check installation
+        working-directory: install
+        run: |
+          for exe in orange-update celer-export-geant celer-dump-data \
+            celer-sim celer-g4; do
+            test -x "bin/${exe}"
+          done
+          ./bin/celer-sim --version
+      - name: Build examples
+        # TODO: asan needs -fsanitize=address
+        # TODO: rocm+ndebug fails to propagate HIP library link
+        # TODO: logger gets initialized in SimpleOffload::Build before run manager
+        if: >-
+          ${{ matrix.special != 'asan'
+           && !(matrix.image == 'centos-rocm' && matrix.buildtype == 'ndebug')
+           && !(matrix.geometry == 'vecgeom' && matrix.buildtype != 'ndebug')
+          }}
+        run: |
+          . /etc/profile
+          if [ "${{matrix.geometry}}" = "vecgeom" ]; then
+            # TODO: vecgeom is loosey goosey about symbols whereas Ubuntu is strict
+            export LDFLAGS=-Wl,--no-as-needed ${LDFLAGS}
+          fi
+          ./scripts/ci/test-examples.sh
+
+# vim: set nowrap tw=100:

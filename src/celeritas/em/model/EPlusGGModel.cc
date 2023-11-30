@@ -46,7 +46,7 @@ auto EPlusGGModel::applicability() const -> SetApplicability
 {
     Applicability applic;
     applic.particle = data_.ids.positron;
-    applic.lower = neg_max_quantity();  // Valid at rest
+    applic.lower = zero_quantity();  // Valid at rest
     applic.upper = units::MevEnergy{1e8};  // 100 TeV
 
     return {applic};

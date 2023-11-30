@@ -267,7 +267,8 @@ void SharedParams::InitializeWorker(SetupOptions const&)
  */
 void SharedParams::Finalize()
 {
-    std::lock_guard scoped_lock{updating_mutex()};
+    static std::mutex finalize_mutex;
+    std::lock_guard scoped_lock{finalize_mutex};
 
     // Output at end of run
     this->try_output();
@@ -298,13 +299,12 @@ int SharedParams::num_streams() const
         if (!num_streams_)
         {
             // Default to setting the maximum number of streams based on Geant4
-            // multithreading.
-            auto* run_man = G4RunManager::GetRunManager();
-            CELER_VALIDATE(run_man,
-                           << "G4RunManager was not created before "
-                              "getting stream count from SharedParams");
+            // run manager.
             const_cast<SharedParams*>(this)->num_streams_
-                = celeritas::get_geant_num_threads(*run_man);
+                = celeritas::get_geant_num_threads();
+
+            CELER_LOG_LOCAL(debug)
+                << "Set number of streams to " << num_streams_;
         }
     }
 
@@ -324,6 +324,8 @@ auto SharedParams::output_reg() const -> SPOutputRegistry const&
         std::lock_guard scoped_lock{updating_mutex()};
         if (!output_reg_)
         {
+            CELER_LOG_LOCAL(debug) << "Constructing output registry";
+
             auto output_reg = std::make_shared<OutputRegistry>();
             const_cast<SharedParams*>(this)->output_reg_
                 = std::move(output_reg);
@@ -345,6 +347,8 @@ auto SharedParams::geant_geo_params() const -> SPConstGeantGeoParams const&
         std::lock_guard scoped_lock{updating_mutex()};
         if (!geant_geo_)
         {
+            CELER_LOG_LOCAL(debug) << "Constructing GeantGeoParams wrapper";
+
             auto geo_params = std::make_shared<GeantGeoParams>(
                 GeantImporter::get_world_volume());
             const_cast<SharedParams*>(this)->geant_geo_ = std::move(geo_params);
@@ -483,6 +487,14 @@ void SharedParams::initialize_core(SetupOptions const& options)
         // Save number of streams... no other thread should be updating this
         // simultaneously but we just make sure of it
         std::lock_guard scoped_lock{updating_mutex()};
+        if (num_streams_ != 0 && num_streams_ != num_streams)
+        {
+            // This could happen if someone queries the number of streams
+            // before initializing celeritas
+            CELER_LOG(warning)
+                << "Changing number of streams from " << num_streams_
+                << " to user-specified " << num_streams;
+        }
         num_streams_ = num_streams;
     }
     else
