@@ -12,7 +12,6 @@ if [ -z "${CELER_SOURCE_DIR}" ]; then
 fi
 cd "${CELER_SOURCE_DIR}"
 CELER_SOURCE_DIR=$(pwd)
-ln -fs scripts/cmake-presets/ci-${OS}.json CMakeUserPresets.json
 
 # Source environment script if necessary
 _ENV_SCRIPT="scripts/env/ci-${OS}.sh"
@@ -22,8 +21,12 @@ fi
 
 # Fetch tags for version provenance
 git fetch --tags
-# Clean older builds from jenkins
+
+# Clean older builds from jenkins *BEFORE* setting up presets
 git clean -fxd
+
+# Link preset script
+ln -fs scripts/cmake-presets/ci-${OS}.json CMakeUserPresets.json
 # Configure
 cmake --preset=${CMAKE_PRESET}
 # Build and (optionally) install
