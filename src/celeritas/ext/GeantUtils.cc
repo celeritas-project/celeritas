@@ -45,6 +45,8 @@ void disable_geant_signal_handler()
  * G4RunManager::GetNumberOfThreads isn't virtual before Geant4 v10.7.0 so we
  * need to explicitly dynamic cast to G4MTRunManager to get the number of
  * threads.
+ *
+ * In tasking mode, the result may be zero!
  */
 int get_geant_num_threads(G4RunManager const& runman)
 {
@@ -58,10 +60,7 @@ int get_geant_num_threads(G4RunManager const& runman)
         result = runman_mt->GetNumberOfThreads();
     }
 #endif
-    // TODO: even if run manager exists, it might not be initialized, so the
-    // result might be nonpositive. See debug-vecgeom 'minimal' example
-    // failure.
-    CELER_ENSURE(result > 0);
+    CELER_ENSURE(result >= 0);
     return result;
 }
 
