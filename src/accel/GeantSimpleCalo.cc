@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "GeantSimpleCalo.hh"
 
+#include "celeritas_config.h"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/ext/GeantGeoParams.hh"
@@ -16,7 +17,6 @@
 #include "SharedParams.hh"
 #include "detail/GeantSimpleCaloSD.hh"
 #include "detail/GeantSimpleCaloStorage.hh"
-
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 

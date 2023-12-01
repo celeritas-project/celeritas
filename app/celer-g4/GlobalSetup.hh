@@ -82,8 +82,14 @@ class GlobalSetup
 
     //// NEW INTERFACE ////
 
+    //! Get setup options
+    SetupOptions const& setup_options() const { return *options_; }
+
     //! Get user input options
     RunInput const& input() const { return input_; }
+
+    //! Whether ROOT I/O for SDs is enabled
+    bool root_sd_io() const { return root_sd_io_; }
 
   private:
     // Private constructor since we're a singleton
@@ -94,6 +100,7 @@ class GlobalSetup
     std::shared_ptr<SetupOptions> options_;
     RunInput input_;
     Stopwatch get_setup_time_;
+    bool root_sd_io_{false};
 
     std::unique_ptr<G4GenericMessenger> messenger_;
 };

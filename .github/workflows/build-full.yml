@@ -105,11 +105,9 @@ jobs:
       - name: Build examples
         # TODO: asan needs -fsanitize=address
         # TODO: rocm+ndebug fails to propagate HIP library link
-        # TODO: logger gets initialized in SimpleOffload::Build before run manager
         if: >-
           ${{ matrix.special != 'asan'
            && !(matrix.image == 'centos-rocm' && matrix.buildtype == 'ndebug')
-           && !(matrix.geometry == 'vecgeom' && matrix.buildtype != 'ndebug')
           }}
         run: |
           . /etc/profile
