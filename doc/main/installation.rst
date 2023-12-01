@@ -101,7 +101,7 @@ dependencies:
 - Create the Celeritas development environment with ``spack env create
   celeritas scripts/spack.yaml``.
 - Tell Spack to default to building with CUDA support with
-  the command ``spack config add packages:all:variants:"cxxstd=17 +cuda
+  the command ``spack -e celeritas config add packages:all:variants:"cxxstd=17 +cuda
   cuda_arch=<ARCH>"``, where ``<ARCH>`` is the numeric portion of the
   `CUDA architecture flags
   <https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/>`_.
