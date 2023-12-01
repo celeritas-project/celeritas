@@ -12,7 +12,6 @@ if [ -z "${CELER_SOURCE_DIR}" ]; then
 fi
 cd "${CELER_SOURCE_DIR}"
 CELER_SOURCE_DIR=$(pwd)
-ln -fs scripts/cmake-presets/ci-${OS}.json CMakeUserPresets.json
 
 # Source environment script if necessary
 _ENV_SCRIPT="scripts/env/ci-${OS}.sh"
@@ -22,6 +21,14 @@ fi
 
 # Fetch tags for version provenance
 git fetch --tags
+
+# Clean older builds from jenkins *BEFORE* setting up presets
+git clean -fxd
+# Stale tmp files?
+rm -rf /tmp/ompi.*
+
+# Link preset script
+ln -fs scripts/cmake-presets/ci-${OS}.json CMakeUserPresets.json
 # Configure
 cmake --preset=${CMAKE_PRESET}
 # Build and (optionally) install
@@ -32,7 +39,7 @@ export CELER_TEST_STRICT=1
 
 # Run tests
 cd build
-ctest \
+ctest -T Test \
   -j16 --timeout 180 \
   --no-compress-output --output-on-failure \
   --test-output-size-passed=65536 --test-output-size-failed=1048576 \
@@ -46,8 +53,16 @@ test -x "${CELER_SOURCE_DIR}/install/bin/celer-sim"
 test -x "${CELER_SOURCE_DIR}/install/bin/celer-g4"
 "${CELER_SOURCE_DIR}/install/bin/celer-sim" --version
   
+
 # Test examples against installed celeritas
 export CMAKE_PRESET
 export CELER_SOURCE_DIR
-exec ${CELER_SOURCE_DIR}/scripts/ci/test-examples.sh
+case "${CMAKE_PRESET}" in
+  *-vecgeom*) 
+    # VecGeom is in use: ubuntu flags are too strict for it
+    export LDFLAGS=-Wl,--no-as-needed
+    ;;
+esac
 
+# Test examples against installed celeritas
+exec ${CELER_SOURCE_DIR}/scripts/ci/test-examples.sh
