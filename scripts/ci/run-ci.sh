@@ -24,6 +24,8 @@ git fetch --tags
 
 # Clean older builds from jenkins *BEFORE* setting up presets
 git clean -fxd
+# Stale tmp files?
+rm -rf /tmp/ompi.*
 
 # Link preset script
 ln -fs scripts/cmake-presets/ci-${OS}.json CMakeUserPresets.json
