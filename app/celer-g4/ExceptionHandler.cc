@@ -68,7 +68,7 @@ G4bool ExceptionHandler::Notify(char const* origin_of_exception,
                 }
                 else
                 {
-                    CELER_LOG_LOCAL(critical) << "Aborting run due to exception";
+                    CELER_LOG_LOCAL(critical) << "Aborting run due to exception (" << exception_code << ")";
                     run_man->AbortRun();
                 }
             }

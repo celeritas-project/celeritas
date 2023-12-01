@@ -70,7 +70,7 @@ void EventAction::EndOfEventAction(G4Event const* event)
         CELER_TRY_HANDLE(transport_->Flush(), call_g4exception);
     }
 
-    if (RootIO::use_root())
+    if (GlobalSetup::Instance()->root_sd_io())
     {
         // Write sensitive hits
         RootIO::Instance()->Write(event);

@@ -116,6 +116,17 @@ class SharedParams
 
     // Geant geometry wrapper, lazily created
     SPConstGeantGeoParams const& geant_geo_params() const;
+
+    // NASTY HACK TO BE DELETED:
+    // Construct Celeritas using Geant4 data and existing output registry
+    SharedParams(SetupOptions const& options, SPOutputRegistry reg);
+
+    // Initialize shared data on the "master" thread with existing output
+    // registry
+    void Initialize(SetupOptions const& options, SPOutputRegistry reg);
+
+    // Set the output filename when celeritas is disabled
+    void set_output_filename(std::string const&);
     //!@}
 
   private:

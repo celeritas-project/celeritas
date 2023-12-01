@@ -16,6 +16,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
+#include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "accel/ExceptionConverter.hh"
 #include "accel/SetupOptionsMessenger.hh"
@@ -171,11 +172,18 @@ void GlobalSetup::ReadInput(std::string const& filename)
         options_->output_file = input_.output_file;
     }
 
-    if (input_.sd_type == SensitiveDetectorType::event_hit
-        && !RootIO::use_root())
+    if (input_.sd_type == SensitiveDetectorType::event_hit)
     {
-        CELER_LOG(warning) << "Collecting SD hit data that will not be "
-                              "written because ROOT is disabled";
+        root_sd_io_ = RootFileManager::use_root();
+        if (!root_sd_io_)
+        {
+            CELER_LOG(warning) << "Collecting SD hit data that will not be "
+                                  "written because ROOT is disabled";
+        }
+    }
+    else
+    {
+        root_sd_io_ = false;
     }
 
     // Start the timer for setup time
