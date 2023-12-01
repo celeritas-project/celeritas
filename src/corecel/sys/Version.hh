@@ -10,6 +10,7 @@
 #include <array>
 #include <cstdlib>  // IWYU pragma: keep
 #include <iosfwd>
+#include <string>
 #include <string_view>
 
 // Undefine macros from sys/sysmacros.h
@@ -136,6 +137,9 @@ CELER_DEFINE_VERSION_CMP(>=)
 
 // Write to stream
 std::ostream& operator<<(std::ostream&, Version const&);
+
+// Save as string
+std::string to_string(Version const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

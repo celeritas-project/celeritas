@@ -58,4 +58,13 @@ std::ostream& operator<<(std::ostream& os, Version const& v)
 }
 
 //---------------------------------------------------------------------------//
+//! Save as a string
+std::string to_string(Version const& v)
+{
+    std::ostringstream os;
+    os << v;
+    return os.str();
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas
