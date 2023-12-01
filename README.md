@@ -72,7 +72,7 @@ $ make && ctest
 
 Celeritas guarantees full compatibility and correctness only on the
 combinations of compilers and dependencies tested under continuous integration:
-- Compiler:
+- Compilers:
     - GCC 8.4, 12.3
     - GCC 11.3 + NVCC 11.8
     - HIP-Clang 10.0, 15.0
