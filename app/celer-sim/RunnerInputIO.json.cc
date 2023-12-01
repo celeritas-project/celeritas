@@ -52,11 +52,13 @@ namespace app
  */
 void from_json(nlohmann::json const& j, RunnerInput& v)
 {
-#define LDIO_LOAD_OPTION(NAME)          \
-    do                                  \
-    {                                   \
-        if (j.contains(#NAME))          \
-            j.at(#NAME).get_to(v.NAME); \
+#define LDIO_LOAD_OPTION(NAME)                                              \
+    do                                                                      \
+    {                                                                       \
+        if (auto iter = j.find(#NAME); iter != j.end() && !iter->is_null()) \
+        {                                                                   \
+            iter->get_to(v.NAME);                                           \
+        }                                                                   \
     } while (0)
 #define LDIO_LOAD_DEPRECATED(OLD, NEW)                                        \
     do                                                                        \
@@ -148,70 +150,70 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
  */
 void to_json(nlohmann::json& j, RunnerInput const& v)
 {
-    j = nlohmann::json::object();
-    RunnerInput const default_args;
-    //! Save if not unspecified or if applicable
-#define LDIO_SAVE_OPTION(NAME)           \
-    do                                   \
-    {                                    \
-        if (v.NAME != default_args.NAME) \
-            j[#NAME] = v.NAME;           \
-    } while (0)
     //! Always save
-#define LDIO_SAVE_REQUIRED(NAME) j[#NAME] = v.NAME
+#define LDIO_SAVE(NAME) j[#NAME] = v.NAME
+    //! Save if not unspecified or if applicable
+#define LDIO_SAVE_WHEN(NAME, COND) \
+    do                             \
+    {                              \
+        if ((COND))                \
+        {                          \
+            LDIO_SAVE(NAME);       \
+        }                          \
+        else                       \
+        {                          \
+            j[#NAME] = nullptr;    \
+        }                          \
+    } while (0)
 
-    LDIO_SAVE_OPTION(cuda_heap_size);
-    LDIO_SAVE_OPTION(cuda_stack_size);
-    LDIO_SAVE_REQUIRED(environ);
+    RunnerInput const default_args;
+    //! Save if not the default value
+#define LDIO_SAVE_OPTIONAL(NAME) \
+    LDIO_SAVE_WHEN(NAME, v.NAME != default_args.NAME)
 
-    LDIO_SAVE_REQUIRED(geometry_file);
-    LDIO_SAVE_REQUIRED(physics_file);
-    LDIO_SAVE_OPTION(event_file);
-    if (v.event_file.empty())
-    {
-        LDIO_SAVE_REQUIRED(primary_options);
-    }
+    LDIO_SAVE_OPTIONAL(cuda_heap_size);
+    LDIO_SAVE_OPTIONAL(cuda_stack_size);
+    LDIO_SAVE(environ);
 
-    LDIO_SAVE_OPTION(mctruth_file);
-    if (!v.mctruth_file.empty())
-    {
-        LDIO_SAVE_REQUIRED(mctruth_filter);
-    }
-    LDIO_SAVE_OPTION(simple_calo);
-    LDIO_SAVE_OPTION(action_diagnostic);
-    LDIO_SAVE_OPTION(step_diagnostic);
-    LDIO_SAVE_OPTION(step_diagnostic_bins);
-    LDIO_SAVE_OPTION(write_track_counts);
+    LDIO_SAVE(geometry_file);
+    LDIO_SAVE(physics_file);
+    LDIO_SAVE_OPTIONAL(event_file);
+    LDIO_SAVE_WHEN(primary_options, v.event_file.empty());
 
-    LDIO_SAVE_REQUIRED(seed);
-    LDIO_SAVE_REQUIRED(num_track_slots);
-    LDIO_SAVE_OPTION(max_steps);
-    LDIO_SAVE_REQUIRED(initializer_capacity);
-    LDIO_SAVE_REQUIRED(max_events);
-    LDIO_SAVE_REQUIRED(secondary_stack_factor);
-    LDIO_SAVE_REQUIRED(use_device);
-    LDIO_SAVE_REQUIRED(sync);
-    LDIO_SAVE_REQUIRED(merge_events);
-    LDIO_SAVE_REQUIRED(default_stream);
-    LDIO_SAVE_REQUIRED(warm_up);
+    LDIO_SAVE_OPTIONAL(mctruth_file);
+    LDIO_SAVE_WHEN(mctruth_filter, !v.mctruth_file.empty());
+    LDIO_SAVE(simple_calo);
+    LDIO_SAVE(action_diagnostic);
+    LDIO_SAVE(step_diagnostic);
+    LDIO_SAVE_OPTIONAL(step_diagnostic_bins);
+    LDIO_SAVE(write_track_counts);
 
-    LDIO_SAVE_OPTION(field);
-    if (v.field != RunnerInput::no_field())
-    {
-        LDIO_SAVE_REQUIRED(field_options);
-    }
+    LDIO_SAVE(seed);
+    LDIO_SAVE(num_track_slots);
+    LDIO_SAVE_OPTIONAL(max_steps);
+    LDIO_SAVE(initializer_capacity);
+    LDIO_SAVE(max_events);
+    LDIO_SAVE(secondary_stack_factor);
+    LDIO_SAVE(use_device);
+    LDIO_SAVE(sync);
+    LDIO_SAVE(merge_events);
+    LDIO_SAVE(default_stream);
+    LDIO_SAVE(warm_up);
 
-    LDIO_SAVE_OPTION(step_limiter);
-    LDIO_SAVE_REQUIRED(brem_combined);
+    LDIO_SAVE_OPTIONAL(field);
+    LDIO_SAVE_WHEN(field_options, v.field != RunnerInput::no_field());
 
-    LDIO_SAVE_REQUIRED(track_order);
-    if (v.physics_file.empty() || !ends_with(v.physics_file, ".root"))
-    {
-        LDIO_SAVE_REQUIRED(physics_options);
-    }
+    LDIO_SAVE_OPTIONAL(step_limiter);
+    LDIO_SAVE(brem_combined);
 
-#undef LDIO_SAVE_OPTION
-#undef LDIO_SAVE_REQUIRED
+    LDIO_SAVE(track_order);
+    LDIO_SAVE_WHEN(physics_options,
+                   v.physics_file.empty()
+                       || !ends_with(v.physics_file, ".root"));
+
+#undef LDIO_SAVE_OPTIONAL
+#undef LDIO_SAVE_WHEN
+#undef LDIO_SAVE
 }
 
 //---------------------------------------------------------------------------//

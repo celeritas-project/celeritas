@@ -102,6 +102,7 @@ inp = {
     'default_stream': False,
     'brem_combined': True,
     'physics_options': physics_options,
+    'field': None,
 }
 
 with open(f'{run_name}.inp.json', 'w') as f:
