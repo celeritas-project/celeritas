@@ -144,6 +144,7 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
 #define LDIO_SAVE_OPTIONAL(NAME) \
     LDIO_SAVE_WHEN(NAME, v.NAME != default_args.NAME)
 
+    j = nlohmann::json::object();
     RunnerInput const default_args;
 
     // Save version and celer-sim format
