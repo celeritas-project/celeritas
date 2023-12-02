@@ -275,6 +275,12 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
 #endif
     }
+    if (celeritas::starts_with(filename, "--"))
+    {
+        CELER_LOG(critical) << "Unknown option \"" << filename << "\"";
+        celeritas::app::print_usage(argv[0]);
+        return EXIT_FAILURE;
+    }
 
     // Create params, which need to be shared with detectors as well as
     // initialization, and can be written for output
