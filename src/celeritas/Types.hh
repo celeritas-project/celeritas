@@ -144,6 +144,7 @@ enum class TrackOrder
     sort_along_step_action,  //!< Sort only by the along-step action id
     sort_step_limit_action,  //!< Sort only by the step limit action id
     sort_action,  //!< Sort by along-step id, then post-step ID
+    sort_particle_type,  //!< Sort by particle type
     size_
 };
 

@@ -34,9 +34,20 @@ bool is_sort_trackorder(TrackOrder to)
         TrackOrder::sort_step_limit_action,
         TrackOrder::sort_along_step_action,
         TrackOrder::sort_action,
+        TrackOrder::sort_particle_type,
     };
     return std::find(std::begin(allowed), std::end(allowed), to)
            != std::end(allowed);
+}
+
+/*!
+ * Checks whether the TrackOrder sort tracks using an ActionId.
+ */
+inline bool is_sort_by_action(TrackOrder to)
+{
+    return to == TrackOrder::sort_along_step_action
+           || to == TrackOrder::sort_step_limit_action
+           || to == TrackOrder::sort_action;
 }
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -66,6 +77,9 @@ SortTracksAction::SortTracksAction(ActionId id, TrackOrder track_order)
                 // Sort *before* post-step action, i.e. *after* pre-post and
                 // along-step
                 return ActionOrder::sort_pre_post;
+            case TrackOrder::sort_particle_type:
+                // Sorth at the beginning of the step
+                return ActionOrder::sort_start;
             default:
                 CELER_ASSERT_UNREACHABLE();
         }
@@ -86,6 +100,8 @@ std::string SortTracksAction::label() const
             return "sort-tracks-along-step";
         case TrackOrder::sort_step_limit_action:
             return "sort-tracks-post-step";
+        case TrackOrder::sort_particle_type:
+            return "sort-tracks-start";
         default:
             CELER_ASSERT_UNREACHABLE();
     }
@@ -97,11 +113,14 @@ std::string SortTracksAction::label() const
 void SortTracksAction::execute(CoreParams const&, CoreStateHost& state) const
 {
     detail::sort_tracks(state.ref(), track_order_);
-    detail::count_tracks_per_action(
-        state.ref(),
-        state.action_thread_offsets()[AllItems<ThreadId, MemSpace::host>{}],
-        state.action_thread_offsets(),
-        track_order_);
+    if (is_sort_by_action(track_order_))
+    {
+        detail::count_tracks_per_action(
+            state.ref(),
+            state.action_thread_offsets()[AllItems<ThreadId, MemSpace::host>{}],
+            state.action_thread_offsets(),
+            track_order_);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -111,12 +130,15 @@ void SortTracksAction::execute(CoreParams const&, CoreStateHost& state) const
 void SortTracksAction::execute(CoreParams const&, CoreStateDevice& state) const
 {
     detail::sort_tracks(state.ref(), track_order_);
-    detail::count_tracks_per_action(
-        state.ref(),
-        state.native_action_thread_offsets()[AllItems<ThreadId,
-                                                      MemSpace::device>{}],
-        state.action_thread_offsets(),
-        track_order_);
+    if (is_sort_by_action(track_order_))
+    {
+        detail::count_tracks_per_action(
+            state.ref(),
+            state.native_action_thread_offsets()[AllItems<ThreadId,
+                                                          MemSpace::device>{}],
+            state.action_thread_offsets(),
+            track_order_);
+    }
 }
 
 //---------------------------------------------------------------------------//
