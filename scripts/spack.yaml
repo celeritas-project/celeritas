@@ -17,7 +17,7 @@ spack:
     - py-sphinxcontrib-bibtex
     - "root@6.24: cxxstd=17"
     - "swig@4.1:"
-    - "vecgeom@1.2.3: +gdml cxxstd=17"
+    - "vecgeom@1.2.4: +gdml cxxstd=17"
   view: true
   concretizer:
     unify: true
@@ -30,6 +30,6 @@ spack:
         blas: [openblas]
         lapack: [openblas]
         mpi: [openmpi]
-      variants: cxxstd=17
-      # NOTE: add `+cuda cuda_arch=70` (or similar) to your site packages.py
-      # spack config add --scope=site packages:all:variants:"+cuda cuda_arch=70"
+      # Uncomment to enable cuda build or run within the spack env:
+      # spack config add packages:all:variants:"cxxstd=17 +cuda cuda_arch=<ARCH>"
+      variants: cxxstd=17 # +cuda cuda_arch=<ARCH>
