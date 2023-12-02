@@ -60,36 +60,38 @@ void partition_impl(TrackSlots const& track_slots, F&& func, StreamId stream_id)
 
 //---------------------------------------------------------------------------//
 
+template<class Id>
 __global__ void
-reorder_actions_kernel(ObserverPtr<TrackSlotId::size_type const> track_slots,
-                       ObserverPtr<ActionId const> actions,
-                       ObserverPtr<ActionId::size_type> out_actions,
-                       size_type size)
+reorder_ids_kernel(ObserverPtr<TrackSlotId::size_type const> track_slots,
+                   ObserverPtr<Id const> ids,
+                   ObserverPtr<typename Id::size_type> ids_out,
+                   size_type size)
 {
     if (ThreadId tid = celeritas::KernelParamCalculator::thread_id();
         tid < size)
     {
-        out_actions.get()[tid.get()]
-            = actions.get()[track_slots.get()[tid.get()]].unchecked_get();
+        ids_out.get()[tid.get()]
+            = ids.get()[track_slots.get()[tid.get()]].unchecked_get();
     }
 }
 
+template<class Id, class IdT = typename Id::size_type>
 void sort_impl(TrackSlots const& track_slots,
-               ObserverPtr<ActionId const> actions,
+               ObserverPtr<Id const> ids,
                StreamId stream_id)
 {
-    DeviceVector<ActionId::size_type> reordered_actions(track_slots.size(),
-                                                        stream_id);
-    CELER_LAUNCH_KERNEL(reorder_actions,
-                        track_slots.size(),
-                        celeritas::device().stream(stream_id).get(),
-                        track_slots.data(),
-                        actions,
-                        make_observer(reordered_actions.data()),
-                        track_slots.size());
+    DeviceVector<IdT> reordered_ids(track_slots.size(), stream_id);
+    CELER_LAUNCH_KERNEL_TEMPLATE_1(reorder_ids,
+                                   Id,
+                                   track_slots.size(),
+                                   celeritas::device().stream(stream_id).get(),
+                                   track_slots.data(),
+                                   ids,
+                                   make_observer(reordered_ids.data()),
+                                   track_slots.size());
     thrust::sort_by_key(thrust_execute_on(stream_id),
-                        reordered_actions.data(),
-                        reordered_actions.data() + reordered_actions.size(),
+                        reordered_ids.data(),
+                        reordered_ids.data() + reordered_ids.size(),
                         device_pointer_cast(track_slots.data()));
     CELER_DEVICE_CHECK_ERROR();
 }
@@ -197,14 +199,27 @@ void sort_tracks(DeviceRef<CoreStateData> const& states, TrackOrder order)
             return partition_impl(states.track_slots,
                                   alive_predicate{states.sim.status.data()},
                                   states.stream_id);
-        case TrackOrder::sort_along_step_action:
-            return sort_impl(states.track_slots,
-                             states.sim.along_step_action.data(),
-                             states.stream_id);
-        case TrackOrder::sort_step_limit_action:
-            return sort_impl(states.track_slots,
-                             states.sim.post_step_action.data(),
-                             states.stream_id);
+        case TrackOrder::sort_along_step_action: {
+            using Id =
+                typename decltype(states.sim.along_step_action)::value_type;
+            return sort_impl<Id>(states.track_slots,
+                                 states.sim.along_step_action.data(),
+                                 states.stream_id);
+        }
+        case TrackOrder::sort_step_limit_action: {
+            using Id =
+                typename decltype(states.sim.post_step_action)::value_type;
+            return sort_impl<Id>(states.track_slots,
+                                 states.sim.post_step_action.data(),
+                                 states.stream_id);
+        }
+        case TrackOrder::sort_particle_type: {
+            using Id =
+                typename decltype(states.particles.particle_id)::value_type;
+            return sort_impl<Id>(states.track_slots,
+                                 states.particles.particle_id.data(),
+                                 states.stream_id);
+        }
         default:
             CELER_ASSERT_UNREACHABLE();
     }
