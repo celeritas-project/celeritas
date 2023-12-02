@@ -9,14 +9,12 @@
 
 #include <string>
 
-#include "celeritas_version.h"
 #include "corecel/cont/ArrayIO.json.hh"
+#include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/LabelIO.json.hh"
-#include "corecel/io/Logger.hh"
 #include "corecel/io/StringEnumMapper.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/EnvironmentIO.json.hh"
-#include "corecel/sys/Version.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/field/FieldDriverOptionsIO.json.hh"
@@ -25,12 +23,6 @@
 
 namespace celeritas
 {
-namespace
-{
-inline constexpr Version celer_version{
-    celeritas_version_major, celeritas_version_minor, celeritas_version_patch};
-}
-
 //---------------------------------------------------------------------------//
 void from_json(nlohmann::json const& j, TrackOrder& value)
 {
@@ -60,45 +52,13 @@ namespace app
  */
 void from_json(nlohmann::json const& j, RunnerInput& v)
 {
-#define LDIO_LOAD_OPTION(NAME)                                              \
-    do                                                                      \
-    {                                                                       \
-        if (auto iter = j.find(#NAME); iter != j.end() && !iter->is_null()) \
-        {                                                                   \
-            iter->get_to(v.NAME);                                           \
-        }                                                                   \
-    } while (0)
-#define LDIO_LOAD_DEPRECATED(OLD, NEW)                                        \
-    do                                                                        \
-    {                                                                         \
-        if (j.contains(#OLD))                                                 \
-        {                                                                     \
-            CELER_LOG(warning) << "Deprecated option '" << #OLD << "': use '" \
-                               << #NEW << "' instead";                        \
-            j.at(#OLD).get_to(v.NEW);                                         \
-        }                                                                     \
-    } while (0)
-#define LDIO_LOAD_REQUIRED(NAME) j.at(#NAME).get_to(v.NAME)
+#define LDIO_LOAD_REQUIRED(NAME) CELER_JSON_LOAD_REQUIRED(j, v, NAME)
+#define LDIO_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, v, NAME)
+#define LDIO_LOAD_DEPRECATED(OLD, NEW) \
+    CELER_JSON_LOAD_DEPRECATED(j, v, OLD, NEW)
 
-    // Save version
-    if (auto iter = j.find("_format"); iter != j.end())
-    {
-        auto format_str = iter->get<std::string>();
-        CELER_VALIDATE(format_str == "celer-sim",
-                       << "invalid format for \"celer-sim\" input: \""
-                       << format_str << "\"");
-    }
-    if (auto iter = j.find("_version"); iter != j.end())
-    {
-        auto version = Version::from_string(iter->get<std::string>());
-        if (version > celer_version)
-        {
-            CELER_LOG(warning)
-                << "Input version " << version
-                << " is newer than the current Celeritas version "
-                << celer_version << ": options may be missing or incompatible";
-        }
-    }
+    // Check version (if available)
+    check_format(j, "celer-sim");
 
     LDIO_LOAD_OPTION(cuda_heap_size);
     LDIO_LOAD_OPTION(cuda_stack_size);
@@ -157,6 +117,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(track_order);
     LDIO_LOAD_OPTION(physics_options);
 
+#undef LDIO_LOAD_DEPRECATED
 #undef LDIO_LOAD_OPTION
 #undef LDIO_LOAD_REQUIRED
 
@@ -178,30 +139,15 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
  */
 void to_json(nlohmann::json& j, RunnerInput const& v)
 {
-    //! Always save
-#define LDIO_SAVE(NAME) j[#NAME] = v.NAME
-    //! Save if not unspecified or if applicable
-#define LDIO_SAVE_WHEN(NAME, COND) \
-    do                             \
-    {                              \
-        if ((COND))                \
-        {                          \
-            LDIO_SAVE(NAME);       \
-        }                          \
-        else                       \
-        {                          \
-            j[#NAME] = nullptr;    \
-        }                          \
-    } while (0)
-
-    RunnerInput const default_args;
-    //! Save if not the default value
+#define LDIO_SAVE(NAME) CELER_JSON_SAVE(j, v, NAME)
+#define LDIO_SAVE_WHEN(NAME, COND) CELER_JSON_SAVE_WHEN(j, v, NAME, COND)
 #define LDIO_SAVE_OPTIONAL(NAME) \
     LDIO_SAVE_WHEN(NAME, v.NAME != default_args.NAME)
 
-    // Save version
-    j["_format"] = "celer-sim";
-    j["_version"] = to_string(celer_version);
+    RunnerInput const default_args;
+
+    // Save version and celer-sim format
+    save_format(j, "celer-sim");
 
     LDIO_SAVE_OPTIONAL(cuda_heap_size);
     LDIO_SAVE_OPTIONAL(cuda_stack_size);
