@@ -58,6 +58,9 @@ void from_json(nlohmann::json const& j, RunInput& v)
 #define RI_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, v, NAME)
 #define RI_LOAD_REQUIRED(NAME) CELER_JSON_LOAD_REQUIRED(j, v, NAME)
 
+    // Check version (if available)
+    check_format(j, "celer-g4");
+
     RI_LOAD_REQUIRED(geometry_file);
     RI_LOAD_OPTION(event_file);
 
@@ -140,6 +143,9 @@ void to_json(nlohmann::json& j, RunInput const& v)
 
     j = nlohmann::json::object();
     RunInput const default_args;
+
+    // Save version and format type
+    save_format(j, "celer-g4");
 
     RI_SAVE(geometry_file);
     RI_SAVE_OPTION(event_file);
