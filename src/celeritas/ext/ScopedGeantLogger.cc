@@ -77,11 +77,10 @@ GeantLoggerAdapter::GeantLoggerAdapter()
     {
         // Always-on debug assertion (not a "runtime" error but a
         // subtle programming logic error that always causes a crash)
-        throw DebugError({DebugErrorType::precondition,
-                          "Geant4 logging cannot be changed after G4UImanager "
-                          "has been destroyed",
-                          __FILE__,
-                          __LINE__});
+        CELER_DEBUG_FAIL(
+            "Geant4 logging cannot be changed after G4UImanager has been "
+            "destroyed",
+            precondition);
     }
 
 #if CELER_G4SSBUF

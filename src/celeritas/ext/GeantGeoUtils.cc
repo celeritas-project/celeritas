@@ -54,11 +54,8 @@ load_geant_geometry_impl(std::string const& filename, bool strip_pointer_ext)
     {
         // Always-on debug assertion (not a "runtime" error but a
         // subtle programming logic error that always causes a crash)
-        throw DebugError({DebugErrorType::precondition,
-                          "Geant4 geometry cannot be loaded from a worker "
-                          "thread",
-                          __FILE__,
-                          __LINE__});
+        CELER_DEBUG_FAIL(
+            "Geant4 geometry cannot be loaded from a worker thread", internal);
     }
 
     ScopedMem record_mem("load_geant_geometry");

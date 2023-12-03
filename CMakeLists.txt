@@ -343,6 +343,15 @@ if(CELERITAS_USE_VecGeom)
       "float"
     )
   endif()
+  if(CELERITAS_BUILD_TESTS AND NOT VecGeom_GDML_FOUND
+      AND CELERITAS_CORE_GEO STREQUAL "VecGeom")
+    celeritas_error_incompatible_option(
+      "VecGeom installation at ${VECGEOM_INSTALL_DIR} was not built with VGDML:
+      celer-sim and many tests will fail"
+      CELERITAS_BUILD_TESTS
+      OFF
+    )
+  endif()
 endif()
 
 if(CELERITAS_BUILD_DEMOS AND NOT CELERITAS_USE_JSON)
