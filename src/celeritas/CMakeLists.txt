@@ -231,6 +231,7 @@ endif()
 if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
     ext/VecgeomParams.cc
+    ext/VecgeomParamsOutput.cc
     ext/detail/VecgeomNavCollection.cc
   )
   if(VecGeom_GDML_FOUND)
