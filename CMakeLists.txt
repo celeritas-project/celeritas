@@ -343,9 +343,6 @@ if(CELERITAS_USE_VecGeom)
       "float"
     )
   endif()
-  if(NOT VecGeom_GDML_FOUND)
-    message(SEND_ERROR "VecGeom GDML capability is required for Celeritas")
-  endif()
 endif()
 
 if(CELERITAS_BUILD_DEMOS AND NOT CELERITAS_USE_JSON)
