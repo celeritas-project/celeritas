@@ -61,14 +61,6 @@ load_geant_geometry_impl(std::string const& filename, bool strip_pointer_ext)
     ScopedMem record_mem("load_geant_geometry");
     ScopedTimeLog scoped_time;
 
-    {
-        // Creating the GDML parser resets the ScopedGeantLogger on its first
-        // instantiation (geant4@11.0), possibly due to the constructor
-        // initializing the UI manager, which through
-        // G4LocalThreadCoutMessenger seems to alter the cout state
-        G4GDMLParser temp_parser_init;
-    }
-
     ScopedGeantLogger scoped_logger;
     ScopedGeantExceptionHandler scoped_exceptions;
 
