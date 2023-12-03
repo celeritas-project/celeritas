@@ -25,7 +25,7 @@
 #    include <VecGeom/surfaces/BrepHelper.h>
 #endif
 #ifdef VECGEOM_GDML
-#include <VecGeom/gdml/Frontend.h>
+#    include <VecGeom/gdml/Frontend.h>
 #endif
 
 #include "corecel/device_runtime_api.h"
@@ -151,19 +151,9 @@ VecgeomParams::VecgeomParams(std::string const& filename)
     {
         this->build_volumes_vgdml(filename);
     }
-    else if (CELERITAS_USE_GEANT4)
-    {
-        CELER_LOG(warning)
-            << "VecGeom GDML is disabled: using Geant4 to load and "
-               "G4VG to convert";
-        auto* world = load_geant_geometry(filename);
-        CELER_ASSERT(world);
-        loaded_geant4_gdml_ = true;
-        this->build_volumes_geant4(world);
-    }
     else
     {
-        CELER_NOT_CONFIGURED("VGDML or Geant4");
+        CELER_NOT_CONFIGURED("VGDML");
     }
 
     this->build_tracking();
