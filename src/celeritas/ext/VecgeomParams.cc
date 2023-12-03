@@ -11,20 +11,12 @@
 #include <vector>
 #include <VecGeom/base/Config.h>
 #include <VecGeom/base/Cuda.h>
-#include <VecGeom/gdml/Frontend.h>
 #include <VecGeom/management/ABBoxManager.h>
 #include <VecGeom/management/BVHManager.h>
 #include <VecGeom/management/GeoManager.h>
 #include <VecGeom/volumes/PlacedVolume.h>
 
 #include "celeritas_config.h"
-#include "corecel/device_runtime_api.h"
-#include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
-#include "corecel/sys/Environment.hh"
-#include "corecel/sys/ScopedLimitSaver.hh"
-#include "corecel/sys/ScopedProfiling.hh"
-#include "celeritas/ext/detail/VecgeomCompatibility.hh"
 #if CELERITAS_USE_CUDA
 #    include <VecGeom/management/CudaManager.h>
 #    include <cuda_runtime_api.h>
@@ -32,7 +24,17 @@
 #ifdef VECGEOM_USE_SURF
 #    include <VecGeom/surfaces/BrepHelper.h>
 #endif
+#ifdef VECGEOM_GDML
+#include <VecGeom/gdml/Frontend.h>
+#endif
 
+#include "corecel/device_runtime_api.h"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/sys/Environment.hh"
+#include "corecel/sys/ScopedLimitSaver.hh"
+#include "corecel/sys/ScopedProfiling.hh"
+#include "celeritas/ext/detail/VecgeomCompatibility.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
@@ -134,7 +136,11 @@ VecgeomParams::VecgeomParams(std::string const& filename)
         ScopedProfiling profile_this{"load-vecgeom"};
         ScopedMem record_mem("VecgeomParams.load_geant_geometry");
         ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
+#ifdef VECGEOM_GDML
         vgdml::Frontend::Load(filename, /* validate_xml_schema = */ false);
+#else
+        CELER_NOT_CONFIGURED("VecGeom with VGDML");
+#endif
     }
 
     this->build_tracking();
