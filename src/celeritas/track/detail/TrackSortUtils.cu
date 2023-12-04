@@ -208,8 +208,7 @@ void count_tracks_per_action(
 {
     CELER_ASSERT(order == TrackOrder::sort_along_step_action
                  || order == TrackOrder::sort_step_limit_action);
-    // dispatch in the kernel since CELER_LAUNCH_KERNEL doesn't work
-    // with templated kernels
+
     auto start = device_pointer_cast(make_observer(offsets.data()));
     thrust::fill(thrust_execute_on(states.stream_id),
                  start,
