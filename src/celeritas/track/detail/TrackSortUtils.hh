@@ -27,10 +27,8 @@ namespace detail
 
 // Initialize default threads to track_slots mapping, track_slots[i] = i
 // TODO: move to global/detail and overload using ObserverPtr
-template<MemSpace M,
-         typename Size,
-         typename = std::enable_if_t<std::is_unsigned_v<Size>>>
-void fill_track_slots(Span<Size> track_slots, StreamId);
+template<MemSpace M>
+void fill_track_slots(Span<TrackSlotId::size_type> track_slots, StreamId);
 
 template<>
 void fill_track_slots<MemSpace::host>(Span<TrackSlotId::size_type> track_slots,
@@ -42,10 +40,8 @@ void fill_track_slots<MemSpace::device>(Span<TrackSlotId::size_type> track_slots
 //---------------------------------------------------------------------------//
 // Shuffle tracks
 // TODO: move to global/detail and overload using ObserverPtr
-template<MemSpace M,
-         typename Size,
-         typename = std::enable_if_t<std::is_unsigned_v<Size>>>
-void shuffle_track_slots(Span<Size> track_slots, StreamId);
+template<MemSpace M>
+void shuffle_track_slots(Span<TrackSlotId::size_type> track_slots, StreamId);
 
 template<>
 void shuffle_track_slots<MemSpace::host>(
@@ -77,7 +73,7 @@ void count_tracks_per_action(
 void backfill_action_count(Span<ThreadId>, size_type);
 
 //---------------------------------------------------------------------------//
-// HELPER CLASSES
+// HELPER CLASSES AND FUNCTIONS
 //---------------------------------------------------------------------------//
 struct alive_predicate
 {
@@ -89,13 +85,14 @@ struct alive_predicate
     }
 };
 
-struct action_comparator
+template<class Id>
+struct id_comparator
 {
-    ObserverPtr<ActionId const> action_;
+    ObserverPtr<Id const> ids_;
 
     CELER_FUNCTION bool operator()(size_type a, size_type b) const
     {
-        return action_.get()[a] < action_.get()[b];
+        return ids_.get()[a] < ids_.get()[b];
     }
 };
 
@@ -109,6 +106,28 @@ struct ActionAccessor
         return action_.get()[track_slots_.get()[tid.get()]];
     }
 };
+
+template<Ownership W, MemSpace M>
+CELER_FUNCTION ObserverPtr<ActionId const>
+get_action_ptr(CoreStateData<W, M> const& states, TrackOrder order)
+{
+    if (order == TrackOrder::sort_along_step_action)
+    {
+        return states.sim.along_step_action.data();
+    }
+    else if (order == TrackOrder::sort_step_limit_action)
+    {
+        return states.sim.post_step_action.data();
+    }
+    CELER_ASSERT_UNREACHABLE();
+}
+
+//---------------------------------------------------------------------------//
+// DEDUCTION GUIDES
+//---------------------------------------------------------------------------//
+
+template<class Id>
+id_comparator(ObserverPtr<Id>) -> id_comparator<Id>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

@@ -29,7 +29,7 @@ using ThreadItems
 using TrackSlots = ThreadItems<TrackSlotId::size_type>;
 
 template<class F>
-void partition_impl(TrackSlots const& track_slots, F&& func, StreamId)
+void partition_impl(TrackSlots const& track_slots, F&& func)
 {
     auto* start = track_slots.data().get();
     std::partition(start, start + track_slots.size(), std::forward<F>(func));
@@ -38,41 +38,10 @@ void partition_impl(TrackSlots const& track_slots, F&& func, StreamId)
 //---------------------------------------------------------------------------//
 
 template<class F>
-void sort_impl(TrackSlots const& track_slots, F&& func, StreamId)
+void sort_impl(TrackSlots const& track_slots, F&& func)
 {
     auto* start = track_slots.data().get();
     std::sort(start, start + track_slots.size(), std::forward<F>(func));
-}
-
-// PRE: get_action is sorted, i.e. i <= j ==> get_action(i) <=
-// get_action(j)
-template<class F>
-void count_tracks_per_action_impl(Span<ThreadId> offsets,
-                                  size_type size,
-                                  F&& get_action)
-{
-    std::fill(offsets.begin(), offsets.end(), ThreadId{});
-
-    // if get_action(0) != get_action(1), get_action(0) never gets initialized
-#pragma omp parallel for
-    for (size_type i = 1; i < size; ++i)
-    {
-        ActionId current_action = get_action(ThreadId{i});
-        if (!current_action)
-            continue;
-
-        if (current_action != get_action(ThreadId{i - 1}))
-        {
-            offsets[current_action.unchecked_get()] = ThreadId{i};
-        }
-    }
-
-    // so make sure get_action(0) is initialized
-    if (ActionId first = get_action(ThreadId{0}))
-    {
-        offsets[first.unchecked_get()] = ThreadId{0};
-    }
-    backfill_action_count(offsets, size);
 }
 
 //---------------------------------------------------------------------------//
@@ -111,18 +80,15 @@ void sort_tracks(HostRef<CoreStateData> const& states, TrackOrder order)
     {
         case TrackOrder::partition_status:
             return partition_impl(states.track_slots,
-                                  alive_predicate{states.sim.status.data()},
-                                  states.stream_id);
+                                  alive_predicate{states.sim.status.data()});
         case TrackOrder::sort_along_step_action:
-            return sort_impl(
-                states.track_slots,
-                action_comparator{states.sim.along_step_action.data()},
-                states.stream_id);
         case TrackOrder::sort_step_limit_action:
+            return sort_impl(states.track_slots,
+                             id_comparator{get_action_ptr(states, order)});
+        case TrackOrder::sort_particle_type:
             return sort_impl(
                 states.track_slots,
-                action_comparator{states.sim.post_step_action.data()},
-                states.stream_id);
+                id_comparator{states.particles.particle_id.data()});
         default:
             CELER_ASSERT_UNREACHABLE();
     }
@@ -140,23 +106,34 @@ void count_tracks_per_action(
     Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>&,
     TrackOrder order)
 {
-    switch (order)
+    CELER_ASSERT(order == TrackOrder::sort_along_step_action
+                 || order == TrackOrder::sort_step_limit_action);
+
+    ActionAccessor get_action{get_action_ptr(states, order),
+                              states.track_slots.data()};
+
+    std::fill(offsets.begin(), offsets.end(), ThreadId{});
+    auto const size = states.size();
+    // if get_action(0) != get_action(1), get_action(0) never gets initialized
+#pragma omp parallel for
+    for (size_type i = 1; i < size; ++i)
     {
-        case TrackOrder::sort_along_step_action:
-            return count_tracks_per_action_impl(
-                offsets,
-                states.size(),
-                ActionAccessor{states.sim.along_step_action.data(),
-                               states.track_slots.data()});
-        case TrackOrder::sort_step_limit_action:
-            return count_tracks_per_action_impl(
-                offsets,
-                states.size(),
-                ActionAccessor{states.sim.post_step_action.data(),
-                               states.track_slots.data()});
-        default:
-            return;
+        ActionId current_action = get_action(ThreadId{i});
+        if (!current_action)
+            continue;
+
+        if (current_action != get_action(ThreadId{i - 1}))
+        {
+            offsets[current_action.unchecked_get()] = ThreadId{i};
+        }
     }
+
+    // so make sure get_action(0) is initialized
+    if (ActionId first = get_action(ThreadId{0}))
+    {
+        offsets[first.unchecked_get()] = ThreadId{0};
+    }
+    backfill_action_count(offsets, size);
 }
 
 void backfill_action_count(Span<ThreadId> offsets, size_type num_actions)
