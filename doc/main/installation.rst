@@ -97,13 +97,14 @@ dependencies:
 - Clone and load Spack following its `getting started instructions
   <https://spack.readthedocs.io/en/latest/getting_started.html>`_.
 - If using CUDA: run ``spack external find cuda`` to inform Spack of the existing
-  installation, and tell Spack to default to building with CUDA support with
-  the command ``spack config add packages:all:variants:"+cuda
+  installation
+- Create the Celeritas development environment with ``spack env create
+  celeritas scripts/spack.yaml``.
+- Tell Spack to default to building with CUDA support with
+  the command ``spack -e celeritas config add packages:all:variants:"cxxstd=17 +cuda
   cuda_arch=<ARCH>"``, where ``<ARCH>`` is the numeric portion of the
   `CUDA architecture flags
   <https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/>`_.
-- Create the Celeritas development environment with ``spack env create
-  celeritas scripts/spack.yaml``.
 - Install all the dependencies with ``spack -e celeritas install``.
 
 The current Spack environment for full-featured development is:

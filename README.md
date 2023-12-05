@@ -35,7 +35,7 @@ Then see the "Downstream usage as a library" section of the [installation
 documentation][install] for how to use Celeritas in your application or framework.
 
 [spack-start]: https://spack.readthedocs.io/en/latest/getting_started.html
-[install]: doc/installation.rst
+[install]: doc/main/installation.rst
 
 # Installation for developers
 
@@ -52,10 +52,10 @@ directory:
 ```console
 # Set up CUDA (optional)
 $ spack external find cuda
-$ spack config add packages:all:variants:"+cuda cuda_arch=70"
 # Install celeritas dependencies
 $ spack env create celeritas scripts/spack.yaml
 $ spack env activate celeritas
+$ spack config add packages:all:variants:"cxxstd=17 +cuda cuda_arch=70"
 $ spack install
 # Configure, build, and test
 $ ./build.sh base
@@ -71,24 +71,30 @@ $ make && ctest
 ```
 
 Celeritas guarantees full compatibility and correctness only on the
-combinations of compilers and dependencies tested under continuous integration.
-Currently supported compilers are GCC 11.2 + NVCC 11.8, and HIP-Clang 15.0, but
-since we compile with extra warning flags and avoid non-portable code, most
+combinations of compilers and dependencies tested under continuous integration:
+- Compilers:
+    - GCC 8.4, 12.3
+    - GCC 11.3 + NVCC 11.8
+    - HIP-Clang 10.0, 15.0
+- Dependencies:
+    - Geant4 11.0.3
+    - VecGeom 1.2.5
+
+Since we compile with extra warning flags and avoid non-portable code, most
 other compilers *should* work.
-Currently Geant4 11.0 and VecGeom 1.2 are the only versions that are guaranteed
-to work, but older versions might be OK.
-The full set of configurations is viewable on [the CI web site][jenkins].
+The full set of configurations is viewable on CI platforms ([Jenkins][jenkins] and [GitHub Actions][gha]).
 Compatibility fixes that do not cause newer versions to fail are welcome.
 
 [spack]: https://github.com/spack/spack
-[install]: doc/installation.rst
-[jenkins]: https://cloud.cees.ornl.gov/jenkins-ci/blue/organizations/jenkins/Celeritas/activity?branch=master
+[install]: doc/main/installation.rst
+[jenkins]: https://cloud.cees.ornl.gov/jenkins-ci/job/celeritas/job/develop
+[gha]: https://github.com/celeritas-project/celeritas/actions
 
 # Development
 
 See the [contribution guide](CONTRIBUTING.rst) for the contribution process,
-[the development guidelines](doc/appendices/development.rst) for further
-details on coding in Celeritas, and [the administration guidelines](doc/appendices/administration.rst) for community standards and roles.
+[the development guidelines](doc/appendix/development.rst) for further
+details on coding in Celeritas, and [the administration guidelines](doc/appendix/administration.rst) for community standards and roles.
 
 # Citing Celeritas
 

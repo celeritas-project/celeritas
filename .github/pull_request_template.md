@@ -20,4 +20,4 @@ If you're a core developer, add one of each label:
 - Change type: {bug, documentation, enhancement, minor}
 - Category: {app, core, external, field, orange, performance, physics, user}
 
-See [https://github.com/celeritas-project/celeritas/blob/develop/doc/appendices/administration.rst#review-process](review process) for descriptions of the labels and requirements.
+See [review process](https://github.com/celeritas-project/celeritas/blob/develop/doc/appendix/administration.rst#code-review) for descriptions of the labels and requirements.
