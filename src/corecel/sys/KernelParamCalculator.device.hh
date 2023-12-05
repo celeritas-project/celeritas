@@ -58,7 +58,7 @@
             #NAME, NAME##_kernel<T1>);                                       \
         auto grid_ = calc_launch_params_(THREADS);                           \
                                                                              \
-        CELER_LAUNCH_KERNEL_IMPL(NAME##_kernel,                              \
+        CELER_LAUNCH_KERNEL_IMPL(NAME##_kernel<T1>,                          \
                                  grid_.blocks_per_grid,                      \
                                  grid_.threads_per_block,                    \
                                  0,                                          \
