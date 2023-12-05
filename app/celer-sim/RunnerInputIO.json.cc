@@ -141,7 +141,7 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
 {
 #define LDIO_SAVE(NAME) CELER_JSON_SAVE(j, v, NAME)
 #define LDIO_SAVE_WHEN(NAME, COND) CELER_JSON_SAVE_WHEN(j, v, NAME, COND)
-#define LDIO_SAVE_OPTIONAL(NAME) \
+#define LDIO_SAVE_OPTION(NAME) \
     LDIO_SAVE_WHEN(NAME, v.NAME != default_args.NAME)
 
     j = nlohmann::json::object();
@@ -150,26 +150,26 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     // Save version and celer-sim format
     save_format(j, "celer-sim");
 
-    LDIO_SAVE_OPTIONAL(cuda_heap_size);
-    LDIO_SAVE_OPTIONAL(cuda_stack_size);
+    LDIO_SAVE_OPTION(cuda_heap_size);
+    LDIO_SAVE_OPTION(cuda_stack_size);
     LDIO_SAVE(environ);
 
     LDIO_SAVE(geometry_file);
     LDIO_SAVE(physics_file);
-    LDIO_SAVE_OPTIONAL(event_file);
+    LDIO_SAVE_OPTION(event_file);
     LDIO_SAVE_WHEN(primary_options, v.event_file.empty());
 
-    LDIO_SAVE_OPTIONAL(mctruth_file);
+    LDIO_SAVE_OPTION(mctruth_file);
     LDIO_SAVE_WHEN(mctruth_filter, !v.mctruth_file.empty());
     LDIO_SAVE(simple_calo);
     LDIO_SAVE(action_diagnostic);
     LDIO_SAVE(step_diagnostic);
-    LDIO_SAVE_OPTIONAL(step_diagnostic_bins);
+    LDIO_SAVE_OPTION(step_diagnostic_bins);
     LDIO_SAVE(write_track_counts);
 
     LDIO_SAVE(seed);
     LDIO_SAVE(num_track_slots);
-    LDIO_SAVE_OPTIONAL(max_steps);
+    LDIO_SAVE_OPTION(max_steps);
     LDIO_SAVE(initializer_capacity);
     LDIO_SAVE(max_events);
     LDIO_SAVE(secondary_stack_factor);
@@ -179,10 +179,10 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE(default_stream);
     LDIO_SAVE(warm_up);
 
-    LDIO_SAVE_OPTIONAL(field);
+    LDIO_SAVE_OPTION(field);
     LDIO_SAVE_WHEN(field_options, v.field != RunnerInput::no_field());
 
-    LDIO_SAVE_OPTIONAL(step_limiter);
+    LDIO_SAVE_OPTION(step_limiter);
     LDIO_SAVE(brem_combined);
 
     LDIO_SAVE(track_order);
@@ -190,7 +190,7 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
                    v.physics_file.empty()
                        || !ends_with(v.physics_file, ".root"));
 
-#undef LDIO_SAVE_OPTIONAL
+#undef LDIO_SAVE_OPTION
 #undef LDIO_SAVE_WHEN
 #undef LDIO_SAVE
 }
