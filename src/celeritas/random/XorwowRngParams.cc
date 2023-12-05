@@ -33,7 +33,7 @@ XorwowRngParams::XorwowRngParams(unsigned int seed)
 /*!
  * Get the jump polynomials.
  *
- * The jump polynomials (as well as the jump matrices) are calculated using
+ * The jump polynomials (and the jump matrices) can be generated using
  * https://github.com/celeritas-project/utils/blob/main/prng/xorwow-jump.py.
  *
  * The coefficients of the polynomial are packed into a 160-bit integer, which
@@ -44,17 +44,17 @@ XorwowRngParams::XorwowRngParams(unsigned int seed)
  */
 auto XorwowRngParams::get_jump_poly() -> ArrayJumpPoly const&
 {
-    static ArrayJumpPoly const jump
-        = {{{0x2, 0x0, 0x0, 0x0, 0x0},
-            {0x10, 0x0, 0x0, 0x0, 0x0},
-            {0x10000, 0x0, 0x0, 0x0, 0x0},
-            {0x0, 0x0, 0x1, 0x0, 0x0},
-            {0xbebd3534, 0x7064f5bc, 0x20be29eb, 0x536d5b32, 0x63a0069},
-            {0xed64ec08, 0xafc48684, 0xd81c59ee, 0x1640314f, 0x2bf0ccef},
-            {0x9d10e028, 0xee56d79c, 0xfb1b3286, 0xf747418, 0x26f9476d},
-            {0x3f490634, 0x9ae593fc, 0x1a95bb6b, 0xda10a3fc, 0xa3abaf54},
-            {0xfb9680e9, 0xbdaba0b2, 0x3986540f, 0x23fe6ccc, 0x994e82f},
-            {0x32da6db4, 0x80135829, 0x3abd4734, 0x2060c3f9, 0x38b2dd97}}};
+    static ArrayJumpPoly const jump = {
+        {{0x00000002u, 0x00000000u, 0x00000000u, 0x00000000u, 0x00000000u},
+         {0x00000010u, 0x00000000u, 0x00000000u, 0x00000000u, 0x00000000u},
+         {0x00010000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x00000000u},
+         {0x00000000u, 0x00000000u, 0x00000001u, 0x00000000u, 0x00000000u},
+         {0xbebd3534u, 0x7064f5bcu, 0x20be29ebu, 0x536d5b32u, 0x063a0069u},
+         {0xed64ec08u, 0xafc48684u, 0xd81c59eeu, 0x1640314fu, 0x2bf0ccefu},
+         {0x9d10e028u, 0xee56d79cu, 0xfb1b3286u, 0x0f747418u, 0x26f9476du},
+         {0x3f490634u, 0x9ae593fcu, 0x1a95bb6bu, 0xda10a3fcu, 0xa3abaf54u},
+         {0xfb9680e9u, 0xbdaba0b2u, 0x3986540fu, 0x23fe6cccu, 0x0994e82fu},
+         {0x32da6db4u, 0x80135829u, 0x3abd4734u, 0x2060c3f9u, 0x38b2dd97u}}};
     return jump;
 }
 
@@ -62,21 +62,21 @@ auto XorwowRngParams::get_jump_poly() -> ArrayJumpPoly const&
 /*!
  * Get the jump polynomials for jumping over subsequences.
  *
- * The jump sizes are 4^i * 2^67 for i = [0, 10).
+ * A subsequence is 2^67 steps. The jump sizes are 4^i * 2^67 for i = [0, 10).
  */
 auto XorwowRngParams::get_jump_subsequence_poly() -> ArrayJumpPoly const&
 {
-    static ArrayJumpPoly const jump_subsequence
-        = {{{0x26294934, 0x77bbc248, 0x1a87dad0, 0x930052d4, 0x947e6dd2},
-            {0xa7474d19, 0x37c549e0, 0x140877d2, 0x24c43924, 0xcd52ebec},
-            {0xfcc8f692, 0x35aa698a, 0x4ebbf85, 0x448304b0, 0x82f3fd5},
-            {0xe502f5b3, 0x77859d31, 0x97e1cbb3, 0xea09047a, 0x61d5f37e},
-            {0xb3a15db4, 0xc6df3330, 0x1a8be751, 0xf1e4b221, 0x6bb61c05},
-            {0x19e2bee8, 0xf8974218, 0x4e65536a, 0xa2570336, 0xe9b88082},
-            {0xe2cae2e, 0xd1011279, 0x58923768, 0x2bf650ba, 0xc985bcda},
-            {0x146281e7, 0xa45b4452, 0xafa8c695, 0x74a0ac94, 0x4b250e0a},
-            {0x89658c8b, 0xf3914315, 0xa73fe84b, 0x3c5fadb6, 0xadba8dd6},
-            {0x82161afc, 0x9bb13c55, 0xfd20d7fb, 0x306d90b9, 0x92bf386f}}};
+    static ArrayJumpPoly const jump_subsequence = {
+        {{0x26294934u, 0x77bbc248u, 0x1a87dad0u, 0x930052d4u, 0x947e6dd2u},
+         {0xa7474d19u, 0x37c549e0u, 0x140877d2u, 0x24c43924u, 0xcd52ebecu},
+         {0xfcc8f692u, 0x35aa698au, 0x04ebbf85u, 0x448304b0u, 0x082f3fd5u},
+         {0xe502f5b3u, 0x77859d31u, 0x97e1cbb3u, 0xea09047au, 0x61d5f37eu},
+         {0xb3a15db4u, 0xc6df3330u, 0x1a8be751u, 0xf1e4b221u, 0x6bb61c05u},
+         {0x19e2bee8u, 0xf8974218u, 0x4e65536au, 0xa2570336u, 0xe9b88082u},
+         {0x0e2cae2eu, 0xd1011279u, 0x58923768u, 0x2bf650bau, 0xc985bcdau},
+         {0x146281e7u, 0xa45b4452u, 0xafa8c695u, 0x74a0ac94u, 0x4b250e0au},
+         {0x89658c8bu, 0xf3914315u, 0xa73fe84bu, 0x3c5fadb6u, 0xadba8dd6u},
+         {0x82161afcu, 0x9bb13c55u, 0xfd20d7fbu, 0x306d90b9u, 0x92bf386fu}}};
     return jump_subsequence;
 }
 

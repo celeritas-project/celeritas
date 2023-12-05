@@ -42,7 +42,7 @@ class CuHipRngEngine
                                          TrackSlotId tid);
 
     // Initialize state from seed
-    inline CELER_FUNCTION CuHipRngEngine& operator=(Initializer_t const& s);
+    inline CELER_FUNCTION CuHipRngEngine& operator=(Initializer_t const&);
 
     // Sample a random number
     inline CELER_FUNCTION result_type operator()();

@@ -18,9 +18,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Persistent data for XORWOW generator.
- *
- * If we want to add the "discard" operation or support initialization with a
- * subsequence or offset, we can add the precomputed XORWOW jump matrices here.
  */
 template<Ownership W, MemSpace M>
 struct XorwowRngParamsData
@@ -55,6 +52,8 @@ struct XorwowRngParamsData
     {
         CELER_EXPECT(other);
         seed = other.seed;
+        jump = other.jump;
+        jump_subsequence = other.jump_subsequence;
         return *this;
     }
 };
