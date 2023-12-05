@@ -606,7 +606,7 @@ void SharedParams::try_output() const
     if (CELERITAS_USE_JSON && !params_ && filename.empty())
     {
         // Setup was not called but JSON is available: make a default filename
-        filename = "celeritas.json";
+        filename = "celeritas.out.json";
         CELER_LOG(debug) << "Set default Celeritas output filename";
     }
 
@@ -619,13 +619,25 @@ void SharedParams::try_output() const
 
     if (CELERITAS_USE_JSON)
     {
-        CELER_LOG(info) << "Writing Geant4 diagnostic output to \"" << filename
-                        << '"';
-
-        std::ofstream outf(filename);
-        CELER_VALIDATE(
-            outf, << "failed to open output file at \"" << filename << '"');
-        output_reg_->output(&outf);
+        auto msg = CELER_LOG(info);
+        msg << "Wrote Geant4 diagnostic output to ";
+        std::ofstream outf;
+        std::ostream* os{nullptr};
+        if (filename == "-")
+        {
+            os = &std::cout;
+            msg << "<stdout>";
+        }
+        else
+        {
+            os = &outf;
+            outf.open(filename);
+            CELER_VALIDATE(
+                outf, << "failed to open output file at \"" << filename << '"');
+            msg << '"' << filename << '"';
+        }
+        CELER_ASSERT(os);
+        output_reg_->output(os);
     }
     else
     {
