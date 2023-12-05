@@ -26,7 +26,7 @@ struct XorwowRngParamsData
 
     using uint_t = unsigned int;
     using JumpPoly = Array<uint_t, 5>;
-    using ArrayJumpPoly = Array<JumpPoly, 10>;
+    using ArrayJumpPoly = Array<JumpPoly, 32>;
 
     //// DATA ////
 

@@ -35,7 +35,7 @@ namespace celeritas
  * sequence (https://www.jstatsoft.org/index.php/jss/article/view/v008i14/916).
  *
  * For a description of the jump ahead method using the polynomial
- * representation of the recurrance, see: Haramoto, H., Matsumoto, M.,
+ * representation of the recurrence, see: Haramoto, H., Matsumoto, M.,
  * Nishimura, T., Panneton, F., L’Ecuyer, P.  2008. "Efficient jump ahead for
  * F2-linear random number generators". INFORMS Journal on Computing.
  * https://pubsonline.informs.org/doi/10.1287/ijoc.1070.0251.
@@ -78,17 +78,17 @@ class XorwowRngEngine
     // Generate a 32-bit pseudorandom number
     inline CELER_FUNCTION result_type operator()();
 
-    // Jump ahead \c n steps
-    inline CELER_FUNCTION void skipahead(ull_int n);
+    // Jump ahead \c num_skip steps
+    inline CELER_FUNCTION void skipahead(ull_int num_skip);
 
-    // Jump ahead \c n subsequences (\c n * 2^67 steps)
-    inline CELER_FUNCTION void skipahead_subsequence(ull_int n);
+    // Jump ahead \c num_skip subsequences (\c num_skip * 2^67 steps)
+    inline CELER_FUNCTION void skipahead_subsequence(ull_int num_skip);
 
   private:
     /// TYPES ///
 
     using JumpPoly = Array<uint_t, 5>;
-    using ArrayJumpPoly = Array<JumpPoly, 10>;
+    using ArrayJumpPoly = Array<JumpPoly, 32>;
 
     /// DATA ///
 
@@ -199,22 +199,22 @@ CELER_FUNCTION auto XorwowRngEngine::operator()() -> result_type
 /*!
  * Advance the state \c n steps.
  */
-CELER_FUNCTION void XorwowRngEngine::skipahead(ull_int n)
+CELER_FUNCTION void XorwowRngEngine::skipahead(ull_int num_skip)
 {
-    this->jump(n, params_.jump);
-    state_->weylstate += static_cast<unsigned int>(n) * 362437u;
+    this->jump(num_skip, params_.jump);
+    state_->weylstate += static_cast<unsigned int>(num_skip) * 362437u;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Advance the state \c n subsequences (\c n * 2^67 steps).
+ * Advance the state \c num_skip subsequences (\c num_skip * 2^67 steps).
  *
  * Note that the Weyl sequence value remains the same since it has period 2^32
  * which divides evenly into 2^67.
  */
-CELER_FUNCTION void XorwowRngEngine::skipahead_subsequence(ull_int n)
+CELER_FUNCTION void XorwowRngEngine::skipahead_subsequence(ull_int num_skip)
 {
-    this->jump(n, params_.jump_subsequence);
+    this->jump(num_skip, params_.jump_subsequence);
 }
 
 //---------------------------------------------------------------------------//
@@ -246,7 +246,7 @@ CELER_FUNCTION void
 XorwowRngEngine::jump(ull_int n, ArrayJumpPoly const& jump_poly_arr)
 {
     // Maximum number of times to apply any jump polynomial. Since the jump
-    // sizes are 4^i for i = [0, 10), the max is 3.
+    // sizes are 4^i for i = [0, 32), the max is 3.
     constexpr size_type max_num_jump = 3;
 
     // Start with the smallest jump (either one step or one subsequence)
@@ -269,7 +269,7 @@ XorwowRngEngine::jump(ull_int n, ArrayJumpPoly const& jump_poly_arr)
 /*!
  * Jump ahead using the given jump polynomial.
  *
- * This uses the polynomial representation to apply the recurrance to the
+ * This uses the polynomial representation to apply the recurrence to the
  * state. The theory is described in
  * https://pubsonline.informs.org/doi/10.1287/ijoc.1070.0251. Let
  * \f[

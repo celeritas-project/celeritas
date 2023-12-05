@@ -205,6 +205,62 @@ TEST_F(XorwowRngEngineTest, moments)
     tally.check(num_samples * num_seeds, 1e-3);
 }
 
+TEST_F(XorwowRngEngineTest, jump)
+{
+    unsigned int size = 2;
+
+    HostStore states(params->host_ref(), StreamId{0}, size);
+    XorwowRngEngine rng(params->host_ref(), states.ref(), TrackSlotId{0});
+    XorwowRngEngine skip_rng(params->host_ref(), states.ref(), TrackSlotId{1});
+
+    XorwowRngInitializer init;
+    init.seed = 12345;
+    init.subsequence = 0;
+    init.offset = 0;
+    rng = init;
+
+    for (ull_int offset = 0; offset <= (1 << 16); offset++)
+    {
+        // Initialize and skip ahead \c offset steps, equivalent to calling
+        // next() \c offset times
+        init.offset = offset;
+        skip_rng = init;
+        ASSERT_EQ(rng(), skip_rng());
+    }
+    {
+        init.subsequence = 0;
+        init.offset = 0;
+        rng = init;
+
+        init.subsequence = 256;
+        skip_rng = init;
+
+        rng.skipahead_subsequence(255);
+        rng.skipahead_subsequence(1);
+        EXPECT_EQ(rng(), skip_rng());
+    }
+    {
+        init.subsequence = 0;
+        init.offset = 0;
+        rng = init;
+
+        init.subsequence = (1 << 19);
+        init.offset = 1024;
+        skip_rng = init;
+
+        rng.skipahead_subsequence(1 << 18);
+        rng.skipahead_subsequence(1 << 18);
+        rng.skipahead(1023);
+        rng.skipahead(1);
+        EXPECT_EQ(rng(), skip_rng());
+    }
+    {
+        init.subsequence = -1;
+        init.offset = -1;
+        skip_rng = init;
+    }
+}
+
 TEST_F(XorwowRngEngineTest, TEST_IF_CELER_DEVICE(device))
 {
     // Create and initialize states

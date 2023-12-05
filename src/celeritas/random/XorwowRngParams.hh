@@ -44,7 +44,7 @@ class XorwowRngParams final : public ParamsDataInterface<XorwowRngParamsData>
     //// TYPES ////
 
     using JumpPoly = Array<unsigned int, 5>;
-    using ArrayJumpPoly = Array<JumpPoly, 10>;
+    using ArrayJumpPoly = Array<JumpPoly, 32>;
 
     //// HELPER FUNCTIONS ////
 

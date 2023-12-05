@@ -43,7 +43,7 @@ void resize(CuHipRngStateData<Ownership::value, M>* state,
         seed = sample_uniform_int(host_rng);
     }
 
-    // The params are needed in the correct memspace to initialize the engine
+    // Set up params on device to initialize the engine
     HostVal<CuHipRngParamsData> host_data;
     host_data.seed = params.seed;
     CuHipRngParamsData<Ownership::value, M> data;
