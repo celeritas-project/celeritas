@@ -76,6 +76,7 @@ void print_usage(std::string_view exec_name)
 {
     // clang-format off
     std::cerr << "usage: " << exec_name << " {input}.json\n"
+                 "       " << exec_name << " -\n"
                  "       " << exec_name << " {commands}.mac\n"
                  "       " << exec_name << " --interactive\n"
                  "       " << exec_name << " [--help|-h]\n"

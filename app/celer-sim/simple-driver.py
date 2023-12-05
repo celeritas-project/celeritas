@@ -129,8 +129,6 @@ if result.returncode:
 
 print("Received {} bytes of data".format(len(result.stdout)), file=stderr)
 out_text = result.stdout.decode()
-# Filter out spurious HepMC3 output
-out_text = out_text[out_text.find('\n{') + 1:]
 try:
     j = json.loads(out_text)
 except json.decoder.JSONDecodeError as e:
