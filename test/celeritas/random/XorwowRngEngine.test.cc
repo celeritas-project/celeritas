@@ -196,7 +196,7 @@ TEST_F(XorwowRngEngineTest, moments)
 
     for (unsigned int i = 0; i < num_seeds; ++i)
     {
-        XorwowRngEngine rng(states.ref(), TrackSlotId{i});
+        XorwowRngEngine rng(params->host_ref(), states.ref(), TrackSlotId{i});
         for (unsigned int j = 0; j < num_samples; ++j)
         {
             tally(generate_canonical(rng));

@@ -29,25 +29,27 @@ namespace
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void sample_native_kernel(DeviceRef<RngStateData> view,
+__global__ void sample_native_kernel(RngDeviceParamsRef params,
+                                     RngDeviceStateRef states,
                                      RngEngine::result_type* samples)
 {
     auto tid = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
-    if (tid.get() < view.size())
+    if (tid.get() < states.size())
     {
-        RngEngine rng(view, tid);
+        RngEngine rng(params, states, tid);
         samples[tid.get()] = rng();
     }
 }
 
 template<class RealType>
-__global__ void
-sample_canonical_kernel(DeviceRef<RngStateData> view, RealType* samples)
+__global__ void sample_canonical_kernel(RngDeviceParamsRef params,
+                                        RngDeviceStateRef states,
+                                        RealType* samples)
 {
     auto tid = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
-    if (tid.get() < view.size())
+    if (tid.get() < states.size())
     {
-        RngEngine rng(view, tid);
+        RngEngine rng(params, states, tid);
         samples[tid.get()] = generate_canonical<RealType>(rng);
     }
 }
@@ -57,13 +59,15 @@ sample_canonical_kernel(DeviceRef<RngStateData> view, RealType* samples)
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-std::vector<unsigned int> re_test_native(RngDeviceRef states)
+std::vector<unsigned int>
+re_test_native(RngDeviceParamsRef params, RngDeviceStateRef states)
 {
     thrust::device_vector<unsigned int> samples(states.size());
 
     CELER_LAUNCH_KERNEL(sample_native,
                         states.size(),
                         0,
+                        params,
                         states,
                         raw_pointer_cast(samples.data()));
 
@@ -76,7 +80,8 @@ std::vector<unsigned int> re_test_native(RngDeviceRef states)
 //---------------------------------------------------------------------------//
 //! Run on device and return results
 template<class T>
-std::vector<T> re_test_canonical(RngDeviceRef states)
+std::vector<T>
+re_test_canonical(RngDeviceParamsRef params, RngDeviceStateRef states)
 {
     thrust::device_vector<T> samples(states.size());
 
@@ -89,6 +94,7 @@ std::vector<T> re_test_canonical(RngDeviceRef states)
                              grid.threads_per_block,
                              0,
                              0,
+                             params,
                              states,
                              raw_pointer_cast(samples.data()));
     CELER_DEVICE_CHECK_ERROR();
@@ -104,8 +110,10 @@ std::vector<T> re_test_canonical(RngDeviceRef states)
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
-template std::vector<float> re_test_canonical<float>(RngDeviceRef);
-template std::vector<double> re_test_canonical<double>(RngDeviceRef);
+template std::vector<float>
+    re_test_canonical<float>(RngDeviceParamsRef, RngDeviceStateRef);
+template std::vector<double>
+    re_test_canonical<double>(RngDeviceParamsRef, RngDeviceStateRef);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

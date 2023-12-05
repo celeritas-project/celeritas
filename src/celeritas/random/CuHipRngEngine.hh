@@ -31,13 +31,15 @@ class CuHipRngEngine
     //! \name Type aliases
     using result_type = unsigned int;
     using Initializer_t = CuHipRngInitializer;
+    using ParamsRef = NativeCRef<CuHipRngParamsData>;
     using StateRef = NativeRef<CuHipRngStateData>;
     //!@}
 
   public:
     // Construct from state
-    inline CELER_FUNCTION
-    CuHipRngEngine(StateRef const& state, TrackSlotId const& id);
+    inline CELER_FUNCTION CuHipRngEngine(ParamsRef const& params,
+                                         StateRef const& state,
+                                         TrackSlotId tid);
 
     // Initialize state from seed
     inline CELER_FUNCTION CuHipRngEngine& operator=(Initializer_t const& s);
@@ -46,6 +48,7 @@ class CuHipRngEngine
     inline CELER_FUNCTION result_type operator()();
 
   private:
+    ParamsRef const& params_;
     CuHipRngThreadState* state_;
 
     template<class Generator, class RealType>
@@ -97,10 +100,13 @@ class GenerateCanonical<CuHipRngEngine, double>
  * Construct from state.
  */
 CELER_FUNCTION
-CuHipRngEngine::CuHipRngEngine(StateRef const& state, TrackSlotId const& id)
+CuHipRngEngine::CuHipRngEngine(ParamsRef const& params,
+                               StateRef const& state,
+                               TrackSlotId tid)
+    : params_(params)
 {
-    CELER_EXPECT(id < state.rng.size());
-    state_ = &state.rng[id];
+    CELER_EXPECT(tid < state.rng.size());
+    state_ = &state.rng[tid];
 }
 
 //---------------------------------------------------------------------------//
@@ -109,7 +115,7 @@ CuHipRngEngine::CuHipRngEngine(StateRef const& state, TrackSlotId const& id)
  */
 CELER_FUNCTION CuHipRngEngine& CuHipRngEngine::operator=(Initializer_t const& s)
 {
-    CELER_RNG_PREFIX(rand_init)(s.seed, 0, 0, state_);
+    CELER_RNG_PREFIX(rand_init)(s.seed, s.subsequence, s.offset, state_);
     return *this;
 }
 

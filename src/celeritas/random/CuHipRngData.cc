@@ -31,25 +31,30 @@ void resize(CuHipRngStateData<Ownership::value, M>* state,
     CELER_EXPECT(size > 0);
     CELER_EXPECT(M == MemSpace::host || celeritas::device());
 
-    using RngInit = CuHipRngInitializer;
-
     // Host-side RNG for creating seeds
     std::mt19937 host_rng(params.seed + stream.get());
     std::uniform_int_distribution<ull_int> sample_uniform_int;
 
     // Create seeds for device in host memory
-    StateCollection<RngInit, Ownership::value, MemSpace::host> host_seeds;
+    StateCollection<ull_int, Ownership::value, MemSpace::host> host_seeds;
     resize(&host_seeds, size);
-    for (RngInit& init : host_seeds[AllItems<RngInit>{}])
+    for (auto& seed : host_seeds[AllItems<ull_int>{}])
     {
-        init.seed = sample_uniform_int(host_rng);
+        seed = sample_uniform_int(host_rng);
     }
+
+    // The params are needed in the correct memspace to initialize the engine
+    HostVal<CuHipRngParamsData> host_data;
+    host_data.seed = params.seed;
+    CuHipRngParamsData<Ownership::value, M> data;
+    data = host_data;
 
     // Resize state data and assign
     resize(&state->rng, size);
     detail::CuHipRngInitData<Ownership::value, M> init_data;
     init_data.seeds = host_seeds;
-    detail::rng_state_init(make_ref(*state), make_const_ref(init_data));
+    detail::rng_state_init(
+        make_const_ref(data), make_ref(*state), make_const_ref(init_data));
 }
 
 //---------------------------------------------------------------------------//
