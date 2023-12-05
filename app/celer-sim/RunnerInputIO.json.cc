@@ -10,8 +10,8 @@
 #include <string>
 
 #include "corecel/cont/ArrayIO.json.hh"
+#include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/LabelIO.json.hh"
-#include "corecel/io/Logger.hh"
 #include "corecel/io/StringEnumMapper.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/EnvironmentIO.json.hh"
@@ -52,23 +52,13 @@ namespace app
  */
 void from_json(nlohmann::json const& j, RunnerInput& v)
 {
-#define LDIO_LOAD_OPTION(NAME)          \
-    do                                  \
-    {                                   \
-        if (j.contains(#NAME))          \
-            j.at(#NAME).get_to(v.NAME); \
-    } while (0)
-#define LDIO_LOAD_DEPRECATED(OLD, NEW)                                        \
-    do                                                                        \
-    {                                                                         \
-        if (j.contains(#OLD))                                                 \
-        {                                                                     \
-            CELER_LOG(warning) << "Deprecated option '" << #OLD << "': use '" \
-                               << #NEW << "' instead";                        \
-            j.at(#OLD).get_to(v.NEW);                                         \
-        }                                                                     \
-    } while (0)
-#define LDIO_LOAD_REQUIRED(NAME) j.at(#NAME).get_to(v.NAME)
+#define LDIO_LOAD_REQUIRED(NAME) CELER_JSON_LOAD_REQUIRED(j, v, NAME)
+#define LDIO_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, v, NAME)
+#define LDIO_LOAD_DEPRECATED(OLD, NEW) \
+    CELER_JSON_LOAD_DEPRECATED(j, v, OLD, NEW)
+
+    // Check version (if available)
+    check_format(j, "celer-sim");
 
     LDIO_LOAD_OPTION(cuda_heap_size);
     LDIO_LOAD_OPTION(cuda_stack_size);
@@ -127,6 +117,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(track_order);
     LDIO_LOAD_OPTION(physics_options);
 
+#undef LDIO_LOAD_DEPRECATED
 #undef LDIO_LOAD_OPTION
 #undef LDIO_LOAD_REQUIRED
 
@@ -148,70 +139,60 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
  */
 void to_json(nlohmann::json& j, RunnerInput const& v)
 {
+#define LDIO_SAVE(NAME) CELER_JSON_SAVE(j, v, NAME)
+#define LDIO_SAVE_WHEN(NAME, COND) CELER_JSON_SAVE_WHEN(j, v, NAME, COND)
+#define LDIO_SAVE_OPTION(NAME) \
+    LDIO_SAVE_WHEN(NAME, v.NAME != default_args.NAME)
+
     j = nlohmann::json::object();
     RunnerInput const default_args;
-    //! Save if not unspecified or if applicable
-#define LDIO_SAVE_OPTION(NAME)           \
-    do                                   \
-    {                                    \
-        if (v.NAME != default_args.NAME) \
-            j[#NAME] = v.NAME;           \
-    } while (0)
-    //! Always save
-#define LDIO_SAVE_REQUIRED(NAME) j[#NAME] = v.NAME
+
+    // Save version and celer-sim format
+    save_format(j, "celer-sim");
 
     LDIO_SAVE_OPTION(cuda_heap_size);
     LDIO_SAVE_OPTION(cuda_stack_size);
-    LDIO_SAVE_REQUIRED(environ);
+    LDIO_SAVE(environ);
 
-    LDIO_SAVE_REQUIRED(geometry_file);
-    LDIO_SAVE_REQUIRED(physics_file);
+    LDIO_SAVE(geometry_file);
+    LDIO_SAVE(physics_file);
     LDIO_SAVE_OPTION(event_file);
-    if (v.event_file.empty())
-    {
-        LDIO_SAVE_REQUIRED(primary_options);
-    }
+    LDIO_SAVE_WHEN(primary_options, v.event_file.empty());
 
     LDIO_SAVE_OPTION(mctruth_file);
-    if (!v.mctruth_file.empty())
-    {
-        LDIO_SAVE_REQUIRED(mctruth_filter);
-    }
-    LDIO_SAVE_OPTION(simple_calo);
-    LDIO_SAVE_OPTION(action_diagnostic);
-    LDIO_SAVE_OPTION(step_diagnostic);
+    LDIO_SAVE_WHEN(mctruth_filter, !v.mctruth_file.empty());
+    LDIO_SAVE(simple_calo);
+    LDIO_SAVE(action_diagnostic);
+    LDIO_SAVE(step_diagnostic);
     LDIO_SAVE_OPTION(step_diagnostic_bins);
-    LDIO_SAVE_OPTION(write_track_counts);
+    LDIO_SAVE(write_track_counts);
 
-    LDIO_SAVE_REQUIRED(seed);
-    LDIO_SAVE_REQUIRED(num_track_slots);
+    LDIO_SAVE(seed);
+    LDIO_SAVE(num_track_slots);
     LDIO_SAVE_OPTION(max_steps);
-    LDIO_SAVE_REQUIRED(initializer_capacity);
-    LDIO_SAVE_REQUIRED(max_events);
-    LDIO_SAVE_REQUIRED(secondary_stack_factor);
-    LDIO_SAVE_REQUIRED(use_device);
-    LDIO_SAVE_REQUIRED(sync);
-    LDIO_SAVE_REQUIRED(merge_events);
-    LDIO_SAVE_REQUIRED(default_stream);
-    LDIO_SAVE_REQUIRED(warm_up);
+    LDIO_SAVE(initializer_capacity);
+    LDIO_SAVE(max_events);
+    LDIO_SAVE(secondary_stack_factor);
+    LDIO_SAVE(use_device);
+    LDIO_SAVE(sync);
+    LDIO_SAVE(merge_events);
+    LDIO_SAVE(default_stream);
+    LDIO_SAVE(warm_up);
 
     LDIO_SAVE_OPTION(field);
-    if (v.field != RunnerInput::no_field())
-    {
-        LDIO_SAVE_REQUIRED(field_options);
-    }
+    LDIO_SAVE_WHEN(field_options, v.field != RunnerInput::no_field());
 
     LDIO_SAVE_OPTION(step_limiter);
-    LDIO_SAVE_REQUIRED(brem_combined);
+    LDIO_SAVE(brem_combined);
 
-    LDIO_SAVE_REQUIRED(track_order);
-    if (v.physics_file.empty() || !ends_with(v.physics_file, ".root"))
-    {
-        LDIO_SAVE_REQUIRED(physics_options);
-    }
+    LDIO_SAVE(track_order);
+    LDIO_SAVE_WHEN(physics_options,
+                   v.physics_file.empty()
+                       || !ends_with(v.physics_file, ".root"));
 
 #undef LDIO_SAVE_OPTION
-#undef LDIO_SAVE_REQUIRED
+#undef LDIO_SAVE_WHEN
+#undef LDIO_SAVE
 }
 
 //---------------------------------------------------------------------------//

@@ -8,6 +8,7 @@
 #include "RunInputIO.json.hh"
 
 #include "corecel/cont/ArrayIO.json.hh"
+#include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringEnumMapper.hh"
 #include "corecel/sys/Environment.hh"
@@ -54,13 +55,11 @@ void to_json(nlohmann::json& j, SensitiveDetectorType const& value)
  */
 void from_json(nlohmann::json const& j, RunInput& v)
 {
-#define RI_LOAD_OPTION(NAME)            \
-    do                                  \
-    {                                   \
-        if (j.contains(#NAME))          \
-            j.at(#NAME).get_to(v.NAME); \
-    } while (0)
-#define RI_LOAD_REQUIRED(NAME) j.at(#NAME).get_to(v.NAME)
+#define RI_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, v, NAME)
+#define RI_LOAD_REQUIRED(NAME) CELER_JSON_LOAD_REQUIRED(j, v, NAME)
+
+    // Check version (if available)
+    check_format(j, "celer-g4");
 
     RI_LOAD_REQUIRED(geometry_file);
     RI_LOAD_OPTION(event_file);
@@ -119,7 +118,7 @@ void from_json(nlohmann::json const& j, RunInput& v)
 #undef RI_LOAD_OPTION
 #undef RI_LOAD_REQUIRED
 
-    CELER_VALIDATE(v.event_file.empty() != !v.primary_options,
+    CELER_VALIDATE(v.event_file.empty() == static_cast<bool>(v.primary_options),
                    << "either a HepMC3 filename or options to generate "
                       "primaries must be provided (but not both)");
     CELER_VALIDATE(v.physics_list == PhysicsListSelection::geant_physics_list
@@ -138,15 +137,15 @@ void from_json(nlohmann::json const& j, RunInput& v)
  */
 void to_json(nlohmann::json& j, RunInput const& v)
 {
+#define RI_SAVE_OPTION(NAME) \
+    CELER_JSON_SAVE_WHEN(j, v, NAME, v.NAME != default_args.NAME)
+#define RI_SAVE(NAME) CELER_JSON_SAVE(j, v, NAME)
+
     j = nlohmann::json::object();
     RunInput const default_args;
-#define RI_SAVE_OPTION(NAME)                \
-    do                                      \
-    {                                       \
-        if (!(v.NAME == default_args.NAME)) \
-            j[#NAME] = v.NAME;              \
-    } while (0)
-#define RI_SAVE(NAME) j[#NAME] = v.NAME
+
+    // Save version and format type
+    save_format(j, "celer-g4");
 
     RI_SAVE(geometry_file);
     RI_SAVE_OPTION(event_file);

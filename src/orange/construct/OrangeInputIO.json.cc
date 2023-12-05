@@ -492,7 +492,7 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
                    << "invalid ORANGE JSON input: unknown format '" << fmt
                    << "'");
     std::string version{"<unknown>"};
-    if (auto iter = j.find("version"); iter != j.end())
+    if (auto iter = j.find("_version"); iter != j.end())
     {
         version = std::to_string(iter->get<int>());
     }
