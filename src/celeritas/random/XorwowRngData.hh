@@ -25,11 +25,26 @@ namespace celeritas
 template<Ownership W, MemSpace M>
 struct XorwowRngParamsData
 {
+    //// TYPES ////
+
+    using uint_t = unsigned int;
+    using JumpPoly = Array<uint_t, 5>;
+    using ArrayJumpPoly = Array<JumpPoly, 10>;
+
+    //// DATA ////
+
     // TODO: 256-bit seed used to generate initial states for the RNGs
     // For now, just 4 bytes (same as our existing cuda/hip interface)
-    Array<unsigned int, 1> seed;
+    Array<uint_t, 1> seed;
+
+    // Jump polynomials
+    ArrayJumpPoly jump;
+    ArrayJumpPoly jump_subsequence;
 
     //// METHODS ////
+
+    static CELER_CONSTEXPR_FUNCTION size_type num_words() { return 5; }
+    static CELER_CONSTEXPR_FUNCTION size_type num_bits() { return 32; }
 
     //! Whether the data is assigned
     explicit CELER_FUNCTION operator bool() const { return true; }
@@ -42,6 +57,17 @@ struct XorwowRngParamsData
         seed = other.seed;
         return *this;
     }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize an RNG.
+ */
+struct XorwowRngInitializer
+{
+    ull_int seed{0};
+    ull_int subsequence{0};
+    ull_int offset{0};
 };
 
 //---------------------------------------------------------------------------//

@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 
@@ -35,8 +36,20 @@ class XorwowRngParams final : public ParamsDataInterface<XorwowRngParamsData>
     DeviceRef const& device_ref() const final { return data_.device(); }
 
   private:
+    //// DATA ////
+
     // Host/device storage and reference
     CollectionMirror<XorwowRngParamsData> data_;
+
+    //// TYPES ////
+
+    using JumpPoly = Array<unsigned int, 5>;
+    using ArrayJumpPoly = Array<JumpPoly, 10>;
+
+    //// HELPER FUNCTIONS ////
+
+    ArrayJumpPoly const& get_jump_poly();
+    ArrayJumpPoly const& get_jump_subsequence_poly();
 };
 
 //---------------------------------------------------------------------------//
