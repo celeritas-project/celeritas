@@ -80,15 +80,14 @@ void sort_tracks(HostRef<CoreStateData> const& states, TrackOrder order)
     {
         case TrackOrder::partition_status:
             return partition_impl(states.track_slots,
-                                  alive_predicate{states.sim.status.data()});
+                                  AlivePredicate{states.sim.status.data()});
         case TrackOrder::sort_along_step_action:
         case TrackOrder::sort_step_limit_action:
             return sort_impl(states.track_slots,
-                             id_comparator{get_action_ptr(states, order)});
+                             IdComparator{get_action_ptr(states, order)});
         case TrackOrder::sort_particle_type:
-            return sort_impl(
-                states.track_slots,
-                id_comparator{states.particles.particle_id.data()});
+            return sort_impl(states.track_slots,
+                             IdComparator{states.particles.particle_id.data()});
         default:
             CELER_ASSERT_UNREACHABLE();
     }
@@ -136,6 +135,10 @@ void count_tracks_per_action(
     backfill_action_count(offsets, size);
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Fill missing action offsets.
+ */
 void backfill_action_count(Span<ThreadId> offsets, size_type num_actions)
 {
     CELER_EXPECT(offsets.size() >= 2);

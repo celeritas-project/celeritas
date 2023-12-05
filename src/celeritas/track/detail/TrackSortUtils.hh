@@ -57,7 +57,6 @@ void sort_tracks(DeviceRef<CoreStateData> const&, TrackOrder);
 
 //---------------------------------------------------------------------------//
 // Count tracks associated to each action
-
 void count_tracks_per_action(
     HostRef<CoreStateData> const&,
     Span<ThreadId>,
@@ -70,12 +69,14 @@ void count_tracks_per_action(
     Collection<ThreadId, Ownership::value, MemSpace::mapped, ActionId>&,
     TrackOrder);
 
+//---------------------------------------------------------------------------//
+// Fill missing action offsets.
 void backfill_action_count(Span<ThreadId>, size_type);
 
 //---------------------------------------------------------------------------//
 // HELPER CLASSES AND FUNCTIONS
 //---------------------------------------------------------------------------//
-struct alive_predicate
+struct AlivePredicate
 {
     ObserverPtr<TrackStatus const> status_;
 
@@ -86,7 +87,7 @@ struct alive_predicate
 };
 
 template<class Id>
-struct id_comparator
+struct IdComparator
 {
     ObserverPtr<Id const> ids_;
 
@@ -107,6 +108,8 @@ struct ActionAccessor
     }
 };
 
+//---------------------------------------------------------------------------//
+// Return the correct action pointer based on the track sort order
 template<Ownership W, MemSpace M>
 CELER_FUNCTION ObserverPtr<ActionId const>
 get_action_ptr(CoreStateData<W, M> const& states, TrackOrder order)
@@ -127,7 +130,7 @@ get_action_ptr(CoreStateData<W, M> const& states, TrackOrder order)
 //---------------------------------------------------------------------------//
 
 template<class Id>
-id_comparator(ObserverPtr<Id>) -> id_comparator<Id>;
+IdComparator(ObserverPtr<Id>) -> IdComparator<Id>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

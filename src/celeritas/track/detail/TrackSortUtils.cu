@@ -46,7 +46,9 @@ using ThreadItems
 using TrackSlots = ThreadItems<TrackSlotId::size_type>;
 
 //---------------------------------------------------------------------------//
-
+/*!
+ * Partition track_slots based on predicate.
+ */
 template<class F>
 void partition_impl(TrackSlots const& track_slots, F&& func, StreamId stream_id)
 {
@@ -59,7 +61,10 @@ void partition_impl(TrackSlots const& track_slots, F&& func, StreamId stream_id)
 }
 
 //---------------------------------------------------------------------------//
-
+/*!
+ * Reorder OpaqueId's based on track_slots so that track_slots[tid] correspond
+ * to ids[tid] instead of ids[tacks_slots[tid]].
+ */
 template<class Id>
 __global__ void
 reorder_ids_kernel(ObserverPtr<TrackSlotId::size_type const> track_slots,
@@ -75,6 +80,10 @@ reorder_ids_kernel(ObserverPtr<TrackSlotId::size_type const> track_slots,
     }
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Sort track slots using ids as keys.
+ */
 template<class Id, class IdT = typename Id::size_type>
 void sort_impl(TrackSlots const& track_slots,
                ObserverPtr<Id const> ids,
@@ -96,7 +105,11 @@ void sort_impl(TrackSlots const& track_slots,
     CELER_DEVICE_CHECK_ERROR();
 }
 
-// PRE: actions are sorted
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate thread boundaries based on action ID.
+ * \pre actions are sorted
+ */
 __global__ void
 tracks_per_action_kernel(ObserverPtr<ActionId const> actions,
                          ObserverPtr<TrackSlotId::size_type const> track_slots,
@@ -175,7 +188,7 @@ void sort_tracks(DeviceRef<CoreStateData> const& states, TrackOrder order)
     {
         case TrackOrder::partition_status:
             return partition_impl(states.track_slots,
-                                  alive_predicate{states.sim.status.data()},
+                                  AlivePredicate{states.sim.status.data()},
                                   states.stream_id);
         case TrackOrder::sort_along_step_action:
         case TrackOrder::sort_step_limit_action:
