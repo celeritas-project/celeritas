@@ -215,8 +215,17 @@ SharedParams::SharedParams(SetupOptions const& options, SPOutputRegistry oreg)
     // Construct core data
     this->initialize_core(options);
 
-    // Set up output after params are constructed
-    this->try_output();
+    if (output_filename_ != "-")
+    {
+        // Write output after params are constructed before anything can go
+        // wrong
+        this->try_output();
+    }
+    else
+    {
+        CELER_LOG(debug) << "Skipping 'startup' JSON output since writing to "
+                            "stdout";
+    }
 
     if (!options.offload_output_file.empty())
     {
