@@ -54,6 +54,11 @@ RootIO::RootIO()
         file_name_ = "celer-g4.root";
     }
 
+    if (file_name_ == "-")
+    {
+        file_name_ = "stdout-" + std::to_string(::getpid());
+    }
+
     if (G4Threading::IsWorkerThread())
     {
         file_name_ += std::to_string(G4Threading::G4GetThreadId());
