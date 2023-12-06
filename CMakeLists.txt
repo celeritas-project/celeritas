@@ -318,8 +318,16 @@ if(CELERITAS_USE_SWIG)
 endif()
 
 if(CELERITAS_USE_VecGeom)
+  set(_min_vecgeom_version 1.2.4)
   if(NOT VecGeom_FOUND)
-    find_package(VecGeom 1.2.4 REQUIRED)
+    find_package(VecGeom ${_min_vecgeom_version} REQUIRED)
+  elseif(VecGeom_VERSION VERSION_LESS _min_vecgeom_version)
+    # Another package, probably Geant4, is already using vecgeom
+    celeritas_error_incompatible_option(
+      "VecGeom version \"${VecGeom_VERSION}\" at \"${VecGeom_DIR}\" is too old for Celeritas to use: you must update to ${_min_vecgeom_version} or higher"
+      CELERITAS_USE_VecGeom
+      OFF
+    )
   endif()
 
   if(CELERITAS_USE_CUDA AND NOT VecGeom_CUDA_FOUND)
