@@ -28,6 +28,10 @@
 #include "GlobalSetup.hh"
 #include "SensitiveHit.hh"
 
+#ifdef _WIN32
+#    include <process.h>
+#endif
+
 namespace celeritas
 {
 namespace app
@@ -52,6 +56,11 @@ RootIO::RootIO()
     if (file_name_.empty())
     {
         file_name_ = "celer-g4.root";
+    }
+
+    if (file_name_ == "-")
+    {
+        file_name_ = "stdout-" + std::to_string(::getpid()) + ".root";
     }
 
     if (G4Threading::IsWorkerThread())
