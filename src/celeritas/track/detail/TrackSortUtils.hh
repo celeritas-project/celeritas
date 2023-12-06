@@ -27,10 +27,8 @@ namespace detail
 
 // Initialize default threads to track_slots mapping, track_slots[i] = i
 // TODO: move to global/detail and overload using ObserverPtr
-template<MemSpace M,
-         typename Size,
-         typename = std::enable_if_t<std::is_unsigned_v<Size>>>
-void fill_track_slots(Span<Size> track_slots, StreamId);
+template<MemSpace M>
+void fill_track_slots(Span<TrackSlotId::size_type> track_slots, StreamId);
 
 template<>
 void fill_track_slots<MemSpace::host>(Span<TrackSlotId::size_type> track_slots,
@@ -42,10 +40,8 @@ void fill_track_slots<MemSpace::device>(Span<TrackSlotId::size_type> track_slots
 //---------------------------------------------------------------------------//
 // Shuffle tracks
 // TODO: move to global/detail and overload using ObserverPtr
-template<MemSpace M,
-         typename Size,
-         typename = std::enable_if_t<std::is_unsigned_v<Size>>>
-void shuffle_track_slots(Span<Size> track_slots, StreamId);
+template<MemSpace M>
+void shuffle_track_slots(Span<TrackSlotId::size_type> track_slots, StreamId);
 
 template<>
 void shuffle_track_slots<MemSpace::host>(
@@ -61,7 +57,6 @@ void sort_tracks(DeviceRef<CoreStateData> const&, TrackOrder);
 
 //---------------------------------------------------------------------------//
 // Count tracks associated to each action
-
 void count_tracks_per_action(
     HostRef<CoreStateData> const&,
     Span<ThreadId>,
@@ -74,12 +69,14 @@ void count_tracks_per_action(
     Collection<ThreadId, Ownership::value, MemSpace::mapped, ActionId>&,
     TrackOrder);
 
+//---------------------------------------------------------------------------//
+// Fill missing action offsets.
 void backfill_action_count(Span<ThreadId>, size_type);
 
 //---------------------------------------------------------------------------//
-// HELPER CLASSES
+// HELPER CLASSES AND FUNCTIONS
 //---------------------------------------------------------------------------//
-struct alive_predicate
+struct AlivePredicate
 {
     ObserverPtr<TrackStatus const> status_;
 
@@ -89,13 +86,14 @@ struct alive_predicate
     }
 };
 
-struct action_comparator
+template<class Id>
+struct IdComparator
 {
-    ObserverPtr<ActionId const> action_;
+    ObserverPtr<Id const> ids_;
 
     CELER_FUNCTION bool operator()(size_type a, size_type b) const
     {
-        return action_.get()[a] < action_.get()[b];
+        return ids_.get()[a] < ids_.get()[b];
     }
 };
 
@@ -109,6 +107,30 @@ struct ActionAccessor
         return action_.get()[track_slots_.get()[tid.get()]];
     }
 };
+
+//---------------------------------------------------------------------------//
+// Return the correct action pointer based on the track sort order
+template<Ownership W, MemSpace M>
+CELER_FUNCTION ObserverPtr<ActionId const>
+get_action_ptr(CoreStateData<W, M> const& states, TrackOrder order)
+{
+    if (order == TrackOrder::sort_along_step_action)
+    {
+        return states.sim.along_step_action.data();
+    }
+    else if (order == TrackOrder::sort_step_limit_action)
+    {
+        return states.sim.post_step_action.data();
+    }
+    CELER_ASSERT_UNREACHABLE();
+}
+
+//---------------------------------------------------------------------------//
+// DEDUCTION GUIDES
+//---------------------------------------------------------------------------//
+
+template<class Id>
+IdComparator(ObserverPtr<Id>) -> IdComparator<Id>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

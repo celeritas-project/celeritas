@@ -11,11 +11,9 @@
 #include <iostream>
 #include <regex>
 
+#include "celeritas_version.h"
 #include "corecel/Assert.hh"
 #include "corecel/io/Join.hh"
-
-using std::cout;
-using std::endl;
 
 namespace celeritas
 {
@@ -55,6 +53,26 @@ std::ostream& operator<<(std::ostream& os, Version const& v)
 {
     os << join(v.value().begin(), v.value().end(), '.');
     return os;
+}
+
+//---------------------------------------------------------------------------//
+//! Save as a string
+std::string to_string(Version const& v)
+{
+    std::ostringstream os;
+    os << v;
+    return os.str();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the Celeritas version.
+ */
+Version celer_version()
+{
+    return {celeritas_version_major,
+            celeritas_version_minor,
+            celeritas_version_patch};
 }
 
 //---------------------------------------------------------------------------//
