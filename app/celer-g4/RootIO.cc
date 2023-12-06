@@ -28,6 +28,10 @@
 #include "GlobalSetup.hh"
 #include "SensitiveHit.hh"
 
+#ifdef _WIN32
+#    include <process.h>
+#endif
+
 namespace celeritas
 {
 namespace app
