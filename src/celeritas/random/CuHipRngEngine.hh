@@ -48,7 +48,6 @@ class CuHipRngEngine
     inline CELER_FUNCTION result_type operator()();
 
   private:
-    ParamsRef const& params_;
     CuHipRngThreadState* state_;
 
     template<class Generator, class RealType>
@@ -100,10 +99,9 @@ class GenerateCanonical<CuHipRngEngine, double>
  * Construct from state.
  */
 CELER_FUNCTION
-CuHipRngEngine::CuHipRngEngine(ParamsRef const& params,
+CuHipRngEngine::CuHipRngEngine(ParamsRef const&,
                                StateRef const& state,
                                TrackSlotId tid)
-    : params_(params)
 {
     CELER_EXPECT(tid < state.rng.size());
     state_ = &state.rng[tid];

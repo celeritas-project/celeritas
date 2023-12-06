@@ -40,8 +40,14 @@ struct XorwowRngParamsData
 
     //// METHODS ////
 
-    static CELER_CONSTEXPR_FUNCTION size_type num_words() { return 5; }
-    static CELER_CONSTEXPR_FUNCTION size_type num_bits() { return 32; }
+    static CELER_CONSTEXPR_FUNCTION size_type num_words()
+    {
+        return JumpPoly{}.size();
+    }
+    static CELER_CONSTEXPR_FUNCTION size_type num_bits()
+    {
+        return 8 * sizeof(uint_t);
+    }
 
     //! Whether the data is assigned
     explicit CELER_FUNCTION operator bool() const { return true; }

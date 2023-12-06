@@ -78,11 +78,8 @@ class XorwowRngEngine
     // Generate a 32-bit pseudorandom number
     inline CELER_FUNCTION result_type operator()();
 
-    // Jump ahead \c num_skip steps
-    inline CELER_FUNCTION void skipahead(ull_int num_skip);
-
-    // Jump ahead \c num_skip subsequences (\c num_skip * 2^67 steps)
-    inline CELER_FUNCTION void skipahead_subsequence(ull_int num_skip);
+    // Advance the state \c count times
+    inline CELER_FUNCTION void discard(ull_int count);
 
   private:
     /// TYPES ///
@@ -97,6 +94,7 @@ class XorwowRngEngine
 
     //// HELPER FUNCTIONS ////
 
+    inline CELER_FUNCTION void discard_subsequence(ull_int);
     inline CELER_FUNCTION void next();
     inline CELER_FUNCTION void jump(ull_int, ArrayJumpPoly const&);
     inline CELER_FUNCTION void jump(JumpPoly const&);
@@ -156,7 +154,7 @@ XorwowRngEngine::XorwowRngEngine(ParamsRef const& params,
  *
  * It is recommended to initialize the state using a very different generator
  * from the one being initialized to avoid correlations. Here the 64-bit
- * SplitMis64 generator is used for initialization (See Matsumoto, Wada,
+ * SplitMix64 generator is used for initialization (See Matsumoto, Wada,
  * Kuramoto, and Ashihara, "Common defects in initialization of pseudorandom
  * number generators". https://dl.acm.org/doi/10.1145/1276927.1276928.)
  */
@@ -178,8 +176,8 @@ XorwowRngEngine::operator=(Initializer_t const& init)
     state_->weylstate = static_cast<uint_t>(seed >> 32);
 
     // Skip ahead
-    this->skipahead_subsequence(init.subsequence);
-    this->skipahead(init.offset);
+    this->discard_subsequence(init.subsequence);
+    this->discard(init.offset);
 
     return *this;
 }
@@ -197,24 +195,24 @@ CELER_FUNCTION auto XorwowRngEngine::operator()() -> result_type
 
 //---------------------------------------------------------------------------//
 /*!
- * Advance the state \c n steps.
+ * Advance the state \c count times.
  */
-CELER_FUNCTION void XorwowRngEngine::skipahead(ull_int num_skip)
+CELER_FUNCTION void XorwowRngEngine::discard(ull_int count)
 {
-    this->jump(num_skip, params_.jump);
-    state_->weylstate += static_cast<unsigned int>(num_skip) * 362437u;
+    this->jump(count, params_.jump);
+    state_->weylstate += static_cast<unsigned int>(count) * 362437u;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Advance the state \c num_skip subsequences (\c num_skip * 2^67 steps).
+ * Advance the state \c count subsequences (\c count * 2^67 times).
  *
  * Note that the Weyl sequence value remains the same since it has period 2^32
  * which divides evenly into 2^67.
  */
-CELER_FUNCTION void XorwowRngEngine::skipahead_subsequence(ull_int num_skip)
+CELER_FUNCTION void XorwowRngEngine::discard_subsequence(ull_int count)
 {
-    this->jump(num_skip, params_.jump_subsequence);
+    this->jump(count, params_.jump_subsequence);
 }
 
 //---------------------------------------------------------------------------//
@@ -237,13 +235,13 @@ CELER_FUNCTION void XorwowRngEngine::next()
 
 //---------------------------------------------------------------------------//
 /*!
- * Jump ahead \c n steps or subsequences.
+ * Jump ahead \c count steps or subsequences.
  *
  * This applies the jump polynomials until the given number of steps or
  * subsequences have been skipped.
  */
 CELER_FUNCTION void
-XorwowRngEngine::jump(ull_int n, ArrayJumpPoly const& jump_poly_arr)
+XorwowRngEngine::jump(ull_int count, ArrayJumpPoly const& jump_poly_arr)
 {
     // Maximum number of times to apply any jump polynomial. Since the jump
     // sizes are 4^i for i = [0, 32), the max is 3.
@@ -251,17 +249,17 @@ XorwowRngEngine::jump(ull_int n, ArrayJumpPoly const& jump_poly_arr)
 
     // Start with the smallest jump (either one step or one subsequence)
     size_type jump_idx = 0;
-    while (n > 0)
+    while (count > 0)
     {
         // Number of times to apply this jump polynomial
-        uint_t num_jump = static_cast<uint_t>(n) & max_num_jump;
+        uint_t num_jump = static_cast<uint_t>(count) & max_num_jump;
         for (size_type i = 0; i < num_jump; ++i)
         {
             CELER_ASSERT(jump_idx < jump_poly_arr.size());
             this->jump(jump_poly_arr[jump_idx]);
         }
         ++jump_idx;
-        n >>= 2;
+        count >>= 2;
     }
 }
 
@@ -321,9 +319,9 @@ CELER_FUNCTION void XorwowRngEngine::jump(JumpPoly const& jump_poly)
  */
 CELER_FUNCTION uint64_t XorwowRngEngine::SplitMix64::operator()()
 {
-    uint64_t z = (state += 0x9e3779b97f4a7c15);
-    z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
-    z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
+    uint64_t z = (state += 0x9e3779b97f4a7c15ull);
+    z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ull;
+    z = (z ^ (z >> 27)) * 0x94d049bb133111ebull;
     return z ^ (z >> 31);
 }
 

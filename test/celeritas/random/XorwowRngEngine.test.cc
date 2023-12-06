@@ -227,37 +227,35 @@ TEST_F(XorwowRngEngineTest, jump)
         skip_rng = init;
         ASSERT_EQ(rng(), skip_rng());
     }
+    for (ull_int count : {4, 21, 170, 65535})
     {
-        init.subsequence = 0;
-        init.offset = 0;
-        rng = init;
-
-        init.subsequence = 256;
-        skip_rng = init;
-
-        rng.skipahead_subsequence(255);
-        rng.skipahead_subsequence(1);
+        // Skip ahead without initializing
+        skip_rng.discard(count);
+        for (ull_int i = 0; i < count; ++i)
+        {
+            rng();
+        }
         EXPECT_EQ(rng(), skip_rng());
     }
     {
-        init.subsequence = 0;
-        init.offset = 0;
-        rng = init;
-
         init.subsequence = (1 << 19);
-        init.offset = 1024;
+        init.offset = 0;
+        rng = init;
+
+        init.subsequence += 1;
+        init.offset = 1023;
         skip_rng = init;
 
-        rng.skipahead_subsequence(1 << 18);
-        rng.skipahead_subsequence(1 << 18);
-        rng.skipahead(1023);
-        rng.skipahead(1);
+        // Skip 2**67 times to get to the next subsequence
+        for (size_type i = 0; i < 8; ++i)
+        {
+            rng.discard(-1ull);
+            rng.discard(1);
+        }
+        // Skip to the right offset
+        rng.discard(init.offset);
+
         EXPECT_EQ(rng(), skip_rng());
-    }
-    {
-        init.subsequence = -1;
-        init.offset = -1;
-        skip_rng = init;
     }
 }
 
