@@ -91,6 +91,7 @@ class EMPhysicsConstructor final : public G4EmStandardPhysics
 
     void ConstructProcess() override
     {
+        CELER_LOG_LOCAL(status) << "Setting up tracking manager offload";
         G4EmStandardPhysics::ConstructProcess();
 
         // Add Celeritas tracking manager to electron, positron, gamma.
