@@ -19,18 +19,6 @@
 
 namespace celeritas
 {
-namespace
-{
-bool is_applicable_to(G4ParticleDefinition const& part,
-                      SharedParams const* params)
-{
-    return std::find(params->OffloadParticles().begin(),
-                     params->OffloadParticles().end(),
-                     &part)
-           != params->OffloadParticles().end();
-}
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct a tracking manager with data needed to offload to Celeritas
@@ -67,11 +55,6 @@ TrackingManagerOffload::TrackingManagerOffload(SharedParams const* params,
  */
 void TrackingManagerOffload::BuildPhysicsTable(G4ParticleDefinition const& part)
 {
-    // Difficult to check this elsewhere, other than PreparePhysicsTable
-    CELER_VALIDATE(is_applicable_to(part, params_),
-                   << "cannot use TrackingManagerOffload for Geant4 particle '"
-                   << part.GetParticleName() << "'");
-
     G4ProcessManager* pManager = part.GetProcessManager();
     G4ProcessManager* pManagerShadow = part.GetMasterProcessManager();
 
@@ -104,10 +87,6 @@ void TrackingManagerOffload::BuildPhysicsTable(G4ParticleDefinition const& part)
  */
 void TrackingManagerOffload::PreparePhysicsTable(G4ParticleDefinition const& part)
 {
-    CELER_VALIDATE(is_applicable_to(part, params_),
-                   << "cannot use TrackingManagerOffload for Geant4 particle '"
-                   << part.GetParticleName() << "'");
-
     G4ProcessManager* pManager = part.GetProcessManager();
     G4ProcessManager* pManagerShadow = part.GetMasterProcessManager();
 
