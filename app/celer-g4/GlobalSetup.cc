@@ -112,15 +112,29 @@ void GlobalSetup::SetIgnoreProcesses(SetupOptions::VecString ignored)
  */
 void GlobalSetup::ReadInput(std::string const& filename)
 {
-    if (ends_with(filename, ".json"))
+    bool is_json_file = ends_with(filename, ".json");
+    if (is_json_file || filename == "-")
     {
+        CELER_LOG(status) << "Reading JSON input from '"
+                          << (is_json_file ? filename : "<stdin>") << "'";
+        std::istream* instream{nullptr};
+        std::ifstream infile;
+        if (is_json_file)
+        {
+            instream = &infile;
+            infile.open(filename);
+            CELER_VALIDATE(infile, << "failed to open '" << filename << "'");
+        }
+        else
+        {
+            instream = &std::cin;
+        }
+        CELER_ASSERT(instream);
 #if CELERITAS_USE_JSON
-        using std::to_string;
-
-        CELER_LOG(status) << "Reading JSON input from '" << filename << "'";
-        std::ifstream infile(filename);
-        CELER_VALIDATE(infile, << "failed to open '" << filename << "'");
-        nlohmann::json::parse(infile).get_to(input_);
+        nlohmann::json::parse(*instream).get_to(input_);
+#else
+        CELER_NOT_CONFIGURED("nlohmann_json");
+#endif
 
         // Input options
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
@@ -146,9 +160,6 @@ void GlobalSetup::ReadInput(std::string const& filename)
         options_->cuda_heap_size = input_.cuda_heap_size;
         options_->sync = input_.sync;
         options_->default_stream = input_.default_stream;
-#else
-        CELER_NOT_CONFIGURED("nlohmann_json");
-#endif
     }
     else if (ends_with(filename, ".mac"))
     {
