@@ -56,7 +56,7 @@ RootIO::RootIO()
 
     if (file_name_ == "-")
     {
-        file_name_ = "stdout-" + std::to_string(::getpid());
+        file_name_ = "stdout-" + std::to_string(::getpid()) + ".root";
     }
 
     if (G4Threading::IsWorkerThread())
