@@ -35,6 +35,16 @@ celeritas_target_link_libraries(fastsim-offload
   ${Geant4_LIBRARIES}
 )
 
+if(Geant4_VERSION VERSION_LESS 11.0)
+  message(WARNING "G4VTrackingManager offload requires Geant4 11.0 or higher")
+else()
+  add_executable(trackingmanager-offload trackingmanager-offload.cc)
+  celeritas_target_link_libraries(trackingmanager-offload
+    Celeritas::accel
+    ${Geant4_LIBRARIES}
+  )
+endif()
+
 # END EXAMPLE CODE
 
 #-----------------------------------------------------------------------------#
@@ -67,4 +77,13 @@ if(Geant4_VERSION VERSION_LESS 11.1)
     DISABLED true
   )
 endif()
+
+if(Geant4_VERSION VERSION_GREATER_EQUAL 11.0)
+  add_example(trackingmanager-offload)
+  set_tests_properties(trackingmanager-offload PROPERTIES
+    ENVIRONMENT "${_test_env}"
+    LABELS "app"
+  )
+endif()
+
 
