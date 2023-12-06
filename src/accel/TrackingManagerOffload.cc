@@ -21,7 +21,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct a tracking manager with data needed to offload to Celeritas
+ * Construct a tracking manager with data needed to offload to Celeritas.
  *
  * TODO: Clarify thread-locality. Construction/addition to \c
  * G4ParticleDefinition appears to take place on the master thread, typically
@@ -40,7 +40,7 @@ TrackingManagerOffload::TrackingManagerOffload(SharedParams const* params,
 
 //---------------------------------------------------------------------------//
 /*!
- * Build physics tables for this particle
+ * Build physics tables for this particle.
  *
  * Messaged by the \c G4ParticleDefinition who stores us whenever cross-section
  * tables have to be rebuilt (i.e. if new materials have been defined). An
@@ -74,7 +74,7 @@ void TrackingManagerOffload::BuildPhysicsTable(G4ParticleDefinition const& part)
 
 //---------------------------------------------------------------------------//
 /*!
- * Prepare physics tables for this particle
+ * Prepare physics tables for this particle.
  *
  * Messaged by the \c G4ParticleDefinition who stores us whenever cross-section
  * tables have to be rebuilt (i.e. if new materials have been defined). As with
