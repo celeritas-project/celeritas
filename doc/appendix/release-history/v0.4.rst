@@ -3,6 +3,71 @@
 .. SPDX-License-Identifier: CC-BY-4.0
 
 
+.. _release_v0.4.1:
+
+Version 0.4.1
+=============
+
+*Released 2023/12/07*
+
+Version 0.4.1 is a bugfix and minor feature update to Celeritas, primarily to
+support CMSSW integration.
+
+Key enhancements compared to version 0.4.0 are:
+
+- A new ``G4VTrackingManager`` interface to Celeritas from Geant4
+- Support for using a GDML-free VecGeom installation
+- Improved provenance and reporting in JSON output for apps
+- The ability to use stdin/stdout to drive ``celer-g4`` with JSON
+
+Important bug fixes:
+
+- ``GeantSimpleCalo`` can now be used with Celeritas offload enabled.
+
+
+New features
+------------
+
+* Write celer-g4 input to output file or screen *(@sethrj, #1034)*
+* Support sorting tracks by particle types *(@esseivaju, #1044)*
+* Improve JSON I/O for celer-g4/sim apps *(@sethrj, #1045)*
+* Support JSON via stdin for celer-g4 *(@sethrj, #1048)*
+* Support using VecGeom without VGDML *(@sethrj, #1046)*
+* Implement jump ahead for XORWOW RNG *(@amandalund, #1049)*
+* Implement offload to Celeritas from Geant4 using G4VTrackingManager hook *(@drbenmorgan, #1050)*
+
+Reviewers: @amandalund *(3)*, @sethrj *(3)*, @whokion *(1)*
+
+Bug fixes
+---------
+
+* Fix GeantSimpleCalo output when Celeritas is enabled *(@sethrj, #1040)*
+* Uniquify ROOT file name when output is directed to stdout *(@pcanal, #1051)*
+* Fix ROOT dictionary paths *(@pcanal, #1054)*
+
+Reviewers: @sethrj *(2)*, @amandalund *(1)*
+
+Documentation improvements
+--------------------------
+
+* Update tests to pass with cuRAND *(@amandalund, #1052)*
+
+Reviewers: @sethrj *(1)*
+
+Minor internal changes
+----------------------
+
+* Fix Jenkins CI build and ccache use *(@sethrj, #1036)*
+* Update Perlmutter CMake profile and env script *(@esseivaju, #1041)*
+* Fix Jenkins CI *(@sethrj, #1038)*
+* Update cuda build instructions *(@esseivaju, #1043)*
+* Refactor TrackSortUtils *(@esseivaju, #1047)*
+
+Reviewers: @sethrj *(3)*, @pcanal *(2)*
+
+**Full Changelog**: https://github.com/celeritas-project/celeritas/compare/v0.4.0...v0.4.1
+
+
 .. _release_v0.4.0:
 
 Version 0.4.0

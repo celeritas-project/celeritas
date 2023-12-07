@@ -114,14 +114,18 @@ TEST_F(SimpleComptonDiagnosticTest, host)
            "geo-boundary gamma",
            "scat-klein-nishina gamma"};
     EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
-    static size_type const expected_nonzero_action_counts[]
-        = {3780u, 525u, 3887u};
-    EXPECT_VEC_EQ(expected_nonzero_action_counts, result.nonzero_action_counts);
-    static size_type const expected_steps[]
-        = {0u, 0u, 0u, 87u, 30u, 10u, 2u, 0u, 1u, 0u,    0u, 3u, 0u, 0u, 0u,
-           0u, 0u, 0u, 0u,  0u,  0u,  1u, 0u, 0u, 1840u, 0u, 0u, 0u, 0u, 0u,
-           0u, 0u, 0u, 0u,  0u,  0u,  0u, 0u, 0u, 0u,    0u, 0u, 0u, 0u};
-    EXPECT_VEC_EQ(expected_steps, result.steps);
+    if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    {
+        static size_type const expected_nonzero_action_counts[]
+            = {3780u, 525u, 3887u};
+        EXPECT_VEC_EQ(expected_nonzero_action_counts,
+                      result.nonzero_action_counts);
+        static size_type const expected_steps[] = {
+            0u, 0u, 0u, 87u, 30u, 10u, 2u, 0u, 1u, 0u,    0u, 3u, 0u, 0u, 0u,
+            0u, 0u, 0u, 0u,  0u,  0u,  1u, 0u, 0u, 1840u, 0u, 0u, 0u, 0u, 0u,
+            0u, 0u, 0u, 0u,  0u,  0u,  0u, 0u, 0u, 0u,    0u, 0u, 0u, 0u};
+        EXPECT_VEC_EQ(expected_steps, result.steps);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -203,25 +207,25 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
 {
     auto result = this->run<MemSpace::device>(1024, 4);
 
-    // Check action diagnostic results
-    static char const* const expected_nonzero_action_keys[]
-        = {"annihil-2-gamma e+",
-           "brems-combined e+",
-           "brems-combined e-",
-           "geo-boundary e+",
-           "geo-boundary e-",
-           "geo-boundary gamma",
-           "ioni-moller-bhabha e+",
-           "ioni-moller-bhabha e-",
-           "msc-range e+",
-           "msc-range e-",
-           "physics-integral-rejected e+",
-           "physics-integral-rejected e-",
-           "scat-klein-nishina gamma"};
-    EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
-
     if (this->is_ci_build())
     {
+        // Check action diagnostic results
+        static char const* const expected_nonzero_action_keys[]
+            = {"annihil-2-gamma e+",
+               "brems-combined e+",
+               "brems-combined e-",
+               "geo-boundary e+",
+               "geo-boundary e-",
+               "geo-boundary gamma",
+               "ioni-moller-bhabha e+",
+               "ioni-moller-bhabha e-",
+               "msc-range e+",
+               "msc-range e-",
+               "physics-integral-rejected e+",
+               "physics-integral-rejected e-",
+               "scat-klein-nishina gamma"};
+        EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
+
         static size_type const expected_nonzero_action_counts[] = {
             10u, 572u, 508u, 518u, 520u, 9u, 20u, 21u, 904u, 997u, 12u, 2u, 3u};
         EXPECT_VEC_EQ(expected_nonzero_action_counts,
@@ -249,6 +253,12 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
                 "0,0,0,0]]}",
                 this->step_output());
         }
+    }
+    else
+    {
+        cout << "No output saved for combination of "
+             << test::PrintableBuildConf{} << std::endl;
+        result.print_expected();
     }
 }
 

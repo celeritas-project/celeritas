@@ -208,31 +208,42 @@ TEST_F(KnMctruthTest, two_step)
 {
     auto result = this->run(4, 2);
 
-    // clang-format off
-    static const int expected_event[] = {0, 0, 1, 1, 2, 2, 3, 3};
+    static int const expected_event[] = {0, 0, 1, 1, 2, 2, 3, 3};
     EXPECT_VEC_EQ(expected_event, result.event);
-    static const int expected_track[] = {0, 0, 0, 0, 0, 0, 0, 0};
+    static int const expected_track[] = {0, 0, 0, 0, 0, 0, 0, 0};
     EXPECT_VEC_EQ(expected_track, result.track);
-    static const int expected_step[] = {1, 2, 1, 2, 1, 2, 1, 2};
+    static int const expected_step[] = {1, 2, 1, 2, 1, 2, 1, 2};
     EXPECT_VEC_EQ(expected_step, result.step);
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
-        static const int expected_volume[] = {1, 1, 1, 1, 1, 2, 1, 2};
+        static int const expected_volume[] = {1, 1, 1, 1, 1, 2, 1, 2};
         EXPECT_VEC_EQ(expected_volume, result.volume);
     }
-    static const double expected_pos[] = {0, 0, 0, 2.6999255778482, 0, 0, 0, 0, 0, 3.5717683161497, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 5, 0, 0};
-    EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
-    static const double expected_dir[] = {1, 0, 0, 0.45619379667222, 0.14402721708137, -0.87814769863479, 1, 0, 0, 0.8985574206844, -0.27508545475671, -0.34193940152356, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0};
-    EXPECT_VEC_SOFT_EQ(expected_dir, result.dir);
-    // clang-format on
+    if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    {
+        // clang-format off
+        static const double expected_pos[] = {0, 0, 0, 2.6999255778482, 0, 0, 0, 0, 0, 3.5717683161497, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 5, 0, 0};
+        EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
+        static const double expected_dir[] = {1, 0, 0, 0.45619379667222, 0.14402721708137, -0.87814769863479, 1, 0, 0, 0.8985574206844, -0.27508545475671, -0.34193940152356, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0};
+        EXPECT_VEC_SOFT_EQ(expected_dir, result.dir);
+        // clang-format on
+    }
 }
 
-TEST_F(KnCaloTest, single_event)
+TEST_F(KnCaloTest, single_track)
 {
     auto result = this->run<MemSpace::host>(1, 64);
 
-    static double const expected_edep[] = {0.00043564799352598};
-    EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);
+    if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    {
+        static double const expected_edep[] = {0.00043564799352598};
+        EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);
+    }
+    else
+    {
+        static double const expected_edep[] = {0};
+        EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);
+    }
 }
 
 //---------------------------------------------------------------------------//
