@@ -47,6 +47,9 @@ else()
   set(_DOXYGEN_TEST_SOURCE)
 endif()
 
+
+celeritas_version_to_hex(_doxy_version_hex DOXYGEN_VERSION)
+
 # Documentation usage
 set(DOXYGEN_FULL_PATH_NAMES NO)
 set(DOXYGEN_MACRO_EXPANSION YES)
@@ -56,7 +59,7 @@ set(DOXYGEN_DISTRIBUTE_GROUP_DOC YES)
 set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${PROJECT_SOURCE_DIR}/README.md")
 set(DOXYGEN_FORMULA_MACROFILE "${CMAKE_CURRENT_SOURCE_DIR}/_static/macros.tex")
 set(DOXYGEN_EXTRA_PACKAGES "amsmath")
-set(DOXYGEN_PREDEFINED "__DOXYGEN__")
+set(DOXYGEN_PREDEFINED "__DOXYGEN__=${_doxy_version_hex}")
 set(DOXYGEN_USE_MATHJAX YES)
 
 # Verbosity/warning levels
