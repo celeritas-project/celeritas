@@ -22,12 +22,16 @@ jobs:
           fetch-depth: 255
           fetch-tags: true
       - name: Configure celeritas
-        # TODO: decltype(auto) breaks doxygen :(
-        #    -DDOXYGEN_WARN_AS_ERROR="YES" \
+        # Turn warnings into errors only for PRs
+        # Disable expensive graphs for PRs also
         run: |
           mkdir build && cd build
           cmake \
             -DCELERITAS_BUILD_DOCS=ON \
+            -DCELERITAS_DOXYGEN_BUILD_TESTS=ON \
+            ${{ github.workflow == 'pr'
+             && '-DDOXYGEN_WARN_AS_ERROR="YES" -DDOXYGEN_HAVE_DOT="NO"'
+             || ''}} \
             -GNinja \
             ..
       - name: Build documentation
@@ -67,7 +71,11 @@ jobs:
       - name: Configure celeritas
         run: |
           mkdir build && cd build
-          cmake -DCELERITAS_BUILD_DOCS=ON -GNinja ..
+          cmake \
+            -DCELERITAS_BUILD_DOCS=ON \
+            -DDOXYGEN_HAVE_DOT="NO" \
+            -DDOXYGEN_WARN_AS_ERROR="YES" \
+            -GNinja ..
       - name: Build user documentation
         working-directory: build
         run: |
