@@ -35,6 +35,16 @@ celeritas_target_link_libraries(fastsim-offload
   ${Geant4_LIBRARIES}
 )
 
+if(Geant4_VERSION VERSION_LESS 11.0)
+  message(WARNING "G4VTrackingManager offload requires Geant4 11.0 or higher")
+else()
+  add_executable(trackingmanager-offload trackingmanager-offload.cc)
+  celeritas_target_link_libraries(trackingmanager-offload
+    Celeritas::accel
+    ${Geant4_LIBRARIES}
+  )
+endif()
+
 # END EXAMPLE CODE
 
 #-----------------------------------------------------------------------------#
@@ -42,29 +52,48 @@ celeritas_target_link_libraries(fastsim-offload
 #-----------------------------------------------------------------------------#
 
 include(CTest)
-function(add_example target)
-  add_test(NAME "${target}" COMMAND "$<TARGET_FILE:${target}>")
-endfunction()
-
-set(_test_env)
+set(_g4data_env)
 foreach(_ds IN LISTS Geant4_DATASETS)
-  list(APPEND _test_env
+  list(APPEND _g4data_env
     "${Geant4_DATASET_${_ds}_ENVVAR}=${Geant4_DATASET_${_ds}_PATH}")
 endforeach()
+
+function(add_example target)
+  add_example_impl(${target} Serial)
+  if(Geant4_multithreaded_FOUND)
+    add_example_impl(${target} MT)
+    add_example_impl(${target} Tasking)
+  endif()
+endfunction()
+
+function(disable_example target)
+  set(_tests ${target}-Serial)
+  if(Geant4_multithreaded_FOUND)
+    list(APPEND _tests ${target}-MT ${target}-Tasking)
+  endif()
+  set_tests_properties(${_tests} PROPERTIES
+    DISABLED true
+  )
+endfunction()
+
+function(add_example_impl target rmtype)
+  set(_test_name "${target}-${rmtype}")
+  add_test(NAME "${_test_name}" COMMAND "$<TARGET_FILE:${target}>")
+  set_tests_properties(${_test_name} PROPERTIES
+    ENVIRONMENT "${_g4data_env};G4RUN_MANAGER_TYPE=${rmtype}"
+    LABELS "app"
+  )
+endfunction()
 
 #-----------------------------------------------------------------------------#
 
 add_example(simple-offload)
 add_example(fastsim-offload)
 
-set_tests_properties(simple-offload fastsim-offload PROPERTIES
-  ENVIRONMENT "${_test_env}"
-  LABELS "app"
-)
-
 if(Geant4_VERSION VERSION_LESS 11.1)
-  set_tests_properties(fastsim-offload PROPERTIES
-    DISABLED true
-  )
+  disable_example(fastsim-offload)
 endif()
 
+if(Geant4_VERSION VERSION_GREATER_EQUAL 11.0)
+  add_example(trackingmanager-offload)
+endif()

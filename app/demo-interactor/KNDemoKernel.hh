@@ -66,6 +66,7 @@ template<Ownership W, MemSpace M>
 struct ParamsData
 {
     ParticleParamsData<W, M> particle;
+    RngParamsData<W, M> rng;
     TableData<W, M> tables;
     KleinNishinaData kn_interactor;
     DetectorParamsData detector;
@@ -81,6 +82,7 @@ struct ParamsData
     {
         CELER_EXPECT(other);
         particle = other.particle;
+        rng = other.rng;
         tables = other.tables;
         kn_interactor = other.kn_interactor;
         return *this;

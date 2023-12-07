@@ -213,7 +213,7 @@ CELER_FUNCTION auto CoreTrackView::make_physics_step_view() const
  */
 CELER_FUNCTION auto CoreTrackView::make_rng_engine() const -> RngEngine
 {
-    return RngEngine{states_.rng, this->track_slot_id()};
+    return RngEngine{params_.rng, states_.rng, this->track_slot_id()};
 }
 
 //---------------------------------------------------------------------------//

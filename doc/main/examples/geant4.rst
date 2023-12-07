@@ -12,6 +12,7 @@ or multithreaded environment using:
 
 #. A concrete G4UserTrackingAction user action class
 #. A concrete G4VFastSimulationModel
+#. A concrete G4VTrackingManager
 
 The :ref:`accel` library is the only part of Celeritas that needs to be understood.
 The key components are global SetupOptions and SharedParams, coupled to thread-local
@@ -45,4 +46,10 @@ Offload using a concrete G4VFastSimulationModel
 -----------------------------------------------
 
 .. literalinclude:: ../../../example/accel/fastsim-offload.cc
+   :start-at: #include
+
+ Offload using a concrete G4VTrackingManager
+--------------------------------------------
+
+.. literalinclude:: ../../../example/accel/trackingmanager-offload.cc
    :start-at: #include
