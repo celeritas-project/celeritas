@@ -36,6 +36,9 @@ class VecgeomParams final : public GeoParamsInterface,
     // Whether surface tracking is being used
     static bool use_surface_tracking();
 
+    // Whether VecGeom GDML is being used to load the geometry
+    static bool use_vgdml();
+
     // Construct from a GDML filename
     explicit VecgeomParams(std::string const& gdml_filename);
 
@@ -102,9 +105,14 @@ class VecgeomParams final : public GeoParamsInterface,
     HostRef host_ref_;
     DeviceRef device_ref_;
 
+    // If VGDML is unavailable and Geant4 is, we load and
+    bool loaded_geant4_gdml_{false};
+
     //// HELPER FUNCTIONS ////
 
     // Construct VecGeom tracking data and copy to GPU
+    void build_volumes_vgdml(std::string const& filename);
+    void build_volumes_geant4(G4VPhysicalVolume const* world);
     void build_tracking();
     void build_surface_tracking();
     void build_volume_tracking();
