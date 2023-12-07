@@ -12,6 +12,7 @@
 #include <G4Track.hh>
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
 
 #include "ExceptionConverter.hh"
 #include "LocalTransporter.hh"
@@ -55,19 +56,22 @@ TrackingManagerOffload::TrackingManagerOffload(SharedParams const* params,
  */
 void TrackingManagerOffload::BuildPhysicsTable(G4ParticleDefinition const& part)
 {
-    G4ProcessManager* pManager = part.GetProcessManager();
     G4ProcessManager* pManagerShadow = part.GetMasterProcessManager();
+    G4ProcessManager* pManager = part.GetProcessManager();
+    CELER_ASSERT(pManager);
 
     G4ProcessVector* pVector = pManager->GetProcessList();
-    for (std::size_t j = 0; j < pVector->size(); ++j)
+    CELER_ASSERT(pVector);
+    for (auto j : range(pVector->size()))
     {
+        G4VProcess* proc = (*pVector)[j];
         if (pManagerShadow == pManager)
         {
-            (*pVector)[j]->BuildPhysicsTable(part);
+            proc->BuildPhysicsTable(part);
         }
         else
         {
-            (*pVector)[j]->BuildWorkerPhysicsTable(part);
+            proc->BuildWorkerPhysicsTable(part);
         }
     }
 }
@@ -87,19 +91,22 @@ void TrackingManagerOffload::BuildPhysicsTable(G4ParticleDefinition const& part)
  */
 void TrackingManagerOffload::PreparePhysicsTable(G4ParticleDefinition const& part)
 {
-    G4ProcessManager* pManager = part.GetProcessManager();
     G4ProcessManager* pManagerShadow = part.GetMasterProcessManager();
+    G4ProcessManager* pManager = part.GetProcessManager();
+    CELER_ASSERT(pManager);
 
     G4ProcessVector* pVector = pManager->GetProcessList();
-    for (std::size_t j = 0; j < pVector->size(); ++j)
+    CELER_ASSERT(pVector);
+    for (auto j : range(pVector->size()))
     {
+        G4VProcess* proc = (*pVector)[j];
         if (pManagerShadow == pManager)
         {
-            (*pVector)[j]->PreparePhysicsTable(part);
+            proc->PreparePhysicsTable(part);
         }
         else
         {
-            (*pVector)[j]->PrepareWorkerPhysicsTable(part);
+            proc->PrepareWorkerPhysicsTable(part);
         }
     }
 }
