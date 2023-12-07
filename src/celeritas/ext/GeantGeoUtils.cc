@@ -16,6 +16,7 @@
 #include <G4LogicalVolumeStore.hh>
 #include <G4PhysicalVolumeStore.hh>
 #include <G4SolidStore.hh>
+#include <G4Threading.hh>
 #include <G4TouchableHistory.hh>
 #include <G4VPhysicalVolume.hh>
 #include <G4ios.hh>
@@ -48,14 +49,17 @@ G4VPhysicalVolume*
 load_geant_geometry_impl(std::string const& filename, bool strip_pointer_ext)
 {
     CELER_LOG(info) << "Loading Geant4 geometry from GDML at " << filename;
+
+    if (!G4Threading::IsMasterThread())
+    {
+        // Always-on debug assertion (not a "runtime" error but a
+        // subtle programming logic error that always causes a crash)
+        CELER_DEBUG_FAIL(
+            "Geant4 geometry cannot be loaded from a worker thread", internal);
+    }
+
     ScopedMem record_mem("load_geant_geometry");
     ScopedTimeLog scoped_time;
-
-    {
-        // I have no idea why, but creating the GDML parser resets the
-        // ScopedGeantLogger on its first instantiation (geant4@11.0)
-        G4GDMLParser temp_parser_init;
-    }
 
     ScopedGeantLogger scoped_logger;
     ScopedGeantExceptionHandler scoped_exceptions;

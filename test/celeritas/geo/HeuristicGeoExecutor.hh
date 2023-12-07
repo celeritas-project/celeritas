@@ -52,7 +52,7 @@ struct HeuristicGeoExecutor
  */
 CELER_FUNCTION void HeuristicGeoExecutor::operator()(TrackSlotId tid) const
 {
-    RngEngine rng(state.rng, tid);
+    RngEngine rng(params.rng, state.rng, tid);
     GeoTrackView geo(params.geometry, state.geometry, tid);
     if (state.status[tid] == LifeStatus::unborn)
     {

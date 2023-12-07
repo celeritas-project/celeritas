@@ -94,6 +94,13 @@
  * \endcode
  */
 /*!
+ * \def CELER_DEBUG_FAIL
+ *
+ * Throw a debug assertion regardless of the \c CELERITAS_DEBUG setting. This
+ * is used internally but is also useful for catching subtle programming errors
+ * in downstream code.
+ */
+/*!
  * \def CELER_ASSERT_UNREACHABLE
  *
  * Throw an assertion if the code point is reached. When debug assertions are
@@ -160,12 +167,6 @@
             CELER_DEBUG_THROW_(#COND, WHICH); \
         }                                     \
     } while (0)
-#define CELER_DEBUG_FAIL_(MSG, WHICH)   \
-    do                                  \
-    {                                   \
-        CELER_DEBUG_THROW_(MSG, WHICH); \
-        ::celeritas::unreachable();     \
-    } while (0)
 #define CELER_NDEBUG_ASSUME_(COND)      \
     do                                  \
     {                                   \
@@ -181,13 +182,20 @@
     } while (0)
 //! \endcond
 
+#define CELER_DEBUG_FAIL(MSG, WHICH)   \
+    do                                  \
+    {                                   \
+        CELER_DEBUG_THROW_(MSG, WHICH); \
+        ::celeritas::unreachable();     \
+    } while (0)
+
 #if CELERITAS_DEBUG
 #    define CELER_EXPECT(COND) CELER_DEBUG_ASSERT_(COND, precondition)
 #    define CELER_ASSERT(COND) CELER_DEBUG_ASSERT_(COND, internal)
 #    define CELER_ENSURE(COND) CELER_DEBUG_ASSERT_(COND, postcondition)
 #    define CELER_ASSUME(COND) CELER_DEBUG_ASSERT_(COND, assumption)
 #    define CELER_ASSERT_UNREACHABLE() \
-        CELER_DEBUG_FAIL_("unreachable code point encountered", unreachable)
+        CELER_DEBUG_FAIL("unreachable code point encountered", unreachable)
 #else
 #    define CELER_EXPECT(COND) CELER_NOASSERT_(COND)
 #    define CELER_ASSERT(COND) CELER_NOASSERT_(COND)
@@ -210,12 +218,12 @@
         } while (0)
 #else
 #    define CELER_VALIDATE(COND, MSG)                                         \
-        CELER_DEBUG_FAIL_("CELER_VALIDATE cannot be called from device code", \
+        CELER_DEBUG_FAIL("CELER_VALIDATE cannot be called from device code", \
                           unreachable);
 #endif
 
-#define CELER_NOT_CONFIGURED(WHAT) CELER_DEBUG_FAIL_(WHAT, unconfigured)
-#define CELER_NOT_IMPLEMENTED(WHAT) CELER_DEBUG_FAIL_(WHAT, unimplemented)
+#define CELER_NOT_CONFIGURED(WHAT) CELER_DEBUG_FAIL(WHAT, unconfigured)
+#define CELER_NOT_IMPLEMENTED(WHAT) CELER_DEBUG_FAIL(WHAT, unimplemented)
 
 /*!
  * \def CELER_CUDA_CALL

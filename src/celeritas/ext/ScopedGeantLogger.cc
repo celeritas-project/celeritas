@@ -11,7 +11,9 @@
 #include <memory>
 #include <mutex>
 #include <G4String.hh>
+#include <G4Threading.hh>
 #include <G4Types.hh>
+#include <G4UImanager.hh>
 #include <G4Version.hh>
 #include <G4coutDestination.hh>
 #if G4VERSION_NUMBER >= 1120
@@ -22,6 +24,7 @@
 #    define CELER_G4SSBUF 1
 #endif
 
+#include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 
@@ -70,6 +73,16 @@ class GeantLoggerAdapter : public G4coutDestination
  */
 GeantLoggerAdapter::GeantLoggerAdapter()
 {
+    if (!G4UImanager::GetUIpointer())
+    {
+        // Always-on debug assertion (not a "runtime" error but a
+        // subtle programming logic error that always causes a crash)
+        CELER_DEBUG_FAIL(
+            "Geant4 logging cannot be changed after G4UImanager has been "
+            "destroyed",
+            precondition);
+    }
+
 #if CELER_G4SSBUF
     saved_cout_ = G4coutbuf.GetDestination();
     saved_cerr_ = G4cerrbuf.GetDestination();

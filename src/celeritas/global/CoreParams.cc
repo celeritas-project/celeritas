@@ -22,8 +22,6 @@
 #include "corecel/sys/KernelRegistry.hh"
 #include "corecel/sys/MemRegistry.hh"
 #include "corecel/sys/ScopedMem.hh"
-#include "orange/OrangeParams.hh"
-#include "orange/OrangeParamsOutput.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/GeoParamsOutput.hh"
@@ -54,6 +52,14 @@
 #    include "corecel/sys/EnvironmentIO.json.hh"
 #    include "corecel/sys/KernelRegistryIO.json.hh"
 #    include "corecel/sys/MemRegistryIO.json.hh"
+#endif
+
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+#    include "orange/OrangeParams.hh"
+#    include "orange/OrangeParamsOutput.hh"
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
+#    include "celeritas/ext/VecgeomParams.hh"
+#    include "celeritas/ext/VecgeomParamsOutput.hh"
 #endif
 
 namespace celeritas
@@ -305,6 +311,9 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
     input_.output_reg->insert(
         std::make_shared<OrangeParamsOutput>(input_.geometry));
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
+    input_.output_reg->insert(
+        std::make_shared<VecgeomParamsOutput>(input_.geometry));
 #endif
 
     CELER_LOG(status) << "Celeritas core setup complete";

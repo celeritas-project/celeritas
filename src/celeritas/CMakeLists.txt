@@ -67,6 +67,7 @@ list(APPEND SOURCES
   phys/Process.cc
   phys/ProcessBuilder.cc
   random/CuHipRngData.cc
+  random/CuHipRngParams.cc
   random/XorwowRngData.cc
   random/XorwowRngParams.cc
   track/SimParams.cc
@@ -231,9 +232,12 @@ endif()
 if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
     ext/VecgeomParams.cc
+    ext/VecgeomParamsOutput.cc
     ext/detail/VecgeomNavCollection.cc
   )
-  list(APPEND PRIVATE_DEPS VecGeom::vgdml)
+  if(VecGeom_GDML_FOUND)
+    list(APPEND PRIVATE_DEPS VecGeom::vgdml)
+  endif()
   if(VecGeom_CUDA_FOUND AND VecGeom_SURF_FOUND)
     # Special routines needed for surface
     list(APPEND SOURCES
