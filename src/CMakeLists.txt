@@ -9,13 +9,7 @@
 #----------------------------------------------------------------------------#
 # Celeritas version
 
-# Add an extra 1 up front and strip it to zero-pad
-math(EXPR _temp_version
-  "((256 + ${PROJECT_VERSION_MAJOR}) * 256 + ${PROJECT_VERSION_MINOR}) * 256 + ${PROJECT_VERSION_PATCH}"
-  OUTPUT_FORMAT HEXADECIMAL
-)
-string(SUBSTRING "${_temp_version}" 3 -1 _temp_version)
-set(CELERITAS_VERSION "0x${_temp_version}")
+celeritas_version_to_hex(CELERITAS_VERSION PROJECT_VERSION)
 celeritas_configure_file("celeritas_version.h.in" "celeritas_version.h" @ONLY)
 
 #----------------------------------------------------------------------------#
