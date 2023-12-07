@@ -68,7 +68,10 @@ void HeuristicGeoTestBase::run_host(size_type num_states, real_type tolerance)
         return;
     }
 
-    EXPECT_VEC_NEAR(ref_path, avg_path, tolerance);
+    if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    {
+        EXPECT_VEC_NEAR(ref_path, avg_path, tolerance);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -88,8 +91,11 @@ void HeuristicGeoTestBase::run_device(size_type num_states, real_type tolerance)
         heuristic_test_execute(params, state.ref());
     }
 
-    auto avg_path = this->get_avg_path(state.ref().accum_path, num_states);
-    EXPECT_VEC_NEAR(this->reference_avg_path(), avg_path, tolerance);
+    if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
+    {
+        auto avg_path = this->get_avg_path(state.ref().accum_path, num_states);
+        EXPECT_VEC_NEAR(this->reference_avg_path(), avg_path, tolerance);
+    }
 }
 
 //---------------------------------------------------------------------------//
