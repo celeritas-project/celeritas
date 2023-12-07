@@ -20,9 +20,10 @@ Key enhancements compared to version 0.4.0 are:
 - Improved provenance and reporting in JSON output for apps
 - The ability to use stdin/stdout to drive ``celer-g4`` with JSON
 
-Key bug fixes:
+Important bug fixes:
 
 - ``GeantSimpleCalo`` can now be used with Celeritas offload enabled.
+
 
 New features
 ------------
@@ -42,8 +43,9 @@ Bug fixes
 
 * Fix GeantSimpleCalo output when Celeritas is enabled *(@sethrj, #1040)*
 * Uniquify ROOT file name when output is directed to stdout *(@pcanal, #1051)*
+* Fix ROOT dictionary paths *(@pcanal, #1054)*
 
-Reviewers: @amandalund *(1)*, @sethrj *(1)*
+Reviewers: @sethrj *(2)*, @amandalund *(1)*
 
 Documentation improvements
 --------------------------
@@ -64,6 +66,7 @@ Minor internal changes
 Reviewers: @sethrj *(3)*, @pcanal *(2)*
 
 **Full Changelog**: https://github.com/celeritas-project/celeritas/compare/v0.4.0...v0.4.1
+
 
 .. _release_v0.4.0:
 
