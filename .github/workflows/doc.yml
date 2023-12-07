@@ -35,6 +35,11 @@ jobs:
         run: |
           ninja doxygen
       - name: Upload pages artifacts
+        if: >-
+          ${{  github.ref_name == 'develop'
+            || contains(github.head_ref, 'release-')
+            || contains(github.head_ref, 'doc-')
+          }}
         id: upload-pages-user
         uses: actions/upload-pages-artifact@v2
         with:
@@ -68,6 +73,11 @@ jobs:
         run: |
           ninja doc
       - name: Upload pages artifacts
+        if: >-
+          ${{  github.ref_name == 'develop'
+            || contains(github.head_ref, 'release-')
+            || contains(github.head_ref, 'doc-')
+          }}
         id: upload-pages-user
         uses: actions/upload-pages-artifact@v2
         with:
