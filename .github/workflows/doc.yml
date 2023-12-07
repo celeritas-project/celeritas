@@ -41,6 +41,7 @@ jobs:
       - name: Upload pages artifacts
         if: >-
           ${{  github.ref_name == 'develop'
+            || contains(github.ref_name, 'backports/')
             || contains(github.head_ref, 'release-')
             || contains(github.head_ref, 'doc-')
           }}
@@ -83,6 +84,7 @@ jobs:
       - name: Upload pages artifacts
         if: >-
           ${{  github.ref_name == 'develop'
+            || contains(github.ref_name, 'backports/')
             || contains(github.head_ref, 'release-')
             || contains(github.head_ref, 'doc-')
           }}
