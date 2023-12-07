@@ -18,18 +18,36 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Persistent data for XORWOW generator.
- *
- * If we want to add the "discard" operation or support initialization with a
- * subsequence or offset, we can add the precomputed XORWOW jump matrices here.
  */
 template<Ownership W, MemSpace M>
 struct XorwowRngParamsData
 {
+    //// TYPES ////
+
+    using uint_t = unsigned int;
+    using JumpPoly = Array<uint_t, 5>;
+    using ArrayJumpPoly = Array<JumpPoly, 32>;
+
+    //// DATA ////
+
     // TODO: 256-bit seed used to generate initial states for the RNGs
     // For now, just 4 bytes (same as our existing cuda/hip interface)
-    Array<unsigned int, 1> seed;
+    Array<uint_t, 1> seed;
+
+    // Jump polynomials
+    ArrayJumpPoly jump;
+    ArrayJumpPoly jump_subsequence;
 
     //// METHODS ////
+
+    static CELER_CONSTEXPR_FUNCTION size_type num_words()
+    {
+        return JumpPoly{}.size();
+    }
+    static CELER_CONSTEXPR_FUNCTION size_type num_bits()
+    {
+        return 8 * sizeof(uint_t);
+    }
 
     //! Whether the data is assigned
     explicit CELER_FUNCTION operator bool() const { return true; }
@@ -40,8 +58,21 @@ struct XorwowRngParamsData
     {
         CELER_EXPECT(other);
         seed = other.seed;
+        jump = other.jump;
+        jump_subsequence = other.jump_subsequence;
         return *this;
     }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize an RNG.
+ */
+struct XorwowRngInitializer
+{
+    ull_int seed{0};
+    ull_int subsequence{0};
+    ull_int offset{0};
 };
 
 //---------------------------------------------------------------------------//

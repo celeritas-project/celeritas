@@ -67,6 +67,7 @@ list(APPEND SOURCES
   phys/Process.cc
   phys/ProcessBuilder.cc
   random/CuHipRngData.cc
+  random/CuHipRngParams.cc
   random/XorwowRngData.cc
   random/XorwowRngParams.cc
   track/SimParams.cc

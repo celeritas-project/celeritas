@@ -21,23 +21,24 @@ namespace test
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Input data
-using RngDeviceRef = DeviceRef<RngStateData>;
+using RngDeviceParamsRef = DeviceCRef<RngParamsData>;
+using RngDeviceStateRef = DeviceRef<RngStateData>;
 
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-std::vector<unsigned int> re_test_native(RngDeviceRef);
+std::vector<unsigned int> re_test_native(RngDeviceParamsRef, RngDeviceStateRef);
 
 template<class T>
-std::vector<T> re_test_canonical(RngDeviceRef);
+std::vector<T> re_test_canonical(RngDeviceParamsRef, RngDeviceStateRef);
 
 #if !CELER_USE_DEVICE
-std::vector<unsigned int> re_test_native(RngDeviceRef)
+std::vector<unsigned int> re_test_native(RngDeviceParamsRef, RngDeviceStateRef)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
 template<class T>
-inline std::vector<T> re_test_canonical(RngDeviceRef)
+inline std::vector<T> re_test_canonical(RngDeviceParamsRef, RngDeviceStateRef)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
