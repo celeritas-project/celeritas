@@ -14,7 +14,7 @@
 #include <G4PVPlacement.hh>
 #include <G4ReflectionFactory.hh>
 #include <G4VPhysicalVolume.hh>
-#include <VecGeom/gdml/ReflFactory.h>
+#include <VecGeom/management/ReflFactory.h>
 #include <VecGeom/volumes/LogicalVolume.h>
 #include <VecGeom/volumes/PlacedVolume.h>
 
@@ -190,7 +190,7 @@ auto Converter::build_with_daughters(G4LogicalVolume const* mother_g4lv)
 
         // Use the VGDML reflection factory to place the daughter in the mother
         // (it must *always* be used, in case parent is reflected)
-        vgdml::ReflFactory::Instance().Place(
+        vecgeom::ReflFactory::Instance().Place(
             (*this->convert_transform_)(g4pv->GetTranslation(),
                                         g4pv->GetRotation()),
             vecgeom::Vector3D<double>{1.0, 1.0, flip_z ? -1.0 : 1.0},
