@@ -102,6 +102,7 @@ LocalSurfaceVisitor::LocalSurfaceVisitor(ParamsRef const& params,
 {
 }
 
+#if !defined(__DOXYGEN__) || __DOXYGEN__ > 0x010908
 //---------------------------------------------------------------------------//
 /*!
  * Apply the function to the surface specified by the given ID.
@@ -121,6 +122,7 @@ LocalSurfaceVisitor::operator()(F&& func, LocalSurfaceId id)
         },
         this->get_item(params_.surface_types, surfaces_.types, id));
 }
+#endif
 
 //---------------------------------------------------------------------------//
 // PRIVATE HELPER FUNCTIONS

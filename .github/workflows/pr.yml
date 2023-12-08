@@ -20,8 +20,10 @@ concurrency:
 jobs:
   build-fast:
     uses: ./.github/workflows/build-fast.yml
+  doc:
+    uses: ./.github/workflows/doc.yml
   all-prechecks:
-    needs: [build-fast]
+    needs: [build-fast, doc]
     runs-on: ubuntu-latest
     steps:
     - name: Success
@@ -29,15 +31,12 @@ jobs:
   build:
     needs: [all-prechecks]
     uses: ./.github/workflows/build-full.yml
-  doc:
-    if: ${{contains(github.head_ref, 'release-v') || contains(github.head_ref, 'doc-')}}
-    uses: ./.github/workflows/doc.yml
 
-  # Specifying a dependent job allows us to select a single "requires" check
+  # Specifying a dependent job allows us to select a single "requires" check in the project GitHub settings
   all:
     # Complete if jobs were skipped (but not if any failed or were cancelled)
     if: ${{ always() && !failure() && !cancelled() }}
-    needs: [build, doc]
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
     - name: Success

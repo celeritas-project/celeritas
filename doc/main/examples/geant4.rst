@@ -48,7 +48,7 @@ Offload using a concrete G4VFastSimulationModel
 .. literalinclude:: ../../../example/accel/fastsim-offload.cc
    :start-at: #include
 
- Offload using a concrete G4VTrackingManager
+Offload using a concrete G4VTrackingManager
 --------------------------------------------
 
 .. literalinclude:: ../../../example/accel/trackingmanager-offload.cc

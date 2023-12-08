@@ -35,8 +35,9 @@ set(_DOXYGEN_EXTRA_SOURCE
   "${PROJECT_BINARY_DIR}/include/celeritas_cmake_strings.h"
   "${PROJECT_BINARY_DIR}/include/celeritas_version.h"
 )
-if(CELERITAS_DEBUG AND CELERITAS_BUILD_TESTS)
-  # Add documentation for Celeritas test harnesses
+if((CELERITAS_DEBUG AND CELERITAS_BUILD_TESTS)
+  OR CELERITAS_DOXYGEN_BUILD_TESTS)
+  # Add documentation for Celeritas test harnesses when debugging or for CI
   list(APPEND _DOXYGEN_TEST_SOURCE
     "${PROJECT_SOURCE_DIR}/test"
   )
@@ -47,6 +48,8 @@ else()
   set(_DOXYGEN_TEST_SOURCE)
 endif()
 
+celeritas_version_to_hex(_doxy_version_hex DOXYGEN_VERSION)
+
 # Documentation usage
 set(DOXYGEN_FULL_PATH_NAMES NO)
 set(DOXYGEN_MACRO_EXPANSION YES)
@@ -56,7 +59,7 @@ set(DOXYGEN_DISTRIBUTE_GROUP_DOC YES)
 set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${PROJECT_SOURCE_DIR}/README.md")
 set(DOXYGEN_FORMULA_MACROFILE "${CMAKE_CURRENT_SOURCE_DIR}/_static/macros.tex")
 set(DOXYGEN_EXTRA_PACKAGES "amsmath")
-set(DOXYGEN_PREDEFINED "__DOXYGEN__")
+set(DOXYGEN_PREDEFINED "__DOXYGEN__=${_doxy_version_hex}")
 set(DOXYGEN_USE_MATHJAX YES)
 
 # Verbosity/warning levels
@@ -71,8 +74,10 @@ set(DOXYGEN_HTML_EXTRA_STYLESHEET
 set(DOXYGEN_GENERATE_HTML YES)
 set(DOXYGEN_HTML_OUTPUT "doxygen-html")
 set(DOXYGEN_CREATE_SUBDIRS YES)
-set(DOXYGEN_VERBATIM_HEADERS NO)
 set(DOXYGEN_REFERENCES_LINK_SOURCE YES)
+
+celeritas_set_default(DOXYGEN_VERBATIM_HEADERS NO)
+celeritas_set_default(DOXYGEN_MAX_DOT_GRAPH_DEPTH 2)
 
 doxygen_add_docs(doxygen
   "${PROJECT_SOURCE_DIR}/src"
