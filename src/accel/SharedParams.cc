@@ -19,6 +19,10 @@
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 
+#ifdef _OPENMP
+#    include <omp.h>
+#endif
+
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
@@ -209,6 +213,29 @@ SharedParams::SharedParams(SetupOptions const& options, SPOutputRegistry oreg)
         if (options.cuda_heap_size > 0)
         {
             celeritas::set_cuda_heap_size(options.cuda_heap_size);
+        }
+    }
+
+    // Check that OpenMP and Geant4 threading models don't collide
+    if (CELERITAS_USE_OPENMP && !celeritas::device()
+        && G4Threading::IsMultithreadedApplication())
+    {
+        auto msg = CELER_LOG(warning);
+        msg << "Using multithreaded Geant4 with Celeritas OpenMP";
+        std::string const& nt_str = celeritas::getenv("OMP_NUM_THREADS");
+        if (!nt_str.empty())
+        {
+            msg << "(OMP_NUM_THREADS=" << nt_str
+                << "): CPU threads may be oversubscribed";
+        }
+        else
+        {
+            msg << ": forcing 1 Celeritas thread per Geant4 thread";
+#ifdef _OPENMP
+            omp_set_num_threads(1);
+#else
+            CELER_ASSERT_UNREACHABLE();
+#endif
         }
     }
 
