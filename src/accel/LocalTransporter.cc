@@ -74,7 +74,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     if (CELERITAS_USE_OPENMP && !celeritas::device()
         && G4Threading::IsMultithreadedApplication())
     {
-        auto msg = CELER_LOG(warning);
+        auto msg = CELER_LOG_LOCAL(warning);
         msg << "Using multithreaded Geant4 with Celeritas OpenMP";
         if (std::string const& nt_str = celeritas::getenv("OMP_NUM_THREADS");
             !nt_str.empty())
@@ -84,8 +84,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
         }
         else
         {
-            msg << ": forcing 1 Celeritas thread on Geant4 worker "
-                << thread_id;
+            msg << ": forcing 1 Celeritas thread to Geant4 thread";
 #ifdef _OPENMP
             omp_set_num_threads(1);
 #else
