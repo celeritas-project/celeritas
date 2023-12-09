@@ -45,6 +45,10 @@ if(CELERITAS_USE_HepMC3)
   list(APPEND SOURCES HepMC3PrimaryGenerator.cc)
 endif()
 
+if(CELERITAS_USE_OpenMP)
+  list(APPEND PRIVATE_DEPS OpenMP::OpenMP_CXX)
+endif()
+
 #-----------------------------------------------------------------------------#
 # Create library
 #-----------------------------------------------------------------------------#
