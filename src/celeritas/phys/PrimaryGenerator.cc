@@ -78,14 +78,13 @@ auto PrimaryGenerator::operator()() -> result_type
     for (auto i : range(primaries_per_event_))
     {
         Primary& p = result[i];
-        p.particle_id = particle_id_[primary_count_ % particle_id_.size()];
+        p.particle_id = particle_id_[i % particle_id_.size()];
         p.energy = units::MevEnergy{sample_energy_(rng_)};
         p.position = sample_pos_(rng_);
         p.direction = sample_dir_(rng_);
         p.time = 0;
         p.event_id = EventId{event_count_};
         p.track_id = TrackId{i};
-        ++primary_count_;
     }
     ++event_count_;
     return result;

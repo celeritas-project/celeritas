@@ -77,7 +77,6 @@ class PrimaryGenerator : public EventReaderInterface
     PositionSampler sample_pos_;
     DirectionSampler sample_dir_;
     std::vector<ParticleId> particle_id_;
-    size_type primary_count_{0};
     size_type event_count_{0};
     PrimaryGeneratorEngine rng_;
 };
