@@ -17,6 +17,8 @@
 #include "corecel/Macros.hh"
 #include "accel/ExceptionConverter.hh"
 
+#include "GlobalSetup.hh"
+
 namespace celeritas
 {
 namespace app
@@ -50,19 +52,23 @@ void TrackingAction::PreUserTrackingAction(G4Track const* track)
                  == !SharedParams::CeleritasDisabled());
     CELER_EXPECT(static_cast<bool>(*params_) == static_cast<bool>(*transport_));
 
-    if (SharedParams::CeleritasDisabled())
-        return;
-
     auto const& allowed_particles = params_->OffloadParticles();
     if (std::find(std::begin(allowed_particles),
                   std::end(allowed_particles),
                   track->GetDefinition())
         != std::end(allowed_particles))
     {
-        // Celeritas is transporting this track
-        ExceptionConverter call_g4exception{"celer0003", params_.get()};
-        CELER_TRY_HANDLE(transport_->Push(*track), call_g4exception);
-        const_cast<G4Track*>(track)->SetTrackStatus(fStopAndKill);
+        if (!SharedParams::CeleritasDisabled())
+        {
+            // Celeritas is transporting this track
+            ExceptionConverter call_g4exception{"celer0003", params_.get()};
+            CELER_TRY_HANDLE(transport_->Push(*track), call_g4exception);
+            const_cast<G4Track*>(track)->SetTrackStatus(fStopAndKill);
+        }
+        else if (GlobalSetup::Instance()->input().kill_offload_tracks)
+        {
+            const_cast<G4Track*>(track)->SetTrackStatus(fStopAndKill);
+        }
     }
 }
 

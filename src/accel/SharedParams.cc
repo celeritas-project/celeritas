@@ -14,8 +14,11 @@
 #include <utility>
 #include <vector>
 #include <CLHEP/Random/Random.h>
+#include <G4Electron.hh>
+#include <G4Gamma.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
+#include <G4Positron.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 
@@ -333,6 +336,25 @@ void SharedParams::Finalize()
     }
 
     CELER_ENSURE(!*this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a vector of particles supported by Celeritas offloading.
+ */
+auto SharedParams::OffloadParticles() const -> VecG4ParticleDef const&
+{
+    if (*this)
+    {
+        return particles_;
+    }
+
+    static VecG4ParticleDef const particles = {
+        G4Gamma::Gamma(),
+        G4Electron::Electron(),
+        G4Positron::Positron(),
+    };
+    return particles;
 }
 
 //---------------------------------------------------------------------------//

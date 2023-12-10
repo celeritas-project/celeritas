@@ -88,7 +88,7 @@ class SharedParams
     inline SPConstParams Params() const;
 
     // Get a vector of particles supported by Celeritas offloading
-    inline VecG4ParticleDef const& OffloadParticles() const;
+    VecG4ParticleDef const& OffloadParticles() const;
 
     //! Whether Celeritas core params have been created
     explicit operator bool() const { return static_cast<bool>(params_); }
@@ -170,18 +170,6 @@ auto SharedParams::Params() const -> SPConstParams
 {
     CELER_EXPECT(*this);
     return params_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a vector of particles supported by Celeritas offloading.
- *
- * This can only be called after \c Initialize.
- */
-auto SharedParams::OffloadParticles() const -> VecG4ParticleDef const&
-{
-    CELER_EXPECT(*this);
-    return particles_;
 }
 
 //---------------------------------------------------------------------------//
