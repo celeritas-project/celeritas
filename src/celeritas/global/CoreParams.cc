@@ -255,6 +255,7 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         case TrackOrder::partition_status:
         case TrackOrder::sort_step_limit_action:
         case TrackOrder::sort_along_step_action:
+        case TrackOrder::sort_particle_type:
             // Sort with just the given track order
             insert_sort_tracks_action(track_order);
             break;
