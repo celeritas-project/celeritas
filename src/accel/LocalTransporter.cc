@@ -11,6 +11,7 @@
 #include <string>
 #include <type_traits>
 #include <CLHEP/Units/SystemOfUnits.h>
+#include <G4MTRunManager.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4Threading.hh>
 #include <G4ThreeVector.hh>
@@ -34,11 +35,13 @@
 #include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
+#include "celeritas/random/RngParams.hh"
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
 #include "detail/HitManager.hh"
 #include "detail/OffloadWriter.hh"
+#include "detail/RngReseed.hh"
 
 namespace celeritas
 {
@@ -58,6 +61,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
                       "constructing LocalTransporter (perhaps the master "
                       "thread did not call BeginOfRunAction?");
     particles_ = params.Params()->particle();
+    rng_ = params.Params()->rng();
 
     auto thread_id = get_geant_thread_id();
     CELER_VALIDATE(thread_id >= 0,
@@ -122,6 +126,38 @@ void LocalTransporter::SetEventId(int id)
     CELER_EXPECT(id >= 0);
     event_id_ = EventId(id);
     track_counter_ = 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set the event ID and reseed the Celeritas RNG at the start of an event.
+ */
+void LocalTransporter::InitializeEvent(int id)
+{
+    CELER_EXPECT(*this);
+    CELER_EXPECT(id >= 0);
+
+    this->SetEventId(id);
+
+    if (G4Threading::IsMultithreadedApplication()
+        && !G4MTRunManager::SeedOncePerCommunication())
+    {
+        // Since Geant4 schedules events dynamically, reseed the Celeritas RNGs
+        // using the Geant4 event ID for reproducibility.
+        if (celeritas::device())
+        {
+            auto const& state
+                = dynamic_cast<CoreState<MemSpace::device> const&>(
+                    step_->state());
+            detail::reseed_rng(rng_->device_ref(), state.ref().rng, id);
+        }
+        else
+        {
+            auto const& state = dynamic_cast<CoreState<MemSpace::host> const&>(
+                step_->state());
+            detail::reseed_rng(rng_->host_ref(), state.ref().rng, id);
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//

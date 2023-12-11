@@ -54,6 +54,10 @@ __global__ void reseed_rng_kernel(DeviceCRef<RngParamsData> const params,
 //---------------------------------------------------------------------------//
 /*!
  * Reinitialize the RNG states on device using the Geant4 Event ID.
+ *
+ * Each thread's state is initialized using same seed and skipped ahead a
+ * different number of subsequences so the sequences on different threads will
+ * not have statistically correlated values.
  */
 void reseed_rng(DeviceCRef<RngParamsData> const& params,
                 DeviceRef<RngStateData> const& state,

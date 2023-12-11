@@ -18,6 +18,10 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Reinitialize the RNG states on host using the Geant4 Event ID.
+ *
+ * Each thread's state is initialized using same seed and skipped ahead a
+ * different number of subsequences so the sequences on different threads will
+ * not have statistically correlated values.
  */
 void reseed_rng(HostCRef<RngParamsData> const& params,
                 HostRef<RngStateData> const& state,

@@ -66,6 +66,9 @@ class LocalTransporter
     // Set the event ID
     void SetEventId(int);
 
+    // Set the event ID and reseed the Celeritasa RNG at the start of an event
+    void InitializeEvent(int);
+
     // Offload this track
     void Push(G4Track const&);
 
@@ -95,6 +98,7 @@ class LocalTransporter
     };
 
     std::shared_ptr<ParticleParams const> particles_;
+    std::shared_ptr<RngParams const> rng_;
     std::shared_ptr<StepperInterface> step_;
     std::vector<Primary> buffer_;
 
