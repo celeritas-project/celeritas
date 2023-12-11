@@ -264,7 +264,9 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
             insert_sort_tracks_action(TrackOrder::sort_step_limit_action);
             insert_sort_tracks_action(TrackOrder::sort_along_step_action);
             break;
-        default:
+        case TrackOrder::unsorted:
+        case TrackOrder::shuffled:
+        case TrackOrder::size_:
             break;
     }
 
