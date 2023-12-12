@@ -89,10 +89,10 @@ class ParticleParams final : public ParamsDataInterface<ParticleParamsData>
     ParticleView get(ParticleId id) const;
 
     //! Access material properties on the host
-    HostRef const& host_ref() const final { return data_.host(); }
+    HostRef const& host_ref() const final { return data_.host_ref(); }
 
     //! Access material properties on the device
-    DeviceRef const& device_ref() const final { return data_.device(); }
+    DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
     // Saved copy of metadata

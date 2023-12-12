@@ -90,10 +90,10 @@ class SeltzerBergerModel final : public Model
     }
 
     //! Access SB data on the host
-    HostRef const& host_ref() const { return data_.host(); }
+    HostRef const& host_ref() const { return data_.host_ref(); }
 
     //! Access SB data on the device
-    DeviceRef const& device_ref() const { return data_.device(); }
+    DeviceRef const& device_ref() const { return data_.device_ref(); }
 
   private:
     // Host/device storage and reference
