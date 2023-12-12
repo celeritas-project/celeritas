@@ -105,18 +105,22 @@ void SimpleOffload::BeginOfEventAction(G4Event const* event)
  */
 void SimpleOffload::PreUserTrackingAction(G4Track* track)
 {
-    if (!*this)
-        return;
-
     if (std::find(params_->OffloadParticles().begin(),
                   params_->OffloadParticles().end(),
                   track->GetDefinition())
         != params_->OffloadParticles().end())
     {
-        // Celeritas is transporting this track
-        ExceptionConverter call_g4exception{"celer0003", params_};
-        CELER_TRY_HANDLE(local_->Push(*track), call_g4exception);
-        track->SetTrackStatus(fStopAndKill);
+        if (!SharedParams::CeleritasDisabled())
+        {
+            // Celeritas is transporting this track
+            ExceptionConverter call_g4exception{"celer0003", params_};
+            CELER_TRY_HANDLE(local_->Push(*track), call_g4exception);
+            track->SetTrackStatus(fStopAndKill);
+        }
+        else if (SharedParams::KillOffloadTracks())
+        {
+            track->SetTrackStatus(fStopAndKill);
+        }
     }
 }
 

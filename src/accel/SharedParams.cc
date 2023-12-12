@@ -173,6 +173,23 @@ bool SharedParams::CeleritasDisabled()
     return result;
 }
 
+bool SharedParams::KillOffloadTracks()
+{
+    static bool const result = [] {
+        if (celeritas::getenv("CELER_KILL_OFFLOAD").empty())
+            return false;
+
+        if (CeleritasDisabled())
+        {
+            CELER_LOG(info) << "Killing Geant4 tracks supported by Celeritas "
+                               "offloading since the 'CELER_KILL_OFFLOAD' "
+                               "environment variable is present and non-empty";
+        }
+        return true;
+    }();
+    return result;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Set up Celeritas using Geant4 data and existing output registery.
@@ -344,11 +361,14 @@ void SharedParams::Finalize()
  */
 auto SharedParams::OffloadParticles() const -> VecG4ParticleDef const&
 {
-    if (*this)
+    if (!CeleritasDisabled())
     {
+        // Get the supported particles from Celeritas
+        CELER_ASSERT(*this);
         return particles_;
     }
 
+    // In a Geant4-only simulation, use a hardcoded list of supported particles
     static VecG4ParticleDef const particles = {
         G4Gamma::Gamma(),
         G4Electron::Electron(),

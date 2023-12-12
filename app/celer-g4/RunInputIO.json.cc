@@ -114,7 +114,6 @@ void from_json(nlohmann::json const& j, RunInput& v)
 
     RI_LOAD_OPTION(step_diagnostic);
     RI_LOAD_OPTION(step_diagnostic_bins);
-    RI_LOAD_OPTION(kill_offload_tracks);
 
 #undef RI_LOAD_OPTION
 #undef RI_LOAD_REQUIRED
@@ -193,7 +192,6 @@ void to_json(nlohmann::json& j, RunInput const& v)
 
     RI_SAVE(step_diagnostic);
     RI_SAVE_OPTION(step_diagnostic_bins);
-    RI_SAVE(kill_offload_tracks);
 
 #undef RI_SAVE_OPTION
 #undef RI_SAVE

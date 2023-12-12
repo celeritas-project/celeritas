@@ -93,7 +93,6 @@ struct RunInput
     // Geant4 diagnostics
     bool step_diagnostic{false};
     int step_diagnostic_bins{1000};
-    bool kill_offload_tracks{false};  //!< Kill tracks without transporting
 
     // Whether the run arguments are valid
     explicit operator bool() const;

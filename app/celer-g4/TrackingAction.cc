@@ -17,8 +17,6 @@
 #include "corecel/Macros.hh"
 #include "accel/ExceptionConverter.hh"
 
-#include "GlobalSetup.hh"
-
 namespace celeritas
 {
 namespace app
@@ -65,7 +63,7 @@ void TrackingAction::PreUserTrackingAction(G4Track const* track)
             CELER_TRY_HANDLE(transport_->Push(*track), call_g4exception);
             const_cast<G4Track*>(track)->SetTrackStatus(fStopAndKill);
         }
-        else if (GlobalSetup::Instance()->input().kill_offload_tracks)
+        else if (SharedParams::KillOffloadTracks())
         {
             const_cast<G4Track*>(track)->SetTrackStatus(fStopAndKill);
         }

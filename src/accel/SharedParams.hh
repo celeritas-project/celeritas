@@ -65,6 +65,9 @@ class SharedParams
     // True if Celeritas is globally disabled using the CELER_DISABLE env
     static bool CeleritasDisabled();
 
+    // Whether to kill tracks that would have been offloaded
+    static bool KillOffloadTracks();
+
     // Construct in an uninitialized state
     SharedParams() = default;
 
