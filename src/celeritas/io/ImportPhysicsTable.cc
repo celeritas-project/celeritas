@@ -23,16 +23,6 @@ char const* to_cstring(ImportTableType value)
         "dedx",
         "range",
         "msc_xs",
-
-        "dedx_process",
-        "dedx_unrestricted",
-        "csda_range",
-
-        "dedx_subsec",
-        "ionization_subsec",
-        "secondary_range",
-        "inverse_range",
-        "sublambda",
     };
     return to_cstring_impl(value);
 }
