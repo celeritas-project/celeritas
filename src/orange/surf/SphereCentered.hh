@@ -154,9 +154,7 @@ SphereCentered::calc_intersections(Real3 const& pos,
  */
 CELER_FUNCTION Real3 SphereCentered::calc_normal(Real3 const& pos) const
 {
-    Real3 result{pos};
-    normalize_direction(&result);
-    return result;
+    return make_unit_vector(pos);
 }
 
 //---------------------------------------------------------------------------//

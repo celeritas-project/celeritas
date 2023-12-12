@@ -227,8 +227,7 @@ CELER_FUNCTION Real3 CylCentered<T>::calc_normal(Real3 const& pos) const
     norm[to_int(U)] = pos[to_int(U)];
     norm[to_int(V)] = pos[to_int(V)];
 
-    normalize_direction(&norm);
-    return norm;
+    return make_unit_vector(norm);
 }
 
 //---------------------------------------------------------------------------//

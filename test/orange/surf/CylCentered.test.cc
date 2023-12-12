@@ -389,7 +389,7 @@ TEST_F(CCylZTest, TEST_IF_CELERITAS_DOUBLE(multi_along_intersect))
                  })
             {
                 Real3 pos = orig_pos;
-                normalize_direction(&dir);
+                dir = make_unit_vector(dir);
 
                 // Transport to inside of cylinder
                 real_type d

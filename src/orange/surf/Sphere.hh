@@ -158,9 +158,8 @@ CELER_FUNCTION auto Sphere::calc_intersections(Real3 const& pos,
  */
 CELER_FUNCTION Real3 Sphere::calc_normal(Real3 const& pos) const
 {
-    Real3 tpos{pos[0] - origin_[0], pos[1] - origin_[1], pos[2] - origin_[2]};
-    normalize_direction(&tpos);
-    return tpos;
+    return make_unit_vector(
+        Real3{pos[0] - origin_[0], pos[1] - origin_[1], pos[2] - origin_[2]});
 }
 
 //---------------------------------------------------------------------------//

@@ -209,8 +209,7 @@ CELER_FUNCTION Real3 SimpleQuadric::calc_normal(Real3 const& pos) const
     real_type const z = pos[to_int(Axis::z)];
 
     Real3 norm{2 * a_ * x + d_, 2 * b_ * y + e_, 2 * c_ * z + f_};
-    normalize_direction(&norm);
-    return norm;
+    return make_unit_vector(norm);
 }
 
 //---------------------------------------------------------------------------//

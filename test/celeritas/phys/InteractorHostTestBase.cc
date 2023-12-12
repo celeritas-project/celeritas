@@ -246,8 +246,7 @@ void InteractorHostTestBase::set_inc_direction(Real3 const& dir)
 {
     CELER_EXPECT(norm(dir) > 0);
 
-    inc_direction_ = dir;
-    normalize_direction(&inc_direction_);
+    inc_direction_ = make_unit_vector(dir);
 }
 
 //---------------------------------------------------------------------------//
@@ -357,7 +356,7 @@ void InteractorHostTestBase::check_momentum_conservation(
         EXPECT_SOFT_NEAR(
             parent_momentum_mag, exit_momentum_mag, default_tol * 10000);
 
-        normalize_direction(&exit_momentum);
+        exit_momentum = make_unit_vector(exit_momentum);
         EXPECT_SOFT_NEAR(real_type(1),
                          dot_product(inc_direction_, exit_momentum),
                          3 * default_tol)

@@ -225,8 +225,7 @@ CELER_FUNCTION Real3 ConeAligned<T>::calc_normal(Real3 const& pos) const
     }
     norm[to_int(T)] *= -tsq_;
 
-    normalize_direction(&norm);
-    return norm;
+    return make_unit_vector(norm);
 }
 
 //---------------------------------------------------------------------------//

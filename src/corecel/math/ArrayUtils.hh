@@ -55,11 +55,6 @@ template<class T, size_type N>
                                                Array<T, N> const& y);
 
 //---------------------------------------------------------------------------//
-// Divide the given vector by its Euclidian norm
-template<class T>
-inline CELER_FUNCTION void normalize_direction(Array<T, 3>* direction);
-
-//---------------------------------------------------------------------------//
 // Calculate a cartesian unit vector from spherical coordinates
 template<class T>
 [[nodiscard]] inline CELER_FUNCTION Array<T, 3>
@@ -165,19 +160,6 @@ CELER_FUNCTION T distance(Array<T, N> const& x, Array<T, N> const& y)
 
 //---------------------------------------------------------------------------//
 /*!
- * Divide the given vector by its Euclidian norm.
- *
- * \deprecated replace with \c make_unit_vector
- */
-template<class T>
-CELER_FUNCTION void normalize_direction(Array<T, 3>* direction)
-{
-    CELER_EXPECT(direction);
-    *direction = make_unit_vector(*direction);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Calculate a Cartesian vector from spherical coordinates.
  *
  * Theta is the angle between the Z axis and the outgoing vector, and phi is
@@ -279,8 +261,7 @@ rotate(Array<T, 3> const& dir, Array<T, 3> const& rot)
            -sintheta * dir[X] + rot[Z] * dir[Z]};
 
     // Always normalize to prevent roundoff error from propagating
-    normalize_direction(&result);
-    return result;
+    return make_unit_vector(result);
 }
 
 //---------------------------------------------------------------------------//

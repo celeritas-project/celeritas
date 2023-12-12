@@ -189,7 +189,8 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
             = inc_direction_[i] * inc_energy_.value()
               - result.direction[i] * result.energy.value();
     }
-    normalize_direction(&electron_secondary->direction);
+    electron_secondary->direction
+        = make_unit_vector(electron_secondary->direction);
 
     return result;
 }

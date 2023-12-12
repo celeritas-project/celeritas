@@ -218,8 +218,7 @@ CELER_FUNCTION Real3 GeneralQuadric::calc_normal(Real3 const& pos) const
     norm[1] = 2 * b_ * y + d_ * x + e_ * z + h_;
     norm[2] = 2 * c_ * z + e_ * y + f_ * x + i_;
 
-    normalize_direction(&norm);
-    return norm;
+    return make_unit_vector(norm);
 }
 
 //---------------------------------------------------------------------------//

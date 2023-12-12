@@ -112,7 +112,7 @@ CELER_FUNCTION Interaction BremFinalStateHelper::operator()(Engine& rng)
                                      * secondary_->direction[i];
         result.direction[i] = inc_momentum_i - gamma_momentum_i;
     }
-    normalize_direction(&result.direction);
+    result.direction = make_unit_vector(result.direction);
 
     secondary_->particle_id = gamma_id_;
     secondary_->energy = gamma_energy_;

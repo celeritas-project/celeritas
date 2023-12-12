@@ -136,10 +136,9 @@ class FiveVolumesTest : public SimpleUnitTrackerTest
  */
 LocalState SimpleUnitTrackerTest::make_state(Real3 pos, Real3 dir)
 {
-    normalize_direction(&dir);
     LocalState state;
     state.pos = pos;
-    state.dir = dir;
+    state.dir = make_unit_vector(dir);
     state.volume = {};
     state.surface = {};
 
