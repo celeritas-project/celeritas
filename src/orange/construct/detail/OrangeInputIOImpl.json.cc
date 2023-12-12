@@ -46,11 +46,11 @@ struct SurfaceEmplacer
         return visit_surface_type(
             [this, data](auto st_constant) {
                 using Surface = typename decltype(st_constant)::type;
-                using Storage = typename Surface::Storage;
+                using StorageSpan = typename Surface::StorageSpan;
 
                 // Construct the variant on the back of the vector
                 surfaces->emplace_back(std::in_place_type<Surface>,
-                                       Storage{data.data(), data.size()});
+                                       StorageSpan{data.data(), data.size()});
             },
             st);
     }

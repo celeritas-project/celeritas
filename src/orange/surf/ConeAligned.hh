@@ -36,8 +36,7 @@ class ConeAligned
     //@{
     //! \name Type aliases
     using Intersections = Array<real_type, 2>;
-    using StorageSpan = Span<const real_type, 4>;
-    using Storage = StorageSpan;  // DEPRECATED
+    using StorageSpan = Span<real_type const, 4>;
     //@}
 
   private:
@@ -82,7 +81,7 @@ class ConeAligned
     CELER_FUNCTION real_type tangent_sq() const { return tsq_; }
 
     //! Get a view to the data for type-deleted storage
-    CELER_FUNCTION Storage data() const { return {&origin_[0], 4}; }
+    CELER_FUNCTION StorageSpan data() const { return {&origin_[0], 4}; }
 
     //// CALCULATION ////
 

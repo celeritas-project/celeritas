@@ -42,8 +42,7 @@ class CylCentered
     //@{
     //! \name Type aliases
     using Intersections = Array<real_type, 2>;
-    using StorageSpan = Span<const real_type, 1>;
-    using Storage = StorageSpan;  // DEPRECATED
+    using StorageSpan = Span<real_type const, 1>;
     //@}
 
   private:
@@ -85,7 +84,7 @@ class CylCentered
     CELER_FUNCTION real_type radius_sq() const { return radius_sq_; }
 
     //! Get a view to the data for type-deleted storage
-    CELER_FUNCTION Storage data() const { return {&radius_sq_, 1}; }
+    CELER_FUNCTION StorageSpan data() const { return {&radius_sq_, 1}; }
 
     //// CALCULATION ////
 

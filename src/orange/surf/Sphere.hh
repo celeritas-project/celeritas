@@ -34,8 +34,7 @@ class Sphere
     //@{
     //! Type aliases
     using Intersections = Array<real_type, 2>;
-    using StorageSpan = Span<const real_type, 4>;
-    using Storage = StorageSpan;  // DEPRECATED
+    using StorageSpan = Span<real_type const, 4>;
     //@}
 
     //// CLASS ATTRIBUTES ////
@@ -74,7 +73,7 @@ class Sphere
     CELER_FUNCTION real_type radius_sq() const { return radius_sq_; }
 
     //! Get a view to the data for type-deleted storage
-    CELER_FUNCTION Storage data() const { return {origin_.data(), 4}; }
+    CELER_FUNCTION StorageSpan data() const { return {origin_.data(), 4}; }
 
     //// CALCULATION ////
 

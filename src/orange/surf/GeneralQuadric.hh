@@ -41,8 +41,7 @@ class GeneralQuadric
     //@{
     //! Type aliases
     using Intersections = Array<real_type, 2>;
-    using StorageSpan = Span<const real_type, 10>;
-    using Storage = StorageSpan;  // DEPRECATED
+    using StorageSpan = Span<real_type const, 10>;
     using SpanConstReal3 = Span<const real_type, 3>;
     //@}
 
@@ -88,7 +87,7 @@ class GeneralQuadric
     CELER_FUNCTION real_type zeroth() const { return j_; }
 
     //! Get a view to the data for type-deleted storage
-    CELER_FUNCTION Storage data() const { return {&a_, 10}; }
+    CELER_FUNCTION StorageSpan data() const { return {&a_, 10}; }
 
     //// CALCULATION ////
 

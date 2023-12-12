@@ -71,8 +71,7 @@ class CylAligned
     //@{
     //! \name Type aliases
     using Intersections = Array<real_type, 2>;
-    using StorageSpan = Span<const real_type, 3>;
-    using Storage = StorageSpan;  // DEPRECATED
+    using StorageSpan = Span<real_type const, 3>;
     //@}
 
   private:
@@ -123,7 +122,7 @@ class CylAligned
     CELER_FUNCTION real_type radius_sq() const { return radius_sq_; }
 
     //! Get a view to the data for type-deleted storage
-    CELER_FUNCTION Storage data() const { return {&origin_u_, 3}; }
+    CELER_FUNCTION StorageSpan data() const { return {&origin_u_, 3}; }
 
     // Helper function to get the origin as a 3-vector
     Real3 calc_origin() const;
