@@ -54,7 +54,7 @@ TEST(GeneralQuadricTest, construction)
 TEST(GeneralQuadricTest, all)
 {
     EXPECT_EQ(SurfaceType::gq, GeneralQuadric::surface_type());
-    EXPECT_EQ(10, GeneralQuadric::Storage::extent);
+    EXPECT_EQ(10, GeneralQuadric::StorageSpan::extent);
     EXPECT_EQ(2, GeneralQuadric::Intersections{}.size());
 
     const Real3 second{10.3125, 22.9375, 15.75};

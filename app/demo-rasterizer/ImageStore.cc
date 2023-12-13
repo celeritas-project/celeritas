@@ -25,8 +25,7 @@ ImageStore::ImageStore(ImageRunArgs params)
     CELER_EXPECT(params.vertical_pixels > 0);
 
     // Normalize rightward axis
-    right_ax_ = params.rightward_ax;
-    normalize_direction(&right_ax_);
+    right_ax_ = make_unit_vector(params.rightward_ax);
 
     // Vector pointing toward the upper right from the lower left corner
     Real3 diagonal;
@@ -42,7 +41,7 @@ ImageStore::ImageStore(ImageRunArgs params)
     {
         down_ax_[i] = -diagonal[i] + projection * right_ax_[i];
     }
-    normalize_direction(&down_ax_);
+    down_ax_ = make_unit_vector(down_ax_);
 
     // Calculate length along each axis
     real_type width_x = dot_product(diagonal, right_ax_);

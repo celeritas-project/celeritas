@@ -25,8 +25,7 @@ class PlaneAligned
     //@{
     //! \name Type aliases
     using Intersections = Array<real_type, 1>;
-    using StorageSpan = Span<const real_type, 1>;
-    using Storage = StorageSpan;  // DEPRECATED
+    using StorageSpan = Span<real_type const, 1>;
     //@}
 
     //// CLASS ATTRIBUTES ////
@@ -53,7 +52,7 @@ class PlaneAligned
     CELER_FUNCTION real_type position() const { return position_; }
 
     //! Get a view to the data for type-deleted storage
-    CELER_FUNCTION Storage data() const { return {&position_, 1}; }
+    CELER_FUNCTION StorageSpan data() const { return {&position_, 1}; }
 
     // Construct outward normal vector
     inline CELER_FUNCTION Real3 calc_normal() const;

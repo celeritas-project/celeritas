@@ -312,8 +312,7 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
     // Even though the along-substep movement was through chord lengths,
     // conserve momentum through the field change by updating the final
     // *direction* based on the state's momentum.
-    Real3 dir = state_.mom;
-    normalize_direction(&dir);
+    Real3 dir = make_unit_vector(state_.mom);
     geo_.set_dir(dir);
 
     if (CELER_UNLIKELY(result.distance == 0))

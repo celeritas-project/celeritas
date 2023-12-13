@@ -39,10 +39,9 @@ class TrackerVisitorTest : public OrangeGeoTestBase
  */
 detail::LocalState TrackerVisitorTest::make_state(Real3 pos, Real3 dir)
 {
-    normalize_direction(&dir);
     detail::LocalState state;
     state.pos = pos;
-    state.dir = dir;
+    state.dir = make_unit_vector(dir);
     state.volume = {};
     state.surface = {};
 

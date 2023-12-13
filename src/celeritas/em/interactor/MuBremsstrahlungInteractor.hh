@@ -150,7 +150,7 @@ CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
                                * inc_direction_[i]
                            - epsilon * gamma_dir[i];
     }
-    normalize_direction(&inc_direction);
+    inc_direction = make_unit_vector(inc_direction);
 
     // Construct interaction for change to primary (incident) particle
     Interaction result;
