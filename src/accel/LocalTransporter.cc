@@ -35,8 +35,6 @@
 #include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
-#include "celeritas/random/RngParams.hh"
-#include "celeritas/random/RngReseed.hh"
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
@@ -61,7 +59,6 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
                       "constructing LocalTransporter (perhaps the master "
                       "thread did not call BeginOfRunAction?");
     particles_ = params.Params()->particle();
-    rng_ = params.Params()->rng();
 
     auto thread_id = get_geant_thread_id();
     CELER_VALIDATE(thread_id >= 0,
@@ -144,19 +141,7 @@ void LocalTransporter::InitializeEvent(int id)
     {
         // Since Geant4 schedules events dynamically, reseed the Celeritas RNGs
         // using the Geant4 event ID for reproducibility.
-        if (celeritas::device())
-        {
-            auto const& state
-                = dynamic_cast<CoreState<MemSpace::device> const&>(
-                    step_->state());
-            reseed_rng(rng_->device_ref(), state.ref().rng, id);
-        }
-        else
-        {
-            auto const& state = dynamic_cast<CoreState<MemSpace::host> const&>(
-                step_->state());
-            reseed_rng(rng_->host_ref(), state.ref().rng, id);
-        }
+        step_->reseed(id);
     }
 }
 

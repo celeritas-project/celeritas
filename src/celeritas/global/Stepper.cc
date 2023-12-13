@@ -14,6 +14,8 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "orange/OrangeData.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/random/RngParams.hh"
+#include "celeritas/random/RngReseed.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "CoreParams.hh"
@@ -101,6 +103,27 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
     state_.insert_primaries(primaries);
 
     return (*this)();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reseed the RNGs at the start of an event for "strong" reproducibility.
+ *
+ * This reinitializes the RNG states using a single seed and unique subsequence
+ * for each thread. It ensures that given an event number, that event can be
+ * reproduced.
+ */
+template<MemSpace M>
+void Stepper<M>::reseed(size_type event_id)
+{
+    if constexpr (M == MemSpace::device)
+    {
+        reseed_rng(params_->rng()->device_ref(), state_.ref().rng, event_id);
+    }
+    else
+    {
+        reseed_rng(params_->rng()->host_ref(), state_.ref().rng, event_id);
+    }
 }
 
 //---------------------------------------------------------------------------//

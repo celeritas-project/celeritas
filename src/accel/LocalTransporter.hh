@@ -98,7 +98,6 @@ class LocalTransporter
     };
 
     std::shared_ptr<ParticleParams const> particles_;
-    std::shared_ptr<RngParams const> rng_;
     std::shared_ptr<StepperInterface> step_;
     std::vector<Primary> buffer_;
 

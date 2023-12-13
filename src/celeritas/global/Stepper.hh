@@ -90,6 +90,9 @@ class StepperInterface
     // Transport existing states and these new primaries
     virtual StepperResult operator()(SpanConstPrimary primaries) = 0;
 
+    // Reseed the RNGs at the start of an event for reproducibility
+    virtual void reseed(size_type event_id) = 0;
+
     //! Get action sequence for timing diagnostics
     virtual ActionSequence const& actions() const = 0;
 
@@ -138,6 +141,9 @@ class Stepper final : public StepperInterface
 
     // Transport existing states and these new primaries
     StepperResult operator()(SpanConstPrimary primaries) final;
+
+    // Reseed the RNGs at the start of an event for reproducibility
+    void reseed(size_type event_id) final;
 
     //! Get action sequence for timing diagnostics
     ActionSequence const& actions() const final { return *actions_; }
