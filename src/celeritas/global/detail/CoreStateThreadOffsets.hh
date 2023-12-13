@@ -39,11 +39,11 @@ class CoreStateThreadOffsets
     {
         return thread_offsets_;
     }
-    constexpr auto& device_action_thread_offsets()
+    constexpr auto& native_action_thread_offsets()
     {
         return host_action_thread_offsets();
     }
-    constexpr auto const& device_action_thread_offsets() const
+    constexpr auto const& native_action_thread_offsets() const
     {
         return host_action_thread_offsets();
     }
@@ -72,8 +72,8 @@ class CoreStateThreadOffsets<MemSpace::device>
     {
         return host_thread_offsets_;
     }
-    constexpr auto& device_action_thread_offsets() { return thread_offsets_; }
-    constexpr auto const& device_action_thread_offsets() const
+    constexpr auto& native_action_thread_offsets() { return thread_offsets_; }
+    constexpr auto const& native_action_thread_offsets() const
     {
         return thread_offsets_;
     }

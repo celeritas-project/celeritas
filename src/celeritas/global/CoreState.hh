@@ -213,7 +213,7 @@ auto const& CoreState<M>::action_thread_offsets() const
 template<MemSpace M>
 auto& CoreState<M>::native_action_thread_offsets()
 {
-    return offsets_.device_action_thread_offsets();
+    return offsets_.native_action_thread_offsets();
 }
 
 //---------------------------------------------------------------------------//
