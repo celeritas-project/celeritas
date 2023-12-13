@@ -115,18 +115,6 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
 
 //---------------------------------------------------------------------------//
 /*!
- * Set the event ID at the start of an event.
- */
-void LocalTransporter::SetEventId(int id)
-{
-    CELER_EXPECT(*this);
-    CELER_EXPECT(id >= 0);
-    event_id_ = EventId(id);
-    track_counter_ = 0;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Set the event ID and reseed the Celeritas RNG at the start of an event.
  */
 void LocalTransporter::InitializeEvent(int id)
@@ -134,7 +122,8 @@ void LocalTransporter::InitializeEvent(int id)
     CELER_EXPECT(*this);
     CELER_EXPECT(id >= 0);
 
-    this->SetEventId(id);
+    event_id_ = EventId(id);
+    track_counter_ = 0;
 
     if (G4Threading::IsMultithreadedApplication()
         && !G4MTRunManager::SeedOncePerCommunication())
