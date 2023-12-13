@@ -34,11 +34,7 @@ __global__ void reseed_rng_kernel(DeviceCRef<RngParamsData> const params,
     {
         TrackSlotId tsid{tid.unchecked_get()};
         RngEngine::Initializer_t init;
-#if CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW
-        init.seed = params.seed[0];
-#else
         init.seed = params.seed;
-#endif
         init.subsequence = event_id * state.size() + tsid.get();
         RngEngine rng(params, state, tsid);
         rng = init;

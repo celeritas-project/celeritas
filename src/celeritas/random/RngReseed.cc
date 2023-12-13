@@ -29,11 +29,7 @@ void reseed_rng(HostCRef<RngParamsData> const& params,
     for (auto tid : range(TrackSlotId{state.size()}))
     {
         RngEngine::Initializer_t init;
-#if CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW
-        init.seed = params.seed[0];
-#else
         init.seed = params.seed;
-#endif
         init.subsequence = event_id * state.size() + tid.get();
         RngEngine engine(params, state, tid);
         engine = init;
