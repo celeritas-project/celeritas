@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/RngReseed.hh
+//! \file celeritas/random/RngReseed.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,14 +11,13 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
-#include "celeritas/random/RngData.hh"
+
+#include "RngData.hh"
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
-// Reinitialize the RNG states on host/device using the Geant4 Event ID
+// Reinitialize the RNG states on host/device at the start of an event
 void reseed_rng(DeviceCRef<RngParamsData> const&,
                 DeviceRef<RngStateData> const&,
                 size_type);
@@ -30,7 +29,7 @@ void reseed_rng(HostCRef<RngParamsData> const&,
 #if !CELER_USE_DEVICE
 //---------------------------------------------------------------------------//
 /*!
- * Reinitialize the RNG states on device using the Geant4 Event ID.
+ * Reinitialize the RNG states on device at the start of an event.
  */
 inline void reseed_rng(DeviceCRef<RngParamsData> const&,
                        DeviceRef<RngStateData> const&,
@@ -41,5 +40,4 @@ inline void reseed_rng(DeviceCRef<RngParamsData> const&,
 #endif
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

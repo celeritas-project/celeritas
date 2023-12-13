@@ -36,12 +36,12 @@
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 #include "celeritas/random/RngParams.hh"
+#include "celeritas/random/RngReseed.hh"
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
 #include "detail/HitManager.hh"
 #include "detail/OffloadWriter.hh"
-#include "detail/RngReseed.hh"
 
 namespace celeritas
 {
@@ -149,13 +149,13 @@ void LocalTransporter::InitializeEvent(int id)
             auto const& state
                 = dynamic_cast<CoreState<MemSpace::device> const&>(
                     step_->state());
-            detail::reseed_rng(rng_->device_ref(), state.ref().rng, id);
+            reseed_rng(rng_->device_ref(), state.ref().rng, id);
         }
         else
         {
             auto const& state = dynamic_cast<CoreState<MemSpace::host> const&>(
                 step_->state());
-            detail::reseed_rng(rng_->host_ref(), state.ref().rng, id);
+            reseed_rng(rng_->host_ref(), state.ref().rng, id);
         }
     }
 }

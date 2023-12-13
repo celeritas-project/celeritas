@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/RngReseed.cu
+//! \file celeritas/random/RngReseed.cu
 //---------------------------------------------------------------------------//
 #include "RngReseed.hh"
 
@@ -11,11 +11,10 @@
 #include "corecel/Assert.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
-#include "celeritas/random/RngEngine.hh"
+
+#include "RngEngine.hh"
 
 namespace celeritas
-{
-namespace detail
 {
 namespace
 {
@@ -23,7 +22,7 @@ namespace
 // KERNELS
 //---------------------------------------------------------------------------//
 /*!
- * Reinitialize the RNG states on device using the Geant4 Event ID.
+ * Reinitialize the RNG states on device at the start of an event.
  */
 __global__ void reseed_rng_kernel(DeviceCRef<RngParamsData> const params,
                                   DeviceRef<RngStateData> const state,
@@ -53,7 +52,7 @@ __global__ void reseed_rng_kernel(DeviceCRef<RngParamsData> const params,
 // KERNEL INTERFACE
 //---------------------------------------------------------------------------//
 /*!
- * Reinitialize the RNG states on device using the Geant4 Event ID.
+ * Reinitialize the RNG states on device at the start of an event.
  *
  * Each thread's state is initialized using same seed and skipped ahead a
  * different number of subsequences so the sequences on different threads will
@@ -69,5 +68,4 @@ void reseed_rng(DeviceCRef<RngParamsData> const& params,
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

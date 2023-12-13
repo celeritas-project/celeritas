@@ -3,21 +3,20 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/detail/RngReseed.cc
+//! \file celeritas/random/RngReseed.cc
 //---------------------------------------------------------------------------//
 #include "RngReseed.hh"
 
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/ThreadId.hh"
-#include "celeritas/random/RngEngine.hh"
+
+#include "RngEngine.hh"
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
- * Reinitialize the RNG states on host using the Geant4 Event ID.
+ * Reinitialize the RNG states on host at the start of an event.
  *
  * Each thread's state is initialized using same seed and skipped ahead a
  * different number of subsequences so the sequences on different threads will
@@ -42,5 +41,4 @@ void reseed_rng(HostCRef<RngParamsData> const& params,
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

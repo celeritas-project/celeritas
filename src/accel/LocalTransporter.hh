@@ -66,7 +66,7 @@ class LocalTransporter
     // Set the event ID
     void SetEventId(int);
 
-    // Set the event ID and reseed the Celeritasa RNG at the start of an event
+    // Set the event ID and reseed the Celeritas RNG at the start of an event
     void InitializeEvent(int);
 
     // Offload this track
