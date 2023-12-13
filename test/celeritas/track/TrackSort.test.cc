@@ -131,7 +131,7 @@ class TestActionCountEm3Stepper : public TestEm3NoMsc, public TrackSortTestBase
 {
   protected:
     template<MemSpace M2>
-    using ActionThreads = typename CoreState<M>::ActionThreads<M2>;
+    using ActionThreads = typename CoreState<M>::template ActionThreads<M2>;
     template<MemSpace M2>
     using ActionThreadsItems = AllItems<ThreadId, M2>;
 

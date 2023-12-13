@@ -72,7 +72,7 @@ class CoreState final : public CoreStateInterface
     using PrimaryCRef = Collection<Primary, Ownership::const_reference, M>;
     template<MemSpace M2>
     using ActionThreads =
-        typename detail::CoreStateThreadOffsets<M>::ActionThreads<M2>;
+        typename detail::CoreStateThreadOffsets<M>::template ActionThreads<M2>;
     //!@}
 
   public:
