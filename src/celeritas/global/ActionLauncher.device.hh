@@ -140,32 +140,8 @@ class ActionLauncher
     KernelParamCalculator calc_launch_params_;
 
     //// PRIVATE CONSTRUCTORS ////
-    // (Note: aliasing F is necessary for SFINAE to work)
-
-    //! Construct when no "Applier" member function is defined
-    template<class F_ = F, std::enable_if_t<!detail::has_applier_v<F_>, bool> = true>
     explicit ActionLauncher(std::string_view name)
-        : calc_launch_params_{name, &detail::launch_action_impl<F_>}
-    {
-    }
-
-    //! Construct when an "Applier" member function doesn't define launch
-    //! bounds
-    template<class F_ = F,
-             std::enable_if_t<detail::kernel_no_bound<typename F_::Applier>, bool>
-             = true>
-    explicit ActionLauncher(std::string_view name)
-        : calc_launch_params_{name, &detail::launch_action_impl<F_>}
-    {
-    }
-
-    //! Construct when an "Applier" member function defines max block size
-    template<class F_ = F,
-             class A_ = typename F_::Applier,
-             std::enable_if_t<detail::has_max_block_size_v<A_>, bool> = true>
-    explicit ActionLauncher(std::string_view name)
-        : calc_launch_params_{
-            name, &detail::launch_action_impl<F_>}
+        : calc_launch_params_{name, &detail::launch_action_impl<F>}
     {
     }
 };
