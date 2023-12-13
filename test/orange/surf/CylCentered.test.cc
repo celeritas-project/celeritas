@@ -36,7 +36,7 @@ using VecReal = std::vector<real_type>;
 //---------------------------------------------------------------------------//
 TEST_F(CCylXTest, construction)
 {
-    EXPECT_EQ(1, CCylX::Storage::extent);
+    EXPECT_EQ(1, CCylX::StorageSpan::extent);
     EXPECT_EQ(2, CCylX::Intersections{}.size());
 
     CCylX c(4.0);
@@ -389,7 +389,7 @@ TEST_F(CCylZTest, TEST_IF_CELERITAS_DOUBLE(multi_along_intersect))
                  })
             {
                 Real3 pos = orig_pos;
-                normalize_direction(&dir);
+                dir = make_unit_vector(dir);
 
                 // Transport to inside of cylinder
                 real_type d

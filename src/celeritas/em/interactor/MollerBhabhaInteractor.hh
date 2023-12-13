@@ -184,7 +184,7 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
                                            * secondary_direction[i];
         inc_exiting_direction[i] = inc_momentum_ijk - secondary_momentum_ijk;
     }
-    normalize_direction(&inc_exiting_direction);
+    inc_exiting_direction = make_unit_vector(inc_exiting_direction);
 
     // Construct interaction for change to primary (incident) particle
     const real_type inc_exiting_energy = inc_energy_ - secondary_energy;

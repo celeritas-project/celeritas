@@ -224,25 +224,14 @@ void append_table(G4PhysicsTable const* g4table,
     switch (table_type)
     {
         case ImportTableType::dedx:
-        case ImportTableType::dedx_process:
-        case ImportTableType::dedx_subsec:
-        case ImportTableType::dedx_unrestricted:
-        case ImportTableType::ionization_subsec:
             table.x_units = ImportUnits::mev;
             table.y_units = ImportUnits::mev_per_cm;
             break;
-        case ImportTableType::csda_range:
         case ImportTableType::range:
-        case ImportTableType::secondary_range:
             table.x_units = ImportUnits::mev;
             table.y_units = ImportUnits::cm;
             break;
-        case ImportTableType::inverse_range:
-            table.x_units = ImportUnits::cm;
-            table.y_units = ImportUnits::mev;
-            break;
         case ImportTableType::lambda:
-        case ImportTableType::sublambda:
             table.x_units = ImportUnits::mev;
             table.y_units = ImportUnits::cm_inv;
             break;
@@ -300,10 +289,10 @@ bool all_are_assigned(std::vector<T> const& arr)
  * Construct with a selected list of tables.
  */
 GeantProcessImporter::GeantProcessImporter(
-    TableSelection which_tables,
+    TableSelection,
     std::vector<ImportMaterial> const& materials,
     std::vector<ImportElement> const& elements)
-    : materials_(materials), elements_(elements), which_tables_(which_tables)
+    : materials_(materials), elements_(elements)
 {
     CELER_ENSURE(!materials_.empty());
     CELER_ENSURE(!elements_.empty());
@@ -388,55 +377,6 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
 
     append_table(
         process.LambdaTable(), ImportTableType::lambda, &result.tables);
-
-    if (which_tables_ > TableSelection::minimal)
-    {
-        // Inverse range is redundant with range
-        append_table(process.InverseRangeTable(),
-                     ImportTableType::inverse_range,
-                     &result.tables);
-
-        // None of these tables appear to be used in Geant4
-        if (process.IsIonisationProcess())
-        {
-            // The "ionization table" is just the per-process de/dx table for
-            // ionization
-            append_table(process.IonisationTable(),
-                         ImportTableType::dedx_process,
-                         &result.tables);
-        }
-
-        else
-        {
-            append_table(process.DEDXTable(),
-                         ImportTableType::dedx_process,
-                         &result.tables);
-        }
-
-#if G4VERSION_NUMBER < 1100
-        // DEPRECATED: remove in v0.4
-        append_table(process.DEDXTableForSubsec(),
-                     ImportTableType::dedx_subsec,
-                     &result.tables);
-        append_table(process.IonisationTableForSubsec(),
-                     ImportTableType::ionization_subsec,
-                     &result.tables);
-        append_table(process.SubLambdaTable(),
-                     ImportTableType::sublambda,
-                     &result.tables);
-        // Secondary range is removed in 11.1
-        append_table(process.SecondaryRangeTable(),
-                     ImportTableType::secondary_range,
-                     &result.tables);
-#endif
-
-        append_table(process.DEDXunRestrictedTable(),
-                     ImportTableType::dedx_unrestricted,
-                     &result.tables);
-        append_table(process.CSDARangeTable(),
-                     ImportTableType::csda_range,
-                     &result.tables);
-    }
 
     CELER_ENSURE(result && all_are_assigned(result.models));
     return result;

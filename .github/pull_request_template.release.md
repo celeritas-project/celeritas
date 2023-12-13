@@ -11,6 +11,7 @@ Target: upstream/develop (always!)
 - [ ] Tag the develop branch with ``vX.Y.Z-rc.N`` where N starts with 1, and increment for every time you return to this step due to new pull requests.
 - [ ] Run performance regression tests on Summit, Crusher/Frontier, and an additional machine with debug assertions enabled (e.g., Wildstyle).
 - [ ] Update documentation with release notes from all pull requests newly included in the release.
+- [ ] Check for (and delete if found) code marked as "deprecated: to be removed in vX.Y".
 - [ ] Ensure the code documentation builds with as few warnings as possible in the `doc` workflow on the CI.
 
 ## Post-merge checklist
