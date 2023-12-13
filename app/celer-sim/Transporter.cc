@@ -105,9 +105,6 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
     if (store_track_counts_)
     {
         append_track_counts(track_counts);
-    }
-    if (num_streams_ == 1)
-    {
         result.step_times.push_back(get_step_time());
     }
 
@@ -133,9 +130,6 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
         if (store_track_counts_)
         {
             append_track_counts(track_counts);
-        }
-        if (num_streams_ == 1)
-        {
             result.step_times.push_back(get_step_time());
         }
     }
