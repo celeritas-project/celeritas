@@ -26,7 +26,7 @@ class UniverseIndexerTest : public Test
         = UniverseIndexerData<Ownership::const_reference, MemSpace::host>;
     using VecSize = std::vector<size_type>;
 
-    CollectionHostRef const& host_ref() const { return data_.host(); }
+    CollectionHostRef const& host_ref() const { return data_.host_ref(); }
 
     void set_data(VecSize surfaces, VecSize volumes)
     {

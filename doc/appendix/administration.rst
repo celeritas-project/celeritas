@@ -283,41 +283,43 @@ or a "backport" branch (minor, patch).
 The following process must be followed (and may need iteration to converge) for
 each release.
 
-1.  Create a ``release-vX.Y.Z`` branch.
-2.  Ensure all CI jobs passed for the release in question. This is automatic
-    for releases from the ``develop`` branch (since every pull request must
-    pass) but should be checked manually for backports.
-3.  Update documentation with release notes from all pull requests newly
+1.  Ensure all CI jobs pass for the target branch. This is automatic
+    for releases from the ``develop`` branch, since every pull request must
+    pass, but should be checked manually for backports.
+2.  Create a ``release-vX.Y.Z`` branch from the target.
+3.  Tag the target branch with ``vX.Y.Z-rc.N`` where N starts with 1, and
+    increment for every time you return to this step due to new pull requests.
+    The tag can be pushed to your fork, or to the main repository if it should
+    be shared with other team members
+4.  Run performance regression tests on Summit/Perlmutter (for performance
+    testing), Crusher/Frontier (for HIP testing), and an additional machine
+    with debug assertions enabled (e.g., Wildstyle).
+5.  [TODO: define high-level validation tests like `geant-val`_ and a test
+    matrix correlating capability areas (code files/directories changed) to
+    test names.] Rerun and perform a cursory check on all validation tests that
+    might be affected by changes since the previous release. More complete
+    validation (since a change in results might not be an error) can be done
+    separately.
+6.  Postpone the release temporarily if major new bugs or performance
+    regressions are detected. Create new pull requests for the serious errors
+    using the standard :ref:`contributing <contributing>` process, and once the
+    fixes are merged into develop, merge develop into the release branch.
+    Return to step 2.
+7.  If only minor updates are needed to fix the build or tests on a particular
+    machine, include those as part of the release branch.
+8.  If this is a "major" release (see :ref:`deprecations`),
+    check for and remove code marked as ``DEPRECATED: to be removed
+    in vX.Y``.
+9.  Update documentation with release notes from all pull requests newly
     included in the release. *Make sure this happens after all pull requests
     targeted for this milestone have been merged*.
     Follow the format for previous releases: add a
     summary of highlights, and enumerate the pull requests (with PR numbers and
     authorship attribution) separated by features and bug requests. Use the
     `helper notebook`_ in the Celeritas documents repository to automate this.
-4.  Tag the branch on your fork with ``vX.Y.Z-rc.N`` where N starts with 1, and
-    increment for every time you return to this step due to new pull requests.
-5.  Run performance regression tests on Summit (for performance testing),
-    Crusher/Frontier (for HIP testing), and an additional machine with debug
-    assertions enabled (e.g., Wildstyle).
-6.  [TODO: define high-level validation tests like `geant-val`_ and a test
-    matrix correlating capability areas (code files/directories changed) to
-    test names.] Rerun and perform a cursory check on all validation tests that
-    might be affected by changes since the previous release. More complete
-    validation (since a change in results might not be an error) can be done
-    separately.
-7.  Postpone the release temporarily if major new bugs or performance
-    regressions are detected. Create new pull requests for the serious errors
-    using the standard :ref:`contributing <contributing>` process, and once the
-    fixes are merged into develop, merge develop into the release branch.
-    Return to step 3.
-8.  If only minor updates are needed to fix the build or tests on a particular
-    machine, include those as part of the "pre-release" pull request that
-    includes new documentation.
-9.  Ensure the code documentation builds, preferably without warnings, on a
-    configuration that has Sphinx, Doxygen, and Breathe active. [TODO: automate
-    this with CI for doc publishing]
 10. Submit a pull request with the newly added documentation and any
-    release-related tweaks, and wait until it's reviewed and merged.
+    release-related tweaks, and wait until it's reviewed and merged. The unit
+    tests and documentation should all build and pass the CI.
 11. If releasing a backported version branch, cherry-pick this documentation
     commit into the backport branch.
 12. Use the GitHub interface to create a new release with the documentation

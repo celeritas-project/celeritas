@@ -14,8 +14,11 @@
 #include <utility>
 #include <vector>
 #include <CLHEP/Random/Random.h>
+#include <G4Electron.hh>
+#include <G4Gamma.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
+#include <G4Positron.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 
@@ -165,6 +168,23 @@ bool SharedParams::CeleritasDisabled()
         CELER_LOG(info)
             << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
                "environment variable is present and non-empty";
+        return true;
+    }();
+    return result;
+}
+
+bool SharedParams::KillOffloadTracks()
+{
+    static bool const result = [] {
+        if (celeritas::getenv("CELER_KILL_OFFLOAD").empty())
+            return false;
+
+        if (CeleritasDisabled())
+        {
+            CELER_LOG(info) << "Killing Geant4 tracks supported by Celeritas "
+                               "offloading since the 'CELER_KILL_OFFLOAD' "
+                               "environment variable is present and non-empty";
+        }
         return true;
     }();
     return result;
@@ -333,6 +353,28 @@ void SharedParams::Finalize()
     }
 
     CELER_ENSURE(!*this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a vector of particles supported by Celeritas offloading.
+ */
+auto SharedParams::OffloadParticles() const -> VecG4ParticleDef const&
+{
+    if (!CeleritasDisabled())
+    {
+        // Get the supported particles from Celeritas
+        CELER_ASSERT(*this);
+        return particles_;
+    }
+
+    // In a Geant4-only simulation, use a hardcoded list of supported particles
+    static VecG4ParticleDef const particles = {
+        G4Gamma::Gamma(),
+        G4Electron::Electron(),
+        G4Positron::Positron(),
+    };
+    return particles;
 }
 
 //---------------------------------------------------------------------------//

@@ -33,8 +33,7 @@ class Plane
     //@{
     //! \name Type aliases
     using Intersections = Array<real_type, 1>;
-    using StorageSpan = Span<const real_type, 4>;
-    using Storage = StorageSpan;  // DEPRECATED
+    using StorageSpan = Span<real_type const, 4>;
     //@}
 
     //// CLASS ATTRIBUTES ////
@@ -74,7 +73,7 @@ class Plane
     CELER_FUNCTION real_type displacement() const { return d_; }
 
     //! Get a view to the data for type-deleted storage
-    CELER_FUNCTION Storage data() const { return {&normal_[0], 4}; }
+    CELER_FUNCTION StorageSpan data() const { return {&normal_[0], 4}; }
 
     //// CALCULATION ////
 

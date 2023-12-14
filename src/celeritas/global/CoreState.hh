@@ -16,6 +16,7 @@
 #include "corecel/data/Ref.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/global/detail/CoreStateThreadOffsets.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/track/CoreStateCounters.hh"
 
@@ -70,7 +71,8 @@ class CoreState final : public CoreStateInterface
     using Ptr = ObserverPtr<Ref, M>;
     using PrimaryCRef = Collection<Primary, Ownership::const_reference, M>;
     template<MemSpace M2>
-    using ActionThreads = Collection<ThreadId, Ownership::value, M2, ActionId>;
+    using ActionThreads =
+        typename detail::CoreStateThreadOffsets<M>::template ActionThreads<M2>;
     //!@}
 
   public:
@@ -140,17 +142,14 @@ class CoreState final : public CoreStateInterface
 
     // Reference to the ActionThread collection matching the state memory
     // space
-    ActionThreads<M>& native_action_thread_offsets();
+    inline auto& native_action_thread_offsets();
 
   private:
     // State data
     CollectionStateStore<CoreStateData, M> states_;
 
     // Indices of first thread assigned to a given action
-    ActionThreads<M> thread_offsets_;
-
-    // Only used if M == device for D2H copy of thread_offsets_
-    ActionThreads<MemSpace::mapped> host_thread_offsets_;
+    detail::CoreStateThreadOffsets<M> offsets_;
 
     // Primaries to be added
     Collection<Primary, Ownership::value, M> primaries_;
@@ -193,14 +192,7 @@ auto CoreState<M>::primary_storage() const -> PrimaryCRef
 template<MemSpace M>
 auto& CoreState<M>::action_thread_offsets()
 {
-    if constexpr (M == MemSpace::device)
-    {
-        return host_thread_offsets_;
-    }
-    else
-    {
-        return thread_offsets_;
-    }
+    return offsets_.host_action_thread_offsets();
 }
 
 //---------------------------------------------------------------------------//
@@ -211,14 +203,17 @@ auto& CoreState<M>::action_thread_offsets()
 template<MemSpace M>
 auto const& CoreState<M>::action_thread_offsets() const
 {
-    if constexpr (M == MemSpace::device)
-    {
-        return host_thread_offsets_;
-    }
-    else
-    {
-        return thread_offsets_;
-    }
+    return offsets_.host_action_thread_offsets();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reference to the ActionThread collection matching the state memory space
+ */
+template<MemSpace M>
+auto& CoreState<M>::native_action_thread_offsets()
+{
+    return offsets_.native_action_thread_offsets();
 }
 
 //---------------------------------------------------------------------------//

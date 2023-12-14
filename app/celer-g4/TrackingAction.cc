@@ -50,7 +50,7 @@ void TrackingAction::PreUserTrackingAction(G4Track const* track)
                  == !SharedParams::CeleritasDisabled());
     CELER_EXPECT(static_cast<bool>(*params_) == static_cast<bool>(*transport_));
 
-    if (SharedParams::CeleritasDisabled())
+    if (SharedParams::CeleritasDisabled() && !SharedParams::KillOffloadTracks())
         return;
 
     auto const& allowed_particles = params_->OffloadParticles();
@@ -59,9 +59,12 @@ void TrackingAction::PreUserTrackingAction(G4Track const* track)
                   track->GetDefinition())
         != std::end(allowed_particles))
     {
-        // Celeritas is transporting this track
-        ExceptionConverter call_g4exception{"celer0003", params_.get()};
-        CELER_TRY_HANDLE(transport_->Push(*track), call_g4exception);
+        if (!SharedParams::CeleritasDisabled())
+        {
+            // Celeritas is transporting this track
+            ExceptionConverter call_g4exception{"celer0003", params_.get()};
+            CELER_TRY_HANDLE(transport_->Push(*track), call_g4exception);
+        }
         const_cast<G4Track*>(track)->SetTrackStatus(fStopAndKill);
     }
 }

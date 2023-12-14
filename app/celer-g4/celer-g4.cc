@@ -88,6 +88,7 @@ void print_usage(std::string_view exec_name)
                  "  CELER_DISABLE: nonempty disables offloading\n"
                  "  CELER_DISABLE_DEVICE: nonempty disables CUDA\n"
                  "  CELER_DISABLE_ROOT: nonempty disables ROOT I/O\n"
+                 "  CELER_KILL_OFFLOAD: nonempty kills offload tracks\n"
                  "  CELER_LOG: global logging level\n"
                  "  CELER_LOG_LOCAL: thread-local logging level\n"
               << std::endl;

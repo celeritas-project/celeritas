@@ -165,13 +165,11 @@ TEST_F(SurfaceSimplifierTest, plane)
                               Plane{{sqrt_three / 2, 0.5, 0.0}, 0});
 
     // Check vector/displacement normalization
-    Real3 n{1, 0, 1e-4};
-    normalize_direction(&n);
+    Real3 n = make_unit_vector(Real3{1, 0, 1e-4});
     this->check_simplifies_to(Plane{n, {5.0, 0, 0}}, PlaneX{5.0});
 
     // First pass should clip zeros and normalize
-    n = {-1, 0, 1e-7};
-    normalize_direction(&n);
+    n = make_unit_vector(Real3{-1, 0, 1e-7});
     this->check_simplifies_to(
         Plane{n, {5.0, 0, 0}}, Plane{{1, 0, 0}, {5, 0, 0}}, Sense::outside);
 }

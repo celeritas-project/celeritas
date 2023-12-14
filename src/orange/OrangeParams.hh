@@ -105,10 +105,10 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
     //// DATA ACCESS ////
 
     //! Reference to CPU geometry data
-    HostRef const& host_ref() const final { return data_.host(); }
+    HostRef const& host_ref() const final { return data_.host_ref(); }
 
     //! Reference to managed GPU geometry data
-    DeviceRef const& device_ref() const final { return data_.device(); }
+    DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
     // Host metadata/access

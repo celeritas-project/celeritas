@@ -254,10 +254,8 @@ template<class HP>
 auto GenericGeoTestBase<HP>::make_geo_track_view(Real3 const& pos, Real3 dir)
     -> GeoTrackView
 {
-    normalize_direction(&dir);
-
     auto geo = this->make_geo_track_view();
-    geo = GeoTrackInitializer{pos, dir};
+    geo = GeoTrackInitializer{pos, make_unit_vector(dir)};
     return geo;
 }
 

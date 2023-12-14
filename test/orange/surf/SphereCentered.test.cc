@@ -31,7 +31,7 @@ class SphereCenteredTest : public Test
 TEST_F(SphereCenteredTest, construction)
 {
     EXPECT_EQ(SurfaceType::sc, SphereCentered::surface_type());
-    EXPECT_EQ(1, SphereCentered::Storage::extent);
+    EXPECT_EQ(1, SphereCentered::StorageSpan::extent);
     EXPECT_EQ(2, SphereCentered::Intersections{}.size());
 
     SphereCentered s{3};

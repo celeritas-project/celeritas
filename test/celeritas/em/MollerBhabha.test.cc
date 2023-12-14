@@ -126,8 +126,7 @@ TEST_F(MollerBhabhaInteractorTest, basic)
 
     for (SampleInit const& init : samples)
     {
-        Real3 dir = init.dir;
-        normalize_direction(&dir);
+        Real3 dir = make_unit_vector(init.dir);
         this->set_inc_direction(dir);
 
         for (auto p : {pdg::electron(), pdg::positron()})
@@ -228,8 +227,7 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
 
     for (SampleInit const& init : samples)
     {
-        Real3 dir = init.dir;
-        normalize_direction(&dir);
+        Real3 dir = make_unit_vector(init.dir);
         this->set_inc_direction(dir);
 
         for (auto p : {pdg::electron(), pdg::positron()})

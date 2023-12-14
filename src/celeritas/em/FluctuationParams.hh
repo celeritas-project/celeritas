@@ -29,10 +29,10 @@ class FluctuationParams final : public ParamsDataInterface<FluctuationData>
                       MaterialParams const& materials);
 
     //! Access physics properties on the host
-    HostRef const& host_ref() const final { return data_.host(); }
+    HostRef const& host_ref() const final { return data_.host_ref(); }
 
     //! Access physics properties on the device
-    DeviceRef const& device_ref() const final { return data_.device(); }
+    DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
     CollectionMirror<FluctuationData> data_;
