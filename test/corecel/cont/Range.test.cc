@@ -193,10 +193,9 @@ TEST(RangeTest, enums)
         ++ctr;
     }
 
-    if (CELERITAS_DEBUG)
-    {
-        EXPECT_THROW(range(static_cast<pokemon::Pokemon>(100)), DebugError);
-    }
+#if CELERITAS_DEBUG
+    EXPECT_THROW(range(static_cast<pokemon::Pokemon>(100)), DebugError);
+#endif
 }
 
 TEST(RangeTest, different_enums)
