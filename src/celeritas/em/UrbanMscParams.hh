@@ -66,10 +66,10 @@ class UrbanMscParams final : public ParamsDataInterface<UrbanMscData>
     // along-step kernels?
 
     //! Access UrbanMsc data on the host
-    HostRef const& host_ref() const final { return mirror_.host(); }
+    HostRef const& host_ref() const final { return mirror_.host_ref(); }
 
     //! Access UrbanMsc data on the device
-    DeviceRef const& device_ref() const final { return mirror_.device(); }
+    DeviceRef const& device_ref() const final { return mirror_.device_ref(); }
 
   private:
     // Host/device storage and reference

@@ -457,7 +457,7 @@ TEST_F(CollectionTest, host)
     host_state_ref.matid[TrackSlotId{0}] = MockMaterialId{1};
 
     // Create view
-    MockTrackView mock(mock_params.host(), host_state_ref, TrackSlotId{0});
+    MockTrackView mock(mock_params.host_ref(), host_state_ref, TrackSlotId{0});
     EXPECT_EQ(1, mock.matid().unchecked_get());
 }
 
@@ -470,7 +470,7 @@ TEST_F(CollectionTest, TEST_IF_CELER_DEVICE(device))
     DeviceVector<double> device_result(device_states.size());
 
     CTestInput kernel_input;
-    kernel_input.params = this->mock_params.device();
+    kernel_input.params = this->mock_params.device_ref();
     kernel_input.states = device_states;
     kernel_input.result = device_result.device_ref();
 

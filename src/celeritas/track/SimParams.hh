@@ -49,10 +49,10 @@ class SimParams final : public ParamsDataInterface<SimParamsData>
     explicit SimParams(Input const&);
 
     //! Access data on host
-    HostRef const& host_ref() const final { return data_.host(); }
+    HostRef const& host_ref() const final { return data_.host_ref(); }
 
     //! Access data on device
-    DeviceRef const& device_ref() const final { return data_.device(); }
+    DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
     // Host/device storage and reference

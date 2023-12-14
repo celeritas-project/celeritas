@@ -122,23 +122,24 @@ TEST_F(LdgIteratorTest, opaqueid_t)
 
 TEST_F(LdgIteratorTest, byte_t)
 {
-    using VecByte = std::vector<Byte>;
-    VecByte const some_data = {Byte{1}, Byte{2}, Byte{3}, Byte{4}};
+    using VecByte = std::vector<std::byte>;
+    VecByte const some_data
+        = {std::byte{1}, std::byte{2}, std::byte{3}, std::byte{4}};
     auto n = some_data.size();
     auto ldg_start = make_ldg_iterator(some_data.data());
     auto ldg_end = make_ldg_iterator(some_data.data() + n);
     LdgIterator ctad_itr{some_data.data()};
     EXPECT_TRUE((std::is_same_v<decltype(ctad_itr), decltype(ldg_start)>));
     using ptr_type = typename decltype(ldg_start)::pointer;
-    EXPECT_TRUE((std::is_same_v<ptr_type, Byte const*>));
+    EXPECT_TRUE((std::is_same_v<ptr_type, std::byte const*>));
     EXPECT_TRUE(ldg_start);
     EXPECT_NE(ldg_start, nullptr);
     EXPECT_NE(nullptr, ldg_start);
     EXPECT_EQ(static_cast<ptr_type>(ldg_start), some_data.data());
-    EXPECT_EQ(*ldg_start++, Byte{1});
-    EXPECT_EQ(*ldg_start--, Byte{2});
-    EXPECT_EQ(*++ldg_start, Byte{2});
-    EXPECT_EQ(*--ldg_start, Byte{1});
+    EXPECT_EQ(*ldg_start++, std::byte{1});
+    EXPECT_EQ(*ldg_start--, std::byte{2});
+    EXPECT_EQ(*++ldg_start, std::byte{2});
+    EXPECT_EQ(*--ldg_start, std::byte{1});
     EXPECT_EQ(ldg_start[n - 1], some_data.back());
     EXPECT_GT(ldg_end, ldg_start);
     auto ldg_start_copy = ldg_start;

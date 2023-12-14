@@ -36,10 +36,10 @@ class RZMapFieldParams final : public ParamsDataInterface<RZMapFieldParamsData>
     explicit RZMapFieldParams(Input const& inp);
 
     //! Access field map data on the host
-    HostRef const& host_ref() const final { return mirror_.host(); }
+    HostRef const& host_ref() const final { return mirror_.host_ref(); }
 
     //! Access field map data on the device
-    DeviceRef const& device_ref() const final { return mirror_.device(); }
+    DeviceRef const& device_ref() const final { return mirror_.device_ref(); }
 
   private:
     // Host/device storage and reference

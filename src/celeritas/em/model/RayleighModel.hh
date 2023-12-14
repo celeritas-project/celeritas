@@ -67,10 +67,10 @@ class RayleighModel final : public Model
     }
 
     //! Access Rayleigh data on the host
-    HostRef const& host_ref() const { return mirror_.host(); }
+    HostRef const& host_ref() const { return mirror_.host_ref(); }
 
     //! Access Rayleigh data on the device
-    DeviceRef const& device_ref() const { return mirror_.device(); }
+    DeviceRef const& device_ref() const { return mirror_.device_ref(); }
 
   private:
     //// DATA ////

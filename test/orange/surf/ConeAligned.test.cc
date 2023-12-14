@@ -66,11 +66,8 @@ TEST(ConeAlignedTest, normal)
 {
     ConeX cone{{2, 3, 4}, 0.5};
 
-    Real3 pos{2 + 2, 3 + 1, 4 + 0};
-
-    Real3 expected{-1, 2, 0};
-    normalize_direction(&expected);
-    EXPECT_VEC_SOFT_EQ(expected, cone.calc_normal(pos));
+    EXPECT_VEC_SOFT_EQ(make_unit_vector(Real3{-1, 2, 0}),
+                       cone.calc_normal({2 + 2, 3 + 1, 4 + 0}));
 }
 
 TEST(ConeAlignedTest, intersection_typical)
@@ -103,8 +100,7 @@ TEST(ConeAlignedTest, intersection_along_surface)
     ConeX cone{{1.1, 2.2, 3.3}, 2. / 3.};
 
     // Along the cone edge heading up and right
-    Real3 dir{3.0, 2.0, 0.0};
-    normalize_direction(&dir);
+    Real3 dir = make_unit_vector(Real3{3.0, 2.0, 0.0});
 
     // Below lower left sheet
     Real3 pos{1.1 - 3, 2.2 - 2 - 1, 3.3};

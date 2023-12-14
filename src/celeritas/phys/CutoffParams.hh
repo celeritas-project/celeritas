@@ -88,10 +88,10 @@ class CutoffParams final : public ParamsDataInterface<CutoffParamsData>
     inline CutoffView get(MaterialId material) const;
 
     //! Access cutoff data on the host
-    HostRef const& host_ref() const final { return data_.host(); }
+    HostRef const& host_ref() const final { return data_.host_ref(); }
 
     //! Access cutoff data on the device
-    DeviceRef const& device_ref() const final { return data_.device(); }
+    DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
     // Host/device storage and reference

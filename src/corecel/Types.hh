@@ -37,10 +37,6 @@ using ull_int = unsigned long long int;
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//
-//! DEPRECATED: will be replaced with std::byte in v1
-using Byte = std::byte;
-
-//---------------------------------------------------------------------------//
 //! Memory location of data
 enum class MemSpace
 {

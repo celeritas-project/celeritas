@@ -49,10 +49,10 @@ class XsGridParams
     explicit XsGridParams(Input const& input);
 
     // Access on-device data
-    DeviceRef const& device_ref() const { return data_.device(); }
+    DeviceRef const& device_ref() const { return data_.device_ref(); }
 
     // Get host-side data
-    HostRef const& host_ref() const { return data_.host(); }
+    HostRef const& host_ref() const { return data_.host_ref(); }
 
   private:
     CollectionMirror<TableData> data_;

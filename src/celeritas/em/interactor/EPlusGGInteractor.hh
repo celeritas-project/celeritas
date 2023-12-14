@@ -166,7 +166,7 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
             secondaries[1].direction[i] = eplus_moment * inc_direction_[i]
                                           - inc_energy_ * inc_direction_[i];
         }
-        normalize_direction(&secondaries[1].direction);
+        secondaries[1].direction = make_unit_vector(secondaries[1].direction);
     }
 
     return result;

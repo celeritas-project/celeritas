@@ -280,6 +280,7 @@ tell what variables are in use or may be useful.
  HEPMC3_VERBOSE          celeritas HepMC3 debug verbosity
  VECGEOM_VERBOSE         celeritas VecGeom CUDA verbosity
  CELER_DISABLE           accel     Disable Celeritas offloading entirely
+ CELER_KILL_OFFLOAD      accel     Kill Celeritas-supported tracks in Geant4
  CELER_STRIP_SOURCEDIR   accel     Strip directories from exception output
  ======================= ========= ==========================================
 
