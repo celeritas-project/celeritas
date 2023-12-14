@@ -32,7 +32,7 @@ template<class T, class U>
 inline CELER_FUNCTION bool
 is_inside(BoundingBox<T> const& bbox, Array<U, 3> point)
 {
-    constexpr auto axes = range(to_int(Axis::size_));
+    auto axes = range(to_int(Axis::size_));
     return all_of(axes.begin(), axes.end(), [&point, &bbox](int ax) {
         return point[ax] >= bbox.lower()[ax] && point[ax] <= bbox.upper()[ax];
     });
@@ -67,7 +67,7 @@ inline bool is_degenerate(BoundingBox<T> const& bbox)
 {
     CELER_EXPECT(bbox);
 
-    constexpr auto axes = range(to_int(Axis::size_));
+    auto axes = range(to_int(Axis::size_));
     return any_of(axes.begin(), axes.end(), [&bbox](int ax) {
         return bbox.lower()[ax] == bbox.upper()[ax];
     });
