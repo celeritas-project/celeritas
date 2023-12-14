@@ -159,8 +159,7 @@ size_type Runner::num_events() const
 /*!
  * Get the accumulated action times.
  *
- * Action times are only collected by the transporter when running with a
- * single stream.
+ * This is a *mean* value over all streams.
  */
 auto Runner::get_action_times() -> MapStrDouble
 {
@@ -169,6 +168,12 @@ auto Runner::get_action_times() -> MapStrDouble
     {
         auto& transport = this->get_transporter(sid);
         transport.accum_action_times(&result);
+    }
+
+    double norm{1 / static_cast<double>(this->num_streams())};
+    for (auto&& [action, time] : result)
+    {
+        time *= norm;
     }
 
     return result;
