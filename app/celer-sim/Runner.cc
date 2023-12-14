@@ -164,17 +164,13 @@ size_type Runner::num_events() const
  */
 auto Runner::get_action_times() -> MapStrReal
 {
-    auto& transport = this->get_transporter(StreamId{0});
-    if (use_device_)
+    MapStrReal result;
+    for (auto sid : range(StreamId{this->num_streams()}))
     {
-        return dynamic_cast<Transporter<MemSpace::device> const&>(transport)
-            .get_action_times();
+        auto& transport = this->get_transporter(sid);
+        transport.accum_action_times(&result);
     }
-    else
-    {
-        return dynamic_cast<Transporter<MemSpace::host> const&>(transport)
-            .get_action_times();
-    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//

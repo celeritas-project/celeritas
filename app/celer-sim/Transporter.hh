@@ -88,6 +88,7 @@ class TransporterBase
     //!@{
     //! \name Type aliases
     using SpanConstPrimary = Span<Primary const>;
+    using MapStrReal = std::unordered_map<std::string, real_type>;
     //!@}
 
   public:
@@ -96,8 +97,11 @@ class TransporterBase
     // Run a single step with no active states to "warm up"
     virtual void operator()() = 0;
 
-    // Transport the input primaries and all secondaries produced
+    //! Transport the input primaries and all secondaries produced
     virtual TransporterResult operator()(SpanConstPrimary primaries) = 0;
+
+    //! Accumulate action times into the map
+    virtual void accum_action_times(MapStrReal*) const = 0;
 };
 
 //---------------------------------------------------------------------------//
@@ -108,12 +112,6 @@ template<MemSpace M>
 class Transporter final : public TransporterBase
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using MapStrReal = std::unordered_map<std::string, real_type>;
-    //!@}
-
-  public:
     // Construct from parameters
     explicit Transporter(TransporterInput inp);
 
@@ -123,8 +121,8 @@ class Transporter final : public TransporterBase
     // Transport the input primaries and all secondaries produced
     TransporterResult operator()(SpanConstPrimary primaries) final;
 
-    // Get the accumulated action times
-    MapStrReal get_action_times() const;
+    // Accumulate action times into the map
+    void accum_action_times(MapStrReal*) const final;
 
   private:
     std::shared_ptr<Stepper<M>> stepper_;

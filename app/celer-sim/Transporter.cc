@@ -143,11 +143,10 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
  * Transport the input primaries and all secondaries produced.
  */
 template<MemSpace M>
-auto Transporter<M>::get_action_times() const -> MapStrReal
+void Transporter<M>::accum_action_times(MapStrReal* result) const
 {
     // Get kernel timing if running with a single stream and if either on the
     // device with synchronization enabled or on the host
-    MapStrReal result;
     auto const& step = *stepper_;
     auto const& action_seq = step.actions();
     if (num_streams_ == 1 && (M == MemSpace::host || action_seq.sync()))
@@ -159,10 +158,9 @@ auto Transporter<M>::get_action_times() const -> MapStrReal
         for (auto i : range(action_ptrs.size()))
         {
             auto&& label = action_ptrs[i]->label();
-            result[label] = times[i];
+            (*result)[label] += times[i];
         }
     }
-    return result;
 }
 
 //---------------------------------------------------------------------------//
