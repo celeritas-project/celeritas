@@ -114,16 +114,9 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
  * reproduced.
  */
 template<MemSpace M>
-void Stepper<M>::reseed(size_type event_id)
+void Stepper<M>::reseed(EventId event_id)
 {
-    if constexpr (M == MemSpace::device)
-    {
-        reseed_rng(params_->rng()->device_ref(), state_.ref().rng, event_id);
-    }
-    else
-    {
-        reseed_rng(params_->rng()->host_ref(), state_.ref().rng, event_id);
-    }
+    reseed_rng(get_ref<M>(*params_->rng()), state_.ref().rng, event_id.get());
 }
 
 //---------------------------------------------------------------------------//

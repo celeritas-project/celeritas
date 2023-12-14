@@ -125,12 +125,13 @@ void LocalTransporter::InitializeEvent(int id)
     event_id_ = EventId(id);
     track_counter_ = 0;
 
-    if (G4Threading::IsMultithreadedApplication()
-        && !G4MTRunManager::SeedOncePerCommunication())
+    if (!(G4Threading::IsMultithreadedApplication()
+          && G4MTRunManager::SeedOncePerCommunication()))
     {
         // Since Geant4 schedules events dynamically, reseed the Celeritas RNGs
-        // using the Geant4 event ID for reproducibility.
-        step_->reseed(id);
+        // using the Geant4 event ID for reproducibility. This guarantees that
+        // an event can be reproduced given the event ID.
+        step_->reseed(event_id_);
     }
 }
 
