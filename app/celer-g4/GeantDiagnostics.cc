@@ -77,6 +77,10 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
             celeritas::environment()));
 #endif
         output_reg->insert(std::make_shared<BuildOutput>());
+
+        // Save filename from global options (TODO: remove this hack)
+        const_cast<SharedParams&>(params).set_output_filename(
+            global_setup.setup_options().output_file);
     }
 
 #if CELERITAS_USE_JSON

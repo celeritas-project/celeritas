@@ -11,20 +11,12 @@
 #include <vector>
 #include <VecGeom/base/Config.h>
 #include <VecGeom/base/Cuda.h>
-#include <VecGeom/gdml/Frontend.h>
 #include <VecGeom/management/ABBoxManager.h>
 #include <VecGeom/management/BVHManager.h>
 #include <VecGeom/management/GeoManager.h>
 #include <VecGeom/volumes/PlacedVolume.h>
 
 #include "celeritas_config.h"
-#include "corecel/device_runtime_api.h"
-#include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
-#include "corecel/sys/Environment.hh"
-#include "corecel/sys/ScopedLimitSaver.hh"
-#include "corecel/sys/ScopedProfiling.hh"
-#include "celeritas/ext/detail/VecgeomCompatibility.hh"
 #if CELERITAS_USE_CUDA
 #    include <VecGeom/management/CudaManager.h>
 #    include <cuda_runtime_api.h>
@@ -32,15 +24,26 @@
 #ifdef VECGEOM_USE_SURF
 #    include <VecGeom/surfaces/BrepHelper.h>
 #endif
+#ifdef VECGEOM_GDML
+#    include <VecGeom/gdml/Frontend.h>
+#endif
 
+#include "corecel/device_runtime_api.h"
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/Environment.hh"
+#include "corecel/sys/ScopedLimitSaver.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "corecel/sys/ScopedProfiling.hh"
+#include "celeritas/ext/detail/VecgeomCompatibility.hh"
 
+#include "GeantGeoUtils.hh"
 #include "VecgeomData.hh"  // IWYU pragma: associated
 #include "g4vg/Converter.hh"
 
@@ -119,6 +122,19 @@ bool VecgeomParams::use_surface_tracking()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether VecGeom GDML is used to load the geometry.
+ */
+bool VecgeomParams::use_vgdml()
+{
+#ifdef VECGEOM_GDML
+    return true;
+#else
+    return false;
+#endif
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct from a GDML input.
  */
 VecgeomParams::VecgeomParams(std::string const& filename)
@@ -130,11 +146,14 @@ VecgeomParams::VecgeomParams(std::string const& filename)
     }
 
     ScopedMem record_mem("VecgeomParams.construct");
+
+    if (VecgeomParams::use_vgdml())
     {
-        ScopedProfiling profile_this{"load-vecgeom"};
-        ScopedMem record_mem("VecgeomParams.load_geant_geometry");
-        ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
-        vgdml::Frontend::Load(filename, /* validate_xml_schema = */ false);
+        this->build_volumes_vgdml(filename);
+    }
+    else
+    {
+        CELER_NOT_CONFIGURED("VGDML");
     }
 
     this->build_tracking();
@@ -154,25 +173,7 @@ VecgeomParams::VecgeomParams(G4VPhysicalVolume const* world)
     CELER_EXPECT(world);
     ScopedMem record_mem("VecgeomParams.construct");
 
-    {
-        // Convert the geometry to VecGeom
-        ScopedProfiling profile_this{"load-vecgeom"};
-        g4vg::Converter::Options opts;
-        opts.compare_volumes
-            = !celeritas::getenv("G4VG_COMPARE_VOLUMES").empty();
-        g4vg::Converter convert{opts};
-        auto result = convert(world);
-        CELER_ASSERT(result.world != nullptr);
-        g4log_volid_map_ = std::move(result.volumes);
-
-        // Set as world volume
-        auto& vg_manager = vecgeom::GeoManager::Instance();
-        vg_manager.RegisterPlacedVolume(result.world);
-        vg_manager.SetWorldAndClose(result.world);
-
-        // NOTE: setting and closing changes the world
-        CELER_ASSERT(vg_manager.GetWorld() != nullptr);
-    }
+    this->build_volumes_geant4(world);
 
     this->build_tracking();
     this->build_data();
@@ -210,6 +211,11 @@ VecgeomParams::~VecgeomParams()
 
     CELER_LOG(debug) << "Clearing VecGeom CPU data";
     vecgeom::GeoManager::Instance().Clear();
+
+    if (loaded_geant4_gdml_)
+    {
+        reset_geant_geometry();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -278,7 +284,48 @@ auto VecgeomParams::find_volumes(std::string const& name) const
 
 //---------------------------------------------------------------------------//
 /*!
- * After loading solids, set up VecGeom tracking data and copy to GPU.
+ * Construct VecGeom objects using the VGDML reader.
+ */
+void VecgeomParams::build_volumes_vgdml(std::string const& filename)
+{
+    ScopedProfiling profile_this{"load-vecgeom"};
+    ScopedMem record_mem("VecgeomParams.load_geant_geometry");
+    ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
+#ifdef VECGEOM_GDML
+    vgdml::Frontend::Load(filename, /* validate_xml_schema = */ false);
+#else
+    CELER_DISCARD(filename);
+    CELER_NOT_CONFIGURED("VGDML");
+#endif
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct VecGeom objects using Geant4 objects in memory.
+ */
+void VecgeomParams::build_volumes_geant4(G4VPhysicalVolume const* world)
+{
+    // Convert the geometry to VecGeom
+    ScopedProfiling profile_this{"load-vecgeom"};
+    g4vg::Converter::Options opts;
+    opts.compare_volumes = !celeritas::getenv("G4VG_COMPARE_VOLUMES").empty();
+    g4vg::Converter convert{opts};
+    auto result = convert(world);
+    CELER_ASSERT(result.world != nullptr);
+    g4log_volid_map_ = std::move(result.volumes);
+
+    // Set as world volume
+    auto& vg_manager = vecgeom::GeoManager::Instance();
+    vg_manager.RegisterPlacedVolume(result.world);
+    vg_manager.SetWorldAndClose(result.world);
+
+    // NOTE: setting and closing changes the world
+    CELER_ASSERT(vg_manager.GetWorld() != nullptr);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * After loading solids+volumes, set up VecGeom tracking data and copy to GPU.
  */
 void VecgeomParams::build_tracking()
 {

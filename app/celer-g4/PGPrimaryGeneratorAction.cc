@@ -32,9 +32,7 @@ PGPrimaryGeneratorAction::PGPrimaryGeneratorAction(
     // Generate one particle at each call to \c GeneratePrimaryVertex()
     gun_.SetNumberOfParticles(1);
 
-    // Seed with an independent value for each thread
-    rng_.seed(options.seed + get_geant_thread_id());
-
+    seed_ = options.seed;
     num_events_ = options.num_events;
     primaries_per_event_ = options.primaries_per_event;
     sample_energy_ = make_energy_sampler(options.energy);
@@ -57,16 +55,24 @@ PGPrimaryGeneratorAction::PGPrimaryGeneratorAction(
 void PGPrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
 {
     CELER_EXPECT(event);
+    CELER_EXPECT(event->GetEventID() >= 0);
 
-    if (event_count_ == num_events_)
+    size_type event_id = event->GetEventID();
+    if (event_id >= num_events_)
     {
         return;
     }
 
+    // Seed with an independent value for each event. Since Geant4 schedules
+    // events dynamically, the same event ID may not be mapped to the same
+    // thread across multiple runs. For reproducibility, Geant4 reseeds each
+    // worker thread's RNG at the start of each event with a seed calculated
+    // from the event ID.
+    rng_.seed(seed_ + event_id);
+
     for (size_type i = 0; i < primaries_per_event_; ++i)
     {
-        gun_.SetParticleDefinition(
-            particle_def_[primary_count_ % particle_def_.size()]);
+        gun_.SetParticleDefinition(particle_def_[i % particle_def_.size()]);
         gun_.SetParticlePosition(
             convert_to_geant(sample_pos_(rng_), CLHEP::cm));
         gun_.SetParticleMomentumDirection(
@@ -74,7 +80,6 @@ void PGPrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
         gun_.SetParticleEnergy(
             convert_to_geant(sample_energy_(rng_), CLHEP::MeV));
         gun_.GeneratePrimaryVertex(event);
-        ++primary_count_;
 
         if (CELERITAS_DEBUG)
         {
@@ -82,7 +87,6 @@ void PGPrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
                 gun_.GetParticlePosition()));
         }
     }
-    ++event_count_;
 
     CELER_ENSURE(event->GetNumberOfPrimaryVertex()
                  == static_cast<int>(primaries_per_event_));

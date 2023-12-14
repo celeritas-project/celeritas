@@ -88,6 +88,7 @@ CELER_FUNCTION TransformVisitor::TransformVisitor(ParamsRef const& params)
 {
 }
 
+#if !defined(__DOXYGEN__) || __DOXYGEN__ > 0x010908
 //---------------------------------------------------------------------------//
 /*!
  * Apply the function to the transform specified by the given ID.
@@ -111,6 +112,7 @@ TransformVisitor::operator()(F&& func, TransformId id)
         },
         tr.type);
 }
+#endif
 
 //---------------------------------------------------------------------------//
 /*!

@@ -32,6 +32,10 @@ list(APPEND SOURCES
 
 celeritas_polysource(ExceptionConverter)
 
+if(Geant4_VERSION VERSION_GREATER_EQUAL 11.0)
+  list(APPEND SOURCES TrackingManagerOffload.cc)
+endif()
+
 if(CELERITAS_USE_JSON)
   list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()
@@ -39,6 +43,10 @@ endif()
 if(CELERITAS_USE_HepMC3)
   list(APPEND PRIVATE_DEPS HepMC3::HepMC3)
   list(APPEND SOURCES HepMC3PrimaryGenerator.cc)
+endif()
+
+if(CELERITAS_USE_OpenMP)
+  list(APPEND PRIVATE_DEPS OpenMP::OpenMP_CXX)
 endif()
 
 #-----------------------------------------------------------------------------#

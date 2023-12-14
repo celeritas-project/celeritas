@@ -367,22 +367,29 @@ set(CELERITASTEST_PREFIX celeritas/ext)
 if(CELERITAS_USE_VecGeom)
   # Vecgeom uses global counters that interfere with copying data to GPU and
   # change the internal numbering.
-  set(_vecgeom_tests
-    "SimpleCmsTest.*"
-  )
-  if(NOT VecGeom_SURF_FOUND)
-    # TODO: vecgeom surface doesn't support some of these shapes
+  set(_vecgeom_tests)
+  if(VecGeom_GDML_FOUND)
     list(APPEND _vecgeom_tests
-      "FourLevelsTest.*"
-      "SolidsTest.*"
-      "CmseTest.*"
+      "SimpleCmsTest.*"
     )
+    if(NOT VecGeom_SURF_FOUND)
+      # TODO: vecgeom surface doesn't support some of these shapes
+      list(APPEND _vecgeom_tests
+        "FourLevelsTest.*"
+        "SolidsTest.*"
+        "CmseTest.*"
+      )
+    endif()
   endif()
   if(CELERITAS_USE_Geant4)
     list(APPEND _vecgeom_tests
       "FourLevelsGeantTest.*"
       "SolidsGeantTest.*"
     )
+  endif()
+  if(NOT _vecgeom_tests)
+    # Bad: no way of setting up geometry!
+    set(_vecgeom_tests DISABLE)
   endif()
   celeritas_add_device_test(celeritas/ext/Vecgeom
     FILTER

@@ -73,7 +73,7 @@ __global__ void move_kernel(DeviceCRef<ParamsData> const params,
     // Construct particle accessor from immutable and thread-local data
     ParticleTrackView particle(
         params.particle, states.particle, TrackSlotId(tid));
-    RngEngine rng(states.rng, TrackSlotId(tid));
+    RngEngine rng(params.rng, states.rng, TrackSlotId(tid));
 
     // Move to collision
     XsCalculator calc_xs(params.tables.xs, params.tables.reals);
@@ -109,7 +109,7 @@ __global__ void interact_kernel(DeviceCRef<ParamsData> const params,
     // Construct particle accessor from immutable and thread-local data
     ParticleTrackView particle(
         params.particle, states.particle, TrackSlotId(tid));
-    RngEngine rng(states.rng, TrackSlotId(tid));
+    RngEngine rng(params.rng, states.rng, TrackSlotId(tid));
 
     Detector detector(params.detector, states.detector);
 

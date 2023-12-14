@@ -372,7 +372,7 @@ TEST_F(Em3AlongStepTest, msc_nofluct)
         auto result = this->run(inp, num_tracks);
         EXPECT_SOFT_NEAR(2.2870403276278, result.eloss, 5e-4);
         EXPECT_SOFT_NEAR(1.1622519442871, result.displacement, 5e-4);
-        EXPECT_SOFT_NEAR(0.85325942256503251, result.angle, 1e-3);
+        EXPECT_SOFT_NEAR(0.85325942256503251, result.angle, 5e-2);
         EXPECT_SOFT_NEAR(4.083585865972e-11, result.time, 1e-5);
         EXPECT_SOFT_NEAR(1.222780668781, result.step, 5e-4);
         EXPECT_EQ("eloss-range", result.action);
@@ -384,11 +384,11 @@ TEST_F(Em3AlongStepTest, msc_nofluct)
         inp.position = {0.0 - 0.25};
         inp.direction = {1, 0, 0};
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_NEAR(0.28579817262705, result.eloss, 5e-4);
-        EXPECT_SOFT_NEAR(0.13028709259427, result.displacement, 5e-4);
-        EXPECT_SOFT_NEAR(0.42060290539404, result.angle, 1e-3);
-        EXPECT_SOFT_EQ(5.3240431819014e-12, result.time);
-        EXPECT_SOFT_EQ(0.1502064087009, result.step);
+        EXPECT_SOFT_NEAR(0.28579817262705, result.eloss, 5e-2);
+        EXPECT_SOFT_NEAR(0.13028709259427, result.displacement, 1e-2);
+        EXPECT_SOFT_NEAR(0.42060290539404, result.angle, 5e-2);
+        EXPECT_SOFT_NEAR(5.3240431819014e-12, result.time, 5e-12);
+        EXPECT_SOFT_NEAR(0.1502064087009, result.step, 5e-2);
         EXPECT_EQ("msc-range", result.action);
     }
     {

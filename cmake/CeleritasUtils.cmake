@@ -133,6 +133,16 @@ CMake configuration utility functions for Celeritas.
   unavailable options (e.g. CELERITAS_USE_CURAND when HIP is in use) will
   implicitly be zero.
 
+.. command:: celeritas_version_to_hex
+
+  Convert a version number to a C-formatted hexadecimal string.
+
+    celeritas_version_to_hex(<var> <version_prefix>)
+
+    The code will set a version to zero if ``<version_prefix>_VERSION`` is not
+    found. If ``<version_prefix>_MAJOR`` is defined it will use that; otherwise
+    it will try to split the version into major/minor/patch.
+
 #]=======================================================================]
 include_guard(GLOBAL)
 
@@ -420,6 +430,37 @@ function(celeritas_generate_option_config var)
 
   # Set in parent scope
   set(${var}_CONFIG "${_result}" PARENT_SCOPE)
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_version_to_hex var version)
+  if("TRUE") #NOT DEFINED "${version}_MAJOR")
+    # Split version into components
+    string(REGEX MATCH "^([0-9]+)\\.([0-9]+)\\.([0-9]+)" _match "${${version}}")
+    if(NOT _match)
+      message(AUTHOR_WARNING
+        "Failed to parse version string for ${version}=\"${${version}}\":
+        _match=${_match}"
+      )
+    endif()
+    set(${version}_MAJOR "${CMAKE_MATCH_1}")
+    set(${version}_MINOR "${CMAKE_MATCH_2}")
+    set(${version}_PATCH "${CMAKE_MATCH_3}")
+  endif()
+  # Set any possibly empty values to zero
+  foreach(_ext MAJOR MINOR PATCH)
+    if(${version}_${_ext} STREQUAL "")
+      set(${version}_${_ext} 0)
+    endif()
+  endforeach()
+  # Add an extra 1 up front and strip it to zero-pad
+  math(EXPR _temp_version
+    "((256 + ${${version}_MAJOR}) * 256 + ${${version}_MINOR}) * 256 + ${${version}_PATCH}"
+    OUTPUT_FORMAT HEXADECIMAL
+  )
+  string(SUBSTRING "${_temp_version}" 3 -1 _temp_version)
+  set(${var} "0x${_temp_version}" PARENT_SCOPE)
 endfunction()
 
 #-----------------------------------------------------------------------------#

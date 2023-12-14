@@ -89,7 +89,7 @@ TEST_F(PrimaryGeneratorTest, basic)
     auto primaries = generate_primaries();
     EXPECT_TRUE(primaries.empty());
 
-    static int const expected_particle_id[] = {0, 1, 0, 1, 0, 1};
+    static int const expected_particle_id[] = {0, 1, 0, 0, 1, 0};
     static int const expected_event_id[] = {0, 0, 0, 1, 1, 1};
     static int const expected_track_id[] = {0, 1, 2, 0, 1, 2};
 

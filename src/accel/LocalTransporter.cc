@@ -8,15 +8,23 @@
 #include "LocalTransporter.hh"
 
 #include <csignal>
+#include <string>
 #include <type_traits>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4ParticleDefinition.hh>
+#include <G4Threading.hh>
 #include <G4ThreeVector.hh>
 #include <G4Track.hh>
 
+#ifdef _OPENMP
+#    include <omp.h>
+#endif
+
+#include "celeritas_config.h"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/ext/Convert.geant.hh"
@@ -61,6 +69,29 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
         << "Geant4 ThreadID (" << thread_id
         << ") is out of range for the reported number of worker threads ("
         << params.Params()->max_streams() << ")");
+
+    // Check that OpenMP and Geant4 threading models don't collide
+    if (CELERITAS_USE_OPENMP && !celeritas::device()
+        && G4Threading::IsMultithreadedApplication())
+    {
+        auto msg = CELER_LOG_LOCAL(warning);
+        msg << "Using multithreaded Geant4 with Celeritas OpenMP";
+        if (std::string const& nt_str = celeritas::getenv("OMP_NUM_THREADS");
+            !nt_str.empty())
+        {
+            msg << "(OMP_NUM_THREADS=" << nt_str
+                << "): CPU threads may be oversubscribed";
+        }
+        else
+        {
+            msg << ": forcing 1 Celeritas thread to Geant4 thread";
+#ifdef _OPENMP
+            omp_set_num_threads(1);
+#else
+            CELER_ASSERT_UNREACHABLE();
+#endif
+        }
+    }
 
     StepperInput inp;
     inp.params = params.Params();

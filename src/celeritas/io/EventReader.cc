@@ -126,10 +126,10 @@ auto EventReader::operator()() -> result_type
         // Get the direction of the primary
         auto mom = par->momentum();
         HepMC3::Units::convert(mom, evt.momentum_unit(), HepMC3::Units::MEV);
-        primary.direction = {static_cast<real_type>(mom.px()),
-                             static_cast<real_type>(mom.py()),
-                             static_cast<real_type>(mom.pz())};
-        normalize_direction(&primary.direction);
+        primary.direction
+            = make_unit_vector(Real3{static_cast<real_type>(mom.px()),
+                                     static_cast<real_type>(mom.py()),
+                                     static_cast<real_type>(mom.pz())});
 
         // Get the energy of the primary
         primary.energy = units::MevEnergy{static_cast<real_type>(mom.e())};

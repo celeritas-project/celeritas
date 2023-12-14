@@ -28,22 +28,16 @@
 #include "GlobalSetup.hh"
 #include "SensitiveHit.hh"
 
+#ifdef _WIN32
+#    include <process.h>
+#else
+#    include <unistd.h>
+#endif
+
 namespace celeritas
 {
 namespace app
 {
-//---------------------------------------------------------------------------//
-/*!
- * Whether ROOT interfacing is enabled.
- *
- * This is true unless the \c CELER_DISABLE_ROOT environment variable is
- * set to a non-empty value.
- */
-bool RootIO::use_root()
-{
-    return RootFileManager::use_root();
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Create a ROOT output file for each worker thread in MT.
@@ -64,6 +58,11 @@ RootIO::RootIO()
     if (file_name_.empty())
     {
         file_name_ = "celer-g4.root";
+    }
+
+    if (file_name_ == "-")
+    {
+        file_name_ = "stdout-" + std::to_string(::getpid()) + ".root";
     }
 
     if (G4Threading::IsWorkerThread())

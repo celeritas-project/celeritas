@@ -23,8 +23,8 @@ TEST(InitializedValue, no_finalizer)
 
     // Use operator new to test that the int is being initialized properly by
     // constructing into data space that's been set to a different value
-    alignas(int) Byte buf[sizeof(InitValueInt)];
-    std::fill(std::begin(buf), std::end(buf), Byte(-1));
+    alignas(int) std::byte buf[sizeof(InitValueInt)];
+    std::fill(std::begin(buf), std::end(buf), std::byte(-1));
     InitValueInt* ival = new (buf) InitValueInt{};
     EXPECT_EQ(0, *ival);
 

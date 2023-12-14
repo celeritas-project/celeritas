@@ -61,6 +61,7 @@ CELER_FUNCTION TrackerVisitor::TrackerVisitor(ParamsRef const& params)
 {
 }
 
+#if !defined(__DOXYGEN__) || __DOXYGEN__ > 0x010908
 //---------------------------------------------------------------------------//
 /*!
  * Apply the function to the universe specified by the given ID.
@@ -82,6 +83,7 @@ TrackerVisitor::operator()(F&& func, UniverseId id)
         },
         params_.universe_types[id]);
 }
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

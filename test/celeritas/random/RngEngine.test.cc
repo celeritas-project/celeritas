@@ -177,7 +177,8 @@ TEST_F(DeviceRngEngineTest, TEST_IF_CELER_DEVICE(device))
     RngDeviceStore rng_store(params->host_ref(), StreamId{0}, 1024);
 
     // Generate on device
-    std::vector<unsigned int> values = re_test_native(rng_store.ref());
+    std::vector<unsigned int> values
+        = re_test_native(params->device_ref(), rng_store.ref());
 
     // Print a subset of the values
     std::vector<unsigned int> test_values;
@@ -282,7 +283,8 @@ TYPED_TEST(DeviceRngEngineFloatTest, DISABLED_device)
     RngDeviceStore rng_store(this->params->host_ref(), StreamId{0}, 100);
 
     // Generate on device
-    auto values = re_test_canonical<real_type>(rng_store.ref());
+    auto values = re_test_canonical<real_type>(this->params->device_ref(),
+                                               rng_store.ref());
 
     // Test result
     EXPECT_EQ(rng_store.size(), values.size());

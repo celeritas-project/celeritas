@@ -64,20 +64,17 @@ TEST_F(PlaneTest, tracking)
     EXPECT_EQ(SignedSense::outside, p.calc_sense(x));
 
     // Calc intersections
-    Real3 dir = {-0.70710678, -0.70710678, 0.0};
-    normalize_direction(&dir);
+    Real3 dir = make_unit_vector(Real3{-0.70710678, -0.70710678, 0.0});
     EXPECT_SOFT_NEAR(
         2.0, calc_intersection(p, x, dir, SurfaceState::off), 1.e-6);
 
     // Pick a direction such that n\cdot\Omega > 0
-    dir = {1.0, 2.0, 3.0};
-    normalize_direction(&dir);
+    dir = make_unit_vector(Real3{1.0, 2.0, 3.0});
     EXPECT_EQ(no_intersection(),
               calc_intersection(p, x, dir, SurfaceState::off));
 
     // Pick a direction that hits the plane
-    dir = {-1, 0.1, 3.0};
-    normalize_direction(&dir);
+    dir = make_unit_vector(Real3{-1, 0.1, 3.0});
     EXPECT_SOFT_NEAR(9.9430476983098171,
                      calc_intersection(p, x, dir, SurfaceState::off),
                      1.e-6);
@@ -87,14 +84,12 @@ TEST_F(PlaneTest, tracking)
     EXPECT_EQ(SignedSense::inside, p.calc_sense(x));
 
     // Pick a direction such that n\cdot\Omega < 0
-    dir = {-1.0, -2.0, 3.0};
-    normalize_direction(&dir);
+    dir = make_unit_vector(Real3{-1.0, -2.0, 3.0});
     EXPECT_EQ(no_intersection(),
               calc_intersection(p, x, dir, SurfaceState::off));
 
     // Pick a direction that hits the plane
-    dir = {1, 0.1, 3.0};
-    normalize_direction(&dir);
+    dir = make_unit_vector(Real3{1, 0.1, 3.0});
     EXPECT_SOFT_NEAR(12.202831266107504,
                      calc_intersection(p, x, dir, SurfaceState::off),
                      1.e-6);

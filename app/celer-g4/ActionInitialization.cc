@@ -84,7 +84,7 @@ void ActionInitialization::BuildForMaster() const
  */
 void ActionInitialization::Build() const
 {
-    CELER_LOG_LOCAL(status) << "Constructing user actions on worker threads";
+    CELER_LOG_LOCAL(status) << "Constructing user action";
 
     // Primary generator emits source particles
     if (hepmc_gen_)

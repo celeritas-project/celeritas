@@ -35,19 +35,6 @@ enum class ImportTableType
     dedx,  //!< Energy loss summed over processes
     range,  //!< Integrated inverse energy loss
     msc_xs,  //!< Scaled transport cross section
-
-    //// DEPRECATED (remove in v0.4): Unused by celeritas ////
-    dedx_process,  //!< Energy loss table for a process
-    dedx_unrestricted,
-    csda_range,  //!< Continuous slowing down approximation
-
-    //// DEPRECATED (remove in v0.4): Removed in Geant4@11 ////
-    dedx_subsec,
-    ionization_subsec,
-    secondary_range,
-    inverse_range,  //!< Inverse mapping of range: (range -> energy)
-    sublambda,  //!< For subcutoff regions
-
     size_
 };
 

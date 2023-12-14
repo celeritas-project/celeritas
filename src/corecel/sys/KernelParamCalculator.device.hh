@@ -44,6 +44,29 @@
         CELER_DEVICE_CHECK_ERROR();                                          \
     } while (0)
 
+/*!
+ * \def CELER_LAUNCH_KERNEL_TEMPLATE_1
+ *
+ * Create a kernel param calculator with the given kernel with
+ * one template parameter, assuming the unction itself has a \c _kernel
+ * suffix, and launch with the given block/thread sizes and arguments list.
+ */
+#define CELER_LAUNCH_KERNEL_TEMPLATE_1(NAME, T1, THREADS, STREAM, ...)       \
+    do                                                                       \
+    {                                                                        \
+        static const ::celeritas::KernelParamCalculator calc_launch_params_( \
+            #NAME, NAME##_kernel<T1>);                                       \
+        auto grid_ = calc_launch_params_(THREADS);                           \
+                                                                             \
+        CELER_LAUNCH_KERNEL_IMPL(NAME##_kernel<T1>,                          \
+                                 grid_.blocks_per_grid,                      \
+                                 grid_.threads_per_block,                    \
+                                 0,                                          \
+                                 STREAM,                                     \
+                                 __VA_ARGS__);                               \
+        CELER_DEVICE_CHECK_ERROR();                                          \
+    } while (0)
+
 #if CELERITAS_USE_CUDA
 #    define CELER_LAUNCH_KERNEL_IMPL(KERNEL, GRID, BLOCK, SHARED, STREAM, ...) \
         KERNEL<<<GRID, BLOCK, SHARED, STREAM>>>(__VA_ARGS__)

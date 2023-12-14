@@ -85,8 +85,8 @@ class WentzelModel final : public Model
 
     //!@{
     //! Access model data
-    WentzelHostRef const& host_ref() const { return data_.host(); }
-    WentzelDeviceRef const& device_ref() const { return data_.device(); }
+    WentzelHostRef const& host_ref() const { return data_.host_ref(); }
+    WentzelDeviceRef const& device_ref() const { return data_.device_ref(); }
     //!@}
 
   private:

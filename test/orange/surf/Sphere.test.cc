@@ -49,7 +49,7 @@ TEST_F(SphereTest, construction)
 TEST_F(SphereTest, basic)
 {
     EXPECT_EQ(SurfaceType::s, Sphere::surface_type());
-    EXPECT_EQ(4, Sphere::Storage::extent);
+    EXPECT_EQ(4, Sphere::StorageSpan::extent);
     EXPECT_EQ(2, Sphere::Intersections{}.size());
 
     const Real3 origin{-1.1, 2.2, -3.3};
@@ -83,7 +83,7 @@ TEST_F(SphereTest, basic)
 TEST_F(SphereTest, TEST_IF_CELERITAS_DOUBLE(degenerate))
 {
     EXPECT_EQ(SurfaceType::s, Sphere::surface_type());
-    EXPECT_EQ(4, Sphere::Storage::extent);
+    EXPECT_EQ(4, Sphere::StorageSpan::extent);
     EXPECT_EQ(2, Sphere::Intersections{}.size());
 
     Real3 const origin{-1.1, 2.2, -3.3};

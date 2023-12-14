@@ -68,7 +68,11 @@ void RunAction::BeginOfRunAction(G4Run const* run)
         {
             // This worker (or master thread) is responsible for initializing
             // celeritas: initialize shared data and setup GPU on all threads
-            CELER_TRY_HANDLE(params_->Initialize(*options_), call_g4exception);
+            // TODO: reusing the existing output registry is a hack needed to
+            // preserve the GeantSimpleCalo output. This will be fixed in 0.5
+            CELER_TRY_HANDLE(
+                params_->Initialize(*options_, params_->output_reg()),
+                call_g4exception);
             CELER_ASSERT(*params_);
         }
         else
@@ -115,7 +119,7 @@ void RunAction::EndOfRunAction(G4Run const*)
 {
     ExceptionConverter call_g4exception{"celer0005"};
 
-    if (RootIO::use_root())
+    if (GlobalSetup::Instance()->root_sd_io())
     {
         // Close ROOT output of sensitive hits
         CELER_TRY_HANDLE(RootIO::Instance()->Close(), call_g4exception);

@@ -65,6 +65,9 @@ class SharedParams
     // True if Celeritas is globally disabled using the CELER_DISABLE env
     static bool CeleritasDisabled();
 
+    // Whether to kill tracks that would have been offloaded
+    static bool KillOffloadTracks();
+
     // Construct in an uninitialized state
     SharedParams() = default;
 
@@ -88,7 +91,7 @@ class SharedParams
     inline SPConstParams Params() const;
 
     // Get a vector of particles supported by Celeritas offloading
-    inline VecG4ParticleDef const& OffloadParticles() const;
+    VecG4ParticleDef const& OffloadParticles() const;
 
     //! Whether Celeritas core params have been created
     explicit operator bool() const { return static_cast<bool>(params_); }
@@ -116,6 +119,17 @@ class SharedParams
 
     // Geant geometry wrapper, lazily created
     SPConstGeantGeoParams const& geant_geo_params() const;
+
+    // NASTY HACK TO BE DELETED:
+    // Construct Celeritas using Geant4 data and existing output registry
+    SharedParams(SetupOptions const& options, SPOutputRegistry reg);
+
+    // Initialize shared data on the "master" thread with existing output
+    // registry
+    void Initialize(SetupOptions const& options, SPOutputRegistry reg);
+
+    // Set the output filename when celeritas is disabled
+    void set_output_filename(std::string const&);
     //!@}
 
   private:
@@ -159,18 +173,6 @@ auto SharedParams::Params() const -> SPConstParams
 {
     CELER_EXPECT(*this);
     return params_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a vector of particles supported by Celeritas offloading.
- *
- * This can only be called after \c Initialize.
- */
-auto SharedParams::OffloadParticles() const -> VecG4ParticleDef const&
-{
-    CELER_EXPECT(*this);
-    return particles_;
 }
 
 //---------------------------------------------------------------------------//

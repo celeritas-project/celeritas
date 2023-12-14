@@ -9,6 +9,8 @@
 
 #include <string>
 
+#include "corecel/io/JsonUtils.json.hh"
+
 #include "RootStepWriter.hh"
 
 namespace celeritas
@@ -19,12 +21,7 @@ namespace celeritas
  */
 void from_json(nlohmann::json const& j, SimpleRootFilterInput& options)
 {
-#define SRFI_LOAD_OPTION(NAME)                \
-    do                                        \
-    {                                         \
-        if (j.contains(#NAME))                \
-            j.at(#NAME).get_to(options.NAME); \
-    } while (0)
+#define SRFI_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, options, NAME)
     SRFI_LOAD_OPTION(track_id);
     SRFI_LOAD_OPTION(event_id);
     SRFI_LOAD_OPTION(parent_id);
@@ -38,13 +35,10 @@ void from_json(nlohmann::json const& j, SimpleRootFilterInput& options)
  */
 void to_json(nlohmann::json& j, SimpleRootFilterInput const& options)
 {
-    j["track_id"] = options.track_id;
-#define SRFI_SAVE_OPTION(NAME)                   \
-    do                                           \
-    {                                            \
-        if (options.NAME != options.unspecified) \
-            j[#NAME] = options.NAME;             \
-    } while (0)
+#define SRFI_SAVE_OPTION(NAME) \
+    CELER_JSON_SAVE_WHEN(j, options, NAME, options.NAME != options.unspecified)
+
+    CELER_JSON_SAVE(j, options, track_id);
     SRFI_SAVE_OPTION(event_id);
     SRFI_SAVE_OPTION(parent_id);
     SRFI_SAVE_OPTION(action_id);

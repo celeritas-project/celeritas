@@ -38,10 +38,10 @@ class TrackInitParams final : public ParamsDataInterface<TrackInitParamsData>
     size_type max_events() const { return host_ref().max_events; }
 
     //! Access primaries for contructing track initializer states
-    HostRef const& host_ref() const final { return data_.host(); }
+    HostRef const& host_ref() const final { return data_.host_ref(); }
 
     //! Access data on device
-    DeviceRef const& device_ref() const final { return data_.device(); }
+    DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
     // Host/device storage and reference

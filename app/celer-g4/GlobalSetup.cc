@@ -16,6 +16,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
+#include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "accel/ExceptionConverter.hh"
 #include "accel/SetupOptionsMessenger.hh"
@@ -111,15 +112,29 @@ void GlobalSetup::SetIgnoreProcesses(SetupOptions::VecString ignored)
  */
 void GlobalSetup::ReadInput(std::string const& filename)
 {
-    if (ends_with(filename, ".json"))
+    bool is_json_file = ends_with(filename, ".json");
+    if (is_json_file || filename == "-")
     {
+        CELER_LOG(status) << "Reading JSON input from '"
+                          << (is_json_file ? filename : "<stdin>") << "'";
+        std::istream* instream{nullptr};
+        std::ifstream infile;
+        if (is_json_file)
+        {
+            instream = &infile;
+            infile.open(filename);
+            CELER_VALIDATE(infile, << "failed to open '" << filename << "'");
+        }
+        else
+        {
+            instream = &std::cin;
+        }
+        CELER_ASSERT(instream);
 #if CELERITAS_USE_JSON
-        using std::to_string;
-
-        CELER_LOG(status) << "Reading JSON input from '" << filename << "'";
-        std::ifstream infile(filename);
-        CELER_VALIDATE(infile, << "failed to open '" << filename << "'");
-        nlohmann::json::parse(infile).get_to(input_);
+        nlohmann::json::parse(*instream).get_to(input_);
+#else
+        CELER_NOT_CONFIGURED("nlohmann_json");
+#endif
 
         // Input options
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
@@ -145,9 +160,6 @@ void GlobalSetup::ReadInput(std::string const& filename)
         options_->cuda_heap_size = input_.cuda_heap_size;
         options_->sync = input_.sync;
         options_->default_stream = input_.default_stream;
-#else
-        CELER_NOT_CONFIGURED("nlohmann_json");
-#endif
     }
     else if (ends_with(filename, ".mac"))
     {
@@ -171,11 +183,18 @@ void GlobalSetup::ReadInput(std::string const& filename)
         options_->output_file = input_.output_file;
     }
 
-    if (input_.sd_type == SensitiveDetectorType::event_hit
-        && !RootIO::use_root())
+    if (input_.sd_type == SensitiveDetectorType::event_hit)
     {
-        CELER_LOG(warning) << "Collecting SD hit data that will not be "
-                              "written because ROOT is disabled";
+        root_sd_io_ = RootFileManager::use_root();
+        if (!root_sd_io_)
+        {
+            CELER_LOG(warning) << "Collecting SD hit data that will not be "
+                                  "written because ROOT is disabled";
+        }
+    }
+    else
+    {
+        root_sd_io_ = false;
     }
 
     // Start the timer for setup time

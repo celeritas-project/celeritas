@@ -39,6 +39,14 @@ StepperTestBase::StepperTestBase()
 }
 
 //---------------------------------------------------------------------------//
+//! Whether the build uses the default real type and RNG.
+bool StepperTestBase::is_default_build()
+{
+    return CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+           && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW;
+}
+
+//---------------------------------------------------------------------------//
 //! Generate a stepper construction class
 StepperInput StepperTestBase::make_stepper_input(size_type tracks)
 {

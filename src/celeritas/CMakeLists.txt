@@ -67,6 +67,7 @@ list(APPEND SOURCES
   phys/Process.cc
   phys/ProcessBuilder.cc
   random/CuHipRngData.cc
+  random/CuHipRngParams.cc
   random/XorwowRngData.cc
   random/XorwowRngParams.cc
   track/SimParams.cc
@@ -183,15 +184,15 @@ if(CELERITAS_USE_ROOT)
 
   # Generate the dictionary source file
   root_generate_dictionary(CeleritasRootInterface
-    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportData.hh"
-    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportElement.hh"
-    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportMaterial.hh"
-    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportParticle.hh"
-    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportPhysicsTable.hh"
-    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportPhysicsVector.hh"
-    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportProcess.hh"
-    "${CMAKE_CURRENT_SOURCE_DIR}/io/ImportVolume.hh"
-    "${CMAKE_CURRENT_SOURCE_DIR}/io/EventData.hh"
+    "celeritas/io/ImportData.hh"
+    "celeritas/io/ImportElement.hh"
+    "celeritas/io/ImportMaterial.hh"
+    "celeritas/io/ImportParticle.hh"
+    "celeritas/io/ImportPhysicsTable.hh"
+    "celeritas/io/ImportPhysicsVector.hh"
+    "celeritas/io/ImportProcess.hh"
+    "celeritas/io/ImportVolume.hh"
+    "celeritas/io/EventData.hh"
     NOINSTALL
     MODULE celeritas
     LINKDEF "${CMAKE_CURRENT_SOURCE_DIR}/ext/RootInterfaceLinkDef.h"
@@ -231,9 +232,12 @@ endif()
 if(CELERITAS_USE_VecGeom)
   list(APPEND SOURCES
     ext/VecgeomParams.cc
+    ext/VecgeomParamsOutput.cc
     ext/detail/VecgeomNavCollection.cc
   )
-  list(APPEND PRIVATE_DEPS VecGeom::vgdml)
+  if(VecGeom_GDML_FOUND)
+    list(APPEND PRIVATE_DEPS VecGeom::vgdml)
+  endif()
   if(VecGeom_CUDA_FOUND AND VecGeom_SURF_FOUND)
     # Special routines needed for surface
     list(APPEND SOURCES

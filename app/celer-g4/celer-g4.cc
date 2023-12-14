@@ -76,6 +76,7 @@ void print_usage(std::string_view exec_name)
 {
     // clang-format off
     std::cerr << "usage: " << exec_name << " {input}.json\n"
+                 "       " << exec_name << " -\n"
                  "       " << exec_name << " {commands}.mac\n"
                  "       " << exec_name << " --interactive\n"
                  "       " << exec_name << " [--help|-h]\n"
@@ -87,6 +88,7 @@ void print_usage(std::string_view exec_name)
                  "  CELER_DISABLE: nonempty disables offloading\n"
                  "  CELER_DISABLE_DEVICE: nonempty disables CUDA\n"
                  "  CELER_DISABLE_ROOT: nonempty disables ROOT I/O\n"
+                 "  CELER_KILL_OFFLOAD: nonempty kills offload tracks\n"
                  "  CELER_LOG: global logging level\n"
                  "  CELER_LOG_LOCAL: thread-local logging level\n"
               << std::endl;
@@ -274,6 +276,12 @@ int main(int argc, char* argv[])
                                "Celeritas";
         return EXIT_FAILURE;
 #endif
+    }
+    if (celeritas::starts_with(filename, "--"))
+    {
+        CELER_LOG(critical) << "Unknown option \"" << filename << "\"";
+        celeritas::app::print_usage(argv[0]);
+        return EXIT_FAILURE;
     }
 
     // Create params, which need to be shared with detectors as well as
