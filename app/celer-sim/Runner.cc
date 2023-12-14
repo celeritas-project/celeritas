@@ -162,14 +162,15 @@ size_type Runner::num_events() const
  * Action times are only collected by the transporter when running with a
  * single stream.
  */
-auto Runner::get_action_times() -> MapStrReal
+auto Runner::get_action_times() -> MapStrDouble
 {
-    MapStrReal result;
+    MapStrDouble result;
     for (auto sid : range(StreamId{this->num_streams()}))
     {
         auto& transport = this->get_transporter(sid);
         transport.accum_action_times(&result);
     }
+
     return result;
 }
 

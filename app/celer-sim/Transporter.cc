@@ -143,7 +143,7 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
  * Transport the input primaries and all secondaries produced.
  */
 template<MemSpace M>
-void Transporter<M>::accum_action_times(MapStrReal* result) const
+void Transporter<M>::accum_action_times(MapStrDouble* result) const
 {
     // Get kernel timing if running with a single stream and if either on the
     // device with synchronization enabled or on the host

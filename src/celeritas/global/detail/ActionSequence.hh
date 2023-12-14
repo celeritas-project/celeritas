@@ -26,6 +26,9 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Sequence of explicit actions to invoke as part of a single step.
+ *
+ * TODO accessors here are used by diagnostic output from celer-sim etc.;
+ * perhaps make this public or add a diagnostic output for it?
  */
 class ActionSequence
 {

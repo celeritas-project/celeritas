@@ -88,7 +88,7 @@ class TransporterBase
     //!@{
     //! \name Type aliases
     using SpanConstPrimary = Span<Primary const>;
-    using MapStrReal = std::unordered_map<std::string, real_type>;
+    using MapStrDouble = std::unordered_map<std::string, double>;
     //!@}
 
   public:
@@ -101,7 +101,7 @@ class TransporterBase
     virtual TransporterResult operator()(SpanConstPrimary primaries) = 0;
 
     //! Accumulate action times into the map
-    virtual void accum_action_times(MapStrReal*) const = 0;
+    virtual void accum_action_times(MapStrDouble*) const = 0;
 };
 
 //---------------------------------------------------------------------------//
@@ -122,7 +122,7 @@ class Transporter final : public TransporterBase
     TransporterResult operator()(SpanConstPrimary primaries) final;
 
     // Accumulate action times into the map
-    void accum_action_times(MapStrReal*) const final;
+    void accum_action_times(MapStrDouble*) const final;
 
   private:
     std::shared_ptr<Stepper<M>> stepper_;

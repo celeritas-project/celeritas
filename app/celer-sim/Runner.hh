@@ -46,7 +46,7 @@ class Runner
     //!@{
     //! \name Type aliases
     using Input = RunnerInput;
-    using MapStrReal = std::unordered_map<std::string, real_type>;
+    using MapStrDouble = std::unordered_map<std::string, double>;
     using RunnerResult = TransporterResult;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
     //!@}
@@ -71,7 +71,7 @@ class Runner
     size_type num_events() const;
 
     // Get the accumulated action times
-    MapStrReal get_action_times();
+    MapStrDouble get_action_times();
 
   private:
     //// TYPES ////
