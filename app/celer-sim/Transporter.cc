@@ -149,7 +149,7 @@ void Transporter<M>::accum_action_times(MapStrReal* result) const
     // device with synchronization enabled or on the host
     auto const& step = *stepper_;
     auto const& action_seq = step.actions();
-    if (num_streams_ == 1 && (M == MemSpace::host || action_seq.sync()))
+    if (M == MemSpace::host || action_seq.sync())
     {
         auto const& action_ptrs = action_seq.actions();
         auto const& times = action_seq.accum_time();
