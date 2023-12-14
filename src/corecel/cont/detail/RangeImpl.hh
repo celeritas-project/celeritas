@@ -11,6 +11,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/OpaqueId.hh"
 
@@ -167,7 +168,10 @@ class range_iter
   public:
     //// CONSTRUCTOR ////
 
-    CELER_CONSTEXPR_FUNCTION range_iter(value_type value) : value_(value) {}
+    CELER_FORCEINLINE_FUNCTION range_iter(value_type value) : value_(value)
+    {
+        CELER_EXPECT(TraitsT::is_valid(value_));
+    }
 
     CELER_CONSTEXPR_FUNCTION range_iter() : value_(TraitsT::zero()) {}
 
