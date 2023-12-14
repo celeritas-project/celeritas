@@ -43,7 +43,7 @@ TEST_F(RngReseedTest, reseed)
     init.seed = params->host_ref().seed;
     init.offset = 0;
 
-    for (auto i : range(1u, states.size()))
+    for (size_type i = 1; i < states.size(); ++i)
     {
         // Check that the reseeded RNGs were skipped ahead the correct number
         // of subsequences
