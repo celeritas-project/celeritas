@@ -11,6 +11,7 @@
 #include <string>
 #include <type_traits>
 #include <CLHEP/Units/SystemOfUnits.h>
+#include <G4MTRunManager.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4Threading.hh>
 #include <G4ThreeVector.hh>
@@ -114,14 +115,24 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
 
 //---------------------------------------------------------------------------//
 /*!
- * Set the event ID at the start of an event.
+ * Set the event ID and reseed the Celeritas RNG at the start of an event.
  */
-void LocalTransporter::SetEventId(int id)
+void LocalTransporter::InitializeEvent(int id)
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(id >= 0);
+
     event_id_ = EventId(id);
     track_counter_ = 0;
+
+    if (!(G4Threading::IsMultithreadedApplication()
+          && G4MTRunManager::SeedOncePerCommunication()))
+    {
+        // Since Geant4 schedules events dynamically, reseed the Celeritas RNGs
+        // using the Geant4 event ID for reproducibility. This guarantees that
+        // an event can be reproduced given the event ID.
+        step_->reseed(event_id_);
+    }
 }
 
 //---------------------------------------------------------------------------//

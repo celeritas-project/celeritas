@@ -557,6 +557,7 @@ set(CELERITASTEST_PREFIX celeritas/random)
 
 celeritas_add_device_test(celeritas/random/RngEngine)
 celeritas_add_test(celeritas/random/Selector.test.cc)
+celeritas_add_test(celeritas/random/RngReseed.test.cc)
 celeritas_add_test(celeritas/random/XorwowRngEngine.test.cc GPU)
 
 celeritas_add_test(celeritas/random/distribution/BernoulliDistribution.test.cc)
