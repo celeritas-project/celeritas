@@ -117,9 +117,9 @@ Field data
 
 These classes correspond to JSON input files to the field setup.
 
-.. doxygenclass:: celeritas::UniformFieldData
+.. doxygenstruct:: celeritas::UniformFieldParams
 
-.. doxygenclass:: celeritas::RZMapFieldInput
+.. doxygenstruct:: celeritas::RZMapFieldInput
 
 .. _celeritas_random:
 

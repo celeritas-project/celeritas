@@ -148,7 +148,7 @@ Physics is set up using the top-level ``physics_option`` key in the JSON input,
 corresponding to :ref:`api_geant4_physics_options`. The magnetic field is
 specified with a combination of the ``field_type``, ``field``, and
 ``field_file`` keys, and detailed field driver configuration options are set
-with ``field_options`` corresponding to the ``FieldOptions ``class in :ref:`_api_field_data`.
+with ``field_options`` corresponding to the ``FieldOptions`` class in :ref:`api_field_data`.
 
 .. note:: The macro file usage is in the process of being replaced by JSON
    input for improved automation.
