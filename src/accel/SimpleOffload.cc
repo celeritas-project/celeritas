@@ -87,16 +87,17 @@ void SimpleOffload::BeginOfRunAction(G4Run const*)
 
 //---------------------------------------------------------------------------//
 /*!
- * Send Celeritas the event ID.
+ * Send Celeritas the event ID and reseed the Celeritas RNG.
  */
 void SimpleOffload::BeginOfEventAction(G4Event const* event)
 {
     if (!*this)
         return;
 
-    // Set event ID in local transporter
+    // Set event ID in local transporter and reseed RNG for reproducibility
     ExceptionConverter call_g4exception{"celer0002"};
-    CELER_TRY_HANDLE(local_->SetEventId(event->GetEventID()), call_g4exception);
+    CELER_TRY_HANDLE(local_->InitializeEvent(event->GetEventID()),
+                     call_g4exception);
 }
 
 //---------------------------------------------------------------------------//

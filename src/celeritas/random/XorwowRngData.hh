@@ -70,7 +70,7 @@ struct XorwowRngParamsData
  */
 struct XorwowRngInitializer
 {
-    ull_int seed{0};
+    Array<unsigned int, 1> seed{0};
     ull_int subsequence{0};
     ull_int offset{0};
 };
