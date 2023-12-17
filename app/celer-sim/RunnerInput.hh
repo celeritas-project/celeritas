@@ -61,6 +61,7 @@ struct RunnerInput
     bool step_diagnostic{};
     int step_diagnostic_bins{1000};
     bool write_track_counts{true};  //!< Output track counts for each step
+    bool write_step_times{true};  //!< Output elapsed times for each step
 
     // Control
     unsigned int seed{};

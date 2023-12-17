@@ -42,6 +42,7 @@ Transporter<M>::Transporter(TransporterInput inp)
     : max_steps_(inp.max_steps)
     , num_streams_(inp.params->max_streams())
     , store_track_counts_(inp.store_track_counts)
+    , store_step_times_(inp.store_step_times)
 {
     CELER_EXPECT(inp);
 
@@ -105,6 +106,9 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
     if (store_track_counts_)
     {
         append_track_counts(track_counts);
+    }
+    if (store_step_times_)
+    {
         result.step_times.push_back(get_step_time());
     }
 

@@ -43,6 +43,7 @@ struct TransporterInput
     // Loop control
     size_type max_steps{};
     bool store_track_counts{};  //!< Store track counts at each step
+    bool store_step_times{};  //!< Store time elapsed for each step
 
     StreamId stream_id{0};
 
@@ -129,6 +130,7 @@ class Transporter final : public TransporterBase
     size_type max_steps_;
     size_type num_streams_;
     bool store_track_counts_;
+    bool store_step_times_;
 };
 
 //---------------------------------------------------------------------------//
