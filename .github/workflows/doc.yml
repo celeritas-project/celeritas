@@ -7,6 +7,14 @@ concurrency:
   group: doc-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
   cancel-in-progress: true
 
+env:
+  celer_upload_doc:  >-
+    ${{  github.ref_name == 'develop'
+      || contains(github.ref_name, 'backports/')
+      || contains(github.head_ref, 'release-')
+      || contains(github.head_ref, 'doc-')
+    }}
+
 jobs:
   dev:
     runs-on: ubuntu-latest
@@ -39,12 +47,7 @@ jobs:
         run: |
           ninja doxygen
       - name: Upload pages artifacts
-        if: >-
-          ${{  github.ref_name == 'develop'
-            || contains(github.ref_name, 'backports/')
-            || contains(github.head_ref, 'release-')
-            || contains(github.head_ref, 'doc-')
-          }}
+        if: ${{env.celer_upload_doc}}
         id: upload-pages-user
         uses: actions/upload-pages-artifact@v2
         with:
@@ -82,12 +85,7 @@ jobs:
         run: |
           ninja doc
       - name: Upload pages artifacts
-        if: >-
-          ${{  github.ref_name == 'develop'
-            || contains(github.ref_name, 'backports/')
-            || contains(github.head_ref, 'release-')
-            || contains(github.head_ref, 'doc-')
-          }}
+        if: ${{env.celer_upload_doc}}
         id: upload-pages-user
         uses: actions/upload-pages-artifact@v2
         with:
