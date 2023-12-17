@@ -12,7 +12,7 @@ env:
     ${{  github.ref_name == 'develop'
       || contains(github.ref_name, 'backports/')
       || contains(github.head_ref, 'release-')
-      || contains(github.head_ref, 'doc-')
+      || contains(github.event.pull_request.labels.*.name, 'documentation')
     }}
 
 jobs:
