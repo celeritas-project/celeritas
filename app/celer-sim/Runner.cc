@@ -161,7 +161,7 @@ size_type Runner::num_events() const
  *
  * This is a *mean* value over all streams.
  */
-auto Runner::get_action_times() -> MapStrDouble
+auto Runner::get_action_times() const -> MapStrDouble
 {
     MapStrDouble result;
     for (auto sid : range(StreamId{this->num_streams()}))
@@ -526,6 +526,19 @@ auto Runner::get_transporter(StreamId stream) -> TransporterBase&
             }
         }();
     }
+    CELER_ENSURE(result);
+    return *result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get an already-constructed transporter for the given stream.
+ */
+auto Runner::get_transporter(StreamId stream) const -> TransporterBase&
+{
+    CELER_EXPECT(stream < this->num_streams());
+
+    auto& result = transporters_[stream.get()];
     CELER_ENSURE(result);
     return *result;
 }

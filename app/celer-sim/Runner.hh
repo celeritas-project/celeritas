@@ -71,7 +71,7 @@ class Runner
     size_type num_events() const;
 
     // Get the accumulated action times
-    MapStrDouble get_action_times();
+    MapStrDouble get_action_times() const;
 
   private:
     //// TYPES ////
@@ -102,6 +102,7 @@ class Runner
     void build_events(RunnerInput const&);
     int get_num_streams(RunnerInput const&);
     TransporterBase& get_transporter(StreamId);
+    TransporterBase& get_transporter(StreamId) const;
 };
 
 //---------------------------------------------------------------------------//
