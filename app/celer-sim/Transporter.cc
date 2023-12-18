@@ -131,9 +131,13 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
 
         get_step_time = {};
         track_counts = step();
+
         if (store_track_counts_)
         {
             append_track_counts(track_counts);
+        }
+        if (store_step_times_)
+        {
             result.step_times.push_back(get_step_time());
         }
     }
