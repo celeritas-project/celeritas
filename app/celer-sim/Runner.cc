@@ -132,6 +132,7 @@ auto Runner::operator()(StreamId stream, EventId event) -> RunnerResult
 auto Runner::operator()() -> RunnerResult
 {
     CELER_EXPECT(events_.size() == 1);
+    CELER_EXPECT(this->num_streams() == 1);
 
     auto& transport = this->get_transporter(StreamId{0});
     return transport(make_span(events_.front()));
@@ -502,9 +503,9 @@ void Runner::build_diagnostics(RunnerInput const& inp)
  */
 auto Runner::get_transporter(StreamId stream) -> TransporterBase&
 {
-    CELER_EXPECT(stream < this->num_streams());
+    CELER_EXPECT(stream < transporters_.size());
 
-    auto& result = transporters_[stream.get()];
+    UPTransporterBase& result = transporters_[stream.get()];
     if (!result)
     {
         result = [this, stream]() -> std::unique_ptr<TransporterBase> {
@@ -537,8 +538,7 @@ auto Runner::get_transporter(StreamId stream) -> TransporterBase&
  */
 auto Runner::get_transporter(StreamId stream) const -> TransporterBase&
 {
-    CELER_EXPECT(stream < this->num_streams());
-
+    CELER_EXPECT(stream < transporters_.size());
     auto& result = transporters_[stream.get()];
     CELER_ENSURE(result);
     return *result;
