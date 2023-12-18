@@ -69,6 +69,45 @@ namespace celeritas
 {
 namespace app
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Get the number of streams from the OMP_NUM_THREADS environment variable.
+ *
+ * The value of OMP_NUM_THREADS should be a list of positive integers, each of
+ * which sets the number of threads for the parallel region at the
+ * corresponding nested level. The number of streams is set to the first value
+ * in the list.
+ *
+ * \note For a multithreaded CPU run, if OMP_NUM_THREADS is set to a single
+ * value, the number of threads for each nested parallel region will be set to
+ * that value.
+ */
+size_type calc_num_streams(RunnerInput const& inp)
+{
+    size_type num_threads = 1;
+#if CELERITAS_USE_OPENMP
+    if (!inp.merge_events)
+    {
+        std::string const& nt_str = celeritas::getenv("OMP_NUM_THREADS");
+        if (!nt_str.empty())
+        {
+            auto nt = std::stoi(nt_str);
+            CELER_VALIDATE(nt > 0, << "nonpositive num_streams=" << nt);
+            num_threads = static_cast<size_type>(nt);
+        }
+    }
+#else
+    CELER_DISCARD(inp);
+#endif
+    // Don't create more streams than events
+    return std::min(num_threads, inp.max_events);
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct on all threads from a JSON input and shared output manager.
@@ -325,7 +364,7 @@ void Runner::build_core_params(RunnerInput const& inp,
     params.sim = SimParams::from_import(imported, params.particle);
 
     // Store the number of simultaneous threads/tasks per process
-    params.max_streams = this->get_num_streams(inp);
+    params.max_streams = calc_num_streams(inp);
     CELER_VALIDATE(inp.mctruth_file.empty() || params.max_streams == 1,
                    << "MC truth output is only supported with a single "
                       "stream ("
@@ -542,41 +581,6 @@ auto Runner::get_transporter(StreamId stream) const -> TransporterBase&
     auto& result = transporters_[stream.get()];
     CELER_ENSURE(result);
     return *result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the number of streams from the OMP_NUM_THREADS environment variable.
- *
- * The value of OMP_NUM_THREADS should be a list of positive integers, each of
- * which sets the number of threads for the parallel region at the
- * corresponding nested level. The number of streams is set to the first value
- * in the list.
- *
- * \note For a multithreaded CPU run, if OMP_NUM_THREADS is set to a single
- * value, the number of threads for each nested parallel region will be set to
- * that value.
- */
-int Runner::get_num_streams(RunnerInput const& inp)
-{
-#ifdef _OPENMP
-    if (inp.merge_events)
-    {
-        return 1;
-    }
-
-    std::string const& nt_str = getenv("OMP_NUM_THREADS");
-    if (!nt_str.empty())
-    {
-        auto num_threads = std::stoi(nt_str);
-        CELER_VALIDATE(num_threads > 0,
-                       << "nonpositive num_streams=" << num_threads);
-        return num_threads;
-    }
-#else
-    CELER_DISCARD(inp);
-#endif
-    return 1;
 }
 
 //---------------------------------------------------------------------------//
