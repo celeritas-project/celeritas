@@ -94,7 +94,8 @@ Driver
   the required segment length.
 Propagator
   Given a maximum physics step, advance the geometry state and momentum along
-  the field lines, satisfying given constraints for the maximum geometry error.
+  the field lines, satisfying constraints (see :ref:`field driver
+  options<api_field_data>`) for the maximum geometry error.
 
 Propagation
 ~~~~~~~~~~~
@@ -103,14 +104,14 @@ Propagation
 
 .. doxygenclass:: celeritas::FieldPropagator
 
-.. doxygenclass:: celeritas::MakeMagFieldPropagator
+.. doxygenfunction:: celeritas::make_mag_field_propagator
 
 .. _api_field_data:
 
 Field data input and options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. doxygenclass:: celeritas::FieldDriverOptions
+.. doxygenstruct:: celeritas::FieldDriverOptions
 
 Field data
 ~~~~~~~~~~
