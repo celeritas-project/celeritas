@@ -57,6 +57,8 @@ namespace celeritas
      y_{n+1/2}   = y_n + (h/2) \Sigma_{n=1}^{7} c^{*}_i k_i
    \f]
  * with the coefficients \f$c^{*}\f$ taken from L. F. Shampine (1986).
+ *
+ * \todo Rename DormandPrinceIntegrator
  */
 template<class EquationT>
 class DormandPrinceStepper
@@ -93,7 +95,7 @@ CELER_FUNCTION DormandPrinceStepper(EquationT&&)->DormandPrinceStepper<EquationT
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Adaptive step size control for the DormandPrince RK5(4)7M method.
+ * Numerically integrate using the DormandPrince RK5(4)7M method.
  */
 template<class E>
 CELER_FUNCTION auto

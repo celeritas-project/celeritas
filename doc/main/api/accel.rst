@@ -28,7 +28,7 @@ provided.
 
 The SetupOptionsMessenger can be instantiated with a reference to a global
 SetupOptions instance in order to provide a Geant4 "UI" macro interface to an
-app's celeritas options.
+app's Celeritas options.
 
 .. doxygenclass:: celeritas::SetupOptionsMessenger
    :members: none
@@ -46,6 +46,8 @@ settings.
 .. doxygenstruct:: celeritas::SDSetupOptions
 
 .. doxygenclass:: celeritas::UniformAlongStepFactory
+
+.. doxygenclass:: celeritas::RZMapFieldAlongStepFactory
 
 Detailed interface
 ------------------
@@ -66,3 +68,17 @@ Interface utilities
 .. doxygenclass:: celeritas::ExceptionConverter
 
 .. doxygenclass:: celeritas::AlongStepFactoryInterface
+
+
+Classes usable by Geant4
+------------------------
+
+These utilities are based on Celeritas data structures and capabilities but are
+written to be usable both by the ``celer-g4`` app and potential other users.
+
+.. doxygenclass:: celeritas::GeantSimpleCalo
+
+.. doxygenclass:: celeritas::HepMC3PrimaryGenerator
+
+.. doxygenclass:: celeritas::RZMapMagneticField
+
