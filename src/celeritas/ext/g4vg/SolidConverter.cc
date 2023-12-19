@@ -713,8 +713,12 @@ auto SolidConverter::convert_bool_impl(G4BooleanSolid const& bs)
 
         // Construct name
         std::ostringstream label;
-        label << "[TEMP]@" << bs.GetName() << '/' << lr[i] << '/'
-              << solids[i]->GetName();
+        label << "[TEMP]@" << bs.GetName() << '/' << lr[i];
+        if (trans)
+        {
+            label << '*';
+        }
+        label << '/' << solids[i]->GetName();
 
         // Create temporary LV from converted solid
         auto* temp_lv = new LogicalVolume(label.str().c_str(), converted);
