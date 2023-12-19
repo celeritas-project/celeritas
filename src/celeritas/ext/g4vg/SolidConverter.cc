@@ -686,13 +686,10 @@ auto SolidConverter::unionsolid(arg_type solid_base) -> result_type
 auto SolidConverter::convert_bool_impl(G4BooleanSolid const& bs)
     -> PlacedBoolVolumes
 {
-    Array<G4VSolid const*, 2> solids{
-        {bs.GetConstituentSolid(0), bs.GetConstituentSolid(1)}};
-
     static Array<char const*, 2> const lr = {{"left", "right"}};
     PlacedBoolVolumes result;
 
-    for (auto i : range(solids.size()))
+    for (auto i : range(lr.size()))
     {
         G4VSolid const* solid = bs.GetConstituentSolid(i);
         CELER_ASSERT(solid);
@@ -716,7 +713,7 @@ auto SolidConverter::convert_bool_impl(G4BooleanSolid const& bs)
         {
             label << '*';
         }
-        label << '/' << solids[i]->GetName();
+        label << '/' << solid->GetName();
 
         // Create temporary LV from converted solid
         auto* temp_lv = new LogicalVolume(label.str().c_str(), converted);
