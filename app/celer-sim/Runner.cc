@@ -132,8 +132,8 @@ Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
         write_to_root(*core_params_, root_manager_.get());
     }
 
-    CELER_ASSERT(core_params_);
     transporters_.resize(this->num_streams());
+    CELER_ENSURE(core_params_);
 }
 
 //---------------------------------------------------------------------------//
@@ -183,6 +183,7 @@ auto Runner::operator()() -> RunnerResult
  */
 StreamId::size_type Runner::num_streams() const
 {
+    CELER_EXPECT(core_params_);
     return core_params_->max_streams();
 }
 
@@ -370,9 +371,9 @@ void Runner::build_core_params(RunnerInput const& inp,
     // Store the number of simultaneous threads/tasks per process
     params.max_streams = calc_num_streams(inp);
     CELER_VALIDATE(inp.mctruth_file.empty() || params.max_streams == 1,
-                   << "MC truth output is only supported with a single "
-                      "stream ("
-                   << params.max_streams << " streams requested)");
+                   << "cannot output MC truth with multiple "
+                      "streams ("
+                   << params.max_streams << " requested)");
 
     // Construct track initialization params
     params.init = [&inp, &params] {

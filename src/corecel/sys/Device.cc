@@ -245,6 +245,7 @@ void Device::create_streams(unsigned int num_streams) const
     CELER_EXPECT(*this);
     CELER_EXPECT(streams_);
 
+    CELER_LOG(info) << "Creating " << num_streams << " device streams";
     *streams_ = detail::StreamStorage(num_streams);
 }
 
