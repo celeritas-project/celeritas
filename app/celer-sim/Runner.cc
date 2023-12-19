@@ -204,13 +204,17 @@ size_type Runner::num_events() const
 auto Runner::get_action_times() const -> MapStrDouble
 {
     MapStrDouble result;
+    size_type num_streams{0};
     for (auto sid : range(StreamId{this->num_streams()}))
     {
-        auto& transport = this->get_transporter(sid);
-        transport.accum_action_times(&result);
+        if (auto* transport = this->get_transporter_ptr(sid))
+        {
+            transport->accum_action_times(&result);
+            ++num_streams;
+        }
     }
 
-    double norm{1 / static_cast<double>(this->num_streams())};
+    double norm{1 / static_cast<double>(num_streams)};
     for (auto&& [action, time] : result)
     {
         time *= norm;
