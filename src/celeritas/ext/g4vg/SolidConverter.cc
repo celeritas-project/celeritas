@@ -701,12 +701,10 @@ auto SolidConverter::convert_bool_impl(G4BooleanSolid const& bs)
         std::unique_ptr<Transformation3D> trans;
         if (auto* displaced = dynamic_cast<G4DisplacedSolid const*>(solid))
         {
-            if (auto* moved = displaced->GetConstituentMovedSolid())
-            {
-                solid = moved;
-                trans = std::make_unique<Transformation3D>(
-                    convert_transform_(displaced->GetTransform().Invert()));
-            }
+            solid = displaced->GetConstituentMovedSolid();
+            CELER_ASSERT(solid);
+            trans = std::make_unique<Transformation3D>(
+                convert_transform_(displaced->GetTransform().Invert()));
         }
 
         VUnplacedVolume const* converted = (*this)(*solid);
