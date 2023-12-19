@@ -15,12 +15,14 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-
+/*!
+ * Input data and options for a uniform field.
+ */
 struct UniformFieldParams
 {
     using Real3 = Array<real_type, 3>;
 
-    Real3 field{0, 0, 0};
+    Real3 field{0, 0, 0};  //!< Field strength (native units)
     FieldDriverOptions options;
 };
 

@@ -25,7 +25,8 @@ namespace celeritas
  * The magnetic field is discretized at nodes on an R-Z grid, and each point
  * the field vector is approximated by a 2-D vector in R-Z. The input units of
  * this field are in *NATIVE UNITS* (gauss). An optional \c _units field in the
- * input can specify whether the input is in tesla or native units.
+ * input can specify whether the input is in tesla or native units, with
+ * allowable values of "T", "tesla", "gauss", or "native".
  *
  * The field values are all indexed with R having stride 1: [Z][R]
  */
