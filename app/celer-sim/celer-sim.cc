@@ -122,6 +122,8 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     }
     else
     {
+        CELER_LOG(status) << "Transporting " << run_stream.num_events()
+                          << " on " << num_streams << " threads";
         MultiExceptionHandler capture_exception;
 #ifdef _OPENMP
         // Set the maximum number of nested parallel regions
@@ -130,7 +132,6 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
         // level of nesting to a single parallel region (over events) and
         // deactivate any deeper nested parallel regions.
         omp_set_max_active_levels(1);
-        CELER_ASSERT(run_stream.num_events() >= run_stream.num_streams());
 #    pragma omp parallel for num_threads(num_streams)
 #endif
         for (size_type event = 0; event < run_stream.num_events(); ++event)

@@ -102,7 +102,7 @@ class Runner
     void build_events(RunnerInput const&);
     int get_num_streams(RunnerInput const&);
     TransporterBase& get_transporter(StreamId);
-    TransporterBase& get_transporter(StreamId) const;
+    TransporterBase const* get_transporter_ptr(StreamId) const;
 };
 
 //---------------------------------------------------------------------------//
