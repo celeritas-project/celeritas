@@ -68,6 +68,12 @@ class CmseTest : public GeantGeoTest
     std::string geometry_basename() const override { return "cmse"; }
 };
 
+class ZnenvTest : public GeantGeoTest
+{
+  public:
+    std::string geometry_basename() const override { return "znenv"; }
+};
+
 //---------------------------------------------------------------------------//
 
 TEST_F(FourLevelsTest, accessors)
@@ -657,6 +663,31 @@ TEST_F(CmseTest, trace)
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     // clang-format on
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(ZnenvTest, trace)
+{
+    static char const* const expected_mid_volumes[]
+        = {"World", "ZNENV", "ZNST", "ZNST",  "ZNST", "ZNST", "ZNST",
+           "ZNST",  "ZNST",  "ZNST", "ZNST",  "ZNST", "ZNST", "ZNST",
+           "ZNST",  "ZNST",  "ZNST", "ZNST",  "ZNST", "ZNST", "ZNST",
+           "ZNST",  "ZNST",  "ZNST", "ZNENV", "World"};
+    static real_type const expected_mid_distances[]
+        = {6.38, 0.1,  0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32,
+           0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32,
+           0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.1,  46.38};
+    {
+        auto result = this->track({-10, 0.0001, 0}, {1, 0, 0});
+        EXPECT_VEC_EQ(expected_mid_volumes, result.volumes);
+        EXPECT_VEC_SOFT_EQ(expected_mid_distances, result.distances);
+    }
+    {
+        auto result = this->track({0.0001, -10, 0}, {0, 1, 0});
+        EXPECT_VEC_EQ(expected_mid_volumes, result.volumes);
+        EXPECT_VEC_SOFT_EQ(expected_mid_distances, result.distances);
+    }
 }
 
 //---------------------------------------------------------------------------//

@@ -385,6 +385,7 @@ if(CELERITAS_USE_VecGeom)
     list(APPEND _vecgeom_tests
       "FourLevelsGeantTest.*"
       "SolidsGeantTest.*"
+      "ZnenvGeantTest.*"
     )
   endif()
   if(NOT _vecgeom_tests)
