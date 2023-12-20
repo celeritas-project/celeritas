@@ -11,6 +11,7 @@
 #include <iostream>
 #include <unordered_set>
 #include <G4LogicalVolumeStore.hh>
+#include <G4PVDivision.hh>
 #include <G4PVPlacement.hh>
 #include <G4ReflectionFactory.hh>
 #include <G4VPhysicalVolume.hh>
@@ -243,6 +244,30 @@ auto Converter::build_with_daughters(G4LogicalVolume const* mother_g4lv)
 
             // Place daughter, accounting for reflection
             place_daughter(placed, daughter_lv);
+        }
+        else if (auto* div = dynamic_cast<G4PVDivision*>(g4pv))
+        {
+            // Create multiple daughters using "parameterization"
+            G4VPVParameterisation* param = div->GetParameterisation();
+            CELER_ASSERT(param);
+
+            DaughterPlacer place_daughter(
+                *convert_transform_, div->GetLogicalVolume(), mother_lv);
+
+            // Convert daughter volume
+            VGLogicalVolume* daughter_lv
+                = this->build_with_daughters(place_daughter.g4lv());
+
+            // Loop over number of replicas
+            for (auto j : range(div->GetMultiplicity()))
+            {
+                // Use the paramterization to *change* the physical volume's
+                // position (yes, this is how Geant4 does it too)
+                param->ComputeTransformation(j, div);
+
+                // Add a copy
+                place_daughter(div, daughter_lv);
+            }
         }
         else
         {
