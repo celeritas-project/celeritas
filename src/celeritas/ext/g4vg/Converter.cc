@@ -77,7 +77,9 @@ struct LVMapVisitor
         // Visit daughters
         for (auto const i : range(lv->GetNoDaughters()))
         {
-            (*this)(lv->GetDaughter(i)->GetLogicalVolume());
+            G4VPhysicalVolume const* daughter{lv->GetDaughter(i)};
+            CELER_ASSERT(daughter);
+            (*this)(daughter->GetLogicalVolume());
         }
     }
 };
@@ -91,31 +93,35 @@ class DaughterPlacer
   public:
     using VGLogicalVolume = vecgeom::LogicalVolume;
 
-    DaughterPlacer(Transformer const& trans,
+    template<class F>
+    DaughterPlacer(F&& build_vgdaughter,
+                   Transformer const& trans,
                    G4LogicalVolume const* daughter_g4lv,
                    VGLogicalVolume* mother_lv)
-        : convert_transform_{trans}, g4lv_{daughter_g4lv}, mother_lv_{mother_lv}
+        : convert_transform_{trans}, mother_lv_{mother_lv}
     {
-        CELER_EXPECT(g4lv_);
         CELER_EXPECT(mother_lv_);
+        CELER_EXPECT(daughter_g4lv);
 
         // Test for reflection
-        if (G4LogicalVolume const* unrefl_g4lv = get_constituent_lv(*g4lv_))
+        if (G4LogicalVolume const* unrefl_g4lv
+            = get_constituent_lv(*daughter_g4lv))
         {
             // Replace with constituent volume, and flip the Z scale
             // See G4ReflectionFactory::CheckScale: the reflection value is
             // hard coded to {1, 1, -1}
-            g4lv_ = unrefl_g4lv;
+            daughter_g4lv = unrefl_g4lv;
             flip_z_ = true;
         }
+
+        daughter_lv_ = build_vgdaughter(daughter_g4lv);
+        CELER_ENSURE(daughter_lv_);
     }
 
     //! Using Geant4 daughter physical volume, place the VecGeom daughter
-    void operator()(G4VPhysicalVolume const* g4pv,
-                    VGLogicalVolume* daughter_lv) const
+    void operator()(G4VPhysicalVolume const* g4pv) const
     {
         CELER_EXPECT(g4pv);
-        CELER_EXPECT(daughter_lv);
 
         vecgeom::Vector3D<real_type> const reflvec{
             1, 1, static_cast<real_type>(flip_z_ ? -1 : 1)};
@@ -126,18 +132,15 @@ class DaughterPlacer
             build_transform(convert_transform_, *g4pv),
             reflvec,
             g4pv->GetName(),
-            daughter_lv,
+            daughter_lv_,
             mother_lv_,
             g4pv->GetCopyNo());
     }
 
-    //! Access unreflected logical volume
-    G4LogicalVolume const* g4lv() const { return g4lv_; }
-
   private:
     Transformer const& convert_transform_;
-    G4LogicalVolume const* g4lv_;
-    VGLogicalVolume* mother_lv_;
+    VGLogicalVolume* mother_lv_{nullptr};
+    VGLogicalVolume* daughter_lv_{nullptr};
     bool flip_z_{false};
 };
 
@@ -227,6 +230,10 @@ auto Converter::build_with_daughters(G4LogicalVolume const* mother_g4lv)
 
     ++depth_;
 
+    auto convert_daughter = [this](G4LogicalVolume const* g4lv) {
+        return this->build_with_daughters(g4lv);
+    };
+
     // Place daughter logical volumes in this mother
     for (auto i : range(mother_g4lv->GetNoDaughters()))
     {
@@ -235,15 +242,13 @@ auto Converter::build_with_daughters(G4LogicalVolume const* mother_g4lv)
 
         if (auto* placed = dynamic_cast<G4PVPlacement const*>(g4pv))
         {
-            DaughterPlacer place_daughter(
-                *convert_transform_, g4pv->GetLogicalVolume(), mother_lv);
-
-            // Convert daughter volume (using *constituent* lv if reflected)
-            VGLogicalVolume* daughter_lv
-                = this->build_with_daughters(place_daughter.g4lv());
+            DaughterPlacer place_daughter(convert_daughter,
+                                          *convert_transform_,
+                                          g4pv->GetLogicalVolume(),
+                                          mother_lv);
 
             // Place daughter, accounting for reflection
-            place_daughter(placed, daughter_lv);
+            place_daughter(placed);
         }
         else if (auto* div = dynamic_cast<G4PVDivision*>(g4pv))
         {
@@ -251,12 +256,10 @@ auto Converter::build_with_daughters(G4LogicalVolume const* mother_g4lv)
             G4VPVParameterisation* param = div->GetParameterisation();
             CELER_ASSERT(param);
 
-            DaughterPlacer place_daughter(
-                *convert_transform_, div->GetLogicalVolume(), mother_lv);
-
-            // Convert daughter volume
-            VGLogicalVolume* daughter_lv
-                = this->build_with_daughters(place_daughter.g4lv());
+            DaughterPlacer place_daughter(convert_daughter,
+                                          *convert_transform_,
+                                          div->GetLogicalVolume(),
+                                          mother_lv);
 
             // Loop over number of replicas
             for (auto j : range(div->GetMultiplicity()))
@@ -266,7 +269,7 @@ auto Converter::build_with_daughters(G4LogicalVolume const* mother_g4lv)
                 param->ComputeTransformation(j, div);
 
                 // Add a copy
-                place_daughter(div, daughter_lv);
+                place_daughter(div);
             }
         }
         else
