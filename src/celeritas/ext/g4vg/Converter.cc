@@ -250,26 +250,23 @@ auto Converter::build_with_daughters(G4LogicalVolume const* mother_g4lv)
             // Place daughter, accounting for reflection
             place_daughter(placed);
         }
-        else if (auto* div = dynamic_cast<G4PVDivision*>(g4pv))
+        else if (G4VPVParameterisation* param = g4pv->GetParameterisation())
         {
             // Create multiple daughters using "parameterization"
-            G4VPVParameterisation* param = div->GetParameterisation();
-            CELER_ASSERT(param);
-
             DaughterPlacer place_daughter(convert_daughter,
                                           *convert_transform_,
-                                          div->GetLogicalVolume(),
+                                          g4pv->GetLogicalVolume(),
                                           mother_lv);
 
             // Loop over number of replicas
-            for (auto j : range(div->GetMultiplicity()))
+            for (auto j : range(g4pv->GetMultiplicity()))
             {
                 // Use the paramterization to *change* the physical volume's
                 // position (yes, this is how Geant4 does it too)
-                param->ComputeTransformation(j, div);
+                param->ComputeTransformation(j, g4pv);
 
                 // Add a copy
-                place_daughter(div);
+                place_daughter(g4pv);
             }
         }
         else
