@@ -12,7 +12,9 @@
 #include <unordered_set>
 #include <G4LogicalVolumeStore.hh>
 #include <G4PVPlacement.hh>
+#include <G4PVReplica.hh>
 #include <G4ReflectionFactory.hh>
+#include <G4VPVParameterisation.hh>
 #include <G4VPhysicalVolume.hh>
 #include <VecGeom/management/ReflFactory.h>
 #include <VecGeom/volumes/LogicalVolume.h>
@@ -162,10 +164,11 @@ auto Converter::build_with_daughters(G4LogicalVolume const* mother_g4lv)
     // Place daughter logical volumes in this mother
     for (auto const i : range(mother_g4lv->GetNoDaughters()))
     {
-        // Get daughter volume
-        G4VPhysicalVolume const* g4pv = mother_g4lv->GetDaughter(i);
+        // Get daughter volume (g4pv non-const for replica treatment)
+        G4VPhysicalVolume* g4pv = mother_g4lv->GetDaughter(i);
         G4LogicalVolume const* g4lv = g4pv->GetLogicalVolume();
-        if (!dynamic_cast<G4PVPlacement const*>(g4pv))
+        if (!dynamic_cast<G4PVPlacement const*>(g4pv)
+            && !dynamic_cast<G4PVReplica const*>(g4pv))
         {
             TypeDemangler<G4VPhysicalVolume> demangle_pv_type;
             CELER_LOG(error)
@@ -188,16 +191,36 @@ auto Converter::build_with_daughters(G4LogicalVolume const* mother_g4lv)
         // Convert daughter volume
         VGLogicalVolume* daughter_lv = this->build_with_daughters(g4lv);
 
-        // Use the VGDML reflection factory to place the daughter in the mother
-        // (it must *always* be used, in case parent is reflected)
-        vecgeom::ReflFactory::Instance().Place(
-            (*this->convert_transform_)(g4pv->GetTranslation(),
-                                        g4pv->GetRotation()),
-            vecgeom::Vector3D<double>{1.0, 1.0, flip_z ? -1.0 : 1.0},
-            g4pv->GetName(),
-            daughter_lv,
-            mother_lv,
-            g4pv->GetCopyNo());
+        // extract replication parameters if any
+        int nReplicas = 1;
+        EAxis axis{kUndefined};  // unused
+        bool consuming;  // unused
+        double replicaWidth = 0;  // unused
+        double replicaOffset = 0;  // unused
+        g4pv->GetReplicationData(
+            axis, nReplicas, replicaWidth, replicaOffset, consuming);
+
+        // loop over division replicas (includes trival case of simple
+        // placement)
+        for (int repID = 0; repID < nReplicas; ++repID)
+        {
+            if (nReplicas > 1)
+            {
+                // compute the position/transformation of this replica
+                // (modifies g4pv!!)
+                g4pv->GetParameterisation()->ComputeTransformation(repID, g4pv);
+            }
+            // Use the VGDML reflection factory to place the daughter in the
+            // mother (it must *always* be used, in case parent is reflected)
+            vecgeom::ReflFactory::Instance().Place(
+                (*this->convert_transform_)(g4pv->GetTranslation(),
+                                            g4pv->GetRotation()),
+                vecgeom::Vector3D<double>{1.0, 1.0, flip_z ? -1.0 : 1.0},
+                g4pv->GetName(),
+                daughter_lv,
+                mother_lv,
+                g4pv->GetCopyNo());
+        }
     }
 
     --depth_;
