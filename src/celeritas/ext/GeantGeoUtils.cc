@@ -15,6 +15,7 @@
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
 #include <G4PhysicalVolumeStore.hh>
+#include <G4ReflectionFactory.hh>
 #include <G4SolidStore.hh>
 #include <G4Threading.hh>
 #include <G4TouchableHistory.hh>
@@ -174,6 +175,7 @@ void reset_geant_geometry()
         G4PhysicalVolumeStore::Clean();
         G4LogicalVolumeStore::Clean();
         G4SolidStore::Clean();
+        G4ReflectionFactory::Instance()->Clean();
         msg = scoped_log.str();
     }
     if (!msg.empty())

@@ -1197,6 +1197,18 @@ class SolidsGeantTest : public VecgeomGeantTestBase
 
 //---------------------------------------------------------------------------//
 
+#define ZnenvGeantTest TEST_IF_CELERITAS_GEANT(ZnenvGeantTest)
+class ZnenvGeantTest : public VecgeomGeantTestBase
+{
+  public:
+    SPConstGeo build_geometry() final
+    {
+        return this->load_g4_gdml("znenv.gdml");
+    }
+};
+
+//---------------------------------------------------------------------------//
+
 TEST_F(SolidsGeantTest, DISABLED_dump)
 {
     this->geometry();
@@ -1456,6 +1468,33 @@ TEST_F(SolidsGeantTest, reflected_vol)
     auto const& label = this->geometry()->id_to_label(geo.volume_id());
     EXPECT_EQ("trd3", label.name);
     EXPECT_TRUE(ends_with(label.ext, "_refl"));
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(ZnenvGeantTest, trace)
+{
+    // NOTE: This tests the capability of the G4PVDivision conversion based on
+    // an ALICE component
+    static char const* const expected_mid_volumes[]
+        = {"World", "ZNENV", "ZNST", "ZNST",  "ZNST", "ZNST", "ZNST",
+           "ZNST",  "ZNST",  "ZNST", "ZNST",  "ZNST", "ZNST", "ZNST",
+           "ZNST",  "ZNST",  "ZNST", "ZNST",  "ZNST", "ZNST", "ZNST",
+           "ZNST",  "ZNST",  "ZNST", "ZNENV", "World"};
+    static real_type const expected_mid_distances[]
+        = {6.38, 0.1,  0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32,
+           0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32,
+           0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.1,  46.38};
+    {
+        auto result = this->track({-10, 0.0001, 0}, {1, 0, 0});
+        EXPECT_VEC_EQ(expected_mid_volumes, result.volumes);
+        EXPECT_VEC_SOFT_EQ(expected_mid_distances, result.distances);
+    }
+    {
+        auto result = this->track({0.0001, -10, 0}, {0, 1, 0});
+        EXPECT_VEC_EQ(expected_mid_volumes, result.volumes);
+        EXPECT_VEC_SOFT_EQ(expected_mid_distances, result.distances);
+    }
 }
 
 //---------------------------------------------------------------------------//

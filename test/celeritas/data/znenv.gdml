@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define/>
+
+  <materials>
+    <isotope N="16" Z="8" name="O16">
+      <atom unit="g/mole" value="15.9949"/>
+    </isotope>
+    <isotope N="17" Z="8" name="O17">
+      <atom unit="g/mole" value="16.9991"/>
+    </isotope>
+    <isotope N="18" Z="8" name="O18">
+      <atom unit="g/mole" value="17.9992"/>
+    </isotope>
+    <element name="OXYGEN_elm">
+      <fraction n="0.99757" ref="O16"/>
+      <fraction n="0.00038" ref="O17"/>
+      <fraction n="0.00205" ref="O18"/>
+    </element>
+    <isotope N="28" Z="14" name="SI28">
+      <atom unit="g/mole" value="27.9769"/>
+    </isotope>
+    <isotope N="29" Z="14" name="SI29">
+      <atom unit="g/mole" value="28.9765"/>
+    </isotope>
+    <isotope N="30" Z="14" name="SI30">
+      <atom unit="g/mole" value="29.9738"/>
+    </isotope>
+    <element name="SILICON_elm">
+      <fraction n="0.922296077703922" ref="SI28"/>
+      <fraction n="0.0468319531680468" ref="SI29"/>
+      <fraction n="0.0308719691280309" ref="SI30"/>
+    </element>
+    <material name="ZDC_SiO2" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="125.663004531563"/>
+      <D unit="g/cm3" value="2.64000010490418"/>
+      <fraction n="0.532565073149355" ref="OXYGEN_elm"/>
+      <fraction n="0.467434926850645" ref="SILICON_elm"/>
+    </material>
+    <isotope N="36" Z="18" name="AR36">
+      <atom unit="g/mole" value="35.9675"/>
+    </isotope>
+    <isotope N="38" Z="18" name="AR38">
+      <atom unit="g/mole" value="37.9627"/>
+    </isotope>
+    <isotope N="40" Z="18" name="AR40">
+      <atom unit="g/mole" value="39.9624"/>
+    </isotope>
+    <element name="ARGON_elm">
+      <fraction n="0.003365" ref="AR36"/>
+      <fraction n="0.000632" ref="AR38"/>
+      <fraction n="0.996003" ref="AR40"/>
+    </element>
+    <isotope N="12" Z="6" name="C12">
+      <atom unit="g/mole" value="12"/>
+    </isotope>
+    <isotope N="13" Z="6" name="C13">
+      <atom unit="g/mole" value="13.0034"/>
+    </isotope>
+    <element name="CARBON_elm">
+      <fraction n="0.9893" ref="C12"/>
+      <fraction n="0.0107" ref="C13"/>
+    </element>
+    <isotope N="14" Z="7" name="N14">
+      <atom unit="g/mole" value="14.0031"/>
+    </isotope>
+    <isotope N="15" Z="7" name="N15">
+      <atom unit="g/mole" value="15.0001"/>
+    </isotope>
+    <element name="NITROGEN_elm">
+      <fraction n="0.99632" ref="N14"/>
+      <fraction n="0.00368" ref="N15"/>
+    </element>
+    <material name="ZDC_Air" state="gas">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="85.6684631398732"/>
+      <D unit="g/cm3" value="0.00120478996541351"/>
+      <fraction n="0.0128270120974137" ref="ARGON_elm"/>
+      <fraction n="0.000124000118658935" ref="CARBON_elm"/>
+      <fraction n="0.755267756991837" ref="NITROGEN_elm"/>
+      <fraction n="0.23178123079209" ref="OXYGEN_elm"/>
+    </material>
+    <isotope N="54" Z="26" name="FE54">
+      <atom unit="g/mole" value="53.9396"/>
+    </isotope>
+    <isotope N="56" Z="26" name="FE56">
+      <atom unit="g/mole" value="55.9349"/>
+    </isotope>
+    <isotope N="57" Z="26" name="FE57">
+      <atom unit="g/mole" value="56.9354"/>
+    </isotope>
+    <isotope N="58" Z="26" name="FE58">
+      <atom unit="g/mole" value="57.9333"/>
+    </isotope>
+    <element name="IRON_elm">
+      <fraction n="0.05845" ref="FE54"/>
+      <fraction n="0.91754" ref="FE56"/>
+      <fraction n="0.02119" ref="FE57"/>
+      <fraction n="0.00282" ref="FE58"/>
+    </element>
+    <isotope N="58" Z="28" name="NI58">
+      <atom unit="g/mole" value="57.9353"/>
+    </isotope>
+    <isotope N="60" Z="28" name="NI60">
+      <atom unit="g/mole" value="59.9308"/>
+    </isotope>
+    <isotope N="61" Z="28" name="NI61">
+      <atom unit="g/mole" value="60.9311"/>
+    </isotope>
+    <isotope N="62" Z="28" name="NI62">
+      <atom unit="g/mole" value="61.9283"/>
+    </isotope>
+    <isotope N="64" Z="28" name="NI64">
+      <atom unit="g/mole" value="63.928"/>
+    </isotope>
+    <element name="NICKEL_elm">
+      <fraction n="0.680769" ref="NI58"/>
+      <fraction n="0.262231" ref="NI60"/>
+      <fraction n="0.011399" ref="NI61"/>
+      <fraction n="0.036345" ref="NI62"/>
+      <fraction n="0.009256" ref="NI64"/>
+    </element>
+    <isotope N="180" Z="74" name="W180">
+      <atom unit="g/mole" value="179.947"/>
+    </isotope>
+    <isotope N="182" Z="74" name="W182">
+      <atom unit="g/mole" value="181.948"/>
+    </isotope>
+    <isotope N="183" Z="74" name="W183">
+      <atom unit="g/mole" value="182.95"/>
+    </isotope>
+    <isotope N="184" Z="74" name="W184">
+      <atom unit="g/mole" value="183.951"/>
+    </isotope>
+    <isotope N="186" Z="74" name="W186">
+      <atom unit="g/mole" value="185.954"/>
+    </isotope>
+    <element name="TUNGSTEN_elm">
+      <fraction n="0.0012" ref="W180"/>
+      <fraction n="0.265" ref="W182"/>
+      <fraction n="0.1431" ref="W183"/>
+      <fraction n="0.3064" ref="W184"/>
+      <fraction n="0.2843" ref="W186"/>
+    </element>
+    <material name="ZDC_Walloy" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="676.659878344954"/>
+      <D unit="g/cm3" value="17.6000003814697"/>
+      <fraction n="0.0299999991618097" ref="IRON_elm"/>
+      <fraction n="0.0399999988824129" ref="NICKEL_elm"/>
+      <fraction n="0.930000001955777" ref="TUNGSTEN_elm"/>
+    </material>
+    <isotope N="1" Z="1" name="H1">
+      <atom unit="g/mole" value="1.00782503081372"/>
+    </isotope>
+    <isotope N="2" Z="1" name="H2">
+      <atom unit="g/mole" value="2.01410199966617"/>
+    </isotope>
+    <element name="HYDROGEN_elm">
+      <fraction n="0.999885" ref="H1"/>
+      <fraction n="0.000115" ref="H2"/>
+    </element>
+    <material name="ZDC_residualGas" state="gas">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="45.3342692277366"/>
+      <D unit="g/cm3" value="3.20000001160798e-14"/>
+      <fraction n="0.280000001192093" ref="CARBON_elm"/>
+      <fraction n="0.280000001192093" ref="HYDROGEN_elm"/>
+      <fraction n="0.439999997615814" ref="OXYGEN_elm"/>
+    </material>
+  </materials>
+
+  <solids>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="ZNF10x1" rmax="0.1825" rmin="0" startphi="0" z="1000"/>
+    <box lunit="mm" name="ZNG10x1" x="0.6" y="0.6" z="1000"/>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="ZNF20x1" rmax="0.1825" rmin="0" startphi="0" z="1000"/>
+    <box lunit="mm" name="ZNG20x1" x="0.6" y="0.6" z="1000"/>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="ZNF30x1" rmax="0.1825" rmin="0" startphi="0" z="1000"/>
+    <box lunit="mm" name="ZNG30x1" x="0.6" y="0.6" z="1000"/>
+    <tube aunit="deg" deltaphi="360" lunit="mm" name="ZNF40x1" rmax="0.1825" rmin="0" startphi="0" z="1000"/>
+    <box lunit="mm" name="ZNG40x1" x="0.6" y="0.6" z="1000"/>
+    <box lunit="mm" name="TGeoBBox0x20" x="3.2" y="3.2" z="1000"/>
+    <box lunit="mm" name="TGeoBBox0x19" x="35.2" y="3.2" z="1000"/>
+    <box lunit="mm" name="TGeoBBox0x18" x="35.2" y="35.2" z="1000"/>
+    <box lunit="mm" name="TGeoBBox0x17" x="35.2" y="70.4" z="1000"/>
+    <box lunit="mm" name="ZNEU0x1" x="70.4" y="70.4" z="1000"/>
+    <box lunit="mm" name="ZNENV0x1" x="72.4" y="72.4" z="1002"/>
+    <box lunit="mm" name="WorldBox" x="1000" y="1000" z="2000"/>
+  </solids>
+
+  <structure>
+    <volume name="ZNF1">
+      <materialref ref="ZDC_SiO2"/>
+      <solidref ref="ZNF10x1"/>
+    </volume>
+    <volume name="ZNG1">
+      <materialref ref="ZDC_Air"/>
+      <solidref ref="ZNG10x1"/>
+      <physvol copynumber="1" name="ZNF1_1">
+        <volumeref ref="ZNF1"/>
+      </physvol>
+    </volume>
+    <volume name="ZNF2">
+      <materialref ref="ZDC_SiO2"/>
+      <solidref ref="ZNF20x1"/>
+    </volume>
+    <volume name="ZNG2">
+      <materialref ref="ZDC_Air"/>
+      <solidref ref="ZNG20x1"/>
+      <physvol copynumber="1" name="ZNF2_1">
+        <volumeref ref="ZNF2"/>
+      </physvol>
+    </volume>
+    <volume name="ZNF3">
+      <materialref ref="ZDC_SiO2"/>
+      <solidref ref="ZNF30x1"/>
+    </volume>
+    <volume name="ZNG3">
+      <materialref ref="ZDC_Air"/>
+      <solidref ref="ZNG30x1"/>
+      <physvol copynumber="1" name="ZNF3_1">
+        <volumeref ref="ZNF3"/>
+      </physvol>
+    </volume>
+    <volume name="ZNF4">
+      <materialref ref="ZDC_SiO2"/>
+      <solidref ref="ZNF40x1"/>
+    </volume>
+    <volume name="ZNG4">
+      <materialref ref="ZDC_Air"/>
+      <solidref ref="ZNG40x1"/>
+      <physvol copynumber="1" name="ZNF4_1">
+        <volumeref ref="ZNF4"/>
+      </physvol>
+    </volume>
+    <volume name="ZNST">
+      <materialref ref="ZDC_Walloy"/>
+      <solidref ref="TGeoBBox0x20"/>
+      <physvol copynumber="1" name="ZNG1_1">
+        <volumeref ref="ZNG1"/>
+        <position name="ZNG1_1_pos" unit="mm" x="-0.799999982118607" y="0.799999982118607" z="0"/>
+      </physvol>
+      <physvol copynumber="1" name="ZNG2_1">
+        <volumeref ref="ZNG2"/>
+        <position name="ZNG2_1_pos" unit="mm" x="0.799999982118607" y="0.799999982118607" z="0"/>
+      </physvol>
+      <physvol copynumber="1" name="ZNG3_1">
+        <volumeref ref="ZNG3"/>
+        <position name="ZNG3_1_pos" unit="mm" x="-0.799999982118607" y="-0.799999982118607" z="0"/>
+      </physvol>
+      <physvol copynumber="1" name="ZNG4_1">
+        <volumeref ref="ZNG4"/>
+        <position name="ZNG4_1_pos" unit="mm" x="0.799999982118607" y="-0.799999982118607" z="0"/>
+      </physvol>
+    </volume>
+    <volume name="ZNSL">
+      <materialref ref="ZDC_Walloy"/>
+      <solidref ref="TGeoBBox0x19"/>
+      <divisionvol axis="kXAxis" number="11" offset="0" unit="mm" width="3.2">
+        <volumeref ref="ZNST"/>
+      </divisionvol>
+    </volume>
+    <volume name="ZN1">
+      <materialref ref="ZDC_Walloy"/>
+      <solidref ref="TGeoBBox0x18"/>
+      <divisionvol axis="kYAxis" number="11" offset="0" unit="mm" width="3.2">
+        <volumeref ref="ZNSL"/>
+      </divisionvol>
+    </volume>
+    <volume name="ZNTX">
+      <materialref ref="ZDC_Walloy"/>
+      <solidref ref="TGeoBBox0x17"/>
+      <divisionvol axis="kYAxis" number="2" offset="0" unit="mm" width="35.2">
+        <volumeref ref="ZN1"/>
+      </divisionvol>
+    </volume>
+    <volume name="ZNEU">
+      <materialref ref="ZDC_Walloy"/>
+      <solidref ref="ZNEU0x1"/>
+      <divisionvol axis="kXAxis" number="2" offset="0" unit="mm" width="35.2">
+        <volumeref ref="ZNTX"/>
+      </divisionvol>
+    </volume>
+    <volume name="ZNENV">
+      <materialref ref="ZDC_residualGas"/>
+      <solidref ref="ZNENV0x1"/>
+      <physvol copynumber="1" name="ZNEU_1">
+        <volumeref ref="ZNEU"/>
+      </physvol>
+    </volume>
+    <volume name="World">
+      <materialref ref="ZDC_residualGas"/>
+      <solidref ref="WorldBox"/>
+      <physvol copynumber="1" name="WorldBoxPV">
+        <volumeref ref="ZNENV"/>
+      </physvol>
+    </volume>
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="World"/>
+  </setup>
+
+</gdml>
