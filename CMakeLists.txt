@@ -125,6 +125,11 @@ else()
   set(_allow_single_prec TRUE)
 endif()
 
+celeritas_setup_option(CELERITAS_UNITS CGS)
+celeritas_setup_option(CELERITAS_UNITS CLHEP)
+celeritas_define_options(CELERITAS_UNITS
+  "Native unit system for Celeritas")
+
 celeritas_setup_option(CELERITAS_REAL_TYPE double)
 celeritas_setup_option(CELERITAS_REAL_TYPE float)
 celeritas_define_options(CELERITAS_REAL_TYPE
