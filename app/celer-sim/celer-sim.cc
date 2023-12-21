@@ -122,6 +122,8 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     }
     else
     {
+        CELER_LOG(status) << "Transporting " << run_stream.num_events()
+                          << " on " << num_streams << " threads";
         MultiExceptionHandler capture_exception;
 #ifdef _OPENMP
         // Set the maximum number of nested parallel regions

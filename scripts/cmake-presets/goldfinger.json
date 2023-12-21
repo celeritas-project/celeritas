@@ -5,17 +5,20 @@
     {
       "name": ".base",
       "generator": "Ninja",
-      "inherits": [".spack-base", ".debug"],
+      "inherits": [".spack-base"],
       "binaryDir": "${sourceDir}/build-${presetName}",
       "cacheVariables": {
+        "BUILD_SHARED_LIBS":     {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_CUDA":    {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_HIP":     {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_USE_JSON":    {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_MPI":     {"type": "BOOL",   "value": "OFF"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_SWIG":    {"type": "BOOL",   "value": "OFF"},
-        "CMAKE_BUILD_TYPE":      {"type": "STRING", "value": "Debug"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "OFF"},
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL",   "value": "ON"},
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL",   "value": "ON"},
         "CMAKE_OSX_DEPLOYMENT_TARGET": {"type": "STRING", "value": "14"},
         "CMAKE_CXX_STANDARD":   {"type": "STRING",   "value": "17"},
@@ -43,8 +46,7 @@
       "cacheVariables": {
         "CELERITAS_USE_SWIG":    {"type": "BOOL",   "value": "ON"},
         "CMAKE_SWIG_CXX_FLAGS": "-Wno-unused-parameter;-Wno-deprecated-declarations",
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",
-        "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "OFF"}
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install"
       }
     },
     {
@@ -53,8 +55,7 @@
       "inherits": [".base", ".debug", "default"],
       "cacheVariables": {
         "CELERITAS_USE_SWIG":    {"type": "BOOL",   "value": "OFF"},
-        "CELERITAS_REAL_TYPE": "float",
-        "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "OFF"}
+        "CELERITAS_REAL_TYPE": "float"
       }
     },
     {
@@ -77,23 +78,39 @@
       }
     },
     {
+      "name": "reldeb",
+      "displayName": "With ORANGE in optimized+errcheck mode",
+      "inherits": [".reldeb", ".base"],
+      "cacheVariables": {
+        "CELERITAS_USE_ROOT": {"type": "BOOL",   "value": "OFF"}
+      }
+    },
+    {
       "name": "vecgeom-reldeb",
-      "displayName": "With vecgeom in optimized mode",
+      "displayName": "With vecgeom in optimized+errcheck mode",
       "inherits": [".reldeb", "vecgeom"],
       "cacheVariables": {
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_ROOT": {"type": "BOOL",   "value": "ON"}
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": "ndebug",
+      "displayName": "With ORANGE in optimized mode",
+      "inherits": [".ndebug", ".base"],
+      "cacheVariables": {
+        "CELERITAS_USE_ROOT": {"type": "BOOL",   "value": "OFF"}
       }
     },
     {
       "name": "vecgeom-ndebug",
       "displayName": "With vecgeom in optimized mode",
-      "inherits": [".ndebug", "vecgeom"],
+      "inherits": [".base", ".ndebug"],
       "cacheVariables": {
+        "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "ON"},
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_ROOT": {"type": "BOOL",   "value": "ON"}
+        "CELERITAS_USE_ROOT":    {"type": "BOOL",   "value": "ON"}
       }
     }
   ],
