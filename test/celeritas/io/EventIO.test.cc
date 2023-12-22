@@ -61,6 +61,7 @@ TEST_P(EventIOTest, variety_rwr)
 
     // Determine the event record format and open the file
     EventReader read_event(out_filename, this->particles());
+    EXPECT_EQ(3, read_event.num_events());
 
     // Read events from the event record
     auto result = this->read_all(read_event);
@@ -115,6 +116,7 @@ TEST_P(EventIOTest, no_vertex_rwr)
 
     // Read it in and check
     EventReader read_event(out_filename, this->particles());
+    EXPECT_EQ(3, read_event.num_events());
     auto result = this->read_all(read_event);
 
     // clang-format off

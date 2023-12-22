@@ -19,6 +19,7 @@
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "accel/ExceptionConverter.hh"
+#include "accel/HepMC3PrimaryGenerator.hh"
 #include "accel/SetupOptionsMessenger.hh"
 
 #include "HepMC3PrimaryGeneratorAction.hh"
@@ -151,7 +152,17 @@ void GlobalSetup::ReadInput(std::string const& filename)
 
         // Apply Celeritas \c SetupOptions commands
         options_->max_num_tracks = input_.num_track_slots;
-        options_->max_num_events = input_.max_events;
+        options_->max_num_events = [this] {
+            if (!input_.event_file.empty())
+            {
+                return static_cast<size_type>(
+                    HepMC3PrimaryGenerator(input_.event_file).NumEvents());
+            }
+            else
+            {
+                return input_.primary_options.num_events;
+            }
+        }();
         options_->max_steps = input_.max_steps;
         options_->initializer_capacity = input_.initializer_capacity;
         options_->secondary_stack_factor = input_.secondary_stack_factor;

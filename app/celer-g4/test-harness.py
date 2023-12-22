@@ -71,7 +71,6 @@ inp = {
     "output_file": out_file,
     "offload_output_file": offload_file,
     "num_track_slots": max_tracks,
-    "max_events": 1024,
     "initializer_capacity": init_capacity,
     "secondary_stack_factor": 2,
     "physics_list": "ftfp_bert",
