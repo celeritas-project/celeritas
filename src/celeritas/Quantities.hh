@@ -28,7 +28,7 @@ struct NativeUnit
 //! Unit for quantity such that the numeric value of 1 MeV is unity
 struct Mev
 {
-    //! Conversion factor from the unit to CGS
+    //! Conversion factor from the unit to native
     static CELER_CONSTEXPR_FUNCTION real_type value()
     {
         return real_type(1e6) * constants::e_electron * units::volt;
@@ -47,7 +47,7 @@ struct LogMev
 //! Unit for relativistic speeds
 struct CLight
 {
-    //! Conversion factor from the unit to CGS
+    //! Conversion factor from the unit to native
     static CELER_CONSTEXPR_FUNCTION real_type value()
     {
         return constants::c_light;
@@ -57,7 +57,7 @@ struct CLight
 //! Unit for precise representation of particle charges
 struct EElectron
 {
-    //! Conversion factor from the unit to CGS
+    //! Conversion factor from the unit to native
     static CELER_CONSTEXPR_FUNCTION real_type value()
     {
         return constants::e_electron;  // *Positive* sign
@@ -69,7 +69,7 @@ struct EElectron
 //! Unit for atomic masses
 struct Amu
 {
-    //! Conversion factor from the unit to CGS
+    //! Conversion factor from the unit to native
     static CELER_CONSTEXPR_FUNCTION real_type value()
     {
         return constants::atomic_mass;
@@ -81,14 +81,14 @@ struct Amu
 //! Unit for cross sections
 struct Barn
 {
-    //! Conversion factor from the unit to CGS
+    //! Conversion factor from the unit to native
     static CELER_CONSTEXPR_FUNCTION real_type value() { return units::barn; }
 };
 
 //! Unit for cross sections
 struct Millibarn
 {
-    //! Conversion factor from the unit to CGS
+    //! Conversion factor from the unit to native
     static CELER_CONSTEXPR_FUNCTION real_type value()
     {
         return real_type(1e-3) * units::barn;
@@ -98,8 +98,17 @@ struct Millibarn
 //! Unit for field
 struct Tesla
 {
-    //! Conversion factor from the unit to CGS
+    //! Conversion factor from the unit to native
     static CELER_CONSTEXPR_FUNCTION real_type value() { return units::tesla; }
+};
+
+//! Centimeter unit (useful for testing with CLHEP system of units)
+struct Centimeter
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        return units::centimeter;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -128,6 +137,7 @@ using MevMomentumSq = Quantity<UnitDivide<UnitProduct<Mev, Mev>, CLightSq>>;
 using LightSpeed = Quantity<CLight>;
 using AmuMass = Quantity<Amu>;
 using FieldTesla = Quantity<Tesla>;
+using CmLength = Quantity<Centimeter>;
 //!@}
 
 //---------------------------------------------------------------------------//
