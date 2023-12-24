@@ -52,7 +52,7 @@ class RootEventReader : public EventReaderInterface
     result_type operator()() final;
 
     //! Get total number of events
-    size_type num_events() const { return num_events_; }
+    size_type num_events() const final { return num_events_; }
 
   private:
     //// DATA ////

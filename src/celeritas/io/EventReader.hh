@@ -59,7 +59,7 @@ class EventReader : public EventReaderInterface
     result_type operator()() final;
 
     //! Get total number of events
-    size_type num_events() const { return num_events_; }
+    size_type num_events() const final { return num_events_; }
 
   private:
     using SPReader = std::shared_ptr<HepMC3::Reader>;
