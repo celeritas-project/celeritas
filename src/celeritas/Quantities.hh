@@ -109,6 +109,26 @@ struct Centimeter
     {
         return units::centimeter;
     }
+    static char const* label() { return "cm"; }
+};
+
+struct InvCentimeterCubed
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        return 1 / (units::centimeter * units::centimeter * units::centimeter);
+    }
+    static char const* label() { return "1/cm^3"; }
+};
+
+struct MolPerCentimeterCubed
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        return constants::na_avogadro
+               / (units::centimeter * units::centimeter * units::centimeter);
+    }
+    static char const* label() { return "mol/cm^3"; }
 };
 
 //---------------------------------------------------------------------------//
@@ -138,6 +158,8 @@ using LightSpeed = Quantity<CLight>;
 using AmuMass = Quantity<Amu>;
 using FieldTesla = Quantity<Tesla>;
 using CmLength = Quantity<Centimeter>;
+using InvCcDensity = Quantity<InvCentimeterCubed>;
+using MolCcDensity = Quantity<MolPerCentimeterCubed>;
 //!@}
 
 //---------------------------------------------------------------------------//
