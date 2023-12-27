@@ -274,6 +274,18 @@ CELER_CONSTEXPR_FUNCTION auto operator/(Quantity<U, T> lhs, T2 rhs) noexcept
 
 //! \endcond
 //---------------------------------------------------------------------------//
+//! Value is 1 / C1::value()
+template<class C1>
+struct UnitInverse
+{
+    //! Get the conversion factor of the resulting unit
+    static CELER_CONSTEXPR_FUNCTION auto value() noexcept -> decltype(auto)
+    {
+        return 1 / C1::value();
+    }
+};
+
+//---------------------------------------------------------------------------//
 //! Value is C1::value() / C2::value()
 template<class C1, class C2>
 struct UnitDivide

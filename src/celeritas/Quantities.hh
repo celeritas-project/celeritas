@@ -102,7 +102,7 @@ struct Tesla
     static CELER_CONSTEXPR_FUNCTION real_type value() { return units::tesla; }
 };
 
-//! Centimeter unit (useful for testing with CLHEP system of units)
+//! Centimeter unit for length
 struct Centimeter
 {
     static CELER_CONSTEXPR_FUNCTION real_type value()
@@ -112,6 +112,7 @@ struct Centimeter
     static char const* label() { return "cm"; }
 };
 
+//! Inverse cubic centimeter for number densities
 struct InvCentimeterCubed
 {
     static CELER_CONSTEXPR_FUNCTION real_type value()
@@ -121,6 +122,7 @@ struct InvCentimeterCubed
     static char const* label() { return "1/cm^3"; }
 };
 
+//! Molar density
 struct MolPerCentimeterCubed
 {
     static CELER_CONSTEXPR_FUNCTION real_type value()
@@ -158,6 +160,7 @@ using LightSpeed = Quantity<CLight>;
 using AmuMass = Quantity<Amu>;
 using FieldTesla = Quantity<Tesla>;
 using CmLength = Quantity<Centimeter>;
+using InvCmXs = Quantity<UnitInverse<Centimeter>>;
 using InvCcDensity = Quantity<InvCentimeterCubed>;
 using MolCcDensity = Quantity<MolPerCentimeterCubed>;
 //!@}
