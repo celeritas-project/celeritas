@@ -5,6 +5,8 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/io/EventIO.test.cc
 //---------------------------------------------------------------------------//
+#include <fstream>
+
 #include "celeritas_config.h"
 #include "celeritas/io/EventReader.hh"
 #include "celeritas/io/EventWriter.hh"
