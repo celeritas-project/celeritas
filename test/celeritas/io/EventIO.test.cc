@@ -183,6 +183,42 @@ TEST_P(EventIOTest, write_read)
     }
 }
 
+TEST_P(EventIOTest, edge_case)
+{
+    std::string const ext = this->GetParam();
+    std::string filename = this->make_unique_filename(std::string{"."} + ext);
+
+    // Empty event file
+    {
+        std::ofstream out(filename);
+        out << "HepMC::Version 3.02.02\n"
+            << "HepMC::Asciiv3-START_EVENT_LISTING\n"
+            << "HepMC::Asciiv3-END_EVENT_LISTING";
+        out.close();
+        EXPECT_THROW(EventReader(filename, this->particles()), RuntimeError);
+    }
+
+    // Single event
+    {
+        Primary p;
+        p.particle_id = this->particles()->find(pdg::gamma());
+        p.energy = units::MevEnergy{1};
+        p.position = {0, 0, 0};
+        p.direction = {1, 0, 0};
+        p.track_id = TrackId{0};
+        p.event_id = EventId{0};
+        std::vector<Primary> event(4, p);
+        EventWriter write_event(filename, this->particles());
+        write_event(event);
+    }
+    {
+        EventReader read_event(filename, this->particles());
+        EXPECT_EQ(1, read_event.num_events());
+        EXPECT_EQ(4, read_event().size());
+        EXPECT_TRUE(read_event().empty());
+    }
+}
+
 INSTANTIATE_TEST_SUITE_P(EventIO,
                          EventIOTest,
                          testing::Values("hepmc3", "hepmc2", "hepevt"));
