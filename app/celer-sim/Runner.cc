@@ -14,6 +14,10 @@
 #include <utility>
 #include <vector>
 
+#ifdef _OPENMP
+#    include <omp.h>
+#endif
+
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
@@ -73,16 +77,14 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Get the number of streams from the OMP_NUM_THREADS environment variable.
+ * Get the number of streams from the number of OpenMP threads.
  *
- * The value of OMP_NUM_THREADS should be a list of positive integers, each of
- * which sets the number of threads for the parallel region at the
- * corresponding nested level. The number of streams is set to the first value
- * in the list.
- *
- * \note For a multithreaded CPU run, if OMP_NUM_THREADS is set to a single
- * value, the number of threads for each nested parallel region will be set to
- * that value.
+ * The OMP_NUM_THREADS environment variable can be used to control the number
+ * of threads/streams. The value of OMP_NUM_THREADS should be a list of
+ * positive integers, each of which sets the number of threads for the parallel
+ * region at the corresponding nested level. The number of streams is set to
+ * the first value in the list. If OMP_NUM_THREADS is not set, the value will
+ * be implementation defined.
  */
 size_type calc_num_streams(RunnerInput const& inp)
 {
@@ -90,12 +92,12 @@ size_type calc_num_streams(RunnerInput const& inp)
 #if CELERITAS_USE_OPENMP
     if (!inp.merge_events)
     {
-        std::string const& nt_str = celeritas::getenv("OMP_NUM_THREADS");
-        if (!nt_str.empty())
+#    pragma omp parallel
         {
-            auto nt = std::stoi(nt_str);
-            CELER_VALIDATE(nt > 0, << "nonpositive num_streams=" << nt);
-            num_threads = static_cast<size_type>(nt);
+            if (omp_get_thread_num() == 0)
+            {
+                num_threads = omp_get_num_threads();
+            }
         }
     }
 #else
