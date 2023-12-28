@@ -17,7 +17,7 @@
 template<class>
 class G4ReferenceCountedHandle;
 class G4VPhysicalVolume;
-class G4VTouchable;
+class G4TouchableHistory;
 class G4Navigator;
 
 namespace celeritas
@@ -54,7 +54,7 @@ struct G4ExternDeleter
 
 //---------------------------------------------------------------------------//
 
-using TouchHandle = G4ReferenceCountedHandle<G4VTouchable>;
+using TouchHandle = G4ReferenceCountedHandle<G4TouchableHistory>;
 using UPTouchHandle
     = std::unique_ptr<TouchHandle, G4ExternDeleter<TouchHandle>>;
 using UPNavigator = std::unique_ptr<G4Navigator, G4ExternDeleter<G4Navigator>>;

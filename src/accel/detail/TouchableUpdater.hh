@@ -11,7 +11,7 @@
 #include "celeritas/Units.hh"
 
 class G4Navigator;
-class G4VTouchable;
+class G4TouchableHistory;
 class G4LogicalVolume;
 
 namespace celeritas
@@ -37,7 +37,7 @@ class TouchableUpdater
     }
 
     // Construct with thread-local navigator and touchable
-    inline TouchableUpdater(G4Navigator* navi, G4VTouchable* touchable);
+    inline TouchableUpdater(G4Navigator* navi, G4TouchableHistory* touchable);
 
     // Try to find the given point in the given logical volume
     bool
@@ -45,7 +45,7 @@ class TouchableUpdater
 
   private:
     G4Navigator* navi_;
-    G4VTouchable* touchable_;
+    G4TouchableHistory* touchable_;
 };
 
 //---------------------------------------------------------------------------//
@@ -54,7 +54,8 @@ class TouchableUpdater
 /*!
  * Construct with with thread-local navigator and touchable.
  */
-TouchableUpdater::TouchableUpdater(G4Navigator* navi, G4VTouchable* touchable)
+TouchableUpdater::TouchableUpdater(G4Navigator* navi,
+                                   G4TouchableHistory* touchable)
     : navi_{navi}, touchable_{touchable}
 {
     CELER_EXPECT(navi_);

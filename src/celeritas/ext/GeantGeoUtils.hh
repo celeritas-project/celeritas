@@ -17,7 +17,7 @@
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
-class G4VTouchable;
+class G4TouchableHistory;
 
 namespace celeritas
 {
@@ -25,7 +25,7 @@ namespace celeritas
 //! Wrap around a touchable to get a descriptive output.
 struct PrintableNavHistory
 {
-    G4VTouchable const* touch{nullptr};
+    G4TouchableHistory const* touch{nullptr};
 };
 
 //---------------------------------------------------------------------------//
