@@ -14,11 +14,10 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/sys/ThreadId.hh"
 
+#include "../GeantGeoUtils.hh"
+
 template<class>
 class G4ReferenceCountedHandle;
-class G4VPhysicalVolume;
-class G4TouchableHistory;
-class G4Navigator;
 
 namespace celeritas
 {
@@ -54,9 +53,9 @@ struct G4ExternDeleter
 
 //---------------------------------------------------------------------------//
 
-using TouchHandle = G4ReferenceCountedHandle<G4TouchableHistory>;
-using UPTouchHandle
-    = std::unique_ptr<TouchHandle, G4ExternDeleter<TouchHandle>>;
+using GeantTouchableHandle = G4ReferenceCountedHandle<GeantTouchableBase>;
+using UPTouchHandle = std::unique_ptr<GeantTouchableHandle,
+                                      G4ExternDeleter<GeantTouchableHandle>>;
 using UPNavigator = std::unique_ptr<G4Navigator, G4ExternDeleter<G4Navigator>>;
 
 //---------------------------------------------------------------------------//
@@ -105,7 +104,7 @@ struct GeantGeoNavCollection<Ownership::reference, MemSpace::host>
     GeantGeoNavCollection& operator=(GeantGeoNavCollection const&) = default;
 
     // Get the navigation state for a given track slot
-    TouchHandle& touch_handle(TrackSlotId tid) const;
+    GeantTouchableHandle& touch_handle(TrackSlotId tid) const;
     // Get the navigation state for a given track slot
     G4Navigator& navigator(TrackSlotId tid) const;
 

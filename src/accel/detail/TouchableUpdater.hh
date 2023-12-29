@@ -9,10 +9,7 @@
 
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
-
-class G4Navigator;
-class G4TouchableHistory;
-class G4LogicalVolume;
+#include "celeritas/ext/GeantGeoUtils.hh"
 
 namespace celeritas
 {
@@ -37,7 +34,7 @@ class TouchableUpdater
     }
 
     // Construct with thread-local navigator and touchable
-    inline TouchableUpdater(G4Navigator* navi, G4TouchableHistory* touchable);
+    inline TouchableUpdater(G4Navigator* navi, GeantTouchableBase* touchable);
 
     // Try to find the given point in the given logical volume
     bool
@@ -45,7 +42,7 @@ class TouchableUpdater
 
   private:
     G4Navigator* navi_;
-    G4TouchableHistory* touchable_;
+    GeantTouchableBase* touchable_;
 };
 
 //---------------------------------------------------------------------------//
@@ -55,7 +52,7 @@ class TouchableUpdater
  * Construct with with thread-local navigator and touchable.
  */
 TouchableUpdater::TouchableUpdater(G4Navigator* navi,
-                                   G4TouchableHistory* touchable)
+                                   GeantTouchableBase* touchable)
     : navi_{navi}, touchable_{touchable}
 {
     CELER_EXPECT(navi_);

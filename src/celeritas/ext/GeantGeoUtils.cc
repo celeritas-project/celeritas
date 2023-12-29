@@ -90,7 +90,7 @@ std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh)
     CELER_EXPECT(pnh.touch);
     os << '{';
 
-    G4VTouchable& touch = const_cast<G4VTouchable&>(*pnh.touch);
+    auto& touch = const_cast<GeantTouchableBase&>(*pnh.touch);
     for (int depth : range(touch.GetHistoryDepth()))
     {
         G4VPhysicalVolume* vol = touch.GetVolume(depth);

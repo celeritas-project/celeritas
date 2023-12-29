@@ -26,7 +26,7 @@ void G4ExternDeleter<T>::operator()(T* ptr) noexcept
     delete ptr;
 }
 
-template struct G4ExternDeleter<TouchHandle>;
+template struct G4ExternDeleter<GeantTouchableHandle>;
 template struct G4ExternDeleter<G4Navigator>;
 
 //---------------------------------------------------------------------------//
