@@ -50,7 +50,7 @@ RunInput::operator bool() const
     return !geometry_file.empty() && (primary_options || !event_file.empty())
            && physics_list < PhysicsListSelection::size_
            && (field == no_field() || field_options)
-           && ((num_track_slots > 0 && max_events > 0 && max_steps > 0
+           && ((num_track_slots > 0 && max_steps > 0
                 && initializer_capacity > 0 && secondary_stack_factor > 0)
                || SharedParams::CeleritasDisabled())
            && (step_diagnostic_bins > 0 || !step_diagnostic);

@@ -84,7 +84,7 @@ namespace
  * value, the number of threads for each nested parallel region will be set to
  * that value.
  */
-size_type calc_num_streams(RunnerInput const& inp)
+size_type calc_num_streams(RunnerInput const& inp, size_type num_events)
 {
     size_type num_threads = 1;
 #if CELERITAS_USE_OPENMP
@@ -102,7 +102,7 @@ size_type calc_num_streams(RunnerInput const& inp)
     CELER_DISCARD(inp);
 #endif
     // Don't create more streams than events
-    return std::min(num_threads, inp.max_events);
+    return std::min(num_threads, num_events);
 }
 
 //---------------------------------------------------------------------------//
@@ -123,7 +123,6 @@ Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
     this->build_diagnostics(inp);
     this->build_step_collectors(inp);
     this->build_transporter_input(inp);
-    this->build_events(inp);
     use_device_ = inp.use_device;
 
     if (root_manager_)
@@ -368,28 +367,24 @@ void Runner::build_core_params(RunnerInput const& inp,
     // Construct simulation params
     params.sim = SimParams::from_import(imported, params.particle);
 
+    // Get the total number of events
+    auto num_events = this->build_events(inp, params.particle);
+
     // Store the number of simultaneous threads/tasks per process
-    params.max_streams = calc_num_streams(inp);
+    params.max_streams = calc_num_streams(inp, num_events);
     CELER_VALIDATE(inp.mctruth_file.empty() || params.max_streams == 1,
                    << "cannot output MC truth with multiple "
                       "streams ("
                    << params.max_streams << " requested)");
 
     // Construct track initialization params
-    params.init = [&inp, &params] {
+    params.init = [&inp, &params, num_events] {
         CELER_VALIDATE(inp.initializer_capacity > 0,
                        << "nonpositive initializer_capacity="
                        << inp.initializer_capacity);
-        CELER_VALIDATE(inp.max_events > 0,
-                       << "nonpositive max_events=" << inp.max_events);
-        CELER_VALIDATE(!inp.primary_options
-                           || inp.max_events >= inp.primary_options.num_events,
-                       << "max_events=" << inp.max_events
-                       << " cannot be less than num_events="
-                       << inp.primary_options.num_events);
         TrackInitParams::Input input;
         input.capacity = ceil_div(inp.initializer_capacity, params.max_streams);
-        input.max_events = inp.max_events;
+        input.max_events = num_events;
         input.track_order = inp.track_order;
         return std::make_shared<TrackInitParams>(std::move(input));
     }();
@@ -421,8 +416,11 @@ void Runner::build_transporter_input(RunnerInput const& inp)
 //---------------------------------------------------------------------------//
 /*!
  * Read events from a file or build using a primary generator.
+ *
+ * This returns the total number of events.
  */
-void Runner::build_events(RunnerInput const& inp)
+size_type
+Runner::build_events(RunnerInput const& inp, SPConstParticles particles)
 {
     ScopedMem record_mem("Runner.build_events");
 
@@ -447,21 +445,22 @@ void Runner::build_events(RunnerInput const& inp)
             }
             event = generate();
         }
+        return generate.num_events();
     };
 
     if (inp.primary_options)
     {
-        read_events(PrimaryGenerator::from_options(core_params_->particle(),
-                                                   inp.primary_options));
+        return read_events(
+            PrimaryGenerator::from_options(particles, inp.primary_options));
     }
     else if (ends_with(inp.event_file, ".root"))
     {
-        read_events(RootEventReader(inp.event_file, core_params_->particle()));
+        return read_events(RootEventReader(inp.event_file, particles));
     }
     else
     {
         // Assume filename is one of the HepMC3-supported extensions
-        read_events(EventReader(inp.event_file, core_params_->particle()));
+        return read_events(EventReader(inp.event_file, particles));
     }
 }
 
