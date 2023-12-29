@@ -11,4 +11,6 @@
 
 #cmakedefine01 CELERITAS_HAVE_ROCTX
 
+@CELERITAS_DEPENDENCY_VERSIONS@
+
 #endif /* celeritas_sys_config_h */

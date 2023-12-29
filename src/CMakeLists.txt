@@ -68,6 +68,16 @@ foreach(_var CLHEP_VERSION Geant4_VERSION VecGeom_VERSION)
 endforeach()
 celeritas_configure_file("celeritas_cmake_strings.h.in" "celeritas_cmake_strings.h" @ONLY)
 
+# Save dependency versions to sys_config
+set(CELERITAS_DEPENDENCY_VERSIONS)
+foreach(_dep Geant4 VecGeom HepMC3)
+  string(TOUPPER "${_dep}" _upper)
+  celeritas_version_to_hex(_temp_version_hex ${_dep}_VERSION)
+  list(APPEND CELERITAS_DEPENDENCY_VERSIONS
+    "#define CELERITAS_${_upper}_VERSION ${_temp_version_hex}"
+  )
+endforeach()
+string(JOIN "\n" CELERITAS_DEPENDENCY_VERSIONS ${CELERITAS_DEPENDENCY_VERSIONS})
 celeritas_configure_file("celeritas_sys_config.h.in" "celeritas_sys_config.h" @ONLY)
 
 #----------------------------------------------------------------------------#
