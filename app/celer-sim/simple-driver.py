@@ -91,7 +91,6 @@ inp = {
     'num_track_slots': num_tracks,
     'max_steps': max_steps,
     'initializer_capacity': 100 * max([num_tracks, num_primaries]),
-    'max_events': 1000,
     'secondary_stack_factor': 3,
     'action_diagnostic': True,
     'step_diagnostic': True,

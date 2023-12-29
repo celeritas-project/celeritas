@@ -22,6 +22,7 @@ namespace celeritas
 {
 class CoreParams;
 class OutputRegistry;
+class ParticleParams;
 class RootFileManager;
 class StepCollector;
 }  // namespace celeritas
@@ -77,6 +78,7 @@ class Runner
     //// TYPES ////
 
     using UPTransporterBase = std::unique_ptr<TransporterBase>;
+    using SPConstParticles = std::shared_ptr<ParticleParams const>;
     using VecPrimary = std::vector<Primary>;
     using VecEvent = std::vector<VecPrimary>;
 
@@ -99,8 +101,7 @@ class Runner
     void build_step_collectors(RunnerInput const&);
     void build_diagnostics(RunnerInput const&);
     void build_transporter_input(RunnerInput const&);
-    void build_events(RunnerInput const&);
-    int get_num_streams(RunnerInput const&);
+    size_type build_events(RunnerInput const&, SPConstParticles);
     TransporterBase& get_transporter(StreamId);
     TransporterBase const* get_transporter_ptr(StreamId) const;
 };

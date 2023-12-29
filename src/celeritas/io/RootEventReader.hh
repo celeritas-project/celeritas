@@ -51,12 +51,16 @@ class RootEventReader : public EventReaderInterface
     // Read a single event from the ROOT file
     result_type operator()() final;
 
+    //! Get total number of events
+    size_type num_events() const final { return num_events_; }
+
   private:
     //// DATA ////
 
     SPConstParticles params_;
     std::size_t entry_count_{0};  // Current TTree entry
     std::size_t num_entries_;  // Total number of entries in the TTree
+    size_type num_events_;  // Total number of events
     UPExtern<TFile> tfile_;
     UPExtern<TTree> ttree_;
 
@@ -80,6 +84,7 @@ inline RootEventReader::RootEventReader(std::string const&, SPConstParticles)
     CELER_DISCARD(params_);
     CELER_DISCARD(entry_count_);
     CELER_DISCARD(num_entries_);
+    CELER_DISCARD(num_events_);
     CELER_DISCARD(tfile_);
     CELER_DISCARD(ttree_);
     CELER_NOT_CONFIGURED("ROOT");

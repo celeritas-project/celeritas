@@ -64,7 +64,6 @@ struct RunInput
 
     // Control
     size_type num_track_slots{};
-    size_type max_events{};
     size_type max_steps{unspecified};
     size_type initializer_capacity{};
     real_type secondary_stack_factor{};

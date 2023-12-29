@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {
@@ -59,6 +60,9 @@ class EventReaderInterface
 
     //! Read all primaries from a single event
     virtual result_type operator()() = 0;
+
+    //! Get total number of events
+    virtual size_type num_events() const = 0;
 
   protected:
     //!@{
