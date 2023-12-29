@@ -33,6 +33,7 @@ TEST_F(RootEventIOTest, write_read)
     }
 
     RootEventReader reader(filename, this->particles());
+    EXPECT_EQ(3, reader.num_events());
     this->read_check_test_event(reader);
 }
 

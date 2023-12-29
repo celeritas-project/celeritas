@@ -68,7 +68,6 @@ struct RunnerInput
     size_type num_track_slots{};  //!< Divided among streams
     size_type max_steps{unspecified};
     size_type initializer_capacity{};  //!< Divided among streams
-    size_type max_events{};
     real_type secondary_stack_factor{};
     bool use_device{};
     bool sync{};
@@ -99,8 +98,7 @@ struct RunnerInput
         return !geometry_file.empty()
                && (primary_options || !event_file.empty())
                && num_track_slots > 0 && max_steps > 0
-               && initializer_capacity > 0 && max_events > 0
-               && secondary_stack_factor > 0
+               && initializer_capacity > 0 && secondary_stack_factor > 0
                && (step_diagnostic_bins > 0 || !step_diagnostic)
                && (field == no_field() || field_options);
     }

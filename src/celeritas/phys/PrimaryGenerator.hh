@@ -70,6 +70,9 @@ class PrimaryGenerator : public EventReaderInterface
     // Generate primary particles from a single event
     result_type operator()() final;
 
+    //! Get total number of events
+    size_type num_events() const { return num_events_; }
+
   private:
     size_type num_events_{};
     size_type primaries_per_event_{};

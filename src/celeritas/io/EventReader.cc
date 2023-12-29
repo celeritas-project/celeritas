@@ -9,6 +9,7 @@
 
 #include <set>
 #include <HepMC3/GenEvent.h>
+#include <HepMC3/Reader.h>
 #include <HepMC3/ReaderFactory.h>
 #include <HepMC3/Setup.h>
 
@@ -29,10 +30,38 @@ namespace celeritas
 /*!
  * Construct from a filename.
  */
-EventReader::EventReader(std::string const& filename, SPConstParticles params)
-    : params_(std::move(params))
+EventReader::EventReader(std::string const& filename,
+                         SPConstParticles particles)
+    : particles_(std::move(particles))
 {
-    CELER_EXPECT(params_);
+    CELER_EXPECT(particles_);
+
+    // Fetch total number of events by opening a temporary reader
+    num_events_ = [&filename] {
+        SPReader temp_reader = open_hepmc3(filename);
+        CELER_ASSERT(temp_reader);
+        size_type result = 0;
+#if HEPMC3_VERSION_CODE < 3002000
+        HepMC3::GenEvent evt;
+        temp_reader->read_event(evt);
+#else
+        temp_reader->skip(0);
+#endif
+        CELER_VALIDATE(!temp_reader->failed(),
+                       << "event file '" << filename
+                       << "' did not contain any events");
+        do
+        {
+            result++;
+#if HEPMC3_VERSION_CODE < 3002000
+            temp_reader->read_event(evt);
+#else
+            temp_reader->skip(1);
+#endif
+        } while (!temp_reader->failed());
+        CELER_LOG(debug) << "HepMC3 file has " << result << " events";
+        return result;
+    }();
 
     // Determine the input file format and construct the appropriate reader
     reader_ = open_hepmc3(filename);
@@ -62,7 +91,6 @@ auto EventReader::operator()() -> result_type
     // Parse the next event from the record
     HepMC3::GenEvent evt;
     {
-        CELER_LOG(debug) << "Reading event " << event_count_;
         ScopedTimeAndRedirect temp_{"HepMC3"};
         reader_->read_event(evt);
     }
@@ -72,6 +100,7 @@ auto EventReader::operator()() -> result_type
         return {};
     }
 
+    CELER_LOG(debug) << "Reading event " << event_count_;
     EventId const event_id{event_count_++};
     if (static_cast<EventId::size_type>(evt.event_number()) != event_id.get())
     {
@@ -96,7 +125,7 @@ auto EventReader::operator()() -> result_type
         // Get the PDG code and check if this particle type is defined for
         // the current physics
         PDGNumber pdg{par->pid()};
-        ParticleId particle_id{params_->find(pdg)};
+        ParticleId particle_id{particles_->find(pdg)};
         if (CELER_UNLIKELY(!particle_id))
         {
             missing_pdg.insert(pdg.unchecked_get());

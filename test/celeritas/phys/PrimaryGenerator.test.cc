@@ -65,6 +65,7 @@ TEST_F(PrimaryGeneratorTest, basic)
     inp.sample_pos = DeltaDistribution<Real3>(Real3{1, 2, 3});
     inp.sample_dir = IsotropicDistribution<real_type>();
     PrimaryGenerator generate_primaries(particles_, inp);
+    EXPECT_EQ(2, generate_primaries.num_events());
 
     std::vector<int> particle_id;
     std::vector<int> event_id;
@@ -111,6 +112,7 @@ TEST_F(PrimaryGeneratorTest, options)
     opts.direction = {DS::isotropic, {}};
 
     auto generate_primaries = PrimaryGenerator::from_options(particles_, opts);
+    EXPECT_EQ(1, generate_primaries.num_events());
     auto primaries = generate_primaries();
     EXPECT_EQ(10, primaries.size());
 

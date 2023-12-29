@@ -98,7 +98,6 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(num_track_slots);
     LDIO_LOAD_OPTION(max_steps);
     LDIO_LOAD_REQUIRED(initializer_capacity);
-    LDIO_LOAD_REQUIRED(max_events);
     LDIO_LOAD_REQUIRED(secondary_stack_factor);
     LDIO_LOAD_REQUIRED(use_device);
     LDIO_LOAD_OPTION(sync);
@@ -173,7 +172,6 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE(num_track_slots);
     LDIO_SAVE_OPTION(max_steps);
     LDIO_SAVE(initializer_capacity);
-    LDIO_SAVE(max_events);
     LDIO_SAVE(secondary_stack_factor);
     LDIO_SAVE(use_device);
     LDIO_SAVE(sync);
