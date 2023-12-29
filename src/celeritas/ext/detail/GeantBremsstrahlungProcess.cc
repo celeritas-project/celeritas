@@ -108,6 +108,9 @@ void GeantBremsstrahlungProcess::InitialiseEnergyLossProcess(
         em_model->SetLowEnergyLimit(energy_min);
         em_model->SetHighEnergyLimit(energy_limit);
         em_model->SetSecondaryThreshold(em_parameters->BremsstrahlungTh());
+#if G4VERSION_NUMBER < 1120
+        em_model->SetLPMFlag(false);
+#endif
         G4VEnergyLossProcess::AddEmModel(1, em_model, fluctuation_model);
 
         ++model_index;
