@@ -435,7 +435,7 @@ endfunction()
 #-----------------------------------------------------------------------------#
 
 function(celeritas_version_to_hex var version)
-  if("TRUE") #NOT DEFINED "${version}_MAJOR")
+  if(NOT DEFINED "${version}_MAJOR" AND DEFINED "${version}")
     # Split version into components
     string(REGEX MATCH "^([0-9]+)\\.([0-9]+)\\.([0-9]+)" _match "${${version}}")
     if(NOT _match)
@@ -448,9 +448,9 @@ function(celeritas_version_to_hex var version)
     set(${version}_MINOR "${CMAKE_MATCH_2}")
     set(${version}_PATCH "${CMAKE_MATCH_3}")
   endif()
-  # Set any possibly empty values to zero
+  # Set any empty or undefined values to zero
   foreach(_ext MAJOR MINOR PATCH)
-    if(${version}_${_ext} STREQUAL "")
+    if(NOT ${version}_${_ext})
       set(${version}_${_ext} 0)
     endif()
   endforeach()
