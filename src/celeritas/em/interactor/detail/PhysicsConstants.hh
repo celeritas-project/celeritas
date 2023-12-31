@@ -17,10 +17,10 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-//! Special partly-natural unit [MeV / cm]
-using MevPerCm = Quantity<UnitDivide<units::Mev, units::NativeUnit>>;
+//! Special partly-natural unit [MeV / len]
+using MevPerLen = Quantity<UnitDivide<units::Mev, units::Native>>;
 
-//! Migdal's constant used for Bremsstrahlung [cm^3]
+//! Migdal's constant used for Bremsstrahlung [len^3]
 CELER_CONSTEXPR_FUNCTION real_type migdal_constant()
 {
     using namespace constants;
@@ -29,7 +29,7 @@ CELER_CONSTEXPR_FUNCTION real_type migdal_constant()
 }
 
 /*!
- * Landau-Pomeranchuk-Migdal constant [MeV / cm].
+ * Landau-Pomeranchuk-Migdal constant [MeV / len].
  *
  * This is used to calculate the LPM characteristic energy, defined as
  * \f$ E_\textrm{LPM} = \frac{\alpha m^2 X_0}{2 h c} \f$, where
@@ -40,15 +40,15 @@ CELER_CONSTEXPR_FUNCTION real_type migdal_constant()
  * 1501-1538). The Geant4 Physics Reference Manual (Eq. 10.17) has an
  * extra factor of two in the denominator.
  */
-CELER_CONSTEXPR_FUNCTION MevPerCm lpm_constant()
+CELER_CONSTEXPR_FUNCTION MevPerLen lpm_constant()
 {
     using namespace constants;
 
-    constexpr real_type electron_mass_c2 = electron_mass * ipow<2>(c_light);
+    constexpr real_type electron_mass_csq = electron_mass * ipow<2>(c_light);
 
-    return native_value_to<MevPerCm>(alpha_fine_structure
-                                     * ipow<2>(electron_mass_c2)
-                                     / (2 * h_planck * c_light));
+    return native_value_to<MevPerLen>(alpha_fine_structure
+                                      * ipow<2>(electron_mass_csq)
+                                      / (2 * h_planck * c_light));
 }
 
 //---------------------------------------------------------------------------//

@@ -135,7 +135,7 @@ struct Nanosecond
 //! \name Annotation-only units
 
 //! Mark as being in the native/builtin unit system
-struct NativeUnits
+struct Native
 {
     static CELER_CONSTEXPR_FUNCTION real_type value() { return 1; }
 };

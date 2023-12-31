@@ -91,7 +91,7 @@ LPMCalculator::LPMCalculator(MaterialView const& material,
     : element_(element)
     , electron_density_(material.electron_density())
     , lpm_energy_(material.radiation_length()
-                  * value_as<detail::MevPerCm>(detail::lpm_constant()))
+                  * value_as<detail::MevPerLen>(detail::lpm_constant()))
     , dielectric_suppression_(dielectric_suppression)
     , gamma_energy_(gamma_energy.value())
 {

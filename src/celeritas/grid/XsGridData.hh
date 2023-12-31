@@ -10,8 +10,8 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/grid/UniformGridData.hh"
-#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/UnitTypes.hh"
 
 namespace celeritas
 {
@@ -28,7 +28,7 @@ namespace celeritas
 struct XsGridData
 {
     using EnergyUnits = units::Mev;
-    using XsUnits = units::NativeUnit;  // 1/cm
+    using XsUnits = units::Native;
 
     //! "Special" value indicating none of the values are scaled by 1/E
     static CELER_CONSTEXPR_FUNCTION size_type no_scaling()
