@@ -41,17 +41,25 @@ enum class ImportTableType
 //---------------------------------------------------------------------------//
 /*!
  * Units of a physics table.
+ *
+ * These depend on the unit selection in the main import data
  */
 enum class ImportUnits
 {
     none,  //!< Unitless
     mev,  //!< Energy [MeV]
-    mev_per_cm,  //!< Energy loss [MeV/cm]
-    cm,  //!< Range [cm]
-    cm_inv,  //!< Macroscopic xs [1/cm]
-    cm_mev_inv,  //!< Macroscopic xs divided by energy [1/cm-MeV]
-    mev_2_per_cm,  //!< Macroscopic xs with energy^2 factored in [MeV^2/cm]
-    cm_2,  //!< Microscopic cross section [cm^2]
+    mev_per_len,  //!< Energy loss [MeV/length]
+    mev_per_cm = mev_per_len,  //!< Deprecated
+    len,  //!< Range [length]
+    cm = len,  //!< Deprecated
+    len_inv,  //!< Macroscopic xs [1/length]
+    cm_inv = len_inv,  //!< Macroscopic xs [1/cm]
+    len_mev_inv,  //!< Scaled [1/E] macroscopic xs [1/length-MeV]
+    cm_mev_inv = len_mev_inv,  //!< Deprecated
+    mev_sq_per_len,  //!< Scaled [E^2] macroscopic xs  [MeV^2/length]
+    mev_2_per_cm = mev_sq_per_len,  //!< Deprecated
+    len_sq,  //!< Microscopic cross section [cm^2]
+    cm_2 = len_sq,  //!< Deprecated
     size_
 };
 

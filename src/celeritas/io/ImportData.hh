@@ -34,14 +34,11 @@ namespace celeritas
  * geant4_data and \e ImportData in \c RootImporter .
  *
  * Each entity's id is defined by its vector position. An \c ImportElement with
- * id = 3 is stored at \c elements.at(3) . Same for materials and volumes.
+ * id = 3 is stored at \c elements[3] . Same for materials and volumes.
  *
  * Seltzer-Berger, Livermore PE, and atomic relaxation data are loaded based on
  * atomic numbers, and thus are stored in maps. To retrieve specific data use
  * \c find(atomic_number) .
- *
- * All units must be converted at import time to be in accordance to the
- * Celeritas' unit standard. Refer to \c base/Units.hh for further information.
  *
  * The "processes" field may be empty for testing applications.
  */
