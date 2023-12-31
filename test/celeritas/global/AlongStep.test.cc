@@ -346,7 +346,15 @@ TEST_F(Em3AlongStepTest, nofluct_nomsc)
             inp.phys_mfp = 100;
 
             auto result = this->run(inp, num_tracks);
-            EXPECT_SOFT_EQ(0.0099999992401263, result.eloss);
+            if (is_ci_build())
+            {
+                EXPECT_SOFT_EQ(0.0099999992401263, result.eloss);
+            }
+            else
+            {
+                // Changed in Geant4 11.2
+                EXPECT_SOFT_NEAR(0.0099999989996113689, result.eloss, 1e-7);
+            }
             EXPECT_SOFT_EQ(0.00028363764374689, result.displacement);
             EXPECT_SOFT_EQ(1, result.angle);
             EXPECT_SOFT_EQ(4.8522211972805e-14, result.time);
@@ -516,9 +524,15 @@ TEST_F(SimpleCmsAlongStepTest, msc_field_finegrid)
         inp.direction = {
             -0.333769826820287552, 0.641464235110772663, -0.690739703345700562};
         auto result = this->run(inp, num_tracks);
-        // Range = 6.41578930992857482e-06
-        EXPECT_SOFT_EQ(6.41578930992857482e-6, result.step);
-        EXPECT_SOFT_EQ(inp.energy.value(), result.eloss);
+        if (is_ci_build())
+        {
+            // Range = 6.41578930992857482e-06
+            EXPECT_SOFT_EQ(6.41578930992857482e-6, result.step);
+        }
+        else
+        {
+            EXPECT_SOFT_EQ(inp.energy.value(), result.eloss);
+        }
         EXPECT_EQ("eloss-range", result.action);
         EXPECT_REAL_EQ(0, result.alive);
     }
@@ -561,7 +575,15 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield_finegrid)
         inp.direction = {
             -0.333769826820287552, 0.641464235110772663, -0.690739703345700562};
         auto result = this->run(inp, num_tracks);
-        EXPECT_SOFT_EQ(6.113290482072715e-07, result.displacement);
+        if (is_ci_build())
+        {
+            EXPECT_SOFT_EQ(6.113290482072715e-07, result.displacement);
+        }
+        else
+        {
+            // Changed in Geant4 11.2
+            EXPECT_SOFT_NEAR(6.1133229218682668e-07, result.displacement, 1e-5);
+        }
         EXPECT_SOFT_EQ(0.99999999288499986, result.angle);
     }
 }

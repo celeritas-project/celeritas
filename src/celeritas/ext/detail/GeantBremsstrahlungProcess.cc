@@ -21,6 +21,7 @@
 #include <G4SeltzerBergerModel.hh>
 #include <G4VEmFluctuationModel.hh>
 #include <G4VEmModel.hh>
+#include <G4Version.hh>
 #include <G4eBremsstrahlungRelModel.hh>
 
 #include "corecel/Assert.hh"
@@ -107,7 +108,9 @@ void GeantBremsstrahlungProcess::InitialiseEnergyLossProcess(
         em_model->SetLowEnergyLimit(energy_min);
         em_model->SetHighEnergyLimit(energy_limit);
         em_model->SetSecondaryThreshold(em_parameters->BremsstrahlungTh());
+#if G4VERSION_NUMBER < 1120
         em_model->SetLPMFlag(false);
+#endif
         G4VEnergyLossProcess::AddEmModel(1, em_model, fluctuation_model);
 
         ++model_index;
@@ -128,7 +131,9 @@ void GeantBremsstrahlungProcess::InitialiseEnergyLossProcess(
             em_model->SetLowEnergyLimit(energy_limit);
             em_model->SetHighEnergyLimit(energy_max);
             em_model->SetSecondaryThreshold(em_parameters->BremsstrahlungTh());
+#if G4VERSION_NUMBER < 1120
             em_model->SetLPMFlag(em_parameters->LPM());
+#endif
             G4VEnergyLossProcess::AddEmModel(1, em_model, fluctuation_model);
         }
     }
