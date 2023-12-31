@@ -75,6 +75,7 @@ CELER_ICRT farad = coulomb / volt;
 //!@{
 //! \name CLHEP units
 CELER_ICRT millimeter = real_type(0.1) * centimeter;
+CELER_ICRT nanosecond = real_type(1e-9) * second;
 //!@}
 
 #elif CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
