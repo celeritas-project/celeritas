@@ -21,12 +21,6 @@ namespace units
 //!@{
 //! \name Derivative units
 
-//! "Natural units" for mass
-struct MevPerCsq : UnitDivide<Mev, UnitProduct<CLight, CLight>>
-{
-    static char const* label() { return "MeV/c^2"; }
-};
-
 //! "Natural units" for momentum
 struct MevPerC : UnitDivide<Mev, CLight>
 {

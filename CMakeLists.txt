@@ -126,6 +126,7 @@ else()
 endif()
 
 celeritas_setup_option(CELERITAS_UNITS CGS)
+celeritas_setup_option(CELERITAS_UNITS SI)
 celeritas_setup_option(CELERITAS_UNITS CLHEP)
 celeritas_define_options(CELERITAS_UNITS
   "Native unit system for Celeritas")

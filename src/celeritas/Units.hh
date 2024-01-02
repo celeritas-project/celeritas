@@ -18,12 +18,14 @@ namespace units
 //---------------------------------------------------------------------------//
 /*!
  * \namespace units
- * Units and constants in Celeritas for macro-scale quantities.
+ * Units in Celeritas for macro-scale quantities.
  *
- * The following units have numerical values of 1 in this system:
+ * The following units have numerical values of 1 in the default Celeritas
+ * system (Gaussian CGS):
  * - cm for standard unit of length
  * - s for standard unit of time
- * - g for standard unit of mass.
+ * - g for standard unit of mass
+ * - G for standard unit of field strength
  *
  * Unless otherwise specified, this unit system is used for input and
  * output numerical values. They are meant for macro-scale quantities coupling
@@ -78,10 +80,43 @@ CELER_ICRT millimeter = real_type(0.1) * centimeter;
 CELER_ICRT nanosecond = real_type(1e-9) * second;
 //!@}
 
+#elif CELERITAS_UNITS == CELERITAS_UNITS_SI
+//!@{
+//! \name Units with numerical value defined to be 1
+CELER_ICRT second = 1;  //!< Time
+CELER_ICRT meter = 1;  //!< Length
+CELER_ICRT kilogram = 1;  //!< Mass
+CELER_ICRT kelvin = 1;  //!< Temperature
+CELER_ICRT coulomb = 1;  //!< Charge
+//!@}
+
+//!@{
+//! \name Exact unit transformations using SI unit definitions
+CELER_ICRT newton = kilogram * meter / (second * second);
+CELER_ICRT joule = newton * meter;
+CELER_ICRT volt = joule / coulomb;
+CELER_ICRT tesla = volt * second / (meter * meter);
+CELER_ICRT ampere = coulomb / second;
+CELER_ICRT farad = coulomb / volt;
+//!@}
+
+//!@{
+//! \name CGS units
+CELER_ICRT gauss = real_type(1e-4) * tesla;
+CELER_ICRT centimeter = real_type(1e-2) * meter;
+CELER_ICRT gram = real_type(1e-3) * kilogram;
+//!@}
+
+//!@{
+//! \name CLHEP units
+CELER_ICRT millimeter = real_type(1e-3) * meter;
+CELER_ICRT nanosecond = real_type(1e-9) * second;
+//!@}
+
 #elif CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
 
 CELER_ICRT millimeter = 1;  //!< Length
-CELER_ICRT megaelectronvolt = 1;  //!< Mass
+CELER_ICRT megaelectronvolt = 1;  //!< Energy
 CELER_ICRT nanosecond = 1;  //!< Time
 CELER_ICRT e_electron = 1;  //!< Charge
 CELER_ICRT kelvin = 1;  //!< Temperature

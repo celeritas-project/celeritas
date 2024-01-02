@@ -17,7 +17,6 @@ namespace celeritas
 {
 namespace units
 {
-
 //---------------------------------------------------------------------------//
 //!@{
 //! \name Natural units
@@ -31,6 +30,7 @@ struct CLight
     static char const* label() { return "c"; }
 };
 
+//! "Natural units" for energy
 struct Mev
 {
     static CELER_CONSTEXPR_FUNCTION real_type value()
@@ -42,6 +42,16 @@ struct Mev
 #endif
     }
     static char const* label() { return "MeV"; }
+};
+
+//! "Natural units" for mass
+struct MevPerCsq
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        return Mev::value() / (constants::c_light * constants::c_light);
+    }
+    static char const* label() { return "MeV/c^2"; }
 };
 
 struct EElectron
@@ -86,6 +96,7 @@ struct Millibarn
 //---------------------------------------------------------------------------//
 //!@{
 //! \name CGS and SI units
+
 struct Centimeter
 {
     static CELER_CONSTEXPR_FUNCTION real_type value()
@@ -95,10 +106,25 @@ struct Centimeter
     static char const* label() { return "cm"; }
 };
 
+struct Meter
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value() { return units::meter; }
+    static char const* label() { return "m"; }
+};
+
 struct Gram
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value() { return units::second; }
-    static char const* label() { return "s"; }
+    static CELER_CONSTEXPR_FUNCTION real_type value() { return units::gram; }
+    static char const* label() { return "g"; }
+};
+
+struct Kilogram
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        return units::kilogram;
+    }
+    static char const* label() { return "kg"; }
 };
 
 struct Second
@@ -111,6 +137,7 @@ struct Second
 //---------------------------------------------------------------------------//
 //!@{
 //! \name CLHEP units
+
 struct Millimeter
 {
     static CELER_CONSTEXPR_FUNCTION real_type value()
@@ -163,16 +190,26 @@ struct UnitTraits<CELERITAS_UNITS_CGS>
     using Time = Second;
 };
 
+//! SI unit traits
+template<>
+struct UnitTraits<CELERITAS_UNITS_SI>
+{
+    using Length = Meter;
+    using Mass = Kilogram;
+    using Time = Second;
+};
+
 //! CLHEP unit traits
 template<>
 struct UnitTraits<CELERITAS_UNITS_CLHEP>
 {
     using Length = Millimeter;
-    using Mass = Mev;
+    using Mass = MevPerCsq;
     using Time = Nanosecond;
 };
 
 using CgsTraits = UnitTraits<CELERITAS_UNITS_CGS>;
+using SiTraits = UnitTraits<CELERITAS_UNITS_SI>;
 using ClhepTraits = UnitTraits<CELERITAS_UNITS_CLHEP>;
 using NativeTraits = UnitTraits<CELERITAS_UNITS>;
 

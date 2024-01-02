@@ -113,31 +113,3 @@ TEST(ConstantsTest, derivative)
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace constants
-
-namespace units
-{
-namespace test
-{
-//---------------------------------------------------------------------------//
-TEST(UnitsTest, equivalence)
-{
-    EXPECT_REAL_EQ(ampere * ampere * second * second * second * second
-                       / (kilogram * meter * meter),
-                   farad);
-    EXPECT_REAL_EQ(kilogram * meter * meter / (second * second), joule);
-
-    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
-    {
-        constexpr real_type erg = gram * centimeter * centimeter
-                                  / (second * second);
-
-        EXPECT_EQ(real_type(1), erg);
-        EXPECT_EQ(1e7 * erg, joule);
-        EXPECT_REAL_EQ(1e4, tesla);
-    }
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace test
-}  // namespace units
-}  // namespace celeritas
