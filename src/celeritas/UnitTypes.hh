@@ -68,21 +68,6 @@ struct EElectron
     static char const* label() { return "e"; }
 };
 
-//! Unit mass in CLHEP system
-struct ClhepUnitMass
-{
-    static CELER_CONSTEXPR_FUNCTION real_type value()
-    {
-        // Quantities before 1e6 are unity in CLHEP system
-        constexpr auto kg_clhep = (Mev::value() * (nanosecond * nanosecond)
-                                   / (millimeter * millimeter)
-                                   / EElectron::value())
-                                  * (1e6 * coulomb);
-        return kg_clhep / kilogram;
-    }
-    static char const* label() { return "m_clhep"; }
-};
-
 //!@}
 //---------------------------------------------------------------------------//
 //!@{
@@ -115,7 +100,7 @@ struct Millibarn
 //!@}
 //---------------------------------------------------------------------------//
 //!@{
-//! \name CGS and SI units
+//! \name Gaussian and SI units
 
 struct Centimeter
 {
@@ -153,6 +138,18 @@ struct Second
     static char const* label() { return "s"; }
 };
 
+struct Gauss
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value() { return units::gauss; }
+    static char const* label() { return "G"; }
+};
+
+struct Tesla
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value() { return units::tesla; }
+    static char const* label() { return "T"; }
+};
+
 //!@}
 //---------------------------------------------------------------------------//
 //!@{
@@ -174,6 +171,33 @@ struct Nanosecond
         return units::nanosecond;
     }
     static char const* label() { return "ns"; }
+};
+
+//! Unit mass in CLHEP system
+struct ClhepUnitMass
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        // Quantities before 1e6 are unity in CLHEP system
+        constexpr auto kg_clhep = (Mev::value() / EElectron::value()
+                                   * (nanosecond * nanosecond)
+                                   / (millimeter * millimeter))
+                                  * (1e6 * coulomb);
+        return kg_clhep / kilogram;
+    }
+    static char const* label() { return "m_clhep"; }
+};
+
+//! Unit magnetic flux density in CLHEP system
+struct ClhepUnitBField
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        constexpr auto tesla_clhep = Mev::value() / EElectron::value() * second
+                                     / (millimeter * millimeter) * 1e-12;
+        return tesla_clhep / tesla;
+    }
+    static char const* label() { return "m_clhep"; }
 };
 
 //!@}
@@ -208,6 +232,7 @@ struct UnitTraits<CELERITAS_UNITS_CGS>
     using Length = Centimeter;
     using Mass = Gram;
     using Time = Second;
+    using BField = Gauss;  //!< Magnetic flux density
 };
 
 //! SI unit traits
@@ -217,6 +242,7 @@ struct UnitTraits<CELERITAS_UNITS_SI>
     using Length = Meter;
     using Mass = Kilogram;
     using Time = Second;
+    using BField = Tesla;
 };
 
 //! CLHEP unit traits
@@ -226,6 +252,7 @@ struct UnitTraits<CELERITAS_UNITS_CLHEP>
     using Length = Millimeter;
     using Mass = ClhepUnitMass;
     using Time = Nanosecond;
+    using BField = ClhepUnitBField;
 };
 
 using CgsTraits = UnitTraits<CELERITAS_UNITS_CGS>;

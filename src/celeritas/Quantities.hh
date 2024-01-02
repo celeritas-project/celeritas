@@ -27,14 +27,6 @@ struct MevPerC : UnitDivide<Mev, CLight>
     static char const* label() { return "MeV/c"; }
 };
 
-//! Tesla field strength
-struct Tesla
-{
-    //! Conversion factor from the unit to native
-    static CELER_CONSTEXPR_FUNCTION real_type value() { return units::tesla; }
-    static char const* label() { return "T"; }
-};
-
 //! Inverse cubic centimeter for number densities
 struct InvCentimeterCubed
 {
