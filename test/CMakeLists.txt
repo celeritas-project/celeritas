@@ -236,6 +236,7 @@ celeritas_add_test(orange/construct/LocalSurfaceInserter.test.cc)
 #-------------------------------------#
 # Transforms
 set(CELERITASTEST_PREFIX orange/transform)
+celeritas_add_test(orange/transform/SignedPermutation.test.cc)
 celeritas_add_test(orange/transform/Transformation.test.cc)
 celeritas_add_test(orange/transform/Translation.test.cc)
 celeritas_add_test(orange/transform/VariantTransform.test.cc)

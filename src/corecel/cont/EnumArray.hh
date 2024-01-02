@@ -23,6 +23,8 @@ namespace celeritas
  *
  * The enum *must* be a zero-indexed contiguous enumeration with a \c size_
  * enumeration as its last value.
+ *
+ * \todo The template parameters are reversed!!!
  */
 template<class E, class T>
 struct EnumArray

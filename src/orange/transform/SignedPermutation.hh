@@ -7,6 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/cont/EnumArray.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/Turn.hh"
+#include "orange/OrangeTypes.hh"
 #include "orange/Types.hh"
 
 namespace celeritas
@@ -26,13 +32,13 @@ namespace celeritas
  * where \f$ \mathbf{e}_u \f$ is has exactly one entry with a value \f$ \pm 1
  \f$ and the other entries being zero.
  *
- * TODO: implement error checking to catch reflection.
+ * TODO: implement error checking to prevent reflection.
  *
  * The underlying storage are a compressed series of bits in little-endian form
  * that indicate the positions of the nonzero entry followed by the sign:
  * \verbatim
    [flip z'][z' axis][flip y'][y' axis][flip x'][x' axis]
-         11  10 9  8        7  6  5  4        3  2  1  0  bit position
+         8   7    6        5   4     3        2   1   0  bit position
  * \endverbatim
  * This allows the "rotate up" to simply copy one value at a time into a new
  * position, and optionally flip the sign of the result.
@@ -40,34 +46,37 @@ namespace celeritas
 class SignedPermutation
 {
   public:
-    enum Sign
+    enum Sign : char
     {
-        pos,
-        neg
+        pos = '+',
+        neg = '-'
     };
 
     //!@{
     //! \name Type aliases
-    using SignedAxis = std::pair<Sign, Axis>;
-    using SignedAxes = Array<SignedAxis, 3>
-        //!@}
+    using SignedAxis = std::pair<char, Axis>;
+    using SignedAxes = EnumArray<Axis, SignedAxis>;
+    using StorageSpan = Span<real_type const, 1>;
+    using DataArray = Array<real_type, 1>;
+    //!@}
 
-        //// ACCESSORS ////
+  public:
+    // Construct with an identity permutation
+    SignedPermutation();
 
-        //! Rotation matrix
-        CELER_FORCEINLINE_FUNCTION Mat3 const& rotation() const
-    {
-        return rot_;
-    }
+    //! Construct with the permutation vector
+    explicit SignedPermutation(SignedAxes permutation);
 
-    //! Translation vector
-    CELER_FORCEINLINE_FUNCTION Real3 const& translation() const
-    {
-        return tra_;
-    }
+    // Construct inline from storage
+    explicit inline CELER_FUNCTION SignedPermutation(StorageSpan s);
 
-    //! Get a view to the data for type-deleted storage
-    CELER_FUNCTION StorageSpan data() const { return {&rot_[0][0], 12}; }
+    //// ACCESSORS ////
+
+    // Reconstruct the permutation
+    SignedAxes permutation() const;
+
+    // Get a view to the data for type-deleted storage
+    DataArray data() const;
 
     //// CALCULATION ////
 
@@ -87,8 +96,104 @@ class SignedPermutation
     rotate_down(Real3 const& parent_dir) const;
 
   private:
-    unsigned int compressed_;
+    // At least 16 bits: more than enough to round trip through a float
+    using UIntT = short unsigned int;
+    static CELER_CONSTEXPR_FUNCTION UIntT max_value() { return (1 << 9) - 1; }
+
+    UIntT compressed_;
 };
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+// Make a permutation by rotating about the given axis
+SignedPermutation make_permutation(Axis ax, QuarterTurn qtr);
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct inline from storage.
+ */
+CELER_FUNCTION SignedPermutation::SignedPermutation(StorageSpan s)
+    : compressed_{static_cast<UIntT>(s[0])}
+{
+    CELER_EXPECT(s[0] >= 0 && s[0] <= static_cast<real_type>(max_value()));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Transform from daughter to parent.
+ */
+CELER_FORCEINLINE_FUNCTION Real3
+SignedPermutation::transform_up(Real3 const& pos) const
+{
+    return this->rotate_up(pos);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Transform from parent to daughter.
+ */
+CELER_FORCEINLINE_FUNCTION Real3
+SignedPermutation::transform_down(Real3 const& parent_pos) const
+{
+    return this->rotate_down(parent_pos);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Rotate from daughter to parent.
+ */
+CELER_FORCEINLINE_FUNCTION Real3 SignedPermutation::rotate_up(Real3 const& d) const
+{
+    Real3 result;
+
+    UIntT temp = compressed_;
+    for (auto ax : range(Axis::size_))
+    {
+        // Copy to new axis
+        unsigned int new_ax = temp & 0b11;
+        result[to_int(ax)] = d[new_ax];
+        temp >>= 2;
+        if (temp & 0b1)
+        {
+            // Flip the bit, avoiding signed zero
+            result[to_int(ax)] = negate(result[to_int(ax)]);
+        }
+        temp >>= 1;
+    }
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Rotate from parent to daughter.
+ */
+CELER_FORCEINLINE_FUNCTION Real3
+SignedPermutation::rotate_down(Real3 const& d) const
+{
+    Real3 result;
+
+    UIntT temp = compressed_;
+    for (auto ax : range(Axis::size_))
+    {
+        // Copy to new axis
+        unsigned int new_ax = temp & 0b11;
+        result[new_ax] = d[to_int(ax)];
+        temp >>= 2;
+        if (temp & 0b1)
+        {
+            // Flip the bit, avoiding signed zero
+            result[new_ax] = negate(result[new_ax]);
+        }
+        temp >>= 1;
+    }
+
+    return result;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
