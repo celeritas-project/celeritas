@@ -54,6 +54,16 @@ struct MevPerCsq
     static char const* label() { return "MeV/c^2"; }
 };
 
+//! "Natural units" for momentum
+struct MevPerC
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        return Mev::value() / constants::c_light;
+    }
+    static char const* label() { return "MeV/c"; }
+};
+
 //! Magnitude of electron charge (positive sign)
 struct EElectron
 {
@@ -100,7 +110,7 @@ struct Millibarn
 //!@}
 //---------------------------------------------------------------------------//
 //!@{
-//! \name Gaussian and SI units
+//! \name Gaussian units
 
 struct Centimeter
 {
@@ -111,16 +121,48 @@ struct Centimeter
     static char const* label() { return "cm"; }
 };
 
-struct Meter
-{
-    static CELER_CONSTEXPR_FUNCTION real_type value() { return units::meter; }
-    static char const* label() { return "m"; }
-};
-
 struct Gram
 {
     static CELER_CONSTEXPR_FUNCTION real_type value() { return units::gram; }
     static char const* label() { return "g"; }
+};
+
+struct Gauss
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value() { return units::gauss; }
+    static char const* label() { return "G"; }
+};
+
+//! Inverse cubic centimeter for number densities
+struct InvCentimeterCubed
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        return 1 / (units::centimeter * units::centimeter * units::centimeter);
+    }
+    static char const* label() { return "1/cm^3"; }
+};
+
+//! Molar density
+struct MolPerCentimeterCubed
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        return constants::na_avogadro
+               / (units::centimeter * units::centimeter * units::centimeter);
+    }
+    static char const* label() { return "mol/cm^3"; }
+};
+
+//!@}
+//---------------------------------------------------------------------------//
+//!@{
+//! \name SI units
+
+struct Meter
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value() { return units::meter; }
+    static char const* label() { return "m"; }
 };
 
 struct Kilogram
@@ -136,12 +178,6 @@ struct Second
 {
     static CELER_CONSTEXPR_FUNCTION real_type value() { return units::second; }
     static char const* label() { return "s"; }
-};
-
-struct Gauss
-{
-    static CELER_CONSTEXPR_FUNCTION real_type value() { return units::gauss; }
-    static char const* label() { return "G"; }
 };
 
 struct Tesla

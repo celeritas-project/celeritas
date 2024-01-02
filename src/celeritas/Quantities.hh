@@ -8,48 +8,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas_config.h"
+#include "corecel/Macros.hh"
 #include "corecel/math/Quantity.hh"  // IWYU pragma: export
 
-#include "UnitTypes.hh"
+#include "UnitTypes.hh"  // IWYU pragma: export
 
 namespace celeritas
 {
 namespace units
 {
-//---------------------------------------------------------------------------//
-//!@{
-//! \name Derivative units
-
-//! "Natural units" for momentum
-struct MevPerC : UnitDivide<Mev, CLight>
-{
-    static char const* label() { return "MeV/c"; }
-};
-
-//! Inverse cubic centimeter for number densities
-struct InvCentimeterCubed
-{
-    static CELER_CONSTEXPR_FUNCTION real_type value()
-    {
-        return 1 / (units::centimeter * units::centimeter * units::centimeter);
-    }
-    static char const* label() { return "1/cm^3"; }
-};
-
-//! Molar density
-struct MolPerCentimeterCubed
-{
-    static CELER_CONSTEXPR_FUNCTION real_type value()
-    {
-        return constants::na_avogadro
-               / (units::centimeter * units::centimeter * units::centimeter);
-    }
-    static char const* label() { return "mol/cm^3"; }
-};
-
-//!@}
-
 //---------------------------------------------------------------------------//
 //!@{
 //! \name Units for particle quantities
@@ -72,7 +39,6 @@ using InvCcDensity = Quantity<InvCentimeterCubed>;
 using MolCcDensity = Quantity<MolPerCentimeterCubed>;
 using FieldTesla = Quantity<Tesla>;
 //!@}
-
 //---------------------------------------------------------------------------//
 }  // namespace units
 }  // namespace celeritas
