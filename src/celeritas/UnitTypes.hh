@@ -54,13 +54,33 @@ struct MevPerCsq
     static char const* label() { return "MeV/c^2"; }
 };
 
+//! Magnitude of electron charge (positive sign)
 struct EElectron
 {
     static CELER_CONSTEXPR_FUNCTION real_type value()
     {
-        return constants::e_electron;  // *Positive* sign
+#if CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
+        return units::e_electron;  // Mathematically equal to constants
+#else
+        return constants::e_electron;
+#endif
     }
     static char const* label() { return "e"; }
+};
+
+//! Unit mass in CLHEP system
+struct ClhepUnitMass
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        // Quantities before 1e6 are unity in CLHEP system
+        constexpr auto kg_clhep = (Mev::value() * (nanosecond * nanosecond)
+                                   / (millimeter * millimeter)
+                                   / EElectron::value())
+                                  * (1e6 * coulomb);
+        return kg_clhep / kilogram;
+    }
+    static char const* label() { return "m_clhep"; }
 };
 
 //!@}
@@ -204,7 +224,7 @@ template<>
 struct UnitTraits<CELERITAS_UNITS_CLHEP>
 {
     using Length = Millimeter;
-    using Mass = MevPerCsq;
+    using Mass = ClhepUnitMass;
     using Time = Nanosecond;
 };
 

@@ -35,22 +35,30 @@ TEST(UnitsTest, equivalence)
         EXPECT_REAL_EQ(1e4, tesla);
         EXPECT_REAL_EQ(0.1, coulomb);
     }
+
+#if CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
+    EXPECT_REAL_EQ(constants::e_electron, units::e_electron);
+#endif
 }
 
 //---------------------------------------------------------------------------//
 TEST(UnitsTest, traits)
 {
-    EXPECT_EQ(CgsTraits::Length::value(), centimeter);
-    EXPECT_EQ(CgsTraits::Mass::value(), gram);
-    EXPECT_EQ(CgsTraits::Time::value(), second);
+    EXPECT_EQ(NativeTraits::Length::value(), 1);
+    EXPECT_EQ(NativeTraits::Mass::value(), 1);
+    EXPECT_EQ(NativeTraits::Time::value(), 1);
 
-    EXPECT_EQ(SiTraits::Length::value(), meter);
-    EXPECT_EQ(SiTraits::Mass::value(), kilogram);
-    EXPECT_EQ(SiTraits::Time::value(), second);
+    EXPECT_REAL_EQ(CgsTraits::Length::value(), centimeter);
+    EXPECT_REAL_EQ(CgsTraits::Mass::value(), gram);
+    EXPECT_REAL_EQ(CgsTraits::Time::value(), second);
 
-    EXPECT_EQ(ClhepTraits::Length::value(), millimeter);
-    EXPECT_EQ(ClhepTraits::Mass::value(), MevPerCsq::value());
-    EXPECT_EQ(ClhepTraits::Time::value(), nanosecond);
+    EXPECT_REAL_EQ(SiTraits::Length::value(), meter);
+    EXPECT_REAL_EQ(SiTraits::Mass::value(), kilogram);
+    EXPECT_REAL_EQ(SiTraits::Time::value(), second);
+
+    EXPECT_REAL_EQ(ClhepTraits::Length::value(), millimeter);
+    EXPECT_REAL_EQ(ClhepTraits::Mass::value(), ClhepUnitMass::value());
+    EXPECT_REAL_EQ(ClhepTraits::Time::value(), nanosecond);
 }
 
 //---------------------------------------------------------------------------//
