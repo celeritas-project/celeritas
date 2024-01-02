@@ -10,7 +10,9 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/UnitUtils.hh"
 #include "celeritas/Constants.hh"
+#include "celeritas/UnitTypes.hh"
 
 namespace celeritas
 {
@@ -28,6 +30,7 @@ CELER_CONSTEXPR_FUNCTION real_type migdal_constant()
     return 4 * pi * r_electron * ipow<2>(lambdabar_electron);
 }
 
+//---------------------------------------------------------------------------//
 /*!
  * Landau-Pomeranchuk-Migdal constant [MeV / len].
  *

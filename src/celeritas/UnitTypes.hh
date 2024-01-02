@@ -9,6 +9,7 @@
 #pragma once
 
 #include "celeritas_config.h"
+#include "corecel/math/UnitUtils.hh"
 
 #include "Constants.hh"
 #include "Units.hh"
@@ -45,22 +46,14 @@ struct Mev
 };
 
 //! "Natural units" for mass
-struct MevPerCsq
+struct MevPerCsq : UnitDivide<Mev, UnitProduct<CLight, CLight>>
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
-    {
-        return Mev::value() / (constants::c_light * constants::c_light);
-    }
     static char const* label() { return "MeV/c^2"; }
 };
 
 //! "Natural units" for momentum
-struct MevPerC
+struct MevPerC : UnitDivide<Mev, CLight>
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
-    {
-        return Mev::value() / constants::c_light;
-    }
     static char const* label() { return "MeV/c"; }
 };
 
@@ -76,6 +69,16 @@ struct EElectron
 #endif
     }
     static char const* label() { return "e"; }
+};
+
+//! Quantity of substance
+struct Mol
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        return constants::na_avogadro;
+    }
+    static char const* label() { return "mol"; }
 };
 
 //!@}
@@ -144,13 +147,8 @@ struct InvCentimeterCubed
 };
 
 //! Molar density
-struct MolPerCentimeterCubed
+struct MolPerCentimeterCubed : UnitProduct<Mol, InvCentimeterCubed>
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
-    {
-        return constants::na_avogadro
-               / (units::centimeter * units::centimeter * units::centimeter);
-    }
     static char const* label() { return "mol/cm^3"; }
 };
 
