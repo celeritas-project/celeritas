@@ -113,3 +113,4 @@ TEST(ConstantsTest, derivative)
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace constants
+}  // namespace celeritas
