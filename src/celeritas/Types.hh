@@ -38,9 +38,6 @@ using EventId = OpaqueId<struct Event_>;
 //! Opaque index to IsotopeRecord in a vector
 using IsotopeId = OpaqueId<struct IsotopeRecord>;
 
-//! Opaque index to MaterialRecord in a vector: represents a material ID
-using MaterialId = OpaqueId<struct MaterialRecord>;
-
 //! Opaque index of model in the list of physics processes
 using ModelId = OpaqueId<class Model>;
 
