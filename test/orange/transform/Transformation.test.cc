@@ -7,7 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "orange/transform/Transformation.hh"
 
+#include <sstream>
+
 #include "orange/MatrixUtils.hh"
+#include "orange/transform/TransformIO.hh"
 #include "orange/transform/Translation.hh"
 
 #include "celeritas_test.hh"
@@ -56,6 +59,14 @@ TEST_F(TransformationTest, construction)
         EXPECT_EQ(tr.translation(), tr2.translation());
         EXPECT_EQ(tr.rotation(), tr2.rotation());
     }
+}
+
+TEST_F(TransformationTest, output)
+{
+    Transformation tr{make_rotation(Axis::x, Turn{0.25}), Real3{1, 2, 3}};
+    std::ostringstream os;
+    os << tr;
+    EXPECT_EQ("{{{1,0,0},{0,0,-1},{0,1,0}}, {1,2,3}}", os.str());
 }
 
 TEST_F(TransformationTest, transform)

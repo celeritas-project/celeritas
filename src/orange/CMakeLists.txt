@@ -46,6 +46,7 @@ list(APPEND SOURCES
   surf/detail/SurfaceClipperImpl.cc
   surf/detail/SurfaceTranslator.cc
   surf/detail/SurfaceTransformer.cc
+  transform/TransformIO.cc
   transform/Transformation.cc
   transform/VariantTransform.cc
 )
