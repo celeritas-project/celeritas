@@ -201,9 +201,11 @@ celeritas_add_test(corecel/sys/Version.test.cc)
 
 celeritas_add_library(testcel_orange
   orange/OrangeGeoTestBase.cc
+  orange/CsgTestUtils.cc
 )
 celeritas_target_link_libraries(testcel_orange
   PRIVATE Celeritas::testcel_harness Celeritas::testcel_core Celeritas::orange
+  ${nlohmann_json_LIBRARIES}
 )
 
 celeritas_setup_tests(SERIAL PREFIX orange
@@ -228,8 +230,7 @@ celeritas_add_test(orange/detail/UniverseIndexer.test.cc)
 #-----------------------------------------------------------------------------#
 # Construct
 set(CELERITASTEST_PREFIX orange/construct)
-celeritas_add_test(orange/construct/CsgTree.test.cc
-  LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
+celeritas_add_test(orange/construct/CsgTree.test.cc)
 celeritas_add_test(orange/construct/CsgTreeUtils.test.cc)
 celeritas_add_test(orange/construct/LocalSurfaceInserter.test.cc)
 
