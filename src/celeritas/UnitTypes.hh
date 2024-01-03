@@ -212,26 +212,18 @@ struct ClhepUnitMass
 {
     static CELER_CONSTEXPR_FUNCTION real_type value()
     {
-        // Quantities before 1e6 are unity in CLHEP system
-        constexpr auto kg_clhep = (Mev::value() / EElectron::value()
-                                   * (nanosecond * nanosecond)
-                                   / (millimeter * millimeter))
-                                  * (1e6 * coulomb);
-        return kg_clhep / kilogram;
+        // Note: order matters in CHLEP system to result in exactly 1 with
+        // floating point arithmetic
+        return constants::e_electron * (kilogram / coulomb) * 1e-6;
     }
-    static char const* label() { return "m_clhep"; }
+    static char const* label() { return "mass_clhep"; }
 };
 
 //! Unit magnetic flux density in CLHEP system
 struct ClhepUnitBField
 {
-    static CELER_CONSTEXPR_FUNCTION real_type value()
-    {
-        constexpr auto tesla_clhep = Mev::value() / EElectron::value() * second
-                                     / (millimeter * millimeter) * 1e-12;
-        return tesla_clhep / tesla;
-    }
-    static char const* label() { return "m_clhep"; }
+    static CELER_CONSTEXPR_FUNCTION real_type value() { return 1e3 * tesla; }
+    static char const* label() { return "field_clhep"; }
 };
 
 //!@}

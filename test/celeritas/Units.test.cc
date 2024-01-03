@@ -34,6 +34,7 @@ TEST(UnitsTest, equivalence)
         EXPECT_EQ(1e7 * erg, joule);
         EXPECT_REAL_EQ(1e4, tesla);
         EXPECT_REAL_EQ(0.1, coulomb);
+        EXPECT_REAL_EQ(1e3 * tesla, ClhepUnitBField::value());
     }
     else if (CELERITAS_UNITS == CELERITAS_UNITS_CLHEP)
     {
@@ -41,6 +42,8 @@ TEST(UnitsTest, equivalence)
         // e_electron is *not* a unit in anything but CLHEP
         EXPECT_REAL_EQ(constants::e_electron, units::e_electron);
 #endif
+        EXPECT_EQ(1, constants::e_electron);
+        EXPECT_REAL_EQ(1e6 / 1.602176634e-19, kilogram);
         EXPECT_REAL_EQ(1e-3, tesla);
     }
 }
