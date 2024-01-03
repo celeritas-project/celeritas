@@ -27,7 +27,7 @@ namespace detail
  *
  * This keeps track of the CSG and surface nodes during construction. It holds
  * the "construction-time" properties like the local surface inserter. The
- * input "processed unit" must exceed the lifetime of this builder.
+ * input "CSG Unit" must exceed the lifetime of this builder.
  */
 class CsgUnitBuilder
 {
@@ -35,13 +35,16 @@ class CsgUnitBuilder
     //!@{
     //! \name Type aliases
     using Tol = Tolerance<>;
-    using Metadata = Label;
-    using NodeId = celeritas::csg::NodeId;
+    using Metadata = CsgUnit::Metadata;
+    using NodeId = CsgUnit::NodeId;
+    using BBox = CsgUnit::BBox;
     //!@}
 
   public:
     // Construct with a "processed unit" to build.
     inline CsgUnitBuilder(CsgUnit*, Tolerance<> const& tol);
+
+    //// MUTATORS ////
 
     // Insert a surface by forwarding to the surface inserter
     template<class... Args>
@@ -54,8 +57,17 @@ class CsgUnitBuilder
     //! Insert node metadata
     inline void insert_md(NodeId node, Metadata&& md);
 
-    // Mark a volume node
-    void insert_volume(NodeId, Metadata md);
+    //! Set a bounding box for a node
+    void set_bbox(NodeId, BBox const&);
+
+    // Mark a CSG node as a volume of real space
+    LocalVolumeId insert_volume(NodeId);
+
+    // Fill a volume node with a material
+    void fill_volume(LocalVolumeId, MaterialId);
+
+    // Fill a volume node with a daughter
+    void fill_volume(LocalVolumeId, UniverseId, VariantTransform&& vt);
 
     // Set an exterior node
     void set_exterior(NodeId);
@@ -77,9 +89,8 @@ CsgUnitBuilder::CsgUnitBuilder(CsgUnit* u, Tolerance<> const& tol)
     : unit_{u}, insert_surface_{&unit_->surfaces, tol}
 {
     CELER_EXPECT(unit_);
-    CELER_EXPECT(unit_->csg.size() == 0 && unit_->metadata.size() == 0
-                 && unit_->bboxes.size() == 0 && unit_->volumes.size() == 0
-                 && !unit_->exterior);
+    CELER_EXPECT(unit_->metadata.size() == 0 && unit_->bboxes.size() == 0
+                 && unit_->volumes.size() == 0 && !unit_->exterior);
 }
 
 //---------------------------------------------------------------------------//
@@ -87,7 +98,7 @@ CsgUnitBuilder::CsgUnitBuilder(CsgUnit* u, Tolerance<> const& tol)
  * Insert a surface by forwarding to the surface inserter.
  */
 template<class... Args>
-NodeId CsgUnitBuilder::insert_surface(Args&&... args)
+auto CsgUnitBuilder::insert_surface(Args&&... args) -> NodeId
 {
     LocalSurfaceId lsid = insert_surface_(std::forward<Args>(args)...);
     return this->insert_csg(lsid);

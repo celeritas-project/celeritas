@@ -227,13 +227,6 @@ celeritas_add_test(orange/detail/BIHTraverser.test.cc)
 celeritas_add_test(orange/detail/BIHUtils.test.cc)
 celeritas_add_test(orange/detail/UniverseIndexer.test.cc)
 
-#-----------------------------------------------------------------------------#
-# Construct
-set(CELERITASTEST_PREFIX orange/construct)
-celeritas_add_test(orange/construct/CsgTree.test.cc)
-celeritas_add_test(orange/construct/CsgTreeUtils.test.cc)
-celeritas_add_test(orange/construct/LocalSurfaceInserter.test.cc)
-
 #-------------------------------------#
 # Transforms
 set(CELERITASTEST_PREFIX orange/transform)
@@ -264,6 +257,16 @@ celeritas_add_device_test(orange/surf/LocalSurfaceVisitor)
 celeritas_add_test(orange/surf/detail/QuadraticSolver.test.cc)
 celeritas_add_test(orange/surf/detail/SurfaceTranslator.test.cc)
 celeritas_add_test(orange/surf/detail/SurfaceTransformer.test.cc)
+
+#-----------------------------------------------------------------------------#
+# Construct
+set(CELERITASTEST_PREFIX orange/construct)
+celeritas_add_test(orange/construct/CsgTree.test.cc)
+celeritas_add_test(orange/construct/CsgTreeUtils.test.cc)
+celeritas_add_test(orange/construct/LocalSurfaceInserter.test.cc)
+
+set(CELERITASTEST_PREFIX orange/orangeinp)
+celeritas_add_test(orange/orangeinp/detail/CsgUnitBuilder.test.cc)
 
 #-------------------------------------#
 # Universe details

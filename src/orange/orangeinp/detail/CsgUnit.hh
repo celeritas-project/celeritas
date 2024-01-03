@@ -8,6 +8,7 @@
 #pragma once
 
 #include <set>
+#include <variant>
 #include <vector>
 
 #include "corecel/io/Label.hh"
@@ -45,16 +46,19 @@ struct CsgUnit
     using SetMd = std::set<Metadata>;
     using NodeId = celeritas::csg::NodeId;
     using BBox = celeritas::BoundingBox<>;
+    using Fill = std::variant<std::monostate, MaterialId, Daughter>;
 
     //// DATA ////
 
     //!@{
     //! \name Surfaces
+    //! Vectors are indexed by LocalSurfaceId.
     std::vector<VariantSurface> surfaces;
     //!@}
 
     //!@{
     //! \name Nodes
+    //! Vectors are indexed by NodeId.
     CsgTree tree;  //!< CSG tree
     std::vector<SetMd> metadata;  //!< CSG node labels and provenance
     std::vector<BBox> bboxes;
@@ -62,8 +66,16 @@ struct CsgUnit
 
     //!@{
     //! \name Volumes
-    std::vector<NodeId> volumes;
+    //! Vectors are indexed by LocalVolumeId.
+    std::vector<NodeId> volumes;  //!< CSG node of each volume
+    std::vector<Fill> fills;  //!< Content of each volume
     NodeId exterior;
+    //!@}
+
+    //!@{
+    //! \name Transforms
+    //! Vectors are indexed by TransformId.
+    std::vector<VariantTransform> transforms;
     //!@}
 
     //// FUNCTIONS ////
@@ -71,6 +83,15 @@ struct CsgUnit
     // Whether the processed unit is valid for use
     explicit inline operator bool() const;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Utility for telling whether a fill is assigned.
+ */
+inline constexpr bool is_filled(CsgUnit::Fill const& fill)
+{
+    return !std::holds_alternative<std::monostate>(fill);
+}
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -81,8 +102,8 @@ struct CsgUnit
 CsgUnit::operator bool() const
 {
     return this->metadata.size() == this->tree.size()
-           && this->bboxes.size() == this->tree.size()
-           && !this->volumes.empty();
+           && this->bboxes.size() == this->tree.size() && !this->volumes.empty()
+           && this->volumes.size() == this->fills.size();
 }
 
 //---------------------------------------------------------------------------//
