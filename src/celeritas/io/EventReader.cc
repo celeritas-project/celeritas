@@ -149,7 +149,7 @@ auto EventReader::operator()() -> result_type
         };
         primary.position = {to_cm(pos.x()), to_cm(pos.y()), to_cm(pos.z())};
 
-        // Get the lab-frame time [s]
+        // Get the lab-frame time [time]
         primary.time = to_cm(pos.t()) / constants::c_light;
 
         // Get the direction of the primary

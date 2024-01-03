@@ -51,10 +51,10 @@ class UrbanMscHelper
     //// HELPER FUNCTIONS ////
 
     //! The mean free path of the multiple scattering at the current energy
-    //! [cm]
+    //! [len]
     CELER_FUNCTION real_type msc_mfp() const { return lambda_; }
 
-    // The mean free path of the multiple scattering for a given energy [cm]
+    // The mean free path of the multiple scattering for a given energy [len]
     inline CELER_FUNCTION real_type calc_msc_mfp(Energy energy) const;
 
     // TODO: the following methods are used only by MscStepLimit
@@ -83,7 +83,7 @@ class UrbanMscHelper
     PhysicsTrackView const& physics_;
 
     // Precalculated mean free path (TODO: move to physics step view)
-    real_type lambda_;  // [cm]
+    real_type lambda_;  // [len]
 
     // Data for this particle+material
     CELER_FUNCTION UrbanMscParMatData const& pmdata() const

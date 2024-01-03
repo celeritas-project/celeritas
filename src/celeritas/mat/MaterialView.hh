@@ -52,7 +52,7 @@ class MaterialView
     // ID of this Material
     CELER_FORCEINLINE_FUNCTION MaterialId material_id() const;
 
-    // Number density [1/cm^3]
+    // Number density [1/len^3]
     CELER_FORCEINLINE_FUNCTION real_type number_density() const;
 
     // Material temperature [K]
@@ -73,7 +73,7 @@ class MaterialView
     // ID of a component element in this material
     inline CELER_FUNCTION ElementId element_id(ElementComponentId id) const;
 
-    // Total number density of an element in this material [1/cm^3]
+    // Total number density of an element in this material [1/len^3]
     inline CELER_FUNCTION real_type
     get_element_density(ElementComponentId id) const;
 
@@ -85,13 +85,13 @@ class MaterialView
     // Weighted atomic number
     inline CELER_FUNCTION real_type zeff() const;
 
-    // Material density [g/cm^3]
+    // Material density [mass/len^3]
     inline CELER_FUNCTION real_type density() const;
 
-    // Electrons per unit volume [1/cm^3]
+    // Electrons per unit volume [1/len^3]
     inline CELER_FUNCTION real_type electron_density() const;
 
-    // Radiation length for high-energy electron Bremsstrahlung [cm]
+    // Radiation length for high-energy electron Bremsstrahlung [len]
     inline CELER_FUNCTION real_type radiation_length() const;
 
     // Mean excitation energy [MeV]
@@ -134,7 +134,7 @@ CELER_FUNCTION MaterialId MaterialView::material_id() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get atomic number density [1/cm^3].
+ * Get atomic number density [1/len^3].
  */
 CELER_FUNCTION real_type MaterialView::number_density() const
 {
@@ -191,7 +191,7 @@ CELER_FUNCTION ElementId MaterialView::element_id(ElementComponentId id) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Number density of an element in this material [1/cm^3]
+ * Number density of an element in this material [1/len^3]
  */
 CELER_FUNCTION real_type
 MaterialView::get_element_density(ElementComponentId id) const
@@ -222,7 +222,7 @@ CELER_FUNCTION real_type MaterialView::zeff() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Material's density [g/cm^3].
+ * Material's density [mass/len^3].
  */
 CELER_FUNCTION real_type MaterialView::density() const
 {
@@ -231,7 +231,7 @@ CELER_FUNCTION real_type MaterialView::density() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Electrons per unit volume [1/cm^3].
+ * Electrons per unit volume [1/len^3].
  */
 CELER_FUNCTION real_type MaterialView::electron_density() const
 {
@@ -240,7 +240,7 @@ CELER_FUNCTION real_type MaterialView::electron_density() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Radiation length for high-energy electron Bremsstrahlung [cm].
+ * Radiation length for high-energy electron Bremsstrahlung [len].
  */
 CELER_FUNCTION real_type MaterialView::radiation_length() const
 {

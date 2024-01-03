@@ -69,7 +69,7 @@ real_type calc_coulomb_correction(AtomicNumber atomic_number)
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate inverse of Tsai radiation length for bremsstrahlung [cm^2/g].
+ * Calculate inverse of Tsai radiation length for bremsstrahlung [len^2/mass].
  *
  * See ElementView::mass_radiation_coeff for details on this calculation and
  * how it's used.

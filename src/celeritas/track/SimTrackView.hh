@@ -83,7 +83,7 @@ class SimTrackView
     // Number of steps taken by the track since it was flagged as looping
     CELER_FORCEINLINE_FUNCTION size_type num_looping_steps() const;
 
-    // Time elapsed in the lab frame since the start of the event [s]
+    // Time elapsed in the lab frame since the start of the event
     CELER_FORCEINLINE_FUNCTION real_type time() const;
 
     // Whether the track is alive or inactive or dying

@@ -48,17 +48,17 @@ enum class ImportUnits
 {
     none,  //!< Unitless
     mev,  //!< Energy [MeV]
-    mev_per_len,  //!< Energy loss [MeV/length]
+    mev_per_len,  //!< Energy loss [MeV/len]
     mev_per_cm = mev_per_len,  //!< Deprecated
-    len,  //!< Range [length]
+    len,  //!< Range [len]
     cm = len,  //!< Deprecated
-    len_inv,  //!< Macroscopic xs [1/length]
-    cm_inv = len_inv,  //!< Macroscopic xs [1/cm]
-    len_mev_inv,  //!< Scaled [1/E] macroscopic xs [1/length-MeV]
+    len_inv,  //!< Macroscopic xs [1/len]
+    cm_inv = len_inv,  //!< Deprecated
+    len_mev_inv,  //!< Scaled [1/E] macroscopic xs [1/len-MeV]
     cm_mev_inv = len_mev_inv,  //!< Deprecated
-    mev_sq_per_len,  //!< Scaled [E^2] macroscopic xs  [MeV^2/length]
+    mev_sq_per_len,  //!< Scaled [E^2] macroscopic xs  [MeV^2/len]
     mev_2_per_cm = mev_sq_per_len,  //!< Deprecated
-    len_sq,  //!< Microscopic cross section [cm^2]
+    len_sq,  //!< Microscopic cross section [len^2]
     cm_2 = len_sq,  //!< Deprecated
     size_
 };
