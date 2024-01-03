@@ -212,9 +212,16 @@ struct ClhepUnitMass
 {
     static CELER_CONSTEXPR_FUNCTION real_type value()
     {
-        // Note: order matters in CHLEP system to result in exactly 1 with
-        // floating point arithmetic
-        return constants::e_electron * (kilogram / coulomb) * 1e-6;
+        if constexpr (CELERITAS_UNITS == CELERITAS_UNITS_CLHEP)
+        {
+            // Floating point errors make the true expression below difficult
+            // to be exactly unity
+            return real_type(1);
+        }
+        else
+        {
+            return constants::e_electron / coulomb * kilogram * real_type(1e-6);
+        }
     }
     static char const* label() { return "mass_clhep"; }
 };
