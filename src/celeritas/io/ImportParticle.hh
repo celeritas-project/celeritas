@@ -20,9 +20,9 @@ struct ImportParticle
     std::string name;
     int pdg{0};
     double mass{0};  //!< [MeV]
-    double charge{0};  //!< [Multiple of electron charge]
+    double charge{0};  //!< [Multiple of electron charge value]
     double spin{0};  //!< [Multiple of hbar]
-    double lifetime{0};  //!< [s]
+    double lifetime{0};  //!< [time]
     bool is_stable{false};
 };
 

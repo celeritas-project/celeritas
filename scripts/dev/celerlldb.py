@@ -4,9 +4,9 @@
 """
 Add LLDB wrappers for Celeritas types.
 
-To use::
-    (lldb) command script import celeritas/scripts/dev/celerlldb.py --allow-reload
-    (lldb) type synthetic add -x "^celeritas::Span<.+>$" --python-class celerlldb.SpanSynthetic
+To use from inside ``${SOURCE}/build``::
+   (lldb) command script import ../scripts/dev/celerlldb.py --allow-reload
+   (lldb) type synthetic add -x "^celeritas::Span<.+>$" --python-class celerlldb.SpanSynthetic
 
 """
 

@@ -337,6 +337,7 @@ celeritas_setup_tests(SERIAL PREFIX celeritas
 # (Root level tests)
 celeritas_add_test(celeritas/Constants.test.cc
   LINK_LIBRARIES ${Geant4_LIBRARIES})
+celeritas_add_test(celeritas/Units.test.cc)
 
 #-------------------------------------#
 # EM

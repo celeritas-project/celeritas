@@ -20,7 +20,7 @@ namespace celeritas
 struct ParticleCutoff
 {
     units::MevEnergy energy{};  //!< Converted range value
-    real_type range{};  //!< [cm]
+    real_type range{};  //!< [len]
 };
 
 //---------------------------------------------------------------------------//

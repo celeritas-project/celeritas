@@ -230,7 +230,7 @@ EnergyLossHelper::EnergyLossHelper(FluctuationRef const& shared,
         return;
     }
 
-    // Units: [cm^2][MeV c^2][1/cm^3][e-][MeV][cm] = MeV^2
+    // Units: [len^2][MeV c^2][1/len^3][e-][MeV][len] = MeV^2
     // assuming implicit 1/c^2 in the formula
     bohr_var_ = 2 * constants::pi * ipow<2>(constants::r_electron)
                 * value_as<Mass>(shared_.electron_mass)

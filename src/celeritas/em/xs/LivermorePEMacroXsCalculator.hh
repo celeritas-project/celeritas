@@ -11,6 +11,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
+#include "celeritas/UnitTypes.hh"
 #include "celeritas/mat/MaterialView.hh"
 
 #include "LivermorePEMicroXsCalculator.hh"
@@ -28,7 +29,7 @@ class LivermorePEMacroXsCalculator
     //! \name Type aliases
     using Energy = LivermorePEMicroXsCalculator::Energy;
     using MicroXsUnits = LivermorePEMicroXsCalculator::XsUnits;
-    using XsUnits = units::NativeUnit;
+    using XsUnits = units::Native;
     //!@}
 
   public:

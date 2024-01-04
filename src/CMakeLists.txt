@@ -26,9 +26,8 @@ set(CELERITAS_USE_VECGEOM ${CELERITAS_USE_VecGeom})
 # the C preprocessor, so any unavailable options (e.g. CELERITAS_USE_CURAND
 # when HIP is in use) will implicitly be zero.
 celeritas_generate_option_config(CELERITAS_CORE_RNG)
-# Same, but with CELERITAS_CORE_GEO_CONFIG
 celeritas_generate_option_config(CELERITAS_CORE_GEO)
-# Same, but with CELERITAS_REAL_TYPE
+celeritas_generate_option_config(CELERITAS_UNITS)
 celeritas_generate_option_config(CELERITAS_REAL_TYPE)
 celeritas_configure_file("celeritas_config.h.in" "celeritas_config.h" @ONLY)
 
@@ -48,7 +47,7 @@ endif()
 
 set(CELERITAS_CMAKE_STRINGS)
 set(CELERITAS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
-foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE CORE_GEO CORE_RNG)
+foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE CORE_GEO CORE_RNG UNITS)
   set(_var "CELERITAS_${_var}")
   string(TOLOWER "${_var}" _lower)
   string(APPEND CELERITAS_CMAKE_STRINGS

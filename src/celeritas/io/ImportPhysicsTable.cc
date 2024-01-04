@@ -36,12 +36,12 @@ char const* to_cstring(ImportUnits value)
     static EnumStringMapper<ImportUnits> const to_cstring_impl{
         "unitless",
         "MeV",
-        "MeV/cm",
-        "cm",
-        "1/cm",
-        "1/cm-MeV",
-        "MeV^2/cm",
-        "cm^2",
+        "MeV/len",
+        "len",
+        "1/len",
+        "1/len-MeV",
+        "MeV^2/len",
+        "len^2",
     };
     return to_cstring_impl(value);
 }

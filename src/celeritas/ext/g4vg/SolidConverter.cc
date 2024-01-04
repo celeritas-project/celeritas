@@ -745,7 +745,7 @@ void SolidConverter::compare_volumes(G4VSolid const& g4,
         CELER_LOG(warning)
             << "Solid type '" << g4.GetEntityType()
             << "' conversion may have failed: VecGeom/G4 volume ratio is "
-            << vg_cap << " / " << g4_cap << " [cm^3] = " << vg_cap / g4_cap;
+            << vg_cap << " / " << g4_cap << " [len^3] = " << vg_cap / g4_cap;
     }
 }
 

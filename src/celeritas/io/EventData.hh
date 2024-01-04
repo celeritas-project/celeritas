@@ -22,7 +22,7 @@ struct EventHitData
     int volume{0};  //!< Logical volume ID
     int copy_num{0};  //!< Physical volume copy number
     double energy_dep{0};  //!< Energy deposition [MeV]
-    double time{0};  //!< Pre-step global time [s]
+    double time{0};  //!< Pre-step global time [time]
 };
 
 //---------------------------------------------------------------------------//

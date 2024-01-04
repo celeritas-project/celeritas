@@ -15,6 +15,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Constants.hh"
+#include "celeritas/UnitTypes.hh"
 #include "celeritas/em/data/EPlusGGData.hh"
 #include "celeritas/grid/PolyEvaluator.hh"
 #include "celeritas/mat/MaterialView.hh"
@@ -31,7 +32,7 @@ class EPlusGGMacroXsCalculator
     //!@{
     //! \name Type aliases
     using Energy = units::MevEnergy;
-    using XsUnits = units::NativeUnit;
+    using XsUnits = units::Native;  // [1/len]
     //!@}
 
   public:

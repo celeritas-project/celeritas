@@ -9,6 +9,8 @@
 
 #include <unordered_map>
 
+#include "celeritas/Units.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -39,8 +41,8 @@ struct ImportEmParameters
     double msc_range_factor{0.04};
     //! MSC safety factor
     double msc_safety_factor{0.6};
-    //! MSC lambda limit [cm]
-    double msc_lambda_limit{0.1};
+    //! MSC lambda limit [length]
+    double msc_lambda_limit{1 * units::millimeter};
     //! Kill secondaries below production cut
     bool apply_cuts{false};
     //! Nuclear screening factor for single/multiple Coulomb scattering
