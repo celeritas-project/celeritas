@@ -94,6 +94,26 @@ void CsgUnitBuilder::set_exterior(NodeId n)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get a variant surface from a node ID.
+ */
+VariantSurface const& CsgUnitBuilder::get_surface_impl(NodeId nid) const
+{
+    CELER_EXPECT(nid < unit_->tree.size());
+
+    using SurfaceNode = ::celeritas::csg::Surface;
+
+    // Get the surface ID from the tree
+    auto const& node = unit_->tree[nid];
+    CELER_ASSUME(std::holds_alternative<SurfaceNode>(node));
+    LocalSurfaceId lsid = std::get<SurfaceNode>(node).id;
+
+    // Get the variant surfaces from the unit
+    CELER_EXPECT(lsid < unit_->surfaces.size());
+    return unit_->surfaces[lsid.unchecked_get()];
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace orangeinp
 }  // namespace celeritas

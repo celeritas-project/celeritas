@@ -8,6 +8,7 @@
 #include "orange/orangeinp/detail/CsgUnitBuilder.hh"
 
 #include "orange/CsgTestUtils.hh"
+#include "orange/surf/Sphere.hh"
 #include "orange/surf/SphereCentered.hh"
 
 #include "celeritas_test.hh"
@@ -42,6 +43,7 @@ TEST_F(CsgUnitBuilderTest, infinite)
     EXPECT_FALSE(u);
 
     CsgUnitBuilder builder(&u, tol);
+    EXPECT_REAL_EQ(1e-4, builder.tol().rel);
 
     // Add a new 'true' node
     auto true_nid = builder.insert_csg(True{});
@@ -77,17 +79,37 @@ TEST_F(CsgUnitBuilderTest, single_surface)
 {
     CsgUnit u;
     CsgUnitBuilder builder(&u, tol);
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(builder.get_surface<SphereCentered>(N{10}),
+                     celeritas::DebugError);
+    }
 
     // Add a surface and the corresponding node
     auto outside_nid = builder.insert_surface(SphereCentered{1.0});
     EXPECT_EQ(N{2}, outside_nid);
     builder.insert_md(outside_nid, {"sphere", "o"});
 
+    // Test accessing the constructed surface
+    EXPECT_SOFT_EQ(
+        1.0, builder.get_surface<SphereCentered>(outside_nid).radius_sq());
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(builder.get_surface<Sphere>(outside_nid),
+                     celeritas::DebugError);
+    }
+
     // Add a new 'inside sphere' node
     auto inside_nid = builder.insert_csg(Negated{outside_nid});
     EXPECT_EQ(N{3}, inside_nid);
     builder.insert_md(inside_nid, {"sphere", "i"});
     builder.insert_md(inside_nid, {"sphere"});
+
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(builder.get_surface<Sphere>(inside_nid),
+                     celeritas::DebugError);
+    }
 
     // Add a volume and fill it with a material
     auto inside_vid = builder.insert_volume(inside_nid);

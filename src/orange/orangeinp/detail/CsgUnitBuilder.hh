@@ -42,7 +42,16 @@ class CsgUnitBuilder
 
   public:
     // Construct with a "processed unit" to build.
-    inline CsgUnitBuilder(CsgUnit*, Tolerance<> const& tol);
+    inline CsgUnitBuilder(CsgUnit*, Tol const& tol);
+
+    //// ACCESSORS ////
+
+    //! Tolerance, needed for surface simplifier
+    Tol const& tol() const { return tol_; }
+
+    // Access a typed surface, needed for clipping with deduplicated surface
+    template<class S>
+    inline S const& get_surface(NodeId) const;
 
     //// MUTATORS ////
 
@@ -76,7 +85,11 @@ class CsgUnitBuilder
     using LocalSurfaceInserter = ::celeritas::detail::LocalSurfaceInserter;
 
     CsgUnit* unit_;
+    Tol tol_;
     LocalSurfaceInserter insert_surface_;
+
+    // Get a variant surface from a node ID
+    VariantSurface const& get_surface_impl(NodeId nid) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -86,11 +99,23 @@ class CsgUnitBuilder
  * Construct with a fresh unit.
  */
 CsgUnitBuilder::CsgUnitBuilder(CsgUnit* u, Tolerance<> const& tol)
-    : unit_{u}, insert_surface_{&unit_->surfaces, tol}
+    : unit_{u}, tol_{tol}, insert_surface_{&unit_->surfaces, tol}
 {
     CELER_EXPECT(unit_);
     CELER_EXPECT(unit_->metadata.size() == 0 && unit_->bboxes.size() == 0
                  && unit_->volumes.size() == 0 && !unit_->exterior);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access a typed surface, needed for clipping with deduplicated surface.
+ */
+template<class S>
+S const& CsgUnitBuilder::get_surface(NodeId nid) const
+{
+    VariantSurface const& vs = this->get_surface_impl(nid);
+    CELER_ASSUME(std::holds_alternative<S>(vs));
+    return std::get<S>(vs);
 }
 
 //---------------------------------------------------------------------------//

@@ -44,8 +44,8 @@ struct CsgUnit
 
     using Metadata = Label;
     using SetMd = std::set<Metadata>;
-    using NodeId = celeritas::csg::NodeId;
-    using BBox = celeritas::BoundingBox<>;
+    using NodeId = ::celeritas::csg::NodeId;
+    using BBox = ::celeritas::BoundingBox<>;
     using Fill = std::variant<std::monostate, MaterialId, Daughter>;
 
     //// DATA ////
