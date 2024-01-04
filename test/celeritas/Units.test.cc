@@ -38,10 +38,6 @@ TEST(UnitsTest, equivalence)
     }
     else if (CELERITAS_UNITS == CELERITAS_UNITS_CLHEP)
     {
-#if CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
-        // e_electron is *not* a unit in anything but CLHEP
-        EXPECT_REAL_EQ(constants::e_electron, units::e_electron);
-#endif
         EXPECT_EQ(1, constants::e_electron);
         EXPECT_REAL_EQ(1e6 / 1.602176634e-19, kilogram);
         EXPECT_REAL_EQ(1e-3, tesla);

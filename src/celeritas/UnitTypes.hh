@@ -62,11 +62,7 @@ struct EElectron
 {
     static CELER_CONSTEXPR_FUNCTION real_type value()
     {
-#if CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
-        return units::e_electron;  // Mathematically equal to constants
-#else
         return constants::e_electron;
-#endif
     }
     static char const* label() { return "e"; }
 };
