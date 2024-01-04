@@ -28,7 +28,7 @@ class CsgTreeUtilsTest : public ::celeritas::test::Test
     template<class T>
     N insert(T&& n)
     {
-        return tree_.insert(std::forward<T>(n));
+        return tree_.insert(std::forward<T>(n)).first;
     }
 
     std::string to_string() const

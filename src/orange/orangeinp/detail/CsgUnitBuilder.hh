@@ -41,7 +41,7 @@ class CsgUnitBuilder
 
   public:
     // Construct with an empty unit and tolerance settings
-    inline CsgUnitBuilder(CsgUnit*, Tol const& tol);
+    CsgUnitBuilder(CsgUnit*, Tol const& tol);
 
     //// ACCESSORS ////
 
@@ -93,17 +93,6 @@ class CsgUnitBuilder
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with an empty unit (which doesn't yet have any elements).
- */
-CsgUnitBuilder::CsgUnitBuilder(CsgUnit* u, Tolerance<> const& tol)
-    : unit_{u}, tol_{tol}, insert_surface_{&unit_->surfaces, tol}
-{
-    CELER_EXPECT(unit_);
-    CELER_EXPECT(unit_->empty());
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Access a typed surface, needed for clipping with deduplicated surface.
  */
 template<class S>
@@ -132,8 +121,8 @@ auto CsgUnitBuilder::insert_surface(Args&&... args) -> NodeId
 template<class... Args>
 auto CsgUnitBuilder::insert_csg(Args&&... args) -> NodeId
 {
-    NodeId result = unit_->tree.insert(std::forward<Args>(args)...);
-    if (!(result < unit_->metadata.size()))
+    auto [result, inserted] = unit_->tree.insert(std::forward<Args>(args)...);
+    if (inserted)
     {
         unit_->metadata.resize(unit_->tree.size());
         unit_->bboxes.resize(unit_->tree.size());

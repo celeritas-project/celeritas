@@ -15,6 +15,21 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Construct with an empty unit (which doesn't yet have any elements).
+ */
+CsgUnitBuilder::CsgUnitBuilder(CsgUnit* u, Tolerance<> const& tol)
+    : unit_{u}, tol_{tol}, insert_surface_{&unit_->surfaces, tol}
+{
+    CELER_EXPECT(unit_);
+    CELER_EXPECT(unit_->empty());
+
+    // Resize because the tree comes prepopulated with true/false
+    unit_->metadata.resize(unit_->tree.size());
+    unit_->bboxes.resize(unit_->tree.size());
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Set a bounding box for a node.
  */
 void CsgUnitBuilder::set_bbox(NodeId n, BBox const& bbox)
@@ -28,6 +43,9 @@ void CsgUnitBuilder::set_bbox(NodeId n, BBox const& bbox)
 //---------------------------------------------------------------------------//
 /*!
  * Mark a CSG node as a volume of real space.
+ *
+ * *After* construction is complete, the list of volumes should be checked for
+ * duplicate nodes.
  */
 LocalVolumeId CsgUnitBuilder::insert_volume(NodeId n)
 {
