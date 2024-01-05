@@ -21,7 +21,7 @@
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 #include "CerenkovDistribution.hh"
-#include "PhotonPrimary.hh"
+#include "OpticalPrimary.hh"
 
 namespace celeritas
 {
@@ -48,7 +48,7 @@ class CerenkovGenerator
     inline CELER_FUNCTION
     CerenkovGenerator(RefractiveIndex const& refractive_index,
                       CerenkovDistribution const& dist,
-                      Span<PhotonPrimary> photons);
+                      Span<OpticalPrimary> photons);
 
     // Sample Cerenkov photons from the distribution
     template<class Generator>
@@ -57,7 +57,7 @@ class CerenkovGenerator
   private:
     RefractiveIndex const& refractive_index_;
     CerenkovDistribution const& dist_;
-    Span<PhotonPrimary> photons_;
+    Span<OpticalPrimary> photons_;
 };
 
 //---------------------------------------------------------------------------//
@@ -69,7 +69,7 @@ class CerenkovGenerator
 CELER_FUNCTION
 CerenkovGenerator::CerenkovGenerator(RefractiveIndex const& refractive_index,
                                      CerenkovDistribution const& dist,
-                                     Span<PhotonPrimary> photons)
+                                     Span<OpticalPrimary> photons)
     : refractive_index_(refractive_index), dist_(dist), photons_(photons)
 
 {
@@ -104,6 +104,7 @@ CELER_FUNCTION void CerenkovGenerator::operator()(Generator& rng)
     {
         delta_pos[j] -= dist_.pre.pos[j];
     }
+    auto dir = make_unit_vector(delta_pos);
     real_type delta_num_photons = dist_.post.mean_num_photons
                                   - dist_.pre.mean_num_photons;
     real_type delta_velocity = dist_.post.velocity - dist_.pre.velocity;
@@ -125,8 +126,11 @@ CELER_FUNCTION void CerenkovGenerator::operator()(Generator& rng)
 
         UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
         real_type phi = sample_phi(rng);
-        photons_[i].direction = rotate(from_spherical(cos_theta, phi),
-                                       make_unit_vector(delta_pos));
+        photons_[i].direction = rotate(from_spherical(cos_theta, phi), dir);
+
+        // Determine polarization
+        photons_[i].polarization = rotate(
+            from_spherical(-std::sqrt(1 - ipow<2>(costheta)), phi), dir);
 
         // Sample time
         real_type u;
@@ -148,9 +152,6 @@ CELER_FUNCTION void CerenkovGenerator::operator()(Generator& rng)
         {
             photons_[i].position[j] += u * delta_pos[j];
         }
-
-        // TODO: polarization
-        // TODO: save parent ID?
     }
 }
 
