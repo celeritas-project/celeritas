@@ -182,6 +182,24 @@ calc_intersection(BoundingBox<T> const& a, BoundingBox<T> const& b)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Check if all points inside the small bbox are in the big bbox.
+ *
+ * All bounding boxes should enclose a "null" bounding box (there are no points
+ * in the null box, so no points are outside the big box). The null bounding
+ * box will enclose nothing but a bounding box.
+ */
+template<class T>
+inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
+{
+    auto axes = range(to_int(Axis::size_));
+    return all_of(axes.begin(), axes.end(), [&big, &small](int ax) {
+        return big.lower()[ax] <= small.lower()[ax]
+               && big.upper()[ax] >= small.upper()[ax];
+    });
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Bump a bounding box outward and possibly convert to another type.
  * \tparam T destination type
  * \tparam U source type

@@ -174,6 +174,20 @@ TEST_F(BoundingBoxUtilsTest, bbox_intersection)
     }
 }
 
+TEST_F(BoundingBoxUtilsTest, bbox_encloses)
+{
+    EXPECT_TRUE(encloses(BBox::from_infinite(), BBox{{-1, -1, -1}, {1, 1, 1}}));
+    EXPECT_TRUE(encloses(BBox{{-1, -2, -3}, {2, 2, 3}},
+                         BBox{{-1, -1, -1}, {1, 1, 1}}));
+    EXPECT_FALSE(encloses(BBox{{-1, -2, -3}, {1, 1.5, 3}},
+                          BBox{{-1, -2, -3}, {1, 2, 3}}));
+
+    EXPECT_FALSE(encloses(BBox{}, BBox{{-1, -2, -3}, {1, 2, 3}}));
+    EXPECT_TRUE(encloses(BBox{{-1, -2, -3}, {1, 2, 3}}, BBox{}));
+    EXPECT_TRUE(encloses(BBox{}, BBox{}));
+    EXPECT_TRUE(encloses(BBox::from_infinite(), BBox{}));
+}
+
 TEST_F(BoundingBoxUtilsTest, bumped)
 {
     BoundingBox<double> const ref{{-inf, 0, -100}, {0, 0.11223344556677, inf}};
