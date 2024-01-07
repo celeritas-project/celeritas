@@ -13,6 +13,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/grid/GenericXsCalculator.hh"
 #include "celeritas/grid/XsGridData.hh"
@@ -45,19 +46,30 @@ class CerenkovGenerator
 
   public:
     // Construct from optical properties and distribution parameters
-    inline CELER_FUNCTION
-    CerenkovGenerator(RefractiveIndex const& refractive_index,
-                      CerenkovDistribution const& dist,
-                      Span<OpticalPrimary> photons);
+    inline CELER_FUNCTION CerenkovGenerator(RefractiveIndex const& ref_index,
+                                            CerenkovDistribution const& dist,
+                                            Span<OpticalPrimary> photons);
 
     // Sample Cerenkov photons from the distribution
     template<class Generator>
     inline CELER_FUNCTION void operator()(Generator& rng);
 
   private:
-    RefractiveIndex const& refractive_index_;
+    using UniformRealDist = UniformRealDistribution<real_type>;
+
     CerenkovDistribution const& dist_;
     Span<OpticalPrimary> photons_;
+    // TODO: rename GenericXsCalculator to something more generic?
+    GenericXsCalculator calc_refractive_index_;
+    UniformRealDist sample_energy_;
+    UniformRealDist sample_phi_;
+    UniformRealDist sample_num_photons_;
+    Real3 delta_pos_;
+    Real3 dir_;
+    real_type sin_max_sq_;
+    real_type inv_beta_;
+    real_type delta_num_photons_;
+    real_type delta_velocity_;
 };
 
 //---------------------------------------------------------------------------//
@@ -67,15 +79,36 @@ class CerenkovGenerator
  * Construct from optical properties and distribution parameters.
  */
 CELER_FUNCTION
-CerenkovGenerator::CerenkovGenerator(RefractiveIndex const& refractive_index,
+CerenkovGenerator::CerenkovGenerator(RefractiveIndex const& ref_index,
                                      CerenkovDistribution const& dist,
                                      Span<OpticalPrimary> photons)
-    : refractive_index_(refractive_index), dist_(dist), photons_(photons)
+    : dist_(dist)
+    , photons_(photons)
+    , calc_refractive_index_(ref_index.data, ref_index.reals)
+    , sample_phi_(0, 2 * constants::pi)
 
 {
-    CELER_EXPECT(refractive_index_.data);
+    CELER_EXPECT(ref_index.data);
     CELER_EXPECT(dist_);
     CELER_EXPECT(photons_.size() == dist_.num_photons);
+
+    NonuniformGrid<real_type> energy_grid(ref_index.data.grid, ref_index.reals);
+    sample_energy_ = UniformRealDist(energy_grid.front(), energy_grid.back());
+
+    sample_num_photons_ = UniformRealDist(
+        0, max(dist_.pre.mean_num_photons, dist_.post.mean_num_photons));
+
+    inv_beta_ = 2 * constants::c_light
+                / (dist_.pre.velocity + dist_.post.velocity);
+    real_type cos_max = inv_beta_ / calc_refractive_index_(energy_grid.back());
+    sin_max_sq_ = (1 - cos_max) * (1 + cos_max);
+
+    // Calculate changes over the step
+    delta_pos_ = dist_.post.pos - dist_.pre.pos;
+    dir_ = make_unit_vector(delta_pos_);
+    delta_num_photons_ = dist_.post.mean_num_photons
+                         - dist_.pre.mean_num_photons;
+    delta_velocity_ = dist_.post.velocity - dist_.pre.velocity;
 }
 
 //---------------------------------------------------------------------------//
@@ -85,73 +118,38 @@ CerenkovGenerator::CerenkovGenerator(RefractiveIndex const& refractive_index,
 template<class Generator>
 CELER_FUNCTION void CerenkovGenerator::operator()(Generator& rng)
 {
-    NonuniformGrid<real_type> energy_grid(refractive_index_.data.grid,
-                                          refractive_index_.reals);
-    real_type e_min = energy_grid.front();
-    real_type e_max = energy_grid.back();
-
-    // TODO: rename GenericXsCalculator to something more generic?
-    GenericXsCalculator calc_refractive_index(refractive_index_.data,
-                                              refractive_index_.reals);
-    real_type inv_beta = 2 * constants::c_light
-                         / (dist_.pre.velocity + dist_.post.velocity);
-    real_type cos_max = inv_beta / calc_refractive_index(e_max);
-    real_type sin_max_sq = (1 - cos_max) * (1 + cos_max);
-
-    // Calculate changes over the step
-    Real3 delta_pos = dist_.post.pos;
-    for (int j = 0; j < 3; ++j)
-    {
-        delta_pos[j] -= dist_.pre.pos[j];
-    }
-    auto dir = make_unit_vector(delta_pos);
-    real_type delta_num_photons = dist_.post.mean_num_photons
-                                  - dist_.pre.mean_num_photons;
-    real_type delta_velocity = dist_.post.velocity - dist_.pre.velocity;
-
     for (auto i : range(dist_.num_photons))
     {
         // Sample energy and direction
         real_type energy;
         real_type cos_theta;
-        UniformRealDistribution<real_type> sample_energy(e_min, e_max);
         do
         {
-            energy = sample_energy(rng);
-            cos_theta = inv_beta / calc_refractive_index(energy);
+            energy = sample_energy_(rng);
+            cos_theta = inv_beta_ / calc_refractive_index_(energy);
         } while (!BernoulliDistribution(
-            sin_max_sq / ((1 - cos_theta) * (1 + cos_theta)))(rng));
-
+            sin_max_sq_ / ((1 - cos_theta) * (1 + cos_theta)))(rng));
+        real_type phi = sample_phi_(rng);
+        photons_[i].direction = rotate(from_spherical(cos_theta, phi), dir_);
         photons_[i].energy = units::MevEnergy(energy);
-
-        UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
-        real_type phi = sample_phi(rng);
-        photons_[i].direction = rotate(from_spherical(cos_theta, phi), dir);
 
         // Determine polarization
         photons_[i].polarization = rotate(
-            from_spherical(-std::sqrt(1 - ipow<2>(costheta)), phi), dir);
+            from_spherical(-std::sqrt(1 - ipow<2>(cos_theta)), phi), dir_);
 
-        // Sample time
+        // Sample position and time
         real_type u;
-        UniformRealDistribution<real_type> sample_num_photons(
-            0, max(dist_.pre.mean_num_photons, dist_.post.mean_num_photons));
         do
         {
             u = generate_canonical(rng);
-        } while (sample_num_photons(rng)
-                 > dist_.pre.mean_num_photons + u * delta_num_photons);
+        } while (sample_num_photons_(rng)
+                 > dist_.pre.mean_num_photons + u * delta_num_photons_);
         real_type delta_time
             = u * dist_.step_length
-              / (dist_.pre.velocity + u * real_type(0.5) * delta_velocity);
+              / (dist_.pre.velocity + u * real_type(0.5) * delta_velocity_);
         photons_[i].time = dist_.time + delta_time;
-
-        // Sample position
         photons_[i].position = dist_.pre.pos;
-        for (int j = 0; j < 3; ++j)
-        {
-            photons_[i].position[j] += u * delta_pos[j];
-        }
+        axpy(u, delta_pos_, &photons_[i].position);
     }
 }
 

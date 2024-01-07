@@ -20,9 +20,9 @@ namespace celeritas
  */
 struct CerenkovStepData
 {
-    real_type mean_num_photons;  //!< Average photons produced per unit length
-    real_type velocity;
-    Real3 pos;
+    real_type mean_num_photons{};  //!< Mean photons produced per unit length
+    real_type velocity{};
+    Real3 pos{};
 };
 
 //---------------------------------------------------------------------------//
@@ -31,9 +31,9 @@ struct CerenkovStepData
  */
 struct CerenkovDistribution
 {
-    size_type num_photons;  //!< Sampled number of photons to generate
-    real_type time;  //!< Pre-step time
-    real_type step_length;
+    size_type num_photons{};  //!< Sampled number of photons to generate
+    real_type time{};  //!< Pre-step time
+    real_type step_length{};
     MaterialId material{};
     CerenkovStepData pre;
     CerenkovStepData post;
