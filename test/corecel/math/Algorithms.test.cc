@@ -328,6 +328,18 @@ TEST(MathTest, negate)
 
 //---------------------------------------------------------------------------//
 
+TEST(MathTest, diffsq)
+{
+    EXPECT_DOUBLE_EQ(9.0, diffsq(5.0, 4.0));
+    EXPECT_DOUBLE_EQ(ipow<2>(std::sin(0.2)), diffsq(1.0, std::cos(0.2)));
+
+    float a{10000.001}, b{10000}, actual{20};
+    EXPECT_FLOAT_EQ(0.46875, actual - diffsq(a, b));
+    EXPECT_FLOAT_EQ(4.0, actual - (a * a - b * b));
+}
+
+//---------------------------------------------------------------------------//
+
 TEST(MathTest, sincos)
 {
     {

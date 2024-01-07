@@ -101,7 +101,7 @@ CerenkovGenerator::CerenkovGenerator(RefractiveIndex const& ref_index,
     inv_beta_ = 2 * constants::c_light
                 / (dist_.pre.velocity + dist_.post.velocity);
     real_type cos_max = inv_beta_ / calc_refractive_index_(energy_grid.back());
-    sin_max_sq_ = (1 - cos_max) * (1 + cos_max);
+    sin_max_sq_ = diffsq(real_type(1), cos_max);
 
     // Calculate changes over the step
     delta_pos_ = dist_.post.pos - dist_.pre.pos;
@@ -123,19 +123,20 @@ CELER_FUNCTION void CerenkovGenerator::operator()(Generator& rng)
         // Sample energy and direction
         real_type energy;
         real_type cos_theta;
+        real_type sin_theta_sq;
         do
         {
             energy = sample_energy_(rng);
             cos_theta = inv_beta_ / calc_refractive_index_(energy);
-        } while (!BernoulliDistribution(
-            sin_max_sq_ / ((1 - cos_theta) * (1 + cos_theta)))(rng));
+            sin_theta_sq = diffsq(real_type(1), cos_theta);
+        } while (!BernoulliDistribution(sin_max_sq_ / sin_theta_sq)(rng));
         real_type phi = sample_phi_(rng);
         photons_[i].direction = rotate(from_spherical(cos_theta, phi), dir_);
         photons_[i].energy = units::MevEnergy(energy);
 
         // Determine polarization
-        photons_[i].polarization = rotate(
-            from_spherical(-std::sqrt(1 - ipow<2>(cos_theta)), phi), dir_);
+        photons_[i].polarization
+            = rotate(from_spherical(-std::sqrt(sin_theta_sq), phi), dir_);
 
         // Sample position and time
         real_type u;
