@@ -516,7 +516,7 @@ celeritas_add_test(celeritas/global/Stepper.test.cc
 #-------------------------------------#
 # Grid
 set(CELERITASTEST_PREFIX celeritas/grid)
-celeritas_add_test(celeritas/grid/GenericXsCalculator.test.cc)
+celeritas_add_test(celeritas/grid/GenericCalculator.test.cc)
 celeritas_add_test(celeritas/grid/GridIdFinder.test.cc)
 celeritas_add_test(celeritas/grid/InverseRangeCalculator.test.cc)
 celeritas_add_test(celeritas/grid/PolyEvaluator.test.cc)
