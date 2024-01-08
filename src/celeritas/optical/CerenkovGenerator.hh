@@ -15,61 +15,76 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "celeritas/grid/GenericXsCalculator.hh"
-#include "celeritas/grid/XsGridData.hh"
+#include "celeritas/grid/GenericCalculator.hh"
+#include "celeritas/grid/GenericGridData.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/GenerateCanonical.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 #include "CerenkovDistribution.hh"
+#include "CerenkovDndxCalculator.hh"
 #include "OpticalPrimary.hh"
+#include "OpticalPropertyData.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample Cerenkov photons.
+ * Sample Cerenkov photons from the given distribution.
+ *
+ * Cerenkov radiation is emitted when a charged particle passes through a
+ * dielectric medium faster than the speed of light in that medium. A cone of
+ * Cerenkov photons is emitted, with the cone angle \f$ \theta \f$, measured
+ * with respect to the incident particle direction, decreasing as the particle
+ * slows down.
+ *
+ * An incident charged particle with speed \f$ \beta \f$ will emit photons at
+ * an angle \f$ \theta \f$ given by \f$ \cos\theta = 1 / (\beta n) \f$ where
+ * \f$ n \f$ is the index of refraction of the matarial. The photon energy \f$
+ * \epsilon \f$ is sampled from the PDF \f[
+   f(\epsilon) = \left[1 - \frac{1}{n^2(\epsilon)\beta^2}\right]
+ * \f]
  */
 class CerenkovGenerator
 {
   public:
-    // Placeholder struct for tabulated index of refraction values
-    // TODO: remove once we store optical properties
-    struct RefractiveIndex
-    {
-        using Values
-            = Collection<real_type, Ownership::const_reference, MemSpace::native>;
-
-        GenericGridData const& data;
-        Values const& reals;
-    };
-
-  public:
     // Construct from optical properties and distribution parameters
-    inline CELER_FUNCTION CerenkovGenerator(RefractiveIndex const& ref_index,
-                                            CerenkovDistribution const& dist,
-                                            Span<OpticalPrimary> photons);
+    inline CELER_FUNCTION
+    CerenkovGenerator(OpticalPropertyRef const& properties,
+                      CerenkovRef const& shared,
+                      CerenkovDistribution const& dist,
+                      MaterialId material,
+                      Span<OpticalPrimary> photons);
 
     // Sample Cerenkov photons from the distribution
     template<class Generator>
     inline CELER_FUNCTION void operator()(Generator& rng);
 
   private:
+    //// TYPES ////
+
     using UniformRealDist = UniformRealDistribution<real_type>;
+
+    //// DATA ////
 
     CerenkovDistribution const& dist_;
     Span<OpticalPrimary> photons_;
-    // TODO: rename GenericXsCalculator to something more generic?
-    GenericXsCalculator calc_refractive_index_;
-    UniformRealDist sample_energy_;
+    GenericCalculator calc_refractive_index_;
     UniformRealDist sample_phi_;
+    UniformRealDist sample_energy_;
     UniformRealDist sample_num_photons_;
-    Real3 delta_pos_;
     Real3 dir_;
-    real_type sin_max_sq_;
-    real_type inv_beta_;
+    Real3 delta_pos_;
+    real_type dndx_pre_;
     real_type delta_num_photons_;
     real_type delta_velocity_;
+    real_type sin_max_sq_;
+    real_type inv_beta_;
+
+    //// HELPER FUNCTIONS ////
+
+    GenericCalculator
+    make_calculator(OpticalPropertyRef const& properties, MaterialId material);
 };
 
 //---------------------------------------------------------------------------//
@@ -79,35 +94,44 @@ class CerenkovGenerator
  * Construct from optical properties and distribution parameters.
  */
 CELER_FUNCTION
-CerenkovGenerator::CerenkovGenerator(RefractiveIndex const& ref_index,
+CerenkovGenerator::CerenkovGenerator(OpticalPropertyRef const& properties,
+                                     CerenkovRef const& shared,
                                      CerenkovDistribution const& dist,
+                                     MaterialId material,
                                      Span<OpticalPrimary> photons)
     : dist_(dist)
     , photons_(photons)
-    , calc_refractive_index_(ref_index.data, ref_index.reals)
+    , calc_refractive_index_(this->make_calculator(properties, material))
     , sample_phi_(0, 2 * constants::pi)
 
 {
-    CELER_EXPECT(ref_index.data);
+    CELER_EXPECT(properties);
+    CELER_EXPECT(shared);
+    CELER_EXPECT(material < properties.materials.size());
     CELER_EXPECT(dist_);
     CELER_EXPECT(photons_.size() == dist_.num_photons);
 
-    NonuniformGrid<real_type> energy_grid(ref_index.data.grid, ref_index.reals);
+    using constants::c_light;
+
+    auto const& energy_grid = calc_refractive_index_.grid();
     sample_energy_ = UniformRealDist(energy_grid.front(), energy_grid.back());
 
-    sample_num_photons_ = UniformRealDist(
-        0, max(dist_.pre.mean_num_photons, dist_.post.mean_num_photons));
+    // Calculate the mean number of photons produced per unit length at the
+    // pre- and post-step energies
+    CerenkovDndxCalculator calc_dndx(
+        properties, shared, material, dist_.charge);
+    dndx_pre_ = calc_dndx(c_light / dist_.pre.velocity);
+    real_type dndx_post = calc_dndx(c_light / dist_.post.velocity);
+    sample_num_photons_ = UniformRealDist(0, max(dndx_pre_, dndx_post));
 
-    inv_beta_ = 2 * constants::c_light
-                / (dist_.pre.velocity + dist_.post.velocity);
+    inv_beta_ = 2 * c_light / (dist_.pre.velocity + dist_.post.velocity);
     real_type cos_max = inv_beta_ / calc_refractive_index_(energy_grid.back());
     sin_max_sq_ = diffsq(real_type(1), cos_max);
 
     // Calculate changes over the step
     delta_pos_ = dist_.post.pos - dist_.pre.pos;
     dir_ = make_unit_vector(delta_pos_);
-    delta_num_photons_ = dist_.post.mean_num_photons
-                         - dist_.pre.mean_num_photons;
+    delta_num_photons_ = dndx_post - dndx_pre_;
     delta_velocity_ = dist_.post.velocity - dist_.pre.velocity;
 }
 
@@ -143,8 +167,7 @@ CELER_FUNCTION void CerenkovGenerator::operator()(Generator& rng)
         do
         {
             u = generate_canonical(rng);
-        } while (sample_num_photons_(rng)
-                 > dist_.pre.mean_num_photons + u * delta_num_photons_);
+        } while (sample_num_photons_(rng) > dndx_pre_ + u * delta_num_photons_);
         real_type delta_time
             = u * dist_.step_length
               / (dist_.pre.velocity + u * real_type(0.5) * delta_velocity_);
@@ -152,6 +175,20 @@ CELER_FUNCTION void CerenkovGenerator::operator()(Generator& rng)
         photons_[i].position = dist_.pre.pos;
         axpy(u, delta_pos_, &photons_[i].position);
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a calculator to compute index of refraction.
+ */
+CELER_FUNCTION GenericCalculator CerenkovGenerator::make_calculator(
+    OpticalPropertyRef const& properties, MaterialId material)
+{
+    CELER_EXPECT(properties);
+    CELER_EXPECT(material < properties.materials.size());
+
+    return GenericCalculator(properties.materials[material].refractive_index,
+                             properties.reals);
 }
 
 //---------------------------------------------------------------------------//

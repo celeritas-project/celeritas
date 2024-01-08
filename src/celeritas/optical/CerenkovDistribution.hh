@@ -20,7 +20,6 @@ namespace celeritas
  */
 struct CerenkovStepData
 {
-    real_type mean_num_photons{};  //!< Mean photons produced per unit length
     real_type velocity{};
     Real3 pos{};
 };
@@ -34,6 +33,7 @@ struct CerenkovDistribution
     size_type num_photons{};  //!< Sampled number of photons to generate
     real_type time{};  //!< Pre-step time
     real_type step_length{};
+    real_type charge{};
     MaterialId material{};
     CerenkovStepData pre;
     CerenkovStepData post;
@@ -41,8 +41,7 @@ struct CerenkovDistribution
     //! Check whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return num_photons > 0 && step_length > 0 && material
-               && max(pre.mean_num_photons, post.mean_num_photons) > 0;
+        return num_photons > 0 && step_length > 0 && material;
     }
 };
 

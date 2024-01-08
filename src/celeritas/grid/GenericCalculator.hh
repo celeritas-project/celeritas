@@ -43,9 +43,13 @@ class GenericCalculator
     // Get the tabulated y value at a particular index.
     CELER_FORCEINLINE_FUNCTION real_type operator[](size_type index) const;
 
+    // Get the tabulated x values
+    CELER_FORCEINLINE_FUNCTION NonuniformGrid<real_type> const& grid() const;
+
   private:
     GenericGridData const& data_;
     Values const& reals_;
+    NonuniformGrid<real_type> x_grid_;
 };
 
 //---------------------------------------------------------------------------//
@@ -57,7 +61,7 @@ class GenericCalculator
 CELER_FUNCTION
 GenericCalculator::GenericCalculator(GenericGridData const& grid,
                                      Values const& values)
-    : data_(grid), reals_(values)
+    : data_(grid), reals_(values), x_grid_(data_.grid, reals_)
 {
     CELER_EXPECT(data_);
 }
@@ -68,31 +72,29 @@ GenericCalculator::GenericCalculator(GenericGridData const& grid,
  */
 CELER_FUNCTION real_type GenericCalculator::operator()(real_type x) const
 {
-    NonuniformGrid<real_type> const x_grid(data_.grid, reals_);
-
     // Snap out-of-bounds values to closest grid points
     size_type lower_idx;
     real_type result;
-    if (x <= x_grid.front())
+    if (x <= x_grid_.front())
     {
         lower_idx = 0;
         result = (*this)[lower_idx];
     }
-    else if (x >= x_grid.back())
+    else if (x >= x_grid_.back())
     {
-        lower_idx = x_grid.size() - 1;
+        lower_idx = x_grid_.size() - 1;
         result = (*this)[lower_idx];
     }
     else
     {
         // Locate the x bin
-        lower_idx = x_grid.find(x);
-        CELER_ASSERT(lower_idx + 1 < x_grid.size());
+        lower_idx = x_grid_.find(x);
+        CELER_ASSERT(lower_idx + 1 < x_grid_.size());
 
         // Interpolate *linearly* on x using the bin data.
         LinearInterpolator<real_type> interpolate_xs(
-            {x_grid[lower_idx], (*this)[lower_idx]},
-            {x_grid[lower_idx + 1], (*this)[lower_idx + 1]});
+            {x_grid_[lower_idx], (*this)[lower_idx]},
+            {x_grid_[lower_idx + 1], (*this)[lower_idx + 1]});
         result = interpolate_xs(x);
     }
 
@@ -107,6 +109,15 @@ CELER_FUNCTION real_type GenericCalculator::operator[](size_type index) const
 {
     CELER_EXPECT(index < data_.value.size());
     return reals_[data_.value[index]];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the tabulated x values.
+ */
+CELER_FUNCTION NonuniformGrid<real_type> const& GenericCalculator::grid() const
+{
+    return x_grid_;
 }
 
 //---------------------------------------------------------------------------//
