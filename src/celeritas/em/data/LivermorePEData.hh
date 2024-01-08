@@ -14,7 +14,7 @@
 #include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/XsGridData.hh"
+#include "celeritas/grid/GenericGridData.hh"
 
 namespace celeritas
 {
