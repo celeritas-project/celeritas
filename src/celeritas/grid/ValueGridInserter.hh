@@ -17,6 +17,7 @@
 #include "corecel/grid/UniformGridData.hh"
 #include "celeritas/Types.hh"
 
+#include "GenericGridData.hh"
 #include "XsGridData.hh"
 
 namespace celeritas

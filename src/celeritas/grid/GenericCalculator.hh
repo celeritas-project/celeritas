@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/GenericXsCalculator.hh
+//! \file celeritas/grid/GenericCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -15,15 +15,15 @@
 #include "corecel/grid/Interpolator.hh"
 #include "corecel/grid/NonuniformGrid.hh"
 
-#include "XsGridData.hh"
+#include "GenericGridData.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Find and interpolate cross sections on a nonuniform grid.
+ * Find and interpolate values on a nonuniform grid.
  */
-class GenericXsCalculator
+class GenericCalculator
 {
   public:
     //@{
@@ -35,16 +35,17 @@ class GenericXsCalculator
   public:
     // Construct from grid data and backend values
     inline CELER_FUNCTION
-    GenericXsCalculator(GenericGridData const& grid, Values const& values);
+    GenericCalculator(GenericGridData const& grid, Values const& values);
 
-    // Find and interpolate the cross section from the given energy
-    inline CELER_FUNCTION real_type operator()(const real_type energy) const;
+    // Find and interpolate the y value from the given x value
+    inline CELER_FUNCTION real_type operator()(real_type x) const;
+
+    // Get the tabulated y value at a particular index.
+    CELER_FORCEINLINE_FUNCTION real_type operator[](size_type index) const;
 
   private:
     GenericGridData const& data_;
     Values const& reals_;
-
-    CELER_FORCEINLINE_FUNCTION real_type get(size_type index) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -54,8 +55,8 @@ class GenericXsCalculator
  * Construct from grid data and backend values.
  */
 CELER_FUNCTION
-GenericXsCalculator::GenericXsCalculator(GenericGridData const& grid,
-                                         Values const& values)
+GenericCalculator::GenericCalculator(GenericGridData const& grid,
+                                     Values const& values)
     : data_(grid), reals_(values)
 {
     CELER_EXPECT(data_);
@@ -63,37 +64,36 @@ GenericXsCalculator::GenericXsCalculator(GenericGridData const& grid,
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the cross section at the given energy.
+ * Calculate the y value at the given x value.
  */
-CELER_FUNCTION real_type
-GenericXsCalculator::operator()(const real_type energy) const
+CELER_FUNCTION real_type GenericCalculator::operator()(real_type x) const
 {
-    NonuniformGrid<real_type> const energy_grid(data_.grid, reals_);
+    NonuniformGrid<real_type> const x_grid(data_.grid, reals_);
 
     // Snap out-of-bounds values to closest grid points
     size_type lower_idx;
     real_type result;
-    if (energy <= energy_grid.front())
+    if (x <= x_grid.front())
     {
         lower_idx = 0;
-        result = this->get(lower_idx);
+        result = (*this)[lower_idx];
     }
-    else if (energy >= energy_grid.back())
+    else if (x >= x_grid.back())
     {
-        lower_idx = energy_grid.size() - 1;
-        result = this->get(lower_idx);
+        lower_idx = x_grid.size() - 1;
+        result = (*this)[lower_idx];
     }
     else
     {
-        // Locate the energy bin
-        lower_idx = energy_grid.find(energy);
-        CELER_ASSERT(lower_idx + 1 < energy_grid.size());
+        // Locate the x bin
+        lower_idx = x_grid.find(x);
+        CELER_ASSERT(lower_idx + 1 < x_grid.size());
 
-        // Interpolate *linearly* on energy using the bin data.
+        // Interpolate *linearly* on x using the bin data.
         LinearInterpolator<real_type> interpolate_xs(
-            {energy_grid[lower_idx], this->get(lower_idx)},
-            {energy_grid[lower_idx + 1], this->get(lower_idx + 1)});
-        result = interpolate_xs(energy);
+            {x_grid[lower_idx], (*this)[lower_idx]},
+            {x_grid[lower_idx + 1], (*this)[lower_idx + 1]});
+        result = interpolate_xs(x);
     }
 
     return result;
@@ -101,9 +101,9 @@ GenericXsCalculator::operator()(const real_type energy) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the raw cross section data at a particular index.
+ * Get the tabulated y value at a particular index.
  */
-CELER_FUNCTION real_type GenericXsCalculator::get(size_type index) const
+CELER_FUNCTION real_type GenericCalculator::operator[](size_type index) const
 {
     CELER_EXPECT(index < data_.value.size());
     return reals_[data_.value[index]];

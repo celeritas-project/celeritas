@@ -50,22 +50,4 @@ struct XsGridData
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * A generic grid of 1D data with arbitrary interpolation.
- */
-struct GenericGridData
-{
-    ItemRange<real_type> grid;  //!< x grid
-    ItemRange<real_type> value;  //!< f(x) value
-    Interp grid_interp;  //!< Interpolation along x
-    Interp value_interp;  //!< Interpolation along f(x)
-
-    //! Whether the interface is initialized and valid
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return (value.size() >= 2) && grid.size() == value.size();
-    }
-};
-
-//---------------------------------------------------------------------------//
 }  // namespace celeritas
