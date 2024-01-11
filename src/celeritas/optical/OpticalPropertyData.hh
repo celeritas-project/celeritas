@@ -11,30 +11,10 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/XsGridData.hh"
+#include "celeritas/grid/GenericGridData.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Optical properties for a single material.
- *
- * TODO: Placeholder for optical property data; modify or replace as needed.
- */
-struct OpticalMaterial
-{
-    using EnergyUnits = units::Mev;
-
-    // Tabulated refractive index as a funtion of photon energy
-    GenericGridData refractive_index;
-
-    //! True if assigned and valid
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return static_cast<bool>(refractive_index);
-    }
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Shared optical properties data.
@@ -52,14 +32,14 @@ struct OpticalPropertyData
     //// MEMBER DATA ////
 
     Items<real_type> reals;
-    MaterialItems<OpticalMaterial> materials;
+    MaterialItems<GenericGridData> refractive_index;
 
     //// MEMBER FUNCTIONS ////
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !reals.empty() && !materials.empty();
+        return !reals.empty() && !refractive_index.empty();
     }
 
     //! Assign from another set of data
@@ -68,7 +48,7 @@ struct OpticalPropertyData
     {
         CELER_EXPECT(other);
         reals = other.reals;
-        materials = other.materials;
+        refractive_index = other.refractive_index;
         return *this;
     }
 };

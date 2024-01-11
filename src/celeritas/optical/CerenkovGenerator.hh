@@ -33,10 +33,11 @@ namespace celeritas
  * Sample Cerenkov photons from the given distribution.
  *
  * Cerenkov radiation is emitted when a charged particle passes through a
- * dielectric medium faster than the speed of light in that medium. A cone of
- * Cerenkov photons is emitted, with the cone angle \f$ \theta \f$, measured
- * with respect to the incident particle direction, decreasing as the particle
- * slows down.
+ * dielectric medium faster than the speed of light in that medium. Photons are
+ * emitted on the surface of a cone, with the cone angle, \f$ \theta \f$,
+ * measured with respect to the incident particle direction. As the particle
+ * slows down, the cone angle and the number of emitted photons decreases and
+ * the frequency of the emitted photons increases.
  *
  * An incident charged particle with speed \f$ \beta \f$ will emit photons at
  * an angle \f$ \theta \f$ given by \f$ \cos\theta = 1 / (\beta n) \f$ where
@@ -107,7 +108,7 @@ CerenkovGenerator::CerenkovGenerator(OpticalPropertyRef const& properties,
 {
     CELER_EXPECT(properties);
     CELER_EXPECT(shared);
-    CELER_EXPECT(material < properties.materials.size());
+    CELER_EXPECT(material < properties.refractive_index.size());
     CELER_EXPECT(dist_);
     CELER_EXPECT(photons_.size() == dist_.num_photons);
 
@@ -158,7 +159,7 @@ CELER_FUNCTION void CerenkovGenerator::operator()(Generator& rng)
         photons_[i].direction = rotate(from_spherical(cos_theta, phi), dir_);
         photons_[i].energy = units::MevEnergy(energy);
 
-        // Determine polarization
+        // Photon polarization is perpendicular to the cone's surface
         photons_[i].polarization
             = rotate(from_spherical(-std::sqrt(sin_theta_sq), phi), dir_);
 
@@ -185,9 +186,9 @@ CELER_FUNCTION GenericCalculator CerenkovGenerator::make_calculator(
     OpticalPropertyRef const& properties, MaterialId material)
 {
     CELER_EXPECT(properties);
-    CELER_EXPECT(material < properties.materials.size());
+    CELER_EXPECT(material < properties.refractive_index.size());
 
-    return GenericCalculator(properties.materials[material].refractive_index,
+    return GenericCalculator(properties.refractive_index[material],
                              properties.reals);
 }
 

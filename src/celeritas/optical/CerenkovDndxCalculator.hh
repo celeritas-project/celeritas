@@ -62,7 +62,7 @@ class CerenkovDndxCalculator
     CerenkovRef const& shared_;
     MaterialId material_;
     real_type charge_;
-    real_type rfactor_;
+    real_type alpha_hbar_c_;
 };
 
 //---------------------------------------------------------------------------//
@@ -81,12 +81,11 @@ CerenkovDndxCalculator::CerenkovDndxCalculator(
     , shared_(shared)
     , material_(material)
     , charge_(charge)
-    , rfactor_(constants::alpha_fine_structure
-               / (constants::hbar_planck * constants::c_light))
+    , alpha_hbar_c_(constants::alpha_fine_structure
+                    / (constants::hbar_planck * constants::c_light))
 {
     CELER_EXPECT(properties_);
     CELER_EXPECT(shared_);
-    CELER_EXPECT(material_ < properties_.materials.size());
 
     // TODO: check refractive index grid and values is_monotonic_increasing()
 }
@@ -105,8 +104,9 @@ CELER_FUNCTION real_type CerenkovDndxCalculator::operator()(real_type inv_beta)
         return 0;
     }
 
+    CELER_ASSERT(material_ < properties_.refractive_index.size());
     GenericCalculator calc_refractive_index(
-        properties_.materials[material_].refractive_index, properties_.reals);
+        properties_.refractive_index[material_], properties_.reals);
     real_type energy_max = calc_refractive_index.grid().back();
     if (calc_refractive_index(energy_max) < inv_beta)
     {
@@ -129,7 +129,7 @@ CELER_FUNCTION real_type CerenkovDndxCalculator::operator()(real_type inv_beta)
         // Both energy and refractive index are monotonically increasing, so
         // the grid and values can be swapped and the energy can be calculated
         // from a given index of refraction
-        auto grid_data = properties_.materials[material_].refractive_index;
+        auto grid_data = properties_.refractive_index[material_];
         trivial_swap(grid_data.grid, grid_data.value);
         auto energy = GenericCalculator(grid_data, properties_.reals)(inv_beta);
         delta_energy = energy_max - energy;
@@ -137,7 +137,7 @@ CELER_FUNCTION real_type CerenkovDndxCalculator::operator()(real_type inv_beta)
     }
 
     // Calculate number of photons
-    return rfactor_ * ipow<2>(charge_)
+    return alpha_hbar_c_ * ipow<2>(charge_)
            * (delta_energy - angle_integral * ipow<2>(inv_beta));
 }
 
