@@ -34,7 +34,7 @@ struct CerenkovDistribution
     real_type time{};  //!< Pre-step time
     real_type step_length{};
     real_type charge{};
-    MaterialId material{};
+    OpticalMaterialId material{};
     CerenkovStepData pre;
     CerenkovStepData post;
 

@@ -54,7 +54,7 @@ class CerenkovGenerator
     CerenkovGenerator(OpticalPropertyRef const& properties,
                       CerenkovRef const& shared,
                       CerenkovDistribution const& dist,
-                      MaterialId material,
+                      OpticalMaterialId material,
                       Span<OpticalPrimary> photons);
 
     // Sample Cerenkov photons from the distribution
@@ -84,8 +84,8 @@ class CerenkovGenerator
 
     //// HELPER FUNCTIONS ////
 
-    GenericCalculator
-    make_calculator(OpticalPropertyRef const& properties, MaterialId material);
+    GenericCalculator make_calculator(OpticalPropertyRef const& properties,
+                                      OpticalMaterialId material);
 };
 
 //---------------------------------------------------------------------------//
@@ -98,7 +98,7 @@ CELER_FUNCTION
 CerenkovGenerator::CerenkovGenerator(OpticalPropertyRef const& properties,
                                      CerenkovRef const& shared,
                                      CerenkovDistribution const& dist,
-                                     MaterialId material,
+                                     OpticalMaterialId material,
                                      Span<OpticalPrimary> photons)
     : dist_(dist)
     , photons_(photons)
@@ -183,7 +183,7 @@ CELER_FUNCTION void CerenkovGenerator::operator()(Generator& rng)
  * Return a calculator to compute index of refraction.
  */
 CELER_FUNCTION GenericCalculator CerenkovGenerator::make_calculator(
-    OpticalPropertyRef const& properties, MaterialId material)
+    OpticalPropertyRef const& properties, OpticalMaterialId material)
 {
     CELER_EXPECT(properties);
     CELER_EXPECT(material < properties.refractive_index.size());

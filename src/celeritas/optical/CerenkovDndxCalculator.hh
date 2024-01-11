@@ -51,7 +51,7 @@ class CerenkovDndxCalculator
     inline CELER_FUNCTION
     CerenkovDndxCalculator(OpticalPropertyRef const& properties,
                            CerenkovRef const& shared,
-                           MaterialId material,
+                           OpticalMaterialId material,
                            real_type charge);
 
     // Calculate the mean number of Cerenkov photons produced per unit length
@@ -60,7 +60,7 @@ class CerenkovDndxCalculator
   private:
     OpticalPropertyRef const& properties_;
     CerenkovRef const& shared_;
-    MaterialId material_;
+    OpticalMaterialId material_;
     real_type charge_;
     real_type alpha_hbar_c_;
 };
@@ -75,7 +75,7 @@ CELER_FUNCTION
 CerenkovDndxCalculator::CerenkovDndxCalculator(
     OpticalPropertyRef const& properties,
     CerenkovRef const& shared,
-    MaterialId material,
+    OpticalMaterialId material,
     real_type charge)
     : properties_(properties)
     , shared_(shared)

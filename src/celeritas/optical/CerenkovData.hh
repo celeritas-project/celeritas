@@ -25,12 +25,12 @@ struct CerenkovData
     template<class T>
     using Items = Collection<T, W, M>;
     template<class T>
-    using MaterialItems = Collection<T, W, M, MaterialId>;
+    using OpticalMaterialItems = Collection<T, W, M, OpticalMaterialId>;
 
     //// MEMBER DATA ////
 
     Items<real_type> reals;
-    MaterialItems<GenericGridData> angle_integral;
+    OpticalMaterialItems<GenericGridData> angle_integral;
 
     //// MEMBER FUNCTIONS ////
 

@@ -27,12 +27,12 @@ struct OpticalPropertyData
     template<class T>
     using Items = Collection<T, W, M>;
     template<class T>
-    using MaterialItems = Collection<T, W, M, MaterialId>;
+    using OpticalMaterialItems = Collection<T, W, M, OpticalMaterialId>;
 
     //// MEMBER DATA ////
 
     Items<real_type> reals;
-    MaterialItems<GenericGridData> refractive_index;
+    OpticalMaterialItems<GenericGridData> refractive_index;
 
     //// MEMBER FUNCTIONS ////
 
