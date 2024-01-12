@@ -14,6 +14,7 @@
 #include "corecel/Types.hh"
 #include "celeritas/grid/GenericCalculator.hh"
 #include "celeritas/grid/GenericGridData.hh"
+#include "celeritas/grid/VectorUtils.hh"
 
 #include "CerenkovData.hh"
 #include "OpticalPropertyData.hh"
@@ -86,8 +87,6 @@ CerenkovDndxCalculator::CerenkovDndxCalculator(
 {
     CELER_EXPECT(properties_);
     CELER_EXPECT(shared_);
-
-    // TODO: check refractive index grid and values is_monotonic_increasing()
 }
 
 //---------------------------------------------------------------------------//
@@ -125,11 +124,16 @@ CELER_FUNCTION real_type CerenkovDndxCalculator::operator()(real_type inv_beta)
     }
     else
     {
+        // In a dispersive medium the index of refraction is an increasing
+        // function of photon energy
+        auto grid_data = properties_.refractive_index[material_];
+        CELER_ASSERT(
+            is_monotonic_increasing(properties_.reals[grid_data.value]));
+
         // Find the energy where the refractive index is equal to 1 / beta.
         // Both energy and refractive index are monotonically increasing, so
         // the grid and values can be swapped and the energy can be calculated
         // from a given index of refraction
-        auto grid_data = properties_.refractive_index[material_];
         trivial_swap(grid_data.grid, grid_data.value);
         auto energy = GenericCalculator(grid_data, properties_.reals)(inv_beta);
         delta_energy = energy_max - energy;
