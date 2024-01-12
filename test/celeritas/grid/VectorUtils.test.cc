@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/grid/VectorUtils.hh"
 
+#include <vector>
+
 #include "celeritas_test.hh"
 
 constexpr double exact_third = 1.0 / 3.0;
@@ -80,6 +82,25 @@ TEST(VectorUtils, logspace)
         EXPECT_DOUBLE_EQ(2 * exact_third, result.back());
     }
 }
+
+//---------------------------------------------------------------------------//
+
+TEST(VectorUtils, monotonic_increasing)
+{
+    {
+        std::vector<double> v{2, 4, 8, 16, 32};
+        EXPECT_TRUE(is_monotonic_increasing(make_span(v)));
+    }
+    {
+        std::vector<double> v{10, 100, 1000, 1000};
+        EXPECT_FALSE(is_monotonic_increasing(make_span(v)));
+    }
+    {
+        std::vector<double> v{1e-16, 0, 1, 2};
+        EXPECT_FALSE(is_monotonic_increasing(make_span(v)));
+    }
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
