@@ -21,7 +21,7 @@
 #include "celeritas/random/distribution/GenerateCanonical.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
-#include "CerenkovDistribution.hh"
+#include "CerenkovDistributionData.hh"
 #include "CerenkovDndxCalculator.hh"
 #include "OpticalPrimary.hh"
 #include "OpticalPropertyData.hh"
@@ -53,7 +53,7 @@ class CerenkovGenerator
     inline CELER_FUNCTION
     CerenkovGenerator(OpticalPropertyRef const& properties,
                       CerenkovRef const& shared,
-                      CerenkovDistribution const& dist,
+                      CerenkovDistributionData const& dist,
                       OpticalMaterialId material,
                       Span<OpticalPrimary> photons);
 
@@ -68,7 +68,7 @@ class CerenkovGenerator
 
     //// DATA ////
 
-    CerenkovDistribution const& dist_;
+    CerenkovDistributionData const& dist_;
     Span<OpticalPrimary> photons_;
     GenericCalculator calc_refractive_index_;
     UniformRealDist sample_phi_;
@@ -97,7 +97,7 @@ class CerenkovGenerator
 CELER_FUNCTION
 CerenkovGenerator::CerenkovGenerator(OpticalPropertyRef const& properties,
                                      CerenkovRef const& shared,
-                                     CerenkovDistribution const& dist,
+                                     CerenkovDistributionData const& dist,
                                      OpticalMaterialId material,
                                      Span<OpticalPrimary> photons)
     : dist_(dist)

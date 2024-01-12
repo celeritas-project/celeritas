@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/CerenkovDistribution.hh
+//! \file celeritas/optical/CerenkovDistributionData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -28,7 +28,7 @@ struct CerenkovStepData
 /*!
  * Input data for sampling Cerenkov photons.
  */
-struct CerenkovDistribution
+struct CerenkovDistributionData
 {
     size_type num_photons{};  //!< Sampled number of photons to generate
     real_type time{};  //!< Pre-step time
