@@ -15,7 +15,6 @@
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/GenericCalculator.hh"
 #include "celeritas/grid/GenericGridData.hh"
 
 namespace celeritas
@@ -30,30 +29,30 @@ CerenkovParams::CerenkovParams(OpticalPropertyHostRef const& properties)
     for (auto mat_id :
          range(OpticalMaterialId(properties.refractive_index.size())))
     {
-        GenericGridData grid_data;
-        auto const& refractive_index = properties.refractive_index[mat_id];
-        if (!refractive_index)
+        GenericGridData ai_grid;
+        auto const& ri_grid = properties.refractive_index[mat_id];
+        if (!ri_grid)
         {
             // No refractive index data stored for this material
-            make_builder(&data.angle_integral).push_back(grid_data);
+            make_builder(&data.angle_integral).push_back(ai_grid);
             continue;
         }
 
         // Calculate the Cerenkov angle integral
-        GenericCalculator calc_rindex(refractive_index, properties.reals);
-        auto const energy = properties.reals[refractive_index.grid];
+        auto const refractive_index = properties.reals[ri_grid.value];
+        auto const energy = properties.reals[ri_grid.grid];
         std::vector<real_type> integral(energy.size());
         for (size_type i = 1; i < energy.size(); ++i)
         {
             integral[i] = integral[i - 1]
                           + real_type(0.5) * (energy[i] - energy[i - 1])
-                                * (1 / ipow<2>(calc_rindex[i - 1])
-                                   + 1 / ipow<2>(calc_rindex[i]));
+                                * (1 / ipow<2>(refractive_index[i - 1])
+                                   + 1 / ipow<2>(refractive_index[i]));
         }
         auto reals = make_builder(&data.reals);
-        grid_data.grid = reals.insert_back(energy.begin(), energy.end());
-        grid_data.value = reals.insert_back(integral.begin(), integral.end());
-        make_builder(&data.angle_integral).push_back(grid_data);
+        ai_grid.grid = reals.insert_back(energy.begin(), energy.end());
+        ai_grid.value = reals.insert_back(integral.begin(), integral.end());
+        make_builder(&data.angle_integral).push_back(ai_grid);
     }
     data_ = CollectionMirror<CerenkovData>{std::move(data)};
     CELER_ENSURE(data_ || properties.refractive_index.empty());
