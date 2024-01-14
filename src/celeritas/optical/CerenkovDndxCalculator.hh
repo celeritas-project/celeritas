@@ -62,8 +62,7 @@ class CerenkovDndxCalculator
     OpticalPropertyRef const& properties_;
     CerenkovRef const& shared_;
     OpticalMaterialId material_;
-    real_type charge_;
-    real_type alpha_hbar_c_;
+    real_type alpha_zsq_over_hbar_c_;
 };
 
 //---------------------------------------------------------------------------//
@@ -81,9 +80,9 @@ CerenkovDndxCalculator::CerenkovDndxCalculator(
     : properties_(properties)
     , shared_(shared)
     , material_(material)
-    , charge_(charge)
-    , alpha_hbar_c_(constants::alpha_fine_structure
-                    / (constants::hbar_planck * constants::c_light))
+    , alpha_zsq_over_hbar_c_(1e14 * constants::alpha_fine_structure
+                             * constants::e_electron * ipow<2>(charge)
+                             / (constants::hbar_planck * constants::c_light))
 {
     CELER_EXPECT(properties_);
     CELER_EXPECT(shared_);
@@ -107,9 +106,10 @@ CELER_FUNCTION real_type CerenkovDndxCalculator::operator()(real_type inv_beta)
     GenericCalculator calc_refractive_index(
         properties_.refractive_index[material_], properties_.reals);
     real_type energy_max = calc_refractive_index.grid().back();
-    if (calc_refractive_index(energy_max) < inv_beta)
+    if (inv_beta > calc_refractive_index(energy_max))
     {
-        // No photons produced at this energy
+        // Incident particle energy is below the threshold for Cerenkov
+        // emission (i.e., beta < 1 / n_max)
         return 0;
     }
 
@@ -118,7 +118,7 @@ CELER_FUNCTION real_type CerenkovDndxCalculator::operator()(real_type inv_beta)
     real_type angle_integral = calc_angle_integral(energy_max);
     real_type energy_min = calc_refractive_index.grid().front();
     real_type delta_energy;
-    if (calc_refractive_index(energy_min) > inv_beta)
+    if (inv_beta < calc_refractive_index(energy_min))
     {
         delta_energy = energy_max - energy_min;
     }
@@ -137,12 +137,15 @@ CELER_FUNCTION real_type CerenkovDndxCalculator::operator()(real_type inv_beta)
         trivial_swap(grid_data.grid, grid_data.value);
         auto energy = GenericCalculator(grid_data, properties_.reals)(inv_beta);
         delta_energy = energy_max - energy;
-        angle_integral -= calc_angle_integral(energy_min);
+        angle_integral -= calc_angle_integral(energy);
     }
 
-    // Calculate number of photons
-    return alpha_hbar_c_ * ipow<2>(charge_)
-           * (delta_energy - angle_integral * ipow<2>(inv_beta));
+    // Calculate number of photons. This may be negative if the incident
+    // particle energy is very close to (just above) the Cerenkov production
+    // threshold
+    return clamp_to_nonneg(
+        alpha_zsq_over_hbar_c_
+        * (delta_energy - angle_integral * ipow<2>(inv_beta)));
 }
 
 //---------------------------------------------------------------------------//
