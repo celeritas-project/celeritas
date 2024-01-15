@@ -495,6 +495,20 @@ template<class T>
 
 //---------------------------------------------------------------------------//
 /*!
+ * Calculate the difference of squares \f$ a^2 - b^2 \f$.
+ *
+ * The expression \f$ a^2 - b^2 \f$ exhibits catastrophic cancellation when \f$
+ * a \f$ and \f$ b \f$ are close in magnitude. This can be avoided by
+ * rearranging the formula as \f$ (a - b)(a + b) \f$.
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION T diffsq(T a, T b)
+{
+    return (a - b) * (a + b);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Double-precision math constant (POSIX derivative).
  *
  * These should be used in *host* or *type-dependent* circumstances because, if
