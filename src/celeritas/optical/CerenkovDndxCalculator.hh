@@ -127,8 +127,8 @@ CELER_FUNCTION real_type CerenkovDndxCalculator::operator()(real_type inv_beta)
         // In a dispersive medium the index of refraction is an increasing
         // function of photon energy
         auto grid_data = properties_.refractive_index[material_];
-        CELER_ASSERT(
-            is_monotonic_increasing(properties_.reals[grid_data.value]));
+        CELER_ASSERT(is_monotonic_increasing(
+            make_span(properties_.reals[grid_data.value])));
 
         // Find the energy where the refractive index is equal to 1 / beta.
         // Both energy and refractive index are monotonically increasing, so
