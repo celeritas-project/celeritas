@@ -153,7 +153,7 @@ void CerenkovTest::build_optical_properties()
 TEST_F(CerenkovTest, angle_integral)
 {
     // Check conversion: 1 μm wavelength is approximately 1.2398 eV
-    EXPECT_EQ(1.2398419843320026e-6, convert_to_energy(1 * micrometer));
+    EXPECT_SOFT_EQ(1.2398419843320026e-6, convert_to_energy(1 * micrometer));
 
     auto const& grid = params->host_ref().angle_integral[material];
     EXPECT_TRUE(grid);
@@ -172,9 +172,10 @@ TEST_F(CerenkovTest, angle_integral)
 
 TEST_F(CerenkovTest, dndx)
 {
-    EXPECT_SOFT_EQ(369.810177620644e6,
-                   constants::alpha_fine_structure * constants::e_electron
-                       / (constants::hbar_planck * constants::c_light) * 1e14);
+    EXPECT_SOFT_NEAR(369.81e6,
+                     constants::alpha_fine_structure * constants::e_electron
+                         / (constants::hbar_planck * constants::c_light) * 1e14,
+                     1e-6);
 
     std::vector<real_type> dndx;
     CerenkovDndxCalculator calc_dndx(
@@ -184,23 +185,25 @@ TEST_F(CerenkovTest, dndx)
     {
         dndx.push_back(calc_dndx(units::LightSpeed(beta)));
     }
-
-    static double const expected_dndx[] = {0,
-                                           0,
-                                           0.57854090574963,
-                                           12.39231212654,
-                                           41.749688597206,
-                                           111.83329546162,
-                                           132.04572253875,
-                                           343.97410323066,
-                                           715.28213549221,
-                                           978.60864329219};
-    EXPECT_VEC_SOFT_EQ(expected_dndx, dndx);
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        static double const expected_dndx[] = {0,
+                                               0,
+                                               0.57854090574963,
+                                               12.39231212654,
+                                               41.749688597206,
+                                               111.83329546162,
+                                               132.04572253875,
+                                               343.97410323066,
+                                               715.28213549221,
+                                               978.60864329219};
+        EXPECT_VEC_SOFT_EQ(expected_dndx, dndx);
+    }
 }
 
 //---------------------------------------------------------------------------//
 
-TEST_F(CerenkovTest, generator)
+TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
 {
     DiagnosticRngEngine<std::mt19937> rng;
 
