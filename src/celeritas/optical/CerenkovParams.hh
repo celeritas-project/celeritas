@@ -24,7 +24,7 @@ class CerenkovParams final : public ParamsDataInterface<CerenkovData>
 {
   public:
     // Construct with optical property data
-    explicit CerenkovParams(OpticalPropertyHostRef const& properties);
+    explicit CerenkovParams(HostCRef<OpticalPropertyData> const& properties);
 
     //! Access physics properties on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }

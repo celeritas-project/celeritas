@@ -51,9 +51,5 @@ struct CerenkovData
     }
 };
 
-using CerenkovDeviceRef = DeviceCRef<CerenkovData>;
-using CerenkovHostRef = HostCRef<CerenkovData>;
-using CerenkovRef = NativeCRef<CerenkovData>;
-
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

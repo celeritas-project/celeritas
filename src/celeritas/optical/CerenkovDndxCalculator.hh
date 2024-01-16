@@ -51,8 +51,8 @@ class CerenkovDndxCalculator
   public:
     // Construct from optical properties and Cerenkov angle integrals
     inline CELER_FUNCTION
-    CerenkovDndxCalculator(OpticalPropertyRef const& properties,
-                           CerenkovRef const& shared,
+    CerenkovDndxCalculator(NativeCRef<OpticalPropertyData> const& properties,
+                           NativeCRef<CerenkovData> const& shared,
                            OpticalMaterialId material,
                            real_type charge);
 
@@ -60,8 +60,8 @@ class CerenkovDndxCalculator
     inline CELER_FUNCTION real_type operator()(units::LightSpeed beta);
 
   private:
-    OpticalPropertyRef const& properties_;
-    CerenkovRef const& shared_;
+    NativeCRef<OpticalPropertyData> const& properties_;
+    NativeCRef<CerenkovData> const& shared_;
     OpticalMaterialId material_;
     real_type alpha_zsq_over_hbar_c_;
 };
@@ -74,8 +74,8 @@ class CerenkovDndxCalculator
  */
 CELER_FUNCTION
 CerenkovDndxCalculator::CerenkovDndxCalculator(
-    OpticalPropertyRef const& properties,
-    CerenkovRef const& shared,
+    NativeCRef<OpticalPropertyData> const& properties,
+    NativeCRef<CerenkovData> const& shared,
     OpticalMaterialId material,
     real_type charge)
     : properties_(properties)

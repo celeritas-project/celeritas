@@ -23,7 +23,7 @@ namespace celeritas
 /*!
  * Construct with optical property data.
  */
-CerenkovParams::CerenkovParams(OpticalPropertyHostRef const& properties)
+CerenkovParams::CerenkovParams(HostCRef<OpticalPropertyData> const& properties)
 {
     HostVal<CerenkovData> data;
     for (auto mat_id :

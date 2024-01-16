@@ -39,9 +39,9 @@ namespace test
  *
  * See G4OpticalMaterialProperties.hh.
  */
-std::vector<double> const& get_wavelength()
+Span<double const> get_wavelength()
 {
-    static std::vector<double> const wavelength = {
+    static Array<double, 101> const wavelength = {
         1.129,  1.12,   1.11,   1.101,  1.091,  1.082,  1.072,  1.063,  1.053,
         1.044,  1.034,  1.025,  1.015,  1.006,  0.9964, 0.987,  0.9775, 0.968,
         0.9585, 0.9491, 0.9396, 0.9301, 0.9207, 0.9112, 0.9017, 0.8923, 0.8828,
@@ -54,12 +54,12 @@ std::vector<double> const& get_wavelength()
         0.3619, 0.3525, 0.343,  0.3335, 0.3241, 0.3146, 0.3051, 0.2956, 0.2862,
         0.2767, 0.2672, 0.2578, 0.2483, 0.2388, 0.2294, 0.2199, 0.2104, 0.2009,
         0.1915, 0.182};
-    return wavelength;
+    return make_span(wavelength);
 }
 
-std::vector<double> const& get_refractive_index()
+Span<double const> get_refractive_index()
 {
-    static std::vector<double> const refractive_index
+    static Array<double, 101> const refractive_index
         = {1.3235601610672, 1.3236962786529, 1.3238469492274, 1.3239820826015,
            1.3241317601229, 1.3242660923031, 1.3244149850321, 1.3245487081924,
            1.3246970353146, 1.3248303521764, 1.3249783454392, 1.3251114708334,
@@ -86,7 +86,7 @@ std::vector<double> const& get_refractive_index()
            1.3737440834249, 1.3785121412586, 1.3841454790718, 1.3908241012126,
            1.399064758142,  1.4093866965284, 1.422764121467,  1.4407913910231,
            1.4679465862259};
-    return refractive_index;
+    return make_span(refractive_index);
 }
 
 double convert_to_energy(double wavelength)
@@ -125,18 +125,18 @@ class CerenkovTest : public Test
 
 void CerenkovTest::build_optical_properties()
 {
-    auto const& wavelength = get_wavelength();
+    auto wavelength = get_wavelength();
     std::vector<double> energy(wavelength.size());
     for (auto i : range(energy.size()))
     {
         energy[i] = convert_to_energy(wavelength[i] * micrometer);
     }
-    auto const& rindex = get_refractive_index();
+    auto rindex = get_refractive_index();
     CELER_ASSERT(energy.size() == rindex.size());
 
     // In a dispersive medium the index of refraction is an increasing
     // function of photon energy
-    CELER_ASSERT(is_monotonic_increasing(make_span(rindex)));
+    CELER_ASSERT(is_monotonic_increasing(rindex));
 
     // Only one material: water
     GenericGridData grid;

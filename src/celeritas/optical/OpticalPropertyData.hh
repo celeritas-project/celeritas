@@ -53,9 +53,5 @@ struct OpticalPropertyData
     }
 };
 
-using OpticalPropertyDeviceRef = DeviceCRef<OpticalPropertyData>;
-using OpticalPropertyHostRef = HostCRef<OpticalPropertyData>;
-using OpticalPropertyRef = NativeCRef<OpticalPropertyData>;
-
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

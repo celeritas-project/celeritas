@@ -51,8 +51,8 @@ class CerenkovGenerator
   public:
     // Construct from optical properties and distribution parameters
     inline CELER_FUNCTION
-    CerenkovGenerator(OpticalPropertyRef const& properties,
-                      CerenkovRef const& shared,
+    CerenkovGenerator(NativeCRef<OpticalPropertyData> const& properties,
+                      NativeCRef<CerenkovData> const& shared,
                       CerenkovDistributionData const& dist,
                       Span<OpticalPrimary> photons);
 
@@ -83,8 +83,9 @@ class CerenkovGenerator
 
     //// HELPER FUNCTIONS ////
 
-    GenericCalculator make_calculator(OpticalPropertyRef const& properties,
-                                      OpticalMaterialId material);
+    GenericCalculator
+    make_calculator(NativeCRef<OpticalPropertyData> const& properties,
+                    OpticalMaterialId material);
 };
 
 //---------------------------------------------------------------------------//
@@ -94,10 +95,11 @@ class CerenkovGenerator
  * Construct from optical properties and distribution parameters.
  */
 CELER_FUNCTION
-CerenkovGenerator::CerenkovGenerator(OpticalPropertyRef const& properties,
-                                     CerenkovRef const& shared,
-                                     CerenkovDistributionData const& dist,
-                                     Span<OpticalPrimary> photons)
+CerenkovGenerator::CerenkovGenerator(
+    NativeCRef<OpticalPropertyData> const& properties,
+    NativeCRef<CerenkovData> const& shared,
+    CerenkovDistributionData const& dist,
+    Span<OpticalPrimary> photons)
     : dist_(dist)
     , photons_(photons)
     , calc_refractive_index_(this->make_calculator(properties, dist_.material))
@@ -187,7 +189,8 @@ CELER_FUNCTION void CerenkovGenerator::operator()(Generator& rng)
  * Return a calculator to compute index of refraction.
  */
 CELER_FUNCTION GenericCalculator CerenkovGenerator::make_calculator(
-    OpticalPropertyRef const& properties, OpticalMaterialId material)
+    NativeCRef<OpticalPropertyData> const& properties,
+    OpticalMaterialId material)
 {
     CELER_EXPECT(properties);
     CELER_EXPECT(material < properties.refractive_index.size());
