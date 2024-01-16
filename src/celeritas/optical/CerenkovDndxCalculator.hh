@@ -81,8 +81,8 @@ CerenkovDndxCalculator::CerenkovDndxCalculator(
     : properties_(properties)
     , shared_(shared)
     , material_(material)
-    , alpha_zsq_over_hbar_c_(1e14 * constants::alpha_fine_structure
-                             * constants::e_electron * ipow<2>(charge)
+    , alpha_zsq_over_hbar_c_(constants::alpha_fine_structure * ipow<2>(charge)
+                             * units::Mev::value()
                              / (constants::hbar_planck * constants::c_light))
 {
     CELER_EXPECT(properties_);

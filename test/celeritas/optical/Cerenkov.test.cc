@@ -91,9 +91,8 @@ Span<double const> get_refractive_index()
 
 double convert_to_energy(double wavelength)
 {
-    // TODO: 1e-14
-    return constants::h_planck * constants::c_light / constants::e_electron
-           / wavelength * 1e-14;
+    return constants::h_planck * constants::c_light / units::Mev::value()
+           / wavelength;
 }
 
 //---------------------------------------------------------------------------//
@@ -173,8 +172,8 @@ TEST_F(CerenkovTest, angle_integral)
 TEST_F(CerenkovTest, dndx)
 {
     EXPECT_SOFT_NEAR(369.81e6,
-                     constants::alpha_fine_structure * constants::e_electron
-                         / (constants::hbar_planck * constants::c_light) * 1e14,
+                     constants::alpha_fine_structure * units::Mev::value()
+                         / (constants::hbar_planck * constants::c_light),
                      1e-6);
 
     std::vector<real_type> dndx;
