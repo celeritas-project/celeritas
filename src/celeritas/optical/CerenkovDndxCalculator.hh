@@ -54,7 +54,7 @@ class CerenkovDndxCalculator
     CerenkovDndxCalculator(NativeCRef<OpticalPropertyData> const& properties,
                            NativeCRef<CerenkovData> const& shared,
                            OpticalMaterialId material,
-                           real_type charge);
+                           units::ElementaryCharge charge);
 
     // Calculate the mean number of Cerenkov photons produced per unit length
     inline CELER_FUNCTION real_type operator()(units::LightSpeed beta);
@@ -77,12 +77,12 @@ CerenkovDndxCalculator::CerenkovDndxCalculator(
     NativeCRef<OpticalPropertyData> const& properties,
     NativeCRef<CerenkovData> const& shared,
     OpticalMaterialId material,
-    real_type charge)
+    units::ElementaryCharge charge)
     : properties_(properties)
     , shared_(shared)
     , material_(material)
-    , alpha_zsq_over_hbar_c_(constants::alpha_fine_structure * ipow<2>(charge)
-                             * units::Mev::value()
+    , alpha_zsq_over_hbar_c_(constants::alpha_fine_structure
+                             * ipow<2>(charge.value()) * units::Mev::value()
                              / (constants::hbar_planck * constants::c_light))
 {
     CELER_EXPECT(properties_);

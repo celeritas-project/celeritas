@@ -117,7 +117,7 @@ class CerenkovTest : public Test
     HostCRef<OpticalPropertyData> properties;
     std::shared_ptr<CerenkovParams const> params;
     OpticalMaterialId material{0};
-    real_type charge{1};
+    units::ElementaryCharge charge{1};
 };
 
 //---------------------------------------------------------------------------//

@@ -33,7 +33,7 @@ struct CerenkovDistributionData
     size_type num_photons{};  //!< Sampled number of photons to generate
     real_type time{};  //!< Pre-step time
     real_type step_length{};
-    real_type charge{};
+    units::ElementaryCharge charge;
     OpticalMaterialId material{};
     CerenkovStepData pre;
     CerenkovStepData post;
