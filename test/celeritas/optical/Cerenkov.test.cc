@@ -16,6 +16,7 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/grid/GenericGridData.hh"
+#include "celeritas/grid/VectorUtils.hh"
 #include "celeritas/optical/CerenkovDndxCalculator.hh"
 #include "celeritas/optical/CerenkovGenerator.hh"
 #include "celeritas/optical/CerenkovParams.hh"
@@ -132,6 +133,10 @@ void CerenkovTest::build_optical_properties()
     }
     auto const& rindex = get_refractive_index();
     CELER_ASSERT(energy.size() == rindex.size());
+
+    // In a dispersive medium the index of refraction is an increasing
+    // function of photon energy
+    CELER_ASSERT(is_monotonic_increasing(make_span(rindex)));
 
     // Only one material: water
     GenericGridData grid;
