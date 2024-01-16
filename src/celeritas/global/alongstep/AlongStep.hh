@@ -41,7 +41,7 @@ struct AlongStep
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class MH, class MP, class EH>
-CELER_FUNCTION AlongStep(MH&&, MP&&, EH&&)->AlongStep<MH, MP, EH>;
+CELER_FUNCTION AlongStep(MH&&, MP&&, EH&&) -> AlongStep<MH, MP, EH>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

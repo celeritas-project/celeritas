@@ -52,8 +52,8 @@ class NormalDistribution
     inline CELER_FUNCTION result_type operator()(Generator& rng);
 
   private:
-    const real_type mean_;
-    const real_type stddev_;
+    real_type const mean_;
+    real_type const stddev_;
     real_type spare_{};
     bool has_spare_{false};
 };

@@ -89,7 +89,8 @@ class DormandPrinceStepper
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class EquationT>
-CELER_FUNCTION DormandPrinceStepper(EquationT&&)->DormandPrinceStepper<EquationT>;
+CELER_FUNCTION DormandPrinceStepper(EquationT&&)
+    -> DormandPrinceStepper<EquationT>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

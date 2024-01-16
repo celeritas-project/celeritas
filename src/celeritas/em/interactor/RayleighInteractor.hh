@@ -50,7 +50,7 @@ class RayleighInteractor
     // Shared constant physics properties
     RayleighRef const& shared_;
     // Incident gamma energy
-    const units::MevEnergy inc_energy_;
+    units::MevEnergy const inc_energy_;
     // Incident direction
     Real3 const& inc_direction_;
     // Id of element
@@ -132,9 +132,9 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
             [&input](size_type i) { return input.prob[i]; },
             input.prob.size())(rng);
 
-        const real_type w = input.weight[index];
-        const real_type ninv = 1 / pn[index];
-        const real_type b = pb[index];
+        real_type const w = input.weight[index];
+        real_type const ninv = 1 / pn[index];
+        real_type const b = pb[index];
 
         // Sampling of scattering angle
         real_type x;

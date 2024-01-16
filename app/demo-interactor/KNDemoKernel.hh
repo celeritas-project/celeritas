@@ -154,7 +154,7 @@ void finalize(ParamsData<Ownership::const_reference, M> const& params,
     CELER_EXPECT(edep.size() == params.detector.tally_grid.size);
 
     copy_to_host(state.detector.tally_deposition, edep);
-    const real_type norm = 1 / real_type(state.size());
+    real_type const norm = 1 / real_type(state.size());
     for (real_type& v : edep)
     {
         v *= norm;

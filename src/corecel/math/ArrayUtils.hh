@@ -135,7 +135,7 @@ template<class T, size_type N>
 CELER_FUNCTION Array<T, N> make_unit_vector(Array<T, N> const& v)
 {
     Array<T, N> result{v};
-    const T scale_factor = 1 / norm(result);
+    T const scale_factor = 1 / norm(result);
     for (auto& el : result)
     {
         el *= scale_factor;
@@ -171,7 +171,7 @@ inline CELER_FUNCTION Array<T, 3> from_spherical(T costheta, T phi)
 {
     CELER_EXPECT(costheta >= -1 && costheta <= 1);
 
-    const T sintheta = std::sqrt(1 - costheta * costheta);
+    T const sintheta = std::sqrt(1 - costheta * costheta);
     return {sintheta * std::cos(phi), sintheta * std::sin(phi), costheta};
 }
 
@@ -238,7 +238,7 @@ rotate(Array<T, 3> const& dir, Array<T, 3> const& rot)
     {
         // Typical case: far enough from z axis to assume the X and Y
         // components have a hypotenuse of 1 within epsilon tolerance
-        const T inv_sintheta = 1 / (sintheta);
+        T const inv_sintheta = 1 / (sintheta);
         cosphi = rot[X] * inv_sintheta;
         sinphi = rot[Y] * inv_sintheta;
     }

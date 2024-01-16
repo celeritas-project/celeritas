@@ -330,7 +330,7 @@ void MaterialParams::append_element_def(ElementInput const& inp,
         = std::max(host_data->max_isotope_components, result.isotopes.size());
 
     // Calculate various factors of the atomic number
-    const real_type z_real = result.atomic_number.unchecked_get();
+    real_type const z_real = result.atomic_number.unchecked_get();
     result.cbrt_z = std::cbrt(z_real);
     result.cbrt_zzp = std::cbrt(z_real * (z_real + 1));
     result.log_z = std::log(z_real);

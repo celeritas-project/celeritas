@@ -43,7 +43,7 @@ TEST(PrintExpected, example)
         char const* const cstrings[] = {"one", "three", "five"};
         PRINT_EXPECTED(cstrings);
 
-        const std::string strings[] = {"a", "", "special\nchars\t"};
+        std::string const strings[] = {"a", "", "special\nchars\t"};
         PRINT_EXPECTED(strings);
 
         out_result = redirect_out.str();

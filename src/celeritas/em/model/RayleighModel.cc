@@ -157,7 +157,7 @@ void RayleighModel::build_data(HostValue* data, MaterialParams const& materials)
 auto RayleighModel::get_el_parameters(AtomicNumber z) -> ElScatParams const&
 {
     CELER_EXPECT(z);
-    static const ElScatParams el_params[]
+    static ElScatParams const el_params[]
         = {{{0.00000e+00, 1.00000e+00, 0.00000e+00},
             {1.53728e-16, 1.10561e-15, 6.89413e-17},
             {5.57834e+00, 2.99983e+00, 3.00000e+00}},

@@ -138,7 +138,7 @@ class FieldDriver
 //---------------------------------------------------------------------------//
 template<class StepperT>
 CELER_FUNCTION FieldDriver(FieldDriverOptions const&, StepperT&&)
-    ->FieldDriver<StepperT>;
+    -> FieldDriver<StepperT>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

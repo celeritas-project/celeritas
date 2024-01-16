@@ -72,9 +72,9 @@ class RelativisticBremInteractor
     // Shared constant physics properties
     RelativisticBremRef const& shared_;
     // Incident particle energy
-    const Energy inc_energy_;
+    Energy const inc_energy_;
     // Incident particle momentum
-    const Momentum inc_momentum_;
+    Momentum const inc_momentum_;
     // Incident direction
     Real3 const& inc_direction_;
     // Allocate space for a secondary particle

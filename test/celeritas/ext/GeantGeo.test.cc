@@ -6,7 +6,6 @@
 //! \file celeritas/ext/GeantGeo.test.cc
 //---------------------------------------------------------------------------//
 #include <string_view>
-
 #include <G4LogicalVolume.hh>
 
 #include "corecel/ScopedLogStorer.hh"

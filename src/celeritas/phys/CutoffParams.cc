@@ -140,7 +140,7 @@ CutoffParams::CutoffParams(Input const& input)
  */
 std::vector<PDGNumber> const& CutoffParams::pdg_numbers()
 {
-    static const std::vector<PDGNumber> pdg_numbers{
+    static std::vector<PDGNumber> const pdg_numbers{
         pdg::electron(), pdg::gamma(), pdg::positron()};
     return pdg_numbers;
 }

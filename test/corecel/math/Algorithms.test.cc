@@ -46,7 +46,7 @@ struct IsInRange
 TEST(UtilityTest, forward)
 {
     Foo foo;
-    const Foo cfoo;
+    Foo const cfoo;
 
     test_forward_impl<Foo&>(foo);
     test_forward_impl<Foo const&>(cfoo);

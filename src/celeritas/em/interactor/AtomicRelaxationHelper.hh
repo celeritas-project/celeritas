@@ -78,8 +78,8 @@ class AtomicRelaxationHelper
   private:
     AtomicRelaxParamsRef const& shared_;
     AtomicRelaxStateRef const& states_;
-    const ElementId el_id_;
-    const TrackSlotId track_slot_;
+    ElementId const el_id_;
+    TrackSlotId const track_slot_;
 };
 
 //---------------------------------------------------------------------------//

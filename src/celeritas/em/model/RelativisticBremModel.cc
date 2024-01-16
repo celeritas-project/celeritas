@@ -205,7 +205,7 @@ auto RelativisticBremModel::compute_element_data(ElementView const& elem,
 auto RelativisticBremModel::get_form_factor(AtomicNumber z) -> FormFactor const&
 {
     CELER_EXPECT(z && z < AtomicNumber{8});
-    static const FormFactor form_factor[] = {{5.3104, 5.9173},
+    static FormFactor const form_factor[] = {{5.3104, 5.9173},
                                              {4.7935, 5.6125},
                                              {4.7402, 5.5377},
                                              {4.7112, 5.4728},

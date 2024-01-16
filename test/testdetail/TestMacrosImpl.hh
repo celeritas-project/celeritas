@@ -250,7 +250,7 @@ IsRangeEqImpl(Iter1 e_iter,
     }
 
     // Save start iterator in order to save index
-    const Iter1 e_begin = e_iter;
+    Iter1 const e_begin = e_iter;
 
     for (; e_iter != e_end; ++e_iter, ++a_iter)
     {

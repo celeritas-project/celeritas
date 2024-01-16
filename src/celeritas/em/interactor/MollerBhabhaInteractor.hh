@@ -66,13 +66,13 @@ class MollerBhabhaInteractor
     // Shared constant physics properties
     MollerBhabhaData const& shared_;
     // Incident energy [MeV]
-    const real_type inc_energy_;
+    real_type const inc_energy_;
     // Incident momentum [MeV]
-    const real_type inc_momentum_;
+    real_type const inc_momentum_;
     // Incident direction
     Real3 const& inc_direction_;
     // Secondary electron cutoff for current material
-    const real_type electron_cutoff_;
+    real_type const electron_cutoff_;
     // Allocate space for the secondary particle
     StackAllocator<Secondary>& allocate_;
     // Incident particle flag for selecting Moller or Bhabha scattering
@@ -147,16 +147,16 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
     }
 
     // Sampled secondary kinetic energy
-    const real_type secondary_energy = epsilon * inc_energy_;
+    real_type const secondary_energy = epsilon * inc_energy_;
     CELER_ASSERT(secondary_energy >= electron_cutoff_);
 
     // Same equation as in ParticleTrackView::momentum_sq()
     // TODO: use local data ParticleTrackView
-    const real_type secondary_momentum = std::sqrt(
+    real_type const secondary_momentum = std::sqrt(
         secondary_energy
         * (secondary_energy + 2 * value_as<Mass>(shared_.electron_mass)));
 
-    const real_type total_energy = inc_energy_
+    real_type const total_energy = inc_energy_
                                    + value_as<Mass>(shared_.electron_mass);
 
     // Calculate theta from energy-momentum conservation
@@ -187,7 +187,7 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
     inc_exiting_direction = make_unit_vector(inc_exiting_direction);
 
     // Construct interaction for change to primary (incident) particle
-    const real_type inc_exiting_energy = inc_energy_ - secondary_energy;
+    real_type const inc_exiting_energy = inc_energy_ - secondary_energy;
     Interaction result;
     result.energy = Energy{inc_exiting_energy};
     result.secondaries = {electron_secondary, 1};

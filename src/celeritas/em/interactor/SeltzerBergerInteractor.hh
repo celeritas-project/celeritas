@@ -73,19 +73,19 @@ class SeltzerBergerInteractor
     // Device (host CPU or GPU device) references
     SeltzerBergerRef const& shared_;
     // Incident particle energy
-    const Energy inc_energy_;
+    Energy const inc_energy_;
     // Incident particle direction
-    const Momentum inc_momentum_;
+    Momentum const inc_momentum_;
     // Incident particle direction
     Real3 const& inc_direction_;
     // Incident particle flag for selecting XS correction factor
     bool const inc_particle_is_electron_;
     // Production cutoff for gammas
-    const Energy gamma_cutoff_;
+    Energy const gamma_cutoff_;
     // Allocate space for a secondary particle
     StackAllocator<Secondary>& allocate_;
     // Element in which interaction occurs
-    const ElementComponentId elcomp_id_;
+    ElementComponentId const elcomp_id_;
 
     //// HELPER CLASSES ////
     // A helper to sample the bremsstrahlung photon energy

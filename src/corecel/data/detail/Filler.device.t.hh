@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "Filler.hh"
+
 #include <thrust/device_malloc.h>
 #include <thrust/device_ptr.h>
 #include <thrust/execution_policy.h>
@@ -14,8 +16,6 @@
 
 #include "corecel/device_runtime_api.h"
 #include "corecel/sys/Thrust.device.hh"
-
-#include "Filler.hh"
 
 namespace celeritas
 {

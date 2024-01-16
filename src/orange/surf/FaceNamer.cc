@@ -5,9 +5,10 @@
 //---------------------------------------------------------------------------//
 //! \file orange/surf/FaceNamer.cc
 //---------------------------------------------------------------------------//
+#include "FaceNamer.hh"
+
 #include "corecel/Assert.hh"
 
-#include "FaceNamer.hh"
 #include "VariantSurface.hh"
 
 namespace celeritas

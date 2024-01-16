@@ -57,9 +57,9 @@ TEST(GeneralQuadricTest, all)
     EXPECT_EQ(10, GeneralQuadric::StorageSpan::extent);
     EXPECT_EQ(2, GeneralQuadric::Intersections{}.size());
 
-    const Real3 second{10.3125, 22.9375, 15.75};
-    const Real3 cross{-21.867141445557, -20.25, 11.69134295109};
-    const Real3 first{-11.964745962156, -9.1328585544429, -65.69134295109};
+    Real3 const second{10.3125, 22.9375, 15.75};
+    Real3 const cross{-21.867141445557, -20.25, 11.69134295109};
+    Real3 const first{-11.964745962156, -9.1328585544429, -65.69134295109};
     real_type zeroth = 77.652245962156;
 
     GeneralQuadric gq{second, cross, first, zeroth};
@@ -71,10 +71,10 @@ TEST(GeneralQuadricTest, all)
     EXPECT_EQ(SignedSense::outside, gq.calc_sense({4, 5, 5}));
     EXPECT_EQ(SignedSense::inside, gq.calc_sense({1, 2, 3}));
 
-    const Real3 center{1, 2, 3};
-    const Real3 on_surface{3.598076211353292, 3.5, 3};
-    const Real3 inward{-0.8660254037844386, -0.5, 0};
-    const Real3 outward{0.8660254037844386, 0.5, 0};
+    Real3 const center{1, 2, 3};
+    Real3 const on_surface{3.598076211353292, 3.5, 3};
+    Real3 const inward{-0.8660254037844386, -0.5, 0};
+    Real3 const outward{0.8660254037844386, 0.5, 0};
 
     Intersections distances;
 
@@ -113,7 +113,7 @@ TEST(GeneralQuadricTest, all)
     EXPECT_SOFT_EQ(no_intersection(), distances[1]);
 
     // Outside, hitting both
-    const Real3 pos{-2.464101615137754, 0, 3};
+    Real3 const pos{-2.464101615137754, 0, 3};
     distances = calc_intersections(gq, pos, outward, SurfaceState::off);
     EXPECT_SOFT_EQ(1.0, distances[0]);
     EXPECT_SOFT_EQ(7.0, distances[1]);

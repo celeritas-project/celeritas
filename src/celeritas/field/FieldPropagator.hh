@@ -101,7 +101,7 @@ class FieldPropagator
 //---------------------------------------------------------------------------//
 template<class DriverT, class GTV>
 CELER_FUNCTION FieldPropagator(DriverT&&, ParticleTrackView const&, GTV&&)
-    ->FieldPropagator<DriverT, GTV>;
+    -> FieldPropagator<DriverT, GTV>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

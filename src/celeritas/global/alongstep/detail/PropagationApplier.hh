@@ -80,7 +80,7 @@ struct PropagationApplier<MP, std::enable_if_t<kernel_max_blocks<MP>>>
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class MP>
-CELER_FUNCTION PropagationApplier(MP&&)->PropagationApplier<MP>;
+CELER_FUNCTION PropagationApplier(MP&&) -> PropagationApplier<MP>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

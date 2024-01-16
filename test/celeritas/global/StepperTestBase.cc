@@ -107,7 +107,7 @@ auto StepperTestBase::run(StepperInterface& step,
     result.active = {counts.active};
     result.queued = {counts.queued};
 
-    const size_type max_steps = this->max_average_steps() * num_primaries;
+    size_type const max_steps = this->max_average_steps() * num_primaries;
     size_type accum_steps = counts.active;
 
     while (counts)

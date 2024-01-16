@@ -74,7 +74,7 @@ CELER_FUNCTION bool LogicEvaluator::operator()(SpanConstSense values) const
         // Apply logic operator
         switch (lgc)
         {
-            // clang-format off
+                // clang-format off
             case logic::ltrue: stack.push(true);  break;
             case logic::lor:   stack.apply_or();  break;
             case logic::land:  stack.apply_and(); break;

@@ -116,7 +116,7 @@ class RelativisticBremTest : public InteractorHostTestBase
 //---------------------------------------------------------------------------//
 TEST_F(RelativisticBremTest, dxsec)
 {
-    const real_type all_energy[] = {1, 2, 5, 10, 20, 50, 100, 200, 500, 1000};
+    real_type const all_energy[] = {1, 2, 5, 10, 20, 50, 100, 200, 500, 1000};
 
     // Production cuts
     auto material_view = this->material_track().make_material_view();

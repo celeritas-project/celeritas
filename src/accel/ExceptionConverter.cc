@@ -55,7 +55,7 @@ std::string strip_source_dir(std::string const& filename)
     }
 
     std::string::size_type max_pos = 0;
-    for (const std::string path : {"src/", "app/", "test/"})
+    for (std::string const path : {"src/", "app/", "test/"})
     {
         auto pos = filename.rfind(path);
 

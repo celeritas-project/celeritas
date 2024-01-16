@@ -202,7 +202,7 @@ EnergyLossHelper::EnergyLossHelper(FluctuationRef const& shared,
     }
 
     constexpr real_type half = 0.5;
-    const real_type gamma = particle.lorentz_factor();
+    real_type const gamma = particle.lorentz_factor();
     beta_sq_ = particle.beta_sq();
     two_mebsgs_ = 2 * value_as<Mass>(shared_.electron_mass) * beta_sq_
                   * ipow<2>(gamma);

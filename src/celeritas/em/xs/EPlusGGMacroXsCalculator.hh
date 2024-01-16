@@ -51,8 +51,8 @@ class EPlusGGMacroXsCalculator
     }
 
   private:
-    const real_type electron_mass_;
-    const real_type electron_density_;
+    real_type const electron_mass_;
+    real_type const electron_density_;
 };
 
 //---------------------------------------------------------------------------//
@@ -83,10 +83,10 @@ CELER_FUNCTION real_type EPlusGGMacroXsCalculator::operator()(Energy energy) con
     using constants::r_electron;
     using PolyQuad = PolyEvaluator<real_type, 2>;
 
-    const real_type gamma
+    real_type const gamma
         = celeritas::max(energy.value(), value_as<Energy>(this->min_energy()))
           / electron_mass_;
-    const real_type sqrt_gg2 = std::sqrt(gamma * (gamma + 2));
+    real_type const sqrt_gg2 = std::sqrt(gamma * (gamma + 2));
 
     real_type result
         = pi * ipow<2>(r_electron) * electron_density_

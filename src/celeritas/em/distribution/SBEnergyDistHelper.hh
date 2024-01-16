@@ -67,12 +67,12 @@ class SBEnergyDistHelper
 
     //// IMPLEMENTATION DATA ////
 
-    const TwodSubgridCalculator calc_xs_;
-    const Xs max_xs_;
+    TwodSubgridCalculator const calc_xs_;
+    Xs const max_xs_;
 
-    const real_type inv_inc_energy_;
-    const real_type dens_corr_;
-    const ReciprocalSampler sample_exit_esq_;
+    real_type const inv_inc_energy_;
+    real_type const dens_corr_;
+    ReciprocalSampler const sample_exit_esq_;
 
     //// CONSTRUCTION HELPER FUNCTIONS ////
 
@@ -179,8 +179,8 @@ CELER_FUNCTION auto SBEnergyDistHelper::calc_max_xs(SBTables const& xs_params,
     CELER_EXPECT(element);
     SBElementTableData const& el = xs_params.elements[element];
 
-    const size_type x_idx = calc_xs_.x_index();
-    const real_type x_frac = calc_xs_.x_fraction();
+    size_type const x_idx = calc_xs_.x_index();
+    real_type const x_frac = calc_xs_.x_fraction();
     real_type result;
 
     // Calc max xs

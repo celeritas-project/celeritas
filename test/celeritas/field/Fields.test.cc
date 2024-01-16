@@ -61,7 +61,7 @@ TEST(CMSParameterizedFieldTest, all)
         }
     }
 
-    static const real_type expected_field[] = {-0,
+    static real_type const expected_field[] = {-0,
                                                -0,
                                                3.8112023023834,
                                                0.00060945895519578,
@@ -122,7 +122,7 @@ TEST_F(RZMapFieldTest, all)
         }
     }
 
-    static const real_type expected_field[] = {-0,
+    static real_type const expected_field[] = {-0,
                                                -0,
                                                3.811202287674,
                                                -4.7522817039862e-05,

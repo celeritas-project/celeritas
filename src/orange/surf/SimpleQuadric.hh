@@ -43,7 +43,7 @@ class SimpleQuadric
     //! \name Type aliases
     using Intersections = Array<real_type, 2>;
     using StorageSpan = Span<real_type const, 7>;
-    using SpanConstReal3 = Span<const real_type, 3>;
+    using SpanConstReal3 = Span<real_type const, 3>;
     //@}
 
     //// CLASS ATTRIBUTES ////

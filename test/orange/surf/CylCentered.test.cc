@@ -42,7 +42,7 @@ TEST_F(CCylXTest, construction)
     CCylX c(4.0);
     EXPECT_SOFT_EQ(ipow<2>(4), c.radius_sq());
 
-    const real_type expected_data[] = {ipow<2>(4)};
+    real_type const expected_data[] = {ipow<2>(4)};
 
     EXPECT_VEC_SOFT_EQ(expected_data, c.data());
 
@@ -280,7 +280,7 @@ TEST_F(CCylZTest, calc_intersections)
 TEST_F(CCylZTest, calc_intersections_on_surface)
 {
     CCylZ::Intersections distances;
-    const real_type eps = 1.e-4;
+    real_type const eps = 1.e-4;
 
     {
         CCylZ cyl(1.0);
@@ -476,7 +476,7 @@ void DegenerateBoundaryTest::run(real_type xdir) const
     real_type const tol = std::max<real_type>(1.e-14, 2 * std::fabs(eps));
 
     // Distance across the cylinder
-    const real_type diameter = 2 * radius;
+    real_type const diameter = 2 * radius;
 
     Real3 pos = {0, 0, 0};
     Real3 dir = {xdir, 0, 0};

@@ -165,8 +165,8 @@ void SeltzerBergerModel::append_table(ImportSBTable const& imported,
     CELER_ASSERT(!imported.value.empty()
                  && imported.value.size()
                         == imported.x.size() * imported.y.size());
-    const size_type num_x = imported.x.size();
-    const size_type num_y = imported.y.size();
+    size_type const num_x = imported.x.size();
+    size_type const num_y = imported.y.size();
 
     SBElementTableData table;
 

@@ -83,7 +83,7 @@ TEST_F(VolumeViewTest, TEST_IF_CELERITAS_JSON(five_volumes))
         this->test_face_accessors(vol);
     }
 
-    const size_type expected_num_faces[] = {1u, 7u, 7u, 2u, 11u, 1u};
+    size_type const expected_num_faces[] = {1u, 7u, 7u, 2u, 11u, 1u};
     EXPECT_VEC_EQ(expected_num_faces, num_faces);
 
     {

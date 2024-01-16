@@ -16,6 +16,7 @@
 #include "celeritas/Units.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/MagFieldEquation.hh"
+#include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/RungeKuttaStepper.hh"
 #include "celeritas/field/UniformField.hh"
 #include "celeritas/field/UniformZField.hh"
@@ -23,7 +24,6 @@
 
 #include "FieldTestParams.hh"
 #include "celeritas_test.hh"
-#include "celeritas/field/MakeMagFieldPropagator.hh"
 
 namespace celeritas
 {

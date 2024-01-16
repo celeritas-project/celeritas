@@ -162,9 +162,9 @@ class PhysicsTrackView
   private:
     PhysicsParamsRef const& params_;
     PhysicsStateRef const& states_;
-    const ParticleId particle_;
-    const MaterialId material_;
-    const TrackSlotId track_slot_;
+    ParticleId const particle_;
+    MaterialId const material_;
+    TrackSlotId const track_slot_;
 
     //// IMPLEMENTATION HELPER FUNCTIONS ////
 
@@ -616,7 +616,7 @@ CELER_FUNCTION ModelId PhysicsTrackView::model_id(ParticleModelId pmid) const
 CELER_FUNCTION real_type PhysicsTrackView::range_to_step(real_type range) const
 {
     CELER_ASSERT(range >= 0);
-    const real_type rho = params_.scalars.min_range;
+    real_type const rho = params_.scalars.min_range;
     if (range < rho * (1 + celeritas::sqrt_tol()))
     {
         // Small range returns the step. The fudge factor avoids floating point
@@ -625,7 +625,7 @@ CELER_FUNCTION real_type PhysicsTrackView::range_to_step(real_type range) const
         return range;
     }
 
-    const real_type alpha = params_.scalars.max_step_over_range;
+    real_type const alpha = params_.scalars.max_step_over_range;
     real_type step = alpha * range + rho * (1 - alpha) * (2 - rho / range);
     CELER_ENSURE(step > 0 && step <= range);
     return step;

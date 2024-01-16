@@ -73,7 +73,7 @@ TEST_F(BoundingBoxTest, standard)
 {
     if (CELERITAS_DEBUG)
     {
-        const Real3 lo{-1, -2, -3};
+        Real3 const lo{-1, -2, -3};
         EXPECT_THROW((BBox{lo, {-4, 5, 6}}), DebugError);
         EXPECT_THROW((BBox{lo, {4, -5, 6}}), DebugError);
         EXPECT_THROW((BBox{lo, {4, 5, -6}}), DebugError);

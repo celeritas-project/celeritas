@@ -113,7 +113,8 @@ CELER_FUNCTION PlaneAligned<T>::PlaneAligned(real_type position)
  */
 template<Axis T>
 template<class R>
-CELER_FUNCTION PlaneAligned<T>::PlaneAligned(Span<R, StorageSpan::extent> data) : position_(data[0])
+CELER_FUNCTION PlaneAligned<T>::PlaneAligned(Span<R, StorageSpan::extent> data)
+    : position_(data[0])
 {
 }
 

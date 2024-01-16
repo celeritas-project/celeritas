@@ -46,8 +46,8 @@ class RZMapField
     // Shared constant field map
     FieldParamsRef const& params_;
 
-    const UniformGrid grid_r_;
-    const UniformGrid grid_z_;
+    UniformGrid const grid_r_;
+    UniformGrid const grid_z_;
 };
 
 //---------------------------------------------------------------------------//

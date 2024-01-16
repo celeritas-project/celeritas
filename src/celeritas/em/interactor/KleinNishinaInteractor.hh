@@ -62,7 +62,7 @@ class KleinNishinaInteractor
     // Constant data
     KleinNishinaData const& shared_;
     // Incident gamma energy
-    const units::MevEnergy inc_energy_;
+    units::MevEnergy const inc_energy_;
     // Incident direction
     Real3 const& inc_direction_;
     // Allocate space for a secondary particle
@@ -113,9 +113,9 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
     }
 
     // Value of epsilon corresponding to minimum photon energy
-    const real_type inc_energy_per_mecsq = value_as<Energy>(inc_energy_)
+    real_type const inc_energy_per_mecsq = value_as<Energy>(inc_energy_)
                                            * shared_.inv_electron_mass;
-    const real_type epsilon_0 = 1 / (1 + 2 * inc_energy_per_mecsq);
+    real_type const epsilon_0 = 1 / (1 + 2 * inc_energy_per_mecsq);
 
     // Probability of alpha_1 to choose f_1 (sample epsilon)
     BernoulliDistribution choose_f1(-std::log(epsilon_0),

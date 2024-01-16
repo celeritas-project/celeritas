@@ -33,7 +33,7 @@ namespace test
  */
 void HeuristicGeoTestBase::run_host(size_type num_states, real_type tolerance)
 {
-    const size_type num_steps = this->num_steps();
+    size_type const num_steps = this->num_steps();
     auto params = this->build_test_params<MemSpace::host>();
     StateStore<MemSpace::host> state{params, num_states};
 
@@ -80,7 +80,7 @@ void HeuristicGeoTestBase::run_host(size_type num_states, real_type tolerance)
  */
 void HeuristicGeoTestBase::run_device(size_type num_states, real_type tolerance)
 {
-    const size_type num_steps = this->num_steps();
+    size_type const num_steps = this->num_steps();
 
     auto params = this->build_test_params<MemSpace::device>();
     StateStore<MemSpace::device> state{

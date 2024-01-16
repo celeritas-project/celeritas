@@ -113,7 +113,8 @@ void FastSimulationOffload::DoIt(G4FastTrack const& track, G4FastStep& step)
  *
  * Note that this is called in \c G4EventManager::DoProcessing(G4Event*) by
  * \c G4GlobalFastSimulationManager after the main tracking loop has completed.
- * That is done to allow for models that may add "onload" particles back to Geant4.
+ * That is done to allow for models that may add "onload" particles back to
+ * Geant4.
  */
 void FastSimulationOffload::Flush()
 {

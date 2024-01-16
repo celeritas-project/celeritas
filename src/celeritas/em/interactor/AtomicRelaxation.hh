@@ -147,7 +147,7 @@ AtomicRelaxation::operator()(Engine& rng)
         // Sample a transition (TODO: refactor to use Selector but with
         // "remainder")
         AtomicRelaxSubshell const& shell = shells[vacancy_id.get()];
-        const TransitionId trans_id = this->sample_transition(shell, rng);
+        TransitionId const trans_id = this->sample_transition(shell, rng);
 
         if (!trans_id)
             continue;

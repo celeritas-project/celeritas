@@ -379,7 +379,7 @@ class CollectionTest : public Test
         {
             MockMaterial m;
             m.number_density = 2.0;
-            const MockElement elements[] = {
+            MockElement const elements[] = {
                 {1, 1.1},
                 {3, 5.0},
                 {6, 12.0},

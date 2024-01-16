@@ -272,7 +272,7 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
     for (auto mid : range(ModelId{this->num_models()}))
     {
         Model const& m = *this->model(mid);
-        const ProcessId process_id = this->process_id(mid);
+        ProcessId const process_id = this->process_id(mid);
         for (Applicability const& applic : m.applicability())
         {
             if (applic.material)
@@ -380,7 +380,7 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
     for (auto model_idx : range(this->num_models()))
     {
         Model const& model = *models_[model_idx].first;
-        const ProcessId process_id = models_[model_idx].second;
+        ProcessId const process_id = models_[model_idx].second;
         if (auto* pe_model = dynamic_cast<LivermorePEModel const*>(&model))
         {
             data->hardwired.photoelectric = process_id;
@@ -519,8 +519,8 @@ void PhysicsParams::build_xs(Options const& opts,
                 {
                     auto const& grid_data = data->value_grids[grid_id];
                     auto data_ref = make_const_ref(*data);
-                    const UniformGrid loge_grid(grid_data.log_energy);
-                    const XsCalculator calc_xs(grid_data, data_ref.reals);
+                    UniformGrid const loge_grid(grid_data.log_energy);
+                    XsCalculator const calc_xs(grid_data, data_ref.reals);
 
                     // Check if the particle can have a discrete interaction at
                     // rest

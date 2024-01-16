@@ -108,7 +108,7 @@ class PhysicsStepView
 
     PhysicsParamsRef const& params_;
     PhysicsStateRef const& states_;
-    const TrackSlotId track_slot_;
+    TrackSlotId const track_slot_;
 
     //// CLASS FUNCTIONS ////
 

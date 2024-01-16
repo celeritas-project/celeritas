@@ -93,7 +93,7 @@ TEST_F(SimTest, looping)
                   looping.max_subthreshold_steps);
     }
 
-    const MevEnergy eps{1e-6};
+    MevEnergy const eps{1e-6};
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         // Below the threshold energy
