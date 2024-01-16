@@ -54,7 +54,6 @@ class CerenkovGenerator
     CerenkovGenerator(OpticalPropertyRef const& properties,
                       CerenkovRef const& shared,
                       CerenkovDistributionData const& dist,
-                      OpticalMaterialId material,
                       Span<OpticalPrimary> photons);
 
     // Sample Cerenkov photons from the distribution
@@ -76,9 +75,9 @@ class CerenkovGenerator
     UniformRealDist sample_num_photons_;
     Real3 dir_;
     Real3 delta_pos_;
-    real_type dndx_pre_;
+    units::LightSpeed delta_velocity_;
     real_type delta_num_photons_;
-    real_type delta_velocity_;
+    real_type dndx_pre_;
     real_type sin_max_sq_;
     real_type inv_beta_;
 
@@ -98,21 +97,18 @@ CELER_FUNCTION
 CerenkovGenerator::CerenkovGenerator(OpticalPropertyRef const& properties,
                                      CerenkovRef const& shared,
                                      CerenkovDistributionData const& dist,
-                                     OpticalMaterialId material,
                                      Span<OpticalPrimary> photons)
     : dist_(dist)
     , photons_(photons)
-    , calc_refractive_index_(this->make_calculator(properties, material))
+    , calc_refractive_index_(this->make_calculator(properties, dist_.material))
     , sample_phi_(0, 2 * constants::pi)
 
 {
     CELER_EXPECT(properties);
     CELER_EXPECT(shared);
-    CELER_EXPECT(material < properties.refractive_index.size());
+    CELER_EXPECT(dist_.material < properties.refractive_index.size());
     CELER_EXPECT(dist_);
     CELER_EXPECT(photons_.size() == dist_.num_photons);
-
-    using constants::c_light;
 
     auto const& energy_grid = calc_refractive_index_.grid();
     sample_energy_ = UniformRealDist(energy_grid.front(), energy_grid.back());
@@ -120,20 +116,25 @@ CerenkovGenerator::CerenkovGenerator(OpticalPropertyRef const& properties,
     // Calculate the mean number of photons produced per unit length at the
     // pre- and post-step energies
     CerenkovDndxCalculator calc_dndx(
-        properties, shared, material, dist_.charge);
-    dndx_pre_ = calc_dndx(c_light / dist_.pre.velocity);
-    real_type dndx_post = calc_dndx(c_light / dist_.post.velocity);
+        properties, shared, dist_.material, dist_.charge);
+    dndx_pre_ = calc_dndx(1 / dist_.pre.velocity.value());
+    real_type dndx_post = calc_dndx(1 / dist_.post.velocity.value());
+
+    // Helper used to sample the displacement
     sample_num_photons_ = UniformRealDist(0, max(dndx_pre_, dndx_post));
 
-    inv_beta_ = 2 * c_light / (dist_.pre.velocity + dist_.post.velocity);
+    // Calculate 1 / beta and the max sin^2 theta
+    inv_beta_ = 2 / (dist_.pre.velocity.value() + dist_.post.velocity.value());
     real_type cos_max = inv_beta_ / calc_refractive_index_(energy_grid.back());
     sin_max_sq_ = diffsq(real_type(1), cos_max);
 
     // Calculate changes over the step
     delta_pos_ = dist_.post.pos - dist_.pre.pos;
-    dir_ = make_unit_vector(delta_pos_);
     delta_num_photons_ = dndx_post - dndx_pre_;
     delta_velocity_ = dist_.post.velocity - dist_.pre.velocity;
+
+    // Incident particle direction
+    dir_ = make_unit_vector(delta_pos_);
 }
 
 //---------------------------------------------------------------------------//
@@ -151,10 +152,12 @@ CELER_FUNCTION void CerenkovGenerator::operator()(Generator& rng)
         real_type sin_theta_sq;
         do
         {
+            // Sample an energy uniformly within the grid bounds
             energy = sample_energy_(rng);
+            // Note that cos(theta) can be slightly larger than 1
             cos_theta = inv_beta_ / calc_refractive_index_(energy);
             sin_theta_sq = diffsq(real_type(1), cos_theta);
-        } while (!BernoulliDistribution(sin_max_sq_ / sin_theta_sq)(rng));
+        } while (generate_canonical(rng) * sin_max_sq_ > sin_theta_sq);
         real_type phi = sample_phi_(rng);
         photons_[i].direction = rotate(from_spherical(cos_theta, phi), dir_);
         photons_[i].energy = units::MevEnergy(energy);
@@ -171,7 +174,8 @@ CELER_FUNCTION void CerenkovGenerator::operator()(Generator& rng)
         } while (sample_num_photons_(rng) > dndx_pre_ + u * delta_num_photons_);
         real_type delta_time
             = u * dist_.step_length
-              / (dist_.pre.velocity + u * real_type(0.5) * delta_velocity_);
+              / (native_value_from(dist_.pre.velocity)
+                 + u * real_type(0.5) * native_value_from(delta_velocity_));
         photons_[i].time = dist_.time + delta_time;
         photons_[i].position = dist_.pre.pos;
         axpy(u, delta_pos_, &photons_[i].position);

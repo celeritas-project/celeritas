@@ -20,7 +20,7 @@ namespace celeritas
  */
 struct CerenkovStepData
 {
-    real_type velocity{};
+    units::LightSpeed velocity;
     Real3 pos{};
 };
 

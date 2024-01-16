@@ -5,17 +5,21 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/Cerenkov.test.cc
 //---------------------------------------------------------------------------//
+#include <algorithm>
 #include <vector>
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayOperators.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/grid/GenericGridData.hh"
 #include "celeritas/optical/CerenkovDndxCalculator.hh"
 #include "celeritas/optical/CerenkovGenerator.hh"
 #include "celeritas/optical/CerenkovParams.hh"
+#include "celeritas/random/distribution/PoissonDistribution.hh"
 
 #include "DiagnosticRngEngine.hh"
 #include "celeritas_test.hh"
@@ -114,7 +118,6 @@ class CerenkovTest : public Test
     std::shared_ptr<CerenkovParams const> params;
     OpticalMaterialId material{0};
     real_type charge{1};
-    DiagnosticRngEngine<std::mt19937> rng;
 };
 
 //---------------------------------------------------------------------------//
@@ -172,7 +175,7 @@ TEST_F(CerenkovTest, dndx)
     CerenkovDndxCalculator calc_dndx(
         properties, params->host_ref(), material, charge);
     for (real_type beta :
-         {0.5, 0.6813, 0.69, 0.71, 0.73, 0.75, 0.8, 0.9, 0.999})
+         {0.5, 0.6813, 0.69, 0.71, 0.73, 0.752, 0.756, 0.8, 0.9, 0.999})
     {
         dndx.push_back(calc_dndx(1 / beta));
     }
@@ -182,7 +185,8 @@ TEST_F(CerenkovTest, dndx)
                                            0.57854090574963,
                                            12.39231212654,
                                            41.749688597206,
-                                           102.71747988865,
+                                           111.83329546162,
+                                           132.04572253875,
                                            343.97410323066,
                                            715.28213549221,
                                            978.60864329219};
@@ -193,7 +197,168 @@ TEST_F(CerenkovTest, dndx)
 
 TEST_F(CerenkovTest, generator)
 {
-    EXPECT_EQ(0, rng.count());
+    DiagnosticRngEngine<std::mt19937> rng;
+
+    // Mean valuese
+    real_type avg_costheta;
+    real_type avg_energy;
+    real_type avg_displacement;
+    real_type avg_engine_samples;
+    real_type total_num_photons;
+
+    // Distributions
+    int num_bins = 16;
+    std::vector<real_type> costheta_dist(num_bins);
+    std::vector<real_type> energy_dist(num_bins);
+    std::vector<real_type> displacement_dist(num_bins);
+
+    // Energy distribution binning
+    real_type emin = convert_to_energy(get_wavelength().front() * micrometer);
+    real_type emax = convert_to_energy(get_wavelength().back() * micrometer);
+    real_type edel = (emax - emin) / num_bins;
+
+    auto sample = [&](CerenkovDistributionData& dist, size_type num_samples) {
+        // Reset tallies
+        rng.reset_count();
+        avg_costheta = avg_energy = avg_displacement = total_num_photons = 0;
+        std::fill(costheta_dist.begin(), costheta_dist.end(), 0);
+        std::fill(energy_dist.begin(), energy_dist.end(), 0);
+        std::fill(displacement_dist.begin(), displacement_dist.end(), 0);
+
+        // Displacement distribution binning
+        real_type dmin = 0;
+        real_type dmax = dist.step_length;
+        real_type ddel = (dmax - dmin) / num_bins;
+
+        // Calculate the average number of photons produced per unit length
+        real_type inv_beta
+            = 2 / (dist.pre.velocity.value() + dist.post.velocity.value());
+        CerenkovDndxCalculator calc_dndx(
+            properties, params->host_ref(), dist.material, dist.charge);
+        real_type mean_num_photons = calc_dndx(inv_beta) * dist.step_length;
+        CELER_ASSERT(mean_num_photons > 0);
+
+        Real3 inc_dir = make_unit_vector(dist.post.pos - dist.pre.pos);
+        for (size_type i = 0; i < num_samples; ++i)
+        {
+            // Sample the number of photons from a Poisson distribution
+            dist.num_photons = PoissonDistribution(mean_num_photons)(rng);
+
+            // Sample the optical photons
+            std::vector<OpticalPrimary> photons(dist.num_photons);
+            CerenkovGenerator generate_photons(
+                properties, params->host_ref(), dist, make_span(photons));
+            generate_photons(rng);
+
+            for (auto const& photon : photons)
+            {
+                // Bin cos(theta) of the photon relative to the incident
+                // particle direction
+                {
+                    real_type costheta = dot_product(inc_dir, photon.direction);
+                    avg_costheta += costheta;
+                    // Remap from [-1,1] to [0,1]
+                    int bin = (1 + costheta) / 2 * num_bins;
+                    CELER_ASSERT(bin < num_bins);
+                    ++costheta_dist[bin];
+                }
+                // Bin photon energy
+                {
+                    real_type energy = photon.energy.value();
+                    avg_energy += energy;
+                    int bin = (energy - emin) / edel;
+                    CELER_ASSERT(bin < num_bins);
+                    ++energy_dist[bin];
+                }
+                // Bin photon displacement
+                {
+                    real_type displacement
+                        = distance(dist.pre.pos, photon.position);
+                    avg_displacement += displacement;
+                    int bin = (displacement - dmin) / ddel;
+                    CELER_ASSERT(bin < num_bins);
+                    ++displacement_dist[bin];
+                }
+
+                // Photon polarization is perpendicular to the cone angle
+                EXPECT_SOFT_EQ(
+                    0, dot_product(photon.direction, photon.polarization));
+            }
+            total_num_photons += photons.size();
+        }
+        avg_costheta /= total_num_photons;
+        avg_energy /= total_num_photons;
+        avg_displacement /= total_num_photons;
+        avg_engine_samples = real_type(rng.count()) / num_samples;
+    };
+
+    size_type num_samples = 64;
+
+    CerenkovDistributionData dist;
+    dist.time = 0;
+    dist.charge = charge;
+    dist.material = material;
+    dist.pre.pos = {0, 0, 0};
+
+    // Photons are emitted on the surface of a cone, with the cone angle
+    // measured with respect to the incident particle direction. As the
+    // incident energy decreases, the cone angle and the number of photons
+    // produced decreases, and the energy of the emitted photons increases.
+
+    // 10 GeV e-
+    {
+        dist.pre.velocity = units::LightSpeed(0.99999999869453382);
+        dist.post.velocity = units::LightSpeed(0.9999999986942727);
+        dist.step_length = 1;
+        dist.post.pos = {dist.step_length, 0, 0};
+
+        // clang-format off
+        static double const expected_costheta_dist[]
+            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 52451, 10508, 0};
+        static double const expected_energy_dist[]
+            = {3690, 3774, 3698, 3752, 3684, 3658, 3768, 3831,
+               3921, 4029, 4025, 3941, 4134, 4286, 4307, 4461};
+        static double const expected_displacement_dist[]
+            = {3909, 4064, 3802, 3920, 4001, 3904, 3891, 3955,
+               3999, 3924, 3903, 3900, 3959, 3932, 4023, 3873};
+        // clang-format on
+
+        sample(dist, num_samples);
+
+        EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
+        EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
+        EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
+        EXPECT_SOFT_EQ(0.73055857883146702, avg_costheta);
+        EXPECT_SOFT_EQ(4.0497726102182314e-06, avg_energy);
+        EXPECT_SOFT_EQ(0.50020101984474064, avg_displacement);
+        EXPECT_SOFT_EQ(983.734375, total_num_photons / num_samples);
+        EXPECT_SOFT_EQ(10437.03125, avg_engine_samples);
+    }
+    // 500 keV e-
+    {
+        dist.pre.velocity = units::LightSpeed(0.86286196322132458);
+        dist.post.velocity = units::LightSpeed(0.63431981443206786);
+        dist.step_length = 0.15;
+        dist.post.pos = {dist.step_length, 0, 0};
+
+        static double const expected_costheta_dist[]
+            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 946};
+        static double const expected_energy_dist[]
+            = {0, 0, 0, 0, 10, 13, 24, 29, 47, 54, 81, 85, 120, 119, 176, 188};
+        static double const expected_displacement_dist[] = {
+            108, 108, 90, 105, 83, 88, 85, 65, 49, 43, 31, 29, 31, 16, 13, 2};
+
+        sample(dist, num_samples);
+
+        EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
+        EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
+        EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
+        EXPECT_SOFT_EQ(0.95069574770853793, avg_costheta);
+        EXPECT_SOFT_EQ(5.5675610907221099e-06, avg_energy);
+        EXPECT_SOFT_EQ(0.049432369852608751, avg_displacement);
+        EXPECT_SOFT_EQ(14.78125, total_num_photons / num_samples);
+        EXPECT_SOFT_EQ(401.5, avg_engine_samples);
+    }
 }
 //---------------------------------------------------------------------------//
 }  // namespace test
