@@ -12,6 +12,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/grid/GenericCalculator.hh"
 #include "celeritas/grid/GenericGridData.hh"
 #include "celeritas/grid/VectorUtils.hh"
@@ -56,7 +57,7 @@ class CerenkovDndxCalculator
                            real_type charge);
 
     // Calculate the mean number of Cerenkov photons produced per unit length
-    inline CELER_FUNCTION real_type operator()(real_type inv_beta);
+    inline CELER_FUNCTION real_type operator()(units::LightSpeed beta);
 
   private:
     OpticalPropertyRef const& properties_;
@@ -92,9 +93,10 @@ CerenkovDndxCalculator::CerenkovDndxCalculator(
 /*!
  * Calculate the mean number of Cerenkov photons produced per unit length.
  */
-CELER_FUNCTION real_type CerenkovDndxCalculator::operator()(real_type inv_beta)
+CELER_FUNCTION real_type
+CerenkovDndxCalculator::operator()(units::LightSpeed beta)
 {
-    CELER_EXPECT(inv_beta > 0);
+    CELER_EXPECT(beta.value() > 0 && beta.value() <= 1);
 
     if (!shared_.angle_integral[material_])
     {
@@ -103,6 +105,7 @@ CELER_FUNCTION real_type CerenkovDndxCalculator::operator()(real_type inv_beta)
     }
 
     CELER_ASSERT(material_ < properties_.refractive_index.size());
+    real_type inv_beta = 1 / beta.value();
     GenericCalculator calc_refractive_index(
         properties_.refractive_index[material_], properties_.reals);
     real_type energy_max = calc_refractive_index.grid().back();
@@ -126,9 +129,10 @@ CELER_FUNCTION real_type CerenkovDndxCalculator::operator()(real_type inv_beta)
     {
         // In a dispersive medium the index of refraction is an increasing
         // function of photon energy
+        // TODO: work with real_type=float
         auto grid_data = properties_.refractive_index[material_];
-        CELER_ASSERT(is_monotonic_increasing(
-            Span<real_type const>(properties_.reals[grid_data.value])));
+        CELER_ASSERT(
+            is_monotonic_increasing(properties_.reals[grid_data.value]));
 
         // Find the energy where the refractive index is equal to 1 / beta.
         // Both energy and refractive index are monotonically increasing, so

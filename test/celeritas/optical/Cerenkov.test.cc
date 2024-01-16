@@ -177,7 +177,7 @@ TEST_F(CerenkovTest, dndx)
     for (real_type beta :
          {0.5, 0.6813, 0.69, 0.71, 0.73, 0.752, 0.756, 0.8, 0.9, 0.999})
     {
-        dndx.push_back(calc_dndx(1 / beta));
+        dndx.push_back(calc_dndx(units::LightSpeed(beta)));
     }
 
     static double const expected_dndx[] = {0,
@@ -231,11 +231,11 @@ TEST_F(CerenkovTest, generator)
         real_type ddel = (dmax - dmin) / num_bins;
 
         // Calculate the average number of photons produced per unit length
-        real_type inv_beta
-            = 2 / (dist.pre.velocity.value() + dist.post.velocity.value());
+        units::LightSpeed beta(
+            0.5 * (dist.pre.velocity.value() + dist.post.velocity.value()));
         CerenkovDndxCalculator calc_dndx(
             properties, params->host_ref(), dist.material, dist.charge);
-        real_type mean_num_photons = calc_dndx(inv_beta) * dist.step_length;
+        real_type mean_num_photons = calc_dndx(beta) * dist.step_length;
         CELER_ASSERT(mean_num_photons > 0);
 
         Real3 inc_dir = make_unit_vector(dist.post.pos - dist.pre.pos);

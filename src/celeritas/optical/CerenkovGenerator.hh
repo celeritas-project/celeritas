@@ -117,8 +117,8 @@ CerenkovGenerator::CerenkovGenerator(OpticalPropertyRef const& properties,
     // pre- and post-step energies
     CerenkovDndxCalculator calc_dndx(
         properties, shared, dist_.material, dist_.charge);
-    dndx_pre_ = calc_dndx(1 / dist_.pre.velocity.value());
-    real_type dndx_post = calc_dndx(1 / dist_.post.velocity.value());
+    dndx_pre_ = calc_dndx(dist_.pre.velocity);
+    real_type dndx_post = calc_dndx(dist_.post.velocity);
 
     // Helper used to sample the displacement
     sample_num_photons_ = UniformRealDist(0, max(dndx_pre_, dndx_post));
