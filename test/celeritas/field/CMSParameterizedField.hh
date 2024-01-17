@@ -95,7 +95,7 @@ auto CMSParameterizedField::evaluate_field(real_type r, real_type z) const
 {
     using units::meter;
 
-    const real_type prm[9] = {4.24326,
+    real_type const prm[9] = {4.24326,
                               15.0201,
                               3.81492,
                               0.0178712,

@@ -203,14 +203,14 @@ operator>=(LdgIterator<T> const& lhs, LdgIterator<T> const& rhs) noexcept
 template<class T>
 CELER_CONSTEXPR_FUNCTION LdgIterator<T>
 operator+(LdgIterator<T> const& it,
-          const typename LdgIterator<T>::difference_type n) noexcept
+          typename LdgIterator<T>::difference_type const n) noexcept
 {
     LdgIterator tmp{it};
     return tmp += n;
 }
 template<class T>
 CELER_CONSTEXPR_FUNCTION LdgIterator<T>
-operator+(const typename LdgIterator<T>::difference_type n,
+operator+(typename LdgIterator<T>::difference_type const n,
           LdgIterator<T> const& it) noexcept
 {
     return it + n;
@@ -218,7 +218,7 @@ operator+(const typename LdgIterator<T>::difference_type n,
 template<class T>
 CELER_CONSTEXPR_FUNCTION LdgIterator<T>
 operator-(LdgIterator<T> const& it,
-          const typename LdgIterator<T>::difference_type n) noexcept
+          typename LdgIterator<T>::difference_type const n) noexcept
 {
     LdgIterator<T> tmp{it};
     return tmp -= n;

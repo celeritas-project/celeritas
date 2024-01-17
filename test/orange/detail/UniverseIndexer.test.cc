@@ -102,8 +102,8 @@ TEST_F(UniverseIndexerTest, TEST_IF_CELERITAS_DEBUG(errors))
 TEST_F(UniverseIndexerTest, multi)
 {
     // One universe has zero surfaces
-    const std::vector<size_type> surfaces_per_uni{4, 1, 0, 1};
-    const std::vector<size_type> cells_per_uni{1, 1, 1, 2};
+    std::vector<size_type> const surfaces_per_uni{4, 1, 0, 1};
+    std::vector<size_type> const cells_per_uni{1, 1, 1, 2};
 
     std::vector<size_type> surfaces = {0, 4, 5, 5, 6};
     std::vector<size_type> volumes = {0, 1, 2, 3, 5};

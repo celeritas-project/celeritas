@@ -60,7 +60,7 @@ class DiagnosticStepper
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class StepperT>
-CELER_FUNCTION DiagnosticStepper(StepperT&&)->DiagnosticStepper<StepperT>;
+CELER_FUNCTION DiagnosticStepper(StepperT&&) -> DiagnosticStepper<StepperT>;
 
 //---------------------------------------------------------------------------//
 }  // namespace test

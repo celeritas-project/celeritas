@@ -72,7 +72,7 @@ class MaterialTrackView
   private:
     MaterialParamsRef const& params_;
     MaterialStateRef const& states_;
-    const TrackSlotId track_slot_;
+    TrackSlotId const track_slot_;
 
     CELER_FORCEINLINE_FUNCTION MaterialTrackState& state() const;
 };

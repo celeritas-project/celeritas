@@ -143,12 +143,12 @@ TEST_F(CoulombScatteringTest, wokvi_xs)
     AtomicNumber const target_z
         = this->material_params()->get(ElementId{0}).atomic_number();
 
-    const real_type cutoff_energy = value_as<units::MevEnergy>(
+    real_type const cutoff_energy = value_as<units::MevEnergy>(
         this->cutoff_params()
             ->get(MaterialId{0})
             .energy(this->particle_track().particle_id()));
 
-    const std::vector<real_type> energies = {50, 100, 200, 1000, 13000};
+    std::vector<real_type> const energies = {50, 100, 200, 1000, 13000};
 
     static real_type const expected_screen_z[] = {2.1181757502465e-08,
                                                   5.3641196710457e-09,
@@ -240,7 +240,7 @@ TEST_F(CoulombScatteringTest, simple_scattering)
                                                 200,
                                                 199.99999999943};
 
-    const IsotopeView isotope = this->material_track()
+    IsotopeView const isotope = this->material_track()
                                     .make_material_view()
                                     .make_element_view(ElementComponentId{0})
                                     .make_isotope_view(IsotopeComponentId{0});
@@ -275,7 +275,7 @@ TEST_F(CoulombScatteringTest, distribution)
 {
     WentzelHostRef const& data = model_->host_ref();
 
-    const std::vector<real_type> energies = {50, 100, 200, 1000, 13000};
+    std::vector<real_type> const energies = {50, 100, 200, 1000, 13000};
 
     static real_type const expected_avg_angles[] = {0.99999962180819,
                                                     0.99999973999034,
@@ -289,13 +289,13 @@ TEST_F(CoulombScatteringTest, distribution)
 
         WentzelElementData const& element_data = data.elem_data[ElementId(0)];
 
-        const IsotopeView isotope
+        IsotopeView const isotope
             = this->material_track()
                   .make_material_view()
                   .make_element_view(ElementComponentId{0})
                   .make_isotope_view(IsotopeComponentId{0});
 
-        const real_type cutoff_energy = value_as<units::MevEnergy>(
+        real_type const cutoff_energy = value_as<units::MevEnergy>(
             this->cutoff_params()
                 ->get(MaterialId{0})
                 .energy(ParticleId{0}));  // TODO: Use proton ParticleId{2}

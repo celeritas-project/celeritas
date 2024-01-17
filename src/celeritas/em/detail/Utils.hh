@@ -50,8 +50,8 @@ class MaxSecondariesCalculator
   private:
     Values const& data_;
     Span<AtomicRelaxSubshell const> shells_;
-    const Energy electron_cut_;
-    const Energy gamma_cut_;
+    Energy const electron_cut_;
+    Energy const gamma_cut_;
     std::unordered_map<SubshellId, size_type> visited_;
 
     // HELPER FUNCTIONS

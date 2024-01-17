@@ -26,7 +26,7 @@ class NoTransformation
   public:
     //@{
     //! \name Type aliases
-    using StorageSpan = Span<const real_type, 0>;
+    using StorageSpan = Span<real_type const, 0>;
     //@}
 
     //! Transform type identifier

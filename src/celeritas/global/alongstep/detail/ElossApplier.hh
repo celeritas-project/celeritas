@@ -32,7 +32,7 @@ struct ElossApplier
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class EH>
-CELER_FUNCTION ElossApplier(EH&&)->ElossApplier<EH>;
+CELER_FUNCTION ElossApplier(EH&&) -> ElossApplier<EH>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

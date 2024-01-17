@@ -57,7 +57,7 @@ class TabulatedElementSelector
     GridValues const& grids_;
     GridIdValues const& ids_;
     Values const& reals_;
-    const Energy energy_;
+    Energy const energy_;
 };
 
 //---------------------------------------------------------------------------//

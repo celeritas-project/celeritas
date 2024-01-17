@@ -47,7 +47,7 @@ class ParticleView
 
   private:
     ParticleParamsRef const& params_;
-    const ParticleId particle_;
+    ParticleId const particle_;
 };
 
 //---------------------------------------------------------------------------//

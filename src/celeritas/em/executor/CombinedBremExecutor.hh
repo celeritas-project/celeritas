@@ -42,7 +42,7 @@ CombinedBremExecutor::operator()(CoreTrackView const& track)
 
     // Assume only a single element in the material, for now
     CELER_ASSERT(material.num_elements() == 1);
-    const ElementComponentId selected_element{0};
+    ElementComponentId const selected_element{0};
 
     auto particle = track.make_particle_view();
     auto const& dir = track.make_geo_view().dir();

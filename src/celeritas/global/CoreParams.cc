@@ -246,7 +246,7 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     CoreScalars scalars = build_actions(input_.action_reg.get());
 
     // Construct optional track-sorting actions
-    auto insert_sort_tracks_action = [this](const TrackOrder track_order) {
+    auto insert_sort_tracks_action = [this](TrackOrder const track_order) {
         input_.action_reg->insert(std::make_shared<SortTracksAction>(
             input_.action_reg->next_id(), track_order));
     };

@@ -32,9 +32,9 @@ __device__ int geo_id(GeoTrackView const& geo)
     return geo.volume_id().get();
 }
 
-__global__ void trace_kernel(const GeoParamsCRefDevice geo_params,
-                             const GeoStateRefDevice geo_state,
-                             const ImageData image_state)
+__global__ void trace_kernel(GeoParamsCRefDevice const geo_params,
+                             GeoStateRefDevice const geo_state,
+                             ImageData const image_state)
 {
     auto tid = KernelParamCalculator::thread_id();
     if (tid.get() >= image_state.dims[0])

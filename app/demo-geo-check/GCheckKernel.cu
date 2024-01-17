@@ -27,8 +27,8 @@ namespace app
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void gcheck_kernel(const GeoParamsCRefDevice params,
-                              const GeoStateRefDevice state,
+__global__ void gcheck_kernel(GeoParamsCRefDevice const params,
+                              GeoStateRefDevice const state,
                               GeoTrackInitializer const* init,
                               int max_steps,
                               int* ids,

@@ -37,7 +37,7 @@ class BremFinalStateHelper
                                                Momentum const& inc_momentum,
                                                Mass const& inc_mass,
                                                ParticleId const& gamma_id,
-                                               const Energy gamma_energy,
+                                               Energy const gamma_energy,
                                                Secondary* secondaries);
 
     // Update the final state for the given RNG and the photon energy
@@ -48,13 +48,13 @@ class BremFinalStateHelper
     // Incident particle direction
     Real3 const& inc_direction_;
     // Incident particle momentum
-    const Momentum inc_momentum_;
+    Momentum const inc_momentum_;
     // Exiting energy
-    const Energy exit_energy_;
+    Energy const exit_energy_;
     // Bremsstrahlung photon id
-    const ParticleId gamma_id_;
+    ParticleId const gamma_id_;
     // Exiting gamma energy
-    const Energy gamma_energy_;
+    Energy const gamma_energy_;
     // Allocated secondary gamma
     Secondary* secondary_;
     // Incident particle mass
@@ -73,7 +73,7 @@ BremFinalStateHelper::BremFinalStateHelper(Energy const& inc_energy,
                                            Momentum const& inc_momentum,
                                            Mass const& inc_mass,
                                            ParticleId const& gamma_id,
-                                           const Energy gamma_energy,
+                                           Energy const gamma_energy,
                                            Secondary* secondaries)
     : inc_direction_(inc_direction)
     , inc_momentum_(inc_momentum)

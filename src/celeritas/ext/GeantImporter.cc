@@ -86,7 +86,7 @@ namespace
 //---------------------------------------------------------------------------//
 decltype(auto) em_basic_particles()
 {
-    static const std::unordered_set<PDGNumber> particles
+    static std::unordered_set<PDGNumber> const particles
         = {pdg::electron(), pdg::positron(), pdg::gamma()};
     return particles;
 }
@@ -94,7 +94,7 @@ decltype(auto) em_basic_particles()
 //---------------------------------------------------------------------------//
 decltype(auto) em_ex_particles()
 {
-    static const std::unordered_set<PDGNumber> particles
+    static std::unordered_set<PDGNumber> const particles
         = {pdg::mu_minus(), pdg::mu_plus()};
     return particles;
 }
@@ -482,7 +482,7 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
     std::vector<ImportProcess> processes;
     std::vector<ImportMscModel> msc_models;
 
-    static const celeritas::TypeDemangler<G4VProcess> demangle_process;
+    static celeritas::TypeDemangler<G4VProcess> const demangle_process;
     std::unordered_map<G4VProcess const*, G4ParticleDefinition const*> visited;
     detail::GeantProcessImporter import_process(
         detail::TableSelection::minimal, materials, elements);

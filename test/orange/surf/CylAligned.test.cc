@@ -421,7 +421,7 @@ TEST_F(CylZTest, TEST_IF_CELERITAS_DOUBLE(degenerate_boundary))
                     = std::max<real_type>(1.e-14, 2 * std::fabs(eps));
 
                 // Distance across the cylinder
-                const real_type diameter = 2 * radius;
+                real_type const diameter = 2 * radius;
 
                 Real3 pos = origin;
                 Real3 dir = {xdir, 0, 0};

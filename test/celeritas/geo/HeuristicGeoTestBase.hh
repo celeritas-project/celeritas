@@ -41,7 +41,7 @@ class HeuristicGeoTestBase : public GlobalGeoTestBase, public OnlyGeoTestBase
     using PathLengthRef
         = Collection<real_type, Ownership::reference, M, VolumeId>;
     using SpanConstReal = Span<real_type const>;
-    using SpanConstStr = Span<const std::string>;
+    using SpanConstStr = Span<std::string const>;
     //!@}
 
     //// INTERFACE ////

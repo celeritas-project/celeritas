@@ -117,7 +117,7 @@ class SBEnergyDistribution
   private:
     //// IMPLEMENTATION DATA ////
     SBEnergyDistHelper const& helper_;
-    const real_type inv_max_xs_;
+    real_type const inv_max_xs_;
     XSCorrector scale_xs_;
 };
 

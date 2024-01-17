@@ -52,8 +52,8 @@ namespace test
 
 TEST(HashUtilsTest, hash_combine)
 {
-    const std::string foo{"foo"};
-    const std::string bar{"bar"};
+    std::string const foo{"foo"};
+    std::string const bar{"bar"};
 
     EXPECT_NE(hash_combine(), 0);
     EXPECT_NE(hash_combine(), hash_combine(0));

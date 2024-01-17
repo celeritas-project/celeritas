@@ -87,7 +87,7 @@ class ZHelixStepper
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class EquationT>
-CELER_FUNCTION ZHelixStepper(EquationT&&)->ZHelixStepper<EquationT>;
+CELER_FUNCTION ZHelixStepper(EquationT&&) -> ZHelixStepper<EquationT>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

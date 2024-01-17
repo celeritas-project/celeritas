@@ -223,7 +223,7 @@ CylAligned<T>::calc_intersections(Real3 const& pos,
     -> Intersections
 {
     // 1 - \omega \dot e
-    const real_type a = 1 - ipow<2>(dir[to_int(T)]);
+    real_type const a = 1 - ipow<2>(dir[to_int(T)]);
 
     if (a < ipow<2>(Tolerance<>::sqrt_quadratic()))
     {
@@ -231,8 +231,8 @@ CylAligned<T>::calc_intersections(Real3 const& pos,
         return {no_intersection(), no_intersection()};
     }
 
-    const real_type u = pos[to_int(U)] - origin_u_;
-    const real_type v = pos[to_int(V)] - origin_v_;
+    real_type const u = pos[to_int(U)] - origin_u_;
+    real_type const v = pos[to_int(V)] - origin_v_;
 
     // b/2 = \omega \dot (x - x_0)
     detail::QuadraticSolver solve_quadric(

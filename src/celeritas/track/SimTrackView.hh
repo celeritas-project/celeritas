@@ -116,7 +116,7 @@ class SimTrackView
   private:
     SimParamsRef const& params_;
     SimStateRef const& states_;
-    const TrackSlotId track_slot_;
+    TrackSlotId const track_slot_;
 };
 
 //---------------------------------------------------------------------------//

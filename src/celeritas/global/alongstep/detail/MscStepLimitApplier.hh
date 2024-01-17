@@ -34,7 +34,7 @@ struct MscStepLimitApplier
 //---------------------------------------------------------------------------//
 
 template<class MH>
-CELER_FUNCTION MscStepLimitApplier(MH&&)->MscStepLimitApplier<MH>;
+CELER_FUNCTION MscStepLimitApplier(MH&&) -> MscStepLimitApplier<MH>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

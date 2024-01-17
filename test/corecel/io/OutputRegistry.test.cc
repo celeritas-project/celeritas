@@ -95,8 +95,8 @@ class OutputRegistryTest : public Test
 
     std::string to_string(OutputRegistry const& reg)
     {
-        static const std::regex file_match(R"re("file":"[^"]+")re");
-        static const std::regex line_match(R"re("line":[0-9]+)re");
+        static std::regex const file_match(R"re("file":"[^"]+")re");
+        static std::regex const line_match(R"re("line":[0-9]+)re");
         std::ostringstream os;
         reg.output(&os);
         std::string result = os.str();

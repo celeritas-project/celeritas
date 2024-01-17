@@ -182,7 +182,7 @@
     } while (0)
 //! \endcond
 
-#define CELER_DEBUG_FAIL(MSG, WHICH)   \
+#define CELER_DEBUG_FAIL(MSG, WHICH)    \
     do                                  \
     {                                   \
         CELER_DEBUG_THROW_(MSG, WHICH); \
@@ -217,9 +217,9 @@
             }                                                             \
         } while (0)
 #else
-#    define CELER_VALIDATE(COND, MSG)                                         \
+#    define CELER_VALIDATE(COND, MSG)                                        \
         CELER_DEBUG_FAIL("CELER_VALIDATE cannot be called from device code", \
-                          unreachable);
+                         unreachable);
 #endif
 
 #define CELER_NOT_CONFIGURED(WHAT) CELER_DEBUG_FAIL(WHAT, unconfigured)

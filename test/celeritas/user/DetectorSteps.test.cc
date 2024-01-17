@@ -24,10 +24,12 @@ template<class C>
 std::vector<int> extract_ids(C const& ids)
 {
     std::vector<int> result(ids.size());
-    std::transform(
-        ids.begin(), ids.end(), result.begin(), [](typename C::value_type const& v) {
-            return v ? v.unchecked_get() : -1;
-        });
+    std::transform(ids.begin(),
+                   ids.end(),
+                   result.begin(),
+                   [](typename C::value_type const& v) {
+                       return v ? v.unchecked_get() : -1;
+                   });
     return result;
 }
 

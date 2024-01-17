@@ -116,7 +116,7 @@ auto ProcessBuilder::operator()(IPC ipc) -> SPProcess
     }
 
     using BuilderMemFn = SPProcess (ProcessBuilder::*)();
-    static const std::unordered_map<IPC, BuilderMemFn> builtin_build{
+    static std::unordered_map<IPC, BuilderMemFn> const builtin_build{
         {IPC::annihilation, &ProcessBuilder::build_annihilation},
         {IPC::compton, &ProcessBuilder::build_compton},
         {IPC::conversion, &ProcessBuilder::build_conversion},

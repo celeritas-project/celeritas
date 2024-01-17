@@ -328,7 +328,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     {
         // "Background" volumes should not be explicitly reachable by logic or
         // BIH
-        static const logic_int nowhere_logic[] = {logic::ltrue, logic::lnot};
+        static logic_int const nowhere_logic[] = {logic::ltrue, logic::lnot};
         CELER_EXPECT(std::equal(input_logic.begin(),
                                 input_logic.end(),
                                 std::begin(nowhere_logic),

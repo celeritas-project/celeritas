@@ -85,7 +85,7 @@ class RBDiffXsCalculator
     // Shared problem data for the current material
     MaterialView const& material_;
     // Shared problem data for the current element
-    const ElementView element_;
+    ElementView const element_;
     // Total energy of the incident particle
     real_type total_energy_;
     // Density correction for the current material

@@ -44,7 +44,7 @@ class LivermorePEMicroXsCalculator
     // Shared constant physics properties
     LivermorePERef const& shared_;
     // Incident gamma energy
-    const Energy inc_energy_;
+    Energy const inc_energy_;
 };
 
 //---------------------------------------------------------------------------//

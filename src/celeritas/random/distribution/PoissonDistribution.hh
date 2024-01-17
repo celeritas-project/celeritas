@@ -67,7 +67,7 @@ class PoissonDistribution
     static CELER_CONSTEXPR_FUNCTION int lambda_threshold() { return 16; }
 
   private:
-    const real_type lambda_;
+    real_type const lambda_;
     NormalDistribution<real_type> sample_normal_;
 };
 

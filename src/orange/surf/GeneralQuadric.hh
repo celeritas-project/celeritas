@@ -42,7 +42,7 @@ class GeneralQuadric
     //! Type aliases
     using Intersections = Array<real_type, 2>;
     using StorageSpan = Span<real_type const, 10>;
-    using SpanConstReal3 = Span<const real_type, 3>;
+    using SpanConstReal3 = Span<real_type const, 3>;
     //@}
 
     //// CLASS ATTRIBUTES ////
@@ -164,9 +164,9 @@ CELER_FUNCTION GeneralQuadric::GeneralQuadric(Span<R, StorageSpan::extent> data)
  */
 CELER_FUNCTION SignedSense GeneralQuadric::calc_sense(Real3 const& pos) const
 {
-    const real_type x = pos[0];
-    const real_type y = pos[1];
-    const real_type z = pos[2];
+    real_type const x = pos[0];
+    real_type const y = pos[1];
+    real_type const z = pos[2];
 
     real_type result = (a_ * x + d_ * y + f_ * z + g_) * x
                        + (b_ * y + e_ * z + h_) * y + (c_ * z + i_) * z + j_;

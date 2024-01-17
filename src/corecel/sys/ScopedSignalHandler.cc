@@ -20,7 +20,7 @@ namespace
 {
 //---------------------------------------------------------------------------//
 // Bitset of signals that have been called
-volatile sig_atomic_t g_celer_signal_bits_ = 0;
+sig_atomic_t volatile g_celer_signal_bits_ = 0;
 
 //---------------------------------------------------------------------------//
 //! Set the bit corresponding to a signal

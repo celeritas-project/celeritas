@@ -108,9 +108,9 @@ TEST_F(SurfaceTranslatorTest, general_quadric)
                        {-11.964745962156, -9.1328585544429, -65.69134295109},
                        77.652245962156});
 
-    const Real3 center{1 + 2, 2 + 3, 3 + 4};
-    const Real3 pos{-2.464101615137754 + 2, 0 + 3, 3 + 4};
-    const Real3 outward{0.8660254037844386, 0.5, 0};
+    Real3 const center{1 + 2, 2 + 3, 3 + 4};
+    Real3 const pos{-2.464101615137754 + 2, 0 + 3, 3 + 4};
+    Real3 const outward{0.8660254037844386, 0.5, 0};
     auto distances = gq.calc_intersections(center, outward, SurfaceState::off);
     EXPECT_SOFT_EQ(3.0, distances[1]);
     EXPECT_SOFT_EQ(no_intersection(), distances[0]);

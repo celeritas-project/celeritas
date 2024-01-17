@@ -51,7 +51,7 @@ class HitManager final : public StepInterface
     using StepStateHostRef = HostRef<StepStateData>;
     using StepStateDeviceRef = DeviceRef<StepStateData>;
     using SPConstVecLV
-        = std::shared_ptr<const std::vector<G4LogicalVolume const*>>;
+        = std::shared_ptr<std::vector<G4LogicalVolume const*> const>;
     using VecVolId = std::vector<VolumeId>;
     using VecParticle = std::vector<G4ParticleDefinition const*>;
     //!@}

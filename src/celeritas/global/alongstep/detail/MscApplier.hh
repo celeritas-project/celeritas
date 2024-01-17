@@ -35,7 +35,7 @@ struct MscApplier
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class MH>
-CELER_FUNCTION MscApplier(MH&&)->MscApplier<MH>;
+CELER_FUNCTION MscApplier(MH&&) -> MscApplier<MH>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

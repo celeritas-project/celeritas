@@ -71,7 +71,7 @@ TEST(ReprTest, container)
     char const* const cstrings[] = {"one", "three", "five"};
     EXPECT_EQ("{\"one\", \"three\", \"five\"}", repr_to_string(cstrings));
 
-    const std::string strings[] = {"a", "", "special\nchars\t"};
+    std::string const strings[] = {"a", "", "special\nchars\t"};
     EXPECT_EQ("{\"a\", \"\", \"special\\nchars\\t\"}", repr_to_string(strings));
 }
 

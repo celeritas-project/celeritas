@@ -198,7 +198,6 @@ auto GeantGeoParams::find_volumes(std::string const& name) const
     return vol_labels_.find_all(name);
 }
 
-
 //---------------------------------------------------------------------------//
 /*!
  * Get the Geant4 logical volume corresponding to a volume ID.

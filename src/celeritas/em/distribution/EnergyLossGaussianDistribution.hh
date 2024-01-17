@@ -65,7 +65,7 @@ class EnergyLossGaussianDistribution
     inline CELER_FUNCTION Energy operator()(Generator& rng);
 
   private:
-    const real_type max_loss_;
+    real_type const max_loss_;
     NormalDistribution<real_type> sample_normal_;
 };
 

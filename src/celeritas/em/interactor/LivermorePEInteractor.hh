@@ -85,7 +85,7 @@ class LivermorePEInteractor
     // Incident direction
     Real3 const& inc_direction_;
     // Incident gamma energy
-    const real_type inc_energy_;
+    real_type const inc_energy_;
     // Allocate space for one or more secondary particles
     StackAllocator<Secondary>& allocate_;
     // Microscopic cross section calculator
@@ -231,13 +231,13 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
     auto const& shells = shared_.xs.shells[el.shells];
     size_type shell_id = 0;
 
-    const real_type cutoff = generate_canonical(rng) * calc_micro_xs_(el_id_);
+    real_type const cutoff = generate_canonical(rng) * calc_micro_xs_(el_id_);
     if (Energy{inc_energy_} < el.thresh_lo)
     {
         // Accumulate discrete PDF for tabulated shell cross sections
         // TODO: use Selector-with-remainder
         real_type xs = 0;
-        const real_type inv_cube_energy = ipow<3>(inv_energy_);
+        real_type const inv_cube_energy = ipow<3>(inv_energy_);
         for (; shell_id < shells.size(); ++shell_id)
         {
             auto const& shell = shells[shell_id];
@@ -272,7 +272,7 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
 
         // Low/high index on params
         int const pidx = Energy{inc_energy_} < el.thresh_hi ? 0 : 1;
-        const size_type shell_end = shells.size() - 1;
+        size_type const shell_end = shells.size() - 1;
 
         for (; shell_id < shell_end; ++shell_id)
         {

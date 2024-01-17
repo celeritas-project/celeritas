@@ -74,7 +74,7 @@ LivermorePEMacroXsCalculator::operator()(Energy energy) const
     LivermorePEMicroXsCalculator calc_micro_xs(shared_, energy);
     for (auto const& el_comp : elements_)
     {
-        const real_type micro_xs = calc_micro_xs(el_comp.element);
+        real_type const micro_xs = calc_micro_xs(el_comp.element);
         CELER_ASSERT(micro_xs >= 0);
         result += micro_xs * el_comp.fraction;
     }
