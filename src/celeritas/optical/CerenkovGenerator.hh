@@ -58,7 +58,7 @@ class CerenkovGenerator
 
     // Sample Cerenkov photons from the distribution
     template<class Generator>
-    inline CELER_FUNCTION void operator()(Generator& rng);
+    inline CELER_FUNCTION Span<OpticalPrimary> operator()(Generator& rng);
 
   private:
     //// TYPES ////
@@ -75,7 +75,7 @@ class CerenkovGenerator
     UniformRealDist sample_num_photons_;
     Real3 dir_;
     Real3 delta_pos_;
-    units::LightSpeed delta_velocity_;
+    units::LightSpeed delta_speed_;
     real_type delta_num_photons_;
     real_type dndx_pre_;
     real_type sin_max_sq_;
@@ -117,23 +117,25 @@ CerenkovGenerator::CerenkovGenerator(
 
     // Calculate the mean number of photons produced per unit length at the
     // pre- and post-step energies
+    auto const& pre_step = dist_.points[StepPoint::pre];
+    auto const& post_step = dist_.points[StepPoint::post];
     CerenkovDndxCalculator calc_dndx(
         properties, shared, dist_.material, dist_.charge);
-    dndx_pre_ = calc_dndx(dist_.pre.velocity);
-    real_type dndx_post = calc_dndx(dist_.post.velocity);
+    dndx_pre_ = calc_dndx(pre_step.speed);
+    real_type dndx_post = calc_dndx(post_step.speed);
 
     // Helper used to sample the displacement
     sample_num_photons_ = UniformRealDist(0, max(dndx_pre_, dndx_post));
 
     // Calculate 1 / beta and the max sin^2 theta
-    inv_beta_ = 2 / (dist_.pre.velocity.value() + dist_.post.velocity.value());
+    inv_beta_ = 2 / (pre_step.speed.value() + post_step.speed.value());
     real_type cos_max = inv_beta_ / calc_refractive_index_(energy_grid.back());
     sin_max_sq_ = diffsq(real_type(1), cos_max);
 
     // Calculate changes over the step
-    delta_pos_ = dist_.post.pos - dist_.pre.pos;
+    delta_pos_ = post_step.pos - pre_step.pos;
     delta_num_photons_ = dndx_post - dndx_pre_;
-    delta_velocity_ = dist_.post.velocity - dist_.pre.velocity;
+    delta_speed_ = post_step.speed - pre_step.speed;
 
     // Incident particle direction
     dir_ = make_unit_vector(delta_pos_);
@@ -144,7 +146,8 @@ CerenkovGenerator::CerenkovGenerator(
  * Sample Cerenkov photons from the distribution.
  */
 template<class Generator>
-CELER_FUNCTION void CerenkovGenerator::operator()(Generator& rng)
+CELER_FUNCTION Span<OpticalPrimary>
+CerenkovGenerator::operator()(Generator& rng)
 {
     for (auto i : range(dist_.num_photons))
     {
@@ -176,12 +179,13 @@ CELER_FUNCTION void CerenkovGenerator::operator()(Generator& rng)
         } while (sample_num_photons_(rng) > dndx_pre_ + u * delta_num_photons_);
         real_type delta_time
             = u * dist_.step_length
-              / (native_value_from(dist_.pre.velocity)
-                 + u * real_type(0.5) * native_value_from(delta_velocity_));
+              / (native_value_from(dist_.points[StepPoint::pre].speed)
+                 + u * real_type(0.5) * native_value_from(delta_speed_));
         photons_[i].time = dist_.time + delta_time;
-        photons_[i].position = dist_.pre.pos;
+        photons_[i].position = dist_.points[StepPoint::pre].pos;
         axpy(u, delta_pos_, &photons_[i].position);
     }
+    return photons_;
 }
 
 //---------------------------------------------------------------------------//

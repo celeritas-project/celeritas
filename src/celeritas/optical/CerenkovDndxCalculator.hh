@@ -28,8 +28,9 @@ namespace celeritas
  *
  * The average number of photons produced is given by
  * \f[
-   dN = \frac{\alpha z^2}{\hbar c}\sin^2\theta d\epsilon dx = \frac{\alpha
- z^2}{\hbar c}\left(1 - \frac{1}{n^2\beta^2}\right) d\epsilon dx,
+   \dif N = \frac{\alpha z^2}{\hbar c}\sin^2\theta \dif\epsilon \dif x =
+   \frac{\alpha z^2}{\hbar c}\left(1 - \frac{1}{n^2\beta^2}\right) \dif\epsilon
+   \dif x,
  * \f]
  * where \f$ n \f$ is the refractive index of the material, \f$ \epsilon \f$
  * is the photon energy, and \f$ \theta \f$ is the angle of the emitted photons
@@ -38,12 +39,12 @@ namespace celeritas
  * is an inreasing function of photon energy. The mean number of photons per
  * unit length is given by
  * \f[
-   dN/dx = \frac{\alpha z^2}{\hbar
- c}\int_{\epsilon_\text{min}}^{\epsilon_\text{max}}d\epsilon\left(1 -
- \frac{1}{n^2\beta^2}\right) = \frac{\alpha z^2}{\hbar
- c}\left[\epsilon_\text{max} - \epsilon_\text{min} -
- \frac{1}{\beta^2}\int_{\epsilon_\text{min}}^{\epsilon_\text{max}}
- \frac{d\epsilon}{n^2(\epsilon)}\right].
+   \dif N/\dif x = \frac{\alpha z^2}{\hbar c}
+   \int_{\epsilon_\text{min}}^{\epsilon_\text{max}} \dif\epsilon \left(1 -
+   \frac{1}{n^2\beta^2} \right) = \frac{\alpha z^2}{\hbar c}
+   \left[\epsilon_\text{max} - \epsilon_\text{min} - \frac{1}{\beta^2}
+   \int_{\epsilon_\text{min}}^{\epsilon_\text{max}}
+   \frac{\dif\epsilon}{n^2(\epsilon)} \right].
  * \f]
  */
 class CerenkovDndxCalculator
@@ -63,7 +64,7 @@ class CerenkovDndxCalculator
     NativeCRef<OpticalPropertyData> const& properties_;
     NativeCRef<CerenkovData> const& shared_;
     OpticalMaterialId material_;
-    real_type alpha_zsq_over_hbar_c_;
+    real_type zsq_;
 };
 
 //---------------------------------------------------------------------------//
@@ -81,9 +82,7 @@ CerenkovDndxCalculator::CerenkovDndxCalculator(
     : properties_(properties)
     , shared_(shared)
     , material_(material)
-    , alpha_zsq_over_hbar_c_(constants::alpha_fine_structure
-                             * ipow<2>(charge.value()) * units::Mev::value()
-                             / (constants::hbar_planck * constants::c_light))
+    , zsq_(ipow<2>(charge.value()))
 {
     CELER_EXPECT(properties_);
     CELER_EXPECT(shared_);
@@ -116,14 +115,17 @@ CerenkovDndxCalculator::operator()(units::LightSpeed beta)
         return 0;
     }
 
-    GenericCalculator calc_angle_integral(shared_.angle_integral[material_],
-                                          shared_.reals);
-    real_type angle_integral = calc_angle_integral(energy_max);
-    real_type energy_min = calc_refractive_index.grid().front();
-    real_type delta_energy;
-    if (inv_beta < calc_refractive_index(energy_min))
+    // Calculate the Cerenkov angle integral [MeV]
+    GenericCalculator calc_integral(shared_.angle_integral[material_],
+                                    shared_.reals);
+
+    // Calculate \f$ \int_{\epsilon_\text{min}}^{\epsilon_\text{max}}
+    // \dif\epsilon \left(1 - \frac{1}{n^2\beta^2}\right) \f$
+    real_type energy;
+    if (inv_beta < calc_refractive_index[0])
     {
-        delta_energy = energy_max - energy_min;
+        energy = energy_max - calc_refractive_index.grid().front()
+                 - calc_integral(energy_max) * ipow<2>(inv_beta);
     }
     else
     {
@@ -136,17 +138,19 @@ CerenkovDndxCalculator::operator()(units::LightSpeed beta)
         // from a given index of refraction
         auto grid_data = properties_.refractive_index[material_];
         trivial_swap(grid_data.grid, grid_data.value);
-        auto energy = GenericCalculator(grid_data, properties_.reals)(inv_beta);
-        delta_energy = energy_max - energy;
-        angle_integral -= calc_angle_integral(energy);
+        real_type energy_min
+            = GenericCalculator(grid_data, properties_.reals)(inv_beta);
+        energy = energy_max - energy_min
+                 - (calc_integral(energy_max) - calc_integral(energy_min))
+                       * ipow<2>(inv_beta);
     }
 
     // Calculate number of photons. This may be negative if the incident
     // particle energy is very close to (just above) the Cerenkov production
     // threshold
-    return clamp_to_nonneg(
-        alpha_zsq_over_hbar_c_
-        * (delta_energy - angle_integral * ipow<2>(inv_beta)));
+    return clamp_to_nonneg(zsq_ * constants::alpha_fine_structure
+                           / (constants::hbar_planck * constants::c_light)
+                           * native_value_from(units::MevEnergy(energy)));
 }
 
 //---------------------------------------------------------------------------//

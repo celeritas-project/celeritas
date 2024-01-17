@@ -9,6 +9,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/EnumArray.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
@@ -20,7 +21,7 @@ namespace celeritas
  */
 struct CerenkovStepData
 {
-    units::LightSpeed velocity;
+    units::LightSpeed speed;
     Real3 pos{};
 };
 
@@ -35,8 +36,7 @@ struct CerenkovDistributionData
     real_type step_length{};
     units::ElementaryCharge charge;
     OpticalMaterialId material{};
-    CerenkovStepData pre;
-    CerenkovStepData post;
+    EnumArray<StepPoint, CerenkovStepData> points;
 
     //! Check whether the data are assigned
     explicit CELER_FUNCTION operator bool() const

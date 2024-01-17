@@ -12,6 +12,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -26,6 +27,8 @@ namespace celeritas
 CerenkovParams::CerenkovParams(HostCRef<OpticalPropertyData> const& properties)
 {
     HostVal<CerenkovData> data;
+    DedupeCollectionBuilder reals(&data.reals);
+    CollectionBuilder angle_integral(&data.angle_integral);
     for (auto mat_id :
          range(OpticalMaterialId(properties.refractive_index.size())))
     {
@@ -34,7 +37,7 @@ CerenkovParams::CerenkovParams(HostCRef<OpticalPropertyData> const& properties)
         if (!ri_grid)
         {
             // No refractive index data stored for this material
-            make_builder(&data.angle_integral).push_back(ai_grid);
+            angle_integral.push_back(ai_grid);
             continue;
         }
 
@@ -49,10 +52,9 @@ CerenkovParams::CerenkovParams(HostCRef<OpticalPropertyData> const& properties)
                                 * (1 / ipow<2>(refractive_index[i - 1])
                                    + 1 / ipow<2>(refractive_index[i]));
         }
-        auto reals = make_builder(&data.reals);
         ai_grid.grid = reals.insert_back(energy.begin(), energy.end());
         ai_grid.value = reals.insert_back(integral.begin(), integral.end());
-        make_builder(&data.angle_integral).push_back(ai_grid);
+        angle_integral.push_back(ai_grid);
     }
     data_ = CollectionMirror<CerenkovData>{std::move(data)};
     CELER_ENSURE(data_ || properties.refractive_index.empty());

@@ -238,24 +238,26 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
         real_type ddel = (dmax - dmin) / num_bins;
 
         // Calculate the average number of photons produced per unit length
+        auto const& pre_step = dist.points[StepPoint::pre];
+        auto const& post_step = dist.points[StepPoint::post];
         units::LightSpeed beta(
-            0.5 * (dist.pre.velocity.value() + dist.post.velocity.value()));
+            0.5 * (pre_step.speed.value() + post_step.speed.value()));
         CerenkovDndxCalculator calc_dndx(
             properties, params->host_ref(), dist.material, dist.charge);
         real_type mean_num_photons = calc_dndx(beta) * dist.step_length;
         CELER_ASSERT(mean_num_photons > 0);
 
-        Real3 inc_dir = make_unit_vector(dist.post.pos - dist.pre.pos);
+        Real3 inc_dir = make_unit_vector(post_step.pos - pre_step.pos);
         for (size_type i = 0; i < num_samples; ++i)
         {
             // Sample the number of photons from a Poisson distribution
             dist.num_photons = PoissonDistribution(mean_num_photons)(rng);
 
             // Sample the optical photons
-            std::vector<OpticalPrimary> photons(dist.num_photons);
+            std::vector<OpticalPrimary> storage(dist.num_photons);
             CerenkovGenerator generate_photons(
-                properties, params->host_ref(), dist, make_span(photons));
-            generate_photons(rng);
+                properties, params->host_ref(), dist, make_span(storage));
+            auto photons = generate_photons(rng);
 
             for (auto const& photon : photons)
             {
@@ -280,7 +282,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
                 // Bin photon displacement
                 {
                     real_type displacement
-                        = distance(dist.pre.pos, photon.position);
+                        = distance(pre_step.pos, photon.position);
                     avg_displacement += displacement;
                     int bin = (displacement - dmin) / ddel;
                     CELER_ASSERT(bin < num_bins);
@@ -305,7 +307,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
     dist.time = 0;
     dist.charge = charge;
     dist.material = material;
-    dist.pre.pos = {0, 0, 0};
+    dist.points[StepPoint::pre].pos = {0, 0, 0};
 
     // Photons are emitted on the surface of a cone, with the cone angle
     // measured with respect to the incident particle direction. As the
@@ -314,10 +316,12 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
 
     // 10 GeV e-
     {
-        dist.pre.velocity = units::LightSpeed(0.99999999869453382);
-        dist.post.velocity = units::LightSpeed(0.9999999986942727);
-        dist.step_length = 1;
-        dist.post.pos = {dist.step_length, 0, 0};
+        dist.points[StepPoint::pre].speed
+            = units::LightSpeed(0.99999999869453382);
+        dist.points[StepPoint::post].speed
+            = units::LightSpeed(0.9999999986942727);
+        dist.step_length = 1 * units::centimeter;
+        dist.points[StepPoint::post].pos = {dist.step_length, 0, 0};
 
         // clang-format off
         static double const expected_costheta_dist[]
@@ -343,10 +347,12 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
     }
     // 500 keV e-
     {
-        dist.pre.velocity = units::LightSpeed(0.86286196322132458);
-        dist.post.velocity = units::LightSpeed(0.63431981443206786);
-        dist.step_length = 0.15;
-        dist.post.pos = {dist.step_length, 0, 0};
+        dist.points[StepPoint::pre].speed
+            = units::LightSpeed(0.86286196322132458);
+        dist.points[StepPoint::post].speed
+            = units::LightSpeed(0.63431981443206786);
+        dist.step_length = 0.15 * units::centimeter;
+        dist.points[StepPoint::post].pos = {dist.step_length, 0, 0};
 
         static double const expected_costheta_dist[]
             = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 946};
