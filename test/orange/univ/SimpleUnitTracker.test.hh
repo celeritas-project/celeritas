@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -52,10 +52,10 @@ inline CELER_FUNCTION LocalState build_local_state(ParamsRef<M> params,
 
     lstate.surface = {};
 
-    const size_type max_faces = params.scalars.max_faces;
+    size_type const max_faces = params.scalars.max_faces;
     lstate.temp_sense = states.temp_sense[build_range<Sense>(max_faces, tid)];
 
-    const size_type max_isect = params.scalars.max_intersections;
+    size_type const max_isect = params.scalars.max_intersections;
     lstate.temp_next.face
         = states.temp_face[build_range<FaceId>(max_isect, tid)].data();
     lstate.temp_next.distance

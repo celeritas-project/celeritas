@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -20,7 +20,7 @@ namespace
 {
 //---------------------------------------------------------------------------//
 // Bitset of signals that have been called
-volatile sig_atomic_t g_celer_signal_bits_ = 0;
+sig_atomic_t volatile g_celer_signal_bits_ = 0;
 
 //---------------------------------------------------------------------------//
 //! Set the bit corresponding to a signal

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -113,7 +113,8 @@ CELER_FUNCTION PlaneAligned<T>::PlaneAligned(real_type position)
  */
 template<Axis T>
 template<class R>
-CELER_FUNCTION PlaneAligned<T>::PlaneAligned(Span<R, StorageSpan::extent> data) : position_(data[0])
+CELER_FUNCTION PlaneAligned<T>::PlaneAligned(Span<R, StorageSpan::extent> data)
+    : position_(data[0])
 {
 }
 

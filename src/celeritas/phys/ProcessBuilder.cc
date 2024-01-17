@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -116,7 +116,7 @@ auto ProcessBuilder::operator()(IPC ipc) -> SPProcess
     }
 
     using BuilderMemFn = SPProcess (ProcessBuilder::*)();
-    static const std::unordered_map<IPC, BuilderMemFn> builtin_build{
+    static std::unordered_map<IPC, BuilderMemFn> const builtin_build{
         {IPC::annihilation, &ProcessBuilder::build_annihilation},
         {IPC::compton, &ProcessBuilder::build_compton},
         {IPC::conversion, &ProcessBuilder::build_conversion},

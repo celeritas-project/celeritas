@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -157,10 +157,10 @@ TEST_F(SeltzerBergerTest, sb_tables)
 TEST_F(SeltzerBergerTest, sb_positron_xs_scaling)
 {
     ParticleParams const& pp = *this->particle_params();
-    const units::MevMass positron_mass
+    units::MevMass const positron_mass
         = pp.get(pp.find(pdg::positron())).mass();
-    const MevEnergy gamma_cutoff{0.01};
-    const ElementView el = this->material_params()->get(ElementId{0});
+    MevEnergy const gamma_cutoff{0.01};
+    ElementView const el = this->material_params()->get(ElementId{0});
 
     std::vector<real_type> scaling_frac;
 
@@ -186,7 +186,7 @@ TEST_F(SeltzerBergerTest, sb_positron_xs_scaling)
 
 TEST_F(SeltzerBergerTest, sb_energy_dist)
 {
-    const MevEnergy gamma_cutoff{0.0009};
+    MevEnergy const gamma_cutoff{0.0009};
 
     int const num_samples = 8192;
     std::vector<real_type> max_xs;

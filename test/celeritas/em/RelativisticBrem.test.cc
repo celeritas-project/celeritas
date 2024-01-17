@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -116,7 +116,7 @@ class RelativisticBremTest : public InteractorHostTestBase
 //---------------------------------------------------------------------------//
 TEST_F(RelativisticBremTest, dxsec)
 {
-    const real_type all_energy[] = {1, 2, 5, 10, 20, 50, 100, 200, 500, 1000};
+    real_type const all_energy[] = {1, 2, 5, 10, 20, 50, 100, 200, 500, 1000};
 
     // Production cuts
     auto material_view = this->material_track().make_material_view();

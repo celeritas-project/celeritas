@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -195,7 +195,7 @@ T GenerateCanonical<test::SequenceEngine, T>::operator()(
     test::SequenceEngine& rng)
 {
     // Range for sequence engine should be [0, 2^32 - 1) = 2^32
-    const real_type range = static_cast<real_type>(test::SequenceEngine::max())
+    real_type const range = static_cast<real_type>(test::SequenceEngine::max())
                             + real_type(1);
     real_type result = rng();
     result += rng() * range;

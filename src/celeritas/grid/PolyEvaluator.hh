@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -77,7 +77,7 @@ class PolyEvaluator
     }
 
   private:
-    const ArrayT coeffs_;
+    ArrayT const coeffs_;
 
     template<unsigned int M, std::enable_if_t<(M < N), bool> = true>
     CELER_CONSTEXPR_FUNCTION T calc_impl(T arg) const
@@ -96,13 +96,13 @@ class PolyEvaluator
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<typename T, size_type N>
-CELER_FUNCTION PolyEvaluator(Array<T, N> const&)->PolyEvaluator<T, N - 1>;
+CELER_FUNCTION PolyEvaluator(Array<T, N> const&) -> PolyEvaluator<T, N - 1>;
 
 template<typename... Ts,
          std::enable_if_t<std::is_arithmetic_v<std::common_type_t<Ts...>>, bool>
          = true>
 CELER_FUNCTION PolyEvaluator(Ts&&...)
-    ->PolyEvaluator<typename std::common_type_t<Ts...>, sizeof...(Ts) - 1>;
+    -> PolyEvaluator<typename std::common_type_t<Ts...>, sizeof...(Ts) - 1>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

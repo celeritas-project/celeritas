@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -60,7 +60,7 @@ class DiagnosticStepper
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class StepperT>
-CELER_FUNCTION DiagnosticStepper(StepperT&&)->DiagnosticStepper<StepperT>;
+CELER_FUNCTION DiagnosticStepper(StepperT&&) -> DiagnosticStepper<StepperT>;
 
 //---------------------------------------------------------------------------//
 }  // namespace test

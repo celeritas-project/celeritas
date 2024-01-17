@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -52,8 +52,8 @@ class NormalDistribution
     inline CELER_FUNCTION result_type operator()(Generator& rng);
 
   private:
-    const real_type mean_;
-    const real_type stddev_;
+    real_type const mean_;
+    real_type const stddev_;
     real_type spare_{};
     bool has_spare_{false};
 };

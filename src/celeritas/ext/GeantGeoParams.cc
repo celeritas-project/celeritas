@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -197,7 +197,6 @@ auto GeantGeoParams::find_volumes(std::string const& name) const
 {
     return vol_labels_.find_all(name);
 }
-
 
 //---------------------------------------------------------------------------//
 /*!

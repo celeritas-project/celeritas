@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -263,7 +263,7 @@ TEST_F(CombinedBremTest, stress_test_combined)
     auto material_view = this->material_track().make_material_view();
 
     // Loop over a set of incident gamma energies
-    const real_type test_energy[]
+    real_type const test_energy[]
         = {1.5, 5, 10, 50, 100, 1000, 1e+4, 1e+5, 1e+6};
 
     for (auto particle : {pdg::electron(), pdg::positron()})

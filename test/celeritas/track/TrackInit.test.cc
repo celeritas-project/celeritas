@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -194,8 +194,8 @@ TYPED_TEST_SUITE(TrackInitTest, MemspaceTypes, MemspaceTypeString);
 
 TYPED_TEST(TrackInitTest, run)
 {
-    const size_type num_primaries = 12;
-    const size_type num_tracks = 10;
+    size_type const num_primaries = 12;
+    size_type const num_tracks = 10;
 
     this->build_states(num_tracks);
 
@@ -388,7 +388,7 @@ TYPED_TEST(TrackInitTest, extend_from_secondaries)
         }
     };
 
-    const size_type num_iter = 4;
+    size_type const num_iter = 4;
     for ([[maybe_unused]] size_type i : range(num_iter))
     {
         CELER_TRY_HANDLE(apply_actions(),

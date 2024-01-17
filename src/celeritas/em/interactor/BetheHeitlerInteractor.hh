@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -78,7 +78,7 @@ class BetheHeitlerInteractor
     // Shared model data
     BetheHeitlerData const& shared_;
     // Incident gamma energy
-    const real_type inc_energy_;
+    real_type const inc_energy_;
     // Incident direction
     Real3 const& inc_direction_;
     // Allocate space for a secondary particle
@@ -186,13 +186,13 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         // Calculate the minimum (when \epsilon = 1/2) and maximum (when
         // \epsilon = \epsilon_1) values of screening variable, \delta. Above
         // 50 MeV, a Coulomb correction function is introduced.
-        const real_type delta_min = 4 * 136 / element_.cbrt_z() * epsilon0_;
+        real_type const delta_min = 4 * 136 / element_.cbrt_z() * epsilon0_;
         real_type f_z = real_type(8) / real_type(3) * element_.log_z();
         if (inc_energy_ > value_as<Energy>(coulomb_corr_threshold()))
         {
             f_z += 8 * element_.coulomb_correction();
         }
-        const real_type delta_max
+        real_type const delta_max
             = std::exp((real_type(42.038) - f_z) / real_type(8.29))
               - real_type(0.958);
         CELER_ASSERT(delta_min <= delta_max);
@@ -203,15 +203,15 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         // sections, an additional constraint that \epsilon > \epsilon_1 is
         // introduced, where \epsilon_1 is the solution to
         // \Phi(\delta(\epsilon)) - F(Z)/2 = 0.
-        const real_type epsilon1
+        real_type const epsilon1
             = half - half * std::sqrt(1 - delta_min / delta_max);
-        const real_type epsilon_min = celeritas::max(epsilon0_, epsilon1);
+        real_type const epsilon_min = celeritas::max(epsilon0_, epsilon1);
 
         // Decide to choose f1, g1 or f2, g2 based on N1, N2 (factors from
         // corrected Bethe-Heitler cross section; c.f. Eq. 6.6 of Geant4
         // Physics Reference 10.6)
-        const real_type f10 = this->screening_f1(delta_min) - f_z;
-        const real_type f20 = this->screening_f2(delta_min) - f_z;
+        real_type const f10 = this->screening_f1(delta_min) - f_z;
+        real_type const f20 = this->screening_f2(delta_min) - f_z;
         BernoulliDistribution choose_f1g1(ipow<2>(half - epsilon_min) * f10,
                                           real_type(1.5) * f20);
 

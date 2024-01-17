@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -107,7 +107,7 @@ auto StepperTestBase::run(StepperInterface& step,
     result.active = {counts.active};
     result.queued = {counts.queued};
 
-    const size_type max_steps = this->max_average_steps() * num_primaries;
+    size_type const max_steps = this->max_average_steps() * num_primaries;
     size_type accum_steps = counts.active;
 
     while (counts)

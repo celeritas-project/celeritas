@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -206,7 +206,7 @@ CELER_CONSTEXPR_FUNCTION Span<T, N> make_span(Array<T, N>& x)
 //---------------------------------------------------------------------------//
 //! Get a constant fixed-size view to an array
 template<class T, std::size_t N>
-CELER_CONSTEXPR_FUNCTION Span<const T, N> make_span(Array<T, N> const& x)
+CELER_CONSTEXPR_FUNCTION Span<T const, N> make_span(Array<T, N> const& x)
 {
     return {x.data(), N};
 }
@@ -230,7 +230,7 @@ CELER_FUNCTION Span<typename T::value_type> make_span(T& cont)
 //---------------------------------------------------------------------------//
 //! Get a const view to a generic container
 template<class T>
-CELER_FUNCTION Span<const typename T::value_type> make_span(T const& cont)
+CELER_FUNCTION Span<typename T::value_type const> make_span(T const& cont)
 {
     return {cont.data(), cont.size()};
 }

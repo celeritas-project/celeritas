@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -68,7 +68,9 @@ G4bool ExceptionHandler::Notify(char const* origin_of_exception,
                 }
                 else
                 {
-                    CELER_LOG_LOCAL(critical) << "Aborting run due to exception (" << exception_code << ")";
+                    CELER_LOG_LOCAL(critical)
+                        << "Aborting run due to exception (" << exception_code
+                        << ")";
                     run_man->AbortRun();
                 }
             }

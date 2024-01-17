@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -56,7 +56,7 @@ class TwodSubgridCalculator
   private:
     TwodGridData const& grids_;
     Values const& storage_;
-    const InterpT x_loc_;
+    InterpT const x_loc_;
 
     inline CELER_FUNCTION real_type at(size_type x_idx, size_type y_idx) const;
 };
@@ -95,7 +95,7 @@ CELER_FUNCTION real_type TwodSubgridCalculator::operator()(real_type y) const
     NonuniformGrid<real_type> const y_grid{grids_.y, storage_};
     CELER_EXPECT(y >= y_grid.front() && y < y_grid.back());
 
-    const InterpT y_loc = find_interp(y_grid, y);
+    InterpT const y_loc = find_interp(y_grid, y);
     auto at_corner = [this, y_loc](size_type xo, size_type yo) -> real_type {
         return this->at(x_loc_.index + xo, y_loc.index + yo);
     };
