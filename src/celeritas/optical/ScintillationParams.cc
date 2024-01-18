@@ -3,30 +3,30 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/OpticalPrimary.hh
+//! \file celeritas/optical/ScintillationParams.cc
 //---------------------------------------------------------------------------//
-#pragma once
+#include "ScintillationParams.hh"
 
-#include "corecel/Types.hh"
-#include "orange/Types.hh"
-#include "celeritas/Quantities.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Optical photon data used to initialize a photon track state.
+ * Construct with optical property data.
  */
-struct OpticalPrimary
+ScintillationParams::ScintillationParams(OpticalPropertyCRef const& properties)
 {
-    units::MevEnergy energy;
-    Real3 position{0, 0, 0};
-    Real3 direction{0, 0, 0};
-    Real3 polarization{0, 0, 0};
-    real_type time{};
-    VolumeId volume{};
-};
+    HostVal<ScintillationData> data;
+    for (auto mid : range(OpticalMaterialId(properties.scint_spectra.size())))
+    {
+        make_builder(&data.spectra).push_back(properties.scint_spectra[mid]);
+    }
+    mirror_ = CollectionMirror<ScintillationData>{std::move(data)};
+    CELER_ENSURE(mirror_ || properties.scint_spectra.empty());
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

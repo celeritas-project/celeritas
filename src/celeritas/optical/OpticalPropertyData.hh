@@ -17,6 +17,21 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Material dependent scintillation spectra.
+ *
+ * Support upto 3-components: [fast, medium, slow]
+ */
+struct ScintillationSpectra
+{
+    Real3 yield_prob{};  //!< Probability of the yield
+    Real3 lambda_mean{};  //!< Mean wavelength [meter]
+    Real3 lambda_sigma{};  //!< Standard dev. of wavelength [meter]
+    Real3 rise_time{};  //!< Rise time [second]
+    Real3 fall_time{};  //!< Decay time [second]
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Shared optical properties data.
  *
  * TODO: Placeholder for optical property data; modify or replace as needed.
@@ -33,6 +48,7 @@ struct OpticalPropertyData
 
     Items<real_type> reals;
     OpticalMaterialItems<GenericGridData> refractive_index;
+    OpticalMaterialItems<ScintillationSpectra> scint_spectra;
 
     //// MEMBER FUNCTIONS ////
 
@@ -49,6 +65,7 @@ struct OpticalPropertyData
         CELER_EXPECT(other);
         reals = other.reals;
         refractive_index = other.refractive_index;
+        scint_spectra = other.scint_spectra;
         return *this;
     }
 };
