@@ -3,36 +3,45 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/ScintillationInput.hh
+//! \file celeritas/optical/OpticalDistributionData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/EnumArray.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Input data for sampling optical photons for a given scintillation step.
+ * Pre- and post-step data for sampling optical photons.
  */
-struct ScintillationInput
+struct OpticalStepData
 {
-    size_type num_photons{};  //!< Number of photons to generate
-    real_type step_length{};  //!< Step length
+    units::LightSpeed speed;
+    Real3 pos{};
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Input data for sampling optical photons.
+ */
+struct OpticalDistributionData
+{
+    size_type num_photons{};  //!< Sampled number of photons to generate
     real_type time{};  //!< Pre-step time
-    real_type pre_velocity{};  //!< Pre-step velocity
-    real_type post_velocity{};  //!< Post-step velocity
-    Real3 pre_pos{};  //!< Pre-step position
-    Real3 post_pos{};  //!< Post-step position
-    units::ElementaryCharge charge{};  //!< Particle charge
-    OpticalMaterialId matId{};  // !< OpticalMaterial Id
+    real_type step_length{};
+    units::ElementaryCharge charge;
+    OpticalMaterialId material{};
+    EnumArray<StepPoint, OpticalStepData> points;
 
     //! Check whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return num_photons > 0 && step_length > 0 && time >= 0 && matId;
+        return num_photons > 0 && step_length > 0 && material;
     }
 };
 
