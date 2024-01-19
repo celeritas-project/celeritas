@@ -245,13 +245,15 @@ if(CELERITAS_USE_VecGeom)
       ext/VecgeomParams.surface.cu
     )
   endif()
-endif()
-
-if(CELERITAS_USE_VecGeom AND CELERITAS_USE_CUDA)
-  # This needs to be public because its might be needed
-  # to resolve the symbols generate by the `nvcc -dlink` of
-  # one of the executable.
-  list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
+  if(CELERITAS_USE_CUDA)
+    # This needs to be public because its might be needed
+    # to resolve the symbols generate by the `nvcc -dlink` of
+    # one of the executable.
+    list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
+  elseif(VecGeom_CUDA_FOUND)
+    # VecGeom is built with CUDA but Celeritas is not
+    list(APPEND PRIVATE_DEPS VecGeom::vecgeomcuda)
+  endif()
 endif()
 
 if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
