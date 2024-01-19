@@ -15,17 +15,16 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with optical property data.
+ * Construct with scintillation data.
  */
-ScintillationParams::ScintillationParams(OpticalPropertyCRef const& properties)
+ScintillationParams::ScintillationParams(ScintillationDataCRef const& data)
 {
-    HostVal<ScintillationData> data;
-    for (auto mid : range(OpticalMaterialId(properties.scint_spectra.size())))
-    {
-        make_builder(&data.spectra).push_back(properties.scint_spectra[mid]);
-    }
-    mirror_ = CollectionMirror<ScintillationData>{std::move(data)};
-    CELER_ENSURE(mirror_ || properties.scint_spectra.empty());
+    CELER_EXPECT(data);
+    HostVal<ScintillationData> host_data;
+
+    host_data = data;
+    mirror_ = CollectionMirror<ScintillationData>{std::move(host_data)};
+    CELER_ENSURE(mirror_ || data.spectrum.empty());
 }
 
 //---------------------------------------------------------------------------//

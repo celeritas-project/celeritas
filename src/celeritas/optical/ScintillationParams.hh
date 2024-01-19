@@ -25,12 +25,12 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
   public:
     //!@{
     //! \name Type aliases
-    using OpticalPropertyCRef = HostCRef<OpticalPropertyData>;
+    using ScintillationDataCRef = HostCRef<ScintillationData>;
     //!@}
 
   public:
     // Construct with optical property data
-    explicit ScintillationParams(OpticalPropertyCRef const& properties);
+    explicit ScintillationParams(ScintillationDataCRef const& data);
 
     //! Access physics properties on the host
     HostRef const& host_ref() const final { return mirror_.host_ref(); }
