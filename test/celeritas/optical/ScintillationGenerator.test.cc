@@ -5,6 +5,8 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/ScintillationGenerator.test.cc
 //---------------------------------------------------------------------------//
+#include <numeric>
+
 #include "celeritas/optical/ScintillationGenerator.hh"
 
 #include "corecel/data/Collection.hh"
