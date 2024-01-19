@@ -5,17 +5,14 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/ScintillationGenerator.test.cc
 //---------------------------------------------------------------------------//
-#include <numeric>
-
-#include "celeritas/optical/ScintillationGenerator.hh"
-
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/optical/OpticalDistributionData.hh"
 #include "celeritas/optical/OpticalPrimary.hh"
 #include "celeritas/optical/ScintillationData.hh"
-#include "celeritas/optical/ScintillationInput.hh"
+#include "celeritas/optical/ScintillationGenerator.hh"
 #include "celeritas/optical/ScintillationParams.hh"
 
 #include "DiagnosticRngEngine.hh"
@@ -42,32 +39,31 @@ class ScintillationGeneratorTest : public Test
   protected:
     void SetUp() override
     {
-        // Test scintillation spectra: only one (LAr) material
-        HostVal<OpticalPropertyData> data;
-        ScintillationSpectra spectra;
+        // Test scintillation spectrum: only one (LAr) material
+        HostVal<ScintillationData> data;
+        ScintillationSpectrum spectrum;
         static constexpr double nm = 1e-9 * units::meter;
         static constexpr double ns = 1e-9 * units::second;
 
-        spectra.yield_prob = {0.75, 0.25, 0};
-        spectra.lambda_mean = {128 * nm, 128 * nm, 0};
-        spectra.lambda_sigma = {10 * nm, 10 * nm, 0};
-        spectra.rise_time = {10 * ns, 10 * ns, 0};
-        spectra.fall_time = {6 * ns, 1500 * ns, 0};
+        spectrum.yield_prob = {0.75, 0.25, 0};
+        spectrum.lambda_mean = {128 * nm, 128 * nm, 0};
+        spectrum.lambda_sigma = {10 * nm, 10 * nm, 0};
+        spectrum.rise_time = {10 * ns, 10 * ns, 0};
+        spectrum.fall_time = {6 * ns, 1500 * ns, 0};
 
-        make_builder(&data.scint_spectra).push_back(spectra);
-        properties = make_const_ref(data);
-        params = std::make_shared<ScintillationParams>(properties);
+        make_builder(&data.spectrum).push_back(spectrum);
+        params = std::make_shared<ScintillationParams>(make_const_ref(data));
 
         // Test step input
-        input_.num_photons = 4;
-        input_.step_length = 1 * units::centimeter;
-        input_.time = 0;
-        input_.pre_velocity = 0.99 * constants::c_light;
-        input_.post_velocity = 0.9 * input_.pre_velocity;
-        input_.pre_pos = {0, 0, 0};
-        input_.post_pos = {0, 0, 1};
-        input_.charge = units::ElementaryCharge{-1};
-        input_.matId = OpticalMaterialId{0};
+        dist_.num_photons = 4;
+        dist_.step_length = 1 * units::centimeter;
+        dist_.time = 0;
+        dist_.points[StepPoint::pre].speed = units::LightSpeed(0.99);
+        dist_.points[StepPoint::post].speed = units::LightSpeed(0.99 * 0.9);
+        dist_.points[StepPoint::pre].pos = {0, 0, 0};
+        dist_.points[StepPoint::post].pos = {0, 0, 1};
+        dist_.charge = units::ElementaryCharge{-1};
+        dist_.material = OpticalMaterialId{0};
     }
     //! Get random number generator with clean counter
     RandomEngine& rng()
@@ -78,13 +74,12 @@ class ScintillationGeneratorTest : public Test
 
   protected:
     // Host/device storage and reference
-    HostCRef<OpticalPropertyData> properties;
     std::shared_ptr<ScintillationParams const> params;
     OpticalMaterialId material{0};
     units::ElementaryCharge charge{-1};
 
     RandomEngine rng_;
-    ScintillationInput input_;
+    OpticalDistributionData dist_;
 };
 
 //---------------------------------------------------------------------------//
@@ -94,12 +89,11 @@ class ScintillationGeneratorTest : public Test
 TEST_F(ScintillationGeneratorTest, basic)
 {
     // Output data
-    std::vector<OpticalPrimary> storage;
-    storage.reserve(input_.num_photons);
+    std::vector<OpticalPrimary> storage(dist_.num_photons);
 
     // Create the generator
     ScintillationGenerator generate_photons(
-        input_, params->host_ref(), make_span(storage));
+        dist_, params->host_ref(), make_span(storage));
     RandomEngine& rng_engine = this->rng();
 
     // Generate optical photons for a given input
@@ -110,12 +104,14 @@ TEST_F(ScintillationGeneratorTest, basic)
     std::vector<real_type> time;
     std::vector<real_type> cos_theta;
 
-    for (auto i : range(input_.num_photons))
+    for (auto i : range(dist_.num_photons))
     {
         energy.push_back(photons[i].energy.value());
         time.push_back(photons[i].time);
-        cos_theta.push_back(dot_product(photons[i].direction,
-                                        input_.post_pos - input_.pre_pos));
+        cos_theta.push_back(
+            dot_product(photons[i].direction,
+                        dist_.points[StepPoint::post].pos
+                            - dist_.points[StepPoint::pre].pos));
     }
 
     const real_type expected_energy[] = {9.35613547878811e-06,
@@ -143,40 +139,38 @@ TEST_F(ScintillationGeneratorTest, basic)
 TEST_F(ScintillationGeneratorTest, stress_test)
 {
     // Generate a large number of optical photons
-    input_.num_photons = 1e+6;
+    dist_.num_photons = 1e+6;
 
     // Output data
-    std::vector<OpticalPrimary> storage;
-    storage.reserve(input_.num_photons);
+    std::vector<OpticalPrimary> storage(dist_.num_photons);
 
     // Create the generator
     ScintillationGenerator generate_photons(
-        input_, params->host_ref(), make_span(storage));
+        dist_, params->host_ref(), make_span(storage));
 
     // Generate optical photons for a given input
     auto photons = generate_photons(this->rng());
 
     // Check results
-    std::vector<double> wavelength;
-    double energy_to_wavelength = ScintillationGenerator::hc();
-    for (auto i : range(input_.num_photons))
+    double avg_lambda{0};
+    double hc = ScintillationGenerator::hc() / units::Mev::value();
+    for (auto i : range(dist_.num_photons))
     {
-        wavelength.push_back(energy_to_wavelength / photons[i].energy.value());
+        avg_lambda += hc / photons[i].energy.value();
     }
-    double avg_wavelength = static_cast<double>(std::reduce(wavelength.begin(),
-                                                            wavelength.end()))
-                            / wavelength.size();
+    avg_lambda /= static_cast<double>(dist_.num_photons);
 
-    double expected_wavelength{0};
+    double expected_lambda{0};
     double expected_error{0};
-    ScintillationSpectra spectra = params->host_ref().spectra[input_.matId];
+    ScintillationSpectrum spectrum
+        = params->host_ref().spectrum[dist_.material];
 
     for (auto i : range(3))
     {
-        expected_wavelength += spectra.lambda_mean[i] * spectra.yield_prob[i];
-        expected_error += spectra.lambda_sigma[i] * spectra.yield_prob[i];
+        expected_lambda += spectrum.lambda_mean[i] * spectrum.yield_prob[i];
+        expected_error += spectrum.lambda_sigma[i] * spectrum.yield_prob[i];
     }
-    EXPECT_SOFT_NEAR(avg_wavelength, expected_wavelength, expected_error);
+    EXPECT_SOFT_NEAR(avg_lambda, expected_lambda, expected_error);
 }
 
 //---------------------------------------------------------------------------//

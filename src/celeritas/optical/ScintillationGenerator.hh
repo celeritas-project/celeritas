@@ -21,7 +21,7 @@
 
 #include "OpticalPrimary.hh"
 #include "ScintillationData.hh"
-#include "ScintillationInput.hh"
+#include "OpticalDistributionData.hh"
 
 namespace celeritas
 {
@@ -41,20 +41,20 @@ class ScintillationGenerator
     //!@}
 
   public:
-    // Construct from scintillation properties and input data
+    // Construct from scintillation data and distribution parameters
     inline CELER_FUNCTION
-    ScintillationGenerator(ScintillationInput const& input,
+    ScintillationGenerator(OpticalDistributionData const& dist,
                            NativeCRef<ScintillationData> const& shared,
                            Span<OpticalPrimary> photons);
 
-    // Sample Scintillation photons from input data
+    // Sample Scintillation photons from the distribution
     template<class Generator>
     inline CELER_FUNCTION Span<OpticalPrimary> operator()(Generator& rng);
 
     // TODO: Move it to detail/OpticalUtils.
     static CELER_CONSTEXPR_FUNCTION real_type hc()
     {
-        return constants::h_planck * constants::c_light / units::Mev::value();
+        return constants::h_planck * constants::c_light;
     }
 
   private:
@@ -65,8 +65,8 @@ class ScintillationGenerator
 
     //// DATA ////
 
-    ScintillationInput const& input_;
-    ScintillationSpectra const& spectra_;
+    OpticalDistributionData const& dist_;
+    ScintillationSpectrum const& spectrum_;
     Span<OpticalPrimary> photons_;
 
     UniformRealDist sample_cost_;
@@ -74,7 +74,7 @@ class ScintillationGenerator
     ExponentialDist sample_time_;
 
     bool is_neutral_{};
-    real_type delta_velocity_{};
+    units::LightSpeed delta_speed_{};
     Real3 delta_pos_{};
 };
 
@@ -82,26 +82,28 @@ class ScintillationGenerator
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct from shared scintillation data and input.
+ * Construct from shared scintillation data and distribution parameters.
  */
 CELER_FUNCTION
 ScintillationGenerator::ScintillationGenerator(
-    ScintillationInput const& input,
+    OpticalDistributionData const& dist,
     NativeCRef<ScintillationData> const& shared,
     Span<OpticalPrimary> photons)
-    : input_(input)
-    , spectra_(shared.spectra[input.matId])
+    : dist_(dist)
+    , spectrum_(shared.spectrum[dist_.material])
     , photons_(photons)
     , sample_cost_(-1, 1)
     , sample_phi_(0, 2 * constants::pi)
-    , sample_time_(real_type{1} / spectra_.fall_time[0])
-    , is_neutral_{native_value_from(input_.charge) == 0}
+    , sample_time_(real_type{1} / spectrum_.fall_time[0])
+    , is_neutral_{dist_.charge == zero_quantity()}
 {
-    CELER_EXPECT(input_);
-    CELER_EXPECT(photons_.size() == input_.num_photons);
+    CELER_EXPECT(dist_);
+    CELER_EXPECT(photons_.size() == dist_.num_photons);
 
-    delta_pos_ = input_.post_pos - input_.pre_pos;
-    delta_velocity_ = input_.post_velocity - input_.pre_velocity;
+    auto const& pre_step = dist_.points[StepPoint::pre];
+    auto const& post_step = dist_.points[StepPoint::post];
+    delta_pos_ = post_step.pos - pre_step.pos;
+    delta_speed_ = post_step.speed - pre_step.speed;
 }
 
 //---------------------------------------------------------------------------//
@@ -116,7 +118,7 @@ ScintillationGenerator::ScintillationGenerator(
  * \f]
  * where \f$ h \f$ is the Planck constant and \f$ c \f$ is the speed of light,
  * and \f$ \lambda \f$ is sampled by the normal distribution with the mean of
- * scintillation emission spectra and the standard deviation. The emitted time
+ * scintillation emission spectrum and the standard deviation. The emitted time
  * is simulated according to empirical shapes of the material-dependent
  * scintillation time structure with one or double exponentials.
  */
@@ -127,27 +129,32 @@ ScintillationGenerator::operator()(Generator& rng)
     // Loop for generating scintillation photons
     size_type num_generated{0};
 
-    for (auto sid : range(3))
+    for (auto sid : range(spectrum_.size))
     {
-        NormalDistribution<real_type> sample_lambda_(
-            spectra_.lambda_mean[sid], spectra_.lambda_sigma[sid]);
+        // Skip if there is no emission warelength
+        if(spectrum_.lambda_mean[sid] <= 0) 
+           continue;
 
-        size_type num_photons = input_.num_photons * spectra_.yield_prob[sid];
+        NormalDistribution<real_type> sample_lambda(
+            spectrum_.lambda_mean[sid], spectrum_.lambda_sigma[sid]);
 
-        CELER_EXPECT(num_generated + num_photons <= input_.num_photons);
+        size_type num_photons = dist_.num_photons * spectrum_.yield_prob[sid];
+
+        CELER_EXPECT(num_generated + num_photons <= dist_.num_photons);
 
         for (size_type i : range(num_generated, num_generated + num_photons))
         {
             // Sample wavelength and convert to energy
-            real_type wave_length = sample_lambda_(rng);
+            real_type wave_length = sample_lambda(rng);
             CELER_EXPECT(wave_length > 0);
-            photons_[i].energy = Energy(this->hc() / wave_length);
+            photons_[i].energy 
+                = native_value_to<Energy>(this->hc() / wave_length);
 
             // Sample direction
             real_type cost = sample_cost_(rng);
             real_type phi = sample_phi_(rng);
-            photons_[i].direction
-                = rotate(from_spherical(cost, phi), input_.post_pos);
+            photons_[i].direction = rotate(from_spherical(cost, phi), 
+                                           dist_.points[StepPoint::post].pos);
 
             // Sample polarization
             photons_[i].polarization
@@ -160,16 +167,18 @@ ScintillationGenerator::operator()(Generator& rng)
 
             // Sample position
             real_type u = (is_neutral_) ? 1 : generate_canonical(rng);
-            photons_[i].position = input_.pre_pos + u * delta_pos_;
+            photons_[i].position = dist_.points[StepPoint::pre].pos 
+                                    + u * delta_pos_;
 
             // Sample time
-            real_type delta_time = u * input_.step_length
-                                   / (input_.pre_velocity
-                                      + u * real_type(0.5) * delta_velocity_);
+            real_type delta_time 
+                = u * dist_.step_length
+	          / (native_value_from(dist_.points[StepPoint::pre].speed)
+		     + u * real_type(0.5) * native_value_from(delta_speed_));
 
-            if (spectra_.rise_time[sid] == 0)
+            if (spectrum_.rise_time[sid] == 0)
             {
-                delta_time -= spectra_.fall_time[sid]
+                delta_time -= spectrum_.fall_time[sid]
                               * std::log(generate_canonical(rng));
             }
             else
@@ -180,11 +189,12 @@ ScintillationGenerator::operator()(Generator& rng)
                 {
                     scint_time = sample_time_(rng);
                     envelop
-                        = 1 - std::exp(-scint_time / spectra_.rise_time[sid]);
+                        = 1 - std::exp(-scint_time / spectrum_.rise_time[sid]);
                 } while (!BernoulliDistribution(envelop)(rng));
                 delta_time += scint_time;
             }
-            photons_[i].time = input_.time + delta_time;
+            CELER_ASSERT(delta_time >= 0);
+            photons_[i].time = dist_.time + delta_time;
         }
         num_generated += num_photons;
     }
