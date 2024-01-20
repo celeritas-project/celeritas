@@ -21,7 +21,7 @@ std::string to_string(SignedPermutation::SignedAxes const& p)
     std::string result;
     for (auto ax : range(Axis::size_))
     {
-        result.push_back(p[ax].first == SignedPermutation::pos ? '+' : '-');
+        result.push_back(p[ax].first);
         result.push_back(to_char(p[ax].second));
         result.push_back(',');
     }

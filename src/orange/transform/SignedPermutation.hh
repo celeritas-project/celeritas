@@ -32,8 +32,6 @@ namespace celeritas
  * where \f$ \mathbf{e}_u \f$ is has exactly one entry with a value \f$ \pm 1
  \f$ and the other entries being zero.
  *
- * TODO: implement error checking to prevent reflection.
- *
  * The underlying storage are a compressed series of bits in little-endian form
  * that indicate the positions of the nonzero entry followed by the sign:
  * \verbatim
@@ -42,14 +40,17 @@ namespace celeritas
  * \endverbatim
  * This allows the "rotate up" to simply copy one value at a time into a new
  * position, and optionally flip the sign of the result.
+ *
+ * TODO: implement error checking to prevent reflection.
  */
 class SignedPermutation
 {
   public:
+    //! Characters used for explicit construction
     enum Sign : char
     {
-        pos = '+',
-        neg = '-'
+        psign = '+',
+        msign = '-'
     };
 
     //!@{
@@ -64,7 +65,7 @@ class SignedPermutation
     // Construct with an identity permutation
     SignedPermutation();
 
-    //! Construct with the permutation vector
+    // Construct with the permutation vector
     explicit SignedPermutation(SignedAxes permutation);
 
     // Construct inline from storage

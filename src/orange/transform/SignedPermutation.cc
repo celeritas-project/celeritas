@@ -15,7 +15,7 @@ namespace celeritas
  */
 SignedPermutation::SignedPermutation()
     : SignedPermutation{
-        SignedAxes{{{pos, Axis::x}, {pos, Axis::y}, {pos, Axis::z}}}}
+        SignedAxes{{{psign, Axis::x}, {psign, Axis::y}, {psign, Axis::z}}}}
 {
 }
 
@@ -30,9 +30,9 @@ SignedPermutation::SignedPermutation(SignedAxes permutation) : compressed_{0}
     for (auto ax : {Axis::z, Axis::y, Axis::x})
     {
         auto new_ax_sign = permutation[ax];
-        CELER_VALIDATE(new_ax_sign.first == pos || new_ax_sign.first == neg,
-                       << "invalid permutation sign '" << new_ax_sign.first
-                       << "'");
+        CELER_VALIDATE(
+            new_ax_sign.first == psign || new_ax_sign.first == msign,
+            << "invalid permutation sign '" << new_ax_sign.first << "'");
         CELER_VALIDATE(new_ax_sign.second < Axis::size_,
                        << "invalid permutation axis");
         CELER_VALIDATE(!encountered_ax[new_ax_sign.second],
@@ -42,7 +42,7 @@ SignedPermutation::SignedPermutation(SignedAxes permutation) : compressed_{0}
 
         // Push back "flip bit"
         compressed_ <<= 1;
-        compressed_ |= (new_ax_sign.first == neg ? 0b1 : 0b0);
+        compressed_ |= (new_ax_sign.first == msign ? 0b1 : 0b0);
         // Push back "new axis"
         compressed_ <<= 2;
         compressed_ |= to_int(new_ax_sign.second);
@@ -64,7 +64,7 @@ auto SignedPermutation::permutation() const -> SignedAxes
         result[ax].second = to_axis(temp & 0b11);
         temp >>= 2;
         // Push back "flip bit"
-        result[ax].first = temp & 0b1 ? neg : pos;
+        result[ax].first = temp & 0b1 ? msign : psign;
         temp >>= 1;
     }
     return result;
@@ -93,8 +93,8 @@ SignedPermutation make_permutation(Axis ax, QuarterTurn theta)
 
     auto to_sign = [](int v) {
         if (v < 0)
-            return SignedPermutation::neg;
-        return SignedPermutation::pos;
+            return SignedPermutation::msign;
+        return SignedPermutation::psign;
     };
 
     int const cost = cos(theta);
