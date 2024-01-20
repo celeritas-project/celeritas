@@ -21,7 +21,13 @@ namespace celeritas
 /*!
  * Apply a rotation that remaps and possibly flips signs.
  *
- * The daughter-to-parent rotation matrix in this special case:
+ * A signed permutation matrix is a special matrix that has only one entry with
+ * the value of \f$\pm1\f$ in each row and each column. This is a specialized
+ * rotation matrix that, when applied to a vector, simply exchanges the
+ * locations and/or flips the signs of the vector entries.
+ *
+ * This class stores a special version of the daughter-to-parent rotation
+ * matrix:
  * \f[
  \mathbf{R} = \begin{bmatrix}
   \mathbf{e}_x \\ \hline
@@ -29,8 +35,8 @@ namespace celeritas
   \mathbf{e}_z
   \end{bmatrix}
   \f]
- * where \f$ \mathbf{e}_u \f$ is has exactly one entry with a value \f$ \pm 1
- \f$ and the other entries being zero.
+ * where \f$ \mathbf{e}_u \f$ has exactly one entry with a value \f$ \pm 1
+ \f$ and the other entries are zero.
  *
  * The underlying storage are a compressed series of bits in little-endian form
  * that indicate the positions of the nonzero entry followed by the sign:
