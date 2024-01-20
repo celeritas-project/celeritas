@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -12,72 +12,16 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 
-#include "NumericLimits.hh"
+#include "detail/QuantityImpl.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 namespace detail
 {
-
-// Forward declaration
 template<class, class>
 struct LdgLoader;
-
-//---------------------------------------------------------------------------//
-//! Helper tag for special unitless values
-enum class QConstant
-{
-    neg_max = -1,
-    zero = 0,
-    max = 1
-};
-
-//! Convert unitless values into a particular type
-template<class T>
-CELER_CONSTEXPR_FUNCTION T get_constant(QConstant qc)
-{
-    if constexpr (std::is_floating_point_v<T>)
-    {
-        // Return +/- infinity
-        return qc == QConstant::neg_max ? -numeric_limits<T>::infinity()
-               : qc == QConstant::max   ? numeric_limits<T>::infinity()
-                                        : 0;
-    }
-    else
-    {
-        // Return lowest and highest values
-        return qc == QConstant::neg_max ? numeric_limits<T>::lowest()
-               : qc == QConstant::max   ? numeric_limits<T>::max()
-                                        : 0;
-    }
 }
-
-//! Tag class for creating a nonnumeric value comparable to Quantity.
-template<QConstant QC>
-struct UnitlessQuantity
-{
-};
-
-//! Helper class for getting attributes about a member function
-template<class T>
-struct AccessorTraits;
-
-//! \cond
-//! Access the return type using AccessorTraits<decltype(&Foo::bar)>
-template<class ResultType, class ClassType>
-struct AccessorTraits<ResultType (ClassType::*)() const>
-{
-    using type = ClassType;
-    using result_type = ResultType;
-};
-//! \endcond
-
-//! Get the result type of a class accessor
-template<class T>
-using AccessorResultType = typename AccessorTraits<T>::result_type;
-
-//---------------------------------------------------------------------------//
-}  // namespace detail
 
 //---------------------------------------------------------------------------//
 /*!
@@ -273,29 +217,6 @@ CELER_CONSTEXPR_FUNCTION auto operator/(Quantity<U, T> lhs, T2 rhs) noexcept
 //!@!}
 
 //! \endcond
-//---------------------------------------------------------------------------//
-//! Value is C1::value() / C2::value()
-template<class C1, class C2>
-struct UnitDivide
-{
-    //! Get the conversion factor of the resulting unit
-    static CELER_CONSTEXPR_FUNCTION auto value() noexcept -> decltype(auto)
-    {
-        return C1::value() / C2::value();
-    }
-};
-
-//! Value is C1::value() * C2::value()
-template<class C1, class C2>
-struct UnitProduct
-{
-    //! Get the conversion factor of the resulting unit
-    static CELER_CONSTEXPR_FUNCTION auto value() noexcept -> decltype(auto)
-    {
-        return C1::value() * C2::value();
-    }
-};
-
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -44,7 +44,7 @@ class TrackerVisitor
 
     // Apply the function to the universe specified by the given ID
     template<class F>
-    CELER_FUNCTION decltype(auto) operator()(F&& func, UniverseId id);
+    CELER_FUNCTION decltype(auto) operator()(F && func, UniverseId id);
 
   private:
     ParamsRef const& params_;

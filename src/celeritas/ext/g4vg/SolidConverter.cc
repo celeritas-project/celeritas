@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -745,7 +745,7 @@ void SolidConverter::compare_volumes(G4VSolid const& g4,
         CELER_LOG(warning)
             << "Solid type '" << g4.GetEntityType()
             << "' conversion may have failed: VecGeom/G4 volume ratio is "
-            << vg_cap << " / " << g4_cap << " [cm^3] = " << vg_cap / g4_cap;
+            << vg_cap << " / " << g4_cap << " [len^3] = " << vg_cap / g4_cap;
     }
 }
 

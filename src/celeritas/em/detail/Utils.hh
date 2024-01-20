@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -50,8 +50,8 @@ class MaxSecondariesCalculator
   private:
     Values const& data_;
     Span<AtomicRelaxSubshell const> shells_;
-    const Energy electron_cut_;
-    const Energy gamma_cut_;
+    Energy const electron_cut_;
+    Energy const gamma_cut_;
     std::unordered_map<SubshellId, size_type> visited_;
 
     // HELPER FUNCTIONS

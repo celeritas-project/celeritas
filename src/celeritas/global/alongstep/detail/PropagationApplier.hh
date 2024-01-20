@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -80,7 +80,7 @@ struct PropagationApplier<MP, std::enable_if_t<kernel_max_blocks<MP>>>
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class MP>
-CELER_FUNCTION PropagationApplier(MP&&)->PropagationApplier<MP>;
+CELER_FUNCTION PropagationApplier(MP&&) -> PropagationApplier<MP>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -179,7 +179,7 @@ TEST_F(TwoBoxesTest, electron_interior)
 {
     // Initialize position and direction so its curved track is centered about
     // the origin, moving counterclockwise from the right
-    const real_type radius{3.8085385437789383};
+    real_type const radius{3.8085385437789383};
     auto particle
         = this->make_particle_view(pdg::electron(), MevEnergy{10.9181415106});
     auto geo = this->make_geo_track_view({radius, 0, 0}, {0, 1, 0});
@@ -268,7 +268,7 @@ TEST_F(TwoBoxesTest, positron_interior)
 {
     // Initialize position and direction so its curved track (radius 1) is
     // centered about the origin, moving *clockwise* from the right
-    const real_type radius{1.0};
+    real_type const radius{1.0};
     auto particle = this->make_particle_view(pdg::positron(), MevEnergy{10});
     auto geo = this->make_geo_track_view({radius, 0, 0}, {0, -1, 0});
     UniformZField field(unit_radius_field_strength);
@@ -628,7 +628,7 @@ TEST_F(TwoBoxesTest, electron_cross)
         auto geo = this->make_geo_track_view({2, 4, 0}, {0, 1, 0});
         EXPECT_SOFT_EQ(2.0, this->calc_field_curvature(particle, geo, field));
     }
-    const real_type circ = 2.0 * 2 * pi;
+    real_type const circ = 2.0 * 2 * pi;
 
     {
         SCOPED_TRACE("Exit (twelfth of a turn)");
@@ -696,7 +696,7 @@ TEST_F(TwoBoxesTest, electron_tangent_cross)
     FieldDriverOptions driver_options;
 
     // Circumference
-    const real_type circ = 2 * pi;
+    real_type const circ = 2 * pi;
 
     {
         SCOPED_TRACE("Barely hits boundary");
@@ -750,7 +750,7 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
     FieldDriverOptions driver_options;
 
     // Circumference
-    const real_type circ = 2 * pi;
+    real_type const circ = 2 * pi;
 
     {
         SCOPED_TRACE("Barely hits y boundary");
@@ -838,7 +838,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
     UniformZField field(unit_radius_field_strength);
     FieldDriverOptions driver_options;
-    const real_type dr = 0.1;
+    real_type const dr = 0.1;
     driver_options.delta_intersection = 0.1;
 
     // First step length and position from starting at {0,0,0} along {0,1,0}
@@ -983,8 +983,8 @@ TEST_F(TwoBoxesTest,
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{10});
 
     UniformZField field(unit_radius_field_strength * 100);
-    const real_type radius = 0.01;
-    const real_type miss_distance = 1e-4;
+    real_type const radius = 0.01;
+    real_type const miss_distance = 1e-4;
 
     std::vector<int> boundary;
     std::vector<real_type> distances;
@@ -998,8 +998,8 @@ TEST_F(TwoBoxesTest,
         {
             // Angle of intercept with boundary
             real_type tint = std::asin((radius - miss_distance) / radius);
-            const real_type sintheta = std::sin(tint - dtheta);
-            const real_type costheta = std::cos(tint - dtheta);
+            real_type const sintheta = std::sin(tint - dtheta);
+            real_type const costheta = std::cos(tint - dtheta);
 
             Real3 pos{radius * costheta,
                       5 + miss_distance - radius + radius * sintheta,
@@ -1108,7 +1108,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(nonuniform_field))
 
 TEST_F(LayersTest, revolutions_through_layers)
 {
-    const real_type radius{3.8085385437789383};
+    real_type const radius{3.8085385437789383};
     auto particle
         = this->make_particle_view(pdg::electron(), MevEnergy{10.9181415106});
     auto geo = this->make_geo_track_view({radius, 0, 0}, {0, 1, 0});

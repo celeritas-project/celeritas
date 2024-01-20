@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -85,7 +85,7 @@ class RBDiffXsCalculator
     // Shared problem data for the current material
     MaterialView const& material_;
     // Shared problem data for the current element
-    const ElementView element_;
+    ElementView const element_;
     // Total energy of the incident particle
     real_type total_energy_;
     // Density correction for the current material
@@ -129,8 +129,9 @@ RBDiffXsCalculator::RBDiffXsCalculator(RelativisticBremRef const& shared,
                                * detail::migdal_constant();
     density_corr_ = density_factor * ipow<2>(total_energy_);
 
-    real_type lpm_energy = material.radiation_length()
-                           * value_as<detail::MevPerCm>(detail::lpm_constant());
+    real_type lpm_energy
+        = material.radiation_length()
+          * value_as<detail::MevPerLen>(detail::lpm_constant());
     real_type lpm_threshold = lpm_energy * std::sqrt(density_factor);
     enable_lpm_ = (shared.enable_lpm && (total_energy_ > lpm_threshold));
     dielectric_suppression_ = shared.dielectric_suppression();

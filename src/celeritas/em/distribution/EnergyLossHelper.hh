@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -202,7 +202,7 @@ EnergyLossHelper::EnergyLossHelper(FluctuationRef const& shared,
     }
 
     constexpr real_type half = 0.5;
-    const real_type gamma = particle.lorentz_factor();
+    real_type const gamma = particle.lorentz_factor();
     beta_sq_ = particle.beta_sq();
     two_mebsgs_ = 2 * value_as<Mass>(shared_.electron_mass) * beta_sq_
                   * ipow<2>(gamma);
@@ -230,7 +230,7 @@ EnergyLossHelper::EnergyLossHelper(FluctuationRef const& shared,
         return;
     }
 
-    // Units: [cm^2][MeV c^2][1/cm^3][e-][MeV][cm] = MeV^2
+    // Units: [len^2][MeV c^2][1/len^3][e-][MeV][len] = MeV^2
     // assuming implicit 1/c^2 in the formula
     bohr_var_ = 2 * constants::pi * ipow<2>(constants::r_electron)
                 * value_as<Mass>(shared_.electron_mass)

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -72,9 +72,9 @@ class RelativisticBremInteractor
     // Shared constant physics properties
     RelativisticBremRef const& shared_;
     // Incident particle energy
-    const Energy inc_energy_;
+    Energy const inc_energy_;
     // Incident particle momentum
-    const Momentum inc_momentum_;
+    Momentum const inc_momentum_;
     // Incident direction
     Real3 const& inc_direction_;
     // Allocate space for a secondary particle

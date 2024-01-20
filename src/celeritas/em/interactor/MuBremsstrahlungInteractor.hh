@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -75,7 +75,7 @@ class MuBremsstrahlungInteractor
     // Allocate space for one or more secondary particles
     StackAllocator<Secondary>& allocate_;
     // Element properties
-    const ElementView element_;
+    ElementView const element_;
     // Incident particle
     ParticleTrackView const& particle_;
 };
@@ -120,10 +120,10 @@ CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
         return Interaction::from_failure();
     }
 
-    const real_type min_inc_kinetic_energy
+    real_type const min_inc_kinetic_energy
         = min(value_as<Energy>(particle_.energy()),
               value_as<Energy>(shared_.min_incident_energy()));
-    const real_type func_1
+    real_type const func_1
         = min_inc_kinetic_energy
           * this->differential_cross_section(min_inc_kinetic_energy);
 
@@ -175,14 +175,14 @@ template<class Engine>
 CELER_FUNCTION real_type MuBremsstrahlungInteractor::sample_cos_theta(
     real_type gamma_energy, Engine& rng) const
 {
-    const real_type gamma = particle_.lorentz_factor();
-    const real_type r_max
+    real_type const gamma = particle_.lorentz_factor();
+    real_type const r_max
         = gamma * constants::pi * real_type(0.5)
           * min(real_type(1.0),
                 gamma * value_as<Mass>(particle_.mass()) / gamma_energy - 1);
-    const real_type r_max_sq = ipow<2>(r_max);
+    real_type const r_max_sq = ipow<2>(r_max);
 
-    const real_type a = generate_canonical(rng) * r_max_sq / (1 + r_max_sq);
+    real_type const a = generate_canonical(rng) * r_max_sq / (1 + r_max_sq);
 
     return std::cos(std::sqrt(a / (1 - a)) / gamma);
 }
@@ -200,19 +200,19 @@ CELER_FUNCTION real_type MuBremsstrahlungInteractor::differential_cross_section(
     }
 
     int const atomic_number = element_.atomic_number().unchecked_get();
-    const real_type atomic_mass
+    real_type const atomic_mass
         = value_as<units::AmuMass>(element_.atomic_mass());
-    const real_type sqrt_e = std::sqrt(constants::euler);
-    const real_type inc_total_energy = value_as<Mass>(particle_.mass())
+    real_type const sqrt_e = std::sqrt(constants::euler);
+    real_type const inc_total_energy = value_as<Mass>(particle_.mass())
                                        + value_as<Energy>(particle_.energy());
-    const real_type rel_energy_transfer = gamma_energy / inc_total_energy;
-    const real_type inc_mass_sq = ipow<2>(value_as<Mass>(particle_.mass()));
-    const real_type delta = real_type(0.5) * inc_mass_sq * rel_energy_transfer
+    real_type const rel_energy_transfer = gamma_energy / inc_total_energy;
+    real_type const inc_mass_sq = ipow<2>(value_as<Mass>(particle_.mass()));
+    real_type const delta = real_type(0.5) * inc_mass_sq * rel_energy_transfer
                             / (inc_total_energy - gamma_energy);
 
     // TODO: precalculate these data per element
     real_type d_n_prime, b, b1;
-    const real_type d_n = real_type(1.54)
+    real_type const d_n = real_type(1.54)
                           * std::pow(atomic_mass, real_type(0.27));
 
     if (atomic_number == 1)
@@ -228,23 +228,23 @@ CELER_FUNCTION real_type MuBremsstrahlungInteractor::differential_cross_section(
         b1 = 1429;
     }
 
-    const real_type inv_cbrt_z = 1 / element_.cbrt_z();
-    const real_type electron_m = value_as<Mass>(shared_.electron_mass);
+    real_type const inv_cbrt_z = 1 / element_.cbrt_z();
+    real_type const electron_m = value_as<Mass>(shared_.electron_mass);
 
-    const real_type phi_n = clamp_to_nonneg(std::log(
+    real_type const phi_n = clamp_to_nonneg(std::log(
         b * inv_cbrt_z
         * (value_as<Mass>(particle_.mass()) + delta * (d_n_prime * sqrt_e - 2))
         / (d_n_prime * (electron_m + delta * sqrt_e * b * inv_cbrt_z))));
 
     real_type phi_e = 0;
-    const real_type epsilon_max_prime
+    real_type const epsilon_max_prime
         = inc_total_energy
           / (1
              + real_type(0.5) * inc_mass_sq / (electron_m * inc_total_energy));
 
     if (gamma_energy < epsilon_max_prime)
     {
-        const real_type inv_cbrt_z_sq = ipow<2>(inv_cbrt_z);
+        real_type const inv_cbrt_z_sq = ipow<2>(inv_cbrt_z);
         phi_e = clamp_to_nonneg(std::log(
             b1 * inv_cbrt_z_sq * value_as<Mass>(particle_.mass())
             / ((1

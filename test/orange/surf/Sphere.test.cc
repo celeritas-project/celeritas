@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -52,7 +52,7 @@ TEST_F(SphereTest, basic)
     EXPECT_EQ(4, Sphere::StorageSpan::extent);
     EXPECT_EQ(2, Sphere::Intersections{}.size());
 
-    const Real3 origin{-1.1, 2.2, -3.3};
+    Real3 const origin{-1.1, 2.2, -3.3};
     real_type radius = 4.4;
 
     Sphere s{origin, radius};

@@ -1,11 +1,13 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/grid/VectorUtils.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/grid/VectorUtils.hh"
+
+#include <vector>
 
 #include "celeritas_test.hh"
 
@@ -80,6 +82,25 @@ TEST(VectorUtils, logspace)
         EXPECT_DOUBLE_EQ(2 * exact_third, result.back());
     }
 }
+
+//---------------------------------------------------------------------------//
+
+TEST(VectorUtils, monotonic_increasing)
+{
+    {
+        std::vector<double> v{2, 4, 8, 16, 32};
+        EXPECT_TRUE(is_monotonic_increasing(make_span(v)));
+    }
+    {
+        std::vector<double> v{10, 100, 1000, 1000};
+        EXPECT_FALSE(is_monotonic_increasing(make_span(v)));
+    }
+    {
+        std::vector<double> v{1e-16, 0, 1, 2};
+        EXPECT_FALSE(is_monotonic_increasing(make_span(v)));
+    }
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -63,13 +63,13 @@ class LPMCalculator
     // Current element
     ElementView const& element_;
     // Electron density of the current material [1/cm^3]
-    const real_type electron_density_;
+    real_type const electron_density_;
     // Characteristic energy for the LPM effect for this material [MeV]
-    const real_type lpm_energy_;
+    real_type const lpm_energy_;
     // Include a dielectric suppression effect
     bool const dielectric_suppression_;
     // Photon energy [MeV]
-    const real_type gamma_energy_;
+    real_type const gamma_energy_;
 
     //// HELPER FUNCTIONS ////
 
@@ -91,7 +91,7 @@ LPMCalculator::LPMCalculator(MaterialView const& material,
     : element_(element)
     , electron_density_(material.electron_density())
     , lpm_energy_(material.radiation_length()
-                  * value_as<detail::MevPerCm>(detail::lpm_constant()))
+                  * value_as<detail::MevPerLen>(detail::lpm_constant()))
     , dielectric_suppression_(dielectric_suppression)
     , gamma_energy_(gamma_energy.value())
 {
@@ -117,10 +117,10 @@ CELER_FUNCTION auto LPMCalculator::operator()(real_type epsilon) -> LPMFunctions
     // \sqrt{\frac{E_\textrm{LPM} k}{8 E (E - k)}} \f$, and for pair production
     // \f$ s' = \sqrt{\frac{E_\textrm{LPM} k}{8 E (k - E)}} \f$, where \f$ k \$
     // is the photon energy and \f$ E \f$ is the electon (or positron) energy
-    const real_type s_prime = std::sqrt(
+    real_type const s_prime = std::sqrt(
         lpm_energy_ / (8 * epsilon * gamma_energy_ * std::fabs(epsilon - 1)));
 
-    const real_type s1 = ipow<2>(element_.cbrt_z() / real_type(184.15));
+    real_type const s1 = ipow<2>(element_.cbrt_z() / real_type(184.15));
 
     // Calculate \f$ \xi(s') \f$ and \f$ s = \frac{s'}{\sqrt{\xi(s')}} \f$ (Eq.
     // 21 in Stanev)
@@ -131,8 +131,8 @@ CELER_FUNCTION auto LPMCalculator::operator()(real_type epsilon) -> LPMFunctions
     }
     else if (s_prime > constants::sqrt_two * s1)
     {
-        const real_type log_s1 = std::log(constants::sqrt_two * s1);
-        const real_type h = std::log(s_prime) / log_s1;
+        real_type const log_s1 = std::log(constants::sqrt_two * s1);
+        real_type const h = std::log(s_prime) / log_s1;
         xi = 1 + h - real_type(0.08) * (1 - h) * h * (2 - h) / log_s1;
     }
     real_type s = s_prime / std::sqrt(xi);
@@ -144,7 +144,7 @@ CELER_FUNCTION auto LPMCalculator::operator()(real_type epsilon) -> LPMFunctions
         // where the characteristic photon energy scale \f$ k_p \f$ is defined
         // in terms of the plasma frequency of the medium \f$ \omega_p \f$: \f$
         // k_p = \hbar \omega_p \frac{E}{m_e c^2} \f$
-        const real_type k_p_sq = electron_density_ * detail::migdal_constant()
+        real_type const k_p_sq = electron_density_ * detail::migdal_constant()
                                  * ipow<2>(epsilon * gamma_energy_);
         s *= (1 + k_p_sq / ipow<2>(gamma_energy_));
 

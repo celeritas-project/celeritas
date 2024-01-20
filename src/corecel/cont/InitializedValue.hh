@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -80,7 +80,7 @@ class InitializedValue
 
     //! Finalize our value when assigning
     InitializedValue& operator=(InitializedValue const& other) noexcept(
-        ne_finalize_&& std::is_nothrow_copy_assignable_v<T>)
+        ne_finalize_ && std::is_nothrow_copy_assignable_v<T>)
     {
         fin_(value_);
         value_ = other.value_;
@@ -90,7 +90,7 @@ class InitializedValue
 
     //! Clear other value on move assign
     InitializedValue& operator=(InitializedValue&& other) noexcept(
-        ne_finalize_&& std::is_nothrow_move_assignable_v<T>)
+        ne_finalize_ && std::is_nothrow_move_assignable_v<T>)
     {
         fin_(value_);
         value_ = std::exchange(other.value_, {});
@@ -99,8 +99,9 @@ class InitializedValue
     }
 
     //! Implicit assign from type
-    InitializedValue& operator=(T const& value) noexcept(
-        ne_finalize_&& std::is_nothrow_copy_assignable_v<T>)
+    InitializedValue&
+    operator=(T const& value) noexcept(ne_finalize_
+                                       && std::is_nothrow_copy_assignable_v<T>)
     {
         fin_(value_);
         value_ = value;

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -90,7 +90,7 @@ auto LogicalVolumeConverter::construct_base(arg_type g4lv) -> result_type
         shape = this->convert_solid_.to_sphere(*g4lv.GetSolid());
         CELER_LOG(warning)
             << "Replaced unknown solid with sphere with capacity "
-            << shape->Capacity() << " [cm^3]";
+            << shape->Capacity() << " [len^3]";
         CELER_LOG(info) << "Unsupported solid belongs to logical volume "
                         << PrintableLV{&g4lv};
     }

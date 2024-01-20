@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -45,7 +45,7 @@ std::vector<std::string> to_vec_string(Iter iter, Iter end)
 
 std::string sub_pointer_string(std::string const& s)
 {
-    static const std::regex r("0x[0-9a-f]{2,}");
+    static std::regex const r("0x[0-9a-f]{2,}");
     return std::regex_replace(s, r, "0x0");
 }
 
@@ -1350,7 +1350,7 @@ TEST_F(Solids, volumes_unique)
     std::vector<std::string> names;
     for (auto const& volume : imported.volumes)
     {
-        static const std::regex subs_ptr("0x[0-9a-f]+");
+        static std::regex const subs_ptr("0x[0-9a-f]+");
         auto name = std::regex_replace(volume.name, subs_ptr, "0x0");
         names.push_back(name);
     }

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -84,7 +84,7 @@ BhabhaEnergyDistribution::BhabhaEnergyDistribution(real_type electron_mass_c_sq,
 template<class Engine>
 CELER_FUNCTION real_type BhabhaEnergyDistribution::operator()(Engine& rng)
 {
-    const real_type g_denominator = this->calc_g_fraction(
+    real_type const g_denominator = this->calc_g_fraction(
         min_energy_fraction_, this->max_energy_fraction());
 
     UniformRealDistribution<> sample_inverse_epsilon(
@@ -110,15 +110,15 @@ CELER_FUNCTION real_type BhabhaEnergyDistribution::operator()(Engine& rng)
 CELER_FUNCTION real_type BhabhaEnergyDistribution::calc_g_fraction(
     real_type epsilon_min, real_type epsilon_max)
 {
-    const real_type y = 1.0 / (1.0 + gamma_);
-    const real_type y_sq = ipow<2>(y);
-    const real_type one_minus_2y = 1.0 - 2.0 * y;
+    real_type const y = 1.0 / (1.0 + gamma_);
+    real_type const y_sq = ipow<2>(y);
+    real_type const one_minus_2y = 1.0 - 2.0 * y;
 
-    const real_type b1 = 2.0 - y_sq;
-    const real_type b2 = one_minus_2y * (3.0 + y_sq);
-    const real_type b4 = ipow<3>(one_minus_2y);
-    const real_type b3 = ipow<2>(one_minus_2y) + b4;
-    const real_type beta_sq = 1.0 - (1.0 / ipow<2>(gamma_));
+    real_type const b1 = 2.0 - y_sq;
+    real_type const b2 = one_minus_2y * (3.0 + y_sq);
+    real_type const b4 = ipow<3>(one_minus_2y);
+    real_type const b3 = ipow<2>(one_minus_2y) + b4;
+    real_type const beta_sq = 1.0 - (1.0 / ipow<2>(gamma_));
 
     return 1.0
            + (ipow<4>(epsilon_max) * b4 - ipow<3>(epsilon_min) * b3

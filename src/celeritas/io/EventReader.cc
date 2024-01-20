@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -149,7 +149,7 @@ auto EventReader::operator()() -> result_type
         };
         primary.position = {to_cm(pos.x()), to_cm(pos.y()), to_cm(pos.z())};
 
-        // Get the lab-frame time [s]
+        // Get the lab-frame time [time]
         primary.time = to_cm(pos.t()) / constants::c_light;
 
         // Get the direction of the primary

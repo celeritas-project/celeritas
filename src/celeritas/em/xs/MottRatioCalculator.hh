@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -73,7 +73,7 @@ real_type MottRatioCalculator::operator()(real_type cos_theta) const
     real_type fcos_t = std::sqrt(1 - cos_theta);
 
     // Mean velocity of electrons between ~KeV and 900 MeV
-    const real_type beta_shift = 0.7181228;
+    real_type const beta_shift = 0.7181228;
 
     // (Exponent) Base for beta powers
     real_type beta0 = beta_ - beta_shift;

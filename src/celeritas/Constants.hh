@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -41,6 +41,11 @@ namespace constants
  * lambdabar_electron   | electron_Compton_length | Reduced Compton wavelength
  * stable_decay_constant| [none]                  | Decay for a stable particle
  *
+ * In the CLHEP unit system, the value of the constant \c e_electron is defined
+ * to be 1 and \c coulomb is derivative from that. To avoid floating point
+ * arithmetic issues that would lead to the "units" and "constants" having
+ * different values for it, a special case redefines the value for CLHEP.
+ *
  * Some experimental physical constants are derived from the other physical
  * constants, but for consistency and clarity they are presented numerically
  * with the units provided in the CODATA 2018 dataset. The \c Constants.test.cc
@@ -56,7 +61,9 @@ namespace constants
 //! \name Physical constants with *exact* value as defined by SI
 CELER_ICRT c_light = 299792458. * units::meter / units::second;
 CELER_ICRT h_planck = 6.62607015e-34 * units::joule * units::second;
-CELER_ICRT e_electron = 1.602176634e-19 * units::coulomb;
+CELER_ICRT e_electron = (CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
+                             ? 1
+                             : 1.602176634e-19 * units::coulomb);
 CELER_ICRT k_boltzmann = 1.380649e-23 * units::joule / units::kelvin;
 CELER_ICRT na_avogadro = 6.02214076e23;
 CELER_ICRT kcd_luminous = 683;

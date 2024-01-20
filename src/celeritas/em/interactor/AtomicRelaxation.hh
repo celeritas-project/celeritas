@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -147,7 +147,7 @@ AtomicRelaxation::operator()(Engine& rng)
         // Sample a transition (TODO: refactor to use Selector but with
         // "remainder")
         AtomicRelaxSubshell const& shell = shells[vacancy_id.get()];
-        const TransitionId trans_id = this->sample_transition(shell, rng);
+        TransitionId const trans_id = this->sample_transition(shell, rng);
 
         if (!trans_id)
             continue;

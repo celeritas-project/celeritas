@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -49,7 +49,7 @@ inline void barrier(MpiCommunicator const& comm);
 template<class T, std::size_t N>
 inline void allreduce(MpiCommunicator const& comm,
                       Operation op,
-                      Span<const T, N> src,
+                      Span<T const, N> src,
                       Span<T, N> dst);
 
 //---------------------------------------------------------------------------//
@@ -61,7 +61,7 @@ allreduce(MpiCommunicator const& comm, Operation op, Span<T, N> data);
 //---------------------------------------------------------------------------//
 // Perform reduction on a fundamental scalar and return the result
 template<class T, std::enable_if_t<std::is_fundamental<T>::value, T*> = nullptr>
-inline T allreduce(MpiCommunicator const& comm, Operation op, const T src);
+inline T allreduce(MpiCommunicator const& comm, Operation op, T const src);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -73,7 +73,7 @@ inline MPI_Op to_mpi(Operation op)
 {
     switch (op)
     {
-        // clang-format off
+            // clang-format off
         case Operation::min:  return MPI_MIN;
         case Operation::max:  return MPI_MAX;
         case Operation::sum:  return MPI_SUM;
@@ -104,7 +104,7 @@ void barrier(MpiCommunicator const& comm)
 template<class T, std::size_t N>
 void allreduce(MpiCommunicator const& comm,
                [[maybe_unused]] Operation op,
-               Span<const T, N> src,
+               Span<T const, N> src,
                Span<T, N> dst)
 {
     CELER_EXPECT(src.size() == dst.size());
@@ -148,10 +148,10 @@ void allreduce(MpiCommunicator const& comm,
  * Perform reduction on a fundamental scalar and return the result.
  */
 template<class T, std::enable_if_t<std::is_fundamental<T>::value, T*>>
-T allreduce(MpiCommunicator const& comm, Operation op, const T src)
+T allreduce(MpiCommunicator const& comm, Operation op, T const src)
 {
     T dst{};
-    allreduce(comm, op, Span<const T, 1>{&src, 1}, Span<T, 1>{&dst, 1});
+    allreduce(comm, op, Span<T const, 1>{&src, 1}, Span<T, 1>{&dst, 1});
     return dst;
 }
 

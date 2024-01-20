@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -22,7 +22,7 @@ struct EventHitData
     int volume{0};  //!< Logical volume ID
     int copy_num{0};  //!< Physical volume copy number
     double energy_dep{0};  //!< Energy deposition [MeV]
-    double time{0};  //!< Pre-step global time [s]
+    double time{0};  //!< Pre-step global time [time]
 };
 
 //---------------------------------------------------------------------------//

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -37,9 +37,9 @@ class ValueGridBuilder;
  *
  * The StepLimitBuilders is a fixed-size array corresponding to the physics
  * interface enum \c ValueGridType :
- * - macro_xs:    Cross section [1/cm]
- * - energy_loss: dE/dx [MeV/cm]
- * - range:       Range limit [cm]
+ * - macro_xs:    Cross section [1/len]
+ * - energy_loss: dE/dx [MeV/len]
+ * - range:       Range limit [len]
  */
 class Process
 {

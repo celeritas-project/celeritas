@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -65,6 +65,24 @@ std::vector<double> logspace(double start, double stop, size_type n)
     CELER_EXPECT(n > 1);
 
     return space_impl<Interp::log>(start, stop, n);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * True if the grid values are monotonically increasing.
+ */
+bool is_monotonic_increasing(Span<double const> grid)
+{
+    CELER_EXPECT(!grid.empty());
+    auto iter = grid.begin();
+    auto prev = *iter++;
+    while (iter != grid.end())
+    {
+        if (*iter <= prev)
+            return false;
+        prev = *iter++;
+    }
+    return true;
 }
 
 //---------------------------------------------------------------------------//

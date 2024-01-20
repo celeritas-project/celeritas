@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -51,7 +51,7 @@ class PhysicsStepView
                                           PhysicsStateRef const& states,
                                           TrackSlotId tid);
 
-    // Set the total (process-integrated) macroscopic xs [cm^-1]
+    // Set the total (process-integrated) macroscopic xs [len^-1]
     inline CELER_FUNCTION void macro_xs(real_type);
 
     // Set the sampled element
@@ -72,7 +72,7 @@ class PhysicsStepView
     // Set secondaries during an interaction
     inline CELER_FUNCTION void secondaries(Span<Secondary>);
 
-    // Total (process-integrated) macroscopic xs [cm^-1]
+    // Total (process-integrated) macroscopic xs [len^-1]
     CELER_FORCEINLINE_FUNCTION real_type macro_xs() const;
 
     // Sampled element for discrete interaction
@@ -108,7 +108,7 @@ class PhysicsStepView
 
     PhysicsParamsRef const& params_;
     PhysicsStateRef const& states_;
-    const TrackSlotId track_slot_;
+    TrackSlotId const track_slot_;
 
     //// CLASS FUNCTIONS ////
 
@@ -204,7 +204,8 @@ CELER_FUNCTION void PhysicsStepView::secondaries(Span<Secondary> sec)
  * Calculated process-integrated macroscopic XS.
  *
  * This value should be calculated in the pre-step kernel, and will be used to
- * decrement `interaction_mfp` and for sampling a process.
+ * decrement `interaction_mfp` and for sampling a process. Units are inverse
+ * length.
  */
 CELER_FUNCTION real_type PhysicsStepView::macro_xs() const
 {

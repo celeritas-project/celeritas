@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -50,7 +50,7 @@ class Transformation
   public:
     //@{
     //! \name Type aliases
-    using StorageSpan = Span<const real_type, 12>;
+    using StorageSpan = Span<real_type const, 12>;
     using Mat3 = SquareMatrixReal3;
     //@}
 

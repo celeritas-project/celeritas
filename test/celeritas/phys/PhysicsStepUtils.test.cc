@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -245,7 +245,7 @@ TEST_F(PhysicsStepUtilsTest, calc_mean_energy_loss)
     {
         PhysicsTrackView phys = this->init_track(
             &material, MaterialId{0}, &particle, "celeriton", MevEnergy{10});
-        const real_type eloss_rate = 0.2 + 0.4;
+        real_type const eloss_rate = 0.2 + 0.4;
 
         // Tiny step: should still be linear loss (single process)
         EXPECT_SOFT_EQ(eloss_rate * 1e-6, calc_eloss(phys, 1e-6));
@@ -265,7 +265,7 @@ TEST_F(PhysicsStepUtilsTest, calc_mean_energy_loss)
     {
         PhysicsTrackView phys = this->init_track(
             &material, MaterialId{0}, &particle, "electron", MevEnergy{1e-3});
-        const real_type eloss_rate = 0.5;
+        real_type const eloss_rate = 0.5;
 
         // Low energy particle which loses all its energy over the step will
         // call inverse lookup. Remaining range will be zero and eloss will be
@@ -340,7 +340,7 @@ TEST_F(PhysicsStepUtilsTest,
             models[i] = action_id.unchecked_get() - model_offset;
         }
 
-        static const ActionId::size_type expected_models[]
+        static ActionId::size_type const expected_models[]
             = {5, 8, 8, 8, 8, 8, 1, 5, 8, 8, 5, 5, 8};
         EXPECT_VEC_EQ(expected_models, models);
         EXPECT_EQ(56, this->rng().count());
@@ -389,7 +389,7 @@ TEST_F(PhysicsStepUtilsTest,
             }
             acceptance_rate.push_back(real_type(count) / num_samples);
         }
-        const real_type expected_acceptance_rate[]
+        real_type const expected_acceptance_rate[]
             = {0.9204, 0.9999, 0.4972, 1};
         EXPECT_VEC_EQ(expected_acceptance_rate, acceptance_rate);
     }

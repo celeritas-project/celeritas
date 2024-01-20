@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -491,6 +491,20 @@ template<class T>
 [[nodiscard]] CELER_CONSTEXPR_FUNCTION T negate(T value)
 {
     return T{0} - value;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the difference of squares \f$ a^2 - b^2 \f$.
+ *
+ * The expression \f$ a^2 - b^2 \f$ exhibits catastrophic cancellation when \f$
+ * a \f$ and \f$ b \f$ are close in magnitude. This can be avoided by
+ * rearranging the formula as \f$ (a - b)(a + b) \f$.
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION T diffsq(T a, T b)
+{
+    return (a - b) * (a + b);
 }
 
 //---------------------------------------------------------------------------//
