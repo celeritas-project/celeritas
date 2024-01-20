@@ -16,6 +16,8 @@
 namespace celeritas
 {
 class Translation;
+class SignedPermutation;
+
 //---------------------------------------------------------------------------//
 /*!
  * Apply transformations with rotation.
@@ -69,6 +71,9 @@ class Transformation
 
     // Promote from a translation
     explicit Transformation(Translation const&);
+
+    // Promote from a signed permutation
+    explicit Transformation(SignedPermutation const&);
 
     // Construct inline from storage
     explicit inline CELER_FUNCTION Transformation(StorageSpan);
