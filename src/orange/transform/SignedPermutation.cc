@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "SignedPermutation.hh"
 
+#include "orange/MatrixUtils.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -15,7 +17,7 @@ namespace celeritas
  */
 SignedPermutation::SignedPermutation()
     : SignedPermutation{
-        SignedAxes{{{psign, Axis::x}, {psign, Axis::y}, {psign, Axis::z}}}}
+        SignedAxes{{{'+', Axis::x}, {'+', Axis::y}, {'+', Axis::z}}}}
 {
 }
 
@@ -27,12 +29,14 @@ SignedPermutation::SignedPermutation(SignedAxes permutation) : compressed_{0}
 {
     EnumArray<Axis, bool> encountered_ax{false, false, false};
 
+    SquareMatrix<int, 3> explicit_mat;
+
     for (auto ax : {Axis::z, Axis::y, Axis::x})
     {
         auto new_ax_sign = permutation[ax];
-        CELER_VALIDATE(
-            new_ax_sign.first == psign || new_ax_sign.first == msign,
-            << "invalid permutation sign '" << new_ax_sign.first << "'");
+        CELER_VALIDATE(new_ax_sign.first == '+' || new_ax_sign.first == '-',
+                       << "invalid permutation sign '" << new_ax_sign.first
+                       << "'");
         CELER_VALIDATE(new_ax_sign.second < Axis::size_,
                        << "invalid permutation axis");
         CELER_VALIDATE(!encountered_ax[new_ax_sign.second],
@@ -42,11 +46,27 @@ SignedPermutation::SignedPermutation(SignedAxes permutation) : compressed_{0}
 
         // Push back "flip bit"
         compressed_ <<= 1;
-        compressed_ |= (new_ax_sign.first == msign ? 0b1 : 0b0);
+        compressed_ |= (new_ax_sign.first == '-' ? 0b1 : 0b0);
         // Push back "new axis"
         compressed_ <<= 2;
         compressed_ |= to_int(new_ax_sign.second);
+
+        // Explicitly construct row in error checking matrix
+        for (auto oax : {Axis::x, Axis::y, Axis::z})
+        {
+            explicit_mat[to_int(ax)][to_int(oax)] = [oax, new_ax_sign] {
+                if (oax != new_ax_sign.second)
+                    return 0;
+                if (new_ax_sign.first == '-')
+                    return -1;
+                return 1;
+            }();
+        }
     }
+    int det = determinant(explicit_mat);
+    CELER_VALIDATE(
+        det == +1,
+        << "invalid rotation matrix: determinant should be +1 but is " << det);
 }
 
 //---------------------------------------------------------------------------//
@@ -64,7 +84,7 @@ auto SignedPermutation::permutation() const -> SignedAxes
         result[ax].second = to_axis(temp & 0b11);
         temp >>= 2;
         // Push back "flip bit"
-        result[ax].first = temp & 0b1 ? msign : psign;
+        result[ax].first = temp & 0b1 ? '-' : '+';
         temp >>= 1;
     }
     return result;
@@ -91,11 +111,7 @@ SignedPermutation make_permutation(Axis ax, QuarterTurn theta)
 {
     CELER_EXPECT(ax < Axis::size_);
 
-    auto to_sign = [](int v) {
-        if (v < 0)
-            return SignedPermutation::msign;
-        return SignedPermutation::psign;
-    };
+    auto to_sign = [](int v) { return v < 0 ? '-' : '+'; };
 
     int const cost = cos(theta);
     int const sint = sin(theta);

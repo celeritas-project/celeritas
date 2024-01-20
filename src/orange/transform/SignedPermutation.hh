@@ -41,18 +41,13 @@ namespace celeritas
  * This allows the "rotate up" to simply copy one value at a time into a new
  * position, and optionally flip the sign of the result.
  *
- * TODO: implement error checking to prevent reflection.
+ * Construction of this class takes a length 3 array of \c SignedAxis values.
+ * The sign is a '+' or '-' character and the axis is the position of the
+ * nonzero component in that row.
  */
 class SignedPermutation
 {
   public:
-    //! Characters used for explicit construction
-    enum Sign : char
-    {
-        psign = '+',
-        msign = '-'
-    };
-
     //!@{
     //! \name Type aliases
     using SignedAxis = std::pair<char, Axis>;
@@ -99,9 +94,15 @@ class SignedPermutation
   private:
     // At least 16 bits: more than enough to round trip through a float
     using UIntT = short unsigned int;
-    static CELER_CONSTEXPR_FUNCTION UIntT max_value() { return (1 << 9) - 1; }
+
+    //// DATA ////
 
     UIntT compressed_;
+
+    //// FUNCTIONS ////
+
+    // Maximum compressed integer value used for bounds checking
+    static CELER_CONSTEXPR_FUNCTION UIntT max_value() { return (1 << 9) - 1; }
 };
 
 //---------------------------------------------------------------------------//

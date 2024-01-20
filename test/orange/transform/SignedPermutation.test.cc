@@ -32,12 +32,11 @@ std::string to_string(SignedPermutation::SignedAxes const& p)
 }  // namespace
 
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 /*!
  * Test harness for signed permutation.
  *
- * Note that the rotation matrix is a quarter turn around Z, then a hal
+ * Note that the rotation matrix is a quarter turn around Z, then a quarter
+ * turn around X.
  \code
     auto r = make_rotation(Axis::x, Turn{0.25},
                            make_rotation(Axis::z, Turn{0.25}));
@@ -71,6 +70,28 @@ TEST_F(SignedPermutationTest, construction)
         SCOPED_TRACE("serialize");
         SignedPermutation sp2{make_span(sp_zx.data())};
         EXPECT_EQ(to_string(sp_zx.permutation()), to_string(sp2.permutation()));
+    }
+}
+
+TEST_F(SignedPermutationTest, invalid_construction)
+{
+    {
+        SCOPED_TRACE("invalid sign");
+        EXPECT_THROW(SignedPermutation(SignedAxes{
+                         {{'?', Axis::y}, {'-', Axis::z}, {'+', Axis::x}}}),
+                     RuntimeError);
+    }
+    {
+        SCOPED_TRACE("singular matrix");
+        EXPECT_THROW(SignedPermutation(SignedAxes{
+                         {{'?', Axis::y}, {'-', Axis::z}, {'+', Axis::y}}}),
+                     RuntimeError);
+    }
+    {
+        SCOPED_TRACE("reflecting is prohibited");
+        EXPECT_THROW(SignedPermutation(SignedAxes{
+                         {{'+', Axis::y}, {'-', Axis::z}, {'+', Axis::x}}}),
+                     RuntimeError);
     }
 }
 
