@@ -194,6 +194,82 @@ PDGNumber to_pdg(G4ProductionCutsIndex const& index)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Import scalar optical properties for a material.
+ */
+std::map<ImportOpticalScalar, double>
+import_scalar_properties(G4MaterialPropertiesTable const& mpt)
+{
+    using IOS = ImportOpticalScalar;
+
+    static std::vector<std::pair<ImportOpticalScalar, std::string>> const
+        enum_to_string
+        = {{IOS::resolution_scale, "RESOLUTIONSCALE"},
+           {IOS::rise_time_fast, "SCINTILLATIONRISETIME1"},
+           {IOS::rise_time_mid, "SCINTILLATIONRISETIME2"},
+           {IOS::rise_time_slow, "SCINTILLATIONRISETIME3"},
+           {IOS::fall_time_fast, "SCINTILLATIONTIMECONSTANT1"},
+           {IOS::fall_time_mid, "SCINTILLATIONTIMECONSTANT2"},
+           {IOS::fall_time_slow, "SCINTILLATIONTIMECONSTANT3"},
+           {IOS::scint_yield, "SCINTILLATIONYIELD"},
+           {IOS::scint_yield_fast, "SCINTILLATIONYIELD1"},
+           {IOS::scint_yield_mid, "SCINTILLATIONYIELD2"},
+           {IOS::scint_yield_slow, "SCINTILLATIONYIELD3"},
+           {IOS::lambda_mean_fast, "LAMBDAMEAN1"},
+           {IOS::lambda_mean_mid, "LAMBDAMEAN2"},
+           {IOS::lambda_mean_slow, "LAMBDAMEAN3"},
+           {IOS::lambda_sigma_fast, "LAMBDASIGMA1"},
+           {IOS::lambda_sigma_mid, "LAMBDASIGMA2"},
+           {IOS::lambda_sigma_slow, "LAMBDASIGMA3"}};
+
+    std::map<ImportOpticalScalar, double> result;
+    for (auto const& [index, name] : enum_to_string)
+    {
+        if (mpt.ConstPropertyExists(name))
+        {
+            result[index] = mpt.GetConstProperty(name);
+        }
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Import vector optical properties for a material.
+ */
+std::map<ImportOpticalVector, ImportPhysicsVector>
+import_vector_properties(G4MaterialPropertiesTable const& mpt)
+{
+    using IOV = ImportOpticalVector;
+
+    static std::vector<std::pair<ImportOpticalVector, std::string>> const
+        enum_to_string
+        = {{IOV::refractive_index, "RINDEX"}};
+
+    std::map<ImportOpticalVector, ImportPhysicsVector> result;
+    for (auto const& [index, name] : enum_to_string)
+    {
+        if (auto const* g4vector = mpt.GetProperty(name))
+        {
+            CELER_ASSERT(g4vector->GetType()
+                         == G4PhysicsVectorType::T_G4PhysicsFreeVector);
+
+            ImportPhysicsVector vector;
+            vector.vector_type = ImportPhysicsVectorType::free;
+            vector.x.resize(g4vector->GetVectorLength());
+            vector.y.resize(vector.x.size());
+            for (auto i : range(vector.x.size()))
+            {
+                vector.x[i] = g4vector->Energy(i);
+                vector.y[i] = (*g4vector)[i];
+            }
+            result[index] = std::move(vector);
+        }
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return a populated \c ImportParticle vector.
  */
 std::vector<ImportParticle>
@@ -411,6 +487,16 @@ import_materials(GeantImporter::DataSelection::Flags particle_flags)
         material.temperature = g4material->GetTemperature();  // [K]
         material.number_density = g4material->GetTotNbOfAtomsPerVolume()
                                   * numdens_scale;
+
+        // Add optical material properties, if any are present
+        auto const* mpt = g4material->GetMaterialPropertiesTable();
+        if (mpt)
+        {
+            material.optical_properties.scalars
+                = import_scalar_properties(*mpt);
+            material.optical_properties.vectors
+                = import_vector_properties(*mpt);
+        }
 
         // Populate material production cut values
         for (auto const& idx_convert : cut_converters)

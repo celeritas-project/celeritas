@@ -11,6 +11,8 @@
 #include <string>
 #include <vector>
 
+#include "ImportPhysicsVector.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -24,6 +26,42 @@ enum class ImportMaterialState
     liquid,
     gas,
     size_
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Scalar optical properties.
+ */
+enum class ImportOpticalScalar
+{
+    resolution_scale,  //!< Scintillation
+    rise_time_fast,
+    rise_time_mid,
+    rise_time_slow,
+    fall_time_fast,
+    fall_time_mid,
+    fall_time_slow,
+    scint_yield,
+    scint_yield_fast,
+    scint_yield_mid,
+    scint_yield_slow,
+    lambda_mean_fast,
+    lambda_mean_mid,
+    lambda_mean_slow,
+    lambda_sigma_fast,
+    lambda_sigma_mid,
+    lambda_sigma_slow,
+    size_  //!< Sentinel value
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Vector optical properties.
+ */
+enum class ImportOpticalVector
+{
+    refractive_index,  //!< Common properties
+    size_  //!< Sentinel value
 };
 
 //---------------------------------------------------------------------------//
@@ -48,6 +86,21 @@ struct ImportMatElemComponent
 
 //---------------------------------------------------------------------------//
 /*!
+ * Store optical material properties.
+ */
+struct ImportOpticalMaterial
+{
+    std::map<ImportOpticalScalar, double> scalars;
+    std::map<ImportOpticalVector, ImportPhysicsVector> vectors;
+
+    explicit operator bool() const
+    {
+        return !scalars.empty() || !vectors.empty();
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Store material data.
  */
 struct ImportMaterial
@@ -64,6 +117,7 @@ struct ImportMaterial
     double number_density;  //!< [1/length^3]
     MapIntCutoff pdg_cutoffs;  //!< Cutoff per PDG
     VecComponent elements;
+    ImportOpticalMaterial optical_properties;
 };
 
 //---------------------------------------------------------------------------//
@@ -72,6 +126,12 @@ struct ImportMaterial
 
 // Get the string label for material state
 char const* to_cstring(ImportMaterialState s);
+
+// Get the string label for scalar optical property
+char const* to_cstring(ImportOpticalScalar s);
+
+// Get the string label for vector optical property
+char const* to_cstring(ImportOpticalVector s);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

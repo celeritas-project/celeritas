@@ -23,4 +23,42 @@ char const* to_cstring(ImportMaterialState value)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get a printable label for a scalar optical material property.
+ */
+char const* to_cstring(ImportOpticalScalar value)
+{
+    static EnumStringMapper<ImportOpticalScalar> const to_cstring_impl{
+        "resolution_scale",
+        "rise_time_fast",
+        "rise_time_mid",
+        "rise_time_slow",
+        "fall_time_fast",
+        "fall_time_mid",
+        "fall_time_slow",
+        "scint_yield",
+        "scint_yield_fast",
+        "scint_yield_mid",
+        "scint_yield_slow",
+        "lambda_mean_fast",
+        "lambda_mean_mid",
+        "lambda_mean_slow",
+        "lambda_sigma_fast",
+        "lambda_sigma_mid",
+        "lambda_sigma_slow"};
+    return to_cstring_impl(value);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a printable label for a vector optical material property.
+ */
+char const* to_cstring(ImportOpticalVector value)
+{
+    static EnumStringMapper<ImportOpticalVector> const to_cstring_impl{
+        "refractive_index"};
+    return to_cstring_impl(value);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

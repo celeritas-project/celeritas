@@ -21,6 +21,7 @@
 #include "celeritas/optical/CerenkovDndxCalculator.hh"
 #include "celeritas/optical/CerenkovGenerator.hh"
 #include "celeritas/optical/CerenkovParams.hh"
+#include "celeritas/optical/OpticalPropertyParams.hh"
 #include "celeritas/random/distribution/PoissonDistribution.hh"
 
 #include "DiagnosticRngEngine.hh"
@@ -115,46 +116,31 @@ class CerenkovTest : public Test
   protected:
     void SetUp() override
     {
-        this->build_optical_properties();
-        properties = make_const_ref(data);
+        // Build optical properties: only one material (water)
+        OpticalPropertyParams::OpticalMaterial water;
+        auto wavelength = get_wavelength();
+        for (auto wl : wavelength)
+        {
+            water.refractive_index.x.push_back(
+                convert_to_energy(wl * micrometer));
+        }
+        water.refractive_index.y
+            = {get_refractive_index().begin(), get_refractive_index().end()};
+        OpticalPropertyParams::Input input;
+        input.materials.push_back(water);
+        properties = std::make_shared<OpticalPropertyParams>(std::move(input));
+
+        // Build Cerenkov data
         params = std::make_shared<CerenkovParams>(properties);
     }
 
-    void build_optical_properties();
-
     static constexpr double micrometer = 1e-4 * units::centimeter;
 
-    HostVal<OpticalPropertyData> data;
-    HostCRef<OpticalPropertyData> properties;
+    std::shared_ptr<OpticalPropertyParams const> properties;
     std::shared_ptr<CerenkovParams const> params;
     OpticalMaterialId material{0};
     units::ElementaryCharge charge{1};
 };
-
-//---------------------------------------------------------------------------//
-
-void CerenkovTest::build_optical_properties()
-{
-    auto wavelength = get_wavelength();
-    std::vector<double> energy(wavelength.size());
-    for (auto i : range(energy.size()))
-    {
-        energy[i] = convert_to_energy(wavelength[i] * micrometer);
-    }
-    auto rindex = get_refractive_index();
-    CELER_ASSERT(energy.size() == rindex.size());
-
-    // In a dispersive medium the index of refraction is an increasing
-    // function of photon energy
-    CELER_ASSERT(is_monotonic_increasing(rindex));
-
-    // Only one material: water
-    GenericGridData grid;
-    auto reals = make_builder(&data.reals);
-    grid.grid = reals.insert_back(energy.begin(), energy.end());
-    grid.value = reals.insert_back(rindex.begin(), rindex.end());
-    make_builder(&data.refractive_index).push_back(grid);
-}
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -190,7 +176,7 @@ TEST_F(CerenkovTest, dndx)
 
     std::vector<real_type> dndx;
     CerenkovDndxCalculator calc_dndx(
-        properties, params->host_ref(), material, charge);
+        properties->host_ref(), params->host_ref(), material, charge);
     for (real_type beta :
          {0.5, 0.6813, 0.69, 0.71, 0.73, 0.752, 0.756, 0.8, 0.9, 0.999})
     {
@@ -256,8 +242,10 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
         auto const& post_step = dist.points[StepPoint::post];
         units::LightSpeed beta(
             0.5 * (pre_step.speed.value() + post_step.speed.value()));
-        CerenkovDndxCalculator calc_dndx(
-            properties, params->host_ref(), dist.material, dist.charge);
+        CerenkovDndxCalculator calc_dndx(properties->host_ref(),
+                                         params->host_ref(),
+                                         dist.material,
+                                         dist.charge);
         real_type mean_num_photons = calc_dndx(beta) * dist.step_length;
         CELER_ASSERT(mean_num_photons > 0);
 
@@ -269,8 +257,10 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
 
             // Sample the optical photons
             std::vector<OpticalPrimary> storage(dist.num_photons);
-            CerenkovGenerator generate_photons(
-                properties, params->host_ref(), dist, make_span(storage));
+            CerenkovGenerator generate_photons(properties->host_ref(),
+                                               params->host_ref(),
+                                               dist,
+                                               make_span(storage));
             auto photons = generate_photons(rng);
 
             for (auto const& photon : photons)
