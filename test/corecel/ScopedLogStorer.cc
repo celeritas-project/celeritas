@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -58,8 +58,8 @@ ScopedLogStorer::~ScopedLogStorer()
 //! Save a log message
 void ScopedLogStorer::operator()(Provenance, LogLevel lev, std::string msg)
 {
-    static const std::regex delete_ansi("\033\\[[0-9;]*m");
-    static const std::regex subs_ptr("0x[0-9a-f]+");
+    static std::regex const delete_ansi("\033\\[[0-9;]*m");
+    static std::regex const subs_ptr("0x[0-9a-f]+");
     msg = std::regex_replace(msg, delete_ansi, "");
     msg = std::regex_replace(msg, subs_ptr, "0x0");
     messages_.push_back(std::move(msg));

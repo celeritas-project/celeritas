@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {
@@ -59,6 +60,9 @@ class EventReaderInterface
 
     //! Read all primaries from a single event
     virtual result_type operator()() = 0;
+
+    //! Get total number of events
+    virtual size_type num_events() const = 0;
 
   protected:
     //!@{

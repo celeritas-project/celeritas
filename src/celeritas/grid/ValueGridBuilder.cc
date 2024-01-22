@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -18,6 +18,7 @@
 #include "corecel/math/SoftEqual.hh"
 
 #include "ValueGridInserter.hh"
+#include "VectorUtils.hh"
 
 namespace celeritas
 {
@@ -63,20 +64,6 @@ bool is_on_grid_point(double value, double lo, double hi, size_type size)
 
     double delta = (hi - lo) / size;
     return soft_mod(value - lo, delta);
-}
-
-bool is_monotonic_increasing(SpanConstDbl grid)
-{
-    CELER_EXPECT(!grid.empty());
-    auto iter = grid.begin();
-    auto prev = *iter++;
-    while (iter != grid.end())
-    {
-        if (*iter <= prev)
-            return false;
-        prev = *iter++;
-    }
-    return true;
 }
 
 //---------------------------------------------------------------------------//

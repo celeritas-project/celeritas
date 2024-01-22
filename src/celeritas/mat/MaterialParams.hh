@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -74,7 +74,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     //! Define a material's input data
     struct MaterialInput
     {
-        real_type number_density;  //!< Atomic number density [1/cm^3]
+        real_type number_density;  //!< Atomic number density [1/length^3]
         real_type temperature;  //!< Temperature [K]
         MatterState matter_state;  //!< Solid, liquid, gas
         std::vector<std::pair<ElementId, real_type>>

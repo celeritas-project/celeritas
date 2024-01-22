@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -123,9 +123,9 @@ class ProcessBuilder
 
     //// HELPER FUNCTIONS ////
 
-    const SPConstMaterial material() const { return input_.material; }
-    const SPConstParticle particle() const { return input_.particle; }
-    const SPConstImported imported() const { return input_.imported; }
+    SPConstMaterial const material() const { return input_.material; }
+    SPConstParticle const particle() const { return input_.particle; }
+    SPConstImported const imported() const { return input_.imported; }
 
     auto build_annihilation() -> SPProcess;
     auto build_compton() -> SPProcess;

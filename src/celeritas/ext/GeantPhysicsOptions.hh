@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -111,7 +111,7 @@ struct GeantPhysicsOptions
     MevEnergy lowest_electron_energy{0.001};  // 1 keV
     //! Kill secondaries below the production cut
     bool apply_cuts{false};
-    //! Set the default production cut for all particle types [cm]
+    //! Set the default production cut for all particle types [len]
     double default_cutoff{0.1};
     //!@}
 
@@ -121,8 +121,8 @@ struct GeantPhysicsOptions
     double msc_range_factor{0.04};
     //! Safety factor for MSC models
     double msc_safety_factor{0.6};
-    //! Lambda limit for MSC models [cm]
-    double msc_lambda_limit{0.1};  // 1 mm
+    //! Lambda limit for MSC models [len]
+    double msc_lambda_limit{0.1 * units::centimeter};
     //!@}
 
     //! Print detailed Geant4 output

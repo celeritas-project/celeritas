@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -26,6 +26,9 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Sequence of explicit actions to invoke as part of a single step.
+ *
+ * TODO accessors here are used by diagnostic output from celer-sim etc.;
+ * perhaps make this public or add a diagnostic output for it?
  */
 class ActionSequence
 {

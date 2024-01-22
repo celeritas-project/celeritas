@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -49,9 +49,9 @@ void EventAction::BeginOfEventAction(G4Event const* event)
     if (SharedParams::CeleritasDisabled())
         return;
 
-    // Set event ID in local transporter
+    // Set event ID in local transporter and reseed Celerits RNG
     ExceptionConverter call_g4exception{"celer0002"};
-    CELER_TRY_HANDLE(transport_->SetEventId(event->GetEventID()),
+    CELER_TRY_HANDLE(transport_->InitializeEvent(event->GetEventID()),
                      call_g4exception);
 }
 

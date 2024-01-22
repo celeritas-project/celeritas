@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -14,7 +14,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
-#include "celeritas/grid/GenericXsCalculator.hh"
+#include "celeritas/grid/GenericCalculator.hh"
 #include "celeritas/grid/PolyEvaluator.hh"
 
 namespace celeritas
@@ -44,7 +44,7 @@ class LivermorePEMicroXsCalculator
     // Shared constant physics properties
     LivermorePERef const& shared_;
     // Incident gamma energy
-    const Energy inc_energy_;
+    Energy const inc_energy_;
 };
 
 //---------------------------------------------------------------------------//
@@ -91,14 +91,14 @@ real_type LivermorePEMicroXsCalculator::operator()(ElementId el_id) const
     {
         // Use tabulated cross sections above K-shell energy but below energy
         // limit for parameterization
-        GenericXsCalculator calc_xs(el.xs_hi, shared_.xs.reals);
+        GenericCalculator calc_xs(el.xs_hi, shared_.xs.reals);
         result = ipow<3>(inv_energy) * calc_xs(energy.value());
     }
     else
     {
         CELER_ASSERT(el.xs_lo);
         // Use tabulated cross sections below K-shell energy
-        GenericXsCalculator calc_xs(el.xs_lo, shared_.xs.reals);
+        GenericCalculator calc_xs(el.xs_lo, shared_.xs.reals);
         result = ipow<3>(inv_energy) * calc_xs(energy.value());
     }
     return result;

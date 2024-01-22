@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -26,7 +26,7 @@ namespace test
 TEST(Detail, FindInterp)
 {
     auto data = UniformGridData::from_bounds(1.0, 5.0, 3);
-    const UniformGrid grid(data);
+    UniformGrid const grid(data);
 
     {
         auto interp = find_interp(grid, 1.0);
@@ -111,7 +111,7 @@ TEST_F(TwodGridCalculatorTest, whole_grid)
     EXPECT_SOFT_EQ(1.0, interpolate({0.0, 0.0}));
 
     // Outer extrema
-    const real_type eps = 1e-6;
+    real_type const eps = 1e-6;
     EXPECT_SOFT_EQ(calc_expected(-1, 0), interpolate({-1, 0}));
     EXPECT_SOFT_EQ(calc_expected(3 - eps, real_type(3.5) - eps),
                    interpolate({3 - eps, real_type(3.5) - eps}));

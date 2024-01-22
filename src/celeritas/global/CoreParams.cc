@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -246,7 +246,7 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     CoreScalars scalars = build_actions(input_.action_reg.get());
 
     // Construct optional track-sorting actions
-    auto insert_sort_tracks_action = [this](const TrackOrder track_order) {
+    auto insert_sort_tracks_action = [this](TrackOrder const track_order) {
         input_.action_reg->insert(std::make_shared<SortTracksAction>(
             input_.action_reg->next_id(), track_order));
     };

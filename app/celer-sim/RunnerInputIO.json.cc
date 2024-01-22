@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -90,6 +90,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(step_diagnostic);
     LDIO_LOAD_OPTION(step_diagnostic_bins);
     LDIO_LOAD_OPTION(write_track_counts);
+    LDIO_LOAD_OPTION(write_step_times);
 
     LDIO_LOAD_DEPRECATED(max_num_tracks, num_track_slots);
 
@@ -97,7 +98,6 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(num_track_slots);
     LDIO_LOAD_OPTION(max_steps);
     LDIO_LOAD_REQUIRED(initializer_capacity);
-    LDIO_LOAD_REQUIRED(max_events);
     LDIO_LOAD_REQUIRED(secondary_stack_factor);
     LDIO_LOAD_REQUIRED(use_device);
     LDIO_LOAD_OPTION(sync);
@@ -166,12 +166,12 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE(step_diagnostic);
     LDIO_SAVE_OPTION(step_diagnostic_bins);
     LDIO_SAVE(write_track_counts);
+    LDIO_SAVE(write_step_times);
 
     LDIO_SAVE(seed);
     LDIO_SAVE(num_track_slots);
     LDIO_SAVE_OPTION(max_steps);
     LDIO_SAVE(initializer_capacity);
-    LDIO_SAVE(max_events);
     LDIO_SAVE(secondary_stack_factor);
     LDIO_SAVE(use_device);
     LDIO_SAVE(sync);

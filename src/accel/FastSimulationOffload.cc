@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -113,7 +113,8 @@ void FastSimulationOffload::DoIt(G4FastTrack const& track, G4FastStep& step)
  *
  * Note that this is called in \c G4EventManager::DoProcessing(G4Event*) by
  * \c G4GlobalFastSimulationManager after the main tracking loop has completed.
- * That is done to allow for models that may add "onload" particles back to Geant4.
+ * That is done to allow for models that may add "onload" particles back to
+ * Geant4.
  */
 void FastSimulationOffload::Flush()
 {

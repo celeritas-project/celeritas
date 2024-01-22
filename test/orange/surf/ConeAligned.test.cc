@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -187,10 +187,10 @@ TEST(ConeAlignedTest, degenerate_boundary)
         {
             SCOPED_TRACE(eps < 0 ? "neg" : eps > 0 ? "pos" : "zero");
 
-            const real_type tol = std::max(1.e-14, std::fabs(eps));
+            real_type const tol = std::max(1.e-14, std::fabs(eps));
 
             // Distance across the cone at the current point
-            const real_type diameter = 2 * std::fabs(z) * radius;
+            real_type const diameter = 2 * std::fabs(z) * radius;
 
             Real3 pos = origin;
             // Move so that the circular cross section looks like an equivalent

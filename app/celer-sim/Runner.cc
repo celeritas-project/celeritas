@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -13,6 +13,10 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+
+#ifdef _OPENMP
+#    include <omp.h>
+#endif
 
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
@@ -69,6 +73,43 @@ namespace celeritas
 {
 namespace app
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Get the number of streams from the number of OpenMP threads.
+ *
+ * The OMP_NUM_THREADS environment variable can be used to control the number
+ * of threads/streams. The value of OMP_NUM_THREADS should be a list of
+ * positive integers, each of which sets the number of threads for the parallel
+ * region at the corresponding nested level. The number of streams is set to
+ * the first value in the list. If OMP_NUM_THREADS is not set, the value will
+ * be implementation defined.
+ */
+size_type calc_num_streams(RunnerInput const& inp, size_type num_events)
+{
+    size_type num_threads = 1;
+#if CELERITAS_USE_OPENMP
+    if (!inp.merge_events)
+    {
+#    pragma omp parallel
+        {
+            if (omp_get_thread_num() == 0)
+            {
+                num_threads = omp_get_num_threads();
+            }
+        }
+    }
+#else
+    CELER_DISCARD(inp);
+#endif
+    // Don't create more streams than events
+    return std::min(num_threads, num_events);
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct on all threads from a JSON input and shared output manager.
@@ -84,7 +125,6 @@ Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
     this->build_diagnostics(inp);
     this->build_step_collectors(inp);
     this->build_transporter_input(inp);
-    this->build_events(inp);
     use_device_ = inp.use_device;
 
     if (root_manager_)
@@ -93,8 +133,8 @@ Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
         write_to_root(*core_params_, root_manager_.get());
     }
 
-    CELER_ASSERT(core_params_);
     transporters_.resize(this->num_streams());
+    CELER_ENSURE(core_params_);
 }
 
 //---------------------------------------------------------------------------//
@@ -132,6 +172,7 @@ auto Runner::operator()(StreamId stream, EventId event) -> RunnerResult
 auto Runner::operator()() -> RunnerResult
 {
     CELER_EXPECT(events_.size() == 1);
+    CELER_EXPECT(this->num_streams() == 1);
 
     auto& transport = this->get_transporter(StreamId{0});
     return transport(make_span(events_.front()));
@@ -143,6 +184,7 @@ auto Runner::operator()() -> RunnerResult
  */
 StreamId::size_type Runner::num_streams() const
 {
+    CELER_EXPECT(core_params_);
     return core_params_->max_streams();
 }
 
@@ -159,22 +201,28 @@ size_type Runner::num_events() const
 /*!
  * Get the accumulated action times.
  *
- * Action times are only collected by the transporter when running with a
- * single stream.
+ * This is a *mean* value over all streams.
  */
-auto Runner::get_action_times() -> MapStrReal
+auto Runner::get_action_times() const -> MapStrDouble
 {
-    auto& transport = this->get_transporter(StreamId{0});
-    if (use_device_)
+    MapStrDouble result;
+    size_type num_streams{0};
+    for (auto sid : range(StreamId{this->num_streams()}))
     {
-        return dynamic_cast<Transporter<MemSpace::device> const&>(transport)
-            .get_action_times();
+        if (auto* transport = this->get_transporter_ptr(sid))
+        {
+            transport->accum_action_times(&result);
+            ++num_streams;
+        }
     }
-    else
+
+    double norm{1 / static_cast<double>(num_streams)};
+    for (auto&& [action, time] : result)
     {
-        return dynamic_cast<Transporter<MemSpace::host> const&>(transport)
-            .get_action_times();
+        time *= norm;
     }
+
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -321,28 +369,24 @@ void Runner::build_core_params(RunnerInput const& inp,
     // Construct simulation params
     params.sim = SimParams::from_import(imported, params.particle);
 
+    // Get the total number of events
+    auto num_events = this->build_events(inp, params.particle);
+
     // Store the number of simultaneous threads/tasks per process
-    params.max_streams = this->get_num_streams(inp);
+    params.max_streams = calc_num_streams(inp, num_events);
     CELER_VALIDATE(inp.mctruth_file.empty() || params.max_streams == 1,
-                   << "MC truth output is only supported with a single "
-                      "stream ("
-                   << params.max_streams << " streams requested)");
+                   << "cannot output MC truth with multiple "
+                      "streams ("
+                   << params.max_streams << " requested)");
 
     // Construct track initialization params
-    params.init = [&inp, &params] {
+    params.init = [&inp, &params, num_events] {
         CELER_VALIDATE(inp.initializer_capacity > 0,
                        << "nonpositive initializer_capacity="
                        << inp.initializer_capacity);
-        CELER_VALIDATE(inp.max_events > 0,
-                       << "nonpositive max_events=" << inp.max_events);
-        CELER_VALIDATE(!inp.primary_options
-                           || inp.max_events >= inp.primary_options.num_events,
-                       << "max_events=" << inp.max_events
-                       << " cannot be less than num_events="
-                       << inp.primary_options.num_events);
         TrackInitParams::Input input;
         input.capacity = ceil_div(inp.initializer_capacity, params.max_streams);
-        input.max_events = inp.max_events;
+        input.max_events = num_events;
         input.track_order = inp.track_order;
         return std::make_shared<TrackInitParams>(std::move(input));
     }();
@@ -366,6 +410,7 @@ void Runner::build_transporter_input(RunnerInput const& inp)
         = ceil_div(inp.num_track_slots, core_params_->max_streams());
     transporter_input_->max_steps = inp.max_steps;
     transporter_input_->store_track_counts = inp.write_track_counts;
+    transporter_input_->store_step_times = inp.write_step_times;
     transporter_input_->sync = inp.sync;
     transporter_input_->params = core_params_;
 }
@@ -373,8 +418,11 @@ void Runner::build_transporter_input(RunnerInput const& inp)
 //---------------------------------------------------------------------------//
 /*!
  * Read events from a file or build using a primary generator.
+ *
+ * This returns the total number of events.
  */
-void Runner::build_events(RunnerInput const& inp)
+size_type
+Runner::build_events(RunnerInput const& inp, SPConstParticles particles)
 {
     ScopedMem record_mem("Runner.build_events");
 
@@ -399,21 +447,22 @@ void Runner::build_events(RunnerInput const& inp)
             }
             event = generate();
         }
+        return generate.num_events();
     };
 
     if (inp.primary_options)
     {
-        read_events(PrimaryGenerator::from_options(core_params_->particle(),
-                                                   inp.primary_options));
+        return read_events(
+            PrimaryGenerator::from_options(particles, inp.primary_options));
     }
     else if (ends_with(inp.event_file, ".root"))
     {
-        read_events(RootEventReader(inp.event_file, core_params_->particle()));
+        return read_events(RootEventReader(inp.event_file, particles));
     }
     else
     {
         // Assume filename is one of the HepMC3-supported extensions
-        read_events(EventReader(inp.event_file, core_params_->particle()));
+        return read_events(EventReader(inp.event_file, particles));
     }
 }
 
@@ -499,9 +548,9 @@ void Runner::build_diagnostics(RunnerInput const& inp)
  */
 auto Runner::get_transporter(StreamId stream) -> TransporterBase&
 {
-    CELER_EXPECT(stream < this->num_streams());
+    CELER_EXPECT(stream < transporters_.size());
 
-    auto& result = transporters_[stream.get()];
+    UPTransporterBase& result = transporters_[stream.get()];
     if (!result)
     {
         result = [this, stream]() -> std::unique_ptr<TransporterBase> {
@@ -530,37 +579,13 @@ auto Runner::get_transporter(StreamId stream) -> TransporterBase&
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the number of streams from the OMP_NUM_THREADS environment variable.
- *
- * The value of OMP_NUM_THREADS should be a list of positive integers, each of
- * which sets the number of threads for the parallel region at the
- * corresponding nested level. The number of streams is set to the first value
- * in the list.
- *
- * \note For a multithreaded CPU run, if OMP_NUM_THREADS is set to a single
- * value, the number of threads for each nested parallel region will be set to
- * that value.
+ * Get an already-constructed transporter for the given stream.
  */
-int Runner::get_num_streams(RunnerInput const& inp)
+auto Runner::get_transporter_ptr(StreamId stream) const
+    -> TransporterBase const*
 {
-#ifdef _OPENMP
-    if (inp.merge_events)
-    {
-        return 1;
-    }
-
-    std::string const& nt_str = getenv("OMP_NUM_THREADS");
-    if (!nt_str.empty())
-    {
-        auto num_threads = std::stoi(nt_str);
-        CELER_VALIDATE(num_threads > 0,
-                       << "nonpositive num_streams=" << num_threads);
-        return num_threads;
-    }
-#else
-    CELER_DISCARD(inp);
-#endif
-    return 1;
+    CELER_EXPECT(stream < transporters_.size());
+    return transporters_[stream.get()].get();
 }
 
 //---------------------------------------------------------------------------//

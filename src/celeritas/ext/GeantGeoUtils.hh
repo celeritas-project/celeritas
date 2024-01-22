@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -12,20 +12,38 @@
 #include <unordered_set>
 
 #include "celeritas_config.h"
+#include "celeritas_sys_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/cont/Span.hh"
 
+//---------------------------------------------------------------------------//
+// Forward declarations
 class G4LogicalVolume;
 class G4VPhysicalVolume;
+class G4Navigator;
+
+#if CELERITAS_GEANT4_VERSION >= 0x0b0200
+// Geant4 11.2 removed G4VTouchable
+class G4TouchableHistory;
+#else
 class G4VTouchable;
+#endif
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+#if CELERITAS_GEANT4_VERSION >= 0x0b0200
+//! Version-independent typedef to Geant4 touchable history
+using GeantTouchableBase = G4TouchableHistory;
+#else
+using GeantTouchableBase = G4VTouchable;
+#endif
+
+//---------------------------------------------------------------------------//
 //! Wrap around a touchable to get a descriptive output.
 struct PrintableNavHistory
 {
-    G4VTouchable const* touch{nullptr};
+    GeantTouchableBase const* touch{nullptr};
 };
 
 //---------------------------------------------------------------------------//

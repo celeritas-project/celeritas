@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -95,7 +95,7 @@ auto CMSParameterizedField::evaluate_field(real_type r, real_type z) const
 {
     using units::meter;
 
-    const real_type prm[9] = {4.24326,
+    real_type const prm[9] = {4.24326,
                               15.0201,
                               3.81492,
                               0.0178712,

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -109,7 +109,7 @@ class ParticleTrackView
   private:
     ParticleParamsRef const& params_;
     ParticleStateRef const& states_;
-    const TrackSlotId track_slot_;
+    TrackSlotId const track_slot_;
 };
 
 //---------------------------------------------------------------------------//
@@ -290,7 +290,7 @@ CELER_FUNCTION bool ParticleTrackView::is_stable() const
 CELER_FUNCTION real_type ParticleTrackView::beta_sq() const
 {
     // Rest mass as energy
-    const real_type mcsq = this->mass().value();
+    real_type const mcsq = this->mass().value();
     // Inverse of lorentz factor (safe for m=0)
     real_type inv_gamma = mcsq / (this->energy().value() + mcsq);
 
@@ -363,7 +363,7 @@ CELER_FUNCTION real_type ParticleTrackView::lorentz_factor() const
  */
 CELER_FUNCTION units::MevMomentumSq ParticleTrackView::momentum_sq() const
 {
-    const real_type energy = this->energy().value();
+    real_type const energy = this->energy().value();
     real_type result = ipow<2>(energy) + 2 * this->mass().value() * energy;
     CELER_ENSURE(result >= 0);
     return units::MevMomentumSq{result};

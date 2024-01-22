@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -73,7 +73,7 @@ TEST_F(BoundingBoxTest, standard)
 {
     if (CELERITAS_DEBUG)
     {
-        const Real3 lo{-1, -2, -3};
+        Real3 const lo{-1, -2, -3};
         EXPECT_THROW((BBox{lo, {-4, 5, 6}}), DebugError);
         EXPECT_THROW((BBox{lo, {4, -5, 6}}), DebugError);
         EXPECT_THROW((BBox{lo, {4, 5, -6}}), DebugError);

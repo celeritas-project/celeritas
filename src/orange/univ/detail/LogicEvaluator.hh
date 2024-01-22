@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -74,7 +74,7 @@ CELER_FUNCTION bool LogicEvaluator::operator()(SpanConstSense values) const
         // Apply logic operator
         switch (lgc)
         {
-            // clang-format off
+                // clang-format off
             case logic::ltrue: stack.push(true);  break;
             case logic::lor:   stack.apply_or();  break;
             case logic::land:  stack.apply_and(); break;

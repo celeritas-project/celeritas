@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -50,7 +50,7 @@ class EventReader : public EventReaderInterface
 
   public:
     // Construct from a filename
-    EventReader(std::string const& filename, SPConstParticles params);
+    EventReader(std::string const& filename, SPConstParticles particles);
 
     //! Prevent copying and moving
     CELER_DELETE_COPY_MOVE(EventReader);
@@ -58,15 +58,23 @@ class EventReader : public EventReaderInterface
     // Read a single event from the event record
     result_type operator()() final;
 
+    //! Get total number of events
+    size_type num_events() const final { return num_events_; }
+
   private:
+    using SPReader = std::shared_ptr<HepMC3::Reader>;
+
     // Shared standard model particle data
-    SPConstParticles params_;
+    SPConstParticles particles_;
 
     // HepMC3 event record reader
-    std::shared_ptr<HepMC3::Reader> reader_;
+    SPReader reader_;
 
     // Number of events read
     size_type event_count_{0};
+
+    // Total number of events in file
+    size_type num_events_;
 };
 
 //---------------------------------------------------------------------------//
@@ -83,9 +91,10 @@ std::shared_ptr<HepMC3::Reader> open_hepmc3(std::string const& filename);
 #if !CELERITAS_USE_HEPMC3
 inline EventReader::EventReader(std::string const&, SPConstParticles)
 {
-    CELER_DISCARD(params_);
+    CELER_DISCARD(particles_);
     CELER_DISCARD(reader_);
     CELER_DISCARD(event_count_);
+    CELER_DISCARD(num_events_);
     CELER_NOT_CONFIGURED("HepMC3");
 }
 

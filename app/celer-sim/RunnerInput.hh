@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -61,13 +61,13 @@ struct RunnerInput
     bool step_diagnostic{};
     int step_diagnostic_bins{1000};
     bool write_track_counts{true};  //!< Output track counts for each step
+    bool write_step_times{true};  //!< Output elapsed times for each step
 
     // Control
     unsigned int seed{};
     size_type num_track_slots{};  //!< Divided among streams
     size_type max_steps{unspecified};
     size_type initializer_capacity{};  //!< Divided among streams
-    size_type max_events{};
     real_type secondary_stack_factor{};
     bool use_device{};
     bool sync{};
@@ -98,8 +98,7 @@ struct RunnerInput
         return !geometry_file.empty()
                && (primary_options || !event_file.empty())
                && num_track_slots > 0 && max_steps > 0
-               && initializer_capacity > 0 && max_events > 0
-               && secondary_stack_factor > 0
+               && initializer_capacity > 0 && secondary_stack_factor > 0
                && (step_diagnostic_bins > 0 || !step_diagnostic)
                && (field == no_field() || field_options);
     }

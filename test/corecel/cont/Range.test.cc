@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -193,9 +193,10 @@ TEST(RangeTest, enums)
         ++ctr;
     }
 
-#if CELERITAS_DEBUG
-    EXPECT_THROW(range(static_cast<pokemon::Pokemon>(100)), DebugError);
-#endif
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(range(static_cast<pokemon::Pokemon>(100)), DebugError);
+    }
 }
 
 TEST(RangeTest, different_enums)

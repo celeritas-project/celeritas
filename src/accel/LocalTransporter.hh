@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -63,8 +63,11 @@ class LocalTransporter
     inline void
     Initialize(SetupOptions const& options, SharedParams const& params);
 
-    // Set the event ID
-    void SetEventId(int);
+    // Set the event ID and reseed the Celeritas RNG (remove in v1.0)
+    [[deprecated]] void SetEventId(int id) { this->InitializeEvent(id); }
+
+    // Set the event ID and reseed the Celeritas RNG at the start of an event
+    void InitializeEvent(int);
 
     // Offload this track
     void Push(G4Track const&);

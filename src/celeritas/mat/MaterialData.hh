@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -96,7 +96,7 @@ struct MatElementComponent
  */
 struct MaterialRecord
 {
-    real_type number_density;  //!< Atomic number density [1/cm^3]
+    real_type number_density;  //!< Atomic number density [1/length^3]
     real_type temperature;  //!< Temperature [K]
     MatterState matter_state;  //!< Solid, liquid, gas
     ItemRange<MatElementComponent> elements;  //!< Element components
@@ -104,9 +104,9 @@ struct MaterialRecord
     // COMPUTED PROPERTIES
 
     real_type zeff;  //!< Weighted atomic number
-    real_type density;  //!< Density [g/cm^3]
-    real_type electron_density;  //!< Electron number density [1/cm^3]
-    real_type rad_length;  //!< Radiation length [cm]
+    real_type density;  //!< Density [mass/length^3]
+    real_type electron_density;  //!< Electron number density [1/length^3]
+    real_type rad_length;  //!< Radiation length [length]
     units::MevEnergy mean_exc_energy;  //!< Mean excitation energy [MeV]
     units::LogMevEnergy log_mean_exc_energy;  //!< Log mean excitation energy
 };

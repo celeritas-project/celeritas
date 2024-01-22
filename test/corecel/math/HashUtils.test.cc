@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -52,8 +52,8 @@ namespace test
 
 TEST(HashUtilsTest, hash_combine)
 {
-    const std::string foo{"foo"};
-    const std::string bar{"bar"};
+    std::string const foo{"foo"};
+    std::string const bar{"bar"};
 
     EXPECT_NE(hash_combine(), 0);
     EXPECT_NE(hash_combine(), hash_combine(0));

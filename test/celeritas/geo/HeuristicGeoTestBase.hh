@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -41,7 +41,7 @@ class HeuristicGeoTestBase : public GlobalGeoTestBase, public OnlyGeoTestBase
     using PathLengthRef
         = Collection<real_type, Ownership::reference, M, VolumeId>;
     using SpanConstReal = Span<real_type const>;
-    using SpanConstStr = Span<const std::string>;
+    using SpanConstStr = Span<std::string const>;
     //!@}
 
     //// INTERFACE ////

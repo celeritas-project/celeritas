@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -70,7 +70,7 @@ struct XorwowRngParamsData
  */
 struct XorwowRngInitializer
 {
-    ull_int seed{0};
+    Array<unsigned int, 1> seed{0};
     ull_int subsequence{0};
     ull_int offset{0};
 };

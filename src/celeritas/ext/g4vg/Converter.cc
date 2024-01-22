@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -11,6 +11,7 @@
 #include <iostream>
 #include <unordered_set>
 #include <G4LogicalVolumeStore.hh>
+#include <G4PVDivision.hh>
 #include <G4PVPlacement.hh>
 #include <G4ReflectionFactory.hh>
 #include <G4VPhysicalVolume.hh>
@@ -46,6 +47,16 @@ G4LogicalVolume const* get_constituent_lv(G4LogicalVolume const& lv)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Build a VecGeom transform from a Geant4 physical volume.
+ */
+vecgeom::Transformation3D
+build_transform(Transformer const& convert, G4VPhysicalVolume const& g4pv)
+{
+    return convert(g4pv.GetTranslation(), g4pv.GetRotation());
+}
+
+//---------------------------------------------------------------------------//
 //! Add all visited logical volumes to a set.
 struct LVMapVisitor
 {
@@ -66,12 +77,73 @@ struct LVMapVisitor
         // Visit daughters
         for (auto const i : range(lv->GetNoDaughters()))
         {
-            (*this)(lv->GetDaughter(i)->GetLogicalVolume());
+            G4VPhysicalVolume const* daughter{lv->GetDaughter(i)};
+            CELER_ASSERT(daughter);
+            (*this)(daughter->GetLogicalVolume());
         }
     }
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Place a daughter in a mother, accounting for reflection.
+ */
+class DaughterPlacer
+{
+  public:
+    using VGLogicalVolume = vecgeom::LogicalVolume;
+
+    template<class F>
+    DaughterPlacer(F&& build_vgdaughter,
+                   Transformer const& trans,
+                   G4LogicalVolume const* daughter_g4lv,
+                   VGLogicalVolume* mother_lv)
+        : convert_transform_{trans}, mother_lv_{mother_lv}
+    {
+        CELER_EXPECT(mother_lv_);
+        CELER_EXPECT(daughter_g4lv);
+
+        // Test for reflection
+        if (G4LogicalVolume const* unrefl_g4lv
+            = get_constituent_lv(*daughter_g4lv))
+        {
+            // Replace with constituent volume, and flip the Z scale
+            // See G4ReflectionFactory::CheckScale: the reflection value is
+            // hard coded to {1, 1, -1}
+            daughter_g4lv = unrefl_g4lv;
+            flip_z_ = true;
+        }
+
+        daughter_lv_ = build_vgdaughter(daughter_g4lv);
+        CELER_ENSURE(daughter_lv_);
+    }
+
+    //! Using Geant4 daughter physical volume, place the VecGeom daughter
+    void operator()(G4VPhysicalVolume const* g4pv) const
+    {
+        CELER_EXPECT(g4pv);
+
+        vecgeom::Vector3D<real_type> const reflvec{
+            1, 1, static_cast<real_type>(flip_z_ ? -1 : 1)};
+
+        // Use the VGDML reflection factory to place the daughter in the
+        // mother (it must *always* be used, in case parent is reflected)
+        vecgeom::ReflFactory::Instance().Place(
+            build_transform(convert_transform_, *g4pv),
+            reflvec,
+            g4pv->GetName(),
+            daughter_lv_,
+            mother_lv_,
+            g4pv->GetCopyNo());
+    }
+
+  private:
+    Transformer const& convert_transform_;
+    VGLogicalVolume* mother_lv_{nullptr};
+    VGLogicalVolume* daughter_lv_{nullptr};
+    bool flip_z_{false};
+};
+
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -113,15 +185,14 @@ auto Converter::operator()(arg_type g4world) -> result_type
     {
         if (all_g4lv.count(lv))
         {
-            (*this->convert_lv_)(*lv);
+            (*convert_lv_)(*lv);
         }
     }
 
     // Place world volume
     VGLogicalVolume* world_lv
         = this->build_with_daughters(g4world->GetLogicalVolume());
-    auto trans = (*this->convert_transform_)(g4world->GetTranslation(),
-                                             g4world->GetRotation());
+    auto trans = build_transform(*convert_transform_, *g4world);
 
     result_type result;
     result.world = world_lv->Place(g4world->GetName().c_str(), &trans);
@@ -149,7 +220,7 @@ auto Converter::build_with_daughters(G4LogicalVolume const* mother_g4lv)
     }
 
     // Convert or get corresponding VecGeom volume
-    VGLogicalVolume* mother_lv = (*this->convert_lv_)(*mother_g4lv);
+    VGLogicalVolume* mother_lv = (*convert_lv_)(*mother_g4lv);
 
     if (auto [iter, inserted] = built_daughters_.insert(mother_lv); !inserted)
     {
@@ -159,45 +230,53 @@ auto Converter::build_with_daughters(G4LogicalVolume const* mother_g4lv)
 
     ++depth_;
 
+    auto convert_daughter = [this](G4LogicalVolume const* g4lv) {
+        return this->build_with_daughters(g4lv);
+    };
+
     // Place daughter logical volumes in this mother
-    for (auto const i : range(mother_g4lv->GetNoDaughters()))
+    for (auto i : range(mother_g4lv->GetNoDaughters()))
     {
         // Get daughter volume
-        G4VPhysicalVolume const* g4pv = mother_g4lv->GetDaughter(i);
-        G4LogicalVolume const* g4lv = g4pv->GetLogicalVolume();
-        if (!dynamic_cast<G4PVPlacement const*>(g4pv))
+        G4VPhysicalVolume* g4pv = mother_g4lv->GetDaughter(i);
+
+        if (auto* placed = dynamic_cast<G4PVPlacement const*>(g4pv))
+        {
+            DaughterPlacer place_daughter(convert_daughter,
+                                          *convert_transform_,
+                                          g4pv->GetLogicalVolume(),
+                                          mother_lv);
+
+            // Place daughter, accounting for reflection
+            place_daughter(placed);
+        }
+        else if (G4VPVParameterisation* param = g4pv->GetParameterisation())
+        {
+            // Create multiple daughters using "parameterization"
+            DaughterPlacer place_daughter(convert_daughter,
+                                          *convert_transform_,
+                                          g4pv->GetLogicalVolume(),
+                                          mother_lv);
+
+            // Loop over number of replicas
+            for (auto j : range(g4pv->GetMultiplicity()))
+            {
+                // Use the paramterization to *change* the physical volume's
+                // position (yes, this is how Geant4 does it too)
+                param->ComputeTransformation(j, g4pv);
+
+                // Add a copy
+                place_daughter(g4pv);
+            }
+        }
+        else
         {
             TypeDemangler<G4VPhysicalVolume> demangle_pv_type;
-            CELER_LOG(error)
-                << "Unsupported type '" << demangle_pv_type(*g4pv)
-                << "' for physical volume '" << g4pv->GetName()
-                << "' (corresponding LV: " << PrintableLV{g4lv} << ")";
+            CELER_LOG(error) << "Unsupported type '" << demangle_pv_type(*g4pv)
+                             << "' for physical volume '" << g4pv->GetName()
+                             << "' (corresponding LV: "
+                             << PrintableLV{g4pv->GetLogicalVolume()} << ")";
         }
-
-        // Test for reflection
-        bool flip_z = false;
-        if (G4LogicalVolume const* unrefl_g4lv = get_constituent_lv(*g4lv))
-        {
-            // Replace with constituent volume, and flip the Z scale
-            // See G4ReflectionFactory::CheckScale: the reflection value is
-            // hard coded to {1, 1, -1}
-            g4lv = unrefl_g4lv;
-            flip_z = true;
-        }
-
-        // Convert daughter volume
-        VGLogicalVolume* daughter_lv = this->build_with_daughters(g4lv);
-
-        // Use the VGDML reflection factory to place the daughter in the mother
-        // (it must *always* be used, in case parent is reflected)
-        vecgeom::ReflFactory::Instance().Place(
-            (*this->convert_transform_)(g4pv->GetTranslation(),
-                                        g4pv->GetRotation()),
-            vecgeom::Vector3D<double>{1.0, 1.0, flip_z ? -1.0 : 1.0},
-            g4pv->GetName(),
-            daughter_lv,
-            mother_lv,
-            g4pv->GetCopyNo());
     }
 
     --depth_;

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -219,12 +219,12 @@ struct PhysicsParamsScalars
     ModelId::size_type num_models{};
 
     // User-configurable constants
-    real_type min_range{};  //!< rho [cm]
+    real_type min_range{};  //!< rho [len]
     real_type max_step_over_range{};  //!< alpha [unitless]
     real_type min_eprime_over_e{};  //!< xi [unitless]
     Energy lowest_electron_energy{};  //!< Lowest e-/e+ kinetic energy
     real_type linear_loss_limit{};  //!< For scaled range calculation
-    real_type fixed_step_limiter{};  //!< Global charged step size limit [cm]
+    real_type fixed_step_limiter{};  //!< Global charged step size limit [len]
 
     real_type secondary_stack_factor = 3;  //!< Secondary storage per state
                                            //!< size
@@ -383,7 +383,7 @@ struct PhysicsTrackState
     // TEMPORARY STATE
     real_type macro_xs;  //!< Total cross section for discrete interactions
     real_type energy_deposition;  //!< Local energy deposition in a step [MeV]
-    real_type dedx_range;  //!< Local energy loss range [cm]
+    real_type dedx_range;  //!< Local energy loss range [len]
     MscRange msc_range;  //!< Range properties for multiple scattering
     Span<Secondary> secondaries;  //!< Emitted secondaries
     ElementComponentId element;  //!< Element sampled for interaction

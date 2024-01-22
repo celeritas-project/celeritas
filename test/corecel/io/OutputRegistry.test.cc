@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -95,8 +95,8 @@ class OutputRegistryTest : public Test
 
     std::string to_string(OutputRegistry const& reg)
     {
-        static const std::regex file_match(R"re("file":"[^"]+")re");
-        static const std::regex line_match(R"re("line":[0-9]+)re");
+        static std::regex const file_match(R"re("file":"[^"]+")re");
+        static std::regex const line_match(R"re("line":[0-9]+)re");
         std::ostringstream os;
         reg.output(&os);
         std::string result = os.str();

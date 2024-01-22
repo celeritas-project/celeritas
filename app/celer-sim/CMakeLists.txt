@@ -1,5 +1,5 @@
 #----------------------------------*-CMake-*----------------------------------#
-# Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+# Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
@@ -106,6 +106,7 @@ set(_env
   "CELERITAS_DEMO_EXE=$<TARGET_FILE:celer-sim>"
   "${_geant_exporter_env}"
   "CELER_LOG=debug"
+  "CELER_LOG_LOCAL=debug"
   "CELER_DISABLE_DEVICE=1"
   "CELER_DISABLE_PARALLEL=1"
   "CELER_CORE_GEO=${CELERITAS_CORE_GEO}"

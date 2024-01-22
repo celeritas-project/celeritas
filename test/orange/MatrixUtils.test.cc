@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -213,6 +213,16 @@ TEST_F(MatrixUtilsTest, rotation)
         EXPECT_VEC_EQ(expected_r, flattened(r));
 
         static double const expected_rotated[] = {2, -1, 3};
+        EXPECT_VEC_EQ(expected_rotated, gemv(r, {1, 2, 3}));
+    }
+    {
+        SCOPED_TRACE("z quarter, x quarter");
+        auto r = make_rotation(
+            Axis::x, Turn{0.25}, make_rotation(Axis::z, Turn{0.25}));
+        static double const expected_r[] = {0, -1, 0, 0, 0, -1, 1, 0, 0};
+        EXPECT_VEC_EQ(expected_r, flattened(r));
+
+        static double const expected_rotated[] = {-2, -3, 1};
         EXPECT_VEC_EQ(expected_rotated, gemv(r, {1, 2, 3}));
     }
 }

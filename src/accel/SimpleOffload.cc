@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -87,16 +87,17 @@ void SimpleOffload::BeginOfRunAction(G4Run const*)
 
 //---------------------------------------------------------------------------//
 /*!
- * Send Celeritas the event ID.
+ * Send Celeritas the event ID and reseed the Celeritas RNG.
  */
 void SimpleOffload::BeginOfEventAction(G4Event const* event)
 {
     if (!*this)
         return;
 
-    // Set event ID in local transporter
+    // Set event ID in local transporter and reseed RNG for reproducibility
     ExceptionConverter call_g4exception{"celer0002"};
-    CELER_TRY_HANDLE(local_->SetEventId(event->GetEventID()), call_g4exception);
+    CELER_TRY_HANDLE(local_->InitializeEvent(event->GetEventID()),
+                     call_g4exception);
 }
 
 //---------------------------------------------------------------------------//

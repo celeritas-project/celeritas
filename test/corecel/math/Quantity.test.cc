@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -255,9 +255,9 @@ TEST(QuantityTest, TEST_IF_CELERITAS_JSON(io))
 
 TEST(TurnTest, basic)
 {
-    EXPECT_EQ("tr", Turn::unit_type::label());
+    EXPECT_STREQ("tr", Turn::unit_type::label());
     EXPECT_SOFT_EQ(0.5, Turn{0.5}.value());
-    EXPECT_SOFT_EQ(2 * pi, native_value_from(Turn{1}));
+    EXPECT_REAL_EQ(2 * pi, native_value_from(Turn{1}));
 }
 
 TEST(TurnTest, math)
@@ -265,6 +265,37 @@ TEST(TurnTest, math)
     EXPECT_EQ(real_type(1), sin(Turn{0.25}));
     EXPECT_EQ(real_type(-1), cos(Turn{0.5}));
     EXPECT_EQ(real_type(0), sin(Turn{0}));
+}
+
+TEST(QuarterTurnTest, basic)
+{
+    EXPECT_STREQ("qtr", QuarterTurn::unit_type::label());
+    EXPECT_EQ(-1, QuarterTurn{-1}.value());
+    EXPECT_EQ(1, QuarterTurn{1}.value());
+    EXPECT_REAL_EQ(2 * pi, native_value_from(QuarterTurn{4}));
+}
+
+TEST(QuarterTurnTest, sincos)
+{
+    std::vector<int> result;
+    for (auto i : range(-4, 5))
+    {
+        result.push_back(sin(QuarterTurn{i}));
+        result.push_back(cos(QuarterTurn{i}));
+    }
+    // clang-format off
+    static int const expected_result[]
+        = {  0,  1, // -1 turn
+             1,  0, // -3/4 turn
+             0, -1, // -1/2 turn
+            -1,  0, // -1/4 turn
+             0,  1, // 0 turn
+             1,  0, // 1/4
+             0, -1, // 1/2
+            -1,  0, // 3/4
+             0,  1}; // 1
+    // clang-format on
+    EXPECT_VEC_EQ(expected_result, result);
 }
 
 //---------------------------------------------------------------------------//

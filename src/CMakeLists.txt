@@ -1,5 +1,5 @@
 #---------------------------------*-CMake-*----------------------------------#
-# Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+# Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #----------------------------------------------------------------------------#
@@ -26,9 +26,8 @@ set(CELERITAS_USE_VECGEOM ${CELERITAS_USE_VecGeom})
 # the C preprocessor, so any unavailable options (e.g. CELERITAS_USE_CURAND
 # when HIP is in use) will implicitly be zero.
 celeritas_generate_option_config(CELERITAS_CORE_RNG)
-# Same, but with CELERITAS_CORE_GEO_CONFIG
 celeritas_generate_option_config(CELERITAS_CORE_GEO)
-# Same, but with CELERITAS_REAL_TYPE
+celeritas_generate_option_config(CELERITAS_UNITS)
 celeritas_generate_option_config(CELERITAS_REAL_TYPE)
 celeritas_configure_file("celeritas_config.h.in" "celeritas_config.h" @ONLY)
 
@@ -48,7 +47,7 @@ endif()
 
 set(CELERITAS_CMAKE_STRINGS)
 set(CELERITAS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
-foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE CORE_GEO CORE_RNG)
+foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE CORE_GEO CORE_RNG UNITS)
   set(_var "CELERITAS_${_var}")
   string(TOLOWER "${_var}" _lower)
   string(APPEND CELERITAS_CMAKE_STRINGS
@@ -68,6 +67,16 @@ foreach(_var CLHEP_VERSION Geant4_VERSION VecGeom_VERSION)
 endforeach()
 celeritas_configure_file("celeritas_cmake_strings.h.in" "celeritas_cmake_strings.h" @ONLY)
 
+# Save dependency versions to sys_config
+set(CELERITAS_DEPENDENCY_VERSIONS)
+foreach(_dep Geant4 VecGeom HepMC3)
+  string(TOUPPER "${_dep}" _upper)
+  celeritas_version_to_hex(_temp_version_hex ${_dep}_VERSION)
+  list(APPEND CELERITAS_DEPENDENCY_VERSIONS
+    "#define CELERITAS_${_upper}_VERSION ${_temp_version_hex}"
+  )
+endforeach()
+string(JOIN "\n" CELERITAS_DEPENDENCY_VERSIONS ${CELERITAS_DEPENDENCY_VERSIONS})
 celeritas_configure_file("celeritas_sys_config.h.in" "celeritas_sys_config.h" @ONLY)
 
 #----------------------------------------------------------------------------#

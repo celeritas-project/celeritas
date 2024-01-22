@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -50,7 +50,7 @@ auto const vecgeom_version
 
 std::string simplify_pointers(std::string const& s)
 {
-    static const std::regex subs_ptr("0x[0-9a-f]+");
+    static std::regex const subs_ptr("0x[0-9a-f]+");
     return std::regex_replace(s, subs_ptr, "0x0");
 }
 }  // namespace
@@ -1197,6 +1197,18 @@ class SolidsGeantTest : public VecgeomGeantTestBase
 
 //---------------------------------------------------------------------------//
 
+#define ZnenvGeantTest TEST_IF_CELERITAS_GEANT(ZnenvGeantTest)
+class ZnenvGeantTest : public VecgeomGeantTestBase
+{
+  public:
+    SPConstGeo build_geometry() final
+    {
+        return this->load_g4_gdml("znenv.gdml");
+    }
+};
+
+//---------------------------------------------------------------------------//
+
 TEST_F(SolidsGeantTest, DISABLED_dump)
 {
     this->geometry();
@@ -1456,6 +1468,33 @@ TEST_F(SolidsGeantTest, reflected_vol)
     auto const& label = this->geometry()->id_to_label(geo.volume_id());
     EXPECT_EQ("trd3", label.name);
     EXPECT_TRUE(ends_with(label.ext, "_refl"));
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(ZnenvGeantTest, trace)
+{
+    // NOTE: This tests the capability of the G4PVDivision conversion based on
+    // an ALICE component
+    static char const* const expected_mid_volumes[]
+        = {"World", "ZNENV", "ZNST", "ZNST",  "ZNST", "ZNST", "ZNST",
+           "ZNST",  "ZNST",  "ZNST", "ZNST",  "ZNST", "ZNST", "ZNST",
+           "ZNST",  "ZNST",  "ZNST", "ZNST",  "ZNST", "ZNST", "ZNST",
+           "ZNST",  "ZNST",  "ZNST", "ZNENV", "World"};
+    static real_type const expected_mid_distances[]
+        = {6.38, 0.1,  0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32,
+           0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32,
+           0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.1,  46.38};
+    {
+        auto result = this->track({-10, 0.0001, 0}, {1, 0, 0});
+        EXPECT_VEC_EQ(expected_mid_volumes, result.volumes);
+        EXPECT_VEC_SOFT_EQ(expected_mid_distances, result.distances);
+    }
+    {
+        auto result = this->track({0.0001, -10, 0}, {0, 1, 0});
+        EXPECT_VEC_EQ(expected_mid_volumes, result.volumes);
+        EXPECT_VEC_SOFT_EQ(expected_mid_distances, result.distances);
+    }
 }
 
 //---------------------------------------------------------------------------//

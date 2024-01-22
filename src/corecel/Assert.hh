@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -182,7 +182,7 @@
     } while (0)
 //! \endcond
 
-#define CELER_DEBUG_FAIL(MSG, WHICH)   \
+#define CELER_DEBUG_FAIL(MSG, WHICH)    \
     do                                  \
     {                                   \
         CELER_DEBUG_THROW_(MSG, WHICH); \
@@ -217,9 +217,9 @@
             }                                                             \
         } while (0)
 #else
-#    define CELER_VALIDATE(COND, MSG)                                         \
+#    define CELER_VALIDATE(COND, MSG)                                        \
         CELER_DEBUG_FAIL("CELER_VALIDATE cannot be called from device code", \
-                          unreachable);
+                         unreachable);
 #endif
 
 #define CELER_NOT_CONFIGURED(WHAT) CELER_DEBUG_FAIL(WHAT, unconfigured)

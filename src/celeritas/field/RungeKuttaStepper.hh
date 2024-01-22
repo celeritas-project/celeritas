@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -23,6 +23,26 @@ namespace celeritas
  * the truncation error, with fourth-order accuracy based on description in
  * Numerical Recipes in C, The Art of Scientific Computing, Sec. 16.2,
  * Adaptive Stepsize Control for Runge-Kutta.
+ *
+ * For a magnetic field equation \em f along a charged particle trajectory
+ * with state \em y, which includes position and momentum but may also include
+ * time and spin. For N-variables (\em i = 1, ... N), the right hand side of
+ * the equation
+ * \f[
+ *  \frac{\dif y_{i}}{\dif s} = f_i (s, y_{i})
+ * \f]
+ * and the fouth order Runge-Kutta solution for a given step size, \em h is
+ * \f[
+ *  y_{n+1} - y_{n} = h f(x_n, y_n) = \frac{h}{6} (k_1 + 2 k_2 + 2 k_3 + k_4)
+ * \f]
+ * which is the average slope at four different points,
+ * The truncation error is the difference of the final states of one full step
+ * (\em y1) and two half steps (\em y2)
+ * \f[
+ *  \Delta = y_2 - y_1, y(x+h) = y_2 + \frac{\Delta}{15} + \mathrm{O}(h^{6})
+ * \f]
+ *
+ * \todo Rename RungeKuttaIntegrator
  */
 template<class EquationT>
 class RungeKuttaStepper
@@ -59,31 +79,13 @@ class RungeKuttaStepper
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class EquationT>
-CELER_FUNCTION RungeKuttaStepper(EquationT&&)->RungeKuttaStepper<EquationT>;
+CELER_FUNCTION RungeKuttaStepper(EquationT&&) -> RungeKuttaStepper<EquationT>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Adaptive step size control.
- *
- * For a magnetic field equation \em f along a charged particle trajectory
- * with state \em y, which includes position and momentum but may also include
- * time and spin. For N-variables (\em i = 1, ... N), the right hand side of
- * the equation
- * \f[
- *  \frac{\dif y_{i}}{\dif s} = f_i (s, y_{i})
- * \f]
- * and the fouth order Runge-Kutta solution for a given step size, \em h is
- * \f[
- *  y_{n+1} - y_{n} = h f(x_n, y_n) = \frac{h}{6} (k_1 + 2 k_2 + 2 k_3 + k_4)
- * \f]
- * which is the average slope at four different points,
- * The truncation error is the difference of the final states of one full step
- * (\em y1) and two half steps (\em y2)
- * \f[
- *  \Delta = y_2 - y_1, y(x+h) = y_2 + \frac{\Delta}{15} + \mathrm{O}(h^{6})
- * \f]
+ * Numerically integrate and return the updated state with estimated error.
  */
 template<class E>
 CELER_FUNCTION auto

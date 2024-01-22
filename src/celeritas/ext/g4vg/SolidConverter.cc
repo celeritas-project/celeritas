@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -686,39 +686,40 @@ auto SolidConverter::unionsolid(arg_type solid_base) -> result_type
 auto SolidConverter::convert_bool_impl(G4BooleanSolid const& bs)
     -> PlacedBoolVolumes
 {
-    Array<G4VSolid const*, 2> solids{
-        {bs.GetConstituentSolid(0), bs.GetConstituentSolid(1)}};
-
-    Transformation3D inverse;
-    {
-        // The "right" shape should be a G4DisplacedSolid which holds the
-        // matrix: replace solid and get inverse transform
-        CELER_EXPECT(!dynamic_cast<G4DisplacedSolid const*>(solids[0]));
-        CELER_EXPECT(dynamic_cast<G4DisplacedSolid const*>(solids[1]));
-        auto* displaced = static_cast<G4DisplacedSolid const*>(solids[1]);
-        solids[1] = displaced->GetConstituentMovedSolid();
-        inverse = convert_transform_(displaced->GetTransform().Invert());
-    }
-
     static Array<char const*, 2> const lr = {{"left", "right"}};
-    Array<Transformation3D const*, 2> transforms
-        = {{&Transformation3D::kIdentity, &inverse}};
     PlacedBoolVolumes result;
 
-    for (auto i : range(solids.size()))
+    for (auto i : range(lr.size()))
     {
-        // Convert solid
-        VUnplacedVolume const* converted = (*this)(*solids[i]);
+        G4VSolid const* solid = bs.GetConstituentSolid(i);
+        CELER_ASSERT(solid);
+
+        // Expand the possibly transformed solid into a transform
+        std::unique_ptr<Transformation3D> trans;
+        if (auto* displaced = dynamic_cast<G4DisplacedSolid const*>(solid))
+        {
+            solid = displaced->GetConstituentMovedSolid();
+            CELER_ASSERT(solid);
+            trans = std::make_unique<Transformation3D>(
+                convert_transform_(displaced->GetTransform().Invert()));
+        }
+
+        VUnplacedVolume const* converted = (*this)(*solid);
 
         // Construct name
         std::ostringstream label;
-        label << "[TEMP]@" << bs.GetName() << '/' << lr[i] << '/'
-              << solids[i]->GetName();
+        label << "[TEMP]@" << bs.GetName() << '/' << lr[i];
+        if (trans)
+        {
+            label << '*';
+        }
+        label << '/' << solid->GetName();
 
         // Create temporary LV from converted solid
         auto* temp_lv = new LogicalVolume(label.str().c_str(), converted);
         // Place the transformed LV
-        result[i] = temp_lv->Place(transforms[i]);
+        result[i] = temp_lv->Place(trans ? trans.get()
+                                         : &Transformation3D::kIdentity);
     }
 
     CELER_ENSURE(result[0] && result[1]);
@@ -744,7 +745,7 @@ void SolidConverter::compare_volumes(G4VSolid const& g4,
         CELER_LOG(warning)
             << "Solid type '" << g4.GetEntityType()
             << "' conversion may have failed: VecGeom/G4 volume ratio is "
-            << vg_cap << " / " << g4_cap << " [cm^3] = " << vg_cap / g4_cap;
+            << vg_cap << " / " << g4_cap << " [len^3] = " << vg_cap / g4_cap;
     }
 }
 

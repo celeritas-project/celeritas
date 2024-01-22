@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -95,7 +95,7 @@ struct SimTrackInitializer
     TrackId track_id;  //!< Unique ID for this track
     TrackId parent_id;  //!< ID of parent that created it
     EventId event_id;  //!< ID of originating event
-    real_type time{0};  //!< Time elapsed in lab frame since start of event [s]
+    real_type time{0};  //!< Time elapsed in lab frame since start of event
 
     TrackStatus status{TrackStatus::inactive};
 
@@ -109,6 +109,9 @@ struct SimTrackInitializer
 //---------------------------------------------------------------------------//
 /*!
  * Data storage/access for simulation states.
+ *
+ * Unless otherwise specified, units are in the native system (time = s for
+ * CGS).
  */
 template<Ownership W, MemSpace M>
 struct SimStateData
@@ -127,7 +130,6 @@ struct SimStateData
     Items<size_type> num_looping_steps;  //!< Number of steps taken since the
                                          //!< track was flagged as looping
     Items<real_type> time;  //!< Time elapsed in lab frame since start of event
-                            //!< [s]
 
     Items<TrackStatus> status;
     Items<real_type> step_length;

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -33,6 +33,7 @@ TEST_F(RootEventIOTest, write_read)
     }
 
     RootEventReader reader(filename, this->particles());
+    EXPECT_EQ(3, reader.num_events());
     this->read_check_test_event(reader);
 }
 

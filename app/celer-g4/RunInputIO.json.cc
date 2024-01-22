@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -67,7 +67,6 @@ void from_json(nlohmann::json const& j, RunInput& v)
     RI_LOAD_OPTION(primary_options);
 
     RI_LOAD_OPTION(num_track_slots);
-    RI_LOAD_OPTION(max_events);
     RI_LOAD_OPTION(max_steps);
     RI_LOAD_OPTION(initializer_capacity);
     RI_LOAD_OPTION(secondary_stack_factor);
@@ -156,7 +155,6 @@ void to_json(nlohmann::json& j, RunInput const& v)
     }
 
     RI_SAVE(num_track_slots);
-    RI_SAVE(max_events);
     RI_SAVE_OPTION(max_steps);
     RI_SAVE(initializer_capacity);
     RI_SAVE(secondary_stack_factor);

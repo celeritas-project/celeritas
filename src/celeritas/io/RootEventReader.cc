@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -34,6 +34,12 @@ RootEventReader::RootEventReader(std::string const& filename,
     CELER_ASSERT(ttree_);
     num_entries_ = ttree_->GetEntries();
     CELER_ASSERT(num_entries_ > 0);
+
+    // Get the number of events. Event IDs are sequential starting from zero.
+    // The last entry will contain the largest event ID.
+    ttree_->GetEntry(num_entries_ - 1);
+    num_events_ = this->from_leaf<size_type>("event_id") + 1;
+    CELER_LOG(debug) << "ROOT file has " << num_events_ << " events";
 
     scoped_root_error.throw_if_errors();
 }

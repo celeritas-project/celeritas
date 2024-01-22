@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -144,13 +144,10 @@ Mat3 make_rotation(Axis ax, Turn theta)
 {
     CELER_EXPECT(ax < Axis::size_);
 
-    // Calculate sin and cosine with less precision loss
+    // Calculate sin and cosine with less precision loss using "turn" value
     real_type cost;
     real_type sint;
     sincos(theta, &sint, &cost);
-
-    // Avoid signed zeros with this implementation
-    real_type msint = real_type(0) - sint;
 
     // Fill result with zeros
     Mat3 r;
@@ -159,29 +156,12 @@ Mat3 make_rotation(Axis ax, Turn theta)
     // {i, i} gets 1
     r[to_int(ax)][to_int(ax)] = 1;
 
-    switch (ax)
-    {
-        case Axis::x:
-            r[1][1] = cost;
-            r[1][2] = msint;
-            r[2][1] = sint;
-            r[2][2] = cost;
-            break;
-        case Axis::y:
-            r[0][0] = cost;
-            r[0][2] = sint;
-            r[2][0] = msint;
-            r[2][2] = cost;
-            break;
-        case Axis::z:
-            r[0][0] = cost;
-            r[0][1] = msint;
-            r[1][0] = sint;
-            r[1][1] = cost;
-            break;
-        default:
-            CELER_ASSERT_UNREACHABLE();
-    }
+    int uax = (to_int(ax) + 1) % 3;
+    int vax = (to_int(ax) + 2) % 3;
+    r[uax][uax] = cost;
+    r[uax][vax] = negate(sint);  // avoid signed zeros
+    r[vax][uax] = sint;
+    r[vax][vax] = cost;
     return r;
 }
 

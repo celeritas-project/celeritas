@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -13,7 +13,9 @@
 #include "corecel/sys/MemRegistry.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/user/StepDiagnostic.hh"
 
 #include "GlobalSetup.hh"
 
@@ -57,9 +59,22 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
     if (global_setup.StepDiagnostic())
     {
         // Create the track step diagnostic and add to output registry
-        step_diagnostic_ = std::make_shared<GeantStepDiagnostic>(
-            global_setup.GetStepDiagnosticBins(), num_threads);
+        auto num_bins = GlobalSetup::Instance()->GetStepDiagnosticBins();
+        step_diagnostic_
+            = std::make_shared<GeantStepDiagnostic>(num_bins, num_threads);
         output_reg->insert(step_diagnostic_);
+
+        // Add the Celeritas step diagnostic if Celeritas offloading is enabled
+        if (params)
+        {
+            auto step_diagnostic = std::make_shared<celeritas::StepDiagnostic>(
+                params.Params()->action_reg()->next_id(),
+                params.Params()->particle(),
+                num_bins,
+                num_threads);
+            params.Params()->action_reg()->insert(step_diagnostic);
+            output_reg->insert(step_diagnostic);
+        }
     }
 
     if (!params)

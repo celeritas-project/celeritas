@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -115,11 +115,24 @@ HepMC3PrimaryGenerator::HepMC3PrimaryGenerator(std::string const& filename)
         SPReader temp_reader = open_hepmc3(filename);
         CELER_ASSERT(temp_reader);
         size_type result = 0;
-        while (!temp_reader->failed())
+#if HEPMC3_VERSION_CODE < 3002000
+        HepMC3::GenEvent evt;
+        temp_reader->read_event(evt);
+#else
+        temp_reader->skip(0);
+#endif
+        CELER_VALIDATE(!temp_reader->failed(),
+                       << "event file '" << filename
+                       << "' did not contain any events");
+        do
         {
-            temp_reader->skip(1);
             result++;
-        }
+#if HEPMC3_VERSION_CODE < 3002000
+            temp_reader->read_event(evt);
+#else
+            temp_reader->skip(1);
+#endif
+        } while (!temp_reader->failed());
         CELER_LOG(debug) << "HepMC3 file has " << result << " events";
         return result;
     }();

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -81,7 +81,7 @@ MollerEnergyDistribution::MollerEnergyDistribution(real_type electron_mass_c_sq,
 template<class Engine>
 CELER_FUNCTION real_type MollerEnergyDistribution::operator()(Engine& rng)
 {
-    const real_type g_denominator
+    real_type const g_denominator
         = this->calc_g_fraction(this->max_energy_fraction());
 
     UniformRealDistribution<> sample_inverse_epsilon(
@@ -107,8 +107,8 @@ CELER_FUNCTION real_type MollerEnergyDistribution::operator()(Engine& rng)
 CELER_FUNCTION real_type
 MollerEnergyDistribution::calc_g_fraction(real_type epsilon)
 {
-    const real_type two_gamma_term = (2 * gamma_ - 1) / ipow<2>(gamma_);
-    const real_type complement_frac = 1 - epsilon;
+    real_type const two_gamma_term = (2 * gamma_ - 1) / ipow<2>(gamma_);
+    real_type const complement_frac = 1 - epsilon;
 
     return 1 - two_gamma_term * epsilon
            + ipow<2>(epsilon)

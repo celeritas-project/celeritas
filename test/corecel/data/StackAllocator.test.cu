@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -67,7 +67,7 @@ sa_post_test_kernel(SATestInput const input, SATestOutput* output)
 {
     auto thread_id = KernelParamCalculator::thread_id();
 
-    const StackAllocatorMock allocate(input.sa_data);
+    StackAllocatorMock const allocate(input.sa_data);
     if (thread_id == ThreadId{0})
     {
         output->view_size = allocate.get().size();

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -55,7 +55,7 @@ class TransformVisitor
     // Apply the function to the transform specified by the given ID
     template<class F>
     inline CELER_FUNCTION decltype(auto)
-    operator()(F&& typed_visitor, TransformId t);
+    operator()(F && typed_visitor, TransformId t);
 
   private:
     TransformRecords const& transforms_;

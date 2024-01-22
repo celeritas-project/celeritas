@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -26,7 +26,7 @@ void G4ExternDeleter<T>::operator()(T* ptr) noexcept
     delete ptr;
 }
 
-template struct G4ExternDeleter<TouchHandle>;
+template struct G4ExternDeleter<GeantTouchableHandle>;
 template struct G4ExternDeleter<G4Navigator>;
 
 //---------------------------------------------------------------------------//

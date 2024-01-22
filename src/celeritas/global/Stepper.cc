@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -14,6 +14,8 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "orange/OrangeData.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/random/RngParams.hh"
+#include "celeritas/random/RngReseed.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "CoreParams.hh"
@@ -101,6 +103,20 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
     state_.insert_primaries(primaries);
 
     return (*this)();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reseed the RNGs at the start of an event for "strong" reproducibility.
+ *
+ * This reinitializes the RNG states using a single seed and unique subsequence
+ * for each thread. It ensures that given an event number, that event can be
+ * reproduced.
+ */
+template<MemSpace M>
+void Stepper<M>::reseed(EventId event_id)
+{
+    reseed_rng(get_ref<M>(*params_->rng()), state_.ref().rng, event_id.get());
 }
 
 //---------------------------------------------------------------------------//

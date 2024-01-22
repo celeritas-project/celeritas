@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -53,7 +53,7 @@ TEST(LogicEvaluatorTest, evaluate)
 {
     // Logic for alpha : 1 2 ~ & 3 & 4 ~ & ~ ~ 8 ~ ~ & ~
     // With senses substituted: T F ~ & T & F ~ & T & ~
-    const logic_int alpha_logic[] = {1,
+    logic_int const alpha_logic[] = {1,
                                      2,
                                      lnot,
                                      land,
@@ -72,7 +72,7 @@ TEST(LogicEvaluatorTest, evaluate)
 
     // Logic for beta : 5 1 ~ & 6 & 7 ~ & ~ ~ 8 ~ ~ & ~
     // With senses substituted: T T ~ & F & F ~ & T & ~
-    const logic_int beta_logic[] = {5,
+    logic_int const beta_logic[] = {5,
                                     1,
                                     lnot,
                                     land,
@@ -91,15 +91,15 @@ TEST(LogicEvaluatorTest, evaluate)
 
     // Logic for gamma : 8 ~ ~ ~ ~
     // With senses substituted: T
-    const logic_int gamma_logic[] = {8};
+    logic_int const gamma_logic[] = {8};
 
     // 1 2 ~ & 3 & 4 ~ & ~ 5 1 ~ & 6 & 7 ~ & ~ & 8 & 0 ~ &
-    const logic_int delta_logic[] = {1,    2,    lnot, land, 3,    land, 4,
+    logic_int const delta_logic[] = {1,    2,    lnot, land, 3,    land, 4,
                                      lnot, land, lnot, 5,    1,    lnot, land,
                                      6,    land, 7,    lnot, land, lnot, land,
                                      8,    land, 0,    lnot, land};
 
-    const logic_int everywhere_logic[] = {ltrue};
+    logic_int const everywhere_logic[] = {ltrue};
 
     //// CREATE ////
 

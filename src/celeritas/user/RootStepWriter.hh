@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -64,8 +64,8 @@ class RootStepWriter final : public StepInterface
     {
         size_type volume_id = unspecified;
         real_type energy = 0;  //!< [MeV]
-        real_type time = 0;  //!< [s]
-        std::array<real_type, 3> pos{0, 0, 0};  //!< [cm]
+        real_type time = 0;  //!< [time]
+        std::array<real_type, 3> pos{0, 0, 0};  //!< [len]
         std::array<real_type, 3> dir{0, 0, 0};
     };
 
@@ -79,7 +79,7 @@ class RootStepWriter final : public StepInterface
         size_type track_step_count = unspecified;
         int particle = 0;  //!< PDG number
         real_type energy_deposition = 0;  //!< [MeV]
-        real_type step_length = 0;  //!< [cm]
+        real_type step_length = 0;  //!< [len]
         EnumArray<StepPoint, TStepPoint> points;
     };
 

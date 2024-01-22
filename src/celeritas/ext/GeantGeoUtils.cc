@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -15,6 +15,7 @@
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
 #include <G4PhysicalVolumeStore.hh>
+#include <G4ReflectionFactory.hh>
 #include <G4SolidStore.hh>
 #include <G4Threading.hh>
 #include <G4TouchableHistory.hh>
@@ -89,7 +90,7 @@ std::ostream& operator<<(std::ostream& os, PrintableNavHistory const& pnh)
     CELER_EXPECT(pnh.touch);
     os << '{';
 
-    G4VTouchable& touch = const_cast<G4VTouchable&>(*pnh.touch);
+    auto& touch = const_cast<GeantTouchableBase&>(*pnh.touch);
     for (int depth : range(touch.GetHistoryDepth()))
     {
         G4VPhysicalVolume* vol = touch.GetVolume(depth);
@@ -174,6 +175,7 @@ void reset_geant_geometry()
         G4PhysicalVolumeStore::Clean();
         G4LogicalVolumeStore::Clean();
         G4SolidStore::Clean();
+        G4ReflectionFactory::Instance()->Clean();
         msg = scoped_log.str();
     }
     if (!msg.empty())

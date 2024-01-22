@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -23,14 +23,14 @@ namespace app
  */
 struct SimulationResult
 {
-    using MapStrReal = std::unordered_map<std::string, real_type>;
+    using MapStrDouble = std::unordered_map<std::string, double>;
 
     //// DATA ////
 
-    real_type total_time{};  //!< Total simulation time
-    real_type setup_time{};  //!< One-time initialization cost
-    real_type warmup_time{};  //!< One-time warmup cost
-    MapStrReal action_times{};  //!< Accumulated action timing
+    double total_time{};  //!< Total simulation time
+    double setup_time{};  //!< One-time initialization cost
+    double warmup_time{};  //!< One-time warmup cost
+    MapStrDouble action_times{};  //!< Accumulated mean action wall times
     std::vector<TransporterResult> events;  //!< Results tallied for each event
     size_type num_streams{};  //!< Number of CPU/OpenMP threads
 };

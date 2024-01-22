@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -328,7 +328,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     {
         // "Background" volumes should not be explicitly reachable by logic or
         // BIH
-        static const logic_int nowhere_logic[] = {logic::ltrue, logic::lnot};
+        static logic_int const nowhere_logic[] = {logic::ltrue, logic::lnot};
         CELER_EXPECT(std::equal(input_logic.begin(),
                                 input_logic.end(),
                                 std::begin(nowhere_logic),

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -122,15 +122,11 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     }
     else
     {
+        CELER_LOG(status) << "Transporting " << run_stream.num_events()
+                          << " on " << num_streams << " threads";
         MultiExceptionHandler capture_exception;
 #ifdef _OPENMP
-        // Set the maximum number of nested parallel regions
-        // TODO: Enable nested OpenMP parallel regions for multithreaded CPU
-        // once the performance issues have been resolved. For now, limit the
-        // level of nesting to a single parallel region (over events) and
-        // deactivate any deeper nested parallel regions.
-        omp_set_max_active_levels(1);
-#    pragma omp parallel for num_threads(num_streams)
+#    pragma omp parallel for
 #endif
         for (size_type event = 0; event < run_stream.num_events(); ++event)
         {

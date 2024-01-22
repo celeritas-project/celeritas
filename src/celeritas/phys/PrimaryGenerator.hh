@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -69,6 +69,9 @@ class PrimaryGenerator : public EventReaderInterface
 
     // Generate primary particles from a single event
     result_type operator()() final;
+
+    //! Get total number of events
+    size_type num_events() const { return num_events_; }
 
   private:
     size_type num_events_{};

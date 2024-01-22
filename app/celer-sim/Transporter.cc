@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -42,6 +42,7 @@ Transporter<M>::Transporter(TransporterInput inp)
     : max_steps_(inp.max_steps)
     , num_streams_(inp.params->max_streams())
     , store_track_counts_(inp.store_track_counts)
+    , store_step_times_(inp.store_step_times)
 {
     CELER_EXPECT(inp);
 
@@ -106,7 +107,7 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
     {
         append_track_counts(track_counts);
     }
-    if (num_streams_ == 1)
+    if (store_step_times_)
     {
         result.step_times.push_back(get_step_time());
     }
@@ -130,11 +131,12 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
 
         get_step_time = {};
         track_counts = step();
+
         if (store_track_counts_)
         {
             append_track_counts(track_counts);
         }
-        if (num_streams_ == 1)
+        if (store_step_times_)
         {
             result.step_times.push_back(get_step_time());
         }
@@ -149,14 +151,13 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
  * Transport the input primaries and all secondaries produced.
  */
 template<MemSpace M>
-auto Transporter<M>::get_action_times() const -> MapStrReal
+void Transporter<M>::accum_action_times(MapStrDouble* result) const
 {
     // Get kernel timing if running with a single stream and if either on the
     // device with synchronization enabled or on the host
-    MapStrReal result;
     auto const& step = *stepper_;
     auto const& action_seq = step.actions();
-    if (num_streams_ == 1 && (M == MemSpace::host || action_seq.sync()))
+    if (M == MemSpace::host || action_seq.sync())
     {
         auto const& action_ptrs = action_seq.actions();
         auto const& times = action_seq.accum_time();
@@ -165,10 +166,9 @@ auto Transporter<M>::get_action_times() const -> MapStrReal
         for (auto i : range(action_ptrs.size()))
         {
             auto&& label = action_ptrs[i]->label();
-            result[label] = times[i];
+            (*result)[label] += times[i];
         }
     }
-    return result;
 }
 
 //---------------------------------------------------------------------------//

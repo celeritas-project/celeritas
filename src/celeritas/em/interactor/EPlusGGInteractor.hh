@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -62,7 +62,7 @@ class EPlusGGInteractor
     // Shared constant physics properties
     EPlusGGData const& shared_;
     // Incident positron energy [MevEnergy]
-    const real_type inc_energy_;
+    real_type const inc_energy_;
     // Incident direction
     Real3 const& inc_direction_;
     // Allocate space for secondary particles (two photons)
@@ -125,10 +125,10 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
     else
     {
         constexpr real_type half = 0.5;
-        const real_type tau = inc_energy_
+        real_type const tau = inc_energy_
                               / value_as<Mass>(shared_.electron_mass);
-        const real_type tau2 = tau + 2;
-        const real_type sqgrate = std::sqrt(tau / tau2) * half;
+        real_type const tau2 = tau + 2;
+        real_type const sqgrate = std::sqrt(tau / tau2) * half;
 
         // Evaluate limits of the energy sampling
         ReciprocalDistribution<real_type> sample_eps(half - sqgrate,
@@ -143,15 +143,15 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
             epsil - (2 * (tau + 1) * epsil - 1) / (epsil * ipow<2>(tau2)))(rng));
 
         // Scattered Gamma angles
-        const real_type cost = (epsil * tau2 - 1)
+        real_type const cost = (epsil * tau2 - 1)
                                / (epsil * std::sqrt(tau * tau2));
         CELER_ASSERT(std::fabs(cost) <= 1);
 
         // Kinematic of the gamma pair
-        const real_type total_energy
+        real_type const total_energy
             = inc_energy_ + 2 * value_as<Mass>(shared_.electron_mass);
-        const real_type gamma_energy = epsil * total_energy;
-        const real_type eplus_moment = std::sqrt(inc_energy_ * total_energy);
+        real_type const gamma_energy = epsil * total_energy;
+        real_type const eplus_moment = std::sqrt(inc_energy_ * total_energy);
 
         // Sample and save outgoing secondary data
         UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);

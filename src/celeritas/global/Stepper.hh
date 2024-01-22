@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -90,6 +90,9 @@ class StepperInterface
     // Transport existing states and these new primaries
     virtual StepperResult operator()(SpanConstPrimary primaries) = 0;
 
+    // Reseed the RNGs at the start of an event for reproducibility
+    virtual void reseed(EventId event_id) = 0;
+
     //! Get action sequence for timing diagnostics
     virtual ActionSequence const& actions() const = 0;
 
@@ -138,6 +141,9 @@ class Stepper final : public StepperInterface
 
     // Transport existing states and these new primaries
     StepperResult operator()(SpanConstPrimary primaries) final;
+
+    // Reseed the RNGs at the start of an event for reproducibility
+    void reseed(EventId event_id) final;
 
     //! Get action sequence for timing diagnostics
     ActionSequence const& actions() const final { return *actions_; }

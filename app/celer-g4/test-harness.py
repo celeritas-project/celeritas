@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+# Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """
@@ -71,7 +71,6 @@ inp = {
     "output_file": out_file,
     "offload_output_file": offload_file,
     "num_track_slots": max_tracks,
-    "max_events": 1024,
     "initializer_capacity": init_capacity,
     "secondary_stack_factor": 2,
     "physics_list": "ftfp_bert",

@@ -1,5 +1,5 @@
 #---------------------------------*-CMake-*----------------------------------#
-# Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+# Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #----------------------------------------------------------------------------#
@@ -124,6 +124,12 @@ if(CELERITAS_CORE_GEO STREQUAL Geant4)
 else()
   set(_allow_single_prec TRUE)
 endif()
+
+celeritas_setup_option(CELERITAS_UNITS CGS)
+celeritas_setup_option(CELERITAS_UNITS SI)
+celeritas_setup_option(CELERITAS_UNITS CLHEP)
+celeritas_define_options(CELERITAS_UNITS
+  "Native unit system for Celeritas")
 
 celeritas_setup_option(CELERITAS_REAL_TYPE double)
 celeritas_setup_option(CELERITAS_REAL_TYPE float)

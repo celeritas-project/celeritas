@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -16,6 +16,8 @@
 namespace celeritas
 {
 class Translation;
+class SignedPermutation;
+
 //---------------------------------------------------------------------------//
 /*!
  * Apply transformations with rotation.
@@ -48,7 +50,7 @@ class Transformation
   public:
     //@{
     //! \name Type aliases
-    using StorageSpan = Span<const real_type, 12>;
+    using StorageSpan = Span<real_type const, 12>;
     using Mat3 = SquareMatrixReal3;
     //@}
 
@@ -69,6 +71,9 @@ class Transformation
 
     // Promote from a translation
     explicit Transformation(Translation const&);
+
+    // Promote from a signed permutation
+    explicit Transformation(SignedPermutation const&);
 
     // Construct inline from storage
     explicit inline CELER_FUNCTION Transformation(StorageSpan);

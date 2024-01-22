@@ -1,4 +1,4 @@
-.. Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+.. Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 .. See the doc/COPYRIGHT file for details.
 .. SPDX-License-Identifier: CC-BY-4.0
 
@@ -83,8 +83,8 @@ library with a short standalone CMake project.
 Standalone simulation app (celer-sim)
 =====================================
 
-The ``celer-sim`` application is the primary means of running test problems for
-independent validation and performance analysis.
+The ``celer-sim`` application is the primary means of running EM test problems
+for independent validation and performance analysis.
 
 Usage::
 
@@ -139,9 +139,16 @@ Usage::
   celer-g4 {input}.json
            {commands}.mac
            --interactive
+           --dump-default
 
 Input
 -----
+
+Physics is set up using the top-level ``physics_option`` key in the JSON input,
+corresponding to :ref:`api_geant4_physics_options`. The magnetic field is
+specified with a combination of the ``field_type``, ``field``, and
+``field_file`` keys, and detailed field driver configuration options are set
+with ``field_options`` corresponding to the ``FieldOptions`` class in :ref:`api_field_data`.
 
 .. note:: The macro file usage is in the process of being replaced by JSON
    input for improved automation.

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -96,14 +96,14 @@ TYPED_TEST(FloatingTest, soft_equal)
     EXPECT_TRUE(comp(-0, 0));
 
     // Test NaNs
-    const value_type nan = Limits_t::quiet_NaN();
+    value_type const nan = Limits_t::quiet_NaN();
     EXPECT_FALSE(comp(1, nan));
     EXPECT_FALSE(comp(nan, 1));
     EXPECT_FALSE(comp(nan, nan));
 
     // Test infinities
-    const value_type inf = Limits_t::infinity();
-    const value_type maxval = Limits_t::max();
+    value_type const inf = Limits_t::infinity();
+    value_type const maxval = Limits_t::max();
     EXPECT_FALSE(comp(0, inf));
     EXPECT_FALSE(comp(inf, 0));
     EXPECT_FALSE(comp(inf, -inf));
@@ -119,8 +119,8 @@ TYPED_TEST(FloatingTest, equal_or_soft_equal)
 {
     using value_type = typename TestFixture::value_type;
     using Limits_t = typename TestFixture::Limits_t;
-    const value_type nan = Limits_t::quiet_NaN();
-    const value_type inf = Limits_t::infinity();
+    value_type const nan = Limits_t::quiet_NaN();
+    value_type const inf = Limits_t::infinity();
 
     EqualOr<SoftEqual<value_type>> comp;
 
@@ -161,11 +161,11 @@ TYPED_TEST(FloatingTest, soft_zero)
     EXPECT_TRUE(comp(-0));
 
     // Test NaNs
-    const value_type nan = Limits_t::quiet_NaN();
+    value_type const nan = Limits_t::quiet_NaN();
     EXPECT_FALSE(comp(nan));
 
     // Test infinities
-    const value_type inf = Limits_t::infinity();
+    value_type const inf = Limits_t::infinity();
     EXPECT_FALSE(comp(inf));
     EXPECT_FALSE(comp(-inf));
 }

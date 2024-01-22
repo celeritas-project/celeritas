@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -164,7 +164,7 @@ XorwowRngEngine::operator=(Initializer_t const& init)
     auto& s = state_->xorstate;
 
     // Initialize the state from the seed
-    SplitMix64 rng{init.seed};
+    SplitMix64 rng{init.seed[0]};
     uint64_t seed = rng();
     s[0] = static_cast<uint_t>(seed);
     s[1] = static_cast<uint_t>(seed >> 32);

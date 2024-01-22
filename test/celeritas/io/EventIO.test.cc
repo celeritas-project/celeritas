@@ -1,10 +1,12 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/io/EventIO.test.cc
 //---------------------------------------------------------------------------//
+#include <fstream>
+
 #include "celeritas_config.h"
 #include "celeritas/io/EventReader.hh"
 #include "celeritas/io/EventWriter.hh"
@@ -61,6 +63,7 @@ TEST_P(EventIOTest, variety_rwr)
 
     // Determine the event record format and open the file
     EventReader read_event(out_filename, this->particles());
+    EXPECT_EQ(3, read_event.num_events());
 
     // Read events from the event record
     auto result = this->read_all(read_event);
@@ -115,6 +118,7 @@ TEST_P(EventIOTest, no_vertex_rwr)
 
     // Read it in and check
     EventReader read_event(out_filename, this->particles());
+    EXPECT_EQ(3, read_event.num_events());
     auto result = this->read_all(read_event);
 
     // clang-format off
@@ -178,6 +182,42 @@ TEST_P(EventIOTest, write_read)
     else
     {
         this->read_check_test_event(read_event);
+    }
+}
+
+TEST_P(EventIOTest, edge_case)
+{
+    std::string const ext = this->GetParam();
+    std::string filename = this->make_unique_filename(std::string{"."} + ext);
+
+    // Empty event file
+    {
+        std::ofstream out(filename);
+        out << "HepMC::Version 3.02.02\n"
+            << "HepMC::Asciiv3-START_EVENT_LISTING\n"
+            << "HepMC::Asciiv3-END_EVENT_LISTING";
+        out.close();
+        EXPECT_THROW(EventReader(filename, this->particles()), RuntimeError);
+    }
+
+    // Single event
+    {
+        Primary p;
+        p.particle_id = this->particles()->find(pdg::gamma());
+        p.energy = units::MevEnergy{1};
+        p.position = {0, 0, 0};
+        p.direction = {1, 0, 0};
+        p.track_id = TrackId{0};
+        p.event_id = EventId{0};
+        std::vector<Primary> event(4, p);
+        EventWriter write_event(filename, this->particles());
+        write_event(event);
+    }
+    {
+        EventReader read_event(filename, this->particles());
+        EXPECT_EQ(1, read_event.num_events());
+        EXPECT_EQ(4, read_event().size());
+        EXPECT_TRUE(read_event().empty());
     }
 }
 

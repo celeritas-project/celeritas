@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -72,9 +72,10 @@ template<class F,
          std::enable_if_t<kernel_max_blocks_min_warps<A_>, bool> = true>
 __global__ void
 #if CELERITAS_USE_CUDA
-    __launch_bounds__( A_::max_block_size, (A_::min_warps_per_eu * 32) / A_::max_block_size)
+__launch_bounds__(A_::max_block_size,
+                  (A_::min_warps_per_eu * 32) / A_::max_block_size)
 #elif CELERITAS_USE_HIP
-    __launch_bounds__( A_::max_block_size,  A_::min_warps_per_eu)
+__launch_bounds__(A_::max_block_size, A_::min_warps_per_eu)
 #endif
     launch_action_impl(Range<ThreadId> const thread_range, F execute_thread)
 {

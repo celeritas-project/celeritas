@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -11,6 +11,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
+#include "celeritas/UnitTypes.hh"
 #include "celeritas/mat/MaterialView.hh"
 
 #include "LivermorePEMicroXsCalculator.hh"
@@ -28,7 +29,7 @@ class LivermorePEMacroXsCalculator
     //! \name Type aliases
     using Energy = LivermorePEMicroXsCalculator::Energy;
     using MicroXsUnits = LivermorePEMicroXsCalculator::XsUnits;
-    using XsUnits = units::NativeUnit;
+    using XsUnits = units::Native;
     //!@}
 
   public:
@@ -73,7 +74,7 @@ LivermorePEMacroXsCalculator::operator()(Energy energy) const
     LivermorePEMicroXsCalculator calc_micro_xs(shared_, energy);
     for (auto const& el_comp : elements_)
     {
-        const real_type micro_xs = calc_micro_xs(el_comp.element);
+        real_type const micro_xs = calc_micro_xs(el_comp.element);
         CELER_ASSERT(micro_xs >= 0);
         result += micro_xs * el_comp.fraction;
     }

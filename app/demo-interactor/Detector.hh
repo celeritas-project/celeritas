@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -110,7 +110,7 @@ CELER_FUNCTION void Detector::process_hit(HitId id)
 
     Hit const& hit = state_.hit_buffer.storage[id];
     UniformGrid grid(params_.tally_grid);
-    const real_type z_pos = hit.pos[2];
+    real_type const z_pos = hit.pos[2];
     size_type bin;
 
     if (z_pos <= grid.front())

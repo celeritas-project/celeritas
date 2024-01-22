@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -9,10 +9,7 @@
 
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
-
-class G4Navigator;
-class G4VTouchable;
-class G4LogicalVolume;
+#include "celeritas/ext/GeantGeoUtils.hh"
 
 namespace celeritas
 {
@@ -27,17 +24,17 @@ namespace detail
 class TouchableUpdater
 {
   public:
-    //! Maximum step to try within the current volume [cm]
+    //! Maximum step to try within the current volume [len]
     static constexpr double max_step() { return 1 * units::millimeter; }
 
-    //! Warn when the step is greater than this amount [cm]
+    //! Warn when the step is greater than this amount [len]
     static constexpr double max_quiet_step()
     {
         return 1e-3 * units::millimeter;
     }
 
     // Construct with thread-local navigator and touchable
-    inline TouchableUpdater(G4Navigator* navi, G4VTouchable* touchable);
+    inline TouchableUpdater(G4Navigator* navi, GeantTouchableBase* touchable);
 
     // Try to find the given point in the given logical volume
     bool
@@ -45,7 +42,7 @@ class TouchableUpdater
 
   private:
     G4Navigator* navi_;
-    G4VTouchable* touchable_;
+    GeantTouchableBase* touchable_;
 };
 
 //---------------------------------------------------------------------------//
@@ -54,7 +51,8 @@ class TouchableUpdater
 /*!
  * Construct with with thread-local navigator and touchable.
  */
-TouchableUpdater::TouchableUpdater(G4Navigator* navi, G4VTouchable* touchable)
+TouchableUpdater::TouchableUpdater(G4Navigator* navi,
+                                   GeantTouchableBase* touchable)
     : navi_{navi}, touchable_{touchable}
 {
     CELER_EXPECT(navi_);

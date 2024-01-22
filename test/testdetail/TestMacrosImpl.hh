@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -250,7 +250,7 @@ IsRangeEqImpl(Iter1 e_iter,
     }
 
     // Save start iterator in order to save index
-    const Iter1 e_begin = e_iter;
+    Iter1 const e_begin = e_iter;
 
     for (; e_iter != e_end; ++e_iter, ++a_iter)
     {

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -21,6 +21,7 @@
 #include <G4SeltzerBergerModel.hh>
 #include <G4VEmFluctuationModel.hh>
 #include <G4VEmModel.hh>
+#include <G4Version.hh>
 #include <G4eBremsstrahlungRelModel.hh>
 
 #include "corecel/Assert.hh"
@@ -107,7 +108,9 @@ void GeantBremsstrahlungProcess::InitialiseEnergyLossProcess(
         em_model->SetLowEnergyLimit(energy_min);
         em_model->SetHighEnergyLimit(energy_limit);
         em_model->SetSecondaryThreshold(em_parameters->BremsstrahlungTh());
+#if G4VERSION_NUMBER < 1120
         em_model->SetLPMFlag(false);
+#endif
         G4VEnergyLossProcess::AddEmModel(1, em_model, fluctuation_model);
 
         ++model_index;
@@ -128,7 +131,9 @@ void GeantBremsstrahlungProcess::InitialiseEnergyLossProcess(
             em_model->SetLowEnergyLimit(energy_limit);
             em_model->SetHighEnergyLimit(energy_max);
             em_model->SetSecondaryThreshold(em_parameters->BremsstrahlungTh());
+#if G4VERSION_NUMBER < 1120
             em_model->SetLPMFlag(em_parameters->LPM());
+#endif
             G4VEnergyLossProcess::AddEmModel(1, em_model, fluctuation_model);
         }
     }

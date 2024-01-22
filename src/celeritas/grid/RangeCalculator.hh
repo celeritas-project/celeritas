@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -81,7 +81,7 @@ CELER_FUNCTION real_type RangeCalculator::operator()(Energy energy) const
 {
     CELER_ASSERT(energy > zero_quantity());
     UniformGrid loge_grid(data_.log_energy);
-    const real_type loge = std::log(energy.value());
+    real_type const loge = std::log(energy.value());
 
     if (loge <= loge_grid.front())
     {
