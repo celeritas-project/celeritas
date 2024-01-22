@@ -19,9 +19,9 @@
 #include "celeritas/random/distribution/NormalDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
+#include "OpticalDistributionData.hh"
 #include "OpticalPrimary.hh"
 #include "ScintillationData.hh"
-#include "OpticalDistributionData.hh"
 
 namespace celeritas
 {
@@ -131,9 +131,9 @@ ScintillationGenerator::operator()(Generator& rng)
 
     for (auto sid : range(spectrum_.size))
     {
-        // Skip if there is no emission warelength
-        if(spectrum_.lambda_mean[sid] <= 0) 
-           continue;
+        // Skip if there is no emission wavelength
+        if (spectrum_.lambda_mean[sid] <= 0)
+            continue;
 
         NormalDistribution<real_type> sample_lambda(
             spectrum_.lambda_mean[sid], spectrum_.lambda_sigma[sid]);
@@ -147,34 +147,37 @@ ScintillationGenerator::operator()(Generator& rng)
             // Sample wavelength and convert to energy
             real_type wave_length = sample_lambda(rng);
             CELER_EXPECT(wave_length > 0);
-            photons_[i].energy 
+            photons_[i].energy
                 = native_value_to<Energy>(this->hc() / wave_length);
 
             // Sample direction
             real_type cost = sample_cost_(rng);
             real_type phi = sample_phi_(rng);
-            photons_[i].direction = rotate(from_spherical(cost, phi), 
-                                           dist_.points[StepPoint::post].pos);
+            photons_[i].direction = from_spherical(cost, phi);
 
-            // Sample polarization
+            // Sample polarization perpendicular to the photon direction
+            Real3 temp = from_spherical(-std::sqrt(1 - ipow<2>(cost)), phi);
+            Real3 perp = {std::sin(phi), std::cos(phi), 0};
+            real_type sinphi, cosphi;
+            sincospi(UniformRealDist{0, 1}(rng), &sinphi, &cosphi);
+            for (int j = 0; j < 3; ++j)
+            {
+                photons_[i].polarization[j] = cosphi * temp[j]
+                                              + sinphi * perp[j];
+            }
             photons_[i].polarization
-                = from_spherical(-std::sqrt(1 - ipow<2>(cost)), phi);
-            Real3 perp = cross_product(photons_[i].polarization,
-                                       photons_[i].direction);
-            phi = sample_phi_(rng);
-            photons_[i].polarization = std::cos(phi) * photons_[i].polarization
-                                       + std::sin(phi) * perp;
+                = make_unit_vector(photons_[i].polarization);
 
             // Sample position
             real_type u = (is_neutral_) ? 1 : generate_canonical(rng);
-            photons_[i].position = dist_.points[StepPoint::pre].pos 
-                                    + u * delta_pos_;
+            photons_[i].position = dist_.points[StepPoint::pre].pos
+                                   + u * delta_pos_;
 
             // Sample time
-            real_type delta_time 
+            real_type delta_time
                 = u * dist_.step_length
-	          / (native_value_from(dist_.points[StepPoint::pre].speed)
-		     + u * real_type(0.5) * native_value_from(delta_speed_));
+                  / (native_value_from(dist_.points[StepPoint::pre].speed)
+                     + u * real_type(0.5) * native_value_from(delta_speed_));
 
             if (spectrum_.rise_time[sid] == 0)
             {
@@ -189,7 +192,7 @@ ScintillationGenerator::operator()(Generator& rng)
                 {
                     scint_time = sample_time_(rng);
                     envelop
-                        = 1 - std::exp(-scint_time / spectrum_.rise_time[sid]);
+                        = -std::expm1(-scint_time / spectrum_.rise_time[sid]);
                 } while (!BernoulliDistribution(envelop)(rng));
                 delta_time += scint_time;
             }
