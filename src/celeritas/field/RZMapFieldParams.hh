@@ -22,6 +22,8 @@ struct RZMapFieldInput;
 //---------------------------------------------------------------------------//
 /*!
  * Set up a 2D RZMapFieldParams.
+ *
+ * The input values should be converted to the native unit system.
  */
 class RZMapFieldParams final : public ParamsDataInterface<RZMapFieldParamsData>
 {
