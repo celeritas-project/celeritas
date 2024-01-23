@@ -1,5 +1,5 @@
 #----------------------------------*-CMake-*----------------------------------#
-# Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+# Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
@@ -230,6 +230,7 @@ celeritas_add_test(orange/detail/UniverseIndexer.test.cc)
 #-------------------------------------#
 # Transforms
 set(CELERITASTEST_PREFIX orange/transform)
+celeritas_add_test(orange/transform/SignedPermutation.test.cc)
 celeritas_add_test(orange/transform/Transformation.test.cc)
 celeritas_add_test(orange/transform/Translation.test.cc)
 celeritas_add_test(orange/transform/VariantTransform.test.cc)
@@ -341,6 +342,7 @@ celeritas_setup_tests(SERIAL PREFIX celeritas
 # (Root level tests)
 celeritas_add_test(celeritas/Constants.test.cc
   LINK_LIBRARIES ${Geant4_LIBRARIES})
+celeritas_add_test(celeritas/Units.test.cc)
 
 #-------------------------------------#
 # EM
@@ -519,7 +521,7 @@ celeritas_add_test(celeritas/global/Stepper.test.cc
 #-------------------------------------#
 # Grid
 set(CELERITASTEST_PREFIX celeritas/grid)
-celeritas_add_test(celeritas/grid/GenericXsCalculator.test.cc)
+celeritas_add_test(celeritas/grid/GenericCalculator.test.cc)
 celeritas_add_test(celeritas/grid/GridIdFinder.test.cc)
 celeritas_add_test(celeritas/grid/InverseRangeCalculator.test.cc)
 celeritas_add_test(celeritas/grid/PolyEvaluator.test.cc)
@@ -536,6 +538,11 @@ celeritas_add_test(celeritas/io/EventIO.test.cc ${_needs_hepmc}
   LINK_LIBRARIES ${HepMC3_LIBRARIES})
 celeritas_add_test(celeritas/io/RootEventIO.test.cc ${_needs_root})
 celeritas_add_test(celeritas/io/SeltzerBergerReader.test.cc ${_needs_geant4})
+
+#-------------------------------------#
+# Optical
+set(CELERITASTEST_PREFIX celeritas/optical)
+celeritas_add_test(celeritas/optical/Cerenkov.test.cc)
 
 #-------------------------------------#
 # Mat

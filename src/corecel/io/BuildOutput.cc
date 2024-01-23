@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -52,6 +52,7 @@ void BuildOutput::output(JsonPimpl* j) const
         cfg["CELERITAS_REAL_TYPE"] = celeritas_real_type;
         cfg["CELERITAS_CORE_GEO"] = celeritas_core_geo;
         cfg["CELERITAS_CORE_RNG"] = celeritas_core_rng;
+        cfg["CELERITAS_UNITS"] = celeritas_units;
         if constexpr (CELERITAS_USE_GEANT4)
         {
             cfg["CLHEP_VERSION"] = celeritas_clhep_version;

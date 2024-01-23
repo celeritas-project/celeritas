@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -43,7 +43,7 @@ class TestEm3Test : public HeuristicGeoTestBase
 
 auto TestEm3Test::reference_volumes() const -> SpanConstStr
 {
-    static const std::string vols[]
+    static std::string const vols[]
         = {"world",       "gap_0",  "absorber_0",  "gap_1",
            "absorber_1",  "gap_2",  "absorber_2",  "gap_3",
            "absorber_3",  "gap_4",  "absorber_4",  "gap_5",
@@ -118,7 +118,7 @@ class SimpleCmsTest : public HeuristicGeoTestBase
 
 auto SimpleCmsTest::reference_volumes() const -> SpanConstStr
 {
-    static const std::string vols[] = {"vacuum_tube",
+    static std::string const vols[] = {"vacuum_tube",
                                        "si_tracker",
                                        "em_calorimeter",
                                        "had_calorimeter",
@@ -130,7 +130,7 @@ auto SimpleCmsTest::reference_volumes() const -> SpanConstStr
 
 auto SimpleCmsTest::reference_avg_path() const -> SpanConstReal
 {
-    static const real_type paths[]
+    static real_type const paths[]
         = {58.02, 408.3, 274.9, 540.9, 496.3, 1134, 1694};
     return make_span(paths);
 }
@@ -160,13 +160,13 @@ class ThreeSpheresTest : public HeuristicGeoTestBase
 
 auto ThreeSpheresTest::reference_volumes() const -> SpanConstStr
 {
-    static const std::string vols[] = {"inner", "middle", "outer", "world"};
+    static std::string const vols[] = {"inner", "middle", "outer", "world"};
     return make_span(vols);
 }
 
 auto ThreeSpheresTest::reference_avg_path() const -> SpanConstReal
 {
-    static const real_type paths[] = {0.2013, 3.346, 6.696, 375.5};
+    static real_type const paths[] = {0.2013, 3.346, 6.696, 375.5};
     return make_span(paths);
 }
 

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -541,7 +541,7 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
     for (size_type isect_idx = 0; isect_idx != num_isect; ++isect_idx)
     {
         // Index into the distance/face arrays
-        const size_type isect = state.temp_next.isect[isect_idx];
+        size_type const isect = state.temp_next.isect[isect_idx];
         // Face being crossed in this ordered intersection
         FaceId face = state.temp_next.face[isect];
         // Flip the sense of the face being crossed
@@ -594,7 +594,7 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
     -> Intersection
 {
     // Calculate bump distance
-    const real_type bump_dist
+    real_type const bump_dist
         = detail::BumpCalculator{params_.scalars.tol}(state.pos);
 
     // Loop over distances and surface indices to cross by iterating over
@@ -602,9 +602,9 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
     for (size_type isect_idx = 0; isect_idx != num_isect; ++isect_idx)
     {
         // Index into the distance/face arrays
-        const size_type isect = state.temp_next.isect[isect_idx];
+        size_type const isect = state.temp_next.isect[isect_idx];
         // Inside the "background" volume, Face and Surface are the same
-        const LocalSurfaceId surface{
+        LocalSurfaceId const surface{
             state.temp_next.face[isect].unchecked_get()};
 
         // Calculate position just past the surface in order to evaluate

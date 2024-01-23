@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -86,7 +86,7 @@ namespace
 //---------------------------------------------------------------------------//
 decltype(auto) em_basic_particles()
 {
-    static const std::unordered_set<PDGNumber> particles
+    static std::unordered_set<PDGNumber> const particles
         = {pdg::electron(), pdg::positron(), pdg::gamma()};
     return particles;
 }
@@ -94,7 +94,7 @@ decltype(auto) em_basic_particles()
 //---------------------------------------------------------------------------//
 decltype(auto) em_ex_particles()
 {
-    static const std::unordered_set<PDGNumber> particles
+    static std::unordered_set<PDGNumber> const particles
         = {pdg::mu_minus(), pdg::mu_plus()};
     return particles;
 }
@@ -299,8 +299,6 @@ std::vector<ImportElement> import_elements()
         element.name = g4element->GetName();
         element.atomic_number = g4element->GetZ();
         element.atomic_mass = g4element->GetAtomicMassAmu();
-        element.radiation_length_tsai = g4element->GetfRadTsai() / (g / cm2);
-        element.coulomb_factor = g4element->GetfCoulomb();
 
         // Despite the function name, this is *NOT* a vector, it's an array
         double* const g4rel_abundance = g4element->GetRelativeAbundanceVector();
@@ -407,13 +405,8 @@ import_materials(GeantImporter::DataSelection::Flags particle_flags)
         material.name = g4material->GetName();
         material.state = to_material_state(g4material->GetState());
         material.temperature = g4material->GetTemperature();  // [K]
-        material.density = g4material->GetDensity() / (g / cm3);
-        material.electron_density = g4material->GetTotNbOfElectPerVolume()
-                                    / (1. / cm3);
         material.number_density = g4material->GetTotNbOfAtomsPerVolume()
                                   / (1. / cm3);
-        material.radiation_length = g4material->GetRadlen() / cm;
-        material.nuclear_int_length = g4material->GetNuclearInterLength() / cm;
 
         // Populate material production cut values
         for (auto const& idx_convert : cut_converters)
@@ -439,7 +432,6 @@ import_materials(GeantImporter::DataSelection::Flags particle_flags)
 
             ImportMatElemComponent elem_comp;
             elem_comp.element_id = g4element->GetIndex();
-            elem_comp.mass_fraction = g4material->GetFractionVector()[j];
             double elem_num_density = g4material->GetVecNbOfAtomsPerVolume()[j]
                                       / (1. / cm3);
             elem_comp.number_fraction = elem_num_density
@@ -482,7 +474,7 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
     std::vector<ImportProcess> processes;
     std::vector<ImportMscModel> msc_models;
 
-    static const celeritas::TypeDemangler<G4VProcess> demangle_process;
+    static celeritas::TypeDemangler<G4VProcess> const demangle_process;
     std::unordered_map<G4VProcess const*, G4ParticleDefinition const*> visited;
     detail::GeantProcessImporter import_process(
         detail::TableSelection::minimal, materials, elements);

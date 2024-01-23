@@ -1,12 +1,12 @@
-# Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+# Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """
 Add LLDB wrappers for Celeritas types.
 
-To use::
-    (lldb) command script import celeritas/scripts/dev/celerlldb.py --allow-reload
-    (lldb) type synthetic add -x "^celeritas::Span<.+>$" --python-class celerlldb.SpanSynthetic
+To use from inside ``${SOURCE}/build``::
+   (lldb) command script import ../scripts/dev/celerlldb.py --allow-reload
+   (lldb) type synthetic add -x "^celeritas::Span<.+>$" --python-class celerlldb.SpanSynthetic
 
 """
 

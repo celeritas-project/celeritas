@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -79,7 +79,7 @@ class ElementView
     // Coulomb correction factor [unitless]
     inline CELER_FUNCTION real_type coulomb_correction() const;
 
-    // Mass radiation coefficient for Bremsstrahlung [cm^2/g]
+    // Mass radiation coefficient for Bremsstrahlung [len^2/mass]
     inline CELER_FUNCTION real_type mass_radiation_coeff() const;
 
   private:
@@ -152,7 +152,7 @@ CELER_FUNCTION Span<ElIsotopeComponent const> ElementView::isotopes() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Coulomb correction term [cm^2/g].
+ * Coulomb correction term [unitless].
  *
  * Used by Bremsstrahlung and other physics processes, this constant is
  * calculated with greater precision than in Geant4 (which is accurate to only
@@ -165,7 +165,7 @@ CELER_FUNCTION real_type ElementView::coulomb_correction() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Mass radiation coefficient 1/X_0 for Bremsstrahlung [cm^2/g].
+ * Mass radiation coefficient 1/X_0 for Bremsstrahlung [len^2/mass].
  *
  * The "radiation length" X_0 is "the mean distance over which a high-energy
  * electron loses all but 1/e of its energy by bremsstrahlung". See Review of

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -42,7 +42,7 @@ CombinedBremExecutor::operator()(CoreTrackView const& track)
 
     // Assume only a single element in the material, for now
     CELER_ASSERT(material.num_elements() == 1);
-    const ElementComponentId selected_element{0};
+    ElementComponentId const selected_element{0};
 
     auto particle = track.make_particle_view();
     auto const& dir = track.make_geo_view().dir();

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -46,7 +46,7 @@ struct IsInRange
 TEST(UtilityTest, forward)
 {
     Foo foo;
-    const Foo cfoo;
+    Foo const cfoo;
 
     test_forward_impl<Foo&>(foo);
     test_forward_impl<Foo const&>(cfoo);
@@ -324,6 +324,18 @@ TEST(MathTest, negate)
     EXPECT_DOUBLE_EQ(-2.0, negate(2.0));
     EXPECT_DOUBLE_EQ(-dblinf, negate(dblinf));
     EXPECT_TRUE(std::isnan(negate(std::numeric_limits<double>::quiet_NaN())));
+}
+
+//---------------------------------------------------------------------------//
+
+TEST(MathTest, diffsq)
+{
+    EXPECT_DOUBLE_EQ(9.0, diffsq(5.0, 4.0));
+    EXPECT_DOUBLE_EQ(ipow<2>(std::sin(0.2)), diffsq(1.0, std::cos(0.2)));
+
+    float a{10000.001}, b{10000}, actual{20};
+    EXPECT_FLOAT_EQ(0.46875f, actual - diffsq(a, b));
+    EXPECT_LE(actual - diffsq(a, b), actual - (a * a - b * b));
 }
 
 //---------------------------------------------------------------------------//

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -65,7 +65,7 @@ class EnergyLossGaussianDistribution
     inline CELER_FUNCTION Energy operator()(Generator& rng);
 
   private:
-    const real_type max_loss_;
+    real_type const max_loss_;
     NormalDistribution<real_type> sample_normal_;
 };
 

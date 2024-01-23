@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -43,7 +43,7 @@ class SimpleQuadric
     //! \name Type aliases
     using Intersections = Array<real_type, 2>;
     using StorageSpan = Span<real_type const, 7>;
-    using SpanConstReal3 = Span<const real_type, 3>;
+    using SpanConstReal3 = Span<real_type const, 3>;
     //@}
 
     //// CLASS ATTRIBUTES ////

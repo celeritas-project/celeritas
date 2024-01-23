@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -16,6 +16,7 @@
 #include "celeritas/Units.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/MagFieldEquation.hh"
+#include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/RungeKuttaStepper.hh"
 #include "celeritas/field/UniformField.hh"
 #include "celeritas/field/UniformZField.hh"
@@ -23,7 +24,6 @@
 
 #include "FieldTestParams.hh"
 #include "celeritas_test.hh"
-#include "celeritas/field/MakeMagFieldPropagator.hh"
 
 namespace celeritas
 {

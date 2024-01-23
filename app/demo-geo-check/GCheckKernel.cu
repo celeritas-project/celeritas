@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -27,8 +27,8 @@ namespace app
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void gcheck_kernel(const GeoParamsCRefDevice params,
-                              const GeoStateRefDevice state,
+__global__ void gcheck_kernel(GeoParamsCRefDevice const params,
+                              GeoStateRefDevice const state,
                               GeoTrackInitializer const* init,
                               int max_steps,
                               int* ids,

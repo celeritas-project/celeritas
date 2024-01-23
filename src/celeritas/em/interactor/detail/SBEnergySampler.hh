@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -61,15 +61,15 @@ class SBEnergySampler
     // Differential cross section table
     SBTable const& differential_xs_;
     // Incident particle energy
-    const Energy inc_energy_;
+    Energy const inc_energy_;
     // Production cutoff for gammas
-    const Energy gamma_cutoff_;
+    Energy const gamma_cutoff_;
     // Material in which interaction occurs
     MaterialView const& material_;
     // Element in which interaction occurs
-    const ElementComponentId elcomp_id_;
+    ElementComponentId const elcomp_id_;
     // Incident particle mass
-    const Mass inc_mass_;
+    Mass const inc_mass_;
     // Incident particle identification flag
     bool const inc_particle_is_electron_;
     // Density correction

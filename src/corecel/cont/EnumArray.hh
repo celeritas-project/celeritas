@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -23,6 +23,8 @@ namespace celeritas
  *
  * The enum *must* be a zero-indexed contiguous enumeration with a \c size_
  * enumeration as its last value.
+ *
+ * \todo The template parameters are reversed!!!
  */
 template<class E, class T>
 struct EnumArray

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -143,15 +143,13 @@ class ConditionalTrackExecutor
 template<class T>
 CELER_FUNCTION TrackExecutor(CoreParamsPtr<MemSpace::native>,
                              CoreStatePtr<MemSpace::native>,
-                             T&&)
-    ->TrackExecutor<T>;
+                             T&&) -> TrackExecutor<T>;
 
 template<class C, class T>
 CELER_FUNCTION ConditionalTrackExecutor(CoreParamsPtr<MemSpace::native>,
                                         CoreStatePtr<MemSpace::native>,
                                         C&&,
-                                        T&&)
-    ->ConditionalTrackExecutor<C, T>;
+                                        T&&) -> ConditionalTrackExecutor<C, T>;
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS

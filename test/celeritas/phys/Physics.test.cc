@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -56,7 +56,7 @@ TEST_F(PhysicsParamsTest, accessors)
     {
         process_names.push_back(p.process(process_id)->label());
     }
-    const std::string expected_process_names[]
+    std::string const expected_process_names[]
         = {"scattering", "absorption", "purrs", "hisses", "meows", "barks"};
     EXPECT_VEC_EQ(expected_process_names, process_names);
 
@@ -70,7 +70,7 @@ TEST_F(PhysicsParamsTest, accessors)
         model_desc.push_back(m.description());
     }
 
-    static const std::string expected_model_names[] = {
+    static std::string const expected_model_names[] = {
         "mock-model-1",
         "mock-model-2",
         "mock-model-3",
@@ -85,7 +85,7 @@ TEST_F(PhysicsParamsTest, accessors)
     };
     EXPECT_VEC_EQ(expected_model_names, model_names);
 
-    static const std::string expected_model_desc[]
+    static std::string const expected_model_desc[]
         = {"MockModel(1, p=0, emin=1e-06, emax=100)",
            "MockModel(2, p=1, emin=1, emax=100)",
            "MockModel(3, p=0, emin=1e-06, emax=100)",
@@ -110,7 +110,7 @@ TEST_F(PhysicsParamsTest, accessors)
             process_map.push_back(prefix + process_names[process_id.get()]);
         }
     }
-    const std::string expected_process_map[] = {"gamma:scattering",
+    std::string const expected_process_map[] = {"gamma:scattering",
                                                 "gamma:absorption",
                                                 "celeriton:scattering",
                                                 "celeriton:purrs",
@@ -274,7 +274,7 @@ TEST_F(PhysicsTrackViewHostTest, track_view)
     // (additionally tested in calc_eloss_range)
     real_type rho = params_ref.scalars.min_range;
     std::vector<real_type> step;
-    const real_type eps = std::numeric_limits<real_type>::epsilon();
+    real_type const eps = std::numeric_limits<real_type>::epsilon();
 
     for (real_type r : {real_type(0.1) * rho,
                         real_type(1 - 1000 * eps) * rho,
@@ -354,12 +354,12 @@ TEST_F(PhysicsTrackViewHostTest, processes)
 {
     // Gamma
     {
-        const PhysicsTrackView phys
+        PhysicsTrackView const phys
             = this->make_track_view("gamma", MaterialId{0});
 
         EXPECT_EQ(2, phys.num_particle_processes());
-        const ParticleProcessId scat_ppid{0};
-        const ParticleProcessId abs_ppid{1};
+        ParticleProcessId const scat_ppid{0};
+        ParticleProcessId const abs_ppid{1};
         EXPECT_EQ(ProcessId{0}, phys.process(scat_ppid));
         EXPECT_EQ(ProcessId{1}, phys.process(abs_ppid));
         EXPECT_TRUE(phys.has_at_rest());
@@ -367,13 +367,13 @@ TEST_F(PhysicsTrackViewHostTest, processes)
 
     // Celeriton
     {
-        const PhysicsTrackView phys
+        PhysicsTrackView const phys
             = this->make_track_view("celeriton", MaterialId{0});
 
         EXPECT_EQ(3, phys.num_particle_processes());
-        const ParticleProcessId scat_ppid{0};
-        const ParticleProcessId purr_ppid{1};
-        const ParticleProcessId meow_ppid{2};
+        ParticleProcessId const scat_ppid{0};
+        ParticleProcessId const purr_ppid{1};
+        ParticleProcessId const meow_ppid{2};
         EXPECT_EQ(ProcessId{0}, phys.process(scat_ppid));
         EXPECT_EQ(ProcessId{2}, phys.process(purr_ppid));
         EXPECT_EQ(ProcessId{4}, phys.process(meow_ppid));
@@ -382,12 +382,12 @@ TEST_F(PhysicsTrackViewHostTest, processes)
 
     // Anti-celeriton
     {
-        const PhysicsTrackView phys
+        PhysicsTrackView const phys
             = this->make_track_view("anti-celeriton", MaterialId{1});
 
         EXPECT_EQ(2, phys.num_particle_processes());
-        const ParticleProcessId hiss_ppid{0};
-        const ParticleProcessId meow_ppid{1};
+        ParticleProcessId const hiss_ppid{0};
+        ParticleProcessId const meow_ppid{1};
         EXPECT_EQ(ProcessId{3}, phys.process(hiss_ppid));
         EXPECT_EQ(ProcessId{4}, phys.process(meow_ppid));
         EXPECT_TRUE(phys.has_at_rest());
@@ -396,7 +396,7 @@ TEST_F(PhysicsTrackViewHostTest, processes)
     // Electron
     {
         // No at-rest interaction
-        const PhysicsTrackView phys
+        PhysicsTrackView const phys
             = this->make_track_view("electron", MaterialId{1});
         EXPECT_FALSE(phys.has_at_rest());
     }
@@ -410,7 +410,7 @@ TEST_F(PhysicsTrackViewHostTest, value_grids)
     {
         for (auto mat_id : range(MaterialId{this->material()->size()}))
         {
-            const PhysicsTrackView phys
+            PhysicsTrackView const phys
                 = this->make_track_view(particle, mat_id);
 
             for (auto pp_id :
@@ -445,7 +445,7 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
     {
         for (auto mat_id : range(MaterialId{this->material()->size()}))
         {
-            const PhysicsTrackView phys
+            PhysicsTrackView const phys
                 = this->make_track_view(particle, mat_id);
             auto scat_ppid = this->find_ppid(phys, "scattering");
             auto id = phys.value_grid(ValueGridType::macro_xs, scat_ppid);
@@ -473,7 +473,7 @@ TEST_F(PhysicsTrackViewHostTest, calc_eloss_range)
     // range and step will be zero.
     for (char const* particle : {"celeriton", "anti-celeriton"})
     {
-        const PhysicsTrackView phys
+        PhysicsTrackView const phys
             = this->make_track_view(particle, MaterialId{0});
         auto ppid = phys.eloss_ppid();
         ASSERT_TRUE(ppid);
@@ -553,7 +553,7 @@ TEST_F(PhysicsTrackViewHostTest, use_integral)
 
 TEST_F(PhysicsTrackViewHostTest, model_finder)
 {
-    const PhysicsTrackView phys
+    PhysicsTrackView const phys
         = this->make_track_view("celeriton", MaterialId{0});
     auto purr_ppid = this->find_ppid(phys, "purrs");
     ASSERT_TRUE(purr_ppid);
@@ -573,7 +573,7 @@ TEST_F(PhysicsTrackViewHostTest, element_selector)
     MaterialId mid{2};
 
     // Get the sampled process (constant micro xs)
-    const PhysicsTrackView phys = this->make_track_view("celeriton", mid);
+    PhysicsTrackView const phys = this->make_track_view("celeriton", mid);
     auto purr_ppid = this->find_ppid(phys, "purrs");
     ASSERT_TRUE(purr_ppid);
 
@@ -793,8 +793,8 @@ TEST_F(EPlusAnnihilationTest, host_track_view)
 
     auto const pid = this->particles()->find("positron");
     ASSERT_TRUE(pid);
-    const ParticleProcessId ppid{0};
-    const MaterialId matid{0};
+    ParticleProcessId const ppid{0};
+    MaterialId const matid{0};
 
     PhysicsTrackView phys(params_ref, state.ref(), pid, matid, TrackSlotId{0});
     phys = PhysicsTrackInitializer{};

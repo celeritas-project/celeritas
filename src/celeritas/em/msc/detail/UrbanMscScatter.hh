@@ -1,4 +1,4 @@
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -141,7 +141,7 @@ CELER_FUNCTION real_type UrbanMscScatter::calc_displacement(real_type geom_path,
     CELER_EXPECT(true_path >= geom_path);
 
     // true^2 - geo^2
-    real_type rmax2 = (true_path - geom_path) * (true_path + geom_path);
+    real_type rmax2 = diffsq(true_path, geom_path);
 
     // 0.73 is (roughly) the expected value of a distribution of the mean
     // radius given rmax "based on single scattering results"

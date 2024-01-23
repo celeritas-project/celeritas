@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -63,11 +63,11 @@ TEST(SimpleQuadricTest, construction)
 TEST(SimpleQuadricTest, ellipsoid)
 {
     // 1 x 2.5 x .3 radii
-    const Real3 second{ipow<2>(2.5) * ipow<2>(0.3),
+    Real3 const second{ipow<2>(2.5) * ipow<2>(0.3),
                        ipow<2>(1.0) * ipow<2>(0.3),
                        ipow<2>(1.0) * ipow<2>(2.5)};
-    const Real3 first{0, 0, 0};
-    const real_type zeroth = -1 * ipow<2>(2.5) * ipow<2>(0.3);
+    Real3 const first{0, 0, 0};
+    real_type const zeroth = -1 * ipow<2>(2.5) * ipow<2>(0.3);
     SimpleQuadric sq{second, first, zeroth};
 
     EXPECT_VEC_SOFT_EQ(second, sq.second());

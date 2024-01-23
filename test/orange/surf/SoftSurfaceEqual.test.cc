@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -119,15 +119,15 @@ TEST_F(SoftSurfaceEqualTest, simple_quadric)
 {
     auto ellipsoid = [](Real3 const& radii) {
         const Real3 second{ipow<2>(radii[1]) * ipow<2>(radii[2]),
-            ipow<2>(radii[2]) * ipow<2>(radii[0]),
-            ipow<2>(radii[0]) * ipow<2>(radii[1])};
+                           ipow<2>(radii[2]) * ipow<2>(radii[0]),
+                           ipow<2>(radii[0]) * ipow<2>(radii[1])};
         const real_type zeroth = -ipow<2>(radii[0]) * ipow<2>(radii[1])
-            * ipow<2>(radii[2]);
+                                 * ipow<2>(radii[2]);
         return SimpleQuadric{second, Real3{0, 0, 0}, zeroth};
     };
     auto translated = [](auto&& s, Real3 const& center) {
-            SurfaceTranslator translate{Translation{center}};
-            return translate(s);
+        SurfaceTranslator translate{Translation{center}};
+        return translate(s);
     };
 
     {
@@ -142,9 +142,9 @@ TEST_F(SoftSurfaceEqualTest, simple_quadric)
         EXPECT_FALSE(softeq_(ref, ellipsoid({1 + large, 2.5 + large, .3})));
 
         // Translate and scale
-        EXPECT_TRUE(softeq_(ref, translated(ref, {0, small/2, 0})));
-        EXPECT_TRUE(softeq_(
-            ref, translated(ellipsoid(radii * (1 + small)), origin)));
+        EXPECT_TRUE(softeq_(ref, translated(ref, {0, small / 2, 0})));
+        EXPECT_TRUE(
+            softeq_(ref, translated(ellipsoid(radii * (1 + small)), origin)));
         EXPECT_FALSE(softeq_(ref, translated(ref, {0, 0, large})));
         EXPECT_FALSE(
             softeq_(ref, translated(ellipsoid(radii * (1 + large)), origin)));
@@ -154,9 +154,9 @@ TEST_F(SoftSurfaceEqualTest, simple_quadric)
         Real3 const radii{1, 2.5, 0.75};
         auto ref = translated(ellipsoid(radii), origin);
 
-        EXPECT_TRUE(softeq_(ref, translated(ref, {0, small/2, 0})));
-        EXPECT_TRUE(softeq_(
-            ref, translated(ellipsoid(radii * (1 + small)), origin)));
+        EXPECT_TRUE(softeq_(ref, translated(ref, {0, small / 2, 0})));
+        EXPECT_TRUE(
+            softeq_(ref, translated(ellipsoid(radii * (1 + small)), origin)));
         EXPECT_FALSE(softeq_(ref, translated(ref, {0, 0, large})));
         EXPECT_FALSE(
             softeq_(ref, translated(ellipsoid(radii * (1 + large)), origin)));

@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -25,7 +25,7 @@ namespace
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void phys_test_kernel(const PTestInput inp)
+__global__ void phys_test_kernel(PTestInput const inp)
 {
     auto tid = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
     if (tid.get() >= inp.states.size())

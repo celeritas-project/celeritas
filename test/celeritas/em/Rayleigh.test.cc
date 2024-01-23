@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -126,7 +126,7 @@ TEST_F(RayleighInteractorTest, basic)
         rng_counts.push_back(rng_engine.count());
     }
 
-    const real_type expected_angle[] = {0.383668498876068,
+    real_type const expected_angle[] = {0.383668498876068,
                                         -0.99294588967104,
                                         0.780467077338104,
                                         0.985521422599946,
@@ -184,7 +184,7 @@ TEST_F(RayleighInteractorTest, stress_test)
         average_angle.push_back(sum_angle / num_samples);
     }
 
-    const real_type expected_average_rng_counts[] = {10.943603515625,
+    real_type const expected_average_rng_counts[] = {10.943603515625,
                                                      11.01025390625,
                                                      11.08935546875,
                                                      9.82080078125,
@@ -194,7 +194,7 @@ TEST_F(RayleighInteractorTest, stress_test)
                                                      8,
                                                      8};
 
-    const real_type expected_average_angle[] = {0.00231121922009911,
+    real_type const expected_average_angle[] = {0.00231121922009911,
                                                 0.00899744556924152,
                                                 0.00779010297910534,
                                                 0.583035907797808,

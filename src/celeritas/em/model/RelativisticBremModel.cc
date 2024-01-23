@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -205,7 +205,7 @@ auto RelativisticBremModel::compute_element_data(ElementView const& elem,
 auto RelativisticBremModel::get_form_factor(AtomicNumber z) -> FormFactor const&
 {
     CELER_EXPECT(z && z < AtomicNumber{8});
-    static const FormFactor form_factor[] = {{5.3104, 5.9173},
+    static FormFactor const form_factor[] = {{5.3104, 5.9173},
                                              {4.7935, 5.6125},
                                              {4.7402, 5.5377},
                                              {4.7112, 5.4728},

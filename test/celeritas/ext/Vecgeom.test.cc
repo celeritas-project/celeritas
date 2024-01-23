@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -50,7 +50,7 @@ auto const vecgeom_version
 
 std::string simplify_pointers(std::string const& s)
 {
-    static const std::regex subs_ptr("0x[0-9a-f]+");
+    static std::regex const subs_ptr("0x[0-9a-f]+");
     return std::regex_replace(s, subs_ptr, "0x0");
 }
 }  // namespace

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -15,6 +15,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Constants.hh"
+#include "celeritas/UnitTypes.hh"
 #include "celeritas/em/data/EPlusGGData.hh"
 #include "celeritas/grid/PolyEvaluator.hh"
 #include "celeritas/mat/MaterialView.hh"
@@ -31,7 +32,7 @@ class EPlusGGMacroXsCalculator
     //!@{
     //! \name Type aliases
     using Energy = units::MevEnergy;
-    using XsUnits = units::NativeUnit;
+    using XsUnits = units::Native;  // [1/len]
     //!@}
 
   public:
@@ -50,8 +51,8 @@ class EPlusGGMacroXsCalculator
     }
 
   private:
-    const real_type electron_mass_;
-    const real_type electron_density_;
+    real_type const electron_mass_;
+    real_type const electron_density_;
 };
 
 //---------------------------------------------------------------------------//
@@ -82,10 +83,10 @@ CELER_FUNCTION real_type EPlusGGMacroXsCalculator::operator()(Energy energy) con
     using constants::r_electron;
     using PolyQuad = PolyEvaluator<real_type, 2>;
 
-    const real_type gamma
+    real_type const gamma
         = celeritas::max(energy.value(), value_as<Energy>(this->min_energy()))
           / electron_mass_;
-    const real_type sqrt_gg2 = std::sqrt(gamma * (gamma + 2));
+    real_type const sqrt_gg2 = std::sqrt(gamma * (gamma + 2));
 
     real_type result
         = pi * ipow<2>(r_electron) * electron_density_

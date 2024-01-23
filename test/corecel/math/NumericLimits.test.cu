@@ -1,5 +1,5 @@
 //---------------------------------*-CUDA-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -59,7 +59,7 @@ NLTestOutput<T> nl_test()
     NLTestOutput<T>* result_device;
     CELER_DEVICE_CALL_PREFIX(Malloc(&result_device, sizeof(NLTestOutput<T>)));
 
-    static const KernelParamCalculator calc_launch_params(
+    static KernelParamCalculator const calc_launch_params(
         "nl_test", nl_test_kernel<T>, device().threads_per_warp());
     auto grid = calc_launch_params(4);
 

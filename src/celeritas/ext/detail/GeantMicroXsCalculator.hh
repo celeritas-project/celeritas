@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -24,7 +24,8 @@ namespace detail
 /*!
  * Calculate microscopic cross sections for an EM model.
  *
- * The input energy is in MeV, and the output units are in cm^2.
+ * The input energy is in MeV, and the output units are in Celeritas native
+ * area units.
  */
 class GeantMicroXsCalculator
 {
@@ -32,7 +33,7 @@ class GeantMicroXsCalculator
     //!@{
     //! \name Type aliases
     using EnergyUnits = units::Mev;
-    using XsUnits = units::NativeUnit;  // cm^2
+    using XsUnits = units::Native;  // cm^2
     using VecDouble = std::vector<double>;
     using VecVecDouble = std::vector<std::vector<double>>;
     //!@}

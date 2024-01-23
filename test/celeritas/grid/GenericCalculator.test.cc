@@ -1,11 +1,11 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/GenericXsCalculator.test.cc
+//! \file celeritas/grid/GenericCalculator.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/grid/GenericXsCalculator.hh"
+#include "celeritas/grid/GenericCalculator.hh"
 
 #include <algorithm>
 #include <cmath>
@@ -24,7 +24,7 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class GenericXsCalculatorTest : public CalculatorTestBase
+class GenericCalculatorTest : public CalculatorTestBase
 {
   protected:
     void SetUp() override
@@ -51,9 +51,13 @@ class GenericXsCalculatorTest : public CalculatorTestBase
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(GenericXsCalculatorTest, all)
+TEST_F(GenericCalculatorTest, all)
 {
-    GenericXsCalculator calc(data_, ref_);
+    GenericCalculator calc(data_, ref_);
+
+    // Test accessing tabulated data
+    EXPECT_EQ(4.0, calc[0]);
+    EXPECT_EQ(2.0, calc[3]);
 
     // Test on grid points
     EXPECT_SOFT_EQ(4.0, calc(1));

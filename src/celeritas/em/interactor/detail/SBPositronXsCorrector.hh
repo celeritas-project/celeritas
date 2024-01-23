@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -74,10 +74,10 @@ class SBPositronXsCorrector
   private:
     //// DATA ////
 
-    const real_type positron_mass_;
-    const real_type alpha_z_;
-    const real_type inc_energy_;
-    const real_type cutoff_invbeta_;
+    real_type const positron_mass_;
+    real_type const alpha_z_;
+    real_type const inc_energy_;
+    real_type const cutoff_invbeta_;
 
     //// HELPER FUNCTIONS ////
 

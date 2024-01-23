@@ -3,7 +3,7 @@
 #
 # https://github.com/sethrj/cmake-git-version
 #
-# Copyright 2021-2023 UT-Battelle, LLC
+# Copyright 2021-2024 UT-Battelle, LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.

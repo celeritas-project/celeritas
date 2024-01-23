@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -183,7 +183,7 @@ class CalcIntersections
     F is_valid_isect_;
     Real3 const& pos_;
     Real3 const& dir_;
-    const size_type on_face_idx_;
+    size_type const on_face_idx_;
     bool const fill_isect_;
     FaceId* const face_;
     real_type* const distance_;
@@ -193,7 +193,7 @@ class CalcIntersections
 };
 
 template<class F, class... Args>
-CELER_FUNCTION CalcIntersections(F&&, Args&&... args)->CalcIntersections<F>;
+CELER_FUNCTION CalcIntersections(F&&, Args&&... args) -> CalcIntersections<F>;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

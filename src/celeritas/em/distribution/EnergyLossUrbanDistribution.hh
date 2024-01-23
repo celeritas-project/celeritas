@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -151,7 +151,7 @@ CELER_FUNCTION EnergyLossUrbanDistribution::EnergyLossUrbanDistribution(
         = real_type(0.5)
               * min(this->fwhm_min_energy() / max_energy_, real_type(1))
           + real_type(1);
-    const real_type mean_loss = unscaled_mean_loss.value() / loss_scaling_;
+    real_type const mean_loss = unscaled_mean_loss.value() / loss_scaling_;
 
     // Material-dependent data
     CELER_ASSERT(cur_mat.material_id() < shared.urban.size());
@@ -167,15 +167,15 @@ CELER_FUNCTION EnergyLossUrbanDistribution::EnergyLossUrbanDistribution(
     {
         // Common term in the numerator and denominator of PRM Eq. 7.10
         // two_mebsgs = 2 * m_e c^2 * beta^2 * gamma^2
-        const real_type w = std::log(value_as<units::MevMass>(two_mebsgs))
+        real_type const w = std::log(value_as<units::MevMass>(two_mebsgs))
                             - beta_sq;
-        const real_type w_0
+        real_type const w_0
             = value_as<units::LogMevEnergy>(mat.log_mean_excitation_energy());
         if (w > w_0)
         {
             if (w > params.log_binding_energy[1])
             {
-                const real_type c = mean_loss * (1 - this->rate()) / (w - w_0);
+                real_type const c = mean_loss * (1 - this->rate()) / (w - w_0);
                 for (int i : range(2))
                 {
                     // Excitation macroscopic cross section (PRM Eq. 7.10)
@@ -304,7 +304,7 @@ EnergyLossUrbanDistribution::sample_ionization_loss(Engine& rng)
     real_type result = 0;
 
     constexpr real_type e_0 = EnergyLossUrbanDistribution::ionization_energy();
-    const real_type energy_ratio = max_energy_ / e_0;
+    real_type const energy_ratio = max_energy_ / e_0;
 
     // Parameter that determines the upper limit of the energy interval in
     // which the fast simulation is used
@@ -324,15 +324,15 @@ EnergyLossUrbanDistribution::sample_ionization_loss(Engine& rng)
                 / (this->max_collisions() * energy_ratio + xs_ion_);
 
         // Mean energy loss for a single collision of this type (Eq. 14)
-        const real_type mean_loss_coll = alpha * std::log(alpha) / (alpha - 1);
+        real_type const mean_loss_coll = alpha * std::log(alpha) / (alpha - 1);
 
         // Mean number of collisions of this type (Eq. 16)
         mean_num_coll = xs_ion_ * energy_ratio * (alpha - 1)
                         / ((energy_ratio - 1) * alpha);
 
         // Mean and standard deviation of the total energy loss (Eqs. 18-19)
-        const real_type mean = mean_num_coll * mean_loss_coll * e_0;
-        const real_type stddev
+        real_type const mean = mean_num_coll * mean_loss_coll * e_0;
+        real_type const stddev
             = e_0 * std::sqrt(xs_ion_ * (alpha - ipow<2>(mean_loss_coll)));
 
         // Sample energy loss from a Gaussian distribution

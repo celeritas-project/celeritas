@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -48,7 +48,7 @@ FluctuationParams::FluctuationParams(ParticleParams const& particles,
         // Calculate the parameters for the energy loss fluctuation model (see
         // Geant3 PHYS332 2.4 and Geant4 physics reference manual 7.3.2)
         UrbanFluctuationParameters params;
-        const real_type avg_z = mat.electron_density() / mat.number_density();
+        real_type const avg_z = mat.electron_density() / mat.number_density();
         params.oscillator_strength[1] = avg_z > 2 ? 2 / avg_z : 0;
         params.oscillator_strength[0] = 1 - params.oscillator_strength[1];
         params.binding_energy[1] = 1e-5 * ipow<2>(avg_z);

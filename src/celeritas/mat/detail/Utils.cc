@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -53,7 +53,7 @@ real_type calc_coulomb_correction(AtomicNumber atomic_number)
                                   4.6566290650337837e-10,
                                   1.1641550172700519e-10};
 
-    const real_type alphazsq
+    real_type const alphazsq
         = ipow<2>(alpha_fine_structure * atomic_number.unchecked_get());
     real_type fz = 1 / (1 + alphazsq);
     real_type azpow = 1;
@@ -69,7 +69,7 @@ real_type calc_coulomb_correction(AtomicNumber atomic_number)
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate inverse of Tsai radiation length for bremsstrahlung [cm^2/g].
+ * Calculate inverse of Tsai radiation length for bremsstrahlung [len^2/mass].
  *
  * See ElementView::mass_radiation_coeff for details on this calculation and
  * how it's used.
@@ -82,13 +82,13 @@ real_type calc_mass_rad_coeff(ElementRecord const& el)
     using constants::alpha_fine_structure;
     using constants::r_electron;
 
-    const real_type z_real = el.atomic_number.unchecked_get();
+    real_type const z_real = el.atomic_number.unchecked_get();
 
     // Table 34.2 for calculating lrad/lrad prime
     real_type lrad, lrad_prime;
     switch (el.atomic_number.unchecked_get())
     {
-        // clang-format off
+            // clang-format off
         case 1: lrad = 5.31; lrad_prime = 6.144; break;
         case 2: lrad = 4.79; lrad_prime = 5.621; break;
         case 3: lrad = 4.74; lrad_prime = 5.805; break;

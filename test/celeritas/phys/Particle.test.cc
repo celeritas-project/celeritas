@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -141,7 +141,7 @@ TEST_F(ParticleImportTest, TEST_IF_CELERITAS_USE_ROOT(import_particle))
         loaded_pdgs.push_back(particles->id_to_pdg(particle_id).get());
     }
 
-    const std::string expected_loaded_names[] = {"gamma", "e-", "e+"};
+    std::string const expected_loaded_names[] = {"gamma", "e-", "e+"};
     int const expected_loaded_pdgs[] = {22, 11, -11};
 
     EXPECT_VEC_EQ(expected_loaded_names, loaded_names);

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -10,8 +10,8 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/grid/UniformGridData.hh"
-#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/UnitTypes.hh"
 
 namespace celeritas
 {
@@ -28,7 +28,7 @@ namespace celeritas
 struct XsGridData
 {
     using EnergyUnits = units::Mev;
-    using XsUnits = units::NativeUnit;  // 1/cm
+    using XsUnits = units::Native;
 
     //! "Special" value indicating none of the values are scaled by 1/E
     static CELER_CONSTEXPR_FUNCTION size_type no_scaling()
@@ -46,24 +46,6 @@ struct XsGridData
         return log_energy && (value.size() >= 2)
                && (prime_index < log_energy.size || prime_index == no_scaling())
                && log_energy.size == value.size();
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * A generic grid of 1D data with arbitrary interpolation.
- */
-struct GenericGridData
-{
-    ItemRange<real_type> grid;  //!< x grid
-    ItemRange<real_type> value;  //!< f(x) value
-    Interp grid_interp;  //!< Interpolation along x
-    Interp value_interp;  //!< Interpolation along f(x)
-
-    //! Whether the interface is initialized and valid
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return (value.size() >= 2) && grid.size() == value.size();
     }
 };
 

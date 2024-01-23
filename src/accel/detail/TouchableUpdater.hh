@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -24,10 +24,10 @@ namespace detail
 class TouchableUpdater
 {
   public:
-    //! Maximum step to try within the current volume [cm]
+    //! Maximum step to try within the current volume [len]
     static constexpr double max_step() { return 1 * units::millimeter; }
 
-    //! Warn when the step is greater than this amount [cm]
+    //! Warn when the step is greater than this amount [len]
     static constexpr double max_quiet_step()
     {
         return 1e-3 * units::millimeter;

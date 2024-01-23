@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -48,8 +48,8 @@ struct InteractionApplierBaseImpl
 /*!
  *
  * This class is partially specialized with a second template argument to
- * extract any launch bounds from the functor class. TODO: we could probably inherit
- * from a helper class to pull in those constants (if available).
+ * extract any launch bounds from the functor class. TODO: we could probably
+ * inherit from a helper class to pull in those constants (if available).
  */
 template<class F, typename = void>
 struct InteractionApplier : public InteractionApplierBaseImpl<F>
@@ -61,7 +61,8 @@ struct InteractionApplier : public InteractionApplierBaseImpl<F>
 };
 
 template<class F>
-struct InteractionApplier<F, std::enable_if_t<detail::kernel_max_blocks_min_warps<F>>>
+struct InteractionApplier<F,
+                          std::enable_if_t<detail::kernel_max_blocks_min_warps<F>>>
     : public InteractionApplierBaseImpl<F>
 {
     static constexpr int max_block_size = F::max_block_size;
@@ -89,7 +90,7 @@ struct InteractionApplier<F, std::enable_if_t<detail::kernel_max_blocks<F>>>
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class F>
-CELER_FUNCTION InteractionApplier(F&&)->InteractionApplier<F>;
+CELER_FUNCTION InteractionApplier(F&&) -> InteractionApplier<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

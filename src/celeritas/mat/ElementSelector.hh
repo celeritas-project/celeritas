@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -104,9 +104,9 @@ CELER_FUNCTION ElementSelector::ElementSelector(MaterialView const& material,
     CELER_EXPECT(storage.size() >= material.num_elements());
     for (auto i : range<size_type>(elements_.size()))
     {
-        const real_type micro_xs = calc_micro_xs(elements_[i].element);
+        real_type const micro_xs = calc_micro_xs(elements_[i].element);
         CELER_ASSERT(micro_xs >= 0);
-        const real_type frac = elements_[i].fraction;
+        real_type const frac = elements_[i].fraction;
 
         elemental_xs_[i] = micro_xs;
         material_xs_ += micro_xs * frac;

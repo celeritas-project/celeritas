@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2023 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -43,7 +43,7 @@ TEST(PrintExpected, example)
         char const* const cstrings[] = {"one", "three", "five"};
         PRINT_EXPECTED(cstrings);
 
-        const std::string strings[] = {"a", "", "special\nchars\t"};
+        std::string const strings[] = {"a", "", "special\nchars\t"};
         PRINT_EXPECTED(strings);
 
         out_result = redirect_out.str();
