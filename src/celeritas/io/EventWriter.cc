@@ -133,10 +133,10 @@ void EventWriter::operator()(VecPrimary const& primaries)
             vtx_primary = &p;
 
             HepMC3::FourVector pos;
-            pos.set_x(p.position[0]);
-            pos.set_y(p.position[1]);
-            pos.set_z(p.position[2]);
-            pos.set_t(p.time / units::centimeter * constants::c_light);
+            pos.set_x(p.position[0] / units::centimeter);
+            pos.set_y(p.position[1] / units::centimeter);
+            pos.set_z(p.position[2] / units::centimeter);
+            pos.set_t(p.time * (constants::c_light / units::centimeter));
 
             // Need to create a new virtual particle for each vertex
             auto temp_par = std::make_shared<HepMC3::GenParticle>();
