@@ -83,7 +83,6 @@
       "hidden": true,
       "description": "Build with optimizations and without debug assertions",
       "cacheVariables": {
-        "BUILD_SHARED_LIBS":{"type": "BOOL",   "value": "OFF"},
         "CELERITAS_DEBUG":  {"type": "BOOL",   "value": "OFF"},
         "CMAKE_BUILD_TYPE": {"type": "STRING", "value": "Release"},
         "CMAKE_CUDA_FLAGS_RELEASE": "-O3 -DNDEBUG",
