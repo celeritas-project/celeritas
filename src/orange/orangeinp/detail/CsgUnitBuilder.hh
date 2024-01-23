@@ -41,7 +41,7 @@ class CsgUnitBuilder
     //!@}
 
   public:
-    // Construct with a "processed unit" to build.
+    // Construct with an empty unit and tolerance settings
     inline CsgUnitBuilder(CsgUnit*, Tol const& tol);
 
     //// ACCESSORS ////
@@ -66,7 +66,7 @@ class CsgUnitBuilder
     //! Insert node metadata
     inline void insert_md(NodeId node, Metadata&& md);
 
-    //! Set a bounding box for a node
+    // Set a bounding box for a node
     void set_bbox(NodeId, BBox const&);
 
     // Mark a CSG node as a volume of real space
@@ -96,14 +96,13 @@ class CsgUnitBuilder
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with a fresh unit.
+ * Construct with an empty unit (which doesn't yet have any elements).
  */
 CsgUnitBuilder::CsgUnitBuilder(CsgUnit* u, Tolerance<> const& tol)
     : unit_{u}, tol_{tol}, insert_surface_{&unit_->surfaces, tol}
 {
     CELER_EXPECT(unit_);
-    CELER_EXPECT(unit_->metadata.size() == 0 && unit_->bboxes.size() == 0
-                 && unit_->volumes.size() == 0 && !unit_->exterior);
+    CELER_EXPECT(unit_->empty());
 }
 
 //---------------------------------------------------------------------------//

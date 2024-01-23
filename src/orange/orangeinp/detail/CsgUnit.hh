@@ -82,6 +82,9 @@ struct CsgUnit
 
     // Whether the processed unit is valid for use
     explicit inline operator bool() const;
+
+    // Whether the unit has no constructed data
+    inline bool empty() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -104,6 +107,18 @@ CsgUnit::operator bool() const
     return this->metadata.size() == this->tree.size()
            && this->bboxes.size() == this->tree.size() && !this->volumes.empty()
            && this->volumes.size() == this->fills.size();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * True if the unit has no constructed data.
+ */
+bool CsgUnit::empty() const
+{
+    return this->surfaces.empty() && this->metadata.empty()
+           && this->bboxes.empty() && this->volumes.empty()
+           && this->fills.empty() && !this->exterior
+           && this->transforms.empty();
 }
 
 //---------------------------------------------------------------------------//

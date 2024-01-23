@@ -15,7 +15,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Mark a CSG node as a volume of real space.
+ * Set a bounding box for a node.
  */
 void CsgUnitBuilder::set_bbox(NodeId n, BBox const& bbox)
 {
