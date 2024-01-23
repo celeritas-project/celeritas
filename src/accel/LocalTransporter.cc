@@ -156,9 +156,9 @@ void LocalTransporter::Push(G4Track const& g4track)
                    << g4track.GetDefinition()->GetParticleName()
                    << "' particles");
 
-    track.position = convert_from_geant(g4track.GetPosition(), CLHEP::cm);
+    track.position = convert_from_geant(g4track.GetPosition(), clhep_length);
     track.direction = convert_from_geant(g4track.GetMomentumDirection(), 1);
-    track.time = convert_from_geant(g4track.GetGlobalTime(), CLHEP::s);
+    track.time = convert_from_geant(g4track.GetGlobalTime(), clhep_time);
 
     // TODO: Celeritas track IDs are independent from Geant4 track IDs, since
     // they must be sequential from zero for a given event. We may need to save

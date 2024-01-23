@@ -205,7 +205,7 @@ auto DetectorConstruction::construct_field() const -> FieldData
         if (norm(field_val) > 0)
         {
             CELER_LOG_LOCAL(info)
-                << "Using a uniform field " << field_val << " [tesla]";
+                << "Using a uniform field " << field_val << " [T]";
             g4field = std::make_shared<G4UniformMagField>(
                 convert_to_geant(field_val, CLHEP::tesla));
         }
@@ -239,9 +239,9 @@ void DetectorConstruction::ConstructSDandField()
         auto const& field_options = GlobalSetup::Instance()->GetFieldOptions();
         auto chord_finder = std::make_unique<G4ChordFinder>(
             mag_field_.get(),
-            convert_to_geant(field_options.minimum_step, CLHEP::cm));
+            convert_to_geant(field_options.minimum_step, clhep_length));
         chord_finder->SetDeltaChord(
-            convert_to_geant(field_options.delta_chord, CLHEP::cm));
+            convert_to_geant(field_options.delta_chord, clhep_length));
 
         // Construct the magnetic field
         G4FieldManager* field_manager
@@ -251,7 +251,7 @@ void DetectorConstruction::ConstructSDandField()
         field_manager->SetChordFinder(chord_finder.release());
         field_manager->SetMinimumEpsilonStep(field_options.epsilon_step);
         field_manager->SetDeltaIntersection(
-            convert_to_geant(field_options.delta_intersection, CLHEP::cm));
+            convert_to_geant(field_options.delta_intersection, clhep_length));
     }
 
     auto sd_type = GlobalSetup::Instance()->input().sd_type;
