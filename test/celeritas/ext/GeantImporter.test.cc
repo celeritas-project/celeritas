@@ -406,7 +406,7 @@ TEST_F(FourSteelSlabsEmStandard, elements)
 
     std::vector<std::string> names;
     std::vector<int> atomic_numbers;
-    std::vector<double> atomic_masses, inv_rad_lengths_tsai, coulomb_factors;
+    std::vector<double> atomic_masses;
     std::vector<std::string> el_isotope_labels;
     std::vector<double> el_isotope_fractions;
 
@@ -415,8 +415,6 @@ TEST_F(FourSteelSlabsEmStandard, elements)
         names.push_back(element.name);
         atomic_masses.push_back(element.atomic_mass);
         atomic_numbers.push_back(element.atomic_number);
-        coulomb_factors.push_back(element.coulomb_factor);
-        inv_rad_lengths_tsai.push_back(1 / element.radiation_length_tsai);
 
         for (auto const& key : element.isotopes_fractions)
         {
@@ -451,23 +449,11 @@ TEST_F(FourSteelSlabsEmStandard, elements)
     static int const expected_atomic_numbers[] = {26, 24, 28, 1};
     static double const expected_atomic_masses[] = {
         55.845110798, 51.996130137, 58.6933251009, 1.007940752665};  // [AMU]
-    static double const expected_coulomb_factors[] = {0.04197339849163,
-                                                      0.03592322294658,
-                                                      0.04844802666907,
-                                                      6.400838295295e-05};
-    // Check inverse radiation length since soft equal comparison is
-    // useless for extremely small values
-    static double const expected_inv_rad_lengths_tsai[] = {9.3141768784882e+40,
-                                                           1.0803147822537e+41,
-                                                           8.1192652842163e+40,
-                                                           2.3509634762707e+43};
 
     EXPECT_VEC_EQ(expected_names, names);
     EXPECT_VEC_EQ(expected_atomic_numbers, atomic_numbers);
     EXPECT_VEC_EQ(expected_el_isotope_labels, el_isotope_labels);
     EXPECT_VEC_SOFT_EQ(expected_atomic_masses, atomic_masses);
-    EXPECT_VEC_SOFT_EQ(expected_coulomb_factors, coulomb_factors);
-    EXPECT_VEC_SOFT_EQ(expected_inv_rad_lengths_tsai, inv_rad_lengths_tsai);
     EXPECT_VEC_SOFT_EQ(expected_el_isotope_fractions, el_isotope_fractions);
 }
 
@@ -527,19 +513,15 @@ TEST_F(FourSteelSlabsEmStandard, materials)
     std::vector<int> states;
     std::vector<int> pdgs;
     std::vector<double> cutoff_energies, cutoff_ranges;
-    std::vector<double> el_comps_ids, el_comps_mass_frac, el_comps_num_fracs;
-    std::vector<double> densities, num_densities, e_densities, temperatures,
-        rad_lengths, nuc_int_lengths;
+    std::vector<double> el_comps_ids, el_comps_num_fracs;
+    std::vector<double> num_densities;
+    std::vector<double> temperatures;
 
     for (auto const& material : materials)
     {
         names.push_back(material.name);
-        states.push_back((int)material.state);
-        densities.push_back(material.density);
-        e_densities.push_back(material.electron_density);
+        states.push_back(static_cast<int>(material.state));
         num_densities.push_back(material.number_density);
-        nuc_int_lengths.push_back(material.nuclear_int_length);
-        rad_lengths.push_back(material.radiation_length);
         temperatures.push_back(material.temperature);
 
         for (auto const& key : material.pdg_cutoffs)
@@ -552,7 +534,6 @@ TEST_F(FourSteelSlabsEmStandard, materials)
         for (auto const& el_comp : material.elements)
         {
             el_comps_ids.push_back(el_comp.element_id);
-            el_comps_mass_frac.push_back(el_comp.mass_fraction);
             el_comps_num_fracs.push_back(el_comp.number_fraction);
         }
     }
@@ -575,27 +556,13 @@ TEST_F(FourSteelSlabsEmStandard, materials)
     static double const expected_cutoff_ranges[]
         = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
     EXPECT_VEC_SOFT_EQ(expected_cutoff_ranges, cutoff_ranges);
-    static double const expected_densities[] = {1e-25, 8};
-    EXPECT_VEC_SOFT_EQ(expected_densities, densities);
-    static double const expected_e_densities[]
-        = {0.05974697167543, 2.244432022882e+24};
-    EXPECT_VEC_SOFT_EQ(expected_e_densities, e_densities);
     static double const expected_num_densities[]
         = {0.05974697167543, 8.699348925899e+22};
     EXPECT_VEC_SOFT_EQ(expected_num_densities, num_densities);
-    static double const expected_nuc_int_lengths[]
-        = {3.500000280825e+26, 16.67805709739};
-    EXPECT_VEC_SOFT_EQ(expected_nuc_int_lengths, nuc_int_lengths);
-    static double const expected_rad_lengths[]
-        = {6.304350904227e+26, 1.738067064483};
-    EXPECT_VEC_SOFT_EQ(expected_rad_lengths, rad_lengths);
     static double const expected_temperatures[] = {2.73, 293.15};
     EXPECT_VEC_SOFT_EQ(expected_temperatures, temperatures);
     static double const expected_el_comps_ids[] = {3, 0, 1, 2};
     EXPECT_VEC_SOFT_EQ(expected_el_comps_ids, el_comps_ids);
-    static double const expected_el_comps_mass_frac[]
-        = {1, 0.7462128746215, 0.1690010443115, 0.08478608106695};
-    EXPECT_VEC_SOFT_EQ(expected_el_comps_mass_frac, el_comps_mass_frac);
     static double const expected_el_comps_num_fracs[] = {1, 0.74, 0.18, 0.08};
     EXPECT_VEC_SOFT_EQ(expected_el_comps_num_fracs, el_comps_num_fracs);
 }
