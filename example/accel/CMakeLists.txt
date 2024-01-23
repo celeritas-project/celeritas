@@ -9,7 +9,7 @@ project(CeleritasAccelExample VERSION 0.0.1 LANGUAGES CXX)
 cmake_policy(VERSION 3.12...3.22)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/..")
-find_package(Celeritas 0.4 REQUIRED)
+find_package(Celeritas 0.5 REQUIRED)
 find_package(Geant4 REQUIRED)
 
 if(NOT CELERITAS_USE_Geant4 OR CELERITAS_CORE_GEO STREQUAL "ORANGE")
