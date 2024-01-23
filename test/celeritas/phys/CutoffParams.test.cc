@@ -11,6 +11,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/RootTestBase.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/UnitUtils.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialData.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -48,7 +49,7 @@ class CutoffParamsTest : public Test
         };
         m_input.materials = {
             // Sodium iodide
-            {2.948915064677e+22,
+            {native_value_from(InvCcDensity{2.948915064677e+22}),
              293.0,
              MatterState::solid,
              {{ElementId{2}, 0.5}, {ElementId{3}, 0.5}},
@@ -56,7 +57,7 @@ class CutoffParamsTest : public Test
             // Void
             {0, 0, MatterState::unspecified, {}, "hard vacuum"},
             // Diatomic hydrogen
-            {1.0739484359044669e+20,
+            {native_value_from(InvCcDensity{1.0739484359044669e+20}),
              100.0,
              MatterState::gas,
              {{ElementId{0}, 1.0}},
@@ -225,7 +226,7 @@ TEST_F(CutoffParamsImportTest, import_cutoffs)
         {
             CutoffView cutoffs(this->cutoff()->host_ref(), mid);
             energies.push_back(cutoffs.energy(pid).value());
-            ranges.push_back(cutoffs.range(pid));
+            ranges.push_back(to_cm(cutoffs.range(pid)));
             EXPECT_FALSE(cutoffs.apply_post_interaction());
         }
     }

@@ -15,6 +15,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "celeritas/UnitUtils.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -65,7 +66,7 @@ class KernelContextExceptionTest : public SimpleTestBase, public StepperTestBase
         Primary p;
         p.particle_id = this->particle()->find(pdg::gamma());
         p.energy = MevEnergy{10};
-        p.position = {0, 1, 0};
+        p.position = from_cm(Real3{0, 1, 0});
         p.direction = {0, 0, 1};
         p.time = 0;
 
@@ -137,14 +138,14 @@ TEST_F(KernelContextExceptionTest, typical)
         EXPECT_EQ(1, e.num_steps());
         EXPECT_EQ(ParticleId{0}, e.particle());
         EXPECT_EQ(10, e.energy().value());
-        EXPECT_VEC_SOFT_EQ((Real3{0, 1, 5}), e.pos());
+        EXPECT_VEC_SOFT_EQ(from_cm(Real3{0, 1, 5}), e.pos());
         EXPECT_VEC_SOFT_EQ((Real3{0, 0, 1}), e.dir());
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             EXPECT_EQ(VolumeId{2}, e.volume());
             EXPECT_EQ(SurfaceId{11}, e.surface());
         }
-        if (CELERITAS_USE_JSON
+        if (CELERITAS_USE_JSON && CELERITAS_UNITS == CELERITAS_UNITS_CGS
             && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             std::stringstream ss;

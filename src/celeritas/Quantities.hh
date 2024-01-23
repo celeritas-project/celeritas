@@ -37,6 +37,7 @@ using CmLength = Quantity<Centimeter>;
 using InvCmXs = Quantity<UnitInverse<Centimeter>>;
 using InvCcDensity = Quantity<InvCentimeterCubed>;
 using MolCcDensity = Quantity<MolPerCentimeterCubed>;
+using GramCcDensity = Quantity<GramPerCentimeterCubed>;
 using FieldTesla = Quantity<Tesla>;
 //!@}
 //---------------------------------------------------------------------------//

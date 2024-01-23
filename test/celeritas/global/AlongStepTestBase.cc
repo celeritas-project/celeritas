@@ -13,6 +13,7 @@
 #include "corecel/io/LogContextException.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "celeritas/UnitUtils.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -22,6 +23,8 @@
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/TrackInitData.hh"
 #include "celeritas/track/TrackInitParams.hh"
+
+using TimeSecond = celeritas::Quantity<celeritas::units::Second>;
 
 namespace celeritas
 {
@@ -44,9 +47,9 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
         Primary p;
         p.particle_id = inp.particle_id;
         p.energy = inp.energy;
-        p.position = inp.position;
+        p.position = from_cm(inp.position);
         p.direction = inp.direction;
-        p.time = inp.time;
+        p.time = native_value_from(TimeSecond{inp.time});
 
         std::vector<Primary> primaries(num_tracks, p);
         for (auto i : range(num_tracks))
@@ -95,10 +98,10 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
 
         result.eloss += value_as<MevEnergy>(inp.energy)
                         - value_as<MevEnergy>(particle.energy());
-        result.displacement += distance(geo.pos(), inp.position);
+        result.displacement += distance(to_cm(geo.pos()), inp.position);
         result.angle += dot_product(geo.dir(), inp.direction);
-        result.time += sim.time();
-        result.step += sim.step_length();
+        result.time += native_value_to<TimeSecond>(sim.time()).value();
+        result.step += to_cm(sim.step_length());
         result.mfp += inp.phys_mfp - phys.interaction_mfp();
         result.alive += sim.status() == TrackStatus::alive ? 1 : 0;
         actions[sim.post_step_action()] += 1;

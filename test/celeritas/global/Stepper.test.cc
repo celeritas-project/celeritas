@@ -12,6 +12,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
+#include "celeritas/UnitUtils.hh"
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/field/UniformFieldData.hh"
@@ -50,7 +51,7 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
         CELER_ASSERT(p.particle_id);
         p.energy = units::MevEnergy{100};
         p.track_id = TrackId{0};
-        p.position = {-22, 0, 0};
+        p.position = from_cm(Real3{-22, 0, 0});
         p.direction = {1, 0, 0};
         p.time = 0;
 
@@ -80,7 +81,7 @@ class TestEm3StepperTestBase : public TestEm3Base, public StepperTestBase
         CELER_ASSERT(p.particle_id);
         p.energy = energy;
         p.track_id = TrackId{0};
-        p.position = {-22, 0, 0};
+        p.position = from_cm(Real3{-22, 0, 0});
         p.direction = {1, 0, 0};
         p.time = 0;
 

@@ -12,6 +12,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/MockTestBase.hh"
+#include "celeritas/UnitUtils.hh"
 #include "celeritas/em/process/EPlusAnnihilationProcess.hh"
 #include "celeritas/grid/EnergyLossCalculator.hh"
 #include "celeritas/grid/RangeCalculator.hh"
@@ -31,6 +32,15 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 using MevEnergy = units::MevEnergy;
+
+namespace
+{
+real_type to_inv_cm(real_type xs_native)
+{
+    return native_value_to<units::InvCmXs>(xs_native).value();
+}
+
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // PHYSICS BASE CLASS
@@ -129,6 +139,10 @@ TEST_F(PhysicsParamsTest, output)
     if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
     {
         GTEST_SKIP() << "Test results are based on double-precision data";
+    }
+    if (CELERITAS_UNITS != CELERITAS_UNITS_CGS)
+    {
+        GTEST_SKIP() << "Test results are based on CGS units";
     }
     if (!CELERITAS_USE_JSON)
     {
@@ -290,7 +304,7 @@ TEST_F(PhysicsTrackViewHostTest, track_view)
         auto s = celer.range_to_step(r);
         EXPECT_GT(s, real_type(0));
         EXPECT_LE(s, r) << "s - r == " << s - r;
-        step.push_back(s);
+        step.push_back(to_cm(s));
     }
 
     if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
@@ -451,7 +465,7 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
             auto id = phys.value_grid(ValueGridType::macro_xs, scat_ppid);
             ASSERT_TRUE(id);
             auto calc_xs = phys.make_calculator<XsCalculator>(id);
-            xs.push_back(calc_xs(MevEnergy{1.0}));
+            xs.push_back(to_inv_cm(calc_xs(MevEnergy{1.0})));
         }
     }
 
@@ -487,9 +501,11 @@ TEST_F(PhysicsTrackViewHostTest, calc_eloss_range)
         auto calc_range = phys.make_calculator<RangeCalculator>(range_id);
         for (real_type energy : {1e-6, 0.01, 1.0, 1e2})
         {
-            eloss.push_back(calc_eloss(MevEnergy{energy}));
-            range.push_back(calc_range(MevEnergy{energy}));
-            step.push_back(phys.range_to_step(range.back()));
+            // Energy loss rate per unit length (MeV / len)
+            eloss.push_back(calc_eloss(MevEnergy{energy}) * units::centimeter);
+            auto r = calc_range(MevEnergy{energy});
+            range.push_back(to_cm(r));
+            step.push_back(to_cm(phys.range_to_step(r)));
         }
     }
 
@@ -526,7 +542,8 @@ TEST_F(PhysicsTrackViewHostTest, use_integral)
         EXPECT_FALSE(phys.integral_xs_process(ppid));
 
         MaterialView material = this->material()->get(MaterialId{2});
-        EXPECT_SOFT_EQ(0.1, phys.calc_xs(ppid, material, MevEnergy{1.0}));
+        EXPECT_SOFT_EQ(
+            0.1, to_inv_cm(phys.calc_xs(ppid, material, MevEnergy{1.0})));
     }
     {
         // Energy loss tables and energy-dependent macro xs
@@ -540,9 +557,10 @@ TEST_F(PhysicsTrackViewHostTest, use_integral)
         MaterialView material = this->material()->get(MaterialId{2});
         for (real_type energy : {0.001, 0.01, 0.1, 0.11, 10.0})
         {
-            xs.push_back(phys.calc_xs(ppid, material, MevEnergy{energy}));
-            max_xs.push_back(phys.calc_max_xs(
-                integral_proc, ppid, material, MevEnergy{energy}));
+            xs.push_back(
+                to_inv_cm(phys.calc_xs(ppid, material, MevEnergy{energy})));
+            max_xs.push_back(to_inv_cm(phys.calc_max_xs(
+                integral_proc, ppid, material, MevEnergy{energy})));
         }
         double const expected_xs[] = {0.6, 36. / 55, 1.2, 1979. / 1650, 0.6};
         double const expected_max_xs[] = {0.6, 36. / 55, 1.2, 1.2, 357. / 495};
@@ -620,7 +638,8 @@ TEST_F(PhysicsTrackViewHostTest, cuda_surrogate)
 
         for (real_type energy : {1e-5, 1e-3, 1., 100., 1e5})
         {
-            step.push_back(test::calc_step(phys, pstep, MevEnergy{energy}));
+            step.push_back(
+                to_cm(test::calc_step(phys, pstep, MevEnergy{energy})));
         }
     }
 
@@ -733,7 +752,7 @@ auto EPlusAnnihilationTest::build_material() -> SPConstMaterial
 
     MaterialParams::Input mi;
     mi.elements = {{AtomicNumber{19}, AmuMass{39.0983}, {}, "K"}};
-    mi.materials = {{1e-5 * na_avogadro,
+    mi.materials = {{native_value_from(MolCcDensity{1e-5}),
                      293.,
                      MatterState::solid,
                      {{ElementId{0}, 1.0}},
@@ -806,8 +825,9 @@ TEST_F(EPlusAnnihilationTest, host_track_view)
 
     // Check cross section
     MaterialView material_view = this->material()->get(MaterialId{0});
-    EXPECT_SOFT_EQ(5.1172452607412999e-05,
-                   phys.calc_xs(ppid, material_view, MevEnergy{0.1}));
+    EXPECT_SOFT_EQ(
+        5.1172452607412999e-05,
+        to_inv_cm(phys.calc_xs(ppid, material_view, MevEnergy{0.1})));
 }
 //---------------------------------------------------------------------------//
 }  // namespace test

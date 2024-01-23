@@ -11,6 +11,7 @@
 
 #include "corecel/cont/Span.hh"
 #include "corecel/io/LogContextException.hh"
+#include "celeritas/UnitUtils.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/user/StepCollector.hh"
 
@@ -91,7 +92,10 @@ auto MctruthTestBase::run(size_type num_tracks, size_type num_steps)
         result.track.push_back(s.track);
         result.step.push_back(s.step);
         result.volume.push_back(s.volume);
-        result.pos.insert(result.pos.end(), std::begin(s.pos), std::end(s.pos));
+        for (auto pos_v : s.pos)
+        {
+            result.pos.push_back(to_cm(pos_v));
+        }
         result.dir.insert(result.dir.end(), std::begin(s.dir), std::end(s.dir));
     }
     return result;

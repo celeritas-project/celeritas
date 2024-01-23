@@ -151,6 +151,12 @@ struct MolPerCentimeterCubed : UnitProduct<Mol, InvCentimeterCubed>
     static char const* label() { return "mol/cm^3"; }
 };
 
+//! Mass density
+struct GramPerCentimeterCubed : UnitProduct<Gram, InvCentimeterCubed>
+{
+    static char const* label() { return "g/cm^3"; }
+};
+
 //!@}
 //---------------------------------------------------------------------------//
 //!@{

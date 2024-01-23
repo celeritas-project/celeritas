@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/MockTestBase.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/em/FluctuationParams.hh"
 #include "celeritas/em/distribution/EnergyLossDeltaDistribution.hh"
 #include "celeritas/em/distribution/EnergyLossGammaDistribution.hh"
@@ -66,7 +67,7 @@ class EnergyLossDistributionTest : public Test
         MaterialParams::Input mat_inp;
         mat_inp.elements = {{AtomicNumber{18}, AmuMass{39.948}, {}, "Ar"}};
         mat_inp.materials = {
-            {1.0 * na_avogadro,
+            {native_value_from(MolCcDensity{1.0}),
              293.0,
              MatterState::solid,
              {{ElementId{0}, 1.0}},
@@ -150,7 +151,7 @@ TEST_F(EnergyLossDistributionTest, none)
     MevEnergy mean_loss{2e-6};
 
     // Tiny step, little energy loss
-    real_type step = 1e-6;
+    real_type step = 1e-6 * units::centimeter;
     EnergyLossHelper helper(
         fluct->host_ref(), cutoff, material, particle, mean_loss, step);
     EXPECT_EQ(EnergyLossFluctuationModel::none, helper.model());
@@ -181,7 +182,7 @@ TEST_F(EnergyLossDistributionTest, gaussian)
     // Larger step samples from gamma distribution, smaller step from Gaussian
     {
         real_type sum = 0;
-        real_type step = 5e-2;
+        real_type step = 5e-2 * units::centimeter;
         EnergyLossHelper helper(
             fluct->host_ref(), cutoff, material, particle, mean_loss, step);
         EXPECT_EQ(EnergyLossFluctuationModel::gamma, helper.model());
@@ -206,7 +207,7 @@ TEST_F(EnergyLossDistributionTest, gaussian)
     }
     {
         real_type sum = 0;
-        real_type step = 5e-4;
+        real_type step = 5e-4 * units::centimeter;
         EnergyLossHelper helper(
             fluct->host_ref(), cutoff, material, particle, mean_loss, step);
         EXPECT_SOFT_EQ(0.00019160444039613,
@@ -244,7 +245,7 @@ TEST_F(EnergyLossDistributionTest, urban)
     material = {MaterialId{0}};
     CutoffView cutoff(cutoffs->host_ref(), MaterialId{0});
     MevEnergy mean_loss{0.01};
-    real_type step = 0.01;
+    real_type step = 0.01 * units::centimeter;
 
     int num_samples = 10000;
     std::vector<real_type> counts(20);

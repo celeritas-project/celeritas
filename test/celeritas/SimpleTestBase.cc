@@ -33,7 +33,7 @@ auto SimpleTestBase::build_material() -> SPConstMaterial
 
     MaterialParams::Input inp;
     inp.elements = {{AtomicNumber{13}, AmuMass{27}, {}, "Al"}};
-    inp.materials = {{2.7 * constants::na_avogadro / 27,
+    inp.materials = {{native_value_from(MolCcDensity{0.1}),
                       293.0,
                       MatterState::solid,
                       {{ElementId{0}, 1.0}},
@@ -116,7 +116,7 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
         ImportPhysicsTable lambda;
         lambda.table_type = ImportTableType::lambda;
         lambda.x_units = ImportUnits::mev;
-        lambda.y_units = ImportUnits::cm_inv;
+        lambda.y_units = ImportUnits::len_inv;
         lambda.physics_vectors = {
             {ImportPhysicsVectorType::log,
              {1e-4, 1.0},  // energy
@@ -131,7 +131,7 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
         ImportPhysicsTable lambdap;
         lambdap.table_type = ImportTableType::lambda_prim;
         lambdap.x_units = ImportUnits::mev;
-        lambdap.y_units = ImportUnits::cm_mev_inv;
+        lambdap.y_units = ImportUnits::len_mev_inv;
         lambdap.physics_vectors = {
             {ImportPhysicsVectorType::log,
              {1.0, 1e4, 1e8},  // energy

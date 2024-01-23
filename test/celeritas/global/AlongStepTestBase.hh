@@ -42,9 +42,9 @@ class AlongStepTestBase : virtual public GlobalTestBase
     {
         ParticleId particle_id;
         MevEnergy energy{0};
-        Real3 position{0, 0, 0};
+        Real3 position{0, 0, 0};  // [cm]
         Real3 direction{0, 0, 1};
-        real_type time{0};
+        real_type time{0};  // [s]
         real_type phys_mfp{1};  //!< Number of MFP to collision
         MscRange msc_range{0, 0, 0};
 

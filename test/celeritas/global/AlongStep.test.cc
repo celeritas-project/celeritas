@@ -9,6 +9,7 @@
 
 #include "celeritas/SimpleCmsTestBase.hh"
 #include "celeritas/TestEm3Base.hh"
+#include "celeritas/UnitUtils.hh"
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
@@ -518,7 +519,9 @@ TEST_F(SimpleCmsAlongStepTest, msc_field_finegrid)
         inp.energy = MevEnergy{1.76660104663773580e-3};
         // The track is taking its second step in the EM calorimeter, so uses
         // the cached MSC range values from the previous step
-        inp.msc_range = {8.43525996595540601e-4, 0.04, 1.34976131122020193e-5};
+        inp.msc_range = {from_cm(8.43525996595540601e-4),
+                         0.04,
+                         from_cm(1.34976131122020193e-5)};
         inp.position = {
             59.3935490766840459, -109.988210668881749, -81.7228237502843484};
         inp.direction = {
@@ -539,8 +542,13 @@ TEST_F(SimpleCmsAlongStepTest, msc_field_finegrid)
 }
 
 // Test nearly tangent value nearly on the boundary
-TEST_F(SimpleCmsRZFieldAlongStepTest, TEST_IF_CELERITAS_DOUBLE(msc_rzfield))
+TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield)
 {
+    if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        GTEST_SKIP() << "This edge case only occurs with double";
+    }
+
     size_type num_tracks = 128;
     Input inp;
     {
@@ -569,7 +577,9 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield_finegrid)
         inp.energy = MevEnergy{1.76660104663773580e-3};
         // The track is taking its second step in the EM calorimeter, so uses
         // the cached MSC range values from the previous step
-        inp.msc_range = {8.43525996595540601e-4, 0.04, 1.34976131122020193e-5};
+        inp.msc_range = {from_cm(8.43525996595540601e-4),
+                         0.04,
+                         from_cm(1.34976131122020193e-5)};
         inp.position = {
             59.3935490766840459, -109.988210668881749, -81.7228237502843484};
         inp.direction = {

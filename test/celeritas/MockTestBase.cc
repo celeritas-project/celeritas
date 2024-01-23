@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "MockTestBase.hh"
 
+#include "corecel/math/Algorithms.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
@@ -62,23 +63,23 @@ auto MockTestBase::build_material() -> SPConstMaterial
     inp.elements = {{AtomicNumber{1}, AmuMass{1.0}, {}, "celerogen"},
                     {AtomicNumber{4}, AmuMass{10.0}, {}, "celerinium"},
                     {AtomicNumber{15}, AmuMass{30.0}, {}, "celeron"}};
-    inp.materials.push_back({1e20,
+    inp.materials.push_back({native_value_from(InvCcDensity{1e20}),
                              300,
                              MatterState::gas,
                              {{ElementId{0}, 1.0}},
                              "lo density celerogen"});
-    inp.materials.push_back({1e21,
+    inp.materials.push_back({native_value_from(InvCcDensity{1e21}),
                              300,
                              MatterState::liquid,
                              {{ElementId{0}, 1.0}},
                              "hi density celerogen"});
     inp.materials.push_back(
-        {1e23,
+        {native_value_from(InvCcDensity{1e23}),
          300,
          MatterState::solid,
          {{ElementId{0}, 0.1}, {ElementId{1}, 0.3}, {ElementId{2}, 0.6}},
          "celer composite"});
-    inp.materials.push_back({1.0,
+    inp.materials.push_back({native_value_from(InvCcDensity{1.0}),
                              2.7,
                              MatterState::gas,
                              {{ElementId{0}, 1.0}},
@@ -181,7 +182,8 @@ auto MockTestBase::build_physics() -> SPConstPhysics
                       make_applicability("celeriton", 1, 10),
                       make_applicability("celeriton", 10, 100)};
         inp.xs = {Barn{3.0}, Barn{3.0}};
-        inp.energy_loss = 0.6 * 1e-20;  // 0.6 MeV/cm in celerogen
+        inp.energy_loss = MevCmSqLossDens{0.6 * 1e-20};  // 0.6 MeV/cm in
+                                                         // celerogen
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     {
@@ -191,7 +193,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         inp.applic = {make_applicability("anti-celeriton", 1e-3, 1),
                       make_applicability("anti-celeriton", 1, 100)};
         inp.xs = {Barn{4.0}, Barn{4.0}};
-        inp.energy_loss = 0.7 * 1e-20;
+        inp.energy_loss = MevCmSqLossDens{0.7 * 1e-20};
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     {
@@ -209,7 +211,7 @@ auto MockTestBase::build_physics() -> SPConstPhysics
         inp.use_integral_xs = true;
         inp.applic = {make_applicability("electron", 1e-5, 10)};
         inp.xs = {Barn{0}, Barn{6.0}, Barn{12.0}, Barn{6.0}};
-        inp.energy_loss = 0.5 * 1e-20;
+        inp.energy_loss = MevCmSqLossDens{0.5 * 1e-20};
         physics_inp.processes.push_back(std::make_shared<MockProcess>(inp));
     }
     return std::make_shared<PhysicsParams>(std::move(physics_inp));
