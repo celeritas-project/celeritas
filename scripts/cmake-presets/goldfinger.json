@@ -59,6 +59,15 @@
       }
     },
     {
+      "name": "clhep",
+      "displayName": "With CLHEP units",
+      "inherits": [".base", ".debug", "default"],
+      "cacheVariables": {
+        "CELERITAS_UNITS": "CLHEP",
+        "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "ON"}
+      }
+    },
+    {
       "name": "vecgeom",
       "displayName": "With vecgeom",
       "inherits": [".base", ".debug", "default"],
