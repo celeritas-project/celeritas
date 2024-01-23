@@ -77,8 +77,8 @@ class MscStepToGeo
 
     struct result_type
     {
-        real_type step{};  //!< Geometrical step length
-        real_type alpha{0};  //!< Scaled MFP slope
+        real_type step{};  //!< Geometrical step length [len]
+        real_type alpha{0};  //!< Scaled MFP slope [1/len]
     };
 
   public:
