@@ -11,8 +11,6 @@
 #include <string>
 #include <vector>
 
-#include "corecel/Macros.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -45,8 +43,7 @@ struct ImportProductionCut
 struct ImportMatElemComponent
 {
     unsigned int element_id{};  //!< Index of element in ImportElement
-    double mass_fraction{};  //!< [mass/length^3]
-    double number_fraction{};
+    double number_fraction{};  //!< [unitless]
 };
 
 //---------------------------------------------------------------------------//
@@ -64,14 +61,17 @@ struct ImportMaterial
     std::string name{};
     ImportMaterialState state{ImportMaterialState::size_};
     double temperature;  //!< [K]
-    double density;  //!< [mass/length^3]
-    double electron_density;  //!< [1/length^3]
     double number_density;  //!< [1/length^3]
-    double radiation_length;  //!< [length]
-    double nuclear_int_length;  //!< [length]
     MapIntCutoff pdg_cutoffs;  //!< Cutoff per PDG
     VecComponent elements;
 };
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+// Get the string label for material state
+char const* to_cstring(ImportMaterialState s);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

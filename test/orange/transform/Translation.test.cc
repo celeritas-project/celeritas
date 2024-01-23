@@ -7,6 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "orange/transform/Translation.hh"
 
+#include <sstream>
+
+#include "orange/transform/TransformIO.hh"
+
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -17,6 +21,14 @@ namespace test
 class TranslatorTest : public Test
 {
 };
+
+TEST_F(TranslatorTest, output)
+{
+    Translation tr{Real3{1, 2, 3}};
+    std::ostringstream os;
+    os << tr;
+    EXPECT_EQ("{{1,2,3}}", os.str());
+}
 
 TEST_F(TranslatorTest, translation)
 {

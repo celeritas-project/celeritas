@@ -30,6 +30,7 @@ list(APPEND SOURCES
   detail/SurfacesRecordBuilder.cc
   detail/UnitInserter.cc
   detail/UniverseInserter.cc
+  orangeinp/detail/CsgUnitBuilder.cc
   surf/ConeAligned.cc
   surf/CylAligned.cc
   surf/FaceNamer.cc
@@ -46,6 +47,7 @@ list(APPEND SOURCES
   surf/detail/SurfaceTranslator.cc
   surf/detail/SurfaceTransformer.cc
   transform/SignedPermutation.cc
+  transform/TransformIO.cc
   transform/Transformation.cc
   transform/VariantTransform.cc
 )
