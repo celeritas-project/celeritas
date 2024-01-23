@@ -49,6 +49,9 @@ auto ProcessBuilder::get_all_process_classes(
 /*!
  * Construct imported process data.
  *
+ * \pre The import data must have already been converted to the native unit
+ * system.
+ *
  * \warning If Livermore and SB data is present in the import data, their
  * lifetime must extend beyond the \c ProcessBuilder instance.
  */
@@ -67,6 +70,7 @@ ProcessBuilder::ProcessBuilder(ImportData const& data,
 {
     CELER_EXPECT(input_.material);
     CELER_EXPECT(input_.particle);
+    CELER_EXPECT(std::string(data.units) == units::NativeTraits::label());
 
     input_.imported = std::make_shared<ImportedProcesses>(data.processes);
 

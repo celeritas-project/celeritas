@@ -40,6 +40,12 @@ namespace celeritas
  * atomic numbers, and thus are stored in maps. To retrieve specific data use
  * \c find(atomic_number) .
  *
+ * The unit system of the data is stored in the "units" string. If empty
+ * (backward compatibility) or "CGS" the embedded contents are in CGS. If
+ * "CLHEP" the units are CLHEP. The \c convert_to_native function will
+ * convert a data structure in place and update the units label. Refer to \c
+ * base/Units.hh for further information on unit systems.
+ *
  * The "processes" field may be empty for testing applications.
  */
 struct ImportData
@@ -64,7 +70,16 @@ struct ImportData
     ImportSBMap sb_data;
     ImportLivermorePEMap livermore_pe_data;
     ImportAtomicRelaxationMap atomic_relaxation_data;
+
+    std::string units;  //!< "cgs", "clhep", or "si"
 };
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+// Recursively convert imported data to the native unit type
+void convert_to_native(ImportData* data);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

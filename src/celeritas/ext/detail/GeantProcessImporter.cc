@@ -166,7 +166,7 @@ double units_to_scaling(ImportUnits units)
             return cm / (MeV * MeV);
         case ImportUnits::cm_2:
             return 1 / (cm * cm);
-        case ImportUnits::size_:
+        default:
             CELER_ASSERT_UNREACHABLE();
     }
     CELER_ASSERT_UNREACHABLE();

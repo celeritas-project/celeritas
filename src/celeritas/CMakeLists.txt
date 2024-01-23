@@ -46,13 +46,16 @@ list(APPEND SOURCES
   grid/ValueGridInserter.cc
   grid/VectorUtils.cc
   io/AtomicRelaxationReader.cc
+  io/ImportData.cc
   io/ImportMaterial.cc
   io/ImportModel.cc
   io/ImportPhysicsTable.cc
   io/ImportPhysicsVector.cc
   io/ImportProcess.cc
+  io/ImportUnits.cc
   io/LivermorePEReader.cc
   io/SeltzerBergerReader.cc
+  io/detail/ImportDataConverter.cc
   mat/MaterialParams.cc
   mat/MaterialParamsOutput.cc
   mat/detail/Utils.cc
@@ -193,6 +196,7 @@ if(CELERITAS_USE_ROOT)
     "celeritas/io/ImportPhysicsTable.hh"
     "celeritas/io/ImportPhysicsVector.hh"
     "celeritas/io/ImportProcess.hh"
+    "celeritas/io/ImportUnits.hh"
     "celeritas/io/ImportVolume.hh"
     "celeritas/io/EventData.hh"
     NOINSTALL
