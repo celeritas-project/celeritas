@@ -126,13 +126,13 @@ template<Ownership W, MemSpace M>
 struct MaterialParamsData
 {
     template<class T>
-    using Items = celeritas::Collection<T, W, M>;
+    using Items = Collection<T, W, M>;
 
     Items<IsotopeRecord> isotopes;
     Items<ElementRecord> elements;
     Items<ElIsotopeComponent> isocomponents;
     Items<MatElementComponent> elcomponents;
-    Items<MaterialRecord> materials;
+    Collection<MaterialRecord, W, M, MaterialId> materials;
     IsotopeComponentId::size_type max_isotope_components{};
     ElementComponentId::size_type max_element_components{};
 
@@ -187,7 +187,7 @@ template<Ownership W, MemSpace M>
 struct MaterialStateData
 {
     template<class T>
-    using Items = celeritas::StateCollection<T, W, M>;
+    using Items = StateCollection<T, W, M>;
 
     Items<MaterialTrackState> state;
     Items<real_type> element_scratch;  // 2D array: [num states][max

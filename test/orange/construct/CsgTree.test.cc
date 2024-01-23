@@ -7,13 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "orange/construct/CsgTree.hh"
 
-#include "celeritas_config.h"
-
 #include "celeritas_test.hh"
-
-#if CELERITAS_USE_JSON
-#    include "orange/construct/CsgTreeIO.json.hh"
-#endif
+#include "../CsgTestUtils.hh"
 
 using N = celeritas::csg::NodeId;
 using S = celeritas::LocalSurfaceId;
@@ -82,12 +77,7 @@ class CsgTreeTest : public ::celeritas::test::Test
 
     std::string to_json_string() const
     {
-#if CELERITAS_USE_JSON
-        nlohmann::json obj{tree_};
-        return obj.dump();
-#else
-        return {};
-#endif
+        return ::celeritas::test::to_json_string(tree_);
     }
 };
 

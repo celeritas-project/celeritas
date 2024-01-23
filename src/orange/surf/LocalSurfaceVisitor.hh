@@ -50,7 +50,7 @@ class LocalSurfaceVisitor
     // Apply the function to the surface specified by the given ID
     template<class F>
     inline CELER_FUNCTION decltype(auto)
-    operator()(F && typed_visitor, LocalSurfaceId t);
+    operator()(F&& typed_visitor, LocalSurfaceId t);
 
   private:
     //// TYPES ////

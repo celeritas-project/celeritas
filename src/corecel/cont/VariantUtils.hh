@@ -101,7 +101,7 @@ class ContainerVisitor
 
     //! Visit the functor upon the value at the given index
     template<class F>
-    decltype(auto) operator()(F && func, U const& idx) const
+    decltype(auto) operator()(F&& func, U const& idx) const
     {
         auto&& value = container_[idx];
         CELER_ASSUME(!value.valueless_by_exception());

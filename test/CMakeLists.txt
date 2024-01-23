@@ -201,9 +201,11 @@ celeritas_add_test(corecel/sys/Version.test.cc)
 
 celeritas_add_library(testcel_orange
   orange/OrangeGeoTestBase.cc
+  orange/CsgTestUtils.cc
 )
 celeritas_target_link_libraries(testcel_orange
   PRIVATE Celeritas::testcel_harness Celeritas::testcel_core Celeritas::orange
+  ${nlohmann_json_LIBRARIES}
 )
 
 celeritas_setup_tests(SERIAL PREFIX orange
@@ -224,14 +226,6 @@ celeritas_add_test(orange/detail/BIHBuilder.test.cc)
 celeritas_add_test(orange/detail/BIHTraverser.test.cc)
 celeritas_add_test(orange/detail/BIHUtils.test.cc)
 celeritas_add_test(orange/detail/UniverseIndexer.test.cc)
-
-#-----------------------------------------------------------------------------#
-# Construct
-set(CELERITASTEST_PREFIX orange/construct)
-celeritas_add_test(orange/construct/CsgTree.test.cc
-  LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
-celeritas_add_test(orange/construct/CsgTreeUtils.test.cc)
-celeritas_add_test(orange/construct/LocalSurfaceInserter.test.cc)
 
 #-------------------------------------#
 # Transforms
@@ -264,6 +258,16 @@ celeritas_add_device_test(orange/surf/LocalSurfaceVisitor)
 celeritas_add_test(orange/surf/detail/QuadraticSolver.test.cc)
 celeritas_add_test(orange/surf/detail/SurfaceTranslator.test.cc)
 celeritas_add_test(orange/surf/detail/SurfaceTransformer.test.cc)
+
+#-----------------------------------------------------------------------------#
+# Construct
+set(CELERITASTEST_PREFIX orange/construct)
+celeritas_add_test(orange/construct/CsgTree.test.cc)
+celeritas_add_test(orange/construct/CsgTreeUtils.test.cc)
+celeritas_add_test(orange/construct/LocalSurfaceInserter.test.cc)
+
+set(CELERITASTEST_PREFIX orange/orangeinp)
+celeritas_add_test(orange/orangeinp/detail/CsgUnitBuilder.test.cc)
 
 #-------------------------------------#
 # Universe details
