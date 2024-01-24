@@ -49,8 +49,8 @@ TEST(CMSParameterizedFieldTest, all)
     CMSParameterizedField calc_field;
 
     int const nsamples = 8;
-    real_type delta_z = native_value_from(units::CmLength{25.0});
-    real_type delta_r = native_value_from(units::CmLength{12.0});
+    real_type const delta_z = from_cm(25.0);
+    real_type const delta_r = from_cm(12.0);
 
     std::vector<real_type> actual;
 

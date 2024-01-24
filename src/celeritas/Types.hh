@@ -185,7 +185,7 @@ struct StepLimit
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//
 
-// Get a string corresponding to a material state
+// Get a string corresponding to a unit system
 char const* to_cstring(UnitSystem);
 
 // Get a unit system corresponding to a string
