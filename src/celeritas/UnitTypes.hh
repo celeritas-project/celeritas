@@ -8,10 +8,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <utility>
+
 #include "celeritas_config.h"
 #include "corecel/math/UnitUtils.hh"
 
 #include "Constants.hh"
+#include "Types.hh"
 #include "Units.hh"
 
 namespace celeritas
@@ -251,43 +254,75 @@ struct LogMev
 //---------------------------------------------------------------------------//
 
 //! Traits class for units
-template<int>
-struct UnitTraits;
+template<UnitSystem>
+struct UnitSystemTraits;
 
 //! CGS unit traits
 template<>
-struct UnitTraits<CELERITAS_UNITS_CGS>
+struct UnitSystemTraits<UnitSystem::cgs>
 {
     using Length = Centimeter;
     using Mass = Gram;
     using Time = Second;
     using BField = Gauss;  //!< Magnetic flux density
+
+    static char const* label() { return "cgs"; }
 };
 
 //! SI unit traits
 template<>
-struct UnitTraits<CELERITAS_UNITS_SI>
+struct UnitSystemTraits<UnitSystem::si>
 {
     using Length = Meter;
     using Mass = Kilogram;
     using Time = Second;
     using BField = Tesla;
+
+    static char const* label() { return "si"; }
 };
 
 //! CLHEP unit traits
 template<>
-struct UnitTraits<CELERITAS_UNITS_CLHEP>
+struct UnitSystemTraits<UnitSystem::clhep>
 {
     using Length = Millimeter;
     using Mass = ClhepUnitMass;
     using Time = Nanosecond;
     using BField = ClhepUnitBField;
+
+    static char const* label() { return "clhep"; }
 };
 
-using CgsTraits = UnitTraits<CELERITAS_UNITS_CGS>;
-using SiTraits = UnitTraits<CELERITAS_UNITS_SI>;
-using ClhepTraits = UnitTraits<CELERITAS_UNITS_CLHEP>;
-using NativeTraits = UnitTraits<CELERITAS_UNITS>;
+using CgsTraits = UnitSystemTraits<UnitSystem::cgs>;
+using SiTraits = UnitSystemTraits<UnitSystem::si>;
+using ClhepTraits = UnitSystemTraits<UnitSystem::clhep>;
+using NativeTraits = UnitSystemTraits<UnitSystem::native>;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Expand a macro to a switch statement over all possible unit system types.
+ *
+ * This is *not* a \c CELER_FUNCTION because unit conversion should be done
+ * only during preprocessing on the CPU.
+ */
+template<class F>
+constexpr decltype(auto) visit_unit_system(F&& func, UnitSystem sys)
+{
+#define CELER_US_VISIT_CASE(TYPE) \
+    case UnitSystem::TYPE:        \
+        return std::forward<F>(func)(UnitSystemTraits<UnitSystem::TYPE>{});
+
+    switch (sys)
+    {
+        CELER_US_VISIT_CASE(cgs);
+        CELER_US_VISIT_CASE(si);
+        CELER_US_VISIT_CASE(clhep);
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    }
+
+#undef CELER_US_VISIT_CASE
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace units

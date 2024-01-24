@@ -12,8 +12,6 @@
 
 namespace celeritas
 {
-#define CFIF_ CELER_FORCEINLINE_FUNCTION
-
 //---------------------------------------------------------------------------//
 /*!
  * Fixed-size simple array for storage.
@@ -52,24 +50,33 @@ struct Array
 
     //!@{
     //! \name Element access
-    CFIF_ const_reference operator[](size_type i) const { return data_[i]; }
-    CFIF_ reference operator[](size_type i) { return data_[i]; }
-    CFIF_ const_reference front() const { return data_[0]; }
-    CFIF_ reference front() { return data_[0]; }
-    CFIF_ const_reference back() const { return data_[N - 1]; }
-    CFIF_ reference back() { return data_[N - 1]; }
-    CFIF_ const_pointer data() const { return data_; }
-    CFIF_ pointer data() { return data_; }
+    CELER_CONSTEXPR_FUNCTION const_reference operator[](size_type i) const
+    {
+        return data_[i];
+    }
+    CELER_CONSTEXPR_FUNCTION reference operator[](size_type i)
+    {
+        return data_[i];
+    }
+    CELER_CONSTEXPR_FUNCTION const_reference front() const { return data_[0]; }
+    CELER_CONSTEXPR_FUNCTION reference front() { return data_[0]; }
+    CELER_CONSTEXPR_FUNCTION const_reference back() const
+    {
+        return data_[N - 1];
+    }
+    CELER_CONSTEXPR_FUNCTION reference back() { return data_[N - 1]; }
+    CELER_CONSTEXPR_FUNCTION const_pointer data() const { return data_; }
+    CELER_CONSTEXPR_FUNCTION pointer data() { return data_; }
     //!@}
 
     //!@{
     //! \name Iterators
-    CFIF_ iterator begin() { return data_; }
-    CFIF_ iterator end() { return data_ + N; }
-    CFIF_ const_iterator begin() const { return data_; }
-    CFIF_ const_iterator end() const { return data_ + N; }
-    CFIF_ const_iterator cbegin() const { return data_; }
-    CFIF_ const_iterator cend() const { return data_ + N; }
+    CELER_CONSTEXPR_FUNCTION iterator begin() { return data_; }
+    CELER_CONSTEXPR_FUNCTION iterator end() { return data_ + N; }
+    CELER_CONSTEXPR_FUNCTION const_iterator begin() const { return data_; }
+    CELER_CONSTEXPR_FUNCTION const_iterator end() const { return data_ + N; }
+    CELER_CONSTEXPR_FUNCTION const_iterator cbegin() const { return data_; }
+    CELER_CONSTEXPR_FUNCTION const_iterator cend() const { return data_ + N; }
     //!@}
 
     //!@{
@@ -81,7 +88,7 @@ struct Array
     //!@{
     //! \name  Operations
     //! Fill the array with a constant value
-    CFIF_ void fill(const_reference value)
+    CELER_CONSTEXPR_FUNCTION void fill(const_reference value)
     {
         for (size_type i = 0; i != N; ++i)
             data_[i] = value;
@@ -117,8 +124,6 @@ operator!=(Array<T, N> const& lhs, Array<T, N> const& rhs)
 {
     return !(lhs == rhs);
 }
-
-#undef CFIF_
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
