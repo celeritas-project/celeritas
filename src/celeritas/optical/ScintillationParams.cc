@@ -15,16 +15,23 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with scintillation data.
+ * Construct with scintillation input data.
  */
-ScintillationParams::ScintillationParams(ScintillationDataCRef const& data)
+ScintillationParams::ScintillationParams(ScintillationInput const& input)
 {
-    CELER_EXPECT(data);
     HostVal<ScintillationData> host_data;
 
-    host_data = data;
+    CollectionBuilder spectra(&host_data.spectra);
+    CollectionBuilder components(&host_data.components);
+    for (auto const& spec : input.data)
+    {
+        ScintillationSpectrum spectrum;
+        spectrum.components = components.insert_back(spec.begin(), spec.end());
+        spectra.push_back(spectrum);
+    }
+
     mirror_ = CollectionMirror<ScintillationData>{std::move(host_data)};
-    CELER_ENSURE(mirror_ || data.spectrum.empty());
+    CELER_ENSURE(mirror_);
 }
 
 //---------------------------------------------------------------------------//

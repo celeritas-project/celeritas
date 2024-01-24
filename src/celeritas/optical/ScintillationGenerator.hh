@@ -66,12 +66,11 @@ class ScintillationGenerator
     //// DATA ////
 
     OpticalDistributionData const& dist_;
-    ScintillationSpectrum const& spectrum_;
+    NativeCRef<ScintillationData> const& shared_;
     Span<OpticalPrimary> photons_;
 
     UniformRealDist sample_cost_;
     UniformRealDist sample_phi_;
-    ExponentialDist sample_time_;
 
     bool is_neutral_{};
     units::LightSpeed delta_speed_{};
@@ -90,14 +89,14 @@ ScintillationGenerator::ScintillationGenerator(
     NativeCRef<ScintillationData> const& shared,
     Span<OpticalPrimary> photons)
     : dist_(dist)
-    , spectrum_(shared.spectrum[dist_.material])
+    , shared_(shared)
     , photons_(photons)
     , sample_cost_(-1, 1)
     , sample_phi_(0, 2 * constants::pi)
-    , sample_time_(real_type{1} / spectrum_.fall_time[0])
     , is_neutral_{dist_.charge == zero_quantity()}
 {
     CELER_EXPECT(dist_);
+    CELER_EXPECT(shared_);
     CELER_EXPECT(photons_.size() == dist_.num_photons);
 
     auto const& pre_step = dist_.points[StepPoint::pre];
@@ -128,36 +127,31 @@ ScintillationGenerator::operator()(Generator& rng)
 {
     // Loop for generating scintillation photons
     size_type num_generated{0};
-
-    // Calculate the number of photons for each scintillation component
-    Array<size_type, ScintillationSpectrum::size> num_photons{};
     size_type remaining = dist_.num_photons;
-    for (auto sid : range(spectrum_.size))
+
+    ScintillationSpectrum const& spectrum = shared_.spectra[dist_.material];
+
+    for (auto sid : spectrum.components)
     {
-        num_photons[sid] = static_cast<size_type>(dist_.num_photons
-                                                  * spectrum_.yield_prob[sid]);
-        remaining -= num_photons[sid];
-    }
+        ScintillationComponent component = shared_.components[sid];
+        size_type num_photons
+            = static_cast<size_type>(dist_.num_photons * component.yield_prob);
+        remaining -= num_photons;
 
-    // Add remaining due to the rounding off, if any, to the first component
-    if (remaining != 0)
-    {
-        num_photons[0] += remaining;
-    }
+        // Add remaining due to the rounding off, if any, to the last component
+        if (sid.unchecked_get() + 1
+            == spectrum.components.end()->unchecked_get())
+        {
+            num_photons += remaining;
+        }
+        CELER_EXPECT(num_generated + num_photons <= dist_.num_photons);
 
-    for (auto sid : range(spectrum_.size))
-    {
-        // Skip if there is no emission wavelength
-        if (spectrum_.lambda_mean[sid] <= 0)
-            continue;
+        // Sample photons for each scintillation component
+        NormalDistribution<real_type> sample_lambda(component.lambda_mean,
+                                                    component.lambda_sigma);
+        ExponentialDist sample_time(real_type{1} / component.fall_time);
 
-        NormalDistribution<real_type> sample_lambda(
-            spectrum_.lambda_mean[sid], spectrum_.lambda_sigma[sid]);
-
-        CELER_EXPECT(num_generated + num_photons[sid] <= dist_.num_photons);
-
-        for (size_type i :
-             range(num_generated, num_generated + num_photons[sid]))
+        for (size_type i : range(num_generated, num_generated + num_photons))
         {
             // Sample wavelength and convert to energy
             real_type wave_length = sample_lambda(rng);
@@ -194,9 +188,9 @@ ScintillationGenerator::operator()(Generator& rng)
                   / (native_value_from(dist_.points[StepPoint::pre].speed)
                      + u * real_type(0.5) * native_value_from(delta_speed_));
 
-            if (spectrum_.rise_time[sid] == 0)
+            if (component.rise_time == 0)
             {
-                delta_time -= spectrum_.fall_time[sid]
+                delta_time -= component.fall_time
                               * std::log(generate_canonical(rng));
             }
             else
@@ -205,16 +199,15 @@ ScintillationGenerator::operator()(Generator& rng)
                 real_type envelop{};
                 do
                 {
-                    scint_time = sample_time_(rng);
-                    envelop
-                        = -std::expm1(-scint_time / spectrum_.rise_time[sid]);
+                    scint_time = sample_time(rng);
+                    envelop = -std::expm1(-scint_time / component.rise_time);
                 } while (!BernoulliDistribution(envelop)(rng));
                 delta_time += scint_time;
             }
             CELER_ASSERT(delta_time >= 0);
             photons_[i].time = dist_.time + delta_time;
         }
-        num_generated += num_photons[sid];
+        num_generated += num_photons;
     }
     CELER_ASSERT(num_generated == dist_.num_photons);
 
