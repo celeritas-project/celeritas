@@ -44,7 +44,7 @@ class TrackerVisitor
 
     // Apply the function to the universe specified by the given ID
     template<class F>
-    CELER_FUNCTION decltype(auto) operator()(F && func, UniverseId id);
+    CELER_FUNCTION decltype(auto) operator()(F&& func, UniverseId id);
 
   private:
     ParamsRef const& params_;
