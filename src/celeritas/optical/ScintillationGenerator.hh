@@ -129,6 +129,22 @@ ScintillationGenerator::operator()(Generator& rng)
     // Loop for generating scintillation photons
     size_type num_generated{0};
 
+    // Calculate the number of photons for each scintillation component
+    Array<size_type, ScintillationSpectrum::size> num_photons{};
+    size_type remaining = dist_.num_photons;
+    for (auto sid : range(spectrum_.size))
+    {
+        num_photons[sid] = static_cast<size_type>(dist_.num_photons
+                                                  * spectrum_.yield_prob[sid]);
+        remaining -= num_photons[sid];
+    }
+
+    // Add remaining due to the rounding off, if any, to the first component
+    if (remaining != 0)
+    {
+        num_photons[0] += remaining;
+    }
+
     for (auto sid : range(spectrum_.size))
     {
         // Skip if there is no emission wavelength
@@ -138,11 +154,10 @@ ScintillationGenerator::operator()(Generator& rng)
         NormalDistribution<real_type> sample_lambda(
             spectrum_.lambda_mean[sid], spectrum_.lambda_sigma[sid]);
 
-        size_type num_photons = dist_.num_photons * spectrum_.yield_prob[sid];
+        CELER_EXPECT(num_generated + num_photons[sid] <= dist_.num_photons);
 
-        CELER_EXPECT(num_generated + num_photons <= dist_.num_photons);
-
-        for (size_type i : range(num_generated, num_generated + num_photons))
+        for (size_type i :
+             range(num_generated, num_generated + num_photons[sid]))
         {
             // Sample wavelength and convert to energy
             real_type wave_length = sample_lambda(rng);
@@ -157,7 +172,7 @@ ScintillationGenerator::operator()(Generator& rng)
 
             // Sample polarization perpendicular to the photon direction
             Real3 temp = from_spherical(-std::sqrt(1 - ipow<2>(cost)), phi);
-            Real3 perp = {std::sin(phi), std::cos(phi), 0};
+            Real3 perp = {-std::sin(phi), std::cos(phi), 0};
             real_type sinphi, cosphi;
             sincospi(UniformRealDist{0, 1}(rng), &sinphi, &cosphi);
             for (int j = 0; j < 3; ++j)
@@ -199,8 +214,9 @@ ScintillationGenerator::operator()(Generator& rng)
             CELER_ASSERT(delta_time >= 0);
             photons_[i].time = dist_.time + delta_time;
         }
-        num_generated += num_photons;
+        num_generated += num_photons[sid];
     }
+    CELER_ASSERT(num_generated == dist_.num_photons);
 
     return photons_;
 }
