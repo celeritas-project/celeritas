@@ -16,7 +16,6 @@
 #include "corecel/Macros.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Array.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "orange/Types.hh"
 // IWYU pragma: end_exports

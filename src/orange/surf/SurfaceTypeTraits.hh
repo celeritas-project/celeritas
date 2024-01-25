@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/cont/EnumClassUtils.hh"
+#include "corecel/math/Algorithms.hh"
 #include "orange/OrangeTypes.hh"
 
 #include "SurfaceFwd.hh"

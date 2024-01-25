@@ -526,7 +526,7 @@ CELER_WRAP_MATH_FLOAT_DBL_1(, sinpi)
 CELER_WRAP_MATH_FLOAT_DBL_1(, cospi)
 CELER_WRAP_MATH_FLOAT_DBL_PTR_2(, sincospi)
 CELER_WRAP_MATH_FLOAT_DBL_PTR_2(, sincos)
-#elif __APPLE__
+#elif __APPLE__ && !defined(__CLING__)
 // Apple defines __sinpi, __sinpif, __sincospi, ...
 CELER_WRAP_MATH_FLOAT_DBL_1(__, sinpi)
 CELER_WRAP_MATH_FLOAT_DBL_1(__, cospi)
