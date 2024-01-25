@@ -127,10 +127,22 @@ class GeantImporterTest : public GeantTestBase
                        << " for particle PDG=" << pdg.get());
         return *result;
     }
+
     real_type comparison_tolerance() const
     {
-        // Some values change substantially between geant versions
-        return geant4_version == Version(11, 0, 3) ? 1e-12 : 5e-3;
+        if (geant4_version != Version(11, 0, 3))
+        {
+            // Some values change substantially between geant versions
+            return 5e-3;
+        }
+        if (CELERITAS_UNITS != CELERITAS_UNITS_CGS
+            && CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            // Single-precision unit constants cause single-precision
+            // differences from reference
+            return 1e-6;
+        }
+        return 1e-12;
     }
 
   protected:
@@ -548,6 +560,8 @@ TEST_F(FourSteelSlabsEmStandard, materials)
         }
     }
 
+    real_type const tol = this->comparison_tolerance();
+
     static char const* expected_names[] = {"G4_Galactic", "G4_STAINLESS-STEEL"};
     EXPECT_VEC_EQ(expected_names, names);
     static int const expected_states[] = {3, 1};
@@ -565,10 +579,10 @@ TEST_F(FourSteelSlabsEmStandard, materials)
                     geant4_version.major() == 10 ? 1e-12 : 0.02);
     static double const expected_cutoff_ranges[]
         = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
-    EXPECT_VEC_SOFT_EQ(expected_cutoff_ranges, cutoff_ranges);
+    EXPECT_VEC_NEAR(expected_cutoff_ranges, cutoff_ranges, tol);
     static double const expected_num_densities[]
         = {0.05974697167543, 8.699348925899e+22};
-    EXPECT_VEC_SOFT_EQ(expected_num_densities, num_densities);
+    EXPECT_VEC_NEAR(expected_num_densities, num_densities, tol);
     static double const expected_temperatures[] = {2.73, 293.15};
     EXPECT_VEC_SOFT_EQ(expected_temperatures, temperatures);
     static double const expected_el_comps_ids[] = {3, 0, 1, 2};
@@ -784,9 +798,9 @@ TEST_F(FourSteelSlabsEmStandard, em_parameters)
     EXPECT_DOUBLE_EQ(0.01, em_params.linear_loss_limit);
     EXPECT_DOUBLE_EQ(0.001, em_params.lowest_electron_energy);
     EXPECT_EQ(true, em_params.auger);
-    EXPECT_EQ(0.04, em_params.msc_range_factor);
-    EXPECT_EQ(0.6, em_params.msc_safety_factor);
-    EXPECT_EQ(0.1, to_cm(em_params.msc_lambda_limit));
+    EXPECT_DOUBLE_EQ(0.04, em_params.msc_range_factor);
+    EXPECT_DOUBLE_EQ(0.6, em_params.msc_safety_factor);
+    EXPECT_REAL_EQ(0.1, to_cm(em_params.msc_lambda_limit));
 }
 
 //---------------------------------------------------------------------------//
@@ -1128,7 +1142,7 @@ TEST_F(OneSteelSphere, cutoffs)
     static int const expected_pdg[] = {-11, 11, 22, -11, 11, 22};
     EXPECT_VEC_EQ(expected_pdg, pdg);
     // 1 mm range cut in vacuum, 50 m range cut in steel
-    static double const expected_range_cut[]
+    static real_type const expected_range_cut[]
         = {0.1, 0.1, 0.1, 5000, 5000, 5000};
     EXPECT_VEC_SOFT_EQ(expected_range_cut, range_cut);
     static double const expected_energy_cut[] = {0.00099,
