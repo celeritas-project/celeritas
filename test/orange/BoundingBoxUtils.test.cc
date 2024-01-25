@@ -279,6 +279,20 @@ TEST_F(BoundingBoxUtilsTest, bbox_transform)
     }
 }
 
+TEST_F(BoundingBoxUtilsTest, stream)
+{
+    {
+        std::ostringstream os;
+        os << BBox{};
+        EXPECT_EQ("{}", os.str());
+    }
+    {
+        std::ostringstream os;
+        os << BBox{{1, 2, 3}, {4, 5, 6}};
+        EXPECT_EQ("{{1,2,3}, {4,5,6}}", os.str());
+    }
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

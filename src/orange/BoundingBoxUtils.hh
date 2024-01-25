@@ -9,6 +9,7 @@
 #pragma once
 
 #include <cmath>
+#include <iosfwd>
 
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
@@ -18,10 +19,10 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 class Translation;
 class Transformation;
-//---------------------------------------------------------------------------//
-// Host-only functions
+
 //---------------------------------------------------------------------------//
 /*!
  * Check if a bounding box spans (-inf, inf) in every direction.
@@ -248,6 +249,10 @@ class BoundingBoxBumper
 BBox calc_transform(Translation const& tr, BBox const& a);
 
 BBox calc_transform(Transformation const& tr, BBox const& a);
+
+//---------------------------------------------------------------------------//
+template<class T>
+std::ostream& operator<<(std::ostream&, BoundingBox<T> const& bbox);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
