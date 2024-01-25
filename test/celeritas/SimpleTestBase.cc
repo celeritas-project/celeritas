@@ -13,6 +13,7 @@
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/alongstep/AlongStepNeutralAction.hh"
 #include "celeritas/io/ImportProcess.hh"
+#include "celeritas/io/detail/ImportDataConverter.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
@@ -141,6 +142,13 @@ auto SimpleTestBase::build_physics() -> SPConstPhysics
              {1e-10, 1e-10, 1e-10}},  // lambda * energy (world)
         };
         compton_data.tables.push_back(std::move(lambdap));
+    }
+
+    // Update data values from CGS
+    {
+        celeritas::detail::ImportDataConverter convert{
+            celeritas::UnitSystem::cgs};
+        convert(&compton_data);
     }
 
     auto process_data = std::make_shared<ImportedProcesses>(
