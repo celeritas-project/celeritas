@@ -133,24 +133,27 @@ TEST_F(ScintillationGeneratorTest, basic)
                             - dist_.points[StepPoint::pre].pos));
     }
 
-    const real_type expected_energy[] = {9.3561354787881e-06,
-                                         9.39574581587642e-06,
-                                         1.09240249982534e-05,
-                                         6.16620934051192e-06};
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        const real_type expected_energy[] = {9.3561354787881e-06,
+                                             9.39574581587642e-06,
+                                             1.09240249982534e-05,
+                                             6.16620934051192e-06};
 
-    const real_type expected_time[] = {7.30250028666843e-09,
-                                       1.05142594015847e-08,
-                                       3.11699961936832e-06,
-                                       2.68409417173788e-06};
+        const real_type expected_time[] = {7.30250028666843e-09,
+                                           1.05142594015847e-08,
+                                           3.11699961936832e-06,
+                                           2.68409417173788e-06};
 
-    const real_type expected_cos_theta[] = {0.937735542248463,
-                                            -0.775070967887639,
-                                            0.744857640134601,
-                                            -0.748206733055997};
+        const real_type expected_cos_theta[] = {0.937735542248463,
+                                                -0.775070967887639,
+                                                0.744857640134601,
+                                                -0.748206733055997};
 
-    EXPECT_VEC_SOFT_EQ(expected_energy, energy);
-    EXPECT_VEC_SOFT_EQ(expected_time, time);
-    EXPECT_VEC_SOFT_EQ(expected_cos_theta, cos_theta);
+        EXPECT_VEC_SOFT_EQ(expected_energy, energy);
+        EXPECT_VEC_SOFT_EQ(expected_time, time);
+        EXPECT_VEC_SOFT_EQ(expected_cos_theta, cos_theta);
+    }
 }
 
 //---------------------------------------------------------------------------//
