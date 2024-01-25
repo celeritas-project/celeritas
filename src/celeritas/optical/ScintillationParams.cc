@@ -19,12 +19,14 @@ namespace celeritas
  */
 ScintillationParams::ScintillationParams(ScintillationInput const& input)
 {
+    CELER_EXPECT(input.data.size() > 0);
     HostVal<ScintillationData> host_data;
 
     CollectionBuilder spectra(&host_data.spectra);
     CollectionBuilder components(&host_data.components);
     for (auto const& spec : input.data)
     {
+        CELER_EXPECT(spec.size() > 0);
         ScintillationSpectrum spectrum;
         spectrum.components = components.insert_back(spec.begin(), spec.end());
         spectra.push_back(spectrum);
