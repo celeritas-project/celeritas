@@ -118,6 +118,22 @@ operator!=(BoundingBox<T> const& lhs, BoundingBox<T> const& rhs)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Determine if a point is contained in a bounding box.
+ *
+ * No point is ever contained in a null bounding box. A degenerate bounding
+ * box will return "true" for any point on its face.
+ */
+template<class T, class U>
+CELER_CONSTEXPR_FUNCTION bool
+is_inside(BoundingBox<T> const& bbox, Array<U, 3> const& point)
+{
+    return bbox.lower()[0] <= point[0] && point[0] <= bbox.upper()[0]
+           && bbox.lower()[1] <= point[1] && point[1] <= bbox.upper()[1]
+           && bbox.lower()[2] <= point[2] && point[2] <= bbox.upper()[2];
+}
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!

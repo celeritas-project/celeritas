@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/BoundingBoxUtils.hh
+//! \brief Host-only utilities for bounding boxes
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -19,25 +20,6 @@ namespace celeritas
 {
 class Translation;
 class Transformation;
-//---------------------------------------------------------------------------//
-// Host/device functions
-//---------------------------------------------------------------------------//
-/*!
- * Determine if a point is contained in a bounding box.
- *
- * No point is ever contained in a null bounding box. A degenerate bounding
- * box will return "true" for any point on its face.
- */
-template<class T, class U>
-inline CELER_FUNCTION bool
-is_inside(BoundingBox<T> const& bbox, Array<U, 3> point)
-{
-    auto axes = range(to_int(Axis::size_));
-    return all_of(axes.begin(), axes.end(), [&point, &bbox](int ax) {
-        return point[ax] >= bbox.lower()[ax] && point[ax] <= bbox.upper()[ax];
-    });
-}
-
 //---------------------------------------------------------------------------//
 // Host-only functions
 //---------------------------------------------------------------------------//
