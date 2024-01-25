@@ -122,6 +122,8 @@ TEST_F(ScintillationGeneratorTest, basic)
     std::vector<real_type> energy;
     std::vector<real_type> time;
     std::vector<real_type> cos_theta;
+    std::vector<real_type> polarization_x;
+    std::vector<real_type> cos_polar;
 
     for (auto i : range(dist_.num_photons))
     {
@@ -131,6 +133,9 @@ TEST_F(ScintillationGeneratorTest, basic)
             dot_product(photons[i].direction,
                         dist_.points[StepPoint::post].pos
                             - dist_.points[StepPoint::pre].pos));
+        polarization_x.push_back(photons[i].polarization[0]);
+        cos_polar.push_back(
+            dot_product(photons[i].polarization, photons[i].direction));
     }
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
@@ -150,9 +155,18 @@ TEST_F(ScintillationGeneratorTest, basic)
                                                 0.744857640134601,
                                                 -0.748206733055997};
 
+        const real_type expected_polarization_x[] = {-0.714016941727313,
+                                                     0.74609610658139,
+                                                     -0.456101107552679,
+                                                     0.0275013929040768};
+
+        const real_type expected_cos_polar[] = {0, 0, 0, 0};
+
         EXPECT_VEC_SOFT_EQ(expected_energy, energy);
         EXPECT_VEC_SOFT_EQ(expected_time, time);
         EXPECT_VEC_SOFT_EQ(expected_cos_theta, cos_theta);
+        EXPECT_VEC_SOFT_EQ(expected_polarization_x, polarization_x);
+        EXPECT_VEC_SOFT_EQ(expected_cos_polar, cos_polar);
     }
 }
 

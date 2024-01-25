@@ -162,7 +162,8 @@ ScintillationGenerator::operator()(Generator& rng)
             photons_[i].direction = from_spherical(cost, phi);
 
             // Sample polarization perpendicular to the photon direction
-            Real3 temp = from_spherical(-std::sqrt(1 - ipow<2>(cost)), phi);
+            Real3 temp = from_spherical(
+                (cost > 0 ? -1 : 1) * std::sqrt(1 - ipow<2>(cost)), phi);
             Real3 perp = {-std::sin(phi), std::cos(phi), 0};
             real_type sinphi, cosphi;
             sincospi(UniformRealDist{0, 1}(rng), &sinphi, &cosphi);
