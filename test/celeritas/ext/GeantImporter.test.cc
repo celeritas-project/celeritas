@@ -135,8 +135,7 @@ class GeantImporterTest : public GeantTestBase
             // Some values change substantially between geant versions
             return 5e-3;
         }
-        if (CELERITAS_UNITS != CELERITAS_UNITS_CGS
-            && CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
+        if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
         {
             // Single-precision unit constants cause single-precision
             // differences from reference
