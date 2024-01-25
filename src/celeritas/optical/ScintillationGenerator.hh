@@ -127,23 +127,20 @@ ScintillationGenerator::operator()(Generator& rng)
 {
     // Loop for generating scintillation photons
     size_type num_generated{0};
-    size_type remaining = dist_.num_photons;
 
     ScintillationSpectrum const& spectrum = shared_.spectra[dist_.material];
 
     for (auto sid : spectrum.components)
     {
         ScintillationComponent component = shared_.components[sid];
-        size_type num_photons
-            = static_cast<size_type>(dist_.num_photons * component.yield_prob);
-        remaining -= num_photons;
 
-        // Add remaining due to the rounding off, if any, to the last component
-        if (sid.unchecked_get() + 1
-            == spectrum.components.end()->unchecked_get())
-        {
-            num_photons += remaining;
-        }
+        // Calculate the number of photons to generate for this component
+        size_type num_photons
+            = sid.get() + 1 == spectrum.components.size()
+                  ? dist_.num_photons - num_generated
+                  : static_cast<size_type>(dist_.num_photons
+                                           * component.yield_prob);
+
         CELER_EXPECT(num_generated + num_photons <= dist_.num_photons);
 
         // Sample photons for each scintillation component
