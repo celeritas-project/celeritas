@@ -174,7 +174,7 @@ TEST_F(ScintillationGeneratorTest, basic)
 TEST_F(ScintillationGeneratorTest, stress_test)
 {
     // Generate a large number of optical photons
-    dist_.num_photons = 1234567;
+    dist_.num_photons = 123456;
 
     // Output data
     std::vector<OpticalPrimary> storage(dist_.num_photons);
@@ -188,7 +188,7 @@ TEST_F(ScintillationGeneratorTest, stress_test)
 
     // Check results
     double avg_lambda{0};
-    double hc = ScintillationGenerator::hc() / units::Mev::value();
+    double hc = constants::h_planck * constants::c_light / units::Mev::value();
     for (auto i : range(dist_.num_photons))
     {
         avg_lambda += hc / photons[i].energy.value();

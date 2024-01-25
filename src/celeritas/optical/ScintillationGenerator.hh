@@ -51,12 +51,6 @@ class ScintillationGenerator
     template<class Generator>
     inline CELER_FUNCTION Span<OpticalPrimary> operator()(Generator& rng);
 
-    // TODO: Move it to detail/OpticalUtils.
-    static CELER_CONSTEXPR_FUNCTION real_type hc()
-    {
-        return constants::h_planck * constants::c_light;
-    }
-
   private:
     //// TYPES ////
 
@@ -153,8 +147,8 @@ ScintillationGenerator::operator()(Generator& rng)
             // Sample wavelength and convert to energy
             real_type wave_length = sample_lambda(rng);
             CELER_EXPECT(wave_length > 0);
-            photons_[i].energy
-                = native_value_to<Energy>(this->hc() / wave_length);
+            photons_[i].energy = native_value_to<Energy>(
+                constants::h_planck * constants::c_light / wave_length);
 
             // Sample direction
             real_type cost = sample_cost_(rng);
