@@ -69,6 +69,19 @@ TEST(UnitsTest, traits)
 }
 
 //---------------------------------------------------------------------------//
+TEST(UnitsTest, trait_visitor)
+{
+    auto get_length_str = [](auto utraits) {
+        using Length = typename decltype(utraits)::Length;
+        return Length::label();
+    };
+
+    EXPECT_STREQ("cm", visit_unit_system(get_length_str, UnitSystem::cgs));
+    EXPECT_STREQ("m", visit_unit_system(get_length_str, UnitSystem::si));
+    EXPECT_STREQ("mm", visit_unit_system(get_length_str, UnitSystem::clhep));
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace units
 }  // namespace celeritas

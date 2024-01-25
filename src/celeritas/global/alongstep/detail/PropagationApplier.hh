@@ -13,6 +13,14 @@
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/global/detail/ApplierTraits.hh"
 
+#if CELERITAS_DEBUG && !CELER_DEVICE_COMPILE
+#    define CELER_CHECK_POSITION 1
+#    include "corecel/io/Logger.hh"
+#    include "corecel/io/Repr.hh"
+#else
+#    define CELER_CHECK_POSITION 0
+#endif
+
 namespace celeritas
 {
 namespace detail
@@ -105,15 +113,32 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
     bool tracks_can_loop;
     Propagation p;
     {
-#if CELERITAS_DEBUG
+#if CELER_CHECK_POSITION
         Real3 const orig_pos = track.make_geo_view().pos();
 #endif
         auto propagate = make_propagator(track);
         p = propagate(sim.step_length());
         tracks_can_loop = propagate.tracks_can_loop();
         CELER_ASSERT(p.distance > 0);
-#if CELERITAS_DEBUG
-        CELER_ASSERT(track.make_geo_view().pos() != orig_pos);
+#if CELER_CHECK_POSITION
+        if (CELER_UNLIKELY(track.make_geo_view().pos() != orig_pos))
+        {
+            // This unusual case happens when the step length is less than
+            // machine epsilon compared to the actual position. This case seems
+            // to happen mostly in vecgeom when "stuck" on a boundary, so it
+            // may not lead to an infinite loop because the state is changing.
+            CELER_LOG(error)
+                << "Propagation of step length " << repr(sim.step_length())
+                << " due to post-step action "
+                << sim.post_step_action().unchecked_get()
+                << " leading to distance " << repr(p.distance)
+                << (p.boundary  ? " (boundary hit)"
+                    : p.looping ? " (**LOOPING**)"
+                                : "")
+                << " failed to change position at " << repr(orig_pos)
+                << " with ending direction "
+                << repr(track.make_geo_view().dir());
+        }
 #endif
     }
 
