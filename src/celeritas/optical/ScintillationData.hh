@@ -25,6 +25,13 @@ struct ScintillationComponent
     real_type lambda_sigma{};  //!< Standard dev. of wavelength
     real_type rise_time{};  //!< Rise time
     real_type fall_time{};  //!< Decay time
+
+    //! Whether all data are assigned and valid
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return yield_prob > 0 && lambda_mean > 0 && lambda_sigma > 0
+               && rise_time >= 0 && fall_time > 0;
+    }
 };
 
 //---------------------------------------------------------------------------//

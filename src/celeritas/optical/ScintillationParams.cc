@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "ScintillationParams.hh"
 
+#include <numeric>
+
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/Types.hh"
@@ -27,6 +29,16 @@ ScintillationParams::ScintillationParams(ScintillationInput const& input)
     for (auto const& spec : input.data)
     {
         CELER_EXPECT(spec.size() > 0);
+
+        // Validity of scintillation component data
+        real_type total_yield{0};
+        for (auto const& comp : spec)
+        {
+            CELER_EXPECT(comp);
+            total_yield += comp.yield_prob;
+        }
+        CELER_ENSURE(total_yield == 1);
+
         ScintillationSpectrum spectrum;
         spectrum.components = components.insert_back(spec.begin(), spec.end());
         spectra.push_back(spectrum);
