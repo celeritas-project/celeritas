@@ -11,6 +11,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "celeritas/Types.hh"
 
 namespace celeritas
