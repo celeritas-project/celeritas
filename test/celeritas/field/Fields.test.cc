@@ -8,6 +8,7 @@
 #include <fstream>
 
 #include "corecel/cont/Range.hh"
+#include "celeritas/UnitUtils.hh"
 #include "celeritas/field/RZMapField.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
@@ -30,7 +31,8 @@ TEST(UniformZFieldTest, all)
 {
     UniformZField calc_field(123);
 
-    EXPECT_VEC_SOFT_EQ((Real3{0, 0, 123}), calc_field({100, -1, 0.5}));
+    EXPECT_VEC_SOFT_EQ((Real3{0, 0, 123}),
+                       calc_field(from_cm(Real3{100, -1, 0.5})));
 }
 
 TEST(UniformFieldTest, all)
@@ -38,7 +40,7 @@ TEST(UniformFieldTest, all)
     Real3 field_vec{1, 2, 3};
     UniformField calc_field(field_vec);
 
-    EXPECT_VEC_SOFT_EQ(field_vec, calc_field({100, -1, 0.5}));
+    EXPECT_VEC_SOFT_EQ(field_vec, calc_field(from_cm(Real3{100, -1, 0.5})));
 }
 
 TEST(CMSParameterizedFieldTest, all)
@@ -47,8 +49,8 @@ TEST(CMSParameterizedFieldTest, all)
     CMSParameterizedField calc_field;
 
     int const nsamples = 8;
-    real_type delta_z = 25.0;
-    real_type delta_r = 12.0;
+    real_type const delta_z = from_cm(25.0);
+    real_type const delta_r = from_cm(12.0);
 
     std::vector<real_type> actual;
 
@@ -57,7 +59,7 @@ TEST(CMSParameterizedFieldTest, all)
         Real3 field = calc_field(Real3{i * delta_r, i * delta_r, i * delta_z});
         for (real_type f : field)
         {
-            actual.push_back(f / units::tesla);
+            actual.push_back(native_value_to<units::FieldTesla>(f).value());
         }
     }
 
@@ -107,8 +109,8 @@ TEST_F(RZMapFieldTest, all)
     RZMapField calc_field(field_map.host_ref());
 
     int const nsamples = 8;
-    real_type delta_z = 25.0;
-    real_type delta_r = 12.0;
+    real_type delta_z = from_cm(25.0);
+    real_type delta_r = from_cm(12.0);
 
     std::vector<real_type> actual;
 
@@ -118,7 +120,7 @@ TEST_F(RZMapFieldTest, all)
         for (real_type f : field)
         {
             // Reference result is in [T]: convert from native units
-            actual.push_back(f / units::tesla);
+            actual.push_back(native_value_to<units::FieldTesla>(f).value());
         }
     }
 
