@@ -9,6 +9,7 @@
 
 #include "corecel/Types.hh"
 #include "orange/Types.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
 namespace celeritas
