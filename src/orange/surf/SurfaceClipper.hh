@@ -11,85 +11,66 @@
 #include "orange/BoundingBox.hh"
 #include "orange/OrangeTypes.hh"
 
+#include "SurfaceFwd.hh"
 #include "VariantSurface.hh"
-#include "detail/AllSurfaces.hh"
-#include "detail/SurfaceClipperImpl.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Truncate a bounding box to its intersection with a surface interior.
+ * Truncate a bounding zone using a surface.
+ *
+ * This \em reduces the size of inner and outer bounding boxes to fit a
+ * surface. The \c interior bounding box is entirely \em inside the surface,
+ * and \c exterior is entirely \em outside. Axes that cannot be determined
+ * inside or out are left unchanged.
  *
  * Even though most quadric surfaces are infinite, their intersection with a
- * bounding box may be a smaller bounding box. This operation accelerates
- * "distance to in" calculations.
+ * bounding box may be a smaller bounding box. Accounting for the current
+ * bounding box's size when considering further truncation is *not yet
+ * implemented*.
+ *
+ * Shrinking bounding boxes will accelerate "distance to in" and "distance
+ * to out" calculations.
  */
 class SurfaceClipper
 {
   public:
-    // Construct with a reference to the bbox being clipped
-    explicit inline SurfaceClipper(BBox* bbox);
+    // Construct with interior and exterior bounding boxes
+    explicit SurfaceClipper(BBox* interior, BBox* exterior);
 
     //// OPERATION ////
 
     // Apply to a surface with a known type
-    template<class S>
-    void operator()(Sense s, S const& surf);
+    template<Axis T>
+    void operator()(PlaneAligned<T> const&) const;
+
+    template<Axis T>
+    void operator()(CylCentered<T> const&) const;
+
+    void operator()(SphereCentered const&) const;
+
+    template<Axis T>
+    void operator()(CylAligned<T> const&) const;
+
+    void operator()(Plane const&) const;
+
+    void operator()(Sphere const&) const;
+
+    template<Axis T>
+    void operator()(ConeAligned<T> const&) const;
+
+    void operator()(SimpleQuadric const&) const;
+
+    void operator()(GeneralQuadric const&) const;
 
     // Apply to a surface with unknown type
-    void operator()(Sense s, VariantSurface const& surf);
+    void operator()(VariantSurface const& surf) const;
 
   private:
-    BBox* bbox_;
+    BBox* int_;
+    BBox* ext_;
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Construct with a bounding box reference.
- */
-SurfaceClipper::SurfaceClipper(BBox* bbox) : bbox_{bbox}
-{
-    CELER_EXPECT(bbox);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Apply to a surface with a known type.
- */
-template<class S>
-void SurfaceClipper::operator()(Sense sense, S const& surf)
-{
-    if (sense == Sense::inside)
-    {
-        return detail::SurfaceClipperImpl<Sense::inside>{bbox_}(surf);
-    }
-    else
-    {
-        return detail::SurfaceClipperImpl<Sense::outside>{bbox_}(surf);
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Apply to a surface with an unknown type.
- */
-void SurfaceClipper::operator()(Sense sense, VariantSurface const& surf)
-{
-    CELER_ASSUME(!surf.valueless_by_exception());
-    if (sense == Sense::inside)
-    {
-        return std::visit(detail::SurfaceClipperImpl<Sense::inside>{bbox_},
-                          surf);
-    }
-    else
-    {
-        return std::visit(detail::SurfaceClipperImpl<Sense::outside>{bbox_},
-                          surf);
-    }
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
