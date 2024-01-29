@@ -7,7 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "BoundingBoxUtils.hh"
 
+#include <iostream>
+
 #include "corecel/Assert.hh"
+#include "corecel/cont/ArrayIO.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/NumericLimits.hh"
 
@@ -98,6 +101,25 @@ BBox calc_transform(Transformation const& tr, BBox const& a)
     CELER_ENSURE(result);
     return result;
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write a bounding box to a stream.
+ */
+template<class T>
+std::ostream& operator<<(std::ostream& os, BoundingBox<T> const& bbox)
+{
+    os << '{';
+    if (bbox)
+    {
+        os << bbox.lower() << ", " << bbox.upper();
+    }
+    os << '}';
+    return os;
+}
+
+template std::ostream& operator<<(std::ostream&, BoundingBox<float> const&);
+template std::ostream& operator<<(std::ostream&, BoundingBox<double> const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

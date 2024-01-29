@@ -21,24 +21,6 @@ class BoundingBoxUtilsTest : public Test
 {
 };
 
-TEST_F(BoundingBoxUtilsTest, is_inside)
-{
-    BBox bbox1 = {{-5, -2, -100}, {6, 1, 1}};
-    EXPECT_TRUE(is_inside(bbox1, Real3{-4, 0, 0}));
-    EXPECT_TRUE(is_inside(bbox1, Real3{-4.9, -1.9, -99.9}));
-    EXPECT_FALSE(is_inside(bbox1, Real3{-6, 0, 0}));
-    EXPECT_FALSE(is_inside(bbox1, Real3{-5.1, -2.1, -101.1}));
-    EXPECT_FALSE(is_inside(BBox{}, Real3{0, 0, 0}));
-
-    BBox degenerate{{1, -2, -2}, {1, 2, 2}};
-    EXPECT_TRUE(is_inside(degenerate, Real3{1, 0, 0}));
-    EXPECT_FALSE(is_inside(degenerate, Real3{1, -3, 0}));
-    EXPECT_FALSE(is_inside(degenerate, Real3{1.000001, 0, 0}));
-
-    BBox super_degenerate{{1, 1, 1}, {1, 1, 1}};
-    EXPECT_TRUE(is_inside(degenerate, Real3{1, 1, 1}));
-}
-
 TEST_F(BoundingBoxUtilsTest, is_infinite)
 {
     BBox bbox1 = {{0, 0, 0}, {1, 1, 1}};
@@ -174,6 +156,20 @@ TEST_F(BoundingBoxUtilsTest, bbox_intersection)
     }
 }
 
+TEST_F(BoundingBoxUtilsTest, bbox_encloses)
+{
+    EXPECT_TRUE(encloses(BBox::from_infinite(), BBox{{-1, -1, -1}, {1, 1, 1}}));
+    EXPECT_TRUE(encloses(BBox{{-1, -2, -3}, {2, 2, 3}},
+                         BBox{{-1, -1, -1}, {1, 1, 1}}));
+    EXPECT_FALSE(encloses(BBox{{-1, -2, -3}, {1, 1.5, 3}},
+                          BBox{{-1, -2, -3}, {1, 2, 3}}));
+
+    EXPECT_FALSE(encloses(BBox{}, BBox{{-1, -2, -3}, {1, 2, 3}}));
+    EXPECT_TRUE(encloses(BBox{{-1, -2, -3}, {1, 2, 3}}, BBox{}));
+    EXPECT_TRUE(encloses(BBox{}, BBox{}));
+    EXPECT_TRUE(encloses(BBox::from_infinite(), BBox{}));
+}
+
 TEST_F(BoundingBoxUtilsTest, bumped)
 {
     BoundingBox<double> const ref{{-inf, 0, -100}, {0, 0.11223344556677, inf}};
@@ -280,6 +276,20 @@ TEST_F(BoundingBoxUtilsTest, bbox_transform)
     if (CELERITAS_DEBUG)
     {
         EXPECT_THROW(calc_transform(tr, BBox{}), DebugError);
+    }
+}
+
+TEST_F(BoundingBoxUtilsTest, stream)
+{
+    {
+        std::ostringstream os;
+        os << BBox{};
+        EXPECT_EQ("{}", os.str());
+    }
+    {
+        std::ostringstream os;
+        os << BBox{{1, 2, 3}, {4, 5, 6}};
+        EXPECT_EQ("{{1,2,3}, {4,5,6}}", os.str());
     }
 }
 

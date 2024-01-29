@@ -91,6 +91,24 @@ TEST_F(BoundingBoxTest, standard)
     EXPECT_VEC_SOFT_EQ((Real3{2, 0, 6}), bb.upper());
 }
 
+TEST_F(BoundingBoxTest, is_inside)
+{
+    BBox bbox1 = {{-5, -2, -100}, {6, 1, 1}};
+    EXPECT_TRUE(is_inside(bbox1, Real3{-4, 0, 0}));
+    EXPECT_TRUE(is_inside(bbox1, Real3{-4.9, -1.9, -99.9}));
+    EXPECT_FALSE(is_inside(bbox1, Real3{-6, 0, 0}));
+    EXPECT_FALSE(is_inside(bbox1, Real3{-5.1, -2.1, -101.1}));
+    EXPECT_FALSE(is_inside(BBox{}, Real3{0, 0, 0}));
+
+    BBox degenerate{{1, -2, -2}, {1, 2, 2}};
+    EXPECT_TRUE(is_inside(degenerate, Real3{1, 0, 0}));
+    EXPECT_FALSE(is_inside(degenerate, Real3{1, -3, 0}));
+    EXPECT_FALSE(is_inside(degenerate, Real3{1.000001, 0, 0}));
+
+    BBox super_degenerate{{1, 1, 1}, {1, 1, 1}};
+    EXPECT_TRUE(is_inside(degenerate, Real3{1, 1, 1}));
+}
+
 TEST_F(BoundingBoxTest, TEST_IF_CELERITAS_JSON(io))
 {
     using BoundingBoxT = BoundingBox<double>;
