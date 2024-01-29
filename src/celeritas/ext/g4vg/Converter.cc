@@ -240,24 +240,18 @@ auto Converter::build_with_daughters(G4LogicalVolume const* mother_g4lv)
         // Get daughter volume
         G4VPhysicalVolume* g4pv = mother_g4lv->GetDaughter(i);
 
+        DaughterPlacer place_daughter(convert_daughter,
+                                      *convert_transform_,
+                                      g4pv->GetLogicalVolume(),
+                                      mother_lv);
+
         if (auto* placed = dynamic_cast<G4PVPlacement const*>(g4pv))
         {
-            DaughterPlacer place_daughter(convert_daughter,
-                                          *convert_transform_,
-                                          g4pv->GetLogicalVolume(),
-                                          mother_lv);
-
             // Place daughter, accounting for reflection
             place_daughter(placed);
         }
         else if (G4VPVParameterisation* param = g4pv->GetParameterisation())
         {
-            // Create multiple daughters using "parameterization"
-            DaughterPlacer place_daughter(convert_daughter,
-                                          *convert_transform_,
-                                          g4pv->GetLogicalVolume(),
-                                          mother_lv);
-
             // Loop over number of replicas
             for (auto j : range(g4pv->GetMultiplicity()))
             {
