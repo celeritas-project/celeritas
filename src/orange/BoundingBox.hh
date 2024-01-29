@@ -87,9 +87,9 @@ class BoundingBox
 
     //// MUTATORS ////
 
-    // Intersect in place with a half-space
+    // Reduce the bounding box's extent along an axis
     CELER_CONSTEXPR_FUNCTION void
-    clip(Bound bnd, Axis axis, real_type position);
+    shrink(Bound bnd, Axis axis, real_type position);
 
   private:
     Array<Real3, 2> points_;  //!< lo/hi points
@@ -245,7 +245,7 @@ CELER_CONSTEXPR_FUNCTION BoundingBox<T>::operator bool() const
  */
 template<class T>
 CELER_CONSTEXPR_FUNCTION void
-BoundingBox<T>::clip(Bound bnd, Axis axis, real_type position)
+BoundingBox<T>::shrink(Bound bnd, Axis axis, real_type position)
 {
     real_type p = points_[to_int(bnd)][to_int(axis)];
     if (bnd == Bound::hi)

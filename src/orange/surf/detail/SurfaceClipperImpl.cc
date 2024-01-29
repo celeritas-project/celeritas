@@ -43,7 +43,7 @@ namespace
 template<Axis T>
 void SurfaceClipperImpl<Sense::inside>::operator()(PlaneAligned<T> const& s) const
 {
-    bbox_->clip(Bound::hi, T, s.position());
+    bbox_->shrink(Bound::hi, T, s.position());
 }
 
 //!\cond
@@ -62,8 +62,8 @@ void SurfaceClipperImpl<Sense::inside>::operator()(CylCentered<T> const& s) cons
     {
         if (T != ax)
         {
-            bbox_->clip(Bound::lo, ax, -radius);
-            bbox_->clip(Bound::hi, ax, radius);
+            bbox_->shrink(Bound::lo, ax, -radius);
+            bbox_->shrink(Bound::hi, ax, radius);
         }
     }
 }
@@ -81,8 +81,8 @@ void SurfaceClipperImpl<Sense::inside>::operator()(SphereCentered const& s) cons
     real_type radius = std::sqrt(s.radius_sq());
     for (auto ax : range(Axis::size_))
     {
-        bbox_->clip(Bound::lo, ax, -radius);
-        bbox_->clip(Bound::hi, ax, radius);
+        bbox_->shrink(Bound::lo, ax, -radius);
+        bbox_->shrink(Bound::hi, ax, radius);
     }
 }
 
@@ -99,8 +99,8 @@ void SurfaceClipperImpl<Sense::inside>::operator()(CylAligned<T> const& s) const
     {
         if (T != ax)
         {
-            bbox_->clip(Bound::lo, ax, origin[to_int(ax)] - radius);
-            bbox_->clip(Bound::hi, ax, origin[to_int(ax)] + radius);
+            bbox_->shrink(Bound::lo, ax, origin[to_int(ax)] - radius);
+            bbox_->shrink(Bound::hi, ax, origin[to_int(ax)] + radius);
         }
     }
 }
@@ -119,8 +119,8 @@ void SurfaceClipperImpl<Sense::inside>::operator()(Sphere const& s) const
     auto const& origin = s.origin();
     for (auto ax : range(Axis::size_))
     {
-        bbox_->clip(Bound::lo, ax, origin[to_int(ax)] - radius);
-        bbox_->clip(Bound::hi, ax, origin[to_int(ax)] + radius);
+        bbox_->shrink(Bound::lo, ax, origin[to_int(ax)] - radius);
+        bbox_->shrink(Bound::hi, ax, origin[to_int(ax)] + radius);
     }
 }
 
@@ -131,7 +131,7 @@ void SurfaceClipperImpl<Sense::inside>::operator()(Sphere const& s) const
 template<Axis T>
 void SurfaceClipperImpl<Sense::outside>::operator()(PlaneAligned<T> const& s) const
 {
-    bbox_->clip(Bound::lo, T, s.position());
+    bbox_->shrink(Bound::lo, T, s.position());
 }
 
 //!\cond
