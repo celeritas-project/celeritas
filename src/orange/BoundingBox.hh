@@ -16,7 +16,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/NumericLimits.hh"
 
-#include "OrangeTypes.hh"
+#include "Types.hh"
 
 namespace celeritas
 {
@@ -65,10 +65,22 @@ class BoundingBox
     //// ACCESSORS ////
 
     //! Lower bbox coordinate
-    CELER_CONSTEXPR_FUNCTION Real3 const& lower() const { return lower_; }
+    CELER_CONSTEXPR_FUNCTION Real3 const& lower() const
+    {
+        return this->point(Bound::lo);
+    }
 
     //! Upper bbox coordinate
-    CELER_CONSTEXPR_FUNCTION Real3 const& upper() const { return upper_; }
+    CELER_CONSTEXPR_FUNCTION Real3 const& upper() const
+    {
+        return this->point(Bound::hi);
+    }
+
+    //! Access a bounding point
+    CELER_CONSTEXPR_FUNCTION Real3 const& point(Bound b) const
+    {
+        return points_[to_int(b)];
+    }
 
     // Whether the bbox is non-null
     CELER_CONSTEXPR_FUNCTION explicit operator bool() const;
@@ -77,11 +89,10 @@ class BoundingBox
 
     // Intersect in place with a half-space
     CELER_CONSTEXPR_FUNCTION void
-    clip(Sense sense, Axis axis, real_type position);
+    clip(Bound bnd, Axis axis, real_type position);
 
   private:
-    Real3 lower_;
-    Real3 upper_;
+    Array<Real3, 2> points_;  //!< lo/hi points
 
     // Implementation of 'from_unchecked' (true type 'tag')
     CELER_CONSTEXPR_FUNCTION
@@ -179,8 +190,8 @@ template<class T>
 CELER_CONSTEXPR_FUNCTION BoundingBox<T>::BoundingBox()
 {
     constexpr real_type inf = numeric_limits<real_type>::infinity();
-    lower_ = {inf, inf, inf};
-    upper_ = {-inf, -inf, -inf};
+    points_[to_int(Bound::lo)] = {inf, inf, inf};
+    points_[to_int(Bound::hi)] = {-inf, -inf, -inf};
 }
 
 //---------------------------------------------------------------------------//
@@ -192,13 +203,14 @@ CELER_CONSTEXPR_FUNCTION BoundingBox<T>::BoundingBox()
  */
 template<class T>
 CELER_FUNCTION BoundingBox<T>::BoundingBox(Real3 const& lo, Real3 const& hi)
-    : lower_(lo), upper_(hi)
+    : points_{{lo, hi}}
 {
     if constexpr (CELERITAS_DEBUG)
     {
         for (auto ax : {Axis::x, Axis::y, Axis::z})
         {
-            CELER_EXPECT(lower_[to_int(ax)] <= upper_[to_int(ax)]);
+            CELER_EXPECT(this->lower()[to_int(ax)]
+                         <= this->upper()[to_int(ax)]);
         }
     }
     CELER_ENSURE(*this);
@@ -211,7 +223,7 @@ CELER_FUNCTION BoundingBox<T>::BoundingBox(Real3 const& lo, Real3 const& hi)
 template<class T>
 CELER_CONSTEXPR_FUNCTION
 BoundingBox<T>::BoundingBox(std::true_type, Real3 const& lo, Real3 const& hi)
-    : lower_(lo), upper_(hi)
+    : points_{{lo, hi}}
 {
 }
 
@@ -222,9 +234,9 @@ BoundingBox<T>::BoundingBox(std::true_type, Real3 const& lo, Real3 const& hi)
 template<class T>
 CELER_CONSTEXPR_FUNCTION BoundingBox<T>::operator bool() const
 {
-    return lower_[to_int(Axis::x)] <= upper_[to_int(Axis::x)]
-           && lower_[to_int(Axis::y)] <= upper_[to_int(Axis::y)]
-           && lower_[to_int(Axis::z)] <= upper_[to_int(Axis::z)];
+    return this->lower()[0] <= this->upper()[0]
+           && this->lower()[1] <= this->upper()[1]
+           && this->lower()[2] <= this->upper()[2];
 }
 
 //---------------------------------------------------------------------------//
@@ -233,16 +245,18 @@ CELER_CONSTEXPR_FUNCTION BoundingBox<T>::operator bool() const
  */
 template<class T>
 CELER_CONSTEXPR_FUNCTION void
-BoundingBox<T>::clip(Sense sense, Axis axis, real_type position)
+BoundingBox<T>::clip(Bound bnd, Axis axis, real_type position)
 {
-    if (sense == Sense::inside)
+    real_type p = points_[to_int(bnd)][to_int(axis)];
+    if (bnd == Bound::hi)
     {
-        upper_[to_int(axis)] = ::celeritas::min(upper_[to_int(axis)], position);
+        p = ::celeritas::min(p, position);
     }
     else
     {
-        lower_[to_int(axis)] = ::celeritas::max(lower_[to_int(axis)], position);
+        p = ::celeritas::max(p, position);
     }
+    points_[to_int(bnd)][to_int(axis)] = p;
 }
 
 //---------------------------------------------------------------------------//
