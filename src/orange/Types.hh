@@ -11,7 +11,6 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
-#include "corecel/math/ArrayUtils.hh"
 
 namespace celeritas
 {
@@ -62,13 +61,13 @@ enum class Axis
  */
 struct GeoTrackInitializer
 {
-    Real3 pos;
-    Real3 dir;
+    Real3 pos{0, 0, 0};
+    Real3 dir{0, 0, 0};
 
-    //! True if assigned and valid
+    //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return is_soft_unit_vector(dir);
+        return dir[0] != 0 || dir[1] != 0 || dir[2] != 0;
     }
 };
 

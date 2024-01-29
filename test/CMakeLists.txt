@@ -543,6 +543,7 @@ celeritas_add_test(celeritas/io/SeltzerBergerReader.test.cc ${_needs_geant4})
 # Optical
 set(CELERITASTEST_PREFIX celeritas/optical)
 celeritas_add_test(celeritas/optical/Cerenkov.test.cc)
+celeritas_add_test(celeritas/optical/ScintillationGenerator.test.cc)
 
 #-------------------------------------#
 # Mat
