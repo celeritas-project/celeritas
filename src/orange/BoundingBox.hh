@@ -91,6 +91,10 @@ class BoundingBox
     CELER_CONSTEXPR_FUNCTION void
     shrink(Bound bnd, Axis axis, real_type position);
 
+    // Increase the bounding box's extent along an axis
+    CELER_CONSTEXPR_FUNCTION void
+    grow(Bound bnd, Axis axis, real_type position);
+
   private:
     Array<Real3, 2> points_;  //!< lo/hi points
 
@@ -241,14 +245,38 @@ CELER_CONSTEXPR_FUNCTION BoundingBox<T>::operator bool() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Intersect in place with a half-space.
+ * Reduce the bounding box's extent along an axis.
+ *
+ * This clips the bounding box along the given axis.
  */
 template<class T>
 CELER_CONSTEXPR_FUNCTION void
 BoundingBox<T>::shrink(Bound bnd, Axis axis, real_type position)
 {
     real_type p = points_[to_int(bnd)][to_int(axis)];
-    if (bnd == Bound::hi)
+    if (bnd == Bound::lo)
+    {
+        p = ::celeritas::max(p, position);
+    }
+    else
+    {
+        p = ::celeritas::min(p, position);
+    }
+    points_[to_int(bnd)][to_int(axis)] = p;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Increase the bounding box's extent along an axis.
+ *
+ * This expands the bounding box along the given axis.
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION void
+BoundingBox<T>::grow(Bound bnd, Axis axis, real_type position)
+{
+    real_type p = points_[to_int(bnd)][to_int(axis)];
+    if (bnd == Bound::lo)
     {
         p = ::celeritas::min(p, position);
     }

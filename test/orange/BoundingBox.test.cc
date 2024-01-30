@@ -89,6 +89,13 @@ TEST_F(BoundingBoxTest, standard)
     bb.shrink(Bound::hi, Axis::y, 0);
     EXPECT_VEC_SOFT_EQ((Real3{-1, -2, 4}), bb.lower());
     EXPECT_VEC_SOFT_EQ((Real3{2, 0, 6}), bb.upper());
+
+    bb.grow(Bound::hi, Axis::x, 3);
+    bb.grow(Bound::lo, Axis::y, -3);
+    bb.grow(Bound::hi, Axis::y, -1);  // null op
+    bb.grow(Bound::lo, Axis::z, 2);
+    EXPECT_VEC_SOFT_EQ((Real3{-1, -3, 2}), bb.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{3, 0, 6}), bb.upper());
 }
 
 TEST_F(BoundingBoxTest, is_inside)
