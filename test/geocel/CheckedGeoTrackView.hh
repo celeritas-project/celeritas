@@ -7,8 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "geocel/Types.hh"
 #include "celeritas/Units.hh"
+
+#include "geocel/Types.hh"
 
 namespace celeritas
 {

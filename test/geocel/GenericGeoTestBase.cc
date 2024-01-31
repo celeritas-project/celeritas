@@ -17,9 +17,9 @@
 
 #include "corecel/io/Repr.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "geocel/GeantGeoUtils.hh"
 
 #include "CheckedGeoTrackView.hh"
+#include "geocel/GeantGeoUtils.hh"
 
 using std::cout;
 using namespace std::literals;

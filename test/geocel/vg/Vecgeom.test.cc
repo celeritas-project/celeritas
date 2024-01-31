@@ -20,15 +20,15 @@
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/Version.hh"
 #include "celeritas/UnitUtils.hh"
-#include "geocel/GeantGeoUtils.hh"
 #include "celeritas/ext/GeantSetup.hh"
-#include "geocel/vg/VecgeomData.hh"
-#include "geocel/vg/VecgeomParams.hh"
-#include "geocel/vg/VecgeomTrackView.hh"
-#include "geocel/GeoParamsOutput.hh"
 
 #include "VecgeomTestBase.hh"
 #include "celeritas_test.hh"
+#include "geocel/GeantGeoUtils.hh"
+#include "geocel/GeoParamsOutput.hh"
+#include "geocel/vg/VecgeomData.hh"
+#include "geocel/vg/VecgeomParams.hh"
+#include "geocel/vg/VecgeomTrackView.hh"
 
 namespace celeritas
 {

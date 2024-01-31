@@ -9,6 +9,7 @@
 
 #include "celeritas/CheckedGeoTrackView.t.hh"
 #include "celeritas/GenericGeoTestBase.t.hh"
+
 #include "geocel/vg/VecgeomData.hh"
 #include "geocel/vg/VecgeomParams.hh"
 #include "geocel/vg/VecgeomTrackView.hh"

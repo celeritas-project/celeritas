@@ -3,34 +3,32 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/GeantGeoTestBase.hh
+//! \file celeritas/ext/VecgeomTestBase.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "celeritas/GenericGeoTestBase.hh"
-#include "geocel/g4/GeantGeoData.hh"
-#include "geocel/g4/GeantGeoParams.hh"
-#include "geocel/g4/GeantGeoTrackView.hh"
+
+#include "geocel/vg/VecgeomData.hh"
+#include "geocel/vg/VecgeomParams.hh"
+#include "geocel/vg/VecgeomTrackView.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-class GeantGeoTrackView;
-
 namespace test
 {
 //---------------------------------------------------------------------------//
 template<>
-struct GenericGeoTraits<GeantGeoParams>
+struct GenericGeoTraits<VecgeomParams>
 {
     template<MemSpace M>
-    using StateStore = CollectionStateStore<GeantGeoStateData, M>;
-    using TrackView = GeantGeoTrackView;
+    using StateStore = CollectionStateStore<VecgeomStateData, M>;
+    using TrackView = VecgeomTrackView;
     static inline char const* ext = ".gdml";
-    static inline char const* name = "Geant4";
+    static inline char const* name = "VecGeom";
 };
 
-using GeantGeoTestBase = GenericGeoTestBase<GeantGeoParams>;
+using VecgeomTestBase = GenericGeoTestBase<VecgeomParams>;
 
 //---------------------------------------------------------------------------//
 }  // namespace test
