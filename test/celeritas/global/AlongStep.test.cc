@@ -9,6 +9,9 @@
 
 #include "celeritas/SimpleCmsTestBase.hh"
 #include "celeritas/TestEm3Base.hh"
+#include "corecel/ScopedLogStorer.hh"
+#include "corecel/io/Logger.hh"
+#include "celeritas/LeadBoxTestBase.hh"
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
@@ -151,6 +154,11 @@ class SimpleCmsRZFieldAlongStepTest : public SimpleCmsAlongStepTest
     size_type bpd_{14};
     bool msc_{true};
     bool fluct_{true};
+};
+
+#define LeadBoxAlongStepTest TEST_IF_CELERITAS_GEANT(LeadBoxAlongStepTest)
+class LeadBoxAlongStepTest : public LeadBoxTestBase, public AlongStepTestBase
+{
 };
 
 //---------------------------------------------------------------------------//
@@ -586,6 +594,35 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield_finegrid)
         }
         EXPECT_SOFT_EQ(0.99999999288499986, result.angle);
     }
+}
+
+TEST_F(LeadBoxAlongStepTest, no_position_change)
+{
+    size_type num_tracks = 1;
+    Input inp;
+    SCOPED_TRACE("Electron with no change in position after propagation");
+    inp.particle_id = this->particle()->find(pdg::electron());
+    inp.energy = MevEnergy{1e-6};
+    inp.position = {1e9, 0, 0};
+    inp.direction = {-1, 0, 0};
+    inp.phys_mfp = 1;
+
+    ScopedLogStorer scoped_log{&celeritas::world_logger()};
+    auto result = this->run(inp, num_tracks);
+    if (CELERITAS_DEBUG)
+    {
+        static char const expected_log_message[]
+            = "Propagation of step length 5.3822833387727e-08 due to "
+              "post-step action 2 leading to distance 5.3822833387727e-08 "
+              "failed to change position at {1000000000, 0, 0} with ending "
+              "direction {-1, 0, 0}";
+        EXPECT_EQ(expected_log_message, scoped_log.messages().back());
+        static char const expected_log_level[] = "error";
+        EXPECT_EQ(expected_log_level, scoped_log.levels().back());
+    }
+    EXPECT_SOFT_NEAR(5.38228333877273e-8, result.step, 1e-13);
+    EXPECT_EQ(0, result.displacement);
+    EXPECT_EQ("eloss-range", result.action);
 }
 //---------------------------------------------------------------------------//
 }  // namespace test
