@@ -100,7 +100,7 @@ double native_value_from(UnitSystem sys, ImportUnits q)
         case ImportUnits::len_sq:
             return ipow<2>(len);
         case ImportUnits::time:
-            return 1 / ipow<2>(time_scale(sys));
+            return time_scale(sys);
         case ImportUnits::inv_len_cb:
             return 1 / ipow<3>(len);
         case ImportUnits::size_:

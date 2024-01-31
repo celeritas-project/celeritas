@@ -61,7 +61,7 @@ class LivermorePETest : public InteractorHostTestBase
         // Set up shared material data
         MaterialParams::Input mi;
         mi.elements = {{AtomicNumber{19}, AmuMass{39.0983}, {}, "K"}};
-        mi.materials = {{native_value_from(InvCcDensity{1e-5 * na_avogadro}),
+        mi.materials = {{native_value_from(MolCcDensity{1e-5}),
                          293.,
                          MatterState::solid,
                          {{ElementId{0}, 1.0}},

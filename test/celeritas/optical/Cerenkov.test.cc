@@ -182,13 +182,11 @@ TEST_F(CerenkovTest, angle_integral)
 
 TEST_F(CerenkovTest, dndx)
 {
-    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
-    {
-        EXPECT_SOFT_NEAR(369.81e6,
-                         constants::alpha_fine_structure * units::Mev::value()
-                             / (constants::hbar_planck * constants::c_light),
-                         1e-6);
-    }
+    EXPECT_SOFT_NEAR(369.81e6,
+                     constants::alpha_fine_structure * units::Mev::value()
+                         * units::centimeter
+                         / (constants::hbar_planck * constants::c_light),
+                     1e-6);
 
     std::vector<real_type> dndx;
     CerenkovDndxCalculator calc_dndx(

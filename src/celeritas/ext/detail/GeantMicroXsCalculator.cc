@@ -64,7 +64,7 @@ void GeantMicroXsCalculator::operator()(VecDouble const& energy_grid,
                   energy,
                   secondary_cut_,
                   /* max_energy = */ std::numeric_limits<double>::max());
-              return ::celeritas::max(xs, 0.0);
+              return clamp_to_nonneg(xs);
           };
     double const xs_scaling = native_value_from_clhep(ImportUnits::len_sq);
 

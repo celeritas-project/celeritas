@@ -166,8 +166,8 @@ celeritas_add_test(corecel/grid/UniformGrid.test.cc)
 # IO
 set(CELERITASTEST_PREFIX corecel/io)
 celeritas_add_test(corecel/io/EnumStringMapper.test.cc)
-celeritas_add_test(corecel/io/Label.test.cc)
 celeritas_add_test(corecel/io/Join.test.cc)
+celeritas_add_test(corecel/io/Label.test.cc)
 celeritas_add_test(corecel/io/Logger.test.cc)
 celeritas_add_test(corecel/io/OutputRegistry.test.cc
   LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
@@ -545,6 +545,7 @@ celeritas_add_test(celeritas/grid/XsCalculator.test.cc)
 set(CELERITASTEST_PREFIX celeritas/io)
 celeritas_add_test(celeritas/io/EventIO.test.cc ${_needs_hepmc}
   LINK_LIBRARIES ${HepMC3_LIBRARIES})
+celeritas_add_test(celeritas/io/ImportUnits.test.cc)
 celeritas_add_test(celeritas/io/RootEventIO.test.cc ${_needs_root})
 celeritas_add_test(celeritas/io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
