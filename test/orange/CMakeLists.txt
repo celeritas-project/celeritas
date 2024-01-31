@@ -34,7 +34,7 @@ celeritas_setup_tests(SERIAL PREFIX orange
 #-----------------------------------------------------------------------------#
 # Base
 celeritas_add_test(BoundingBox.test.cc
-  LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
+  LINK_LIBRARIES ${nlohmann_json_LIBRARIES} Celeritas::geocel)
 celeritas_add_test(BoundingBoxUtils.test.cc)
 celeritas_add_test(MatrixUtils.test.cc)
 celeritas_add_test(OrangeTypes.test.cc)

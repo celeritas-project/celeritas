@@ -43,6 +43,7 @@ endif()
 
 if(CELERITAS_USE_Geant4)
   set(_cg4_sources
+    GeantUtils.cc
     GeantGeoUtils.cc
     ScopedGeantExceptionHandler.cc
     ScopedGeantLogger.cc

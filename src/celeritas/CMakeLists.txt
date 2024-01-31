@@ -104,7 +104,6 @@ if(CELERITAS_USE_Geant4)
   set(_cg4_sources
     ext/GeantImporter.cc
     ext/GeantSetup.cc
-    ext/GeantUtils.cc
     ext/GeantVolumeMapper.cc
     ext/detail/GeantBremsstrahlungProcess.cc
     ext/detail/GeantMicroXsCalculator.cc

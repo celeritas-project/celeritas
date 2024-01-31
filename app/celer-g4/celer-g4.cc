@@ -51,9 +51,6 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
-#include "geocel/GeantUtils.hh"
-#include "geocel/ScopedGeantExceptionHandler.hh"
-#include "geocel/ScopedGeantLogger.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/ext/detail/GeantPhysicsList.hh"
 #include "accel/SharedParams.hh"
@@ -62,6 +59,9 @@
 #include "DetectorConstruction.hh"
 #include "GlobalSetup.hh"
 #include "LocalLogger.hh"
+#include "geocel/GeantUtils.hh"
+#include "geocel/ScopedGeantExceptionHandler.hh"
+#include "geocel/ScopedGeantLogger.hh"
 
 using namespace std::literals::string_view_literals;
 

@@ -28,8 +28,6 @@
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "celeritas/Quantities.hh"
-#include "geocel/g4/Convert.geant.hh"
-#include "geocel/GeantUtils.hh"
 #include "celeritas/global/detail/ActionSequence.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
@@ -40,6 +38,8 @@
 #include "SharedParams.hh"
 #include "detail/HitManager.hh"
 #include "detail/OffloadWriter.hh"
+#include "geocel/GeantUtils.hh"
+#include "geocel/g4/Convert.geant.hh"
 
 namespace celeritas
 {

@@ -13,6 +13,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
+
 #include "geocel/GeantUtils.hh"
 
 namespace celeritas
