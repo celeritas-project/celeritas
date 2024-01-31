@@ -121,7 +121,7 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
         tracks_can_loop = propagate.tracks_can_loop();
         CELER_ASSERT(p.distance > 0);
 #if CELER_CHECK_POSITION
-        if (CELER_UNLIKELY(track.make_geo_view().pos() != orig_pos))
+        if (CELER_UNLIKELY(track.make_geo_view().pos() == orig_pos))
         {
             // This unusual case happens when the step length is less than
             // machine epsilon compared to the actual position. This case seems
