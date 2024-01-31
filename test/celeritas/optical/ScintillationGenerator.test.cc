@@ -128,7 +128,7 @@ TEST_F(ScintillationGeneratorTest, basic)
     for (auto i : range(dist_.num_photons))
     {
         energy.push_back(photons[i].energy.value());
-        time.push_back(photons[i].time);
+        time.push_back(photons[i].time / units::second);
         cos_theta.push_back(
             dot_product(photons[i].direction,
                         dist_.points[StepPoint::post].pos
