@@ -28,7 +28,7 @@
 #include "corecel/sys/ScopedProfiling.hh"
 
 #include "geocel/GeantGeoUtils.hh"
-#include "GeantUtils.hh"
+#include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/ScopedGeantLogger.hh"
 #include "detail/GeantPhysicsList.hh"

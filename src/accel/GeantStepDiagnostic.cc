@@ -15,7 +15,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
-#include "celeritas/ext/GeantUtils.hh"
+#include "geocel/GeantUtils.hh"
 #include "ExceptionConverter.hh"
 
 #if CELERITAS_USE_JSON

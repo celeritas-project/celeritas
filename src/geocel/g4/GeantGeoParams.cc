@@ -30,7 +30,7 @@
 #include "Convert.geant.hh"  // IWYU pragma: associated
 #include "GeantGeoData.hh"  // IWYU pragma: associated
 #include "geocel/GeantGeoUtils.hh"
-#include "celeritas/ext/GeantUtils.hh"
+#include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/ScopedGeantLogger.hh"
 #include "VisitGeantVolumes.hh"

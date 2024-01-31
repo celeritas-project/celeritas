@@ -51,7 +51,7 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
-#include "celeritas/ext/GeantUtils.hh"
+#include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/ScopedGeantLogger.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"

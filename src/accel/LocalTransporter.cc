@@ -29,7 +29,7 @@
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "celeritas/Quantities.hh"
 #include "geocel/g4/Convert.geant.hh"
-#include "celeritas/ext/GeantUtils.hh"
+#include "geocel/GeantUtils.hh"
 #include "celeritas/global/detail/ActionSequence.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"

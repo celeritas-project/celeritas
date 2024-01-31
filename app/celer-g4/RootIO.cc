@@ -20,7 +20,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
-#include "celeritas/ext/GeantUtils.hh"
+#include "geocel/GeantUtils.hh"
 #include "celeritas/ext/RootFileManager.hh"
 #include "accel/ExceptionConverter.hh"
 #include "accel/SetupOptions.hh"

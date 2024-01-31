@@ -12,7 +12,7 @@
 #include "corecel/io/Logger.hh"
 #include "geocel/g4/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
-#include "celeritas/ext/GeantUtils.hh"
+#include "geocel/GeantUtils.hh"
 
 #include "SharedParams.hh"
 #include "detail/GeantSimpleCaloSD.hh"

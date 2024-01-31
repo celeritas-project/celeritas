@@ -36,7 +36,7 @@
 #include "celeritas/Types.hh"
 #include "geocel/g4/GeantGeoParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
-#include "celeritas/ext/GeantUtils.hh"
+#include "geocel/GeantUtils.hh"
 #include "celeritas/ext/RootExporter.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
