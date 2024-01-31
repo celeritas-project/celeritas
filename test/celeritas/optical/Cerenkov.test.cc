@@ -238,7 +238,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
     real_type emax = convert_to_energy(get_wavelength().back() * micrometer);
     real_type edel = (emax - emin) / num_bins;
 
-    auto sample = [&](CerenkovDistributionData& dist, size_type num_samples) {
+    auto sample = [&](OpticalDistributionData& dist, size_type num_samples) {
         // Reset tallies
         rng.reset_count();
         avg_costheta = avg_energy = avg_displacement = total_num_photons = 0;
@@ -317,7 +317,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
 
     size_type num_samples = 64;
 
-    CerenkovDistributionData dist;
+    OpticalDistributionData dist;
     dist.time = 0;
     dist.charge = charge;
     dist.material = material;

@@ -4,10 +4,12 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/BoundingBoxUtils.hh
+//! \brief Host-only utilities for bounding boxes
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cmath>
+#include <iosfwd>
 
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
@@ -17,29 +19,10 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 class Translation;
 class Transformation;
-//---------------------------------------------------------------------------//
-// Host/device functions
-//---------------------------------------------------------------------------//
-/*!
- * Determine if a point is contained in a bounding box.
- *
- * No point is ever contained in a null bounding box. A degenerate bounding
- * box will return "true" for any point on its face.
- */
-template<class T, class U>
-inline CELER_FUNCTION bool
-is_inside(BoundingBox<T> const& bbox, Array<U, 3> point)
-{
-    auto axes = range(to_int(Axis::size_));
-    return all_of(axes.begin(), axes.end(), [&point, &bbox](int ax) {
-        return point[ax] >= bbox.lower()[ax] && point[ax] <= bbox.upper()[ax];
-    });
-}
 
-//---------------------------------------------------------------------------//
-// Host-only functions
 //---------------------------------------------------------------------------//
 /*!
  * Check if a bounding box spans (-inf, inf) in every direction.
@@ -182,6 +165,24 @@ calc_intersection(BoundingBox<T> const& a, BoundingBox<T> const& b)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Check if all points inside the small bbox are in the big bbox.
+ *
+ * All bounding boxes should enclose a "null" bounding box (there are no points
+ * in the null box, so no points are outside the big box). The null bounding
+ * box will enclose nothing but a bounding box.
+ */
+template<class T>
+inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
+{
+    auto axes = range(to_int(Axis::size_));
+    return all_of(axes.begin(), axes.end(), [&big, &small](int ax) {
+        return big.lower()[ax] <= small.lower()[ax]
+               && big.upper()[ax] >= small.upper()[ax];
+    });
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Bump a bounding box outward and possibly convert to another type.
  * \tparam T destination type
  * \tparam U source type
@@ -248,6 +249,10 @@ class BoundingBoxBumper
 BBox calc_transform(Translation const& tr, BBox const& a);
 
 BBox calc_transform(Transformation const& tr, BBox const& a);
+
+//---------------------------------------------------------------------------//
+template<class T>
+std::ostream& operator<<(std::ostream&, BoundingBox<T> const& bbox);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
