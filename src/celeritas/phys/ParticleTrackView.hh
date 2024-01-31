@@ -80,7 +80,7 @@ class ParticleTrackView
     // Charge [elemental charge e+]
     CELER_FORCEINLINE_FUNCTION units::ElementaryCharge charge() const;
 
-    // Decay constant [1/s]
+    // Decay constant [1 / time]
     CELER_FORCEINLINE_FUNCTION real_type decay_constant() const;
 
     // Whether it is an antiparticle
@@ -228,7 +228,7 @@ CELER_FUNCTION units::ElementaryCharge ParticleTrackView::charge() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Decay constant.
+ * Decay constant in native units.
  */
 CELER_FUNCTION real_type ParticleTrackView::decay_constant() const
 {
