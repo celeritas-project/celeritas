@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/GeantGeoUtils.test.cc
+//! \file celeritas/ext/GeantGeoUtils.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/GeantGeoUtils.hh"
 

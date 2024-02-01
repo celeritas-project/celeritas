@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/GenericGeoTestBase.cc
+//! \file celeritas/GenericGeoTestBase.cc
 //---------------------------------------------------------------------------//
 #include "GenericGeoTestBase.hh"
 
