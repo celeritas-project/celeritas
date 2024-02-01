@@ -59,6 +59,8 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
                    << "number of EM bins per decade="
                    << options.em_bins_per_decade << " (must be at least 5)");
 
+    using ClhepLen = Quantity<units::ClhepTraits::Length, double>;
+
     em_parameters.SetNumberOfBinsPerDecade(options.em_bins_per_decade);
     em_parameters.SetLossFluctuations(options.eloss_fluctuation);
     em_parameters.SetMinEnergy(value_as<Options::MevEnergy>(options.min_energy)
@@ -75,7 +77,8 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
     // Customizable MSC safety factor/lambda limit were added in
     // emutils-V10-05-18
     em_parameters.SetMscSafetyFactor(options.msc_safety_factor);
-    em_parameters.SetMscLambdaLimit(options.msc_lambda_limit * CLHEP::cm);
+    em_parameters.SetMscLambdaLimit(
+        native_value_to<ClhepLen>(options.msc_lambda_limit).value());
 #endif
     em_parameters.SetLowestElectronEnergy(
         value_as<Options::MevEnergy>(options.lowest_electron_energy)
@@ -86,7 +89,8 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
         em_parameters.SetMscEnergyLimit(100 * CLHEP::TeV);
     }
     em_parameters.SetApplyCuts(options.apply_cuts);
-    this->SetDefaultCutValue(options.default_cutoff * CLHEP::cm);
+    this->SetDefaultCutValue(
+        native_value_to<ClhepLen>(options.default_cutoff).value());
 
     int verb = options_.verbose ? 1 : 0;
     this->SetVerboseLevel(verb);

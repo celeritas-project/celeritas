@@ -89,7 +89,7 @@ struct MscStep
     bool is_displaced{true};  //!< Flag for the lateral displacement
     real_type true_path{};  //!< True path length due to the msc [len]
     real_type geom_path{};  //!< Geometrical path length [len]
-    real_type alpha = small_step_alpha();  //!< Scaled MFP slope [len^-1]
+    real_type alpha = small_step_alpha();  //!< Scaled MFP slope [1/len]
 };
 
 //---------------------------------------------------------------------------//
@@ -101,9 +101,9 @@ struct MscStep
  */
 struct MscRange
 {
-    real_type range_init{};  //!< Initial msc range
+    real_type range_init{};  //!< Initial msc range [len]
     real_type range_fact{};  //!< Scale factor for the msc range
-    real_type limit_min{};  //!< Minimum of the true path limit
+    real_type limit_min{};  //!< Minimum of the true path limit [len]
 
     explicit CELER_FUNCTION operator bool() const
     {

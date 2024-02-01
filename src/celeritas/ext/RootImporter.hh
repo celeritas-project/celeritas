@@ -26,7 +26,8 @@ namespace celeritas
  *
  * RootImporter loads particle, element, material, process, and volume
  * information from a ROOT file that contains an \c ImportData object.
- * Currently, said ROOT file is created by the \c RootExporter class.
+ * Currently, said ROOT file is created by the \c RootExporter class. The
+ * imported data will be converted to the native unit system.
  *
  * \c RootImporter , along with all \c Import[Class] type of classes, are the
  * link between Geant4 and Celeritas. Every Celeritas' host/device class that

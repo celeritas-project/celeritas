@@ -69,6 +69,11 @@
 #include "celeritas/Constants.hh"
 %}
 
+namespace celeritas
+{
+enum class UnitSystem;
+}
+
 %include "celeritas/Units.hh"
 %include "celeritas/Constants.hh"
 
@@ -110,6 +115,8 @@ namespace celeritas
 
 %include "celeritas/io/ImportPhysicsVector.hh"
 %template(VecImportPhysicsVector) std::vector<celeritas::ImportPhysicsVector>;
+
+%include "celeritas/io/ImportUnits.hh"
 
 %include "celeritas/io/ImportPhysicsTable.hh"
 %template(VecImportPhysicsTable) std::vector<celeritas::ImportPhysicsTable>;

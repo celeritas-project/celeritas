@@ -33,7 +33,7 @@ class GeantMicroXsCalculator
     //!@{
     //! \name Type aliases
     using EnergyUnits = units::Mev;
-    using XsUnits = units::Native;  // cm^2
+    using XsUnits = units::Native;  // len^2
     using VecDouble = std::vector<double>;
     using VecVecDouble = std::vector<std::vector<double>>;
     //!@}
@@ -52,9 +52,6 @@ class GeantMicroXsCalculator
     G4ParticleDefinition const& particle_;
     G4Material const& material_;
     double secondary_cut_;
-
-    // Calculate after setting up for material and energy
-    double calc_element_xs(G4Element const& g4el, double energy) const;
 };
 
 //---------------------------------------------------------------------------//

@@ -16,11 +16,13 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/GenericGeoTestBase.hh"
+#include "celeritas/UnitUtils.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/ext/GeantGeoParams.hh"
 
 #include "celeritas_test.hh"
 
+using celeritas::test::from_cm;
 using celeritas::test::ScopedLogStorer;
 
 namespace celeritas
@@ -82,11 +84,13 @@ class TouchableUpdaterTest : public ::celeritas::test::GenericGeantGeoTestBase
 TEST_F(TouchableUpdaterTest, correct)
 {
     TouchableUpdater update = this->make_touchable_updater();
-    Real3 const dir{1, 0, 0};
+    auto update_cm = [&](Real3 const& pos_cm, std ::string lv_name) {
+        return update(from_cm(pos_cm), Real3{1, 0, 0}, this->find_lv(lv_name));
+    };
 
-    EXPECT_TRUE(update({15, 0, 0}, dir, this->find_lv("vacuum_tube")));
-    EXPECT_TRUE(update({100, 0, 0}, dir, this->find_lv("si_tracker")));
-    EXPECT_TRUE(update({150, 0, 0}, dir, this->find_lv("em_calorimeter")));
+    EXPECT_TRUE(update_cm({15, 0, 0}, "vacuum_tube"));
+    EXPECT_TRUE(update_cm({100, 0, 0}, "si_tracker"));
+    EXPECT_TRUE(update_cm({150, 0, 0}, "em_calorimeter"));
 }
 
 TEST_F(TouchableUpdaterTest, just_inside)
@@ -99,11 +103,11 @@ TEST_F(TouchableUpdaterTest, just_inside)
     ScopedLogStorer scoped_log_{&celeritas::self_logger(),
                                 LogLevel::diagnostic};
 
-    EXPECT_TRUE(update({30 + eps, 0, 0}, {1, 0, 0}, tracker_lv));
-    EXPECT_TRUE(update({125 - eps, 0, 0}, {1, 0, 0}, tracker_lv));
+    EXPECT_TRUE(update({from_cm(30) + eps, 0, 0}, {1, 0, 0}, tracker_lv));
+    EXPECT_TRUE(update({from_cm(125) - eps, 0, 0}, {1, 0, 0}, tracker_lv));
 
-    EXPECT_TRUE(update({125 + eps, 0, 0}, {-1, 0, 0}, calo_lv));
-    EXPECT_TRUE(update({175 - eps, 0, 0}, {-1, 0, 0}, calo_lv));
+    EXPECT_TRUE(update({from_cm(125) + eps, 0, 0}, {-1, 0, 0}, calo_lv));
+    EXPECT_TRUE(update({from_cm(175) - eps, 0, 0}, {-1, 0, 0}, calo_lv));
 
     EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
 }
@@ -115,10 +119,11 @@ TEST_F(TouchableUpdaterTest, coincident)
                                 LogLevel::diagnostic};
 
     // Coincident point should work in either volume, in or out
+    real_type const r = from_cm(125);
     for (char const* lv : {"si_tracker", "em_calorimeter"})
     {
-        EXPECT_TRUE(update({125, 0, 0}, {1, 0, 0}, this->find_lv(lv)));
-        EXPECT_TRUE(update({125, 0, 0}, {-1, 0, 0}, this->find_lv(lv)));
+        EXPECT_TRUE(update({r, 0, 0}, {1, 0, 0}, this->find_lv(lv)));
+        EXPECT_TRUE(update({r, 0, 0}, {-1, 0, 0}, this->find_lv(lv)));
     }
 
     EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
@@ -133,9 +138,9 @@ TEST_F(TouchableUpdaterTest, coincident_tangent)
 
     // TODO: we can't seem to test the volume on the other side of an exact
     // coincident surface on a tangent
-    EXPECT_FALSE(update({125, 0, 0}, {0, 1, 0}, this->find_lv("si_tracker")));
-    EXPECT_TRUE(
-        update({125, 0, 0}, {0, 1, 0}, this->find_lv("em_calorimeter")));
+    real_type const r = from_cm(125);
+    EXPECT_FALSE(update({r, 0, 0}, {0, 1, 0}, this->find_lv("si_tracker")));
+    EXPECT_TRUE(update({r, 0, 0}, {0, 1, 0}, this->find_lv("em_calorimeter")));
 
     static char const* const expected_log_messages[] = {
         "Failed to bump navigation state up to a distance of 1 [mm] at {1250, "
@@ -157,8 +162,10 @@ TEST_F(TouchableUpdaterTest, just_outside_nowarn)
 
     for (real_type xdir : {1.0, -1.0})
     {
-        EXPECT_TRUE(update({30 - eps, 0, 0}, {xdir, 0, 0}, tracker_lv));
-        EXPECT_TRUE(update({125 + 2 * eps, 0, 0}, {-xdir, 0, 0}, tracker_lv));
+        EXPECT_TRUE(
+            update({from_cm(30) - eps, 0, 0}, {xdir, 0, 0}, tracker_lv));
+        EXPECT_TRUE(
+            update({from_cm(125) + 2 * eps, 0, 0}, {-xdir, 0, 0}, tracker_lv));
     }
 
     EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
@@ -175,8 +182,10 @@ TEST_F(TouchableUpdaterTest, just_outside_warn)
 
     for (real_type xdir : {1.0, -1.0})
     {
-        EXPECT_TRUE(update({30 - eps, 0, 0}, {xdir, 0, 0}, tracker_lv));
-        EXPECT_TRUE(update({125 + eps, 0, 0}, {-xdir, 0, 0}, tracker_lv));
+        EXPECT_TRUE(
+            update({from_cm(30) - eps, 0, 0}, {xdir, 0, 0}, tracker_lv));
+        EXPECT_TRUE(
+            update({from_cm(125) + eps, 0, 0}, {-xdir, 0, 0}, tracker_lv));
     }
 
     static char const* const expected_log_messages[]
@@ -196,7 +205,10 @@ TEST_F(TouchableUpdaterTest, just_outside_warn)
            "0} [mm] along {-1, -0, -0} from {{pv='em_calorimeter_pv', "
            "lv=2='em_calorimeter'}} to try to reach \"si_tracker\"@0x0 (ID=1)",
            "...bumped to {{pv='si_tracker_pv', lv=1='si_tracker'}}"};
-    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    {
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    }
     static char const* const expected_log_levels[] = {"warning",
                                                       "diagnostic",
                                                       "warning",
@@ -219,8 +231,10 @@ TEST_F(TouchableUpdaterTest, too_far)
 
     for (real_type xdir : {1.0, -1.0})
     {
-        EXPECT_FALSE(update({30 - eps, 0, 0}, {xdir, 0, 0}, tracker_lv));
-        EXPECT_FALSE(update({125 + eps, 0, 0}, {-xdir, 0, 0}, tracker_lv));
+        EXPECT_FALSE(
+            update({from_cm(30) - eps, 0, 0}, {xdir, 0, 0}, tracker_lv));
+        EXPECT_FALSE(
+            update({from_cm(125) + eps, 0, 0}, {-xdir, 0, 0}, tracker_lv));
     }
 
     static char const* const expected_log_messages[] = {
@@ -323,7 +337,10 @@ TEST_F(TouchableUpdaterTest, regression)
            "{{pv='vacuum_tube_pv', lv=0='vacuum_tube'}} to try to reach "
            "\"si_tracker\"@0x0 (ID=1)",
            "...bumped to {{pv='si_tracker_pv', lv=1='si_tracker'}}"};
-    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    {
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    }
     static char const* const expected_log_levels[] = {"warning",
                                                       "diagnostic",
                                                       "warning",

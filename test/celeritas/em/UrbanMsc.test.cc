@@ -13,6 +13,7 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/grid/Interpolator.hh"
 #include "celeritas/RootTestBase.hh"
+#include "celeritas/UnitUtils.hh"
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/em/msc/detail/MscStepFromGeo.hh"
 #include "celeritas/em/msc/detail/MscStepToGeo.hh"
@@ -43,6 +44,21 @@ namespace detail
 {
 namespace test
 {
+//---------------------------------------------------------------------------//
+struct InvCentimeter
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        return 1 / units::centimeter;
+    }
+    static char const* label() { return "1/cm"; }
+};
+
+using InvCmAlpha = Quantity<InvCentimeter>;
+using celeritas::test::from_cm;
+using celeritas::test::to_cm;
+using units::MevEnergy;
+
 //---------------------------------------------------------------------------//
 TEST(UrbanPositronCorrectorTest, all)
 {
@@ -247,13 +263,16 @@ TEST_F(UrbanMscTest, helper)
     auto phys = this->make_phys_view(par, "G4_STAINLESS-STEEL");
     UrbanMscHelper helper(msc_params_->host_ref(), par, phys);
 
-    EXPECT_SOFT_EQ(0.90681578657668238, phys.dedx_range());
-    EXPECT_SOFT_EQ(1.0897296072933604, helper.calc_msc_mfp(MevEnergy{10.01}));
-    EXPECT_SOFT_EQ(0.90820266262324023, helper.calc_msc_mfp(MevEnergy{9.01}));
-    EXPECT_SOFT_EQ(11.039692548085707,
-                   value_as<MevEnergy>(helper.calc_inverse_range(1.0)));
+    EXPECT_SOFT_EQ(0.90681578657668238, to_cm(phys.dedx_range()));
+    EXPECT_SOFT_EQ(1.0897296072933604,
+                   to_cm(helper.calc_msc_mfp(MevEnergy{10.01})));
+    EXPECT_SOFT_EQ(0.90820266262324023,
+                   to_cm(helper.calc_msc_mfp(MevEnergy{9.01})));
+    EXPECT_SOFT_EQ(
+        11.039692548085707,
+        value_as<MevEnergy>(helper.calc_inverse_range(from_cm(1.0))));
     EXPECT_SOFT_EQ(4.5491422239586035,
-                   value_as<MevEnergy>(helper.calc_end_energy(0.5)));
+                   value_as<MevEnergy>(helper.calc_end_energy(from_cm(0.5))));
 }
 
 TEST_F(UrbanMscTest, step_conversion)
@@ -381,7 +400,7 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(msc_scattering))
     // are bit-for-bit identical when range limits the step. The first three
     // steps are not limited by range
     constexpr double step_is_range = -1;
-    std::vector<double> step = {0.00279169, 0.412343, 0.0376414};
+    std::vector<double> step = {0.00279169, 0.412343, 0.0376414};  // [cm]
     step.resize(nsamples, step_is_range);
 
     ASSERT_EQ(nsamples, step.size());
@@ -395,18 +414,19 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(msc_scattering))
 
     RandomEngine rng;
     // Input and helper data
-    std::vector<double> pstep;
-    std::vector<double> range;
-    std::vector<double> lambda;
+    std::vector<double> pstep;  // [cm]
+    std::vector<double> range;  // [cm]
+    std::vector<double> lambda;  // [cm]
 
     // Step limit
-    std::vector<double> tstep;
-    std::vector<double> gstep;
+    std::vector<double> tstep;  // [cm]
+    std::vector<double> gstep;  // [cm]
     std::vector<double> alpha;
+    std::vector<double> msc_range_limit;  // [cm]
 
     // Scatter
     std::vector<double> angle;
-    std::vector<double> displace;
+    std::vector<double> displace;  // [cm]
     std::vector<char> action;
 
     // Total RNG count (we only sample once per particle/energy so count and
@@ -416,30 +436,40 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(msc_scattering))
     auto const& msc_params = msc_params_->host_ref();
 
     auto sample_one = [&](PDGNumber ptype, int i) {
+        real_type radius = from_cm(i * 2 - real_type(1e-4));
+
         auto par = this->make_par_view(ptype, MevEnergy{energy[i]});
         auto phys = this->make_phys_view(par, "G4_STAINLESS-STEEL");
-        auto geo = this->make_geo_view(/* r = */ i * 2 - real_type(1e-4));
+        auto geo = this->make_geo_view(radius);
         MaterialView mat = this->material()->get(phys.material_id());
         rng.reset_count();
 
         UrbanMscHelper helper(msc_params, par, phys);
-        range.push_back(phys.dedx_range());
-        lambda.push_back(helper.msc_mfp());
+        range.push_back(to_cm(phys.dedx_range()));
+        lambda.push_back(to_cm(helper.msc_mfp()));
 
-        real_type this_pstep = step[i];
-        if (this_pstep == step_is_range)
-        {
-            this_pstep = phys.dedx_range();
-        }
-        pstep.push_back(this_pstep);
+        real_type const this_pstep = [i, &phys, &step] {
+            if (step[i] == step_is_range)
+            {
+                return phys.dedx_range();
+            }
+            real_type const pstep = from_cm(step[i]);
+            CELER_VALIDATE(pstep <= phys.dedx_range(),
+                           << "unit test input pstep=" << pstep
+                           << " exceeds physics range " << phys.dedx_range());
+            return pstep;
+        }();
+        pstep.push_back(to_cm(this_pstep));
 
         // Calculate physical step limit due to MSC
         real_type safety = geo.find_safety();
         auto [true_path, displaced] = [&]() -> std::pair<real_type, bool> {
+            EXPECT_FALSE(phys.msc_range());
             if (this_pstep < msc_params.params.limit_min_fix()
                 || safety >= helper.max_step())
             {
                 // Small step or far from boundary
+                msc_range_limit.push_back(-1);
                 return {this_pstep, false};
             }
             UrbanMscStepLimit calc_limit(msc_params,
@@ -451,9 +481,13 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(msc_scattering))
                                          safety,
                                          this_pstep);
 
+            // MSC range should be updated during construction of the limit
+            // calculator
+            msc_range_limit.push_back(to_cm(phys.msc_range().limit_min));
+
             return {calc_limit(rng), true};
         }();
-        tstep.push_back(true_path);
+        tstep.push_back(to_cm(true_path));
 
         // Convert physical step limit to geometrical step
         MscStepToGeo calc_geom_path(msc_params,
@@ -462,8 +496,8 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(msc_scattering))
                                     helper.msc_mfp(),
                                     phys.dedx_range());
         auto gp = calc_geom_path(true_path);
-        gstep.push_back(gp.step);
-        alpha.push_back(gp.alpha);
+        gstep.push_back(to_cm(gp.step));
+        alpha.push_back(native_value_to<InvCmAlpha>(gp.alpha).value());
 
         MscStep step_result;
         step_result.true_path = true_path;
@@ -481,7 +515,7 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(msc_scattering))
                             ? sample_result.direction[0]
                             : 0);
         displace.push_back(sample_result.action == Action::displaced
-                               ? sample_result.displacement[0]
+                               ? to_cm(sample_result.displacement[0])
                                : 0);
         action.push_back(sample_result.action == Action::displaced   ? 'd'
                          : sample_result.action == Action::scattered ? 's'
@@ -535,6 +569,11 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(msc_scattering))
         3.4500251375335, 12.793635146437, 0, 0, 1347.4250715939,
         32089.171921536, 0, 1.7061753085921, 3.3439279763905, 12.693879333563,
         0, 0, 1479.3077264327, 38389.697977001};
+    static double const expected_msc_range_limit[] = {3.5686548881735e-05,
+        4.0510166112733e-05, 4.0073894011965e-05, -1, 2.5270068437103e-05,
+        1.0695397351015e-05, -1, -1, 1.6703727150203e-05, 2.0782727059196e-05,
+        2.0774322573966e-05, -1, 1.3419878391705e-05, 5.6685934033174e-06, -1,
+        -1};
     static double const expected_angle[] = {0.00031474130607916,
         -0.0179600098014372, -0.14560882721751, 0, -0.32650640360665,
         0.013072020086723, 0, 0, 0.003112817663327, 0.385707466417037,
@@ -556,6 +595,7 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(msc_scattering))
     EXPECT_VEC_SOFT_EQ(expected_tstep, tstep);
     EXPECT_VEC_SOFT_EQ(expected_gstep, gstep);
     EXPECT_VEC_SOFT_EQ(expected_alpha, alpha);
+    EXPECT_VEC_SOFT_EQ(expected_msc_range_limit, msc_range_limit);
     EXPECT_VEC_NEAR(expected_angle, angle, 2e-12);
     EXPECT_VEC_NEAR(expected_displace, displace, 1e-11);
     EXPECT_VEC_EQ(expected_action, action);

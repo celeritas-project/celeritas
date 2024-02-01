@@ -8,6 +8,7 @@
 #include "ImportPhysicsVector.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/io/EnumStringMapper.hh"
 
 namespace celeritas
 {
@@ -17,10 +18,9 @@ namespace celeritas
  */
 char const* to_cstring(ImportPhysicsVectorType value)
 {
-    static char const* const strings[] = {"unknown", "linear", "log", "free"};
-    CELER_EXPECT(static_cast<unsigned int>(value) * sizeof(char const*)
-                 < sizeof(strings));
-    return strings[static_cast<unsigned int>(value)];
+    static EnumStringMapper<ImportPhysicsVectorType> const to_cstring_impl{
+        "unknown", "linear", "log", "free"};
+    return to_cstring_impl(value);
 }
 
 //---------------------------------------------------------------------------//

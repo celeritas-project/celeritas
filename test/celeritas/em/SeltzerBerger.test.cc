@@ -43,6 +43,8 @@ class SeltzerBergerTest : public InteractorHostTestBase
 
     void SetUp() override
     {
+        using namespace celeritas::units;
+
         auto const& particles = *this->particle_params();
         data_.ids.electron = particles.find(pdg::electron());
         data_.ids.positron = particles.find(pdg::positron());
@@ -51,10 +53,9 @@ class SeltzerBergerTest : public InteractorHostTestBase
 
         // Set up shared material data
         MaterialParams::Input mat_inp;
-        mat_inp.elements
-            = {{AtomicNumber{29}, units::AmuMass{63.546}, {}, "Cu"}};
+        mat_inp.elements = {{AtomicNumber{29}, AmuMass{63.546}, {}, "Cu"}};
         mat_inp.materials = {
-            {0.141 * constants::na_avogadro,
+            {native_value_from(MolCcDensity{0.141}),
              293.0,
              MatterState::solid,
              {{ElementId{0}, 1.0}},
@@ -442,12 +443,13 @@ TEST_F(SeltzerBergerTest, stress_test)
 
 TEST_F(SeltzerBergerTest, positron_xs_corrector_edge_case)
 {
+    using namespace celeritas::units;
     // See https://github.com/celeritas-project/celeritas/issues/617
 
     // Set up material data (only value used in this test is the atomic number)
     MaterialParams::Input mat_inp;
-    mat_inp.elements = {{AtomicNumber{26}, units::AmuMass{55.845}, {}, "Fe"}};
-    mat_inp.materials = {{0.128 * constants::na_avogadro,
+    mat_inp.elements = {{AtomicNumber{26}, AmuMass{55.845}, {}, "Fe"}};
+    mat_inp.materials = {{native_value_from(MolCcDensity{0.128}),
                           293.0,
                           MatterState::solid,
                           {{ElementId{0}, 1.0}},
@@ -456,10 +458,10 @@ TEST_F(SeltzerBergerTest, positron_xs_corrector_edge_case)
     auto const material_params
         = std::make_shared<MaterialParams>(std::move(mat_inp));
 
-    units::MevMass const positron_mass{0.51099890999999997};
-    units::MevEnergy const min_gamma_energy{0.020822442086622296};
-    units::MevEnergy const inc_energy{241.06427050865221};
-    units::MevEnergy const sampled_energy{0.020822442732819097};
+    MevMass const positron_mass{0.51099890999999997};
+    MevEnergy const min_gamma_energy{0.020822442086622296};
+    MevEnergy const inc_energy{241.06427050865221};
+    MevEnergy const sampled_energy{0.020822442732819097};
     SBPositronXsCorrector xs_corrector(positron_mass,
                                        material_params->get(ElementId{0}),
                                        min_gamma_energy,

@@ -14,6 +14,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/UnitTypes.hh"
 
 #include "detail/GeantGeoNavCollection.hh"
 

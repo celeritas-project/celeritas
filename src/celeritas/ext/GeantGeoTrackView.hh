@@ -72,7 +72,10 @@ class GeantGeoTrackView
     //// STATIC ACCESSORS ////
 
     //! A tiny push to make sure tracks do not get stuck at boundaries
-    static constexpr real_type extra_push() { return 1e-13; }
+    static constexpr real_type extra_push()
+    {
+        return 1e-13 * units::centimeter;
+    }
 
     //// ACCESSORS ////
 
@@ -169,9 +172,9 @@ GeantGeoTrackView::GeantGeoTrackView(ParamsRef const&,
     , touch_handle_(states.nav_state.touch_handle(tid))
     , navi_(states.nav_state.navigator(tid))
 {
-    g4pos_ = convert_to_geant(pos_, CLHEP::cm);
+    g4pos_ = convert_to_geant(pos_, clhep_length);
     g4dir_ = convert_to_geant(dir_, 1);
-    g4safety_ = convert_to_geant(safety_radius_, CLHEP::cm);
+    g4safety_ = convert_to_geant(safety_radius_, clhep_length);
 }
 
 //---------------------------------------------------------------------------//
@@ -188,7 +191,7 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(Initializer_t const& init)
     next_step_ = 0;
     safety_radius_ = -1;  // Assume *not* on a boundary
 
-    g4pos_ = convert_to_geant(pos_, CLHEP::cm);
+    g4pos_ = convert_to_geant(pos_, clhep_length);
     g4dir_ = convert_to_geant(dir_, 1);
     g4safety_ = -1;
 
@@ -302,20 +305,20 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
     CELER_EXPECT(max_step > 0);
 
     // Compute the step
-    real_type g4step = convert_to_geant(max_step, CLHEP::cm);
+    real_type g4step = convert_to_geant(max_step, clhep_length);
     g4step = navi_.ComputeStep(g4pos_, g4dir_, g4step, g4safety_);
 
     if (g4safety_ != 0 && !this->is_on_boundary())
     {
         // Save the resulting safety distance if computed: allow to be
         // "negative" to prevent accidentally changing the boundary state
-        safety_radius_ = convert_from_geant(g4safety_, CLHEP::cm);
+        safety_radius_ = convert_from_geant(g4safety_, clhep_length);
         CELER_ASSERT(!this->is_on_boundary());
     }
 
     // Update result
     Propagation result;
-    result.distance = convert_from_geant(g4step, CLHEP::cm);
+    result.distance = convert_from_geant(g4step, clhep_length);
     if (result.distance <= max_step)
     {
         result.boundary = true;
@@ -362,9 +365,9 @@ auto GeantGeoTrackView::find_safety(real_type max_step) -> real_type
     CELER_EXPECT(max_step > 0);
     if (!this->is_on_boundary() && (safety_radius_ < max_step))
     {
-        real_type g4step = convert_to_geant(max_step, CLHEP::cm);
+        real_type g4step = convert_to_geant(max_step, clhep_length);
         g4safety_ = navi_.ComputeSafety(g4pos_, g4step);
-        safety_radius_ = max(convert_from_geant(g4safety_, CLHEP::cm), 0.0);
+        safety_radius_ = max(convert_from_geant(g4safety_, clhep_length), 0.0);
     }
 
     return safety_radius_;
@@ -380,7 +383,7 @@ void GeantGeoTrackView::move_to_boundary()
 
     // Move next step
     axpy(next_step_, dir_, &pos_);
-    axpy(convert_to_geant(next_step_, CLHEP::cm), g4dir_, &g4pos_);
+    axpy(convert_to_geant(next_step_, clhep_length), g4dir_, &g4pos_);
     next_step_ = 0;
     safety_radius_ = 0;
     g4safety_ = 0;
@@ -422,7 +425,7 @@ void GeantGeoTrackView::move_internal(real_type dist)
 
     // Move and update next_step
     axpy(dist, dir_, &pos_);
-    axpy(convert_to_geant(dist, CLHEP::cm), g4dir_, &g4pos_);
+    axpy(convert_to_geant(dist, clhep_length), g4dir_, &g4pos_);
     next_step_ -= dist;
     navi_.LocateGlobalPointWithinVolume(g4pos_);
 
@@ -440,7 +443,7 @@ void GeantGeoTrackView::move_internal(real_type dist)
 void GeantGeoTrackView::move_internal(Real3 const& pos)
 {
     pos_ = pos;
-    g4pos_ = convert_to_geant(pos_, CLHEP::cm);
+    g4pos_ = convert_to_geant(pos_, clhep_length);
     next_step_ = 0;
     navi_.LocateGlobalPointWithinVolume(g4pos_);
 
