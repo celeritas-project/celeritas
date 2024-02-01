@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/g4/VisitGeantVolumes.hh
+//! \file celeritas/ext/VisitGeantVolumes.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
