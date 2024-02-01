@@ -475,7 +475,7 @@ celeritas_add_test(celeritas/global/ActionRegistry.test.cc)
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   set(_along_step_filter
     FILTER
-      "-Em3*:SimpleCms*"
+      "-Em3*:SimpleCms*:LeadBox*"
       "Em3AlongStepTest.nofluct_nomsc"
       "Em3AlongStepTest.msc_nofluct"
       "Em3AlongStepTest.msc_nofluct_finegrid"
@@ -484,6 +484,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
       "SimpleCmsAlongStepTest.msc_field_finegrid"
       "SimpleCmsRZFieldAlongStepTest.msc_rzfield"
       "SimpleCmsRZFieldAlongStepTest.msc_rzfield_finegrid"
+      "LeadBox*"
   )
   set(_stepper_filter
     FILTER
@@ -496,11 +497,12 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
       "OneSteelSphere.*"
   )
 elseif(CELERITAS_USE_Geant4)
-set(_along_step_filter
+  set(_along_step_filter
     FILTER
-      "-Em3*:SimpleCms*"
+      "-Em3*:SimpleCms*:LeadBox*"
       "Em3AlongStepTest.nofluct_nomsc"
       "Em3AlongStepTest.fluct_nomsc"
+      "LeadBox*"
   )
   set(_stepper_filter
     FILTER
