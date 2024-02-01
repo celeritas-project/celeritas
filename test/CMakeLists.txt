@@ -19,7 +19,7 @@ celeritas_add_library(testcel_harness
   testdetail/TestMacrosImpl.cc
   testdetail/TestMainImpl.cc
 )
-target_compile_features(testcel_harness PUBLIC cxx_std_14)
+target_compile_features(testcel_harness PUBLIC cxx_std_17)
 celeritas_target_link_libraries(testcel_harness
   PUBLIC Celeritas::corecel GTest::GTest
   PRIVATE ${nlohmann_json_LIBRARIES}
