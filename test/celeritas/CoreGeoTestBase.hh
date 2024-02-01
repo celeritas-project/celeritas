@@ -11,7 +11,7 @@
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
 #    include "celeritas/ext/VecgeomTestBase.hh"
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
-#    include "orange/OrangeTestBase.hh"
+#    include "celeritas/OrangeTestBase.hh"
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
 #    include "celeritas/ext/GeantGeoTestBase.hh"
 #endif
