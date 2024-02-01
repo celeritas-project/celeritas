@@ -326,8 +326,22 @@ celeritas_target_link_libraries(testcel_celeritas_core
 )
 
 # Geometry
-celeritas_add_object_library(testcel_celeritas_geo
+set(_geo_src
+  celeritas/OrangeTestBase.cc
   celeritas/GenericGeoTestBase.cc
+)
+if(CELERITAS_USE_VecGeom)
+  list(APPEND _geo_src
+    celeritas/ext/VecGeomTestBase.cc
+  )
+endif()
+if(CELERITAS_USE_Geant4)
+  list(APPEND _geo_src
+    celeritas/ext/GeantGeoTestBase.cc
+  )
+endif()
+celeritas_add_object_library(testcel_celeritas_geo
+  ${_geo_src}
 )
 target_link_libraries(testcel_celeritas_geo
   PRIVATE Celeritas::testcel_harness Celeritas::celeritas ${_geo_libs}

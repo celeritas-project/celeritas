@@ -3,32 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/GenericGeoTestBase.hh
+//! \file geocel/GenericGeoTestBase.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <type_traits>
 
 #include "corecel/data/CollectionStateStore.hh"
-#include "celeritas/geo/GeoFwd.hh"
 
 #include "LazyGeoManager.hh"
 #include "Test.hh"
 
 class G4VPhysicalVolume;
-
-//---------------------------------------------------------------------------//
-/*!
- * \def CELERTEST_INST_GEO
- *
- * Explicitly instantiate a class for each available geometry params type.
- *
- * In a .cc file:
- * \code
- * CELERTEST_INST_GEO(MyTypedTestClass);
- * \endcode
- */
-//---------------------------------------------------------------------------//
 
 namespace celeritas
 {
@@ -63,45 +49,10 @@ struct GenericGeoGeantImportVolumeResult
     void print_expected() const;
 };
 
-namespace testdetail
-{
 //---------------------------------------------------------------------------//
+//! Traits class templated on host params, to be extended by downstream files
 template<class HP>
 struct GenericGeoTraits;
-
-template<>
-struct GenericGeoTraits<VecgeomParams>
-{
-    template<MemSpace M>
-    using StateStore = CollectionStateStore<VecgeomStateData, M>;
-    using TrackView = VecgeomTrackView;
-    static inline char const* ext = ".gdml";
-    static inline char const* name = "VecGeom";
-};
-
-template<>
-struct GenericGeoTraits<OrangeParams>
-{
-    template<MemSpace M>
-    using StateStore = CollectionStateStore<OrangeStateData, M>;
-
-    using TrackView = OrangeTrackView;
-    static inline char const* ext = ".org.json";
-    static inline char const* name = "ORANGE";
-};
-
-template<>
-struct GenericGeoTraits<GeantGeoParams>
-{
-    template<MemSpace M>
-    using StateStore = CollectionStateStore<GeantGeoStateData, M>;
-    using TrackView = GeantGeoTrackView;
-    static inline char const* ext = ".gdml";
-    static inline char const* name = "Geant4";
-};
-
-//---------------------------------------------------------------------------//
-}  // namespace testdetail
 
 //---------------------------------------------------------------------------//
 /*!
@@ -111,21 +62,20 @@ struct GenericGeoTraits<GeantGeoParams>
  *
  * \sa AllGeoTypedTestBase
  *
- * \note This class is instantiated in GenericGeoTestBase.cc for each available
- * geometry type.
+ * \note This class is instantiated in XTestBase.cc for geometry type X.
  */
 template<class HP>
 class GenericGeoTestBase : virtual public Test, private LazyGeoManager
 {
     static_assert(std::is_base_of_v<GeoParamsInterface, HP>);
 
-    using TraitsT = testdetail::GenericGeoTraits<HP>;
+    using TraitsT = GenericGeoTraits<HP>;
 
   public:
     //!@{
     //! \name Type aliases
     using SPConstGeo = std::shared_ptr<HP const>;
-    using GeoTrackView = typename TraitsT::TrackView;
+    using GeoTrackView = typename GenericGeoTraits<HP>::TrackView;
     using TrackingResult = GenericGeoTrackingResult;
     using GeantVolResult = GenericGeoGeantImportVolumeResult;
     //!@}
@@ -184,35 +134,6 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
         return this->build_geometry();
     }
 };
-
-//---------------------------------------------------------------------------//
-// TYPE ALIASES
-//---------------------------------------------------------------------------//
-
-using GenericVecgeomTestBase = GenericGeoTestBase<VecgeomParams>;
-using GenericOrangeTestBase = GenericGeoTestBase<OrangeParams>;
-using GenericGeantGeoTestBase = GenericGeoTestBase<GeantGeoParams>;
-
-using GenericCoreGeoTestBase = GenericGeoTestBase<GeoParams>;
-
-#define CELERTEST_INST_IMPL_(CLS, GEO) template class CLS<GEO>
-
-#if CELERITAS_USE_VECGEOM
-#    define CELERTEST_INST_VG_(CLS) CELERTEST_INST_IMPL_(CLS, VecgeomParams);
-#else
-#    define CELERTEST_INST_VG_(CLS)
-#endif
-#if CELERITAS_USE_GEANT4 && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
-#    define CELERTEST_INST_G4_(CLS) CELERTEST_INST_IMPL_(CLS, GeantGeoParams);
-#else
-#    define CELERTEST_INST_G4_(CLS)
-#endif
-
-// See documentation at top of file
-#define CELERTEST_INST_GEO(CLS) \
-    CELERTEST_INST_VG_(CLS)     \
-    CELERTEST_INST_G4_(CLS)     \
-    CELERTEST_INST_IMPL_(CLS, OrangeParams)
 
 //---------------------------------------------------------------------------//
 }  // namespace test

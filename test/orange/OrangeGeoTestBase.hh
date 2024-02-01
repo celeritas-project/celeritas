@@ -23,13 +23,17 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 struct UnitInput;
 class OrangeParams;
+
 namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
  * Test base for loading geometry.
+ *
+ * \todo Combine with OrangeTestBase (the "generic" one)
  */
 class OrangeGeoTestBase : public Test
 {

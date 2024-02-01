@@ -3,16 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/GeantGeoUtils.test.cc
+//! \file geocel/GeantGeoUtils.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/GeantGeoUtils.hh"
 
 #include <algorithm>
 #include <G4LogicalVolume.hh>
 
-#include "celeritas/ext/GeantGeoParams.hh"
-
-#include "../GenericGeoTestBase.hh"
+#include "GeantGeoTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -21,6 +19,7 @@ namespace test
 {
 namespace
 {
+//---------------------------------------------------------------------------//
 // Get volume names for a bunch of G4LV*
 template<class InputIterator>
 decltype(auto) get_vol_names(InputIterator iter, InputIterator stop)
@@ -34,10 +33,11 @@ decltype(auto) get_vol_names(InputIterator iter, InputIterator stop)
     std::sort(result.begin(), result.end());
     return result;
 }
-}  // namespace
-//---------------------------------------------------------------------------//
 
-class GeantGeoUtilsTest : public GenericGeantGeoTestBase
+//---------------------------------------------------------------------------//
+}  // namespace
+
+class GeantGeoUtilsTest : public GeantGeoTestBase
 {
   public:
     SPConstGeo build_geometry() final
