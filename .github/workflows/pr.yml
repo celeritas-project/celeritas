@@ -34,23 +34,14 @@ jobs:
 
   # Specifying a dependent job allows us to select a single "requires" check in the project GitHub settings
   all:
-    if: always()
-    needs: [build]
+    if: ${{ always() }}
+    needs:
+    - build
     runs-on: ubuntu-latest
-    env:
-      FAILURE: ${{ failure() && "true" || "false" }}
-      CANCELLED: ${{ cancelled() && "true" || "false" }}
     steps:
-    - name: Result
-      run: |
-        if $FAILURE; then
-          echo 'Checks FAILED'
-          exit 1
-        elif $CANCELLED; then
-          echo 'Checks were CANCELLED'
-          exit 1
-        else
-          echo 'All is well!'
-        fi
+    - name: Decide whether the needed jobs succeeded or failed
+      uses: re-actors/alls-green@release/v1
+      with:
+        jobs: ${{ toJSON(needs) }}
 
 # vim: set nowrap tw=100:
