@@ -37,8 +37,6 @@ jobs:
       CC: ${{matrix.compiler}}-${{matrix.version}}
       CXX: ${{matrix.compiler == 'gcc' && 'g++' || 'clang++'}}-${{matrix.version}}
     steps:
-      - name: Fail
-        run: false
       - name: Install dependencies
         run: |
           sudo apt-get -q -y update
