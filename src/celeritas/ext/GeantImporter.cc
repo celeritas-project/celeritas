@@ -23,6 +23,7 @@
 #include <G4ElementVector.hh>
 #include <G4EmParameters.hh>
 #include <G4GammaGeneralProcess.hh>
+#include <G4LogicalVolumeStore.hh>
 #include <G4Material.hh>
 #include <G4MaterialCutsCouple.hh>
 #include <G4Navigator.hh>
@@ -66,10 +67,11 @@
 #include "celeritas/io/SeltzerBergerReader.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
+#include "GeantGeoUtils.hh"
 #include "ScopedGeantExceptionHandler.hh"
+#include "VisitGeantVolumes.hh"
 #include "detail/AllElementReader.hh"
 #include "detail/GeantProcessImporter.hh"
-#include "detail/GeantVolumeVisitor.hh"
 
 inline constexpr double mev_scale = 1 / CLHEP::MeV;
 
@@ -814,15 +816,42 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
 std::vector<ImportVolume>
 GeantImporter::import_volumes(bool unique_volumes) const
 {
-    detail::GeantVolumeVisitor visitor(unique_volumes);
-    // Recursive loop over all logical volumes to populate map
-    visitor.visit(*world_->GetLogicalVolume());
+    G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
+    CELER_ASSERT(lv_store);
+    std::vector<ImportVolume> result(lv_store->size());
 
-    auto volumes = visitor.build_volume_vector();
-    CELER_LOG(debug) << "Loaded " << volumes.size() << " volumes with "
+    // Recursive loop over all logical volumes to populate volumes
+    visit_geant_volumes(
+        [unique_volumes, &result](G4LogicalVolume const& lv) {
+            auto i = static_cast<std::size_t>(lv.GetInstanceID());
+            CELER_ASSERT(i < result.size());
+
+            ImportVolume& volume = result[lv.GetInstanceID()];
+            if (auto* cuts = lv.GetMaterialCutsCouple())
+            {
+                volume.material_id = cuts->GetIndex();
+            }
+            volume.name = lv.GetName();
+            volume.solid_name = lv.GetSolid()->GetName();
+
+            if (volume.name.empty())
+            {
+                CELER_LOG(warning)
+                    << "No logical volume name specified for instance ID " << i
+                    << " (material " << volume.material_id << ")";
+            }
+            else if (unique_volumes)
+            {
+                // Add pointer as GDML writer does
+                volume.name = make_gdml_name(lv);
+            }
+        },
+        *world_->GetLogicalVolume());
+
+    CELER_LOG(debug) << "Loaded " << result.size() << " volumes with "
                      << (unique_volumes ? "uniquified" : "original")
                      << " names";
-    return volumes;
+    return result;
 }
 
 //---------------------------------------------------------------------------//

@@ -135,7 +135,6 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantModelImporter.cc
     ext/detail/GeantPhysicsList.cc
     ext/detail/GeantProcessImporter.cc
-    ext/detail/GeantVolumeVisitor.cc
   )
   set(_cg4_libs Celeritas::corecel XercesC::XercesC ${Geant4_LIBRARIES})
 
