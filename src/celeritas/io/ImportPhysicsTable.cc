@@ -28,23 +28,4 @@ char const* to_cstring(ImportTableType value)
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Get a printable label for units.
- */
-char const* to_cstring(ImportUnits value)
-{
-    static EnumStringMapper<ImportUnits> const to_cstring_impl{
-        "unitless",
-        "MeV",
-        "MeV/len",
-        "len",
-        "1/len",
-        "1/len-MeV",
-        "MeV^2/len",
-        "len^2",
-    };
-    return to_cstring_impl(value);
-}
-
-//---------------------------------------------------------------------------//
 }  // namespace celeritas

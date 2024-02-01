@@ -12,7 +12,11 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//! For now, energy loss calculation has the same behavior as cross sections
+/*!
+ * For now, energy loss calculation has the same behavior as cross sections.
+ *
+ * The return value is [MeV / len] but isn't wrapped with a Quantity.
+ */
 using EnergyLossCalculator = XsCalculator;
 
 //---------------------------------------------------------------------------//

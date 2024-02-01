@@ -20,8 +20,8 @@ namespace g4vg
 /*!
  * Convert a unit from Geant4 scale to another.
  *
- * Currently the scale is hardcoded as 1/mm but could easily be a class
- * attribute.
+ * Currently the scale is hardcoded as mm (i.e., CLHEP units) but could easily
+ * be a class attribute.
  */
 class Scaler
 {

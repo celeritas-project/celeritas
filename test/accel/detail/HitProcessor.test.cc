@@ -10,6 +10,7 @@
 #include <G4ParticleTable.hh>
 
 #include "celeritas/SimpleCmsTestBase.hh"
+#include "celeritas/UnitUtils.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
@@ -18,7 +19,9 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas::units;
+using celeritas::test::from_cm;
+using celeritas::test::SimpleHitsResult;
+using celeritas::units::MevEnergy;
 
 namespace celeritas
 {
@@ -26,7 +29,6 @@ namespace detail
 {
 namespace test
 {
-using ::celeritas::test::SimpleHitsResult;
 
 //---------------------------------------------------------------------------//
 class SimpleCmsTest : public ::celeritas::test::SDTestBase,
@@ -145,6 +147,8 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
     }
     if (selection_.points[StepPoint::post].time)
     {
+        using celeritas::units::second;
+
         dso.points[StepPoint::post].time = {
             1e-9 * second,
             2e-10 * second,
@@ -155,9 +159,9 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
     {
         // note: points must correspond to detector volumes!
         dso.points[StepPoint::pre].pos = {
-            {100, 0, 0},
-            {0, 150, 10},
-            {0, 200, -20},
+            from_cm(Real3{100, 0, 0}),
+            from_cm(Real3{0, 150, 10}),
+            from_cm(Real3{0, 200, -20}),
         };
     }
     if (selection_.points[StepPoint::pre].dir)
@@ -275,19 +279,19 @@ TEST_F(SimpleCmsTest, touchable_edgecase)
     auto& pos = dso_hits.points[StepPoint::pre].pos;
     auto& dir = dso_hits.points[StepPoint::pre].dir;
     pos = {
-        {30, 0, 0},
-        {0, 125, 10},
-        {0, 175, -20},
+        from_cm(Real3{30, 0, 0}),
+        from_cm(Real3{0, 125, 10}),
+        from_cm(Real3{0, 175, -20}),
     };
     process_hits(dso_hits);
 
     pos = {
-        {-120.20472398905, 34.290294993135, -58.348475076307},
-        {-58.042349740868, -165.09417202481, -315.41125902053},
-        {0, 275, -20},
+        from_cm(Real3{-120.20472398905, 34.290294993135, -58.348475076307}),
+        from_cm(Real3{-58.042349740868, -165.09417202481, -315.41125902053}),
+        from_cm(Real3{0, 275, -20}),
     };
-    EXPECT_SOFT_EQ(125.0, std::hypot(pos[0][0], pos[0][1]));
-    EXPECT_SOFT_EQ(175.0, std::hypot(pos[1][0], pos[1][1]));
+    EXPECT_SOFT_EQ(from_cm(125.0), std::hypot(pos[0][0], pos[0][1]));
+    EXPECT_SOFT_EQ(from_cm(175.0), std::hypot(pos[1][0], pos[1][1]));
     dir = {
         {0.39117837162751, -0.78376148752334, -0.48238720157779},
         {0.031769215780742, 0.6378450322959, -0.76950921482729},

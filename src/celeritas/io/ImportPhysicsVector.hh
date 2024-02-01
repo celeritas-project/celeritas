@@ -23,6 +23,7 @@ enum class ImportPhysicsVectorType
     linear,  //!< Uniform and linear in x
     log,  //!< Uniform and logarithmic in x
     free,  //!< Nonuniform in x
+    size_
 };
 
 //---------------------------------------------------------------------------//

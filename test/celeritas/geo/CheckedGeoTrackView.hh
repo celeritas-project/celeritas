@@ -60,7 +60,10 @@ class CheckedGeoTrackView : public GTV
     }
 
     // Check volume consistency this far from the boundary
-    static constexpr real_type safety_tol() { return 1e-4; }
+    static constexpr real_type safety_tol()
+    {
+        return 1e-4 * units::centimeter;
+    }
 
     // Calculate or return the safety up to an infinite distance
     inline real_type find_safety();

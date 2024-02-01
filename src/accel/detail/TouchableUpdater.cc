@@ -57,7 +57,7 @@ bool TouchableUpdater::operator()(Real3 const& pos,
                                   Real3 const& dir,
                                   G4LogicalVolume const* lv)
 {
-    auto g4pos = convert_to_geant(pos, CLHEP::cm);
+    auto g4pos = convert_to_geant(pos, clhep_length);
     auto g4dir = convert_to_geant(dir, 1);
 
     // Locate pre-step point
@@ -74,9 +74,9 @@ bool TouchableUpdater::operator()(Real3 const& pos,
         return true;
     }
 
-    constexpr double g4max_step = convert_to_geant(max_step(), CLHEP::cm);
+    constexpr double g4max_step = convert_to_geant(max_step(), clhep_length);
     constexpr double g4max_quiet_step
-        = convert_to_geant(max_quiet_step(), CLHEP::cm);
+        = convert_to_geant(max_quiet_step(), clhep_length);
     double g4safety{-1};
     double g4step{-1};
 
@@ -157,7 +157,7 @@ bool TouchableUpdater::operator()(Real3 const& pos,
     }
 
     // Reset the position and flip the direction
-    g4pos = convert_to_geant(pos, CLHEP::cm);
+    g4pos = convert_to_geant(pos, clhep_length);
     g4dir *= -1;
     find_next_step();
     if (try_cross_boundary())

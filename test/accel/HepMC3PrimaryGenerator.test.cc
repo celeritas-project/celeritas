@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "accel/HepMC3PrimaryGenerator.hh"
 
+#include <CLHEP/Units/SystemOfUnits.h>
+
 #include "celeritas/GeantTestBase.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
 #include "celeritas/ext/Convert.geant.hh"

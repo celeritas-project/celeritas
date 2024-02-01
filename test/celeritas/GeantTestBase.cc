@@ -72,6 +72,7 @@ bool GeantTestBase::is_ci_build()
 {
     return CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
            && CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4
+           && CELERITAS_UNITS == CELERITAS_UNITS_CGS
            && cstring_equal(celeritas_core_rng, "xorwow")
            && (cstring_equal(celeritas_clhep_version, "2.4.6.0")
                || cstring_equal(celeritas_clhep_version, "2.4.6.4"))

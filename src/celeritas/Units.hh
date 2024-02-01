@@ -43,6 +43,12 @@ namespace units
  * Additionally:
  * - radians are used for measures of angle (unitless)
  * - steradians are used for measures of solid angle (unitless)
+ *
+ * TODO: if we're serious about supporting single-precision arithmetic, we
+ * should define a helper class that stores the constant as full precision but
+ * when multiplied by a single/double is truncated to that precision.
+ * Otherwise, if \c real_type is single-precision, then we lose accuracy in
+ * places like the GeantImporter where everything is double precision.
  */
 
 #define CELER_ICRT inline constexpr real_type

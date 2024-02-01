@@ -13,6 +13,7 @@ jobs:
   gpu:
     name: gpu
     strategy:
+      fail-fast: false
       matrix:
         special: [null]
         geometry: ['orange', 'vecgeom']
@@ -45,6 +46,10 @@ jobs:
             image: 'centos-rocm'
           - geometry: 'vecgeom'
             buildtype: 'reldeb'
+            image: 'ubuntu-cuda'
+          - special: 'clhep'
+            geometry: 'vecgeom'
+            buildtype: 'debug'
             image: 'ubuntu-cuda'
     env:
       ASAN_OPTIONS: "detect_leaks=0"

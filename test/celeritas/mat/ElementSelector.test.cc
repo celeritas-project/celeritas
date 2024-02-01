@@ -38,7 +38,7 @@ class ElementSelectorTest : public Test
   protected:
     void SetUp() override
     {
-        using units::AmuMass;
+        using namespace units;
 
         MaterialParams::Input inp;
         inp.elements = {
@@ -49,12 +49,12 @@ class ElementSelectorTest : public Test
         };
         inp.materials = {
             {0.0, 0.0, MatterState::unspecified, {}, "hard_vacuum"},
-            {0.1 * constants::na_avogadro,
+            {native_value_from(MolCcDensity{0.1}),
              293.0,
              MatterState::gas,
              {{ElementId{2}, 1.0}},
              "Al"},
-            {0.05 * constants::na_avogadro,
+            {native_value_from(MolCcDensity{0.05}),
              293.0,
              MatterState::solid,
              {{ElementId{0}, 0.25},
@@ -62,7 +62,7 @@ class ElementSelectorTest : public Test
               {ElementId{2}, 0.25},
               {ElementId{3}, 0.25}},
              "everything_even"},
-            {1 * constants::na_avogadro,
+            {native_value_from(MolCcDensity{1}),
              293.0,
              MatterState::solid,
              {{ElementId{0}, 0.48},

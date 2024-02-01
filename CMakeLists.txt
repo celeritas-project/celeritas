@@ -136,6 +136,15 @@ celeritas_setup_option(CELERITAS_REAL_TYPE float)
 celeritas_define_options(CELERITAS_REAL_TYPE
   "Global runtime precision for real numbers")
 
+if((CELERITAS_CORE_GEO STREQUAL "ORANGE")
+    AND (NOT CELERITAS_UNITS STREQUAL "CGS"))
+  celeritas_error_incompatible_option(
+    "ORANGE currently requires CGS units"
+    CELERITAS_UNITS
+    CGS
+  )
+endif()
+
 #----------------------------------------------------------------------------#
 # CMAKE VERSION CHECKS
 #----------------------------------------------------------------------------#

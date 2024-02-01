@@ -12,6 +12,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/UnitUtils.hh"
 
 #include "TestMacros.hh"
 
@@ -108,11 +109,11 @@ auto EventIOTestBase::read_all(Reader& read_event) const -> ReadAllResult
             result.pdg.push_back(
                 particles_->id_to_pdg(p.particle_id).unchecked_get());
             result.energy.push_back(p.energy.value());
-            result.pos.insert(
-                result.pos.end(), p.position.begin(), p.position.end());
+            auto pos = to_cm(p.position);
+            result.pos.insert(result.pos.end(), pos.begin(), pos.end());
             result.dir.insert(
                 result.dir.end(), p.direction.begin(), p.direction.end());
-            result.time.push_back(p.time);
+            result.time.push_back(p.time / units::second);
             result.event.push_back(p.event_id.unchecked_get());
             result.track.push_back(p.track_id.unchecked_get());
         }
@@ -131,20 +132,20 @@ void EventIOTestBase::write_test_event(Writer& write_event) const
         auto gamma_id = particles.find(pdg::gamma());
         Primary gamma{gamma_id,
                       MevEnergy{1.23},
-                      Real3{2, 4, 5},
+                      from_cm(Real3{2, 4, 5}),
                       Real3{1, 0, 0},
                       5.67e-9 * units::second,
                       EventId{0},
                       TrackId{}};
         Primary proton{proton_id,
                        MevEnergy{2.34},
-                       Real3{3, 5, 8},
+                       from_cm(Real3{3, 5, 8}),
                        Real3{0, 1, 0},
                        5.78e-9 * units::second,
                        EventId{0},
                        TrackId{}};
         std::vector<Primary> primaries{gamma, proton, gamma, proton};
-        primaries[1].position = {-3, -4, 5};
+        primaries[1].position = from_cm(Real3{-3, -4, 5});
         primaries[3].position = primaries[2].position;
         primaries[3].time = primaries[2].time;
         for (auto i : range(primaries.size()))

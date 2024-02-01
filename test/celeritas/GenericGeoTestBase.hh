@@ -38,8 +38,8 @@ namespace test
 struct GenericGeoTrackingResult
 {
     std::vector<std::string> volumes;
-    std::vector<real_type> distances;
-    std::vector<real_type> halfway_safeties;
+    std::vector<real_type> distances;  //!< [cm]
+    std::vector<real_type> halfway_safeties;  //!< [cm]
 
     void print_expected();
 };
@@ -152,15 +152,12 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
     //! Get a single-thread host track view
     GeoTrackView make_geo_track_view();
     //! Get and initialize a single-thread host track view
-    GeoTrackView make_geo_track_view(Real3 const& pos, Real3 dir);
-
-    //! Calculate a "bumped" position based on the geo's state
-    Real3 calc_bump_pos(GeoTrackView const& geo, real_type delta) const;
+    GeoTrackView make_geo_track_view(Real3 const& pos_cm, Real3 dir);
 
     //! Find linear segments until outside
-    TrackingResult track(Real3 const& pos, Real3 const& dir);
+    TrackingResult track(Real3 const& pos_cm, Real3 const& dir);
     //! Find linear segments until outside (maximum count
-    TrackingResult track(Real3 const& pos, Real3 const& dir, int max_step);
+    TrackingResult track(Real3 const& pos_cm, Real3 const& dir, int max_step);
 
     //! Try to map Geant4 volumes using ImportVolume and name
     GeantVolResult

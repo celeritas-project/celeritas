@@ -10,8 +10,11 @@
 #include <thrust/device_vector.h>
 
 #include "corecel/device_runtime_api.h"
+#include "corecel/math/Quantity.hh"
+#include "corecel/math/UnitUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "celeritas/UnitTypes.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 
 using thrust::raw_pointer_cast;
@@ -32,6 +35,8 @@ __global__ void ptv_test_kernel(unsigned int size,
                                 ParticleTrackInitializer const* init,
                                 double* result)
 {
+    using InvSecDecay = Quantity<UnitInverse<units::Second>>;
+
     auto local_tid
         = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
     if (!(local_tid < size))
@@ -49,7 +54,7 @@ __global__ void ptv_test_kernel(unsigned int size,
     *result++ = p.energy().value();
     *result++ = p.mass().value();
     *result++ = p.charge().value();
-    *result++ = p.decay_constant();
+    *result++ = native_value_to<InvSecDecay>(p.decay_constant()).value();
     *result++ = p.speed().value();
     *result++ = (p.mass() > zero_quantity() ? p.lorentz_factor() : -1);
     *result++ = p.momentum().value();

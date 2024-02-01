@@ -104,6 +104,13 @@ else()
   set(_fixme_single DISABLE)
 endif()
 
+if(CELERITAS_UNITS STREQUAL "CGS")
+  set(_fixme_cgs)
+else()
+  # Unit tests haven't yet been updated to include the correct units
+  set(_fixme_cgs DISABLE)
+endif()
+
 #-----------------------------------------------------------------------------#
 # GOOGLETEST EXTENSION TESTS
 #-----------------------------------------------------------------------------#
@@ -159,8 +166,8 @@ celeritas_add_test(corecel/grid/UniformGrid.test.cc)
 # IO
 set(CELERITASTEST_PREFIX corecel/io)
 celeritas_add_test(corecel/io/EnumStringMapper.test.cc)
-celeritas_add_test(corecel/io/Label.test.cc)
 celeritas_add_test(corecel/io/Join.test.cc)
+celeritas_add_test(corecel/io/Label.test.cc)
 celeritas_add_test(corecel/io/Logger.test.cc)
 celeritas_add_test(corecel/io/OutputRegistry.test.cc
   LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
@@ -401,6 +408,7 @@ if(CELERITAS_USE_VecGeom)
   celeritas_add_device_test(celeritas/ext/Vecgeom
     FILTER
       ${_vecgeom_tests}
+      ${_fixme_cgs}
   )
 endif()
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
@@ -413,7 +421,8 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
 endif()
 
 celeritas_add_test(celeritas/ext/GeantImporter.test.cc
-  ${_needs_geant4} LINK_LIBRARIES ${nlohmann_json_LIBRARIES}
+  ${_needs_geant4}
+  LINK_LIBRARIES ${nlohmann_json_LIBRARIES}
   FILTER
     "FourSteelSlabs*"
     "TestEm3*"
@@ -430,10 +439,10 @@ celeritas_add_test(celeritas/ext/RootImporter.test.cc ${_needs_root})
 set(CELERITASTEST_PREFIX celeritas/field)
 
 celeritas_add_test(celeritas/field/Fields.test.cc)
-celeritas_add_test(celeritas/field/Steppers.test.cc)
-celeritas_add_test(celeritas/field/FieldDriver.test.cc)
+celeritas_add_test(celeritas/field/Steppers.test.cc ${_fixme_cgs})
+celeritas_add_test(celeritas/field/FieldDriver.test.cc ${_fixme_cgs})
 celeritas_add_test(celeritas/field/FieldPropagator.test.cc
-  ${_needs_geo})
+  ${_needs_geo} ${_fixme_cgs})
 celeritas_add_test(celeritas/field/LinearPropagator.test.cc
   ${_needs_geo} LINK_LIBRARIES ${_geo_libs})
 celeritas_add_test(celeritas/field/MagFieldEquation.test.cc)
@@ -448,7 +457,7 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND _geo_args celeritas/geo/HeuristicGeoTestBase.cu)
 endif()
 celeritas_add_test(celeritas/geo/Geometry.test.cc
-  ${_geo_args})
+  ${_geo_args} ${_fixme_cgs})
 
 if(NOT (CELERITAS_USE_Geant4 OR CELERITAS_USE_ROOT))
   set(_needs_geant_or_root DISABLE)
@@ -538,6 +547,7 @@ celeritas_add_test(celeritas/grid/XsCalculator.test.cc)
 set(CELERITASTEST_PREFIX celeritas/io)
 celeritas_add_test(celeritas/io/EventIO.test.cc ${_needs_hepmc}
   LINK_LIBRARIES ${HepMC3_LIBRARIES})
+celeritas_add_test(celeritas/io/ImportUnits.test.cc)
 celeritas_add_test(celeritas/io/RootEventIO.test.cc ${_needs_root})
 celeritas_add_test(celeritas/io/SeltzerBergerReader.test.cc ${_needs_geant4})
 

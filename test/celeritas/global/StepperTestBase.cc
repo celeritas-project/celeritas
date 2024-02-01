@@ -43,6 +43,7 @@ StepperTestBase::StepperTestBase()
 bool StepperTestBase::is_default_build()
 {
     return CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+           && CELERITAS_UNITS == CELERITAS_UNITS_CGS
            && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW;
 }
 
