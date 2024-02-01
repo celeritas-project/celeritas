@@ -20,8 +20,9 @@ namespace detail
 /*!
  * Exterior and interior CSG node bounding boxes.
  *
- * This class partition space into "known inside" a volume, "maybe inside,
- * maybe outside", and "known outside".
+ * This class manages the "zone" enclosing a CSG region's boundary. It
+ * partitions space into three concentric zones: "known inside" the region,
+ * "maybe inside, maybe outside" the region, and "known outside" the region.
  *
  * \verbatim
  *  outside           ; inside
@@ -47,7 +48,10 @@ namespace detail
  *   back in a subsequent simplification.
  *
  * The \c exterior box always encloses (or is identical to) \c interior in the
- * bounding zone. If \c negated is \c false, then the exterior box is what we
+ * bounding zone.  The \c negated flag corresponds to taking the \em complement
+ * of a closed CSG region.
+ *
+ * If \c negated is \c false, then the exterior box is what we
  * typically think of as a bounding box. If \c true, then even though the
  * exterior bounding box encloses interior box, *all points inside
  * the interior box are known to be outside the volume*.  Regardless of
