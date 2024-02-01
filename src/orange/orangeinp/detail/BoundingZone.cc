@@ -78,9 +78,14 @@ BBox calc_union(BBox const& a, BBox const& b, BoxOp op)
  * | `~A & ~B` | `A_i | B_i`  | `A_x | B_x` | true     |
  *
  * The above algebra for unions and intersections does *not* necessarily
- * produce boxes. The interior has to "shrink" and the exterior has to "grow"
- * if the intersected regions are not boxes (irregularly shaped regions are
- * always in the between zone).
+ * produce boxes: it can produce a single box, or an orthogonal polyhedron
+ * (having only right angles), or two disconnected boxes.
+ * If the intersected regions are not boxes (and irregularly shaped regions are
+ * always in the between zone):
+ * - the interior result has to "shrink" to be completely enclosed by the
+ *   resulting region, and
+ * - the exterior has to "grow" to completely enclose the resulting region
+ *   (i.e. it should be the bounding box of the resulting polyhedron).
  *
  * \todo Only under certain circumstances will unions and subtractions between
  * boxes result in an actual box shape. To be conservative, for now we return

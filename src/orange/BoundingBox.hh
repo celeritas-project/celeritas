@@ -245,9 +245,10 @@ CELER_CONSTEXPR_FUNCTION BoundingBox<T>::operator bool() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Reduce the bounding box's extent along an axis.
+ * Reduce (clip) the bounding box's extent along an axis.
  *
- * This clips the bounding box along the given axis.
+ * If the point is inside the box, the box is clipped so the given boundary is
+ * on that point. Otherwise no change is made.
  */
 template<class T>
 CELER_CONSTEXPR_FUNCTION void
@@ -267,9 +268,10 @@ BoundingBox<T>::shrink(Bound bnd, Axis axis, real_type position)
 
 //---------------------------------------------------------------------------//
 /*!
- * Increase the bounding box's extent along an axis.
+ * Increase (expand) the bounding box's extent along an axis.
  *
- * This expands the bounding box along the given axis.
+ * If the point is outside the box, the box is expanded so the given boundary
+ * is on that point. Otherwise no change is made.
  */
 template<class T>
 CELER_CONSTEXPR_FUNCTION void

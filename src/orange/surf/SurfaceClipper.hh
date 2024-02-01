@@ -21,9 +21,9 @@ namespace celeritas
  * Truncate a bounding zone using a surface.
  *
  * This \em reduces the size of inner and outer bounding boxes to fit a
- * surface. The \c interior bounding box is entirely \em inside the surface,
- * and \c exterior is entirely \em outside. Axes that cannot be determined
- * inside or out are left unchanged.
+ * surface. The \c interior bounding box is modified to be entirely \em inside
+ * the surface, and the \c exterior is modified to be entirely \em outside.
+ * Axes that cannot be determined inside or out are left unchanged.
  *
  * Even though most quadric surfaces are infinite, their intersection with a
  * bounding box may be a smaller bounding box. Accounting for the current

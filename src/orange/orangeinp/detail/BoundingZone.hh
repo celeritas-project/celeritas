@@ -23,9 +23,24 @@ namespace detail
  * This class partition space into "known inside" a volume, "maybe inside,
  * maybe outside", and "known outside".
  *
+ * \verbatim
+ *  outside           ; inside
+ *   +-------------+  ;  +-------------+
+ *   | maybe   ..  |  ;  | maybe   ..  |
+ *   |  .......  . |  ;  |  .......  . |
+ *   | .+-----+ .  |  ;  | .+-----+ .  |
+ *   | .| in  |  ..|  ;  | .| out |  ..|
+ *   | .|     |   .|  ;  | .|     |   .|
+ *   | .+-----+ .. |  ;  | .+-----+ .. |
+ *   | ........    |  ;  | ........    |
+ *   +-------------+  ;  +-------------+
+ *                    ;
+ *   negated = false  ;  negated = true
+ * \endverbatim
+ *
  * - Known outside is the typical bounding box case: nowhere outside the
- * bounding box is inside the volume; i.e., the box completely encloses the
- * volume (but may also enclose parts that *aren't* volume).
+ *   bounding box is inside the volume; i.e., the box completely encloses the
+ *   volume (but may also enclose parts that *aren't* volume).
  * - Known inside can be used for safety distance calculation.
  * - Flipping the two cases when applying a "not" operator to a CSG node: so
  *   "known inside" becomes "known outside" and could potentially be flipped
@@ -34,7 +49,7 @@ namespace detail
  * The \c exterior box always encloses (or is identical to) \c interior in the
  * bounding zone. If \c negated is \c false, then the exterior box is what we
  * typically think of as a bounding box. If \c true, then even though the
- * exterior bounding box is larger than the interior box, *all points inside
+ * exterior bounding box encloses interior box, *all points inside
  * the interior box are known to be outside the volume*.  Regardless of
  * negation, the area between the interior and exterior bounding boxes is \em
  * indeterminate: a point in that space may be within the CSG region, or it may
@@ -48,7 +63,8 @@ namespace detail
  * zones.  Below, \c ~zone means a zone with the \c negated flag set; \c ~box
  * means "complement of a bbox": all space *except*
  * inside box; and the union operator implies the (possibly disconnected and
- * probably not box-shaped!) union of the two boxes.
+ * probably not box-shaped!) union of the two boxes. \c A_i is the interior
+ * (enclosed) box for A, and \c A_x is the exterior (enclosing) box.
  *
  * | Zone      | known inside   | known outside   |
  * | ------    | ------------   | -------------   |
@@ -67,9 +83,6 @@ namespace detail
  * - De Morgan's law 1:\verbatim ~A & ~B <=> ~(A | B) \endverbatim
  * - Set difference: \verbatim A & ~B <=> A - B \endverbatim
  * - Negated set difference: \verbatim A | ~B <=> ~(B - A) \endverbatim
- *
- * When \c negated is set, the *inside* of the interior bounding box is "always
- * outside" and the *outside* of the exterior is "always inside".
  *
  * The default bounding zone places all points in the \em indeterminate zone:
  * the exterior is the "universe set" (infinite) and the interior is the "empty
