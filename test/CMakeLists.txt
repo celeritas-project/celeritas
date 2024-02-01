@@ -84,7 +84,8 @@ endif()
 
 if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
   set(_core_geo_lib VecGeom::vecgeom)
-elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
+elseif(CELERITAS_CORE_GEO STREQUAL "Geant4"
+    AND CELERITAS_REAL_TYPE STREQUAL "double")
   set(_core_geo_lib ${Geant4_LIBRARIES})
 else()
   set(_core_geo_lib Celeritas::orange)
@@ -332,10 +333,10 @@ set(_geo_src
 )
 if(CELERITAS_USE_VecGeom)
   list(APPEND _geo_src
-    celeritas/ext/VecGeomTestBase.cc
+    celeritas/ext/VecgeomTestBase.cc
   )
 endif()
-if(CELERITAS_USE_Geant4)
+if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   list(APPEND _geo_src
     celeritas/ext/GeantGeoTestBase.cc
   )

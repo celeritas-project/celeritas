@@ -71,11 +71,11 @@ void GeantVolResult::print_expected() const
 GeantVolResult GeantVolResult::from_import(GeoParamsInterface const& geom,
                                            G4VPhysicalVolume const* world)
 {
-    using Result = GenericGeoGeantImportVolumeResult;
-
     CELER_VALIDATE(world, << "world volume is nullptr");
 
 #if CELERITAS_USE_GEANT4
+    using Result = GenericGeoGeantImportVolumeResult;
+
     G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
     CELER_ASSERT(lv_store);
 
@@ -127,6 +127,7 @@ GeantVolResult GeantVolResult::from_pointers(GeoParamsInterface const& geom,
     CELER_VALIDATE(world, << "world volume is nullptr");
 #if CELERITAS_USE_GEANT4
     using Result = GenericGeoGeantImportVolumeResult;
+
     Result result;
     for (G4LogicalVolume* lv : celeritas::geant_logical_volumes())
     {
