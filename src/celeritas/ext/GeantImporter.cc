@@ -816,15 +816,22 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
 std::vector<ImportVolume>
 GeantImporter::import_volumes(bool unique_volumes) const
 {
+    // Note: if the LV has been purged (i.e. by trying to run multiple
+    // geometries in the same execution), the instance ID's won't correspond to
+    // the location in the vector.
     G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
     CELER_ASSERT(lv_store);
-    std::vector<ImportVolume> result(lv_store->size());
+    std::vector<ImportVolume> result;
+    result.reserve(lv_store->size());
 
     // Recursive loop over all logical volumes to populate volumes
     visit_geant_volumes(
         [unique_volumes, &result](G4LogicalVolume const& lv) {
             auto i = static_cast<std::size_t>(lv.GetInstanceID());
-            CELER_ASSERT(i < result.size());
+            if (i >= result.size())
+            {
+                result.resize(i + 1);
+            }
 
             ImportVolume& volume = result[lv.GetInstanceID()];
             if (auto* cuts = lv.GetMaterialCutsCouple())
