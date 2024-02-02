@@ -19,7 +19,7 @@ celeritas_add_library(testcel_harness
   testdetail/TestMacrosImpl.cc
   testdetail/TestMainImpl.cc
 )
-target_compile_features(testcel_harness PUBLIC cxx_std_14)
+target_compile_features(testcel_harness PUBLIC cxx_std_17)
 celeritas_target_link_libraries(testcel_harness
   PUBLIC Celeritas::corecel GTest::GTest
   PRIVATE ${nlohmann_json_LIBRARIES}
@@ -84,7 +84,8 @@ endif()
 
 if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
   set(_core_geo_lib VecGeom::vecgeom)
-elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
+elseif(CELERITAS_CORE_GEO STREQUAL "Geant4"
+    AND CELERITAS_REAL_TYPE STREQUAL "double")
   set(_core_geo_lib ${Geant4_LIBRARIES})
 else()
   set(_core_geo_lib Celeritas::orange)
@@ -327,8 +328,22 @@ celeritas_target_link_libraries(testcel_celeritas_core
 )
 
 # Geometry
-celeritas_add_object_library(testcel_celeritas_geo
+set(_geo_src
+  celeritas/OrangeTestBase.cc
   celeritas/GenericGeoTestBase.cc
+)
+if(CELERITAS_USE_VecGeom)
+  list(APPEND _geo_src
+    celeritas/ext/VecgeomTestBase.cc
+  )
+endif()
+if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
+  list(APPEND _geo_src
+    celeritas/ext/GeantGeoTestBase.cc
+  )
+endif()
+celeritas_add_object_library(testcel_celeritas_geo
+  ${_geo_src}
 )
 target_link_libraries(testcel_celeritas_geo
   PRIVATE Celeritas::testcel_harness Celeritas::celeritas ${_geo_libs}
