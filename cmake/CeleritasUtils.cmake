@@ -373,11 +373,14 @@ function(celeritas_define_options var doc)
   endif()
   mark_as_advanced(${var}_OPTIONS)
 
-  set(${var} "" CACHE STRING "${doc}")
-  set_property(CACHE ${var} PROPERTY STRINGS "${${var}_OPTIONS}")
-
+  # Current value and var name for previous value
   set(_val "${${var}}")
   set(_last_var _LAST_${var})
+
+  # Add variable to cache with current value if given (empty is default)
+  set(${var} "${_val}" CACHE STRING "${doc}")
+  set_property(CACHE ${var} PROPERTY STRINGS "${${var}_OPTIONS}")
+
   if(_val STREQUAL "")
     # Dynamic default option: set as core variable in parent scope
     list(GET ${var}_OPTIONS 0 _default)
