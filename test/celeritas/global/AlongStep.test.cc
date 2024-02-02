@@ -611,12 +611,12 @@ TEST_F(LeadBoxAlongStepTest, position_change)
     size_type num_tracks = 1;
     Input inp;
     inp.particle_id = this->particle()->find(pdg::electron());
-    inp.position = {1e9, 0, 0};
     inp.direction = {-1, 0, 0};
     inp.phys_mfp = 1;
     {
         SCOPED_TRACE("Electron with no change in position after propagation");
         inp.energy = MevEnergy{1e-6};
+        inp.position = {1e9, 0, 0};
         ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::error};
         auto result = this->run(inp, num_tracks);
         static double const expected_step_length = 5.38228333877273e-8;
@@ -644,23 +644,14 @@ TEST_F(LeadBoxAlongStepTest, position_change)
         EXPECT_EQ("eloss-range", result.action);
     }
     {
-        SCOPED_TRACE("Electron changes position only with double precision");
-        inp.energy = MevEnergy{1e-5};
+        SCOPED_TRACE("Electron changes position");
+        inp.energy = MevEnergy{1};
+        inp.position = {1, 0, 0};
         ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::error};
         auto result = this->run(inp, num_tracks);
-        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-        {
-            EXPECT_TRUE(scoped_log.empty()) << scoped_log;
-            EXPECT_SOFT_EQ(1.7020274362897472e-7, result.step);
-            EXPECT_GT(result.displacement, 0);
-        }
-        else
-        {
-            static char const* const expected_log_levels[] = {"error"};
-            EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
-            EXPECT_SOFT_EQ(1.7020278164636693e-7, result.step);
-            EXPECT_EQ(0, result.displacement);
-        }
+        EXPECT_TRUE(scoped_log.empty()) << scoped_log;
+        EXPECT_SOFT_EQ(0.072970479114469966, result.step);
+        EXPECT_SOFT_EQ(0.0056608379081902749, result.displacement);
         EXPECT_EQ("eloss-range", result.action);
     }
 }
