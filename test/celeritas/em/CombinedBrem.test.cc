@@ -47,7 +47,7 @@ class CombinedBremTest : public InteractorHostTestBase
         mat_inp.elements
             = {{AtomicNumber{29}, units::AmuMass{63.546}, {}, "Cu"}};
         mat_inp.materials = {
-            {0.141 * na_avogadro,
+            {native_value_from(MolCcDensity{0.141}),
              293.0,
              MatterState::solid,
              {{ElementId{0}, 1.0}},

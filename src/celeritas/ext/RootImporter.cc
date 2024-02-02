@@ -61,6 +61,9 @@ ImportData RootImporter::operator()()
     CELER_ASSERT(err_code >= 0);
     tree_data->GetEntry(0);
 
+    // Convert (if necessary) the resulting data to the native unit system
+    convert_to_native(&import_data);
+
     return import_data;
 }
 

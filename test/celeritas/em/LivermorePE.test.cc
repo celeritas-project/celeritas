@@ -61,7 +61,7 @@ class LivermorePETest : public InteractorHostTestBase
         // Set up shared material data
         MaterialParams::Input mi;
         mi.elements = {{AtomicNumber{19}, AmuMass{39.0983}, {}, "K"}};
-        mi.materials = {{1e-5 * na_avogadro,
+        mi.materials = {{native_value_from(MolCcDensity{1e-5}),
                          293.,
                          MatterState::solid,
                          {{ElementId{0}, 1.0}},
@@ -499,7 +499,8 @@ TEST_F(LivermorePETest, macro_xs)
     {
         real_type e = std::exp(loge);
         energy.push_back(e);
-        macro_xs.push_back(calc_macro_xs(MevEnergy{e}));
+        macro_xs.push_back(
+            native_value_to<units::InvCmXs>(calc_macro_xs(MevEnergy{e})).value());
         loge += delta;
     }
     real_type const expected_macro_xs[]

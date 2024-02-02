@@ -7,11 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "GeantMicroXsCalculator.hh"
 
-#include <CLHEP/Units/SystemOfUnits.h>
 #include <G4Material.hh>
 #include <G4VEmModel.hh>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/math/Algorithms.hh"
+#include "celeritas/io/ImportUnits.hh"
 
 namespace celeritas
 {
@@ -54,17 +55,31 @@ void GeantMicroXsCalculator::operator()(VecDouble const& energy_grid,
         mxs_vec.resize(energy_grid.size());
     }
 
+    auto calc_element_xs
+        = [this, &elements](std::size_t elcomp_idx, double energy) {
+              // Calculate microscopic cross section
+              double xs = model_.ComputeCrossSectionPerAtom(
+                  &particle_,
+                  elements[elcomp_idx],
+                  energy,
+                  secondary_cut_,
+                  /* max_energy = */ std::numeric_limits<double>::max());
+              return clamp_to_nonneg(xs);
+          };
+    double const xs_scaling = native_value_from_clhep(ImportUnits::len_sq);
+
     // Outer loop over energy to reduce material setup calls
     for (auto energy_idx : range(energy_grid.size()))
     {
         double const energy = energy_grid[energy_idx];
+        CELER_ASSERT(energy > 0);
         model_.SetupForMaterial(&particle_, &material_, energy);
 
         // Inner loop over elements
         for (auto elcomp_idx : range(elements.size()))
         {
             (*result_xs)[elcomp_idx][energy_idx]
-                = this->calc_element_xs(*elements[elcomp_idx], energy);
+                = calc_element_xs(elcomp_idx, energy) * xs_scaling;
         }
     }
 
@@ -74,38 +89,18 @@ void GeantMicroXsCalculator::operator()(VecDouble const& energy_grid,
         // Geant4 simply uses the next/previous bin value when the vector's
         // front/back are zero. This probably isn't correct but it replicates
         // Geant4's behavior.
-        if (xs[0] == 0.0)
+        if (xs[0] == 0)
         {
             xs[0] = xs[1];
         }
 
         auto const last_idx = xs.size() - 1;
-        if (xs[last_idx] == 0.0)
+        if (xs[last_idx] == 0)
         {
             // Cross-section ends with zero, use previous bin value
             xs[last_idx] = xs[last_idx - 1];
         }
     }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate after setting up for material and energy.
- */
-double GeantMicroXsCalculator::calc_element_xs(G4Element const& el,
-                                               double energy) const
-{
-    CELER_EXPECT(energy >= 0);
-    // Calculate microscopic cross-section
-    double xs = model_.ComputeCrossSectionPerAtom(
-        &particle_,
-        &el,
-        energy,
-        secondary_cut_,
-        /* max_energy = */ std::numeric_limits<double>::max());
-
-    // Convert to celeritas units and clamp to zero
-    return std::max<double>(0, xs / CLHEP::cm2);
 }
 
 //---------------------------------------------------------------------------//

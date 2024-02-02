@@ -30,6 +30,8 @@ namespace detail
 /*!
  * This is a helper class for the UrbanMscStepLimit and UrbanMscScatter.
  *
+ * NOTE: units are "native" units, listed here as CGS.
+ *
  * \todo Refactor to UrbanMscTrackView .
  */
 class UrbanMscHelper

@@ -112,7 +112,7 @@ struct GeantPhysicsOptions
     //! Kill secondaries below the production cut
     bool apply_cuts{false};
     //! Set the default production cut for all particle types [len]
-    double default_cutoff{0.1};
+    double default_cutoff{0.1 * units::centimeter};
     //!@}
 
     //!@{

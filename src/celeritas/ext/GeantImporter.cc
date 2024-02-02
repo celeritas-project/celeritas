@@ -50,6 +50,7 @@
 #include <G4VRangeToEnergyConverter.hh>
 #include <G4Version.hh>
 
+#include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
@@ -70,12 +71,7 @@
 #include "detail/GeantProcessImporter.hh"
 #include "detail/GeantVolumeVisitor.hh"
 
-using CLHEP::cm;
-using CLHEP::cm2;
-using CLHEP::cm3;
-using CLHEP::g;
-using CLHEP::MeV;
-using CLHEP::s;
+inline constexpr double mev_scale = 1 / CLHEP::MeV;
 
 namespace celeritas
 {
@@ -207,6 +203,8 @@ import_particles(GeantImporter::DataSelection::Flags particle_flags)
 
     std::vector<ImportParticle> particles;
 
+    double const time_scale = native_value_from_clhep(ImportUnits::time);
+
     ParticleFilter include_particle{particle_flags};
     while (particle_iterator())
     {
@@ -231,7 +229,7 @@ import_particles(GeantImporter::DataSelection::Flags particle_flags)
         if (!particle.is_stable)
         {
             // Convert lifetime of unstable particles to seconds
-            particle.lifetime /= s;
+            particle.lifetime *= time_scale;
         }
 
         particles.push_back(particle);
@@ -331,10 +329,10 @@ std::vector<ImportElement> import_elements()
 /*!
  * Return a populated \c ImportMaterial vector.
  *
- * TODO: there seems to be an inconsitency between "materials" (index in the
+ * TODO: there is an inconsitency between "materials" (index in the
  * global material table) and "material cut couple" (which is what we're
- * defining here?) Maybe we need another level of indirection for material and
- * material+cutoff values?
+ * defining here?). We need another level of indirection for material and
+ * material+cutoff ("physics material").
  */
 std::vector<ImportMaterial>
 import_materials(GeantImporter::DataSelection::Flags particle_flags)
@@ -383,6 +381,10 @@ import_materials(GeantImporter::DataSelection::Flags particle_flags)
         cut_converters.emplace_back(gi, std::move(converter));
     }
 
+    double const numdens_scale
+        = native_value_from_clhep(ImportUnits::inv_len_cb);
+    double const len_scale = native_value_from_clhep(ImportUnits::len);
+
     // Loop over material data
     for (auto i : range(materials.size()))
     {
@@ -406,7 +408,7 @@ import_materials(GeantImporter::DataSelection::Flags particle_flags)
         material.state = to_material_state(g4material->GetState());
         material.temperature = g4material->GetTemperature();  // [K]
         material.number_density = g4material->GetTotNbOfAtomsPerVolume()
-                                  / (1. / cm3);
+                                  * numdens_scale;
 
         // Populate material production cut values
         for (auto const& idx_convert : cut_converters)
@@ -418,8 +420,8 @@ import_materials(GeantImporter::DataSelection::Flags particle_flags)
             double const energy = converter.Convert(range, g4material);
 
             ImportProductionCut cutoffs;
-            cutoffs.energy = energy / MeV;
-            cutoffs.range = range / cm;
+            cutoffs.energy = energy * mev_scale;
+            cutoffs.range = range * len_scale;
 
             material.pdg_cutoffs.insert({to_pdg(g4i).get(), cutoffs});
         }
@@ -433,7 +435,7 @@ import_materials(GeantImporter::DataSelection::Flags particle_flags)
             ImportMatElemComponent elem_comp;
             elem_comp.element_id = g4element->GetIndex();
             double elem_num_density = g4material->GetVecNbOfAtomsPerVolume()[j]
-                                      / (1. / cm3);
+                                      * numdens_scale;
             elem_comp.number_fraction = elem_num_density
                                         / material.number_density;
 
@@ -637,7 +639,8 @@ import_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
         // Get the threshold values for killing looping tracks
         ImportLoopingThreshold looping;
         looping.threshold_trials = trans->GetThresholdTrials();
-        looping.important_energy = trans->GetThresholdImportantEnergy() / MeV;
+        looping.important_energy = trans->GetThresholdImportantEnergy()
+                                   * mev_scale;
         CELER_ASSERT(looping);
         result.looping.insert({particle->GetPDGEncoding(), looping});
     }
@@ -655,17 +658,18 @@ ImportEmParameters import_em_parameters()
     ImportEmParameters import;
 
     auto const& g4 = *G4EmParameters::Instance();
+    double const len_scale = native_value_from_clhep(ImportUnits::len);
 
     import.energy_loss_fluct = g4.LossFluctuation();
     import.lpm = g4.LPM();
     import.integral_approach = g4.Integral();
     import.linear_loss_limit = g4.LinearLossLimit();
-    import.lowest_electron_energy = g4.LowestElectronEnergy() / MeV;
+    import.lowest_electron_energy = g4.LowestElectronEnergy() * mev_scale;
     import.auger = g4.Auger();
     import.msc_range_factor = g4.MscRangeFactor();
 #if G4VERSION_NUMBER >= 1060
     import.msc_safety_factor = g4.MscSafetyFactor();
-    import.msc_lambda_limit = g4.MscLambdaLimit() / cm;
+    import.msc_lambda_limit = g4.MscLambdaLimit() * len_scale;
 #endif
     import.apply_cuts = g4.ApplyCuts();
     import.screening_factor = g4.ScreeningFactor();
@@ -799,6 +803,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         }
     }
 
+    imported.units = units::NativeTraits::label();
     return imported;
 }
 

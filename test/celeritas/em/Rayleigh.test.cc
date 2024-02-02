@@ -49,7 +49,7 @@ class RayleighInteractorTest : public InteractorHostTestBase
                         {AtomicNumber{74}, units::AmuMass{183.84}, {}, "W"},
                         {AtomicNumber{82}, units::AmuMass{207.2}, {}, "Pb"}};
         inp.materials = {
-            {1.0 * constants::na_avogadro,
+            {native_value_from(MolCcDensity{1.0}),
              293.0,
              MatterState::solid,
              {{ElementId{0}, 0.5}, {ElementId{1}, 0.3}, {ElementId{2}, 0.2}},

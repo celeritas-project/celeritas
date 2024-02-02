@@ -267,11 +267,11 @@ void GeantGeoParams::build_metadata()
         return BBox({convert_from_geant(G4ThreeVector(extent.GetXmin(),
                                                       extent.GetYmin(),
                                                       extent.GetZmin()),
-                                        CLHEP::cm),
+                                        clhep_length),
                      convert_from_geant(G4ThreeVector(extent.GetXmax(),
                                                       extent.GetYmax(),
                                                       extent.GetZmax()),
-                                        CLHEP::cm)});
+                                        clhep_length)});
     }();
 }
 

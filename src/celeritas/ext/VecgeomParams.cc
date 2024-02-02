@@ -41,10 +41,11 @@
 #include "corecel/sys/ScopedLimitSaver.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
-#include "celeritas/ext/detail/VecgeomCompatibility.hh"
+#include "celeritas/Units.hh"
 
 #include "GeantGeoUtils.hh"
 #include "VecgeomData.hh"  // IWYU pragma: associated
+#include "detail/VecgeomCompatibility.hh"
 #include "g4vg/Converter.hh"
 
 #ifdef VECGEOM_USE_SURF
@@ -291,8 +292,12 @@ void VecgeomParams::build_volumes_vgdml(std::string const& filename)
     ScopedProfiling profile_this{"load-vecgeom"};
     ScopedMem record_mem("VecgeomParams.load_geant_geometry");
     ScopedTimeAndRedirect time_and_output_("vgdml::Frontend");
+
 #ifdef VECGEOM_GDML
-    vgdml::Frontend::Load(filename, /* validate_xml_schema = */ false);
+    vgdml::Frontend::Load(filename,
+                          /* validate_xml_schema = */ false,
+                          /* mm_unit = */ units::millimeter,
+                          /* verbose = */ vecgeom_verbosity());
 #else
     CELER_DISCARD(filename);
     CELER_NOT_CONFIGURED("VGDML");

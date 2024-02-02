@@ -33,7 +33,6 @@ class CMSParameterizedField
   public:
     //!@{
     //! \name Type aliases
-
     using Real3 = Array<real_type, 3>;
     using Real4 = Array<real_type, 4>;
     //!@}

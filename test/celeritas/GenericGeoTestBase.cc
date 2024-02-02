@@ -23,6 +23,7 @@
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/io/ImportVolume.hh"
 
+#include "UnitUtils.hh"
 #include "geo/CheckedGeoTrackView.hh"
 
 #if CELERITAS_USE_VECGEOM
@@ -251,51 +252,40 @@ auto GenericGeoTestBase<HP>::make_geo_track_view() -> GeoTrackView
 //---------------------------------------------------------------------------//
 // Get and initialize a single-thread host track view
 template<class HP>
-auto GenericGeoTestBase<HP>::make_geo_track_view(Real3 const& pos, Real3 dir)
+auto GenericGeoTestBase<HP>::make_geo_track_view(Real3 const& pos_cm, Real3 dir)
     -> GeoTrackView
 {
     auto geo = this->make_geo_track_view();
-    geo = GeoTrackInitializer{pos, make_unit_vector(dir)};
+    geo = GeoTrackInitializer{from_cm(pos_cm), make_unit_vector(dir)};
     return geo;
 }
 
 //---------------------------------------------------------------------------//
-// Get and initialize a single-thread host track view
 template<class HP>
-auto GenericGeoTestBase<HP>::calc_bump_pos(GeoTrackView const& geo,
-                                           real_type delta) const -> Real3
-{
-    CELER_EXPECT(delta > 0);
-    auto pos = geo.pos();
-    axpy(delta, geo.dir(), &pos);
-    return pos;
-}
-
-//---------------------------------------------------------------------------//
-template<class HP>
-auto GenericGeoTestBase<HP>::track(Real3 const& pos, Real3 const& dir)
+auto GenericGeoTestBase<HP>::track(Real3 const& pos_cm, Real3 const& dir)
     -> TrackingResult
 {
-    return this->track(pos, dir, std::numeric_limits<int>::max());
+    return this->track(pos_cm, dir, std::numeric_limits<int>::max());
 }
 
 //---------------------------------------------------------------------------//
 template<class HP>
-auto GenericGeoTestBase<HP>::track(Real3 const& pos,
+auto GenericGeoTestBase<HP>::track(Real3 const& pos_cm,
                                    Real3 const& dir,
                                    int max_step) -> TrackingResult
 {
     CELER_EXPECT(max_step > 0);
     TrackingResult result;
 
-    GeoTrackView geo = CheckedGeoTrackView{this->make_geo_track_view(pos, dir)};
+    GeoTrackView geo
+        = CheckedGeoTrackView{this->make_geo_track_view(pos_cm, dir)};
 
     if (geo.is_outside())
     {
-        // Initial step is outside but may approach insidfe
+        // Initial step is outside but may approach inside
         result.volumes.push_back("[OUTSIDE]");
         auto next = geo.find_next_step();
-        result.distances.push_back(next.distance);
+        result.distances.push_back(to_cm(next.distance));
         if (next.boundary)
         {
             geo.move_to_boundary();
@@ -309,7 +299,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
     {
         result.volumes.push_back(this->volume_name(geo));
         auto next = geo.find_next_step();
-        result.distances.push_back(next.distance);
+        result.distances.push_back(to_cm(next.distance));
         if (!next.boundary)
         {
             // Failure to find the next boundary while inside the geometry
@@ -317,11 +307,11 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
             result.volumes.push_back("[NO INTERCEPT]");
             break;
         }
-        if (next.distance > real_type(1e-7))
+        if (next.distance > real_type(from_cm(1e-7)))
         {
             geo.move_internal(next.distance / 2);
             geo.find_next_step();
-            result.halfway_safeties.push_back(geo.find_safety());
+            result.halfway_safeties.push_back(to_cm(geo.find_safety()));
 
             if (result.halfway_safeties.back() > 0)
             {
@@ -343,7 +333,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
                         << init.pos << " along " << init.dir << " from "
                         << result.volumes.back() << " to "
                         << this->volume_name(geo) << " (alleged safety: "
-                        << result.halfway_safeties.back() << ")";
+                        << to_cm(result.halfway_safeties.back()) << ")";
                     result.volumes.back() += "/" + this->volume_name(geo);
                 }
                 auto new_next = geo.find_next_step();
