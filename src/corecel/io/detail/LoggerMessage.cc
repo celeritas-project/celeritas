@@ -26,14 +26,15 @@ namespace detail
  * The handle *may be* null, indicating that the output of this message will
  * not be displayed.
  */
-LoggerMessage::LoggerMessage(LogHandler* handle, Provenance prov, LogLevel lev)
-    : handle_(handle), prov_(prov), lev_(lev)
+LoggerMessage::LoggerMessage(LogHandler* handle, Provenance&& prov, LogLevel lev)
+    : handle_(handle), lev_(lev)
 {
     CELER_EXPECT(!handle_ || *handle_);
     if (handle_)
     {
         // std::function is defined, so create the output stream
         os_ = std::make_unique<std::ostringstream>();
+        prov_ = std::move(prov);
     }
     CELER_ENSURE(bool(handle_) == bool(os_));
 }

@@ -36,7 +36,7 @@ class LoggerMessage
 
   public:
     // Construct with reference to function object, etc.
-    LoggerMessage(LogHandler* handle, Provenance prov, LogLevel lev);
+    LoggerMessage(LogHandler* handle, Provenance&& prov, LogLevel lev);
 
     // Flush message on destruction
     ~LoggerMessage();

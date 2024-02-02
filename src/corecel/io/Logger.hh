@@ -90,7 +90,7 @@ class Logger
     Logger(MpiCommunicator const& comm, LogHandler handle);
 
     // Create a logger that flushes its contents when it destructs
-    inline Message operator()(Provenance prov, LogLevel lev);
+    inline Message operator()(Provenance&& prov, LogLevel lev);
 
     //! Set the minimum logging verbosity
     void level(LogLevel lev) { min_level_ = lev; }
@@ -107,7 +107,7 @@ class Logger
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 //! Create a logger that flushes its contents when it destructs
-auto Logger::operator()(Provenance prov, LogLevel lev) -> Message
+auto Logger::operator()(Provenance&& prov, LogLevel lev) -> Message
 {
     LogHandler* handle = nullptr;
     if (handle_ && lev >= min_level_)
