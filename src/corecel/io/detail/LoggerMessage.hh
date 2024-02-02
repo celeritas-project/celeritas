@@ -93,10 +93,13 @@ CELER_FORCEINLINE LoggerMessage::LoggerMessage(LogHandler* handle,
 //---------------------------------------------------------------------------//
 /*!
  * Flush message on destruction.
+ *
+ * Note that due to move semantics, it's possible for a stale "moved"
+ * LoggerMessage to have a nonnull \c handle_ but a null \c os_ .
  */
 CELER_FORCEINLINE LoggerMessage::~LoggerMessage()
 {
-    if (CELER_UNLIKELY(handle_))
+    if (CELER_UNLIKELY(os_))
     {
         this->destroy_impl();
     }
@@ -109,7 +112,7 @@ CELER_FORCEINLINE LoggerMessage::~LoggerMessage()
 template<class T>
 CELER_FORCEINLINE LoggerMessage& LoggerMessage::operator<<(T&& rhs)
 {
-    if (CELER_UNLIKELY(handle_))
+    if (CELER_UNLIKELY(os_))
     {
         *os_ << std::forward<T>(rhs);
     }
@@ -122,7 +125,7 @@ CELER_FORCEINLINE LoggerMessage& LoggerMessage::operator<<(T&& rhs)
  */
 CELER_FORCEINLINE LoggerMessage& LoggerMessage::operator<<(StreamManip manip)
 {
-    if (CELER_UNLIKELY(handle_))
+    if (CELER_UNLIKELY(os_))
     {
         manip(*os_);
     }
@@ -135,7 +138,7 @@ CELER_FORCEINLINE LoggerMessage& LoggerMessage::operator<<(StreamManip manip)
  */
 CELER_FORCEINLINE void LoggerMessage::setstate(std::ostream::iostate state)
 {
-    if (CELER_UNLIKELY(handle_))
+    if (CELER_UNLIKELY(os_))
     {
         os_->setstate(state);
     }
