@@ -84,7 +84,7 @@ CELER_FORCEINLINE LoggerMessage::LoggerMessage(LogHandler* handle,
                                                LogLevel lev)
     : handle_(handle)
 {
-    if (handle_)
+    if (CELER_UNLIKELY(handle_))
     {
         this->construct_impl(std::move(prov), lev);
     }
@@ -96,7 +96,7 @@ CELER_FORCEINLINE LoggerMessage::LoggerMessage(LogHandler* handle,
  */
 CELER_FORCEINLINE LoggerMessage::~LoggerMessage()
 {
-    if (handle_)
+    if (CELER_UNLIKELY(handle_))
     {
         this->destroy_impl();
     }
@@ -109,7 +109,7 @@ CELER_FORCEINLINE LoggerMessage::~LoggerMessage()
 template<class T>
 CELER_FORCEINLINE LoggerMessage& LoggerMessage::operator<<(T&& rhs)
 {
-    if (handle_)
+    if (CELER_UNLIKELY(handle_))
     {
         *os_ << std::forward<T>(rhs);
     }
@@ -122,7 +122,7 @@ CELER_FORCEINLINE LoggerMessage& LoggerMessage::operator<<(T&& rhs)
  */
 CELER_FORCEINLINE LoggerMessage& LoggerMessage::operator<<(StreamManip manip)
 {
-    if (handle_)
+    if (CELER_UNLIKELY(handle_))
     {
         manip(*os_);
     }
@@ -135,7 +135,7 @@ CELER_FORCEINLINE LoggerMessage& LoggerMessage::operator<<(StreamManip manip)
  */
 CELER_FORCEINLINE void LoggerMessage::setstate(std::ostream::iostate state)
 {
-    if (handle_)
+    if (CELER_UNLIKELY(handle_))
     {
         os_->setstate(state);
     }
