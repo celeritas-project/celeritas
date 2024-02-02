@@ -106,11 +106,17 @@ class Logger
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
-//! Create a logger that flushes its contents when it destructs
+/*!
+ * Create a logger that flushes its contents when it destructs.
+ *
+ * It's assumed that log messages will be relatively unlikely (and expensive
+ * anyway), so we mark as \c CELER_UNLIKELY to optimize for the no-logging
+ * case.
+ */
 auto Logger::operator()(Provenance&& prov, LogLevel lev) -> Message
 {
     LogHandler* handle = nullptr;
-    if (handle_ && lev >= min_level_)
+    if (CELER_UNLIKELY(handle_ && lev >= min_level_))
     {
         handle = &handle_;
     }

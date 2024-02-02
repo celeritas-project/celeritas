@@ -43,7 +43,7 @@ char const* to_color_code(LogLevel);
 struct Provenance
 {
     std::string_view file;  //!< Originating file
-    int line = 0;  //!< Line number
+    int line{0};  //!< Line number
 };
 
 //! Type for handling a log message
