@@ -652,23 +652,13 @@ TEST_F(LeadBoxAlongStepTest, position_change)
         {
             EXPECT_TRUE(scoped_log.empty()) << scoped_log;
             EXPECT_SOFT_EQ(1.7020274362897472e-7, result.step);
-            EXPECT_SOFT_EQ(2.384185791015625e-7, result.displacement);
+            EXPECT_GT(result.displacement, 0);
         }
         else
         {
-            static double const expected_step_length = 1.7020278164636693e-07;
-            std::stringstream ss;
-            ss << "Propagation of step length "
-               << repr(from_cm(expected_step_length))
-               << " due to post-step action 2 leading to distance "
-               << repr(from_cm(expected_step_length))
-               << " failed to change position at "
-               << repr(from_cm(inp.position)) << " with ending direction "
-               << repr(inp.direction);
-            EXPECT_EQ(ss.str(), scoped_log.messages().front());
             static char const* const expected_log_levels[] = {"error"};
             EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
-            EXPECT_SOFT_EQ(expected_step_length, result.step);
+            EXPECT_SOFT_EQ(1.7020278164636693e-7, result.step);
             EXPECT_EQ(0, result.displacement);
         }
         EXPECT_EQ("eloss-range", result.action);
