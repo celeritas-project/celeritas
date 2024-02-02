@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <iostream>
 #include <memory>
+#include <sstream>
 #include <utility>
 
 #include "corecel/Macros.hh"
@@ -63,7 +63,7 @@ class LoggerMessage
     LogHandler* handle_;
     Provenance prov_;
     LogLevel lev_;
-    std::unique_ptr<std::ostream> os_;
+    std::unique_ptr<std::ostringstream> os_;
 
     // Create the message when handle is non-null
     void construct_impl(Provenance&& prov, LogLevel lev);
