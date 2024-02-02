@@ -274,6 +274,7 @@ celeritas_add_test(orange/construct/CsgTreeUtils.test.cc)
 celeritas_add_test(orange/construct/LocalSurfaceInserter.test.cc)
 
 set(CELERITASTEST_PREFIX orange/orangeinp)
+celeritas_add_test(orange/orangeinp/detail/BoundingZone.test.cc)
 celeritas_add_test(orange/orangeinp/detail/CsgUnitBuilder.test.cc)
 
 #-------------------------------------#
