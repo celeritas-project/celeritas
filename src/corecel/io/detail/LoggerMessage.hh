@@ -11,6 +11,8 @@
 #include <memory>
 #include <utility>
 
+#include "corecel/Macros.hh"
+
 #include "../LoggerTypes.hh"
 
 namespace celeritas
@@ -54,7 +56,7 @@ class LoggerMessage
     // Accept manipulators such as std::endl, std::setw
     inline LoggerMessage& operator<<(StreamManip manip);
 
-    // Update the steam state
+    // Update the stream state
     inline void setstate(std::ostream::iostate state);
 
   private:
@@ -69,7 +71,7 @@ class LoggerMessage
  * Write the object to the stream if applicable.
  */
 template<class T>
-LoggerMessage& LoggerMessage::operator<<(T&& rhs)
+CELER_FORCEINLINE LoggerMessage& LoggerMessage::operator<<(T&& rhs)
 {
     if (os_)
     {
@@ -82,7 +84,7 @@ LoggerMessage& LoggerMessage::operator<<(T&& rhs)
 /*!
  * Accept a stream manipulator.
  */
-LoggerMessage& LoggerMessage::operator<<(StreamManip manip)
+CELER_FORCEINLINE LoggerMessage& LoggerMessage::operator<<(StreamManip manip)
 {
     if (os_)
     {
@@ -95,7 +97,7 @@ LoggerMessage& LoggerMessage::operator<<(StreamManip manip)
 /*!
  * Update the steam state (needed by some manipulators).
  */
-void LoggerMessage::setstate(std::ostream::iostate state)
+CELER_FORCEINLINE void LoggerMessage::setstate(std::ostream::iostate state)
 {
     if (os_)
     {
