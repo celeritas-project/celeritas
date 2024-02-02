@@ -35,8 +35,8 @@ TEST_F(BoundingBoxTest, null)
     EXPECT_FALSE(dumb_bbox);
 
     BBox ibb = BBox::from_infinite();
-    ibb.clip(Sense::outside, Axis::x, 2);
-    ibb.clip(Sense::inside, Axis::x, 1);
+    ibb.shrink(Bound::lo, Axis::x, 2);
+    ibb.shrink(Bound::hi, Axis::x, 1);
     EXPECT_FALSE(ibb);
 }
 
@@ -49,8 +49,8 @@ TEST_F(BoundingBoxTest, degenerate)
     EXPECT_EQ(bbox.lower()[1], bbox.upper()[1]);
 
     BBox ibb = BBox::from_infinite();
-    ibb.clip(Sense::outside, Axis::z, 1);
-    ibb.clip(Sense::inside, Axis::z, 1);
+    ibb.shrink(Bound::lo, Axis::z, 1);
+    ibb.shrink(Bound::hi, Axis::z, 1);
     EXPECT_TRUE(ibb);
 
     // Triple-degenerate: only contains a single point
@@ -84,11 +84,18 @@ TEST_F(BoundingBoxTest, standard)
     EXPECT_VEC_SOFT_EQ((Real3{-1, -2, 3}), bb.lower());
     EXPECT_VEC_SOFT_EQ((Real3{4, 5, 6}), bb.upper());
 
-    bb.clip(Sense::inside, Axis::x, 2);
-    bb.clip(Sense::outside, Axis::z, 4);
-    bb.clip(Sense::inside, Axis::y, 0);
+    bb.shrink(Bound::hi, Axis::x, 2);
+    bb.shrink(Bound::lo, Axis::z, 4);
+    bb.shrink(Bound::hi, Axis::y, 0);
     EXPECT_VEC_SOFT_EQ((Real3{-1, -2, 4}), bb.lower());
     EXPECT_VEC_SOFT_EQ((Real3{2, 0, 6}), bb.upper());
+
+    bb.grow(Bound::hi, Axis::x, 3);
+    bb.grow(Bound::lo, Axis::y, -3);
+    bb.grow(Bound::hi, Axis::y, -1);  // null op
+    bb.grow(Bound::lo, Axis::z, 2);
+    EXPECT_VEC_SOFT_EQ((Real3{-1, -3, 2}), bb.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{3, 0, 6}), bb.upper());
 }
 
 TEST_F(BoundingBoxTest, is_inside)
