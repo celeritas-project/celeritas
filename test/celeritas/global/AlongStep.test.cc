@@ -645,26 +645,30 @@ TEST_F(LeadBoxAlongStepTest, position_change)
     }
     {
         SCOPED_TRACE("Electron changes position only with double precision");
-        inp.energy = MevEnergy{1e-3};
+        inp.energy = MevEnergy{1e-5};
         ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::error};
         auto result = this->run(inp, num_tracks);
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
             EXPECT_TRUE(scoped_log.empty()) << scoped_log;
-            EXPECT_SOFT_EQ(3.1359350030278423e-6, result.step);
-            EXPECT_SOFT_EQ(3.5762786865234375e-7, result.displacement);
+            EXPECT_SOFT_EQ(1.7020274362897472e-7, result.step);
+            EXPECT_SOFT_EQ(2.384185791015625e-7, result.displacement);
         }
         else
         {
-            static char const* const expected_log_messages[]
-                = {"Propagation of step length 3.308684e-07f due to post-step "
-                   "action 2 leading to distance 3.308684e-07f failed to "
-                   "change position at {1e+09f, 0f, 0f} with ending direction "
-                   "{-1f, 0f, 0f}"};
-            EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages());
+            static double const expected_step_length = 1.7020278164636693e-07;
+            std::stringstream ss;
+            ss << "Propagation of step length "
+               << repr(from_cm(expected_step_length))
+               << " due to post-step action 2 leading to distance "
+               << repr(from_cm(expected_step_length))
+               << " failed to change position at "
+               << repr(from_cm(inp.position)) << " with ending direction "
+               << repr(inp.direction);
+            EXPECT_EQ(ss.str(), scoped_log.messages().front());
             static char const* const expected_log_levels[] = {"error"};
             EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
-            EXPECT_SOFT_EQ(3.135935e-6, result.step);
+            EXPECT_SOFT_EQ(expected_step_length, result.step);
             EXPECT_EQ(0, result.displacement);
         }
         EXPECT_EQ("eloss-range", result.action);
