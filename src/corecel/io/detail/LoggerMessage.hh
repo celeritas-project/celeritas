@@ -36,10 +36,10 @@ class LoggerMessage
 
   public:
     // Construct with reference to function object, etc.
-    LoggerMessage(LogHandler* handle, Provenance&& prov, LogLevel lev);
+    inline LoggerMessage(LogHandler* handle, Provenance&& prov, LogLevel lev);
 
     // Flush message on destruction
-    ~LoggerMessage();
+    inline ~LoggerMessage();
 
     //!@{
     //! Prevent copying but allow moving
@@ -64,7 +64,43 @@ class LoggerMessage
     Provenance prov_;
     LogLevel lev_;
     std::unique_ptr<std::ostream> os_;
+
+    // Create the message when handle is non-null
+    void construct_impl(Provenance&& prov, LogLevel lev);
+
+    // Flush the message during destruction
+    void destroy_impl() noexcept;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with reference to function object, etc.
+ *
+ * The handle *may be* null, indicating that the output of this message will
+ * not be displayed.
+ */
+CELER_FORCEINLINE LoggerMessage::LoggerMessage(LogHandler* handle,
+                                               Provenance&& prov,
+                                               LogLevel lev)
+    : handle_(handle)
+{
+    if (handle_)
+    {
+        this->construct_impl(std::move(prov), lev);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Flush message on destruction.
+ */
+CELER_FORCEINLINE LoggerMessage::~LoggerMessage()
+{
+    if (handle_)
+    {
+        this->destroy_impl();
+    }
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -73,7 +109,7 @@ class LoggerMessage
 template<class T>
 CELER_FORCEINLINE LoggerMessage& LoggerMessage::operator<<(T&& rhs)
 {
-    if (os_)
+    if (handle_)
     {
         *os_ << std::forward<T>(rhs);
     }
@@ -86,7 +122,7 @@ CELER_FORCEINLINE LoggerMessage& LoggerMessage::operator<<(T&& rhs)
  */
 CELER_FORCEINLINE LoggerMessage& LoggerMessage::operator<<(StreamManip manip)
 {
-    if (os_)
+    if (handle_)
     {
         manip(*os_);
     }
@@ -99,7 +135,7 @@ CELER_FORCEINLINE LoggerMessage& LoggerMessage::operator<<(StreamManip manip)
  */
 CELER_FORCEINLINE void LoggerMessage::setstate(std::ostream::iostate state)
 {
-    if (os_)
+    if (handle_)
     {
         os_->setstate(state);
     }

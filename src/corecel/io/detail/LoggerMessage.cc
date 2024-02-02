@@ -21,45 +21,37 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with reference to function object, etc.
- *
- * The handle *may be* null, indicating that the output of this message will
- * not be displayed.
+ * Create the message when handle is non-null.
  */
-LoggerMessage::LoggerMessage(LogHandler* handle, Provenance&& prov, LogLevel lev)
-    : handle_(handle), lev_(lev)
+void LoggerMessage::construct_impl(Provenance&& prov, LogLevel lev)
 {
-    CELER_EXPECT(!handle_ || *handle_);
-    if (handle_)
-    {
-        // std::function is defined, so create the output stream
-        os_ = std::make_unique<std::ostringstream>();
-        prov_ = std::move(prov);
-    }
-    CELER_ENSURE(bool(handle_) == bool(os_));
+    CELER_EXPECT(handle_ && *handle_);
+    lev_ = lev;
+
+    // std::function is defined, so create the output stream
+    os_ = std::make_unique<std::ostringstream>();
+    prov_ = std::move(prov);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Flush message on destruction.
+ *
+ * This is only called when \c os_ is nonzero.
  */
-LoggerMessage::~LoggerMessage()
+void LoggerMessage::destroy_impl() noexcept
 {
-    if (os_)
+    try
     {
-        try
-        {
-            auto& os = dynamic_cast<std::ostringstream&>(*os_);
+        auto& os = dynamic_cast<std::ostringstream&>(*os_);
 
-            // Write to the handler
-            (*handle_)(prov_, lev_, os.str());
-        }
-        catch (std::exception const& e)
-        {
-            std::cerr
-                << "An error occurred writing a log message: " << e.what()
-                << std::endl;
-        }
+        // Write to the handler
+        (*handle_)(prov_, lev_, os.str());
+    }
+    catch (std::exception const& e)
+    {
+        std::cerr << "An error occurred writing a log message: " << e.what()
+                  << std::endl;
     }
 }
 
