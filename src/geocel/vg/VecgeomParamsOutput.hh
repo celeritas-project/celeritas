@@ -20,7 +20,7 @@ class VecgeomParams;
  * This is to be used in *addition* to the standard bbox/volume/surface data
  * saved by GeoParamsOutput.
  *
- * \sa celeritas/geo/GeoParamsOutput.hh
+ * \sa geocel/GeoParamsOutput.hh
  */
 class VecgeomParamsOutput final : public OutputInterface
 {

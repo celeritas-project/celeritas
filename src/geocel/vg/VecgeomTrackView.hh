@@ -27,7 +27,7 @@
 #if VECGEOM_VERSION < 0x020000
 #    include "detail/BVHNavigator.hh"
 #elif defined(VECGEOM_USE_SURF)
-#    include "celeritas/ext/detail/SurfNavigator.hh"
+#    include "detail/SurfNavigator.hh"
 #else
 #    include <VecGeom/navigation/BVHNavigator.h>
 #endif

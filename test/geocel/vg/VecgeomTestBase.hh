@@ -7,8 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/GenericGeoTestBase.hh"
-
+#include "geocel/GenericGeoTestBase.hh"
 #include "geocel/vg/VecgeomData.hh"
 #include "geocel/vg/VecgeomParams.hh"
 #include "geocel/vg/VecgeomTrackView.hh"

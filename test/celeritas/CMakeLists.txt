@@ -38,6 +38,14 @@ if(CELERITAS_CORE_GEO STREQUAL "ORANGE" AND NOT CELERITAS_USE_JSON)
   set(_needs_geo DISABLE)
 endif()
 
+if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
+  set(_core_geo_libs Celeritas::testcel_orange Celeritas::orange)
+elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
+  set(_core_geo_libs Celeritas::testcel_geocel ${VecGeom_LIBRARIES})
+elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
+  set(_core_geo_libs Celeritas::testcel_geocel ${Geant4_LIBRARIES})
+endif()
+
 set(_all_geo_libs
   # Geometry includes
   Celeritas::orange ${VecGeom_LIBRARIES} ${Geant4_LIBRARIES}
@@ -154,7 +162,7 @@ celeritas_add_test(field/Steppers.test.cc ${_fixme_cgs})
 celeritas_add_test(field/FieldDriver.test.cc ${_fixme_cgs})
 celeritas_add_test(field/FieldPropagator.test.cc
  ${_fixme_cgs}
-  LINK_LIBRARIES Celeritas::testcel_geocel)
+  LINK_LIBRARIES ${_core_geo_libs})
 celeritas_add_test(field/LinearPropagator.test.cc
   ${_needs_geo}
   LINK_LIBRARIES ${_all_geo_libs})

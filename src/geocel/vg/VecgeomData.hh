@@ -14,7 +14,6 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/Types.hh"
-#include "celeritas/Types.hh"
 
 #include "detail/VecgeomNavCollection.hh"
 #include "detail/VecgeomTraits.hh"

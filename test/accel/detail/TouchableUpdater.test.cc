@@ -15,10 +15,10 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "geocel/g4/GeantGeoParams.hh"
+#include "geocel/g4/GeantGeoTestBase.hh"
 #include "celeritas/UnitUtils.hh"
 #include "celeritas/Units.hh"
-#include "geocel/g4/GeantGeoParams.hh"
-#include "celeritas/ext/GeantGeoTestBase.hh"
 
 #include "celeritas_test.hh"
 
