@@ -5,12 +5,15 @@
 #-----------------------------------------------------------------------------#
 
 celeritas_add_library(testcel_orange
-  OrangeGeoTestBase.cc
   CsgTestUtils.cc
+  OrangeGeoTestBase.cc
+  OrangeTestBase.cc
 )
 celeritas_target_link_libraries(testcel_orange
-  PRIVATE Celeritas::testcel_harness Celeritas::testcel_core Celeritas::orange
-  ${nlohmann_json_LIBRARIES}
+  PUBLIC
+    Celeritas::orange Celeritas::testcel_harness
+  PRIVATE
+    Celeritas::testcel_geocel Celeritas::testcel_core Celeritas::orange ${nlohmann_json_LIBRARIES}
 )
 
 #-----------------------------------------------------------------------------#
@@ -33,8 +36,6 @@ celeritas_setup_tests(SERIAL PREFIX orange
 # TESTS
 #-----------------------------------------------------------------------------#
 # Base
-celeritas_add_test(BoundingBox.test.cc
-  LINK_LIBRARIES ${nlohmann_json_LIBRARIES} Celeritas::geocel)
 celeritas_add_test(BoundingBoxUtils.test.cc)
 celeritas_add_test(MatrixUtils.test.cc)
 celeritas_add_test(OrangeTypes.test.cc)

@@ -38,17 +38,11 @@ if(CELERITAS_CORE_GEO STREQUAL "ORANGE" AND NOT CELERITAS_USE_JSON)
   set(_needs_geo DISABLE)
 endif()
 
-
-if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
-  set(_core_geo_lib VecGeom::vecgeom)
-elseif(CELERITAS_CORE_GEO STREQUAL "Geant4"
-    AND CELERITAS_REAL_TYPE STREQUAL "double")
-  set(_core_geo_lib ${Geant4_LIBRARIES})
-else()
-  set(_core_geo_lib Celeritas::orange)
-endif()
-set(_geo_libs
+set(_all_geo_libs
+  # Geometry includes
   Celeritas::orange ${VecGeom_LIBRARIES} ${Geant4_LIBRARIES}
+  # Test harness instantiations
+  Celeritas::testcel_geocel Celeritas::testcel_orange
 )
 
 if(CELERITAS_UNITS STREQUAL "CGS")
@@ -62,12 +56,11 @@ endif()
 # LIBRARY
 #-----------------------------------------------------------------------------#
 
-celeritas_add_object_library(testcel_celeritas_core
+celeritas_add_library(testcel_celeritas
   GeantTestBase.cc
   GlobalGeoTestBase.cc
   GlobalTestBase.cc
   ImportedDataTestBase.cc
-  LazyGeoManager.cc
   MockTestBase.cc
   RootTestBase.cc
   SimpleTestBase.cc
@@ -87,40 +80,13 @@ celeritas_add_object_library(testcel_celeritas_core
   user/MctruthTestBase.cc
   user/StepCollectorTestBase.cc
 )
-set(_common_testcel_libs
-  Celeritas::testcel_core Celeritas::testcel_harness Celeritas::celeritas
-)
-celeritas_target_link_libraries(testcel_celeritas_core
-  PRIVATE ${_common_testcel_libs} ${nlohmann_json_LIBRARIES}
-)
 
-# Geometry
-set(_geo_src
-  OrangeTestBase.cc
-  GenericGeoTestBase.cc
-)
-if(CELERITAS_USE_VecGeom)
-  list(APPEND _geo_src
-    ext/VecgeomTestBase.cc
-  )
-endif()
-if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
-  list(APPEND _geo_src
-    ext/GeantGeoTestBase.cc
-  )
-endif()
-celeritas_add_object_library(testcel_celeritas_geo
-  ${_geo_src}
-)
-target_link_libraries(testcel_celeritas_geo
-  PRIVATE Celeritas::testcel_harness Celeritas::celeritas ${_geo_libs}
-)
-celeritas_add_library(testcel_celeritas
-  $<TARGET_OBJECTS:testcel_celeritas_core>
-  $<TARGET_OBJECTS:testcel_celeritas_geo>
-)
 celeritas_target_link_libraries(testcel_celeritas
-  PRIVATE ${_common_testcel_libs} ${nlohmann_json_LIBRARIES} ${_geo_libs}
+  PUBLIC
+    Celeritas::testcel_harness Celeritas::celeritas
+  PRIVATE
+    Celeritas::testcel_core Celeritas::testcel_orange Celeritas::testcel_geocel
+    ${nlohmann_json_LIBRARIES}
 )
 
 #-----------------------------------------------------------------------------#
@@ -128,7 +94,7 @@ celeritas_target_link_libraries(testcel_celeritas
 #-----------------------------------------------------------------------------#
 
 celeritas_setup_tests(SERIAL PREFIX celeritas
-  LINK_LIBRARIES ${_common_testcel_libs} Celeritas::testcel_celeritas
+  LINK_LIBRARIES Celeritas::testcel_celeritas Celeritas::testcel_core
 )
 
 #-----------------------------------------------------------------------------#
@@ -165,49 +131,6 @@ celeritas_add_test(em/UrbanMsc.test.cc ${_needs_root}
 # External
 set(CELERITASTEST_PREFIX ext)
 
-if(CELERITAS_USE_VecGeom)
-  # Vecgeom uses global counters that interfere with copying data to GPU and
-  # change the internal numbering.
-  set(_vecgeom_tests)
-  if(VecGeom_GDML_FOUND)
-    list(APPEND _vecgeom_tests
-      "SimpleCmsTest.*"
-    )
-    if(NOT VecGeom_SURF_FOUND)
-      # TODO: vecgeom surface doesn't support some of these shapes
-      list(APPEND _vecgeom_tests
-        "FourLevelsTest.*"
-        "SolidsTest.*"
-        "CmseTest.*"
-      )
-    endif()
-  endif()
-  if(CELERITAS_USE_Geant4)
-    list(APPEND _vecgeom_tests
-      "FourLevelsGeantTest.*"
-      "SolidsGeantTest.*"
-      "ZnenvGeantTest.*"
-    )
-  endif()
-  if(NOT _vecgeom_tests)
-    # Bad: no way of setting up geometry!
-    set(_vecgeom_tests DISABLE)
-  endif()
-  celeritas_add_device_test(ext/Vecgeom
-    FILTER
-      ${_vecgeom_tests}
-      ${_fixme_cgs}
-  )
-endif()
-if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
-  celeritas_add_test(ext/GeantGeo.test.cc
-    LINK_LIBRARIES ${Geant4_LIBRARIES}
-  )
-  celeritas_add_test(ext/GeantGeoUtils.test.cc
-    LINK_LIBRARIES ${Geant4_LIBRARIES}
-  )
-endif()
-
 celeritas_add_test(ext/GeantImporter.test.cc
   ${_needs_geant4}
   LINK_LIBRARIES ${nlohmann_json_LIBRARIES}
@@ -230,9 +153,11 @@ celeritas_add_test(field/Fields.test.cc)
 celeritas_add_test(field/Steppers.test.cc ${_fixme_cgs})
 celeritas_add_test(field/FieldDriver.test.cc ${_fixme_cgs})
 celeritas_add_test(field/FieldPropagator.test.cc
-  ${_needs_geo} ${_fixme_cgs})
+ ${_fixme_cgs}
+  LINK_LIBRARIES Celeritas::testcel_geocel)
 celeritas_add_test(field/LinearPropagator.test.cc
-  ${_needs_geo} LINK_LIBRARIES ${_geo_libs})
+  ${_needs_geo}
+  LINK_LIBRARIES ${_all_geo_libs})
 celeritas_add_test(field/MagFieldEquation.test.cc)
 
 #-----------------------------------------------------------------------------#

@@ -183,7 +183,7 @@ auto GeantTestBase::imported_data() const -> ImportData const&
         i.geometry_basename = this->geometry_basename();
         i.options = opts;
         std::string gdml_inp = this->test_data_path(
-            "celeritas", (i.geometry_basename + ".gdml").c_str());
+            "geocel", (i.geometry_basename + ".gdml").c_str());
         i.import = std::make_unique<GeantImporter>(
             GeantSetup{gdml_inp.c_str(), i.options});
         i.scoped_exceptions = std::make_unique<ScopedGeantExceptionHandler>();

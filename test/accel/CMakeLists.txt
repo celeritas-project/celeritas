@@ -9,11 +9,15 @@ celeritas_add_library(testcel_accel
   SimpleSensitiveDetector.cc
 )
 celeritas_target_link_libraries(testcel_accel
-  PUBLIC testcel_celeritas testcel_core testcel_harness Celeritas::accel
+  PUBLIC
+    Celeritas::testcel_celeritas Celeritas::testcel_harness
+  PRIVATE
+    ${Geant4_LIBRARIES}
 )
 
 celeritas_setup_tests(SERIAL PREFIX accel
-  LINK_LIBRARIES testcel_accel Celeritas::accel Celeritas::celeritas
+  LINK_LIBRARIES
+    Celeritas::testcel_accel Celeritas::testcel_core Celeritas::accel
 )
 
 #-----------------------------------------------------------------------------#
@@ -31,7 +35,8 @@ celeritas_add_test(detail/HitProcessor.test.cc
 if(CELERITAS_REAL_TYPE STREQUAL "double")
   # This test requires Geant4 *geometry* which is incompatible
   # with single-precision
-  celeritas_add_test(detail/TouchableUpdater.test.cc)
+  celeritas_add_test(detail/TouchableUpdater.test.cc
+    LINK_LIBRARIES Celeritas::testcel_geocel)
 endif()
 
 #-----------------------------------------------------------------------------#

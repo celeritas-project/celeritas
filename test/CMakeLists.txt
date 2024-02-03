@@ -72,6 +72,7 @@ endif()
 #-----------------------------------------------------------------------------#
 
 add_subdirectory(corecel)
+add_subdirectory(geocel)
 add_subdirectory(orange)
 add_subdirectory(celeritas)
 

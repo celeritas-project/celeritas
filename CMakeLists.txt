@@ -375,6 +375,12 @@ if(CELERITAS_USE_VecGeom)
       OFF
     )
   endif()
+  if(NOT VecGeom_LIBRARIES)
+    set(VecGeom_LIBRARIES ${VECGEOM_LIBRARIES})
+  endif()
+  if(NOT VecGeom_LIBRARIES)
+    set(VecGeom_LIBRARIES VecGeom::vecgeom)
+  endif()
 endif()
 
 if(CELERITAS_BUILD_DEMOS AND NOT CELERITAS_USE_JSON)

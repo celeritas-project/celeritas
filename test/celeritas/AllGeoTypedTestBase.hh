@@ -11,12 +11,12 @@
 #include <gtest/gtest.h>
 
 #include "celeritas_config.h"
-#include "celeritas/OrangeTestBase.hh"
+#include "orange/OrangeTestBase.hh"
 #if CELERITAS_USE_VECGEOM
-#    include "celeritas/ext/VecgeomTestBase.hh"
+#    include "geocel/vg/VecgeomTestBase.hh"
 #endif
 #if CELERITAS_USE_GEANT4
-#    include "celeritas/ext/GeantGeoTestBase.hh"
+#    include "geocel/g4/GeantGeoTestBase.hh"
 #endif
 
 namespace celeritas

@@ -49,7 +49,6 @@ if(CELERITAS_USE_Geant4)
     ScopedGeantLogger.cc
     g4/GeantGeoParams.cc
     g4/detail/GeantGeoNavCollection.cc
-    g4/detail/GeantVolumeVisitor.cc
   )
   set(_cg4_libs Celeritas::corecel XercesC::XercesC ${Geant4_LIBRARIES})
 

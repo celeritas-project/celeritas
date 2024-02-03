@@ -9,8 +9,9 @@
 
 #include <string_view>
 
+#include "geocel/LazyGeoManager.hh"
+
 #include "GlobalTestBase.hh"
-#include "LazyGeoManager.hh"
 
 namespace celeritas
 {
