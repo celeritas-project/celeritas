@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/GeantGeoTestBase.hh
+//! \file geocel/g4/GeantGeoTestBase.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/Vecgeom.test.hh
+//! \file geocel/vg/Vecgeom.test.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

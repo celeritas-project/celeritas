@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/Vecgeom.test.cu
+//! \file geocel/vg/Vecgeom.test.cu
 //---------------------------------------------------------------------------//
 #include "Vecgeom.test.hh"
 

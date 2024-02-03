@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/GeantGeo.test.cc
+//! \file geocel/g4/GeantGeo.test.cc
 //---------------------------------------------------------------------------//
 #include <string_view>
 #include <G4LogicalVolume.hh>
