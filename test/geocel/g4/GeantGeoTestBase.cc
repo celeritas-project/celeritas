@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "GeantGeoTestBase.hh"
 
-#include "celeritas/CheckedGeoTrackView.t.hh"
-#include "celeritas/GenericGeoTestBase.t.hh"
+#include "geocel/CheckedGeoTrackView.t.hh"
+#include "geocel/GenericGeoTestBase.t.hh"
 
 #include "geocel/g4/GeantGeoData.hh"
 #include "geocel/g4/GeantGeoParams.hh"

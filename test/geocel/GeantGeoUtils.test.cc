@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <G4LogicalVolume.hh>
 
-#include "GeantGeoTestBase.hh"
+#include "g4/GeantGeoTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas

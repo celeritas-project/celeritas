@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "VecgeomTestBase.hh"
 
-#include "celeritas/CheckedGeoTrackView.t.hh"
-#include "celeritas/GenericGeoTestBase.t.hh"
+#include "geocel/CheckedGeoTrackView.t.hh"
+#include "geocel/GenericGeoTestBase.t.hh"
 
 #include "geocel/vg/VecgeomData.hh"
 #include "geocel/vg/VecgeomParams.hh"

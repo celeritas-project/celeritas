@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/GenericGeoTestBase.hh"
+#include "geocel/GenericGeoTestBase.hh"
 
 #include "geocel/g4/GeantGeoData.hh"
 #include "geocel/g4/GeantGeoParams.hh"
