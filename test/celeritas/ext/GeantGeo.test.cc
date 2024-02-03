@@ -12,14 +12,13 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
-#include "celeritas/GenericGeoTestBase.hh"
-#include "celeritas/LazyGeoManager.hh"
 #include "celeritas/UnitUtils.hh"
 #include "celeritas/ext/GeantGeoData.hh"
 #include "celeritas/ext/GeantGeoParams.hh"
 #include "celeritas/ext/GeantGeoTrackView.hh"
 #include "celeritas/geo/GeoParamsOutput.hh"
 
+#include "GeantGeoTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -28,7 +27,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-class GeantGeoTest : public GenericGeantGeoTestBase
+class GeantGeoTest : public GeantGeoTestBase
 {
   public:
     using SpanStringView = Span<std::string_view const>;

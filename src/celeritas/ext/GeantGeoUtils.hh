@@ -76,9 +76,14 @@ void reset_geant_geometry();
 // Get a view to the Geant4 LV store
 Span<G4LogicalVolume*> geant_logical_volumes();
 
+//---------------------------------------------------------------------------//
 // Find Geant4 logical volumes corresponding to a list of names
 std::unordered_set<G4LogicalVolume const*>
     find_geant_volumes(std::unordered_set<std::string>);
+
+//---------------------------------------------------------------------------//
+// Generate the GDML name for a Geant4 logical volume
+std::string make_gdml_name(G4LogicalVolume const&);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -100,6 +105,17 @@ inline void reset_geant_geometry()
 }
 
 inline Span<G4LogicalVolume*> geant_logical_volumes()
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+
+inline std::unordered_set<G4LogicalVolume const*>
+find_geant_volumes(std::unordered_set<std::string>)
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+
+inline std::string make_gdml_name(G4LogicalVolume const&)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }
