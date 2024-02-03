@@ -60,7 +60,7 @@ class ScopedLogStorer
     ~ScopedLogStorer();
 
     // Save a log message
-    void operator()(Provenance, LogLevel lev, std::string msg);
+    void operator()(LogProvenance, LogLevel lev, std::string msg);
 
     //! Whether no messages were stored
     bool empty() const { return messages_.empty(); }

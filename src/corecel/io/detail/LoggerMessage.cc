@@ -26,7 +26,7 @@ namespace detail
  *
  * This saves the provided data and allocates a stream for output.
  */
-void LoggerMessage::construct_impl(Provenance&& prov, LogLevel lev)
+void LoggerMessage::construct_impl(LogProvenance&& prov, LogLevel lev)
 {
     CELER_EXPECT(handle_ && *handle_);
 

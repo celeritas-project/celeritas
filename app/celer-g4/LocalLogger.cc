@@ -20,7 +20,7 @@ namespace app
 /*!
  * Write a log message.
  */
-void LocalLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
+void LocalLogger::operator()(LogProvenance prov, LogLevel lev, std::string msg)
 {
     // Write preamble to a buffer first
     std::ostringstream os;

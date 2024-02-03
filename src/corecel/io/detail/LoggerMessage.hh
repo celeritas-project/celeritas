@@ -36,7 +36,7 @@ class LoggerMessage
 
   public:
     // Construct with reference to function object, etc.
-    inline LoggerMessage(LogHandler* handle, Provenance&& prov, LogLevel lev);
+    inline LoggerMessage(LogHandler* handle, LogProvenance&& prov, LogLevel lev);
 
     // Flush message on destruction
     inline ~LoggerMessage();
@@ -61,12 +61,12 @@ class LoggerMessage
 
   private:
     LogHandler* handle_;
-    Provenance prov_;
+    LogProvenance prov_;
     LogLevel lev_;
     std::unique_ptr<std::ostringstream> os_;
 
     // Create the message when handle is non-null
-    void construct_impl(Provenance&& prov, LogLevel lev);
+    void construct_impl(LogProvenance&& prov, LogLevel lev);
 
     // Flush the message during destruction
     void destroy_impl() noexcept;
@@ -80,7 +80,7 @@ class LoggerMessage
  * not be displayed.
  */
 CELER_FORCEINLINE LoggerMessage::LoggerMessage(LogHandler* handle,
-                                               Provenance&& prov,
+                                               LogProvenance&& prov,
                                                LogLevel lev)
     : handle_(handle)
 {
