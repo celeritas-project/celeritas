@@ -10,13 +10,13 @@
 #include "celeritas_config.h"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/GeantGeoUtils.hh"
+#include "geocel/GeantUtils.hh"
+#include "geocel/g4/GeantGeoParams.hh"
 
 #include "SharedParams.hh"
 #include "detail/GeantSimpleCaloSD.hh"
 #include "detail/GeantSimpleCaloStorage.hh"
-#include "geocel/GeantGeoUtils.hh"
-#include "geocel/GeantUtils.hh"
-#include "geocel/g4/GeantGeoParams.hh"
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 

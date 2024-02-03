@@ -13,9 +13,9 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
-#include "../construct/OrangeInput.hh"
 
 #include "UniverseInserter.hh"
+#include "../construct/OrangeInput.hh"
 
 namespace celeritas
 {

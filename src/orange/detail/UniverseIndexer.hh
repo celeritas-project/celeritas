@@ -11,6 +11,7 @@
 
 #include "corecel/data/Collection.hh"
 #include "corecel/math/Algorithms.hh"
+
 #include "../OrangeData.hh"
 #include "../OrangeTypes.hh"
 

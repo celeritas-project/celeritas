@@ -22,11 +22,10 @@
 #include "corecel/sys/KernelRegistry.hh"
 #include "corecel/sys/MemRegistry.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "geocel/GeoParamsOutput.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
-#include "geocel/GeoParamsOutput.hh"
 #include "celeritas/geo/detail/BoundaryAction.hh"
-#include "ActionRegistryOutput.hh"
 #include "celeritas/mat/MaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/mat/MaterialParamsOutput.hh"
 #include "celeritas/phys/CutoffParams.hh"  // IWYU pragma: keep
@@ -44,6 +43,7 @@
 
 #include "ActionInterface.hh"
 #include "ActionRegistry.hh"  // IWYU pragma: keep
+#include "ActionRegistryOutput.hh"
 #include "alongstep/AlongStepNeutralAction.hh"
 
 #if CELERITAS_USE_JSON

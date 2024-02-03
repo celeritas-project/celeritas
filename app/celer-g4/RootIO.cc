@@ -20,13 +20,13 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/GeantUtils.hh"
 #include "celeritas/ext/RootFileManager.hh"
 #include "accel/ExceptionConverter.hh"
 #include "accel/SetupOptions.hh"
 
 #include "GlobalSetup.hh"
 #include "SensitiveHit.hh"
-#include "geocel/GeantUtils.hh"
 
 #ifdef _WIN32
 #    include <process.h>

@@ -12,8 +12,8 @@
 
 #include "celeritas_config.h"
 #include "corecel/cont/Range.hh"
-#include "KernelAttributes.hh"
 
+#include "KernelAttributes.hh"
 #include "KernelRegistry.hh"
 
 namespace celeritas

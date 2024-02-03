@@ -33,6 +33,8 @@
 #include "corecel/sys/KernelRegistry.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "geocel/GeantUtils.hh"
+#include "geocel/g4/GeantGeoParams.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/RootExporter.hh"
@@ -58,8 +60,6 @@
 #include "SetupOptions.hh"
 #include "detail/HitManager.hh"
 #include "detail/OffloadWriter.hh"
-#include "geocel/GeantUtils.hh"
-#include "geocel/g4/GeantGeoParams.hh"
 
 namespace celeritas
 {

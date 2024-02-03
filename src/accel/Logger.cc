@@ -24,7 +24,6 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/LoggerTypes.hh"
 #include "corecel/sys/MpiCommunicator.hh"
-
 #include "geocel/GeantUtils.hh"
 
 namespace celeritas

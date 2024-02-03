@@ -10,7 +10,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/JsonPimpl.hh"
-
 #include "geocel/GeantUtils.hh"
 
 #if CELERITAS_USE_JSON

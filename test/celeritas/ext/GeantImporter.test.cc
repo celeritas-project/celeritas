@@ -19,8 +19,8 @@
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
-#include "../GeantTestBase.hh"
 #include "celeritas_test.hh"
+#include "../GeantTestBase.hh"
 #if CELERITAS_USE_JSON
 #    include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #endif

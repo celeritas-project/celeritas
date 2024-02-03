@@ -10,6 +10,7 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
+
 #include "TrackInitData.hh"  // IWYU pragma: associated
 
 namespace celeritas

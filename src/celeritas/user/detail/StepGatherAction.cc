@@ -19,9 +19,9 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/TrackExecutor.hh"
-#include "../StepData.hh"
 
 #include "StepGatherExecutor.hh"
+#include "../StepData.hh"
 
 namespace celeritas
 {

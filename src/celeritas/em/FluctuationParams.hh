@@ -10,6 +10,7 @@
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+
 #include "data/FluctuationData.hh"
 
 namespace celeritas

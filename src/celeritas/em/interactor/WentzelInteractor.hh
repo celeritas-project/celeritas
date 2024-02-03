@@ -14,12 +14,13 @@
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/WentzelData.hh"
 #include "celeritas/em/distribution/WentzelDistribution.hh"
-#include "detail/PhysicsConstants.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
+
+#include "detail/PhysicsConstants.hh"
 
 namespace celeritas
 {

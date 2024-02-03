@@ -10,6 +10,7 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
+
 #include "CuHipRngData.hh"
 
 namespace celeritas

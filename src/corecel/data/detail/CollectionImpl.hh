@@ -19,13 +19,13 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
-#include "../LdgIterator.hh"
-#include "../PinnedAllocator.hh"
-#include "LdgIteratorImpl.hh"
 #include "corecel/sys/Device.hh"
 
-#include "../Copier.hh"
 #include "DisabledStorage.hh"
+#include "LdgIteratorImpl.hh"
+#include "../Copier.hh"
+#include "../LdgIterator.hh"
+#include "../PinnedAllocator.hh"
 
 namespace celeritas
 {

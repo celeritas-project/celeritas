@@ -10,6 +10,7 @@
 #include <string>
 
 #include "celeritas/Types.hh"  // IWYU pragma: export
+
 #include "CoreTrackDataFwd.hh"  // IWYU pragma: export
 
 namespace celeritas

@@ -24,8 +24,8 @@
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/track/detail/TrackSortUtils.hh"
 
-#include "../TestEm3Base.hh"
 #include "celeritas_test.hh"
+#include "../TestEm3Base.hh"
 
 namespace celeritas
 {

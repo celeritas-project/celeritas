@@ -14,6 +14,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/Environment.hh"
+
 #include "ImportAtomicRelaxation.hh"
 
 namespace celeritas

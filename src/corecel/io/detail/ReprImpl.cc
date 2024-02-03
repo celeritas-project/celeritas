@@ -11,6 +11,7 @@
 #include <cstdio>
 
 #include "corecel/Assert.hh"
+
 #include "../Repr.hh"
 
 namespace celeritas

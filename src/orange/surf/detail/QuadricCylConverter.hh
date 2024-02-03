@@ -10,6 +10,7 @@
 #include <optional>
 
 #include "corecel/math/SoftEqual.hh"
+
 #include "../CylAligned.hh"
 #include "../SimpleQuadric.hh"
 

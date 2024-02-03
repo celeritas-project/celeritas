@@ -41,12 +41,12 @@
 #include "corecel/sys/ScopedLimitSaver.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "geocel/GeantGeoUtils.hh"
+#include "geocel/g4vg/Converter.hh"
 #include "celeritas/Units.hh"
 
-#include "geocel/GeantGeoUtils.hh"
 #include "VecgeomData.hh"  // IWYU pragma: associated
 #include "detail/VecgeomCompatibility.hh"
-#include "geocel/g4vg/Converter.hh"
 
 #ifdef VECGEOM_USE_SURF
 #    include "VecgeomParams.surface.hh"

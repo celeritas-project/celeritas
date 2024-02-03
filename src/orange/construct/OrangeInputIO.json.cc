@@ -26,9 +26,9 @@
 #include "corecel/io/Logger.hh"
 #include "geocel/BoundingBoxIO.json.hh"
 #include "orange/OrangeTypes.hh"
-#include "OrangeInput.hh"
 #include "orange/surf/SurfaceTypeTraits.hh"
 
+#include "OrangeInput.hh"
 #include "detail/OrangeInputIOImpl.json.hh"
 
 namespace celeritas

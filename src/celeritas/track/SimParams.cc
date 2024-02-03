@@ -13,6 +13,7 @@
 #include "celeritas/field/FieldPropagator.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/ParticleParams.hh"
+
 #include "SimData.hh"
 
 namespace celeritas

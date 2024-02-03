@@ -11,6 +11,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/math/SoftEqual.hh"
+
 #include "../Plane.hh"
 #include "../SimpleQuadric.hh"
 

@@ -13,11 +13,11 @@
 #include "celeritas_config.h"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
-#include "PhysicsData.hh"
-#include "Process.hh"
 
 #include "Model.hh"
+#include "PhysicsData.hh"
 #include "PhysicsParams.hh"  // IWYU pragma: keep
+#include "Process.hh"
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 

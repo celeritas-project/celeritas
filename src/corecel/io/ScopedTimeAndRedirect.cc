@@ -15,8 +15,6 @@
 #include "ScopedStreamRedirect.hh"
 #include "StringUtils.hh"
 
-#include "Logger.hh"
-
 namespace celeritas
 {
 namespace

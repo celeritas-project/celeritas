@@ -14,9 +14,9 @@
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/mat/MaterialParams.hh"
 
+#include "celeritas_test.hh"
 #include "../RootTestBase.hh"
 #include "../TestEm3Base.hh"
-#include "celeritas_test.hh"
 
 namespace celeritas
 {

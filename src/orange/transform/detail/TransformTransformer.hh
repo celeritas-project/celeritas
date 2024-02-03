@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "orange/MatrixUtils.hh"
 #include "geocel/Types.hh"
+#include "orange/MatrixUtils.hh"
 
 #include "../NoTransformation.hh"
 #include "../Transformation.hh"

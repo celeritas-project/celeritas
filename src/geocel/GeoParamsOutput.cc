@@ -13,12 +13,14 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
+
 #include "GeoParamsInterface.hh"
 
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 
 #    include "corecel/io/LabelIO.json.hh"
+
 #    include "BoundingBoxIO.json.hh"
 #endif
 

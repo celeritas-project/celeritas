@@ -11,11 +11,11 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ThreadId.hh"
-#include "CoreTrackDataFwd.hh"
-#include "CoreTrackView.hh"
 #include "celeritas/track/SimTrackView.hh"
 
 #include "CoreTrackData.hh"
+#include "CoreTrackDataFwd.hh"
+#include "CoreTrackView.hh"
 #include "detail/TrackExecutorImpl.hh"
 
 namespace celeritas

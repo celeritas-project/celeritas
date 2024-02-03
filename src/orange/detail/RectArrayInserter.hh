@@ -10,11 +10,11 @@
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
+
+#include "TransformInserter.hh"
 #include "../OrangeData.hh"
 #include "../OrangeTypes.hh"
 #include "../construct/OrangeInput.hh"
-
-#include "TransformInserter.hh"
 
 namespace celeritas
 {

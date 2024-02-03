@@ -23,10 +23,10 @@
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
-#include "../MockTestBase.hh"
-#include "../SimpleTestBase.hh"
 #include "AlongStepTestBase.hh"
 #include "celeritas_test.hh"
+#include "../MockTestBase.hh"
+#include "../SimpleTestBase.hh"
 
 namespace celeritas
 {

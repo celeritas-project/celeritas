@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/Macros.hh"
+
 #include "../NumericLimits.hh"
 
 namespace celeritas

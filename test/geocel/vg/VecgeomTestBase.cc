@@ -9,7 +9,6 @@
 
 #include "geocel/CheckedGeoTrackView.t.hh"
 #include "geocel/GenericGeoTestBase.t.hh"
-
 #include "geocel/vg/VecgeomData.hh"
 #include "geocel/vg/VecgeomParams.hh"
 #include "geocel/vg/VecgeomTrackView.hh"

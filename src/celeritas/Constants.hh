@@ -8,8 +8,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Types.hh"
 #include "corecel/Constants.hh"
+#include "corecel/Types.hh"
 
 #include "Units.hh"
 

@@ -14,6 +14,7 @@
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
+
 #include "Device.hh"
 #include "Stream.hh"
 #include "ThreadId.hh"

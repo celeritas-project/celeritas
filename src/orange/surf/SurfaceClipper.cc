@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "SurfaceClipper.hh"
 
-#include "orange/BoundingBoxUtils.hh"
 #include "corecel/Constants.hh"
+#include "orange/BoundingBoxUtils.hh"
 
 #include "detail/AllSurfaces.hh"
 

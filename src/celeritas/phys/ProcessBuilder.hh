@@ -15,8 +15,8 @@
 
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/io/ImportProcess.hh"
-#include "AtomicNumber.hh"
 
+#include "AtomicNumber.hh"
 #include "Process.hh"
 
 namespace celeritas

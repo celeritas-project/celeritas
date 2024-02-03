@@ -140,27 +140,27 @@ TEST_F(ScintillationGeneratorTest, basic)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        const real_type expected_energy[] = {9.3561354787881e-06,
+        real_type const expected_energy[] = {9.3561354787881e-06,
                                              9.39574581587642e-06,
                                              1.09240249982534e-05,
                                              6.16620934051192e-06};
 
-        const real_type expected_time[] = {7.30250028666843e-09,
+        real_type const expected_time[] = {7.30250028666843e-09,
                                            1.05142594015847e-08,
                                            3.11699961936832e-06,
                                            2.68409417173788e-06};
 
-        const real_type expected_cos_theta[] = {0.937735542248463,
+        real_type const expected_cos_theta[] = {0.937735542248463,
                                                 -0.775070967887639,
                                                 0.744857640134601,
                                                 -0.748206733055997};
 
-        const real_type expected_polarization_x[] = {-0.714016941727313,
+        real_type const expected_polarization_x[] = {-0.714016941727313,
                                                      0.74609610658139,
                                                      -0.456101107552679,
                                                      0.0275013929040768};
 
-        const real_type expected_cos_polar[] = {0, 0, 0, 0};
+        real_type const expected_cos_polar[] = {0, 0, 0, 0};
 
         EXPECT_VEC_SOFT_EQ(expected_energy, energy);
         EXPECT_VEC_SOFT_EQ(expected_time, time);

@@ -22,9 +22,9 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 
-#include "../SimpleTestBase.hh"
 #include "StepperTestBase.hh"
 #include "celeritas_test.hh"
+#include "../SimpleTestBase.hh"
 
 using celeritas::units::MevEnergy;
 

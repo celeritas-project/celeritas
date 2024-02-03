@@ -12,14 +12,14 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
-#include "celeritas/UnitUtils.hh"
-
-#include "GeantGeoTestBase.hh"
-#include "celeritas_test.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "geocel/g4/GeantGeoData.hh"
 #include "geocel/g4/GeantGeoParams.hh"
 #include "geocel/g4/GeantGeoTrackView.hh"
+#include "celeritas/UnitUtils.hh"
+
+#include "GeantGeoTestBase.hh"
+#include "celeritas_test.hh"
 
 namespace celeritas
 {

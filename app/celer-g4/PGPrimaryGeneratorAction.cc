@@ -12,10 +12,9 @@
 #include <G4ParticleTable.hh>
 
 #include "corecel/Macros.hh"
-#include "celeritas/phys/PrimaryGeneratorOptions.hh"
-
 #include "geocel/GeantUtils.hh"
 #include "geocel/g4/Convert.geant.hh"
+#include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
 namespace celeritas
 {

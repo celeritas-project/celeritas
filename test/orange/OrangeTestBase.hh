@@ -7,11 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "geocel/GenericGeoTestBase.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/OrangeTrackView.hh"
-
-#include "geocel/GenericGeoTestBase.hh"
 
 namespace celeritas
 {

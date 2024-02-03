@@ -19,7 +19,6 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "geocel/Types.hh"
-
 #include "geocel/Types.hh"  // IWYU pragma: export
 
 namespace celeritas

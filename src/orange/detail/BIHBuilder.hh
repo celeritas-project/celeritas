@@ -12,8 +12,9 @@
 
 #include "corecel/cont/Range.hh"
 #include "geocel/BoundingBox.hh"
-#include "../OrangeData.hh"
+
 #include "BIHPartitioner.hh"
+#include "../OrangeData.hh"
 
 namespace celeritas
 {

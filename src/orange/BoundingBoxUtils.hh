@@ -15,6 +15,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/BoundingBox.hh"
+
 #include "OrangeTypes.hh"
 
 namespace celeritas

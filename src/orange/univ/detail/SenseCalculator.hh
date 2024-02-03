@@ -12,8 +12,8 @@
 #include "corecel/cont/Span.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 
-#include "../VolumeView.hh"
 #include "SurfaceFunctors.hh"
+#include "../VolumeView.hh"
 
 namespace celeritas
 {

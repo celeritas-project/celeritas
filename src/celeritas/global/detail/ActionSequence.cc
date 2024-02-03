@@ -20,8 +20,8 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "corecel/sys/Stream.hh"
-#include "../ActionInterface.hh"
 
+#include "../ActionInterface.hh"
 #include "../ActionRegistry.hh"
 #include "../CoreState.hh"
 

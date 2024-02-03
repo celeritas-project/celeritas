@@ -12,7 +12,6 @@
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Turn.hh"
-
 #include "geocel/Types.hh"
 
 namespace celeritas

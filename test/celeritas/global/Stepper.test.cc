@@ -24,12 +24,12 @@
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
 
+#include "StepperTestBase.hh"
+#include "celeritas_test.hh"
 #include "../OneSteelSphereBase.hh"
 #include "../SimpleTestBase.hh"
 #include "../TestEm15Base.hh"
 #include "../TestEm3Base.hh"
-#include "StepperTestBase.hh"
-#include "celeritas_test.hh"
 
 using celeritas::units::MevEnergy;
 

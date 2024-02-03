@@ -11,6 +11,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Array.hh"
+
 #include "XorwowRngData.hh"
 
 namespace celeritas

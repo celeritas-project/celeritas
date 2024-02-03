@@ -13,7 +13,6 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/sys/ThreadId.hh"
-
 #include "geocel/GeantGeoUtils.hh"
 
 template<class>

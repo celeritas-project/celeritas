@@ -14,6 +14,8 @@
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/global/detail/ApplierTraits.hh"
+#include "celeritas/track/SimTrackView.hh"
+
 #include "CutoffView.hh"
 #include "Interaction.hh"
 #include "ParticleTrackView.hh"
@@ -22,7 +24,6 @@
 #include "PhysicsStepView.hh"
 #include "PhysicsTrackView.hh"
 #include "Secondary.hh"
-#include "celeritas/track/SimTrackView.hh"
 
 namespace celeritas
 {

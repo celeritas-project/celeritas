@@ -7,12 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "OrangeTestBase.hh"
 
+#include "geocel/CheckedGeoTrackView.t.hh"
+#include "geocel/GenericGeoTestBase.t.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/OrangeTrackView.hh"
-
-#include "geocel/CheckedGeoTrackView.t.hh"
-#include "geocel/GenericGeoTestBase.t.hh"
 
 namespace celeritas
 {

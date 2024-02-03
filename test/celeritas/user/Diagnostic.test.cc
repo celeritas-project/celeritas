@@ -17,10 +17,10 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 
-#include "../SimpleTestBase.hh"
-#include "../TestEm3Base.hh"
 #include "DiagnosticTestBase.hh"
 #include "celeritas_test.hh"
+#include "../SimpleTestBase.hh"
+#include "../TestEm3Base.hh"
 
 using celeritas::units::MevEnergy;
 

@@ -12,8 +12,8 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/Turn.hh"
-#include "orange/OrangeTypes.hh"
 #include "geocel/Types.hh"
+#include "orange/OrangeTypes.hh"
 
 namespace celeritas
 {

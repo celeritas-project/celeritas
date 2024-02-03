@@ -13,6 +13,7 @@
 #include <utility>
 
 #include "celeritas_config.h"
+
 #include "OutputInterface.hh"
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>

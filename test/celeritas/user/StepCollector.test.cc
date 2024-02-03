@@ -20,13 +20,13 @@
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/user/SimpleCalo.hh"
 
-#include "../SimpleTestBase.hh"
-#include "../TestEm15Base.hh"
-#include "../TestEm3Base.hh"
 #include "CaloTestBase.hh"
 #include "ExampleMctruth.hh"
 #include "MctruthTestBase.hh"
 #include "celeritas_test.hh"
+#include "../SimpleTestBase.hh"
+#include "../TestEm15Base.hh"
+#include "../TestEm3Base.hh"
 
 using celeritas::units::MevEnergy;
 

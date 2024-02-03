@@ -12,6 +12,7 @@
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/data/Collection.hh"
 #include "geocel/BoundingBox.hh"
+
 #include "../OrangeTypes.hh"
 
 namespace celeritas

@@ -16,6 +16,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/io/ImportData.hh"
+
 #include "PDGNumber.hh"
 #include "ParticleData.hh"  // IWYU pragma: associated
 #include "ParticleView.hh"

@@ -21,10 +21,10 @@
 #include "corecel/io/detail/Joined.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "geocel/Types.hh"
-#include "GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/io/ImportData.hh"
 
 #include "GeoMaterialData.hh"  // IWYU pragma: associated
+#include "GeoParams.hh"  // IWYU pragma: keep
 
 namespace celeritas
 {

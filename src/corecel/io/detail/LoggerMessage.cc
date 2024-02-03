@@ -12,6 +12,7 @@
 #include <sstream>
 
 #include "corecel/Assert.hh"
+
 #include "../Logger.hh"
 #include "../LoggerTypes.hh"
 

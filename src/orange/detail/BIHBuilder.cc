@@ -8,8 +8,9 @@
 #include "BIHBuilder.hh"
 
 #include "corecel/cont/VariantUtils.hh"
-#include "../BoundingBoxUtils.hh"
+
 #include "BIHUtils.hh"
+#include "../BoundingBoxUtils.hh"
 
 namespace celeritas
 {

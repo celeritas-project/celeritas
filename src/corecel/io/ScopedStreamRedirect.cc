@@ -8,10 +8,9 @@
 #include "ScopedStreamRedirect.hh"
 
 #include "corecel/Assert.hh"
-#include "Logger.hh"
-#include "StringUtils.hh"
 #include "corecel/sys/Environment.hh"
 
+#include "Logger.hh"
 #include "StringUtils.hh"
 
 namespace celeritas

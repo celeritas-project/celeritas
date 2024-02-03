@@ -26,14 +26,14 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedMem.hh"
-
-#include "Convert.geant.hh"  // IWYU pragma: associated
-#include "GeantGeoData.hh"  // IWYU pragma: associated
-#include "VisitGeantVolumes.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/ScopedGeantLogger.hh"
+
+#include "Convert.geant.hh"  // IWYU pragma: associated
+#include "GeantGeoData.hh"  // IWYU pragma: associated
+#include "VisitGeantVolumes.hh"
 
 namespace celeritas
 {

@@ -11,6 +11,7 @@
 #include <utility>
 
 #include "celeritas_config.h"
+
 #include "Environment.hh"
 #include "KernelAttributes.hh"
 
