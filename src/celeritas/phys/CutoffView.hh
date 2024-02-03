@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/phys/Secondary.hh"
+#include "Secondary.hh"
 
 #include "CutoffData.hh"
 

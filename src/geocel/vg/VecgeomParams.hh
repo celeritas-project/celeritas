@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/VecgeomParams.hh
+//! \file geocel/vg/VecgeomParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,9 +13,9 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/data/ParamsDataInterface.hh"
-#include "orange/BoundingBox.hh"
-#include "orange/GeoParamsInterface.hh"
-#include "orange/Types.hh"
+#include "geocel/BoundingBox.hh"
+#include "geocel/GeoParamsInterface.hh"
+#include "geocel/Types.hh"
 
 #include "VecgeomData.hh"
 

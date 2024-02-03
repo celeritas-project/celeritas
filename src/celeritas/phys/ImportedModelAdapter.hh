@@ -18,7 +18,7 @@
 #include "corecel/cont/Span.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportProcess.hh"
-#include "celeritas/phys/ImportedProcessAdapter.hh"
+#include "ImportedProcessAdapter.hh"
 
 #include "Applicability.hh"
 #include "Model.hh"

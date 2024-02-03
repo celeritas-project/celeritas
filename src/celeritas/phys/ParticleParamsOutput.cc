@@ -12,7 +12,7 @@
 #include "celeritas_config.h"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/math/Quantity.hh"
-#include "celeritas/phys/Process.hh"
+#include "Process.hh"
 
 #include "ParticleParams.hh"  // IWYU pragma: keep
 #if CELERITAS_USE_JSON

@@ -12,7 +12,7 @@
 
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
-#include "celeritas/em/data/UrbanMscData.hh"
+#include "data/UrbanMscData.hh"
 
 namespace celeritas
 {

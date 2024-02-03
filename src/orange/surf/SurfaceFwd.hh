@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "orange/Types.hh"
+#include "geocel/Types.hh"
 
 namespace celeritas
 {

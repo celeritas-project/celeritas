@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file orange/BoundingBox.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/BoundingBox.hh"
+#include "geocel/BoundingBox.hh"
 
 #include <limits>
 
@@ -15,7 +15,7 @@
 #include "celeritas_test.hh"
 
 #if CELERITAS_USE_JSON
-#    include "orange/BoundingBoxIO.json.hh"
+#    include "geocel/BoundingBoxIO.json.hh"
 #endif
 
 namespace celeritas

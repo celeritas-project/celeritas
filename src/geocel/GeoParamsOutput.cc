@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/geo/GeoParamsOutput.cc
+//! \file geocel/GeoParamsOutput.cc
 //---------------------------------------------------------------------------//
 #include "GeoParamsOutput.hh"
 
@@ -13,13 +13,13 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
-#include "orange/GeoParamsInterface.hh"
+#include "GeoParamsInterface.hh"
 
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 
 #    include "corecel/io/LabelIO.json.hh"
-#    include "orange/BoundingBoxIO.json.hh"
+#    include "BoundingBoxIO.json.hh"
 #endif
 
 namespace celeritas

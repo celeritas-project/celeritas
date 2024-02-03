@@ -8,8 +8,8 @@
 #include "ScopedStreamRedirect.hh"
 
 #include "corecel/Assert.hh"
-#include "corecel/io/Logger.hh"
-#include "corecel/io/StringUtils.hh"
+#include "Logger.hh"
+#include "StringUtils.hh"
 #include "corecel/sys/Environment.hh"
 
 #include "StringUtils.hh"

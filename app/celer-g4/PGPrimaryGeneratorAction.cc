@@ -12,7 +12,7 @@
 #include <G4ParticleTable.hh>
 
 #include "corecel/Macros.hh"
-#include "celeritas/ext/Convert.geant.hh"
+#include "geocel/g4/Convert.geant.hh"
 #include "celeritas/ext/GeantUtils.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 

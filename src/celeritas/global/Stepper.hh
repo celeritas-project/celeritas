@@ -15,7 +15,7 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoFwd.hh"
-#include "celeritas/global/CoreTrackData.hh"
+#include "CoreTrackData.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/random/RngParamsFwd.hh"
 #include "celeritas/track/TrackInitData.hh"

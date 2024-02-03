@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/GeantGeoParams.hh
+//! \file geocel/g4/GeantGeoParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,9 +12,9 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/data/ParamsDataInterface.hh"
-#include "orange/BoundingBox.hh"
-#include "orange/GeoParamsInterface.hh"
-#include "orange/Types.hh"
+#include "geocel/BoundingBox.hh"
+#include "geocel/GeoParamsInterface.hh"
+#include "geocel/Types.hh"
 
 #include "GeantGeoData.hh"
 

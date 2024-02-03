@@ -20,8 +20,8 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/detail/Joined.hh"
 #include "corecel/sys/ScopedMem.hh"
-#include "orange/Types.hh"
-#include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
+#include "geocel/Types.hh"
+#include "GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/io/ImportData.hh"
 
 #include "GeoMaterialData.hh"  // IWYU pragma: associated

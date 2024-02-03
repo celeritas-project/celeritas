@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "orange/surf/Plane.hh"
 
-#include "orange/Constants.hh"
+#include "corecel/Constants.hh"
 #include "orange/surf/PlaneAligned.hh"
 
 #include "celeritas_test.hh"

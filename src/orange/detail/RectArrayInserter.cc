@@ -13,7 +13,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
-#include "orange/construct/OrangeInput.hh"
+#include "../construct/OrangeInput.hh"
 
 #include "UniverseInserter.hh"
 

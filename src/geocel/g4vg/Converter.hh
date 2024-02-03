@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/g4vg/Converter.hh
+//! \file geocel/g4vg/Converter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,7 +12,7 @@
 #include <unordered_set>
 
 #include "celeritas_config.h"
-#include "orange/Types.hh"
+#include "geocel/Types.hh"
 
 //---------------------------------------------------------------------------//
 // Forward declarations

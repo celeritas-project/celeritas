@@ -23,7 +23,7 @@
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
-#include "accel/SetupOptions.hh"
+#include "../SetupOptions.hh"
 
 #include "HitProcessor.hh"
 #include "SensDetInserter.hh"

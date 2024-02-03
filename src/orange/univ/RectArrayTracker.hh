@@ -12,7 +12,7 @@
 #include "corecel/grid/NonuniformGrid.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeData.hh"
-#include "orange/univ/detail/RaggedRightIndexer.hh"
+#include "detail/RaggedRightIndexer.hh"
 
 #include "detail/Types.hh"
 #include "detail/Utils.hh"

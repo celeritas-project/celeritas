@@ -15,7 +15,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ThreadId.hh"
 
-#include "BoundingBox.hh"
+#include "geocel/BoundingBox.hh"
 #include "OrangeTypes.hh"
 #include "detail/BIHData.hh"
 #include "univ/detail/Types.hh"

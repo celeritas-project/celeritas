@@ -8,7 +8,7 @@
 #pragma once
 
 #include "celeritas_config.h"
-#include "orange/GeoParamsInterface.hh"
+#include "geocel/GeoParamsInterface.hh"
 #include "celeritas/Types.hh"
 
 // Geant4 forward declaration

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/g4vg/Converter.cc
+//! \file geocel/g4vg/Converter.cc
 //---------------------------------------------------------------------------//
 #include "Converter.hh"
 
@@ -25,7 +25,7 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TypeDemangler.hh"
-#include "celeritas/ext/GeantGeoUtils.hh"
+#include "geocel/GeantGeoUtils.hh"
 
 #include "LogicalVolumeConverter.hh"
 #include "Scaler.hh"

@@ -13,7 +13,7 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 
-#include "GeantGeoUtils.hh"
+#include "geocel/GeantGeoUtils.hh"
 
 namespace celeritas
 {

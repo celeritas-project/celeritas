@@ -23,7 +23,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
-#include "orange/BoundingBox.hh"
+#include "geocel/BoundingBox.hh"
 
 #include "OrangeData.hh"  // IWYU pragma: associated
 #include "OrangeTypes.hh"

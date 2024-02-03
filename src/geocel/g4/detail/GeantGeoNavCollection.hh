@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/GeantGeoNavCollection.hh
+//! \file geocel/g4/detail/GeantGeoNavCollection.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,7 +14,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/sys/ThreadId.hh"
 
-#include "../GeantGeoUtils.hh"
+#include "geocel/GeantGeoUtils.hh"
 
 template<class>
 class G4ReferenceCountedHandle;

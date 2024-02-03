@@ -19,7 +19,7 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/TrackExecutor.hh"
-#include "celeritas/user/StepData.hh"
+#include "../StepData.hh"
 
 #include "StepGatherExecutor.hh"
 

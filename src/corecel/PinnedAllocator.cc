@@ -6,8 +6,8 @@
 //! \file corecel/PinnedAllocator.cc
 //---------------------------------------------------------------------------//
 
-#include "corecel/Types.hh"
-#include "corecel/data/PinnedAllocator.t.hh"
+#include "Types.hh"
+#include "data/PinnedAllocator.t.hh"
 
 namespace celeritas
 {

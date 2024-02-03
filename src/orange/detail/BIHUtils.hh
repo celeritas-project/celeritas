@@ -9,8 +9,8 @@
 
 #include <vector>
 
-#include "orange/BoundingBoxUtils.hh"
-#include "orange/OrangeTypes.hh"
+#include "../BoundingBoxUtils.hh"
+#include "../OrangeTypes.hh"
 
 namespace celeritas
 {

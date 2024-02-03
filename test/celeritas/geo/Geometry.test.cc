@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas_config.h"
 #include "celeritas/geo/GeoParams.hh"
-#include "celeritas/geo/GeoParamsOutput.hh"
+#include "geocel/GeoParamsOutput.hh"
 
 #include "HeuristicGeoTestBase.hh"
 #include "celeritas_test.hh"

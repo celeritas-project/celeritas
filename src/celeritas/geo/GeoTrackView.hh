@@ -10,11 +10,11 @@
 
 #include "celeritas_config.h"
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
-#    include "celeritas/ext/VecgeomTrackView.hh"
+#    include "geocel/vg/VecgeomTrackView.hh"
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
 #    include "orange/OrangeTrackView.hh"
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
-#    include "celeritas/ext/GeantGeoTrackView.hh"
+#    include "geocel/g4/GeantGeoTrackView.hh"
 #endif
 
 // Include type alias for Geo track view

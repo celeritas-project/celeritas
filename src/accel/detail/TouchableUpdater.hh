@@ -9,7 +9,7 @@
 
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
-#include "celeritas/ext/GeantGeoUtils.hh"
+#include "geocel/GeantGeoUtils.hh"
 
 namespace celeritas
 {

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/VecgeomParams.cc
+//! \file geocel/vg/VecgeomParams.cc
 //---------------------------------------------------------------------------//
 #include "VecgeomParams.hh"
 
@@ -43,10 +43,10 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/Units.hh"
 
-#include "GeantGeoUtils.hh"
+#include "geocel/GeantGeoUtils.hh"
 #include "VecgeomData.hh"  // IWYU pragma: associated
 #include "detail/VecgeomCompatibility.hh"
-#include "g4vg/Converter.hh"
+#include "geocel/g4vg/Converter.hh"
 
 #ifdef VECGEOM_USE_SURF
 #    include "VecgeomParams.surface.hh"

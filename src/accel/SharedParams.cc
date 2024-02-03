@@ -34,7 +34,7 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/ext/GeantGeoParams.hh"
+#include "geocel/g4/GeantGeoParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantUtils.hh"
 #include "celeritas/ext/RootExporter.hh"

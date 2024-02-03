@@ -9,9 +9,9 @@
 
 #include "celeritas/CheckedGeoTrackView.t.hh"
 #include "celeritas/GenericGeoTestBase.t.hh"
-#include "celeritas/ext/GeantGeoData.hh"
-#include "celeritas/ext/GeantGeoParams.hh"
-#include "celeritas/ext/GeantGeoTrackView.hh"
+#include "geocel/g4/GeantGeoData.hh"
+#include "geocel/g4/GeantGeoParams.hh"
+#include "geocel/g4/GeantGeoTrackView.hh"
 
 namespace celeritas
 {

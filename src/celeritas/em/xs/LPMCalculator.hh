@@ -19,7 +19,7 @@
 #include "celeritas/grid/PolyEvaluator.hh"
 #include "celeritas/mat/MaterialView.hh"
 
-#include "../interactor/detail/PhysicsConstants.hh"
+#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 
 namespace celeritas
 {

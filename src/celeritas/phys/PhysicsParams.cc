@@ -43,9 +43,9 @@
 #include "celeritas/mat/MaterialData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/mat/MaterialView.hh"
-#include "celeritas/phys/Model.hh"
-#include "celeritas/phys/PhysicsData.hh"
-#include "celeritas/phys/Process.hh"
+#include "Model.hh"
+#include "PhysicsData.hh"
+#include "Process.hh"
 
 #include "ParticleParams.hh"
 #include "detail/DiscreteSelectAction.hh"

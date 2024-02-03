@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/ext/GeantGeoUtils.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/ext/GeantGeoUtils.hh"
+#include "geocel/GeantGeoUtils.hh"
 
 #include <algorithm>
 #include <G4LogicalVolume.hh>

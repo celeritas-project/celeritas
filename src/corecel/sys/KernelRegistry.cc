@@ -11,8 +11,8 @@
 #include <utility>
 
 #include "celeritas_config.h"
-#include "corecel/sys/Environment.hh"
-#include "corecel/sys/KernelAttributes.hh"
+#include "Environment.hh"
+#include "KernelAttributes.hh"
 
 namespace celeritas
 {

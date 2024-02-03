@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file scripts/ci/test-installation/example-accel.cc
+//! \file accel/simple-offload.cc
 //---------------------------------------------------------------------------//
 
 #include <algorithm>

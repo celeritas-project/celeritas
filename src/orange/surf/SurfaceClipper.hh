@@ -8,7 +8,7 @@
 #pragma once
 
 #include "corecel/Assert.hh"
-#include "orange/BoundingBox.hh"
+#include "geocel/BoundingBox.hh"
 #include "orange/OrangeTypes.hh"
 
 #include "SurfaceFwd.hh"

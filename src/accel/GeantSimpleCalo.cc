@@ -10,8 +10,8 @@
 #include "celeritas_config.h"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
-#include "celeritas/ext/GeantGeoParams.hh"
-#include "celeritas/ext/GeantGeoUtils.hh"
+#include "geocel/g4/GeantGeoParams.hh"
+#include "geocel/GeantGeoUtils.hh"
 #include "celeritas/ext/GeantUtils.hh"
 
 #include "SharedParams.hh"

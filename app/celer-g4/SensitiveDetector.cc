@@ -17,7 +17,7 @@
 #include <G4VTouchable.hh>
 
 #include "corecel/Assert.hh"
-#include "celeritas/ext/Convert.geant.hh"
+#include "geocel/g4/Convert.geant.hh"
 
 #include "GlobalSetup.hh"
 

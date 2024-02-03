@@ -17,7 +17,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/UnitUtils.hh"
 #include "celeritas/Units.hh"
-#include "celeritas/ext/GeantGeoParams.hh"
+#include "geocel/g4/GeantGeoParams.hh"
 #include "celeritas/ext/GeantGeoTestBase.hh"
 
 #include "celeritas_test.hh"

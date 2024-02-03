@@ -11,7 +11,7 @@
 #include <thrust/host_vector.h>
 
 #include "corecel/sys/KernelParamCalculator.device.hh"
-#include "celeritas/ext/VecgeomTrackView.hh"
+#include "geocel/vg/VecgeomTrackView.hh"
 
 using thrust::raw_pointer_cast;
 

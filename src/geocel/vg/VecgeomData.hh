@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/VecgeomData.hh
+//! \file geocel/vg/VecgeomData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,7 +13,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ThreadId.hh"
-#include "orange/Types.hh"
+#include "geocel/Types.hh"
 #include "celeritas/Types.hh"
 
 #include "detail/VecgeomNavCollection.hh"

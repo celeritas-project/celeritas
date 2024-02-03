@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "LoggerTypes.hh"
 
-#include "corecel/io/EnumStringMapper.hh"
+#include "EnumStringMapper.hh"
 
 #include "ColorUtils.hh"
 

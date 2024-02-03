@@ -12,12 +12,12 @@
 #    include <G4LogicalVolume.hh>
 #    include <G4LogicalVolumeStore.hh>
 
-#    include "celeritas/ext/VisitGeantVolumes.hh"
+#    include "geocel/g4/VisitGeantVolumes.hh"
 #endif
 
 #include "corecel/io/Repr.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "celeritas/ext/GeantGeoUtils.hh"
+#include "geocel/GeantGeoUtils.hh"
 
 #include "CheckedGeoTrackView.hh"
 

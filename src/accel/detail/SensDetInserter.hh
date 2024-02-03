@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
-#include "orange/GeoParamsInterface.hh"
+#include "geocel/GeoParamsInterface.hh"
 #include "celeritas/ext/GeantVolumeMapper.hh"
 
 class G4LogicalVolume;

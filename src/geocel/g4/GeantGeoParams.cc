@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/GeantGeoParams.cc
+//! \file geocel/g4/GeantGeoParams.cc
 //---------------------------------------------------------------------------//
 #include "GeantGeoParams.hh"
 
@@ -29,10 +29,10 @@
 
 #include "Convert.geant.hh"  // IWYU pragma: associated
 #include "GeantGeoData.hh"  // IWYU pragma: associated
-#include "GeantGeoUtils.hh"
-#include "GeantUtils.hh"
-#include "ScopedGeantExceptionHandler.hh"
-#include "ScopedGeantLogger.hh"
+#include "geocel/GeantGeoUtils.hh"
+#include "celeritas/ext/GeantUtils.hh"
+#include "geocel/ScopedGeantExceptionHandler.hh"
+#include "geocel/ScopedGeantLogger.hh"
 #include "VisitGeantVolumes.hh"
 
 namespace celeritas

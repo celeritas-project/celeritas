@@ -21,7 +21,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/em/data/UrbanMscData.hh"
+#include "data/UrbanMscData.hh"
 #include "celeritas/grid/PolyEvaluator.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/ValueGridInserter.hh"

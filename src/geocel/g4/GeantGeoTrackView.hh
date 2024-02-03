@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/GeantGeoTrackView.hh
+//! \file geocel/g4/GeantGeoTrackView.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -18,7 +18,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
-#include "orange/Types.hh"
+#include "geocel/Types.hh"
 
 #include "Convert.geant.hh"
 #include "GeantGeoData.hh"

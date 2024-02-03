@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/Convert.geant.hh
+//! \file geocel/g4/Convert.geant.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,7 +11,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
-#include "orange/Types.hh"
+#include "geocel/Types.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/UnitTypes.hh"
 

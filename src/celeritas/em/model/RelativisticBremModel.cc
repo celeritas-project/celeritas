@@ -27,7 +27,7 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
 
-#include "../interactor/detail/PhysicsConstants.hh"
+#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 
 namespace celeritas
 {

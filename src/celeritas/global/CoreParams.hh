@@ -14,7 +14,7 @@
 #include "corecel/data/ObserverPtr.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/geo/GeoFwd.hh"
-#include "celeritas/global/CoreTrackData.hh"
+#include "CoreTrackData.hh"
 #include "celeritas/random/RngParamsFwd.hh"
 
 #include "ActionInterface.hh"

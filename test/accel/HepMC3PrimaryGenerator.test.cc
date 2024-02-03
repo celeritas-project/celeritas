@@ -11,7 +11,7 @@
 
 #include "celeritas/GeantTestBase.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
-#include "celeritas/ext/Convert.geant.hh"
+#include "geocel/g4/Convert.geant.hh"
 
 #include "celeritas_test.hh"
 

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file example/minimal/minimal.cc
+//! \file minimal/minimal.cc
 //---------------------------------------------------------------------------//
 #include <memory>
 #include <celeritas/Constants.hh>

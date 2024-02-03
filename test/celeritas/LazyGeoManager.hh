@@ -10,7 +10,7 @@
 #include <memory>
 #include <string_view>
 
-#include "orange/GeoParamsInterface.hh"
+#include "geocel/GeoParamsInterface.hh"
 
 namespace celeritas
 {

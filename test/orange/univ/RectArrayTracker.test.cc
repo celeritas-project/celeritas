@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/univ/SimpleUnitTracker.test.cc
+//! \file orange/univ/RectArrayTracker.test.cc
 //---------------------------------------------------------------------------//
 #include "orange/univ/RectArrayTracker.hh"
 

@@ -14,7 +14,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/ext/Convert.geant.hh"
+#include "geocel/g4/Convert.geant.hh"
 #include "celeritas/field/RZMapField.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
 

@@ -25,7 +25,7 @@
 #include <G4eBremsstrahlungRelModel.hh>
 
 #include "corecel/Assert.hh"
-#include "celeritas/ext/GeantPhysicsOptions.hh"
+#include "../GeantPhysicsOptions.hh"
 
 using CLHEP::GeV;
 

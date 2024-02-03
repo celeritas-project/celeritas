@@ -13,7 +13,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/data/detail/LdgIteratorImpl.hh"
+#include "detail/LdgIteratorImpl.hh"
 #include "corecel/math/Algorithms.hh"
 
 namespace celeritas

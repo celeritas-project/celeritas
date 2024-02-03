@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/VecgeomTrackView.hh
+//! \file geocel/vg/VecgeomTrackView.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -19,7 +19,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
-#include "orange/Types.hh"
+#include "geocel/Types.hh"
 
 #include "VecgeomData.hh"
 #include "detail/VecgeomCompatibility.hh"
@@ -27,7 +27,7 @@
 #if VECGEOM_VERSION < 0x020000
 #    include "detail/BVHNavigator.hh"
 #elif defined(VECGEOM_USE_SURF)
-#    include "detail/SurfNavigator.hh"
+#    include "celeritas/ext/detail/SurfNavigator.hh"
 #else
 #    include <VecGeom/navigation/BVHNavigator.h>
 #endif

@@ -17,7 +17,7 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "orange/OrangeParams.hh"
-#include "orange/Types.hh"
+#include "geocel/Types.hh"
 #include "orange/construct/OrangeInput.hh"
 #include "orange/detail/UniverseIndexer.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"

@@ -27,10 +27,10 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 
-#include "GeantGeoUtils.hh"
+#include "geocel/GeantGeoUtils.hh"
 #include "GeantUtils.hh"
-#include "ScopedGeantExceptionHandler.hh"
-#include "ScopedGeantLogger.hh"
+#include "geocel/ScopedGeantExceptionHandler.hh"
+#include "geocel/ScopedGeantLogger.hh"
 #include "detail/GeantPhysicsList.hh"
 
 namespace celeritas

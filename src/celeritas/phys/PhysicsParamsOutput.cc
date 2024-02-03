@@ -13,8 +13,8 @@
 #include "celeritas_config.h"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
-#include "celeritas/phys/PhysicsData.hh"
-#include "celeritas/phys/Process.hh"
+#include "PhysicsData.hh"
+#include "Process.hh"
 
 #include "Model.hh"
 #include "PhysicsParams.hh"  // IWYU pragma: keep

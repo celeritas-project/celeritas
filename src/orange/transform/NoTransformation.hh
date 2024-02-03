@@ -10,7 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/cont/Span.hh"
 
-#include "../OrangeTypes.hh"
+#include "orange/OrangeTypes.hh"
 
 namespace celeritas
 {

@@ -16,7 +16,7 @@
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantSetup.hh"
-#include "celeritas/ext/ScopedGeantExceptionHandler.hh"
+#include "geocel/ScopedGeantExceptionHandler.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/io/ImportData.hh"

@@ -39,7 +39,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/ext/GeantPhysicsOptions.hh"
+#include "../GeantPhysicsOptions.hh"
 
 #include "GeantBremsstrahlungProcess.hh"
 

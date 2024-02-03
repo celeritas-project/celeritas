@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/g4vg/Transformer.hh
+//! \file geocel/g4vg/Transformer.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

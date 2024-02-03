@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/g4vg/LogicalVolumeConverter.hh
+//! \file geocel/g4vg/LogicalVolumeConverter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <unordered_map>
 
-#include "orange/Types.hh"
+#include "geocel/Types.hh"
 
 //---------------------------------------------------------------------------//
 // Forward declarations

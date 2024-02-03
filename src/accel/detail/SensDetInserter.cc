@@ -11,7 +11,7 @@
 
 #include "celeritas_cmake_strings.h"
 #include "corecel/io/Logger.hh"
-#include "celeritas/ext/GeantGeoUtils.hh"
+#include "geocel/GeantGeoUtils.hh"
 
 namespace celeritas
 {

@@ -9,7 +9,7 @@
 
 #include <CLHEP/Units/SystemOfUnits.h>
 
-#include "celeritas/ext/Convert.geant.hh"
+#include "geocel/g4/Convert.geant.hh"
 #include "celeritas/field/RZMapField.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldParams.hh"

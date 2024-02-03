@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/VecgeomNavCollection.cc
+//! \file geocel/vg/detail/VecgeomNavCollection.cc
 //---------------------------------------------------------------------------//
 #include "VecgeomNavCollection.hh"
 

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/g4vg/LogicalVolumeConverter.cc
+//! \file geocel/g4vg/LogicalVolumeConverter.cc
 //---------------------------------------------------------------------------//
 #include "LogicalVolumeConverter.hh"
 
@@ -15,7 +15,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
-#include "celeritas/ext/GeantGeoUtils.hh"
+#include "geocel/GeantGeoUtils.hh"
 
 #include "SolidConverter.hh"
 

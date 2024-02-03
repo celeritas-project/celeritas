@@ -11,7 +11,7 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "orange/MatrixUtils.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/Types.hh"
+#include "geocel/Types.hh"
 
 namespace celeritas
 {

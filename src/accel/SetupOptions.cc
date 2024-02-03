@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "SetupOptions.hh"
 
-#include "celeritas/ext/GeantGeoUtils.hh"
+#include "geocel/GeantGeoUtils.hh"
 
 #include "ExceptionConverter.hh"
 

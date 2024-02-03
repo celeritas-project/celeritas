@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
-#include "celeritas/ext/VecgeomData.hh"
+#include "geocel/vg/VecgeomData.hh"
 
 namespace celeritas
 {

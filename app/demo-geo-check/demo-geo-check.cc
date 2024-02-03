@@ -26,7 +26,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/Device.hh"
-#include "orange/Types.hh"
+#include "geocel/Types.hh"
 #include "celeritas/geo/GeoFwd.hh"
 
 #include "GCheckRunner.hh"

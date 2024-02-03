@@ -8,7 +8,7 @@
 #include "GeantSimpleCaloSD.hh"
 
 #include "corecel/Assert.hh"
-#include "celeritas/ext/GeantGeoUtils.hh"
+#include "geocel/GeantGeoUtils.hh"
 
 #include "GeantSimpleCaloStorage.hh"
 

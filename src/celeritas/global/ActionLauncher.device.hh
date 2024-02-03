@@ -18,7 +18,7 @@
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/Stream.hh"
 #include "corecel/sys/ThreadId.hh"
-#include "celeritas/global/CoreParams.hh"
+#include "CoreParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "ActionInterface.hh"
