@@ -33,10 +33,40 @@
 #include "GeantUtils.hh"
 #include "ScopedGeantExceptionHandler.hh"
 #include "ScopedGeantLogger.hh"
-#include "detail/GeantVolumeVisitor.hh"
+#include "VisitGeantVolumes.hh"
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+std::vector<Label>
+get_volume_labels(G4LogicalVolume const& world, bool unique_volumes)
+{
+    std::vector<Label> labels;
+    visit_geant_volumes(
+        [&](G4LogicalVolume const& lv) {
+            auto i = static_cast<std::size_t>(lv.GetInstanceID());
+            if (i >= labels.size())
+            {
+                labels.resize(i + 1);
+            }
+            if (unique_volumes)
+            {
+                labels[i] = Label::from_geant(make_gdml_name(lv));
+            }
+            else
+            {
+                labels[i] = Label::from_geant(lv.GetName());
+            }
+        },
+        world);
+    return labels;
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct from a GDML input.
@@ -243,25 +273,18 @@ void GeantGeoParams::build_metadata()
     CELER_EXPECT(host_ref_);
 
     ScopedMem record_mem("GeantGeoParams.build_metadata");
+
+    auto const* world_lv = host_ref_.world->GetLogicalVolume();
+    CELER_ASSERT(world_lv);
+
     // Construct volume labels
     vol_labels_ = LabelIdMultiMap<VolumeId>(
-        [world = host_ref_.world, unique_volumes = !loaded_gdml_] {
-            G4LogicalVolume const* lv = world->GetLogicalVolume();
-            CELER_ASSERT(lv);
-
-            // Recursive loop over all logical volumes to populate map
-            detail::GeantVolumeVisitor visitor(unique_volumes);
-            visitor.visit(*lv);
-            return visitor.build_label_vector();
-        }());
+        get_volume_labels(*world_lv, !loaded_gdml_));
 
     // Save world bbox (NOTE: assumes no transformation on PV?)
-    bbox_ = [world = host_ref_.world] {
-        G4LogicalVolume const* lv = world->GetLogicalVolume();
-        CELER_ASSERT(lv);
-        G4VSolid const* solid = lv->GetSolid();
+    bbox_ = [world_lv] {
+        G4VSolid const* solid = world_lv->GetSolid();
         CELER_ASSERT(solid);
-
         G4VisExtent const& extent = solid->GetExtent();
 
         return BBox({convert_from_geant(G4ThreeVector(extent.GetXmin(),

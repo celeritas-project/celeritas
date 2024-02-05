@@ -16,7 +16,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/ext/GeantGeoUtils.hh"
-#include "celeritas/ext/detail/GeantVolumeVisitor.hh"
 
 #include "SolidConverter.hh"
 
@@ -99,7 +98,7 @@ auto LogicalVolumeConverter::construct_base(arg_type g4lv) -> result_type
     if (name.find("0x") == std::string::npos)
     {
         // No pointer address: add one
-        name = detail::GeantVolumeVisitor::generate_name(g4lv);
+        name = make_gdml_name(g4lv);
     }
 
     return new vecgeom::LogicalVolume(name.c_str(), shape);

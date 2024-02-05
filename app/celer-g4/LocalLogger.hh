@@ -30,7 +30,7 @@ class LocalLogger
     }
 
     // Write a log message
-    void operator()(Provenance prov, LogLevel lev, std::string msg);
+    void operator()(LogProvenance prov, LogLevel lev, std::string msg);
 
   private:
     int num_threads_;

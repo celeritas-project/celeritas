@@ -54,6 +54,19 @@ enum class Axis
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Which of two bounding points, faces, etc.
+ *
+ * Here, lo/hi correspond to left/right, back/front, bottom/top. It's used for
+ * the two points in a bounding box.
+ */
+enum class Bound : bool
+{
+    lo,
+    hi
+};
+
+//---------------------------------------------------------------------------//
 // STRUCTS
 //---------------------------------------------------------------------------//
 /*!
@@ -86,7 +99,7 @@ struct Propagation
 };
 
 //---------------------------------------------------------------------------//
-// HELPER FUNCTIONS (HOST)
+// HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 //! Convert Axis enum value to int
 CELER_CONSTEXPR_FUNCTION int to_int(Axis a)
@@ -94,6 +107,7 @@ CELER_CONSTEXPR_FUNCTION int to_int(Axis a)
     return static_cast<int>(a);
 }
 
+//---------------------------------------------------------------------------//
 //! Convert int to Axis enum value
 inline CELER_FUNCTION Axis to_axis(int a)
 {
@@ -101,6 +115,14 @@ inline CELER_FUNCTION Axis to_axis(int a)
     return static_cast<Axis>(a);
 }
 
+//---------------------------------------------------------------------------//
+//! Convert Bound enum value to int
+CELER_CONSTEXPR_FUNCTION int to_int(Bound b)
+{
+    return static_cast<int>(b);
+}
+
+//---------------------------------------------------------------------------//
 //! Get the lowercase name of the axis.
 inline constexpr char to_char(Axis ax)
 {

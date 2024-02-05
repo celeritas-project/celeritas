@@ -19,7 +19,6 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/Version.hh"
-#include "celeritas/GenericGeoTestBase.hh"
 #include "celeritas/UnitUtils.hh"
 #include "celeritas/ext/GeantGeoUtils.hh"
 #include "celeritas/ext/GeantSetup.hh"
@@ -28,6 +27,7 @@
 #include "celeritas/ext/VecgeomTrackView.hh"
 #include "celeritas/geo/GeoParamsOutput.hh"
 
+#include "VecgeomTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -57,18 +57,24 @@ std::string simplify_pointers(std::string const& s)
 }  // namespace
 
 //---------------------------------------------------------------------------//
-// TESTS
+// TEST HARNESSES
 //---------------------------------------------------------------------------//
+class VecgeomTestBaseImpl : public VecgeomTestBase
+{
+  protected:
+    using SpanStringView = Span<std::string_view const>;
+
+    virtual SpanStringView expected_log_levels() const { return {}; }
+};
+
 /*!
  * Preserve the VecGeom geometry across test cases.
  *
  * Test cases should be matched to unique geometries.
  */
-class VecgeomTestBase : public GenericVecgeomTestBase
+class VecgeomVgdmlTestBase : public VecgeomTestBaseImpl
 {
   public:
-    using SpanStringView = Span<std::string_view const>;
-
     //! Helper function: build with VecGeom using VGDML
     SPConstGeo load_vgdml(std::string_view filename)
     {
@@ -80,13 +86,11 @@ class VecgeomTestBase : public GenericVecgeomTestBase
             << scoped_log_;
         return result;
     }
-
-    virtual SpanStringView expected_log_levels() const { return {}; }
 };
 
 //---------------------------------------------------------------------------//
 
-class VecgeomGeantTestBase : public VecgeomTestBase
+class VecgeomGeantTestBase : public VecgeomTestBaseImpl
 {
   public:
     //! Helper function: build via Geant4 GDML reader
@@ -111,15 +115,17 @@ class VecgeomGeantTestBase : public VecgeomTestBase
     GeantVolResult get_direct_geant_volumes()
     {
         this->geometry();
-        return GenericVecgeomTestBase::get_direct_geant_volumes(world_volume_);
+        return VecgeomTestBase::get_direct_geant_volumes(world_volume_);
     }
 
     //! Test conversion for Geant4 geometry
     GeantVolResult get_import_geant_volumes()
     {
         this->geometry();
-        return GenericVecgeomTestBase::get_import_geant_volumes(world_volume_);
+        return VecgeomTestBase::get_import_geant_volumes(world_volume_);
     }
+
+    virtual SpanStringView expected_log_levels() const { return {}; }
 
   protected:
     // Note that this is static because the geometry may be loaded
@@ -132,7 +138,7 @@ G4VPhysicalVolume* VecgeomGeantTestBase::world_volume_{nullptr};
 // SIMPLE CMS TEST
 //---------------------------------------------------------------------------//
 
-class SimpleCmsTest : public VecgeomTestBase
+class SimpleCmsTest : public VecgeomVgdmlTestBase
 {
   public:
     SPConstGeo build_geometry() final
@@ -272,7 +278,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_CUDA(device))
 // FOUR-LEVELS TEST
 //---------------------------------------------------------------------------//
 
-class FourLevelsTest : public VecgeomTestBase
+class FourLevelsTest : public VecgeomVgdmlTestBase
 {
   public:
     SPConstGeo build_geometry() final
@@ -617,7 +623,7 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
 // SOLIDS TEST
 //---------------------------------------------------------------------------//
 
-class SolidsTest : public VecgeomTestBase
+class SolidsTest : public VecgeomVgdmlTestBase
 {
   public:
     SPConstGeo build_geometry() final
@@ -942,7 +948,7 @@ TEST_F(SolidsTest, reflected_vol)
 // CMS EXTERIOR TEST
 //---------------------------------------------------------------------------//
 
-class CmseTest : public VecgeomTestBase
+class CmseTest : public VecgeomVgdmlTestBase
 {
   public:
     SPConstGeo build_geometry() final { return this->load_vgdml("cmse.gdml"); }
@@ -1035,10 +1041,11 @@ TEST_F(CmseTest, trace)
 }
 
 //---------------------------------------------------------------------------//
-// ARBITRARY TEST
+// ARBITRARY VGDML TEST
 //---------------------------------------------------------------------------//
 
-class DISABLED_ArbitraryTest : public VecgeomTestBase
+#define ArbitraryVgdmlTest DISABLED_ArbitraryVgdmlTest
+class ArbitraryVgdmlTest : public VecgeomTestBase
 {
   public:
     SPConstGeo build_geometry() final
@@ -1047,13 +1054,13 @@ class DISABLED_ArbitraryTest : public VecgeomTestBase
         CELER_VALIDATE(!filename.empty(),
                        << "Set the 'GDML' environment variable and run this "
                           "test with "
-                          "--gtest_filter=*ArbitraryGeantTest* "
+                          "--gtest_filter=*ArbitraryVgdmlTest* "
                           "--gtest_also_run_disabled_tests");
         return std::make_shared<VecgeomParams>(filename);
     }
 };
 
-TEST_F(DISABLED_ArbitraryTest, dump)
+TEST_F(ArbitraryVgdmlTest, dump)
 {
     this->geometry();
     auto const* world = vecgeom::GeoManager::Instance().GetWorld();
@@ -1498,33 +1505,6 @@ TEST_F(ZnenvGeantTest, trace)
         EXPECT_VEC_EQ(expected_mid_volumes, result.volumes);
         EXPECT_VEC_SOFT_EQ(expected_mid_distances, result.distances);
     }
-}
-
-//---------------------------------------------------------------------------//
-// ARBITRARY INPUT TESTS
-//---------------------------------------------------------------------------//
-
-#define ArbitraryVgdmlTest DISABLED_ArbitraryVgdmlTest
-class ArbitraryVgdmlTest : public VecgeomTestBase
-{
-  public:
-    SPConstGeo build_geometry() final
-    {
-        auto filename = celeritas::getenv("GDML");
-        CELER_VALIDATE(!filename.empty(),
-                       << "Set the 'GDML' environment variable and run this "
-                          "test with "
-                          "--gtest_filter=*ArbitraryVgdmlTest* "
-                          "--gtest_also_run_disabled_tests");
-        return std::make_shared<VecgeomParams>(filename);
-    }
-};
-
-TEST_F(ArbitraryVgdmlTest, dump)
-{
-    this->geometry();
-    auto const* world = vecgeom::GeoManager::Instance().GetWorld();
-    world->PrintContent();
 }
 
 //---------------------------------------------------------------------------//
