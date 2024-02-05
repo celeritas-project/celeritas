@@ -56,7 +56,7 @@ ScopedLogStorer::~ScopedLogStorer()
 
 //---------------------------------------------------------------------------//
 //! Save a log message
-void ScopedLogStorer::operator()(Provenance, LogLevel lev, std::string msg)
+void ScopedLogStorer::operator()(LogProvenance, LogLevel lev, std::string msg)
 {
     static std::regex const delete_ansi("\033\\[[0-9;]*m");
     static std::regex const subs_ptr("0x[0-9a-f]+");

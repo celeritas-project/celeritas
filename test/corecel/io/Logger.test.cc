@@ -88,15 +88,16 @@ TEST_F(LoggerTest, null)
 
 TEST_F(LoggerTest, custom_log)
 {
-    Provenance last_prov;
+    LogProvenance last_prov;
     LogLevel last_lev = LogLevel::debug;
     std::string last_msg;
 
-    Logger log(comm_self, [&](Provenance prov, LogLevel lev, std::string msg) {
-        last_prov = prov;
-        last_lev = lev;
-        last_msg = std::move(msg);
-    });
+    Logger log(comm_self,
+               [&](LogProvenance prov, LogLevel lev, std::string msg) {
+                   last_prov = prov;
+                   last_lev = lev;
+                   last_msg = std::move(msg);
+               });
 
     // Update level
     EXPECT_EQ(LogLevel::status, log.level());
@@ -131,9 +132,11 @@ TEST_F(LoggerTest, DISABLED_performance)
 {
     // Construct a logger with an expensive output routine that will never be
     // called
-    Logger log(comm_self, [&](Provenance prov, LogLevel lev, std::string msg) {
-        cout << prov.file << prov.line << static_cast<int>(lev) << msg << endl;
-    });
+    Logger log(comm_self,
+               [&](LogProvenance prov, LogLevel lev, std::string msg) {
+                   cout << prov.file << prov.line << static_cast<int>(lev)
+                        << msg << endl;
+               });
     log.level(LogLevel::critical);
 
     // Even in debug this takes only 26ms
