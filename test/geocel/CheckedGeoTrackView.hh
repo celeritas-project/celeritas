@@ -8,7 +8,7 @@
 #pragma once
 
 #include "geocel/Types.hh"
-#include "celeritas/Units.hh"
+#include "geocel/detail/LengthUnits.hh"
 
 namespace celeritas
 {
@@ -50,7 +50,7 @@ class CheckedGeoTrackView : public GTV
     //! Check volume consistency this far from the boundary
     static constexpr real_type safety_tol()
     {
-        return 1e-4 * units::centimeter;
+        return 1e-4 * lengthunits::centimeter;
     }
 
     // Calculate or return the safety up to an infinite distance

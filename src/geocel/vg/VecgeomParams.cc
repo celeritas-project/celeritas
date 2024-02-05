@@ -42,8 +42,8 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantGeoUtils.hh"
+#include "geocel/detail/LengthUnits.hh"
 #include "geocel/g4vg/Converter.hh"
-#include "celeritas/Units.hh"
 
 #include "VecgeomData.hh"  // IWYU pragma: associated
 #include "detail/VecgeomCompatibility.hh"
@@ -296,7 +296,7 @@ void VecgeomParams::build_volumes_vgdml(std::string const& filename)
 #ifdef VECGEOM_GDML
     vgdml::Frontend::Load(filename,
                           /* validate_xml_schema = */ false,
-                          /* mm_unit = */ units::millimeter,
+                          /* mm_unit = */ lengthunits::millimeter,
                           /* verbose = */ vecgeom_verbosity());
 #else
     CELER_DISCARD(filename);

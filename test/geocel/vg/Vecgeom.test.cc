@@ -21,10 +21,10 @@
 #include "corecel/sys/Version.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeoParamsOutput.hh"
+#include "geocel/UnitUtils.hh"
 #include "geocel/vg/VecgeomData.hh"
 #include "geocel/vg/VecgeomParams.hh"
 #include "geocel/vg/VecgeomTrackView.hh"
-#include "celeritas/UnitUtils.hh"
 
 #include "VecgeomTestBase.hh"
 #include "celeritas_test.hh"

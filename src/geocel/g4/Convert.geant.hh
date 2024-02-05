@@ -12,22 +12,15 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "geocel/Types.hh"
-#include "celeritas/Quantities.hh"
-#include "celeritas/UnitTypes.hh"
+#include "geocel/detail/LengthUnits.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 // CONSTANTS
 //---------------------------------------------------------------------------//
-//! Value of a unit CLHEP length in the native Celeritas system
-inline constexpr real_type clhep_length
-    = 1 / units::ClhepTraits::Length::value();
-//! Value of a unit CLHEP field in the native Celeritas system
-inline constexpr real_type clhep_field = 1
-                                         / units::ClhepTraits::BField::value();
-//! Value of a unit CLHEP time in the native Celeritas system
-inline constexpr real_type clhep_time = 1 / units::ClhepTraits::Time::value();
+//! Value of a unit Celeritas length in the CLHEP unit system
+inline constexpr real_type clhep_length = 1 / lengthunits::millimeter;
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
@@ -99,19 +92,6 @@ template<class T>
 inline G4ThreeVector convert_to_geant(Array<T, 3> const& arr, double units)
 {
     return {arr[0] * units, arr[1] * units, arr[2] * units};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Convert Celeritas energy quantities to Geant4.
- *
- * The unit value should always be CLHEP::MeV which is defined to be unity.
- */
-inline constexpr double
-convert_to_geant(units::MevEnergy const& energy, double units)
-{
-    CELER_EXPECT(units == 1);
-    return energy.value();
 }
 
 //---------------------------------------------------------------------------//

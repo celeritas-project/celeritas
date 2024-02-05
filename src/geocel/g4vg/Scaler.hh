@@ -10,7 +10,7 @@
 #include <utility>
 #include <G4TwoVector.hh>
 
-#include "celeritas/Units.hh"
+#include "geocel/detail/LengthUnits.hh"
 
 namespace celeritas
 {
@@ -42,7 +42,7 @@ class Scaler
     }
 
   private:
-    inline static constexpr double scale_ = units::millimeter;
+    inline static constexpr double scale_ = celeritas::lengthunits::millimeter;
 };
 
 //---------------------------------------------------------------------------//

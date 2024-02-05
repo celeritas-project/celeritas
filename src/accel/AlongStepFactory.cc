@@ -14,6 +14,7 @@
 #include "corecel/math/QuantityIO.hh"
 #include "geocel/g4/Convert.geant.hh"
 #include "celeritas/em/UrbanMscParams.hh"
+#include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"

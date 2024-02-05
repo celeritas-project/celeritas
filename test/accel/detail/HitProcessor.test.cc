@@ -9,8 +9,8 @@
 
 #include <G4ParticleTable.hh>
 
+#include "geocel/UnitUtils.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
-#include "celeritas/UnitUtils.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"

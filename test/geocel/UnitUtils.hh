@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/UnitUtils.hh
+//! \file geocel/UnitUtils.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
-#include "celeritas/Quantities.hh"
+#include "geocel/detail/LengthUnits.hh"
 
 namespace celeritas
 {
@@ -19,14 +19,14 @@ namespace test
 //! Convert a value to centimeters from the native system
 constexpr inline real_type to_cm(real_type v)
 {
-    return native_value_to<units::CmLength>(v).value();
+    return v / ::celeritas::lengthunits::centimeter;
 }
 
 //---------------------------------------------------------------------------//
 //! Convert a value *from* centimeters to the native system
 constexpr inline real_type from_cm(real_type v)
 {
-    return native_value_from(units::CmLength{v});
+    return v * ::celeritas::lengthunits::centimeter;
 }
 
 //---------------------------------------------------------------------------//

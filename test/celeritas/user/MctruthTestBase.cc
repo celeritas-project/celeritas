@@ -11,7 +11,7 @@
 
 #include "corecel/cont/Span.hh"
 #include "corecel/io/LogContextException.hh"
-#include "celeritas/UnitUtils.hh"
+#include "geocel/UnitUtils.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/user/StepCollector.hh"
 

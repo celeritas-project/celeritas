@@ -11,8 +11,8 @@
 #include <limits>
 
 #include "corecel/data/CollectionStateStore.hh"
+#include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/UnitUtils.hh"
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/io/ImportData.hh"

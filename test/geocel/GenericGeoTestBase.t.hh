@@ -13,7 +13,7 @@
 #include <limits>
 
 #include "corecel/math/ArrayUtils.hh"
-#include "celeritas/UnitUtils.hh"
+#include "geocel/UnitUtils.hh"
 
 #include "TestMacros.hh"
 

@@ -17,6 +17,7 @@
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/g4/Convert.geant.hh"
 #include "geocel/g4/GeantGeoParams.hh"
+#include "celeritas/ext/GeantUnits.hh"
 
 namespace celeritas
 {

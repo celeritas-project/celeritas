@@ -74,7 +74,7 @@ class GeantGeoTrackView
     //! A tiny push to make sure tracks do not get stuck at boundaries
     static constexpr real_type extra_push()
     {
-        return 1e-13 * units::centimeter;
+        return 1e-12 * lengthunits::millimeter;
     }
 
     //// ACCESSORS ////

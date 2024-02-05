@@ -8,9 +8,9 @@
 #include "celeritas/phys/PhysicsStepUtils.hh"
 
 #include "corecel/data/CollectionStateStore.hh"
+#include "geocel/UnitUtils.hh"
 #include "celeritas/MockTestBase.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/UnitUtils.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
