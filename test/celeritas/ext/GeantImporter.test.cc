@@ -326,6 +326,25 @@ class OneSteelSphereGG : public OneSteelSphere
 };
 
 //---------------------------------------------------------------------------//
+class LarSphere : public GeantImporterTest
+{
+  protected:
+    std::string_view geometry_basename() const override
+    {
+        return "lar-sphere"sv;
+    }
+
+    GeantPhysicsOptions build_geant_options() const override
+    {
+        GeantPhysicsOptions opts;
+        opts.msc = MscModelSelection::urban;
+        opts.relaxation = RelaxationSelection::none;
+        opts.verbose = false;
+        return opts;
+    }
+};
+
+//---------------------------------------------------------------------------//
 class Solids : public GeantImporterTest
 {
   protected:
@@ -1291,6 +1310,110 @@ TEST_F(OneSteelSphereGG, physics)
             EXPECT_SOFT_EQ(1e8, pv.x.back());
         }
     }
+}
+
+TEST_F(LarSphere, optical)
+{
+    auto&& imported = this->imported_data();
+    auto const& materials = imported.materials;
+    EXPECT_EQ(2, materials.size());
+
+    auto const& vacuum = materials.front();
+    EXPECT_EQ("vacuum", vacuum.name);
+    EXPECT_FALSE(vacuum.optical_properties);
+
+    auto const& lar = materials.back();
+    EXPECT_EQ("lAr", lar.name);
+    EXPECT_TRUE(lar.optical_properties);
+
+    auto const& scalars = lar.optical_properties.scalars;
+    EXPECT_EQ(17, scalars.size());
+    std::vector<std::string> scalar_names;
+    std::vector<double> scalar_vals;
+    for (auto const& [key, val] : scalars)
+    {
+        scalar_names.push_back(to_cstring(key));
+        scalar_vals.push_back(val);
+    }
+    static std::string const expected_scalar_names[] = {"resolution_scale",
+                                                        "rise_time_fast",
+                                                        "rise_time_mid",
+                                                        "rise_time_slow",
+                                                        "fall_time_fast",
+                                                        "fall_time_mid",
+                                                        "fall_time_slow",
+                                                        "scint_yield",
+                                                        "scint_yield_fast",
+                                                        "scint_yield_mid",
+                                                        "scint_yield_slow",
+                                                        "lambda_mean_fast",
+                                                        "lambda_mean_mid",
+                                                        "lambda_mean_slow",
+                                                        "lambda_sigma_fast",
+                                                        "lambda_sigma_mid",
+                                                        "lambda_sigma_slow"};
+    static double const expected_scalar_vals[] = {1,
+                                                  10,
+                                                  10,
+                                                  10,
+                                                  6,
+                                                  1500,
+                                                  3000,
+                                                  5,
+                                                  3,
+                                                  1,
+                                                  1,
+                                                  0.000128,
+                                                  0.000128,
+                                                  0.0002,
+                                                  1e-05,
+                                                  1e-05,
+                                                  2e-05};
+    EXPECT_VEC_EQ(expected_scalar_names, scalar_names);
+    EXPECT_VEC_EQ(expected_scalar_vals, scalar_vals);
+
+    auto const& vectors = lar.optical_properties.vectors;
+    EXPECT_EQ(1, vectors.size());
+    auto iter = vectors.find(ImportOpticalVector::refractive_index);
+    EXPECT_TRUE(iter != vectors.end());
+    static double const expected_x[] = {1.55e-06,
+                                        1.79505e-06,
+                                        2.10499e-06,
+                                        2.27077e-06,
+                                        2.55111e-06,
+                                        2.84498e-06,
+                                        3.06361e-06,
+                                        4.13281e-06,
+                                        6.2e-06,
+                                        6.526e-06,
+                                        6.889e-06,
+                                        7.294e-06,
+                                        7.75e-06,
+                                        8.267e-06,
+                                        8.857e-06,
+                                        9.538e-06,
+                                        1.033e-05,
+                                        1.55e-05};
+    static double const expected_y[] = {1.4781,
+                                        1.48,
+                                        1.4842,
+                                        1.4861,
+                                        1.4915,
+                                        1.4955,
+                                        1.4988,
+                                        1.5264,
+                                        1.6185,
+                                        1.6176,
+                                        1.527,
+                                        1.5545,
+                                        1.793,
+                                        1.7826,
+                                        1.6642,
+                                        1.5545,
+                                        1.4536,
+                                        1.4536};
+    EXPECT_VEC_EQ(expected_x, iter->second.x);
+    EXPECT_VEC_EQ(expected_y, iter->second.y);
 }
 
 //---------------------------------------------------------------------------//
