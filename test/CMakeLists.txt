@@ -31,17 +31,6 @@ celeritas_target_include_directories(testcel_harness
 )
 
 #-----------------------------------------------------------------------------#
-# HIP SUPPORT
-#-----------------------------------------------------------------------------#
-
-if(CELERITAS_USE_HIP)
-  file(GLOB_RECURSE _cufiles "${CMAKE_CURRENT_SOURCE_DIR}/*.cu")
-  set_source_files_properties(${_cufiles}
-    PROPERTIES LANGUAGE HIP
-  )
-endif()
-
-#-----------------------------------------------------------------------------#
 # TEST OPTIONS
 #-----------------------------------------------------------------------------#
 

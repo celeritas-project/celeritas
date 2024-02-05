@@ -317,7 +317,6 @@ function(celeritas_add_test SOURCE_FILE)
     add_executable(${_TARGET} "${SOURCE_FILE}" ${PARSE_SOURCES})
 
     # Note: for static linking the library order is relevant.
-
     celeritas_target_link_libraries(${_TARGET}
       ${CELERITASTEST_LINK_LIBRARIES}
       ${PARSE_LINK_LIBRARIES}
@@ -363,6 +362,17 @@ function(celeritas_add_test SOURCE_FILE)
         list(APPEND _COMMON_PROPS RESOURCE_LOCK gpu)
       endif()
       list(APPEND _LABELS gpu)
+    endif()
+  endif()
+  if(PARSE_SOURCES AND CELERITAS_USE_HIP)
+    celeritas_sources_contains_cuda(_cuda_sources ${PARSE_SOURCES})
+    if(_cuda_sources)
+      # When building Celeritas libraries, we put HIP/CUDA files in shared .cu
+      # suffixed files. Override the language if using HIP.
+      set_source_files_properties(
+        ${_cuda_sources}
+        PROPERTIES LANGUAGE HIP
+      )
     endif()
   endif()
   if(PARSE_TIMEOUT)
