@@ -74,8 +74,12 @@ TEST(ConstantsTest, clhep)
         a0_bohr / units::centimeter, CLHEP::Bohr_radius / CLHEP::cm, 1e-7);
     EXPECT_SOFT_NEAR(alpha_fine_structure, CLHEP::fine_structure_const, 1e-9);
     EXPECT_SOFT_NEAR(atomic_mass / units::gram, CLHEP::amu / CLHEP::gram, 1e-7);
-    EXPECT_SOFT_NEAR(eps_electric / (units::gram * units::centimeter),
-                     CLHEP::epsilon0 / (CLHEP::gram * CLHEP::cm),
+    EXPECT_SOFT_NEAR(eps_electric
+                         / (units::coulomb * units::coulomb
+                            / (units::newton * units::meter * units::meter)),
+                     CLHEP::epsilon0
+                         / (CLHEP::coulomb * CLHEP::coulomb
+                            / (CLHEP::newton * CLHEP::meter * CLHEP::meter)),
                      1e-7);
     EXPECT_SOFT_NEAR(h_planck, CLHEP::h_Planck, 1e-7);
     EXPECT_SOFT_NEAR(k_boltzmann, CLHEP::k_Boltzmann, 1e-7);

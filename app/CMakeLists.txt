@@ -83,9 +83,7 @@ add_subdirectory(celer-g4)
 if(CELERITAS_BUILD_DEMOS)
   add_subdirectory(demo-interactor)
   add_subdirectory(demo-geo-check)
-  if(CELERITAS_USE_CUDA)
-    add_subdirectory(demo-rasterizer)
-  endif()
+  add_subdirectory(demo-rasterizer)
 endif()
 
 #-----------------------------------------------------------------------------#

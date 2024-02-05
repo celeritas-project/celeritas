@@ -144,8 +144,8 @@ class GeantGeoTrackView
 
     // Temporary data
     G4ThreeVector g4pos_;
-    G4ThreeVector g4dir_;
-    real_type g4safety_;
+    G4ThreeVector g4dir_;  // [mm]
+    real_type g4safety_;  // [mm]
 
     //// HELPER FUNCTIONS ////
 

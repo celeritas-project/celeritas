@@ -18,6 +18,7 @@ except TypeError:
 
 inp = {
     'image': {
+        # TODO: input is cm for now; add 'units' argument?
         'lower_left': [-10, -10, 0],
         'upper_right': [10, 10, 0],
         'rightward_ax': [1, 0, 0],
