@@ -635,7 +635,7 @@ endfunction()
 # the 3 libraries (static, middle, final) libraries needed
 # for a separatable CUDA library
 function(celeritas_target_link_libraries target)
-  if(NOT CMAKE_CUDA_COMPILER)
+  if(NOT CMAKE_CUDA_COMPILER OR NOT CELERITAS_USE_VecGeom)
     target_link_libraries(${ARGV})
     return()
   endif()
