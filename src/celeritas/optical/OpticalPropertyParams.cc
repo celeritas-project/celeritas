@@ -33,19 +33,11 @@ OpticalPropertyParams::from_import(ImportData const& data)
     Input input;
     for (auto const& mat : data.materials)
     {
-        if (!mat.optical_properties)
+        if (!mat.optical)
         {
             continue;
         }
-
-        OpticalMaterial optical_mat;
-        auto const& vec_map = mat.optical_properties.vectors;
-        if (auto iter = vec_map.find(ImportOpticalVector::refractive_index);
-            iter != vec_map.end())
-        {
-            optical_mat.refractive_index = iter->second;
-        }
-        input.materials.push_back(optical_mat);
+        input.materials.push_back(mat.optical.properties);
     }
     return std::make_shared<OpticalPropertyParams>(std::move(input));
 }

@@ -76,6 +76,25 @@ void ImportDataConverter::operator()(ImportMaterial* data)
     {
         cut.range *= len_;
     }
+
+    if (data->optical)
+    {
+        (*this)(&data->optical);
+    }
+}
+
+//---------------------------------------------------------------------------//
+void ImportDataConverter::operator()(ImportOpticalMaterial* data)
+{
+    CELER_EXPECT(data);
+
+    for (auto& comp : data->scintillation.spectrum)
+    {
+        comp.lambda_mean *= len_;
+        comp.lambda_sigma *= len_;
+        comp.rise_time *= time_;
+        comp.fall_time *= time_;
+    }
 }
 
 //---------------------------------------------------------------------------//

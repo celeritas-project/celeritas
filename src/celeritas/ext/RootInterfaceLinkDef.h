@@ -18,6 +18,8 @@
 #pragma link C++ class celeritas::ImportPhysicsTable+;
 #pragma link C++ class celeritas::ImportPhysicsVector+;
 #pragma link C++ class celeritas::ImportMaterial+;
+#pragma link C++ class celeritas::ImportScintillation+;
+#pragma link C++ class celeritas::ImportOpticalProperty+;
 #pragma link C++ class celeritas::ImportOpticalMaterial+;
 #pragma link C++ class celeritas::ImportProductionCut+;
 #pragma link C++ class celeritas::ImportMatElemComponent+;

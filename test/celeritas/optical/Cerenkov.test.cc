@@ -18,6 +18,7 @@
 #include "celeritas/Units.hh"
 #include "celeritas/grid/GenericGridData.hh"
 #include "celeritas/grid/VectorUtils.hh"
+#include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/CerenkovDndxCalculator.hh"
 #include "celeritas/optical/CerenkovGenerator.hh"
 #include "celeritas/optical/CerenkovParams.hh"
@@ -117,7 +118,7 @@ class CerenkovTest : public Test
     void SetUp() override
     {
         // Build optical properties: only one material (water)
-        OpticalPropertyParams::OpticalMaterial water;
+        ImportOpticalProperty water;
         auto wavelength = get_wavelength();
         for (auto wl : wavelength)
         {

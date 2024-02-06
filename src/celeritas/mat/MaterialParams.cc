@@ -103,7 +103,7 @@ MaterialParams::from_import(ImportData const& data)
     if (std::any_of(data.materials.begin(),
                     data.materials.end(),
                     [](ImportMaterial const& mat) {
-                        return static_cast<bool>(mat.optical_properties);
+                        return static_cast<bool>(mat.optical);
                     }))
     {
         input.mat_to_optical.resize(data.materials.size(), {});
@@ -128,7 +128,7 @@ MaterialParams::from_import(ImportData const& data)
         }
         input.materials.push_back(std::move(material_params));
 
-        if (material.optical_properties)
+        if (material.optical)
         {
             input.mat_to_optical[mat_id] = OpticalMaterialId(optical_id++);
         }

@@ -12,7 +12,7 @@
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
-#include "celeritas/io/ImportMaterial.hh"
+#include "celeritas/io/ImportOpticalMaterial.hh"
 
 #include "OpticalPropertyData.hh"
 
@@ -28,16 +28,10 @@ class OpticalPropertyParams final
     : public ParamsDataInterface<OpticalPropertyData>
 {
   public:
-    // Optical property data for a material
-    struct OpticalMaterial
-    {
-        ImportPhysicsVector refractive_index;
-    };
-
     // Shared optical properties, indexed by \c OpticalMaterialId
     struct Input
     {
-        std::vector<OpticalMaterial> materials;
+        std::vector<ImportOpticalProperty> materials;
     };
 
   public:
