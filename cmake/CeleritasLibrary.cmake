@@ -642,6 +642,9 @@ function(celeritas_target_link_libraries target)
 
   celeritas_strip_alias(target ${target})
 
+  # Reset the cached dependency list
+  set_property(TARGET ${target} PROPERTY CUDA_RDC_CACHED_LIB_DEPENDENCIES)
+
   celeritas_lib_contains_cuda(_contains_cuda ${target})
 
   set(_target_final ${target})
@@ -840,6 +843,11 @@ function(celeritas_cuda_gather_dependencies outlist target)
   if(NOT TARGET ${target})
     return()
   endif()
+  get_target_property(_cached_dependencies ${target} CUDA_RDC_CACHED_LIB_DEPENDENCIES)
+  if (_cached_dependencies)
+     set(${outlist} ${_cached_dependencies} PARENT_SCOPE)
+     return()
+  endif()
   celeritas_strip_alias(target ${target})
   get_target_property(_target_type ${target} TYPE)
   if(NOT _target_type STREQUAL "INTERFACE_LIBRARY")
@@ -860,6 +868,7 @@ function(celeritas_cuda_gather_dependencies outlist target)
     endif()
   endif()
   list(REMOVE_DUPLICATES ${outlist})
+  set_target_properties(${target} PROPERTIES CUDA_RDC_CACHED_LIB_DEPENDENCIES "${${outlist}}")
   set(${outlist} ${${outlist}} PARENT_SCOPE)
 endfunction()
 
