@@ -57,6 +57,7 @@ list(APPEND SOURCES
   mat/MaterialParamsOutput.cc
   mat/detail/Utils.cc
   optical/CerenkovParams.cc
+  optical/CerenkovPreGenerator.cc
   optical/OpticalStepCollector.cc
   optical/ScintillationParams.cc
   phys/CutoffParams.cc
