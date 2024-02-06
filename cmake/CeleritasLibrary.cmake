@@ -479,6 +479,9 @@ function(celeritas_depends_on OUTVARNAME lib potentialdepend)
     if(NOT _lib_target_type STREQUAL "INTERFACE_LIBRARY")
       get_target_property(lib_link_libraries ${lib} LINK_LIBRARIES)
     endif()
+    if(NOT lib_link_libraries)
+      return()
+    endif()
     foreach(linklib ${lib_link_libraries})
       if(linklib STREQUAL potentialdepend)
         set(${OUTVARNAME} TRUE PARENT_SCOPE)
@@ -554,9 +557,6 @@ function(celeritas_find_final_library OUTLIST flat_dependency_list)
     else()
       set(_newresult "")
       foreach(_reslib ${_result})
-        celeritas_depends_on(_depends_on ${_lib} ${_reslib})
-        celeritas_depends_on(_depends_on ${_reslib} ${_lib})
-
         celeritas_depends_on(_depends_on ${_reslib} ${_lib})
         if(${_depends_on})
           # The library in the result depends/uses the library we are looking at,
@@ -642,6 +642,9 @@ function(celeritas_target_link_libraries target)
 
   celeritas_strip_alias(target ${target})
 
+  # Reset the cached dependency list
+  set_property(TARGET ${target} PROPERTY CUDA_RDC_CACHED_LIB_DEPENDENCIES)
+
   celeritas_lib_contains_cuda(_contains_cuda ${target})
 
   set(_target_final ${target})
@@ -721,6 +724,12 @@ function(celeritas_target_link_libraries target)
       set(_contains_cuda TRUE)
       celeritas_generate_empty_cu_file(_emptyfilename ${target})
       target_sources(${target} PRIVATE ${_emptyfilename})
+      # If there is at least one final library this means that we
+      # have somewhere some "separable" nvcc compilations
+      set_target_properties(${target} PROPERTIES
+        CUDA_SEPARABLE_COMPILATION ON
+        CUDA_RESOLVE_DEVICE_SYMBOLS ON
+      )
     endif()
     # nothing to do if there is no final library (i.e. no use of CUDA at all?)
   endif()
@@ -732,6 +741,7 @@ function(celeritas_target_link_libraries target)
        set(_target_runtime_setting ${_current_runtime_setting})
     endif()
     celeritas_cuda_gather_dependencies(_flat_target_link_libraries ${_target_middle})
+    celeritas_strip_alias(_target_final ${_target_final})
     foreach(_lib ${_flat_target_link_libraries})
       get_target_property(_lib_target_type ${_lib} TYPE)
       if(NOT _lib_target_type STREQUAL "INTERFACE_LIBRARY")
@@ -753,8 +763,18 @@ function(celeritas_target_link_libraries target)
           set_target_properties(${target} PROPERTIES CUDA_RUNTIME_LIBRARY ${_target_runtime_setting})
         endif()
         get_target_property(_libstatic ${_lib} CELERITAS_CUDA_STATIC_LIBRARY)
+        if(_target_type STREQUAL "EXECUTABLE")
+           # We need to explicit list the RDC library without the compiler might complain with:
+           #    error adding symbols: DSO missing from command line
+           # This DSO missing from command line message will be displayed when the linker
+           # does not find the required symbol with it’s normal search but the symbol is
+           # available in one of the dependencies of a directly specified dynamic library.
+           # In the past the linker considered symbols in dependencies of specified languages
+           # to be available. But that changed in some later version and now the linker
+           # enforces a more strict view of what is available.
+           target_link_libraries(${_target_final} ${_lib})
+        endif()
         if(TARGET ${_libstatic})
-          celeritas_strip_alias(_target_final ${_target_final})
           target_link_options(${_target_final}
             PRIVATE
             $<DEVICE_LINK:$<TARGET_FILE:${_libstatic}>>
@@ -823,6 +843,11 @@ function(celeritas_cuda_gather_dependencies outlist target)
   if(NOT TARGET ${target})
     return()
   endif()
+  get_target_property(_cached_dependencies ${target} CUDA_RDC_CACHED_LIB_DEPENDENCIES)
+  if (_cached_dependencies)
+     set(${outlist} ${_cached_dependencies} PARENT_SCOPE)
+     return()
+  endif()
   celeritas_strip_alias(target ${target})
   get_target_property(_target_type ${target} TYPE)
   if(NOT _target_type STREQUAL "INTERFACE_LIBRARY")
@@ -843,6 +868,7 @@ function(celeritas_cuda_gather_dependencies outlist target)
     endif()
   endif()
   list(REMOVE_DUPLICATES ${outlist})
+  set_target_properties(${target} PROPERTIES CUDA_RDC_CACHED_LIB_DEPENDENCIES "${${outlist}}")
   set(${outlist} ${${outlist}} PARENT_SCOPE)
 endfunction()
 
