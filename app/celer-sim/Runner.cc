@@ -47,6 +47,7 @@
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/RootEventReader.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/optical/OpticalStepCollector.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
@@ -498,6 +499,12 @@ void Runner::build_step_collectors(RunnerInput const& inp)
         step_interfaces.push_back(simple_calo);
         // Add to output interface
         core_params_->output_reg()->insert(simple_calo);
+    }
+
+    if (inp.physics_options.optical)
+    {
+        step_interfaces.push_back(std::make_shared<OpticalStepCollector>(
+            core_params_->particle(), this->num_streams()));
     }
 
     if (!step_interfaces.empty())
