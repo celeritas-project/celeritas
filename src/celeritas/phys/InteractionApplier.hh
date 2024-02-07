@@ -14,15 +14,16 @@
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/global/detail/ApplierTraits.hh"
-#include "celeritas/phys/CutoffView.hh"
-#include "celeritas/phys/Interaction.hh"
-#include "celeritas/phys/ParticleTrackView.hh"
-#include "celeritas/phys/ParticleView.hh"
-#include "celeritas/phys/PhysicsData.hh"
-#include "celeritas/phys/PhysicsStepView.hh"
-#include "celeritas/phys/PhysicsTrackView.hh"
-#include "celeritas/phys/Secondary.hh"
 #include "celeritas/track/SimTrackView.hh"
+
+#include "CutoffView.hh"
+#include "Interaction.hh"
+#include "ParticleTrackView.hh"
+#include "ParticleView.hh"
+#include "PhysicsData.hh"
+#include "PhysicsStepView.hh"
+#include "PhysicsTrackView.hh"
+#include "Secondary.hh"
 
 namespace celeritas
 {

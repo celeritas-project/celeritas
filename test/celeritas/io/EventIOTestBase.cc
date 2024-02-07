@@ -11,8 +11,8 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
+#include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/UnitUtils.hh"
 
 #include "TestMacros.hh"
 

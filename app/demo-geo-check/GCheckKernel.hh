@@ -14,7 +14,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "orange/Types.hh"
+#include "geocel/Types.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/geo/GeoTrackView.hh"

@@ -10,8 +10,9 @@
 #include <optional>
 
 #include "corecel/math/SoftEqual.hh"
-#include "orange/surf/CylAligned.hh"
-#include "orange/surf/SimpleQuadric.hh"
+
+#include "../CylAligned.hh"
+#include "../SimpleQuadric.hh"
 
 namespace celeritas
 {

@@ -18,8 +18,8 @@
 #include "celeritas/Types.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/io/ImportModel.hh"
-#include "celeritas/phys/Applicability.hh"
 
+#include "Applicability.hh"
 #include "PDGNumber.hh"
 #include "ParticleParams.hh"
 

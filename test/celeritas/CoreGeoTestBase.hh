@@ -9,11 +9,11 @@
 
 #include "celeritas_config.h"
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
-#    include "celeritas/ext/VecgeomTestBase.hh"
+#    include "geocel/vg/VecgeomTestBase.hh"
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
-#    include "celeritas/OrangeTestBase.hh"
+#    include "orange/OrangeTestBase.hh"
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
-#    include "celeritas/ext/GeantGeoTestBase.hh"
+#    include "geocel/g4/GeantGeoTestBase.hh"
 #endif
 
 namespace celeritas

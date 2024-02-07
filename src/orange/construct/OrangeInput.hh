@@ -13,7 +13,7 @@
 #include <vector>
 
 #include "corecel/io/Label.hh"
-#include "orange/BoundingBox.hh"
+#include "geocel/BoundingBox.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/surf/VariantSurface.hh"

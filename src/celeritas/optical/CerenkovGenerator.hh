@@ -21,8 +21,8 @@
 #include "celeritas/random/distribution/GenerateCanonical.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
-#include "OpticalDistributionData.hh"
 #include "CerenkovDndxCalculator.hh"
+#include "OpticalDistributionData.hh"
 #include "OpticalPrimary.hh"
 #include "OpticalPropertyData.hh"
 

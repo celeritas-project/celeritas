@@ -17,7 +17,7 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/sys/ThreadId.hh"
-#include "orange/Types.hh"
+#include "geocel/Types.hh"
 // IWYU pragma: end_exports
 
 namespace celeritas

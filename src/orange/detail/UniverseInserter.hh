@@ -11,8 +11,9 @@
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Label.hh"
-#include "orange/OrangeData.hh"
-#include "orange/OrangeTypes.hh"
+
+#include "../OrangeData.hh"
+#include "../OrangeTypes.hh"
 
 namespace celeritas
 {

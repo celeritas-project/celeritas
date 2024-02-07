@@ -16,10 +16,10 @@
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/Primary.hh"
-#include "celeritas/track/SimData.hh"
-#include "celeritas/track/TrackInitData.hh"
 
 #include "Utils.hh"
+#include "../SimData.hh"
+#include "../TrackInitData.hh"
 
 namespace celeritas
 {

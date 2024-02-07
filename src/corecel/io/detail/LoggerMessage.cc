@@ -13,8 +13,9 @@
 #include <sstream>
 
 #include "corecel/Assert.hh"
-#include "corecel/io/Logger.hh"
-#include "corecel/io/LoggerTypes.hh"
+
+#include "../Logger.hh"
+#include "../LoggerTypes.hh"
 
 namespace celeritas
 {

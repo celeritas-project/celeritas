@@ -6,8 +6,8 @@
 //! \file celeritas/geo/Geometry.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas_config.h"
+#include "geocel/GeoParamsOutput.hh"
 #include "celeritas/geo/GeoParams.hh"
-#include "celeritas/geo/GeoParamsOutput.hh"
 
 #include "HeuristicGeoTestBase.hh"
 #include "celeritas_test.hh"

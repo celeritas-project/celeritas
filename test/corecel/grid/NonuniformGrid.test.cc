@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/NonuniformGrid.test.cc
+//! \file corecel/grid/NonuniformGrid.test.cc
 //---------------------------------------------------------------------------//
 
 #include "corecel/grid/NonuniformGrid.hh"

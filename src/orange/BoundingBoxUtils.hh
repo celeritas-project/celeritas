@@ -14,8 +14,9 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/SoftEqual.hh"
-#include "orange/BoundingBox.hh"
-#include "orange/OrangeTypes.hh"
+#include "geocel/BoundingBox.hh"
+
+#include "OrangeTypes.hh"
 
 namespace celeritas
 {

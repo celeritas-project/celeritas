@@ -11,8 +11,9 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
-#include "orange/OrangeData.hh"
-#include "orange/transform/VariantTransform.hh"
+
+#include "../OrangeData.hh"
+#include "../transform/VariantTransform.hh"
 
 namespace celeritas
 {

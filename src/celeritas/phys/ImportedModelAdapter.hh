@@ -18,9 +18,9 @@
 #include "corecel/cont/Span.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportProcess.hh"
-#include "celeritas/phys/ImportedProcessAdapter.hh"
 
 #include "Applicability.hh"
+#include "ImportedProcessAdapter.hh"
 #include "Model.hh"
 #include "PDGNumber.hh"
 

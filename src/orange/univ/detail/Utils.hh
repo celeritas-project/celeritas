@@ -14,8 +14,8 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/NumericLimits.hh"
 
-#include "../VolumeView.hh"
 #include "Types.hh"
+#include "../VolumeView.hh"
 
 namespace celeritas
 {

@@ -13,7 +13,8 @@
 #include <type_traits>
 
 #include "corecel/Assert.hh"
-#include "corecel/io/ScopedStreamFormat.hh"
+
+#include "../ScopedStreamFormat.hh"
 
 namespace celeritas
 {

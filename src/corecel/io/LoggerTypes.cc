@@ -7,9 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "LoggerTypes.hh"
 
-#include "corecel/io/EnumStringMapper.hh"
-
 #include "ColorUtils.hh"
+#include "EnumStringMapper.hh"
 
 namespace celeritas
 {

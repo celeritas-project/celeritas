@@ -20,11 +20,11 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/math/Algorithms.hh"
-#include "orange/BoundingBoxUtils.hh"
-#include "orange/construct/OrangeInput.hh"
-#include "orange/surf/LocalSurfaceVisitor.hh"
 
 #include "UniverseInserter.hh"
+#include "../BoundingBoxUtils.hh"
+#include "../construct/OrangeInput.hh"
+#include "../surf/LocalSurfaceVisitor.hh"
 
 namespace celeritas
 {

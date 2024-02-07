@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "orange/Types.hh"
+#include "geocel/Types.hh"
 #include "orange/transform/Transformation.hh"
 
 #include "../SurfaceFwd.hh"

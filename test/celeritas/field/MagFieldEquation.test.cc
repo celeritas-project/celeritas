@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/field/MagFieldEquation.hh"
 
-#include "celeritas/UnitUtils.hh"
+#include "geocel/UnitUtils.hh"
 
 #include "celeritas_test.hh"
 

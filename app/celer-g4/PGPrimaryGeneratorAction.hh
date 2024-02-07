@@ -15,7 +15,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
-#include "orange/Types.hh"
+#include "geocel/Types.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
 namespace celeritas

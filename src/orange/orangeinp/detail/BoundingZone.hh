@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "orange/BoundingBox.hh"
+#include "geocel/BoundingBox.hh"
 #include "orange/BoundingBoxUtils.hh"
 
 namespace celeritas

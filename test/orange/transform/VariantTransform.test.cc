@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "orange/transform/VariantTransform.hh"
 
-#include "orange/BoundingBox.hh"
+#include "geocel/BoundingBox.hh"
 #include "orange/transform/Transformation.hh"
 #include "orange/transform/Translation.hh"
 #include "orange/transform/detail/TransformTransformer.hh"

@@ -16,8 +16,8 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/grid/UniformGridData.hh"
 #include "celeritas/Units.hh"
-#include "celeritas/field/RZMapFieldData.hh"
 
+#include "RZMapFieldData.hh"
 #include "RZMapFieldInput.hh"
 
 namespace celeritas

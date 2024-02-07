@@ -16,9 +16,10 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/io/ImportData.hh"
-#include "celeritas/phys/PDGNumber.hh"
-#include "celeritas/phys/ParticleData.hh"  // IWYU pragma: associated
-#include "celeritas/phys/ParticleView.hh"
+
+#include "PDGNumber.hh"
+#include "ParticleData.hh"  // IWYU pragma: associated
+#include "ParticleView.hh"
 
 namespace celeritas
 {

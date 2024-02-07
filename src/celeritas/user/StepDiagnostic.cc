@@ -20,8 +20,8 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
-#include "celeritas/user/ParticleTallyData.hh"
 
+#include "ParticleTallyData.hh"
 #include "detail/StepDiagnosticExecutor.hh"
 
 #if CELERITAS_USE_JSON

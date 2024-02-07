@@ -22,11 +22,10 @@
 #include "corecel/sys/KernelRegistry.hh"
 #include "corecel/sys/MemRegistry.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "geocel/GeoParamsOutput.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
-#include "celeritas/geo/GeoParamsOutput.hh"
 #include "celeritas/geo/detail/BoundaryAction.hh"
-#include "celeritas/global/ActionRegistryOutput.hh"
 #include "celeritas/mat/MaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/mat/MaterialParamsOutput.hh"
 #include "celeritas/phys/CutoffParams.hh"  // IWYU pragma: keep
@@ -44,6 +43,7 @@
 
 #include "ActionInterface.hh"
 #include "ActionRegistry.hh"  // IWYU pragma: keep
+#include "ActionRegistryOutput.hh"
 #include "alongstep/AlongStepNeutralAction.hh"
 
 #if CELERITAS_USE_JSON
@@ -58,8 +58,8 @@
 #    include "orange/OrangeParams.hh"
 #    include "orange/OrangeParamsOutput.hh"
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
-#    include "celeritas/ext/VecgeomParams.hh"
-#    include "celeritas/ext/VecgeomParamsOutput.hh"
+#    include "geocel/vg/VecgeomParams.hh"
+#    include "geocel/vg/VecgeomParamsOutput.hh"
 #endif
 
 namespace celeritas

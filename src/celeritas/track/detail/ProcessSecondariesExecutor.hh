@@ -21,8 +21,8 @@
 #include "celeritas/phys/PhysicsStepView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/track/CoreStateCounters.hh"
 
+#include "../CoreStateCounters.hh"
 #include "../SimTrackView.hh"
 
 namespace celeritas

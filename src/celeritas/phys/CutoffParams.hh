@@ -17,10 +17,10 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/phys/PDGNumber.hh"
 
 #include "CutoffData.hh"
 #include "CutoffView.hh"
+#include "PDGNumber.hh"
 
 namespace celeritas
 {

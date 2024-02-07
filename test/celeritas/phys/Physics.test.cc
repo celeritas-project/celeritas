@@ -11,8 +11,8 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "geocel/UnitUtils.hh"
 #include "celeritas/MockTestBase.hh"
-#include "celeritas/UnitUtils.hh"
 #include "celeritas/em/process/EPlusAnnihilationProcess.hh"
 #include "celeritas/grid/EnergyLossCalculator.hh"
 #include "celeritas/grid/RangeCalculator.hh"

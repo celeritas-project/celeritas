@@ -84,6 +84,7 @@ celeritas_configure_file("celeritas_sys_config.h.in" "celeritas_sys_config.h" @O
 #----------------------------------------------------------------------------#
 
 add_subdirectory(corecel)
+add_subdirectory(geocel)
 add_subdirectory(orange)
 add_subdirectory(celeritas)
 if(CELERITAS_USE_Geant4)

@@ -13,8 +13,9 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/data/detail/LdgIteratorImpl.hh"
 #include "corecel/math/Algorithms.hh"
+
+#include "detail/LdgIteratorImpl.hh"
 
 namespace celeritas
 {

@@ -17,7 +17,7 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "celeritas/CheckedGeoTrackView.hh"
+#include "geocel/CheckedGeoTrackView.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/CoreGeoTestBase.hh"
 #include "celeritas/Quantities.hh"

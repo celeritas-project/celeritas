@@ -8,10 +8,10 @@
 #include "celeritas/phys/CutoffParams.hh"
 
 #include "corecel/cont/Range.hh"
+#include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/RootTestBase.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/UnitUtils.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialData.hh"
 #include "celeritas/mat/MaterialParams.hh"

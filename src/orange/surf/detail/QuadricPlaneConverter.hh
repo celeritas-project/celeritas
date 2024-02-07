@@ -11,8 +11,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/math/SoftEqual.hh"
-#include "orange/surf/Plane.hh"
-#include "orange/surf/SimpleQuadric.hh"
+
+#include "../Plane.hh"
+#include "../SimpleQuadric.hh"
 
 namespace celeritas
 {

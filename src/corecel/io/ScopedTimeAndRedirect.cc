@@ -10,12 +10,10 @@
 #include <iostream>
 #include <utility>
 
-#include "corecel/io/Logger.hh"
-#include "corecel/io/LoggerTypes.hh"
-#include "corecel/io/ScopedStreamRedirect.hh"
-#include "corecel/io/StringUtils.hh"
-
 #include "Logger.hh"
+#include "LoggerTypes.hh"
+#include "ScopedStreamRedirect.hh"
+#include "StringUtils.hh"
 
 namespace celeritas
 {

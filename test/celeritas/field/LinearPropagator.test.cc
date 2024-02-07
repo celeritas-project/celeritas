@@ -11,8 +11,8 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
+#include "geocel/UnitUtils.hh"
 #include "celeritas/AllGeoTypedTestBase.hh"
-#include "celeritas/UnitUtils.hh"
 
 #include "celeritas_test.hh"
 

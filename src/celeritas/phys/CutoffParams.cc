@@ -18,9 +18,9 @@
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportMaterial.hh"
 #include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/phys/ParticleParams.hh"
 
 #include "CutoffData.hh"  // IWYU pragma: associated
+#include "ParticleParams.hh"
 
 namespace celeritas
 {

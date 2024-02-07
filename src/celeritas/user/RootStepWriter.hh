@@ -12,7 +12,8 @@
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "celeritas/ext/RootUniquePtr.hh"
-#include "celeritas/user/StepInterface.hh"
+
+#include "StepInterface.hh"
 
 class TTree;
 

@@ -6,7 +6,7 @@
 //! \file celeritas/geo/GeoMaterial.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/data/CollectionStateStore.hh"
-#include "celeritas/UnitUtils.hh"
+#include "geocel/UnitUtils.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoMaterialView.hh"
@@ -14,9 +14,9 @@
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/mat/MaterialParams.hh"
 
+#include "celeritas_test.hh"
 #include "../RootTestBase.hh"
 #include "../TestEm3Base.hh"
-#include "celeritas_test.hh"
 
 namespace celeritas
 {

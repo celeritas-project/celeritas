@@ -5,7 +5,7 @@
 #-----------------------------------------------------------------------------#
 
 set(SOURCES)
-set(PRIVATE_DEPS)
+set(PRIVATE_DEPS Celeritas::geocel)
 set(PUBLIC_DEPS Celeritas::corecel)
 
 #-----------------------------------------------------------------------------#
@@ -55,7 +55,6 @@ list(APPEND SOURCES
 
 if(CELERITAS_USE_JSON)
   list(APPEND SOURCES
-    BoundingBoxIO.json.cc
     construct/CsgTreeIO.json.cc
     construct/OrangeInputIO.json.cc
     construct/detail/OrangeInputIOImpl.json.cc

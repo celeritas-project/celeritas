@@ -8,8 +8,9 @@
 #include "BIHPartitioner.hh"
 
 #include "corecel/math/SoftEqual.hh"
-#include "orange/BoundingBoxUtils.hh"
-#include "orange/detail/BIHUtils.hh"
+
+#include "BIHUtils.hh"
+#include "../BoundingBoxUtils.hh"
 
 namespace celeritas
 {

@@ -39,9 +39,9 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/ext/GeantPhysicsOptions.hh"
 
 #include "GeantBremsstrahlungProcess.hh"
+#include "../GeantPhysicsOptions.hh"
 
 namespace celeritas
 {

@@ -9,10 +9,10 @@
 
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/UnitUtils.hh"
 #include "celeritas/LeadBoxTestBase.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
 #include "celeritas/TestEm3Base.hh"
-#include "celeritas/UnitUtils.hh"
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
@@ -23,10 +23,10 @@
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
-#include "../MockTestBase.hh"
-#include "../SimpleTestBase.hh"
 #include "AlongStepTestBase.hh"
 #include "celeritas_test.hh"
+#include "../MockTestBase.hh"
+#include "../SimpleTestBase.hh"
 
 namespace celeritas
 {

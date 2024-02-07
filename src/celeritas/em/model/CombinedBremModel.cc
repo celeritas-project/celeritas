@@ -17,12 +17,12 @@
 #include "celeritas/em/data/RelativisticBremData.hh"
 #include "celeritas/em/data/SeltzerBergerData.hh"
 #include "celeritas/em/executor/CombinedBremExecutor.hh"
+#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/phys/InteractionApplier.hh"
 
-#include "../interactor/detail/PhysicsConstants.hh"
 #include "RelativisticBremModel.hh"
 #include "SeltzerBergerModel.hh"
 

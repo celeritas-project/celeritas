@@ -10,7 +10,7 @@
 #include <memory>
 #include <vector>
 
-#include "orange/Types.hh"
+#include "geocel/Types.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/user/StepInterface.hh"
 

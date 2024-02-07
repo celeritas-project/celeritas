@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "orange/surf/SimpleQuadric.hh"
 
+#include "corecel/Constants.hh"
 #include "corecel/math/Algorithms.hh"
-#include "orange/Constants.hh"
 #include "orange/surf/ConeAligned.hh"
 #include "orange/surf/CylAligned.hh"
 #include "orange/surf/Plane.hh"

@@ -14,9 +14,10 @@
 
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
-#include "celeritas/ext/Convert.geant.hh"
-#include "celeritas/ext/GeantGeoParams.hh"
-#include "celeritas/ext/GeantGeoUtils.hh"
+#include "geocel/GeantGeoUtils.hh"
+#include "geocel/g4/Convert.geant.hh"
+#include "geocel/g4/GeantGeoParams.hh"
+#include "celeritas/ext/GeantUnits.hh"
 
 namespace celeritas
 {

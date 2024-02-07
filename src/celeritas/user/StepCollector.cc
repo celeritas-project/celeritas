@@ -18,10 +18,10 @@
 #include "corecel/io/Label.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/ActionRegistry.hh"
-#include "celeritas/user/StepInterface.hh"
-#include "celeritas/user/detail/StepStorage.hh"
 
+#include "StepInterface.hh"
 #include "detail/StepGatherAction.hh"
+#include "detail/StepStorage.hh"
 
 namespace celeritas
 {

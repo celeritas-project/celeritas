@@ -18,9 +18,9 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/global/ActionInterface.hh"
 
+#include "StepStorage.hh"
 #include "../StepData.hh"
 #include "../StepInterface.hh"
-#include "StepStorage.hh"
 
 namespace celeritas
 {

@@ -12,11 +12,11 @@
 #include "celeritas_cmake_strings.h"
 #include "celeritas_config.h"
 #include "corecel/io/Logger.hh"
+#include "geocel/ScopedGeantExceptionHandler.hh"
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantSetup.hh"
-#include "celeritas/ext/ScopedGeantExceptionHandler.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/io/ImportData.hh"
@@ -183,7 +183,7 @@ auto GeantTestBase::imported_data() const -> ImportData const&
         i.geometry_basename = this->geometry_basename();
         i.options = opts;
         std::string gdml_inp = this->test_data_path(
-            "celeritas", (i.geometry_basename + ".gdml").c_str());
+            "geocel", (i.geometry_basename + ".gdml").c_str());
         i.import = std::make_unique<GeantImporter>(
             GeantSetup{gdml_inp.c_str(), i.options});
         i.scoped_exceptions = std::make_unique<ScopedGeantExceptionHandler>();

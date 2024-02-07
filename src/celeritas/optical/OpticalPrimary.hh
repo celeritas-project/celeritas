@@ -8,7 +8,7 @@
 #pragma once
 
 #include "corecel/Types.hh"
-#include "orange/Types.hh"
+#include "geocel/Types.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
