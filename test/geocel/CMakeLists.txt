@@ -10,6 +10,13 @@ else()
   set(_needs_geant4 LINK_LIBRARIES ${Geant4_LIBRARIES})
 endif()
 
+if(CELERITAS_UNITS STREQUAL "CGS")
+  set(_fixme_cgs)
+else()
+  # Unit tests haven't yet been updated to include the correct units
+  set(_fixme_cgs DISABLE)
+endif()
+
 #-----------------------------------------------------------------------------#
 # LIBRARY
 #-----------------------------------------------------------------------------#
@@ -90,8 +97,8 @@ if(CELERITAS_USE_VecGeom)
   endif()
   celeritas_add_device_test(vg/Vecgeom
     LINK_LIBRARIES VecGeom::vecgeom
-    FILTER
-      ${_vecgeom_tests}
+    FILTER ${_vecgeom_tests}
+    ${_fixme_cgs}
   )
 endif()
 
