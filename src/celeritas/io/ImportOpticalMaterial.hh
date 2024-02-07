@@ -36,15 +36,15 @@ struct ImportScintComponent
 /*!
  * Store optical material properties for scintillation.
  */
-struct ImportScintillation
+struct ImportScintSpectrum
 {
-    double resolution_scale;
     double yield;
-    std::vector<ImportScintComponent> spectrum;
+    double resolution_scale;
+    std::vector<ImportScintComponent> components;
 
     explicit operator bool() const
     {
-        return resolution_scale > 0 && yield > 0 && !spectrum.empty();
+        return yield > 0 && resolution_scale >= 0 && !components.empty();
     }
 };
 
@@ -65,7 +65,7 @@ struct ImportOpticalProperty
  */
 struct ImportOpticalMaterial
 {
-    ImportScintillation scintillation;
+    ImportScintSpectrum scintillation;
     ImportOpticalProperty properties;
 
     explicit operator bool() const

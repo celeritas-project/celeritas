@@ -13,14 +13,36 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/io/ImportData.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Construct with imported data.
+ */
+std::shared_ptr<ScintillationParams>
+ScintillationParams::from_import(ImportData const& data)
+{
+    CELER_EXPECT(!data.materials.empty());
+
+    Input input;
+    for (auto const& mat : data.materials)
+    {
+        if (!mat.optical)
+        {
+            continue;
+        }
+        input.data.push_back(mat.optical.scintillation);
+    }
+    return std::make_shared<ScintillationParams>(std::move(input));
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct with scintillation input data.
  */
-ScintillationParams::ScintillationParams(ScintillationInput const& input)
+ScintillationParams::ScintillationParams(Input const& input)
 {
     CELER_EXPECT(input.data.size() > 0);
     HostVal<ScintillationData> host_data;
@@ -29,19 +51,28 @@ ScintillationParams::ScintillationParams(ScintillationInput const& input)
     CollectionBuilder components(&host_data.components);
     for (auto const& spec : input.data)
     {
-        CELER_ASSERT(spec.size() > 0);
-
-        // Validity of scintillation component data
-        real_type total_yield{0};
-        for (auto const& comp : spec)
+        // Checck validity of scintillation data
+        auto const& comp_inp = spec.components;
+        CELER_ASSERT(comp_inp.size() > 0);
+        std::vector<ScintillationComponent> comp(comp_inp.size());
+        real_type norm{0};
+        for (auto i : range(comp.size()))
         {
-            CELER_ASSERT(comp);
-            total_yield += comp.yield_prob;
+            comp[i].lambda_mean = comp_inp[i].lambda_mean;
+            comp[i].lambda_sigma = comp_inp[i].lambda_sigma;
+            comp[i].rise_time = comp_inp[i].rise_time;
+            comp[i].fall_time = comp_inp[i].fall_time;
+            norm += comp_inp[i].yield;
         }
-        CELER_ASSERT(soft_equal(real_type(1), total_yield));
-
+        for (auto i : range(comp.size()))
+        {
+            comp[i].yield_prob = comp_inp[i].yield / norm;
+            CELER_ASSERT(comp[i]);
+        }
         ScintillationSpectrum spectrum;
-        spectrum.components = components.insert_back(spec.begin(), spec.end());
+        spectrum.yield = spec.yield;
+        spectrum.resolution_scale = spec.resolution_scale;
+        spectrum.components = components.insert_back(comp.begin(), comp.end());
         spectra.push_back(spectrum);
     }
 

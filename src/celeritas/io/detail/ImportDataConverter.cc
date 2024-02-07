@@ -88,7 +88,7 @@ void ImportDataConverter::operator()(ImportOpticalMaterial* data)
 {
     CELER_EXPECT(data);
 
-    for (auto& comp : data->scintillation.spectrum)
+    for (auto& comp : data->scintillation.components)
     {
         comp.lambda_mean *= len_;
         comp.lambda_sigma *= len_;

@@ -253,7 +253,7 @@ import_optical_properties(G4MaterialPropertiesTable const& mpt)
                          * time_scale;
         if (comp)
         {
-            result.scintillation.spectrum.push_back(comp);
+            result.scintillation.components.push_back(comp);
         }
     }
 

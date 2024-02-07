@@ -41,7 +41,6 @@ class ScintillationGeneratorTest : public Test
     void SetUp() override
     {
         // Test scintillation spectrum: only one material with three components
-        HostVal<ScintillationData> data;
         static constexpr size_type num_components = 3;
         static constexpr double nm = 1e-9 * units::meter;
         static constexpr double ns = 1e-9 * units::second;
@@ -53,24 +52,22 @@ class ScintillationGeneratorTest : public Test
         Real3 rise_time = {10 * ns, 10 * ns, 10 * ns};
         Real3 fall_time = {6 * ns, 1500 * ns, 3000 * ns};
 
-        std::vector<ScintillationComponent> components;
+        ImportScintSpectrum spectrum;
         for (size_type i = 0; i < num_components; ++i)
         {
             if (yield_prob[i] > 0)
             {
-                ScintillationComponent component;
-                component.yield_prob = yield_prob[i];
+                ImportScintComponent component;
+                component.yield = yield_prob[i];
                 component.lambda_mean = lambda_mean[i];
                 component.lambda_sigma = lambda_sigma[i];
                 component.rise_time = rise_time[i];
                 component.fall_time = fall_time[i];
-                components.push_back(component);
+                spectrum.components.push_back(component);
             }
         }
-
-        ScintillationParams::ScintillationInput input;
-        input.data.push_back(components);
-        params = std::make_shared<ScintillationParams>(input);
+        params = std::make_shared<ScintillationParams>(
+            ScintillationParams::Input{{spectrum}});
 
         // Test step input
         dist_.num_photons = 4;

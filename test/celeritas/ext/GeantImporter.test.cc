@@ -1332,23 +1332,23 @@ TEST_F(LarSphere, optical)
     auto const& scint = lar.optical.scintillation;
     EXPECT_EQ(1, scint.resolution_scale);
     EXPECT_EQ(5, scint.yield);
-    EXPECT_EQ(3, scint.spectrum.size());
-    std::vector<double> spectrum;
-    for (auto const& comp : scint.spectrum)
+    EXPECT_EQ(3, scint.components.size());
+    std::vector<double> components;
+    for (auto const& comp : scint.components)
     {
-        spectrum.push_back(comp.yield);
-        spectrum.push_back(comp.lambda_mean);
-        spectrum.push_back(comp.lambda_sigma);
-        spectrum.push_back(comp.rise_time);
-        spectrum.push_back(comp.fall_time);
+        components.push_back(comp.yield);
+        components.push_back(comp.lambda_mean);
+        components.push_back(comp.lambda_sigma);
+        components.push_back(comp.rise_time);
+        components.push_back(comp.fall_time);
     }
     // clang-format off
-    static double const expected_spectrum[]
+    static double const expected_components[]
         = {3, 1.28e-05, 1e-06, 1e-08, 6e-09,
            1, 1.28e-05, 1e-06, 1e-08, 1.5e-06,
            1, 2e-05,    2e-06, 1e-08, 3e-06};
     // clang-format on
-    EXPECT_VEC_NEAR(expected_spectrum, spectrum, tol);
+    EXPECT_VEC_NEAR(expected_components, components, tol);
 
     // Check common optical properties
     auto const& properties = lar.optical.properties;
