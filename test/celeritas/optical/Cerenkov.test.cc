@@ -20,6 +20,8 @@
 #include "celeritas/optical/CerenkovDndxCalculator.hh"
 #include "celeritas/optical/CerenkovGenerator.hh"
 #include "celeritas/optical/CerenkovParams.hh"
+#include "celeritas/optical/CerenkovPreGenerator.hh"
+#include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/random/distribution/PoissonDistribution.hh"
 
 #include "DiagnosticRngEngine.hh"
@@ -105,19 +107,30 @@ class CerenkovTest : public Test
     void SetUp() override
     {
         this->build_optical_properties();
+        this->build_particle_params();
         properties = make_const_ref(data);
         params = std::make_shared<CerenkovParams>(properties);
+        resize(&state_value, particle_params->host_ref(), 1);
+        state_ref = state_value;
     }
 
     void build_optical_properties();
+    void build_particle_params();
+
+    std::shared_ptr<ParticleTrackView>
+    make_particle_track_view(units::MevEnergy energy);
 
     static constexpr double micrometer = 1e-4 * units::centimeter;
 
     HostVal<OpticalPropertyData> data;
     HostCRef<OpticalPropertyData> properties;
     std::shared_ptr<CerenkovParams const> params;
+    ParticleTrackView particle_view;
     OpticalMaterialId material{0};
     units::ElementaryCharge charge{1};
+    HostVal<ParticleStateData> state_value;
+    HostRef<ParticleStateData> state_ref;
+    std::shared_ptr<ParticleParams> particle_params;
 };
 
 //---------------------------------------------------------------------------//
@@ -143,6 +156,30 @@ void CerenkovTest::build_optical_properties()
     grid.grid = reals.insert_back(energy.begin(), energy.end());
     grid.value = reals.insert_back(rindex.begin(), rindex.end());
     make_builder(&data.refractive_index).push_back(grid);
+}
+
+//---------------------------------------------------------------------------//
+
+void CerenkovTest::build_particle_params()
+{
+    ParticleParams::Input inp;
+    inp.push_back({"electron",
+                   pdg::electron(),
+                   units::MevMass{0.5109989461},
+                   units::ElementaryCharge{-1},
+                   constants::stable_decay_constant});
+    particle_params = std::make_shared<ParticleParams>(std::move(inp));
+}
+
+//---------------------------------------------------------------------------//
+
+std::shared_ptr<ParticleTrackView>
+CerenkovTest::make_particle_track_view(units::MevEnergy energy)
+{
+    auto particle_view = std::make_shared<ParticleTrackView>(
+        particle_params->host_ref(), state_ref, TrackSlotId(0));
+    particle_view->energy(energy);
+    return particle_view;
 }
 
 //---------------------------------------------------------------------------//
@@ -206,7 +243,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
 {
     DiagnosticRngEngine<std::mt19937> rng;
 
-    // Mean valuese
+    // Mean values
     real_type avg_costheta;
     real_type avg_energy;
     real_type avg_displacement;
@@ -373,6 +410,45 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
         EXPECT_SOFT_EQ(401.5, avg_engine_samples);
     }
 }
+
+//---------------------------------------------------------------------------//
+
+TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
+{
+    DiagnosticRngEngine<std::mt19937> rng;
+
+    OpticalStepCollectorData optical_step;
+    optical_step.step_length = 1 * units::centimeter;
+    optical_step.time = 0;  // Pre-step time can be at beginning of run
+    optical_step.points[StepPoint::pre].pos = {0, 0, 0};
+    optical_step.points[StepPoint::pre].speed
+        = units::LightSpeed{0.99999999869453382};
+    optical_step.points[StepPoint::post].pos = {optical_step.step_length, 0, 0};
+    optical_step.points[StepPoint::post].speed
+        = units::LightSpeed{0.9999999986942727};
+    CELER_ASSERT(optical_step);
+
+    auto particle_view = this->make_particle_track_view(units::MevEnergy{10e3});
+
+    // 10 GeV e-
+    CerenkovPreGenerator pre_generator(
+        particle_view, properties, params->host_ref(), material, optical_step);
+    auto const result = pre_generator(rng);
+    CELER_ASSERT(result);
+
+    EXPECT_EQ(10, result.num_photons);
+    EXPECT_SOFT_EQ(optical_step.time, result.time);
+    EXPECT_EQ(particle_view->charge().value(), result.charge.value());
+    EXPECT_EQ(material, result.material);
+    EXPECT_SOFT_EQ(optical_step.step_length, result.step_length);
+    for (auto const p : range(StepPoint::size_))
+    {
+        EXPECT_SOFT_EQ(optical_step.points[p].speed.value(),
+                       result.points[p].speed.value());
+        EXPECT_SOFT_EQ(optical_step.points[p].pos, result.points[p].pos);
+    }
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

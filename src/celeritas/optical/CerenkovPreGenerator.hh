@@ -23,9 +23,13 @@ namespace celeritas
  * Param and State data.
  * \code
     CerenkovPreGenerator pre_cerenkov(particle_view,
-                                      step_collector.get(tid),
-                                      optical_generator_data);
-    if (pre_cerenkov(rng))
+                                      properties,
+                                      shared,
+                                      material_id,
+                                      step_collector.get(tid));
+
+    auto optical_generator_data = pre_cerenkov(rng);
+    if (optical_generator_data)
     {
         CerenkovGenerator cerenkov_gen(... , optical_generator_data);
         cerenkov_gen(rng);
@@ -36,7 +40,8 @@ class CerenkovPreGenerator
 {
   public:
     // Construct with particle and material data
-    CerenkovPreGenerator(ParticleTrackView particle_view,
+    CELER_FUNCTION
+    CerenkovPreGenerator(std::shared_ptr<ParticleTrackView> particle_view,
                          NativeCRef<OpticalPropertyData> const& properties,
                          NativeCRef<CerenkovData> const& shared,
                          OpticalMaterialId mat_id,
@@ -47,7 +52,7 @@ class CerenkovPreGenerator
     OpticalDistributionData CELER_FUNCTION operator()(Generator& rng);
 
   private:
-    ParticleTrackView particle_view_;
+    std::shared_ptr<ParticleTrackView> particle_view_;
     OpticalMaterialId mat_id_;
     OpticalStepCollectorData step_collector_data_;
     CerenkovDndxCalculator dndx_calculator_;
