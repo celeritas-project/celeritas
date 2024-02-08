@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "OpticalPropertyParams.hh"
 
+#include <algorithm>
 #include <utility>
 
 #include "corecel/cont/Range.hh"
@@ -28,16 +29,21 @@ namespace celeritas
 std::shared_ptr<OpticalPropertyParams>
 OpticalPropertyParams::from_import(ImportData const& data)
 {
-    CELER_EXPECT(!data.materials.empty());
+    CELER_EXPECT(!data.optical.empty());
+
+    if (!std::any_of(
+            data.optical.begin(), data.optical.end(), [](auto const& iter) {
+                return static_cast<bool>(iter.second.properties);
+            }))
+    {
+        // No optical property data present
+        return nullptr;
+    }
 
     Input input;
-    for (auto const& mat : data.materials)
+    for (auto const& mat : data.optical)
     {
-        if (!mat.optical)
-        {
-            continue;
-        }
-        input.materials.push_back(mat.optical.properties);
+        input.data.push_back(mat.second.properties);
     }
     return std::make_shared<OpticalPropertyParams>(std::move(input));
 }
@@ -51,7 +57,7 @@ OpticalPropertyParams::OpticalPropertyParams(Input const& inp)
     HostVal<OpticalPropertyData> data;
     DedupeCollectionBuilder reals(&data.reals);
     CollectionBuilder refractive_index(&data.refractive_index);
-    for (auto const& mat : inp.materials)
+    for (auto const& mat : inp.data)
     {
         // Store refractive index tabulated as a function of photon energy
         auto const& ri_vec = mat.refractive_index;
@@ -74,7 +80,7 @@ OpticalPropertyParams::OpticalPropertyParams(Input const& inp)
         refractive_index.push_back(grid);
     }
     data_ = CollectionMirror<OpticalPropertyData>{std::move(data)};
-    CELER_ENSURE(data_ || inp.materials.empty());
+    CELER_ENSURE(data_ || inp.data.empty());
 }
 
 //---------------------------------------------------------------------------//

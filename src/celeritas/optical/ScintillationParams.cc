@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "ScintillationParams.hh"
 
+#include <algorithm>
 #include <numeric>
 
 #include "corecel/cont/Range.hh"
@@ -24,16 +25,21 @@ namespace celeritas
 std::shared_ptr<ScintillationParams>
 ScintillationParams::from_import(ImportData const& data)
 {
-    CELER_EXPECT(!data.materials.empty());
+    CELER_EXPECT(!data.optical.empty());
+
+    if (!std::any_of(
+            data.optical.begin(), data.optical.end(), [](auto const& iter) {
+                return static_cast<bool>(iter.second.scintillation);
+            }))
+    {
+        // No scintillation data present
+        return nullptr;
+    }
 
     Input input;
-    for (auto const& mat : data.materials)
+    for (auto const& mat : data.optical)
     {
-        if (!mat.optical)
-        {
-            continue;
-        }
-        input.data.push_back(mat.optical.scintillation);
+        input.data.push_back(mat.second.scintillation);
     }
     return std::make_shared<ScintillationParams>(std::move(input));
 }
@@ -51,9 +57,9 @@ ScintillationParams::ScintillationParams(Input const& input)
     CollectionBuilder components(&host_data.components);
     for (auto const& spec : input.data)
     {
-        // Checck validity of scintillation data
+        // Check validity of scintillation data
         auto const& comp_inp = spec.components;
-        CELER_ASSERT(comp_inp.size() > 0);
+        CELER_ASSERT(!comp_inp.empty());
         std::vector<ScintillationComponent> comp(comp_inp.size());
         real_type norm{0};
         for (auto i : range(comp.size()))

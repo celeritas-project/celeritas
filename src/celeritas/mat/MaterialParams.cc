@@ -100,20 +100,19 @@ MaterialParams::from_import(ImportData const& data)
     }
 
     // Create mapping from material to optical property data
-    if (std::any_of(data.materials.begin(),
-                    data.materials.end(),
-                    [](ImportMaterial const& mat) {
-                        return static_cast<bool>(mat.optical);
-                    }))
+    if (!data.optical.empty())
     {
         input.mat_to_optical.resize(data.materials.size(), {});
+        OpticalMaterialId::size_type optical_id{0};
+        for (auto const& [mat_id, optical] : data.optical)
+        {
+            input.mat_to_optical[mat_id] = OpticalMaterialId(optical_id++);
+        }
     }
-    OpticalMaterialId::size_type optical_id{0};
 
     // Populate input.materials
-    for (size_type mat_id : range(data.materials.size()))
+    for (auto const& material : data.materials)
     {
-        auto const& material = data.materials[mat_id];
         MaterialParams::MaterialInput material_params;
         material_params.temperature = material.temperature;
         material_params.number_density = material.number_density;
@@ -127,11 +126,6 @@ MaterialParams::from_import(ImportData const& data)
                 {ElementId{elem_comp.element_id}, elem_comp.number_fraction});
         }
         input.materials.push_back(std::move(material_params));
-
-        if (material.optical)
-        {
-            input.mat_to_optical[mat_id] = OpticalMaterialId(optical_id++);
-        }
     }
 
     // Return a MaterialParams shared_ptr

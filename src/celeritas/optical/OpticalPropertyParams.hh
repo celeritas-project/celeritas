@@ -31,7 +31,7 @@ class OpticalPropertyParams final
     // Shared optical properties, indexed by \c OpticalMaterialId
     struct Input
     {
-        std::vector<ImportOpticalProperty> materials;
+        std::vector<ImportOpticalProperty> data;
     };
 
   public:

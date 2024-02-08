@@ -37,6 +37,11 @@ void ImportDataConverter::operator()(ImportData* data)
         (*this)(&m);
     }
 
+    for (auto& m : data->optical)
+    {
+        (*this)(&m.second);
+    }
+
     for (auto& p : data->processes)
     {
         (*this)(&p);
@@ -75,11 +80,6 @@ void ImportDataConverter::operator()(ImportMaterial* data)
     for (auto& [pdg, cut] : data->pdg_cutoffs)
     {
         cut.range *= len_;
-    }
-
-    if (data->optical)
-    {
-        (*this)(&data->optical);
     }
 }
 

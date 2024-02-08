@@ -117,7 +117,7 @@ struct MaterialRecord
  *
  * This view is created from \c MaterialParams.
  *
- * If a material has optical properties provided, \c optical_id will give the
+ * If a material has optical properties defined, \c optical_id will give the
  * index into the optical properties data. Otherwise, it will be an invalid ID,
  * or empty if no optical properties are present for any material.
  *

@@ -194,69 +194,40 @@ PDGNumber to_pdg(G4ProductionCutsIndex const& index)
 
 //---------------------------------------------------------------------------//
 /*!
- * Import optical properties for a material.
+ * Return a scalar optical property, if present.
  */
-ImportOpticalMaterial
-import_optical_properties(G4MaterialPropertiesTable const& mpt)
+double
+get_scalar_property(G4MaterialPropertiesTable const& mpt, std::string name)
 {
-    using std::string;
-
-    // Return a scalar optical property, if present
-    auto get_scalar = [&mpt](string name) -> double {
-        if (mpt.ConstPropertyExists(name))
-        {
-            return mpt.GetConstProperty(name);
-        }
-        return 0;
-    };
-
-    // Return a vector optical property, if present
-    auto get_vector = [&mpt](string name) {
-        ImportPhysicsVector result;
-        if (auto const* g4vector = mpt.GetProperty(name))
-        {
-            CELER_EXPECT(g4vector->GetType()
-                         == G4PhysicsVectorType::T_G4PhysicsFreeVector);
-
-            result.vector_type = ImportPhysicsVectorType::free;
-            result.x.resize(g4vector->GetVectorLength());
-            result.y.resize(result.x.size());
-            for (auto i : range(result.x.size()))
-            {
-                result.x[i] = g4vector->Energy(i);
-                result.y[i] = (*g4vector)[i];
-            }
-        }
-        return result;
-    };
-
-    double const time_scale = native_value_from_clhep(ImportUnits::time);
-    double const len_scale = native_value_from_clhep(ImportUnits::len);
-
-    ImportOpticalMaterial result;
-
-    // Save common properties
-    result.properties.refractive_index = get_vector("RINDEX");
-
-    // Save scintillation properties
-    result.scintillation.resolution_scale = get_scalar("RESOLUTIONSCALE");
-    result.scintillation.yield = get_scalar("SCINTILLATIONYIELD");
-    for (auto const id : {"1", "2", "3"})
+    if (mpt.ConstPropertyExists(name))
     {
-        ImportScintComponent comp;
-        comp.yield = get_scalar(string("SCINTILLATIONYIELD") + id);
-        comp.lambda_mean = get_scalar(string("LAMBDAMEAN") + id) * len_scale;
-        comp.lambda_sigma = get_scalar(string("LAMBDASIGMA") + id) * len_scale;
-        comp.rise_time = get_scalar(string("SCINTILLATIONRISETIME") + id)
-                         * time_scale;
-        comp.fall_time = get_scalar(string("SCINTILLATIONTIMECONSTANT") + id)
-                         * time_scale;
-        if (comp)
+        return mpt.GetConstProperty(name);
+    }
+    return 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a vector optical property, if present.
+ */
+ImportPhysicsVector
+get_vector_property(G4MaterialPropertiesTable const& mpt, std::string name)
+{
+    ImportPhysicsVector result;
+    if (auto const* g4vector = mpt.GetProperty(name))
+    {
+        CELER_EXPECT(g4vector->GetType()
+                     == G4PhysicsVectorType::T_G4PhysicsFreeVector);
+
+        result.vector_type = ImportPhysicsVectorType::free;
+        result.x.resize(g4vector->GetVectorLength());
+        result.y.resize(result.x.size());
+        for (auto i : range(result.x.size()))
         {
-            result.scintillation.components.push_back(comp);
+            result.x[i] = g4vector->Energy(i);
+            result.y[i] = (*g4vector)[i];
         }
     }
-
     return result;
 }
 
@@ -397,6 +368,79 @@ std::vector<ImportElement> import_elements()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Store material-dependent optical properties.
+ *
+ * This returns a map of material index to imported optical property data.
+ */
+ImportData::ImportOpticalMap import_optical()
+{
+    using std::string;
+
+    auto const& pct = *G4ProductionCutsTable::GetProductionCutsTable();
+    auto num_materials = pct.GetTableSize();
+    CELER_ASSERT(num_materials > 0);
+
+    double const time_scale = native_value_from_clhep(ImportUnits::time);
+    double const len_scale = native_value_from_clhep(ImportUnits::len);
+
+    ImportData::ImportOpticalMap result;
+    for (auto mat_idx : range(num_materials))
+    {
+        auto const* mcc = pct.GetMaterialCutsCouple(mat_idx);
+        CELER_ASSERT(mcc);
+        CELER_ASSERT(static_cast<std::size_t>(mcc->GetIndex()) == mat_idx);
+
+        auto const* material = mcc->GetMaterial();
+        CELER_ASSERT(material);
+
+        // Add optical material properties, if any are present
+        auto const* mpt = material->GetMaterialPropertiesTable();
+        if (!mpt)
+        {
+            continue;
+        }
+        ImportOpticalMaterial optical;
+
+        // Save common properties
+        optical.properties.refractive_index
+            = get_vector_property(*mpt, "RINDEX");
+
+        // Save scintillation properties
+        optical.scintillation.resolution_scale
+            = get_scalar_property(*mpt, "RESOLUTIONSCALE");
+        optical.scintillation.yield
+            = get_scalar_property(*mpt, "SCINTILLATIONYIELD");
+        for (auto const suffix : {"1", "2", "3"})
+        {
+            ImportScintComponent comp;
+            comp.yield = get_scalar_property(
+                *mpt, string("SCINTILLATIONYIELD") + suffix);
+            comp.lambda_mean
+                = get_scalar_property(*mpt, string("LAMBDAMEAN") + suffix)
+                  * len_scale;
+            comp.lambda_sigma
+                = get_scalar_property(*mpt, string("LAMBDASIGMA") + suffix)
+                  * len_scale;
+            comp.rise_time = get_scalar_property(
+                                 *mpt, string("SCINTILLATIONRISETIME") + suffix)
+                             * time_scale;
+            comp.fall_time
+                = get_scalar_property(
+                      *mpt, string("SCINTILLATIONTIMECONSTANT") + suffix)
+                  * time_scale;
+            if (comp)
+            {
+                optical.scintillation.components.push_back(comp);
+            }
+        }
+        result[mat_idx] = optical;
+    }
+    CELER_LOG(debug) << "Loaded " << result.size() << " optical materials";
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return a populated \c ImportMaterial vector.
  *
  * TODO: there is an inconsitency between "materials" (index in the
@@ -479,13 +523,6 @@ import_materials(GeantImporter::DataSelection::Flags particle_flags)
         material.temperature = g4material->GetTemperature();  // [K]
         material.number_density = g4material->GetTotNbOfAtomsPerVolume()
                                   * numdens_scale;
-
-        // Add optical material properties, if any are present
-        auto const* mpt = g4material->GetMaterialPropertiesTable();
-        if (mpt)
-        {
-            material.optical = import_optical_properties(*mpt);
-        }
 
         // Populate material production cut values
         for (auto const& idx_convert : cut_converters)
@@ -824,6 +861,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
             imported.isotopes = import_isotopes();
             imported.elements = import_elements();
             imported.materials = import_materials(selected.particles);
+            imported.optical = import_optical();
         }
         if (selected.processes != DataSelection::none)
         {

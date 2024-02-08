@@ -38,8 +38,8 @@ struct ImportScintComponent
  */
 struct ImportScintSpectrum
 {
-    double yield;
-    double resolution_scale;
+    double yield;  //!< Characteristic light yield of the material
+    double resolution_scale;  //!< Scales the stdev of photon distribution
     std::vector<ImportScintComponent> components;
 
     explicit operator bool() const

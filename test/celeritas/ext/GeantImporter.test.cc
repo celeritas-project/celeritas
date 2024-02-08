@@ -333,15 +333,6 @@ class LarSphere : public GeantImporterTest
     {
         return "lar-sphere"sv;
     }
-
-    GeantPhysicsOptions build_geant_options() const override
-    {
-        GeantPhysicsOptions opts;
-        opts.msc = MscModelSelection::urban;
-        opts.relaxation = RelaxationSelection::none;
-        opts.verbose = false;
-        return opts;
-    }
 };
 
 //---------------------------------------------------------------------------//
@@ -1315,21 +1306,25 @@ TEST_F(OneSteelSphereGG, physics)
 TEST_F(LarSphere, optical)
 {
     auto&& imported = this->imported_data();
-    auto const& materials = imported.materials;
-    EXPECT_EQ(2, materials.size());
+    EXPECT_EQ(1, imported.optical.size());
 
-    auto const& vacuum = materials.front();
-    EXPECT_EQ("vacuum", vacuum.name);
-    EXPECT_FALSE(vacuum.optical);
+    // vacuum
+    size_type const vac_idx = 0;
+    EXPECT_EQ("vacuum", imported.materials[vac_idx].name);
+    auto const vac_iter = imported.optical.find(vac_idx);
+    EXPECT_TRUE(vac_iter == imported.optical.end());
 
-    auto const& lar = materials.back();
-    EXPECT_EQ("lAr", lar.name);
-    EXPECT_TRUE(lar.optical);
+    // lAr
+    size_type const lar_idx = 1;
+    EXPECT_EQ("lAr", imported.materials[lar_idx].name);
+    auto const lar_iter = imported.optical.find(lar_idx);
+    EXPECT_FALSE(lar_iter == imported.optical.end());
+    auto const& optical = lar_iter->second;
 
     real_type const tol = this->comparison_tolerance();
 
     // Check scintillation optical properties
-    auto const& scint = lar.optical.scintillation;
+    auto const& scint = optical.scintillation;
     EXPECT_EQ(1, scint.resolution_scale);
     EXPECT_EQ(5, scint.yield);
     EXPECT_EQ(3, scint.components.size());
@@ -1351,7 +1346,7 @@ TEST_F(LarSphere, optical)
     EXPECT_VEC_NEAR(expected_components, components, tol);
 
     // Check common optical properties
-    auto const& properties = lar.optical.properties;
+    auto const& properties = optical.properties;
     EXPECT_TRUE(properties);
     static double const expected_ri_x[] = {1.55e-06,
                                            1.79505e-06,

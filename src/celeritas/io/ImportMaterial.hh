@@ -11,8 +11,6 @@
 #include <string>
 #include <vector>
 
-#include "ImportOpticalMaterial.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -66,7 +64,6 @@ struct ImportMaterial
     double number_density;  //!< [1/length^3]
     MapIntCutoff pdg_cutoffs;  //!< Cutoff per PDG
     VecComponent elements;
-    ImportOpticalMaterial optical;
 };
 
 //---------------------------------------------------------------------------//

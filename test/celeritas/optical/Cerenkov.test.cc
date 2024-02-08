@@ -128,7 +128,7 @@ class CerenkovTest : public Test
         water.refractive_index.y
             = {get_refractive_index().begin(), get_refractive_index().end()};
         OpticalPropertyParams::Input input;
-        input.materials.push_back(water);
+        input.data.push_back(water);
         properties = std::make_shared<OpticalPropertyParams>(std::move(input));
 
         // Build Cerenkov data
