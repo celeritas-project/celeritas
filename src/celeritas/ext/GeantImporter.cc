@@ -150,6 +150,47 @@ struct ProcessFilter
 };
 
 //---------------------------------------------------------------------------//
+//! Retrieve and store optical material properties, if present.
+struct MatPropGetter
+{
+    G4MaterialPropertiesTable const& mpt;
+
+    void scalar(double* dst, std::string name, ImportUnits q)
+    {
+        if (!mpt.ConstPropertyExists(name))
+        {
+            return;
+        }
+        *dst = mpt.GetConstProperty(name) * native_value_from_clhep(q);
+    }
+
+    void scalar(double* dst, std::string name, int comp, ImportUnits q)
+    {
+        this->scalar(dst, name + std::to_string(comp), q);
+    }
+
+    void vector(ImportPhysicsVector* dst, std::string name, ImportUnits q)
+    {
+        auto const* g4vector = mpt.GetProperty(name);
+        if (!g4vector)
+        {
+            return;
+        }
+        CELER_ASSERT(g4vector->GetType()
+                     == G4PhysicsVectorType::T_G4PhysicsFreeVector);
+        double const y_scale = native_value_from_clhep(q);
+        dst->vector_type = ImportPhysicsVectorType::free;
+        dst->x.resize(g4vector->GetVectorLength());
+        dst->y.resize(dst->x.size());
+        for (auto i : range(dst->x.size()))
+        {
+            dst->x[i] = g4vector->Energy(i);
+            dst->y[i] = (*g4vector)[i] * y_scale;
+        }
+    }
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Safely switch from G4State [G4Material.hh] to ImportMaterialState.
  */
@@ -190,45 +231,6 @@ PDGNumber to_pdg(G4ProductionCutsIndex const& index)
             CELER_ASSERT_UNREACHABLE();
     }
     CELER_ASSERT_UNREACHABLE();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return a scalar optical property, if present.
- */
-double
-get_scalar_property(G4MaterialPropertiesTable const& mpt, std::string name)
-{
-    if (mpt.ConstPropertyExists(name))
-    {
-        return mpt.GetConstProperty(name);
-    }
-    return 0;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return a vector optical property, if present.
- */
-ImportPhysicsVector
-get_vector_property(G4MaterialPropertiesTable const& mpt, std::string name)
-{
-    ImportPhysicsVector result;
-    if (auto const* g4vector = mpt.GetProperty(name))
-    {
-        CELER_EXPECT(g4vector->GetType()
-                     == G4PhysicsVectorType::T_G4PhysicsFreeVector);
-
-        result.vector_type = ImportPhysicsVectorType::free;
-        result.x.resize(g4vector->GetVectorLength());
-        result.y.resize(result.x.size());
-        for (auto i : range(result.x.size()))
-        {
-            result.x[i] = g4vector->Energy(i);
-            result.y[i] = (*g4vector)[i];
-        }
-    }
-    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -374,14 +376,9 @@ std::vector<ImportElement> import_elements()
  */
 ImportData::ImportOpticalMap import_optical()
 {
-    using std::string;
-
     auto const& pct = *G4ProductionCutsTable::GetProductionCutsTable();
     auto num_materials = pct.GetTableSize();
     CELER_ASSERT(num_materials > 0);
-
-    double const time_scale = native_value_from_clhep(ImportUnits::time);
-    double const len_scale = native_value_from_clhep(ImportUnits::len);
 
     ImportData::ImportOpticalMap result;
     for (auto mat_idx : range(num_materials))
@@ -400,40 +397,68 @@ ImportData::ImportOpticalMap import_optical()
             continue;
         }
         ImportOpticalMaterial optical;
+        MatPropGetter get_property{*mpt};
 
         // Save common properties
-        optical.properties.refractive_index
-            = get_vector_property(*mpt, "RINDEX");
+        get_property.vector(&optical.properties.refractive_index,
+                            "RINDEX",
+                            ImportUnits::unitless);
 
         // Save scintillation properties
-        optical.scintillation.resolution_scale
-            = get_scalar_property(*mpt, "RESOLUTIONSCALE");
-        optical.scintillation.yield
-            = get_scalar_property(*mpt, "SCINTILLATIONYIELD");
-        for (auto const suffix : {"1", "2", "3"})
+        get_property.scalar(&optical.scintillation.resolution_scale,
+                            "RESOLUTIONSCALE",
+                            ImportUnits::unitless);
+        get_property.scalar(&optical.scintillation.yield,
+                            "SCINTILLATIONYIELD",
+                            ImportUnits::unitless);
+        for (int comp_idx : range(1, 4))
         {
             ImportScintComponent comp;
-            comp.yield = get_scalar_property(
-                *mpt, string("SCINTILLATIONYIELD") + suffix);
-            comp.lambda_mean
-                = get_scalar_property(*mpt, string("LAMBDAMEAN") + suffix)
-                  * len_scale;
-            comp.lambda_sigma
-                = get_scalar_property(*mpt, string("LAMBDASIGMA") + suffix)
-                  * len_scale;
-            comp.rise_time = get_scalar_property(
-                                 *mpt, string("SCINTILLATIONRISETIME") + suffix)
-                             * time_scale;
-            comp.fall_time
-                = get_scalar_property(
-                      *mpt, string("SCINTILLATIONTIMECONSTANT") + suffix)
-                  * time_scale;
+            get_property.scalar(&comp.yield,
+                                "SCINTILLATIONYIELD",
+                                comp_idx,
+                                ImportUnits::unitless);
+            get_property.scalar(&comp.lambda_mean,
+                                "SCINTILLATIONLAMBDAMEAN",
+                                comp_idx,
+                                ImportUnits::len);
+            get_property.scalar(&comp.lambda_sigma,
+                                "SCINTILLATIONLAMBDASIGMA",
+                                comp_idx,
+                                ImportUnits::len);
+            get_property.scalar(&comp.rise_time,
+                                "SCINTILLATIONRISETIME",
+                                comp_idx,
+                                ImportUnits::time);
+            get_property.scalar(&comp.fall_time,
+                                "SCINTILLATIONTIMECONSTANT",
+                                comp_idx,
+                                ImportUnits::time);
             if (comp)
             {
                 optical.scintillation.components.push_back(comp);
             }
         }
-        result[mat_idx] = optical;
+
+        // Save Rayleigh properties
+        get_property.vector(
+            &optical.rayleigh.mfp, "RAYLEIGH", ImportUnits::len);
+        get_property.scalar(&optical.rayleigh.scale_factor,
+                            "RS_SCALE_FACTOR",
+                            ImportUnits::unitless);
+        get_property.scalar(&optical.rayleigh.isothermal_compressibility,
+                            "ISOTHERMAL_COMPRESSIBILITY",
+                            ImportUnits::len_time_sq_per_mass);
+
+        // Save absorption properties
+        get_property.vector(&optical.absorption.absorption_length,
+                            "ABSLENGTH",
+                            ImportUnits::len);
+
+        if (optical)
+        {
+            result[mat_idx] = optical;
+        }
     }
     CELER_LOG(debug) << "Loaded " << result.size() << " optical materials";
     return result;

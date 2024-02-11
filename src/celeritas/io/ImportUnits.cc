@@ -49,6 +49,20 @@ double time_scale(UnitSystem sys)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get the mass scale of a unit system.
+ */
+double mass_scale(UnitSystem sys)
+{
+    return visit_unit_system(
+        [](auto traits) {
+            using Unit = typename decltype(traits)::Mass;
+            return native_value_from(Quantity<Unit, double>{1});
+        },
+        sys);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -68,6 +82,7 @@ char const* to_cstring(ImportUnits value)
         "len^2",
         "time",
         "1/len^3",
+        "len-time^2/mass",
     };
     return to_cstring_impl(value);
 }
@@ -80,6 +95,7 @@ double native_value_from(UnitSystem sys, ImportUnits q)
 {
     constexpr double mev = 1;
     double const len = length_scale(sys);
+    double const time = time_scale(sys);
 
     switch (q)
     {
@@ -100,9 +116,11 @@ double native_value_from(UnitSystem sys, ImportUnits q)
         case ImportUnits::len_sq:
             return ipow<2>(len);
         case ImportUnits::time:
-            return time_scale(sys);
+            return time;
         case ImportUnits::inv_len_cb:
             return 1 / ipow<3>(len);
+        case ImportUnits::len_time_sq_per_mass:
+            return len * ipow<2>(time) / mass_scale(sys);
         case ImportUnits::size_:
             CELER_ASSERT_UNREACHABLE();
     }

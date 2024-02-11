@@ -38,13 +38,47 @@ struct ImportScintComponent
  */
 struct ImportScintSpectrum
 {
-    double yield;  //!< Characteristic light yield of the material
-    double resolution_scale;  //!< Scales the stdev of photon distribution
+    double yield{};  //!< Characteristic light yield of the material
+    double resolution_scale{};  //!< Scales the stdev of photon distribution
     std::vector<ImportScintComponent> components;
 
     explicit operator bool() const
     {
         return yield > 0 && resolution_scale >= 0 && !components.empty();
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Store optical material properties for Rayleigh scattering.
+ *
+ * The isothermal compressibility is used to calculate the Rayleigh mean free
+ * path if no mean free paths are provided.
+ */
+struct ImportOpticalRayleigh
+{
+    double scale_factor{1};  //!< Scale the scattering length (optional)
+    double isothermal_compressibility{};
+    ImportPhysicsVector mfp;  //!< Rayleigh mean free path
+
+    explicit operator bool() const
+    {
+        return scale_factor >= 0
+               && (isothermal_compressibility > 0 || static_cast<bool>(mfp));
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Store optical material properties for absorption.
+ */
+struct ImportOpticalAbsorption
+{
+    ImportPhysicsVector absorption_length;
+
+    explicit operator bool() const
+    {
+        return static_cast<bool>(absorption_length);
     }
 };
 
@@ -56,7 +90,10 @@ struct ImportOpticalProperty
 {
     ImportPhysicsVector refractive_index;
 
-    explicit operator bool() const { return !refractive_index.x.empty(); }
+    explicit operator bool() const
+    {
+        return static_cast<bool>(refractive_index);
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -66,11 +103,14 @@ struct ImportOpticalProperty
 struct ImportOpticalMaterial
 {
     ImportScintSpectrum scintillation;
+    ImportOpticalRayleigh rayleigh;
+    ImportOpticalAbsorption absorption;
     ImportOpticalProperty properties;
 
     explicit operator bool() const
     {
-        return static_cast<bool>(scintillation)
+        return static_cast<bool>(scintillation) || static_cast<bool>(rayleigh)
+               || static_cast<bool>(absorption)
                || static_cast<bool>(properties);
     }
 };

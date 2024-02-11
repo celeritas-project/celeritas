@@ -1325,6 +1325,7 @@ TEST_F(LarSphere, optical)
 
     // Check scintillation optical properties
     auto const& scint = optical.scintillation;
+    EXPECT_TRUE(scint);
     EXPECT_EQ(1, scint.resolution_scale);
     EXPECT_EQ(5, scint.yield);
     EXPECT_EQ(3, scint.components.size());
@@ -1345,47 +1346,53 @@ TEST_F(LarSphere, optical)
     // clang-format on
     EXPECT_VEC_NEAR(expected_components, components, tol);
 
+    // Check Rayleigh optical properties
+    auto const& rayleigh = optical.rayleigh;
+    EXPECT_TRUE(rayleigh);
+    EXPECT_EQ(1, rayleigh.scale_factor);
+    EXPECT_DOUBLE_EQ(0.024673059861887867, rayleigh.isothermal_compressibility);
+    static double const expected_mfp_x[] = {1.55e-06,
+                                            1.7714e-06,
+                                            2.102e-06,
+                                            2.255e-06,
+                                            2.531e-06,
+                                            2.884e-06,
+                                            3.024e-06,
+                                            4.133e-06,
+                                            6.2e-06,
+                                            1.033e-05,
+                                            1.55e-05};
+    static double const expected_mfp_y[] = {32142.9,
+                                            19285.7,
+                                            10928.6,
+                                            6428.57,
+                                            3985.71,
+                                            2700,
+                                            1928.57,
+                                            488.571,
+                                            54.6429,
+                                            54.6429,
+                                            54.6429};
+    EXPECT_VEC_SOFT_EQ(expected_mfp_x, rayleigh.mfp.x);
+    EXPECT_VEC_SOFT_EQ(expected_mfp_y, rayleigh.mfp.y);
+
+    // Check absorption optical properties
+    auto const& absorption = optical.absorption;
+    EXPECT_TRUE(absorption);
+    EXPECT_EQ(2, absorption.absorption_length.x.size());
+    EXPECT_DOUBLE_EQ(1.3778e-06, absorption.absorption_length.x.front());
+    EXPECT_DOUBLE_EQ(1.55e-05, absorption.absorption_length.x.back());
+    EXPECT_DOUBLE_EQ(86.4473, absorption.absorption_length.y.front());
+    EXPECT_DOUBLE_EQ(0.000296154, absorption.absorption_length.y.back());
+
     // Check common optical properties
     auto const& properties = optical.properties;
     EXPECT_TRUE(properties);
-    static double const expected_ri_x[] = {1.55e-06,
-                                           1.79505e-06,
-                                           2.10499e-06,
-                                           2.27077e-06,
-                                           2.55111e-06,
-                                           2.84498e-06,
-                                           3.06361e-06,
-                                           4.13281e-06,
-                                           6.2e-06,
-                                           6.526e-06,
-                                           6.889e-06,
-                                           7.294e-06,
-                                           7.75e-06,
-                                           8.267e-06,
-                                           8.857e-06,
-                                           9.538e-06,
-                                           1.033e-05,
-                                           1.55e-05};
-    static double const expected_ri_y[] = {1.4781,
-                                           1.48,
-                                           1.4842,
-                                           1.4861,
-                                           1.4915,
-                                           1.4955,
-                                           1.4988,
-                                           1.5264,
-                                           1.6185,
-                                           1.6176,
-                                           1.527,
-                                           1.5545,
-                                           1.793,
-                                           1.7826,
-                                           1.6642,
-                                           1.5545,
-                                           1.4536,
-                                           1.4536};
-    EXPECT_VEC_EQ(expected_ri_x, properties.refractive_index.x);
-    EXPECT_VEC_EQ(expected_ri_y, properties.refractive_index.y);
+    EXPECT_EQ(101, properties.refractive_index.x.size());
+    EXPECT_DOUBLE_EQ(1.8785e-06, properties.refractive_index.x.front());
+    EXPECT_DOUBLE_EQ(1.0597e-05, properties.refractive_index.x.back());
+    EXPECT_DOUBLE_EQ(1.2221243542166, properties.refractive_index.y.front());
+    EXPECT_DOUBLE_EQ(1.6167515615703, properties.refractive_index.y.back());
 }
 
 //---------------------------------------------------------------------------//
