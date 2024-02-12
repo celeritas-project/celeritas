@@ -58,13 +58,13 @@ struct ImportScintSpectrum
 struct ImportOpticalRayleigh
 {
     double scale_factor{1};  //!< Scale the scattering length (optional)
-    double isothermal_compressibility{};
+    double compressibility{};  //!< Isothermal compressibility
     ImportPhysicsVector mfp;  //!< Rayleigh mean free path
 
     explicit operator bool() const
     {
         return scale_factor >= 0
-               && (isothermal_compressibility > 0 || static_cast<bool>(mfp));
+               && (compressibility > 0 || static_cast<bool>(mfp));
     }
 };
 

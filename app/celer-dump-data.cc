@@ -615,6 +615,71 @@ void print_atomic_relaxation_data(
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Print optical material properties map.
+ */
+void print_optical_material_data(ImportData::ImportOpticalMap const& iom)
+{
+    if (iom.empty())
+    {
+        CELER_LOG(info) << "Optical material data not available";
+        return;
+    }
+
+    CELER_LOG(info) << "Loaded optical material data map with size "
+                    << iom.size();
+
+#define POM_STREAM_SCALAR(ID, NAME)                                          \
+    "| " << setw(11) << ID << " | " << setw(24) << #NAME << " | " << setw(7) \
+         << ""                                                               \
+         << " | " << setprecision(3) << setw(9) << NAME << " | " << setw(52) \
+         << ""                                                               \
+         << " |\n"
+#define POM_STREAM_VECTOR(ID, NAME)                                          \
+    "| " << setw(11) << ID << " | " << setw(24) << #NAME << " | " << setw(7) \
+         << NAME.x.size() << " | " << setw(9) << ""                          \
+         << " | (" << setprecision(3) << setw(10) << NAME.x.front() << ", "  \
+         << setprecision(3) << setw(10) << NAME.y.front() << ") -> ("        \
+         << setprecision(3) << setw(10) << NAME.x.back() << ", "             \
+         << setprecision(3) << setw(10) << NAME.y.back() << ") |\n";
+    cout << R"gfm(
+# Material optical property data
+
+| Material ID | Property                 | Size    | Scalar    | Vector endpoints (MeV, value)                        |
+| ----------- | ------------------------ | ------- | --------- | ---------------------------------------------------- |
+)gfm";
+
+    for (auto const& [key, val] : iom)
+    {
+        auto const& scint = val.scintillation;
+        cout << POM_STREAM_SCALAR(key, scint.yield);
+        cout << POM_STREAM_SCALAR(key, scint.resolution_scale);
+        for (auto const& scint_comp : scint.components)
+        {
+            cout << POM_STREAM_SCALAR(key, scint_comp.yield);
+            cout << POM_STREAM_SCALAR(key, scint_comp.lambda_mean);
+            cout << POM_STREAM_SCALAR(key, scint_comp.lambda_sigma);
+            cout << POM_STREAM_SCALAR(key, scint_comp.rise_time);
+            cout << POM_STREAM_SCALAR(key, scint_comp.fall_time);
+        }
+
+        auto const& rayl = val.rayleigh;
+        cout << POM_STREAM_SCALAR(key, rayl.scale_factor);
+        cout << POM_STREAM_SCALAR(key, rayl.compressibility);
+        cout << POM_STREAM_VECTOR(key, rayl.mfp);
+
+        auto const& abs = val.absorption;
+        cout << POM_STREAM_VECTOR(key, abs.absorption_length);
+
+        auto const& refractive_index = val.properties.refractive_index;
+        cout << POM_STREAM_VECTOR(key, refractive_index);
+    }
+    cout << endl;
+#undef PEP_STREAM_SCALAR
+#undef PEP_STREAM_VECTOR
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 }  // namespace app
 }  // namespace celeritas
@@ -677,6 +742,7 @@ int main(int argc, char* argv[])
     print_sb_data(data.sb_data);
     print_livermore_pe_data(data.livermore_pe_data);
     print_atomic_relaxation_data(data.atomic_relaxation_data);
+    print_optical_material_data(data.optical);
 
     return EXIT_SUCCESS;
 }

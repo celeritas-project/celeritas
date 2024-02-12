@@ -446,7 +446,7 @@ ImportData::ImportOpticalMap import_optical()
         get_property.scalar(&optical.rayleigh.scale_factor,
                             "RS_SCALE_FACTOR",
                             ImportUnits::unitless);
-        get_property.scalar(&optical.rayleigh.isothermal_compressibility,
+        get_property.scalar(&optical.rayleigh.compressibility,
                             "ISOTHERMAL_COMPRESSIBILITY",
                             ImportUnits::len_time_sq_per_mass);
 

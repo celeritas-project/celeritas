@@ -1350,7 +1350,7 @@ TEST_F(LarSphere, optical)
     auto const& rayleigh = optical.rayleigh;
     EXPECT_TRUE(rayleigh);
     EXPECT_EQ(1, rayleigh.scale_factor);
-    EXPECT_DOUBLE_EQ(0.024673059861887867, rayleigh.isothermal_compressibility);
+    EXPECT_DOUBLE_EQ(0.024673059861887867, rayleigh.compressibility);
     static double const expected_mfp_x[] = {1.55e-06,
                                             1.7714e-06,
                                             2.102e-06,
