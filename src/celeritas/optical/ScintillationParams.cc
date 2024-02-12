@@ -73,11 +73,37 @@ ScintillationParams::ScintillationParams(Input const& input)
         for (auto i : range(comp.size()))
         {
             comp[i].yield_prob = comp_inp[i].yield / norm;
-            CELER_ASSERT(comp[i]);
+            CELER_VALIDATE(comp[i].yield_prob > 0,
+                           << "invalid yield_prob=" << comp[i].yield_prob
+                           << " for scintillation component " << i
+                           << " (should be positive)");
+            CELER_VALIDATE(comp[i].lambda_mean > 0,
+                           << "invalid lambda_mean=" << comp[i].lambda_mean
+                           << " for scintillation component " << i
+                           << " (should be positive)");
+            CELER_VALIDATE(comp[i].lambda_sigma > 0,
+                           << "invalid lambda_sigma=" << comp[i].lambda_sigma
+                           << " for scintillation component " << i
+                           << " (should be positive)");
+            CELER_VALIDATE(comp[i].rise_time >= 0,
+                           << "invalid rise_time=" << comp[i].rise_time
+                           << " for scintillation component " << i
+                           << " (should be nonnegative)");
+            CELER_VALIDATE(comp[i].fall_time > 0,
+                           << "invalid fall_time=" << comp[i].fall_time
+                           << " for scintillation component " << i
+                           << " (should be positive)");
         }
         ScintillationSpectrum spectrum;
         spectrum.yield = spec.yield;
+        CELER_VALIDATE(spectrum.yield > 0,
+                       << "invalid yield=" << spectrum.yield
+                       << " for scintillation (should be positive)");
         spectrum.resolution_scale = spec.resolution_scale;
+        CELER_VALIDATE(
+            spectrum.resolution_scale >= 0,
+            << "invalid resolution_scale=" << spectrum.resolution_scale
+            << " for scintillation (should be nonnegative)");
         spectrum.components = components.insert_back(comp.begin(), comp.end());
         spectra.push_back(spectrum);
     }

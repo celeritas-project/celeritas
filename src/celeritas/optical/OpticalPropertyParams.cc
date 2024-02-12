@@ -71,8 +71,12 @@ OpticalPropertyParams::OpticalPropertyParams(Input const& inp)
 
         // In a dispersive medium the index of refraction is an increasing
         // function of photon energy
-        CELER_ASSERT(is_monotonic_increasing(make_span(ri_vec.x)));
-        CELER_ASSERT(is_monotonic_increasing(make_span(ri_vec.y)));
+        CELER_VALIDATE(is_monotonic_increasing(make_span(ri_vec.x)),
+                       << "refractive index energy grid values are not "
+                          "monotonically increasing");
+        CELER_VALIDATE(is_monotonic_increasing(make_span(ri_vec.y)),
+                       << "refractive index values are not monotonically "
+                          "increasing");
 
         grid.grid = reals.insert_back(ri_vec.x.begin(), ri_vec.x.end());
         grid.value = reals.insert_back(ri_vec.y.begin(), ri_vec.y.end());
