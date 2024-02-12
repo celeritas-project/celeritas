@@ -117,6 +117,20 @@ CMake configuration utility functions for Celeritas.
 
   See ``target_include_directories`` for additional detail.
 
+.. command:: celeritas_target_compile_options
+
+   Specify compile options for a CUDA RDC target
+
+     ::
+       celeritas_target_compile_options(<target> [BEFORE]
+         <INTERFACE|PUBLIC|PRIVATE> [items1...]
+         [<INTERFACE|PUBLIC|PRIVATE> [items2...] ...])
+
+  In the case that an input target does not contain CUDA code, the command decays
+  to ``target_compile_options``.
+
+  See ``target_compile_options`` for additional detail.
+
 .. command:: celeritas_configure_file
 
   Configure to the build "include" directory for later installation::
@@ -352,6 +366,12 @@ endfunction()
 
 function(celeritas_target_include_directories)
   cuda_rdc_target_include_directories(${ARGV})
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_target_compile_options)
+  cuda_rdc_target_compile_options(${ARGV})
 endfunction()
 
 #-----------------------------------------------------------------------------#
