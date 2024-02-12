@@ -342,10 +342,17 @@ function(celeritas_add_library target)
 
   # Build all targets in lib/
   cuda_rdc_set_target_properties(${target} PROPERTIES
-    POSITION_INDEPENDENT_CODE ON   # Technically we probably only need it on the OBJECT library
     ARCHIVE_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
     LIBRARY_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
   )
+
+  # We could hide this behind `if (CELERITAS_USE_ROOT)`
+  get_target_property(_tgt ${target} CUDA_RDC_OBJECT_LIBRARY)
+  if(_tgt)
+    set_target_properties(${_tgt} PROPERTIES
+      POSITION_INDEPENDENT_CODE ON
+    )
+  endif()
 
   # Install all targets to lib/
   cuda_rdc_install(TARGETS ${target}
