@@ -24,16 +24,16 @@ if(VecGeom_FOUND AND TARGET VecGeom::vecgeomcuda)
      set(_vecgeom_cuda_runtime "Shared")
   endif()
   set_target_properties(VecGeom::vecgeom PROPERTIES
-    CELERITAS_CUDA_STATIC_LIBRARY VecGeom::vecgeomcuda_static
-    CELERITAS_CUDA_MIDDLE_LIBRARY VecGeom::vecgeomcuda
-    CELERITAS_CUDA_FINAL_LIBRARY VecGeom::vecgeomcuda
+    CUDA_RDC_STATIC_LIBRARY VecGeom::vecgeomcuda_static
+    CUDA_RDC_MIDDLE_LIBRARY VecGeom::vecgeomcuda
+    CUDA_RDC_FINAL_LIBRARY VecGeom::vecgeomcuda
   )
   set_target_properties(VecGeom::vecgeomcuda PROPERTIES
-    CELERITAS_CUDA_LIBRARY_TYPE Shared
+    CUDA_RDC_LIBRARY_TYPE Shared
     #CUDA_RUNTIME_LIBRARY ${_vecgeom_cuda_runtime}
   )
   set_target_properties(VecGeom::vecgeomcuda_static PROPERTIES
-    CELERITAS_CUDA_LIBRARY_TYPE Static
+    CUDA_RDC_LIBRARY_TYPE Static
   )
   # Suppress warnings from virtual function calls in RDC
   foreach(_lib VecGeom::vecgeomcuda VecGeom::vecgeomcuda_static)
@@ -49,9 +49,9 @@ if(VecGeom_FOUND AND TARGET VecGeom::vecgeomcuda)
   foreach(_lib VecGeom::vecgeom VecGeom::vecgeomcuda
       VecGeom::vecgeomcuda_static)
     set_target_properties(${_lib} PROPERTIES
-      CELERITAS_CUDA_STATIC_LIBRARY VecGeom::vecgeomcuda_static
-      CELERITAS_CUDA_MIDDLE_LIBRARY VecGeom::vecgeomcuda
-      CELERITAS_CUDA_FINAL_LIBRARY VecGeom::vecgeomcuda
+      CUDA_RDC_STATIC_LIBRARY VecGeom::vecgeomcuda_static
+      CUDA_RDC_MIDDLE_LIBRARY VecGeom::vecgeomcuda
+      CUDA_RDC_FINAL_LIBRARY VecGeom::vecgeomcuda
     )
   endforeach()
 endif()
