@@ -17,6 +17,7 @@
 #include "geocel/UnitUtils.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "celeritas_test.hh"
@@ -55,6 +56,11 @@ std::string sub_pointer_string(std::string const& s)
 double to_inv_cm(double v)
 {
     return native_value_to<InvCmXs>(v).value();
+}
+
+double to_sec(double v)
+{
+    return native_value_to<Quantity<Second>>(v).value();
 }
 
 auto const geant4_version = Version::from_string(celeritas_geant4_version);
@@ -1308,18 +1314,26 @@ TEST_F(LarSphere, optical)
     auto&& imported = this->imported_data();
     EXPECT_EQ(1, imported.optical.size());
 
-    // vacuum
-    size_type const vac_idx = 0;
-    EXPECT_EQ("vacuum", imported.materials[vac_idx].name);
-    auto const vac_iter = imported.optical.find(vac_idx);
-    EXPECT_TRUE(vac_iter == imported.optical.end());
+    // First material is vacuum, no optical properties
+    MaterialId vacuum_id{0};
+    EXPECT_EQ("vacuum", imported.materials[vacuum_id.get()].name);
+    auto const vacuum_iter = imported.optical.find(vacuum_id.get());
+    EXPECT_TRUE(vacuum_iter == imported.optical.end());
 
-    // lAr
-    size_type const lar_idx = 1;
-    EXPECT_EQ("lAr", imported.materials[lar_idx].name);
-    auto const lar_iter = imported.optical.find(lar_idx);
-    EXPECT_FALSE(lar_iter == imported.optical.end());
+    // Second material is liquid argon
+    MaterialId lar_id{1};
+    EXPECT_EQ("lAr", imported.materials[lar_id.get()].name);
+    auto const lar_iter = imported.optical.find(lar_id.get());
+    ASSERT_FALSE(lar_iter == imported.optical.end());
     auto const& optical = lar_iter->second;
+
+    // Check optical material ID
+    auto materials = MaterialParams::from_import(imported);
+    ASSERT_TRUE(materials);
+    EXPECT_EQ(OpticalMaterialId{},
+              materials->get(vacuum_id).optical_material_id());
+    EXPECT_EQ(OpticalMaterialId{0},
+              materials->get(lar_id).optical_material_id());
 
     real_type const tol = this->comparison_tolerance();
 
@@ -1333,10 +1347,10 @@ TEST_F(LarSphere, optical)
     for (auto const& comp : scint.components)
     {
         components.push_back(comp.yield);
-        components.push_back(comp.lambda_mean);
-        components.push_back(comp.lambda_sigma);
-        components.push_back(comp.rise_time);
-        components.push_back(comp.fall_time);
+        components.push_back(to_cm(comp.lambda_mean));
+        components.push_back(to_cm(comp.lambda_sigma));
+        components.push_back(to_sec(comp.rise_time));
+        components.push_back(to_sec(comp.fall_time));
     }
     // clang-format off
     static double const expected_components[]
@@ -1350,40 +1364,23 @@ TEST_F(LarSphere, optical)
     auto const& rayleigh = optical.rayleigh;
     EXPECT_TRUE(rayleigh);
     EXPECT_EQ(1, rayleigh.scale_factor);
-    EXPECT_DOUBLE_EQ(0.024673059861887867, rayleigh.compressibility);
-    static double const expected_mfp_x[] = {1.55e-06,
-                                            1.7714e-06,
-                                            2.102e-06,
-                                            2.255e-06,
-                                            2.531e-06,
-                                            2.884e-06,
-                                            3.024e-06,
-                                            4.133e-06,
-                                            6.2e-06,
-                                            1.033e-05,
-                                            1.55e-05};
-    static double const expected_mfp_y[] = {32142.9,
-                                            19285.7,
-                                            10928.6,
-                                            6428.57,
-                                            3985.71,
-                                            2700,
-                                            1928.57,
-                                            488.571,
-                                            54.6429,
-                                            54.6429,
-                                            54.6429};
-    EXPECT_VEC_SOFT_EQ(expected_mfp_x, rayleigh.mfp.x);
-    EXPECT_VEC_SOFT_EQ(expected_mfp_y, rayleigh.mfp.y);
+    EXPECT_REAL_EQ(0.024673059861887867,
+                   rayleigh.compressibility * units::gram
+                       / (units::centimeter * units::second * units::second));
+    EXPECT_EQ(11, rayleigh.mfp.x.size());
+    EXPECT_DOUBLE_EQ(1.55e-06, rayleigh.mfp.x.front());
+    EXPECT_DOUBLE_EQ(1.55e-05, rayleigh.mfp.x.back());
+    EXPECT_REAL_EQ(32142.9, to_cm(rayleigh.mfp.y.front()));
+    EXPECT_REAL_EQ(54.6429, to_cm(rayleigh.mfp.y.back()));
 
     // Check absorption optical properties
-    auto const& absorption = optical.absorption;
-    EXPECT_TRUE(absorption);
-    EXPECT_EQ(2, absorption.absorption_length.x.size());
-    EXPECT_DOUBLE_EQ(1.3778e-06, absorption.absorption_length.x.front());
-    EXPECT_DOUBLE_EQ(1.55e-05, absorption.absorption_length.x.back());
-    EXPECT_DOUBLE_EQ(86.4473, absorption.absorption_length.y.front());
-    EXPECT_DOUBLE_EQ(0.000296154, absorption.absorption_length.y.back());
+    auto const& abs = optical.absorption;
+    EXPECT_TRUE(abs);
+    EXPECT_EQ(2, abs.absorption_length.x.size());
+    EXPECT_DOUBLE_EQ(1.3778e-06, abs.absorption_length.x.front());
+    EXPECT_DOUBLE_EQ(1.55e-05, abs.absorption_length.x.back());
+    EXPECT_REAL_EQ(86.4473, to_cm(abs.absorption_length.y.front()));
+    EXPECT_REAL_EQ(0.000296154, to_cm(abs.absorption_length.y.back()));
 
     // Check common optical properties
     auto const& properties = optical.properties;
