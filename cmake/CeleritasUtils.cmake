@@ -318,7 +318,7 @@ endfunction()
 #-----------------------------------------------------------------------------#
 
 function(celeritas_add_library target)
-  
+
   cuda_get_sources_and_options(_sources _cmake_options _options ${ARGN})
   cuda_rdc_sources_contains_cuda(_cuda_sources ${_sources})
   if(CELERITAS_USE_HIP AND _cuda_sources)
@@ -329,50 +329,65 @@ function(celeritas_add_library target)
       PROPERTIES LANGUAGE HIP
     )
   endif()
-# Potential speed-up (if it is a significant gain should it be applied to the
-# other calls to?)
-#  if(NOT CELERITAS_USE_VecGeom OR NOT CMAKE_CUDA_COMPILER OR NOT _cuda_sources)
-#    add_library(${target} ${ARGN})
-# else()
-  cuda_rdc_add_library(${target} ${ARGN})
-# endif()
+  if(NOT CELERITAS_USE_VecGeom OR NOT _cuda_sources)
+    add_library(${target} ${ARGN})
 
-  # Add Celeritas:: namespace alias
-  cuda_rdc_add_library(Celeritas::${target} ALIAS ${target})
+    # Add Celeritas:: namespace alias
+    add_library(Celeritas::${target} ALIAS ${target})
+    set_target_properties(${target} PROPERTIES
+      ARCHIVE_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
+      LIBRARY_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
+    )
+    install(TARGETS ${target}
+      EXPORT celeritas-targets
+      ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+      LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+      COMPONENT runtime
+    )
+  else()
+    cuda_rdc_add_library(${target} ${ARGN})
 
-  # Build all targets in lib/
-  cuda_rdc_set_target_properties(${target} PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
-    LIBRARY_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
-  )
+    # Add Celeritas:: namespace alias
+    cuda_rdc_add_library(Celeritas::${target} ALIAS ${target})
 
-  # We could hide this behind `if (CELERITAS_USE_ROOT)`
-  get_target_property(_tgt ${target} CUDA_RDC_OBJECT_LIBRARY)
-  if(_tgt)
-    set_target_properties(${_tgt} PROPERTIES
-      POSITION_INDEPENDENT_CODE ON
+    # Build all targets in lib/
+    cuda_rdc_set_target_properties(${target} PROPERTIES
+      ARCHIVE_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
+      LIBRARY_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
+    )
+
+    # We could hide this behind `if (CELERITAS_USE_ROOT)`
+    get_target_property(_tgt ${target} CUDA_RDC_OBJECT_LIBRARY)
+    if(_tgt)
+      set_target_properties(${_tgt} PROPERTIES
+        POSITION_INDEPENDENT_CODE ON
+      )
+    endif()
+
+    # Install all targets to lib/
+    cuda_rdc_install(TARGETS ${target}
+      EXPORT celeritas-targets
+      ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+      LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+      COMPONENT runtime
     )
   endif()
-
-  # Install all targets to lib/
-  cuda_rdc_install(TARGETS ${target}
-    EXPORT celeritas-targets
-    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    COMPONENT runtime
-  )
 endfunction()
 
 #-----------------------------------------------------------------------------#
 
 function(celeritas_target_link_libraries)
-  cuda_rdc_target_link_libraries(${ARGV})
+  if(NOT CELERITAS_USE_VecGeom)
+    cuda_rdc_target_link_libraries(${ARGV})
+  endif()
 endfunction()
 
 #-----------------------------------------------------------------------------#
 
 function(celeritas_target_include_directories)
-  cuda_rdc_target_include_directories(${ARGV})
+  if(NOT CELERITAS_USE_VecGeom)
+    cuda_rdc_target_include_directories(${ARGV})
+  endif()
 endfunction()
 
 #-----------------------------------------------------------------------------#
