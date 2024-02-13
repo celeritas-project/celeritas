@@ -49,7 +49,7 @@ celeritas_add_test(detail/UniverseIndexer.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Transforms
-set(CELERITASTEST_PREFIX transform)
+set(CELERITASTEST_PREFIX orange/transform)
 celeritas_add_test(transform/SignedPermutation.test.cc)
 celeritas_add_test(transform/Transformation.test.cc)
 celeritas_add_test(transform/Translation.test.cc)
@@ -57,7 +57,7 @@ celeritas_add_test(transform/VariantTransform.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Surfaces
-set(CELERITASTEST_PREFIX surf)
+set(CELERITASTEST_PREFIX orange/surf)
 celeritas_add_test(surf/ConeAligned.test.cc)
 celeritas_add_test(surf/CylAligned.test.cc)
 celeritas_add_test(surf/CylCentered.test.cc)
@@ -81,18 +81,18 @@ celeritas_add_test(surf/detail/SurfaceTransformer.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Construct
-set(CELERITASTEST_PREFIX construct)
+set(CELERITASTEST_PREFIX orange/construct)
 celeritas_add_test(construct/CsgTree.test.cc)
 celeritas_add_test(construct/CsgTreeUtils.test.cc)
 celeritas_add_test(construct/LocalSurfaceInserter.test.cc)
 
-set(CELERITASTEST_PREFIX orangeinp)
+set(CELERITASTEST_PREFIX orange/orangeinp)
 celeritas_add_test(orangeinp/detail/BoundingZone.test.cc)
 celeritas_add_test(orangeinp/detail/CsgUnitBuilder.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Universe details
-set(CELERITASTEST_PREFIX univ)
+set(CELERITASTEST_PREFIX orange/univ)
 celeritas_add_test(univ/detail/LogicEvaluator.test.cc)
 celeritas_add_test(univ/detail/LogicStack.test.cc)
 celeritas_add_test(univ/detail/RaggedRightIndexer.test.cc)
