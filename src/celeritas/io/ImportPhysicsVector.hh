@@ -39,6 +39,11 @@ struct ImportPhysicsVector
     ImportPhysicsVectorType vector_type;
     std::vector<double> x;  //!< Geant4 binVector
     std::vector<double> y;  //!< Geant4 dataVector
+
+    explicit operator bool() const
+    {
+        return !x.empty() && x.size() == y.size();
+    }
 };
 
 //---------------------------------------------------------------------------//

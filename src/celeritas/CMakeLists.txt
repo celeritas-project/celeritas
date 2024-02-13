@@ -60,6 +60,7 @@ list(APPEND SOURCES
   mat/detail/Utils.cc
   optical/CerenkovParams.cc
   optical/ScintillationParams.cc
+  optical/OpticalPropertyParams.cc
   phys/CutoffParams.cc
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc

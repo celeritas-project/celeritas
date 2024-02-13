@@ -99,6 +99,17 @@ MaterialParams::from_import(ImportData const& data)
         input.elements.push_back(std::move(element_params));
     }
 
+    // Create mapping from material to optical property data
+    if (!data.optical.empty())
+    {
+        input.mat_to_optical.resize(data.materials.size(), {});
+        OpticalMaterialId::size_type optical_id{0};
+        for (auto const& [mat_id, optical] : data.optical)
+        {
+            input.mat_to_optical[mat_id] = OpticalMaterialId(optical_id++);
+        }
+    }
+
     // Populate input.materials
     for (auto const& material : data.materials)
     {
@@ -129,6 +140,8 @@ MaterialParams::MaterialParams(Input const& inp)
 {
     CELER_EXPECT(!inp.elements.empty());
     CELER_EXPECT(!inp.materials.empty());
+    CELER_EXPECT(inp.mat_to_optical.empty()
+                 || inp.mat_to_optical.size() == inp.materials.size());
 
     ScopedMem record_mem("MaterialParams.construct");
 
@@ -161,6 +174,10 @@ MaterialParams::MaterialParams(Input const& inp)
         this->append_material_def(inp.materials[i], &host_data);
     }
     mat_labels_ = LabelIdMultiMap<MaterialId>(std::move(mat_labels));
+
+    // Mapping of material to optical data
+    make_builder(&host_data.optical_id)
+        .insert_back(inp.mat_to_optical.begin(), inp.mat_to_optical.end());
 
     // Move to mirrored data, copying to device
     data_ = CollectionMirror<MaterialParamsData>{std::move(host_data)};

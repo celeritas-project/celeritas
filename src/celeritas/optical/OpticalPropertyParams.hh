@@ -3,44 +3,53 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/CerenkovParams.hh
+//! \file celeritas/optical/OpticalPropertyParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
+
+#include <vector>
 
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "celeritas/io/ImportOpticalMaterial.hh"
 
-#include "CerenkovData.hh"
+#include "OpticalPropertyData.hh"
 
 namespace celeritas
 {
-class OpticalPropertyParams;
+struct ImportData;
 
 //---------------------------------------------------------------------------//
 /*!
- * Build and manage Cerenkov data.
+ * Build and manage optical property data for materials.
  */
-class CerenkovParams final : public ParamsDataInterface<CerenkovData>
+class OpticalPropertyParams final
+    : public ParamsDataInterface<OpticalPropertyData>
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using SPConstProperties = std::shared_ptr<OpticalPropertyParams const>;
-    //!@}
+    // Shared optical properties, indexed by \c OpticalMaterialId
+    struct Input
+    {
+        std::vector<ImportOpticalProperty> data;
+    };
 
   public:
-    // Construct with optical property data
-    explicit CerenkovParams(SPConstProperties properties);
+    // Construct with imported data
+    static std::shared_ptr<OpticalPropertyParams>
+    from_import(ImportData const& data);
 
-    //! Access physics properties on the host
+    // Construct with optical property data
+    explicit OpticalPropertyParams(Input const& inp);
+
+    //! Access optical properties on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }
 
-    //! Access physics properties on the device
+    //! Access optical properties on the device
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
-    CollectionMirror<CerenkovData> data_;
+    CollectionMirror<OpticalPropertyData> data_;
 };
 
 //---------------------------------------------------------------------------//
