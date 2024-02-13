@@ -435,6 +435,12 @@ function(celeritas_target_compile_options)
 endfunction()
 
 #-----------------------------------------------------------------------------#
+
+function(celeritas_sources_contains_cuda)
+  cuda_rdc_sources_contains_cuda(${ARGV})
+endfunction()
+
+#-----------------------------------------------------------------------------#
 # Add an object library to limit the propagation of includes to the rest of the
 # library.
 function(celeritas_add_object_library target)
