@@ -21,7 +21,7 @@ celeritas_setup_tests(SERIAL PREFIX corecel
 celeritas_add_test(OpaqueId.test.cc)
 
 # Cont
-set(CELERITASTEST_PREFIX cont)
+set(CELERITASTEST_PREFIX corecel/cont)
 celeritas_add_test(cont/Array.test.cc)
 celeritas_add_test(cont/InitializedValue.test.cc)
 celeritas_add_test(cont/Span.test.cc)
@@ -30,7 +30,7 @@ celeritas_add_test(cont/VariantUtils.test.cc)
 celeritas_add_device_test(cont/Range)
 
 # Data
-set(CELERITASTEST_PREFIX data)
+set(CELERITASTEST_PREFIX corecel/data)
 celeritas_add_device_test(data/Collection)
 celeritas_add_test(data/Copier.test.cc GPU)
 celeritas_add_test(data/DeviceAllocation.test.cc GPU)
@@ -41,14 +41,14 @@ celeritas_add_test(data/HyperslabIndexer.test.cc)
 celeritas_add_device_test(data/StackAllocator)
 
 # Grid
-set(CELERITASTEST_PREFIX grid)
+set(CELERITASTEST_PREFIX corecel/grid)
 celeritas_add_test(grid/Interpolator.test.cc)
 celeritas_add_test(grid/NonuniformGrid.test.cc)
 celeritas_add_test(grid/TwodGridCalculator.test.cc)
 celeritas_add_test(grid/UniformGrid.test.cc)
 
 # IO
-set(CELERITASTEST_PREFIX io)
+set(CELERITASTEST_PREFIX corecel/io)
 celeritas_add_test(io/EnumStringMapper.test.cc)
 celeritas_add_test(io/Label.test.cc)
 celeritas_add_test(io/Join.test.cc)
@@ -60,7 +60,7 @@ celeritas_add_test(io/StringEnumMapper.test.cc)
 celeritas_add_test(io/StringUtils.test.cc)
 
 # Math
-set(CELERITASTEST_PREFIX math)
+set(CELERITASTEST_PREFIX corecel/math)
 celeritas_add_test(math/Algorithms.test.cc)
 celeritas_add_test(math/ArrayOperators.test.cc)
 celeritas_add_test(math/ArrayUtils.test.cc)
@@ -71,7 +71,7 @@ celeritas_add_test(math/Quantity.test.cc
 celeritas_add_test(math/SoftEqual.test.cc)
 
 # Sys
-set(CELERITASTEST_PREFIX sys)
+set(CELERITASTEST_PREFIX corecel/sys)
 celeritas_add_test(sys/Environment.test.cc
   ENVIRONMENT "ENVTEST_ONE=1;ENVTEST_ZERO=0;ENVTEST_EMPTY="
   LINK_LIBRARIES ${nlohmann_json_LIBRARIES}

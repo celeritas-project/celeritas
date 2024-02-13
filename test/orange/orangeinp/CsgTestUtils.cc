@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/CsgTestUtils.cc
+//! \file orange/orangeinp/CsgTestUtils.cc
 //---------------------------------------------------------------------------//
 #include "CsgTestUtils.hh"
 
@@ -13,7 +13,7 @@
 #include "celeritas_config.h"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Repr.hh"
-#include "orange/construct/CsgTree.hh"
+#include "orange/orangeinp/CsgTree.hh"
 #include "orange/orangeinp/detail/CsgUnit.hh"
 #include "orange/surf/SurfaceIO.hh"
 #include "orange/transform/TransformIO.hh"
@@ -21,10 +21,12 @@
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 
-#    include "orange/construct/CsgTreeIO.json.hh"
+#    include "orange/orangeinp/CsgTreeIO.json.hh"
 #endif
 
 namespace celeritas
+{
+namespace orangeinp
 {
 namespace test
 {
@@ -43,8 +45,6 @@ std::string to_json_string(CsgTree const& tree)
 //---------------------------------------------------------------------------//
 }  // namespace test
 
-namespace orangeinp
-{
 namespace detail
 {
 namespace test
@@ -70,7 +70,7 @@ std::vector<std::string> surface_strings(CsgUnit const& u)
 //---------------------------------------------------------------------------//
 std::string tree_string(CsgUnit const& u)
 {
-    return ::celeritas::test::to_json_string(u.tree);
+    return ::celeritas::orangeinp::test::to_json_string(u.tree);
 }
 
 //---------------------------------------------------------------------------//

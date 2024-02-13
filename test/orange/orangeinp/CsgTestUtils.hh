@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/CsgTestUtils.hh
+//! \file orange/orangeinp/CsgTestUtils.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,6 +12,8 @@
 #include "celeritas/Types.hh"
 
 namespace celeritas
+{
+namespace orangeinp
 {
 class CsgTree;
 
@@ -23,8 +25,6 @@ std::string to_json_string(CsgTree const&);
 //---------------------------------------------------------------------------//
 }  // namespace test
 
-namespace orangeinp
-{
 namespace detail
 {
 struct CsgUnit;

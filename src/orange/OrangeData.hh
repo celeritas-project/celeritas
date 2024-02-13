@@ -260,6 +260,8 @@ struct UniverseIndexerData
 //---------------------------------------------------------------------------//
 /*!
  * Persistent data used by all BIH trees.
+ *
+ * \todo move to orange/BihTreeData
  */
 template<Ownership W, MemSpace M>
 struct BIHTreeData

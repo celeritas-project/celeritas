@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/construct/DepthCalculator.hh
+//! \file orange/detail/DepthCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,7 +12,7 @@
 
 #include "corecel/cont/VariantUtils.hh"
 
-#include "OrangeInput.hh"
+#include "../OrangeInput.hh"
 
 namespace celeritas
 {

@@ -3,19 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/construct/CsgTree.test.cc
+//! \file orange/orangeinp/CsgTree.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/construct/CsgTree.hh"
+#include "orange/orangeinp/CsgTree.hh"
 
+#include "CsgTestUtils.hh"
 #include "celeritas_test.hh"
-#include "../CsgTestUtils.hh"
 
-using N = celeritas::csg::NodeId;
+using N = celeritas::orangeinp::NodeId;
 using S = celeritas::LocalSurfaceId;
 
 namespace celeritas
 {
-namespace csg
+namespace orangeinp
 {
 namespace test
 {
@@ -53,14 +53,6 @@ TEST(CsgTypes, stream)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace test
-}  // namespace csg
-
-namespace test
-{
-//---------------------------------------------------------------------------//
-using namespace celeritas::csg;
-
 class CsgTreeTest : public ::celeritas::test::Test
 {
   protected:
@@ -77,7 +69,7 @@ class CsgTreeTest : public ::celeritas::test::Test
 
     std::string to_json_string() const
     {
-        return ::celeritas::test::to_json_string(tree_);
+        return ::celeritas::orangeinp::test::to_json_string(tree_);
     }
 };
 
@@ -234,4 +226,5 @@ TEST_F(CsgTreeTest, manual_simplify)
 }
 //---------------------------------------------------------------------------//
 }  // namespace test
+}  // namespace orangeinp
 }  // namespace celeritas

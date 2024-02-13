@@ -5,9 +5,9 @@
 #-----------------------------------------------------------------------------#
 
 celeritas_add_library(testcel_orange
-  CsgTestUtils.cc
   OrangeGeoTestBase.cc
   OrangeTestBase.cc
+  orangeinp/CsgTestUtils.cc
 )
 celeritas_target_link_libraries(testcel_orange
   PUBLIC
@@ -41,15 +41,27 @@ celeritas_add_test(MatrixUtils.test.cc)
 celeritas_add_test(OrangeTypes.test.cc)
 celeritas_add_device_test(Orange)
 
-# Base detail
+celeritas_add_test(detail/UniverseIndexer.test.cc)
+
+# Bounding interval hierarchy
+set(CELERITASTEST_PREFIX orange/bih)
 celeritas_add_test(detail/BIHBuilder.test.cc)
 celeritas_add_test(detail/BIHTraverser.test.cc)
 celeritas_add_test(detail/BIHUtils.test.cc)
-celeritas_add_test(detail/UniverseIndexer.test.cc)
+
+#-----------------------------------------------------------------------------#
+# Input construction
+set(CELERITASTEST_PREFIX orange/orangeinp)
+celeritas_add_test(orangeinp/CsgTree.test.cc)
+celeritas_add_test(orangeinp/CsgTreeUtils.test.cc)
+
+celeritas_add_test(orangeinp/detail/BoundingZone.test.cc)
+celeritas_add_test(orangeinp/detail/CsgUnitBuilder.test.cc)
+celeritas_add_test(orangeinp/detail/LocalSurfaceInserter.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Transforms
-set(CELERITASTEST_PREFIX transform)
+set(CELERITASTEST_PREFIX orange/transform)
 celeritas_add_test(transform/SignedPermutation.test.cc)
 celeritas_add_test(transform/Transformation.test.cc)
 celeritas_add_test(transform/Translation.test.cc)
@@ -57,7 +69,7 @@ celeritas_add_test(transform/VariantTransform.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Surfaces
-set(CELERITASTEST_PREFIX surf)
+set(CELERITASTEST_PREFIX orange/surf)
 celeritas_add_test(surf/ConeAligned.test.cc)
 celeritas_add_test(surf/CylAligned.test.cc)
 celeritas_add_test(surf/CylCentered.test.cc)
@@ -68,6 +80,7 @@ celeritas_add_test(surf/SimpleQuadric.test.cc)
 celeritas_add_test(surf/Sphere.test.cc)
 celeritas_add_test(surf/SphereCentered.test.cc)
 
+# Surface utilities
 celeritas_add_test(surf/FaceNamer.test.cc)
 celeritas_add_test(surf/RecursiveSimplifier.test.cc)
 celeritas_add_test(surf/SoftSurfaceEqual.test.cc)
@@ -75,32 +88,24 @@ celeritas_add_test(surf/SurfaceClipper.test.cc)
 celeritas_add_test(surf/SurfaceSimplifier.test.cc)
 celeritas_add_device_test(surf/LocalSurfaceVisitor)
 
+# Surface details
 celeritas_add_test(surf/detail/QuadraticSolver.test.cc)
 celeritas_add_test(surf/detail/SurfaceTranslator.test.cc)
 celeritas_add_test(surf/detail/SurfaceTransformer.test.cc)
 
 #-----------------------------------------------------------------------------#
-# Construct
-set(CELERITASTEST_PREFIX construct)
-celeritas_add_test(construct/CsgTree.test.cc)
-celeritas_add_test(construct/CsgTreeUtils.test.cc)
-celeritas_add_test(construct/LocalSurfaceInserter.test.cc)
-
-set(CELERITASTEST_PREFIX orangeinp)
-celeritas_add_test(orangeinp/detail/BoundingZone.test.cc)
-celeritas_add_test(orangeinp/detail/CsgUnitBuilder.test.cc)
-
-#-----------------------------------------------------------------------------#
 # Universe details
-set(CELERITASTEST_PREFIX univ)
+set(CELERITASTEST_PREFIX orange/univ)
+celeritas_add_test(univ/VolumeView.test.cc)
+celeritas_add_test(univ/RectArrayTracker.test.cc ${_needs_json})
+celeritas_add_device_test(univ/SimpleUnitTracker)
+celeritas_add_test(univ/TrackerVisitor.test.cc ${_needs_json})
+
+# Universe details
 celeritas_add_test(univ/detail/LogicEvaluator.test.cc)
 celeritas_add_test(univ/detail/LogicStack.test.cc)
 celeritas_add_test(univ/detail/RaggedRightIndexer.test.cc)
 celeritas_add_test(univ/detail/SurfaceFunctors.test.cc)
 celeritas_add_test(univ/detail/SenseCalculator.test.cc)
-celeritas_add_test(univ/VolumeView.test.cc)
-celeritas_add_test(univ/RectArrayTracker.test.cc ${_needs_json})
-celeritas_add_device_test(univ/SimpleUnitTracker)
-celeritas_add_test(univ/TrackerVisitor.test.cc ${_needs_json})
 
 #-----------------------------------------------------------------------------#

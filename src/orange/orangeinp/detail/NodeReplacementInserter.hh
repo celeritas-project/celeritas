@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/construct/detail/NodeReplacementInserter.hh
+//! \file orange/orangeinp/detail/NodeReplacementInserter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -15,7 +15,7 @@
 
 namespace celeritas
 {
-namespace csg
+namespace orangeinp
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -142,5 +142,5 @@ void NodeReplacementInserter::operator()(Joined const& n)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace csg
+}  // namespace orangeinp
 }  // namespace celeritas

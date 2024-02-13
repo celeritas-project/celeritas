@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange-update.cc
+//! \brief Read in and write back an ORANGE JSON file
 //---------------------------------------------------------------------------//
 #include <cstdlib>
 #include <fstream>
@@ -21,7 +22,7 @@
 #    include <fstream>
 #    include <nlohmann/json.hpp>
 
-#    include "orange/construct/OrangeInputIO.json.hh"
+#    include "orange/OrangeInputIO.json.hh"
 #endif
 
 namespace celeritas
