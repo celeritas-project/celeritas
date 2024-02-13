@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/math/HashUtils.hh
-// TODO: rename to Hasher.hh
+// TODO for v1.0: rename to Hasher.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
