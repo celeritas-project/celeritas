@@ -38,7 +38,7 @@ struct OpticalDistributionData
     real_type time{};  //!< Pre-step time
     real_type step_length{};
     units::ElementaryCharge charge;
-    OpticalMaterialId material{};
+    OpticalMaterialId material;
     EnumArray<StepPoint, OpticalStepData> points;
 
     //! Check whether the data are assigned

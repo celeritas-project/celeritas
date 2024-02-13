@@ -10,6 +10,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -21,6 +22,7 @@
 #include "celeritas/optical/CerenkovGenerator.hh"
 #include "celeritas/optical/CerenkovParams.hh"
 #include "celeritas/optical/CerenkovPreGenerator.hh"
+#include "celeritas/optical/OpticalDistributionData.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/random/distribution/PoissonDistribution.hh"
 
@@ -104,6 +106,9 @@ double convert_to_energy(double wavelength)
 class CerenkovTest : public Test
 {
   protected:
+    template<template<Ownership, MemSpace> class S>
+    using StateStore = CollectionStateStore<S, MemSpace::host>;
+
     void SetUp() override
     {
         this->build_optical_properties();
@@ -117,15 +122,13 @@ class CerenkovTest : public Test
     void build_optical_properties();
     void build_particle_params();
 
-    std::shared_ptr<ParticleTrackView>
-    make_particle_track_view(units::MevEnergy energy);
+    ParticleTrackView make_particle_track_view(units::MevEnergy energy);
 
     static constexpr double micrometer = 1e-4 * units::centimeter;
 
     HostVal<OpticalPropertyData> data;
     HostCRef<OpticalPropertyData> properties;
     std::shared_ptr<CerenkovParams const> params;
-    ParticleTrackView particle_view;
     OpticalMaterialId material{0};
     units::ElementaryCharge charge{1};
     HostVal<ParticleStateData> state_value;
@@ -173,12 +176,16 @@ void CerenkovTest::build_particle_params()
 
 //---------------------------------------------------------------------------//
 
-std::shared_ptr<ParticleTrackView>
+ParticleTrackView
 CerenkovTest::make_particle_track_view(units::MevEnergy energy)
 {
-    auto particle_view = std::make_shared<ParticleTrackView>(
+    ParticleTrackView::Initializer_t init_track;
+    init_track.particle_id = particle_params->find("electron");
+    init_track.energy = energy;
+
+    ParticleTrackView particle_view(
         particle_params->host_ref(), state_ref, TrackSlotId(0));
-    particle_view->energy(energy);
+    particle_view = init_track;
     return particle_view;
 }
 
@@ -417,35 +424,40 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
 {
     DiagnosticRngEngine<std::mt19937> rng;
 
-    OpticalStepCollectorData optical_step;
-    optical_step.step_length = 1 * units::centimeter;
-    optical_step.time = 0;  // Pre-step time can be at beginning of run
-    optical_step.points[StepPoint::pre].pos = {0, 0, 0};
-    optical_step.points[StepPoint::pre].speed
-        = units::LightSpeed{0.99999999869453382};
-    optical_step.points[StepPoint::post].pos = {optical_step.step_length, 0, 0};
-    optical_step.points[StepPoint::post].speed
-        = units::LightSpeed{0.9999999986942727};
-    CELER_ASSERT(optical_step);
+    OpticalStepCollectorData step_collector;
+    step_collector.step_length = 0.15 * units::centimeter;
+    step_collector.time = 0;
+    step_collector.points[StepPoint::pre].pos = {0, 0, 0};
+    step_collector.points[StepPoint::pre].speed
+        = units::LightSpeed{0.86286196322132458};
+    step_collector.points[StepPoint::post].pos
+        = {step_collector.step_length, 0, 0};
+    step_collector.points[StepPoint::post].speed
+        = units::LightSpeed{0.63431981443206786};
+    CELER_ASSERT(step_collector);
 
-    auto particle_view = this->make_particle_track_view(units::MevEnergy{10e3});
+    // 500 keV e-
+    auto particle_view = this->make_particle_track_view(units::MevEnergy{0.5});
 
-    // 10 GeV e-
     CerenkovPreGenerator pre_generator(
-        particle_view, properties, params->host_ref(), material, optical_step);
+        particle_view, properties, params->host_ref(), material, step_collector);
     auto const result = pre_generator(rng);
     CELER_ASSERT(result);
 
-    EXPECT_EQ(10, result.num_photons);
-    EXPECT_SOFT_EQ(optical_step.time, result.time);
-    EXPECT_EQ(particle_view->charge().value(), result.charge.value());
+    EXPECT_EQ(15, result.num_photons);
+    EXPECT_REAL_EQ(step_collector.time, result.time);
+    EXPECT_EQ(particle_view.charge().value(), result.charge.value());
     EXPECT_EQ(material, result.material);
-    EXPECT_SOFT_EQ(optical_step.step_length, result.step_length);
-    for (auto const p : range(StepPoint::size_))
+    EXPECT_REAL_EQ(step_collector.step_length, result.step_length);
+    for (auto p : range(StepPoint::size_))
     {
-        EXPECT_SOFT_EQ(optical_step.points[p].speed.value(),
+        EXPECT_REAL_EQ(step_collector.points[p].speed.value(),
                        result.points[p].speed.value());
-        EXPECT_SOFT_EQ(optical_step.points[p].pos, result.points[p].pos);
+        for (auto i : range(3))
+        {
+            EXPECT_REAL_EQ(step_collector.points[p].pos[i],
+                           result.points[p].pos[i]);
+        }
     }
 }
 
