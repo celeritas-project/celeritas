@@ -32,6 +32,7 @@ list(APPEND SOURCES
   orangeinp/detail/CsgUnitBuilder.cc
   orangeinp/detail/LocalSurfaceInserter.cc
   orangeinp/detail/NodeSimplifier.cc
+  orangeinp/detail/TransformInserter.cc
   surf/ConeAligned.cc
   surf/CylAligned.cc
   surf/FaceNamer.cc
