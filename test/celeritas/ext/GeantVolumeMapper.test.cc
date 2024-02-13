@@ -35,8 +35,8 @@
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/MpiCommunicator.hh"
-#include "orange/OrangeParams.hh"
 #include "orange/OrangeInput.hh"
+#include "orange/OrangeParams.hh"
 #include "orange/surf/Sphere.hh"
 
 class G4VSolid;

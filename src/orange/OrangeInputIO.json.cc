@@ -25,11 +25,11 @@
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/BoundingBoxIO.json.hh"
-#include "OrangeTypes.hh"
-#include "surf/SurfaceTypeTraits.hh"
 
 #include "OrangeInput.hh"
+#include "OrangeTypes.hh"
 #include "detail/OrangeInputIOImpl.json.hh"
+#include "surf/SurfaceTypeTraits.hh"
 
 namespace celeritas
 {

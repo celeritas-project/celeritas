@@ -10,10 +10,10 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/Label.hh"
 #include "orange/OrangeTypes.hh"
-#include "../CsgTypes.hh"
-#include "LocalSurfaceInserter.hh"
 
 #include "CsgUnit.hh"
+#include "LocalSurfaceInserter.hh"
+#include "../CsgTypes.hh"
 
 namespace celeritas
 {

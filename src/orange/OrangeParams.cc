@@ -26,9 +26,9 @@
 #include "geocel/BoundingBox.hh"
 
 #include "OrangeData.hh"  // IWYU pragma: associated
+#include "OrangeInput.hh"
 #include "OrangeTypes.hh"
 #include "detail/DepthCalculator.hh"
-#include "OrangeInput.hh"
 #include "detail/RectArrayInserter.hh"
 #include "detail/UnitInserter.hh"
 #include "detail/UniverseInserter.hh"

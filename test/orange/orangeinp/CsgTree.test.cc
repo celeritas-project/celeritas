@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "orange/orangeinp/CsgTree.hh"
 
+#include "CsgTestUtils.hh"
 #include "celeritas_test.hh"
-#include "../CsgTestUtils.hh"
 
 using N = celeritas::csg::NodeId;
 using S = celeritas::LocalSurfaceId;

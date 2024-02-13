@@ -14,9 +14,10 @@
 #include "corecel/io/Label.hh"
 #include "geocel/BoundingBox.hh"
 #include "orange/OrangeTypes.hh"
+#include "orange/surf/VariantSurface.hh"
+
 #include "../CsgTree.hh"
 #include "../CsgTypes.hh"
-#include "orange/surf/VariantSurface.hh"
 
 namespace celeritas
 {
