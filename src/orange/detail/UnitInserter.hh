@@ -13,7 +13,7 @@
 
 #include "BIHBuilder.hh"
 #include "SurfacesRecordBuilder.hh"
-#include "TransformInserter.hh"
+#include "TransformRecordInserter.hh"
 #include "../OrangeData.hh"
 #include "../OrangeTypes.hh"
 #include "../construct/OrangeInput.hh"
@@ -47,7 +47,7 @@ class UnitInserter
   private:
     Data* orange_data_{nullptr};
     BIHBuilder build_bih_tree_;
-    TransformInserter insert_transform_;
+    TransformRecordInserter insert_transform_;
     SurfacesRecordBuilder build_surfaces_;
     UniverseInserter* insert_universe_;
 
