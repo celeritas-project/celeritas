@@ -300,6 +300,7 @@ celeritas_add_object_library(testcel_celeritas_core
   celeritas/global/StepperTestBase.cc
   celeritas/grid/CalculatorTestBase.cc
   celeritas/io/EventIOTestBase.cc
+  celeritas/optical/OpticalTestBase.cc
   celeritas/phys/InteractionIO.cc
   celeritas/phys/InteractorHostTestBase.cc
   celeritas/phys/MockModel.cc
