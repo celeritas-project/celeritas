@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/detail/BIHBuilder.hh
+//! \todo move to orangeinp/BihBuilder
 //---------------------------------------------------------------------------//
 #pragma once
 
