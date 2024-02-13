@@ -15,7 +15,7 @@
 #include "corecel/data/Collection.hh"
 
 #include "UniverseInserter.hh"
-#include "../construct/OrangeInput.hh"
+#include "../OrangeInput.hh"
 
 namespace celeritas
 {

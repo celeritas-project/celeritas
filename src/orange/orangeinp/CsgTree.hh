@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/construct/CsgTree.hh
+//! \file orange/orangeinp/CsgTree.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -18,6 +18,8 @@
 #include "CsgTypes.hh"
 
 namespace celeritas
+{
+namespace orangeinp
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -45,8 +47,8 @@ class CsgTree
   public:
     //!@{
     //! \name Type aliases
-    using Node = csg::Node;
-    using NodeId = csg::NodeId;
+    using Node = orangeinp::Node;
+    using NodeId = orangeinp::NodeId;
     using size_type = NodeId::size_type;
     //!@}
 
@@ -104,7 +106,7 @@ std::ostream& operator<<(std::ostream& os, CsgTree const&);
  */
 auto CsgTree::insert(LocalSurfaceId s) -> NodeId
 {
-    return this->insert(csg::Surface{s});
+    return this->insert(orangeinp::Surface{s});
 }
 
 //---------------------------------------------------------------------------//
@@ -118,4 +120,5 @@ auto CsgTree::operator[](NodeId node_id) const -> Node const&
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace orangeinp
 }  // namespace celeritas

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/construct/detail/OrangeInputIOImpl.json.cc
+//! \file orange/detail/OrangeInputIOImpl.json.cc
 //---------------------------------------------------------------------------//
 #include "OrangeInputIOImpl.json.hh"
 

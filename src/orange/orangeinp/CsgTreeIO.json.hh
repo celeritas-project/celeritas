@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/construct/CsgTreeIO.json.hh
+//! \file orange/orangeinp/CsgTreeIO.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,9 +13,12 @@
 
 namespace celeritas
 {
+namespace orangeinp
+{
 //---------------------------------------------------------------------------//
 
 void to_json(nlohmann::json& j, CsgTree const& tree);
 
 //---------------------------------------------------------------------------//
+}  // namespace orangeinp
 }  // namespace celeritas

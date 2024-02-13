@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/construct/detail/NodeSimplifier.cc
+//! \file orange/orangeinp/detail/NodeSimplifier.cc
 //---------------------------------------------------------------------------//
 #include "NodeSimplifier.hh"
 
@@ -14,7 +14,7 @@
 
 namespace celeritas
 {
-namespace csg
+namespace orangeinp
 {
 namespace
 {
@@ -160,5 +160,5 @@ auto NodeSimplifier::operator()(Joined& j) const -> Node
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace csg
+}  // namespace orangeinp
 }  // namespace celeritas

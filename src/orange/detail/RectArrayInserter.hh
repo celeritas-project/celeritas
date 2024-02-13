@@ -11,10 +11,10 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
 
-#include "TransformInserter.hh"
+#include "TransformRecordInserter.hh"
 #include "../OrangeData.hh"
+#include "../OrangeInput.hh"
 #include "../OrangeTypes.hh"
-#include "../construct/OrangeInput.hh"
 
 namespace celeritas
 {
@@ -42,7 +42,7 @@ class RectArrayInserter
 
   private:
     Data* orange_data_{nullptr};
-    TransformInserter insert_transform_;
+    TransformRecordInserter insert_transform_;
     UniverseInserter* insert_universe_;
 
     CollectionBuilder<RectArrayRecord> rect_arrays_;

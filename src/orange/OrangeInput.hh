@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/construct/OrangeInput.hh
+//! \file orange/OrangeInput.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,10 +14,11 @@
 
 #include "corecel/io/Label.hh"
 #include "geocel/BoundingBox.hh"
-#include "orange/OrangeData.hh"
-#include "orange/OrangeTypes.hh"
-#include "orange/surf/VariantSurface.hh"
-#include "orange/transform/VariantTransform.hh"
+
+#include "OrangeData.hh"
+#include "OrangeTypes.hh"
+#include "surf/VariantSurface.hh"
+#include "transform/VariantTransform.hh"
 
 namespace celeritas
 {

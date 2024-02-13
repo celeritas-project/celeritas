@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/construct/CsgTreeIO.json.cc
+//! \file orange/orangeinp/CsgTreeIO.json.cc
 //---------------------------------------------------------------------------//
 #include "CsgTreeIO.json.hh"
 
@@ -16,26 +16,28 @@ using nlohmann::json;
 
 namespace celeritas
 {
+namespace orangeinp
+{
 namespace
 {
 //---------------------------------------------------------------------------//
 struct JsonConverter
 {
-    json operator()(csg::True const&) const { return "t"; }
-    json operator()(csg::False const&) const { return "f"; }
-    json operator()(csg::Aliased const& a) const
+    json operator()(orangeinp::True const&) const { return "t"; }
+    json operator()(orangeinp::False const&) const { return "f"; }
+    json operator()(orangeinp::Aliased const& a) const
     {
         return json::array({"=", a.node.unchecked_get()});
     }
-    json operator()(csg::Negated const& n) const
+    json operator()(orangeinp::Negated const& n) const
     {
         return json::array({"~", n.node.unchecked_get()});
     }
-    json operator()(csg::Surface const& s) const
+    json operator()(orangeinp::Surface const& s) const
     {
         return json::array({"S", s.id.unchecked_get()});
     }
-    json operator()(csg::Joined const& j) const
+    json operator()(orangeinp::Joined const& j) const
     {
         auto nodes = json::array();
         for (auto n : j.nodes)
@@ -62,4 +64,5 @@ void to_json(json& j, CsgTree const& tree)
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace orangeinp
 }  // namespace celeritas
