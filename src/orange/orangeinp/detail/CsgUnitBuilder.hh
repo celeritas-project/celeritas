@@ -10,8 +10,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/Label.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/construct/CsgTypes.hh"
-#include "orange/construct/detail/LocalSurfaceInserter.hh"
+#include "../CsgTypes.hh"
+#include "LocalSurfaceInserter.hh"
 
 #include "CsgUnit.hh"
 

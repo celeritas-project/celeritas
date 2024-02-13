@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/construct/CsgTreeUtils.hh
+//! \file orange/orangeinp/CsgTreeUtils.hh
 //! \brief Free functions to apply to a CSG tree
 //---------------------------------------------------------------------------//
 #pragma once

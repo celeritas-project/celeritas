@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file orange/construct/LocalSurfaceInserter.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/construct/detail/LocalSurfaceInserter.hh"
+#include "orange/orangeinp/detail/LocalSurfaceInserter.hh"
 
 #include <random>
 

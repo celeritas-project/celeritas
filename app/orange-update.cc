@@ -21,7 +21,7 @@
 #    include <fstream>
 #    include <nlohmann/json.hpp>
 
-#    include "orange/construct/OrangeInputIO.json.hh"
+#    include "orange/OrangeInputIO.json.hh"
 #endif
 
 namespace celeritas

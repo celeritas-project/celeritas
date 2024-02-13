@@ -5,9 +5,9 @@
 //---------------------------------------------------------------------------//
 //! \file orange/construct/CsgTreeUtils.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/construct/CsgTreeUtils.hh"
+#include "orange/orangeinp/CsgTreeUtils.hh"
 
-#include "orange/construct/CsgTree.hh"
+#include "orange/orangeinp/CsgTree.hh"
 
 #include "celeritas_test.hh"
 

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/construct/OrangeInputIO.json.cc
+//! \file orange/OrangeInputIO.json.cc
 //---------------------------------------------------------------------------//
 #include "OrangeInputIO.json.hh"
 
@@ -25,8 +25,8 @@
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/BoundingBoxIO.json.hh"
-#include "orange/OrangeTypes.hh"
-#include "orange/surf/SurfaceTypeTraits.hh"
+#include "OrangeTypes.hh"
+#include "surf/SurfaceTypeTraits.hh"
 
 #include "OrangeInput.hh"
 #include "detail/OrangeInputIOImpl.json.hh"

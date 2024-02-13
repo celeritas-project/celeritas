@@ -13,7 +13,7 @@
 #include "celeritas_config.h"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Repr.hh"
-#include "orange/construct/CsgTree.hh"
+#include "orange/orangeinp/CsgTree.hh"
 #include "orange/orangeinp/detail/CsgUnit.hh"
 #include "orange/surf/SurfaceIO.hh"
 #include "orange/transform/TransformIO.hh"
@@ -21,7 +21,7 @@
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 
-#    include "orange/construct/CsgTreeIO.json.hh"
+#    include "orange/orangeinp/CsgTreeIO.json.hh"
 #endif
 
 namespace celeritas

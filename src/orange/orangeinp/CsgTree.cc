@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/construct/CsgTree.cc
+//! \file orange/orangeinp/CsgTree.cc
 //---------------------------------------------------------------------------//
 #include "CsgTree.hh"
 

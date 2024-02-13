@@ -16,7 +16,7 @@
 #include "TransformRecordInserter.hh"
 #include "../OrangeData.hh"
 #include "../OrangeTypes.hh"
-#include "../construct/OrangeInput.hh"
+#include "../OrangeInput.hh"
 
 namespace celeritas
 {

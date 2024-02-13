@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/construct/detail/NodeSimplifier.hh
+//! \file orange/orangeinp/detail/NodeSimplifier.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

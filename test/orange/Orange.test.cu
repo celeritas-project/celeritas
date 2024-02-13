@@ -10,4 +10,4 @@
 #include "orange/OrangeParams.hh"
 #include "orange/OrangeTrackView.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/construct/OrangeInput.hh"
+#include "orange/OrangeInput.hh"

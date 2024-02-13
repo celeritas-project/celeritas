@@ -19,7 +19,7 @@
 #include "orange/OrangeData.hh"
 #include "orange/OrangeGeoTestBase.hh"
 #include "orange/OrangeParams.hh"
-#include "orange/construct/OrangeInput.hh"
+#include "orange/OrangeInput.hh"
 #include "orange/surf/SurfaceIO.hh"
 #include "orange/surf/VariantSurface.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
