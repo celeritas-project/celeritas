@@ -214,6 +214,7 @@ CMake configuration utility functions for Celeritas.
 include_guard(GLOBAL)
 
 include(CheckLanguage)
+include(CudaRdcUtils)
 
 set(CELERITAS_DEFAULT_VARIABLES)
 
