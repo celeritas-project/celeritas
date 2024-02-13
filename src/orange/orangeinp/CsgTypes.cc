@@ -14,7 +14,7 @@
 
 namespace celeritas
 {
-namespace csg
+namespace orangeinp
 {
 //---------------------------------------------------------------------------//
 //!@{
@@ -81,5 +81,5 @@ std::string to_string(Node const& n)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace csg
+}  // namespace orangeinp
 }  // namespace celeritas

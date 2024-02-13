@@ -14,7 +14,7 @@
 
 namespace celeritas
 {
-namespace csg
+namespace orangeinp
 {
 namespace
 {
@@ -160,5 +160,5 @@ auto NodeSimplifier::operator()(Joined& j) const -> Node
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace csg
+}  // namespace orangeinp
 }  // namespace celeritas

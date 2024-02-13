@@ -17,9 +17,9 @@
 #include "detail/NodeReplacementInserter.hh"
 #include "detail/PostfixLogicBuilder.hh"
 
-using namespace celeritas::csg;
-
 namespace celeritas
+{
+namespace orangeinp
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -107,11 +107,11 @@ void simplify(CsgTree* tree, NodeId start)
  * Convert a node to postfix notation.
  */
 std::vector<LocalSurfaceId::size_type>
-build_postfix(CsgTree const& tree, csg::NodeId n)
+build_postfix(CsgTree const& tree, orangeinp::NodeId n)
 {
     CELER_EXPECT(n < tree.size());
     std::vector<LocalSurfaceId::size_type> result;
-    csg::PostfixLogicBuilder build_logic{tree, &result};
+    orangeinp::PostfixLogicBuilder build_logic{tree, &result};
 
     build_logic(n);
     return result;
@@ -141,4 +141,5 @@ std::vector<LocalSurfaceId> calc_surfaces(CsgTree const& tree)
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace orangeinp
 }  // namespace celeritas

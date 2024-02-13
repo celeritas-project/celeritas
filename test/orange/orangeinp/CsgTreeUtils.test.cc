@@ -11,11 +11,12 @@
 
 #include "celeritas_test.hh"
 
-using namespace celeritas::csg;
-using N = celeritas::csg::NodeId;
+using N = celeritas::orangeinp::NodeId;
 using S = celeritas::LocalSurfaceId;
 
 namespace celeritas
+{
+namespace orangeinp
 {
 namespace test
 {
@@ -224,4 +225,5 @@ TEST_F(CsgTreeUtilsTest, calc_surfaces)
 
 //---------------------------------------------------------------------------//
 }  // namespace test
+}  // namespace orangeinp
 }  // namespace celeritas

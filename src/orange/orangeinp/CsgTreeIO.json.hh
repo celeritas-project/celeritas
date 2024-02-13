@@ -13,9 +13,12 @@
 
 namespace celeritas
 {
+namespace orangeinp
+{
 //---------------------------------------------------------------------------//
 
 void to_json(nlohmann::json& j, CsgTree const& tree);
 
 //---------------------------------------------------------------------------//
+}  // namespace orangeinp
 }  // namespace celeritas

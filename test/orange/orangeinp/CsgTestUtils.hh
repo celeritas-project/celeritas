@@ -13,6 +13,8 @@
 
 namespace celeritas
 {
+namespace orangeinp
+{
 class CsgTree;
 
 namespace test
@@ -23,8 +25,6 @@ std::string to_json_string(CsgTree const&);
 //---------------------------------------------------------------------------//
 }  // namespace test
 
-namespace orangeinp
-{
 namespace detail
 {
 struct CsgUnit;

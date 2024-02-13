@@ -13,9 +13,8 @@
 
 #include "celeritas_test.hh"
 
-using N = celeritas::csg::NodeId;
+using N = celeritas::orangeinp::NodeId;
 using V = celeritas::LocalVolumeId;
-using namespace celeritas::csg;
 
 namespace celeritas
 {

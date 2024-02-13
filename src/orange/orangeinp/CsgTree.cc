@@ -16,9 +16,9 @@
 
 #include "detail/NodeSimplifier.hh"
 
-using namespace celeritas::csg;
-
 namespace celeritas
+{
+namespace orangeinp
 {
 namespace
 {
@@ -28,24 +28,24 @@ struct IsUserNodeValid
 {
     size_type max_id{};
 
-    bool operator()(csg::True const&) const { return true; }
-    bool operator()(csg::False const&) const { return true; }
-    bool operator()(csg::Aliased const&) const { return true; }
-    bool operator()(csg::Negated const& n) const
+    bool operator()(orangeinp::True const&) const { return true; }
+    bool operator()(orangeinp::False const&) const { return true; }
+    bool operator()(orangeinp::Aliased const&) const { return true; }
+    bool operator()(orangeinp::Negated const& n) const
     {
         return (n.node < this->max_id);
     }
-    bool operator()(csg::Surface const& s) const
+    bool operator()(orangeinp::Surface const& s) const
     {
         return static_cast<bool>(s.id);
     }
-    bool operator()(csg::Joined const& j) const
+    bool operator()(orangeinp::Joined const& j) const
     {
-        return ((j.op == csg::op_and) || (j.op == csg::op_or))
+        return ((j.op == orangeinp::op_and) || (j.op == orangeinp::op_or))
                && std::all_of(
-                   j.nodes.begin(), j.nodes.end(), [this](csg::NodeId n) {
-                       return n < this->max_id;
-                   });
+                   j.nodes.begin(),
+                   j.nodes.end(),
+                   [this](orangeinp::NodeId n) { return n < this->max_id; });
     }
 };
 
@@ -57,11 +57,11 @@ struct IsUserNodeValid
  * Insert true and 'negated true', and define equivalence operations.
  */
 CsgTree::CsgTree()
-    : nodes_{csg::True{}, csg::Negated{true_node_id()}}
-    , ids_{{Node{std::in_place_type<csg::True>}, true_node_id()},
-           {Node{std::in_place_type<csg::False>}, false_node_id()},
-           {csg::Negated{true_node_id()}, false_node_id()},
-           {csg::Negated{false_node_id()}, true_node_id()}}
+    : nodes_{orangeinp::True{}, orangeinp::Negated{true_node_id()}}
+    , ids_{{Node{std::in_place_type<orangeinp::True>}, true_node_id()},
+           {Node{std::in_place_type<orangeinp::False>}, false_node_id()},
+           {orangeinp::Negated{true_node_id()}, false_node_id()},
+           {orangeinp::Negated{false_node_id()}, true_node_id()}}
 {
 }
 
@@ -82,7 +82,7 @@ auto CsgTree::insert(Node&& n) -> NodeId
         if (repl != Node{NodeSimplifier::no_simplification()})
         {
             n = std::move(repl);
-            if (auto* a = std::get_if<csg::Aliased>(&n))
+            if (auto* a = std::get_if<orangeinp::Aliased>(&n))
             {
                 // Simplified to an aliased node
                 return a->node;
@@ -118,9 +118,9 @@ auto CsgTree::exchange(NodeId node_id, Node&& n) -> Node
         n = std::move(repl);
     }
 
-    if (auto* a = std::get_if<csg::Aliased>(&n))
+    if (auto* a = std::get_if<orangeinp::Aliased>(&n))
     {
-        return std::exchange(this->at(node_id), csg::Aliased{a->node});
+        return std::exchange(this->at(node_id), orangeinp::Aliased{a->node});
     }
 
     // Add the node to the map of deduplicated nodes
@@ -147,7 +147,7 @@ auto CsgTree::exchange(NodeId node_id, Node&& n) -> Node
 
     // Replace the more complex definition with an alias to a lower ID
     CELER_ASSERT(iter->second < node_id);
-    return std::exchange(this->at(node_id), csg::Aliased{iter->second});
+    return std::exchange(this->at(node_id), orangeinp::Aliased{iter->second});
 }
 
 //---------------------------------------------------------------------------//
@@ -179,7 +179,7 @@ auto CsgTree::at(NodeId node_id) -> Node&
 std::ostream& operator<<(std::ostream& os, CsgTree const& tree)
 {
     os << '{';
-    for (auto n : range(csg::NodeId(tree.size())))
+    for (auto n : range(orangeinp::NodeId(tree.size())))
     {
         os << n.unchecked_get() << ": " << tree[n] << ", ";
     }
@@ -188,4 +188,5 @@ std::ostream& operator<<(std::ostream& os, CsgTree const& tree)
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace orangeinp
 }  // namespace celeritas

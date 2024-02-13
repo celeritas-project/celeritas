@@ -14,7 +14,7 @@
 
 namespace celeritas
 {
-namespace csg
+namespace orangeinp
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -156,5 +156,5 @@ void PostfixLogicBuilder::operator()(Joined const& n)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace csg
+}  // namespace orangeinp
 }  // namespace celeritas

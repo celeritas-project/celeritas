@@ -14,7 +14,7 @@
 
 namespace celeritas
 {
-namespace csg
+namespace orangeinp
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -58,5 +58,5 @@ class NodeSimplifier
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace csg
+}  // namespace orangeinp
 }  // namespace celeritas

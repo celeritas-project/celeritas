@@ -36,7 +36,6 @@ class CsgUnitBuilder
     //! \name Type aliases
     using Tol = Tolerance<>;
     using Metadata = CsgUnit::Metadata;
-    using NodeId = CsgUnit::NodeId;
     using BBox = CsgUnit::BBox;
     //!@}
 

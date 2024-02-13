@@ -19,7 +19,7 @@
 
 namespace celeritas
 {
-namespace csg
+namespace orangeinp
 {
 //---------------------------------------------------------------------------//
 //! Operator token
@@ -136,7 +136,7 @@ inline constexpr bool is_boolean_node(Node const& n)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace csg
+}  // namespace orangeinp
 }  // namespace celeritas
 
 namespace std
@@ -146,9 +146,9 @@ namespace std
 //---------------------------------------------------------------------------//
 //! \cond
 template<>
-struct hash<celeritas::csg::True>
+struct hash<celeritas::orangeinp::True>
 {
-    using argument_type = celeritas::csg::True;
+    using argument_type = celeritas::orangeinp::True;
     using result_type = std::size_t;
     result_type operator()(argument_type const&) const noexcept
     {
@@ -157,9 +157,9 @@ struct hash<celeritas::csg::True>
 };
 
 template<>
-struct hash<celeritas::csg::False>
+struct hash<celeritas::orangeinp::False>
 {
-    using argument_type = celeritas::csg::False;
+    using argument_type = celeritas::orangeinp::False;
     using result_type = std::size_t;
     result_type operator()(argument_type const&) const noexcept
     {
@@ -168,31 +168,31 @@ struct hash<celeritas::csg::False>
 };
 
 template<>
-struct hash<celeritas::csg::Aliased>
+struct hash<celeritas::orangeinp::Aliased>
 {
-    using argument_type = celeritas::csg::Aliased;
+    using argument_type = celeritas::orangeinp::Aliased;
     using result_type = std::size_t;
     result_type operator()(argument_type const& val) const noexcept
     {
-        return std::hash<celeritas::csg::NodeId>{}(val.node);
+        return std::hash<celeritas::orangeinp::NodeId>{}(val.node);
     }
 };
 
 template<>
-struct hash<celeritas::csg::Negated>
+struct hash<celeritas::orangeinp::Negated>
 {
-    using argument_type = celeritas::csg::Negated;
+    using argument_type = celeritas::orangeinp::Negated;
     using result_type = std::size_t;
     result_type operator()(argument_type const& val) const noexcept
     {
-        return std::hash<celeritas::csg::NodeId>{}(val.node);
+        return std::hash<celeritas::orangeinp::NodeId>{}(val.node);
     }
 };
 
 template<>
-struct hash<celeritas::csg::Surface>
+struct hash<celeritas::orangeinp::Surface>
 {
-    using argument_type = celeritas::csg::Surface;
+    using argument_type = celeritas::orangeinp::Surface;
     using result_type = std::size_t;
     result_type operator()(argument_type const& val) const noexcept
     {
@@ -201,9 +201,9 @@ struct hash<celeritas::csg::Surface>
 };
 
 template<>
-struct hash<celeritas::csg::Joined>
+struct hash<celeritas::orangeinp::Joined>
 {
-    using argument_type = celeritas::csg::Joined;
+    using argument_type = celeritas::orangeinp::Joined;
     using result_type = std::size_t;
     result_type operator()(argument_type const& val) const noexcept
     {
@@ -213,7 +213,7 @@ struct hash<celeritas::csg::Joined>
         hash(val.nodes.size());
         for (auto& v : val.nodes)
         {
-            hash(std::hash<celeritas::csg::NodeId>{}(v));
+            hash(std::hash<celeritas::orangeinp::NodeId>{}(v));
         }
         return result;
     }

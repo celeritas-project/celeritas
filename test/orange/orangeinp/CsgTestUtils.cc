@@ -26,6 +26,8 @@
 
 namespace celeritas
 {
+namespace orangeinp
+{
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -43,8 +45,6 @@ std::string to_json_string(CsgTree const& tree)
 //---------------------------------------------------------------------------//
 }  // namespace test
 
-namespace orangeinp
-{
 namespace detail
 {
 namespace test
@@ -70,7 +70,7 @@ std::vector<std::string> surface_strings(CsgUnit const& u)
 //---------------------------------------------------------------------------//
 std::string tree_string(CsgUnit const& u)
 {
-    return ::celeritas::test::to_json_string(u.tree);
+    return ::celeritas::orangeinp::test::to_json_string(u.tree);
 }
 
 //---------------------------------------------------------------------------//
