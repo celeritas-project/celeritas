@@ -5,9 +5,9 @@
 #-----------------------------------------------------------------------------#
 
 celeritas_add_library(testcel_orange
-  CsgTestUtils.cc
   OrangeGeoTestBase.cc
   OrangeTestBase.cc
+  orangeinp/CsgTestUtils.cc
 )
 celeritas_target_link_libraries(testcel_orange
   PUBLIC
@@ -48,6 +48,16 @@ celeritas_add_test(detail/BIHUtils.test.cc)
 celeritas_add_test(detail/UniverseIndexer.test.cc)
 
 #-----------------------------------------------------------------------------#
+# Input construction
+set(CELERITASTEST_PREFIX orangeinp)
+celeritas_add_test(orangeinp/CsgTree.test.cc)
+celeritas_add_test(orangeinp/CsgTreeUtils.test.cc)
+
+celeritas_add_test(orangeinp/detail/BoundingZone.test.cc)
+celeritas_add_test(orangeinp/detail/CsgUnitBuilder.test.cc)
+celeritas_add_test(orangeinp/detail/LocalSurfaceInserter.test.cc)
+
+#-----------------------------------------------------------------------------#
 # Transforms
 set(CELERITASTEST_PREFIX transform)
 celeritas_add_test(transform/SignedPermutation.test.cc)
@@ -78,17 +88,6 @@ celeritas_add_device_test(surf/LocalSurfaceVisitor)
 celeritas_add_test(surf/detail/QuadraticSolver.test.cc)
 celeritas_add_test(surf/detail/SurfaceTranslator.test.cc)
 celeritas_add_test(surf/detail/SurfaceTransformer.test.cc)
-
-#-----------------------------------------------------------------------------#
-# Construct
-set(CELERITASTEST_PREFIX construct)
-celeritas_add_test(construct/CsgTree.test.cc)
-celeritas_add_test(construct/CsgTreeUtils.test.cc)
-celeritas_add_test(construct/LocalSurfaceInserter.test.cc)
-
-set(CELERITASTEST_PREFIX orangeinp)
-celeritas_add_test(orangeinp/detail/BoundingZone.test.cc)
-celeritas_add_test(orangeinp/detail/CsgUnitBuilder.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Universe details
