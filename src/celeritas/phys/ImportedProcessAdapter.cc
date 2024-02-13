@@ -20,8 +20,8 @@
 #include "celeritas/grid/ValueGridData.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
-#include "celeritas/phys/Applicability.hh"
 
+#include "Applicability.hh"
 #include "PDGNumber.hh"
 #include "ParticleParams.hh"  // IWYU pragma: keep
 

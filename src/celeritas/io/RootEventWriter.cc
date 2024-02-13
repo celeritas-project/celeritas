@@ -15,7 +15,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
-#include "orange/Types.hh"
+#include "geocel/Types.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 

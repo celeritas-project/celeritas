@@ -14,8 +14,9 @@
 #include "corecel/Types.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Environment.hh"
-#include "celeritas/io/ImportLivermorePE.hh"
-#include "celeritas/io/ImportPhysicsVector.hh"
+
+#include "ImportLivermorePE.hh"
+#include "ImportPhysicsVector.hh"
 
 namespace celeritas
 {

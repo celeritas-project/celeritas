@@ -8,7 +8,7 @@
 #pragma once
 
 #include "corecel/data/Collection.hh"
-#include "orange/Types.hh"
+#include "geocel/Types.hh"
 #include "celeritas/Types.hh"
 
 namespace celeritas

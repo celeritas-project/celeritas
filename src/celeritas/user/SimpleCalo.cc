@@ -16,7 +16,7 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/Logger.hh"
-#include "orange/GeoParamsInterface.hh"  // IWYU pragma: keep
+#include "geocel/GeoParamsInterface.hh"  // IWYU pragma: keep
 
 #include "detail/SimpleCaloImpl.hh"
 

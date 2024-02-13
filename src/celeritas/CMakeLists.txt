@@ -6,7 +6,7 @@
 
 set(SOURCES)
 set(PRIVATE_DEPS Celeritas::DeviceToolkit)
-set(PUBLIC_DEPS Celeritas::corecel)
+set(PUBLIC_DEPS Celeritas::corecel Celeritas::geocel)
 
 #-----------------------------------------------------------------------------#
 # Main code
@@ -30,7 +30,6 @@ list(APPEND SOURCES
   field/FieldDriverOptions.cc
   field/RZMapFieldParams.cc
   geo/GeoMaterialParams.cc
-  geo/GeoParamsOutput.cc
   global/ActionInterface.cc
   global/ActionRegistry.cc
   global/ActionRegistryOutput.cc
@@ -46,13 +45,16 @@ list(APPEND SOURCES
   grid/ValueGridInserter.cc
   grid/VectorUtils.cc
   io/AtomicRelaxationReader.cc
+  io/ImportData.cc
   io/ImportMaterial.cc
   io/ImportModel.cc
   io/ImportPhysicsTable.cc
   io/ImportPhysicsVector.cc
   io/ImportProcess.cc
+  io/ImportUnits.cc
   io/LivermorePEReader.cc
   io/SeltzerBergerReader.cc
+  io/detail/ImportDataConverter.cc
   mat/MaterialParams.cc
   mat/MaterialParamsOutput.cc
   mat/detail/Utils.cc
@@ -84,9 +86,6 @@ list(APPEND SOURCES
   user/StepCollector.cc
 )
 
-# Bounding box used for output is in "orange"
-list(APPEND PUBLIC_DEPS Celeritas::orange)
-
 #-----------------------------------------------------------------------------#
 # Configuration-dependent code
 #-----------------------------------------------------------------------------#
@@ -102,38 +101,16 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   )
 endif()
 
-if(CELERITAS_USE_VecGeom AND CELERITAS_USE_Geant4)
-  set( _cg4vg_sources
-    ext/g4vg/Converter.cc
-    ext/g4vg/LogicalVolumeConverter.cc
-    ext/g4vg/SolidConverter.cc
-  )
-  set(_cg4vg_libs Celeritas::corecel VecGeom::vecgeom ${Geant4_LIBRARIES})
-
-  celeritas_add_object_library(celeritas_g4vg ${_cg4vg_sources})
-  celeritas_target_link_libraries(celeritas_g4vg PRIVATE ${_cg4vg_libs})
-
-  list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_g4vg>)
-  list(APPEND PRIVATE_DEPS celeritas_g4vg)
-endif()
-
 if(CELERITAS_USE_Geant4)
   set(_cg4_sources
-    ext/GeantGeoParams.cc
-    ext/GeantGeoUtils.cc
     ext/GeantImporter.cc
     ext/GeantSetup.cc
-    ext/GeantUtils.cc
     ext/GeantVolumeMapper.cc
-    ext/ScopedGeantExceptionHandler.cc
-    ext/ScopedGeantLogger.cc
     ext/detail/GeantBremsstrahlungProcess.cc
-    ext/detail/GeantGeoNavCollection.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
     ext/detail/GeantPhysicsList.cc
     ext/detail/GeantProcessImporter.cc
-    ext/detail/GeantVolumeVisitor.cc
   )
   set(_cg4_libs Celeritas::corecel XercesC::XercesC ${Geant4_LIBRARIES})
 
@@ -195,6 +172,7 @@ if(CELERITAS_USE_ROOT)
     "celeritas/io/ImportPhysicsTable.hh"
     "celeritas/io/ImportPhysicsVector.hh"
     "celeritas/io/ImportProcess.hh"
+    "celeritas/io/ImportUnits.hh"
     "celeritas/io/ImportVolume.hh"
     "celeritas/io/EventData.hh"
     NOINSTALL
@@ -233,38 +211,18 @@ if(CELERITAS_USE_ROOT)
   list(APPEND PRIVATE_DEPS celeritas_root)
 endif()
 
-if(CELERITAS_USE_VecGeom)
-  list(APPEND SOURCES
-    ext/VecgeomParams.cc
-    ext/VecgeomParamsOutput.cc
-    ext/detail/VecgeomNavCollection.cc
-  )
-  if(VecGeom_GDML_FOUND)
-    list(APPEND PRIVATE_DEPS VecGeom::vgdml)
-  endif()
-  if(VecGeom_CUDA_FOUND AND VecGeom_SURF_FOUND)
-    # Special routines needed for surface
-    list(APPEND SOURCES
-      ext/VecgeomParams.surface.cu
-    )
-  endif()
-  if(CELERITAS_USE_CUDA)
-    # This needs to be public because its might be needed
-    # to resolve the symbols generate by the `nvcc -dlink` of
-    # one of the executable.
-    list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
-  elseif(VecGeom_CUDA_FOUND)
-    # VecGeom is built with CUDA but Celeritas is not
-    list(APPEND PRIVATE_DEPS VecGeom::vecgeomcuda)
-  endif()
-endif()
-
+# Core data has transient includes
 if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
-  # Core data has transient includes into vecgeom
   list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
+elseif(CELERITAS_CORE_GEO STREQUAL "ORANGE")
+  list(APPEND PUBLIC_DEPS Celeritas::orange)
 elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
  list(APPEND PUBLIC_DEPS ${Geant4_LIBRARIES})
 endif()
+
+#-----------------------------------------------------------------------------#
+# Optional CUDA code
+#-----------------------------------------------------------------------------#
 
 macro(celeritas_polysource filename_we)
   list(APPEND SOURCES "${filename_we}.cc")
@@ -272,10 +230,6 @@ macro(celeritas_polysource filename_we)
     list(APPEND SOURCES "${filename_we}.cu")
   endif()
 endmacro()
-
-#-----------------------------------------------------------------------------#
-# Optional CUDA code
-#-----------------------------------------------------------------------------#
 
 celeritas_polysource(em/model/BetheHeitlerModel)
 celeritas_polysource(em/model/CombinedBremModel)
@@ -307,18 +261,6 @@ celeritas_polysource(user/DetectorSteps)
 celeritas_polysource(user/StepDiagnostic)
 celeritas_polysource(user/detail/SimpleCaloImpl)
 celeritas_polysource(user/detail/StepGatherAction)
-
-#-----------------------------------------------------------------------------#
-# Auto-generated code
-#-----------------------------------------------------------------------------#
-
-# Generate model executor and track initialization code for host/device
-macro(celeritas_gen_interactor class func)
-  celeritas_gen(SOURCES
-    "gen-interactor.py" "em/generated/${class}Interact"
-    --class ${class}  --func ${func}
-  )
-endmacro()
 
 #-----------------------------------------------------------------------------#
 # Create library

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/Interpolator.test.cc
+//! \file corecel/grid/Interpolator.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/grid/Interpolator.hh"
 

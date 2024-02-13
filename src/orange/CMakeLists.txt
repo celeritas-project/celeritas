@@ -5,7 +5,7 @@
 #-----------------------------------------------------------------------------#
 
 set(SOURCES)
-set(PRIVATE_DEPS)
+set(PRIVATE_DEPS Celeritas::geocel)
 set(PUBLIC_DEPS Celeritas::corecel)
 
 #-----------------------------------------------------------------------------#
@@ -30,6 +30,7 @@ list(APPEND SOURCES
   detail/SurfacesRecordBuilder.cc
   detail/UnitInserter.cc
   detail/UniverseInserter.cc
+  orangeinp/detail/BoundingZone.cc
   orangeinp/detail/CsgUnitBuilder.cc
   surf/ConeAligned.cc
   surf/CylAligned.cc
@@ -40,10 +41,10 @@ list(APPEND SOURCES
   surf/SimpleQuadric.cc
   surf/Sphere.cc
   surf/SoftSurfaceEqual.cc
+  surf/SurfaceClipper.cc
   surf/SurfaceIO.cc
   surf/SurfaceSimplifier.cc
   surf/VariantSurface.cc
-  surf/detail/SurfaceClipperImpl.cc
   surf/detail/SurfaceTranslator.cc
   surf/detail/SurfaceTransformer.cc
   transform/SignedPermutation.cc
@@ -54,7 +55,6 @@ list(APPEND SOURCES
 
 if(CELERITAS_USE_JSON)
   list(APPEND SOURCES
-    BoundingBoxIO.json.cc
     construct/CsgTreeIO.json.cc
     construct/OrangeInputIO.json.cc
     construct/detail/OrangeInputIOImpl.json.cc

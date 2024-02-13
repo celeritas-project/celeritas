@@ -9,9 +9,9 @@
 
 #include "corecel/cont/Span.hh"
 #include "corecel/math/ArrayOperators.hh"
+#include "geocel/Types.hh"
 #include "orange/MatrixUtils.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/Types.hh"
 
 namespace celeritas
 {

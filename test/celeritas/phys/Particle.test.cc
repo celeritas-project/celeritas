@@ -91,7 +91,7 @@ TEST_F(ParticleTest, TEST_IF_CELERITAS_DOUBLE(output))
     ParticleParamsOutput out(this->particle_params);
     EXPECT_EQ("particle", out.label());
 
-    if (CELERITAS_USE_JSON)
+    if (CELERITAS_USE_JSON && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
         EXPECT_EQ(
             R"json({"_units":{"charge":"e","mass":"MeV/c^2"},"charge":[-1.0,0.0,0.0,1.0],"decay_constant":[0.0,0.0,0.0011371389583807142,0.0],"is_antiparticle":[false,false,false,true],"label":["electron","gamma","neutron","positron"],"mass":[0.5109989461,0.0,939.565413,0.5109989461],"pdg":[11,22,2112,-11]})json",
@@ -184,8 +184,8 @@ TEST_F(ParticleTestHost, electron)
     EXPECT_FALSE(particle.is_antiparticle());
     EXPECT_TRUE(particle.is_stable());
     EXPECT_SOFT_EQ(0.74453076757415848, particle.beta_sq());
-    EXPECT_SOFT_EQ(0.86286196322132447, particle.speed().value());
-    EXPECT_SOFT_EQ(25867950886.882648, native_value_from(particle.speed()));
+    EXPECT_SOFT_EQ(0.86286196322132447,
+                   value_as<units::LightSpeed>(particle.speed()));
     EXPECT_SOFT_EQ(1.9784755992474248, particle.lorentz_factor());
     EXPECT_SOFT_EQ(0.87235253544653601, particle.momentum().value());
     EXPECT_SOFT_EQ(0.7609989461, particle.momentum_sq().value());
@@ -235,7 +235,8 @@ TEST_F(ParticleTestHost, neutron)
     particle = Initializer_t{ParticleId{2}, MevEnergy{20}};
 
     EXPECT_REAL_EQ(20, particle.energy().value());
-    EXPECT_REAL_EQ(1.0 / 879.4, particle.decay_constant());
+    EXPECT_REAL_EQ(1.0 / 879.4 * (1 / units::second),
+                   particle.decay_constant());
     EXPECT_FALSE(particle.is_antiparticle());
     EXPECT_FALSE(particle.is_stable());
 }

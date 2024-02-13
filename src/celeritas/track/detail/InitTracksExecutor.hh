@@ -18,10 +18,10 @@
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
-#include "celeritas/track/CoreStateCounters.hh"
 
-#include "../SimTrackView.hh"
 #include "Utils.hh"
+#include "../CoreStateCounters.hh"
+#include "../SimTrackView.hh"
 
 #if !CELER_DEVICE_COMPILE
 #    include "corecel/cont/ArrayIO.hh"

@@ -1,0 +1,148 @@
+{
+"_format": "SCALE ORANGE",
+"_version": 0,
+"materials": {
+"cell_to_mat": [
+-1,
+0,
+1
+],
+"names": [
+"Pb",
+"vacuum"
+]
+},
+"universes": [
+{
+"_type": "simple unit",
+"bbox": [
+[
+-5000000000.0,
+-5000000000.0,
+-5000000000.0
+],
+[
+5000000000.0,
+5000000000.0,
+5000000000.0
+]
+],
+"cell_names": [
+"[EXTERIOR]",
+"box",
+"world"
+],
+"cells": [
+{
+"faces": [
+0,
+1,
+2,
+3,
+4,
+5
+],
+"flags": 1,
+"logic": "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ & ~",
+"num_intersections": 6,
+"zorder": 2
+},
+{
+"faces": [
+6,
+7,
+8,
+9,
+10,
+11
+],
+"logic": "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ &",
+"num_intersections": 6,
+"zorder": 2
+},
+{
+"faces": [
+0,
+1,
+2,
+3,
+4,
+5,
+6,
+7,
+8,
+9,
+10,
+11
+],
+"flags": 1,
+"logic": "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ & 6 7 ~ & 8 & 9 ~ & 10 & 11 ~ & ~ &",
+"num_intersections": 12,
+"zorder": 2
+}
+],
+"md": {
+"name": "global",
+"provenance": ""
+},
+"surface_names": [
+"world.mx",
+"world.px",
+"world.my",
+"world.py",
+"world.mz",
+"world.pz",
+"box.mx",
+"box.px",
+"box.my",
+"box.py",
+"box.mz",
+"box.pz"
+],
+"surfaces": {
+"data": [
+-5000000000.0,
+5000000000.0,
+-5000000000.0,
+5000000000.0,
+-5000000000.0,
+5000000000.0,
+-5000000000.0,
+5000000000.0,
+-5000000000.0,
+5000000000.0,
+-5000000000.0,
+5000000000.0
+],
+"sizes": [
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1
+],
+"types": [
+"px",
+"px",
+"py",
+"py",
+"pz",
+"pz",
+"px",
+"px",
+"py",
+"py",
+"pz",
+"pz"
+]
+}
+}
+]
+}

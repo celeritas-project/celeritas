@@ -15,8 +15,8 @@
 #include "celeritas/phys/PhysicsStepView.hh"
 #include "celeritas/phys/Secondary.hh"
 
-#include "../SimTrackView.hh"
 #include "Utils.hh"
+#include "../SimTrackView.hh"
 
 namespace celeritas
 {

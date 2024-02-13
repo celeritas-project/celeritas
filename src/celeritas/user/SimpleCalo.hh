@@ -16,9 +16,9 @@
 #include "corecel/io/Label.hh"
 #include "corecel/io/OutputInterface.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/user/StepInterface.hh"
 
 #include "SimpleCaloData.hh"
+#include "StepInterface.hh"
 
 namespace celeritas
 {

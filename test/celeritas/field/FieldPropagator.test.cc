@@ -17,20 +17,20 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "geocel/CheckedGeoTrackView.hh"
 #include "celeritas/Constants.hh"
+#include "celeritas/CoreGeoTestBase.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/UniformZField.hh"
-#include "celeritas/geo/CheckedGeoTrackView.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
-#include "../GenericGeoTestBase.hh"
 #include "CMSParameterizedField.hh"
 #include "DiagnosticStepper.hh"
 #include "FieldTestBase.hh"
@@ -51,17 +51,15 @@ using DiagnosticDPStepper = DiagnosticStepper<DormandPrinceStepper<E>>;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class FieldPropagatorTestBase : public GenericCoreGeoTestBase,
-                                public FieldTestBase
+class FieldPropagatorTestBase : public CoreGeoTestBase, public FieldTestBase
 {
-    using GCGBase = GenericCoreGeoTestBase;
+    using CGBase = CoreGeoTestBase;
     using FBase = FieldTestBase;
 
   public:
     //!@{
     //! \name Type aliases
-    using CGeoTrackView
-        = CheckedGeoTrackView<GenericCoreGeoTestBase::GeoTrackView>;
+    using CGeoTrackView = CheckedGeoTrackView<CoreGeoTestBase::GeoTrackView>;
     //!@}
 
   protected:
@@ -73,13 +71,13 @@ class FieldPropagatorTestBase : public GenericCoreGeoTestBase,
     //! Get a single-thread host track view
     CGeoTrackView make_geo_track_view()
     {
-        return CGeoTrackView{GCGBase::make_geo_track_view()};
+        return CGeoTrackView{CGBase::make_geo_track_view()};
     }
 
     //! Get and initialize a single-thread host track view
     CGeoTrackView make_geo_track_view(Real3 const& pos, Real3 dir)
     {
-        return CGeoTrackView{GCGBase::make_geo_track_view(pos, dir)};
+        return CGeoTrackView{CGBase::make_geo_track_view(pos, dir)};
     }
 
     SPConstParticle build_particle() const final;

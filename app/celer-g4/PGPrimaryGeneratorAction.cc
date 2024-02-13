@@ -12,8 +12,8 @@
 #include <G4ParticleTable.hh>
 
 #include "corecel/Macros.hh"
-#include "celeritas/ext/Convert.geant.hh"
-#include "celeritas/ext/GeantUtils.hh"
+#include "geocel/GeantUtils.hh"
+#include "geocel/g4/Convert.geant.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
 namespace celeritas
@@ -74,7 +74,7 @@ void PGPrimaryGeneratorAction::GeneratePrimaries(G4Event* event)
     {
         gun_.SetParticleDefinition(particle_def_[i % particle_def_.size()]);
         gun_.SetParticlePosition(
-            convert_to_geant(sample_pos_(rng_), CLHEP::cm));
+            convert_to_geant(sample_pos_(rng_), clhep_length));
         gun_.SetParticleMomentumDirection(
             convert_to_geant(sample_dir_(rng_), 1));
         gun_.SetParticleEnergy(

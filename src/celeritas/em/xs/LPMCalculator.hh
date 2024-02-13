@@ -16,10 +16,9 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/grid/PolyEvaluator.hh"
 #include "celeritas/mat/MaterialView.hh"
-
-#include "../interactor/detail/PhysicsConstants.hh"
 
 namespace celeritas
 {
@@ -62,7 +61,7 @@ class LPMCalculator
 
     // Current element
     ElementView const& element_;
-    // Electron density of the current material [1/cm^3]
+    // Electron density of the current material [1/len^3]
     real_type const electron_density_;
     // Characteristic energy for the LPM effect for this material [MeV]
     real_type const lpm_energy_;

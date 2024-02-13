@@ -17,6 +17,7 @@
 #include "celeritas/em/data/ElectronBremsData.hh"
 #include "celeritas/em/data/RelativisticBremData.hh"
 #include "celeritas/em/executor/RelativisticBremExecutor.hh"
+#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/TrackExecutor.hh"
@@ -26,8 +27,6 @@
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
-
-#include "../interactor/detail/PhysicsConstants.hh"
 
 namespace celeritas
 {

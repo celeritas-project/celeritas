@@ -23,9 +23,9 @@ namespace celeritas
  * \f[
  *  FF(E,cos)^2 = \Sigma_{j} \frac{a_j}{[1 + b_j x]^{n}}
  * \f]
- * where \f$ x= E^{2}(1-cos\theta) \f$ and \em n is the high energy slope of
- * the form factor and \em a and \em b are free parameters to obtain the best
- * fit to the form factor. The unit for the energy (\em E) is in MeV.
+ * where \f$ x = E^{2}(1 - \cos\theta) \f$ and \em n is the high energy slope
+ * of the form factor and \em a and \em b are free parameters to obtain the
+ * best fit to the form factor. The unit for the energy (\em E) is in MeV.
  */
 struct RayleighParameters
 {
@@ -79,8 +79,6 @@ struct RayleighData
     }
 };
 
-using RayleighDeviceRef = DeviceCRef<RayleighData>;
-using RayleighHostRef = HostCRef<RayleighData>;
 using RayleighRef = NativeCRef<RayleighData>;
-
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

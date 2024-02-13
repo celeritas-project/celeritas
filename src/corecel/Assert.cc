@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "Assert.hh"
 
-#include "corecel/Macros.hh"
+#include "Macros.hh"
 
 #if CELERITAS_USE_MPI
 #    include <mpi.h>

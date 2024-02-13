@@ -14,9 +14,10 @@
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
-#include "corecel/sys/Device.hh"
-#include "corecel/sys/Stream.hh"
-#include "corecel/sys/ThreadId.hh"
+
+#include "Device.hh"
+#include "Stream.hh"
+#include "ThreadId.hh"
 
 namespace celeritas
 {

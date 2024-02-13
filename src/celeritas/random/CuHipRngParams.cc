@@ -10,7 +10,8 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
-#include "celeritas/random/CuHipRngData.hh"
+
+#include "CuHipRngData.hh"
 
 namespace celeritas
 {

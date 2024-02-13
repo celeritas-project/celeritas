@@ -8,8 +8,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstdlib>  // IWYU pragma: keep
 #include <functional>
-#include <string>
+#include <string_view>
 
 namespace celeritas
 {
@@ -39,14 +40,17 @@ char const* to_color_code(LogLevel);
 
 //---------------------------------------------------------------------------//
 //! Stand-in for a more complex class for the "provenance" of data
-struct Provenance
+struct LogProvenance
 {
-    std::string file;  //!< Originating file
-    int line = 0;  //!< Line number
+    std::string_view file;  //!< Originating file
+    int line{0};  //!< Line number
 };
 
 //! Type for handling a log message
-using LogHandler = std::function<void(Provenance, LogLevel, std::string)>;
+using LogHandler = std::function<void(LogProvenance, LogLevel, std::string)>;
+
+// DEPRECATED: remove in v0.6
+using Provenance [[deprecated]] = LogProvenance;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -10,8 +10,9 @@
 #include <optional>
 
 #include "corecel/math/SoftEqual.hh"
-#include "orange/surf/Plane.hh"
-#include "orange/surf/PlaneAligned.hh"
+
+#include "../Plane.hh"
+#include "../PlaneAligned.hh"
 
 namespace celeritas
 {

@@ -27,9 +27,10 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
+#include "geocel/GeantUtils.hh"
+#include "geocel/g4/Convert.geant.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/ext/Convert.geant.hh"
-#include "celeritas/ext/GeantUtils.hh"
+#include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/global/detail/ActionSequence.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
@@ -156,9 +157,9 @@ void LocalTransporter::Push(G4Track const& g4track)
                    << g4track.GetDefinition()->GetParticleName()
                    << "' particles");
 
-    track.position = convert_from_geant(g4track.GetPosition(), CLHEP::cm);
+    track.position = convert_from_geant(g4track.GetPosition(), clhep_length);
     track.direction = convert_from_geant(g4track.GetMomentumDirection(), 1);
-    track.time = convert_from_geant(g4track.GetGlobalTime(), CLHEP::s);
+    track.time = convert_from_geant(g4track.GetGlobalTime(), clhep_time);
 
     // TODO: Celeritas track IDs are independent from Geant4 track IDs, since
     // they must be sequential from zero for a given event. We may need to save

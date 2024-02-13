@@ -29,44 +29,41 @@ class CoulombScatteringTest : public InteractorHostTestBase
   protected:
     void SetUp() override
     {
-        using namespace constants;
+        using namespace celeritas::units;
+        using constants::stable_decay_constant;
+
         // Need to include protons
         constexpr units::MevMass emass{0.5109989461};
-        ParticleParams::Input par_inp
-            = {{"electron",
-                pdg::electron(),
-                emass,
-                celeritas::units::ElementaryCharge{-1},
-                stable_decay_constant},
-               {"positron",
-                pdg::positron(),
-                emass,
-                celeritas::units::ElementaryCharge{1},
-                stable_decay_constant},
-               {"proton",
-                pdg::proton(),
-                units::MevMass{938.28},
-                celeritas::units::ElementaryCharge{1},
-                stable_decay_constant}};
+        ParticleParams::Input par_inp = {
+            {"electron",
+             pdg::electron(),
+             emass,
+             ElementaryCharge{-1},
+             stable_decay_constant},
+            {"positron",
+             pdg::positron(),
+             emass,
+             ElementaryCharge{1},
+             stable_decay_constant},
+            {"proton",
+             pdg::proton(),
+             units::MevMass{938.28},
+             ElementaryCharge{1},
+             stable_decay_constant},
+        };
         this->set_particle_params(std::move(par_inp));
 
         // Set up shared material data
-        // TODO: Use multiple elements to test elements are picked correctly
         MaterialParams::Input mat_inp;
-        mat_inp.isotopes = {{AtomicNumber{29},
-                             AtomicNumber{63},
-                             units::MevMass{58618.5},
-                             "63Cu"},
-                            {AtomicNumber{29},
-                             AtomicNumber{65},
-                             units::MevMass{60479.8},
-                             "65Cu"}};
+        mat_inp.isotopes
+            = {{AtomicNumber{29}, AtomicNumber{63}, MevMass{58618.5}, "63Cu"},
+               {AtomicNumber{29}, AtomicNumber{65}, MevMass{60479.8}, "65Cu"}};
         mat_inp.elements = {{AtomicNumber{29},
-                             units::AmuMass{63.546},
+                             AmuMass{63.546},
                              {{IsotopeId{0}, 0.692}, {IsotopeId{1}, 0.308}},
                              "Cu"}};
         mat_inp.materials = {
-            {0.141 * constants::na_avogadro,
+            {native_value_from(MolCcDensity{0.141}),
              293.0,
              MatterState::solid,
              {{ElementId{0}, 1.0}},

@@ -45,7 +45,7 @@ calc_physics_step_limit(MaterialTrackView const& material,
     using VGT = ValueGridType;
 
     // TODO: for particles with decay, macro XS calculation will incorporate
-    // decay probability, dividing decay constant by speed to become 1/cm to
+    // decay probability, dividing decay constant by speed to become 1/len to
     // compete with interactions
 
     // Loop over all processes that apply to this track (based on particle

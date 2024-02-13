@@ -12,6 +12,7 @@
 
 #include "corecel/data/Collection.hh"
 #include "corecel/io/LogContextException.hh"
+#include "geocel/UnitUtils.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/global/ActionRegistry.hh"
@@ -24,8 +25,8 @@
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/track/detail/TrackSortUtils.hh"
 
-#include "../TestEm3Base.hh"
 #include "celeritas_test.hh"
+#include "../TestEm3Base.hh"
 
 namespace celeritas
 {
@@ -52,7 +53,7 @@ class TestEm3NoMsc : public TestEm3Base
         CELER_ASSERT(p.particle_id);
         p.energy = units::MevEnergy{10000};
         p.track_id = TrackId{0};
-        p.position = {-22, 0, 0};
+        p.position = from_cm({-22, 0, 0});
         p.direction = {1, 0, 0};
         p.time = 0;
 

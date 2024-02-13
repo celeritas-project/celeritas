@@ -9,7 +9,8 @@
 
 #include <nlohmann/json.hpp>
 
-#include "../OrangeData.hh"
+#include "orange/OrangeData.hh"
+
 #include "OrangeInput.hh"
 
 namespace celeritas

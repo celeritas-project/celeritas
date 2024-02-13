@@ -7,9 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "geocel/GeantGeoUtils.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
-#include "celeritas/ext/GeantGeoUtils.hh"
 
 namespace celeritas
 {

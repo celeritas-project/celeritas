@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "orange/surf/detail/SurfaceTransformer.hh"
 
-#include "orange/Constants.hh"
+#include "corecel/Constants.hh"
 #include "orange/MatrixUtils.hh"
 #include "orange/surf/ConeAligned.hh"
 #include "orange/surf/CylAligned.hh"

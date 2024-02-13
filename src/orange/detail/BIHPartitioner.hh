@@ -10,8 +10,9 @@
 #include <vector>
 
 #include "corecel/cont/EnumArray.hh"
-#include "orange/BoundingBox.hh"
-#include "orange/OrangeData.hh"
+#include "geocel/BoundingBox.hh"
+
+#include "../OrangeData.hh"
 
 namespace celeritas
 {

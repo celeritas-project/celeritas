@@ -132,7 +132,7 @@ if result.returncode:
         except:
             pass
         else:
-            outfilename = f'{run_name}.out.failed.json'
+            outfilename = f'{problem_name}.out.failed.json'
             with open(outfilename, 'w') as f:
                 json.dump(j, f, indent=1)
             print("Failure written to", outfilename, file=stderr)

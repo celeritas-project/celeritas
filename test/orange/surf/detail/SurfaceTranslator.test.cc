@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "orange/surf/detail/SurfaceTranslator.hh"
 
+#include "corecel/Constants.hh"
 #include "corecel/math/SoftEqual.hh"
-#include "orange/Constants.hh"
 #include "orange/surf/detail/AllSurfaces.hh"
 
 #include "celeritas_test.hh"

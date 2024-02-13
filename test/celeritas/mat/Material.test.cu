@@ -11,8 +11,10 @@
 
 #include "corecel/device_runtime_api.h"
 #include "corecel/cont/Range.hh"
+#include "corecel/math/Quantity.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 
 using thrust::raw_pointer_cast;
@@ -48,7 +50,8 @@ __global__ void m_test_kernel(unsigned int const size,
     // Get material properties
     auto const& mat = mat_track.make_material_view();
     temperatures[tid.get()] = mat.temperature();
-    rad_len[tid.get()] = mat.radiation_length();
+    rad_len[tid.get()]
+        = native_value_to<units::CmLength>(mat.radiation_length()).value();
 
     // Fill elements with finctional cross sections
     Span<real_type> scratch = mat_track.element_scratch();
@@ -65,7 +68,10 @@ __global__ void m_test_kernel(unsigned int const size,
     for (auto ec : range(mat.num_elements()))
     {
         // Get its atomic number weighted by its fractional number density
-        tz += scratch[ec] * mat.get_element_density(ElementComponentId{ec});
+        tz += scratch[ec]
+              * native_value_to<units::InvCcDensity>(
+                    mat.get_element_density(ElementComponentId{ec}))
+                    .value();
     }
     tot_z[tid.get()] = tz;
 }

@@ -9,7 +9,10 @@
 
 #include <vector>
 
+#include "celeritas/Units.hh"
+
 #include "ImportPhysicsVector.hh"
+#include "ImportUnits.hh"
 
 namespace celeritas
 {
@@ -40,38 +43,13 @@ enum class ImportTableType
 
 //---------------------------------------------------------------------------//
 /*!
- * Units of a physics table.
- *
- * These depend on the unit selection in the main import data
- */
-enum class ImportUnits
-{
-    none,  //!< Unitless
-    mev,  //!< Energy [MeV]
-    mev_per_len,  //!< Energy loss [MeV/len]
-    mev_per_cm = mev_per_len,  //!< Deprecated
-    len,  //!< Range [len]
-    cm = len,  //!< Deprecated
-    len_inv,  //!< Macroscopic xs [1/len]
-    cm_inv = len_inv,  //!< Deprecated
-    len_mev_inv,  //!< Scaled [1/E] macroscopic xs [1/len-MeV]
-    cm_mev_inv = len_mev_inv,  //!< Deprecated
-    mev_sq_per_len,  //!< Scaled [E^2] macroscopic xs  [MeV^2/len]
-    mev_2_per_cm = mev_sq_per_len,  //!< Deprecated
-    len_sq,  //!< Microscopic cross section [len^2]
-    cm_2 = len_sq,  //!< Deprecated
-    size_
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Imported physics table. Each table stores physics vectors for all materials.
  */
 struct ImportPhysicsTable
 {
     ImportTableType table_type{ImportTableType::size_};
-    ImportUnits x_units{ImportUnits::none};
-    ImportUnits y_units{ImportUnits::none};
+    ImportUnits x_units{ImportUnits::unitless};
+    ImportUnits y_units{ImportUnits::unitless};
     std::vector<ImportPhysicsVector> physics_vectors;
 
     explicit operator bool() const
@@ -84,8 +62,8 @@ struct ImportPhysicsTable
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
+// Get the string value for a table type
 char const* to_cstring(ImportTableType value);
-char const* to_cstring(ImportUnits value);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

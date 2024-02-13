@@ -9,8 +9,9 @@
 #include "JsonUtils.json.hh"
 
 #include "corecel/Assert.hh"
-#include "corecel/io/Logger.hh"
 #include "corecel/sys/Version.hh"
+
+#include "Logger.hh"
 
 namespace celeritas
 {

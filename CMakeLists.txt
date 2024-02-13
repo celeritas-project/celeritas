@@ -136,6 +136,15 @@ celeritas_setup_option(CELERITAS_REAL_TYPE float)
 celeritas_define_options(CELERITAS_REAL_TYPE
   "Global runtime precision for real numbers")
 
+if((CELERITAS_CORE_GEO STREQUAL "ORANGE")
+    AND (NOT CELERITAS_UNITS STREQUAL "CGS"))
+  celeritas_error_incompatible_option(
+    "ORANGE currently requires CGS units"
+    CELERITAS_UNITS
+    CGS
+  )
+endif()
+
 #----------------------------------------------------------------------------#
 # CMAKE VERSION CHECKS
 #----------------------------------------------------------------------------#
@@ -365,6 +374,12 @@ if(CELERITAS_USE_VecGeom)
       CELERITAS_BUILD_TESTS
       OFF
     )
+  endif()
+  if(NOT VecGeom_LIBRARIES)
+    set(VecGeom_LIBRARIES ${VECGEOM_LIBRARIES})
+  endif()
+  if(NOT VecGeom_LIBRARIES)
+    set(VecGeom_LIBRARIES VecGeom::vecgeom)
   endif()
 endif()
 

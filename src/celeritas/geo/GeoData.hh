@@ -10,11 +10,11 @@
 
 #include "celeritas_config.h"
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
-#    include "celeritas/ext/VecgeomData.hh"
+#    include "geocel/vg/VecgeomData.hh"
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
 #    include "orange/OrangeData.hh"
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
-#    include "celeritas/ext/GeantGeoData.hh"
+#    include "geocel/g4/GeantGeoData.hh"
 #endif
 
 // Include type alias for Geo state/params data

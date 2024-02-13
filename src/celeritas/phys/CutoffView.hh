@@ -7,9 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/phys/Secondary.hh"
-
 #include "CutoffData.hh"
+#include "Secondary.hh"
 
 namespace celeritas
 {

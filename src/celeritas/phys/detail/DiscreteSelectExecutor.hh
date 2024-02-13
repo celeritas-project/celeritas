@@ -12,12 +12,12 @@
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
-#include "celeritas/phys/PhysicsData.hh"
-#include "celeritas/phys/PhysicsTrackView.hh"
 #include "celeritas/random/RngEngine.hh"
 #include "celeritas/track/SimTrackView.hh"
 
+#include "../PhysicsData.hh"
 #include "../PhysicsStepUtils.hh"
+#include "../PhysicsTrackView.hh"
 
 namespace celeritas
 {

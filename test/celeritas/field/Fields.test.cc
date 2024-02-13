@@ -8,7 +8,8 @@
 #include <fstream>
 
 #include "corecel/cont/Range.hh"
-#include "celeritas/UnitUtils.hh"
+#include "geocel/UnitUtils.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/field/RZMapField.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldParams.hh"

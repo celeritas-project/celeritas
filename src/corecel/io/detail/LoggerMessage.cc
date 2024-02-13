@@ -9,11 +9,13 @@
 
 #include <exception>
 #include <functional>
+#include <iostream>
 #include <sstream>
 
 #include "corecel/Assert.hh"
-#include "corecel/io/Logger.hh"
-#include "corecel/io/LoggerTypes.hh"
+
+#include "../Logger.hh"
+#include "../LoggerTypes.hh"
 
 namespace celeritas
 {
@@ -21,44 +23,36 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with reference to function object, etc.
+ * Create the message when handle is non-null.
  *
- * The handle *may be* null, indicating that the output of this message will
- * not be displayed.
+ * This saves the provided data and allocates a stream for output.
  */
-LoggerMessage::LoggerMessage(LogHandler* handle, Provenance prov, LogLevel lev)
-    : handle_(handle), prov_(prov), lev_(lev)
+void LoggerMessage::construct_impl(LogProvenance&& prov, LogLevel lev)
 {
-    CELER_EXPECT(!handle_ || *handle_);
-    if (handle_)
-    {
-        // std::function is defined, so create the output stream
-        os_ = std::make_unique<std::ostringstream>();
-    }
-    CELER_ENSURE(bool(handle_) == bool(os_));
+    CELER_EXPECT(handle_ && *handle_);
+
+    prov_ = std::move(prov);
+    lev_ = lev;
+    os_ = std::make_unique<std::ostringstream>();
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Flush message on destruction.
+ *
+ * This is only called when \c os_ is nonnull.
  */
-LoggerMessage::~LoggerMessage()
+void LoggerMessage::destroy_impl() noexcept
 {
-    if (os_)
+    try
     {
-        try
-        {
-            auto& os = dynamic_cast<std::ostringstream&>(*os_);
-
-            // Write to the handler
-            (*handle_)(prov_, lev_, os.str());
-        }
-        catch (std::exception const& e)
-        {
-            std::cerr
-                << "An error occurred writing a log message: " << e.what()
-                << std::endl;
-        }
+        // Write to the handler
+        (*handle_)(prov_, lev_, os_->str());
+    }
+    catch (std::exception const& e)
+    {
+        std::cerr << "An error occurred writing a log message: " << e.what()
+                  << std::endl;
     }
 }
 

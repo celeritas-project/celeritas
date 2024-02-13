@@ -15,10 +15,11 @@
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/sys/ThreadId.hh"
-#include "celeritas/global/CoreTrackData.hh"
-#include "celeritas/global/detail/CoreStateThreadOffsets.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/track/CoreStateCounters.hh"
+
+#include "CoreTrackData.hh"
+#include "detail/CoreStateThreadOffsets.hh"
 
 namespace celeritas
 {

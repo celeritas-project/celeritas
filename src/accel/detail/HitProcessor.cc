@@ -24,9 +24,10 @@
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "geocel/g4/Convert.geant.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/ext/Convert.geant.hh"
+#include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
 
@@ -196,8 +197,8 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
             {
                 continue;
             }
-            HP_SET(points[sp]->SetGlobalTime, out.points[sp].time, CLHEP::s);
-            HP_SET(points[sp]->SetPosition, out.points[sp].pos, CLHEP::cm);
+            HP_SET(points[sp]->SetGlobalTime, out.points[sp].time, clhep_time);
+            HP_SET(points[sp]->SetPosition, out.points[sp].pos, clhep_length);
             HP_SET(points[sp]->SetKineticEnergy,
                    out.points[sp].energy,
                    CLHEP::MeV);

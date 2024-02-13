@@ -11,6 +11,8 @@
 
 #include "celeritas/Units.hh"
 
+#include "ImportUnits.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -25,6 +27,10 @@ namespace celeritas
  */
 struct ImportEmParameters
 {
+#ifndef SWIG
+    static constexpr auto energy_units{ImportUnits::mev};
+#endif
+
     //! Energy loss fluctuation
     bool energy_loss_fluct{false};
     //! LPM effect for bremsstrahlung and pair production
@@ -64,6 +70,10 @@ struct ImportEmParameters
  */
 struct ImportLoopingThreshold
 {
+#ifndef SWIG
+    static constexpr auto energy_units{ImportUnits::mev};
+#endif
+
     //! Number of steps a higher-energy looping track takes before it's killed
     int threshold_trials{10};
     //! Energy below which looping tracks are immediately killed [MeV]

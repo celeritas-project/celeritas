@@ -32,13 +32,11 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "celeritas/UnitTypes.hh"
+#include "celeritas/io/ImportUnits.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "GeantModelImporter.hh"
-
-using CLHEP::cm;
-using CLHEP::cm2;
-using CLHEP::MeV;
 
 namespace celeritas
 {
@@ -144,36 +142,6 @@ int get_secondary_pdg(T const& process)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get a multiplicative geant4-natural-units constant to convert the units.
- */
-double units_to_scaling(ImportUnits units)
-{
-    switch (units)
-    {
-        case ImportUnits::none:
-            return 1;
-        case ImportUnits::mev:
-            return 1 / MeV;
-        case ImportUnits::mev_per_cm:
-            return cm / MeV;
-        case ImportUnits::cm:
-            return 1 / cm;
-        case ImportUnits::cm_inv:
-            return cm;
-        case ImportUnits::cm_mev_inv:
-            return cm * MeV;
-        case ImportUnits::mev_2_per_cm:
-            return cm / (MeV * MeV);
-        case ImportUnits::cm_2:
-            return 1 / (cm * cm);
-        case ImportUnits::size_:
-            CELER_ASSERT_UNREACHABLE();
-    }
-    CELER_ASSERT_UNREACHABLE();
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Convert physics vector type from Geant4 to Celeritas IO.
  *
  * Geant4 v11 has a different set of G4PhysicsVectorType enums.
@@ -225,31 +193,31 @@ void append_table(G4PhysicsTable const* g4table,
     {
         case ImportTableType::dedx:
             table.x_units = ImportUnits::mev;
-            table.y_units = ImportUnits::mev_per_cm;
+            table.y_units = ImportUnits::mev_per_len;
             break;
         case ImportTableType::range:
             table.x_units = ImportUnits::mev;
-            table.y_units = ImportUnits::cm;
+            table.y_units = ImportUnits::len;
             break;
         case ImportTableType::lambda:
             table.x_units = ImportUnits::mev;
-            table.y_units = ImportUnits::cm_inv;
+            table.y_units = ImportUnits::len_inv;
             break;
         case ImportTableType::lambda_prim:
             table.x_units = ImportUnits::mev;
-            table.y_units = ImportUnits::cm_mev_inv;
+            table.y_units = ImportUnits::len_mev_inv;
             break;
         case ImportTableType::msc_xs:
             table.x_units = ImportUnits::mev;
-            table.y_units = ImportUnits::mev_2_per_cm;
+            table.y_units = ImportUnits::mev_sq_per_len;
             break;
         default:
             CELER_ASSERT_UNREACHABLE();
     };
 
     // Convert units
-    double x_scaling = units_to_scaling(table.x_units);
-    double y_scaling = units_to_scaling(table.y_units);
+    double const x_scaling = native_value_from_clhep(table.x_units);
+    double const y_scaling = native_value_from_clhep(table.y_units);
 
     // Save physics vectors
     for (auto const* g4vector : *g4table)

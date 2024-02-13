@@ -246,7 +246,8 @@ TEST_F(EPlusGGInteractorTest, macro_xs)
     {
         real_type e = std::exp(loge);
         energy.push_back(e);
-        macro_xs.push_back(calc_macro_xs(MevEnergy(e)));
+        macro_xs.push_back(
+            native_value_to<units::InvCmXs>(calc_macro_xs(MevEnergy{e})).value());
         loge += delta;
     }
     real_type const expected_macro_xs[]
@@ -259,6 +260,7 @@ TEST_F(EPlusGGInteractorTest, macro_xs)
            6.355265134801e-10, 2.068312058021e-10};
     EXPECT_VEC_SOFT_EQ(expected_macro_xs, macro_xs);
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

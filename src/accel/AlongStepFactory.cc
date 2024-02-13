@@ -11,8 +11,10 @@
 
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/QuantityIO.hh"
+#include "geocel/g4/Convert.geant.hh"
 #include "celeritas/em/UrbanMscParams.hh"
-#include "celeritas/ext/Convert.geant.hh"
+#include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
@@ -47,13 +49,14 @@ auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) con
 {
     // Get the field strength in tesla (or zero if accessor is undefined)
     auto field_params = get_field_ ? get_field_() : UniformFieldParams{};
-    real_type magnitude_tesla = norm(field_params.field) / units::tesla;
+    auto magnitude
+        = native_value_to<units::FieldTesla>(norm(field_params.field));
 
-    if (magnitude_tesla > 0)
+    if (magnitude > zero_quantity())
     {
         // Create a uniform field
         CELER_LOG(info) << "Creating along-step action with field strength "
-                        << magnitude_tesla << "T";
+                        << magnitude;
         return celeritas::AlongStepUniformMscAction::from_params(
             input.action_id,
             *input.material,

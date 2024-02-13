@@ -9,6 +9,7 @@
 
 #include "corecel/cont/Span.hh"
 #include "corecel/io/LogContextException.hh"
+#include "geocel/UnitUtils.hh"
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
@@ -19,13 +20,13 @@
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/user/SimpleCalo.hh"
 
-#include "../SimpleTestBase.hh"
-#include "../TestEm15Base.hh"
-#include "../TestEm3Base.hh"
 #include "CaloTestBase.hh"
 #include "ExampleMctruth.hh"
 #include "MctruthTestBase.hh"
 #include "celeritas_test.hh"
+#include "../SimpleTestBase.hh"
+#include "../TestEm15Base.hh"
+#include "../TestEm3Base.hh"
 
 using celeritas::units::MevEnergy;
 
@@ -95,7 +96,7 @@ class TestEm3CollectorTestBase : public TestEm3Base,
     {
         Primary p;
         p.energy = MevEnergy{10.0};
-        p.position = {-22, 0, 0};
+        p.position = from_cm(Real3{-22, 0, 0});
         p.direction = {1, 0, 0};
         p.time = 0;
         std::vector<Primary> result(count, p);

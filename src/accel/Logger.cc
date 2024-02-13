@@ -24,7 +24,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/LoggerTypes.hh"
 #include "corecel/sys/MpiCommunicator.hh"
-#include "celeritas/ext/GeantUtils.hh"
+#include "geocel/GeantUtils.hh"
 
 namespace celeritas
 {
@@ -35,7 +35,7 @@ class MtLogger
 {
   public:
     explicit MtLogger(int num_threads);
-    void operator()(Provenance prov, LogLevel lev, std::string msg);
+    void operator()(LogProvenance prov, LogLevel lev, std::string msg);
 
   private:
     int num_threads_;
@@ -48,7 +48,7 @@ MtLogger::MtLogger(int num_threads) : num_threads_(num_threads)
 }
 
 //---------------------------------------------------------------------------//
-void MtLogger::operator()(Provenance prov, LogLevel lev, std::string msg)
+void MtLogger::operator()(LogProvenance prov, LogLevel lev, std::string msg)
 {
     auto& cerr = G4cerr;
 

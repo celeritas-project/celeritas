@@ -6,6 +6,7 @@
 //! \file celeritas/geo/GeoMaterial.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/data/CollectionStateStore.hh"
+#include "geocel/UnitUtils.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoMaterialView.hh"
@@ -13,9 +14,9 @@
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/mat/MaterialParams.hh"
 
+#include "celeritas_test.hh"
 #include "../RootTestBase.hh"
 #include "../TestEm3Base.hh"
-#include "celeritas_test.hh"
 
 namespace celeritas
 {
@@ -41,7 +42,7 @@ class GeoMaterialTestBase : virtual public GlobalTestBase
     VecString trace_materials(Real3 const& pos, Real3 dir);
 };
 
-auto GeoMaterialTestBase::trace_materials(Real3 const& pos, Real3 dir)
+auto GeoMaterialTestBase::trace_materials(Real3 const& pos_cm, Real3 dir)
     -> VecString
 {
     CollectionStateStore<GeoStateData, MemSpace::host> host_state{
@@ -55,7 +56,7 @@ auto GeoMaterialTestBase::trace_materials(Real3 const& pos, Real3 dir)
     // comparison of material IDs encountered.
     VecString result;
 
-    geo = {pos, make_unit_vector(dir)};
+    geo = {from_cm(pos_cm), make_unit_vector(dir)};
     while (!geo.is_outside())
     {
         result.push_back(

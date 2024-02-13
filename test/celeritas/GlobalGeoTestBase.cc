@@ -43,7 +43,7 @@ auto GlobalGeoTestBase::build_fresh_geometry(std::string_view basename)
                    ? ".gdml"sv
                    : ".org.json"sv;
     auto filename = std::string{basename} + std::string{ext};
-    std::string test_file = this->test_data_path("celeritas", filename);
+    std::string test_file = this->test_data_path("geocel", filename);
     return std::make_shared<GeoParams>(test_file);
 }
 

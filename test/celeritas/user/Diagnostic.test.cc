@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Span.hh"
 #include "corecel/io/StringUtils.hh"
+#include "geocel/UnitUtils.hh"
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/global/ActionRegistry.hh"
@@ -16,10 +17,10 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 
-#include "../SimpleTestBase.hh"
-#include "../TestEm3Base.hh"
 #include "DiagnosticTestBase.hh"
 #include "celeritas_test.hh"
+#include "../SimpleTestBase.hh"
+#include "../TestEm3Base.hh"
 
 using celeritas::units::MevEnergy;
 
@@ -38,7 +39,7 @@ class SimpleComptonDiagnosticTest : public SimpleTestBase,
     {
         Primary p;
         p.energy = MevEnergy{10.0};
-        p.position = {-22, 0, 0};
+        p.position = from_cm(Real3{-22, 0, 0});
         p.direction = {1, 0, 0};
         p.time = 0;
         std::vector<Primary> result(count, p);
@@ -81,7 +82,7 @@ class TestEm3DiagnosticTest : public TestEm3Base, public DiagnosticTestBase
     {
         Primary p;
         p.energy = MevEnergy{10.0};
-        p.position = {-22, 0, 0};
+        p.position = from_cm(Real3{-22, 0, 0});
         p.direction = {1, 0, 0};
         p.time = 0;
         std::vector<Primary> result(count, p);

@@ -102,7 +102,7 @@ void log_state(Logger::Message& msg,
         msg << "\n- Particle type ID: " << kce.particle();
     }
     msg << "\n- Energy: " << kce.energy() << "\n- Position: " << kce.pos()
-        << " (cm)"
+        << " [" << units::NativeTraits::Length::label() << "]"
         << "\n- Direction: " << kce.dir();
 
     if (core_params && kce.volume())

@@ -7,9 +7,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <iostream>
 #include <memory>
+#include <sstream>
 #include <utility>
+
+#include "corecel/Macros.hh"
 
 #include "../LoggerTypes.hh"
 
@@ -34,10 +36,10 @@ class LoggerMessage
 
   public:
     // Construct with reference to function object, etc.
-    LoggerMessage(LogHandler* handle, Provenance prov, LogLevel lev);
+    inline LoggerMessage(LogHandler* handle, LogProvenance&& prov, LogLevel lev);
 
     // Flush message on destruction
-    ~LoggerMessage();
+    inline ~LoggerMessage();
 
     //!@{
     //! Prevent copying but allow moving
@@ -54,24 +56,63 @@ class LoggerMessage
     // Accept manipulators such as std::endl, std::setw
     inline LoggerMessage& operator<<(StreamManip manip);
 
-    // Update the steam state
+    // Update the stream state
     inline void setstate(std::ostream::iostate state);
 
   private:
     LogHandler* handle_;
-    Provenance prov_;
+    LogProvenance prov_;
     LogLevel lev_;
-    std::unique_ptr<std::ostream> os_;
+    std::unique_ptr<std::ostringstream> os_;
+
+    // Create the message when handle is non-null
+    void construct_impl(LogProvenance&& prov, LogLevel lev);
+
+    // Flush the message during destruction
+    void destroy_impl() noexcept;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with reference to function object, etc.
+ *
+ * The handle *may be* null, indicating that the output of this message will
+ * not be displayed.
+ */
+CELER_FORCEINLINE LoggerMessage::LoggerMessage(LogHandler* handle,
+                                               LogProvenance&& prov,
+                                               LogLevel lev)
+    : handle_(handle)
+{
+    if (CELER_UNLIKELY(handle_))
+    {
+        this->construct_impl(std::move(prov), lev);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Flush message on destruction.
+ *
+ * Note that due to move semantics, it's possible for a stale "moved"
+ * LoggerMessage to have a nonnull \c handle_ but a null \c os_ .
+ */
+CELER_FORCEINLINE LoggerMessage::~LoggerMessage()
+{
+    if (CELER_UNLIKELY(os_))
+    {
+        this->destroy_impl();
+    }
+}
 
 //---------------------------------------------------------------------------//
 /*!
  * Write the object to the stream if applicable.
  */
 template<class T>
-LoggerMessage& LoggerMessage::operator<<(T&& rhs)
+CELER_FORCEINLINE LoggerMessage& LoggerMessage::operator<<(T&& rhs)
 {
-    if (os_)
+    if (CELER_UNLIKELY(os_))
     {
         *os_ << std::forward<T>(rhs);
     }
@@ -82,9 +123,9 @@ LoggerMessage& LoggerMessage::operator<<(T&& rhs)
 /*!
  * Accept a stream manipulator.
  */
-LoggerMessage& LoggerMessage::operator<<(StreamManip manip)
+CELER_FORCEINLINE LoggerMessage& LoggerMessage::operator<<(StreamManip manip)
 {
-    if (os_)
+    if (CELER_UNLIKELY(os_))
     {
         manip(*os_);
     }
@@ -95,9 +136,9 @@ LoggerMessage& LoggerMessage::operator<<(StreamManip manip)
 /*!
  * Update the steam state (needed by some manipulators).
  */
-void LoggerMessage::setstate(std::ostream::iostate state)
+CELER_FORCEINLINE void LoggerMessage::setstate(std::ostream::iostate state)
 {
-    if (os_)
+    if (CELER_UNLIKELY(os_))
     {
         os_->setstate(state);
     }

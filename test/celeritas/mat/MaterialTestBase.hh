@@ -22,8 +22,7 @@ class MaterialTestBase
 
     SPConstMaterial build_material()
     {
-        using units::AmuMass;
-        using units::MevMass;
+        using namespace celeritas::units;
 
         MaterialParams::Input inp;
 
@@ -64,7 +63,7 @@ class MaterialTestBase
 
         inp.materials = {
             // Sodium iodide
-            {2.948915064677e+22,
+            {native_value_from(InvCcDensity{2.948915064677e+22}),
              293.0,
              MatterState::solid,
              {{ElementId{2}, 0.5}, {ElementId{3}, 0.5}},
@@ -72,13 +71,13 @@ class MaterialTestBase
             // Void
             {0, 0, MatterState::unspecified, {}, "hard vacuum"},
             // Diatomic hydrogen
-            {1.0739484359044669e+20,
+            {native_value_from(InvCcDensity{1.0739484359044669e+20}),
              100.0,
              MatterState::gas,
              {{ElementId{0}, 1.0}},
              Label{"H2", "1"}},
             // Diatomic hydrogen with the same name and different properties
-            {1.072e+20,
+            {native_value_from(InvCcDensity{1.072e+20}),
              110.0,
              MatterState::gas,
              {{ElementId{0}, 1.0}},

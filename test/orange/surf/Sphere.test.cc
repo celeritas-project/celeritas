@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "orange/surf/Sphere.hh"
 
+#include "corecel/Constants.hh"
 #include "corecel/math/Algorithms.hh"
-#include "orange/Constants.hh"
 #include "orange/surf/SphereCentered.hh"
 
 #include "SurfaceTestUtils.hh"

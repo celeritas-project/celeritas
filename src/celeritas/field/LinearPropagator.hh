@@ -8,7 +8,7 @@
 #pragma once
 
 #include "corecel/math/Algorithms.hh"
-#include "orange/Types.hh"
+#include "geocel/Types.hh"
 
 namespace celeritas
 {

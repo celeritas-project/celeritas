@@ -17,8 +17,8 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/RelativisticBremData.hh"
+#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 
-#include "../interactor/detail/PhysicsConstants.hh"
 #include "LPMCalculator.hh"
 
 namespace celeritas

@@ -20,6 +20,29 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+//! Energy loss rate [MeV/cm] per volume [cm^-3] -> [MeV * cm^2]
+struct MevCmSq
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        return units::Mev::value() * ipow<2>(units::centimeter);
+    }
+};
+
+using MevCmSqLossDens = Quantity<MevCmSq>;
+
+//! Energy loss rate
+struct MevPerCm
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        return units::Mev::value() / units::centimeter;
+    }
+};
+
+using MevPerCmLoss = Quantity<MevPerCm>;
+
+//---------------------------------------------------------------------------//
 /*!
  * Mock process.
  *
@@ -55,7 +78,7 @@ class MockProcess : public Process
         VecApplicability applic;  //!< Applicablity per model
         ModelCallback interact;  //!< MockModel::interact callback
         VecMicroXs xs;  //!< Constant per atom [bn]
-        real_type energy_loss{};  //!< Constant per atom [MeV/cm / cm^-3]
+        MevCmSqLossDens energy_loss{};  //!< Constant per atom
     };
 
   public:

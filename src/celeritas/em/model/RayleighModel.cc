@@ -153,6 +153,9 @@ void RayleighModel::build_data(HostValue* data, MaterialParams const& materials)
  * Parameters for Z = 0 are dropped as they are zeros and not used.
  * Reshaped as [el][param][3] with params.T.reshape((100, 3, 3)),
  * then updated 'n' with params[:,2,:] -= 1
+ *
+ * The fit data embeds centimeters as a unit system: this is accounted for in
+ * the interactor.
  */
 auto RayleighModel::get_el_parameters(AtomicNumber z) -> ElScatParams const&
 {

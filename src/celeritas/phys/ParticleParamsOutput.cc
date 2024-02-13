@@ -12,9 +12,9 @@
 #include "celeritas_config.h"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/math/Quantity.hh"
-#include "celeritas/phys/Process.hh"
 
 #include "ParticleParams.hh"  // IWYU pragma: keep
+#include "Process.hh"
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 #endif

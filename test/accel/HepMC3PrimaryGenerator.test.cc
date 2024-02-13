@@ -7,9 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "accel/HepMC3PrimaryGenerator.hh"
 
+#include <CLHEP/Units/SystemOfUnits.h>
+
+#include "geocel/g4/Convert.geant.hh"
 #include "celeritas/GeantTestBase.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
-#include "celeritas/ext/Convert.geant.hh"
 
 #include "celeritas_test.hh"
 

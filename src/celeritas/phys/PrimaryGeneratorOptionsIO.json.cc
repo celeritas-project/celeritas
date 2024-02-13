@@ -16,8 +16,9 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringEnumMapper.hh"
-#include "celeritas/phys/PDGNumber.hh"
-#include "celeritas/phys/PrimaryGeneratorOptions.hh"
+
+#include "PDGNumber.hh"
+#include "PrimaryGeneratorOptions.hh"
 
 namespace celeritas
 {

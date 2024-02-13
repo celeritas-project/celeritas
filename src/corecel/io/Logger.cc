@@ -16,12 +16,12 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/io/LoggerTypes.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 
 #include "ColorUtils.hh"
+#include "LoggerTypes.hh"
 
 namespace celeritas
 {
@@ -31,7 +31,7 @@ namespace
 // HELPER CLASSES
 //---------------------------------------------------------------------------//
 //! Default global logger prints the error message with basic colors
-void default_global_handler(Provenance prov, LogLevel lev, std::string msg)
+void default_global_handler(LogProvenance prov, LogLevel lev, std::string msg)
 {
     static std::mutex log_mutex;
     std::lock_guard<std::mutex> scoped_lock{log_mutex};
@@ -57,7 +57,7 @@ class LocalHandler
   public:
     explicit LocalHandler(MpiCommunicator const& comm) : rank_(comm.rank()) {}
 
-    void operator()(Provenance prov, LogLevel lev, std::string msg)
+    void operator()(LogProvenance prov, LogLevel lev, std::string msg)
     {
         // Use buffered 'clog'
         std::clog << color_code('x') << prov.file << ':' << prov.line

@@ -14,15 +14,18 @@
 #include "corecel/io/Repr.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Version.hh"
+#include "geocel/UnitUtils.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
-#include "../GeantTestBase.hh"
 #include "celeritas_test.hh"
+#include "../GeantTestBase.hh"
 #if CELERITAS_USE_JSON
 #    include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #endif
+
+using namespace celeritas::units;
 
 namespace celeritas
 {
@@ -47,6 +50,11 @@ std::string sub_pointer_string(std::string const& s)
 {
     static std::regex const r("0x[0-9a-f]{2,}");
     return std::regex_replace(s, r, "0x0");
+}
+
+double to_inv_cm(double v)
+{
+    return native_value_to<InvCmXs>(v).value();
 }
 
 auto const geant4_version = Version::from_string(celeritas_geant4_version);
@@ -119,10 +127,21 @@ class GeantImporterTest : public GeantTestBase
                        << " for particle PDG=" << pdg.get());
         return *result;
     }
+
     real_type comparison_tolerance() const
     {
-        // Some values change substantially between geant versions
-        return geant4_version == Version(11, 0, 3) ? 1e-12 : 5e-3;
+        if (geant4_version != Version(11, 0, 3))
+        {
+            // Some values change substantially between geant versions
+            return 5e-3;
+        }
+        if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            // Single-precision unit constants cause single-precision
+            // differences from reference
+            return 1e-6;
+        }
+        return 1e-12;
     }
 
   protected:
@@ -233,6 +252,7 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
         opts.relaxation = RelaxationSelection::all;
         opts.verbose = true;
 #if CELERITAS_USE_JSON
+        if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
         {
             nlohmann::json out = opts;
             static char const expected[]
@@ -521,14 +541,15 @@ TEST_F(FourSteelSlabsEmStandard, materials)
     {
         names.push_back(material.name);
         states.push_back(static_cast<int>(material.state));
-        num_densities.push_back(material.number_density);
+        num_densities.push_back(
+            native_value_to<InvCcDensity>(material.number_density).value());
         temperatures.push_back(material.temperature);
 
         for (auto const& key : material.pdg_cutoffs)
         {
             pdgs.push_back(key.first);
             cutoff_energies.push_back(key.second.energy);
-            cutoff_ranges.push_back(key.second.range);
+            cutoff_ranges.push_back(to_cm(key.second.range));
         }
 
         for (auto const& el_comp : material.elements)
@@ -537,6 +558,8 @@ TEST_F(FourSteelSlabsEmStandard, materials)
             el_comps_num_fracs.push_back(el_comp.number_fraction);
         }
     }
+
+    real_type const tol = this->comparison_tolerance();
 
     static char const* expected_names[] = {"G4_Galactic", "G4_STAINLESS-STEEL"};
     EXPECT_VEC_EQ(expected_names, names);
@@ -555,10 +578,10 @@ TEST_F(FourSteelSlabsEmStandard, materials)
                     geant4_version.major() == 10 ? 1e-12 : 0.02);
     static double const expected_cutoff_ranges[]
         = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
-    EXPECT_VEC_SOFT_EQ(expected_cutoff_ranges, cutoff_ranges);
+    EXPECT_VEC_NEAR(expected_cutoff_ranges, cutoff_ranges, tol);
     static double const expected_num_densities[]
         = {0.05974697167543, 8.699348925899e+22};
-    EXPECT_VEC_SOFT_EQ(expected_num_densities, num_densities);
+    EXPECT_VEC_NEAR(expected_num_densities, num_densities, tol);
     static double const expected_temperatures[] = {2.73, 293.15};
     EXPECT_VEC_SOFT_EQ(expected_temperatures, temperatures);
     static double const expected_el_comps_ids[] = {3, 0, 1, 2};
@@ -605,8 +628,8 @@ TEST_F(FourSteelSlabsEmStandard, eioni)
         ASSERT_EQ(85, steel.x.size());
         EXPECT_SOFT_EQ(1e-4, steel.x.front());
         EXPECT_SOFT_EQ(1e8, steel.x.back());
-        EXPECT_SOFT_NEAR(839.66835335480653, steel.y.front(), tol);
-        EXPECT_SOFT_NEAR(11.378226755591747, steel.y.back(), tol);
+        EXPECT_SOFT_NEAR(839.66835335480653, to_inv_cm(steel.y.front()), tol);
+        EXPECT_SOFT_NEAR(11.378226755591747, to_inv_cm(steel.y.back()), tol);
     }
     {
         // Test range table
@@ -622,8 +645,8 @@ TEST_F(FourSteelSlabsEmStandard, eioni)
         ASSERT_EQ(85, steel.x.size());
         EXPECT_SOFT_EQ(1e-4, steel.x.front());
         EXPECT_SOFT_EQ(1e8, steel.x.back());
-        EXPECT_SOFT_NEAR(2.3818927937550707e-07, steel.y.front(), tol);
-        EXPECT_SOFT_NEAR(8788715.7877501156, steel.y.back(), tol);
+        EXPECT_SOFT_NEAR(2.3818927937550707e-07, to_cm(steel.y.front()), tol);
+        EXPECT_SOFT_NEAR(8788715.7877501156, to_cm(steel.y.back()), tol);
     }
     {
         // Test cross-section table
@@ -640,8 +663,8 @@ TEST_F(FourSteelSlabsEmStandard, eioni)
         EXPECT_SOFT_NEAR(2.616556310615175, steel.x.front(), tol);
         EXPECT_SOFT_EQ(1e8, steel.x.back());
         EXPECT_SOFT_EQ(0, steel.y.front());
-        EXPECT_SOFT_NEAR(0.1905939505829807, steel.y[1], tol);
-        EXPECT_SOFT_NEAR(0.4373910150880348, steel.y.back(), tol);
+        EXPECT_SOFT_NEAR(0.1905939505829807, to_inv_cm(steel.y[1]), tol);
+        EXPECT_SOFT_NEAR(0.4373910150880348, to_inv_cm(steel.y.back()), tol);
     }
 }
 
@@ -774,9 +797,9 @@ TEST_F(FourSteelSlabsEmStandard, em_parameters)
     EXPECT_DOUBLE_EQ(0.01, em_params.linear_loss_limit);
     EXPECT_DOUBLE_EQ(0.001, em_params.lowest_electron_energy);
     EXPECT_EQ(true, em_params.auger);
-    EXPECT_EQ(0.04, em_params.msc_range_factor);
-    EXPECT_EQ(0.6, em_params.msc_safety_factor);
-    EXPECT_EQ(0.1, em_params.msc_lambda_limit);
+    EXPECT_DOUBLE_EQ(0.04, em_params.msc_range_factor);
+    EXPECT_DOUBLE_EQ(0.6, em_params.msc_safety_factor);
+    EXPECT_REAL_EQ(0.1, to_cm(em_params.msc_lambda_limit));
 }
 
 //---------------------------------------------------------------------------//
@@ -1111,14 +1134,14 @@ TEST_F(OneSteelSphere, cutoffs)
         for (auto const& cut : mat.pdg_cutoffs)
         {
             pdg.push_back(cut.first);
-            range_cut.push_back(cut.second.range);
+            range_cut.push_back(to_cm(cut.second.range));
             energy_cut.push_back(cut.second.energy);
         }
     }
     static int const expected_pdg[] = {-11, 11, 22, -11, 11, 22};
     EXPECT_VEC_EQ(expected_pdg, pdg);
     // 1 mm range cut in vacuum, 50 m range cut in steel
-    static double const expected_range_cut[]
+    static real_type const expected_range_cut[]
         = {0.1, 0.1, 0.1, 5000, 5000, 5000};
     EXPECT_VEC_SOFT_EQ(expected_range_cut, range_cut);
     static double const expected_energy_cut[] = {0.00099,

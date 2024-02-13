@@ -1,0 +1,30 @@
+! Copyright 2024 UT-Battelle, LLC and other Celeritas Developers.
+! See the top-level COPYRIGHT file for details.
+! SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+[GEOMETRY]
+global "global"
+comp : matid
+    "Pb" 0
+    "vacuum" 1
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+
+[UNIVERSE=general global]
+interior "world"
+
+[UNIVERSE][SHAPE=box box]
+widths 10000000000 10000000000 10000000000  ! note: units are in cm
+
+[UNIVERSE][SHAPE=box world]
+widths 10000000000 10000000000 10000000000
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+
+[UNIVERSE][CELL box]
+comp "Pb"
+shapes box
+
+[UNIVERSE][CELL world]
+comp "vacuum"
+shapes world ~box

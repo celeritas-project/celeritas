@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "orange/surf/SphereCentered.hh"
 
-#include "orange/Constants.hh"
+#include "corecel/Constants.hh"
 
 #include "SurfaceTestUtils.hh"
 #include "celeritas_test.hh"

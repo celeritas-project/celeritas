@@ -58,13 +58,6 @@ class RayleighInteractor
 
     //// CONSTANTS ////
 
-    //! cm/hc in the MeV energy unit
-    static CELER_CONSTEXPR_FUNCTION real_type hc_factor()
-    {
-        return units::centimeter * native_value_from(units::MevEnergy{1.0})
-               / (constants::c_light * constants::h_planck);
-    }
-
     //! A point where the functional form of the form factor fit changes
     static CELER_CONSTEXPR_FUNCTION real_type fit_slice() { return 0.02; }
 

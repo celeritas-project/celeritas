@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "celeritas_config.h"
-#include "celeritas/ext/GeantGeoUtils.hh"
+#include "geocel/GeantGeoUtils.hh"
 #include "celeritas/geo/GeoParams.hh"
 
 #include "celeritas_test.hh"
@@ -29,7 +29,7 @@
 #    include <G4VSolid.hh>
 #endif
 #if CELERITAS_USE_VECGEOM
-#    include "celeritas/ext/VecgeomParams.hh"
+#    include "geocel/vg/VecgeomParams.hh"
 #endif
 
 #include "corecel/ScopedLogStorer.hh"
