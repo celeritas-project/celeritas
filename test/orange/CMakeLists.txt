@@ -41,11 +41,13 @@ celeritas_add_test(MatrixUtils.test.cc)
 celeritas_add_test(OrangeTypes.test.cc)
 celeritas_add_device_test(Orange)
 
-# Base detail
+celeritas_add_test(detail/UniverseIndexer.test.cc)
+
+# Bounding interval hierarchy
+set(CELERITASTEST_PREFIX orange/bih)
 celeritas_add_test(detail/BIHBuilder.test.cc)
 celeritas_add_test(detail/BIHTraverser.test.cc)
 celeritas_add_test(detail/BIHUtils.test.cc)
-celeritas_add_test(detail/UniverseIndexer.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Transforms
@@ -68,6 +70,7 @@ celeritas_add_test(surf/SimpleQuadric.test.cc)
 celeritas_add_test(surf/Sphere.test.cc)
 celeritas_add_test(surf/SphereCentered.test.cc)
 
+# Surface utilities
 celeritas_add_test(surf/FaceNamer.test.cc)
 celeritas_add_test(surf/RecursiveSimplifier.test.cc)
 celeritas_add_test(surf/SoftSurfaceEqual.test.cc)
@@ -75,6 +78,7 @@ celeritas_add_test(surf/SurfaceClipper.test.cc)
 celeritas_add_test(surf/SurfaceSimplifier.test.cc)
 celeritas_add_device_test(surf/LocalSurfaceVisitor)
 
+# Surface details
 celeritas_add_test(surf/detail/QuadraticSolver.test.cc)
 celeritas_add_test(surf/detail/SurfaceTranslator.test.cc)
 celeritas_add_test(surf/detail/SurfaceTransformer.test.cc)
@@ -86,21 +90,25 @@ celeritas_add_test(construct/CsgTree.test.cc)
 celeritas_add_test(construct/CsgTreeUtils.test.cc)
 celeritas_add_test(construct/LocalSurfaceInserter.test.cc)
 
+#-----------------------------------------------------------------------------#
+# Input processing
 set(CELERITASTEST_PREFIX orange/orangeinp)
 celeritas_add_test(orangeinp/detail/BoundingZone.test.cc)
 celeritas_add_test(orangeinp/detail/CsgUnitBuilder.test.cc)
 
 #-----------------------------------------------------------------------------#
-# Universe details
+# Universe
 set(CELERITASTEST_PREFIX orange/univ)
+celeritas_add_test(univ/VolumeView.test.cc)
+celeritas_add_test(univ/RectArrayTracker.test.cc ${_needs_json})
+celeritas_add_device_test(univ/SimpleUnitTracker)
+celeritas_add_test(univ/TrackerVisitor.test.cc ${_needs_json})
+
+# Universe details
 celeritas_add_test(univ/detail/LogicEvaluator.test.cc)
 celeritas_add_test(univ/detail/LogicStack.test.cc)
 celeritas_add_test(univ/detail/RaggedRightIndexer.test.cc)
 celeritas_add_test(univ/detail/SurfaceFunctors.test.cc)
 celeritas_add_test(univ/detail/SenseCalculator.test.cc)
-celeritas_add_test(univ/VolumeView.test.cc)
-celeritas_add_test(univ/RectArrayTracker.test.cc ${_needs_json})
-celeritas_add_device_test(univ/SimpleUnitTracker)
-celeritas_add_test(univ/TrackerVisitor.test.cc ${_needs_json})
 
 #-----------------------------------------------------------------------------#
