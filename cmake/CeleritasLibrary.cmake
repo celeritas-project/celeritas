@@ -7,6 +7,10 @@
 CeleritasLibrary
 ----------------
 
+Deprecated file
+
+#]=======================================================================]
+
 include(CeleritasUtils.cmake)
 
 message(AUTHOR_WARNING "Deprecated file. Please use CeleritasUtils.cmake")
