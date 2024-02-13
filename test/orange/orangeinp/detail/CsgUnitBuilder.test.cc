@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "orange/orangeinp/detail/CsgUnitBuilder.hh"
 
-#include "orange/CsgTestUtils.hh"
+#include "orange/orangeinp/CsgTestUtils.hh"
 #include "orange/surf/Sphere.hh"
 #include "orange/surf/SphereCentered.hh"
 
