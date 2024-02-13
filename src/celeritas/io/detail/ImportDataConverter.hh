@@ -56,6 +56,7 @@ class ImportDataConverter
     double numdens_;
     double time_;
     double xs_;
+    double inv_pressure_;
 };
 
 //---------------------------------------------------------------------------//
