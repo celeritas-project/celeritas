@@ -8,7 +8,6 @@
 #pragma once
 
 #include <memory>
-#include <random>
 
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -40,11 +39,6 @@ class OpticalTestBase : public Test
 {
   public:
     //!@{
-    //! \name Type aliases
-    using RandomEngine = DiagnosticRngEngine<std::mt19937>;
-    //!@}
-
-    //!@{
     //! Initialize and destroy
     OpticalTestBase();
     ~OpticalTestBase();
@@ -60,18 +54,10 @@ class OpticalTestBase : public Test
         return particle_params_;
     }
 
-    //! Get random number generator with clean counter
-    RandomEngine& reset_rng()
-    {
-        rng_.reset_count();
-        return rng_;
-    }
-
   private:
     std::shared_ptr<ParticleParams> particle_params_;
     HostVal<ParticleStateData> state_val_;
     HostRef<ParticleStateData> state_ref_;
-    RandomEngine rng_;
 };
 
 //---------------------------------------------------------------------------//
