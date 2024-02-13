@@ -4,7 +4,6 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/detail/BIHPartitioner.hh
-//! \todo Move to orangeinp/detail/BihPartitioner
 //---------------------------------------------------------------------------//
 #pragma once
 

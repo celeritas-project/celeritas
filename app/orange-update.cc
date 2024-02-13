@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange-update.cc
+//! \brief Read in and write back an ORANGE JSON file
 //---------------------------------------------------------------------------//
 #include <cstdlib>
 #include <fstream>
