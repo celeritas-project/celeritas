@@ -501,12 +501,6 @@ void Runner::build_step_collectors(RunnerInput const& inp)
         core_params_->output_reg()->insert(simple_calo);
     }
 
-    if (inp.physics_options.optical)
-    {
-        step_interfaces.push_back(std::make_shared<OpticalStepCollector>(
-            core_params_->particle(), this->num_streams()));
-    }
-
     if (!step_interfaces.empty())
     {
         step_collector_ = std::make_unique<StepCollector>(

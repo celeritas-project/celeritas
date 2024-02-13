@@ -88,11 +88,6 @@ struct GeantPhysicsOptions
     //!@}
 
     //!@{
-    //! \name Optical physics
-    bool optical{true};
-    //!@}
-
-    //!@{
     //! \name Physics options
     //! Number of log-spaced bins per factor of 10 in energy
     int em_bins_per_decade{7};
@@ -151,7 +146,6 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.brems == b.brems
            && a.msc == b.msc
            && a.relaxation == b.relaxation
-           && a.optical == b.optical
            && a.em_bins_per_decade == b.em_bins_per_decade
            && a.eloss_fluctuation == b.eloss_fluctuation
            && a.lpm == b.lpm
