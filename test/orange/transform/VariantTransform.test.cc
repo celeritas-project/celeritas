@@ -8,6 +8,7 @@
 #include "orange/transform/VariantTransform.hh"
 
 #include "geocel/BoundingBox.hh"
+#include "orange/transform/TransformHasher.hh"
 #include "orange/transform/Transformation.hh"
 #include "orange/transform/Translation.hh"
 #include "orange/transform/detail/TransformTransformer.hh"
@@ -145,6 +146,31 @@ TEST_F(VariantTransformTest, bbox)
         bb);  // final bbox
     EXPECT_VEC_SOFT_EQ(Real3({-2, -3, 8}), bb.lower());
     EXPECT_VEC_SOFT_EQ(Real3({4, 3, 14}), bb.upper());
+}
+
+TEST_F(VariantTransformTest, hash)
+{
+    using SignedAxes = SignedPermutation::SignedAxes;
+
+    TransformHasher calc_hash;
+    NoTransformation const nt{};
+    SignedPermutation const sp{
+        SignedAxes{{{'-', Axis::y}, {'-', Axis::z}, {'+', Axis::x}}}};
+    Translation const tl{Real3{0, 1, 0}};
+    Transformation const tf{make_rotation(Axis::z, Turn{0.25}), Real3{0, 0, 2}};
+
+    EXPECT_EQ(calc_hash(nt), calc_hash(nt));
+    EXPECT_EQ(calc_hash(sp), calc_hash(sp));
+    EXPECT_EQ(calc_hash(tl), calc_hash(tl));
+    EXPECT_EQ(calc_hash(tf), calc_hash(tf));
+
+    // Compare against different values
+    EXPECT_NE(calc_hash(nt), calc_hash(SignedPermutation{}));
+    EXPECT_NE(calc_hash(sp), calc_hash(SignedPermutation{}));
+    EXPECT_NE(calc_hash(tl), calc_hash(Translation{Real3{0, 1.1, 0}}));
+    EXPECT_NE(calc_hash(tf),
+              calc_hash(Transformation{make_rotation(Axis::z, Turn{0.5}),
+                                       Real3{1, 0, 2}}));
 }
 
 //---------------------------------------------------------------------------//
