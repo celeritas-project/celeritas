@@ -80,6 +80,12 @@ class SignedPermutation
     // Get a view to the data for type-deleted storage
     DataArray data() const;
 
+    // Equality
+    inline bool operator==(SignedPermutation const& other) const;
+
+    // Inequality
+    inline bool operator!=(SignedPermutation const& other) const;
+
     //// CALCULATION ////
 
     // Transform from daughter to parent
@@ -128,6 +134,24 @@ CELER_FUNCTION SignedPermutation::SignedPermutation(StorageSpan s)
     : compressed_{static_cast<UIntT>(s[0])}
 {
     CELER_EXPECT(s[0] >= 0 && s[0] <= static_cast<real_type>(max_value()));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Equality.
+ */
+bool SignedPermutation::operator==(SignedPermutation const& other) const
+{
+    return compressed_ == other.compressed_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Inequality.
+ */
+bool SignedPermutation::operator!=(SignedPermutation const& other) const
+{
+    return !(*this == other);
 }
 
 //---------------------------------------------------------------------------//
