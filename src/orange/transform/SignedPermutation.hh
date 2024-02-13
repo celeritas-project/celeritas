@@ -50,6 +50,9 @@ namespace celeritas
  * Construction of this class takes a length 3 array of \c SignedAxis values.
  * The sign is a '+' or '-' character and the axis is the position of the
  * nonzero component in that row.
+ *
+ * Note that the unsigned integer type (UIntT) is at least 16 bits, which is
+ * sufficient accurately round-trip through a floating point value.
  */
 class SignedPermutation
 {
@@ -60,6 +63,7 @@ class SignedPermutation
     using SignedAxes = EnumArray<Axis, SignedAxis>;
     using StorageSpan = Span<real_type const, 1>;
     using DataArray = Array<real_type, 1>;
+    using UIntT = short unsigned int;
     //!@}
 
   public:
@@ -74,17 +78,14 @@ class SignedPermutation
 
     //// ACCESSORS ////
 
+    //! Opaque type for hashing and comparison
+    UIntT value() const { return compressed_; }
+
     // Reconstruct the permutation
     SignedAxes permutation() const;
 
     // Get a view to the data for type-deleted storage
     DataArray data() const;
-
-    // Equality
-    inline bool operator==(SignedPermutation const& other) const;
-
-    // Inequality
-    inline bool operator!=(SignedPermutation const& other) const;
 
     //// CALCULATION ////
 
@@ -104,9 +105,6 @@ class SignedPermutation
     rotate_down(Real3 const& parent_dir) const;
 
   private:
-    // At least 16 bits: more than enough to round trip through a float
-    using UIntT = short unsigned int;
-
     //// DATA ////
 
     UIntT compressed_;
@@ -124,6 +122,19 @@ class SignedPermutation
 // Make a permutation by rotating about the given axis
 SignedPermutation make_permutation(Axis ax, QuarterTurn qtr);
 
+//!@{
+//! Host-only comparators
+inline bool operator==(SignedPermutation const& a, SignedPermutation const& b)
+{
+    return a.value() == b.value();
+}
+
+inline bool operator!=(SignedPermutation const& a, SignedPermutation const& b)
+{
+    return !(a == b);
+}
+//!@}
+
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
@@ -134,24 +145,6 @@ CELER_FUNCTION SignedPermutation::SignedPermutation(StorageSpan s)
     : compressed_{static_cast<UIntT>(s[0])}
 {
     CELER_EXPECT(s[0] >= 0 && s[0] <= static_cast<real_type>(max_value()));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Equality.
- */
-bool SignedPermutation::operator==(SignedPermutation const& other) const
-{
-    return compressed_ == other.compressed_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Inequality.
- */
-bool SignedPermutation::operator!=(SignedPermutation const& other) const
-{
-    return !(*this == other);
 }
 
 //---------------------------------------------------------------------------//
