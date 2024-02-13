@@ -629,50 +629,77 @@ void print_optical_material_data(ImportData::ImportOpticalMap const& iom)
     CELER_LOG(info) << "Loaded optical material data map with size "
                     << iom.size();
 
-#define POM_STREAM_SCALAR(ID, NAME)                                          \
-    "| " << setw(11) << ID << " | " << setw(24) << #NAME << " | " << setw(7) \
-         << ""                                                               \
-         << " | " << setprecision(3) << setw(9) << NAME << " | " << setw(52) \
-         << ""                                                               \
+#define POM_STREAM_SCALAR_COMP(ID, STRUCT, NAME, UNITS, COMP)             \
+    "| " << setw(11) << ID << " | " << setw(20) << #NAME << COMP << " | " \
+         << setw(15) << to_cstring(UNITS) << " | " << setprecision(3)     \
+         << setw(9) << STRUCT.NAME << " | " << setw(52) << ""             \
+         << " | " << setw(7) << ""                                        \
          << " |\n"
-#define POM_STREAM_VECTOR(ID, NAME)                                          \
-    "| " << setw(11) << ID << " | " << setw(24) << #NAME << " | " << setw(7) \
-         << NAME.x.size() << " | " << setw(9) << ""                          \
-         << " | (" << setprecision(3) << setw(10) << NAME.x.front() << ", "  \
-         << setprecision(3) << setw(10) << NAME.y.front() << ") -> ("        \
-         << setprecision(3) << setw(10) << NAME.x.back() << ", "             \
-         << setprecision(3) << setw(10) << NAME.y.back() << ") |\n";
-    cout << R"gfm(
-# Material optical property data
+#define POM_STREAM_SCALAR(ID, STRUCT, NAME, UNITS) \
+    POM_STREAM_SCALAR_COMP(ID, STRUCT, NAME, UNITS, "      ")
+#define POM_STREAM_VECTOR(ID, STRUCT, NAME, UNITS)                            \
+    "| " << setw(11) << ID << " | " << setw(26) << #NAME << " | " << setw(15) \
+         << to_cstring(UNITS) << " | " << setw(9) << ""                       \
+         << " | (" << setprecision(3) << setw(10) << STRUCT.NAME.x.front()    \
+         << ", " << setprecision(3) << setw(10) << STRUCT.NAME.y.front()      \
+         << ") -> (" << setprecision(3) << setw(10) << STRUCT.NAME.x.back()   \
+         << ", " << setprecision(3) << setw(10) << STRUCT.NAME.y.back()       \
+         << ") | " << setw(7) << STRUCT.NAME.x.size() << " |\n";
+    std::string header = R"gfm(
 
-| Material ID | Property                 | Size    | Scalar    | Vector endpoints (MeV, value)                        |
-| ----------- | ------------------------ | ------- | --------- | ---------------------------------------------------- |
+| Material ID | Property                   | Units           | Scalar    | Vector endpoints (MeV, value)                        | Size    |
+| ----------- | -------------------------- | --------------- | --------- | ---------------------------------------------------- | ------- |
 )gfm";
 
-    for (auto const& [key, val] : iom)
+    using IU = ImportUnits;
+
+    cout << "\n# Optical properties\n";
+    cout << "\n## Common properties";
+    cout << header;
+    for (auto const& [mid, val] : iom)
+    {
+        auto const& prop = val.properties;
+        cout << POM_STREAM_VECTOR(mid, prop, refractive_index, IU::unitless);
+    }
+    cout << "\n## Scintillation";
+    cout << header;
+    char const* comp_str[] = {"(fast)", " (mid)", "(slow)"};
+    for (auto const& [mid, val] : iom)
     {
         auto const& scint = val.scintillation;
-        cout << POM_STREAM_SCALAR(key, scint.yield);
-        cout << POM_STREAM_SCALAR(key, scint.resolution_scale);
-        for (auto const& scint_comp : scint.components)
+        cout << POM_STREAM_SCALAR(mid, scint, yield, IU::unitless);
+        cout << POM_STREAM_SCALAR(mid, scint, resolution_scale, IU::unitless);
+        for (auto i : range(scint.components.size()))
         {
-            cout << POM_STREAM_SCALAR(key, scint_comp.yield);
-            cout << POM_STREAM_SCALAR(key, scint_comp.lambda_mean);
-            cout << POM_STREAM_SCALAR(key, scint_comp.lambda_sigma);
-            cout << POM_STREAM_SCALAR(key, scint_comp.rise_time);
-            cout << POM_STREAM_SCALAR(key, scint_comp.fall_time);
+            auto const& comp = scint.components[i];
+            cout << POM_STREAM_SCALAR_COMP(
+                mid, comp, yield, IU::unitless, comp_str[i]);
+            cout << POM_STREAM_SCALAR_COMP(
+                mid, comp, lambda_mean, IU::len, comp_str[i]);
+            cout << POM_STREAM_SCALAR_COMP(
+                mid, comp, lambda_sigma, IU::len, comp_str[i]);
+            cout << POM_STREAM_SCALAR_COMP(
+                mid, comp, rise_time, IU::time, comp_str[i]);
+            cout << POM_STREAM_SCALAR_COMP(
+                mid, comp, fall_time, IU::time, comp_str[i]);
         }
-
+    }
+    cout << "\n## Rayleigh";
+    cout << header;
+    for (auto const& [mid, val] : iom)
+    {
         auto const& rayl = val.rayleigh;
-        cout << POM_STREAM_SCALAR(key, rayl.scale_factor);
-        cout << POM_STREAM_SCALAR(key, rayl.compressibility);
-        cout << POM_STREAM_VECTOR(key, rayl.mfp);
-
+        cout << POM_STREAM_SCALAR(mid, rayl, scale_factor, IU::unitless);
+        cout << POM_STREAM_SCALAR(
+            mid, rayl, compressibility, IU::len_time_sq_per_mass);
+        cout << POM_STREAM_VECTOR(mid, rayl, mfp, IU::len);
+    }
+    cout << "\n## Absorption";
+    cout << header;
+    for (auto const& [mid, val] : iom)
+    {
         auto const& abs = val.absorption;
-        cout << POM_STREAM_VECTOR(key, abs.absorption_length);
-
-        auto const& refractive_index = val.properties.refractive_index;
-        cout << POM_STREAM_VECTOR(key, refractive_index);
+        cout << POM_STREAM_VECTOR(mid, abs, absorption_length, IU::len);
     }
     cout << endl;
 #undef PEP_STREAM_SCALAR

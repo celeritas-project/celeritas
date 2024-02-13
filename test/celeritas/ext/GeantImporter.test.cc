@@ -1337,11 +1337,14 @@ TEST_F(LarSphere, optical)
 
     real_type const tol = this->comparison_tolerance();
 
+    // Most optical properties in the geometry are pulled from the Geant4
+    // example examples/advanced/CaTS/gdml/LArTPC.gdml
+
     // Check scintillation optical properties
     auto const& scint = optical.scintillation;
     EXPECT_TRUE(scint);
     EXPECT_EQ(1, scint.resolution_scale);
-    EXPECT_EQ(5, scint.yield);
+    EXPECT_EQ(50000, scint.yield);
     EXPECT_EQ(3, scint.components.size());
     std::vector<double> components;
     for (auto const& comp : scint.components)
@@ -1383,6 +1386,12 @@ TEST_F(LarSphere, optical)
     EXPECT_REAL_EQ(0.000296154, to_cm(abs.absorption_length.y.back()));
 
     // Check common optical properties
+    // Refractive index data in the geometry comes from the refractive index
+    // database https://refractiveindex.info and was calculating using the
+    // methods described in: E. Grace, A. Butcher, J.  Monroe, J. A. Nikkel.
+    // Index of refraction, Rayleigh scattering length, and Sellmeier
+    // coefficients in solid and liquid argon and xenon, Nucl.  Instr. Meth.
+    // Phys. Res. A 867, 204-208 (2017)
     auto const& properties = optical.properties;
     EXPECT_TRUE(properties);
     EXPECT_EQ(101, properties.refractive_index.x.size());
