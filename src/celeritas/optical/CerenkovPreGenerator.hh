@@ -7,7 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/random/distribution/PoissonDistribution.hh"
 
 #include "CerenkovData.hh"
 #include "CerenkovDndxCalculator.hh"
@@ -24,14 +27,14 @@ namespace celeritas
  * \code
     CerenkovPreGenerator pre_cerenkov(particle_view,
                                       properties,
-                                      shared,
+                                      cerenkov_data,
                                       material_id,
-                                      step_collector.get(tid));
+                                      optical_step_collector.get(tid));
 
-    auto optical_generator_data = pre_cerenkov(rng);
-    if (optical_generator_data)
+    auto optical_dist_data = pre_cerenkov(rng);
+    if (optical_dist_data)
     {
-        CerenkovGenerator cerenkov_gen(... , optical_generator_data);
+        CerenkovGenerator cerenkov_gen(... , optical_dist_data, ...);
         cerenkov_gen(rng);
     }
  * \endcode
@@ -40,23 +43,89 @@ class CerenkovPreGenerator
 {
   public:
     // Construct with particle and material data
-    CELER_FUNCTION
-    CerenkovPreGenerator(std::shared_ptr<ParticleTrackView> particle_view,
+    inline CELER_FUNCTION
+    CerenkovPreGenerator(ParticleTrackView const& particle_view,
                          NativeCRef<OpticalPropertyData> const& properties,
                          NativeCRef<CerenkovData> const& shared,
                          OpticalMaterialId mat_id,
-                         OpticalStepCollectorData optical_step);
+                         OpticalStepCollectorData const& optical_step);
 
     // Return a populated distribution data for the Cerenkov Generator
     template<class Generator>
-    OpticalDistributionData CELER_FUNCTION operator()(Generator& rng);
+    inline CELER_FUNCTION OpticalDistributionData operator()(Generator& rng);
 
   private:
-    std::shared_ptr<ParticleTrackView> particle_view_;
+    ParticleTrackView const particle_view_;
     OpticalMaterialId mat_id_;
     OpticalStepCollectorData step_collector_data_;
     CerenkovDndxCalculator dndx_calculator_;
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from particle, material, and optical step collection data.
+ */
+CELER_FUNCTION CerenkovPreGenerator::CerenkovPreGenerator(
+    ParticleTrackView const& particle_view,
+    NativeCRef<OpticalPropertyData> const& properties,
+    NativeCRef<CerenkovData> const& shared,
+    OpticalMaterialId mat_id,
+    OpticalStepCollectorData const& optical_step)
+    : particle_view_(particle_view)
+    , mat_id_(mat_id)
+    , step_collector_data_(optical_step)
+    , dndx_calculator_(properties, shared, mat_id, particle_view.charge())
+{
+    CELER_EXPECT(mat_id_);
+    CELER_EXPECT(step_collector_data_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return an \c OpticalDistributionData object. If no photons are sampled, an
+ * empty object is returned and can be verified via its own operator bool.
+ *
+ * The number of photons is sampled from a Poisson distribution with a mean
+ * \f[
+   \langle n \rangle = \ell_\text{step} \frac{dN}{dx}
+ * \f]
+ * where \f$ \ell_\text{step} \f$ is the step length.
+ */
+template<class Generator>
+CELER_FUNCTION OpticalDistributionData
+CerenkovPreGenerator::operator()(Generator& rng)
+{
+    auto const& pre = step_collector_data_.points[StepPoint::pre];
+    auto const& post = step_collector_data_.points[StepPoint::post];
+    units::LightSpeed beta(real_type{0.5}
+                           * (pre.speed.value() + post.speed.value()));
+
+    // Sample number of photons from a Poisson distribution
+    real_type sampled_num_photons = PoissonDistribution<real_type>(
+        dndx_calculator_(beta) * step_collector_data_.step_length)(rng);
+
+    if (sampled_num_photons == 0)
+    {
+        // Not an optical material or this step is below production threshold
+        return OpticalDistributionData{};
+    }
+
+    // Populate optical distribution data
+    OpticalDistributionData data;
+    data.num_photons = sampled_num_photons;
+    data.charge = particle_view_.charge();
+    data.step_length = step_collector_data_.step_length;
+    data.time = step_collector_data_.time;
+    data.points = step_collector_data_.points;
+    data.material = mat_id_;
+
+    CELER_ENSURE(data);
+    return data;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
