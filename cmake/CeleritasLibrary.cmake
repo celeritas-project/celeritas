@@ -17,17 +17,17 @@ message(AUTHOR_WARNING "CeleritasLibrary has been replaced by CudaRdcUtils. Plea
 replace celeritas_(add_library|add_executable|target_link_libraries) with
 cuda_rdc_(...)")
 
-function(celeritas_add_library)
+macro(celeritas_add_library)
   message(AUTHOR_WARNING "Replace with cuda_rdc_add_library")
   cuda_rdc_add_library(${ARGV})
-endfunction()
+endmacro()
 
-function(celeritas_add_executable)
+macro(celeritas_add_executable)
   message(AUTHOR_WARNING "Replace with cuda_rdc_add_executable")
   cuda_rdc_add_executable(${ARGV})
-endfunction()
+endmacro()
 
-function(celeritas_link_libraries)
+macro(celeritas_link_libraries)
   message(AUTHOR_WARNING "Replace with cuda_rdc_link_libraries")
   cuda_rdc_link_libraries(${ARGV})
-endfunction()
+endmacro()

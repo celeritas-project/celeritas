@@ -334,7 +334,6 @@ endfunction()
 #-----------------------------------------------------------------------------#
 
 function(celeritas_add_library target)
-
   cuda_get_sources_and_options(_sources _cmake_options _options ${ARGN})
   cuda_rdc_sources_contains_cuda(_cuda_sources ${_sources})
   if(CELERITAS_USE_HIP AND _cuda_sources)
@@ -436,9 +435,9 @@ endfunction()
 
 #-----------------------------------------------------------------------------#
 
-function(celeritas_sources_contains_cuda)
+macro(celeritas_sources_contains_cuda)
   cuda_rdc_sources_contains_cuda(${ARGV})
-endfunction()
+endmacro()
 
 #-----------------------------------------------------------------------------#
 # Add an object library to limit the propagation of includes to the rest of the

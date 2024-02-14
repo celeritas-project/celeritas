@@ -229,7 +229,7 @@ endif()
 celeritas_set_default(CMAKE_INSTALL_MESSAGE LAZY)
 
 #----------------------------------------------------------------------------#
-# Output locations for Celeritas products (used by # CeleritasUtils.cmake,
+# Output locations for Celeritas products (used by CeleritasUtils.cmake and
 # install code below) will mirror the installation layout
 set(CELERITAS_CMAKE_CONFIG_DIRECTORY
   "${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}/cmake")
