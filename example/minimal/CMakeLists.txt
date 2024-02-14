@@ -15,7 +15,7 @@ add_executable(minimal minimal.cc)
 
 # Use special linking macros to support CUDA RDC across multiple libraries when
 # using VecGeom.
-include(CeleritasLibrary)
-celeritas_target_link_libraries(minimal
+include(CudaRdcUtils)
+cuda_rdc_target_link_libraries(minimal
   Celeritas::celeritas
 )
