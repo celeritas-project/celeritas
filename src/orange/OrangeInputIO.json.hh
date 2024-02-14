@@ -3,14 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/construct/OrangeInputIO.json.hh
+//! \file orange/OrangeInputIO.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <nlohmann/json.hpp>
 
-#include "orange/OrangeData.hh"
-
+#include "OrangeData.hh"
 #include "OrangeInput.hh"
 
 namespace celeritas

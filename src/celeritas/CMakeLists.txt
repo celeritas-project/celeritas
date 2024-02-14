@@ -61,6 +61,7 @@ list(APPEND SOURCES
   optical/CerenkovParams.cc
   optical/OpticalStepCollector.cc
   optical/ScintillationParams.cc
+  optical/OpticalPropertyParams.cc
   phys/CutoffParams.cc
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc

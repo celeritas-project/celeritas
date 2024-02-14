@@ -61,6 +61,9 @@ class MaterialView
     // Material state
     CELER_FORCEINLINE_FUNCTION MatterState matter_state() const;
 
+    // ID of the optical properties for this material, if any
+    CELER_FORCEINLINE_FUNCTION OpticalMaterialId optical_material_id() const;
+
     //// ELEMENT ACCESS ////
 
     // Number of elemental components
@@ -157,6 +160,23 @@ CELER_FUNCTION real_type MaterialView::temperature() const
 CELER_FUNCTION MatterState MaterialView::matter_state() const
 {
     return this->material_def().matter_state;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the index in the optical properties for this material.
+ *
+ * This will return an invalid ID if the material has no optical properties
+ * attached.
+ */
+CELER_FUNCTION OpticalMaterialId MaterialView::optical_material_id() const
+{
+    if (params_.optical_id.empty())
+    {
+        return {};
+    }
+    CELER_ASSERT(material_ < params_.optical_id.size());
+    return params_.optical_id[material_];
 }
 
 //---------------------------------------------------------------------------//

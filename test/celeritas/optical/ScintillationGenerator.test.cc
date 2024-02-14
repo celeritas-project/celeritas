@@ -40,37 +40,21 @@ class ScintillationGeneratorTest : public Test
   protected:
     void SetUp() override
     {
-        // Test scintillation spectrum: only one material with three components
-        HostVal<ScintillationData> data;
-        static constexpr size_type num_components = 3;
         static constexpr double nm = 1e-9 * units::meter;
         static constexpr double ns = 1e-9 * units::second;
 
-        using Real3 = Array<real_type, num_components>;
-        Real3 yield_prob = {0.65713, 0.31987, 1 - 0.65713 - 0.31987};
-        Real3 lambda_mean = {128 * nm, 128 * nm, 200 * nm};
-        Real3 lambda_sigma = {10 * nm, 10 * nm, 20 * nm};
-        Real3 rise_time = {10 * ns, 10 * ns, 10 * ns};
-        Real3 fall_time = {6 * ns, 1500 * ns, 3000 * ns};
-
-        std::vector<ScintillationComponent> components;
-        for (size_type i = 0; i < num_components; ++i)
-        {
-            if (yield_prob[i] > 0)
-            {
-                ScintillationComponent component;
-                component.yield_prob = yield_prob[i];
-                component.lambda_mean = lambda_mean[i];
-                component.lambda_sigma = lambda_sigma[i];
-                component.rise_time = rise_time[i];
-                component.fall_time = fall_time[i];
-                components.push_back(component);
-            }
-        }
-
-        ScintillationParams::ScintillationInput input;
-        input.data.push_back(components);
-        params = std::make_shared<ScintillationParams>(input);
+        // Test scintillation spectrum: only one material with three components
+        ImportScintSpectrum spectrum;
+        spectrum.yield = 5;
+        spectrum.resolution_scale = 1;
+        spectrum.components.push_back(
+            {0.65713, 128 * nm, 10 * nm, 10 * ns, 6 * ns});
+        spectrum.components.push_back(
+            {0.31987, 128 * nm, 10 * nm, 10 * ns, 1500 * ns});
+        spectrum.components.push_back(
+            {0.023, 200 * nm, 20 * nm, 10 * ns, 3000 * ns});
+        params = std::make_shared<ScintillationParams>(
+            ScintillationParams::Input{{spectrum}});
 
         // Test step input
         dist_.num_photons = 4;

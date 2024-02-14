@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/construct/detail/OrangeInputIOImpl.json.hh
+//! \file orange/detail/OrangeInputIOImpl.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,9 +11,9 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "orange/OrangeTypes.hh"
-#include "orange/surf/VariantSurface.hh"
-#include "orange/transform/VariantTransform.hh"
+#include "../OrangeTypes.hh"
+#include "../surf/VariantSurface.hh"
+#include "../transform/VariantTransform.hh"
 
 namespace celeritas
 {

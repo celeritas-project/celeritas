@@ -19,11 +19,13 @@
 #include "celeritas/Units.hh"
 #include "celeritas/grid/GenericGridData.hh"
 #include "celeritas/grid/VectorUtils.hh"
+#include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/CerenkovDndxCalculator.hh"
 #include "celeritas/optical/CerenkovGenerator.hh"
 #include "celeritas/optical/CerenkovParams.hh"
 #include "celeritas/optical/CerenkovPreGenerator.hh"
 #include "celeritas/optical/OpticalDistributionData.hh"
+#include "celeritas/optical/OpticalPropertyParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/random/distribution/PoissonDistribution.hh"
 
@@ -120,45 +122,30 @@ class CerenkovTest : public OpticalTestBase
   protected:
     void SetUp() override
     {
-        this->build_optical_properties();
-        properties = make_const_ref(data);
+        // Build optical properties: only one material (water)
+        ImportOpticalProperty water;
+        auto wavelength = get_wavelength();
+        for (auto wl : wavelength)
+        {
+            water.refractive_index.x.push_back(
+                convert_to_energy(wl * micrometer));
+        }
+        water.refractive_index.y
+            = {get_refractive_index().begin(), get_refractive_index().end()};
+        OpticalPropertyParams::Input input;
+        input.data.push_back(water);
+        properties = std::make_shared<OpticalPropertyParams>(std::move(input));
+
+        // Build Cerenkov data
         params = std::make_shared<CerenkovParams>(properties);
     }
 
-    void build_optical_properties();
-
     static constexpr double micrometer = 1e-4 * units::centimeter;
 
-    HostVal<OpticalPropertyData> data;
-    HostCRef<OpticalPropertyData> properties;
+    std::shared_ptr<OpticalPropertyParams const> properties;
     std::shared_ptr<CerenkovParams const> params;
     OpticalMaterialId material{0};
 };
-
-//---------------------------------------------------------------------------//
-
-void CerenkovTest::build_optical_properties()
-{
-    auto wavelength = get_wavelength();
-    std::vector<double> energy(wavelength.size());
-    for (auto i : range(energy.size()))
-    {
-        energy[i] = convert_to_energy(wavelength[i] * micrometer);
-    }
-    auto rindex = get_refractive_index();
-    CELER_ASSERT(energy.size() == rindex.size());
-
-    // In a dispersive medium the index of refraction is an increasing
-    // function of photon energy
-    CELER_ASSERT(is_monotonic_increasing(rindex));
-
-    // Only one material: water
-    GenericGridData grid;
-    auto reals = make_builder(&data.reals);
-    grid.grid = reals.insert_back(energy.begin(), energy.end());
-    grid.value = reals.insert_back(rindex.begin(), rindex.end());
-    make_builder(&data.refractive_index).push_back(grid);
-}
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -194,7 +181,7 @@ TEST_F(CerenkovTest, dndx)
 
     std::vector<real_type> dndx;
     CerenkovDndxCalculator calc_dndx(
-        properties,
+        properties->host_ref(),
         params->host_ref(),
         material,
         this->particle_params()->get(ParticleId{0}).charge());
@@ -265,7 +252,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
         auto particle_view
             = this->make_particle_track_view(energy, pdg::electron());
         CerenkovPreGenerator pre_generator(particle_view,
-                                           properties,
+                                           properties->host_ref(),
                                            params->host_ref(),
                                            material,
                                            step_collector);
@@ -280,8 +267,10 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
 
             // Sample the optical photons
             std::vector<OpticalPrimary> storage(dist.num_photons);
-            CerenkovGenerator generate_photons(
-                properties, params->host_ref(), dist, make_span(storage));
+            CerenkovGenerator generate_photons(properties->host_ref(),
+                                               params->host_ref(),
+                                               dist,
+                                               make_span(storage));
             auto photons = generate_photons(rng);
 
             for (auto const& photon : photons)
@@ -425,8 +414,11 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
     auto particle_view = this->make_particle_track_view(units::MevEnergy{0.5},
                                                         pdg::electron());
 
-    CerenkovPreGenerator pre_generator(
-        particle_view, properties, params->host_ref(), material, step_collector);
+    CerenkovPreGenerator pre_generator(particle_view,
+                                       properties->host_ref(),
+                                       params->host_ref(),
+                                       material,
+                                       step_collector);
     auto const result = pre_generator(rng);
     CELER_ASSERT(result);
 

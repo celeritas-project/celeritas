@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/TransformInserter.hh
+//! \file orange/detail/TransformRecordInserter.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -26,7 +26,7 @@ namespace detail
  * TODO: deduplicate transforms via hashes? Define special compressed transform
  * for 90-degree rotations?
  */
-class TransformInserter
+class TransformRecordInserter
 {
   public:
     //!@{
@@ -37,8 +37,8 @@ class TransformInserter
 
   public:
     // Construct with pointers to target data
-    inline TransformInserter(Items<TransformRecord>* transforms,
-                             Items<real_type>* reals);
+    inline TransformRecordInserter(Items<TransformRecord>* transforms,
+                                   Items<real_type>* reals);
 
     // Return a transform ID from a transform variant
     inline TransformId operator()(VariantTransform const& tr);
@@ -59,8 +59,8 @@ class TransformInserter
 /*!
  * Construct with pointers to target data.
  */
-TransformInserter::TransformInserter(Items<TransformRecord>* transforms,
-                                     Items<real_type>* reals)
+TransformRecordInserter::TransformRecordInserter(
+    Items<TransformRecord>* transforms, Items<real_type>* reals)
     : transforms_{transforms}, reals_{reals}
 {
     CELER_EXPECT(transforms && reals);
@@ -70,7 +70,7 @@ TransformInserter::TransformInserter(Items<TransformRecord>* transforms,
 /*!
  * Construct from a transform variant.
  */
-TransformId TransformInserter::operator()(VariantTransform const& tr)
+TransformId TransformRecordInserter::operator()(VariantTransform const& tr)
 {
     CELER_ASSUME(!tr.valueless_by_exception());
     return std::visit(*this, tr);
@@ -81,7 +81,7 @@ TransformId TransformInserter::operator()(VariantTransform const& tr)
  * Construct from a transform with a known type.
  */
 template<class T>
-TransformId TransformInserter::operator()(T const& tr)
+TransformId TransformRecordInserter::operator()(T const& tr)
 {
     // TODO: add equality and hash for TransformRecord and replace this with
     // just a dedupe collection builder

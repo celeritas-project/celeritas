@@ -36,16 +36,28 @@ struct ScintillationComponent
 
 //---------------------------------------------------------------------------//
 /*!
- * A collection range of scintillation components.
+ * Data characterizing the scintillation spectrum.
+ *
+ * \c yield is the characteristic light yield of the material.
+ * \c resolution_scale scales the standard deviation of the distribution of the
+ * number of photons generated.
  */
 struct ScintillationSpectrum
 {
+    real_type yield{};
+    real_type resolution_scale{};
     ItemRange<ScintillationComponent> components;
+
+    //! Whether all data are assigned and valid
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return yield > 0 && resolution_scale >= 0 && !components.empty();
+    }
 };
 
 //---------------------------------------------------------------------------//
 /*!
- *  Scintillation data tabulated with the optical material id.
+ * Scintillation data tabulated with the optical material id.
  */
 template<Ownership W, MemSpace M>
 struct ScintillationData

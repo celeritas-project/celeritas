@@ -10,10 +10,10 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/Label.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/construct/CsgTypes.hh"
-#include "orange/construct/detail/LocalSurfaceInserter.hh"
 
 #include "CsgUnit.hh"
+#include "LocalSurfaceInserter.hh"
+#include "../CsgTypes.hh"
 
 namespace celeritas
 {
@@ -36,7 +36,6 @@ class CsgUnitBuilder
     //! \name Type aliases
     using Tol = Tolerance<>;
     using Metadata = CsgUnit::Metadata;
-    using NodeId = CsgUnit::NodeId;
     using BBox = CsgUnit::BBox;
     //!@}
 

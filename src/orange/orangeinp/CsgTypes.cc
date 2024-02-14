@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/construct/CsgTypes.cc
+//! \file orange/orangeinp/CsgTypes.cc
 //---------------------------------------------------------------------------//
 #include "CsgTypes.hh"
 
@@ -14,7 +14,7 @@
 
 namespace celeritas
 {
-namespace csg
+namespace orangeinp
 {
 //---------------------------------------------------------------------------//
 //!@{
@@ -81,5 +81,5 @@ std::string to_string(Node const& n)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace csg
+}  // namespace orangeinp
 }  // namespace celeritas
