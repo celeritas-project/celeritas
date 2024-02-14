@@ -145,7 +145,7 @@ define_property(TARGET PROPERTY CUDA_RDC_OBJECT_LIBRARY
 ##############################################################################
 # Separate the OPTIONS out from the sources
 #
-macro(cuda_get_sources_and_options _sources _cmake_options _options)
+macro(cuda_rdc_get_sources_and_options _sources _cmake_options _options)
   set( ${_sources} )
   set( ${_cmake_options} )
   set( ${_options} )
@@ -275,7 +275,7 @@ endfunction()
 #
 function(cuda_rdc_add_library target)
 
-  cuda_get_sources_and_options(_sources _cmake_options _options ${ARGN})
+  cuda_rdc_get_sources_and_options(_sources _cmake_options _options ${ARGN})
 
   if (_cmake_options STREQUAL "ALIAS")
     if(NOT ${ARGC} EQUAL 3)

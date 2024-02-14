@@ -334,7 +334,7 @@ endfunction()
 #-----------------------------------------------------------------------------#
 
 function(celeritas_add_library target)
-  cuda_get_sources_and_options(_sources _cmake_options _options ${ARGN})
+  cuda_rdc_get_sources_and_options(_sources _cmake_options _options ${ARGN})
   cuda_rdc_sources_contains_cuda(_cuda_sources ${_sources})
   if(CELERITAS_USE_HIP AND _cuda_sources)
     # When building Celeritas libraries, we put HIP/CUDA files in shared .cu
