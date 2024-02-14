@@ -14,7 +14,7 @@
 #include "celeritas/phys/ParticleData.hh"
 
 #include "DiagnosticRngEngine.hh"
-#include "celeritas_test.hh"
+#include "Test.hh"
 
 namespace celeritas
 {
@@ -49,7 +49,7 @@ class OpticalTestBase : public Test
     make_particle_track_view(units::MevEnergy energy, PDGNumber pdg);
 
     //! Get particle params data
-    std::shared_ptr<ParticleParams> particle_params()
+    std::shared_ptr<ParticleParams> const& particle_params() const
     {
         return particle_params_;
     }
