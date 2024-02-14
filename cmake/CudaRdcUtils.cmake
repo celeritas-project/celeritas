@@ -159,7 +159,8 @@ macro(cuda_get_sources_and_options _sources _cmake_options _options)
         arg STREQUAL "EXCLUDE_FROM_ALL" OR
         arg STREQUAL "STATIC" OR
         arg STREQUAL "SHARED" OR
-        arg STREQUAL "MODULE"
+        arg STREQUAL "MODULE" OR
+        arg STREQUAL "ALIAS"
         )
       list(APPEND ${_cmake_options} ${arg})
     else()
