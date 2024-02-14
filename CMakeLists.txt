@@ -23,7 +23,7 @@ if(CMAKE_VERSION VERSION_LESS 3.18)
 endif()
 
 include(GNUInstallDirs)
-include(CeleritasLibrary)
+include(CudaRdcUtils)
 include(CeleritasUtils)
 include(CMakeDependentOption)
 include(CMakePackageConfigHelpers)
@@ -229,8 +229,8 @@ endif()
 celeritas_set_default(CMAKE_INSTALL_MESSAGE LAZY)
 
 #----------------------------------------------------------------------------#
-# Output locations for Celeritas products (used by CeleritasLibrary.cmake,
-# CeleritasUtils.cmake, install code below) will mirror the installation layout
+# Output locations for Celeritas products (used by CeleritasUtils.cmake and
+# install code below) will mirror the installation layout
 set(CELERITAS_CMAKE_CONFIG_DIRECTORY
   "${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}/cmake")
 set(CELERITAS_HEADER_CONFIG_DIRECTORY
@@ -525,6 +525,7 @@ set(CELERITAS_INSTALL_CMAKECONFIGDIR
 
 # Build list of CMake files to install
 set(_cmake_files
+  "${PROJECT_SOURCE_DIR}/cmake/CudaRdcUtils.cmake"
   "${PROJECT_SOURCE_DIR}/cmake/CeleritasLibrary.cmake"
 )
 foreach(_dep Geant4 HepMC3 ROOT VecGeom)
