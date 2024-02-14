@@ -49,7 +49,7 @@ if(CELERITAS_USE_OpenMP)
   list(APPEND PRIVATE_DEPS OpenMP::OpenMP_CXX)
 endif()
 
-celeritas_get_g4libs(_g4_private digits_hits)
+celeritas_get_g4libs(_g4_private digits_hits run)
 list(APPEND PRIVATE_DEPS ${_g4_private})
 
 celeritas_get_g4libs(_g4_public event global track tracking intercoms geometry)
