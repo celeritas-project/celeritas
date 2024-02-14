@@ -65,7 +65,7 @@ CMake configuration utility functions for Celeritas.
 
   Install library that correctly deal with CUDA relocatable device code.
 
-.. command:: celeritas_set_properties
+.. command:: celeritas_set_target_properties
 
   Install library that correctly deal with CUDA relocatable device code extra
   libraries.
