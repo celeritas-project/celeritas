@@ -16,8 +16,10 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Callback class derived from `StepInterface` that returns StepPoint data for
- * Cerenkov and Scintillation distribution classes.
+ * Callback class derived from `StepInterface` that stores
+ * \c OpticalStepCollectorData to be used by optical physics pre-generator
+ * classes.
+ *
  */
 class OpticalStepCollector final : public StepInterface
 {
@@ -26,14 +28,12 @@ class OpticalStepCollector final : public StepInterface
     //! \name Type aliases
     using SPParticleParams = std::shared_ptr<ParticleParams const>;
     using MevEnergy = units::MevEnergy;
-    using UPStepCollectorDataArray
-        = std::unique_ptr<OpticalStepCollectorData[]>;
     using LightSpeed = units::LightSpeed;
     //!@}
 
-    // Construct with ParticleParams and data
+    // Construct with ParticleParams and data storage
     OpticalStepCollector(SPParticleParams particle_params,
-                         unsigned int num_streams);
+                         Span<OpticalStepCollectorData> step_data);
 
     // Collect optical step data on the host
     void process_steps(HostStepState state) final;
@@ -48,11 +48,12 @@ class OpticalStepCollector final : public StepInterface
     StepSelection selection() const final { return {}; }
 
     // Fetch collected steps
-    inline CELER_FUNCTION OpticalStepCollectorData const& get(int tid) const;
+    inline CELER_FUNCTION OpticalStepCollectorData const&
+    get(TrackSlotId tid) const;
 
   private:
     SPParticleParams particles_;
-    UPStepCollectorDataArray step_data_;
+    Span<OpticalStepCollectorData> step_data_;
 
     //// HELPER FUNCTIONS ////
 
@@ -62,7 +63,7 @@ class OpticalStepCollector final : public StepInterface
 
     // Step gather loop for both host and device cases
     template<class T>
-    void process(T state);
+    CELER_FUNCTION void process(T state);
 };
 
 //---------------------------------------------------------------------------//
@@ -90,9 +91,10 @@ OpticalStepCollector::speed(ParticleId pid, MevEnergy energy) const
  * Get optical step data given a stream id.
  */
 CELER_FUNCTION OpticalStepCollectorData const&
-OpticalStepCollector::get(int tid) const
+OpticalStepCollector::get(TrackSlotId tid) const
 {
-    auto const& opt_step = step_data_[tid];
+    CELER_EXPECT(tid.get() < step_data_.size());
+    auto const& opt_step = step_data_[tid.unchecked_get()];
     CELER_ENSURE(opt_step);
     return opt_step;
 }

@@ -47,7 +47,6 @@
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/RootEventReader.hh"
 #include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/optical/OpticalStepCollector.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"

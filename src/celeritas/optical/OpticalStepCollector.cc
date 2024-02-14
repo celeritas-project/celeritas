@@ -14,15 +14,15 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with Particle Params data.
+ * Construct with ParticleParams and data a data storage span. The span size
+ * must be the number of streams.
  */
-OpticalStepCollector::OpticalStepCollector(SPParticleParams particle_params,
-                                           unsigned int num_streams)
-    : particles_(std::move(particle_params))
+OpticalStepCollector::OpticalStepCollector(
+    SPParticleParams particle_params, Span<OpticalStepCollectorData> step_data)
+    : particles_(std::move(particle_params)), step_data_(step_data)
 {
     CELER_EXPECT(particle_params);
-    CELER_EXPECT(num_streams);
-    step_data_ = std::make_unique<OpticalStepCollectorData[]>(num_streams);
+    CELER_EXPECT(step_data_.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -45,12 +45,14 @@ void OpticalStepCollector::process_steps(DeviceStepState state)
 
 //---------------------------------------------------------------------------//
 /*!
- * Collect optical step data. The collected data is available via
- * \c this->get(tid)
+ * Collect optical step data. The collected data is publicly accessed via
+ * \c this->get(tid) .
  */
 template<class T>
-void OpticalStepCollector::process(T state)
+CELER_FUNCTION void OpticalStepCollector::process(T state)
 {
+    CELER_EXPECT(state.steps.size() == step_data_.size());
+
     for (auto const tid : range(TrackSlotId{state.steps.size()}))
     {
         auto const& ssd = state.steps.data;
