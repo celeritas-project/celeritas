@@ -14,6 +14,7 @@
 #include "ImportElement.hh"
 #include "ImportLivermorePE.hh"
 #include "ImportMaterial.hh"
+#include "ImportOpticalMaterial.hh"
 #include "ImportParameters.hh"
 #include "ImportParticle.hh"
 #include "ImportProcess.hh"
@@ -53,9 +54,11 @@ struct ImportData
     //!@{
     //! \name Type aliases
     using ZInt = int;
+    using MatIdx = int;
     using ImportSBMap = std::map<ZInt, ImportSBTable>;
     using ImportLivermorePEMap = std::map<ZInt, ImportLivermorePE>;
     using ImportAtomicRelaxationMap = std::map<ZInt, ImportAtomicRelaxation>;
+    using ImportOpticalMap = std::map<MatIdx, ImportOpticalMaterial>;
     //!@}
 
     std::vector<ImportParticle> particles;
@@ -65,6 +68,7 @@ struct ImportData
     std::vector<ImportProcess> processes;
     std::vector<ImportMscModel> msc_models;
     std::vector<ImportVolume> volumes;
+    ImportOpticalMap optical;
     ImportEmParameters em_params;
     ImportTransParameters trans_params;
     ImportSBMap sb_data;

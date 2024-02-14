@@ -244,7 +244,8 @@ orange-update
 -------------
 
 Read an ORANGE JSON input file and write it out again. This is used for
-updating from an older version of the input to a newer version.
+updating from an older version of the input (i.e. with different parameter
+names or fewer options) to a newer version.
 
 ----
 

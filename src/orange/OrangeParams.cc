@@ -26,9 +26,9 @@
 #include "geocel/BoundingBox.hh"
 
 #include "OrangeData.hh"  // IWYU pragma: associated
+#include "OrangeInput.hh"
 #include "OrangeTypes.hh"
-#include "construct/DepthCalculator.hh"
-#include "construct/OrangeInput.hh"
+#include "detail/DepthCalculator.hh"
 #include "detail/RectArrayInserter.hh"
 #include "detail/UnitInserter.hh"
 #include "detail/UniverseInserter.hh"
@@ -37,7 +37,7 @@
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 
-#    include "construct/OrangeInputIO.json.hh"
+#    include "OrangeInputIO.json.hh"
 #endif
 
 namespace celeritas

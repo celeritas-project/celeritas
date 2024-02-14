@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/detail/BIHData.hh
+//! \todo move to orange/BihTreeData
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -74,6 +75,8 @@ struct BIHLeafNode
  * Bounding Interval Hierarchy tree.
  *
  * Infinite bounding boxes are not included in the main tree.
+ *
+ * \todo Rename BihTreeRecord
  */
 struct BIHTree
 {

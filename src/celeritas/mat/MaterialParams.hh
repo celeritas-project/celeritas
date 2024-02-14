@@ -88,6 +88,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
         std::vector<IsotopeInput> isotopes;
         std::vector<ElementInput> elements;
         std::vector<MaterialInput> materials;
+        std::vector<OpticalMaterialId> mat_to_optical;
     };
 
   public:

@@ -117,6 +117,10 @@ struct MaterialRecord
  *
  * This view is created from \c MaterialParams.
  *
+ * If a material has optical properties defined, \c optical_id will give the
+ * index into the optical properties data. Otherwise, it will be an invalid ID,
+ * or empty if no optical properties are present for any material.
+ *
  * \sa MaterialParams (owns the pointed-to data)
  * \sa ElementView (uses the pointed-to element data in a kernel)
  * \sa IsotopeView (uses the pointed-to isotope data in a kernel)
@@ -127,6 +131,8 @@ struct MaterialParamsData
 {
     template<class T>
     using Items = Collection<T, W, M>;
+    template<class T>
+    using MaterialItems = Collection<T, W, M, MaterialId>;
 
     Items<IsotopeRecord> isotopes;
     Items<ElementRecord> elements;
@@ -135,6 +141,7 @@ struct MaterialParamsData
     Collection<MaterialRecord, W, M, MaterialId> materials;
     IsotopeComponentId::size_type max_isotope_components{};
     ElementComponentId::size_type max_element_components{};
+    MaterialItems<OpticalMaterialId> optical_id;
 
     //// MEMBER FUNCTIONS ////
 
@@ -156,6 +163,7 @@ struct MaterialParamsData
         materials = other.materials;
         max_isotope_components = other.max_isotope_components;
         max_element_components = other.max_element_components;
+        optical_id = other.optical_id;
         return *this;
     }
 };

@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 
 // Simply include these because SCALE does too :eyeroll:
+#include "orange/OrangeInput.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/OrangeTrackView.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/construct/OrangeInput.hh"

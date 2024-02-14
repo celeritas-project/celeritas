@@ -101,7 +101,7 @@ VariantSurface const& CsgUnitBuilder::get_surface_impl(NodeId nid) const
 {
     CELER_EXPECT(nid < unit_->tree.size());
 
-    using SurfaceNode = ::celeritas::csg::Surface;
+    using SurfaceNode = ::celeritas::orangeinp::Surface;
 
     // Get the surface ID from the tree
     auto const& node = unit_->tree[nid];

@@ -23,7 +23,7 @@
 
 #include "UniverseInserter.hh"
 #include "../BoundingBoxUtils.hh"
-#include "../construct/OrangeInput.hh"
+#include "../OrangeInput.hh"
 #include "../surf/LocalSurfaceVisitor.hh"
 
 namespace celeritas

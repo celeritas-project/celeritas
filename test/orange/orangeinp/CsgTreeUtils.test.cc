@@ -3,19 +3,20 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/construct/CsgTreeUtils.test.cc
+//! \file orange/orangeinp/CsgTreeUtils.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/construct/CsgTreeUtils.hh"
+#include "orange/orangeinp/CsgTreeUtils.hh"
 
-#include "orange/construct/CsgTree.hh"
+#include "orange/orangeinp/CsgTree.hh"
 
 #include "celeritas_test.hh"
 
-using namespace celeritas::csg;
-using N = celeritas::csg::NodeId;
+using N = celeritas::orangeinp::NodeId;
 using S = celeritas::LocalSurfaceId;
 
 namespace celeritas
+{
+namespace orangeinp
 {
 namespace test
 {
@@ -224,4 +225,5 @@ TEST_F(CsgTreeUtilsTest, calc_surfaces)
 
 //---------------------------------------------------------------------------//
 }  // namespace test
+}  // namespace orangeinp
 }  // namespace celeritas

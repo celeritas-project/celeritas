@@ -16,7 +16,7 @@
 #    include <nlohmann/json.hpp>
 
 // TODO: Tolerance is defined in OrangeTypes but IO is here
-#    include "construct/OrangeInputIO.json.hh"
+#    include "OrangeInputIO.json.hh"
 #endif
 
 namespace celeritas

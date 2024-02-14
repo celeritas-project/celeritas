@@ -10,11 +10,14 @@
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
+#include "celeritas/io/ImportOpticalMaterial.hh"
 
 #include "ScintillationData.hh"
 
 namespace celeritas
 {
+struct ImportData;
+
 //---------------------------------------------------------------------------//
 /*!
  * Build and manage scintillation data.
@@ -27,16 +30,19 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
     using ScintillationDataCRef = HostCRef<ScintillationData>;
     //!@}
 
-    //! Material dependent scintillation components
-    //! data[num_optical_materials][num_components]
-    struct ScintillationInput
+    //! Material-dependent scintillation data, indexed by \c OpticalMaterialId
+    struct Input
     {
-        std::vector<std::vector<ScintillationComponent>> data;
+        std::vector<ImportScintSpectrum> data;
     };
 
   public:
+    // Construct with imported data
+    static std::shared_ptr<ScintillationParams>
+    from_import(ImportData const& data);
+
     // Construct with scintillation components
-    explicit ScintillationParams(ScintillationInput const& input);
+    explicit ScintillationParams(Input const& input);
 
     //! Access physics properties on the host
     HostRef const& host_ref() const final { return mirror_.host_ref(); }

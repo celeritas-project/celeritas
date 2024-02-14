@@ -17,6 +17,7 @@
 #include "geocel/UnitUtils.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "celeritas_test.hh"
@@ -55,6 +56,11 @@ std::string sub_pointer_string(std::string const& s)
 double to_inv_cm(double v)
 {
     return native_value_to<InvCmXs>(v).value();
+}
+
+double to_sec(double v)
+{
+    return native_value_to<Quantity<Second>>(v).value();
 }
 
 auto const geant4_version = Version::from_string(celeritas_geant4_version);
@@ -322,6 +328,16 @@ class OneSteelSphereGG : public OneSteelSphere
         opts.gamma_general = true;
         opts.msc = MscModelSelection::urban_extended;
         return opts;
+    }
+};
+
+//---------------------------------------------------------------------------//
+class LarSphere : public GeantImporterTest
+{
+  protected:
+    std::string_view geometry_basename() const override
+    {
+        return "lar-sphere"sv;
     }
 };
 
@@ -1291,6 +1307,98 @@ TEST_F(OneSteelSphereGG, physics)
             EXPECT_SOFT_EQ(1e8, pv.x.back());
         }
     }
+}
+
+TEST_F(LarSphere, optical)
+{
+    auto&& imported = this->imported_data();
+    EXPECT_EQ(1, imported.optical.size());
+
+    // First material is vacuum, no optical properties
+    MaterialId vacuum_id{0};
+    EXPECT_EQ("vacuum", imported.materials[vacuum_id.get()].name);
+    auto const vacuum_iter = imported.optical.find(vacuum_id.get());
+    EXPECT_TRUE(vacuum_iter == imported.optical.end());
+
+    // Second material is liquid argon
+    MaterialId lar_id{1};
+    EXPECT_EQ("lAr", imported.materials[lar_id.get()].name);
+    auto const lar_iter = imported.optical.find(lar_id.get());
+    ASSERT_FALSE(lar_iter == imported.optical.end());
+    auto const& optical = lar_iter->second;
+
+    // Check optical material ID
+    auto materials = MaterialParams::from_import(imported);
+    ASSERT_TRUE(materials);
+    EXPECT_EQ(OpticalMaterialId{},
+              materials->get(vacuum_id).optical_material_id());
+    EXPECT_EQ(OpticalMaterialId{0},
+              materials->get(lar_id).optical_material_id());
+
+    real_type const tol = this->comparison_tolerance();
+
+    // Most optical properties in the geometry are pulled from the Geant4
+    // example examples/advanced/CaTS/gdml/LArTPC.gdml
+
+    // Check scintillation optical properties
+    auto const& scint = optical.scintillation;
+    EXPECT_TRUE(scint);
+    EXPECT_EQ(1, scint.resolution_scale);
+    EXPECT_EQ(50000, scint.yield);
+    EXPECT_EQ(3, scint.components.size());
+    std::vector<double> components;
+    for (auto const& comp : scint.components)
+    {
+        components.push_back(comp.yield);
+        components.push_back(to_cm(comp.lambda_mean));
+        components.push_back(to_cm(comp.lambda_sigma));
+        components.push_back(to_sec(comp.rise_time));
+        components.push_back(to_sec(comp.fall_time));
+    }
+    // clang-format off
+    static double const expected_components[]
+        = {3, 1.28e-05, 1e-06, 1e-08, 6e-09,
+           1, 1.28e-05, 1e-06, 1e-08, 1.5e-06,
+           1, 2e-05,    2e-06, 1e-08, 3e-06};
+    // clang-format on
+    EXPECT_VEC_NEAR(expected_components, components, tol);
+
+    // Check Rayleigh optical properties
+    auto const& rayleigh = optical.rayleigh;
+    EXPECT_TRUE(rayleigh);
+    EXPECT_EQ(1, rayleigh.scale_factor);
+    EXPECT_REAL_EQ(0.024673059861887867,
+                   rayleigh.compressibility * units::gram
+                       / (units::centimeter * units::second * units::second));
+    EXPECT_EQ(11, rayleigh.mfp.x.size());
+    EXPECT_DOUBLE_EQ(1.55e-06, rayleigh.mfp.x.front());
+    EXPECT_DOUBLE_EQ(1.55e-05, rayleigh.mfp.x.back());
+    EXPECT_REAL_EQ(32142.9, to_cm(rayleigh.mfp.y.front()));
+    EXPECT_REAL_EQ(54.6429, to_cm(rayleigh.mfp.y.back()));
+
+    // Check absorption optical properties
+    auto const& abs = optical.absorption;
+    EXPECT_TRUE(abs);
+    EXPECT_EQ(2, abs.absorption_length.x.size());
+    EXPECT_DOUBLE_EQ(1.3778e-06, abs.absorption_length.x.front());
+    EXPECT_DOUBLE_EQ(1.55e-05, abs.absorption_length.x.back());
+    EXPECT_REAL_EQ(86.4473, to_cm(abs.absorption_length.y.front()));
+    EXPECT_REAL_EQ(0.000296154, to_cm(abs.absorption_length.y.back()));
+
+    // Check common optical properties
+    // Refractive index data in the geometry comes from the refractive index
+    // database https://refractiveindex.info and was calculating using the
+    // methods described in: E. Grace, A. Butcher, J.  Monroe, J. A. Nikkel.
+    // Index of refraction, Rayleigh scattering length, and Sellmeier
+    // coefficients in solid and liquid argon and xenon, Nucl.  Instr. Meth.
+    // Phys. Res. A 867, 204-208 (2017)
+    auto const& properties = optical.properties;
+    EXPECT_TRUE(properties);
+    EXPECT_EQ(101, properties.refractive_index.x.size());
+    EXPECT_DOUBLE_EQ(1.8785e-06, properties.refractive_index.x.front());
+    EXPECT_DOUBLE_EQ(1.0597e-05, properties.refractive_index.x.back());
+    EXPECT_DOUBLE_EQ(1.2221243542166, properties.refractive_index.y.front());
+    EXPECT_DOUBLE_EQ(1.6167515615703, properties.refractive_index.y.back());
 }
 
 //---------------------------------------------------------------------------//
