@@ -5,7 +5,7 @@
 #[=======================================================================[.rst:
 
 CudaRdcUtils
-----------------
+------------
 
 CMake utility functions for building and linking libraries containing CUDA
 relocatable device code and most importantly linking against those libraries.

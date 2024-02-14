@@ -17,10 +17,10 @@ if(NOT CELERITAS_USE_Geant4 OR CELERITAS_CORE_GEO STREQUAL "ORANGE")
     "to be enabled in Celeritas")
 endif()
 
-include(CeleritasLibrary)
+include(CudaRdcUtils)
 
 add_executable(simple-offload simple-offload.cc)
-celeritas_target_link_libraries(simple-offload
+cuda_rdc_target_link_libraries(simple-offload
   Celeritas::accel
   ${Geant4_LIBRARIES}
 )
@@ -30,7 +30,7 @@ if(Geant4_VERSION VERSION_LESS 11.1)
 endif()
 
 add_executable(fastsim-offload fastsim-offload.cc)
-celeritas_target_link_libraries(fastsim-offload
+cuda_rdc_target_link_libraries(fastsim-offload
   Celeritas::accel
   ${Geant4_LIBRARIES}
 )
@@ -39,7 +39,7 @@ if(Geant4_VERSION VERSION_LESS 11.0)
   message(WARNING "G4VTrackingManager offload requires Geant4 11.0 or higher")
 else()
   add_executable(trackingmanager-offload trackingmanager-offload.cc)
-  celeritas_target_link_libraries(trackingmanager-offload
+  cuda_rdc_target_link_libraries(trackingmanager-offload
     Celeritas::accel
     ${Geant4_LIBRARIES}
   )

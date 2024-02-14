@@ -527,7 +527,6 @@ set(CELERITAS_INSTALL_CMAKECONFIGDIR
 set(_cmake_files
   "${PROJECT_SOURCE_DIR}/cmake/CudaRdcUtils.cmake"
   "${PROJECT_SOURCE_DIR}/cmake/CeleritasLibrary.cmake"
-  "${PROJECT_SOURCE_DIR}/cmake/CeleritasUtils.cmake"
 )
 foreach(_dep Geant4 HepMC3 ROOT VecGeom)
   if(CELERITAS_USE_${_dep})
