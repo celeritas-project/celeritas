@@ -376,7 +376,7 @@ endfunction()
 #-----------------------------------------------------------------------------#
 
 function(celeritas_cuda_rdc_wrapper_add_library)
-  if(NOT CELERITAS_USE_VecGeom)
+  if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_CUDA)
     add_library(${ARGV})
   else()
     cuda_rdc_add_library(${ARGV})
@@ -386,7 +386,7 @@ endfunction()
 #-----------------------------------------------------------------------------#
 
 function(celeritas_set_target_properties)
-  if(NOT CELERITAS_USE_VecGeom)
+  if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_CUDA)
     set_target_properties(${ARGV})
   else()
     cuda_rdc_set_target_properties(${ARGV})
@@ -396,7 +396,7 @@ endfunction()
 #-----------------------------------------------------------------------------#
 
 function(celeritas_install)
-  if(NOT CELERITAS_USE_VecGeom)
+  if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_CUDA)
     install(${ARGV})
   else()
     cuda_rdc_install(${ARGV})
@@ -416,7 +416,7 @@ endfunction()
 #-----------------------------------------------------------------------------#
 
 function(celeritas_target_include_directories)
-  if(NOT CELERITAS_USE_VecGeom)
+  if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_CUDA)
     target_include_directories(${ARGV})
   else()
     cuda_rdc_target_include_directories(${ARGV})
@@ -426,7 +426,7 @@ endfunction()
 #-----------------------------------------------------------------------------#
 
 function(celeritas_target_compile_options)
-  if(NOT CELERITAS_USE_VecGeom)
+  if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_CUDA)
     target_compile_options(${ARGV})
   else()
     cuda_rdc_target_compile_options(${ARGV})
