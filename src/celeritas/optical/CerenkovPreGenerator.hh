@@ -26,8 +26,11 @@ namespace celeritas
  * \c CerenkovGenerator and populate \c OpticalDistributionData values using
  * Param and State data.
  * \code
+    CerenkovPreGenerator::InputStepStateData step_data;
+    // Populate step_data using ParticleTrackView, SimTrackView, etc
+
     CerenkovPreGenerator pre_cerenkov(
-        properties, cerenkov_data, input_step_data);
+        properties, cerenkov_data, step_data);
 
     auto optical_dist_data = pre_cerenkov(rng);
     if (optical_dist_data)
@@ -56,13 +59,13 @@ class CerenkovPreGenerator
         }
     };
 
-    // Construct with particle and material data
+    // Construct with optical properties, Cerenkov, and step data
     inline CELER_FUNCTION
     CerenkovPreGenerator(NativeCRef<OpticalPropertyData> const& properties,
                          NativeCRef<CerenkovData> const& shared,
                          InputStepStateData const& input_step_data);
 
-    // Return a populated distribution data for the Cerenkov Generator
+    // Return a populated optical distribution data for the Cerenkov Generator
     template<class Generator>
     inline CELER_FUNCTION OpticalDistributionData operator()(Generator& rng);
 
@@ -77,7 +80,7 @@ class CerenkovPreGenerator
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct from particle, material, and optical step collection data.
+ * Construct with optical properties, Cerenkov, and step information.
  */
 CELER_FUNCTION CerenkovPreGenerator::CerenkovPreGenerator(
     NativeCRef<OpticalPropertyData> const& properties,
@@ -121,13 +124,6 @@ CerenkovPreGenerator::operator()(Generator& rng)
     auto sampled_num_photons = PoissonDistribution<real_type>(
         num_photons_per_len_ * step_data_.step_length)(rng);
 
-    if (sampled_num_photons == 0)
-    {
-        // Not an optical material or this step is below production threshold
-        return {};
-    }
-
-    // Populate optical distribution data
     OpticalDistributionData data;
     data.num_photons = sampled_num_photons;
     data.time = step_data_.time;
