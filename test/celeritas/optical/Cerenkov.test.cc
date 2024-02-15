@@ -224,44 +224,70 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
     CELER_ASSERT(step);
 
     // 500 keV e-
-    auto particle_view = this->make_particle_track_view(units::MevEnergy{0.5},
-                                                        pdg::electron());
-
-    CerenkovPreGenerator pre_generator(particle_view,
-                                       properties->host_ref(),
-                                       params->host_ref(),
-                                       material,
-                                       step);
-
-    size_type num_samples = 10;
-    OpticalDistributionData result;
-    std::vector<size_type> sampled_num_photons;
-    for ([[maybe_unused]] auto i : range(num_samples))
     {
-        result = pre_generator(rng);
-        CELER_ASSERT(result);
-        sampled_num_photons.push_back(result.num_photons);
+        auto particle_view = this->make_particle_track_view(
+            units::MevEnergy{0.5}, pdg::electron());
+
+        CerenkovPreGenerator pre_generator(particle_view,
+                                           properties->host_ref(),
+                                           params->host_ref(),
+                                           material,
+                                           step);
+
+        size_type num_samples = 10;
+        OpticalDistributionData result;
+        std::vector<size_type> sampled_num_photons;
+        for ([[maybe_unused]] auto i : range(num_samples))
+        {
+            result = pre_generator(rng);
+            CELER_ASSERT(result);
+            sampled_num_photons.push_back(result.num_photons);
+        }
+
+        // Only number of photons is sampled
+        static size_type const expected_num_photons[]
+            = {15, 17, 11, 15, 14, 19, 23, 13, 10, 12};
+        EXPECT_VEC_EQ(expected_num_photons, sampled_num_photons);
+
+        // Remaining values are assigned to result from input data
+        EXPECT_SOFT_EQ(step.time, result.time);
+        EXPECT_EQ(particle_view.charge().value(), result.charge.value());
+        EXPECT_EQ(material, result.material);
+        EXPECT_SOFT_EQ(step.step_length, result.step_length);
+
+        for (auto p : range(StepPoint::size_))
+        {
+            EXPECT_SOFT_EQ(step.points[p].speed.value(),
+                           result.points[p].speed.value());
+            for (auto i : range(3))
+            {
+                EXPECT_SOFT_EQ(step.points[p].pos[i], result.points[p].pos[i]);
+            }
+        }
     }
 
-    static size_type const expected_num_photons[]
-        = {15, 17, 11, 15, 14, 19, 23, 13, 10, 12};
-
-    // Only number of photons is sampled.
-    // The other step values are just assigned to result
-    EXPECT_VEC_EQ(expected_num_photons, sampled_num_photons);
-    EXPECT_SOFT_EQ(step.time, result.time);
-    EXPECT_EQ(particle_view.charge().value(), result.charge.value());
-    EXPECT_EQ(material, result.material);
-    EXPECT_SOFT_EQ(step.step_length, result.step_length);
-
-    for (auto p : range(StepPoint::size_))
+    // Below Cerenkov threshold (threshold is at beta = 0.63432)
     {
-        EXPECT_SOFT_EQ(step.points[p].speed.value(),
-                       result.points[p].speed.value());
-        for (auto i : range(3))
-        {
-            EXPECT_SOFT_EQ(step.points[p].pos[i], result.points[p].pos[i]);
-        }
+        OpticalStepCollectorData step_below_th;
+        step.step_length = 0.1 * units::centimeter;
+        step.points[StepPoint::pre].pos = {0, 0, 0};
+        step.points[StepPoint::pre].speed = units::LightSpeed{0.55};
+        step.points[StepPoint::post].pos = {step.step_length, 0, 0};
+        step.points[StepPoint::post].speed = units::LightSpeed{0.5};
+        CELER_ASSERT(step_below_th);
+
+        auto particle_view = this->make_particle_track_view(
+            units::MevEnergy{0.6}, pdg::electron());
+
+        CerenkovPreGenerator pre_generator(particle_view,
+                                           properties->host_ref(),
+                                           params->host_ref(),
+                                           material,
+                                           step_below_th);
+        auto const result = pre_generator(rng);
+
+        EXPECT_FALSE(result);
+        EXPECT_EQ(0, result.num_photons);
     }
 }
 
