@@ -20,7 +20,6 @@
 #include <G4EllipticalCone.hh>
 #include <G4EllipticalTube.hh>
 #include <G4ExtrudedSolid.hh>
-#include <G4GDMLWriteStructure.hh>
 #include <G4GenericPolycone.hh>
 #include <G4GenericTrap.hh>
 #include <G4Hype.hh>

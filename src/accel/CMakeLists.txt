@@ -6,7 +6,7 @@
 
 set(SOURCES)
 set(PRIVATE_DEPS)
-set(PUBLIC_DEPS Celeritas::celeritas Celeritas::corecel ${Geant4_LIBRARIES})
+set(PUBLIC_DEPS Celeritas::celeritas Celeritas::corecel)
 
 #-----------------------------------------------------------------------------#
 # Main code
@@ -48,6 +48,12 @@ endif()
 if(CELERITAS_USE_OpenMP)
   list(APPEND PRIVATE_DEPS OpenMP::OpenMP_CXX)
 endif()
+
+celeritas_get_g4libs(_g4_private digits_hits run)
+list(APPEND PRIVATE_DEPS ${_g4_private})
+
+celeritas_get_g4libs(_g4_public event global track tracking intercoms geometry)
+list(APPEND PUBLIC_DEPS ${_g4_public})
 
 #-----------------------------------------------------------------------------#
 # Create library

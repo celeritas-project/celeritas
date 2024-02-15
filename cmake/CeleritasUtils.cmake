@@ -202,13 +202,27 @@ CMake configuration utility functions for Celeritas.
 
 .. command:: celeritas_version_to_hex
 
-  Convert a version number to a C-formatted hexadecimal string.
+  Convert a version number to a C-formatted hexadecimal string::
 
     celeritas_version_to_hex(<var> <version_prefix>)
 
-    The code will set a version to zero if ``<version_prefix>_VERSION`` is not
-    found. If ``<version_prefix>_MAJOR`` is defined it will use that; otherwise
-    it will try to split the version into major/minor/patch.
+  The code will set a version to zero if ``<version_prefix>_VERSION`` is not
+  found. If ``<version_prefix>_MAJOR`` is defined it will use that; otherwise
+  it will try to split the version into major/minor/patch.
+
+.. command:: celeritas_get_geant_libs
+
+  Construct a list of Geant4 libraries for linking by adding a ``Geant4::G4``
+  prefix and the necessary suffix::
+
+    celeritas_get_g4libs(<var> [<lib> ...])
+
+  Example::
+
+    celeritas_get_g4libs(_g4libs geometry persistency)
+    target_link_library(foo ${_g4libs})
+
+  If Geant4 is unavailable, the result will be empty.
 
 #]=======================================================================]
 include_guard(GLOBAL)
@@ -598,6 +612,48 @@ function(celeritas_version_to_hex var version)
   )
   string(SUBSTRING "${_temp_version}" 3 -1 _temp_version)
   set(${var} "0x${_temp_version}" PARENT_SCOPE)
+endfunction()
+
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_get_g4libs var)
+  set(_result)
+  if(NOT CELERITAS_USE_Geant4)
+    # No Geant4, no libs
+  elseif(Geant4_VERSION VERSION_LESS 10.6)
+    # Old Geant4 doesn't have granularity
+    set(_result ${Geant4_LIBRARIES})
+  else()
+    # Determine the default library extension
+    if(TARGET Geant4::G4global-static)
+      set(_g4_static TRUE)
+    else()
+      set(_g4_static FALSE)
+    endif()
+    if(TARGET Geant4::G4global)
+      set(_g4_shared TRUE)
+    else()
+      set(_g4_shared FALSE)
+    endif()
+    if(NOT _g4_static OR (BUILD_SHARED_LIBS AND _g4_shared))
+      # Use shared if static is unavailable, or if shared is available and we're
+      # building shared
+      set(_ext "")
+    else()
+      set(_ext "-static")
+    endif()
+
+    foreach(_lib IN LISTS ARGN)
+      set(_lib Geant4::G4${_lib}${_ext})
+      if(NOT TARGET "${_lib}")
+        message(AUTHOR_WARNING "No Geant4 library '${_lib}' exists")
+      else()
+        list(APPEND _result "${_lib}")
+      endif()
+    endforeach()
+  endif()
+  set(${var} "${_result}" PARENT_SCOPE)
 endfunction()
 
 #-----------------------------------------------------------------------------#

@@ -32,6 +32,9 @@ if(CELERITAS_USE_Geant4)
       nlohmann_json::nlohmann_json
     )
   endif()
+  celeritas_get_g4libs(_g4_libs geometry persistency intercoms run tasking
+    physicslists interfaces)
+  list(APPEND LIBRARIES ${_g4_libs})
 else()
   set(SOURCES
     celer-g4.nogeant.cc

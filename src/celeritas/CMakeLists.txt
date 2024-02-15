@@ -112,7 +112,9 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantPhysicsList.cc
     ext/detail/GeantProcessImporter.cc
   )
-  set(_cg4_libs Celeritas::corecel XercesC::XercesC ${Geant4_LIBRARIES})
+  celeritas_get_g4libs(_cg4_libs global geometry materials processes run
+    physicslists tasking)
+  list(APPEND _cg4_libs Celeritas::corecel XercesC::XercesC)
 
   celeritas_add_object_library(celeritas_geant4 ${_cg4_sources})
   celeritas_target_link_libraries(celeritas_geant4 PRIVATE ${_cg4_libs})
