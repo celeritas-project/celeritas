@@ -55,10 +55,10 @@ class CerenkovPreGenerator
     inline CELER_FUNCTION OpticalDistributionData operator()(Generator& rng);
 
   private:
-    ParticleTrackView const particle_view_;
+    units::ElementaryCharge charge_;
     OpticalMaterialId mat_id_;
     OpticalStepCollectorData step_collector_data_;
-    CerenkovDndxCalculator dndx_calculator_;
+    real_type num_photons_per_len_;
 };
 
 //---------------------------------------------------------------------------//
@@ -75,13 +75,22 @@ CELER_FUNCTION CerenkovPreGenerator::CerenkovPreGenerator(
     NativeCRef<CerenkovData> const& shared,
     OpticalMaterialId mat_id,
     OpticalStepCollectorData const& optical_step)
-    : particle_view_(particle_view)
+    : charge_(particle_view.charge())
     , mat_id_(mat_id)
     , step_collector_data_(optical_step)
-    , dndx_calculator_(properties, shared, mat_id, particle_view.charge())
 {
+    CELER_EXPECT(charge_.value() != 0);
     CELER_EXPECT(mat_id_);
     CELER_EXPECT(step_collector_data_);
+
+    auto const& pre = step_collector_data_.points[StepPoint::pre];
+    auto const& post = step_collector_data_.points[StepPoint::post];
+    units::LightSpeed beta(real_type{0.5}
+                           * (pre.speed.value() + post.speed.value()));
+
+    CerenkovDndxCalculator dndx_calculator(
+        properties, shared, mat_id_, charge_);
+    num_photons_per_len_ = dndx_calculator(beta);
 }
 
 //---------------------------------------------------------------------------//
@@ -99,25 +108,25 @@ template<class Generator>
 CELER_FUNCTION OpticalDistributionData
 CerenkovPreGenerator::operator()(Generator& rng)
 {
-    auto const& pre = step_collector_data_.points[StepPoint::pre];
-    auto const& post = step_collector_data_.points[StepPoint::post];
-    units::LightSpeed beta(real_type{0.5}
-                           * (pre.speed.value() + post.speed.value()));
+    if (num_photons_per_len_ == 0)
+    {
+        return {};
+    }
 
     // Sample number of photons from a Poisson distribution
-    real_type sampled_num_photons = PoissonDistribution<real_type>(
-        dndx_calculator_(beta) * step_collector_data_.step_length)(rng);
+    auto sampled_num_photons = PoissonDistribution<real_type>(
+        num_photons_per_len_ * step_collector_data_.step_length)(rng);
 
     if (sampled_num_photons == 0)
     {
         // Not an optical material or this step is below production threshold
-        return OpticalDistributionData{};
+        return {};
     }
 
     // Populate optical distribution data
     OpticalDistributionData data;
     data.num_photons = sampled_num_photons;
-    data.charge = particle_view_.charge();
+    data.charge = charge_;
     data.step_length = step_collector_data_.step_length;
     data.time = step_collector_data_.time;
     data.points = step_collector_data_.points;
