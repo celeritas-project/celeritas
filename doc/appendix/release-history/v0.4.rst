@@ -3,6 +3,81 @@
 .. SPDX-License-Identifier: CC-BY-4.0
 
 
+.. _release_v0.4.2:
+
+Version 0.4.2
+=============
+
+*Released 2024/02/15*
+
+Version 0.4.2 is a bugfix and minor feature update to Celeritas.
+
+Key enhancements compared to version 0.4.1 are:
+
+- Full reproducibility of results in Geant4 multithreaded mode
+- A new ``CELER_KILL_OFFLOAD`` environment variable that immediately kills EM tracks to help estimate a maximum offloading speedup
+- Support for Geant4-VecGeom conversion of parameterized volumes
+- Support for Geant4 11.2
+
+Important bug fixes:
+
+- GCC 14 compatibility
+- Support for ROOT-exported GDML booleans
+
+
+New features
+------------
+
+* Warn and set default threads when OpenMP and Geant4 MT might collide *(@sethrj, #1056)*
+* Add environment variable to kill Celeritas-supported tracks in Geant4 *(@amandalund, #1060)*
+* Support Geant4-VecGeom conversion of parameterized volumes *(@sethrj, #1071)*
+* Save action times on multi-stream CPU celer-sim *(@sethrj, #1065)*
+* Automatically calculate number of events in apps *(@amandalund, #1072)*
+* Add option to use CLHEP and SI unit systems instead of Gaussian CGS *(@sethrj, #1076)*
+
+Reviewers: @amandalund *(4)*, @sethrj *(2)*, @esseivaju *(1)*, @sawenzel *(1)*
+
+Bug fixes
+---------
+
+* Fix celer-g4 primary generator MT reproducibility *(@amandalund, #1057)*
+* Insert SortTrackAction when sorting by particle type *(@esseivaju, #1059)*
+* Fix range constexpr *(@sethrj, #1064)*
+* Ensure reproducibility when using MT Geant4 with Celeritas offloading *(@amandalund, #1061)*
+* Fix conversion of boolean solids when the "left" solid is displaced *(@sethrj, #1069)*
+* Use environment variables to control OpenMP behavior in ``celer-sim`` *(@amandalund, #1073)*
+* Add support for Geant4@11.2 *(@whokion, #1075)*
+* Fix CMake for linking CUDA RDC for executables *(@pcanal, #1102)*
+
+Reviewers: @sethrj *(6)*, @pcanal *(1)*, @amandalund *(1)*
+
+Documentation improvements
+--------------------------
+
+* Include documentation as mandatory CI *(@sethrj, #1053)*
+* Remove deprecated code from v0.4 *(@sethrj, #1063)*
+* Add additional documentation about fields *(@sethrj, #1066)*
+* Update copyrights for 2024 *(@sethrj, #1083)*
+
+Reviewers: @pcanal *(3)*, @amandalund *(2)*
+
+Minor internal changes
+----------------------
+
+* Remove extra constructor templates in device ActionLauncher *(@esseivaju, #1062)*
+* Rename ``GenericXsCalculator`` *(@amandalund, #1081)*
+* Add algorithm for difference of squares and move ``is_monotonic_increasing()`` to utils *(@amandalund, #1082)*
+* Clang-format entire repository *(@sethrj, #1084)*
+* Fix link errors in edge cases and restore HIP testing *(@sethrj, #1042)*
+* Fix and avoid including algorithms header for ROOT/CLING *(@sethrj, #1087)*
+* Fix non-sticky CMake options *(@sethrj, #1098)*
+* Add missing <algorithm> include needed in GCC 14 *(@hartsw, #1110)*
+
+Reviewers: @amandalund *(4)*, @sethrj *(3)*, @pcanal *(1)*
+
+**Full Changelog**: https://github.com/celeritas-project/celeritas/compare/v0.4.1...v0.4.2
+
+
 .. _release_v0.4.1:
 
 Version 0.4.1

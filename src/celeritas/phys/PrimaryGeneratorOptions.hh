@@ -7,9 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <algorithm>
 #include <functional>
 #include <random>
-#include <algorithm>
 
 #include "corecel/io/StringEnumMapper.hh"
 #include "geocel/Types.hh"

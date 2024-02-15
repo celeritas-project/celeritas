@@ -283,16 +283,18 @@ or a "backport" branch (minor, patch).
 The following process must be followed (and may need iteration to converge) for
 each release.
 
-1.  Ensure all CI jobs pass for the target branch. This is automatic
+1.  Ensure all CI jobs pass for the target branch to be released (develop or
+    backports/vX.Y). This is automatic
     for releases from the ``develop`` branch, since every pull request must
     pass, but should be checked manually for backports.
-2.  Create a ``release-vX.Y.Z`` branch from the target.
-3.  Tag the target branch with ``vX.Y.Z-rc.N`` where N starts with 1, and
+2.  Create a ``release-vX.Y.Z`` branch from *upstream/develop*.
+3.  If creating a new release from develop, tag the target branch with
+    ``vX.Y.Z-rc.N`` where N starts with 1, and
     increment for every time you return to this step due to new pull requests.
     The tag can be pushed to your fork, or to the main repository if it should
-    be shared with other team members
-4.  Run performance regression tests on Summit/Perlmutter (for performance
-    testing), Crusher/Frontier (for HIP testing), and an additional machine
+    be shared with other team members.
+4.  Run performance regression tests on Perlmutter (for performance
+    testing), Frontier (for HIP testing), and an additional machine
     with debug assertions enabled (e.g., Wildstyle).
 5.  [TODO: define high-level validation tests like `geant-val`_ and a test
     matrix correlating capability areas (code files/directories changed) to

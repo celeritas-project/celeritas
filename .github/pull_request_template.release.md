@@ -7,12 +7,11 @@ Target: upstream/develop (always!)
 
 ## Pre-merge checklist
 
-- [ ] Ensure all CI jobs on develop pass
-- [ ] Tag the develop branch with ``vX.Y.Z-rc.N`` where N starts with 1, and increment for every time you return to this step due to new pull requests.
-- [ ] Run performance regression tests on Summit, Crusher/Frontier, and an additional machine with debug assertions enabled (e.g., Wildstyle).
+- [ ] Ensure all CI jobs on the branch to be released (develop or backports/vX.Y) pass
+- [ ] If releasing from develop, tag the develop branch with ``vX.Y.Z-rc.N`` where N starts with 1, and increment for every time you return to this step due to new pull requests.
+- [ ] Run performance regression tests on Perlmutter, Frontier, and an additional machine with debug assertions enabled (e.g., Wildstyle).
 - [ ] Update documentation with release notes from all pull requests newly included in the release.
-- [ ] Check for (and delete if found) code marked as "deprecated: to be removed in vX.Y".
-- [ ] Ensure the code documentation builds with as few warnings as possible in the `doc` workflow on the CI.
+- [ ] For a major release, check for (and delete if found) code marked as "deprecated: to be removed in vX".
 
 ## Post-merge checklist
 
