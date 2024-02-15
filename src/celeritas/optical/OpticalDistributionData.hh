@@ -25,7 +25,10 @@ struct OpticalStepData
     Real3 pos{};
 
     //! Check whether the data are assigned
-    explicit CELER_FUNCTION operator bool() const { return speed.value() > 0; }
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return speed > zero_quantity();
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -45,23 +48,6 @@ struct OpticalDistributionData
     explicit CELER_FUNCTION operator bool() const
     {
         return num_photons > 0 && step_length > 0 && material;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Data used by \c OpticalStepCollector class implementation.
- */
-struct OpticalStepCollectorData
-{
-    real_type time{};  //!< Pre-step time
-    real_type step_length{};  //!< Step length
-    EnumArray<StepPoint, OpticalStepData> points;  //!< Pre- and post-steps
-
-    //! Check whether the data are assigned
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return step_length > 0 && points[StepPoint::pre].speed.value() > 0;
     }
 };
 
