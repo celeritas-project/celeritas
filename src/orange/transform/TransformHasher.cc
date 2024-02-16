@@ -60,9 +60,11 @@ visit(TransformHasher const& th, VariantTransform const& transform)
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
+//! \cond
 
 template std::size_t TransformHasher::operator()(Translation const&) const;
 template std::size_t TransformHasher::operator()(Transformation const&) const;
 
+//! \endcond
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
