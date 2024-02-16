@@ -38,7 +38,9 @@ constexpr char to_pm(Sense s)
 std::string FaceNamer::operator()(Sense s, VariantSurface const& surf)
 {
     CELER_ASSUME(!surf.valueless_by_exception());
-    return std::visit(Impl{&state_, s}, surf);
+    std::string result = prefix_;
+    result += std::visit(Impl{&state_, s}, surf);
+    return result;
 }
 
 //---------------------------------------------------------------------------//

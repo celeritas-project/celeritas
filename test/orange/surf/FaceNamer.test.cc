@@ -20,13 +20,13 @@ namespace test
 
 class FaceNamerTest : public ::celeritas::test::Test
 {
+  protected:
+    static inline constexpr auto in = Sense::inside;
+    static inline constexpr auto out = Sense::outside;
 };
 
 TEST_F(FaceNamerTest, typed)
 {
-    constexpr auto in = Sense::inside;
-    constexpr auto out = Sense::outside;
-
     FaceNamer name_face;
 
     EXPECT_EQ("px", name_face(in, PlaneX(1)));
@@ -53,11 +53,20 @@ TEST_F(FaceNamerTest, typed)
         name_face(in, GeneralQuadric({0, 1, 2}, {3, 4, 5}, {6, 7, 8}, 9)));
 }
 
+TEST_F(FaceNamerTest, prefix)
+{
+    FaceNamer name_face{"obox."};
+
+    EXPECT_EQ("obox.px", name_face(in, PlaneX(1)));
+    EXPECT_EQ("obox.mx", name_face(out, PlaneX(1)));
+    EXPECT_EQ("obox.px", name_face(in, PlaneX(2)));
+}
+
 TEST_F(FaceNamerTest, variant)
 {
     VariantSurface cyl{std::in_place_type_t<CCylY>(), 6};
 
-    EXPECT_EQ("cy", FaceNamer{}(Sense::inside, cyl));
+    EXPECT_EQ("cy", FaceNamer{}(in, cyl));
 }
 
 //---------------------------------------------------------------------------//
