@@ -14,6 +14,7 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Repr.hh"
 #include "orange/orangeinp/CsgTree.hh"
+#include "orange/orangeinp/detail/ConvexSurfaceState.hh"
 #include "orange/orangeinp/detail/CsgUnit.hh"
 #include "orange/surf/SurfaceIO.hh"
 #include "orange/transform/TransformIO.hh"
@@ -49,6 +50,17 @@ namespace detail
 {
 namespace test
 {
+//---------------------------------------------------------------------------//
+std::vector<int> to_vec_int(std::vector<NodeId> const& nodes)
+{
+    std::vector<int> result;
+    for (auto nid : nodes)
+    {
+        result.push_back(nid ? nid.unchecked_get() : -1);
+    }
+    return result;
+}
+
 //---------------------------------------------------------------------------//
 std::vector<std::string> surface_strings(CsgUnit const& u)
 {
@@ -158,6 +170,19 @@ std::vector<std::string> fill_strings(CsgUnit const& u)
 }
 
 //---------------------------------------------------------------------------//
+std::vector<real_type> flattened(BoundingZone const& bz)
+{
+    std::vector<real_type> result;
+    for (auto const* bb : {&bz.interior, &bz.exterior})
+    {
+        result.insert(result.end(), bb->lower().begin(), bb->lower().end());
+        result.insert(result.end(), bb->upper().begin(), bb->upper().end());
+    }
+    result.push_back(bz.negated ? -1 : 1);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 void print_expected(CsgUnit const& u)
 {
     std::cout << "/***** EXPECTED UNIT *****/\n"
@@ -192,6 +217,25 @@ if (CELERITAS_USE_JSON)
         std::cout << u.exterior.unchecked_get();
     }
     std::cout << "}, u.exterior);\n"
+              << "/*************************/\n"
+              << std::endl;
+}
+
+//---------------------------------------------------------------------------//
+void print_expected(ConvexSurfaceState const& css)
+{
+    std::cout << "/***** EXPECTED STATE *****/\n"
+              << "static real_type const expected_local_bz[] = "
+              << repr(flattened(css.local_bzone)) << ";\n"
+              << "EXPECT_VEC_SOFT_EQ(expected_local_bz, "
+                 "flattened(css.local_bzone));\n"
+              << "static real_type const expected_global_bz[] = "
+              << repr(flattened(css.global_bzone)) << ";\n"
+              << "EXPECT_VEC_SOFT_EQ(expected_global_bz, "
+                 "flattened(css.global_bzone));\n"
+              << "static int const expected_nodes[] = "
+              << repr(to_vec_int(css.nodes)) << ";\n"
+              << "EXPECT_VEC_EQ(expected_nodes, to_vec_int(css.nodes));\n"
               << "/*************************/\n"
               << std::endl;
 }
