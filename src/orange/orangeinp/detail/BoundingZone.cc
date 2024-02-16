@@ -65,6 +65,15 @@ BBox calc_union(BBox const& a, BBox const& b, BoxOp op)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Create an "everything is known inside" zone for intersecting.
+ */
+BoundingZone BoundingZone::from_infinite()
+{
+    return {BBox::from_infinite(), BBox::from_infinite(), false};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Calculate the intersection of two bounding zones.
  *
  * Here are the zones that result from intersections of two zones with
