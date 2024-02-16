@@ -12,6 +12,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/phys/ParticleData.hh"
+#include "celeritas/track/SimData.hh"
 
 #include "DiagnosticRngEngine.hh"
 #include "Test.hh"
@@ -22,6 +23,8 @@ namespace celeritas
 // FWD declarations
 class ParticleParams;
 class ParticleTrackView;
+class SimParams;
+class SimTrackView;
 class PDGNumber;
 
 //---------------------------------------------------------------------------//
@@ -48,16 +51,28 @@ class OpticalTestBase : public Test
     ParticleTrackView
     make_particle_track_view(units::MevEnergy energy, PDGNumber pdg);
 
+    //! Initialize sim track state
+    SimTrackView make_sim_track_view(real_type step_len);
+
     //! Get particle params data
     std::shared_ptr<ParticleParams> const& particle_params() const
     {
         return particle_params_;
     }
 
+    //! Get SimTrackView
+    std::shared_ptr<SimParams> const& sim_params() const
+    {
+        return sim_params_;
+    }
+
   private:
     std::shared_ptr<ParticleParams> particle_params_;
-    HostVal<ParticleStateData> state_val_;
-    HostRef<ParticleStateData> state_ref_;
+    std::shared_ptr<SimParams> sim_params_;
+    HostVal<ParticleStateData> p_state_val_;
+    HostRef<ParticleStateData> p_state_ref_;
+    HostVal<SimStateData> sim_state_val_;
+    HostRef<SimStateData> sim_state_ref_;
 };
 
 //---------------------------------------------------------------------------//

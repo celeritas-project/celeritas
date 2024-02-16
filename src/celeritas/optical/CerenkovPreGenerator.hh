@@ -26,51 +26,58 @@ namespace celeritas
  * \c CerenkovGenerator and populate \c OpticalDistributionData values using
  * Param and State data.
  * \code
-    CerenkovPreGenerator::InputStepStateData step_data;
-    // Populate step_data using ParticleTrackView, SimTrackView, etc
+    CerenkovPreGenerator::OpticalPreGenStepData step_data;
+    // Populate step_data
 
-    CerenkovPreGenerator pre_cerenkov(
-        properties, cerenkov_data, step_data);
+   CerenkovPreGenerator pre_generate(particle_view,
+                                     sim_view,
+                                     material,
+                                     properties->host_ref(),
+                                     params->host_ref(),
+                                     step_data);
 
-    auto optical_dist_data = pre_cerenkov(rng);
+    auto optical_dist_data = pre_generate(rng);
     if (optical_dist_data)
     {
-        CerenkovGenerator cerenkov_gen(... , optical_dist_data, ...);
-        cerenkov_gen(rng);
+        CerenkovGenerator cerenkov_generate(... , optical_dist_data, ...);
+        cerenkov_generate(rng);
     }
  * \endcode
  */
 class CerenkovPreGenerator
 {
   public:
-    struct InputStepStateData
+    // Placeholder for data that is not available through Views
+    struct OpticalPreGenStepData
     {
         real_type time{};  //!< Pre-step time
-        real_type step_length{};  //!< Step length
-        units::ElementaryCharge charge;
-        OpticalMaterialId material;
         EnumArray<StepPoint, OpticalStepData> points;  //!< Pre- and post-steps
 
         //! Check whether the data are assigned
         explicit CELER_FUNCTION operator bool() const
         {
-            return step_length > 0 && charge != zero_quantity() && material
-                   && points[StepPoint::pre].speed > zero_quantity();
+            return points[StepPoint::pre].speed > zero_quantity();
         }
     };
 
     // Construct with optical properties, Cerenkov, and step data
     inline CELER_FUNCTION
-    CerenkovPreGenerator(NativeCRef<OpticalPropertyData> const& properties,
+    CerenkovPreGenerator(ParticleTrackView const& particle_view,
+                         SimTrackView const& sim_view,
+                         OpticalMaterialId mat_id,
+                         NativeCRef<OpticalPropertyData> const& properties,
                          NativeCRef<CerenkovData> const& shared,
-                         InputStepStateData const& input_step_data);
+                         OpticalPreGenStepData const& step_data);
 
     // Return a populated optical distribution data for the Cerenkov Generator
     template<class Generator>
     inline CELER_FUNCTION OpticalDistributionData operator()(Generator& rng);
 
   private:
-    InputStepStateData step_data_;
+    units::ElementaryCharge charge_;
+    real_type step_len_;
+    OpticalMaterialId mat_id_;
+    OpticalPreGenStepData step_data_;
     real_type num_photons_per_len_;
 };
 
@@ -83,11 +90,20 @@ class CerenkovPreGenerator
  * Construct with optical properties, Cerenkov, and step information.
  */
 CELER_FUNCTION CerenkovPreGenerator::CerenkovPreGenerator(
+    ParticleTrackView const& particle_view,
+    SimTrackView const& sim_view,
+    OpticalMaterialId mat_id,
     NativeCRef<OpticalPropertyData> const& properties,
     NativeCRef<CerenkovData> const& shared,
-    InputStepStateData const& input_step_data)
-    : step_data_(input_step_data)
+    OpticalPreGenStepData const& step_data)
+    : charge_(particle_view.charge())
+    , step_len_(sim_view.step_length())
+    , mat_id_(mat_id)
+    , step_data_(step_data)
 {
+    CELER_EXPECT(charge_ != zero_quantity());
+    CELER_EXPECT(step_len_ > 0);
+    CELER_EXPECT(mat_id_);
     CELER_EXPECT(step_data_);
 
     auto const& pre = step_data_.points[StepPoint::pre];
@@ -95,8 +111,7 @@ CELER_FUNCTION CerenkovPreGenerator::CerenkovPreGenerator(
     units::LightSpeed beta(real_type{0.5}
                            * (pre.speed.value() + post.speed.value()));
 
-    CerenkovDndxCalculator calculate_dndx(
-        properties, shared, step_data_.material, step_data_.charge);
+    CerenkovDndxCalculator calculate_dndx(properties, shared, mat_id_, charge_);
     num_photons_per_len_ = calculate_dndx(beta);
 }
 
@@ -122,14 +137,14 @@ CerenkovPreGenerator::operator()(Generator& rng)
 
     // Sample number of photons from a Poisson distribution
     auto sampled_num_photons = PoissonDistribution<real_type>(
-        num_photons_per_len_ * step_data_.step_length)(rng);
+        num_photons_per_len_ * step_len_)(rng);
 
     OpticalDistributionData data;
     data.num_photons = sampled_num_photons;
     data.time = step_data_.time;
-    data.step_length = step_data_.step_length;
-    data.charge = step_data_.charge;
-    data.material = step_data_.material;
+    data.step_length = step_len_;
+    data.charge = charge_;
+    data.material = mat_id_;
     data.points = step_data_.points;
 
     return data;

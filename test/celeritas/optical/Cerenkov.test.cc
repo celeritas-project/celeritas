@@ -219,20 +219,22 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
     {
         auto particle_view = this->make_particle_track_view(
             units::MevEnergy{0.5}, pdg::electron());
+        auto sim_view = this->make_sim_track_view(0.15 * units::centimeter);
 
-        CerenkovPreGenerator::InputStepStateData step;
-        step.step_length = 0.15 * units::centimeter;
-        step.charge = particle_view.charge();
-        step.material = material;
+        CerenkovPreGenerator::OpticalPreGenStepData step;
         step.points[StepPoint::pre].pos = {0, 0, 0};
         step.points[StepPoint::pre].speed
             = units::LightSpeed{0.86286196322132458};
-        step.points[StepPoint::post].pos = {step.step_length, 0, 0};
+        step.points[StepPoint::post].pos = {sim_view.step_length(), 0, 0};
         step.points[StepPoint::post].speed
             = units::LightSpeed{0.63431981443206786};
 
-        CerenkovPreGenerator pre_generator(
-            properties->host_ref(), params->host_ref(), step);
+        CerenkovPreGenerator pre_generator(particle_view,
+                                           sim_view,
+                                           material,
+                                           properties->host_ref(),
+                                           params->host_ref(),
+                                           step);
 
         size_type num_samples = 10;
         OpticalDistributionData result;
@@ -253,7 +255,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
         EXPECT_SOFT_EQ(step.time, result.time);
         EXPECT_EQ(particle_view.charge().value(), result.charge.value());
         EXPECT_EQ(material, result.material);
-        EXPECT_SOFT_EQ(step.step_length, result.step_length);
+        EXPECT_SOFT_EQ(sim_view.step_length(), result.step_length);
 
         for (auto p : range(StepPoint::size_))
         {
@@ -270,19 +272,21 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
     {
         auto particle_view = this->make_particle_track_view(
             units::MevEnergy{0.3}, pdg::electron());
+        auto sim_view = this->make_sim_track_view(0.1 * units::centimeter);
 
-        CerenkovPreGenerator::InputStepStateData step_below_th;
-        step_below_th.step_length = 0.1 * units::centimeter;
-        step_below_th.charge = particle_view.charge();
-        step_below_th.material = material;
+        CerenkovPreGenerator::OpticalPreGenStepData step_below_th;
         step_below_th.points[StepPoint::pre].pos = {0, 0, 0};
         step_below_th.points[StepPoint::pre].speed = units::LightSpeed{0.55};
         step_below_th.points[StepPoint::post].pos
-            = {step_below_th.step_length, 0, 0};
+            = {sim_view.step_length(), 0, 0};
         step_below_th.points[StepPoint::post].speed = units::LightSpeed{0.5};
 
-        CerenkovPreGenerator pre_generator(
-            properties->host_ref(), params->host_ref(), step_below_th);
+        CerenkovPreGenerator pre_generator(particle_view,
+                                           sim_view,
+                                           material,
+                                           properties->host_ref(),
+                                           params->host_ref(),
+                                           step_below_th);
         auto const result = pre_generator(rng);
 
         EXPECT_FALSE(result);
@@ -314,7 +318,9 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
     real_type emax = convert_to_energy(get_wavelength().back() * micrometer);
     real_type edel = (emax - emin) / num_bins;
 
-    auto sample = [&](CerenkovPreGenerator::InputStepStateData& step,
+    auto sample = [&](CerenkovPreGenerator::OpticalPreGenStepData& step,
+                      ParticleTrackView const& particle_view,
+                      SimTrackView const& sim_view,
                       size_type num_samples) {
         // Reset tallies
         rng.reset_count();
@@ -325,12 +331,16 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
 
         // Displacement distribution binning
         real_type dmin = 0;
-        real_type dmax = step.step_length;
+        real_type dmax = sim_view.step_length();
         real_type ddel = (dmax - dmin) / num_bins;
 
         // Calculate the average number of photons produced per unit length
-        CerenkovPreGenerator pre_generator(
-            properties->host_ref(), params->host_ref(), step);
+        CerenkovPreGenerator pre_generator(particle_view,
+                                           sim_view,
+                                           material,
+                                           properties->host_ref(),
+                                           params->host_ref(),
+                                           step);
 
         auto const& pre_step = step.points[StepPoint::pre];
         auto const& post_step = step.points[StepPoint::post];
@@ -401,15 +411,15 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
     {
         units::MevEnergy gev_10(10e3);
 
-        CerenkovPreGenerator::InputStepStateData step;
-        step.charge
-            = this->make_particle_track_view(gev_10, pdg::electron()).charge();
-        step.material = material;
-        step.step_length = 1 * units::centimeter;
+        auto particle_view
+            = this->make_particle_track_view(gev_10, pdg::electron());
+        auto sim_view = this->make_sim_track_view(1 * units::centimeter);
+
+        CerenkovPreGenerator::OpticalPreGenStepData step;
         step.points[StepPoint::pre].pos = {0, 0, 0};
         step.points[StepPoint::pre].speed
             = units::LightSpeed{0.99999999869453382};
-        step.points[StepPoint::post].pos = {step.step_length, 0, 0};
+        step.points[StepPoint::post].pos = {sim_view.step_length(), 0, 0};
         step.points[StepPoint::post].speed
             = units::LightSpeed{0.9999999986942727};
         CELER_ASSERT(step);
@@ -425,7 +435,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
                3999, 3924, 3903, 3900, 3959, 3932, 4023, 3873};
         // clang-format on
 
-        sample(step, num_samples);
+        sample(step, particle_view, sim_view, num_samples);
 
         EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
         EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
@@ -441,16 +451,16 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
     {
         units::MevEnergy kev_500(0.5);
 
-        CerenkovPreGenerator::InputStepStateData step;
-        step.charge
-            = this->make_particle_track_view(kev_500, pdg::electron()).charge();
-        step.material = material;
+        auto particle_vew
+            = this->make_particle_track_view(kev_500, pdg::electron());
+        auto sim_view = this->make_sim_track_view(0.15 * units::centimeter);
+
+        CerenkovPreGenerator::OpticalPreGenStepData step;
         step.points[StepPoint::pre].speed
             = units::LightSpeed(0.86286196322132458);
         step.points[StepPoint::post].speed
             = units::LightSpeed(0.63431981443206786);
-        step.step_length = 0.15 * units::centimeter;
-        step.points[StepPoint::post].pos = {step.step_length, 0, 0};
+        step.points[StepPoint::post].pos = {sim_view.step_length(), 0, 0};
         CELER_ASSERT(step);
 
         static double const expected_costheta_dist[]
@@ -460,7 +470,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
         static double const expected_displacement_dist[] = {
             108, 108, 90, 105, 83, 88, 85, 65, 49, 43, 31, 29, 31, 16, 13, 2};
 
-        sample(step, num_samples);
+        sample(step, particle_vew, sim_view, num_samples);
 
         EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
         EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
