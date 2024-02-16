@@ -135,18 +135,17 @@ CerenkovPreGenerator::operator()(Generator& rng)
         return {};
     }
 
-    // Sample number of photons from a Poisson distribution
-    auto sampled_num_photons = PoissonDistribution<real_type>(
-        num_photons_per_len_ * step_len_)(rng);
-
     OpticalDistributionData data;
-    data.num_photons = sampled_num_photons;
-    data.time = step_data_.time;
-    data.step_length = step_len_;
-    data.charge = charge_;
-    data.material = mat_id_;
-    data.points = step_data_.points;
-
+    if (size_type sampled_num_photons = PoissonDistribution<real_type>(
+            num_photons_per_len_ * step_len_)(rng))
+    {
+        data.num_photons = sampled_num_photons;
+        data.time = step_data_.time;
+        data.step_length = step_len_;
+        data.charge = charge_;
+        data.material = mat_id_;
+        data.points = step_data_.points;
+    }
     return data;
 }
 

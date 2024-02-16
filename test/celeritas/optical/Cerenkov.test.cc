@@ -244,34 +244,31 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
             result = pre_generator(rng);
             CELER_ASSERT(result);
             sampled_num_photons.push_back(result.num_photons);
+
+            // Remaining values are assigned to result from input data
+            EXPECT_EQ(step.time, result.time);
+            EXPECT_EQ(particle_view.charge().value(), result.charge.value());
+            EXPECT_EQ(material, result.material);
+            EXPECT_EQ(sim_view.step_length(), result.step_length);
+
+            for (auto p : range(StepPoint::size_))
+            {
+                EXPECT_EQ(step.points[p].speed.value(),
+                          result.points[p].speed.value());
+                EXPECT_VEC_EQ(step.points[p].pos, result.points[p].pos);
+            }
         }
 
         // Only number of photons is sampled
         static size_type const expected_num_photons[]
             = {15, 17, 11, 15, 14, 19, 23, 13, 10, 12};
         EXPECT_VEC_EQ(expected_num_photons, sampled_num_photons);
-
-        // Remaining values are assigned to result from input data
-        EXPECT_SOFT_EQ(step.time, result.time);
-        EXPECT_EQ(particle_view.charge().value(), result.charge.value());
-        EXPECT_EQ(material, result.material);
-        EXPECT_SOFT_EQ(sim_view.step_length(), result.step_length);
-
-        for (auto p : range(StepPoint::size_))
-        {
-            EXPECT_SOFT_EQ(step.points[p].speed.value(),
-                           result.points[p].speed.value());
-            for (auto i : range(3))
-            {
-                EXPECT_SOFT_EQ(step.points[p].pos[i], result.points[p].pos[i]);
-            }
-        }
     }
 
     // Below Cerenkov threshold
     {
         auto particle_view = this->make_particle_track_view(
-            units::MevEnergy{0.3}, pdg::electron());
+            units::MevEnergy{0.1}, pdg::electron());
         auto sim_view = this->make_sim_track_view(0.1 * units::centimeter);
 
         CerenkovPreGenerator::OpticalPreGenStepData step_below_th;
