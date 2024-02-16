@@ -136,10 +136,10 @@ CerenkovPreGenerator::operator()(Generator& rng)
     }
 
     OpticalDistributionData data;
-    if (size_type sampled_num_photons = PoissonDistribution<real_type>(
-            num_photons_per_len_ * step_len_)(rng))
+    data.num_photons = PoissonDistribution<real_type>(num_photons_per_len_
+                                                      * step_len_)(rng);
+    if (data.num_photons > 0)
     {
-        data.num_photons = sampled_num_photons;
         data.time = step_data_.time;
         data.step_length = step_len_;
         data.charge = charge_;
