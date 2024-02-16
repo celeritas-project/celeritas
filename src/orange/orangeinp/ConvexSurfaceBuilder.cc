@@ -99,7 +99,7 @@ void ConvexSurfaceBuilder::insert_transformed(std::string&& extension,
         using SurfaceT = std::decay_t<decltype(final_surf)>;
 
         // Insert transformed surface, deduplicating and creating CSG node
-        node_id = ub_->insert_surface(final_surf);
+        node_id = ub_->insert_surface(final_surf).first;
 
         // Replace sense so we know to flip the node if needed
         sense = final_sense;
@@ -123,7 +123,7 @@ void ConvexSurfaceBuilder::insert_transformed(std::string&& extension,
         // "Inside" the surface (negative quadric evaluation) means we have to
         // negate the CSG result
         static_assert(Sense::inside == to_sense(false));
-        node_id = ub_->insert_csg(Negated{node_id});
+        node_id = ub_->insert_csg(Negated{node_id}).first;
     }
 
     // Add sense to "joined" region

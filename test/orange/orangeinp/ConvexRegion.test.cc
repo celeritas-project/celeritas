@@ -72,9 +72,12 @@ auto ConvexRegionTest::test(ConvexRegionInterface const& r,
     EXPECT_TRUE(encloses(css.local_bzone.exterior, css.local_bzone.interior));
     EXPECT_TRUE(encloses(css.global_bzone.exterior, css.global_bzone.interior));
 
+    bool multi_node = css.nodes.size() > 1;
+
     // Intersect the given surfaces
-    auto node_id
+    auto&& [node_id, inserted]
         = unit_builder_.insert_csg(Joined{op_and, std::move(css.nodes)});
+    EXPECT_EQ(multi_node, inserted);
 
     TestResult result;
     result.node = build_infix_string(unit_.tree, node_id);

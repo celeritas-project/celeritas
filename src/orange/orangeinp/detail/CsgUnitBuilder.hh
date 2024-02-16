@@ -37,6 +37,7 @@ class CsgUnitBuilder
     using Tol = Tolerance<>;
     using Metadata = CsgUnit::Metadata;
     using BBox = CsgUnit::BBox;
+    using NodeInsertion = CsgTree::Insertion;
     //!@}
 
   public:
@@ -56,11 +57,11 @@ class CsgUnitBuilder
 
     // Insert a surface by forwarding to the surface inserter
     template<class... Args>
-    inline NodeId insert_surface(Args&&... args);
+    inline NodeInsertion insert_surface(Args&&... args);
 
     // Insert a CSG node by forwarding to the CsgTree
     template<class... Args>
-    inline NodeId insert_csg(Args&&... args);
+    inline NodeInsertion insert_csg(Args&&... args);
 
     //! Insert node metadata
     inline void insert_md(NodeId node, Metadata&& md);
@@ -108,7 +109,7 @@ S const& CsgUnitBuilder::get_surface(NodeId nid) const
  * Insert a surface by forwarding to the surface inserter.
  */
 template<class... Args>
-auto CsgUnitBuilder::insert_surface(Args&&... args) -> NodeId
+auto CsgUnitBuilder::insert_surface(Args&&... args) -> NodeInsertion
 {
     LocalSurfaceId lsid = insert_surface_(std::forward<Args>(args)...);
     return this->insert_csg(lsid);
@@ -119,10 +120,10 @@ auto CsgUnitBuilder::insert_surface(Args&&... args) -> NodeId
  * Insert a CSG node by forwarding to the CsgTree.
  */
 template<class... Args>
-auto CsgUnitBuilder::insert_csg(Args&&... args) -> NodeId
+auto CsgUnitBuilder::insert_csg(Args&&... args) -> NodeInsertion
 {
-    auto [result, inserted] = unit_->tree.insert(std::forward<Args>(args)...);
-    if (inserted)
+    auto result = unit_->tree.insert(std::forward<Args>(args)...);
+    if (result.second)
     {
         unit_->metadata.resize(unit_->tree.size());
         unit_->bboxes.resize(unit_->tree.size());
