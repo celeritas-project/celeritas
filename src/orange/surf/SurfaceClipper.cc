@@ -141,6 +141,10 @@ void SurfaceClipper::operator()(ConeAligned<T> const&) const
     *int_ = BoundingBox{};
 }
 
+//!\cond
+ORANGE_INSTANTIATE_OP(ConeAligned);
+//!\endcond
+
 //---------------------------------------------------------------------------//
 /*!
  * Clip the bounding boxes to a simple quadric.
