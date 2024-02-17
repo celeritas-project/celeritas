@@ -86,14 +86,18 @@ jobs:
           git config --global --add safe.directory ${PWD}
           ln -fs scripts/cmake-presets/ci-${{matrix.image}}.json CMakeUserPresets.json
           cmake --preset=${CMAKE_PRESET}
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v2
+        id: cpus
       - name: Build Celeritas
         working-directory: build
         run: |
-          ninja
+          ninja -j${{steps.cpus.outputs.count}}
       - name: Test Celeritas
         working-directory: build
         run: |
-          ctest --parallel 2 --timeout 180 --output-on-failure \
+          ctest --parallel ${{steps.cpus.outputs.count}} \
+            --timeout 180 --output-on-failure \
             --test-output-size-passed=65536 --test-output-size-failed=1048576
       - name: Install Celeritas
         working-directory: build

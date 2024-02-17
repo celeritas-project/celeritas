@@ -76,6 +76,9 @@ jobs:
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_FLAGS="-Wall -Wextra -pedantic -Wno-error=deprecated-declarations" \
             ..
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v2
+        id: cpus
       - name: Build all
         working-directory: build
         run: |
@@ -83,7 +86,8 @@ jobs:
       - name: Run tests
         working-directory: build
         run: |
-          ctest --parallel 2 --timeout 15 --output-on-failure \
+          ctest --parallel ${{steps.cpus.outputs.count}} \
+            --timeout 15 --output-on-failure \
             --test-output-size-passed=32768 --test-output-size-failed=1048576
       - name: Install
         working-directory: build
