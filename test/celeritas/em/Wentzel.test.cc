@@ -10,6 +10,7 @@
 #include "celeritas/em/interactor/WentzelInteractor.hh"
 #include "celeritas/em/model/WentzelModel.hh"
 #include "celeritas/em/process/CoulombScatteringProcess.hh"
+#include "celeritas/em/xs/WentzelTransportXsCalculator.hh"
 #include "celeritas/io/ImportParameters.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/mat/MaterialView.hh"
@@ -210,6 +211,77 @@ TEST_F(CoulombScatteringTest, mott_xs)
     }
 
     EXPECT_VEC_SOFT_EQ(xsecs, expected_xsecs);
+}
+
+TEST_F(CoulombScatteringTest, wokvi_transport_xs)
+{
+    // Copper
+    MaterialId mat_id{0};
+    ElementId elm_id{0};
+
+    AtomicNumber const z = this->material_params()->get(elm_id).atomic_number();
+
+    // Incident particle energy cutoff
+    MevEnergy const cutoff = this->cutoff_params()->get(mat_id).energy(
+        this->particle_track().particle_id());
+
+    std::vector<real_type> xs;
+    for (real_type energy : {50, 100, 200, 1000, 13000})
+    {
+        this->set_inc_particle(pdg::electron(), MevEnergy{energy});
+        auto const& particle = this->particle_track();
+
+        WentzelRatioCalculator calc_ratio(
+            particle, z, model_->host_ref(), cutoff);
+
+        WentzelTransportXsCalculator calc_transport_xs(
+            particle,
+            z,
+            calc_ratio.screening_coefficient(),
+            calc_ratio.cos_t_max_elec());
+
+        for (real_type costheta_max : {-1.0, -0.5, 0.0, 0.5, 0.75, 0.99, 1.0})
+        {
+            // Get cross section in barns
+            xs.push_back(calc_transport_xs(costheta_max) / units::barn);
+        }
+    }
+    static double const expected_xs[] = {0.71392734761369,
+                                         0.71230767959567,
+                                         0.70562884270985,
+                                         0.686593114859,
+                                         0.66218877689937,
+                                         0.52908150451115,
+                                         0,
+                                         0.19516611768754,
+                                         0.19475734301371,
+                                         0.19307107844035,
+                                         0.18826457727067,
+                                         0.18210234522701,
+                                         0.14849151789768,
+                                         0,
+                                         0.052798367939378,
+                                         0.052695669889626,
+                                         0.052271981881786,
+                                         0.051064284057599,
+                                         0.049515930355632,
+                                         0.041070671779723,
+                                         0,
+                                         0.002472275627657,
+                                         0.0024681511259515,
+                                         0.002451134671678,
+                                         0.0024026299507655,
+                                         0.0023404433473951,
+                                         0.0020012556180187,
+                                         0,
+                                         1.7967411080681e-05,
+                                         1.7942982771743e-05,
+                                         1.7842198780488e-05,
+                                         1.75549179749e-05,
+                                         1.7186602916614e-05,
+                                         1.5177682220057e-05,
+                                         0};
+    EXPECT_VEC_SOFT_EQ(expected_xs, xs);
 }
 
 TEST_F(CoulombScatteringTest, simple_scattering)
