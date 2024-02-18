@@ -140,10 +140,9 @@ TEST_F(CoulombScatteringTest, wokvi_xs)
     AtomicNumber const target_z
         = this->material_params()->get(ElementId{0}).atomic_number();
 
-    real_type const cutoff_energy = value_as<units::MevEnergy>(
-        this->cutoff_params()
-            ->get(MaterialId{0})
-            .energy(this->particle_track().particle_id()));
+    MevEnergy const cutoff = this->cutoff_params()
+                                 ->get(MaterialId{0})
+                                 .energy(this->particle_track().particle_id());
 
     std::vector<real_type> const energies = {50, 100, 200, 1000, 13000};
 
@@ -171,7 +170,7 @@ TEST_F(CoulombScatteringTest, wokvi_xs)
         this->set_inc_particle(pdg::electron(), MevEnergy{energy});
 
         WentzelRatioCalculator calc(
-            particle_track(), target_z, data, cutoff_energy);
+            this->particle_track(), target_z, data, cutoff);
 
         xsecs.push_back(calc());
         cos_t_maxs.push_back(calc.cos_t_max_elec());
@@ -188,7 +187,8 @@ TEST_F(CoulombScatteringTest, mott_xs)
     WentzelHostRef const& data = model_->host_ref();
 
     WentzelElementData const& element_data = data.elem_data[ElementId(0)];
-    MottRatioCalculator xsec(element_data, sqrt(particle_track().beta_sq()));
+    MottRatioCalculator xsec(element_data,
+                             sqrt(this->particle_track().beta_sq()));
 
     static real_type const cos_ts[]
         = {1, 0.9, 0.5, 0.21, 0, -0.1, -0.6, -0.7, -0.9, -1};
@@ -292,13 +292,12 @@ TEST_F(CoulombScatteringTest, distribution)
                   .make_element_view(ElementComponentId{0})
                   .make_isotope_view(IsotopeComponentId{0});
 
-        real_type const cutoff_energy = value_as<units::MevEnergy>(
-            this->cutoff_params()
-                ->get(MaterialId{0})
-                .energy(ParticleId{0}));  // TODO: Use proton ParticleId{2}
+        // TODO: Use proton ParticleId{2}
+        MevEnergy const cutoff
+            = this->cutoff_params()->get(MaterialId{0}).energy(ParticleId{0});
 
         WentzelDistribution distrib(
-            particle_track(), isotope, element_data, cutoff_energy, data);
+            this->particle_track(), isotope, element_data, cutoff, data);
 
         RandomEngine& rng_engine = this->rng();
 

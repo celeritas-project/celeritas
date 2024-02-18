@@ -56,7 +56,7 @@ class WentzelDistribution
     WentzelDistribution(ParticleTrackView const& particle,
                         IsotopeView const& target,
                         WentzelElementData const& element_data,
-                        real_type cutoff_energy,
+                        Energy cutoff,
                         WentzelRef const& data);
 
     // Sample the polar scattering angle
@@ -115,13 +115,13 @@ CELER_FUNCTION
 WentzelDistribution::WentzelDistribution(ParticleTrackView const& particle,
                                          IsotopeView const& target,
                                          WentzelElementData const& element_data,
-                                         real_type cutoff_energy,
+                                         Energy cutoff,
                                          WentzelRef const& data)
     : data_(data)
     , particle_(particle)
     , target_(target)
     , element_data_(element_data)
-    , calc_elec_ratio_(particle, target.atomic_number(), data, cutoff_energy)
+    , calc_elec_ratio_(particle, target.atomic_number(), data, cutoff)
 {
 }
 

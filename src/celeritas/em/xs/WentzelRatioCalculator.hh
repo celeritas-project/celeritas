@@ -36,7 +36,7 @@ class WentzelRatioCalculator
     WentzelRatioCalculator(ParticleTrackView const& particle,
                            AtomicNumber target_z,
                            WentzelRef const& data,
-                           real_type cutoff_energy);
+                           Energy cutoff);
 
     // The ratio of electron to total cross section for Coulomb scattering
     inline CELER_FUNCTION real_type operator()() const;
@@ -69,7 +69,7 @@ class WentzelRatioCalculator
 
     //! Calculate the (cosine of) the maximum scattering angle off of electrons
     inline CELER_FUNCTION real_type calc_max_electron_cos_t(
-        ParticleTrackView const& particle, real_type cutoff_energy) const;
+        ParticleTrackView const& particle, Energy cutoff) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -82,12 +82,12 @@ CELER_FUNCTION
 WentzelRatioCalculator::WentzelRatioCalculator(ParticleTrackView const& particle,
                                                AtomicNumber target_z,
                                                WentzelRef const& data,
-                                               real_type cutoff_energy)
+                                               Energy cutoff)
     : target_z_(target_z), data_(data)
 {
     screening_coefficient_ = calc_screening_coefficient(particle)
                              * data_.screening_factor;
-    cos_t_max_elec_ = calc_max_electron_cos_t(particle, cutoff_energy);
+    cos_t_max_elec_ = calc_max_electron_cos_t(particle, cutoff);
 
     CELER_EXPECT(target_z_.get() > 0);
     CELER_EXPECT(screening_coefficient_ > 0);
@@ -96,8 +96,7 @@ WentzelRatioCalculator::WentzelRatioCalculator(ParticleTrackView const& particle
 
 //---------------------------------------------------------------------------//
 /*!
- * Ratio of electron cross section to the total (nuclear + electron)
- * cross section.
+ * Ratio of electron cross section to total (nuclear + electron) cross section.
  */
 CELER_FUNCTION real_type WentzelRatioCalculator::operator()() const
 {
@@ -150,8 +149,9 @@ CELER_FUNCTION real_type WentzelRatioCalculator::calc_screening_coefficient(
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the screening R^2 coefficient for incident electrons. This is
- * the constant prefactor of [PRM] eqn 8.51.
+ * Calculate the screening R^2 coefficient for incident electrons.
+ *
+ * This is the constant prefactor of [PRM] eqn 8.51.
  */
 CELER_CONSTEXPR_FUNCTION real_type WentzelRatioCalculator::screen_r_sq_elec() const
 {
@@ -166,8 +166,10 @@ CELER_CONSTEXPR_FUNCTION real_type WentzelRatioCalculator::screen_r_sq_elec() co
 
 //---------------------------------------------------------------------------//
 /*!
- * (Cosine of) the maximum polar angle that incident particles scatter off
- * of the target's electrons.
+ * Get the maximum scattering angle off the target's electrons.
+ *
+ * Return the cosine of the maximum polar angle that the incident particle can
+ * scatter off of the target's electrons.
  */
 CELER_FUNCTION real_type WentzelRatioCalculator::cos_t_max_elec() const
 {
@@ -176,11 +178,13 @@ CELER_FUNCTION real_type WentzelRatioCalculator::cos_t_max_elec() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the (cosine of the) maximum polar angle that incident particle
- * can scatter off of the target's electrons.
+ * Calculate the maximum scattering angle off the target's electrons.
+ *
+ * This calculates the cosine of the maximum polar angle that the incident
+ * particle can scatter off of the target's electrons.
  */
 CELER_FUNCTION real_type WentzelRatioCalculator::calc_max_electron_cos_t(
-    ParticleTrackView const& particle, real_type cutoff_energy) const
+    ParticleTrackView const& particle, Energy cutoff) const
 {
     real_type inc_energy = value_as<Energy>(particle.energy());
     real_type mass = value_as<Mass>(particle.mass());
@@ -188,7 +192,8 @@ CELER_FUNCTION real_type WentzelRatioCalculator::calc_max_electron_cos_t(
     real_type max_energy = (particle.particle_id() == data_.ids.electron)
                                ? real_type{0.5} * inc_energy
                                : inc_energy;
-    real_type final_energy = inc_energy - min(cutoff_energy, max_energy);
+    real_type final_energy = inc_energy
+                             - min(value_as<Energy>(cutoff), max_energy);
 
     if (final_energy > 0)
     {
