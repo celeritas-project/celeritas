@@ -73,6 +73,19 @@ TEST_F(JsonComparerTest, object)
         compare(R"json({"a": 1, "b": 2})json", R"json({"a": 2, "b": 1})json"));
 }
 
+TEST_F(JsonComparerTest, stringification)
+{
+    JsonComparer compare{0.001};
+    auto r = compare(R"json({"a": 1, "b": [1, 2, [0]]})json",
+                     R"json({"a": 2, "b": [2, 3, [4, 5]]})json");
+    EXPECT_STREQ(R"(JSON objects differ:
+  value in .["a"]: expected 1, but got 2
+  value in .["b"][0]: expected 1, but got 2
+  value in .["b"][1]: expected 2, but got 3
+  size in .["b"][2]: expected 1, but got 2)",
+                 r.message());
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace testdetail

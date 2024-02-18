@@ -9,8 +9,6 @@
 
 #include <nlohmann/json.hpp>
 
-#include "corecel/io/Join.hh"
-
 using nlohmann::json;
 
 namespace celeritas
@@ -82,7 +80,17 @@ auto JsonComparer::operator()(std::string_view expected,
     if (!failures.empty())
     {
         result = ::testing::AssertionFailure();
-        // TODO: convert failures to output
+        result << "JSON objects differ:";
+        for (auto const& f : failures)
+        {
+            result << "\n  ";
+            result << f.what << " in " << f.where << ": expected "
+                   << f.expected;
+            if (!f.actual.empty())
+            {
+                result << ", but got " << f.actual;
+            }
+        }
     }
     return result;
 }
@@ -154,7 +162,10 @@ void JsonComparer::Impl::add_failure(std::string&& what,
                                      std::string&& actual) const
 {
     Failure f;
-    /* f.where = TODO: key stack*/;
+    for (auto const& s : key_stack)
+    {
+        f.where += s;
+    }
     f.what = std::move(what);
     f.expected = std::move(expected);
     f.actual = std::move(actual);
