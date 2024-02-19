@@ -13,13 +13,16 @@
 #include "corecel/cont/Span.hh"
 #include "celeritas/mat/MaterialView.hh"
 
+#include "WentzelHelper.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the transport cross section for the Wentzel OK and VI model.
  *
- * See G4WentzelOKandVIxSection::ComputeTransportCrossSectionPerAtom.
+ * \note This performs the same calculation as Geant4's
+ * G4WentzelOKandVIxSection::ComputeTransportCrossSectionPerAtom.
  */
 class WentzelTransportXsCalculator
 {
@@ -33,12 +36,10 @@ class WentzelTransportXsCalculator
     //!@}
 
   public:
-    // Construct with particle and element data
+    // Construct with particle and precalculatad Wentzel data
     inline CELER_FUNCTION
     WentzelTransportXsCalculator(ParticleTrackView const& particle,
-                                 AtomicNumber z,
-                                 real_type screening_coeff,
-                                 real_type costheta_max_elec);
+                                 WentzelHelper const& helper);
 
     // Calculate the transport cross section for the given angle [len^2]
     inline CELER_FUNCTION real_type operator()(real_type costheta_max) const;
@@ -68,27 +69,22 @@ class WentzelTransportXsCalculator
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with particle and element data.
+ * Construct with particle and precalculatad Wentzel data.
  *
  * \c beta_sq should be calculated from the incident particle energy and mass.
  * \c screening_coeff and \c costheta_max_elec are calculated using the Wentzel
- * OK and VI model in \c WentzelRatioCalculator and depend on properties of the
- * incident particle, the energy cutoff in theh current material, and the
- * target element.
+ * OK and VI model in \c WentzelHelper and depend on properties of the incident
+ * particle, the energy cutoff in the current material, and the target element.
  */
 CELER_FUNCTION
 WentzelTransportXsCalculator::WentzelTransportXsCalculator(
-    ParticleTrackView const& particle,
-    AtomicNumber z,
-    real_type screening_coeff,
-    real_type costheta_max_elec)
-    : z_(z)
-    , screening_coeff_(screening_coeff)
-    , costheta_max_elec_(costheta_max_elec)
+    ParticleTrackView const& particle, WentzelHelper const& helper)
+    : z_(helper.atomic_number())
+    , screening_coeff_(helper.screening_coefficient())
+    , costheta_max_elec_(helper.costheta_max_electron())
     , spin_betasq_(real_type(0.5) * particle.beta_sq())
     , xs_factor_(this->calc_xs_factor(particle))
 {
-    CELER_EXPECT(costheta_max_elec_ <= 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -143,22 +139,23 @@ CELER_FUNCTION real_type WentzelTransportXsCalculator::calc_xs_factor(
 CELER_FUNCTION real_type WentzelTransportXsCalculator::calc_xs_contribution(
     real_type costheta_max) const
 {
-    real_type result = [&] {
-        real_type x = (1 - costheta_max) / screening_coeff_;
-        if (x < WentzelTransportXsCalculator::limit())
-        {
-            real_type x_sq = ipow<2>(x);
-            return real_type(0.5) * x_sq
-                   * ((1 - real_type(4) / 3 * x + real_type(1.5) * x_sq)
-                      - screening_coeff_ * spin_betasq_ * x
-                            * (real_type(2) / 3 - x));
-        }
+    real_type result;
+    real_type x = (1 - costheta_max) / screening_coeff_;
+    if (x < WentzelTransportXsCalculator::limit())
+    {
+        real_type x_sq = ipow<2>(x);
+        result = real_type(0.5) * x_sq
+                 * ((1 - real_type(4) / 3 * x + real_type(1.5) * x_sq)
+                    - screening_coeff_ * spin_betasq_ * x
+                          * (real_type(2) / 3 - x));
+    }
+    else
+    {
         real_type x_1 = x / (1 + x);
         real_type log_x = std::log(1 + x);
-        return log_x - x_1
-               - screening_coeff_ * spin_betasq_ * (x + x_1 - 2 * log_x);
-    }();
-
+        result = log_x - x_1
+                 - screening_coeff_ * spin_betasq_ * (x + x_1 - 2 * log_x);
+    }
     return clamp_to_nonneg(result);
 }
 

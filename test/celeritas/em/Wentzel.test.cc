@@ -170,12 +170,11 @@ TEST_F(CoulombScatteringTest, wokvi_xs)
     {
         this->set_inc_particle(pdg::electron(), MevEnergy{energy});
 
-        WentzelRatioCalculator calc(
-            this->particle_track(), target_z, data, cutoff);
+        WentzelHelper helper(this->particle_track(), target_z, data, cutoff);
 
-        xsecs.push_back(calc());
-        cos_t_maxs.push_back(calc.cos_t_max_elec());
-        screen_zs.push_back(calc.screening_coefficient());
+        xsecs.push_back(helper.calc_xs_ratio());
+        cos_t_maxs.push_back(helper.costheta_max_electron());
+        screen_zs.push_back(helper.screening_coefficient());
     }
 
     EXPECT_VEC_SOFT_EQ(expected_xsecs, xsecs);
@@ -231,14 +230,8 @@ TEST_F(CoulombScatteringTest, wokvi_transport_xs)
         this->set_inc_particle(pdg::electron(), MevEnergy{energy});
         auto const& particle = this->particle_track();
 
-        WentzelRatioCalculator calc_ratio(
-            particle, z, model_->host_ref(), cutoff);
-
-        WentzelTransportXsCalculator calc_transport_xs(
-            particle,
-            z,
-            calc_ratio.screening_coefficient(),
-            calc_ratio.cos_t_max_elec());
+        WentzelHelper helper(particle, z, model_->host_ref(), cutoff);
+        WentzelTransportXsCalculator calc_transport_xs(particle, helper);
 
         for (real_type costheta_max : {-1.0, -0.5, 0.0, 0.5, 0.75, 0.99, 1.0})
         {

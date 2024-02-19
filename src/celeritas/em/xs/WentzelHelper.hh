@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/xs/WentzelRatioCalculator.hh
+//! \file celeritas/em/xs/WentzelHelper.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,10 +17,13 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the ratio of the electron to total Wentzel cross sections for
- * elastic Coulomb scattering.
+ * Helper class for the Wentzel OK and VI Coulomb scattering model.
+ *
+ * This calculates the Moliere screening coefficient, the maximum scattering
+ * angle off of electrons, and the ratio of the electron to total Wentzel cross
+ * sections.
  */
-class WentzelRatioCalculator
+class WentzelHelper
 {
   public:
     //!@{
@@ -31,23 +34,33 @@ class WentzelRatioCalculator
     //!@}
 
   public:
-    //! Construct the calculator from the given values
-    inline CELER_FUNCTION
-    WentzelRatioCalculator(ParticleTrackView const& particle,
-                           AtomicNumber target_z,
-                           WentzelRef const& data,
-                           Energy cutoff);
+    // Construct from particle and material properties
+    inline CELER_FUNCTION WentzelHelper(ParticleTrackView const& particle,
+                                        AtomicNumber target_z,
+                                        WentzelRef const& data,
+                                        Energy cutoff);
+
+    //! Get the target atomic number
+    CELER_FUNCTION AtomicNumber atomic_number() const { return target_z_; }
+
+    //! Get the Moliere screening coefficient
+    CELER_FUNCTION real_type screening_coefficient() const
+    {
+        return screening_coefficient_;
+    }
+
+    //! Get the maximum scattering angle off of electrons
+    CELER_FUNCTION real_type costheta_max_electron() const
+    {
+        return cos_t_max_elec_;
+    }
 
     // The ratio of electron to total cross section for Coulomb scattering
-    inline CELER_FUNCTION real_type operator()() const;
-
-    // Moilere screening coefficient
-    inline CELER_FUNCTION real_type screening_coefficient() const;
-
-    // (Cosine of) the maximum scattering angle off of electrons
-    inline CELER_FUNCTION real_type cos_t_max_elec() const;
+    inline CELER_FUNCTION real_type calc_xs_ratio() const;
 
   private:
+    //// DATA ////
+
     // Target atomic number
     AtomicNumber const target_z_;
 
@@ -57,39 +70,36 @@ class WentzelRatioCalculator
     // Cosine of the maximum scattering angle off of electrons
     real_type cos_t_max_elec_;
 
-    // Shared WentzelModel data
-    WentzelRef const& data_;
+    //// HELPER FUNCTIONS ////
 
-    //! Calculate the Moilere screening coefficient
+    // Calculate the Moliere screening coefficient
     inline CELER_FUNCTION real_type
     calc_screening_coefficient(ParticleTrackView const& particle) const;
 
-    //! Calculate the screening coefficient R^2 for electrons
+    // Calculate the screening coefficient R^2 for electrons
     CELER_CONSTEXPR_FUNCTION real_type screen_r_sq_elec() const;
 
-    //! Calculate the (cosine of) the maximum scattering angle off of electrons
-    inline CELER_FUNCTION real_type calc_max_electron_cos_t(
-        ParticleTrackView const& particle, Energy cutoff) const;
+    // Calculate the (cosine of) the maximum scattering angle off of electrons
+    inline CELER_FUNCTION real_type calc_costheta_max_electron(
+        ParticleTrackView const&, WentzelRef const&, Energy) const;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with state data.
+ * Construct from particle and material properties.
  */
 CELER_FUNCTION
-WentzelRatioCalculator::WentzelRatioCalculator(ParticleTrackView const& particle,
-                                               AtomicNumber target_z,
-                                               WentzelRef const& data,
-                                               Energy cutoff)
-    : target_z_(target_z), data_(data)
+WentzelHelper::WentzelHelper(ParticleTrackView const& particle,
+                             AtomicNumber target_z,
+                             WentzelRef const& data,
+                             Energy cutoff)
+    : target_z_(target_z)
+    , screening_coefficient_(this->calc_screening_coefficient(particle)
+                             * data.screening_factor)
+    , cos_t_max_elec_(this->calc_costheta_max_electron(particle, data, cutoff))
 {
-    screening_coefficient_ = calc_screening_coefficient(particle)
-                             * data_.screening_factor;
-    cos_t_max_elec_ = calc_max_electron_cos_t(particle, cutoff);
-
-    CELER_EXPECT(target_z_.get() > 0);
     CELER_EXPECT(screening_coefficient_ > 0);
     CELER_EXPECT(cos_t_max_elec_ >= -1 && cos_t_max_elec_ <= 1);
 }
@@ -98,7 +108,7 @@ WentzelRatioCalculator::WentzelRatioCalculator(ParticleTrackView const& particle
 /*!
  * Ratio of electron cross section to total (nuclear + electron) cross section.
  */
-CELER_FUNCTION real_type WentzelRatioCalculator::operator()() const
+CELER_FUNCTION real_type WentzelHelper::calc_xs_ratio() const
 {
     // Calculating only reduced cross sections by elimination mutual factors
     // in the ratio.
@@ -111,18 +121,9 @@ CELER_FUNCTION real_type WentzelRatioCalculator::operator()() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Retrieve the cached Moilere screening coefficient.
+ * Calculate the Moliere screening coefficient as in [PRM] eqn 8.51.
  */
-CELER_FUNCTION real_type WentzelRatioCalculator::screening_coefficient() const
-{
-    return screening_coefficient_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate the Moilere screening coefficient as in [PRM] eqn 8.51.
- */
-CELER_FUNCTION real_type WentzelRatioCalculator::calc_screening_coefficient(
+CELER_FUNCTION real_type WentzelHelper::calc_screening_coefficient(
     ParticleTrackView const& particle) const
 {
     // TODO: Reference for just proton correction?
@@ -143,7 +144,7 @@ CELER_FUNCTION real_type WentzelRatioCalculator::calc_screening_coefficient(
                                    * factor / particle.beta_sq());
     }
 
-    return correction * screen_r_sq_elec() * sq_cbrt_z
+    return correction * this->screen_r_sq_elec() * sq_cbrt_z
            / value_as<MomentumSq>(particle.momentum_sq());
 }
 
@@ -153,7 +154,7 @@ CELER_FUNCTION real_type WentzelRatioCalculator::calc_screening_coefficient(
  *
  * This is the constant prefactor of [PRM] eqn 8.51.
  */
-CELER_CONSTEXPR_FUNCTION real_type WentzelRatioCalculator::screen_r_sq_elec() const
+CELER_CONSTEXPR_FUNCTION real_type WentzelHelper::screen_r_sq_elec() const
 {
     //! Thomas-Fermi constant C_TF
     //! \f$ \frac{1}{2}\left(\frac{3\pi}{4}\right)^{2/3} \f$
@@ -166,30 +167,20 @@ CELER_CONSTEXPR_FUNCTION real_type WentzelRatioCalculator::screen_r_sq_elec() co
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the maximum scattering angle off the target's electrons.
- *
- * Return the cosine of the maximum polar angle that the incident particle can
- * scatter off of the target's electrons.
- */
-CELER_FUNCTION real_type WentzelRatioCalculator::cos_t_max_elec() const
-{
-    return cos_t_max_elec_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Calculate the maximum scattering angle off the target's electrons.
  *
  * This calculates the cosine of the maximum polar angle that the incident
  * particle can scatter off of the target's electrons.
  */
-CELER_FUNCTION real_type WentzelRatioCalculator::calc_max_electron_cos_t(
-    ParticleTrackView const& particle, Energy cutoff) const
+CELER_FUNCTION real_type
+WentzelHelper::calc_costheta_max_electron(ParticleTrackView const& particle,
+                                          WentzelRef const& data,
+                                          Energy cutoff) const
 {
     real_type inc_energy = value_as<Energy>(particle.energy());
     real_type mass = value_as<Mass>(particle.mass());
 
-    real_type max_energy = (particle.particle_id() == data_.ids.electron)
+    real_type max_energy = particle.particle_id() == data.ids.electron
                                ? real_type{0.5} * inc_energy
                                : inc_energy;
     real_type final_energy = inc_energy
@@ -203,10 +194,7 @@ CELER_FUNCTION real_type WentzelRatioCalculator::calc_max_electron_cos_t(
 
         return clamp(cos_t_max, real_type{0}, real_type{1});
     }
-    else
-    {
-        return 0;
-    }
+    return 0;
 }
 
 //---------------------------------------------------------------------------//
