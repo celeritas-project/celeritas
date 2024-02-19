@@ -145,7 +145,7 @@ TEST_F(OutputRegistryTest, minimal)
     std::string result = this->to_string(reg);
     if (CELERITAS_USE_JSON)
     {
-        EXPECT_EQ(
+        EXPECT_JSON_EQ(
             R"json({"input":{"input_value":42},"result":{"out":1,"timing":2}})json",
             result);
     }
@@ -177,7 +177,7 @@ TEST_F(OutputRegistryTest, exception_output)
     std::string result = this->to_string(reg);
     if (CELERITAS_USE_JSON)
     {
-        EXPECT_EQ(
+        EXPECT_JSON_EQ(
             R"json({"result":{"exception":{"condition":"false","file":"FILE","line":123,"type":"RuntimeError","what":"things went wrong","which":"runtime"}}})json",
             result);
     }
@@ -197,7 +197,7 @@ TEST_F(OutputRegistryTest, nested_exception_output)
     std::string result = this->to_string(reg);
     if (CELERITAS_USE_JSON)
     {
-        EXPECT_EQ(
+        EXPECT_JSON_EQ(
             R"json({"result":{"exception":{"condition":"false","context":{"event":2,"thread":123,"track":4567,"type":"MockKernelContextException"},"file":"FILE","line":123,"type":"RuntimeError","what":"things went wrong","which":"runtime"}}})json",
             result);
     }
