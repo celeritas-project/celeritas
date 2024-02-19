@@ -12,8 +12,10 @@
 #include "corecel/Constants.hh"
 #include "corecel/cont/Range.hh"
 #include "geocel/Types.hh"
+#include "orange/surf/ConeAligned.hh"
 #include "orange/surf/CylCentered.hh"
 #include "orange/surf/PlaneAligned.hh"
+#include "orange/surf/SimpleQuadric.hh"
 #include "orange/surf/SphereCentered.hh"
 
 #include "ConvexSurfaceBuilder.hh"
@@ -28,7 +30,7 @@ namespace orangeinp
 /*!
  * Construct with half-widths.
  */
-Box::Box(Real3 halfwidths) : hw_{halfwidths}
+Box::Box(Real3 const& halfwidths) : hw_{halfwidths}
 {
     for (auto ax : range(Axis::size_))
     {
@@ -62,7 +64,8 @@ void Box::build(ConvexSurfaceBuilder& insert_surface) const
 /*!
  * Construct with Z halfwidth and lo, hi radii.
  */
-Cone::Cone(Real2 radii, real_type halfheight) : radii_{radii}, hh_{halfheight}
+Cone::Cone(Real2 const& radii, real_type halfheight)
+    : radii_{radii}, hh_{halfheight}
 {
     for (auto i : range(2))
     {
@@ -78,6 +81,11 @@ Cone::Cone(Real2 radii, real_type halfheight) : radii_{radii}, hh_{halfheight}
  */
 void Cone::build(ConvexSurfaceBuilder& insert_surface) const
 {
+    // Build the bottom and top planes
+    insert_surface(Sense::outside, PlaneZ{-hh_});
+    insert_surface(Sense::inside, PlaneZ{hh_});
+
+    // Calculate the cone using lo and hi radii
     real_type const lo{radii_[0]};
     real_type const hi{radii_[1]};
 
@@ -101,10 +109,6 @@ void Cone::build(ConvexSurfaceBuilder& insert_surface) const
 
     // Build the cone surface along the given axis
     insert_surface(ConeZ{Real3{0, 0, vanish_z}, tangent});
-
-    // Build the bottom and top planes
-    insert_surface(Sense::outside, PlaneZ{-hh_});
-    insert_surface(Sense::inside, PlaneZ{hh_});
 }
 
 //---------------------------------------------------------------------------//
@@ -126,9 +130,58 @@ Cylinder::Cylinder(real_type radius, real_type halfheight)
  */
 void Cylinder::build(ConvexSurfaceBuilder& insert_surface) const
 {
-    insert_surface(CCylZ{radius_});
     insert_surface(Sense::outside, PlaneZ{-hh_});
     insert_surface(Sense::inside, PlaneZ{hh_});
+    insert_surface(CCylZ{radius_});
+}
+
+//---------------------------------------------------------------------------//
+// ELLIPSOID
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with half-widths.
+ */
+Ellipsoid::Ellipsoid(Real3 const& radii) : radii_{radii}
+{
+    for (auto ax : range(Axis::size_))
+    {
+        CELER_VALIDATE(radii_[to_int(ax)] > 0,
+                       << "nonpositive radius " << to_char(ax)
+                       << " axis: " << radii_[to_int(ax)]);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void Ellipsoid::build(ConvexSurfaceBuilder& insert_surface) const
+{
+    // Second-order coefficients are product of the other two squared radii;
+    // Zeroth-order coefficient is the product of all three squared radii
+    Real3 rsq;
+    for (auto ax : range(to_int(Axis::size_)))
+    {
+        rsq[ax] = ipow<2>(radii_[ax]);
+    }
+
+    Real3 abc{1, 1, 1};
+    real_type g = -1;
+    for (auto ax : range(to_int(Axis::size_)))
+    {
+        g *= rsq[ax];
+        for (auto nax : range(to_int(Axis::size_)))
+        {
+            if (ax != nax)
+            {
+                abc[ax] *= rsq[nax];
+            }
+        }
+    }
+
+    insert_surface(SimpleQuadric{abc, Real3{0, 0, 0}, g});
+
+    // TODO: update bbox based on outer shape radius
 }
 
 //---------------------------------------------------------------------------//
@@ -162,6 +215,10 @@ void Prism::build(ConvexSurfaceBuilder& insert_surface) const
 {
     using constants::pi;
 
+    // Build top and bottom
+    insert_surface(Sense::outside, PlaneZ{-hh_});
+    insert_surface(Sense::inside, PlaneZ{hh_});
+
     // Offset (if user offset is zero) is calculated to put a plane on the
     // -y face (sitting upright as visualized). An offset of 1 produces a
     // shape congruent with an offset of zero, except that every face has
@@ -186,10 +243,6 @@ void Prism::build(ConvexSurfaceBuilder& insert_surface) const
 
         insert_surface(Plane{normal, apothem_});
     }
-
-    // Build top and bottom
-    insert_surface(Sense::outside, PlaneZ{-hh_});
-    insert_surface(Sense::inside, PlaneZ{hh_});
 
     // TODO: clip bbox by apothem (interior) and circumradius (exterior)
     // real_type circumradius = apothem_ / std::cos(pi / num_sides_);

@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/Macros.hh"
+#include "corecel/cont/Array.hh"
 #include "orange/OrangeTypes.hh"
 
 namespace celeritas
@@ -19,6 +20,10 @@ class ConvexSurfaceBuilder;
 //---------------------------------------------------------------------------//
 /*!
  * A non-reentrant volume of space for building more complex objects.
+ *
+ * When implementing this class, prefer to build simpler surfaces (planes)
+ * before complex ones (cones) in case we implement short-circuiting logic,
+ * since expressions are currently sorted.
  */
 class ConvexRegion
 {
@@ -46,7 +51,7 @@ class Box final : public ConvexRegion
 {
   public:
     // Construct with half-widths
-    explicit Box(Real3 halfwidths);
+    explicit Box(Real3 const& halfwidths);
 
     // Build surfaces
     void build(ConvexSurfaceBuilder&) const final;
@@ -73,7 +78,7 @@ class Cone final : public ConvexRegion
 
   public:
     // Construct with Z halfwidth and lo, hi radii
-    Cone(Real2 radii, real_type halfheight);
+    Cone(Real2 const& radii, real_type halfheight);
 
     // Build surfaces
     void build(ConvexSurfaceBuilder&) const final;
@@ -99,6 +104,23 @@ class Cylinder final : public ConvexRegion
   private:
     real_type radius_;
     real_type hh_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * An axis-alligned ellipsoid centered at the origin.
+ */
+class Ellipsoid final : public ConvexRegion
+{
+  public:
+    // Construct with radius
+    explicit Ellipsoid(Real3 const& radii);
+
+    // Build surfaces
+    void build(ConvexSurfaceBuilder&) const final;
+
+  private:
+    Real3 radii_;
 };
 
 //---------------------------------------------------------------------------//
