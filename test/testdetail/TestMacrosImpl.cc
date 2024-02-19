@@ -15,9 +15,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/ColorUtils.hh"
 
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-#endif
+#include "JsonComparer.hh"
 
 namespace celeritas
 {
@@ -69,32 +67,21 @@ trunc_string(unsigned int digits, char const* str, char const* trunc)
 //---------------------------------------------------------------------------//
 /*!
  * Compare two JSON objects.
- *
- * \todo for now this just does string equality, but could do a recursive
- * visitor to compare actual values, and do soft equivalence for floating
- * points.
  */
 ::testing::AssertionResult IsJsonEq(char const*,
                                     char const*,
-                                    [[maybe_unused]] std::string_view expected,
-                                    [[maybe_unused]] std::string_view actual)
+                                    std::string_view expected,
+                                    std::string_view actual)
 {
-#if CELERITAS_USE_JSON
-    if (expected == actual)
+    JsonComparer compare{};
+    auto result = compare(expected, actual);
+    if (!result)
     {
-        return ::testing::AssertionSuccess();
+        // Print actual result for copy-pasting into "expected" expression
+        result << "\n/*** ACTUAL ***/\nR\"json(" << actual
+               << ")json\"\n/******/";
     }
-
-    auto result = ::testing::AssertionFailure();
-    result << "Expected:\n  R\"json(" << expected << ")json\"";
-    result << "\nActual:\n  R\"json(" << actual << ")json\"";
     return result;
-#else
-    auto result = ::testing::AssertionFailure();
-    result << "JSON is not enabled: wrap this test in 'if "
-              "(CELERITAS_USE_JSON)'";
-    return result;
-#endif
 }
 
 //---------------------------------------------------------------------------//
