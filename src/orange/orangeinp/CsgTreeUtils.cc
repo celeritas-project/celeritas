@@ -14,6 +14,7 @@
 
 #include "corecel/cont/Range.hh"
 
+#include "detail/InfixStringBuilder.hh"
 #include "detail/NodeReplacementInserter.hh"
 #include "detail/PostfixLogicBuilder.hh"
 
@@ -115,6 +116,20 @@ build_postfix(CsgTree const& tree, NodeId n)
 
     build_impl(n);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a node to an infix string expression.
+ */
+std::string build_infix_string(CsgTree const& tree, NodeId n)
+{
+    CELER_EXPECT(n < tree.size());
+    std::ostringstream os;
+    detail::InfixStringBuilder build_impl{tree, &os};
+
+    build_impl(n);
+    return os.str();
 }
 
 //---------------------------------------------------------------------------//

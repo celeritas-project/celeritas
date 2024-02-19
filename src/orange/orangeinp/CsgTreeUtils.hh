@@ -35,6 +35,9 @@ void simplify(CsgTree* tree, orangeinp::NodeId start);
 std::vector<LocalSurfaceId::size_type>
 build_postfix(CsgTree const& tree, orangeinp::NodeId n);
 
+// Transform a CSG node into a string expression
+std::string build_infix_string(CsgTree const& tree, orangeinp::NodeId n);
+
 // Get the set of unsimplified surfaces in a tree
 std::vector<LocalSurfaceId> calc_surfaces(CsgTree const& tree);
 
