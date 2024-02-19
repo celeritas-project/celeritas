@@ -707,11 +707,9 @@ TEST_F(SolidsTest, output)
     {
         auto out_str = simplify_pointers(to_string(out));
 
-        EXPECT_EQ(
+        EXPECT_JSON_EQ(
             R"json({"bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"supports_safety":true,"volumes":{"label":["b500","b100","union1","b100","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","trd3","trd3_refl","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","","trd3_refl"]}})json",
-            out_str)
-            << "\n/*** REPLACE ***/\nR\"json(" << out_str
-            << ")json\"\n/******/";
+            out_str);
     }
 }
 
@@ -1273,11 +1271,9 @@ TEST_F(SolidsGeantTest, output)
     {
         auto out_str = simplify_pointers(to_string(out));
 
-        EXPECT_EQ(
+        EXPECT_JSON_EQ(
             R"json({"bbox":[[-600.001,-300.001,-75.001],[600.001,300.001,75.001]],"supports_safety":true,"volumes":{"label":["box500@0x0","cone1@0x0","para1@0x0","sphere1@0x0","parabol1@0x0","trap1@0x0","trd1@0x0","trd2@0x0","trd3@0x0","trd3_refl@0x0","tube100@0x0","","","","","boolean1@0x0","polycone1@0x0","genPocone1@0x0","ellipsoid1@0x0","tetrah1@0x0","orb1@0x0","polyhedr1@0x0","hype1@0x0","elltube1@0x0","ellcone1@0x0","arb8b@0x0","arb8a@0x0","xtru1@0x0","World@0x0","","trd3@0x0_refl"]}})json",
-            out_str)
-            << "\n/*** REPLACE ***/\nR\"json(" << out_str
-            << ")json\"\n/******/";
+            out_str);
     }
 }
 

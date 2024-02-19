@@ -151,7 +151,7 @@ TEST_F(KernelContextExceptionTest, typical)
             ss << R"json({"dir":[0.0,0.0,1.0],"energy":[10.0,"MeV"],"event":1,"label":"test-kernel","num_steps":1,"particle":0,"pos":[0.0,1.0,5.0],"surface":11,"thread":)json"
                << e.thread().unchecked_get()
                << R"json(,"track":3,"track_slot":15,"volume":2})json";
-            EXPECT_EQ(ss.str(), get_json_str(e));
+            EXPECT_JSON_EQ(ss.str(), get_json_str(e));
         }
     };
     // Since tracks are initialized back to front, the thread ID must be toward
@@ -188,7 +188,7 @@ TEST_F(KernelContextExceptionTest, uninitialized_track)
             std::stringstream ss;
             ss << R"json({"label":"test-kernel","thread":)json"
                << e.thread().unchecked_get() << R"json(,"track_slot":1})json";
-            EXPECT_EQ(ss.str(), get_json_str(e));
+            EXPECT_JSON_EQ(ss.str(), get_json_str(e));
         }
     };
 
@@ -217,7 +217,8 @@ TEST_F(KernelContextExceptionTest, bad_thread)
         EXPECT_EQ(TrackSlotId{}, e.track_slot());
         if (CELERITAS_USE_JSON)
         {
-            EXPECT_EQ(R"json({"label":"dumb-kernel"})json", get_json_str(e));
+            EXPECT_JSON_EQ(R"json({"label":"dumb-kernel"})json",
+                           get_json_str(e));
         }
     };
     CELER_TRY_HANDLE_CONTEXT(
