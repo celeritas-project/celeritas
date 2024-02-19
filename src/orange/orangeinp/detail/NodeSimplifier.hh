@@ -16,6 +16,8 @@ namespace celeritas
 {
 namespace orangeinp
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * Simplify a node by visiting up to one level below.
@@ -58,5 +60,6 @@ class NodeSimplifier
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace orangeinp
 }  // namespace celeritas
