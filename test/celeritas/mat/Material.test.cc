@@ -307,7 +307,7 @@ TEST_F(MaterialTest, isotope_view)
     EXPECT_VEC_SOFT_EQ(expected_nuclear_masses, nuclear_masses);
 }
 
-TEST_F(MaterialTest, TEST_IF_CELERITAS_DOUBLE(output))
+TEST_F(MaterialTest, output)
 {
     MaterialParamsOutput out(params);
     EXPECT_EQ("material", out.label());

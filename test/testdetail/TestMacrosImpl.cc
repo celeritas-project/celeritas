@@ -74,7 +74,14 @@ trunc_string(unsigned int digits, char const* str, char const* trunc)
                                     std::string_view actual)
 {
     JsonComparer compare{};
-    return compare(expected, actual);
+    auto result = compare(expected, actual);
+    if (!result)
+    {
+        // Print actual result for copy-pasting into "expected" expression
+        result << "\n/*** ACTUAL ***/\nR\"json(" << actual
+               << ")json\"\n/******/";
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
