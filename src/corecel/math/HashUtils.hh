@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/math/HashUtils.hh
-// TODO: rename to Hasher.hh
+// TODO for v1.0: rename to Hasher.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -33,8 +33,8 @@ using Hasher = detail::FnvHasher<std::size_t>;
  * is \c true, because e.g. structs have padding so this may result in reading
  * uninitialized data or giving two equal structs different hashes.
  */
-template<class T>
-std::size_t hash_as_bytes(Span<T const> s)
+template<class T, std::size_t N>
+std::size_t hash_as_bytes(Span<T const, N> s)
 {
     std::size_t result{};
     Hasher hash{&result};

@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <algorithm>
+
 #include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
@@ -74,6 +76,25 @@ class Translation
     Real3 tra_;
 };
 
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+//!@{
+//! Host-only comparators
+inline bool operator==(Translation const& a, Translation const& b)
+{
+    auto a_data = a.data();
+    return std::equal(a_data.begin(), a_data.end(), b.data().begin());
+}
+
+inline bool operator!=(Translation const& a, Translation const& b)
+{
+    return !(a == b);
+}
+//!@}
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Construct inline from storage.

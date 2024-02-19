@@ -58,6 +58,7 @@ celeritas_add_test(orangeinp/CsgTreeUtils.test.cc)
 celeritas_add_test(orangeinp/detail/BoundingZone.test.cc)
 celeritas_add_test(orangeinp/detail/CsgUnitBuilder.test.cc)
 celeritas_add_test(orangeinp/detail/LocalSurfaceInserter.test.cc)
+celeritas_add_test(orangeinp/detail/TransformInserter.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Transforms
