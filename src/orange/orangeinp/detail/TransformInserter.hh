@@ -43,6 +43,7 @@ class TransformInserter
 
   private:
     //// TYPES ////
+
     struct HashTransform
     {
         VecTransform* storage{nullptr};
@@ -58,6 +59,8 @@ class TransformInserter
 
     VecTransform* transform_;
     std::unordered_set<TransformId, HashTransform, EqualTransform> cache_;
+
+    //// HELPER FUNCTIONS ////
 
     //! Get the ID of the next transform to be inserted
     TransformId size_id() const { return TransformId(transform_->size()); }
