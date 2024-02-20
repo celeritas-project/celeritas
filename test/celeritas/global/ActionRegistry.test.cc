@@ -130,11 +130,9 @@ TEST_F(ActionRegistryTest, output)
 
     if (CELERITAS_USE_JSON)
     {
-        EXPECT_EQ(
+        EXPECT_JSON_EQ(
             R"json({"description":["","explicit action test","the second implicit action"],"label":["impl1","explicit","impl2"]})json",
-            to_string(out))
-            << "\n/*** REPLACE ***/\nR\"json(" << to_string(out)
-            << ")json\"\n/******/";
+            to_string(out));
     }
 }
 

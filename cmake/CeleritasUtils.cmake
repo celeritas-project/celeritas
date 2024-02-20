@@ -61,6 +61,21 @@ CMake configuration utility functions for Celeritas.
   the ``Celeritas::`` aliases, and is generated into the ``lib/`` build
   directory.
 
+.. command:: celeritas_install
+
+  Install library that correctly deal with CUDA relocatable device code.
+
+.. command:: celeritas_set_target_properties
+
+  Install library that correctly deal with CUDA relocatable device code extra
+  libraries.
+
+.. command:: celeritas_add_library
+
+  Add a library that correctly links against CUDA relocatable device code, has
+  the ``Celeritas::`` aliases, and is generated into the ``lib/`` build
+  directory.
+
 .. command:: celeritas_add_object_library
 
   Add an OBJECT library to reduce dependencies (e.g. includes) from other libraries.
@@ -78,6 +93,58 @@ CMake configuration utility functions for Celeritas.
 
   The ``<source>`` arguments are passed to CMake's builtin ``add_executable``
   command.
+
+  .. command:: celeritas_target_link_libraries
+
+  Specify libraries or flags to use when linking a given target and/or its dependents, taking
+  in account the extra targets (see celeritas_rdc_add_library) needed to support CUDA relocatable
+  device code.
+
+    ::
+
+      celeritas_target_link_libraries(<target>
+        <PRIVATE|PUBLIC|INTERFACE> <item>...
+        [<PRIVATE|PUBLIC|INTERFACE> <item>...]...))
+
+  Usage requirements from linked library targets will be propagated to all four targets. Usage requirements
+  of a target's dependencies affect compilation of its own sources. In the case that ``<target>`` does
+  not contain CUDA code, the command decays to ``target_link_libraries``.
+
+  See ``target_link_libraries`` for additional detail.
+
+
+.. command:: celeritas_target_include_directories
+
+  Add include directories to a target.
+
+    ::
+
+      celeritas_target_include_directories(<target> [SYSTEM] [AFTER|BEFORE]
+        <INTERFACE|PUBLIC|PRIVATE> [items1...]
+        [<INTERFACE|PUBLIC|PRIVATE> [items2...] ...])
+
+  Specifies include directories to use when compiling a given target. The named <target>
+  must have been created by a command such as celeritas_rdc_add_library(), add_executable() or add_library(),
+  and can be used with an ALIAS target. It is aware of the 4 underlying targets (objects, static,
+  middle, final) present when the input target was created celeritas_rdc_add_library() and will propagate
+  the include directories to all four. In the case that ``<target>`` does not contain CUDA code,
+  the command decays to ``target_include_directories``.
+
+  See ``target_include_directories`` for additional detail.
+
+.. command:: celeritas_target_compile_options
+
+   Specify compile options for a CUDA RDC target
+
+     ::
+       celeritas_target_compile_options(<target> [BEFORE]
+         <INTERFACE|PUBLIC|PRIVATE> [items1...]
+         [<INTERFACE|PUBLIC|PRIVATE> [items2...] ...])
+
+  In the case that an input target does not contain CUDA code, the command decays
+  to ``target_compile_options``.
+
+  See ``target_compile_options`` for additional detail.
 
 .. command:: celeritas_configure_file
 
@@ -135,18 +202,33 @@ CMake configuration utility functions for Celeritas.
 
 .. command:: celeritas_version_to_hex
 
-  Convert a version number to a C-formatted hexadecimal string.
+  Convert a version number to a C-formatted hexadecimal string::
 
     celeritas_version_to_hex(<var> <version_prefix>)
 
-    The code will set a version to zero if ``<version_prefix>_VERSION`` is not
-    found. If ``<version_prefix>_MAJOR`` is defined it will use that; otherwise
-    it will try to split the version into major/minor/patch.
+  The code will set a version to zero if ``<version_prefix>_VERSION`` is not
+  found. If ``<version_prefix>_MAJOR`` is defined it will use that; otherwise
+  it will try to split the version into major/minor/patch.
+
+.. command:: celeritas_get_geant_libs
+
+  Construct a list of Geant4 libraries for linking by adding a ``Geant4::G4``
+  prefix and the necessary suffix::
+
+    celeritas_get_g4libs(<var> [<lib> ...])
+
+  Example::
+
+    celeritas_get_g4libs(_g4libs geometry persistency)
+    target_link_library(foo ${_g4libs})
+
+  If Geant4 is unavailable, the result will be empty.
 
 #]=======================================================================]
 include_guard(GLOBAL)
 
 include(CheckLanguage)
+include(CudaRdcUtils)
 
 set(CELERITAS_DEFAULT_VARIABLES)
 
@@ -266,44 +348,110 @@ endfunction()
 #-----------------------------------------------------------------------------#
 
 function(celeritas_add_library target)
-  celeritas_rdc_add_library(${target} ${ARGN})
-
-  # Add Celeritas:: namespace alias
-  add_library(Celeritas::${target} ALIAS ${target})
-
-  set(_targets ${target})
-  get_target_property(_tgt ${target} CELERITAS_CUDA_FINAL_LIBRARY)
-  if(_tgt)
-    celeritas_strip_alias(_tgt ${_tgt})
-    # Building with CUDA RDC support: add final library
-    list(APPEND _targets ${_tgt})
-    get_target_property(_tgt ${target} CELERITAS_CUDA_STATIC_LIBRARY)
-    celeritas_strip_alias(_tgt ${_tgt})
-    if(NOT _tgt STREQUAL target)
-      # Shared and static library have different names
-      list(APPEND _targets ${_tgt})
-    endif()
-    get_target_property(_tgt ${target} CELERITAS_CUDA_OBJECT_LIBRARY)
-    if(_tgt)
-      celeritas_strip_alias(_tgt ${_tgt})
-      set_target_properties(${_tgt} PROPERTIES POSITION_INDEPENDENT_CODE ON)
-    endif()
+  cuda_rdc_get_sources_and_options(_sources _cmake_options _options ${ARGN})
+  cuda_rdc_sources_contains_cuda(_cuda_sources ${_sources})
+  if(CELERITAS_USE_HIP AND _cuda_sources)
+    # When building Celeritas libraries, we put HIP/CUDA files in shared .cu
+    # suffixed files. Override the language if using HIP.
+    set_source_files_properties(
+      ${_cuda_sources}
+      PROPERTIES LANGUAGE HIP
+    )
   endif()
 
+  celeritas_cuda_rdc_wrapper_add_library(${target} ${ARGN})
+
+  # Add Celeritas:: namespace alias
+  celeritas_cuda_rdc_wrapper_add_library(Celeritas::${target} ALIAS ${target})
+
   # Build all targets in lib/
-  set_target_properties(${_targets} PROPERTIES
+  celeritas_set_target_properties(${target} PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
     LIBRARY_OUTPUT_DIRECTORY "${CELERITAS_LIBRARY_OUTPUT_DIRECTORY}"
   )
 
+  # We could hide this behind `if (CELERITAS_USE_ROOT)`
+  get_target_property(_tgt ${target} CUDA_RDC_OBJECT_LIBRARY)
+  if(_tgt)
+    set_target_properties(${_tgt} PROPERTIES
+      POSITION_INDEPENDENT_CODE ON
+    )
+  endif()
+
   # Install all targets to lib/
-  install(TARGETS ${_targets}
+  celeritas_install(TARGETS ${target}
     EXPORT celeritas-targets
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     COMPONENT runtime
   )
 endfunction()
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_cuda_rdc_wrapper_add_library)
+  if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_CUDA)
+    add_library(${ARGV})
+  else()
+    cuda_rdc_add_library(${ARGV})
+  endif()
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_set_target_properties)
+  if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_CUDA)
+    set_target_properties(${ARGV})
+  else()
+    cuda_rdc_set_target_properties(${ARGV})
+  endif()
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_install)
+  if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_CUDA)
+    install(${ARGV})
+  else()
+    cuda_rdc_install(${ARGV})
+  endif()
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_target_link_libraries)
+  if(NOT CELERITAS_USE_VecGeom)
+    target_link_libraries(${ARGV})
+  else()
+    cuda_rdc_target_link_libraries(${ARGV})
+  endif()
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_target_include_directories)
+  if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_CUDA)
+    target_include_directories(${ARGV})
+  else()
+    cuda_rdc_target_include_directories(${ARGV})
+  endif()
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_target_compile_options)
+  if(NOT CELERITAS_USE_VecGeom OR NOT CELERITAS_USE_CUDA)
+    target_compile_options(${ARGV})
+  else()
+    cuda_rdc_target_compile_options(${ARGV})
+  endif()
+endfunction()
+
+#-----------------------------------------------------------------------------#
+
+macro(celeritas_sources_contains_cuda)
+  cuda_rdc_sources_contains_cuda(${ARGV})
+endmacro()
 
 #-----------------------------------------------------------------------------#
 # Add an object library to limit the propagation of includes to the rest of the
@@ -464,6 +612,48 @@ function(celeritas_version_to_hex var version)
   )
   string(SUBSTRING "${_temp_version}" 3 -1 _temp_version)
   set(${var} "0x${_temp_version}" PARENT_SCOPE)
+endfunction()
+
+
+#-----------------------------------------------------------------------------#
+
+function(celeritas_get_g4libs var)
+  set(_result)
+  if(NOT CELERITAS_USE_Geant4)
+    # No Geant4, no libs
+  elseif(Geant4_VERSION VERSION_LESS 10.6)
+    # Old Geant4 doesn't have granularity
+    set(_result ${Geant4_LIBRARIES})
+  else()
+    # Determine the default library extension
+    if(TARGET Geant4::G4global-static)
+      set(_g4_static TRUE)
+    else()
+      set(_g4_static FALSE)
+    endif()
+    if(TARGET Geant4::G4global)
+      set(_g4_shared TRUE)
+    else()
+      set(_g4_shared FALSE)
+    endif()
+    if(NOT _g4_static OR (BUILD_SHARED_LIBS AND _g4_shared))
+      # Use shared if static is unavailable, or if shared is available and we're
+      # building shared
+      set(_ext "")
+    else()
+      set(_ext "-static")
+    endif()
+
+    foreach(_lib IN LISTS ARGN)
+      set(_lib Geant4::G4${_lib}${_ext})
+      if(NOT TARGET "${_lib}")
+        message(AUTHOR_WARNING "No Geant4 library '${_lib}' exists")
+      else()
+        list(APPEND _result "${_lib}")
+      endif()
+    endforeach()
+  endif()
+  set(${var} "${_result}" PARENT_SCOPE)
 endfunction()
 
 #-----------------------------------------------------------------------------#

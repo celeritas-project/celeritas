@@ -32,6 +32,7 @@ enum class ImportUnits
     len_sq,  //!< Microscopic cross section [len^2]
     time,  //!< Time [time]
     inv_len_cb,  //!< Number density [1/len^3]
+    len_time_sq_per_mass,  //!< Inverse pressure [len-time^2/mass]
     size_,
     // Deprecated aliases
     none = unitless,  //!< Deprecated

@@ -15,6 +15,7 @@ struct ImportData;
 struct ImportElement;
 struct ImportEmParameters;
 struct ImportMaterial;
+struct ImportOpticalMaterial;
 struct ImportModel;
 struct ImportModelMaterial;
 struct ImportMscModel;
@@ -40,6 +41,7 @@ class ImportDataConverter
     void operator()(ImportElement* data);
     void operator()(ImportEmParameters* data);
     void operator()(ImportMaterial* data);
+    void operator()(ImportOpticalMaterial* data);
     void operator()(ImportModel* data);
     void operator()(ImportModelMaterial* data);
     void operator()(ImportMscModel* data);
@@ -54,6 +56,7 @@ class ImportDataConverter
     double numdens_;
     double time_;
     double xs_;
+    double inv_pressure_;
 };
 
 //---------------------------------------------------------------------------//

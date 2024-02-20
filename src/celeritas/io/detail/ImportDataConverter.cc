@@ -27,6 +27,7 @@ ImportDataConverter::ImportDataConverter(UnitSystem usys) : usys_{usys}
     numdens_ = native_value_from(usys_, ImportUnits::inv_len_cb);
     time_ = native_value_from(usys_, ImportUnits::time);
     xs_ = native_value_from(usys_, ImportModelMaterial::xs_units);
+    inv_pressure_ = native_value_from(usys_, ImportUnits::len_time_sq_per_mass);
 }
 
 //---------------------------------------------------------------------------//
@@ -35,6 +36,11 @@ void ImportDataConverter::operator()(ImportData* data)
     for (auto& m : data->materials)
     {
         (*this)(&m);
+    }
+
+    for (auto& m : data->optical)
+    {
+        (*this)(&m.second);
     }
 
     for (auto& p : data->processes)
@@ -75,6 +81,29 @@ void ImportDataConverter::operator()(ImportMaterial* data)
     for (auto& [pdg, cut] : data->pdg_cutoffs)
     {
         cut.range *= len_;
+    }
+}
+
+//---------------------------------------------------------------------------//
+void ImportDataConverter::operator()(ImportOpticalMaterial* data)
+{
+    CELER_EXPECT(data);
+
+    for (auto& comp : data->scintillation.components)
+    {
+        comp.lambda_mean *= len_;
+        comp.lambda_sigma *= len_;
+        comp.rise_time *= time_;
+        comp.fall_time *= time_;
+    }
+    for (auto& mfp : data->rayleigh.mfp.y)
+    {
+        mfp *= len_;
+    }
+    data->rayleigh.compressibility *= inv_pressure_;
+    for (auto& abs_len : data->absorption.absorption_length.y)
+    {
+        abs_len *= len_;
     }
 }
 
