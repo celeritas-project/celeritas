@@ -279,7 +279,8 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
     IsotropicDistribution<> sample_isotropic;
     for (auto i : range(num_tracks))
     {
-        auto lsa = LevelStateAccessor(&result_ref, TrackSlotId{i}, LevelId{0});
+        auto lsa = detail::LevelStateAccessor(
+            &result_ref, TrackSlotId{i}, LevelId{0});
         lsa.pos() = sample_box(rng);
         lsa.dir() = sample_isotropic(rng);
     }
@@ -310,7 +311,7 @@ auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostRef const& host,
     {
         auto tid = TrackSlotId{i};
         // TODO Update for multiple universes
-        LevelStateAccessor lsa(&host, tid, LevelId{0});
+        detail::LevelStateAccessor lsa(&host, tid, LevelId{0});
         auto vol = lsa.vol();
 
         if (vol < counts.size())

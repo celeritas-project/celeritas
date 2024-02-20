@@ -16,6 +16,8 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the maximum number of levels deep in a geometry.
@@ -51,4 +53,5 @@ class DepthCalculator
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas
