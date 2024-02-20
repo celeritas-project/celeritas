@@ -225,7 +225,7 @@ TEST_F(CoulombScatteringTest, wokvi_transport_xs)
         this->particle_track().particle_id());
 
     std::vector<real_type> xs;
-    for (real_type energy : {50, 100, 200, 1000, 13000})
+    for (real_type energy : {100, 200, 1000, 100000, 1000000})
     {
         this->set_inc_particle(pdg::electron(), MevEnergy{energy});
         auto const& particle = this->particle_track();
@@ -239,14 +239,7 @@ TEST_F(CoulombScatteringTest, wokvi_transport_xs)
             xs.push_back(calc_transport_xs(costheta_max) / units::barn);
         }
     }
-    static double const expected_xs[] = {0.71392734761369,
-                                         0.71230767959567,
-                                         0.70562884270985,
-                                         0.686593114859,
-                                         0.66218877689937,
-                                         0.52908150451115,
-                                         0,
-                                         0.19516611768754,
+    static double const expected_xs[] = {0.19516611768754,
                                          0.19475734301371,
                                          0.19307107844035,
                                          0.18826457727067,
@@ -267,12 +260,19 @@ TEST_F(CoulombScatteringTest, wokvi_transport_xs)
                                          0.0023404433473951,
                                          0.0020012556180187,
                                          0,
-                                         1.7967411080681e-05,
-                                         1.7942982771743e-05,
-                                         1.7842198780488e-05,
-                                         1.75549179749e-05,
-                                         1.7186602916614e-05,
-                                         1.5177682220057e-05,
+                                         3.4837670176241e-07,
+                                         3.4796383511025e-07,
+                                         3.4626046917181e-07,
+                                         3.4140509151026e-07,
+                                         3.3518014131324e-07,
+                                         3.0122705954759e-07,
+                                         0,
+                                         3.988372624941e-09,
+                                         3.9842439204449e-09,
+                                         3.9672101043866e-09,
+                                         3.9186558811768e-09,
+                                         3.8564058066393e-09,
+                                         3.516871865997e-09,
                                          0};
     EXPECT_VEC_SOFT_EQ(expected_xs, xs);
 }

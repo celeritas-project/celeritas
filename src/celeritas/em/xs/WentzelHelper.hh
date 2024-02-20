@@ -22,6 +22,9 @@ namespace celeritas
  * This calculates the Moliere screening coefficient, the maximum scattering
  * angle off of electrons, and the ratio of the electron to total Wentzel cross
  * sections.
+ *
+ * References:
+ * [PRM] Geant4 Physics Reference Manual (Release 11.1) section 8.5.
  */
 class WentzelHelper
 {
@@ -150,14 +153,22 @@ CELER_FUNCTION real_type WentzelHelper::calc_screening_coefficient(
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the screening R^2 coefficient for incident electrons.
+ * Calculate the constant factor of the screening coefficient.
  *
- * This is the constant prefactor of [PRM] eqn 8.51.
+ * This is the constant prefactor \f$ R^2 / Z^{2/3} \f$ of the screening
+ * coefficient for incident electrons (equation 8.51 in [PRM]). The screening
+ * radius \f$ R \f$ is given by:
+ * \f[
+   R = \frac{\hbar Z^{1/3}}{2C_{TF} a_0},
+ * \f]
+ * where the Thomas-Fermi constant \f$ C_{TF} \f$ is defined as
+ * \f[
+   C_{TF} = \frac{1}{2} \left(\frac{3\pi}{4}\right)^{2/3}.
+ * \f]
  */
 CELER_CONSTEXPR_FUNCTION real_type WentzelHelper::screen_r_sq_elec() const
 {
-    //! Thomas-Fermi constant C_TF
-    //! \f$ \frac{1}{2}\left(\frac{3\pi}{4}\right)^{2/3} \f$
+    //! Thomas-Fermi constant \f$ C_{TF} \f$
     constexpr real_type ctf = 0.8853413770001135;
 
     return native_value_to<MomentumSq>(

@@ -21,7 +21,7 @@ namespace celeritas
 /*!
  * Calculate the transport cross section for the Wentzel OK and VI model.
  *
- * \note This performs the same calculation as Geant4's
+ * \note This performs the same calculation as the Geant4 method
  * G4WentzelOKandVIxSection::ComputeTransportCrossSectionPerAtom.
  */
 class WentzelTransportXsCalculator
@@ -50,7 +50,7 @@ class WentzelTransportXsCalculator
     AtomicNumber z_;
     real_type screening_coeff_;
     real_type costheta_max_elec_;
-    real_type spin_betasq_;
+    real_type beta_sq_;
     real_type xs_factor_;
 
     //// HELPER FUNCTIONS ////
@@ -82,7 +82,7 @@ WentzelTransportXsCalculator::WentzelTransportXsCalculator(
     : z_(helper.atomic_number())
     , screening_coeff_(helper.screening_coefficient())
     , costheta_max_elec_(helper.costheta_max_electron())
-    , spin_betasq_(real_type(0.5) * particle.beta_sq())
+    , beta_sq_(particle.beta_sq())
     , xs_factor_(this->calc_xs_factor(particle))
 {
 }
@@ -140,13 +140,14 @@ CELER_FUNCTION real_type WentzelTransportXsCalculator::calc_xs_contribution(
     real_type costheta_max) const
 {
     real_type result;
+    real_type const spin = real_type(0.5);
     real_type x = (1 - costheta_max) / screening_coeff_;
     if (x < WentzelTransportXsCalculator::limit())
     {
         real_type x_sq = ipow<2>(x);
         result = real_type(0.5) * x_sq
                  * ((1 - real_type(4) / 3 * x + real_type(1.5) * x_sq)
-                    - screening_coeff_ * spin_betasq_ * x
+                    - screening_coeff_ * spin * beta_sq_ * x
                           * (real_type(2) / 3 - x));
     }
     else
@@ -154,7 +155,7 @@ CELER_FUNCTION real_type WentzelTransportXsCalculator::calc_xs_contribution(
         real_type x_1 = x / (1 + x);
         real_type log_x = std::log(1 + x);
         result = log_x - x_1
-                 - screening_coeff_ * spin_betasq_ * (x + x_1 - 2 * log_x);
+                 - screening_coeff_ * spin * beta_sq_ * (x + x_1 - 2 * log_x);
     }
     return clamp_to_nonneg(result);
 }
