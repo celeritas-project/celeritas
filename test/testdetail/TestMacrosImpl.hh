@@ -199,8 +199,7 @@ struct TCT
     using common_type =
         typename std::common_type<first_type, second_type>::type;
 
-    using Failed_Value_t = FailedValue<first_type, second_type>;
-    using Failed_Vec_t = std::vector<Failed_Value_t>;
+    using VecFailedValue = std::vector<FailedValue<first_type, second_type>>;
 };
 
 // Failed value iterator traits
@@ -457,7 +456,7 @@ template<class ContainerE, class ContainerA>
 {
     using Traits_t = TCT<ContainerE, ContainerA>;
 
-    typename Traits_t::Failed_Vec_t failures;
+    typename Traits_t::VecFailedValue failures;
 
     ::testing::AssertionResult result
         = IsRangeEqImpl(std::begin(expected),
@@ -500,7 +499,7 @@ template<class ContainerE, class ContainerA>
     using value_type_E = typename Traits_t::first_type;
     using value_type_A = typename Traits_t::second_type;
 
-    typename Traits_t::Failed_Vec_t failures;
+    typename Traits_t::VecFailedValue failures;
 
     static_assert(can_soft_equiv<value_type_E, value_type_A>(),
                   "Invalid types for soft equivalence");

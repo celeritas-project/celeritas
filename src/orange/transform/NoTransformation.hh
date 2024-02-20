@@ -68,4 +68,22 @@ class NoTransformation
 };
 
 //---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+//!@{
+//! Host-only comparators
+inline constexpr bool
+operator==(NoTransformation const&, NoTransformation const&)
+{
+    return true;
+}
+
+inline constexpr bool
+operator!=(NoTransformation const&, NoTransformation const&)
+{
+    return false;
+}
+//!@}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -136,10 +136,6 @@ TEST_F(PhysicsParamsTest, output)
     PhysicsParamsOutput out(this->physics());
     EXPECT_EQ("physics", out.label());
 
-    if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
-    {
-        GTEST_SKIP() << "Test results are based on double-precision data";
-    }
     if (CELERITAS_UNITS != CELERITAS_UNITS_CGS)
     {
         GTEST_SKIP() << "Test results are based on CGS units";
