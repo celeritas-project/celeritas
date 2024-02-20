@@ -149,7 +149,10 @@ TEST_F(ConeTest, upward)
     static char const* const expected_surfaces[]
         = {"Plane: z=-0.5", "Plane: z=0.5", "Cone z: t=1.5 at {0,0,0.5}"};
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-0.53033008588991, -0.53033008588991, -0.5}),
+                       result.interior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{0.53033008588991, 0.53033008588991, 0}),
+                       result.interior.upper());
     EXPECT_VEC_SOFT_EQ((Real3{-1.5, -1.5, -0.5}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{1.5, 1.5, 0.5}), result.exterior.upper());
 }
@@ -163,9 +166,46 @@ TEST_F(ConeTest, downward)
     static char const* const expected_surfaces[] = {
         "Plane: z=-0.65", "Plane: z=0.65", "Cone z: t=0.923077 at {0,0,-0.65}"};
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-0.42426406871193, -0.42426406871193, 0}),
+                       result.interior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{0.42426406871193, 0.42426406871193, 0.65}),
+                       result.interior.upper());
     EXPECT_VEC_SOFT_EQ((Real3{-1.2, -1.2, -0.65}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{1.2, 1.2, 0.65}), result.exterior.upper());
+}
+
+TEST_F(ConeTest, truncated)
+{
+    auto result = this->test(Cone({0.5, 1.5}, 0.5));
+
+    static char const expected_node[] = "all(+0, -1, -2)";
+    EXPECT_EQ(expected_node, result.node);
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-0.5", "Plane: z=0.5", "Cone z: t=1 at {0,0,-1}"};
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_VEC_SOFT_EQ((Real3{-0.53033008588991, -0.53033008588991, -0.25}),
+                       result.interior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{0.53033008588991, 0.53033008588991, 0.5}),
+                       result.interior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-1.5, -1.5, -0.5}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1.5, 1.5, 0.5}), result.exterior.upper());
+}
+
+TEST_F(ConeTest, almost_cyl)
+{
+    auto result = this->test(Cone({0.55, 0.45}, 10.0));
+
+    static char const expected_node[] = "all(+0, -1, -2)";
+    EXPECT_EQ(expected_node, result.node);
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-10", "Plane: z=10", "Cone z: t=0.005 at {0,0,100}"};
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_VEC_SOFT_EQ((Real3{-0.31819805153395, -0.31819805153395, -10}),
+                       result.interior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{0.31819805153395, 0.31819805153395, 10}),
+                       result.interior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-0.55, -0.55, -10}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{0.55, 0.55, 10}), result.exterior.upper());
 }
 
 //---------------------------------------------------------------------------//
@@ -215,7 +255,12 @@ TEST_F(EllipsoidTest, standard)
     static char const* const expected_surfaces[]
         = {"SQuadric: {4,9,36} {0,0,0} -36"};
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ(
+        (Real3{-1.7320508075688776, -1.1547005383792517, -0.57735026918962584}),
+        result.interior.lower());
+    EXPECT_VEC_SOFT_EQ(
+        (Real3{1.7320508075688776, 1.1547005383792517, 0.57735026918962584}),
+        result.interior.upper());
     EXPECT_VEC_SOFT_EQ((Real3{-3, -2, -1}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{3, 2, 1}), result.exterior.upper());
 }

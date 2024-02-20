@@ -31,7 +31,7 @@ namespace
 /*!
  * Create a z-aligned bounding box infinite along z and symmetric in r.
  */
-BBox make_radial_bbox(real_type r)
+BBox make_xyradial_bbox(real_type r)
 {
     CELER_EXPECT(r > 0);
     constexpr auto inf = numeric_limits<real_type>::infinity();
@@ -95,6 +95,8 @@ Cone::Cone(Real2 const& radii, real_type halfheight)
 //---------------------------------------------------------------------------//
 /*!
  * Build surfaces.
+ *
+ * The inner bounding box of a cone
  */
 void Cone::build(ConvexSurfaceBuilder& insert_surface) const
 {
@@ -111,7 +113,7 @@ void Cone::build(ConvexSurfaceBuilder& insert_surface) const
 
     // Calculate vanishing point (origin)
     real_type vanish_z = 0;
-    if (hi < lo)
+    if (lo > hi)
     {
         // Cone opens downward (base is on bottom)
         vanish_z = -hh_ + lo / tangent;
@@ -125,11 +127,42 @@ void Cone::build(ConvexSurfaceBuilder& insert_surface) const
     }
 
     // Build the cone surface along the given axis
-    insert_surface(ConeZ{Real3{0, 0, vanish_z}, tangent});
+    ConeZ cone{Real3{0, 0, vanish_z}, tangent};
+    insert_surface(cone);
 
     // Set radial extents of exterior bbox
-    insert_surface(Sense::inside, make_radial_bbox(std::fmax(lo, hi)));
-    // TODO: set radial extents of interior bbox
+    insert_surface(Sense::inside, make_xyradial_bbox(std::fmax(lo, hi)));
+
+    // Calculating the interior bounding box:
+    // - Represent a radial slice of the cone as a right triangle with base b
+    //   (aka the higher radius) and height h (translated vanishing point)
+    // - An interior bounding box (along the xy diagonal cut!) will satisfy
+    //   r = b - tangent * z
+    // - Maximizing the area of that box gives r = b / 2, i.e. z = h / 2
+    // - Truncate z so that it's not outside of the half-height
+    // - project that radial slice onto the xz plane by multiplying 1/sqrt(2)
+    real_type const b = std::fmax(lo, hi);
+    real_type const h = b / tangent;
+    real_type const z = std::fmin(h / 2, 2 * hh_);
+    real_type const r = b - tangent * z;
+
+    // Now convert from "triangle above z=0" to "cone centered on z=0"
+    auto const [zmin, zmax] = [&]() -> std::pair<real_type, real_type> {
+        if (lo > hi)
+            return {-hh_, -hh_ + z};  // Base is on bottom
+        else
+            return {hh_ - z, hh_};  // Base is on top
+    }();
+    CELER_ASSERT(zmin < zmax);
+    real_type const rbox = (constants::sqrt_two / 2) * r;
+    BBox const interior_bbox{{-rbox, -rbox, zmin}, {rbox, rbox, zmax}};
+
+    // Check that the corners are actually inside the cone
+    CELER_ASSERT(cone.calc_sense(interior_bbox.lower() * real_type(1 - 1e-5))
+                 == SignedSense::inside);
+    CELER_ASSERT(cone.calc_sense(interior_bbox.upper() * real_type(1 - 1e-5))
+                 == SignedSense::inside);
+    insert_surface(Sense::outside, interior_bbox);
 }
 
 //---------------------------------------------------------------------------//
@@ -204,7 +237,14 @@ void Ellipsoid::build(ConvexSurfaceBuilder& insert_surface) const
 
     // Set exterior bbox
     insert_surface(Sense::inside, BBox{-radii_, radii_});
-    // TODO: set radial extents of interior bbox
+
+    // Set an interior bbox with maximum volume: a scaled inscribed cube
+    Real3 inner_radii = radii_;
+    for (real_type& r : inner_radii)
+    {
+        r *= 1 / constants::sqrt_three;
+    }
+    insert_surface(Sense::outside, BBox{-inner_radii, inner_radii});
 }
 
 //---------------------------------------------------------------------------//
@@ -269,9 +309,9 @@ void Prism::build(ConvexSurfaceBuilder& insert_surface) const
 
     // Apothem is interior, circumradius exterior
     insert_surface(Sense::inside,
-                   make_radial_bbox(apothem_ / std::cos(pi / num_sides_)));
+                   make_xyradial_bbox(apothem_ / std::cos(pi / num_sides_)));
 
-    auto interior_bbox = make_radial_bbox(apothem_);
+    auto interior_bbox = make_xyradial_bbox(apothem_);
     interior_bbox.shrink(Bound::lo, Axis::z, -hh_);
     interior_bbox.shrink(Bound::hi, Axis::z, hh_);
     insert_surface(Sense::outside, interior_bbox);
