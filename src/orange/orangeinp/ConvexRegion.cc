@@ -11,6 +11,7 @@
 
 #include "corecel/Constants.hh"
 #include "corecel/cont/Range.hh"
+#include "geocel/BoundingBox.hh"
 #include "geocel/Types.hh"
 #include "orange/surf/ConeAligned.hh"
 #include "orange/surf/CylCentered.hh"
@@ -24,6 +25,22 @@ namespace celeritas
 {
 namespace orangeinp
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Create a z-aligned bounding box infinite along z and symmetric in r.
+ */
+BBox make_radial_bbox(real_type r)
+{
+    CELER_EXPECT(r > 0);
+    constexpr auto inf = numeric_limits<real_type>::infinity();
+    return BBox::from_unchecked({-r, -r, -inf}, {r, r, inf});
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 // BOX
 //---------------------------------------------------------------------------//
@@ -109,6 +126,10 @@ void Cone::build(ConvexSurfaceBuilder& insert_surface) const
 
     // Build the cone surface along the given axis
     insert_surface(ConeZ{Real3{0, 0, vanish_z}, tangent});
+
+    // Set radial extents of exterior bbox
+    insert_surface(Sense::inside, make_radial_bbox(std::fmax(lo, hi)));
+    // TODO: set radial extents of interior bbox
 }
 
 //---------------------------------------------------------------------------//
@@ -181,7 +202,9 @@ void Ellipsoid::build(ConvexSurfaceBuilder& insert_surface) const
 
     insert_surface(SimpleQuadric{abc, Real3{0, 0, 0}, g});
 
-    // TODO: update bbox based on outer shape radius
+    // Set exterior bbox
+    insert_surface(Sense::inside, BBox{-radii_, radii_});
+    // TODO: set radial extents of interior bbox
 }
 
 //---------------------------------------------------------------------------//
@@ -244,8 +267,14 @@ void Prism::build(ConvexSurfaceBuilder& insert_surface) const
         insert_surface(Plane{normal, apothem_});
     }
 
-    // TODO: clip bbox by apothem (interior) and circumradius (exterior)
-    // real_type circumradius = apothem_ / std::cos(pi / num_sides_);
+    // Apothem is interior, circumradius exterior
+    insert_surface(Sense::inside,
+                   make_radial_bbox(apothem_ / std::cos(pi / num_sides_)));
+
+    auto interior_bbox = make_radial_bbox(apothem_);
+    interior_bbox.shrink(Bound::lo, Axis::z, -hh_);
+    interior_bbox.shrink(Bound::hi, Axis::z, hh_);
+    insert_surface(Sense::outside, interior_bbox);
 }
 
 //---------------------------------------------------------------------------//

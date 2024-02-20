@@ -9,6 +9,7 @@
 
 #include <vector>
 
+#include "geocel/BoundingBox.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/surf/VariantSurface.hh"
 
@@ -44,16 +45,16 @@ struct ConvexSurfaceState;
 class ConvexSurfaceBuilder
 {
   public:
-    //! Add a surface with negative quadric value being "inside"
+    // Add a surface with negative quadric value being "inside"
     template<class S>
-    void operator()(S const& surf)
-    {
-        return (*this)(Sense::inside, surf);
-    }
+    inline void operator()(S const& surf);
 
     // Add a surface with specified sense (usually inside except for planes)
     template<class S>
     void operator()(Sense sense, S const& surf);
+
+    // Promise that the convex surface is inside/outside this bbox
+    inline void operator()(Sense sense, BBox const& bbox);
 
   public:
     // "Private", to be used by testing and detail
@@ -78,6 +79,8 @@ class ConvexSurfaceBuilder
     void insert_transformed(std::string&& ext,
                             Sense sense,
                             VariantSurface const& surf);
+    void shrink_exterior(BBox const& bbox);
+    void grow_interior(BBox const& bbox);
 };
 
 //---------------------------------------------------------------------------//
@@ -86,6 +89,37 @@ class ConvexSurfaceBuilder
 
 // Apply a convex surface builder to an unknown type
 void visit(ConvexSurfaceBuilder& csb, Sense sense, VariantSurface const& surf);
+
+//---------------------------------------------------------------------------//
+// INLINE FUNCTION DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Add a surface with negative quadric value being "inside".
+ */
+template<class S>
+void ConvexSurfaceBuilder::operator()(S const& surf)
+{
+    return (*this)(Sense::inside, surf);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Promise that the convex region is inside/outside this bbox.
+ *
+ * "inside" will shrink the exterior bbox, and "outside" will grow the interior
+ * bbox.
+ */
+void ConvexSurfaceBuilder::operator()(Sense sense, BBox const& bbox)
+{
+    if (sense == Sense::inside)
+    {
+        this->shrink_exterior(bbox);
+    }
+    else
+    {
+        this->grow_interior(bbox);
+    }
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp

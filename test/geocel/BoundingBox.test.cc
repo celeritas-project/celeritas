@@ -27,9 +27,20 @@ using BoundingBoxTest = Test;
 
 TEST_F(BoundingBoxTest, null)
 {
+    // Create a null bbox and grow it until it's non-null
     BBox null_bbox;
     EXPECT_FALSE(null_bbox);
     EXPECT_GT(null_bbox.lower()[0], null_bbox.upper()[0]);
+    null_bbox.grow(Bound::lo, Axis::x, -2);
+    null_bbox.grow(Bound::lo, Axis::y, -3);
+    null_bbox.grow(Bound::lo, Axis::z, -4);
+    EXPECT_FALSE(null_bbox);
+    null_bbox.grow(Bound::hi, Axis::x, 2);
+    EXPECT_FALSE(null_bbox);
+    null_bbox.grow(Bound::hi, Axis::y, 3);
+    EXPECT_FALSE(null_bbox);
+    null_bbox.grow(Bound::hi, Axis::z, 4);
+    EXPECT_TRUE(null_bbox);
 
     constexpr auto dumb_bbox = BBox::from_unchecked({3, 0, 0}, {-1, 0, 0});
     EXPECT_FALSE(dumb_bbox);
@@ -67,6 +78,16 @@ TEST_F(BoundingBoxTest, infinite)
     EXPECT_SOFT_EQ(inf, ibb.upper()[0]);
     EXPECT_SOFT_EQ(inf, ibb.upper()[1]);
     EXPECT_SOFT_EQ(inf, ibb.upper()[2]);
+
+    // Shrink it to nothing
+    ibb.shrink(Bound::hi, Axis::x, -2);
+    ibb.shrink(Bound::hi, Axis::y, -3);
+    ibb.shrink(Bound::hi, Axis::z, -4);
+    EXPECT_TRUE(ibb);
+    ibb.shrink(Bound::lo, Axis::x, 2);
+    ibb.shrink(Bound::lo, Axis::y, 3);
+    ibb.shrink(Bound::lo, Axis::z, 4);
+    EXPECT_FALSE(ibb);
 }
 
 TEST_F(BoundingBoxTest, standard)

@@ -31,7 +31,6 @@ class ConvexRegion
     //! Construct surfaces that are AND-ed into this region
     virtual void build(ConvexSurfaceBuilder&) const = 0;
 
-    // TODO: additional (optional?) bounding box constraints/update
     // TODO: volume calculation?
 
   protected:
