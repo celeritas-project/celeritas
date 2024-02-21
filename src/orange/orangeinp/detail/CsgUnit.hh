@@ -37,8 +37,11 @@ namespace detail
  * The "exterior" is optional *only* in the degenerate case of an infinite
  * global universe (TODO: prohibit this??)
  *
- * TODO: improve metadata (provenance, nicer container, mapping?, calculated
- * volumes)
+ * All bounding boxes and transforms are "local" within the CSG unit's
+ * reference frame, not relative to any other CSG node nor to any parent
+ * universe. (TODO: add bboxes and transforms only for finite regions)
+ *
+ * TODO: map of SP object to detailed provenance?
  */
 struct CsgUnit
 {
@@ -61,7 +64,7 @@ struct CsgUnit
     //! \name Nodes
     //! Vectors are indexed by NodeId.
     CsgTree tree;  //!< CSG tree
-    std::vector<SetMd> metadata;  //!< CSG node labels and provenance
+    std::vector<SetMd> metadata;  //!< CSG node labels
     std::vector<BBox> bboxes;
     //!@}
 

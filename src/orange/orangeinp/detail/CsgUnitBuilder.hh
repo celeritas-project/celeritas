@@ -25,9 +25,14 @@ namespace detail
 /*!
  * Help construct a unit's mutable CSG representation.
  *
- * This keeps track of the CSG and surface nodes during construction. It holds
- * the "construction-time" properties like the local surface inserter. The
- * input "CSG Unit" must exceed the lifetime of this builder.
+ * This *LOW-LEVEL* class keeps track of the CSG and surface nodes during
+ * construction. It holds the "construction-time" properties like the local
+ * surface inserter. The input "CSG Unit" must exceed the lifetime of this
+ * builder.
+ *
+ * This class is meant to be used by:
+ * - Object builders
+ * - Convex surface builder
  */
 class CsgUnitBuilder
 {
