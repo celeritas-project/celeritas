@@ -31,6 +31,7 @@ list(APPEND SOURCES
   orangeinp/CsgTypes.cc
   orangeinp/CsgTreeUtils.cc
   orangeinp/detail/BoundingZone.cc
+  orangeinp/detail/ConvexSurfaceState.cc
   orangeinp/detail/CsgUnitBuilder.cc
   orangeinp/detail/LocalSurfaceInserter.cc
   orangeinp/detail/NodeSimplifier.cc

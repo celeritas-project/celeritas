@@ -132,26 +132,44 @@ void ConvexSurfaceBuilder::insert_transformed(std::string&& extension,
 
 //---------------------------------------------------------------------------//
 /*!
- * Shrink the exterior bounding box.
+ * Shrink the exterior local bounding box.
  */
 void ConvexSurfaceBuilder::shrink_exterior(BBox const& bbox)
 {
     CELER_EXPECT(bbox && !is_degenerate(bbox));
 
-    BBox& exterior = state_->local_bzone.exterior;
-    exterior = calc_intersection(exterior, bbox);
+    {
+        // Local
+        BBox& exterior = state_->local_bzone.exterior;
+        exterior = calc_intersection(exterior, bbox);
+    }
+    {
+        // Global
+        BBox& exterior = state_->global_bzone.exterior;
+        exterior = calc_intersection(
+            exterior, apply_transform(*state_->transform, bbox));
+    }
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Grow the interior bounding box.
+ * Grow the interior local bounding box.
  */
 void ConvexSurfaceBuilder::grow_interior(BBox const& bbox)
 {
     CELER_EXPECT(bbox);
 
-    BBox& interior = state_->local_bzone.interior;
-    interior = calc_union(interior, bbox);
+    {
+        // Local
+        BBox& interior = state_->local_bzone.interior;
+        interior = calc_union(interior, bbox);
+    }
+    {
+        // Global
+        BBox& interior = state_->global_bzone.interior;
+        interior
+            = calc_union(interior, apply_transform(*state_->transform, bbox));
+    }
 }
 
 //---------------------------------------------------------------------------//

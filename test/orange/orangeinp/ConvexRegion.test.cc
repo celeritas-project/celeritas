@@ -45,24 +45,32 @@ class ConvexRegionTest : public ::celeritas::test::Test
     };
 
   protected:
-    TestResult test(ConvexRegionInterface const& r);
+    TestResult test(ConvexRegionInterface const& r, VariantTransform const&);
+
+    //! Test with no transform
+    TestResult test(ConvexRegionInterface const& r)
+    {
+        return this->test(r, NoTransformation{});
+    }
 
   private:
     Unit unit_;
     UnitBuilder unit_builder_{&unit_, Tol::from_relative(1e-4)};
-    VariantTransform transform_;
 };
 
-auto ConvexRegionTest::test(ConvexRegionInterface const& r) -> TestResult
+//---------------------------------------------------------------------------//
+auto ConvexRegionTest::test(ConvexRegionInterface const& r,
+                            VariantTransform const& trans) -> TestResult
 {
     detail::ConvexSurfaceState css;
-    css.transform = &transform_;
+    css.transform = &trans;
     css.make_face_name = {};
     css.object_name = "cr";
 
     ConvexSurfaceBuilder insert_surface{&unit_builder_, &css};
     r.build(insert_surface);
     EXPECT_TRUE(encloses(css.local_bzone.exterior, css.local_bzone.interior));
+    EXPECT_TRUE(encloses(css.global_bzone.exterior, css.global_bzone.interior));
 
     // Intersect the given surfaces
     auto node_id
@@ -71,11 +79,16 @@ auto ConvexRegionTest::test(ConvexRegionInterface const& r) -> TestResult
     TestResult result;
     result.node = build_infix_string(unit_.tree, node_id);
     result.surfaces = surface_strings(unit_);
-    result.interior = css.local_bzone.interior;
-    result.exterior = css.local_bzone.exterior;
+
+    // Combine the bounding zones
+    auto merged_bzone = calc_merged_bzone(css);
+    result.interior = merged_bzone.interior;
+    result.exterior = merged_bzone.exterior;
+
     return result;
 }
 
+//---------------------------------------------------------------------------//
 void ConvexRegionTest::TestResult::print_expected() const
 {
     using std::cout;
@@ -213,6 +226,45 @@ TEST_F(ConeTest, almost_cyl)
     EXPECT_VEC_SOFT_EQ((Real3{0.55, 0.55, 10}), result.exterior.upper());
 }
 
+TEST_F(ConeTest, translated)
+{
+    auto result = this->test(Cone({1.0, 0.5}, 2.0), Translation{{1, 2, 3}});
+
+    static char const expected_node[] = "all(+0, -1, -2)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=1", "Plane: z=5", "Cone z: t=0.125 at {1,2,9}"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_VEC_SOFT_EQ((Real3{0.64644660940673, 1.6464466094067, 1}),
+                       result.interior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1.3535533905933, 2.3535533905933, 5}),
+                       result.interior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{0, 1, 1}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 3, 5}), result.exterior.upper());
+}
+
+TEST_F(ConeTest, transformed)
+{
+    auto result = this->test(
+        Cone({1.0, 0.5}, 2.0),
+        Transformation{make_rotation(Axis::z, Turn{0.125}),  // 45deg
+                       Real3{0, 0, 2.0}});
+
+    static char const expected_node[] = "all(+0, -1, -2)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=0", "Plane: z=4", "Cone z: t=0.125 at {-0,-0,8}"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_VEC_SOFT_EQ((Real3{-0.5, -0.5, 0}), result.interior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{0.5, 0.5, 4}), result.interior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-1.4142135623731, -1.4142135623731, 0}),
+                       result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1.4142135623731, 1.4142135623731, 4}),
+                       result.exterior.upper());
+}
+
 //---------------------------------------------------------------------------//
 // CYLINDER
 //---------------------------------------------------------------------------//
@@ -240,6 +292,44 @@ TEST_F(CylinderTest, standard)
                        result.interior.upper());
     EXPECT_VEC_SOFT_EQ((Real3{-0.75, -0.75, -0.9}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{0.75, 0.75, 0.9}), result.exterior.upper());
+}
+
+TEST_F(CylinderTest, translated)
+{
+    auto result = this->test(Cylinder(0.75, 0.9), Translation{{1, 2, 3}});
+
+    static char const expected_node[] = "all(+0, -1, -2)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=2.1", "Plane: z=3.9", "Cyl z: r=0.75 at x=1, y=2"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_VEC_SOFT_EQ((Real3{0.46966991411009, 1.4696699141101, 2.1}),
+                       result.interior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1.5303300858899, 2.5303300858899, 3.9}),
+                       result.interior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{0.25, 1.25, 2.1}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1.75, 2.75, 3.9}), result.exterior.upper());
+}
+
+TEST_F(CylinderTest, transformed)
+{
+    auto result = this->test(
+        Cylinder(0.75, 0.9),
+        Transformation{make_rotation(Axis::x, Turn{0.25}), Real3{0, 0, 1.0}});
+
+    static char const expected_node[] = "all(-0, +1, -2)";
+    static char const* const expected_surfaces[]
+        = {"Plane: y=0.9", "Plane: y=-0.9", "Cyl y: r=0.75 at x=-0, z=1"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_VEC_SOFT_EQ((Real3{-0.53033008588991, -0.9, 0.46966991411009}),
+                       result.interior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{0.53033008588991, 0.9, 1.5303300858899}),
+                       result.interior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-0.75, -0.9, 0.25}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{0.75, 0.9, 1.75}), result.exterior.upper());
 }
 
 //---------------------------------------------------------------------------//
