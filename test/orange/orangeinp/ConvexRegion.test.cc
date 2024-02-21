@@ -81,9 +81,9 @@ void ConvexRegionTest::TestResult::print_expected() const
     using std::cout;
     cout << "/***** EXPECTED REGION *****/\n"
          << "static char const expected_node[] = " << repr(this->node) << ";\n"
-         << "EXPECT_EQ(expected_node, result.node);\n"
          << "static char const * const expected_surfaces[] = "
-         << repr(this->surfaces) << ";\n"
+         << repr(this->surfaces) << ";\n\n"
+         << "EXPECT_EQ(expected_node, result.node);\n"
          << "EXPECT_VEC_EQ(expected_surfaces, result.surfaces);\n";
 
     auto print_expect_req = [](char const* s, Real3 const& v) {
@@ -118,13 +118,14 @@ TEST_F(BoxTest, standard)
 {
     auto result = this->test(Box({1, 2, 3}));
     static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
-    EXPECT_EQ(expected_node, result.node);
     static char const* const expected_surfaces[] = {"Plane: x=-1",
                                                     "Plane: x=1",
                                                     "Plane: y=-2",
                                                     "Plane: y=2",
                                                     "Plane: z=-3",
                                                     "Plane: z=3"};
+
+    EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
 }
 
@@ -145,9 +146,10 @@ TEST_F(ConeTest, upward)
     auto result = this->test(Cone({1.5, 0}, 0.5));  // Lower r=1.5, height 1
 
     static char const expected_node[] = "all(+0, -1, -2)";
-    EXPECT_EQ(expected_node, result.node);
     static char const* const expected_surfaces[]
         = {"Plane: z=-0.5", "Plane: z=0.5", "Cone z: t=1.5 at {0,0,0.5}"};
+
+    EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_VEC_SOFT_EQ((Real3{-0.53033008588991, -0.53033008588991, -0.5}),
                        result.interior.lower());
@@ -162,9 +164,10 @@ TEST_F(ConeTest, downward)
     auto result = this->test(Cone({0, 1.2}, 1.3 / 2));
 
     static char const expected_node[] = "all(+0, -1, -2)";
-    EXPECT_EQ(expected_node, result.node);
     static char const* const expected_surfaces[] = {
         "Plane: z=-0.65", "Plane: z=0.65", "Cone z: t=0.923077 at {0,0,-0.65}"};
+
+    EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_VEC_SOFT_EQ((Real3{-0.42426406871193, -0.42426406871193, 0}),
                        result.interior.lower());
@@ -179,9 +182,10 @@ TEST_F(ConeTest, truncated)
     auto result = this->test(Cone({0.5, 1.5}, 0.5));
 
     static char const expected_node[] = "all(+0, -1, -2)";
-    EXPECT_EQ(expected_node, result.node);
     static char const* const expected_surfaces[]
         = {"Plane: z=-0.5", "Plane: z=0.5", "Cone z: t=1 at {0,0,-1}"};
+
+    EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_VEC_SOFT_EQ((Real3{-0.53033008588991, -0.53033008588991, -0.25}),
                        result.interior.lower());
@@ -196,9 +200,10 @@ TEST_F(ConeTest, almost_cyl)
     auto result = this->test(Cone({0.55, 0.45}, 10.0));
 
     static char const expected_node[] = "all(+0, -1, -2)";
-    EXPECT_EQ(expected_node, result.node);
     static char const* const expected_surfaces[]
         = {"Plane: z=-10", "Plane: z=10", "Cone z: t=0.005 at {0,0,100}"};
+
+    EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_VEC_SOFT_EQ((Real3{-0.31819805153395, -0.31819805153395, -10}),
                        result.interior.lower());
@@ -224,9 +229,10 @@ TEST_F(CylinderTest, standard)
     auto result = this->test(Cylinder(0.75, 0.9));
 
     static char const expected_node[] = "all(+0, -1, -2)";
-    EXPECT_EQ(expected_node, result.node);
     static char const* const expected_surfaces[]
         = {"Plane: z=-0.9", "Plane: z=0.9", "Cyl z: r=0.75"};
+
+    EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_VEC_SOFT_EQ((Real3{-0.53033008588991, -0.53033008588991, -0.9}),
                        result.interior.lower());
@@ -251,9 +257,10 @@ TEST_F(EllipsoidTest, standard)
     auto result = this->test(Ellipsoid({3, 2, 1}));
 
     static char const expected_node[] = "-0";
-    EXPECT_EQ(expected_node, result.node);
     static char const* const expected_surfaces[]
         = {"SQuadric: {4,9,36} {0,0,0} -36"};
+
+    EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_VEC_SOFT_EQ(
         (Real3{-1.7320508075688776, -1.1547005383792517, -0.57735026918962584}),
@@ -282,13 +289,14 @@ TEST_F(PrismTest, triangle)
     auto result = this->test(Prism(3, 1.0, 1.2, 0.0));
 
     static char const expected_node[] = "all(+0, -1, -2, +3, +4)";
-    EXPECT_EQ(expected_node, result.node);
     static char const* const expected_surfaces[]
         = {"Plane: z=-1.2",
            "Plane: z=1.2",
            "Plane: n={0.866025,0.5,0}, d=1",
            "Plane: n={0.866025,-0.5,0}, d=-1",
            "Plane: y=-1"};
+
+    EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -1.2}), result.interior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{1, 1, 1.2}), result.interior.upper());
@@ -301,13 +309,14 @@ TEST_F(PrismTest, rtriangle)
     auto result = this->test(Prism(3, 1.0, 1.2, 0.5));
 
     static char const expected_node[] = "all(+0, -1, -2, +3, -4)";
-    EXPECT_EQ(expected_node, result.node);
     static char const* const expected_surfaces[]
         = {"Plane: z=-1.2",
            "Plane: z=1.2",
            "Plane: y=1",
            "Plane: n={0.866025,0.5,0}, d=-1",
            "Plane: n={0.866025,-0.5,0}, d=1"};
+
+    EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -1.2}), result.interior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{1, 1, 1.2}), result.interior.upper());
@@ -320,13 +329,14 @@ TEST_F(PrismTest, square)
     auto result = this->test(Prism(4, 1.0, 2.0, 0.0));
 
     static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
-    EXPECT_EQ(expected_node, result.node);
     static char const* const expected_surfaces[] = {"Plane: z=-2",
                                                     "Plane: z=2",
                                                     "Plane: x=1",
                                                     "Plane: y=1",
                                                     "Plane: x=-1",
                                                     "Plane: y=-1"};
+
+    EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -2}), result.interior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{1, 1, 2}), result.interior.upper());
@@ -339,7 +349,6 @@ TEST_F(PrismTest, hex)
     auto result = this->test(Prism(6, 1.0, 2.0, 0.0));
 
     static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5, +6, -7)";
-    EXPECT_EQ(expected_node, result.node);
     static char const* const expected_surfaces[]
         = {"Plane: z=-2",
            "Plane: z=2",
@@ -349,6 +358,8 @@ TEST_F(PrismTest, hex)
            "Plane: n={0.866025,0.5,0}, d=-1",
            "Plane: y=-1",
            "Plane: n={0.866025,-0.5,0}, d=1"};
+
+    EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -2}), result.interior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{1, 1, 2}), result.interior.upper());
@@ -362,7 +373,6 @@ TEST_F(PrismTest, rhex)
     auto result = this->test(Prism(6, 1.0, 2.0, 0.5));
 
     static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5, +6, -7)";
-    EXPECT_EQ(expected_node, result.node);
     static char const* const expected_surfaces[]
         = {"Plane: z=-2",
            "Plane: z=2",
@@ -372,6 +382,8 @@ TEST_F(PrismTest, rhex)
            "Plane: x=-1",
            "Plane: n={0.5,0.866025,0}, d=-1",
            "Plane: n={0.5,-0.866025,0}, d=1"};
+
+    EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -2}), result.interior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{1, 1, 2}), result.interior.upper());
@@ -395,8 +407,9 @@ TEST_F(SphereTest, standard)
     auto result = this->test(Sphere(2.0));
 
     static char const expected_node[] = "-0";
-    EXPECT_EQ(expected_node, result.node);
     static char const* const expected_surfaces[] = {"Sphere: r=2"};
+
+    EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_VEC_SOFT_EQ(
         (Real3{-1.7320508075689, -1.7320508075689, -1.7320508075689}),
