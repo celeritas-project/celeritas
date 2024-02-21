@@ -15,7 +15,7 @@
 #include "celeritas/em/data/WentzelData.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/em/xs/MottRatioCalculator.hh"
-#include "celeritas/em/xs/WentzelRatioCalculator.hh"
+#include "celeritas/em/xs/WentzelHelper.hh"
 #include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
@@ -56,7 +56,7 @@ class WentzelDistribution
     WentzelDistribution(ParticleTrackView const& particle,
                         IsotopeView const& target,
                         WentzelElementData const& element_data,
-                        real_type cutoff_energy,
+                        Energy cutoff,
                         WentzelRef const& data);
 
     // Sample the polar scattering angle
@@ -78,8 +78,8 @@ class WentzelDistribution
     // Mott coefficients for the target element
     WentzelElementData const& element_data_;
 
-    // Ratio of elecron to total cross sections for the Wentzel model
-    WentzelRatioCalculator const calc_elec_ratio_;
+    // Helper for calculating xs ratio and other quantities
+    WentzelHelper const helper_;
 
     // Calculates the form factor from the scattered polar angle
     inline CELER_FUNCTION real_type calculate_form_factor(real_type cos_t) const;
@@ -115,13 +115,13 @@ CELER_FUNCTION
 WentzelDistribution::WentzelDistribution(ParticleTrackView const& particle,
                                          IsotopeView const& target,
                                          WentzelElementData const& element_data,
-                                         real_type cutoff_energy,
+                                         Energy cutoff,
                                          WentzelRef const& data)
     : data_(data)
     , particle_(particle)
     , target_(target)
     , element_data_(element_data)
-    , calc_elec_ratio_(particle, target.atomic_number(), data, cutoff_energy)
+    , helper_(particle, target.atomic_number(), data, cutoff)
 {
 }
 
@@ -133,10 +133,10 @@ template<class Engine>
 CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
 {
     real_type cos_theta = 1;
-    if (BernoulliDistribution(calc_elec_ratio_())(rng))
+    if (BernoulliDistribution(helper_.calc_xs_ratio())(rng))
     {
         // Scattered off of electrons
-        cos_theta = this->sample_cos_t(calc_elec_ratio_.cos_t_max_elec(), rng);
+        cos_theta = this->sample_cos_t(helper_.costheta_max_electron(), rng);
     }
     else
     {
@@ -259,7 +259,7 @@ CELER_FUNCTION real_type WentzelDistribution::sample_cos_t(real_type cos_t_max,
     // For incident electrons / positrons, theta_min = 0 always
     real_type const mu = real_type{0.5} * (1 - cos_t_max);
     real_type const xi = generate_canonical(rng);
-    real_type const sc = calc_elec_ratio_.screening_coefficient();
+    real_type const sc = helper_.screening_coefficient();
 
     return clamp(1 + 2 * sc * mu * (1 - xi) / (sc - mu * xi),
                  real_type{-1},

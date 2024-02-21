@@ -15,6 +15,7 @@
 #include "geocel/BoundingBox.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/surf/VariantSurface.hh"
+#include "orange/transform/VariantTransform.hh"
 
 #include "../CsgTree.hh"
 #include "../CsgTypes.hh"

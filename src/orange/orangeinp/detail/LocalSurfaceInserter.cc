@@ -9,6 +9,8 @@
 
 namespace celeritas
 {
+namespace orangeinp
+{
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -46,4 +48,5 @@ LocalSurfaceInserter::merge_impl(LocalSurfaceId source, LocalSurfaceId target)
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
+}  // namespace orangeinp
 }  // namespace celeritas

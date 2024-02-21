@@ -33,6 +33,7 @@ list(APPEND SOURCES
   orangeinp/detail/CsgUnitBuilder.cc
   orangeinp/detail/LocalSurfaceInserter.cc
   orangeinp/detail/NodeSimplifier.cc
+  orangeinp/detail/TransformInserter.cc
   surf/ConeAligned.cc
   surf/CylAligned.cc
   surf/FaceNamer.cc
@@ -49,6 +50,7 @@ list(APPEND SOURCES
   surf/detail/SurfaceTranslator.cc
   surf/detail/SurfaceTransformer.cc
   transform/SignedPermutation.cc
+  transform/TransformHasher.cc
   transform/TransformIO.cc
   transform/Transformation.cc
   transform/VariantTransform.cc
