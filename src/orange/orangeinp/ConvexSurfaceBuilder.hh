@@ -37,7 +37,9 @@ struct ConvexSurfaceState;
  *
  * \todo Should we require that the user implicitly guarantee that the result
  * is convex, e.g. prohibit quadrics outside "saddle" points? What about a
- * torus, which (unless degenerate) is never convex?
+ * torus, which (unless degenerate) is never convex? Or should we just require
+ * that "exiting a surface exits the region"? (Think about application to OR-ed
+ * combinations for safety calculation.)
  */
 class ConvexSurfaceBuilder
 {

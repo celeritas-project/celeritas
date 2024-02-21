@@ -185,32 +185,32 @@ std::vector<real_type> flattened(BoundingZone const& bz)
 //---------------------------------------------------------------------------//
 void print_expected(CsgUnit const& u)
 {
-    std::cout << "/***** EXPECTED UNIT *****/\n"
+    std::cout << R"cpp(
+/***** EXPECTED UNIT *****/
+)cpp"
               << "static char const * const expected_surface_strings[] = "
               << repr(surface_strings(u)) << ";\n"
-              << "EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));"
-              << R"cpp(
-if (CELERITAS_USE_JSON)
-{
-    EXPECT_JSON_EQ(
-        R"json()cpp"
-              << tree_string(u) << R"cpp()json",
-        tree_string(u));
-}
-)cpp"
               << "static char const * const expected_md_strings[] = "
               << repr(md_strings(u)) << ";\n"
-              << "EXPECT_VEC_EQ(expected_md_strings, md_strings(u));\n"
               << "static real_type const expected_flattened_bboxes[] = "
               << repr(flattened_bboxes(u)) << ";\n"
-              << "EXPECT_VEC_SOFT_EQ(expected_flattened_bboxes, "
-                 "flattened_bboxes(u));\n"
               << "static int const expected_volume_nodes[] = "
               << repr(volume_nodes(u)) << ";\n"
-              << "EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));\n"
               << "static char const * const expected_fill_strings[] = "
               << repr(fill_strings(u)) << ";\n"
-              << "EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));\n"
+              << "static char const expected_tree_string[] = R\"json("
+              << tree_string(u) << ")json\";\n"
+              << R"cpp(
+EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+EXPECT_VEC_SOFT_EQ(expected_flattened_bboxes, flattened_bboxes(u));
+EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
+EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
+if (CELERITAS_USE_JSON)
+{
+    EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
+}
+)cpp"
               << "EXPECT_EQ(NodeId{";
     if (u.exterior)
     {
@@ -224,20 +224,24 @@ if (CELERITAS_USE_JSON)
 //---------------------------------------------------------------------------//
 void print_expected(ConvexSurfaceState const& css)
 {
-    std::cout << "/***** EXPECTED STATE *****/\n"
+    std::cout << R"cpp(
+/***** EXPECTED STATE *****/
+// clang-format off
+)cpp"
               << "static real_type const expected_local_bz[] = "
               << repr(flattened(css.local_bzone)) << ";\n"
-              << "EXPECT_VEC_SOFT_EQ(expected_local_bz, "
-                 "flattened(css.local_bzone));\n"
               << "static real_type const expected_global_bz[] = "
               << repr(flattened(css.global_bzone)) << ";\n"
-              << "EXPECT_VEC_SOFT_EQ(expected_global_bz, "
-                 "flattened(css.global_bzone));\n"
               << "static int const expected_nodes[] = "
-              << repr(to_vec_int(css.nodes)) << ";\n"
-              << "EXPECT_VEC_EQ(expected_nodes, to_vec_int(css.nodes));\n"
-              << "/*************************/\n"
-              << std::endl;
+              << repr(to_vec_int(css.nodes)) << ";"
+              << R"cpp(
+// clang-format on
+
+EXPECT_VEC_SOFT_EQ(expected_local_bz, flattened(css.local_bzone));
+EXPECT_VEC_SOFT_EQ(expected_global_bz, flattened(css.global_bzone));
+EXPECT_VEC_EQ(expected_nodes, to_vec_int(css.nodes));
+/*************************/
+)cpp" << std::endl;
 }
 
 //---------------------------------------------------------------------------//

@@ -61,7 +61,9 @@ ConvexSurfaceBuilder::ConvexSurfaceBuilder(UnitBuilder* ub, State* state)
 
 //---------------------------------------------------------------------------//
 /*!
- * Add a plane with a possibly *outside* sense.
+ * Add a surface with a sense.
+ *
+ * The resulting surface *MUST* result in a convex region.
  */
 template<class S>
 void ConvexSurfaceBuilder::operator()(Sense sense, S const& surf)
@@ -78,10 +80,16 @@ void ConvexSurfaceBuilder::operator()(Sense sense, S const& surf)
 }
 
 //---------------------------------------------------------------------------//
+// HELPER FUNCTION DEFINITIONS
+//---------------------------------------------------------------------------//
 /*!
- * Add a surface with an "inside" sense (true for negative quadric value).
+ * Add a surface after transforming it to an unknown type.
+ *
+ * \param extension Constructed metadata for the surface node
+ * \param sense Whether the convex region is inside/outside this surface
+ * \param surf Type-deleted surface
  */
-void ConvexSurfaceBuilder::insert_transformed(std::string&& ext,
+void ConvexSurfaceBuilder::insert_transformed(std::string&& extension,
                                               Sense sense,
                                               VariantSurface const& surf)
 {
@@ -107,7 +115,7 @@ void ConvexSurfaceBuilder::insert_transformed(std::string&& ext,
     CELER_ASSERT(node_id);
 
     // Add metadata for the surface node
-    ub_->insert_md(node_id, Label{state_->object_name, std::move(ext)});
+    ub_->insert_md(node_id, Label{state_->object_name, std::move(extension)});
 
     if (sense == Sense::inside)
     {
@@ -121,6 +129,12 @@ void ConvexSurfaceBuilder::insert_transformed(std::string&& ext,
     state_->nodes.push_back(node_id);
 }
 
+//---------------------------------------------------------------------------//
+// FREE FUNCTION DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a surface using a variant.
+ */
 void visit(ConvexSurfaceBuilder& csb, Sense sense, VariantSurface const& surf)
 {
     std::visit([&csb, sense](auto const& s) { csb(sense, s); }, surf);

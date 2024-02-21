@@ -43,7 +43,7 @@ class NegatedSurfaceClipper
         return this->clip_impl(T, s.position());
     }
 
-    // All other operations invalidate the "interior" box
+    //! All other operations invalidate the "interior" box
     template<class S>
     CELER_FORCEINLINE void operator()(S const&)
     {
