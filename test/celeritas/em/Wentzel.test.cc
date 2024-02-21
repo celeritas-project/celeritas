@@ -10,6 +10,7 @@
 #include "celeritas/em/interactor/WentzelInteractor.hh"
 #include "celeritas/em/model/WentzelModel.hh"
 #include "celeritas/em/process/CoulombScatteringProcess.hh"
+#include "celeritas/em/xs/WentzelTransportXsCalculator.hh"
 #include "celeritas/io/ImportParameters.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/mat/MaterialView.hh"
@@ -140,10 +141,9 @@ TEST_F(CoulombScatteringTest, wokvi_xs)
     AtomicNumber const target_z
         = this->material_params()->get(ElementId{0}).atomic_number();
 
-    real_type const cutoff_energy = value_as<units::MevEnergy>(
-        this->cutoff_params()
-            ->get(MaterialId{0})
-            .energy(this->particle_track().particle_id()));
+    MevEnergy const cutoff = this->cutoff_params()
+                                 ->get(MaterialId{0})
+                                 .energy(this->particle_track().particle_id());
 
     std::vector<real_type> const energies = {50, 100, 200, 1000, 13000};
 
@@ -170,12 +170,11 @@ TEST_F(CoulombScatteringTest, wokvi_xs)
     {
         this->set_inc_particle(pdg::electron(), MevEnergy{energy});
 
-        WentzelRatioCalculator calc(
-            particle_track(), target_z, data, cutoff_energy);
+        WentzelHelper helper(this->particle_track(), target_z, data, cutoff);
 
-        xsecs.push_back(calc());
-        cos_t_maxs.push_back(calc.cos_t_max_elec());
-        screen_zs.push_back(calc.screening_coefficient());
+        xsecs.push_back(helper.calc_xs_ratio());
+        cos_t_maxs.push_back(helper.costheta_max_electron());
+        screen_zs.push_back(helper.screening_coefficient());
     }
 
     EXPECT_VEC_SOFT_EQ(expected_xsecs, xsecs);
@@ -188,7 +187,8 @@ TEST_F(CoulombScatteringTest, mott_xs)
     WentzelHostRef const& data = model_->host_ref();
 
     WentzelElementData const& element_data = data.elem_data[ElementId(0)];
-    MottRatioCalculator xsec(element_data, sqrt(particle_track().beta_sq()));
+    MottRatioCalculator xsec(element_data,
+                             sqrt(this->particle_track().beta_sq()));
 
     static real_type const cos_ts[]
         = {1, 0.9, 0.5, 0.21, 0, -0.1, -0.6, -0.7, -0.9, -1};
@@ -210,6 +210,71 @@ TEST_F(CoulombScatteringTest, mott_xs)
     }
 
     EXPECT_VEC_SOFT_EQ(xsecs, expected_xsecs);
+}
+
+TEST_F(CoulombScatteringTest, wokvi_transport_xs)
+{
+    // Copper
+    MaterialId mat_id{0};
+    ElementId elm_id{0};
+
+    AtomicNumber const z = this->material_params()->get(elm_id).atomic_number();
+
+    // Incident particle energy cutoff
+    MevEnergy const cutoff = this->cutoff_params()->get(mat_id).energy(
+        this->particle_track().particle_id());
+
+    std::vector<real_type> xs;
+    for (real_type energy : {100, 200, 1000, 100000, 1000000})
+    {
+        this->set_inc_particle(pdg::electron(), MevEnergy{energy});
+        auto const& particle = this->particle_track();
+
+        WentzelHelper helper(particle, z, model_->host_ref(), cutoff);
+        WentzelTransportXsCalculator calc_transport_xs(particle, helper);
+
+        for (real_type costheta_max : {-1.0, -0.5, 0.0, 0.5, 0.75, 0.99, 1.0})
+        {
+            // Get cross section in barns
+            xs.push_back(calc_transport_xs(costheta_max) / units::barn);
+        }
+    }
+    static double const expected_xs[] = {0.19516611768754,
+                                         0.19475734301371,
+                                         0.19307107844035,
+                                         0.18826457727067,
+                                         0.18210234522701,
+                                         0.14849151789768,
+                                         0,
+                                         0.052798367939378,
+                                         0.052695669889626,
+                                         0.052271981881786,
+                                         0.051064284057599,
+                                         0.049515930355632,
+                                         0.041070671779723,
+                                         0,
+                                         0.002472275627657,
+                                         0.0024681511259515,
+                                         0.002451134671678,
+                                         0.0024026299507655,
+                                         0.0023404433473951,
+                                         0.0020012556180187,
+                                         0,
+                                         3.4837670176241e-07,
+                                         3.4796383511025e-07,
+                                         3.4626046917181e-07,
+                                         3.4140509151026e-07,
+                                         3.3518014131324e-07,
+                                         3.0122705954759e-07,
+                                         0,
+                                         3.988372624941e-09,
+                                         3.9842439204449e-09,
+                                         3.9672101043866e-09,
+                                         3.9186558811768e-09,
+                                         3.8564058066393e-09,
+                                         3.516871865997e-09,
+                                         0};
+    EXPECT_VEC_SOFT_EQ(expected_xs, xs);
 }
 
 TEST_F(CoulombScatteringTest, simple_scattering)
@@ -292,13 +357,12 @@ TEST_F(CoulombScatteringTest, distribution)
                   .make_element_view(ElementComponentId{0})
                   .make_isotope_view(IsotopeComponentId{0});
 
-        real_type const cutoff_energy = value_as<units::MevEnergy>(
-            this->cutoff_params()
-                ->get(MaterialId{0})
-                .energy(ParticleId{0}));  // TODO: Use proton ParticleId{2}
+        // TODO: Use proton ParticleId{2}
+        MevEnergy const cutoff
+            = this->cutoff_params()->get(MaterialId{0}).energy(ParticleId{0});
 
         WentzelDistribution distrib(
-            particle_track(), isotope, element_data, cutoff_energy, data);
+            this->particle_track(), isotope, element_data, cutoff, data);
 
         RandomEngine& rng_engine = this->rng();
 
