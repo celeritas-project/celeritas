@@ -102,8 +102,14 @@ struct BoundingZone
 
     // Flip inside and outside
     inline void negate();
+
+    // Create an "everything is known inside" zone for intersecting
+    static BoundingZone from_infinite();
 };
 
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
 // Calculate the intersection of two bounding zones
 BoundingZone calc_intersection(BoundingZone const& a, BoundingZone const& b);
 

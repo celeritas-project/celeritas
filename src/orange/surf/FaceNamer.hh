@@ -8,6 +8,7 @@
 #pragma once
 
 #include <string>
+#include <utility>
 
 #include "orange/OrangeTypes.hh"
 
@@ -28,8 +29,11 @@ namespace celeritas
 class FaceNamer
 {
   public:
-    // Construct with defaults
+    // Construct with no prefix
     FaceNamer() = default;
+
+    //! Construct with prefix
+    explicit FaceNamer(std::string&& prefix) : prefix_{std::move(prefix)} {}
 
     // Apply to a surface with known type
     template<class S>
@@ -43,6 +47,9 @@ class FaceNamer
     {
         int num_planes_{0};
     };
+
+    // String prefix
+    std::string prefix_;
 
     // Persistent state
     State state_;
@@ -86,7 +93,9 @@ class FaceNamer
 template<class S>
 std::string FaceNamer::operator()(Sense s, S const& surf)
 {
-    return Impl{&state_, s}(surf);
+    std::string result = prefix_;
+    result += Impl{&state_, s}(surf);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
