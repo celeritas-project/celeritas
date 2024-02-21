@@ -253,7 +253,7 @@ TEST_F(ConeTest, transformed)
 
     static char const expected_node[] = "all(+0, -1, -2)";
     static char const* const expected_surfaces[]
-        = {"Plane: z=0", "Plane: z=4", "Cone z: t=0.125 at {-0,-0,8}"};
+        = {"Plane: z=0", "Plane: z=4", "Cone z: t=0.125 at {0,0,8}"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
