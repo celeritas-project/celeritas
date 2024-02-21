@@ -165,7 +165,7 @@ TEST_F(ConeTest, downward)
 
     static char const expected_node[] = "all(+0, -1, -2)";
     static char const* const expected_surfaces[] = {
-        "Plane: z=-0.65", "Plane: z=0.65", "Cone z: t=0.923077 at {0,0,-0.65}"};
+        "Plane: z=-0.65", "Plane: z=0.65", "Cone z: t=0.92308 at {0,0,-0.65}"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -289,12 +289,13 @@ TEST_F(PrismTest, triangle)
     auto result = this->test(Prism(3, 1.0, 1.2, 0.0));
 
     static char const expected_node[] = "all(+0, -1, -2, +3, +4)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-1.2",
-           "Plane: z=1.2",
-           "Plane: n={0.866025,0.5,0}, d=1",
-           "Plane: n={0.866025,-0.5,0}, d=-1",
-           "Plane: y=-1"};
+    static char const* const expected_surfaces[] = {"Plane: z=-1.2",
+                                                    "Plane: z=1.2",
+                                                    "Plane: "
+                                                    "n={0.86603,0.5,0}, d=1",
+                                                    "Plane: "
+                                                    "n={0.86603,-0.5,0}, d=-1",
+                                                    "Plane: y=-1"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -309,12 +310,13 @@ TEST_F(PrismTest, rtriangle)
     auto result = this->test(Prism(3, 1.0, 1.2, 0.5));
 
     static char const expected_node[] = "all(+0, -1, -2, +3, -4)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-1.2",
-           "Plane: z=1.2",
-           "Plane: y=1",
-           "Plane: n={0.866025,0.5,0}, d=-1",
-           "Plane: n={0.866025,-0.5,0}, d=1"};
+    static char const* const expected_surfaces[] = {"Plane: z=-1.2",
+                                                    "Plane: z=1.2",
+                                                    "Plane: y=1",
+                                                    "Plane: "
+                                                    "n={0.86603,0.5,0}, d=-1",
+                                                    "Plane: "
+                                                    "n={0.86603,-0.5,0}, d=1"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -352,12 +354,12 @@ TEST_F(PrismTest, hex)
     static char const* const expected_surfaces[]
         = {"Plane: z=-2",
            "Plane: z=2",
-           "Plane: n={0.866025,0.5,0}, d=1",
+           "Plane: n={0.86603,0.5,0}, d=1",
            "Plane: y=1",
-           "Plane: n={0.866025,-0.5,0}, d=-1",
-           "Plane: n={0.866025,0.5,0}, d=-1",
+           "Plane: n={0.86603,-0.5,0}, d=-1",
+           "Plane: n={0.86603,0.5,0}, d=-1",
            "Plane: y=-1",
-           "Plane: n={0.866025,-0.5,0}, d=1"};
+           "Plane: n={0.86603,-0.5,0}, d=1"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -377,11 +379,11 @@ TEST_F(PrismTest, rhex)
         = {"Plane: z=-2",
            "Plane: z=2",
            "Plane: x=1",
-           "Plane: n={0.5,0.866025,0}, d=1",
-           "Plane: n={0.5,-0.866025,0}, d=-1",
+           "Plane: n={0.5,0.86603,0}, d=1",
+           "Plane: n={0.5,-0.86603,0}, d=-1",
            "Plane: x=-1",
-           "Plane: n={0.5,0.866025,0}, d=-1",
-           "Plane: n={0.5,-0.866025,0}, d=1"};
+           "Plane: n={0.5,0.86603,0}, d=-1",
+           "Plane: n={0.5,-0.86603,0}, d=1"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);

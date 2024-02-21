@@ -175,7 +175,7 @@ TEST_F(CsgUnitBuilderTest, multi_level)
     // Add inner universe
     {
         // Pretend user has a small gap within the tolerance
-        auto new_inner = builder.insert_surface(SphereCentered{0.75 - 1e-6});
+        auto new_inner = builder.insert_surface(SphereCentered{0.75 - 1e-5});
         EXPECT_EQ(inner, new_inner);
     }
     auto neg_inner = builder.insert_csg(Negated{inner});
@@ -196,7 +196,7 @@ TEST_F(CsgUnitBuilderTest, multi_level)
     // print_expected(u);
 
     static char const* const expected_surface_strings[]
-        = {"Sphere: r=1", "Sphere: r=0.75", "Sphere: r=0.749999"};
+        = {"Sphere: r=1", "Sphere: r=0.75", "Sphere: r=0.74999"};
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     if (CELERITAS_USE_JSON)
     {
