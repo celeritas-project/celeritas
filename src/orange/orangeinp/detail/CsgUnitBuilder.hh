@@ -41,7 +41,6 @@ class CsgUnitBuilder
     //! \name Type aliases
     using Tol = Tolerance<>;
     using Metadata = CsgUnit::Metadata;
-    using BBox = CsgUnit::BBox;
     using NodeInsertion = CsgTree::Insertion;
     //!@}
 
@@ -71,8 +70,8 @@ class CsgUnitBuilder
     //! Insert node metadata
     inline void insert_md(NodeId node, Metadata&& md);
 
-    // Set a bounding box for a node
-    void set_bbox(NodeId, BBox const&);
+    // Set a bounding zone for a node
+    void set_bounds(NodeId, BoundingZone const&);
 
     // Mark a CSG node as a volume of real space
     LocalVolumeId insert_volume(NodeId);
@@ -93,6 +92,8 @@ class CsgUnitBuilder
 
     // Get a variant surface from a node ID
     VariantSurface const& get_surface_impl(NodeId nid) const;
+
+    // TODO: cache of weak_ptr<{Transform,ObjectInterface}> -> NodeId?
 };
 
 //---------------------------------------------------------------------------//
@@ -131,7 +132,6 @@ auto CsgUnitBuilder::insert_csg(Args&&... args) -> NodeInsertion
     if (result.second)
     {
         unit_->metadata.resize(unit_->tree.size());
-        unit_->bboxes.resize(unit_->tree.size());
     }
     return result;
 }

@@ -30,7 +30,6 @@ class CsgUnitBuilderTest : public ::celeritas::test::Test
 {
   protected:
     using Tol = CsgUnitBuilder::Tol;
-    using BBox = CsgUnitBuilder::BBox;
 
   protected:
     Tol tol = Tolerance<>::from_relative(1e-4);
@@ -48,7 +47,7 @@ TEST_F(CsgUnitBuilderTest, infinite)
     auto true_nid = builder.insert_csg(True{}).first;
     EXPECT_EQ(CsgTree::true_node_id(), true_nid);
     builder.insert_md(true_nid, "true");
-    builder.set_bbox(true_nid, BBox::from_infinite());
+    builder.set_bounds(true_nid, BoundingZone::from_infinite());
 
     // Add a volume and fill it with a material
     auto vid = builder.insert_volume(true_nid);
@@ -56,21 +55,20 @@ TEST_F(CsgUnitBuilderTest, infinite)
     builder.fill_volume(vid, MaterialId{123});
 
     EXPECT_TRUE(u);
+    static char const* const expected_md_strings[] = {"true", ""};
+    static char const* const expected_bound_strings[] = {"0: {inf, inf}"};
+    static int const expected_volume_nodes[] = {0};
+    static char const* const expected_fill_strings[] = {"m123"};
+    static char const expected_tree_string[] = R"json(["t",["~",0]])json";
 
-    EXPECT_EQ(0, u.surfaces.size());
+    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+    EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
+    EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
+    EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
     if (CELERITAS_USE_JSON)
     {
-        EXPECT_JSON_EQ(R"json(["t",["~",0]])json", tree_string(u));
+        EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
     }
-    static char const* const expected_md_strings[] = {"true", ""};
-    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
-    static real_type const expected_flattened_bboxes[]
-        = {-inf, -inf, -inf, inf, inf, inf, inf, inf, inf, -inf, -inf, -inf};
-    EXPECT_VEC_SOFT_EQ(expected_flattened_bboxes, flattened_bboxes(u));
-    static int const expected_volume_nodes[] = {0};
-    EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
-    static char const* const expected_fill_strings[] = {"m123"};
-    EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
     EXPECT_EQ(NodeId{}, u.exterior);
 }
 
@@ -124,23 +122,21 @@ TEST_F(CsgUnitBuilderTest, single_surface)
 
     EXPECT_TRUE(u);
     static char const* const expected_surface_strings[] = {"Sphere: r=1"};
-    EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
-    if (CELERITAS_USE_JSON)
-    {
-        EXPECT_JSON_EQ(R"json(["t",["~",0],["S",0],["~",2]])json",
-                       tree_string(u));
-    }
     static char const* const expected_md_strings[]
         = {"", "", "exterior,sphere@o", "sphere,sphere@i,sphere_vol"};
-    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
-    static real_type const expected_flattened_bboxes[]
-        = {inf, inf, inf, -inf, -inf, -inf, inf, inf, inf, -inf, -inf, -inf,
-           inf, inf, inf, -inf, -inf, -inf, inf, inf, inf, -inf, -inf, -inf};
-    EXPECT_VEC_SOFT_EQ(expected_flattened_bboxes, flattened_bboxes(u));
     static int const expected_volume_nodes[] = {3, 2};
-    EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
     static char const* const expected_fill_strings[] = {"m1", "m0"};
+    static char const expected_tree_string[]
+        = R"json(["t",["~",0],["S",0],["~",2]])json";
+
+    EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+    EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
     EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
+    if (CELERITAS_USE_JSON)
+    {
+        EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
+    }
     EXPECT_EQ(NodeId{2}, u.exterior);
 }
 
@@ -195,38 +191,29 @@ TEST_F(CsgUnitBuilderTest, multi_level)
     builder.set_exterior(outer);
 
     EXPECT_TRUE(u);
-    // print_expected(u);
-
     static char const* const expected_surface_strings[]
         = {"Sphere: r=1", "Sphere: r=0.75", "Sphere: r=0.74999"};
-    EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
-    if (CELERITAS_USE_JSON)
-    {
-        EXPECT_JSON_EQ(
-            R"json(["t",["~",0],["S",0],["S",1],["~",2],["&",[3,4]],["~",3]])json",
-            tree_string(u));
-    }
-    static char const* const expected_md_strings[] = {
-        "",
-        "",
-        "coating@o,exterior",
-        "coating@i",
-        "",
-        "coating,coating_vol",
-        "daughter",
-    };
-    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
-    static real_type const expected_flattened_bboxes[]
-        = {inf,  inf,  inf,  -inf, -inf, -inf, inf,  inf,  inf, -inf, -inf,
-           -inf, inf,  inf,  inf,  -inf, -inf, -inf, inf,  inf, inf,  -inf,
-           -inf, -inf, inf,  inf,  inf,  -inf, -inf, -inf, inf, inf,  inf,
-           -inf, -inf, -inf, inf,  inf,  inf,  -inf, -inf, -inf};
-    EXPECT_VEC_SOFT_EQ(expected_flattened_bboxes, flattened_bboxes(u));
+    static char const* const expected_md_strings[] = {"",
+                                                      "",
+                                                      "coating@o,exterior",
+                                                      "coating@i",
+                                                      "",
+                                                      "coating,coating_vol",
+                                                      "daughter"};
     static int const expected_volume_nodes[] = {5, 6, 2};
-    EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
     static char const* const expected_fill_strings[]
         = {"m1", "{1,{{1,2,3}}", "m0"};
+    static char const expected_tree_string[]
+        = R"json(["t",["~",0],["S",0],["S",1],["~",2],["&",[3,4]],["~",3]])json";
+
+    EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+    EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
     EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
+    if (CELERITAS_USE_JSON)
+    {
+        EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
+    }
     EXPECT_EQ(NodeId{2}, u.exterior);
 }
 

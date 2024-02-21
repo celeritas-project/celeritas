@@ -14,6 +14,7 @@
 #include "celeritas_config.h"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Repr.hh"
+#include "orange/BoundingBoxUtils.hh"
 #include "orange/orangeinp/CsgTree.hh"
 #include "orange/orangeinp/detail/ConvexSurfaceState.hh"
 #include "orange/orangeinp/detail/CsgUnit.hh"
@@ -98,13 +99,37 @@ std::vector<std::string> md_strings(CsgUnit const& u)
 }
 
 //---------------------------------------------------------------------------//
-std::vector<real_type> flattened_bboxes(CsgUnit const& u)
+std::vector<std::string> bound_strings(CsgUnit const& u)
 {
-    std::vector<real_type> result;
-    for (auto const& bbox : u.bboxes)
+    std::vector<std::string> result;
+    for (auto&& [node, bzone] : u.bounds)
     {
-        result.insert(result.end(), bbox.lower().begin(), bbox.lower().end());
-        result.insert(result.end(), bbox.upper().begin(), bbox.upper().end());
+        std::ostringstream os;
+        os << std::setprecision(3);
+        if (bzone.negated)
+        {
+            os << "~";
+        }
+        os << node.unchecked_get() << ": {";
+        auto print_bb = [&os](BBox const& bb) {
+            if (!bb)
+            {
+                os << "null";
+            }
+            else if (is_infinite(bb))
+            {
+                os << "inf";
+            }
+            else
+            {
+                os << bb;
+            }
+        };
+        print_bb(bzone.interior);
+        os << ", ";
+        print_bb(bzone.exterior);
+        os << '}';
+        result.push_back(std::move(os).str());
     }
     return result;
 }
@@ -193,8 +218,8 @@ void print_expected(CsgUnit const& u)
               << repr(surface_strings(u)) << ";\n"
               << "static char const * const expected_md_strings[] = "
               << repr(md_strings(u)) << ";\n"
-              << "static real_type const expected_flattened_bboxes[] = "
-              << repr(flattened_bboxes(u)) << ";\n"
+              << "static char const * const expected_bound_strings[] = "
+              << repr(bound_strings(u)) << ";\n"
               << "static int const expected_volume_nodes[] = "
               << repr(volume_nodes(u)) << ";\n"
               << "static char const * const expected_fill_strings[] = "
@@ -204,7 +229,7 @@ void print_expected(CsgUnit const& u)
               << R"cpp(
 EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
 EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
-EXPECT_VEC_SOFT_EQ(expected_flattened_bboxes, flattened_bboxes(u));
+EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
 EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
 EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
 if (CELERITAS_USE_JSON)

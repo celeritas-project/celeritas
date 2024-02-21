@@ -25,19 +25,27 @@ CsgUnitBuilder::CsgUnitBuilder(CsgUnit* u, Tolerance<> const& tol)
 
     // Resize because the tree comes prepopulated with true/false
     unit_->metadata.resize(unit_->tree.size());
-    unit_->bboxes.resize(unit_->tree.size());
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Set a bounding box for a node.
+ * Set a bounding zone for a node.
  */
-void CsgUnitBuilder::set_bbox(NodeId n, BBox const& bbox)
+void CsgUnitBuilder::set_bounds(NodeId n, BoundingZone const& bzone)
 {
-    CELER_EXPECT(n < unit_->bboxes.size());
-    CELER_EXPECT(!unit_->bboxes[n.unchecked_get()]);
+    CELER_EXPECT(n < unit_->tree.size());
 
-    unit_->bboxes[n.unchecked_get()] = bbox;
+    auto&& [iter, inserted] = unit_->bounds.insert({n, bzone});
+    if (!inserted)
+    {
+        // The existing bounding zone *SHOULD BE IDENTICAL*.
+        // For now this is a rough check...
+        CELER_ASSERT(bzone.negated == iter->second.negated);
+        CELER_ASSERT(static_cast<bool>(bzone.interior)
+                     == static_cast<bool>(iter->second.interior));
+        CELER_ASSERT(static_cast<bool>(bzone.exterior)
+                     == static_cast<bool>(iter->second.exterior));
+    }
 }
 
 //---------------------------------------------------------------------------//

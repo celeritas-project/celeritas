@@ -20,9 +20,11 @@ namespace detail
 /*!
  * Add a region to the CSG tree.
  */
-NodeId VolumeBuilder::insert_region(Metadata&& md, Joined&& j, BoundingZone&&)
+NodeId
+VolumeBuilder::insert_region(Metadata&& md, Joined&& j, BoundingZone&& bzone)
 {
-    auto&& [node_id, inserted] = ub_->insert_csg(std::move(j));
+    auto node_id = ub_->insert_csg(std::move(j)).first;
+    ub_->set_bounds(node_id, std::move(bzone));
 
     // Always add metadata
     ub_->insert_md(node_id, std::move(md));

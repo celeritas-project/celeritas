@@ -40,7 +40,7 @@ std::vector<int> to_vec_int(std::vector<NodeId> const& nodes);
 std::vector<std::string> surface_strings(CsgUnit const& u);
 std::string tree_string(CsgUnit const& u);
 std::vector<std::string> md_strings(CsgUnit const& u);
-std::vector<real_type> flattened_bboxes(CsgUnit const& u);
+std::vector<std::string> bound_strings(CsgUnit const& u);
 std::vector<int> volume_nodes(CsgUnit const& u);
 std::vector<std::string> fill_strings(CsgUnit const& u);
 std::vector<real_type> flattened(BoundingZone const& bz);

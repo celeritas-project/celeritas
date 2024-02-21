@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <map>
 #include <set>
 #include <variant>
 #include <vector>
@@ -17,6 +18,7 @@
 #include "orange/surf/VariantSurface.hh"
 #include "orange/transform/VariantTransform.hh"
 
+#include "BoundingZone.hh"
 #include "../CsgTree.hh"
 #include "../CsgTypes.hh"
 
@@ -39,7 +41,7 @@ namespace detail
  *
  * All bounding boxes and transforms are "local" within the CSG unit's
  * reference frame, not relative to any other CSG node nor to any parent
- * universe. (TODO: add bboxes and transforms only for finite regions)
+ * universe. (TODO: add bounds and transforms only for finite regions)
  *
  * TODO: map of SP object to detailed provenance?
  */
@@ -49,7 +51,6 @@ struct CsgUnit
 
     using Metadata = Label;
     using SetMd = std::set<Metadata>;
-    using BBox = ::celeritas::BoundingBox<>;
     using Fill = std::variant<std::monostate, MaterialId, Daughter>;
 
     //// DATA ////
@@ -65,7 +66,7 @@ struct CsgUnit
     //! Vectors are indexed by NodeId.
     CsgTree tree;  //!< CSG tree
     std::vector<SetMd> metadata;  //!< CSG node labels
-    std::vector<BBox> bboxes;
+    std::map<NodeId, BoundingZone> bounds;  //!< Interior/exterior bbox
     //!@}
 
     //!@{
@@ -108,8 +109,7 @@ inline constexpr bool is_filled(CsgUnit::Fill const& fill)
  */
 CsgUnit::operator bool() const
 {
-    return this->metadata.size() == this->tree.size()
-           && this->bboxes.size() == this->tree.size() && !this->volumes.empty()
+    return this->metadata.size() == this->tree.size() && !this->volumes.empty()
            && this->volumes.size() == this->fills.size();
 }
 
@@ -120,7 +120,7 @@ CsgUnit::operator bool() const
 bool CsgUnit::empty() const
 {
     return this->surfaces.empty() && this->metadata.empty()
-           && this->bboxes.empty() && this->volumes.empty()
+           && this->bounds.empty() && this->volumes.empty()
            && this->fills.empty() && !this->exterior
            && this->transforms.empty();
 }
