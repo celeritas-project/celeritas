@@ -45,7 +45,7 @@ class ConvexRegionTest : public ::celeritas::test::Test
     };
 
   protected:
-    TestResult test(ConvexRegion const& r);
+    TestResult test(ConvexRegionInterface const& r);
 
   private:
     Unit unit_;
@@ -53,7 +53,7 @@ class ConvexRegionTest : public ::celeritas::test::Test
     VariantTransform transform_;
 };
 
-auto ConvexRegionTest::test(ConvexRegion const& r) -> TestResult
+auto ConvexRegionTest::test(ConvexRegionInterface const& r) -> TestResult
 {
     detail::ConvexSurfaceState css;
     css.transform = &transform_;

@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/orangeinp/ConvexRegion.hh
+//! \brief Contains ConvexRegionInterface and concrete daughters
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -19,13 +20,16 @@ class ConvexSurfaceBuilder;
 
 //---------------------------------------------------------------------------//
 /*!
- * A non-reentrant volume of space for building more complex objects.
+ * Interface class for building non-reentrant spatial regions.
+ *
+ * This is a building class for constructing more complex objects out of
+ * smaller spatial regions.
  *
  * When implementing this class, prefer to build simpler surfaces (planes)
  * before complex ones (cones) in case we implement short-circuiting logic,
  * since expressions are currently sorted.
  */
-class ConvexRegion
+class ConvexRegionInterface
 {
   public:
     //! Construct surfaces that are AND-ed into this region
@@ -36,9 +40,9 @@ class ConvexRegion
   protected:
     //!@{
     //! Allow construction and assignment only through daughter classes
-    ConvexRegion() = default;
-    virtual ~ConvexRegion() = default;
-    CELER_DEFAULT_COPY_MOVE(ConvexRegion);
+    ConvexRegionInterface() = default;
+    virtual ~ConvexRegionInterface() = default;
+    CELER_DEFAULT_COPY_MOVE(ConvexRegionInterface);
     //!@}
 };
 
@@ -46,7 +50,7 @@ class ConvexRegion
 /*!
  * A rectangular parallelepiped/cuboid centered on the origin.
  */
-class Box final : public ConvexRegion
+class Box final : public ConvexRegionInterface
 {
   public:
     // Construct with half-widths
@@ -67,7 +71,7 @@ class Box final : public ConvexRegion
  * allowed to have equal radii: for that, use a cylinder. This, along with the
  * Cylinder, is a base component of the G4Polycone (PCON).
  */
-class Cone final : public ConvexRegion
+class Cone final : public ConvexRegionInterface
 {
   public:
     //!@{
@@ -91,7 +95,7 @@ class Cone final : public ConvexRegion
 /*!
  * A Z-aligned cylinder centered on the origin.
  */
-class Cylinder final : public ConvexRegion
+class Cylinder final : public ConvexRegionInterface
 {
   public:
     // Construct with radius
@@ -109,7 +113,7 @@ class Cylinder final : public ConvexRegion
 /*!
  * An axis-alligned ellipsoid centered at the origin.
  */
-class Ellipsoid final : public ConvexRegion
+class Ellipsoid final : public ConvexRegionInterface
 {
   public:
     // Construct with radius
@@ -140,7 +144,7 @@ class Ellipsoid final : public ConvexRegion
  * - n=4 is a diamond
  * - n=6 is a pointy-top hexagon
  */
-class Prism final : public ConvexRegion
+class Prism final : public ConvexRegionInterface
 {
   public:
     // Construct with inner radius (apothem), half height, and orientation
@@ -170,7 +174,7 @@ class Prism final : public ConvexRegion
 /*!
  * A sphere centered on the origin.
  */
-class Sphere final : public ConvexRegion
+class Sphere final : public ConvexRegionInterface
 {
   public:
     // Construct with radius
