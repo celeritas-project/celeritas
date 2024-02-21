@@ -12,6 +12,7 @@
 #include "corecel/cont/VariantUtils.hh"
 
 #include "NoTransformation.hh"
+#include "SignedPermutation.hh"
 #include "TransformTypeTraits.hh"
 #include "Transformation.hh"
 #include "Translation.hh"

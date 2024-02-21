@@ -17,6 +17,8 @@
 
 namespace celeritas
 {
+namespace orangeinp
+{
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -125,4 +127,5 @@ LocalSurfaceId LocalSurfaceInserter::operator()(S const& source)
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
+}  // namespace orangeinp
 }  // namespace celeritas

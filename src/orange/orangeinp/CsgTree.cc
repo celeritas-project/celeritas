@@ -78,8 +78,8 @@ auto CsgTree::insert(Node&& n) -> NodeId
 
     {
         // Try to simplify the node up to one level when inserting.
-        Node repl = std::visit(NodeSimplifier{*this}, n);
-        if (repl != Node{NodeSimplifier::no_simplification()})
+        Node repl = std::visit(detail::NodeSimplifier{*this}, n);
+        if (repl != Node{detail::NodeSimplifier::no_simplification()})
         {
             n = std::move(repl);
             if (auto* a = std::get_if<orangeinp::Aliased>(&n))
@@ -112,8 +112,8 @@ auto CsgTree::exchange(NodeId node_id, Node&& n) -> Node
                  && std::visit(IsUserNodeValid{node_id.unchecked_get()}, n));
 
     //! Simplify the node first
-    Node repl = std::visit(NodeSimplifier{*this}, n);
-    if (repl != Node{NodeSimplifier::no_simplification()})
+    Node repl = std::visit(detail::NodeSimplifier{*this}, n);
+    if (repl != Node{detail::NodeSimplifier::no_simplification()})
     {
         n = std::move(repl);
     }

@@ -16,6 +16,8 @@ namespace celeritas
 {
 namespace orangeinp
 {
+namespace detail
+{
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -160,5 +162,6 @@ auto NodeSimplifier::operator()(Joined& j) const -> Node
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace orangeinp
 }  // namespace celeritas

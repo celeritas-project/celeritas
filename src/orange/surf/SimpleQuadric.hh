@@ -34,7 +34,8 @@ class Sphere;
    ax^2 + by^2 + cz^2 + dx + ey + fz + g = 0
   \f]
  *
- * This can represent hyperboloids, ellipsoids, elliptical cylinders, etc.
+ * This can represent axis-aligned hyperboloids, ellipsoids, elliptical
+ * cylinders, etc.
  */
 class SimpleQuadric
 {

@@ -60,8 +60,8 @@ TEST_F(SurfaceClipperTest, inside)
 {
     ClipResult cr;
     cr = this->test_clip(PlaneX{4});
-    EXPECT_VEC_SOFT_EQ((Real3{4, -inf, -inf}), cr.i.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, inf}), cr.i.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -inf}), cr.i.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{4, inf, inf}), cr.i.upper());
     EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -inf}), cr.x.lower());
     EXPECT_VEC_SOFT_EQ((Real3{4, inf, inf}), cr.x.upper());
     cr = this->test_clip(CCylZ{3});

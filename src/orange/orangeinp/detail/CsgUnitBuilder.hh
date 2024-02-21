@@ -81,8 +81,6 @@ class CsgUnitBuilder
     void set_exterior(NodeId);
 
   private:
-    using LocalSurfaceInserter = ::celeritas::detail::LocalSurfaceInserter;
-
     CsgUnit* unit_;
     Tol tol_;
     LocalSurfaceInserter insert_surface_;

@@ -18,7 +18,10 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Truncate a bounding zone using a surface.
+ * Truncate a bounding zone using a convex quadric surface.
+ *
+ * Convex surfaces are planes, spheroids, cylinders, parabolic cylinders, and
+ * paraboloids. All but the spheroids are infinite in at least one direction.
  *
  * This \em reduces the size of inner and outer bounding boxes to fit a
  * surface. The \c interior bounding box is modified to be entirely \em inside
@@ -32,6 +35,9 @@ namespace celeritas
  *
  * Shrinking bounding boxes will accelerate "distance to in" and "distance
  * to out" calculations.
+ *
+ * TODO: move to orangeinp/detail, use BZone, combine with
+ * NegatedSurfaceClipper.
  */
 class SurfaceClipper
 {
@@ -68,8 +74,8 @@ class SurfaceClipper
     void operator()(VariantSurface const& surf) const;
 
   private:
-    BBox* int_;
-    BBox* ext_;
+    BBox* int_{nullptr};
+    BBox* ext_{nullptr};
 };
 
 //---------------------------------------------------------------------------//

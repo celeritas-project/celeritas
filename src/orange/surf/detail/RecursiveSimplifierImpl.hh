@@ -9,6 +9,11 @@
 
 #include <variant>
 
+#include "corecel/Macros.hh"
+#include "orange/OrangeTypes.hh"
+
+#include "../SurfaceSimplifier.hh"
+
 namespace celeritas
 {
 namespace detail

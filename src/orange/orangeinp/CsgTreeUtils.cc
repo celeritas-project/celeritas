@@ -40,7 +40,7 @@ NodeId replace_down(CsgTree* tree, NodeId n, Node repl)
 {
     CELER_EXPECT(is_boolean_node(repl));
 
-    NodeReplacementInserter::VecNode stack{{n, std::move(repl)}};
+    detail::NodeReplacementInserter::VecNode stack{{n, std::move(repl)}};
 
     NodeId lowest_node{n};
 
@@ -52,7 +52,7 @@ NodeId replace_down(CsgTree* tree, NodeId n, Node repl)
         lowest_node = std::min(n, lowest_node);
 
         Node prev = tree->exchange(n, std::move(repl));
-        std::visit(NodeReplacementInserter{&stack, repl}, prev);
+        std::visit(detail::NodeReplacementInserter{&stack, repl}, prev);
     }
     return lowest_node;
 }
@@ -107,13 +107,13 @@ void simplify(CsgTree* tree, NodeId start)
  * Convert a node to postfix notation.
  */
 std::vector<LocalSurfaceId::size_type>
-build_postfix(CsgTree const& tree, orangeinp::NodeId n)
+build_postfix(CsgTree const& tree, NodeId n)
 {
     CELER_EXPECT(n < tree.size());
     std::vector<LocalSurfaceId::size_type> result;
-    orangeinp::PostfixLogicBuilder build_logic{tree, &result};
+    detail::PostfixLogicBuilder build_impl{tree, &result};
 
-    build_logic(n);
+    build_impl(n);
     return result;
 }
 

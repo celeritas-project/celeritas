@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <algorithm>
+
 #include "corecel/cont/Span.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "geocel/Types.hh"
@@ -115,7 +117,22 @@ class Transformation
 };
 
 //---------------------------------------------------------------------------//
-// INLINE FUNCTIONS
+//!@{
+//! Host-only comparators
+inline bool operator==(Transformation const& a, Transformation const& b)
+{
+    auto a_data = a.data();
+    return std::equal(a_data.begin(), a_data.end(), b.data().begin());
+}
+
+inline bool operator!=(Transformation const& a, Transformation const& b)
+{
+    return !(a == b);
+}
+//!@}
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Construct inline from storage.

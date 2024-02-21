@@ -11,12 +11,18 @@
 #include "orange/OrangeData.hh"
 #include "orange/detail/LevelStateAccessor.hh"
 #include "orange/univ/SimpleUnitTracker.hh"
+#include "orange/univ/detail/Types.hh"
 
 namespace celeritas
 {
 namespace test
 {
+//---------------------------------------------------------------------------//
+// TYPEDEFS
+//---------------------------------------------------------------------------//
+
 using LocalState = detail::LocalState;
+using LSA = detail::LevelStateAccessor;
 
 template<MemSpace M>
 using ParamsRef = OrangeParamsData<Ownership::const_reference, M>;
@@ -45,7 +51,7 @@ inline CELER_FUNCTION LocalState build_local_state(ParamsRef<M> params,
     // Create local state from global memory
     LocalState lstate;
 
-    LevelStateAccessor lsa(&states, tid, LevelId{0});
+    LSA lsa(&states, tid, LevelId{0});
     lstate.pos = lsa.pos();
     lstate.dir = lsa.dir();
     lstate.volume = lsa.vol();
@@ -84,7 +90,7 @@ struct InitializingExecutor
 
         // TODO: for multiuniverses tests, we actually have to iterate
         // through daughter universes to assign the level and volume
-        LevelStateAccessor lsa(&states, tid, LevelId{0});
+        LSA lsa(&states, tid, LevelId{0});
         lsa.vol() = init.volume;
 
         lstate.volume = init.volume;

@@ -9,6 +9,8 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * Construct with a reference to all universe inputs.
@@ -74,4 +76,5 @@ size_type DepthCalculator::operator()(UniverseId uid)
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

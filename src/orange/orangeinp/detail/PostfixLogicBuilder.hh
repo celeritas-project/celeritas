@@ -16,6 +16,8 @@ namespace celeritas
 {
 namespace orangeinp
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * Recursively construct a logic vector from a node with postfix operation.
@@ -38,7 +40,7 @@ class PostfixLogicBuilder
 
   public:
     // Construct with pointer to vector to append to
-    explicit inline PostfixLogicBuilder(CsgTree const& tree, VecLogic* logic);
+    inline PostfixLogicBuilder(CsgTree const& tree, VecLogic* logic);
 
     //! Build from a node ID
     inline void operator()(NodeId const& n);
@@ -156,5 +158,6 @@ void PostfixLogicBuilder::operator()(Joined const& n)
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace orangeinp
 }  // namespace celeritas

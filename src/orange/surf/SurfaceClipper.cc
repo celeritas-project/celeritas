@@ -45,8 +45,8 @@ SurfaceClipper::SurfaceClipper(BBox* interior, BBox* exterior)
 template<Axis T>
 void SurfaceClipper::operator()(PlaneAligned<T> const& s) const
 {
+    int_->shrink(Bound::hi, T, s.position());
     ext_->shrink(Bound::hi, T, s.position());
-    int_->shrink(Bound::lo, T, s.position());
 }
 
 //!\cond
@@ -89,12 +89,12 @@ void SurfaceClipper::operator()(CylAligned<T> const& s) const
     {
         if (T != ax)
         {
-            ext_->shrink(Bound::lo, ax, origin[to_int(ax)] - radius);
-            ext_->shrink(Bound::hi, ax, origin[to_int(ax)] + radius);
             int_->shrink(
                 Bound::lo, ax, origin[to_int(ax)] - sqrt_half * radius);
             int_->shrink(
                 Bound::hi, ax, origin[to_int(ax)] + sqrt_half * radius);
+            ext_->shrink(Bound::lo, ax, origin[to_int(ax)] - radius);
+            ext_->shrink(Bound::hi, ax, origin[to_int(ax)] + radius);
         }
     }
 }
@@ -109,7 +109,8 @@ ORANGE_INSTANTIATE_OP(CylAligned);
  */
 void SurfaceClipper::operator()(Plane const&) const
 {
-    // No simplification at present
+    // We no longer can guarantee any point being inside the shape; reset it
+    *int_ = BoundingBox{};
 }
 
 //---------------------------------------------------------------------------//
@@ -122,10 +123,10 @@ void SurfaceClipper::operator()(Sphere const& s) const
     auto const& origin = s.origin();
     for (auto ax : range(Axis::size_))
     {
-        ext_->shrink(Bound::lo, ax, origin[to_int(ax)] - radius);
-        ext_->shrink(Bound::hi, ax, origin[to_int(ax)] + radius);
         int_->shrink(Bound::lo, ax, origin[to_int(ax)] - sqrt_third * radius);
         int_->shrink(Bound::hi, ax, origin[to_int(ax)] + sqrt_third * radius);
+        ext_->shrink(Bound::lo, ax, origin[to_int(ax)] - radius);
+        ext_->shrink(Bound::hi, ax, origin[to_int(ax)] + radius);
     }
 }
 
@@ -136,8 +137,13 @@ void SurfaceClipper::operator()(Sphere const& s) const
 template<Axis T>
 void SurfaceClipper::operator()(ConeAligned<T> const&) const
 {
-    // No clipping at present
+    // We no longer can guarantee any point being inside the shape; reset it
+    *int_ = BoundingBox{};
 }
+
+//!\cond
+ORANGE_INSTANTIATE_OP(ConeAligned);
+//!\endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -145,14 +151,19 @@ void SurfaceClipper::operator()(ConeAligned<T> const&) const
  */
 void SurfaceClipper::operator()(SimpleQuadric const&) const
 {
-    // No clipping at present
+    // We no longer can guarantee any point being inside the shape; reset it
+    *int_ = BoundingBox{};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Clip the bounding boxes to a general quadric.
  */
-void SurfaceClipper::operator()(GeneralQuadric const&) const {}
+void SurfaceClipper::operator()(GeneralQuadric const&) const
+{
+    // We no longer can guarantee any point being inside the shape; reset it
+    *int_ = BoundingBox{};
+}
 
 //---------------------------------------------------------------------------//
 /*!
