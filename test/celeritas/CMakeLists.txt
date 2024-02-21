@@ -77,6 +77,7 @@ celeritas_add_library(testcel_celeritas
   global/StepperTestBase.cc
   grid/CalculatorTestBase.cc
   io/EventIOTestBase.cc
+  optical/OpticalTestBase.cc
   phys/InteractionIO.cc
   phys/InteractorHostTestBase.cc
   phys/MockModel.cc
