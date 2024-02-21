@@ -14,6 +14,8 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * Accesss the 2D fields (i.e., {thread, level}) of OrangeStateData
@@ -116,4 +118,5 @@ LevelStateAccessor::operator=(LevelStateAccessor const& other)
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

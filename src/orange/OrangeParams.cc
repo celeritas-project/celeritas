@@ -127,7 +127,7 @@ OrangeParams::OrangeParams(OrangeInput input)
     // Create host data for construction, setting tolerances first
     HostVal<OrangeParamsData> host_data;
     host_data.scalars.tol = input.tol;
-    host_data.scalars.max_depth = DepthCalculator{input.universes}();
+    host_data.scalars.max_depth = detail::DepthCalculator{input.universes}();
 
     // Insert all universes
     {

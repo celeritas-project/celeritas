@@ -14,13 +14,14 @@
 
 #include "OrangeData.hh"
 #include "OrangeTypes.hh"
-#include "detail/LevelStateAccessor.hh"
-#include "detail/UniverseIndexer.hh"
 #include "transform/TransformVisitor.hh"
 #include "univ/SimpleUnitTracker.hh"
 #include "univ/TrackerVisitor.hh"
 #include "univ/UniverseTypeTraits.hh"
 #include "univ/detail/Types.hh"
+
+#include "detail/LevelStateAccessor.hh"
+#include "detail/UniverseIndexer.hh"
 
 namespace celeritas
 {
@@ -123,6 +124,10 @@ class OrangeTrackView
     inline CELER_FUNCTION void set_dir(Real3 const& newdir);
 
   private:
+    //// TYPES ////
+
+    using LSA = detail::LevelStateAccessor;
+
     //// DATA ////
 
     ParamsRef const& params_;
@@ -204,13 +209,13 @@ class OrangeTrackView
     inline CELER_FUNCTION void clear_surface();
 
     // Make a LevelStateAccessor for the current thread and level
-    inline CELER_FUNCTION LevelStateAccessor make_lsa() const;
+    inline CELER_FUNCTION LSA make_lsa() const;
 
     // Make a LevelStateAccessor for the current thread and a given level
-    inline CELER_FUNCTION LevelStateAccessor make_lsa(LevelId level) const;
+    inline CELER_FUNCTION LSA make_lsa(LevelId level) const;
 
     // Get the daughter ID for the volume in the universe (or null)
-    inline CELER_FUNCTION DaughterId get_daughter(LevelStateAccessor const& lsa);
+    inline CELER_FUNCTION DaughterId get_daughter(LSA const& lsa);
 
     // Get the transform ID for the given daughter.
     inline CELER_FUNCTION TransformId get_transform(DaughterId daughter_id);
@@ -1056,7 +1061,7 @@ CELER_FUNCTION void OrangeTrackView::clear_surface()
 /*!
  * Make a LevelStateAccessor for the current thread and level.
  */
-CELER_FORCEINLINE_FUNCTION LevelStateAccessor OrangeTrackView::make_lsa() const
+CELER_FORCEINLINE_FUNCTION auto OrangeTrackView::make_lsa() const -> LSA
 {
     return this->make_lsa(this->level());
 }
@@ -1065,10 +1070,10 @@ CELER_FORCEINLINE_FUNCTION LevelStateAccessor OrangeTrackView::make_lsa() const
 /*!
  * Make a LevelStateAccessor for the current thread and a given level.
  */
-CELER_FORCEINLINE_FUNCTION LevelStateAccessor
-OrangeTrackView::make_lsa(LevelId level) const
+CELER_FORCEINLINE_FUNCTION auto OrangeTrackView::make_lsa(LevelId level) const
+    -> LSA
 {
-    return LevelStateAccessor(&states_, track_slot_, level);
+    return LSA(&states_, track_slot_, level);
 }
 
 //---------------------------------------------------------------------------//
@@ -1077,8 +1082,7 @@ OrangeTrackView::make_lsa(LevelId level) const
  *
  * \return DaughterId or {} if the current volume is a leaf.
  */
-CELER_FUNCTION DaughterId
-OrangeTrackView::get_daughter(LevelStateAccessor const& lsa)
+CELER_FUNCTION DaughterId OrangeTrackView::get_daughter(LSA const& lsa)
 {
     TrackerVisitor visit_tracker{params_};
     return visit_tracker([&lsa](auto&& t) { return t.daughter(lsa.vol()); },
@@ -1102,7 +1106,7 @@ CELER_FUNCTION TransformId OrangeTrackView::get_transform(DaughterId daughter_id
 CELER_FUNCTION TransformId OrangeTrackView::get_transform(LevelId lev)
 {
     CELER_EXPECT(lev < this->level());
-    LevelStateAccessor lsa(&states_, track_slot_, lev);
+    LSA lsa(&states_, track_slot_, lev);
     return this->get_transform(this->get_daughter(lsa));
 }
 

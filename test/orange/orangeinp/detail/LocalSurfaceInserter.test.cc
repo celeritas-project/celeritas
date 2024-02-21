@@ -17,6 +17,8 @@
 
 namespace celeritas
 {
+namespace orangeinp
+{
 namespace detail
 {
 namespace test
@@ -130,4 +132,5 @@ TEST_F(LocalSurfaceInserterTest, DISABLED_performance_test)
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace detail
+}  // namespace orangeinp
 }  // namespace celeritas

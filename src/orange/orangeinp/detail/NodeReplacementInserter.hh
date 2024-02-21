@@ -17,6 +17,8 @@ namespace celeritas
 {
 namespace orangeinp
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * Add a node ID and its "replaced" value.
@@ -142,5 +144,6 @@ void NodeReplacementInserter::operator()(Joined const& n)
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace orangeinp
 }  // namespace celeritas
