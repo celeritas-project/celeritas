@@ -86,8 +86,8 @@ UrbanMsc::is_applicable(CoreTrackView const& track, real_type step) const
         && par.particle_id() != msc_params_.ids.positron)
         return false;
 
-    return par.energy() > msc_params_.params.low_energy_limit
-           && par.energy() < msc_params_.params.high_energy_limit;
+    return par.energy() > msc_params_.msc_params.low_energy_limit
+           && par.energy() < msc_params_.msc_params.high_energy_limit;
 }
 
 //---------------------------------------------------------------------------//

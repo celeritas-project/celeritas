@@ -262,7 +262,7 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
         {
             nlohmann::json out = opts;
             EXPECT_JSON_EQ(
-                R"json({"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban_extended","msc_lambda_limit":0.1,"msc_range_factor":0.04,"msc_safety_factor":0.6,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","verbose":true})json",
+                R"json({"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban_extended","msc_geom_factor":2.5,"msc_lambda_limit":0.1,"msc_range_factor":0.04,"msc_safety_factor":0.6,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","verbose":true})json",
                 std::string(out.dump()));
         }
 #endif
@@ -301,7 +301,7 @@ class OneSteelSphere : public GeantImporterTest
     GeantPhysicsOptions build_geant_options() const override
     {
         GeantPhysicsOptions opts;
-        opts.msc = MscModelSelection::urban;
+        opts.msc = MscModelSelection::urban_wentzel;
         opts.relaxation = RelaxationSelection::none;
         opts.verbose = false;
         return opts;
@@ -1251,18 +1251,35 @@ TEST_F(OneSteelSphere, physics)
         EXPECT_SOFT_EQ(9549.651635687942, steel.x.front());
         EXPECT_SOFT_EQ(1e8, steel.x.back());
     }
-    // Check MSC bounds
     {
-        // Check the ionization electron macro xs
+        // Check Urban MSC bounds
         ImportMscModel const& msc = this->find_msc_model(
             celeritas::pdg::electron(), ImportModelClass::urban_msc);
         EXPECT_TRUE(msc);
         for (ImportPhysicsVector const& pv : msc.xs_table.physics_vectors)
         {
-            ASSERT_FALSE(pv.x.empty());
+            ASSERT_TRUE(pv);
             EXPECT_SOFT_EQ(1e-4, pv.x.front());
             EXPECT_SOFT_EQ(1e2, pv.x.back());
         }
+        auto const& steel = msc.xs_table.physics_vectors.back();
+        EXPECT_SOFT_EQ(0.23785296407525, steel.y.front());
+        EXPECT_SOFT_EQ(128.58803359467, steel.y.back());
+    }
+    {
+        // Check Wentzel VI MSC bounds
+        ImportMscModel const& msc = this->find_msc_model(
+            celeritas::pdg::electron(), ImportModelClass::wentzel_vi_uni);
+        EXPECT_TRUE(msc);
+        for (ImportPhysicsVector const& pv : msc.xs_table.physics_vectors)
+        {
+            ASSERT_TRUE(pv);
+            EXPECT_SOFT_EQ(1e2, pv.x.front());
+            EXPECT_SOFT_EQ(1e8, pv.x.back());
+        }
+        auto const& steel = msc.xs_table.physics_vectors.back();
+        EXPECT_SOFT_EQ(114.93265072267, steel.y.front());
+        EXPECT_SOFT_EQ(116.59035766356, steel.y.back());
     }
 }
 
@@ -1292,9 +1309,8 @@ TEST_F(OneSteelSphereGG, physics)
                                             "livermore_rayleigh"};
     EXPECT_VEC_EQ(expected_models, summary.models);
 
-    // Check MSC bounds
     {
-        // Check the ionization electron macro xs
+        // Check Urban MSC bounds
         ImportMscModel const& msc = this->find_msc_model(
             celeritas::pdg::electron(), ImportModelClass::urban_msc);
         EXPECT_TRUE(msc);

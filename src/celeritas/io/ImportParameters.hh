@@ -43,6 +43,8 @@ struct ImportEmParameters
     double lowest_electron_energy{0.001};
     //! Whether auger emission should be enabled (valid only for relaxation)
     bool auger{false};
+    //! MSC geometry factor
+    double msc_geom_factor{2.5};
     //! MSC range factor for e-/e+
     double msc_range_factor{0.04};
     //! MSC safety factor
@@ -58,9 +60,9 @@ struct ImportEmParameters
     explicit operator bool() const
     {
         return linear_loss_limit > 0 && lowest_electron_energy > 0
-               && msc_range_factor > 0 && msc_range_factor < 1
-               && msc_safety_factor >= 0.1 && msc_lambda_limit > 0
-               && screening_factor > 0;
+               && msc_geom_factor >= 1 && msc_range_factor > 0
+               && msc_range_factor < 1 && msc_safety_factor >= 0.1
+               && msc_lambda_limit > 0 && screening_factor > 0;
     }
 };
 

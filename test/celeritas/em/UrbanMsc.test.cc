@@ -231,8 +231,10 @@ TEST_F(UrbanMscTest, coeff_data)
 {
     auto const& params = msc_params_->host_ref();
 
-    EXPECT_SOFT_EQ(1e-4, value_as<MevEnergy>(params.params.low_energy_limit));
-    EXPECT_SOFT_EQ(1e2, value_as<MevEnergy>(params.params.high_energy_limit));
+    EXPECT_SOFT_EQ(1e-4,
+                   value_as<MevEnergy>(params.msc_params.low_energy_limit));
+    EXPECT_SOFT_EQ(1e2,
+                   value_as<MevEnergy>(params.msc_params.high_energy_limit));
     {
         // Check steel material data
         auto mid = this->material()->find_material("G4_STAINLESS-STEEL");

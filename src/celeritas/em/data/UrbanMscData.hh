@@ -14,6 +14,8 @@
 #include "celeritas/Types.hh"
 #include "celeritas/grid/XsGridData.hh"
 
+#include "MscData.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -32,13 +34,8 @@ struct UrbanMscParameters
     real_type tau_small{1e-16};  //!< small value of tau
     real_type tau_big{8};  //!< big value of tau
     real_type tau_limit{1e-6};  //!< limit of tau
-    real_type lambda_limit{1 * units::millimeter};  //!< lambda limit
-    real_type range_fact{0.04};  //!< range_factor for e-/e+ (0.2 for muon/h)
-    real_type safety_fact{0.6};  //!< safety factor
     real_type safety_tol{0.01};  //!< safety tolerance
     real_type geom_limit{5e-8 * units::millimeter};  //!< minimum step
-    Energy low_energy_limit{0};
-    Energy high_energy_limit{0};
 
     //! A scale factor for the range
     static CELER_CONSTEXPR_FUNCTION real_type dtrl() { return 5e-2; }
@@ -99,24 +96,6 @@ struct UrbanMscMaterialData
 
 //---------------------------------------------------------------------------//
 /*!
- * Physics IDs for MSC.
- *
- * TODO these will probably be changed to a map over all particle IDs.
- */
-struct UrbanMscIds
-{
-    ParticleId electron;
-    ParticleId positron;
-
-    //! Whether the IDs are assigned
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return electron && positron;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Particle- and material-dependent data for MSC.
  *
  * The scaled Zeff parameters are:
@@ -160,10 +139,12 @@ struct UrbanMscData
     //// DATA ////
 
     //! Particle IDs
-    UrbanMscIds ids;
+    MscIds ids;
     //! Mass of of electron in MeV
     units::MevMass electron_mass;
     //! User-assignable options
+    MscParameters msc_params;
+    //! Model-specific user-assignable options
     UrbanMscParameters params;
     //! Material-dependent data
     MaterialItems<UrbanMscMaterialData> material_data;
@@ -189,6 +170,7 @@ struct UrbanMscData
         CELER_EXPECT(other);
         ids = other.ids;
         electron_mass = other.electron_mass;
+        msc_params = other.msc_params;
         params = other.params;
         material_data = other.material_data;
         par_mat_data = other.par_mat_data;

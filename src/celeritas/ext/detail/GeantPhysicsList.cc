@@ -72,6 +72,7 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
     em_parameters.SetAuger(options.relaxation == RelaxationSelection::all);
     em_parameters.SetIntegral(options.integral_approach);
     em_parameters.SetLinearLossLimit(options.linear_loss_limit);
+    em_parameters.SetMscGeomFactor(options.msc_geom_factor);
     em_parameters.SetMscRangeFactor(options.msc_range_factor);
 #if G4VERSION_NUMBER >= 1060
     // Customizable MSC safety factor/lambda limit were added in

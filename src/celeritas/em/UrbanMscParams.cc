@@ -108,9 +108,9 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
     CELER_VALIDATE(options.range_fact > 0 && options.range_fact < 1,
                    << "invalid range_fact=" << options.range_fact
                    << " (should be within 0 < limit < 1)");
-    host_data.params.lambda_limit = options.lambda_limit;
-    host_data.params.range_fact = options.range_fact;
-    host_data.params.safety_fact = options.safety_fact;
+    host_data.msc_params.lambda_limit = options.lambda_limit;
+    host_data.msc_params.range_fact = options.range_fact;
+    host_data.msc_params.safety_fact = options.safety_fact;
 
     // Filter MSC data by model and particle type
     std::vector<ImportMscModel const*> urban_data(particles.size(), nullptr);
@@ -157,8 +157,10 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
             = get_scaled_xs(host_data.ids.electron)->physics_vectors;
         CELER_ASSERT(!phys_vec.empty());
         CELER_ASSERT(!phys_vec[0].x.empty());
-        host_data.params.low_energy_limit = MevEnergy(phys_vec[0].x.front());
-        host_data.params.high_energy_limit = MevEnergy(phys_vec[0].x.back());
+        host_data.msc_params.low_energy_limit
+            = MevEnergy(phys_vec[0].x.front());
+        host_data.msc_params.high_energy_limit
+            = MevEnergy(phys_vec[0].x.back());
     }
 
     {
@@ -230,9 +232,9 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
                 // particles; otherwise we need to change
                 // `UrbanMsc::is_applicable` to look up the particle and
                 // material
-                CELER_VALIDATE(host_data.params.low_energy_limit
+                CELER_VALIDATE(host_data.msc_params.low_energy_limit
                                        == MevEnergy(pvec.x.front())
-                                   && host_data.params.high_energy_limit
+                                   && host_data.msc_params.high_energy_limit
                                           == MevEnergy(pvec.x.back()),
                                << "multiple scattering cross section energy "
                                   "limits are inconsistent across particles "

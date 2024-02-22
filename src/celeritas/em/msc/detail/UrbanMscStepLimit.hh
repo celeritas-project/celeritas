@@ -116,15 +116,15 @@ UrbanMscStepLimit::UrbanMscStepLimit(UrbanMscRef const& shared,
         MscRange new_range;
         // Initialize MSC range cache on the first step in a volume
         // TODO for hadrons/muons: this value is hard-coded for electrons
-        new_range.range_fact = shared.params.range_fact;
+        new_range.range_fact = shared.msc_params.range_fact;
         // XXX the 1 MFP limitation is applied to the *geo* step, not the true
         // step, so this isn't quite right (See UrbanMsc.hh)
         new_range.range_init = max<real_type>(range, helper_.msc_mfp());
-        if (helper_.msc_mfp() > shared.params.lambda_limit)
+        if (helper_.msc_mfp() > shared.msc_params.lambda_limit)
         {
             new_range.range_fact *= (real_type(0.75)
                                      + real_type(0.25) * helper_.msc_mfp()
-                                           / shared.params.lambda_limit);
+                                           / shared.msc_params.lambda_limit);
         }
         new_range.limit_min
             = this->calc_limit_min(shared_.material_data[matid], inc_energy);
@@ -140,7 +140,7 @@ UrbanMscStepLimit::UrbanMscStepLimit(UrbanMscRef const& shared,
     if (safety < range)
     {
         limit_ = max<real_type>(msc_range.range_fact * msc_range.range_init,
-                                shared_.params.safety_fact * safety);
+                                shared_.msc_params.safety_fact * safety);
     }
     limit_ = max<real_type>(limit_, limit_min_);
 }

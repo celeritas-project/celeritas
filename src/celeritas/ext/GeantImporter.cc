@@ -805,6 +805,7 @@ ImportEmParameters import_em_parameters()
     import.linear_loss_limit = g4.LinearLossLimit();
     import.lowest_electron_energy = g4.LowestElectronEnergy() * mev_scale;
     import.auger = g4.Auger();
+    import.msc_geom_factor = g4.MscGeomFactor();
     import.msc_range_factor = g4.MscRangeFactor();
 #if G4VERSION_NUMBER >= 1060
     import.msc_safety_factor = g4.MscSafetyFactor();
