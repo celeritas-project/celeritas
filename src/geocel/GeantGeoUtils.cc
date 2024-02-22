@@ -21,6 +21,7 @@
 #include <G4Threading.hh>
 #include <G4TouchableHistory.hh>
 #include <G4VPhysicalVolume.hh>
+#include <G4Version.hh>
 #include <G4ios.hh>
 
 #include "corecel/Assert.hh"
@@ -33,6 +34,15 @@
 
 #include "ScopedGeantExceptionHandler.hh"
 #include "ScopedGeantLogger.hh"
+
+// Check Geant4-reported and CMake-configured versions, mapping from
+// Geant4's base-10 XXYZ -> to Celeritas base-16 0xXXYYZZ
+static_assert(G4VERSION_NUMBER
+                  == 100 * (CELERITAS_GEANT4_VERSION / 0x10000)
+                         + 10 * ((CELERITAS_GEANT4_VERSION / 0x100) % 0x100)
+                         + (CELERITAS_GEANT4_VERSION % 0x100),
+              "CMake-reported Geant4 version does not match installed "
+              "<G4Version.hh>: compare to 'celeritas_sys_config.h'");
 
 namespace celeritas
 {
