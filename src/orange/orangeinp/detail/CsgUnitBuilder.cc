@@ -7,6 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "CsgUnitBuilder.hh"
 
+#include "corecel/io/Logger.hh"
+#include "corecel/io/StreamableVariant.hh"
+#include "orange/transform/TransformIO.hh"
+
 namespace celeritas
 {
 namespace orangeinp
@@ -43,7 +47,7 @@ void CsgUnitBuilder::insert_region(NodeId n,
 
     auto&& [iter, inserted]
         = unit_->regions.insert({n, CsgUnit::Region{bzone, trans_id}});
-    if (!inserted)
+    if (CELERITAS_DEBUG && !inserted)
     {
         // The existing bounding zone *SHOULD BE IDENTICAL*.
         // For now this is a rough check...
@@ -53,7 +57,17 @@ void CsgUnitBuilder::insert_region(NodeId n,
                      == static_cast<bool>(existing.bounds.interior));
         CELER_ASSERT(static_cast<bool>(bzone.exterior)
                      == static_cast<bool>(existing.bounds.exterior));
-        CELER_ASSERT(trans_id == existing.transform_id);
+        if (trans_id != existing.transform_id)
+        {
+            // TODO: we need to implement transform soft equivalence
+            // and simplification
+            CELER_LOG(warning)
+                << "While re-inserting region for node " << n.get()
+                << ": existing transform "
+                << StreamableVariant{this->transform(existing.transform_id)}
+                << " differs from new transform "
+                << StreamableVariant{this->transform(trans_id)};
+        }
     }
 }
 
