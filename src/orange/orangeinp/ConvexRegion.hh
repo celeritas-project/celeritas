@@ -65,69 +65,6 @@ class Box final : public ConvexRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * A truncated cone along the Z axis centered on the origin.
- *
- * The midpoint along the Z axis of the cone is the origin. A cone is *not*
- * allowed to have equal radii: for that, use a cylinder. This, along with the
- * Cylinder, is a base component of the G4Polycone (PCON).
- */
-class Cone final : public ConvexRegionInterface
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using Real2 = Array<real_type, 2>;
-    //!@}
-
-  public:
-    // Construct with Z halfwidth and lo, hi radii
-    Cone(Real2 const& radii, real_type halfheight);
-
-    // Build surfaces
-    void build(ConvexSurfaceBuilder&) const final;
-
-  private:
-    Real2 radii_;
-    real_type hh_;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * A Z-aligned cylinder centered on the origin.
- */
-class Cylinder final : public ConvexRegionInterface
-{
-  public:
-    // Construct with radius
-    Cylinder(real_type radius, real_type halfheight);
-
-    // Build surfaces
-    void build(ConvexSurfaceBuilder&) const final;
-
-  private:
-    real_type radius_;
-    real_type hh_;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * An axis-alligned ellipsoid centered at the origin.
- */
-class Ellipsoid final : public ConvexRegionInterface
-{
-  public:
-    // Construct with radius
-    explicit Ellipsoid(Real3 const& radii);
-
-    // Build surfaces
-    void build(ConvexSurfaceBuilder&) const final;
-
-  private:
-    Real3 radii_;
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * A regular, z-extruded polygon centered on the origin.
  *
  * This is the base component of a G4Polyhedra (PGON). The default rotation is
@@ -168,23 +105,6 @@ class Prism final : public ConvexRegionInterface
 
     // Rotational offset (0 has bottom face at -Y, 1 is congruent)
     real_type orientation_;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * A sphere centered on the origin.
- */
-class Sphere final : public ConvexRegionInterface
-{
-  public:
-    // Construct with radius
-    explicit Sphere(real_type radius);
-
-    // Build surfaces
-    void build(ConvexSurfaceBuilder&) const final;
-
-  private:
-    real_type radius_;
 };
 
 //---------------------------------------------------------------------------//
