@@ -43,11 +43,14 @@
 #include "celeritas/mat/MaterialData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/mat/MaterialView.hh"
+#include "celeritas/neutron/data/NeutronElasticData.hh"
+#include "celeritas/neutron/model/NeutronElasticModel.hh"
 
 #include "Model.hh"
 #include "ParticleParams.hh"
 #include "PhysicsData.hh"
 #include "Process.hh"
+
 #include "detail/DiscreteSelectAction.hh"
 #include "detail/PreStepAction.hh"
 
@@ -393,6 +396,13 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
             data->hardwired.positron_annihilation = process_id;
             data->hardwired.eplusgg = ModelId{model_idx};
             data->hardwired.eplusgg_data = epgg_model->device_ref();
+        }
+        else if (auto* ne_model
+                 = dynamic_cast<NeutronElasticModel const*>(&model))
+        {
+            data->hardwired.neutron_elastic = process_id;
+            data->hardwired.chips = ModelId{model_idx};
+            data->hardwired.chips_data = ne_model->device_ref();
         }
     }
 
