@@ -22,8 +22,9 @@ class ConvexSurfaceBuilder;
 /*!
  * Interface class for building non-reentrant spatial regions.
  *
- * This is a building class for constructing more complex objects out of
- * smaller spatial regions.
+ * This is a building block for constructing more complex objects out of
+ * smaller spatial regions. A \c shape object will have a single convex region,
+ * and a \c solid object region may have multiple adjacent convex regions.
  *
  * When implementing this class, prefer to build simpler surfaces (planes)
  * before complex ones (cones) in case we implement short-circuiting logic,

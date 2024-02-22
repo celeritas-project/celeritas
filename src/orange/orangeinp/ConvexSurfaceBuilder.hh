@@ -104,10 +104,11 @@ void ConvexSurfaceBuilder::operator()(S const& surf)
 
 //---------------------------------------------------------------------------//
 /*!
- * Promise that the convex region is inside/outside this bbox.
+ * Promise that all bounding surfaces are inside/outside this bbox.
  *
  * "inside" will shrink the exterior bbox, and "outside" will grow the interior
- * bbox.
+ * bbox. All bounding surfaces within the region must be *inside* the exterior
+ * region and *outside* the interior region.
  */
 void ConvexSurfaceBuilder::operator()(Sense sense, BBox const& bbox)
 {
