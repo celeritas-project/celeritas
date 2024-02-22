@@ -647,6 +647,10 @@ function(celeritas_get_g4libs var)
     foreach(_lib IN LISTS ARGN)
       set(_lib Geant4::G4${_lib}${_ext})
 
+      # Tasking was merged into core management
+      if(_lib MATCHES "tasking" AND NOT TARGET "${_lib}")
+        continue()
+      endif()
       # Workaround for differing target names in 11.2.0,1 for G4persistency
       # We do this here and not in FindGeant4 because we have no
       # guarantee projects using Celeritas and Geant4 won't mess with target
