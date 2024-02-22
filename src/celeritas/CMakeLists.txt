@@ -53,11 +53,13 @@ list(APPEND SOURCES
   io/ImportProcess.cc
   io/ImportUnits.cc
   io/LivermorePEReader.cc
+  io/NeutronXsReader.cc
   io/SeltzerBergerReader.cc
   io/detail/ImportDataConverter.cc
   mat/MaterialParams.cc
   mat/MaterialParamsOutput.cc
   mat/detail/Utils.cc
+  neutron/process/NeutronElasticProcess.cc
   optical/CerenkovParams.cc
   optical/ScintillationParams.cc
   optical/OpticalPropertyParams.cc
@@ -249,6 +251,7 @@ celeritas_polysource(global/alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(global/alongstep/AlongStepNeutralAction)
 celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
 celeritas_polysource(global/alongstep/AlongStepRZMapFieldMscAction)
+celeritas_polysource(neutron/model/NeutronElasticModel)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)
 celeritas_polysource(random/RngReseed)
