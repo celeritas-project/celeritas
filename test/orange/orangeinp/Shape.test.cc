@@ -33,26 +33,31 @@ TEST_F(ShapeTest, single)
     auto box = this->build_volume(BoxShape{"box", Real3{1, 2, 3}});
     EXPECT_EQ(LocalVolumeId{0}, box) << box.unchecked_get();
 
-    static char const* const expected_surface_strings[] = {"Plane: x=-1",
-                                                           "Plane: x=1",
-                                                           "Plane: y=-2",
-                                                           "Plane: y=2",
-                                                           "Plane: z=-3",
-                                                           "Plane: z=3"};
-    static char const* const expected_md_strings[] = {"",
-                                                      "",
-                                                      "box@mx",
-                                                      "box@px",
-                                                      "",
-                                                      "box@my",
-                                                      "box@py",
-                                                      "",
-                                                      "box@mz",
-                                                      "box@pz",
-                                                      "",
-                                                      "box"};
+    static char const* const expected_surface_strings[] = {
+        "Plane: x=-1",
+        "Plane: x=1",
+        "Plane: y=-2",
+        "Plane: y=2",
+        "Plane: z=-3",
+        "Plane: z=3",
+    };
+    static char const* const expected_md_strings[] = {
+        "",
+        "",
+        "box@mx",
+        "box@px",
+        "",
+        "box@my",
+        "box@py",
+        "",
+        "box@mz",
+        "box@pz",
+        "",
+        "box",
+    };
     static char const* const expected_bound_strings[]
         = {"11: {{{-1,-2,-3}, {1,2,3}}, {{-1,-2,-3}, {1,2,3}}}"};
+    static char const* const expected_trans_strings[] = {"11: t=0 -> {}"};
     static int const expected_volume_nodes[] = {11};
     static char const* const expected_fill_strings[] = {"<UNASSIGNED>"};
     static char const expected_tree_string[]
@@ -62,6 +67,7 @@ TEST_F(ShapeTest, single)
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
     EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
+    EXPECT_VEC_EQ(expected_trans_strings, transform_strings(u));
     EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
     EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
     if (CELERITAS_USE_JSON)
@@ -114,6 +120,8 @@ TEST_F(ShapeTest, multiple)
         "11: {{{-1,-1,-2}, {1,1,2}}, {{-1,-1,-2}, {1,1,2}}}",
         "14: {{{-0.354,-0.354,-2}, {0.354,0.354,2}}, {{-1,-1,-2}, {1,1,2}}}",
         "17: {{{-0.707,-0.707,-2}, {0.707,0.707,2}}, {{-1,-1,-2}, {1,1,2}}}"};
+    static char const* const expected_trans_strings[]
+        = {"11: t=0 -> {}", "14: t=0", "17: t=0"};
     static int const expected_volume_nodes[] = {11, 14, 17};
     static char const* const expected_fill_strings[]
         = {"<UNASSIGNED>", "<UNASSIGNED>", "<UNASSIGNED>"};
@@ -124,6 +132,7 @@ TEST_F(ShapeTest, multiple)
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
     EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
+    EXPECT_VEC_EQ(expected_trans_strings, transform_strings(u));
     EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
     EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
     if (CELERITAS_USE_JSON)

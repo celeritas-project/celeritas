@@ -8,8 +8,10 @@
 #include "CsgTestUtils.hh"
 
 #include <iomanip>
+#include <set>
 #include <sstream>
 #include <variant>
+#include <vector>
 
 #include "celeritas_config.h"
 #include "corecel/io/Join.hh"
@@ -117,8 +119,9 @@ std::vector<std::string> md_strings(CsgUnit const& u)
 std::vector<std::string> bound_strings(CsgUnit const& u)
 {
     std::vector<std::string> result;
-    for (auto&& [node, bzone] : u.bounds)
+    for (auto&& [node, reg] : u.regions)
     {
+        BoundingZone const& bzone = reg.bounds;
         std::ostringstream os;
         os << std::setprecision(3);
         if (bzone.negated)
@@ -144,6 +147,43 @@ std::vector<std::string> bound_strings(CsgUnit const& u)
         os << ", ";
         print_bb(bzone.exterior);
         os << '}';
+        result.push_back(std::move(os).str());
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+std::vector<std::string> transform_strings(CsgUnit const& u)
+{
+    std::vector<std::string> result;
+    std::set<TransformId> printed_transform;
+    for (auto&& [node, reg] : u.regions)
+    {
+        std::ostringstream os;
+        os << node.unchecked_get() << ": t=";
+        if (auto t = reg.transform_id)
+        {
+            os << t.unchecked_get();
+            if (t < u.transforms.size())
+            {
+                if (printed_transform.insert(t).second)
+                {
+                    os << " -> " << std::setprecision(3);
+                    std::visit([&os](auto&& transform) { os << transform; },
+                               u.transforms[t.unchecked_get()]);
+                }
+            }
+            else
+            {
+                os << " -> "
+                   << "<INVALID>";
+            }
+        }
+        else
+        {
+            os << "<MISSING>";
+        }
+
         result.push_back(std::move(os).str());
     }
     return result;
@@ -177,7 +217,7 @@ std::vector<std::string> fill_strings(CsgUnit const& u)
         else if (auto* d = std::get_if<Daughter>(&f))
         {
             std::ostringstream os;
-            os << '{';
+            os << "{u=";
             if (auto u = d->universe_id)
             {
                 os << u.unchecked_get();
@@ -186,24 +226,16 @@ std::vector<std::string> fill_strings(CsgUnit const& u)
             {
                 os << "<MISSING>";
             }
-            os << ',';
+            os << ", t=";
             if (auto t = d->transform_id)
             {
-                if (t < u.transforms.size())
-                {
-                    std::visit([&os](auto&& transform) { os << transform; },
-                               u.transforms[t.unchecked_get()]);
-                }
-                else
-                {
-                    os << "<INVALID: " << t.unchecked_get() << ">";
-                }
+                os << t.unchecked_get();
             }
             else
             {
                 os << "<MISSING>";
             }
-
+            os << '}';
             result.push_back(os.str());
         }
     }
@@ -237,6 +269,8 @@ void print_expected(CsgUnit const& u)
               << repr(md_strings(u)) << ";\n"
               << "static char const * const expected_bound_strings[] = "
               << repr(bound_strings(u)) << ";\n"
+              << "static char const * const expected_trans_strings[] = "
+              << repr(transform_strings(u)) << ";\n"
               << "static char const * const expected_fill_strings[] = "
               << repr(fill_strings(u)) << ";\n"
               << "static int const expected_volume_nodes[] = "
@@ -248,6 +282,7 @@ EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
 EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
 EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
 EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
+EXPECT_VEC_EQ(expected_trans_strings, transform_strings(u));
 EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
 EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
 if (CELERITAS_USE_JSON)

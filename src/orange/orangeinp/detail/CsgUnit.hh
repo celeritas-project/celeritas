@@ -53,6 +53,13 @@ struct CsgUnit
     using SetMd = std::set<Metadata>;
     using Fill = std::variant<std::monostate, MaterialId, Daughter>;
 
+    //! Attributes about a closed volume of space
+    struct Region
+    {
+        BoundingZone bounds;  //!< Interior/exterior bbox
+        TransformId transform_id;  //!< Region-to-unit transform
+    };
+
     //// DATA ////
 
     //!@{
@@ -66,7 +73,7 @@ struct CsgUnit
     //! Vectors are indexed by NodeId.
     CsgTree tree;  //!< CSG tree
     std::vector<SetMd> metadata;  //!< CSG node labels
-    std::map<NodeId, BoundingZone> bounds;  //!< Interior/exterior bbox
+    std::map<NodeId, Region> regions;  //!< Bounds and transforms
     //!@}
 
     //!@{
@@ -120,7 +127,7 @@ CsgUnit::operator bool() const
 bool CsgUnit::empty() const
 {
     return this->surfaces.empty() && this->metadata.empty()
-           && this->bounds.empty() && this->volumes.empty()
+           && this->regions.empty() && this->volumes.empty()
            && this->fills.empty() && !this->exterior
            && this->transforms.empty();
 }

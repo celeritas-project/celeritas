@@ -13,6 +13,7 @@
 
 #include "CsgUnit.hh"
 #include "LocalSurfaceInserter.hh"
+#include "TransformInserter.hh"
 #include "../CsgTypes.hh"
 
 namespace celeritas
@@ -57,6 +58,9 @@ class CsgUnitBuilder
     template<class S>
     inline S const& surface(NodeId) const;
 
+    // Access a transform by ID
+    inline VariantTransform const& transform(TransformId) const;
+
     //// MUTATORS ////
 
     // Insert a surface by forwarding to the surface inserter
@@ -67,11 +71,14 @@ class CsgUnitBuilder
     template<class... Args>
     inline NodeInsertion insert_csg(Args&&... args);
 
-    //! Insert node metadata
+    // Insert a transform
+    inline TransformId insert_transform(VariantTransform&& vt);
+
+    // Insert node metadata
     inline void insert_md(NodeId node, Metadata&& md);
 
-    // Set a bounding zone for a node
-    void set_bounds(NodeId, BoundingZone const&);
+    // Set a bounding zone and transform for a node
+    void insert_region(NodeId, BoundingZone const&, TransformId trans_id);
 
     // Mark a CSG node as a volume of real space
     LocalVolumeId insert_volume(NodeId);
@@ -79,8 +86,8 @@ class CsgUnitBuilder
     // Fill a volume node with a material
     void fill_volume(LocalVolumeId, MaterialId);
 
-    // Fill a volume node with a daughter
-    void fill_volume(LocalVolumeId, UniverseId, VariantTransform&& vt);
+    // Fill a volume node with a daughter using the local transform
+    void fill_volume(LocalVolumeId, UniverseId);
 
     // Set an exterior node
     void set_exterior(NodeId);
@@ -89,6 +96,7 @@ class CsgUnitBuilder
     CsgUnit* unit_;
     Tol tol_;
     LocalSurfaceInserter insert_surface_;
+    TransformInserter insert_transform_;
 
     // Get a variant surface from a node ID
     VariantSurface const& get_surface_impl(NodeId nid) const;
@@ -108,6 +116,16 @@ S const& CsgUnitBuilder::surface(NodeId nid) const
     VariantSurface const& vs = this->get_surface_impl(nid);
     CELER_ASSUME(std::holds_alternative<S>(vs));
     return std::get<S>(vs);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access a transform by ID.
+ */
+VariantTransform const& CsgUnitBuilder::transform(TransformId tid) const
+{
+    CELER_EXPECT(tid < unit_->transforms.size());
+    return unit_->transforms[tid.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//
@@ -134,6 +152,15 @@ auto CsgUnitBuilder::insert_csg(Args&&... args) -> NodeInsertion
         unit_->metadata.resize(unit_->tree.size());
     }
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Insert transform with deduplication.
+ */
+TransformId CsgUnitBuilder::insert_transform(VariantTransform&& vt)
+{
+    return this->insert_transform_(std::move(vt));
 }
 
 //---------------------------------------------------------------------------//
