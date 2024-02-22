@@ -78,7 +78,7 @@ TEST_F(CsgUnitBuilderTest, single_surface)
     CsgUnitBuilder builder(&u, tol);
     if (CELERITAS_DEBUG)
     {
-        EXPECT_THROW(builder.get_surface<SphereCentered>(N{10}),
+        EXPECT_THROW(builder.surface<SphereCentered>(N{10}),
                      celeritas::DebugError);
     }
 
@@ -88,11 +88,11 @@ TEST_F(CsgUnitBuilderTest, single_surface)
     builder.insert_md(outside_nid, {"sphere", "o"});
 
     // Test accessing the constructed surface
-    EXPECT_SOFT_EQ(
-        1.0, builder.get_surface<SphereCentered>(outside_nid).radius_sq());
+    EXPECT_SOFT_EQ(1.0,
+                   builder.surface<SphereCentered>(outside_nid).radius_sq());
     if (CELERITAS_DEBUG)
     {
-        EXPECT_THROW(builder.get_surface<Sphere>(outside_nid),
+        EXPECT_THROW(builder.surface<Sphere>(outside_nid),
                      celeritas::DebugError);
     }
 
@@ -104,7 +104,7 @@ TEST_F(CsgUnitBuilderTest, single_surface)
 
     if (CELERITAS_DEBUG)
     {
-        EXPECT_THROW(builder.get_surface<Sphere>(inside_nid),
+        EXPECT_THROW(builder.surface<Sphere>(inside_nid),
                      celeritas::DebugError);
     }
 

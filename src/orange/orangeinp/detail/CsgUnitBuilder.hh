@@ -55,7 +55,7 @@ class CsgUnitBuilder
 
     // Access a typed surface, needed for clipping with deduplicated surface
     template<class S>
-    inline S const& get_surface(NodeId) const;
+    inline S const& surface(NodeId) const;
 
     //// MUTATORS ////
 
@@ -103,7 +103,7 @@ class CsgUnitBuilder
  * Access a typed surface, needed for clipping with deduplicated surface.
  */
 template<class S>
-S const& CsgUnitBuilder::get_surface(NodeId nid) const
+S const& CsgUnitBuilder::surface(NodeId nid) const
 {
     VariantSurface const& vs = this->get_surface_impl(nid);
     CELER_ASSUME(std::holds_alternative<S>(vs));

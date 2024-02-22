@@ -107,7 +107,7 @@ void ConvexSurfaceBuilder::insert_transformed(std::string&& extension,
         // Update surface's global-reference bounding zone using *deduplicated*
         // surface
         ClipImpl{&state_->global_bzone}(final_sense,
-                                        ub_->get_surface<SurfaceT>(node_id));
+                                        ub_->surface<SurfaceT>(node_id));
     };
 
     // Construct transformed surface, get back the node ID, update the sense
