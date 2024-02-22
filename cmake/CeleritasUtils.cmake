@@ -646,10 +646,23 @@ function(celeritas_get_g4libs var)
 
     foreach(_lib IN LISTS ARGN)
       set(_lib Geant4::G4${_lib}${_ext})
-      if(NOT TARGET "${_lib}")
-        message(AUTHOR_WARNING "No Geant4 library '${_lib}' exists")
+
+      # Workaround for differing target names in 11.2.0,1 for G4persistency
+      # We do this here and not in FindGeant4 because we have no
+      # guarantee projects using Celeritas and Geant4 won't mess with target
+      # names themselves (and if we had to create a "celeritas::" target,
+      # we'd still have to specialize here).
+      if(_lib MATCHES "persistency" AND NOT TARGET "${_lib}")
+        list(APPEND _result Geant4::G4mctruth${_ext} Geant4::G4geomtext${_ext})
+        if(TARGET "Geant4::G4gdml${_ext}")
+          list(APPEND _result Geant4::G4gdml${_ext})
+        endif()
       else()
-        list(APPEND _result "${_lib}")
+        if(NOT TARGET "${_lib}")
+          message(AUTHOR_WARNING "No Geant4 library '${_lib}' exists")
+        else()
+          list(APPEND _result "${_lib}")
+        endif()
       endif()
     endforeach()
   endif()
