@@ -77,6 +77,7 @@ celeritas_add_library(testcel_celeritas
   global/StepperTestBase.cc
   grid/CalculatorTestBase.cc
   io/EventIOTestBase.cc
+  neutron/NeutronTestBase.cc
   optical/OpticalTestBase.cc
   phys/InteractionIO.cc
   phys/InteractorHostTestBase.cc
@@ -285,6 +286,11 @@ set(CELERITASTEST_PREFIX celeritas/mat)
 celeritas_add_test(mat/IsotopeSelector.test.cc)
 celeritas_add_test(mat/ElementSelector.test.cc)
 celeritas_add_device_test(mat/Material)
+
+#-----------------------------------------------------------------------------#
+# Neutron
+set(CELERITASTEST_PREFIX celeritas/neutron)
+celeritas_add_test(neutron/NeutronElastic.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Phys
