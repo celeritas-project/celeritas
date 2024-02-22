@@ -75,18 +75,6 @@ TEST_F(NeutronElasticTest, micro_xs)
     EXPECT_EQ(grid.grid.size(), 181);
 
     // Microscopic cross section (\f$ mm^{2} \f$) in [1e-05:1e+4] (MeV)
-    /*
-    std::vector<real_type> const expected_micro_xs = {7.77548206983e-22,
-                                                      7.5491116936558755e-22,
-                                                      5.5794984695350152e-22,
-                                                      1.5256764442264349e-21,
-                                                      6.5542119240352875e-22,
-                                                      3.3215172149637304e-22,
-                                                      1.8991353788659379e-22,
-                                                      1.1644431495712943e-22,
-                                                      4.7825608538126150e-23,
-                                                      5.0463482861478957e-23};
-    */
     std::vector<real_type> const expected_micro_xs = {7.77548e-24,
                                                       7.54911e-24,
                                                       5.5795e-24,
