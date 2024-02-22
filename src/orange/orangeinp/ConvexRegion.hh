@@ -99,7 +99,7 @@ class Cylinder final : public ConvexRegionInterface
 {
   public:
     // Construct with radius
-    explicit Cylinder(real_type radius, real_type halfheight);
+    Cylinder(real_type radius, real_type halfheight);
 
     // Build surfaces
     void build(ConvexSurfaceBuilder&) const final;
