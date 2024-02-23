@@ -66,7 +66,7 @@ class InvariantQ2Sampler
     Mass target_mass_;
 
     // Atomic mass number (A) of the target
-    AtomicMassNumber A_;
+    AtomicMassNumber a_;
     bool heavy_target_{false};
     // Momentum magnitude of the incident neutron (GeV/c)
     Momentum neutron_p_;
@@ -118,8 +118,8 @@ InvariantQ2Sampler::InvariantQ2Sampler(NeutronElasticRef const& shared,
     : par_(shared.diff_xs.coeffs[target.isotope_id()].par)
     , neutron_mass_(shared.neutron_mass)
     , target_mass_(target.nuclear_mass())
-    , A_(target.atomic_mass_number())
-    , heavy_target_(A_.get() > 6)
+    , a_(target.atomic_mass_number())
+    , heavy_target_(a_.get() > 6)
     , neutron_p_(neutron_p)
 {
     max_q2_ = calc_max_q2(neutron_p_);
@@ -145,7 +145,7 @@ CELER_FUNCTION auto InvariantQ2Sampler::operator()(Engine& rng) -> real_type
     // Sample \f$ Q^{2} \f$
     real_type q2 = 0;
 
-    if (A_ == AtomicMassNumber{1})
+    if (a_ == AtomicMassNumber{1})
     {
         // Special case for the \f$ n + p \rightarrow n + p \f$ channel
         real_type R1 = -std::expm1(-max_q2_ * par_q2_.slope[0]);
@@ -273,7 +273,7 @@ auto InvariantQ2Sampler::calc_par_q2(Momentum neutron_p) const
 
     ExchangeParameters result;
 
-    if (A_ == AtomicMassNumber{1})
+    if (a_ == AtomicMassNumber{1})
     {
         // Special case for the \f$ n + p \rightarrow n + p \f$ channel
         real_type dl1 = lp - par_[3];
@@ -315,7 +315,7 @@ auto InvariantQ2Sampler::calc_par_q2(Momentum neutron_p) const
 
         if (!heavy_target_)
         {
-            real_type pah = std::pow(p, real_type(0.5) * A_.get());
+            real_type pah = std::pow(p, real_type(0.5) * a_.get());
             real_type pa = ipow<2>(pah);
             real_type pa2 = ipow<2>(pa);
             result.expnt[0] = par_[0] / (1. + par_[1] * p4 * pa)

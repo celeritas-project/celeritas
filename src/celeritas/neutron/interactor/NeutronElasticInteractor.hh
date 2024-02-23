@@ -75,7 +75,7 @@ class NeutronElasticInteractor
 
     // Sampler
     UniformRealDist sample_phi_;
-    detail::InvariantQ2Sampler sample_Q2_;
+    detail::InvariantQ2Sampler sample_q2_;
 };
 
 //---------------------------------------------------------------------------//
@@ -96,7 +96,7 @@ CELER_FUNCTION NeutronElasticInteractor::NeutronElasticInteractor(
     , neutron_mass_(shared_.neutron_mass)
     , neutron_p_(particle.momentum())
     , sample_phi_(0, 2 * constants::pi)
-    , sample_Q2_(shared_, target_, neutron_p_)
+    , sample_q2_(shared_, target_, neutron_p_)
 {
     CELER_EXPECT(particle.particle_id() == shared_.ids.neutron);
     CELER_EXPECT(inc_energy_ > zero_quantity());
@@ -122,7 +122,7 @@ CELER_FUNCTION Interaction NeutronElasticInteractor::operator()(Engine& rng)
 
     // Sample the scattered direction from the invariant momentum transfer
     // squared (\f$ -t = Q^{2} \f$) in the c.m. frame
-    real_type cos_theta = 1 - real_type(0.5) * sample_Q2_(rng) / ipow<2>(cm_p);
+    real_type cos_theta = 1 - real_type(0.5) * sample_q2_(rng) / ipow<2>(cm_p);
     clamp(cos_theta, real_type{-1}, real_type{1});
 
     // Boost to the center of mass (c.m.) frame
