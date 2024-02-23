@@ -7,13 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "orange/orangeinp/Shape.hh"
 
-#include "orange/orangeinp/detail/CsgUnitBuilder.hh"
-#include "orange/orangeinp/detail/VolumeBuilder.hh"
-
 #include "CsgTestUtils.hh"
+#include "ObjectTestBase.hh"
 #include "celeritas_test.hh"
-
-using namespace celeritas::orangeinp::detail::test;
 
 namespace celeritas
 {
@@ -22,36 +18,11 @@ namespace orangeinp
 namespace test
 {
 //---------------------------------------------------------------------------//
-class ShapeTest : public ::celeritas::test::Test
+class ShapeTest : public ObjectTestBase
 {
-  private:
-    using Unit = orangeinp::detail::CsgUnit;
-    using UnitBuilder = orangeinp::detail::CsgUnitBuilder;
-    using State = orangeinp::detail::ConvexSurfaceState;
-    using Tol = UnitBuilder::Tol;
-
   protected:
-    //! Access unit for testing results
-    Unit const& unit() const { return unit_; }
-
-    // Construct a volume from an object
-    LocalVolumeId build_volume(ObjectInterface const& s);
-
-  private:
-    Unit unit_;
-    UnitBuilder unit_builder_{&unit_, Tol::from_relative(1e-4)};
+    Tol tolerance() const override { return Tol::from_relative(1e-4); }
 };
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct a shape.
- */
-LocalVolumeId ShapeTest::build_volume(ObjectInterface const& s)
-{
-    detail::VolumeBuilder vb{&unit_builder_};
-    auto final_node = s.build(vb);
-    return unit_builder_.insert_volume(final_node);
-}
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -97,7 +68,6 @@ TEST_F(ShapeTest, single)
     {
         EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
     }
-    EXPECT_EQ(NodeId{}, u.exterior);
 }
 
 TEST_F(ShapeTest, multiple)
@@ -160,7 +130,6 @@ TEST_F(ShapeTest, multiple)
     {
         EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
     }
-    EXPECT_EQ(NodeId{}, u.exterior);
 }
 
 //---------------------------------------------------------------------------//

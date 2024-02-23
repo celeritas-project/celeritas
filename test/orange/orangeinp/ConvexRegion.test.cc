@@ -16,8 +16,6 @@
 #include "CsgTestUtils.hh"
 #include "celeritas_test.hh"
 
-using namespace celeritas::orangeinp::detail::test;
-
 namespace celeritas
 {
 namespace orangeinp

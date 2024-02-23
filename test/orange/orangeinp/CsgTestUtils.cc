@@ -16,6 +16,7 @@
 #include "corecel/io/Repr.hh"
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/orangeinp/CsgTree.hh"
+#include "orange/orangeinp/CsgTreeUtils.hh"
 #include "orange/orangeinp/detail/ConvexSurfaceState.hh"
 #include "orange/orangeinp/detail/CsgUnit.hh"
 #include "orange/surf/SurfaceIO.hh"
@@ -26,6 +27,8 @@
 
 #    include "orange/orangeinp/CsgTreeIO.json.hh"
 #endif
+
+using namespace celeritas::orangeinp::detail;
 
 namespace celeritas
 {
@@ -45,13 +48,6 @@ std::string to_json_string(CsgTree const& tree)
 #endif
 }
 
-//---------------------------------------------------------------------------//
-}  // namespace test
-
-namespace detail
-{
-namespace test
-{
 //---------------------------------------------------------------------------//
 std::vector<int> to_vec_int(std::vector<NodeId> const& nodes)
 {
@@ -77,6 +73,25 @@ std::vector<std::string> surface_strings(CsgUnit const& u)
                 return os.str();
             },
             vs));
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+std::vector<std::string> volume_strings(CsgUnit const& u)
+{
+    std::vector<std::string> result;
+
+    for (auto const& nid : u.volumes)
+    {
+        if (nid < u.tree.size())
+        {
+            result.push_back(build_infix_string(u.tree, nid));
+        }
+        else
+        {
+            result.push_back("<INVALID>");
+        }
     }
     return result;
 }
@@ -216,22 +231,25 @@ void print_expected(CsgUnit const& u)
 )cpp"
               << "static char const * const expected_surface_strings[] = "
               << repr(surface_strings(u)) << ";\n"
+              << "static char const * const expected_volume_strings[] = "
+              << repr(volume_strings(u)) << ";\n"
               << "static char const * const expected_md_strings[] = "
               << repr(md_strings(u)) << ";\n"
               << "static char const * const expected_bound_strings[] = "
               << repr(bound_strings(u)) << ";\n"
-              << "static int const expected_volume_nodes[] = "
-              << repr(volume_nodes(u)) << ";\n"
               << "static char const * const expected_fill_strings[] = "
               << repr(fill_strings(u)) << ";\n"
+              << "static int const expected_volume_nodes[] = "
+              << repr(volume_nodes(u)) << ";\n"
               << "static char const expected_tree_string[] = R\"json("
               << tree_string(u) << ")json\";\n"
               << R"cpp(
 EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
 EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
 EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
-EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
 EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
+EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
 if (CELERITAS_USE_JSON)
 {
     EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
@@ -272,6 +290,5 @@ EXPECT_VEC_EQ(expected_nodes, to_vec_int(css.nodes));
 
 //---------------------------------------------------------------------------//
 }  // namespace test
-}  // namespace detail
 }  // namespace orangeinp
 }  // namespace celeritas

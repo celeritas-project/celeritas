@@ -16,6 +16,8 @@
 using N = celeritas::orangeinp::NodeId;
 using V = celeritas::LocalVolumeId;
 
+using namespace celeritas::orangeinp::test;
+
 namespace celeritas
 {
 namespace orangeinp

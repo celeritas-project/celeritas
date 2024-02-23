@@ -8,6 +8,7 @@ celeritas_add_library(testcel_orange
   OrangeGeoTestBase.cc
   OrangeTestBase.cc
   orangeinp/CsgTestUtils.cc
+  orangeinp/ObjectTestBase.cc
 )
 celeritas_target_link_libraries(testcel_orange
   PUBLIC
