@@ -58,13 +58,13 @@ NeutronElasticModel::NeutronElasticModel(ActionId id,
     CELER_ASSERT(data.xs.elements.size() == materials.num_elements());
 
     // Add A(Z,N)-dependent coefficients of the CHIPS elastic interaction
-    make_builder(&data.Q2.coeffs).reserve(materials.num_isotopes());
+    make_builder(&data.diff_xs.coeffs).reserve(materials.num_isotopes());
     for (auto iso_id : range(IsotopeId{materials.num_isotopes()}))
     {
         AtomicMassNumber a = materials.get(iso_id).atomic_mass_number();
-        this->append_coeffs(a, &data.Q2);
+        this->append_coeffs(a, &data.diff_xs);
     }
-    CELER_ASSERT(data.Q2.coeffs.size() == materials.num_isotopes());
+    CELER_ASSERT(data.diff_xs.coeffs.size() == materials.num_isotopes());
 
     // Move to mirrored data, copying to device
     mirror_ = CollectionMirror<NeutronElasticData>{std::move(data)};
@@ -165,7 +165,7 @@ void NeutronElasticModel::append_xs(ImportPhysicsVector const& inp,
  * Wellisch, Eur. Phys. J. A9 (2001).
  */
 void NeutronElasticModel::append_coeffs(AtomicMassNumber A,
-                                        HostDiffXsData* Q2_data) const
+                                        HostDiffXsData* data) const
 {
     ChipsDiffXsCoefficients coeffs;
 
@@ -291,7 +291,7 @@ void NeutronElasticModel::append_coeffs(AtomicMassNumber A,
         coeffs.par[41] = 900 * sa / (1 + 500 / a3);
     }
 
-    make_builder(&Q2_data->coeffs).push_back(coeffs);
+    make_builder(&data->coeffs).push_back(coeffs);
 }
 
 //---------------------------------------------------------------------------//

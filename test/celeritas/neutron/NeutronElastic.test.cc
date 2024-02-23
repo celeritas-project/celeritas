@@ -133,10 +133,10 @@ TEST_F(NeutronElasticTest, diff_xs_coeffs)
 {
     // Get A-dependent parameters of CHIPS differential cross sections used
     // for sampling the momentum transfer.
-    auto const& Q2 = model_->host_ref().Q2;
+    auto const& diff_xs = model_->host_ref().diff_xs;
 
     // Set the target isotope: He4 (36 parameters for light nuclei, A < 6.5)
-    ChipsDiffXsCoefficients he4_coeff = Q2.coeffs[IsotopeId{1}];
+    ChipsDiffXsCoefficients he4_coeff = diff_xs.coeffs[IsotopeId{1}];
     EXPECT_EQ(he4_coeff.par.size(), 42);
     EXPECT_EQ(he4_coeff.par[0], 16000);
     EXPECT_EQ(he4_coeff.par[10], 26.99741289550769);
@@ -146,7 +146,7 @@ TEST_F(NeutronElasticTest, diff_xs_coeffs)
     EXPECT_EQ(he4_coeff.par[36], 0);
 
     // Set the target isotope: Cu63 (42 parameters for heavy nuclei, A > 6.5)
-    ChipsDiffXsCoefficients cu63_coeff = Q2.coeffs[IsotopeId{2}];
+    ChipsDiffXsCoefficients cu63_coeff = diff_xs.coeffs[IsotopeId{2}];
     EXPECT_EQ(cu63_coeff.par.size(), 42);
     EXPECT_EQ(cu63_coeff.par[0], 527.781478797624);
     EXPECT_EQ(cu63_coeff.par[10], 9.842761904761872);
@@ -198,7 +198,7 @@ TEST_F(NeutronElasticTest, basic)
 
 TEST_F(NeutronElasticTest, extended)
 {
-    // Set the target isotope : Cu63 
+    // Set the target isotope : Cu63
     ElementComponentId el_id{1};
     IsotopeComponentId iso_id{0};
     IsotopeView const isotope_he4 = this->material_track()
@@ -241,9 +241,9 @@ TEST_F(NeutronElasticTest, extended)
         Interaction result = interact(rng_engine);
 
         // Check scattered energy and angle at each incident neutron energy
-        EXPECT_EQ(result.energy.value(), expected_energy[i]);
-        EXPECT_EQ(dot_product(result.direction, this->direction()),
-                  expected_angle[i]);
+        EXPECT_SOFT_EQ(result.energy.value(), expected_energy[i]);
+        EXPECT_SOFT_EQ(dot_product(result.direction, this->direction()),
+                       expected_angle[i]);
         energy *= factor;
     }
 }

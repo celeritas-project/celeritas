@@ -38,6 +38,7 @@ class NeutronElasticInteractor
     //! \name Type aliases
     using Energy = units::MevEnergy;
     using Mass = units::MevMass;
+    using Momentum = units::MevMomentum;
     //!@}
 
   public:
@@ -69,8 +70,8 @@ class NeutronElasticInteractor
     IsotopeView const& target_;
 
     // Value of neutron MeVMass
-    real_type neutron_mass_;
-    real_type neutron_p_;
+    Mass neutron_mass_;
+    Momentum neutron_p_;
 
     // Sampler
     UniformRealDist sample_phi_;
@@ -92,16 +93,14 @@ CELER_FUNCTION NeutronElasticInteractor::NeutronElasticInteractor(
     , inc_energy_(particle.energy())
     , inc_direction_(inc_direction)
     , target_(target)
-    , neutron_mass_(value_as<Mass>(shared_.neutron_mass))
-    , neutron_p_(std::sqrt(inc_energy_.value()
-                           * (inc_energy_.value() + 2 * neutron_mass_)))
+    , neutron_mass_(shared_.neutron_mass)
+    , neutron_p_(particle.momentum())
     , sample_phi_(0, 2 * constants::pi)
     , sample_Q2_(shared_, target_, neutron_p_)
 {
     CELER_EXPECT(particle.particle_id() == shared_.ids.neutron);
     CELER_EXPECT(inc_energy_ > zero_quantity());
 }
-
 //---------------------------------------------------------------------------//
 /*!
  * Sample the final state of the neutron-nucleus elastic scattering.
@@ -109,16 +108,16 @@ CELER_FUNCTION NeutronElasticInteractor::NeutronElasticInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction NeutronElasticInteractor::operator()(Engine& rng)
 {
-    using Energy = units::MevEnergy;
-
     // Scattered neutron with respect to the axis of incident direction
     Interaction result;
 
     // The momentum magnitude in the c.m. frame
     real_type target_mass = value_as<Mass>(target_.nuclear_mass());
-    real_type neutron_energy = neutron_mass_ + inc_energy_.value();
-    real_type cm_p = neutron_p_
-                     / std::sqrt(1 + ipow<2>(neutron_mass_ / target_mass)
+    real_type neutron_mass = value_as<Mass>(neutron_mass_);
+    real_type neutron_energy = neutron_mass + inc_energy_.value();
+
+    real_type cm_p = value_as<units::MevMomentum>(neutron_p_)
+                     / std::sqrt(1 + ipow<2>(neutron_mass / target_mass)
                                  + 2 * neutron_energy / target_mass);
 
     // Sample the scattered direction from the invariant momentum transfer
@@ -128,16 +127,18 @@ CELER_FUNCTION Interaction NeutronElasticInteractor::operator()(Engine& rng)
 
     // Boost to the center of mass (c.m.) frame
     Real3 cm_mom = cm_p * from_spherical(cos_theta, sample_phi_(rng));
-    FourVector nlv1(
-        {cm_mom, std::sqrt(ipow<2>(cm_p) + ipow<2>(neutron_mass_))});
+    FourVector nlv1({cm_mom, std::sqrt(ipow<2>(cm_p) + ipow<2>(neutron_mass))});
 
-    FourVector lv({{0, 0, neutron_p_}, neutron_energy + target_mass});
+    FourVector lv({{0, 0, value_as<units::MevMomentum>(neutron_p_)},
+                   neutron_energy + target_mass});
     boost(boost_vector(lv), &nlv1);
-    result.direction = make_unit_vector(rotate(nlv1.mom, inc_direction_));
+
+    result.direction
+        = make_unit_vector(rotate(make_unit_vector(nlv1.mom), inc_direction_));
 
     // Kinetic energy of the scattered neutron and the recoiled nucleus
     lv.energy -= nlv1.energy;
-    result.energy = Energy(nlv1.energy - neutron_mass_);
+    result.energy = Energy(nlv1.energy - neutron_mass);
     real_type recoil_energy = clamp_to_nonneg(lv.energy - target_mass);
     result.energy_deposition = Energy{recoil_energy};
 

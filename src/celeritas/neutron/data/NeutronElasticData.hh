@@ -147,7 +147,7 @@ struct NeutronElasticData
     NeutronElasticXsData<W, M> xs;
 
     //! Neutron elastic differential cross section coefficients
-    NeutronElasticDiffXsData<W, M> Q2;
+    NeutronElasticDiffXsData<W, M> diff_xs;
 
     //// MEMBER FUNCTIONS ////
 
@@ -176,7 +176,7 @@ struct NeutronElasticData
         ids = other.ids;
         neutron_mass = other.neutron_mass;
         xs = other.xs;
-        Q2 = other.Q2;
+        diff_xs = other.diff_xs;
         return *this;
     }
 };
