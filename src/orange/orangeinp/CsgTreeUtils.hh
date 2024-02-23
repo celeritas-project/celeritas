@@ -32,14 +32,15 @@ orangeinp::NodeId simplify_up(CsgTree* tree, orangeinp::NodeId start);
 void simplify(CsgTree* tree, orangeinp::NodeId start);
 
 // Convert a node to postfix notation
-std::vector<LocalSurfaceId::size_type>
+[[nodiscard]] std::vector<LocalSurfaceId::size_type>
 build_postfix(CsgTree const& tree, orangeinp::NodeId n);
 
 // Transform a CSG node into a string expression
-std::string build_infix_string(CsgTree const& tree, orangeinp::NodeId n);
+[[nodiscard]] std::string
+build_infix_string(CsgTree const& tree, orangeinp::NodeId n);
 
 // Get the set of unsimplified surfaces in a tree
-std::vector<LocalSurfaceId> calc_surfaces(CsgTree const& tree);
+[[nodiscard]] std::vector<LocalSurfaceId> calc_surfaces(CsgTree const& tree);
 
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp
