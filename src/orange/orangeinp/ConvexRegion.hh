@@ -29,6 +29,8 @@ class ConvexSurfaceBuilder;
  * When implementing this class, prefer to build simpler surfaces (planes)
  * before complex ones (cones) in case we implement short-circuiting logic,
  * since expressions are currently sorted.
+ *
+ * \todo Should this be named an "interface"?
  */
 class ConvexRegionInterface
 {
