@@ -19,7 +19,7 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
-#include "detail/InvariantQ2Sampler.hh"
+#include "detail/MomentumTransferSampler.hh"
 
 namespace celeritas
 {
@@ -75,7 +75,7 @@ class ChipsNeutronElasticInteractor
 
     // Sampler
     UniformRealDist sample_phi_;
-    detail::InvariantQ2Sampler sample_q2_;
+    detail::MomentumTransferSampler sample_momentum_square_;
 };
 
 //---------------------------------------------------------------------------//
@@ -96,7 +96,7 @@ CELER_FUNCTION ChipsNeutronElasticInteractor::ChipsNeutronElasticInteractor(
     , neutron_mass_(shared_.neutron_mass)
     , neutron_p_(particle.momentum())
     , sample_phi_(0, 2 * constants::pi)
-    , sample_q2_(shared_, target_, neutron_p_)
+    , sample_momentum_square_(shared_, target_, neutron_p_)
 {
     CELER_EXPECT(particle.particle_id() == shared_.ids.neutron);
     CELER_EXPECT(inc_energy_ > zero_quantity());
@@ -122,7 +122,8 @@ CELER_FUNCTION Interaction ChipsNeutronElasticInteractor::operator()(Engine& rng
 
     // Sample the scattered direction from the invariant momentum transfer
     // squared (\f$ -t = Q^{2} \f$) in the c.m. frame
-    real_type cos_theta = 1 - real_type(0.5) * sample_q2_(rng) / ipow<2>(cm_p);
+    real_type cos_theta
+        = 1 - real_type(0.5) * sample_momentum_square_(rng) / ipow<2>(cm_p);
     clamp(cos_theta, real_type{-1}, real_type{1});
 
     // Boost to the center of mass (c.m.) frame

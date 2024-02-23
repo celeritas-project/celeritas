@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/neutron/interactor/detail/InvariantQ2Sampler.hh
+//! \file celeritas/neutron/interactor/detail/MomentumTransferSampler.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -32,7 +32,7 @@ namespace detail
  *  cross section for quark-exchange and the amplitude of the scattering are
  *  parameterized in terms of the neutron momentum (GeV/c) in the lab frame.
  */
-class InvariantQ2Sampler
+class MomentumTransferSampler
 {
   public:
     //!@{
@@ -44,9 +44,10 @@ class InvariantQ2Sampler
 
   public:
     // Construct with shared and target data, and the neutron momentum
-    inline CELER_FUNCTION InvariantQ2Sampler(NeutronElasticRef const& shared,
-                                             IsotopeView const& target,
-                                             Momentum neutron_p);
+    inline CELER_FUNCTION
+    MomentumTransferSampler(NeutronElasticRef const& shared,
+                            IsotopeView const& target,
+                            Momentum neutron_p);
 
     // Sample the momentum transfer
     template<class Engine>
@@ -71,24 +72,24 @@ class InvariantQ2Sampler
     // Momentum magnitude of the incident neutron (GeV/c)
     Momentum neutron_p_;
     // Maximum momentum transfer for the elastic scattering
-    real_type max_q2_;
+    real_type max_q_sq_;
     // Parameters for the CHIPS differential cross section
-    ExchangeParameters par_q2_;
+    ExchangeParameters par_q_sq_;
 
     //// HELPER FUNCTIONS ////
 
     // Sample the slope
     template<class Engine>
-    inline CELER_FUNCTION real_type sample_q2(real_type radius, Engine& rng)
+    inline CELER_FUNCTION real_type sample_q_sq(real_type radius, Engine& rng)
     {
         return -std::log(1 - radius * generate_canonical(rng));
     }
 
     // Calculate the maximum momentum transfer
-    inline CELER_FUNCTION real_type calc_max_q2(Momentum p) const;
+    inline CELER_FUNCTION real_type calc_max_q_sq(Momentum p) const;
 
     // Calculate parameters used in the quark-exchange process
-    inline CELER_FUNCTION ExchangeParameters calc_par_q2(Momentum p) const;
+    inline CELER_FUNCTION ExchangeParameters calc_par_q_sq(Momentum p) const;
 
     //// COMMON PROPERTIES ////
 
@@ -112,17 +113,17 @@ class InvariantQ2Sampler
  *  converted to the GeV value.
  */
 CELER_FUNCTION
-InvariantQ2Sampler::InvariantQ2Sampler(NeutronElasticRef const& shared,
-                                       IsotopeView const& target,
-                                       Momentum neutron_p)
+MomentumTransferSampler::MomentumTransferSampler(NeutronElasticRef const& shared,
+                                                 IsotopeView const& target,
+                                                 Momentum neutron_p)
     : par_(shared.diff_xs.coeffs[target.isotope_id()].par)
     , neutron_mass_(shared.neutron_mass)
     , target_mass_(target.nuclear_mass())
     , a_(target.atomic_mass_number())
     , heavy_target_(a_.get() > 6)
     , neutron_p_(neutron_p)
-    , max_q2_(calc_max_q2(neutron_p_))
-    , par_q2_(calc_par_q2(neutron_p_))
+    , max_q_sq_(calc_max_q_sq(neutron_p_))
+    , par_q_sq_(calc_par_q_sq(neutron_p_))
 {
 }
 
@@ -134,30 +135,31 @@ InvariantQ2Sampler::InvariantQ2Sampler(NeutronElasticRef const& shared,
  *
  */
 template<class Engine>
-CELER_FUNCTION auto InvariantQ2Sampler::operator()(Engine& rng) -> real_type
+CELER_FUNCTION auto MomentumTransferSampler::operator()(Engine& rng)
+    -> real_type
 {
     // Sample \f$ Q^{2} \f$ below S-wave limit
     if (neutron_p_ < this->s_wave_limit())
     {
-        return max_q2_ * generate_canonical(rng) / ipow<2>(this->to_gev());
+        return max_q_sq_ * generate_canonical(rng) / ipow<2>(this->to_gev());
     }
 
     // Sample \f$ Q^{2} \f$
-    real_type q2 = 0;
+    real_type q_sq = 0;
 
     if (a_ == AtomicMassNumber{1})
     {
         // Special case for the \f$ n + p \rightarrow n + p \f$ channel
-        real_type r_1 = -std::expm1(-max_q2_ * par_q2_.slope[0]);
-        real_type r_2 = -std::expm1(-max_q2_ * par_q2_.slope[1]);
+        real_type r_1 = -std::expm1(-max_q_sq_ * par_q_sq_.slope[0]);
+        real_type r_2 = -std::expm1(-max_q_sq_ * par_q_sq_.slope[1]);
 
-        real_type i_1 = r_1 * par_q2_.expnt[0];
-        real_type i_2 = r_2 * par_q2_.expnt[1] / par_q2_.slope[1];
+        real_type i_1 = r_1 * par_q_sq_.expnt[0];
+        real_type i_2 = r_2 * par_q_sq_.expnt[1] / par_q_sq_.slope[1];
 
         // Sample by t-channel and u-channel (charge exchange)
-        q2 = (BernoulliDistribution(i_1 / (i_1 + i_2))(rng))
-                 ? sample_q2(r_1, rng) / par_q2_.slope[0]
-                 : max_q2_ - sample_q2(r_2, rng) / par_q2_.slope[1];
+        q_sq = (BernoulliDistribution(i_1 / (i_1 + i_2))(rng))
+                   ? sample_q_sq(r_1, rng) / par_q_sq_.slope[0]
+                   : max_q_sq_ - sample_q_sq(r_2, rng) / par_q_sq_.slope[1];
     }
     else
     {
@@ -167,62 +169,65 @@ CELER_FUNCTION auto InvariantQ2Sampler::operator()(Engine& rng) -> real_type
         constexpr real_type one_seventh = 1 / real_type(7);
 
         real_type r_1 = -std::expm1(
-            -max_q2_ * (par_q2_.slope[0] + max_q2_ * par_q2_.ss));
+            -max_q_sq_ * (par_q_sq_.slope[0] + max_q_sq_ * par_q_sq_.ss));
 
         // power 3 for low-A and power 5 for high-A
-        real_type factor = heavy_target_ ? ipow<5>(max_q2_) : ipow<3>(max_q2_);
-        real_type r_2 = -std::expm1(-factor * par_q2_.slope[1]);
+        real_type factor = heavy_target_ ? ipow<5>(max_q_sq_)
+                                         : ipow<3>(max_q_sq_);
+        real_type r_2 = -std::expm1(-factor * par_q_sq_.slope[1]);
 
         // power 1 for low-A and power 7 for high-A
-        factor = heavy_target_ ? ipow<7>(max_q2_) : max_q2_;
-        real_type r_3 = -std::expm1(-factor * par_q2_.slope[2]);
-        real_type r_4 = -std::expm1(-max_q2_ * par_q2_.slope[3]);
+        factor = heavy_target_ ? ipow<7>(max_q_sq_) : max_q_sq_;
+        real_type r_3 = -std::expm1(-factor * par_q_sq_.slope[2]);
+        real_type r_4 = -std::expm1(-max_q_sq_ * par_q_sq_.slope[3]);
 
-        real_type i_1 = r_1 * par_q2_.expnt[0];
-        real_type i_2 = r_2 * par_q2_.expnt[1];
-        real_type i_3 = r_3 * par_q2_.expnt[2];
-        real_type i_4 = r_4 * par_q2_.expnt[3];
+        real_type i_1 = r_1 * par_q_sq_.expnt[0];
+        real_type i_2 = r_2 * par_q_sq_.expnt[1];
+        real_type i_3 = r_3 * par_q_sq_.expnt[2];
+        real_type i_4 = r_4 * par_q_sq_.expnt[3];
         real_type i_5 = i_1 + i_2;
         real_type i_6 = i_3 + i_5;
 
         real_type rand = (i_4 + i_6) * generate_canonical(rng);
         if (rand < i_1)
         {
-            real_type tss = 2 * par_q2_.ss;
-            q2 = this->sample_q2(r_1, rng) / par_q2_.slope[0];
+            real_type tss = 2 * par_q_sq_.ss;
+            q_sq = this->sample_q_sq(r_1, rng) / par_q_sq_.slope[0];
             if (std::fabs(tss) > 1e-7)
             {
-                q2 = (std::sqrt(par_q2_.slope[0]
-                                * (par_q2_.slope[0] + 2 * tss * q2))
-                      - par_q2_.slope[0])
-                     / tss;
+                q_sq = (std::sqrt(par_q_sq_.slope[0]
+                                  * (par_q_sq_.slope[0] + 2 * tss * q_sq))
+                        - par_q_sq_.slope[0])
+                       / tss;
             }
         }
         else if (rand < i_5)
         {
-            q2 = clamp_to_nonneg(this->sample_q2(r_2, rng) / par_q2_.slope[1]);
-            q2 = (heavy_target_) ? std::pow(q2, one_fifth)
-                                 : std::pow(q2, one_third);
+            q_sq = clamp_to_nonneg(this->sample_q_sq(r_2, rng)
+                                   / par_q_sq_.slope[1]);
+            q_sq = (heavy_target_) ? std::pow(q_sq, one_fifth)
+                                   : std::pow(q_sq, one_third);
         }
         else if (rand < i_6)
         {
-            q2 = clamp_to_nonneg(this->sample_q2(r_3, rng) / par_q2_.slope[2]);
+            q_sq = clamp_to_nonneg(this->sample_q_sq(r_3, rng)
+                                   / par_q_sq_.slope[2]);
             if (heavy_target_)
             {
-                q2 = std::pow(q2, one_seventh);
+                q_sq = std::pow(q_sq, one_seventh);
             }
         }
         else
         {
-            q2 = this->sample_q2(r_4, rng) / par_q2_.slope[3];
+            q_sq = this->sample_q_sq(r_4, rng) / par_q_sq_.slope[3];
             // u reduced for light-A (starts from 0)
             if (!heavy_target_)
             {
-                q2 = max_q2_ - q2;
+                q_sq = max_q_sq_ - q_sq;
             }
         }
     }
-    return clamp(q2, real_type{0}, max_q2_) / ipow<2>(this->to_gev());
+    return clamp(q_sq, real_type{0}, max_q_sq_) / ipow<2>(this->to_gev());
 }
 
 //---------------------------------------------------------------------------//
@@ -239,7 +244,7 @@ CELER_FUNCTION auto InvariantQ2Sampler::operator()(Engine& rng) -> real_type
  * collision angle is 90 degree in the center of mass system, is currently
  * excluded, but may be supported if there is a user case.
  */
-CELER_FUNCTION real_type InvariantQ2Sampler::calc_max_q2(Momentum p) const
+CELER_FUNCTION real_type MomentumTransferSampler::calc_max_q_sq(Momentum p) const
 {
     // Momentum and mass square of the incident neutron
     real_type target_mass = value_as<Mass>(target_mass_);
@@ -260,7 +265,7 @@ CELER_FUNCTION real_type InvariantQ2Sampler::calc_max_q2(Momentum p) const
  * \param p the neutron momentum in the lab frame (value in clhep::GeV unit).
  */
 CELER_FUNCTION
-auto InvariantQ2Sampler::calc_par_q2(Momentum neutron_p) const
+auto MomentumTransferSampler::calc_par_q_sq(Momentum neutron_p) const
     -> ExchangeParameters
 {
     // ExchangeParameters
