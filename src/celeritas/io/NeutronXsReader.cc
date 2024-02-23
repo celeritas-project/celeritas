@@ -55,7 +55,7 @@ NeutronXsReader::NeutronXsReader(char const* path) : path_(path)
 NeutronXsReader::result_type
 NeutronXsReader::operator()(AtomicNumber atomic_number) const
 {
-    CELER_EXPECT(atomic_number && atomic_number < AtomicNumber{92});
+    CELER_EXPECT(atomic_number);
 
     std::string z_str = std::to_string(atomic_number.unchecked_get());
     CELER_LOG(debug) << "Reading neutron elastic xs data for Z=" << z_str;
@@ -65,9 +65,8 @@ NeutronXsReader::operator()(AtomicNumber atomic_number) const
     // Read neutron elastic cross section data for the given atomic_number
     {
         std::string filename = path_ + "/el" + z_str;
-        std::ifstream infile;
-        infile.open(filename);
-        CELER_VALIDATE(infile.is_open(),
+        std::ifstream infile(filename);
+        CELER_VALIDATE(infile,
                        << "failed to open '" << filename
                        << "' (should contain cross section data)");
 
@@ -79,15 +78,19 @@ NeutronXsReader::operator()(AtomicNumber atomic_number) const
         double energy_max = 0.;
         size_type size = 0;
         infile >> energy_min >> energy_max >> size >> size;
+        CELER_VALIDATE(size > 0,
+                       << "incorrect neutron cross section size " << size);
         result.x.resize(size);
         result.y.resize(size);
+
+        MmSqMicroXs input_xs;
         for (size_type i = 0; i < size; ++i)
         {
             CELER_ASSERT(infile);
-            infile >> result.x[i] >> result.y[i];
             // Convert to the celeritas native length 1/[len^2] from
-	    // clhep::mm^2 as stored in G4PARTICLEXS/neutron/el data
-            result.y[i] *= ipow<2>(units::millimeter);
+            // clhep::mm^2 as stored in G4PARTICLEXS/neutron/el data
+            infile >> result.x[i] >> input_xs.value();
+            result.y[i] = native_value_from(input_xs);
         }
         infile.close();
     }

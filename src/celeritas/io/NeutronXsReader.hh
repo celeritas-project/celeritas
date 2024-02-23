@@ -9,6 +9,10 @@
 
 #include <string>
 
+#include "corecel/math/Quantity.hh"
+#include "corecel/math/UnitUtils.hh"
+#include "celeritas/UnitTypes.hh"
+#include "celeritas/Units.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 
 #include "ImportPhysicsVector.hh"
@@ -25,6 +29,8 @@ class NeutronXsReader
     //!@{
     //! \name Type aliases
     using result_type = ImportPhysicsVector;
+    using MmSqMicroXs
+        = Quantity<UnitProduct<units::Millimeter, units::Millimeter>, double>;
     //!@}
 
   public:
