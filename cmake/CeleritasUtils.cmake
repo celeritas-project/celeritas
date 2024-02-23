@@ -644,31 +644,30 @@ function(celeritas_get_g4libs var)
       set(_ext "-static")
     endif()
 
-    foreach(_lib IN LISTS ARGN)
-      set(_lib Geant4::G4${_lib}${_ext})
-
-      # Tasking was merged into core management
-      if(_lib MATCHES "tasking" AND NOT TARGET "${_lib}")
-        continue()
-      endif()
-      # Workaround for differing target names in 11.2.0,1 for G4persistency
-      # We do this here and not in FindGeant4 because we have no
-      # guarantee projects using Celeritas and Geant4 won't mess with target
-      # names themselves (and if we had to create a "celeritas::" target,
-      # we'd still have to specialize here).
-      if(_lib MATCHES "persistency" AND NOT TARGET "${_lib}")
+    foreach(_shortlib IN LISTS ARGN)
+      set(_lib Geant4::G4${_shortlib}${_ext})
+      if(TARGET "${_lib}")
+        list(APPEND _result "${_lib}")
+      elseif(_shortlib STREQUAL "persistency")
+        # Workaround for differing target names in 11.2.0,1 for G4persistency
+        # We do this here and not in FindGeant4 because we have no
+        # guarantee projects using Celeritas and Geant4 won't mess with target
+        # names themselves (and if we had to create a "celeritas::" target,
+        # we'd still have to specialize here).
         list(APPEND _result Geant4::G4mctruth${_ext} Geant4::G4geomtext${_ext})
         if(TARGET "Geant4::G4gdml${_ext}")
           list(APPEND _result Geant4::G4gdml${_ext})
         endif()
+      elseif(_shortlib STREQUAL "tasking")
+        # Same workaround for tasking, which was split between G4global and G4run
+        # from 11.1
+        list(APPEND _result Geant4::G4run${_ext} Geant4::G4global${_ext})
       else()
-        if(NOT TARGET "${_lib}")
-          message(AUTHOR_WARNING "No Geant4 library '${_lib}' exists")
-        else()
-          list(APPEND _result "${_lib}")
-        endif()
+        message(AUTHOR_WARNING "No Geant4 library '${_lib}' exists")
       endif()
     endforeach()
+    # This avoids "ld: warning: ignoring duplicate libraries:"
+    list(REMOVE_DUPLICATES _result)
   endif()
   set(${var} "${_result}" PARENT_SCOPE)
 endfunction()
