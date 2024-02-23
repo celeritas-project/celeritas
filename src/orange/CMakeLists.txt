@@ -27,6 +27,7 @@ list(APPEND SOURCES
   detail/UniverseInserter.cc
   orangeinp/ConvexRegion.cc
   orangeinp/ConvexSurfaceBuilder.cc
+  orangeinp/CsgObject.cc
   orangeinp/CsgTree.cc
   orangeinp/CsgTypes.cc
   orangeinp/CsgTreeUtils.cc

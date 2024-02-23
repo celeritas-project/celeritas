@@ -58,6 +58,9 @@ class CsgUnitBuilder
     template<class S>
     inline S const& surface(NodeId) const;
 
+    // Access a bounding zone by ID
+    BoundingZone const& bounds(NodeId) const;
+
     // Access a transform by ID
     inline VariantTransform const& transform(TransformId) const;
 

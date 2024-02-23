@@ -58,6 +58,27 @@ VolumeBuilder::insert_region(Metadata&& md, Joined&& j, BoundingZone&& bzone)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Add a negated region to the CSG tree.
+ */
+NodeId
+VolumeBuilder::insert_region(Metadata&& md, Negated&& n, BoundingZone&& bzone)
+{
+    auto node_id = ub_->insert_csg(std::move(n)).first;
+    CELER_ASSERT(!transforms_.empty());
+    ub_->insert_region(node_id, std::move(bzone), transforms_.back());
+
+    if (!md.empty())
+    {
+        // Metadata may be empty if the negated region is part of a subtraction
+        // or RDV
+        ub_->insert_md(node_id, std::move(md));
+    }
+
+    return node_id;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Apply a transform within this scope.
  */
 [[nodiscard]] PopVBTransformOnDestruct
