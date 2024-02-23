@@ -231,10 +231,8 @@ TEST_F(UrbanMscTest, coeff_data)
 {
     auto const& params = msc_params_->host_ref();
 
-    EXPECT_SOFT_EQ(1e-4,
-                   value_as<MevEnergy>(params.msc_params.low_energy_limit));
-    EXPECT_SOFT_EQ(1e2,
-                   value_as<MevEnergy>(params.msc_params.high_energy_limit));
+    EXPECT_SOFT_EQ(1e-4, value_as<MevEnergy>(params.params.low_energy_limit));
+    EXPECT_SOFT_EQ(1e2, value_as<MevEnergy>(params.params.high_energy_limit));
     {
         // Check steel material data
         auto mid = this->material()->find_material("G4_STAINLESS-STEEL");
@@ -255,7 +253,8 @@ TEST_F(UrbanMscTest, coeff_data)
     ASSERT_TRUE(mid);
     auto pid = this->particle()->find(pdg::electron());
     ASSERT_TRUE(pid);
-    UrbanMscParMatData const& par = params.par_mat_data[params.at(mid, pid)];
+    UrbanMscParMatData const& par
+        = params.par_mat_data[params.at<UrbanMscParMatData>(mid, pid)];
     EXPECT_SOFT_EQ(par.d_over_r, 0.64474963087322135);
 }
 

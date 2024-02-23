@@ -36,6 +36,8 @@ struct UrbanMscParameters
     real_type tau_limit{1e-6};  //!< limit of tau
     real_type safety_tol{0.01};  //!< safety tolerance
     real_type geom_limit{5e-8 * units::millimeter};  //!< minimum step
+    Energy low_energy_limit{0};
+    Energy high_energy_limit{0};
 
     //! A scale factor for the range
     static CELER_CONSTEXPR_FUNCTION real_type dtrl() { return 5e-2; }
@@ -107,15 +109,11 @@ struct UrbanMscMaterialData
  */
 struct UrbanMscParMatData
 {
-    XsGridData xs;  //!< For calculating MFP
     real_type scaled_zeff{};  //!< a * Z^b
     real_type d_over_r{};  //!< Maximum distance/range heuristic
 
     //! Whether the data is assigned
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return xs && scaled_zeff > 0;
-    }
+    explicit CELER_FUNCTION operator bool() const { return scaled_zeff > 0; }
 };
 
 //---------------------------------------------------------------------------//
@@ -144,12 +142,14 @@ struct UrbanMscData
     units::MevMass electron_mass;
     //! User-assignable options
     MscParameters msc_params;
-    //! Model-specific user-assignable options
+    //! Model-specific options
     UrbanMscParameters params;
     //! Material-dependent data
     MaterialItems<UrbanMscMaterialData> material_data;
     //! Particle and material-dependent data
-    Items<UrbanMscParMatData> par_mat_data;  // [mat]{electron, positron}
+    Items<UrbanMscParMatData> par_mat_data;  //!< [mat][particle]
+    //! Scaled xs data
+    Items<XsGridData> xs;  //!< [mat][particle]
 
     // Backend storage
     Items<real_type> reals;
@@ -160,7 +160,7 @@ struct UrbanMscData
     explicit CELER_FUNCTION operator bool() const
     {
         return ids && electron_mass > zero_quantity() && !material_data.empty()
-               && !par_mat_data.empty() && !reals.empty();
+               && !par_mat_data.empty() && !xs.empty() && !reals.empty();
     }
 
     //! Assign from another set of data
@@ -174,19 +174,20 @@ struct UrbanMscData
         params = other.params;
         material_data = other.material_data;
         par_mat_data = other.par_mat_data;
+        xs = other.xs;
         reals = other.reals;
         return *this;
     }
 
     //! Get the data location for a material + particle
-    CELER_FUNCTION ItemId<UrbanMscParMatData>
-    at(MaterialId mat, ParticleId par) const
+    template<class T>
+    CELER_FUNCTION ItemId<T> at(MaterialId mat, ParticleId par) const
     {
         CELER_EXPECT(mat && par);
         size_type result = mat.unchecked_get() * 2;
         result += (par == this->ids.electron ? 0 : 1);
         CELER_ENSURE(result < this->par_mat_data.size());
-        return ItemId<UrbanMscParMatData>{result};
+        return ItemId<T>{result};
     }
 };
 

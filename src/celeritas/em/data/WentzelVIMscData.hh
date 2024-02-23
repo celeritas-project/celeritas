@@ -14,6 +14,8 @@
 #include "celeritas/Types.hh"
 #include "celeritas/grid/XsGridData.hh"
 
+#include "MscData.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -22,27 +24,16 @@ namespace celeritas
  */
 struct WentzelVIMscParameters
 {
+    using Energy = units::MevEnergy;
+
     real_type single_scattering_fact{1.25};  //!< single scattering factor
+    Energy low_energy_limit{0};
+    Energy high_energy_limit{0};
 
     //! The minimum value of the true path length limit: 1 nm
     static CELER_CONSTEXPR_FUNCTION real_type limit_min_fix()
     {
         return 1e-7 * units::centimeter;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Particle- and material-dependent data for Wentzel VI MSC.
- */
-struct WentzelVIMscParMatData
-{
-    XsGridData xs;  //!< For calculating MFP
-
-    //! Whether the data is assigned
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return static_cast<bool>(xs);
     }
 };
 
@@ -66,10 +57,10 @@ struct WentzelVIMscData
     units::MevMass electron_mass;
     //! User-assignable options
     MscParameters msc_params;
-    //! Model-specific user-assignable options
+    //! Model-specific options
     WentzelVIMscParameters params;
-    //! Particle and material-dependent data
-    Items<UrbanMscParMatData> par_mat_data;  // [mat]{electron, positron}
+    //! Scaled xs data
+    Items<XsGridData> xs;  //!< [mat][particle]
 
     // Backend storage
     Items<real_type> reals;
@@ -79,7 +70,7 @@ struct WentzelVIMscData
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids && electron_mass > zero_quantity() && !par_mat_data.empty()
+        return ids && electron_mass > zero_quantity() && !xs.empty()
                && !reals.empty();
     }
 
@@ -92,20 +83,19 @@ struct WentzelVIMscData
         electron_mass = other.electron_mass;
         msc_params = other.msc_params;
         params = other.params;
-        par_mat_data = other.par_mat_data;
+        xs = other.xs;
         reals = other.reals;
         return *this;
     }
 
     //! Get the data location for a material + particle
-    CELER_FUNCTION ItemId<WentzelVIMscParMatData>
-    at(MaterialId mat, ParticleId par) const
+    CELER_FUNCTION ItemId<XsGridData> at(MaterialId mat, ParticleId par) const
     {
         CELER_EXPECT(mat && par);
         size_type result = mat.unchecked_get() * 2;
         result += (par == this->ids.electron ? 0 : 1);
-        CELER_ENSURE(result < this->par_mat_data.size());
-        return ItemId<UrbanMscParMatData>{result};
+        CELER_ENSURE(result < this->xs.size());
+        return ItemId<XsGridData>{result};
     }
 };
 

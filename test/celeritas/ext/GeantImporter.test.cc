@@ -1263,8 +1263,8 @@ TEST_F(OneSteelSphere, physics)
             EXPECT_SOFT_EQ(1e2, pv.x.back());
         }
         auto const& steel = msc.xs_table.physics_vectors.back();
-        EXPECT_SOFT_EQ(0.23785296407525, steel.y.front());
-        EXPECT_SOFT_EQ(128.58803359467, steel.y.back());
+        EXPECT_SOFT_EQ(0.23785296407525, to_inv_cm(steel.y.front()));
+        EXPECT_SOFT_EQ(128.58803359467, to_inv_cm(steel.y.back()));
     }
     {
         // Check Wentzel VI MSC bounds
@@ -1278,8 +1278,8 @@ TEST_F(OneSteelSphere, physics)
             EXPECT_SOFT_EQ(1e8, pv.x.back());
         }
         auto const& steel = msc.xs_table.physics_vectors.back();
-        EXPECT_SOFT_EQ(114.93265072267, steel.y.front());
-        EXPECT_SOFT_EQ(116.59035766356, steel.y.back());
+        EXPECT_SOFT_EQ(114.93265072267, to_inv_cm(steel.y.front()));
+        EXPECT_SOFT_EQ(116.59035766356, to_inv_cm(steel.y.back()));
     }
 }
 
