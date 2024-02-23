@@ -320,7 +320,7 @@ TEST_F(CylinderTest, transformed)
 
     static char const expected_node[] = "all(-0, +1, -2)";
     static char const* const expected_surfaces[]
-        = {"Plane: y=0.9", "Plane: y=-0.9", "Cyl y: r=0.75 at x=-0, z=1"};
+        = {"Plane: y=0.9", "Plane: y=-0.9", "Cyl y: r=0.75 at x=0, z=1"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
