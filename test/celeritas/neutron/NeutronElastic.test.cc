@@ -15,8 +15,8 @@
 #include "celeritas/io/NeutronXsReader.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/neutron/NeutronTestBase.hh"
-#include "celeritas/neutron/interactor/NeutronElasticInteractor.hh"
-#include "celeritas/neutron/model/NeutronElasticModel.hh"
+#include "celeritas/neutron/interactor/ChipsNeutronElasticInteractor.hh"
+#include "celeritas/neutron/model/ChipsNeutronElasticModel.hh"
 #include "celeritas/neutron/xs/NeutronElasticMacroXsCalculator.hh"
 #include "celeritas/neutron/xs/NeutronElasticMicroXsCalculator.hh"
 
@@ -31,7 +31,8 @@ class NeutronElasticTest : public NeutronTestBase
 {
   protected:
     using MevEnergy = units::MevEnergy;
-    using SPConstNElasticModel = std::shared_ptr<NeutronElasticModel const>;
+    using SPConstNElasticModel
+        = std::shared_ptr<ChipsNeutronElasticModel const>;
 
     void SetUp() override
     {
@@ -48,7 +49,7 @@ class NeutronElasticTest : public NeutronTestBase
 
         // Set up the default material
         this->set_material("HeCu");
-        model_ = std::make_shared<NeutronElasticModel>(
+        model_ = std::make_shared<ChipsNeutronElasticModel>(
             ActionId{0}, particles, *this->material_params(), read_el_data);
     }
 
@@ -169,7 +170,7 @@ TEST_F(NeutronElasticTest, basic)
     // Sample interaction
     NeutronElasticRef shared = model_->host_ref();
     RandomEngine& rng_engine = this->rng();
-    NeutronElasticInteractor interact(
+    ChipsNeutronElasticInteractor interact(
         shared, this->particle_track(), this->direction(), isotope_cu63);
 
     // Produce four samples from the original incident energy/dir
@@ -236,7 +237,7 @@ TEST_F(NeutronElasticTest, extended)
     for (auto i : range(expected_energy.size()))
     {
         this->set_inc_particle(pdg::neutron(), MevEnergy{energy});
-        NeutronElasticInteractor interact(
+        ChipsNeutronElasticInteractor interact(
             shared, this->particle_track(), this->direction(), isotope_he4);
         Interaction result = interact(rng_engine);
 
@@ -283,7 +284,7 @@ TEST_F(NeutronElasticTest, stress_test)
     for (auto i : range(inc_energy.size()))
     {
         this->set_inc_particle(pdg::neutron(), MevEnergy{inc_energy[i]});
-        NeutronElasticInteractor interact(
+        ChipsNeutronElasticInteractor interact(
             shared, this->particle_track(), this->direction(), isotope);
 
         double sum_energy{0.};

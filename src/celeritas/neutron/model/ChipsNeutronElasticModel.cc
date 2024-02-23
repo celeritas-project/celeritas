@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/neutron/model/NeutronElasticModel.cc
+//! \file celeritas/neutron/model/ChipsNeutronElasticModel.cc
 //---------------------------------------------------------------------------//
-#include "NeutronElasticModel.hh"
+#include "ChipsNeutronElasticModel.hh"
 
 #include "corecel/math/Quantity.hh"
 #include "celeritas/global/ActionLauncher.hh"
@@ -15,7 +15,7 @@
 #include "celeritas/io/ImportPhysicsTable.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
 #include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/neutron/executor/NeutronElasticExecutor.hh"
+#include "celeritas/neutron/executor/ChipsNeutronElasticExecutor.hh"
 #include "celeritas/phys/InteractionApplier.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -27,10 +27,11 @@ namespace celeritas
 /*!
  * Construct from model ID and other necessary data.
  */
-NeutronElasticModel::NeutronElasticModel(ActionId id,
-                                         ParticleParams const& particles,
-                                         MaterialParams const& materials,
-                                         ReadData load_data)
+ChipsNeutronElasticModel::ChipsNeutronElasticModel(
+    ActionId id,
+    ParticleParams const& particles,
+    MaterialParams const& materials,
+    ReadData load_data)
 {
     CELER_EXPECT(id);
     CELER_EXPECT(load_data);
@@ -75,7 +76,7 @@ NeutronElasticModel::NeutronElasticModel(ActionId id,
 /*!
  * Particle types and energy ranges that this model applies to.
  */
-auto NeutronElasticModel::applicability() const -> SetApplicability
+auto ChipsNeutronElasticModel::applicability() const -> SetApplicability
 {
     Applicability neutron_applic;
     neutron_applic.particle = this->host_ref().ids.neutron;
@@ -89,7 +90,7 @@ auto NeutronElasticModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto NeutronElasticModel::micro_xs(Applicability) const -> MicroXsBuilders
+auto ChipsNeutronElasticModel::micro_xs(Applicability) const -> MicroXsBuilders
 {
     // Cross sections are calculated on the fly
     return {};
@@ -100,20 +101,20 @@ auto NeutronElasticModel::micro_xs(Applicability) const -> MicroXsBuilders
 /*!
  * Apply the interaction kernel.
  */
-void NeutronElasticModel::execute(CoreParams const& params,
-                                  CoreStateHost& state) const
+void ChipsNeutronElasticModel::execute(CoreParams const& params,
+                                       CoreStateHost& state) const
 {
     auto execute = make_action_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
         this->action_id(),
-        InteractionApplier{NeutronElasticExecutor{this->host_ref()}});
+        InteractionApplier{ChipsNeutronElasticExecutor{this->host_ref()}});
     return launch_action(*this, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void NeutronElasticModel::execute(CoreParams const&, CoreStateDevice&) const
+void ChipsNeutronElasticModel::execute(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
@@ -123,7 +124,7 @@ void NeutronElasticModel::execute(CoreParams const&, CoreStateDevice&) const
 /*!
  * Get the model ID for this model.
  */
-ActionId NeutronElasticModel::action_id() const
+ActionId ChipsNeutronElasticModel::action_id() const
 {
     return this->host_ref().ids.action;
 }
@@ -132,8 +133,8 @@ ActionId NeutronElasticModel::action_id() const
 /*!
  * Construct interaction cross section data for a single element.
  */
-void NeutronElasticModel::append_xs(ImportPhysicsVector const& inp,
-                                    HostXsData* xs) const
+void ChipsNeutronElasticModel::append_xs(ImportPhysicsVector const& inp,
+                                         HostXsData* xs) const
 {
     auto reals = make_builder(&xs->reals);
     GenericGridData data;
@@ -164,8 +165,8 @@ void NeutronElasticModel::append_xs(ImportPhysicsVector const& inp,
  * Eur. Phys. J. A8, 217 (2000); P.V. Degtyarenko, M.V. Kossov and H.P.
  * Wellisch, Eur. Phys. J. A9 (2001).
  */
-void NeutronElasticModel::append_coeffs(AtomicMassNumber A,
-                                        HostDiffXsData* data) const
+void ChipsNeutronElasticModel::append_coeffs(AtomicMassNumber A,
+                                             HostDiffXsData* data) const
 {
     ChipsDiffXsCoefficients coeffs;
 

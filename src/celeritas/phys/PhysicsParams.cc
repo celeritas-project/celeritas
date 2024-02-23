@@ -44,7 +44,7 @@
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/neutron/data/NeutronElasticData.hh"
-#include "celeritas/neutron/model/NeutronElasticModel.hh"
+#include "celeritas/neutron/model/ChipsNeutronElasticModel.hh"
 
 #include "Model.hh"
 #include "ParticleParams.hh"
@@ -398,7 +398,7 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
             data->hardwired.eplusgg_data = epgg_model->device_ref();
         }
         else if (auto* ne_model
-                 = dynamic_cast<NeutronElasticModel const*>(&model))
+                 = dynamic_cast<ChipsNeutronElasticModel const*>(&model))
         {
             data->hardwired.neutron_elastic = process_id;
             data->hardwired.chips = ModelId{model_idx};
