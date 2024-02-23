@@ -141,5 +141,28 @@ void visit(ConvexSurfaceBuilder& csb, Sense sense, VariantSurface const& surf)
 }
 
 //---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATIONS
+//---------------------------------------------------------------------------//
+#define CSB_INSTANTIATE(SURF) \
+    template void ConvexSurfaceBuilder::operator()(Sense, SURF const&);
+CSB_INSTANTIATE(PlaneAligned<Axis::x>);
+CSB_INSTANTIATE(PlaneAligned<Axis::y>);
+CSB_INSTANTIATE(PlaneAligned<Axis::z>);
+CSB_INSTANTIATE(CylCentered<Axis::x>);
+CSB_INSTANTIATE(CylCentered<Axis::y>);
+CSB_INSTANTIATE(CylCentered<Axis::z>);
+CSB_INSTANTIATE(SphereCentered);
+CSB_INSTANTIATE(CylAligned<Axis::x>);
+CSB_INSTANTIATE(CylAligned<Axis::y>);
+CSB_INSTANTIATE(CylAligned<Axis::z>);
+CSB_INSTANTIATE(Plane);
+CSB_INSTANTIATE(Sphere);
+CSB_INSTANTIATE(ConeAligned<Axis::x>);
+CSB_INSTANTIATE(ConeAligned<Axis::y>);
+CSB_INSTANTIATE(ConeAligned<Axis::z>);
+CSB_INSTANTIATE(SimpleQuadric);
+CSB_INSTANTIATE(GeneralQuadric);
+#undef CSB_INSTANTIATE
+
 }  // namespace orangeinp
 }  // namespace celeritas
