@@ -121,9 +121,9 @@ InvariantQ2Sampler::InvariantQ2Sampler(NeutronElasticRef const& shared,
     , a_(target.atomic_mass_number())
     , heavy_target_(a_.get() > 6)
     , neutron_p_(neutron_p)
+    , max_q2_(calc_max_q2(neutron_p_))
+    , par_q2_(calc_par_q2(neutron_p_))
 {
-    max_q2_ = calc_max_q2(neutron_p_);
-    par_q2_ = calc_par_q2(neutron_p_);
 }
 
 //---------------------------------------------------------------------------//
@@ -148,16 +148,16 @@ CELER_FUNCTION auto InvariantQ2Sampler::operator()(Engine& rng) -> real_type
     if (a_ == AtomicMassNumber{1})
     {
         // Special case for the \f$ n + p \rightarrow n + p \f$ channel
-        real_type R1 = -std::expm1(-max_q2_ * par_q2_.slope[0]);
-        real_type R2 = -std::expm1(-max_q2_ * par_q2_.slope[1]);
+        real_type r_1 = -std::expm1(-max_q2_ * par_q2_.slope[0]);
+        real_type r_2 = -std::expm1(-max_q2_ * par_q2_.slope[1]);
 
-        real_type I1 = R1 * par_q2_.expnt[0];
-        real_type I2 = R2 * par_q2_.expnt[1] / par_q2_.slope[1];
+        real_type i_1 = r_1 * par_q2_.expnt[0];
+        real_type i_2 = r_2 * par_q2_.expnt[1] / par_q2_.slope[1];
 
         // Sample by t-channel and u-channel (charge exchange)
-        q2 = (BernoulliDistribution(I1 / (I1 + I2))(rng))
-                 ? sample_q2(R1, rng) / par_q2_.slope[0]
-                 : max_q2_ - sample_q2(R2, rng) / par_q2_.slope[1];
+        q2 = (BernoulliDistribution(i_1 / (i_1 + i_2))(rng))
+                 ? sample_q2(r_1, rng) / par_q2_.slope[0]
+                 : max_q2_ - sample_q2(r_2, rng) / par_q2_.slope[1];
     }
     else
     {
@@ -166,30 +166,30 @@ CELER_FUNCTION auto InvariantQ2Sampler::operator()(Engine& rng) -> real_type
         constexpr real_type one_fifth{0.2};
         constexpr real_type one_seventh = 1 / real_type(7);
 
-        real_type R1 = -std::expm1(
+        real_type r_1 = -std::expm1(
             -max_q2_ * (par_q2_.slope[0] + max_q2_ * par_q2_.ss));
 
         // power 3 for low-A and power 5 for high-A
         real_type factor = heavy_target_ ? ipow<5>(max_q2_) : ipow<3>(max_q2_);
-        real_type R2 = -std::expm1(-factor * par_q2_.slope[1]);
+        real_type r_2 = -std::expm1(-factor * par_q2_.slope[1]);
 
         // power 1 for low-A and power 7 for high-A
         factor = heavy_target_ ? ipow<7>(max_q2_) : max_q2_;
-        real_type R3 = -std::expm1(-factor * par_q2_.slope[2]);
-        real_type R4 = -std::expm1(-max_q2_ * par_q2_.slope[3]);
+        real_type r_3 = -std::expm1(-factor * par_q2_.slope[2]);
+        real_type r_4 = -std::expm1(-max_q2_ * par_q2_.slope[3]);
 
-        real_type I1 = R1 * par_q2_.expnt[0];
-        real_type I2 = R2 * par_q2_.expnt[1];
-        real_type I3 = R3 * par_q2_.expnt[2];
-        real_type I4 = R4 * par_q2_.expnt[3];
-        real_type I5 = I1 + I2;
-        real_type I6 = I3 + I5;
+        real_type i_1 = r_1 * par_q2_.expnt[0];
+        real_type i_2 = r_2 * par_q2_.expnt[1];
+        real_type i_3 = r_3 * par_q2_.expnt[2];
+        real_type i_4 = r_4 * par_q2_.expnt[3];
+        real_type i_5 = i_1 + i_2;
+        real_type i_6 = i_3 + i_5;
 
-        real_type rand = (I4 + I6) * generate_canonical(rng);
-        if (rand < I1)
+        real_type rand = (i_4 + i_6) * generate_canonical(rng);
+        if (rand < i_1)
         {
             real_type tss = 2 * par_q2_.ss;
-            q2 = this->sample_q2(R1, rng) / par_q2_.slope[0];
+            q2 = this->sample_q2(r_1, rng) / par_q2_.slope[0];
             if (std::fabs(tss) > 1e-7)
             {
                 q2 = (std::sqrt(par_q2_.slope[0]
@@ -198,15 +198,15 @@ CELER_FUNCTION auto InvariantQ2Sampler::operator()(Engine& rng) -> real_type
                      / tss;
             }
         }
-        else if (rand < I5)
+        else if (rand < i_5)
         {
-            q2 = clamp_to_nonneg(this->sample_q2(R2, rng) / par_q2_.slope[1]);
+            q2 = clamp_to_nonneg(this->sample_q2(r_2, rng) / par_q2_.slope[1]);
             q2 = (heavy_target_) ? std::pow(q2, one_fifth)
                                  : std::pow(q2, one_third);
         }
-        else if (rand < I6)
+        else if (rand < i_6)
         {
-            q2 = clamp_to_nonneg(this->sample_q2(R3, rng) / par_q2_.slope[2]);
+            q2 = clamp_to_nonneg(this->sample_q2(r_3, rng) / par_q2_.slope[2]);
             if (heavy_target_)
             {
                 q2 = std::pow(q2, one_seventh);
@@ -214,7 +214,7 @@ CELER_FUNCTION auto InvariantQ2Sampler::operator()(Engine& rng) -> real_type
         }
         else
         {
-            q2 = this->sample_q2(R4, rng) / par_q2_.slope[3];
+            q2 = this->sample_q2(r_4, rng) / par_q2_.slope[3];
             // u reduced for light-A (starts from 0)
             if (!heavy_target_)
             {
