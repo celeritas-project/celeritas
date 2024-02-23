@@ -60,7 +60,7 @@ TEST_F(CsgUnitBuilderTest, infinite)
     EXPECT_EQ(0, u.surfaces.size());
     if (CELERITAS_USE_JSON)
     {
-        EXPECT_JSON_EQ(R"json({"t":["~",0]})json", tree_string(u));
+        EXPECT_JSON_EQ(R"json(["t",["~",0]])json", tree_string(u));
     }
     static char const* const expected_md_strings[] = {"true", ""};
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
@@ -127,7 +127,7 @@ TEST_F(CsgUnitBuilderTest, single_surface)
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     if (CELERITAS_USE_JSON)
     {
-        EXPECT_JSON_EQ(R"json([["t",["~",0],["S",0],["~",2]]])json",
+        EXPECT_JSON_EQ(R"json(["t",["~",0],["S",0],["~",2]])json",
                        tree_string(u));
     }
     static char const* const expected_md_strings[]
@@ -203,7 +203,7 @@ TEST_F(CsgUnitBuilderTest, multi_level)
     if (CELERITAS_USE_JSON)
     {
         EXPECT_JSON_EQ(
-            R"json([["t",["~",0],["S",0],["S",1],["~",2],["&",[3,4]],["~",3]]])json",
+            R"json(["t",["~",0],["S",0],["S",1],["~",2],["&",[3,4]],["~",3]])json",
             tree_string(u));
     }
     static char const* const expected_md_strings[] = {
