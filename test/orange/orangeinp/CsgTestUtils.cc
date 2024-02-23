@@ -16,6 +16,7 @@
 #include "celeritas_config.h"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Repr.hh"
+#include "corecel/io/StreamableVariant.hh"
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/orangeinp/CsgTree.hh"
 #include "orange/orangeinp/CsgTreeUtils.hh"
@@ -168,9 +169,8 @@ std::vector<std::string> transform_strings(CsgUnit const& u)
             {
                 if (printed_transform.insert(t).second)
                 {
-                    os << " -> " << std::setprecision(3);
-                    std::visit([&os](auto&& transform) { os << transform; },
-                               u.transforms[t.unchecked_get()]);
+                    os << " -> " << std::setprecision(3)
+                       << StreamableVariant{u.transforms[t.unchecked_get()]};
                 }
             }
             else
