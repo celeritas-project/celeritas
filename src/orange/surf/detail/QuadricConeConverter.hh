@@ -105,18 +105,11 @@ QuadricConeConverter::operator()(AxisTag<T>, SimpleQuadric const& sq) const
     real_type const norm = (second[to_int(U)] + second[to_int(V)]) / 2;
     real_type const tsq = -second[to_int(T)] / norm;
 
-    // Calculate origin from first-order coefficients, protecting against
-    // signed zero
+    // Calculate origin from first-order coefficients
     Real3 origin = make_array(sq.first());
-    auto divide_origin_axis_by = [&origin](Axis ax, real_type value) {
-        if (origin[to_int(ax)] != 0)
-        {
-            origin[to_int(ax)] /= value;
-        }
-    };
-    divide_origin_axis_by(T, -2 * second[to_int(T)]);
-    divide_origin_axis_by(U, -2 * norm);
-    divide_origin_axis_by(V, -2 * norm);
+    origin[to_int(T)] /= -2 * second[to_int(T)];
+    origin[to_int(U)] /= -2 * norm;
+    origin[to_int(V)] /= -2 * norm;
 
     real_type const expected_h_b = -tsq * ipow<2>(origin[to_int(T)])
                                    + ipow<2>(origin[to_int(U)])
@@ -127,6 +120,8 @@ QuadricConeConverter::operator()(AxisTag<T>, SimpleQuadric const& sq) const
         return {};
     }
 
+    // Clear potential signed zeros before returning
+    origin += real_type{0};
     return ConeAligned<T>::from_tangent_sq(origin, tsq);
 }
 
