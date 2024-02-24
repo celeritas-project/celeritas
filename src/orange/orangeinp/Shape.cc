@@ -35,11 +35,9 @@ NodeId ShapeBase::build(VolumeBuilder& vb) const
     this->build_interior(sb);
 
     // Intersect the given surfaces to create a new CSG node
-    auto node_id = vb.insert_region(Label{std::move(css.object_name)},
-                                    Joined{op_and, std::move(css.nodes)},
-                                    calc_merged_bzone(css));
-
-    return node_id;
+    return vb.insert_region(Label{std::move(css.object_name)},
+                            Joined{op_and, std::move(css.nodes)},
+                            calc_merged_bzone(css));
 }
 
 //---------------------------------------------------------------------------//
