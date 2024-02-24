@@ -22,7 +22,7 @@ namespace orangeinp
 /*!
  * Construct a volume from this shape.
  */
-NodeId Shape::build(VolumeBuilder& vb) const
+NodeId ShapeBase::build(VolumeBuilder& vb) const
 {
     // Set input attributes for surface state
     detail::ConvexSurfaceState css;
@@ -46,12 +46,12 @@ NodeId Shape::build(VolumeBuilder& vb) const
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
-template class ShapeImpl<Box>;
-template class ShapeImpl<Cone>;
-template class ShapeImpl<Cylinder>;
-template class ShapeImpl<Ellipsoid>;
-template class ShapeImpl<Prism>;
-template class ShapeImpl<Sphere>;
+template class Shape<Box>;
+template class Shape<Cone>;
+template class Shape<Cylinder>;
+template class Shape<Ellipsoid>;
+template class Shape<Prism>;
+template class Shape<Sphere>;
 
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp

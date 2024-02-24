@@ -100,9 +100,8 @@ TEST_F(ShapeTest, single)
 TEST_F(ShapeTest, multiple)
 {
     auto box = this->build_volume(BoxShape{"box", Real3{1, 1, 2}});
-    auto cone
-        = this->build_volume(ConeShape{"cone", Cone::Real2{1.0, 0.5}, 2.0});
-    auto cyl = this->build_volume(CylinderShape{"cyl", 1.0, 2.0});
+    auto cone = this->build_volume(Shape{"cone", Cone{{1.0, 0.5}, 2.0}});
+    auto cyl = this->build_volume(Shape{"cyl", Cylinder{1.0, 2.0}});
 
     EXPECT_EQ(LocalVolumeId{0}, box) << box.unchecked_get();
     EXPECT_EQ(LocalVolumeId{1}, cone) << cone.unchecked_get();

@@ -20,6 +20,10 @@ namespace orangeinp
 /*!
  * A simple, convex region of space.
  *
+ * This is an abstract class that implements \c build for constructing a volume
+ * by dispatching to a method \c build_interior that the daughters must
+ * override using a convex region.
+ *
  * Use the implementation classes \c XShape where \c X is one of the convex
  * region types in ConvexRegion.hh :
  * - \c BoxShape
@@ -29,7 +33,7 @@ namespace orangeinp
  * - \c PrismShape
  * - \c SphereShape
  */
-class Shape : public ObjectInterface
+class ShapeBase : public ObjectInterface
 {
   public:
     // Construct a volume from this object
@@ -38,9 +42,9 @@ class Shape : public ObjectInterface
   protected:
     //!@{
     //! Allow construction and assignment only through daughter classes
-    Shape() = default;
-    virtual ~Shape() = default;
-    CELER_DEFAULT_COPY_MOVE(Shape);
+    ShapeBase() = default;
+    virtual ~ShapeBase() = default;
+    CELER_DEFAULT_COPY_MOVE(ShapeBase);
     //!@}
 
     //! Daughter class interface
@@ -59,15 +63,22 @@ class Shape : public ObjectInterface
  * arguments.
  */
 template<class T>
-class ShapeImpl final : public Shape
+class Shape final : public ShapeBase
 {
     static_assert(std::is_base_of_v<ConvexRegionInterface, T>);
 
   public:
     //! Construct with a label and arguments of the convex region
     template<class... Ts>
-    ShapeImpl(std::string&& label, Ts... region_args)
+    Shape(std::string&& label, Ts... region_args)
         : label_{std::move(label)}, region_{std::forward<Ts>(region_args)...}
+    {
+        CELER_EXPECT(!label_.empty());
+    }
+
+    //! Construct with a label and convex region
+    Shape(std::string&& label, T&& region)
+        : label_{std::move(label)}, region_{std::move(region)}
     {
         CELER_EXPECT(!label_.empty());
     }
@@ -87,15 +98,22 @@ class ShapeImpl final : public Shape
 };
 
 //---------------------------------------------------------------------------//
+// DEDUCTION GUIDES
+//---------------------------------------------------------------------------//
+
+template<class T>
+Shape(std::string&&, T&&) -> Shape<T>;
+
+//---------------------------------------------------------------------------//
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
 
-using BoxShape = ShapeImpl<Box>;
-using ConeShape = ShapeImpl<Cone>;
-using CylinderShape = ShapeImpl<Cylinder>;
-using EllipsoidShape = ShapeImpl<Ellipsoid>;
-using PrismShape = ShapeImpl<Prism>;
-using SphereShape = ShapeImpl<Sphere>;
+using BoxShape = Shape<Box>;
+using ConeShape = Shape<Cone>;
+using CylinderShape = Shape<Cylinder>;
+using EllipsoidShape = Shape<Ellipsoid>;
+using PrismShape = Shape<Prism>;
+using SphereShape = Shape<Sphere>;
 
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp
