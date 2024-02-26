@@ -23,11 +23,26 @@ namespace celeritas
 template<class T>
 T determinant(SquareMatrix<T, 3> const& mat)
 {
-    return mat[0][0] * mat[1][1] * mat[2][2] + mat[1][0] * mat[2][1] * mat[0][2]
+    // clang-format off
+    return   mat[0][0] * mat[1][1] * mat[2][2]
+           + mat[1][0] * mat[2][1] * mat[0][2]
            + mat[2][0] * mat[0][1] * mat[1][2]
            - mat[2][0] * mat[1][1] * mat[0][2]
            - mat[1][0] * mat[0][1] * mat[2][2]
            - mat[0][0] * mat[2][1] * mat[1][2];
+    // clang-format on
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the trace of a 3x3 matrix.
+ *
+ * The trace is just the sum of the diagonal elements.
+ */
+template<class T>
+T trace(SquareMatrix<T, 3> const& mat)
+{
+    return mat[0][0] + mat[1][1] + mat[2][2];
 }
 
 //---------------------------------------------------------------------------//
@@ -189,6 +204,10 @@ Mat3 make_rotation(Axis ax, Turn theta, Mat3 const& other)
 template int determinant(SquareMatrix<int, 3> const&);
 template float determinant(SquareMatrix<float, 3> const&);
 template double determinant(SquareMatrix<double, 3> const&);
+
+template int trace(SquareMatrix<int, 3> const&);
+template float trace(SquareMatrix<float, 3> const&);
+template double trace(SquareMatrix<double, 3> const&);
 
 template void orthonormalize(SquareMatrix<float, 3>*);
 template void orthonormalize(SquareMatrix<double, 3>*);

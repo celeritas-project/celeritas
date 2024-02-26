@@ -80,6 +80,17 @@ TEST_F(MatrixUtilsTest, determinant)
 
 //---------------------------------------------------------------------------//
 
+TEST_F(MatrixUtilsTest, trace)
+{
+    using Vec3 = Array<int, 3>;
+    using Mat3 = SquareMatrix<int, 3>;
+    Mat3 const a{Vec3{1, 2, 3}, Vec3{-1, 4, 1}, Vec3{-3, 2, -1}};
+
+    EXPECT_EQ(4, trace(a));
+}
+
+//---------------------------------------------------------------------------//
+
 TEST_F(MatrixUtilsTest, gemm)
 {
     using Vec3 = Array<int, 3>;
@@ -144,6 +155,7 @@ TEST_F(MatrixUtilsTest, rotation)
     {
         SCOPED_TRACE("x");
         auto r = make_rotation(Axis::x, native_value_to<Turn>(std::acos(0.3)));
+        EXPECT_SOFT_EQ(2 * 0.3 + 1, trace(r));
         static double const expected_r[]
             = {1, 0, 0, 0, 0.3, -0.95393920141695, 0, 0.95393920141695, 0.3};
         EXPECT_VEC_SOFT_EQ(expected_r, flattened(r));
@@ -173,6 +185,7 @@ TEST_F(MatrixUtilsTest, rotation)
     {
         SCOPED_TRACE("z");
         auto r = make_rotation(Axis::z, Turn{0.9});  // 324 degrees
+        EXPECT_SOFT_EQ(2 * cos(Turn{0.9}) + 1, trace(r));
         static double const expected_r[] = {0.80901699437495,
                                             0.58778525229247,
                                             0,

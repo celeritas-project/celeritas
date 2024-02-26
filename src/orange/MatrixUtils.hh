@@ -73,6 +73,10 @@ gemv(matrix::TransposePolicy, SquareMatrix<T, N> const& a, Array<T, N> const& x)
 template<class T>
 T determinant(SquareMatrix<T, 3> const& mat);
 
+// Calculate the trace of a matrix
+template<class T>
+T trace(SquareMatrix<T, 3> const& mat);
+
 // Perform a matrix-matrix multiply
 template<class T, size_type N>
 SquareMatrix<T, N>
