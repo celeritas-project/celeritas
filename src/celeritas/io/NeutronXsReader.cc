@@ -16,7 +16,6 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/Environment.hh"
 #include "celeritas/Units.hh"
-#include "celeritas/io/ImportLivermorePE.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
 
 namespace celeritas
@@ -30,8 +29,8 @@ NeutronXsReader::NeutronXsReader()
 {
     std::string const& dir = celeritas::getenv("G4PARTICLEXSDATA");
     CELER_VALIDATE(!dir.empty(),
-                   << "environment variable G4PARTICLEXSDATA is not defined"
-                      " (needed to locate Livermore data)");
+                   << "environment variable G4PARTICLEXSDATA is not defined "
+                      "(needed to locate neutron elastic cross section data)");
     path_ = dir + "/neutron";
 }
 
