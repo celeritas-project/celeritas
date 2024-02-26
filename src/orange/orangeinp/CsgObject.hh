@@ -93,8 +93,8 @@ using AllObjects = JoinObjects<op_and>;
 // Make a new object that is the second object subtracted from the first
 std::shared_ptr<AllObjects const>
 make_subtraction(std::string&& label,
-                 std::shared_ptr<ObjectInterface const>&& minuend,
-                 std::shared_ptr<ObjectInterface const>&& subtrahend);
+                 std::shared_ptr<ObjectInterface const> const& minuend,
+                 std::shared_ptr<ObjectInterface const> const& subtrahend);
 
 // Make a combination of possibly negated objects
 std::shared_ptr<AllObjects const> make_rdv(

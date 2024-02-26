@@ -25,7 +25,22 @@ namespace test
 class CsgObjectTest : public ObjectTestBase
 {
   protected:
+    using SPConstObject = std::shared_ptr<ObjectInterface const>;
+
     Tol tolerance() const override { return Tol::from_relative(1e-4); }
+
+    //! Avoid implicit floating point casts by calling this function
+    SPConstObject make_sphere(std::string&& name, real_type radius)
+    {
+        return std::make_shared<SphereShape>(std::move(name), radius);
+    }
+
+    //! Create a translated object
+    SPConstObject
+    make_translated(SPConstObject const& shape, Real3 const& translation)
+    {
+        return std::make_shared<Transformed>(shape, Translation{translation});
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -36,8 +51,8 @@ using NegatedObjectTest = CsgObjectTest;
 
 TEST_F(NegatedObjectTest, just_neg)
 {
-    auto sph = std::make_shared<SphereShape>("sph", 1.0);
-    auto trsph = std::make_shared<Transformed>(sph, Translation{{0, 0, 1}});
+    auto sph = this->make_sphere("sph", 1);
+    auto trsph = this->make_translated(sph, {0, 0, 1});
 
     this->build_volume(NegatedObject{"antisph", sph});
     this->build_volume(NegatedObject{"antitrsph", trsph});
@@ -67,8 +82,8 @@ TEST_F(NegatedObjectTest, just_neg)
 
 TEST_F(NegatedObjectTest, pos_neg)
 {
-    auto sph = std::make_shared<SphereShape>("sph", 1.0);
-    auto trsph = std::make_shared<Transformed>(sph, Translation{{0, 0, 1}});
+    auto sph = this->make_sphere("sph", 1.0);
+    auto trsph = this->make_translated(sph, {0, 0, 1});
 
     this->build_volume(*sph);
     this->build_volume(NegatedObject{"antisph", sph});
@@ -87,7 +102,7 @@ TEST_F(NegatedObjectTest, pos_neg)
 
 TEST_F(NegatedObjectTest, double_neg)
 {
-    auto sph = std::make_shared<SphereShape>("sph", 1.0);
+    auto sph = this->make_sphere("sph", 1.0);
     auto antisph = std::make_shared<NegatedObject>("antisph", sph);
 
     this->build_volume(NegatedObject{"antiantisph", antisph});
@@ -113,31 +128,12 @@ TEST_F(NegatedObjectTest, double_neg)
 // ANY_OBJECTS
 //---------------------------------------------------------------------------//
 
-#if 0
-[       OK ] AllObjectsTest.identical (0 ms)
-[ RUN      ] AllObjectsTest.disjoint
-
-[       OK ] AllObjectsTest.disjoint (0 ms)
-[ RUN      ] AllObjectsTest.allneg
-
-[       OK ] AllObjectsTest.allneg (0 ms)
-[----------] 4 tests from AllObjectsTest (0 ms total)
-
-[----------] 2 tests from CsgObjectTest
-[ RUN      ] CsgObjectTest.subtraction
-
-[       OK ] CsgObjectTest.subtraction (0 ms)
-[ RUN      ] CsgObjectTest.rdv
-/Users/seth/Code/celeritas/src/orange/orangeinp/detail/CsgUnitBuilder.cc:79: warning: While re-inserting region for node 8: existing transform {{0,0,4}} differs from new transform {}
-
-#endif
-
 using AnyObjectsTest = CsgObjectTest;
 
 TEST_F(AnyObjectsTest, adjoining)
 {
-    auto sph = std::make_shared<SphereShape>("sph", 1.0);
-    auto trsph = std::make_shared<Transformed>(sph, Translation{{0, 0, 1}});
+    auto sph = this->make_sphere("sph", 1.0);
+    auto trsph = this->make_translated(sph, {0, 0, 1});
 
     this->build_volume(AnyObjects{"anysph", {sph, trsph}});
 
@@ -179,8 +175,8 @@ using AllObjectsTest = CsgObjectTest;
 
 TEST_F(AllObjectsTest, overlapping)
 {
-    auto sph = std::make_shared<SphereShape>("sph", 1.0);
-    auto trsph = std::make_shared<Transformed>(sph, Translation{{0, 0, 1}});
+    auto sph = this->make_sphere("sph", 1.0);
+    auto trsph = this->make_translated(sph, {0, 0, 1});
 
     this->build_volume(AllObjects{"allsph", {sph, trsph}});
 
@@ -203,7 +199,7 @@ TEST_F(AllObjectsTest, overlapping)
 
 TEST_F(AllObjectsTest, identical)
 {
-    auto sph = std::make_shared<SphereShape>("sph", 1.0);
+    auto sph = this->make_sphere("sph", 1.0);
 
     this->build_volume(AllObjects{"allsph", {sph, sph}});
 
@@ -218,8 +214,8 @@ TEST_F(AllObjectsTest, identical)
 
 TEST_F(AllObjectsTest, disjoint)
 {
-    auto sph = std::make_shared<SphereShape>("sph", 1.0);
-    auto trsph = std::make_shared<Transformed>(sph, Translation{{0, 0, 2.5}});
+    auto sph = this->make_sphere("sph", 1.0);
+    auto trsph = this->make_translated(sph, {0, 0, 2.5});
 
     this->build_volume(AllObjects{"allsph", {sph, trsph}});
 
@@ -238,9 +234,9 @@ TEST_F(AllObjectsTest, disjoint)
 
 TEST_F(AllObjectsTest, allneg)
 {
-    auto sph = std::make_shared<SphereShape>("sph", 1.0);
-    auto trsph = std::make_shared<Transformed>(sph, Translation{{0, 0, 1}});
-    auto trsph2 = std::make_shared<Transformed>(sph, Translation{{0, 0, 2}});
+    auto sph = this->make_sphere("sph", 1.0);
+    auto trsph = this->make_translated(sph, {0, 0, 1});
+    auto trsph2 = this->make_translated(sph, {0, 0, 2});
 
     this->build_volume(AllObjects{"allsph",
                                   {std::make_shared<NegatedObject>(sph),
@@ -277,9 +273,9 @@ TEST_F(AllObjectsTest, allneg)
 
 TEST_F(CsgObjectTest, subtraction)
 {
-    auto apple = std::make_shared<SphereShape>("apple", 1.0);
-    auto bite = std::make_shared<Transformed>(
-        std::make_shared<SphereShape>("bite", 0.5), Translation{{0, 0, 1}});
+    auto apple = this->make_sphere("apple", 1.0);
+    auto bite
+        = this->make_translated(this->make_sphere("bite", 0.5), {0, 0, 1});
 
     auto sub = make_subtraction("nomnom", apple, bite);
     ASSERT_TRUE(sub);
@@ -307,11 +303,11 @@ TEST_F(CsgObjectTest, subtraction)
 
 TEST_F(CsgObjectTest, rdv)
 {
-    auto apple = std::make_shared<SphereShape>("apple", 1.0);
-    auto bite = std::make_shared<Transformed>(
-        std::make_shared<SphereShape>("bite", 0.5), Translation{{0, 0, 1}});
-    auto apple2 = std::make_shared<Transformed>(
-        std::make_shared<SphereShape>("apple2", 1.25), Translation{{0, 0, 4}});
+    auto apple = this->make_sphere("apple", 1.0);
+    auto bite
+        = this->make_translated(this->make_sphere("bite", 0.5), {0, 0, 1});
+    auto apple2
+        = this->make_translated(this->make_sphere("apple2", 1.25), {0, 0, 4});
 
     this->build_volume(
         *make_rdv("bitten", {{Sense::inside, apple}, {Sense::outside, bite}}));

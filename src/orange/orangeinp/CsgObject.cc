@@ -128,8 +128,8 @@ NodeId JoinObjects<Op>::build(VolumeBuilder& vb) const
  */
 std::shared_ptr<AllObjects const>
 make_subtraction(std::string&& label,
-                 std::shared_ptr<ObjectInterface const>&& minuend,
-                 std::shared_ptr<ObjectInterface const>&& subtrahend)
+                 std::shared_ptr<ObjectInterface const> const& minuend,
+                 std::shared_ptr<ObjectInterface const> const& subtrahend)
 {
     CELER_EXPECT(!label.empty());
     CELER_EXPECT(minuend && subtrahend);
@@ -137,8 +137,7 @@ make_subtraction(std::string&& label,
     return std::make_shared<AllObjects>(
         std::move(label),
         AllObjects::VecObject{
-            {std::move(minuend),
-             std::make_shared<NegatedObject>(std::move(subtrahend))}});
+            {minuend, std::make_shared<NegatedObject>(subtrahend)}});
 }
 
 //---------------------------------------------------------------------------//

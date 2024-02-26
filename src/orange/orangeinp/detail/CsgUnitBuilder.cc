@@ -76,9 +76,9 @@ void CsgUnitBuilder::insert_region(NodeId n,
         {
             // TODO: we need to implement transform soft equivalence
             // and simplification
-            // TODO: transformed shapes that are used by volumes (in an RDV or
-            // single-item Join function) result in the same node with two
-            // different transforms.
+            // TODO: transformed shapes that are later defined as volumes (in
+            // an RDV or single-item Join function) result in the same node
+            // with two different transforms.
             CELER_LOG(warning)
                 << "While re-inserting region for node " << n.get()
                 << ": existing transform "
