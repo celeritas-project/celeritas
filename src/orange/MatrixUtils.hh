@@ -92,7 +92,10 @@ SquareMatrix<T, N> gemm(matrix::TransposePolicy,
 template<class T, size_type N>
 void orthonormalize(SquareMatrix<T, N>* mat);
 
-// Create a C-ordered rotation matrix
+// Create a C-ordered rotation matrix about an arbitrary axis
+SquareMatrixReal3 make_rotation(Real3 const& ax, Turn rev);
+
+// Create a C-ordered rotation matrix about a cartesian axis
 SquareMatrixReal3 make_rotation(Axis ax, Turn rev);
 
 // Apply a rotation to an existing C-ordered rotation matrix

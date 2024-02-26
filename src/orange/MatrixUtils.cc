@@ -153,6 +153,48 @@ void orthonormalize(SquareMatrix<T, N>* mat)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Create a C-ordered rotation matrix from an arbitrary rotation.
+ *
+ * This is equation (38) in "Rotation Matrices in Two, Three, and Many
+ * Dimensions",  Physics 116A, UC Santa Cruz,
+ * http://scipp.ucsc.edu/~haber/ph116A/.
+ *
+ * \param ax Axis of rotation (unit vector)
+ * \param theta Rotation
+ */
+Mat3 make_rotation(Real3 const& ax, Turn theta)
+{
+    CELER_EXPECT(is_soft_unit_vector(ax));
+    CELER_EXPECT(theta >= Turn{0} && theta <= Turn{real_type(0.5)});
+
+    // Axis/direction enumeration
+    enum
+    {
+        X = 0,
+        Y = 1,
+        Z = 2
+    };
+
+    // Calculate sin and cosine with less precision loss using "turn" value
+    real_type cost;
+    real_type sint;
+    sincos(theta, &sint, &cost);
+
+    Mat3 r{Real3{cost + ipow<2>(ax[X]) * (1 - cost),
+                 ax[X] * ax[Y] * (1 - cost) - ax[Z] * sint,
+                 ax[X] * ax[Z] * (1 - cost) + ax[Y] * sint},
+           Real3{ax[X] * ax[Y] * (1 - cost) + ax[Z] * sint,
+                 cost + ipow<2>(ax[Y]) * (1 - cost),
+                 ax[Y] * ax[Z] * (1 - cost) - ax[X] * sint},
+           Real3{ax[X] * ax[Z] * (1 - cost) - ax[Y] * sint,
+                 ax[Y] * ax[Z] * (1 - cost) + ax[X] * sint,
+                 cost + ipow<2>(ax[Z]) * (1 - cost)}};
+    CELER_ENSURE(soft_equal(std::fabs(determinant(r)), real_type{1}));
+    return r;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Create a C-ordered rotation matrix.
  */
 Mat3 make_rotation(Axis ax, Turn theta)

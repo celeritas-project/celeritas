@@ -9,6 +9,8 @@
 
 #include <cmath>
 
+#include "corecel/math/ArrayUtils.hh"
+
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -140,7 +142,7 @@ TEST_F(MatrixUtilsTest, orthonormalize)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(MatrixUtilsTest, rotation)
+TEST_F(MatrixUtilsTest, make_rotation)
 {
     {
         SCOPED_TRACE("identity");
@@ -237,6 +239,54 @@ TEST_F(MatrixUtilsTest, rotation)
 
         static double const expected_rotated[] = {-2, -3, 1};
         EXPECT_VEC_EQ(expected_rotated, gemv(r, {1, 2, 3}));
+    }
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(MatrixUtilsTest, make_arb_rotation)
+{
+    {
+        auto turn = native_value_to<Turn>(std::acos(0.3));
+        EXPECT_VEC_SOFT_EQ(flattened(make_rotation(Axis::x, turn)),
+                           flattened(make_rotation({1, 0, 0}, turn)));
+    }
+    {
+        auto r = make_rotation(make_unit_vector(Real3{1, 1, 1}), Turn{0.25});
+        static double const expected_r[] = {
+            0.33333333333333,
+            -0.24401693585629,
+            0.91068360252296,
+            0.91068360252296,
+            0.33333333333333,
+            -0.24401693585629,
+            -0.24401693585629,
+            0.91068360252296,
+            0.33333333333333,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_r, flattened(r));
+    }
+    {
+        auto r = make_rotation(make_unit_vector(Real3{1, 0, 1}), Turn{0.5});
+
+        static double const expected_r[] = {0, 0, 1, 0, -1, 0, 1, 0, 0};
+        EXPECT_VEC_SOFT_EQ(expected_r, flattened(r));
+    }
+    {
+        auto r = make_rotation(make_unit_vector(Real3{-3, -4, -5}),
+                               Turn{1 / real_type{6}});
+        static double const expected_r[] = {
+            0.59,
+            0.73237243569579,
+            -0.33989794855664,
+            -0.49237243569579,
+            0.66,
+            0.56742346141748,
+            0.63989794855664,
+            -0.16742346141748,
+            0.75,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_r, flattened(r));
     }
 }
 
