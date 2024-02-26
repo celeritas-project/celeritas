@@ -419,8 +419,8 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
         }
         else if (model_id == params_.hardwired.chips)
         {
-            auto calc_xs = EPlusGGMacroXsCalculator(
-                params_.hardwired.eplusgg_data, material);
+            auto calc_xs = NeutronElasticMacroXsCalculator(
+                params_.hardwired.chips_data, material);
             result = calc_xs(energy);
         }
     }
