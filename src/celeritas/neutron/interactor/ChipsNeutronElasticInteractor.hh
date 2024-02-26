@@ -34,6 +34,7 @@ namespace celeritas
  */
 class ChipsNeutronElasticInteractor
 {
+  public:
     //!@{
     //! \name Type aliases
     using Energy = units::MevEnergy;
