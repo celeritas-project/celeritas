@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "CsgTestUtils.hh"
 
+#include <iomanip>
 #include <sstream>
 #include <variant>
 
@@ -71,7 +72,7 @@ std::vector<std::string> surface_strings(CsgUnit const& u)
         result.push_back(std::visit(
             [](auto&& surf) {
                 std::ostringstream os;
-                os << surf;
+                os << std::setprecision(5) << surf;
                 return os.str();
             },
             vs));

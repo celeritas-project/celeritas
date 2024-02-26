@@ -166,8 +166,12 @@ TEST_F(BoundingBoxUtilsTest, bbox_encloses)
 
     EXPECT_FALSE(encloses(BBox{}, BBox{{-1, -2, -3}, {1, 2, 3}}));
     EXPECT_TRUE(encloses(BBox{{-1, -2, -3}, {1, 2, 3}}, BBox{}));
-    EXPECT_TRUE(encloses(BBox{}, BBox{}));
     EXPECT_TRUE(encloses(BBox::from_infinite(), BBox{}));
+
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(encloses(BBox{}, BBox{}), DebugError);
+    }
 }
 
 TEST_F(BoundingBoxUtilsTest, bumped)

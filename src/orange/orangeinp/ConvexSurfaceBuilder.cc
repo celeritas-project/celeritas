@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "ConvexSurfaceBuilder.hh"
 
+#include "orange/BoundingBoxUtils.hh"
 #include "orange/surf/RecursiveSimplifier.hh"
 #include "orange/surf/SurfaceClipper.hh"
 
@@ -130,10 +131,52 @@ void ConvexSurfaceBuilder::insert_transformed(std::string&& extension,
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Shrink the exterior bounding boxes.
+ */
+void ConvexSurfaceBuilder::shrink_exterior(BBox const& bbox)
+{
+    CELER_EXPECT(bbox && !is_degenerate(bbox));
+
+    {
+        // Local
+        BBox& exterior = state_->local_bzone.exterior;
+        exterior = calc_intersection(exterior, bbox);
+    }
+    {
+        // Global
+        BBox& exterior = state_->global_bzone.exterior;
+        exterior = calc_intersection(
+            exterior, apply_transform(*state_->transform, bbox));
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Grow the interior local bounding box.
+ */
+void ConvexSurfaceBuilder::grow_interior(BBox const& bbox)
+{
+    CELER_EXPECT(bbox);
+
+    {
+        // Local
+        BBox& interior = state_->local_bzone.interior;
+        interior = calc_union(interior, bbox);
+    }
+    {
+        // Global
+        BBox& interior = state_->global_bzone.interior;
+        interior
+            = calc_union(interior, apply_transform(*state_->transform, bbox));
+    }
+}
+
+//---------------------------------------------------------------------------//
 // FREE FUNCTION DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct a surface using a variant.
+ * Apply a convex surface builder to an unknown type.
  */
 void visit(ConvexSurfaceBuilder& csb, Sense sense, VariantSurface const& surf)
 {
