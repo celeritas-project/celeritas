@@ -415,6 +415,7 @@ if(CELERITAS_BUILD_DOCS)
       find_program(LATEXMK_EXECUTABLE latexmk)
     endif()
   endif()
+  include(ExternalProject)
 endif()
 
 if(CELERITAS_BUILD_TESTS)
@@ -511,7 +512,6 @@ add_subdirectory(app)
 #----------------------------------------------------------------------------#
 
 if(CELERITAS_BUILD_DOCS)
-  include(ExternalProject)
   add_subdirectory(doc)
 endif()
 
