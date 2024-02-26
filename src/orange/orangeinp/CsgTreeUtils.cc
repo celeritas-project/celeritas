@@ -14,6 +14,7 @@
 
 #include "corecel/cont/Range.hh"
 
+#include "detail/InfixStringBuilder.hh"
 #include "detail/NodeReplacementInserter.hh"
 #include "detail/PostfixLogicBuilder.hh"
 
@@ -106,7 +107,7 @@ void simplify(CsgTree* tree, NodeId start)
 /*!
  * Convert a node to postfix notation.
  */
-std::vector<LocalSurfaceId::size_type>
+[[nodiscard]] std::vector<LocalSurfaceId::size_type>
 build_postfix(CsgTree const& tree, NodeId n)
 {
     CELER_EXPECT(n < tree.size());
@@ -119,13 +120,27 @@ build_postfix(CsgTree const& tree, NodeId n)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Convert a node to an infix string expression.
+ */
+[[nodiscard]] std::string build_infix_string(CsgTree const& tree, NodeId n)
+{
+    CELER_EXPECT(n < tree.size());
+    std::ostringstream os;
+    detail::InfixStringBuilder build_impl{tree, &os};
+
+    build_impl(n);
+    return os.str();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct the sorted set of all surfaces that are part of the tree.
  *
  * This list removes surfaces that have been eliminated by logical replacement.
  * Thanks to the CSG tree's deduplication, each surface should appear in the
  * tree at most once.
  */
-std::vector<LocalSurfaceId> calc_surfaces(CsgTree const& tree)
+[[nodiscard]] std::vector<LocalSurfaceId> calc_surfaces(CsgTree const& tree)
 {
     std::vector<LocalSurfaceId> result;
     for (auto node_id : range(NodeId{tree.size()}))
