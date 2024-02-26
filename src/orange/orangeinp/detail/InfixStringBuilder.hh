@@ -22,6 +22,18 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Transform a CSG node into a string expression.
+ *
+ * The string will be a combination of:
+ * - an \c any function for a union of all listed components
+ * - an \c all function for an intersection of all listed components
+ * - a \c ! negation operator applied to the left of an operation or other
+ *   negation
+ * - a surface ID preceded by a \c - or \c + indicating "inside" or "outside",
+ *   respectively.
+ *
+ * Example of a cylindrical shell: \verbatim
+   all(all(+0, -1, -3), !all(+0, -1, -2))
+ * \endverbatim
  */
 class InfixStringBuilder
 {
@@ -113,7 +125,8 @@ void InfixStringBuilder::operator()(Surface const& s)
 /*!
  * Push an aliased node.
  *
- * TODO: aliased node shouldn't be reachable if we're fully simplified.
+ * Note: aliased node won't be reachable if a tree is fully simplified, *but* a
+ * node can be printed for testing before it's simplified.
  */
 void InfixStringBuilder::operator()(Aliased const& n)
 {
@@ -128,7 +141,8 @@ void InfixStringBuilder::operator()(Negated const& n)
 {
     if (negated_)
     {
-        // Shoudn't happen for simplified expressions
+        // Note: this won't happen for simplified expressions but can be for
+        // testing unsimplified expressions.
         *os_ << '!';
     }
     negated_ = true;
