@@ -31,7 +31,7 @@ class TransformedTest : public ObjectTestBase
 //---------------------------------------------------------------------------//
 TEST_F(TransformedTest, single)
 {
-    auto sphshape = std::make_shared<SphereShape>("sph", 1.0);
+    auto sphshape = std::make_shared<SphereShape>("sph", Sphere{1.0});
     this->build_volume(Transformed{sphshape, Translation{{0, 0, 1.0}}});
 
     static char const* const expected_surface_strings[]
@@ -47,8 +47,8 @@ TEST_F(TransformedTest, single)
 
 TEST_F(TransformedTest, several)
 {
-    auto sphshape = std::make_shared<SphereShape>("sph", 2.0);
-    auto cylshape = std::make_shared<CylinderShape>("cyl", 1.0, 2.0);
+    auto sphshape = std::make_shared<SphereShape>("sph", Sphere{2.0});
+    auto cylshape = std::make_shared<CylinderShape>("cyl", Cylinder{1.0, 2.0});
 
     // Build original and translated spheres
     this->build_volume(*sphshape);
@@ -107,7 +107,7 @@ TEST_F(TransformedTest, several)
 
 TEST_F(TransformedTest, stacked)
 {
-    auto sph = std::make_shared<SphereShape>("sph", 1.0);
+    auto sph = std::make_shared<SphereShape>("sph", Sphere{1.0});
     auto trsph = std::make_shared<Transformed>(sph, Translation{{2, 0, 0}});
     auto tr2sph = std::make_shared<Transformed>(
         trsph, Transformation{make_rotation(Axis::z, Turn{0.25}), {1, 0, 0}});
@@ -142,7 +142,7 @@ TEST_F(TransformedTest, stacked)
 
 TEST_F(TransformedTest, inverse)
 {
-    auto cylshape = std::make_shared<CylinderShape>("cyl", 1.0, 1.0);
+    auto cylshape = std::make_shared<CylinderShape>("cyl", Cylinder{1.0, 1.0});
     // Transformed: top face is at y=3, bottom at y=1
     auto transformed = std::make_shared<Transformed>(
         cylshape,
