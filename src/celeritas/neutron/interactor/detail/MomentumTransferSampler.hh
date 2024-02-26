@@ -116,7 +116,7 @@ CELER_FUNCTION
 MomentumTransferSampler::MomentumTransferSampler(NeutronElasticRef const& shared,
                                                  IsotopeView const& target,
                                                  Momentum neutron_p)
-    : par_(shared.diff_xs.coeffs[target.isotope_id()].par)
+    : par_(shared.coeffs[target.isotope_id()].par)
     , neutron_mass_(shared.neutron_mass)
     , target_mass_(target.nuclear_mass())
     , a_(target.atomic_mass_number())

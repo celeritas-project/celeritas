@@ -50,22 +50,22 @@ ChipsNeutronElasticModel::ChipsNeutronElasticModel(
     data.neutron_mass = particles.get(data.ids.neutron).mass();
 
     // Load neutron elastic cross section data
-    make_builder(&data.xs.elements).reserve(materials.num_elements());
+    make_builder(&data.micro_xs).reserve(materials.num_elements());
     for (auto el_id : range(ElementId{materials.num_elements()}))
     {
         AtomicNumber z = materials.get(el_id).atomic_number();
-        this->append_xs(load_data(z), &data.xs);
+        this->append_xs(load_data(z), &data);
     }
-    CELER_ASSERT(data.xs.elements.size() == materials.num_elements());
+    CELER_ASSERT(data.micro_xs.size() == materials.num_elements());
 
     // Add A(Z,N)-dependent coefficients of the CHIPS elastic interaction
-    make_builder(&data.diff_xs.coeffs).reserve(materials.num_isotopes());
+    make_builder(&data.coeffs).reserve(materials.num_isotopes());
     for (auto iso_id : range(IsotopeId{materials.num_isotopes()}))
     {
         AtomicMassNumber a = materials.get(iso_id).atomic_mass_number();
-        this->append_coeffs(a, &data.diff_xs);
+        this->append_coeffs(a, &data);
     }
-    CELER_ASSERT(data.diff_xs.coeffs.size() == materials.num_isotopes());
+    CELER_ASSERT(data.coeffs.size() == materials.num_isotopes());
 
     // Move to mirrored data, copying to device
     mirror_ = CollectionMirror<NeutronElasticData>{std::move(data)};
@@ -80,7 +80,7 @@ auto ChipsNeutronElasticModel::applicability() const -> SetApplicability
 {
     Applicability neutron_applic;
     neutron_applic.particle = this->host_ref().ids.neutron;
-    neutron_applic.lower = this->host_ref().mim_valid_energy();
+    neutron_applic.lower = this->host_ref().min_valid_energy();
     neutron_applic.upper = this->host_ref().max_valid_energy();
 
     return {neutron_applic};
@@ -134,20 +134,20 @@ ActionId ChipsNeutronElasticModel::action_id() const
  * Construct interaction cross section data for a single element.
  */
 void ChipsNeutronElasticModel::append_xs(ImportPhysicsVector const& inp,
-                                         HostXsData* xs) const
+                                         HostXsData* data) const
 {
-    auto reals = make_builder(&xs->reals);
-    GenericGridData data;
+    auto reals = make_builder(&data->reals);
+    GenericGridData micro_xs;
 
     // Add the tabulated interaction cross section from input
-    data.grid = reals.insert_back(inp.x.begin(), inp.x.end());
-    data.value = reals.insert_back(inp.y.begin(), inp.y.end());
-    data.grid_interp = Interp::linear;
-    data.value_interp = Interp::linear;
+    micro_xs.grid = reals.insert_back(inp.x.begin(), inp.x.end());
+    micro_xs.value = reals.insert_back(inp.y.begin(), inp.y.end());
+    micro_xs.grid_interp = Interp::linear;
+    micro_xs.value_interp = Interp::linear;
 
-    // Add xs data
-    CELER_ASSERT(data);
-    make_builder(&xs->elements).push_back(data);
+    // Add micro xs data
+    CELER_ASSERT(micro_xs);
+    make_builder(&data->micro_xs).push_back(micro_xs);
 }
 
 //---------------------------------------------------------------------------//
@@ -166,7 +166,7 @@ void ChipsNeutronElasticModel::append_xs(ImportPhysicsVector const& inp,
  * Wellisch, Eur. Phys. J. A9 (2001).
  */
 void ChipsNeutronElasticModel::append_coeffs(AtomicMassNumber A,
-                                             HostDiffXsData* data) const
+                                             HostXsData* data) const
 {
     ChipsDiffXsCoefficients coeffs;
 

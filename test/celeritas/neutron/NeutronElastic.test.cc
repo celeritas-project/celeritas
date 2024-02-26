@@ -71,8 +71,7 @@ TEST_F(NeutronElasticTest, micro_xs)
 
     // Check the size of the element cross section data (G4PARTICLEXS4.0)
     NeutronElasticRef shared = model_->host_ref();
-    auto const& xs = shared.xs;
-    GenericGridData grid = xs.elements[el_id];
+    GenericGridData grid = shared.micro_xs[el_id];
     EXPECT_EQ(grid.grid.size(), 181);
 
     // Microscopic cross section (\f$ mm^{2} \f$) in [1e-05:1e+4] (MeV)
@@ -134,10 +133,10 @@ TEST_F(NeutronElasticTest, diff_xs_coeffs)
 {
     // Get A-dependent parameters of CHIPS differential cross sections used
     // for sampling the momentum transfer.
-    auto const& diff_xs = model_->host_ref().diff_xs;
+    auto const& coeffs = model_->host_ref().coeffs;
 
     // Set the target isotope: He4 (36 parameters for light nuclei, A < 6.5)
-    ChipsDiffXsCoefficients he4_coeff = diff_xs.coeffs[IsotopeId{1}];
+    ChipsDiffXsCoefficients he4_coeff = coeffs[IsotopeId{1}];
     EXPECT_EQ(he4_coeff.par.size(), 42);
     EXPECT_EQ(he4_coeff.par[0], 16000);
     EXPECT_EQ(he4_coeff.par[10], 26.99741289550769);
@@ -147,7 +146,7 @@ TEST_F(NeutronElasticTest, diff_xs_coeffs)
     EXPECT_EQ(he4_coeff.par[36], 0);
 
     // Set the target isotope: Cu63 (42 parameters for heavy nuclei, A > 6.5)
-    ChipsDiffXsCoefficients cu63_coeff = diff_xs.coeffs[IsotopeId{2}];
+    ChipsDiffXsCoefficients cu63_coeff = coeffs[IsotopeId{2}];
     EXPECT_EQ(cu63_coeff.par.size(), 42);
     EXPECT_EQ(cu63_coeff.par[0], 527.781478797624);
     EXPECT_EQ(cu63_coeff.par[10], 9.842761904761872);

@@ -20,7 +20,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Calculate neutron elastic cross sections form NeutronElasticXsData
+ * Calculate neutron elastic cross sections from NeutronElasticXsData
  */
 class NeutronElasticMicroXsCalculator
 {
@@ -68,11 +68,11 @@ real_type NeutronElasticMicroXsCalculator::operator()(ElementId el_id) const
 {
     CELER_EXPECT(el_id);
 
-    // Check element cross section data
-    auto const& xs = shared_.xs;
-    GenericGridData grid = xs.elements[el_id];
+    // Get element cross section data
+    GenericGridData grid = shared_.micro_xs[el_id];
 
-    GenericCalculator calc_xs(grid, xs.reals);
+    // Calculate micro cross section at the given energy
+    GenericCalculator calc_xs(grid, shared_.reals);
     real_type result = calc_xs(inc_energy_.value());
 
     return result;

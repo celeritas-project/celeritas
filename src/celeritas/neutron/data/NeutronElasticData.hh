@@ -60,10 +60,10 @@ struct NeutronElasticIds
 
 //---------------------------------------------------------------------------//
 /*!
- * Microscopic cross section data for the neutron elastic interaction.
+ * Device data for creating an interactor.
  */
 template<Ownership W, MemSpace M>
-struct NeutronElasticXsData
+struct NeutronElasticData
 {
     using XsUnits = units::Native;  // [len^2]
 
@@ -71,88 +71,26 @@ struct NeutronElasticXsData
     using Items = Collection<T, W, M>;
     template<class T>
     using ElementItems = Collection<T, W, M, ElementId>;
-
-    //// MEMBER DATA ////
-
-    Items<real_type> reals;
-    ElementItems<GenericGridData> elements;
-
-    //// MEMBER FUNCTIONS ////
-
-    //! Whether all data are assigned and valid
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return !reals.empty() && !elements.empty();
-    }
-
-    //! Assign from another set of data
-    template<Ownership W2, MemSpace M2>
-    NeutronElasticXsData& operator=(NeutronElasticXsData<W2, M2> const& other)
-    {
-        CELER_EXPECT(other);
-        reals = other.reals;
-        elements = other.elements;
-        return *this;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * A-dependent data for the differential cross section (momentum transfer) of
- * the CHIPS neutron-nucleus elastic model.
- */
-template<Ownership W, MemSpace M>
-struct NeutronElasticDiffXsData
-{
     template<class T>
     using IsotopeItems = Collection<T, W, M, IsotopeId>;
 
     //// MEMBER DATA ////
 
-    IsotopeItems<ChipsDiffXsCoefficients> coeffs;
-
-    //// MEMBER FUNCTIONS ////
-
-    //! Whether all data are assigned and valid
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return !coeffs.empty() && !coeffs.empty();
-    }
-
-    //! Assign from another set of data
-    template<Ownership W2, MemSpace M2>
-    NeutronElasticDiffXsData&
-    operator=(NeutronElasticDiffXsData<W2, M2> const& other)
-    {
-        CELER_EXPECT(other);
-        coeffs = other.coeffs;
-        return *this;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Device data for creating an interactor.
- */
-template<Ownership W, MemSpace M>
-struct NeutronElasticData
-{
     //! Model and particle IDs
     NeutronElasticIds ids;
 
     //! Particle mass * c^2 [MeV]
     units::MevMass neutron_mass;
 
-    //! Neutron elastic cross section (G4PARTICLEXS/neutron/elZ) data
-    NeutronElasticXsData<W, M> xs;
+    //! Microscopic (element) cross section data (G4PARTICLEXS/neutron/elZ)
+    Items<real_type> reals;
+    ElementItems<GenericGridData> micro_xs;
 
-    //! Neutron elastic differential cross section coefficients
-    NeutronElasticDiffXsData<W, M> diff_xs;
-
-    //// MEMBER FUNCTIONS ////
+    //! A-dependent coefficients for the momentum transfer) of the CHIPS model
+    IsotopeItems<ChipsDiffXsCoefficients> coeffs;
 
     //! Model's minimum and maximum energy limit [MeV]
-    static CELER_CONSTEXPR_FUNCTION units::MevEnergy mim_valid_energy()
+    static CELER_CONSTEXPR_FUNCTION units::MevEnergy min_valid_energy()
     {
         return units::MevEnergy{1e-5};
     }
@@ -165,7 +103,8 @@ struct NeutronElasticData
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids && neutron_mass > zero_quantity();
+        return ids && neutron_mass > zero_quantity() && !reals.empty()
+               && !micro_xs.empty() && !coeffs.empty();
     }
 
     //! Assign from another set of data
@@ -175,8 +114,9 @@ struct NeutronElasticData
         CELER_EXPECT(other);
         ids = other.ids;
         neutron_mass = other.neutron_mass;
-        xs = other.xs;
-        diff_xs = other.diff_xs;
+        reals = other.reals;
+        micro_xs = other.micro_xs;
+        coeffs = other.coeffs;
         return *this;
     }
 };
