@@ -58,7 +58,7 @@ ScintillationParams::ScintillationParams(Input const& input)
     for (auto const& spec : input.data)
     {
         // Check validity of scintillation data
-        auto const& comp_inp = spec.components;
+        auto const& comp_inp = spec.material_components;
         CELER_ASSERT(!comp_inp.empty());
         std::vector<ScintillationComponent> comp(comp_inp.size());
         real_type norm{0};
@@ -104,7 +104,8 @@ ScintillationParams::ScintillationParams(Input const& input)
             spectrum.resolution_scale >= 0,
             << "invalid resolution_scale=" << spectrum.resolution_scale
             << " for scintillation (should be nonnegative)");
-        spectrum.components = components.insert_back(comp.begin(), comp.end());
+        spectrum.material_components
+            = components.insert_back(comp.begin(), comp.end());
         spectra.push_back(spectrum);
     }
 

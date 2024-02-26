@@ -45,13 +45,15 @@ struct ScintillationComponent
 struct ScintillationSpectrum
 {
     real_type yield{};
+    ItemRange<real_type> yield_per_particle;
     real_type resolution_scale{};
-    ItemRange<ScintillationComponent> components;
+    ItemRange<ScintillationComponent> material_components;
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return yield > 0 && resolution_scale >= 0 && !components.empty();
+        return yield > 0 && resolution_scale >= 0
+               && !material_components.empty();
     }
 };
 

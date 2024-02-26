@@ -47,11 +47,11 @@ class ScintillationGeneratorTest : public Test
         ImportScintSpectrum spectrum;
         spectrum.yield = 5;
         spectrum.resolution_scale = 1;
-        spectrum.components.push_back(
+        spectrum.material_components.push_back(
             {0.65713, 128 * nm, 10 * nm, 10 * ns, 6 * ns});
-        spectrum.components.push_back(
+        spectrum.material_components.push_back(
             {0.31987, 128 * nm, 10 * nm, 10 * ns, 1500 * ns});
-        spectrum.components.push_back(
+        spectrum.material_components.push_back(
             {0.023, 200 * nm, 20 * nm, 10 * ns, 3000 * ns});
         params = std::make_shared<ScintillationParams>(
             ScintillationParams::Input{{spectrum}});
@@ -182,7 +182,7 @@ TEST_F(ScintillationGeneratorTest, stress_test)
     double expected_lambda{0};
     double expected_error{0};
 
-    for (auto i : data.spectra[dist_.material].components)
+    for (auto i : data.spectra[dist_.material].material_components)
     {
         expected_lambda += data.components[i].lambda_mean
                            * data.components[i].yield_prob;

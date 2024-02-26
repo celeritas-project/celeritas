@@ -70,6 +70,7 @@
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "GeantSetup.hh"
+
 #include "detail/AllElementReader.hh"
 #include "detail/GeantProcessImporter.hh"
 
@@ -436,7 +437,7 @@ ImportData::ImportOpticalMap import_optical()
                                 ImportUnits::time);
             if (comp)
             {
-                optical.scintillation.components.push_back(comp);
+                optical.scintillation.material_components.push_back(comp);
             }
         }
 

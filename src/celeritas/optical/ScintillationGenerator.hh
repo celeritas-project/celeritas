@@ -10,7 +10,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/data/Collection.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
@@ -124,13 +123,13 @@ ScintillationGenerator::operator()(Generator& rng)
 
     ScintillationSpectrum const& spectrum = shared_.spectra[dist_.material];
 
-    for (auto sid : spectrum.components)
+    for (auto sid : spectrum.material_components)
     {
         ScintillationComponent component = shared_.components[sid];
 
         // Calculate the number of photons to generate for this component
         size_type num_photons
-            = sid.get() + 1 == spectrum.components.size()
+            = (sid.get() + 1 == spectrum.material_components.size())
                   ? dist_.num_photons - num_generated
                   : static_cast<size_type>(dist_.num_photons
                                            * component.yield_prob);
@@ -161,7 +160,7 @@ ScintillationGenerator::operator()(Generator& rng)
             Real3 perp = {-std::sin(phi), std::cos(phi), 0};
             real_type sinphi, cosphi;
             sincospi(UniformRealDist{0, 1}(rng), &sinphi, &cosphi);
-            for (int j = 0; j < 3; ++j)
+            for (auto j : range(3))
             {
                 photons_[i].polarization[j] = cosphi * temp[j]
                                               + sinphi * perp[j];
