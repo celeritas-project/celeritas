@@ -26,19 +26,22 @@ class ConvexSurfaceBuilder;
  * smaller spatial regions. A \c shape object will have a single convex region,
  * and a \c solid object region may have multiple adjacent convex regions.
  *
+ * Convex regions should be as minimal as possible and rely on transformations
+ * to change axes, displacement, etc. As a general rule, the exterior bounding
+ * box of a convex region should be <em>centered on the origin</em>, and
+ * objects should be aligned along the \em z axis.
+ *
  * When implementing this class, prefer to build simpler surfaces (planes)
  * before complex ones (cones) in case we implement short-circuiting logic,
  * since expressions are currently sorted.
  *
- * \todo Should this be named an "interface"?
+ * \note Additional methods such as volume calculation may be added here later.
  */
 class ConvexRegionInterface
 {
   public:
     //! Construct surfaces that are AND-ed into this region
     virtual void build(ConvexSurfaceBuilder&) const = 0;
-
-    // TODO: volume calculation?
 
   protected:
     //!@{
@@ -79,8 +82,9 @@ class Box final : public ConvexRegionInterface
  *
  * The "orientation" parameter is a scaled counterclockwise rotation on
  * \f$[0, 1)\f$, where zero preserves the orientation described above, and
- * unity replicates the original shape but with faces indexed by one. The usual
- * value for this is 0.5:
+ * unity replicates the original shape but with the "p0" face being where the
+ * "p1" originally was. With a value of 0.5:
+ * - n=3 is a downward-pointing triangle
  * - n=4 is a diamond
  * - n=6 is a pointy-top hexagon
  */

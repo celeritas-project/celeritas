@@ -132,7 +132,7 @@ void ConvexSurfaceBuilder::insert_transformed(std::string&& extension,
 
 //---------------------------------------------------------------------------//
 /*!
- * Shrink the exterior local bounding box.
+ * Shrink the exterior bounding boxes.
  */
 void ConvexSurfaceBuilder::shrink_exterior(BBox const& bbox)
 {
