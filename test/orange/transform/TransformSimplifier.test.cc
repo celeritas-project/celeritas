@@ -81,8 +81,17 @@ TEST_F(TransformSimplifierTest, transform)
     auto micro_r = make_rotation(Axis::x, Turn{1e-8});
     auto tiny_r = make_rotation(make_unit_vector(Real3{3, -4, 5}),
                                 native_value_to<Turn>(eps_theta / 2));
-    auto large_r = make_rotation(make_unit_vector(Real3{3, -4, 5}),
-                                 native_value_to<Turn>(eps_theta * 2));
+
+    // NOTE: cos(eps_theta * 2) is 1.0f in single-precision, leading to a
+    // rotation matrix with 1s along the diagonal (despite having ~1e-4 along
+    // the off diagonal), thus having no apparent rotation; so for single
+    // precision we increase the tolerance
+    auto large_r = make_rotation(
+        make_unit_vector(Real3{3, -4, 5}),
+        native_value_to<Turn>(
+            eps_theta
+            * (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 2 : 8)));
+
     TransformSimplifier simplify{tol_};
 
     {
