@@ -52,6 +52,7 @@ list(APPEND SOURCES
   transform/SignedPermutation.cc
   transform/TransformHasher.cc
   transform/TransformIO.cc
+  transform/TransformSimplifier.cc
   transform/Transformation.cc
   transform/VariantTransform.cc
 )
