@@ -249,12 +249,15 @@ CELER_CONSTEXPR_FUNCTION auto make_array(Span<T, N> const& s)
 }
 
 //---------------------------------------------------------------------------//
-//! Construct an array from a fixed-size span, removing LdgValue marker
-//! make_array(Span<T,N> const&) is not reused because:
-//! 1. Using this overload reads input data using __ldg
-//! 2. return make_array<T, N>(s) results in segfault (gcc 11.3). maybe a
-//! compiler bug? Temporary lifetime should be extended until the end of the
-//! expression and we return a copy...
+/*!
+ * Construct an array from a fixed-size span, removing LdgValue marker.
+ *
+ * Note: \code make_array(Span<T,N> const&) \endcode is not reused because:
+ * 1. Using this overload reads input data using \c __ldg
+ * 2. \code return make_array<T, N>(s) \endcode results in segfault (gcc 11.3).
+ *    This might be a compiler bug because temporary lifetime should be
+ *    extended until the end of the expression and we return a copy...
+ */
 template<class T, std::size_t N>
 CELER_CONSTEXPR_FUNCTION auto make_array(LdgSpan<T, N> const& s)
 {
