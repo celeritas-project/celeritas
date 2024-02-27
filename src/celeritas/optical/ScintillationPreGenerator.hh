@@ -31,6 +31,7 @@ class ScintillationPreGenerator
 {
   public:
     // Placeholder for data that is not available through Views
+
     struct OpticalPreGenStepData
     {
         real_type time{};  //!< Pre-step time
@@ -98,34 +99,27 @@ template<class Generator>
 inline CELER_FUNCTION OpticalDistributionData
 ScintillationPreGenerator::operator()(Generator& rng)
 {
-    auto const& spectrum = shared_.spectra[mat_id_];
-    real_type num_photons;
+    auto const& spectrum
+        = shared_.particle_spectra[particle_view_.particle_id()]
+              .components[mat_id_];
+    CELER_EXPECT(spectrum);
 
-    if (!spectrum.yield_per_particle.empty())
-    {
-        num_photons = spectrum.yield_per_particle[particle_view_.particle_id()];
-    }
-    else
-    {
-        // Use standard yield
-        num_photons = spectrum.yield * step_.energy_dep;
-
-        // TODO: replace line above to use Birk's correction when available
-        // num_photons = shared_.spectra[mat_id_].yield;
-        // num_photons *= saturation ? visible_energy_dep : step_.energy_dep;
-    }
+    // TODO: Use visible energy deposition when Birks quenching is available
+    real_type mean_num_photons = spectrum.yield * step_.energy_dep.value();
 
     OpticalDistributionData result;
-    if (num_photons > 10)
+    if (mean_num_photons > 10)
     {
-        real_type sigma = spectrum.resolution_scale * std::sqrt(num_photons);
+        real_type sigma = spectrum.resolution_scale
+                          * std::sqrt(mean_num_photons);
         result.num_photons
-            = real_type{0.5}
-              * NormalDistribution<real_type>(num_photons, sigma);
+            = NormalDistribution<real_type>(mean_num_photons, sigma)(rng)
+              + real_type{0.5};  // WHY?
     }
     else
     {
-        result.num_photons = PoissonDistribution<real_type>(num_photons);
+        result.num_photons
+            = PoissonDistribution<real_type>(mean_num_photons)(rng);
     }
 
     if (result.num_photons > 0)

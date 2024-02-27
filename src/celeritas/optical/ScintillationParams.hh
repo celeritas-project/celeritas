@@ -30,10 +30,14 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
     using ScintillationDataCRef = HostCRef<ScintillationData>;
     //!@}
 
-    //! Material-dependent scintillation data, indexed by \c OpticalMaterialId
+    //! Particle and material-dependent scintillation data.
     struct Input
     {
-        std::vector<ImportScintSpectrum> data;
+        // Indexed by MaterialId
+        using VecImportScintSpectra = std::vector<ImportScintSpectrum>;
+
+        // Indexed by ParticleId
+        std::vector<VecImportScintSpectra> data;
     };
 
   public:
@@ -53,6 +57,14 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
   private:
     // Host/device storage and reference
     CollectionMirror<ScintillationData> mirror_;
+
+    //// HELPER FUNCTIONS ////
+
+    // Normalize yield probabilities and check correctness of populated data
+    void
+    normalize_and_validate(std::vector<ScintillationComponent>& vec_comp,
+                           std::vector<ImportScintComponent> const& input_comp,
+                           real_type const norm);
 };
 
 //---------------------------------------------------------------------------//

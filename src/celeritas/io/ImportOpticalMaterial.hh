@@ -9,6 +9,8 @@
 
 #include <vector>
 
+#include "celeritas/phys/PDGNumber.hh"
+
 #include "ImportPhysicsVector.hh"
 
 namespace celeritas
@@ -19,11 +21,11 @@ namespace celeritas
  */
 struct ImportScintComponent
 {
-    double yield{};  //!< Yield for this component
-    double lambda_mean{};  //!< Mean wavelength
+    double yield{};  //!< Yield for this component [1/MeV] ?
+    double lambda_mean{};  //!< Mean wavelength [len]
     double lambda_sigma{};  //!< Standard deviation of wavelength
-    double rise_time{};  //!< Rise time
-    double fall_time{};  //!< Decay time
+    double rise_time{};  //!< Rise time [time]
+    double fall_time{};  //!< Decay time [time]
 
     explicit operator bool() const
     {
@@ -38,9 +40,12 @@ struct ImportScintComponent
  */
 struct ImportScintSpectrum
 {
-    double yield{};  //!< Characteristic light yield of the material
+    using VecImpScintComponent = std::vector<ImportScintComponent>;
+
+    double yield{};  //!< Characteristic light yield of the material [1/MeV]
     double resolution_scale{};  //!< Scales the stdev of photon distribution
-    std::vector<ImportScintComponent> material_components;
+    VecImpScintComponent material_components;
+    std::map<PDGNumber, VecImpScintComponent> particle_components;
 
     explicit operator bool() const
     {

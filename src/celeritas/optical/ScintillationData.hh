@@ -45,15 +45,13 @@ struct ScintillationComponent
 struct ScintillationSpectrum
 {
     real_type yield{};
-    ItemRange<real_type> yield_per_particle;
     real_type resolution_scale{};
-    ItemRange<ScintillationComponent> material_components;
+    ItemRange<ScintillationComponent> components;
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return yield > 0 && resolution_scale >= 0
-               && !material_components.empty();
+        return yield > 0 && resolution_scale >= 0 && !components.empty();
     }
 };
 
@@ -61,25 +59,42 @@ struct ScintillationSpectrum
 /*!
  * Scintillation data tabulated with the optical material id.
  */
+struct MaterialScintillationData
+{
+    using SpectrumId = OpaqueId<ScintillationSpectrum>;
+
+    ItemMap<OpticalMaterialId, SpectrumId> spectra;
+
+    //! Whether all data are assigned and valid
+    explicit CELER_FUNCTION operator bool() const { return !spectra.empty(); }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Scintillation data tabulated with the optical particle id.
+ */
 template<Ownership W, MemSpace M>
 struct ScintillationData
 {
     template<class T>
     using Items = Collection<T, W, M>;
+
     template<class T>
-    using OpticalMaterialItems = Collection<T, W, M, OpticalMaterialId>;
+    using OpticalParticleItems = Collection<T, W, M, OpticalParticleId>;
 
     //// MEMBER DATA ////
 
+    OpticalParticleItems<MaterialScintillationData> particle_spectra;
+    Items<ScintillationSpectrum> spectra;
     Items<ScintillationComponent> components;
-    OpticalMaterialItems<ScintillationSpectrum> spectra;
 
     //// MEMBER FUNCTIONS ////
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !components.empty() && !spectra.empty();
+        return !particle_spectra.empty() && !spectra.empty()
+               && !components.empty();
     }
 
     //! Assign from another set of data
@@ -87,8 +102,7 @@ struct ScintillationData
     ScintillationData& operator=(ScintillationData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        components = other.components;
-        spectra = other.spectra;
+        particle_spectra = other.particle_spectra;
         return *this;
     }
 };

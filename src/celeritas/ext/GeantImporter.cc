@@ -382,6 +382,17 @@ ImportData::ImportOpticalMap import_optical()
     CELER_ASSERT(num_materials > 0);
 
     ImportData::ImportOpticalMap result;
+
+    // Particles in G4MaterialConstPropertyIndex to be looped over
+    std::map<std::string, PDGNumber> scint_per_particle_map
+        = {{"PROTON", pdg::proton()},
+           {"DEUTERON", pdg::deuteron()},
+           {"TRITON", pdg::triton()},
+           {"ALPHA", pdg::alpha()},
+           {"ION", pdg::ion()},
+           {"ELECTRON", pdg::electron()}};
+
+    // Loop over optical materials
     for (auto mat_idx : range(num_materials))
     {
         auto const* mcc = pct.GetMaterialCutsCouple(mat_idx);
@@ -412,6 +423,23 @@ ImportData::ImportOpticalMap import_optical()
         get_property.scalar(&optical.scintillation.yield,
                             "SCINTILLATIONYIELD",
                             ImportUnits::unitless);
+
+        // Scintillation yield per particle type
+        for (auto iter : scint_per_particle_map)
+        {
+            std::string part_scint_yield = iter.first + "SCINTILLATIONYIELD";
+            ImportScintComponent p_comp;
+            get_property.scalar(
+                &p_comp.yield, part_scint_yield, ImportUnits::unitless);
+            if (p_comp.yield > 0)
+            {
+                optical.scintillation.particle_components.insert(
+                    {iter.second, {}});
+            }
+            optical.scintillation.particle_components[iter.second].push_back(
+                p_comp);
+        }
+
         for (int comp_idx : range(1, 4))
         {
             ImportScintComponent comp;
@@ -439,26 +467,43 @@ ImportData::ImportOpticalMap import_optical()
             {
                 optical.scintillation.material_components.push_back(comp);
             }
-        }
 
-        // Save Rayleigh properties
-        get_property.vector(
-            &optical.rayleigh.mfp, "RAYLEIGH", ImportUnits::len);
-        get_property.scalar(&optical.rayleigh.scale_factor,
-                            "RS_SCALE_FACTOR",
-                            ImportUnits::unitless);
-        get_property.scalar(&optical.rayleigh.compressibility,
-                            "ISOTHERMAL_COMPRESSIBILITY",
-                            ImportUnits::len_time_sq_per_mass);
+            // Scintillation yield per particle type for channels [1..3]
+            for (auto iter : scint_per_particle_map)
+            {
+                std::string property_name = iter.first + "SCINTILLATIONYIELD";
+                ImportScintComponent p_comp;
+                get_property.scalar(&p_comp.yield,
+                                    property_name,
+                                    comp_idx,
+                                    ImportUnits::unitless);
 
-        // Save absorption properties
-        get_property.vector(&optical.absorption.absorption_length,
-                            "ABSLENGTH",
-                            ImportUnits::len);
+                if (p_comp.yield > 0)
+                {
+                    optical.scintillation.particle_components[iter.second]
+                        .push_back(p_comp);
+                }
+            }
 
-        if (optical)
-        {
-            result[mat_idx] = optical;
+            // Save Rayleigh properties
+            get_property.vector(
+                &optical.rayleigh.mfp, "RAYLEIGH", ImportUnits::len);
+            get_property.scalar(&optical.rayleigh.scale_factor,
+                                "RS_SCALE_FACTOR",
+                                ImportUnits::unitless);
+            get_property.scalar(&optical.rayleigh.compressibility,
+                                "ISOTHERMAL_COMPRESSIBILITY",
+                                ImportUnits::len_time_sq_per_mass);
+
+            // Save absorption properties
+            get_property.vector(&optical.absorption.absorption_length,
+                                "ABSLENGTH",
+                                ImportUnits::len);
+
+            if (optical)
+            {
+                result[mat_idx] = optical;
+            }
         }
     }
     CELER_LOG(debug) << "Loaded " << result.size() << " optical materials";
@@ -484,7 +529,8 @@ import_materials(GeantImporter::DataSelection::Flags particle_flags)
     std::vector<ImportMaterial> materials;
     materials.resize(g4production_cuts_table.GetTableSize());
     CELER_VALIDATE(!materials.empty(),
-                   << "no Geant4 production cuts are defined (you may need "
+                   << "no Geant4 production cuts are defined (you may "
+                      "need "
                       "to call G4RunManager::RunInitialization)");
 
     using CutRange = std::pair<G4ProductionCutsIndex,
@@ -641,9 +687,9 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
             = dynamic_cast<G4GammaGeneralProcess const*>(&process))
         {
 #if G4VERSION_NUMBER >= 1060
-            // Extract the real EM processes embedded inside "gamma general"
-            // using an awkward string-based lookup which is the only one
-            // available to us :(
+            // Extract the real EM processes embedded inside "gamma
+            // general" using an awkward string-based lookup which is the
+            // only one available to us :(
             for (auto emproc_enum : range(ImportProcessClass::size_))
             {
                 if (G4VEmProcess const* subprocess

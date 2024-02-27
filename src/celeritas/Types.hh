@@ -63,6 +63,9 @@ using ElementComponentId = OpaqueId<struct MatElementComponent>;
 //! Opaque index to one isotopic component datum in a particular element
 using IsotopeComponentId = OpaqueId<struct ElIsotopeComponent>;
 
+//! Opaque index to of optical particle types
+using OpticalParticleId = OpaqueId<struct OpticalParticle_>;
+
 //! Opaque index to a material with optical properties
 using OpticalMaterialId = OpaqueId<struct OpticalMaterial_>;
 
