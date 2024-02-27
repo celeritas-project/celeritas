@@ -14,6 +14,12 @@
 
 namespace celeritas
 {
+
+//---------------------------------------------------------------------------//
+//! Types
+using ScintillationParticleId = OpaqueId<struct ScintillationParticle_>;
+using ScintillationSpectrumId = OpaqueId<struct ScintillationSpectrum>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Material dependent scintillation property.
@@ -57,20 +63,6 @@ struct ScintillationSpectrum
 
 //---------------------------------------------------------------------------//
 /*!
- * Scintillation data tabulated with the optical material id.
- */
-struct MaterialScintillationData
-{
-    using SpectrumId = OpaqueId<ScintillationSpectrum>;
-
-    ItemMap<OpticalMaterialId, SpectrumId> spectra;
-
-    //! Whether all data are assigned and valid
-    explicit CELER_FUNCTION operator bool() const { return !spectra.empty(); }
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Scintillation data tabulated with the optical particle id.
  */
 template<Ownership W, MemSpace M>
@@ -79,14 +71,15 @@ struct ScintillationData
     template<class T>
     using Items = Collection<T, W, M>;
 
-    template<class T>
-    using OpticalParticleItems = Collection<T, W, M, OpticalParticleId>;
-
     //// MEMBER DATA ////
 
-    OpticalParticleItems<MaterialScintillationData> particle_spectra;
+    // Grid: [scintillation id][optical material id]
+    Collection<ScintillationParticleId, W, M, ParticleId> scint_particle_id;
     Items<ScintillationSpectrum> spectra;
     Items<ScintillationComponent> components;
+
+    //! Number of optical materials
+    size_type num_materials{};
 
     //// MEMBER FUNCTIONS ////
 
@@ -94,7 +87,14 @@ struct ScintillationData
     explicit CELER_FUNCTION operator bool() const
     {
         return !particle_spectra.empty() && !spectra.empty()
-               && !components.empty();
+               && !components.empty() && num_materials > 0;
+    }
+
+    ScintillationSpectrumId
+    spectrum_index(ScintillationParticleId pid, OpticalMaterialId mat_id)
+    {
+        CELER_EXPECT(mat_id < num_materials && pid < scint_particle_id.size());
+        return num_materials * pid.get() + mat_id.get();
     }
 
     //! Assign from another set of data
@@ -102,7 +102,10 @@ struct ScintillationData
     ScintillationData& operator=(ScintillationData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        particle_spectra = other.particle_spectra;
+        scint_particle_id = other.scint_particle_id;
+        spectra = other.spectra;
+        components = other.components;
+        num_materials = other.num_materials;
         return *this;
     }
 };
