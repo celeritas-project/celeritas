@@ -427,17 +427,20 @@ ImportData::ImportOpticalMap import_optical()
         // Scintillation yield per particle type
         for (auto iter : scint_per_particle_map)
         {
-            std::string part_scint_yield = iter.first + "SCINTILLATIONYIELD";
-            ImportScintComponent p_comp;
+            auto const pdg_int = iter.second.unchecked_get();
+            std::string part_yield_name = iter.first + "SCINTILLATIONYIELD";
+
+            double p_yield = 0;
             get_property.scalar(
-                &p_comp.yield, part_scint_yield, ImportUnits::unitless);
-            if (p_comp.yield > 0)
+                &p_yield, part_yield_name, ImportUnits::unitless);
+
+            if (p_yield > 0)
             {
-                optical.scintillation.particle_components.insert(
-                    {iter.second, {}});
+                // Particle yield is available. Add array to map and insert
+                // first yield value
+                optical.scintillation.particle_yields.insert({pdg_int, {}});
+                optical.scintillation.particle_yields[pdg_int][0] = p_yield;
             }
-            optical.scintillation.particle_components[iter.second].push_back(
-                p_comp);
         }
 
         for (int comp_idx : range(1, 4))
@@ -465,23 +468,25 @@ ImportData::ImportOpticalMap import_optical()
                                 ImportUnits::time);
             if (comp)
             {
-                optical.scintillation.material_components.push_back(comp);
+                optical.scintillation.components.push_back(comp);
             }
 
             // Scintillation yield per particle type for channels [1..3]
             for (auto iter : scint_per_particle_map)
             {
-                std::string property_name = iter.first + "SCINTILLATIONYIELD";
-                ImportScintComponent p_comp;
-                get_property.scalar(&p_comp.yield,
-                                    property_name,
+                std::string part_yield_name = iter.first + "SCINTILLATIONYIELD";
+                double channel_yield;
+                get_property.scalar(&channel_yield,
+                                    part_yield_name,
                                     comp_idx,
                                     ImportUnits::unitless);
 
-                if (p_comp.yield > 0)
+                if (channel_yield > 0)
                 {
-                    optical.scintillation.particle_components[iter.second]
-                        .push_back(p_comp);
+                    // Channel yield available, add it to the array
+                    optical.scintillation
+                        .particle_yields[iter.second.unchecked_get()][comp_idx]
+                        = channel_yield;
                 }
             }
 

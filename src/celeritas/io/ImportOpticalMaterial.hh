@@ -37,20 +37,28 @@ struct ImportScintComponent
 //---------------------------------------------------------------------------//
 /*!
  * Store optical material properties for scintillation.
+ *
+ * In Geant4, yield is the only quantity stored by particle type (see
+ * G4MaterialPropertiesIndex.hh). The yield is stored in array for each
+ * particle type, where the array index is:
+ *
+ * YieldArray[0] is the yield for k[Particle]Scintillation
+ * YieldArray[1..3] is the yield for k[Particle]Scintillation[1..3]
  */
 struct ImportScintSpectrum
 {
+    using PDGint = int;
     using VecImpScintComponent = std::vector<ImportScintComponent>;
+    using YieldArray = std::array<double, 4>;
 
     double yield{};  //!< Characteristic light yield of the material [1/MeV]
     double resolution_scale{};  //!< Scales the stdev of photon distribution
-    VecImpScintComponent material_components;
-    std::map<PDGNumber, VecImpScintComponent> particle_components;
+    VecImpScintComponent components;
+    std::map<PDGint, YieldArray> particle_yields;
 
     explicit operator bool() const
     {
-        return yield > 0 && resolution_scale >= 0
-               && !material_components.empty();
+        return yield > 0 && resolution_scale >= 0 && !components.empty();
     }
 };
 
