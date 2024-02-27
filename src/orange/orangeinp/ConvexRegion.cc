@@ -79,7 +79,7 @@ void Box::build(ConvexSurfaceBuilder& insert_surface) const
 // CONE
 //---------------------------------------------------------------------------//
 /*!
- * Construct with Z halfwidth and lo, hi radii.
+ * Construct with Z half-height and lo, hi radii.
  */
 Cone::Cone(Real2 const& radii, real_type halfheight)
     : radii_{radii}, hh_{halfheight}
@@ -96,7 +96,14 @@ Cone::Cone(Real2 const& radii, real_type halfheight)
 /*!
  * Build surfaces.
  *
- * The inner bounding box of a cone
+ * The inner bounding box of a cone is determined with the following procedure:
+ * - Represent a radial slice of the cone as a right triangle with base b
+ *   (aka the higher radius) and height h (translated vanishing point)
+ * - An interior bounding box (along the xy diagonal cut!) will satisfy
+ *   r = b - tangent * z
+ * - Maximize the area of that box to obtain r = b / 2, i.e. z = h / 2
+ * - Truncate z so that it's not outside of the half-height
+ * - Project that radial slice onto the xz plane by multiplying 1/sqrt(2)
  */
 void Cone::build(ConvexSurfaceBuilder& insert_surface) const
 {
@@ -133,26 +140,21 @@ void Cone::build(ConvexSurfaceBuilder& insert_surface) const
     // Set radial extents of exterior bbox
     insert_surface(Sense::inside, make_xyradial_bbox(std::fmax(lo, hi)));
 
-    // Calculating the interior bounding box:
-    // - Represent a radial slice of the cone as a right triangle with base b
-    //   (aka the higher radius) and height h (translated vanishing point)
-    // - An interior bounding box (along the xy diagonal cut!) will satisfy
-    //   r = b - tangent * z
-    // - Maximizing the area of that box gives r = b / 2, i.e. z = h / 2
-    // - Truncate z so that it's not outside of the half-height
-    // - project that radial slice onto the xz plane by multiplying 1/sqrt(2)
+    // Calculate the interior bounding box:
     real_type const b = std::fmax(lo, hi);
     real_type const h = b / tangent;
     real_type const z = std::fmin(h / 2, 2 * hh_);
     real_type const r = b - tangent * z;
 
     // Now convert from "triangle above z=0" to "cone centered on z=0"
-    auto const [zmin, zmax] = [&]() -> std::pair<real_type, real_type> {
-        if (lo > hi)
-            return {-hh_, -hh_ + z};  // Base is on bottom
-        else
-            return {hh_ - z, hh_};  // Base is on top
-    }();
+    real_type zmin = -hh_;
+    real_type zmax = zmin + z;
+    if (lo < hi)
+    {
+        // Base is on top
+        zmax = hh_;
+        zmin = zmax - z;
+    }
     CELER_ASSERT(zmin < zmax);
     real_type const rbox = (constants::sqrt_two / 2) * r;
     BBox const interior_bbox{{-rbox, -rbox, zmin}, {rbox, rbox, zmax}};
@@ -193,7 +195,7 @@ void Cylinder::build(ConvexSurfaceBuilder& insert_surface) const
 // ELLIPSOID
 //---------------------------------------------------------------------------//
 /*!
- * Construct with half-widths.
+ * Construct with radii.
  */
 Ellipsoid::Ellipsoid(Real3 const& radii) : radii_{radii}
 {

@@ -71,11 +71,19 @@ class Box final : public ConvexRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * A truncated cone along the Z axis centered on the origin.
+ * A closed cone along the Z axis centered on the origin.
  *
- * The midpoint along the Z axis of the cone is the origin. A cone is *not*
- * allowed to have equal radii: for that, use a cylinder. This, along with the
- * Cylinder, is a base component of the G4Polycone (PCON).
+ * A quadric cone technically defines two opposing cones that touch at a single
+ * vanishing point, but this cone is required to be truncated so that the
+ * vanishing point is on our outside the cone.
+ *
+ * The midpoint along the Z axis of the cone is the origin. A cone is \em not
+ * allowed to have equal radii: for that, use a cylinder. However, it \em may
+ * have a single radius of zero, which puts the vanishing point on one end of
+ * the cone.
+ *
+ * This convex region, along with the Cylinder, is a base component of the
+ * G4Polycone (PCON).
  */
 class Cone final : public ConvexRegionInterface
 {
@@ -86,7 +94,7 @@ class Cone final : public ConvexRegionInterface
     //!@}
 
   public:
-    // Construct with Z halfwidth and lo, hi radii
+    // Construct with Z half-height and lo, hi radii
     Cone(Real2 const& radii, real_type halfheight);
 
     // Build surfaces

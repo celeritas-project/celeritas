@@ -36,6 +36,15 @@ struct ConvexSurfaceState;
  * - Metadata combining the surfaces names with the object name
  * - Bounding boxes (interior and exterior)
  *
+ * Internally, this class uses:
+ * - \c SurfaceClipper to update bounding boxes for closed quadric surfaces
+ *   (axis aligned cylinders, spheres, planes)
+ * - \c apply_transform (which calls \c detail::SurfaceTransformer and its
+ *   siblings) to generate new surfaces based on the local transformed
+ *   coordinate system
+ * - \c RecursiveSimplifier to take transformed or user-input surfaces and
+ *   reduce them to more compact quadric representations
+ *
  * \todo Should we require that the user implicitly guarantee that the result
  * is convex, e.g. prohibit quadrics outside "saddle" points? What about a
  * torus, which (unless degenerate) is never convex? Or should we just require
