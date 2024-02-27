@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file orange/MatrixUtils.hh
+// TODO: split into BLAS and host-only utils
 //---------------------------------------------------------------------------//
 #pragma once
 
