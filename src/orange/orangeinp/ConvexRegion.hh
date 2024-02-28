@@ -65,6 +65,11 @@ class Box final : public ConvexRegionInterface
     // Build surfaces
     void build(ConvexSurfaceBuilder&) const final;
 
+    //// ACCESSORS ////
+
+    //! Half-width for each axis
+    Real3 const& halfwidths() const { return hw_; }
+
   private:
     Real3 hw_;
 };
@@ -100,6 +105,14 @@ class Cone final : public ConvexRegionInterface
     // Build surfaces
     void build(ConvexSurfaceBuilder&) const final;
 
+    //// ACCESSORS ////
+
+    //! Lower and upper radii
+    Real2 const& radii() const { return radii_; }
+
+    //! Half-height along Z
+    real_type halfheight() const { return hh_; }
+
   private:
     Real2 radii_;
     real_type hh_;
@@ -118,6 +131,14 @@ class Cylinder final : public ConvexRegionInterface
     // Build surfaces
     void build(ConvexSurfaceBuilder&) const final;
 
+    //// ACCESSORS ////
+
+    //! Radius
+    real_type radius() const { return radius_; }
+
+    //! Half-height along Z
+    real_type halfheight() const { return hh_; }
+
   private:
     real_type radius_;
     real_type hh_;
@@ -135,6 +156,11 @@ class Ellipsoid final : public ConvexRegionInterface
 
     // Build surfaces
     void build(ConvexSurfaceBuilder&) const final;
+
+    //// ACCESSORS ////
+
+    //! Radius along each axis
+    Real3 const& radii() const { return radii_; }
 
   private:
     Real3 radii_;
@@ -171,6 +197,17 @@ class Prism final : public ConvexRegionInterface
     // Build surfaces
     void build(ConvexSurfaceBuilder&) const final;
 
+    //// ACCESSORS ////
+
+    //! Number of sides
+    int num_sides() const { return num_sides_; }
+    //! Inner radius
+    real_type apothem() const { return apothem_; }
+    //! Half the Z height
+    real_type halfheight() const { return hh_; }
+    //! Rotation factor
+    real_type orientation() const { return orientation_; }
+
   private:
     // Number of sides
     int num_sides_;
@@ -197,6 +234,11 @@ class Sphere final : public ConvexRegionInterface
 
     // Build surfaces
     void build(ConvexSurfaceBuilder&) const final;
+
+    //// ACCESSORS ////
+
+    //! Radius
+    real_type radius() const { return radius_; }
 
   private:
     real_type radius_;
