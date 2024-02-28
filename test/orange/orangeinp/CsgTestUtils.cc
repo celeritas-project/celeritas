@@ -36,7 +36,7 @@ namespace test
 std::string to_json_string(CsgTree const& tree)
 {
 #if CELERITAS_USE_JSON
-    nlohmann::json obj{tree};
+    nlohmann::json obj(tree);
     return obj.dump();
 #else
     CELER_DISCARD(tree);

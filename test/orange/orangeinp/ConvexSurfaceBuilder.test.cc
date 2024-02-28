@@ -135,7 +135,7 @@ TEST_F(ConvexSurfaceBuilderTest, no_transform)
         "dh@c:pz,rh@c:mz,zh@c:pz", "", "dh@c:s,rh@c:s,zh@c:s", "", "sl@c:mx",
         "sl@c:px", ""};
     static char const expected_tree_string[]
-        = R"json([["t",["~",0],["S",0],["~",2],["S",1],["~",4],["S",2],["S",3],["~",7]]])json";
+        = R"json(["t",["~",0],["S",0],["~",2],["S",1],["~",4],["S",2],["S",3],["~",7]])json";
     // clang-format on
 
     auto const& u = unit_;
@@ -216,7 +216,7 @@ TEST_F(ConvexSurfaceBuilderTest, translate)
     static char const* const expected_md_strings[] = {
         "", "", "sl@c:mx", "sl@c:px,ss@c:mx", "", "sph@c:s", "", "ss@c:px", ""};
     static char const expected_tree_string[]
-        = R"json([["t",["~",0],["S",0],["S",1],["~",3],["S",2],["~",5],["S",3],["~",7]]])json";
+        = R"json(["t",["~",0],["S",0],["S",1],["~",3],["S",2],["~",5],["S",3],["~",7]])json";
 
     auto const& u = unit_;
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
@@ -257,7 +257,7 @@ TEST_F(ConvexSurfaceBuilderTest, transform)
     static char const * const expected_surface_strings[] = {"Plane: y=0",
         "Sphere: r=1 at {0,0,1}"};
     static char const expected_tree_string[]
-        = R"json([["t",["~",0],["S",0],["S",1],["~",3]]])json";
+        = R"json(["t",["~",0],["S",0],["S",1],["~",3]])json";
     static char const* const expected_md_strings[]
         = {"", "", "h@c:pz", "h@c:s", ""};
 

@@ -56,6 +56,7 @@ celeritas_add_test(orangeinp/ConvexRegion.test.cc)
 celeritas_add_test(orangeinp/ConvexSurfaceBuilder.test.cc)
 celeritas_add_test(orangeinp/CsgTree.test.cc)
 celeritas_add_test(orangeinp/CsgTreeUtils.test.cc)
+celeritas_add_test(orangeinp/Shape.test.cc)
 
 celeritas_add_test(orangeinp/detail/BoundingZone.test.cc)
 celeritas_add_test(orangeinp/detail/CsgUnitBuilder.test.cc)

@@ -45,7 +45,7 @@ TEST_F(CsgUnitBuilderTest, infinite)
     EXPECT_REAL_EQ(1e-4, builder.tol().rel);
 
     // Add a new 'true' node
-    auto true_nid = builder.insert_csg(True{});
+    auto true_nid = builder.insert_csg(True{}).first;
     EXPECT_EQ(CsgTree::true_node_id(), true_nid);
     builder.insert_md(true_nid, "true");
     builder.set_bbox(true_nid, BBox::from_infinite());
@@ -60,7 +60,7 @@ TEST_F(CsgUnitBuilderTest, infinite)
     EXPECT_EQ(0, u.surfaces.size());
     if (CELERITAS_USE_JSON)
     {
-        EXPECT_JSON_EQ(R"json({"t":["~",0]})json", tree_string(u));
+        EXPECT_JSON_EQ(R"json(["t",["~",0]])json", tree_string(u));
     }
     static char const* const expected_md_strings[] = {"true", ""};
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
@@ -85,7 +85,7 @@ TEST_F(CsgUnitBuilderTest, single_surface)
     }
 
     // Add a surface and the corresponding node
-    auto outside_nid = builder.insert_surface(SphereCentered{1.0});
+    auto outside_nid = builder.insert_surface(SphereCentered{1.0}).first;
     EXPECT_EQ(N{2}, outside_nid);
     builder.insert_md(outside_nid, {"sphere", "o"});
 
@@ -99,7 +99,7 @@ TEST_F(CsgUnitBuilderTest, single_surface)
     }
 
     // Add a new 'inside sphere' node
-    auto inside_nid = builder.insert_csg(Negated{outside_nid});
+    auto inside_nid = builder.insert_csg(Negated{outside_nid}).first;
     EXPECT_EQ(N{3}, inside_nid);
     builder.insert_md(inside_nid, {"sphere", "i"});
     builder.insert_md(inside_nid, {"sphere"});
@@ -127,7 +127,7 @@ TEST_F(CsgUnitBuilderTest, single_surface)
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     if (CELERITAS_USE_JSON)
     {
-        EXPECT_JSON_EQ(R"json([["t",["~",0],["S",0],["~",2]]])json",
+        EXPECT_JSON_EQ(R"json(["t",["~",0],["S",0],["~",2]])json",
                        tree_string(u));
     }
     static char const* const expected_md_strings[]
@@ -150,19 +150,20 @@ TEST_F(CsgUnitBuilderTest, multi_level)
     CsgUnitBuilder builder(&u, tol);
 
     // Add inner surface
-    auto outer = builder.insert_surface(SphereCentered{1.0});
+    auto [outer, ins] = builder.insert_surface(SphereCentered{1.0});
+    EXPECT_TRUE(ins);
     EXPECT_EQ(N{2}, outer);
     builder.insert_md(outer, {"coating", "o"});
 
     // Add outer surface
-    auto inner = builder.insert_surface(SphereCentered{0.75});
+    auto inner = builder.insert_surface(SphereCentered{0.75}).first;
     EXPECT_EQ(N{3}, inner);
     builder.insert_md(inner, {"coating", "i"});
 
     // Add "solid"
-    auto neg_outer = builder.insert_csg(Negated{outer});
+    auto neg_outer = builder.insert_csg(Negated{outer}).first;
     EXPECT_EQ(N{4}, neg_outer);
-    auto coating = builder.insert_csg(Joined{op_and, {inner, neg_outer}});
+    auto coating = builder.insert_csg(Joined{op_and, {inner, neg_outer}}).first;
     EXPECT_EQ(N{5}, coating);
     builder.insert_md(coating, {"coating"});
 
@@ -175,10 +176,11 @@ TEST_F(CsgUnitBuilderTest, multi_level)
     // Add inner universe
     {
         // Pretend user has a small gap within the tolerance
-        auto new_inner = builder.insert_surface(SphereCentered{0.75 - 1e-5});
-        EXPECT_EQ(inner, new_inner);
+        auto ins = builder.insert_surface(SphereCentered{0.75 - 1e-5});
+        EXPECT_EQ(inner, ins.first);
+        EXPECT_FALSE(ins.second);
     }
-    auto neg_inner = builder.insert_csg(Negated{inner});
+    auto neg_inner = builder.insert_csg(Negated{inner}).first;
     EXPECT_EQ(N{6}, neg_inner);
     auto inner_vid = builder.insert_volume(neg_inner);
     EXPECT_EQ(V{1}, inner_vid);
@@ -201,7 +203,7 @@ TEST_F(CsgUnitBuilderTest, multi_level)
     if (CELERITAS_USE_JSON)
     {
         EXPECT_JSON_EQ(
-            R"json([["t",["~",0],["S",0],["S",1],["~",2],["&",[3,4]],["~",3]]])json",
+            R"json(["t",["~",0],["S",0],["S",1],["~",2],["&",[3,4]],["~",3]])json",
             tree_string(u));
     }
     static char const* const expected_md_strings[] = {

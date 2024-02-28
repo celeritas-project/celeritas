@@ -25,9 +25,14 @@ namespace detail
 /*!
  * Help construct a unit's mutable CSG representation.
  *
- * This keeps track of the CSG and surface nodes during construction. It holds
- * the "construction-time" properties like the local surface inserter. The
- * input "CSG Unit" must exceed the lifetime of this builder.
+ * This *LOW-LEVEL* class keeps track of the CSG and surface nodes during
+ * construction. It holds the "construction-time" properties like the local
+ * surface inserter. The input "CSG Unit" must exceed the lifetime of this
+ * builder.
+ *
+ * This class is meant to be used by:
+ * - Object builders
+ * - Convex surface builder
  */
 class CsgUnitBuilder
 {
@@ -37,11 +42,12 @@ class CsgUnitBuilder
     using Tol = Tolerance<>;
     using Metadata = CsgUnit::Metadata;
     using BBox = CsgUnit::BBox;
+    using NodeInsertion = CsgTree::Insertion;
     //!@}
 
   public:
     // Construct with an empty unit and tolerance settings
-    inline CsgUnitBuilder(CsgUnit*, Tol const& tol);
+    CsgUnitBuilder(CsgUnit*, Tol const& tol);
 
     //// ACCESSORS ////
 
@@ -56,11 +62,11 @@ class CsgUnitBuilder
 
     // Insert a surface by forwarding to the surface inserter
     template<class... Args>
-    inline NodeId insert_surface(Args&&... args);
+    inline NodeInsertion insert_surface(Args&&... args);
 
     // Insert a CSG node by forwarding to the CsgTree
     template<class... Args>
-    inline NodeId insert_csg(Args&&... args);
+    inline NodeInsertion insert_csg(Args&&... args);
 
     //! Insert node metadata
     inline void insert_md(NodeId node, Metadata&& md);
@@ -93,17 +99,6 @@ class CsgUnitBuilder
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with an empty unit (which doesn't yet have any elements).
- */
-CsgUnitBuilder::CsgUnitBuilder(CsgUnit* u, Tolerance<> const& tol)
-    : unit_{u}, tol_{tol}, insert_surface_{&unit_->surfaces, tol}
-{
-    CELER_EXPECT(unit_);
-    CELER_EXPECT(unit_->empty());
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Access a typed surface, needed for clipping with deduplicated surface.
  */
 template<class S>
@@ -119,7 +114,7 @@ S const& CsgUnitBuilder::get_surface(NodeId nid) const
  * Insert a surface by forwarding to the surface inserter.
  */
 template<class... Args>
-auto CsgUnitBuilder::insert_surface(Args&&... args) -> NodeId
+auto CsgUnitBuilder::insert_surface(Args&&... args) -> NodeInsertion
 {
     LocalSurfaceId lsid = insert_surface_(std::forward<Args>(args)...);
     return this->insert_csg(lsid);
@@ -130,10 +125,10 @@ auto CsgUnitBuilder::insert_surface(Args&&... args) -> NodeId
  * Insert a CSG node by forwarding to the CsgTree.
  */
 template<class... Args>
-auto CsgUnitBuilder::insert_csg(Args&&... args) -> NodeId
+auto CsgUnitBuilder::insert_csg(Args&&... args) -> NodeInsertion
 {
-    NodeId result = unit_->tree.insert(std::forward<Args>(args)...);
-    if (!(result < unit_->metadata.size()))
+    auto result = unit_->tree.insert(std::forward<Args>(args)...);
+    if (result.second)
     {
         unit_->metadata.resize(unit_->tree.size());
         unit_->bboxes.resize(unit_->tree.size());
