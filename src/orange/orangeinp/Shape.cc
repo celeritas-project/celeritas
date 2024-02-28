@@ -32,7 +32,7 @@ NodeId ShapeBase::build(VolumeBuilder& vb) const
 
     // Construct surfaces
     auto sb = ConvexSurfaceBuilder(&vb.unit_builder(), &css);
-    this->build_interior(sb);
+    this->interior().build(sb);
 
     // Intersect the given surfaces to create a new CSG node
     return vb.insert_region(Label{std::move(css.object_name)},

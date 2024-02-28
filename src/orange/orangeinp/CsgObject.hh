@@ -30,6 +30,9 @@ class NegatedObject : public ObjectInterface
     // Construct with a name and object
     NegatedObject(std::string&& label, SPConstObject obj);
 
+    //! Access the daughter object
+    SPConstObject const& daughter() const { return obj_; }
+
     //! Get the user-provided label
     std::string_view label() const final { return label_; }
 

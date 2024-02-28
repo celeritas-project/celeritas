@@ -25,6 +25,12 @@ class Transformed final : public ObjectInterface
     // Construct with daughter object and transform
     Transformed(SPConstObject obj, VariantTransform&& transform);
 
+    //! Access the daughter object
+    SPConstObject const& daughter() const { return obj_; }
+
+    //! Access the transform
+    VariantTransform const& transform() const { return transform_; }
+
     //! Get the user-provided label
     std::string_view label() const final { return obj_->label(); }
 

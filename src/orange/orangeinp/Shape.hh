@@ -39,6 +39,9 @@ class ShapeBase : public ObjectInterface
     // Construct a volume from this object
     NodeId build(VolumeBuilder&) const final;
 
+    //! Interior convex region interface for construction and access
+    virtual ConvexRegionInterface const& interior() const = 0;
+
   protected:
     //!@{
     //! Allow construction and assignment only through daughter classes
@@ -46,9 +49,6 @@ class ShapeBase : public ObjectInterface
     virtual ~ShapeBase() = default;
     CELER_DEFAULT_COPY_MOVE(ShapeBase);
     //!@}
-
-    //! Daughter class interface
-    virtual void build_interior(ConvexSurfaceBuilder&) const = 0;
 };
 
 //---------------------------------------------------------------------------//
@@ -86,11 +86,8 @@ class Shape final : public ShapeBase
     //! Get the user-provided label
     std::string_view label() const final { return label_; }
 
-    //! Forward the construction call to the convex region
-    void build_interior(ConvexSurfaceBuilder& csb) const final
-    {
-        return region_.build(csb);
-    }
+    //! Interior convex region
+    ConvexRegionInterface const& interior() const final { return region_; }
 
   private:
     std::string label_;
