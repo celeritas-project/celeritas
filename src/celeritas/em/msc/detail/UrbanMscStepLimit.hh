@@ -152,12 +152,12 @@ UrbanMscStepLimit::UrbanMscStepLimit(UrbanMscRef const& shared,
 template<class Engine>
 CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> real_type
 {
-    if (max_step_ <= max(limit_, limit_min_))
+    if (max_step_ <= limit_)
     {
         // Skip sampling if the physics step is limiting
         return max_step_;
     }
-    if (limit_ <= limit_min_)
+    if (limit_ == limit_min_)
     {
         // Skip sampling below the minimum step limit
         return limit_min_;
