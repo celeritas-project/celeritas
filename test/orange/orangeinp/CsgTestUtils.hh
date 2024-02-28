@@ -18,38 +18,33 @@ namespace orangeinp
 {
 class CsgTree;
 
-namespace test
-{
-//---------------------------------------------------------------------------//
-std::string to_json_string(CsgTree const&);
-
-//---------------------------------------------------------------------------//
-}  // namespace test
-
 namespace detail
 {
 struct BoundingZone;
 struct ConvexSurfaceState;
 struct CsgUnit;
+}  // namespace detail
 
 namespace test
 {
 //---------------------------------------------------------------------------//
+std::string to_json_string(CsgTree const&);
 
 std::vector<int> to_vec_int(std::vector<NodeId> const& nodes);
-std::vector<std::string> surface_strings(CsgUnit const& u);
-std::string tree_string(CsgUnit const& u);
-std::vector<std::string> md_strings(CsgUnit const& u);
-std::vector<real_type> flattened_bboxes(CsgUnit const& u);
-std::vector<int> volume_nodes(CsgUnit const& u);
-std::vector<std::string> fill_strings(CsgUnit const& u);
-std::vector<real_type> flattened(BoundingZone const& bz);
+std::vector<std::string> surface_strings(detail::CsgUnit const& u);
+std::vector<std::string> volume_strings(detail::CsgUnit const& u);
+std::string tree_string(detail::CsgUnit const& u);
+std::vector<std::string> md_strings(detail::CsgUnit const& u);
+std::vector<std::string> bound_strings(detail::CsgUnit const& u);
+std::vector<std::string> transform_strings(detail::CsgUnit const& u);
+std::vector<int> volume_nodes(detail::CsgUnit const& u);
+std::vector<std::string> fill_strings(detail::CsgUnit const& u);
+std::vector<real_type> flattened(detail::BoundingZone const& bz);
 
-void print_expected(CsgUnit const& u);
-void print_expected(ConvexSurfaceState const& css);
+void print_expected(detail::CsgUnit const& u);
+void print_expected(detail::ConvexSurfaceState const& css);
 
 //---------------------------------------------------------------------------//
 }  // namespace test
-}  // namespace detail
 }  // namespace orangeinp
 }  // namespace celeritas

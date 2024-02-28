@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Assert.hh"
 #include "corecel/io/Label.hh"
 #include "orange/transform/VariantTransform.hh"
 
@@ -40,7 +39,7 @@ class VolumeBuilder
 
   public:
     // Construct with unit builder and volume name
-    explicit inline VolumeBuilder(CsgUnitBuilder* ub);
+    explicit VolumeBuilder(CsgUnitBuilder* ub);
 
     //!@{
     //! Access the unit builder for construction
@@ -58,15 +57,6 @@ class VolumeBuilder
     CsgUnitBuilder* ub_;
     VariantTransform local_trans_;  //!< DUMMY for now
 };
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct with unit builder.
- */
-VolumeBuilder::VolumeBuilder(CsgUnitBuilder* ub) : ub_{ub}
-{
-    CELER_EXPECT(ub_);
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

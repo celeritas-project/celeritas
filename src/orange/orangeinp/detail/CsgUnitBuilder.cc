@@ -18,26 +18,43 @@ namespace detail
  * Construct with an empty unit (which doesn't yet have any elements).
  */
 CsgUnitBuilder::CsgUnitBuilder(CsgUnit* u, Tolerance<> const& tol)
-    : unit_{u}, tol_{tol}, insert_surface_{&unit_->surfaces, tol}
+    : unit_{u}
+    , tol_{tol}
+    , insert_surface_{&unit_->surfaces, tol}
+    , insert_transform_{&unit_->transforms}
 {
     CELER_EXPECT(unit_);
     CELER_EXPECT(unit_->empty());
 
     // Resize because the tree comes prepopulated with true/false
     unit_->metadata.resize(unit_->tree.size());
-    unit_->bboxes.resize(unit_->tree.size());
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Set a bounding box for a node.
+ * Set a bounding zone and transform for a node.
  */
-void CsgUnitBuilder::set_bbox(NodeId n, BBox const& bbox)
+void CsgUnitBuilder::insert_region(NodeId n,
+                                   BoundingZone const& bzone,
+                                   TransformId trans_id)
 {
-    CELER_EXPECT(n < unit_->bboxes.size());
-    CELER_EXPECT(!unit_->bboxes[n.unchecked_get()]);
+    CELER_EXPECT(n < unit_->tree.size());
+    CELER_EXPECT(trans_id < unit_->transforms.size());
 
-    unit_->bboxes[n.unchecked_get()] = bbox;
+    auto&& [iter, inserted]
+        = unit_->regions.insert({n, CsgUnit::Region{bzone, trans_id}});
+    if (!inserted)
+    {
+        // The existing bounding zone *SHOULD BE IDENTICAL*.
+        // For now this is a rough check...
+        CsgUnit::Region const& existing = iter->second;
+        CELER_ASSERT(bzone.negated == existing.bounds.negated);
+        CELER_ASSERT(static_cast<bool>(bzone.interior)
+                     == static_cast<bool>(existing.bounds.interior));
+        CELER_ASSERT(static_cast<bool>(bzone.exterior)
+                     == static_cast<bool>(existing.bounds.exterior));
+        CELER_ASSERT(trans_id == existing.transform_id);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -76,21 +93,24 @@ void CsgUnitBuilder::fill_volume(LocalVolumeId v, MaterialId m)
 /*!
  * Fill a volume node with a daughter.
  */
-void CsgUnitBuilder::fill_volume(LocalVolumeId v,
-                                 UniverseId u,
-                                 VariantTransform&& vt)
+void CsgUnitBuilder::fill_volume(LocalVolumeId v, UniverseId u)
 {
     CELER_EXPECT(v < unit_->fills.size());
     CELER_EXPECT(!is_filled(unit_->fills[v.unchecked_get()]));
     CELER_EXPECT(u);
 
+    // Get the region associated with this node ID for the volume
+    CELER_ASSERT(unit_->volumes.size() == unit_->fills.size());
+    auto iter = unit_->regions.find(unit_->volumes[v.unchecked_get()]);
+    // The iterator should be valid since the whole volume should never be a
+    // pure surface (created outside a convex region)
+    CELER_ASSERT(iter != unit_->regions.end());
+
     Daughter new_daughter;
     new_daughter.universe_id = u;
-    new_daughter.transform_id
-        = TransformId{static_cast<size_type>(unit_->transforms.size())};
+    new_daughter.transform_id = iter->second.transform_id;
+    CELER_ASSERT(new_daughter.transform_id < unit_->transforms.size());
 
-    // Add transform
-    unit_->transforms.push_back(std::move(vt));
     // Save fill
     unit_->fills[v.unchecked_get()] = std::move(new_daughter);
 

@@ -8,6 +8,7 @@ celeritas_add_library(testcel_orange
   OrangeGeoTestBase.cc
   OrangeTestBase.cc
   orangeinp/CsgTestUtils.cc
+  orangeinp/ObjectTestBase.cc
 )
 celeritas_target_link_libraries(testcel_orange
   PUBLIC
@@ -59,7 +60,6 @@ celeritas_add_test(orangeinp/CsgTreeUtils.test.cc)
 celeritas_add_test(orangeinp/Shape.test.cc)
 
 celeritas_add_test(orangeinp/detail/BoundingZone.test.cc)
-celeritas_add_test(orangeinp/detail/CsgUnitBuilder.test.cc)
 celeritas_add_test(orangeinp/detail/LocalSurfaceInserter.test.cc)
 celeritas_add_test(orangeinp/detail/TransformInserter.test.cc)
 
