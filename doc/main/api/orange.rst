@@ -42,7 +42,10 @@ Shape
    boxes. Shapes should be as simple as possible, aligned along and centered on
    the Z axis.
 Solid
-   NOT YET IMPLEMENTED: a
+   NOT YET IMPLEMENTED: a shape that's hollowed out and/or has a slice removed.
+ExtrudedSolid
+   NOT YET IMPLEMENTED: a union of transformed solids along the Z axis, which
+   can also be hollowed and sliced.
 Transformed
    Applies a transform to another CSG object.
 AnyObjects, AllObjects, and NegatedObject
