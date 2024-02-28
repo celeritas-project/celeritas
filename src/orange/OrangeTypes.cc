@@ -109,6 +109,20 @@ char const* to_cstring(SurfaceType value)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get a string corresponding to a transform type.
+ */
+char const* to_cstring(TransformType value)
+{
+    static EnumStringMapper<TransformType> const to_cstring_impl{
+        "no_transformation",
+        "translation",
+        "transformation",
+    };
+    return to_cstring_impl(value);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get a printable character corresponding to a z ordering.
  */
 char to_char(ZOrder zo)
