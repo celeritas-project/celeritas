@@ -39,6 +39,9 @@ class ShapeBase : public ObjectInterface
     // Construct a volume from this object
     NodeId build(VolumeBuilder&) const final;
 
+    // Write the shape to JSON
+    void output(JsonPimpl*) const final;
+
     //! Interior convex region interface for construction and access
     virtual ConvexRegionInterface const& interior() const = 0;
 

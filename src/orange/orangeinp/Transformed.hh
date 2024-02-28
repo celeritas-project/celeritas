@@ -37,6 +37,9 @@ class Transformed final : public ObjectInterface
     // Construct a volume from this object
     NodeId build(VolumeBuilder&) const final;
 
+    // Write the object to JSON
+    void output(JsonPimpl*) const final;
+
   private:
     SPConstObject obj_;
     VariantTransform transform_;

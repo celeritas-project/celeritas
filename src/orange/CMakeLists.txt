@@ -67,6 +67,7 @@ if(CELERITAS_USE_JSON)
     OrangeInputIO.json.cc
     detail/OrangeInputIOImpl.json.cc
     orangeinp/CsgTreeIO.json.cc
+    orangeinp/ObjectIO.json.cc
   )
   list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()

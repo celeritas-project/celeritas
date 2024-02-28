@@ -14,6 +14,8 @@
 
 namespace celeritas
 {
+struct JsonPimpl;
+
 namespace orangeinp
 {
 class ConvexSurfaceBuilder;
@@ -43,6 +45,9 @@ class ConvexRegionInterface
     //! Construct surfaces that are AND-ed into this region
     virtual void build(ConvexSurfaceBuilder&) const = 0;
 
+    //! Write the region to a JSON object
+    virtual void output(JsonPimpl*) const = 0;
+
   protected:
     //!@{
     //! Allow construction and assignment only through daughter classes
@@ -64,6 +69,9 @@ class Box final : public ConvexRegionInterface
 
     // Build surfaces
     void build(ConvexSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
 
     //// ACCESSORS ////
 
@@ -105,6 +113,9 @@ class Cone final : public ConvexRegionInterface
     // Build surfaces
     void build(ConvexSurfaceBuilder&) const final;
 
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
     //// ACCESSORS ////
 
     //! Lower and upper radii
@@ -131,6 +142,9 @@ class Cylinder final : public ConvexRegionInterface
     // Build surfaces
     void build(ConvexSurfaceBuilder&) const final;
 
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
     //// ACCESSORS ////
 
     //! Radius
@@ -156,6 +170,9 @@ class Ellipsoid final : public ConvexRegionInterface
 
     // Build surfaces
     void build(ConvexSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
 
     //// ACCESSORS ////
 
@@ -197,6 +214,9 @@ class Prism final : public ConvexRegionInterface
     // Build surfaces
     void build(ConvexSurfaceBuilder&) const final;
 
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
     //// ACCESSORS ////
 
     //! Number of sides
@@ -234,6 +254,9 @@ class Sphere final : public ConvexRegionInterface
 
     // Build surfaces
     void build(ConvexSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
 
     //// ACCESSORS ////
 

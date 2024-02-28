@@ -39,6 +39,9 @@ class NegatedObject : public ObjectInterface
     // Construct a volume from this object
     NodeId build(VolumeBuilder&) const final;
 
+    // Write the object to JSON
+    void output(JsonPimpl*) const final;
+
   private:
     std::string label_;
     SPConstObject obj_;
@@ -74,6 +77,9 @@ class JoinObjects : public ObjectInterface
 
     // Construct a volume from this object
     NodeId build(VolumeBuilder&) const final;
+
+    // Write the object to JSON
+    void output(JsonPimpl*) const final;
 
   private:
     std::string label_;

@@ -11,6 +11,7 @@
 
 #include "corecel/Constants.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/JsonPimpl.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/Types.hh"
 #include "orange/surf/ConeAligned.hh"
@@ -20,6 +21,10 @@
 #include "orange/surf/SphereCentered.hh"
 
 #include "ConvexSurfaceBuilder.hh"
+
+#if CELERITAS_USE_JSON
+#    include "ObjectIO.json.hh"
+#endif
 
 namespace celeritas
 {
@@ -73,6 +78,15 @@ void Box::build(ConvexSurfaceBuilder& insert_surface) const
     insert_surface(Sense::inside, PlaneY{hw_[Y]});
     insert_surface(Sense::outside, PlaneZ{-hw_[Z]});
     insert_surface(Sense::inside, PlaneZ{hw_[Z]});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Box::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -168,6 +182,15 @@ void Cone::build(ConvexSurfaceBuilder& insert_surface) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Cone::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
 // CYLINDER
 //---------------------------------------------------------------------------//
 /*!
@@ -189,6 +212,15 @@ void Cylinder::build(ConvexSurfaceBuilder& insert_surface) const
     insert_surface(Sense::outside, PlaneZ{-hh_});
     insert_surface(Sense::inside, PlaneZ{hh_});
     insert_surface(CCylZ{radius_});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Cylinder::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -247,6 +279,15 @@ void Ellipsoid::build(ConvexSurfaceBuilder& insert_surface) const
         r *= 1 / constants::sqrt_three;
     }
     insert_surface(Sense::outside, BBox{-inner_radii, inner_radii});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Ellipsoid::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -320,6 +361,15 @@ void Prism::build(ConvexSurfaceBuilder& insert_surface) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Prism::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
 // SPHERE
 //---------------------------------------------------------------------------//
 /*!
@@ -337,6 +387,15 @@ Sphere::Sphere(real_type radius) : radius_{radius}
 void Sphere::build(ConvexSurfaceBuilder& insert_surface) const
 {
     insert_surface(SphereCentered{radius_});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Sphere::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
 }
 
 //---------------------------------------------------------------------------//
