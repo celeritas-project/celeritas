@@ -8,6 +8,7 @@
 #pragma once
 
 #include "celeritas_config.h"
+#include "corecel/Assert.hh"
 
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
@@ -41,6 +42,23 @@ struct JsonPimpl
     JsonPimpl() = delete;
 #endif
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Helper function to write an object to JSON.
+ *
+ * This hides the "not configured" boilerplate.
+ */
+template<class T>
+void to_json_pimpl(JsonPimpl* jp, T const& self)
+{
+#if CELERITAS_USE_JSON
+    CELER_EXPECT(jp);
+    to_json(jp->obj, self);
+#else
+    CELER_NOT_CONFIGURED("JSON");
+#endif
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
