@@ -340,6 +340,20 @@ TEST(MathTest, diffsq)
 
 //---------------------------------------------------------------------------//
 
+TEST(MathTest, eumod)
+{
+    // Wrap numbers to between [0, 360)
+    EXPECT_DOUBLE_EQ(270.0, eumod(-90.0 - 360.0, 360.0));
+    EXPECT_DOUBLE_EQ(270.0, eumod(-90.0, 360.0));
+    EXPECT_DOUBLE_EQ(0.0, eumod(0.0, 360.0));
+    EXPECT_DOUBLE_EQ(45.0, eumod(45.0, 360.0));
+    EXPECT_DOUBLE_EQ(0.0, eumod(360.0, 360.0));
+    EXPECT_DOUBLE_EQ(15.0, eumod(375.0, 360.0));
+    EXPECT_DOUBLE_EQ(30.0, eumod(720.0 + 30, 360.0));
+}
+
+//---------------------------------------------------------------------------//
+
 TEST(MathTest, sincos)
 {
     {
