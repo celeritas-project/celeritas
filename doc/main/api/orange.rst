@@ -143,7 +143,7 @@ Geant4 geometry translation
 The Geant4 geometry is a hierarchy of "logical volumes" comprised of solids.
 Deeper ("daughter") volumes are "placed" into a parent ("mother") volume after
 applying a transformation (translation, rotation, reflection, or a
-combination), displace the material in the parent volume. Besides this
+combination), displacing the material in the parent volume. Besides this
 displacement, no overlap is allowed.
 
 Solids are parametrized volumes that may be hollowed out, have slices removed,
@@ -151,7 +151,7 @@ or be defined as a CSG operation on placed volumes. They are sometimes but not
 always convex. See the `Geant4 documentation`_ for descriptions of all the
 predefined solids.
 
-A logical volume can be referenced multiple times, placed multiple times in
+A logical volume can be referenced multiple times, i.e., placed multiple times in
 multiple different volumes. The Geant4-ORANGE converter decomposes (TODO: not
 yet implemented) the graph of logical volume relationships into subgraphs that
 each become a CSG unit. The decomposition should minimize the number of
