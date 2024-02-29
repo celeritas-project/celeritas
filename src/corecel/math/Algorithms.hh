@@ -303,7 +303,7 @@ CELER_FORCEINLINE_FUNCTION void sort(RandomAccessIt first, RandomAccessIt last)
 #ifndef __CUDA_ARCH__
 template<class T>
 #else
-template<class T, typename = std::enable_if_t<!std::is_arithmetic<T>::value>>
+template<class T, std::enable_if_t<!std::is_arithmetic<T>::value, bool> = true>
 #endif
 CELER_CONSTEXPR_FUNCTION T const& max(T const& a, T const& b) noexcept
 {
@@ -311,7 +311,7 @@ CELER_CONSTEXPR_FUNCTION T const& max(T const& a, T const& b) noexcept
 }
 
 #ifdef __CUDA_ARCH__
-template<class T, typename = std::enable_if_t<std::is_arithmetic<T>::value>>
+template<class T, std::enable_if_t<std::is_arithmetic<T>::value, bool> = true>
 CELER_CONSTEXPR_FUNCTION T max(T a, T b) noexcept
 {
     return ::max(a, b);
@@ -328,7 +328,7 @@ CELER_CONSTEXPR_FUNCTION T max(T a, T b) noexcept
 #ifndef __CUDA_ARCH__
 template<class T>
 #else
-template<class T, typename = std::enable_if_t<!std::is_arithmetic<T>::value>>
+template<class T, std::enable_if_t<!std::is_arithmetic<T>::value, bool> = true>
 #endif
 CELER_CONSTEXPR_FUNCTION T const& min(T const& a, T const& b) noexcept
 {
@@ -336,7 +336,7 @@ CELER_CONSTEXPR_FUNCTION T const& min(T const& a, T const& b) noexcept
 }
 
 #ifdef __CUDA_ARCH__
-template<class T, typename = std::enable_if_t<std::is_arithmetic<T>::value>>
+template<class T, std::enable_if_t<std::is_arithmetic<T>::value, bool> = true>
 CELER_CONSTEXPR_FUNCTION T min(T a, T b) noexcept
 {
     return ::min(a, b);
@@ -443,7 +443,7 @@ CELER_CONSTEXPR_FUNCTION T ipow(T v) noexcept
   assert(9.0 == fastpow(3.0, 2.0));
  \endcode
  */
-template<class T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
+template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
 inline CELER_FUNCTION T fastpow(T a, T b)
 {
     CELER_EXPECT(a > 0 || (a == 0 && b != 0));
