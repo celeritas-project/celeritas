@@ -21,10 +21,13 @@ Currently, the most stable and user-ready component of Celeritas is its
 :ref:`accel` code library for offloading to Geant4.
 
 The Celeritas codebase lives under the ``src/`` directory and is partitioned
-into several libraries of increasing complexity: ``corecel`` for GPU/CPU
-abstractions, ``orange`` for a platform-portable geometry implementation,
+into several libraries of increasing complexity:
+``corecel`` for GPU/CPU abstractions,
+``geocel`` for geometry interfaces and wrappers to external libraries,
+``orange`` for the ORANGE platform-portable geometry implementation,
 ``celeritas`` for the GPU implementation of physics and MC particle tracking,
-and ``accel`` for the Geant4 integration library.
+and
+``accel`` for the Geant4 integration library.
 
 Additional top-level files provide access to version and
 configuration attributes.
@@ -42,6 +45,7 @@ configuration attributes.
 
 .. toctree::
    api/corecel.rst
+   api/geocel.rst
    api/orange.rst
    api/celeritas.rst
    api/accel.rst

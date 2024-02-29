@@ -47,7 +47,9 @@ case $CONFIG in
     VECGEOM=
     ;;
   jammy-cuda11)
-    # ***IMPORTANT***: update cuda external version in dev/jammy-cuda11!
+    # ***IMPORTANT***: update the following after modification
+    # - cuda external version in dev/jammy-cuda11
+    # - CI versions listed in README.md
     DOCKERFILE_DISTRO=ubuntu
     BASE_TAG=nvidia/cuda:11.8.0-devel-ubuntu22.04
     VECGEOM=v1.2.5
