@@ -52,7 +52,7 @@ jobs:
       - name: Check out Celeritas
         uses: actions/checkout@v4
       - name: Cache ccache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{env.CCACHE_DIR}}
           key: ccache-${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}-${{github.run_id}}
