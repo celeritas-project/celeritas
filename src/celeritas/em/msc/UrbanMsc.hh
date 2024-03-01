@@ -18,8 +18,9 @@
 #include "detail/MscStepFromGeo.hh"  // IWYU pragma: associated
 #include "detail/MscStepToGeo.hh"  // IWYU pragma: associated
 #include "detail/UrbanMscHelper.hh"  // IWYU pragma: associated
+#include "detail/UrbanMscMinimalStepLimit.hh"  // IWYU pragma: associated
+#include "detail/UrbanMscSafetyStepLimit.hh"  // IWYU pragma: associated
 #include "detail/UrbanMscScatter.hh"  // IWYU pragma: associated
-#include "detail/UrbanMscStepLimit.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -130,17 +131,31 @@ CELER_FUNCTION void UrbanMsc::limit_step(CoreTrackView const& track)
             }
         }
 
-        displaced = true;
-        detail::UrbanMscStepLimit calc_limit(msc_params_,
-                                             msc_helper,
-                                             par.energy(),
-                                             &phys,
-                                             phys.material_id(),
-                                             geo.is_on_boundary(),
-                                             safety,
-                                             sim.step_length());
         auto rng = track.make_rng_engine();
+        displaced = true;
+
+        if (msc_params_.params.step_limit_algorithm
+            == MscStepLimitAlgorithm::minimal)
+        {
+            // Calculate step limit using "minimal" algorithm
+            detail::UrbanMscMinimalStepLimit calc_limit(msc_params_,
+                                                        msc_helper,
+                                                        &phys,
+                                                        geo.is_on_boundary(),
+                                                        sim.step_length());
+            return calc_limit(rng);
+        }
+        // Calculate step limit using "safety" or "safety plus" algorithm
+        detail::UrbanMscSafetyStepLimit calc_limit(msc_params_,
+                                                   msc_helper,
+                                                   par.energy(),
+                                                   &phys,
+                                                   phys.material_id(),
+                                                   geo.is_on_boundary(),
+                                                   safety,
+                                                   sim.step_length());
         return calc_limit(rng);
+        // TODO: "distance to boundary" step limit algorithm
     }();
     CELER_ASSERT(true_path <= sim.step_length());
 

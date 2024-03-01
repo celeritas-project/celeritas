@@ -17,8 +17,9 @@
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/em/msc/detail/MscStepFromGeo.hh"
 #include "celeritas/em/msc/detail/MscStepToGeo.hh"
+#include "celeritas/em/msc/detail/UrbanMscMinimalStepLimit.hh"
+#include "celeritas/em/msc/detail/UrbanMscSafetyStepLimit.hh"
 #include "celeritas/em/msc/detail/UrbanMscScatter.hh"
-#include "celeritas/em/msc/detail/UrbanMscStepLimit.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
@@ -472,14 +473,14 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(msc_scattering))
                 msc_range_limit.push_back(-1);
                 return {this_pstep, false};
             }
-            UrbanMscStepLimit calc_limit(msc_params,
-                                         helper,
-                                         par.energy(),
-                                         &phys,
-                                         mat.material_id(),
-                                         geo.is_on_boundary(),
-                                         safety,
-                                         this_pstep);
+            UrbanMscSafetyStepLimit calc_limit(msc_params,
+                                               helper,
+                                               par.energy(),
+                                               &phys,
+                                               mat.material_id(),
+                                               geo.is_on_boundary(),
+                                               safety,
+                                               this_pstep);
 
             // MSC range should be updated during construction of the limit
             // calculator
