@@ -153,6 +153,16 @@ TEST_F(ConeTest, errors)
     EXPECT_THROW(Cone({0.5, 1}, 0), RuntimeError);
 }
 
+TEST_F(ConeTest, encloses)
+{
+    Cone const c{{1.0, 0.5}, 2.0};
+    EXPECT_TRUE(c.encloses(c));
+    EXPECT_TRUE(c.encloses(Cone{{0.8, 0.2}, 2.0}));
+    EXPECT_TRUE(c.encloses(Cone{{0.8, 0.2}, 1.0}));
+    EXPECT_FALSE(c.encloses(Cone{{0.8, 0.2}, 2.1}));
+    EXPECT_FALSE(c.encloses(Cone{{0.8, 0.6}, 1.0}));
+}
+
 TEST_F(ConeTest, upward)
 {
     auto result = this->test(Cone({1.5, 0}, 0.5));  // Lower r=1.5, height 1

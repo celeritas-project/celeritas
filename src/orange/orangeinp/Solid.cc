@@ -162,7 +162,7 @@ Solid<T>::Solid(std::string&& label, T&& interior, T&& excluded)
 //---------------------------------------------------------------------------//
 
 template class Solid<Cone>;
-// template class Solid<Cylinder>;
+template class Solid<Cylinder>;
 
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp

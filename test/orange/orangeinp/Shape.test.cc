@@ -27,7 +27,6 @@ class ShapeTest : public ObjectTestBase
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
-
 TEST_F(ShapeTest, single)
 {
     auto box = this->build_volume(BoxShape{"box", Real3{1, 2, 3}});
