@@ -10,6 +10,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/math/Turn.hh"
 #include "orange/OrangeTypes.hh"
 
 namespace celeritas
@@ -181,6 +182,40 @@ class Ellipsoid final : public ConvexRegionInterface
 
   private:
     Real3 radii_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * An open wedge shape from the Z axis.
+ *
+ * The wedge is defined by an interior angle that *must* be less than or equal
+ * to 180 degrees (half a turn) and *must* be more than zero. It can be
+ * subtracted, or its negation can be subtracted. The start angle is mapped
+ * onto [0, 1) on construction.
+ */
+class InfWedge final : public ConvexRegionInterface
+{
+  public:
+    // Construct from a starting angle and interior angle
+    InfWedge(Turn start, Turn interior);
+
+    // Build surfaces
+    void build(ConvexSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Starting angle
+    Turn start() const { return start_; }
+
+    //! Interior angle
+    Turn interior() const { return interior_; }
+
+  private:
+    Turn start_;
+    Turn interior_;
 };
 
 //---------------------------------------------------------------------------//

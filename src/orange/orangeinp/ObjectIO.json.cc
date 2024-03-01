@@ -161,6 +161,12 @@ void to_json(nlohmann::json& j, Ellipsoid const& cr)
 {
     j = {{"_type", "ellipsoid"}, SIO_ATTR_PAIR(cr, radii)};
 }
+void to_json(nlohmann::json& j, InfWedge const& cr)
+{
+    j = {{"_type", "infwedge"},
+         {"start", cr.start().value()},
+         {"interior", cr.interior().value()}};
+}
 void to_json(nlohmann::json& j, Prism const& cr)
 {
     j = {{"_type", "prism"},
