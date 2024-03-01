@@ -60,7 +60,7 @@ allreduce(MpiCommunicator const& comm, Operation op, Span<T, N> data);
 
 //---------------------------------------------------------------------------//
 // Perform reduction on a fundamental scalar and return the result
-template<class T, std::enable_if_t<std::is_fundamental<T>::value, T*> = nullptr>
+template<class T, std::enable_if_t<std::is_fundamental<T>::value, bool> = true>
 inline T allreduce(MpiCommunicator const& comm, Operation op, T const src);
 
 //---------------------------------------------------------------------------//
@@ -147,7 +147,7 @@ void allreduce(MpiCommunicator const& comm,
 /*!
  * Perform reduction on a fundamental scalar and return the result.
  */
-template<class T, std::enable_if_t<std::is_fundamental<T>::value, T*>>
+template<class T, std::enable_if_t<std::is_fundamental<T>::value, bool>>
 T allreduce(MpiCommunicator const& comm, Operation op, T const src)
 {
     T dst{};
