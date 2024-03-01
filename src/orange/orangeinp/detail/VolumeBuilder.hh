@@ -61,11 +61,14 @@ class VolumeBuilder
 
     //// MUTATORS ////
 
-    // Add a region to the CSG tree
-    NodeId insert_region(Metadata&& md, Joined&& j, BoundingZone&& bzone);
+    // Add a region to the CSG tree, automatically calculating bounding zone
+    NodeId insert_region(Metadata&& md, Joined&& j);
+
+    // Add a region to the CSG tree, including a better bounding zone
+    NodeId insert_region(Metadata&& md, Joined&& j, BoundingZone&& bz);
 
     // Add a negated region to the CSG tree
-    NodeId insert_region(Metadata&& md, Negated&& n, BoundingZone&& bzone);
+    NodeId insert_region(Metadata&& md, Negated&& n);
 
     // Apply a transform within this scope
     [[nodiscard]] PopVBTransformOnDestruct

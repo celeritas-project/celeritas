@@ -9,11 +9,8 @@
 
 #include <utility>
 
-#include "detail/BoundingZone.hh"
 #include "detail/CsgUnitBuilder.hh"
 #include "detail/VolumeBuilder.hh"
-
-using celeritas::orangeinp::detail::BoundingZone;
 
 namespace celeritas
 {
@@ -48,11 +45,8 @@ NodeId NegatedObject::build(VolumeBuilder& vb) const
 {
     // Build object to be negated
     auto daughter_id = obj_->build(vb);
-    // Get bounding zone for daughter and negate it
-    BoundingZone bz = vb.unit_builder().bounds(daughter_id);
-    bz.negate();
     // Add the new region (or anti-region)
-    return vb.insert_region(Label{label_}, Negated{daughter_id}, std::move(bz));
+    return vb.insert_region(Label{label_}, Negated{daughter_id});
 }
 
 //---------------------------------------------------------------------------//
@@ -86,35 +80,15 @@ NodeId JoinObjects<Op>::build(VolumeBuilder& vb) const
 {
     // Vector of nodes and cumulative bounding zone being built
     std::vector<NodeId> nodes;
-    BoundingZone bz;
-
-    if constexpr (op_token == op_and)
-    {
-        // Shrink an infinite bounding zone instead of growing a null one
-        bz = BoundingZone::from_infinite();
-    }
-
     for (auto const& obj : objects_)
     {
         // Construct the daughter CSG node
         auto daughter_id = obj->build(vb);
         nodes.push_back(daughter_id);
-
-        // Update the bounding zones
-        auto const& daughter_bz = vb.unit_builder().bounds(daughter_id);
-        if constexpr (op_token == op_and)
-        {
-            bz = calc_intersection(bz, daughter_bz);
-        }
-        else
-        {
-            bz = calc_union(bz, daughter_bz);
-        }
     }
 
     // Add the combined region
-    return vb.insert_region(
-        Label{label_}, Joined{op_token, std::move(nodes)}, std::move(bz));
+    return vb.insert_region(Label{label_}, Joined{op_token, std::move(nodes)});
 }
 
 //---------------------------------------------------------------------------//

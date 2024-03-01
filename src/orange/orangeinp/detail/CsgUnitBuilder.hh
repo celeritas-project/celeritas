@@ -58,6 +58,10 @@ class CsgUnitBuilder
     template<class S>
     inline S const& surface(NodeId) const;
 
+    // Access a typed CSG node after insertion
+    template<class T>
+    inline T const& node(NodeId) const;
+
     // Access a bounding zone by ID
     BoundingZone const& bounds(NodeId) const;
 
@@ -119,6 +123,18 @@ S const& CsgUnitBuilder::surface(NodeId nid) const
     VariantSurface const& vs = this->get_surface_impl(nid);
     CELER_ASSUME(std::holds_alternative<S>(vs));
     return std::get<S>(vs);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access a CSG node after insertion.
+ */
+template<class T>
+T const& CsgUnitBuilder::node(NodeId nid) const
+{
+    auto const& node = unit_->tree[nid];
+    CELER_ASSUME(std::holds_alternative<T>(node));
+    return std::get<T>(node);
 }
 
 //---------------------------------------------------------------------------//

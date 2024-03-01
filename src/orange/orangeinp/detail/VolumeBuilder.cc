@@ -41,14 +41,58 @@ VariantTransform const& VolumeBuilder::local_transform() const
 
 //-------------------------------------------------------------------------//
 /*!
- * Add a region to the CSG tree.
+ * Add a region to the CSG tree, automatically calculating bounding zone.
+ */
+NodeId VolumeBuilder::insert_region(Metadata&& md, Joined&& j)
+{
+    // Calculate bounding zone before creating region
+    BoundingZone bz = [&j, this] {
+        if (j.op == op_and)
+        {
+            // Shrink an infinite bounding zone
+            BoundingZone bz = BoundingZone::from_infinite();
+            for (NodeId d : j.nodes)
+            {
+                bz = calc_intersection(bz, ub_->bounds(d));
+            }
+            return bz;
+        }
+        else if (j.op == op_or)
+        {
+            // Grow a null bounding zone
+            BoundingZone bz;
+            for (NodeId d : j.nodes)
+            {
+                bz = calc_union(bz, ub_->bounds(d));
+            }
+            return bz;
+        }
+        else
+        {
+            CELER_ASSERT_UNREACHABLE();
+        }
+    }();
+
+    auto node_id = ub_->insert_csg(std::move(j)).first;
+    CELER_ASSERT(!transforms_.empty());
+    ub_->insert_region(node_id, std::move(bz), transforms_.back());
+
+    // Always add metadata
+    ub_->insert_md(node_id, std::move(md));
+
+    return node_id;
+}
+
+//-------------------------------------------------------------------------//
+/*!
+ * Add a region to the CSG tree using a custom bounding zone.
  */
 NodeId
-VolumeBuilder::insert_region(Metadata&& md, Joined&& j, BoundingZone&& bzone)
+VolumeBuilder::insert_region(Metadata&& md, Joined&& j, BoundingZone&& bz)
 {
     auto node_id = ub_->insert_csg(std::move(j)).first;
     CELER_ASSERT(!transforms_.empty());
-    ub_->insert_region(node_id, std::move(bzone), transforms_.back());
+    ub_->insert_region(node_id, std::move(bz), transforms_.back());
 
     // Always add metadata
     ub_->insert_md(node_id, std::move(md));
@@ -60,12 +104,17 @@ VolumeBuilder::insert_region(Metadata&& md, Joined&& j, BoundingZone&& bzone)
 /*!
  * Add a negated region to the CSG tree.
  */
-NodeId
-VolumeBuilder::insert_region(Metadata&& md, Negated&& n, BoundingZone&& bzone)
+NodeId VolumeBuilder::insert_region(Metadata&& md, Negated&& n)
 {
-    auto node_id = ub_->insert_csg(std::move(n)).first;
+    CELER_EXPECT(n.node);
+
+    // Get bounding zone of daughter before inserting
+    BoundingZone bz = ub_->bounds(n.node);
+    auto&& [node_id, inserted] = ub_->insert_csg(std::move(n));
+
     CELER_ASSERT(!transforms_.empty());
-    ub_->insert_region(node_id, std::move(bzone), transforms_.back());
+    bz.negate();
+    ub_->insert_region(node_id, std::move(bz), transforms_.back());
 
     if (!md.empty())
     {
