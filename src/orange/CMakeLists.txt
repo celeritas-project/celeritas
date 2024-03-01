@@ -34,6 +34,7 @@ list(APPEND SOURCES
   orangeinp/Shape.cc
   orangeinp/Transformed.cc
   orangeinp/detail/BoundingZone.cc
+  orangeinp/detail/BuildConvexRegion.cc
   orangeinp/detail/ConvexSurfaceState.cc
   orangeinp/detail/CsgUnitBuilder.cc
   orangeinp/detail/LocalSurfaceInserter.cc
