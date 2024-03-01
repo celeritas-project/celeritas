@@ -30,6 +30,11 @@ class PopVBTransformOnDestruct;
  * This class maintains a stack of transforms used by nested objects. It
  * ultimately returns a node ID corresponding to the CSG node (and bounding box
  * etc.) of the constructed object.
+ *
+ * To add a transform, store the result of \c make_scoped_transform within a
+ * scoping block (generally the calling function). The resulting RAII class
+ * prevents an imbalance from manual calls to "push" and "pop". For an example
+ * usage, see \c celeritas::orangeinp::Transformed::build .
  */
 class VolumeBuilder
 {
@@ -83,7 +88,7 @@ class VolumeBuilder
 };
 
 //---------------------------------------------------------------------------//
-//! Implementation-only RAII helper class for VolumeBuilder
+//! Implementation-only RAII helper class for VolumeBuilder (detail detail)
 class PopVBTransformOnDestruct
 {
   private:
