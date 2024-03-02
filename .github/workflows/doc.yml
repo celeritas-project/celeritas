@@ -48,7 +48,7 @@ jobs:
           ninja doxygen
       - name: Upload pages artifacts
         if: ${{env.celer_upload_doc}}
-        id: upload-pages-user
+        id: upload-pages-dev
         uses: actions/upload-pages-artifact@v3
         with:
           path: build/doc/doxygen-html
