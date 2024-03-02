@@ -36,6 +36,21 @@ CsgUnitBuilder::CsgUnitBuilder(CsgUnit* u, Tolerance<> const& tol)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Access a bounding zone by ID.
+ */
+BoundingZone const& CsgUnitBuilder::bounds(NodeId nid) const
+{
+    CELER_EXPECT(nid < unit_->tree.size());
+
+    auto iter = unit_->regions.find(nid);
+    CELER_VALIDATE(iter != unit_->regions.end(),
+                   << "cannot access bounds for node " << nid.unchecked_get()
+                   << ", which is not a region");
+    return iter->second.bounds;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Set a bounding zone and transform for a node.
  */
 void CsgUnitBuilder::insert_region(NodeId n,
@@ -61,6 +76,9 @@ void CsgUnitBuilder::insert_region(NodeId n,
         {
             // TODO: we need to implement transform soft equivalence
             // and simplification
+            // TODO: transformed shapes that are later defined as volumes (in
+            // an RDV or single-item Join function) result in the same node
+            // with two different transforms.
             CELER_LOG(warning)
                 << "While re-inserting region for node " << n.get()
                 << ": existing transform "
