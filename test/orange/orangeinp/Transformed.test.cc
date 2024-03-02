@@ -159,12 +159,7 @@ TEST_F(TransformedTest, inverse)
         this->build_volume(Transformed{
             transformed,
             Transformation{make_rotation(Axis::x, Turn{0.25}), {0, 0, -2}}});
-        static char const* const expected_log_messages[] = {
-            "While re-inserting region for node 7: existing transform {} "
-            "differs from new transform {{{1,0,0},{0,1,0},{0,0,1}}, {0,0,0}}"};
-        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
-        static char const* const expected_log_levels[] = {"warning"};
-        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+        EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
     }
 
     static char const* const expected_surface_strings[] = {
@@ -218,7 +213,7 @@ TEST_F(TransformedTest, deduplicated_inverse)
         = {"Sphere: r=2", "Sphere: r=1"};
     static char const* const expected_volume_strings[] = {"-0", "-1"};
     static char const* const expected_trans_strings[]
-        = {"3: t=0 -> {}", "5: t=2 -> {{{1,0,0},{0,1,0},{0,0,1}}, {0,0,0}}"};
+        = {"3: t=0 -> {}", "5: t=0"};
     static int const expected_volume_nodes[] = {3, 5};
 
     auto const& u = this->unit();
