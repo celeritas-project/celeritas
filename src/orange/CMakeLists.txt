@@ -25,15 +25,21 @@ list(APPEND SOURCES
   detail/SurfacesRecordBuilder.cc
   detail/UnitInserter.cc
   detail/UniverseInserter.cc
+  orangeinp/ConvexRegion.cc
   orangeinp/ConvexSurfaceBuilder.cc
+  orangeinp/CsgObject.cc
   orangeinp/CsgTree.cc
   orangeinp/CsgTypes.cc
   orangeinp/CsgTreeUtils.cc
+  orangeinp/Shape.cc
+  orangeinp/Transformed.cc
   orangeinp/detail/BoundingZone.cc
+  orangeinp/detail/ConvexSurfaceState.cc
   orangeinp/detail/CsgUnitBuilder.cc
   orangeinp/detail/LocalSurfaceInserter.cc
   orangeinp/detail/NodeSimplifier.cc
   orangeinp/detail/TransformInserter.cc
+  orangeinp/detail/VolumeBuilder.cc
   surf/ConeAligned.cc
   surf/CylAligned.cc
   surf/FaceNamer.cc

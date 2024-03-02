@@ -170,11 +170,14 @@ calc_intersection(BoundingBox<T> const& a, BoundingBox<T> const& b)
  *
  * All bounding boxes should enclose a "null" bounding box (there are no points
  * in the null box, so no points are outside the big box). The null bounding
- * box will enclose nothing but a bounding box.
+ * box will enclose no real bounding boxes. Comparing two null bounding boxes
+ * is unspecified (forbidden for now).
  */
 template<class T>
 inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
 {
+    CELER_EXPECT(big || small);
+
     auto axes = range(to_int(Axis::size_));
     return all_of(axes.begin(), axes.end(), [&big, &small](int ax) {
         return big.lower()[ax] <= small.lower()[ax]

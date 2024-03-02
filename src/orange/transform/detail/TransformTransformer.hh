@@ -34,8 +34,8 @@ namespace detail
    \mathbf{T}' = \mathbf{T}_A \mathbf{T}_B
  * \f]
  * where \f$\mathbf{T}_A\f$ is the constructor argument
- * (the operator itself), \b T_B is the argument passed to the call operator,
- * and the \f$\mathbf{T}'\f$ is the return value.
+ * (the operator itself), \f$\mathbf{T}_b\f$ is the argument passed to the call
+ * operator, and the \f$\mathbf{T}'\f$ is the return value.
  * The new transform has rotation
  * \f[
    \mathbf{R}' = \mathbf{R}_A\mathbf{R}_B

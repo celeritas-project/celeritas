@@ -8,6 +8,7 @@ celeritas_add_library(testcel_orange
   OrangeGeoTestBase.cc
   OrangeTestBase.cc
   orangeinp/CsgTestUtils.cc
+  orangeinp/ObjectTestBase.cc
 )
 celeritas_target_link_libraries(testcel_orange
   PUBLIC
@@ -52,12 +53,15 @@ celeritas_add_test(detail/BIHUtils.test.cc)
 #-----------------------------------------------------------------------------#
 # Input construction
 set(CELERITASTEST_PREFIX orange/orangeinp)
+celeritas_add_test(orangeinp/ConvexRegion.test.cc)
 celeritas_add_test(orangeinp/ConvexSurfaceBuilder.test.cc)
+celeritas_add_test(orangeinp/CsgObject.test.cc)
 celeritas_add_test(orangeinp/CsgTree.test.cc)
 celeritas_add_test(orangeinp/CsgTreeUtils.test.cc)
+celeritas_add_test(orangeinp/Shape.test.cc)
+celeritas_add_test(orangeinp/Transformed.test.cc)
 
 celeritas_add_test(orangeinp/detail/BoundingZone.test.cc)
-celeritas_add_test(orangeinp/detail/CsgUnitBuilder.test.cc)
 celeritas_add_test(orangeinp/detail/LocalSurfaceInserter.test.cc)
 celeritas_add_test(orangeinp/detail/TransformInserter.test.cc)
 

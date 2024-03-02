@@ -54,6 +54,7 @@ except (KeyError, IOError) as e:
             "breathe": False,
             "furo": furo,
             "sphinxbib": False,
+            "sphinxmer": False,
         }
     }
     tags.add('noconfig')
@@ -99,6 +100,9 @@ if celer_config['options']['sphinxbib']:
         "_static/references.bib",
         "_static/celeritas.bib"
     ]
+
+if celer_config['options']['sphinxmer']:
+    extensions.append("sphinxcontrib.mermaid")
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = []

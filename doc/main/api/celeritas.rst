@@ -59,13 +59,6 @@ Geant4 physics options
 
 .. doxygenstruct:: celeritas::GeantPhysicsOptions
 
-Geometry interfaces
--------------------
-
-.. doxygenclass:: celeritas::VecgeomParams
-
-.. doxygenclass:: celeritas::GeantGeoParams
-
 On-device access
 ----------------
 
