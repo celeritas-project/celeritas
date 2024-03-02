@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "orange/orangeinp/Transformed.hh"
 
+#include "corecel/ScopedLogStorer.hh"
+#include "corecel/io/Logger.hh"
 #include "orange/MatrixUtils.hh"
 #include "orange/orangeinp/Shape.hh"
 
@@ -151,9 +153,19 @@ TEST_F(TransformedTest, inverse)
     // Build original, transformed, and anti-transformed
     this->build_volume(*cylshape);
     this->build_volume(*transformed);
-    this->build_volume(Transformed{
-        transformed,
-        Transformation{make_rotation(Axis::x, Turn{0.25}), {0, 0, -2}}});
+    {
+        celeritas::test::ScopedLogStorer scoped_log_{
+            &celeritas::world_logger()};
+        this->build_volume(Transformed{
+            transformed,
+            Transformation{make_rotation(Axis::x, Turn{0.25}), {0, 0, -2}}});
+        static char const* const expected_log_messages[] = {
+            "While re-inserting region for node 7: existing transform {} "
+            "differs from new transform {{{1,0,0},{0,1,0},{0,0,1}}, {0,0,0}}"};
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+        static char const* const expected_log_levels[] = {"warning"};
+        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+    }
 
     static char const* const expected_surface_strings[] = {
         "Plane: z=-1",
@@ -187,6 +199,33 @@ TEST_F(TransformedTest, inverse)
     EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
     EXPECT_VEC_EQ(expected_trans_strings, transform_strings(u));
+}
+
+TEST_F(TransformedTest, deduplicated_inverse)
+{
+    Transformation const tr{make_rotation(Axis::x, Turn{-0.25}), {0, 2, 0}};
+    Transformation const inv_tr{make_rotation(Axis::x, Turn{0.25}), {0, 0, -2}};
+
+    auto sph_inner = std::make_shared<SphereShape>("sphi", Sphere{1.0});
+    auto sph_outer = std::make_shared<SphereShape>("spho", Sphere{2.0});
+    auto tr_inner = std::make_shared<Transformed>(sph_inner, tr);
+
+    // Build outer and anti-transformed
+    this->build_volume(*sph_outer);
+    this->build_volume(Transformed{tr_inner, inv_tr});
+
+    static char const* const expected_surface_strings[]
+        = {"Sphere: r=2", "Sphere: r=1"};
+    static char const* const expected_volume_strings[] = {"-0", "-1"};
+    static char const* const expected_trans_strings[]
+        = {"3: t=0 -> {}", "5: t=2 -> {{{1,0,0},{0,1,0},{0,0,1}}, {0,0,0}}"};
+    static int const expected_volume_nodes[] = {3, 5};
+
+    auto const& u = this->unit();
+    EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+    EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+    EXPECT_VEC_EQ(expected_trans_strings, transform_strings(u));
+    EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
 }
 
 //---------------------------------------------------------------------------//
