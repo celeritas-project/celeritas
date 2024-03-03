@@ -29,7 +29,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample a step limit for the Urban MSC model.
+ * Sample a step limit for the Urban MSC model using the "safety" algorithm.
  *
  * This distribution is to be used for tracks that have non-negligible steps
  * and are near the boundary. Otherwise, no displacement or step limiting is
@@ -107,6 +107,8 @@ UrbanMscSafetyStepLimit::UrbanMscSafetyStepLimit(UrbanMscRef const& shared,
     CELER_EXPECT(max_step_ > shared_.params.limit_min_fix());
     CELER_EXPECT(max_step_ <= physics->dedx_range());
 
+    bool use_safety_plus = shared_.params.step_limit_algorithm
+                           == MscStepLimitAlgorithm::safety_plus;
     real_type const range = physics->dedx_range();
     auto const& msc_range = physics->msc_range();
 
@@ -118,12 +120,14 @@ UrbanMscSafetyStepLimit::UrbanMscSafetyStepLimit(UrbanMscRef const& shared,
         new_range.range_fact = shared.params.range_fact;
         // XXX the 1 MFP limitation is applied to the *geo* step, not the true
         // step, so this isn't quite right (See UrbanMsc.hh)
-        new_range.range_init = max<real_type>(range, helper_.msc_mfp());
+        new_range.range_init = use_safety_plus
+                                   ? range
+                                   : max<real_type>(range, helper_.msc_mfp());
         if (helper_.msc_mfp() > shared.params.lambda_limit)
         {
-            new_range.range_fact *= (real_type(0.75)
-                                     + real_type(0.25) * helper_.msc_mfp()
-                                           / shared.params.lambda_limit);
+            real_type c = use_safety_plus ? 0.84 : 0.75;
+            new_range.range_fact
+                *= c + (1 - c) * helper_.msc_mfp() / shared.params.lambda_limit;
         }
         new_range.limit_min
             = this->calc_limit_min(shared_.material_data[matid], inc_energy);
@@ -142,6 +146,25 @@ UrbanMscSafetyStepLimit::UrbanMscSafetyStepLimit(UrbanMscRef const& shared,
                                 shared_.params.safety_fact * safety);
     }
     limit_ = max<real_type>(limit_, limit_min_);
+
+    if (use_safety_plus)
+    {
+        // Minimum range
+        real_type rho = 1e-3 * units::centimeter;
+        if (range > rho)
+        {
+            // Maximum step over range
+            real_type alpha = 0.35;
+
+            // Calculate the scaled step range \f$ s = \alpha r + \rho (1 -
+            // \alpha) (2 - \frac{\rho}{r}) \f$, where \f$ \alpha \f$ is the
+            // maximum step over the range and \f$ \rho \f$ is the minimum
+            // range
+            real_type limit_step = alpha * range
+                                   + rho * (1 - alpha) * (2 - rho / range);
+            max_step_ = min(max_step_, limit_step);
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//
