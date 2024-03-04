@@ -102,6 +102,15 @@ TEST_F(SoftSurfaceEqualTest, plane)
     EXPECT_FALSE(softeq_(ref, Plane{make_unit_vector(Real3{1, -1, 0}), p}));
 }
 
+TEST_F(SoftSurfaceEqualTest, infwedge_quadrant)
+{
+    constexpr real_type sqrt_half{0.70710678118655};
+    Plane const p1({sqrt_half, sqrt_half, 0}, 0);
+    Plane const p2({sqrt_half, -sqrt_half, 0}, 0);
+    EXPECT_TRUE(softeq_(p1, p1));
+    EXPECT_TRUE(softeq_(p2, p2));
+}
+
 TEST_F(SoftSurfaceEqualTest, sphere)
 {
     this->check_equality_s<Sphere>({0, 1, 2}, 1);
