@@ -926,6 +926,41 @@ TEST_F(UniversesTest, cross_between_daughters)
     EXPECT_EQ("bob.mz", this->params().id_to_label(geo.surface_id()).name);
 }
 
+// Change direction on a universe boundary to reenter the cell
+TEST_F(UniversesTest, reentrant)
+{
+    auto geo = this->make_track_view();
+
+    // Initialize in innermost universe
+    geo = Initializer_t{{0.25, -3.7, 0.7}, {0, 1, 0}};
+    auto next = geo.find_next_step();
+    EXPECT_SOFT_EQ(0.2, next.distance);
+
+    // Move to universe boundary
+    geo.move_to_boundary();
+    EXPECT_EQ("inner_c.py", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("patty", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_VEC_SOFT_EQ(Real3({0.25, -3.5, 0.7}), geo.pos());
+
+    // Change direction on the universe boundary such that we are no longer
+    // exiting the universe
+    geo.set_dir({0, -1, 0});
+
+    // Remain in same cell after crossing boundary
+    geo.cross_boundary();
+    EXPECT_EQ("inner_c.py", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("patty", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_VEC_SOFT_EQ(Real3({0.25, -3.5, 0.7}), geo.pos());
+
+    // Make sure we can take another step after calling cross_boundary
+    next = geo.find_next_step();
+    EXPECT_SOFT_EQ(0.5, next.distance);
+    geo.move_to_boundary();
+    EXPECT_EQ("inner_a.my", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("patty", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_VEC_SOFT_EQ(Real3({0.25, -4, 0.7}), geo.pos());
+}
+
 TEST_F(RectArrayTest, params)
 {
     OrangeParams const& geo = this->params();

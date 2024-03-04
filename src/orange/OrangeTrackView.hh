@@ -596,12 +596,6 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
 
     if (CELER_UNLIKELY(this->boundary() == BoundaryResult::reentrant))
     {
-        if (sl != LevelId{0})
-        {
-            CELER_NOT_IMPLEMENTED(
-                "reentrant surfaces with multilevel ORANGE geometry");
-        }
-
         // Direction changed while on boundary leading to no change in
         // volume/surface. This is logically equivalent to a reflection.
         this->boundary(BoundaryResult::exiting);
