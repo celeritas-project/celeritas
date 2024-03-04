@@ -98,7 +98,7 @@ CELER_FUNCTION real_type BhabhaEnergyDistribution::operator()(Engine& rng)
         epsilon = 1 / sample_inverse_epsilon(rng);
         g_numerator = this->calc_g_fraction(epsilon, epsilon);
 
-    } while (BernoulliDistribution(g_numerator / g_denominator)(rng));
+    } while (!BernoulliDistribution(g_numerator / g_denominator)(rng));
 
     return epsilon;
 }

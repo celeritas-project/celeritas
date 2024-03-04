@@ -169,7 +169,7 @@ TEST_F(TestEm3DiagnosticTest, host)
            "scat-klein-nishina gamma"};
     EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
 
-    if (this->is_ci_build())
+    if (this->is_ci_build() && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
     {
         static size_type const expected_nonzero_action_counts[] = {121ul,
                                                                    389ul,
@@ -226,15 +226,15 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
                "scat-klein-nishina gamma"};
         EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
 
-        static size_type const expected_nonzero_action_counts[] = {
-            10u, 572u, 508u, 518u, 520u, 9u, 20u, 21u, 904u, 997u, 12u, 2u, 3u};
+        static unsigned int const expected_nonzero_action_counts[] = {
+            9u, 577u, 509u, 518u, 521u, 9u, 20u, 20u, 902u, 996u, 10u, 2u, 3u};
         EXPECT_VEC_EQ(expected_nonzero_action_counts,
                       result.nonzero_action_counts);
 
         static size_type const expected_steps[] = {
             0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
             0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 1u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
-            0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 5u, 2u, 3u, 0u, 0u,
+            0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 5u, 2u, 2u, 0u, 0u,
             0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
         EXPECT_VEC_EQ(expected_steps, result.steps);
 
@@ -242,14 +242,14 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
         {
             EXPECT_EQ(
                 "{\"_index\":[\"particle\",\"action\"],\"actions\":[[0,0,0,0,"
-                "0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,9,0],[0,0,0,997,0,0,2,0,0,0,"
-                "0,21,508,0,0,0,0,0,0,0,520,0],[0,0,0,904,0,0,12,0,0,0,10,20,"
-                "572,0,0,0,0,0,0,0,518,0]]}",
+                "0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,9,0],[0,0,0,996,0,0,2,0,0,0,"
+                "0,20,509,0,0,0,0,0,0,0,521,0],[0,0,0,902,0,0,10,0,0,0,9,20,"
+                "577,0,0,0,0,0,0,0,518,0]]}",
                 this->action_output());
             EXPECT_EQ(
                 "{\"_index\":[\"particle\",\"num_steps\"],\"steps\":[[0,0,0,0,"
                 "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,1,0,0,0,0,0,0,"
-                "0,0,0,0,0,0,0,0,0,0,0],[0,0,5,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,"
+                "0,0,0,0,0,0,0,0,0,0,0],[0,0,5,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,"
                 "0,0,0,0]]}",
                 this->step_output());
         }

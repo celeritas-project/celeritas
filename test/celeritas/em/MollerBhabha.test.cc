@@ -154,31 +154,35 @@ TEST_F(MollerBhabhaInteractorTest, basic)
 
     //// Moller
     // Gold values based on the host rng. Energies are in MeV
-    double const expected_m_inc_exit_cost[]
-        = {0.9981497250995, 0.999993612333, 0.999999995461, 0.9999999999998};
-    double const expected_m_inc_exit_e[]
-        = {0.9927116916645, 9.998622388005, 999.9911084469, 99999.99528134};
-    double const expected_m_inc_edep[] = {0, 0, 0, 0};
-    double const expected_m_sec_cost[] = {
-        0.1196563201983, 0.03851909820188, 0.09291901073767, 0.06779325842364};
-    double const expected_m_sec_e[] = {0.007288308335526,
-                                       0.001377611995461,
-                                       0.008891553104294,
-                                       0.004718664979811};
+    static double const expected_m_inc_exit_cost[] = {
+        0.99973900914319, 0.99998439403408, 0.99999999892476, 0.99999999999959};
+    static double const expected_m_inc_exit_e[]
+        = {0.99896793373796, 9.996634923266, 999.9978936714, 99999.992056977};
+    static double const expected_m_inc_edep[] = {0, 0, 0, 0};
+    static double const expected_m_sec_cost[] = {0.045164786751542,
+                                                 0.060143518761038,
+                                                 0.045374598488427,
+                                                 0.087819098576717};
+    static double const expected_m_sec_e[] = {0.0010320662620386,
+                                              0.0033650767340367,
+                                              0.0021063286005393,
+                                              0.0079430230464576};
 
     //// Bhabha
     // Gold values based on the host rng. Energies are in MeV
-    double const expected_b_inc_exit_cost[]
-        = {0.9997453107903, 0.999994190499, 0.9999999989865, 0.9999999999999};
-    double const expected_b_inc_exit_e[]
-        = {0.9989928374838, 9.998747065072, 999.9980145461, 99999.99864983};
-    double const expected_b_inc_edep[] = {0, 0, 0, 0};
-    double const expected_b_sec_cost[] = {
-        0.04461708949452, 0.03673697288345, 0.04405602044159, 0.03632326062515};
-    double const expected_b_sec_e[] = {0.001007162516187,
-                                       0.001252934927768,
-                                       0.001985453873814,
-                                       0.001350170413359};
+    static double const expected_b_inc_exit_cost[] = {
+        0.99953803363407, 0.9999871668284, 0.99999999937891, 0.99999999999991};
+    static double const expected_b_inc_exit_e[] = {
+        0.99817409418782, 9.9972326602584, 999.99878331207, 99999.998278701};
+    static double const expected_b_inc_edep[] = {0, 0, 0, 0};
+    static double const expected_b_sec_cost[] = {0.060050541049384,
+                                                 0.054556840397858,
+                                                 0.034500711450312,
+                                                 0.041005293173408};
+    static double const expected_b_sec_e[] = {0.0018259058121848,
+                                              0.0027673397416426,
+                                              0.0012166879316949,
+                                              0.001721298732305};
 
     //// Moller
     EXPECT_VEC_SOFT_EQ(expected_m_inc_exit_cost, m_results.inc_exit_cost);
@@ -255,27 +259,27 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
 
     //// Moller
     // Gold values based on the host rng. Energies are in MeV
-    double const expected_m_inc_exit_cost[]
-        = {0.9784675127353, 0.9997401875592, 0.9999953862586, 0.9999999997589};
-    double const expected_m_inc_exit_e[]
-        = {6.75726441249, 95.11275692125, 991.0427997072, 99995.28168559};
-    double const expected_m_inc_edep[] = {0, 0, 0, 0};
-    double const expected_m_sec_cost[]
-        = {0.9154612855963, 0.91405872098, 0.9478947756541, 0.9066254320384};
-    double const expected_m_sec_e[]
-        = {3.24273558751, 4.887243078746, 8.957200292789, 4.718314414109};
+    static double const expected_m_inc_exit_cost[] = {
+        0.99474381994671, 0.9998320422927, 0.99999935924924, 0.99999999959414};
+    static double const expected_m_inc_exit_e[]
+        = {8.9744580752619, 96.785484384822, 998.74637287344, 99992.05807867};
+    static double const expected_m_inc_edep[] = {0, 0, 0, 0};
+    static double const expected_m_sec_cost[] = {
+        0.74300321590697, 0.87551068112013, 0.74260120785797, 0.94127395616289};
+    static double const expected_m_sec_e[]
+        = {1.0255419247381, 3.2145156151784, 1.2536271265614, 7.9419213303979};
 
     //// Bhabha
     // Gold values based on the host rng. Energies are in MeV
-    double const expected_b_inc_exit_cost[]
-        = {0.9774788335858, 0.9999472046111, 0.9999992012865, 0.999999999931};
-    double const expected_b_inc_exit_e[]
-        = {6.654742369665, 98.96696134497, 998.4378016843, 99998.64983431};
-    double const expected_b_inc_edep[] = {0, 0, 0, 0};
-    double const expected_b_sec_cost[]
-        = {0.9188415916986, 0.7126175077086, 0.777906053136, 0.7544377929863};
-    double const expected_b_sec_e[]
-        = {3.345257630335, 1.033038655033, 1.562198315728, 1.350165690206};
+    static double const expected_b_inc_exit_cost[] = {
+        0.99479050564194, 0.99987897158914, 0.99999937828724, 0.99999999991204};
+    static double const expected_b_inc_exit_e[]
+        = {8.9827046800673, 97.662824061219, 998.78357538952, 99998.278713671};
+    static double const expected_b_inc_edep[] = {0, 0, 0, 0};
+    static double const expected_b_sec_cost[] = {
+        0.74150459775358, 0.83837330389592, 0.73755324517749, 0.79212437269015};
+    static double const expected_b_sec_e[]
+        = {1.0172953199327, 2.3371759387812, 1.2164246104832, 1.721286329104};
 
     //// Moller
     EXPECT_VEC_SOFT_EQ(expected_m_inc_exit_cost, m_results.inc_exit_cost);
@@ -316,12 +320,11 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
     // Bhabha's max energy fraction is 1.0, which leads to E_K > 1e-3
     // Since this loop encompasses both Moller and Bhabha, the minimum chosen
     // energy is > 2e-3.
-    // NOTE: As E_K -> 2e-3, engine_samples -> infinity
     for (auto particle : {pdg::electron(), pdg::positron()})
     {
         ParticleParams const& pp = *this->particle_params();
         SCOPED_TRACE(pp.id_to_label(pp.find(particle)));
-        for (real_type inc_e : {5e-3, 1.0, 10.0, 100.0, 1000.0})
+        for (real_type inc_e : {2.0001e-3, 5e-3, 1.0, 10.0, 1e2, 1e3, 1e4, 1e5})
         {
             RandomEngine& rng_engine = this->rng();
             RandomEngine::size_type num_particles_sampled = 0;
@@ -366,16 +369,22 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
     }
 
     // Gold values for average number of calls to rng
-    double const expected_avg_engine_samples[] = {20.8046,
-                                                  13.2538,
-                                                  9.5695,
-                                                  9.2121,
-                                                  9.1693,
-                                                  564.0656,
-                                                  8.7123,
-                                                  7.1706,
-                                                  7.0299,
-                                                  7.0079};
+    static double const expected_avg_engine_samples[] = {6,
+                                                         7.093,
+                                                         8.2035,
+                                                         10.5552,
+                                                         10.9619,
+                                                         10.9763,
+                                                         11.0187,
+                                                         11.0541,
+                                                         6.0111,
+                                                         6.0269,
+                                                         11.8788,
+                                                         19.8378,
+                                                         21.7165,
+                                                         21.8738,
+                                                         21.8782,
+                                                         22.3027};
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
