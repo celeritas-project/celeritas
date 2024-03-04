@@ -117,9 +117,7 @@ ORANGE_INSTANTIATE_OP(CylAligned);
  * half-space by checking for \f$ \mu > 0 \f$.
  *
  * Since this derivation is based on an absolute length scale of 1, the
- * "absolute" (rather than relative) tolerance of the plane normals is used.
- * For problems with larger or smaller length scales, that value will be scaled
- * accordingly.
+ * relative tolerance should be used.
  */
 bool SoftSurfaceEqual::operator()(Plane const& a, Plane const& b) const
 {
@@ -127,7 +125,7 @@ bool SoftSurfaceEqual::operator()(Plane const& a, Plane const& b) const
         return false;
 
     real_type const mu = dot_product(a.normal(), b.normal());
-    return mu > 0 && (1 / ipow<2>(mu) - 1) < ipow<2>(soft_eq_.abs());
+    return mu > 0 && (1 / ipow<2>(mu) - 1) < ipow<2>(soft_eq_.rel());
 }
 
 //---------------------------------------------------------------------------//
@@ -210,7 +208,7 @@ bool SoftSurfaceEqual::soft_eq_distance(Real3 const& a, Real3 const& b) const
 {
     // This is soft equal formula but using vector distance.
     real_type rel = soft_eq_.rel() * std::fmax(norm(a), norm(b));
-    return distance(a, b) < std::fmax(soft_eq_.abs(), rel);
+    return distance(a, b) < std::fmax(soft_eq_.rel(), rel);
 }
 
 //---------------------------------------------------------------------------//
