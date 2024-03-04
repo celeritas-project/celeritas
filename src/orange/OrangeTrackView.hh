@@ -915,18 +915,28 @@ OrangeTrackView::find_next_step_impl(detail::Intersection isect)
 //---------------------------------------------------------------------------//
 /*!
  * Find the distance to the nearest boundary in any direction.
+ *
+ * The safety distance at a given point is the minimum safety distance over all
+ * levels, since surface deduplication can potentionally elide bounding
+ * surfaces at more deeply embeded levels.
  */
 CELER_FUNCTION real_type OrangeTrackView::find_safety()
 {
     CELER_EXPECT(!this->is_on_boundary());
-    auto lsa = this->make_lsa();
-
-    CELER_ASSERT(lsa.universe() == UniverseId{0});
 
     TrackerVisitor visit_tracker{params_};
-    return visit_tracker(
-        [&lsa](auto&& t) { return t.safety(lsa.pos(), lsa.vol()); },
-        lsa.universe());
+
+    real_type min_safety_dist = numeric_limits<real_type>::infinity();
+
+    for (auto lev : range(LevelId{this->level() + 1}))
+    {
+        auto lsa = this->make_lsa(lev);
+        auto sd = visit_tracker(
+            [&lsa](auto&& t) { return t.safety(lsa.pos(), lsa.vol()); },
+            lsa.universe());
+        min_safety_dist = std::min(min_safety_dist, sd);
+    }
+    return min_safety_dist;
 }
 
 //---------------------------------------------------------------------------//
