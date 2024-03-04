@@ -102,7 +102,7 @@ LocalSurfaceInserter::merge_impl(LocalSurfaceId source, LocalSurfaceId target)
 //---------------------------------------------------------------------------//
 //! \cond
 #define LSI_INSTANTIATE(SURF) \
-    template LocalSurfaceId LocalSurfaceInserter::operator()(SURF const&);
+    template LocalSurfaceId LocalSurfaceInserter::operator()(SURF const&)
 
 LSI_INSTANTIATE(PlaneAligned<Axis::x>);
 LSI_INSTANTIATE(PlaneAligned<Axis::y>);

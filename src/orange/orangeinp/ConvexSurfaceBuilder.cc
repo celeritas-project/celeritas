@@ -188,7 +188,7 @@ void visit(ConvexSurfaceBuilder& csb, Sense sense, VariantSurface const& surf)
 //---------------------------------------------------------------------------//
 //! \cond
 #define CSB_INSTANTIATE(SURF) \
-    template void ConvexSurfaceBuilder::operator()(Sense, SURF const&);
+    template void ConvexSurfaceBuilder::operator()(Sense, SURF const&)
 CSB_INSTANTIATE(PlaneAligned<Axis::x>);
 CSB_INSTANTIATE(PlaneAligned<Axis::y>);
 CSB_INSTANTIATE(PlaneAligned<Axis::z>);
