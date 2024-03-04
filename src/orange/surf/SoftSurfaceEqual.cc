@@ -8,6 +8,7 @@
 #include "SoftSurfaceEqual.hh"
 
 #include <cmath>
+#include <limits>
 
 #include "detail/AllSurfaces.hh"
 
@@ -133,7 +134,9 @@ bool SoftSurfaceEqual::operator()(Plane const& a, Plane const& b) const
         return false;
 
     real_type const mu = dot_product(a.normal(), b.normal());
-    return mu > 0 && (1 / ipow<2>(mu) - 1) < ipow<2>(soft_eq_.rel());
+    constexpr real_type eps_mach = std::numeric_limits<real_type>::epsilon();
+    return mu > 0
+           && (1 / ipow<2>(mu) - 1) <= (ipow<2>(soft_eq_.rel()) + eps_mach);
 }
 
 //---------------------------------------------------------------------------//
