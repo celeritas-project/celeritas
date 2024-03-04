@@ -95,7 +95,7 @@ CELER_FUNCTION real_type MollerEnergyDistribution::operator()(Engine& rng)
         epsilon = 1 / sample_inverse_epsilon(rng);
         g_numerator = calc_g_fraction(epsilon);
 
-    } while (BernoulliDistribution(g_numerator / g_denominator)(rng));
+    } while (!BernoulliDistribution(g_numerator / g_denominator)(rng));
 
     return epsilon;
 }
