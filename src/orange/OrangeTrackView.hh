@@ -699,17 +699,16 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
 
     if (this->is_on_boundary())
     {
-        // Changing direction on a boundary is dangerous, as it could mean we
-        // don't leave the volume after all.
-        detail::UniverseIndexer ui(params_.universe_indexer_data);
+        // Changing direction on a boundary, which may result in not leaving
+        // current volume upon the cross_surface call
+        auto lsa = this->make_lsa(this->surface_level());
 
         TrackerVisitor visit_tracker{params_};
-        auto pos = this->pos();
         auto normal = visit_tracker(
-            [&pos, local_surface = this->surf()](auto&& t) {
+            [pos = this->pos(), local_surface = this->surf()](auto&& t) {
                 return t.normal(pos, local_surface);
             },
-            UniverseId{0});
+            lsa.universe());
 
         // Normal is in *local* coordinates but newdir is in *global*: rotate
         // up to check
