@@ -88,14 +88,15 @@ ORANGE_INSTANTIATE_OP(CylAligned);
  * Compare two planes for near equality.
  *
  * Consider two planes with normals \em a and \em b , without loss of
- * generality where \em a is on the \em x axis and \em b is in the \em xy
+ * generality where \em a is at \f$x=0\f$ and \em b is in the \em xy
  * plane. Suppose that to be equal, we want a intercept error of no more than
  * \f$\delta\f$ at a unit distance from the normal (since we're assuming the
  * error is based on the length scale of the problem). Taking a ray
  * from (1, 1) along (-1, 0), the distance to the plane with normal \em a is 1,
- * and the distance to plane \em b is then \f$ 1 + \delta \f$. This results
- * in a right triangle with legs of 1 and delta and an angle \f$ \theta \f$
- * at the origin, which is equal to the angle between the normals of the two
+ * and the distance to plane \em b is then \f$ 1 \pm \delta \f$. This results
+ * in a right triangle with legs of 1 and \f$ \delta \f$ and opening angle from
+ * the origin of \f$ \theta \f$, which is equal to the angle between the
+ * normals of the two
  * planes. Thus we have:
  * \f[
    \tan \theta = \frac{\delta}{1}
@@ -118,6 +119,13 @@ ORANGE_INSTANTIATE_OP(CylAligned);
  *
  * Since this derivation is based on an absolute length scale of 1, the
  * relative tolerance should be used.
+ *
+ * Due to floating point arithmetic, \f$mu\f$ can be slightly greater than
+ * unity, and since epsilon is often smaller than
+ * \f$\sqrt{\epsilon_\mathrm{mach}}\f$ for single precision arithmetic, the
+ * comparison here adds an extra bump to account for the precision loss.
+ *
+ * \image html orange-surface-softeq-plane.png
  */
 bool SoftSurfaceEqual::operator()(Plane const& a, Plane const& b) const
 {
