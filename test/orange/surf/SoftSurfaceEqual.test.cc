@@ -87,10 +87,8 @@ TEST_F(SoftSurfaceEqualTest, plane)
     Real3 const n = make_unit_vector(Real3{1, 1, 0});
     Plane const ref{n, p};
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-    {
-        EXPECT_TRUE(softeq_(ref, Plane{n, p + Real3{small, 0, 0}}));
-    }
+    EXPECT_TRUE(softeq_(ref, ref));
+    EXPECT_TRUE(softeq_(ref, Plane{n, p + Real3{small, 0, 0}}));
     EXPECT_FALSE(softeq_(ref, Plane{n, p + Real3{large, 0, 0}}));
 
     Real3 const npert = make_unit_vector(n + Real3{small, 0, 0});
