@@ -218,8 +218,8 @@ bool SoftSurfaceEqual::soft_eq_sq(real_type a, real_type b) const
 bool SoftSurfaceEqual::soft_eq_distance(Real3 const& a, Real3 const& b) const
 {
     // This is soft equal formula but using vector distance.
-    real_type rel = soft_eq_.rel() * std::fmax(norm(a), norm(b));
-    return distance(a, b) < std::fmax(soft_eq_.rel(), rel);
+    real_type rel = soft_eq_.abs() * std::fmax(norm(a), norm(b));
+    return distance(a, b) < std::fmax(soft_eq_.abs(), rel);
 }
 
 //---------------------------------------------------------------------------//
