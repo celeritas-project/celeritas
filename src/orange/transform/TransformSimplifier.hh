@@ -36,7 +36,7 @@ namespace celeritas
   \f]
  * which with some manipulation means that a "soft zero" rotation has a trace
  * \f[
- Tr \ge 3 - \epsilon^2 \,.
+ \mathrm{Tr}[R] \ge 3 - \epsilon^2 \,.
  \f]
  *
  * Note that this means no rotational simplifications may be performed when the
@@ -54,7 +54,7 @@ class TransformSimplifier
     // Translation may simplify to no transformation
     VariantTransform operator()(Translation const& nt);
 
-    // One transformation step can simplify to translation
+    // Simplify, possibly to translation or no transform
     VariantTransform operator()(Transformation const& nt);
 
   private:

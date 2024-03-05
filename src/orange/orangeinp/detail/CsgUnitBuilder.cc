@@ -52,7 +52,7 @@ BoundingZone const& CsgUnitBuilder::bounds(NodeId nid) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Insert transform with simplification and  deduplication.
+ * Insert transform with simplification and deduplication.
  */
 TransformId CsgUnitBuilder::insert_transform(VariantTransform const& vt)
 {

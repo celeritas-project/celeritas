@@ -28,7 +28,9 @@ VariantTransform TransformSimplifier::operator()(Translation const& t)
 
 //---------------------------------------------------------------------------//
 /*!
- * One transformation step can simplify to translation.
+ * Simplify, possibly to translation or no transform.
+ *
+ * See the derivation in the class documentation.
  */
 VariantTransform TransformSimplifier::operator()(Transformation const& t)
 {
