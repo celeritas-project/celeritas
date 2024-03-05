@@ -106,6 +106,27 @@ TEST_F(LocalSurfaceInserterTest, chained_duplicates)
     EXPECT_EQ(5, surfaces.size());
 }
 
+// Replicates InfWedge.quarter_turn from convex region test
+TEST_F(LocalSurfaceInserterTest, infwedge_quadrant)
+{
+    auto tol = Tolerance<>::from_relative(1e-4);
+    LocalSurfaceInserter insert(&surfaces, tol);
+
+    constexpr real_type sqrt_half{0.70710678118655};
+    EXPECT_EQ(0, insert(PlaneY(0)).unchecked_get());
+    EXPECT_EQ(1, insert(PlaneX(0)).unchecked_get());
+    EXPECT_EQ(1, insert(PlaneX(0)).unchecked_get());
+    EXPECT_EQ(0, insert(PlaneY(0)).unchecked_get());
+    EXPECT_EQ(1, insert(PlaneX(0)).unchecked_get());
+    EXPECT_EQ(0, insert(PlaneY(0)).unchecked_get());
+    EXPECT_EQ(2, insert(Plane({sqrt_half, -sqrt_half, 0}, 0)).unchecked_get());
+    EXPECT_EQ(3, insert(Plane({sqrt_half, sqrt_half, 0}, 0)).unchecked_get());
+    EXPECT_EQ(3, insert(Plane({sqrt_half, sqrt_half, 0}, 0)).unchecked_get());
+    EXPECT_EQ(2, insert(Plane({sqrt_half, -sqrt_half, 0}, 0)).unchecked_get());
+    EXPECT_EQ(3, insert(Plane({sqrt_half, sqrt_half, 0}, 0)).unchecked_get());
+    EXPECT_EQ(2, insert(Plane({sqrt_half, -sqrt_half, 0}, 0)).unchecked_get());
+}
+
 TEST_F(LocalSurfaceInserterTest, DISABLED_performance_test)
 {
     std::mt19937 rng;
