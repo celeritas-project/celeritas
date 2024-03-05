@@ -74,6 +74,10 @@ gemv(matrix::TransposePolicy, SquareMatrix<T, N> const& a, Array<T, N> const& x)
 template<class T>
 T determinant(SquareMatrix<T, 3> const& mat);
 
+// Calculate the trace of a matrix
+template<class T>
+T trace(SquareMatrix<T, 3> const& mat);
+
 // Perform a matrix-matrix multiply
 template<class T, size_type N>
 SquareMatrix<T, N>
@@ -89,7 +93,10 @@ SquareMatrix<T, N> gemm(matrix::TransposePolicy,
 template<class T, size_type N>
 void orthonormalize(SquareMatrix<T, N>* mat);
 
-// Create a C-ordered rotation matrix
+// Create a C-ordered rotation matrix about an arbitrary axis
+SquareMatrixReal3 make_rotation(Real3 const& ax, Turn rev);
+
+// Create a C-ordered rotation matrix about a cartesian axis
 SquareMatrixReal3 make_rotation(Axis ax, Turn rev);
 
 // Apply a rotation to an existing C-ordered rotation matrix
