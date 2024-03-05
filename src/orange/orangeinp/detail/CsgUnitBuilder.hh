@@ -79,7 +79,7 @@ class CsgUnitBuilder
     inline NodeInsertion insert_csg(Args&&... args);
 
     // Insert a transform
-    inline TransformId insert_transform(VariantTransform&& vt);
+    TransformId insert_transform(VariantTransform const& vt);
 
     // Insert node metadata
     inline void insert_md(NodeId node, Metadata&& md);
@@ -171,15 +171,6 @@ auto CsgUnitBuilder::insert_csg(Args&&... args) -> NodeInsertion
         unit_->metadata.resize(unit_->tree.size());
     }
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Insert transform with deduplication.
- */
-TransformId CsgUnitBuilder::insert_transform(VariantTransform&& vt)
-{
-    return this->insert_transform_(std::move(vt));
 }
 
 //---------------------------------------------------------------------------//

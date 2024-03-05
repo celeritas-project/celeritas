@@ -23,11 +23,26 @@ namespace celeritas
 template<class T>
 T determinant(SquareMatrix<T, 3> const& mat)
 {
-    return mat[0][0] * mat[1][1] * mat[2][2] + mat[1][0] * mat[2][1] * mat[0][2]
+    // clang-format off
+    return   mat[0][0] * mat[1][1] * mat[2][2]
+           + mat[1][0] * mat[2][1] * mat[0][2]
            + mat[2][0] * mat[0][1] * mat[1][2]
            - mat[2][0] * mat[1][1] * mat[0][2]
            - mat[1][0] * mat[0][1] * mat[2][2]
            - mat[0][0] * mat[2][1] * mat[1][2];
+    // clang-format on
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the trace of a 3x3 matrix.
+ *
+ * The trace is just the sum of the diagonal elements.
+ */
+template<class T>
+T trace(SquareMatrix<T, 3> const& mat)
+{
+    return mat[0][0] + mat[1][1] + mat[2][2];
 }
 
 //---------------------------------------------------------------------------//
@@ -138,6 +153,48 @@ void orthonormalize(SquareMatrix<T, N>* mat)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Create a C-ordered rotation matrix from an arbitrary rotation.
+ *
+ * This is equation (38) in "Rotation Matrices in Two, Three, and Many
+ * Dimensions",  Physics 116A, UC Santa Cruz,
+ * http://scipp.ucsc.edu/~haber/ph116A/.
+ *
+ * \param ax Axis of rotation (unit vector)
+ * \param theta Rotation
+ */
+Mat3 make_rotation(Real3 const& ax, Turn theta)
+{
+    CELER_EXPECT(is_soft_unit_vector(ax));
+    CELER_EXPECT(theta >= Turn{0} && theta <= Turn{real_type(0.5)});
+
+    // Axis/direction enumeration
+    enum
+    {
+        X = 0,
+        Y = 1,
+        Z = 2
+    };
+
+    // Calculate sin and cosine with less precision loss using "turn" value
+    real_type cost;
+    real_type sint;
+    sincos(theta, &sint, &cost);
+
+    Mat3 r{Real3{cost + ipow<2>(ax[X]) * (1 - cost),
+                 ax[X] * ax[Y] * (1 - cost) - ax[Z] * sint,
+                 ax[X] * ax[Z] * (1 - cost) + ax[Y] * sint},
+           Real3{ax[X] * ax[Y] * (1 - cost) + ax[Z] * sint,
+                 cost + ipow<2>(ax[Y]) * (1 - cost),
+                 ax[Y] * ax[Z] * (1 - cost) - ax[X] * sint},
+           Real3{ax[X] * ax[Z] * (1 - cost) - ax[Y] * sint,
+                 ax[Y] * ax[Z] * (1 - cost) + ax[X] * sint,
+                 cost + ipow<2>(ax[Z]) * (1 - cost)}};
+    CELER_ENSURE(soft_equal(std::fabs(determinant(r)), real_type{1}));
+    return r;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Create a C-ordered rotation matrix.
  */
 Mat3 make_rotation(Axis ax, Turn theta)
@@ -189,6 +246,10 @@ Mat3 make_rotation(Axis ax, Turn theta, Mat3 const& other)
 template int determinant(SquareMatrix<int, 3> const&);
 template float determinant(SquareMatrix<float, 3> const&);
 template double determinant(SquareMatrix<double, 3> const&);
+
+template int trace(SquareMatrix<int, 3> const&);
+template float trace(SquareMatrix<float, 3> const&);
+template double trace(SquareMatrix<double, 3> const&);
 
 template void orthonormalize(SquareMatrix<float, 3>*);
 template void orthonormalize(SquareMatrix<double, 3>*);
