@@ -15,7 +15,7 @@ on:
 
 concurrency:
   group: pr-${{github.ref}}-${{github.event.number}}-${{github.workflow}}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build-fast:
