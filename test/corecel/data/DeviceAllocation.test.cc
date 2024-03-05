@@ -52,7 +52,7 @@ TEST(DeviceAllocationTest, TEST_IF_CELER_DEVICE(device))
         EXPECT_EQ(orig_other, alloc.device_ref().data());
         EXPECT_EQ(orig_alloc, other.device_ref().data());
     }
-    EXPECT_EQ(128, alloc.size());
+    ASSERT_EQ(128, alloc.size());
 
     std::vector<std::byte> data(alloc.size());
     data.front() = std::byte(1);
