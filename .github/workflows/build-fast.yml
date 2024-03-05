@@ -6,7 +6,7 @@ on:
 
 concurrency:
   group: build-fast-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   linux:
@@ -79,7 +79,7 @@ jobs:
       - name: Build all
         working-directory: build
         run: |
-          ninja -k0
+          ninja
       - name: Run tests
         working-directory: build
         run: |
