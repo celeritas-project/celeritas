@@ -128,7 +128,9 @@ TEST_F(NeutronElasticTest, macro_xs)
     }
 
     // Check the CHIPS macroscopic cross section at the upper bound (20 GeV)
-    EXPECT_SOFT_EQ(calc_xs(MevEnergy{2000}), 0.036279681208164501);
+    EXPECT_SOFT_EQ(
+        native_value_to<units::InvCmXs>(calc_xs(MevEnergy{2000}).value()),
+        0.036279681208164501);
 }
 
 TEST_F(NeutronElasticTest, diff_xs_coeffs)
