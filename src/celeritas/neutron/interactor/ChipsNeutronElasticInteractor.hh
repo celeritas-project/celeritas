@@ -103,6 +103,19 @@ CELER_FUNCTION ChipsNeutronElasticInteractor::ChipsNeutronElasticInteractor(
 //---------------------------------------------------------------------------//
 /*!
  * Sample the final state of the neutron-nucleus elastic scattering.
+ *
+ * The scattering angle (\f$ cos \theta \f$) in the elastic neutron-nucleus
+ * scattering is expressed in terms of the momentum transfer (\f$ Q^{2} \f$),
+ * \f[
+ *  cos \theta = 1 - \frac{Q^{2}}{2 |\vec{k}_i|^{2}}
+ * \f]
+ * where \f$ \vec{k}_i \f$ is the momentum of the incident neutron in the
+ * center of mass frame and the momentum transfer (\f$ Q^{2} \f$) is calculated
+ * according to the CHIPS (Chiral Invariant Phase Space) model (see references
+ * in model/ChipsNeutronElasticModel.cc and detail/MomentumTransferSampler.hh).
+ * The final direction of the scattered neutron in the laboratory frame is
+ * then transformed by the Lorentz boost of the initial four vector of the
+ * neutron-nucleus system.
  */
 template<class Engine>
 CELER_FUNCTION Interaction ChipsNeutronElasticInteractor::operator()(Engine& rng)
