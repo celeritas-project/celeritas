@@ -290,7 +290,7 @@ celeritas_add_device_test(mat/Material)
 #-----------------------------------------------------------------------------#
 # Neutron
 set(CELERITASTEST_PREFIX celeritas/neutron)
-celeritas_add_test(neutron/NeutronElastic.test.cc)
+celeritas_add_test(neutron/NeutronElastic.test.cc ${_needs_double})
 
 #-----------------------------------------------------------------------------#
 # Phys
