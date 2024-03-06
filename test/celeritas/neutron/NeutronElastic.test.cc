@@ -135,7 +135,7 @@ TEST_F(NeutronElasticTest, diff_xs_coeffs)
     // for sampling the momentum transfer.
     auto const& coeffs = model_->host_ref().coeffs;
 
-    // Set the target isotope: He4 (36 parameters for light nuclei, A < 6.5)
+    // Set the target isotope: He4 (36 parameters for light nuclei, A <= 6)
     ChipsDiffXsCoefficients he4_coeff = coeffs[IsotopeId{1}];
     EXPECT_EQ(he4_coeff.par.size(), 42);
     EXPECT_EQ(he4_coeff.par[0], 16000);
@@ -145,7 +145,7 @@ TEST_F(NeutronElasticTest, diff_xs_coeffs)
     EXPECT_EQ(he4_coeff.par[35], 38680.596799999999);
     EXPECT_EQ(he4_coeff.par[36], 0);
 
-    // Set the target isotope: Cu63 (42 parameters for heavy nuclei, A > 6.5)
+    // Set the target isotope: Cu63 (42 parameters for heavy nuclei, A > 6)
     ChipsDiffXsCoefficients cu63_coeff = coeffs[IsotopeId{2}];
     EXPECT_EQ(cu63_coeff.par.size(), 42);
     EXPECT_EQ(cu63_coeff.par[0], 527.781478797624);
@@ -158,42 +158,66 @@ TEST_F(NeutronElasticTest, diff_xs_coeffs)
 
 TEST_F(NeutronElasticTest, basic)
 {
-    // Set the target isotope : Cu63
-    ElementComponentId el_id{1};
-    IsotopeComponentId iso_id{0};
-    IsotopeView isotope_cu63 = this->material_track()
-                                   .make_material_view()
-                                   .make_element_view(el_id)
-                                   .make_isotope_view(iso_id);
-
-    // Sample interaction
     NeutronElasticRef shared = model_->host_ref();
     RandomEngine& rng_engine = this->rng();
-    ChipsNeutronElasticInteractor interact(
+
+    // Sample neutron-He4 interactions
+    IsotopeView isotope_he4 = this->material_track()
+                                  .make_material_view()
+                                  .make_element_view(ElementComponentId{0})
+                                  .make_isotope_view(IsotopeComponentId{1});
+    ChipsNeutronElasticInteractor interact_light_target(
+        shared, this->particle_track(), this->direction(), isotope_he4);
+
+    // Sample neutron-Cu63 interactions
+    IsotopeView isotope_cu63 = this->material_track()
+                                   .make_material_view()
+                                   .make_element_view(ElementComponentId{1})
+                                   .make_isotope_view(IsotopeComponentId{0});
+    ChipsNeutronElasticInteractor interact_heavy_target(
         shared, this->particle_track(), this->direction(), isotope_cu63);
 
     // Produce four samples from the original incident energy/dir
-    std::vector<real_type> neutron_energy;
-    std::vector<real_type> cos_theta;
+    std::vector<real_type> neutron_energy_he4;
+    std::vector<real_type> cos_theta_he4;
+    std::vector<real_type> neutron_energy_cu63;
+    std::vector<real_type> cos_theta_cu63;
 
     for ([[maybe_unused]] int i : range(4))
     {
-        Interaction result = interact(rng_engine);
-        // Add actual results to vector
-        neutron_energy.push_back(result.energy.value());
-        cos_theta.push_back(dot_product(result.direction, this->direction()));
+        // Scattering with a light target (A <= 6)
+        Interaction result_he4 = interact_light_target(rng_engine);
+        neutron_energy_he4.push_back(result_he4.energy.value());
+        cos_theta_he4.push_back(
+            dot_product(result_he4.direction, this->direction()));
+
+        // Scattering with a heavy target (A > 6)
+        Interaction result_cu63 = interact_heavy_target(rng_engine);
+        neutron_energy_cu63.push_back(result_cu63.energy.value());
+        cos_theta_cu63.push_back(
+            dot_product(result_cu63.direction, this->direction()));
     }
 
     // Note: these are "gold" values based on the host RNG.
-    real_type const expected_energy[] = {
-        99.9189477280172, 99.9721412254339, 99.8523891419002, 99.5806397008464};
-    real_type const expected_cos_theta[] = {0.975983538621822,
-                                            0.991747504314719,
-                                            0.956246477024332,
-                                            0.875520129744385};
+    real_type const expected_energy_he4[] = {
+        94.1224768910961, 86.8933037406002, 94.6854232398921, 95.9844475596542};
 
-    EXPECT_VEC_SOFT_EQ(expected_energy, neutron_energy);
-    EXPECT_VEC_SOFT_EQ(expected_cos_theta, cos_theta);
+    real_type const expected_energy_cu63[] = {
+        99.9721412254339, 99.5806397008464, 99.9885741516896, 99.9799810689728};
+
+    real_type const expected_cos_theta_he4[] = {0.877710038016294,
+                                                0.716934339548103,
+                                                0.889730991670609,
+                                                0.917213465271479};
+    real_type const expected_cos_theta_cu63[] = {0.991747504314719,
+                                                 0.875520129744385,
+                                                 0.996615655776977,
+                                                 0.994070112946167};
+
+    EXPECT_VEC_SOFT_EQ(expected_energy_he4, neutron_energy_he4);
+    EXPECT_VEC_SOFT_EQ(expected_cos_theta_he4, cos_theta_he4);
+    EXPECT_VEC_SOFT_EQ(expected_energy_cu63, neutron_energy_cu63);
+    EXPECT_VEC_SOFT_EQ(expected_cos_theta_cu63, cos_theta_cu63);
 }
 
 TEST_F(NeutronElasticTest, extended)
@@ -296,12 +320,13 @@ TEST_F(NeutronElasticTest, stress_test)
             sum_energy += result.energy.value();
             sum_angle += result.direction[2];
             sum_count += rng_engine.count();
+            rng_engine.reset_count();
         }
         avg_rng_samples.push_back(sum_count / num_sample);
         EXPECT_SOFT_EQ(weight * sum_energy, expected_energy[i]);
         EXPECT_SOFT_EQ(weight * sum_angle, expected_angle[i]);
     }
-    static int const expected_avg_rng_samples[] = {202, 602, 1103, 1703, 2303};
+    static int const expected_avg_rng_samples[] = {4, 4, 6, 6, 6};
     EXPECT_VEC_EQ(expected_avg_rng_samples, avg_rng_samples);
 }
 
