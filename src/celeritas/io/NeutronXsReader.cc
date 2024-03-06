@@ -91,7 +91,6 @@ NeutronXsReader::operator()(AtomicNumber atomic_number) const
             infile >> result.x[i] >> input_xs.value();
             result.y[i] = native_value_from(input_xs);
         }
-        infile.close();
     }
 
     return result;
