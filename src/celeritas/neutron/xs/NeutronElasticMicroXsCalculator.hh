@@ -66,7 +66,7 @@ CELER_FUNCTION NeutronElasticMicroXsCalculator::NeutronElasticMicroXsCalculator(
 CELER_FUNCTION
 real_type NeutronElasticMicroXsCalculator::operator()(ElementId el_id) const
 {
-    CELER_EXPECT(el_id);
+    CELER_EXPECT(el_id < shared_.micro_xs.size());
 
     // Get element cross section data
     GenericGridData grid = shared_.micro_xs[el_id];
