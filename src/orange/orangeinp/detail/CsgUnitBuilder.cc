@@ -10,6 +10,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StreamableVariant.hh"
 #include "orange/transform/TransformIO.hh"
+#include "orange/transform/TransformSimplifier.hh"
 
 namespace celeritas
 {
@@ -47,6 +48,16 @@ BoundingZone const& CsgUnitBuilder::bounds(NodeId nid) const
                    << "cannot access bounds for node " << nid.unchecked_get()
                    << ", which is not a region");
     return iter->second.bounds;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Insert transform with simplification and deduplication.
+ */
+TransformId CsgUnitBuilder::insert_transform(VariantTransform const& vt)
+{
+    auto simplified = std::visit(TransformSimplifier(tol_), vt);
+    return this->insert_transform_(std::move(simplified));
 }
 
 //---------------------------------------------------------------------------//
