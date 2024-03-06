@@ -165,12 +165,12 @@ void ChipsNeutronElasticModel::append_xs(ImportPhysicsVector const& inp,
  * Eur. Phys. J. A8, 217 (2000); P.V. Degtyarenko, M.V. Kossov and H.P.
  * Wellisch, Eur. Phys. J. A9 (2001).
  */
-void ChipsNeutronElasticModel::append_coeffs(AtomicMassNumber A,
+void ChipsNeutronElasticModel::append_coeffs(AtomicMassNumber amass,
                                              HostXsData* data) const
 {
     ChipsDiffXsCoefficients coeffs;
 
-    real_type a = static_cast<real_type>(A.get());
+    real_type a = static_cast<real_type>(amass.get());
 
     real_type sa = std::sqrt(a);
     real_type asa = a * sa;
@@ -190,7 +190,7 @@ void ChipsNeutronElasticModel::append_coeffs(AtomicMassNumber A,
 
     // The differential cross-section is parameterized separately for
     // A>6 & A<7
-    if (a < 6.5)
+    if (amass <= AtomicMassNumber{6})
     {
         // The main pre-exponent (pel_sg)
         coeffs.par[0] = 4e3 * a;
