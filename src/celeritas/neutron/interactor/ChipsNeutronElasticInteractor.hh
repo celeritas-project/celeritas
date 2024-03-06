@@ -121,7 +121,7 @@ CELER_FUNCTION Interaction ChipsNeutronElasticInteractor::operator()(Engine& rng
     // squared (\f$ -t = Q^{2} \f$) in the c.m. frame
     real_type cos_theta
         = 1 - real_type(0.5) * sample_momentum_square_(rng) / ipow<2>(cm_p);
-    clamp(cos_theta, real_type{-1}, real_type{1});
+    CELER_ASSERT(std::fabs(cos_theta) <= 1);
 
     // Boost to the center of mass (c.m.) frame
     Real3 cm_mom = cm_p * from_spherical(cos_theta, sample_phi_(rng));
@@ -132,8 +132,7 @@ CELER_FUNCTION Interaction ChipsNeutronElasticInteractor::operator()(Engine& rng
                    neutron_energy_ + target_mass});
     boost(boost_vector(lv), &nlv1);
 
-    result.direction
-        = make_unit_vector(rotate(make_unit_vector(nlv1.mom), inc_direction_));
+    result.direction = rotate(make_unit_vector(nlv1.mom), inc_direction_);
 
     // Kinetic energy of the scattered neutron and the recoiled nucleus
     lv.energy -= nlv1.energy;
