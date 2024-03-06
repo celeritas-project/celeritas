@@ -121,7 +121,9 @@ TEST_F(NeutronElasticTest, macro_xs)
     real_type const factor = 1e+1;
     for (auto i : range(expected_macro_xs.size()))
     {
-        EXPECT_SOFT_EQ(calc_xs(MevEnergy{energy}), expected_macro_xs[i]);
+        EXPECT_SOFT_EQ(
+            native_value_to<units::InvCmXs>(calc_xs(MevEnergy{energy})).value(),
+            expected_macro_xs[i]);
         energy *= factor;
     }
 
