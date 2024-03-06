@@ -9,6 +9,7 @@
 
 #include "corecel/cont/Array.hh"
 #include "corecel/math/ArrayOperators.hh"
+#include "geocel/Types.hh"
 #include "celeritas/Types.hh"
 
 namespace celeritas
@@ -21,11 +22,6 @@ namespace celeritas
  */
 struct FourVector
 {
-    //!@{
-    //! \name Type aliases
-    using Real3 = Array<real_type, 3>;
-    //!@}
-
     //// DATA ////
 
     Real3 mom{0, 0, 0};  //!< Particle momentum
@@ -54,12 +50,12 @@ inline CELER_FUNCTION Real3 boost_vector(FourVector const& p)
  */
 inline CELER_FUNCTION void boost(Real3 const& v, FourVector* p)
 {
-    const real_type v2 = dot_product(v, v);
-    CELER_ENSURE(v2 < real_type{1});
+    const real_type v_sq = dot_product(v, v);
+    CELER_EXPECT(v_sq < real_type{1});
 
     const real_type vp = dot_product(v, p->mom);
-    const real_type gamma = real_type{1} / std::sqrt(1 - v2);
-    const real_type lambda = (v2 > 0 ? (gamma - 1) * vp / v2 : 0)
+    const real_type gamma = real_type{1} / std::sqrt(1 - v_sq);
+    const real_type lambda = (v_sq > 0 ? (gamma - 1) * vp / v_sq : 0)
                              + gamma * p->energy;
 
     axpy(lambda, v, &(p->mom));
