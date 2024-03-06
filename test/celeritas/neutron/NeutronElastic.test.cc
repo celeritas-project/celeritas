@@ -139,21 +139,21 @@ TEST_F(NeutronElasticTest, diff_xs_coeffs)
     ChipsDiffXsCoefficients he4_coeff = coeffs[IsotopeId{1}];
     EXPECT_EQ(he4_coeff.par.size(), 42);
     EXPECT_EQ(he4_coeff.par[0], 16000);
-    EXPECT_EQ(he4_coeff.par[10], 26.99741289550769);
-    EXPECT_EQ(he4_coeff.par[20], 0.003);
-    EXPECT_EQ(he4_coeff.par[30], 731.96468887355979);
-    EXPECT_EQ(he4_coeff.par[35], 38680.596799999999);
+    EXPECT_SOFT_EQ(he4_coeff.par[10], 26.99741289550769);
+    EXPECT_SOFT_EQ(he4_coeff.par[20], 0.003);
+    EXPECT_SOFT_EQ(he4_coeff.par[30], 731.96468887355979);
+    EXPECT_SOFT_EQ(he4_coeff.par[35], 38680.596799999999);
     EXPECT_EQ(he4_coeff.par[36], 0);
 
     // Set the target isotope: Cu63 (42 parameters for heavy nuclei, A > 6)
     ChipsDiffXsCoefficients cu63_coeff = coeffs[IsotopeId{2}];
     EXPECT_EQ(cu63_coeff.par.size(), 42);
-    EXPECT_EQ(cu63_coeff.par[0], 527.781478797624);
-    EXPECT_EQ(cu63_coeff.par[10], 9.842761904761872);
-    EXPECT_EQ(cu63_coeff.par[20], 4.5646562677427038);
-    EXPECT_EQ(cu63_coeff.par[30], 1984873.0860000001);
-    EXPECT_EQ(cu63_coeff.par[35], 0.15874507866387544);
-    EXPECT_EQ(cu63_coeff.par[41], 7129.2726746278049);
+    EXPECT_SOFT_EQ(cu63_coeff.par[0], 527.781478797624);
+    EXPECT_SOFT_EQ(cu63_coeff.par[10], 9.842761904761872);
+    EXPECT_SOFT_EQ(cu63_coeff.par[20], 4.5646562677427038);
+    EXPECT_SOFT_EQ(cu63_coeff.par[30], 1984873.0860000001);
+    EXPECT_SOFT_EQ(cu63_coeff.par[35], 0.15874507866387544);
+    EXPECT_SOFT_EQ(cu63_coeff.par[41], 7129.2726746278049);
 }
 
 TEST_F(NeutronElasticTest, basic)
@@ -287,22 +287,22 @@ TEST_F(NeutronElasticTest, stress_test)
     RandomEngine& rng_engine = this->rng();
 
     // Produce samples from the incident energy
-    std::vector<double> neutron_energy;
-    double const expected_energy[] = {9.6937900401599116e-05,
-                                      0.0096967590954386649,
-                                      0.96066635424842617,
-                                      99.915949160022208,
-                                      9999.9519447032781};
-    std::vector<double> cos_theta;
-    double const expected_angle[] = {-0.0062993051693808555,
-                                     0.0036712145032219813,
-                                     -0.29680452456419526,
-                                     0.97426025128623828,
-                                     0.9999755334707946};
+    std::vector<real_type> neutron_energy;
+    real_type const expected_energy[] = {9.6937900401599116e-05,
+                                         0.0096967590954386649,
+                                         0.96066635424842617,
+                                         99.915949160022208,
+                                         9999.9519447032781};
+    std::vector<real_type> cos_theta;
+    real_type const expected_angle[] = {-0.0062993051693808555,
+                                        0.0036712145032219813,
+                                        -0.29680452456419526,
+                                        0.97426025128623828,
+                                        0.9999755334707946};
 
     int const num_sample = 100;
-    double const weight = 1.0 / static_cast<double>(num_sample);
-    std::vector<double> inc_energy = {1e-4, 0.01, 1., 100., 10000.};
+    real_type const weight = 1.0 / static_cast<real_type>(num_sample);
+    std::vector<real_type> inc_energy = {1e-4, 0.01, 1., 100., 10000.};
     std::vector<int> avg_rng_samples;
     for (auto i : range(inc_energy.size()))
     {
@@ -310,8 +310,8 @@ TEST_F(NeutronElasticTest, stress_test)
         ChipsNeutronElasticInteractor interact(
             shared, this->particle_track(), this->direction(), isotope);
 
-        double sum_energy{0.};
-        double sum_angle{0.};
+        real_type sum_energy{0.};
+        real_type sum_angle{0.};
         int sum_count{0};
         for ([[maybe_unused]] int j : range(num_sample))
         {
