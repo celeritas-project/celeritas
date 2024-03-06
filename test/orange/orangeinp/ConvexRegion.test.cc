@@ -8,6 +8,7 @@
 #include "orange/orangeinp/ConvexRegion.hh"
 
 #include "orange/BoundingBoxUtils.hh"
+#include "orange/MatrixUtils.hh"
 #include "orange/orangeinp/ConvexSurfaceBuilder.hh"
 #include "orange/orangeinp/CsgTreeUtils.hh"
 #include "orange/orangeinp/detail/ConvexSurfaceState.hh"

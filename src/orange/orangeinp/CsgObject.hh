@@ -30,11 +30,17 @@ class NegatedObject : public ObjectInterface
     // Construct with a name and object
     NegatedObject(std::string&& label, SPConstObject obj);
 
+    //! Access the daughter object
+    SPConstObject const& daughter() const { return obj_; }
+
     //! Get the user-provided label
     std::string_view label() const final { return label_; }
 
     // Construct a volume from this object
     NodeId build(VolumeBuilder&) const final;
+
+    // Write the object to JSON
+    void output(JsonPimpl*) const final;
 
   private:
     std::string label_;
@@ -71,6 +77,9 @@ class JoinObjects : public ObjectInterface
 
     // Construct a volume from this object
     NodeId build(VolumeBuilder&) const final;
+
+    // Write the object to JSON
+    void output(JsonPimpl*) const final;
 
   private:
     std::string label_;
