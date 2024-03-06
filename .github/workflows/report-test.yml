@@ -1,0 +1,28 @@
+name: report-test
+
+on:
+  workflow_run:
+    workflows: ["pull_request"]
+    types:
+      - completed
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+jobs:
+  report-tests:
+    permissions:
+      checks: write
+      statuses: write
+    runs-on: ubuntu-latest
+    steps:
+    - uses: dorny/test-reporter@v1
+      with:
+        artifact: "/test-results-fast-([^-]+)-(.*)/"
+        name: "$2 ($1) test results"
+        path: "**/*.xml"
+        reporter: java-junit
+
+# vim: set nowrap tw=100:
