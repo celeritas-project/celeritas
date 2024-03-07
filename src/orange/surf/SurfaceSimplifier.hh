@@ -29,6 +29,9 @@ namespace celeritas
  * was applied.
  *
  * The embedded sense may be flipped as part of the simplifications.
+ *
+ * \todo Use a \c Tolerance object instead of a single tolerance, and compare
+ * implementations with \c SoftSurfaceEqual for consistency.
  */
 class SurfaceSimplifier
 {

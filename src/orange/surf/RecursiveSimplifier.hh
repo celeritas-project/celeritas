@@ -22,8 +22,7 @@ namespace celeritas
 /*!
  * Recursively simplify, then call the given function on the final surface.
  *
- * The tolerance for this class should be "absolute" tolerance, i.e., the
- * relative tolerance for an O(1) sized object.
+ * The tolerance for this class should be relative.
  *
  * Example:
  * \code
@@ -49,7 +48,7 @@ class RecursiveSimplifier
 
     //! Construct with tolerance and function to apply
     RecursiveSimplifier(F&& func, Tolerance<> tol)
-        : RecursiveSimplifier(std::forward<F>(func), tol.abs)
+        : RecursiveSimplifier(std::forward<F>(func), tol.rel)
     {
     }
 

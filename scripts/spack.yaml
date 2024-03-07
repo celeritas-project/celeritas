@@ -15,6 +15,7 @@ spack:
     - py-furo
     - py-sphinx
     - py-sphinxcontrib-bibtex
+    - py-sphinxcontrib-mermaid
     - "root@6.24: cxxstd=17"
     - "swig@4.1:"
     - "vecgeom@1.2.4: +gdml cxxstd=17"

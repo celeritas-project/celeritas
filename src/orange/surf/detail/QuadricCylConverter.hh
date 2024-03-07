@@ -120,6 +120,9 @@ QuadricCylConverter::operator()(AxisTag<T>, SimpleQuadric const& sq) const
         // No real solution
         return {};
     }
+
+    // Clear potential signed zeros before returning
+    origin += real_type{0};
     return CylAligned<T>::from_radius_sq(origin, radius_sq);
 }
 

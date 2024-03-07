@@ -53,7 +53,7 @@ class LocalSurfaceInserter
 
     // Construct a surface with deduplication
     template<class S>
-    inline LocalSurfaceId operator()(S const& surface);
+    LocalSurfaceId operator()(S const& surface);
 
   private:
     //// TYPES ////
@@ -71,59 +71,6 @@ class LocalSurfaceInserter
 
     LocalSurfaceId merge_impl(LocalSurfaceId source, LocalSurfaceId target);
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Construct a surface with deduplication.
- */
-template<class S>
-LocalSurfaceId LocalSurfaceInserter::operator()(S const& source)
-{
-    VecSurface& all_surf = *surfaces_;
-
-    // Test for soft equality against all existing surfaces
-    auto is_soft_equal = [this, &source](VariantSurface const& vtarget) {
-        if (S const* target = std::get_if<S>(&vtarget))
-        {
-            return soft_surface_equal_(source, *target);
-        }
-        return false;
-    };
-
-    // TODO: instead of linear search (making overall unit insertion
-    // quadratic!) accelerate by mapping surfaces into a hash and comparing all
-    // neighboring hash cells
-    auto iter = std::find_if(all_surf.begin(), all_surf.end(), is_soft_equal);
-    if (iter == all_surf.end())
-    {
-        // Surface is completely unique
-        LocalSurfaceId result(all_surf.size());
-        all_surf.emplace_back(std::in_place_type<S>, source);
-        return result;
-    }
-
-    // Surface is soft equivalent to an existing surface at this index
-    LocalSurfaceId target_id{static_cast<size_type>(iter - all_surf.begin())};
-
-    CELER_ASSUME(std::holds_alternative<S>(*iter));
-    if (exact_surface_equal_(source, std::get<S>(*iter)))
-    {
-        // Surfaces are *exactly* equal: don't insert
-        CELER_ENSURE(target_id < all_surf.size());
-        return target_id;
-    }
-
-    // Surface is a little bit different, so we still need to insert it
-    // to chain duplicates
-    LocalSurfaceId source_id(all_surf.size());
-    all_surf.emplace_back(std::in_place_type<S>, source);
-
-    // Store the equivalency relationship and potentially chain equivalent
-    // surfaces
-    return this->merge_impl(source_id, target_id);
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

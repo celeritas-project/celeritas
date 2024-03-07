@@ -111,6 +111,8 @@ void SurfaceClipper::operator()(Plane const&) const
 {
     // We no longer can guarantee any point being inside the shape; reset it
     *int_ = BoundingBox{};
+    // TODO: check for being in an axial plane and leave the orthogonal plane's
+    // extents intact
 }
 
 //---------------------------------------------------------------------------//
