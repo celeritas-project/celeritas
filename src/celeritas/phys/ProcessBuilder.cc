@@ -24,7 +24,9 @@
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportedElementalMapLoader.hh"
 #include "celeritas/io/LivermorePEReader.hh"
+#include "celeritas/io/NeutronXsReader.hh"
 #include "celeritas/io/SeltzerBergerReader.hh"
+#include "celeritas/neutron/process/NeutronElasticProcess.hh"
 
 #include "ImportedProcessAdapter.hh"
 
@@ -82,6 +84,11 @@ ProcessBuilder::ProcessBuilder(ImportData const& data,
     {
         read_livermore_ = make_imported_element_loader(data.livermore_pe_data);
     }
+    if (!data.neutron_elastic_data.empty())
+    {
+        read_neutron_elastic_
+            = make_imported_element_loader(data.neutron_elastic_data);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -127,6 +134,7 @@ auto ProcessBuilder::operator()(IPC ipc) -> SPProcess
         {IPC::coulomb_scat, &ProcessBuilder::build_coulomb},
         {IPC::e_brems, &ProcessBuilder::build_ebrems},
         {IPC::e_ioni, &ProcessBuilder::build_eioni},
+        {IPC::neutron_elastic, &ProcessBuilder::build_neutron_elastic},
         {IPC::photoelectric, &ProcessBuilder::build_photoelectric},
         {IPC::rayleigh, &ProcessBuilder::build_rayleigh},
     };
@@ -171,6 +179,18 @@ auto ProcessBuilder::build_ebrems() -> SPProcess
 
     return std::make_shared<BremsstrahlungProcess>(
         this->particle(), this->material(), this->imported(), read_sb_, options);
+}
+
+//---------------------------------------------------------------------------//
+auto ProcessBuilder::build_neutron_elastic() -> SPProcess
+{
+    if (!read_neutron_elastic_)
+    {
+        read_neutron_elastic_ = NeutronXsReader{};
+    }
+
+    return std::make_shared<NeutronElasticProcess>(
+        this->particle(), this->material(), read_neutron_elastic_);
 }
 
 //---------------------------------------------------------------------------//
