@@ -96,10 +96,11 @@ class MomentumTransferSampler
     // Covert from clhep::MeV value to clhep::GeV value
     static CELER_CONSTEXPR_FUNCTION real_type to_gev() { return 1e-3; }
 
-    // S-wave for neutron p < 14 MeV/c (kinetic energy < 0.1 MeV)
+    // S-wave limit for neutron, log(p) < -4.3 (GeV/c) (kinetic energy < 0.1
+    // MeV)
     static CELER_CONSTEXPR_FUNCTION Momentum s_wave_limit()
     {
-        return Momentum{14};
+        return Momentum{13.568559};
     }
 
     // Limit of the slope square

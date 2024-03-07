@@ -118,7 +118,6 @@ void NeutronTestBase::set_particle_params(ParticleParams::Input inp)
     CELER_EXPECT(!inp.empty());
     particle_params_ = std::make_shared<ParticleParams>(std::move(inp));
     ps_ = StateStore<ParticleStateData>(particle_params_->host_ref(), 1);
-    //    cutoff_params_ = {};
 }
 
 //---------------------------------------------------------------------------//

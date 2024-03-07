@@ -86,7 +86,7 @@ struct NeutronElasticData
     Items<real_type> reals;
     ElementItems<GenericGridData> micro_xs;
 
-    //! A-dependent coefficients for the momentum transfer) of the CHIPS model
+    //! A-dependent coefficients for the momentum transfer of the CHIPS model
     IsotopeItems<ChipsDiffXsCoefficients> coeffs;
 
     //! Model's minimum and maximum energy limit [MeV]
