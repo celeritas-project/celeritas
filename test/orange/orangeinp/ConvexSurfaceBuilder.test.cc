@@ -33,7 +33,7 @@ class ConvexSurfaceBuilderTest : public ObjectTestBase
     {
         State result;
         result.transform = &transform_;
-        result.make_face_name = FaceNamer{"c:"};
+        result.make_face_name = FaceNamer{"c."};
         return result;
     }
 
@@ -127,8 +127,8 @@ TEST_F(ConvexSurfaceBuilderTest, no_transform)
     static char const* const expected_surface_strings[]
         = {"Plane: z=0", "Sphere: r=1", "Plane: x=-0.5", "Plane: x=0.5"};
     static char const* const expected_md_strings[] = {"", "",
-        "dh@c:pz,rh@c:mz,zh@c:pz", "", "dh@c:s,rh@c:s,zh@c:s", "", "sl@c:mx",
-        "sl@c:px", ""};
+        "dh@c.pz,rh@c.mz,zh@c.pz", "", "dh@c.s,rh@c.s,zh@c.s", "", "sl@c.mx",
+        "sl@c.px", ""};
     static char const expected_tree_string[]
         = R"json(["t",["~",0],["S",0],["~",2],["S",1],["~",4],["S",2],["S",3],["~",7]])json";
     // clang-format on
@@ -209,7 +209,7 @@ TEST_F(ConvexSurfaceBuilderTest, translate)
     static char const * const expected_surface_strings[] = {"Plane: x=0.5",
         "Plane: x=1.5", "Sphere: r=1 at {1,2,3}", "Plane: x=2.5"};
     static char const* const expected_md_strings[] = {
-        "", "", "sl@c:mx", "sl@c:px,ss@c:mx", "", "sph@c:s", "", "ss@c:px", ""};
+        "", "", "sl@c.mx", "sl@c.px,ss@c.mx", "", "sph@c.s", "", "ss@c.px", ""};
     static char const expected_tree_string[]
         = R"json(["t",["~",0],["S",0],["S",1],["~",3],["S",2],["~",5],["S",3],["~",7]])json";
 
@@ -254,7 +254,7 @@ TEST_F(ConvexSurfaceBuilderTest, transform)
     static char const expected_tree_string[]
         = R"json(["t",["~",0],["S",0],["S",1],["~",3]])json";
     static char const* const expected_md_strings[]
-        = {"", "", "h@c:pz", "h@c:s", ""};
+        = {"", "", "h@c.pz", "h@c.s", ""};
 
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));

@@ -291,6 +291,51 @@ void Ellipsoid::output(JsonPimpl* j) const
 }
 
 //---------------------------------------------------------------------------//
+// INFWEDGE
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from a starting angle and interior angle.
+ */
+InfWedge::InfWedge(Turn start, Turn interior)
+    : start_{start}, interior_{interior}
+{
+    CELER_VALIDATE(start_ >= zero_quantity() && start_ < Turn{1},
+                   << "invalid start angle " << start_.value()
+                   << " [turns]: must be in the range [0, 1)");
+    CELER_VALIDATE(interior_ > zero_quantity() && interior_ <= Turn{0.5},
+                   << "invalid interior wedge angle " << interior.value()
+                   << " [turns]: must be in the range (0, 0.5]");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ *
+ * Both planes should point "outward" to the wedge. In the degenerate case of
+ * interior = 0.5 we rely on CSG object deduplication.
+ */
+void InfWedge::build(ConvexSurfaceBuilder& insert_surface) const
+{
+    real_type sinstart, cosstart, sinend, cosend;
+    sincos(start_, &sinstart, &cosstart);
+    sincos(start_ + interior_, &sinend, &cosend);
+
+    insert_surface(Sense::inside, Plane{Real3{sinstart, -cosstart, 0}, 0.0});
+    insert_surface(Sense::outside, Plane{Real3{sinend, -cosend, 0}, 0.0});
+
+    // TODO: restrict bounding boxes, at least eliminating two quadrants...
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void InfWedge::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
 // PRISM
 //---------------------------------------------------------------------------//
 /*!

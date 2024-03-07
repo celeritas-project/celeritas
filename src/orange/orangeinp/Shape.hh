@@ -58,9 +58,12 @@ class ShapeBase : public ObjectInterface
 /*!
  * Shape that holds a convex region and forwards construction args to it.
  *
- * Construct as:
- *
- *    BoxShape s{"mybox", Real3{1, 2, 3}};
+ * Construct as: \code
+    BoxShape s{"mybox", Real3{1, 2, 3}};
+ * \endcode
+ * or \code
+ *  Shape s{"mybox", Box{{1, 2, 3}}};
+ * \endcode
  *
  * See ConvexRegion.hh for a list of the regions and their construction
  * arguments.

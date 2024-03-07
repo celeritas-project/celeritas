@@ -32,8 +32,8 @@ class FaceNamer
     // Construct with no prefix
     FaceNamer() = default;
 
-    //! Construct with prefix
-    explicit FaceNamer(std::string&& prefix) : prefix_{std::move(prefix)} {}
+    // Construct with prefix
+    explicit inline FaceNamer(std::string&& prefix);
 
     // Apply to a surface with known type
     template<class S>
@@ -85,6 +85,18 @@ class FaceNamer
         std::string operator()(GeneralQuadric const&) const;
     };
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with prefix.
+ */
+FaceNamer::FaceNamer(std::string&& prefix) : prefix_{std::move(prefix)}
+{
+    if (!prefix_.empty() && prefix_.back() != '.')
+    {
+        prefix_.push_back('.');
+    }
+}
 
 //---------------------------------------------------------------------------//
 /*!

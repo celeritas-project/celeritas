@@ -55,7 +55,7 @@ TEST_F(FaceNamerTest, typed)
 
 TEST_F(FaceNamerTest, prefix)
 {
-    FaceNamer name_face{"obox."};
+    FaceNamer name_face{"obox"};
 
     EXPECT_EQ("obox.px", name_face(in, PlaneX(1)));
     EXPECT_EQ("obox.mx", name_face(out, PlaneX(1)));
