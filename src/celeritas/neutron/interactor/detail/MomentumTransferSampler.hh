@@ -100,7 +100,7 @@ class MomentumTransferSampler
     // MeV)
     static CELER_CONSTEXPR_FUNCTION Momentum s_wave_limit()
     {
-        return Momentum{13.568559};
+        return Momentum{13.568559012200934};  // = exp(-4.3) * 1000
     }
 
     // Limit of the slope square
