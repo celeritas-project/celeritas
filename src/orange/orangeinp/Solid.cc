@@ -53,7 +53,7 @@ auto SolidEnclosedAngle::make_wedge() const -> SenseWedge
     {
         // Subtract the complement of the wedge
         sense = Sense::outside;
-        start = start + interior - 1;
+        start = eumod(start + interior, real_type{1});
         interior = 1 - interior;
     }
 
