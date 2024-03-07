@@ -297,11 +297,14 @@ void Ellipsoid::output(JsonPimpl* j) const
  * Construct from a starting angle and interior angle.
  */
 InfWedge::InfWedge(Turn start, Turn interior)
-    : start_{Turn{std::fmod(start.value(), real_type{1})}}, interior_{interior}
+    : start_{start}, interior_{interior}
 {
+    CELER_VALIDATE(start_ >= zero_quantity() && start_ < Turn{1},
+                   << "invalid start angle " << start_.value()
+                   << " [turns]: must be in the range [0, 1)");
     CELER_VALIDATE(interior_ > zero_quantity() && interior_ <= Turn{0.5},
                    << "invalid interior wedge angle " << interior.value()
-                   << " [turns]: must be positive and less than half a turn");
+                   << " [turns]: must be in the range (0, 0.5]");
 }
 
 //---------------------------------------------------------------------------//

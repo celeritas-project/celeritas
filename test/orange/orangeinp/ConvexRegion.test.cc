@@ -371,6 +371,8 @@ TEST_F(InfWedgeTest, errors)
     EXPECT_THROW(InfWedge(Turn{0}, Turn{0.51}), RuntimeError);
     EXPECT_THROW(InfWedge(Turn{0}, Turn{0}), RuntimeError);
     EXPECT_THROW(InfWedge(Turn{0}, Turn{-0.5}), RuntimeError);
+    EXPECT_THROW(InfWedge(Turn{-0.1}, Turn{-0.5}), RuntimeError);
+    EXPECT_THROW(InfWedge(Turn{1.1}, Turn{-0.5}), RuntimeError);
 }
 
 TEST_F(InfWedgeTest, quarter_turn)
@@ -396,7 +398,7 @@ TEST_F(InfWedgeTest, quarter_turn)
     }
     {
         SCOPED_TRACE("fourth quadrant");
-        InfWedge wedge(Turn{1.75}, Turn{0.25});
+        InfWedge wedge(Turn{0.75}, Turn{0.25});
         EXPECT_SOFT_EQ(0.75, wedge.start().value());
         auto result = this->test(wedge);
         EXPECT_EQ("all(+1, -0)", result.node);
@@ -408,7 +410,7 @@ TEST_F(InfWedgeTest, quarter_turn)
     }
     {
         SCOPED_TRACE("east quadrant");
-        auto result = this->test(InfWedge(Turn{-0.125}, Turn{0.25}));
+        auto result = this->test(InfWedge(Turn{1 - 0.125}, Turn{0.25}));
         EXPECT_EQ("all(+2, +3)", result.node);
         static char const expected_node[] = "all(+2, +3)";
         EXPECT_EQ(expected_node, result.node);
