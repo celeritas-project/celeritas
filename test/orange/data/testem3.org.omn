@@ -1,12 +1,11 @@
-! Diagram (to scale) of slice at z = 1
-
+! ORANGE testem3 input definition using universes. This geometry supports 
+! simple safety
 [GEOMETRY]
 global "outer"
 
 comp         : matid
-    "media 0"  0
-    "media 1"  1
-    "media 2"  2
+    "Pb"  0
+    "lAr"  1
 
 !#### LEVEL 1 UNIVERSE ####!
 
@@ -14,227 +13,226 @@ comp         : matid
 interior "pair"
 
 [UNIVERSE][SHAPE=cuboid pair]
-faces 0 2 0 100 0 100
+faces 0 0.8 -20 20 -20 20
 
-[UNIVERSE][SHAPE=cuboid abs]
-faces 0 1 0 100 0 100
+[UNIVERSE][SHAPE=cuboid gap_shape]
+faces 0 0.23 -20 20 -20 20
 
-[UNIVERSE][SHAPE=cuboid det]
-faces 1 2 0 100 0 100
+[UNIVERSE][SHAPE=cuboid abs_shape]
+faces 0.23 0.8 -20 20 -20 20
+
+[UNIVERSE][CELL gap]
+comp "lAr"
+shapes -gap_shape
 
 [UNIVERSE][CELL absorber]
-comp "media 0"
-shapes -abs
-
-[UNIVERSE][CELL detector]
-comp "media 1"
-shapes -det
-
-
-!#### LEVEL 0 UNIVERSE ####!
+comp "Pb"
+shapes -abs_shape
 
 [UNIVERSE=general outer]
 interior "full"
 
+!#### LEVEL 0 UNIVERSE ####!
+
 [UNIVERSE][SHAPE=cuboid full]
-faces 0 100 0 100 0 100
+faces -20 20 -20 20 -20 20
 
 [UNIVERSE][HOLE pair_0]
 fill inner
-translate 0 0 0
+translate -20.00 0 0
 
 [UNIVERSE][HOLE pair_1]
 fill inner
-translate 2 0 0
+translate -19.20 0 0
 
 [UNIVERSE][HOLE pair_2]
 fill inner
-translate 4 0 0
+translate -18.40 0 0
 
 [UNIVERSE][HOLE pair_3]
 fill inner
-translate 6 0 0
+translate -17.60 0 0
 
 [UNIVERSE][HOLE pair_4]
 fill inner
-translate 8 0 0
+translate -16.80 0 0
 
 [UNIVERSE][HOLE pair_5]
 fill inner
-translate 10 0 0
+translate -16.00 0 0
 
 [UNIVERSE][HOLE pair_6]
 fill inner
-translate 12 0 0
+translate -15.20 0 0
 
 [UNIVERSE][HOLE pair_7]
 fill inner
-translate 14 0 0
+translate -14.40 0 0
 
 [UNIVERSE][HOLE pair_8]
 fill inner
-translate 16 0 0
+translate -13.60 0 0
 
 [UNIVERSE][HOLE pair_9]
 fill inner
-translate 18 0 0
+translate -12.80 0 0
 
 [UNIVERSE][HOLE pair_10]
 fill inner
-translate 20 0 0
+translate -12.00 0 0
 
 [UNIVERSE][HOLE pair_11]
 fill inner
-translate 22 0 0
+translate -11.20 0 0
 
 [UNIVERSE][HOLE pair_12]
 fill inner
-translate 24 0 0
+translate -10.40 0 0
 
 [UNIVERSE][HOLE pair_13]
 fill inner
-translate 26 0 0
+translate -9.60 0 0
 
 [UNIVERSE][HOLE pair_14]
 fill inner
-translate 28 0 0
+translate -8.80 0 0
 
 [UNIVERSE][HOLE pair_15]
 fill inner
-translate 30 0 0
+translate -8.00 0 0
 
 [UNIVERSE][HOLE pair_16]
 fill inner
-translate 32 0 0
+translate -7.20 0 0
 
 [UNIVERSE][HOLE pair_17]
 fill inner
-translate 34 0 0
+translate -6.40 0 0
 
 [UNIVERSE][HOLE pair_18]
 fill inner
-translate 36 0 0
+translate -5.60 0 0
 
 [UNIVERSE][HOLE pair_19]
 fill inner
-translate 38 0 0
+translate -4.80 0 0
 
 [UNIVERSE][HOLE pair_20]
 fill inner
-translate 40 0 0
+translate -4.00 0 0
 
 [UNIVERSE][HOLE pair_21]
 fill inner
-translate 42 0 0
+translate -3.20 0 0
 
 [UNIVERSE][HOLE pair_22]
 fill inner
-translate 44 0 0
+translate -2.40 0 0
 
 [UNIVERSE][HOLE pair_23]
 fill inner
-translate 46 0 0
+translate -1.60 0 0
 
 [UNIVERSE][HOLE pair_24]
 fill inner
-translate 48 0 0
+translate -0.80 0 0
 
 [UNIVERSE][HOLE pair_25]
 fill inner
-translate 50 0 0
+translate 0.00 0 0
 
 [UNIVERSE][HOLE pair_26]
 fill inner
-translate 52 0 0
+translate 0.80 0 0
 
 [UNIVERSE][HOLE pair_27]
 fill inner
-translate 54 0 0
+translate 1.60 0 0
 
 [UNIVERSE][HOLE pair_28]
 fill inner
-translate 56 0 0
+translate 2.40 0 0
 
 [UNIVERSE][HOLE pair_29]
 fill inner
-translate 58 0 0
+translate 3.20 0 0
 
 [UNIVERSE][HOLE pair_30]
 fill inner
-translate 60 0 0
+translate 4.00 0 0
 
 [UNIVERSE][HOLE pair_31]
 fill inner
-translate 62 0 0
+translate 4.80 0 0
 
 [UNIVERSE][HOLE pair_32]
 fill inner
-translate 64 0 0
+translate 5.60 0 0
 
 [UNIVERSE][HOLE pair_33]
 fill inner
-translate 66 0 0
+translate 6.40 0 0
 
 [UNIVERSE][HOLE pair_34]
 fill inner
-translate 68 0 0
+translate 7.20 0 0
 
 [UNIVERSE][HOLE pair_35]
 fill inner
-translate 70 0 0
+translate 8.00 0 0
 
 [UNIVERSE][HOLE pair_36]
 fill inner
-translate 72 0 0
+translate 8.80 0 0
 
 [UNIVERSE][HOLE pair_37]
 fill inner
-translate 74 0 0
+translate 9.60 0 0
 
 [UNIVERSE][HOLE pair_38]
 fill inner
-translate 76 0 0
+translate 10.40 0 0
 
 [UNIVERSE][HOLE pair_39]
 fill inner
-translate 78 0 0
+translate 11.20 0 0
 
 [UNIVERSE][HOLE pair_40]
 fill inner
-translate 80 0 0
+translate 12.00 0 0
 
 [UNIVERSE][HOLE pair_41]
 fill inner
-translate 82 0 0
+translate 12.80 0 0
 
 [UNIVERSE][HOLE pair_42]
 fill inner
-translate 84 0 0
+translate 13.60 0 0
 
 [UNIVERSE][HOLE pair_43]
 fill inner
-translate 86 0 0
+translate 14.40 0 0
 
 [UNIVERSE][HOLE pair_44]
 fill inner
-translate 88 0 0
+translate 15.20 0 0
 
 [UNIVERSE][HOLE pair_45]
 fill inner
-translate 90 0 0
+translate 16.00 0 0
 
 [UNIVERSE][HOLE pair_46]
 fill inner
-translate 92 0 0
+translate 16.80 0 0
 
 [UNIVERSE][HOLE pair_47]
 fill inner
-translate 94 0 0
+translate 17.60 0 0
 
 [UNIVERSE][HOLE pair_48]
 fill inner
-translate 96 0 0
+translate 18.40 0 0
 
 [UNIVERSE][HOLE pair_49]
 fill inner
-translate 98 0 0
+translate 19.20 0 0

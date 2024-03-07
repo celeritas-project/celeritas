@@ -98,7 +98,7 @@ class HexArrayTest : public OrangeTest
 #define TestEM3Test TEST_IF_CELERITAS_JSON(TestEM3Test)
 class TestEM3Test : public OrangeTest
 {
-    void SetUp() override { this->build_geometry("testem3test.org.json"); }
+    void SetUp() override { this->build_geometry("testem3.org.json"); }
 };
 
 #define ShiftTrackerTest TEST_IF_CELERITAS_JSON(ShiftTrackerTest)
@@ -967,15 +967,6 @@ TEST_F(UniversesTest, reentrant)
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -4, 0.7}), geo.pos());
 }
 
-TEST_F(UniversesTest, safety_distance)
-{
-    auto geo = this->make_track_view();
-
-    // Initialize in innermost universe
-    geo = Initializer_t{{1.25, -3.7, 0.7}, {0, 1, 0}};
-    EXPECT_SOFT_EQ(0.25, geo.find_safety());
-}
-
 TEST_F(RectArrayTest, params)
 {
     OrangeParams const& geo = this->params();
@@ -1134,11 +1125,13 @@ TEST_F(HexArrayTest, track_out)
 // Change direction on a universe boundary to reenter the cell
 TEST_F(TestEM3Test, safety)
 {
+    EXPECT_TRUE(this->params().supports_safety());
+
     auto geo = this->make_track_view();
 
     // Initialize in innermost universe
-    geo = Initializer_t{{0.19, 8.5, 10.5}, {0, 1, 0}};
-    EXPECT_SOFT_EQ(0.19, geo.find_safety());
+    geo = Initializer_t{{19.99, 19.9, 19.9}, {0, 1, 0}};
+    EXPECT_SOFT_EQ(0.01, geo.find_safety());
 }
 
 TEST_F(ShiftTrackerTest, host)

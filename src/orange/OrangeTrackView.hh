@@ -934,7 +934,7 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety()
         auto sd = visit_tracker(
             [&lsa](auto&& t) { return t.safety(lsa.pos(), lsa.vol()); },
             lsa.universe());
-        min_safety_dist = std::min(min_safety_dist, sd);
+        min_safety_dist = celeritas::min(min_safety_dist, sd);
     }
     return min_safety_dist;
 }
