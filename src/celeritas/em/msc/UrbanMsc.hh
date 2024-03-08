@@ -145,6 +145,7 @@ CELER_FUNCTION void UrbanMsc::limit_step(CoreTrackView const& track)
                                                         sim.step_length());
             return calc_limit(rng);
         }
+
         // Calculate step limit using "safety" or "safety plus" algorithm
         detail::UrbanMscSafetyStepLimit calc_limit(msc_params_,
                                                    msc_helper,
@@ -155,6 +156,7 @@ CELER_FUNCTION void UrbanMsc::limit_step(CoreTrackView const& track)
                                                    safety,
                                                    sim.step_length());
         return calc_limit(rng);
+
         // TODO: "distance to boundary" step limit algorithm
     }();
     CELER_ASSERT(true_path <= sim.step_length());
