@@ -108,6 +108,16 @@ Cone::Cone(Real2 const& radii, real_type halfheight)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether this encloses another cone.
+ */
+bool Cone::encloses(Cone const& other) const
+{
+    return radii_[0] >= other.radii_[0] && radii_[1] >= other.radii_[1]
+           && hh_ >= other.hh_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Build surfaces.
  *
  * The inner bounding box of a cone is determined with the following procedure:
@@ -201,6 +211,15 @@ Cylinder::Cylinder(real_type radius, real_type halfheight)
 {
     CELER_VALIDATE(radius_ > 0, << "nonpositive radius: " << radius_);
     CELER_VALIDATE(hh_ > 0, << "nonpositive half-height: " << hh_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether this encloses another cylinder.
+ */
+bool Cylinder::encloses(Cylinder const& other) const
+{
+    return radius_ >= other.radius_ && hh_ >= other.hh_;
 }
 
 //---------------------------------------------------------------------------//

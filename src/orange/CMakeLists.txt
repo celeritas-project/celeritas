@@ -32,6 +32,7 @@ list(APPEND SOURCES
   orangeinp/CsgTypes.cc
   orangeinp/CsgTreeUtils.cc
   orangeinp/Shape.cc
+  orangeinp/Solid.cc
   orangeinp/Transformed.cc
   orangeinp/detail/BoundingZone.cc
   orangeinp/detail/BuildConvexRegion.cc

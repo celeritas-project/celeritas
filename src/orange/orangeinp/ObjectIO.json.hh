@@ -22,7 +22,10 @@ template<OperatorToken Op>
 class JoinObjects;
 class NegatedObject;
 class ShapeBase;
+class SolidBase;
 class Transformed;
+
+class SolidEnclosedAngle;
 
 class ConvexRegionInterface;
 class Box;
@@ -43,7 +46,11 @@ template<OperatorToken Op>
 void to_json(nlohmann::json& j, JoinObjects<Op> const& sb);
 void to_json(nlohmann::json& j, NegatedObject const& sb);
 void to_json(nlohmann::json& j, ShapeBase const& sb);
+void to_json(nlohmann::json& j, SolidBase const& sb);
 void to_json(nlohmann::json& j, Transformed const& sb);
+
+// Write helper classes to JSON
+void to_json(nlohmann::json& j, SolidEnclosedAngle const& sea);
 
 // Write convex regions to JSON
 void to_json(nlohmann::json& j, ConvexRegionInterface const& cr);

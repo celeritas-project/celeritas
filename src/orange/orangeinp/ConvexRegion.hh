@@ -111,11 +111,18 @@ class Cone final : public ConvexRegionInterface
     // Construct with Z half-height and lo, hi radii
     Cone(Real2 const& radii, real_type halfheight);
 
+    //// INTERFACE ////
+
     // Build surfaces
     void build(ConvexSurfaceBuilder&) const final;
 
     // Output to JSON
     void output(JsonPimpl*) const final;
+
+    //// TEMPLATE INTERFACE ////
+
+    // Whether this encloses another cone
+    bool encloses(Cone const& other) const;
 
     //// ACCESSORS ////
 
@@ -145,6 +152,11 @@ class Cylinder final : public ConvexRegionInterface
 
     // Output to JSON
     void output(JsonPimpl*) const final;
+
+    //// TEMPLATE INTERFACE ////
+
+    // Whether this encloses another cylinder
+    bool encloses(Cylinder const& other) const;
 
     //// ACCESSORS ////
 

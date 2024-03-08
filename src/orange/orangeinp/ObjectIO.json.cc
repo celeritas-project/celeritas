@@ -17,6 +17,7 @@
 #include "CsgObject.hh"
 #include "ObjectInterface.hh"
 #include "Shape.hh"
+#include "Solid.hh"
 #include "Transformed.hh"
 
 #define SIO_ATTR_PAIR(OBJ, ATTR) \
@@ -122,6 +123,21 @@ void to_json(nlohmann::json& j, ShapeBase const& obj)
          SIO_ATTR_PAIR(obj, interior)};
 }
 
+void to_json(nlohmann::json& j, SolidBase const& obj)
+{
+    j = {{"_type", "solid"},
+         SIO_ATTR_PAIR(obj, label),
+         SIO_ATTR_PAIR(obj, interior)};
+    if (auto* cr = obj.excluded())
+    {
+        j["excluded"] = *cr;
+    }
+    if (auto sea = obj.enclosed_angle())
+    {
+        j["enclosed_angle"] = sea;
+    }
+}
+
 void to_json(nlohmann::json& j, Transformed const& obj)
 {
     j = {{"_type", "transformed"},
@@ -130,6 +146,14 @@ void to_json(nlohmann::json& j, Transformed const& obj)
          SIO_ATTR_PAIR(obj, transform)};
 }
 //!@}
+
+//---------------------------------------------------------------------------//
+//!@{
+//! Write helper classes to JSON
+void to_json(nlohmann::json& j, SolidEnclosedAngle const& sea)
+{
+    j = {{"start", sea.start().value()}, {"interior", sea.interior().value()}};
+}
 
 //---------------------------------------------------------------------------//
 //!@{
