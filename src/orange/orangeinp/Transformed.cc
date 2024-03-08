@@ -23,18 +23,11 @@ namespace orangeinp
 //---------------------------------------------------------------------------//
 /*!
  * Construct with daughter object and transform.
- *
- * The input transform should *not* be "no transform" because that would be
- * silly.
- *
- * TODO: require that the input is simplified as well?
  */
 Transformed::Transformed(SPConstObject obj, VariantTransform&& transform)
     : obj_{std::move(obj)}, transform_{std::move(transform)}
 {
     CELER_EXPECT(obj_);
-    CELER_EXPECT(!transform_.valueless_by_exception());
-    CELER_EXPECT(!std::holds_alternative<NoTransformation>(transform_));
 }
 
 //---------------------------------------------------------------------------//
