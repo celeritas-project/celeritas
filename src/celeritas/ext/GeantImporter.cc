@@ -192,6 +192,52 @@ struct MatPropGetter
 };
 
 //---------------------------------------------------------------------------//
+//! Populate an ImportScintComponent.
+//! Empty particle name is be used to retrieve material-only component data.
+std::vector<ImportScintComponent>
+fill_vec_import_scint_comp(MatPropGetter& get_property,
+                           std::string particle_name = "")
+{
+    std::vector<ImportScintComponent> components;
+    for (int comp_idx : range(1, 4))
+    {
+        ImportScintComponent comp;
+        get_property.scalar(&comp.yield,
+                            particle_name + "SCINTILLATIONYIELD",
+                            comp_idx,
+                            ImportUnits::inv_mev);
+
+        // Custom-defined properties not available in G4MaterialPropertyIndex
+        {
+            get_property.scalar(&comp.lambda_mean,
+                                particle_name + "SCINTILLATIONLAMBDAMEAN",
+                                comp_idx,
+                                ImportUnits::len);
+            get_property.scalar(&comp.lambda_sigma,
+                                particle_name + "SCINTILLATIONLAMBDASIGMA",
+                                comp_idx,
+                                ImportUnits::len);
+        }
+
+        // Rise time is not defined for particle type in Geant4
+        get_property.scalar(&comp.rise_time,
+                            particle_name + "SCINTILLATIONRISETIME",
+                            comp_idx,
+                            ImportUnits::time);
+
+        get_property.scalar(&comp.fall_time,
+                            particle_name + "SCINTILLATIONTIMECONSTANT",
+                            comp_idx,
+                            ImportUnits::time);
+        if (comp)
+        {
+            components.push_back(std::move(comp));
+        }
+    }
+    return components;
+}
+
+//---------------------------------------------------------------------------//
 /*!
  * Safely switch from G4State [G4Material.hh] to ImportMaterialState.
  */
@@ -345,7 +391,8 @@ std::vector<ImportElement> import_elements()
         // Despite the function name, this is *NOT* a vector, it's an array
         double* const g4rel_abundance = g4element->GetRelativeAbundanceVector();
 
-        double total_el_abundance_fraction = 0;  // Verify that the sum is ~1
+        double total_el_abundance_fraction = 0;  // Verify that the sum is
+                                                 // ~1
         for (auto idx : range(g4element->GetNumberOfIsotopes()))
         {
             ImportElement::IsotopeFrac key;
@@ -381,16 +428,16 @@ ImportData::ImportOpticalMap import_optical()
     auto num_materials = pct.GetTableSize();
     CELER_ASSERT(num_materials > 0);
 
-    ImportData::ImportOpticalMap result;
-
-    // Particles in G4MaterialConstPropertyIndex to be looped over
-    std::map<std::string, PDGNumber> scint_per_particle_map
+    // Particles defined in G4MaterialConstPropertyIndex to be looped over
+    std::map<std::string, PDGNumber> g4_scint_particle_map
         = {{"PROTON", pdg::proton()},
            {"DEUTERON", pdg::deuteron()},
            {"TRITON", pdg::triton()},
            {"ALPHA", pdg::alpha()},
            {"ION", pdg::ion()},
            {"ELECTRON", pdg::electron()}};
+
+    ImportData::ImportOpticalMap result;
 
     // Loop over optical materials
     for (auto mat_idx : range(num_materials))
@@ -416,101 +463,52 @@ ImportData::ImportOpticalMap import_optical()
                             "RINDEX",
                             ImportUnits::unitless);
 
-        // Save scintillation properties
-        get_property.scalar(&optical.scintillation.resolution_scale,
+        //// Save scintillation properties ////
+
+        // Material scintillation properties
+        get_property.scalar(&optical.scintillation.material.yield,
+                            "SCINTILLATIONYIELD",
+                            ImportUnits::inv_mev);
+        get_property.scalar(&optical.scintillation.material.resolution_scale,
                             "RESOLUTIONSCALE",
                             ImportUnits::unitless);
-        get_property.scalar(&optical.scintillation.yield,
-                            "SCINTILLATIONYIELD",
-                            ImportUnits::unitless);
+        optical.scintillation.material.components
+            = fill_vec_import_scint_comp(get_property);
 
-        // Scintillation yield per particle type
-        for (auto iter : scint_per_particle_map)
+        // Particle scintillation properties
+        for (auto const iter : g4_scint_particle_map)
         {
-            auto const pdg_int = iter.second.unchecked_get();
-            std::string part_yield_name = iter.first + "SCINTILLATIONYIELD";
+            std::string particle_name = iter.first;
 
-            double p_yield = 0;
-            get_property.scalar(
-                &p_yield, part_yield_name, ImportUnits::unitless);
-
-            if (p_yield > 0)
-            {
-                // Particle yield is available. Add array to map and insert
-                // first yield value
-                optical.scintillation.particle_yields.insert({pdg_int, {}});
-                optical.scintillation.particle_yields[pdg_int][0] = p_yield;
-            }
+            ImportScintSpectrum::ISPC scint_part_spec;
+            get_property.vector(&scint_part_spec.yield_vector,
+                                particle_name + "SCINTILLATIONYIELD",
+                                ImportUnits::inv_mev);
+            scint_part_spec.components
+                = fill_vec_import_scint_comp(get_property, particle_name);
         }
 
-        for (int comp_idx : range(1, 4))
+        // Save Rayleigh properties
+        get_property.vector(
+            &optical.rayleigh.mfp, "RAYLEIGH", ImportUnits::len);
+        get_property.scalar(&optical.rayleigh.scale_factor,
+                            "RS_SCALE_FACTOR",
+                            ImportUnits::unitless);
+        get_property.scalar(&optical.rayleigh.compressibility,
+                            "ISOTHERMAL_COMPRESSIBILITY",
+                            ImportUnits::len_time_sq_per_mass);
+
+        // Save absorption properties
+        get_property.vector(&optical.absorption.absorption_length,
+                            "ABSLENGTH",
+                            ImportUnits::len);
+
+        if (optical)
         {
-            ImportScintComponent comp;
-            get_property.scalar(&comp.yield,
-                                "SCINTILLATIONYIELD",
-                                comp_idx,
-                                ImportUnits::unitless);
-            get_property.scalar(&comp.lambda_mean,
-                                "SCINTILLATIONLAMBDAMEAN",
-                                comp_idx,
-                                ImportUnits::len);
-            get_property.scalar(&comp.lambda_sigma,
-                                "SCINTILLATIONLAMBDASIGMA",
-                                comp_idx,
-                                ImportUnits::len);
-            get_property.scalar(&comp.rise_time,
-                                "SCINTILLATIONRISETIME",
-                                comp_idx,
-                                ImportUnits::time);
-            get_property.scalar(&comp.fall_time,
-                                "SCINTILLATIONTIMECONSTANT",
-                                comp_idx,
-                                ImportUnits::time);
-            if (comp)
-            {
-                optical.scintillation.components.push_back(comp);
-            }
-
-            // Scintillation yield per particle type for channels [1..3]
-            for (auto iter : scint_per_particle_map)
-            {
-                std::string part_yield_name = iter.first + "SCINTILLATIONYIELD";
-                double channel_yield;
-                get_property.scalar(&channel_yield,
-                                    part_yield_name,
-                                    comp_idx,
-                                    ImportUnits::unitless);
-
-                if (channel_yield > 0)
-                {
-                    // Channel yield available, add it to the array
-                    optical.scintillation
-                        .particle_yields[iter.second.unchecked_get()][comp_idx]
-                        = channel_yield;
-                }
-            }
-
-            // Save Rayleigh properties
-            get_property.vector(
-                &optical.rayleigh.mfp, "RAYLEIGH", ImportUnits::len);
-            get_property.scalar(&optical.rayleigh.scale_factor,
-                                "RS_SCALE_FACTOR",
-                                ImportUnits::unitless);
-            get_property.scalar(&optical.rayleigh.compressibility,
-                                "ISOTHERMAL_COMPRESSIBILITY",
-                                ImportUnits::len_time_sq_per_mass);
-
-            // Save absorption properties
-            get_property.vector(&optical.absorption.absorption_length,
-                                "ABSLENGTH",
-                                ImportUnits::len);
-
-            if (optical)
-            {
-                result[mat_idx] = optical;
-            }
+            result[mat_idx] = optical;
         }
     }
+    // TODO UPDATE TO: loaded X particles and Y materials
     CELER_LOG(debug) << "Loaded " << result.size() << " optical materials";
     return result;
 }
