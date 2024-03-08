@@ -17,16 +17,20 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Store material-dependent properties for scintillation spectrum.
+ * Store basic properties for different scintillation component types.
+ *
+ * Fast/intermediate/slow/etc scintillation components can be used for both
+ * particle- and material-dependent spectra, as well as material-only spectra.
  */
 struct ImportScintComponent
 {
-    double yield{};  //!< Yield for this component [1/MeV] ?
+    double yield{};  //!< Yield for this material component [1/MeV]
     double lambda_mean{};  //!< Mean wavelength [len]
     double lambda_sigma{};  //!< Standard deviation of wavelength
     double rise_time{};  //!< Rise time [time]
     double fall_time{};  //!< Decay time [time]
 
+    //! Whether all data are assigned and valid
     explicit operator bool() const
     {
         return yield > 0 && lambda_mean > 0 && lambda_sigma > 0
@@ -36,30 +40,59 @@ struct ImportScintComponent
 
 //---------------------------------------------------------------------------//
 /*!
- * Store optical material properties for scintillation.
- *
- * In Geant4, yield is the only quantity stored by particle type (see
- * G4MaterialPropertiesIndex.hh). The yield is stored in array for each
- * particle type, where the array index is:
- *
- * YieldArray[0] is the yield for k[Particle]Scintillation
- * YieldArray[1..3] is the yield for k[Particle]Scintillation[1..3]
+ * Store material-only scintillation spectrum information.
  */
-struct ImportScintSpectrum
+struct ImportScintMaterialSpectrum
 {
-    using PDGint = int;
-    using VecImpScintComponent = std::vector<ImportScintComponent>;
-    using YieldArray = std::array<double, 4>;
-
-    double yield{};  //!< Characteristic light yield of the material [1/MeV]
+    double yield{};  //!< Characteristic light yields of the material [1/MeV]
     double resolution_scale{};  //!< Scales the stdev of photon distribution
-    VecImpScintComponent components;
-    std::map<PDGint, YieldArray> particle_yields;
+    std::vector<ImportScintComponent> components;  //!< Fast/slow components
 
+    //! Whether all data are assigned and valid
     explicit operator bool() const
     {
         return yield > 0 && resolution_scale >= 0 && !components.empty();
     }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Store per-particle material spectrum information.
+ *
+ * Components may not be assigned and thus can be empty, since they are the
+ * equivalent of \c k[Particle]ScintillationYield[i] in Geant4.
+ */
+struct ImportScintParticleSpectrum
+{
+    ImportPhysicsVector yield_vector;  //!< Particle yield vector
+    std::vector<ImportScintComponent> components;  //!< Fast/slow components
+
+    //! Whether all data are assigned and valid
+    explicit operator bool() const
+    {
+        return yield_vector
+               && yield_vector.vector_type == ImportPhysicsVectorType::free;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Store optical properties for scintillation for both particles and materials.
+ *
+ * The fast/slow/etc scintillation components are mapped by particle type.
+ * material-inclusive components (i.e. no particle-dependent) are mapped with a
+ * PDG = 0 (undefined).
+ */
+struct ImportScintSpectrum
+{
+    using PDGint = int;
+    using VecISC = std::vector<ImportScintComponent>;
+
+    ImportScintMaterialSpectrum material;  //!< Material scintillation data
+    std::map<PDGint, VecISC> particles;  //!< Particle scintillation data
+
+    //! Whether all data are assigned and valid
+    explicit operator bool() const { return static_cast<bool>(material); }
 };
 
 //---------------------------------------------------------------------------//
@@ -75,6 +108,7 @@ struct ImportOpticalRayleigh
     double compressibility{};  //!< Isothermal compressibility
     ImportPhysicsVector mfp;  //!< Rayleigh mean free path
 
+    //! Whether all data are assigned and valid
     explicit operator bool() const
     {
         return scale_factor >= 0
@@ -90,6 +124,7 @@ struct ImportOpticalAbsorption
 {
     ImportPhysicsVector absorption_length;
 
+    //! Whether all data are assigned and valid
     explicit operator bool() const
     {
         return static_cast<bool>(absorption_length);
@@ -104,6 +139,7 @@ struct ImportOpticalProperty
 {
     ImportPhysicsVector refractive_index;
 
+    //! Whether all data are assigned and valid
     explicit operator bool() const
     {
         return static_cast<bool>(refractive_index);
@@ -121,6 +157,7 @@ struct ImportOpticalMaterial
     ImportOpticalAbsorption absorption;
     ImportOpticalProperty properties;
 
+    //! Whether all data are assigned and valid
     explicit operator bool() const
     {
         return static_cast<bool>(scintillation) || static_cast<bool>(rayleigh)
