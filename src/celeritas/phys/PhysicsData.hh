@@ -18,6 +18,7 @@
 #include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/grid/ValueGridData.hh"
 #include "celeritas/grid/XsGridData.hh"
+#include "celeritas/neutron/data/NeutronElasticData.hh"
 
 #include "Interaction.hh"
 #include "Secondary.hh"
@@ -173,6 +174,11 @@ struct HardwiredModels
     ModelId eplusgg;
     EPlusGGData eplusgg_data;
 
+    // Neutron elastic
+    ProcessId neutron_elastic;
+    ModelId chips;
+    NeutronElasticData<W, M> chips_data;
+
     //// MEMBER FUNCTIONS ////
 
     //! Assign from another set of hardwired models
@@ -192,6 +198,14 @@ struct HardwiredModels
         positron_annihilation = other.positron_annihilation;
         eplusgg = other.eplusgg;
         eplusgg_data = other.eplusgg_data;
+
+        neutron_elastic = other.neutron_elastic;
+        if (neutron_elastic)
+        {
+            // Only assign neutron_elastic data if that process is present
+            chips = other.chips;
+            chips_data = other.chips_data;
+        }
 
         return *this;
     }
