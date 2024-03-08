@@ -439,7 +439,7 @@ CELER_FUNCTION bool OrangeTrackView::is_outside() const
     // Zeroth volume in outermost universe is always the exterior by
     // construction in ORANGE
     auto lsa = this->make_lsa(LevelId{0});
-    return lsa.vol() == LocalVolumeId{0};
+    return lsa.vol() == local_orange_outside_volume;
 }
 
 //---------------------------------------------------------------------------//
@@ -705,7 +705,7 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
 
         TrackerVisitor visit_tracker{params_};
         auto normal = visit_tracker(
-            [pos = this->pos(), local_surface = this->surf()](auto&& t) {
+            [pos = lsa.pos(), local_surface = this->surf()](auto&& t) {
                 return t.normal(pos, local_surface);
             },
             lsa.universe());
