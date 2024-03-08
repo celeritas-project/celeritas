@@ -36,9 +36,6 @@ namespace detail
  * These are stored in a way so that they can be remapped and/or optimized
  * further before committing them to the constructed GPU data.
  *
- * The "exterior" is optional *only* in the degenerate case of an infinite
- * global universe (TODO: prohibit this??)
- *
  * All bounding boxes and transforms are "local" within the CSG unit's
  * reference frame, not relative to any other CSG node nor to any parent
  * universe. (TODO: add bounds and transforms only for finite regions)
@@ -81,7 +78,6 @@ struct CsgUnit
     //! Vectors are indexed by LocalVolumeId.
     std::vector<NodeId> volumes;  //!< CSG node of each volume
     std::vector<Fill> fills;  //!< Content of each volume
-    NodeId exterior;
     //!@}
 
     //!@{
@@ -128,8 +124,7 @@ bool CsgUnit::empty() const
 {
     return this->surfaces.empty() && this->metadata.empty()
            && this->regions.empty() && this->volumes.empty()
-           && this->fills.empty() && !this->exterior
-           && this->transforms.empty();
+           && this->fills.empty() && this->transforms.empty();
 }
 
 //---------------------------------------------------------------------------//

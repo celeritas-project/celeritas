@@ -162,20 +162,6 @@ void CsgUnitBuilder::fill_volume(LocalVolumeId v, UniverseId u)
 
 //---------------------------------------------------------------------------//
 /*!
- * Set an exterior node.
- *
- * This should be called only once (but this could be relaxed if needed).
- */
-void CsgUnitBuilder::set_exterior(NodeId n)
-{
-    CELER_EXPECT(n < unit_->tree.size());
-    CELER_EXPECT(!unit_->exterior);
-
-    unit_->exterior = n;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get a variant surface from a node ID.
  */
 VariantSurface const& CsgUnitBuilder::get_surface_impl(NodeId nid) const

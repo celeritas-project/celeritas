@@ -290,12 +290,6 @@ if (CELERITAS_USE_JSON)
     EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
 }
 )cpp"
-              << "EXPECT_EQ(NodeId{";
-    if (u.exterior)
-    {
-        std::cout << u.exterior.unchecked_get();
-    }
-    std::cout << "}, u.exterior);\n"
               << "/*************************/\n"
               << std::endl;
 }
