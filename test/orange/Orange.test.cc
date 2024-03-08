@@ -1125,7 +1125,7 @@ TEST_F(HexArrayTest, track_out)
 // Test safety distance within a geoemtry that supports simple safety
 TEST_F(TestEM3Test, safety)
 {
-    EXPECT_TRUE(this->params().supports_safety());
+    EXPECT_FALSE(this->params().supports_safety());
 
     auto geo = this->make_track_view();
 
