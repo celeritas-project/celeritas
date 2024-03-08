@@ -24,12 +24,20 @@ namespace orangeinp
 /*!
  * Define the angular region of a solid.
  *
- * This angle is a cross section perpendicular to the z axis, with a start
- * angle of zero corresponding to the positive x axis. An interior angle of one
+ * This is a pie slice infinite along the z axis and outward from it. Its cross
+ * section is in the \em x-y plane, and a start
+ * angle of zero corresponding to the \em +x axis. An interior angle of one
  * results in no radial excluded in the resulting solid. A interior angle of
  * more than 0.5 turns (180 degrees) results in a wedge being subtracted from
- * the solid, and an angle of less than or equal to 0.5 turns results in a
- * solid
+ * the solid, and an angle of less than or equal to 0.5 turns results in the
+ * intersection of the solid with a wedge.
+ *
+ * \code
+  // Truncates a solid to the east-facing quadrant:
+  SolidEnclosedAngle{Turn{-0.125}, Turn{0.25}};
+  // Removes the second quadrant (northwest) from a solid:
+  SolidEnclosedAngle{Turn{0.50}, Turn{0.75}};
+  \endcode
  */
 class SolidEnclosedAngle
 {
@@ -66,6 +74,9 @@ class SolidEnclosedAngle
 //---------------------------------------------------------------------------//
 /*!
  * A hollow shape with an optional start and end angle.
+ *
+ * Solids are a shape with (optionally) the same *kind* of shape subtracted
+ * from it, and (optionally) an azimuthal section removed from it.
  */
 class SolidBase : public ObjectInterface
 {
@@ -79,11 +90,11 @@ class SolidBase : public ObjectInterface
     //! Interior convex region interface for construction and access
     virtual ConvexRegionInterface const& interior() const = 0;
 
-    //! Optional excluded
+    //! Optional excluded region
     virtual ConvexRegionInterface const* excluded() const = 0;
 
     //! Angular restriction to add
-    virtual SolidEnclosedAngle const& enclosed_angle() const = 0;
+    virtual SolidEnclosedAngle enclosed_angle() const = 0;
 
   protected:
     //!@{
@@ -98,11 +109,14 @@ class SolidBase : public ObjectInterface
 /*!
  * A shape that is hollow, is truncated azimuthally, or both.
  *
- * Construct as \code
- *  Solid s{"cone", Cone{{1, 2}, 10.0}, Cone{{0.9, 1.9}, 10.0}};
- *  Solid s{"cone", Cone{{1, 2}, 10.0}, Cone{{0.9, 1.9}, 10.0},
- *          {Turn{0.125}, Turn{0.75}};
- *  Solid s{"cone", Cone{{1, 2}, 10.0}, {Turn{-0.125}, Turn{0.25}};
+ * Examples: \code
+   // A cone with a thickness of 0.1
+   Solid s{"cone", Cone{{1, 2}, 10.0}, Cone{{0.9, 1.9}, 10.0}};
+   // A cylinder segment in z={-2.5, 2.5}, r={0.5, 0.75}, theta={-45, 45} deg
+   Solid s{"cyl", Cylinder{0.75, 5.0}, Cylinder{0.5, 5.0},
+           {Turn{0}, Turn{0.25}};
+   // The east-facing quarter of a cone shape
+   Solid s{"cone", Cone{{1, 2}, 10.0}, {Turn{-0.125}, Turn{0.25}};
  * \endcode
  */
 template<class T>
@@ -132,11 +146,8 @@ class Solid final : public SolidBase
     // Optional excluded
     ConvexRegionInterface const* excluded() const final;
 
-    //! Angular restriction to add
-    SolidEnclosedAngle const& enclosed_angle() const final
-    {
-        return enclosed_;
-    }
+    //! Optional angular restriction
+    SolidEnclosedAngle enclosed_angle() const final { return enclosed_; }
 
   private:
     std::string label_;

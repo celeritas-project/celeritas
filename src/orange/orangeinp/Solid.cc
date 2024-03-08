@@ -83,7 +83,8 @@ NodeId SolidBase::build(VolumeBuilder& vb) const
 
     if (auto const& sea = this->enclosed_angle())
     {
-        // Construct a wedge to be added or deleted
+        // The enclosed angle is "true" (specified by the user to truncate the
+        // shape azimuthally): construct a wedge to be added or deleted
         auto&& [sense, wedge] = sea.make_wedge();
         NodeId wedge_id = build_convex_region(
             vb, std::string{this->label()}, "angle", wedge);

@@ -42,7 +42,8 @@ Shape
    boxes. Shapes should be as simple as possible, aligned along and centered on
    the Z axis.
 Solid
-   NOT YET IMPLEMENTED: a shape that's hollowed out and/or has a slice removed.
+   A shape that's hollowed out and/or has a slice removed. It is equivalent to
+   a CSG operation on two shapes of the same type and an azimuthal wedge.
 ExtrudedSolid
    NOT YET IMPLEMENTED: a union of transformed solids along the Z axis, which
    can also be hollowed and sliced.
@@ -56,6 +57,8 @@ Objects are typically constructed and used as shared pointers so that they can
 be reused in multiple locations.
 
 .. doxygenclass:: celeritas::orangeinp::Shape
+
+.. doxygenclass:: celeritas::orangeinp::Solid
 
 .. doxygenclass:: celeritas::orangeinp::Transformed
 
@@ -130,7 +133,7 @@ this construction process are:
 - Simplifying and normalizing surfaces (e.g., ensuring planes are pointing in a
   "positive" direction and converting arbitrary planes to axis-aligned planes)
 - Deduplicating "close" surfaces to eliminate boundary crossing errors
-- Naming constructed surfaces based on the constructing surface and a FaceNamer
+- Naming constructed surfaces based on the constructing surface type
 - Constructing bounding boxes using the original and simplified surfaces, as
   well as additional specifications from the convex regions
 - Adding surfaces as leaf nodes to the CSG tree, and defining additional nodes
