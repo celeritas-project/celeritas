@@ -25,6 +25,11 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // PARAMS
 //---------------------------------------------------------------------------//
+
+// VolumeId of exterior volume for all universe types
+static inline constexpr LocalVolumeId local_orange_outside_volume{0};
+
+//---------------------------------------------------------------------------//
 /*!
  * Scalar values particular to an ORANGE geometry instance.
  */

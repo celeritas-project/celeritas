@@ -151,9 +151,14 @@ OrangeParams::OrangeParams(OrangeInput input)
         vol_labels_ = LabelIdMultiMap<VolumeId>{std::move(volume_labels)};
     }
 
-    // Safety currently only works for the single-universe case
-    supports_safety_ = host_data.simple_units.size() == 1
-                       && host_data.simple_units[SimpleUnitId{0}].simple_safety;
+    // Simple safety if all SimpleUnits have simple safety and no RectArrays
+    // are present
+    supports_safety_
+        = std::all_of(
+              host_data.simple_units[AllItems<SimpleUnitRecord>()].begin(),
+              host_data.simple_units[AllItems<SimpleUnitRecord>()].end(),
+              [](SimpleUnitRecord const& su) { return su.simple_safety; })
+          && host_data.rect_arrays.empty();
 
     CELER_VALIDATE(std::holds_alternative<UnitInput>(input.universes.front()),
                    << "global universe is not a SimpleUnit");
