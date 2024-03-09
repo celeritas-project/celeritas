@@ -89,7 +89,7 @@ NeutronXsReader::operator()(AtomicNumber atomic_number) const
             // Convert to the celeritas native length 1/[len^2] from
             // clhep::mm^2 as stored in G4PARTICLEXS/neutron/el data
             infile >> result.x[i] >> input_xs.value();
-            result.y[i] = native_value_from(input_xs);
+            result.y[i] = native_value_from(input_xs) / units::barn;
         }
     }
 
