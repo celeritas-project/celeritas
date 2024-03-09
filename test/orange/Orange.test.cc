@@ -1122,7 +1122,7 @@ TEST_F(HexArrayTest, track_out)
     EXPECT_VEC_CLOSE(d2b, refd2b, real_type(1e-5), real_type(1e-5));
 }
 
-// Test safety distance within a geoemtry that supports simple safety
+// Test safety distance within a geometry that supports simple safety
 TEST_F(TestEM3Test, safety)
 {
     EXPECT_FALSE(this->params().supports_safety());
@@ -1133,7 +1133,7 @@ TEST_F(TestEM3Test, safety)
     geo = Initializer_t{{19.99, 19.9, 19.9}, {0, 1, 0}};
     EXPECT_SOFT_EQ(0.01, geo.find_safety());
 
-    // Initialize on the otherside side the same volume
+    // Initialize on the other side of the same volume
     geo = Initializer_t{{19.42, 19.9, 19.9}, {0, 1, 0}};
     EXPECT_SOFT_EQ(0.01, geo.find_safety());
 }

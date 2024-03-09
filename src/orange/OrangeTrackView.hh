@@ -918,7 +918,7 @@ OrangeTrackView::find_next_step_impl(detail::Intersection isect)
  *
  * The safety distance at a given point is the minimum safety distance over all
  * levels, since surface deduplication can potentionally elide bounding
- * surfaces at more deeply embeded levels.
+ * surfaces at more deeply embedded levels.
  */
 CELER_FUNCTION real_type OrangeTrackView::find_safety()
 {
