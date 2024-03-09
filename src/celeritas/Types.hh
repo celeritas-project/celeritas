@@ -161,6 +161,17 @@ enum class TrackOrder
 };
 
 //---------------------------------------------------------------------------//
+//! Algorithm used to calculate the multiple scattering step limit
+enum class MscStepLimitAlgorithm
+{
+    minimal,
+    safety,
+    safety_plus,
+    distance_to_boundary,
+    size_,
+};
+
+//---------------------------------------------------------------------------//
 // HELPER STRUCTS
 //---------------------------------------------------------------------------//
 //! Step length and limiting action to take
@@ -195,6 +206,9 @@ char const* to_cstring(ActionOrder);
 
 // Get a string corresponding to a track ordering policy
 char const* to_cstring(TrackOrder);
+
+// Get a string corresponding to the MSC step limit algorithm
+char const* to_cstring(MscStepLimitAlgorithm value);
 
 // Checks that the TrackOrder will sort tracks by actions applied at the given
 // ActionOrder

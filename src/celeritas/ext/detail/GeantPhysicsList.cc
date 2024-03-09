@@ -49,6 +49,28 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Safely switch from MscStepLimitAlgorithm to G4MscStepLimitType.
+ */
+G4MscStepLimitType
+from_msc_step_algorithm(MscStepLimitAlgorithm const& msc_step_algorithm)
+{
+    switch (msc_step_algorithm)
+    {
+        case MscStepLimitAlgorithm::minimal:
+            return G4MscStepLimitType::fMinimal;
+        case MscStepLimitAlgorithm::safety:
+            return G4MscStepLimitType::fUseSafety;
+        case MscStepLimitAlgorithm::safety_plus:
+            return G4MscStepLimitType::fUseSafetyPlus;
+        case MscStepLimitAlgorithm::distance_to_boundary:
+            return G4MscStepLimitType::fUseDistanceToBoundary;
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct with physics options.
  */
 GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
@@ -72,6 +94,8 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
     em_parameters.SetAuger(options.relaxation == RelaxationSelection::all);
     em_parameters.SetIntegral(options.integral_approach);
     em_parameters.SetLinearLossLimit(options.linear_loss_limit);
+    em_parameters.SetMscStepLimitType(
+        from_msc_step_algorithm(options.msc_step_algorithm));
     em_parameters.SetMscRangeFactor(options.msc_range_factor);
 #if G4VERSION_NUMBER >= 1060
     // Customizable MSC safety factor/lambda limit were added in

@@ -17,17 +17,6 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//! Algorithm used to calculate the MSC step limit
-enum class MscStepLimitAlgorithm
-{
-    minimal,
-    safety,
-    safety_plus,
-    distance_to_boundary,
-    size_,
-};
-
-//---------------------------------------------------------------------------//
 /*!
  * Settable parameters and default values for Urban multiple scattering.
  *

@@ -48,6 +48,8 @@ class UrbanMscParams final : public ParamsDataInterface<UrbanMscData>
         real_type lambda_limit{1 * units::millimeter};  //!< Lambda limit
         real_type range_fact{0.04};  //!< Range factor for e-/e+
         real_type safety_fact{0.6};  //!< Safety factor
+        MscStepLimitAlgorithm step_limit_algorithm{
+            MscStepLimitAlgorithm::safety};
     };
 
   public:
