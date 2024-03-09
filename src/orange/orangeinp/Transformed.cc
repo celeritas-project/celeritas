@@ -24,8 +24,8 @@ namespace orangeinp
 /*!
  * Construct with daughter object and transform.
  */
-Transformed::Transformed(SPConstObject obj, VariantTransform&& transform)
-    : obj_{std::move(obj)}, transform_{std::move(transform)}
+Transformed::Transformed(SPConstObject obj, VariantTransform const& transform)
+    : obj_{std::move(obj)}, transform_{transform}
 {
     CELER_EXPECT(obj_);
 }
