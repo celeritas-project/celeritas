@@ -95,6 +95,12 @@ class HexArrayTest : public OrangeTest
     void SetUp() override { this->build_geometry("hex_array.org.json"); }
 };
 
+#define TestEM3Test TEST_IF_CELERITAS_JSON(TestEM3Test)
+class TestEM3Test : public OrangeTest
+{
+    void SetUp() override { this->build_geometry("testem3.org.json"); }
+};
+
 #define ShiftTrackerTest TEST_IF_CELERITAS_JSON(ShiftTrackerTest)
 class ShiftTrackerTest : public OrangeTest
 {
@@ -926,6 +932,41 @@ TEST_F(UniversesTest, cross_between_daughters)
     EXPECT_EQ("bob.mz", this->params().id_to_label(geo.surface_id()).name);
 }
 
+// Change direction on a universe boundary to reenter the cell
+TEST_F(UniversesTest, reentrant)
+{
+    auto geo = this->make_track_view();
+
+    // Initialize in innermost universe
+    geo = Initializer_t{{0.25, -3.7, 0.7}, {0, 1, 0}};
+    auto next = geo.find_next_step();
+    EXPECT_SOFT_EQ(0.2, next.distance);
+
+    // Move to universe boundary
+    geo.move_to_boundary();
+    EXPECT_EQ("inner_c.py", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("patty", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_VEC_SOFT_EQ(Real3({0.25, -3.5, 0.7}), geo.pos());
+
+    // Change direction on the universe boundary such that we are no longer
+    // exiting the universe
+    geo.set_dir({0, -1, 0});
+
+    // Remain in same cell after crossing boundary
+    geo.cross_boundary();
+    EXPECT_EQ("inner_c.py", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("patty", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_VEC_SOFT_EQ(Real3({0.25, -3.5, 0.7}), geo.pos());
+
+    // Make sure we can take another step after calling cross_boundary
+    next = geo.find_next_step();
+    EXPECT_SOFT_EQ(0.5, next.distance);
+    geo.move_to_boundary();
+    EXPECT_EQ("inner_a.my", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("patty", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_VEC_SOFT_EQ(Real3({0.25, -4, 0.7}), geo.pos());
+}
+
 TEST_F(RectArrayTest, params)
 {
     OrangeParams const& geo = this->params();
@@ -1079,6 +1120,22 @@ TEST_F(HexArrayTest, track_out)
 
     EXPECT_VEC_EQ(refids, vids);
     EXPECT_VEC_CLOSE(d2b, refd2b, real_type(1e-5), real_type(1e-5));
+}
+
+// Test safety distance within a geometry that supports simple safety
+TEST_F(TestEM3Test, safety)
+{
+    EXPECT_FALSE(this->params().supports_safety());
+
+    auto geo = this->make_track_view();
+
+    // Initialize in innermost universe, near the universe boundary
+    geo = Initializer_t{{19.99, 19.9, 19.9}, {0, 1, 0}};
+    EXPECT_SOFT_EQ(0.01, geo.find_safety());
+
+    // Initialize on the other side of the same volume
+    geo = Initializer_t{{19.42, 19.9, 19.9}, {0, 1, 0}};
+    EXPECT_SOFT_EQ(0.01, geo.find_safety());
 }
 
 TEST_F(ShiftTrackerTest, host)
