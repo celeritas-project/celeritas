@@ -32,8 +32,10 @@ list(APPEND SOURCES
   orangeinp/CsgTypes.cc
   orangeinp/CsgTreeUtils.cc
   orangeinp/Shape.cc
+  orangeinp/Solid.cc
   orangeinp/Transformed.cc
   orangeinp/detail/BoundingZone.cc
+  orangeinp/detail/BuildConvexRegion.cc
   orangeinp/detail/ConvexSurfaceState.cc
   orangeinp/detail/CsgUnitBuilder.cc
   orangeinp/detail/LocalSurfaceInserter.cc
@@ -58,6 +60,7 @@ list(APPEND SOURCES
   transform/SignedPermutation.cc
   transform/TransformHasher.cc
   transform/TransformIO.cc
+  transform/TransformSimplifier.cc
   transform/Transformation.cc
   transform/VariantTransform.cc
 )
@@ -67,6 +70,7 @@ if(CELERITAS_USE_JSON)
     OrangeInputIO.json.cc
     detail/OrangeInputIOImpl.json.cc
     orangeinp/CsgTreeIO.json.cc
+    orangeinp/ObjectIO.json.cc
   )
   list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()

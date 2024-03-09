@@ -19,6 +19,7 @@
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/mat/TabulatedElementSelector.hh"
+#include "celeritas/neutron/xs/NeutronElasticMacroXsCalculator.hh"
 
 #include "PhysicsData.hh"
 
@@ -416,6 +417,12 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
                 params_.hardwired.eplusgg_data, material);
             result = calc_xs(energy);
         }
+        else if (model_id == params_.hardwired.chips)
+        {
+            auto calc_xs = NeutronElasticMacroXsCalculator(
+                params_.hardwired.chips_data, material);
+            result = calc_xs(energy);
+        }
     }
     else if (auto grid_id = this->value_grid(ValueGridType::macro_xs, ppid))
     {
@@ -476,7 +483,8 @@ CELER_FUNCTION ModelId PhysicsTrackView::hardwired_model(ParticleProcessId ppid,
     ProcessId process = this->process(ppid);
     if ((process == params_.hardwired.photoelectric
          && energy < params_.hardwired.photoelectric_table_thresh)
-        || (process == params_.hardwired.positron_annihilation))
+        || (process == params_.hardwired.positron_annihilation)
+        || (process == params_.hardwired.neutron_elastic))
     {
         auto find_model = this->make_model_finder(ppid);
         return this->model_id(find_model(energy));

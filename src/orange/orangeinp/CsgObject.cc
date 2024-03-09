@@ -9,8 +9,14 @@
 
 #include <utility>
 
+#include "corecel/io/JsonPimpl.hh"
+
 #include "detail/CsgUnitBuilder.hh"
 #include "detail/VolumeBuilder.hh"
+
+#if CELERITAS_USE_JSON
+#    include "ObjectIO.json.hh"
+#endif
 
 namespace celeritas
 {
@@ -47,6 +53,15 @@ NodeId NegatedObject::build(VolumeBuilder& vb) const
     auto daughter_id = obj_->build(vb);
     // Add the new region (or anti-region)
     return vb.insert_region(Label{label_}, Negated{daughter_id});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Output to JSON.
+ */
+void NegatedObject::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -89,6 +104,16 @@ NodeId JoinObjects<Op>::build(VolumeBuilder& vb) const
 
     // Add the combined region
     return vb.insert_region(Label{label_}, Joined{op_token, std::move(nodes)});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Output to JSON.
+ */
+template<OperatorToken Op>
+void JoinObjects<Op>::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
 }
 
 //---------------------------------------------------------------------------//

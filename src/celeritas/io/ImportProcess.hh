@@ -71,6 +71,8 @@ enum class ImportProcessClass
     mu_brems,
     mu_pair_prod,
     gamma_general,  // Will be decomposed into other processes
+    // Neutron
+    neutron_elastic,
     size_
 };
 

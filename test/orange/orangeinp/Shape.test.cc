@@ -27,7 +27,6 @@ class ShapeTest : public ObjectTestBase
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
-
 TEST_F(ShapeTest, single)
 {
     auto box = this->build_volume(BoxShape{"box", Real3{1, 2, 3}});
@@ -138,6 +137,13 @@ TEST_F(ShapeTest, multiple)
     if (CELERITAS_USE_JSON)
     {
         EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
+    }
+
+    if (CELERITAS_USE_JSON)
+    {
+        EXPECT_JSON_EQ(
+            R"json({"_type":"shape","interior":{"_type":"box","halfwidths":[1.0,1.0,2.0]},"label":"box"})json",
+            to_string(BoxShape{"box", Real3{1, 1, 2}}));
     }
 }
 

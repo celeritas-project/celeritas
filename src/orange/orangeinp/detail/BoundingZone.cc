@@ -30,7 +30,17 @@ enum class BoxOp : bool
 BBox calc_difference(BBox const& a, BBox const& b, BoxOp op)
 {
     if (!b)
+    {
         return a;
+    }
+    if (encloses(a, b))
+    {
+        return (op == BoxOp::shrink ? b : a);
+    }
+    if (encloses(b, a))
+    {
+        return BBox{};
+    }
     return (op == BoxOp::shrink ? BBox{} : BBox::from_infinite());
 }
 

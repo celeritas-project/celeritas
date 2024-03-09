@@ -8,6 +8,7 @@
 #include "orange/orangeinp/ConvexRegion.hh"
 
 #include "orange/BoundingBoxUtils.hh"
+#include "orange/MatrixUtils.hh"
 #include "orange/orangeinp/ConvexSurfaceBuilder.hh"
 #include "orange/orangeinp/CsgTreeUtils.hh"
 #include "orange/orangeinp/detail/ConvexSurfaceState.hh"
@@ -70,12 +71,9 @@ auto ConvexRegionTest::test(ConvexRegionInterface const& r,
     EXPECT_TRUE(encloses(css.local_bzone.exterior, css.local_bzone.interior));
     EXPECT_TRUE(encloses(css.global_bzone.exterior, css.global_bzone.interior));
 
-    bool multi_node = css.nodes.size() > 1;
-
     // Intersect the given surfaces
-    auto&& [node_id, inserted]
-        = unit_builder_.insert_csg(Joined{op_and, std::move(css.nodes)});
-    EXPECT_EQ(multi_node, inserted);
+    NodeId node_id
+        = unit_builder_.insert_csg(Joined{op_and, std::move(css.nodes)}).first;
 
     TestResult result;
     result.node = build_infix_string(unit_.tree, node_id);
@@ -153,6 +151,16 @@ TEST_F(ConeTest, errors)
     EXPECT_THROW(Cone({1.0, 1.0}, 0.5), RuntimeError);
     EXPECT_THROW(Cone({-1, 1}, 1), RuntimeError);
     EXPECT_THROW(Cone({0.5, 1}, 0), RuntimeError);
+}
+
+TEST_F(ConeTest, encloses)
+{
+    Cone const c{{1.0, 0.5}, 2.0};
+    EXPECT_TRUE(c.encloses(c));
+    EXPECT_TRUE(c.encloses(Cone{{0.8, 0.2}, 2.0}));
+    EXPECT_TRUE(c.encloses(Cone{{0.8, 0.2}, 1.0}));
+    EXPECT_FALSE(c.encloses(Cone{{0.8, 0.2}, 2.1}));
+    EXPECT_FALSE(c.encloses(Cone{{0.8, 0.6}, 1.0}));
 }
 
 TEST_F(ConeTest, upward)
@@ -361,6 +369,109 @@ TEST_F(EllipsoidTest, standard)
         result.interior.upper());
     EXPECT_VEC_SOFT_EQ((Real3{-3, -2, -1}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{3, 2, 1}), result.exterior.upper());
+}
+
+//---------------------------------------------------------------------------//
+// INFWEDGE
+//---------------------------------------------------------------------------//
+using InfWedgeTest = ConvexRegionTest;
+
+TEST_F(InfWedgeTest, errors)
+{
+    EXPECT_THROW(InfWedge(Turn{0}, Turn{0.51}), RuntimeError);
+    EXPECT_THROW(InfWedge(Turn{0}, Turn{0}), RuntimeError);
+    EXPECT_THROW(InfWedge(Turn{0}, Turn{-0.5}), RuntimeError);
+    EXPECT_THROW(InfWedge(Turn{-0.1}, Turn{-0.5}), RuntimeError);
+    EXPECT_THROW(InfWedge(Turn{1.1}, Turn{-0.5}), RuntimeError);
+}
+
+TEST_F(InfWedgeTest, quarter_turn)
+{
+    {
+        SCOPED_TRACE("first quadrant");
+        auto result = this->test(InfWedge(Turn{0}, Turn{0.25}));
+        static char const expected_node[] = "all(+0, +1)";
+        static char const* const expected_surfaces[]
+            = {"Plane: y=0", "Plane: x=0"};
+
+        EXPECT_EQ(expected_node, result.node);
+        EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+        EXPECT_VEC_SOFT_EQ((Real3{0, 0, -inf}), result.interior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{inf, inf, inf}), result.interior.upper());
+        EXPECT_VEC_SOFT_EQ((Real3{0, 0, -inf}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{inf, inf, inf}), result.exterior.upper());
+    }
+    {
+        SCOPED_TRACE("second quadrant");
+        auto result = this->test(InfWedge(Turn{.25}, Turn{0.25}));
+        EXPECT_EQ("all(+0, -1)", result.node);
+    }
+    {
+        SCOPED_TRACE("fourth quadrant");
+        InfWedge wedge(Turn{0.75}, Turn{0.25});
+        EXPECT_SOFT_EQ(0.75, wedge.start().value());
+        auto result = this->test(wedge);
+        EXPECT_EQ("all(+1, -0)", result.node);
+    }
+    {
+        SCOPED_TRACE("north quadrant");
+        auto result = this->test(InfWedge(Turn{0.125}, Turn{0.25}));
+        EXPECT_EQ("all(-2, +3)", result.node);
+    }
+    {
+        SCOPED_TRACE("east quadrant");
+        auto result = this->test(InfWedge(Turn{1 - 0.125}, Turn{0.25}));
+        EXPECT_EQ("all(+2, +3)", result.node);
+        static char const expected_node[] = "all(+2, +3)";
+        EXPECT_EQ(expected_node, result.node);
+        EXPECT_FALSE(result.interior) << result.interior;
+        EXPECT_EQ(BBox::from_infinite(), result.exterior);
+    }
+    {
+        SCOPED_TRACE("west quadrant");
+        auto result = this->test(InfWedge(Turn{0.375}, Turn{0.25}));
+        static char const expected_node[] = "all(-2, -3)";
+        static char const* const expected_surfaces[]
+            = {"Plane: y=0",
+               "Plane: x=0",
+               "Plane: n={0.70711,-0.70711,0}, d=0",
+               "Plane: n={0.70711,0.70711,0}, d=0",
+               "Plane: n={0.70711,0.70711,0}, d=0",
+               "Plane: n={0.70711,-0.70711,0}, d=0"};
+
+        EXPECT_EQ(expected_node, result.node);
+        EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    }
+}
+
+TEST_F(InfWedgeTest, half_turn)
+{
+    {
+        SCOPED_TRACE("north half");
+        auto result = this->test(InfWedge(Turn{0}, Turn{0.5}));
+        EXPECT_EQ("+0", result.node);
+        EXPECT_VEC_SOFT_EQ((Real3{-inf, 0, -inf}), result.interior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{inf, inf, inf}), result.interior.upper());
+        EXPECT_VEC_SOFT_EQ((Real3{-inf, 0, -inf}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{inf, inf, inf}), result.exterior.upper());
+    }
+    {
+        SCOPED_TRACE("south half");
+        auto result = this->test(InfWedge(Turn{0.5}, Turn{0.5}));
+        EXPECT_EQ("-0", result.node);
+    }
+    {
+        SCOPED_TRACE("northeast half");
+        auto result = this->test(InfWedge(Turn{0.125}, Turn{0.5}));
+        static char const expected_node[] = "-1";
+        static char const* const expected_surfaces[]
+            = {"Plane: y=0",
+               "Plane: n={0.70711,-0.70711,0}, d=0",
+               "Plane: n={0.70711,-0.70711,0}, d=0"};
+
+        EXPECT_EQ(expected_node, result.node);
+        EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    }
 }
 
 //---------------------------------------------------------------------------//

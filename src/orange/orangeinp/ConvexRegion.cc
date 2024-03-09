@@ -11,6 +11,7 @@
 
 #include "corecel/Constants.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/JsonPimpl.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/Types.hh"
 #include "orange/surf/ConeAligned.hh"
@@ -20,6 +21,10 @@
 #include "orange/surf/SphereCentered.hh"
 
 #include "ConvexSurfaceBuilder.hh"
+
+#if CELERITAS_USE_JSON
+#    include "ObjectIO.json.hh"
+#endif
 
 namespace celeritas
 {
@@ -76,6 +81,15 @@ void Box::build(ConvexSurfaceBuilder& insert_surface) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Box::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
 // CONE
 //---------------------------------------------------------------------------//
 /*!
@@ -90,6 +104,16 @@ Cone::Cone(Real2 const& radii, real_type halfheight)
     }
     CELER_VALIDATE(radii_[0] != radii_[1], << "radii cannot be equal");
     CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether this encloses another cone.
+ */
+bool Cone::encloses(Cone const& other) const
+{
+    return radii_[0] >= other.radii_[0] && radii_[1] >= other.radii_[1]
+           && hh_ >= other.hh_;
 }
 
 //---------------------------------------------------------------------------//
@@ -168,6 +192,15 @@ void Cone::build(ConvexSurfaceBuilder& insert_surface) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Cone::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
 // CYLINDER
 //---------------------------------------------------------------------------//
 /*!
@@ -182,6 +215,15 @@ Cylinder::Cylinder(real_type radius, real_type halfheight)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether this encloses another cylinder.
+ */
+bool Cylinder::encloses(Cylinder const& other) const
+{
+    return radius_ >= other.radius_ && hh_ >= other.hh_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Build surfaces.
  */
 void Cylinder::build(ConvexSurfaceBuilder& insert_surface) const
@@ -189,6 +231,15 @@ void Cylinder::build(ConvexSurfaceBuilder& insert_surface) const
     insert_surface(Sense::outside, PlaneZ{-hh_});
     insert_surface(Sense::inside, PlaneZ{hh_});
     insert_surface(CCylZ{radius_});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Cylinder::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -247,6 +298,60 @@ void Ellipsoid::build(ConvexSurfaceBuilder& insert_surface) const
         r *= 1 / constants::sqrt_three;
     }
     insert_surface(Sense::outside, BBox{-inner_radii, inner_radii});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Ellipsoid::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+// INFWEDGE
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from a starting angle and interior angle.
+ */
+InfWedge::InfWedge(Turn start, Turn interior)
+    : start_{start}, interior_{interior}
+{
+    CELER_VALIDATE(start_ >= zero_quantity() && start_ < Turn{1},
+                   << "invalid start angle " << start_.value()
+                   << " [turns]: must be in the range [0, 1)");
+    CELER_VALIDATE(interior_ > zero_quantity() && interior_ <= Turn{0.5},
+                   << "invalid interior wedge angle " << interior.value()
+                   << " [turns]: must be in the range (0, 0.5]");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ *
+ * Both planes should point "outward" to the wedge. In the degenerate case of
+ * interior = 0.5 we rely on CSG object deduplication.
+ */
+void InfWedge::build(ConvexSurfaceBuilder& insert_surface) const
+{
+    real_type sinstart, cosstart, sinend, cosend;
+    sincos(start_, &sinstart, &cosstart);
+    sincos(start_ + interior_, &sinend, &cosend);
+
+    insert_surface(Sense::inside, Plane{Real3{sinstart, -cosstart, 0}, 0.0});
+    insert_surface(Sense::outside, Plane{Real3{sinend, -cosend, 0}, 0.0});
+
+    // TODO: restrict bounding boxes, at least eliminating two quadrants...
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void InfWedge::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
 }
 
 //---------------------------------------------------------------------------//
@@ -320,6 +425,15 @@ void Prism::build(ConvexSurfaceBuilder& insert_surface) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Prism::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
 // SPHERE
 //---------------------------------------------------------------------------//
 /*!
@@ -337,6 +451,15 @@ Sphere::Sphere(real_type radius) : radius_{radius}
 void Sphere::build(ConvexSurfaceBuilder& insert_surface) const
 {
     insert_surface(SphereCentered{radius_});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Sphere::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
 }
 
 //---------------------------------------------------------------------------//

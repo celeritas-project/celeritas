@@ -7,12 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "Shape.hh"
 
-#include "ConvexSurfaceBuilder.hh"
-#include "CsgTreeUtils.hh"
+#include "corecel/io/JsonPimpl.hh"
 
-#include "detail/ConvexSurfaceState.hh"
-#include "detail/CsgUnitBuilder.hh"
-#include "detail/VolumeBuilder.hh"
+#include "detail/BuildConvexRegion.hh"
+
+#if CELERITAS_USE_JSON
+#    include "ObjectIO.json.hh"
+#endif
 
 namespace celeritas
 {
@@ -24,20 +25,17 @@ namespace orangeinp
  */
 NodeId ShapeBase::build(VolumeBuilder& vb) const
 {
-    // Set input attributes for surface state
-    detail::ConvexSurfaceState css;
-    css.transform = &vb.local_transform();
-    css.object_name = this->label();
-    css.make_face_name = {};  // No prefix for standalone shapes
+    return detail::build_convex_region(
+        vb, std::string{this->label()}, {}, this->interior());
+}
 
-    // Construct surfaces
-    auto sb = ConvexSurfaceBuilder(&vb.unit_builder(), &css);
-    this->build_interior(sb);
-
-    // Intersect the given surfaces to create a new CSG node
-    return vb.insert_region(Label{std::move(css.object_name)},
-                            Joined{op_and, std::move(css.nodes)},
-                            calc_merged_bzone(css));
+//---------------------------------------------------------------------------//
+/*!
+ * Output to JSON.
+ */
+void ShapeBase::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
 }
 
 //---------------------------------------------------------------------------//
