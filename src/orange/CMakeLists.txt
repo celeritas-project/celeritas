@@ -31,6 +31,7 @@ list(APPEND SOURCES
   orangeinp/CsgTree.cc
   orangeinp/CsgTypes.cc
   orangeinp/CsgTreeUtils.cc
+  orangeinp/ProtoInterface.cc
   orangeinp/Shape.cc
   orangeinp/Solid.cc
   orangeinp/Transformed.cc
