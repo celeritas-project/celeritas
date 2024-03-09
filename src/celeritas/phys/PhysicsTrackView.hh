@@ -14,12 +14,13 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/xs/EPlusGGMacroXsCalculator.hh"
-#include "celeritas/em/xs/LivermorePEMacroXsCalculator.hh"
+#include "celeritas/em/xs/LivermorePEMicroXsCalculator.hh"
 #include "celeritas/grid/GridIdFinder.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/mat/TabulatedElementSelector.hh"
-#include "celeritas/neutron/xs/NeutronElasticMacroXsCalculator.hh"
+#include "celeritas/neutron/xs/NeutronElasticMicroXsCalculator.hh"
+#include "celeritas/phys/MacroXsCalculator.hh"
 
 #include "PhysicsData.hh"
 
@@ -407,7 +408,7 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
         // hardwired processes.
         if (model_id == params_.hardwired.livermore_pe)
         {
-            auto calc_xs = LivermorePEMacroXsCalculator(
+            auto calc_xs = MacroXsCalculator<LivermorePEMicroXsCalculator>(
                 params_.hardwired.livermore_pe_data, material);
             result = calc_xs(energy);
         }
@@ -419,7 +420,7 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
         }
         else if (model_id == params_.hardwired.chips)
         {
-            auto calc_xs = NeutronElasticMacroXsCalculator(
+            auto calc_xs = MacroXsCalculator<NeutronElasticMicroXsCalculator>(
                 params_.hardwired.chips_data, material);
             result = calc_xs(energy);
         }

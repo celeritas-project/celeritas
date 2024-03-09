@@ -28,14 +28,15 @@ class LivermorePEMicroXsCalculator
   public:
     //!@{
     //! \name Type aliases
-    using XsUnits = LivermoreSubshell::XsUnits;
+    using ParamsRef = LivermorePERef;
     using Energy = Quantity<LivermoreSubshell::EnergyUnits>;
+    using XsUnits = LivermoreSubshell::XsUnits;
     //!@}
 
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    LivermorePEMicroXsCalculator(LivermorePERef const& shared, Energy energy);
+    LivermorePEMicroXsCalculator(ParamsRef const& shared, Energy energy);
 
     // Compute cross section
     inline CELER_FUNCTION real_type operator()(ElementId el_id) const;
@@ -54,7 +55,7 @@ class LivermorePEMicroXsCalculator
  * Construct with shared and state data.
  */
 CELER_FUNCTION LivermorePEMicroXsCalculator::LivermorePEMicroXsCalculator(
-    LivermorePERef const& shared, Energy energy)
+    ParamsRef const& shared, Energy energy)
     : shared_(shared), inc_energy_(energy.value())
 {
 }

@@ -27,6 +27,7 @@ class NeutronElasticMicroXsCalculator
   public:
     //!@{
     //! \name Type aliases
+    using ParamsRef = NeutronElasticRef;
     using Energy = units::MevEnergy;
     using XsUnits = units::Native;  // [len^2]
     //!@}
@@ -34,8 +35,7 @@ class NeutronElasticMicroXsCalculator
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    NeutronElasticMicroXsCalculator(NeutronElasticRef const& shared,
-                                    Energy energy);
+    NeutronElasticMicroXsCalculator(ParamsRef const& shared, Energy energy);
 
     // Compute cross section
     inline CELER_FUNCTION real_type operator()(ElementId el_id) const;
@@ -54,7 +54,7 @@ class NeutronElasticMicroXsCalculator
  * Construct with shared and state data.
  */
 CELER_FUNCTION NeutronElasticMicroXsCalculator::NeutronElasticMicroXsCalculator(
-    NeutronElasticRef const& shared, Energy energy)
+    ParamsRef const& shared, Energy energy)
     : shared_(shared), inc_energy_(energy.value())
 {
 }
