@@ -104,7 +104,8 @@ CELER_FUNCTION ElementSelector::ElementSelector(MaterialView const& material,
     CELER_EXPECT(storage.size() >= material.num_elements());
     for (auto i : range<size_type>(elements_.size()))
     {
-        real_type const micro_xs = calc_micro_xs(elements_[i].element);
+        real_type const micro_xs
+            = (calc_micro_xs(elements_[i].element)).value();
         CELER_ASSERT(micro_xs >= 0);
         real_type const frac = elements_[i].fraction;
 

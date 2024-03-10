@@ -231,7 +231,8 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
     auto const& shells = shared_.xs.shells[el.shells];
     size_type shell_id = 0;
 
-    real_type const cutoff = generate_canonical(rng) * calc_micro_xs_(el_id_);
+    real_type const cutoff = generate_canonical(rng)
+                             * (calc_micro_xs_(el_id_)).value();
     if (Energy{inc_energy_} < el.thresh_lo)
     {
         // Accumulate discrete PDF for tabulated shell cross sections

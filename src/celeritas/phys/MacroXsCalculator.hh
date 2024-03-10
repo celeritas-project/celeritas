@@ -11,6 +11,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/mat/MaterialView.hh"
 
@@ -30,7 +31,7 @@ class MacroXsCalculator
     //! \name Type aliases
     using ParamsRef = typename MicroXsT::ParamsRef;
     using Energy = typename MicroXsT::Energy;
-    using MicroXsUnits = units::Barn;  // [cm^2]
+    using MicroXs = units::BarnXs;
     using MacroXsUnits = units::Native;  // [1/len]
     //!@}
 
@@ -77,11 +78,11 @@ MacroXsCalculator<MicroXsT>::operator()(Energy energy) const
     MicroXsT calc_micro_xs(shared_, energy);
     for (auto const& el_comp : elements_)
     {
-        real_type micro_xs = calc_micro_xs(el_comp.element);
+        real_type micro_xs = (calc_micro_xs(el_comp.element)).value();
         CELER_ASSERT(micro_xs >= 0);
         result += micro_xs * el_comp.fraction;
     }
-    result *= MicroXsUnits::value() * number_density_;
+    result = native_value_from(MicroXs{result}) * number_density_;
     CELER_ENSURE(result >= 0);
     return result;
 }

@@ -29,7 +29,7 @@ class NeutronElasticMicroXsCalculator
     //! \name Type aliases
     using ParamsRef = NeutronElasticRef;
     using Energy = units::MevEnergy;
-    using XsUnits = units::Native;  // [len^2]
+    using BarnXs = units::BarnXs;
     //!@}
 
   public:
@@ -38,7 +38,7 @@ class NeutronElasticMicroXsCalculator
     NeutronElasticMicroXsCalculator(ParamsRef const& shared, Energy energy);
 
     // Compute cross section
-    inline CELER_FUNCTION real_type operator()(ElementId el_id) const;
+    inline CELER_FUNCTION BarnXs operator()(ElementId el_id) const;
 
   private:
     // Shared constant physics properties
@@ -64,7 +64,8 @@ CELER_FUNCTION NeutronElasticMicroXsCalculator::NeutronElasticMicroXsCalculator(
  * Compute microscopic (element) cross section
  */
 CELER_FUNCTION
-real_type NeutronElasticMicroXsCalculator::operator()(ElementId el_id) const
+auto NeutronElasticMicroXsCalculator::operator()(ElementId el_id) const
+    -> BarnXs
 {
     CELER_EXPECT(el_id < shared_.micro_xs.size());
 
@@ -75,7 +76,7 @@ real_type NeutronElasticMicroXsCalculator::operator()(ElementId el_id) const
     GenericCalculator calc_xs(grid, shared_.reals);
     real_type result = calc_xs(inc_energy_.value());
 
-    return result;
+    return BarnXs{result};
 }
 
 //---------------------------------------------------------------------------//

@@ -15,6 +15,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/Environment.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
 
@@ -86,10 +87,12 @@ NeutronXsReader::operator()(AtomicNumber atomic_number) const
         for (size_type i = 0; i < size; ++i)
         {
             CELER_ASSERT(infile);
-            // Convert to the celeritas native length 1/[len^2] from
-            // clhep::mm^2 as stored in G4PARTICLEXS/neutron/el data
+            // Convert to the celeritas units::barn (units::BarnXs.value())
+            // from clhep::mm^2 as stored in G4PARTICLEXS/neutron/el data
             infile >> result.x[i] >> input_xs.value();
-            result.y[i] = native_value_from(input_xs) / units::barn;
+            result.y[i]
+                = native_value_to<units::BarnXs>(native_value_from(input_xs))
+                      .value();
         }
     }
 

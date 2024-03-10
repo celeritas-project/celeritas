@@ -91,13 +91,13 @@ TEST_F(NeutronElasticTest, micro_xs)
     for (auto i : range(expected_micro_xs.size()))
     {
         XsCalculator calc_micro_xs(shared, MevEnergy{energy});
-        EXPECT_SOFT_EQ(calc_micro_xs(el_id), expected_micro_xs[i]);
+        EXPECT_SOFT_EQ((calc_micro_xs(el_id)).value(), expected_micro_xs[i]);
         energy *= factor;
     }
 
     // Check the elastic cross section at the upper bound (20 GeV)
     XsCalculator calc_upper_xs(shared, MevEnergy{2e+4});
-    EXPECT_SOFT_EQ(calc_upper_xs(el_id), 0.46700000000000008);
+    EXPECT_SOFT_EQ((calc_upper_xs(el_id)).value(), 0.46700000000000008);
 }
 
 TEST_F(NeutronElasticTest, macro_xs)
