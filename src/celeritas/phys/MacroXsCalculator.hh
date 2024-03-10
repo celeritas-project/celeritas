@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/neutron/xs/NeutronElasticMacroXsCalculator.hh
+//! \file celeritas/phys/MacroXsCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,37 +11,40 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/mat/MaterialView.hh"
-
-#include "NeutronElasticMicroXsCalculator.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
  * Calculates the macroscopic cross section.
+ *
+ * \tparam MicroXsT microscopic (element) cross section calculator
  */
-class NeutronElasticMacroXsCalculator
+template<class MicroXsT>
+class MacroXsCalculator
 {
   public:
     //!@{
     //! \name Type aliases
-    using Energy = units::MevEnergy;
-    using XsUnits = units::Native;  // [1/len]
+    using ParamsRef = typename MicroXsT::ParamsRef;
+    using Energy = typename MicroXsT::Energy;
+    using MicroXs = units::BarnXs;
+    using MacroXsUnits = units::Native;  // [1/len]
     //!@}
 
   public:
-    // Construct with shared data and material
+    // Construct with shared and material
     inline CELER_FUNCTION
-    NeutronElasticMacroXsCalculator(NeutronElasticRef const& shared,
-                                    MaterialView const& material);
+    MacroXsCalculator(ParamsRef const& shared, MaterialView const& material);
 
-    // Compute cross section on the fly at the given energy
+    // Compute the macroscopic cross section on the fly at the given energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
 
   private:
-    NeutronElasticRef const& shared_;
+    ParamsRef const& shared_;
     Span<MatElementComponent const> elements_;
     real_type number_density_;
 };
@@ -50,10 +53,12 @@ class NeutronElasticMacroXsCalculator
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with shared model and material data.
+ * Construct with shared and material data.
  */
-CELER_FUNCTION NeutronElasticMacroXsCalculator::NeutronElasticMacroXsCalculator(
-    NeutronElasticRef const& shared, MaterialView const& material)
+template<class MicroXsT>
+CELER_FUNCTION
+MacroXsCalculator<MicroXsT>::MacroXsCalculator(ParamsRef const& shared,
+                                               MaterialView const& material)
     : shared_(shared)
     , elements_(material.elements())
     , number_density_(material.number_density())
@@ -63,21 +68,21 @@ CELER_FUNCTION NeutronElasticMacroXsCalculator::NeutronElasticMacroXsCalculator(
 
 //---------------------------------------------------------------------------//
 /*!
- * Compute macroscopic cross section for the neutron elastic on the fly at
- * the given energy.
+ * Compute the macroscopic cross section on the fly at the given energy.
  */
+template<class MicroXsT>
 CELER_FUNCTION real_type
-NeutronElasticMacroXsCalculator::operator()(Energy energy) const
+MacroXsCalculator<MicroXsT>::operator()(Energy energy) const
 {
     real_type result = 0.;
-    NeutronElasticMicroXsCalculator calc_micro_xs(shared_, energy);
+    MicroXsT calc_micro_xs(shared_, energy);
     for (auto const& el_comp : elements_)
     {
-        real_type const micro_xs = calc_micro_xs(el_comp.element);
+        real_type micro_xs = value_as<MicroXs>(calc_micro_xs(el_comp.element));
         CELER_ASSERT(micro_xs >= 0);
         result += micro_xs * el_comp.fraction;
     }
-    result *= XsUnits::value() * number_density_;
+    result = native_value_from(MicroXs{result}) * number_density_;
     CELER_ENSURE(result >= 0);
     return result;
 }
