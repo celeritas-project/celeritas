@@ -21,7 +21,7 @@ namespace celeritas
 /*!
  * Calculates the macroscopic cross section.
  *
- * @tparam MicroXsT microscopic (element) cross section calculator
+ * \tparam MicroXsT microscopic (element) cross section calculator
  */
 template<class MicroXsT>
 class MacroXsCalculator
@@ -78,7 +78,7 @@ MacroXsCalculator<MicroXsT>::operator()(Energy energy) const
     MicroXsT calc_micro_xs(shared_, energy);
     for (auto const& el_comp : elements_)
     {
-        real_type micro_xs = (calc_micro_xs(el_comp.element)).value();
+        real_type micro_xs = value_as<MicroXs>(calc_micro_xs(el_comp.element));
         CELER_ASSERT(micro_xs >= 0);
         result += micro_xs * el_comp.fraction;
     }

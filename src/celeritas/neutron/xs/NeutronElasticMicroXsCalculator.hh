@@ -44,7 +44,7 @@ class NeutronElasticMicroXsCalculator
     // Shared constant physics properties
     NeutronElasticRef const& shared_;
     // Incident neutron energy
-    Energy const inc_energy_;
+    real_type const inc_energy_;
 };
 
 //---------------------------------------------------------------------------//
@@ -74,7 +74,7 @@ auto NeutronElasticMicroXsCalculator::operator()(ElementId el_id) const
 
     // Calculate micro cross section at the given energy
     GenericCalculator calc_xs(grid, shared_.reals);
-    real_type result = calc_xs(inc_energy_.value());
+    real_type result = calc_xs(inc_energy_);
 
     return BarnXs{result};
 }
