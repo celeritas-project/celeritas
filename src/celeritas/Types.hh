@@ -66,6 +66,12 @@ using IsotopeComponentId = OpaqueId<struct ElIsotopeComponent>;
 //! Opaque index to a material with optical properties
 using OpticalMaterialId = OpaqueId<struct OpticalMaterial_>;
 
+//! Opaque index to a scintillation particle id
+using ScintillationParticleId = OpaqueId<struct ScintillationParticle_>;
+
+//! Opaque index to a scintillation spectrum
+using ScintillationSpectrumId = OpaqueId<struct ParticleScintillationSpectrum>;
+
 //! Opaque index of a process applicable to a single particle type
 using ParticleProcessId = OpaqueId<ProcessId>;
 

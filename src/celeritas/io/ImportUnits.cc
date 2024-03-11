@@ -74,6 +74,7 @@ char const* to_cstring(ImportUnits value)
     static EnumStringMapper<ImportUnits> const to_cstring_impl{
         "unitless",
         "MeV",
+        "1/MeV",
         "MeV/len",
         "len",
         "1/len",
@@ -103,6 +104,8 @@ double native_value_from(UnitSystem sys, ImportUnits q)
             return 1;
         case ImportUnits::mev:
             return mev;
+        case ImportUnits::inv_mev:
+            return 1 / mev;
         case ImportUnits::mev_per_len:
             return mev / len;
         case ImportUnits::len:

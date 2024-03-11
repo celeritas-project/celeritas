@@ -463,29 +463,31 @@ ImportData::ImportOpticalMap import_optical()
                             "RINDEX",
                             ImportUnits::unitless);
 
-        //// Save scintillation properties ////
-
-        // Material scintillation properties
-        get_property.scalar(&optical.scintillation.material.yield,
-                            "SCINTILLATIONYIELD",
-                            ImportUnits::inv_mev);
-        get_property.scalar(&optical.scintillation.material.resolution_scale,
-                            "RESOLUTIONSCALE",
-                            ImportUnits::unitless);
-        optical.scintillation.material.components
-            = fill_vec_import_scint_comp(get_property);
-
-        // Particle scintillation properties
-        for (auto const iter : g4_scint_particle_map)
+        // Save scintillation properties
         {
-            std::string particle_name = iter.first;
-
-            ImportScintSpectrum::ISPC scint_part_spec;
-            get_property.vector(&scint_part_spec.yield_vector,
-                                particle_name + "SCINTILLATIONYIELD",
+            // Material scintillation properties
+            get_property.scalar(&optical.scintillation.material.yield,
+                                "SCINTILLATIONYIELD",
                                 ImportUnits::inv_mev);
-            scint_part_spec.components
-                = fill_vec_import_scint_comp(get_property, particle_name);
+            get_property.scalar(
+                &optical.scintillation.material.resolution_scale,
+                "RESOLUTIONSCALE",
+                ImportUnits::unitless);
+            optical.scintillation.material.components
+                = fill_vec_import_scint_comp(get_property);
+
+            // Particle scintillation properties
+            for (auto const iter : g4_scint_particle_map)
+            {
+                std::string particle_name = iter.first;
+
+                ImportScintSpectrum::ISPC scint_part_spec;
+                get_property.vector(&scint_part_spec.yield_vector,
+                                    particle_name + "SCINTILLATIONYIELD",
+                                    ImportUnits::inv_mev);
+                scint_part_spec.components
+                    = fill_vec_import_scint_comp(get_property, particle_name);
+            }
         }
 
         // Save Rayleigh properties
@@ -508,7 +510,7 @@ ImportData::ImportOpticalMap import_optical()
             result[mat_idx] = optical;
         }
     }
-    // TODO UPDATE TO: loaded X particles and Y materials
+
     CELER_LOG(debug) << "Loaded " << result.size() << " optical materials";
     return result;
 }
