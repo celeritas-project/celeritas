@@ -11,6 +11,7 @@
 #include <random>
 
 #include "corecel/cont/Range.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/random/SequenceEngine.hh"
 
@@ -22,6 +23,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 using MaterialParamsRef = MaterialParams::HostRef;
+using BarnXs = units::BarnXs;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -85,10 +87,10 @@ class ElementSelectorTest : public Test
 };
 
 // Return cross section proportional to the element ID offset by 1.
-real_type mock_micro_xs(ElementId el_id)
+auto mock_micro_xs(ElementId el_id) -> BarnXs
 {
     CELER_EXPECT(el_id < 4);
-    return static_cast<real_type>(el_id.get() + 1);
+    return BarnXs(static_cast<real_type>(el_id.get() + 1));
 }
 
 // Example functor for calculating cross section from actual atomic properties
@@ -100,11 +102,11 @@ struct CalcFancyMicroXs
     {
     }
 
-    real_type operator()(ElementId el_id) const
+    auto operator()(ElementId el_id) const -> BarnXs
     {
         CELER_EXPECT(el_id);
         ElementView el(mats_, el_id);
-        return el.cbrt_z() * inv_energy_;
+        return BarnXs(el.cbrt_z() * inv_energy_);
     }
 
     MaterialParamsRef const& mats_;
@@ -224,8 +226,9 @@ TEST_F(ElementSelectorTest, everything_weighted)
 TEST_F(ElementSelectorTest, even_zero_xs)
 {
     MaterialView material(host_mats, mats->find_material("everything_even"));
-    auto calc_xs
-        = [](ElementId el) -> real_type { return (el.get() % 2 ? 1 : 0); };
+    auto calc_xs = [](ElementId el) -> BarnXs {
+        return BarnXs((el.get() % 2 ? 1 : 0));
+    };
     ElementSelector select_el(material, calc_xs, make_span(storage));
 
     auto seq_rng = SequenceEngine::from_reals({0.0, 0.01, 0.49, 0.5, 0.51});
