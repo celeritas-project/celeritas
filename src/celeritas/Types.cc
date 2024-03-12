@@ -99,6 +99,21 @@ char const* to_cstring(TrackOrder value)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get a string corresponding to the MSC step limit algorithm.
+ */
+char const* to_cstring(MscStepLimitAlgorithm value)
+{
+    static EnumStringMapper<MscStepLimitAlgorithm> const to_cstring_impl{
+        "minimal",
+        "safety",
+        "safety_plus",
+        "distance_to_boundary",
+    };
+    return to_cstring_impl(value);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Checks that the TrackOrder will sort tracks by actions applied at the given
  * ActionOrder. This should match the mapping in the \c SortTracksAction
  * constructor.

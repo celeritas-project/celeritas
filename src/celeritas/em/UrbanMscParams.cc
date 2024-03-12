@@ -61,6 +61,7 @@ UrbanMscParams::from_import(ParticleParams const& particles,
     opts.lambda_limit = import.em_params.msc_lambda_limit;
     opts.safety_fact = import.em_params.msc_safety_factor;
     opts.range_fact = import.em_params.msc_range_factor;
+    opts.step_limit_algorithm = import.em_params.msc_step_algorithm;
 
     return std::make_shared<UrbanMscParams>(
         particles, materials, import.msc_models, opts);
@@ -111,6 +112,16 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
     host_data.params.lambda_limit = options.lambda_limit;
     host_data.params.range_fact = options.range_fact;
     host_data.params.safety_fact = options.safety_fact;
+    host_data.params.step_limit_algorithm = options.step_limit_algorithm;
+    if (host_data.params.step_limit_algorithm
+        == MscStepLimitAlgorithm::distance_to_boundary)
+    {
+        CELER_LOG(warning) << "Unsupported step limit algorithm '"
+                           << to_cstring(host_data.params.step_limit_algorithm)
+                           << "': defaulting to '"
+                           << to_cstring(MscStepLimitAlgorithm::safety) << "'";
+        host_data.params.step_limit_algorithm = MscStepLimitAlgorithm::safety;
+    }
 
     // Filter MSC data by model and particle type
     std::vector<ImportMscModel const*> urban_data(particles.size(), nullptr);

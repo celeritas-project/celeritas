@@ -39,6 +39,7 @@ struct UrbanMscParameters
     real_type geom_limit{5e-8 * units::millimeter};  //!< minimum step
     Energy low_energy_limit{0};
     Energy high_energy_limit{0};
+    MscStepLimitAlgorithm step_limit_algorithm{MscStepLimitAlgorithm::safety};
 
     //! A scale factor for the range
     static CELER_CONSTEXPR_FUNCTION real_type dtrl() { return 5e-2; }
