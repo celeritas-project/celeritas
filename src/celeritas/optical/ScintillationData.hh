@@ -11,7 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/XsGridData.hh"
+#include "celeritas/grid/GenericGridData.hh"
 
 namespace celeritas
 {
@@ -20,8 +20,8 @@ namespace celeritas
  * Material dependent scintillation property.
  *
  * Components represent different scintillation emissions, such as
- * prompt/fast, intermediate, and slow. It is also dependend on the incident
- * particle type.
+ * prompt/fast, intermediate, and slow. They can be material-only or depend on
+ * the incident particle type.
  */
 struct ScintillationComponent
 {
@@ -52,13 +52,12 @@ struct ScintillationComponent
 struct MaterialScintillationSpectrum
 {
     real_type yield{};
-    real_type resolution_scale{};
     ItemRange<ScintillationComponent> components;
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return yield > 0 && resolution_scale >= 0 && !components.empty();
+        return yield > 0 && !components.empty();
     }
 };
 
@@ -73,7 +72,7 @@ struct MaterialScintillationSpectrum
  */
 struct ParticleScintillationSpectrum
 {
-    XsGridData yield_vector;
+    GenericGridData yield_vector;
     ItemRange<ScintillationComponent> components;
 
     //! Whether all data are assigned and valid
@@ -90,7 +89,7 @@ struct ParticleScintillationSpectrum
  * \c materials stores material-only scintillation data indexed by
  * \c OpticalMaterialId .
  * \c particles stores scintillation data for each particle type available and
- * is indexed by \c ScintillationParticleId and \c OpticalMaterialId .
+ * is indexed by \c ScintillationSpectrumId.
  */
 template<Ownership W, MemSpace M>
 struct ScintillationData
@@ -100,40 +99,45 @@ struct ScintillationData
     using MaterialItems
         = Collection<MaterialScintillationSpectrum, W, M, OpticalMaterialId>;
     using ParticleItems
-        = Collection<ParticleScintillationSpectrum, W, M, ScintillationSpectrumId>;
+        = Collection<ParticleScintillationSpectrum, W, M, ParticleScintSpectrumId>;
 
     //// MEMBER DATA ////
 
     //! Index between OpticalMaterialId and MaterialId
-    Collection<MaterialId, W, M, OpticalMaterialId> optical_mat_id;
+    Collection<OpticalMaterialId, W, M, MaterialId> matid_to_optmatid;
     //! Index between ScintillationParticleId and ParticleId
-    Collection<ParticleId, W, M, ScintillationParticleId> scint_particle_id;
+    Collection<ScintillationParticleId, W, M, ParticleId> pid_to_scintpid;
+
+    //! Resolution scale for each material
+    Collection<real_type, W, M, MaterialId> resolution_scale;
 
     //! Material-only scintillation spectrum data
     MaterialItems materials;  //!< [OpticalMaterialId]
-    Items<ScintillationComponent> material_components;
 
     //! Particle and material scintillation spectrum data
     ParticleItems particles;  //!< [ScintillationSpectrumId]
-    Items<ScintillationComponent> particle_components;
 
-    real_type num_materials{};
-    real_type num_particles{};
+    //! Components for either material or particle items
+    Items<ScintillationComponent> components;
+
+    size_type num_materials{};
+    size_type num_particles{};
 
     //// MEMBER FUNCTIONS ////
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !materials.empty() && num_materials > 0;
+        return !matid_to_optmatid.empty() && !materials.empty()
+               && num_materials == matid_to_optmatid.size();
     }
 
     //! Retrieve spectrum index for a given optical particle and material ids
-    ScintillationSpectrumId
+    ParticleScintSpectrumId
     spectrum_index(ScintillationParticleId pid, OpticalMaterialId mat_id) const
     {
-        CELER_EXPECT(mat_id < num_materials && pid < scint_particle_id.size());
-        return ScintillationSpectrumId{num_materials * pid.get()
+        CELER_EXPECT(mat_id < num_materials && pid < num_particles);
+        return ParticleScintSpectrumId{num_materials * pid.get()
                                        + mat_id.get()};
     }
 
@@ -142,21 +146,17 @@ struct ScintillationData
     ScintillationData& operator=(ScintillationData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        optical_mat_id = other.optical_mat_id;
-        scint_particle_id = other.scint_particle_id;
+        matid_to_optmatid = other.optmatid_to_matid;
+        pid_to_scintpid = other.scintpid_to_pid;
+        resolution_scale = other.resolution_scale;
         materials = other.materials;
         particles = other.particles;
+        components = other.components;
         num_materials = other.num_materials;
         num_particles = other.num_particles;
         return *this;
     }
 };
-
-//---------------------------------------------------------------------------//
-//! Type aliases
-using ScintDataDeviceRef = DeviceCRef<ScintillationData>;
-using ScintDataHostRef = HostCRef<ScintillationData>;
-using ScintDataNativeRef = NativeCRef<ScintillationData>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
