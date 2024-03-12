@@ -42,7 +42,7 @@ struct ImportScintComponent
 /*!
  * Store material-only scintillation spectrum information.
  */
-struct ImportScintMaterialSpectrum
+struct ImportMaterialScintSpectrum
 {
     double yield{};  //!< Characteristic light yields of the material [1/MeV]
     double resolution_scale{};  //!< Scales the stdev of photon distribution
@@ -59,10 +59,12 @@ struct ImportScintMaterialSpectrum
 /*!
  * Store per-particle material spectrum information.
  *
- * Components may not be assigned and thus can be empty, since they are the
- * equivalent of \c k[Particle]ScintillationYield[i] in Geant4.
+ * The yield vector is the only necessary element, needed to calculate the
+ * yield based on the particle energy during the stepping loop.
+ * Components may not be assigned---they are the equivalent of
+ * \c k[Particle]ScintillationYield[i] in Geant4.
  */
-struct ImportScintParticleSpectrum
+struct ImportParticleScintSpectrum
 {
     ImportPhysicsVector yield_vector;  //!< Particle yield vector
     std::vector<ImportScintComponent> components;  //!< Fast/slow components
@@ -78,18 +80,14 @@ struct ImportScintParticleSpectrum
 //---------------------------------------------------------------------------//
 /*!
  * Store optical properties for scintillation for both particles and materials.
- *
- * The fast/slow/etc scintillation components are mapped by particle type.
- * material-inclusive components (i.e. no particle-dependent) are mapped with a
- * PDG = 0 (undefined).
  */
-struct ImportScintSpectrum
+struct ImportScintData
 {
     using PDGint = int;
-    using VecISC = std::vector<ImportScintComponent>;
+    using ISPC = ImportParticleScintSpectrum;
 
-    ImportScintMaterialSpectrum material;  //!< Material scintillation data
-    std::map<PDGint, VecISC> particles;  //!< Particle scintillation data
+    ImportMaterialScintSpectrum material;  //!< Material scintillation data
+    std::map<PDGint, ISPC> particles;  //!< Particle scintillation data
 
     //! Whether all data are assigned and valid
     explicit operator bool() const { return static_cast<bool>(material); }
@@ -152,7 +150,7 @@ struct ImportOpticalProperty
  */
 struct ImportOpticalMaterial
 {
-    ImportScintSpectrum scintillation;
+    ImportScintData scintillation;
     ImportOpticalRayleigh rayleigh;
     ImportOpticalAbsorption absorption;
     ImportOpticalProperty properties;

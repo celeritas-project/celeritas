@@ -1341,11 +1341,11 @@ TEST_F(LarSphere, optical)
     // Check scintillation optical properties
     auto const& scint = optical.scintillation;
     EXPECT_TRUE(scint);
-    EXPECT_EQ(1, scint.resolution_scale);
-    EXPECT_EQ(50000, scint.yield);
-    EXPECT_EQ(3, scint.material_components.size());
+    EXPECT_EQ(1, scint.material.resolution_scale);
+    EXPECT_EQ(50000, scint.material.yield);
+    EXPECT_EQ(3, scint.material.components.size());
     std::vector<double> components;
-    for (auto const& comp : scint.material_components)
+    for (auto const& comp : scint.material.components)
     {
         components.push_back(comp.yield);
         components.push_back(to_cm(comp.lambda_mean));
