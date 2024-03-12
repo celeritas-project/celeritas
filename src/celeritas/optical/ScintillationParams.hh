@@ -16,6 +16,7 @@
 
 namespace celeritas
 {
+class ParticleParams;
 struct ImportData;
 
 //---------------------------------------------------------------------------//
@@ -27,26 +28,35 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
   public:
     //!@{
     //! \name Type aliases
+    using SPConstParticles = std::shared_ptr<ParticleParams const>;
     using ScintillationDataCRef = HostCRef<ScintillationData>;
     //!@}
 
-    //! Particle and material-dependent scintillation data.
+    //! Scintillation data for all materials
     struct Input
     {
-        // Indexed by MaterialId
-        using VecImportScintSpectra = std::vector<ImportScintSpectrum>;
+        using VecOptMatId = std::vector<MaterialId>;
+        using VecSPId = std::vector<ParticleId>;
 
-        // Indexed by ParticleId
-        std::vector<VecImportScintSpectra> data;
+        VecOptMatId optmatid_to_matid;  //!< OpticalMaterialId to MaterialId
+        VecSPId scintpid_to_pid;  //!< ScintillationParticleId to ParticleId
+        std::vector<ImportScintData> data;  //!< Indexed by OpticalMaterialId
+
+        //! Whether all data are assigned and valid
+        explicit operator bool() const
+        {
+            return !optmatid_to_matid.empty() && !data.empty();
+        }
     };
 
   public:
     // Construct with imported data
     static std::shared_ptr<ScintillationParams>
-    from_import(ImportData const& data);
+    from_import(ImportData const& data, SPConstParticles particle_params);
 
     // Construct with scintillation components
-    explicit ScintillationParams(Input const& input);
+    explicit ScintillationParams(Input const& input,
+                                 SPConstParticles particle_params);
 
     //! Access physics properties on the host
     HostRef const& host_ref() const final { return mirror_.host_ref(); }
@@ -60,11 +70,12 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
 
     //// HELPER FUNCTIONS ////
 
-    // Normalize yield probabilities and check correctness of populated data
-    void
-    normalize_and_validate(std::vector<ScintillationComponent>& vec_comp,
-                           std::vector<ImportScintComponent> const& input_comp,
-                           real_type const norm);
+    // Convert imported scintillation components to Celeritas' components
+    std::vector<ScintillationComponent>
+    copy_components(std::vector<ImportScintComponent> const& input_comp);
+
+    // Check correctness of populated component data
+    void validate(std::vector<ScintillationComponent> const& vec_comp);
 };
 
 //---------------------------------------------------------------------------//

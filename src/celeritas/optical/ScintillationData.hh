@@ -95,6 +95,8 @@ struct ParticleScintillationSpectrum
 template<Ownership W, MemSpace M>
 struct ScintillationData
 {
+    template<class T>
+    using Items = Collection<T, W, M>;
     using MaterialItems
         = Collection<MaterialScintillationSpectrum, W, M, OpticalMaterialId>;
     using ParticleItems
@@ -103,14 +105,17 @@ struct ScintillationData
     //// MEMBER DATA ////
 
     //! Index between OpticalMaterialId and MaterialId
-    Collection<OpticalMaterialId, W, M, MaterialId> optical_mat_id;
+    Collection<MaterialId, W, M, OpticalMaterialId> optical_mat_id;
     //! Index between ScintillationParticleId and ParticleId
-    Collection<ScintillationParticleId, W, M, ParticleId> scint_particle_id;
+    Collection<ParticleId, W, M, ScintillationParticleId> scint_particle_id;
 
-    //! Material scintillation spectrum data
+    //! Material-only scintillation spectrum data
     MaterialItems materials;  //!< [OpticalMaterialId]
+    Items<ScintillationComponent> material_components;
+
     //! Particle and material scintillation spectrum data
-    ParticleItems particles;  //!< [ScintillationParticleId][OpticalMaterialId]
+    ParticleItems particles;  //!< [ScintillationSpectrumId]
+    Items<ScintillationComponent> particle_components;
 
     real_type num_materials{};
     real_type num_particles{};
@@ -120,7 +125,7 @@ struct ScintillationData
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return static_cast<bool>(materials) && num_materials > 0;
+        return !materials.empty() && num_materials > 0;
     }
 
     //! Retrieve spectrum index for a given optical particle and material ids

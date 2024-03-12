@@ -15,6 +15,9 @@
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/phys/ParticleParams.hh"
+
+#include "ranges"
 
 namespace celeritas
 {
@@ -23,18 +26,14 @@ namespace celeritas
  * Construct with imported data.
  */
 std::shared_ptr<ScintillationParams>
-ScintillationParams::from_import(ImportData const& data)
+ScintillationParams::from_import(ImportData const& data,
+                                 SPConstParticles particle_params)
 {
     CELER_EXPECT(!data.optical.empty());
 
     if (!std::any_of(
             data.optical.begin(), data.optical.end(), [](auto const& iter) {
-                return std::any_of(iter.second.begin(),
-                                   iter.second.end(),
-                                   [](auto const& inner_iter) {
-                                       return static_cast<bool>(
-                                           inner_iter.second.scintillation);
-                                   });
+                return static_cast<bool>(iter.second.scintillation);
             }))
     {
         // No scintillation data present
@@ -42,86 +41,156 @@ ScintillationParams::from_import(ImportData const& data)
     }
 
     Input input;
-    for (auto const& part_spectrum : data.optical)
+    for (auto const& [matid, iom] : data.optical)
     {
-        Input::VecImportScintSpectra mat_spectra;
-        for (auto const& mat : part_spectrum.second)
+        input.optmatid_to_matid.push_back(MaterialId(matid));
+        input.data.push_back(iom.scintillation);
+
+        if (!input.scintpid_to_pid.empty())
         {
-            mat_spectra.push_back(mat.second.scintillation);
+            // Only store list of scintillation particle ids once
+            continue;
         }
-        input.data.push_back(std::move(mat_spectra));
+
+        auto const& iomsp = iom.scintillation.particles;
+        for (auto pid : range(data.particles.size()))
+        {
+            auto imp_part_pdg = data.particles[pid].pdg;
+            for (auto const& [pdg, ispc] : iomsp)
+            {
+                if (pdg == imp_part_pdg)
+                {
+                    input.scintpid_to_pid.push_back(ParticleId{pid});
+                }
+            }
+        }
+        CELER_ASSERT(input.scintpid_to_pid.size() == iomsp.size());
     }
-    return std::make_shared<ScintillationParams>(std::move(input));
+
+    return std::make_shared<ScintillationParams>(std::move(input),
+                                                 std::move(particle_params));
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with scintillation input data.
  */
-ScintillationParams::ScintillationParams(Input const& input)
+ScintillationParams::ScintillationParams(Input const& input,
+                                         SPConstParticles particle_params)
 {
-    CELER_EXPECT(input.data.size() > 0);
+    CELER_EXPECT(input);
     HostVal<ScintillationData> host_data;
 
-    CollectionBuilder particle_spectra(&host_data.particle_spectra);
-    for (auto const& part_spec : input.data)
+    auto const num_mat = input.optmatid_to_matid.size();
+    auto const num_part = input.scintpid_to_pid.size();
+
+    host_data.num_materials = num_mat;
+    host_data.num_particles = num_part;
+
+    CollectionBuilder scint_pid(&host_data.scint_particle_id);
+    CollectionBuilder opt_mat_id(&host_data.optical_mat_id);
+    CollectionBuilder materials(&host_data.materials);
+    CollectionBuilder mat_components(&host_data.material_components);
+    CollectionBuilder particles(&host_data.particles);
+    CollectionBuilder part_components(&host_data.particle_components);
+
+    // Store material ids
+    std::vector<MaterialId> vec_optmatid(num_mat);
+    for (auto matid : input.optmatid_to_matid)
     {
-        MaterialScintillationData mat_scint_data(part_spec.size());
-
-        for (auto const& mat_spec : part_spec)
-        {
-            // Check validity of scintillation data
-            auto const& comp_inp = mat_spec.material_components;
-            CELER_ASSERT(!comp_inp.empty());
-            std::vector<ScintillationComponent> comp(comp_inp.size());
-            real_type norm{0};
-            for (auto i : range(comp.size()))
-            {
-                comp[i].lambda_mean = comp_inp[i].lambda_mean;
-                comp[i].lambda_sigma = comp_inp[i].lambda_sigma;
-                comp[i].rise_time = comp_inp[i].rise_time;
-                comp[i].fall_time = comp_inp[i].fall_time;
-                norm += comp_inp[i].yield;
-            }
-            this->normalize_and_validate(comp, comp_inp, norm);
-
-            ScintillationSpectrum spectrum;
-            spectrum.yield = mat_spec.yield;
-            CELER_VALIDATE(spectrum.yield > 0,
-                           << "invalid yield=" << spectrum.yield
-                           << " for scintillation (should be positive)");
-            spectrum.resolution_scale = mat_spec.resolution_scale;
-            CELER_VALIDATE(
-                spectrum.resolution_scale >= 0,
-                << "invalid resolution_scale=" << spectrum.resolution_scale
-                << " for scintillation (should be nonnegative)");
-
-            mat_scint_data.components.insert_back(comp.begin(), comp.end());
-            mat_scint_data.spectra.push_back(spectrum);
-        }
-        particle_spectra.push_back(mat_scint_data);
+        opt_mat_id.push_back(MaterialId{matid});
     }
 
-    // particle_spectra.insert_back(...)
+    // Store particle ids
+    for (auto pid : input.scintpid_to_pid)
+    {
+        scint_pid.push_back(ParticleId{pid});
+    }
+
+    // Store material-only scintillation data
+    for (auto const& inp : input.data)
+    {
+        // Check validity of input scintillation data
+        CELER_ASSERT(inp);
+
+        // Material-only data
+        MaterialScintillationSpectrum mat_spec;
+        mat_spec.yield = inp.material.yield;
+        mat_spec.resolution_scale = inp.material.resolution_scale;
+        auto comps = this->copy_components(inp.material.components);
+        mat_spec.components
+            = mat_components.insert_back(comps.begin(), comps.end());
+        materials.push_back(mat_spec);
+    }
+
+    // Store particle- and material-dependent scintillation data
+    // Index should loop over particles first, then materials. This ordering
+    // should improve memory usage, since we group the material list for each
+    // particle, and each particle (i.e. stream) traverses multiple materials
+    for (auto pid : range(num_part))
+    {
+        auto const pdg = particle_params->id_to_pdg(ParticleId{pid}).get();
+        for (auto matid : range(num_mat))
+        {
+            // Particle- and material-dependend scintillation spectrum
+            auto iter = input.data[matid].particles.find(pdg);
+            CELER_ASSERT(iter != input.data[matid].particles.end());
+            CELER_ASSERT(pdg == iter->first);
+
+            auto const& ispc = iter->second;
+            ParticleScintillationSpectrum part_spec;
+            // TODO: part_spec.yield_vector = this->copy(ipsc.yield_vector);
+            auto comps = this->copy_components(ispc.components);
+            part_spec.components
+                = part_components.insert_back(comps.begin(), comps.end());
+            particles.push_back(part_spec);
+        }
+    }
+    CELER_ASSERT(particles.size() == num_part * num_mat);
+
     mirror_ = CollectionMirror<ScintillationData>{std::move(host_data)};
     CELER_ENSURE(mirror_);
 }
 
 //---------------------------------------------------------------------------//
 /*
- * Normalize yield probabilities and verify the correctness of the populated
- * ScintillationComponent data.
+ * Return a Celeritas ScintillationComponent from an imported one.
  */
-void ScintillationParams::normalize_and_validate(
-    std::vector<ScintillationComponent>& vec_comp,
-    std::vector<ImportScintComponent> const& input_comp,
-    real_type const norm)
+std::vector<ScintillationComponent> ScintillationParams::copy_components(
+    std::vector<ImportScintComponent> const& input_comp)
+{
+    std::vector<ScintillationComponent> comp;
+    real_type norm{0};
+    for (auto i : range(comp.size()))
+    {
+        comp[i].lambda_mean = input_comp[i].lambda_mean;
+        comp[i].lambda_sigma = input_comp[i].lambda_sigma;
+        comp[i].rise_time = input_comp[i].rise_time;
+        comp[i].fall_time = input_comp[i].fall_time;
+        norm += input_comp[i].yield;
+    }
+
+    // Normalize yield
+    for (auto i : range(comp.size()))
+    {
+        comp[i].yield_frac = input_comp[i].yield / norm;
+    }
+
+    this->validate(comp);
+    return comp;
+}
+
+//---------------------------------------------------------------------------//
+/*
+ * Verify the correctness of the populated vector<ScintillationComponent>.
+ */
+void ScintillationParams::validate(
+    std::vector<ScintillationComponent> const& vec_comp)
 {
     for (auto i : range(vec_comp.size()))
     {
-        vec_comp[i].yield_prob = input_comp[i].yield / norm;
-        CELER_VALIDATE(vec_comp[i].yield_prob > 0,
-                       << "invalid yield_prob=" << vec_comp[i].yield_prob
+        CELER_VALIDATE(vec_comp[i].yield_frac > 0,
+                       << "invalid yield_prob=" << vec_comp[i].yield_frac
                        << " for scintillation component " << i
                        << " (should be positive)");
         CELER_VALIDATE(vec_comp[i].lambda_mean > 0,
