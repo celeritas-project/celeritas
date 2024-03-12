@@ -15,7 +15,6 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
-#include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
 #include "celeritas/random/distribution/NormalDistribution.hh"
 

@@ -78,6 +78,20 @@ class UrbanMscSafetyStepLimit
     // Limit based on the range and safety
     real_type limit_{};
 
+    //// COMMON PROPERTIES ////
+
+    //! Minimum range for an empirical step-function approach
+    static CELER_CONSTEXPR_FUNCTION real_type min_range()
+    {
+        return 1e-3 * units::centimeter;
+    }
+
+    //! Maximum step over the range
+    static CELER_CONSTEXPR_FUNCTION real_type max_step_over_range()
+    {
+        return 0.35;
+    }
+
     //// HELPER FUNCTIONS ////
 
     // Calculate the minimum of the true path length limit
@@ -149,17 +163,14 @@ UrbanMscSafetyStepLimit::UrbanMscSafetyStepLimit(UrbanMscRef const& shared,
 
     if (use_safety_plus)
     {
-        // Minimum range
-        real_type rho = 1e-3 * units::centimeter;
+        real_type rho = UrbanMscSafetyStepLimit::min_range();
         if (range > rho)
         {
-            // Maximum step over range
-            real_type alpha = 0.35;
-
             // Calculate the scaled step range \f$ s = \alpha r + \rho (1 -
             // \alpha) (2 - \frac{\rho}{r}) \f$, where \f$ \alpha \f$ is the
             // maximum step over the range and \f$ \rho \f$ is the minimum
             // range
+            real_type alpha = UrbanMscSafetyStepLimit::max_step_over_range();
             real_type limit_step = alpha * range
                                    + rho * (1 - alpha) * (2 - rho / range);
             max_step_ = min(max_step_, limit_step);
