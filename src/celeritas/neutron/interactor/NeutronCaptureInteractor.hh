@@ -80,6 +80,9 @@ CELER_FUNCTION Interaction NeutronCaptureInteractor::operator()(Engine&)
 {
     // Dummy for now
     Interaction result;
+    result.direction = inc_direction_;
+    real_type target_mass = value_as<Mass>(target_.nuclear_mass());
+    result.energy = Energy(target_mass); 
     CELER_ENSURE(result.action == Interaction::Action::absorbed);
 
     return result;
