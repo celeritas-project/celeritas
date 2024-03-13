@@ -84,7 +84,7 @@ class UnitProtoTest : public ::celeritas::test::Test
     using Unit = detail::CsgUnit;
     using Tol = Tolerance<>;
 
-    Tolerance<> tol_ = Tol::from_default();
+    Tolerance<> tol_ = Tol::from_relative(1e-5);
 };
 
 //---------------------------------------------------------------------------//

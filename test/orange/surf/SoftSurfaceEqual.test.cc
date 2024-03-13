@@ -72,6 +72,9 @@ TEST_F(SoftSurfaceEqualTest, sphere_centered)
 {
     EXPECT_TRUE(softeq_(SphereCentered{10}, SphereCentered{10 - 10 * small}));
     EXPECT_FALSE(softeq_(SphereCentered{10}, SphereCentered{10 + 10 * large}));
+
+    EXPECT_TRUE(softeq_(SphereCentered{1}, SphereCentered{1 + small}));
+    EXPECT_FALSE(softeq_(SphereCentered{1}, SphereCentered{1 + large}));
 }
 
 TEST_F(SoftSurfaceEqualTest, cyl_aligned)
