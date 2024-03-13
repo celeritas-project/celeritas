@@ -130,7 +130,7 @@ auto UnitProto::build(Tol const& tol, bool is_global) const -> Unit
                       "provided");
     auto ext_vol
         = build_volume(NegatedObject("[EXTERIOR]", input_.boundary.interior));
-    CELER_ASSERT(ext_vol == LocalVolumeId{0});  // TODO update
+    CELER_ASSERT(ext_vol == local_orange_outside_volume);
 
     // Build daughters
     UniverseId daughter_id{0};
