@@ -330,6 +330,52 @@ TEST_F(MotherTest, implicit_exterior)
     }
 }
 
+TEST_F(MotherTest, fuzziness)
+{
+    UnitProto::Input inp;
+    inp.boundary.interior = make_sph("bound", 10.0);
+    inp.boundary.zorder = ZOrder::media;
+    inp.label = "fuzzy";
+    inp.daughters.push_back({make_daughter("d1"), {}});
+    inp.materials.push_back(
+        {make_rdv("interior",
+                  {{Sense::inside, inp.boundary.interior},
+                   {Sense::outside, make_sph("similar", 1.0001)}}),
+         MaterialId{1}});
+
+    UnitProto const proto{std::move(inp)};
+
+    EXPECT_EQ("d1", proto_labels(proto.daughters()));
+
+    {
+        auto u = proto.build(tol_, is_global);
+        static char const* const expected_surface_strings[]
+            = {"Sphere: r=10", "Sphere: r=1", "Sphere: r=1.0001"};
+        static char const* const expected_volume_strings[]
+            = {"+0", "-1", "all(-0, +2)"};
+        static char const* const expected_md_strings[] = {"",
+                                                          "",
+                                                          "[EXTERIOR],bound@s",
+                                                          "bound",
+                                                          "d1:ext@s",
+                                                          "d1:ext",
+                                                          "similar@s",
+                                                          "similar",
+                                                          "interior"};
+        EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+        EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+    }
+    {
+        // Simplify with lower tolerance because the user has tried to avoid
+        // overlap by adding .0001 to the "similar" shape
+        auto u = proto.build(Tol::from_relative(1e-3), is_global);
+        static char const* const expected_volume_strings[]
+            = {"+0", "-1", "all(-0, +1)"};
+        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+    }
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace orangeinp
