@@ -78,6 +78,7 @@ struct CsgUnit
     //! Vectors are indexed by LocalVolumeId.
     std::vector<NodeId> volumes;  //!< CSG node of each volume
     std::vector<Fill> fills;  //!< Content of each volume
+    MaterialId background;  //!< Optional background fill
     //!@}
 
     //!@{
