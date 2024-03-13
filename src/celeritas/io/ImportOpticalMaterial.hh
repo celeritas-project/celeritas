@@ -84,10 +84,10 @@ struct ImportParticleScintSpectrum
 struct ImportScintData
 {
     using PDGint = int;
-    using ISPC = ImportParticleScintSpectrum;
+    using IPSS = ImportParticleScintSpectrum;
 
     ImportMaterialScintSpectrum material;  //!< Material scintillation data
-    std::map<PDGint, ISPC> particles;  //!< Particle scintillation data
+    std::map<PDGint, IPSS> particles;  //!< Particle scintillation data
 
     //! Whether all data are assigned and valid
     explicit operator bool() const { return static_cast<bool>(material); }

@@ -477,11 +477,11 @@ ImportData::ImportOpticalMap import_optical()
                 = fill_vec_import_scint_comp(get_property);
 
             // Particle scintillation properties
-            for (auto const iter : g4_scint_particle_map)
+            for (auto const& iter : g4_scint_particle_map)
             {
                 std::string particle_name = iter.first;
 
-                ImportScintData::ISPC scint_part_spec;
+                ImportScintData::IPSS scint_part_spec;
                 get_property.vector(&scint_part_spec.yield_vector,
                                     particle_name + "SCINTILLATIONYIELD",
                                     ImportUnits::inv_mev);

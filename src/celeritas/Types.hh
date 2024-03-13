@@ -70,7 +70,7 @@ using OpticalMaterialId = OpaqueId<struct OpticalMaterial_>;
 using ScintillationParticleId = OpaqueId<struct ScintillationParticle_>;
 
 //! Opaque index to a scintillation spectrum
-using ScintillationSpectrumId = OpaqueId<struct ParticleScintillationSpectrum>;
+using ParticleScintSpectrumId = OpaqueId<struct ParticleScintillationSpectrum>;
 
 //! Opaque index of a process applicable to a single particle type
 using ParticleProcessId = OpaqueId<ProcessId>;

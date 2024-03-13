@@ -109,13 +109,16 @@ struct ScintillationData
     Collection<ScintillationParticleId, W, M, ParticleId> pid_to_scintpid;
 
     //! Resolution scale for each material
-    Collection<real_type, W, M, MaterialId> resolution_scale;
+    Collection<real_type, W, M, OpticalMaterialId> resolution_scale;
 
     //! Material-only scintillation spectrum data
     MaterialItems materials;  //!< [OpticalMaterialId]
 
     //! Particle and material scintillation spectrum data
     ParticleItems particles;  //!< [ScintillationSpectrumId]
+
+    //! Backend storage for ParticleScintillationSpectrum::yield_vector
+    Items<real_type> grid_data;
 
     //! Components for either material or particle items
     Items<ScintillationComponent> components;
@@ -146,11 +149,12 @@ struct ScintillationData
     ScintillationData& operator=(ScintillationData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        matid_to_optmatid = other.optmatid_to_matid;
-        pid_to_scintpid = other.scintpid_to_pid;
+        matid_to_optmatid = other.matid_to_optmatid;
+        pid_to_scintpid = other.pid_to_scintpid;
         resolution_scale = other.resolution_scale;
         materials = other.materials;
         particles = other.particles;
+        grid_data = other.grid_data;
         components = other.components;
         num_materials = other.num_materials;
         num_particles = other.num_particles;

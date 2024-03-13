@@ -35,17 +35,18 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
     //! Scintillation data for all materials
     struct Input
     {
-        using VecOptMatId = std::vector<MaterialId>;
-        using VecSPId = std::vector<ParticleId>;
+        using VecOptMatId = std::vector<OpticalMaterialId>;
+        using VecSPId = std::vector<ScintillationParticleId>;
 
-        VecOptMatId optmatid_to_matid;  //!< OpticalMaterialId to MaterialId
-        VecSPId scintpid_to_pid;  //!< ScintillationParticleId to ParticleId
+        VecOptMatId matid_to_optmatid;  //!< MaterialId to OpticalMaterialId
+        VecSPId pid_to_scintpid;  //!< ParticleId to ScintillationParticleId
         std::vector<ImportScintData> data;  //!< Indexed by OpticalMaterialId
 
         //! Whether all data are assigned and valid
         explicit operator bool() const
         {
-            return !optmatid_to_matid.empty() && !data.empty();
+            return !data.empty()
+                   && (!matid_to_optmatid.empty() || !pid_to_scintpid.empty());
         }
     };
 
