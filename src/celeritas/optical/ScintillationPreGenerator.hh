@@ -31,7 +31,7 @@ class ScintillationPreGenerator
 {
   public:
     // Placeholder for data that is not available through Views
-
+    // TODO: Merge Cerenkov and Scintillation pre-gen data into one struct
     struct OpticalPreGenStepData
     {
         real_type time{};  //!< Pre-step time
@@ -99,18 +99,17 @@ template<class Generator>
 inline CELER_FUNCTION OpticalDistributionData
 ScintillationPreGenerator::operator()(Generator& rng)
 {
-    auto const& spectrum
-        = shared_.particle_spectra[particle_view_.particle_id()]
-              .components[mat_id_];
-    CELER_EXPECT(spectrum);
+    // TODO: implement sampling for particles
+    auto const& material = shared_.materials[mat_id_];
+    CELER_EXPECT(material);
 
     // TODO: Use visible energy deposition when Birks quenching is available
-    real_type mean_num_photons = spectrum.yield * step_.energy_dep.value();
+    real_type mean_num_photons = material.yield * step_.energy_dep.value();
 
     OpticalDistributionData result;
     if (mean_num_photons > 10)
     {
-        real_type sigma = spectrum.resolution_scale
+        real_type sigma = shared_.resolution_scale[mat_id_]
                           * std::sqrt(mean_num_photons);
         result.num_photons
             = NormalDistribution<real_type>(mean_num_photons, sigma)(rng)

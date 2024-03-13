@@ -25,7 +25,7 @@ namespace celeritas
  */
 struct ScintillationComponent
 {
-    real_type yield_frac{};  //!< Ratio of the total yield (yield/sum(yields))
+    real_type yield_frac{};  //!< Fraction of total yield (yield/sum(yields))
     real_type lambda_mean{};  //!< Mean wavelength
     real_type lambda_sigma{};  //!< Standard dev. of wavelength
     real_type rise_time{};  //!< Rise time
@@ -34,8 +34,8 @@ struct ScintillationComponent
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return yield_frac > 0 && lambda_mean > 0 && lambda_sigma > 0
-               && rise_time >= 0 && fall_time > 0;
+        return yield_frac > 0 && yield_frac <= 1 && lambda_mean > 0
+               && lambda_sigma > 0 && rise_time >= 0 && fall_time > 0;
     }
 };
 
@@ -84,12 +84,21 @@ struct ParticleScintillationSpectrum
 
 //---------------------------------------------------------------------------//
 /*!
- * Data characterizing the scintillation spectrum.
+ * Data characterizing the scintillation spectrum for all particles and
+ * materials.
  *
- * \c materials stores material-only scintillation data indexed by
- * \c OpticalMaterialId .
- * \c particles stores scintillation data for each particle type available and
- * is indexed by \c ScintillationSpectrumId.
+ * - \c matid_to_optmatid returns an \c OpticalMaterialId given a
+ *   \c MaterialId
+ * - \c pid_to_scintpid returns a \c ScintillationParticleId given a
+ *   \c ParticleId .
+ * - \c resolution_scale is indexed by \c OpticalMaterialId .
+ * - \c materials stores material-only scintillation data. Indexed by
+ *   \c OpticalMaterialId
+ * - \c particles stores scintillation data for each particle type for each
+ *   material, being a grid of size `num_particles * num_materials`. Therefore
+ *   it is indexed by \c ParticleScintSpectrumId , which combines
+ *   \c ScintillationParticleId and \c OpticalMaterialId . Use the
+ *   \c spectrum_index() function to retrieve the correct index.
  */
 template<Ownership W, MemSpace M>
 struct ScintillationData
@@ -115,7 +124,7 @@ struct ScintillationData
     MaterialItems materials;  //!< [OpticalMaterialId]
 
     //! Particle and material scintillation spectrum data
-    ParticleItems particles;  //!< [ScintillationSpectrumId]
+    ParticleItems particles;  //!< [ParticleScintSpectrumId]
 
     //! Backend storage for ParticleScintillationSpectrum::yield_vector
     Items<real_type> grid_data;
