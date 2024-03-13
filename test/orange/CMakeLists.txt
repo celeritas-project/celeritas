@@ -8,12 +8,13 @@ celeritas_add_library(testcel_orange
   OrangeGeoTestBase.cc
   OrangeTestBase.cc
   orangeinp/CsgTestUtils.cc
+  orangeinp/ObjectTestBase.cc
 )
 celeritas_target_link_libraries(testcel_orange
   PUBLIC
-    Celeritas::orange Celeritas::testcel_harness
+    Celeritas::orange Celeritas::testcel_harness Celeritas::testcel_core
   PRIVATE
-    Celeritas::testcel_geocel Celeritas::testcel_core Celeritas::orange ${nlohmann_json_LIBRARIES}
+    Celeritas::testcel_geocel Celeritas::orange ${nlohmann_json_LIBRARIES}
 )
 
 #-----------------------------------------------------------------------------#
@@ -52,12 +53,16 @@ celeritas_add_test(detail/BIHUtils.test.cc)
 #-----------------------------------------------------------------------------#
 # Input construction
 set(CELERITASTEST_PREFIX orange/orangeinp)
+celeritas_add_test(orangeinp/ConvexRegion.test.cc)
 celeritas_add_test(orangeinp/ConvexSurfaceBuilder.test.cc)
+celeritas_add_test(orangeinp/CsgObject.test.cc)
 celeritas_add_test(orangeinp/CsgTree.test.cc)
 celeritas_add_test(orangeinp/CsgTreeUtils.test.cc)
+celeritas_add_test(orangeinp/Shape.test.cc)
+celeritas_add_test(orangeinp/Solid.test.cc)
+celeritas_add_test(orangeinp/Transformed.test.cc)
 
 celeritas_add_test(orangeinp/detail/BoundingZone.test.cc)
-celeritas_add_test(orangeinp/detail/CsgUnitBuilder.test.cc)
 celeritas_add_test(orangeinp/detail/LocalSurfaceInserter.test.cc)
 celeritas_add_test(orangeinp/detail/TransformInserter.test.cc)
 
@@ -65,6 +70,7 @@ celeritas_add_test(orangeinp/detail/TransformInserter.test.cc)
 # Transforms
 set(CELERITASTEST_PREFIX orange/transform)
 celeritas_add_test(transform/SignedPermutation.test.cc)
+celeritas_add_test(transform/TransformSimplifier.test.cc)
 celeritas_add_test(transform/Transformation.test.cc)
 celeritas_add_test(transform/Translation.test.cc)
 celeritas_add_test(transform/VariantTransform.test.cc)

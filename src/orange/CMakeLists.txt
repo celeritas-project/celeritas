@@ -25,15 +25,23 @@ list(APPEND SOURCES
   detail/SurfacesRecordBuilder.cc
   detail/UnitInserter.cc
   detail/UniverseInserter.cc
+  orangeinp/ConvexRegion.cc
   orangeinp/ConvexSurfaceBuilder.cc
+  orangeinp/CsgObject.cc
   orangeinp/CsgTree.cc
   orangeinp/CsgTypes.cc
   orangeinp/CsgTreeUtils.cc
+  orangeinp/Shape.cc
+  orangeinp/Solid.cc
+  orangeinp/Transformed.cc
   orangeinp/detail/BoundingZone.cc
+  orangeinp/detail/BuildConvexRegion.cc
+  orangeinp/detail/ConvexSurfaceState.cc
   orangeinp/detail/CsgUnitBuilder.cc
   orangeinp/detail/LocalSurfaceInserter.cc
   orangeinp/detail/NodeSimplifier.cc
   orangeinp/detail/TransformInserter.cc
+  orangeinp/detail/VolumeBuilder.cc
   surf/ConeAligned.cc
   surf/CylAligned.cc
   surf/FaceNamer.cc
@@ -52,6 +60,7 @@ list(APPEND SOURCES
   transform/SignedPermutation.cc
   transform/TransformHasher.cc
   transform/TransformIO.cc
+  transform/TransformSimplifier.cc
   transform/Transformation.cc
   transform/VariantTransform.cc
 )
@@ -61,6 +70,7 @@ if(CELERITAS_USE_JSON)
     OrangeInputIO.json.cc
     detail/OrangeInputIOImpl.json.cc
     orangeinp/CsgTreeIO.json.cc
+    orangeinp/ObjectIO.json.cc
   )
   list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()

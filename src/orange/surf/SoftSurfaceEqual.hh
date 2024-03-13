@@ -38,7 +38,7 @@ class SoftSurfaceEqual
 {
   public:
     // Construct with tolerance
-    inline SoftSurfaceEqual(Tolerance<> const& tol);
+    explicit inline SoftSurfaceEqual(Tolerance<> const& tol);
 
     //! Construct with relative tolerance only
     explicit SoftSurfaceEqual(real_type rel)

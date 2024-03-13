@@ -303,7 +303,7 @@ CELER_FORCEINLINE_FUNCTION void sort(RandomAccessIt first, RandomAccessIt last)
 #ifndef __CUDA_ARCH__
 template<class T>
 #else
-template<class T, typename = std::enable_if_t<!std::is_arithmetic<T>::value>>
+template<class T, std::enable_if_t<!std::is_arithmetic<T>::value, bool> = true>
 #endif
 CELER_CONSTEXPR_FUNCTION T const& max(T const& a, T const& b) noexcept
 {
@@ -311,7 +311,7 @@ CELER_CONSTEXPR_FUNCTION T const& max(T const& a, T const& b) noexcept
 }
 
 #ifdef __CUDA_ARCH__
-template<class T, typename = std::enable_if_t<std::is_arithmetic<T>::value>>
+template<class T, std::enable_if_t<std::is_arithmetic<T>::value, bool> = true>
 CELER_CONSTEXPR_FUNCTION T max(T a, T b) noexcept
 {
     return ::max(a, b);
@@ -328,7 +328,7 @@ CELER_CONSTEXPR_FUNCTION T max(T a, T b) noexcept
 #ifndef __CUDA_ARCH__
 template<class T>
 #else
-template<class T, typename = std::enable_if_t<!std::is_arithmetic<T>::value>>
+template<class T, std::enable_if_t<!std::is_arithmetic<T>::value, bool> = true>
 #endif
 CELER_CONSTEXPR_FUNCTION T const& min(T const& a, T const& b) noexcept
 {
@@ -336,7 +336,7 @@ CELER_CONSTEXPR_FUNCTION T const& min(T const& a, T const& b) noexcept
 }
 
 #ifdef __CUDA_ARCH__
-template<class T, typename = std::enable_if_t<std::is_arithmetic<T>::value>>
+template<class T, std::enable_if_t<std::is_arithmetic<T>::value, bool> = true>
 CELER_CONSTEXPR_FUNCTION T min(T a, T b) noexcept
 {
     return ::min(a, b);
@@ -443,7 +443,7 @@ CELER_CONSTEXPR_FUNCTION T ipow(T v) noexcept
   assert(9.0 == fastpow(3.0, 2.0));
  \endcode
  */
-template<class T, typename = std::enable_if_t<std::is_floating_point<T>::value>>
+template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
 inline CELER_FUNCTION T fastpow(T a, T b)
 {
     CELER_EXPECT(a > 0 || (a == 0 && b != 0));
@@ -497,14 +497,43 @@ template<class T>
 /*!
  * Calculate the difference of squares \f$ a^2 - b^2 \f$.
  *
- * The expression \f$ a^2 - b^2 \f$ exhibits catastrophic cancellation when \f$
- * a \f$ and \f$ b \f$ are close in magnitude. This can be avoided by
- * rearranging the formula as \f$ (a - b)(a + b) \f$.
+ * This calculation exchanges one multiplication for one addition, but it does
+ * not increase the accuracy of the computed result. It is used
+ * occasionally in Geant4 but is likely a premature optimization... see
+ * https://github.com/celeritas-project/celeritas/pull/1082
  */
 template<class T>
 CELER_CONSTEXPR_FUNCTION T diffsq(T a, T b)
 {
     return (a - b) * (a + b);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the Euclidian modulus of two numbers.
+ *
+ * If both numbers are positive, this should be the same as fmod. If the
+ * sign of the remainder and denominator don't match, the remainder will be
+ * remapped so that it is between zero and the denominator.
+ *
+ * This function is useful for normalizing user-provided angles.
+ */
+template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+CELER_CONSTEXPR_FUNCTION T eumod(T numer, T denom)
+{
+    T r = std::fmod(numer, denom);
+    if (r < 0)
+    {
+        if (denom >= 0)
+        {
+            r += denom;
+        }
+        else
+        {
+            r -= denom;
+        }
+    }
+    return r;
 }
 
 //---------------------------------------------------------------------------//

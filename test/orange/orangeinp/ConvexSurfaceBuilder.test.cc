@@ -9,12 +9,10 @@
 
 #include "orange/MatrixUtils.hh"
 #include "orange/orangeinp/detail/ConvexSurfaceState.hh"
-#include "orange/orangeinp/detail/CsgUnitBuilder.hh"
 
 #include "CsgTestUtils.hh"
+#include "ObjectTestBase.hh"
 #include "celeritas_test.hh"
-
-using namespace celeritas::orangeinp::detail::test;
 
 namespace celeritas
 {
@@ -24,25 +22,22 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-class ConvexSurfaceBuilderTest : public ::celeritas::test::Test
+class ConvexSurfaceBuilderTest : public ObjectTestBase
 {
   protected:
-    using Unit = detail::CsgUnit;
-    using UnitBuilder = detail::CsgUnitBuilder;
-    using Tol = UnitBuilder::Tol;
     using State = detail::ConvexSurfaceState;
+
+    Tol tolerance() const override { return Tol::from_relative(1e-4); }
 
     State make_state() const
     {
         State result;
         result.transform = &transform_;
-        result.make_face_name = FaceNamer{"c:"};
+        result.make_face_name = FaceNamer{"c."};
         return result;
     }
 
   protected:
-    Unit unit_;
-    UnitBuilder unit_builder_{&unit_, Tol::from_relative(1e-4)};
     VariantTransform transform_;
 };
 
@@ -58,7 +53,7 @@ TEST_F(ConvexSurfaceBuilderTest, no_transform)
         SCOPED_TRACE("z_hemi");
         auto css = this->make_state();
         css.object_name = "zh";
-        ConvexSurfaceBuilder build{&unit_builder_, &css};
+        ConvexSurfaceBuilder build{&this->unit_builder(), &css};
         build(PlaneZ{0.0});
         build(SphereCentered{1.0});
 
@@ -76,7 +71,7 @@ TEST_F(ConvexSurfaceBuilderTest, no_transform)
         SCOPED_TRACE("reverse_hemi");
         auto css = this->make_state();
         css.object_name = "rh";
-        ConvexSurfaceBuilder build{&unit_builder_, &css};
+        ConvexSurfaceBuilder build{&this->unit_builder(), &css};
         build(Sense::outside, PlaneZ{1e-5});
         build(Sense::inside, SphereCentered{1.0});
 
@@ -97,7 +92,7 @@ TEST_F(ConvexSurfaceBuilderTest, no_transform)
         SCOPED_TRACE("dedupe hemi");
         auto css = this->make_state();
         css.object_name = "dh";
-        ConvexSurfaceBuilder build{&unit_builder_, &css};
+        ConvexSurfaceBuilder build{&this->unit_builder(), &css};
         build(PlaneZ{1e-5});
         build(SphereCentered{1.0});
 
@@ -115,7 +110,7 @@ TEST_F(ConvexSurfaceBuilderTest, no_transform)
         SCOPED_TRACE("slab");
         auto css = this->make_state();
         css.object_name = "sl";
-        ConvexSurfaceBuilder build{&unit_builder_, &css};
+        ConvexSurfaceBuilder build{&this->unit_builder(), &css};
         x_slab(build);
 
         static real_type const expected_local_bz[] = {
@@ -132,13 +127,13 @@ TEST_F(ConvexSurfaceBuilderTest, no_transform)
     static char const* const expected_surface_strings[]
         = {"Plane: z=0", "Sphere: r=1", "Plane: x=-0.5", "Plane: x=0.5"};
     static char const* const expected_md_strings[] = {"", "",
-        "dh@c:pz,rh@c:mz,zh@c:pz", "", "dh@c:s,rh@c:s,zh@c:s", "", "sl@c:mx",
-        "sl@c:px", ""};
+        "dh@c.pz,rh@c.mz,zh@c.pz", "", "dh@c.s,rh@c.s,zh@c.s", "", "sl@c.mx",
+        "sl@c.px", ""};
     static char const expected_tree_string[]
-        = R"json([["t",["~",0],["S",0],["~",2],["S",1],["~",4],["S",2],["S",3],["~",7]]])json";
+        = R"json(["t",["~",0],["S",0],["~",2],["S",1],["~",4],["S",2],["S",3],["~",7]])json";
     // clang-format on
 
-    auto const& u = unit_;
+    auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     if (CELERITAS_USE_JSON)
     {
@@ -154,7 +149,7 @@ TEST_F(ConvexSurfaceBuilderTest, translate)
         SCOPED_TRACE("slab");
         auto css = this->make_state();
         css.object_name = "sl";
-        ConvexSurfaceBuilder build{&unit_builder_, &css};
+        ConvexSurfaceBuilder build{&this->unit_builder(), &css};
         x_slab(build);
 
         // clang-format off
@@ -173,7 +168,7 @@ TEST_F(ConvexSurfaceBuilderTest, translate)
         SCOPED_TRACE("sphere");
         auto css = this->make_state();
         css.object_name = "sph";
-        ConvexSurfaceBuilder build{&unit_builder_, &css};
+        ConvexSurfaceBuilder build{&this->unit_builder(), &css};
         build(SphereCentered{1.0});
 
         // clang-format off
@@ -195,7 +190,7 @@ TEST_F(ConvexSurfaceBuilderTest, translate)
         SCOPED_TRACE("slab shared");
         auto css = this->make_state();
         css.object_name = "ss";
-        ConvexSurfaceBuilder build{&unit_builder_, &css};
+        ConvexSurfaceBuilder build{&this->unit_builder(), &css};
         x_slab(build);
 
         // clang-format off
@@ -214,11 +209,11 @@ TEST_F(ConvexSurfaceBuilderTest, translate)
     static char const * const expected_surface_strings[] = {"Plane: x=0.5",
         "Plane: x=1.5", "Sphere: r=1 at {1,2,3}", "Plane: x=2.5"};
     static char const* const expected_md_strings[] = {
-        "", "", "sl@c:mx", "sl@c:px,ss@c:mx", "", "sph@c:s", "", "ss@c:px", ""};
+        "", "", "sl@c.mx", "sl@c.px,ss@c.mx", "", "sph@c.s", "", "ss@c.px", ""};
     static char const expected_tree_string[]
-        = R"json([["t",["~",0],["S",0],["S",1],["~",3],["S",2],["~",5],["S",3],["~",7]]])json";
+        = R"json(["t",["~",0],["S",0],["S",1],["~",3],["S",2],["~",5],["S",3],["~",7]])json";
 
-    auto const& u = unit_;
+    auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
     if (CELERITAS_USE_JSON)
@@ -235,7 +230,7 @@ TEST_F(ConvexSurfaceBuilderTest, transform)
         SCOPED_TRACE("hemi");
         auto css = this->make_state();
         css.object_name = "h";
-        ConvexSurfaceBuilder build{&unit_builder_, &css};
+        ConvexSurfaceBuilder build{&this->unit_builder(), &css};
         build(PlaneZ{1e-5});
         build(SphereCentered{1.0});
 
@@ -257,11 +252,11 @@ TEST_F(ConvexSurfaceBuilderTest, transform)
     static char const * const expected_surface_strings[] = {"Plane: y=0",
         "Sphere: r=1 at {0,0,1}"};
     static char const expected_tree_string[]
-        = R"json([["t",["~",0],["S",0],["S",1],["~",3]]])json";
+        = R"json(["t",["~",0],["S",0],["S",1],["~",3]])json";
     static char const* const expected_md_strings[]
-        = {"", "", "h@c:pz", "h@c:s", ""};
+        = {"", "", "h@c.pz", "h@c.s", ""};
 
-    auto const& u = unit_;
+    auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
     if (CELERITAS_USE_JSON)

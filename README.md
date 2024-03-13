@@ -74,8 +74,9 @@ Celeritas guarantees full compatibility and correctness only on the
 combinations of compilers and dependencies tested under continuous integration:
 - Compilers:
     - GCC 8.4, 12.3
+    - Clang 10.0, 15.0
     - GCC 11.3 + NVCC 11.8
-    - HIP-Clang 10.0, 15.0
+    - HIP-Clang 15.0
 - Dependencies:
     - Geant4 11.0.3
     - VecGeom 1.2.5
@@ -96,16 +97,25 @@ See the [contribution guide](CONTRIBUTING.rst) for the contribution process,
 [the development guidelines](doc/appendix/development.rst) for further
 details on coding in Celeritas, and [the administration guidelines](doc/appendix/administration.rst) for community standards and roles.
 
+# Directory structure
+
+| **Directory** | **Description**                                       |
+| ------------- | ---------------                                       |
+| **app**       | Source code for installed executable applications     |
+| **cmake**     | Implementation code for CMake build configuration     |
+| **doc**       | Code documentation and manual                         |
+| **example**   | Example applications and input files                  |
+| **interface** | Wrapper interfaces to Celeritas library functions     |
+| **scripts**   | Development and continuous integration helper scripts |
+| **src**       | Library source code                                   |
+| **test**      | Unit tests                                            |
+
 # Citing Celeritas
 
 If using Celeritas in your work, we ask that you cite the code using its
 [DOECode](https://www.osti.gov/doecode/biblio/94866) registration:
 
-> Johnson, Seth R., Amanda Lund, Soon Yung Jun, Stefano Tognini, Guilherme Lima, Paul Romano, Philippe Canal, Ben Morgan, and Tom Evans. “Celeritas,” July 2022. https://doi.org/10.11578/dc.20221011.1.
+> Seth R. Johnson, Amanda Lund, Soon Yung Jun, Stefano Tognini, Guilherme Lima, Paul Romano, Philippe Canal, Ben Morgan, and Tom Evans. “Celeritas,” July 2022. https://doi.org/10.11578/dc.20221011.1.
 
-Additional references for code implementation details, benchmark problem
-results, etc., can be found in our continually evolving [citation
-file](doc/_static/celeritas.bib). An [exhaustive list of Celeritas presentations
-](https://github.com/celeritas-project/celeritas-docs/blob/main/presentations/presentations.bib)
-authored by (or with content authored by) core team members is available in our
-documents repo.
+A continually evolving list of works authored by (or with content authored by)
+core team members is available in our [citation file](doc/_static/celeritas.bib).

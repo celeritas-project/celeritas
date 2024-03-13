@@ -123,6 +123,8 @@ struct GeantPhysicsOptions
     double msc_safety_factor{0.6};
     //! Lambda limit for MSC models [len]
     double msc_lambda_limit{0.1 * units::centimeter};
+    //! Step limit algorithm for MSC models
+    MscStepLimitAlgorithm msc_step_algorithm{MscStepLimitAlgorithm::safety};
     //!@}
 
     //! Print detailed Geant4 output
@@ -158,6 +160,7 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.msc_range_factor == b.msc_range_factor
            && a.msc_safety_factor == b.msc_safety_factor
            && a.msc_lambda_limit == b.msc_lambda_limit
+           && a.msc_step_algorithm == b.msc_step_algorithm
            && a.verbose == b.verbose;
     // clang-format on
 }

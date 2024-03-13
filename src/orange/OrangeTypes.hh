@@ -444,6 +444,9 @@ inline constexpr char to_char(Sense s)
 // Get a string corresponding to a surface type
 char const* to_cstring(SurfaceType);
 
+// Get a string corresponding to a transform type
+char const* to_cstring(TransformType);
+
 // Get a string corresponding to a surface state
 inline char const* to_cstring(SurfaceState s)
 {

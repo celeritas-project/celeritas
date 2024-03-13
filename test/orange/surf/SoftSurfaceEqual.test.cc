@@ -87,10 +87,8 @@ TEST_F(SoftSurfaceEqualTest, plane)
     Real3 const n = make_unit_vector(Real3{1, 1, 0});
     Plane const ref{n, p};
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-    {
-        EXPECT_TRUE(softeq_(ref, Plane{n, p + Real3{small, 0, 0}}));
-    }
+    EXPECT_TRUE(softeq_(ref, ref));
+    EXPECT_TRUE(softeq_(ref, Plane{n, p + Real3{small, 0, 0}}));
     EXPECT_FALSE(softeq_(ref, Plane{n, p + Real3{large, 0, 0}}));
 
     Real3 const npert = make_unit_vector(n + Real3{small, 0, 0});
@@ -100,6 +98,15 @@ TEST_F(SoftSurfaceEqualTest, plane)
     EXPECT_FALSE(softeq_(ref, Plane{ndiff, p}));
     EXPECT_FALSE(softeq_(ref, Plane{make_unit_vector(Real3{-1, 1, 0}), p}));
     EXPECT_FALSE(softeq_(ref, Plane{make_unit_vector(Real3{1, -1, 0}), p}));
+}
+
+TEST_F(SoftSurfaceEqualTest, infwedge_quadrant)
+{
+    constexpr real_type sqrt_half{0.70710678118655};
+    Plane const p1({sqrt_half, sqrt_half, 0}, 0);
+    Plane const p2({sqrt_half, -sqrt_half, 0}, 0);
+    EXPECT_TRUE(softeq_(p1, p1));
+    EXPECT_TRUE(softeq_(p2, p2));
 }
 
 TEST_F(SoftSurfaceEqualTest, sphere)
