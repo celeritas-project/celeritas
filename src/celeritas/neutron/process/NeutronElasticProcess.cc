@@ -9,7 +9,7 @@
 
 #include "corecel/Assert.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
-#include "celeritas/neutron/model/ChipsNeutronElasticModel.hh"
+#include "celeritas/neutron/model/NeutronElasticModel.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 namespace celeritas
@@ -38,13 +38,13 @@ NeutronElasticProcess::NeutronElasticProcess(SPConstParticles particles,
  */
 auto NeutronElasticProcess::build_models(ActionIdIter id) const -> VecModel
 {
-    return {std::make_shared<ChipsNeutronElasticModel>(
+    return {std::make_shared<NeutronElasticModel>(
         *id++, *particles_, *materials_, load_data_)};
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the interaction cross sections for the given energy range.
+ * Get the elastic scattering cross sections for the given energy range.
  */
 auto NeutronElasticProcess::step_limits(Applicability applic) const
     -> StepLimitBuilders
