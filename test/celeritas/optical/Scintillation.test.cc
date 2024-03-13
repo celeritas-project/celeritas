@@ -5,19 +5,20 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/ScintillationGenerator.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/optical/ScintillationGenerator.hh"
-
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/optical/OpticalDistributionData.hh"
 #include "celeritas/optical/OpticalPrimary.hh"
 #include "celeritas/optical/ScintillationData.hh"
+#include "celeritas/optical/ScintillationGenerator.hh"
 #include "celeritas/optical/ScintillationParams.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
 #include "DiagnosticRngEngine.hh"
-#include "Test.hh"
+#include "OpticalTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -28,7 +29,7 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ScintillationGeneratorTest : public Test
+class ScintillationTest : public OpticalTestBase
 {
   public:
     //!@{
@@ -40,21 +41,22 @@ class ScintillationGeneratorTest : public Test
   protected:
     void SetUp() override
     {
-        static constexpr double nm = 1e-9 * units::meter;
-        static constexpr double ns = 1e-9 * units::second;
-
         // Test scintillation spectrum: only one material with three components
-        ImportScintSpectrum spectrum;
-        spectrum.yield = 5;
-        spectrum.resolution_scale = 1;
-        spectrum.material_components.push_back(
+        ImportScintData spectrum;
+        spectrum.material.yield = 5;
+        spectrum.material.resolution_scale = 1;
+        spectrum.material.components.push_back(
             {0.65713, 128 * nm, 10 * nm, 10 * ns, 6 * ns});
-        spectrum.material_components.push_back(
+        spectrum.material.components.push_back(
             {0.31987, 128 * nm, 10 * nm, 10 * ns, 1500 * ns});
-        spectrum.material_components.push_back(
+        spectrum.material.components.push_back(
             {0.023, 200 * nm, 20 * nm, 10 * ns, 3000 * ns});
+
+        ScintillationParams::Input inp;
+        inp.matid_to_optmatid.push_back(OpticalMaterialId(0));
+        inp.data.push_back(std::move(spectrum));
         params = std::make_shared<ScintillationParams>(
-            ScintillationParams::Input{{spectrum}});
+            std::move(inp), this->particle_params());
 
         // Test step input
         dist_.num_photons = 4;
@@ -74,6 +76,15 @@ class ScintillationGeneratorTest : public Test
         return rng_;
     }
 
+    std::vector<ImportScintComponent> make_material_components()
+    {
+        std::vector<ImportScintComponent> comps;
+        comps.push_back({0.65713, 128 * nm, 10 * nm, 10 * ns, 6 * ns});
+        comps.push_back({0.31987, 128 * nm, 10 * nm, 10 * ns, 1500 * ns});
+        comps.push_back({0.023, 200 * nm, 20 * nm, 10 * ns, 3000 * ns});
+        return comps;
+    }
+
   protected:
     // Host/device storage and reference
     std::shared_ptr<ScintillationParams const> params;
@@ -83,13 +94,67 @@ class ScintillationGeneratorTest : public Test
 
     RandomEngine rng_;
     OpticalDistributionData dist_;
+
+    static constexpr double nm = 1e-9 * units::meter;
+    static constexpr double ns = 1e-9 * units::second;
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(ScintillationGeneratorTest, basic)
+TEST_F(ScintillationTest, params)
+{
+    auto const& data = params->host_ref();
+
+    EXPECT_EQ(1, data.num_materials);
+    EXPECT_EQ(0, data.num_particles);
+
+    auto const& material = data.materials[OpticalMaterialId{0}];
+    EXPECT_REAL_EQ(5, material.yield);
+    EXPECT_REAL_EQ(1, data.resolution_scale[OpticalMaterialId{0}]);
+    EXPECT_EQ(3, data.components.size());
+
+    std::vector<real_type> yield_fracs;
+    std::vector<real_type> lambda_means;
+    std::vector<real_type> lambda_sigmas;
+    std::vector<real_type> rise_times;
+    std::vector<real_type> fall_times;
+    for (auto idx : material.components)
+    {
+        auto const& comp = data.components[idx];
+        yield_fracs.push_back(comp.yield_frac);
+        lambda_means.push_back(comp.lambda_mean);
+        lambda_sigmas.push_back(comp.lambda_sigma);
+        rise_times.push_back(comp.rise_time);
+        fall_times.push_back(comp.fall_time);
+    }
+
+    real_type norm{0};
+    for (auto const& comp : this->make_material_components())
+    {
+        norm += comp.yield;
+    }
+    std::vector<real_type> expected_yield_fracs, expected_lambda_means,
+        expected_lambda_sigmas, expected_rise_times, expected_fall_times;
+    for (auto const& comp : this->make_material_components())
+    {
+        expected_yield_fracs.push_back(comp.yield / norm);
+        expected_lambda_means.push_back(comp.lambda_mean);
+        expected_lambda_sigmas.push_back(comp.lambda_sigma);
+        expected_rise_times.push_back(comp.rise_time);
+        expected_fall_times.push_back(comp.fall_time);
+    }
+
+    EXPECT_VEC_EQ(expected_yield_fracs, yield_fracs);
+    EXPECT_VEC_EQ(expected_lambda_means, lambda_means);
+    EXPECT_VEC_EQ(expected_lambda_sigmas, lambda_sigmas);
+    EXPECT_VEC_EQ(expected_rise_times, rise_times);
+    EXPECT_VEC_EQ(expected_fall_times, fall_times);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(ScintillationTest, basic)
 {
     // Output data
     std::vector<OpticalPrimary> storage(dist_.num_photons);
@@ -155,7 +220,7 @@ TEST_F(ScintillationGeneratorTest, basic)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(ScintillationGeneratorTest, stress_test)
+TEST_F(ScintillationTest, stress_test)
 {
     // Generate a large number of optical photons
     dist_.num_photons = 123456;
@@ -182,12 +247,12 @@ TEST_F(ScintillationGeneratorTest, stress_test)
     double expected_lambda{0};
     double expected_error{0};
 
-    for (auto i : data.spectra[dist_.material].material_components)
+    for (auto i : data.materials[dist_.material].components)
     {
         expected_lambda += data.components[i].lambda_mean
-                           * data.components[i].yield_prob;
+                           * data.components[i].yield_frac;
         expected_error += data.components[i].lambda_sigma
-                          * data.components[i].yield_prob;
+                          * data.components[i].yield_frac;
     }
     EXPECT_SOFT_NEAR(avg_lambda, expected_lambda, expected_error);
 }

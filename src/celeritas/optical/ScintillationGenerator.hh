@@ -120,19 +120,21 @@ ScintillationGenerator::operator()(Generator& rng)
 {
     // Loop for generating scintillation photons
     size_type num_generated{0};
+    auto const& mat_spectrum = shared_.materials[dist_.material];
 
-    ScintillationSpectrum const& spectrum = shared_.spectra[dist_.material];
+    // TODO: implement sampling for particles
 
-    for (auto sid : spectrum.material_components)
+    // Material sampling
+    for (auto sid : mat_spectrum.components)
     {
-        ScintillationComponent component = shared_.components[sid];
+        auto const& component = shared_.components[sid];
 
         // Calculate the number of photons to generate for this component
         size_type num_photons
-            = (sid.get() + 1 == spectrum.material_components.size())
+            = (sid.get() + 1 == mat_spectrum.components.size())
                   ? dist_.num_photons - num_generated
                   : static_cast<size_type>(dist_.num_photons
-                                           * component.yield_prob);
+                                           * component.yield_frac);
 
         CELER_EXPECT(num_generated + num_photons <= dist_.num_photons);
 
