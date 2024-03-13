@@ -41,6 +41,10 @@ UnitProto::UnitProto(Input&& inp) : input_{std::move(inp)}
                                    return static_cast<bool>(d);
                                }),
                    << "incomplete daughter definition(s)");
+    CELER_VALIDATE(input_.boundary.zorder == ZOrder::media
+                       || input_.boundary.zorder == ZOrder::exterior,
+                   << "invalid exterior zorder '"
+                   << to_cstring(input_.boundary.zorder) << "'");
 }
 
 //---------------------------------------------------------------------------//
@@ -105,16 +109,9 @@ void UnitProto::build(GlobalBuilder&) const
  *
  * The exterior zorder
  */
-auto UnitProto::build(Tol const& tol, bool is_global) const -> Unit
+auto UnitProto::build(Tol const& tol, ExteriorBoundary ext) const -> Unit
 {
     CELER_EXPECT(tol);
-#if 0
-    CELER_VALIDATE(exterior_zo == ZOrder::media
-                       || exterior_zo == ZOrder::implicit_exterior
-                       || exterior_zo == ZOrder::exterior,
-                   << "invalid exterior zorder " << to_cstring(exterior_zo)
-                   << " (must be media, exterior, or implicit_exterior)");
-#endif
     detail::CsgUnit result;
     detail::CsgUnitBuilder unit_builder(&result, tol);
 
@@ -125,9 +122,10 @@ auto UnitProto::build(Tol const& tol, bool is_global) const -> Unit
     };
 
     // Build exterior volume and optional background fill
-    CELER_VALIDATE(input_.boundary.zorder == ZOrder::media || input_.fill,
-                   << "exterior can be implicit only if background fill is "
-                      "provided");
+    if (input_.boundary.zorder != ZOrder::media && !input_.fill)
+    {
+        CELER_NOT_IMPLEMENTED("implicit exterior without background fill");
+    }
     auto ext_vol
         = build_volume(NegatedObject("[EXTERIOR]", input_.boundary.interior));
     CELER_ASSERT(ext_vol == local_orange_outside_volume);
@@ -154,7 +152,7 @@ auto UnitProto::build(Tol const& tol, bool is_global) const -> Unit
     // Build background fill (optional)
     result.background = input_.fill;
 
-    if (!is_global)
+    if (ext == ExteriorBoundary::is_daughter)
     {
         // Replace "exterior" with "False" (i.e. interior with true)
         NodeId ext_node = result.volumes[ext_vol.unchecked_get()];

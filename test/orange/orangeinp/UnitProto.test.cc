@@ -25,11 +25,16 @@ namespace orangeinp
 namespace test
 {
 //---------------------------------------------------------------------------//
-// Construction helper functions
+// Type aliases
 //---------------------------------------------------------------------------//
 using SPConstObject = std::shared_ptr<ObjectInterface const>;
 using SPConstProto = std::shared_ptr<ProtoInterface const>;
+inline constexpr auto is_global = UnitProto::ExteriorBoundary::is_global;
+inline constexpr auto is_daughter = UnitProto::ExteriorBoundary::is_daughter;
 
+//---------------------------------------------------------------------------//
+// Construction helper functions
+//---------------------------------------------------------------------------//
 SPConstObject make_sph(std::string&& label, real_type radius)
 {
     return std::make_shared<SphereShape>(std::move(label), Sphere{radius});
@@ -102,7 +107,7 @@ TEST_F(LeafTest, explicit_exterior)
     EXPECT_EQ("", proto_labels(proto.daughters()));
 
     {
-        auto u = proto.build(tol_, /* is_global = */ true);
+        auto u = proto.build(tol_, is_global);
 
         static char const* const expected_surface_strings[]
             = {"Plane: z=-1", "Plane: z=1", "Cyl z: r=1", "Plane: z=0"};
@@ -133,7 +138,7 @@ TEST_F(LeafTest, explicit_exterior)
         EXPECT_EQ(MaterialId{}, u.background);
     }
     {
-        auto u = proto.build(tol_, /* is_global = */ false);
+        auto u = proto.build(tol_, is_daughter);
         static char const* const expected_volume_strings[] = {"F", "-3", "+3"};
 
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
@@ -152,7 +157,7 @@ TEST_F(LeafTest, implicit_exterior)
     UnitProto const proto{std::move(inp)};
 
     {
-        auto u = proto.build(tol_, /* is_global = */ true);
+        auto u = proto.build(tol_, is_global);
 
         static char const* const expected_surface_strings[] = {
             "Plane: z=-1",
@@ -172,7 +177,7 @@ TEST_F(LeafTest, implicit_exterior)
         EXPECT_EQ(MaterialId{0}, u.background);
     }
     {
-        auto u = proto.build(tol_, /* is_global = */ false);
+        auto u = proto.build(tol_, is_daughter);
 
         static char const* const expected_volume_strings[]
             = {"F", "all(+3, -4)"};
@@ -218,7 +223,7 @@ TEST_F(MotherTest, explicit_exterior)
     EXPECT_EQ("d1,d2", proto_labels(proto.daughters()));
 
     {
-        auto u = proto.build(tol_, /* is_global = */ true);
+        auto u = proto.build(tol_, is_global);
 
         static char const* const expected_surface_strings[] = {
             "Sphere: r=10",
@@ -280,7 +285,7 @@ TEST_F(MotherTest, explicit_exterior)
         EXPECT_EQ(MaterialId{}, u.background);
     }
     {
-        auto u = proto.build(tol_, /* is_global = */ false);
+        auto u = proto.build(tol_, is_daughter);
         static char const* const expected_volume_strings[]
             = {"F", "-1", "-2", "-3", "-4", "all(+1, +2, +3, +4)"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
@@ -308,7 +313,7 @@ TEST_F(MotherTest, implicit_exterior)
     EXPECT_EQ("d1,d2", proto_labels(proto.daughters()));
 
     {
-        auto u = proto.build(tol_, /* is_global = */ true);
+        auto u = proto.build(tol_, is_global);
         static char const* const expected_volume_strings[]
             = {"+0", "-1", "-2", "-3", "-4"};
         static int const expected_volume_nodes[] = {2, 5, 7, 9, 11};
@@ -318,7 +323,7 @@ TEST_F(MotherTest, implicit_exterior)
         EXPECT_EQ(MaterialId{3}, u.background);
     }
     {
-        auto u = proto.build(tol_, /* is_global = */ false);
+        auto u = proto.build(tol_, is_daughter);
         static char const* const expected_volume_strings[]
             = {"F", "-1", "-2", "-3", "-4"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));

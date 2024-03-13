@@ -45,7 +45,7 @@ struct CsgUnit;
  *   Input      Description
  *  ========== ==========================================================
  *   Implicit   Boundary implicitly truncates interior (KENO)
- *   Explicit   Interior is explicitly connected to elements (RTK)
+ *   Explicit   Interior CSG definition includes boundary (RTK)
  *  ========== ==========================================================
  *
  * Additionally, whether the universe is the top-level *global* universe
@@ -76,9 +76,7 @@ class UnitProto : public ProtoInterface
     //! \name Types
     using Unit = detail::CsgUnit;
     using Tol = Tolerance<>;
-    //!@}
 
-  public:
     //! A homogeneous physical material
     struct MaterialInput
     {
@@ -126,6 +124,14 @@ class UnitProto : public ProtoInterface
         explicit inline operator bool() const;
     };
 
+    //! Whether to implicitly delete the exterior boundary
+    enum class ExteriorBoundary : bool
+    {
+        is_global,  //!< Explicit: bounding object remains
+        is_daughter  //!< Implicit: interior is replaced with "true"
+    };
+    //!@}
+
   public:
     // Construct with required input data
     explicit UnitProto(Input&& inp);
@@ -145,7 +151,7 @@ class UnitProto : public ProtoInterface
     //// HELPER FUNCTIONS ////
 
     // Construct a standalone unit for testing and external interface
-    Unit build(Tol const& tol, bool is_global = false) const;
+    Unit build(Tol const& tol, ExteriorBoundary ext) const;
 
   private:
     Input input_;
@@ -181,6 +187,9 @@ UnitProto::BoundaryInput::operator bool() const
 //---------------------------------------------------------------------------//
 /*!
  * True if fully defined.
+ *
+ * The unit proto must have at least one material, daughter, or background
+ * fill.
  */
 UnitProto::Input::operator bool() const
 {
