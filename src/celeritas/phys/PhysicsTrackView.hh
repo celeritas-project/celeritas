@@ -19,7 +19,9 @@
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/mat/TabulatedElementSelector.hh"
+#include "celeritas/neutron/xs/NeutronCaptureMicroXsCalculator.hh"
 #include "celeritas/neutron/xs/NeutronElasticMicroXsCalculator.hh"
+#include "celeritas/neutron/xs/NeutronInelasticMicroXsCalculator.hh"
 #include "celeritas/phys/MacroXsCalculator.hh"
 
 #include "PhysicsData.hh"
@@ -418,10 +420,22 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
                 params_.hardwired.eplusgg_data, material);
             result = calc_xs(energy);
         }
+        else if (model_id == params_.hardwired.rad_capture)
+        {
+            auto calc_xs = MacroXsCalculator<NeutronCaptureMicroXsCalculator>(
+                params_.hardwired.capture_data, material);
+            result = calc_xs(energy);
+        }
         else if (model_id == params_.hardwired.chips)
         {
             auto calc_xs = MacroXsCalculator<NeutronElasticMicroXsCalculator>(
                 params_.hardwired.chips_data, material);
+            result = calc_xs(energy);
+        }
+        else if (model_id == params_.hardwired.bertini)
+        {
+            auto calc_xs = MacroXsCalculator<NeutronInelasticMicroXsCalculator>(
+                params_.hardwired.bertini_data, material);
             result = calc_xs(energy);
         }
     }

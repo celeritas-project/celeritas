@@ -18,7 +18,9 @@
 #include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/grid/ValueGridType.hh"
 #include "celeritas/grid/XsGridData.hh"
+#include "celeritas/neutron/data/NeutronCaptureData.hh"
 #include "celeritas/neutron/data/NeutronElasticData.hh"
+#include "celeritas/neutron/data/NeutronInelasticData.hh"
 
 #include "Interaction.hh"
 #include "Secondary.hh"
@@ -174,10 +176,20 @@ struct HardwiredModels
     ModelId eplusgg;
     EPlusGGData eplusgg_data;
 
+    // Neutron capture
+    ProcessId neutron_capture;
+    ModelId rad_capture;
+    NeutronCaptureData<W, M> capture_data;
+
     // Neutron elastic
     ProcessId neutron_elastic;
     ModelId chips;
     NeutronElasticData<W, M> chips_data;
+
+    // Neutron inelastic
+    ProcessId neutron_inelastic;
+    ModelId bertini;
+    NeutronInelasticData<W, M> bertini_data;
 
     //// MEMBER FUNCTIONS ////
 
@@ -199,12 +211,28 @@ struct HardwiredModels
         eplusgg = other.eplusgg;
         eplusgg_data = other.eplusgg_data;
 
+        neutron_capture = other.neutron_capture;
+        if (neutron_capture)
+        {
+            // Only assign neutron_cpature data if that process is present
+            rad_capture = other.rad_capture;
+            capture_data = other.capture_data;
+        }
         neutron_elastic = other.neutron_elastic;
+
         if (neutron_elastic)
         {
             // Only assign neutron_elastic data if that process is present
             chips = other.chips;
             chips_data = other.chips_data;
+        }
+        neutron_inelastic = other.neutron_inelastic;
+
+        if (neutron_inelastic)
+        {
+            // Only assign neutron_inelastic data if that process is present
+            bertini = other.bertini;
+            bertini_data = other.bertini_data;
         }
 
         return *this;

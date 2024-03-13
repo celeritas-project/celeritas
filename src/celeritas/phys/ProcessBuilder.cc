@@ -26,7 +26,9 @@
 #include "celeritas/io/LivermorePEReader.hh"
 #include "celeritas/io/NeutronXsReader.hh"
 #include "celeritas/io/SeltzerBergerReader.hh"
+#include "celeritas/neutron/process/NeutronCaptureProcess.hh"
 #include "celeritas/neutron/process/NeutronElasticProcess.hh"
+#include "celeritas/neutron/process/NeutronInelasticProcess.hh"
 
 #include "ImportedProcessAdapter.hh"
 
@@ -84,10 +86,20 @@ ProcessBuilder::ProcessBuilder(ImportData const& data,
     {
         read_livermore_ = make_imported_element_loader(data.livermore_pe_data);
     }
+    if (!data.neutron_capture_data.empty())
+    {
+        read_neutron_capture_
+            = make_imported_element_loader(data.neutron_capture_data);
+    }
     if (!data.neutron_elastic_data.empty())
     {
         read_neutron_elastic_
             = make_imported_element_loader(data.neutron_elastic_data);
+    }
+    if (!data.neutron_inelastic_data.empty())
+    {
+        read_neutron_inelastic_
+            = make_imported_element_loader(data.neutron_inelastic_data);
     }
 }
 
@@ -134,7 +146,9 @@ auto ProcessBuilder::operator()(IPC ipc) -> SPProcess
         {IPC::coulomb_scat, &ProcessBuilder::build_coulomb},
         {IPC::e_brems, &ProcessBuilder::build_ebrems},
         {IPC::e_ioni, &ProcessBuilder::build_eioni},
+        {IPC::neutron_capture, &ProcessBuilder::build_neutron_capture},
         {IPC::neutron_elastic, &ProcessBuilder::build_neutron_elastic},
+        {IPC::neutron_inelastic, &ProcessBuilder::build_neutron_inelastic},
         {IPC::photoelectric, &ProcessBuilder::build_photoelectric},
         {IPC::rayleigh, &ProcessBuilder::build_rayleigh},
     };
@@ -182,15 +196,39 @@ auto ProcessBuilder::build_ebrems() -> SPProcess
 }
 
 //---------------------------------------------------------------------------//
+auto ProcessBuilder::build_neutron_capture() -> SPProcess
+{
+    if (!read_neutron_capture_)
+    {
+        read_neutron_capture_ = NeutronXsReader{NeutronXsType::cap};
+    }
+
+    return std::make_shared<NeutronCaptureProcess>(
+        this->particle(), this->material(), read_neutron_capture_);
+}
+
+//---------------------------------------------------------------------------//
 auto ProcessBuilder::build_neutron_elastic() -> SPProcess
 {
     if (!read_neutron_elastic_)
     {
-        read_neutron_elastic_ = NeutronXsReader{};
+        read_neutron_elastic_ = NeutronXsReader{NeutronXsType::el};
     }
 
     return std::make_shared<NeutronElasticProcess>(
         this->particle(), this->material(), read_neutron_elastic_);
+}
+
+//---------------------------------------------------------------------------//
+auto ProcessBuilder::build_neutron_inelastic() -> SPProcess
+{
+    if (!read_neutron_inelastic_)
+    {
+        read_neutron_inelastic_ = NeutronXsReader{NeutronXsType::inel};
+    }
+
+    return std::make_shared<NeutronInelasticProcess>(
+        this->particle(), this->material(), read_neutron_inelastic_);
 }
 
 //---------------------------------------------------------------------------//
