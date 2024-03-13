@@ -91,10 +91,10 @@ void UnitProto::build(GlobalBuilder&) const
     // Transform CsgUnit to OrangeInput
     // - Map CSG nodes to volume IDs
     // - Map used CSG nodes to surface IDs
-    // - Map universe ID (here, daughter ID) ->
-    // - Remap surface indices to remove unused surfaces
-    // - Set up "interior" cell if needed (all used surfaces)
-    // - Convert to postfix
+    // - Map universe IDs (index in daughter list to actual universe ID)
+    // - Remap surface indices, removing unused surfaces
+    // - Set up "interior" cell if needed (build volume and "all surfaces")
+    // - Construct postfix logic definitions
     // - Copy bounding boxes
     CELER_NOT_IMPLEMENTED("global builder");
 }
