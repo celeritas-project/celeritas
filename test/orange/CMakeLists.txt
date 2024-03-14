@@ -64,6 +64,7 @@ celeritas_add_test(orangeinp/Transformed.test.cc)
 celeritas_add_test(orangeinp/UnitProto.test.cc)
 
 celeritas_add_test(orangeinp/detail/BoundingZone.test.cc)
+celeritas_add_test(orangeinp/detail/GeoSetup.test.cc)
 celeritas_add_test(orangeinp/detail/LocalSurfaceInserter.test.cc)
 celeritas_add_test(orangeinp/detail/TransformInserter.test.cc)
 

@@ -86,8 +86,9 @@ auto UnitProto::daughters() const -> VecProto
  * Construction is done from highest masking precedence to lowest (reverse
  * zorder): exterior, then holes, then arrays, then media.
  */
-void UnitProto::build(GlobalBuilder&) const
+void UnitProto::build(GeoSetup const&, BuildResult* ui) const
 {
+    CELER_EXPECT(ui);
     // Transform CsgUnit to OrangeInput
     // - Map CSG nodes to volume IDs
     // - Map used CSG nodes to surface IDs
