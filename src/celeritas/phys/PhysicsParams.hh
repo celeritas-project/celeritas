@@ -53,10 +53,6 @@ class ParticleParams;
  *   energy loss.
  * - \c lowest_electron_energy: lowest kinetic energy for electrons/positrons
  * - \c lambda_limit: limit on the MSC mean free path.
- * - \c geom_fact: used in the MSC step limitation algorithm to make sure a
- *   particle takes a minimum number of steps within a volume by imposing the
- *   limit \f$ d / f_g \f$ on the step after entering a volume, where \f$ d
- *   \f$ is the distance to boundary and \f$ f_g \f$ is the geometry factor.
  * - \c range_fact: used in the MSC step limitation algorithm to restrict the
  *   step size to \f$ f_r \cdot max(r, \lambda) \f$ at the start of a track or
  *   after entering a volume, where \f$ f_r \f$ is the range factor, \f$ r \f$
@@ -99,7 +95,6 @@ struct PhysicsParamsOptions
     //!@{
     //! \name Multiple scattering
     real_type lambda_limit = 1 * units::millimeter;
-    real_type geom_fact = 2.5;
     real_type range_fact = 0.04;
     real_type safety_fact = 0.6;
     MscStepLimitAlgorithm step_limit_algorithm{MscStepLimitAlgorithm::safety};

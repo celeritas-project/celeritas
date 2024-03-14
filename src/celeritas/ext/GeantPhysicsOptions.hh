@@ -117,8 +117,6 @@ struct GeantPhysicsOptions
 
     //!@{
     //! \name Multiple scattering configuration
-    //! Geometry factor for MSC models
-    real_type msc_geom_factor{2.5};
     //! E-/e+ range factor for MSC models
     double msc_range_factor{0.04};
     //! Safety factor for MSC models
@@ -159,7 +157,6 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.linear_loss_limit == b.linear_loss_limit
            && a.lowest_electron_energy == b.lowest_electron_energy
            && a.apply_cuts == b.apply_cuts
-           && a.msc_geom_factor == b.msc_geom_factor
            && a.msc_range_factor == b.msc_range_factor
            && a.msc_safety_factor == b.msc_safety_factor
            && a.msc_lambda_limit == b.msc_lambda_limit

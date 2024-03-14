@@ -240,7 +240,6 @@ struct PhysicsParamsScalars
     real_type linear_loss_limit{};  //!< For scaled range calculation
     real_type fixed_step_limiter{};  //!< Global charged step size limit [len]
     real_type lambda_limit{};  //!< lambda limit
-    real_type geom_fact{};  //!< geometry factor
     real_type range_fact{};  //!< range factor for e-/e+ (0.2 for muon/h)
     real_type safety_fact{};  //!< safety factor
     MscStepLimitAlgorithm step_limit_algorithm{MscStepLimitAlgorithm::size_};
@@ -261,8 +260,8 @@ struct PhysicsParamsScalars
                && linear_loss_limit > 0 && secondary_stack_factor > 0
                && ((fixed_step_limiter > 0)
                    == static_cast<bool>(fixed_step_action))
-               && lambda_limit > 0 && geom_fact >= 1 && range_fact > 0
-               && range_fact < 1 && safety_fact >= 0.1
+               && lambda_limit > 0 && range_fact > 0 && range_fact < 1
+               && safety_fact >= 0.1
                && step_limit_algorithm != MscStepLimitAlgorithm::size_;
     }
 
