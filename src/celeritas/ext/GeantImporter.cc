@@ -196,7 +196,7 @@ struct MatPropGetter
 //! Map particles defined in \c G4MaterialConstPropertyIndex .
 auto& optical_particles_map()
 {
-    static std::unordered_map<std::string, PDGNumber> map
+    static std::unordered_map<std::string, PDGNumber> const  map
         = {{"PROTON", pdg::proton()},
            {"DEUTERON", pdg::deuteron()},
            {"TRITON", pdg::triton()},
