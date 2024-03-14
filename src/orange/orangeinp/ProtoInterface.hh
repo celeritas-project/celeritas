@@ -67,9 +67,5 @@ class ProtoInterface
 };
 
 //---------------------------------------------------------------------------//
-// Construct a depth-first tree of protos
-std::vector<ProtoInterface const*> build_ordering(ProtoInterface const& global);
-
-//---------------------------------------------------------------------------//
 }  // namespace orangeinp
 }  // namespace celeritas
