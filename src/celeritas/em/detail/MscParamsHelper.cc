@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/MscParams.cc
+//! \file celeritas/em/detail/MscParamsHelper.cc
 //---------------------------------------------------------------------------//
-#include "MscParams.hh"
+#include "MscParamsHelper.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
@@ -23,24 +23,35 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//! Default destructor
-MscParams::~MscParams() = default;
+/*!
+ * Construct from cross section data and particle and material properties.
+ */
+MscParamsHelper::MscParamsHelper(ParticleParams const& particles,
+                                 MaterialParams const& materials,
+                                 VecImportMscModel const& mdata,
+                                 ImportModelClass model_class)
+    : particles_(particles)
+    , materials_(materials)
+    , mdata_(mdata)
+    , model_class_(model_class)
+{
+}
 
 //---------------------------------------------------------------------------//
 /*!
  * Validate and save MSC IDs.
  */
-void MscParams::build_ids(MscIds* ids, ParticleParams const& particles) const
+void MscParamsHelper::build_ids(MscIds* ids) const
 {
-    ids->electron = particles.find(pdg::electron());
-    ids->positron = particles.find(pdg::positron());
+    ids->electron = particles_.find(pdg::electron());
+    ids->positron = particles_.find(pdg::positron());
     CELER_VALIDATE(ids->electron && ids->positron,
                    << "missing e-/e+ (required for MSC)");
 
     // TODO: change IDs to a vector for all particles. This should apply
-    // to muons and charged hadrons as well
-    if (particles.find(pdg::mu_minus()) || particles.find(pdg::mu_plus())
-        || particles.find(pdg::proton()))
+    // to muons and protons as well
+    if (particles_.find(pdg::mu_minus()) || particles_.find(pdg::mu_plus())
+        || particles_.find(pdg::proton()))
     {
         CELER_LOG(warning) << "Multiple scattering is not implemented for for "
                               "particles other than electron and positron";
@@ -49,26 +60,21 @@ void MscParams::build_ids(MscIds* ids, ParticleParams const& particles) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Build the scaled cross section data.
+ * Build the macroscopic cross section scaled by energy squared.
  */
-void MscParams::build_xs(XsValues* scaled_xs,
-                         Values* reals,
-                         ParticleParams const& particles,
-                         MaterialParams const& materials,
-                         VecImportMscModel const& mdata_vec,
-                         ImportModelClass model_class) const
+void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
 {
     // Filter MSC data by model and particle type
-    std::vector<ImportMscModel const*> msc_data(particles.size(), nullptr);
-    for (ImportMscModel const& imm : mdata_vec)
+    std::vector<ImportMscModel const*> msc_data(particles_.size(), nullptr);
+    for (ImportMscModel const& imm : mdata_)
     {
         // Filter out other MSC models
-        if (imm.model_class != model_class)
+        if (imm.model_class != model_class_)
             continue;
 
         // Filter out unused particles
         PDGNumber pdg{imm.particle_pdg};
-        ParticleId pid = pdg ? particles.find(pdg) : ParticleId{};
+        ParticleId pid = pdg ? particles_.find(pdg) : ParticleId{};
         if (!pid)
             continue;
 
@@ -83,18 +89,18 @@ void MscParams::build_xs(XsValues* scaled_xs,
             // different regions
             CELER_LOG(warning)
                 << "duplicate " << to_cstring(imm.model_class)
-                << " physics data for particle " << particles.id_to_label(pid)
+                << " physics data for particle " << particles_.id_to_label(pid)
                 << ": ignoring all but the first encountered model";
         }
     }
 
-    auto get_scaled_xs = [&msc_data, &particles](ParticleId pid) {
+    auto get_scaled_xs = [&](ParticleId pid) {
         CELER_ASSERT(pid < msc_data.size());
         ImportMscModel const* imm = msc_data[pid.unchecked_get()];
         CELER_VALIDATE(imm,
                        << "missing " << to_cstring(imm->model_class)
                        << " physics data for particle "
-                       << particles.id_to_label(pid));
+                       << particles_.id_to_label(pid));
         CELER_ASSERT(imm->xs_table.x_units == ImportUnits::mev);
         CELER_ASSERT(imm->xs_table.y_units == ImportUnits::mev_2_per_cm);
         return &imm->xs_table;
@@ -102,7 +108,7 @@ void MscParams::build_xs(XsValues* scaled_xs,
 
     // Particle-dependent data
     Array<ParticleId, 2> const par_ids{
-        {particles.find(pdg::electron()), particles.find(pdg::positron())}};
+        {particles_.find(pdg::electron()), particles_.find(pdg::positron())}};
     Array<ImportPhysicsTable const*, 2> const xs_tables{{
         get_scaled_xs(par_ids[0]),
         get_scaled_xs(par_ids[1]),
@@ -116,13 +122,13 @@ void MscParams::build_xs(XsValues* scaled_xs,
 
     // Scaled cross section builder
     CollectionBuilder xs(scaled_xs);
-    xs.reserve(2 * materials.num_materials());
+    xs.reserve(2 * materials_.num_materials());
 
     // TODO: simplify when refactoring ValueGridInserter, etc
     ValueGridInserter::XsGridCollection xgc;
     ValueGridInserter vgi{reals, &xgc};
 
-    for (size_type mat_idx : range(materials.num_materials()))
+    for (size_type mat_idx : range(materials_.num_materials()))
     {
         for (size_type par_idx : range(par_ids.size()))
         {

@@ -12,7 +12,6 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 
-#include "MscParams.hh"
 #include "data/UrbanMscData.hh"
 
 namespace celeritas
@@ -22,6 +21,7 @@ class ParticleParams;
 class MaterialParams;
 class MaterialView;
 struct ImportData;
+struct ImportMscModel;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -29,9 +29,14 @@ struct ImportData;
  *
  * Multiple scattering is used by the along-step kernel(s).
  */
-class UrbanMscParams final : public MscParams,
-                             public ParamsDataInterface<UrbanMscData>
+class UrbanMscParams final : public ParamsDataInterface<UrbanMscData>
 {
+  public:
+    //!@{
+    //! \name Type aliases
+    using VecImportMscModel = std::vector<ImportMscModel>;
+    //!@}
+
   public:
     // Construct if MSC process data is present, else return nullptr
     static std::shared_ptr<UrbanMscParams>
@@ -40,9 +45,9 @@ class UrbanMscParams final : public MscParams,
                 ImportData const& data);
 
     // Construct from process data
-    inline UrbanMscParams(ParticleParams const& particles,
-                          MaterialParams const& materials,
-                          VecImportMscModel const& mdata);
+    UrbanMscParams(ParticleParams const& particles,
+                   MaterialParams const& materials,
+                   VecImportMscModel const& mdata);
 
     // TODO: possible "applicability" interface used for constructing
     // along-step kernels?

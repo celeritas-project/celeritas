@@ -13,8 +13,6 @@
 #include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/em/data/WentzelVIMscData.hh"
 
-#include "MscParams.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -22,6 +20,7 @@ class ParticleParams;
 class MaterialParams;
 class MaterialView;
 struct ImportData;
+struct ImportMscModel;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -29,9 +28,14 @@ struct ImportData;
  *
  * Multiple scattering is used by the along-step kernel(s).
  */
-class WentzelVIMscParams final : public MscParams,
-                                 public ParamsDataInterface<WentzelVIMscData>
+class WentzelVIMscParams final : public ParamsDataInterface<WentzelVIMscData>
 {
+  public:
+    //!@{
+    //! \name Type aliases
+    using VecImportMscModel = std::vector<ImportMscModel>;
+    //!@}
+
   public:
     // Construct if MSC process data is present, else return nullptr
     static std::shared_ptr<WentzelVIMscParams>
@@ -40,9 +44,9 @@ class WentzelVIMscParams final : public MscParams,
                 ImportData const& data);
 
     // Construct from process data
-    inline WentzelVIMscParams(ParticleParams const& particles,
-                              MaterialParams const& materials,
-                              VecImportMscModel const& mdata);
+    WentzelVIMscParams(ParticleParams const& particles,
+                       MaterialParams const& materials,
+                       VecImportMscModel const& mdata);
 
     //! Access Wentzel VI data on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/MscParams.hh
+//! \file celeritas/em/detail/MscParamsHelper.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -23,41 +23,33 @@ struct XsGridData;
 
 //---------------------------------------------------------------------------//
 /*!
- * Interface class for multiple scattering.
+ * Helper class for constructing multiple scattering params.
  */
-class MscParams
+class MscParamsHelper
 {
   public:
     //!@{
     //! \name Type aliases
     using VecImportMscModel = std::vector<ImportMscModel>;
-    //!@}
-
-  public:
-    // Virtual destructor for polymorphic deletion
-    virtual ~MscParams();
-
-  protected:
-    //!@{
-    //! Allow construction and assignment only through daughter classes
-    MscParams() = default;
-    CELER_DEFAULT_COPY_MOVE(MscParams);
-    //!@}
-
-    //// TYPES ////
-
     using XsValues = Collection<XsGridData, Ownership::value, MemSpace::host>;
     using Values = Collection<real_type, Ownership::value, MemSpace::host>;
+    //!@}
 
-    //// HELPER FUNCTIONS ////
+    MscParamsHelper(ParticleParams const&,
+                    MaterialParams const&,
+                    VecImportMscModel const&,
+                    ImportModelClass);
 
-    void build_ids(MscIds*, ParticleParams const&) const;
-    void build_xs(XsValues*,
-                  Values*,
-                  ParticleParams const&,
-                  MaterialParams const&,
-                  VecImportMscModel const&,
-                  ImportModelClass) const;
+    void build_ids(MscIds* ids) const;
+    void build_xs(XsValues*, Values*) const;
+
+  private:
+    //// DATA ////
+
+    ParticleParams const& particles_;
+    MaterialParams const& materials_;
+    VecImportMscModel const& mdata_;
+    ImportModelClass model_class_;
 };
 
 //---------------------------------------------------------------------------//

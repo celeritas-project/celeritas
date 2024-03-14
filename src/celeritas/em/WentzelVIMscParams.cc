@@ -17,6 +17,8 @@
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
+#include "detail/MscParamsHelper.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -54,13 +56,10 @@ WentzelVIMscParams::WentzelVIMscParams(ParticleParams const& particles,
 
     HostVal<WentzelVIMscData> host_data;
 
-    this->build_ids(&host_data.ids, particles);
-    this->build_xs(&host_data.xs,
-                   &host_data.reals,
-                   particles,
-                   materials,
-                   mdata_vec,
-                   ImportModelClass::wentzel_vi_uni);
+    MscParamsHelper helper(
+        particles, materials, mdata_vec, ImportModelClass::wentzel_vi_uni);
+    helper.build_ids(&host_data.ids);
+    helper.build_xs(&host_data.xs, &host_data.reals);
 
     // Save electron mass
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();

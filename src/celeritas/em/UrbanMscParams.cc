@@ -32,6 +32,8 @@
 
 #include "data/UrbanMscData.hh"
 
+#include "detail/MscParamsHelper.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -69,13 +71,10 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
 
     HostVal<UrbanMscData> host_data;
 
-    this->build_ids(&host_data.ids, particles);
-    this->build_xs(&host_data.xs,
-                   &host_data.reals,
-                   particles,
-                   materials,
-                   mdata_vec,
-                   ImportModelClass::urban_msc);
+    MscParamsHelper helper(
+        particles, materials, mdata_vec, ImportModelClass::urban_msc);
+    helper.build_ids(&host_data.ids);
+    helper.build_xs(&host_data.xs, &host_data.reals);
 
     // Save electron mass
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();
