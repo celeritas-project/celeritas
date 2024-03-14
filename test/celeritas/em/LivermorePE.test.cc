@@ -18,7 +18,7 @@
 #include "celeritas/em/detail/Utils.hh"
 #include "celeritas/em/interactor/LivermorePEInteractor.hh"
 #include "celeritas/em/model/LivermorePEModel.hh"
-#include "celeritas/em/xs/LivermorePEMacroXsCalculator.hh"
+#include "celeritas/em/xs/LivermorePEMicroXsCalculator.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/ValueGridInserter.hh"
 #include "celeritas/grid/XsCalculator.hh"
@@ -28,6 +28,7 @@
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/phys/InteractionIO.hh"
 #include "celeritas/phys/InteractorHostTestBase.hh"
+#include "celeritas/phys/MacroXsCalculator.hh"
 
 #include "celeritas_test.hh"
 
@@ -483,7 +484,8 @@ TEST_F(LivermorePETest, distributions_radiative)
 TEST_F(LivermorePETest, macro_xs)
 {
     auto material = this->material_track().make_material_view();
-    LivermorePEMacroXsCalculator calc_macro_xs(model_->host_ref(), material);
+    auto calc_macro_xs = MacroXsCalculator<LivermorePEMicroXsCalculator>(
+        model_->host_ref(), material);
 
     int num_vals = 20;
     real_type loge_min = std::log(1.e-4);

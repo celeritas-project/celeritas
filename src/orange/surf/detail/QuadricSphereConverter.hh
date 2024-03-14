@@ -103,6 +103,9 @@ QuadricSphereConverter::operator()(SimpleQuadric const& sq) const
         // No real solution
         return {};
     }
+
+    // Clear potential signed zeros before returning
+    origin += real_type{0};
     return Sphere::from_radius_sq(origin, radius_sq);
 }
 

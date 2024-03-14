@@ -251,6 +251,15 @@ TEST_F(BoundingZoneTest, calc_union)
         EXPECT_FALSE(bz.interior) << bz.interior;
         EXPECT_EQ(BBox::from_infinite(), bz.exterior);
     }
+    {
+        // Union with null should be the same as non-null
+        auto bz = calc_union(BoundingZone{}, sph);
+        EXPECT_FALSE(bz.negated);
+        EXPECT_VEC_SOFT_EQ(sph.interior.lower(), bz.interior.lower());
+        EXPECT_VEC_SOFT_EQ(sph.interior.upper(), bz.interior.upper());
+        EXPECT_VEC_SOFT_EQ(sph.exterior.lower(), bz.exterior.lower());
+        EXPECT_VEC_SOFT_EQ(sph.exterior.upper(), bz.exterior.upper());
+    }
 }
 
 //---------------------------------------------------------------------------//

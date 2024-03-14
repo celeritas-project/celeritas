@@ -33,6 +33,7 @@ using AmuMass = Quantity<Amu>;
 //---------------------------------------------------------------------------//
 //!@{
 //! \name Units for manual input and/or test harnesses
+using BarnXs = Quantity<Barn>;
 using CmLength = Quantity<Centimeter>;
 using InvCmXs = Quantity<UnitInverse<Centimeter>>;
 using InvCcDensity = Quantity<InvCentimeterCubed>;

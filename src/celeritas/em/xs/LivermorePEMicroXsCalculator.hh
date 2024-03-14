@@ -28,17 +28,18 @@ class LivermorePEMicroXsCalculator
   public:
     //!@{
     //! \name Type aliases
-    using XsUnits = LivermoreSubshell::XsUnits;
+    using ParamsRef = LivermorePERef;
     using Energy = Quantity<LivermoreSubshell::EnergyUnits>;
+    using BarnXs = units::BarnXs;
     //!@}
 
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    LivermorePEMicroXsCalculator(LivermorePERef const& shared, Energy energy);
+    LivermorePEMicroXsCalculator(ParamsRef const& shared, Energy energy);
 
     // Compute cross section
-    inline CELER_FUNCTION real_type operator()(ElementId el_id) const;
+    inline CELER_FUNCTION BarnXs operator()(ElementId el_id) const;
 
   private:
     // Shared constant physics properties
@@ -54,7 +55,7 @@ class LivermorePEMicroXsCalculator
  * Construct with shared and state data.
  */
 CELER_FUNCTION LivermorePEMicroXsCalculator::LivermorePEMicroXsCalculator(
-    LivermorePERef const& shared, Energy energy)
+    ParamsRef const& shared, Energy energy)
     : shared_(shared), inc_energy_(energy.value())
 {
 }
@@ -64,7 +65,7 @@ CELER_FUNCTION LivermorePEMicroXsCalculator::LivermorePEMicroXsCalculator(
  * Compute cross section
  */
 CELER_FUNCTION
-real_type LivermorePEMicroXsCalculator::operator()(ElementId el_id) const
+auto LivermorePEMicroXsCalculator::operator()(ElementId el_id) const -> BarnXs
 {
     CELER_EXPECT(el_id);
     LivermoreElement const& el = shared_.xs.elements[el_id];
@@ -101,7 +102,7 @@ real_type LivermorePEMicroXsCalculator::operator()(ElementId el_id) const
         GenericCalculator calc_xs(el.xs_lo, shared_.xs.reals);
         result = ipow<3>(inv_energy) * calc_xs(energy.value());
     }
-    return result;
+    return BarnXs{result};
 }
 
 //---------------------------------------------------------------------------//

@@ -28,7 +28,7 @@ class CsgTreeUtilsTest : public ::celeritas::test::Test
     template<class T>
     N insert(T&& n)
     {
-        return tree_.insert(std::forward<T>(n));
+        return tree_.insert(std::forward<T>(n)).first;
     }
 
     std::string to_string() const
@@ -94,6 +94,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         static size_type const expected_lgc[]
             = {0u, 1u, logic::lnot, logic::land, 2u, logic::lnot, logic::land};
         EXPECT_VEC_EQ(expected_lgc, lgc);
+        EXPECT_EQ("all(+0, -1, -2)", build_infix_string(tree_, inner_cyl));
     }
     {
         auto lgc = build_postfix(tree_, shell);
@@ -114,12 +115,15 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
                                                  logic::lnot,
                                                  logic::land};
         EXPECT_VEC_EQ(expected_lgc, lgc);
+        EXPECT_EQ("all(all(+0, -1, -3), !all(+0, -1, -2))",
+                  build_infix_string(tree_, shell));
     }
     {
         auto lgc = build_postfix(tree_, bdy);
         static size_type const expected_lgc[]
             = {0u, 1u, logic::lnot, logic::land, 4u, logic::land};
         EXPECT_VEC_EQ(expected_lgc, lgc);
+        EXPECT_EQ("all(+0, -1, +4)", build_infix_string(tree_, bdy));
     }
 
     // Imply inside boundary
@@ -135,14 +139,17 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
     // Simplify once: first simplification is the inner cylinder
     min_node = simplify_up(&tree_, min_node);
     EXPECT_EQ(NodeId{7}, min_node);
+    EXPECT_EQ("all(-3, !-2)", build_infix_string(tree_, shell));
 
     // Simplify again: the shell is simplified this time
     min_node = simplify_up(&tree_, min_node);
     EXPECT_EQ(NodeId{11}, min_node);
+    EXPECT_EQ("all(+2, -3)", build_infix_string(tree_, shell));
 
     // Simplify one final time: nothing further is simplified
     min_node = simplify_up(&tree_, min_node);
     EXPECT_EQ(NodeId{}, min_node);
+    EXPECT_EQ("all(+2, -3)", build_infix_string(tree_, shell));
 
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: ->{0}, 3: ->{1}, 4: ->{0}, 5: surface 2, 6: "

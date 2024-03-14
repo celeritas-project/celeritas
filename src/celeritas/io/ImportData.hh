@@ -58,6 +58,7 @@ struct ImportData
     using ImportSBMap = std::map<ZInt, ImportSBTable>;
     using ImportLivermorePEMap = std::map<ZInt, ImportLivermorePE>;
     using ImportAtomicRelaxationMap = std::map<ZInt, ImportAtomicRelaxation>;
+    using ImportNeutronElasticMap = std::map<ZInt, ImportPhysicsVector>;
     using ImportOpticalMap = std::map<MatIdx, ImportOpticalMaterial>;
     //!@}
 
@@ -73,6 +74,7 @@ struct ImportData
     ImportTransParameters trans_params;
     ImportSBMap sb_data;
     ImportLivermorePEMap livermore_pe_data;
+    ImportNeutronElasticMap neutron_elastic_data;
     ImportAtomicRelaxationMap atomic_relaxation_data;
 
     std::string units;  //!< "cgs", "clhep", or "si"

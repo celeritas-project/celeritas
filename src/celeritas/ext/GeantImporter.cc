@@ -26,6 +26,7 @@
 #include <G4LogicalVolumeStore.hh>
 #include <G4Material.hh>
 #include <G4MaterialCutsCouple.hh>
+#include <G4MscStepLimitType.hh>
 #include <G4Navigator.hh>
 #include <G4NucleiProperties.hh>
 #include <G4ParticleDefinition.hh>
@@ -70,6 +71,7 @@
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "GeantSetup.hh"
+
 #include "detail/AllElementReader.hh"
 #include "detail/GeantProcessImporter.hh"
 
@@ -229,6 +231,28 @@ PDGNumber to_pdg(G4ProductionCutsIndex const& index)
             return pdg::proton();
         case NumberOfG4CutIndex:
             CELER_ASSERT_UNREACHABLE();
+    }
+    CELER_ASSERT_UNREACHABLE();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Safely switch from G4MscStepLimitType [G4MscStepLimitType.hh] to
+ * MscStepLimitAlgorithm.
+ */
+MscStepLimitAlgorithm
+to_msc_step_algorithm(G4MscStepLimitType const& msc_step_algorithm)
+{
+    switch (msc_step_algorithm)
+    {
+        case G4MscStepLimitType::fMinimal:
+            return MscStepLimitAlgorithm::minimal;
+        case G4MscStepLimitType::fUseSafety:
+            return MscStepLimitAlgorithm::safety;
+        case G4MscStepLimitType::fUseSafetyPlus:
+            return MscStepLimitAlgorithm::safety_plus;
+        case G4MscStepLimitType::fUseDistanceToBoundary:
+            return MscStepLimitAlgorithm::distance_to_boundary;
     }
     CELER_ASSERT_UNREACHABLE();
 }
@@ -806,6 +830,7 @@ ImportEmParameters import_em_parameters()
     import.lowest_electron_energy = g4.LowestElectronEnergy() * mev_scale;
     import.auger = g4.Auger();
     import.msc_geom_factor = g4.MscGeomFactor();
+    import.msc_step_algorithm = to_msc_step_algorithm(g4.MscStepLimitType());
     import.msc_range_factor = g4.MscRangeFactor();
 #if G4VERSION_NUMBER >= 1060
     import.msc_safety_factor = g4.MscSafetyFactor();

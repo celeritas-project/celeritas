@@ -50,17 +50,18 @@ class CsgTree
     using Node = orangeinp::Node;
     using NodeId = orangeinp::NodeId;
     using size_type = NodeId::size_type;
+    using Insertion = std::pair<NodeId, bool>;
     //!@}
 
   public:
     // Construct with no nodes except "true" and "false"
     CsgTree();
 
-    // Add a node and return the new ID
-    NodeId insert(Node&& n);
+    // Add a node and return the new ID and whether it's unique
+    Insertion insert(Node&& n);
 
     // Add a surface ID and return the new ID
-    inline NodeId insert(LocalSurfaceId s);
+    inline Insertion insert(LocalSurfaceId s);
 
     //! Number of nodes
     size_type size() const { return nodes_.size(); }
@@ -104,7 +105,7 @@ std::ostream& operator<<(std::ostream& os, CsgTree const&);
 /*!
  * Add a surface.
  */
-auto CsgTree::insert(LocalSurfaceId s) -> NodeId
+auto CsgTree::insert(LocalSurfaceId s) -> Insertion
 {
     return this->insert(orangeinp::Surface{s});
 }

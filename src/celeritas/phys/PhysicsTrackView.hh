@@ -14,11 +14,13 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/xs/EPlusGGMacroXsCalculator.hh"
-#include "celeritas/em/xs/LivermorePEMacroXsCalculator.hh"
+#include "celeritas/em/xs/LivermorePEMicroXsCalculator.hh"
 #include "celeritas/grid/GridIdFinder.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/mat/TabulatedElementSelector.hh"
+#include "celeritas/neutron/xs/NeutronElasticMicroXsCalculator.hh"
+#include "celeritas/phys/MacroXsCalculator.hh"
 
 #include "PhysicsData.hh"
 
@@ -406,7 +408,7 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
         // hardwired processes.
         if (model_id == params_.hardwired.livermore_pe)
         {
-            auto calc_xs = LivermorePEMacroXsCalculator(
+            auto calc_xs = MacroXsCalculator<LivermorePEMicroXsCalculator>(
                 params_.hardwired.livermore_pe_data, material);
             result = calc_xs(energy);
         }
@@ -414,6 +416,12 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
         {
             auto calc_xs = EPlusGGMacroXsCalculator(
                 params_.hardwired.eplusgg_data, material);
+            result = calc_xs(energy);
+        }
+        else if (model_id == params_.hardwired.chips)
+        {
+            auto calc_xs = MacroXsCalculator<NeutronElasticMicroXsCalculator>(
+                params_.hardwired.chips_data, material);
             result = calc_xs(energy);
         }
     }
@@ -476,7 +484,8 @@ CELER_FUNCTION ModelId PhysicsTrackView::hardwired_model(ParticleProcessId ppid,
     ProcessId process = this->process(ppid);
     if ((process == params_.hardwired.photoelectric
          && energy < params_.hardwired.photoelectric_table_thresh)
-        || (process == params_.hardwired.positron_annihilation))
+        || (process == params_.hardwired.positron_annihilation)
+        || (process == params_.hardwired.neutron_elastic))
     {
         auto find_model = this->make_model_finder(ppid);
         return this->model_id(find_model(energy));

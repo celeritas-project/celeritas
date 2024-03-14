@@ -216,7 +216,7 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
     }
     result.secondaries = secondaries;
 
-    CELER_ENSURE(result.energy_deposition.value() >= 0);
+    CELER_ENSURE(result.energy_deposition >= zero_quantity());
     return result;
 }
 
@@ -231,7 +231,9 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
     auto const& shells = shared_.xs.shells[el.shells];
     size_type shell_id = 0;
 
-    real_type const cutoff = generate_canonical(rng) * calc_micro_xs_(el_id_);
+    using Xs = Quantity<LivermoreSubshell::XsUnits>;
+    real_type const cutoff = generate_canonical(rng)
+                             * value_as<Xs>(calc_micro_xs_(el_id_));
     if (Energy{inc_energy_} < el.thresh_lo)
     {
         // Accumulate discrete PDF for tabulated shell cross sections

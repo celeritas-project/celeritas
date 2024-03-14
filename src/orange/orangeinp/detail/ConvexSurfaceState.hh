@@ -59,6 +59,10 @@ struct ConvexSurfaceState
 };
 
 //---------------------------------------------------------------------------//
+// Use the local and global bounding zones to create a better zone
+BoundingZone calc_merged_bzone(ConvexSurfaceState const& css);
+
+//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace orangeinp
 }  // namespace celeritas

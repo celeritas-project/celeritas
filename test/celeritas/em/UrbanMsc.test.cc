@@ -17,8 +17,9 @@
 #include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/em/msc/detail/MscStepFromGeo.hh"
 #include "celeritas/em/msc/detail/MscStepToGeo.hh"
+#include "celeritas/em/msc/detail/UrbanMscMinimalStepLimit.hh"
+#include "celeritas/em/msc/detail/UrbanMscSafetyStepLimit.hh"
 #include "celeritas/em/msc/detail/UrbanMscScatter.hh"
-#include "celeritas/em/msc/detail/UrbanMscStepLimit.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
@@ -151,14 +152,15 @@ class UrbanMscTest : public ::celeritas::test::RootTestBase
         return par;
     }
 
-    PhysicsTrackView
-    make_phys_view(ParticleTrackView const& par, std::string const& matname)
+    PhysicsTrackView make_phys_view(ParticleTrackView const& par,
+                                    std::string const& matname,
+                                    HostCRef<PhysicsParamsData> const& host_ref)
     {
         auto mid = this->material()->find_material(matname);
         CELER_ASSERT(mid);
 
         // Initialize physics
-        PhysicsTrackView phys_view(this->physics()->host_ref(),
+        PhysicsTrackView phys_view(host_ref,
                                    physics_state_.ref(),
                                    par.particle_id(),
                                    mid,
@@ -261,7 +263,8 @@ TEST_F(UrbanMscTest, coeff_data)
 TEST_F(UrbanMscTest, helper)
 {
     auto par = this->make_par_view(pdg::electron(), MevEnergy{10.01});
-    auto phys = this->make_phys_view(par, "G4_STAINLESS-STEEL");
+    auto phys = this->make_phys_view(
+        par, "G4_STAINLESS-STEEL", this->physics()->host_ref());
     UrbanMscHelper helper(msc_params_->host_ref(), par, phys);
 
     EXPECT_SOFT_EQ(0.90681578657668238, to_cm(phys.dedx_range()));
@@ -286,7 +289,7 @@ TEST_F(UrbanMscTest, step_conversion)
 
     auto test_one = [&](char const* mat, PDGNumber ptype, MevEnergy energy) {
         auto par = this->make_par_view(ptype, energy);
-        auto phys = this->make_phys_view(par, mat);
+        auto phys = this->make_phys_view(par, mat, this->physics()->host_ref());
         SCOPED_TRACE((PrintableParticle{par, *this->particle()}));
         UrbanMscHelper helper(msc_params_->host_ref(), par, phys);
 
@@ -384,6 +387,178 @@ TEST_F(UrbanMscTest, step_conversion)
     }
 }
 
+TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
+{
+    using Algorithm = MscStepLimitAlgorithm;
+
+    struct Result
+    {
+        using VecReal = std::vector<real_type>;
+
+        VecReal mean_step;
+        VecReal range_init;
+        VecReal range_fact;
+        VecReal limit_min;
+    };
+
+    auto sample = [&](Algorithm alg, bool on_boundary) {
+        RandomEngine rng;
+        Result result;
+
+        real_type const num_samples = 100;
+        real_type const safety = 0;
+
+        auto const& msc_params = msc_params_->host_ref();
+        auto phys_params = this->physics()->host_ref();
+        if (alg == Algorithm::minimal)
+        {
+            phys_params.scalars.step_limit_algorithm = Algorithm::minimal;
+            phys_params.scalars.range_fact = 0.2;
+        }
+        else if (alg == Algorithm::safety_plus)
+        {
+            phys_params.scalars.step_limit_algorithm = Algorithm::safety_plus;
+        }
+
+        for (real_type energy : {0.01, 0.1, 1.0, 10.0, 100.0})
+        {
+            auto par = this->make_par_view(pdg::electron(), MevEnergy{energy});
+            auto phys
+                = this->make_phys_view(par, "G4_STAINLESS-STEEL", phys_params);
+            EXPECT_FALSE(phys.msc_range());
+            UrbanMscHelper helper(msc_params, par, phys);
+
+            real_type mean_step = 0;
+            for (int i = 0; i < num_samples; ++i)
+            {
+                real_type step = phys.dedx_range();
+                EXPECT_FALSE(step < msc_params.params.limit_min_fix());
+                if (alg == Algorithm::minimal)
+                {
+                    // Minimal step limit algorithm
+                    UrbanMscMinimalStepLimit calc_limit(
+                        msc_params, helper, &phys, on_boundary, step);
+                    mean_step += calc_limit(rng);
+                }
+                else
+                {
+                    // Safety/safety plus step limit algorithm
+                    UrbanMscSafetyStepLimit calc_limit(msc_params,
+                                                       helper,
+                                                       par.energy(),
+                                                       &phys,
+                                                       phys.material_id(),
+                                                       on_boundary,
+                                                       safety,
+                                                       step);
+                    mean_step += calc_limit(rng);
+                }
+            }
+            result.mean_step.push_back(to_cm(mean_step / num_samples));
+
+            auto const& msc_range = phys.msc_range();
+            result.range_init.push_back(to_cm(msc_range.range_init));
+            result.range_fact.push_back(msc_range.range_fact);
+            result.limit_min.push_back(to_cm(msc_range.limit_min));
+        }
+        return result;
+    };
+
+    {
+        // "Minimal" algorithm, first step and not on boundary
+        // step = phys_step
+        static double const expected_mean_step[] = {5.4443402771743e-05,
+                                                    0.0026634569415511,
+                                                    0.07706894616868,
+                                                    0.9059108153443,
+                                                    8.8845468954557};
+        static double const expected_range_init[] = {inf, inf, inf, inf, inf};
+        static double const expected_range_fact[] = {0.2, 0.2, 0.2, 0.2, 0.2};
+        static double const expected_limit_min[]
+            = {1e-08, 1e-08, 1e-08, 1e-08, 1e-08};
+
+        auto result = sample(Algorithm::minimal, false);
+        EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
+        EXPECT_VEC_EQ(expected_range_init, result.range_init);
+        EXPECT_VEC_EQ(expected_range_fact, result.range_fact);
+        EXPECT_VEC_EQ(expected_limit_min, result.limit_min);
+    }
+    {
+        // "Minimal" algorithm, first step and on boundary
+        static double const expected_mean_step[] = {1.0947964502125e-05,
+                                                    0.0005291603863133,
+                                                    0.015353327620128,
+                                                    0.21986948123587,
+                                                    8.8845468954555};
+        static double const expected_range_init[] = {1.0888680554349e-05,
+                                                     0.00053269138831022,
+                                                     0.015413789233736,
+                                                     0.21762788543933,
+                                                     15.553546812173};
+        static double const expected_range_fact[] = {0.2, 0.2, 0.2, 0.2, 0.2};
+        static double const expected_limit_min[]
+            = {1e-08, 1e-08, 1e-08, 1e-08, 1e-08};
+
+        auto result = sample(Algorithm::minimal, true);
+        EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
+        EXPECT_VEC_SOFT_EQ(expected_range_init, result.range_init);
+        EXPECT_VEC_EQ(expected_range_fact, result.range_fact);
+        EXPECT_VEC_EQ(expected_limit_min, result.limit_min);
+    }
+    {
+        // "Use safety" algorithm
+        static double const expected_mean_step[] = {2.1788745016992e-06,
+                                                    0.00010590181504835,
+                                                    0.003070788811936,
+                                                    0.15260432992607,
+                                                    8.8845468954555};
+        static double const expected_range_init[] = {5.4443402771744e-05,
+                                                     0.0026634569415511,
+                                                     0.07706894616868,
+                                                     1.0881394271966,
+                                                     77.767734060865};
+        static double const expected_range_fact[]
+            = {0.04, 0.04, 0.04, 0.13881394271966, 7.8067734060865};
+        static double const expected_limit_min[] = {1.9688399316472e-06,
+                                                    1.0522532283188e-05,
+                                                    3.1432398888924e-05,
+                                                    4.0583539826243e-05,
+                                                    3.6094312868035e-05};
+
+        auto result = sample(Algorithm::safety, true);
+        EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
+        EXPECT_VEC_SOFT_EQ(expected_range_init, result.range_init);
+        EXPECT_VEC_SOFT_EQ(expected_range_fact, result.range_fact);
+        EXPECT_VEC_SOFT_EQ(expected_limit_min, result.limit_min);
+    }
+    {
+        // "Use safety plus" algorithm
+        static double const expected_mean_step[] = {2.1788745016992e-06,
+                                                    0.00010590181504835,
+                                                    0.003070788811936,
+                                                    0.094489992160893,
+                                                    3.1108913402487};
+        static double const expected_range_init[] = {5.4443402771744e-05,
+                                                     0.0026634569415511,
+                                                     0.07706894616868,
+                                                     0.90591081534428,
+                                                     8.8845468954556};
+        static double const expected_range_fact[]
+            = {0.04, 0.04, 0.04, 0.10324092334058, 5.0107349798953};
+        static double const expected_limit_min[] = {1.9688399316472e-06,
+                                                    1.0522532283188e-05,
+                                                    3.1432398888924e-05,
+                                                    4.0583539826243e-05,
+                                                    3.6094312868035e-05};
+
+        auto result = sample(Algorithm::safety_plus, true);
+        EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
+        EXPECT_VEC_SOFT_EQ(expected_range_init, result.range_init);
+        EXPECT_VEC_SOFT_EQ(expected_range_fact, result.range_fact);
+        EXPECT_VEC_SOFT_EQ(expected_limit_min, result.limit_min);
+    }
+}
+
 TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(msc_scattering))
 {
     // Test energies
@@ -440,7 +615,8 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(msc_scattering))
         real_type radius = from_cm(i * 2 - real_type(1e-4));
 
         auto par = this->make_par_view(ptype, MevEnergy{energy[i]});
-        auto phys = this->make_phys_view(par, "G4_STAINLESS-STEEL");
+        auto phys = this->make_phys_view(
+            par, "G4_STAINLESS-STEEL", this->physics()->host_ref());
         auto geo = this->make_geo_view(radius);
         MaterialView mat = this->material()->get(phys.material_id());
         rng.reset_count();
@@ -473,14 +649,14 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(msc_scattering))
                 msc_range_limit.push_back(-1);
                 return {this_pstep, false};
             }
-            UrbanMscStepLimit calc_limit(msc_params,
-                                         helper,
-                                         par.energy(),
-                                         &phys,
-                                         mat.material_id(),
-                                         geo.is_on_boundary(),
-                                         safety,
-                                         this_pstep);
+            UrbanMscSafetyStepLimit calc_limit(msc_params,
+                                               helper,
+                                               par.energy(),
+                                               &phys,
+                                               mat.material_id(),
+                                               geo.is_on_boundary(),
+                                               safety,
+                                               this_pstep);
 
             // MSC range should be updated during construction of the limit
             // calculator

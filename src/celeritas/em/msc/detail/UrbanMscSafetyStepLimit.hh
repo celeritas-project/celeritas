@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/msc/detail/UrbanMscStepLimit.hh
+//! \file celeritas/em/msc/detail/UrbanMscSafetyStepLimit.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -21,7 +21,6 @@
 #include "celeritas/phys/PhysicsTrackView.hh"
 #include "celeritas/random/distribution/NormalDistribution.hh"
 
-#include "MscStepToGeo.hh"
 #include "UrbanMscHelper.hh"
 
 namespace celeritas
@@ -30,7 +29,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample a step limit for the Urban MSC model.
+ * Sample a step limit for the Urban MSC model using the "safety" algorithm.
  *
  * This distribution is to be used for tracks that have non-negligible steps
  * and are near the boundary. Otherwise, no displacement or step limiting is
@@ -40,7 +39,7 @@ namespace detail
  * of G4UrbanMscModel, as documented in section 8.1.6 of the Geant4 10.7
  * Physics Reference Manual or CERN-OPEN-2006-077 by L. Urban.
  */
-class UrbanMscStepLimit
+class UrbanMscSafetyStepLimit
 {
   public:
     //!@{
@@ -51,14 +50,14 @@ class UrbanMscStepLimit
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION UrbanMscStepLimit(UrbanMscRef const& shared,
-                                            UrbanMscHelper const& helper,
-                                            Energy inc_energy,
-                                            PhysicsTrackView* physics,
-                                            MaterialId matid,
-                                            bool on_boundary,
-                                            real_type safety,
-                                            real_type phys_step);
+    inline CELER_FUNCTION UrbanMscSafetyStepLimit(UrbanMscRef const& shared,
+                                                  UrbanMscHelper const& helper,
+                                                  Energy inc_energy,
+                                                  PhysicsTrackView* physics,
+                                                  MaterialId matid,
+                                                  bool on_boundary,
+                                                  real_type safety,
+                                                  real_type phys_step);
 
     // Apply the step limitation algorithm for the e-/e+ MSC with the RNG
     template<class Engine>
@@ -79,6 +78,20 @@ class UrbanMscStepLimit
     // Limit based on the range and safety
     real_type limit_{};
 
+    //// COMMON PROPERTIES ////
+
+    //! Minimum range for an empirical step-function approach
+    static CELER_CONSTEXPR_FUNCTION real_type min_range()
+    {
+        return 1e-3 * units::centimeter;
+    }
+
+    //! Maximum step over the range
+    static CELER_CONSTEXPR_FUNCTION real_type max_step_over_range()
+    {
+        return 0.35;
+    }
+
     //// HELPER FUNCTIONS ////
 
     // Calculate the minimum of the true path length limit
@@ -93,14 +106,14 @@ class UrbanMscStepLimit
  * Construct with shared and state data.
  */
 CELER_FUNCTION
-UrbanMscStepLimit::UrbanMscStepLimit(UrbanMscRef const& shared,
-                                     UrbanMscHelper const& helper,
-                                     Energy inc_energy,
-                                     PhysicsTrackView* physics,
-                                     MaterialId matid,
-                                     bool on_boundary,
-                                     real_type safety,
-                                     real_type phys_step)
+UrbanMscSafetyStepLimit::UrbanMscSafetyStepLimit(UrbanMscRef const& shared,
+                                                 UrbanMscHelper const& helper,
+                                                 Energy inc_energy,
+                                                 PhysicsTrackView* physics,
+                                                 MaterialId matid,
+                                                 bool on_boundary,
+                                                 real_type safety,
+                                                 real_type phys_step)
     : shared_(shared), helper_(helper), max_step_(phys_step)
 {
     CELER_EXPECT(safety >= 0);
@@ -108,6 +121,8 @@ UrbanMscStepLimit::UrbanMscStepLimit(UrbanMscRef const& shared,
     CELER_EXPECT(max_step_ > shared_.params.limit_min_fix());
     CELER_EXPECT(max_step_ <= physics->dedx_range());
 
+    bool use_safety_plus = physics->scalars().step_limit_algorithm
+                           == MscStepLimitAlgorithm::safety_plus;
     real_type const range = physics->dedx_range();
     auto const& msc_range = physics->msc_range();
 
@@ -119,12 +134,15 @@ UrbanMscStepLimit::UrbanMscStepLimit(UrbanMscRef const& shared,
         new_range.range_fact = physics->scalars().range_fact;
         // XXX the 1 MFP limitation is applied to the *geo* step, not the true
         // step, so this isn't quite right (See UrbanMsc.hh)
-        new_range.range_init = max<real_type>(range, helper_.msc_mfp());
+        new_range.range_init = use_safety_plus
+                                   ? range
+                                   : max<real_type>(range, helper_.msc_mfp());
         if (helper_.msc_mfp() > physics->scalars().lambda_limit)
         {
-            new_range.range_fact *= (real_type(0.75)
-                                     + real_type(0.25) * helper_.msc_mfp()
-                                           / physics->scalars().lambda_limit);
+            real_type c = use_safety_plus ? 0.84 : 0.75;
+            new_range.range_fact *= c
+                                    + (1 - c) * helper_.msc_mfp()
+                                          / physics->scalars().lambda_limit;
         }
         new_range.limit_min
             = this->calc_limit_min(shared_.material_data[matid], inc_energy);
@@ -143,6 +161,22 @@ UrbanMscStepLimit::UrbanMscStepLimit(UrbanMscRef const& shared,
                                 physics->scalars().safety_fact * safety);
     }
     limit_ = max<real_type>(limit_, limit_min_);
+
+    if (use_safety_plus)
+    {
+        real_type rho = UrbanMscSafetyStepLimit::min_range();
+        if (range > rho)
+        {
+            // Calculate the scaled step range \f$ s = \alpha r + \rho (1 -
+            // \alpha) (2 - \frac{\rho}{r}) \f$, where \f$ \alpha \f$ is the
+            // maximum step over the range and \f$ \rho \f$ is the minimum
+            // range
+            real_type alpha = UrbanMscSafetyStepLimit::max_step_over_range();
+            real_type limit_step = alpha * range
+                                   + rho * (1 - alpha) * (2 - rho / range);
+            max_step_ = min(max_step_, limit_step);
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -150,14 +184,14 @@ UrbanMscStepLimit::UrbanMscStepLimit(UrbanMscRef const& shared,
  * Sample the true path length using the Urban multiple scattering model.
  */
 template<class Engine>
-CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> real_type
+CELER_FUNCTION real_type UrbanMscSafetyStepLimit::operator()(Engine& rng)
 {
-    if (max_step_ <= max(limit_, limit_min_))
+    if (max_step_ <= limit_)
     {
         // Skip sampling if the physics step is limiting
         return max_step_;
     }
-    if (limit_ <= limit_min_)
+    if (limit_ == limit_min_)
     {
         // Skip sampling below the minimum step limit
         return limit_min_;
@@ -176,7 +210,7 @@ CELER_FUNCTION auto UrbanMscStepLimit::operator()(Engine& rng) -> real_type
 /*!
  * Calculate the minimum of the true path length limit.
  */
-CELER_FUNCTION real_type UrbanMscStepLimit::calc_limit_min(
+CELER_FUNCTION real_type UrbanMscSafetyStepLimit::calc_limit_min(
     UrbanMscMaterialData const& msc, Energy const inc_energy) const
 {
     using PolyQuad = PolyEvaluator<real_type, 2>;

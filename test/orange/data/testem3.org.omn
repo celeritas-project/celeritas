@@ -1,0 +1,245 @@
+! ORANGE testem3 input definition using universes
+[GEOMETRY]
+global "outer_universe"
+
+comp        : matid
+    "Pb"      0
+    "lAr"     1
+    "vacuum"  2
+
+!#### LEVEL 1 UNIVERSE ####!
+
+[UNIVERSE=general inner_universe]
+interior "pair"
+
+[UNIVERSE][SHAPE=cuboid pair]
+faces 0 0.8 -20 20 -20 20
+
+[UNIVERSE][SHAPE=cuboid gap_shape]
+faces 0 0.23 -20 20 -20 20
+
+[UNIVERSE][SHAPE=cuboid abs_shape]
+faces 0.23 0.8 -20 20 -20 20
+
+[UNIVERSE][CELL gap]
+comp "lAr"
+shapes -gap_shape
+
+[UNIVERSE][CELL absorber]
+comp "Pb"
+shapes -abs_shape
+
+!#### LEVEL 0 UNIVERSE ####!
+
+[UNIVERSE=general outer_universe]
+interior "outer"
+
+[UNIVERSE][SHAPE=cuboid outer]
+faces -24 24 -24 24 -24 24
+
+[UNIVERSE][SHAPE=cuboid calorimeter]
+faces -20 20 -20 20 -20 20
+
+[UNIVERSE][CELL world]
+comp "vacuum"
+shapes -outer +calorimeter
+
+[UNIVERSE][HOLE pair_0]
+fill inner_universe
+translate -20.00 0 0
+
+[UNIVERSE][HOLE pair_1]
+fill inner_universe
+translate -19.20 0 0
+
+[UNIVERSE][HOLE pair_2]
+fill inner_universe
+translate -18.40 0 0
+
+[UNIVERSE][HOLE pair_3]
+fill inner_universe
+translate -17.60 0 0
+
+[UNIVERSE][HOLE pair_4]
+fill inner_universe
+translate -16.80 0 0
+
+[UNIVERSE][HOLE pair_5]
+fill inner_universe
+translate -16.00 0 0
+
+[UNIVERSE][HOLE pair_6]
+fill inner_universe
+translate -15.20 0 0
+
+[UNIVERSE][HOLE pair_7]
+fill inner_universe
+translate -14.40 0 0
+
+[UNIVERSE][HOLE pair_8]
+fill inner_universe
+translate -13.60 0 0
+
+[UNIVERSE][HOLE pair_9]
+fill inner_universe
+translate -12.80 0 0
+
+[UNIVERSE][HOLE pair_10]
+fill inner_universe
+translate -12.00 0 0
+
+[UNIVERSE][HOLE pair_11]
+fill inner_universe
+translate -11.20 0 0
+
+[UNIVERSE][HOLE pair_12]
+fill inner_universe
+translate -10.40 0 0
+
+[UNIVERSE][HOLE pair_13]
+fill inner_universe
+translate -9.60 0 0
+
+[UNIVERSE][HOLE pair_14]
+fill inner_universe
+translate -8.80 0 0
+
+[UNIVERSE][HOLE pair_15]
+fill inner_universe
+translate -8.00 0 0
+
+[UNIVERSE][HOLE pair_16]
+fill inner_universe
+translate -7.20 0 0
+
+[UNIVERSE][HOLE pair_17]
+fill inner_universe
+translate -6.40 0 0
+
+[UNIVERSE][HOLE pair_18]
+fill inner_universe
+translate -5.60 0 0
+
+[UNIVERSE][HOLE pair_19]
+fill inner_universe
+translate -4.80 0 0
+
+[UNIVERSE][HOLE pair_20]
+fill inner_universe
+translate -4.00 0 0
+
+[UNIVERSE][HOLE pair_21]
+fill inner_universe
+translate -3.20 0 0
+
+[UNIVERSE][HOLE pair_22]
+fill inner_universe
+translate -2.40 0 0
+
+[UNIVERSE][HOLE pair_23]
+fill inner_universe
+translate -1.60 0 0
+
+[UNIVERSE][HOLE pair_24]
+fill inner_universe
+translate -0.80 0 0
+
+[UNIVERSE][HOLE pair_25]
+fill inner_universe
+translate 0.00 0 0
+
+[UNIVERSE][HOLE pair_26]
+fill inner_universe
+translate 0.80 0 0
+
+[UNIVERSE][HOLE pair_27]
+fill inner_universe
+translate 1.60 0 0
+
+[UNIVERSE][HOLE pair_28]
+fill inner_universe
+translate 2.40 0 0
+
+[UNIVERSE][HOLE pair_29]
+fill inner_universe
+translate 3.20 0 0
+
+[UNIVERSE][HOLE pair_30]
+fill inner_universe
+translate 4.00 0 0
+
+[UNIVERSE][HOLE pair_31]
+fill inner_universe
+translate 4.80 0 0
+
+[UNIVERSE][HOLE pair_32]
+fill inner_universe
+translate 5.60 0 0
+
+[UNIVERSE][HOLE pair_33]
+fill inner_universe
+translate 6.40 0 0
+
+[UNIVERSE][HOLE pair_34]
+fill inner_universe
+translate 7.20 0 0
+
+[UNIVERSE][HOLE pair_35]
+fill inner_universe
+translate 8.00 0 0
+
+[UNIVERSE][HOLE pair_36]
+fill inner_universe
+translate 8.80 0 0
+
+[UNIVERSE][HOLE pair_37]
+fill inner_universe
+translate 9.60 0 0
+
+[UNIVERSE][HOLE pair_38]
+fill inner_universe
+translate 10.40 0 0
+
+[UNIVERSE][HOLE pair_39]
+fill inner_universe
+translate 11.20 0 0
+
+[UNIVERSE][HOLE pair_40]
+fill inner_universe
+translate 12.00 0 0
+
+[UNIVERSE][HOLE pair_41]
+fill inner_universe
+translate 12.80 0 0
+
+[UNIVERSE][HOLE pair_42]
+fill inner_universe
+translate 13.60 0 0
+
+[UNIVERSE][HOLE pair_43]
+fill inner_universe
+translate 14.40 0 0
+
+[UNIVERSE][HOLE pair_44]
+fill inner_universe
+translate 15.20 0 0
+
+[UNIVERSE][HOLE pair_45]
+fill inner_universe
+translate 16.00 0 0
+
+[UNIVERSE][HOLE pair_46]
+fill inner_universe
+translate 16.80 0 0
+
+[UNIVERSE][HOLE pair_47]
+fill inner_universe
+translate 17.60 0 0
+
+[UNIVERSE][HOLE pair_48]
+fill inner_universe
+translate 18.40 0 0
+
+[UNIVERSE][HOLE pair_49]
+fill inner_universe
+translate 19.20 0 0

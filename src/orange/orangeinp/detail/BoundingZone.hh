@@ -84,20 +84,19 @@ namespace detail
  * The following set algebra can be used:
  * - Involution: \verbatim ~~A <=> A \endverbatim
  * - De Morgan's law 1: \verbatim ~A | ~B <=> ~(A & B) \endverbatim
- * - De Morgan's law 1:\verbatim ~A & ~B <=> ~(A | B) \endverbatim
+ * - De Morgan's law 2:\verbatim ~A & ~B <=> ~(A | B) \endverbatim
  * - Set difference: \verbatim A & ~B <=> A - B \endverbatim
  * - Negated set difference: \verbatim A | ~B <=> ~(B - A) \endverbatim
  *
- * The default bounding zone places all points in the \em indeterminate zone:
- * the exterior is the "universe set" (infinite) and the interior is the "empty
- * set" (null).
+ * The default bounding zone is the empty set: nothing is inside, everything is
+ * known outside.
  */
 struct BoundingZone
 {
     using BBox = ::celeritas::BoundingBox<>;
 
     BBox interior;
-    BBox exterior = BBox::from_infinite();
+    BBox exterior;
     bool negated{false};  //!< "exterior" means "known inside"
 
     // Flip inside and outside

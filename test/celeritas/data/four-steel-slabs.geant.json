@@ -9,6 +9,7 @@
 "msc_range_factor": 0.04,
 "msc_safety_factor": 0.6,
 "msc_lambda_limit": 0.1,
+"msc_step_algorithm": "safety",
 "apply_cuts": false,
 "lpm": true,
 "max_energy": [

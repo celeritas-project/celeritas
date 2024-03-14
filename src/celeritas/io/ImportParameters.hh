@@ -9,6 +9,7 @@
 
 #include <unordered_map>
 
+#include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
 
 #include "ImportUnits.hh"
@@ -45,6 +46,8 @@ struct ImportEmParameters
     bool auger{false};
     //! MSC geometry factor
     double msc_geom_factor{2.5};
+    //! MSC step limit algorithm
+    MscStepLimitAlgorithm msc_step_algorithm{MscStepLimitAlgorithm::safety};
     //! MSC range factor for e-/e+
     double msc_range_factor{0.04};
     //! MSC safety factor
@@ -60,6 +63,7 @@ struct ImportEmParameters
     explicit operator bool() const
     {
         return linear_loss_limit > 0 && lowest_electron_energy > 0
+               && msc_step_algorithm != MscStepLimitAlgorithm::size_
                && msc_geom_factor >= 1 && msc_range_factor > 0
                && msc_range_factor < 1 && msc_safety_factor >= 0.1
                && msc_lambda_limit > 0 && screening_factor > 0;

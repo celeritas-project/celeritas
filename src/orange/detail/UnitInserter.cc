@@ -285,8 +285,12 @@ UniverseId UnitInserter::operator()(UnitInput const& inp)
     {
         unit.background = LocalVolumeId(inp.volumes.size() - 1);
     }
+
+    // Simple safety if all volumes provide support, excluding the external
+    // volume, which appears first in the list
+    static_assert(local_orange_outside_volume == LocalVolumeId{0});
     unit.simple_safety = std::all_of(
-        vol_records.begin(), vol_records.end(), [](VolumeRecord const& v) {
+        vol_records.begin() + 1, vol_records.end(), [](VolumeRecord const& v) {
             return supports_simple_safety(v.flags);
         });
 
@@ -375,7 +379,7 @@ void UnitInserter::process_daughter(VolumeRecord* vol_record,
     daughter.transform_id = insert_transform_(daughter_input.transform);
 
     vol_record->daughter_id = daughters_.push_back(daughter);
-    vol_record->flags &= VolumeRecord::embedded_universe;
+    vol_record->flags |= VolumeRecord::embedded_universe;
 }
 
 //---------------------------------------------------------------------------//

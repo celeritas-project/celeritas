@@ -17,13 +17,19 @@
 #include "geocel/BoundingBox.hh"
 
 #include "OrangeTypes.hh"
-#include "detail/BIHData.hh"
 #include "univ/detail/Types.hh"
+
+#include "detail/BIHData.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 // PARAMS
+//---------------------------------------------------------------------------//
+
+// VolumeId of exterior volume for all universe types
+static inline constexpr LocalVolumeId local_orange_outside_volume{0};
+
 //---------------------------------------------------------------------------//
 /*!
  * Scalar values particular to an ORANGE geometry instance.

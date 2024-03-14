@@ -340,6 +340,20 @@ TEST(MathTest, diffsq)
 
 //---------------------------------------------------------------------------//
 
+TEST(MathTest, eumod)
+{
+    // Wrap numbers to between [0, 360)
+    EXPECT_DOUBLE_EQ(270.0, eumod(-90.0 - 360.0, 360.0));
+    EXPECT_DOUBLE_EQ(270.0, eumod(-90.0, 360.0));
+    EXPECT_DOUBLE_EQ(0.0, eumod(0.0, 360.0));
+    EXPECT_DOUBLE_EQ(45.0, eumod(45.0, 360.0));
+    EXPECT_DOUBLE_EQ(0.0, eumod(360.0, 360.0));
+    EXPECT_DOUBLE_EQ(15.0, eumod(375.0, 360.0));
+    EXPECT_DOUBLE_EQ(30.0, eumod(720.0 + 30, 360.0));
+}
+
+//---------------------------------------------------------------------------//
+
 TEST(MathTest, sincos)
 {
     {
@@ -363,27 +377,38 @@ TEST(MathTest, sincospi)
     EXPECT_DOUBLE_EQ(std::sin(m_pi * 0.1), sinpi(0.1));
     EXPECT_DOUBLE_EQ(std::cos(m_pi * 0.1), cospi(0.1));
 
-    double s{0}, c{0};
-    sincospi(0.123, &s, &c);
-    EXPECT_DOUBLE_EQ(std::sin(m_pi * 0.123), s);
-    EXPECT_DOUBLE_EQ(std::cos(m_pi * 0.123), c);
+    {
+        double s{0}, c{0};
+        sincospi(0.123, &s, &c);
+        EXPECT_DOUBLE_EQ(std::sin(m_pi * 0.123), s);
+        EXPECT_DOUBLE_EQ(std::cos(m_pi * 0.123), c);
 
-    // Test special cases
-    sincospi(0, &s, &c);
-    EXPECT_EQ(double(0.0), s);
-    EXPECT_EQ(double(1.0), c);
+        // Test special cases
+        sincospi(0, &s, &c);
+        EXPECT_EQ(double(0.0), s);
+        EXPECT_EQ(double(1.0), c);
 
-    sincospi(0.5, &s, &c);
-    EXPECT_EQ(double(1.0), s);
-    EXPECT_EQ(double(0.0), c);
+        sincospi(0.5, &s, &c);
+        EXPECT_EQ(double(1.0), s);
+        EXPECT_EQ(double(0.0), c);
 
-    sincospi(1.0, &s, &c);
-    EXPECT_EQ(double(0.0), s);
-    EXPECT_EQ(double(-1.0), c);
+        sincospi(1.0, &s, &c);
+        EXPECT_EQ(double(0.0), s);
+        EXPECT_EQ(double(-1.0), c);
 
-    sincospi(1.5, &s, &c);
-    EXPECT_EQ(double(-1.0), s);
-    EXPECT_EQ(double(0.0), c);
+        sincospi(1.5, &s, &c);
+        EXPECT_EQ(double(-1.0), s);
+        EXPECT_EQ(double(0.0), c);
+    }
+    {
+        // This is about the threshold where sin(x) == 1.0f
+        float inp{0.000233115f};
+        float s{0}, c{0};
+        sincospi(inp, &s, &c);
+        EXPECT_FLOAT_EQ(1.0f, c);
+        EXPECT_FLOAT_EQ(std::sin(static_cast<float>(m_pi * inp)), s);
+        EXPECT_FLOAT_EQ(std::cos(static_cast<float>(m_pi * inp)), c);
+    }
 }
 
 //---------------------------------------------------------------------------//

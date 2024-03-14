@@ -43,11 +43,14 @@
 #include "celeritas/mat/MaterialData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/mat/MaterialView.hh"
+#include "celeritas/neutron/data/NeutronElasticData.hh"
+#include "celeritas/neutron/model/ChipsNeutronElasticModel.hh"
 
 #include "Model.hh"
 #include "ParticleParams.hh"
 #include "PhysicsData.hh"
 #include "Process.hh"
+
 #include "detail/DiscreteSelectAction.hh"
 #include "detail/PreStepAction.hh"
 
@@ -262,6 +265,16 @@ void PhysicsParams::build_options(Options const& opts, HostValue* data) const
     data->scalars.geom_fact = opts.geom_fact;
     data->scalars.range_fact = opts.range_fact;
     data->scalars.safety_fact = opts.safety_fact;
+    data->scalars.step_limit_algorithm = opts.step_limit_algorithm;
+    if (data->scalars.step_limit_algorithm
+        == MscStepLimitAlgorithm::distance_to_boundary)
+    {
+        CELER_LOG(warning) << "Unsupported step limit algorithm '"
+                           << to_cstring(data->scalars.step_limit_algorithm)
+                           << "': defaulting to '"
+                           << to_cstring(MscStepLimitAlgorithm::safety) << "'";
+        data->scalars.step_limit_algorithm = MscStepLimitAlgorithm::safety;
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -409,6 +422,13 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
             data->hardwired.positron_annihilation = process_id;
             data->hardwired.eplusgg = ModelId{model_idx};
             data->hardwired.eplusgg_data = epgg_model->device_ref();
+        }
+        else if (auto* ne_model
+                 = dynamic_cast<ChipsNeutronElasticModel const*>(&model))
+        {
+            data->hardwired.neutron_elastic = process_id;
+            data->hardwired.chips = ModelId{model_idx};
+            data->hardwired.chips_data = ne_model->device_ref();
         }
     }
 

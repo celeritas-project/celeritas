@@ -439,7 +439,7 @@ CELER_FUNCTION bool OrangeTrackView::is_outside() const
     // Zeroth volume in outermost universe is always the exterior by
     // construction in ORANGE
     auto lsa = this->make_lsa(LevelId{0});
-    return lsa.vol() == LocalVolumeId{0};
+    return lsa.vol() == local_orange_outside_volume;
 }
 
 //---------------------------------------------------------------------------//
@@ -596,12 +596,6 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
 
     if (CELER_UNLIKELY(this->boundary() == BoundaryResult::reentrant))
     {
-        if (sl != LevelId{0})
-        {
-            CELER_NOT_IMPLEMENTED(
-                "reentrant surfaces with multilevel ORANGE geometry");
-        }
-
         // Direction changed while on boundary leading to no change in
         // volume/surface. This is logically equivalent to a reflection.
         this->boundary(BoundaryResult::exiting);
@@ -705,17 +699,16 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
 
     if (this->is_on_boundary())
     {
-        // Changing direction on a boundary is dangerous, as it could mean we
-        // don't leave the volume after all.
-        detail::UniverseIndexer ui(params_.universe_indexer_data);
+        // Changing direction on a boundary, which may result in not leaving
+        // current volume upon the cross_surface call
+        auto lsa = this->make_lsa(this->surface_level());
 
         TrackerVisitor visit_tracker{params_};
-        auto pos = this->pos();
         auto normal = visit_tracker(
-            [&pos, local_surface = this->surf()](auto&& t) {
+            [pos = lsa.pos(), local_surface = this->surf()](auto&& t) {
                 return t.normal(pos, local_surface);
             },
-            UniverseId{0});
+            lsa.universe());
 
         // Normal is in *local* coordinates but newdir is in *global*: rotate
         // up to check
@@ -922,18 +915,28 @@ OrangeTrackView::find_next_step_impl(detail::Intersection isect)
 //---------------------------------------------------------------------------//
 /*!
  * Find the distance to the nearest boundary in any direction.
+ *
+ * The safety distance at a given point is the minimum safety distance over all
+ * levels, since surface deduplication can potentionally elide bounding
+ * surfaces at more deeply embedded levels.
  */
 CELER_FUNCTION real_type OrangeTrackView::find_safety()
 {
     CELER_EXPECT(!this->is_on_boundary());
-    auto lsa = this->make_lsa();
-
-    CELER_ASSERT(lsa.universe() == UniverseId{0});
 
     TrackerVisitor visit_tracker{params_};
-    return visit_tracker(
-        [&lsa](auto&& t) { return t.safety(lsa.pos(), lsa.vol()); },
-        lsa.universe());
+
+    real_type min_safety_dist = numeric_limits<real_type>::infinity();
+
+    for (auto lev : range(LevelId{this->level() + 1}))
+    {
+        auto lsa = this->make_lsa(lev);
+        auto sd = visit_tracker(
+            [&lsa](auto&& t) { return t.safety(lsa.pos(), lsa.vol()); },
+            lsa.universe());
+        min_safety_dist = celeritas::min(min_safety_dist, sd);
+    }
+    return min_safety_dist;
 }
 
 //---------------------------------------------------------------------------//

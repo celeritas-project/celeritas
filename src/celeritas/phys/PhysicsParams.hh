@@ -64,6 +64,7 @@ class ParticleParams;
  * - \c safety_fact: used in the MSC step limitation algorithm to restrict the
  *   step size to \f$ f_s s \f$, where \f$ f_s \f$ is the safety factor and \f$
  *   s \f$ is the safety distance.
+ * - \c step_limit_algorithm: algorithm used to determine the MSC step limit.
  * - \c secondary_stack_factor: the number of secondary slots per track slot
  *   allocated.
  * - \c disable_integral_xs: for particles with energy loss processes, the
@@ -101,6 +102,7 @@ struct PhysicsParamsOptions
     real_type geom_fact = 2.5;
     real_type range_fact = 0.04;
     real_type safety_fact = 0.6;
+    MscStepLimitAlgorithm step_limit_algorithm{MscStepLimitAlgorithm::safety};
     //!@}
 
     real_type secondary_stack_factor = 3;

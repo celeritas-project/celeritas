@@ -71,7 +71,7 @@ CsgTree::CsgTree()
  *
  * This performs a single level of simplification.
  */
-auto CsgTree::insert(Node&& n) -> NodeId
+auto CsgTree::insert(Node&& n) -> Insertion
 {
     CELER_EXPECT(!n.valueless_by_exception()
                  && std::visit(IsUserNodeValid{this->size()}, n));
@@ -85,7 +85,7 @@ auto CsgTree::insert(Node&& n) -> NodeId
             if (auto* a = std::get_if<orangeinp::Aliased>(&n))
             {
                 // Simplified to an aliased node
-                return a->node;
+                return {a->node, false};
             }
         }
     }
@@ -98,7 +98,7 @@ auto CsgTree::insert(Node&& n) -> NodeId
         // Add a copy of the new node
         nodes_.push_back(iter->first);
     }
-    return iter->second;
+    return {iter->second, inserted};
 }
 
 //---------------------------------------------------------------------------//
