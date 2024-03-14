@@ -24,6 +24,7 @@ enum class ImportUnits
 {
     unitless,  //!< No dimension
     mev,  //!< Energy [MeV]
+    inv_mev,  //!< Inverse energy [1/MeV]
     mev_per_len,  //!< Energy loss [MeV/len]
     len,  //!< Range [len]
     len_inv,  //!< Macroscopic xs [1/len]
