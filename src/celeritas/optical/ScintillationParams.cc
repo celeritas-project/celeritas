@@ -18,8 +18,6 @@
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
-#include "ranges"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -151,7 +149,7 @@ ScintillationParams::ScintillationParams(Input const& input,
     // particle, and each particle (i.e. stream) traverses multiple materials
     for (auto pid : range(num_part))
     {
-        auto const pdg = particle_params->id_to_pdg(ParticleId{pid}).get();
+        auto const pdg = particle_params->id_to_pdg(ParticleId(pid)).get();
         for (auto matid : range(num_mat))
         {
             // Particle- and material-dependend scintillation spectrum
