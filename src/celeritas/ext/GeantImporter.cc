@@ -194,14 +194,16 @@ struct MatPropGetter
 
 //---------------------------------------------------------------------------//
 //! Map particles defined in \c G4MaterialConstPropertyIndex .
-std::map<std::string, PDGNumber> optical_particles_map()
+auto& optical_particles_map()
 {
-    return {{"PROTON", pdg::proton()},
-            {"DEUTERON", pdg::deuteron()},
-            {"TRITON", pdg::triton()},
-            {"ALPHA", pdg::alpha()},
-            {"ION", pdg::ion()},
-            {"ELECTRON", pdg::electron()}};
+    static std::unordered_map<std::string, PDGNumber> map
+        = {{"PROTON", pdg::proton()},
+           {"DEUTERON", pdg::deuteron()},
+           {"TRITON", pdg::triton()},
+           {"ALPHA", pdg::alpha()},
+           {"ION", pdg::ion()},
+           {"ELECTRON", pdg::electron()}};
+    return map;
 }
 
 //---------------------------------------------------------------------------//
@@ -213,11 +215,8 @@ std::vector<ImportScintComponent>
 fill_vec_import_scint_comp(MatPropGetter& get_property,
                            std::string particle_name = "")
 {
-    if (!particle_name.empty())
-    {
-        auto const map = optical_particles_map();
-        CELER_EXPECT(map.find(particle_name) != map.end());
-    }
+    CELER_EXPECT(particle_name.empty()
+                 || optical_particles_map().count(particle_name));
 
     std::vector<ImportScintComponent> components;
     for (int comp_idx : range(1, 4))
@@ -470,7 +469,7 @@ ImportData::ImportOpticalMap import_optical()
     auto num_materials = pct.GetTableSize();
     CELER_ASSERT(num_materials > 0);
 
-    auto const particle_map = optical_particles_map();
+    auto const& particle_map = optical_particles_map();
     ImportData::ImportOpticalMap result;
 
     // Loop over optical materials
@@ -512,7 +511,7 @@ ImportData::ImportOpticalMap import_optical()
             // Particle scintillation properties
             for (auto const& iter : particle_map)
             {
-                std::string particle_name = iter.first;
+                auto const& particle_name = iter.first;
 
                 ImportScintData::IPSS scint_part_spec;
                 get_property.vector(&scint_part_spec.yield_vector,
