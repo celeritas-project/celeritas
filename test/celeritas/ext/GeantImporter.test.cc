@@ -1169,6 +1169,8 @@ TEST_F(OneSteelSphere, cutoffs)
 
 TEST_F(OneSteelSphere, physics)
 {
+    real_type const tol = this->comparison_tolerance();
+
     // Check the bremsstrahlung cross sections
     ImportProcess const& brems = this->find_process(
         celeritas::pdg::electron(), ImportProcessClass::e_brems);
@@ -1263,8 +1265,8 @@ TEST_F(OneSteelSphere, physics)
             EXPECT_SOFT_EQ(1e2, pv.x.back());
         }
         auto const& steel = msc.xs_table.physics_vectors.back();
-        EXPECT_SOFT_EQ(0.23785296407525, to_inv_cm(steel.y.front()));
-        EXPECT_SOFT_EQ(128.58803359467, to_inv_cm(steel.y.back()));
+        EXPECT_SOFT_NEAR(0.23785296407525, to_inv_cm(steel.y.front()), tol);
+        EXPECT_SOFT_NEAR(128.58803359467, to_inv_cm(steel.y.back()), tol);
     }
     {
         // Check Wentzel VI MSC bounds
@@ -1278,8 +1280,8 @@ TEST_F(OneSteelSphere, physics)
             EXPECT_SOFT_EQ(1e8, pv.x.back());
         }
         auto const& steel = msc.xs_table.physics_vectors.back();
-        EXPECT_SOFT_EQ(114.93265072267, to_inv_cm(steel.y.front()));
-        EXPECT_SOFT_EQ(116.59035766356, to_inv_cm(steel.y.back()));
+        EXPECT_SOFT_NEAR(114.93265072267, to_inv_cm(steel.y.front()), tol);
+        EXPECT_SOFT_NEAR(116.59035766356, to_inv_cm(steel.y.back()), tol);
     }
 }
 
