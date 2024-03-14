@@ -52,6 +52,18 @@ class ParticleParams;
  *   this fractional value of the pre-step kinetic energy, recalculate the
  *   energy loss.
  * - \c lowest_electron_energy: lowest kinetic energy for electrons/positrons
+ * - \c lambda_limit: limit on the MSC mean free path.
+ * - \c geom_fact: used in the MSC step limitation algorithm to make sure a
+ *   particle takes a minimum number of steps within a volume by imposing the
+ *   limit \f$ d / f_g \f$ on the step after entering a volume, where \f$ d
+ *   \f$ is the distance to boundary and \f$ f_g \f$ is the geometry factor.
+ * - \c range_fact: used in the MSC step limitation algorithm to restrict the
+ *   step size to \f$ f_r \cdot max(r, \lambda) \f$ at the start of a track or
+ *   after entering a volume, where \f$ f_r \f$ is the range factor, \f$ r \f$
+ *   is the range, and \f$ \lambda \f$ is the mean free path.
+ * - \c safety_fact: used in the MSC step limitation algorithm to restrict the
+ *   step size to \f$ f_s s \f$, where \f$ f_s \f$ is the safety factor and \f$
+ *   s \f$ is the safety distance.
  * - \c secondary_stack_factor: the number of secondary slots per track slot
  *   allocated.
  * - \c disable_integral_xs: for particles with energy loss processes, the
@@ -81,6 +93,14 @@ struct PhysicsParamsOptions
     real_type min_eprime_over_e = 0.8;
     real_type linear_loss_limit = 0.01;
     Energy lowest_electron_energy = Energy{0.001};
+    //!@}
+
+    //!@{
+    //! \name Multiple scattering
+    real_type lambda_limit = 1 * units::millimeter;
+    real_type geom_fact = 2.5;
+    real_type range_fact = 0.04;
+    real_type safety_fact = 0.6;
     //!@}
 
     real_type secondary_stack_factor = 3;

@@ -141,8 +141,6 @@ struct UrbanMscData
     //! Mass of of electron in MeV
     units::MevMass electron_mass;
     //! User-assignable options
-    MscParameters msc_params;
-    //! Model-specific options
     UrbanMscParameters params;
     //! Material-dependent data
     MaterialItems<UrbanMscMaterialData> material_data;
@@ -170,7 +168,6 @@ struct UrbanMscData
         CELER_EXPECT(other);
         ids = other.ids;
         electron_mass = other.electron_mass;
-        msc_params = other.msc_params;
         params = other.params;
         material_data = other.material_data;
         par_mat_data = other.par_mat_data;

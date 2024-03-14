@@ -240,12 +240,28 @@ void PhysicsParams::build_options(Options const& opts, HostValue* data) const
     CELER_VALIDATE(opts.secondary_stack_factor > 0,
                    << "invalid secondary_stack_factor="
                    << opts.secondary_stack_factor << " (should be positive)");
+    CELER_VALIDATE(opts.lambda_limit > 0,
+                   << "invalid lambda_limit=" << opts.lambda_limit
+                   << " (should be positive)");
+    CELER_VALIDATE(opts.safety_fact >= 0.1,
+                   << "invalid safety_fact=" << opts.safety_fact
+                   << " (should be >= 0.1)");
+    CELER_VALIDATE(opts.range_fact > 0 && opts.range_fact < 1,
+                   << "invalid range_fact=" << opts.range_fact
+                   << " (should be within 0 < limit < 1)");
+    CELER_VALIDATE(opts.geom_fact >= 1,
+                   << "invalid geom_fact=" << opts.geom_fact
+                   << " (should be >= 1)");
     data->scalars.min_range = opts.min_range;
     data->scalars.max_step_over_range = opts.max_step_over_range;
     data->scalars.min_eprime_over_e = opts.min_eprime_over_e;
     data->scalars.lowest_electron_energy = opts.lowest_electron_energy;
     data->scalars.linear_loss_limit = opts.linear_loss_limit;
     data->scalars.secondary_stack_factor = opts.secondary_stack_factor;
+    data->scalars.lambda_limit = opts.lambda_limit;
+    data->scalars.geom_fact = opts.geom_fact;
+    data->scalars.range_fact = opts.range_fact;
+    data->scalars.safety_fact = opts.safety_fact;
 }
 
 //---------------------------------------------------------------------------//

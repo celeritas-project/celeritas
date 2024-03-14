@@ -28,31 +28,6 @@ MscParams::~MscParams() = default;
 
 //---------------------------------------------------------------------------//
 /*!
- * Validate and save MSC parameters common to all models.
- */
-void MscParams::build_parameters(MscParameters* params,
-                                 Options const& options) const
-{
-    CELER_VALIDATE(options.lambda_limit > 0,
-                   << "invalid lambda_limit=" << options.lambda_limit
-                   << " (should be positive)");
-    CELER_VALIDATE(options.safety_fact >= 0.1,
-                   << "invalid safety_fact=" << options.safety_fact
-                   << " (should be >= 0.1)");
-    CELER_VALIDATE(options.range_fact > 0 && options.range_fact < 1,
-                   << "invalid range_fact=" << options.range_fact
-                   << " (should be within 0 < limit < 1)");
-    CELER_VALIDATE(options.geom_fact >= 1,
-                   << "invalid geom_fact=" << options.geom_fact
-                   << " (should be >= 1)");
-    params->lambda_limit = options.lambda_limit;
-    params->geom_fact = options.geom_fact;
-    params->range_fact = options.range_fact;
-    params->safety_fact = options.safety_fact;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Validate and save MSC IDs.
  */
 void MscParams::build_ids(MscIds* ids, ParticleParams const& particles) const

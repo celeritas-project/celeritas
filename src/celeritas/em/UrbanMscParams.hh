@@ -42,8 +42,7 @@ class UrbanMscParams final : public MscParams,
     // Construct from process data
     inline UrbanMscParams(ParticleParams const& particles,
                           MaterialParams const& materials,
-                          VecImportMscModel const& mdata,
-                          Options options);
+                          VecImportMscModel const& mdata);
 
     // TODO: possible "applicability" interface used for constructing
     // along-step kernels?

@@ -42,8 +42,7 @@ class WentzelVIMscParams final : public MscParams,
     // Construct from process data
     inline WentzelVIMscParams(ParticleParams const& particles,
                               MaterialParams const& materials,
-                              VecImportMscModel const& mdata,
-                              Options options);
+                              VecImportMscModel const& mdata);
 
     //! Access Wentzel VI data on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }

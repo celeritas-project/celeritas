@@ -33,15 +33,6 @@ class MscParams
     using VecImportMscModel = std::vector<ImportMscModel>;
     //!@}
 
-    //! MSC configuration options
-    struct Options
-    {
-        real_type lambda_limit{1 * units::millimeter};  //!< Lambda limit
-        real_type geom_fact{2.5};  //!< Geometry factor
-        real_type range_fact{0.04};  //!< Range factor for e-/e+
-        real_type safety_fact{0.6};  //!< Safety factor
-    };
-
   public:
     // Virtual destructor for polymorphic deletion
     virtual ~MscParams();
@@ -60,7 +51,6 @@ class MscParams
 
     //// HELPER FUNCTIONS ////
 
-    void build_parameters(MscParameters*, Options const&) const;
     void build_ids(MscIds*, ParticleParams const&) const;
     void build_xs(XsValues*,
                   Values*,

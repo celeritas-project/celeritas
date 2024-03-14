@@ -51,15 +51,8 @@ UrbanMscParams::from_import(ParticleParams const& particles,
         // No Urban MSC present
         return nullptr;
     }
-
-    Options opts;
-    opts.lambda_limit = data.em_params.msc_lambda_limit;
-    opts.safety_fact = data.em_params.msc_safety_factor;
-    opts.range_fact = data.em_params.msc_range_factor;
-    opts.geom_fact = data.em_params.msc_geom_factor;
-
     return std::make_shared<UrbanMscParams>(
-        particles, materials, data.msc_models, opts);
+        particles, materials, data.msc_models);
 }
 
 //---------------------------------------------------------------------------//
@@ -68,8 +61,7 @@ UrbanMscParams::from_import(ParticleParams const& particles,
  */
 UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
                                MaterialParams const& materials,
-                               VecImportMscModel const& mdata_vec,
-                               Options options)
+                               VecImportMscModel const& mdata_vec)
 {
     using units::MevEnergy;
 
@@ -78,7 +70,6 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
     HostVal<UrbanMscData> host_data;
 
     this->build_ids(&host_data.ids, particles);
-    this->build_parameters(&host_data.msc_params, options);
     this->build_xs(&host_data.xs,
                    &host_data.reals,
                    particles,

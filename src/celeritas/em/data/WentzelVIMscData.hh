@@ -56,8 +56,6 @@ struct WentzelVIMscData
     //! Mass of of electron in MeV
     units::MevMass electron_mass;
     //! User-assignable options
-    MscParameters msc_params;
-    //! Model-specific options
     WentzelVIMscParameters params;
     //! Scaled xs data
     Items<XsGridData> xs;  //!< [mat][particle]
@@ -81,7 +79,6 @@ struct WentzelVIMscData
         CELER_EXPECT(other);
         ids = other.ids;
         electron_mass = other.electron_mass;
-        msc_params = other.msc_params;
         params = other.params;
         xs = other.xs;
         reals = other.reals;
