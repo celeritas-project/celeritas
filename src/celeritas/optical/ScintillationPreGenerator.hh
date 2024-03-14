@@ -84,7 +84,7 @@ inline CELER_FUNCTION ScintillationPreGenerator::ScintillationPreGenerator(
     , shared_(shared)
     , step_(step_data)
 {
-    CELER_EXPECT(step_len_);
+    CELER_EXPECT(step_len_ > 0);
     CELER_EXPECT(mat_id_);
     CELER_EXPECT(shared_);
     CELER_EXPECT(step_);
@@ -113,7 +113,7 @@ ScintillationPreGenerator::operator()(Generator& rng)
                           * std::sqrt(mean_num_photons);
         result.num_photons
             = NormalDistribution<real_type>(mean_num_photons, sigma)(rng)
-              + real_type{0.5};  // WHY?
+              + real_type{0.5};
     }
     else
     {

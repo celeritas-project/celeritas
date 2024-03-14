@@ -48,8 +48,8 @@ class ScintillationTest : public OpticalTestBase
         // TODO: Add particle data to ScintillationParams::Input
         ImportScintData spectrum;
         spectrum.material.yield = 5;
-        spectrum.material.resolution_scale = 1;
-        spectrum.material.components = this->make_material_components();
+        spectrum.resolution_scale = 1;
+        spectrum.material.components = this->build_material_components();
 
         ScintillationParams::Input inp;
         inp.matid_to_optmatid.push_back(OpticalMaterialId(0));
@@ -66,7 +66,7 @@ class ScintillationTest : public OpticalTestBase
     }
 
     //! Create material components
-    std::vector<ImportScintComponent> make_material_components()
+    std::vector<ImportScintComponent> build_material_components()
     {
         std::vector<ImportScintComponent> comps;
         comps.push_back({0.65713, 128 * nm, 10 * nm, 10 * ns, 6 * ns});
@@ -76,7 +76,7 @@ class ScintillationTest : public OpticalTestBase
     }
 
     //! Set up mock pre-generator step data
-    ScintillationPreGenerator::OpticalPreGenStepData make_pregen_step()
+    ScintillationPreGenerator::OpticalPreGenStepData build_pregen_step()
     {
         ScintillationPreGenerator::OpticalPreGenStepData pregen_data;
         pregen_data.energy_dep = MevEnergy{0.75};
@@ -128,13 +128,13 @@ TEST_F(ScintillationTest, params)
     }
 
     real_type norm{0};
-    for (auto const& comp : this->make_material_components())
+    for (auto const& comp : this->build_material_components())
     {
         norm += comp.yield;
     }
     std::vector<real_type> expected_yield_fracs, expected_lambda_means,
         expected_lambda_sigmas, expected_rise_times, expected_fall_times;
-    for (auto const& comp : this->make_material_components())
+    for (auto const& comp : this->build_material_components())
     {
         expected_yield_fracs.push_back(comp.yield / norm);
         expected_lambda_means.push_back(comp.lambda_mean);
@@ -153,15 +153,15 @@ TEST_F(ScintillationTest, params)
 //---------------------------------------------------------------------------//
 TEST_F(ScintillationTest, pre_generator)
 {
-    // The particle's energy is necessary for the particle track view but
-    // irrelevant for the test, since what matters is the energy deposition,
-    // which is hardcoded in this->make_pregen_step()
+    // The particle's energy is necessary for the particle track view but is
+    // irrelevant for the test since what matters is the energy deposition,
+    // which is hardcoded in this->build_pregen_step()
     ScintillationPreGenerator generate(
         this->make_particle_track_view(MevEnergy{10}, pdg::electron()),
         this->make_sim_track_view(1),
         opt_mat_id_,
         params->host_ref(),
-        this->make_pregen_step());
+        this->build_pregen_step());
 
     auto result = generate(this->rng());
     EXPECT_EQ(4, result.num_photons);
@@ -170,7 +170,7 @@ TEST_F(ScintillationTest, pre_generator)
     EXPECT_EQ(-1, result.charge.value());
     EXPECT_EQ(0, result.material.get());
 
-    auto expected_step = this->make_pregen_step();
+    auto expected_step = this->build_pregen_step();
     for (auto p : range(StepPoint::size_))
     {
         EXPECT_EQ(expected_step.points[p].speed.value(),
@@ -188,7 +188,7 @@ TEST_F(ScintillationTest, basic)
         this->make_sim_track_view(1),
         opt_mat_id_,
         params->host_ref(),
-        this->make_pregen_step());
+        this->build_pregen_step());
 
     auto result = generate(this->rng());
 
@@ -236,10 +236,7 @@ TEST_F(ScintillationTest, basic)
                                                          0.68933315879807,
                                                          -0.26839376593079,
                                                          -0.57457399792055};
-        static double const expected_cos_polar[] = {4.4598402103989e-17,
-                                                    -3.1758429170235e-17,
-                                                    5.9500322435118e-17,
-                                                    4.9440684395337e-17};
+        static double const expected_cos_polar[] = {0, 0, 0, 0};
 
         EXPECT_VEC_SOFT_EQ(expected_energy, energy);
         EXPECT_VEC_SOFT_EQ(expected_time, time);
@@ -257,7 +254,7 @@ TEST_F(ScintillationTest, stress_test)
         this->make_sim_track_view(1),
         opt_mat_id_,
         params->host_ref(),
-        this->make_pregen_step());
+        this->build_pregen_step());
     auto result = generate(this->rng());
 
     // Overwrite result to force a large number of optical photons

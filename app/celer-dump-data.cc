@@ -668,8 +668,7 @@ void print_optical_material_data(ImportData::ImportOpticalMap const& iom)
     {
         auto const& scint = val.scintillation;
         cout << POM_STREAM_SCALAR(mid, scint, material.yield, IU::inv_mev);
-        cout << POM_STREAM_SCALAR(
-            mid, scint, material.resolution_scale, IU::unitless);
+        cout << POM_STREAM_SCALAR(mid, scint, resolution_scale, IU::unitless);
         for (auto i : range(scint.material.components.size()))
         {
             auto const& comp = scint.material.components[i];

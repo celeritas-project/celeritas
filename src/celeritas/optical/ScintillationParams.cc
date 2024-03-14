@@ -139,11 +139,10 @@ ScintillationParams::ScintillationParams(Input const& input,
             = build_compoments.insert_back(comps.begin(), comps.end());
         build_materials.push_back(mat_spec);
 
-        CELER_VALIDATE(
-            inp.material.resolution_scale >= 0,
-            << "invalid resolution_scale=" << inp.material.resolution_scale
-            << " for scintillation (should be nonnegative)");
-        build_resolutionscale.push_back(inp.material.resolution_scale);
+        CELER_VALIDATE(inp.resolution_scale >= 0,
+                       << "invalid resolution_scale=" << inp.resolution_scale
+                       << " for scintillation (should be nonnegative)");
+        build_resolutionscale.push_back(inp.resolution_scale);
     }
 
     // Store particle- and material-dependent scintillation data
@@ -166,15 +165,17 @@ ScintillationParams::ScintillationParams(Input const& input,
                 ipss.yield_vector.x.begin(), ipss.yield_vector.x.end());
             part_spec.yield_vector.value = build_grid.insert_back(
                 ipss.yield_vector.y.begin(), ipss.yield_vector.y.end());
+
             // TODO: Should we have an Interp::free?
             // part_spec.yield_vector.grid_interp = Interp::free;
             CELER_ASSERT(part_spec.yield_vector);
-            CELER_VALIDATE(input.data[matid].material.resolution_scale >= 0,
-                           << "invalid resolution_scale="
-                           << input.data[matid].material.resolution_scale
+
+            auto const& inp_res_scale = input.data[matid].resolution_scale;
+            CELER_VALIDATE(inp_res_scale >= 0,
+                           << "invalid resolution_scale=" << inp_res_scale
                            << " for scintillation (should be nonnegative)");
-            build_resolutionscale.push_back(
-                input.data[matid].material.resolution_scale);
+            build_resolutionscale.push_back(inp_res_scale);
+
             auto comps = this->copy_components(ipss.components);
             part_spec.components
                 = build_compoments.insert_back(comps.begin(), comps.end());

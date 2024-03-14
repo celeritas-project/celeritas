@@ -123,6 +123,7 @@ ScintillationGenerator::operator()(Generator& rng)
     auto const& mat_spectrum = shared_.materials[dist_.material];
 
     // TODO: implement sampling for particles
+    // TODO: in Geant4 components are not necessary
 
     // Material sampling
     for (auto sid : mat_spectrum.components)

@@ -41,23 +41,20 @@ struct ImportScintComponent
 //---------------------------------------------------------------------------//
 /*!
  * Store material-only scintillation spectrum information.
+ * TODO: Components are not necessary in Geant4, but are in our generator.
  */
 struct ImportMaterialScintSpectrum
 {
     double yield{};  //!< Characteristic light yields of the material [1/MeV]
-    double resolution_scale{};  //!< Scales the stdev of photon distribution
     std::vector<ImportScintComponent> components;  //!< Fast/slow components
 
     //! Whether all data are assigned and valid
-    explicit operator bool() const
-    {
-        return yield > 0 && resolution_scale >= 0 && !components.empty();
-    }
+    explicit operator bool() const { return yield > 0 && !components.empty(); }
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Store per-particle material spectrum information.
+ * Store per-particle material scintillation spectrum information.
  *
  * The yield vector is the only necessary element, needed to calculate the
  * yield based on the particle energy during the stepping loop.
@@ -79,7 +76,7 @@ struct ImportParticleScintSpectrum
 
 //---------------------------------------------------------------------------//
 /*!
- * Store optical properties for scintillation for both particles and materials.
+ * Store optical properties for scintillation.
  */
 struct ImportScintData
 {
@@ -88,9 +85,13 @@ struct ImportScintData
 
     ImportMaterialScintSpectrum material;  //!< Material scintillation data
     std::map<PDGint, IPSS> particles;  //!< Particle scintillation data
+    double resolution_scale{};  //!< Scales the stdev of photon distribution
 
     //! Whether all data are assigned and valid
-    explicit operator bool() const { return static_cast<bool>(material); }
+    explicit operator bool() const
+    {
+        return static_cast<bool>(material) && resolution_scale >= 0;
+    }
 };
 
 //---------------------------------------------------------------------------//

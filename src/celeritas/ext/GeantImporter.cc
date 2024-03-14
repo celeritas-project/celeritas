@@ -193,12 +193,32 @@ struct MatPropGetter
 };
 
 //---------------------------------------------------------------------------//
-//! Populate an ImportScintComponent.
-//! Empty particle name is be used to retrieve material-only component data.
+//! Map particles defined in \c G4MaterialConstPropertyIndex .
+std::map<std::string, PDGNumber> optical_particles_map()
+{
+    return {{"PROTON", pdg::proton()},
+            {"DEUTERON", pdg::deuteron()},
+            {"TRITON", pdg::triton()},
+            {"ALPHA", pdg::alpha()},
+            {"ION", pdg::ion()},
+            {"ELECTRON", pdg::electron()}};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Populate an \c ImportScintComponent .
+ * To retrieve a material-only component simply do not use particle name.
+ */
 std::vector<ImportScintComponent>
 fill_vec_import_scint_comp(MatPropGetter& get_property,
                            std::string particle_name = "")
 {
+    if (!particle_name.empty())
+    {
+        auto const map = optical_particles_map();
+        CELER_EXPECT(map.find(particle_name) != map.end());
+    }
+
     std::vector<ImportScintComponent> components;
     for (int comp_idx : range(1, 4))
     {
@@ -451,15 +471,7 @@ ImportData::ImportOpticalMap import_optical()
     auto num_materials = pct.GetTableSize();
     CELER_ASSERT(num_materials > 0);
 
-    // Particles defined in G4MaterialConstPropertyIndex to be looped over
-    std::map<std::string, PDGNumber> g4_scint_particle_map
-        = {{"PROTON", pdg::proton()},
-           {"DEUTERON", pdg::deuteron()},
-           {"TRITON", pdg::triton()},
-           {"ALPHA", pdg::alpha()},
-           {"ION", pdg::ion()},
-           {"ELECTRON", pdg::electron()}};
-
+    auto const particle_map = optical_particles_map();
     ImportData::ImportOpticalMap result;
 
     // Loop over optical materials
@@ -492,15 +504,14 @@ ImportData::ImportOpticalMap import_optical()
             get_property.scalar(&optical.scintillation.material.yield,
                                 "SCINTILLATIONYIELD",
                                 ImportUnits::inv_mev);
-            get_property.scalar(
-                &optical.scintillation.material.resolution_scale,
-                "RESOLUTIONSCALE",
-                ImportUnits::unitless);
+            get_property.scalar(&optical.scintillation.resolution_scale,
+                                "RESOLUTIONSCALE",
+                                ImportUnits::unitless);
             optical.scintillation.material.components
                 = fill_vec_import_scint_comp(get_property);
 
             // Particle scintillation properties
-            for (auto const& iter : g4_scint_particle_map)
+            for (auto const& iter : particle_map)
             {
                 std::string particle_name = iter.first;
 
@@ -715,9 +726,9 @@ auto import_processes(GeantImporter::DataSelection::Flags process_flags,
             = dynamic_cast<G4GammaGeneralProcess const*>(&process))
         {
 #if G4VERSION_NUMBER >= 1060
-            // Extract the real EM processes embedded inside "gamma
-            // general" using an awkward string-based lookup which is the
-            // only one available to us :(
+            // Extract the real EM processes embedded inside "gamma general"
+            // using an awkward string-based lookup which is the only one
+            // available to us :(
             for (auto emproc_enum : range(ImportProcessClass::size_))
             {
                 if (G4VEmProcess const* subprocess
