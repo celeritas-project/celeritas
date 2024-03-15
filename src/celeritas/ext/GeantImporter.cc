@@ -155,9 +155,11 @@ struct ProcessFilter
 //! Retrieve and store optical material properties, if present.
 struct MatPropGetter
 {
-    G4MaterialPropertiesTable const& mpt;
+    using MPT = G4MaterialPropertiesTable;
 
-    void scalar(double* dst, std::string name, ImportUnits q)
+    MPT const& mpt;
+
+    void scalar(double* dst, char const* name, ImportUnits q)
     {
         if (!mpt.ConstPropertyExists(name))
         {
@@ -166,14 +168,18 @@ struct MatPropGetter
         *dst = mpt.GetConstProperty(name) * native_value_from_clhep(q);
     }
 
-    void scalar(double* dst, std::string name, int comp, ImportUnits q)
+    void scalar(double* dst, char const* name, int comp, ImportUnits q)
     {
-        this->scalar(dst, name + std::to_string(comp), q);
+        // Geant4 10.6 and earlier require a const char* argument
+        std::string temp_name{name};
+        temp_name += std::to_string(comp);
+        this->scalar(dst, temp_name.c_str(), q);
     }
 
-    void vector(ImportPhysicsVector* dst, std::string name, ImportUnits q)
+    void vector(ImportPhysicsVector* dst, char const* name, ImportUnits q)
     {
-        auto const* g4vector = mpt.GetProperty(name);
+        // Geant4@10.7: G4MaterialPropertiesTable.GetProperty is not const
+        auto const* g4vector = const_cast<MPT&>(mpt).GetProperty(name);
         if (!g4vector)
         {
             return;
@@ -834,6 +840,8 @@ ImportEmParameters import_em_parameters()
 #if G4VERSION_NUMBER >= 1060
     import.msc_safety_factor = g4.MscSafetyFactor();
     import.msc_lambda_limit = g4.MscLambdaLimit() * len_scale;
+#else
+    CELER_DISCARD(len_scale);
 #endif
     import.apply_cuts = g4.ApplyCuts();
     import.screening_factor = g4.ScreeningFactor();

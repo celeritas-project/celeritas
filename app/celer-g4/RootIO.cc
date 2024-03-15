@@ -100,7 +100,7 @@ RootIO* RootIO::Instance()
  */
 void RootIO::Write(G4Event const* event)
 {
-    auto const hit_cols = event->GetHCofThisEvent();
+    auto* hit_cols = event->GetHCofThisEvent();
     if (!hit_cols)
     {
         return;
@@ -113,7 +113,8 @@ void RootIO::Write(G4Event const* event)
     event_data.event_id = event->GetEventID();
     for (auto i : celeritas::range(hit_cols->GetNumberOfCollections()))
     {
-        auto const* hc_id = hit_cols->GetHC(i);
+        // NOTE: Geant4@10.5 G4VHitsCollection::GetName is not const correct
+        auto* hc_id = hit_cols->GetHC(i);
         std::vector<EventHitData> hits;
         hits.resize(hc_id->GetSize());
 
