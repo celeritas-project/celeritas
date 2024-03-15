@@ -131,8 +131,12 @@ endif()
 
 #-----------------------------------------------------------------------------#
 
-foreach(_dep CUDA ROOT Geant4 VecGeom MPI OpenMP)
+foreach(_dep
+    CUDA HIP # Languages
+    Geant4 HepMC3 JSON MPI OpenMP ROOT VecGeom SWIG # Packages
+  )
   set(@PROJECT_NAME@_${_dep}_FOUND ${CELERITAS_USE_${_dep}})
 endforeach()
+unset(_dep)
 
 #-----------------------------------------------------------------------------#
