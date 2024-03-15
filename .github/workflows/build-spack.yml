@@ -8,8 +8,7 @@ concurrency:
   group: build-spack-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
 
 env:
-  # TODO: update below when https://github.com/spack/spack/pull/43212 is merged
-  SPACK_REF: ee1fa3e50c1d9dce481572a69fb255f8ca3cee6b
+  SPACK_REF: 968ad02473b12f6305cc1fe19f2a0d706f171154
 
 jobs:
   linux:
@@ -47,13 +46,6 @@ jobs:
           buildcache: true
           color: true  
           path: spack-src
-      # TODO: remove below when https://github.com/spack/spack/pull/43212 is merged
-      - name: Update spack
-        working-directory: spack-src
-        run: |
-          git remote add sethrj https://github.com/sethrj/spack.git
-          git fetch sethrj geant4-old-patch
-          git checkout sethrj/geant4-old-patch
       - name: Initialize spack environment
         run: |
           cp scripts/ci/spack.yaml .
@@ -61,7 +53,7 @@ jobs:
           spack -e . config add packages:all:require:"'%${{matrix.compiler}}@${{matrix.version}} target=x86_64_v3'"
           spack -e . compiler find
           # Add the spack ref so that updating spack will reconcretize
-          echo "# Concretized with ${{env.SPACK_REF}}+patch3" >> spack.yaml
+          echo "# Concretized with ${{env.SPACK_REF}}" >> spack.yaml
       - name: Cache concretization
         uses: actions/cache@v4
         with:
