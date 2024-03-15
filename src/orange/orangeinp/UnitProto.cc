@@ -107,7 +107,9 @@ void UnitProto::build(GlobalBuilder&) const
  * daughters list, which is the same ordering as the array of \c
  * this->daughters().
  *
- * The exterior zorder
+ * The "exterior boundary" argument determines whether the outer boundary needs
+ * to be deleted (assumed inside, implicit from the parent universe's boundary)
+ * or preserved.
  */
 auto UnitProto::build(Tol const& tol, ExteriorBoundary ext) const -> Unit
 {

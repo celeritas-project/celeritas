@@ -21,7 +21,7 @@ class GlobalBuilder;
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a universe for building ORANGE geometry.
+ * Construct a universe as part of an ORANGE geometry.
  *
  * Each Proto (for proto-universe) will result in a unique UniverseId and can
  * be placed into multiple other universes. Each universe has:
@@ -59,7 +59,7 @@ class ProtoInterface
 
   protected:
     //!@{
-    //! Allow construction and assignment only through daughter classes
+    //! Allow construction and assignment only through subclasses
     ProtoInterface() = default;
     virtual ~ProtoInterface() = default;
     CELER_DEFAULT_COPY_MOVE(ProtoInterface);

@@ -29,7 +29,7 @@ struct CsgUnit;
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a "unit" universe.
+ * Construct a general CSG universe, aka a "unit".
  *
  * A "unit" is a region of space (specified by the "boundary" object) that is
  * divided up into multiple smaller regions:
@@ -48,26 +48,26 @@ struct CsgUnit;
  *   Explicit   Interior CSG definition includes boundary (RTK)
  *  ========== ==========================================================
  *
- * Additionally, whether the universe is the top-level *global* universe
- * affects the construction.
+ * Additionally, whether the universe is the top-level \em global universe (see
+ * the \c ExteriorBoundary type) affects the construction.
  *
  *  ========== ==========================================================
- *   Global?    Description
+ *   ExtBound   Description
  *  ========== ==========================================================
- *   No         Boundary is already truncated by higher-level unit
- *   Yes        Boundary must explicitly be represented as a volume
+ *   Daughter   Boundary is already truncated by higher-level unit
+ *   Global     Boundary must explicitly be represented as a volume
  *  ========== ==========================================================
  *
  * These result in different z ordering for the exterior:
  *
- *  === === ================== ========================================
- *   G   P   Result             Description
- *  === === ================== ========================================
- *   N   I  IMPLICIT_EXTERIOR  Higher-level universe truncates
- *   N   X  IMPLICIT_EXTERIOR  Higher-level universe truncates
- *   Y   I  EXTERIOR           Global unit that truncates other regions
- *   Y   X  MEDIA              Global unit with well-connected exterior
- *  === === ================== ========================================
+ *  ===== ===== ================== ========================================
+ *   Inp   ExB   Resulting zorder   Description
+ *  ===== ===== ================== ========================================
+ *   I     N     implicit_exterior  Higher-level universe truncates
+ *   X     N     implicit_exterior  Higher-level universe truncates
+ *   I     Y     exterior           Global unit that truncates other regions
+ *   X     Y     media              Global unit with well-connected exterior
+ *  ===== ===== ================== ========================================
  */
 class UnitProto : public ProtoInterface
 {
