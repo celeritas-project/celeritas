@@ -196,7 +196,7 @@ struct MatPropGetter
 //! Map particles defined in \c G4MaterialConstPropertyIndex .
 auto& optical_particles_map()
 {
-    static std::unordered_map<std::string, PDGNumber> const  map
+    static std::unordered_map<std::string, PDGNumber> const map
         = {{"PROTON", pdg::proton()},
            {"DEUTERON", pdg::deuteron()},
            {"TRITON", pdg::triton()},
@@ -519,6 +519,12 @@ ImportData::ImportOpticalMap import_optical()
                                     ImportUnits::inv_mev);
                 scint_part_spec.components
                     = fill_vec_import_scint_comp(get_property, particle_name);
+
+                if (scint_part_spec)
+                {
+                    optical.scintillation.particles.insert(
+                        {iter.second.get(), std::move(scint_part_spec)});
+                }
             }
         }
 
