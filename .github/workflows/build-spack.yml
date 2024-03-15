@@ -23,6 +23,8 @@ jobs:
         include:
           - geant: "11.0"
             experimental: false
+            compiler: clang
+            version: 15
     continue-on-error: ${{matrix.experimental}}
     runs-on: ubuntu-22.04
     permissions:
@@ -56,7 +58,7 @@ jobs:
         run: |
           cp scripts/ci/spack.yaml .
           spack -e . add geant4@${{matrix.geant}}
-          spack -e . config add packages:all:require:"'%${{matrix.compiler}}@${{matrix.version}} target=x86_64_v3 '"
+          spack -e . config add packages:all:require:"'%${{matrix.compiler}}@${{matrix.version}} target=x86_64_v3'"
           spack -e . compiler find
           # Add the spack ref so that updating spack will reconcretize
           echo "# Concretized with ${{env.SPACK_REF}}+patch3" >> spack.yaml
