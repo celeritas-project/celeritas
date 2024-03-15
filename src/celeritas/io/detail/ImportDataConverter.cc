@@ -89,12 +89,22 @@ void ImportDataConverter::operator()(ImportOpticalMaterial* data)
 {
     CELER_EXPECT(data);
 
-    for (auto& comp : data->scintillation.components)
+    for (auto& comp : data->scintillation.material.components)
     {
         comp.lambda_mean *= len_;
         comp.lambda_sigma *= len_;
         comp.rise_time *= time_;
         comp.fall_time *= time_;
+    }
+    for (auto& iter : data->scintillation.particles)
+    {
+        for (auto& comp : iter.second.components)
+        {
+            comp.lambda_mean *= len_;
+            comp.lambda_sigma *= len_;
+            comp.rise_time *= time_;
+            comp.fall_time *= time_;
+        }
     }
     for (auto& mfp : data->rayleigh.mfp.y)
     {

@@ -58,7 +58,7 @@ ScintillationParams::ScintillationParams(Input const& input)
     for (auto const& spec : input.data)
     {
         // Check validity of scintillation data
-        auto const& comp_inp = spec.components;
+        auto const& comp_inp = spec.material.components;
         CELER_ASSERT(!comp_inp.empty());
         std::vector<ScintillationComponent> comp(comp_inp.size());
         real_type norm{0};
@@ -95,7 +95,7 @@ ScintillationParams::ScintillationParams(Input const& input)
                            << " (should be positive)");
         }
         ScintillationSpectrum spectrum;
-        spectrum.yield = spec.yield;
+        spectrum.yield = spec.material.yield;
         CELER_VALIDATE(spectrum.yield > 0,
                        << "invalid yield=" << spectrum.yield
                        << " for scintillation (should be positive)");

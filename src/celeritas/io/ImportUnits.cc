@@ -83,6 +83,7 @@ char const* to_cstring(ImportUnits value)
         "time",
         "1/len^3",
         "len-time^2/mass",
+        "1/MeV"
     };
     return to_cstring_impl(value);
 }
@@ -103,6 +104,8 @@ double native_value_from(UnitSystem sys, ImportUnits q)
             return 1;
         case ImportUnits::mev:
             return mev;
+        case ImportUnits::inv_mev:
+            return 1 / mev;
         case ImportUnits::mev_per_len:
             return mev / len;
         case ImportUnits::len:

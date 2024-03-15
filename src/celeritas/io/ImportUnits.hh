@@ -33,6 +33,7 @@ enum class ImportUnits
     time,  //!< Time [time]
     inv_len_cb,  //!< Number density [1/len^3]
     len_time_sq_per_mass,  //!< Inverse pressure [len-time^2/mass]
+    inv_mev,  //!< Inverse energy [1/MeV]
     size_,
     // Deprecated aliases
     none = unitless,  //!< Deprecated

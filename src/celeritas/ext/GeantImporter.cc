@@ -193,6 +193,71 @@ struct MatPropGetter
 };
 
 //---------------------------------------------------------------------------//
+//! Map particles defined in \c G4MaterialConstPropertyIndex .
+auto& optical_particles_map()
+{
+    static std::unordered_map<std::string, PDGNumber> const map
+        = {{"PROTON", pdg::proton()},
+           {"DEUTERON", pdg::deuteron()},
+           {"TRITON", pdg::triton()},
+           {"ALPHA", pdg::alpha()},
+           {"ION", pdg::ion()},
+           {"ELECTRON", pdg::electron()}};
+    return map;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Populate an \c ImportScintComponent .
+ * To retrieve a material-only component simply do not use particle name.
+ */
+std::vector<ImportScintComponent>
+fill_vec_import_scint_comp(MatPropGetter& get_property,
+                           std::string particle_name = "")
+{
+    CELER_EXPECT(particle_name.empty()
+                 || optical_particles_map().count(particle_name));
+
+    std::vector<ImportScintComponent> components;
+    for (int comp_idx : range(1, 4))
+    {
+        ImportScintComponent comp;
+        get_property.scalar(&comp.yield,
+                            particle_name + "SCINTILLATIONYIELD",
+                            comp_idx,
+                            ImportUnits::inv_mev);
+
+        // Custom-defined properties not available in G4MaterialPropertyIndex
+        {
+            get_property.scalar(&comp.lambda_mean,
+                                particle_name + "SCINTILLATIONLAMBDAMEAN",
+                                comp_idx,
+                                ImportUnits::len);
+            get_property.scalar(&comp.lambda_sigma,
+                                particle_name + "SCINTILLATIONLAMBDASIGMA",
+                                comp_idx,
+                                ImportUnits::len);
+        }
+
+        // Rise time is not defined for particle type in Geant4
+        get_property.scalar(&comp.rise_time,
+                            particle_name + "SCINTILLATIONRISETIME",
+                            comp_idx,
+                            ImportUnits::time);
+
+        get_property.scalar(&comp.fall_time,
+                            particle_name + "SCINTILLATIONTIMECONSTANT",
+                            comp_idx,
+                            ImportUnits::time);
+        if (comp)
+        {
+            components.push_back(std::move(comp));
+        }
+    }
+    return components;
+}
+
+//---------------------------------------------------------------------------//
 /*!
  * Safely switch from G4State [G4Material.hh] to ImportMaterialState.
  */
@@ -404,7 +469,10 @@ ImportData::ImportOpticalMap import_optical()
     auto num_materials = pct.GetTableSize();
     CELER_ASSERT(num_materials > 0);
 
+    auto const& particle_map = optical_particles_map();
     ImportData::ImportOpticalMap result;
+
+    // Loop over optical materials
     for (auto mat_idx : range(num_materials))
     {
         auto const* mcc = pct.GetMaterialCutsCouple(mat_idx);
@@ -429,38 +497,34 @@ ImportData::ImportOpticalMap import_optical()
                             ImportUnits::unitless);
 
         // Save scintillation properties
-        get_property.scalar(&optical.scintillation.resolution_scale,
-                            "RESOLUTIONSCALE",
-                            ImportUnits::unitless);
-        get_property.scalar(&optical.scintillation.yield,
-                            "SCINTILLATIONYIELD",
-                            ImportUnits::unitless);
-        for (int comp_idx : range(1, 4))
         {
-            ImportScintComponent comp;
-            get_property.scalar(&comp.yield,
+            // Material scintillation properties
+            get_property.scalar(&optical.scintillation.material.yield,
                                 "SCINTILLATIONYIELD",
-                                comp_idx,
+                                ImportUnits::inv_mev);
+            get_property.scalar(&optical.scintillation.resolution_scale,
+                                "RESOLUTIONSCALE",
                                 ImportUnits::unitless);
-            get_property.scalar(&comp.lambda_mean,
-                                "SCINTILLATIONLAMBDAMEAN",
-                                comp_idx,
-                                ImportUnits::len);
-            get_property.scalar(&comp.lambda_sigma,
-                                "SCINTILLATIONLAMBDASIGMA",
-                                comp_idx,
-                                ImportUnits::len);
-            get_property.scalar(&comp.rise_time,
-                                "SCINTILLATIONRISETIME",
-                                comp_idx,
-                                ImportUnits::time);
-            get_property.scalar(&comp.fall_time,
-                                "SCINTILLATIONTIMECONSTANT",
-                                comp_idx,
-                                ImportUnits::time);
-            if (comp)
+            optical.scintillation.material.components
+                = fill_vec_import_scint_comp(get_property);
+
+            // Particle scintillation properties
+            for (auto const& iter : particle_map)
             {
-                optical.scintillation.components.push_back(comp);
+                auto const& particle_name = iter.first;
+
+                ImportScintData::IPSS scint_part_spec;
+                get_property.vector(&scint_part_spec.yield_vector,
+                                    particle_name + "SCINTILLATIONYIELD",
+                                    ImportUnits::inv_mev);
+                scint_part_spec.components
+                    = fill_vec_import_scint_comp(get_property, particle_name);
+
+                if (scint_part_spec)
+                {
+                    optical.scintillation.particles.insert(
+                        {iter.second.get(), std::move(scint_part_spec)});
+                }
             }
         }
 
@@ -484,6 +548,7 @@ ImportData::ImportOpticalMap import_optical()
             result[mat_idx] = optical;
         }
     }
+
     CELER_LOG(debug) << "Loaded " << result.size() << " optical materials";
     return result;
 }
@@ -507,7 +572,8 @@ import_materials(GeantImporter::DataSelection::Flags particle_flags)
     std::vector<ImportMaterial> materials;
     materials.resize(g4production_cuts_table.GetTableSize());
     CELER_VALIDATE(!materials.empty(),
-                   << "no Geant4 production cuts are defined (you may need "
+                   << "no Geant4 production cuts are defined (you may "
+                      "need "
                       "to call G4RunManager::RunInitialization)");
 
     using CutRange = std::pair<G4ProductionCutsIndex,
