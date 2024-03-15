@@ -31,16 +31,47 @@ orangeinp::NodeId simplify_up(CsgTree* tree, orangeinp::NodeId start);
 // Simplify the tree iteratively
 void simplify(CsgTree* tree, orangeinp::NodeId start);
 
-// Convert a node to postfix notation
-[[nodiscard]] std::vector<LocalSurfaceId::size_type>
-build_postfix(CsgTree const& tree, orangeinp::NodeId n);
-
 // Transform a CSG node into a string expression
 [[nodiscard]] std::string
 build_infix_string(CsgTree const& tree, orangeinp::NodeId n);
 
 // Get the set of unsimplified surfaces in a tree
 [[nodiscard]] std::vector<LocalSurfaceId> calc_surfaces(CsgTree const& tree);
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a node to postfix notation.
+ *
+ * The optional surface mapping is an ordered vector of *existing* surface IDs.
+ * Those surface IDs will be replaced by the index in the array. All existing
+ * surface IDs must be present!
+ */
+class PostfixLogicBuilder
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using VecLogic = std::vector<LocalSurfaceId::size_type>;
+    using VecSurface = std::vector<LocalSurfaceId>;
+    //!@}
+
+  public:
+    //! Construct from a tree
+    explicit PostfixLogicBuilder(CsgTree const& tree) : tree_{tree} {}
+
+    //! Construct from a tree and surface remapping
+    PostfixLogicBuilder(CsgTree const& tree, VecSurface const& old_ids)
+        : tree_{tree}, mapping_{&old_ids}
+    {
+    }
+
+    // Convert a single node to postfix notation
+    [[nodiscard]] VecLogic operator()(NodeId n) const;
+
+  private:
+    CsgTree const& tree_;
+    VecSurface const* mapping_{nullptr};
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp

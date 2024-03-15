@@ -3,11 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/detail/PostfixLogicBuilder.hh
+//! \file orange/orangeinp/detail/PostfixLogicBuilderImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/cont/VariantUtils.hh"
+#include "corecel/math/Algorithms.hh"
 #include "orange/OrangeTypes.hh"
 
 #include "../CsgTree.hh"
@@ -22,16 +23,17 @@ namespace detail
 /*!
  * Recursively construct a logic vector from a node with postfix operation.
  *
- * This is an implementation detail of the \c build_postfix function. The user
- * invokes this class with a node ID (usually representing a cell), and then
- * this class recurses into the daughters using a tree visitor.
+ * This is an implementation detail of the \c PostfixLogicBuilder class. The
+ * user invokes this class with a node ID (usually representing a cell), and
+ * then this class recurses into the daughters using a tree visitor.
  */
-class PostfixLogicBuilder
+class PostfixLogicBuilderImpl
 {
   public:
     //!@{
     //! \name Type aliases
     using VecLogic = std::vector<logic_int>;
+    using VecSurface = std::vector<LocalSurfaceId>;
     //!@}
 
     static_assert(std::is_same_v<LocalSurfaceId::size_type, logic_int>,
@@ -39,8 +41,10 @@ class PostfixLogicBuilder
                   "face and surface ints");
 
   public:
-    // Construct with pointer to vector to append to
-    inline PostfixLogicBuilder(CsgTree const& tree, VecLogic* logic);
+    // Construct with optional mapping and logic vector to append to
+    inline PostfixLogicBuilderImpl(CsgTree const& tree,
+                                   VecSurface const* vs,
+                                   VecLogic* logic);
 
     //! Build from a node ID
     inline void operator()(NodeId const& n);
@@ -63,6 +67,7 @@ class PostfixLogicBuilder
 
   private:
     ContainerVisitor<CsgTree const&, NodeId> visit_node_;
+    VecSurface const* mapping_;
     VecLogic* logic_;
 };
 
@@ -71,9 +76,13 @@ class PostfixLogicBuilder
 //---------------------------------------------------------------------------//
 /*!
  * Construct with pointer to the logic expression.
+ *
+ * The surface mapping vector is *optional*.
  */
-PostfixLogicBuilder::PostfixLogicBuilder(CsgTree const& tree, VecLogic* logic)
-    : visit_node_{tree}, logic_{logic}
+PostfixLogicBuilderImpl::PostfixLogicBuilderImpl(CsgTree const& tree,
+                                                 VecSurface const* vs,
+                                                 VecLogic* logic)
+    : visit_node_{tree}, mapping_{vs}, logic_{logic}
 {
     CELER_EXPECT(logic_);
 }
@@ -82,7 +91,7 @@ PostfixLogicBuilder::PostfixLogicBuilder(CsgTree const& tree, VecLogic* logic)
 /*!
  * Build from a node ID.
  */
-void PostfixLogicBuilder::operator()(NodeId const& n)
+void PostfixLogicBuilderImpl::operator()(NodeId const& n)
 {
     visit_node_(*this, n);
 }
@@ -91,7 +100,7 @@ void PostfixLogicBuilder::operator()(NodeId const& n)
 /*!
  * Append the "true" token.
  */
-void PostfixLogicBuilder::operator()(True const&)
+void PostfixLogicBuilderImpl::operator()(True const&)
 {
     logic_->push_back(logic::ltrue);
 }
@@ -102,7 +111,7 @@ void PostfixLogicBuilder::operator()(True const&)
  *
  * The 'false' standin is always aliased to "not true" in the CSG tree.
  */
-void PostfixLogicBuilder::operator()(False const&)
+void PostfixLogicBuilderImpl::operator()(False const&)
 {
     CELER_ASSERT_UNREACHABLE();
 }
@@ -111,10 +120,25 @@ void PostfixLogicBuilder::operator()(False const&)
 /*!
  * Push a surface ID.
  */
-void PostfixLogicBuilder::operator()(Surface const& s)
+void PostfixLogicBuilderImpl::operator()(Surface const& s)
 {
     CELER_EXPECT(s.id < logic::lbegin);
-    logic_->push_back(s.id.unchecked_get());
+    // Get index of original surface or remapped
+    logic_int sidx = [this, sid = s.id] {
+        if (!mapping_)
+        {
+            return sid.unchecked_get();
+        }
+        else
+        {
+            // Remap by finding position of surface in our mapping
+            auto iter = find_sorted(mapping_->begin(), mapping_->end(), sid);
+            CELER_ASSERT(iter != mapping_->end());
+            return logic_int(iter - mapping_->begin());
+        }
+    }();
+
+    logic_->push_back(sidx);
 }
 
 //---------------------------------------------------------------------------//
@@ -123,7 +147,7 @@ void PostfixLogicBuilder::operator()(Surface const& s)
  *
  * TODO: aliased node shouldn't be reachable if we're fully simplified.
  */
-void PostfixLogicBuilder::operator()(Aliased const& n)
+void PostfixLogicBuilderImpl::operator()(Aliased const& n)
 {
     (*this)(n.node);
 }
@@ -132,7 +156,7 @@ void PostfixLogicBuilder::operator()(Aliased const& n)
 /*!
  * Visit a negated node and append 'not'.
  */
-void PostfixLogicBuilder::operator()(Negated const& n)
+void PostfixLogicBuilderImpl::operator()(Negated const& n)
 {
     (*this)(n.node);
     logic_->push_back(logic::lnot);
@@ -142,7 +166,7 @@ void PostfixLogicBuilder::operator()(Negated const& n)
 /*!
  * Visit daughter nodes and append the conjunction.
  */
-void PostfixLogicBuilder::operator()(Joined const& n)
+void PostfixLogicBuilderImpl::operator()(Joined const& n)
 {
     CELER_EXPECT(n.nodes.size() > 1);
 

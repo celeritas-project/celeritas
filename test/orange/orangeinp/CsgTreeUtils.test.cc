@@ -72,31 +72,32 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         to_string(tree_));
 
     // Test postfix
+    PostfixLogicBuilder build_postfix(tree_);
     {
         static size_type expected_lgc[] = {0};
-        auto lgc = build_postfix(tree_, mz);
+        auto lgc = build_postfix(mz);
         EXPECT_VEC_EQ(expected_lgc, lgc);
     }
     {
         static size_type expected_lgc[] = {1, logic::lnot};
-        auto lgc = build_postfix(tree_, below_pz);
+        auto lgc = build_postfix(below_pz);
         EXPECT_VEC_EQ(expected_lgc, lgc);
     }
     {
-        auto lgc = build_postfix(tree_, zslab);
+        auto lgc = build_postfix(zslab);
         static size_type const expected_lgc[]
             = {0u, 1u, logic::lnot, logic::land};
         EXPECT_VEC_EQ(expected_lgc, lgc);
     }
     {
-        auto lgc = build_postfix(tree_, inner_cyl);
+        auto lgc = build_postfix(inner_cyl);
         static size_type const expected_lgc[]
             = {0u, 1u, logic::lnot, logic::land, 2u, logic::lnot, logic::land};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_EQ("all(+0, -1, -2)", build_infix_string(tree_, inner_cyl));
     }
     {
-        auto lgc = build_postfix(tree_, shell);
+        auto lgc = build_postfix(shell);
         static size_type const expected_lgc[] = {0u,
                                                  1u,
                                                  logic::lnot,
@@ -118,7 +119,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
                   build_infix_string(tree_, shell));
     }
     {
-        auto lgc = build_postfix(tree_, bdy);
+        auto lgc = build_postfix(bdy);
         static size_type const expected_lgc[]
             = {0u, 1u, logic::lnot, logic::land, 4u, logic::land};
         EXPECT_VEC_EQ(expected_lgc, lgc);
@@ -162,6 +163,21 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
     // Try simplifying recursively from the original minimum node
     simplify(&unsimplified_tree, mz);
     EXPECT_EQ(to_string(tree_), to_string(unsimplified_tree));
+
+    // Test postfix builder with remapping
+    {
+        auto remapped_surf = calc_surfaces(tree_);
+        static LocalSurfaceId const expected_remapped_surf[]
+            = {LocalSurfaceId{2u}, LocalSurfaceId{3u}};
+        EXPECT_VEC_EQ(expected_remapped_surf, remapped_surf);
+
+        PostfixLogicBuilder build_postfix(tree_, remapped_surf);
+
+        auto shell_lgc = build_postfix(shell);
+        static size_type const expected_shell_lgc[]
+            = {0u, 1u, logic::lnot, logic::land};
+        EXPECT_VEC_EQ(expected_shell_lgc, shell_lgc);
+    }
 }
 
 TEST_F(CsgTreeUtilsTest, replace_union)

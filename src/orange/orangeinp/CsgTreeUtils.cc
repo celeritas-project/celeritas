@@ -16,7 +16,7 @@
 
 #include "detail/InfixStringBuilder.hh"
 #include "detail/NodeReplacementInserter.hh"
-#include "detail/PostfixLogicBuilder.hh"
+#include "detail/PostfixLogicBuilderImpl.hh"
 
 namespace celeritas
 {
@@ -105,21 +105,6 @@ void simplify(CsgTree* tree, NodeId start)
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert a node to postfix notation.
- */
-[[nodiscard]] std::vector<LocalSurfaceId::size_type>
-build_postfix(CsgTree const& tree, NodeId n)
-{
-    CELER_EXPECT(n < tree.size());
-    std::vector<LocalSurfaceId::size_type> result;
-    detail::PostfixLogicBuilder build_impl{tree, &result};
-
-    build_impl(n);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Convert a node to an infix string expression.
  */
 [[nodiscard]] std::string build_infix_string(CsgTree const& tree, NodeId n)
@@ -152,6 +137,19 @@ build_postfix(CsgTree const& tree, NodeId n)
     }
     std::sort(result.begin(), result.end());
     CELER_ENSURE(std::unique(result.begin(), result.end()) == result.end());
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a single node to postfix notation.
+ */
+[[nodiscard]] auto PostfixLogicBuilder::operator()(NodeId n) const -> VecLogic
+{
+    CELER_EXPECT(n < tree_.size());
+    VecLogic result;
+    detail::PostfixLogicBuilderImpl build_impl{tree_, mapping_, &result};
+    build_impl(n);
     return result;
 }
 
