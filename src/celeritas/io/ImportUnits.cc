@@ -74,7 +74,6 @@ char const* to_cstring(ImportUnits value)
     static EnumStringMapper<ImportUnits> const to_cstring_impl{
         "unitless",
         "MeV",
-        "1/MeV",
         "MeV/len",
         "len",
         "1/len",
@@ -84,6 +83,7 @@ char const* to_cstring(ImportUnits value)
         "time",
         "1/len^3",
         "len-time^2/mass",
+        "1/MeV"
     };
     return to_cstring_impl(value);
 }
