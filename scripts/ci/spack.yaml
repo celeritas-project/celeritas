@@ -23,9 +23,6 @@ spack:
     celer-buildcache:
       url: oci://ghcr.io/celeritas-project/spack-gha-buildcache
       signed: false
-    sethrj-buildcache: # TODO: delete me
-      url: oci://ghcr.io/sethrj/spack-buildcache
-      signed: false
   packages:
     root:
       variants: ~aqua ~davix ~examples ~opengl ~x ~tbb cxxstd=17

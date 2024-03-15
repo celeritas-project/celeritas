@@ -33,7 +33,7 @@ jobs:
       CCACHE_MAXSIZE: "1G"
       CELERITAS_VERSION: "0.5.0"
       SPACK_VIEW: "/opt/spack-view"
-      SPACK_BUILDCACHE: "sethrj-buildcache" # see spack.yaml
+      SPACK_BUILDCACHE: "celer-buildcache" # see spack.yaml
       CC: ${{matrix.compiler}}-${{matrix.version}}
       CXX: ${{matrix.compiler == 'gcc' && 'g++' || 'clang++'}}-${{matrix.version}}
     steps:
