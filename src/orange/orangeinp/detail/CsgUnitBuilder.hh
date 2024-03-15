@@ -96,9 +96,6 @@ class CsgUnitBuilder
     // Fill a volume node with a daughter using the local transform
     void fill_volume(LocalVolumeId, UniverseId);
 
-    // Set an exterior node
-    void set_exterior(NodeId);
-
   private:
     CsgUnit* unit_;
     Tol tol_;
