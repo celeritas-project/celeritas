@@ -28,20 +28,24 @@ jobs:
     steps:
     - name: Success
       run: "true"
-  build:
+  build-full:
     needs: [all-prechecks]
     uses: ./.github/workflows/build-full.yml
+  build-spack:
+    needs: [all-prechecks]
+    uses: ./.github/workflows/build-spack.yml
 
   # Specifying a dependent job allows us to select a single "requires" check in the project GitHub settings
   all:
-    if: ${{ always() }}
+    if: ${{always()}}
     needs:
-    - build
+    - build-full
+    - build-spack
     runs-on: ubuntu-latest
     steps:
     - name: Decide whether the needed jobs succeeded or failed
       uses: re-actors/alls-green@release/v1
       with:
-        jobs: ${{ toJSON(needs) }}
+        jobs: ${{toJSON(needs)}}
 
 # vim: set nowrap tw=100:
