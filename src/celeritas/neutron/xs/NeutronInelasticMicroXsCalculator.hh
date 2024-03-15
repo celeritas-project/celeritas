@@ -9,7 +9,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "celeritas/neutron/data/NeutronCaptureData.hh"
+#include "celeritas/neutron/data/NeutronInelasticData.hh"
 
 #include "NeutronMicroXsCalculator.hh"
 
