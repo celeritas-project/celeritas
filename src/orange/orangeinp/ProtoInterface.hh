@@ -20,8 +20,7 @@ class ObjectInterface;
 
 namespace detail
 {
-class GeoSetup;
-struct UniverseInputPimpl;
+class InputBuilder;
 }  // namespace detail
 
 //---------------------------------------------------------------------------//
@@ -45,8 +44,7 @@ class ProtoInterface
     using SPConstObject = std::shared_ptr<ObjectInterface const>;
     using SPConstProto = std::shared_ptr<ProtoInterface const>;
     using VecProto = std::vector<ProtoInterface const*>;
-    using GeoSetup = detail::GeoSetup;
-    using BuildResult = detail::UniverseInputPimpl;
+    using InputBuilder = detail::InputBuilder;
     //!@}
 
   public:
@@ -60,7 +58,7 @@ class ProtoInterface
     virtual VecProto daughters() const = 0;
 
     //! Construct a universe input from this object
-    virtual void build(GeoSetup const&, BuildResult*) const = 0;
+    virtual void build(InputBuilder&) const = 0;
 
   protected:
     //!@{

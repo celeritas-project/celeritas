@@ -3,13 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/detail/GeoSetup.cc
+//! \file orange/orangeinp/detail/ProtoMap.cc
 //---------------------------------------------------------------------------//
-#include "GeoSetup.hh"
+#include "ProtoMap.hh"
 
 #include <deque>
 #include <iterator>
 #include <unordered_set>
+
+#include "corecel/Assert.hh"
 
 #include "../ProtoInterface.hh"
 
@@ -31,7 +33,6 @@ std::vector<ProtoInterface const*> build_ordering(ProtoInterface const& global)
     std::vector<ProtoInterface const*> result;
     std::deque<ProtoInterface const*> stack{&global};
 
-    // First get a depth-first ordering of daughters
     while (!stack.empty())
     {
         // Move front of stack to back of result
@@ -60,11 +61,9 @@ std::vector<ProtoInterface const*> build_ordering(ProtoInterface const& global)
 /*!
  * Construct with global proto for ordering.
  */
-GeoSetup::GeoSetup(Tol const& tol, ProtoInterface const& global)
-    : tol_{tol}, protos_{build_ordering(global)}
+ProtoMap::ProtoMap(ProtoInterface const& global)
+    : protos_{build_ordering(global)}
 {
-    CELER_EXPECT(tol_);
-
     uids_.reserve(protos_.size());
     for (auto uid : range(UniverseId{this->size()}))
     {

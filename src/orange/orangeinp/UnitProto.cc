@@ -9,6 +9,9 @@
 
 #include <algorithm>
 
+#include "orange/OrangeData.hh"
+#include "orange/OrangeInput.hh"
+
 #include "CsgObject.hh"
 #include "CsgTree.hh"
 #include "CsgTreeUtils.hh"
@@ -16,6 +19,7 @@
 
 #include "detail/CsgUnit.hh"
 #include "detail/CsgUnitBuilder.hh"
+#include "detail/InputBuilder.hh"
 #include "detail/VolumeBuilder.hh"
 
 namespace celeritas
@@ -86,17 +90,12 @@ auto UnitProto::daughters() const -> VecProto
  * Construction is done from highest masking precedence to lowest (reverse
  * zorder): exterior, then holes, then arrays, then media.
  */
-void UnitProto::build(GeoSetup const&, BuildResult* ui) const
+void UnitProto::build(InputBuilder&) const
 {
-    CELER_EXPECT(ui);
     // Transform CsgUnit to OrangeInput
-    // - Map CSG nodes to volume IDs
-    // - Map used CSG nodes to surface IDs
     // - Map universe IDs (index in daughter list to actual universe ID)
     // - Remap surface indices, removing unused surfaces
     // - Set up "interior" cell if needed (build volume and "all surfaces")
-    // - Construct postfix logic definitions
-    // - Copy bounding boxes
     CELER_NOT_IMPLEMENTED("global builder");
 }
 
@@ -131,7 +130,7 @@ auto UnitProto::build(Tol const& tol, ExteriorBoundary ext) const -> Unit
     }
     auto ext_vol
         = build_volume(NegatedObject("[EXTERIOR]", input_.boundary.interior));
-    CELER_ASSERT(ext_vol == local_orange_outside_volume);
+    CELER_ASSERT(ext_vol == orange_exterior_volume);
 
     // Build daughters
     UniverseId daughter_id{0};

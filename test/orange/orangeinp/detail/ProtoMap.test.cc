@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/detail/GeoSetup.test.cc
+//! \file orange/orangeinp/detail/ProtoMap.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/orangeinp/detail/GeoSetup.hh"
+#include "orange/orangeinp/detail/ProtoMap.hh"
 
 #include "corecel/io/Join.hh"
 #include "orange/orangeinp/ProtoInterface.hh"
@@ -39,10 +39,7 @@ class TestProto : public ProtoInterface
     VecProto daughters() const { return daughters_; }
 
     //! Construct a universe input from this object
-    void build(GeoSetup const&, BuildResult*) const
-    {
-        CELER_ASSERT_UNREACHABLE();
-    }
+    void build(InputBuilder&) const { CELER_ASSERT_UNREACHABLE(); }
 
   private:
     std::string label_;
@@ -50,15 +47,11 @@ class TestProto : public ProtoInterface
 };
 
 //---------------------------------------------------------------------------//
-class GeoSetupTest : public ::celeritas::test::Test
+class ProtoMapTest : public ::celeritas::test::Test
 {
-  protected:
-    using Tol = Tolerance<>;
-
-    Tolerance<> tol_ = Tol::from_relative(1e-5);
 };
 
-TEST_F(GeoSetupTest, s)
+TEST_F(ProtoMapTest, deep_and_wide)
 {
     TestProto const g{"g", {}};
     TestProto const f{"f", {}};
@@ -68,42 +61,47 @@ TEST_F(GeoSetupTest, s)
     TestProto const c{"c", {&d, &b, &e, &f}};
     TestProto const a{"a", {&b, &c}};
 
-    {
-        GeoSetup gs(tol_, a);
-        ASSERT_EQ(7, gs.size());
-        EXPECT_EQ("a", gs.at(UniverseId{0})->label());
-        EXPECT_EQ("b", gs.at(UniverseId{1})->label());
-        EXPECT_EQ("c", gs.at(UniverseId{2})->label());
-        EXPECT_EQ("d", gs.at(UniverseId{3})->label());
-        EXPECT_EQ("e", gs.at(UniverseId{4})->label());
-        EXPECT_EQ("f", gs.at(UniverseId{5})->label());
-        EXPECT_EQ("g", gs.at(UniverseId{6})->label());
+    ProtoMap pm(a);
+    ASSERT_EQ(7, pm.size());
+    EXPECT_EQ("a", pm.at(UniverseId{0})->label());
+    EXPECT_EQ("b", pm.at(UniverseId{1})->label());
+    EXPECT_EQ("c", pm.at(UniverseId{2})->label());
+    EXPECT_EQ("d", pm.at(UniverseId{3})->label());
+    EXPECT_EQ("e", pm.at(UniverseId{4})->label());
+    EXPECT_EQ("f", pm.at(UniverseId{5})->label());
+    EXPECT_EQ("g", pm.at(UniverseId{6})->label());
 
-        EXPECT_EQ(UniverseId{0}, gs.find(&a));
-        EXPECT_EQ(UniverseId{1}, gs.find(&b));
-        EXPECT_EQ(UniverseId{2}, gs.find(&c));
-        EXPECT_EQ(UniverseId{3}, gs.find(&d));
-        EXPECT_EQ(UniverseId{4}, gs.find(&e));
-        EXPECT_EQ(UniverseId{5}, gs.find(&f));
-        EXPECT_EQ(UniverseId{6}, gs.find(&g));
+    EXPECT_EQ(UniverseId{0}, pm.find(&a));
+    EXPECT_EQ(UniverseId{1}, pm.find(&b));
+    EXPECT_EQ(UniverseId{2}, pm.find(&c));
+    EXPECT_EQ(UniverseId{3}, pm.find(&d));
+    EXPECT_EQ(UniverseId{4}, pm.find(&e));
+    EXPECT_EQ(UniverseId{5}, pm.find(&f));
+    EXPECT_EQ(UniverseId{6}, pm.find(&g));
 
-        if (CELERITAS_DEBUG)
-        {
-            TestProto const none{"none", {}};
-            EXPECT_THROW(gs.find(&none), DebugError);
-            EXPECT_THROW(gs.at(UniverseId{7}), DebugError);
-        }
-    }
+    if (CELERITAS_DEBUG)
     {
-        GeoSetup gs(tol_, c);
-        ASSERT_EQ(6, gs.size());
-        EXPECT_EQ("c", gs.at(UniverseId{0})->label());
-        EXPECT_EQ("d", gs.at(UniverseId{1})->label());
-        EXPECT_EQ("b", gs.at(UniverseId{2})->label());
-        EXPECT_EQ("e", gs.at(UniverseId{3})->label());
-        EXPECT_EQ("f", gs.at(UniverseId{4})->label());
-        EXPECT_EQ("g", gs.at(UniverseId{5})->label());
+        TestProto const none{"none", {}};
+        EXPECT_THROW(pm.find(&none), DebugError);
+        EXPECT_THROW(pm.at(UniverseId{7}), DebugError);
     }
+}
+
+TEST_F(ProtoMapTest, asymmetric)
+{
+    TestProto const e{"e", {}};
+    TestProto const d{"d", {}};
+    TestProto const c{"c", {}};
+    TestProto const b{"b", {&d, &e}};
+    TestProto const a{"a", {&b, &c}};
+
+    ProtoMap pm(a);
+    ASSERT_EQ(5, pm.size());
+    EXPECT_EQ("a", pm.at(UniverseId{0})->label());
+    EXPECT_EQ("b", pm.at(UniverseId{1})->label());
+    EXPECT_EQ("c", pm.at(UniverseId{2})->label());
+    EXPECT_EQ("d", pm.at(UniverseId{3})->label());
+    EXPECT_EQ("e", pm.at(UniverseId{4})->label());
 }
 
 //---------------------------------------------------------------------------//
