@@ -24,7 +24,6 @@ enum class ImportUnits
 {
     unitless,  //!< No dimension
     mev,  //!< Energy [MeV]
-    inv_mev,  //!< Inverse energy [1/MeV]
     mev_per_len,  //!< Energy loss [MeV/len]
     len,  //!< Range [len]
     len_inv,  //!< Macroscopic xs [1/len]
@@ -34,6 +33,7 @@ enum class ImportUnits
     time,  //!< Time [time]
     inv_len_cb,  //!< Number density [1/len^3]
     len_time_sq_per_mass,  //!< Inverse pressure [len-time^2/mass]
+    inv_mev,  //!< Inverse energy [1/MeV]
     size_,
     // Deprecated aliases
     none = unitless,  //!< Deprecated

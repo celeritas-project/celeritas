@@ -46,7 +46,8 @@ struct ImportScintComponent
 struct ImportMaterialScintSpectrum
 {
     double yield{};  //!< Characteristic light yields of the material [1/MeV]
-    std::vector<ImportScintComponent> components;  //!< Fast/slow components
+    std::vector<ImportScintComponent> components;  //!< Scintillation
+                                                   //!< components
 
     //! Whether all data are assigned and valid
     explicit operator bool() const { return yield > 0 && !components.empty(); }
@@ -57,14 +58,15 @@ struct ImportMaterialScintSpectrum
  * Store per-particle material scintillation spectrum information.
  *
  * The yield vector is the only necessary element, needed to calculate the
- * yield based on the particle energy during the stepping loop.
+ * yield based on the particle energy-loss during the stepping loop.
  * Components may not be assigned---they are the equivalent of
- * \c k[Particle]ScintillationYield[i] in Geant4.
+ * \c k[Particle]ScintillationYield[i] in \c G4MaterialPropertiesIndex.hh
  */
 struct ImportParticleScintSpectrum
 {
     ImportPhysicsVector yield_vector;  //!< Particle yield vector
-    std::vector<ImportScintComponent> components;  //!< Fast/slow components
+    std::vector<ImportScintComponent> components;  //!< Scintillation
+                                                   //!< components
 
     //! Whether all data are assigned and valid
     explicit operator bool() const
