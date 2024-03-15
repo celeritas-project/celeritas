@@ -49,6 +49,8 @@ constexpr NodeId CsgTreeUtilsTest::false_id;
 
 TEST_F(CsgTreeUtilsTest, postfix_simplify)
 {
+    using LS = LocalSurfaceId;
+
     auto mz = this->insert(S{0});
     auto pz = this->insert(S{1});
     auto below_pz = this->insert(Negated{pz});
@@ -74,55 +76,77 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
     // Test postfix
     PostfixLogicBuilder build_postfix(tree_);
     {
+        auto&& [lgc, faces] = build_postfix(mz);
+
         static size_type expected_lgc[] = {0};
-        auto lgc = build_postfix(mz);
+        static LS const expected_faces[] = {LS{0u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
+        EXPECT_VEC_EQ(expected_faces, faces);
     }
     {
-        static size_type expected_lgc[] = {1, logic::lnot};
-        auto lgc = build_postfix(below_pz);
+        auto&& [lgc, faces] = build_postfix(below_pz);
+
+        static size_type expected_lgc[] = {0, logic::lnot};
+        static LS const expected_faces[] = {LS{1u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
+        EXPECT_VEC_EQ(expected_faces, faces);
     }
     {
-        auto lgc = build_postfix(zslab);
+        auto&& [lgc, faces] = build_postfix(zslab);
+
         static size_type const expected_lgc[]
             = {0u, 1u, logic::lnot, logic::land};
+        static LS const expected_faces[] = {LS{0u}, LS{1u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
+        EXPECT_VEC_EQ(expected_faces, faces);
     }
     {
-        auto lgc = build_postfix(inner_cyl);
+        auto&& [lgc, faces] = build_postfix(inner_cyl);
+
         static size_type const expected_lgc[]
             = {0u, 1u, logic::lnot, logic::land, 2u, logic::lnot, logic::land};
+        static LS const expected_faces[] = {LS{0u}, LS{1u}, LS{2u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
+        EXPECT_VEC_EQ(expected_faces, faces);
+
         EXPECT_EQ("all(+0, -1, -2)", build_infix_string(tree_, inner_cyl));
     }
     {
-        auto lgc = build_postfix(shell);
-        static size_type const expected_lgc[] = {0u,
-                                                 1u,
-                                                 logic::lnot,
-                                                 logic::land,
-                                                 3u,
-                                                 logic::lnot,
-                                                 logic::land,
-                                                 0u,
-                                                 1u,
-                                                 logic::lnot,
-                                                 logic::land,
-                                                 2u,
-                                                 logic::lnot,
-                                                 logic::land,
-                                                 logic::lnot,
-                                                 logic::land};
+        auto&& [lgc, faces] = build_postfix(shell);
+
+        static size_type const expected_lgc[] = {
+            0u,
+            1u,
+            logic::lnot,
+            logic::land,
+            3u,
+            logic::lnot,
+            logic::land,
+            0u,
+            1u,
+            logic::lnot,
+            logic::land,
+            2u,
+            logic::lnot,
+            logic::land,
+            logic::lnot,
+            logic::land,
+        };
+        static LS const expected_faces[] = {LS{0u}, LS{1u}, LS{2u}, LS{3u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
+        EXPECT_VEC_EQ(expected_faces, faces);
+
         EXPECT_EQ("all(all(+0, -1, -3), !all(+0, -1, -2))",
                   build_infix_string(tree_, shell));
     }
     {
-        auto lgc = build_postfix(bdy);
+        auto&& [lgc, faces] = build_postfix(bdy);
+
         static size_type const expected_lgc[]
-            = {0u, 1u, logic::lnot, logic::land, 4u, logic::land};
+            = {0u, 1u, logic::lnot, logic::land, 2u, logic::land};
+        static LS const expected_faces[] = {LS{0u}, LS{1u}, LS{4u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
+        EXPECT_VEC_EQ(expected_faces, faces);
         EXPECT_EQ("all(+0, -1, +4)", build_infix_string(tree_, bdy));
     }
 
@@ -167,16 +191,17 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
     // Test postfix builder with remapping
     {
         auto remapped_surf = calc_surfaces(tree_);
-        static LocalSurfaceId const expected_remapped_surf[]
-            = {LocalSurfaceId{2u}, LocalSurfaceId{3u}};
+        static LS const expected_remapped_surf[] = {LS{2u}, LS{3u}};
         EXPECT_VEC_EQ(expected_remapped_surf, remapped_surf);
 
         PostfixLogicBuilder build_postfix(tree_, remapped_surf);
+        auto&& [lgc, faces] = build_postfix(shell);
 
-        auto shell_lgc = build_postfix(shell);
-        static size_type const expected_shell_lgc[]
+        static size_type const expected_lgc[]
             = {0u, 1u, logic::lnot, logic::land};
-        EXPECT_VEC_EQ(expected_shell_lgc, shell_lgc);
+        static LS const expected_faces[] = {LS{0u}, LS{1u}};
+        EXPECT_VEC_EQ(expected_lgc, lgc);
+        EXPECT_VEC_EQ(expected_faces, faces);
     }
 }
 

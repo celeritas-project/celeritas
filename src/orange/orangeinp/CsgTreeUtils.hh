@@ -40,19 +40,22 @@ build_infix_string(CsgTree const& tree, orangeinp::NodeId n);
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert a node to postfix notation.
+ * Construct a postfix logic representation of a node.
  *
  * The optional surface mapping is an ordered vector of *existing* surface IDs.
  * Those surface IDs will be replaced by the index in the array. All existing
  * surface IDs must be present!
+ *
+ * The result is a
  */
 class PostfixLogicBuilder
 {
   public:
     //!@{
     //! \name Type aliases
-    using VecLogic = std::vector<LocalSurfaceId::size_type>;
+    using VecLogic = std::vector<logic_int>;
     using VecSurface = std::vector<LocalSurfaceId>;
+    using result_type = std::pair<VecLogic, VecSurface>;
     //!@}
 
   public:
@@ -66,7 +69,7 @@ class PostfixLogicBuilder
     }
 
     // Convert a single node to postfix notation
-    [[nodiscard]] VecLogic operator()(NodeId n) const;
+    result_type operator()(NodeId n) const;
 
   private:
     CsgTree const& tree_;
