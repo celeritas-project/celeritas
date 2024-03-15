@@ -201,6 +201,12 @@ int main()
     setup_options.max_num_events = 1024;
     // Celeritas does not support EmStandard MSC physics above 100 MeV
     setup_options.ignore_processes = {"CoulombScat"};
+    if (G4VERSION_NUMBER >= 1110)
+    {
+        // Default Rayleigh scattering 'MinKinEnergyPrim' is no longer
+        // consistent
+        setup_options.ignore_processes.push_back("Rayl");
+    }
 
     run_manager->Initialize();
     run_manager->BeamOn(1);
