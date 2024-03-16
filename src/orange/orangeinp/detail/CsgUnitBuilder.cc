@@ -85,10 +85,9 @@ void CsgUnitBuilder::insert_region(NodeId n,
                      == static_cast<bool>(existing.bounds.exterior));
         if (trans_id != existing.transform_id)
         {
-            // TODO: we need to implement transform soft equivalence
-            // and simplification
+            // TODO: we should implement transform soft equivalence
             // TODO: transformed shapes that are later defined as volumes (in
-            // an RDV or single-item Join function) result in the same node
+            // an RDV or single-item Join function) may result in the same node
             // with two different transforms.
             CELER_LOG(warning)
                 << "While re-inserting region for node " << n.get()
@@ -158,20 +157,6 @@ void CsgUnitBuilder::fill_volume(LocalVolumeId v, UniverseId u)
     unit_->fills[v.unchecked_get()] = std::move(new_daughter);
 
     CELER_ENSURE(is_filled(unit_->fills[v.unchecked_get()]));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Set an exterior node.
- *
- * This should be called only once (but this could be relaxed if needed).
- */
-void CsgUnitBuilder::set_exterior(NodeId n)
-{
-    CELER_EXPECT(n < unit_->tree.size());
-    CELER_EXPECT(!unit_->exterior);
-
-    unit_->exterior = n;
 }
 
 //---------------------------------------------------------------------------//

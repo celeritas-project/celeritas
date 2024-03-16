@@ -629,7 +629,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
         // rather than segfaulting
         // TODO: error correction or more graceful failure than losing
         // energy
-        tinit.volume = LocalVolumeId{0};
+        tinit.volume = local_orange_outside_volume;
         tinit.surface = {};
     }
 

@@ -23,7 +23,7 @@ class Transformed final : public ObjectInterface
 {
   public:
     // Construct with daughter object and transform
-    Transformed(SPConstObject obj, VariantTransform&& transform);
+    Transformed(SPConstObject obj, VariantTransform const& transform);
 
     //! Access the daughter object
     SPConstObject const& daughter() const { return obj_; }

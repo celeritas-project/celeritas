@@ -61,6 +61,7 @@ celeritas_add_test(orangeinp/CsgTreeUtils.test.cc)
 celeritas_add_test(orangeinp/Shape.test.cc)
 celeritas_add_test(orangeinp/Solid.test.cc)
 celeritas_add_test(orangeinp/Transformed.test.cc)
+celeritas_add_test(orangeinp/UnitProto.test.cc)
 
 celeritas_add_test(orangeinp/detail/BoundingZone.test.cc)
 celeritas_add_test(orangeinp/detail/LocalSurfaceInserter.test.cc)

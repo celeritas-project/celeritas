@@ -19,7 +19,9 @@
 #pragma link C++ class celeritas::ImportPhysicsVector+;
 #pragma link C++ class celeritas::ImportMaterial+;
 #pragma link C++ class celeritas::ImportScintComponent+;
-#pragma link C++ class celeritas::ImportScintSpectrum+;
+#pragma link C++ class celeritas::ImportMaterialScintSpectrum+;
+#pragma link C++ class celeritas::ImportParticleScintSpectrum+;
+#pragma link C++ class celeritas::ImportScintData+;
 #pragma link C++ class celeritas::ImportOpticalRayleigh+;
 #pragma link C++ class celeritas::ImportOpticalAbsorption+;
 #pragma link C++ class celeritas::ImportOpticalProperty+;

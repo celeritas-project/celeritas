@@ -44,14 +44,14 @@ class ScintillationGeneratorTest : public Test
         static constexpr double ns = 1e-9 * units::second;
 
         // Test scintillation spectrum: only one material with three components
-        ImportScintSpectrum spectrum;
-        spectrum.yield = 5;
+        ImportScintData spectrum;
+        spectrum.material.yield = 5;
         spectrum.resolution_scale = 1;
-        spectrum.components.push_back(
+        spectrum.material.components.push_back(
             {0.65713, 128 * nm, 10 * nm, 10 * ns, 6 * ns});
-        spectrum.components.push_back(
+        spectrum.material.components.push_back(
             {0.31987, 128 * nm, 10 * nm, 10 * ns, 1500 * ns});
-        spectrum.components.push_back(
+        spectrum.material.components.push_back(
             {0.023, 200 * nm, 20 * nm, 10 * ns, 3000 * ns});
         params = std::make_shared<ScintillationParams>(
             ScintillationParams::Input{{spectrum}});

@@ -33,7 +33,7 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
     //! Material-dependent scintillation data, indexed by \c OpticalMaterialId
     struct Input
     {
-        std::vector<ImportScintSpectrum> data;
+        std::vector<ImportScintData> data;
     };
 
   public:
