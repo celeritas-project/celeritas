@@ -59,6 +59,10 @@ TEST_F(XsCalculatorTest, simple)
     // Test out-of-bounds
     EXPECT_SOFT_EQ(1.0, calc(Energy{0.0001}));
     EXPECT_SOFT_EQ(1e5, calc(Energy{1e7}));
+
+    // Test energy grid bounds
+    EXPECT_SOFT_EQ(1.0, value_as<Energy>(calc.energy_min()));
+    EXPECT_SOFT_EQ(1e5, value_as<Energy>(calc.energy_max()));
 }
 
 TEST_F(XsCalculatorTest, scaled_lowest)
@@ -89,6 +93,10 @@ TEST_F(XsCalculatorTest, scaled_lowest)
     // this might not be the best behavior for the lower energy value)
     EXPECT_SOFT_EQ(1000, calc(Energy{0.0001}));
     EXPECT_SOFT_EQ(0.1, calc(Energy{1e5}));
+
+    // Test energy grid bounds
+    EXPECT_SOFT_EQ(0.1, value_as<Energy>(calc.energy_min()));
+    EXPECT_SOFT_EQ(1e4, value_as<Energy>(calc.energy_max()));
 }
 
 TEST_F(XsCalculatorTest, scaled_middle)
@@ -127,6 +135,10 @@ TEST_F(XsCalculatorTest, scaled_middle)
     // this might not be the right behavior for
     EXPECT_SOFT_EQ(3, calc(Energy{0.0001}));
     EXPECT_SOFT_EQ(0.3, calc(Energy{1e5}));
+
+    // Test energy grid bounds
+    EXPECT_SOFT_EQ(0.1, value_as<Energy>(calc.energy_min()));
+    EXPECT_SOFT_EQ(1e4, value_as<Energy>(calc.energy_max()));
 }
 
 TEST_F(XsCalculatorTest, scaled_highest)
@@ -149,6 +161,10 @@ TEST_F(XsCalculatorTest, scaled_highest)
     // Final point and higher are scaled by 1/E
     EXPECT_SOFT_EQ(1, calc(Energy{100}));
     EXPECT_SOFT_EQ(.1, calc(Energy{1000}));
+
+    // Test energy grid bounds
+    EXPECT_SOFT_EQ(1, value_as<Energy>(calc.energy_min()));
+    EXPECT_SOFT_EQ(100, value_as<Energy>(calc.energy_max()));
 }
 
 TEST_F(XsCalculatorTest, TEST_IF_CELERITAS_DEBUG(scaled_off_the_end))

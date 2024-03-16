@@ -13,6 +13,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/em/data/WentzelVIMscData.hh"
+#include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -65,9 +66,10 @@ WentzelVIMscParams::WentzelVIMscParams(ParticleParams const& particles,
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();
 
     // Save high/low energy limits
-    auto const& grid = host_data.xs[ItemId<XsGridData>(0)].log_energy;
-    host_data.params.low_energy_limit = MevEnergy(std::exp(grid.front));
-    host_data.params.high_energy_limit = MevEnergy(std::exp(grid.back));
+    XsCalculator calc_xs(host_data.xs[ItemId<XsGridData>(0)],
+                         make_const_ref(host_data).reals);
+    host_data.params.low_energy_limit = calc_xs.energy_min();
+    host_data.params.high_energy_limit = calc_xs.energy_max();
 
     CELER_ASSERT(host_data);
 

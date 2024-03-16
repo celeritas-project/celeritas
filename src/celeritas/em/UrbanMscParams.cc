@@ -22,6 +22,7 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/grid/PolyEvaluator.hh"
+#include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -79,11 +80,6 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
     // Save electron mass
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();
 
-    // Save high/low energy limits
-    auto const& grid = host_data.xs[ItemId<XsGridData>(0)].log_energy;
-    host_data.params.low_energy_limit = MevEnergy(std::exp(grid.front));
-    host_data.params.high_energy_limit = MevEnergy(std::exp(grid.back));
-
     // Coefficients for scaled Z
     static Array<double, 2> const a_coeff{{0.87, 0.70}};
     static Array<double, 2> const b_coeff{{2.0 / 3, 1.0 / 2}};
@@ -134,6 +130,13 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
                 == host_data.par_mat_data.size());
         }
     }
+
+    // Save high/low energy limits
+    XsCalculator calc_xs(host_data.xs[ItemId<XsGridData>(0)],
+                         make_const_ref(host_data).reals);
+    host_data.params.low_energy_limit = calc_xs.energy_min();
+    host_data.params.high_energy_limit = calc_xs.energy_max();
+
     CELER_ASSERT(host_data);
 
     // Move to mirrored data, copying to device
