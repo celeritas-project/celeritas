@@ -215,7 +215,8 @@ struct HardwiredModels
 /*!
  * Scalar (no template needed) quantities used by physics.
  *
- * The user-configurable constants are described in \c PhysicsParams .
+ * The user-configurable constants and multiple scattering options are
+ * described in \c PhysicsParams .
  *
  * The \c model_to_action value corresponds to the \c ActionId for the first \c
  * ModelId . Additionally it implies (by construction in physics_params) the
@@ -239,9 +240,11 @@ struct PhysicsParamsScalars
     Energy lowest_electron_energy{};  //!< Lowest e-/e+ kinetic energy
     real_type linear_loss_limit{};  //!< For scaled range calculation
     real_type fixed_step_limiter{};  //!< Global charged step size limit [len]
+
+    // User-configurable multiple scattering options
     real_type lambda_limit{};  //!< lambda limit
-    real_type range_fact{};  //!< range factor for e-/e+ (0.2 for muon/h)
-    real_type safety_fact{};  //!< safety factor
+    real_type range_factor{};  //!< range factor for e-/e+ (0.2 for muon/h)
+    real_type safety_factor{};  //!< safety factor
     MscStepLimitAlgorithm step_limit_algorithm{MscStepLimitAlgorithm::size_};
 
     real_type secondary_stack_factor = 3;  //!< Secondary storage per state
@@ -260,8 +263,8 @@ struct PhysicsParamsScalars
                && linear_loss_limit > 0 && secondary_stack_factor > 0
                && ((fixed_step_limiter > 0)
                    == static_cast<bool>(fixed_step_action))
-               && lambda_limit > 0 && range_fact > 0 && range_fact < 1
-               && safety_fact >= 0.1
+               && lambda_limit > 0 && range_factor > 0 && range_factor < 1
+               && safety_factor >= 0.1
                && step_limit_algorithm != MscStepLimitAlgorithm::size_;
     }
 

@@ -83,7 +83,7 @@ UrbanMscMinimalStepLimit::UrbanMscMinimalStepLimit(
         // Store initial range properties if this is the track's first step
         MscRange new_range;
         new_range.range_init = numeric_limits<real_type>::infinity();
-        new_range.range_fact = physics->scalars().range_fact;
+        new_range.range_factor = physics->scalars().range_factor;
         new_range.limit_min = 10 * shared.params.limit_min_fix();
         physics->msc_range(new_range);
         CELER_ASSERT(msc_range);
@@ -94,7 +94,7 @@ UrbanMscMinimalStepLimit::UrbanMscMinimalStepLimit(
     {
         // Update the MSC range for the new volume
         MscRange new_range = msc_range;
-        new_range.range_init = msc_range.range_fact
+        new_range.range_init = msc_range.range_factor
                                * max(physics->dedx_range(), helper.msc_mfp());
         new_range.range_init = max(new_range.range_init, limit_min_);
         physics->msc_range(new_range);

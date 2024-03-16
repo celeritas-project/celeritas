@@ -246,11 +246,11 @@ void PhysicsParams::build_options(Options const& opts, HostValue* data) const
     CELER_VALIDATE(opts.lambda_limit > 0,
                    << "invalid lambda_limit=" << opts.lambda_limit
                    << " (should be positive)");
-    CELER_VALIDATE(opts.safety_fact >= 0.1,
-                   << "invalid safety_fact=" << opts.safety_fact
+    CELER_VALIDATE(opts.safety_factor >= 0.1,
+                   << "invalid safety_factor=" << opts.safety_factor
                    << " (should be >= 0.1)");
-    CELER_VALIDATE(opts.range_fact > 0 && opts.range_fact < 1,
-                   << "invalid range_fact=" << opts.range_fact
+    CELER_VALIDATE(opts.range_factor > 0 && opts.range_factor < 1,
+                   << "invalid range_factor=" << opts.range_factor
                    << " (should be within 0 < limit < 1)");
     data->scalars.min_range = opts.min_range;
     data->scalars.max_step_over_range = opts.max_step_over_range;
@@ -259,8 +259,8 @@ void PhysicsParams::build_options(Options const& opts, HostValue* data) const
     data->scalars.linear_loss_limit = opts.linear_loss_limit;
     data->scalars.secondary_stack_factor = opts.secondary_stack_factor;
     data->scalars.lambda_limit = opts.lambda_limit;
-    data->scalars.range_fact = opts.range_fact;
-    data->scalars.safety_fact = opts.safety_fact;
+    data->scalars.range_factor = opts.range_factor;
+    data->scalars.safety_factor = opts.safety_factor;
     data->scalars.step_limit_algorithm = opts.step_limit_algorithm;
     if (data->scalars.step_limit_algorithm
         == MscStepLimitAlgorithm::distance_to_boundary)

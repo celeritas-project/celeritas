@@ -397,7 +397,7 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
 
         VecReal mean_step;
         VecReal range_init;
-        VecReal range_fact;
+        VecReal range_factor;
         VecReal limit_min;
     };
 
@@ -413,7 +413,7 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
         if (alg == Algorithm::minimal)
         {
             phys_params.scalars.step_limit_algorithm = Algorithm::minimal;
-            phys_params.scalars.range_fact = 0.2;
+            phys_params.scalars.range_factor = 0.2;
         }
         else if (alg == Algorithm::safety_plus)
         {
@@ -458,7 +458,7 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
 
             auto const& msc_range = phys.msc_range();
             result.range_init.push_back(to_cm(msc_range.range_init));
-            result.range_fact.push_back(msc_range.range_fact);
+            result.range_factor.push_back(msc_range.range_factor);
             result.limit_min.push_back(to_cm(msc_range.limit_min));
         }
         return result;
@@ -473,14 +473,14 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
                                                     0.9059108153443,
                                                     8.8845468954557};
         static double const expected_range_init[] = {inf, inf, inf, inf, inf};
-        static double const expected_range_fact[] = {0.2, 0.2, 0.2, 0.2, 0.2};
+        static double const expected_range_factor[] = {0.2, 0.2, 0.2, 0.2, 0.2};
         static double const expected_limit_min[]
             = {1e-08, 1e-08, 1e-08, 1e-08, 1e-08};
 
         auto result = sample(Algorithm::minimal, false);
         EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
         EXPECT_VEC_EQ(expected_range_init, result.range_init);
-        EXPECT_VEC_EQ(expected_range_fact, result.range_fact);
+        EXPECT_VEC_EQ(expected_range_factor, result.range_factor);
         EXPECT_VEC_EQ(expected_limit_min, result.limit_min);
     }
     {
@@ -495,14 +495,14 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
                                                      0.015413789233736,
                                                      0.21762788543933,
                                                      15.553546812173};
-        static double const expected_range_fact[] = {0.2, 0.2, 0.2, 0.2, 0.2};
+        static double const expected_range_factor[] = {0.2, 0.2, 0.2, 0.2, 0.2};
         static double const expected_limit_min[]
             = {1e-08, 1e-08, 1e-08, 1e-08, 1e-08};
 
         auto result = sample(Algorithm::minimal, true);
         EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
         EXPECT_VEC_SOFT_EQ(expected_range_init, result.range_init);
-        EXPECT_VEC_EQ(expected_range_fact, result.range_fact);
+        EXPECT_VEC_EQ(expected_range_factor, result.range_factor);
         EXPECT_VEC_EQ(expected_limit_min, result.limit_min);
     }
     {
@@ -517,7 +517,7 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
                                                      0.07706894616868,
                                                      1.0881394271966,
                                                      77.767734060865};
-        static double const expected_range_fact[]
+        static double const expected_range_factor[]
             = {0.04, 0.04, 0.04, 0.13881394271966, 7.8067734060865};
         static double const expected_limit_min[] = {1.9688399316472e-06,
                                                     1.0522532283188e-05,
@@ -528,7 +528,7 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
         auto result = sample(Algorithm::safety, true);
         EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
         EXPECT_VEC_SOFT_EQ(expected_range_init, result.range_init);
-        EXPECT_VEC_SOFT_EQ(expected_range_fact, result.range_fact);
+        EXPECT_VEC_SOFT_EQ(expected_range_factor, result.range_factor);
         EXPECT_VEC_SOFT_EQ(expected_limit_min, result.limit_min);
     }
     {
@@ -543,7 +543,7 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
                                                      0.07706894616868,
                                                      0.90591081534428,
                                                      8.8845468954556};
-        static double const expected_range_fact[]
+        static double const expected_range_factor[]
             = {0.04, 0.04, 0.04, 0.10324092334058, 5.0107349798953};
         static double const expected_limit_min[] = {1.9688399316472e-06,
                                                     1.0522532283188e-05,
@@ -554,7 +554,7 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
         auto result = sample(Algorithm::safety_plus, true);
         EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
         EXPECT_VEC_SOFT_EQ(expected_range_init, result.range_init);
-        EXPECT_VEC_SOFT_EQ(expected_range_fact, result.range_fact);
+        EXPECT_VEC_SOFT_EQ(expected_range_factor, result.range_factor);
         EXPECT_VEC_SOFT_EQ(expected_limit_min, result.limit_min);
     }
 }
