@@ -301,7 +301,7 @@ class OneSteelSphere : public GeantImporterTest
     GeantPhysicsOptions build_geant_options() const override
     {
         GeantPhysicsOptions opts;
-        opts.msc = MscModelSelection::urban;
+        opts.msc = MscModelSelection::urban_wentzel;
         opts.relaxation = RelaxationSelection::none;
         opts.verbose = false;
         return opts;
@@ -1169,6 +1169,8 @@ TEST_F(OneSteelSphere, cutoffs)
 
 TEST_F(OneSteelSphere, physics)
 {
+    real_type const tol = this->comparison_tolerance();
+
     // Check the bremsstrahlung cross sections
     ImportProcess const& brems = this->find_process(
         celeritas::pdg::electron(), ImportProcessClass::e_brems);
@@ -1251,18 +1253,35 @@ TEST_F(OneSteelSphere, physics)
         EXPECT_SOFT_EQ(9549.651635687942, steel.x.front());
         EXPECT_SOFT_EQ(1e8, steel.x.back());
     }
-    // Check MSC bounds
     {
-        // Check the ionization electron macro xs
+        // Check Urban MSC bounds
         ImportMscModel const& msc = this->find_msc_model(
             celeritas::pdg::electron(), ImportModelClass::urban_msc);
         EXPECT_TRUE(msc);
         for (ImportPhysicsVector const& pv : msc.xs_table.physics_vectors)
         {
-            ASSERT_FALSE(pv.x.empty());
+            ASSERT_TRUE(pv);
             EXPECT_SOFT_EQ(1e-4, pv.x.front());
             EXPECT_SOFT_EQ(1e2, pv.x.back());
         }
+        auto const& steel = msc.xs_table.physics_vectors.back();
+        EXPECT_SOFT_NEAR(0.23785296407525, to_inv_cm(steel.y.front()), tol);
+        EXPECT_SOFT_NEAR(128.58803359467, to_inv_cm(steel.y.back()), tol);
+    }
+    {
+        // Check Wentzel VI MSC bounds
+        ImportMscModel const& msc = this->find_msc_model(
+            celeritas::pdg::electron(), ImportModelClass::wentzel_vi_uni);
+        EXPECT_TRUE(msc);
+        for (ImportPhysicsVector const& pv : msc.xs_table.physics_vectors)
+        {
+            ASSERT_TRUE(pv);
+            EXPECT_SOFT_EQ(1e2, pv.x.front());
+            EXPECT_SOFT_EQ(1e8, pv.x.back());
+        }
+        auto const& steel = msc.xs_table.physics_vectors.back();
+        EXPECT_SOFT_NEAR(114.93265072267, to_inv_cm(steel.y.front()), tol);
+        EXPECT_SOFT_NEAR(116.59035766356, to_inv_cm(steel.y.back()), tol);
     }
 }
 
@@ -1292,9 +1311,8 @@ TEST_F(OneSteelSphereGG, physics)
                                             "livermore_rayleigh"};
     EXPECT_VEC_EQ(expected_models, summary.models);
 
-    // Check MSC bounds
     {
-        // Check the ionization electron macro xs
+        // Check Urban MSC bounds
         ImportMscModel const& msc = this->find_msc_model(
             celeritas::pdg::electron(), ImportModelClass::urban_msc);
         EXPECT_TRUE(msc);

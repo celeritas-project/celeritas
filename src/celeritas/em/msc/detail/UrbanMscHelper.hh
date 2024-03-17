@@ -90,8 +90,15 @@ class UrbanMscHelper
     // Data for this particle+material
     CELER_FUNCTION UrbanMscParMatData const& pmdata() const
     {
-        return shared_.par_mat_data[shared_.at(physics_.material_id(),
-                                               particle_.particle_id())];
+        return shared_.par_mat_data[shared_.at<UrbanMscParMatData>(
+            physics_.material_id(), particle_.particle_id())];
+    }
+
+    // Scaled cross section data for this particle+material
+    CELER_FUNCTION XsGridData const& xs() const
+    {
+        return shared_.xs[shared_.at<XsGridData>(physics_.material_id(),
+                                                 particle_.particle_id())];
     }
 };
 
@@ -121,7 +128,7 @@ UrbanMscHelper::UrbanMscHelper(UrbanMscRef const& shared,
 CELER_FUNCTION real_type UrbanMscHelper::calc_msc_mfp(Energy energy) const
 {
     CELER_EXPECT(energy > zero_quantity());
-    XsCalculator calc_scaled_xs(this->pmdata().xs, shared_.reals);
+    XsCalculator calc_scaled_xs(this->xs(), shared_.reals);
 
     real_type xsec = calc_scaled_xs(energy) / ipow<2>(energy.value());
     CELER_ENSURE(xsec >= 0 && 1 / xsec > 0);

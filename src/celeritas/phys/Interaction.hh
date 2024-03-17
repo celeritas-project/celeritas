@@ -102,12 +102,12 @@ struct MscStep
 struct MscRange
 {
     real_type range_init{};  //!< Initial msc range [len]
-    real_type range_fact{};  //!< Scale factor for the msc range
+    real_type range_factor{};  //!< Scale factor for the msc range
     real_type limit_min{};  //!< Minimum of the true path limit [len]
 
     explicit CELER_FUNCTION operator bool() const
     {
-        return range_init > 0 && range_fact > 0 && limit_min > 0;
+        return range_init > 0 && range_factor > 0 && limit_min > 0;
     }
 };
 
