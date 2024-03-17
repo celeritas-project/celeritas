@@ -39,6 +39,9 @@ jobs:
     steps:
       - name: Check out Celeritas
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 255
+          fetch-tags: true # to get version information
       - name: Setup Spack
         uses: spack/setup-spack@5ab3c91bdefffffad9a7e45d1d156146afebb3a7
         with:
@@ -94,9 +97,6 @@ jobs:
         run: |
           mkdir build && cd build
           cmake -GNinja --log-level=VERBOSE \
-            -DCeleritas_GIT_DESCRIBE="${CELERITAS_VERSION};${{github.event.pull_request
-              && format('-pr.{1}', github.event.pull_request.number)
-              || format('-{0}', github.ref_name)}};" \
             -DCELERITAS_BUILD_DEMOS:BOOL=ON \
             -DCELERITAS_BUILD_TESTS:BOOL=ON \
             -DCELERITAS_USE_SWIG=OFF \
