@@ -8,11 +8,13 @@
 #include "orange/orangeinp/CsgTreeUtils.hh"
 
 #include "orange/orangeinp/CsgTree.hh"
+#include "orange/orangeinp/detail/PostfixLogicBuilder.hh"
 
 #include "celeritas_test.hh"
 
 using N = celeritas::orangeinp::NodeId;
 using S = celeritas::LocalSurfaceId;
+using celeritas::orangeinp::detail::PostfixLogicBuilder;
 
 namespace celeritas
 {
@@ -76,7 +78,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
     // Test postfix
     PostfixLogicBuilder build_postfix(tree_);
     {
-        auto&& [lgc, faces] = build_postfix(mz);
+        auto&& [faces, lgc] = build_postfix(mz);
 
         static size_type expected_lgc[] = {0};
         static LS const expected_faces[] = {LS{0u}};
@@ -84,7 +86,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_VEC_EQ(expected_faces, faces);
     }
     {
-        auto&& [lgc, faces] = build_postfix(below_pz);
+        auto&& [faces, lgc] = build_postfix(below_pz);
 
         static size_type expected_lgc[] = {0, logic::lnot};
         static LS const expected_faces[] = {LS{1u}};
@@ -92,7 +94,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_VEC_EQ(expected_faces, faces);
     }
     {
-        auto&& [lgc, faces] = build_postfix(zslab);
+        auto&& [faces, lgc] = build_postfix(zslab);
 
         static size_type const expected_lgc[]
             = {0u, 1u, logic::lnot, logic::land};
@@ -101,7 +103,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_VEC_EQ(expected_faces, faces);
     }
     {
-        auto&& [lgc, faces] = build_postfix(inner_cyl);
+        auto&& [faces, lgc] = build_postfix(inner_cyl);
 
         static size_type const expected_lgc[]
             = {0u, 1u, logic::lnot, logic::land, 2u, logic::lnot, logic::land};
@@ -112,7 +114,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_EQ("all(+0, -1, -2)", build_infix_string(tree_, inner_cyl));
     }
     {
-        auto&& [lgc, faces] = build_postfix(shell);
+        auto&& [faces, lgc] = build_postfix(shell);
 
         static size_type const expected_lgc[] = {
             0u,
@@ -140,7 +142,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
                   build_infix_string(tree_, shell));
     }
     {
-        auto&& [lgc, faces] = build_postfix(bdy);
+        auto&& [faces, lgc] = build_postfix(bdy);
 
         static size_type const expected_lgc[]
             = {0u, 1u, logic::lnot, logic::land, 2u, logic::land};
@@ -195,7 +197,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_VEC_EQ(expected_remapped_surf, remapped_surf);
 
         PostfixLogicBuilder build_postfix(tree_, remapped_surf);
-        auto&& [lgc, faces] = build_postfix(shell);
+        auto&& [faces, lgc] = build_postfix(shell);
 
         static size_type const expected_lgc[]
             = {0u, 1u, logic::lnot, logic::land};

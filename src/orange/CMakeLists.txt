@@ -42,6 +42,7 @@ list(APPEND SOURCES
   orangeinp/detail/InputBuilder.cc
   orangeinp/detail/LocalSurfaceInserter.cc
   orangeinp/detail/NodeSimplifier.cc
+  orangeinp/detail/PostfixLogicBuilder.cc
   orangeinp/detail/ProtoMap.cc
   orangeinp/detail/TransformInserter.cc
   orangeinp/detail/VolumeBuilder.cc
