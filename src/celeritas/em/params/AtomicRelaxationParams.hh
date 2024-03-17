@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/AtomicRelaxationParams.hh
+//! \file celeritas/em/params/AtomicRelaxationParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,10 +14,9 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/em/data/AtomicRelaxationData.hh"
 #include "celeritas/io/ImportAtomicRelaxation.hh"
 #include "celeritas/phys/AtomicNumber.hh"
-
-#include "data/AtomicRelaxationData.hh"
 
 namespace celeritas
 {

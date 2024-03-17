@@ -26,13 +26,13 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/em/AtomicRelaxationParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/data/AtomicRelaxationData.hh"
 #include "celeritas/em/data/EPlusGGData.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/em/model/CombinedBremModel.hh"
 #include "celeritas/em/model/EPlusGGModel.hh"
 #include "celeritas/em/model/LivermorePEModel.hh"
+#include "celeritas/em/params/AtomicRelaxationParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"

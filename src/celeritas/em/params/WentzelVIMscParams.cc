@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/WentzelVIMscParams.cc
+//! \file celeritas/em/params/WentzelVIMscParams.cc
 //---------------------------------------------------------------------------//
 #include "WentzelVIMscParams.hh"
 
@@ -12,13 +12,11 @@
 
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMem.hh"
-#include "celeritas/em/data/WentzelVIMscData.hh"
+#include "celeritas/em/detail/MscParamsHelper.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
-
-#include "detail/MscParamsHelper.hh"
 
 namespace celeritas
 {

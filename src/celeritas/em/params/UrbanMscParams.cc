@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/UrbanMscParams.cc
+//! \file celeritas/em/params/UrbanMscParams.cc
 //---------------------------------------------------------------------------//
 #include "UrbanMscParams.hh"
 
@@ -21,6 +21,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/em/detail/MscParamsHelper.hh"
 #include "celeritas/grid/PolyEvaluator.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/io/ImportData.hh"
@@ -30,10 +31,6 @@
 #include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
-
-#include "data/UrbanMscData.hh"
-
-#include "detail/MscParamsHelper.hh"
 
 namespace celeritas
 {

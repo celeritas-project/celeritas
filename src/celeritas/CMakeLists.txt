@@ -14,12 +14,12 @@ set(PUBLIC_DEPS Celeritas::corecel Celeritas::geocel)
 
 list(APPEND SOURCES
   Types.cc
-  em/AtomicRelaxationParams.cc
-  em/FluctuationParams.cc
-  em/UrbanMscParams.cc
-  em/WentzelVIMscParams.cc
   em/detail/MscParamsHelper.cc
   em/detail/Utils.cc
+  em/params/AtomicRelaxationParams.cc
+  em/params/FluctuationParams.cc
+  em/params/UrbanMscParams.cc
+  em/params/WentzelVIMscParams.cc
   em/process/BremsstrahlungProcess.cc
   em/process/ComptonProcess.cc
   em/process/CoulombScatteringProcess.cc

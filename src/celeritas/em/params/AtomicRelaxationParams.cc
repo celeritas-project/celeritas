@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/AtomicRelaxationParams.cc
+//! \file celeritas/em/params/AtomicRelaxationParams.cc
 //---------------------------------------------------------------------------//
 #include "AtomicRelaxationParams.hh"
 
@@ -23,6 +23,7 @@
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/em/detail/Utils.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/mat/MaterialView.hh"
@@ -30,9 +31,6 @@
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
-
-#include "data/AtomicRelaxationData.hh"  // IWYU pragma: associated
-#include "detail/Utils.hh"
 
 namespace celeritas
 {
