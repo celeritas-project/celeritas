@@ -21,6 +21,12 @@ namespace orangeinp
 namespace test
 {
 //---------------------------------------------------------------------------//
+std::string to_string(CsgTree const& tree)
+{
+    std::ostringstream os;
+    os << tree;
+    return os.str();
+}
 
 class CsgTreeUtilsTest : public ::celeritas::test::Test
 {
@@ -29,13 +35,6 @@ class CsgTreeUtilsTest : public ::celeritas::test::Test
     N insert(T&& n)
     {
         return tree_.insert(std::forward<T>(n)).first;
-    }
-
-    std::string to_string() const
-    {
-        std::ostringstream os;
-        os << tree_;
-        return os.str();
     }
 
   protected:
@@ -70,7 +69,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         "surface 2, 6: not{5}, 7: all{2,4,6}, 8: surface 3, 9: not{8}, 10: "
         "all{2,4,9}, 11: not{7}, 12: all{10,11}, 13: surface 4, 14: "
         "all{2,4,13}, 15: all{2,4}, }",
-        this->to_string());
+        to_string(tree_));
 
     // Test postfix
     {
@@ -130,11 +129,14 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
     auto min_node = replace_down(&tree_, bdy, True{});
     EXPECT_EQ(mz, min_node);
 
+    // Save tree for later
+    CsgTree unsimplified_tree{tree_};
+
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: ->{0}, 3: ->{1}, 4: ->{0}, 5: surface 2, 6: "
         "not{5}, 7: all{2,4,6}, 8: surface 3, 9: not{8}, 10: all{2,4,9}, 11: "
         "not{7}, 12: all{10,11}, 13: ->{0}, 14: ->{0}, 15: all{2,4}, }",
-        this->to_string());
+        to_string(tree_));
 
     // Simplify once: first simplification is the inner cylinder
     min_node = simplify_up(&tree_, min_node);
@@ -155,7 +157,11 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         "{0: true, 1: not{0}, 2: ->{0}, 3: ->{1}, 4: ->{0}, 5: surface 2, 6: "
         "not{5}, 7: ->{6}, 8: surface 3, 9: not{8}, 10: ->{9}, 11: ->{5}, 12: "
         "all{5,9}, 13: ->{0}, 14: ->{0}, 15: ->{0}, }",
-        this->to_string());
+        to_string(tree_));
+
+    // Try simplifying recursively from the original minimum node
+    simplify(&unsimplified_tree, mz);
+    EXPECT_EQ(to_string(tree_), to_string(unsimplified_tree));
 }
 
 TEST_F(CsgTreeUtilsTest, replace_union)
@@ -169,7 +175,7 @@ TEST_F(CsgTreeUtilsTest, replace_union)
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{2}, 5: "
         "not{3}, 6: any{4,5}, }",
-        this->to_string());
+        to_string(tree_));
 
     // Imply inside neither
     auto min_node = replace_down(&tree_, inside_a_or_b, False{});
@@ -177,14 +183,14 @@ TEST_F(CsgTreeUtilsTest, replace_union)
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: ->{0}, 3: ->{0}, 4: ->{1}, 5: ->{1}, 6: "
         "->{1}, }",
-        this->to_string());
+        to_string(tree_));
 
     min_node = simplify_up(&tree_, min_node);
     EXPECT_EQ(NodeId{}, min_node);
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: ->{0}, 3: ->{0}, 4: ->{1}, 5: ->{1}, 6: "
         "->{1}, }",
-        this->to_string());
+        to_string(tree_));
 }
 
 TEST_F(CsgTreeUtilsTest, replace_union_2)
@@ -197,7 +203,7 @@ TEST_F(CsgTreeUtilsTest, replace_union_2)
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{2}, 5: "
         "not{3}, 6: any{2,3}, }",
-        this->to_string());
+        to_string(tree_));
 
     // Imply !(a | b) -> a & b
     auto min_node = replace_down(&tree_, outside_a_or_b, False{});
@@ -205,7 +211,7 @@ TEST_F(CsgTreeUtilsTest, replace_union_2)
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: ->{1}, 3: ->{1}, 4: not{2}, 5: not{3}, 6: "
         "->{1}, }",
-        this->to_string());
+        to_string(tree_));
 
     min_node = simplify_up(&tree_, min_node);
     EXPECT_EQ(inside_a, min_node);
@@ -213,7 +219,7 @@ TEST_F(CsgTreeUtilsTest, replace_union_2)
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: ->{1}, 3: ->{1}, 4: ->{0}, 5: ->{0}, 6: "
         "->{1}, }",
-        this->to_string());
+        to_string(tree_));
 
     // No simplification
     min_node = simplify_up(&tree_, min_node);
