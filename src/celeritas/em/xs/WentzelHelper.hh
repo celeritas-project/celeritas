@@ -40,7 +40,7 @@ class WentzelHelper
     // Construct from particle and material properties
     inline CELER_FUNCTION WentzelHelper(ParticleTrackView const& particle,
                                         AtomicNumber target_z,
-                                        WentzelRef const& data,
+                                        CoulombScatteringRef const& data,
                                         Energy cutoff);
 
     //! Get the target atomic number
@@ -84,7 +84,7 @@ class WentzelHelper
 
     // Calculate the (cosine of) the maximum scattering angle off of electrons
     inline CELER_FUNCTION real_type calc_costheta_max_electron(
-        ParticleTrackView const&, WentzelRef const&, Energy) const;
+        ParticleTrackView const&, CoulombScatteringRef const&, Energy) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -96,7 +96,7 @@ class WentzelHelper
 CELER_FUNCTION
 WentzelHelper::WentzelHelper(ParticleTrackView const& particle,
                              AtomicNumber target_z,
-                             WentzelRef const& data,
+                             CoulombScatteringRef const& data,
                              Energy cutoff)
     : target_z_(target_z)
     , screening_coefficient_(this->calc_screening_coefficient(particle)
@@ -185,7 +185,7 @@ CELER_CONSTEXPR_FUNCTION real_type WentzelHelper::screen_r_sq_elec() const
  */
 CELER_FUNCTION real_type
 WentzelHelper::calc_costheta_max_electron(ParticleTrackView const& particle,
-                                          WentzelRef const& data,
+                                          CoulombScatteringRef const& data,
                                           Energy cutoff) const
 {
     real_type inc_energy = value_as<Energy>(particle.energy());

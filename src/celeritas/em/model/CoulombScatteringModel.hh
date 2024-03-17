@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/model/WentzelModel.hh
+//! \file celeritas/em/model/CoulombScatteringModel.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
 
 #include "corecel/data/CollectionMirror.hh"
-#include "celeritas/em/data/WentzelData.hh"
+#include "celeritas/em/data/CoulombScatteringData.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/ImportedModelAdapter.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
@@ -26,15 +26,17 @@ class IsotopeView;
 /*!
  * Set up and launch the Wentzel Coulomb scattering model interaction.
  */
-class WentzelModel final : public Model
+class CoulombScatteringModel final : public Model
 {
   public:
     //!@{
     //! \name Type aliases
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
+    using HostRef = CoulombScatteringHostRef;
+    using DeviceRef = CoulombScatteringDeviceRef;
     //!@}
 
-    //! Wentzel model configuration options
+    //! Wentzel Coulomb scattering model configuration options
     struct Options
     {
         //! Nuclear form factor model
@@ -53,11 +55,11 @@ class WentzelModel final : public Model
 
   public:
     // Construct from model ID and other necessary data
-    WentzelModel(ActionId id,
-                 ParticleParams const& particles,
-                 MaterialParams const& materials,
-                 Options const& options,
-                 SPConstImported data);
+    CoulombScatteringModel(ActionId id,
+                           ParticleParams const& particles,
+                           MaterialParams const& materials,
+                           Options const& options,
+                           SPConstImported data);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;
@@ -85,20 +87,20 @@ class WentzelModel final : public Model
 
     //!@{
     //! Access model data
-    WentzelHostRef const& host_ref() const { return data_.host_ref(); }
-    WentzelDeviceRef const& device_ref() const { return data_.device_ref(); }
+    HostRef const& host_ref() const { return data_.host_ref(); }
+    DeviceRef const& device_ref() const { return data_.device_ref(); }
     //!@}
 
   private:
-    CollectionMirror<WentzelData> data_;
+    CollectionMirror<CoulombScatteringData> data_;
     ImportedModelAdapter imported_;
 
     // Construct per element data (loads Mott coefficients)
-    void build_data(HostVal<WentzelData>& host_data,
+    void build_data(HostVal<CoulombScatteringData>& host_data,
                     MaterialParams const& materials);
 
     // Retrieve matrix of interpolated Mott coefficients
-    static WentzelElementData::MottCoeffMatrix
+    static CoulombScatteringElementData::MottCoeffMatrix
     get_mott_coeff_matrix(AtomicNumber z);
 
     // Calculate the nuclear form prefactor

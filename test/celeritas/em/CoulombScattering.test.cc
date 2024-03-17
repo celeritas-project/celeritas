@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/Wentzel.test.cc
+//! \file celeritas/em/CoulombScattering.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/Quantities.hh"
 #include "celeritas/Units.hh"
-#include "celeritas/em/interactor/WentzelInteractor.hh"
-#include "celeritas/em/model/WentzelModel.hh"
+#include "celeritas/em/interactor/CoulombScatteringInteractor.hh"
+#include "celeritas/em/model/CoulombScatteringModel.hh"
 #include "celeritas/em/process/CoulombScatteringProcess.hh"
 #include "celeritas/em/xs/WentzelTransportXsCalculator.hh"
 #include "celeritas/io/ImportParameters.hh"
@@ -86,13 +86,14 @@ class CoulombScatteringTest : public InteractorHostTestBase
         }
 
         // Use default options
-        WentzelModel::Options options;
+        CoulombScatteringModel::Options options;
 
-        model_ = std::make_shared<WentzelModel>(ActionId{0},
-                                                *this->particle_params(),
-                                                *this->material_params(),
-                                                options,
-                                                this->imported_processes());
+        model_ = std::make_shared<CoulombScatteringModel>(
+            ActionId{0},
+            *this->particle_params(),
+            *this->material_params(),
+            options,
+            this->imported_processes());
 
         // Set cutoffs
         CutoffParams::Input input;
@@ -131,12 +132,12 @@ class CoulombScatteringTest : public InteractorHostTestBase
     }
 
   protected:
-    std::shared_ptr<WentzelModel> model_;
+    std::shared_ptr<CoulombScatteringModel> model_;
 };
 
 TEST_F(CoulombScatteringTest, wokvi_xs)
 {
-    WentzelHostRef const& data = model_->host_ref();
+    CoulombScatteringHostRef const& data = model_->host_ref();
 
     AtomicNumber const target_z
         = this->material_params()->get(ElementId{0}).atomic_number();
@@ -184,9 +185,10 @@ TEST_F(CoulombScatteringTest, wokvi_xs)
 
 TEST_F(CoulombScatteringTest, mott_xs)
 {
-    WentzelHostRef const& data = model_->host_ref();
+    CoulombScatteringHostRef const& data = model_->host_ref();
 
-    WentzelElementData const& element_data = data.elem_data[ElementId(0)];
+    CoulombScatteringElementData const& element_data
+        = data.elem_data[ElementId(0)];
     MottRatioCalculator xsec(element_data,
                              sqrt(this->particle_track().beta_sq()));
 
@@ -308,12 +310,12 @@ TEST_F(CoulombScatteringTest, simple_scattering)
                                     .make_isotope_view(IsotopeComponentId{0});
     auto cutoffs = this->cutoff_params()->get(MaterialId{0});
 
-    WentzelInteractor interact(model_->host_ref(),
-                               this->particle_track(),
-                               this->direction(),
-                               isotope,
-                               ElementId{0},
-                               cutoffs);
+    CoulombScatteringInteractor interact(model_->host_ref(),
+                                         this->particle_track(),
+                                         this->direction(),
+                                         isotope,
+                                         ElementId{0},
+                                         cutoffs);
     RandomEngine& rng_engine = this->rng();
 
     std::vector<real_type> angle;
@@ -335,7 +337,7 @@ TEST_F(CoulombScatteringTest, simple_scattering)
 
 TEST_F(CoulombScatteringTest, distribution)
 {
-    WentzelHostRef const& data = model_->host_ref();
+    CoulombScatteringHostRef const& data = model_->host_ref();
 
     std::vector<real_type> const energies = {50, 100, 200, 1000, 13000};
 
@@ -349,7 +351,8 @@ TEST_F(CoulombScatteringTest, distribution)
     {
         this->set_inc_particle(pdg::electron(), MevEnergy{energies[i]});
 
-        WentzelElementData const& element_data = data.elem_data[ElementId(0)];
+        CoulombScatteringElementData const& element_data
+            = data.elem_data[ElementId(0)];
 
         IsotopeView const isotope
             = this->material_track()

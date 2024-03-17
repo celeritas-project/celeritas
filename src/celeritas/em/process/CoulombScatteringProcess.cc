@@ -9,7 +9,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
-#include "celeritas/em/model/WentzelModel.hh"
+#include "celeritas/em/model/CoulombScatteringModel.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
@@ -23,7 +23,7 @@ CoulombScatteringProcess::CoulombScatteringProcess(
     SPConstParticles particles,
     SPConstMaterials materials,
     SPConstImported process_data,
-    WentzelModel::Options const& options)
+    CoulombScatteringModel::Options const& options)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
     , imported_(process_data,
@@ -44,7 +44,7 @@ CoulombScatteringProcess::CoulombScatteringProcess(
 auto CoulombScatteringProcess::build_models(ActionIdIter start_id) const
     -> VecModel
 {
-    return {std::make_shared<WentzelModel>(
+    return {std::make_shared<CoulombScatteringModel>(
         *start_id++, *particles_, *materials_, options_, imported_.processes())};
 }
 
