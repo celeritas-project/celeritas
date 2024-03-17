@@ -72,7 +72,7 @@ jobs:
         run: |
           spack -e . mirror set --push --oci-username ${{github.actor}} --oci-password "${{secrets.GITHUB_TOKEN}}" ${SPACK_BUILDCACHE}
           spack -e . buildcache push -j $(($(nproc) + 1)) --base-image ubuntu:22.04 --unsigned --update-index ${SPACK_BUILDCACHE}
-        if: ${{!cancelled()}}
+        if: ${{github.event_name == 'push' && !cancelled()}}
       - name: Activate environment
         run: |
           test -d "${SPACK_VIEW}"
