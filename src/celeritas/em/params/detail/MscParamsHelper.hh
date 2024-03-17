@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/detail/MscParamsHelper.hh
+//! \file celeritas/em/params/detail/MscParamsHelper.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -21,6 +21,8 @@ class ParticleParams;
 class MaterialParams;
 struct XsGridData;
 
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
  * Helper class for constructing multiple scattering params.
@@ -53,4 +55,5 @@ class MscParamsHelper
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

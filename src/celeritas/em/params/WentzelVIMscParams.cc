@@ -12,7 +12,7 @@
 
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMem.hh"
-#include "celeritas/em/detail/MscParamsHelper.hh"
+#include "celeritas/em/params/detail/MscParamsHelper.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -55,7 +55,7 @@ WentzelVIMscParams::WentzelVIMscParams(ParticleParams const& particles,
 
     HostVal<WentzelVIMscData> host_data;
 
-    MscParamsHelper helper(
+    detail::MscParamsHelper helper(
         particles, materials, mdata_vec, ImportModelClass::wentzel_vi_uni);
     helper.build_ids(&host_data.ids);
     helper.build_xs(&host_data.xs, &host_data.reals);

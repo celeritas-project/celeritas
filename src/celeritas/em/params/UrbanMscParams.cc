@@ -21,7 +21,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/em/detail/MscParamsHelper.hh"
+#include "celeritas/em/params/detail/MscParamsHelper.hh"
 #include "celeritas/grid/PolyEvaluator.hh"
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/io/ImportData.hh"
@@ -69,7 +69,7 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
 
     HostVal<UrbanMscData> host_data;
 
-    MscParamsHelper helper(
+    detail::MscParamsHelper helper(
         particles, materials, mdata_vec, ImportModelClass::urban_msc);
     helper.build_ids(&host_data.ids);
     helper.build_xs(&host_data.xs, &host_data.reals);
