@@ -102,7 +102,7 @@ class ScintillationTest : public OpticalTestBase
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(ScintillationTest, params)
+TEST_F(ScintillationTest, basic_params)
 {
     // TODO: Add particle test
     auto const& data = params->host_ref();
@@ -149,6 +149,9 @@ TEST_F(ScintillationTest, params)
     EXPECT_VEC_EQ(expected_rise_times, rise_times);
     EXPECT_VEC_EQ(expected_fall_times, fall_times);
 }
+
+//---------------------------------------------------------------------------//
+TEST_F(ScintillationTest, larsphere_params) {}
 
 //---------------------------------------------------------------------------//
 TEST_F(ScintillationTest, pre_generator)

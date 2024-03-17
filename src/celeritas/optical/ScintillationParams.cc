@@ -181,7 +181,11 @@ ScintillationParams::ScintillationParams(Input const& input,
             build_particles.push_back(part_spec);
         }
     }
-    CELER_ASSERT(build_particles.size() == num_part * num_mat);
+    CELER_ENSURE(build_optmatid.size() == num_mat);
+    CELER_ENSURE(build_scintpid.size() == num_part);
+    CELER_ENSURE(build_materials.size() == num_mat);
+    CELER_ENSURE(build_resolutionscale.size() == num_mat);
+    CELER_ENSURE(build_particles.size() == num_part * num_mat);
 
     mirror_ = CollectionMirror<ScintillationData>{std::move(host_data)};
     CELER_ENSURE(mirror_);
