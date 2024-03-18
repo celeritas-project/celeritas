@@ -47,7 +47,7 @@ class InternalSurfaceFlagger
     bool operator()(Surface const&) { return simple; }
     // Aliased nodes forward to the alias
     bool operator()(Aliased const&);
-    // Negated nodes are
+    // Negated nodes may have internal crossings if they negate "joined"
     bool operator()(Negated const&);
     // Intersections of "simple" nodes are simple; unions are never
     bool operator()(Joined const&);

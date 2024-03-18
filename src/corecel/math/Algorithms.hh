@@ -258,7 +258,7 @@ CELER_FORCEINLINE_FUNCTION ForwardIt upper_bound(ForwardIt first,
  * Find the given element in a sorted range.
  */
 template<class ForwardIt, class T, class Compare>
-CELER_FORCEINLINE_FUNCTION ForwardIt
+inline CELER_FUNCTION ForwardIt
 find_sorted(ForwardIt first, ForwardIt last, T const& value, Compare comp)
 {
     auto iter = ::celeritas::lower_bound(first, last, value, comp);
