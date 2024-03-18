@@ -56,9 +56,22 @@ class XsCalculator
     // Get the cross section at the given index
     inline CELER_FUNCTION real_type operator[](size_type index) const;
 
+    // Get the minimum energy
+    CELER_FUNCTION Energy energy_min() const
+    {
+        return Energy(std::exp(loge_grid_.front()));
+    }
+
+    // Get the maximum energy
+    CELER_FUNCTION Energy energy_max() const
+    {
+        return Energy(std::exp(loge_grid_.back()));
+    }
+
   private:
     XsGridData const& data_;
     Values const& reals_;
+    UniformGrid loge_grid_;
 
     CELER_FORCEINLINE_FUNCTION real_type get(size_type index) const;
 };
@@ -71,7 +84,7 @@ class XsCalculator
  */
 CELER_FUNCTION
 XsCalculator::XsCalculator(XsGridData const& grid, Values const& values)
-    : data_(grid), reals_(values)
+    : data_(grid), reals_(values), loge_grid_(data_.log_energy)
 {
     CELER_EXPECT(data_);
     CELER_ASSERT(grid.value.size() == data_.log_energy.size);
@@ -86,29 +99,28 @@ XsCalculator::XsCalculator(XsGridData const& grid, Values const& values)
  */
 CELER_FUNCTION real_type XsCalculator::operator()(Energy energy) const
 {
-    UniformGrid const loge_grid(data_.log_energy);
     real_type const loge = std::log(energy.value());
 
     // Snap out-of-bounds values to closest grid points
     size_type lower_idx;
     real_type result;
-    if (loge <= loge_grid.front())
+    if (loge <= loge_grid_.front())
     {
         lower_idx = 0;
         result = this->get(lower_idx);
     }
-    else if (loge >= loge_grid.back())
+    else if (loge >= loge_grid_.back())
     {
-        lower_idx = loge_grid.size() - 1;
+        lower_idx = loge_grid_.size() - 1;
         result = this->get(lower_idx);
     }
     else
     {
         // Locate the energy bin
-        lower_idx = loge_grid.find(loge);
-        CELER_ASSERT(lower_idx + 1 < loge_grid.size());
+        lower_idx = loge_grid_.find(loge);
+        CELER_ASSERT(lower_idx + 1 < loge_grid_.size());
 
-        real_type const upper_energy = std::exp(loge_grid[lower_idx + 1]);
+        real_type const upper_energy = std::exp(loge_grid_[lower_idx + 1]);
         real_type upper_xs = this->get(lower_idx + 1);
         if (lower_idx + 1 == data_.prime_index)
         {
@@ -119,7 +131,7 @@ CELER_FUNCTION real_type XsCalculator::operator()(Energy energy) const
 
         // Interpolate *linearly* on energy using the lower_idx data.
         LinearInterpolator<real_type> interpolate_xs(
-            {std::exp(loge_grid[lower_idx]), this->get(lower_idx)},
+            {std::exp(loge_grid_[lower_idx]), this->get(lower_idx)},
             {upper_energy, upper_xs});
         result = interpolate_xs(energy.value());
     }
@@ -137,8 +149,7 @@ CELER_FUNCTION real_type XsCalculator::operator()(Energy energy) const
  */
 CELER_FUNCTION real_type XsCalculator::operator[](size_type index) const
 {
-    UniformGrid const loge_grid(data_.log_energy);
-    real_type energy = std::exp(loge_grid[index]);
+    real_type energy = std::exp(loge_grid_[index]);
     real_type result = this->get(index);
 
     if (index >= data_.prime_index)

@@ -31,6 +31,27 @@ class TransformedTest : public ObjectTestBase
 };
 
 //---------------------------------------------------------------------------//
+TEST_F(TransformedTest, notran)
+{
+    auto sphshape = std::make_shared<SphereShape>("sph", Sphere{1.0});
+    this->build_volume(Transformed{sphshape, NoTransformation{}});
+
+    static char const* const expected_surface_strings[] = {"Sphere: r=1"};
+    static char const* const expected_trans_strings[] = {"3: t=0 -> {}"};
+    static int const expected_volume_nodes[] = {3};
+    static char const expected_tree_string[]
+        = R"json(["t",["~",0],["S",0],["~",2]])json";
+
+    auto const& u = this->unit();
+    EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+    EXPECT_VEC_EQ(expected_trans_strings, transform_strings(u));
+    EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
+    if (CELERITAS_USE_JSON)
+    {
+        EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
+    }
+}
+
 TEST_F(TransformedTest, single)
 {
     auto sphshape = std::make_shared<SphereShape>("sph", Sphere{1.0});

@@ -34,6 +34,7 @@ list(APPEND SOURCES
   orangeinp/Shape.cc
   orangeinp/Solid.cc
   orangeinp/Transformed.cc
+  orangeinp/UnitProto.cc
   orangeinp/detail/BoundingZone.cc
   orangeinp/detail/BuildConvexRegion.cc
   orangeinp/detail/ConvexSurfaceState.cc
