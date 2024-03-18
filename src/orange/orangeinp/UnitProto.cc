@@ -19,7 +19,6 @@
 
 #include "detail/CsgUnit.hh"
 #include "detail/CsgUnitBuilder.hh"
-#include "detail/InputBuilder.hh"
 #include "detail/VolumeBuilder.hh"
 
 namespace celeritas

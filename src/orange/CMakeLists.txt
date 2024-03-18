@@ -39,7 +39,6 @@ list(APPEND SOURCES
   orangeinp/detail/BuildConvexRegion.cc
   orangeinp/detail/ConvexSurfaceState.cc
   orangeinp/detail/CsgUnitBuilder.cc
-  orangeinp/detail/InputBuilder.cc
   orangeinp/detail/InternalSurfaceFlagger.cc
   orangeinp/detail/LocalSurfaceInserter.cc
   orangeinp/detail/NodeSimplifier.cc
