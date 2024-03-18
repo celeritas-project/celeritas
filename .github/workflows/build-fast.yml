@@ -94,6 +94,7 @@ jobs:
         run: |
           ./bin/celer-sim --version
       - name: Show ccache stats
+        if: ${{!cancelled()}}
         run: |
           ccache -s
 

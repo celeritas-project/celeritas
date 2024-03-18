@@ -1,0 +1,138 @@
+# Build directly on the GitHub runner with caching
+name: build-spack
+on:
+  workflow_dispatch:
+  workflow_call:
+
+concurrency:
+  group: build-spack-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+
+env:
+  SPACK_REF: 968ad02473b12f6305cc1fe19f2a0d706f171154
+
+jobs:
+  linux:
+    name: jammy-g4-${{matrix.geant}}
+    strategy:
+      matrix:
+        compiler: [clang]
+        version: [15]
+        geant: ["10.5", "10.6", "10.7", "11.0", "11.1", "11.2"]
+        experimental: [false]
+    continue-on-error: ${{matrix.experimental}}
+    runs-on: ubuntu-22.04
+    permissions:
+      packages: write
+    env:
+      CCACHE_DIR: "${{github.workspace}}/.ccache"
+      CCACHE_MAXSIZE: "1G"
+      CELERITAS_VERSION: "0.5.0"
+      SPACK_VIEW: "/opt/spack-view"
+      SPACK_BUILDCACHE: "celer-buildcache" # see spack.yaml
+      CC: ${{matrix.compiler}}-${{matrix.version}}
+      CXX: ${{matrix.compiler == 'gcc' && 'g++' || 'clang++'}}-${{matrix.version}}
+    steps:
+      - name: Check out Celeritas
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 255
+          fetch-tags: true # to get version information
+      - name: Setup Spack
+        uses: spack/setup-spack@5ab3c91bdefffffad9a7e45d1d156146afebb3a7
+        with:
+          ref: ${{env.SPACK_REF}}
+          buildcache: true
+          color: true  
+          path: spack-src
+      - name: Initialize spack environment
+        run: |
+          cp scripts/ci/spack.yaml .
+          spack -e . add geant4@${{matrix.geant}}
+          spack -e . config add packages:all:require:"'%${{matrix.compiler}}@${{matrix.version}} target=x86_64_v3'"
+          spack -e . compiler find
+          # Add the spack ref so that updating spack will reconcretize
+          echo "# Concretized with ${{env.SPACK_REF}}" >> spack.yaml
+      - name: Cache concretization
+        uses: actions/cache@v4
+        with:
+          path: spack.lock
+          key: lock-${{hashFiles('spack.yaml')}}-${{github.run_id}}
+          restore-keys: |
+            lock-${{hashFiles('spack.yaml')}}
+      - name: Concretize
+        run: |
+          spack -e . -v concretize
+      - name: Install dependencies with Spack
+        run: |
+          spack -e . env depfile -o Makefile
+          make -Orecurse -j $(($(nproc) + 1)) SPACK_INSTALL_FLAGS=--no-check-signature
+      - name: Save Spack installation to build cache
+        run: |
+          spack -e . mirror set --push --oci-username ${{github.actor}} --oci-password "${{secrets.GITHUB_TOKEN}}" ${SPACK_BUILDCACHE}
+          spack -e . buildcache push -j $(($(nproc) + 1)) --base-image ubuntu:22.04 --unsigned --update-index ${SPACK_BUILDCACHE}
+        if: ${{github.event_name == 'push' && !cancelled()}}
+      - name: Activate environment
+        run: |
+          test -d "${SPACK_VIEW}"
+          echo "${SPACK_VIEW}/bin" >> $GITHUB_PATH
+          echo "CMAKE_PREFIX_PATH=${SPACK_VIEW}:${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
+          spack env activate . --sh > "${SPACK_VIEW}/rc"
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ${{env.CCACHE_DIR}}
+          key: ccache-spack-${{matrix.compiler}}-${{matrix.version}}-${{matrix.geant}}-${{github.run_id}}
+          restore-keys: |
+            ccache-spack-${{matrix.compiler}}-${{matrix.version}}-${{matrix.geant}}-
+            ccache-spack-${{matrix.compiler}}-${{matrix.version}}-
+      - name: Zero ccache stats
+        run: |
+          ccache -z
+      - name: Configure Celeritas
+        run: |
+          mkdir build && cd build
+          cmake -GNinja --log-level=VERBOSE \
+            -DCELERITAS_BUILD_DEMOS:BOOL=ON \
+            -DCELERITAS_BUILD_TESTS:BOOL=ON \
+            -DCELERITAS_USE_SWIG=OFF \
+            -DCELERITAS_USE_Geant4=ON \
+            -DCELERITAS_DEBUG:BOOL=ON \
+            -DCMAKE_BUILD_TYPE="Release" \
+            -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install" \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_FLAGS="-Werror -Wall -Wextra -pedantic -Wno-error=deprecated-declarations" \
+            ..
+            
+      - name: Build all
+        working-directory: build
+        run: |
+          ninja -v -k0
+      - name: Run tests
+        working-directory: build
+        continue-on-error: true # TODO: disable or fix failing tests
+        run: |
+          ctest --parallel $(nproc) --timeout 15 --output-on-failure \
+            --test-output-size-passed=32768 --test-output-size-failed=1048576
+      - name: Install
+        working-directory: build
+        run: |
+          ninja install
+      - name: Check installation
+        working-directory: install
+        run: |
+          for exe in orange-update celer-export-geant celer-dump-data \
+            celer-sim celer-g4; do
+            test -x "bin/${exe}"
+          done
+          ./bin/celer-sim --version
+      - name: Build examples
+        run: |
+          . ${SPACK_VIEW}/rc
+          CMAKE_PRESET=spack-vecgeom ./scripts/ci/test-examples.sh
+      - name: Show ccache stats
+        if: ${{!cancelled()}}
+        run: |
+          ccache -s
+
+
+# vim: set nowrap tw=100:

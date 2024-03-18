@@ -67,7 +67,13 @@ Submitting code changes
 
 When you believe that you've made a substantive [#]_ and self-contained
 improvement to the code, it's time to create a `pull request`_ (PR) to get
-feedback on your changes before they're merged into the code base.
+feedback on your changes before they're merged into the code base. The pull
+request should be as close to a "single change" as possible (i.e., the short
+pull request title can essentially describe the entire change set), typically
+a few hundred lines (not including tests and test data). A pull request could
+be as small as a single line for a bug fix. If your changes involve both
+substantial refactoring and new features, try to split the refactoring into a
+separate commit.
 
 Before opening the pull request, check that the :ref:`code <code_guidelines>`
 and :ref:`style <style_guidelines>` guidelines have been followed for all new

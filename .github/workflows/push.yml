@@ -20,10 +20,12 @@ jobs:
     uses: ./.github/workflows/build-fast.yml
   build-full:
     uses: ./.github/workflows/build-full.yml
+  build-spack:
+    uses: ./.github/workflows/build-spack.yml
   doc:
     uses: ./.github/workflows/doc.yml
   all:
-    needs: [build-fast, build-full, doc]
+    needs: [build-fast, build-full, build-spack, doc]
     runs-on: ubuntu-latest
     steps:
     - name: Success
