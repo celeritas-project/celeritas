@@ -21,13 +21,14 @@ struct GenericGridData
 {
     ItemRange<real_type> grid;  //!< x grid
     ItemRange<real_type> value;  //!< f(x) value
-    Interp grid_interp;  //!< Interpolation along x
-    Interp value_interp;  //!< Interpolation along f(x)
+    Interp grid_interp{Interp::size_};  //!< Interpolation along x
+    Interp value_interp{Interp::size_};  //!< Interpolation along f(x)
 
-    //! Whether the interface is initialized and valid
+    //! Whether the record is initialized and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return (value.size() >= 2) && grid.size() == value.size();
+        return grid.size() >= 2 && value.size() == grid.size()
+               && grid_interp != Interp::size_ && value_interp != Interp::size_;
     }
 };
 
