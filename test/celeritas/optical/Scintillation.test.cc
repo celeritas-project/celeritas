@@ -139,6 +139,8 @@ TEST_F(ScintillationTest, material_scint_params)
 {
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
+    EXPECT_FALSE(data.scintillation_by_particle());
+
     auto const opt_matid = data.matid_to_optmatid[MaterialId{0}];
 
     EXPECT_EQ(1, data.num_materials);
@@ -192,6 +194,8 @@ TEST_F(ScintillationTest, particle_scint_params)
     auto const params = this->build_scintillation_params(
         /* scint_by_particle = */ true);
     auto const& data = params->host_ref();
+    EXPECT_TRUE(data.scintillation_by_particle());
+
     auto const opt_matid = data.matid_to_optmatid[MaterialId{0}];
     auto const scint_pid = data.pid_to_scintpid[ParticleId{0}];
 
@@ -255,6 +259,7 @@ TEST_F(ScintillationTest, pre_generator)
 {
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
+    EXPECT_FALSE(data.scintillation_by_particle());
 
     // The particle's energy is necessary for the particle track view but is
     // irrelevant for the test since what matters is the energy deposition,
@@ -266,14 +271,14 @@ TEST_F(ScintillationTest, pre_generator)
         data,
         this->build_pregen_step());
 
-    auto result = generate(this->rng());
+    auto const result = generate(this->rng());
     EXPECT_EQ(4, result.num_photons);
     EXPECT_REAL_EQ(0, result.time);
     EXPECT_REAL_EQ(1, result.step_length);
     EXPECT_EQ(-1, result.charge.value());
     EXPECT_EQ(0, result.material.get());
 
-    auto expected_step = this->build_pregen_step();
+    auto const expected_step = this->build_pregen_step();
     for (auto p : range(StepPoint::size_))
     {
         EXPECT_EQ(expected_step.points[p].speed.value(),
@@ -287,6 +292,8 @@ TEST_F(ScintillationTest, basic)
 {
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
+    EXPECT_FALSE(data.scintillation_by_particle());
+
     auto const opt_matid = data.matid_to_optmatid[MaterialId{0}];
 
     // Pre-generate optical distribution data

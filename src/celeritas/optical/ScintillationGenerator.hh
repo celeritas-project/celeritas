@@ -118,12 +118,15 @@ template<class Generator>
 CELER_FUNCTION Span<OpticalPrimary>
 ScintillationGenerator::operator()(Generator& rng)
 {
+    if (shared_.scintillation_by_particle())
+    {
+        // TODO: implement sampling for particles
+        CELER_NOT_IMPLEMENTED("scintillation by particle type");
+    }
+
     // Loop for generating scintillation photons
     size_type num_generated{0};
     auto const& mat_spectrum = shared_.materials[dist_.material];
-
-    // TODO: implement sampling for particles
-    // TODO: in Geant4 components are not necessary
 
     // Material sampling
     for (auto sid : mat_spectrum.components)

@@ -59,7 +59,7 @@ class ScintillationPreGenerator
     inline CELER_FUNCTION OpticalDistributionData operator()(Generator& rng);
 
   private:
-    ParticleTrackView const& particle_view_;
+    units::ElementaryCharge charge_;
     real_type step_len_;
     OpticalMaterialId mat_id_;
     NativeCRef<ScintillationData> const& shared_;
@@ -78,7 +78,7 @@ inline CELER_FUNCTION ScintillationPreGenerator::ScintillationPreGenerator(
     OpticalMaterialId material,
     NativeCRef<ScintillationData> const& shared,
     OpticalPreGenStepData const& step_data)
-    : particle_view_(particle_view)
+    : charge_(particle_view.charge())
     , step_len_(sim_view.step_length())
     , mat_id_(material)
     , shared_(shared)
@@ -99,7 +99,12 @@ template<class Generator>
 inline CELER_FUNCTION OpticalDistributionData
 ScintillationPreGenerator::operator()(Generator& rng)
 {
-    // TODO: implement sampling for particles
+    if (shared_.scintillation_by_particle())
+    {
+        // TODO: implement sampling for particles
+        CELER_NOT_IMPLEMENTED("scintillation by particle type");
+    }
+
     auto const& material = shared_.materials[mat_id_];
     CELER_EXPECT(material);
 
@@ -124,7 +129,7 @@ ScintillationPreGenerator::operator()(Generator& rng)
     if (result.num_photons > 0)
     {
         // Assign remaining data
-        result.charge = particle_view_.charge();
+        result.charge = charge_;
         result.material = mat_id_;
         result.step_length = step_len_;
         result.time = step_.time;

@@ -119,7 +119,7 @@ struct ImportTransParameters
 
 //---------------------------------------------------------------------------//
 /*!
- * \TODO: Placeholder for optical parameter data.
+ * TODO: Placeholder for optical parameter data.
  * See \c G4OpticalParameters .
  */
 struct ImportOpticalParameters

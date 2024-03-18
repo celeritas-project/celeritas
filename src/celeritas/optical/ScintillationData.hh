@@ -87,6 +87,11 @@ struct ParticleScintillationSpectrum
  * Data characterizing the scintillation spectrum for all particles and
  * materials.
  *
+ * Sampling using material-only data or particle- and material-dependent data
+ * are mutually exclusive. Therefore, either \c materials or \c particles are
+ * loaded at the beginning of the simulation, but *never* both at the same
+ * time. The \c scintillation_by_particle() function can be used to check that.
+ *
  * - \c matid_to_optmatid returns an \c OpticalMaterialId given a
  *   \c MaterialId
  * - \c pid_to_scintpid returns a \c ScintillationParticleId given a
@@ -142,6 +147,12 @@ struct ScintillationData
     {
         return !matid_to_optmatid.empty() && !materials.empty()
                && num_materials == matid_to_optmatid.size();
+    }
+
+    //! Whether sampling must happen by particle type
+    CELER_FUNCTION bool scintillation_by_particle() const
+    {
+        return !particles.empty();
     }
 
     //! Retrieve spectrum index for a given optical particle and material ids
