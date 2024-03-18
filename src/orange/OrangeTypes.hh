@@ -462,6 +462,9 @@ inline constexpr char to_char(OperatorToken tok)
 }
 }  // namespace logic
 
+// Get a string corresponding to a z ordering
+char const* to_cstring(ZOrder);
+
 // Get a printable character corresponding to a z ordering
 char to_char(ZOrder z);
 

@@ -8,6 +8,19 @@
     <matrix name="SY1" coldim="1" values="3.0"/>
     <matrix name="SY2" coldim="1" values="1.0"/>
     <matrix name="SY3" coldim="1" values="1.0"/>
+    <!-- Particle scintillation data -->
+    <matrix name="PSY" coldim="2" values="1.0e-6 2500 6 4200"/>
+    <matrix name="DSY" coldim="2" values="1.0e-6 1200 6 3000"/>
+    <matrix name="TSY" coldim="2" values="1.0e-6 1500 6 3500"/>
+    <matrix name="ASY" coldim="2" values="1.0e-6 1700 6 3700"/>
+    <matrix name="ISY" coldim="2" values="1.0e-6 2000 6 4000"/>
+    <matrix name="ESY" coldim="2" values="1.0e-6 3750 6 5000"/>
+    <matrix name="ESY1" coldim="1" values="4000"/>
+    <matrix name="ELM1" coldim="1" values="1e-4"/>
+    <matrix name="ELS1" coldim="1" values="1e-5"/>
+    <matrix name="ERT1" coldim="1" values="15"/>
+    <matrix name="ETC1" coldim="1" values="5"/>
+    <!-- End of particle scintillation data -->
     <matrix name="LM1" coldim="1" values="1.28e-4"/>
     <matrix name="LM2" coldim="1" values="1.28e-4"/>
     <matrix name="LM3" coldim="1" values="2.0e-4"/>
@@ -80,6 +93,17 @@
       <property name="SCINTILLATIONLAMBDASIGMA1" ref="LS1"/>
       <property name="SCINTILLATIONLAMBDASIGMA2" ref="LS2"/>
       <property name="SCINTILLATIONLAMBDASIGMA3" ref="LS3"/>
+      <property name="PROTONSCINTILLATIONYIELD" ref="PSY"/>
+      <property name="DEUTERONSCINTILLATIONYIELD" ref="DSY"/>
+      <property name="TRITONSCINTILLATIONYIELD" ref="TSY"/>
+      <property name="ALPHASCINTILLATIONYIELD" ref="ASY"/>
+      <property name="IONSCINTILLATIONYIELD" ref="ISY"/>
+      <property name="ELECTRONSCINTILLATIONYIELD" ref="ESY"/>
+      <property name="ELECTRONSCINTILLATIONYIELD1" ref="ESY1"/>
+      <property name="ELECTRONSCINTILLATIONRISETIME1" ref="ERT1"/>
+      <property name="ELECTRONSCINTILLATIONTIMECONSTANT1" ref="ETC1"/>
+      <property name="ELECTRONSCINTILLATIONLAMBDAMEAN1" ref="ELM1"/>
+      <property name="ELECTRONSCINTILLATIONLAMBDASIGMA1" ref="ELS1"/>
       <property name="RAYLEIGH" ref="RAY"/>
       <property name="ISOTHERMAL_COMPRESSIBILITY" ref="IC"/>
       <property name="ABSLENGTH" ref="ABS"/>

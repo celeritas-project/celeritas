@@ -383,10 +383,11 @@ celeritas_add_test(user/StepCollector.test.cc
 #-----------------------------------------------------------------------------#
 
 function(celeritas_add_rootupdate_target target filename)
+  set(_gdml "${PROJECT_SOURCE_DIR}/test/geocel/data/${filename}.gdml")
   set(_basename "${CMAKE_CURRENT_SOURCE_DIR}/data/${filename}")
   if(CELERITAS_USE_Geant4)
     set(_cmake_env
-      "${CMAKE_COMMAND}" "-E" "env" "${_geant4_test_env}"
+      "${CMAKE_COMMAND}" "-E" "env" "${CELERITASTEST_G4ENV}"
     )
   else()
     set(_cmake_env)
@@ -395,7 +396,7 @@ function(celeritas_add_rootupdate_target target filename)
     COMMAND
       ${_cmake_env}
       "$<TARGET_FILE:celer-export-geant>"
-      "${_basename}.gdml"
+      "${_gdml}"
       "${_basename}.geant.json"
       "${_basename}.root"
     VERBATIM

@@ -292,6 +292,9 @@ class Prism final : public ConvexRegionInterface
 //---------------------------------------------------------------------------//
 /*!
  * A sphere centered on the origin.
+ *
+ * \note Be aware there's also a sphere *surface* at orange/surf/Sphere.hh in a
+ * different namespace.
  */
 class Sphere final : public ConvexRegionInterface
 {
