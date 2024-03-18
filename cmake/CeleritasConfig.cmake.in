@@ -55,6 +55,9 @@ elseif(CELERITAS_USE_HIP)
 endif()
 
 if(CELERITAS_USE_Geant4)
+  # FIXME: needed for Geant4 11.1+ to avoid causing errors in VecGeom's
+  # FindXercesC
+  find_dependency(XercesC)
   # Geant4 calls `include_directories` for CLHEP :( which is not what we want!
   # Save and restore include directories around the call -- even though as a
   # standalone project Celeritas will never have directory-level includes
@@ -104,9 +107,6 @@ if(CELERITAS_USE_VecGeom)
       "and Celeritas (CELERITAS_USE_CUDA=${CELERITAS_USE_CUDA})"
     )
   endif()
-  if(NOT VecGeom_GDML_FOUND)
-    message(SEND_ERROR "VecGeom GDML capability is required for Celeritas")
-  endif()
 endif()
 
 if(CELERITAS_BUILD_TESTS)
@@ -131,8 +131,12 @@ endif()
 
 #-----------------------------------------------------------------------------#
 
-foreach(_dep CUDA ROOT Geant4 VecGeom MPI OpenMP)
+foreach(_dep
+    CUDA HIP # Languages
+    Geant4 HepMC3 JSON MPI OpenMP ROOT VecGeom SWIG # Packages
+  )
   set(@PROJECT_NAME@_${_dep}_FOUND ${CELERITAS_USE_${_dep}})
 endforeach()
+unset(_dep)
 
 #-----------------------------------------------------------------------------#

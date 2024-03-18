@@ -16,7 +16,6 @@ spack:
   config:
     install_tree:
       root: /opt/spack
-      padded_length: 116
       projections:
         all: "{name}/{version}/{hash:7}"
   mirrors:

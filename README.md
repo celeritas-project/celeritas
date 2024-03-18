@@ -80,6 +80,13 @@ combinations of compilers and dependencies tested under continuous integration:
     - Geant4 11.0.3
     - VecGeom 1.2.5
 
+Partial compatibility and correctness is available for an extended range of
+Geant4:
+- 10.5-10.7: no support for tracking manager offload
+- 11.0: no support for fast simulation offload
+- 11.1-11.2: [no support for default Rayleigh scattering cross section](see
+  https://github.com/celeritas-project/celeritas/issues/1091)
+
 Since we compile with extra warning flags and avoid non-portable code, most
 other compilers *should* work.
 The full set of configurations is viewable on CI platforms ([Jenkins][jenkins] and [GitHub Actions][gha]).

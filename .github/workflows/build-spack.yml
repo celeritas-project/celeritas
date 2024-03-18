@@ -17,13 +17,8 @@ jobs:
       matrix:
         compiler: [clang]
         version: [15]
-        geant: ["10.5", "10.6", "10.7", "11.1", "11.2"]
-        experimental: [true]
-        include:
-          - geant: "11.0"
-            experimental: false
-            compiler: clang
-            version: 15
+        geant: ["10.5", "10.6", "10.7", "11.0", "11.1", "11.2"]
+        experimental: [false]
     continue-on-error: ${{matrix.experimental}}
     runs-on: ubuntu-22.04
     permissions:
