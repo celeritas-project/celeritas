@@ -17,7 +17,6 @@
 #include "corecel/math/Quantity.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Units.hh"
-#include "celeritas/grid/GenericGridData.hh"
 #include "celeritas/grid/VectorUtils.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/CerenkovDndxCalculator.hh"
