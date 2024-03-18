@@ -20,7 +20,6 @@
 #include <G4ParticleGun.hh>
 #include <G4ParticleTable.hh>
 #include <G4Positron.hh>
-#include <G4RunManagerFactory.hh>
 #include <G4SystemOfUnits.hh>
 #include <G4Threading.hh>
 #include <G4ThreeVector.hh>
@@ -33,6 +32,13 @@
 #include <G4VUserActionInitialization.hh>
 #include <G4VUserDetectorConstruction.hh>
 #include <G4VUserPrimaryGeneratorAction.hh>
+#include <G4Version.hh>
+#if G4VERSION_NUMBER >= 1100
+#    include <G4RunManagerFactory.hh>
+#else
+#    include <G4MTRunManager.hh>
+#endif
+
 #include <accel/AlongStepFactory.hh>
 #include <accel/LocalTransporter.hh>
 #include <accel/SetupOptions.hh>
@@ -175,8 +181,14 @@ class ActionInitialization final : public G4VUserActionInitialization
 
 int main()
 {
-    std::unique_ptr<G4RunManager> run_manager{
-        G4RunManagerFactory::CreateRunManager()};  // G4RunManagerType::SerialOnly)};
+    auto run_manager = [] {
+#if G4VERSION_NUMBER >= 1100
+        return std::unique_ptr<G4RunManager>{
+            G4RunManagerFactory::CreateRunManager()};
+#else
+        return std::make_unique<G4RunManager>();
+#endif
+    }();
 
     run_manager->SetUserInitialization(new DetectorConstruction{});
     run_manager->SetUserInitialization(new FTFP_BERT{/* verbosity = */ 0});
@@ -189,6 +201,12 @@ int main()
     setup_options.max_num_events = 1024;
     // Celeritas does not support EmStandard MSC physics above 100 MeV
     setup_options.ignore_processes = {"CoulombScat"};
+    if (G4VERSION_NUMBER >= 1110)
+    {
+        // Default Rayleigh scattering 'MinKinEnergyPrim' is no longer
+        // consistent
+        setup_options.ignore_processes.push_back("Rayl");
+    }
 
     run_manager->Initialize();
     run_manager->BeamOn(1);
