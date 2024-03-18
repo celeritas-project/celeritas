@@ -44,7 +44,10 @@ ScintillationParams::from_import(ImportData const& data,
         = data.optical_params.scintillation_by_particle;
     input.matid_to_optmatid.resize(data.materials.size());
     input.pid_to_scintpid.resize(data.particles.size());
+
     // Fill with uninitialized data
+    // The final arrays will be mostly uninitialized, and that will determine
+    // which MaterialIds and ParticleIds are scintillation particles.
     std::fill(input.matid_to_optmatid.begin(),
               input.matid_to_optmatid.end(),
               OpticalMaterialId{});
@@ -68,12 +71,13 @@ ScintillationParams::from_import(ImportData const& data,
             continue;
         }
 
+        // Loop over particles and add all that are scintillation particles
         auto const& iomsp = iom.scintillation.particles;
         for (auto pid : range(data.particles.size()))
         {
-            auto import_pdg = data.particles[pid].pdg;
-            if (auto iter = iomsp.find(import_pdg) != iomsp.end())
+            if (iomsp.find(data.particles[pid].pdg) != iomsp.end())
             {
+                // Add new ScintillationParticleId
                 input.pid_to_scintpid[pid] = scintpid++;
             }
         }
