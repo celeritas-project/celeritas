@@ -21,6 +21,8 @@
 #include "ParticleData.hh"  // IWYU pragma: associated
 #include "ParticleView.hh"
 
+#include "detail/ParticleInserter.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -83,40 +85,19 @@ ParticleParams::ParticleParams(Input const& input)
 
     // Build elements and materials on host.
     HostVal<ParticleParamsData> host_data;
-    auto mass = make_builder(&host_data.mass);
-    auto charge = make_builder(&host_data.charge);
-    auto decay_constant = make_builder(&host_data.decay_constant);
-    auto matter = make_builder(&host_data.matter);
-    mass.reserve(input.size());
-    charge.reserve(input.size());
-    decay_constant.reserve(input.size());
-    matter.reserve(input.size());
-
+    detail::ParticleInserter insert_particle(&host_data);
     for (auto const& particle : input)
     {
         CELER_EXPECT(!particle.name.empty());
-        CELER_EXPECT(particle.mass >= zero_quantity());
-        CELER_EXPECT(particle.decay_constant >= 0);
+
+        ParticleId id = insert_particle(particle);
 
         // Add host metadata
-        ParticleId id(name_to_id_.size());
-        bool inserted;
-        std::tie(std::ignore, inserted)
-            = name_to_id_.insert({particle.name, id});
-        CELER_ASSERT(inserted);
-        std::tie(std::ignore, inserted)
-            = pdg_to_id_.insert({particle.pdg_code, id});
-        CELER_ASSERT(inserted);
-
-        // Save the metadata on the host
         md_.push_back({particle.name, particle.pdg_code});
-
-        // Save the definitions on the host
-        mass.push_back(particle.mass);
-        charge.push_back(particle.charge);
-        decay_constant.push_back(particle.decay_constant);
-        matter.push_back(particle.pdg_code.get() < 0 ? MatterType::antiparticle
-                                                     : MatterType::particle);
+        bool inserted = name_to_id_.insert({particle.name, id}).second;
+        CELER_ASSERT(inserted);
+        inserted = pdg_to_id_.insert({particle.pdg_code, id}).second;
+        CELER_ASSERT(inserted);
     }
 
     // Move to mirrored data, copying to device
