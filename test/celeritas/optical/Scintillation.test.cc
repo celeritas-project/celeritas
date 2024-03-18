@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/ScintillationGenerator.test.cc
+//! \file celeritas/optical/Scintillation.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
@@ -42,27 +42,39 @@ class ScintillationTest : public OpticalTestBase
     //!@}
 
   protected:
-    void SetUp() override
-    {
-        // Test scintillation spectrum: only one material with three components
-        // TODO: Add particle data to ScintillationParams::Input
-        ImportScintData spectrum;
-        spectrum.material.yield = 5;
-        spectrum.resolution_scale = 1;
-        spectrum.material.components = this->build_material_components();
-
-        ScintillationParams::Input inp;
-        inp.matid_to_optmatid.push_back(OpticalMaterialId(0));
-        inp.data.push_back(std::move(spectrum));
-        params = std::make_shared<ScintillationParams>(
-            std::move(inp), this->particle_params());
-    }
+    void SetUp() override {}
 
     //! Get random number generator with clean counter
     RandomEngine& rng()
     {
         rng_.reset_count();
         return rng_;
+    }
+
+    //! Create scintillation params
+    std::shared_ptr<ScintillationParams>
+    build_scintillation_params(bool scint_by_particle = false)
+    {
+        ImportScintData data;
+        data.resolution_scale = 1;
+        // One material, three components
+        data.material.yield = 5;
+        data.material.components = this->build_material_components();
+        // One particle, one component (based on lar-sphere.gdml)
+        ImportParticleScintSpectrum ipss;
+        ipss.yield_vector = this->build_particle_yield();
+        ipss.components = this->build_particle_components();
+        data.particles.insert({pdg::electron().get(), std::move(ipss)});
+
+        ScintillationParams::Input inp;
+        inp.scintillation_by_particle = scint_by_particle;
+        inp.matid_to_optmatid.push_back(OpticalMaterialId(0));
+        // Match particle params list
+        inp.pid_to_scintpid.push_back(ScintillationParticleId(0));  // electron
+        inp.data.push_back(std::move(data));
+
+        return std::make_shared<ScintillationParams>(std::move(inp),
+                                                     this->particle_params());
     }
 
     //! Create material components
@@ -73,6 +85,32 @@ class ScintillationTest : public OpticalTestBase
         comps.push_back({0.31987, 128 * nm, 10 * nm, 10 * ns, 1500 * ns});
         comps.push_back({0.023, 200 * nm, 20 * nm, 10 * ns, 3000 * ns});
         return comps;
+    }
+
+    //! Create particle yield vector
+    ImportPhysicsVector build_particle_yield()
+    {
+        ImportPhysicsVector vec;
+        vec.vector_type = ImportPhysicsVectorType::free;
+        vec.x.push_back(1e-6);
+        vec.x.push_back(6);
+        vec.y.push_back(3750);
+        vec.y.push_back(5000);
+        return vec;
+    }
+
+    //! Create particle components
+    std::vector<ImportScintComponent> build_particle_components()
+    {
+        std::vector<ImportScintComponent> vec_comps;
+        ImportScintComponent comp;
+        comp.yield = 4000;
+        comp.lambda_mean = 1e-5;
+        comp.lambda_sigma = 1e-6;
+        comp.rise_time = 15 * ns;
+        comp.fall_time = 5 * ns;
+        vec_comps.push_back(std::move(comp));
+        return vec_comps;
     }
 
     //! Set up mock pre-generator step data
@@ -88,12 +126,7 @@ class ScintillationTest : public OpticalTestBase
     }
 
   protected:
-    // Host/device storage and reference
-    std::shared_ptr<ScintillationParams const> params;
-
-    OpticalMaterialId opt_mat_id_{0};
     RandomEngine rng_;
-
     static constexpr double nm = 1e-9 * units::meter;
     static constexpr double ns = 1e-9 * units::second;
 };
@@ -102,17 +135,20 @@ class ScintillationTest : public OpticalTestBase
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(ScintillationTest, basic_params)
+TEST_F(ScintillationTest, material_scint_params)
 {
-    // TODO: Add particle test
+    auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
+    auto const opt_matid = data.matid_to_optmatid[MaterialId{0}];
 
     EXPECT_EQ(1, data.num_materials);
-    EXPECT_EQ(0, data.num_particles);
+    EXPECT_EQ(1, data.num_particles);
+    EXPECT_EQ(1, data.materials.size());
+    EXPECT_EQ(0, opt_matid.get());
 
-    auto const& material = data.materials[OpticalMaterialId{0}];
+    auto const& material = data.materials[opt_matid];
     EXPECT_REAL_EQ(5, material.yield);
-    EXPECT_REAL_EQ(1, data.resolution_scale[OpticalMaterialId{0}]);
+    EXPECT_REAL_EQ(1, data.resolution_scale[opt_matid]);
     EXPECT_EQ(3, data.components.size());
 
     std::vector<real_type> yield_fracs, lambda_means, lambda_sigmas,
@@ -151,19 +187,83 @@ TEST_F(ScintillationTest, basic_params)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(ScintillationTest, larsphere_params) {}
+TEST_F(ScintillationTest, particle_scint_params)
+{
+    auto const params = this->build_scintillation_params(
+        /* scint_by_particle = */ true);
+    auto const& data = params->host_ref();
+    auto const opt_matid = data.matid_to_optmatid[MaterialId{0}];
+    auto const scint_pid = data.pid_to_scintpid[ParticleId{0}];
+
+    EXPECT_EQ(1, data.matid_to_optmatid.size());
+    EXPECT_EQ(1, data.pid_to_scintpid.size());
+    EXPECT_REAL_EQ(1, data.resolution_scale[opt_matid]);
+
+    // Get correct spectrum index given opticals particle and material ids
+    auto const part_scint_spectrum_id
+        = data.spectrum_index(scint_pid, opt_matid);
+    EXPECT_EQ(0, part_scint_spectrum_id.get());
+
+    auto const& particle = data.particles[part_scint_spectrum_id];
+    EXPECT_EQ(particle.yield_vector.grid.size(),
+              particle.yield_vector.value.size());
+
+    std::vector<real_type> yield_grid, yield_value;
+    for (auto i : range(particle.yield_vector.grid.size()))
+    {
+        auto grid_idx = particle.yield_vector.grid[i];
+        auto val_idx = particle.yield_vector.value[i];
+        yield_grid.push_back(data.grid_data[grid_idx]);
+        yield_value.push_back(data.grid_data[val_idx]);
+    }
+
+    std::vector<real_type> yield_fracs, lambda_means, lambda_sigmas,
+        rise_times, fall_times;
+    for (auto i : range(particle.components.size()))
+    {
+        auto comp_idx = particle.components[i];
+        yield_fracs.push_back(data.components[comp_idx].yield_frac);
+        lambda_means.push_back(data.components[comp_idx].lambda_mean);
+        lambda_sigmas.push_back(data.components[comp_idx].lambda_sigma);
+        rise_times.push_back(data.components[comp_idx].rise_time);
+        fall_times.push_back(data.components[comp_idx].fall_time);
+    }
+
+    // Particle yield vector
+    static double const expected_yield_grid[] = {1e-06, 6};
+    static double const expected_yield_value[] = {3750, 5000};
+
+    EXPECT_VEC_SOFT_EQ(expected_yield_grid, yield_grid);
+    EXPECT_VEC_SOFT_EQ(expected_yield_value, yield_value);
+
+    // Particle components
+    static double const expected_yield_fracs[] = {1};
+    static double const expected_lambda_means[] = {1e-05};
+    static double const expected_lambda_sigmas[] = {1e-06};
+    static double const expected_rise_times[] = {1.5e-08};
+    static double const expected_fall_times[] = {5e-09};
+
+    EXPECT_VEC_SOFT_EQ(expected_yield_fracs, yield_fracs);
+    EXPECT_VEC_SOFT_EQ(expected_lambda_means, lambda_means);
+    EXPECT_VEC_SOFT_EQ(expected_lambda_sigmas, lambda_sigmas);
+    EXPECT_VEC_SOFT_EQ(expected_rise_times, rise_times);
+    EXPECT_VEC_SOFT_EQ(expected_fall_times, fall_times);
+}
 
 //---------------------------------------------------------------------------//
 TEST_F(ScintillationTest, pre_generator)
 {
+    auto const params = this->build_scintillation_params();
+    auto const& data = params->host_ref();
+
     // The particle's energy is necessary for the particle track view but is
     // irrelevant for the test since what matters is the energy deposition,
     // which is hardcoded in this->build_pregen_step()
     ScintillationPreGenerator generate(
         this->make_particle_track_view(MevEnergy{10}, pdg::electron()),
         this->make_sim_track_view(1),
-        opt_mat_id_,
-        params->host_ref(),
+        data.matid_to_optmatid[MaterialId{0}],
+        data,
         this->build_pregen_step());
 
     auto result = generate(this->rng());
@@ -185,12 +285,16 @@ TEST_F(ScintillationTest, pre_generator)
 //---------------------------------------------------------------------------//
 TEST_F(ScintillationTest, basic)
 {
+    auto const params = this->build_scintillation_params();
+    auto const& data = params->host_ref();
+    auto const opt_matid = data.matid_to_optmatid[MaterialId{0}];
+
     // Pre-generate optical distribution data
     ScintillationPreGenerator generate(
         this->make_particle_track_view(MevEnergy{10}, pdg::electron()),
         this->make_sim_track_view(1),
-        opt_mat_id_,
-        params->host_ref(),
+        opt_matid,
+        data,
         this->build_pregen_step());
 
     auto result = generate(this->rng());
@@ -252,11 +356,15 @@ TEST_F(ScintillationTest, basic)
 //---------------------------------------------------------------------------//
 TEST_F(ScintillationTest, stress_test)
 {
+    auto const params = this->build_scintillation_params();
+    auto const& data = params->host_ref();
+    auto const opt_matid = data.matid_to_optmatid[MaterialId{0}];
+
     ScintillationPreGenerator generate(
         this->make_particle_track_view(MevEnergy{10}, pdg::electron()),
         this->make_sim_track_view(1),
-        opt_mat_id_,
-        params->host_ref(),
+        opt_matid,
+        data,
         this->build_pregen_step());
     auto result = generate(this->rng());
 
@@ -267,7 +375,6 @@ TEST_F(ScintillationTest, stress_test)
     std::vector<OpticalPrimary> storage(result.num_photons);
 
     // Create the generator
-    HostCRef<ScintillationData> data = params->host_ref();
     ScintillationGenerator generate_photons(result, data, make_span(storage));
 
     // Generate optical photons for a given input
