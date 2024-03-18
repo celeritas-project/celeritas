@@ -456,7 +456,7 @@ void PhysicsParams::build_xs(Options const& opts,
     auto integral_xs = make_builder(&data->integral_xs);
     auto value_grid_ids = make_builder(&data->value_grid_ids);
     auto build_grid
-        = [&insert_grid](UPGridBuilder const& builder) -> ValueGridId {
+        = [insert_grid](UPGridBuilder const& builder) -> ValueGridId {
         return builder ? builder->build(insert_grid) : ValueGridId{};
     };
 

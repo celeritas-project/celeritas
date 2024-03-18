@@ -163,7 +163,7 @@ ValueGridXsBuilder::ValueGridXsBuilder(double emin,
 /*!
  * Construct on device.
  */
-auto ValueGridXsBuilder::build(ValueGridInserter& insert) const -> ValueGridId
+auto ValueGridXsBuilder::build(ValueGridInserter insert) const -> ValueGridId
 {
     auto log_energy
         = UniformGridData::from_bounds(log_emin_, log_emax_, xs_.size());
@@ -237,7 +237,7 @@ ValueGridLogBuilder::ValueGridLogBuilder(double emin, double emax, VecDbl value)
 /*!
  * Construct on device.
  */
-auto ValueGridLogBuilder::build(ValueGridInserter& insert) const -> ValueGridId
+auto ValueGridLogBuilder::build(ValueGridInserter insert) const -> ValueGridId
 {
     return insert(
         UniformGridData::from_bounds(log_emin_, log_emax_, value_.size()),
@@ -287,7 +287,7 @@ ValueGridGenericBuilder::ValueGridGenericBuilder(VecDbl grid, VecDbl value)
 /*!
  * Construct grid data in the given mutable insert.
  */
-auto ValueGridGenericBuilder::build(ValueGridInserter& insert) const
+auto ValueGridGenericBuilder::build(ValueGridInserter insert) const
     -> ValueGridId
 {
     insert({make_span(grid_), grid_interp_},
@@ -302,7 +302,7 @@ auto ValueGridGenericBuilder::build(ValueGridInserter& insert) const
 /*!
  * Always return an 'invalid' ID.
  */
-auto ValueGridOTFBuilder::build(ValueGridInserter&) const -> ValueGridId
+auto ValueGridOTFBuilder::build(ValueGridInserter) const -> ValueGridId
 {
     return {};
 }
