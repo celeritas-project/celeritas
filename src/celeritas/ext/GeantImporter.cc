@@ -168,18 +168,19 @@ struct MatPropGetter
         *dst = mpt.GetConstProperty(name) * native_value_from_clhep(q);
     }
 
-    void scalar(double* dst, char const* name, int comp, ImportUnits q)
+    void scalar(double* dst, std::string name, int comp, ImportUnits q)
     {
         // Geant4 10.6 and earlier require a const char* argument
-        std::string temp_name{name};
-        temp_name += std::to_string(comp);
-        this->scalar(dst, temp_name.c_str(), q);
+        name += std::to_string(comp);
+        this->scalar(dst, name.c_str(), q);
     }
 
-    void vector(ImportPhysicsVector* dst, char const* name, ImportUnits q)
+    void
+    vector(ImportPhysicsVector* dst, std::string const& name, ImportUnits q)
     {
         // Geant4@10.7: G4MaterialPropertiesTable.GetProperty is not const
-        auto const* g4vector = const_cast<MPT&>(mpt).GetProperty(name);
+        // and <=10.6 require const char*
+        auto const* g4vector = const_cast<MPT&>(mpt).GetProperty(name.c_str());
         if (!g4vector)
         {
             return;
@@ -234,16 +235,14 @@ fill_vec_import_scint_comp(MatPropGetter& get_property,
                             ImportUnits::inv_mev);
 
         // Custom-defined properties not available in G4MaterialPropertyIndex
-        {
-            get_property.scalar(&comp.lambda_mean,
-                                particle_name + "SCINTILLATIONLAMBDAMEAN",
-                                comp_idx,
-                                ImportUnits::len);
-            get_property.scalar(&comp.lambda_sigma,
-                                particle_name + "SCINTILLATIONLAMBDASIGMA",
-                                comp_idx,
-                                ImportUnits::len);
-        }
+        get_property.scalar(&comp.lambda_mean,
+                            particle_name + "SCINTILLATIONLAMBDAMEAN",
+                            comp_idx,
+                            ImportUnits::len);
+        get_property.scalar(&comp.lambda_sigma,
+                            particle_name + "SCINTILLATIONLAMBDASIGMA",
+                            comp_idx,
+                            ImportUnits::len);
 
         // Rise time is not defined for particle type in Geant4
         get_property.scalar(&comp.rise_time,
