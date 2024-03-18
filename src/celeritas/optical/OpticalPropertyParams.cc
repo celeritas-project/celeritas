@@ -80,6 +80,8 @@ OpticalPropertyParams::OpticalPropertyParams(Input const& inp)
 
         grid.grid = reals.insert_back(ri_vec.x.begin(), ri_vec.x.end());
         grid.value = reals.insert_back(ri_vec.y.begin(), ri_vec.y.end());
+        grid.grid_interp = Interp::linear;
+        grid.value_interp = Interp::linear;
         CELER_ASSERT(grid);
         refractive_index.push_back(grid);
     }

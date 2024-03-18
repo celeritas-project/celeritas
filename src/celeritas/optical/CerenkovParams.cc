@@ -57,6 +57,9 @@ CerenkovParams::CerenkovParams(SPConstProperties properties)
         }
         ai_grid.grid = reals.insert_back(energy.begin(), energy.end());
         ai_grid.value = reals.insert_back(integral.begin(), integral.end());
+        ai_grid.grid_interp = Interp::linear;
+        ai_grid.value_interp = Interp::linear;
+        CELER_ASSERT(ai_grid);
         angle_integral.push_back(ai_grid);
     }
     data_ = CollectionMirror<CerenkovData>{std::move(data)};
