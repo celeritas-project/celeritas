@@ -8,12 +8,14 @@
 #include "orange/orangeinp/CsgTreeUtils.hh"
 
 #include "orange/orangeinp/CsgTree.hh"
+#include "orange/orangeinp/detail/InternalSurfaceFlagger.hh"
 #include "orange/orangeinp/detail/PostfixLogicBuilder.hh"
 
 #include "celeritas_test.hh"
 
 using N = celeritas::orangeinp::NodeId;
 using S = celeritas::LocalSurfaceId;
+using celeritas::orangeinp::detail::InternalSurfaceFlagger;
 using celeritas::orangeinp::detail::PostfixLogicBuilder;
 
 namespace celeritas
@@ -75,9 +77,11 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         "all{2,4,13}, 15: all{2,4}, }",
         to_string(tree_));
 
-    // Test postfix
+    // Test postfix and internal surface flagger
+    InternalSurfaceFlagger has_internal_surfaces(tree_);
     PostfixLogicBuilder build_postfix(tree_);
     {
+        EXPECT_FALSE(has_internal_surfaces(mz));
         auto&& [faces, lgc] = build_postfix(mz);
 
         static size_type expected_lgc[] = {0};
@@ -86,6 +90,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_VEC_EQ(expected_faces, faces);
     }
     {
+        EXPECT_FALSE(has_internal_surfaces(below_pz));
         auto&& [faces, lgc] = build_postfix(below_pz);
 
         static size_type expected_lgc[] = {0, logic::lnot};
@@ -94,6 +99,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_VEC_EQ(expected_faces, faces);
     }
     {
+        EXPECT_FALSE(has_internal_surfaces(zslab));
         auto&& [faces, lgc] = build_postfix(zslab);
 
         static size_type const expected_lgc[]
@@ -103,6 +109,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_VEC_EQ(expected_faces, faces);
     }
     {
+        EXPECT_FALSE(has_internal_surfaces(zslab));
         auto&& [faces, lgc] = build_postfix(inner_cyl);
 
         static size_type const expected_lgc[]
@@ -114,6 +121,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_EQ("all(+0, -1, -2)", build_infix_string(tree_, inner_cyl));
     }
     {
+        EXPECT_TRUE(has_internal_surfaces(shell));
         auto&& [faces, lgc] = build_postfix(shell);
 
         static size_type const expected_lgc[] = {
@@ -142,6 +150,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
                   build_infix_string(tree_, shell));
     }
     {
+        EXPECT_FALSE(has_internal_surfaces(bdy));
         auto&& [faces, lgc] = build_postfix(bdy);
 
         static size_type const expected_lgc[]

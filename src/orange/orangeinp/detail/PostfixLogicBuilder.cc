@@ -144,7 +144,8 @@ void PostfixLogicBuilderImpl::operator()(Surface const& s)
 /*!
  * Push an aliased node.
  *
- * TODO: aliased node shouldn't be reachable if we're fully simplified.
+ * Aliased node shouldn't be reachable if the tree is fully simplified, but
+ * could be reachable for testing purposes.
  */
 void PostfixLogicBuilderImpl::operator()(Aliased const& n)
 {
