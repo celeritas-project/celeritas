@@ -126,9 +126,10 @@ void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
     CollectionBuilder xs(scaled_xs);
     xs.reserve(2 * materials_.num_materials());
 
-    // TODO: simplify when refactoring ValueGridInserter, etc
-    ValueGridInserter::XsGridCollection xgc;
-    ValueGridInserter vgi{reals, &xgc};
+    // TODO: simplify when refactoring ValueGridInserter, etc: for now we have
+    // to add a temporary XsGrid vector and pull data from it
+    Collection<XsGridData, Ownership::value, MemSpace::host> xgc;
+    ValueGridInserter insert_grid{reals, &xgc};
 
     for (size_type mat_idx : range(materials_.num_materials()))
     {
@@ -153,7 +154,7 @@ void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
             // temporary container and then copy it into the pm data.
             auto vgb = ValueGridLogBuilder::from_geant(make_span(pvec.x),
                                                        make_span(pvec.y));
-            auto grid_id = vgb->build(vgi);
+            auto grid_id = vgb->build(insert_grid);
             CELER_ASSERT(grid_id.get() == xs.size());
             xs.push_back(xgc[grid_id]);
         }

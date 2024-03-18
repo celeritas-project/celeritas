@@ -14,6 +14,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/grid/UniformGridData.hh"
 #include "celeritas/Types.hh"
 
@@ -43,10 +44,9 @@ class ValueGridInserter
   public:
     //!@{
     //! \name Type aliases
-    using RealCollection
-        = Collection<real_type, Ownership::value, MemSpace::host>;
-    using XsGridCollection
-        = Collection<XsGridData, Ownership::value, MemSpace::host>;
+    template<class T>
+    using Items = Collection<T, Ownership::value, MemSpace::host>;
+
     using SpanConstDbl = Span<double const>;
     using InterpolatedGrid = std::pair<SpanConstDbl, Interp>;
     using XsIndex = ItemId<XsGridData>;
@@ -55,7 +55,7 @@ class ValueGridInserter
 
   public:
     // Construct with a reference to mutable host data
-    ValueGridInserter(RealCollection* real_data, XsGridCollection* xs_grid);
+    ValueGridInserter(Items<real_type>* real_data, Items<XsGridData>* xs_grid);
 
     // Add a grid of xs-like data
     XsIndex operator()(UniformGridData const& log_grid,
@@ -69,8 +69,8 @@ class ValueGridInserter
     GenericIndex operator()(InterpolatedGrid grid, InterpolatedGrid values);
 
   private:
-    CollectionBuilder<real_type, MemSpace::host, ItemId<real_type>> values_;
-    CollectionBuilder<XsGridData, MemSpace::host, ItemId<XsGridData>> xs_grids_;
+    DedupeCollectionBuilder<real_type> values_;
+    CollectionBuilder<XsGridData> xs_grids_;
 };
 
 //---------------------------------------------------------------------------//

@@ -40,7 +40,7 @@ class ValueGridBuilder
     virtual ~ValueGridBuilder() = 0;
 
     //! Construct the grid given a mutable reference to a store
-    virtual ValueGridId build(ValueGridInserter) const = 0;
+    virtual ValueGridId build(ValueGridInserter&) const = 0;
 
   protected:
     ValueGridBuilder() = default;
@@ -86,7 +86,7 @@ class ValueGridXsBuilder final : public ValueGridBuilder
     ValueGridXsBuilder(double emin, double eprime, double emax, VecDbl xs);
 
     // Construct in the given store
-    ValueGridId build(ValueGridInserter) const final;
+    ValueGridId build(ValueGridInserter&) const final;
 
   private:
     double log_emin_;
@@ -123,7 +123,7 @@ class ValueGridLogBuilder : public ValueGridBuilder
     ValueGridLogBuilder(double emin, double emax, VecDbl value);
 
     // Construct in the given store
-    ValueGridId build(ValueGridInserter) const final;
+    ValueGridId build(ValueGridInserter&) const final;
 
     // Access values
     SpanConstDbl value() const;
@@ -158,7 +158,7 @@ class ValueGridGenericBuilder final : public ValueGridBuilder
     ValueGridGenericBuilder(VecDbl grid, VecDbl value);
 
     // Construct in the given store
-    ValueGridId build(ValueGridInserter) const final;
+    ValueGridId build(ValueGridInserter&) const final;
 
   private:
     VecDbl grid_;
@@ -171,7 +171,7 @@ class ValueGridGenericBuilder final : public ValueGridBuilder
 /*!
  * Special cases for indicating *only* on-the-fly cross sections.
  *
- * Currently this should be thrown just for processes and models specified in
+ * Currently this should be emitted just for processes and models specified in
  * \c HardwiredModels as needed for EPlusAnnihilationProcess, which has *only*
  * on-the-fly cross section calculation.
  *
@@ -182,7 +182,7 @@ class ValueGridOTFBuilder final : public ValueGridBuilder
 {
   public:
     // Don't construct anything
-    ValueGridId build(ValueGridInserter) const final;
+    ValueGridId build(ValueGridInserter&) const final;
 };
 
 //---------------------------------------------------------------------------//
