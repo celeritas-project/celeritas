@@ -61,6 +61,7 @@ bool InternalSurfaceFlagger::operator()(Negated const& n)
     if (auto* j = std::get_if<Joined>(&tree_[n.node]))
     {
         // Pointee is a "joined" node
+        CELER_DISCARD(j);
         return Status::internal;
     }
 
