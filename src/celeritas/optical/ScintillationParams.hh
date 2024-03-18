@@ -41,6 +41,7 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
         VecOptMatId matid_to_optmatid;  //!< MaterialId to OpticalMaterialId
         VecSPId pid_to_scintpid;  //!< ParticleId to ScintillationParticleId
         std::vector<ImportScintData> data;  //!< Indexed by OpticalMaterialId
+        bool scintillation_by_particle;  //!< Particle or material sampling
 
         //! Whether all data are assigned and valid
         explicit operator bool() const
@@ -51,7 +52,7 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
     };
 
   public:
-    // Construct with imported data
+    // Construct with imported data and particle params
     static std::shared_ptr<ScintillationParams>
     from_import(ImportData const& data, SPConstParticles particle_params);
 
