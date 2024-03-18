@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/FluctuationParams.cc
+//! \file celeritas/em/params/FluctuationParams.cc
 //---------------------------------------------------------------------------//
 #include "FluctuationParams.hh"
 

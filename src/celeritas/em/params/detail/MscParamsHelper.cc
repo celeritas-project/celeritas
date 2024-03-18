@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/detail/MscParamsHelper.cc
+//! \file celeritas/em/params/detail/MscParamsHelper.cc
 //---------------------------------------------------------------------------//
 #include "MscParamsHelper.hh"
 
@@ -21,6 +21,8 @@
 #include "celeritas/phys/ParticleParams.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -159,4 +161,5 @@ void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

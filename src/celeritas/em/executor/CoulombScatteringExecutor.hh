@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/executor/WentzelExecutor.hh
+//! \file celeritas/em/executor/CoulombScatteringExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "celeritas/em/data/WentzelData.hh"
-#include "celeritas/em/interactor/WentzelInteractor.hh"
+#include "celeritas/em/data/CoulombScatteringData.hh"
+#include "celeritas/em/interactor/CoulombScatteringInteractor.hh"
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/mat/IsotopeSelector.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
@@ -22,19 +22,20 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-struct WentzelExecutor
+struct CoulombScatteringExecutor
 {
     inline CELER_FUNCTION Interaction
     operator()(celeritas::CoreTrackView const& track);
 
-    WentzelRef params;
+    CoulombScatteringRef params;
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Sample Wentzel's model of elastic Coulomb scattering from the current track.
  */
-CELER_FUNCTION Interaction WentzelExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION Interaction
+CoulombScatteringExecutor::operator()(CoreTrackView const& track)
 {
     // Incident particle quantities
     auto particle = track.make_particle_view();
@@ -54,7 +55,7 @@ CELER_FUNCTION Interaction WentzelExecutor::operator()(CoreTrackView const& trac
     IsotopeView target = element.make_isotope_view(iso_select(rng));
 
     // Construct the interactor
-    WentzelInteractor interact(
+    CoulombScatteringInteractor interact(
         params, particle, dir, target, element_id, cutoffs);
 
     // Execute the interactor

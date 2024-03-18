@@ -13,7 +13,7 @@
 #include "celeritas/LeadBoxTestBase.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
 #include "celeritas/TestEm3Base.hh"
-#include "celeritas/em/UrbanMscParams.hh"
+#include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"

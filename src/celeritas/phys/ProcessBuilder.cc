@@ -241,7 +241,7 @@ auto ProcessBuilder::build_annihilation() -> SPProcess
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_coulomb() -> SPProcess
 {
-    WentzelModel::Options options;
+    CoulombScatteringModel::Options options;
     options.screening_factor = coulomb_screening_factor_;
     options.use_integral_xs = use_integral_xs_;
 

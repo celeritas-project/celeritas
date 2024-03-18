@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/model/WentzelModel.cc
+//! \file celeritas/em/model/CoulombScatteringModel.cc
 //---------------------------------------------------------------------------//
-#include "WentzelModel.hh"
+#include "CoulombScatteringModel.hh"
 
 #include "celeritas_config.h"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Units.hh"
-#include "celeritas/em/data/WentzelData.hh"
-#include "celeritas/em/executor/WentzelExecutor.hh"
+#include "celeritas/em/data/CoulombScatteringData.hh"
+#include "celeritas/em/executor/CoulombScatteringExecutor.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/em/process/CoulombScatteringProcess.hh"
 #include "celeritas/global/ActionLauncher.hh"
@@ -32,11 +32,11 @@ namespace celeritas
 /*!
  * Construct from model ID, particle data, and material data.
  */
-WentzelModel::WentzelModel(ActionId id,
-                           ParticleParams const& particles,
-                           MaterialParams const& materials,
-                           Options const& options,
-                           SPConstImported data)
+CoulombScatteringModel::CoulombScatteringModel(ActionId id,
+                                               ParticleParams const& particles,
+                                               MaterialParams const& materials,
+                                               Options const& options,
+                                               SPConstImported data)
     : imported_(data,
                 particles,
                 ImportProcessClass::coulomb_scat,
@@ -45,8 +45,8 @@ WentzelModel::WentzelModel(ActionId id,
 {
     CELER_EXPECT(id);
 
-    ScopedMem record_mem("WentzelModel.construct");
-    HostVal<WentzelData> host_data;
+    ScopedMem record_mem("CoulombScatteringModel.construct");
+    HostVal<CoulombScatteringData> host_data;
 
     // This is where the data is built and transfered to the device
     host_data.ids.action = id;
@@ -68,7 +68,7 @@ WentzelModel::WentzelModel(ActionId id,
     build_data(host_data, materials);
 
     // Construct data on device
-    data_ = CollectionMirror<WentzelData>{std::move(host_data)};
+    data_ = CollectionMirror<CoulombScatteringData>{std::move(host_data)};
 
     CELER_ENSURE(this->data_);
 }
@@ -77,7 +77,7 @@ WentzelModel::WentzelModel(ActionId id,
 /*!
  * Particle types and energy ranges that this model applies to.
  */
-auto WentzelModel::applicability() const -> SetApplicability
+auto CoulombScatteringModel::applicability() const -> SetApplicability
 {
     Applicability electron_applic;
     electron_applic.particle = this->host_ref().ids.electron;
@@ -94,7 +94,8 @@ auto WentzelModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto WentzelModel::micro_xs(Applicability applic) const -> MicroXsBuilders
+auto CoulombScatteringModel::micro_xs(Applicability applic) const
+    -> MicroXsBuilders
 {
     return imported_.micro_xs(std::move(applic));
 }
@@ -104,19 +105,20 @@ auto WentzelModel::micro_xs(Applicability applic) const -> MicroXsBuilders
 /*!
  * Apply the interaction kernel.
  */
-void WentzelModel::execute(CoreParams const& params, CoreStateHost& state) const
+void CoulombScatteringModel::execute(CoreParams const& params,
+                                     CoreStateHost& state) const
 {
     auto execute = make_action_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
         this->action_id(),
-        InteractionApplier{WentzelExecutor{this->host_ref()}});
+        InteractionApplier{CoulombScatteringExecutor{this->host_ref()}});
     return launch_action(*this, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void WentzelModel::execute(CoreParams const&, CoreStateDevice&) const
+void CoulombScatteringModel::execute(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
@@ -125,9 +127,9 @@ void WentzelModel::execute(CoreParams const&, CoreStateDevice&) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the model ID for this model.
+ * Get the action ID for this model.
  */
-ActionId WentzelModel::action_id() const
+ActionId CoulombScatteringModel::action_id() const
 {
     return this->host_ref().ids.action;
 }
@@ -136,8 +138,8 @@ ActionId WentzelModel::action_id() const
 /*!
  * Load Mott coefficients and construct per-element data.
  */
-void WentzelModel::build_data(HostVal<WentzelData>& host_data,
-                              MaterialParams const& materials)
+void CoulombScatteringModel::build_data(
+    HostVal<CoulombScatteringData>& host_data, MaterialParams const& materials)
 {
     // Build element data
     size_type const num_elements = materials.num_elements();
@@ -147,7 +149,7 @@ void WentzelModel::build_data(HostVal<WentzelData>& host_data,
     for (auto el_id : range(ElementId{num_elements}))
     {
         // Load Mott coefficients
-        WentzelElementData z_data;
+        CoulombScatteringElementData z_data;
         z_data.mott_coeff
             = get_mott_coeff_matrix(materials.get(el_id).atomic_number());
         elem_data.push_back(z_data);
@@ -173,12 +175,12 @@ void WentzelModel::build_data(HostVal<WentzelData>& host_data,
  * For higher Z values, the PRM cites a numerical solution by Boschini
  * et al (2013), but does not implement it.
  */
-WentzelElementData::MottCoeffMatrix
-WentzelModel::get_mott_coeff_matrix(AtomicNumber z)
+CoulombScatteringElementData::MottCoeffMatrix
+CoulombScatteringModel::get_mott_coeff_matrix(AtomicNumber z)
 {
     CELER_EXPECT(z);
 
-    using CoeffMat = WentzelElementData::MottCoeffMatrix;
+    using CoeffMat = CoulombScatteringElementData::MottCoeffMatrix;
     // clang-format off
     static CoeffMat const mott_coeffs[] = {
         //H.......................................
@@ -918,17 +920,18 @@ WentzelModel::get_mott_coeff_matrix(AtomicNumber z)
         {-1.22395e0,-2.83024e0,-3.09548e1,-6.36564e1,3.15887e2,4.76849e2}
         }}};
     // clang-format on
-    static_assert(
-        std::size(mott_coeffs) == WentzelElementData::num_mott_elements,
-        "wrong number of Mott coefficient elements");
+    static_assert(std::size(mott_coeffs)
+                      == CoulombScatteringElementData::num_mott_elements,
+                  "wrong number of Mott coefficient elements");
 
     int index = z.unchecked_get() - 1;
     CELER_VALIDATE(
-        index >= 0 && index < int{WentzelElementData::num_mott_elements},
+        index >= 0
+            && index < int{CoulombScatteringElementData::num_mott_elements},
         << "atomic number " << z.get()
-        << " is out of range for Wentzel model Mott coefficients (must be "
-           "less than "
-        << WentzelElementData::num_mott_elements << ")");
+        << " is out of range for Coulomb scattering model Mott coefficients "
+           "(must be less than "
+        << CoulombScatteringElementData::num_mott_elements << ")");
 
     return mott_coeffs[index];
 }
@@ -943,7 +946,8 @@ WentzelModel::get_mott_coeff_matrix(AtomicNumber z)
  * Specifically, it calculates \f$ (r_n/\bar h)^2 / 12 \f$. A special case is
  * inherited from Geant for hydrogen targets.
  */
-real_type WentzelModel::calc_nuclear_form_prefactor(IsotopeView const& iso)
+real_type
+CoulombScatteringModel::calc_nuclear_form_prefactor(IsotopeView const& iso)
 {
     if (iso.atomic_number().get() == 1)
     {
