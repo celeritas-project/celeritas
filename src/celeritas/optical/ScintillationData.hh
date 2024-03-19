@@ -145,8 +145,10 @@ struct ScintillationData
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !matid_to_optmatid.empty() && !materials.empty()
-               && num_materials == matid_to_optmatid.size();
+        return !matid_to_optmatid.empty() && !pid_to_scintpid.empty()
+               && (!materials.empty() || !particles.empty())
+               && num_materials == matid_to_optmatid.size()
+               && num_particles == pid_to_scintpid.size();
     }
 
     //! Whether sampling must happen by particle type
