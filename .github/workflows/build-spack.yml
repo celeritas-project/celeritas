@@ -138,7 +138,8 @@ jobs:
         run: |
           if [ "${{matrix.geant}}" == "11.0" ]; then
             # TODO: add 11.0.4 and clhep version to tests
-            # export CELER_TEST_STRICT=1
+            #export CELER_TEST_STRICT=1
+            echo "warning: strict testing is disabled"
           fi
           ctest --parallel $(nproc) --timeout 15 --output-on-failure \
             --test-output-size-passed=32768 --test-output-size-failed=1048576
