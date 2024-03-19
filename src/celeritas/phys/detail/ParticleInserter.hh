@@ -18,7 +18,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Build particle params data.
+ * Build particle parameters from user input.
  */
 class ParticleInserter
 {
@@ -35,7 +35,7 @@ class ParticleInserter
     explicit inline ParticleInserter(Data* data);
 
     // Add a particle type
-    Id operator()(Input const& inp);
+    inline Id operator()(Input const& inp);
 
   private:
     template<class T>
