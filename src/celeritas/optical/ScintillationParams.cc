@@ -121,29 +121,35 @@ ScintillationParams::ScintillationParams(Input const& input,
         build_scintpid.push_back(id);
     }
 
-    // Store material-indexed scintillation data
+    // Store resolution scale
     for (auto const& inp : input.data)
     {
-        // Check validity of input scintillation data
-        CELER_ASSERT(inp);
-        // Material-only data
-        MaterialScintillationSpectrum mat_spec;
-        mat_spec.yield = inp.material.yield;
-        CELER_VALIDATE(mat_spec.yield > 0,
-                       << "invalid yield=" << mat_spec.yield
-                       << " for scintillation (should be positive)");
-        auto comps = this->copy_components(inp.material.components);
-        mat_spec.components
-            = build_compoments.insert_back(comps.begin(), comps.end());
-        build_materials.push_back(std::move(mat_spec));
-
         CELER_VALIDATE(inp.resolution_scale >= 0,
                        << "invalid resolution_scale=" << inp.resolution_scale
                        << " for scintillation (should be nonnegative)");
         build_resolutionscale.push_back(inp.resolution_scale);
     }
 
-    if (input.scintillation_by_particle)
+    if (!input.scintillation_by_particle)
+    {
+        // Store material scintillation data
+        for (auto const& inp : input.data)
+        {
+            // Check validity of input scintillation data
+            CELER_ASSERT(inp);
+            // Material-only data
+            MaterialScintillationSpectrum mat_spec;
+            mat_spec.yield = inp.material.yield;
+            CELER_VALIDATE(mat_spec.yield > 0,
+                           << "invalid yield=" << mat_spec.yield
+                           << " for scintillation (should be positive)");
+            auto comps = this->copy_components(inp.material.components);
+            mat_spec.components
+                = build_compoments.insert_back(comps.begin(), comps.end());
+            build_materials.push_back(std::move(mat_spec));
+        }
+    }
+    else
     {
         // Store particle- and material-dependent scintillation data
         // Index should loop over particles first, then materials. This
@@ -169,8 +175,6 @@ ScintillationParams::ScintillationParams(Input const& input,
                     ipss.yield_vector.x.begin(), ipss.yield_vector.x.end());
                 part_spec.yield_vector.value = build_grid.insert_back(
                     ipss.yield_vector.y.begin(), ipss.yield_vector.y.end());
-                // TODO: Check interpolation type
-                part_spec.yield_vector.grid_interp = Interp::linear;
                 CELER_ASSERT(part_spec.yield_vector);
 
                 auto comps = this->copy_components(ipss.components);
