@@ -8,8 +8,8 @@
 #include "AlongStepRZMapFieldMscAction.hh"
 
 #include "corecel/sys/ScopedProfiling.hh"
-#include "celeritas/em/FluctuationParams.hh"
-#include "celeritas/em/UrbanMscParams.hh"
+#include "celeritas/em/params/FluctuationParams.hh"
+#include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"

@@ -23,6 +23,7 @@ test -n "${CMAKE_PRESET}" || (
 build_local() {
   git clean -fxd .
   EXAMPLE_INSTALL=${PWD}/install
+  printf "\e[1;32]mTesting in ${PWD}\e[m\n"
   mkdir build
   cd build
   cmake -G Ninja \

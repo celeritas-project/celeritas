@@ -26,13 +26,13 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/em/AtomicRelaxationParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/data/AtomicRelaxationData.hh"
 #include "celeritas/em/data/EPlusGGData.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/em/model/CombinedBremModel.hh"
 #include "celeritas/em/model/EPlusGGModel.hh"
 #include "celeritas/em/model/LivermorePEModel.hh"
+#include "celeritas/em/params/AtomicRelaxationParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
@@ -243,12 +243,34 @@ void PhysicsParams::build_options(Options const& opts, HostValue* data) const
     CELER_VALIDATE(opts.secondary_stack_factor > 0,
                    << "invalid secondary_stack_factor="
                    << opts.secondary_stack_factor << " (should be positive)");
+    CELER_VALIDATE(opts.lambda_limit > 0,
+                   << "invalid lambda_limit=" << opts.lambda_limit
+                   << " (should be positive)");
+    CELER_VALIDATE(opts.safety_factor >= 0.1,
+                   << "invalid safety_factor=" << opts.safety_factor
+                   << " (should be >= 0.1)");
+    CELER_VALIDATE(opts.range_factor > 0 && opts.range_factor < 1,
+                   << "invalid range_factor=" << opts.range_factor
+                   << " (should be within 0 < limit < 1)");
     data->scalars.min_range = opts.min_range;
     data->scalars.max_step_over_range = opts.max_step_over_range;
     data->scalars.min_eprime_over_e = opts.min_eprime_over_e;
     data->scalars.lowest_electron_energy = opts.lowest_electron_energy;
     data->scalars.linear_loss_limit = opts.linear_loss_limit;
     data->scalars.secondary_stack_factor = opts.secondary_stack_factor;
+    data->scalars.lambda_limit = opts.lambda_limit;
+    data->scalars.range_factor = opts.range_factor;
+    data->scalars.safety_factor = opts.safety_factor;
+    data->scalars.step_limit_algorithm = opts.step_limit_algorithm;
+    if (data->scalars.step_limit_algorithm
+        == MscStepLimitAlgorithm::distance_to_boundary)
+    {
+        CELER_LOG(warning) << "Unsupported step limit algorithm '"
+                           << to_cstring(data->scalars.step_limit_algorithm)
+                           << "': defaulting to '"
+                           << to_cstring(MscStepLimitAlgorithm::safety) << "'";
+        data->scalars.step_limit_algorithm = MscStepLimitAlgorithm::safety;
+    }
 }
 
 //---------------------------------------------------------------------------//

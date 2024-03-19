@@ -258,7 +258,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
                 CELER_ASSERT(!is_displaced_);
                 limit_min_ = UrbanMscParameters::limit_min();
             }
-            limit_min_ = min(limit_min_, shared_.params.lambda_limit);
+            limit_min_ = min(limit_min_, physics.scalars().lambda_limit);
 
             // TODO: theta0_ calculation could be done externally, eliminating
             // many of the class member data

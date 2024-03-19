@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "AlongStepGeneralLinearAction.hh"
 
-#include "celeritas/em/FluctuationParams.hh"  // IWYU pragma: keep
-#include "celeritas/em/UrbanMscParams.hh"  // IWYU pragma: keep
+#include "celeritas/em/params/FluctuationParams.hh"  // IWYU pragma: keep
+#include "celeritas/em/params/UrbanMscParams.hh"  // IWYU pragma: keep
 
 #include "detail/AlongStepKernels.hh"
 

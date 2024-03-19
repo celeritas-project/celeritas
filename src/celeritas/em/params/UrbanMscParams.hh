@@ -3,17 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/UrbanMscParams.hh
+//! \file celeritas/em/params/UrbanMscParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
-#include <vector>
 
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
-
-#include "data/UrbanMscData.hh"
+#include "celeritas/em/data/UrbanMscData.hh"
 
 namespace celeritas
 {
@@ -29,10 +27,6 @@ struct ImportMscModel;
  * Construct and store data for Urban multiple scattering.
  *
  * Multiple scattering is used by the along-step kernel(s).
- *
- * TODO: UrbanMsc is the only MSC model presently in Celeritas, but we should
- * extend this to be an interface since it's an interchangeable component of
- * the along-step kernel(s).
  */
 class UrbanMscParams final : public ParamsDataInterface<UrbanMscData>
 {
@@ -42,41 +36,30 @@ class UrbanMscParams final : public ParamsDataInterface<UrbanMscData>
     using VecImportMscModel = std::vector<ImportMscModel>;
     //!@}
 
-    //! MSC configuration options
-    struct Options
-    {
-        real_type lambda_limit{1 * units::millimeter};  //!< Lambda limit
-        real_type range_fact{0.04};  //!< Range factor for e-/e+
-        real_type safety_fact{0.6};  //!< Safety factor
-        MscStepLimitAlgorithm step_limit_algorithm{
-            MscStepLimitAlgorithm::safety};
-    };
-
   public:
     // Construct if MSC process data is present, else return nullptr
     static std::shared_ptr<UrbanMscParams>
     from_import(ParticleParams const& particles,
                 MaterialParams const& materials,
-                ImportData const& import);
+                ImportData const& data);
 
     // Construct from process data
-    inline UrbanMscParams(ParticleParams const& particles,
-                          MaterialParams const& materials,
-                          VecImportMscModel const& mdata,
-                          Options options);
+    UrbanMscParams(ParticleParams const& particles,
+                   MaterialParams const& materials,
+                   VecImportMscModel const& mdata);
 
     // TODO: possible "applicability" interface used for constructing
     // along-step kernels?
 
     //! Access UrbanMsc data on the host
-    HostRef const& host_ref() const final { return mirror_.host_ref(); }
+    HostRef const& host_ref() const final { return data_.host_ref(); }
 
     //! Access UrbanMsc data on the device
-    DeviceRef const& device_ref() const final { return mirror_.device_ref(); }
+    DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
     // Host/device storage and reference
-    CollectionMirror<UrbanMscData> mirror_;
+    CollectionMirror<UrbanMscData> data_;
 
     static UrbanMscMaterialData
     calc_material_data(MaterialView const& material_view);

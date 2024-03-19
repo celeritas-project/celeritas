@@ -13,7 +13,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
 #include "geocel/UnitUtils.hh"
-#include "celeritas/em/UrbanMscParams.hh"
+#include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/global/ActionInterface.hh"

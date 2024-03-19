@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/model/WentzelModel.cu
+//! \file celeritas/em/model/CoulombScatteringModel.cu
 //---------------------------------------------------------------------------//
-#include "WentzelModel.hh"
+#include "CoulombScatteringModel.hh"
 
-#include "celeritas/em/executor/WentzelExecutor.hh"
+#include "celeritas/em/executor/CoulombScatteringExecutor.hh"
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -20,14 +20,14 @@ namespace celeritas
 /*!
  * Interact with device data.
  */
-void WentzelModel::execute(CoreParams const& params,
-                           CoreStateDevice& state) const
+void CoulombScatteringModel::execute(CoreParams const& params,
+                                     CoreStateDevice& state) const
 {
     auto execute = make_action_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
         this->action_id(),
-        InteractionApplier{WentzelExecutor{this->device_ref()}});
+        InteractionApplier{CoulombScatteringExecutor{this->device_ref()}});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 }

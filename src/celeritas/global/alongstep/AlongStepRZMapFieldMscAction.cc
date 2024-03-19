@@ -11,9 +11,9 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
-#include "celeritas/em/FluctuationParams.hh"  // IWYU pragma: keep
-#include "celeritas/em/UrbanMscParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/msc/UrbanMsc.hh"
+#include "celeritas/em/params/FluctuationParams.hh"  // IWYU pragma: keep
+#include "celeritas/em/params/UrbanMscParams.hh"  // IWYU pragma: keep
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionLauncher.hh"
@@ -23,6 +23,7 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 
 #include "AlongStep.hh"
+
 #include "detail/FluctELoss.hh"
 #include "detail/MeanELoss.hh"
 #include "detail/RZMapFieldPropagatorFactory.hh"

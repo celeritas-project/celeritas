@@ -9,8 +9,8 @@
 
 #include <memory>
 
-#include "celeritas/em/data/WentzelData.hh"
-#include "celeritas/em/model/WentzelModel.hh"
+#include "celeritas/em/data/CoulombScatteringData.hh"
+#include "celeritas/em/model/CoulombScatteringModel.hh"
 #include "celeritas/io/ImportParameters.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/Applicability.hh"
@@ -35,11 +35,11 @@ class CoulombScatteringProcess : public Process
     //!@}
 
   public:
-    //! Construct from Wentzel scattering data
+    //! Construct from Coulomb scattering data
     CoulombScatteringProcess(SPConstParticles particles,
                              SPConstMaterials materials,
                              SPConstImported process_data,
-                             WentzelModel::Options const& options);
+                             CoulombScatteringModel::Options const& options);
 
     //! Construct the models associated with this process
     VecModel build_models(ActionIdIter start_id) const final;
@@ -57,7 +57,7 @@ class CoulombScatteringProcess : public Process
     SPConstParticles particles_;
     SPConstMaterials materials_;
     ImportedProcessAdapter imported_;
-    WentzelModel::Options options_;
+    CoulombScatteringModel::Options options_;
 };
 
 //---------------------------------------------------------------------------//

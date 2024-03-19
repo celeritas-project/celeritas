@@ -13,9 +13,9 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/Device.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/em/FluctuationParams.hh"
-#include "celeritas/em/UrbanMscParams.hh"
 #include "celeritas/em/msc/UrbanMsc.hh"  // IWYU pragma: associated
+#include "celeritas/em/params/FluctuationParams.hh"
+#include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"

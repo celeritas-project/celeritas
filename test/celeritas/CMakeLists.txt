@@ -132,7 +132,7 @@ celeritas_add_test(em/MuBremsstrahlung.test.cc ${_needs_double})
 celeritas_add_test(em/Rayleigh.test.cc ${_needs_double})
 celeritas_add_test(em/RelativisticBrem.test.cc ${_needs_double})
 celeritas_add_test(em/SeltzerBerger.test.cc ${_needs_double})
-celeritas_add_test(em/Wentzel.test.cc ${_fixme_single})
+celeritas_add_test(em/CoulombScattering.test.cc ${_fixme_single})
 
 celeritas_add_test(em/UrbanMsc.test.cc ${_needs_root}
   ${_optional_geant4_env})
