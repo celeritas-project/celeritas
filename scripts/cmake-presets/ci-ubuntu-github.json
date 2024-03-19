@@ -121,6 +121,7 @@
       "inherits": ["spack"],
       "cacheVariables": {
         "CELERITAS_USE_HIP": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT": {"type": "BOOL", "value": "OFF"},
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fsanitize=address -fno-omit-frame-pointer"
       }
