@@ -37,9 +37,7 @@ class NeutronInelasticInteractor
     // Construct from shared and state data
     inline CELER_FUNCTION
     NeutronInelasticInteractor(NeutronInelasticRef const& shared,
-                               ParticleTrackView const& particle,
-                               Real3 const& inc_direction,
-                               IsotopeView const& target);
+                               ParticleTrackView const& particle);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -50,10 +48,6 @@ class NeutronInelasticInteractor
 
     // Constant shared data
     NeutronInelasticRef const& shared_;
-    // Incident neutron direction
-    Real3 const& inc_direction_;
-    // Target nucleus
-    IsotopeView const& target_;
 };
 
 //---------------------------------------------------------------------------//
@@ -65,10 +59,8 @@ class NeutronInelasticInteractor
 CELER_FUNCTION
 NeutronInelasticInteractor::NeutronInelasticInteractor(
     NeutronInelasticRef const& shared,
-    ParticleTrackView const& particle,
-    Real3 const& inc_direction,
-    IsotopeView const& target)
-    : shared_(shared), inc_direction_(inc_direction), target_(target)
+    ParticleTrackView const& particle)
+    : shared_(shared)
 {
     CELER_EXPECT(particle.particle_id() == shared_.scalars.neutron_id);
 }

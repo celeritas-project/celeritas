@@ -37,7 +37,6 @@ CELER_FUNCTION Interaction
 NeutronInelasticExecutor::operator()(CoreTrackView const& track)
 {
     auto particle = track.make_particle_view();
-    auto const& dir = track.make_geo_view().dir();
     auto rng = track.make_rng_engine();
 
     // Select a target element
@@ -54,14 +53,9 @@ NeutronInelasticExecutor::operator()(CoreTrackView const& track)
         CELER_ASSERT(elcomp_id);
         track.make_physics_step_view().element(elcomp_id);
     }
-    ElementView element = material.make_element_view(elcomp_id);
-
-    // Select a target nucleus
-    IsotopeSelector iso_select(element);
-    IsotopeView target = element.make_isotope_view(iso_select(rng));
-
+    
     // Construct the interactor
-    NeutronInelasticInteractor interact(params, particle, dir, target);
+    NeutronInelasticInteractor interact(params, particle);
 
     // Execute the interactor
     return interact(rng);
