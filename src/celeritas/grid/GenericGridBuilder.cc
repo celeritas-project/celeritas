@@ -27,6 +27,27 @@ GenericGridBuilder::GenericGridBuilder(Items<real_type>* reals) : reals_{reals}
 auto GenericGridBuilder::operator()(SpanConstReal grid, SpanConstReal values)
     -> Grid
 {
+    return this->insert_impl(grid, values);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add a grid from an imported physics vector.
+ */
+auto GenericGridBuilder::operator()(ImportPhysicsVector const& pvec) -> Grid
+{
+    CELER_EXPECT(pvec.vector_type == ImportPhysicsVectorType::free);
+    return this->insert_impl(pvec.x, pvec.y);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add a grid from container references.
+ */
+template<class Cont>
+auto GenericGridBuilder::insert_impl(Cont const& grid, Cont const& values)
+    -> Grid
+{
     CELER_EXPECT(grid.size() >= 2);
     CELER_EXPECT(grid.front() <= grid.back());
     CELER_EXPECT(values.size() == grid.size());
@@ -37,16 +58,6 @@ auto GenericGridBuilder::operator()(SpanConstReal grid, SpanConstReal values)
 
     CELER_ENSURE(result);
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Add a grid from an imported physics vector.
- */
-auto GenericGridBuilder::operator()(ImportPhysicsVector const& pvec) -> Grid
-{
-    CELER_EXPECT(pvec.vector_type == ImportPhysicsVectorType::free);
-    return (*this)(make_span(pvec.x), make_span(pvec.y));
 }
 
 //---------------------------------------------------------------------------//

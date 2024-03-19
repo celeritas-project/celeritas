@@ -45,6 +45,10 @@ class GenericGridBuilder
 
   private:
     DedupeCollectionBuilder<real_type> reals_;
+
+    // Insert via containers for floating point conversions
+    template<class Cont>
+    Grid insert_impl(Cont const& grid, Cont const& values);
 };
 
 //---------------------------------------------------------------------------//
