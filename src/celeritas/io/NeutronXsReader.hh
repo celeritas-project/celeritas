@@ -51,18 +51,15 @@ class NeutronXsReader
     explicit NeutronXsReader(NeutronXsType type);
 
     // Construct the reader from the path to the data directory and the type
-    explicit NeutronXsReader(char const* path, NeutronXsType type);
+    NeutronXsReader(NeutronXsType type, char const* path);
 
     // Read the data for the given element
     result_type operator()(AtomicNumber atomic_number) const;
 
   private:
-    // Get the string value for the cross section data type
-
-  private:
-    // Directory containing the neutron elastic cross section data
-    std::string path_;
+    // Type and directory containing the neutron elastic cross section data
     NeutronXsType type_;
+    std::string path_;
 };
 
 //---------------------------------------------------------------------------//

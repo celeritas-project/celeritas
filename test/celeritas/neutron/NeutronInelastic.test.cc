@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/neutron/NeutronBertini.test.cc
+//! \file celeritas/neutron/NeutronInelastic.test.cc
 //---------------------------------------------------------------------------//
 #include <memory>
 
@@ -39,7 +39,7 @@ class NeutronInelasticTest : public NeutronTestBase
 
         // Load neutron elastic cross section data
         std::string data_path = this->test_data_path("celeritas", "");
-        NeutronXsReader read_el_data(data_path.c_str(), NeutronXsType::inel);
+        NeutronXsReader read_el_data(NeutronXsType::inel, data_path.c_str());
 
         // Set up the default particle: 100 MeV neutron along +z direction
         auto const& particles = *this->particle_params();

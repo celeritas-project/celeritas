@@ -39,8 +39,8 @@ NeutronXsReader::NeutronXsReader(NeutronXsType type) : type_(type)
 /*!
  * Construct the reader with the path to the directory containing the data.
  */
-NeutronXsReader::NeutronXsReader(char const* path, NeutronXsType type)
-    : path_(path), type_(type)
+NeutronXsReader::NeutronXsReader(NeutronXsType type, char const* path)
+    : type_(type), path_(path)
 {
     CELER_EXPECT(!path_.empty());
     if (path_.back() == '/')
