@@ -124,7 +124,7 @@ MomentumTransferSampler::MomentumTransferSampler(NeutronElasticRef const& shared
                                                  IsotopeView const& target,
                                                  Momentum neutron_p)
     : par_(shared.coeffs[target.isotope_id()].par)
-    , neutron_mass_(shared.neutron_mass)
+    , neutron_mass_(shared.scalars.neutron_mass)
     , target_mass_(target.nuclear_mass())
     , amass_(target.atomic_mass_number())
     , heavy_target_(amass_.get() > 6)
