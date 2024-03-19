@@ -80,10 +80,9 @@
     },
     {
       "name": "reldeb-vecgeom",
-      "description": "Build with release, assertions, VecGeom, SWIG",
+      "description": "Build with release, assertions, VecGeom",
       "inherits": [".vecgeom", "spack"],
       "cacheVariables": {
-        "CELERITAS_USE_SWIG": {"type": "BOOL", "value": "ON"}
       }
     },
     {
