@@ -30,7 +30,8 @@ class GenericGridBuilder
     template<class T>
     using Items = Collection<T, Ownership::value, MemSpace::host>;
     using Grid = GenericGridData;
-    using SpanConstReal = Span<real_type const>;
+    using SpanConstFlt = Span<float const>;
+    using SpanConstDbl = Span<double const>;
     //!@}
 
   public:
@@ -38,7 +39,10 @@ class GenericGridBuilder
     explicit GenericGridBuilder(Items<real_type>* reals);
 
     // Add a grid of generic data with linear interpolation
-    Grid operator()(SpanConstReal grid, SpanConstReal values);
+    Grid operator()(SpanConstFlt grid, SpanConstFlt values);
+
+    // Add a grid of generic data with linear interpolation
+    Grid operator()(SpanConstDbl grid, SpanConstDbl values);
 
     // Add a grid from an imported physics vector
     Grid operator()(ImportPhysicsVector const&);
@@ -46,9 +50,9 @@ class GenericGridBuilder
   private:
     DedupeCollectionBuilder<real_type> reals_;
 
-    // Insert via containers for floating point conversions
-    template<class Cont>
-    Grid insert_impl(Cont const& grid, Cont const& values);
+    // Insert with floating point conversion if needed
+    template<class T>
+    Grid insert_impl(Span<T const> grid, Span<T const> values);
 };
 
 //---------------------------------------------------------------------------//

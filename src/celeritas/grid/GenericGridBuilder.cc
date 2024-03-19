@@ -24,7 +24,17 @@ GenericGridBuilder::GenericGridBuilder(Items<real_type>* reals) : reals_{reals}
 /*!
  * Add a grid of generic data with linear interpolation.
  */
-auto GenericGridBuilder::operator()(SpanConstReal grid, SpanConstReal values)
+auto GenericGridBuilder::operator()(SpanConstFlt grid, SpanConstFlt values)
+    -> Grid
+{
+    return this->insert_impl(grid, values);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add a grid of generic data with linear interpolation.
+ */
+auto GenericGridBuilder::operator()(SpanConstDbl grid, SpanConstDbl values)
     -> Grid
 {
     return this->insert_impl(grid, values);
@@ -37,15 +47,15 @@ auto GenericGridBuilder::operator()(SpanConstReal grid, SpanConstReal values)
 auto GenericGridBuilder::operator()(ImportPhysicsVector const& pvec) -> Grid
 {
     CELER_EXPECT(pvec.vector_type == ImportPhysicsVectorType::free);
-    return this->insert_impl(pvec.x, pvec.y);
+    return this->insert_impl(make_span(pvec.x), make_span(pvec.y));
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Add a grid from container references.
  */
-template<class Cont>
-auto GenericGridBuilder::insert_impl(Cont const& grid, Cont const& values)
+template<class T>
+auto GenericGridBuilder::insert_impl(Span<T const> grid, Span<T const> values)
     -> Grid
 {
     CELER_EXPECT(grid.size() >= 2);
