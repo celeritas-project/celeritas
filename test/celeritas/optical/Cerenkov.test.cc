@@ -123,16 +123,17 @@ class CerenkovTest : public OpticalTestBase
     {
         // Build optical properties: only one material (water)
         ImportOpticalProperty water;
-        auto wavelength = get_wavelength();
-        for (auto wl : wavelength)
+        for (double wl : get_wavelength())
         {
             water.refractive_index.x.push_back(
                 convert_to_energy(wl * micrometer));
         }
         water.refractive_index.y
             = {get_refractive_index().begin(), get_refractive_index().end()};
+        water.refractive_index.vector_type = ImportPhysicsVectorType::free;
+
         OpticalPropertyParams::Input input;
-        input.data.push_back(water);
+        input.data.push_back(std::move(water));
         properties = std::make_shared<OpticalPropertyParams>(std::move(input));
 
         // Build Cerenkov data
