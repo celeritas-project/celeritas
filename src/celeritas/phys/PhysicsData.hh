@@ -19,6 +19,7 @@
 #include "celeritas/grid/ValueGridData.hh"
 #include "celeritas/grid/XsGridData.hh"
 #include "celeritas/neutron/data/NeutronElasticData.hh"
+#include "celeritas/neutron/data/NeutronInelasticData.hh"
 
 #include "Interaction.hh"
 #include "Secondary.hh"
@@ -179,6 +180,11 @@ struct HardwiredModels
     ModelId chips;
     NeutronElasticData<W, M> chips_data;
 
+    // Neutron inelastic
+    ProcessId neutron_inelastic;
+    ModelId bertini;
+    NeutronInelasticData<W, M> bertini_data;
+
     //// MEMBER FUNCTIONS ////
 
     //! Assign from another set of hardwired models
@@ -205,6 +211,14 @@ struct HardwiredModels
             // Only assign neutron_elastic data if that process is present
             chips = other.chips;
             chips_data = other.chips_data;
+        }
+
+        neutron_inelastic = other.neutron_inelastic;
+        if (neutron_inelastic)
+        {
+            // Only assign neutron_inelastic data if that process is present
+            bertini = other.bertini;
+            bertini_data = other.bertini_data;
         }
 
         return *this;

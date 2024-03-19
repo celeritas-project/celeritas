@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/neutron/data/NeutronElasticData.hh
+//! \file celeritas/neutron/data/NeutronInelasticData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -19,37 +19,9 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Parameters for sampling the momentum transfer of CHIPS neutron-nucleus
- * elastic scattering.
+ * Scalar data for neutron-nucleus inelastic interactions.
  */
-struct ExchangeParameters
-{
-    using Real4 = Array<real_type, 4>;
-
-    // Momentum-dependent parameters in G4ChipsNeutronElasticXS
-    real_type ss{};  // square slope of the first diffractive maximum
-    Real4 slope{0, 0, 0, 0};  //!< slope of CHIPS diffractive maxima
-    Real4 expnt{0, 0, 0, 0};  //!< mantissa of CHIPS diffractive maxima
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * A-dependent data for the differential cross section (momentum transfer) of
- * the CHIPS neutron-nucleus elastic model.
- */
-struct ChipsDiffXsCoefficients
-{
-    using ChipsArray = Array<real_type, 42>;
-
-    // Coefficients
-    ChipsArray par{};  //!< Coefficients as a function of atomic mass numbers
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Scalar data for neutron-nucleus elastic scattering.
- */
-struct NeutronElasticScalars
+struct NeutronInelasticScalars
 {
     //! Action and particle IDs
     ActionId action_id;
@@ -61,7 +33,7 @@ struct NeutronElasticScalars
     //! Model's minimum and maximum energy limit [MeV]
     static CELER_CONSTEXPR_FUNCTION units::MevEnergy min_valid_energy()
     {
-        return units::MevEnergy{1e-5};
+        return units::MevEnergy{1e-7};
     }
 
     static CELER_CONSTEXPR_FUNCTION units::MevEnergy max_valid_energy()
@@ -81,10 +53,8 @@ struct NeutronElasticScalars
  * Device data for creating an interactor.
  */
 template<Ownership W, MemSpace M>
-struct NeutronElasticData
+struct NeutronInelasticData
 {
-    using XsUnits = units::Native;  // [len^2]
-
     template<class T>
     using Items = Collection<T, W, M>;
     template<class T>
@@ -95,38 +65,33 @@ struct NeutronElasticData
     //// MEMBER DATA ////
 
     //! Scalar data
-    NeutronElasticScalars scalars;
+    NeutronInelasticScalars scalars;
 
-    //! Microscopic (element) cross section data (G4PARTICLEXS/neutron/elZ)
+    //! Microscopic (element) cross section data (G4PARTICLEXS/neutron/inelZ)
     Items<real_type> reals;
     ElementItems<GenericGridData> micro_xs;
-
-    //! A-dependent coefficients for the momentum transfer of the CHIPS model
-    IsotopeItems<ChipsDiffXsCoefficients> coeffs;
 
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return scalars && !reals.empty() && !micro_xs.empty()
-               && !coeffs.empty();
+        return scalars && !reals.empty() && !micro_xs.empty();
     }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    NeutronElasticData& operator=(NeutronElasticData<W2, M2> const& other)
+    NeutronInelasticData& operator=(NeutronInelasticData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         scalars = other.scalars;
         reals = other.reals;
         micro_xs = other.micro_xs;
-        coeffs = other.coeffs;
         return *this;
     }
 };
 
-using NeutronElasticHostRef = HostCRef<NeutronElasticData>;
-using NeutronElasticDeviceRef = DeviceCRef<NeutronElasticData>;
-using NeutronElasticRef = NativeCRef<NeutronElasticData>;
+using NeutronInelasticHostRef = HostCRef<NeutronInelasticData>;
+using NeutronInelasticDeviceRef = DeviceCRef<NeutronInelasticData>;
+using NeutronInelasticRef = NativeCRef<NeutronInelasticData>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

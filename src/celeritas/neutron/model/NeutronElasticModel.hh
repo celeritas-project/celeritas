@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/neutron/model/ChipsNeutronElasticModel.hh
+//! \file celeritas/neutron/model/NeutronElasticModel.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -27,7 +27,7 @@ class ParticleParams;
 /*!
  * Set up and launch the neutron elastic CHIPS model interaction.
  */
-class ChipsNeutronElasticModel final : public Model
+class NeutronElasticModel final : public Model
 {
   public:
     //!@{
@@ -40,10 +40,10 @@ class ChipsNeutronElasticModel final : public Model
 
   public:
     // Construct from model ID and other necessary data
-    ChipsNeutronElasticModel(ActionId id,
-                             ParticleParams const& particles,
-                             MaterialParams const& materials,
-                             ReadData load_data);
+    NeutronElasticModel(ActionId id,
+                        ParticleParams const& particles,
+                        MaterialParams const& materials,
+                        ReadData load_data);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;

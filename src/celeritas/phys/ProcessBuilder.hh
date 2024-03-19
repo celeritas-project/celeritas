@@ -115,6 +115,7 @@ class ProcessBuilder
     std::function<ImportSBTable(AtomicNumber)> read_sb_;
     std::function<ImportLivermorePE(AtomicNumber)> read_livermore_;
     std::function<ImportPhysicsVector(AtomicNumber)> read_neutron_elastic_;
+    std::function<ImportPhysicsVector(AtomicNumber)> read_neutron_inelastic_;
 
     BremsModelSelection selection_;
     bool brem_combined_;
@@ -136,6 +137,7 @@ class ProcessBuilder
     auto build_eioni() -> SPProcess;
     auto build_msc() -> SPProcess;
     auto build_neutron_elastic() -> SPProcess;
+    auto build_neutron_inelastic() -> SPProcess;
     auto build_photoelectric() -> SPProcess;
     auto build_rayleigh() -> SPProcess;
 };

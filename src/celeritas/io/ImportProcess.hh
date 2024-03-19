@@ -72,7 +72,9 @@ enum class ImportProcessClass
     mu_pair_prod,
     gamma_general,  // Will be decomposed into other processes
     // Neutron
+    neutron_capture,
     neutron_elastic,
+    neutron_inelastic,
     size_
 };
 

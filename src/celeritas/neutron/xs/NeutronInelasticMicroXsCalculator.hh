@@ -3,55 +3,55 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/neutron/xs/NeutronElasticMicroXsCalculator.hh
+//! \file celeritas/neutron/xs/NeutronInelasticMicroXsCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "celeritas/neutron/data/NeutronElasticData.hh"
+#include "celeritas/neutron/data/NeutronInelasticData.hh"
 
 #include "NeutronMicroXsCalculator.hh"
 
 namespace celeritas
 {
-class NeutronElasticMicroXsCalculator;
+class NeutronInelasticMicroXsCalculator;
 
 //---------------------------------------------------------------------------//
 /*!
- * XsData_traits for NeutronElasticRef.
+ * XsData_traits for NeutronInelasticRef.
  */
 template<>
-struct XsData_traits<NeutronElasticMicroXsCalculator>
+struct XsData_traits<NeutronInelasticMicroXsCalculator>
 {
-    using ParamsRef = NeutronElasticRef;
+    using ParamsRef = NeutronInelasticRef;
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate neutron elastic cross sections from NeutronElasticData.
+ * Calculate neutron inelastic cross sections from NeutronInelasticData.
  */
-class NeutronElasticMicroXsCalculator
-    : public NeutronMicroXsCalculator<NeutronElasticMicroXsCalculator>
+class NeutronInelasticMicroXsCalculator
+    : public NeutronMicroXsCalculator<NeutronInelasticMicroXsCalculator>
 {
   public:
     //!@{
     //! \name Type aliases
     using ParamsRef =
-        typename XsData_traits<NeutronElasticMicroXsCalculator>::ParamsRef;
+        typename XsData_traits<NeutronInelasticMicroXsCalculator>::ParamsRef;
     //!@}
 
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    NeutronElasticMicroXsCalculator(ParamsRef const& shared, Energy energy)
-        : NeutronMicroXsCalculator<NeutronElasticMicroXsCalculator>(shared,
-                                                                    energy)
+    NeutronInelasticMicroXsCalculator(ParamsRef const& shared, Energy energy)
+        : NeutronMicroXsCalculator<NeutronInelasticMicroXsCalculator>(shared,
+                                                                      energy)
     {
     }
 
   private:
-    friend class NeutronMicroXsCalculator<NeutronElasticMicroXsCalculator>;
+    friend class NeutronMicroXsCalculator<NeutronInelasticMicroXsCalculator>;
 };
 
 //---------------------------------------------------------------------------//

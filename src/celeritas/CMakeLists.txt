@@ -62,6 +62,7 @@ list(APPEND SOURCES
   mat/MaterialParamsOutput.cc
   mat/detail/Utils.cc
   neutron/process/NeutronElasticProcess.cc
+  neutron/process/NeutronInelasticProcess.cc
   optical/CerenkovParams.cc
   optical/ScintillationParams.cc
   optical/OpticalPropertyParams.cc
@@ -253,7 +254,8 @@ celeritas_polysource(global/alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(global/alongstep/AlongStepNeutralAction)
 celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
 celeritas_polysource(global/alongstep/AlongStepRZMapFieldMscAction)
-celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
+celeritas_polysource(neutron/model/NeutronElasticModel)
+celeritas_polysource(neutron/model/NeutronInelasticModel)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)
 celeritas_polysource(random/RngReseed)

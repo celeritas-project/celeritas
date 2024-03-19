@@ -23,6 +23,7 @@
 #include "celeritas/io/NeutronXsReader.hh"
 #include "celeritas/io/SeltzerBergerReader.hh"
 #include "celeritas/neutron/process/NeutronElasticProcess.hh"
+#include "celeritas/neutron/process/NeutronInelasticProcess.hh"
 #include "celeritas/phys/Model.hh"
 
 #include "celeritas_test.hh"
@@ -556,7 +557,61 @@ TEST_F(ProcessBuilderTest, neutron_elastic)
         }
     }
 }
-  
+
+TEST_F(ProcessBuilderTest, neutron_inelastic)
+{
+    if (!this->has_neutron_data())
+    {
+        GTEST_SKIP() << "Missing G4PARTICLEXSDATA";
+    }
+
+    // Create ParticleParams with neutron
+    ParticleParams::Input particle_inp = {
+        {"neutron",
+         pdg::neutron(),
+         units::MevMass{939.5654133},
+         zero_quantity(),
+         constants::stable_decay_constant},
+    };
+    SPConstParticle particle_params
+        = std::make_shared<ParticleParams>(std::move(particle_inp));
+
+    ProcessBuilder build_process(
+        this->import_data(), particle_params, this->material(), Options{});
+
+    // Create process
+    auto process = build_process(IPC::neutron_inelastic);
+    EXPECT_PROCESS_TYPE(NeutronInelasticProcess, process.get());
+
+    // Test model
+    auto models = process->build_models(ActionIdIter{});
+    ASSERT_EQ(1, models.size());
+    ASSERT_TRUE(models.front());
+    EXPECT_EQ("neutron-inelastic-bertini", models.front()->label());
+    auto all_applic = models.front()->applicability();
+    ASSERT_EQ(1, all_applic.size());
+    Applicability applic = *all_applic.begin();
+
+    for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
+    {
+        // Test step limits
+        {
+            applic.material = mat_id;
+            auto builders = process->step_limits(applic);
+            EXPECT_TRUE(builders[VGT::macro_xs]);
+            EXPECT_FALSE(builders[VGT::energy_loss]);
+            EXPECT_FALSE(builders[VGT::range]);
+        }
+
+        // Test micro xs
+        for (auto const& model : models)
+        {
+            auto builders = model->micro_xs(applic);
+            EXPECT_TRUE(builders.empty());
+        }
+    }
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

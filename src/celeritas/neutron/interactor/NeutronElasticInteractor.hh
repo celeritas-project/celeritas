@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/neutron/interactor/ChipsNeutronElasticInteractor.hh
+//! \file celeritas/neutron/interactor/NeutronElasticInteractor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -32,7 +32,7 @@ namespace celeritas
  * G4ChipsElasticModel and G4ChipsNeutronElasticXS, as partly documented
  * in section 21.1.3 of the Geant4 Physics Reference (release 11.2).
  */
-class ChipsNeutronElasticInteractor
+class NeutronElasticInteractor
 {
   public:
     //!@{
@@ -45,10 +45,10 @@ class ChipsNeutronElasticInteractor
   public:
     // Construct from shared and state data
     inline CELER_FUNCTION
-    ChipsNeutronElasticInteractor(NeutronElasticRef const& shared,
-                                  ParticleTrackView const& particle,
-                                  Real3 const& inc_direction,
-                                  IsotopeView const& target);
+    NeutronElasticInteractor(NeutronElasticRef const& shared,
+                             ParticleTrackView const& particle,
+                             Real3 const& inc_direction,
+                             IsotopeView const& target);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -84,7 +84,7 @@ class ChipsNeutronElasticInteractor
 /*!
  * Construct with shared and state data, and a target nucleus.
  */
-CELER_FUNCTION ChipsNeutronElasticInteractor::ChipsNeutronElasticInteractor(
+CELER_FUNCTION NeutronElasticInteractor::NeutronElasticInteractor(
     NeutronElasticRef const& shared,
     ParticleTrackView const& particle,
     Real3 const& inc_direction,
@@ -92,13 +92,13 @@ CELER_FUNCTION ChipsNeutronElasticInteractor::ChipsNeutronElasticInteractor(
     : shared_(shared)
     , inc_direction_(inc_direction)
     , target_(target)
-    , neutron_mass_(value_as<Mass>(shared_.neutron_mass))
+    , neutron_mass_(value_as<Mass>(shared_.scalars.neutron_mass))
     , neutron_energy_(neutron_mass_ + value_as<Energy>(particle.energy()))
     , neutron_p_(particle.momentum())
     , sample_phi_(0, 2 * constants::pi)
     , sample_momentum_square_(shared_, target_, neutron_p_)
 {
-    CELER_EXPECT(particle.particle_id() == shared_.ids.neutron);
+    CELER_EXPECT(particle.particle_id() == shared_.scalars.neutron_id);
 }
 //---------------------------------------------------------------------------//
 /*!
@@ -118,7 +118,7 @@ CELER_FUNCTION ChipsNeutronElasticInteractor::ChipsNeutronElasticInteractor(
  * neutron-nucleus system.
  */
 template<class Engine>
-CELER_FUNCTION Interaction ChipsNeutronElasticInteractor::operator()(Engine& rng)
+CELER_FUNCTION Interaction NeutronElasticInteractor::operator()(Engine& rng)
 {
     // Scattered neutron with respect to the axis of incident direction
     Interaction result;

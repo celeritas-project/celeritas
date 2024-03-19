@@ -3,13 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/neutron/process/NeutronElasticProcess.cc
+//! \file celeritas/neutron/process/NeutronInelasticProcess.cc
 //---------------------------------------------------------------------------//
-#include "NeutronElasticProcess.hh"
+#include "NeutronInelasticProcess.hh"
 
 #include "corecel/Assert.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
-#include "celeritas/neutron/model/NeutronElasticModel.hh"
+#include "celeritas/neutron/model/NeutronInelasticModel.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 namespace celeritas
@@ -18,9 +18,9 @@ namespace celeritas
 /*!
  * Construct from host data.
  */
-NeutronElasticProcess::NeutronElasticProcess(SPConstParticles particles,
-                                             SPConstMaterials materials,
-                                             ReadData load_data)
+NeutronInelasticProcess::NeutronInelasticProcess(SPConstParticles particles,
+                                                 SPConstMaterials materials,
+                                                 ReadData load_data)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
     , load_data_(std::move(load_data))
@@ -36,17 +36,17 @@ NeutronElasticProcess::NeutronElasticProcess(SPConstParticles particles,
 /*!
  * Construct the models associated with this process.
  */
-auto NeutronElasticProcess::build_models(ActionIdIter id) const -> VecModel
+auto NeutronInelasticProcess::build_models(ActionIdIter id) const -> VecModel
 {
-    return {std::make_shared<NeutronElasticModel>(
+    return {std::make_shared<NeutronInelasticModel>(
         *id++, *particles_, *materials_, load_data_)};
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the elastic scattering cross sections for the given energy range.
+ * Get the inelastic interaction cross sections for the given energy range.
  */
-auto NeutronElasticProcess::step_limits(Applicability applic) const
+auto NeutronInelasticProcess::step_limits(Applicability applic) const
     -> StepLimitBuilders
 {
     CELER_EXPECT(applic.particle == neutron_id_);
@@ -61,9 +61,9 @@ auto NeutronElasticProcess::step_limits(Applicability applic) const
 /*!
  * Name of the process.
  */
-std::string NeutronElasticProcess::label() const
+std::string NeutronInelasticProcess::label() const
 {
-    return "Neutron elastic";
+    return "Neutron inelastic";
 }
 
 //---------------------------------------------------------------------------//
