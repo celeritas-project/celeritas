@@ -39,15 +39,15 @@ NeutronElasticModel::NeutronElasticModel(ActionId id,
     HostVal<NeutronElasticData> data;
 
     // Save IDs
-    data.ids.action = id;
-    data.ids.neutron = particles.find(pdg::neutron());
+    data.scalars.action_id = id;
+    data.scalars.neutron_id = particles.find(pdg::neutron());
 
-    CELER_VALIDATE(data.ids.neutron,
+    CELER_VALIDATE(data.scalars.neutron_id,
                    << "missing neutron particles (required for "
                    << this->description() << ")");
 
     // Save particle properties
-    data.neutron_mass = particles.get(data.ids.neutron).mass();
+    data.scalars.neutron_mass = particles.get(data.scalars.neutron_id).mass();
 
     // Load neutron elastic cross section data
     CollectionBuilder micro_xs{&data.micro_xs};
@@ -80,9 +80,9 @@ NeutronElasticModel::NeutronElasticModel(ActionId id,
 auto NeutronElasticModel::applicability() const -> SetApplicability
 {
     Applicability neutron_applic;
-    neutron_applic.particle = this->host_ref().ids.neutron;
-    neutron_applic.lower = this->host_ref().min_valid_energy();
-    neutron_applic.upper = this->host_ref().max_valid_energy();
+    neutron_applic.particle = this->host_ref().scalars.neutron_id;
+    neutron_applic.lower = this->host_ref().scalars.min_valid_energy();
+    neutron_applic.upper = this->host_ref().scalars.max_valid_energy();
 
     return {neutron_applic};
 }
@@ -127,7 +127,7 @@ void NeutronElasticModel::execute(CoreParams const&, CoreStateDevice&) const
  */
 ActionId NeutronElasticModel::action_id() const
 {
-    return this->host_ref().ids.action;
+    return this->host_ref().scalars.action_id;
 }
 
 //---------------------------------------------------------------------------//
