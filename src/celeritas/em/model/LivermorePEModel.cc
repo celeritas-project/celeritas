@@ -160,12 +160,8 @@ void LivermorePEModel::append_element(ImportLivermorePE const& inp,
     // Add tabulated total cross sections
     el.xs_lo.grid = reals.insert_back(inp.xs_lo.x.begin(), inp.xs_lo.x.end());
     el.xs_lo.value = reals.insert_back(inp.xs_lo.y.begin(), inp.xs_lo.y.end());
-    el.xs_lo.grid_interp = Interp::linear;
-    el.xs_lo.value_interp = Interp::linear;
     el.xs_hi.grid = reals.insert_back(inp.xs_hi.x.begin(), inp.xs_hi.x.end());
     el.xs_hi.value = reals.insert_back(inp.xs_hi.y.begin(), inp.xs_hi.y.end());
-    el.xs_hi.grid_interp = Interp::linear;
-    el.xs_hi.value_interp = Interp::linear;  // TODO: spline
 
     // Add energy thresholds for using low and high xs parameterization
     el.thresh_lo = MevEnergy(inp.thresh_lo);

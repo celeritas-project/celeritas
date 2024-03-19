@@ -37,8 +37,6 @@ class GenericCalculatorTest : public CalculatorTestBase
             = make_builder(&storage_).insert_back(grid.begin(), grid.end());
         data_.value
             = make_builder(&storage_).insert_back(value.begin(), value.end());
-        data_.grid_interp = Interp::linear;
-        data_.value_interp = Interp::linear;
         ref_ = storage_;
 
         CELER_ENSURE(data_);

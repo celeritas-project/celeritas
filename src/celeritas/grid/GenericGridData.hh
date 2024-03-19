@@ -15,20 +15,19 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * A generic grid of 1D data with arbitrary interpolation.
+ * A grid of increasing, sorted 1D data with linear-linear interpolation.
+ *
+ * \todo Rename to GenericGridRecord
  */
 struct GenericGridData
 {
     ItemRange<real_type> grid;  //!< x grid
     ItemRange<real_type> value;  //!< f(x) value
-    Interp grid_interp{Interp::size_};  //!< Interpolation along x
-    Interp value_interp{Interp::size_};  //!< Interpolation along f(x)
 
     //! Whether the record is initialized and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return grid.size() >= 2 && value.size() == grid.size()
-               && grid_interp != Interp::size_ && value_interp != Interp::size_;
+        return grid.size() >= 2 && value.size() == grid.size();
     }
 };
 

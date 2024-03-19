@@ -142,8 +142,6 @@ void ChipsNeutronElasticModel::append_xs(ImportPhysicsVector const& inp,
     // Add the tabulated interaction cross section from input
     micro_xs.grid = reals.insert_back(inp.x.begin(), inp.x.end());
     micro_xs.value = reals.insert_back(inp.y.begin(), inp.y.end());
-    micro_xs.grid_interp = Interp::linear;
-    micro_xs.value_interp = Interp::linear;
 
     // Add micro xs data
     CELER_ASSERT(micro_xs);
