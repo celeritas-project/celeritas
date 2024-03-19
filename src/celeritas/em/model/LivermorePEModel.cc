@@ -21,15 +21,17 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/grid/GenericGridBuilder.hh"
 #include "celeritas/grid/XsGridData.hh"
 #include "celeritas/io/ImportLivermorePE.hh"
-#include "celeritas/io/ImportPhysicsVector.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/InteractionApplier.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
+
+#include "detail/LivermoreXsInserter.hh"
 
 namespace celeritas
 {
@@ -63,11 +65,11 @@ LivermorePEModel::LivermorePEModel(ActionId id,
               particles.get(host_data.ids.electron).mass());
 
     // Load Livermore cross section data
-    make_builder(&host_data.xs.elements).reserve(materials.num_elements());
+    detail::LivermoreXsInserter insert_element(&host_data.xs);
     for (auto el_id : range(ElementId{materials.num_elements()}))
     {
         AtomicNumber z = materials.get(el_id).atomic_number();
-        this->append_element(load_data(z), &host_data.xs);
+        insert_element(load_data(z));
     }
     CELER_ASSERT(host_data.xs.elements.size() == materials.num_elements());
 
@@ -132,76 +134,6 @@ void LivermorePEModel::execute(CoreParams const&, CoreStateDevice&) const
 ActionId LivermorePEModel::action_id() const
 {
     return this->host_ref().ids.action;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct cross section data for a single element.
- */
-void LivermorePEModel::append_element(ImportLivermorePE const& inp,
-                                      HostXsData* xs) const
-{
-    CELER_EXPECT(!inp.shells.empty());
-    if constexpr (CELERITAS_DEBUG)
-    {
-        CELER_EXPECT(inp.thresh_lo <= inp.thresh_hi);
-        for (auto const& shell : inp.shells)
-        {
-            CELER_EXPECT(shell.param_lo.size() == 6);
-            CELER_EXPECT(shell.param_hi.size() == 6);
-            CELER_EXPECT(shell.binding_energy <= inp.thresh_lo);
-        }
-    }
-
-    auto reals = make_builder(&xs->reals);
-
-    LivermoreElement el;
-
-    // Add tabulated total cross sections
-    el.xs_lo.grid = reals.insert_back(inp.xs_lo.x.begin(), inp.xs_lo.x.end());
-    el.xs_lo.value = reals.insert_back(inp.xs_lo.y.begin(), inp.xs_lo.y.end());
-    el.xs_hi.grid = reals.insert_back(inp.xs_hi.x.begin(), inp.xs_hi.x.end());
-    el.xs_hi.value = reals.insert_back(inp.xs_hi.y.begin(), inp.xs_hi.y.end());
-
-    // Add energy thresholds for using low and high xs parameterization
-    el.thresh_lo = MevEnergy(inp.thresh_lo);
-    el.thresh_hi = MevEnergy(inp.thresh_hi);
-
-    // Allocate subshell data
-    std::vector<LivermoreSubshell> shells(inp.shells.size());
-
-    // Add subshell data
-    for (auto i : range(inp.shells.size()))
-    {
-        // Ionization energy
-        shells[i].binding_energy = MevEnergy(inp.shells[i].binding_energy);
-
-        // Tabulated subshell cross section
-        shells[i].xs.grid = reals.insert_back(inp.shells[i].energy.begin(),
-                                              inp.shells[i].energy.end());
-        shells[i].xs.value = reals.insert_back(inp.shells[i].xs.begin(),
-                                               inp.shells[i].xs.end());
-        shells[i].xs.grid_interp = Interp::linear;
-        shells[i].xs.value_interp = Interp::linear;
-
-        // Subshell cross section fit parameters
-        std::copy(inp.shells[i].param_lo.begin(),
-                  inp.shells[i].param_lo.end(),
-                  shells[i].param[0].begin());
-        std::copy(inp.shells[i].param_hi.begin(),
-                  inp.shells[i].param_hi.end(),
-                  shells[i].param[1].begin());
-
-        CELER_ASSERT(shells[i]);
-    }
-    el.shells
-        = make_builder(&xs->shells).insert_back(shells.begin(), shells.end());
-
-    // Add the elemental data
-    CELER_ASSERT(el);
-    make_builder(&xs->elements).push_back(el);
-
-    CELER_ENSURE(el.shells.size() == inp.shells.size());
 }
 
 //---------------------------------------------------------------------------//
