@@ -19,15 +19,33 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Model and particles IDs for neutron--nucleus inelastic interactions.
+ * Scalar data for neutron-nucleus inelastic interactions.
  */
-struct NeutronInelasticIds
+struct NeutronInelasticScalars
 {
-    ActionId action;
-    ParticleId neutron;
+    //! Action and particle IDs
+    ActionId action_id;
+    ParticleId neutron_id;
 
-    //! Whether the IDs are assigned
-    explicit CELER_FUNCTION operator bool() const { return action && neutron; }
+    //! Particle mass * c^2 [MeV]
+    units::MevMass neutron_mass;
+
+    //! Model's minimum and maximum energy limit [MeV]
+    static CELER_CONSTEXPR_FUNCTION units::MevEnergy min_valid_energy()
+    {
+        return units::MevEnergy{1e-7};
+    }
+
+    static CELER_CONSTEXPR_FUNCTION units::MevEnergy max_valid_energy()
+    {
+        return units::MevEnergy{2e+4};
+    }
+
+    //! Whether data are assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return action_id && neutron_id && neutron_mass > zero_quantity();
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -46,32 +64,17 @@ struct NeutronInelasticData
 
     //// MEMBER DATA ////
 
-    //! Particle IDs
-    NeutronInelasticIds ids;
-
-    //! Particle mass * c^2 [MeV]
-    units::MevMass neutron_mass;
+    //! Scalar data
+    NeutronInelasticScalars scalars;
 
     //! Microscopic (element) cross section data (G4PARTICLEXS/neutron/inelZ)
     Items<real_type> reals;
     ElementItems<GenericGridData> micro_xs;
 
-    //! Model's minimum and maximum energy limit [MeV]
-    static CELER_CONSTEXPR_FUNCTION units::MevEnergy min_valid_energy()
-    {
-        return units::MevEnergy{1e-7};
-    }
-
-    static CELER_CONSTEXPR_FUNCTION units::MevEnergy max_valid_energy()
-    {
-        return units::MevEnergy{2e+4};
-    }
-
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids && neutron_mass > zero_quantity() && !reals.empty()
-               && !micro_xs.empty();
+        return scalars && !reals.empty() && !micro_xs.empty();
     }
 
     //! Assign from another set of data
@@ -79,8 +82,7 @@ struct NeutronInelasticData
     NeutronInelasticData& operator=(NeutronInelasticData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        ids = other.ids;
-        neutron_mass = other.neutron_mass;
+        scalars = other.scalars;
         reals = other.reals;
         micro_xs = other.micro_xs;
         return *this;

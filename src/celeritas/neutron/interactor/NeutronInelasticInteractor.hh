@@ -70,7 +70,7 @@ NeutronInelasticInteractor::NeutronInelasticInteractor(
     IsotopeView const& target)
     : shared_(shared), inc_direction_(inc_direction), target_(target)
 {
-    CELER_EXPECT(particle.particle_id() == shared_.ids.neutron);
+    CELER_EXPECT(particle.particle_id() == shared_.scalars.neutron_id);
 }
 //---------------------------------------------------------------------------//
 /*!
@@ -79,14 +79,7 @@ NeutronInelasticInteractor::NeutronInelasticInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction NeutronInelasticInteractor::operator()(Engine&)
 {
-    // Dummy for now
-    Interaction result;
-    result.direction = inc_direction_;
-    real_type target_mass = value_as<Mass>(target_.nuclear_mass());
-    result.energy = Energy(target_mass); 
-    CELER_ENSURE(result.action == Interaction::Action::absorbed);
-
-    return result;
+    CELER_NOT_IMPLEMENTED("Neutron inelastic interaction");
 }
 
 //---------------------------------------------------------------------------//
