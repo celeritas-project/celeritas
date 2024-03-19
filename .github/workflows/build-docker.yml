@@ -12,16 +12,13 @@ jobs:
   # and won't actually run on device
   gpu:
     name: >-
-      ${{format('{0}-{1}-{2}{3}{4}',
-                matrix.image,
-                matrix.buildtype,
+      ${{format('{0}-{1}-{2}',
                 matrix.geometry,
-                matrix.special && '-' || '',
-                matrix.special)}}
+                matrix.buildtype,
+                matrix.image)}}
     strategy:
       fail-fast: false
       matrix:
-        special: [null]
         geometry: ['orange', 'vecgeom']
         buildtype: ['debug', 'ndebug']
         image: ['ubuntu-cuda', 'centos-rocm']
@@ -35,15 +32,12 @@ jobs:
             buildtype: 'reldeb'
             image: 'ubuntu-cuda'
     env:
-      ASAN_OPTIONS: "detect_leaks=0"
       CELER_TEST_STRICT: 1
       CELER_DISABLE_DEVICE: 1 # IMPORTANT
       CMAKE_PRESET: >-
-        ${{format('{0}-{1}{2}{3}',
+        ${{format('{0}-{1}',
                 matrix.buildtype,
-                matrix.geometry,
-                matrix.special && '-' || '',
-                matrix.special)}}
+                matrix.geometry)}}
     runs-on: ubuntu-latest
     container:
       image: >-
