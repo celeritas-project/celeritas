@@ -38,15 +38,15 @@ NeutronInelasticModel::NeutronInelasticModel(ActionId id,
     HostVal<NeutronInelasticData> data;
 
     // Save IDs
-    data.ids.action = id;
-    data.ids.neutron = particles.find(pdg::neutron());
+    data.scalars.action_id = id;
+    data.scalars.neutron_id = particles.find(pdg::neutron());
 
-    CELER_VALIDATE(data.ids.neutron,
+    CELER_VALIDATE(data.scalars.neutron_id,
                    << "missing neutron particles (required for "
                    << this->description() << ")");
 
     // Save particle properties
-    data.neutron_mass = particles.get(data.ids.neutron).mass();
+    data.scalars.neutron_mass = particles.get(data.scalars.neutron_id).mass();
 
     // Load neutron elastic cross section data
     make_builder(&data.micro_xs).reserve(materials.num_elements());
@@ -69,9 +69,9 @@ NeutronInelasticModel::NeutronInelasticModel(ActionId id,
 auto NeutronInelasticModel::applicability() const -> SetApplicability
 {
     Applicability neutron_applic;
-    neutron_applic.particle = this->host_ref().ids.neutron;
-    neutron_applic.lower = this->host_ref().min_valid_energy();
-    neutron_applic.upper = this->host_ref().max_valid_energy();
+    neutron_applic.particle = this->host_ref().scalars.neutron_id;
+    neutron_applic.lower = this->host_ref().scalars.min_valid_energy();
+    neutron_applic.upper = this->host_ref().scalars.max_valid_energy();
 
     return {neutron_applic};
 }
@@ -91,15 +91,9 @@ auto NeutronInelasticModel::micro_xs(Applicability) const -> MicroXsBuilders
 /*!
  * Apply the interaction kernel.
  */
-void NeutronInelasticModel::execute(CoreParams const& params,
-                                    CoreStateHost& state) const
+void NeutronInelasticModel::execute(CoreParams const&, CoreStateHost&) const
 {
-    auto execute = make_action_track_executor(
-        params.ptr<MemSpace::native>(),
-        state.ptr(),
-        this->action_id(),
-        InteractionApplier{NeutronInelasticExecutor{this->host_ref()}});
-    return launch_action(*this, params, state, execute);
+    CELER_NOT_IMPLEMENTED("Neutron inelastic interaction");
 }
 
 //---------------------------------------------------------------------------//
@@ -112,11 +106,11 @@ void NeutronInelasticModel::execute(CoreParams const&, CoreStateDevice&) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the model ID for this model.
+ * Get the acition ID for this model.
  */
 ActionId NeutronInelasticModel::action_id() const
 {
-    return this->host_ref().ids.action;
+    return this->host_ref().scalars.action_id;
 }
 
 //---------------------------------------------------------------------------//
