@@ -11,26 +11,47 @@ env:
   SPACK_REF: 968ad02473b12f6305cc1fe19f2a0d706f171154
 
 jobs:
-  linux:
-    name: jammy-g4-${{matrix.geant}}
+  spack:
+    name: >-
+      ${{format('{0}{1}{2}{3}{4}',
+                matrix.geometry,
+                matrix.special && '-' || '',
+                matrix.special,
+                matrix.geant && '-g4@' || '',
+                matrix.geant)}}
     strategy:
+      fail-fast: false
       matrix:
-        compiler: [clang]
-        version: [15]
+        geometry: ["vecgeom"]
+        special: [null]
         geant: ["10.5", "10.6", "10.7", "11.0", "11.1", "11.2"]
-        experimental: [false]
-    continue-on-error: ${{matrix.experimental}}
-    runs-on: ubuntu-22.04
-    permissions:
-      packages: write
+        include:
+          - geometry: "orange"
+            special: "minimal"
+            geant: null
+          - geometry: "orange"
+            special: "float"
+            geant: "11.0"
+          - geometry: "vecgeom"
+            special: "clhep"
+            geant: "11.0"
+          - geometry: "geant4"
+            special: null
+            geant: "11.0"
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "1G"
-      CELERITAS_VERSION: "0.5.0"
+      CMAKE_PRESET: >-
+        ${{format('reldeb-{0}{1}{2}',
+                  matrix.geometry,
+                  matrix.special && '-' || '',
+                  matrix.special)}}
       SPACK_VIEW: "/opt/spack-view"
       SPACK_BUILDCACHE: "celer-buildcache" # see spack.yaml
-      CC: ${{matrix.compiler}}-${{matrix.version}}
-      CXX: ${{matrix.compiler == 'gcc' && 'g++' || 'clang++'}}-${{matrix.version}}
+      CC: "clang-15"
+      CXX: "clang++-15"
+    runs-on: ubuntu-22.04
+    continue-on-error: false
     steps:
       - name: Check out Celeritas
         uses: actions/checkout@v4
@@ -47,8 +68,16 @@ jobs:
       - name: Initialize spack environment
         run: |
           cp scripts/ci/spack.yaml .
-          spack -e . add geant4@${{matrix.geant}}
-          spack -e . config add packages:all:require:"'%${{matrix.compiler}}@${{matrix.version}} target=x86_64_v3'"
+          if [ "${{matrix.geometry}}" == "vecgeom" ]; then
+            spack -e . add vecgeom
+          fi
+          if [ "${{matrix.special}}" != "minimal" ]; then
+            spack -e . add root
+          fi
+          if [ "${{matrix.geant}}" != "" ]; then
+            spack -e . add geant4@${{matrix.geant}}
+          fi
+          spack -e . config add packages:all:require:"'%clang@15 target=x86_64_v3'"
           spack -e . compiler find
           # Add the spack ref so that updating spack will reconcretize
           echo "# Concretized with ${{env.SPACK_REF}}" >> spack.yaml
@@ -81,35 +110,27 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{env.CCACHE_DIR}}
-          key: ccache-spack-${{matrix.compiler}}-${{matrix.version}}-${{matrix.geant}}-${{github.run_id}}
+          key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
+          # NOTE: remove ccache-spack-clang-15* in follow-up PR
           restore-keys: |
-            ccache-spack-${{matrix.compiler}}-${{matrix.version}}-${{matrix.geant}}-
-            ccache-spack-${{matrix.compiler}}-${{matrix.version}}-
+            ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}
+            ccache-${{env.CMAKE_PRESET}}
+            ccache-spack-clang-15-${{matrix.geant}}-
+            ccache-spack-clang-15-
       - name: Zero ccache stats
         run: |
           ccache -z
       - name: Configure Celeritas
         run: |
-          mkdir build && cd build
-          cmake -GNinja --log-level=VERBOSE \
-            -DCELERITAS_BUILD_DEMOS:BOOL=ON \
-            -DCELERITAS_BUILD_TESTS:BOOL=ON \
-            -DCELERITAS_USE_SWIG=OFF \
-            -DCELERITAS_USE_Geant4=ON \
-            -DCELERITAS_DEBUG:BOOL=ON \
-            -DCMAKE_BUILD_TYPE="Release" \
-            -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install" \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_FLAGS="-Werror -Wall -Wextra -pedantic -Wno-error=deprecated-declarations" \
-            ..
-            
+          ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
+          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
       - name: Build all
         working-directory: build
         run: |
           ninja -v -k0
       - name: Run tests
         working-directory: build
-        continue-on-error: true # TODO: disable or fix failing tests
+        continue-on-error: ${{matrix.geant != '11.0'}} # TODO: disable or fix failing tests
         run: |
           ctest --parallel $(nproc) --timeout 15 --output-on-failure \
             --test-output-size-passed=32768 --test-output-size-failed=1048576
@@ -126,13 +147,14 @@ jobs:
           done
           ./bin/celer-sim --version
       - name: Build examples
+        if: >-
+          ${{matrix.special != 'asan'}} # ASAN requires flags downstream
         run: |
           . ${SPACK_VIEW}/rc
-          CMAKE_PRESET=spack-vecgeom ./scripts/ci/test-examples.sh
+          ./scripts/ci/test-examples.sh
       - name: Show ccache stats
         if: ${{!cancelled()}}
         run: |
           ccache -s
-
 
 # vim: set nowrap tw=100:

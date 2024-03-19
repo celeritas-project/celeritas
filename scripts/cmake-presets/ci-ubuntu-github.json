@@ -1,0 +1,139 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
+  "configurePresets": [
+    {
+      "name": "base",
+      "displayName": "ubuntu options for clang/gcc",
+      "inherits": ["default"],
+      "binaryDir": "${sourceDir}/build",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_DEBUG":       {"type": "BOOL", "value": "ON"},
+        "CELERITAS_TEST_VERBOSE":{"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_HIP":     {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
+        "CMAKE_BUILD_TYPE":      "Release",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_CXX_EXTENSIONS": {"type": "BOOL", "value": "OFF"},
+        "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror -Wno-error=deprecated-declarations",
+        "CMAKE_CXX_STANDARD": "17",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install"
+      }
+    },
+    {
+      "name": "spack",
+      "inherits": ["base"],
+      "displayName": "use spack toolchain",
+      "cacheVariables": {
+        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
+        "CMAKE_SWIG_CXX_FLAGS": "-Wno-unused-parameter;-Wno-deprecated-declarations",
+        "SWIG_EXECUTABLE": {"type": "PATH", "value": "/opt/spack-view/bin/swig"}
+      }
+    },
+    {
+      "name": "fast",
+      "inherits": ["base"],
+      "displayName": "fast build using apt-get",
+      "cacheVariables": {
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": ".vecgeom",
+      "hidden": true,
+      "description": "Options to enable VecGeom on Ubuntu",
+      "cacheVariables": {
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": "reldeb-orange",
+      "description": "Build with ORANGE",
+      "inherits": ["spack"]
+    },
+    {
+      "name": "reldeb-vecgeom-clhep",
+      "description": "Build with VecGeom and CLHEP units",
+      "inherits": [".vecgeom", "spack"],
+      "cacheVariables": {
+        "CELERITAS_UNITS": "CLHEP"
+      }
+    },
+    {
+      "name": "reldeb-vecgeom",
+      "description": "Build with release, assertions, VecGeom, SWIG",
+      "inherits": [".vecgeom", "spack"],
+      "cacheVariables": {
+        "CELERITAS_USE_SWIG": {"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": "ndebug-vecgeom",
+      "description": "Build release with vecgeom for testing *only* demos",
+      "inherits": [".ndebug", ".vecgeom", "spack"],
+      "cacheVariables": {
+        "BUILD_TESTING":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "reldeb-geant4",
+      "description": "Build with Geant4 geometry",
+      "inherits": ["spack"],
+      "cacheVariables": {
+        "CELERITAS_CORE_GEO": "Geant4"
+      }
+    },
+    {
+      "name": "reldeb-orange-minimal",
+      "description": "Build with minimal reasonable dependencies",
+      "inherits": ["spack"],
+      "cacheVariables": {
+        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "reldeb-orange-asan",
+      "description": "Build with address sanitizer flags",
+      "inherits": ["spack"],
+      "cacheVariables": {
+        "CELERITAS_USE_HIP": {"type": "BOOL", "value": "OFF"},
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fsanitize=address -fno-omit-frame-pointer"
+      }
+    },
+    {
+      "name": "reldeb-orange-float",
+      "description": "Build with single-precision arithmetic (no HIP)",
+      "inherits": ["spack"],
+      "cacheVariables": {
+        "CELERITAS_USE_SWIG": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_REAL_TYPE": "float"
+      }
+    }
+  ]
+}
