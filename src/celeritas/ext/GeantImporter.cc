@@ -433,8 +433,7 @@ std::vector<ImportElement> import_elements()
         // Despite the function name, this is *NOT* a vector, it's an array
         double* const g4rel_abundance = g4element->GetRelativeAbundanceVector();
 
-        double total_el_abundance_fraction = 0;  // Verify that the sum is
-                                                 // ~1
+        double total_el_abundance_fraction = 0;  // Verify that the sum is ~1
         for (auto idx : range(g4element->GetNumberOfIsotopes()))
         {
             ImportElement::IsotopeFrac key;

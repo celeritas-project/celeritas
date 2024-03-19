@@ -69,8 +69,8 @@ class ScintillationTest : public OpticalTestBase
         ScintillationParams::Input inp;
         inp.scintillation_by_particle = scint_by_particle;
         inp.matid_to_optmatid.push_back(OpticalMaterialId(0));
-        // Match particle params list
-        inp.pid_to_scintpid.push_back(ScintillationParticleId(0));  // electron
+        // Match particle params (1st particle is an electron)
+        inp.pid_to_scintpid.push_back(ScintillationParticleId(0));
         inp.data.push_back(std::move(data));
 
         return std::make_shared<ScintillationParams>(std::move(inp),
@@ -80,6 +80,9 @@ class ScintillationTest : public OpticalTestBase
     //! Create material components
     std::vector<ImportScintComponent> build_material_components()
     {
+        static constexpr double nm = 1e-9 * units::meter;
+        static constexpr double ns = 1e-9 * units::second;
+
         std::vector<ImportScintComponent> comps;
         comps.push_back({0.65713, 128 * nm, 10 * nm, 10 * ns, 6 * ns});
         comps.push_back({0.31987, 128 * nm, 10 * nm, 10 * ns, 1500 * ns});
@@ -107,8 +110,8 @@ class ScintillationTest : public OpticalTestBase
         comp.yield = 4000;
         comp.lambda_mean = 1e-5;
         comp.lambda_sigma = 1e-6;
-        comp.rise_time = 15 * ns;
-        comp.fall_time = 5 * ns;
+        comp.rise_time = 15e-9;
+        comp.fall_time = 5e-9;
         vec_comps.push_back(std::move(comp));
         return vec_comps;
     }
@@ -127,8 +130,6 @@ class ScintillationTest : public OpticalTestBase
 
   protected:
     RandomEngine rng_;
-    static constexpr double nm = 1e-9 * units::meter;
-    static constexpr double ns = 1e-9 * units::second;
 };
 
 //---------------------------------------------------------------------------//
