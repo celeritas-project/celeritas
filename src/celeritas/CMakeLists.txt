@@ -42,6 +42,7 @@ list(APPEND SOURCES
   global/Stepper.cc
   global/detail/ActionSequence.cc
   global/detail/PinnedAllocator.cc
+  grid/GenericGridBuilder.cc
   grid/ValueGridBuilder.cc
   grid/ValueGridInserter.cc
   grid/ValueGridType.cc
