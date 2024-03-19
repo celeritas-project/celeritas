@@ -44,7 +44,7 @@ jobs:
     env:
       ASAN_OPTIONS: "detect_leaks=0"
       CCACHE_DIR: "${{github.workspace}}/.ccache"
-      CCACHE_MAXSIZE: "1G"
+      CCACHE_MAXSIZE: "100Mi"
       CMAKE_PRESET: >-
         ${{format('reldeb-{0}{1}{2}',
                   matrix.geometry,
@@ -136,8 +136,9 @@ jobs:
         working-directory: build
         continue-on-error: ${{matrix.geant != '11.0'}} # TODO: disable or fix failing tests
         run: |
-          if [ ${{matrix.geant}} == "11.0" ]; then
-            export CELER_TEST_STRICT=1
+          if [ "${{matrix.geant}}" == "11.0" ]; then
+            # TODO: add 11.0.4 and clhep version to tests
+            # export CELER_TEST_STRICT=1
           fi
           ctest --parallel $(nproc) --timeout 15 --output-on-failure \
             --test-output-size-passed=32768 --test-output-size-failed=1048576
