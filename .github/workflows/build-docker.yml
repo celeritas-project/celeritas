@@ -12,7 +12,9 @@ jobs:
   # and won't actually run on device
   gpu:
     name: >-
-      ${{matrix.special || format('{0}-{1}-{2}',
+      ${{format('{0}{1}{2}-{3}-{4}',
+                matrix.special,
+                matrix.special && '-' || '',
                 matrix.geometry,
                 matrix.buildtype,
                 matrix.image)}}
