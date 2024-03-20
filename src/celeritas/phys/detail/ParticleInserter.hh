@@ -69,9 +69,8 @@ auto ParticleInserter::operator()(Input const& inp) -> Id
 {
     CELER_VALIDATE(inp.mass >= zero_quantity(),
                    << "invalid particle mass " << inp.mass.value());
-    CELER_EXPECT(inp.decay_constant >= 0,
-                 << "invalid particle decay constant "
-                 << inp.decay_constant.value());
+    CELER_VALIDATE(inp.decay_constant >= 0,
+                   << "invalid particle decay constant " << inp.decay_constant);
 
     auto result = mass_.push_back(inp.mass);
     charge_.push_back(inp.charge);
