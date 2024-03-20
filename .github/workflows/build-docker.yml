@@ -95,10 +95,11 @@ jobs:
           ./bin/celer-sim --version
       - name: Build examples
         # TODO: rocm+ndebug fails to propagate HIP library link
+        # TODO: ASAN requires flags downstream
         if: >-
           ${{
             !(matrix.image == 'centos-rocm' && matrix.buildtype == 'ndebug')
-            || (matrix.special != 'asan') # ASAN requires flags downstream
+            || (matrix.special != 'asan')
           }}
         run: |
           . /etc/profile
