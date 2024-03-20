@@ -29,7 +29,6 @@ class LivermorePEModel final : public Model
 {
   public:
     //!@{
-    using MevEnergy = units::MevEnergy;
     using ReadData = std::function<ImportLivermorePE(AtomicNumber)>;
     using HostRef = LivermorePEHostRef;
     using DeviceRef = LivermorePEDeviceRef;
@@ -75,10 +74,6 @@ class LivermorePEModel final : public Model
   private:
     // Host/device storage and reference
     CollectionMirror<LivermorePEData> data_;
-
-    using HostXsData = HostVal<LivermorePEXsData>;
-    void
-    append_element(ImportLivermorePE const& inp, HostXsData* xs_data) const;
 };
 
 //---------------------------------------------------------------------------//

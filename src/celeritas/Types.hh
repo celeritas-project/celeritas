@@ -94,7 +94,8 @@ enum class UnitSystem
 enum class Interp
 {
     linear,
-    log
+    log,
+    size_
 };
 
 //---------------------------------------------------------------------------//
@@ -194,6 +195,9 @@ struct StepLimit
 
 // Get a string corresponding to a unit system
 char const* to_cstring(UnitSystem);
+
+// Get a string corresponding to an interpolation
+char const* to_cstring(Interp);
 
 // Get a unit system corresponding to a string
 UnitSystem to_unit_system(std::string const& s);

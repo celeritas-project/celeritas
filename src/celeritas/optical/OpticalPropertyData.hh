@@ -31,15 +31,17 @@ struct OpticalPropertyData
 
     //// MEMBER DATA ////
 
-    Items<real_type> reals;
     OpticalMaterialItems<GenericGridData> refractive_index;
+
+    // Backend data
+    Items<real_type> reals;
 
     //// MEMBER FUNCTIONS ////
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !reals.empty() && !refractive_index.empty();
+        return !refractive_index.empty() && !reals.empty();
     }
 
     //! Assign from another set of data
@@ -47,8 +49,8 @@ struct OpticalPropertyData
     OpticalPropertyData& operator=(OpticalPropertyData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        reals = other.reals;
         refractive_index = other.refractive_index;
+        reals = other.reals;
         return *this;
     }
 };

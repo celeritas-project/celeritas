@@ -55,14 +55,4 @@ auto ValueGridInserter::operator()(UniformGridData const& log_grid,
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Add a grid of host pointer data.
- */
-auto ValueGridInserter::operator()(InterpolatedGrid, InterpolatedGrid)
-    -> GenericIndex
-{
-    CELER_NOT_IMPLEMENTED("generic grids");
-}
-
-//---------------------------------------------------------------------------//
 }  // namespace celeritas

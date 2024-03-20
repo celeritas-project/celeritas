@@ -136,39 +136,6 @@ class ValueGridLogBuilder : public ValueGridBuilder
 
 //---------------------------------------------------------------------------//
 /*!
- * Build a physics vector for quantities that are nonuniform in energy.
- */
-class ValueGridGenericBuilder final : public ValueGridBuilder
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using VecDbl = std::vector<double>;
-    using Id = ItemId<XsGridData>;
-    //!@}
-
-  public:
-    // Construct
-    ValueGridGenericBuilder(VecDbl grid,
-                            VecDbl value,
-                            Interp grid_interp,
-                            Interp value_interp);
-
-    // Construct with linear interpolation
-    ValueGridGenericBuilder(VecDbl grid, VecDbl value);
-
-    // Construct in the given store
-    ValueGridId build(ValueGridInserter) const final;
-
-  private:
-    VecDbl grid_;
-    VecDbl value_;
-    Interp grid_interp_;
-    Interp value_interp_;
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Special cases for indicating *only* on-the-fly cross sections.
  *
  * Currently this should be thrown just for processes and models specified in

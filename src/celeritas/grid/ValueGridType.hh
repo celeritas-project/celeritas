@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/ValueGridData.hh
+//! \file celeritas/grid/ValueGridType.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -19,12 +19,13 @@ enum class ValueGridType
     macro_xs,  //!< Interaction cross sections
     energy_loss,  //!< Energy loss per unit length
     range,  //!< Particle range
-    size_  //!< Sentinel value
+    size_
 };
 
 template<class T>
 using ValueGridArray = EnumArray<ValueGridType, T>;
 
+// Get the string representation of a grid
 char const* to_cstring(ValueGridType grid);
 
 //---------------------------------------------------------------------------//
