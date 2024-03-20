@@ -19,23 +19,23 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        geometry: ['orange', 'vecgeom']
-        buildtype: ['debug', 'ndebug']
-        image: ['ubuntu-cuda', 'centos-rocm']
-        special: null
+        geometry: ["orange", "vecgeom"]
+        buildtype: ["debug", "ndebug"]
+        image: ["ubuntu-cuda", "centos-rocm"]
+        special: [null]
         exclude:
-          - geometry: 'vecgeom'
-            image: 'centos-rocm' # VecGeom not installed on HIP
-          - buildtype: 'debug'
-            image: 'centos-rocm' # Debug builds don't work with HIP
+          - geometry: "vecgeom"
+            image: "centos-rocm" # VecGeom not installed on HIP
+          - buildtype: "debug"
+            image: "centos-rocm" # Debug builds don't work with HIP
         include:
-          - special: 'asan'
-            geometry: 'orange'
-            buildtype: 'reldeb'
-            image: 'centos-rocm'
-          - geometry: 'vecgeom'
-            buildtype: 'reldeb'
-            image: 'ubuntu-cuda'
+          - special: "asan"
+            geometry: "orange"
+            buildtype: "reldeb"
+            image: "centos-rocm"
+          - geometry: "vecgeom"
+            buildtype: "reldeb"
+            image: "ubuntu-cuda"
     env:
       ASAN_OPTIONS: "detect_leaks=0"
       CELER_TEST_STRICT: 1
