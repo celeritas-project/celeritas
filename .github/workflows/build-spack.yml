@@ -57,6 +57,12 @@ jobs:
     runs-on: ubuntu-22.04
     continue-on-error: false
     steps:
+      - name: Install system dependencies
+        if: ${{matrix.special == 'asan'}}
+        run: |
+          sudo apt-get -q -y update
+          sudo apt-get -q -y install \
+            clang-15 libclang-rt-15-dev
       - name: Check out Celeritas
         uses: actions/checkout@v4
         with:
