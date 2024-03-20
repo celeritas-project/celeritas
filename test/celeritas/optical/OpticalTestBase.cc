@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "OpticalTestBase.hh"
 
+#include "geocel/UnitUtils.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/track/SimParams.hh"
@@ -69,9 +70,9 @@ OpticalTestBase::make_particle_track_view(units::MevEnergy energy,
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize sim track state with step length.
+ * Initialize sim track state with step length with a step lenght in [cm].
  */
-SimTrackView OpticalTestBase::make_sim_track_view(real_type step_len)
+SimTrackView OpticalTestBase::make_sim_track_view(real_type step_len_cm)
 {
     SimTrackView::Initializer_t init_track;
     init_track.event_id = EventId{0};
@@ -81,7 +82,7 @@ SimTrackView OpticalTestBase::make_sim_track_view(real_type step_len)
     SimTrackView sim_view(
         sim_params_->host_ref(), sim_state_ref_, TrackSlotId(0));
     sim_view = init_track;
-    sim_view.step_length(step_len);
+    sim_view.step_length(from_cm(step_len_cm));
     return sim_view;
 }
 

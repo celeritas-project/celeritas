@@ -8,6 +8,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionMirror.hh"
+#include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/optical/OpticalDistributionData.hh"
@@ -80,8 +81,8 @@ class ScintillationTest : public OpticalTestBase
     //! Create material components
     std::vector<ImportScintComponent> build_material_components()
     {
-        static constexpr double nm = 1e-7;  // to cm
-        static constexpr double ns = 1e-9;  // to s
+        static constexpr real_type nm = units::meter * 1e-9;
+        static constexpr real_type ns = units::nanosecond;
 
         std::vector<ImportScintComponent> comps;
         comps.push_back({0.65713, 128 * nm, 10 * nm, 10 * ns, 6 * ns});
@@ -124,12 +125,13 @@ class ScintillationTest : public OpticalTestBase
         pregen_data.points[StepPoint::pre].speed = LightSpeed(0.99);
         pregen_data.points[StepPoint::post].speed = LightSpeed(0.99 * 0.9);
         pregen_data.points[StepPoint::pre].pos = {0, 0, 0};
-        pregen_data.points[StepPoint::post].pos = {0, 0, 1};
+        pregen_data.points[StepPoint::post].pos = {0, 0, from_cm(1)};
         return pregen_data;
     }
 
   protected:
     RandomEngine rng_;
+    real_type sim_track_view_step_len_{1};  // [cm]
 };
 
 //---------------------------------------------------------------------------//
@@ -267,7 +269,7 @@ TEST_F(ScintillationTest, pre_generator)
     // which is hardcoded in this->build_pregen_step()
     ScintillationPreGenerator generate(
         this->make_particle_track_view(MevEnergy{10}, pdg::electron()),
-        this->make_sim_track_view(1),
+        this->make_sim_track_view(sim_track_view_step_len_),
         data.matid_to_optmatid[MaterialId{0}],
         data,
         this->build_pregen_step());
@@ -275,7 +277,7 @@ TEST_F(ScintillationTest, pre_generator)
     auto const result = generate(this->rng());
     EXPECT_EQ(4, result.num_photons);
     EXPECT_REAL_EQ(0, result.time);
-    EXPECT_REAL_EQ(1, result.step_length);
+    EXPECT_REAL_EQ(from_cm(1), result.step_length);
     EXPECT_EQ(-1, result.charge.value());
     EXPECT_EQ(0, result.material.get());
 
@@ -300,7 +302,7 @@ TEST_F(ScintillationTest, basic)
     // Pre-generate optical distribution data
     ScintillationPreGenerator generate(
         this->make_particle_track_view(MevEnergy{10}, pdg::electron()),
-        this->make_sim_track_view(1),
+        this->make_sim_track_view(sim_track_view_step_len_),
         opt_matid,
         data,
         this->build_pregen_step());
@@ -323,10 +325,11 @@ TEST_F(ScintillationTest, basic)
     {
         energy.push_back(photons[i].energy.value());
         time.push_back(photons[i].time / units::second);
-        cos_theta.push_back(
-            dot_product(photons[i].direction,
-                        result.points[StepPoint::post].pos
-                            - result.points[StepPoint::pre].pos));
+        cos_theta.push_back(dot_product(
+            photons[i].direction,
+            make_unit_vector(result.points[StepPoint::post].pos
+                             - result.points[StepPoint::pre].pos)));
+
         polarization_x.push_back(photons[i].polarization[0]);
         cos_polar.push_back(
             dot_product(photons[i].polarization, photons[i].direction));
@@ -369,7 +372,7 @@ TEST_F(ScintillationTest, stress_test)
 
     ScintillationPreGenerator generate(
         this->make_particle_track_view(MevEnergy{10}, pdg::electron()),
-        this->make_sim_track_view(1),
+        this->make_sim_track_view(sim_track_view_step_len_),
         opt_matid,
         data,
         this->build_pregen_step());
