@@ -41,9 +41,11 @@ jobs:
       CELER_TEST_STRICT: 1
       CELER_DISABLE_DEVICE: 1 # IMPORTANT
       CMAKE_PRESET: >-
-        ${{format('{0}-{1}',
+        ${{format('{0}-{1}{2}{3}',
                 matrix.buildtype,
-                matrix.geometry)}}
+                matrix.geometry,
+                matrix.special && '-' || '',
+                matrix.special)}}
     runs-on: ubuntu-latest
     container:
       image: >-
