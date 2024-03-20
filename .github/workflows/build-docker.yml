@@ -101,7 +101,7 @@ jobs:
         if: >-
           ${{
             !(matrix.image == 'centos-rocm' && matrix.buildtype == 'ndebug')
-            || (matrix.special != 'asan')
+            && (matrix.special != 'asan')
           }}
         run: |
           . /etc/profile
