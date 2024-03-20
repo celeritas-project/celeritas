@@ -88,6 +88,12 @@ inline CELER_FUNCTION ScintillationPreGenerator::ScintillationPreGenerator(
     CELER_EXPECT(mat_id_);
     CELER_EXPECT(shared_);
     CELER_EXPECT(step_);
+
+    if (shared_.scintillation_by_particle())
+    {
+        // TODO: implement sampling for particles
+        CELER_NOT_IMPLEMENTED("scintillation by particle type");
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -99,12 +105,7 @@ template<class Generator>
 inline CELER_FUNCTION OpticalDistributionData
 ScintillationPreGenerator::operator()(Generator& rng)
 {
-    if (shared_.scintillation_by_particle())
-    {
-        // TODO: implement sampling for particles
-        CELER_NOT_IMPLEMENTED("scintillation by particle type");
-    }
-
+    // Material-only sampling
     auto const& material = shared_.materials[mat_id_];
     CELER_EXPECT(material);
 

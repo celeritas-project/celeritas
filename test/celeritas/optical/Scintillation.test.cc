@@ -8,7 +8,6 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionMirror.hh"
-#include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/optical/OpticalDistributionData.hh"
@@ -81,8 +80,8 @@ class ScintillationTest : public OpticalTestBase
     //! Create material components
     std::vector<ImportScintComponent> build_material_components()
     {
-        static constexpr double nm = 1e-9 * units::meter;
-        static constexpr double ns = 1e-9 * units::second;
+        static constexpr double nm = 1e-7;  // to cm
+        static constexpr double ns = 1e-9;  // to s
 
         std::vector<ImportScintComponent> comps;
         comps.push_back({0.65713, 128 * nm, 10 * nm, 10 * ns, 6 * ns});
@@ -125,7 +124,7 @@ class ScintillationTest : public OpticalTestBase
         pregen_data.points[StepPoint::pre].speed = LightSpeed(0.99);
         pregen_data.points[StepPoint::post].speed = LightSpeed(0.99 * 0.9);
         pregen_data.points[StepPoint::pre].pos = {0, 0, 0};
-        pregen_data.points[StepPoint::post].pos = {0, 0, from_cm(1)};
+        pregen_data.points[StepPoint::post].pos = {0, 0, 1};
         return pregen_data;
     }
 
@@ -314,10 +313,9 @@ TEST_F(ScintillationTest, basic)
     // Create the generator
     ScintillationGenerator generate_photons(
         result, params->host_ref(), make_span(storage));
-    RandomEngine& rng_engine = this->rng();
 
     // Generate optical photons for a given input
-    auto photons = generate_photons(rng_engine);
+    auto photons = generate_photons(this->rng());
 
     // Check results
     std::vector<real_type> energy, time, cos_theta, polarization_x, cos_polar;
@@ -353,17 +351,6 @@ TEST_F(ScintillationTest, basic)
                                                          -0.26839376593079,
                                                          -0.57457399792055};
         static double const expected_cos_polar[] = {0, 0, 0, 0};
-
-        /* CI gpu (clhep, vecgeom, debug) log
-        Expected: expected_time
-          4 of 4 elements differ
-          by 9.9999999999999998e-13 relative error or 1e-14 absolute error
-          i       expected_time               time         Difference
-          0 3.2080893159083e-08 3.20580539320367e-08 -0.000711926159069127
-          1  6.136381528505e-09 6.11117967007341e-09 -0.00410695754729784
-          2 1.7964298529751e-06 1.79642453445081e-06 -2.96060783146328e-06
-          3 8.0854850049769e-07 8.08544680544845e-07 -4.72445727405664e-06
-        */
 
         EXPECT_VEC_SOFT_EQ(expected_energy, energy);
         EXPECT_VEC_SOFT_EQ(expected_time, time);

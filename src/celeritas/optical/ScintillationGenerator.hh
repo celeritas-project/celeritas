@@ -88,6 +88,12 @@ ScintillationGenerator::ScintillationGenerator(
     , sample_phi_(0, 2 * constants::pi)
     , is_neutral_{dist_.charge == zero_quantity()}
 {
+    if (shared_.scintillation_by_particle())
+    {
+        // TODO: implement sampling for particles
+        CELER_NOT_IMPLEMENTED("scintillation by particle type");
+    }
+
     CELER_EXPECT(dist_);
     CELER_EXPECT(shared_);
     CELER_EXPECT(photons_.size() == dist_.num_photons);
@@ -118,13 +124,6 @@ template<class Generator>
 CELER_FUNCTION Span<OpticalPrimary>
 ScintillationGenerator::operator()(Generator& rng)
 {
-    if (shared_.scintillation_by_particle())
-    {
-        // TODO: implement sampling for particles
-        CELER_NOT_IMPLEMENTED("scintillation by particle type");
-    }
-
-    // Loop for generating scintillation photons
     size_type num_generated{0};
     auto const& mat_spectrum = shared_.materials[dist_.material];
 
