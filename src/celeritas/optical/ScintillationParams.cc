@@ -103,22 +103,28 @@ ScintillationParams::ScintillationParams(Input const& input,
 
     auto const num_mat = input.matid_to_optmatid.size();
     auto const num_part = input.pid_to_scintpid.size();
-    host_data.num_materials = num_mat;
-    host_data.num_particles = num_part;
 
     // Store material ids
     for (auto const id : input.matid_to_optmatid)
     {
         build_optmatid.push_back(id);
+        if (id)
+        {
+            host_data.num_opt_materials++;
+        }
     }
-    CELER_ENSURE(build_optmatid.size() == num_mat);
+    CELER_ENSURE(host_data.num_opt_materials > 0);
 
     // Store particle ids
     for (auto const id : input.pid_to_scintpid)
     {
         build_scintpid.push_back(id);
+        if (id)
+        {
+            host_data.num_opt_particles++;
+        }
     }
-    CELER_ENSURE(build_scintpid.size() == num_part);
+    CELER_ENSURE(host_data.num_opt_particles > 0);
 
     // Store resolution scale
     for (auto const& inp : input.data)

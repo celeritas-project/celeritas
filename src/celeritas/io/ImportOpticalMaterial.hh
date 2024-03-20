@@ -92,7 +92,8 @@ struct ImportScintData
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
-        return static_cast<bool>(material) && resolution_scale >= 0;
+        return (static_cast<bool>(material) || !particles.empty())
+               && resolution_scale >= 0;
     }
 };
 
