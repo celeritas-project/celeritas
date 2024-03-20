@@ -21,10 +21,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        special: [null]
         geometry: ["orange", "vecgeom"]
         buildtype: ["debug", "ndebug"]
         image: ["ubuntu-cuda", "centos-rocm"]
-        special: [null]
         exclude:
           - geometry: "vecgeom"
             image: "centos-rocm" # VecGeom not installed on HIP
