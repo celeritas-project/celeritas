@@ -254,49 +254,6 @@ auto ValueGridLogBuilder::value() const -> SpanConstDbl
 }
 
 //---------------------------------------------------------------------------//
-// GENERIC BUILDER
-//---------------------------------------------------------------------------//
-/*!
- * Construct from raw data.
- */
-ValueGridGenericBuilder::ValueGridGenericBuilder(VecDbl grid,
-                                                 VecDbl value,
-                                                 Interp grid_interp,
-                                                 Interp value_interp)
-    : grid_(std::move(grid))
-    , value_(std::move(value))
-    , grid_interp_(grid_interp)
-    , value_interp_(value_interp)
-{
-    CELER_EXPECT(grid_.size() >= 2
-                 && is_monotonic_increasing(make_span(grid_)));
-    CELER_EXPECT(value_.size() == grid_.size());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct from raw data with linear interpolation.
- */
-ValueGridGenericBuilder::ValueGridGenericBuilder(VecDbl grid, VecDbl value)
-    : ValueGridGenericBuilder(
-        std::move(grid), std::move(value), Interp::linear, Interp::linear)
-{
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct grid data in the given mutable insert.
- */
-auto ValueGridGenericBuilder::build(ValueGridInserter insert) const
-    -> ValueGridId
-{
-    insert({make_span(grid_), grid_interp_},
-           {make_span(value_), value_interp_});
-    CELER_NOT_IMPLEMENTED("generic grids");
-    return {};
-}
-
-//---------------------------------------------------------------------------//
 // ON-THE-FLY
 //---------------------------------------------------------------------------//
 /*!

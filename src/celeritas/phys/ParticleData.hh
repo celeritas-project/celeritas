@@ -44,15 +44,14 @@ struct ParticleParamsData
     //// TYPES ////
 
     template<class T>
-    using Items = celeritas::Collection<T, W, M, ParticleId>;
+    using Items = Collection<T, W, M, ParticleId>;
 
     //// DATA ////
 
     Items<units::MevMass> mass;  //!< Rest mass [MeV / c^2]
     Items<units::ElementaryCharge> charge;  //!< Charge in units of [e]
     Items<real_type> decay_constant;  //!< Decay constant [1/s]
-    Items<MatterType> matter;  //!< Antiparticle (negative PDG
-                               //!< number)
+    Items<MatterType> matter;  //!< Antiparticle flag (negative PDG number)
 
     //// METHODS ////
 
@@ -63,8 +62,8 @@ struct ParticleParamsData
                && !matter.empty();
     }
 
-    //! Params size
-    CELER_FUNCTION typename Items<real_type>::size_type size() const
+    //! Number of particles
+    CELER_FUNCTION ParticleId::size_type size() const
     {
         return decay_constant.size();
     }

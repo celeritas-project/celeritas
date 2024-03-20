@@ -70,9 +70,8 @@ TEST_F(NeutronElasticTest, micro_xs)
     ElementId el_id{1};
 
     // Check the size of the element cross section data (G4PARTICLEXS4.0)
-    NeutronElasticRef shared = model_->host_ref();
-    GenericGridData grid = shared.micro_xs[el_id];
-    EXPECT_EQ(grid.grid.size(), 181);
+    NeutronElasticRef const& shared = model_->host_ref();
+    EXPECT_EQ(shared.micro_xs[el_id].grid.size(), 181);
 
     // Microscopic cross section (\f$ mm^{2} \f$) in [1e-05:1e+4] (MeV)
     std::vector<real_type> const expected_micro_xs = {7.7754820698300016,

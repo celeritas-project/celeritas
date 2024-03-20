@@ -44,6 +44,16 @@ UnitSystem to_unit_system(std::string const& s)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get a string corresponding to an interpolation.
+ */
+char const* to_cstring(Interp value)
+{
+    static EnumStringMapper<Interp> const to_cstring_impl{"linear", "log"};
+    return to_cstring_impl(value);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get a string corresponding to a state of matter.
  */
 char const* to_cstring(MatterState value)
