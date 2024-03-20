@@ -33,6 +33,15 @@
       }
     },
     {
+      "name": "reldeb-orange-asan",
+      "description": "Build with address sanitizer flags without hip",
+      "inherits": ["base", ".reldeb"],
+      "cacheVariables": {
+        "CELERITAS_USE_HIP": {"type": "BOOL", "value": "OFF"},
+        "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fsanitize=address -fno-omit-frame-pointer"
+      }
+    },
+    {
       "name": "ndebug-orange-float",
       "description": "Build with single-precision arithmetic and HIP/ROCm",
       "inherits": [".ndebug", "base"],

@@ -38,11 +38,7 @@ jobs:
           - geometry: "geant4"
             special: null
             geant: "11.0"
-          - geometry: "orange"
-            special: "asan"
-            geant: "11.0"
     env:
-      ASAN_OPTIONS: "detect_leaks=0"
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "100Mi"
       CMAKE_PRESET: >-
@@ -156,8 +152,6 @@ jobs:
           done
           ./bin/celer-sim --version
       - name: Build examples
-        if: >-
-          ${{matrix.special != 'asan'}} # ASAN requires flags downstream
         run: |
           . ${SPACK_VIEW}/rc
           ./scripts/ci/test-examples.sh
