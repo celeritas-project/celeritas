@@ -81,7 +81,7 @@ void LivermoreXsInserter::operator()(ImportLivermorePE const& inp)
     // Add tabulated total cross sections
     if (inp.xs_lo)
     {
-        // Hydrogen doesn't have low-energy cross sections
+        // Z < 3 have no low-energy cross sections
         el.xs_lo = build_grid_(inp.xs_lo);
     }
     el.xs_hi = build_grid_(inp.xs_hi);

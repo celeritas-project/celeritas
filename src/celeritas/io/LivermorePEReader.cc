@@ -98,7 +98,7 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
                        << "' (should contain cross section data)");
 
         // Check that the file is not empty
-        if (!(infile.peek() == std::ifstream::traits_type::eof()))
+        if (infile.peek() != std::ifstream::traits_type::eof())
         {
             // Read tabulated energies and cross sections
             double energy_min = 0;
@@ -117,9 +117,11 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
                 infile >> result.xs_lo.x[i] >> result.xs_lo.y[i];
             }
         }
-        else if (atomic_number != AtomicNumber{1})
+        else if (atomic_number <= AtomicNumber{2})
         {
-            // Hydrogen doesn't have low-energy cross sections
+            // Total cross sections below the K-shell energy aren't present for
+            // elements with only one subshell, but if another element is
+            // missing them we have a problem
             CELER_LOG(warning) << "No low-energy cross sections found in '"
                                << filename << "'";
         }
