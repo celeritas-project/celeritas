@@ -45,16 +45,6 @@ ScintillationParams::from_import(ImportData const& data,
     input.matid_to_optmatid.resize(data.materials.size());
     input.pid_to_scintpid.resize(data.particles.size());
 
-    // Fill with uninitialized data
-    // The final arrays will be mostly uninitialized, and that will determine
-    // which MaterialIds and ParticleIds are scintillation particles.
-    std::fill(input.matid_to_optmatid.begin(),
-              input.matid_to_optmatid.end(),
-              OpticalMaterialId{});
-    std::fill(input.pid_to_scintpid.begin(),
-              input.pid_to_scintpid.end(),
-              ScintillationParticleId{});
-
     OpticalMaterialId optmatid;
     ScintillationParticleId scintpid;
     for (auto const& [matid, iom] : data.optical)
@@ -165,7 +155,7 @@ ScintillationParams::ScintillationParams(Input const& input,
         // ordering should improve memory usage, since we group the material
         // list for each particle, and each particle (i.e. stream) traverses
         // multiple materials
-        DedupeCollectionBuilder build_grid(&host_data.grid_data);
+        DedupeCollectionBuilder build_reals(&host_data.reals);
         CollectionBuilder build_particles(&host_data.particles);
 
         for (auto pid : range(num_part))
@@ -180,9 +170,9 @@ ScintillationParams::ScintillationParams(Input const& input,
 
                 auto const& ipss = iter->second;
                 ParticleScintillationSpectrum part_spec;
-                part_spec.yield_vector.grid = build_grid.insert_back(
+                part_spec.yield_vector.grid = build_reals.insert_back(
                     ipss.yield_vector.x.begin(), ipss.yield_vector.x.end());
-                part_spec.yield_vector.value = build_grid.insert_back(
+                part_spec.yield_vector.value = build_reals.insert_back(
                     ipss.yield_vector.y.begin(), ipss.yield_vector.y.end());
                 CELER_ASSERT(part_spec.yield_vector);
 

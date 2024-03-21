@@ -220,8 +220,8 @@ TEST_F(ScintillationTest, particle_scint_params)
     {
         auto grid_idx = particle.yield_vector.grid[i];
         auto val_idx = particle.yield_vector.value[i];
-        yield_grid.push_back(data.grid_data[grid_idx]);
-        yield_value.push_back(data.grid_data[val_idx]);
+        yield_grid.push_back(data.reals[grid_idx]);
+        yield_value.push_back(data.reals[val_idx]);
     }
 
     std::vector<real_type> yield_fracs, lambda_means, lambda_sigmas,

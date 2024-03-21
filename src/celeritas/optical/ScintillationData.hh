@@ -12,6 +12,7 @@
 #include "corecel/data/Collection.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/GenericGridData.hh"
+#include "celeritas/optical/Types.hh"
 
 namespace celeritas
 {
@@ -130,9 +131,8 @@ struct ScintillationData
 
     //! Particle and material scintillation spectrum data
     ParticleItems particles;  //!< [ParticleScintSpectrumId]
-
     //! Backend storage for ParticleScintillationSpectrum::yield_vector
-    Items<real_type> grid_data;
+    Items<real_type> reals;
 
     //! Components for either material or particle items
     Items<ScintillationComponent> components;
@@ -175,7 +175,7 @@ struct ScintillationData
         resolution_scale = other.resolution_scale;
         materials = other.materials;
         particles = other.particles;
-        grid_data = other.grid_data;
+        reals = other.reals;
         components = other.components;
         num_opt_materials = other.num_opt_materials;
         num_opt_particles = other.num_opt_particles;
