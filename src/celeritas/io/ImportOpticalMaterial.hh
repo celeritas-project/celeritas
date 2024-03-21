@@ -9,8 +9,6 @@
 
 #include <vector>
 
-#include "celeritas/phys/PDGNumber.hh"
-
 #include "ImportPhysicsVector.hh"
 
 namespace celeritas
