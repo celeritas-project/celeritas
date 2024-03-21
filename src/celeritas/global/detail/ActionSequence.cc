@@ -11,6 +11,7 @@
 #include <tuple>
 #include <type_traits>
 #include <utility>
+#include <type_traits>
 
 #include "corecel/device_runtime_api.h"
 #include "corecel/Types.hh"
