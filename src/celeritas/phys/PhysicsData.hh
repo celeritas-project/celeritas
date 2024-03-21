@@ -16,7 +16,7 @@
 #include "celeritas/em/data/AtomicRelaxationData.hh"
 #include "celeritas/em/data/EPlusGGData.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
-#include "celeritas/grid/ValueGridData.hh"
+#include "celeritas/grid/ValueGridType.hh"
 #include "celeritas/grid/XsGridData.hh"
 #include "celeritas/neutron/data/NeutronElasticData.hh"
 

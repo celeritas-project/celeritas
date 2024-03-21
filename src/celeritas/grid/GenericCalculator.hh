@@ -22,6 +22,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Find and interpolate values on a nonuniform grid.
+ *
+ * Out-of-bounds values are snapped to the closest grid points.
  */
 class GenericCalculator
 {

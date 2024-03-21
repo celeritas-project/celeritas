@@ -14,7 +14,7 @@
 #include "corecel/cont/Range.hh"
 #include "celeritas/em/model/EPlusGGModel.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
-#include "celeritas/grid/ValueGridData.hh"
+#include "celeritas/grid/ValueGridType.hh"
 #include "celeritas/phys/Model.hh"
 #include "celeritas/phys/PDGNumber.hh"
 

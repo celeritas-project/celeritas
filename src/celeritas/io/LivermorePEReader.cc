@@ -76,11 +76,13 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
         // Read tabulated energies and cross sections
         double energy_min = 0.;
         double energy_max = 0.;
-        size_type size = 0;
+        int size = -1;
         infile >> energy_min >> energy_max >> size >> size;
+        CELER_VALIDATE(size >= 0,
+                       << "invalid cross section size in '" << filename << "'");
         result.xs_hi.x.resize(size);
         result.xs_hi.y.resize(size);
-        for (size_type i = 0; i < size; ++i)
+        for (int i = 0; i < size; ++i)
         {
             CELER_ASSERT(infile);
             infile >> result.xs_hi.x[i] >> result.xs_hi.y[i];
@@ -95,24 +97,33 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
                        << "failed to open '" << filename
                        << "' (should contain cross section data)");
 
-        // Set the physics vector type and the data type
-        result.xs_lo.vector_type = ImportPhysicsVectorType::free;
-
         // Check that the file is not empty
-        if (!(infile.peek() == std::ifstream::traits_type::eof()))
+        if (infile.peek() != std::ifstream::traits_type::eof())
         {
             // Read tabulated energies and cross sections
-            double energy_min = 0.;
-            double energy_max = 0.;
-            size_type size = 0;
+            double energy_min = 0;
+            double energy_max = 0;
+            int size = -1;
             infile >> energy_min >> energy_max >> size >> size;
+            CELER_VALIDATE(size >= 0,
+                           << "invalid cross section size in '" << filename
+                           << "'");
             result.xs_lo.x.resize(size);
             result.xs_lo.y.resize(size);
-            for (size_type i = 0; i < size; ++i)
+            result.xs_lo.vector_type = ImportPhysicsVectorType::free;
+            for (int i = 0; i < size; ++i)
             {
                 CELER_ASSERT(infile);
                 infile >> result.xs_lo.x[i] >> result.xs_lo.y[i];
             }
+        }
+        else if (atomic_number <= AtomicNumber{2})
+        {
+            // Total cross sections below the K-shell energy aren't present for
+            // elements with only one subshell, but if another element is
+            // missing them we have a problem
+            CELER_LOG(warning) << "No low-energy cross sections found in '"
+                               << filename << "'";
         }
     }
 

@@ -17,7 +17,7 @@
 #include "corecel/cont/Range.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
-#include "celeritas/grid/ValueGridData.hh"
+#include "celeritas/grid/ValueGridType.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
 

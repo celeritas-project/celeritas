@@ -123,30 +123,6 @@ TEST_F(ValueGridBuilderTest, log_grid)
     }
 }
 
-TEST_F(ValueGridBuilderTest, DISABLED_generic_grid)
-{
-    using Builder_t = ValueGridGenericBuilder;
-
-    VecBuilder entries;
-    {
-        entries.push_back(
-            make_shared<Builder_t>(VeDbl{.1, .2, .3}, VeDbl{1, 2, 3}));
-        entries.push_back(make_shared<Builder_t>(
-            VeDbl{1e-2, 1e-1, 1}, VeDbl{1, 2, 3}, Interp::log, Interp::linear));
-    }
-
-    // Build
-    this->build(entries);
-
-    // Test results using the physics calculator
-    ASSERT_EQ(2, grid_storage.size());
-    {
-        XsCalculator calc_xs(grid_storage[XsIndex{0}], real_ref);
-        EXPECT_SOFT_EQ(0.1, calc_xs(Energy{1e1}));
-        EXPECT_SOFT_EQ(0.2, calc_xs(Energy{1e2}));
-        EXPECT_SOFT_EQ(0.3, calc_xs(Energy{1e3}));
-    }
-}
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

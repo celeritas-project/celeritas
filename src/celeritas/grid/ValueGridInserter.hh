@@ -17,7 +17,6 @@
 #include "corecel/grid/UniformGridData.hh"
 #include "celeritas/Types.hh"
 
-#include "GenericGridData.hh"
 #include "XsGridData.hh"
 
 namespace celeritas
@@ -48,9 +47,7 @@ class ValueGridInserter
     using XsGridCollection
         = Collection<XsGridData, Ownership::value, MemSpace::host>;
     using SpanConstDbl = Span<double const>;
-    using InterpolatedGrid = std::pair<SpanConstDbl, Interp>;
     using XsIndex = ItemId<XsGridData>;
-    using GenericIndex = ItemId<GenericGridData>;
     //!@}
 
   public:
@@ -64,9 +61,6 @@ class ValueGridInserter
 
     // Add a grid of uniform log-grid data
     XsIndex operator()(UniformGridData const& log_grid, SpanConstDbl values);
-
-    // Add a grid of generic data
-    GenericIndex operator()(InterpolatedGrid grid, InterpolatedGrid values);
 
   private:
     CollectionBuilder<real_type, MemSpace::host, ItemId<real_type>> values_;
