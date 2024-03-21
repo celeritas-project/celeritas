@@ -146,7 +146,7 @@ class UnitProto : public ProtoInterface
     VecProto daughters() const final;
 
     // Construct a universe input from this object
-    void build(GlobalBuilder&) const final;
+    void build(InputBuilder&) const final;
 
     //// HELPER FUNCTIONS ////
 

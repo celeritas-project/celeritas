@@ -27,8 +27,11 @@ namespace celeritas
 // PARAMS
 //---------------------------------------------------------------------------//
 
-// VolumeId of exterior volume for all universe types
-static inline constexpr LocalVolumeId local_orange_outside_volume{0};
+//! Local ID of exterior volume for unit-type universes
+static inline constexpr LocalVolumeId orange_exterior_volume{0};
+
+//! ID of the top-level (global/world, level=0) universe (scene)
+static inline constexpr UniverseId orange_global_universe{0};
 
 //---------------------------------------------------------------------------//
 /*!

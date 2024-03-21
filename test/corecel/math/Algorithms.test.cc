@@ -185,6 +185,29 @@ TEST(AlgorithmsTest, upper_bound)
     }
 }
 
+TEST(AlgorithmsTest, find_sorted)
+{
+    std::vector<int> v;
+    auto find_index = [&v](int value) -> int {
+        auto iter = celeritas::find_sorted(v.begin(), v.end(), value);
+        if (iter == v.end())
+            return -1;
+        return iter - v.begin();
+    };
+
+    // Test empty vector
+    EXPECT_EQ(-1, find_index(10));
+
+    // Test a selection of sorted values
+    v = {-3, 1, 4, 9, 10, 11, 15, 15};
+    EXPECT_EQ(-1, find_index(-5));
+    EXPECT_EQ(0, find_index(-3));
+    EXPECT_EQ(2, find_index(4));
+    EXPECT_EQ(-1, find_index(5));
+    EXPECT_EQ(6, find_index(15));
+    EXPECT_EQ(-1, find_index(16));
+}
+
 TEST(AlgorithmsTest, partition)
 {
     std::vector<int> values{-1, 2, 3, 4, 2, 6, 9, 4};

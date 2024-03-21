@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -7,24 +7,35 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/cont/VariantUtils.hh"
-#include "orange/OrangeTypes.hh"
+#include <utility>
+#include <vector>
 
-#include "../CsgTree.hh"
+#include "orange/OrangeTypes.hh"
+#include "orange/orangeinp/CsgTypes.hh"
 
 namespace celeritas
 {
 namespace orangeinp
 {
+class CsgTree;
 namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Recursively construct a logic vector from a node with postfix operation.
+ * Construct a postfix logic representation of a node.
  *
- * This is an implementation detail of the \c build_postfix function. The user
- * invokes this class with a node ID (usually representing a cell), and then
- * this class recurses into the daughters using a tree visitor.
+ * The optional surface mapping is an ordered vector of *existing* surface IDs.
+ * Those surface IDs will be replaced by the index in the array. All existing
+ * surface IDs must be present!
+ *
+ * The result is a pair of vectors: the sorted surface IDs comprising the faces
+ * of this volume, and the logical representation using \em face IDs, i.e. with
+ * the surfaces remapped to index of the surface in the face vector.
+ *
+ * Example: \verbatim
+    all(1, 3, 5) -> {{1, 3, 5}, "0 1 & 2 & &"}
+    all(1, 3, !all(2, 4)) -> {{1, 2, 3, 4}, "0 2 & 1 3 & ~ &"}
+ * \endverbatim
  */
 class PostfixLogicBuilder
 {
@@ -32,129 +43,33 @@ class PostfixLogicBuilder
     //!@{
     //! \name Type aliases
     using VecLogic = std::vector<logic_int>;
+    using VecSurface = std::vector<LocalSurfaceId>;
+    using result_type = std::pair<VecSurface, VecLogic>;
     //!@}
-
-    static_assert(std::is_same_v<LocalSurfaceId::size_type, logic_int>,
-                  "unsupported: add enum logic conversion for different-sized "
-                  "face and surface ints");
 
   public:
-    // Construct with pointer to vector to append to
-    inline PostfixLogicBuilder(CsgTree const& tree, VecLogic* logic);
+    //! Construct from a tree
+    explicit PostfixLogicBuilder(CsgTree const& tree) : tree_{tree} {}
 
-    //! Build from a node ID
-    inline void operator()(NodeId const& n);
+    // Construct from a tree and surface remapping
+    inline PostfixLogicBuilder(CsgTree const& tree, VecSurface const& old_ids);
 
-    //!@{
-    //! \name Visit a node directly
-    // Append 'true'
-    inline void operator()(True const&);
-    // False is never explicitly part of the node tree
-    inline void operator()(False const&);
-    // Append a surface ID
-    inline void operator()(Surface const&);
-    // Aliased nodes should never be reachable explicitly
-    inline void operator()(Aliased const&);
-    // Visit a negated node and append 'not'
-    inline void operator()(Negated const&);
-    // Visit daughter nodes and append the conjunction.
-    inline void operator()(Joined const&);
-    //!@}
+    // Convert a single node to postfix notation
+    result_type operator()(NodeId n) const;
 
   private:
-    ContainerVisitor<CsgTree const&, NodeId> visit_node_;
-    VecLogic* logic_;
+    CsgTree const& tree_;
+    VecSurface const* mapping_{nullptr};
 };
 
 //---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
 /*!
- * Construct with pointer to the logic expression.
+ * Construct from a tree and surface remapping.
  */
-PostfixLogicBuilder::PostfixLogicBuilder(CsgTree const& tree, VecLogic* logic)
-    : visit_node_{tree}, logic_{logic}
+PostfixLogicBuilder::PostfixLogicBuilder(CsgTree const& tree,
+                                         VecSurface const& old_ids)
+    : tree_{tree}, mapping_{&old_ids}
 {
-    CELER_EXPECT(logic_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Build from a node ID.
- */
-void PostfixLogicBuilder::operator()(NodeId const& n)
-{
-    visit_node_(*this, n);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Append the "true" token.
- */
-void PostfixLogicBuilder::operator()(True const&)
-{
-    logic_->push_back(logic::ltrue);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Explicit "False" should never be possible for a CSG cell.
- *
- * The 'false' standin is always aliased to "not true" in the CSG tree.
- */
-void PostfixLogicBuilder::operator()(False const&)
-{
-    CELER_ASSERT_UNREACHABLE();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Push a surface ID.
- */
-void PostfixLogicBuilder::operator()(Surface const& s)
-{
-    CELER_EXPECT(s.id < logic::lbegin);
-    logic_->push_back(s.id.unchecked_get());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Push an aliased node.
- *
- * TODO: aliased node shouldn't be reachable if we're fully simplified.
- */
-void PostfixLogicBuilder::operator()(Aliased const& n)
-{
-    (*this)(n.node);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Visit a negated node and append 'not'.
- */
-void PostfixLogicBuilder::operator()(Negated const& n)
-{
-    (*this)(n.node);
-    logic_->push_back(logic::lnot);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Visit daughter nodes and append the conjunction.
- */
-void PostfixLogicBuilder::operator()(Joined const& n)
-{
-    CELER_EXPECT(n.nodes.size() > 1);
-
-    // Visit first node, then add conjunction for subsequent nodes
-    auto iter = n.nodes.begin();
-    (*this)(*iter++);
-
-    while (iter != n.nodes.end())
-    {
-        (*this)(*iter++);
-        logic_->push_back(n.op);
-    }
 }
 
 //---------------------------------------------------------------------------//

@@ -115,6 +115,9 @@ BoundingZone calc_intersection(BoundingZone const& a, BoundingZone const& b);
 // Calculate the union of two bounding zones
 BoundingZone calc_union(BoundingZone const& a, BoundingZone const& b);
 
+// Get an infinite bbox if "negated", else get the exterior
+BBox get_exterior_bbox(BoundingZone const&);
+
 //---------------------------------------------------------------------------//
 /*!
  * Flip inside and outside.

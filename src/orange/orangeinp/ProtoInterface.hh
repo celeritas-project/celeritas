@@ -17,7 +17,11 @@ namespace celeritas
 namespace orangeinp
 {
 class ObjectInterface;
-class GlobalBuilder;
+
+namespace detail
+{
+class InputBuilder;
+}  // namespace detail
 
 //---------------------------------------------------------------------------//
 /*!
@@ -31,8 +35,6 @@ class GlobalBuilder;
  * - a list of daughter Protos that are placed inside the current one.
  *
  * The graph of Proto daughters must be acyclic.
- *
- * \todo GLOBAL BUILDER IS NOT YET IMPLEMENTED.
  */
 class ProtoInterface
 {
@@ -42,6 +44,7 @@ class ProtoInterface
     using SPConstObject = std::shared_ptr<ObjectInterface const>;
     using SPConstProto = std::shared_ptr<ProtoInterface const>;
     using VecProto = std::vector<ProtoInterface const*>;
+    using InputBuilder = detail::InputBuilder;
     //!@}
 
   public:
@@ -55,7 +58,7 @@ class ProtoInterface
     virtual VecProto daughters() const = 0;
 
     //! Construct a universe input from this object
-    virtual void build(GlobalBuilder&) const = 0;
+    virtual void build(InputBuilder&) const = 0;
 
   protected:
     //!@{
