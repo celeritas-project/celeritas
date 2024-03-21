@@ -379,7 +379,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
                 // Bin photon displacement
                 {
                     real_type displacement
-                        = to_cm(distance(pre_step.pos, photon.position));
+                        = distance(pre_step.pos, photon.position);
                     avg_displacement += displacement;
                     int bin = (displacement - dmin) / ddel;
                     CELER_ASSERT(bin < num_bins);
@@ -417,8 +417,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
         step.points[StepPoint::pre].pos = {0, 0, 0};
         step.points[StepPoint::pre].speed
             = units::LightSpeed{0.99999999869453382};
-        step.points[StepPoint::post].pos
-            = {from_cm(sim_view.step_length()), 0, 0};
+        step.points[StepPoint::post].pos = {sim_view.step_length(), 0, 0};
         step.points[StepPoint::post].speed
             = units::LightSpeed{0.9999999986942727};
         CELER_ASSERT(step);
@@ -459,8 +458,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
             = units::LightSpeed(0.86286196322132458);
         step.points[StepPoint::post].speed
             = units::LightSpeed(0.63431981443206786);
-        step.points[StepPoint::post].pos
-            = {from_cm(sim_view.step_length()), 0, 0};
+        step.points[StepPoint::post].pos = {sim_view.step_length(), 0, 0};
         CELER_ASSERT(step);
 
         static double const expected_costheta_dist[]
