@@ -56,26 +56,28 @@ class ScintillationTest : public OpticalTestBase
     std::shared_ptr<ScintillationParams>
     build_scintillation_params(bool scint_by_particle = false)
     {
-        ImportScintData data;
-        data.resolution_scale = 1;
-        // One material, three components
-        data.material.yield = 5;
-        data.material.components = this->build_material_components();
-        // One particle, one component (based on lar-sphere.gdml)
-        ImportParticleScintSpectrum ipss;
-        ipss.yield_vector = this->build_particle_yield();
-        ipss.components = this->build_particle_components();
-        data.particles.insert({pdg::electron().get(), std::move(ipss)});
-
         ScintillationParams::Input inp;
-        inp.scintillation_by_particle = scint_by_particle;
-        inp.matid_to_optmatid.push_back(OpticalMaterialId(0));
-        // Match particle params (1st particle is an electron)
         inp.pid_to_scintpid.push_back(ScintillationParticleId(0));
-        inp.data.push_back(std::move(data));
+        inp.resolution_scale.push_back(1);
 
-        return std::make_shared<ScintillationParams>(std::move(inp),
-                                                     this->particle_params());
+        // One material, three components
+        if (!scint_by_particle)
+        {
+            ImportMaterialScintSpectrum mat_spec;
+            mat_spec.yield = 5;
+            mat_spec.components = this->build_material_components();
+            inp.materials.push_back(std::move(mat_spec));
+        }
+        else
+        {
+            // One particle, one component (based on lar-sphere.gdml)
+            ImportParticleScintSpectrum ipss;
+            ipss.yield_vector = this->build_particle_yield();
+            ipss.components = this->build_particle_components();
+            inp.particles.push_back(std::move(ipss));
+        }
+
+        return std::make_shared<ScintillationParams>(std::move(inp));
     }
 
     //! Create material components
@@ -131,6 +133,7 @@ class ScintillationTest : public OpticalTestBase
 
   protected:
     RandomEngine rng_;
+    OpticalMaterialId opt_matid_{0};
     real_type sim_track_view_step_len_{1};  // [cm]
 };
 
@@ -142,18 +145,13 @@ TEST_F(ScintillationTest, material_scint_params)
 {
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
-    EXPECT_FALSE(data.scintillation_by_particle());
 
-    auto const opt_matid = data.matid_to_optmatid[MaterialId{0}];
-
+    EXPECT_EQ(0, data.num_scint_particles);
     EXPECT_EQ(1, data.materials.size());
-    EXPECT_EQ(1, data.num_scint_particles);
-    EXPECT_EQ(1, data.materials.size());
-    EXPECT_EQ(0, opt_matid.get());
 
-    auto const& material = data.materials[opt_matid];
+    auto const& material = data.materials[opt_matid_];
     EXPECT_REAL_EQ(5, material.yield);
-    EXPECT_REAL_EQ(1, data.resolution_scale[opt_matid]);
+    EXPECT_REAL_EQ(1, data.resolution_scale[opt_matid_]);
     EXPECT_EQ(3, data.components.size());
 
     std::vector<real_type> yield_fracs, lambda_means, lambda_sigmas,
@@ -199,17 +197,14 @@ TEST_F(ScintillationTest, particle_scint_params)
     auto const& data = params->host_ref();
     EXPECT_TRUE(data.scintillation_by_particle());
 
-    auto const opt_matid = data.matid_to_optmatid[MaterialId{0}];
     auto const scint_pid = data.pid_to_scintpid[ParticleId{0}];
-
-    EXPECT_EQ(1, data.matid_to_optmatid.size());
     EXPECT_EQ(1, data.pid_to_scintpid.size());
     EXPECT_EQ(1, data.num_scint_particles);
-    EXPECT_REAL_EQ(1, data.resolution_scale[opt_matid]);
+    EXPECT_REAL_EQ(1, data.resolution_scale[opt_matid_]);
 
     // Get correct spectrum index given opticals particle and material ids
     auto const part_scint_spectrum_id
-        = data.spectrum_index(scint_pid, opt_matid);
+        = data.spectrum_index(scint_pid, opt_matid_);
     EXPECT_EQ(0, part_scint_spectrum_id.get());
 
     auto const& particle = data.particles[part_scint_spectrum_id];
@@ -271,7 +266,7 @@ TEST_F(ScintillationTest, pre_generator)
     ScintillationPreGenerator generate(
         this->make_particle_track_view(MevEnergy{10}, pdg::electron()),
         this->make_sim_track_view(sim_track_view_step_len_),
-        data.matid_to_optmatid[MaterialId{0}],
+        opt_matid_,
         data,
         this->build_pregen_step());
 
@@ -298,13 +293,11 @@ TEST_F(ScintillationTest, basic)
     auto const& data = params->host_ref();
     EXPECT_FALSE(data.scintillation_by_particle());
 
-    auto const opt_matid = data.matid_to_optmatid[MaterialId{0}];
-
     // Pre-generate optical distribution data
     ScintillationPreGenerator generate(
         this->make_particle_track_view(MevEnergy{10}, pdg::electron()),
         this->make_sim_track_view(sim_track_view_step_len_),
-        opt_matid,
+        opt_matid_,
         data,
         this->build_pregen_step());
 
@@ -369,12 +362,11 @@ TEST_F(ScintillationTest, stress_test)
 {
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
-    auto const opt_matid = data.matid_to_optmatid[MaterialId{0}];
 
     ScintillationPreGenerator generate(
         this->make_particle_track_view(MevEnergy{10}, pdg::electron()),
         this->make_sim_track_view(sim_track_view_step_len_),
-        opt_matid,
+        opt_matid_,
         data,
         this->build_pregen_step());
     auto result = generate(this->rng());

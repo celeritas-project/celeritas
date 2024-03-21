@@ -32,22 +32,23 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
     using ScintillationDataCRef = HostCRef<ScintillationData>;
     //!@}
 
-    //! Scintillation data for all materials
+    //! Scintillation data for all materials and particles
     struct Input
     {
         using VecOptMatId = std::vector<OpticalMaterialId>;
         using VecSPId = std::vector<ScintillationParticleId>;
 
-        VecOptMatId matid_to_optmatid;  //!< MaterialId to OpticalMaterialId
         VecSPId pid_to_scintpid;  //!< ParticleId to ScintillationParticleId
-        std::vector<ImportScintData> data;  //!< Indexed by OpticalMaterialId
-        bool scintillation_by_particle{false};  //!< Select particle sampling
 
-        //! Whether all data are assigned and valid
+        std::vector<double> resolution_scale;
+        std::vector<ImportMaterialScintSpectrum> materials;
+        std::vector<ImportParticleScintSpectrum> particles;
+
         explicit operator bool() const
         {
-            return !data.empty() && !matid_to_optmatid.empty()
-                   && !pid_to_scintpid.empty();
+            return (pid_to_scintpid.empty() == particles.empty())
+                   && !resolution_scale.empty()
+                   && (materials.empty() != particles.empty());
         }
     };
 
@@ -57,7 +58,7 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
     from_import(ImportData const& data, SPConstParticles particle_params);
 
     // Construct with scintillation components
-    ScintillationParams(Input const& input, SPConstParticles particle_params);
+    explicit ScintillationParams(Input const& input);
 
     //! Access physics properties on the host
     HostRef const& host_ref() const final { return mirror_.host_ref(); }
@@ -75,8 +76,8 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
     std::vector<ScintillationComponent>
     build_components(std::vector<ImportScintComponent> const& input_comp);
 
-    // Check correctness of populated component data
-    void validate(std::vector<ScintillationComponent> const& vec_comp);
+    // Check correctness of imported component data
+    void validate(ImportScintComponent const& comp);
 };
 
 //---------------------------------------------------------------------------//

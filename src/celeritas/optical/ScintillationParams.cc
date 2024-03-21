@@ -39,50 +39,75 @@ ScintillationParams::from_import(ImportData const& data,
         return nullptr;
     }
 
+    auto const& num_optmats = data.optical.size();
+
     Input input;
-    input.scintillation_by_particle
-        = data.optical_params.scintillation_by_particle;
-    input.matid_to_optmatid.resize(data.materials.size());
-    input.pid_to_scintpid.resize(data.particles.size());
-
-    OpticalMaterialId optmatid;
-    ScintillationParticleId scintpid;
-    for (auto const& [matid, iom] : data.optical)
+    input.resolution_scale.resize(num_optmats);
+    if (data.optical_params.scintillation_by_particle)
     {
-        input.matid_to_optmatid[matid] = optmatid++;
-        input.data.push_back(iom.scintillation);
-
-        if (!input.pid_to_scintpid.empty())
+        // Collect ScintillationParticleIds
+        input.pid_to_scintpid.resize(data.particles.size());
+        ScintillationParticleId scintpid;
+        for (auto const& [matid, iom] : data.optical)
         {
-            // Every material must have same number of scintillation particles
-            CELER_ASSERT(input.pid_to_scintpid.size()
-                         == iom.scintillation.particles.size());
-            // Only store list of scintillation particle ids once
-            continue;
-        }
-
-        // Loop over particles and add all that are scintillation particles
-        auto const& iomsp = iom.scintillation.particles;
-        for (auto pid : range(data.particles.size()))
-        {
-            if (iomsp.find(data.particles[pid].pdg) != iomsp.end())
+            auto const& iomsp = iom.scintillation.particles;
+            for (auto const& [pdg, ipss] : iomsp)
             {
+                auto const pid = particle_params->find(PDGNumber{pdg});
                 // Add new ScintillationParticleId
-                input.pid_to_scintpid[pid] = scintpid++;
+                input.pid_to_scintpid[pid.get()] = scintpid++;
             }
         }
+        // Resize particle- and material-dependent spectra
+        input.particles.resize(input.pid_to_scintpid.size() * num_optmats);
+    }
+    else
+    {
+        // Resize material-only spectra
+        input.materials.resize(num_optmats);
     }
 
-    return std::make_shared<ScintillationParams>(std::move(input),
-                                                 std::move(particle_params));
+    size_type optmatidx{0};
+    size_type scintpidx{0};
+    for (auto const& [matid, iom] : data.optical)
+    {
+        input.resolution_scale[optmatidx] = iom.scintillation.resolution_scale;
+
+        if (!data.optical_params.scintillation_by_particle)
+        {
+            // Material spectrum
+            auto const& iomsm = iom.scintillation.material;
+            ImportMaterialScintSpectrum mat_spec;
+            mat_spec.yield = iomsm.yield;
+            mat_spec.components = iomsm.components;
+            input.materials[optmatidx] = std::move(mat_spec);
+        }
+        else
+        {
+            // Particle and material spectrum
+            auto const& iomsp = iom.scintillation.particles;
+
+            for (auto const& [pdg, ipss] : iomsp)
+            {
+                ImportParticleScintSpectrum part_spec;
+                part_spec.yield_vector = ipss.yield_vector;
+                part_spec.components = ipss.components;
+                input.particles[num_optmats * scintpidx + optmatidx]
+                    = std::move(part_spec);
+                scintpidx++;
+            }
+        }
+        optmatidx++;
+    }
+
+    return std::make_shared<ScintillationParams>(std::move(input));
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with scintillation input data.
  */
-ScintillationParams::ScintillationParams(Input const& input,
-                                         SPConstParticles particle_params)
+ScintillationParams::ScintillationParams(Input const& input)
 {
     CELER_EXPECT(input);
     HostVal<ScintillationData> host_data;
@@ -91,95 +116,79 @@ ScintillationParams::ScintillationParams(Input const& input,
     CollectionBuilder build_resolutionscale(&host_data.resolution_scale);
     CollectionBuilder build_compoments(&host_data.components);
 
-    size_type num_opt_mat{};
-
-    // Store material ids
-    for (auto const id : input.matid_to_optmatid)
+    if (!input.particles.empty())
     {
-        build_optmatid.push_back(id);
-        if (id)
+        // Store particle idss
+        for (auto const id : input.pid_to_scintpid)
         {
-            num_opt_mat++;
+            build_scintpid.push_back(id);
+            if (id)
+            {
+                host_data.num_scint_particles++;
+            }
         }
+        CELER_ENSURE(!host_data.pid_to_scintpid.empty());
+        CELER_ENSURE(host_data.num_scint_particles > 0);
     }
-    CELER_ENSURE(!host_data.matid_to_optmatid.empty());
-
-    // Store particle ids
-    for (auto const id : input.pid_to_scintpid)
-    {
-        build_scintpid.push_back(id);
-        if (id)
-        {
-            host_data.num_scint_particles++;
-        }
-    }
-    CELER_ENSURE(!host_data.pid_to_scintpid.empty());
-    CELER_ENSURE(host_data.num_scint_particles > 0);
 
     // Store resolution scale
-    for (auto const& inp : input.data)
+    for (auto const& val : input.resolution_scale)
     {
-        CELER_VALIDATE(inp.resolution_scale >= 0,
-                       << "invalid resolution_scale=" << inp.resolution_scale
+        CELER_VALIDATE(val >= 0,
+                       << "invalid resolution_scale=" << val
                        << " for scintillation (should be nonnegative)");
-        build_resolutionscale.push_back(inp.resolution_scale);
+        build_resolutionscale.push_back(val);
     }
-    CELER_ENSURE(build_resolutionscale.size() == num_opt_mat);
+    CELER_ENSURE(!host_data.resolution_scale.empty());
 
-    if (!input.scintillation_by_particle)
+    if (input.particles.empty())
     {
+        CELER_EXPECT(!input.materials.empty());
         CollectionBuilder build_materials(&host_data.materials);
 
         // Store material scintillation data
-        for (auto const& inp : input.data)
+        for (auto const& mat : input.materials)
         {
             // Check validity of input scintillation data
-            CELER_ASSERT(inp);
+            CELER_ASSERT(mat);
             // Material-only data
             MaterialScintillationSpectrum mat_spec;
-            mat_spec.yield = inp.material.yield;
-            CELER_VALIDATE(mat_spec.yield > 0,
-                           << "invalid yield=" << mat_spec.yield
+            CELER_VALIDATE(mat.yield > 0,
+                           << "invalid yield=" << mat.yield
                            << " for scintillation (should be positive)");
-            auto comps = this->build_components(inp.material.components);
+            mat_spec.yield = mat.yield;
+            auto comps = this->build_components(mat.components);
             mat_spec.components
                 = build_compoments.insert_back(comps.begin(), comps.end());
             build_materials.push_back(std::move(mat_spec));
         }
-        CELER_ENSURE(build_materials.size() == num_opt_mat);
+        CELER_VALIDATE(input.materials.size() == input.resolution_scale.size(),
+                       << "material and resolution scales do not match.");
+        CELER_ENSURE(host_data.materials.size()
+                     == host_data.resolution_scale.size());
     }
     else
     {
         // Store particle- and material-dependent scintillation data
         // Index should loop over particles first, then materials. This
-        // ordering should improve memory usage, since we group the material
-        // list for each particle, and each particle (i.e. stream) traverses
-        // multiple materials
+        // ordering should improve memory usage, since we group the
+        // material list for each particle, and each particle (i.e. stream)
+        // traverses multiple materials
         GenericGridBuilder build_grid(&host_data.reals);
         CollectionBuilder build_particles(&host_data.particles);
 
-        for (auto pid : range(host_data.num_scint_particles))
+        for (auto spec : input.particles)
         {
-            auto const pdg = particle_params->id_to_pdg(ParticleId(pid)).get();
-            for (auto matid : range(num_opt_mat))
-            {
-                // Particle- and material-dependend scintillation spectrum
-                auto iter = input.data[matid].particles.find(pdg);
-                CELER_ASSERT(iter != input.data[matid].particles.end()
-                             && pdg == iter->first);
-                auto const& ipss = iter->second;
-                CELER_ASSERT(ipss);
-
-                ParticleScintillationSpectrum part_spec;
-                part_spec.yield_vector = build_grid(ipss.yield_vector);
-                auto comps = this->build_components(ipss.components);
-                part_spec.components
-                    = build_compoments.insert_back(comps.begin(), comps.end());
-                build_particles.push_back(std::move(part_spec));
-            }
+            ParticleScintillationSpectrum part_spec;
+            part_spec.yield_vector = build_grid(spec.yield_vector);
+            auto comps = this->build_components(spec.components);
+            part_spec.components
+                = build_compoments.insert_back(comps.begin(), comps.end());
+            build_particles.push_back(std::move(part_spec));
         }
-        CELER_ENSURE(build_particles.size()
-                     == host_data.num_scint_particles * num_opt_mat);
+        CELER_ENSURE(host_data.particles.size()
+                     == host_data.num_scint_particles
+                            * host_data.resolution_scale.size());
     }
 
     mirror_ = CollectionMirror<ScintillationData>{std::move(host_data)};
@@ -197,6 +206,7 @@ std::vector<ScintillationComponent> ScintillationParams::build_components(
     real_type norm{0};
     for (auto i : range(comp.size()))
     {
+        this->validate(input_comp[i]);
         comp[i].lambda_mean = input_comp[i].lambda_mean;
         comp[i].lambda_sigma = input_comp[i].lambda_sigma;
         comp[i].rise_time = input_comp[i].rise_time;
@@ -207,10 +217,11 @@ std::vector<ScintillationComponent> ScintillationParams::build_components(
     // Store normalized yield
     for (auto i : range(comp.size()))
     {
+        CELER_VALIDATE(input_comp[i].yield > 0,
+                       << "invalid yield=" << input_comp[i].yield
+                       << " for scintillation component " << i);
         comp[i].yield_frac = input_comp[i].yield / norm;
     }
-
-    this->validate(comp);
     return comp;
 }
 
@@ -218,33 +229,20 @@ std::vector<ScintillationComponent> ScintillationParams::build_components(
 /*
  * Verify the correctness of the populated vector<ScintillationComponent>.
  */
-void ScintillationParams::validate(
-    std::vector<ScintillationComponent> const& vec_comp)
+void ScintillationParams::validate(ImportScintComponent const& comp)
 {
-    for (auto i : range(vec_comp.size()))
-    {
-        CELER_VALIDATE(
-            vec_comp[i].yield_frac > 0 && vec_comp[i].yield_frac <= 1,
-            << "invalid yield_frac=" << vec_comp[i].yield_frac
-            << " for scintillation component " << i
-            << " (should be between 0 and 1)");
-        CELER_VALIDATE(vec_comp[i].lambda_mean > 0,
-                       << "invalid lambda_mean=" << vec_comp[i].lambda_mean
-                       << " for scintillation component " << i
-                       << " (should be positive)");
-        CELER_VALIDATE(vec_comp[i].lambda_sigma > 0,
-                       << "invalid lambda_sigma=" << vec_comp[i].lambda_sigma
-                       << " for scintillation component " << i
-                       << " (should be positive)");
-        CELER_VALIDATE(vec_comp[i].rise_time >= 0,
-                       << "invalid rise_time=" << vec_comp[i].rise_time
-                       << " for scintillation component " << i
-                       << " (should be nonnegative)");
-        CELER_VALIDATE(vec_comp[i].fall_time > 0,
-                       << "invalid fall_time=" << vec_comp[i].fall_time
-                       << " for scintillation component " << i
-                       << " (should be positive)");
-    }
+    CELER_VALIDATE(comp.lambda_mean > 0,
+                   << "invalid lambda_mean=" << comp.lambda_mean
+                   << " for scintillation component (should be positive)");
+    CELER_VALIDATE(comp.lambda_sigma > 0,
+                   << "invalid lambda_sigma=" << comp.lambda_sigma
+                   << " for scintillation component (should be positive)");
+    CELER_VALIDATE(comp.rise_time >= 0,
+                   << "invalid rise_time=" << comp.rise_time
+                   << " for scintillation component (should be nonnegative)");
+    CELER_VALIDATE(comp.fall_time > 0,
+                   << "invalid fall_time=" << comp.fall_time
+                   << " for scintillation component (should be positive)");
 }
 
 //---------------------------------------------------------------------------//
