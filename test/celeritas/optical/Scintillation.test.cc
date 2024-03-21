@@ -204,6 +204,7 @@ TEST_F(ScintillationTest, particle_scint_params)
 
     EXPECT_EQ(1, data.matid_to_optmatid.size());
     EXPECT_EQ(1, data.pid_to_scintpid.size());
+    EXPECT_EQ(1, data.num_scint_particles);
     EXPECT_REAL_EQ(1, data.resolution_scale[opt_matid]);
 
     // Get correct spectrum index given opticals particle and material ids

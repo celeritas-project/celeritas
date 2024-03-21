@@ -160,8 +160,11 @@ struct ScintillationData
     ParticleScintSpectrumId
     spectrum_index(ScintillationParticleId pid, OpticalMaterialId mat_id) const
     {
-        CELER_EXPECT(pid < num_scint_particles && mat_id < materials.size());
-        return ParticleScintSpectrumId{materials.size() * pid.get()
+        // Resolution scale exists independent of material-only data and it's
+        // indexed by optical material id
+        CELER_EXPECT(pid < num_scint_particles
+                     && mat_id < resolution_scale.size());
+        return ParticleScintSpectrumId{resolution_scale.size() * pid.get()
                                        + mat_id.get()};
     }
 
