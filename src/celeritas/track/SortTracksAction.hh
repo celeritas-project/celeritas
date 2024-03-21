@@ -23,6 +23,13 @@ class SortTracksAction final : public ExplicitCoreActionInterface,
                                public BeginRunActionInterface
 {
   public:
+    //@{
+    //! \name Type aliases
+    using ExplicitCoreActionInterface::CoreStateDevice;
+    using ExplicitCoreActionInterface::CoreStateHost;
+    //@}
+
+  public:
     // Construct with action ID and sort criteria
     SortTracksAction(ActionId id, TrackOrder track_order);
 

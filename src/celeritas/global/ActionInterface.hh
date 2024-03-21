@@ -48,13 +48,6 @@ class CoreState;
 class ActionInterface
 {
   public:
-    //@{
-    //! \name Type aliases
-    using CoreStateHost = CoreState<MemSpace::host>;
-    using CoreStateDevice = CoreState<MemSpace::device>;
-    //@}
-
-  public:
     // Default virtual destructor allows deletion by pointer-to-interface
     virtual ~ActionInterface();
 
@@ -89,6 +82,13 @@ class ActionInterface
 class BeginRunActionInterface : public virtual ActionInterface
 {
   public:
+    //@{
+    //! \name Type aliases
+    using CoreStateHost = CoreState<MemSpace::host>;
+    using CoreStateDevice = CoreState<MemSpace::device>;
+    //@}
+
+  public:
     //! Set host data at the beginning of a run
     virtual void begin_run(CoreParams const&, CoreStateHost&) = 0;
     //! Set device data at the beginning of a run
@@ -114,6 +114,13 @@ class ExplicitActionInterface : public virtual ActionInterface
  */
 class ExplicitCoreActionInterface : public virtual ExplicitActionInterface
 {
+  public:
+    //@{
+    //! \name Type aliases
+    using CoreStateHost = CoreState<MemSpace::host>;
+    using CoreStateDevice = CoreState<MemSpace::device>;
+    //@}
+
   public:
     //! Execute the action with host data
     virtual void execute(CoreParams const&, CoreStateHost&) const = 0;

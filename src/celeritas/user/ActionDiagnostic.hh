@@ -33,6 +33,13 @@ class ActionDiagnostic final : public ExplicitCoreActionInterface,
                                public OutputInterface
 {
   public:
+    //@{
+    //! \name Type aliases
+    using ExplicitCoreActionInterface::CoreStateDevice;
+    using ExplicitCoreActionInterface::CoreStateHost;
+    //@}
+
+  public:
     //!@{
     //! \name Type aliases
     using WPConstActionRegistry = std::weak_ptr<ActionRegistry const>;

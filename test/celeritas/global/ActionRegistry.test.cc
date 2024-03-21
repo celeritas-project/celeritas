@@ -21,6 +21,13 @@ class MyExplicitAction final : public ExplicitCoreActionInterface,
                                public BeginRunActionInterface
 {
   public:
+    //@{
+    //! \name Type aliases
+    using ExplicitCoreActionInterface::CoreStateDevice;
+    using ExplicitCoreActionInterface::CoreStateHost;
+    //@}
+
+  public:
     MyExplicitAction(ActionId ai, ActionOrder ao) : action_id_(ai), order_{ao}
     {
     }
