@@ -206,7 +206,22 @@ std::vector<ScintillationComponent> ScintillationParams::build_components(
     real_type norm{0};
     for (auto i : range(comp.size()))
     {
-        this->validate(input_comp[i]);
+        CELER_VALIDATE(input_comp[i].lambda_mean > 0,
+                       << "invalid lambda_mean=" << input_comp[i].lambda_mean
+                       << " for scintillation component (should be positive)");
+        CELER_VALIDATE(input_comp[i].lambda_sigma > 0,
+                       << "invalid lambda_sigma=" << input_comp[i].lambda_sigma
+                       << " for scintillation component " << i
+                       << " (should be positive)");
+        CELER_VALIDATE(input_comp[i].rise_time >= 0,
+                       << "invalid rise_time=" << input_comp[i].rise_time
+                       << " for scintillation component " << i
+                       << " (should be "
+                          "nonnegative)");
+        CELER_VALIDATE(input_comp[i].fall_time > 0,
+                       << "invalid fall_time=" << input_comp[i].fall_time
+                       << " for scintillation component " << i
+                       << " (should be positive)");
         comp[i].lambda_mean = input_comp[i].lambda_mean;
         comp[i].lambda_sigma = input_comp[i].lambda_sigma;
         comp[i].rise_time = input_comp[i].rise_time;
@@ -223,26 +238,6 @@ std::vector<ScintillationComponent> ScintillationParams::build_components(
         comp[i].yield_frac = input_comp[i].yield / norm;
     }
     return comp;
-}
-
-//---------------------------------------------------------------------------//
-/*
- * Verify the correctness of the populated vector<ScintillationComponent>.
- */
-void ScintillationParams::validate(ImportScintComponent const& comp)
-{
-    CELER_VALIDATE(comp.lambda_mean > 0,
-                   << "invalid lambda_mean=" << comp.lambda_mean
-                   << " for scintillation component (should be positive)");
-    CELER_VALIDATE(comp.lambda_sigma > 0,
-                   << "invalid lambda_sigma=" << comp.lambda_sigma
-                   << " for scintillation component (should be positive)");
-    CELER_VALIDATE(comp.rise_time >= 0,
-                   << "invalid rise_time=" << comp.rise_time
-                   << " for scintillation component (should be nonnegative)");
-    CELER_VALIDATE(comp.fall_time > 0,
-                   << "invalid fall_time=" << comp.fall_time
-                   << " for scintillation component (should be positive)");
 }
 
 //---------------------------------------------------------------------------//

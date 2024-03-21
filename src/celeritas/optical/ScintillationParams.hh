@@ -75,9 +75,6 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
     // Convert imported scintillation components to Celeritas' components
     std::vector<ScintillationComponent>
     build_components(std::vector<ImportScintComponent> const& input_comp);
-
-    // Check correctness of imported component data
-    void validate(ImportScintComponent const& comp);
 };
 
 //---------------------------------------------------------------------------//
