@@ -12,9 +12,9 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/grid/GenericGridBuilder.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -91,8 +91,7 @@ ScintillationParams::ScintillationParams(Input const& input,
     CollectionBuilder build_resolutionscale(&host_data.resolution_scale);
     CollectionBuilder build_compoments(&host_data.components);
 
-    auto const num_mat = input.matid_to_optmatid.size();
-    auto const num_part = input.pid_to_scintpid.size();
+    size_type num_opt_mat{};
 
     // Store material ids
     for (auto const id : input.matid_to_optmatid)
@@ -100,10 +99,10 @@ ScintillationParams::ScintillationParams(Input const& input,
         build_optmatid.push_back(id);
         if (id)
         {
-            host_data.num_opt_materials++;
+            num_opt_mat++;
         }
     }
-    CELER_ENSURE(host_data.num_opt_materials > 0);
+    CELER_ENSURE(!host_data.matid_to_optmatid.empty());
 
     // Store particle ids
     for (auto const id : input.pid_to_scintpid)
@@ -111,10 +110,11 @@ ScintillationParams::ScintillationParams(Input const& input,
         build_scintpid.push_back(id);
         if (id)
         {
-            host_data.num_opt_particles++;
+            host_data.num_scint_particles++;
         }
     }
-    CELER_ENSURE(host_data.num_opt_particles > 0);
+    CELER_ENSURE(!host_data.pid_to_scintpid.empty());
+    CELER_ENSURE(host_data.num_scint_particles > 0);
 
     // Store resolution scale
     for (auto const& inp : input.data)
@@ -124,7 +124,7 @@ ScintillationParams::ScintillationParams(Input const& input,
                        << " for scintillation (should be nonnegative)");
         build_resolutionscale.push_back(inp.resolution_scale);
     }
-    CELER_ENSURE(build_resolutionscale.size() == num_mat);
+    CELER_ENSURE(build_resolutionscale.size() == num_opt_mat);
 
     if (!input.scintillation_by_particle)
     {
@@ -141,12 +141,12 @@ ScintillationParams::ScintillationParams(Input const& input,
             CELER_VALIDATE(mat_spec.yield > 0,
                            << "invalid yield=" << mat_spec.yield
                            << " for scintillation (should be positive)");
-            auto comps = this->copy_components(inp.material.components);
+            auto comps = this->build_components(inp.material.components);
             mat_spec.components
                 = build_compoments.insert_back(comps.begin(), comps.end());
             build_materials.push_back(std::move(mat_spec));
         }
-        CELER_ENSURE(build_materials.size() == num_mat);
+        CELER_ENSURE(build_materials.size() == num_opt_mat);
     }
     else
     {
@@ -155,35 +155,31 @@ ScintillationParams::ScintillationParams(Input const& input,
         // ordering should improve memory usage, since we group the material
         // list for each particle, and each particle (i.e. stream) traverses
         // multiple materials
-        DedupeCollectionBuilder build_reals(&host_data.reals);
+        GenericGridBuilder build_grid(&host_data.reals);
         CollectionBuilder build_particles(&host_data.particles);
 
-        for (auto pid : range(num_part))
+        for (auto pid : range(host_data.num_scint_particles))
         {
             auto const pdg = particle_params->id_to_pdg(ParticleId(pid)).get();
-            for (auto matid : range(num_mat))
+            for (auto matid : range(num_opt_mat))
             {
                 // Particle- and material-dependend scintillation spectrum
                 auto iter = input.data[matid].particles.find(pdg);
                 CELER_ASSERT(iter != input.data[matid].particles.end()
                              && pdg == iter->first);
-
                 auto const& ipss = iter->second;
-                ParticleScintillationSpectrum part_spec;
-                part_spec.yield_vector.grid = build_reals.insert_back(
-                    ipss.yield_vector.x.begin(), ipss.yield_vector.x.end());
-                part_spec.yield_vector.value = build_reals.insert_back(
-                    ipss.yield_vector.y.begin(), ipss.yield_vector.y.end());
-                CELER_ASSERT(part_spec.yield_vector);
+                CELER_ASSERT(ipss);
 
-                auto comps = this->copy_components(ipss.components);
+                ParticleScintillationSpectrum part_spec;
+                part_spec.yield_vector = build_grid(ipss.yield_vector);
+                auto comps = this->build_components(ipss.components);
                 part_spec.components
                     = build_compoments.insert_back(comps.begin(), comps.end());
-
                 build_particles.push_back(std::move(part_spec));
             }
         }
-        CELER_ENSURE(build_particles.size() == num_part * num_mat);
+        CELER_ENSURE(build_particles.size()
+                     == host_data.num_scint_particles * num_opt_mat);
     }
 
     mirror_ = CollectionMirror<ScintillationData>{std::move(host_data)};
@@ -194,7 +190,7 @@ ScintillationParams::ScintillationParams(Input const& input,
 /*
  * Return a Celeritas ScintillationComponent from an imported one.
  */
-std::vector<ScintillationComponent> ScintillationParams::copy_components(
+std::vector<ScintillationComponent> ScintillationParams::build_components(
     std::vector<ImportScintComponent> const& input_comp)
 {
     std::vector<ScintillationComponent> comp(input_comp.size());
@@ -227,10 +223,11 @@ void ScintillationParams::validate(
 {
     for (auto i : range(vec_comp.size()))
     {
-        CELER_VALIDATE(vec_comp[i].yield_frac > 0,
-                       << "invalid yield_prob=" << vec_comp[i].yield_frac
-                       << " for scintillation component " << i
-                       << " (should be positive)");
+        CELER_VALIDATE(
+            vec_comp[i].yield_frac > 0 && vec_comp[i].yield_frac <= 1,
+            << "invalid yield_frac=" << vec_comp[i].yield_frac
+            << " for scintillation component " << i
+            << " (should be between 0 and 1)");
         CELER_VALIDATE(vec_comp[i].lambda_mean > 0,
                        << "invalid lambda_mean=" << vec_comp[i].lambda_mean
                        << " for scintillation component " << i

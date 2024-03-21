@@ -146,8 +146,8 @@ TEST_F(ScintillationTest, material_scint_params)
 
     auto const opt_matid = data.matid_to_optmatid[MaterialId{0}];
 
-    EXPECT_EQ(1, data.num_opt_materials);
-    EXPECT_EQ(1, data.num_opt_particles);
+    EXPECT_EQ(1, data.materials.size());
+    EXPECT_EQ(1, data.num_scint_particles);
     EXPECT_EQ(1, data.materials.size());
     EXPECT_EQ(0, opt_matid.get());
 

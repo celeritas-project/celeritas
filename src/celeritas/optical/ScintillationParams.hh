@@ -41,13 +41,13 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
         VecOptMatId matid_to_optmatid;  //!< MaterialId to OpticalMaterialId
         VecSPId pid_to_scintpid;  //!< ParticleId to ScintillationParticleId
         std::vector<ImportScintData> data;  //!< Indexed by OpticalMaterialId
-        bool scintillation_by_particle;  //!< Particle or material sampling
+        bool scintillation_by_particle{false};  //!< Select particle sampling
 
         //! Whether all data are assigned and valid
         explicit operator bool() const
         {
-            return !data.empty()
-                   && (!matid_to_optmatid.empty() || !pid_to_scintpid.empty());
+            return !data.empty() && !matid_to_optmatid.empty()
+                   && !pid_to_scintpid.empty();
         }
     };
 
@@ -57,8 +57,7 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
     from_import(ImportData const& data, SPConstParticles particle_params);
 
     // Construct with scintillation components
-    explicit ScintillationParams(Input const& input,
-                                 SPConstParticles particle_params);
+    ScintillationParams(Input const& input, SPConstParticles particle_params);
 
     //! Access physics properties on the host
     HostRef const& host_ref() const final { return mirror_.host_ref(); }
@@ -74,7 +73,7 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
 
     // Convert imported scintillation components to Celeritas' components
     std::vector<ScintillationComponent>
-    copy_components(std::vector<ImportScintComponent> const& input_comp);
+    build_components(std::vector<ImportScintComponent> const& input_comp);
 
     // Check correctness of populated component data
     void validate(std::vector<ScintillationComponent> const& vec_comp);

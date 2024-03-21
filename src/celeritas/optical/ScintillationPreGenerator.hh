@@ -64,6 +64,7 @@ class ScintillationPreGenerator
     OpticalMaterialId mat_id_;
     NativeCRef<ScintillationData> const& shared_;
     OpticalPreGenStepData step_;
+    real_type mean_num_photons_;
 };
 
 //---------------------------------------------------------------------------//
@@ -91,8 +92,19 @@ inline CELER_FUNCTION ScintillationPreGenerator::ScintillationPreGenerator(
 
     if (shared_.scintillation_by_particle())
     {
-        // TODO: implement sampling for particles
-        CELER_NOT_IMPLEMENTED("scintillation by particle type");
+        // TODO: implement sampling for particles, assert particle data, and
+        // cache mean number of photons
+        CELER_ASSERT_UNREACHABLE();
+    }
+    else
+    {
+        // Scintillation will be performed on materials only
+        CELER_EXPECT(!shared_.materials.empty()
+                     && mat_id_ < shared_.materials.size());
+        auto const& material = shared_.materials[mat_id_];
+        CELER_ASSERT(material);
+        // TODO: Use visible energy deposition when Birks law is implemented
+        mean_num_photons_ = material.yield * step_.energy_dep.value();
     }
 }
 
@@ -106,25 +118,19 @@ inline CELER_FUNCTION OpticalDistributionData
 ScintillationPreGenerator::operator()(Generator& rng)
 {
     // Material-only sampling
-    auto const& material = shared_.materials[mat_id_];
-    CELER_EXPECT(material);
-
-    // TODO: Use visible energy deposition when Birks quenching is available
-    real_type mean_num_photons = material.yield * step_.energy_dep.value();
-
     OpticalDistributionData result;
-    if (mean_num_photons > 10)
+    if (mean_num_photons_ > 10)
     {
         real_type sigma = shared_.resolution_scale[mat_id_]
-                          * std::sqrt(mean_num_photons);
+                          * std::sqrt(mean_num_photons_);
         result.num_photons
-            = NormalDistribution<real_type>(mean_num_photons, sigma)(rng)
+            = NormalDistribution<real_type>(mean_num_photons_, sigma)(rng)
               + real_type{0.5};
     }
     else
     {
         result.num_photons
-            = PoissonDistribution<real_type>(mean_num_photons)(rng);
+            = PoissonDistribution<real_type>(mean_num_photons_)(rng);
     }
 
     if (result.num_photons > 0)

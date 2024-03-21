@@ -137,8 +137,8 @@ struct ScintillationData
     //! Components for either material or particle items
     Items<ScintillationComponent> components;
 
-    size_type num_opt_materials{};
-    size_type num_opt_particles{};
+    //! Cache number of scintillation particles; Used by this->spectrum_index
+    size_type num_scint_particles{};
 
     //// MEMBER FUNCTIONS ////
 
@@ -147,7 +147,7 @@ struct ScintillationData
     {
         return !matid_to_optmatid.empty() && !pid_to_scintpid.empty()
                && (!materials.empty() || !particles.empty())
-               && num_opt_materials > 0 && num_opt_particles > 0;
+               && num_scint_particles > 0;
     }
 
     //! Whether sampling must happen by particle type
@@ -156,12 +156,12 @@ struct ScintillationData
         return !particles.empty();
     }
 
-    //! Retrieve spectrum index for a given optical particle and material ids
+    //! Retrieve spectrum index given optical particle and material ids
     ParticleScintSpectrumId
     spectrum_index(ScintillationParticleId pid, OpticalMaterialId mat_id) const
     {
-        CELER_EXPECT(mat_id < num_opt_materials && pid < num_opt_particles);
-        return ParticleScintSpectrumId{num_opt_materials * pid.get()
+        CELER_EXPECT(pid < num_scint_particles && mat_id < materials.size());
+        return ParticleScintSpectrumId{materials.size() * pid.get()
                                        + mat_id.get()};
     }
 
@@ -177,8 +177,7 @@ struct ScintillationData
         particles = other.particles;
         reals = other.reals;
         components = other.components;
-        num_opt_materials = other.num_opt_materials;
-        num_opt_particles = other.num_opt_particles;
+        num_scint_particles = other.num_scint_particles;
         return *this;
     }
 };
