@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/interactor/WentzelInteractor.hh
+//! \file celeritas/em/interactor/CoulombScatteringInteractor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,7 +12,7 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/em/data/WentzelData.hh"
+#include "celeritas/em/data/CoulombScatteringData.hh"
 #include "celeritas/em/distribution/WentzelDistribution.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialView.hh"
@@ -39,7 +39,7 @@ namespace celeritas
  *  G4eCoulombScatteringModel, as documented in section 8.2 of the Geant4
  *  Physics Reference Manual (release 11.1).
  */
-class WentzelInteractor
+class CoulombScatteringInteractor
 {
   public:
     //!@{
@@ -51,12 +51,13 @@ class WentzelInteractor
 
   public:
     //! Construct with shared and state data
-    inline CELER_FUNCTION WentzelInteractor(WentzelRef const& shared,
-                                            ParticleTrackView const& particle,
-                                            Real3 const& inc_direction,
-                                            IsotopeView const& target,
-                                            ElementId const& el_id,
-                                            CutoffView const& cutoffs);
+    inline CELER_FUNCTION
+    CoulombScatteringInteractor(CoulombScatteringRef const& shared,
+                                ParticleTrackView const& particle,
+                                Real3 const& inc_direction,
+                                IsotopeView const& target,
+                                ElementId const& el_id,
+                                CutoffView const& cutoffs);
 
     //! Sample an interaction with the given RNG
     template<class Engine>
@@ -90,12 +91,13 @@ class WentzelInteractor
  * Construct from shared and state data.
  */
 CELER_FUNCTION
-WentzelInteractor::WentzelInteractor(WentzelRef const& shared,
-                                     ParticleTrackView const& particle,
-                                     Real3 const& inc_direction,
-                                     IsotopeView const& target,
-                                     ElementId const& el_id,
-                                     CutoffView const& cutoffs)
+CoulombScatteringInteractor::CoulombScatteringInteractor(
+    CoulombScatteringRef const& shared,
+    ParticleTrackView const& particle,
+    Real3 const& inc_direction,
+    IsotopeView const& target,
+    ElementId const& el_id,
+    CutoffView const& cutoffs)
     : inc_direction_(inc_direction)
     , particle_(particle)
     , target_(target)
@@ -117,7 +119,7 @@ WentzelInteractor::WentzelInteractor(WentzelRef const& shared,
  * Sample the Coulomb scattering of the incident particle.
  */
 template<class Engine>
-CELER_FUNCTION Interaction WentzelInteractor::operator()(Engine& rng)
+CELER_FUNCTION Interaction CoulombScatteringInteractor::operator()(Engine& rng)
 {
     // Incident particle scatters
     Interaction result;
@@ -147,7 +149,7 @@ CELER_FUNCTION Interaction WentzelInteractor::operator()(Engine& rng)
  * by WentzelDistribution.
  */
 CELER_FUNCTION real_type
-WentzelInteractor::calc_recoil_energy(real_type cos_theta) const
+CoulombScatteringInteractor::calc_recoil_energy(real_type cos_theta) const
 {
     real_type one_minus_cos_theta = 1 - cos_theta;
     return value_as<MomentumSq>(particle_.momentum_sq()) * one_minus_cos_theta

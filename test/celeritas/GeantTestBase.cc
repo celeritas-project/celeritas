@@ -13,7 +13,7 @@
 #include "celeritas_config.h"
 #include "corecel/io/Logger.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
-#include "celeritas/em/UrbanMscParams.hh"
+#include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantSetup.hh"

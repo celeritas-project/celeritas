@@ -14,12 +14,12 @@ set(PUBLIC_DEPS Celeritas::corecel Celeritas::geocel)
 
 list(APPEND SOURCES
   Types.cc
-  em/AtomicRelaxationParams.cc
-  em/FluctuationParams.cc
-  em/UrbanMscParams.cc
-  em/WentzelVIMscParams.cc
-  em/detail/MscParamsHelper.cc
   em/detail/Utils.cc
+  em/params/AtomicRelaxationParams.cc
+  em/params/FluctuationParams.cc
+  em/params/UrbanMscParams.cc
+  em/params/WentzelVIMscParams.cc
+  em/params/detail/MscParamsHelper.cc
   em/process/BremsstrahlungProcess.cc
   em/process/ComptonProcess.cc
   em/process/CoulombScatteringProcess.cc
@@ -42,9 +42,10 @@ list(APPEND SOURCES
   global/Stepper.cc
   global/detail/ActionSequence.cc
   global/detail/PinnedAllocator.cc
+  grid/GenericGridBuilder.cc
   grid/ValueGridBuilder.cc
-  grid/ValueGridData.cc
   grid/ValueGridInserter.cc
+  grid/ValueGridType.cc
   grid/VectorUtils.cc
   io/AtomicRelaxationReader.cc
   io/ImportData.cc
@@ -247,7 +248,7 @@ celeritas_polysource(em/model/MuBremsstrahlungModel)
 celeritas_polysource(em/model/RayleighModel)
 celeritas_polysource(em/model/RelativisticBremModel)
 celeritas_polysource(em/model/SeltzerBergerModel)
-celeritas_polysource(em/model/WentzelModel)
+celeritas_polysource(em/model/CoulombScatteringModel)
 celeritas_polysource(geo/detail/BoundaryAction)
 celeritas_polysource(global/alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(global/alongstep/AlongStepNeutralAction)

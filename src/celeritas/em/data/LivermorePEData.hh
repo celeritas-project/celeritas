@@ -100,16 +100,18 @@ struct LivermorePEXsData
 
     //// MEMBER DATA ////
 
-    Items<real_type> reals;
     Items<LivermoreSubshell> shells;
     ElementItems<LivermoreElement> elements;
+
+    // Backend data
+    Items<real_type> reals;
 
     //// MEMBER FUNCTIONS ////
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !reals.empty() && !shells.empty() && !elements.empty();
+        return !shells.empty() && !elements.empty() && !reals.empty();
     }
 
     //! Assign from another set of data
@@ -117,9 +119,9 @@ struct LivermorePEXsData
     LivermorePEXsData& operator=(LivermorePEXsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        reals = other.reals;
         shells = other.shells;
         elements = other.elements;
+        reals = other.reals;
         return *this;
     }
 };

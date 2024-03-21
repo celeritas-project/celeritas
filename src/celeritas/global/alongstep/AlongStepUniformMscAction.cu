@@ -8,8 +8,8 @@
 #include "AlongStepUniformMscAction.hh"
 
 #include "corecel/sys/ScopedProfiling.hh"
-#include "celeritas/em/FluctuationParams.hh"
-#include "celeritas/em/UrbanMscParams.hh"
+#include "celeritas/em/params/FluctuationParams.hh"
+#include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"

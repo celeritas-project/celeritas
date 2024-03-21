@@ -74,15 +74,6 @@
       }
     },
     {
-      "name": "debug-vecgeom-clhep",
-      "description": "Build with VecGeom and CLHEP units",
-      "inherits": [".vecgeom", ".debug", "base"],
-      "cacheVariables": {
-        "CELERITAS_USE_CUDA": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_UNITS": "CLHEP"
-      }
-    },
-    {
       "name": "reldeb-vecgeom",
       "description": "Build with RelWithDebInfo, assertions, and VecGeom",
       "inherits": [".reldeb", ".vecgeom", "base"]

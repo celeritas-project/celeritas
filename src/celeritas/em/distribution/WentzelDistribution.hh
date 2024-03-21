@@ -12,7 +12,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
-#include "celeritas/em/data/WentzelData.hh"
+#include "celeritas/em/data/CoulombScatteringData.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/em/xs/MottRatioCalculator.hh"
 #include "celeritas/em/xs/WentzelHelper.hh"
@@ -26,7 +26,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Helper class for \c WentzelInteractor .
+ * Helper class for \c CoulombScatteringInteractor .
  *
  * Samples the polar scattering angle for the Wentzel Coulomb scattering model.
  *
@@ -51,13 +51,13 @@ class WentzelDistribution
     //!@}
 
   public:
-    // Construct with state and date from WentzelInteractor
+    // Construct with state and model data
     inline CELER_FUNCTION
     WentzelDistribution(ParticleTrackView const& particle,
                         IsotopeView const& target,
-                        WentzelElementData const& element_data,
+                        CoulombScatteringElementData const& element_data,
                         Energy cutoff,
-                        WentzelRef const& data);
+                        CoulombScatteringRef const& data);
 
     // Sample the polar scattering angle
     template<class Engine>
@@ -66,8 +66,8 @@ class WentzelDistribution
   private:
     //// DATA ////
 
-    // Shared WentzelModel data
-    WentzelRef const& data_;
+    // Shared model data
+    CoulombScatteringRef const& data_;
 
     // Incident particle
     ParticleTrackView const& particle_;
@@ -76,7 +76,7 @@ class WentzelDistribution
     IsotopeView const& target_;
 
     // Mott coefficients for the target element
-    WentzelElementData const& element_data_;
+    CoulombScatteringElementData const& element_data_;
 
     // Helper for calculating xs ratio and other quantities
     WentzelHelper const helper_;
@@ -109,14 +109,15 @@ class WentzelDistribution
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with state and data from WentzelInteractor.
+ * Construct with state and model data.
  */
 CELER_FUNCTION
-WentzelDistribution::WentzelDistribution(ParticleTrackView const& particle,
-                                         IsotopeView const& target,
-                                         WentzelElementData const& element_data,
-                                         Energy cutoff,
-                                         WentzelRef const& data)
+WentzelDistribution::WentzelDistribution(
+    ParticleTrackView const& particle,
+    IsotopeView const& target,
+    CoulombScatteringElementData const& element_data,
+    Energy cutoff,
+    CoulombScatteringRef const& data)
     : data_(data)
     , particle_(particle)
     , target_(target)

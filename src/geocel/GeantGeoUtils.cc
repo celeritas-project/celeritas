@@ -186,7 +186,9 @@ void reset_geant_geometry()
         G4PhysicalVolumeStore::Clean();
         G4LogicalVolumeStore::Clean();
         G4SolidStore::Clean();
+#if G4VERSION_NUMBER >= 1100
         G4ReflectionFactory::Instance()->Clean();
+#endif
         msg = scoped_log.str();
     }
     if (!msg.empty())

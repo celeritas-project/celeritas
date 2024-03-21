@@ -12,6 +12,7 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/grid/GenericGridBuilder.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -50,11 +51,12 @@ ChipsNeutronElasticModel::ChipsNeutronElasticModel(
     data.neutron_mass = particles.get(data.ids.neutron).mass();
 
     // Load neutron elastic cross section data
-    make_builder(&data.micro_xs).reserve(materials.num_elements());
+    CollectionBuilder micro_xs{&data.micro_xs};
+    GenericGridBuilder build_grid{&data.reals};
     for (auto el_id : range(ElementId{materials.num_elements()}))
     {
         AtomicNumber z = materials.get(el_id).atomic_number();
-        this->append_xs(load_data(z), &data);
+        micro_xs.push_back(build_grid(load_data(z)));
     }
     CELER_ASSERT(data.micro_xs.size() == materials.num_elements());
 
@@ -127,27 +129,6 @@ void ChipsNeutronElasticModel::execute(CoreParams const&, CoreStateDevice&) cons
 ActionId ChipsNeutronElasticModel::action_id() const
 {
     return this->host_ref().ids.action;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct interaction cross section data for a single element.
- */
-void ChipsNeutronElasticModel::append_xs(ImportPhysicsVector const& inp,
-                                         HostXsData* data) const
-{
-    auto reals = make_builder(&data->reals);
-    GenericGridData micro_xs;
-
-    // Add the tabulated interaction cross section from input
-    micro_xs.grid = reals.insert_back(inp.x.begin(), inp.x.end());
-    micro_xs.value = reals.insert_back(inp.y.begin(), inp.y.end());
-    micro_xs.grid_interp = Interp::linear;
-    micro_xs.value_interp = Interp::linear;
-
-    // Add micro xs data
-    CELER_ASSERT(micro_xs);
-    make_builder(&data->micro_xs).push_back(micro_xs);
 }
 
 //---------------------------------------------------------------------------//

@@ -1,0 +1,27 @@
+# Note that Geant4 and vecgom specs are added by the CI script.
+# Most of these specs should correspond to 
+# https://github.com/celeritas-project/spack-gha-buildcache/blob/main/spack.yaml
+spack:
+  view: /opt/spack-view
+  specs:
+  - ccache
+  - cmake
+  - googletest
+  - hepmc3
+  - ninja
+  - nlohmann-json
+  - swig
+  config:
+    install_tree:
+      root: /opt/spack
+      projections:
+        all: "{name}/{version}/{hash:7}"
+  mirrors:
+    celer-buildcache:
+      url: oci://ghcr.io/celeritas-project/spack-gha-buildcache
+      signed: false
+  packages:
+    root:
+      variants: ~aqua ~davix ~examples ~opengl ~x ~tbb cxxstd=17
+    all:
+      variants: cxxstd=17

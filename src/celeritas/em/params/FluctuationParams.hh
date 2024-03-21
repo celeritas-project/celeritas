@@ -3,15 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/FluctuationParams.hh
+//! \file celeritas/em/params/FluctuationParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
-
-#include "data/FluctuationData.hh"
+#include "celeritas/em/data/FluctuationData.hh"
 
 namespace celeritas
 {

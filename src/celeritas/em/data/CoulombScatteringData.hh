@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/data/WentzelData.hh
+//! \file celeritas/em/data/CoulombScatteringData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,9 +17,9 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Particle and action ids used by WentzelModel.
+ * Particle and action ids used by CoulombScatteringModel.
  */
-struct WentzelIds
+struct CoulombScatteringIds
 {
     ActionId action;
     ParticleId electron;
@@ -35,7 +35,7 @@ struct WentzelIds
 
 //---------------------------------------------------------------------------//
 /*!
- * Per-element data used by the WentzelModel.
+ * Per-element data used by the CoulombScatteringModel.
  *
  * The matrix of coefficients used to approximate the ratio of the Mott to
  * Rutherford cross sections was developed in
@@ -44,7 +44,7 @@ struct WentzelIds
  * and
  * M. J. Boschini et al. arXiv:1111.4042
  */
-struct WentzelElementData
+struct CoulombScatteringElementData
 {
     //!@{
     //! \name Dimensions for Mott coefficient matrices
@@ -75,10 +75,10 @@ enum class NuclearFormFactorType
 
 //---------------------------------------------------------------------------//
 /*!
- * Constant shared data used by the WentzelModel.
+ * Constant shared data used by the CoulombScatteringModel.
  */
 template<Ownership W, MemSpace M>
-struct WentzelData
+struct CoulombScatteringData
 {
     template<class T>
     using ElementItems = celeritas::Collection<T, W, M, ElementId>;
@@ -86,13 +86,13 @@ struct WentzelData
     using IsotopeItems = celeritas::Collection<T, W, M, IsotopeId>;
 
     // Ids
-    WentzelIds ids;
+    CoulombScatteringIds ids;
 
     //! Constant prefactor for the squared momentum transfer [(MeV/c)^-2]
     IsotopeItems<real_type> nuclear_form_prefactor;
 
     // Per element form factors
-    ElementItems<WentzelElementData> elem_data;
+    ElementItems<CoulombScatteringElementData> elem_data;
 
     // User-defined factor for the screening coefficient
     real_type screening_factor;
@@ -106,9 +106,9 @@ struct WentzelData
         return ids && !nuclear_form_prefactor.empty() && !elem_data.empty();
     }
 
-    // Copy initialize from an existing WentzelData
+    // Copy initialize from an existing CoulombScatteringData
     template<Ownership W2, MemSpace M2>
-    WentzelData& operator=(WentzelData<W2, M2> const& other)
+    CoulombScatteringData& operator=(CoulombScatteringData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         ids = other.ids;
@@ -120,9 +120,9 @@ struct WentzelData
     }
 };
 
-using WentzelDeviceRef = DeviceCRef<WentzelData>;
-using WentzelHostRef = HostCRef<WentzelData>;
-using WentzelRef = NativeCRef<WentzelData>;
+using CoulombScatteringDeviceRef = DeviceCRef<CoulombScatteringData>;
+using CoulombScatteringHostRef = HostCRef<CoulombScatteringData>;
+using CoulombScatteringRef = NativeCRef<CoulombScatteringData>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

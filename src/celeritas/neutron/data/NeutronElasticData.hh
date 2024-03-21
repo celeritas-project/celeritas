@@ -83,11 +83,15 @@ struct NeutronElasticData
     units::MevMass neutron_mass;
 
     //! Microscopic (element) cross section data (G4PARTICLEXS/neutron/elZ)
-    Items<real_type> reals;
     ElementItems<GenericGridData> micro_xs;
 
     //! A-dependent coefficients for the momentum transfer of the CHIPS model
     IsotopeItems<ChipsDiffXsCoefficients> coeffs;
+
+    // Backend data
+    Items<real_type> reals;
+
+    //// MEMBER FUNCTIONS ////
 
     //! Model's minimum and maximum energy limit [MeV]
     static CELER_CONSTEXPR_FUNCTION units::MevEnergy min_valid_energy()
@@ -103,8 +107,8 @@ struct NeutronElasticData
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids && neutron_mass > zero_quantity() && !reals.empty()
-               && !micro_xs.empty() && !coeffs.empty();
+        return ids && neutron_mass > zero_quantity() && !micro_xs.empty()
+               && !coeffs.empty() && !reals.empty();
     }
 
     //! Assign from another set of data
@@ -114,9 +118,9 @@ struct NeutronElasticData
         CELER_EXPECT(other);
         ids = other.ids;
         neutron_mass = other.neutron_mass;
-        reals = other.reals;
         micro_xs = other.micro_xs;
         coeffs = other.coeffs;
+        reals = other.reals;
         return *this;
     }
 };

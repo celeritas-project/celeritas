@@ -86,7 +86,6 @@ class ChipsNeutronElasticModel final : public Model
     using HostXsData = HostVal<NeutronElasticData>;
 
     //// HELPER FUNCTIONS ////
-    void append_xs(ImportPhysicsVector const& inp, HostXsData* xs_data) const;
     void append_coeffs(AtomicMassNumber A, HostXsData* xs_data) const;
 };
 

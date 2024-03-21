@@ -14,15 +14,16 @@
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
-#include "celeritas/em/FluctuationParams.hh"
-#include "celeritas/em/UrbanMscParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/msc/UrbanMsc.hh"
+#include "celeritas/em/params/FluctuationParams.hh"
+#include "celeritas/em/params/UrbanMscParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
 #include "AlongStep.hh"
+
 #include "detail/FluctELoss.hh"
 #include "detail/MeanELoss.hh"
 #include "detail/UniformFieldPropagatorFactory.hh"
