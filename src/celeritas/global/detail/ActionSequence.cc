@@ -11,7 +11,6 @@
 #include <tuple>
 #include <type_traits>
 #include <utility>
-#include <type_traits>
 
 #include "corecel/device_runtime_api.h"
 #include "corecel/Types.hh"
@@ -97,8 +96,9 @@ template<typename Params, template<MemSpace M> class State, MemSpace M>
 void ActionSequence::execute(Params const& params, State<M>& state)
 {
     static_assert(
-        std::is_same_v<State<M>,
-                       typename celeritas::detail::ParamsTraits<Params>::State<M>>,
+        std::is_same_v<
+            State<M>,
+            typename celeritas::detail::ParamsTraits<Params>::template State<M>>,
         "The Params and State type are not matching.");
 
     [[maybe_unused]] Stream::StreamT stream = nullptr;
