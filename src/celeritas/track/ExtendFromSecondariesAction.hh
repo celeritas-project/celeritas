@@ -68,7 +68,7 @@ namespace celeritas
 
    \endverbatim
  */
-class ExtendFromSecondariesAction final : public ExplicitActionInterface,
+class ExtendFromSecondariesAction final : public ExplicitCoreActionInterface,
                                           public BeginRunActionInterface
 {
   public:

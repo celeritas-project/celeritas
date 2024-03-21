@@ -21,6 +21,7 @@
 #include "corecel/sys/Stopwatch.hh"
 #include "corecel/sys/Stream.hh"
 
+#include "ParamsTraits.hh"
 #include "../ActionInterface.hh"
 #include "../ActionRegistry.hh"
 #include "../CoreState.hh"
@@ -91,9 +92,14 @@ void ActionSequence::begin_run(CoreParams const& params, CoreState<M>& state)
 /*!
  * Call all explicit actions with host or device data.
  */
-template<MemSpace M>
-void ActionSequence::execute(CoreParams const& params, CoreState<M>& state)
+template<typename Params, template<MemSpace M> class State, MemSpace M>
+void ActionSequence::execute(Params const& params, State<M>& state)
 {
+    static_assert(
+        std::is_same_v<State<M>,
+                       typename celeritas::detail::ParamsTraits<Params>::State<M>>,
+        "The Params and State type are not matching.");
+
     [[maybe_unused]] Stream::StreamT stream = nullptr;
     if (M == MemSpace::device && options_.sync)
     {
@@ -107,7 +113,10 @@ void ActionSequence::execute(CoreParams const& params, CoreState<M>& state)
         {
             ScopedProfiling profile_this{actions_[i]->label()};
             Stopwatch get_time;
-            actions_[i]->execute(params, state);
+            auto const& concrete_action
+                = dynamic_cast<typename celeritas::detail::ParamsTraits<
+                    Params>::ExplicitAction const&>(*actions_[i]);
+            concrete_action.execute(params, state);
             if (M == MemSpace::device)
             {
                 CELER_DEVICE_CALL_PREFIX(StreamSynchronize(stream));
@@ -121,7 +130,10 @@ void ActionSequence::execute(CoreParams const& params, CoreState<M>& state)
         for (SPConstExplicit const& sp_action : actions_)
         {
             ScopedProfiling profile_this{sp_action->label()};
-            sp_action->execute(params, state);
+            auto const& concrete_action
+                = dynamic_cast<typename celeritas::detail::ParamsTraits<
+                    Params>::ExplicitAction const&>(*sp_action);
+            concrete_action.execute(params, state);
         }
     }
 }
@@ -139,6 +151,13 @@ template void
 ActionSequence::execute(CoreParams const&, CoreState<MemSpace::host>&);
 template void
 ActionSequence::execute(CoreParams const&, CoreState<MemSpace::device>&);
+
+#ifdef HAVE_OPTICAL_PARAMS
+template void ActionSequence::execute(OpticalParams const&,
+                                      OpticalStateHost<MemSpace::host>&);
+template void ActionSequence::execute(OpticalParams const&,
+                                      OpticalStateHost<MemSpace::device>&);
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

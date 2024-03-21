@@ -28,7 +28,7 @@ class ActionRegistry;
 /*!
  * Tally post-step actions for each particle type.
  */
-class ActionDiagnostic final : public ExplicitActionInterface,
+class ActionDiagnostic final : public ExplicitCoreActionInterface,
                                public BeginRunActionInterface,
                                public OutputInterface
 {

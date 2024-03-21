@@ -17,7 +17,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-class MyExplicitAction final : public ExplicitActionInterface,
+class MyExplicitAction final : public ExplicitCoreActionInterface,
                                public BeginRunActionInterface
 {
   public:

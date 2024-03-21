@@ -23,7 +23,7 @@ namespace test
 /*!
  * Change the track state and allocate secondaries.
  */
-class MockInteractAction final : public ExplicitActionInterface
+class MockInteractAction final : public ExplicitCoreActionInterface
 {
   public:
     // Construct with number of secondaries and post-interact state

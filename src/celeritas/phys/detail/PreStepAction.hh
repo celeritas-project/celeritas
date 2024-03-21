@@ -21,7 +21,7 @@ namespace detail
  * - Reset track properties (todo: move to track initialization?)
  * - Sample the mean free path and calculate the physics step limits.
  */
-class PreStepAction final : public ExplicitActionInterface,
+class PreStepAction final : public ExplicitCoreActionInterface,
                             public ConcreteAction
 {
   public:

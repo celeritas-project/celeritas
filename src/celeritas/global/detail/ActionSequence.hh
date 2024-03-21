@@ -20,6 +20,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 class ActionRegistry;
 class CoreParams;
+template<typename P>
+struct ParamsTraits;
 
 namespace detail
 {
@@ -59,8 +61,8 @@ class ActionSequence
     void begin_run(CoreParams const& params, CoreState<M>& state);
 
     // Launch all actions with the given memory space.
-    template<MemSpace M>
-    void execute(CoreParams const& params, CoreState<M>& state);
+    template<typename Params, template<MemSpace M> class State, MemSpace M>
+    void execute(Params const&, State<M>& state);
 
     //// ACCESSORS ////
 

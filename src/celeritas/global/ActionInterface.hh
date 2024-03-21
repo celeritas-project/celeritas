@@ -102,15 +102,42 @@ class BeginRunActionInterface : public virtual ActionInterface
 class ExplicitActionInterface : public virtual ActionInterface
 {
   public:
+    //! Dependency ordering of the action
+    virtual ActionOrder order() const = 0;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Interface for an action that launches a kernel or performs an action
+ * specialized for particles using CoreParams.
+ * TODO: Template this on 'Core' and 'Optical' and ...
+ */
+class ExplicitCoreActionInterface : public virtual ExplicitActionInterface
+{
+  public:
     //! Execute the action with host data
     virtual void execute(CoreParams const&, CoreStateHost&) const = 0;
 
     //! Execute the action with device data
     virtual void execute(CoreParams const&, CoreStateDevice&) const = 0;
-
-    //! Dependency ordering of the action
-    virtual ActionOrder order() const = 0;
 };
+
+#ifdef HAVE_OPTICAL_PARAMS
+//---------------------------------------------------------------------------//
+/*!
+ * Interface for an action that launches a kernel or performs an action
+ * specialized for particles using CoreParams.
+ */
+class ExplicitOpticalActionInterface : public virtual ExplicitActionInterface
+{
+  public:
+    //! Execute the action with host data
+    virtual void execute(OpticalParams const&, OpticalStateHost&) const = 0;
+
+    //! Execute the action with device data
+    virtual void execute(OpticalParams const&, OpticalStateDevice&) const = 0;
+};
+#endif
 
 //---------------------------------------------------------------------------//
 /*!
@@ -118,7 +145,7 @@ class ExplicitActionInterface : public virtual ActionInterface
  *
  * Example:
  * \code
-  class KernellyPhysicsAction final : public ExplicitActionInterface,
+  class KernellyPhysicsAction final : public ExplicitCoreActionInterface,
                                       public ConcreteAction
   {
     public:

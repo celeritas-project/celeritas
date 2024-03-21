@@ -22,7 +22,7 @@ struct Primary;
  * This will append to the queued TrackInitializer vector any primaries added
  * with \c CoreState::insert_primaries .
  */
-class ExtendFromPrimariesAction final : public ExplicitActionInterface
+class ExtendFromPrimariesAction final : public ExplicitCoreActionInterface
 {
   public:
     //! Construct with explicit Id
