@@ -42,7 +42,7 @@ bool InternalSurfaceFlagger::operator()(NodeId const& n)
 
 //---------------------------------------------------------------------------//
 /*!
- * Aliased nodes forward to the alias.
+ * Aliased nodes forward to the aliased node.
  */
 bool InternalSurfaceFlagger::operator()(Aliased const& n)
 {
