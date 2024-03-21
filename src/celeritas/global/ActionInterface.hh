@@ -19,6 +19,9 @@ namespace celeritas
 class CoreParams;
 template<MemSpace M>
 class CoreState;
+class OpticalParams;
+template<MemSpace M>
+class OpticalState;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -129,14 +132,20 @@ class ExplicitCoreActionInterface : public virtual ExplicitActionInterface
     virtual void execute(CoreParams const&, CoreStateDevice&) const = 0;
 };
 
-#ifdef HAVE_OPTICAL_PARAMS
 //---------------------------------------------------------------------------//
 /*!
  * Interface for an action that launches a kernel or performs an action
- * specialized for particles using CoreParams.
+ * specialized for particles using OpticalParams.
  */
 class ExplicitOpticalActionInterface : public virtual ExplicitActionInterface
 {
+  public:
+    //@{
+    //! \name Type aliases
+    using OpticalStateHost = OpticalState<MemSpace::host>;
+    using OpticalStateDevice = OpticalState<MemSpace::device>;
+    //@}
+
   public:
     //! Execute the action with host data
     virtual void execute(OpticalParams const&, OpticalStateHost&) const = 0;
@@ -144,7 +153,6 @@ class ExplicitOpticalActionInterface : public virtual ExplicitActionInterface
     //! Execute the action with device data
     virtual void execute(OpticalParams const&, OpticalStateDevice&) const = 0;
 };
-#endif
 
 //---------------------------------------------------------------------------//
 /*!

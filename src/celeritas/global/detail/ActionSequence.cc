@@ -95,10 +95,10 @@ void ActionSequence::begin_run(CoreParams const& params, CoreState<M>& state)
 template<typename Params, template<MemSpace M> class State, MemSpace M>
 void ActionSequence::execute(Params const& params, State<M>& state)
 {
+    using ExplicitAction = typename ParamsTraits<Params>::ExplicitAction;
+
     static_assert(
-        std::is_same_v<
-            State<M>,
-            typename celeritas::detail::ParamsTraits<Params>::template State<M>>,
+        std::is_same_v<State<M>, typename ParamsTraits<Params>::template State<M>>,
         "The Params and State type are not matching.");
 
     [[maybe_unused]] Stream::StreamT stream = nullptr;
@@ -115,8 +115,7 @@ void ActionSequence::execute(Params const& params, State<M>& state)
             ScopedProfiling profile_this{actions_[i]->label()};
             Stopwatch get_time;
             auto const& concrete_action
-                = dynamic_cast<typename celeritas::detail::ParamsTraits<
-                    Params>::ExplicitAction const&>(*actions_[i]);
+                = dynamic_cast<ExplicitAction const&>(*actions_[i]);
             concrete_action.execute(params, state);
             if (M == MemSpace::device)
             {
@@ -132,8 +131,7 @@ void ActionSequence::execute(Params const& params, State<M>& state)
         {
             ScopedProfiling profile_this{sp_action->label()};
             auto const& concrete_action
-                = dynamic_cast<typename celeritas::detail::ParamsTraits<
-                    Params>::ExplicitAction const&>(*sp_action);
+                = dynamic_cast<ExplicitAction const&>(*sp_action);
             concrete_action.execute(params, state);
         }
     }
@@ -153,12 +151,7 @@ ActionSequence::execute(CoreParams const&, CoreState<MemSpace::host>&);
 template void
 ActionSequence::execute(CoreParams const&, CoreState<MemSpace::device>&);
 
-#ifdef HAVE_OPTICAL_PARAMS
-template void ActionSequence::execute(OpticalParams const&,
-                                      OpticalStateHost<MemSpace::host>&);
-template void ActionSequence::execute(OpticalParams const&,
-                                      OpticalStateHost<MemSpace::device>&);
-#endif
+// TODO: add explicit template instantiation of execute for optical data
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

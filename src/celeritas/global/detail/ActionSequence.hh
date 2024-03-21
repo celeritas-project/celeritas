@@ -20,8 +20,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 class ActionRegistry;
 class CoreParams;
-template<typename P>
-struct ParamsTraits;
 
 namespace detail
 {

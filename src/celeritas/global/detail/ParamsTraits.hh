@@ -35,16 +35,7 @@ struct ParamsTraits<CoreParams>
     using ExplicitAction = ExplicitCoreActionInterface;
 };
 
-#ifdef HAVE_OPTICAL_PARAMS
-template<>
-struct ParamsTraits<OpticalParams>
-{
-    template<MemSpace M>
-    using State = OpticalState<M>;
-
-    using ExplicitAction = ExplicitOpticalActionInterface;
-};
-#endif
+// TODO: add explicit template instantiation of ParamsTraits for optical data
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
