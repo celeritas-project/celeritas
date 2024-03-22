@@ -8,8 +8,6 @@
 #include "celeritas/optical/ScintillationGenerator.hh"
 
 #include "corecel/data/Collection.hh"
-#include "corecel/data/CollectionBuilder.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/optical/OpticalDistributionData.hh"
 #include "celeritas/optical/OpticalPrimary.hh"

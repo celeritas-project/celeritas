@@ -14,7 +14,6 @@
 #include "corecel/Types.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/grid/GenericCalculator.hh"
-#include "celeritas/grid/GenericGridData.hh"
 #include "celeritas/grid/VectorUtils.hh"
 
 #include "CerenkovData.hh"

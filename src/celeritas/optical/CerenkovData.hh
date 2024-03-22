@@ -29,15 +29,17 @@ struct CerenkovData
 
     //// MEMBER DATA ////
 
-    Items<real_type> reals;
     OpticalMaterialItems<GenericGridData> angle_integral;
+
+    // Backend data
+    Items<real_type> reals;
 
     //// MEMBER FUNCTIONS ////
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !reals.empty() && !angle_integral.empty();
+        return !angle_integral.empty() && !reals.empty();
     }
 
     //! Assign from another set of data
@@ -45,8 +47,8 @@ struct CerenkovData
     CerenkovData& operator=(CerenkovData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        reals = other.reals;
         angle_integral = other.angle_integral;
+        reals = other.reals;
         return *this;
     }
 };

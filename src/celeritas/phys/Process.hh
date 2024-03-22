@@ -13,7 +13,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/ValueGridData.hh"
+#include "celeritas/grid/ValueGridType.hh"
 
 namespace celeritas
 {

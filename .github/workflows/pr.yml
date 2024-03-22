@@ -28,9 +28,9 @@ jobs:
     steps:
     - name: Success
       run: "true"
-  build-full:
+  build-docker:
     needs: [all-prechecks]
-    uses: ./.github/workflows/build-full.yml
+    uses: ./.github/workflows/build-docker.yml
   build-spack:
     needs: [all-prechecks]
     uses: ./.github/workflows/build-spack.yml
@@ -39,7 +39,7 @@ jobs:
   all:
     if: ${{always()}}
     needs:
-    - build-full
+    - build-docker
     - build-spack
     runs-on: ubuntu-latest
     steps:

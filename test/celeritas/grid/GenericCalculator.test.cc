@@ -12,8 +12,9 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/Ref.hh"
+#include "celeritas/grid/GenericGridBuilder.hh"
 
-#include "CalculatorTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -24,27 +25,24 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class GenericCalculatorTest : public CalculatorTestBase
+class GenericCalculatorTest : public Test
 {
   protected:
+    template<class T>
+    using Items = Collection<T, Ownership::value, MemSpace::host>;
+
     void SetUp() override
     {
-        std::vector<real_type> grid{1.0, 2.0, 1e2, 1e4};
-        std::vector<real_type> value{4.0, 8.0, 8.0, 2.0};
+        std::vector<real_type> const grid = {1.0, 2.0, 1e2, 1e4};
+        std::vector<real_type> const value = {4.0, 8.0, 8.0, 2.0};
 
-        storage_ = {};
-        data_.grid
-            = make_builder(&storage_).insert_back(grid.begin(), grid.end());
-        data_.value
-            = make_builder(&storage_).insert_back(value.begin(), value.end());
-        ref_ = storage_;
-
-        CELER_ENSURE(data_);
+        GenericGridBuilder build_grid(&reals_);
+        grid_ = build_grid(make_span(grid), make_span(value));
+        CELER_ENSURE(grid_);
     }
 
-    GenericGridData data_;
-    Values storage_;
-    Data ref_;
+    GenericGridData grid_;
+    Items<real_type> reals_;
 };
 
 //---------------------------------------------------------------------------//
@@ -53,7 +51,9 @@ class GenericCalculatorTest : public CalculatorTestBase
 
 TEST_F(GenericCalculatorTest, all)
 {
-    GenericCalculator calc(data_, ref_);
+    Collection<real_type, Ownership::const_reference, MemSpace::host> ref;
+    ref = reals_;
+    GenericCalculator calc(grid_, ref);
 
     // Test accessing tabulated data
     EXPECT_EQ(4.0, calc[0]);
