@@ -22,6 +22,11 @@ struct ImportData;
 //---------------------------------------------------------------------------//
 /*!
  * Build and manage scintillation data.
+ *
+ * When not imported from Geant4 (which uses
+ *  \c G4OpticalParameters::GetScintByParticleType to select what data must be
+ * stored), the manually constructed \c Input data must store *either* material
+ * or particle data, never both.
  */
 class ScintillationParams final : public ParamsDataInterface<ScintillationData>
 {

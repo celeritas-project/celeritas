@@ -110,6 +110,11 @@ ScintillationParams::from_import(ImportData const& data,
 ScintillationParams::ScintillationParams(Input const& input)
 {
     CELER_EXPECT(input);
+    CELER_VALIDATE(input.particles.empty() != input.materials.empty(),
+                   << "invalid input data. Material spectra and particle "
+                      "spectra are mutually exclusive. Please store either "
+                      "material or particle spectra, but not both.");
+
     HostVal<ScintillationData> host_data;
     CollectionBuilder build_resolutionscale(&host_data.resolution_scale);
     CollectionBuilder build_components(&host_data.components);
@@ -128,7 +133,6 @@ ScintillationParams::ScintillationParams(Input const& input)
     if (input.particles.empty())
     {
         // Store material scintillation data
-        CELER_EXPECT(!input.materials.empty());
         CollectionBuilder build_materials(&host_data.materials);
 
         for (auto const& mat : input.materials)
@@ -154,7 +158,9 @@ ScintillationParams::ScintillationParams(Input const& input)
     else
     {
         // Store particle data
-        CELER_EXPECT(!input.pid_to_scintpid.empty());
+        CELER_VALIDATE(!input.pid_to_scintpid.empty(),
+                       << "missing particle ID to scintillation particle ID "
+                          "mapping.");
         CollectionBuilder build_scintpid(&host_data.pid_to_scintpid);
 
         // Store particle ids

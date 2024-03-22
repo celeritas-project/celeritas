@@ -123,9 +123,9 @@ ScintillationPreGenerator::operator()(Generator& rng)
     {
         real_type sigma = shared_.resolution_scale[mat_id_]
                           * std::sqrt(mean_num_photons_);
-        result.num_photons
-            = NormalDistribution<real_type>(mean_num_photons_, sigma)(rng)
-              + real_type{0.5};
+        result.num_photons = clamp_to_nonneg(
+            NormalDistribution<real_type>(mean_num_photons_, sigma)(rng)
+            + real_type{0.5});
     }
     else
     {
