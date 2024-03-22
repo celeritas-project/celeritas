@@ -33,7 +33,7 @@ namespace detail
  * This implementation class is constructed by the StepCollector.
  */
 template<StepPoint P>
-class StepGatherAction final : public ExplicitActionInterface
+class StepGatherAction final : public ExplicitCoreActionInterface
 {
   public:
     //!@{

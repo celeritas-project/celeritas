@@ -22,7 +22,7 @@ namespace celeritas
  * This should only be used for testing and demonstration purposes because real
  * EM physics always has continuous energy loss for charged particles.
  */
-class AlongStepNeutralAction final : public ExplicitActionInterface
+class AlongStepNeutralAction final : public ExplicitCoreActionInterface
 {
   public:
     // Construct with next action ID

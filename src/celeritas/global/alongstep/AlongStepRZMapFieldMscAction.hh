@@ -32,7 +32,7 @@ struct RZMapFieldInput;
 /*!
  * Along-step kernel with MSC, energy loss fluctuations, and a RZMapField.
  */
-class AlongStepRZMapFieldMscAction final : public ExplicitActionInterface
+class AlongStepRZMapFieldMscAction final : public ExplicitCoreActionInterface
 {
   public:
     //!@{
