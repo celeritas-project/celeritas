@@ -355,6 +355,87 @@ void InfWedge::output(JsonPimpl* j) const
 }
 
 //---------------------------------------------------------------------------//
+// PARALLELEPIPED
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with a 3-vector of half-edges and three angles (in radians).
+ */
+Parallelepiped::Parallelepiped(Real3 const& half_projs,
+                               Turn alpha,
+                               Turn theta,
+                               Turn phi)
+    : hpr_{half_projs}, alpha_{alpha}, theta_{theta}, phi_{phi}
+{
+    for (auto ax : range(Axis::size_))
+    {
+        CELER_VALIDATE(hpr_[to_int(ax)] > 0,
+                       << "nonpositive half-edge - roughly along "
+                       << to_char(ax) << " axis: " << hpr_[to_int(ax)]);
+    }
+
+    CELER_VALIDATE(alpha_ >= zero_quantity() && alpha_ < Turn{0.25},
+                   << "invalid angle " << alpha_.value()
+                   << " [turns]: must be in the range [0, 0.25]");
+
+    CELER_VALIDATE(theta_ >= zero_quantity() && theta_ < Turn{0.25},
+                   << "invalid angle " << theta_.value()
+                   << " [turns]: must be in the range [0, 0.25]");
+
+    CELER_VALIDATE(phi_ >= zero_quantity() && phi_ < Turn{1.},
+                   << "invalid angle " << phi_.value()
+                   << " [turns]: must be in the range [0, 1)");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void Parallelepiped::build(ConvexSurfaceBuilder& insert_surface) const
+{
+    constexpr auto X = to_int(Axis::x);
+    constexpr auto Y = to_int(Axis::y);
+    constexpr auto Z = to_int(Axis::z);
+
+    // cache trigonometric values
+    real_type sinth, costh, sinphi, cosphi, sinal, cosal;
+    sincos(theta_, &sinth, &costh);
+    sincos(phi_, &sinphi, &cosphi);
+    sincos(alpha_, &sinal, &cosal);
+
+    // base vectors
+    auto a = hpr_[X] * Real3{1, 0, 0};
+    auto b = hpr_[Y] * Real3{sinal, cosal, 0};
+    auto c = hpr_[Z] * Real3{sinth * cosphi, sinth * sinphi, costh};
+
+    // positioning the planes
+    auto xnorm = make_unit_vector(cross_product(b, c));
+    auto ynorm = make_unit_vector(cross_product(c, a));
+    auto xoffset = dot_product(a, xnorm);
+    auto yoffset = dot_product(b, ynorm);
+
+    // Build top and bottom planes
+    insert_surface(Sense::outside, PlaneZ{-hpr_[Z]});
+    insert_surface(Sense::inside, PlaneZ{hpr_[Z]});
+
+    // Build the side planes roughly perpendicular to y-axis
+    insert_surface(Sense::outside, Plane{ynorm, -yoffset});
+    insert_surface(Sense::inside, Plane{ynorm, yoffset});
+
+    // Build the side planes roughly perpendicular to x-axis
+    insert_surface(Sense::inside, Plane{-xnorm, xoffset});
+    insert_surface(Sense::inside, Plane{xnorm, xoffset});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Parallelepiped::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
 // PRISM
 //---------------------------------------------------------------------------//
 /*!

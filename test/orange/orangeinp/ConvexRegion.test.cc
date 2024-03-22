@@ -475,6 +475,119 @@ TEST_F(InfWedgeTest, half_turn)
 }
 
 //---------------------------------------------------------------------------//
+// PARALLELEPIPED
+//---------------------------------------------------------------------------//
+using ParallelepipedTest = ConvexRegionTest;
+
+TEST_F(ParallelepipedTest, errors)
+{
+    EXPECT_THROW(Parallelepiped({0, 1, 2}, Turn(0.1), Turn(0.1), Turn(0.1)),
+                 RuntimeError);  // bad x
+    EXPECT_THROW(Parallelepiped({2, 0, 1}, Turn(0.2), Turn(0.0), Turn(0.1)),
+                 RuntimeError);  // bad y
+    EXPECT_THROW(Parallelepiped({2, 1, 0}, Turn(0.1), Turn(0.1), Turn(0.1)),
+                 RuntimeError);  // bad z
+
+    Real3 sides{1, 2, 3};
+    EXPECT_THROW(Parallelepiped(sides, Turn(0.3), Turn(0.1), Turn(0.1)),
+                 RuntimeError);  // alpha
+    EXPECT_THROW(Parallelepiped(sides, Turn(0.1), Turn(0.3), Turn(0.1)),
+                 RuntimeError);  // theta
+    EXPECT_THROW(Parallelepiped(sides, Turn(0.1), Turn(0.1), Turn(1.0)),
+                 RuntimeError);  // phi
+}
+
+TEST_F(ParallelepipedTest, box)
+{
+    Real3 sides{1, 2, 3};
+    auto result
+        = this->test(Parallelepiped(sides, Turn(0.0), Turn(0.0), Turn(0.0)));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
+    static char const* const expected_surfaces[] = {"Plane: z=-3",
+                                                    "Plane: z=3",
+                                                    "Plane: y=-2",
+                                                    "Plane: y=2",
+                                                    "Plane: x=-1",
+                                                    "Plane: x=1"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_VEC_SOFT_EQ((Real3{-1, -2, -3}), result.interior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1, 2, 3}), result.interior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-1, -2, -3}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1, 2, 3}), result.exterior.upper());
+}
+
+TEST_F(ParallelepipedTest, alpha)
+{
+    Real3 sides{1, 2, 3};
+    auto result
+        = this->test(Parallelepiped(sides, Turn(0.1), Turn(0.0), Turn(0.0)));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-3",
+           "Plane: z=3",
+           "Plane: y=-1.618",
+           "Plane: y=1.618",
+           "Plane: n={0.80902,-0.58779,0}, d=-0.80902",
+           "Plane: n={0.80902,-0.58779,0}, d=0.80902"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -1.6180339887499, -3}),
+                       result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, 1.6180339887499, 3}),
+                       result.exterior.upper());
+}
+
+TEST_F(ParallelepipedTest, theta)
+{
+    Real3 sides{1, 2, 3};
+    auto result
+        = this->test(Parallelepiped(sides, Turn(0), Turn(0.1), Turn(0)));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-3",
+           "Plane: z=3",
+           "Plane: y=-2",
+           "Plane: y=2",
+           "Plane: n={0.80902,0,-0.58779}, d=-0.80902",
+           "Plane: n={0.80902,0,-0.58779}, d=0.80902"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -2, -3}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, 2, 3}), result.exterior.upper());
+}
+
+TEST_F(ParallelepipedTest, full)
+{
+    Real3 sides{1, 2, 3};
+    auto result
+        = this->test(Parallelepiped(sides, Turn(0.1), Turn(0.05), Turn(0.15)));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-3",
+           "Plane: z=3",
+           "Plane: n={0,0.96714,-0.25423}, d=-1.5649",
+           "Plane: n={0,0.96714,-0.25423}, d=1.5649",
+           "Plane: n={0.80902,-0.58779,0}, d=-0.80902",
+           "Plane: n={0.80902,-0.58779,0}, d=0.80902"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -3}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 3}), result.exterior.upper());
+}
+
+//---------------------------------------------------------------------------//
 // PRISM
 //---------------------------------------------------------------------------//
 using PrismTest = ConvexRegionTest;
