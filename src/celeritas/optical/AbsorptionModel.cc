@@ -11,24 +11,8 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 
-AbsorptionProcess::AbsorptionProcess()
-    : OpticalProcess(action_id)
-{
-}
-
-auto AbsorptionProcess::step_limits() const
-{
-
-}
-
 void AbsorptionProcess::execute(CoreParams const& params, CoreStateHost& state) const
 {
-    auto execute = make_action_track_executor(
-            params.ptr<MemSpace::native>(),
-            state.ptr(),
-            this->action_id(),
-            InteractionApplier{AbsorptionScatteringExecutor{this->host_ref()}});
-    return launch_action(*this, params, state, execute);
 }
 
 #if !CELER_USE_DEVICE

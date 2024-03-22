@@ -1,16 +1,17 @@
-//----------------------------------*-C++-*----------------------------------//
+//---------------------------------*-CUDA-*----------------------------------//
 // Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/OpticalModel.cc
+//! \file celeritas/optical/AbsorptionProcess.cu
 //---------------------------------------------------------------------------//
-#include "OpticalModel.hh"
+#include "AbsorptionProcess.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-
-
+void AbsorptionProcess::execute(CoreParams const& params, CoreStateDevice& state) const
+{
+}
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

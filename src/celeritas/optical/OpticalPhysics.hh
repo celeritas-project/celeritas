@@ -7,19 +7,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/data/StackAllocatorData.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/grid/GenericGridData.hh"
 
-/* Notes:
- *
- * Every optical physics process is defined over a single energy range which is
- * just the optical photon energy range. Therefore there are just optical
- * processes with no models (Celeritas models seperatae physics of a given
- * process over multiple energy ranges. Equivalently there's a unique model
- * for every process, so we may just identify that unique model with the
- * process itself).
- *
- * Only macro_xs grid types (no energy loss or range).
- */
+#include "OpticalPrimary.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -29,21 +25,20 @@ namespace celeritas
 using OpticalValueGrid = GenericGridData;
 using OpticalValueGridId = OpaqueId<GenericGridData>;
 using OpticalValueTableId = OpaqueId<struct OpticalValueTable>;
+using OpticalSecondary = OpticalPrimary;
 
 //---------------------------------------------------------------------------//
 // PARAMS
 //---------------------------------------------------------------------------//
 /*!
- * Set of value grids for all elements or materials.
+ * IDs of OpticalValueGrids stored in OpticalPhysicsParamsData.
  *
- * It is allowable for this to be "false" (i.e. no materials assigned)
- * indicating that the value table doesn't apply in the context -- for
- * example, an empty ValueTable macro_xs means that the process doesn't have a
- * discrete interaction.
+ * The grids are indexed by material, and each optical process will have its
+ * own table.
  */
 struct OpticalValueTable
 {
-    ItemRange<OpticalValueGridId> grids;  //!< Value grid by element or material index
+    ItemRange<OpticalValueGridId> grids;  //!< Value grid by material index
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const { return !grids.empty(); }
@@ -51,18 +46,14 @@ struct OpticalValueTable
 
 //---------------------------------------------------------------------------//
 /*!
- * Processes for optical photons.
+ * Per process tables for optical photons.
+ *
+ * Each process is assigned an optical value table that corresponds to the
+ * macro cross section of the process (there is no energy loss, range, etc.)
  */
 struct OpticalProcessGroup
 {
-    ItemRange<ProcessId> processes;  //!< Processes that apply [ppid]
-    ItemRange<OpticalValueTable> lambda_tables;  //!< [ppid]
-
-    // photons are never at rest
-    // bool has_at_rest{};
-
-    // no energy loss process
-    // ParticleProcessId eloss_ppid{};
+    ItemRange<OpticalValueTable> macro_xs_tables;  //!< [opid]
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
@@ -79,24 +70,19 @@ struct OpticalProcessGroup
 
 //---------------------------------------------------------------------------//
 /*!
- * Scalar (no template needed) quantities used by physics.
+ * Named scalar (no template needed) quantities for optical physics.
  *
- * The user-configurable constants are described in \c PhysicsParams .
- *
- * The \c process_to_action value corresponds to the \c ActionId for the first \c
- * ProcessId . Additionally it implies (by construction in physics_params) the
- * action IDs of several other physics actions.
+ * User-configurable constants are described \cd OpticalPhysicsParams .
  */
 struct OpticalPhysicsParamsScalars
 {
     using Energy = units::MevEnergy;
 
-    //! Highest number of processes for any particle type
-    ProcessId::size_type max_particle_processes{};
-    //! Offset to create an ActionId from a ProcessId
+    //! Offset to create an ActionId from a OpticalProcessId
     ActionId::size_type process_to_action{};
-    //! Number of physics models
-    ProcessId::size_type num_processes{};
+
+    //! Number of optical processes
+    OpticalProcessId::size_type num_processes{};
 
     // User-configurable constants
     real_type secondary_stack_factor = 1;  //!< Secondary storage per state
@@ -111,6 +97,7 @@ struct OpticalPhysicsParamsScalars
                && secondary_stack_factor > 0;
     }
 
+    //! Undergo a discrete interaction
     CELER_FORCEINLINE_FUNCITON ActionId discrete_action() const
     {
         return ActionId{process_to_action - 1};
@@ -125,6 +112,7 @@ struct OpticalPhysicsParamsScalars
 
 //---------------------------------------------------------------------------//
 /*!
+ * Persistent shared optical physics data.
  */
 template<Ownership W, MemSpace M>
 struct OpticalPhysicsParamsData
@@ -133,8 +121,6 @@ struct OpticalPhysicsParamsData
 
     template<class T>
     using Items = Collection<T, W, M>;
-    template<class T>
-    using ProcessItems = Collection<T, W, M, ProcessId>;
 
     //// DATA ////
 
@@ -144,7 +130,7 @@ struct OpticalPhysicsParamsData
     Items<OpticalValueGridId> value_grid_ids;
     Items<OpticalValueTable> value_tables;
     Items<OpticalValueTableId> value_table_ids;
-    Items<ProcessId> process_ids;
+    Items<OpticalProcessId> process_ids;
     OpticalProcessGroup process_groups;
 
     // Non-templated data
@@ -182,6 +168,7 @@ struct OpticalPhysicsParamsData
 // STATE
 //---------------------------------------------------------------------------//
 /*!
+ * Optical physics state data for a single track.
  */
 struct OpticalPhysicsTrackState
 {
@@ -196,6 +183,7 @@ struct OpticalPhysicsTrackState
 
 //---------------------------------------------------------------------------//
 /*!
+ * Initialize an optical physics state track.
  */
 struct OpticalPhysicsTrackInitializer
 {
@@ -203,6 +191,7 @@ struct OpticalPhysicsTrackInitializer
 
 //---------------------------------------------------------------------------//
 /*!
+ * Dynamic optical physics (models, processes) state data.
  */
 template<Ownership W, MemSpace M>
 struct OpticalPhysicsStateData
@@ -218,7 +207,7 @@ struct OpticalPhysicsStateData
 
     StateItems<OpticalPhysicsTrackState> state;  //!< Track state [track]
 
-    Items<real_type> per_process_xs;  //!< XS [track][particle process]
+    Items<real_type> per_process_xs;  //!< XS [track]
 
     StackAllocatorData<Secondary, W, M> secondaries;  //!< Secondary stack
 
@@ -259,8 +248,7 @@ inline void resize(OpticalPhysicsStateData<Ownership::value, M>* state,
 {
     CELER_EXPECT(size > 0);
     resize(&state->state, size);
-    resize(&state->per_process_xs,
-           size * params.scalars.max_particle_processes);
+    resize(&state->per_process_xs, size * params.scalars.num_processes);
     resize(
         &state->secondaries,
         static_cast<size_type>(size * params.scalars.secondary_stack_factor));
