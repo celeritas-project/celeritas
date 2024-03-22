@@ -134,7 +134,7 @@ class ScintillationTest : public OpticalTestBase
   protected:
     RandomEngine rng_;
     OpticalMaterialId opt_matid_{0};
-    real_type sim_track_view_step_len_{1};  // [cm]
+    real_type sim_track_view_step_len_{2.5};  // [cm]
 };
 
 //---------------------------------------------------------------------------//
@@ -273,7 +273,7 @@ TEST_F(ScintillationTest, pre_generator)
     auto const result = generate(this->rng());
     EXPECT_EQ(4, result.num_photons);
     EXPECT_REAL_EQ(0, result.time);
-    EXPECT_REAL_EQ(from_cm(1), result.step_length);
+    EXPECT_REAL_EQ(from_cm(sim_track_view_step_len_), result.step_length);
     EXPECT_EQ(-1, result.charge.value());
     EXPECT_EQ(0, result.material.get());
 
@@ -335,10 +335,10 @@ TEST_F(ScintillationTest, basic)
                                                  1.1217590386333e-05,
                                                  1.0717754890017e-05,
                                                  5.9167264717999e-06};
-        static double const expected_time[] = {3.2080893159083e-08,
-                                               6.136381528505e-09,
-                                               1.7964298529751e-06,
-                                               8.0854850049769e-07};
+        static double const expected_time[] = {3.2118958537493e-08,
+                                               6.178384625891e-09,
+                                               1.7964387171822e-06,
+                                               8.0855486708577e-07};
         static double const expected_cos_theta[] = {0.98576260383561,
                                                     0.27952671419631,
                                                     0.48129448935284,
