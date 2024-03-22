@@ -44,21 +44,23 @@ struct ScintillationComponent
 /*!
  * Data characterizing material-only scintillation spectrum information.
  *
- * \c yield is the characteristic light yield of the material.
- * \c resolution_scale scales the standard deviation of the distribution of the
- * number of photons generated.
- * \c components stores the fast/slow/etc scintillation components for this
- * material.
+ * - \c yield is the characteristic light yield of the material in [1/MeV]
+ *    units. The total light yield per step is then
+ *    `yield_per_energy * step_length` .
+ * - \c resolution_scale scales the standard deviation of the distribution of
+ *   the number of photons generated.
+ * - \c components stores the different scintillation components
+ *   (fast/slow/etc) for this material.
  */
 struct MaterialScintillationSpectrum
 {
-    real_type yield{};
+    real_type yield_per_energy{};  //!< [1/MeV]
     ItemRange<ScintillationComponent> components;
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return yield > 0 && !components.empty();
+        return yield_per_energy > 0 && !components.empty();
     }
 };
 
@@ -100,7 +102,7 @@ struct ParticleScintillationSpectrum
  * - \c resolution_scale is indexed by \c OpticalMaterialId .
  * - \c materials stores material-only scintillation data. Indexed by
  *   \c OpticalMaterialId
- * - \c particles stores scintillation data for each particle type for each
+ * - \c particles stores scintillation spectrum for each particle type for each
  *   material, being a grid of size `num_particles * num_materials`. Therefore
  *   it is indexed by \c ParticleScintSpectrumId , which combines
  *   \c ScintillationParticleId and \c OpticalMaterialId . Use the
@@ -111,25 +113,25 @@ struct ScintillationData
 {
     template<class T>
     using Items = Collection<T, W, M>;
-    using MaterialItems
-        = Collection<MaterialScintillationSpectrum, W, M, OpticalMaterialId>;
-    using ParticleItems
+    template<class T>
+    using OpticalMaterialItems = Collection<T, W, M, OpticalMaterialId>;
+    using ParticleScintillationSpectra
         = Collection<ParticleScintillationSpectrum, W, M, ParticleScintSpectrumId>;
 
     //// MEMBER DATA ////
 
-    //! Resolution scale for each material
-    Collection<real_type, W, M, OpticalMaterialId> resolution_scale;
+    //! Resolution scale for each material [OpticalMaterialid]
+    OpticalMaterialItems<real_type> resolution_scale;
 
-    //! Material-only scintillation spectrum data
-    MaterialItems materials;  //!< [OpticalMaterialId]
+    //! Material-only scintillation spectrum data [OpticalMaterialid]
+    OpticalMaterialItems<MaterialScintillationSpectrum> materials;
 
     //! Index between ScintillationParticleId and ParticleId
     Collection<ScintillationParticleId, W, M, ParticleId> pid_to_scintpid;
     //! Cache number of scintillation particles; Used by this->spectrum_index
     size_type num_scint_particles{};
-    //! Particle and material scintillation spectrum data
-    ParticleItems particles;  //!< [ParticleScintSpectrumId]
+    //! Particle/material scintillation spectrum data [ParticleScintSpectrumId]
+    ParticleScintillationSpectra particles;
     //! Backend storage for ParticleScintillationSpectrum::yield_vector
     Items<real_type> reals;
 

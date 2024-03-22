@@ -78,7 +78,7 @@ ScintillationParams::from_import(ImportData const& data,
             // Material spectrum
             auto const& iomsm = iom.scintillation.material;
             ImportMaterialScintSpectrum mat_spec;
-            mat_spec.yield = iomsm.yield;
+            mat_spec.yield_per_energy = iomsm.yield_per_energy;
             mat_spec.components = iomsm.components;
             input.materials[optmatidx] = std::move(mat_spec);
         }
@@ -141,10 +141,10 @@ ScintillationParams::ScintillationParams(Input const& input)
             CELER_ASSERT(mat);
             // Material-only data
             MaterialScintillationSpectrum mat_spec;
-            CELER_VALIDATE(mat.yield > 0,
-                           << "invalid yield=" << mat.yield
+            CELER_VALIDATE(mat.yield_per_energy > 0,
+                           << "invalid yield=" << mat.yield_per_energy
                            << " for scintillation (should be positive)");
-            mat_spec.yield = mat.yield;
+            mat_spec.yield_per_energy = mat.yield_per_energy;
             auto comps = this->build_components(mat.components);
             mat_spec.components
                 = build_components.insert_back(comps.begin(), comps.end());
@@ -229,16 +229,16 @@ std::vector<ScintillationComponent> ScintillationParams::build_components(
         comp[i].lambda_sigma = input_comp[i].lambda_sigma;
         comp[i].rise_time = input_comp[i].rise_time;
         comp[i].fall_time = input_comp[i].fall_time;
-        norm += input_comp[i].yield;
+        norm += input_comp[i].yield_per_energy;
     }
 
     // Store normalized yield
     for (auto i : range(comp.size()))
     {
-        CELER_VALIDATE(input_comp[i].yield > 0,
-                       << "invalid yield=" << input_comp[i].yield
+        CELER_VALIDATE(input_comp[i].yield_per_energy > 0,
+                       << "invalid yield=" << input_comp[i].yield_per_energy
                        << " for scintillation component " << i);
-        comp[i].yield_frac = input_comp[i].yield / norm;
+        comp[i].yield_frac = input_comp[i].yield_per_energy / norm;
     }
     return comp;
 }

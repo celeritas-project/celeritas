@@ -63,7 +63,7 @@ class ScintillationTest : public OpticalTestBase
         if (!scint_by_particle)
         {
             ImportMaterialScintSpectrum mat_spec;
-            mat_spec.yield = 5;
+            mat_spec.yield_per_energy = 5;
             mat_spec.components = this->build_material_components();
             inp.materials.push_back(std::move(mat_spec));
         }
@@ -110,7 +110,7 @@ class ScintillationTest : public OpticalTestBase
     {
         std::vector<ImportScintComponent> vec_comps;
         ImportScintComponent comp;
-        comp.yield = 4000;
+        comp.yield_per_energy = 4000;
         comp.lambda_mean = 1e-5;
         comp.lambda_sigma = 1e-6;
         comp.rise_time = 15e-9;
@@ -150,7 +150,7 @@ TEST_F(ScintillationTest, material_scint_params)
     EXPECT_EQ(1, data.materials.size());
 
     auto const& material = data.materials[opt_matid_];
-    EXPECT_REAL_EQ(5, material.yield);
+    EXPECT_REAL_EQ(5, material.yield_per_energy);
     EXPECT_REAL_EQ(1, data.resolution_scale[opt_matid_]);
     EXPECT_EQ(3, data.components.size());
 
@@ -169,13 +169,13 @@ TEST_F(ScintillationTest, material_scint_params)
     real_type norm{0};
     for (auto const& comp : this->build_material_components())
     {
-        norm += comp.yield;
+        norm += comp.yield_per_energy;
     }
     std::vector<real_type> expected_yield_fracs, expected_lambda_means,
         expected_lambda_sigmas, expected_rise_times, expected_fall_times;
     for (auto const& comp : this->build_material_components())
     {
-        expected_yield_fracs.push_back(comp.yield / norm);
+        expected_yield_fracs.push_back(comp.yield_per_energy / norm);
         expected_lambda_means.push_back(comp.lambda_mean);
         expected_lambda_sigmas.push_back(comp.lambda_sigma);
         expected_rise_times.push_back(comp.rise_time);

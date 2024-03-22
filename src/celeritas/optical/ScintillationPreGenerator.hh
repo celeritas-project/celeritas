@@ -73,7 +73,7 @@ class ScintillationPreGenerator
 /*!
  * Construct with input parameters.
  */
-inline CELER_FUNCTION ScintillationPreGenerator::ScintillationPreGenerator(
+CELER_FUNCTION ScintillationPreGenerator::ScintillationPreGenerator(
     ParticleTrackView const& particle_view,
     SimTrackView const& sim_view,
     OpticalMaterialId material,
@@ -104,7 +104,8 @@ inline CELER_FUNCTION ScintillationPreGenerator::ScintillationPreGenerator(
         auto const& material = shared_.materials[mat_id_];
         CELER_ASSERT(material);
         // TODO: Use visible energy deposition when Birks law is implemented
-        mean_num_photons_ = material.yield * step_.energy_dep.value();
+        mean_num_photons_ = material.yield_per_energy
+                            * step_.energy_dep.value();
     }
 }
 
@@ -114,7 +115,7 @@ inline CELER_FUNCTION ScintillationPreGenerator::ScintillationPreGenerator(
  * empty object is returned and can be verified via its own operator bool.
  */
 template<class Generator>
-inline CELER_FUNCTION OpticalDistributionData
+CELER_FUNCTION OpticalDistributionData
 ScintillationPreGenerator::operator()(Generator& rng)
 {
     // Material-only sampling

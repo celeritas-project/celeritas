@@ -25,7 +25,7 @@ namespace celeritas
  */
 struct ImportScintComponent
 {
-    double yield{};  //!< Yield for this material component [1/MeV]
+    double yield_per_energy{};  //!< Yield for this material component [1/MeV]
     double lambda_mean{};  //!< Mean wavelength [len]
     double lambda_sigma{};  //!< Standard deviation of wavelength
     double rise_time{};  //!< Rise time [time]
@@ -34,7 +34,7 @@ struct ImportScintComponent
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
-        return yield > 0 && lambda_mean > 0 && lambda_sigma > 0
+        return yield_per_energy > 0 && lambda_mean > 0 && lambda_sigma > 0
                && rise_time >= 0 && fall_time > 0;
     }
 };
@@ -46,12 +46,15 @@ struct ImportScintComponent
  */
 struct ImportMaterialScintSpectrum
 {
-    double yield{};  //!< Characteristic light yields of the material [1/MeV]
+    double yield_per_energy{};  //!< Light yield of the material [1/MeV]
     std::vector<ImportScintComponent> components;  //!< Scintillation
                                                    //!< components
 
     //! Whether all data are assigned and valid
-    explicit operator bool() const { return yield > 0 && !components.empty(); }
+    explicit operator bool() const
+    {
+        return yield_per_energy > 0 && !components.empty();
+    }
 };
 
 //---------------------------------------------------------------------------//
