@@ -7,53 +7,84 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/global/ActionInterface.hh"
-
 namespace celeritas
 {
-class ValueGridBuilder;
-
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- * Optional detailed class description, and possibly example usage:
- * \code
-    OpticalProcess ...;
-   \endcode
+ * Unique optical process associated with a given optical model.
  */
-class OpticalProcess : public ExplicitActionInterface
+class OpticalProcess
 {
   public:
     //!@{
     //! \name Type aliases
-    using UPConstGridBuilder = std::unique_ptr<ValueGridBuilder const>;
-    using StepLimitBuilder = UPConstGridBuilder;
+    using SPConstModel = std::shared_ptr<OpticalModel const>;
+    using SPConstImported = std::shared_ptr<ImportedOpticalProcesses const>;
+    using StepLimitBuilder = std::unique_ptr<GenericGridBuilder const>;
     using ActionIdIter = RangeIter<ActionId>;
-    using OpticalXsBuilders = std::vector<UPConstGridBuilder>;
+    using SPConstMaterials = std::shared_ptr<MaterialParams const>;
     //!@}
 
   public:
-    // Virtual destructor for polymorphic deletion
-    virtual ~OpticalProcess();
+
+    inline CELER_FUNCTION
+    OpticalProcess(ImportProcessClass ipc,
+                   SPConstMaterials materials,
+                   SPConstImported shared_data);
 
     //! Get the interaction cross sections for optical photons
-    virtual XsStepLimitBuilder step_limits() const = 0;
+    std::vector<OpticalValueGridId>
+    step_limits(GenericGridInserter& inserter) const;
 
-    //! Dependency ordering of the action
-    ActionOrder order() const override final { return ActionOrder::post; }
-
-    //! ID of this action for verification
-    ActionId action_id() const override final { return action_id_; }
+    virtual SPConstModel build_model(ActionIdIter start_id) const = 0;
+    virtual std::string label() const = 0;
 
   protected:
-    //! Require action id to be populated by subclasses
-    OpticalProcess(ActionId id)
-        : action_id_(id)
+    ImportedOpticalProcessAdapter imported_;
+    SPConstMaterials materials_;
+};
+
+template <class OpticalModelImpl>
+class OpticalProcessInstance : public OpticalProcess
+{
+  public:
+    inline CELER_FUNCTION
+    OpticalProcessInstance(SPConstMaterials materials,
+                           SPConstImported shared_data)
+        : OpticalProcess(OpticalModelImpl::process_class(), materials, shared_data)
     {}
 
-    ActionId action_id_;
+    //! Create unique model associated with this process
+    SPConstModel build_model(ActionIdIter start_id) const override final
+    {
+        return std::make_shared<OpticalModelImpl>(*start_id++, *materials_);
+    }
+
+    //! Name of the optical process
+    std::string label() const override final
+    {
+        return OpticalModelImpl::process_label();
+    }
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+
+OpticalProcess::OpticalProcess(ImportProcessClass ipc,
+                               SPConstMaterials materials,
+                               SPConstImported shared_data)
+    : imported_(shared_data, ipc), materials_(std::move(materials))
+{
+    CELER_EXPECT(materials_);
+}
+
+
+std::vector<OpticalValueGridId>
+OpticalProcess::step_limits(GenericGridInserter& inserter) const
+{
+    return imported_.step_limits(inserter, *materials_);
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

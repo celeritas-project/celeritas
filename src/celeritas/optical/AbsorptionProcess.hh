@@ -11,45 +11,43 @@
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Brief class description.
- *
- * Optional detailed class description, and possibly example usage:
- * \code
-    AbsorptionProcess ...;
-   \endcode
- */
-class AbsorptionProcess : public OpticalProcess
+
+class AbsorptionModel : public OpticalModel
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using SPConstImported = std::shared_ptr<AbsorptionParam>;
-    //!@}
+    AbsorptionModel(ActionId id, MaterialParams const& materials)
+        : OpticalModel(id)
+    {
+    }
 
-  public:
-    inline CELER_FUNCTION
-    AbsorptionProcess(SPConstImported const& shared_data);
+    void execute(CoreParams const&, CoreStateHost&) const override final;
 
-    //! Get the interaction cross sections for optical photons
-    StepLimitBuilder step_limits() const final;
+    void execute(CoreParams const&, CoreStateDevice&) const override final;
 
-    //! Apply the interaction kernel on host
-    void execute(CoreParams const&, CoreStateHost&) const final;
+    std::string label() const override final
+    {
+        return "optical-absorption";
+    }
 
-    //! Apply the interaction kernel on device
-    void execute(CoreParams const&, CoreStateDevice&) const final;
+    std::string description() const override final
+    {
+        return "optical photon absorbed by material";
+    }
 
-    //!@{
-    //! Access model data
-    HostRef const& host_ref() const { return data_.host_ref(); }
-    DeviceRef const& device_ref() const { return data_.device_ref(); }
-    //!@}
+    static std::string process_label()
+    {
+        return "Absorption";
+    }
 
-  private:
-    SPConstImported data_;
+    constexpr static ImportProcessClass process_class()
+    {
+        return ImportProcessClass::absorption;
+    }
+
+    // No data used by absorption
 };
+
+using AbsorptionProcess = OpticalProcessInstance<AbsorptionModel>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

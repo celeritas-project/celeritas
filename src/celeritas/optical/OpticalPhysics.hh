@@ -28,7 +28,7 @@ namespace celeritas
 //! Currently all value grids are cross section grids
 using OpticalValueGrid = GenericGridData;
 using OpticalValueGridId = OpaqueId<GenericGridData>;
-using OpticalValueTableId = OpaqueId<struct ValueTable>;
+using OpticalValueTableId = OpaqueId<struct OpticalValueTable>;
 
 //---------------------------------------------------------------------------//
 // PARAMS
@@ -56,7 +56,7 @@ struct OpticalValueTable
 struct OpticalProcessGroup
 {
     ItemRange<ProcessId> processes;  //!< Processes that apply [ppid]
-    ItemRange<OpticalValueTable> macro_xs_tables;  //!< [ppid]
+    ItemRange<OpticalValueTable> lambda_tables;  //!< [ppid]
 
     // photons are never at rest
     // bool has_at_rest{};
@@ -102,15 +102,18 @@ struct OpticalPhysicsParamsScalars
     real_type secondary_stack_factor = 1;  //!< Secondary storage per state
                                            //!< size
 
-    // No implicit actions?
-
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
         return max_particle_processes > 0
-               && process_to_action >= 0
+               && process_to_action >= 1
                && num_processes > 0
                && secondary_stack_factor > 0;
+    }
+
+    CELER_FORCEINLINE_FUNCITON ActionId discrete_action() const
+    {
+        return ActionId{process_to_action - 1};
     }
 
     //! Indicate an interaction failed to allocate memory
@@ -139,9 +142,9 @@ struct OpticalPhysicsParamsData
     Items<real_type> reals;
     Items<OpticalValueGrid> value_grids;
     Items<OpticalValueGridId> value_grid_ids;
-    Items<ProcessId> process_ids;
     Items<OpticalValueTable> value_tables;
     Items<OpticalValueTableId> value_table_ids;
+    Items<ProcessId> process_ids;
     OpticalProcessGroup process_groups;
 
     // Non-templated data
