@@ -338,6 +338,8 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
                                 std::begin(nowhere_logic),
                                 std::end(nowhere_logic)));
         CELER_EXPECT(is_infinite(v.bbox));
+        CELER_EXPECT(v.flags & VolumeRecord::implicit_vol);
+        simple_safety = false;
     }
 
     VolumeRecord output;
