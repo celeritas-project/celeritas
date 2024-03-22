@@ -111,29 +111,13 @@ ScintillationParams::ScintillationParams(Input const& input)
 {
     CELER_EXPECT(input);
     HostVal<ScintillationData> host_data;
-    CollectionBuilder build_optmatid(&host_data.matid_to_optmatid);
-    CollectionBuilder build_scintpid(&host_data.pid_to_scintpid);
     CollectionBuilder build_resolutionscale(&host_data.resolution_scale);
-    CollectionBuilder build_compoments(&host_data.components);
-
-    if (!input.particles.empty())
-    {
-        // Store particle idss
-        for (auto const id : input.pid_to_scintpid)
-        {
-            build_scintpid.push_back(id);
-            if (id)
-            {
-                host_data.num_scint_particles++;
-            }
-        }
-        CELER_ENSURE(!host_data.pid_to_scintpid.empty());
-        CELER_ENSURE(host_data.num_scint_particles > 0);
-    }
+    CollectionBuilder build_components(&host_data.components);
 
     // Store resolution scale
     for (auto const& val : input.resolution_scale)
     {
+        CELER_EXPECT(!input.resolution_scale.empty());
         CELER_VALIDATE(val >= 0,
                        << "invalid resolution_scale=" << val
                        << " for scintillation (should be nonnegative)");
@@ -143,10 +127,10 @@ ScintillationParams::ScintillationParams(Input const& input)
 
     if (input.particles.empty())
     {
+        // Store material scintillation data
         CELER_EXPECT(!input.materials.empty());
         CollectionBuilder build_materials(&host_data.materials);
 
-        // Store material scintillation data
         for (auto const& mat : input.materials)
         {
             // Check validity of input scintillation data
@@ -159,7 +143,7 @@ ScintillationParams::ScintillationParams(Input const& input)
             mat_spec.yield = mat.yield;
             auto comps = this->build_components(mat.components);
             mat_spec.components
-                = build_compoments.insert_back(comps.begin(), comps.end());
+                = build_components.insert_back(comps.begin(), comps.end());
             build_materials.push_back(std::move(mat_spec));
         }
         CELER_VALIDATE(input.materials.size() == input.resolution_scale.size(),
@@ -169,11 +153,23 @@ ScintillationParams::ScintillationParams(Input const& input)
     }
     else
     {
-        // Store particle- and material-dependent scintillation data
-        // Index should loop over particles first, then materials. This
-        // ordering should improve memory usage, since we group the
-        // material list for each particle, and each particle (i.e. stream)
-        // traverses multiple materials
+        // Store particle data
+        CELER_EXPECT(!input.pid_to_scintpid.empty());
+        CollectionBuilder build_scintpid(&host_data.pid_to_scintpid);
+
+        // Store particle ids
+        for (auto const id : input.pid_to_scintpid)
+        {
+            build_scintpid.push_back(id);
+            if (id)
+            {
+                host_data.num_scint_particles++;
+            }
+        }
+        CELER_ENSURE(host_data.num_scint_particles > 0);
+
+        // Store particle spectra
+        CELER_EXPECT(!input.particles.empty());
         GenericGridBuilder build_grid(&host_data.reals);
         CollectionBuilder build_particles(&host_data.particles);
 
@@ -183,7 +179,7 @@ ScintillationParams::ScintillationParams(Input const& input)
             part_spec.yield_vector = build_grid(spec.yield_vector);
             auto comps = this->build_components(spec.components);
             part_spec.components
-                = build_compoments.insert_back(comps.begin(), comps.end());
+                = build_components.insert_back(comps.begin(), comps.end());
             build_particles.push_back(std::move(part_spec));
         }
         CELER_ENSURE(host_data.particles.size()
@@ -191,13 +187,14 @@ ScintillationParams::ScintillationParams(Input const& input)
                             * host_data.resolution_scale.size());
     }
 
+    // Copy to device
     mirror_ = CollectionMirror<ScintillationData>{std::move(host_data)};
     CELER_ENSURE(mirror_);
 }
 
 //---------------------------------------------------------------------------//
-/*
- * Return a Celeritas ScintillationComponent from an imported one.
+/*!
+ * Return a \c ScintillationComponent from a \c ImportScintComponent .
  */
 std::vector<ScintillationComponent> ScintillationParams::build_components(
     std::vector<ImportScintComponent> const& input_comp)

@@ -38,10 +38,14 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
         using VecOptMatId = std::vector<OpticalMaterialId>;
         using VecSPId = std::vector<ScintillationParticleId>;
 
-        VecSPId pid_to_scintpid;  //!< ParticleId to ScintillationParticleId
-
         std::vector<double> resolution_scale;
+
+        //! Material-only spectra
         std::vector<ImportMaterialScintSpectrum> materials;
+
+        //!< ParticleId to ScintillationParticleId
+        VecSPId pid_to_scintpid;
+        //! Particle and material spectra [ParticleScintillationSpectrumId]
         std::vector<ImportParticleScintSpectrum> particles;
 
         explicit operator bool() const

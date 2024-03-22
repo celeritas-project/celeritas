@@ -57,7 +57,6 @@ class ScintillationTest : public OpticalTestBase
     build_scintillation_params(bool scint_by_particle = false)
     {
         ScintillationParams::Input inp;
-        inp.pid_to_scintpid.push_back(ScintillationParticleId(0));
         inp.resolution_scale.push_back(1);
 
         // One material, three components
@@ -71,6 +70,7 @@ class ScintillationTest : public OpticalTestBase
         else
         {
             // One particle, one component (based on lar-sphere.gdml)
+            inp.pid_to_scintpid.push_back(ScintillationParticleId(0));
             ImportParticleScintSpectrum ipss;
             ipss.yield_vector = this->build_particle_yield();
             ipss.components = this->build_particle_components();

@@ -118,17 +118,16 @@ struct ScintillationData
 
     //// MEMBER DATA ////
 
-    //! Index between OpticalMaterialId and MaterialId
-    Collection<OpticalMaterialId, W, M, MaterialId> matid_to_optmatid;
-    //! Index between ScintillationParticleId and ParticleId
-    Collection<ScintillationParticleId, W, M, ParticleId> pid_to_scintpid;
-
     //! Resolution scale for each material
     Collection<real_type, W, M, OpticalMaterialId> resolution_scale;
 
     //! Material-only scintillation spectrum data
     MaterialItems materials;  //!< [OpticalMaterialId]
 
+    //! Index between ScintillationParticleId and ParticleId
+    Collection<ScintillationParticleId, W, M, ParticleId> pid_to_scintpid;
+    //! Cache number of scintillation particles; Used by this->spectrum_index
+    size_type num_scint_particles{};
     //! Particle and material scintillation spectrum data
     ParticleItems particles;  //!< [ParticleScintSpectrumId]
     //! Backend storage for ParticleScintillationSpectrum::yield_vector
@@ -137,17 +136,15 @@ struct ScintillationData
     //! Components for either material or particle items
     Items<ScintillationComponent> components;
 
-    //! Cache number of scintillation particles; Used by this->spectrum_index
-    size_type num_scint_particles{};
-
     //// MEMBER FUNCTIONS ////
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !matid_to_optmatid.empty() && !pid_to_scintpid.empty()
-               && (!materials.empty() || !particles.empty())
-               && num_scint_particles > 0;
+        return !resolution_scale.empty()
+               && (materials.empty() != particles.empty())
+               && (!pid_to_scintpid.empty() == !particles.empty())
+               && (!pid_to_scintpid.empty() == (num_scint_particles > 0));
     }
 
     //! Whether sampling must happen by particle type
@@ -173,14 +170,13 @@ struct ScintillationData
     ScintillationData& operator=(ScintillationData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        matid_to_optmatid = other.matid_to_optmatid;
-        pid_to_scintpid = other.pid_to_scintpid;
         resolution_scale = other.resolution_scale;
         materials = other.materials;
+        pid_to_scintpid = other.pid_to_scintpid;
+        num_scint_particles = other.num_scint_particles;
         particles = other.particles;
         reals = other.reals;
         components = other.components;
-        num_scint_particles = other.num_scint_particles;
         return *this;
     }
 };
