@@ -424,6 +424,10 @@ void Parallelepiped::build(ConvexSurfaceBuilder& insert_surface) const
     // Build the side planes roughly perpendicular to x-axis
     insert_surface(Sense::inside, Plane{-xnorm, xoffset});
     insert_surface(Sense::inside, Plane{xnorm, xoffset});
+
+    // Add an exterior bounding box
+    auto half_diagonal = a + b + c;
+    insert_surface(Sense::inside, BBox{-half_diagonal, half_diagonal});
 }
 
 //---------------------------------------------------------------------------//

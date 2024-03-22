@@ -537,9 +537,9 @@ TEST_F(ParallelepipedTest, alpha)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -1.6180339887499, -3}),
+    EXPECT_VEC_SOFT_EQ((Real3{-2.1755705045849, -1.6180339887499, -3}),
                        result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, 1.6180339887499, 3}),
+    EXPECT_VEC_SOFT_EQ((Real3{2.1755705045849, 1.6180339887499, 3}),
                        result.exterior.upper());
 }
 
@@ -561,8 +561,10 @@ TEST_F(ParallelepipedTest, theta)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -2, -3}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, 2, 3}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-2.7633557568774, -2, -2.4270509831248}),
+                       result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2.7633557568774, 2, 2.4270509831248}),
+                       result.exterior.upper());
 }
 
 TEST_F(ParallelepipedTest, full)
@@ -583,8 +585,12 @@ TEST_F(ParallelepipedTest, full)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -3}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 3}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ(
+        (Real3{-2.720477400589, -2.3680339887499, -2.8531695488855}),
+        result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ(
+        (Real3{2.720477400589, 2.3680339887499, 2.8531695488855}),
+        result.exterior.upper());
 }
 
 //---------------------------------------------------------------------------//

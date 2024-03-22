@@ -245,10 +245,10 @@ class InfWedge final : public ConvexRegionInterface
  *     and Z. The lower Z face is positioned at `-dZ`, while the upper at
  * `+dZ`.
  *   - `alpha:` angle between the segment defined by the centers of the
- *     X-parallel edges and Y axis `[-90,90]` in degrees
- *   -   `theta:` theta angle of the segment defined by the centers of the Z
- * faces;
- *   - `phi:` phi angle of the same segment
+ *     X-parallel edges and Y axis `[-90,90]` in degrees;
+ *   - `theta:` polar angle of the shape's main axis, e.g. the segment defined
+ *     by the centers of the Z faces;
+ *   - `phi:` azimuthal angle of the shape's main axis (explained above).
  */
 class Parallelepiped final : public ConvexRegionInterface
 {
