@@ -149,6 +149,25 @@ struct ImportOpticalProperty
 
 //---------------------------------------------------------------------------//
 /*!
+ * Store wavelength shifting properties.
+ */
+struct ImportWavelengthShifting
+{
+    ImportPhysicsVector absorption_length;  //!< Absorption length [MeV, len]
+    ImportPhysicsVector component;  //<! Emission spectrum [MeV, MeV]
+
+    //! Whether all data are assigned and valid
+    explicit operator bool() const
+    {
+        return static_cast<bool>(absorption_length)
+               && static_cast<bool>(component)
+               && absorption_length.vector_type == ImportPhysicsVectorType::free
+               && absorption_length.vector_type == component.vector_type;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Store optical material properties.
  */
 struct ImportOpticalMaterial
@@ -157,13 +176,14 @@ struct ImportOpticalMaterial
     ImportOpticalRayleigh rayleigh;
     ImportOpticalAbsorption absorption;
     ImportOpticalProperty properties;
+    ImportWavelengthShifting wls;
 
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
         return static_cast<bool>(scintillation) || static_cast<bool>(rayleigh)
                || static_cast<bool>(absorption)
-               || static_cast<bool>(properties);
+               || static_cast<bool>(properties) || static_cast<bool>(wls);
     }
 };
 //---------------------------------------------------------------------------//
