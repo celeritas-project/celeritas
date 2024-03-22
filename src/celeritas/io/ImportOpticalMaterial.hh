@@ -153,13 +153,16 @@ struct ImportOpticalProperty
  */
 struct ImportWavelengthShifting
 {
+    double mean_num_photons;  //!< Mean number of photons re-emitted
+    double time_constant;  //!< Time delay between absorption and re-emission
     ImportPhysicsVector absorption_length;  //!< Absorption length [MeV, len]
-    ImportPhysicsVector component;  //<! Emission spectrum [MeV, MeV]
+    ImportPhysicsVector component;  //!< Emission spectrum [MeV, MeV]
 
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
-        return static_cast<bool>(absorption_length)
+        return mean_num_photons > 0 && time_constant > 0
+               && static_cast<bool>(absorption_length)
                && static_cast<bool>(component)
                && absorption_length.vector_type == ImportPhysicsVectorType::free
                && absorption_length.vector_type == component.vector_type;
