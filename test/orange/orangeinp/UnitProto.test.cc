@@ -7,13 +7,16 @@
 //---------------------------------------------------------------------------//
 #include "orange/orangeinp/UnitProto.hh"
 
+#include <fstream>
 #include <memory>
+#include <sstream>
 
 #include "corecel/io/Join.hh"
 #include "orange/orangeinp/CsgObject.hh"
 #include "orange/orangeinp/Shape.hh"
 #include "orange/orangeinp/Transformed.hh"
 #include "orange/orangeinp/detail/CsgUnit.hh"
+#include "orange/orangeinp/detail/InputBuilder.hh"
 
 #include "CsgTestUtils.hh"
 #include "celeritas_test.hh"
@@ -374,6 +377,157 @@ TEST_F(MotherTest, fuzziness)
             = {"+0", "-1", "all(-0, +1)"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
     }
+}
+
+//---------------------------------------------------------------------------//
+class InputBuilderTest : public UnitProtoTest
+{
+  public:
+    void test(UnitProto const& global)
+    {
+        OrangeInput inp = build_input(tol_, global);
+        EXPECT_TRUE(inp);
+        if (!CELERITAS_USE_JSON)
+        {
+            GTEST_SKIP() << "JSON is disabled: cannot compare output";
+        }
+
+        std::string const ref_path = this->test_data_path(
+            "orange", this->make_unique_filename(".org.json"));
+
+        // Export input to JSON
+        std::ostringstream actual;
+        actual << inp;
+
+        // Read 'gold' file
+        std::ifstream ref{ref_path};
+        if (!ref)
+        {
+            FAIL() << "failed to open reference file at '" << ref_path
+                   << "': writing gold file instead";
+            ref.close();
+
+            std::ofstream out{ref_path};
+            out << actual.rdbuf();
+            return;
+        }
+
+        std::stringstream expected;
+        expected << ref.rdbuf();
+        EXPECT_JSON_EQ(actual.str(), expected.str());
+    }
+};
+
+TEST_F(InputBuilderTest, globalspheres)
+{
+    UnitProto global{[] {
+        UnitProto::Input inp;
+        inp.boundary.interior = make_sph("bound", 10.0);
+        inp.boundary.zorder = ZOrder::media;
+        inp.label = "global";
+
+        auto inner = make_sph("inner", 5.0);
+
+        // Construct "inside" cell
+        inp.materials.push_back(
+            {make_rdv("shell",
+                      {{Sense::inside, inp.boundary.interior},
+                       {Sense::outside, inner}}),
+             MaterialId{1}});
+        inp.materials.push_back({inner, MaterialId{2}});
+        return inp;
+    }()};
+
+    this->test(global);
+}
+
+TEST_F(InputBuilderTest, bgspheres)
+{
+    UnitProto global{[] {
+        UnitProto::Input inp;
+        inp.boundary.interior = make_sph("bound", 10.0);
+        inp.label = "global";
+
+        auto inner = make_sph("inner", 5.0);
+
+        inp.materials.push_back(
+            {make_translated(make_sph("top", 2.0), {0, 0, 3}), MaterialId{1}});
+        inp.materials.push_back(
+            {make_translated(make_sph("bottom", 3.0), {0, 0, -3}),
+             MaterialId{2}});
+        inp.fill = MaterialId{3};
+        return inp;
+    }()};
+
+    this->test(global);
+}
+
+TEST_F(InputBuilderTest, hierarchy)
+{
+    auto leaf = std::make_shared<UnitProto>([] {
+        UnitProto::Input inp;
+        inp.boundary.interior = make_cyl("bound", 1.0, 1.0);
+        inp.boundary.zorder = ZOrder::media;
+        inp.label = "leafy";
+        inp.materials.push_back(
+            {make_translated(make_cyl("bottom", 1, 0.5), {0, 0, -0.5}),
+             MaterialId{1}});
+        inp.materials.push_back(
+            {make_translated(make_cyl("top", 1, 0.5), {0, 0, 0.5}),
+             MaterialId{2}});
+        return inp;
+    }());
+
+    auto filled_daughter = std::make_shared<UnitProto>([] {
+        UnitProto::Input inp;
+        inp.boundary.interior = make_sph("bound", 10.0);
+        inp.boundary.zorder = ZOrder::exterior;
+        inp.label = "filled_daughter";
+        inp.materials.push_back(
+            {make_translated(make_sph("leaf1", 1), {0, 0, -5}), MaterialId{1}});
+        inp.materials.push_back(
+            {make_translated(make_sph("leaf2", 1), {0, 0, 5}), MaterialId{2}});
+        inp.daughters.push_back({make_daughter("d1"), Translation{{0, 5, 0}}});
+        inp.daughters.push_back(
+            {make_daughter("d2"),
+             Transformation{make_rotation(Axis::x, Turn{0.25}), {0, -5, 0}}});
+        inp.fill = MaterialId{3};
+        return inp;
+    }());
+
+    auto global = std::make_shared<UnitProto>([&] {
+        UnitProto::Input inp;
+        inp.boundary.interior = make_sph("bound", 100.0);
+        inp.boundary.zorder = ZOrder::media;
+        inp.label = "global";
+        inp.daughters.push_back({make_daughter("d1"), Translation{{0, 5, 0}}});
+        inp.daughters.push_back(
+            {make_daughter("d2"),
+             Transformation{make_rotation(Axis::x, Turn{0.25}), {0, -5, 0}}});
+        inp.daughters.push_back({filled_daughter, Translation{{0, 0, -20}}});
+        inp.daughters.push_back({leaf, Translation{{0, 0, 20}}});
+
+        // Construct "inside" cell
+        inp.materials.push_back(
+            {make_rdv("interior",
+                      [&] {
+                          VecSenseObj interior
+                              = {{Sense::inside, inp.boundary.interior}};
+                          for (auto const& d : inp.daughters)
+                          {
+                              interior.push_back(
+                                  {Sense::outside, d.make_interior()});
+                          }
+                          return interior;
+                      }()),
+             MaterialId{3}});
+
+        inp.materials.push_back(
+            {make_translated(make_sph("leaf1", 1), {0, 0, -5}), MaterialId{1}});
+        return inp;
+    }());
+
+    this->test(*global);
 }
 
 //---------------------------------------------------------------------------//

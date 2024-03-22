@@ -161,6 +161,16 @@ class Geant4Testem15Test : public JsonOrangeTest
     std::string geometry_basename() const final { return "geant4-testem15"; }
 };
 
+#define InputBuilderTest TEST_IF_CELERITAS_JSON(InputBuilderTest)
+class InputBuilderTest : public OrangeTest
+{
+    void SetUp() override
+    {
+        // Load geometry from the test filename. See UnitProto.test.cc
+        this->build_geometry(this->make_unique_filename(".org.json"));
+    }
+};
+
 //---------------------------------------------------------------------------//
 
 TEST_F(OneVolumeTest, params)
@@ -1218,6 +1228,15 @@ TEST_F(ShiftTrackerTest, host)
     std::vector<unsigned int> ref_steps = {5, 3, 5, 5, 6, 5, 4, 4, 5, 3};
     EXPECT_VEC_EQ(ref_steps, steps);
 }
+
+//---------------------------------------------------------------------------//
+TEST_F(InputBuilderTest, globalspheres) {}
+
+//---------------------------------------------------------------------------//
+TEST_F(InputBuilderTest, bgspheres) {}
+
+//---------------------------------------------------------------------------//
+TEST_F(InputBuilderTest, hierarchy) {}
 
 //---------------------------------------------------------------------------//
 }  // namespace test

@@ -1,0 +1,106 @@
+{
+"_format": "ORANGE",
+"_version": 0,
+"tol": {
+"abs": 1e-05,
+"rel": 1e-05
+},
+"universes": [
+{
+"_type": "unit",
+"md": {
+"name": "global"
+},
+"surface_labels": [
+"[EXTERIOR]",
+"top@s",
+"bottom@s"
+],
+"surfaces": {
+"data": [
+100.0,
+0.0,
+0.0,
+3.0,
+4.0,
+0.0,
+0.0,
+-3.0,
+9.0
+],
+"sizes": [
+1,
+4,
+4
+],
+"types": [
+"sc",
+"s",
+"s"
+]
+},
+"volume_labels": [
+"[EXTERIOR]@global",
+"top",
+"bottom",
+"global@bg"
+],
+"volumes": [
+{
+"faces": [
+0
+],
+"logic": "0",
+"zorder": "X"
+},
+{
+"bbox": [
+[
+-2.0,
+-2.0,
+1.0
+],
+[
+2.0,
+2.0,
+5.0
+]
+],
+"faces": [
+1
+],
+"logic": "0 ~"
+},
+{
+"bbox": [
+[
+-3.0,
+-3.0,
+-6.0
+],
+[
+3.0,
+3.0,
+0.0
+]
+],
+"faces": [
+2
+],
+"logic": "0 ~"
+},
+{
+"bbox": null,
+"faces": [
+0,
+1,
+2
+],
+"flags": 2,
+"logic": "* ~",
+"zorder": "B"
+}
+]
+}
+]
+}
