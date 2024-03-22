@@ -1458,6 +1458,30 @@ TEST_F(LarSphere, optical)
     EXPECT_REAL_EQ(86.4473, to_cm(abs.absorption_length.y.front()));
     EXPECT_REAL_EQ(0.000296154, to_cm(abs.absorption_length.y.back()));
 
+    // Check WLS optical properties
+    auto const& wls = optical.wls;
+    EXPECT_TRUE(wls);
+    EXPECT_EQ(2, wls.absorption_length.x.size());
+    EXPECT_EQ(wls.absorption_length.x.size(), wls.absorption_length.y.size());
+    EXPECT_EQ(ImportPhysicsVectorType::free, wls.absorption_length.vector_type);
+    EXPECT_EQ(wls.component.vector_type, wls.absorption_length.vector_type);
+
+    std::vector<double> abslen_grid, comp_grid;
+    for (auto i : range(wls.absorption_length.x.size()))
+    {
+        abslen_grid.push_back(wls.absorption_length.x[i]);
+        abslen_grid.push_back(wls.absorption_length.y[i]);
+        comp_grid.push_back(wls.component.x[i]);
+        comp_grid.push_back(wls.component.y[i]);
+    }
+
+    static double const expected_abslen_grid[]
+        = {1.3778e-06, 86.4473, 1.55e-05, 0.000296154};
+    static double const expected_comp_grid[]
+        = {1.3778e-06, 1000000, 1.55e-05, 1e-05};
+    EXPECT_VEC_SOFT_EQ(expected_abslen_grid, abslen_grid);
+    EXPECT_VEC_SOFT_EQ(expected_comp_grid, comp_grid);
+
     // Check common optical properties
     // Refractive index data in the geometry comes from the refractive index
     // database https://refractiveindex.info and was calculating using the
