@@ -1461,6 +1461,8 @@ TEST_F(LarSphere, optical)
     // Check WLS optical properties
     auto const& wls = optical.wls;
     EXPECT_TRUE(wls);
+    EXPECT_REAL_EQ(3, wls.mean_num_photons);
+    EXPECT_REAL_EQ(6e-9, wls.time_constant);
     EXPECT_EQ(2, wls.absorption_length.x.size());
     EXPECT_EQ(wls.absorption_length.x.size(), wls.absorption_length.y.size());
     EXPECT_EQ(ImportPhysicsVectorType::free, wls.absorption_length.vector_type);
