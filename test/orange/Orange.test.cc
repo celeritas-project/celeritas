@@ -646,7 +646,7 @@ TEST_F(UniversesTest, params)
 
 TEST_F(UniversesTest, TEST_IF_CELERITAS_DOUBLE(output))
 {
-    OrangeParamsOutput out(this->sp_params());
+    OrangeParamsOutput out(this->geometry());
     EXPECT_EQ("orange", out.label());
 
     if (CELERITAS_USE_JSON)
@@ -1077,7 +1077,7 @@ TEST_F(Geant4Testem15Test, safety)
 
 TEST_F(HexArrayTest, TEST_IF_CELERITAS_DOUBLE(output))
 {
-    OrangeParamsOutput out(this->sp_params());
+    OrangeParamsOutput out(this->geometry());
     EXPECT_EQ("orange", out.label());
 
     if (CELERITAS_USE_JSON)
@@ -1090,36 +1090,19 @@ TEST_F(HexArrayTest, TEST_IF_CELERITAS_DOUBLE(output))
 
 TEST_F(HexArrayTest, track_out)
 {
-    OrangeTrackView geo = this->make_track_view();
+    auto result = this->track(
+        {-6.9258369494022292, -4.9982766629573767, -10.8378536157757495},
+        {0.6750034206933703, -0.3679917428721818, 0.6394939086732125});
 
-    // Initialize
-    Real3 pos{-6.9258369494022292, -4.9982766629573767, -10.8378536157757495};
-    Real3 dir{0.6750034206933703, -0.3679917428721818, 0.6394939086732125};
-
-    geo = Initializer_t{pos, dir};
-
-    std::vector<celeritas::VolumeId> vids;
-    std::vector<celeritas::VolumeId> refids = {celeritas::VolumeId{2},
-                                               celeritas::VolumeId{55},
-                                               celeritas::VolumeId{57},
-                                               celeritas::VolumeId{2}};
-
-    std::vector<real_type> d2b;
-    std::vector<real_type> refd2b = {1.99143, 5.30607, 0.306368, 5.98808};
-
-    while (!geo.is_outside())
-    {
-        vids.push_back(geo.volume_id());
-
-        auto next = geo.find_next_step();
-        d2b.push_back(next.distance);
-
-        geo.move_to_boundary();
-        geo.cross_boundary();
-    }
-
-    EXPECT_VEC_EQ(refids, vids);
-    EXPECT_VEC_CLOSE(d2b, refd2b, real_type(1e-5), real_type(1e-5));
+    static char const* const expected_volumes[]
+        = {"interior", "cfill", "dfill", "interior"};
+    EXPECT_VEC_EQ(expected_volumes, result.volumes);
+    static real_type const expected_distances[] = {
+        1.9914318088046, 5.3060674310398, 0.30636846908014, 5.9880767678838};
+    EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    static real_type const expected_hw_safety[] = {
+        0.20109936014143, 0.29549138370648, 0.030952132652541, 0.90113367054536};
+    EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
 }
 
 // Test safety distance within a geometry that supports simple safety

@@ -74,10 +74,9 @@ std::vector<Sense> OrangeGeoTestBase::string_to_senses(std::string const& s)
 /*!
  * Load a geometry from the given JSON filename.
  */
-void OrangeGeoTestBase::build_geometry(char const* filename)
+void OrangeGeoTestBase::build_geometry(std::string const& filename)
 {
     CELER_EXPECT(!params_);
-    CELER_EXPECT(filename);
     CELER_VALIDATE(CELERITAS_USE_JSON,
                    << "JSON is not enabled so geometry cannot be loaded");
 
@@ -85,7 +84,7 @@ void OrangeGeoTestBase::build_geometry(char const* filename)
     params_
         = std::make_unique<Params>(this->test_data_path("orange", filename));
 
-    static char const* const expected_log_levels[] = {"info"};
+    static std::string const expected_log_levels[] = {"info"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
@@ -230,16 +229,12 @@ VolumeId::size_type OrangeGeoTestBase::num_volumes() const
 /*!
  * Find the surface from its label (nullptr allowed)
  */
-SurfaceId OrangeGeoTestBase::find_surface(char const* label) const
+SurfaceId OrangeGeoTestBase::find_surface(std::string const& label) const
 {
     CELER_EXPECT(params_);
-    SurfaceId surface_id;
-    if (label)
-    {
-        surface_id = params_->find_surface(label);
-        CELER_VALIDATE(surface_id,
-                       << "nonexistent surface label '" << label << '\'');
-    }
+    SurfaceId surface_id = params_->find_surface(label);
+    CELER_VALIDATE(surface_id,
+                   << "nonexistent surface label '" << label << '\'');
     return surface_id;
 }
 
@@ -247,16 +242,11 @@ SurfaceId OrangeGeoTestBase::find_surface(char const* label) const
 /*!
  * Find the volume from its label (nullptr allowed)
  */
-VolumeId OrangeGeoTestBase::find_volume(char const* label) const
+VolumeId OrangeGeoTestBase::find_volume(std::string const& label) const
 {
     CELER_EXPECT(params_);
-    VolumeId volume_id;
-    if (label)
-    {
-        volume_id = params_->find_volume(label);
-        CELER_VALIDATE(volume_id,
-                       << "nonexistent volume label '" << label << '\'');
-    }
+    VolumeId volume_id = params_->find_volume(label);
+    CELER_VALIDATE(volume_id, << "nonexistent volume label '" << label << '\'');
     return volume_id;
 }
 
@@ -304,6 +294,16 @@ OrangeGeoTestBase::id_to_label(UniverseId uid, LocalVolumeId volid) const
 std::string OrangeGeoTestBase::id_to_label(LocalVolumeId volid) const
 {
     return this->id_to_label(UniverseId{0}, volid);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return the geometry that was created.
+ */
+auto OrangeGeoTestBase::build_geometry() -> SPConstGeo
+{
+    CELER_EXPECT(params_);
+    return params_;
 }
 
 //---------------------------------------------------------------------------//
