@@ -545,4 +545,32 @@ void to_json(nlohmann::json& j, OrangeInput const& value)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Helper to read the input from a file or stream.
+ *
+ * Example to read from a file:
+ * \code
+   OrangeInput inp;
+   std::ifstream("foo.org.json") >> inp;
+ * \endcode
+ */
+std::istream& operator>>(std::istream& is, OrangeInput& inp)
+{
+    auto j = nlohmann::json::parse(is);
+    j.get_to(inp);
+    return is;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Helper to write the input to a file or stream.
+ */
+std::ostream& operator<<(std::ostream& os, OrangeInput const& inp)
+{
+    nlohmann::json j = inp;
+    os << j.dump(0);
+    return os;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas
