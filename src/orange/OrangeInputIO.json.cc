@@ -123,7 +123,30 @@ void from_json(nlohmann::json const& j, VolumeInput& value)
 
     if (auto iter = j.find("zorder"); iter != j.end())
     {
-        iter->get_to(value.zorder);
+        if (iter->is_string())
+        {
+            auto s = iter->get<std::string>();
+            CELER_VALIDATE(s.size() == 1, << "invalid zorder '" << s << "'");
+            value.zorder = to_zorder(s.front());
+        }
+        else
+        {
+            // Backward compatibility: integer value
+            iter->get_to(value.zorder);
+            constexpr size_type uint16_max = 65536;
+            if (static_cast<size_type>(value.zorder) == uint16_max - 2)
+            {
+                value.zorder = ZOrder::implicit_exterior;
+            }
+            else if (static_cast<size_type>(value.zorder) == uint16_max - 3)
+            {
+                value.zorder = ZOrder::exterior;
+            }
+            char c = to_char(value.zorder);
+            CELER_VALIDATE(to_zorder(c) != ZOrder::invalid,
+                           << "invalid zorder "
+                           << static_cast<int>(value.zorder));
+        }
     }
     else
     {
