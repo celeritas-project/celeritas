@@ -86,6 +86,7 @@ void OrangeGeoTestBase::build_geometry(std::string const& filename)
 
     static std::string const expected_log_levels[] = {"info"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+    ASSERT_TRUE(this->geometry());
 }
 
 //---------------------------------------------------------------------------//
@@ -161,6 +162,7 @@ void OrangeGeoTestBase::build_geometry(UnitInput input)
 {
     CELER_EXPECT(input);
     params_ = std::make_unique<Params>(to_input(std::move(input)));
+    ASSERT_TRUE(this->geometry());
 }
 
 //---------------------------------------------------------------------------//

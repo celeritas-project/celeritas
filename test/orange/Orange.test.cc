@@ -665,7 +665,7 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
     geo = Initializer_t{{-1, -2, 1}, {1, 0, 0}};
     EXPECT_VEC_SOFT_EQ(Real3({-1, -2, 1}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
-    EXPECT_EQ("johnny", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("johnny", this->volume_name(geo));
     EXPECT_FALSE(geo.is_outside());
     EXPECT_FALSE(geo.is_on_boundary());
 
@@ -673,7 +673,7 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
     geo = Initializer_t{{0.5, -2, 1}, {1, 0, 0}};
     EXPECT_VEC_SOFT_EQ(Real3({0.5, -2, 1}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
-    EXPECT_EQ("c", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("c", this->volume_name(geo));
     EXPECT_FALSE(geo.is_outside());
     EXPECT_FALSE(geo.is_on_boundary());
 
@@ -681,7 +681,7 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
     geo = OrangeTrackView::DetailedInitializer{geo, {0, 1, 0}};
     EXPECT_VEC_SOFT_EQ(Real3({0.5, -2, 1}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({0, 1, 0}), geo.dir());
-    EXPECT_EQ("c", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("c", this->volume_name(geo));
     EXPECT_FALSE(geo.is_outside());
     EXPECT_FALSE(geo.is_on_boundary());
 
@@ -742,14 +742,14 @@ TEST_F(UniversesTest, cross_into_daughter_non_coincident)
     EXPECT_SOFT_EQ(1, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("inner_a.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("johnny", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("inner_a.my", this->surface_name(geo));
+    EXPECT_EQ("johnny", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, -4, 1}), geo.pos());
 
     // Cross universe boundary
     geo.cross_boundary();
-    EXPECT_EQ("inner_a.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("c", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("inner_a.my", this->surface_name(geo));
+    EXPECT_EQ("c", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, -4, 1}), geo.pos());
 
     // Make sure we can take another step after crossing
@@ -757,7 +757,7 @@ TEST_F(UniversesTest, cross_into_daughter_non_coincident)
     EXPECT_SOFT_EQ(1, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("alpha.my", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("alpha.my", this->surface_name(geo));
 }
 
 // Cross into parent universe for the case where the hole cell does not share a
@@ -770,14 +770,14 @@ TEST_F(UniversesTest, cross_into_parent_non_coincident)
     auto next = geo.find_next_step();
     EXPECT_SOFT_EQ(0.5, next.distance);
     geo.move_to_boundary();
-    EXPECT_EQ("inner_a.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("c", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("inner_a.my", this->surface_name(geo));
+    EXPECT_EQ("c", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, -4, 1}), geo.pos());
 
     // Cross universe boundary
     geo.cross_boundary();
-    EXPECT_EQ("inner_a.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("johnny", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("inner_a.my", this->surface_name(geo));
+    EXPECT_EQ("johnny", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, -4, 1}), geo.pos());
 
     // Make sure we can take another step after crossing
@@ -785,7 +785,7 @@ TEST_F(UniversesTest, cross_into_parent_non_coincident)
     EXPECT_SOFT_EQ(2, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("john.my", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("john.my", this->surface_name(geo));
 }
 
 // Cross into daughter universe for the case where the hole cell shares a
@@ -799,14 +799,14 @@ TEST_F(UniversesTest, cross_into_daughter_coincident)
     EXPECT_SOFT_EQ(1, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("bob.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("bobby", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("bob.my", this->surface_name(geo));
+    EXPECT_EQ("bobby", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, 0, 1}), geo.pos());
 
     // Cross universe boundary
     geo.cross_boundary();
-    EXPECT_EQ("bob.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("c", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("bob.my", this->surface_name(geo));
+    EXPECT_EQ("c", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, 0, 1}), geo.pos());
 
     // Make sure we can take another step after crossing
@@ -814,7 +814,7 @@ TEST_F(UniversesTest, cross_into_daughter_coincident)
     EXPECT_SOFT_EQ(1, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("alpha.py", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("alpha.py", this->surface_name(geo));
 }
 
 // Cross into parent universe for the case where the hole cell shares a
@@ -828,14 +828,14 @@ TEST_F(UniversesTest, cross_into_parent_coincident)
     EXPECT_SOFT_EQ(0.5, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("bob.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("c", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("bob.my", this->surface_name(geo));
+    EXPECT_EQ("c", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, 0, 1}), geo.pos());
 
     // Cross universe boundary
     geo.cross_boundary();
-    EXPECT_EQ("bob.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("bobby", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("bob.my", this->surface_name(geo));
+    EXPECT_EQ("bobby", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, 0, 1}), geo.pos());
 
     // Make sure we can take another step after crossing
@@ -843,7 +843,7 @@ TEST_F(UniversesTest, cross_into_parent_coincident)
     EXPECT_SOFT_EQ(2, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("bob.py", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("bob.py", this->surface_name(geo));
 }
 
 // Cross into daughter universe that is two levels down
@@ -856,14 +856,14 @@ TEST_F(UniversesTest, cross_into_daughter_doubly_coincident)
     EXPECT_SOFT_EQ(0.5, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("inner_a.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("johnny", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("inner_a.my", this->surface_name(geo));
+    EXPECT_EQ("johnny", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -4, 1}), geo.pos());
 
     // Cross universe boundary
     geo.cross_boundary();
-    EXPECT_EQ("inner_a.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("patty", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("inner_a.my", this->surface_name(geo));
+    EXPECT_EQ("patty", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -4, 1}), geo.pos());
 
     // Make sure we can take another step after crossing
@@ -871,7 +871,7 @@ TEST_F(UniversesTest, cross_into_daughter_doubly_coincident)
     EXPECT_SOFT_EQ(0.5, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("inner_c.py", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("inner_c.py", this->surface_name(geo));
 }
 
 // Cross into parent universe that is two levels down
@@ -884,14 +884,14 @@ TEST_F(UniversesTest, cross_into_parent_doubly_coincident)
     EXPECT_SOFT_EQ(0.25, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("inner_a.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("patty", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("inner_a.my", this->surface_name(geo));
+    EXPECT_EQ("patty", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -4, 1}), geo.pos());
 
     // Cross universe boundary
     geo.cross_boundary();
-    EXPECT_EQ("inner_a.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("johnny", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("inner_a.my", this->surface_name(geo));
+    EXPECT_EQ("johnny", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -4, 1}), geo.pos());
 
     // Make sure we can take another step after crossing
@@ -899,7 +899,7 @@ TEST_F(UniversesTest, cross_into_parent_doubly_coincident)
     EXPECT_SOFT_EQ(2, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("john.my", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("john.my", this->surface_name(geo));
 }
 
 // Cross between two daughter universes that share a boundary
@@ -914,14 +914,14 @@ TEST_F(UniversesTest, cross_between_daughters)
     EXPECT_SOFT_EQ(0.2, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("inner_a.pz", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("a", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("inner_a.pz", this->surface_name(geo));
+    EXPECT_EQ("a", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, -2, 0.5}), geo.pos());
 
     // Cross universe boundary
     geo.cross_boundary();
-    EXPECT_EQ("inner_a.pz", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("a", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("inner_a.pz", this->surface_name(geo));
+    EXPECT_EQ("a", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, -2, 0.5}), geo.pos());
 
     // Make sure we can take another step after crossing
@@ -929,7 +929,7 @@ TEST_F(UniversesTest, cross_between_daughters)
     EXPECT_SOFT_EQ(1, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("bob.mz", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("bob.mz", this->surface_name(geo));
 }
 
 // Change direction on a universe boundary to reenter the cell
@@ -944,8 +944,8 @@ TEST_F(UniversesTest, reentrant)
 
     // Move to universe boundary
     geo.move_to_boundary();
-    EXPECT_EQ("inner_c.py", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("patty", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("inner_c.py", this->surface_name(geo));
+    EXPECT_EQ("patty", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -3.5, 0.7}), geo.pos());
 
     // Change direction on the universe boundary such that we are no longer
@@ -954,16 +954,16 @@ TEST_F(UniversesTest, reentrant)
 
     // Remain in same cell after crossing boundary
     geo.cross_boundary();
-    EXPECT_EQ("inner_c.py", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("patty", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("inner_c.py", this->surface_name(geo));
+    EXPECT_EQ("patty", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -3.5, 0.7}), geo.pos());
 
     // Make sure we can take another step after calling cross_boundary
     next = geo.find_next_step();
     EXPECT_SOFT_EQ(0.5, next.distance);
     geo.move_to_boundary();
-    EXPECT_EQ("inner_a.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("patty", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("inner_a.my", this->surface_name(geo));
+    EXPECT_EQ("patty", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -4, 0.7}), geo.pos());
 }
 
@@ -986,7 +986,7 @@ TEST_F(RectArrayTest, tracking)
 
     EXPECT_VEC_SOFT_EQ(Real3({-1, 1, -1}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
-    EXPECT_EQ("Hfill", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("Hfill", this->volume_name(geo));
 }
 
 TEST_F(NestedRectArraysTest, tracking)
@@ -996,20 +996,20 @@ TEST_F(NestedRectArraysTest, tracking)
 
     EXPECT_VEC_SOFT_EQ(Real3({1.5, 0.5, 0.5}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
-    EXPECT_EQ("Afill", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("Afill", this->volume_name(geo));
 
     auto next = geo.find_next_step();
     EXPECT_SOFT_EQ(0.5, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("{x,1}", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("Afill", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("{x,1}", this->surface_name(geo));
+    EXPECT_EQ("Afill", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, 0.5, 0.5}), geo.pos());
 
     // Cross universe boundary
     geo.cross_boundary();
-    EXPECT_EQ("{x,1}", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("Bfill", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("{x,1}", this->surface_name(geo));
+    EXPECT_EQ("Bfill", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, 0.5, 0.5}), geo.pos());
 
     next = geo.find_next_step();
@@ -1023,20 +1023,20 @@ TEST_F(NestedRectArraysTest, leaving)
 
     EXPECT_VEC_SOFT_EQ(Real3({3.5, 1.5, 0.5}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
-    EXPECT_EQ("Bfill", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("Bfill", this->volume_name(geo));
 
     auto next = geo.find_next_step();
     EXPECT_SOFT_EQ(0.5, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("arrfill.px", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("Bfill", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("arrfill.px", this->surface_name(geo));
+    EXPECT_EQ("Bfill", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({4, 1.5, 0.5}), geo.pos());
 
     // Cross universe boundary
     geo.cross_boundary();
-    EXPECT_EQ("arrfill.px", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("interior", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("arrfill.px", this->surface_name(geo));
+    EXPECT_EQ("interior", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({4, 1.5, 0.5}), geo.pos());
 
     next = geo.find_next_step();

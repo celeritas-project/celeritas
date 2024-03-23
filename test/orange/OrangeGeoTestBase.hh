@@ -33,8 +33,6 @@ namespace test
 //---------------------------------------------------------------------------//
 /*!
  * Test base for loading geometry.
- *
- * \todo Combine with OrangeTestBase (the "generic" one)
  */
 class OrangeGeoTestBase : public OrangeTestBase
 {
