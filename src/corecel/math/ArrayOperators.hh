@@ -35,9 +35,9 @@ namespace celeritas
         return x;                                                           \
     }                                                                       \
                                                                             \
-    template<class T, size_type N>                                          \
+    template<class T, size_type N, class T2 = std::remove_cv_t<T>>          \
     inline CELER_FUNCTION Array<T, N>& operator TOKEN(Array<T, N>& x,       \
-                                                      T const& y)           \
+                                                      T2 const& y)           \
     {                                                                       \
         for (size_type i = 0; i != N; ++i)                                  \
         {                                                                   \
