@@ -341,8 +341,10 @@ void to_json(nlohmann::json& j, UnitInput const& value)
         return volume_labels;
     }();
 
-    if (value.bbox != BBox::from_infinite())
+    if (value.bbox && value.bbox != BBox::from_infinite())
     {
+        // Write if not null or infinity (TODO: background volume is "null",
+        // other volumes should not be)
         j["bbox"] = value.bbox;
     }
 
