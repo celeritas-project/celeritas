@@ -1,52 +1,9 @@
 {
-"_format": "SCALE ORANGE",
+"_format": "ORANGE",
 "_version": 0,
-"materials": {
-"cell_to_mat": [
--1,
--1,
-0,
--1,
--1,
--1,
--1,
--1,
--1,
--1,
--1,
--1,
--1,
--1,
--1,
--1,
--1,
--1,
--1,
--1,
--1,
--1,
--1,
--1,
--1,
--1,
--1,
--1,
--1,
--1,
-1,
--1,
-1,
--1,
-1
-],
-"names": [
-"0",
-"1"
-]
-},
 "universes": [
 {
-"_type": "simple unit",
+"_type": "unit",
 "bbox": [
 [
 -12.0,
@@ -58,106 +15,17 @@
 10.0,
 5.0
 ]
-],
-"cell_names": [
-"[EXTERIOR]",
-"arrfill",
-"interior"
-],
-"cells": [
-{
-"bbox": [
-[
--1.7976931348623157e+308,
--1.7976931348623157e+308,
--1.7976931348623157e+308
-],
-[
-1.7976931348623157e+308,
-1.7976931348623157e+308,
-1.7976931348623157e+308
-]
-],
-"faces": [
-0,
-1,
-2,
-3,
-4,
-5
-],
-"flags": 1,
-"logic": "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ & ~",
-"num_intersections": 6,
-"zorder": 2
-},
-{
-"bbox": [
-[
--6.0,
--3.0,
--5.0
-],
-[
-6.0,
-9.0,
-5.0
-]
-],
-"faces": [
-4,
-5,
-6,
-7,
-8,
-9
-],
-"logic": "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ &",
-"num_intersections": 6,
-"zorder": 2
-},
-{
-"bbox": [
-[
--12.0,
--4.0,
--5.0
-],
-[
-12.0,
-10.0,
-5.0
-]
-],
-"faces": [
-0,
-1,
-2,
-3,
-4,
-5,
-6,
-7,
-8,
-9
-],
-"flags": 1,
-"logic": "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ & 4 5 ~ & 6 & 7 ~ & 8 & 9 ~ & ~ &",
-"num_intersections": 10,
-"zorder": 2
-}
 ],
 "daughters": [
 1
 ],
 "md": {
-"name": "global",
-"provenance": "rect_array.org.omn:92"
+"name": "global"
 },
 "parent_cells": [
 1
 ],
-"surface_names": [
+"surface_labels": [
 "outer.mx",
 "outer.px",
 "outer.my",
@@ -207,14 +75,28 @@
 "py"
 ]
 },
-"translations": [
-0.0,
-0.0,
-0.0
-]
+"transforms": [
+[]
+],
+"volume_labels": [
+"[EXTERIOR]",
+"arrfill",
+"interior"
+],
+"volumes": [
+{
+"faces": [
+0,
+1,
+2,
+3,
+4,
+5
+],
+"flags": 1,
+"logic": "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ & ~"
 },
 {
-"_type": "simple unit",
 "bbox": [
 [
 -6.0,
@@ -227,29 +109,92 @@
 5.0
 ]
 ],
-"cell_names": [
-"[EXTERIOR]",
-"arr+"
+"faces": [
+4,
+5,
+6,
+7,
+8,
+9
 ],
-"cells": [
+"logic": "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ &"
+},
 {
 "bbox": [
 [
--1.7976931348623157e+308,
--1.7976931348623157e+308,
--1.7976931348623157e+308
+-12.0,
+-4.0,
+-5.0
 ],
 [
-1.7976931348623157e+308,
-1.7976931348623157e+308,
-1.7976931348623157e+308
+12.0,
+10.0,
+5.0
 ]
 ],
+"faces": [
+0,
+1,
+2,
+3,
+4,
+5,
+6,
+7,
+8,
+9
+],
+"flags": 1,
+"logic": "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ & 4 5 ~ & 6 & 7 ~ & 8 & 9 ~ & ~ &"
+}
+]
+},
+{
+"_type": "unit",
+"bbox": [
+[
+-6.0,
+-3.0,
+-5.0
+],
+[
+6.0,
+9.0,
+5.0
+]
+],
+"daughters": [
+2
+],
+"md": {
+"name": "arr"
+},
+"parent_cells": [
+1
+],
+"surface_labels": [],
+"surfaces": {
+"data": [],
+"sizes": [],
+"types": []
+},
+"transforms": [
+[
+-6.0,
+-3.0,
+-5.0
+]
+],
+"volume_labels": [
+"[EXTERIOR]",
+"arr+"
+],
+"volumes": [
+{
 "faces": [],
 "flags": 2,
 "logic": "* ~",
-"num_intersections": 0,
-"zorder": 65534
+"zorder": "x"
 },
 {
 "bbox": [
@@ -266,207 +211,111 @@
 ],
 "faces": [],
 "logic": "*",
-"num_intersections": 0,
-"zorder": 3
+"zorder": "A"
 }
-],
-"daughters": [
-2
-],
-"md": {
-"name": "arr",
-"provenance": "rect_array.org.omn:74"
-},
-"parent_cells": [
-1
-],
-"surface_names": [],
-"surfaces": {
-"data": [],
-"sizes": [],
-"types": []
-},
-"translations": [
--6.0,
--3.0,
--5.0
 ]
 },
 {
-"_type": "rectangular array",
-"bbox": [
-[
-0.0,
-0.0,
-0.0
-],
-[
-12.0,
-12.0,
-10.0
-]
-],
-"cell_names": [
-"{0,0,0}",
-"{0,0,1}",
-"{0,1,0}",
-"{0,1,1}",
-"{0,2,0}",
-"{0,2,1}",
-"{0,3,0}",
-"{0,3,1}",
-"{1,0,0}",
-"{1,0,1}",
-"{1,1,0}",
-"{1,1,1}",
-"{1,2,0}",
-"{1,2,1}",
-"{1,3,0}",
-"{1,3,1}",
-"{2,0,0}",
-"{2,0,1}",
-"{2,1,0}",
-"{2,1,1}",
-"{2,2,0}",
-"{2,2,1}",
-"{2,3,0}",
-"{2,3,1}"
-],
+"_type": "rectarray",
 "daughters": [
 3,
 4,
-5,
+3,
+3,
+4,
+4,
+4,
+3,
+4,
+3,
+4,
+4,
+3,
+3,
 3,
 4,
 5,
-4,
-3,
 5,
-4,
-3,
 5,
-4,
-3,
 5,
-3,
-4,
 5,
-4,
-3,
 5,
-3,
-4,
+5,
 5
 ],
 "md": {
-"description": "Embedded unplaced array",
-"name": "arr+",
-"provenance": "rect_array.org.omn:74"
+"name": "arr+"
 },
-"parent_cells": [
-0,
-8,
-16,
-2,
-10,
-18,
-4,
-12,
-20,
-6,
-14,
-22,
-1,
-9,
-17,
-3,
-11,
-19,
-5,
-13,
-21,
-7,
-15,
-23
-],
-"surface_names": [
-"-x",
-"+x",
-"-y",
-"+y",
-"-z",
-"+z"
-],
 "translations": [
 1.5,
 1.5,
 2.5,
-4.5,
 1.5,
-0.0,
-6.0,
-0.0,
-0.0,
+1.5,
+5.0,
 1.5,
 4.5,
 2.5,
+1.5,
+4.5,
+7.5,
+1.5,
+7.5,
+0.0,
+1.5,
+7.5,
+5.0,
+1.5,
+10.5,
+0.0,
+1.5,
+10.5,
+7.5,
+4.5,
+1.5,
+0.0,
+4.5,
+1.5,
+7.5,
 4.5,
 4.5,
 0.0,
+4.5,
+4.5,
+5.0,
+4.5,
+7.5,
+2.5,
+4.5,
+7.5,
+7.5,
+4.5,
+10.5,
+2.5,
+4.5,
+10.5,
+5.0,
+6.0,
+0.0,
+0.0,
+6.0,
+0.0,
+5.0,
 6.0,
 3.0,
 0.0,
-1.5,
-7.5,
-0.0,
-4.5,
-7.5,
-2.5,
+6.0,
+3.0,
+5.0,
 6.0,
 6.0,
 0.0,
-1.5,
-10.5,
-0.0,
-4.5,
-10.5,
-2.5,
+6.0,
+6.0,
+5.0,
 6.0,
 9.0,
 0.0,
-1.5,
-1.5,
-5.0,
-4.5,
-1.5,
-7.5,
-6.0,
-0.0,
-5.0,
-1.5,
-4.5,
-7.5,
-4.5,
-4.5,
-5.0,
-6.0,
-3.0,
-5.0,
-1.5,
-7.5,
-5.0,
-4.5,
-7.5,
-7.5,
-6.0,
-6.0,
-5.0,
-1.5,
-10.5,
-7.5,
-4.5,
-10.5,
-5.0,
 6.0,
 9.0,
 5.0
@@ -491,7 +340,7 @@
 ]
 },
 {
-"_type": "simple unit",
+"_type": "unit",
 "bbox": [
 [
 -1.5,
@@ -504,29 +353,25 @@
 2.5
 ]
 ],
-"cell_names": [
+"md": {
+"name": "T"
+},
+"surface_labels": [],
+"surfaces": {
+"data": [],
+"sizes": [],
+"types": []
+},
+"volume_labels": [
 "[EXTERIOR]",
 "Tfill"
 ],
-"cells": [
+"volumes": [
 {
-"bbox": [
-[
--1.7976931348623157e+308,
--1.7976931348623157e+308,
--1.7976931348623157e+308
-],
-[
-1.7976931348623157e+308,
-1.7976931348623157e+308,
-1.7976931348623157e+308
-]
-],
 "faces": [],
 "flags": 2,
 "logic": "* ~",
-"num_intersections": 0,
-"zorder": 65534
+"zorder": "x"
 },
 {
 "bbox": [
@@ -542,27 +387,12 @@
 ]
 ],
 "faces": [],
-"logic": "*",
-"num_intersections": 0,
-"zorder": 2
+"logic": "*"
 }
-],
-"daughters": [],
-"md": {
-"name": "T",
-"provenance": "rect_array.org.omn:8"
-},
-"parent_cells": [],
-"surface_names": [],
-"surfaces": {
-"data": [],
-"sizes": [],
-"types": []
-},
-"translations": []
+]
 },
 {
-"_type": "simple unit",
+"_type": "unit",
 "bbox": [
 [
 -1.5,
@@ -575,29 +405,25 @@
 5.0
 ]
 ],
-"cell_names": [
+"md": {
+"name": "H"
+},
+"surface_labels": [],
+"surfaces": {
+"data": [],
+"sizes": [],
+"types": []
+},
+"volume_labels": [
 "[EXTERIOR]",
 "Hfill"
 ],
-"cells": [
+"volumes": [
 {
-"bbox": [
-[
--1.7976931348623157e+308,
--1.7976931348623157e+308,
--1.7976931348623157e+308
-],
-[
-1.7976931348623157e+308,
-1.7976931348623157e+308,
-1.7976931348623157e+308
-]
-],
 "faces": [],
 "flags": 2,
 "logic": "* ~",
-"num_intersections": 0,
-"zorder": 65534
+"zorder": "x"
 },
 {
 "bbox": [
@@ -613,27 +439,12 @@
 ]
 ],
 "faces": [],
-"logic": "*",
-"num_intersections": 0,
-"zorder": 2
+"logic": "*"
 }
-],
-"daughters": [],
-"md": {
-"name": "H",
-"provenance": "rect_array.org.omn:29"
-},
-"parent_cells": [],
-"surface_names": [],
-"surfaces": {
-"data": [],
-"sizes": [],
-"types": []
-},
-"translations": []
+]
 },
 {
-"_type": "simple unit",
+"_type": "unit",
 "bbox": [
 [
 0.0,
@@ -646,29 +457,25 @@
 5.0
 ]
 ],
-"cell_names": [
+"md": {
+"name": "C"
+},
+"surface_labels": [],
+"surfaces": {
+"data": [],
+"sizes": [],
+"types": []
+},
+"volume_labels": [
 "[EXTERIOR]",
 "Cfill"
 ],
-"cells": [
+"volumes": [
 {
-"bbox": [
-[
--1.7976931348623157e+308,
--1.7976931348623157e+308,
--1.7976931348623157e+308
-],
-[
-1.7976931348623157e+308,
-1.7976931348623157e+308,
-1.7976931348623157e+308
-]
-],
 "faces": [],
 "flags": 2,
 "logic": "* ~",
-"num_intersections": 0,
-"zorder": 65534
+"zorder": "x"
 },
 {
 "bbox": [
@@ -684,24 +491,9 @@
 ]
 ],
 "faces": [],
-"logic": "*",
-"num_intersections": 0,
-"zorder": 2
+"logic": "*"
 }
-],
-"daughters": [],
-"md": {
-"name": "C",
-"provenance": "rect_array.org.omn:50"
-},
-"parent_cells": [],
-"surface_names": [],
-"surfaces": {
-"data": [],
-"sizes": [],
-"types": []
-},
-"translations": []
+]
 }
 ]
 }
