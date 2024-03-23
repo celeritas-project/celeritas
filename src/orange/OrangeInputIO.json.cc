@@ -158,7 +158,7 @@ void from_json(nlohmann::json const& j, VolumeInput& value)
         // Background volumes should be "nowhere" explicitly using "inside"
         // logic
         value.logic = {logic::ltrue, logic::lnot};
-        value.bbox = BBox::from_infinite();
+        value.bbox = {};
     }
     else
     {
@@ -263,6 +263,7 @@ void from_json(nlohmann::json const& j, UnitInput& value)
                    << "incorrect size for surface labels: got "
                    << value.surface_labels.size() << ", expected "
                    << value.surfaces.size());
+
     value.bbox = get_bbox(j);
 
     for (char const* key : {"parent_volumes", "parent_cells"})
@@ -343,7 +344,8 @@ void to_json(nlohmann::json& j, UnitInput const& value)
 
     if (value.bbox && value.bbox != BBox::from_infinite())
     {
-        // Write if not null or infinity (TODO: background volume is "null",
+        // Write if not null or infinity (TODO: background volume is
+        // actually "null",
         // other volumes should not be)
         j["bbox"] = value.bbox;
     }
