@@ -7,8 +7,22 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+#include <vector>
+
+#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataInterface.hh"
+#include "celeritas/global/ActionInterface.hh"
+
+#include "OpticalPhysics.hh"
+
 namespace celeritas
 {
+class ActionRegistry;
+class MaterialParams;
+class OpticalProcess;
+class OpticalModel;
+
 //---------------------------------------------------------------------------//
 /*!
  */

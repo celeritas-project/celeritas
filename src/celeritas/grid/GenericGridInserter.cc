@@ -27,7 +27,8 @@ GenericGridInserter::GenericGridInserter(RealCollection* real_data,
  * Add an imported physics vector as a generic grid to the collection.
  * Returns the id of the inserted grid, or an empty id if the vector is empty.
  */
-auto GenericGridInserter::operator()(ImportedPhysicsVector const& vec) -> GenericIndex
+auto GenericGridInserter::operator()(ImportPhysicsVector const& vec)
+    -> GenericIndex
 {
     if (vec.x.empty())
         return GenericIndex{};

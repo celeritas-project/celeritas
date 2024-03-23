@@ -43,6 +43,7 @@ list(APPEND SOURCES
   global/detail/ActionSequence.cc
   global/detail/PinnedAllocator.cc
   grid/GenericGridBuilder.cc
+  grid/GenericGridInserter.cc
   grid/ValueGridBuilder.cc
   grid/ValueGridInserter.cc
   grid/ValueGridType.cc
@@ -51,6 +52,7 @@ list(APPEND SOURCES
   io/ImportData.cc
   io/ImportMaterial.cc
   io/ImportModel.cc
+  io/ImportOpticalProcess.cc
   io/ImportPhysicsTable.cc
   io/ImportPhysicsVector.cc
   io/ImportProcess.cc
@@ -64,8 +66,10 @@ list(APPEND SOURCES
   mat/detail/Utils.cc
   neutron/process/NeutronElasticProcess.cc
   optical/CerenkovParams.cc
-  optical/ScintillationParams.cc
+  optical/ImportedOpticalProcessAdapter.cc
+  optical/OpticalPhysicsParams.cc
   optical/OpticalPropertyParams.cc
+  optical/ScintillationParams.cc
   phys/CutoffParams.cc
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc
@@ -255,6 +259,7 @@ celeritas_polysource(global/alongstep/AlongStepNeutralAction)
 celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
 celeritas_polysource(global/alongstep/AlongStepRZMapFieldMscAction)
 celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
+celeritas_polysource(optical/AbsorptionModel)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)
 celeritas_polysource(random/RngReseed)

@@ -7,8 +7,21 @@
 //---------------------------------------------------------------------------//
 #include "OpticalPhysicsParams.hh"
 
+#include "corecel/sys/ScopedMem.hh"
+#include "celeritas/global/ActionRegistry.hh"
+
+#include "OpticalModel.hh"
+#include "OpticalProcess.hh"
+
 namespace celeritas
 {
+class ImplicitPhysicsAction final : public ConcreteAction
+{
+  public:
+    // Construct with ID and label
+    using ConcreteAction::ConcreteAction;
+};
+
 //---------------------------------------------------------------------------//
 OpticalPhysicsParams::OpticalPhysicsParams(Input input)
     : processes_(std::move(input.processes))
@@ -28,8 +41,11 @@ OpticalPhysicsParams::OpticalPhysicsParams(Input input)
         auto& action_reg = *input.action_registry;
 
         // TODO: Add more actions?
-        
-        discrete_action_ = make_shared</* ? */>(action_reg.next_id());
+
+        discrete_action_ = make_shared<ImplicitPhysicsAction>(
+            action_reg.next_id(),
+            "discrete-action",
+            "placeholder for discrete optical action");
         action_reg.insert(discrete_action_);
 
         models_ = build_models(action_reg);
@@ -77,8 +93,6 @@ void OpticalPhysicsParams::build_lambda(MaterialParams const& mats, HostValue* d
 {
     CELER_EXPECT(*data);
 
-    using UPGridBuilder = OpticalProcess::UPConstGridBuilder;
-
     auto value_tables = make_builder(&data->value_tables);
     auto value_grid_ids = make_builder(&data->value_grid_ids);
 
@@ -94,14 +108,8 @@ void OpticalPhysicsParams::build_lambda(MaterialParams const& mats, HostValue* d
         OpticalProcess const& proc = *this->processes_[process_idx];
 
         // Grid IDs of lambda grid for each material
-        std::vector<OpticalValueGridId> temp_grid_ids;
-        temp_grid_ids.resize(mats.size());
-
-        // Loop over each material
-        for (auto material_id : range(MaterialId{mats.size()}))
-        {
-            temp_grid_ids[material_id.get()] = proc.step_limits(insert_grid, material_id);
-        }
+        std::vector<OpticalValueGridId> temp_grid_ids
+            = proc.step_limits(insert_grid);
 
         if (std::any_of(temp_grid_ids.begin(),
                          temp_grid_ids.end(),
@@ -115,7 +123,10 @@ void OpticalPhysicsParams::build_lambda(MaterialParams const& mats, HostValue* d
     }
 
     // Construct value tables
-    data->process_group.lambda_tables = value_tables.push_back(temp_tables.begin(), temp_tables.end());
+    data->process_groups.macro_xs_tables
+        = value_tables.insert_back(temp_tables.begin(), temp_tables.end());
+    CELER_ASSERT(data->process_groups.macro_xs_tables.size()
+                 == processes_.size());
 }
 
 //---------------------------------------------------------------------------//

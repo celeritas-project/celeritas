@@ -25,7 +25,7 @@ namespace celeritas
  *
  * \code
     static std::string process_label();
-    constexpr static ImportProcessClass process_class();
+    constexpr static ImportOpticalProcessClass process_class();
    \endcode
  *
  * The constructor is expected to take an action id and material parameters
@@ -35,36 +35,19 @@ class OpticalModel : public ExplicitActionInterface
 {
   public:
       // Virtual destructor
-      virtual ~OpticalModel();
+    virtual ~OpticalModel() {}
 
-      //! Action order for optical models is always post-step.
-      ActionOrder order() const override final { return ActionOrder::post; }
+    //! Action order for optical models is always post-step.
+    ActionOrder order() const override final { return ActionOrder::post; }
 
-      //! Action ID of the optical model.
-      ActionId action_id() const override final { return action_id_; }
+    //! Action ID of the optical model.
+    ActionId action_id() const override final { return action_id_; }
 
   protected:
       //! Construct the optical model with a given action id.
-      OpticalModel(ActionId id);
+    OpticalModel(ActionId id) : action_id_(id) {}
 
-      ActionId action_id_;
+    ActionId action_id_;
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Construct the optical model with a given action id.
- */
-OpticalModel::OpticalModel(ActionId id)
-    : action_id_(id)
-{}
-
-//---------------------------------------------------------------------------//
-/*!
- * Virtual destructor for the optical model.
- */
-OpticalModel::~OpticalModel()
-{}
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -7,16 +7,21 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/io/ImportProcess.hh"
+#include <memory>
+
+#include "celeritas/grid/GenericGridInserter.hh"
+#include "celeritas/io/ImportData.hh"
+#include "celeritas/io/ImportOpticalProcess.hh"
 #include "celeritas/io/ImportPhysicsTable.hh"
+#include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/optical/OpticalPhysics.hh"
 
 namespace celeritas
 {
-
 class IOPAContextException : public RichContextException
 {
   public:
-    IOPAContextException(ImportProcessClass ipc, MaterialId mid);
+    IOPAContextException(ImportOpticalProcessClass ipc, MaterialId mid);
 
     //! This class type
     char const* type() const final { return "ImportOpticalProcessAdapterContext"; }
@@ -31,36 +36,22 @@ class IOPAContextException : public RichContextException
     std::string what_;
 };
 
-struct ImportOpticalProcess
-{
-    const ImportProcessType process_type{ImportProcessType::optical};
-    ImportProcessClass process_class{ImportProcessClass::size_};
-    ImportPhysicsTable lambda_table;
-
-    explicit operator bool() const
-    {
-        return process_type == ImportProcessType::optical
-            && process_class != ImportProcessClass::size_
-            && lambda_table.table_type == ImportTableType::lambda
-            && lambda_table;
-};
-
-class ImportedOpticalProcesses
+class ImportOpticalProcesses
 {
   public:
     //!@{
     //! \name Type aliases
-    using ImportedOpticalProcessId = OpaqueId<ImportOpticalProcess>;
-    using key_type = ImportProcessClass;
+    using ImportOpticalProcessId = OpaqueId<ImportOpticalProcess>;
+    using key_type = ImportOpticalProcessClass;
     //!@}
 
   public:
     // Construct with imported data
-    static std::shared_ptr<ImportedOpticalProcesses>
+    static std::shared_ptr<ImportOpticalProcesses>
     from_import(ImportData const& data);
 
     // Construct with imported tables
-    explicit ImportedOpticalProcesses(std::vector<ImportOpticalProcess> io);
+    explicit ImportOpticalProcesses(std::vector<ImportOpticalProcess> io);
 
     // Return the process ID for the given process class
     ImportOpticalProcessId find(key_type) const;
@@ -85,15 +76,13 @@ class ImportedOpticalProcessAdapter
   public:
     //!@{
     //! \name Type aliases
-    using SPConstImported = std::shared_ptr<ImportedOpticalProcesses const>;
-    using GridBuilder = OpticalProcess::GridBuilder;
-    using StepLimitBuilder = std::unique_ptr<GridBuilder const>;
+    using SPConstImported = std::shared_ptr<ImportOpticalProcesses const>;
     //!@}
 
   public:
     //! Construct from shared table data
     ImportedOpticalProcessAdapter(SPConstImported imported,
-                                  ImportProcessClass process_class);
+                                  ImportOpticalProcessClass process_class);
 
     //! Construct step limits for the process
     std::vector<OpticalValueGridId> step_limits(GenericGridInserter&, MaterialParams const&) const;
@@ -106,7 +95,7 @@ class ImportedOpticalProcessAdapter
 
   private:
     SPConstImported imported_;
-    ImportProcessClass process_class_;
+    ImportOpticalProcessClass process_class_;
 };
 
 //---------------------------------------------------------------------------//
@@ -118,19 +107,19 @@ ImportOpticalProcess const& ImportOpticalProcesses::get(ImportOpticalProcessId i
     return processes_[id.get()];
 }
 
-ImportOpticalProcessId::size_type ImportOpticalProcesses::size() const
+auto ImportOpticalProcesses::size() const -> ImportOpticalProcessId::size_type
 {
     return processes_.size();
 }
 
-ImportPhysicsTable const& ImportOpticalProcessAdapter::get_lambda() const
+ImportPhysicsTable const& ImportedOpticalProcessAdapter::get_lambda() const
 {
     return process().lambda_table;
 }
 
-ImportOpticalProcess const& ImportOpticalProcessAdapter::process() const
+ImportOpticalProcess const& ImportedOpticalProcessAdapter::process() const
 {
-    return imported_->get(imported_->find(process_class));
+    return imported_->get(imported_->find(process_class_));
 }
 
 //---------------------------------------------------------------------------//

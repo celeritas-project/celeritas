@@ -58,13 +58,13 @@ struct OpticalProcessGroup
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !processes.empty();
+        return !macro_xs_tables.empty();
     }
 
     //! Number of processes that apply
     CELER_FUNCTION ProcessId::size_type size() const
     {
-        return processes.size();
+        return macro_xs_tables.size();
     }
 };
 
@@ -91,14 +91,12 @@ struct OpticalPhysicsParamsScalars
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return max_particle_processes > 0
-               && process_to_action >= 1
-               && num_processes > 0
+        return process_to_action >= 1 && num_processes > 0
                && secondary_stack_factor > 0;
     }
 
     //! Undergo a discrete interaction
-    CELER_FORCEINLINE_FUNCITON ActionId discrete_action() const
+    CELER_FORCEINLINE_FUNCTION ActionId discrete_action() const
     {
         return ActionId{process_to_action - 1};
     }
@@ -177,7 +175,7 @@ struct OpticalPhysicsTrackState
     // TEMPORARY STATE
     real_type macro_xs;  //!< Total cross section for discrete interactions
     real_type energy_deposition;  //!< Local energy deposition in a step [MeV]
-    Span<Secondary> secondaries;  //!< Emitted secondaries
+    Span<OpticalSecondary> secondaries;  //!< Emitted secondaries
     ElementComponentId element;  //!< Element sampled for interaction
 };
 
@@ -209,7 +207,8 @@ struct OpticalPhysicsStateData
 
     Items<real_type> per_process_xs;  //!< XS [track]
 
-    StackAllocatorData<Secondary, W, M> secondaries;  //!< Secondary stack
+    StackAllocatorData<OpticalSecondary, W, M> secondaries;  //!< Secondary
+                                                             //!< stack
 
     //// METHODS ////
 

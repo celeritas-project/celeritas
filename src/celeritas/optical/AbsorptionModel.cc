@@ -5,18 +5,24 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/AbsorptionProcess.cc
 //---------------------------------------------------------------------------//
-#include "AbsorptionProcess.hh"
+#include "AbsorptionModel.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 
-void AbsorptionProcess::execute(CoreParams const& params, CoreStateHost& state) const
+AbsorptionModel::AbsorptionModel(ActionId id, MaterialParams const&)
+    : OpticalModel(id)
+{
+}
+
+void AbsorptionModel::execute(CoreParams const& params,
+                              CoreStateHost& state) const
 {
 }
 
 #if !CELER_USE_DEVICE
-void AbsorptionProcess::execute(CoreParams const&, CoreStateDevice&) const
+void AbsorptionModel::execute(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

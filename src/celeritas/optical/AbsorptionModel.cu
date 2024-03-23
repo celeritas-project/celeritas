@@ -5,12 +5,16 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/AbsorptionProcess.cu
 //---------------------------------------------------------------------------//
-#include "AbsorptionProcess.hh"
+#include "AbsorptionModel.hh"
+
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-void AbsorptionProcess::execute(CoreParams const& params, CoreStateDevice& state) const
+void AbsorptionModel::execute(CoreParams const& params,
+                              CoreStateDevice& state) const
 {
 }
 //---------------------------------------------------------------------------//

@@ -7,11 +7,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas/io/ImportOpticalProcess.hh"
+
 #include "OpticalModel.hh"
-#include "OpticalProcess.hh"
 
 namespace celeritas
 {
+class MaterialParams;
 //---------------------------------------------------------------------------//
 /*!
  * Optical absorption model.
@@ -52,22 +54,12 @@ class AbsorptionModel : public OpticalModel
     }
 
     //! IPC of the absorption process.
-    constexpr static ImportProcessClass process_class()
+    constexpr static ImportOpticalProcessClass process_class()
     {
-        return ImportProcessClass::absorption;
+        return ImportOpticalProcessClass::absorption;
     }
 
     // No data used by absorption
 };
-
-// Define the corresponding absorption process.
-using AbsorptionProcess = OpticalProcessInstance<AbsorptionModel>;
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-AbsorptionModel::AbsorptionModel(ActionId id, MaterialParams const&)
-    : OpticalModel(id)
-{}
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

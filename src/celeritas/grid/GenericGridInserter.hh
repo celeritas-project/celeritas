@@ -10,7 +10,7 @@
 #include <utility>
 #include <vector>
 
-#include "corecel/Types.h"
+#include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
@@ -41,7 +41,7 @@ class GenericGridInserter
     using RealCollection
         = Collection<real_type, Ownership::value, MemSpace::host>;
     using GenericGridCollection
-        = Collection<GenericGridData, Ownership::value, Memspace::host>;
+        = Collection<GenericGridData, Ownership::value, MemSpace::host>;
     using SpanConstFlt = Span<float const>;
     using SpanConstDbl = Span<double const>;
     using GenericIndex = ItemId<GenericGridData>;
@@ -58,7 +58,7 @@ class GenericGridInserter
     GenericIndex operator()(SpanConstDbl grid, SpanConstDbl values);
 
     //! Add an imported physics vector as a grid
-    GenericIndex operator()(ImportedPhysicsVector const& vec);
+    GenericIndex operator()(ImportPhysicsVector const& vec);
 
     //! Add an empty grid (no data present)
     GenericIndex operator()(void);

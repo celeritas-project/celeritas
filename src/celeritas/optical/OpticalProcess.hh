@@ -14,6 +14,8 @@
 #include "celeritas/Types.hh"
 #include "celeritas/mat/MaterialParams.hh"
 
+#include "ImportedOpticalProcessAdapter.hh"
+
 namespace celeritas
 {
 class OpticalModel;
@@ -39,7 +41,7 @@ class OpticalProcess
     //!@{
     //! \name Type aliases
     using SPConstModel = std::shared_ptr<OpticalModel const>;
-    using SPConstImported = std::shared_ptr<ImportedOpticalProcesses const>;
+    using SPConstImported = std::shared_ptr<ImportOpticalProcesses const>;
     using ActionIdIter = RangeIter<ActionId>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
     //!@}
@@ -47,10 +49,9 @@ class OpticalProcess
   public:
     
     //! Construct the optical process
-    inline CELER_FUNCTION
-    OpticalProcess(ImportProcessClass ipc,
-                   SPConstMaterials materials,
-                   SPConstImported shared_data);
+    inline CELER_FUNCTION OpticalProcess(ImportOpticalProcessClass ipc,
+                                         SPConstMaterials materials,
+                                         SPConstImported shared_data);
 
     //! Get the interaction cross sections for optical photons
     std::vector<OpticalValueGridId>
@@ -107,13 +108,15 @@ class OpticalProcessInstance : public OpticalProcess
     }
 };
 
+using AbsorptionProcess = OpticalProcessInstance<class AbsorptionModel>;
+
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
  * Construct the optical process from the given IPC.
  */
-OpticalProcess::OpticalProcess(ImportProcessClass ipc,
+OpticalProcess::OpticalProcess(ImportOpticalProcessClass ipc,
                                SPConstMaterials materials,
                                SPConstImported shared_data)
     : imported_(shared_data, ipc), materials_(std::move(materials))
