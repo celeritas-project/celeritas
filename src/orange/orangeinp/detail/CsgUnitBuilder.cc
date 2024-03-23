@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "CsgUnitBuilder.hh"
 
+#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StreamableVariant.hh"
 #include "orange/transform/TransformIO.hh"
@@ -73,10 +74,10 @@ void CsgUnitBuilder::insert_region(NodeId n,
 
     auto&& [iter, inserted]
         = unit_->regions.insert({n, CsgUnit::Region{bzone, trans_id}});
-    if (CELERITAS_DEBUG && !inserted)
+    if (!inserted)
     {
-        // The existing bounding zone *SHOULD BE IDENTICAL*.
-        // For now this is a rough check...
+        // The existing bounding zone *SHOULD BE IDENTICAL* since it's the same
+        // CSG definition
         CsgUnit::Region const& existing = iter->second;
         CELER_ASSERT(bzone.negated == existing.bounds.negated);
         CELER_ASSERT(static_cast<bool>(bzone.interior)
@@ -88,10 +89,13 @@ void CsgUnitBuilder::insert_region(NodeId n,
             // TODO: we should implement transform soft equivalence
             // TODO: transformed shapes that are later defined as volumes (in
             // an RDV or single-item Join function) may result in the same node
-            // with two different transforms.
-            CELER_LOG(warning)
-                << "While re-inserting region for node " << n.get()
-                << ": existing transform "
+            // with two different transforms. These transforms don't usually
+            // matter though?
+            auto const& md = unit_->metadata[n.get()];
+            CELER_LOG(debug)
+                << "While re-inserting logically equivalent region '"
+                << join(md.begin(), md.end(), "' = '")
+                << "': existing transform "
                 << StreamableVariant{this->transform(existing.transform_id)}
                 << " differs from new transform "
                 << StreamableVariant{this->transform(trans_id)};
