@@ -8,6 +8,7 @@
 #include "UnitProto.hh"
 
 #include <algorithm>
+#include <numeric>
 
 #include "orange/OrangeData.hh"
 #include "orange/OrangeInput.hh"
@@ -186,7 +187,8 @@ void UnitProto::build(InputBuilder& input) const
         // but it has to have all the surfaces that connect to an interior
         // volume
         VolumeInput vi;
-        vi.faces = sorted_local_surfaces;
+        vi.faces.resize(sorted_local_surfaces.size());
+        std::iota(vi.faces.begin(), vi.faces.end(), LocalSurfaceId{0});
         vi.logic = {logic::ltrue, logic::lnot};
         vi.bbox = {};  // XXX: input converter changes to infinite bbox
         vi.zorder = ZOrder::background;

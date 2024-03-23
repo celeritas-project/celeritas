@@ -1230,13 +1230,96 @@ TEST_F(ShiftTrackerTest, host)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(InputBuilderTest, globalspheres) {}
+TEST_F(InputBuilderTest, globalspheres)
+{
+    {
+        auto result = this->track({0, 0, 0}, {0, 0, 1});
+
+        static char const* const expected_volumes[] = {"inner", "shell"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {5, 5};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {2.5, 2.5};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+
+    if (CELERITAS_USE_JSON)
+    {
+        OrangeParamsOutput out(this->geometry());
+        EXPECT_JSON_EQ(
+            R"json({"scalars":{"max_depth":1,"max_faces":2,"max_intersections":4,"max_logic_depth":2,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":3,"inner_nodes":0,"leaf_nodes":1,"local_volume_ids":3},"connectivity_records":2,"daughters":0,"local_surface_ids":4,"local_volume_ids":4,"logic_ints":7,"real_ids":2,"reals":2,"rect_arrays":0,"simple_units":1,"surface_types":2,"transforms":0,"universe_indices":1,"universe_types":1,"volume_records":3}})json",
+            to_string(out));
+    }
+}
 
 //---------------------------------------------------------------------------//
-TEST_F(InputBuilderTest, bgspheres) {}
+TEST_F(InputBuilderTest, bgspheres)
+{
+    {
+        SCOPED_TRACE("from background");
+        auto result = this->track({0, 0, -9}, {0, 0, 1});
+        static char const* const expected_volumes[]
+            = {"shell", "inner", "shell"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {4, 10, 5};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {2, inf, 2.5};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        SCOPED_TRACE("from inside top");
+        auto result = this->track({0, 0, 3}, {0, 0, -1});
+        static char const* const expected_volumes[] = {"inner", "shell"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {8, 5};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {4, 2.5};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+
+    if (CELERITAS_USE_JSON)
+    {
+        OrangeParamsOutput out(this->geometry());
+        EXPECT_JSON_EQ(
+            R"json({"scalars":{"max_depth":1,"max_faces":2,"max_intersections":4,"max_logic_depth":2,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":3,"inner_nodes":0,"leaf_nodes":1,"local_volume_ids":3},"connectivity_records":2,"daughters":0,"local_surface_ids":4,"local_volume_ids":4,"logic_ints":7,"real_ids":2,"reals":2,"rect_arrays":0,"simple_units":1,"surface_types":2,"transforms":0,"universe_indices":1,"universe_types":1,"volume_records":3}})json",
+            to_string(out));
+    }
+}
 
 //---------------------------------------------------------------------------//
-TEST_F(InputBuilderTest, hierarchy) {}
+TEST_F(InputBuilderTest, hierarchy)
+{
+    {
+        SCOPED_TRACE("py");
+        auto result = this->track({0, -20, 0}, {0, 1, 0});
+
+        static char const* const expected_volumes[]
+            = {"[OUTSIDE]", "shell", "inner", "shell"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {10, 5, 10, 5};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {2.5, inf, 2.5};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        SCOPED_TRACE("py_filled");
+        auto result = this->track({0, -10, -20}, {0, 1, 0});
+        result.print_expected();
+    }
+    {
+        SCOPED_TRACE("pz");
+        auto result = this->track({0, 0, -50}, {0, 0, 1});
+        result.print_expected();
+    }
+
+    if (CELERITAS_USE_JSON)
+    {
+        OrangeParamsOutput out(this->geometry());
+        EXPECT_JSON_EQ(
+            R"json({"scalars":{"max_depth":1,"max_faces":2,"max_intersections":4,"max_logic_depth":2,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":3,"inner_nodes":0,"leaf_nodes":1,"local_volume_ids":3},"connectivity_records":2,"daughters":0,"local_surface_ids":4,"local_volume_ids":4,"logic_ints":7,"real_ids":2,"reals":2,"rect_arrays":0,"simple_units":1,"surface_types":2,"transforms":0,"universe_indices":1,"universe_types":1,"volume_records":3}})json",
+            to_string(out));
+    }
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace test

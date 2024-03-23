@@ -11,7 +11,10 @@
 #include <memory>
 #include <sstream>
 
+#include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/Join.hh"
+#include "corecel/math/ArrayOperators.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "orange/orangeinp/CsgObject.hh"
 #include "orange/orangeinp/Shape.hh"
 #include "orange/orangeinp/Transformed.hh"
@@ -38,21 +41,42 @@ inline constexpr auto is_daughter = UnitProto::ExteriorBoundary::is_daughter;
 //---------------------------------------------------------------------------//
 // Construction helper functions
 //---------------------------------------------------------------------------//
-SPConstObject make_sph(std::string&& label, real_type radius)
+template<class CR, class... Args>
+SPConstObject make_shape(std::string&& label, Args&&... args)
 {
-    return std::make_shared<SphereShape>(std::move(label), Sphere{radius});
-}
-
-SPConstObject
-make_cyl(std::string&& label, real_type radius, real_type halfheight)
-{
-    return std::make_shared<CylinderShape>(std::move(label),
-                                           Cylinder{radius, halfheight});
+    return std::make_shared<Shape<CR>>(std::move(label),
+                                       CR{std::forward<Args>(args)...});
 }
 
 SPConstObject make_translated(SPConstObject&& obj, Real3 const& trans)
 {
     return std::make_shared<Transformed>(std::move(obj), Translation{trans});
+}
+
+SPConstObject make_sph(std::string&& label, real_type radius)
+{
+    return make_shape<Sphere>(std::move(label), radius);
+}
+
+SPConstObject
+make_cyl(std::string&& label, real_type radius, real_type halfheight)
+{
+    return make_shape<Cylinder>(std::move(label), radius, halfheight);
+}
+
+SPConstObject make_box(std::string&& label, Real3 const& lo, Real3 const& hi)
+{
+    Real3 half_height = (hi - lo) / 2;
+    CELER_VALIDATE(
+        half_height[0] > 0 && half_height[1] > 0 && half_height[2] > 0,
+        << "invalid box coordinates " << lo << ", " << hi);
+    Real3 center = (hi + lo) / 2;
+    auto result = make_shape<Box>(std::move(label), half_height);
+    if (!soft_zero(norm(center)))
+    {
+        result = make_translated(std::move(result), center);
+    }
+    return result;
 }
 
 SPConstProto make_daughter(std::string label)
@@ -67,17 +91,17 @@ SPConstProto make_daughter(std::string label)
 
 std::string proto_labels(ProtoInterface::VecProto const& vp)
 {
-    return to_string(join_stream(
-        vp.begin(), vp.end(), ",", [](std::ostream& os, ProtoInterface const* p) {
-            if (!p)
-            {
-                os << "<null>";
-            }
-            else
-            {
-                os << p->label();
-            }
-        }));
+    auto stream_proto_ptr = [](std::ostream& os, ProtoInterface const* p) {
+        if (!p)
+        {
+            os << "<null>";
+        }
+        else
+        {
+            os << p->label();
+        }
+    };
+    return to_string(join_stream(vp.begin(), vp.end(), ",", stream_proto_ptr));
 }
 
 //---------------------------------------------------------------------------//
@@ -392,8 +416,8 @@ class InputBuilderTest : public UnitProtoTest
             GTEST_SKIP() << "JSON is disabled: cannot compare output";
         }
 
-        std::string const ref_path = this->test_data_path(
-            "orange", this->make_unique_filename(".org.json"));
+        std::string const ref_path = this->test_data_path("orange", "")
+                                     + this->make_unique_filename(".org.json");
 
         // Export input to JSON
         std::ostringstream actual;
@@ -403,12 +427,15 @@ class InputBuilderTest : public UnitProtoTest
         std::ifstream ref{ref_path};
         if (!ref)
         {
-            FAIL() << "failed to open reference file at '" << ref_path
-                   << "': writing gold file instead";
+            ADD_FAILURE() << "failed to open reference file at '" << ref_path
+                          << "': writing gold file instead";
             ref.close();
 
-            std::ofstream out{ref_path};
-            out << actual.rdbuf();
+            std::ofstream out(ref_path);
+            CELER_VALIDATE(out,
+                           << "failed to open gold file '" << ref_path
+                           << "' for writing");
+            out << actual.str();
             return;
         }
 
@@ -448,8 +475,6 @@ TEST_F(InputBuilderTest, bgspheres)
         inp.boundary.interior = make_sph("bound", 10.0);
         inp.label = "global";
 
-        auto inner = make_sph("inner", 5.0);
-
         inp.materials.push_back(
             {make_translated(make_sph("top", 2.0), {0, 0, 3}), MaterialId{1}});
         inp.materials.push_back(
@@ -460,6 +485,71 @@ TEST_F(InputBuilderTest, bgspheres)
     }()};
 
     this->test(global);
+}
+
+// Equivalent to universes.org.omn
+TEST_F(InputBuilderTest, universes)
+{
+    auto most_inner = std::make_shared<UnitProto>([] {
+        auto patricia = make_box("patricia", {0.0, 0.0, 0.0}, {0.5, 0.5, 1});
+
+        UnitProto::Input inp;
+        inp.label = "most_inner";
+        inp.boundary.interior = patricia;
+        inp.boundary.zorder = ZOrder::media;
+        inp.materials.push_back(
+            {make_rdv("patty", {{Sense::inside, patricia}}), MaterialId{2}});
+        return inp;
+    }());
+
+    auto inner = std::make_shared<UnitProto>([&] {
+        auto alpha = make_box("alpha", {-1, -1, 0}, {1, 1, 1});
+        auto beta = make_box("beta", {1, -1, 0}, {3, 1, 1});
+        auto gamma = make_box("gamma", {-2, -2, 0}, {4, 2, 1});
+
+        UnitProto::Input inp;
+        inp.label = "inner";
+        inp.boundary.interior = gamma;
+        inp.boundary.zorder = ZOrder::media;
+        inp.materials.push_back(
+            {make_rdv("a", {{Sense::inside, alpha}}), MaterialId{0}});
+        inp.materials.push_back(
+            {make_rdv("b", {{Sense::inside, beta}}), MaterialId{1}});
+        inp.materials.push_back({make_rdv("c",
+                                          {{Sense::outside, alpha},
+                                           {Sense::outside, beta},
+                                           {Sense::inside, gamma}}),
+                                 MaterialId{2}});
+        inp.daughters.push_back({most_inner, Translation{{-2, -2, 0}}});
+        return inp;
+    }());
+
+    auto outer = std::make_shared<UnitProto>([&] {
+        auto bob = make_box("bob", {0, 0, -0.5}, {6, 2, 1.5});
+        auto john = make_box("john", {-2, -6, -1}, {8, 4, 2});
+
+        UnitProto::Input inp;
+        inp.label = "outer";
+        inp.boundary.interior = john;
+        inp.boundary.zorder = ZOrder::media;
+        inp.daughters.push_back(
+            {inner, Translation{{2, -2, -0.5}}, ZOrder::media});
+        inp.daughters.push_back(
+            {inner, Translation{{2, -2, 0.5}}, ZOrder::media});
+        inp.materials.push_back(
+            {make_rdv("bobby", {{Sense::inside, bob}}), MaterialId{3}});
+        inp.materials.push_back(
+            {make_rdv("johnny",
+                      {{Sense::outside, bob},
+                       {Sense::inside, john},
+                       {Sense::outside, inp.daughters[0].make_interior()},
+                       {Sense::outside, inp.daughters[1].make_interior()}}),
+             MaterialId{4}});
+        inp.daughters.push_back({most_inner, Translation{{-2, -2, 0}}});
+        return inp;
+    }());
+
+    this->test(*outer);
 }
 
 TEST_F(InputBuilderTest, hierarchy)
