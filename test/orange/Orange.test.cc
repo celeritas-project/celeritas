@@ -86,13 +86,13 @@ class UniversesTest : public OrangeTest
 #define RectArrayTest TEST_IF_CELERITAS_JSON(RectArrayTest)
 class RectArrayTest : public OrangeTest
 {
-    void SetUp() override { this->build_geometry("rect_array.org.json"); }
+    void SetUp() override { this->build_geometry("rect-array.org.json"); }
 };
 
 #define HexArrayTest TEST_IF_CELERITAS_JSON(HexArrayTest)
 class HexArrayTest : public OrangeTest
 {
-    void SetUp() override { this->build_geometry("hex_array.org.json"); }
+    void SetUp() override { this->build_geometry("hex-array.org.json"); }
 };
 
 #define TestEM3Test TEST_IF_CELERITAS_JSON(TestEM3Test)
@@ -111,7 +111,7 @@ class ShiftTrackerTest : public OrangeTest
         OUTSIDE = 1
     };
 
-    void SetUp() override { this->build_geometry("hex_array.org.json"); }
+    void SetUp() override { this->build_geometry("hex-array.org.json"); }
 
     CELER_FUNCTION static constexpr unsigned int invalid_id()
     {
@@ -160,7 +160,7 @@ class NestedRectArraysTest : public OrangeTest
 {
     void SetUp() override
     {
-        this->build_geometry("nested_rect_arrays.org.json");
+        this->build_geometry("nested-rect-arrays.org.json");
     }
 };
 
