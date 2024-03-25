@@ -80,6 +80,13 @@ struct CalcSafetyDistance
 
         // Calculate outward normal
         Real3 dir = surf.calc_normal(this->pos);
+        if (CELER_UNLIKELY(std::isnan(dir[0])))
+        {
+            // Magnitude was likely zero, e.g. taking the safety at the center
+            // of a sphere/cyl
+            return 0;
+        }
+        CELER_ASSERT(is_soft_unit_vector(dir));
 
         auto sense = surf.calc_sense(this->pos);
         // If sense is "positive" (on or outside), flip direction to inward so
