@@ -150,13 +150,17 @@ struct ImportOpticalProperty
 //---------------------------------------------------------------------------//
 /*!
  * Store optical photon wavelength shifting properties.
+ *
+ * The component vector represents the relative population as a function of the
+ * re-emission energy. It is used to define an inverse CDF needed to sample the
+ * re-emitted optical photon energy.
  */
 struct ImportWavelengthShift
 {
     double mean_num_photons;  //!< Mean number of re-emitted photons
     double time_constant;  //!< Time delay between absorption and re-emission
     ImportPhysicsVector absorption_length;  //!< Absorption length [MeV, len]
-    ImportPhysicsVector component;  //!< Emission spectrum [MeV, MeV]
+    ImportPhysicsVector component;  //!< Re-emission population [MeV, unitless]
 
     //! Whether all data are assigned and valid
     explicit operator bool() const
@@ -165,7 +169,7 @@ struct ImportWavelengthShift
                && static_cast<bool>(absorption_length)
                && static_cast<bool>(component)
                && absorption_length.vector_type == ImportPhysicsVectorType::free
-               && absorption_length.vector_type == component.vector_type;
+               && component.vector_type == absorption_length.vector_type;
     }
 };
 

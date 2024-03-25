@@ -557,7 +557,7 @@ ImportData::ImportOpticalMap import_optical()
         get_property.vector(
             &optical.wls.absorption_length, "WLSABSLENGTH", ImportUnits::len);
         get_property.vector(
-            &optical.wls.component, "WLSCOMPONENT", ImportUnits::mev);
+            &optical.wls.component, "WLSCOMPONENT", ImportUnits::unitless);
 
         if (optical)
         {

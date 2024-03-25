@@ -1479,8 +1479,7 @@ TEST_F(LarSphere, optical)
 
     static double const expected_abslen_grid[]
         = {1.3778e-06, 86.4473, 1.55e-05, 0.000296154};
-    static double const expected_comp_grid[]
-        = {1.3778e-06, 1000000, 1.55e-05, 1e-05};
+    static double const expected_comp_grid[] = {1.3778e-06, 10, 1.55e-05, 20};
     EXPECT_VEC_SOFT_EQ(expected_abslen_grid, abslen_grid);
     EXPECT_VEC_SOFT_EQ(expected_comp_grid, comp_grid);
 

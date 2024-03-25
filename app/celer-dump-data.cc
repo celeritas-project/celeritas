@@ -710,7 +710,7 @@ void print_optical_material_data(ImportData::ImportOpticalMap const& iom)
         cout << POM_STREAM_SCALAR(mid, wls, mean_num_photons, IU::unitless);
         cout << POM_STREAM_SCALAR(mid, wls, time_constant, IU::time);
         cout << POM_STREAM_VECTOR(mid, wls, absorption_length, IU::len);
-        cout << POM_STREAM_VECTOR(mid, wls, component, IU::mev);
+        cout << POM_STREAM_VECTOR(mid, wls, component, IU::unitless);
     }
     cout << endl;
 #undef PEP_STREAM_SCALAR
