@@ -34,22 +34,7 @@ class OrangeTest : public OrangeGeoTestBase
   protected:
     using Initializer_t = GeoTrackInitializer;
 
-    //! Create a host track view
-    OrangeTrackView make_track_view(TrackSlotId tsid = TrackSlotId{0})
-    {
-        if (!host_state_)
-        {
-            host_state_ = HostStateStore(this->host_params(), 2);
-        }
-        CELER_EXPECT(tsid < host_state_.size());
-
-        return OrangeTrackView(this->host_params(), host_state_.ref(), tsid);
-    }
-
-  private:
-    using HostStateStore
-        = CollectionStateStore<OrangeStateData, MemSpace::host>;
-    HostStateStore host_state_;
+    size_type num_track_slots() const override { return 2; }
 };
 
 class OneVolumeTest : public OrangeTest
@@ -120,25 +105,25 @@ class ShiftTrackerTest : public OrangeTest
 
     void initialize(Real3 pos, Real3 dir)
     {
-        auto track = this->make_track_view();
+        auto track = this->make_geo_track_view();
         track = {pos, dir};
     }
 
     void distance_to_boundary(real_type& distance)
     {
-        auto track = this->make_track_view();
+        auto track = this->make_geo_track_view();
         distance = track.find_next_step().distance;
     }
 
     void move_to_point(real_type distance)
     {
-        auto track = this->make_track_view();
+        auto track = this->make_geo_track_view();
         track.move_internal(distance);
     }
 
     void move_across_surface(BoundaryState& boundary_state, unsigned int& cell)
     {
-        auto track = this->make_track_view();
+        auto track = this->make_geo_track_view();
         track.move_to_boundary();
         track.cross_boundary();
 
@@ -190,7 +175,7 @@ TEST_F(OneVolumeTest, params)
 
 TEST_F(OneVolumeTest, track_view)
 {
-    OrangeTrackView geo = this->make_track_view();
+    OrangeTrackView geo = this->make_geo_track_view();
 
     // Initialize
     geo = Initializer_t{{3, 4, 5}, {0, 1, 0}};
@@ -251,7 +236,7 @@ TEST_F(TwoVolumeTest, params)
 
 TEST_F(TwoVolumeTest, simple_track)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
 
     // Initialize
     geo = Initializer_t{{0.5, 0, 0}, {0, 0, 1}};
@@ -321,7 +306,7 @@ TEST_F(TwoVolumeTest, simple_track)
 // on boundary so it ends up heading back in
 TEST_F(TwoVolumeTest, reentrant_boundary_setdir)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
@@ -361,7 +346,7 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir)
 
 TEST_F(TwoVolumeTest, nonreentrant_boundary_setdir)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
@@ -398,7 +383,7 @@ TEST_F(TwoVolumeTest, nonreentrant_boundary_setdir)
 // again
 TEST_F(TwoVolumeTest, doubly_reentrant_boundary_setdir)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
@@ -440,7 +425,7 @@ TEST_F(TwoVolumeTest, doubly_reentrant_boundary_setdir)
 // as part of the field propagation algorithm.
 TEST_F(TwoVolumeTest, reentrant_boundary_setdir_post)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
@@ -492,13 +477,13 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir_post)
 TEST_F(TwoVolumeTest, persistence)
 {
     {
-        auto geo = this->make_track_view();
+        auto geo = this->make_geo_track_view();
         geo = Initializer_t{{2.5, 0, 0}, {-1, 0, 0}};
         geo.find_next_step();
         geo.move_to_boundary();
     }
     {
-        auto geo = this->make_track_view();
+        auto geo = this->make_geo_track_view();
         EXPECT_EQ(VolumeId{0}, geo.volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.surface_id());
         EXPECT_VEC_SOFT_EQ(Real3({1.5, 0, 0}), geo.pos());
@@ -506,7 +491,7 @@ TEST_F(TwoVolumeTest, persistence)
         geo.cross_boundary();
     }
     {
-        auto geo = this->make_track_view();
+        auto geo = this->make_geo_track_view();
         EXPECT_EQ(VolumeId{1}, geo.volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.surface_id());
         EXPECT_VEC_SOFT_EQ(Real3({1.5, 0, 0}), geo.pos());
@@ -521,7 +506,7 @@ TEST_F(TwoVolumeTest, persistence)
         EXPECT_VEC_SOFT_EQ(Real3({-1.5, 0, 0}), geo.pos());
     }
     {
-        auto geo = this->make_track_view();
+        auto geo = this->make_geo_track_view();
         EXPECT_EQ(VolumeId{0}, geo.volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.surface_id());
         EXPECT_VEC_SOFT_EQ(Real3({-1.5, 0, 0}), geo.pos());
@@ -529,12 +514,12 @@ TEST_F(TwoVolumeTest, persistence)
         EXPECT_EQ(SurfaceId{}, geo.surface_id());
     }
     {
-        auto geo = this->make_track_view();
+        auto geo = this->make_geo_track_view();
         EXPECT_VEC_SOFT_EQ(Real3({-1.5, .5, .5}), geo.pos());
         geo.set_dir({1, 0, 0});
     }
     {
-        auto geo = this->make_track_view();
+        auto geo = this->make_geo_track_view();
         EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
         auto next = geo.find_next_step();
         EXPECT_SOFT_EQ(0.17712434446770464, next.distance);
@@ -543,7 +528,7 @@ TEST_F(TwoVolumeTest, persistence)
         EXPECT_EQ(SurfaceId{}, geo.surface_id());
     }
     {
-        auto geo = this->make_track_view();
+        auto geo = this->make_geo_track_view();
         EXPECT_VEC_SOFT_EQ(Real3({-1.4, .5, .5}), geo.pos());
         EXPECT_EQ(SurfaceId{}, geo.surface_id());
         auto next = geo.find_next_step();
@@ -554,7 +539,7 @@ TEST_F(TwoVolumeTest, persistence)
 
 TEST_F(TwoVolumeTest, intersect_limited)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
 
     // Initialize
     geo = Initializer_t{{0.0, 0, 0}, {1, 0, 0}};
@@ -709,7 +694,7 @@ TEST_F(UniversesTest, TEST_IF_CELERITAS_DOUBLE(output))
 
 TEST_F(UniversesTest, initialize_with_multiple_universes)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
 
     // Initialize in outermost universe
     geo = Initializer_t{{-1, -2, 1}, {1, 0, 0}};
@@ -737,7 +722,7 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
 
     {
         // Initialize a separate track slot
-        auto other = this->make_track_view(TrackSlotId{1});
+        auto other = this->make_geo_track_view(TrackSlotId{1});
         other = OrangeTrackView::DetailedInitializer{geo, {1, 0, 0}};
         EXPECT_VEC_SOFT_EQ(Real3({0.625, -2, 1}), other.pos());
         EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), other.dir());
@@ -749,7 +734,7 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
 
 TEST_F(UniversesTest, move_internal_multiple_universes)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
 
     // Initialize in daughter universe
     geo = Initializer_t{{0.625, -2, 1}, {0, 1, 0}};
@@ -769,7 +754,7 @@ TEST_F(UniversesTest, move_internal_multiple_universes)
 // correctly returned at the top level
 TEST_F(UniversesTest, change_dir_daughter_universe)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
 
     // Initialize inside daughter universe a
     geo = Initializer_t{{1.5, -2.0, 1.0}, {1.0, 0.0, 0.0}};
@@ -785,7 +770,7 @@ TEST_F(UniversesTest, change_dir_daughter_universe)
 // a boundary with another with a parent cell
 TEST_F(UniversesTest, cross_into_daughter_non_coincident)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{2, -5, 0.75}, {0, 1, 0}};
 
     auto next = geo.find_next_step();
@@ -814,7 +799,7 @@ TEST_F(UniversesTest, cross_into_daughter_non_coincident)
 // boundary with another with a parent cell
 TEST_F(UniversesTest, cross_into_parent_non_coincident)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{2, -3.25, 0.75}, {0, -1, 0}};
 
     auto next = geo.find_next_step();
@@ -842,7 +827,7 @@ TEST_F(UniversesTest, cross_into_parent_non_coincident)
 // boundary with another with a parent cell
 TEST_F(UniversesTest, cross_into_daughter_coincident)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{2, 1, 1}, {0, -1, 0}};
 
     auto next = geo.find_next_step();
@@ -871,7 +856,7 @@ TEST_F(UniversesTest, cross_into_daughter_coincident)
 // boundary with another with a parent cell
 TEST_F(UniversesTest, cross_into_parent_coincident)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{2, -0.5, 1}, {0, 1, 0}};
 
     auto next = geo.find_next_step();
@@ -899,7 +884,7 @@ TEST_F(UniversesTest, cross_into_parent_coincident)
 // Cross into daughter universe that is two levels down
 TEST_F(UniversesTest, cross_into_daughter_doubly_coincident)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{0.25, -4.5, 1}, {0, 1, 0}};
 
     auto next = geo.find_next_step();
@@ -927,7 +912,7 @@ TEST_F(UniversesTest, cross_into_daughter_doubly_coincident)
 // Cross into parent universe that is two levels down
 TEST_F(UniversesTest, cross_into_parent_doubly_coincident)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{0.25, -3.75, 1}, {0, -1, 0}};
 
     auto next = geo.find_next_step();
@@ -955,7 +940,7 @@ TEST_F(UniversesTest, cross_into_parent_doubly_coincident)
 // Cross between two daughter universes that share a boundary
 TEST_F(UniversesTest, cross_between_daughters)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
 
     // Initialize in outermost universe
     geo = Initializer_t{{2, -2, 0.7}, {0, 0, -1}};
@@ -985,7 +970,7 @@ TEST_F(UniversesTest, cross_between_daughters)
 // Change direction on a universe boundary to reenter the cell
 TEST_F(UniversesTest, reentrant)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
 
     // Initialize in innermost universe
     geo = Initializer_t{{0.25, -3.7, 0.7}, {0, 1, 0}};
@@ -1031,7 +1016,7 @@ TEST_F(RectArrayTest, params)
 
 TEST_F(RectArrayTest, tracking)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{-1, 1, -1}, {1, 0, 0}};
 
     EXPECT_VEC_SOFT_EQ(Real3({-1, 1, -1}), geo.pos());
@@ -1041,7 +1026,7 @@ TEST_F(RectArrayTest, tracking)
 
 TEST_F(NestedRectArraysTest, tracking)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{1.5, 0.5, 0.5}, {1, 0, 0}};
 
     EXPECT_VEC_SOFT_EQ(Real3({1.5, 0.5, 0.5}), geo.pos());
@@ -1068,7 +1053,7 @@ TEST_F(NestedRectArraysTest, tracking)
 
 TEST_F(NestedRectArraysTest, leaving)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{3.5, 1.5, 0.5}, {1, 0, 0}};
 
     EXPECT_VEC_SOFT_EQ(Real3({3.5, 1.5, 0.5}), geo.pos());
@@ -1095,7 +1080,7 @@ TEST_F(NestedRectArraysTest, leaving)
 
 TEST_F(Geant4Testem15Test, safety)
 {
-    OrangeTrackView geo = this->make_track_view();
+    OrangeTrackView geo = this->make_geo_track_view();
 
     geo = Initializer_t{{0, 0, 0}, {1, 0, 0}};
     EXPECT_VEC_SOFT_EQ(Real3({0, 0, 0}), geo.pos());
@@ -1160,7 +1145,7 @@ TEST_F(TestEM3Test, safety)
 {
     EXPECT_FALSE(this->params().supports_safety());
 
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
 
     // Initialize in innermost universe, near the universe boundary
     geo = Initializer_t{{19.99, 19.9, 19.9}, {0, 1, 0}};

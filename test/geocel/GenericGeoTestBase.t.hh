@@ -101,14 +101,16 @@ std::string GenericGeoTestBase<HP>::surface_name(GeoTrackView const& geo) const
 
 //---------------------------------------------------------------------------//
 template<class HP>
-auto GenericGeoTestBase<HP>::make_geo_track_view() -> GeoTrackView
+auto GenericGeoTestBase<HP>::make_geo_track_view(TrackSlotId tsid)
+    -> GeoTrackView
 {
     if (!host_state_)
     {
-        host_state_ = HostStateStore{this->geometry()->host_ref(), 1};
+        host_state_ = HostStateStore{this->geometry()->host_ref(),
+                                     this->num_track_slots()};
     }
-    return GeoTrackView{
-        this->geometry()->host_ref(), host_state_.ref(), TrackSlotId{0}};
+    CELER_EXPECT(tsid < host_state_.size());
+    return GeoTrackView{this->geometry()->host_ref(), host_state_.ref(), tsid};
 }
 
 //---------------------------------------------------------------------------//
