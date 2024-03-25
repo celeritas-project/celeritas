@@ -202,7 +202,9 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos_cm,
                 }
                 auto new_next = geo.find_next_step();
                 EXPECT_TRUE(new_next.boundary);
-                EXPECT_SOFT_NEAR(new_next.distance, next.distance / 2, 1e-10)
+                EXPECT_SOFT_NEAR(new_next.distance,
+                                 next.distance / 2,
+                                 100 * SoftEqual<>{}.rel())
                     << "reinitialized distance mismatch at index "
                     << result.volumes.size() - 1 << ": " << init.pos
                     << " along " << init.dir;

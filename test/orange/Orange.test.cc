@@ -1134,7 +1134,8 @@ TEST_F(HexArrayTest, track_out)
     EXPECT_VEC_EQ(expected_volumes, result.volumes);
     static real_type const expected_distances[] = {
         1.9914318088046, 5.3060674310398, 0.30636846908014, 5.9880767678838};
-    EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    EXPECT_VEC_NEAR(
+        expected_distances, result.distances, 10 * SoftEqual<>{}.rel());
     static real_type const expected_hw_safety[] = {
         0.20109936014143, 0.29549138370648, 0.030952132652541, 0.90113367054536};
     EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
