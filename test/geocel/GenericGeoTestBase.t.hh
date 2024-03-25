@@ -40,7 +40,7 @@ template<class HP>
 auto GenericGeoTestBase<HP>::build_geometry_from_basename() -> SPConstGeo
 {
     // Construct filename:
-    // ${SOURCE}/test/celeritas/data/${basename}${fileext}
+    // ${SOURCE}/test/geocel/data/${basename}${fileext}
     auto filename = this->geometry_basename() + std::string{TraitsT::ext};
     std::string test_file = test_data_path("geocel", filename);
     return std::make_shared<HP>(test_file);

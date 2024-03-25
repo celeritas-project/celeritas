@@ -57,38 +57,45 @@ class TwoVolumeTest : public OrangeTest
     }
 };
 
-#define FiveVolumesTest TEST_IF_CELERITAS_JSON(FiveVolumesTest)
-class FiveVolumesTest : public OrangeTest
+class JsonOrangeTest : public OrangeTest
 {
-    void SetUp() override { this->build_geometry("five-volumes.org.json"); }
+  public:
+    void SetUp() final
+    {
+        if (!CELERITAS_USE_JSON)
+        {
+            GTEST_SKIP() << "JSON is disabled";
+        }
+        this->build_geometry(this->geometry_basename() + ".org.json");
+    }
 };
 
-#define UniversesTest TEST_IF_CELERITAS_JSON(UniversesTest)
-class UniversesTest : public OrangeTest
+class FiveVolumesTest : public JsonOrangeTest
 {
-    void SetUp() override { this->build_geometry("universes.org.json"); }
+    std::string geometry_basename() const final { return "five-volumes"; }
 };
 
-#define RectArrayTest TEST_IF_CELERITAS_JSON(RectArrayTest)
-class RectArrayTest : public OrangeTest
+class UniversesTest : public JsonOrangeTest
 {
-    void SetUp() override { this->build_geometry("rect-array.org.json"); }
+    std::string geometry_basename() const final { return "universes"; }
 };
 
-#define HexArrayTest TEST_IF_CELERITAS_JSON(HexArrayTest)
-class HexArrayTest : public OrangeTest
+class RectArrayTest : public JsonOrangeTest
 {
-    void SetUp() override { this->build_geometry("hex-array.org.json"); }
+    std::string geometry_basename() const final { return "rect-array"; }
 };
 
-#define TestEM3Test TEST_IF_CELERITAS_JSON(TestEM3Test)
-class TestEM3Test : public OrangeTest
+class HexArrayTest : public JsonOrangeTest
 {
-    void SetUp() override { this->build_geometry("testem3.org.json"); }
+    std::string geometry_basename() const final { return "hex-array"; }
 };
 
-#define ShiftTrackerTest TEST_IF_CELERITAS_JSON(ShiftTrackerTest)
-class ShiftTrackerTest : public OrangeTest
+class TestEM3Test : public JsonOrangeTest
+{
+    std::string geometry_basename() const final { return "testem3"; }
+};
+
+class ShiftTrackerTest : public JsonOrangeTest
 {
   protected:
     enum class BoundaryState
@@ -97,7 +104,7 @@ class ShiftTrackerTest : public OrangeTest
         OUTSIDE = 1
     };
 
-    void SetUp() override { this->build_geometry("hex-array.org.json"); }
+    std::string geometry_basename() const final { return "hex-array"; }
 
     CELER_FUNCTION static constexpr unsigned int invalid_id()
     {
@@ -141,19 +148,17 @@ class ShiftTrackerTest : public OrangeTest
     }
 };
 
-#define NestedRectArraysTest TEST_IF_CELERITAS_JSON(NestedRectArraysTest)
-class NestedRectArraysTest : public OrangeTest
+class NestedRectArraysTest : public JsonOrangeTest
 {
-    void SetUp() override
+    std::string geometry_basename() const final
     {
-        this->build_geometry("nested-rect-arrays.org.json");
+        return "nested-rect-arrays";
     }
 };
 
-#define Geant4Testem15Test TEST_IF_CELERITAS_JSON(Geant4Testem15Test)
-class Geant4Testem15Test : public OrangeTest
+class Geant4Testem15Test : public JsonOrangeTest
 {
-    void SetUp() override { this->build_geometry("geant4-testem15.org.json"); }
+    std::string geometry_basename() const final { return "geant4-testem15"; }
 };
 
 //---------------------------------------------------------------------------//
