@@ -24,7 +24,7 @@ namespace celeritas
 class ActionRegistry;
 class AtomicRelaxationParams;
 class CutoffParams;
-class ExplicitActionInterface;
+class ExplicitCoreActionInterface;
 class GeoMaterialParams;
 class MaterialParams;
 class ParticleParams;
@@ -59,7 +59,7 @@ class GlobalTestBase : public Test
     using SPConstParticle = SP<ParticleParams const>;
     using SPConstCutoff = SP<CutoffParams const>;
     using SPConstPhysics = SP<PhysicsParams const>;
-    using SPConstAction = SP<ExplicitActionInterface const>;
+    using SPConstAction = SP<ExplicitCoreActionInterface const>;
     using SPConstRng = SP<RngParams const>;
     using SPConstSim = SP<SimParams const>;
     using SPConstTrackInit = SP<TrackInitParams const>;

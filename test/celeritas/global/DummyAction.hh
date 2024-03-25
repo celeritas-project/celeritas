@@ -14,7 +14,8 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-class DummyAction final : public ExplicitActionInterface, public ConcreteAction
+class DummyAction final : public ExplicitCoreActionInterface,
+                          public ConcreteAction
 {
   public:
     // Construct with ID and label

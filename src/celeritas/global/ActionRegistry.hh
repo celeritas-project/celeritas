@@ -32,8 +32,8 @@ namespace celeritas
  * will change the state of a track on device.
  *
  * Associated actions use the \c ActionInterface class to provide debugging
- * information, and the \c ExplicitActionInterface is used to invoke kernels
- * with core data.
+ * information, and the \c ExplicitCoreActionInterface is used to invoke
+ * kernels with core data.
  *
  * New actions should be created with an action ID corresponding to \c
  * next_id . Registering an action checks its ID. Actions are always added

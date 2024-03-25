@@ -1,4 +1,4 @@
-name: build-full
+name: build-docker
 on:
   workflow_dispatch:
   workflow_call:
@@ -11,59 +11,49 @@ jobs:
   # TODO: this currently includes non-GPU builds as well
   # and won't actually run on device
   gpu:
-    name: gpu
+    name: >-
+      ${{format('{0}{1}{2}-{3}-{4}',
+                matrix.special,
+                matrix.special && '-' || '',
+                matrix.geometry,
+                matrix.buildtype,
+                matrix.image)}}
     strategy:
       fail-fast: false
       matrix:
         special: [null]
-        geometry: ['orange', 'vecgeom']
-        buildtype: ['debug', 'ndebug']
-        image: ['ubuntu-cuda', 'centos-rocm']
+        geometry: ["orange", "vecgeom"]
+        buildtype: ["debug", "ndebug"]
+        image: ["ubuntu-cuda", "centos-rocm"]
         exclude:
-          - geometry: 'vecgeom'
-            image: 'centos-rocm' # VecGeom not installed on HIP
-          - buildtype: 'debug'
-            image: 'centos-rocm' # Debug builds don't work with HIP
+          - geometry: "vecgeom"
+            image: "centos-rocm" # VecGeom not installed on HIP
+          - buildtype: "debug"
+            image: "centos-rocm" # Debug builds don't work with HIP
         include:
-          - special: 'asan'
-            geometry: 'orange'
-            buildtype: 'reldeb'
-            image: 'centos-rocm'
-          - special: 'minimal'
-            geometry: 'orange'
-            buildtype: 'debug'
-            image: 'centos-rocm'
-          - special: 'float'
-            geometry: 'orange'
-            buildtype: 'debug'
-            image: 'centos-rocm'
-          - special: 'float'
-            geometry: 'orange'
-            buildtype: 'ndebug'
-            image: 'centos-rocm'
-          - geometry: 'geant4'
-            buildtype: 'reldeb'
-            image: 'centos-rocm'
-          - geometry: 'vecgeom'
-            buildtype: 'reldeb'
-            image: 'ubuntu-cuda'
-          - special: 'clhep'
-            geometry: 'vecgeom'
-            buildtype: 'debug'
-            image: 'ubuntu-cuda'
+          - special: "asan"
+            geometry: "orange"
+            buildtype: "reldeb"
+            image: "centos-rocm"
+          - geometry: "vecgeom"
+            buildtype: "reldeb"
+            image: "ubuntu-cuda"
     env:
       ASAN_OPTIONS: "detect_leaks=0"
       CELER_TEST_STRICT: 1
       CELER_DISABLE_DEVICE: 1 # IMPORTANT
       CMAKE_PRESET: >-
-        ${{matrix.buildtype}}-${{matrix.geometry}}${{matrix.special && '-' || ''}}${{matrix.special}}
+        ${{format('{0}-{1}{2}{3}',
+                matrix.buildtype,
+                matrix.geometry,
+                matrix.special && '-' || '',
+                matrix.special)}}
     runs-on: ubuntu-latest
     container:
       image: >-
         docker.io/celeritas/${{
              matrix.image == 'ubuntu-cuda' && 'ci-jammy-cuda11:2023-08-02'
           || matrix.image == 'centos-rocm' && 'ci-centos7-rocm5:2022-12-14.2'
-          || null
         }}
       # See https://github.com/actions/checkout/issues/956
       options: --user root
@@ -108,11 +98,12 @@ jobs:
           done
           ./bin/celer-sim --version
       - name: Build examples
-        # TODO: asan needs -fsanitize=address
         # TODO: rocm+ndebug fails to propagate HIP library link
+        # TODO: ASAN requires flags downstream
         if: >-
-          ${{ matrix.special != 'asan'
-           && !(matrix.image == 'centos-rocm' && matrix.buildtype == 'ndebug')
+          ${{
+            !(matrix.image == 'centos-rocm' && matrix.buildtype == 'ndebug')
+            && (matrix.special != 'asan')
           }}
         run: |
           . /etc/profile

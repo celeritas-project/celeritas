@@ -64,7 +64,7 @@ class CsgTree
     inline Insertion insert(LocalSurfaceId s);
 
     //! Number of nodes
-    size_type size() const { return nodes_.size(); }
+    NodeId::size_type size() const { return nodes_.size(); }
 
     // Get a node
     inline Node const& operator[](NodeId node_id) const;

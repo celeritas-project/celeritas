@@ -33,7 +33,7 @@ class ParticleParams;
  * have (but do not *need* to have) along-step energy loss, optional energy
  * fluctuation, and optional multiple scattering.
  */
-class AlongStepGeneralLinearAction final : public ExplicitActionInterface
+class AlongStepGeneralLinearAction final : public ExplicitCoreActionInterface
 {
   public:
     //!@{

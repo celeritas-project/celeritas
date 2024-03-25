@@ -16,7 +16,6 @@
 
 #include "detail/InfixStringBuilder.hh"
 #include "detail/NodeReplacementInserter.hh"
-#include "detail/PostfixLogicBuilder.hh"
 
 namespace celeritas
 {
@@ -101,21 +100,6 @@ void simplify(CsgTree* tree, NodeId start)
         CELER_ASSERT(!next_start || next_start > start);
         start = next_start;
     }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Convert a node to postfix notation.
- */
-[[nodiscard]] std::vector<LocalSurfaceId::size_type>
-build_postfix(CsgTree const& tree, NodeId n)
-{
-    CELER_EXPECT(n < tree.size());
-    std::vector<LocalSurfaceId::size_type> result;
-    detail::PostfixLogicBuilder build_impl{tree, &result};
-
-    build_impl(n);
-    return result;
 }
 
 //---------------------------------------------------------------------------//
