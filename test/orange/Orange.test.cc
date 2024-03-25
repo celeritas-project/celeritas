@@ -161,13 +161,11 @@ class Geant4Testem15Test : public JsonOrangeTest
     std::string geometry_basename() const final { return "geant4-testem15"; }
 };
 
-#define InputBuilderTest TEST_IF_CELERITAS_JSON(InputBuilderTest)
-class InputBuilderTest : public OrangeTest
+class InputBuilderTest : public JsonOrangeTest
 {
-    void SetUp() override
+    std::string geometry_basename() const final
     {
-        // Load geometry from the test filename. See UnitProto.test.cc
-        this->build_geometry(this->make_unique_filename(".org.json"));
+        return const_cast<InputBuilderTest*>(this)->make_unique_filename();
     }
 };
 
