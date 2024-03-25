@@ -644,6 +644,56 @@ TEST_F(UniversesTest, params)
     EXPECT_VEC_EQ(expected, actual);
 }
 
+TEST_F(UniversesTest, tracking)
+{
+    {
+        SCOPED_TRACE("patty");
+        auto result = this->track({-1.0, -3.75, 0.75}, {1, 0, 0});
+        static char const* const expected_volumes[]
+            = {"johnny", "patty", "c", "johnny"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {1, 0.5, 5.5, 2};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {0.25, 0.25, 0.25, 0.25};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        SCOPED_TRACE("inner +x");
+        auto result = this->track({-1, -2, 1.0}, {1, 0, 0});
+        static char const* const expected_volumes[]
+            = {"johnny", "c", "a", "b", "c", "johnny"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {1, 1, 2, 2, 1, 2};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[]
+            = {0.5, 0, 0.5, 0.5, 0.5, 0.5};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        SCOPED_TRACE("inner +y");
+        auto result = this->track({4, -5, 1.0}, {0, 1, 0});
+        static char const* const expected_volumes[]
+            = {"johnny", "c", "b", "c", "bobby", "johnny"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {1, 1, 2, 1, 2, 2};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[]
+            = {0.5, 0, 0.5, 0.5, 0.5, 0.5};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        SCOPED_TRACE("inner +z");
+        auto result = this->track({4, -2, -0.75}, {0, 0, 1});
+        static char const* const expected_volumes[]
+            = {"johnny", "b", "b", "johnny"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {0.25, 1, 1, 0.5};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {0.125, 0.5, 0.5, 0.25};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+}
+
 TEST_F(UniversesTest, TEST_IF_CELERITAS_DOUBLE(output))
 {
     OrangeParamsOutput out(this->geometry());
@@ -652,7 +702,7 @@ TEST_F(UniversesTest, TEST_IF_CELERITAS_DOUBLE(output))
     if (CELERITAS_USE_JSON)
     {
         EXPECT_JSON_EQ(
-            R"json({"scalars":{"max_depth":3,"max_faces":14,"max_intersections":14,"max_logic_depth":3,"tol":{"abs":1e-08,"rel":1e-08}},"sizes":{"bih":{"bboxes":12,"inner_nodes":6,"leaf_nodes":9,"local_volume_ids":12},"connectivity_records":25,"daughters":3,"local_surface_ids":53,"local_volume_ids":20,"logic_ints":162,"real_ids":25,"reals":24,"rect_arrays":0,"simple_units":3,"surface_types":25,"transforms":3,"universe_indices":3,"universe_types":3,"volume_records":12}})json",
+            R"json({"scalars":{"max_depth":3,"max_faces":14,"max_intersections":14,"max_logic_depth":3,"tol":{"abs":1e-08,"rel":1e-08}},"sizes":{"bih":{"bboxes":12,"inner_nodes":6,"leaf_nodes":9,"local_volume_ids":12},"connectivity_records":25,"daughters":3,"local_surface_ids":55,"local_volume_ids":21,"logic_ints":171,"real_ids":25,"reals":24,"rect_arrays":0,"simple_units":3,"surface_types":25,"transforms":3,"universe_indices":3,"universe_types":3,"volume_records":12}})json",
             to_string(out));
     }
 }
@@ -670,8 +720,8 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
     EXPECT_FALSE(geo.is_on_boundary());
 
     // Initialize in daughter universe
-    geo = Initializer_t{{0.5, -2, 1}, {1, 0, 0}};
-    EXPECT_VEC_SOFT_EQ(Real3({0.5, -2, 1}), geo.pos());
+    geo = Initializer_t{{0.625, -2, 1}, {1, 0, 0}};
+    EXPECT_VEC_SOFT_EQ(Real3({0.625, -2, 1}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
     EXPECT_EQ("c", this->volume_name(geo));
     EXPECT_FALSE(geo.is_outside());
@@ -679,7 +729,7 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
 
     // Initialize in daughter universe using "this == &other"
     geo = OrangeTrackView::DetailedInitializer{geo, {0, 1, 0}};
-    EXPECT_VEC_SOFT_EQ(Real3({0.5, -2, 1}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({0.625, -2, 1}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({0, 1, 0}), geo.dir());
     EXPECT_EQ("c", this->volume_name(geo));
     EXPECT_FALSE(geo.is_outside());
@@ -689,7 +739,7 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
         // Initialize a separate track slot
         auto other = this->make_track_view(TrackSlotId{1});
         other = OrangeTrackView::DetailedInitializer{geo, {1, 0, 0}};
-        EXPECT_VEC_SOFT_EQ(Real3({0.5, -2, 1}), other.pos());
+        EXPECT_VEC_SOFT_EQ(Real3({0.625, -2, 1}), other.pos());
         EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), other.dir());
         EXPECT_EQ("c", this->params().id_to_label(other.volume_id()).name);
         EXPECT_FALSE(other.is_outside());
@@ -702,10 +752,10 @@ TEST_F(UniversesTest, move_internal_multiple_universes)
     auto geo = this->make_track_view();
 
     // Initialize in daughter universe
-    geo = Initializer_t{{0.5, -2, 1}, {0, 1, 0}};
+    geo = Initializer_t{{0.625, -2, 1}, {0, 1, 0}};
 
     // Move internally, then check that the distance to boundary is correct
-    geo.move_internal({0.5, -1, 1});
+    geo.move_internal({0.625, -1, 1});
     auto next = geo.find_next_step();
     EXPECT_SOFT_EQ(1, next.distance);
 
@@ -736,7 +786,7 @@ TEST_F(UniversesTest, change_dir_daughter_universe)
 TEST_F(UniversesTest, cross_into_daughter_non_coincident)
 {
     auto geo = this->make_track_view();
-    geo = Initializer_t{{2, -5, 1}, {0, 1, 0}};
+    geo = Initializer_t{{2, -5, 0.75}, {0, 1, 0}};
 
     auto next = geo.find_next_step();
     EXPECT_SOFT_EQ(1, next.distance);
@@ -744,13 +794,13 @@ TEST_F(UniversesTest, cross_into_daughter_non_coincident)
     geo.move_to_boundary();
     EXPECT_EQ("inner_a.my", this->surface_name(geo));
     EXPECT_EQ("johnny", this->volume_name(geo));
-    EXPECT_VEC_SOFT_EQ(Real3({2, -4, 1}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({2, -4, 0.75}), geo.pos());
 
     // Cross universe boundary
     geo.cross_boundary();
     EXPECT_EQ("inner_a.my", this->surface_name(geo));
     EXPECT_EQ("c", this->volume_name(geo));
-    EXPECT_VEC_SOFT_EQ(Real3({2, -4, 1}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({2, -4, 0.75}), geo.pos());
 
     // Make sure we can take another step after crossing
     next = geo.find_next_step();
@@ -765,20 +815,20 @@ TEST_F(UniversesTest, cross_into_daughter_non_coincident)
 TEST_F(UniversesTest, cross_into_parent_non_coincident)
 {
     auto geo = this->make_track_view();
-    geo = Initializer_t{{2, -3.5, 1}, {0, -1, 0}};
+    geo = Initializer_t{{2, -3.25, 0.75}, {0, -1, 0}};
 
     auto next = geo.find_next_step();
-    EXPECT_SOFT_EQ(0.5, next.distance);
+    EXPECT_SOFT_EQ(0.75, next.distance);
     geo.move_to_boundary();
     EXPECT_EQ("inner_a.my", this->surface_name(geo));
     EXPECT_EQ("c", this->volume_name(geo));
-    EXPECT_VEC_SOFT_EQ(Real3({2, -4, 1}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({2, -4, 0.75}), geo.pos());
 
     // Cross universe boundary
     geo.cross_boundary();
     EXPECT_EQ("inner_a.my", this->surface_name(geo));
     EXPECT_EQ("johnny", this->volume_name(geo));
-    EXPECT_VEC_SOFT_EQ(Real3({2, -4, 1}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({2, -4, 0.75}), geo.pos());
 
     // Make sure we can take another step after crossing
     next = geo.find_next_step();

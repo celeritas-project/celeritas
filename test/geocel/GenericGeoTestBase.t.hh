@@ -207,7 +207,16 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos_cm,
             }
         }
         geo.move_to_boundary();
-        geo.cross_boundary();
+        try
+        {
+            geo.cross_boundary();
+        }
+        catch (std::exception const& e)
+        {
+            ADD_FAILURE() << "failed to cross boundary at " << to_cm(geo.pos())
+                          << " along " << geo.dir() << ": " << e.what();
+            break;
+        }
         --max_step;
     }
 

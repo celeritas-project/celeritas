@@ -84,8 +84,8 @@ shapes -beta
 
 [UNIVERSE][CELL c]
 comp "media 2"
-shapes +alpha +beta -gamma
-volume 16.0 ! 24 - 4 - 4
+shapes +alpha +beta -gamma +inner_c
+volume 15.75 ! 24 - 4 - 4 - 0.25
 
 [UNIVERSE][HOLE inner_c]
 fill most_inner
