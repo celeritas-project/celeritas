@@ -35,6 +35,7 @@ class OrangeTest : public OrangeGeoTestBase
     using Initializer_t = GeoTrackInitializer;
 
     size_type num_track_slots() const override { return 2; }
+    real_type unit_length() const override { return 1; }
 };
 
 class OneVolumeTest : public OrangeTest
