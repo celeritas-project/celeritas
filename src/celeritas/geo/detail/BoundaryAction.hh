@@ -19,7 +19,7 @@ namespace detail
 /*!
  * Move a track across a boundary.
  */
-class BoundaryAction final : public ExplicitActionInterface,
+class BoundaryAction final : public ExplicitCoreActionInterface,
                              public ConcreteAction
 {
   public:

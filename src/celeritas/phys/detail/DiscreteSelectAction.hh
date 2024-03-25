@@ -19,7 +19,7 @@ namespace detail
 /*!
  * Select a model for tracks undergoing a discrete interaction.
  */
-class DiscreteSelectAction final : public ExplicitActionInterface,
+class DiscreteSelectAction final : public ExplicitCoreActionInterface,
                                    public ConcreteAction
 {
   public:

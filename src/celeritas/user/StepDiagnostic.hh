@@ -26,7 +26,7 @@ class ParticleParams;
 /*!
  * Tally post-step actions for each particle type.
  */
-class StepDiagnostic final : public ExplicitActionInterface,
+class StepDiagnostic final : public ExplicitCoreActionInterface,
                              public OutputInterface
 {
   public:
