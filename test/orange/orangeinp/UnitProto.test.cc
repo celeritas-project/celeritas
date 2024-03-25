@@ -598,6 +598,9 @@ TEST_F(InputBuilderTest, hierarchy)
         inp.daughters.push_back({filled_daughter, Translation{{0, 0, -20}}});
         inp.daughters.push_back({leaf, Translation{{0, 0, 20}}});
 
+        inp.materials.push_back(
+            {make_translated(make_sph("leaf1", 1), {0, 0, -5}), MaterialId{1}});
+
         // Construct "inside" cell
         inp.materials.push_back(
             {make_rdv("interior",
@@ -609,12 +612,14 @@ TEST_F(InputBuilderTest, hierarchy)
                               interior.push_back(
                                   {Sense::outside, d.make_interior()});
                           }
+                          for (auto const& m : inp.materials)
+                          {
+                              interior.push_back({Sense::outside, m.interior});
+                          }
                           return interior;
                       }()),
              MaterialId{3}});
 
-        inp.materials.push_back(
-            {make_translated(make_sph("leaf1", 1), {0, 0, -5}), MaterialId{1}});
         return inp;
     }());
 
