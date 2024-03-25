@@ -19,9 +19,16 @@ namespace celeritas
  * automatically determined by TrackOrder. This should not have any impact on
  * simulation output: it is only useful for accelerator optimizations.
  */
-class SortTracksAction final : public ExplicitActionInterface,
+class SortTracksAction final : public ExplicitCoreActionInterface,
                                public BeginRunActionInterface
 {
+  public:
+    //@{
+    //! \name Type aliases
+    using ExplicitCoreActionInterface::CoreStateDevice;
+    using ExplicitCoreActionInterface::CoreStateHost;
+    //@}
+
   public:
     // Construct with action ID and sort criteria
     SortTracksAction(ActionId id, TrackOrder track_order);

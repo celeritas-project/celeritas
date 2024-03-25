@@ -68,9 +68,16 @@ namespace celeritas
 
    \endverbatim
  */
-class ExtendFromSecondariesAction final : public ExplicitActionInterface,
+class ExtendFromSecondariesAction final : public ExplicitCoreActionInterface,
                                           public BeginRunActionInterface
 {
+  public:
+    //@{
+    //! \name Type aliases
+    using ExplicitCoreActionInterface::CoreStateDevice;
+    using ExplicitCoreActionInterface::CoreStateHost;
+    //@}
+
   public:
     //! Construct with explicit Id
     explicit ExtendFromSecondariesAction(ActionId id) : id_(id) {}

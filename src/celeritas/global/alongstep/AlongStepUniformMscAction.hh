@@ -29,7 +29,7 @@ class ParticleParams;
 /*!
  * Along-step kernel with optional MSC and uniform magnetic field.
  */
-class AlongStepUniformMscAction final : public ExplicitActionInterface
+class AlongStepUniformMscAction final : public ExplicitCoreActionInterface
 {
   public:
     //!@{
