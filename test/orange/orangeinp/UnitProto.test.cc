@@ -511,16 +511,18 @@ TEST_F(InputBuilderTest, universes)
         inp.label = "inner";
         inp.boundary.interior = gamma;
         inp.boundary.zorder = ZOrder::media;
+        inp.daughters.push_back({most_inner, Translation{{-2, -2, 0}}});
         inp.materials.push_back(
             {make_rdv("a", {{Sense::inside, alpha}}), MaterialId{0}});
         inp.materials.push_back(
             {make_rdv("b", {{Sense::inside, beta}}), MaterialId{1}});
-        inp.materials.push_back({make_rdv("c",
-                                          {{Sense::outside, alpha},
-                                           {Sense::outside, beta},
-                                           {Sense::inside, gamma}}),
-                                 MaterialId{2}});
-        inp.daughters.push_back({most_inner, Translation{{-2, -2, 0}}});
+        inp.materials.push_back(
+            {make_rdv("c",
+                      {{Sense::outside, alpha},
+                       {Sense::outside, beta},
+                       {Sense::inside, gamma},
+                       {Sense::outside, inp.daughters[0].make_interior()}}),
+             MaterialId{2}});
         return inp;
     }());
 
