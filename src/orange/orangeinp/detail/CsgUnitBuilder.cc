@@ -12,7 +12,6 @@
 #include "corecel/io/StreamableVariant.hh"
 #include "orange/transform/TransformIO.hh"
 #include "orange/transform/TransformSimplifier.hh"
-
 namespace celeritas
 {
 namespace orangeinp
@@ -138,23 +137,21 @@ void CsgUnitBuilder::fill_volume(LocalVolumeId v, MaterialId m)
 //---------------------------------------------------------------------------//
 /*!
  * Fill a volume node with a daughter.
+ *
+ * The transform is from the current universe to the daughter. The
+ * corresponding shape may have additional transforms as well.
  */
-void CsgUnitBuilder::fill_volume(LocalVolumeId v, UniverseId u)
+void CsgUnitBuilder::fill_volume(LocalVolumeId v,
+                                 UniverseId u,
+                                 VariantTransform const& transform)
 {
     CELER_EXPECT(v < unit_->fills.size());
     CELER_EXPECT(!is_filled(unit_->fills[v.unchecked_get()]));
     CELER_EXPECT(u);
 
-    // Get the region associated with this node ID for the volume
-    CELER_ASSERT(unit_->volumes.size() == unit_->fills.size());
-    auto iter = unit_->regions.find(unit_->volumes[v.unchecked_get()]);
-    // The iterator should be valid since the whole volume should never be a
-    // pure surface (created outside a convex region)
-    CELER_ASSERT(iter != unit_->regions.end());
-
     Daughter new_daughter;
     new_daughter.universe_id = u;
-    new_daughter.transform_id = iter->second.transform_id;
+    new_daughter.transform_id = this->insert_transform(transform);
     CELER_ASSERT(new_daughter.transform_id < unit_->transforms.size());
 
     // Save fill

@@ -441,7 +441,7 @@ class InputBuilderTest : public UnitProtoTest
 
         std::stringstream expected;
         expected << ref.rdbuf();
-        EXPECT_JSON_EQ(actual.str(), expected.str());
+        EXPECT_JSON_EQ(expected.str(), actual.str());
     }
 };
 
@@ -545,7 +545,6 @@ TEST_F(InputBuilderTest, universes)
                        {Sense::outside, inp.daughters[0].make_interior()},
                        {Sense::outside, inp.daughters[1].make_interior()}}),
              MaterialId{4}});
-        inp.daughters.push_back({most_inner, Translation{{-2, -2, 0}}});
         return inp;
     }());
 

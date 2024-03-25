@@ -114,7 +114,11 @@ void UnitProto::build(InputBuilder& input) const
         NodeId node_id = csg_unit.volumes[orange_exterior_volume.get()];
         auto region_iter = csg_unit.regions.find(node_id);
         CELER_ASSERT(region_iter != csg_unit.regions.end());
-        result.bbox = get_exterior_bbox(region_iter->second.bounds);
+        auto const& bz = region_iter->second.bounds;
+        if (bz.negated)
+        {
+            result.bbox = bz.interior;
+        }
     }
 
     // Save surfaces
@@ -237,11 +241,11 @@ void UnitProto::build(InputBuilder& input) const
         CELER_ASSERT(inserted);
         // Convert proto pointer to universe ID
         iter->second.universe_id = input.find_universe_id(d.fill.get());
+
         // Save the transform
-        auto node_id = csg_unit.volumes[vol_id.get()];
-        auto region_iter = csg_unit.regions.find(node_id);
-        CELER_ASSERT(region_iter != csg_unit.regions.end());
-        auto transform_id = region_iter->second.transform_id;
+        auto const* fill = std::get_if<Daughter>(&csg_unit.fills[vol_id.get()]);
+        CELER_ASSERT(fill);
+        auto transform_id = fill->transform_id;
         CELER_ASSERT(transform_id < csg_unit.transforms.size());
         iter->second.transform = csg_unit.transforms[transform_id.get()];
     }
@@ -307,7 +311,7 @@ auto UnitProto::build(Tol const& tol, ExteriorBoundary ext) const -> Unit
             CELER_NOT_IMPLEMENTED("volume masking using different z orders");
         }
         auto lv = build_volume(*d.make_interior());
-        unit_builder.fill_volume(lv, daughter_id++);
+        unit_builder.fill_volume(lv, daughter_id++, d.transform);
     }
 
     // Build materials
