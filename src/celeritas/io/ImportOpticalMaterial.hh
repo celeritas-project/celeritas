@@ -149,11 +149,11 @@ struct ImportOpticalProperty
 
 //---------------------------------------------------------------------------//
 /*!
- * Store wavelength shifting properties.
+ * Store optical photon wavelength shifting properties.
  */
-struct ImportWavelengthShifting
+struct ImportWavelengthShift
 {
-    double mean_num_photons;  //!< Mean number of photons re-emitted
+    double mean_num_photons;  //!< Mean number of re-emitted photons
     double time_constant;  //!< Time delay between absorption and re-emission
     ImportPhysicsVector absorption_length;  //!< Absorption length [MeV, len]
     ImportPhysicsVector component;  //!< Emission spectrum [MeV, MeV]
@@ -179,7 +179,7 @@ struct ImportOpticalMaterial
     ImportOpticalRayleigh rayleigh;
     ImportOpticalAbsorption absorption;
     ImportOpticalProperty properties;
-    ImportWavelengthShifting wls;
+    ImportWavelengthShift wls;
 
     //! Whether all data are assigned and valid
     explicit operator bool() const
