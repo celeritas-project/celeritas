@@ -358,7 +358,7 @@ void InfWedge::output(JsonPimpl* j) const
 // PARALLELEPIPED
 //---------------------------------------------------------------------------//
 /*!
- * Construct with a 3-vector of half-edges and three angles (in radians).
+ * Construct with a 3-vector of half-edges and three angles.
  */
 Parallelepiped::Parallelepiped(Real3 const& half_projs,
                                Turn alpha,
@@ -373,13 +373,13 @@ Parallelepiped::Parallelepiped(Real3 const& half_projs,
                        << to_char(ax) << " axis: " << hpr_[to_int(ax)]);
     }
 
-    CELER_VALIDATE(alpha_ >= zero_quantity() && alpha_ < Turn{0.25},
+    CELER_VALIDATE(alpha_ > -Turn{0.25} && alpha_ < Turn{0.25},
                    << "invalid angle " << alpha_.value()
-                   << " [turns]: must be in the range [0, 0.25]");
+                   << " [turns]: must be in the range (-0.25, 0.25)");
 
     CELER_VALIDATE(theta_ >= zero_quantity() && theta_ < Turn{0.25},
                    << "invalid angle " << theta_.value()
-                   << " [turns]: must be in the range [0, 0.25]");
+                   << " [turns]: must be in the range [0, 0.25)");
 
     CELER_VALIDATE(phi_ >= zero_quantity() && phi_ < Turn{1.},
                    << "invalid angle " << phi_.value()
