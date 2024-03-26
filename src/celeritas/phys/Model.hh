@@ -47,7 +47,7 @@ namespace celeritas
  * This class is similar to Geant4's G4VContinuousDiscrete process, but more
  * limited.
  */
-class Model : public ExplicitActionInterface
+class Model : public ExplicitCoreActionInterface
 {
   public:
     //@{
