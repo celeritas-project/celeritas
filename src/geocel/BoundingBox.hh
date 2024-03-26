@@ -34,7 +34,7 @@ namespace celeritas
  * it (center, surface area, volume) are prohibited.
  *
  * A "degenerate" bounding box is one that is well-defined but has zero volume
- * because at least one lower coorindate is equal to the corresponding upper
+ * because at least one lower coordinate is equal to the corresponding upper
  * coordinate. Any point on the surface of this bounding box is still "inside".
  * It may have nonzero surface area but will have zero volume.
  */
