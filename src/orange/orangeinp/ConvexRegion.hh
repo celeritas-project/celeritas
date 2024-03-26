@@ -232,6 +232,62 @@ class InfWedge final : public ConvexRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
+ * A general parallelepiped centered on the origin.
+ *
+ * A parallelepiped is a shape having 3 pairs of parallel faces out of
+ * which one is parallel with the XY plane (Z faces). All faces are
+ * parallelograms in the general case. The Z faces have 2 edges parallel
+ * with the X-axis. Note that all angle parameters are expressed in terms
+ * of fractions of a 360deg turn.
+ *
+ * The shape has the center in the origin and it is defined by:
+ *
+ *   - `halfedges:` a 3-vector (dY, dY, dZ) with half-lengths of the
+ * projections of the edges on X, Y, Z. The lower Z face is positioned at
+ * `-dZ`, and the upper one at `+dZ`.
+ *   - `alpha:` angle between the segment defined by the centers of the
+ *     X-parallel edges and Y axis. Validity range is `(-1/4, 1/4)`;
+ *   - `theta:` polar angle of the shape's main axis, e.g. the segment defined
+ *     by the centers of the Z faces. Validity range is `[0, 1/4)`;
+ *   - `phi:` azimuthal angle of the shape's main axis (as explained above).
+ *     Validity range is `[0, 1)`.
+ */
+class Parallelepiped final : public ConvexRegionInterface
+{
+  public:
+    // Construct with half widths and 3 angles
+    Parallelepiped(Real3 const& halfedges, Turn alpha, Turn theta, Turn phi);
+
+    // Build surfaces
+    void build(ConvexSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Half-lengths of edge projections along each axis
+    Real3 const& half_projs() const { return hpr_; }
+    //! Angle between slanted y-edges and the y-axis (in turns)
+    Turn alpha() const { return alpha_; }
+    //! Polar angle of main axis (in turns)
+    Turn theta() const { return theta_; }
+    //! Azimuthal angle of main axis (in turns)
+    Turn phi() const { return phi_; }
+
+  private:
+    // half-lengths
+    Real3 hpr_;
+    // angle between slanted y-edges and the y-axis
+    Turn alpha_;
+    // polar angle of main axis
+    Turn theta_;
+    // azimuthal angle of main axis
+    Turn phi_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * A regular, z-extruded polygon centered on the origin.
  *
  * This is the base component of a G4Polyhedra (PGON). The default rotation is
