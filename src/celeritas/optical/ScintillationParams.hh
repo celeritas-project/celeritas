@@ -50,7 +50,7 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
 
         //!< ParticleId to ScintillationParticleId
         VecSPId pid_to_scintpid;
-        //! Particle and material spectra [ParticleScintillationSpectrumId]
+        //! Particle and material spectra [ParticleScintSpectrumId]
         std::vector<ImportParticleScintSpectrum> particles;
 
         explicit operator bool() const

@@ -91,7 +91,7 @@ ScintillationGenerator::ScintillationGenerator(
     if (shared_.scintillation_by_particle())
     {
         // TODO: implement sampling for particles
-        CELER_NOT_IMPLEMENTED("scintillation by particle type");
+        CELER_ASSERT_UNREACHABLE();
     }
 
     CELER_EXPECT(dist_);

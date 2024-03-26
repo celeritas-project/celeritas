@@ -44,9 +44,10 @@ struct ScintillationComponent
 /*!
  * Data characterizing material-only scintillation spectrum information.
  *
- * - \c yield is the characteristic light yield of the material in [1/MeV]
- *    units. The total light yield per step is then
- *    `yield_per_energy * step_length` .
+ * - \c yield_per_energy is the characteristic light yield of the material in
+ *   [1/MeV] units. The total light yield per step is then
+ *   `yield_per_energy * energy_dep`, which results in a (unitless) number of
+ *   photons.
  * - \c resolution_scale scales the standard deviation of the distribution of
  *   the number of photons generated.
  * - \c components stores the different scintillation components
@@ -95,8 +96,6 @@ struct ParticleScintillationSpectrum
  * loaded at the beginning of the simulation, but *never* both at the same
  * time. The \c scintillation_by_particle() function can be used to check that.
  *
- * - \c matid_to_optmatid returns an \c OpticalMaterialId given a
- *   \c MaterialId
  * - \c pid_to_scintpid returns a \c ScintillationParticleId given a
  *   \c ParticleId .
  * - \c resolution_scale is indexed by \c OpticalMaterialId .

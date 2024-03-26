@@ -47,19 +47,22 @@ ScintillationParams::from_import(ImportData const& data,
     {
         // Collect ScintillationParticleIds
         input.pid_to_scintpid.resize(data.particles.size());
-        ScintillationParticleId scintpid;
+        ScintillationParticleId scintpid{0};
         for (auto const& [matid, iom] : data.optical)
         {
             auto const& iomsp = iom.scintillation.particles;
             for (auto const& [pdg, ipss] : iomsp)
             {
-                auto const pid = particle_params->find(PDGNumber{pdg});
-                // Add new ScintillationParticleId
-                input.pid_to_scintpid[pid.get()] = scintpid++;
+                if (auto const pid = particle_params->find(PDGNumber{pdg}))
+                {
+                    // Add new ScintillationParticleId
+                    input.pid_to_scintpid[pid.get()] = scintpid++;
+                }
             }
         }
         // Resize particle- and material-dependent spectra
-        input.particles.resize(input.pid_to_scintpid.size() * num_optmats);
+        auto const num_scint_particles = scintpid.get() + 1;
+        input.particles.resize(num_scint_particles * num_optmats);
     }
     else
     {
@@ -68,7 +71,6 @@ ScintillationParams::from_import(ImportData const& data,
     }
 
     size_type optmatidx{0};
-    size_type scintpidx{0};
     for (auto const& [matid, iom] : data.optical)
     {
         input.resolution_scale[optmatidx] = iom.scintillation.resolution_scale;
@@ -89,12 +91,16 @@ ScintillationParams::from_import(ImportData const& data,
 
             for (auto const& [pdg, ipss] : iomsp)
             {
-                ImportParticleScintSpectrum part_spec;
-                part_spec.yield_vector = ipss.yield_vector;
-                part_spec.components = ipss.components;
-                input.particles[num_optmats * scintpidx + optmatidx]
-                    = std::move(part_spec);
-                scintpidx++;
+                if (auto const pid = particle_params->find(PDGNumber{pdg}))
+                {
+                    auto scintpid = input.pid_to_scintpid[pid.get()];
+                    CELER_ASSERT(scintpid);
+                    ImportParticleScintSpectrum part_spec;
+                    part_spec.yield_vector = ipss.yield_vector;
+                    part_spec.components = ipss.components;
+                    input.particles[num_optmats * scintpid.get() + optmatidx]
+                        = std::move(part_spec);
+                }
             }
         }
         optmatidx++;
@@ -151,7 +157,7 @@ ScintillationParams::ScintillationParams(Input const& input)
             build_materials.push_back(std::move(mat_spec));
         }
         CELER_VALIDATE(input.materials.size() == input.resolution_scale.size(),
-                       << "material and resolution scales do not match.");
+                       << "material and resolution scales do not match");
         CELER_ENSURE(host_data.materials.size()
                      == host_data.resolution_scale.size());
     }
@@ -160,7 +166,7 @@ ScintillationParams::ScintillationParams(Input const& input)
         // Store particle data
         CELER_VALIDATE(!input.pid_to_scintpid.empty(),
                        << "missing particle ID to scintillation particle ID "
-                          "mapping.");
+                          "mapping");
         CollectionBuilder build_scintpid(&host_data.pid_to_scintpid);
 
         // Store particle ids
@@ -181,6 +187,9 @@ ScintillationParams::ScintillationParams(Input const& input)
 
         for (auto spec : input.particles)
         {
+            CELER_VALIDATE(spec.yield_vector,
+                           << "particle yield vector is not assigned "
+                              "correctly");
             ParticleScintillationSpectrum part_spec;
             part_spec.yield_vector = build_grid(spec.yield_vector);
             auto comps = this->build_components(spec.components);
