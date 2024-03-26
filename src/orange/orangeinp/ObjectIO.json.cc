@@ -185,6 +185,13 @@ void to_json(nlohmann::json& j, Ellipsoid const& cr)
 {
     j = {{"_type", "ellipsoid"}, SIO_ATTR_PAIR(cr, radii)};
 }
+void to_json(nlohmann::json& j, GenTrap const& cr)
+{
+    j = {{"_type", "gentrap"},
+         SIO_ATTR_PAIR(cr, halfz),
+         SIO_ATTR_PAIR(cr, low_corners),
+         SIO_ATTR_PAIR(cr, high_corners)};
+}
 void to_json(nlohmann::json& j, InfWedge const& cr)
 {
     j = {{"_type", "infwedge"},

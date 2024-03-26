@@ -14,6 +14,7 @@
 #include "corecel/io/JsonPimpl.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/Types.hh"
+#include "geocel/detail/PolygonUtils.hh"
 #include "orange/surf/ConeAligned.hh"
 #include "orange/surf/CylCentered.hh"
 #include "orange/surf/PlaneAligned.hh"
@@ -305,6 +306,82 @@ void Ellipsoid::build(ConvexSurfaceBuilder& insert_surface) const
  * Write output to the given JSON object.
  */
 void Ellipsoid::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+// GENTRAP
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from half Z height and 1-4 vertices for top and bottom planes
+ */
+GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
+    : hz_{halfz}, lo_{lo}, hi_{hi}
+{
+    CELER_VALIDATE(hz_ > 0, << "nonpositive halfZ: " << hz_);
+    CELER_VALIDATE(lo_.size() <= 4, << "not enough vertices for -Z polygon.");
+    CELER_VALIDATE(hi_.size() <= 4, << "not enough vertices for +Z polygon.");
+
+    CELER_VALIDATE(lo_.size() >= 3 && hi_.size() >= 3,
+                   << "not enough vertices for both of the +Z/-Z polygons.");
+
+    // input vertices must be arranged in a CCW order
+    using geoutils::IsPolygonConvex;
+    CELER_VALIDATE(IsPolygonConvex(lo_), << "-Z polygon is not convex");
+    CELER_VALIDATE(IsPolygonConvex(hi_), << "+Z polygon is not convex");
+
+    // TODO: Temporarily ensure that all side faces are planar
+}
+
+/*
+VecReal2 GenTrap::corners() const
+{
+    VecReal2 all{lo_.size() + hi_.size()};
+    all.insert(all.end(), lo_.begin(), lo_.end());
+    all.insert(all.end(), hi_.begin(), hi_.end());
+    return std::move(all);
+}
+*/
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void GenTrap::build(ConvexSurfaceBuilder& insert_surface) const
+{
+    // Build the bottom and top planes
+    insert_surface(Sense::outside, PlaneZ{-hz_});
+    insert_surface(Sense::inside, PlaneZ{hz_});
+
+    // Build the side planes
+    Real3 a, b, c, d;
+    for (size_type j, i = 0; i < lo_.size(); ++i)
+    {
+        j = (i + 1) % lo_.size();
+        a = Real3{lo_[i][0], lo_[i][1], -hz_};
+        b = Real3{lo_[j][0], lo_[j][1], -hz_};
+        c = Real3{hi_[j][0], hi_[j][1], hz_};
+        d = Real3{hi_[i][0], hi_[i][1], hz_};
+
+        // Calculate plane parameters
+        auto normal = cross_product(b - a, c - b);
+        auto offset = dot_product(d, normal);
+
+        // CELER_ENSURE(SOFT_EQ(dot_product(b, normal), offset));
+        // CELER_ENSURE(SOFT_EQ(dot_product(c, normal), offset));
+        // CELER_ENSURE(SOFT_EQ(dot_product(d, normal), offset));
+
+        // Insert the plane
+        insert_surface(Sense::inside, Plane{normal, offset});
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void GenTrap::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
 }

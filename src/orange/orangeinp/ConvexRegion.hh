@@ -198,6 +198,48 @@ class Ellipsoid final : public ConvexRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
+ * A generalized trapezoid, inspired by VecGeom's GenTrap and also ROOT's Arb8.
+ *
+ * A GenTrap represents a general trapezoidal volume with up to eight vertices,
+ * or two 4-point sitting on two parallel planes perpendicular to Z axis.
+ */
+class GenTrap final : public ConvexRegionInterface
+{
+    //!@{
+    //! \name Type aliases
+    using Real2 = Array<real_type, 2>;
+    using VecReal2 = std::vector<Real2>;
+    //!@}
+
+  public:
+    // Construct from half Z height and 1-4 vertices for top and bottom planes
+    GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi);
+
+    // Build surfaces
+    void build(ConvexSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Half-length along Z
+    real_type halfz() const { return hz_; }
+
+    //! GenTrap corners
+    VecReal2 const& low_corners() const { return lo_; }
+    VecReal2 const& high_corners() const { return hi_; }
+
+  private:
+    // half-length along Z
+    real_type hz_;
+    // corners on the top and bottom planes
+    VecReal2 lo_;
+    VecReal2 hi_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * An open wedge shape from the Z axis.
  *
  * The wedge is defined by an interior angle that *must* be less than or equal

@@ -30,6 +30,7 @@ namespace orangeinp
  * - \c ConeShape
  * - \c CylinderShape
  * - \c EllipsoidShape
+ * - \c GenTrapShape
  * - \c ParallelepipedShape
  * - \c PrismShape
  * - \c SphereShape
@@ -116,6 +117,7 @@ using BoxShape = Shape<Box>;
 using ConeShape = Shape<Cone>;
 using CylinderShape = Shape<Cylinder>;
 using EllipsoidShape = Shape<Ellipsoid>;
+using GenTrapShape = Shape<GenTrap>;
 using ParallelepipedShape = Shape<Parallelepiped>;
 using PrismShape = Shape<Prism>;
 using SphereShape = Shape<Sphere>;
