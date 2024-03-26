@@ -10,6 +10,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayUtils.hh"
 
 #include "Types.hh"
 
