@@ -61,7 +61,7 @@ ScintillationParams::from_import(ImportData const& data,
             }
         }
         // Resize particle- and material-dependent spectra
-        auto const num_scint_particles = scintpid.get() + 1;
+        auto const num_scint_particles = scintpid.get();
         input.particles.resize(num_scint_particles * num_optmats);
     }
     else
