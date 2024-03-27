@@ -102,6 +102,9 @@ SquareMatrixReal3 make_rotation(Axis ax, Turn rev);
 // Apply a rotation to an existing C-ordered rotation matrix
 SquareMatrixReal3 make_rotation(Axis ax, Turn rev, SquareMatrixReal3 const&);
 
+// Construct a transposed matrix
+SquareMatrixReal3 make_transpose(SquareMatrixReal3 const&);
+
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//

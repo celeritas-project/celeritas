@@ -63,6 +63,9 @@ class Transformation
     }
 
   public:
+    // Construct by inverting a parent-to-daughter transformation
+    static Transformation from_inverse(Mat3 const& rot, Real3 const& trans);
+
     //// CONSTRUCTORS ////
 
     // Construct and check the input

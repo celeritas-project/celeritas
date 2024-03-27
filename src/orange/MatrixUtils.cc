@@ -241,6 +241,27 @@ Mat3 make_rotation(Axis ax, Turn theta, Mat3 const& other)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Construct a transposed matrix.
+ *
+ * This should only be used for preprocessing. Prefer methods that transpose on
+ * the fly.
+ */
+SquareMatrixReal3 make_transpose(SquareMatrixReal3 const& mat)
+{
+    SquareMatrixReal3 result;
+    for (size_type i = 0; i != 3; ++i)
+    {
+        for (size_type j = 0; j != 3; ++j)
+        {
+            result[i][j] = mat[j][i];
+        }
+    }
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATIONS
 //---------------------------------------------------------------------------//
 template int determinant(SquareMatrix<int, 3> const&);
