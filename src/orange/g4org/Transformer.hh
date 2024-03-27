@@ -21,7 +21,19 @@ namespace g4org
 {
 //---------------------------------------------------------------------------//
 /*!
- * Return a VecGeom transformation from a Geant4 transformation.
+ * Return an ORANGE transformation from a Geant4 transformation.
+ *
+ * In Geant4, "object" or "direct" transform refers to daughter-to-parent, how
+ * to place the daughter object in the parent. The "frame" transform (raw \c
+ * GetTransform or the \c fPtrTransform object) is how to transform from parent
+ * to daughter and is the inverse of that transform.
+ *
+ * Even though the affine transform's matrix has a \c operator() which does a
+ * matrix-vector multiply (aka \c gemv), this is *not* the same as the affine
+ * transform's rotation, which applies the *inverse* of the stored matrix.
+ *
+ * All Celeritas transforms are "daughter to parent". The transforms returned
+ * from this function \em must be daughter-to-parent!
  */
 class Transformer
 {
@@ -36,10 +48,13 @@ class Transformer
     inline explicit Transformer(Scaler const& scale);
 
     // Convert a translation
-    Translation operator()(G4ThreeVector const& t) const;
+    inline Translation operator()(G4ThreeVector const& t) const;
+
+    // Convert a pure rotation
+    inline Transformation operator()(G4RotationMatrix const& rot) const;
 
     // Convert a translation + rotation
-    Transformation
+    inline Transformation
     operator()(G4ThreeVector const& t, G4RotationMatrix const& rot) const;
 
     //! Convert a translation + optional rotation
@@ -56,6 +71,16 @@ class Transformer
 };
 
 //---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+// Convert a rotation matrix
+inline SquareMatrixReal3 convert_from_geant(G4RotationMatrix const& rot);
+
+//---------------------------------------------------------------------------//
+// Get the transpose/inverse of a rotation matrix
+inline SquareMatrixReal3 transposed_from_geant(G4RotationMatrix const& rot);
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
@@ -65,20 +90,31 @@ Transformer::Transformer(Scaler const& scale) : scale_{scale} {}
 
 //---------------------------------------------------------------------------//
 /*!
+ * Create a transform from a translation.
+ */
+auto Transformer::operator()(G4ThreeVector const& t) const -> Translation
+{
+    return Translation{scale_.to<Real3>(t[0], t[1], t[2])};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a transform from a translation plus rotation.
+ */
+auto Transformer::operator()(G4ThreeVector const&,
+                             G4RotationMatrix const&) const -> Transformation
+{
+    CELER_NOT_IMPLEMENTED("transformer");
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Create a transform from a translation plus optional rotation.
  */
-auto Transformer::operator()(G4ThreeVector const& t,
-                             G4RotationMatrix const* rot) const
-    -> VariantTransform
+auto Transformer::operator()(G4ThreeVector const&,
+                             G4RotationMatrix const*) const -> VariantTransform
 {
-    if (rot)
-    {
-        return (*this)(t, *rot);
-    }
-    else
-    {
-        return (*this)(t);
-    }
+    CELER_NOT_IMPLEMENTED("transformer");
 }
 
 //---------------------------------------------------------------------------//
@@ -88,7 +124,30 @@ auto Transformer::operator()(G4ThreeVector const& t,
 auto Transformer::operator()(G4AffineTransform const& affine) const
     -> Transformation
 {
-    return (*this)(affine.NetTranslation(), affine.NetRotation());
+    return Transformation{transposed_from_geant(affine.NetRotation()),
+                          scale_.to<Real3>(affine.NetTranslation())};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a rotation matrix.
+ */
+SquareMatrixReal3 convert_from_geant(G4RotationMatrix const& rot)
+{
+    return {Real3{{rot.xx(), rot.xy(), rot.xz()}},
+            Real3{{rot.yx(), rot.yy(), rot.yz()}},
+            Real3{{rot.zx(), rot.zy(), rot.zz()}}};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a transposed rotation matrix.
+ */
+SquareMatrixReal3 transposed_from_geant(G4RotationMatrix const& rot)
+{
+    return {Real3{{rot.xx(), rot.yx(), rot.zx()}},
+            Real3{{rot.xy(), rot.yy(), rot.zy()}},
+            Real3{{rot.xz(), rot.yz(), rot.zz()}}};
 }
 
 //---------------------------------------------------------------------------//
