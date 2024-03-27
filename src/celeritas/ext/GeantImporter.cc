@@ -548,6 +548,17 @@ ImportData::ImportOpticalMap import_optical()
                             "ABSLENGTH",
                             ImportUnits::len);
 
+        // Save WLS properties
+        get_property.scalar(&optical.wls.mean_num_photons,
+                            "WLSMEANNUMBERPHOTONS",
+                            ImportUnits::unitless);
+        get_property.scalar(
+            &optical.wls.time_constant, "WLSTIMECONSTANT", ImportUnits::time);
+        get_property.vector(
+            &optical.wls.absorption_length, "WLSABSLENGTH", ImportUnits::len);
+        get_property.vector(
+            &optical.wls.component, "WLSCOMPONENT", ImportUnits::unitless);
+
         if (optical)
         {
             result[mat_idx] = optical;

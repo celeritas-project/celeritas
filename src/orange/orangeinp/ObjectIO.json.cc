@@ -191,6 +191,14 @@ void to_json(nlohmann::json& j, InfWedge const& cr)
          {"start", cr.start().value()},
          {"interior", cr.interior().value()}};
 }
+void to_json(nlohmann::json& j, Parallelepiped const& cr)
+{
+    j = {{"_type", "parallelepiped"},
+         SIO_ATTR_PAIR(cr, half_projs),
+         {"alpha", cr.alpha().value()},
+         {"theta", cr.theta().value()},
+         {"phi", cr.phi().value()}};
+}
 void to_json(nlohmann::json& j, Prism const& cr)
 {
     j = {{"_type", "prism"},
