@@ -40,7 +40,7 @@ namespace detail
  * reference frame, not relative to any other CSG node nor to any parent
  * universe. (TODO: add bounds and transforms only for finite regions)
  *
- * TODO: map of SP object to detailed provenance?
+ * TODO (?) map nodes to set of object pointers, for detailed provenance?
  */
 struct CsgUnit
 {

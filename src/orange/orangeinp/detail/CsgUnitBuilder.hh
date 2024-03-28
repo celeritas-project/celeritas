@@ -94,7 +94,8 @@ class CsgUnitBuilder
     void fill_volume(LocalVolumeId, MaterialId);
 
     // Fill a volume node with a daughter using the local transform
-    void fill_volume(LocalVolumeId, UniverseId);
+    void
+    fill_volume(LocalVolumeId, UniverseId, VariantTransform const& transform);
 
   private:
     CsgUnit* unit_;

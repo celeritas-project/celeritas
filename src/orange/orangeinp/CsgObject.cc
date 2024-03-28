@@ -127,8 +127,8 @@ void JoinObjects<Op>::output(JsonPimpl* j) const
  */
 std::shared_ptr<AllObjects const>
 make_subtraction(std::string&& label,
-                 std::shared_ptr<ObjectInterface const> const& minuend,
-                 std::shared_ptr<ObjectInterface const> const& subtrahend)
+                 SPConstObject const& minuend,
+                 SPConstObject const& subtrahend)
 {
     CELER_EXPECT(!label.empty());
     CELER_EXPECT(minuend && subtrahend);
@@ -146,9 +146,8 @@ make_subtraction(std::string&& label,
  * The Region Definition Vector is the SCALE way for defining media,
  * boundaries, etc. It must not be empty.
  */
-std::shared_ptr<AllObjects const> make_rdv(
-    std::string&& label,
-    std::vector<std::pair<Sense, std::shared_ptr<ObjectInterface const>>>&& inp)
+std::shared_ptr<AllObjects const>
+make_rdv(std::string&& label, VecSenseObj&& inp)
 {
     CELER_EXPECT(!label.empty());
     CELER_EXPECT(!inp.empty());

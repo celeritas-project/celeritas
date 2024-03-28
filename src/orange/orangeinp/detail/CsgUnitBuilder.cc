@@ -7,11 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "CsgUnitBuilder.hh"
 
+#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StreamableVariant.hh"
 #include "orange/transform/TransformIO.hh"
 #include "orange/transform/TransformSimplifier.hh"
-
 namespace celeritas
 {
 namespace orangeinp
@@ -73,10 +73,10 @@ void CsgUnitBuilder::insert_region(NodeId n,
 
     auto&& [iter, inserted]
         = unit_->regions.insert({n, CsgUnit::Region{bzone, trans_id}});
-    if (CELERITAS_DEBUG && !inserted)
+    if (!inserted)
     {
-        // The existing bounding zone *SHOULD BE IDENTICAL*.
-        // For now this is a rough check...
+        // The existing bounding zone *SHOULD BE IDENTICAL* since it's the same
+        // CSG definition
         CsgUnit::Region const& existing = iter->second;
         CELER_ASSERT(bzone.negated == existing.bounds.negated);
         CELER_ASSERT(static_cast<bool>(bzone.interior)
@@ -88,10 +88,13 @@ void CsgUnitBuilder::insert_region(NodeId n,
             // TODO: we should implement transform soft equivalence
             // TODO: transformed shapes that are later defined as volumes (in
             // an RDV or single-item Join function) may result in the same node
-            // with two different transforms.
-            CELER_LOG(warning)
-                << "While re-inserting region for node " << n.get()
-                << ": existing transform "
+            // with two different transforms. These transforms don't usually
+            // matter though?
+            auto const& md = unit_->metadata[n.get()];
+            CELER_LOG(debug)
+                << "While re-inserting logically equivalent region '"
+                << join(md.begin(), md.end(), "' = '")
+                << "': existing transform "
                 << StreamableVariant{this->transform(existing.transform_id)}
                 << " differs from new transform "
                 << StreamableVariant{this->transform(trans_id)};
@@ -134,23 +137,21 @@ void CsgUnitBuilder::fill_volume(LocalVolumeId v, MaterialId m)
 //---------------------------------------------------------------------------//
 /*!
  * Fill a volume node with a daughter.
+ *
+ * The transform is from the current universe to the daughter. The
+ * corresponding shape may have additional transforms as well.
  */
-void CsgUnitBuilder::fill_volume(LocalVolumeId v, UniverseId u)
+void CsgUnitBuilder::fill_volume(LocalVolumeId v,
+                                 UniverseId u,
+                                 VariantTransform const& transform)
 {
     CELER_EXPECT(v < unit_->fills.size());
     CELER_EXPECT(!is_filled(unit_->fills[v.unchecked_get()]));
     CELER_EXPECT(u);
 
-    // Get the region associated with this node ID for the volume
-    CELER_ASSERT(unit_->volumes.size() == unit_->fills.size());
-    auto iter = unit_->regions.find(unit_->volumes[v.unchecked_get()]);
-    // The iterator should be valid since the whole volume should never be a
-    // pure surface (created outside a convex region)
-    CELER_ASSERT(iter != unit_->regions.end());
-
     Daughter new_daughter;
     new_daughter.universe_id = u;
-    new_daughter.transform_id = iter->second.transform_id;
+    new_daughter.transform_id = this->insert_transform(transform);
     CELER_ASSERT(new_daughter.transform_id < unit_->transforms.size());
 
     // Save fill

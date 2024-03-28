@@ -43,6 +43,7 @@ comp         : matid
 
 !#### LEVEL 2 UNIVERSE ####!
 ! Since this is referenced by the outer universe, it must come first !
+! NOTE: faces are xmin xmax ymin ymax zmin zmax
 
 [UNIVERSE=general most_inner]
 interior "patricia"

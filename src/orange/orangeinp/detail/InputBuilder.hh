@@ -3,14 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/detail/ProtoMap.hh
+//! \file orange/orangeinp/detail/InputBuilder.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <unordered_map>
-#include <vector>
-
+#include "orange/OrangeInput.hh"
 #include "orange/OrangeTypes.hh"
+
+#include "ProtoMap.hh"
 
 namespace celeritas
 {
@@ -22,58 +22,54 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Set up and access universe ordering.
+ * Manage data about the universe construction.
  *
  * On construction this builds a breadth-first ordered list of protos:
  * the input "global" universe will always be at the front of the list, and
  * universes may only depend on a universe with a larger ID.
  *
- * This is used by \c ProtoInterface::build as two-way map
+ * This is passed to \c ProtoInterface::build. It acts like a two-way map
  * between universe IDs and pointers to Proto interfaces. It \em must not
  * exceed the lifetime of any of the protos.
  */
-class ProtoMap
+class InputBuilder
 {
   public:
-    // Construct with global proto for ordering
-    explicit ProtoMap(ProtoInterface const& global);
+    //!@{
+    //! \name Type aliases
+    using Tol = Tolerance<>;
+    //!@}
 
-    // Get the proto corresponding to a universe ID
-    inline ProtoInterface const* at(UniverseId) const;
+  public:
+    // Construct with output pointer, geometry construction options, and protos
+    InputBuilder(OrangeInput* inp, Tol const& tol, ProtoMap const& protos);
 
-    // Find the universe ID for a given proto pointer (or raise)
-    inline UniverseId find(ProtoInterface const*) const;
+    //! Get the tolerance to use when constructing geometry
+    Tol const& tol() const { return inp_->tol; }
 
-    //! Get the number of protos to build
-    UniverseId::size_type size() const { return protos_.size(); }
+    // Find a universe ID
+    inline UniverseId find_universe_id(ProtoInterface const*) const;
+
+    //! Get the next universe ID
+    UniverseId next_id() const { return UniverseId(inp_->universes.size()); }
+
+    // Construct a universe (to be called *once* per proto)
+    void insert(VariantUniverseInput&& unit);
 
   private:
-    std::vector<ProtoInterface const*> protos_;
-    std::unordered_map<ProtoInterface const*, UniverseId> uids_;
+    OrangeInput* inp_;
+    ProtoMap const& protos_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Get the proto corresponding to a universe ID.
+ * Find a universe ID.
  */
-ProtoInterface const* ProtoMap::at(UniverseId uid) const
+UniverseId InputBuilder::find_universe_id(ProtoInterface const* p) const
 {
-    CELER_EXPECT(uid < this->size());
-    return protos_[uid.unchecked_get()];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Find the universe ID for a given proto pointer (or raise).
- */
-UniverseId ProtoMap::find(ProtoInterface const* proto) const
-{
-    CELER_EXPECT(proto);
-    auto iter = uids_.find(proto);
-    CELER_EXPECT(iter != uids_.end());
-    return iter->second;
+    return protos_.find(p);
 }
 
 //---------------------------------------------------------------------------//
