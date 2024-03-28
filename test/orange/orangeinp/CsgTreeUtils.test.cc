@@ -77,18 +77,18 @@ constexpr NodeId CsgTreeUtilsTest::false_id;
 TEST_F(CsgTreeUtilsTest, postfix_simplify)
 {
     // NOTE: mz = below = "false"
-    auto mz = this->insert(S{0});
-    auto pz = this->insert(S{1});
+    auto mz = this->insert_surface(PlaneZ{-1.0});
+    auto pz = this->insert_surface(PlaneZ{1.0});
     auto below_pz = this->insert(Negated{pz});
-    auto r_inner = this->insert(S{2});
+    auto r_inner = this->insert_surface(CCylZ{0.5});
     auto inside_inner = this->insert(Negated{r_inner});
     auto inner_cyl = this->insert(Joined{op_and, {mz, below_pz, inside_inner}});
-    auto r_outer = this->insert(S{3});
+    auto r_outer = this->insert_surface(CCylZ{1.0});
     auto inside_outer = this->insert(Negated{r_outer});
     auto outer_cyl = this->insert(Joined{op_and, {mz, below_pz, inside_outer}});
     auto not_inner = this->insert(Negated{inner_cyl});
     auto shell = this->insert(Joined{op_and, {not_inner, outer_cyl}});
-    auto bdy_outer = this->insert(S{4});
+    auto bdy_outer = this->insert_surface(CCylZ{4.0});
     auto bdy = this->insert(Joined{op_and, {bdy_outer, mz, below_pz}});
     auto zslab = this->insert(Joined{op_and, {mz, below_pz}});
 
@@ -110,6 +110,12 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         static S const expected_faces[] = {S{0u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
+
+        // NOTE: inside and outside are flipped
+        static_assert(Sense::inside == to_sense(false));
+        EXPECT_EQ(SignedSense::outside, is_inside(mz, {0, 0, -2}));
+        EXPECT_EQ(SignedSense::on, is_inside(mz, {0, 0, -1}));
+        EXPECT_EQ(SignedSense::inside, is_inside(mz, {0, 0, 2}));
     }
     {
         EXPECT_FALSE(has_internal_surfaces(below_pz));
@@ -119,6 +125,10 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         static S const expected_faces[] = {S{1u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
+
+        EXPECT_EQ(SignedSense::inside, is_inside(below_pz, {0, 0, 0.5}));
+        EXPECT_EQ(SignedSense::on, is_inside(below_pz, {0, 0, 1}));
+        EXPECT_EQ(SignedSense::outside, is_inside(below_pz, {0, 0, 2}));
     }
     {
         EXPECT_FALSE(has_internal_surfaces(zslab));
@@ -129,9 +139,13 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         static S const expected_faces[] = {S{0u}, S{1u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
+
+        EXPECT_EQ(SignedSense::inside, is_inside(zslab, {0, 0, 0}));
+        EXPECT_EQ(SignedSense::on, is_inside(zslab, {0, 0, 1}));
+        EXPECT_EQ(SignedSense::outside, is_inside(zslab, {0, 0, -2}));
     }
     {
-        EXPECT_FALSE(has_internal_surfaces(zslab));
+        EXPECT_FALSE(has_internal_surfaces(inner_cyl));
         auto&& [faces, lgc] = build_postfix(inner_cyl);
 
         static size_type const expected_lgc[]
@@ -170,6 +184,12 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
 
         EXPECT_EQ("all(all(+0, -1, -3), !all(+0, -1, -2))",
                   build_infix_string(tree_, shell));
+
+        EXPECT_EQ(SignedSense::outside, is_inside(shell, {0, 0, 0}));
+        EXPECT_EQ(SignedSense::on, is_inside(shell, {0, 0, 1}));
+        EXPECT_EQ(SignedSense::inside, is_inside(shell, {0.75, 0, 0}));
+        EXPECT_EQ(SignedSense::outside, is_inside(shell, {1.25, 0, 0}));
+        EXPECT_EQ(SignedSense::outside, is_inside(shell, {0, 0, -2}));
     }
     {
         EXPECT_FALSE(has_internal_surfaces(bdy));
