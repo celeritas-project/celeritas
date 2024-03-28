@@ -348,6 +348,16 @@ CELER_CONSTEXPR_FUNCTION Sense to_sense(bool s)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Change the sense across a surface.
+ */
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION SignedSense flip_sense(SignedSense orig)
+{
+    using IntT = std::underlying_type_t<SignedSense>;
+    return static_cast<SignedSense>(-static_cast<IntT>(orig));
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Change whether a boundary crossing is reentrant or exiting.
  */
 [[nodiscard]] CELER_CONSTEXPR_FUNCTION BoundaryResult
@@ -446,6 +456,9 @@ char const* to_cstring(SurfaceType);
 
 // Get a string corresponding to a transform type
 char const* to_cstring(TransformType);
+
+// Get a string corresponding to a signed sense
+char const* to_cstring(SignedSense);
 
 // Get a string corresponding to a surface state
 inline char const* to_cstring(SurfaceState s)

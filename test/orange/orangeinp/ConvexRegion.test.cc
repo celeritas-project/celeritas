@@ -13,12 +13,19 @@
 #include "orange/orangeinp/CsgTreeUtils.hh"
 #include "orange/orangeinp/detail/ConvexSurfaceState.hh"
 #include "orange/orangeinp/detail/CsgUnitBuilder.hh"
+#include "orange/orangeinp/detail/SenseEvaluator.hh"
 
 #include "CsgTestUtils.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+std::ostream& operator<<(std::ostream& os, SignedSense s)
+{
+    return (os << to_cstring(s));
+}
+
 namespace orangeinp
 {
 namespace test
@@ -39,6 +46,7 @@ class ConvexRegionTest : public ::celeritas::test::Test
         std::vector<std::string> surfaces;
         BBox interior;
         BBox exterior;
+        NodeId node_id;
 
         void print_expected() const;
     };
@@ -50,6 +58,13 @@ class ConvexRegionTest : public ::celeritas::test::Test
     TestResult test(ConvexRegionInterface const& r)
     {
         return this->test(r, NoTransformation{});
+    }
+
+    SignedSense calc_sense(NodeId n, Real3 const& pos)
+    {
+        CELER_EXPECT(n < unit_.tree.size());
+        detail::SenseEvaluator eval_sense(unit_.tree, unit_.surfaces, pos);
+        return eval_sense(n);
     }
 
   private:
@@ -78,6 +93,7 @@ auto ConvexRegionTest::test(ConvexRegionInterface const& r,
     TestResult result;
     result.node = build_infix_string(unit_.tree, node_id);
     result.surfaces = surface_strings(unit_);
+    result.node_id = node_id;
 
     // Combine the bounding zones
     auto merged_bzone = calc_merged_bzone(css);
@@ -139,6 +155,15 @@ TEST_F(BoxTest, standard)
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+
+    EXPECT_EQ(SignedSense::inside,
+              this->calc_sense(result.node_id, Real3{0, 0, 0}));
+    EXPECT_EQ(SignedSense::on,
+              this->calc_sense(result.node_id, Real3{1, 0, 0}));
+    EXPECT_EQ(SignedSense::outside,
+              this->calc_sense(result.node_id, Real3{0, 3, 0}));
+    EXPECT_EQ(SignedSense::outside,
+              this->calc_sense(result.node_id, Real3{0, 0, -4}));
 }
 
 //---------------------------------------------------------------------------//

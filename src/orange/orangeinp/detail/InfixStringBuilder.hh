@@ -39,7 +39,7 @@ class InfixStringBuilder
 {
   public:
     // Construct with tree and a stream to write to
-    explicit inline InfixStringBuilder(CsgTree const& tree, std::ostream* os);
+    inline InfixStringBuilder(CsgTree const& tree, std::ostream* os);
 
     //! Build from a node ID
     inline void operator()(NodeId const& n);
