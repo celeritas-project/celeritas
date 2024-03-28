@@ -1361,12 +1361,12 @@ TEST_F(LarSphere, optical)
     EXPECT_TRUE(scint);
     // Material scintillation
     EXPECT_REAL_EQ(1, scint.resolution_scale);
-    EXPECT_REAL_EQ(50000, scint.material.yield);
+    EXPECT_REAL_EQ(50000, scint.material.yield_per_energy);
     EXPECT_EQ(3, scint.material.components.size());
     std::vector<double> components;
     for (auto const& comp : scint.material.components)
     {
-        components.push_back(comp.yield);
+        components.push_back(comp.yield_per_energy);
         components.push_back(to_cm(comp.lambda_mean));
         components.push_back(to_cm(comp.lambda_sigma));
         components.push_back(to_sec(comp.rise_time));
@@ -1398,7 +1398,7 @@ TEST_F(LarSphere, optical)
         comp_sizes.push_back(part.components.size());
         for (auto comp : part.components)
         {
-            comp_y.push_back(comp.yield);
+            comp_y.push_back(comp.yield_per_energy);
             comp_lm.push_back(to_cm(comp.lambda_mean));
             comp_ls.push_back(to_cm(comp.lambda_sigma));
             comp_rt.push_back(to_sec(comp.rise_time));

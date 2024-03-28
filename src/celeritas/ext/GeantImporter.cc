@@ -229,7 +229,7 @@ fill_vec_import_scint_comp(MatPropGetter& get_property,
     for (int comp_idx : range(1, 4))
     {
         ImportScintComponent comp;
-        get_property.scalar(&comp.yield,
+        get_property.scalar(&comp.yield_per_energy,
                             particle_name + "SCINTILLATIONYIELD",
                             comp_idx,
                             ImportUnits::inv_mev);
@@ -504,9 +504,10 @@ ImportData::ImportOpticalMap import_optical()
         // Save scintillation properties
         {
             // Material scintillation properties
-            get_property.scalar(&optical.scintillation.material.yield,
-                                "SCINTILLATIONYIELD",
-                                ImportUnits::inv_mev);
+            get_property.scalar(
+                &optical.scintillation.material.yield_per_energy,
+                "SCINTILLATIONYIELD",
+                ImportUnits::inv_mev);
             get_property.scalar(&optical.scintillation.resolution_scale,
                                 "RESOLUTIONSCALE",
                                 ImportUnits::unitless);

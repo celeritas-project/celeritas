@@ -52,7 +52,7 @@ class OpticalTestBase : public Test
     make_particle_track_view(units::MevEnergy energy, PDGNumber pdg);
 
     //! Initialize sim track state
-    SimTrackView make_sim_track_view(real_type step_len);
+    SimTrackView make_sim_track_view(real_type step_len_cm);
 
     //! Get particle params data
     std::shared_ptr<ParticleParams> const& particle_params() const

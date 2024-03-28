@@ -12,7 +12,6 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"

@@ -12,6 +12,7 @@
 #include "corecel/data/Collection.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/GenericGridData.hh"
+#include "celeritas/optical/Types.hh"
 
 namespace celeritas
 {

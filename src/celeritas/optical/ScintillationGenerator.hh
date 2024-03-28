@@ -10,7 +10,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/data/Collection.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
@@ -89,6 +88,12 @@ ScintillationGenerator::ScintillationGenerator(
     , sample_phi_(0, 2 * constants::pi)
     , is_neutral_{dist_.charge == zero_quantity()}
 {
+    if (shared_.scintillation_by_particle())
+    {
+        // TODO: implement sampling for particles
+        CELER_ASSERT_UNREACHABLE();
+    }
+
     CELER_EXPECT(dist_);
     CELER_EXPECT(shared_);
     CELER_EXPECT(photons_.size() == dist_.num_photons);
@@ -119,21 +124,20 @@ template<class Generator>
 CELER_FUNCTION Span<OpticalPrimary>
 ScintillationGenerator::operator()(Generator& rng)
 {
-    // Loop for generating scintillation photons
     size_type num_generated{0};
+    auto const& mat_spectrum = shared_.materials[dist_.material];
 
-    ScintillationSpectrum const& spectrum = shared_.spectra[dist_.material];
-
-    for (auto sid : spectrum.components)
+    // Material sampling
+    for (auto sid : mat_spectrum.components)
     {
-        ScintillationComponent component = shared_.components[sid];
+        auto const& component = shared_.components[sid];
 
         // Calculate the number of photons to generate for this component
         size_type num_photons
-            = sid.get() + 1 == spectrum.components.size()
+            = (sid.get() + 1 == mat_spectrum.components.size())
                   ? dist_.num_photons - num_generated
                   : static_cast<size_type>(dist_.num_photons
-                                           * component.yield_prob);
+                                           * component.yield_frac);
 
         CELER_EXPECT(num_generated + num_photons <= dist_.num_photons);
 
@@ -161,7 +165,7 @@ ScintillationGenerator::operator()(Generator& rng)
             Real3 perp = {-std::sin(phi), std::cos(phi), 0};
             real_type sinphi, cosphi;
             sincospi(UniformRealDist{0, 1}(rng), &sinphi, &cosphi);
-            for (int j = 0; j < 3; ++j)
+            for (auto j : range(3))
             {
                 photons_[i].polarization[j] = cosphi * temp[j]
                                               + sinphi * perp[j];
