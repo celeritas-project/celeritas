@@ -132,7 +132,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   list(APPEND CELERITASTEST_LINK_LIBRARIES ${_g4_geo_libs})
 
   celeritas_add_test(g4org/Transformer.test.cc)
-  celeritas_add_test(g4org/SolidConverter.test.cc)
+  celeritas_add_test(g4org/SolidConverter.test.cc ${_needs_json})
 endif()
 
 #-----------------------------------------------------------------------------#

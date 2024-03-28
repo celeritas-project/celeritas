@@ -240,7 +240,18 @@ TEST_F(SolidConverterTest, polyhedra)
         {{6.18, 6.18, 0.05}, {0, 0, 0.06}, {7.15, 7.15, 0.05}, {6.18, 7.15, 0}});
 }
 
-TEST_F(SolidConverterTest, subtractionsolid) {}
+TEST_F(SolidConverterTest, subtractionsolid)
+{
+    G4Tubs t1("Solid Tube #1", 0, 50., 50., 0., 360. * degree);
+    G4Box b3("Test Box #3", 10., 20., 50.);
+    G4RotationMatrix xRot;
+    xRot.rotateZ(-pi);
+    G4Transform3D const transform(xRot, G4ThreeVector(0, 30, 0));
+    this->build_and_test(
+        G4SubtractionSolid("t1Subtractionb3", &t1, &b3, transform),
+        R"json({"_type":"all","daughters":[{"_type":"shape","interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Solid Tube #1"},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[1.0,2.0,5.0]},"label":"Test Box #3"},"transform":{"_type":"transformation","data":[-1.0,1.2246467991473532e-16,0.0,-1.2246467991473532e-16,-1.0,-0.0,0.0,0.0,1.0,0.0,3.0,0.0]}},"label":""}],"label":"t1Subtractionb3"})json",
+        {{0, 0, 0}, {0, 0, 10}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1}});
+}
 
 TEST_F(SolidConverterTest, tubs)
 {
@@ -289,7 +300,25 @@ TEST_F(SolidConverterTest, tubs)
         R"json({"_type":"solid","enclosed_angle":{"interior":0.75,"start":0.25},"interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Solid Sector #3"})json");
 }
 
-TEST_F(SolidConverterTest, unionsolid) {}
+TEST_F(SolidConverterTest, unionsolid)
+{
+    G4Tubs t1("Solid Tube #1", 0, 50, 50, 0, 360 * deg);
+    G4Box b3("Test Box #3", 10, 20, 50);
+    G4RotationMatrix identity, xRot;
+    xRot.rotateZ(-pi);
+    G4Transform3D transform(xRot, G4ThreeVector(0, 40, 0));
+
+    this->build_and_test(
+        G4UnionSolid("t1Unionb3", &t1, &b3, transform),
+        R"json({"_type":"any","daughters":[{"_type":"shape","interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Solid Tube #1"},{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[1.0,2.0,5.0]},"label":"Test Box #3"},"transform":{"_type":"transformation","data":[-1.0,1.2246467991473532e-16,0.0,-1.2246467991473532e-16,-1.0,-0.0,0.0,0.0,1.0,0.0,4.0,0.0]}}],"label":"t1Unionb3"})json",
+        {
+            {0, 6, 0},
+            {5, 0, 0},
+            {0, 6.5, 0},
+            {0, 4.9, 0},
+            {0, 5.1, 0},
+        });
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace test
