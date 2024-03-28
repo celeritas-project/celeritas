@@ -30,9 +30,14 @@ SignedSense SenseEvaluator::operator()(Surface const& s) const
 {
     CELER_EXPECT(s.id < surfaces_.size());
 
-    return std::visit(
+    auto result = std::visit(
         [&pos = this->pos_](auto const& surf) { return surf.calc_sense(pos); },
         surfaces_[s.id.get()]);
+
+    // TODO: "inside" wrt a surface (i.e. negative quadric) is "false", so we
+    // have to flip the result
+    static_assert(Sense::inside == to_sense(false));
+    return flip_sense(result);
 }
 
 //---------------------------------------------------------------------------//
