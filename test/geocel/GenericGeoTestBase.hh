@@ -10,6 +10,7 @@
 #include <type_traits>
 
 #include "corecel/data/CollectionStateStore.hh"
+#include "geocel/detail/LengthUnits.hh"
 
 #include "LazyGeoManager.hh"
 #include "Test.hh"
@@ -87,6 +88,12 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
     //! Build the geometry
     virtual SPConstGeo build_geometry() = 0;
 
+    //! Maximum number of local track slots
+    virtual size_type num_track_slots() const { return 1; }
+
+    //! Unit length for "track" testing and other results
+    virtual real_type unit_length() const { return lengthunits::centimeter; }
+
     //! Construct from celeritas test data and "basename" value
     SPConstGeo build_geometry_from_basename();
 
@@ -99,8 +106,8 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
     //! Get the name of the current surface if available
     std::string surface_name(GeoTrackView const& geo) const;
 
-    //! Get a single-thread host track view
-    GeoTrackView make_geo_track_view();
+    //! Get a host track view
+    GeoTrackView make_geo_track_view(TrackSlotId tsid = TrackSlotId{0});
     //! Get and initialize a single-thread host track view
     GeoTrackView make_geo_track_view(Real3 const& pos_cm, Real3 dir);
 
