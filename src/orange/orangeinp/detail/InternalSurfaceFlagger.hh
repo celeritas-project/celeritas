@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "corecel/cont/VariantUtils.hh"
-#include "orange/surf/VariantSurface.hh"
 
 #include "../CsgTree.hh"
 #include "../CsgTypes.hh"

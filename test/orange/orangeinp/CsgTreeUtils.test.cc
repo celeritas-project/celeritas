@@ -10,6 +10,8 @@
 #include "orange/orangeinp/CsgTree.hh"
 #include "orange/orangeinp/detail/InternalSurfaceFlagger.hh"
 #include "orange/orangeinp/detail/PostfixLogicBuilder.hh"
+#include "orange/orangeinp/detail/SenseEvaluator.hh"
+#include "orange/surf/VariantSurface.hh"
 
 #include "celeritas_test.hh"
 
@@ -20,6 +22,11 @@ using celeritas::orangeinp::detail::PostfixLogicBuilder;
 
 namespace celeritas
 {
+std::ostream& operator<<(std::ostream& os, SignedSense s)
+{
+    return (os << to_cstring(s));
+}
+
 namespace orangeinp
 {
 namespace test
@@ -41,8 +48,24 @@ class CsgTreeUtilsTest : public ::celeritas::test::Test
         return tree_.insert(std::forward<T>(n)).first;
     }
 
+    template<class T>
+    N insert_surface(T&& surf)
+    {
+        LocalSurfaceId lsid{static_cast<size_type>(surfaces_.size())};
+        surfaces_.push_back(std::forward<T>(surf));
+        return this->insert(lsid);
+    }
+
+    SignedSense is_inside(NodeId n, Real3 const& point) const
+    {
+        CELER_EXPECT(n < tree_.size());
+        detail::SenseEvaluator eval_sense(tree_, surfaces_, point);
+        return eval_sense(n);
+    }
+
   protected:
     CsgTree tree_;
+    std::vector<VariantSurface> surfaces_;
 
     static constexpr auto true_id = CsgTree::true_node_id();
     static constexpr auto false_id = CsgTree::false_node_id();
@@ -53,22 +76,23 @@ constexpr NodeId CsgTreeUtilsTest::false_id;
 
 TEST_F(CsgTreeUtilsTest, postfix_simplify)
 {
-    using LS = LocalSurfaceId;
-
+    // NOTE: the "shapes" here are incorrectly defined but still useful for
+    // testing
     auto mz = this->insert(S{0});
     auto pz = this->insert(S{1});
-    auto below_pz = this->insert(Negated{pz});
+    auto above_pz = this->insert(Negated{pz});
     auto r_inner = this->insert(S{2});
-    auto inside_inner = this->insert(Negated{r_inner});
-    auto inner_cyl = this->insert(Joined{op_and, {mz, below_pz, inside_inner}});
+    auto outside_inner = this->insert(Negated{r_inner});
+    auto inner_cyl
+        = this->insert(Joined{op_and, {mz, above_pz, outside_inner}});
     auto r_outer = this->insert(S{3});
     auto inside_outer = this->insert(Negated{r_outer});
-    auto outer_cyl = this->insert(Joined{op_and, {mz, below_pz, inside_outer}});
+    auto outer_cyl = this->insert(Joined{op_and, {mz, above_pz, inside_outer}});
     auto not_inner = this->insert(Negated{inner_cyl});
     auto shell = this->insert(Joined{op_and, {not_inner, outer_cyl}});
     auto bdy_outer = this->insert(S{4});
-    auto bdy = this->insert(Joined{op_and, {bdy_outer, mz, below_pz}});
-    auto zslab = this->insert(Joined{op_and, {mz, below_pz}});
+    auto bdy = this->insert(Joined{op_and, {bdy_outer, mz, above_pz}});
+    auto anti_zslab = this->insert(Joined{op_and, {mz, above_pz}});
 
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
@@ -85,36 +109,36 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         auto&& [faces, lgc] = build_postfix(mz);
 
         static size_type expected_lgc[] = {0};
-        static LS const expected_faces[] = {LS{0u}};
+        static S const expected_faces[] = {S{0u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
     }
     {
-        EXPECT_FALSE(has_internal_surfaces(below_pz));
-        auto&& [faces, lgc] = build_postfix(below_pz);
+        EXPECT_FALSE(has_internal_surfaces(above_pz));
+        auto&& [faces, lgc] = build_postfix(above_pz);
 
         static size_type expected_lgc[] = {0, logic::lnot};
-        static LS const expected_faces[] = {LS{1u}};
+        static S const expected_faces[] = {S{1u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
     }
     {
-        EXPECT_FALSE(has_internal_surfaces(zslab));
-        auto&& [faces, lgc] = build_postfix(zslab);
+        EXPECT_FALSE(has_internal_surfaces(anti_zslab));
+        auto&& [faces, lgc] = build_postfix(anti_zslab);
 
         static size_type const expected_lgc[]
             = {0u, 1u, logic::lnot, logic::land};
-        static LS const expected_faces[] = {LS{0u}, LS{1u}};
+        static S const expected_faces[] = {S{0u}, S{1u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
     }
     {
-        EXPECT_FALSE(has_internal_surfaces(zslab));
+        EXPECT_FALSE(has_internal_surfaces(anti_zslab));
         auto&& [faces, lgc] = build_postfix(inner_cyl);
 
         static size_type const expected_lgc[]
             = {0u, 1u, logic::lnot, logic::land, 2u, logic::lnot, logic::land};
-        static LS const expected_faces[] = {LS{0u}, LS{1u}, LS{2u}};
+        static S const expected_faces[] = {S{0u}, S{1u}, S{2u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
 
@@ -142,7 +166,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
             logic::lnot,
             logic::land,
         };
-        static LS const expected_faces[] = {LS{0u}, LS{1u}, LS{2u}, LS{3u}};
+        static S const expected_faces[] = {S{0u}, S{1u}, S{2u}, S{3u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
 
@@ -155,7 +179,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
 
         static size_type const expected_lgc[]
             = {0u, 1u, logic::lnot, logic::land, 2u, logic::land};
-        static LS const expected_faces[] = {LS{0u}, LS{1u}, LS{4u}};
+        static S const expected_faces[] = {S{0u}, S{1u}, S{4u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
         EXPECT_EQ("all(+0, -1, +4)", build_infix_string(tree_, bdy));
@@ -202,7 +226,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
     // Test postfix builder with remapping
     {
         auto remapped_surf = calc_surfaces(tree_);
-        static LS const expected_remapped_surf[] = {LS{2u}, LS{3u}};
+        static S const expected_remapped_surf[] = {S{2u}, S{3u}};
         EXPECT_VEC_EQ(expected_remapped_surf, remapped_surf);
 
         PostfixLogicBuilder build_postfix(tree_, remapped_surf);
@@ -210,10 +234,48 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
 
         static size_type const expected_lgc[]
             = {0u, 1u, logic::lnot, logic::land};
-        static LS const expected_faces[] = {LS{0u}, LS{1u}};
+        static S const expected_faces[] = {S{0u}, S{1u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
     }
+}
+
+TEST_F(CsgTreeUtilsTest, evaluate_senses)
+{
+    auto mz = this->insert_surface(PlaneZ{-1});
+    auto pz = this->insert_surface(PlaneZ{1});
+    auto above_mz = this->insert(Negated{mz});
+    auto r_inner = this->insert_surface(CCylZ{0.5});
+    auto inner_cyl = this->insert(Joined{op_and, {above_mz, pz, r_inner}});
+    auto r_outer = this->insert_surface(CCylZ{1.0});
+    auto outer_cyl = this->insert(Joined{op_and, {above_mz, pz, r_outer}});
+    auto not_inner = this->insert(Negated{inner_cyl});
+    auto shell = this->insert(Joined{op_and, {not_inner, outer_cyl}});
+    auto zslab = this->insert(Joined{op_and, {above_mz, pz}});
+
+    EXPECT_EQ(SignedSense::inside, this->is_inside(mz, {0, 0, -2}));
+    EXPECT_EQ(SignedSense::on, this->is_inside(mz, {1, 1, -1}));
+    EXPECT_EQ(SignedSense::outside, this->is_inside(mz, {0, 0, 0}));
+
+    EXPECT_EQ(SignedSense::outside, this->is_inside(above_mz, {0, 0, -2}));
+    EXPECT_EQ(SignedSense::on, this->is_inside(mz, {1, 1, -1}));
+    EXPECT_EQ(SignedSense::inside, this->is_inside(above_mz, {0, 0, 0}));
+
+    EXPECT_EQ(SignedSense::outside, this->is_inside(zslab, {0, 0, -2}));
+    EXPECT_EQ(SignedSense::on, this->is_inside(zslab, {1, 1, -1}));
+    EXPECT_EQ(SignedSense::inside, this->is_inside(zslab, {0, 0, 0}));
+    EXPECT_EQ(SignedSense::outside, this->is_inside(zslab, {0, 0, 2}));
+
+    EXPECT_EQ(SignedSense::inside, this->is_inside(inner_cyl, {0.25, 0, 0}));
+    EXPECT_EQ(SignedSense::outside, this->is_inside(inner_cyl, {0.51, 0, 0}));
+    EXPECT_EQ(SignedSense::on, this->is_inside(inner_cyl, {0, 0, 1}));
+    EXPECT_EQ(SignedSense::outside, this->is_inside(inner_cyl, {0, 0, 1.1}));
+
+    EXPECT_EQ(SignedSense::outside, this->is_inside(shell, {0.25, 0, 0}));
+    EXPECT_EQ(SignedSense::inside, this->is_inside(shell, {0.75, 0, 0}));
+    EXPECT_EQ(SignedSense::on, this->is_inside(shell, {0, 0, 1}));
+    EXPECT_EQ(SignedSense::outside, this->is_inside(shell, {0, 0, 1.1}));
+    EXPECT_EQ(SignedSense::outside, this->is_inside(shell, {1.5, 0, 0}));
 }
 
 TEST_F(CsgTreeUtilsTest, replace_union)
