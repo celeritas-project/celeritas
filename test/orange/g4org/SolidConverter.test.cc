@@ -47,6 +47,7 @@
 
 #include "corecel/Constants.hh"
 #include "corecel/cont/ArrayIO.hh"
+#include "corecel/math/Turn.hh"
 #include "orange/g4org/Scaler.hh"
 #include "orange/g4org/Transformer.hh"
 #include "orange/orangeinp/CsgTestUtils.hh"
@@ -88,6 +89,11 @@ SignedSense to_signed_sense(EInside inside)
             return SignedSense::inside;
     }
     CELER_ASSERT_UNREACHABLE();
+}
+
+G4ThreeVector to_geant(Real3 const& rv)
+{
+    return {rv[0], rv[1], rv[2]};
 }
 
 //---------------------------------------------------------------------------//
@@ -140,7 +146,7 @@ TEST_F(SolidConverterTest, box)
     this->build_and_test(
         G4Box("Test Box", 20, 30, 40),
         R"json({"_type":"shape","interior":{"_type":"box","halfwidths":[2.0,3.0,4.0]},"label":"Test Box"})json",
-        {{10, 0, 0}, {0, 30, 0}, {0, 0, 41}});
+        {{1, 0, 0}, {0, 3, 0}, {0, 0, 4.1}});
 }
 
 TEST_F(SolidConverterTest, cons)
@@ -149,8 +155,6 @@ TEST_F(SolidConverterTest, cons)
         G4Cons("Solid TubeLike #1", 0, 50, 0, 50, 50, 0, 360),
         R"json({"_type":"shape","interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Solid TubeLike #1"})json",
         {{0, 0, 4}, {0, 0, 5}, {0, 0, 6}, {4, 0, 0}, {5, 0, 0}, {6, 0, 0}});
-
-    this->print_expected();
 
     this->build_and_test(
         G4Cons("test10",
@@ -171,36 +175,70 @@ TEST_F(SolidConverterTest, cons)
 
 TEST_F(SolidConverterTest, displaced)
 {
-    G4Box b1("Test Box #1", 20, 30, 40);
-    G4Box b2("Test Box #2", 10, 10, 10);
-    G4Tubs t3("Solid cutted Tube #3", 0, 50, 50, 0, pi / 2.0);
+    // Daughter to parent: +x becomes +y
+    Real3 const rot_axis = make_unit_vector(Real3{3, 4, 5});
+    Turn const rot_turn{0.125};
 
-    G4ThreeVector ponb2mx(-10, 0, 0), pzero(0, 0, 0);
-    G4RotationMatrix xRot;
-    xRot.rotateZ(-pi * 0.5);
-    G4Transform3D transform(xRot, pzero);
+    // Construct Geant4 matrix and transforms
+    G4Transform3D transform(
+        G4RotationMatrix(to_geant(rot_axis), native_value_from(rot_turn)),
+        G4ThreeVector(10.0, 20.0, 30.0));
+
+    G4Box box("box", 20, 30, 40);
 
     this->build_and_test(
-        G4DisplacedSolid("passRotT3", &t3, &xRot, ponb2mx),
-        R"json({"_type":"transformed","daughter":{"_type":"solid","enclosed_angle":{"interior":0.25,"start":0.0},"interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Solid cutted Tube #3"},"transform":{"_type":"transformation","data":[6.123233995736766e-17,-1.0,0.0,1.0,6.123233995736766e-17,0.0,0.0,0.0,1.0,-1.0,0.0,0.0]}})json");
-    this->build_and_test(
-        G4DisplacedSolid("actiRotT3", &t3, transform),
-        R"json({"_type":"transformed","daughter":{"_type":"solid","enclosed_angle":{"interior":0.25,"start":0.0},"interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Solid cutted Tube #3"},"transform":{"_type":"transformation","data":[6.123233995736766e-17,1.0,0.0,-1.0,6.123233995736766e-17,0.0,0.0,0.0,1.0,0.0,0.0,0.0]}})json");
-    this->build_and_test(
-        G4DisplacedSolid("actiRotB3", &b1, transform),
-        R"json({"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[2.0,3.0,4.0]},"label":"Test Box #1"},"transform":{"_type":"transformation","data":[6.123233995736766e-17,1.0,0.0,-1.0,6.123233995736766e-17,0.0,0.0,0.0,1.0,0.0,0.0,0.0]}})json");
-    this->build_and_test(
-        G4DisplacedSolid("passRotT3", &b2, &xRot, ponb2mx),
-        R"json({"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[1.0,1.0,1.0]},"label":"Test Box #2"},"transform":{"_type":"transformation","data":[6.123233995736766e-17,-1.0,0.0,1.0,6.123233995736766e-17,0.0,0.0,0.0,1.0,-1.0,0.0,0.0]}})json");
+        G4DisplacedSolid("boxd", &box, transform),
+        R"json({"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[2.0,3.0,4.0]},"label":"box"},"transform":{"_type":"transformation","data":[0.7598275605729691,-0.42970562748477137,0.4878679656440358,0.5702943725152286,0.8008326112068523,-0.18284271247461906,-0.31213203435596426,0.41715728752538106,0.8535533905932738,1.0,2.0,3.0]}})json",
+        {{1, 2, 3}, {2, 2, 3}, {3, 0, 0}});
 }
 
-TEST_F(SolidConverterTest, intersectionsolid) {}
+TEST_F(SolidConverterTest, intersectionsolid)
+{
+    G4Box b1("Test Box #1", 20, 30, 40);
+    G4Box b2("Test Box #2", 10, 10, 10);
+    G4RotationMatrix xRot;
+    xRot.rotateZ(-pi * 0.5);
+    G4Transform3D transform(xRot, G4ThreeVector(0, 10, 0));
+    this->build_and_test(
+        G4IntersectionSolid("b1Intersectionb2", &b1, &b2, transform),
+        R"json({"_type":"all","daughters":[{"_type":"shape","interior":{"_type":"box","halfwidths":[2.0,3.0,4.0]},"label":"Test Box #1"},{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[1.0,1.0,1.0]},"label":"Test Box #2"},"transform":{"_type":"transformation","data":[6.123233995736766e-17,1.0,0.0,-1.0,6.123233995736766e-17,0.0,0.0,0.0,1.0,0.0,1.0,0.0]}}],"label":"b1Intersectionb2"})json",
+        {{0, 0, 0}, {0, 0, 10}, {0, 1, 0}});
+}
 
-TEST_F(SolidConverterTest, orb) {}
+TEST_F(SolidConverterTest, orb)
+{
+    this->build_and_test(
+        G4Orb("Solid G4Orb", 50),
+        R"json({"_type":"shape","interior":{"_type":"sphere","radius":5.0},"label":"Solid G4Orb"})json",
+        {{0, 0, 0}, {0, 5.0, 0}, {10.0, 0, 0}});
+}
 
-TEST_F(SolidConverterTest, polycone) {}
+TEST_F(SolidConverterTest, polycone)
+{
+    static double const z[] = {6, 630};
+    static double const rmin[] = {0, 0};
+    static double const rmax[] = {95, 95};
+    this->build_and_test(
+        G4Polycone("HGCalEE", 0, 360 * deg, std::size(z), z, rmin, rmax),
+        R"json({"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"cylinder","halfheight":31.2,"radius":9.5},"label":"HGCalEE"},"transform":{"_type":"translation","data":[0.0,0.0,31.8]}})json",
+        {{-6.72, -6.72, 0.7},
+         {6.72, 6.72, 62.9},
+         {0, 0, 31.8},
+         {-9.5, -9.5, 0.5},
+         {-6.72, 9.0, 0.70}});
+}
 
-TEST_F(SolidConverterTest, polyhedra) {}
+TEST_F(SolidConverterTest, polyhedra)
+{
+    static double const z[] = {-0.6, 0.6};
+    static double const rmin[] = {0, 0};
+    static double const rmax[] = {61.85, 61.85};
+    this->build_and_test(
+        G4Polyhedra(
+            "HGCalEEAbs", 330 * deg, 360 * deg, 6, std::size(z), z, rmin, rmax),
+        R"json({"_type":"shape","interior":{"_type":"prism","apothem":6.1850000000000005,"halfheight":0.06,"num_sides":6,"orientation":0.15277777777777776},"label":"HGCalEEAbs"})json",
+        {{6.18, 6.18, 0.05}, {0, 0, 0.06}, {7.15, 7.15, 0.05}, {6.18, 7.15, 0}});
+}
 
 TEST_F(SolidConverterTest, subtractionsolid) {}
 

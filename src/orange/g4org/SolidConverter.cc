@@ -430,23 +430,28 @@ auto SolidConverter::polycone(arg_type solid_base) -> result_type
         rmax[i] = scale_(params.Rmax[i]);
     }
 
-    if (zs.size() == 2)
+    if (zs.size() == 2 && rmin[0] == 0 && rmin[1] == 0)
     {
         // Special case: displaced cone/cylinder
         double const hh = (zs[1] - zs[0]) / 2;
-        Translation trans{{0, 0, zs[0] - hh}};
-        if (rmin[0] == rmax[1])
+        result_type result;
+        if (rmax[0] == rmax[1])
         {
-            // Cylinder
-            return std::make_shared<Transformed>(
-                make_shape<Cylinder>(solid, rmin[0], hh), std::move(trans));
+            // Cylinder is a special case
+            result = make_shape<Cylinder>(solid, rmax[0], hh);
         }
         else
         {
-            return std::make_shared<Transformed>(
-                make_shape<Cone>(solid, Cone::Real2{rmin[0], rmin[1]}, hh),
-                std::move(trans));
+            result = make_shape<Cone>(solid, Cone::Real2{rmax[0], rmin[1]}, hh);
         }
+
+        double dz = (zs[1] + zs[0]) / 2;
+        if (dz != 0)
+        {
+            result = std::make_shared<Transformed>(std::move(result),
+                                                   Translation{{0, 0, dz}});
+        }
+        return result;
     }
 
     CELER_NOT_IMPLEMENTED("polycone");
@@ -477,18 +482,28 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
     SolidEnclosedAngle angle(
         startphi, native_value_to<Turn>(solid.GetEndPhi()) - startphi);
 
-    if (zs.size() == 2)
+    if (zs.size() == 2 && rmin[0] == rmin[1] && rmax[0] == rmax[1])
     {
-        // Just a prism
+        // A solid prism
         double const hh = (zs[1] - zs[0]) / 2;
-        Translation trans{{0, 0, zs[0] - hh}};
-        return std::make_shared<Transformed>(
-            make_shape<Prism>(solid,
-                              params.numSide,
-                              rmin.front(),
-                              hh,
-                              startphi.value() * params.numSide),
-            trans);
+        double const orientation = startphi.value() / params.numSide;
+
+        if (rmin[0] != 0.0 || angle)
+        {
+            CELER_NOT_IMPLEMENTED("prism solid");
+        }
+
+        result_type result = make_shape<Prism>(
+            solid, params.numSide, rmax[0], hh, orientation);
+
+        double dz = (zs[1] + zs[0]) / 2;
+        if (dz != 0)
+        {
+            result = std::make_shared<Transformed>(
+                std::move(result), Translation{{0, 0, zs[0] - hh}});
+        }
+
+        return result;
     }
 
     CELER_NOT_IMPLEMENTED("polyhedra");
