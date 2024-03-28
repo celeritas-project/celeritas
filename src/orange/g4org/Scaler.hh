@@ -8,8 +8,10 @@
 #pragma once
 
 #include <utility>
+#include <G4ThreeVector.hh>
 #include <G4TwoVector.hh>
 
+#include "corecel/Assert.hh"
 #include "corecel/cont/Array.hh"
 #include "geocel/detail/LengthUnits.hh"
 
@@ -20,26 +22,23 @@ namespace g4org
 //---------------------------------------------------------------------------//
 /*!
  * Convert a unit from Geant4 scale to another.
- *
- * Currently the scale is hardcoded as mm (i.e., CLHEP units) but could easily
- * be a class attribute.
  */
 class Scaler
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using Real3 = Array<double, 3>;
-    //!@}
+    //! Default scale to CLHEP units (mm)
+    Scaler() : scale_{celeritas::lengthunits::millimeter} {}
 
-  public:
+    //! Scale with an explicit factor, probably for testing
+    explicit Scaler(double sc) : scale_{sc} { CELER_EXPECT(scale_ > 0); }
+
     //! Convert a positional scalar
     double operator()(double val) const { return val * scale_; }
 
     //! Convert a two-vector
-    std::pair<double, double> operator()(G4TwoVector const& vec) const
+    Array<double, 2> operator()(G4TwoVector const& vec) const
     {
-        return this->to<std::pair<double, double>>(vec.x(), vec.y());
+        return this->to<Array<double, 2>>(vec.x(), vec.y());
     }
 
     //! Convert a three-vector
@@ -56,8 +55,7 @@ class Scaler
     }
 
   private:
-    inline static constexpr double scale_
-        = ::celeritas::lengthunits::millimeter;
+    double scale_;
 };
 
 //---------------------------------------------------------------------------//

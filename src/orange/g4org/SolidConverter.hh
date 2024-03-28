@@ -67,6 +67,7 @@ class SolidConverter
     result_type box(arg_type);
     result_type cons(arg_type);
     result_type cuttubs(arg_type);
+    result_type displaced(arg_type);
     result_type ellipsoid(arg_type);
     result_type ellipticalcone(arg_type);
     result_type ellipticaltube(arg_type);
@@ -92,7 +93,7 @@ class SolidConverter
     result_type unionsolid(arg_type);
 
     // Construct bool daughters
-    result_type convert_bool_impl(G4BooleanSolid const&);
+    Array<result_type, 2> make_bool_solids(G4BooleanSolid const&);
     // Calculate solid capacity in native celeritas units
     double calc_capacity(G4VSolid const&) const;
 };

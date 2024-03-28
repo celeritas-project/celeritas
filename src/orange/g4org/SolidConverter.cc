@@ -24,8 +24,6 @@
 #include <G4GenericTrap.hh>
 #include <G4Hype.hh>
 #include <G4IntersectionSolid.hh>
-#include <G4LogicalVolume.hh>
-#include <G4LogicalVolumeStore.hh>
 #include <G4Navigator.hh>
 #include <G4Orb.hh>
 #include <G4PVDivision.hh>
@@ -35,9 +33,7 @@
 #include <G4Paraboloid.hh>
 #include <G4Polycone.hh>
 #include <G4Polyhedra.hh>
-#include <G4PropagatorInField.hh>
 #include <G4ReflectedSolid.hh>
-#include <G4ReflectionFactory.hh>
 #include <G4RotationMatrix.hh>
 #include <G4Sphere.hh>
 #include <G4SubtractionSolid.hh>
@@ -45,7 +41,6 @@
 #include <G4Tet.hh>
 #include <G4ThreeVector.hh>
 #include <G4Torus.hh>
-#include <G4Transform3D.hh>
 #include <G4Trap.hh>
 #include <G4Trd.hh>
 #include <G4Tubs.hh>
@@ -63,6 +58,7 @@
 #include "orange/orangeinp/CsgObject.hh"
 #include "orange/orangeinp/Shape.hh"
 #include "orange/orangeinp/Solid.hh"
+#include "orange/orangeinp/Transformed.hh"
 
 #include "Scaler.hh"
 #include "Transformer.hh"
@@ -132,15 +128,15 @@ SolidEnclosedAngle get_polar_wedge(S const& solid)
 
 //---------------------------------------------------------------------------//
 template<class CR>
-SPConstObject make_solid(G4VSolid const& solid,
-                         CR&& interior,
-                         std::optional<CR>&& excluded,
-                         SolidEnclosedAngle&& enclosed)
+auto make_solid(G4VSolid const& solid,
+                CR&& interior,
+                std::optional<CR>&& excluded,
+                SolidEnclosedAngle&& enclosed)
 {
-    return Solid<CR>::from_optional(std::string{solid.GetName()},
-                                    std::move(interior),
-                                    std::move(excluded),
-                                    std::move(enclosed));
+    return Solid<CR>::or_shape(std::string{solid.GetName()},
+                               std::move(interior),
+                               std::move(excluded),
+                               std::move(enclosed));
 }
 
 //---------------------------------------------------------------------------//
@@ -191,6 +187,7 @@ auto SolidConverter::convert_impl(arg_type solid_base) -> result_type
         SC_TYPE_FUNC(Box              , box),
         SC_TYPE_FUNC(Cons             , cons),
         SC_TYPE_FUNC(CutTubs          , cuttubs),
+        SC_TYPE_FUNC(DisplacedSolid   , displaced),
         SC_TYPE_FUNC(Ellipsoid        , ellipsoid),
         SC_TYPE_FUNC(EllipticalCone   , ellipticalcone),
         SC_TYPE_FUNC(EllipticalTube   , ellipticaltube),
@@ -259,6 +256,20 @@ auto SolidConverter::cons(arg_type solid_base) -> result_type
                                                 solid.GetInnerRadiusPlusZ());
     auto hh = scale_(solid.GetZHalfLength());
 
+    if (outer_r[0] == outer_r[1])
+    {
+        std::optional<Cylinder> inner;
+        if (inner_r[0] || inner_r[1])
+        {
+            inner = Cylinder{inner_r[0], hh};
+        }
+
+        return make_solid(solid,
+                          Cylinder{outer_r[0], hh},
+                          std::move(inner),
+                          get_azimuthal_wedge(solid));
+    }
+
     std::optional<Cone> inner;
     if (inner_r[0] || inner_r[1])
     {
@@ -276,6 +287,18 @@ auto SolidConverter::cuttubs(arg_type solid_base) -> result_type
     auto const& solid = dynamic_cast<G4CutTubs const&>(solid_base);
     CELER_DISCARD(solid);
     CELER_NOT_IMPLEMENTED("cuttubs");
+}
+
+//---------------------------------------------------------------------------//
+//! Convert a displaced solid
+auto SolidConverter::displaced(arg_type solid_base) -> result_type
+{
+    auto const& solid = dynamic_cast<G4DisplacedSolid const&>(solid_base);
+    G4VSolid* g4daughter = solid.GetConstituentMovedSolid();
+    CELER_ASSERT(g4daughter);
+    auto daughter = (*this)(*g4daughter);
+    return std::make_shared<Transformed>(
+        daughter, transform_(solid.GetDirectTransform()));
 }
 
 //---------------------------------------------------------------------------//
@@ -345,8 +368,11 @@ auto SolidConverter::hype(arg_type solid_base) -> result_type
 //! Convert an intersection solid
 auto SolidConverter::intersectionsolid(arg_type solid_base) -> result_type
 {
-    CELER_DISCARD(solid_base);
-    CELER_NOT_IMPLEMENTED("intersectionsolid");
+    auto vols = this->make_bool_solids(
+        dynamic_cast<G4BooleanSolid const&>(solid_base));
+    return std::make_shared<AllObjects>(
+        std::string{solid_base.GetName()},
+        std::vector{std::move(vols[0]), std::move(vols[1])});
 }
 
 //---------------------------------------------------------------------------//
@@ -354,8 +380,7 @@ auto SolidConverter::intersectionsolid(arg_type solid_base) -> result_type
 auto SolidConverter::orb(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Orb const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("orb");
+    return make_shape<Sphere>(solid, scale_(solid.GetRadius()));
 }
 
 //---------------------------------------------------------------------------//
@@ -363,8 +388,20 @@ auto SolidConverter::orb(arg_type solid_base) -> result_type
 auto SolidConverter::para(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Para const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("para");
+#if G4VERSION_NUMBER >= 1100
+    double const theta = solid.GetTheta();
+    double const phi = solid.GetPhi();
+#else
+    CELER_NOT_IMPLEMENTED("older geant4, don't duplicate code");
+#endif
+    return make_shape<Parallelepiped>(
+        solid,
+        scale_.to<Real3>(solid.GetXHalfLength(),
+                         solid.GetYHalfLength(),
+                         solid.GetZHalfLength()),
+        native_value_to<Turn>(std::atan(solid.GetTanAlpha())),
+        native_value_to<Turn>(theta),
+        native_value_to<Turn>(phi));
 }
 
 //---------------------------------------------------------------------------//
@@ -382,7 +419,36 @@ auto SolidConverter::polycone(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Polycone const&>(solid_base);
     auto const& params = *solid.GetOriginalParameters();
-    CELER_DISCARD(params);
+
+    std::vector<double> zs(params.Num_z_planes);
+    std::vector<double> rmin(zs.size());
+    std::vector<double> rmax(zs.size());
+    for (auto i : range(zs.size()))
+    {
+        zs[i] = scale_(params.Z_values[i]);
+        rmin[i] = scale_(params.Rmin[i]);
+        rmax[i] = scale_(params.Rmax[i]);
+    }
+
+    if (zs.size() == 2)
+    {
+        // Special case: displaced cone/cylinder
+        double const hh = (zs[1] - zs[0]) / 2;
+        Translation trans{{0, 0, zs[0] - hh}};
+        if (rmin[0] == rmax[1])
+        {
+            // Cylinder
+            return std::make_shared<Transformed>(
+                make_shape<Cylinder>(solid, rmin[0], hh), std::move(trans));
+        }
+        else
+        {
+            return std::make_shared<Transformed>(
+                make_shape<Cone>(solid, Cone::Real2{rmin[0], rmin[1]}, hh),
+                std::move(trans));
+        }
+    }
+
     CELER_NOT_IMPLEMENTED("polycone");
 }
 
@@ -393,7 +459,38 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
     auto const& solid = dynamic_cast<G4Polyhedra const&>(solid_base);
     auto const& params = *solid.GetOriginalParameters();
 
-    CELER_DISCARD(params);
+    // Opening angle: end - start phi
+    double const radius_factor
+        = std::cos(0.5 * params.Opening_angle / params.numSide);
+
+    std::vector<double> zs(params.Num_z_planes);
+    std::vector<double> rmin(zs.size());
+    std::vector<double> rmax(zs.size());
+    for (auto i : range(zs.size()))
+    {
+        zs[i] = scale_(params.Z_values[i]);
+        rmin[i] = scale_(params.Rmin[i]) * radius_factor;
+        rmax[i] = scale_(params.Rmax[i]) * radius_factor;
+    }
+
+    auto startphi = native_value_to<Turn>(solid.GetStartPhi());
+    SolidEnclosedAngle angle(
+        startphi, native_value_to<Turn>(solid.GetEndPhi()) - startphi);
+
+    if (zs.size() == 2)
+    {
+        // Just a prism
+        double const hh = (zs[1] - zs[0]) / 2;
+        Translation trans{{0, 0, zs[0] - hh}};
+        return std::make_shared<Transformed>(
+            make_shape<Prism>(solid,
+                              params.numSide,
+                              rmin.front(),
+                              hh,
+                              startphi.value() * params.numSide),
+            trans);
+    }
+
     CELER_NOT_IMPLEMENTED("polyhedra");
 }
 
@@ -419,8 +516,11 @@ auto SolidConverter::sphere(arg_type solid_base) -> result_type
 //! Convert a subtraction solid
 auto SolidConverter::subtractionsolid(arg_type solid_base) -> result_type
 {
-    CELER_DISCARD(solid_base);
-    CELER_NOT_IMPLEMENTED("subtractionsolid");
+    auto vols = this->make_bool_solids(
+        dynamic_cast<G4BooleanSolid const&>(solid_base));
+    return make_subtraction(std::string{solid_base.GetName()},
+                            std::move(vols[0]),
+                            std::move(vols[1]));
 }
 
 //---------------------------------------------------------------------------//
@@ -465,7 +565,7 @@ auto SolidConverter::trd(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Trd const&>(solid_base);
     CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("tubs ");
+    CELER_NOT_IMPLEMENTED("trd");
 }
 
 //---------------------------------------------------------------------------//
@@ -491,18 +591,28 @@ auto SolidConverter::tubs(arg_type solid_base) -> result_type
 //! Convert a union solid
 auto SolidConverter::unionsolid(arg_type solid_base) -> result_type
 {
-    CELER_DISCARD(solid_base);
-    CELER_NOT_IMPLEMENTED("unionsolid");
+    auto vols = this->make_bool_solids(
+        dynamic_cast<G4BooleanSolid const&>(solid_base));
+    return std::make_shared<AnyObjects>(
+        std::string{solid_base.GetName()},
+        std::vector{std::move(vols[0]), std::move(vols[1])});
 }
 
 //---------------------------------------------------------------------------//
 // HELPERS
 //---------------------------------------------------------------------------//
 //! Create daughter volumes for a boolean solid
-auto SolidConverter::convert_bool_impl(G4BooleanSolid const&) -> result_type
+auto SolidConverter::make_bool_solids(G4BooleanSolid const& bs)
+    -> Array<result_type, 2>
 {
-    CELER_DISCARD(transform_);
-    CELER_NOT_IMPLEMENTED("bool");
+    Array<result_type, 2> result;
+    for (auto i : range(result.size()))
+    {
+        G4VSolid const* solid = bs.GetConstituentSolid(i);
+        CELER_ASSERT(solid);
+        result[i] = (*this)(*solid);
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
