@@ -127,7 +127,7 @@ ImportedProcessAdapter::ImportedProcessAdapter(SPConstImported imported,
         ParticleProcessIds proc_ids;
         proc_ids.process = imported_->find({pdg, process_class});
         CELER_VALIDATE(proc_ids.process,
-                       << "imported process data is unavalable for PDG{"
+                       << "imported process data is unavailable for PDG{"
                        << pdg.get() << "} (needed for '"
                        << to_cstring(process_class) << "')");
 

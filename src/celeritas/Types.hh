@@ -47,6 +47,9 @@ using ParticleId = OpaqueId<struct Particle_>;
 //! Opaque index of physics process
 using ProcessId = OpaqueId<class Process>;
 
+//! Opaque index of optical process
+using OpticalProcessId = OpaqueId<class OpticalProcess>;
+
 //! Unique ID (for an event) of a track among all primaries and secondaries
 using TrackId = OpaqueId<struct Track_>;
 
