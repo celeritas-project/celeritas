@@ -21,6 +21,15 @@ DepthCalculator::DepthCalculator(VecVarUniv const& inp)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Calculate the depth of the global unit.
+ */
+size_type DepthCalculator::operator()()
+{
+    return this->visit_univ_(*this, 0);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Calculate the depth of a unit.
  */
 size_type DepthCalculator::operator()(UnitInput const& u)

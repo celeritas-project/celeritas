@@ -32,8 +32,8 @@ class DepthCalculator
     // Construct with a reference to all universe inputs
     explicit DepthCalculator(VecVarUniv const&);
 
-    //! Calculate the depth of the global unit
-    size_type operator()() { return this->visit_univ_(*this, 0); }
+    // Calculate the depth of the global unit
+    size_type operator()();
 
     // Calculate the depth of a unit
     size_type operator()(UnitInput const& u);
@@ -43,7 +43,7 @@ class DepthCalculator
 
   private:
     ContainerVisitor<VecVarUniv const&> visit_univ_;
-    std::size_t num_univ_;
+    std::size_t num_univ_{0};
     std::unordered_map<UniverseId, size_type> depths_;
 
     // Check cache or calculate

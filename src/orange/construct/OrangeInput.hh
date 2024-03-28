@@ -8,7 +8,8 @@
 #pragma once
 
 #include <algorithm>
-#include <unordered_map>  // IWYU pragma: export
+#include <iosfwd>
+#include <map>
 #include <variant>
 #include <vector>
 
@@ -70,7 +71,7 @@ struct DaughterInput
  */
 struct UnitInput
 {
-    using MapVolumeDaughter = std::unordered_map<LocalVolumeId, DaughterInput>;
+    using MapVolumeDaughter = std::map<LocalVolumeId, DaughterInput>;
 
     std::vector<VariantSurface> surfaces;
     std::vector<VolumeInput> volumes;
@@ -128,6 +129,26 @@ struct OrangeInput
     //! Whether the unit definition is valid
     explicit operator bool() const { return !universes.empty(); }
 };
+
+//---------------------------------------------------------------------------//
+// Helper to read the input from a file or stream
+std::istream& operator>>(std::istream& is, OrangeInput&);
+
+//---------------------------------------------------------------------------//
+// Helper to write the input to a file or stream
+std::ostream& operator<<(std::ostream& os, OrangeInput const&);
+
+//---------------------------------------------------------------------------//
+#if !CELERITAS_USE_JSON
+inline std::istream& operator>>(std::istream&, OrangeInput&)
+{
+    CELER_NOT_CONFIGURED("JSON");
+}
+inline std::ostream& operator<<(std::ostream&, OrangeInput const&)
+{
+    CELER_NOT_CONFIGURED("JSON");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

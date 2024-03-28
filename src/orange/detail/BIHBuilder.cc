@@ -47,14 +47,18 @@ BIHTree BIHBuilder::operator()(VecBBox bboxes)
     {
         LocalVolumeId id(i);
 
-        if (!is_infinite(bboxes_[i]))
+        if (!bboxes_[i])
         {
-            indices.push_back(id);
+            // Null bbox (background volume) is unreachable by volume
+            // initialization
+        }
+        else if (is_infinite(bboxes_[i]))
+        {
+            inf_volids.push_back(id);
         }
         else
         {
-            CELER_ASSERT(bboxes_[i]);
-            inf_volids.push_back(id);
+            indices.push_back(id);
         }
     }
 

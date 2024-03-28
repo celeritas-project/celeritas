@@ -63,7 +63,7 @@ class OrangeGeoTestBase : public Test
     static std::vector<Sense> string_to_senses(std::string const& s);
 
     // Load `test/orange/data/{filename}` JSON input
-    void build_geometry(char const* filename);
+    void build_geometry(std::string const& filename);
 
     // Load geometry with one infinite volume
     void build_geometry(OneVolInput);
@@ -81,6 +81,13 @@ class OrangeGeoTestBase : public Test
         return *params_;
     }
 
+    //! Get the data after loading
+    SPConstParams const& geometry() const
+    {
+        CELER_ENSURE(params_);
+        return params_;
+    }
+
     //! Get a shared pointer to params
     SPConstParams const& sp_params() const { return params_; }
 
@@ -93,10 +100,10 @@ class OrangeGeoTestBase : public Test
     //// QUERYING ////
 
     // Find the volume from its label (nullptr allowed)
-    VolumeId find_volume(char const* label) const;
+    VolumeId find_volume(std::string const& label) const;
 
     // Find the surface from its label (NULL pointer allowed)
-    SurfaceId find_surface(char const* label) const;
+    SurfaceId find_surface(std::string const& label) const;
 
     // Surface name (or sentinel if no surface)
     std::string id_to_label(UniverseId uid, LocalSurfaceId surfid) const;

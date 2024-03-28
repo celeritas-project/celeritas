@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <iostream>
-
 #include "corecel/Assert.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeData.hh"
@@ -155,6 +153,10 @@ SimpleUnitTracker::SimpleUnitTracker(ParamsRef const& params, SimpleUnitId suid)
  *
  * To avoid edge cases and inconsistent logical/physical states, it is
  * prohibited to initialize from an arbitrary point directly onto a surface.
+ *
+ * \todo this prohibition currently also extends to *internal* surfaces, even
+ * if both sides of that surface are "in" the current cell. We may need to
+ * relax that.
  */
 CELER_FUNCTION auto
 SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
