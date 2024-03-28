@@ -123,6 +123,24 @@ char const* to_cstring(TransformType value)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get a string corresponding to a signed sense.
+ */
+char const* to_cstring(SignedSense s)
+{
+    switch (s)
+    {
+        case SignedSense::inside:
+            return "inside";
+        case SignedSense::on:
+            return "on";
+        case SignedSense::outside:
+            return "outside";
+    }
+    return "<invalid>";
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get a string corresponding to a transform type.
  */
 char const* to_cstring(ZOrder zo)
