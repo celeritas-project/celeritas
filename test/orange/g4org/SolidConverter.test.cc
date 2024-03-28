@@ -21,11 +21,7 @@
 #include <G4GenericTrap.hh>
 #include <G4Hype.hh>
 #include <G4IntersectionSolid.hh>
-#include <G4Navigator.hh>
 #include <G4Orb.hh>
-#include <G4PVDivision.hh>
-#include <G4PVParameterised.hh>
-#include <G4PVReplica.hh>
 #include <G4Para.hh>
 #include <G4Paraboloid.hh>
 #include <G4PhysicalConstants.hh>
@@ -211,6 +207,23 @@ TEST_F(SolidConverterTest, orb)
         G4Orb("Solid G4Orb", 50),
         R"json({"_type":"shape","interior":{"_type":"sphere","radius":5.0},"label":"Solid G4Orb"})json",
         {{0, 0, 0}, {0, 5.0, 0}, {10.0, 0, 0}});
+}
+
+TEST_F(SolidConverterTest, para)
+{
+    this->build_and_test(
+        G4Para("LArEMECInnerAluConeAluBar",
+               5.01588152875291,
+               5,
+               514,
+               0,
+               4.56062963173385,
+               0),
+        R"json({"_type":"shape","interior":{"_type":"parallelepiped","alpha":0.0,"halfedges":[0.501588152875291,0.5,51.400000000000006],"phi":0.0,"theta":0.22584674950181247},"label":"LArEMECInnerAluConeAluBar"})json",
+        {
+            {51.2, 0.40, 7.76},
+            {51.4, 0.51, 7.78},
+        });
 }
 
 TEST_F(SolidConverterTest, polycone)

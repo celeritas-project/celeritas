@@ -24,11 +24,7 @@
 #include <G4GenericTrap.hh>
 #include <G4Hype.hh>
 #include <G4IntersectionSolid.hh>
-#include <G4Navigator.hh>
 #include <G4Orb.hh>
-#include <G4PVDivision.hh>
-#include <G4PVParameterised.hh>
-#include <G4PVReplica.hh>
 #include <G4Para.hh>
 #include <G4Paraboloid.hh>
 #include <G4Polycone.hh>
