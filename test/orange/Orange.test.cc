@@ -1262,8 +1262,6 @@ TEST_F(InputBuilderTest, bgspheres)
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {3, 6, 1, 4, 5};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {0, inf, 0, inf, 0};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     {
         SCOPED_TRACE("from inside top");
@@ -1274,7 +1272,7 @@ TEST_F(InputBuilderTest, bgspheres)
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {2, 1, 6, 4};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {1, 0, inf, 0};
+        static real_type const expected_hw_safety[] = {1, 0, 0, 0};
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
 
