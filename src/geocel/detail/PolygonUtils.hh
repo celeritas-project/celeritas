@@ -12,6 +12,8 @@
 #include <iostream>
 #include <vector>
 #include <corecel/cont/Array.hh>
+#include <corecel/math/ArrayUtils.hh>
+#include <orange/OrangeTypes.hh>
 
 namespace celeritas
 {
@@ -22,17 +24,48 @@ template<typename T>
 using Real2 = Array<T, 2>;
 template<typename T>
 using VecReal2 = std::vector<Real2<T>>;
+template<typename T>
+using Real3 = Array<T, 3>;
+template<typename T>
+using VecReal3 = std::vector<Real3<T>>;
+
+enum PgonOrient : int
+{
+    clockwise = -1,
+    collinear = 0,
+    counterclockwise = 1,
+    kCW = clockwise,
+    kLine = collinear,
+    kCCW = counterclockwise
+};
+
+//---------------------------------------------------------------------------//
+// Find orientation of ordered triplet (a, b, c).
+// The function returns following values
+//  0 --> input points are collinear
+// -1 --> Clockwise
+// +1 --> Counterclockwise
+template<typename T>
+CELER_FUNCTION PgonOrient orientation_2D(Real2<T> const& a,
+                                         Real2<T> const& b,
+                                         Real2<T> const& c)
+{
+    T crossp = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]);
+    if (crossp == 0)
+        return collinear;  // collinear
+    return (crossp < 0) ? kCW : kCCW;  // clockwise or counterclockwise
+}
 
 //---------------------------------------------------------------------------//
 /*! Check if a 2D polygon is convex.
  *
  * /param corners the vertices of the polygon
  * /param degen_ok if true, consecutive degenerate points are okay, still
- * return true
+ *   returns true
  */
 template<typename T>
 CELER_FUNCTION bool
-IsPolygonConvex(VecReal2<T> const& corners, bool degen_ok = false)
+is_convex_2D(VecReal2<T> const& corners, bool degen_ok = false)
 {
     // The cross product of all vector pairs corresponding to ordered
     // consecutive segments has to be positive.
@@ -61,6 +94,31 @@ IsPolygonConvex(VecReal2<T> const& corners, bool degen_ok = false)
         }
     }
     return true;
+}
+
+//---------------------------------------------------------------------------//
+/*! Check if a 3D polygon is planar
+ *
+ * /param a,b,c - corners the vertices of the polygon
+ */
+template<typename T>
+CELER_FUNCTION bool is_planar_3D(Real3<T> const& a,
+                                 Real3<T> const& b,
+                                 Real3<T> const& c,
+                                 Real3<T> const& d)
+{
+    using celeritas::axpy;
+    auto vecsub = [&](Real3<T> const& v1, Real3<T> const& v2) -> Real3<T> {
+        Real3<T> result{v1};
+        axpy(-1.0, v2, &result);
+        return result;
+    };
+
+    // use the cross_product(last, first) as sign reference
+    auto norm = make_unit_vector(cross_product(vecsub(b, a), vecsub(c, a)));
+    auto val = dot_product(norm, vecsub(d, a));
+    // return std::fabs(val) < Tolerance<T>::from_default(); // undef symbol
+    return std::fabs(val) < 1e-8;
 }
 
 //---------------------------------------------------------------------------//
