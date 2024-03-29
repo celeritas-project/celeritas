@@ -39,26 +39,51 @@ LogicalVolumeConverter::LogicalVolumeConverter(SolidConverter& convert_solid)
  */
 auto LogicalVolumeConverter::operator()(arg_type lv) -> result_type
 {
-    auto [cache_iter, inserted] = cache_.insert({&lv, nullptr});
-    if (inserted)
+    SPLV result;
+    auto [cache_iter, inserted] = cache_.insert({&lv, {}});
+    if (inserted || cache_iter->second.expired())
     {
-        // First time converting the volume
-        cache_iter->second = this->construct_impl(lv);
+        // First time converting the volume, or it has expired
+        result = this->construct_impl(lv);
+        cache_iter->second = result;
+    }
+    else
+    {
+        result = cache_iter->second.lock();
     }
 
-    CELER_ENSURE(cache_iter->second);
-    return cache_iter->second;
+    CELER_ENSURE(result);
+    return {result, inserted};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Convert the raw logical volume without processing any daughters.
  */
-auto LogicalVolumeConverter::construct_impl(arg_type g4lv) -> result_type
+auto LogicalVolumeConverter::construct_impl(arg_type g4lv) -> SPLV
 {
     auto result = std::make_shared<LogicalVolume>();
+
+    // Save Geant4 volume pointer for later mappings
     result->g4lv = &g4lv;
 
+    // Save name
+    result->name = g4lv.GetName();
+    if (result->name.find("0x") == std::string::npos)
+    {
+        // No pointer address: add one
+        result->name = make_gdml_name(g4lv);
+    }
+
+    // Save material ID
+    if (auto* cuts = g4lv.GetMaterialCutsCouple())
+    {
+        auto idx = cuts->GetIndex();
+        CELER_ASSERT(idx >= 0);
+        result->material_id = MaterialId{static_cast<size_type>(idx)};
+    }
+
+    // Convert solid
     try
     {
         result->solid = convert_solid_(*g4lv.GetSolid());
@@ -74,22 +99,6 @@ auto LogicalVolumeConverter::construct_impl(arg_type g4lv) -> result_type
                            << to_string(*result->solid) << ")";
         CELER_LOG(info) << "Unsupported solid belongs to logical volume "
                         << PrintableLV{&g4lv};
-    }
-
-    // Save material ID
-    if (auto* cuts = g4lv.GetMaterialCutsCouple())
-    {
-        auto idx = cuts->GetIndex();
-        CELER_ASSERT(idx >= 0);
-        result->material_id = MaterialId{static_cast<size_type>(idx)};
-    }
-
-    // Save name
-    result->name = g4lv.GetName();
-    if (result->name.find("0x") == std::string::npos)
-    {
-        // No pointer address: add one
-        result->name = make_gdml_name(g4lv);
     }
 
     return result;

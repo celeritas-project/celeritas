@@ -39,26 +39,28 @@ class LogicalVolumeConverter
     //!@{
     //! \name Type aliases
     using arg_type = G4LogicalVolume const&;
-    using result_type = std::shared_ptr<LogicalVolume>;
-    using MapLvVolId = std::unordered_map<G4LogicalVolume const*, VolumeId>;
+    using SPLV = std::shared_ptr<LogicalVolume>;
+    using result_type = std::pair<SPLV, bool>;
     //!@}
 
   public:
     explicit LogicalVolumeConverter(SolidConverter& convert_solid);
 
-    // Convert a volume
+    // Convert a volume, return result plus insertion
     result_type operator()(arg_type);
 
   private:
+    using WPLV = std::weak_ptr<LogicalVolume>;
+
     //// DATA ////
 
     SolidConverter& convert_solid_;
-    std::unordered_map<G4LogicalVolume const*, result_type> cache_;
+    std::unordered_map<G4LogicalVolume const*, WPLV> cache_;
 
     //// HELPER FUNCTIONS ////
 
     // Convert an LV that's not in the cache
-    result_type construct_impl(arg_type);
+    SPLV construct_impl(arg_type);
 };
 
 //---------------------------------------------------------------------------//

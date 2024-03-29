@@ -24,7 +24,20 @@ class ObjectInterface;
 
 namespace g4org
 {
+//---------------------------------------------------------------------------//
 struct LogicalVolume;
+
+//---------------------------------------------------------------------------//
+/*!
+ * An unconstructed Object with a transform.
+ */
+struct PhysicalVolume
+{
+    std::string name;
+    size_type copy_number{};
+    VariantTransform transform;
+    std::shared_ptr<LogicalVolume const> lv;
+};
 
 //---------------------------------------------------------------------------//
 /*!
@@ -36,12 +49,16 @@ struct LogicalVolume
 
     //! Associated Geant4 logical volume
     G4LogicalVolume const* g4lv{nullptr};
-    //! Filled material ID
-    MaterialId material_id;
-    //! "Unplaced" mother shape
-    SPConstObject solid;
+
     //! Logical volume name
     std::string name;
+    //! Filled material ID
+    MaterialId material_id;
+
+    //! "Unplaced" mother shape
+    SPConstObject solid;
+    //! Daughter volumes
+    std::vector<PhysicalVolume> daughters;
 };
 
 //---------------------------------------------------------------------------//

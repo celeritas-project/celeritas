@@ -279,6 +279,9 @@ auto SolidConverter::displaced(arg_type solid_base) -> result_type
     G4VSolid* g4daughter = solid.GetConstituentMovedSolid();
     CELER_ASSERT(g4daughter);
     auto daughter = (*this)(*g4daughter);
+
+    // Note that GetDirectTransform is the combination of GetFrameTranslation
+    // and GetFrameRotation .
     return std::make_shared<Transformed>(
         daughter, transform_(solid.GetDirectTransform()));
 }
