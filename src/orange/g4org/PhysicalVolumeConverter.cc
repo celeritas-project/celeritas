@@ -116,7 +116,7 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
 
     result.name = g4pv.GetName();
     result.copy_number = g4pv.GetCopyNo();
-    result.transform = this->data->make_transform(g4pv.GetFrameTranslation(),
+    result.transform = this->data->make_transform(g4pv.GetObjectTranslation(),
                                                   g4pv.GetFrameRotation());
 
     auto* g4lv = g4pv.GetLogicalVolume();
@@ -131,14 +131,14 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
     }
 
     // Convert logical volume
-    if (CELER_UNLIKELY(data->verbose))
-    {
-        std::clog << std::string(depth, ' ') << "Converting "
-                  << g4lv->GetName() << std::endl;
-    }
     auto&& [lv, inserted] = this->data->make_lv(*g4lv);
     if (inserted)
     {
+        if (CELER_UNLIKELY(data->verbose))
+        {
+            std::clog << std::string(depth, ' ') << "Converted "
+                      << g4lv->GetName() << std::endl;
+        }
         // Queue up daughters for construction
         auto num_daughters = g4lv->GetNoDaughters();
         lv->daughters.reserve(num_daughters);
@@ -161,12 +161,6 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
 void PhysicalVolumeConverter::Builder::place_daughter(
     int depth, G4VPhysicalVolume const& g4pv, LogicalVolume* lv)
 {
-    if (CELER_UNLIKELY(data->verbose))
-    {
-        std::clog << std::string(depth, ' ') << "Placing " << g4pv.GetName()
-                  << std::endl;
-    }
-
     if (dynamic_cast<G4PVPlacement const*>(&g4pv))
     {
         // Place daughter, accounting for reflection
@@ -174,6 +168,13 @@ void PhysicalVolumeConverter::Builder::place_daughter(
     }
     else if (G4VPVParameterisation* param = g4pv.GetParameterisation())
     {
+        if (CELER_UNLIKELY(data->verbose))
+        {
+            CELER_LOG(debug)
+                << "Processing parameterized volume " << g4pv.GetName()
+                << " with " << g4pv.GetMultiplicity() << " instances";
+        }
+
         // Loop over number of replicas
         for (auto j : range(g4pv.GetMultiplicity()))
         {

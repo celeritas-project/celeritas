@@ -100,6 +100,15 @@ auto LogicalVolumeConverter::construct_impl(arg_type g4lv) -> SPLV
         CELER_LOG(info) << "Unsupported solid belongs to logical volume "
                         << PrintableLV{&g4lv};
     }
+    catch (celeritas::DebugError const& e)
+    {
+        CELER_LOG(error) << "Failed to convert solid type '"
+                         << g4lv.GetSolid()->GetEntityType() << "' named '"
+                         << g4lv.GetSolid()->GetName();
+        CELER_LOG(info) << "Unsupported solid belongs to logical volume "
+                        << PrintableLV{&g4lv};
+        throw;
+    }
 
     return result;
 }
