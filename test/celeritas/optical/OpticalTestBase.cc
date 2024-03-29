@@ -38,10 +38,9 @@ OpticalTestBase::OpticalTestBase()
                    constants::stable_decay_constant});
     particle_params_ = std::make_shared<ParticleParams>(std::move(inp));
 
-    resize(&p_state_val_, particle_params_->host_ref(), 1);
-    resize(&sim_state_val_, 1);
-    p_state_ref_ = p_state_val_;
-    sim_state_ref_ = sim_state_val_;
+    particle_state_
+        = StateStore<ParticleStateData>(particle_params_->host_ref(), 1);
+    sim_state_ = StateStore<SimStateData>(1);
 }
 
 //---------------------------------------------------------------------------//
@@ -49,6 +48,18 @@ OpticalTestBase::OpticalTestBase()
  * Default destructor.
  */
 OpticalTestBase::~OpticalTestBase() = default;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Resize distributions.
+ */
+void OpticalTestBase::resize_distributions(int count)
+{
+    CELER_EXPECT(count > 0);
+    distributions_ = StateStore<DistributionStackData>(count);
+    distribution_allocator_
+        = std::make_shared<DistributionAllocator>(distributions_.ref());
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -63,7 +74,7 @@ OpticalTestBase::make_particle_track_view(units::MevEnergy energy,
     init_track.energy = energy;
 
     ParticleTrackView particle_view(
-        particle_params_->host_ref(), p_state_ref_, TrackSlotId(0));
+        particle_params_->host_ref(), particle_state_.ref(), TrackSlotId(0));
     particle_view = init_track;
     return particle_view;
 }
@@ -80,7 +91,7 @@ SimTrackView OpticalTestBase::make_sim_track_view(real_type step_len_cm)
     init_track.status = TrackStatus::alive;
 
     SimTrackView sim_view(
-        sim_params_->host_ref(), sim_state_ref_, TrackSlotId(0));
+        sim_params_->host_ref(), sim_state_.ref(), TrackSlotId(0));
     sim_view = init_track;
     sim_view.step_length(from_cm(step_len_cm));
     return sim_view;

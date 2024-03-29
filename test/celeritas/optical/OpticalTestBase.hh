@@ -9,8 +9,11 @@
 
 #include <memory>
 
+#include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/StackAllocator.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/optical/OpticalDistributionData.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/track/SimData.hh"
 
@@ -42,9 +45,25 @@ class OpticalTestBase : public Test
 {
   public:
     //!@{
+    //! \name Type aliases
+    using DistributionAllocator = StackAllocator<OpticalDistributionData>;
+    //!@}
+
+  public:
+    //!@{
     //! Initialize and destroy
     OpticalTestBase();
     ~OpticalTestBase();
+    //!@}
+
+    //!@{
+    //! Distribution stack storage and access
+    void resize_distributions(int count);
+    DistributionAllocator& distribution_allocator()
+    {
+        CELER_EXPECT(distribution_allocator_);
+        return *distribution_allocator_;
+    }
     //!@}
 
     //! Initialize particle state data with given energy
@@ -67,12 +86,19 @@ class OpticalTestBase : public Test
     }
 
   private:
+    template<template<Ownership, MemSpace> class S>
+    using StateStore = CollectionStateStore<S, MemSpace::host>;
+    template<Ownership W, MemSpace M>
+    using DistributionStackData
+        = StackAllocatorData<OpticalDistributionData, W, M>;
+
     std::shared_ptr<ParticleParams> particle_params_;
     std::shared_ptr<SimParams> sim_params_;
-    HostVal<ParticleStateData> p_state_val_;
-    HostRef<ParticleStateData> p_state_ref_;
-    HostVal<SimStateData> sim_state_val_;
-    HostRef<SimStateData> sim_state_ref_;
+    std::shared_ptr<DistributionAllocator> distribution_allocator_;
+
+    StateStore<ParticleStateData> particle_state_;
+    StateStore<SimStateData> sim_state_;
+    StateStore<DistributionStackData> distributions_;
 };
 
 //---------------------------------------------------------------------------//
