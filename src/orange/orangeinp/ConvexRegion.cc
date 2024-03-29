@@ -320,29 +320,35 @@ GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
     : hz_{halfz}, lo_{lo}, hi_{hi}
 {
     CELER_VALIDATE(hz_ > 0, << "nonpositive halfZ: " << hz_);
-    CELER_VALIDATE(lo_.size() <= 4, << "not enough vertices for -Z polygon.");
-    CELER_VALIDATE(hi_.size() <= 4, << "not enough vertices for +Z polygon.");
+    CELER_VALIDATE(lo_.size() <= 4, << "too many vertices for -Z polygon.");
+    CELER_VALIDATE(hi_.size() <= 4, << "too many vertices for +Z polygon.");
 
-    CELER_VALIDATE(lo_.size() >= 3 && hi_.size() >= 3,
+    CELER_VALIDATE(lo_.size() >= 3 || hi_.size() >= 3,
                    << "not enough vertices for both of the +Z/-Z polygons.");
 
     // input vertices must be arranged in a CCW order
-    using geoutils::IsPolygonConvex;
-    CELER_VALIDATE(IsPolygonConvex(lo_), << "-Z polygon is not convex");
-    CELER_VALIDATE(IsPolygonConvex(hi_), << "+Z polygon is not convex");
+    using geoutils::is_convex_2D;
+    using geoutils::is_planar_3D;
+    CELER_VALIDATE(is_convex_2D(lo_), << "-Z polygon is not convex");
+    CELER_VALIDATE(is_convex_2D(hi_), << "+Z polygon is not convex");
 
     // TODO: Temporarily ensure that all side faces are planar
-}
+    Real3 a, b, c, d;
+    for (size_type j, i = 0; i < lo_.size(); ++i)
+    {
+        j = (i + 1) % lo_.size();
+        a = Real3{lo_[i][0], lo_[i][1], -hz_};
+        b = Real3{lo_[j][0], lo_[j][1], -hz_};
+        c = Real3{hi_[j][0], hi_[j][1], hz_};
+        d = Real3{hi_[i][0], hi_[i][1], hz_};
 
-/*
-VecReal2 GenTrap::corners() const
-{
-    VecReal2 all{lo_.size() + hi_.size()};
-    all.insert(all.end(), lo_.begin(), lo_.end());
-    all.insert(all.end(), hi_.begin(), hi_.end());
-    return std::move(all);
+        // *Temporarily* throws if a side face is not planar
+        if (!is_planar_3D(a, b, c, d))
+        {
+            CELER_NOT_IMPLEMENTED("non-planar side faces");
+        }
+    }
 }
-*/
 
 //---------------------------------------------------------------------------//
 /*!
@@ -365,12 +371,12 @@ void GenTrap::build(ConvexSurfaceBuilder& insert_surface) const
         d = Real3{hi_[i][0], hi_[i][1], hz_};
 
         // Calculate plane parameters
-        auto normal = cross_product(b - a, c - b);
+        auto normal = make_unit_vector(cross_product(b - a, c - b));
         auto offset = dot_product(d, normal);
 
-        // CELER_ENSURE(SOFT_EQ(dot_product(b, normal), offset));
-        // CELER_ENSURE(SOFT_EQ(dot_product(c, normal), offset));
-        // CELER_ENSURE(SOFT_EQ(dot_product(d, normal), offset));
+        // *Temporarily* throws if a side face is not planar
+        CELER_ENSURE(celeritas::geoutils::is_planar_3D(a, b, c, d));
+        CELER_ENSURE(std::fabs(dot_product(d - a, normal)) < 1.e-8);
 
         // Insert the plane
         insert_surface(Sense::inside, Plane{normal, offset});
