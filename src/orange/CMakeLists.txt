@@ -84,6 +84,7 @@ endif()
 
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   set( _cg4org_sources
+    g4org/LogicalVolumeConverter.cc
     g4org/SolidConverter.cc
   )
   celeritas_get_g4libs(_cg4org_libs geometry)
