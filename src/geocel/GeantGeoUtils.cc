@@ -17,6 +17,7 @@
 #include <G4LogicalVolumeStore.hh>
 #include <G4PhysicalVolumeStore.hh>
 #include <G4ReflectionFactory.hh>
+#include <G4RegionStore.hh>
 #include <G4SolidStore.hh>
 #include <G4Threading.hh>
 #include <G4TouchableHistory.hh>
@@ -185,6 +186,7 @@ void reset_geant_geometry()
 
         G4PhysicalVolumeStore::Clean();
         G4LogicalVolumeStore::Clean();
+        G4RegionStore::Clean();
         G4SolidStore::Clean();
 #if G4VERSION_NUMBER >= 1100
         G4ReflectionFactory::Instance()->Clean();
