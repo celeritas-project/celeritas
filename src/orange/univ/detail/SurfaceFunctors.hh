@@ -11,6 +11,7 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/NumericLimits.hh"
 
 #include "Types.hh"
 
@@ -83,9 +84,9 @@ struct CalcSafetyDistance
         Real3 dir = surf.calc_normal(this->pos);
         if (CELER_UNLIKELY(std::isnan(dir[0])))
         {
-            // Magnitude was likely zero, e.g. taking the safety at the center
-            // of a sphere/cyl
-            return 0;
+            // Magnitude may have been zero, e.g. taking the safety at the
+            // center of a sphere/cyl, so assume it's a long way off.
+            return numeric_limits<real_type>::infinity();
         }
         CELER_ASSERT(is_soft_unit_vector(dir));
 
