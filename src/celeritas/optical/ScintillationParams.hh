@@ -16,30 +16,55 @@
 
 namespace celeritas
 {
+class ParticleParams;
 struct ImportData;
 
 //---------------------------------------------------------------------------//
 /*!
  * Build and manage scintillation data.
+ *
+ * When not imported from Geant4 (which uses
+ *  \c G4OpticalParameters::GetScintByParticleType to select what data must be
+ * stored), the manually constructed \c Input data must store *either* material
+ * or particle data, never both.
  */
 class ScintillationParams final : public ParamsDataInterface<ScintillationData>
 {
   public:
     //!@{
     //! \name Type aliases
+    using SPConstParticles = std::shared_ptr<ParticleParams const>;
     using ScintillationDataCRef = HostCRef<ScintillationData>;
     //!@}
 
-    //! Material-dependent scintillation data, indexed by \c OpticalMaterialId
+    //! Scintillation data for all materials and particles
     struct Input
     {
-        std::vector<ImportScintData> data;
+        using VecOptMatId = std::vector<OpticalMaterialId>;
+        using VecSPId = std::vector<ScintillationParticleId>;
+
+        std::vector<double> resolution_scale;
+
+        //! Material-only spectra
+        std::vector<ImportMaterialScintSpectrum> materials;
+
+        //!< ParticleId to ScintillationParticleId
+        VecSPId pid_to_scintpid;
+        //! Particle and material spectra [ParticleScintSpectrumId]
+        std::vector<ImportParticleScintSpectrum> particles;
+
+        explicit operator bool() const
+        {
+            return (pid_to_scintpid.empty() == particles.empty())
+                   && !resolution_scale.empty()
+                   && (materials.empty() != particles.empty());
+        }
     };
 
   public:
-    // Construct with imported data
+    // Construct with imported data and particle params
     static std::shared_ptr<ScintillationParams>
-    from_import(ImportData const& data);
+    from_import(ImportData const& data, SPConstParticles particle_params);
 
     // Construct with scintillation components
     explicit ScintillationParams(Input const& input);
@@ -53,6 +78,12 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
   private:
     // Host/device storage and reference
     CollectionMirror<ScintillationData> mirror_;
+
+    //// HELPER FUNCTIONS ////
+
+    // Convert imported scintillation components to Celeritas' components
+    std::vector<ScintillationComponent>
+    build_components(std::vector<ImportScintComponent> const& input_comp);
 };
 
 //---------------------------------------------------------------------------//
