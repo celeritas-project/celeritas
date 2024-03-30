@@ -128,9 +128,6 @@ CerenkovDndxCalculator::operator()(units::LightSpeed beta)
     }
     else
     {
-        // TODO: Check that refractive index is monotonically increasing when
-        // grids are imported
-
         // Find the energy where the refractive index is equal to 1 / beta.
         // Both energy and refractive index are monotonically increasing, so
         // the grid and values can be swapped and the energy can be calculated

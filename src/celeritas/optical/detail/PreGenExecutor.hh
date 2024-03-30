@@ -13,7 +13,7 @@
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/optical/CerenkovPreGenerator.hh"
 #include "celeritas/optical/OpticalGenData.hh"
-// #include "celeritas/optical/ScintillationPreGenerator.hh"
+#include "celeritas/optical/ScintillationPreGenerator.hh"
 
 namespace celeritas
 {
@@ -46,11 +46,17 @@ CELER_FUNCTION void PreGenExecutor::operator()(CoreTrackView const& track)
 
     using DistributionAllocator = StackAllocator<OpticalDistributionData>;
 
+    auto optmat_id
+        = track.make_material_view().make_material_view().optical_material_id();
+    if (!optmat_id)
+    {
+        // No optical properties for this material
+        return;
+    }
+
     auto particle = track.make_particle_view();
     auto sim = track.make_sim_view();
     Real3 const& pos = track.make_geo_view().pos();
-    auto optmat_id
-        = track.make_material_view().make_material_view().optical_material_id();
     auto rng = track.make_rng_engine();
 
     // Total number of scintillation and Cerenkov photons to generate
@@ -59,31 +65,31 @@ CELER_FUNCTION void PreGenExecutor::operator()(CoreTrackView const& track)
     if (params.cerenkov)
     {
         DistributionAllocator allocate{state.cerenkov};
-        CerenkovPreGenerator generate_dist(particle,
+        CerenkovPreGenerator generate(particle,
+                                      sim,
+                                      pos,
+                                      optmat_id,
+                                      params.properties,
+                                      params.cerenkov,
+                                      state.step[track.track_slot_id()],
+                                      allocate);
+        num_photons += generate(rng);
+    }
+    if (params.scintillation)
+    {
+        auto edep = track.make_physics_step_view().energy_deposition();
+
+        DistributionAllocator allocate{state.scintillation};
+        ScintillationPreGenerator generate(particle,
                                            sim,
                                            pos,
                                            optmat_id,
-                                           params.properties,
-                                           params.cerenkov,
+                                           edep,
+                                           params.scintillation,
                                            state.step[track.track_slot_id()],
                                            allocate);
-        num_photons += generate_dist(rng);
+        num_photons += generate(rng);
     }
-#if 0
-    if (params.scintillation)
-    {
-        // TODO: physics step view for energy deposition
-        DistributionAllocator allocate{state.scintillation};
-        ScintillationPreGenerator generate_dist(particle,
-                                                sim,
-                                                pos,
-                                                optmat_id,
-                                                params.scintillation,
-                                                state.step[track.track_slot_id()],
-                                                allocate);
-        num_photons += generate_dist(rng);
-    }
-#endif
 }
 
 //---------------------------------------------------------------------------//

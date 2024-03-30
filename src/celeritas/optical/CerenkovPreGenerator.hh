@@ -68,15 +68,15 @@ class CerenkovPreGenerator
                          OpticalPreStepData const& step_data,
                          DistributionAllocator& allocate);
 
-    // Return a populated optical distribution data for the Cerenkov Generator
+    // Populate optical distribution data for the Cerenkov Generator
     template<class Generator>
     inline CELER_FUNCTION size_type operator()(Generator& rng);
 
   private:
-    OpticalMaterialId mat_id_;
     units::ElementaryCharge charge_;
     real_type step_len_;
     real_type time_;
+    OpticalMaterialId mat_id_;
     EnumArray<StepPoint, OpticalStepData> points_;
     DistributionAllocator& allocate_;
     real_type num_photons_per_len_;
@@ -99,10 +99,10 @@ CELER_FUNCTION CerenkovPreGenerator::CerenkovPreGenerator(
     NativeCRef<CerenkovData> const& shared,
     OpticalPreStepData const& step_data,
     DistributionAllocator& allocate)
-    : mat_id_(mat_id)
-    , charge_(particle.charge())
+    : charge_(particle.charge())
     , step_len_(sim.step_length())
     , time_(step_data.time)
+    , mat_id_(mat_id)
     , allocate_(allocate)
 {
     CELER_EXPECT(charge_ != zero_quantity());
@@ -125,10 +125,10 @@ CELER_FUNCTION CerenkovPreGenerator::CerenkovPreGenerator(
 
 //---------------------------------------------------------------------------//
 /*!
- * Return an \c OpticalDistributionData object. If no photons are sampled, an
- * empty object is returned and can be verified via its own operator bool.
+ * Sample number of photons to generate and create optical distribution data.
  *
- * The number of photons is sampled from a Poisson distribution with a mean
+ * Returns the number of photons, which is sampled from a Poisson distribution
+ * with a mean
  * \f[
    \langle n \rangle = \ell_\text{step} \frac{dN}{dx}
  * \f]
