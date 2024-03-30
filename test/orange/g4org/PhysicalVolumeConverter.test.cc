@@ -10,9 +10,11 @@
 #include <regex>
 
 #include "corecel/io/StreamableVariant.hh"
+#include "corecel/sys/Environment.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/LazyGeoManager.hh"
 #include "geocel/UnitUtils.hh"
+#include "orange/MatrixUtils.hh"
 #include "orange/orangeinp/ObjectInterface.hh"
 #include "orange/transform/TransformIO.hh"
 
@@ -46,10 +48,68 @@ class PhysicalVolumeConverterTest : public ::celeritas::test::Test
 };
 
 //---------------------------------------------------------------------------//
+TEST_F(PhysicalVolumeConverterTest, DISABLED_four_levels)
+{
+    G4VPhysicalVolume const* g4world = this->load("four-levels.gdml");
+    PhysicalVolumeConverter convert{/* verbose = */ true};
+
+    PhysicalVolume world = convert(*g4world);
+    EXPECT_EQ("World_PV", world.name);
+    EXPECT_EQ(0, world.copy_number);
+
+    ASSERT_TRUE(world.lv);
+    EXPECT_EQ(1, world.lv.use_count());
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(PhysicalVolumeConverterTest, intersection_boxes)
+{
+    G4VPhysicalVolume const* g4world = this->load("intersection-boxes.gdml");
+
+    PhysicalVolumeConverter convert{/* verbose = */ true};
+    PhysicalVolume world = convert(*g4world);
+
+    ASSERT_TRUE(world.lv);
+    EXPECT_EQ("world0x0", simplify_pointers(world.lv->name));
+    ASSERT_EQ(1, world.lv->daughters.size());
+
+    auto const& inner_pv = world.lv->daughters.front();
+    ASSERT_TRUE(inner_pv.lv);
+    EXPECT_EQ("inner0x0", simplify_pointers(inner_pv.lv->name));
+    ASSERT_TRUE(inner_pv.lv->solid);
+    if (CELERITAS_USE_JSON)
+    {
+        EXPECT_JSON_EQ(
+            R"json(
+{"_type":"all","daughters":[
+  {"_type":"shape","interior": {"_type":"box","halfwidths":[1.0,1.5,2.0]},"label":"first"},
+  {"_type":"transformed",
+   "daughter": {"_type":"shape","interior": {"_type":"box","halfwidths":[1.5,2.0,2.5]},"label":"second"},
+   "transform":{"_type":"transformation", "data":
+[0.8660254037844388,0.0,0.5,
+ 0.0,1.0,0.0,
+ -0.5,0.0,0.8660254037844388,
+ 1.0,2.0,4.0]}}],"label":"isect"})json",
+            to_string(*inner_pv.lv->solid));
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(PhysicalVolumeConverterTest, DISABLED_solids)
+{
+    celeritas::environment().insert({"G4ORG_ALLOW_ERRORS", "1"});
+    G4VPhysicalVolume const* g4world = this->load("solids.gdml");
+
+    PhysicalVolumeConverter convert{/* verbose = */ true};
+
+    PhysicalVolume world = convert(*g4world);
+}
+
+//---------------------------------------------------------------------------//
 TEST_F(PhysicalVolumeConverterTest, testem3)
 {
     G4VPhysicalVolume const* g4world = this->load("testem3.gdml");
-    PhysicalVolumeConverter convert{/* verbose = */ true};
+    PhysicalVolumeConverter convert{/* verbose = */ false};
 
     PhysicalVolume world = convert(*g4world);
     EXPECT_EQ("World_PV", world.name);
@@ -130,37 +190,60 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(PhysicalVolumeConverterTest, DISABLED_four_levels)
+TEST_F(PhysicalVolumeConverterTest, transformed_box)
 {
-    G4VPhysicalVolume const* g4world = this->load("four-levels.gdml");
-    PhysicalVolumeConverter convert{/* verbose = */ true};
+    G4VPhysicalVolume const* g4world = this->load("transformed-box.gdml");
 
+    PhysicalVolumeConverter convert{/* verbose = */ false};
     PhysicalVolume world = convert(*g4world);
-    EXPECT_EQ("World_PV", world.name);
-    EXPECT_EQ(0, world.copy_number);
+    EXPECT_EQ("world_PV", simplify_pointers(world.name));
 
     ASSERT_TRUE(world.lv);
-    EXPECT_EQ(1, world.lv.use_count());
-}
+    ASSERT_EQ(3, world.lv->daughters.size());
 
-//---------------------------------------------------------------------------//
-TEST_F(PhysicalVolumeConverterTest, znenv)
-{
-    G4VPhysicalVolume const* g4world = this->load("znenv.gdml");
-
-    PhysicalVolumeConverter convert{/* verbose = */ true};
-
-    PhysicalVolume world = convert(*g4world);
-}
-
-//---------------------------------------------------------------------------//
-TEST_F(PhysicalVolumeConverterTest, DISABLED_solids)
-{
-    G4VPhysicalVolume const* g4world = this->load("solids.gdml");
-
-    PhysicalVolumeConverter convert{/* verbose = */ true};
-
-    PhysicalVolume world = convert(*g4world);
+    {
+        auto const& pv = world.lv->daughters[0];
+        EXPECT_EQ("transrot", pv.name);
+        if (auto* trans = std::get_if<Transformation>(&pv.transform))
+        {
+            EXPECT_VEC_SOFT_EQ((Real3{0, 0, -10}), to_cm(trans->translation()));
+            auto const mat = make_rotation(Axis::y, Turn{30.0 / 360.0});
+            EXPECT_VEC_SOFT_EQ(mat[0], trans->rotation()[0]);
+            EXPECT_VEC_SOFT_EQ(mat[1], trans->rotation()[1]);
+            EXPECT_VEC_SOFT_EQ(mat[2], trans->rotation()[2]);
+        }
+        else
+        {
+            ADD_FAILURE() << "Unexpected transform type: "
+                          << StreamableVariant{pv.transform};
+        }
+    }
+    {
+        auto const& pv = world.lv->daughters[1];
+        EXPECT_EQ("default", pv.name);
+        if (auto* trans = std::get_if<Translation>(&pv.transform))
+        {
+            EXPECT_VEC_SOFT_EQ((Real3{0, 0, 0}), to_cm(trans->translation()));
+        }
+        else
+        {
+            ADD_FAILURE() << "Unexpected transform type: "
+                          << StreamableVariant{pv.transform};
+        }
+    }
+    {
+        auto const& pv = world.lv->daughters[2];
+        EXPECT_EQ("trans", pv.name);
+        if (auto* trans = std::get_if<Translation>(&pv.transform))
+        {
+            EXPECT_VEC_SOFT_EQ((Real3{0, 0, 10}), to_cm(trans->translation()));
+        }
+        else
+        {
+            ADD_FAILURE() << "Unexpected transform type: "
+                          << StreamableVariant{pv.transform};
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//
