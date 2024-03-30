@@ -116,17 +116,19 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
 
     result.name = g4pv.GetName();
     result.copy_number = g4pv.GetCopyNo();
-    if (g4pv.GetFrameRotation())
-    {
-        result.transform = this->data->make_transform(
-            g4pv.GetObjectTranslation(), g4pv.GetObjectRotationValue());
-    }
-    else
-    {
-        // Avoid constructing an identity matrix and transforming it
-        result.transform
-            = this->data->make_transform(g4pv.GetObjectTranslation());
-    }
+    result.transform = [&]() -> VariantTransform {
+        auto const& g4trans = g4pv.GetObjectTranslation();
+        if (g4pv.GetFrameRotation())
+        {
+            return this->data->make_transform(g4trans,
+                                              g4pv.GetObjectRotationValue());
+        }
+        if (g4trans[0] != 0 || g4trans[1] != 0 || g4trans[2] != 0)
+        {
+            return this->data->make_transform(g4pv.GetObjectTranslation());
+        }
+        return NoTransformation{};
+    }();
 
     auto* g4lv = g4pv.GetLogicalVolume();
     if (auto* unrefl_g4lv

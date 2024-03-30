@@ -56,6 +56,15 @@ TEST_F(PhysicalVolumeConverterTest, DISABLED_four_levels)
     PhysicalVolume world = convert(*g4world);
     EXPECT_EQ("World_PV", world.name);
     EXPECT_EQ(0, world.copy_number);
+    if (auto* trans = std::get_if<NoTransformation>(&world.transform))
+    {
+        // All good
+    }
+    else
+    {
+        ADD_FAILURE() << "Unexpected transform type: "
+                      << StreamableVariant{world.transform};
+    }
 
     ASSERT_TRUE(world.lv);
     EXPECT_EQ(1, world.lv.use_count());
@@ -221,10 +230,7 @@ TEST_F(PhysicalVolumeConverterTest, transformed_box)
     {
         auto const& pv = world.lv->daughters[1];
         EXPECT_EQ("default", pv.name);
-        if (auto* trans = std::get_if<Translation>(&pv.transform))
-        {
-            EXPECT_VEC_SOFT_EQ((Real3{0, 0, 0}), to_cm(trans->translation()));
-        }
+        if (auto* trans = std::get_if<NoTransformation>(&pv.transform)) {}
         else
         {
             ADD_FAILURE() << "Unexpected transform type: "
