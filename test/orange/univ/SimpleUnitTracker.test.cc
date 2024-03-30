@@ -162,7 +162,8 @@ SimpleUnitTrackerTest::make_state(Real3 pos, Real3 dir, char const* vol)
 {
     LocalState state = this->make_state(pos, dir);
     detail::UniverseIndexer ui(this->host_params().universe_indexer_data);
-    state.volume = ui.local_volume(this->find_volume(vol)).volume;
+    state.volume = vol ? ui.local_volume(this->find_volume(vol)).volume
+                       : LocalVolumeId{};
     return state;
 }
 

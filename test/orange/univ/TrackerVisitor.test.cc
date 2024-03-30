@@ -26,7 +26,7 @@ class TrackerVisitorTest : public OrangeGeoTestBase
   protected:
     using LocalState = detail::LocalState;
 
-    void SetUp() override { this->build_geometry("rect_array.org.json"); }
+    void SetUp() override { this->build_geometry("rect-array.org.json"); }
 
     LocalState make_state(Real3 pos, Real3 dir);
 };

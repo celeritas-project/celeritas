@@ -12,6 +12,7 @@
 
 #include <limits>
 
+#include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/UnitUtils.hh"
 
@@ -39,7 +40,7 @@ template<class HP>
 auto GenericGeoTestBase<HP>::build_geometry_from_basename() -> SPConstGeo
 {
     // Construct filename:
-    // ${SOURCE}/test/celeritas/data/${basename}${fileext}
+    // ${SOURCE}/test/geocel/data/${basename}${fileext}
     auto filename = this->geometry_basename() + std::string{TraitsT::ext};
     std::string test_file = test_data_path("geocel", filename);
     return std::make_shared<HP>(test_file);
@@ -101,53 +102,57 @@ std::string GenericGeoTestBase<HP>::surface_name(GeoTrackView const& geo) const
 
 //---------------------------------------------------------------------------//
 template<class HP>
-auto GenericGeoTestBase<HP>::make_geo_track_view() -> GeoTrackView
+auto GenericGeoTestBase<HP>::make_geo_track_view(TrackSlotId tsid)
+    -> GeoTrackView
 {
     if (!host_state_)
     {
-        host_state_ = HostStateStore{this->geometry()->host_ref(), 1};
+        host_state_ = HostStateStore{this->geometry()->host_ref(),
+                                     this->num_track_slots()};
     }
-    return GeoTrackView{
-        this->geometry()->host_ref(), host_state_.ref(), TrackSlotId{0}};
+    CELER_EXPECT(tsid < host_state_.size());
+    return GeoTrackView{this->geometry()->host_ref(), host_state_.ref(), tsid};
 }
 
 //---------------------------------------------------------------------------//
 // Get and initialize a single-thread host track view
 template<class HP>
-auto GenericGeoTestBase<HP>::make_geo_track_view(Real3 const& pos_cm, Real3 dir)
+auto GenericGeoTestBase<HP>::make_geo_track_view(Real3 const& pos, Real3 dir)
     -> GeoTrackView
 {
     auto geo = this->make_geo_track_view();
-    geo = GeoTrackInitializer{from_cm(pos_cm), make_unit_vector(dir)};
+    GeoTrackInitializer init{pos, make_unit_vector(dir)};
+    init.pos *= this->unit_length();
+    geo = init;
     return geo;
 }
 
 //---------------------------------------------------------------------------//
 template<class HP>
-auto GenericGeoTestBase<HP>::track(Real3 const& pos_cm, Real3 const& dir)
+auto GenericGeoTestBase<HP>::track(Real3 const& pos, Real3 const& dir)
     -> TrackingResult
 {
-    return this->track(pos_cm, dir, std::numeric_limits<int>::max());
+    return this->track(pos, dir, std::numeric_limits<int>::max());
 }
 
 //---------------------------------------------------------------------------//
 template<class HP>
-auto GenericGeoTestBase<HP>::track(Real3 const& pos_cm,
+auto GenericGeoTestBase<HP>::track(Real3 const& pos,
                                    Real3 const& dir,
                                    int max_step) -> TrackingResult
 {
     CELER_EXPECT(max_step > 0);
     TrackingResult result;
 
-    GeoTrackView geo
-        = CheckedGeoTrackView{this->make_geo_track_view(pos_cm, dir)};
+    GeoTrackView geo = CheckedGeoTrackView{this->make_geo_track_view(pos, dir)};
+    real_type const inv_length = 1 / this->unit_length();
 
     if (geo.is_outside())
     {
         // Initial step is outside but may approach inside
         result.volumes.push_back("[OUTSIDE]");
         auto next = geo.find_next_step();
-        result.distances.push_back(to_cm(next.distance));
+        result.distances.push_back(next.distance * inv_length);
         if (next.boundary)
         {
             geo.move_to_boundary();
@@ -161,7 +166,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos_cm,
     {
         result.volumes.push_back(this->volume_name(geo));
         auto next = geo.find_next_step();
-        result.distances.push_back(to_cm(next.distance));
+        result.distances.push_back(next.distance * inv_length);
         if (!next.boundary)
         {
             // Failure to find the next boundary while inside the geometry
@@ -173,7 +178,7 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos_cm,
         {
             geo.move_internal(next.distance / 2);
             geo.find_next_step();
-            result.halfway_safeties.push_back(to_cm(geo.find_safety()));
+            result.halfway_safeties.push_back(geo.find_safety() * inv_length);
 
             if (result.halfway_safeties.back() > 0)
             {
@@ -195,19 +200,31 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos_cm,
                         << init.pos << " along " << init.dir << " from "
                         << result.volumes.back() << " to "
                         << this->volume_name(geo) << " (alleged safety: "
-                        << to_cm(result.halfway_safeties.back()) << ")";
+                        << result.halfway_safeties.back() * inv_length << ")";
                     result.volumes.back() += "/" + this->volume_name(geo);
                 }
                 auto new_next = geo.find_next_step();
                 EXPECT_TRUE(new_next.boundary);
-                EXPECT_SOFT_NEAR(new_next.distance, next.distance / 2, 1e-10)
+                EXPECT_SOFT_NEAR(new_next.distance,
+                                 next.distance / 2,
+                                 100 * SoftEqual<>{}.rel())
                     << "reinitialized distance mismatch at index "
                     << result.volumes.size() - 1 << ": " << init.pos
                     << " along " << init.dir;
             }
         }
         geo.move_to_boundary();
-        geo.cross_boundary();
+        try
+        {
+            geo.cross_boundary();
+        }
+        catch (std::exception const& e)
+        {
+            ADD_FAILURE() << "failed to cross boundary at "
+                          << geo.pos() * inv_length << " along " << geo.dir()
+                          << ": " << e.what();
+            break;
+        }
         --max_step;
     }
 
