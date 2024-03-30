@@ -20,6 +20,7 @@ class ScintillationParams;
 
 namespace detail
 {
+template<StepPoint P>
 class PreGenAction;
 struct GenStorage;
 }  // namespace detail
@@ -57,15 +58,14 @@ class OpticalCollector
     //// TYPES ////
 
     using SPGenStorage = std::shared_ptr<detail::GenStorage>;
-    // using SPPreStepGatherAction =
-    // std::shared_ptr<detail::PreStepGatherAction>;
-    using SPPreGenAction = std::shared_ptr<detail::PreGenAction>;
+    template<StepPoint P>
+    using SPPreGenAction = std::shared_ptr<detail::PreGenAction<P>>;
 
     //// DATA ////
 
     SPGenStorage storage_;
-    // SPPreStepGatherAction gather_action_;
-    SPPreGenAction pregen_action_;
+    SPPreGenAction<StepPoint::pre> gather_action_;
+    SPPreGenAction<StepPoint::post> pregen_action_;
 };
 
 //---------------------------------------------------------------------------//

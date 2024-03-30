@@ -19,8 +19,9 @@ namespace detail
 struct GenStorage;
 //---------------------------------------------------------------------------//
 /*!
- * Generate optical distribution data at the end of a step.
+ * Generate optical distribution data.
  */
+template<StepPoint P>
 class PreGenAction final : public ExplicitCoreActionInterface
 {
   public:
@@ -43,13 +44,23 @@ class PreGenAction final : public ExplicitCoreActionInterface
     ActionId action_id() const final { return id_; }
 
     //! Short name for the action
-    std::string label() const final { return "pre-generator"; }
+    std::string label() const final
+    {
+        return P == StepPoint::pre    ? "optical-pre-generator-pre"
+               : P == StepPoint::post ? "optical-pre-generator-post"
+                                      : "";
+    }
 
     // Name of the action (for user output)
     std::string description() const final;
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::post_post; }
+    ActionOrder order() const final
+    {
+        return P == StepPoint::pre    ? ActionOrder::pre
+               : P == StepPoint::post ? ActionOrder::post_post
+                                      : ActionOrder::size_;
+    }
 
   private:
     //// DATA ////

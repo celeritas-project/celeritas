@@ -15,7 +15,6 @@
 #include "celeritas/optical/OpticalPropertyParams.hh"
 #include "celeritas/optical/ScintillationParams.hh"
 
-// #include "detail/PreStepGatherAction.hh"
 #include "detail/GenStorage.hh"
 #include "detail/PreGenAction.hh"
 
@@ -50,14 +49,14 @@ OpticalCollector::OpticalCollector(SPConstProperties properties,
     storage_->obj = {std::move(host_data), num_streams};
 
     // Build action to gather pre-step data needed for generating optical
-    // distribution data
-    // gather_action_ = std::make_shared<detail::PreStepGatherAction>(
-    //    action_registry->next_id(), storage_);
-    // action_registry->insert(gather_action_);
+    // distributions
+    gather_action_ = std::make_shared<detail::PreGenAction<StepPoint::pre>>(
+        action_registry->next_id(), storage_);
+    action_registry->insert(gather_action_);
 
     // Build action to generate optical distribution data from pre-step and
     // state data
-    pregen_action_ = std::make_shared<detail::PreGenAction>(
+    pregen_action_ = std::make_shared<detail::PreGenAction<StepPoint::post>>(
         action_registry->next_id(), storage_);
     action_registry->insert(pregen_action_);
 }

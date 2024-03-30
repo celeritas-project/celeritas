@@ -13,12 +13,10 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/TrackExecutor.hh"
-#include "celeritas/optical/CerenkovParams.hh"
-#include "celeritas/optical/OpticalPropertyParams.hh"
-#include "celeritas/optical/ScintillationParams.hh"
 
 #include "GenStorage.hh"
 #include "PreGenExecutor.hh"
+#include "PreGenGatherExecutor.hh"
 
 namespace celeritas
 {
@@ -28,7 +26,8 @@ namespace detail
 /*!
  * Capture construction arguments.
  */
-PreGenAction::PreGenAction(ActionId id, SPGenStorage storage)
+template<StepPoint P>
+PreGenAction<P>::PreGenAction(ActionId id, SPGenStorage storage)
     : id_(id), storage_(std::move(storage))
 {
     CELER_EXPECT(id_);
@@ -39,34 +38,63 @@ PreGenAction::PreGenAction(ActionId id, SPGenStorage storage)
 /*!
  * Descriptive name of the action.
  */
-std::string PreGenAction::description() const
+template<StepPoint P>
+std::string PreGenAction<P>::description() const
 {
-    return "generate optical distribution data";
+    std::string result = "gather ";
+    result += P == StepPoint::pre ? "pre" : "post";
+    result += "-step data to generate optical distributions";
+    return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Generate optical distribution data.
  */
-void PreGenAction::execute(CoreParams const& params, CoreStateHost& state) const
+template<>
+void PreGenAction<StepPoint::pre>::execute(CoreParams const& params,
+                                           CoreStateHost& state) const
 {
-    auto const& gen_state = storage_->obj.state<MemSpace::native>(
-        state.stream_id(), state.size());
-    auto execute = TrackExecutor{
+    auto execute = make_active_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        detail::PreGenGatherExecutor{storage_->obj.state<MemSpace::native>(
+            state.stream_id(), state.size())});
+    launch_action(*this, params, state, execute);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Generate optical distribution data.
+ */
+template<>
+void PreGenAction<StepPoint::post>::execute(CoreParams const& params,
+                                            CoreStateHost& state) const
+{
+    auto execute = make_active_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
         detail::PreGenExecutor{storage_->obj.params<MemSpace::native>(),
-                               gen_state}};
+                               storage_->obj.state<MemSpace::native>(
+                                   state.stream_id(), state.size())});
     launch_action(*this, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void PreGenAction::execute(CoreParams const&, CoreStateDevice&) const
+template<StepPoint P>
+void PreGenAction<P>::execute(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+template class PreGenAction<StepPoint::pre>;
+template class PreGenAction<StepPoint::post>;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
