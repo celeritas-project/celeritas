@@ -13,8 +13,9 @@ celeritas_add_library(testcel_orange
 celeritas_target_link_libraries(testcel_orange
   PUBLIC
     Celeritas::orange Celeritas::testcel_harness Celeritas::testcel_core
+    Celeritas::testcel_geocel
   PRIVATE
-    Celeritas::testcel_geocel Celeritas::orange ${nlohmann_json_LIBRARIES}
+    Celeritas::orange ${nlohmann_json_LIBRARIES}
 )
 
 #-----------------------------------------------------------------------------#
@@ -64,6 +65,7 @@ celeritas_add_test(orangeinp/Transformed.test.cc)
 celeritas_add_test(orangeinp/UnitProto.test.cc)
 
 celeritas_add_test(orangeinp/detail/BoundingZone.test.cc)
+celeritas_add_test(orangeinp/detail/ProtoMap.test.cc)
 celeritas_add_test(orangeinp/detail/LocalSurfaceInserter.test.cc)
 celeritas_add_test(orangeinp/detail/TransformInserter.test.cc)
 

@@ -186,7 +186,7 @@ void AlongStepTestBase::execute_action(std::string const& label,
 
     auto action_id = areg.find_action(label);
     CELER_VALIDATE(action_id, << "no '" << label << "' action found");
-    auto const* expl_action = dynamic_cast<ExplicitActionInterface const*>(
+    auto const* expl_action = dynamic_cast<ExplicitCoreActionInterface const*>(
         areg.action(action_id).get());
     CELER_VALIDATE(expl_action, << "action '" << label << "' cannot execute");
     CELER_TRY_HANDLE(expl_action->execute(*this->core(), *state),

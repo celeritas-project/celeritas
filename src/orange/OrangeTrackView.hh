@@ -439,7 +439,7 @@ CELER_FUNCTION bool OrangeTrackView::is_outside() const
     // Zeroth volume in outermost universe is always the exterior by
     // construction in ORANGE
     auto lsa = this->make_lsa(LevelId{0});
-    return lsa.vol() == local_orange_outside_volume;
+    return lsa.vol() == orange_exterior_volume;
 }
 
 //---------------------------------------------------------------------------//
@@ -629,7 +629,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
         // rather than segfaulting
         // TODO: error correction or more graceful failure than losing
         // energy
-        tinit.volume = local_orange_outside_volume;
+        tinit.volume = orange_exterior_volume;
         tinit.surface = {};
     }
 

@@ -72,6 +72,7 @@ struct ImportData
     ImportOpticalMap optical;
     ImportEmParameters em_params;
     ImportTransParameters trans_params;
+    ImportOpticalParameters optical_params;
     ImportSBMap sb_data;
     ImportLivermorePEMap livermore_pe_data;
     ImportNeutronElasticMap neutron_elastic_data;

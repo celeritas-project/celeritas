@@ -288,7 +288,7 @@ UniverseId UnitInserter::operator()(UnitInput const& inp)
 
     // Simple safety if all volumes provide support, excluding the external
     // volume, which appears first in the list
-    static_assert(local_orange_outside_volume == LocalVolumeId{0});
+    static_assert(orange_exterior_volume == LocalVolumeId{0});
     unit.simple_safety = std::all_of(
         vol_records.begin() + 1, vol_records.end(), [](VolumeRecord const& v) {
             return supports_simple_safety(v.flags);
@@ -337,7 +337,9 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
                                 input_logic.end(),
                                 std::begin(nowhere_logic),
                                 std::end(nowhere_logic)));
-        CELER_EXPECT(is_infinite(v.bbox));
+        CELER_EXPECT(!v.bbox);
+        CELER_EXPECT(v.flags & VolumeRecord::implicit_vol);
+        simple_safety = false;
     }
 
     VolumeRecord output;

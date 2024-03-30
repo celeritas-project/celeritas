@@ -21,7 +21,7 @@ namespace celeritas
  * filled by any track initializers remaining from previous steps using the
  * position.
  */
-class InitializeTracksAction final : public ExplicitActionInterface
+class InitializeTracksAction final : public ExplicitCoreActionInterface
 {
   public:
     //! Construct with explicit Id

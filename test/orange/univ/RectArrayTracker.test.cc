@@ -59,7 +59,7 @@ class RectArrayTrackerTest : public OrangeGeoTestBase
                                    LocalSurfaceId surfid,
                                    Sense sense);
 
-    void SetUp() override { this->build_geometry("rect_array.org.json"); }
+    void SetUp() override { this->build_geometry("rect-array.org.json"); }
 };
 
 //---------------------------------------------------------------------------//

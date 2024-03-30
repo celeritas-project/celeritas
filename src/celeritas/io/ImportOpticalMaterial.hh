@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "ImportPhysicsVector.hh"
+#include "ImportUnits.hh"
 
 namespace celeritas
 {
@@ -22,7 +23,7 @@ namespace celeritas
  */
 struct ImportScintComponent
 {
-    double yield{};  //!< Yield for this material component [1/MeV]
+    double yield_per_energy{};  //!< Yield for this material component [1/MeV]
     double lambda_mean{};  //!< Mean wavelength [len]
     double lambda_sigma{};  //!< Standard deviation of wavelength
     double rise_time{};  //!< Rise time [time]
@@ -31,7 +32,7 @@ struct ImportScintComponent
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
-        return yield > 0 && lambda_mean > 0 && lambda_sigma > 0
+        return yield_per_energy > 0 && lambda_mean > 0 && lambda_sigma > 0
                && rise_time >= 0 && fall_time > 0;
     }
 };
@@ -43,12 +44,15 @@ struct ImportScintComponent
  */
 struct ImportMaterialScintSpectrum
 {
-    double yield{};  //!< Characteristic light yields of the material [1/MeV]
+    double yield_per_energy{};  //!< Light yield of the material [1/MeV]
     std::vector<ImportScintComponent> components;  //!< Scintillation
                                                    //!< components
 
     //! Whether all data are assigned and valid
-    explicit operator bool() const { return yield > 0 && !components.empty(); }
+    explicit operator bool() const
+    {
+        return yield_per_energy > 0 && !components.empty();
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -62,7 +66,12 @@ struct ImportMaterialScintSpectrum
  */
 struct ImportParticleScintSpectrum
 {
-    ImportPhysicsVector yield_vector;  //!< Particle yield vector
+#ifndef SWIG
+    static constexpr auto x_units{ImportUnits::mev};
+    static constexpr auto y_units{ImportUnits::unitless};
+#endif
+
+    ImportPhysicsVector yield_vector;  //!< Particle yield per energy bin
     std::vector<ImportScintComponent> components;  //!< Scintillation
                                                    //!< components
 
@@ -90,7 +99,8 @@ struct ImportScintData
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
-        return static_cast<bool>(material) && resolution_scale >= 0;
+        return (static_cast<bool>(material) || !particles.empty())
+               && resolution_scale >= 0;
     }
 };
 
@@ -147,6 +157,32 @@ struct ImportOpticalProperty
 
 //---------------------------------------------------------------------------//
 /*!
+ * Store optical photon wavelength shifting properties.
+ *
+ * The component vector represents the relative population as a function of the
+ * re-emission energy. It is used to define an inverse CDF needed to sample the
+ * re-emitted optical photon energy.
+ */
+struct ImportWavelengthShift
+{
+    double mean_num_photons;  //!< Mean number of re-emitted photons
+    double time_constant;  //!< Time delay between absorption and re-emission
+    ImportPhysicsVector absorption_length;  //!< Absorption length [MeV, len]
+    ImportPhysicsVector component;  //!< Re-emission population [MeV, unitless]
+
+    //! Whether all data are assigned and valid
+    explicit operator bool() const
+    {
+        return mean_num_photons > 0 && time_constant > 0
+               && static_cast<bool>(absorption_length)
+               && static_cast<bool>(component)
+               && absorption_length.vector_type == ImportPhysicsVectorType::free
+               && component.vector_type == absorption_length.vector_type;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Store optical material properties.
  */
 struct ImportOpticalMaterial
@@ -155,13 +191,14 @@ struct ImportOpticalMaterial
     ImportOpticalRayleigh rayleigh;
     ImportOpticalAbsorption absorption;
     ImportOpticalProperty properties;
+    ImportWavelengthShift wls;
 
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
         return static_cast<bool>(scintillation) || static_cast<bool>(rayleigh)
                || static_cast<bool>(absorption)
-               || static_cast<bool>(properties);
+               || static_cast<bool>(properties) || static_cast<bool>(wls);
     }
 };
 //---------------------------------------------------------------------------//

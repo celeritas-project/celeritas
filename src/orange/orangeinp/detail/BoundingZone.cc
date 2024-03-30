@@ -197,6 +197,20 @@ BoundingZone calc_union(BoundingZone const& a, BoundingZone const& b)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get an infinite bbox if "negated", else get the exterior.
+ */
+BBox get_exterior_bbox(BoundingZone const& bz)
+{
+    if (bz.negated)
+    {
+        // Everything "outside" a finite region: infinite
+        return BBox::from_infinite();
+    }
+    return bz.exterior;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace orangeinp
 }  // namespace celeritas

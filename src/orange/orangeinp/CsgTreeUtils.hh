@@ -31,10 +31,6 @@ orangeinp::NodeId simplify_up(CsgTree* tree, orangeinp::NodeId start);
 // Simplify the tree iteratively
 void simplify(CsgTree* tree, orangeinp::NodeId start);
 
-// Convert a node to postfix notation
-[[nodiscard]] std::vector<LocalSurfaceId::size_type>
-build_postfix(CsgTree const& tree, orangeinp::NodeId n);
-
 // Transform a CSG node into a string expression
 [[nodiscard]] std::string
 build_infix_string(CsgTree const& tree, orangeinp::NodeId n);

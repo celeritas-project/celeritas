@@ -255,6 +255,35 @@ CELER_FORCEINLINE_FUNCTION ForwardIt upper_bound(ForwardIt first,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Find the given element in a sorted range.
+ */
+template<class ForwardIt, class T, class Compare>
+inline CELER_FUNCTION ForwardIt
+find_sorted(ForwardIt first, ForwardIt last, T const& value, Compare comp)
+{
+    auto iter = ::celeritas::lower_bound(first, last, value, comp);
+    if (iter == last || comp(*iter, value) || comp(value, *iter))
+    {
+        // Insertion point is off the end, or value is not equal
+        return last;
+    }
+    return iter;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the given element in a sorted range.
+ */
+template<class ForwardIt, class T>
+CELER_FORCEINLINE_FUNCTION ForwardIt find_sorted(ForwardIt first,
+                                                 ForwardIt last,
+                                                 T const& value)
+{
+    return ::celeritas::find_sorted(first, last, value, Less<>{});
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Partition elements in the given range, "true" before "false".
  *
  * This is done by swapping elements until the range is partitioned.

@@ -174,7 +174,7 @@ TEST_F(TestEm3NoMsc, host_is_sorting)
     auto execute = [&](std::string const& label) {
         ActionId action_id = this->action_reg()->find_action(label);
         CELER_VALIDATE(action_id, << "no '" << label << "' action found");
-        auto action = dynamic_cast<ExplicitActionInterface const*>(
+        auto action = dynamic_cast<ExplicitCoreActionInterface const*>(
             this->action_reg()->action(action_id).get());
         CELER_VALIDATE(action, << "action '" << label << "' cannot execute");
         CELER_TRY_HANDLE(action->execute(*this->core(), state),
