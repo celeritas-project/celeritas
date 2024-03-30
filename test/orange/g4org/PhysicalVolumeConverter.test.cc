@@ -56,11 +56,7 @@ TEST_F(PhysicalVolumeConverterTest, DISABLED_four_levels)
     PhysicalVolume world = convert(*g4world);
     EXPECT_EQ("World_PV", world.name);
     EXPECT_EQ(0, world.copy_number);
-    if (auto* trans = std::get_if<NoTransformation>(&world.transform))
-    {
-        // All good
-    }
-    else
+    if (!std::holds_alternative<NoTransformation>(world.transform))
     {
         ADD_FAILURE() << "Unexpected transform type: "
                       << StreamableVariant{world.transform};
@@ -86,7 +82,7 @@ TEST_F(PhysicalVolumeConverterTest, intersection_boxes)
     ASSERT_TRUE(inner_pv.lv);
     EXPECT_EQ("inner0x0", simplify_pointers(inner_pv.lv->name));
     ASSERT_TRUE(inner_pv.lv->solid);
-    if (CELERITAS_USE_JSON)
+    if (CELERITAS_USE_JSON && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
         EXPECT_JSON_EQ(
             R"json(
@@ -133,10 +129,16 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
         EXPECT_NE(nullptr, lv->g4lv);
         EXPECT_EQ("World0x0", simplify_pointers(lv->name));
         ASSERT_TRUE(lv->solid);
-        if (CELERITAS_USE_JSON)
+        if (CELERITAS_USE_JSON && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
         {
             EXPECT_JSON_EQ(
                 R"json({"_type":"shape","interior":{"_type":"box","halfwidths":[24.0,24.0,24.0]},"label":"World"})json",
+                to_string(*lv->solid));
+        }
+        else if (CELERITAS_USE_JSON && CELERITAS_UNITS == CELERITAS_UNITS_CLHEP)
+        {
+            EXPECT_JSON_EQ(
+                R"json({"_type":"shape","interior":{"_type":"box","halfwidths":[240.0,240.0,240.0]},"label":"World"})json",
                 to_string(*lv->solid));
         }
         ASSERT_EQ(1, lv->daughters.size());
@@ -178,7 +180,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
         ASSERT_EQ(2, lv->daughters.size());
 
         ASSERT_TRUE(lv->solid);
-        if (CELERITAS_USE_JSON)
+        if (CELERITAS_USE_JSON && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
         {
             EXPECT_JSON_EQ(
                 R"json({"_type":"shape","interior":{"_type":"box","halfwidths":[0.4,20.0,20.0]},"label":"Layer"})json",
@@ -230,8 +232,7 @@ TEST_F(PhysicalVolumeConverterTest, transformed_box)
     {
         auto const& pv = world.lv->daughters[1];
         EXPECT_EQ("default", pv.name);
-        if (auto* trans = std::get_if<NoTransformation>(&pv.transform)) {}
-        else
+        if (!std::holds_alternative<NoTransformation>(pv.transform))
         {
             ADD_FAILURE() << "Unexpected transform type: "
                           << StreamableVariant{pv.transform};
