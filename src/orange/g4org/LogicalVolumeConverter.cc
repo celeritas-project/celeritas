@@ -13,6 +13,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/Environment.hh"
 #include "geocel/GeantGeoUtils.hh"
 
 #include "SolidConverter.hh"
@@ -107,7 +108,13 @@ auto LogicalVolumeConverter::construct_impl(arg_type g4lv) -> SPLV
                          << g4lv.GetSolid()->GetName();
         CELER_LOG(info) << "Unsupported solid belongs to logical volume "
                         << PrintableLV{&g4lv};
-        throw;
+
+        static bool const allow_errors
+            = !celeritas::getenv("G4ORG_ALLOW_ERRORS").empty();
+        if (!allow_errors)
+        {
+            throw;
+        }
     }
 
     return result;
