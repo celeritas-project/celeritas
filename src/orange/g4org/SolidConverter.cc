@@ -389,6 +389,8 @@ auto SolidConverter::para(arg_type solid_base) -> result_type
     double const phi = solid.GetPhi();
 #else
     CELER_NOT_IMPLEMENTED("older geant4, don't duplicate code");
+    double const theta = 0;
+    double const phi = 0;
 #endif
     return make_shape<Parallelepiped>(
         solid,

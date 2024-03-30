@@ -103,10 +103,18 @@ class SolidConverterTest : public ::celeritas::orangeinp::test::ObjectTestBase
                         std::initializer_list<Real3> points = {})
     {
         SCOPED_TRACE(solid.GetName());
+
+        // Recreate the converter at each step since the solid may be a
+        // temporary rather than in a "store"
+        SolidConverter convert{scale_, transform_};
+
         // Convert the object
-        auto obj = convert_(solid);
+        auto obj = convert(solid);
         CELER_ASSERT(obj);
-        EXPECT_JSON_EQ(json_str, to_string(*obj));
+        if (CELERITAS_USE_JSON)
+        {
+            EXPECT_JSON_EQ(json_str, to_string(*obj));
+        }
 
         // Construct a volume from it
         auto vol_id = this->build_volume(*obj);
@@ -134,7 +142,6 @@ class SolidConverterTest : public ::celeritas::orangeinp::test::ObjectTestBase
 
     Scaler scale_{0.1};
     Transformer transform_{scale_};
-    SolidConverter convert_{scale_, transform_};
 };
 
 TEST_F(SolidConverterTest, box)
@@ -273,28 +280,28 @@ TEST_F(SolidConverterTest, tubs)
         R"json({"_type":"shape","interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Solid Tube #1"})json");
 
     this->build_and_test(
-        G4Tubs("Solid Tube #1", 0, 50 * mm, 50 * mm, 0, 0.5 * pi),
-        R"json({"_type":"solid","enclosed_angle":{"interior":0.25,"start":0.0},"interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Solid Tube #1"})json");
+        G4Tubs("Solid Tube #1a", 0, 50 * mm, 50 * mm, 0, 0.5 * pi),
+        R"json({"_type":"solid","enclosed_angle":{"interior":0.25,"start":0.0},"interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Solid Tube #1a"})json");
 
     this->build_and_test(
         G4Tubs("Hole Tube #2", 45 * mm, 50 * mm, 50 * mm, 0, 2 * pi),
         R"json({"_type":"solid","excluded":{"_type":"cylinder","halfheight":5.0,"radius":4.5},"interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Hole Tube #2"})json");
 
     this->build_and_test(
-        G4Tubs("Hole Tube #2", 5 * mm, 50 * mm, 50 * mm, 0, 2 * pi),
-        R"json({"_type":"solid","excluded":{"_type":"cylinder","halfheight":5.0,"radius":0.5},"interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Hole Tube #2"})json");
+        G4Tubs("Hole Tube #2a", 5 * mm, 50 * mm, 50 * mm, 0, 2 * pi),
+        R"json({"_type":"solid","excluded":{"_type":"cylinder","halfheight":5.0,"radius":0.5},"interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Hole Tube #2a"})json");
 
     this->build_and_test(
-        G4Tubs("Hole Tube #2", 15 * mm, 50 * mm, 50 * mm, 0, 2 * pi),
-        R"json({"_type":"solid","excluded":{"_type":"cylinder","halfheight":5.0,"radius":1.5},"interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Hole Tube #2"})json");
+        G4Tubs("Hole Tube #2b", 15 * mm, 50 * mm, 50 * mm, 0, 2 * pi),
+        R"json({"_type":"solid","excluded":{"_type":"cylinder","halfheight":5.0,"radius":1.5},"interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Hole Tube #2b"})json");
 
     this->build_and_test(
-        G4Tubs("Hole Tube #2", 25 * mm, 50 * mm, 50 * mm, 0, 2 * pi),
-        R"json({"_type":"solid","excluded":{"_type":"cylinder","halfheight":5.0,"radius":2.5},"interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Hole Tube #2"})json");
+        G4Tubs("Hole Tube #2c", 25 * mm, 50 * mm, 50 * mm, 0, 2 * pi),
+        R"json({"_type":"solid","excluded":{"_type":"cylinder","halfheight":5.0,"radius":2.5},"interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Hole Tube #2c"})json");
 
     this->build_and_test(
-        G4Tubs("Hole Tube #2", 35 * mm, 50 * mm, 50 * mm, 0, 2 * pi),
-        R"json({"_type":"solid","excluded":{"_type":"cylinder","halfheight":5.0,"radius":3.5},"interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Hole Tube #2"})json");
+        G4Tubs("Hole Tube #2d", 35 * mm, 50 * mm, 50 * mm, 0, 2 * pi),
+        R"json({"_type":"solid","excluded":{"_type":"cylinder","halfheight":5.0,"radius":3.5},"interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Hole Tube #2d"})json");
 
     this->build_and_test(
         G4Tubs("Solid Sector #3", 0, 50 * mm, 50 * mm, halfpi, halfpi),
