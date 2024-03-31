@@ -64,10 +64,6 @@ celeritas_add_test(BoundingBox.test.cc
   LINK_LIBRARIES ${nlohmann_json_LIBRARIES}
 )
 
-celeritas_add_test(
-  PolygonUtils.test.cc
-)
-
 #-----------------------------------------------------------------------------#
 # VecGeom
 

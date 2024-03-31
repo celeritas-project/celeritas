@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file geocel/detail/PolygonUtils.test.cc
 //---------------------------------------------------------------------------//
-#include "geocel/detail/PolygonUtils.hh"
+#include "orange/orangeinp/detail/PolygonUtils.hh"
 
 #include "celeritas_test.hh"
 

@@ -14,7 +14,7 @@
 #include "corecel/io/JsonPimpl.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/Types.hh"
-#include "geocel/detail/PolygonUtils.hh"
+#include "orange/orangeinp/detail/PolygonUtils.hh"
 #include "orange/surf/ConeAligned.hh"
 #include "orange/surf/CylCentered.hh"
 #include "orange/surf/PlaneAligned.hh"
