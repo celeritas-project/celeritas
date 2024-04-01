@@ -9,53 +9,49 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/math/Quantity.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/grid/GenericCalculator.hh"
 #include "celeritas/neutron/data/NeutronElasticData.hh"
-
-#include "NeutronMicroXsCalculator.hh"
 
 namespace celeritas
 {
-class NeutronElasticMicroXsCalculator;
-
 //---------------------------------------------------------------------------//
 /*!
- * XsData_traits for NeutronElasticRef.
- */
-template<>
-struct XsData_traits<NeutronElasticMicroXsCalculator>
-{
-    using ParamsRef = NeutronElasticRef;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate neutron elastic cross sections from NeutronElasticData.
+ * Calculate neutron elastic cross sections from NeutronElasticData
  */
 class NeutronElasticMicroXsCalculator
-    : public NeutronMicroXsCalculator<NeutronElasticMicroXsCalculator>
 {
   public:
     //!@{
     //! \name Type aliases
-    using ParamsRef =
-        typename XsData_traits<NeutronElasticMicroXsCalculator>::ParamsRef;
+    using ParamsRef = NeutronElasticRef;
+    using Energy = units::MevEnergy;
+    using BarnXs = units::BarnXs;
     //!@}
 
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    NeutronElasticMicroXsCalculator(ParamsRef const& shared, Energy energy)
-        : NeutronMicroXsCalculator<NeutronElasticMicroXsCalculator>(shared,
-                                                                    energy)
-    {
-    }
+    NeutronElasticMicroXsCalculator(ParamsRef const& shared, Energy energy);
+
+    // Compute cross section
+    inline CELER_FUNCTION BarnXs operator()(ElementId el_id) const;
 
   private:
-    friend class NeutronMicroXsCalculator<NeutronElasticMicroXsCalculator>;
+    // Shared constant physics properties
+    NeutronElasticRef const& shared_;
+    // Incident neutron energy
+    real_type const inc_energy_;
 };
 
 //---------------------------------------------------------------------------//
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d51d342e6 (Remove NeutronMicroXsCalculator)
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
@@ -77,14 +73,25 @@ auto NeutronElasticMicroXsCalculator::operator()(ElementId el_id) const
 {
     CELER_EXPECT(el_id < shared_.micro_xs.size());
 
+<<<<<<< HEAD
     // Calculate micro cross section at the given energy
     GenericCalculator calc_xs(shared_.micro_xs[el_id], shared_.reals);
+=======
+    // Get element cross section data
+    GenericGridData grid = shared_.micro_xs[el_id];
+
+    // Calculate micro cross section at the given energy
+    GenericCalculator calc_xs(grid, shared_.reals);
+>>>>>>> d51d342e6 (Remove NeutronMicroXsCalculator)
     real_type result = calc_xs(inc_energy_);
 
     return BarnXs{result};
 }
 
 //---------------------------------------------------------------------------//
+<<<<<<< HEAD
 =======
 >>>>>>> 415eef003 (Add NeutronMicroXsCalculator)
+=======
+>>>>>>> d51d342e6 (Remove NeutronMicroXsCalculator)
 }  // namespace celeritas
