@@ -110,24 +110,6 @@ auto Transformer::operator()(G4ThreeVector const& trans,
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a transform from a translation plus optional rotation.
- */
-auto Transformer::operator()(G4ThreeVector const& trans,
-                             G4RotationMatrix const* rot) const
-    -> VariantTransform
-{
-    if (rot)
-    {
-        return (*this)(trans, *rot);
-    }
-    else
-    {
-        return (*this)(trans);
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Create a transform from an affine transform.
  */
 auto Transformer::operator()(G4AffineTransform const& affine) const
