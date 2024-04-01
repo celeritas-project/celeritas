@@ -22,11 +22,30 @@ namespace orangeinp
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Construct a transformed object if nontrivial, or return the original.
+ */
+auto Transformed::or_object(SPConstObject obj,
+                            VariantTransform const& transform) -> SPConstObject
+{
+    if (std::holds_alternative<NoTransformation>(transform))
+    {
+        return obj;
+    }
+    return std::make_shared<Transformed>(std::move(obj), transform);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct with daughter object and transform.
+ *
+ * The input transform should *not* be "no transform". If you don't know
+ * whether it is or not, use the \c Transformed::or_object factory function.
  */
 Transformed::Transformed(SPConstObject obj, VariantTransform const& transform)
     : obj_{std::move(obj)}, transform_{transform}
 {
+    CELER_EXPECT(!transform_.valueless_by_exception());
+    CELER_EXPECT(!std::holds_alternative<NoTransformation>(transform_));
     CELER_EXPECT(obj_);
 }
 
