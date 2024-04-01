@@ -9,45 +9,53 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/math/Algorithms.hh"
-#include "corecel/math/Quantity.hh"
-#include "celeritas/Quantities.hh"
-#include "celeritas/Types.hh"
-#include "celeritas/grid/GenericCalculator.hh"
 #include "celeritas/neutron/data/NeutronElasticData.hh"
+
+#include "NeutronMicroXsCalculator.hh"
 
 namespace celeritas
 {
+class NeutronElasticMicroXsCalculator;
+
 //---------------------------------------------------------------------------//
 /*!
- * Calculate neutron elastic cross sections from NeutronElasticXsData
+ * XsData_traits for NeutronElasticRef.
+ */
+template<>
+struct XsData_traits<NeutronElasticMicroXsCalculator>
+{
+    using ParamsRef = NeutronElasticRef;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate neutron elastic cross sections from NeutronElasticData.
  */
 class NeutronElasticMicroXsCalculator
+    : public NeutronMicroXsCalculator<NeutronElasticMicroXsCalculator>
 {
   public:
     //!@{
     //! \name Type aliases
-    using ParamsRef = NeutronElasticRef;
-    using Energy = units::MevEnergy;
-    using BarnXs = units::BarnXs;
+    using ParamsRef =
+        typename XsData_traits<NeutronElasticMicroXsCalculator>::ParamsRef;
     //!@}
 
   public:
     // Construct with shared and state data
     inline CELER_FUNCTION
-    NeutronElasticMicroXsCalculator(ParamsRef const& shared, Energy energy);
-
-    // Compute cross section
-    inline CELER_FUNCTION BarnXs operator()(ElementId el_id) const;
+    NeutronElasticMicroXsCalculator(ParamsRef const& shared, Energy energy)
+        : NeutronMicroXsCalculator<NeutronElasticMicroXsCalculator>(shared,
+                                                                    energy)
+    {
+    }
 
   private:
-    // Shared constant physics properties
-    NeutronElasticRef const& shared_;
-    // Incident neutron energy
-    real_type const inc_energy_;
+    friend class NeutronMicroXsCalculator<NeutronElasticMicroXsCalculator>;
 };
 
 //---------------------------------------------------------------------------//
+<<<<<<< HEAD
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
@@ -77,4 +85,6 @@ auto NeutronElasticMicroXsCalculator::operator()(ElementId el_id) const
 }
 
 //---------------------------------------------------------------------------//
+=======
+>>>>>>> 415eef003 (Add NeutronMicroXsCalculator)
 }  // namespace celeritas
