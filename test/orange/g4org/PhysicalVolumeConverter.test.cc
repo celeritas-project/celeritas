@@ -76,9 +76,9 @@ TEST_F(PhysicalVolumeConverterTest, intersection_boxes)
 
     ASSERT_TRUE(world.lv);
     EXPECT_EQ("world0x0", simplify_pointers(world.lv->name));
-    ASSERT_EQ(1, world.lv->daughters.size());
+    ASSERT_EQ(1, world.lv->children.size());
 
-    auto const& inner_pv = world.lv->daughters.front();
+    auto const& inner_pv = world.lv->children.front();
     ASSERT_TRUE(inner_pv.lv);
     EXPECT_EQ("inner0x0", simplify_pointers(inner_pv.lv->name));
     ASSERT_TRUE(inner_pv.lv->solid);
@@ -141,9 +141,9 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
                 R"json({"_type":"shape","interior":{"_type":"box","halfwidths":[240.0,240.0,240.0]},"label":"World"})json",
                 to_string(*lv->solid));
         }
-        ASSERT_EQ(1, lv->daughters.size());
+        ASSERT_EQ(1, lv->children.size());
 
-        auto const& calo_pv = lv->daughters.front();
+        auto const& calo_pv = lv->children.front();
         EXPECT_EQ(1, calo_pv.lv.use_count());
         ASSERT_TRUE(calo_pv.lv);
         lv = calo_pv.lv.get();
@@ -151,9 +151,9 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
     {
         // Test calorimeter
         EXPECT_EQ("Calorimeter0x0", simplify_pointers(lv->name));
-        ASSERT_EQ(50, lv->daughters.size());
+        ASSERT_EQ(50, lv->children.size());
 
-        auto const& first_layer = lv->daughters.front();
+        auto const& first_layer = lv->children.front();
         EXPECT_EQ(1, first_layer.copy_number);
         EXPECT_EQ(50, first_layer.lv.use_count());
         if (auto* trans = std::get_if<Translation>(&first_layer.transform))
@@ -167,7 +167,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
                           << StreamableVariant{first_layer.transform};
         }
 
-        auto const& last_layer = lv->daughters.back();
+        auto const& last_layer = lv->children.back();
         EXPECT_EQ(50, last_layer.copy_number);
         EXPECT_EQ(first_layer.lv.get(), last_layer.lv.get());
 
@@ -177,7 +177,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
     {
         // Test layer
         EXPECT_EQ("Layer0x0", simplify_pointers(lv->name));
-        ASSERT_EQ(2, lv->daughters.size());
+        ASSERT_EQ(2, lv->children.size());
 
         ASSERT_TRUE(lv->solid);
         if (CELERITAS_USE_JSON && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
@@ -187,7 +187,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
                 to_string(*lv->solid));
         }
 
-        auto const& lead = lv->daughters.front();
+        auto const& lead = lv->children.front();
         EXPECT_EQ(1, lead.lv.use_count());
 
         ASSERT_TRUE(lead.lv);
@@ -196,7 +196,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
     {
         // Test lead
         EXPECT_EQ("G4_Pb0x0", simplify_pointers(lv->name));
-        EXPECT_EQ(0, lv->daughters.size());
+        EXPECT_EQ(0, lv->children.size());
     }
 }
 
@@ -210,10 +210,10 @@ TEST_F(PhysicalVolumeConverterTest, transformed_box)
     EXPECT_EQ("world_PV", simplify_pointers(world.name));
 
     ASSERT_TRUE(world.lv);
-    ASSERT_EQ(3, world.lv->daughters.size());
+    ASSERT_EQ(3, world.lv->children.size());
 
     {
-        auto const& pv = world.lv->daughters[0];
+        auto const& pv = world.lv->children[0];
         EXPECT_EQ("transrot", pv.name);
         if (auto* trans = std::get_if<Transformation>(&pv.transform))
         {
@@ -230,7 +230,7 @@ TEST_F(PhysicalVolumeConverterTest, transformed_box)
         }
     }
     {
-        auto const& pv = world.lv->daughters[1];
+        auto const& pv = world.lv->children[1];
         EXPECT_EQ("default", pv.name);
         if (!std::holds_alternative<NoTransformation>(pv.transform))
         {
@@ -239,7 +239,7 @@ TEST_F(PhysicalVolumeConverterTest, transformed_box)
         }
     }
     {
-        auto const& pv = world.lv->daughters[2];
+        auto const& pv = world.lv->children[2];
         EXPECT_EQ("trans", pv.name);
         if (auto* trans = std::get_if<Translation>(&pv.transform))
         {

@@ -59,17 +59,17 @@ struct PhysicalVolumeConverter::Builder
     };
 
     Data* data;
-    std::deque<QueuedDaughter> daughter_queue;
+    std::deque<QueuedDaughter> child_queue;
 
-    // Convert a physical volume, queuing daughters if needed
+    // Convert a physical volume, queuing children if needed
     PhysicalVolume make_pv(int depth, G4VPhysicalVolume const& pv);
 
-    // Build a daughter
+    // Build a child
     void
-    place_daughter(int depth, G4VPhysicalVolume const& g4pv, LogicalVolume* lv);
+    place_child(int depth, G4VPhysicalVolume const& g4pv, LogicalVolume* lv);
 
-    // Build all daughters in the queue
-    void build_daughters();
+    // Build all children in the queue
+    void build_children();
 };
 
 //---------------------------------------------------------------------------//
@@ -100,13 +100,13 @@ auto PhysicalVolumeConverter::operator()(arg_type g4world) -> result_type
     // Construct world volume
     Builder impl{data_.get(), {}};
     auto world = impl.make_pv(0, g4world);
-    impl.build_daughters();
+    impl.build_children();
     return world;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert a physical volume without building daughters.
+ * Convert a physical volume without building children.
  */
 PhysicalVolume
 PhysicalVolumeConverter::Builder::make_pv(int depth,
@@ -120,7 +120,7 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
         auto const& g4trans = g4pv.GetObjectTranslation();
         if (g4pv.GetFrameRotation())
         {
-            // Get the daughter-to-parent rotation and check for being identity
+            // Get the child-to-parent rotation and check for being identity
             // (parameterized volumes inject an identity matrix)
             auto const& rot = g4pv.GetObjectRotationValue();
             if (!rot.isIdentity())
@@ -155,14 +155,14 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
             std::clog << std::string(depth, ' ') << "Converted "
                       << g4lv->GetName() << std::endl;
         }
-        // Queue up daughters for construction
-        auto num_daughters = g4lv->GetNoDaughters();
-        lv->daughters.reserve(num_daughters);
-        for (auto i : range(num_daughters))
+        // Queue up children for construction
+        auto num_children = g4lv->GetNoDaughters();
+        lv->children.reserve(num_children);
+        for (auto i : range(num_children))
         {
             G4VPhysicalVolume* g4pv = g4lv->GetDaughter(i);
             CELER_ASSERT(g4pv);
-            daughter_queue.push_back({depth + 1, g4pv, lv});
+            child_queue.push_back({depth + 1, g4pv, lv});
         }
     }
     result.lv = std::move(lv);
@@ -172,15 +172,15 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct daughters in a logical volume.
+ * Construct children in a logical volume.
  */
-void PhysicalVolumeConverter::Builder::place_daughter(
+void PhysicalVolumeConverter::Builder::place_child(
     int depth, G4VPhysicalVolume const& g4pv, LogicalVolume* lv)
 {
     if (dynamic_cast<G4PVPlacement const*>(&g4pv))
     {
-        // Place daughter, accounting for reflection
-        lv->daughters.push_back(this->make_pv(depth, g4pv));
+        // Place child, accounting for reflection
+        lv->children.push_back(this->make_pv(depth, g4pv));
     }
     else if (G4VPVParameterisation* param = g4pv.GetParameterisation())
     {
@@ -200,7 +200,7 @@ void PhysicalVolumeConverter::Builder::place_daughter(
                 j, const_cast<G4VPhysicalVolume*>(&g4pv));
 
             // Add a copy
-            lv->daughters.push_back(this->make_pv(depth, g4pv));
+            lv->children.push_back(this->make_pv(depth, g4pv));
         }
     }
     else
@@ -216,19 +216,19 @@ void PhysicalVolumeConverter::Builder::place_daughter(
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct daughters in a logical volume.
+ * Construct children in a logical volume.
  */
-void PhysicalVolumeConverter::Builder::build_daughters()
+void PhysicalVolumeConverter::Builder::build_children()
 {
-    while (!daughter_queue.empty())
+    while (!child_queue.empty())
     {
         // Grab the front item and pop from the stack
-        auto front = std::move(daughter_queue.front());
-        daughter_queue.pop_front();
+        auto front = std::move(child_queue.front());
+        child_queue.pop_front();
 
-        // Build daughters, potentially queueing more daughters
+        // Build children, potentially queueing more children
         CELER_ASSERT(front.g4pv && front.lv);
-        this->place_daughter(front.depth, *front.g4pv, front.lv.get());
+        this->place_child(front.depth, *front.g4pv, front.lv.get());
     }
 }
 

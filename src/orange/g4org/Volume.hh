@@ -55,10 +55,10 @@ struct LogicalVolume
     //! Filled material ID
     MaterialId material_id;
 
-    //! "Unplaced" mother shape
+    //! "Unplaced" parent shape
     SPConstObject solid;
-    //! Daughter volumes
-    std::vector<PhysicalVolume> daughters;
+    //! Embedded child volumes
+    std::vector<PhysicalVolume> children;
 };
 
 //---------------------------------------------------------------------------//

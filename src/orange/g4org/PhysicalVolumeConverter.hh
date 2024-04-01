@@ -20,7 +20,7 @@ namespace g4org
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct a "physical volume" and daughters from a Geant4 object.
+ * Construct a "physical volume" and its children from a Geant4 object.
  *
  * This recurses through the physical volume. It holds a weak-pointer cache of
  * logical volumes already created.
