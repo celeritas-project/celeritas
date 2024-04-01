@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/neutron/executor/ChipsNeutronElasticExecutor.hh
+//! \file celeritas/neutron/executor/NeutronElasticExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,14 +14,14 @@
 #include "celeritas/mat/IsotopeSelector.hh"
 #include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/neutron/data/NeutronElasticData.hh"
-#include "celeritas/neutron/interactor/ChipsNeutronElasticInteractor.hh"
+#include "celeritas/neutron/interactor/NeutronElasticInteractor.hh"
 #include "celeritas/neutron/xs/NeutronElasticMicroXsCalculator.hh"
 #include "celeritas/phys/Interaction.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-struct ChipsNeutronElasticExecutor
+struct NeutronElasticExecutor
 {
     inline CELER_FUNCTION Interaction
     operator()(celeritas::CoreTrackView const& track);
@@ -34,7 +34,7 @@ struct ChipsNeutronElasticExecutor
  * Apply the NeutronElasticInteractor to the current track.
  */
 CELER_FUNCTION Interaction
-ChipsNeutronElasticExecutor::operator()(CoreTrackView const& track)
+NeutronElasticExecutor::operator()(CoreTrackView const& track)
 {
     auto particle = track.make_particle_view();
     auto const& dir = track.make_geo_view().dir();
@@ -61,7 +61,7 @@ ChipsNeutronElasticExecutor::operator()(CoreTrackView const& track)
     IsotopeView target = element.make_isotope_view(iso_select(rng));
 
     // Construct the interactor
-    ChipsNeutronElasticInteractor interact(params, particle, dir, target);
+    NeutronElasticInteractor interact(params, particle, dir, target);
 
     // Execute the interactor
     return interact(rng);

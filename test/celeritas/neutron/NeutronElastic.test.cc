@@ -15,8 +15,8 @@
 #include "celeritas/io/NeutronXsReader.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/neutron/NeutronTestBase.hh"
-#include "celeritas/neutron/interactor/ChipsNeutronElasticInteractor.hh"
-#include "celeritas/neutron/model/ChipsNeutronElasticModel.hh"
+#include "celeritas/neutron/interactor/NeutronElasticInteractor.hh"
+#include "celeritas/neutron/model/NeutronElasticModel.hh"
 #include "celeritas/neutron/xs/NeutronElasticMicroXsCalculator.hh"
 #include "celeritas/phys/MacroXsCalculator.hh"
 
@@ -31,8 +31,7 @@ class NeutronElasticTest : public NeutronTestBase
 {
   protected:
     using MevEnergy = units::MevEnergy;
-    using SPConstNElasticModel
-        = std::shared_ptr<ChipsNeutronElasticModel const>;
+    using SPConstNElasticModel = std::shared_ptr<NeutronElasticModel const>;
 
     void SetUp() override
     {
@@ -40,7 +39,7 @@ class NeutronElasticTest : public NeutronTestBase
 
         // Load neutron elastic cross section data
         std::string data_path = this->test_data_path("celeritas", "");
-        NeutronXsReader read_el_data(data_path.c_str());
+        NeutronXsReader read_el_data(data_path.c_str(), NeutronXsType::el);
 
         // Set up the default particle: 100 MeV neutron along +z direction
         auto const& particles = *this->particle_params();
@@ -49,7 +48,7 @@ class NeutronElasticTest : public NeutronTestBase
 
         // Set up the default material
         this->set_material("HeCu");
-        model_ = std::make_shared<ChipsNeutronElasticModel>(
+        model_ = std::make_shared<NeutronElasticModel>(
             ActionId{0}, particles, *this->material_params(), read_el_data);
     }
 
@@ -73,7 +72,7 @@ TEST_F(NeutronElasticTest, micro_xs)
     NeutronElasticRef const& shared = model_->host_ref();
     EXPECT_EQ(shared.micro_xs[el_id].grid.size(), 181);
 
-    // Microscopic cross section (\f$ mm^{2} \f$) in [1e-05:1e+4] (MeV)
+    // Microscopic cross section (units::BarnXs) in [1e-05:1e+4] (MeV)
     std::vector<real_type> const expected_micro_xs = {7.7754820698300016,
                                                       7.5491116936558775,
                                                       5.5794984695350172,
@@ -170,7 +169,7 @@ TEST_F(NeutronElasticTest, basic)
                                   .make_material_view()
                                   .make_element_view(ElementComponentId{0})
                                   .make_isotope_view(IsotopeComponentId{1});
-    ChipsNeutronElasticInteractor interact_light_target(
+    NeutronElasticInteractor interact_light_target(
         shared, this->particle_track(), this->direction(), isotope_he4);
 
     // Sample neutron-Cu63 interactions
@@ -178,7 +177,7 @@ TEST_F(NeutronElasticTest, basic)
                                    .make_material_view()
                                    .make_element_view(ElementComponentId{1})
                                    .make_isotope_view(IsotopeComponentId{0});
-    ChipsNeutronElasticInteractor interact_heavy_target(
+    NeutronElasticInteractor interact_heavy_target(
         shared, this->particle_track(), this->direction(), isotope_cu63);
 
     // Produce four samples from the original incident energy/dir
@@ -264,7 +263,7 @@ TEST_F(NeutronElasticTest, extended)
     for (auto i : range(expected_energy.size()))
     {
         this->set_inc_particle(pdg::neutron(), MevEnergy{energy});
-        ChipsNeutronElasticInteractor interact(
+        NeutronElasticInteractor interact(
             shared, this->particle_track(), this->direction(), isotope_he4);
         Interaction result = interact(rng_engine);
 
@@ -311,7 +310,7 @@ TEST_F(NeutronElasticTest, stress_test)
     for (auto i : range(inc_energy.size()))
     {
         this->set_inc_particle(pdg::neutron(), MevEnergy{inc_energy[i]});
-        ChipsNeutronElasticInteractor interact(
+        NeutronElasticInteractor interact(
             shared, this->particle_track(), this->direction(), isotope);
 
         real_type sum_energy{0.};
