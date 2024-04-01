@@ -66,6 +66,9 @@ class JoinObjects : public ObjectInterface
     static constexpr OperatorToken op_token = Op;
 
   public:
+    // Construct a joined object if nontrivial, or return the original
+    static SPConstObject or_object(std::string&& label, VecObject&& objects);
+
     // Construct with a label and vector of objects
     JoinObjects(std::string&& label, VecObject&& objects);
 
