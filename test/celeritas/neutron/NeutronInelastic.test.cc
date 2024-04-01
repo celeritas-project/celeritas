@@ -68,19 +68,20 @@ TEST_F(NeutronInelasticTest, micro_xs)
     ElementId el_id{1};
 
     // Check the size of the element cross section data (G4PARTICLEXS4.0)
+    // The neutron/inelZ data are pruned by a factor of 5 for this test
     NeutronInelasticRef shared = model_->host_ref();
     GenericGridData grid = shared.micro_xs[el_id];
-    EXPECT_EQ(grid.grid.size(), 299);
+    EXPECT_EQ(grid.grid.size(), 61);
 
     // Microscopic cross section (units::BarnXs) in [1e-04:1e+4] (MeV)
     std::vector<real_type> const expected_micro_xs = {2.499560005640001e-06,
                                                       2.499560005640001e-06,
                                                       2.499560005640001e-06,
                                                       2.499560005640001e-06,
-                                                      0.21345480858091287,
-                                                      1.3683015986762637,
-                                                      0.81011125346487955,
-                                                      0.84791989750495067};
+                                                      0.2170446680979802,
+                                                      1.3677671823188946,
+                                                      0.81016638725225387,
+                                                      0.84789596907525477};
 
     real_type energy = 1e-4;
     real_type const factor = 1e+1;
@@ -104,14 +105,14 @@ TEST_F(NeutronInelasticTest, macro_xs)
         model_->host_ref(), material);
 
     // Macroscopic cross section (\f$ cm^{-1} \f$) in [1e-04:1e+4] (MeV)
-    std::vector<real_type> const expected_macro_xs = {1.0538237187534606e-06,
-                                                      4.4336422193095875e-07,
-                                                      2.510056299100037e-07,
-                                                      1.925905724096256e-07,
-                                                      0.014808449342475376,
-                                                      0.094926010256081828,
-                                                      0.05684884713429017,
-                                                      0.059657133034676249};
+    std::vector<real_type> const expected_macro_xs = {1.0577605656430734e-06,
+                                                      4.4447010621996484e-07,
+                                                      2.5134945234021254e-07,
+                                                      1.9270371228950039e-07,
+                                                      0.015057496086707027,
+                                                      0.094888935102106969,
+                                                      0.056850427191922973,
+                                                      0.059657345679963072};
 
     real_type energy = 1e-4;
     real_type const factor = 1e+1;
@@ -127,7 +128,7 @@ TEST_F(NeutronInelasticTest, macro_xs)
     // (20 GeV)
     EXPECT_SOFT_EQ(
         native_value_to<units::InvCmXs>(calc_xs(MevEnergy{2000})).value(),
-        0.061235054332723221);
+        0.061219850473480573);
 }
 
 //---------------------------------------------------------------------------//

@@ -67,18 +67,19 @@ TEST_F(NeutronCaptureTest, micro_xs)
     ElementId el_id{1};
 
     // Check the size of the element cross section data (G4PARTICLEXS4.0)
+    // The neutron/inelZ data are pruned by a factor of 20 for this test
     NeutronCaptureRef shared = model_->host_ref();
     GenericGridData grid = shared.micro_xs[el_id];
-    EXPECT_EQ(grid.grid.size(), 1201);
+    EXPECT_EQ(grid.grid.size(), 61);
 
     // Microscopic cross section (units::BarnXs) in [1e-5:20] (MeV)
     std::vector<real_type> const expected_micro_xs = {0.18204728405100004,
-                                                      0.042623832551870709,
-                                                      0.30824208140316706,
-                                                      0.34512476672509756,
-                                                      0.026301149066701626,
-                                                      0.013598516329341233,
-                                                      0.00090382863741660178};
+                                                      0.043003597148616846,
+                                                      1.7829083098664167,
+                                                      0.083917754594731955,
+                                                      0.022405452191185841,
+                                                      0.013374102310585686,
+                                                      0.00090158238654021146};
 
     real_type energy = 1e-5;
     real_type const factor = 1e+1;
@@ -103,12 +104,12 @@ TEST_F(NeutronCaptureTest, macro_xs)
 
     // Microscopic cross section (\f$ cm^{-1} \f$) in [1e-5:20] (MeV)
     std::vector<real_type> const expected_macro_xs = {0.012629541537026693,
-                                                      0.002957031007021316,
-                                                      0.021384313371274329,
-                                                      0.023943051935853676,
-                                                      0.0018246438357136993,
-                                                      0.00094339790818402766,
-                                                      6.2703167786389206e-05};
+                                                      0.0029833771992971809,
+                                                      0.1236893737442868,
+                                                      0.0058217993906590285,
+                                                      0.0015543796251739357,
+                                                      0.0009278291718159043,
+                                                      6.2547333995414709e-05};
 
     real_type energy = 1e-5;
     real_type const factor = 1e+1;
