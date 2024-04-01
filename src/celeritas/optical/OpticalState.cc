@@ -3,30 +3,13 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/AbsorptionProcess.cc
+//! \file celeritas/optical/OpticalState.cc
 //---------------------------------------------------------------------------//
-#include "AbsorptionModel.hh"
+#include "OpticalState.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-
-AbsorptionModel::AbsorptionModel(ActionId id, MaterialParams const&)
-    : OpticalModel(id)
-{
-}
-
-void AbsorptionModel::execute(OpticalParams const& params,
-                              OpticalStateHost& state) const
-{
-}
-
-#if !CELER_USE_DEVICE
-void AbsorptionModel::execute(OpticalParams const&, OpticalStateDevice&) const
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

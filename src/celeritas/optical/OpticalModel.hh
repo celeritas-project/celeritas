@@ -31,7 +31,7 @@ namespace celeritas
  * The constructor is expected to take an action id and material parameters
  * const ref.
  */
-class OpticalModel : public ExplicitActionInterface
+class OpticalModel : public ExplicitOpticalActionInterface
 {
   public:
       // Virtual destructor

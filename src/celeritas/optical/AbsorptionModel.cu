@@ -7,14 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "AbsorptionModel.hh"
 
-#include "celeritas/global/CoreParams.hh"
-#include "celeritas/global/CoreState.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-void AbsorptionModel::execute(CoreParams const& params,
-                              CoreStateDevice& state) const
+void AbsorptionModel::execute(OpticalParams const& params,
+                              OpticalStateDevice& state) const
 {
 }
 //---------------------------------------------------------------------------//

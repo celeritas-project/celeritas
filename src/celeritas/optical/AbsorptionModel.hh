@@ -30,10 +30,11 @@ class AbsorptionModel : public OpticalModel
     AbsorptionModel(ActionId id, MaterialParams const&);
 
     //! Execute the absorption interaction on the host
-    void execute(CoreParams const&, CoreStateHost&) const override final;
+    void execute(OpticalParams const&, OpticalStateHost&) const override final;
 
     //! Execute the absorption interaction on the device
-    void execute(CoreParams const&, CoreStateDevice&) const override final;
+    void
+    execute(OpticalParams const&, OpticalStateDevice&) const override final;
 
     //! Label of the absorption model.
     std::string label() const override final
