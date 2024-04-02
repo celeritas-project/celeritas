@@ -202,6 +202,12 @@ class Ellipsoid final : public ConvexRegionInterface
  *
  * A GenTrap represents a general trapezoidal volume with up to eight vertices,
  * or two 4-point sitting on two parallel planes perpendicular to Z axis.
+ * Both sets of up to four points provided need to be in counter-clockwise
+ * ordering. This ensures that the -z face will have an outward normal, and
+ * that the +z face points will correspond to their -z face counterparts for
+ * each side face.
+ * TODO: Add a check for this.
+ * TODO: Add proper treatment for degenerate cases.
  */
 class GenTrap final : public ConvexRegionInterface
 {
