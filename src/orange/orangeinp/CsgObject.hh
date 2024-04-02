@@ -97,7 +97,7 @@ using AllObjects = JoinObjects<op_and>;
 
 //! Shared pointer to an object
 using SPConstObject = std::shared_ptr<ObjectInterface const>;
-//! Type used for defining an RDV
+//! Type used for defining a Region Definition Vector (RDV)
 using VecSenseObj = std::vector<std::pair<Sense, SPConstObject>>;
 
 //---------------------------------------------------------------------------//
