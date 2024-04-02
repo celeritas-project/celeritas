@@ -18,7 +18,6 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/NumericLimits.hh"
-#include "geocel/Types.hh"
 #include "geocel/Types.hh"  // IWYU pragma: export
 
 namespace celeritas
@@ -289,6 +288,8 @@ struct Daughter
  * \note For historical reasons, the absolute tolerance used by \c SoftEqual
  * defaults to 1/100 of the relative tolerance, whereas with \c Tolerance the
  * equivalent behavior is setting a length scale of 0.01.
+ *
+ * \todo Move this to a separate file.
  */
 template<class T = ::celeritas::real_type>
 struct Tolerance

@@ -16,6 +16,26 @@
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the square of the tolerance rounds to zero for O(1) operations.
+ *
+ * This is an important criteria for construction and tracking operations that
+ * involve \c sqrt, for example:
+ * - Rotation matrix simplification
+ * - Shape simplification
+ * - Tracking to quadric surfaces
+ */
+template<class T>
+constexpr bool is_tol_sq_nonnegligible(T value)
+{
+    return T{1} - ipow<2>(value) != T{1};
+}
+
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Use a relative error of \f$ \sqrt(\epsilon_\textrm{machine}) \f$ .
@@ -36,7 +56,7 @@ Tolerance<T> Tolerance<T>::from_default(real_type length)
             return 5.e-3f;
         }
     }();
-    static_assert(real_type{1} - ipow<2>(sqrt_emach) != real_type{1},
+    static_assert(is_tol_sq_nonnegligible(sqrt_emach),
                   "default tolerance is too low");
 
     return Tolerance<T>::from_relative(sqrt_emach, length);
@@ -66,6 +86,7 @@ Tolerance<T> Tolerance<T>::from_relative(real_type rel, real_type length)
     CELER_VALIDATE(length > 0,
                    << "length scale " << length
                    << " is invalid [must be positive]");
+
     Tolerance<T> result;
     result.rel = rel;
     result.abs = rel * length;

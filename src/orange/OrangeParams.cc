@@ -9,6 +9,7 @@
 
 #include <fstream>
 #include <initializer_list>
+#include <limits>
 #include <numeric>
 #include <utility>
 #include <vector>
@@ -119,11 +120,6 @@ OrangeParams::OrangeParams(OrangeInput input)
     CELER_VALIDATE(input, << "input geometry is incomplete");
     CELER_VALIDATE(!input.universes.empty(),
                    << "input geometry has no universes");
-
-    if (!input.tol)
-    {
-        input.tol = Tolerance<>::from_default();
-    }
 
     // Create host data for construction, setting tolerances first
     HostVal<OrangeParamsData> host_data;
