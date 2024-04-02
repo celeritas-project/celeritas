@@ -85,6 +85,7 @@ CerenkovDndxCalculator::CerenkovDndxCalculator(
 {
     CELER_EXPECT(properties_);
     CELER_EXPECT(shared_);
+    CELER_EXPECT(material_ < shared_.angle_integral.size());
 }
 
 //---------------------------------------------------------------------------//

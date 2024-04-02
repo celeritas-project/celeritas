@@ -29,20 +29,16 @@ struct OpticalGenParamsData
 {
     //// DATA ////
 
-    // Distribution data stack storage per state size
-    real_type distribution_stack_factor = 1;
-
-    NativeCRef<ScintillationData> scintillation;
-    NativeCRef<CerenkovData> cerenkov;
-    NativeCRef<OpticalPropertyData> properties;
+    bool cerenkov{false};  //!< Whether Cerenkov is enabled
+    bool scintillation{false};  //!< Whether scintillation is enabled
+    real_type stack_capacity{0};  //!< Distribution data stack capacity
 
     //// METHODS ////
 
     //! True if all params are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return distribution_stack_factor > 0
-               && (scintillation || (cerenkov && properties));
+        return (cerenkov || scintillation) && stack_capacity > 0;
     }
 
     //! Assign from another set of data
@@ -50,10 +46,9 @@ struct OpticalGenParamsData
     OpticalGenParamsData& operator=(OpticalGenParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        distribution_stack_factor = other.distribution_stack_factor;
-        scintillation = other.scintillation;
         cerenkov = other.cerenkov;
-        properties = other.properties;
+        scintillation = other.scintillation;
+        stack_capacity = other.stack_capacity;
         return *this;
     }
 };
@@ -135,14 +130,13 @@ void resize(OpticalGenStateData<Ownership::value, M>* state,
     CELER_EXPECT(size > 0);
 
     resize(&state->step, size);
-    size_type stack_size = size * params.distribution_stack_factor;
     if (params.cerenkov)
     {
-        resize(&state->cerenkov, stack_size);
+        resize(&state->cerenkov, params.stack_capacity);
     }
     if (params.scintillation)
     {
-        resize(&state->scintillation, stack_size);
+        resize(&state->scintillation, params.stack_capacity);
     }
 
     CELER_ENSURE(*state);

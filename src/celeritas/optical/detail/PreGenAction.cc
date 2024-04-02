@@ -13,6 +13,9 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/optical/CerenkovParams.hh"
+#include "celeritas/optical/OpticalPropertyParams.hh"
+#include "celeritas/optical/ScintillationParams.hh"
 
 #include "GenStorage.hh"
 #include "PreGenExecutor.hh"
@@ -27,10 +30,20 @@ namespace detail
  * Capture construction arguments.
  */
 template<StepPoint P>
-PreGenAction<P>::PreGenAction(ActionId id, SPGenStorage storage)
-    : id_(id), storage_(std::move(storage))
+PreGenAction<P>::PreGenAction(ActionId id,
+                              SPConstProperties properties,
+                              SPConstCerenkov cerenkov,
+                              SPConstScintillation scintillation,
+                              SPGenStorage storage)
+    : id_(id)
+    , properties_(std::move(properties))
+    , cerenkov_(std::move(cerenkov))
+    , scintillation_(std::move(scintillation))
+    , storage_(std::move(storage))
 {
     CELER_EXPECT(id_);
+    CELER_EXPECT(scintillation_ || (cerenkov_ && properties_));
+    CELER_EXPECT(!cerenkov == !properties);
     CELER_EXPECT(storage_);
 }
 
@@ -74,7 +87,9 @@ void PreGenAction<StepPoint::post>::execute(CoreParams const& params,
     auto execute = make_active_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
-        detail::PreGenExecutor{storage_->obj.params<MemSpace::native>(),
+        detail::PreGenExecutor{properties_->host_ref(),
+                               cerenkov_->host_ref(),
+                               scintillation_->host_ref(),
                                storage_->obj.state<MemSpace::native>(
                                    state.stream_id(), state.size())});
     launch_action(*this, params, state, execute);

@@ -27,7 +27,7 @@ struct PreGenGatherExecutor
     inline CELER_FUNCTION void
     operator()(celeritas::CoreTrackView const& track);
 
-    NativeRef<OpticalGenStateData> const& state;
+    NativeRef<OpticalGenStateData> const state;
 };
 
 //---------------------------------------------------------------------------//
@@ -38,10 +38,13 @@ struct PreGenGatherExecutor
  */
 CELER_FUNCTION void PreGenGatherExecutor::operator()(CoreTrackView const& track)
 {
+    CELER_EXPECT(state);
+
     OpticalPreStepData& step = state.step[track.track_slot_id()];
     step.speed = track.make_particle_view().speed();
     step.pos = track.make_geo_view().pos();
     step.time = track.make_sim_view().time();
+
     CELER_ENSURE(step);
 }
 

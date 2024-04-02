@@ -142,7 +142,9 @@ CELER_FUNCTION size_type CerenkovPreGenerator::operator()(Generator& rng)
         return 0;
     }
 
+    // TODO: handle failure to allocate space?
     OpticalDistributionData* data = allocate_(1);
+    CELER_ASSERT(data);
     data->num_photons = PoissonDistribution<real_type>(num_photons_per_len_
                                                        * step_len_)(rng);
     if (data->num_photons > 0)

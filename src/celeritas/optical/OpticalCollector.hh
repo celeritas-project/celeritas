@@ -44,6 +44,7 @@ class OpticalCollector
     OpticalCollector(SPConstProperties properties,
                      SPConstCerenkov cerenkov,
                      SPConstScintillation scintillation,
+                     size_type stack_capacity,
                      size_type num_streams,
                      ActionRegistry* action_registry);
 

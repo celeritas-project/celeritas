@@ -129,7 +129,9 @@ CELER_FUNCTION size_type ScintillationPreGenerator::operator()(Generator& rng)
     }
 
     // Material-only sampling
+    // TODO: handle failure to allocate space?
     OpticalDistributionData* data = allocate_(1);
+    CELER_ASSERT(data);
     if (mean_num_photons_ > 10)
     {
         real_type sigma = shared_.resolution_scale[mat_id_]

@@ -12,6 +12,9 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/optical/CerenkovParams.hh"
+#include "celeritas/optical/OpticalPropertyParams.hh"
+#include "celeritas/optical/ScintillationParams.hh"
 
 #include "GenStorage.hh"
 #include "PreGenExecutor.hh"
@@ -49,7 +52,9 @@ void PreGenAction<StepPoint::post>::execute(CoreParams const& params,
     auto execute = make_active_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
-        detail::PreGenExecutor{storage_->obj.params<MemSpace::native>(),
+        detail::PreGenExecutor{properties_->device_ref(),
+                               cerenkov_->device_ref(),
+                               scintillation_->device_ref(),
                                storage_->obj.state<MemSpace::native>(
                                    state.stream_id(), state.size())});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);

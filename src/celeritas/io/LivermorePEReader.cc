@@ -117,7 +117,7 @@ LivermorePEReader::operator()(AtomicNumber atomic_number) const
                 infile >> result.xs_lo.x[i] >> result.xs_lo.y[i];
             }
         }
-        else if (atomic_number <= AtomicNumber{2})
+        else if (atomic_number > AtomicNumber{2})
         {
             // Total cross sections below the K-shell energy aren't present for
             // elements with only one subshell, but if another element is

@@ -30,8 +30,10 @@ struct PreGenExecutor
     inline CELER_FUNCTION void
     operator()(celeritas::CoreTrackView const& track);
 
-    NativeCRef<OpticalGenParamsData> const& params;
-    NativeRef<OpticalGenStateData> const& state;
+    NativeCRef<OpticalPropertyData> const properties;
+    NativeCRef<CerenkovData> const cerenkov;
+    NativeCRef<ScintillationData> const scintillation;
+    NativeRef<OpticalGenStateData> const state;
 };
 
 //---------------------------------------------------------------------------//
@@ -42,7 +44,7 @@ struct PreGenExecutor
  */
 CELER_FUNCTION void PreGenExecutor::operator()(CoreTrackView const& track)
 {
-    CELER_EXPECT(params);
+    CELER_EXPECT(state);
 
     using DistributionAllocator = StackAllocator<OpticalDistributionData>;
 
@@ -60,22 +62,24 @@ CELER_FUNCTION void PreGenExecutor::operator()(CoreTrackView const& track)
     auto rng = track.make_rng_engine();
 
     // Total number of scintillation and Cerenkov photons to generate
+    // TODO: Do we return pointer to the distribution data, number of photons
+    // to generate? Best way to do reduction?
     size_type num_photons{0};
-
-    if (params.cerenkov)
+    if (cerenkov)
     {
+        CELER_ASSERT(properties);
         DistributionAllocator allocate{state.cerenkov};
         CerenkovPreGenerator generate(particle,
                                       sim,
                                       pos,
                                       optmat_id,
-                                      params.properties,
-                                      params.cerenkov,
+                                      properties,
+                                      cerenkov,
                                       state.step[track.track_slot_id()],
                                       allocate);
         num_photons += generate(rng);
     }
-    if (params.scintillation)
+    if (scintillation)
     {
         auto edep = track.make_physics_step_view().energy_deposition();
 
@@ -85,11 +89,12 @@ CELER_FUNCTION void PreGenExecutor::operator()(CoreTrackView const& track)
                                            pos,
                                            optmat_id,
                                            edep,
-                                           params.scintillation,
+                                           scintillation,
                                            state.step[track.track_slot_id()],
                                            allocate);
         num_photons += generate(rng);
     }
+    (void)num_photons;
 }
 
 //---------------------------------------------------------------------------//

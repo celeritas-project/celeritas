@@ -14,6 +14,10 @@
 
 namespace celeritas
 {
+class CerenkovParams;
+class OpticalPropertyParams;
+class ScintillationParams;
+
 namespace detail
 {
 struct GenStorage;
@@ -27,12 +31,19 @@ class PreGenAction final : public ExplicitCoreActionInterface
   public:
     //!@{
     //! \name Type aliases
+    using SPConstCerenkov = std::shared_ptr<CerenkovParams const>;
+    using SPConstProperties = std::shared_ptr<OpticalPropertyParams const>;
+    using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
     using SPGenStorage = std::shared_ptr<detail::GenStorage>;
     //!@}
 
   public:
     // Construct with action ID and storage
-    PreGenAction(ActionId id, SPGenStorage storage);
+    PreGenAction(ActionId id,
+                 SPConstProperties properties,
+                 SPConstCerenkov cerenkov,
+                 SPConstScintillation scintillation,
+                 SPGenStorage storage);
 
     // Launch kernel with host data
     void execute(CoreParams const&, CoreStateHost&) const final;
@@ -66,6 +77,9 @@ class PreGenAction final : public ExplicitCoreActionInterface
     //// DATA ////
 
     ActionId id_;
+    SPConstProperties properties_;
+    SPConstCerenkov cerenkov_;
+    SPConstScintillation scintillation_;
     SPGenStorage storage_;
 };
 
