@@ -223,19 +223,18 @@ class GenTrap final : public ConvexRegionInterface
 
     //// ACCESSORS ////
 
-    //! Half-length along Z
-    real_type halfz() const { return hz_; }
+    //! Half-height along Z
+    real_type halfheight() const { return hz_; }
 
-    //! GenTrap corners
+    //! Polygon on -z face
     VecReal2 const& low_corners() const { return lo_; }
+    //! Polygon on +z face
     VecReal2 const& high_corners() const { return hi_; }
 
   private:
-    // half-length along Z
-    real_type hz_;
-    // corners on the top and bottom planes
-    VecReal2 lo_;
-    VecReal2 hi_;
+    real_type hz_;  //!< half-height
+    VecReal2 lo_;  //!< corners of the -z face
+    VecReal2 hi_;  //!< corners of the +z face
 };
 
 //---------------------------------------------------------------------------//

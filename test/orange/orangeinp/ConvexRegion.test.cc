@@ -403,40 +403,39 @@ TEST_F(GenTrapTest, construct)
 TEST_F(GenTrapTest, box_like)
 {
     auto result = this->test(GenTrap(3,
-                                     {{-1, -1}, {-1, 1}, {1, 1}, {1, -1}},
-                                     {{-1, -1}, {-1, 1}, {1, 1}, {1, -1}}));
+                                     {{-1, -1}, {1, -1}, {1, 1}, {-1, 1}},
+                                     {{-1, -1}, {1, -1}, {1, 1}, {-1, 1}}));
 
-    static char const expected_node[] = "all(+0, -1, -2, +3, +4, -5)";
+    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
     static char const* const expected_surfaces[] = {"Plane: z=-3",
                                                     "Plane: z=3",
-                                                    "Plane: x=-1",
-                                                    "Plane: y=1",
+                                                    "Plane: y=-1",
                                                     "Plane: x=1",
-                                                    "Plane: y=-1"};
+                                                    "Plane: y=1",
+                                                    "Plane: x=-1"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
-
-    // TODO: check why this is not lower=(-,-,-), upper=(+,+,+)
-    EXPECT_VEC_SOFT_EQ((Real3{1, 1, -3}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{-1, -1, 3}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -3}), result.interior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1, 1, 3}), result.interior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -3}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1, 1, 3}), result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, trd)
 {
     auto result = this->test(GenTrap(3,
-                                     {{-1, -1}, {-1, 1}, {1, 1}, {1, -1}},
-                                     {{-2, -2}, {-2, 2}, {2, 2}, {2, -2}}));
+                                     {{-1, -1}, {1, -1}, {1, 1}, {-1, 1}},
+                                     {{-2, -2}, {2, -2}, {2, 2}, {-2, 2}}));
 
-    static char const expected_node[] = "all(+0, -1, -2, +3, +4, -5)";
+    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
     static char const* const expected_surfaces[]
         = {"Plane: z=-3",
            "Plane: z=3",
-           "Plane: n={0.98639,-0,0.1644}, d=-1.4796",
-           "Plane: n={0,0.98639,-0.1644}, d=1.4796",
+           "Plane: n={0,0.98639,0.1644}, d=-1.4796",
            "Plane: n={0.98639,0,-0.1644}, d=1.4796",
-           "Plane: n={0,0.98639,0.1644}, d=-1.4796"};
+           "Plane: n={0,0.98639,-0.1644}, d=1.4796",
+           "Plane: n={0.98639,0,0.1644}, d=-1.4796"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -448,17 +447,17 @@ TEST_F(GenTrapTest, trd)
 TEST_F(GenTrapTest, ppiped)
 {
     auto result = this->test(GenTrap(4,
-                                     {{-2, -2}, {-2, 0}, {0, 0}, {0, -2}},
-                                     {{0, 0}, {0, 2}, {2, 2}, {2, 0}}));
+                                     {{-2, -2}, {0, -2}, {0, 0}, {-2, 0}},
+                                     {{0, 0}, {2, 0}, {2, 2}, {0, 2}}));
 
-    static char const expected_node[] = "all(+0, -1, -2, +3, +4, -5)";
+    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
     static char const* const expected_surfaces[]
         = {"Plane: z=-4",
            "Plane: z=4",
-           "Plane: n={0.97014,0,-0.24254}, d=-0.97014",
-           "Plane: n={0,0.97014,-0.24254}, d=0.97014",
+           "Plane: n={0,0.97014,-0.24254}, d=-0.97014",
            "Plane: n={0.97014,0,-0.24254}, d=0.97014",
-           "Plane: n={0,0.97014,-0.24254}, d=-0.97014"};
+           "Plane: n={0,0.97014,-0.24254}, d=0.97014",
+           "Plane: n={0.97014,0,-0.24254}, d=-0.97014"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -470,45 +469,45 @@ TEST_F(GenTrapTest, ppiped)
 TEST_F(GenTrapTest, triang_prism)
 {
     auto result = this->test(
-        GenTrap(3, {{-1, -1}, {2, 0}, {-1, 1}}, {{-1, -1}, {2, 0}, {-1, 1}}));
+        GenTrap(3, {{-1, -1}, {-1, 1}, {2, 0}}, {{-1, -1}, {-1, 1}, {2, 0}}));
 
-    static char const expected_node[] = "all(+0, -1, -2, -3, +4)";
+    static char const expected_node[] = "all(+0, -1, -2, +3, +4)";
     static char const* const expected_surfaces[]
         = {"Plane: z=-3",
            "Plane: z=3",
-           "Plane: n={0.31623,-0.94868,0}, d=0.63246",
-           "Plane: n={0.31623,0.94868,-0}, d=0.63246",
-           "Plane: x=-1"};
+           "Plane: x=-1",
+           "Plane: n={0.31623,0.94868,0}, d=0.63246",
+           "Plane: n={0.31623,-0.94868,0}, d=0.63246"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-1, -inf, -3}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 3}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -3}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{-1, inf, 3}), result.exterior.upper());
 }
 
 // TODO: this should be valid
-/*TEST_F(GenTrapTest, pentahedron)
+TEST_F(GenTrapTest, DISABLED_pentahedron)
 {
     auto result = this->test(GenTrap(3, {{-2,-2}, {3,0}, {-2,2}},
         {{-2,-1}, {-1,1}, {2,0}}));
     result.print_expected();
-}*/
+}
 
 // TODO: we may need to support this
-/*TEST_F(GenTrapTest, tetrahedron)
+TEST_F(GenTrapTest, DISABLED_tetrahedron)
 {
     auto result = this->test(GenTrap(3, {{-1,-1}, {2,0}, {-1,1}},
         {{0,0}, {0,0}, {0,0}}));
-}*/
+}
 
 // TODO: find a valid set of points
-/*TEST_F(GenTrapTest, full)
+TEST_F(GenTrapTest, DISABLED_full)
 {
     auto result = this->test(GenTrap(4, {{-2,-2}, {-2,2}, {2,2}, {2,-2}},
         {{-2,-2}, {-1,1}, {1,1}, {2,-2}}));
     result.print_expected();
-}*/
+}
 
 //---------------------------------------------------------------------------//
 // INFWEDGE

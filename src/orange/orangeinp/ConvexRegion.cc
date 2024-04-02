@@ -33,6 +33,7 @@ namespace orangeinp
 {
 namespace
 {
+using Real2 = Array<real_type, 2>;
 //---------------------------------------------------------------------------//
 /*!
  * Create a z-aligned bounding box infinite along z and symmetric in r.
@@ -317,20 +318,24 @@ void Ellipsoid::output(JsonPimpl* j) const
  * Construct from half Z height and 1-4 vertices for top and bottom planes
  */
 GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
-    : hz_{halfz}, lo_{lo}, hi_{hi}
+    : hz_{halfz}, lo_{std::move(lo)}, hi_{std::move(hi)}
 {
-    CELER_VALIDATE(hz_ > 0, << "nonpositive halfZ: " << hz_);
-    CELER_VALIDATE(lo_.size() <= 4, << "too many vertices for -Z polygon.");
-    CELER_VALIDATE(hi_.size() <= 4, << "too many vertices for +Z polygon.");
+    CELER_VALIDATE(hz_ > 0, << "nonpositive halfheight: " << hz_);
+    CELER_VALIDATE(lo_.size() >= 3 && lo_.size() <= 4,
+                   << "invalid number of vertices (" << lo_.size()
+                   << ") for -Z polygon");
+    CELER_VALIDATE(hi_.size() >= 3 && hi_.size() <= 4,
+                   << "invalid number of vertices <" << hi_.size()
+                   << ") for +Z polygon");
 
     CELER_VALIDATE(lo_.size() >= 3 || hi_.size() >= 3,
                    << "not enough vertices for both of the +Z/-Z polygons.");
 
     // input vertices must be arranged in a CCW order
-    using geoutils::is_convex_2D;
-    using geoutils::is_planar_3D;
-    CELER_VALIDATE(is_convex_2D(lo_), << "-Z polygon is not convex");
-    CELER_VALIDATE(is_convex_2D(hi_), << "+Z polygon is not convex");
+    using orangeinp::detail::is_convex;
+    using orangeinp::detail::is_planar;
+    CELER_VALIDATE(is_convex(make_span(lo_)), << "-Z polygon is not convex");
+    CELER_VALIDATE(is_convex(make_span(hi_)), << "+Z polygon is not convex");
 
     // TODO: Temporarily ensure that all side faces are planar
     Real3 a, b, c, d;
@@ -343,7 +348,7 @@ GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
         d = Real3{hi_[i][0], hi_[i][1], hz_};
 
         // *Temporarily* throws if a side face is not planar
-        if (!is_planar_3D(a, b, c, d))
+        if (!is_planar(a, b, c, d))
         {
             CELER_NOT_IMPLEMENTED("non-planar side faces");
         }
@@ -375,8 +380,9 @@ void GenTrap::build(ConvexSurfaceBuilder& insert_surface) const
         auto offset = dot_product(d, normal);
 
         // *Temporarily* throws if a side face is not planar
-        CELER_ENSURE(celeritas::geoutils::is_planar_3D(a, b, c, d));
-        CELER_ENSURE(std::fabs(dot_product(d - a, normal)) < 1.e-8);
+        SoftZero<real_type> near_zero;
+        CELER_ASSERT(celeritas::orangeinp::detail::is_planar(a, b, c, d));
+        CELER_ASSERT(near_zero(dot_product(d - a, normal)));
 
         // Insert the plane
         insert_surface(Sense::inside, Plane{normal, offset});
