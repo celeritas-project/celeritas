@@ -48,6 +48,7 @@ class CerenkovPreGenerator
 {
   public:
     // Placeholder for data that is not available through Views
+    // TODO: Merge Cerenkov and Scintillation pre-gen data into one struct
     struct OpticalPreGenStepData
     {
         real_type time{};  //!< Pre-step time
