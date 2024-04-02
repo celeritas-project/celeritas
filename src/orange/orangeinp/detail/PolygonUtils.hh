@@ -109,6 +109,7 @@ CELER_FUNCTION bool
 is_planar(Real3 const& a, Real3 const& b, Real3 const& c, Real3 const& d)
 {
     using celeritas::axpy;
+
     auto vecsub = [&](Real3 const& v1, Real3 const& v2) -> Real3 {
         Real3 result{v1};
         axpy(real_type{-1.0}, v2, &result);
@@ -118,7 +119,9 @@ is_planar(Real3 const& a, Real3 const& b, Real3 const& c, Real3 const& d)
     // use the cross_product(last, first) as sign reference
     auto norm = make_unit_vector(cross_product(vecsub(b, a), vecsub(c, a)));
     auto val = dot_product(norm, vecsub(d, a));
-    return std::fabs(val) < Tolerance<real_type>::from_softequal();
+
+    SoftZero<real_type> is_zero(1.0e-12);
+    return is_zero(val);
 }
 
 //---------------------------------------------------------------------------//

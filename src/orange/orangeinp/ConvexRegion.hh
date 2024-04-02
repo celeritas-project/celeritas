@@ -227,9 +227,9 @@ class GenTrap final : public ConvexRegionInterface
     real_type halfheight() const { return hz_; }
 
     //! Polygon on -z face
-    VecReal2 const& low_corners() const { return lo_; }
+    VecReal2 const& lower() const { return lo_; }
     //! Polygon on +z face
-    VecReal2 const& high_corners() const { return hi_; }
+    VecReal2 const& upper() const { return hi_; }
 
   private:
     real_type hz_;  //!< half-height

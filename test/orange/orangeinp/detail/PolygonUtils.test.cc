@@ -94,7 +94,7 @@ TEST(PolygonUtilsTest, planar)
 
 TEST(PolygonUtilsTest, planar_tolerance)
 {
-    double eps_lo = 1e-8;
+    double eps_lo = 1.0e-13;
     Real3 a{-2, 2, -2}, b{2, 2, -2}, c{2, 2, 2}, d{-2, 2, 2};
     Real3 dy{0, 1, 0};
 
