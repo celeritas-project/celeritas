@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "orange/orangeinp/detail/PolygonUtils.hh"
 
-#include <span>
-
 #include "celeritas_test.hh"
 
 namespace celeritas
