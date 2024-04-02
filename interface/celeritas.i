@@ -46,6 +46,19 @@
 }
 
 //---------------------------------------------------------------------------//
+// STD
+//---------------------------------------------------------------------------//
+
+namespace std
+{
+%ignore hash;
+template<class T>
+struct hash;
+};
+
+%ignore *::operator++;
+
+//---------------------------------------------------------------------------//
 // CORECEL
 //---------------------------------------------------------------------------//
 
@@ -57,6 +70,7 @@
 %ignore celeritas::Byte;
 %include "corecel/Macros.hh"
 %include "corecel/Types.hh"
+%import "corecel/OpaqueId.hh"
 
 %template(VecReal) std::vector<celeritas::real_type>;
 
@@ -65,15 +79,12 @@
 //---------------------------------------------------------------------------//
 
 %{
+#include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/Constants.hh"
 %}
 
-namespace celeritas
-{
-enum class UnitSystem;
-}
-
+%import "celeritas/Types.hh"
 %include "celeritas/Units.hh"
 %include "celeritas/Constants.hh"
 

@@ -9,8 +9,6 @@
 
 #include <vector>
 
-#include "celeritas/Units.hh"
-
 #include "ImportPhysicsVector.hh"
 #include "ImportUnits.hh"
 
