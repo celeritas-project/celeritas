@@ -35,7 +35,6 @@ VolumeBuilder::VolumeBuilder(CsgUnitBuilder* ub) : ub_{ub}
  */
 VariantTransform const& VolumeBuilder::local_transform() const
 {
-    CELER_EXPECT(!transforms_.empty());
     return ub_->transform(transforms_.back());
 }
 
@@ -74,11 +73,8 @@ NodeId VolumeBuilder::insert_region(Metadata&& md, Joined&& j)
     }();
 
     auto node_id = ub_->insert_csg(std::move(j)).first;
-    CELER_ASSERT(!transforms_.empty());
-    ub_->insert_region(node_id, std::move(bz), transforms_.back());
-
-    // Always add metadata
     ub_->insert_md(node_id, std::move(md));
+    ub_->insert_region(node_id, std::move(bz), transforms_.back());
 
     return node_id;
 }
@@ -91,11 +87,8 @@ NodeId
 VolumeBuilder::insert_region(Metadata&& md, Joined&& j, BoundingZone&& bz)
 {
     auto node_id = ub_->insert_csg(std::move(j)).first;
-    CELER_ASSERT(!transforms_.empty());
-    ub_->insert_region(node_id, std::move(bz), transforms_.back());
-
-    // Always add metadata
     ub_->insert_md(node_id, std::move(md));
+    ub_->insert_region(node_id, std::move(bz), transforms_.back());
 
     return node_id;
 }
@@ -108,13 +101,9 @@ NodeId VolumeBuilder::insert_region(Metadata&& md, Negated&& n)
 {
     CELER_EXPECT(n.node);
 
-    // Get bounding zone of daughter before inserting
-    BoundingZone bz = ub_->bounds(n.node);
+    // Save negated node for later, and add new node to CSG tree
+    NodeId const negated = n.node;
     auto&& [node_id, inserted] = ub_->insert_csg(std::move(n));
-
-    CELER_ASSERT(!transforms_.empty());
-    bz.negate();
-    ub_->insert_region(node_id, std::move(bz), transforms_.back());
 
     if (!md.empty())
     {
@@ -122,6 +111,11 @@ NodeId VolumeBuilder::insert_region(Metadata&& md, Negated&& n)
         // or RDV
         ub_->insert_md(node_id, std::move(md));
     }
+
+    // Create bounding zone and add region
+    BoundingZone bz = ub_->bounds(negated);
+    bz.negate();
+    ub_->insert_region(node_id, std::move(bz), transforms_.back());
 
     return node_id;
 }
@@ -161,8 +155,8 @@ void VolumeBuilder::push_transform(VariantTransform&& vt)
 void VolumeBuilder::pop_transform()
 {
     CELER_EXPECT(transforms_.size() > 1);
-
     transforms_.pop_back();
+    CELER_ENSURE(!transforms_.empty());
 }
 
 //---------------------------------------------------------------------------//

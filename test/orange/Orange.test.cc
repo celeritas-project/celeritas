@@ -161,6 +161,14 @@ class Geant4Testem15Test : public JsonOrangeTest
     std::string geometry_basename() const final { return "geant4-testem15"; }
 };
 
+class InputBuilderTest : public JsonOrangeTest
+{
+    std::string geometry_basename() const final
+    {
+        return const_cast<InputBuilderTest*>(this)->make_unique_filename();
+    }
+};
+
 //---------------------------------------------------------------------------//
 
 TEST_F(OneVolumeTest, params)
@@ -1217,6 +1225,174 @@ TEST_F(ShiftTrackerTest, host)
 
     std::vector<unsigned int> ref_steps = {5, 3, 5, 5, 6, 5, 4, 4, 5, 3};
     EXPECT_VEC_EQ(ref_steps, steps);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(InputBuilderTest, globalspheres)
+{
+    {
+        auto result = this->track({0, 0, 0}, {0, 0, 1});
+
+        static char const* const expected_volumes[] = {"inner", "shell"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {5, 5};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {2.5, 2.5};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+
+    if (CELERITAS_USE_JSON)
+    {
+        OrangeParamsOutput out(this->geometry());
+        EXPECT_JSON_EQ(
+            R"json({"scalars":{"max_depth":1,"max_faces":2,"max_intersections":4,"max_logic_depth":2,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":3,"inner_nodes":0,"leaf_nodes":1,"local_volume_ids":3},"connectivity_records":2,"daughters":0,"local_surface_ids":4,"local_volume_ids":4,"logic_ints":7,"real_ids":2,"reals":2,"rect_arrays":0,"simple_units":1,"surface_types":2,"transforms":0,"universe_indices":1,"universe_types":1,"volume_records":3}})json",
+            to_string(out));
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(InputBuilderTest, bgspheres)
+{
+    {
+        SCOPED_TRACE("from background");
+        auto result = this->track({0, 0, -9}, {0, 0, 1});
+
+        static char const* const expected_volumes[]
+            = {"global", "bottom", "global", "top", "global"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {3, 6, 1, 4, 5};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        SCOPED_TRACE("from inside top");
+        auto result = this->track({0, 0, 3}, {0, 0, -1});
+
+        static char const* const expected_volumes[]
+            = {"top", "global", "bottom", "global"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {2, 1, 6, 4};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+
+    if (CELERITAS_USE_JSON)
+    {
+        OrangeParamsOutput out(this->geometry());
+        EXPECT_JSON_EQ(
+            R"json({"scalars":{"max_depth":1,"max_faces":3,"max_intersections":6,"max_logic_depth":1,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":4,"inner_nodes":1,"leaf_nodes":2,"local_volume_ids":4},"connectivity_records":3,"daughters":0,"local_surface_ids":6,"local_volume_ids":3,"logic_ints":5,"real_ids":3,"reals":9,"rect_arrays":0,"simple_units":1,"surface_types":3,"transforms":0,"universe_indices":1,"universe_types":1,"volume_records":4}})json",
+            to_string(out));
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(InputBuilderTest, universes)
+{
+    // NOTE: results should be identical to UniversesTest.tracking
+    {
+        SCOPED_TRACE("patty");
+        auto result = this->track({-1.0, -3.75, 0.75}, {1, 0, 0});
+        static char const* const expected_volumes[]
+            = {"johnny", "patty", "c", "johnny"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {1, 0.5, 5.5, 2};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {0.25, 0.25, 0.25, 0.25};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        SCOPED_TRACE("inner +x");
+        auto result = this->track({-1, -2, 1.0}, {1, 0, 0});
+        static char const* const expected_volumes[]
+            = {"johnny", "c", "a", "b", "c", "johnny"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {1, 1, 2, 2, 1, 2};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[]
+            = {0.5, 0, 0.5, 0.5, 0.5, 0.5};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        SCOPED_TRACE("inner +y");
+        auto result = this->track({4, -5, 1.0}, {0, 1, 0});
+        static char const* const expected_volumes[]
+            = {"johnny", "c", "b", "c", "bobby", "johnny"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {1, 1, 2, 1, 2, 2};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[]
+            = {0.5, 0, 0.5, 0.5, 0.5, 0.5};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        SCOPED_TRACE("inner +z");
+        auto result = this->track({4, -2, -0.75}, {0, 0, 1});
+        static char const* const expected_volumes[]
+            = {"johnny", "b", "b", "johnny"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {0.25, 1, 1, 0.5};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {0.125, 0.5, 0.5, 0.25};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(InputBuilderTest, hierarchy)
+{
+    {
+        SCOPED_TRACE("py");
+        auto result = this->track({0, -20, 0}, {0, 1, 0});
+        static char const* const expected_volumes[]
+            = {"interior", "d2", "interior", "d1", "interior"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {14, 2, 8, 2, 94};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {7, 0, 4, 0, 19};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        SCOPED_TRACE("py_filled");
+        auto result = this->track({0, -9, -20}, {0, 1, 0});
+        static char const* const expected_volumes[] = {"filled_daughter",
+                                                       "d2",
+                                                       "filled_daughter",
+                                                       "d1",
+                                                       "filled_daughter",
+                                                       "interior"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[]
+            = {3, 2, 8, 2, 4, 87.979589711327};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {0, 0, 0, 0, 0, 39};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        SCOPED_TRACE("pz");
+        auto result = this->track({0, 0, -50}, {0, 0, 1});
+        static char const* const expected_volumes[] = {"interior",
+                                                       "filled_daughter",
+                                                       "leaf1",
+                                                       "filled_daughter",
+                                                       "leaf2",
+                                                       "filled_daughter",
+                                                       "interior",
+                                                       "leaf1",
+                                                       "interior",
+                                                       "bottom",
+                                                       "top",
+                                                       "interior"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[]
+            = {20, 4, 2, 8, 2, 4, 4, 2, 23, 1, 1, 79};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+
+    if (CELERITAS_USE_JSON)
+    {
+        OrangeParamsOutput out(this->geometry());
+        EXPECT_JSON_EQ(
+            R"json({"scalars":{"max_depth":3,"max_faces":8,"max_intersections":14,"max_logic_depth":3,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":24,"inner_nodes":9,"leaf_nodes":16,"local_volume_ids":24},"connectivity_records":13,"daughters":6,"local_surface_ids":20,"local_volume_ids":18,"logic_ints":31,"real_ids":13,"reals":46,"rect_arrays":0,"simple_units":7,"surface_types":13,"transforms":6,"universe_indices":7,"universe_types":7,"volume_records":24}})json",
+            to_string(out));
+    }
 }
 
 //---------------------------------------------------------------------------//
