@@ -314,7 +314,7 @@ class Parallelepiped final : public ConvexRegionInterface
     //// ACCESSORS ////
 
     //! Half-lengths of edge projections along each axis
-    Real3 const& half_projs() const { return hpr_; }
+    Real3 const& halfedges() const { return hpr_; }
     //! Angle between slanted y-edges and the y-axis (in turns)
     Turn alpha() const { return alpha_; }
     //! Polar angle of main axis (in turns)

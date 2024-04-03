@@ -201,7 +201,7 @@ void to_json(nlohmann::json& j, InfWedge const& cr)
 void to_json(nlohmann::json& j, Parallelepiped const& cr)
 {
     j = {{"_type", "parallelepiped"},
-         SIO_ATTR_PAIR(cr, half_projs),
+         SIO_ATTR_PAIR(cr, halfedges),
          {"alpha", cr.alpha().value()},
          {"theta", cr.theta().value()},
          {"phi", cr.phi().value()}};

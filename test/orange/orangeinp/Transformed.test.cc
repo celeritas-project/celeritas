@@ -34,7 +34,7 @@ class TransformedTest : public ObjectTestBase
 TEST_F(TransformedTest, notran)
 {
     auto sphshape = std::make_shared<SphereShape>("sph", Sphere{1.0});
-    this->build_volume(Transformed{sphshape, NoTransformation{}});
+    this->build_volume(*Transformed::or_object(sphshape, NoTransformation{}));
 
     static char const* const expected_surface_strings[] = {"Sphere: r=1"};
     static char const* const expected_trans_strings[] = {"3: t=0 -> {}"};

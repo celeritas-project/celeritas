@@ -18,6 +18,20 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Construct by inverting another transformation.
+ */
+Transformation Transformation::from_inverse(Mat3 const& rot, Real3 const& trans)
+{
+    // Transpose the rotation
+    Mat3 const rinv = make_transpose(rot);
+
+    // Calculate the updated position
+    Real3 tinv = gemv(real_type{-1}, rinv, trans, real_type{0}, {});
+    return Transformation{rinv, tinv};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct as an identity transform.
  */
 Transformation::Transformation() : Transformation{Translation{}} {}
