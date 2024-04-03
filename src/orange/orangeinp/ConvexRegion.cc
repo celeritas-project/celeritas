@@ -368,20 +368,18 @@ void GenTrap::build(ConvexSurfaceBuilder& insert_surface) const
     for (auto i : range(lo_.size()))
     {
         auto j = (i + 1) % lo_.size();
-
-        Real3 a{lo_[i][0], lo_[i][1], -hz_};
-        Real3 b{lo_[j][0], lo_[j][1], -hz_};
-        Real3 c{hi_[j][0], hi_[j][1], hz_};
-        Real3 d{hi_[i][0], hi_[i][1], hz_};
+        Real3 const a{lo_[i][0], lo_[i][1], -hz_};
+        Real3 const b{lo_[j][0], lo_[j][1], -hz_};
+        Real3 const c{hi_[j][0], hi_[j][1], hz_};
+        Real3 const d{hi_[i][0], hi_[i][1], hz_};
 
         // Calculate plane parameters
         auto normal = make_unit_vector(cross_product(b - a, c - b));
         auto offset = dot_product(d, normal);
 
         // *Temporarily* throws if a side face is not planar
-        SoftZero<real_type> near_zero;
         CELER_ASSERT(celeritas::orangeinp::detail::is_planar(a, b, c, d));
-        CELER_ASSERT(near_zero(dot_product(d - a, normal)));
+        CELER_ASSERT(SoftZero<real_type>{}(dot_product(d - a, normal)));
 
         // Insert the plane
         insert_surface(Sense::inside, Plane{normal, offset});

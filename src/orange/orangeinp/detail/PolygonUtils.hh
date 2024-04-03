@@ -49,10 +49,9 @@ CELER_FORCEINLINE_FUNCTION Orientation orientation(Real2 const& a,
                                                    Real2 const& c)
 {
     auto crossp = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]);
-    if (crossp == 0)
-        return Orientation::collinear;  // collinear
-    return (crossp < 0) ? Orientation::clockwise
-                        : Orientation::counterclockwise;
+    return crossp < 0   ? Orientation::clockwise
+           : crossp > 0 ? Orientation::counterclockwise
+                        : Orientation::collinear;
 }
 
 //---------------------------------------------------------------------------//
@@ -60,8 +59,7 @@ CELER_FORCEINLINE_FUNCTION Orientation orientation(Real2 const& a,
  * Check if a 2D polygon is convex.
  *
  * \param corners the vertices of the polygon
- * \param degen_ok if true, consecutive degenerate points are okay, still
- *   returns true
+ * \param degen_ok allow consecutive degenerate points
  */
 CELER_FUNCTION bool
 is_convex(Span<const Real2> const& corners, bool degen_ok = false)
