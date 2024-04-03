@@ -120,8 +120,8 @@ is_planar(Real3 const& a, Real3 const& b, Real3 const& c, Real3 const& d)
     auto norm = make_unit_vector(cross_product(vecsub(b, a), vecsub(c, a)));
     auto val = dot_product(norm, vecsub(d, a));
 
-    SoftZero<real_type> is_zero(1.0e-12);
-    return is_zero(val);
+    // FIXME: SoftEqual and SoftZero should have rel = abs
+    return SoftZero{SoftEqual<>{}.rel()}(val);
 }
 
 //---------------------------------------------------------------------------//

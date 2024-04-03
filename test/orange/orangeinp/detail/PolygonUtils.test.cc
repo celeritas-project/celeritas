@@ -98,7 +98,8 @@ TEST(PolygonUtilsTest, planar)
 
 TEST(PolygonUtilsTest, planar_tolerance)
 {
-    real_type const eps_lo{1e-13};
+    real_type const eps_lo = real_type{0.1} * SoftEqual<>{}.rel();
+    real_type const eps_hi = 2 * SoftEqual<>{}.rel();
     Real3 a{-2, 2, -2}, b{2, 2, -2}, c{2, 2, 2}, d{-2, 2, 2};
     Real3 dy{0, 1, 0};
 
@@ -106,21 +107,21 @@ TEST(PolygonUtilsTest, planar_tolerance)
     Real3 aa{a};
     axpy(eps_lo, dy, &aa);
     EXPECT_TRUE(is_planar(aa, b, c, d));
-    axpy(10 * eps_lo, dy, &aa);
+    axpy(eps_hi, dy, &aa);
     EXPECT_FALSE(is_planar(aa, b, c, d));
 
     // effect on non-ref corner
     Real3 bb{b};
     axpy(eps_lo, dy, &bb);
     EXPECT_TRUE(is_planar(a, bb, c, d));
-    axpy(10 * eps_lo, dy, &bb);
+    axpy(eps_hi, dy, &bb);
     EXPECT_FALSE(is_planar(a, bb, c, d));
 
     // effect on test corner
     Real3 dd{d};
     axpy(eps_lo, dy, &dd);
     EXPECT_TRUE(is_planar(a, b, c, dd));
-    axpy(10 * eps_lo, dy, &dd);
+    axpy(eps_hi, dy, &dd);
     EXPECT_FALSE(is_planar(a, b, c, dd));
 }
 
