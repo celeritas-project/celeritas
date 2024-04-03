@@ -15,6 +15,7 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/Quantity.hh"
+#include "geocel/UnitUtils.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/grid/VectorUtils.hh"
@@ -219,7 +220,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
     {
         auto particle_view = this->make_particle_track_view(
             units::MevEnergy{0.5}, pdg::electron());
-        auto sim_view = this->make_sim_track_view(0.15 * units::centimeter);
+        auto sim_view = this->make_sim_track_view(0.15);
 
         CerenkovPreGenerator::OpticalPreGenStepData step;
         step.points[StepPoint::pre].pos = {0, 0, 0};
@@ -269,7 +270,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
     {
         auto particle_view = this->make_particle_track_view(
             units::MevEnergy{0.1}, pdg::electron());
-        auto sim_view = this->make_sim_track_view(0.1 * units::centimeter);
+        auto sim_view = this->make_sim_track_view(0.1);
 
         CerenkovPreGenerator::OpticalPreGenStepData step_below_th;
         step_below_th.points[StepPoint::pre].pos = {0, 0, 0};
@@ -393,7 +394,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
         }
         avg_costheta /= total_num_photons;
         avg_energy /= total_num_photons;
-        avg_displacement /= (units::centimeter * total_num_photons);
+        avg_displacement /= (from_cm(1) * total_num_photons);
         avg_engine_samples = real_type(rng.count()) / num_samples;
     };
 
@@ -410,7 +411,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
 
         auto particle_view
             = this->make_particle_track_view(gev_10, pdg::electron());
-        auto sim_view = this->make_sim_track_view(1 * units::centimeter);
+        auto sim_view = this->make_sim_track_view(1);
 
         CerenkovPreGenerator::OpticalPreGenStepData step;
         step.points[StepPoint::pre].pos = {0, 0, 0};
@@ -450,7 +451,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
 
         auto particle_vew
             = this->make_particle_track_view(kev_500, pdg::electron());
-        auto sim_view = this->make_sim_track_view(0.15 * units::centimeter);
+        auto sim_view = this->make_sim_track_view(0.15);
 
         CerenkovPreGenerator::OpticalPreGenStepData step;
         step.points[StepPoint::pre].speed

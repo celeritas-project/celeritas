@@ -95,6 +95,11 @@ using AnyObjects = JoinObjects<op_or>;
 //! Intersection of the given objects
 using AllObjects = JoinObjects<op_and>;
 
+//! Shared pointer to an object
+using SPConstObject = std::shared_ptr<ObjectInterface const>;
+//! Type used for defining a Region Definition Vector (RDV)
+using VecSenseObj = std::vector<std::pair<Sense, SPConstObject>>;
+
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
@@ -102,13 +107,12 @@ using AllObjects = JoinObjects<op_and>;
 // Make a new object that is the second object subtracted from the first
 std::shared_ptr<AllObjects const>
 make_subtraction(std::string&& label,
-                 std::shared_ptr<ObjectInterface const> const& minuend,
-                 std::shared_ptr<ObjectInterface const> const& subtrahend);
+                 SPConstObject const& minuend,
+                 SPConstObject const& subtrahend);
 
 // Make a combination of possibly negated objects
-std::shared_ptr<AllObjects const> make_rdv(
-    std::string&& label,
-    std::vector<std::pair<Sense, std::shared_ptr<ObjectInterface const>>>&&);
+std::shared_ptr<AllObjects const>
+make_rdv(std::string&& label, VecSenseObj&& rdv);
 
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp

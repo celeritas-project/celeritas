@@ -9,9 +9,8 @@
 
 #include <vector>
 
-#include "celeritas/phys/PDGNumber.hh"
-
 #include "ImportPhysicsVector.hh"
+#include "ImportUnits.hh"
 
 namespace celeritas
 {
@@ -24,7 +23,7 @@ namespace celeritas
  */
 struct ImportScintComponent
 {
-    double yield{};  //!< Yield for this material component [1/MeV]
+    double yield_per_energy{};  //!< Yield for this material component [1/MeV]
     double lambda_mean{};  //!< Mean wavelength [len]
     double lambda_sigma{};  //!< Standard deviation of wavelength
     double rise_time{};  //!< Rise time [time]
@@ -33,7 +32,7 @@ struct ImportScintComponent
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
-        return yield > 0 && lambda_mean > 0 && lambda_sigma > 0
+        return yield_per_energy > 0 && lambda_mean > 0 && lambda_sigma > 0
                && rise_time >= 0 && fall_time > 0;
     }
 };
@@ -45,12 +44,15 @@ struct ImportScintComponent
  */
 struct ImportMaterialScintSpectrum
 {
-    double yield{};  //!< Characteristic light yields of the material [1/MeV]
+    double yield_per_energy{};  //!< Light yield of the material [1/MeV]
     std::vector<ImportScintComponent> components;  //!< Scintillation
                                                    //!< components
 
     //! Whether all data are assigned and valid
-    explicit operator bool() const { return yield > 0 && !components.empty(); }
+    explicit operator bool() const
+    {
+        return yield_per_energy > 0 && !components.empty();
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -64,7 +66,12 @@ struct ImportMaterialScintSpectrum
  */
 struct ImportParticleScintSpectrum
 {
-    ImportPhysicsVector yield_vector;  //!< Particle yield vector
+#ifndef SWIG
+    static constexpr auto x_units{ImportUnits::mev};
+    static constexpr auto y_units{ImportUnits::unitless};
+#endif
+
+    ImportPhysicsVector yield_vector;  //!< Particle yield per energy bin
     std::vector<ImportScintComponent> components;  //!< Scintillation
                                                    //!< components
 
@@ -92,7 +99,8 @@ struct ImportScintData
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
-        return static_cast<bool>(material) && resolution_scale >= 0;
+        return (static_cast<bool>(material) || !particles.empty())
+               && resolution_scale >= 0;
     }
 };
 
