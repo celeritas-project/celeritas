@@ -340,11 +340,11 @@ auto UnitProto::build(Tol const& tol, ExteriorBoundary ext) const -> Unit
 /*!
  * Construct the daughter's shape in this unit's reference frame.
  */
-std::shared_ptr<Transformed> UnitProto::DaughterInput::make_interior() const
+auto UnitProto::DaughterInput::make_interior() const -> SPConstObject
 {
     CELER_EXPECT(*this);
-    return std::make_shared<Transformed>(this->fill->interior(),
-                                         VariantTransform{this->transform});
+    return Transformed::or_object(this->fill->interior(),
+                                  VariantTransform{this->transform});
 }
 
 //---------------------------------------------------------------------------//
