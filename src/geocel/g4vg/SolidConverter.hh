@@ -63,8 +63,8 @@ class SolidConverter
 
     //// DATA ////
 
-    Scaler const& convert_scale_;
-    Transformer const& convert_transform_;
+    Scaler const& scale_;
+    Transformer const& transform_;
     bool compare_volumes_;
     std::unordered_map<G4VSolid const*, result_type> cache_;
 
@@ -116,8 +116,8 @@ class SolidConverter
 SolidConverter::SolidConverter(Scaler const& convert_scale,
                                Transformer const& convert_transform,
                                bool compare_volumes)
-    : convert_scale_(convert_scale)
-    , convert_transform_(convert_transform)
+    : scale_(convert_scale)
+    , transform_(convert_transform)
     , compare_volumes_(compare_volumes)
 {
 }
