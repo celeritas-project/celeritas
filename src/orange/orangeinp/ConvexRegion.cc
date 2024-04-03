@@ -315,7 +315,7 @@ void Ellipsoid::output(JsonPimpl* j) const
 // GENTRAP
 //---------------------------------------------------------------------------//
 /*!
- * Construct from half Z height and 1-4 vertices for top and bottom planes
+ * Construct from half Z height and 1-4 vertices for top and bottom planes.
  */
 GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
     : hz_{halfz}, lo_{std::move(lo)}, hi_{std::move(hi)}
@@ -331,24 +331,23 @@ GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
     CELER_VALIDATE(lo_.size() >= 3 || hi_.size() >= 3,
                    << "not enough vertices for both of the +Z/-Z polygons.");
 
-    // input vertices must be arranged in a CCW order
-    using orangeinp::detail::is_convex;
-    using orangeinp::detail::is_planar;
-    CELER_VALIDATE(is_convex(make_span(lo_)), << "-Z polygon is not convex");
-    CELER_VALIDATE(is_convex(make_span(hi_)), << "+Z polygon is not convex");
+    // Input vertices must be arranged in a CCW order
+    CELER_VALIDATE(detail::is_convex(make_span(lo_)),
+                   << "-Z polygon is not convex");
+    CELER_VALIDATE(detail::is_convex(make_span(hi_)),
+                   << "+Z polygon is not convex");
 
     // TODO: Temporarily ensure that all side faces are planar
-    Real3 a, b, c, d;
-    for (size_type j, i = 0; i < lo_.size(); ++i)
+    for (auto i : range(lo_.size()))
     {
-        j = (i + 1) % lo_.size();
-        a = Real3{lo_[i][0], lo_[i][1], -hz_};
-        b = Real3{lo_[j][0], lo_[j][1], -hz_};
-        c = Real3{hi_[j][0], hi_[j][1], hz_};
-        d = Real3{hi_[i][0], hi_[i][1], hz_};
+        auto j = (i + 1) % lo_.size();
+        Real3 const a{lo_[i][0], lo_[i][1], -hz_};
+        Real3 const b{lo_[j][0], lo_[j][1], -hz_};
+        Real3 const c{hi_[j][0], hi_[j][1], hz_};
+        Real3 const d{hi_[i][0], hi_[i][1], hz_};
 
         // *Temporarily* throws if a side face is not planar
-        if (!is_planar(a, b, c, d))
+        if (!detail::is_planar(a, b, c, d))
         {
             CELER_NOT_IMPLEMENTED("non-planar side faces");
         }
@@ -366,14 +365,14 @@ void GenTrap::build(ConvexSurfaceBuilder& insert_surface) const
     insert_surface(Sense::inside, PlaneZ{hz_});
 
     // Build the side planes
-    Real3 a, b, c, d;
-    for (size_type j, i = 0; i < lo_.size(); ++i)
+    for (auto i : range(lo_.size()))
     {
-        j = (i + 1) % lo_.size();
-        a = Real3{lo_[i][0], lo_[i][1], -hz_};
-        b = Real3{lo_[j][0], lo_[j][1], -hz_};
-        c = Real3{hi_[j][0], hi_[j][1], hz_};
-        d = Real3{hi_[i][0], hi_[i][1], hz_};
+        auto j = (i + 1) % lo_.size();
+
+        Real3 a{lo_[i][0], lo_[i][1], -hz_};
+        Real3 b{lo_[j][0], lo_[j][1], -hz_};
+        Real3 c{hi_[j][0], hi_[j][1], hz_};
+        Real3 d{hi_[i][0], hi_[i][1], hz_};
 
         // Calculate plane parameters
         auto normal = make_unit_vector(cross_product(b - a, c - b));
