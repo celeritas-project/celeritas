@@ -7,11 +7,19 @@
 //---------------------------------------------------------------------------//
 #include "orange/orangeinp/detail/PolygonUtils.hh"
 
+#include <vector>
+
+#include "corecel/Constants.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/SoftEqual.hh"
+
 #include "celeritas_test.hh"
 
 namespace celeritas
 {
 namespace orangeinp
+{
+namespace detail
 {
 namespace test
 {
@@ -19,8 +27,7 @@ namespace test
 
 using Real2 = Array<real_type, 2>;
 using VecReal2 = std::vector<Real2>;
-using celeritas::axpy;
-using namespace celeritas::orangeinp::detail;
+using constants::pi;
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -47,7 +54,7 @@ TEST(PolygonUtilsTest, convexity)
     VecReal2 oct{8};
     for (size_type i = 0; i < 8; ++i)
     {
-        oct[i] = {std::cos(2 * m_pi * i / 8), std::sin(2 * m_pi * i / 8)};
+        oct[i] = {std::cos(2 * pi * i / 8), std::sin(2 * pi * i / 8)};
     }
     EXPECT_TRUE(is_convex(make_span(oct)));
 
@@ -64,9 +71,8 @@ TEST(PolygonUtilsTest, degenerate)
 
     // only three points are collinear
     Real2 degen[] = {{1, 1}, {2, 2}, {3, 3}, {2, 4}};
-    bool degen_ok = true;
-    EXPECT_FALSE(is_convex(degen));  // default: degen_ok = false
-    EXPECT_TRUE(is_convex(degen, degen_ok));
+    EXPECT_FALSE(is_convex(degen));
+    EXPECT_TRUE(is_convex(degen, /* degen_ok = */ true));
 
     // degenerate: repeated consecutive points
     Real2 repeated[] = {{0, 0}, {1, 0}, {1, 1}, {0.5, 0.5}, {0.5, 0.5}, {0, 1}};
@@ -92,7 +98,7 @@ TEST(PolygonUtilsTest, planar)
 
 TEST(PolygonUtilsTest, planar_tolerance)
 {
-    double eps_lo = 1.0e-13;
+    real_type const eps_lo{1e-13};
     Real3 a{-2, 2, -2}, b{2, 2, -2}, c{2, 2, 2}, d{-2, 2, 2};
     Real3 dy{0, 1, 0};
 
@@ -120,5 +126,6 @@ TEST(PolygonUtilsTest, planar_tolerance)
 
 //---------------------------------------------------------------------------//
 }  // namespace test
+}  // namespace detail
 }  // namespace orangeinp
 }  // namespace celeritas
