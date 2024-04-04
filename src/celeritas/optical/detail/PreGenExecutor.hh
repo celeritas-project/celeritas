@@ -48,16 +48,17 @@ CELER_FUNCTION void PreGenExecutor::operator()(CoreTrackView const& track)
 
     using DistributionAllocator = StackAllocator<OpticalDistributionData>;
 
+    auto sim = track.make_sim_view();
     auto optmat_id
         = track.make_material_view().make_material_view().optical_material_id();
-    if (!optmat_id)
+    if (!optmat_id || sim.step_length() == 0)
     {
-        // No optical properties for this material
+        // No optical properties for this material or a particle that started
+        // the step with zero energy (a stopped positron)
         return;
     }
 
     auto particle = track.make_particle_view();
-    auto sim = track.make_sim_view();
     Real3 const& pos = track.make_geo_view().pos();
     auto rng = track.make_rng_engine();
 
@@ -65,7 +66,7 @@ CELER_FUNCTION void PreGenExecutor::operator()(CoreTrackView const& track)
     // TODO: Do we return pointer to the distribution data, number of photons
     // to generate? Best way to do reduction?
     size_type num_photons{0};
-    if (cerenkov)
+    if (cerenkov && particle.charge() != zero_quantity())
     {
         CELER_ASSERT(properties);
         DistributionAllocator allocate{state.cerenkov};

@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "celeritas/Types.hh"
+#include "celeritas/optical/OpticalGenData.hh"
 
 namespace celeritas
 {
@@ -37,6 +38,8 @@ class OpticalCollector
     using SPConstCerenkov = std::shared_ptr<CerenkovParams const>;
     using SPConstProperties = std::shared_ptr<OpticalPropertyParams const>;
     using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
+    template<MemSpace M>
+    using StateRef = OpticalGenStateData<Ownership::reference, M>;
     //!@}
 
   public:
@@ -54,6 +57,10 @@ class OpticalCollector
     OpticalCollector& operator=(OpticalCollector const&);
     OpticalCollector(OpticalCollector&&);
     OpticalCollector& operator=(OpticalCollector&&);
+
+    // Get stream-local data (throw if not available)
+    template<MemSpace M>
+    StateRef<M> const& state(StreamId) const;
 
   private:
     //// TYPES ////

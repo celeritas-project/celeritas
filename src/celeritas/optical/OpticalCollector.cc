@@ -67,6 +67,21 @@ OpticalCollector::OpticalCollector(SPConstProperties properties,
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get stream-local state data.
+ */
+template<MemSpace M>
+auto OpticalCollector::state(StreamId stream_id) const -> StateRef<M> const&
+{
+    CELER_EXPECT(stream_id < storage_->obj.num_streams());
+    auto* result = storage_->obj.state<M>(stream_id);
+    CELER_VALIDATE(result,
+                   << "no opticaal state is stored on " << to_cstring(M)
+                   << " for stream ID " << stream_id.get());
+    return *result;
+}
+
+//---------------------------------------------------------------------------//
 //!@{
 //! Default destructor and move and copy
 OpticalCollector::~OpticalCollector() = default;
@@ -76,6 +91,15 @@ OpticalCollector& OpticalCollector::operator=(OpticalCollector const&)
 OpticalCollector::OpticalCollector(OpticalCollector&&) = default;
 OpticalCollector& OpticalCollector::operator=(OpticalCollector&&) = default;
 //!@}
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+template OpticalGenStateData<Ownership::reference, MemSpace::host> const&
+OpticalCollector::state(StreamId stream_id) const;
+template OpticalGenStateData<Ownership::reference, MemSpace::device> const&
+OpticalCollector::state(StreamId stream_id) const;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

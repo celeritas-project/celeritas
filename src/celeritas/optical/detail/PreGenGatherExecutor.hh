@@ -40,8 +40,14 @@ CELER_FUNCTION void PreGenGatherExecutor::operator()(CoreTrackView const& track)
 {
     CELER_EXPECT(state);
 
+    auto particle = track.make_particle_view();
+    if (particle.is_stopped())
+    {
+        return;
+    }
+
     OpticalPreStepData& step = state.step[track.track_slot_id()];
-    step.speed = track.make_particle_view().speed();
+    step.speed = particle.speed();
     step.pos = track.make_geo_view().pos();
     step.time = track.make_sim_view().time();
 
