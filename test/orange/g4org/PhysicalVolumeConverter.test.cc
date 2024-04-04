@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "orange/g4org/PhysicalVolumeConverter.hh"
 
-#include <regex>
-
 #include "corecel/io/StreamableVariant.hh"
 #include "corecel/sys/Environment.hh"
 #include "geocel/GeantGeoUtils.hh"
@@ -34,12 +32,6 @@ auto make_options()
 }
 
 //---------------------------------------------------------------------------//
-std::string simplify_pointers(std::string const& s)
-{
-    static std::regex const subs_ptr("0x[0-9a-f]+");
-    return std::regex_replace(s, subs_ptr, "0x0");
-}
-
 class PhysicalVolumeConverterTest : public ::celeritas::test::Test
 {
   protected:
@@ -83,12 +75,12 @@ TEST_F(PhysicalVolumeConverterTest, intersection_boxes)
     PhysicalVolume world = convert(*g4world);
 
     ASSERT_TRUE(world.lv);
-    EXPECT_EQ("world0x0", simplify_pointers(world.lv->name));
+    EXPECT_EQ("world0x0", this->genericize_pointers(world.lv->name));
     ASSERT_EQ(1, world.lv->children.size());
 
     auto const& inner_pv = world.lv->children.front();
     ASSERT_TRUE(inner_pv.lv);
-    EXPECT_EQ("inner0x0", simplify_pointers(inner_pv.lv->name));
+    EXPECT_EQ("inner0x0", this->genericize_pointers(inner_pv.lv->name));
     ASSERT_TRUE(inner_pv.lv->solid);
     if (CELERITAS_USE_JSON)
     {
@@ -135,7 +127,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
     {
         // Test world's logical volume
         EXPECT_NE(nullptr, lv->g4lv);
-        EXPECT_EQ("World0x0", simplify_pointers(lv->name));
+        EXPECT_EQ("World0x0", this->genericize_pointers(lv->name));
         ASSERT_TRUE(lv->solid);
         if (CELERITAS_USE_JSON)
         {
@@ -152,7 +144,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
     }
     {
         // Test calorimeter
-        EXPECT_EQ("Calorimeter0x0", simplify_pointers(lv->name));
+        EXPECT_EQ("Calorimeter0x0", this->genericize_pointers(lv->name));
         ASSERT_EQ(50, lv->children.size());
 
         auto const& first_layer = lv->children.front();
@@ -177,7 +169,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
     }
     {
         // Test layer
-        EXPECT_EQ("Layer0x0", simplify_pointers(lv->name));
+        EXPECT_EQ("Layer0x0", this->genericize_pointers(lv->name));
         ASSERT_EQ(2, lv->children.size());
 
         ASSERT_TRUE(lv->solid);
@@ -196,7 +188,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
     }
     {
         // Test lead
-        EXPECT_EQ("G4_Pb0x0", simplify_pointers(lv->name));
+        EXPECT_EQ("G4_Pb0x0", this->genericize_pointers(lv->name));
         EXPECT_EQ(0, lv->children.size());
     }
 }
@@ -208,7 +200,7 @@ TEST_F(PhysicalVolumeConverterTest, transformed_box)
 
     PhysicalVolumeConverter convert{make_options()};
     PhysicalVolume world = convert(*g4world);
-    EXPECT_EQ("world_PV", simplify_pointers(world.name));
+    EXPECT_EQ("world_PV", this->genericize_pointers(world.name));
 
     ASSERT_TRUE(world.lv);
     ASSERT_EQ(3, world.lv->children.size());
