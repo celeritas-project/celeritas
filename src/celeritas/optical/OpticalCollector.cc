@@ -82,17 +82,6 @@ auto OpticalCollector::state(StreamId stream_id) const -> StateRef<M> const&
 }
 
 //---------------------------------------------------------------------------//
-//!@{
-//! Default destructor and move and copy
-OpticalCollector::~OpticalCollector() = default;
-OpticalCollector::OpticalCollector(OpticalCollector const&) = default;
-OpticalCollector& OpticalCollector::operator=(OpticalCollector const&)
-    = default;
-OpticalCollector::OpticalCollector(OpticalCollector&&) = default;
-OpticalCollector& OpticalCollector::operator=(OpticalCollector&&) = default;
-//!@}
-
-//---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 

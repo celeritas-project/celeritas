@@ -52,11 +52,8 @@ class OpticalCollector
                      ActionRegistry* action_registry);
 
     // Default destructor and move and copy
-    ~OpticalCollector();
-    OpticalCollector(OpticalCollector const&);
-    OpticalCollector& operator=(OpticalCollector const&);
-    OpticalCollector(OpticalCollector&&);
-    OpticalCollector& operator=(OpticalCollector&&);
+    ~OpticalCollector() = default;
+    CELER_DEFAULT_COPY_MOVE(OpticalCollector);
 
     // Get stream-local data (throw if not available)
     template<MemSpace M>
