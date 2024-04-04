@@ -40,7 +40,7 @@ constexpr bool is_tol_sq_nonnegligible(T value)
 /*!
  * Use a relative error of \f$ \sqrt(\epsilon_\textrm{machine}) \f$ .
  *
- * Technically we're rounding the machine epsilon to a nearby power of 10. We
+ * Technically we're rounding the machine epsilon to a nearby value. We
  * could use numeric_limits<real_type>::epsilon instead.
  */
 template<class T>
@@ -49,11 +49,13 @@ Tolerance<T> Tolerance<T>::from_default(real_type length)
     constexpr real_type sqrt_emach = [] {
         if constexpr (std::is_same_v<real_type, double>)
         {
-            return 1.e-8;
+            // std::sqrt(LimitsT::epsilon()) = 1.4901161193847656e-08
+            return 1.5e-8;
         }
         else if constexpr (std::is_same_v<real_type, float>)
         {
-            return 5.e-3f;
+            // std::sqrt(LimitsT::epsilon()) = 0.00034526698f
+            return 3e-4f;
         }
     }();
     static_assert(is_tol_sq_nonnegligible(sqrt_emach),
