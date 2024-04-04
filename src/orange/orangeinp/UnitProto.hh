@@ -82,6 +82,7 @@ class UnitProto : public ProtoInterface
     {
         SPConstObject interior;
         MaterialId fill;
+        // TODO: override with label
 
         // True if fully defined
         explicit inline operator bool() const;
@@ -163,7 +164,7 @@ class UnitProto : public ProtoInterface
  */
 UnitProto::MaterialInput::operator bool() const
 {
-    return this->interior && this->fill;
+    return static_cast<bool>(this->interior);
 }
 
 //---------------------------------------------------------------------------//

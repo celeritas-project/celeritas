@@ -318,7 +318,10 @@ auto UnitProto::build(Tol const& tol, ExteriorBoundary ext) const -> Unit
     for (auto const& m : input_.materials)
     {
         auto lv = build_volume(*m.interior);
-        unit_builder.fill_volume(lv, m.fill);
+        if (m.fill)
+        {
+            unit_builder.fill_volume(lv, m.fill);
+        }
     }
 
     // Build background fill (optional)
