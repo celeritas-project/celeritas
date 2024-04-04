@@ -11,6 +11,8 @@
 
 #include "celeritas_cmake_strings.h"
 #include "celeritas_config.h"
+#include "corecel/ScopedLogStorer.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Version.hh"
@@ -879,7 +881,9 @@ TEST_F(FourSteelSlabsEmStandard, sb_data)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, livermore_pe_data)
 {
+    ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::warning};
     auto&& import_data = this->imported_data();
+    EXPECT_TRUE(scoped_log.empty()) << scoped_log;
 
     auto const& lpe_map = import_data.livermore_pe_data;
     EXPECT_EQ(4, lpe_map.size());
