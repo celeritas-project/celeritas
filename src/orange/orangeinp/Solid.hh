@@ -181,6 +181,7 @@ Solid(std::string&&, T&&, Us...) -> Solid<T>;
 
 using ConeSolid = Solid<Cone>;
 using CylinderSolid = Solid<Cylinder>;
+using SphereSolid = Solid<Sphere>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

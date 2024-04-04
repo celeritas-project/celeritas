@@ -190,6 +190,7 @@ Solid<T>::Solid(std::string&& label, T&& interior, SolidEnclosedAngle&& enclosed
 
 template class Solid<Cone>;
 template class Solid<Cylinder>;
+template class Solid<Sphere>;
 
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp

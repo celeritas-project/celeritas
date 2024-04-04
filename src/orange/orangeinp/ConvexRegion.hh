@@ -411,6 +411,11 @@ class Sphere final : public ConvexRegionInterface
     // Output to JSON
     void output(JsonPimpl*) const final;
 
+    //// TEMPLATE INTERFACE ////
+
+    // Whether this encloses another sphere
+    bool encloses(Sphere const& other) const;
+
     //// ACCESSORS ////
 
     //! Radius
