@@ -9,7 +9,6 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/data/StackAllocator.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/random/distribution/PoissonDistribution.hh"
 #include "celeritas/track/SimTrackView.hh"
@@ -37,8 +36,7 @@ namespace celeritas
                                      material_id,
                                      properties->host_ref(),
                                      params->host_ref(),
-                                     step_data
-                                     allocate);
+                                     step_data);
 
     auto optical_dist_data = pre_generate(rng);
     if (optical_dist_data)
@@ -51,12 +49,6 @@ namespace celeritas
 class CerenkovPreGenerator
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using DistributionAllocator = StackAllocator<OpticalDistributionData>;
-    //!@}
-
-  public:
     // Construct with optical properties, Cerenkov, and step data
     inline CELER_FUNCTION
     CerenkovPreGenerator(ParticleTrackView const& particle,
@@ -65,12 +57,11 @@ class CerenkovPreGenerator
                          OpticalMaterialId mat_id,
                          NativeCRef<OpticalPropertyData> const& properties,
                          NativeCRef<CerenkovData> const& shared,
-                         OpticalPreStepData const& step_data,
-                         DistributionAllocator& allocate);
+                         OpticalPreStepData const& step_data);
 
     // Populate optical distribution data for the Cerenkov Generator
     template<class Generator>
-    inline CELER_FUNCTION size_type operator()(Generator& rng);
+    inline CELER_FUNCTION OpticalDistributionData operator()(Generator& rng);
 
   private:
     units::ElementaryCharge charge_;
@@ -78,7 +69,6 @@ class CerenkovPreGenerator
     real_type time_;
     OpticalMaterialId mat_id_;
     EnumArray<StepPoint, OpticalStepData> points_;
-    DistributionAllocator& allocate_;
     real_type num_photons_per_len_;
 };
 
@@ -97,13 +87,11 @@ CELER_FUNCTION CerenkovPreGenerator::CerenkovPreGenerator(
     OpticalMaterialId mat_id,
     NativeCRef<OpticalPropertyData> const& properties,
     NativeCRef<CerenkovData> const& shared,
-    OpticalPreStepData const& step_data,
-    DistributionAllocator& allocate)
+    OpticalPreStepData const& step_data)
     : charge_(particle.charge())
     , step_len_(sim.step_length())
     , time_(step_data.time)
     , mat_id_(mat_id)
-    , allocate_(allocate)
 {
     CELER_EXPECT(charge_ != zero_quantity());
     CELER_EXPECT(step_len_ > 0);
@@ -135,27 +123,27 @@ CELER_FUNCTION CerenkovPreGenerator::CerenkovPreGenerator(
  * where \f$ \ell_\text{step} \f$ is the step length.
  */
 template<class Generator>
-CELER_FUNCTION size_type CerenkovPreGenerator::operator()(Generator& rng)
+CELER_FUNCTION OpticalDistributionData
+CerenkovPreGenerator::operator()(Generator& rng)
 {
     if (num_photons_per_len_ == 0)
     {
-        return 0;
+        return {};
     }
 
-    // TODO: handle failure to allocate space?
-    OpticalDistributionData* data = allocate_(1);
-    CELER_ASSERT(data);
-    data->num_photons = PoissonDistribution<real_type>(num_photons_per_len_
-                                                       * step_len_)(rng);
-    if (data->num_photons > 0)
+    OpticalDistributionData result;
+    result.num_photons = PoissonDistribution<real_type>(num_photons_per_len_
+                                                        * step_len_)(rng);
+    if (result.num_photons > 0)
     {
-        data->time = time_;
-        data->step_length = step_len_;
-        data->charge = charge_;
-        data->material = mat_id_;
-        data->points = points_;
+        result.time = time_;
+        result.step_length = step_len_;
+        result.charge = charge_;
+        result.material = mat_id_;
+        result.points = points_;
     }
-    return data->num_photons;
+    CELER_ENSURE(result);
+    return result;
 }
 
 //---------------------------------------------------------------------------//

@@ -12,6 +12,8 @@
 #include "celeritas/Types.hh"
 #include "celeritas/optical/OpticalGenData.hh"
 
+#include "detail/PreGenAction.hh"
+
 namespace celeritas
 {
 class ActionRegistry;
@@ -21,8 +23,6 @@ class ScintillationParams;
 
 namespace detail
 {
-template<StepPoint P>
-class PreGenAction;
 struct GenStorage;
 }  // namespace detail
 
@@ -47,7 +47,7 @@ class OpticalCollector
     OpticalCollector(SPConstProperties properties,
                      SPConstCerenkov cerenkov,
                      SPConstScintillation scintillation,
-                     size_type stack_capacity,
+                     size_type buffer_capacity,
                      size_type num_streams,
                      ActionRegistry* action_registry);
 
@@ -58,6 +58,12 @@ class OpticalCollector
     // Get stream-local data (throw if not available)
     template<MemSpace M>
     StateRef<M> const& state(StreamId) const;
+
+    //! Get the number of distributions generated for each process
+    OpticalBufferOffsets const& num_distributions(StreamId stream) const
+    {
+        return pregen_action_->num_distributions(stream);
+    }
 
   private:
     //// TYPES ////

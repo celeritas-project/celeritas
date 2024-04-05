@@ -9,7 +9,6 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/data/StackAllocator.hh"
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/optical/CerenkovPreGenerator.hh"
 #include "celeritas/optical/OpticalGenData.hh"
@@ -34,6 +33,7 @@ struct PreGenExecutor
     NativeCRef<CerenkovData> const cerenkov;
     NativeCRef<ScintillationData> const scintillation;
     NativeRef<OpticalGenStateData> const state;
+    OpticalBufferOffsets offsets;
 };
 
 //---------------------------------------------------------------------------//
@@ -46,56 +46,51 @@ CELER_FUNCTION void PreGenExecutor::operator()(CoreTrackView const& track)
 {
     CELER_EXPECT(state);
 
-    using DistributionAllocator = StackAllocator<OpticalDistributionData>;
+    using DistId = ItemId<OpticalDistributionData>;
 
     auto sim = track.make_sim_view();
     auto optmat_id
         = track.make_material_view().make_material_view().optical_material_id();
-    if (!optmat_id || sim.step_length() == 0)
+    auto tsid = track.track_slot_id();
+    DistId cerenkov_offset(offsets.cerenkov + tsid.get());
+    DistId scintillation_offset(offsets.scintillation + tsid.get());
+
+    if (sim.status() == TrackStatus::inactive || !optmat_id
+        || sim.step_length() == 0)
     {
-        // No optical properties for this material or a particle that started
-        // the step with zero energy (a stopped positron)
+        // Clear distribution data for inactive tracks, materials with no
+        // optical properties, or particles that started the step with zero
+        // energy (e.g. a stopped positron)
+        state.cerenkov[cerenkov_offset] = {};
+        state.scintillation[scintillation_offset] = {};
         return;
     }
 
-    auto particle = track.make_particle_view();
     Real3 const& pos = track.make_geo_view().pos();
+    auto particle = track.make_particle_view();
     auto rng = track.make_rng_engine();
 
-    // Total number of scintillation and Cerenkov photons to generate
-    // TODO: Do we return pointer to the distribution data, number of photons
-    // to generate? Best way to do reduction?
-    size_type num_photons{0};
+    // Get the distribution data used to generate scintillation and Cerenkov
+    // optical photons
     if (cerenkov && particle.charge() != zero_quantity())
     {
         CELER_ASSERT(properties);
-        DistributionAllocator allocate{state.cerenkov};
         CerenkovPreGenerator generate(particle,
                                       sim,
                                       pos,
                                       optmat_id,
                                       properties,
                                       cerenkov,
-                                      state.step[track.track_slot_id()],
-                                      allocate);
-        num_photons += generate(rng);
+                                      state.step[tsid]);
+        state.cerenkov[cerenkov_offset] = generate(rng);
     }
     if (scintillation)
     {
         auto edep = track.make_physics_step_view().energy_deposition();
-
-        DistributionAllocator allocate{state.scintillation};
-        ScintillationPreGenerator generate(particle,
-                                           sim,
-                                           pos,
-                                           optmat_id,
-                                           edep,
-                                           scintillation,
-                                           state.step[track.track_slot_id()],
-                                           allocate);
-        num_photons += generate(rng);
+        ScintillationPreGenerator generate(
+            particle, sim, pos, optmat_id, edep, scintillation, state.step[tsid]);
+        state.scintillation[scintillation_offset] = generate(rng);
     }
-    (void)num_photons;
 }
 
 //---------------------------------------------------------------------------//

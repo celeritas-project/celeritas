@@ -51,18 +51,6 @@ OpticalTestBase::~OpticalTestBase() = default;
 
 //---------------------------------------------------------------------------//
 /*!
- * Resize distributions.
- */
-void OpticalTestBase::resize_distributions(int count)
-{
-    CELER_EXPECT(count > 0);
-    distributions_ = StateStore<DistributionStackData>(count);
-    distribution_allocator_
-        = std::make_shared<DistributionAllocator>(distributions_.ref());
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Initialize particle state with given energy.
  */
 ParticleTrackView

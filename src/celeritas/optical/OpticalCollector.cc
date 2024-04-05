@@ -16,7 +16,6 @@
 #include "celeritas/optical/ScintillationParams.hh"
 
 #include "detail/GenStorage.hh"
-#include "detail/PreGenAction.hh"
 
 namespace celeritas
 {
@@ -27,14 +26,14 @@ namespace celeritas
 OpticalCollector::OpticalCollector(SPConstProperties properties,
                                    SPConstCerenkov cerenkov,
                                    SPConstScintillation scintillation,
-                                   size_type stack_capacity,
+                                   size_type buffer_capacity,
                                    size_type num_streams,
                                    ActionRegistry* action_registry)
     : storage_(std::make_shared<detail::GenStorage>())
 {
     CELER_EXPECT(scintillation || (cerenkov && properties));
     CELER_EXPECT(!cerenkov == !properties);
-    CELER_EXPECT(stack_capacity > 0);
+    CELER_EXPECT(buffer_capacity > 0);
     CELER_EXPECT(num_streams > 0);
     CELER_EXPECT(action_registry);
 
@@ -42,7 +41,7 @@ OpticalCollector::OpticalCollector(SPConstProperties properties,
     HostVal<OpticalGenParamsData> host_data;
     host_data.cerenkov = static_cast<bool>(cerenkov);
     host_data.scintillation = static_cast<bool>(scintillation);
-    host_data.stack_capacity = stack_capacity;
+    host_data.capacity = buffer_capacity;
     storage_->obj = {std::move(host_data), num_streams};
 
     // Build action to gather pre-step data needed for generating optical

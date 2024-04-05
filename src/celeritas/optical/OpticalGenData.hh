@@ -10,7 +10,6 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/data/StackAllocatorData.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/optical/CerenkovData.hh"
@@ -22,6 +21,18 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Offset in the buffer of distribution data.
+ *
+ * These offsets are updated by value on the host at each step.
+ */
+struct OpticalBufferOffsets
+{
+    size_type cerenkov{0};
+    size_type scintillation{0};
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Immutable problem data for generating optical photon distributions.
  */
 template<Ownership W, MemSpace M>
@@ -31,14 +42,14 @@ struct OpticalGenParamsData
 
     bool cerenkov{false};  //!< Whether Cerenkov is enabled
     bool scintillation{false};  //!< Whether scintillation is enabled
-    real_type stack_capacity{0};  //!< Distribution data stack capacity
+    real_type capacity{0};  //!< Distribution data buffer capacity
 
     //// METHODS ////
 
     //! True if all params are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return (cerenkov || scintillation) && stack_capacity > 0;
+        return (cerenkov || scintillation) && capacity > 0;
     }
 
     //! Assign from another set of data
@@ -48,7 +59,7 @@ struct OpticalGenParamsData
         CELER_EXPECT(other);
         cerenkov = other.cerenkov;
         scintillation = other.scintillation;
-        stack_capacity = other.stack_capacity;
+        capacity = other.capacity;
         return *this;
     }
 };
@@ -81,8 +92,8 @@ struct OpticalGenStateData
 
     template<class T>
     using StateItems = StateCollection<T, W, M>;
-    using DistributionStackData
-        = StackAllocatorData<OpticalDistributionData, W, M>;
+    template<class T>
+    using Items = Collection<T, W, M>;
 
     //// DATA ////
 
@@ -90,8 +101,8 @@ struct OpticalGenStateData
     StateItems<OpticalPreStepData> step;
 
     // Buffers of distribution data for generating optical primaries
-    DistributionStackData cerenkov;
-    DistributionStackData scintillation;
+    Items<OpticalDistributionData> cerenkov;
+    Items<OpticalDistributionData> scintillation;
 
     //// METHODS ////
 
@@ -101,7 +112,7 @@ struct OpticalGenStateData
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !step.empty() && (cerenkov || scintillation);
+        return !step.empty() && !(cerenkov.empty() && scintillation.empty());
     }
 
     //! Assign from another set of data
@@ -132,11 +143,11 @@ void resize(OpticalGenStateData<Ownership::value, M>* state,
     resize(&state->step, size);
     if (params.cerenkov)
     {
-        resize(&state->cerenkov, params.stack_capacity);
+        resize(&state->cerenkov, params.capacity);
     }
     if (params.scintillation)
     {
-        resize(&state->scintillation, params.stack_capacity);
+        resize(&state->scintillation, params.capacity);
     }
 
     CELER_ENSURE(*state);

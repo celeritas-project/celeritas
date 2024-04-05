@@ -269,23 +269,18 @@ TEST_F(ScintillationTest, pre_generator)
         = this->make_particle_track_view(post_energy_, pdg::electron());
     auto const pre_step = this->build_pre_step();
 
-    this->resize_distributions(1);
-    auto& allocate = this->distribution_allocator();
-
     ScintillationPreGenerator generate(particle,
                                        this->make_sim_track_view(step_len_),
                                        post_pos_,
                                        opt_matid_,
                                        edep_,
                                        data,
-                                       pre_step,
-                                       allocate);
+                                       pre_step);
 
-    size_type num_photons = generate(this->rng());
-    EXPECT_EQ(4, num_photons);
-
-    auto const& result = allocate.get().back();
+    auto const result = generate(this->rng());
     CELER_ASSERT(result);
+
+    EXPECT_EQ(4, result.num_photons);
     EXPECT_REAL_EQ(0, result.time);
     EXPECT_REAL_EQ(from_cm(step_len_), result.step_length);
     EXPECT_EQ(-1, result.charge.value());
@@ -305,9 +300,6 @@ TEST_F(ScintillationTest, basic)
     auto const& data = params->host_ref();
     EXPECT_FALSE(data.scintillation_by_particle());
 
-    this->resize_distributions(1);
-    auto& allocate = this->distribution_allocator();
-
     // Pre-generate optical distribution data
     ScintillationPreGenerator generate(
         this->make_particle_track_view(post_energy_, pdg::electron()),
@@ -316,14 +308,12 @@ TEST_F(ScintillationTest, basic)
         opt_matid_,
         edep_,
         data,
-        this->build_pre_step(),
-        allocate);
+        this->build_pre_step());
 
-    size_type num_photons = generate(this->rng());
-    auto const& result = allocate.get().back();
+    auto const result = generate(this->rng());
 
     // Output data
-    std::vector<OpticalPrimary> storage(num_photons);
+    std::vector<OpticalPrimary> storage(result.num_photons);
 
     // Create the generator
     ScintillationGenerator generate_photons(
@@ -382,9 +372,6 @@ TEST_F(ScintillationTest, stress_test)
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
 
-    this->resize_distributions(1);
-    auto& allocate = this->distribution_allocator();
-
     ScintillationPreGenerator generate(
         this->make_particle_track_view(post_energy_, pdg::electron()),
         this->make_sim_track_view(step_len_),
@@ -392,12 +379,10 @@ TEST_F(ScintillationTest, stress_test)
         opt_matid_,
         edep_,
         data,
-        this->build_pre_step(),
-        allocate);
+        this->build_pre_step());
 
-    size_type num_photons = generate(this->rng());
-    EXPECT_EQ(4, num_photons);
-    auto& result = allocate.get().back();
+    auto result = generate(this->rng());
+    EXPECT_EQ(4, result.num_photons);
 
     // Overwrite result to force a large number of optical photons
     result.num_photons = 123456;

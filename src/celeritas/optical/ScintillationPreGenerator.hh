@@ -9,7 +9,6 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/data/StackAllocator.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/random/distribution/NormalDistribution.hh"
@@ -32,11 +31,6 @@ namespace celeritas
 class ScintillationPreGenerator
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using DistributionAllocator = StackAllocator<OpticalDistributionData>;
-    //!@}
-
     // Construct with optical properties, scintillation, and step data
     inline CELER_FUNCTION
     ScintillationPreGenerator(ParticleTrackView const& particle,
@@ -45,12 +39,11 @@ class ScintillationPreGenerator
                               OpticalMaterialId mat_id,
                               units::MevEnergy energy_deposition,
                               NativeCRef<ScintillationData> const& shared,
-                              OpticalPreStepData const& step_data,
-                              DistributionAllocator& allocate);
+                              OpticalPreStepData const& step_data);
 
     // Populate optical distribution data for the Scintillation Generator
     template<class Generator>
-    inline CELER_FUNCTION size_type operator()(Generator& rng);
+    inline CELER_FUNCTION OpticalDistributionData operator()(Generator& rng);
 
   private:
     units::ElementaryCharge charge_;
@@ -59,7 +52,6 @@ class ScintillationPreGenerator
     OpticalMaterialId mat_id_;
     NativeCRef<ScintillationData> const& shared_;
     EnumArray<StepPoint, OpticalStepData> points_;
-    DistributionAllocator& allocate_;
     real_type mean_num_photons_;
 };
 
@@ -76,14 +68,12 @@ CELER_FUNCTION ScintillationPreGenerator::ScintillationPreGenerator(
     OpticalMaterialId mat_id,
     units::MevEnergy energy_deposition,
     NativeCRef<ScintillationData> const& shared,
-    OpticalPreStepData const& step_data,
-    DistributionAllocator& allocate)
+    OpticalPreStepData const& step_data)
     : charge_(particle.charge())
     , step_len_(sim.step_length())
     , time_(step_data.time)
     , mat_id_(mat_id)
     , shared_(shared)
-    , allocate_(allocate)
 {
     CELER_EXPECT(step_len_ > 0);
     CELER_EXPECT(mat_id_);
@@ -118,44 +108,44 @@ CELER_FUNCTION ScintillationPreGenerator::ScintillationPreGenerator(
 /*!
  * Sample number of photons to generate and create optical distribution data.
  *
- * Returns the number of photons.
+ * Returns the optical ditribution data.
  */
 template<class Generator>
-CELER_FUNCTION size_type ScintillationPreGenerator::operator()(Generator& rng)
+CELER_FUNCTION OpticalDistributionData
+ScintillationPreGenerator::operator()(Generator& rng)
 {
     if (mean_num_photons_ == 0)
     {
-        return 0;
+        return {};
     }
 
     // Material-only sampling
-    // TODO: handle failure to allocate space?
-    OpticalDistributionData* data = allocate_(1);
-    CELER_ASSERT(data);
+    OpticalDistributionData result;
     if (mean_num_photons_ > 10)
     {
         real_type sigma = shared_.resolution_scale[mat_id_]
                           * std::sqrt(mean_num_photons_);
-        data->num_photons = clamp_to_nonneg(
+        result.num_photons = clamp_to_nonneg(
             NormalDistribution<real_type>(mean_num_photons_, sigma)(rng)
             + real_type{0.5});
     }
     else
     {
-        data->num_photons
+        result.num_photons
             = PoissonDistribution<real_type>(mean_num_photons_)(rng);
     }
 
-    if (data->num_photons > 0)
+    if (result.num_photons > 0)
     {
         // Assign remaining data
-        data->time = time_;
-        data->step_length = step_len_;
-        data->charge = charge_;
-        data->material = mat_id_;
-        data->points = points_;
+        result.time = time_;
+        result.step_length = step_len_;
+        result.charge = charge_;
+        result.material = mat_id_;
+        result.points = points_;
     }
-    return data->num_photons;
+    CELER_ENSURE(result);
+    return result;
 }
 
 //---------------------------------------------------------------------------//

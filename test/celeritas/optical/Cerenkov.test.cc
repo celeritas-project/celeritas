@@ -233,26 +233,20 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
         Real3 pos = {sim.step_length(), 0, 0};
 
         size_type num_samples = 10;
-        this->resize_distributions(num_samples);
-        auto& allocate = this->distribution_allocator();
-
         CerenkovPreGenerator generate_dist(particle,
                                            sim,
                                            pos,
                                            material,
                                            properties->host_ref(),
                                            params->host_ref(),
-                                           pre_step,
-                                           allocate);
+                                           pre_step);
 
         std::vector<size_type> sampled_num_photons;
         for ([[maybe_unused]] auto i : range(num_samples))
         {
-            size_type num_photons = generate_dist(rng);
-            sampled_num_photons.push_back(num_photons);
-
-            auto const& result = allocate.get().back();
+            auto const result = generate_dist(rng);
             CELER_ASSERT(result);
+            sampled_num_photons.push_back(result.num_photons);
 
             // Remaining values are assigned to result from input data
             EXPECT_EQ(pre_step.time, result.time);
@@ -287,19 +281,15 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
         auto sim = this->make_sim_track_view(0.1);
         Real3 pos = {sim.step_length(), 0, 0};
 
-        this->resize_distributions(1);
-        auto& allocate = this->distribution_allocator();
         CerenkovPreGenerator generate_dist(particle,
                                            sim,
                                            pos,
                                            material,
                                            properties->host_ref(),
                                            params->host_ref(),
-                                           pre_step,
-                                           allocate);
-        size_type num_photons = generate_dist(rng);
-        EXPECT_EQ(0, num_photons);
-        EXPECT_EQ(0, allocate.size());
+                                           pre_step);
+        auto const dist = generate_dist(rng);
+        EXPECT_EQ(0, dist.num_photons);
     }
 }
 
@@ -344,9 +334,6 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
         real_type dmax = sim.step_length();
         real_type ddel = (dmax - dmin) / num_bins;
 
-        this->resize_distributions(num_samples);
-        auto& allocate = this->distribution_allocator();
-
         // Calculate the average number of photons produced per unit length
         CerenkovPreGenerator generate_dist(particle,
                                            sim,
@@ -354,18 +341,16 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
                                            material,
                                            properties->host_ref(),
                                            params->host_ref(),
-                                           pre_step,
-                                           allocate);
+                                           pre_step);
 
         Real3 inc_dir = make_unit_vector(pos - pre_step.pos);
         for (size_type i = 0; i < num_samples; ++i)
         {
-            size_type num_photons = generate_dist(rng);
-            auto const& dist = allocate.get().back();
+            auto const dist = generate_dist(rng);
             CELER_ASSERT(dist);
 
             // Sample the optical photons
-            std::vector<OpticalPrimary> storage(num_photons);
+            std::vector<OpticalPrimary> storage(dist.num_photons);
             CerenkovGenerator generate_photons(properties->host_ref(),
                                                params->host_ref(),
                                                dist,

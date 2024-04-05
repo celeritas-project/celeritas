@@ -8,9 +8,13 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #include "corecel/Macros.hh"
+#include "corecel/data/Collection.hh"
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/optical/OpticalDistributionData.hh"
+#include "celeritas/optical/OpticalGenData.hh"
 
 namespace celeritas
 {
@@ -36,6 +40,14 @@ class PreGenAction final : public ExplicitCoreActionInterface
     using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
     using SPGenStorage = std::shared_ptr<detail::GenStorage>;
     //!@}
+
+    struct IsInvalid
+    {
+        CELER_FUNCTION bool operator()(OpticalDistributionData data) const
+        {
+            return !data;
+        }
+    };
 
   public:
     // Construct with action ID and storage
@@ -73,7 +85,20 @@ class PreGenAction final : public ExplicitCoreActionInterface
                                       : ActionOrder::size_;
     }
 
+    //! Get the number of distributions generated for each process
+    OpticalBufferOffsets const& num_distributions(StreamId stream) const
+    {
+        CELER_EXPECT(stream);
+        return offsets_[stream.get()];
+    }
+
   private:
+    //// TYPES ////
+
+    template<MemSpace M>
+    using ItemsRef
+        = Collection<OpticalDistributionData, Ownership::reference, M>;
+
     //// DATA ////
 
     ActionId id_;
@@ -81,6 +106,18 @@ class PreGenAction final : public ExplicitCoreActionInterface
     SPConstCerenkov cerenkov_;
     SPConstScintillation scintillation_;
     SPGenStorage storage_;
+    mutable std::vector<OpticalBufferOffsets> offsets_;
+
+    //// HELPER FUNCTIONS ////
+
+    size_type remove_if_invalid(ItemsRef<MemSpace::host> const&,
+                                size_type,
+                                size_type,
+                                StreamId) const;
+    size_type remove_if_invalid(ItemsRef<MemSpace::device> const&,
+                                size_type,
+                                size_type,
+                                StreamId) const;
 };
 
 //---------------------------------------------------------------------------//
