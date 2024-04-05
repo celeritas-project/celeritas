@@ -9,6 +9,8 @@
 
 #include <memory>
 
+#include "geocel/detail/LengthUnits.hh"
+
 #include "Volume.hh"
 
 class G4LogicalVolume;
@@ -34,9 +36,18 @@ class PhysicalVolumeConverter
     using result_type = PhysicalVolume;
     //!@}
 
+    //! Input options for the conversion
+    struct Options
+    {
+        //! Write output about volumes being converted
+        bool verbose{false};
+        //! Scale factor, customizable for unit testing
+        double scale = celeritas::lengthunits::millimeter;
+    };
+
   public:
     // Construct with options
-    explicit PhysicalVolumeConverter(bool verbose);
+    explicit PhysicalVolumeConverter(Options options);
 
     // Default destructor
     ~PhysicalVolumeConverter();

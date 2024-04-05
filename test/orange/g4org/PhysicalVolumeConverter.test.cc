@@ -13,14 +13,11 @@
 #include "corecel/sys/Environment.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/LazyGeoManager.hh"
-#include "geocel/UnitUtils.hh"
 #include "orange/MatrixUtils.hh"
 #include "orange/orangeinp/ObjectInterface.hh"
 #include "orange/transform/TransformIO.hh"
 
 #include "celeritas_test.hh"
-
-using celeritas::test::to_cm;
 
 namespace celeritas
 {
@@ -28,6 +25,14 @@ namespace g4org
 {
 namespace test
 {
+auto make_options()
+{
+    PhysicalVolumeConverter::Options opts;
+    opts.verbose = false;
+    opts.scale = 0.1;
+    return opts;
+}
+
 //---------------------------------------------------------------------------//
 std::string simplify_pointers(std::string const& s)
 {
@@ -51,7 +56,10 @@ class PhysicalVolumeConverterTest : public ::celeritas::test::Test
 TEST_F(PhysicalVolumeConverterTest, DISABLED_four_levels)
 {
     G4VPhysicalVolume const* g4world = this->load("four-levels.gdml");
-    PhysicalVolumeConverter convert{/* verbose = */ true};
+    PhysicalVolumeConverter::Options opts;
+    opts.verbose = false;
+    opts.scale = 0.1;
+    PhysicalVolumeConverter convert{make_options()};
 
     PhysicalVolume world = convert(*g4world);
     EXPECT_EQ("World_PV", world.name);
@@ -71,7 +79,7 @@ TEST_F(PhysicalVolumeConverterTest, intersection_boxes)
 {
     G4VPhysicalVolume const* g4world = this->load("intersection-boxes.gdml");
 
-    PhysicalVolumeConverter convert{/* verbose = */ true};
+    PhysicalVolumeConverter convert{make_options()};
     PhysicalVolume world = convert(*g4world);
 
     ASSERT_TRUE(world.lv);
@@ -82,7 +90,7 @@ TEST_F(PhysicalVolumeConverterTest, intersection_boxes)
     ASSERT_TRUE(inner_pv.lv);
     EXPECT_EQ("inner0x0", simplify_pointers(inner_pv.lv->name));
     ASSERT_TRUE(inner_pv.lv->solid);
-    if (CELERITAS_USE_JSON && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    if (CELERITAS_USE_JSON)
     {
         EXPECT_JSON_EQ(
             R"json(
@@ -105,7 +113,7 @@ TEST_F(PhysicalVolumeConverterTest, DISABLED_solids)
     celeritas::environment().insert({"G4ORG_ALLOW_ERRORS", "1"});
     G4VPhysicalVolume const* g4world = this->load("solids.gdml");
 
-    PhysicalVolumeConverter convert{/* verbose = */ true};
+    PhysicalVolumeConverter convert{make_options()};
 
     PhysicalVolume world = convert(*g4world);
 }
@@ -114,7 +122,7 @@ TEST_F(PhysicalVolumeConverterTest, DISABLED_solids)
 TEST_F(PhysicalVolumeConverterTest, testem3)
 {
     G4VPhysicalVolume const* g4world = this->load("testem3.gdml");
-    PhysicalVolumeConverter convert{/* verbose = */ false};
+    PhysicalVolumeConverter convert{make_options()};
 
     PhysicalVolume world = convert(*g4world);
     EXPECT_EQ("World_PV", world.name);
@@ -129,16 +137,10 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
         EXPECT_NE(nullptr, lv->g4lv);
         EXPECT_EQ("World0x0", simplify_pointers(lv->name));
         ASSERT_TRUE(lv->solid);
-        if (CELERITAS_USE_JSON && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+        if (CELERITAS_USE_JSON)
         {
             EXPECT_JSON_EQ(
                 R"json({"_type":"shape","interior":{"_type":"box","halfwidths":[24.0,24.0,24.0]},"label":"World"})json",
-                to_string(*lv->solid));
-        }
-        else if (CELERITAS_USE_JSON && CELERITAS_UNITS == CELERITAS_UNITS_CLHEP)
-        {
-            EXPECT_JSON_EQ(
-                R"json({"_type":"shape","interior":{"_type":"box","halfwidths":[240.0,240.0,240.0]},"label":"World"})json",
                 to_string(*lv->solid));
         }
         ASSERT_EQ(1, lv->children.size());
@@ -158,8 +160,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
         EXPECT_EQ(50, first_layer.lv.use_count());
         if (auto* trans = std::get_if<Translation>(&first_layer.transform))
         {
-            EXPECT_VEC_SOFT_EQ((Real3{-19.6, 0, 0}),
-                               to_cm(trans->translation()));
+            EXPECT_VEC_SOFT_EQ((Real3{-19.6, 0, 0}), trans->translation());
         }
         else
         {
@@ -180,7 +181,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
         ASSERT_EQ(2, lv->children.size());
 
         ASSERT_TRUE(lv->solid);
-        if (CELERITAS_USE_JSON && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+        if (CELERITAS_USE_JSON)
         {
             EXPECT_JSON_EQ(
                 R"json({"_type":"shape","interior":{"_type":"box","halfwidths":[0.4,20.0,20.0]},"label":"Layer"})json",
@@ -205,7 +206,7 @@ TEST_F(PhysicalVolumeConverterTest, transformed_box)
 {
     G4VPhysicalVolume const* g4world = this->load("transformed-box.gdml");
 
-    PhysicalVolumeConverter convert{/* verbose = */ false};
+    PhysicalVolumeConverter convert{make_options()};
     PhysicalVolume world = convert(*g4world);
     EXPECT_EQ("world_PV", simplify_pointers(world.name));
 
@@ -217,7 +218,7 @@ TEST_F(PhysicalVolumeConverterTest, transformed_box)
         EXPECT_EQ("transrot", pv.name);
         if (auto* trans = std::get_if<Transformation>(&pv.transform))
         {
-            EXPECT_VEC_SOFT_EQ((Real3{0, 0, -10}), to_cm(trans->translation()));
+            EXPECT_VEC_SOFT_EQ((Real3{0, 0, -10}), trans->translation());
             auto const mat = make_rotation(Axis::y, Turn{30.0 / 360.0});
             EXPECT_VEC_SOFT_EQ(mat[0], trans->rotation()[0]);
             EXPECT_VEC_SOFT_EQ(mat[1], trans->rotation()[1]);
@@ -243,7 +244,7 @@ TEST_F(PhysicalVolumeConverterTest, transformed_box)
         EXPECT_EQ("trans", pv.name);
         if (auto* trans = std::get_if<Translation>(&pv.transform))
         {
-            EXPECT_VEC_SOFT_EQ((Real3{0, 0, 10}), to_cm(trans->translation()));
+            EXPECT_VEC_SOFT_EQ((Real3{0, 0, 10}), trans->translation());
         }
         else
         {
@@ -251,6 +252,15 @@ TEST_F(PhysicalVolumeConverterTest, transformed_box)
                           << StreamableVariant{pv.transform};
         }
     }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(PhysicalVolumeConverterTest, znenv)
+{
+    G4VPhysicalVolume const* g4world = this->load("znenv.gdml");
+    PhysicalVolumeConverter convert{make_options()};
+    PhysicalVolume world = convert(*g4world);
+    (void)sizeof(world);
 }
 
 //---------------------------------------------------------------------------//
