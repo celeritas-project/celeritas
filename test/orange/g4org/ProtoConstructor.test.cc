@@ -85,6 +85,40 @@ class ProtoConstructorTest : public ::celeritas::test::Test
 };
 
 //---------------------------------------------------------------------------//
+TEST_F(ProtoConstructorTest, two_boxes)
+{
+    LogicalVolume world = this->load("two-boxes.gdml");
+    auto global_proto = ProtoConstructor(/* verbose = */ true)(world);
+    ProtoMap protos{*global_proto};
+    ASSERT_EQ(1, protos.size());
+    {
+        SCOPED_TRACE("global");
+        auto u = this->build_unit(protos, UniverseId{0});
+
+        static char const* const expected_surface_strings[] = {
+            "Plane: x=-500",
+            "Plane: x=500",
+            "Plane: y=-500",
+            "Plane: y=500",
+            "Plane: z=-500",
+            "Plane: z=500",
+            "Plane: x=-5",
+            "Plane: x=5",
+            "Plane: y=-5",
+            "Plane: y=5",
+            "Plane: z=-5",
+            "Plane: z=5",
+        };
+        static char const* const expected_volume_strings[] = {
+            "!all(+0, -1, +2, -3, +4, -5)",
+            "all(+6, -7, +8, -9, +10, -11)",
+        };
+        EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+    }
+}
+
+//---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, intersection_boxes)
 {
     LogicalVolume world = this->load("intersection-boxes.gdml");
