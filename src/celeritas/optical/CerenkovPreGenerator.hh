@@ -142,7 +142,6 @@ CerenkovPreGenerator::operator()(Generator& rng)
         result.material = mat_id_;
         result.points = points_;
     }
-    CELER_ENSURE(result);
     return result;
 }
 
