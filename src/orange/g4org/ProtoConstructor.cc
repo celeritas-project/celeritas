@@ -20,6 +20,40 @@ namespace celeritas
 {
 namespace g4org
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+using SPConstObject = ProtoConstructor::SPConstObject;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct an explicit "background" cell.
+ */
+SPConstObject make_explicit_background(LogicalVolume const& lv,
+                                       VariantTransform const& transform)
+{
+    using namespace orangeinp;
+
+    std::vector<SPConstObject> children;
+    for (auto const& child_pv : lv.children)
+    {
+        auto child_transform = apply_transform(transform, child_pv.transform);
+        children.push_back(
+            Transformed::or_object(child_pv.lv->solid, child_transform));
+    }
+
+    return Transformed::or_object(
+        orangeinp::make_subtraction(
+            std::string{lv.name},
+            lv.solid,
+            orangeinp::AnyObjects::or_object(lv.name + ".children",
+                                             std::move(children))),
+        transform);
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct a proto-universe from a logical volume.
@@ -27,10 +61,6 @@ namespace g4org
 auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
 {
     ProtoInput input;
-
-    // We *always* need an interior fill to make a "background" material
-    input.background.fill = lv.material_id;
-    input.background.label = Label::from_geant(lv.name);
     input.boundary.interior = lv.solid;
     input.label = lv.name;
 
@@ -40,6 +70,7 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
                   << " with shape " << to_string(*lv.solid) << std::endl;
     }
 
+    // Add children first
     for (PhysicalVolume const& pv : lv.children)
     {
         ++depth_;
@@ -47,7 +78,34 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
         --depth_;
     }
 
-    CELER_ENSURE(input.background);
+    // Heuristic: if LV has fewer than N daughters in the input, use an
+    // explicit background cell
+    if (lv.children.size() <= fill_daughter_threshold())
+    {
+        if (CELER_UNLIKELY(verbose_))
+        {
+            std::clog << std::string(depth_, ' ') << " - explicit background"
+                      << std::endl;
+        }
+        // Create explicit "fill" for this logical volume
+        orangeinp::UnitProto::MaterialInput background;
+        background.interior = make_explicit_background(lv, NoTransformation{});
+        background.label = std::move(input.background.label);
+        background.fill = lv.material_id;
+        input.boundary.zorder = ZOrder::media;
+        input.materials.push_back(std::move(background));
+    }
+    else
+    {
+        if (CELER_UNLIKELY(verbose_))
+        {
+            std::clog << std::string(depth_, ' ') << " - implicit background"
+                      << std::endl;
+        }
+        input.background.fill = lv.material_id;
+        input.background.label = Label::from_geant(lv.name);
+    }
+
     CELER_ENSURE(input);
     return std::make_shared<orangeinp::UnitProto>(std::move(input));
 }
@@ -120,19 +178,6 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
         }
 
         // Subtract *its* children from this shape
-        std::vector<SPConstObject> children;
-        for (auto const& child_pv : pv.lv->children)
-        {
-            auto child_transform
-                = apply_transform(transform, child_pv.transform);
-            children.push_back(
-                Transformed::or_object(child_pv.lv->solid, child_transform));
-        }
-        auto child = orangeinp::make_subtraction(
-            std::string{pv.lv->name},
-            pv.lv->solid,
-            orangeinp::AnyObjects::or_object(pv.lv->name + ".children",
-                                             std::move(children)));
         if (CELER_UNLIKELY(verbose_))
         {
             std::clog << std::string(depth_, ' ') << " :  subtracted "
@@ -140,7 +185,7 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
                       << to_string(*pv.lv->solid) << std::endl;
         }
 
-        add_material(Transformed::or_object(std::move(child), transform));
+        add_material(make_explicit_background(*pv.lv, transform));
 
         // Now build its daghters
         ++depth_;

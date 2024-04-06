@@ -50,6 +50,10 @@ class ProtoConstructor
     void place_pv(VariantTransform const& parent_transform,
                   PhysicalVolume const& pv,
                   ProtoInput* proto);
+
+    // Number of daughters above which we use a "fill" material
+    // TODO: make this configurable
+    static constexpr int fill_daughter_threshold() { return 2; }
 };
 
 //---------------------------------------------------------------------------//
