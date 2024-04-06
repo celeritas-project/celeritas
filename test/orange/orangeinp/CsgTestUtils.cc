@@ -25,6 +25,8 @@
 #include "orange/surf/SurfaceIO.hh"
 #include "orange/transform/TransformIO.hh"
 
+#include "Test.hh"
+
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 
@@ -111,7 +113,17 @@ std::vector<std::string> md_strings(CsgUnit const& u)
     std::vector<std::string> result;
     for (auto const& md_set : u.metadata)
     {
-        result.push_back(to_string(join(md_set.begin(), md_set.end(), ',')));
+        result.push_back(to_string(join_stream(
+            md_set.begin(),
+            md_set.end(),
+            ',',
+            [](std::ostream& os, Label const& l) {
+                os << ::celeritas::test::Test::genericize_pointers(l.name);
+                if (!l.ext.empty())
+                {
+                    os << Label::default_sep << l.ext;
+                }
+            })));
     }
     return result;
 }
