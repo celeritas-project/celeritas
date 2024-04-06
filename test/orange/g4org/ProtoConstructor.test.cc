@@ -346,43 +346,45 @@ TEST_F(ProtoConstructorTest, znenv)
         SCOPED_TRACE("ZNST");
         auto u = this->build_unit(protos, UniverseId{4});
 
-        static char const* const expected_surface_strings[]
-            = {"Plane: x=-0.16",
-               "Plane: x=0.16",
-               "Plane: y=-0.16",
-               "Plane: y=0.16",
-               "Plane: z=-50",
-               "Plane: z=50",
-               "Plane: x=-0.11",
-               "Plane: x=-0.05",
-               "Plane: y=0.05",
-               "Plane: y=0.11",
-               "Cyl z: r=0.01825 at x=-0.16, y=0.16",
-               "Cyl z: r=0.01825 at x=-0.08, y=0.08",
-               "Plane: x=0.05",
-               "Plane: x=0.11",
-               "Cyl z: r=0.01825 at x=0.16, y=0.16",
-               "Cyl z: r=0.01825 at x=0.08, y=0.08",
-               "Plane: y=-0.11",
-               "Plane: y=-0.05",
-               "Cyl z: r=0.01825 at x=-0.16, y=-0.16",
-               "Cyl z: r=0.01825 at x=-0.08, y=-0.08",
-               "Cyl z: r=0.01825 at x=0.16, y=-0.16",
-               "Cyl z: r=0.01825 at x=0.08, y=-0.08"};
-        static char const* const expected_volume_strings[]
-            = {"F",
-               "all(all(+6, -7, +8, -9), +10)",
-               "-11",
-               "all(all(+8, -9, +12, -13), +14)",
-               "-15",
-               "all(all(+6, -7, +16, -17), +18)",
-               "-19",
-               "all(all(+12, -13, +16, -17), +20)",
-               "-21"};
+        static char const* const expected_surface_strings[] = {
+            "Plane: x=-0.16",
+            "Plane: x=0.16",
+            "Plane: y=-0.16",
+            "Plane: y=0.16",
+            "Plane: z=-50",
+            "Plane: z=50",
+            "Plane: x=-0.11",
+            "Plane: x=-0.05",
+            "Plane: y=0.05",
+            "Plane: y=0.11",
+            "Cyl z: r=0.01825 at x=-0.16, y=0.16",
+            "Cyl z: r=0.01825 at x=-0.08, y=0.08",
+            "Plane: x=0.05",
+            "Plane: x=0.11",
+            "Cyl z: r=0.01825 at x=0.16, y=0.16",
+            "Cyl z: r=0.01825 at x=0.08, y=0.08",
+            "Plane: y=-0.11",
+            "Plane: y=-0.05",
+            "Cyl z: r=0.01825 at x=-0.16, y=-0.16",
+            "Cyl z: r=0.01825 at x=-0.08, y=-0.08",
+            "Cyl z: r=0.01825 at x=0.16, y=-0.16",
+            "Cyl z: r=0.01825 at x=0.08, y=-0.08",
+        };
+        static char const* const expected_volume_strings[] = {
+            "F",
+            "all(all(+6, -7, +8, -9), +10)",
+            "-11",
+            "all(all(+8, -9, +12, -13), +14)",
+            "-15",
+            "all(all(+6, -7, +16, -17), +18)",
+            "-19",
+            "all(all(+12, -13, +16, -17), +20)",
+            "-21",
+        };
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
-        EXPECT_EQ(MaterialId{5}, u.background);
+        EXPECT_EQ(MaterialId{}, u.background);
     }
 }
 
