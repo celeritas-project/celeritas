@@ -10,7 +10,6 @@
 #include "corecel/io/StreamableVariant.hh"
 #include "corecel/sys/Environment.hh"
 #include "geocel/GeantGeoUtils.hh"
-#include "geocel/LazyGeoManager.hh"
 #include "orange/MatrixUtils.hh"
 #include "orange/orangeinp/ObjectInterface.hh"
 #include "orange/transform/TransformIO.hh"
