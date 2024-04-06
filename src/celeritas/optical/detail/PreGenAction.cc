@@ -29,7 +29,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Capture construction arguments.
+ * Construct with action ID, optical properties, and storage.
  */
 template<StepPoint P>
 PreGenAction<P>::PreGenAction(ActionId id,
@@ -66,7 +66,7 @@ std::string PreGenAction<P>::description() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Generate optical distribution data.
+ * Gather pre-step data.
  */
 template<>
 void PreGenAction<StepPoint::pre>::execute(CoreParams const& params,
@@ -82,56 +82,80 @@ void PreGenAction<StepPoint::pre>::execute(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 /*!
- * Generate optical distribution data.
- *
- * TODO: execute_impl to reduce duplicate code
+ * Generate optical distribution data post-step.
  */
 template<>
 void PreGenAction<StepPoint::post>::execute(CoreParams const& params,
                                             CoreStateHost& state) const
 {
-    StreamId stream = state.stream_id();
+    this->execute_impl(params, state);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Generate optical distribution data post-step.
+ */
+template<>
+template<MemSpace M>
+void PreGenAction<StepPoint::post>::execute_impl(CoreParams const& core_params,
+                                                 CoreState<M>& core_state) const
+{
+    size_type size = core_state.size();
+    StreamId stream = core_state.stream_id();
     auto& offsets = offsets_[stream.get()];
-    auto const& gen_state
-        = storage_->obj.state<MemSpace::native>(stream, state.size());
-    CELER_VALIDATE(offsets.cerenkov + state.size() <= gen_state.cerenkov.size(),
-                   << "insufficient capacity (" << gen_state.cerenkov.size()
+    auto const& state = storage_->obj.state<M>(stream, size);
+
+    CELER_VALIDATE(offsets.cerenkov + size <= state.cerenkov.size(),
+                   << "insufficient capacity (" << state.cerenkov.size()
                    << ") for buffered Cerenkov distribution data (total "
                       "capacity requirement of "
-                   << offsets.cerenkov + state.size() << ")");
-    CELER_VALIDATE(
-        offsets.scintillation + state.size() <= gen_state.scintillation.size(),
-        << "insufficient capacity (" << gen_state.scintillation.size()
-        << ") for buffered scintillation distribution data (total "
-           "capacity requirement of "
-        << offsets.scintillation + state.size() << ")");
+                   << offsets.cerenkov + size << ")");
+    CELER_VALIDATE(offsets.scintillation + size <= state.scintillation.size(),
+                   << "insufficient capacity (" << state.scintillation.size()
+                   << ") for buffered scintillation distribution data (total "
+                      "capacity requirement of "
+                   << offsets.scintillation + size << ")");
 
-    TrackExecutor execute{params.ptr<MemSpace::native>(),
-                          state.ptr(),
-                          detail::PreGenExecutor{properties_->host_ref(),
-                                                 cerenkov_->host_ref(),
-                                                 scintillation_->host_ref(),
-                                                 gen_state,
-                                                 offsets}};
-    launch_action(*this, params, state, execute);
+    // Generate the optical distribution data
+    this->pre_generate(core_params, core_state);
 
     // Compact the buffers
     offsets.cerenkov = this->remove_if_invalid(
-        gen_state.cerenkov, offsets.cerenkov, state.size(), stream);
+        state.cerenkov, offsets.cerenkov, size, stream);
     offsets.scintillation = this->remove_if_invalid(
-        gen_state.scintillation, offsets.scintillation, state.size(), stream);
+        state.scintillation, offsets.scintillation, size, stream);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Generate optical distribution data post-step.
+ */
+template<>
+void PreGenAction<StepPoint::post>::pre_generate(CoreParams const& core_params,
+                                                 CoreStateHost& core_state) const
+{
+    TrackExecutor execute{
+        core_params.ptr<MemSpace::native>(),
+        core_state.ptr(),
+        detail::PreGenExecutor{properties_->host_ref(),
+                               cerenkov_->host_ref(),
+                               scintillation_->host_ref(),
+                               storage_->obj.state<MemSpace::native>(
+                                   core_state.stream_id(), core_state.size()),
+                               offsets_[core_state.stream_id().get()]}};
+    launch_action(*this, core_params, core_state, execute);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Remove all invalid distributions from the buffer.
  */
-template<StepPoint P>
-size_type
-PreGenAction<P>::remove_if_invalid(ItemsRef<MemSpace::host> const& buffer,
-                                   size_type offset,
-                                   size_type size,
-                                   StreamId) const
+template<>
+size_type PreGenAction<StepPoint::post>::remove_if_invalid(
+    ItemsRef<MemSpace::host> const& buffer,
+    size_type offset,
+    size_type size,
+    StreamId) const
 {
     auto* start = static_cast<OpticalDistributionData*>(buffer.data());
     auto* stop
@@ -147,11 +171,9 @@ void PreGenAction<P>::execute(CoreParams const&, CoreStateDevice&) const
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 
-template<StepPoint P>
-size_type PreGenAction<P>::remove_if_invalid(ItemsRef<MemSpace::device> const&,
-                                             size_type,
-                                             size_type,
-                                             StreamId) const
+template<>
+size_type PreGenAction<StepPoint::post>::remove_if_invalid(
+    ItemsRef<MemSpace::device> const&, size_type, size_type, StreamId) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
@@ -163,6 +185,12 @@ size_type PreGenAction<P>::remove_if_invalid(ItemsRef<MemSpace::device> const&,
 
 template class PreGenAction<StepPoint::pre>;
 template class PreGenAction<StepPoint::post>;
+template void
+PreGenAction<StepPoint::post>::execute_impl(CoreParams const&,
+                                            CoreState<MemSpace::host>&) const;
+template void
+PreGenAction<StepPoint::post>::execute_impl(CoreParams const&,
+                                            CoreState<MemSpace::device>&) const;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

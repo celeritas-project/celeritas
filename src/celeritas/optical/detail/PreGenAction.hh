@@ -50,7 +50,7 @@ class PreGenAction final : public ExplicitCoreActionInterface
     };
 
   public:
-    // Construct with action ID and storage
+    // Construct with action ID, optical properties, and storage
     PreGenAction(ActionId id,
                  SPConstProperties properties,
                  SPConstCerenkov cerenkov,
@@ -109,6 +109,12 @@ class PreGenAction final : public ExplicitCoreActionInterface
     mutable std::vector<OpticalBufferOffsets> offsets_;
 
     //// HELPER FUNCTIONS ////
+
+    template<MemSpace M>
+    void execute_impl(CoreParams const&, CoreState<M>&) const;
+
+    void pre_generate(CoreParams const&, CoreStateHost&) const;
+    void pre_generate(CoreParams const&, CoreStateDevice&) const;
 
     size_type remove_if_invalid(ItemsRef<MemSpace::host> const&,
                                 size_type,
