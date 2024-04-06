@@ -110,7 +110,7 @@ void LArSpherePreGenTest::RunResult::print_expected() const
          << repr(this->cerenkov.charge)
          << ";\n"
             "EXPECT_VEC_EQ(expected_cerenkov_charge, "
-            "result.cerenkov.charge);\n"
+            "result.cerenkov.charge);\n\n"
             "EXPECT_EQ("
          << this->scintillation.num_photons.size()
          << ", result.scintillation.num_photons.size());\n"
@@ -259,13 +259,13 @@ TEST_F(LArSpherePreGenTest, host)
 {
     auto result = this->run<MemSpace::host>(4, 64);
 
-    EXPECT_EQ(52, result.cerenkov.num_photons.size());
-    static size_type const expected_cerenkov_num_photons[] = {
-        337u,  503u, 1532u, 1485u, 788u, 610u, 1271u, 433u, 912u, 1051u, 756u,
-        1124u, 796u, 854u,  446u,  420u, 582u, 648u,  704u, 825u, 419u,  496u,
-        520u,  213u, 338u,  376u,  391u, 517u, 238u,  270u, 254u, 370u,  23u,
-        115u,  129u, 317u,  183u,  10u,  10u,  10u,   10u,  1u,   1u,    431u,
-        301u,  500u, 187u,  373u,  20u,  277u, 145u,  1u};
+    EXPECT_EQ(48, result.cerenkov.num_photons.size());
+    static size_type const expected_cerenkov_num_photons[]
+        = {337u, 503u,  1532u, 1485u, 788u, 610u, 1271u, 433u, 912u, 1051u,
+           756u, 1124u, 796u,  854u,  446u, 420u, 582u,  648u, 704u, 825u,
+           419u, 496u,  520u,  213u,  338u, 376u, 391u,  517u, 238u, 270u,
+           254u, 370u,  23u,   115u,  129u, 317u, 183u,  10u,  1u,   431u,
+           301u, 500u,  187u,  373u,  20u,  277u, 145u,  1u};
     EXPECT_VEC_EQ(expected_cerenkov_num_photons, result.cerenkov.num_photons);
     static real_type const expected_cerenkov_charge[] = {-1, 1};
     EXPECT_VEC_EQ(expected_cerenkov_charge, result.cerenkov.charge);
@@ -296,17 +296,17 @@ TEST_F(LArSpherePreGenTest, TEST_IF_CELER_DEVICE(device))
 {
     auto result = this->run<MemSpace::device>(8, 32);
 
-    EXPECT_EQ(83, result.cerenkov.num_photons.size());
+    EXPECT_EQ(81, result.cerenkov.num_photons.size());
     static size_type const expected_cerenkov_num_photons[]
-        = {337u,  503u,  1532u, 1485u, 1376u, 1471u, 1153u, 877u,  788u, 610u,
-           1271u, 433u,  1068u, 1238u, 110u,  705u,  912u,  1051u, 756u, 1124u,
-           779u,  1014u, 594u,  532u,  796u,  854u,  446u,  420u,  639u, 747u,
-           354u,  610u,  582u,  648u,  704u,  825u,  475u,  579u,  827u, 478u,
-           419u,  496u,  520u,  213u,  107u,  472u,  712u,  324u,  338u, 376u,
-           391u,  517u,  6u,    372u,  675u,  68u,   238u,  270u,  254u, 370u,
-           315u,  231u,  461u,  61u,   23u,   115u,  129u,  317u,  188u, 97u,
-           406u,  183u,  22u,   268u,  183u,  10u,   128u,  10u,   26u,  153u,
-           1u,    105u,  2u};
+        = {337u, 503u,  1532u, 1485u, 1376u, 1471u, 1153u, 877u, 788u,
+           610u, 1271u, 433u,  1068u, 1238u, 110u,  705u,  912u, 1051u,
+           756u, 1124u, 779u,  1014u, 594u,  532u,  796u,  854u, 446u,
+           420u, 639u,  747u,  354u,  610u,  582u,  648u,  704u, 825u,
+           475u, 579u,  827u,  478u,  419u,  496u,  520u,  213u, 107u,
+           472u, 712u,  324u,  338u,  376u,  391u,  517u,  6u,   372u,
+           675u, 68u,   238u,  270u,  254u,  370u,  315u,  231u, 461u,
+           61u,  23u,   115u,  129u,  317u,  188u,  97u,   406u, 183u,
+           22u,  268u,  10u,   128u,  26u,   153u,  1u,    105u, 2u};
     EXPECT_VEC_EQ(expected_cerenkov_num_photons, result.cerenkov.num_photons);
     static real_type const expected_cerenkov_charge[] = {-1, 1};
     EXPECT_VEC_EQ(expected_cerenkov_charge, result.cerenkov.charge);

@@ -48,21 +48,21 @@ CELER_FUNCTION void PreGenExecutor::operator()(CoreTrackView const& track)
 
     using DistId = ItemId<OpticalDistributionData>;
 
-    auto sim = track.make_sim_view();
-    auto optmat_id
-        = track.make_material_view().make_material_view().optical_material_id();
+    // clear distribution data
     auto tsid = track.track_slot_id();
     DistId cerenkov_offset(offsets.cerenkov + tsid.get());
     DistId scintillation_offset(offsets.scintillation + tsid.get());
+    state.cerenkov[cerenkov_offset] = {};
+    state.scintillation[scintillation_offset] = {};
 
+    auto sim = track.make_sim_view();
+    auto optmat_id
+        = track.make_material_view().make_material_view().optical_material_id();
     if (sim.status() == TrackStatus::inactive || !optmat_id
         || sim.step_length() == 0)
     {
-        // Clear distribution data for inactive tracks, materials with no
-        // optical properties, or particles that started the step with zero
-        // energy (e.g. a stopped positron)
-        state.cerenkov[cerenkov_offset] = {};
-        state.scintillation[scintillation_offset] = {};
+        // Inactive tracks, materials with no optical properties, or particles
+        // that started the step with zero energy (e.g. a stopped positron)
         return;
     }
 

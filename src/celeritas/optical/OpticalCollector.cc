@@ -84,10 +84,10 @@ auto OpticalCollector::state(StreamId stream_id) const -> StateRef<M> const&
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
-template OpticalGenStateData<Ownership::reference, MemSpace::host> const&
-OpticalCollector::state(StreamId stream_id) const;
-template OpticalGenStateData<Ownership::reference, MemSpace::device> const&
-OpticalCollector::state(StreamId stream_id) const;
+template OpticalCollector::StateRef<MemSpace::host> const&
+    OpticalCollector::state(StreamId) const;
+template OpticalCollector::StateRef<MemSpace::device> const&
+    OpticalCollector::state(StreamId) const;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
