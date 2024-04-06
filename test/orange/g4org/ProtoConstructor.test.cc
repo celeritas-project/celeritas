@@ -319,9 +319,9 @@ TEST_F(ProtoConstructorTest, znenv)
             "<UNASSIGNED>",
             "{u=0, t=1}",
             "{u=1, t=2}",
-            "m6",
-            "m5",
-            "m6",
+            "m3",
+            "m2",
+            "m3",
         };
         static int const expected_volume_nodes[] = {12, 22, 25, 38, 41, 43};
         static char const expected_tree_string[]
@@ -399,7 +399,7 @@ TEST_F(ProtoConstructorTest, znenv)
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
-        EXPECT_EQ(MaterialId{5}, u.background);
+        EXPECT_EQ(MaterialId{2}, u.background);
     }
 }
 
