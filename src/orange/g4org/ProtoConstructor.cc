@@ -27,8 +27,10 @@ namespace g4org
 auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
 {
     ProtoInput input;
+
     // We *always* need an interior fill to make a "background" material
-    input.fill = lv.material_id ? lv.material_id : MaterialId{0};
+    input.background.fill = lv.material_id;
+    input.background.label = Label::from_geant(lv.name);
     input.boundary.interior = lv.solid;
     input.label = lv.name;
 
@@ -45,7 +47,8 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
         --depth_;
     }
 
-    CELER_ASSERT(input);
+    CELER_ENSURE(input.background);
+    CELER_ENSURE(input);
     return std::make_shared<orangeinp::UnitProto>(std::move(input));
 }
 
@@ -82,8 +85,18 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
                   << std::endl;
     }
 
+    auto add_material = [proto, &lv = *pv.lv](SPConstObject&& obj) {
+        CELER_EXPECT(obj);
+        UnitProto::MaterialInput mat;
+        mat.interior = std::move(obj);
+        mat.fill = lv.material_id;
+        mat.label = Label::from_geant(lv.name);
+        proto->materials.push_back(std::move(mat));
+    };
+
     if (pv.lv->children.empty())
     {
+        // No children! This LV is just a material.
         if (CELER_UNLIKELY(verbose_))
         {
             std::clog << std::string(depth_, ' ') << " -> "
@@ -92,18 +105,9 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
             std::clog << std::string(depth_, ' ') << "    "
                       << to_string(*pv.lv->solid) << std::endl;
         }
-        // No children! This LV is just a material.
-        auto matid = pv.lv->material_id;
-        if (!matid)
-        {
-            // Geometry input doesn't have material
-            matid = MaterialId{0};
-        }
-        //
-        // TODO: append LV name
-        proto->materials.push_back(
-            {Transformed::or_object(pv.lv->solid, std::move(transform)),
-             pv.lv->material_id});
+
+        add_material(
+            Transformed::or_object(pv.lv->solid, std::move(transform)));
     }
     else if (pv.lv.use_count() == 1)
     {
@@ -135,9 +139,8 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
                       << pv.lv->children.size() << " children from "
                       << to_string(*pv.lv->solid) << std::endl;
         }
-        proto->materials.push_back(
-            {Transformed::or_object(std::move(child), transform),
-             pv.lv->material_id});
+
+        add_material(Transformed::or_object(std::move(child), transform));
 
         // Now build its daghters
         ++depth_;
@@ -150,10 +153,11 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
     }
     else
     {
+        // LV is referenced more than once *AND* has children
         if (CELER_UNLIKELY(verbose_))
         {
             std::clog << std::string(depth_, ' ') << " -> "
-                      << "new universe at " << StreamableVariant{transform}
+                      << "new universe at " << StreamableVariant{pv.transform}
                       << std::endl;
         }
 

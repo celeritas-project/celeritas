@@ -168,7 +168,6 @@ TEST_F(ProtoConstructorTest, intersection_boxes)
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
         EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
-        EXPECT_EQ(MaterialId{0}, u.background);
     }
 }
 
@@ -240,7 +239,6 @@ TEST_F(ProtoConstructorTest, testem3)
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
-        EXPECT_EQ(MaterialId{0}, u.background);
     }
 }
 
