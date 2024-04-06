@@ -90,7 +90,7 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
         // Create explicit "fill" for this logical volume
         orangeinp::UnitProto::MaterialInput background;
         background.interior = make_explicit_background(lv, NoTransformation{});
-        background.label = std::move(input.background.label);
+        background.label = Label::from_geant(lv.name);
         background.fill = lv.material_id;
         input.boundary.zorder = ZOrder::media;
         input.materials.push_back(std::move(background));
