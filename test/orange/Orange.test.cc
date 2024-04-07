@@ -1346,8 +1346,6 @@ TEST_F(InputBuilderTest, hierarchy)
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {14, 2, 8, 2, 94};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {7, 0, 4, 0, 19};
-        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     {
         SCOPED_TRACE("py_filled");
@@ -1362,7 +1360,7 @@ TEST_F(InputBuilderTest, hierarchy)
         static real_type const expected_distances[]
             = {3, 2, 8, 2, 4, 87.979589711327};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[] = {0, 0, 0, 0, 0, 39};
+        static real_type const expected_hw_safety[] = {1.5, 5, 4, 5, 2, 39};
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     {

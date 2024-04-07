@@ -196,7 +196,9 @@ void UnitProto::build(InputBuilder& input) const
         vi.logic = {logic::ltrue, logic::lnot};
         vi.bbox = {};  // XXX: input converter changes to infinite bbox
         vi.zorder = ZOrder::background;
-        vi.flags = VolumeRecord::implicit_vol;
+        // XXX the nearest internal surface is probably *not* the safety
+        // distance, but it's better than nothing
+        vi.flags = VolumeRecord::implicit_vol | VolumeRecord::simple_safety;
         result.volumes.emplace_back(std::move(vi));
     }
     CELER_ASSERT(result.volumes.size()
