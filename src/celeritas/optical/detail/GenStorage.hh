@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <vector>
+
 #include "corecel/data/StreamStore.hh"
 
 #include "../OpticalGenData.hh"
@@ -21,6 +23,7 @@ struct GenStorage
     using StoreT = StreamStore<OpticalGenParamsData, OpticalGenStateData>;
 
     StoreT obj;
+    std::vector<OpticalBufferOffsets> offsets;
 };
 
 //---------------------------------------------------------------------------//

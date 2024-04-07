@@ -43,6 +43,7 @@ OpticalCollector::OpticalCollector(SPConstProperties properties,
     host_data.scintillation = static_cast<bool>(scintillation);
     host_data.capacity = buffer_capacity;
     storage_->obj = {std::move(host_data), num_streams};
+    storage_->offsets.resize(num_streams, {});
 
     // Build action to gather pre-step data needed for generating optical
     // distributions
@@ -60,30 +61,6 @@ OpticalCollector::OpticalCollector(SPConstProperties properties,
                                                  storage_);
     action_registry->insert(pregen_action_);
 }
-
-//---------------------------------------------------------------------------//
-/*!
- * Get stream-local state data.
- */
-template<MemSpace M>
-auto OpticalCollector::state(StreamId stream_id) const -> StateRef<M> const&
-{
-    CELER_EXPECT(stream_id < storage_->obj.num_streams());
-    auto* result = storage_->obj.state<M>(stream_id);
-    CELER_VALIDATE(result,
-                   << "no opticaal state is stored on " << to_cstring(M)
-                   << " for stream ID " << stream_id.get());
-    return *result;
-}
-
-//---------------------------------------------------------------------------//
-// EXPLICIT INSTANTIATION
-//---------------------------------------------------------------------------//
-
-template OpticalCollector::StateRef<MemSpace::host> const&
-    OpticalCollector::state(StreamId) const;
-template OpticalCollector::StateRef<MemSpace::device> const&
-    OpticalCollector::state(StreamId) const;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

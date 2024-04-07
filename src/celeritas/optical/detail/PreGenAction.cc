@@ -45,8 +45,6 @@ PreGenAction::PreGenAction(ActionId id,
     CELER_EXPECT(scintillation_ || (cerenkov_ && properties_));
     CELER_EXPECT(!cerenkov == !properties);
     CELER_EXPECT(storage_);
-
-    offsets_.resize(storage_->obj.num_streams(), {});
 }
 
 //---------------------------------------------------------------------------//
@@ -87,7 +85,7 @@ void PreGenAction::execute_impl(CoreParams const& core_params,
 {
     size_type size = core_state.size();
     StreamId stream = core_state.stream_id();
-    auto& offsets = offsets_[stream.get()];
+    auto& offsets = storage_->offsets[stream.get()];
     auto const& state = storage_->obj.state<M>(stream, size);
 
     CELER_VALIDATE(offsets.cerenkov + size <= state.cerenkov.size(),
@@ -118,15 +116,15 @@ void PreGenAction::execute_impl(CoreParams const& core_params,
 void PreGenAction::pre_generate(CoreParams const& core_params,
                                 CoreStateHost& core_state) const
 {
-    TrackExecutor execute{
-        core_params.ptr<MemSpace::native>(),
-        core_state.ptr(),
-        detail::PreGenExecutor{properties_->host_ref(),
-                               cerenkov_->host_ref(),
-                               scintillation_->host_ref(),
-                               storage_->obj.state<MemSpace::native>(
-                                   core_state.stream_id(), core_state.size()),
-                               offsets_[core_state.stream_id().get()]}};
+    TrackExecutor execute{core_params.ptr<MemSpace::native>(),
+                          core_state.ptr(),
+                          detail::PreGenExecutor{
+                              properties_->host_ref(),
+                              cerenkov_->host_ref(),
+                              scintillation_->host_ref(),
+                              storage_->obj.state<MemSpace::native>(
+                                  core_state.stream_id(), core_state.size()),
+                              storage_->offsets[core_state.stream_id().get()]}};
     launch_action(*this, core_params, core_state, execute);
 }
 

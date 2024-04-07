@@ -39,8 +39,7 @@ class OpticalCollector
     using SPConstCerenkov = std::shared_ptr<CerenkovParams const>;
     using SPConstProperties = std::shared_ptr<OpticalPropertyParams const>;
     using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
-    template<MemSpace M>
-    using StateRef = OpticalGenStateData<Ownership::reference, M>;
+    using SPGenStorage = std::shared_ptr<detail::GenStorage>;
     //!@}
 
   public:
@@ -56,20 +55,12 @@ class OpticalCollector
     ~OpticalCollector() = default;
     CELER_DEFAULT_COPY_MOVE(OpticalCollector);
 
-    // Get stream-local data (throw if not available)
-    template<MemSpace M>
-    StateRef<M> const& state(StreamId) const;
-
-    //! Get the number of distributions generated for each process
-    OpticalBufferOffsets const& num_distributions(StreamId stream) const
-    {
-        return pregen_action_->num_distributions(stream);
-    }
+    //! Get the distribution data
+    SPGenStorage storage() const { return storage_; };
 
   private:
     //// TYPES ////
 
-    using SPGenStorage = std::shared_ptr<detail::GenStorage>;
     using SPPreGenAction = std::shared_ptr<detail::PreGenAction>;
     using SPGatherAction = std::shared_ptr<detail::PreGenGatherAction>;
 

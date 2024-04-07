@@ -8,13 +8,11 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 
 #include "corecel/Macros.hh"
 #include "corecel/data/Collection.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/optical/OpticalDistributionData.hh"
-#include "celeritas/optical/OpticalGenData.hh"
 
 namespace celeritas
 {
@@ -40,6 +38,7 @@ class PreGenAction final : public ExplicitCoreActionInterface
     using SPGenStorage = std::shared_ptr<detail::GenStorage>;
     //!@}
 
+    //! Check if the distribution data is valid
     struct IsInvalid
     {
         CELER_FUNCTION bool operator()(OpticalDistributionData data) const
@@ -74,13 +73,6 @@ class PreGenAction final : public ExplicitCoreActionInterface
     //! Dependency ordering of the action
     ActionOrder order() const final { return ActionOrder::post_post; }
 
-    //! Get the number of distributions generated for each process
-    OpticalBufferOffsets const& num_distributions(StreamId stream) const
-    {
-        CELER_EXPECT(stream);
-        return offsets_[stream.get()];
-    }
-
   private:
     //// TYPES ////
 
@@ -95,7 +87,6 @@ class PreGenAction final : public ExplicitCoreActionInterface
     SPConstCerenkov cerenkov_;
     SPConstScintillation scintillation_;
     SPGenStorage storage_;
-    mutable std::vector<OpticalBufferOffsets> offsets_;
 
     //// HELPER FUNCTIONS ////
 
