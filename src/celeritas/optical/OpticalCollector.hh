@@ -13,6 +13,7 @@
 #include "celeritas/optical/OpticalGenData.hh"
 
 #include "detail/PreGenAction.hh"
+#include "detail/PreGenGatherAction.hh"
 
 namespace celeritas
 {
@@ -69,14 +70,14 @@ class OpticalCollector
     //// TYPES ////
 
     using SPGenStorage = std::shared_ptr<detail::GenStorage>;
-    template<StepPoint P>
-    using SPPreGenAction = std::shared_ptr<detail::PreGenAction<P>>;
+    using SPPreGenAction = std::shared_ptr<detail::PreGenAction>;
+    using SPGatherAction = std::shared_ptr<detail::PreGenGatherAction>;
 
     //// DATA ////
 
     SPGenStorage storage_;
-    SPPreGenAction<StepPoint::pre> gather_action_;
-    SPPreGenAction<StepPoint::post> pregen_action_;
+    SPGatherAction gather_action_;
+    SPPreGenAction pregen_action_;
 };
 
 //---------------------------------------------------------------------------//

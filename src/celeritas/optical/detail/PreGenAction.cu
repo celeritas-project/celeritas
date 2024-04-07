@@ -24,7 +24,6 @@
 
 #include "GenStorage.hh"
 #include "PreGenExecutor.hh"
-#include "PreGenGatherExecutor.hh"
 
 namespace celeritas
 {
@@ -32,39 +31,10 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Gather pre-step data.
- */
-template<>
-void PreGenAction<StepPoint::pre>::execute(CoreParams const& params,
-                                           CoreStateDevice& state) const
-{
-    auto execute = make_active_track_executor(
-        params.ptr<MemSpace::native>(),
-        state.ptr(),
-        detail::PreGenGatherExecutor{storage_->obj.state<MemSpace::native>(
-            state.stream_id(), state.size())});
-    static ActionLauncher<decltype(execute)> const launch_kernel(*this);
-    launch_kernel(state, execute);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Generate optical distribution data post-step.
  */
-template<>
-void PreGenAction<StepPoint::post>::execute(CoreParams const& params,
-                                            CoreStateDevice& state) const
-{
-    this->execute_impl(params, state);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Generate optical distribution data post-step.
- */
-template<>
-void PreGenAction<StepPoint::post>::pre_generate(
-    CoreParams const& core_params, CoreStateDevice& core_state) const
+void PreGenAction::pre_generate(CoreParams const& core_params,
+                                CoreStateDevice& core_state) const
 {
     TrackExecutor execute{
         core_params.ptr<MemSpace::native>(),
@@ -83,12 +53,11 @@ void PreGenAction<StepPoint::post>::pre_generate(
 /*!
  * Remove all invalid distributions from the buffer.
  */
-template<>
-size_type PreGenAction<StepPoint::post>::remove_if_invalid(
-    ItemsRef<MemSpace::device> const& buffer,
-    size_type offset,
-    size_type size,
-    StreamId stream) const
+size_type
+PreGenAction::remove_if_invalid(ItemsRef<MemSpace::device> const& buffer,
+                                size_type offset,
+                                size_type size,
+                                StreamId stream) const
 {
     ScopedProfiling profile_this{"remove-if-invalid"};
     auto start = thrust::device_pointer_cast(buffer.data().get());

@@ -21,7 +21,6 @@
 
 #include "GenStorage.hh"
 #include "PreGenExecutor.hh"
-#include "PreGenGatherExecutor.hh"
 
 namespace celeritas
 {
@@ -31,12 +30,11 @@ namespace detail
 /*!
  * Construct with action ID, optical properties, and storage.
  */
-template<StepPoint P>
-PreGenAction<P>::PreGenAction(ActionId id,
-                              SPConstProperties properties,
-                              SPConstCerenkov cerenkov,
-                              SPConstScintillation scintillation,
-                              SPGenStorage storage)
+PreGenAction::PreGenAction(ActionId id,
+                           SPConstProperties properties,
+                           SPConstCerenkov cerenkov,
+                           SPConstScintillation scintillation,
+                           SPGenStorage storage)
     : id_(id)
     , properties_(std::move(properties))
     , cerenkov_(std::move(cerenkov))
@@ -55,38 +53,26 @@ PreGenAction<P>::PreGenAction(ActionId id,
 /*!
  * Descriptive name of the action.
  */
-template<StepPoint P>
-std::string PreGenAction<P>::description() const
+std::string PreGenAction::description() const
 {
-    std::string result = "gather ";
-    result += P == StepPoint::pre ? "pre" : "post";
-    result += "-step data to generate optical distributions";
-    return result;
+    return "generate optical distributions post-step";
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Gather pre-step data.
+ * Generate optical distribution data on host.
  */
-template<>
-void PreGenAction<StepPoint::pre>::execute(CoreParams const& params,
-                                           CoreStateHost& state) const
+void PreGenAction::execute(CoreParams const& params, CoreStateHost& state) const
 {
-    auto execute = make_active_track_executor(
-        params.ptr<MemSpace::native>(),
-        state.ptr(),
-        detail::PreGenGatherExecutor{storage_->obj.state<MemSpace::native>(
-            state.stream_id(), state.size())});
-    launch_action(*this, params, state, execute);
+    this->execute_impl(params, state);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Generate optical distribution data post-step.
+ * Generate optical distribution data on device.
  */
-template<>
-void PreGenAction<StepPoint::post>::execute(CoreParams const& params,
-                                            CoreStateHost& state) const
+void PreGenAction::execute(CoreParams const& params,
+                           CoreStateDevice& state) const
 {
     this->execute_impl(params, state);
 }
@@ -95,10 +81,9 @@ void PreGenAction<StepPoint::post>::execute(CoreParams const& params,
 /*!
  * Generate optical distribution data post-step.
  */
-template<>
 template<MemSpace M>
-void PreGenAction<StepPoint::post>::execute_impl(CoreParams const& core_params,
-                                                 CoreState<M>& core_state) const
+void PreGenAction::execute_impl(CoreParams const& core_params,
+                                CoreState<M>& core_state) const
 {
     size_type size = core_state.size();
     StreamId stream = core_state.stream_id();
@@ -130,9 +115,8 @@ void PreGenAction<StepPoint::post>::execute_impl(CoreParams const& core_params,
 /*!
  * Generate optical distribution data post-step.
  */
-template<>
-void PreGenAction<StepPoint::post>::pre_generate(CoreParams const& core_params,
-                                                 CoreStateHost& core_state) const
+void PreGenAction::pre_generate(CoreParams const& core_params,
+                                CoreStateHost& core_state) const
 {
     TrackExecutor execute{
         core_params.ptr<MemSpace::native>(),
@@ -150,12 +134,11 @@ void PreGenAction<StepPoint::post>::pre_generate(CoreParams const& core_params,
 /*!
  * Remove all invalid distributions from the buffer.
  */
-template<>
-size_type PreGenAction<StepPoint::post>::remove_if_invalid(
-    ItemsRef<MemSpace::host> const& buffer,
-    size_type offset,
-    size_type size,
-    StreamId) const
+size_type
+PreGenAction::remove_if_invalid(ItemsRef<MemSpace::host> const& buffer,
+                                size_type offset,
+                                size_type size,
+                                StreamId) const
 {
     auto* start = static_cast<OpticalDistributionData*>(buffer.data());
     auto* stop
@@ -165,32 +148,14 @@ size_type PreGenAction<StepPoint::post>::remove_if_invalid(
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-template<StepPoint P>
-void PreGenAction<P>::execute(CoreParams const&, CoreStateDevice&) const
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-
-template<>
-size_type PreGenAction<StepPoint::post>::remove_if_invalid(
-    ItemsRef<MemSpace::device> const&, size_type, size_type, StreamId) const
+size_type PreGenAction::remove_if_invalid(ItemsRef<MemSpace::device> const&,
+                                          size_type,
+                                          size_type,
+                                          StreamId) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
-
-//---------------------------------------------------------------------------//
-// EXPLICIT INSTANTIATION
-//---------------------------------------------------------------------------//
-
-template class PreGenAction<StepPoint::pre>;
-template class PreGenAction<StepPoint::post>;
-template void
-PreGenAction<StepPoint::post>::execute_impl(CoreParams const&,
-                                            CoreState<MemSpace::host>&) const;
-template void
-PreGenAction<StepPoint::post>::execute_impl(CoreParams const&,
-                                            CoreState<MemSpace::device>&) const;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

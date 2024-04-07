@@ -46,22 +46,18 @@ OpticalCollector::OpticalCollector(SPConstProperties properties,
 
     // Build action to gather pre-step data needed for generating optical
     // distributions
-    gather_action_ = std::make_shared<detail::PreGenAction<StepPoint::pre>>(
-        action_registry->next_id(),
-        properties,
-        cerenkov,
-        scintillation,
-        storage_);
+    gather_action_ = std::make_shared<detail::PreGenGatherAction>(
+        action_registry->next_id(), storage_);
     action_registry->insert(gather_action_);
 
     // Build action to generate optical distribution data from pre-step and
     // state data
-    pregen_action_ = std::make_shared<detail::PreGenAction<StepPoint::post>>(
-        action_registry->next_id(),
-        properties,
-        cerenkov,
-        scintillation,
-        storage_);
+    pregen_action_
+        = std::make_shared<detail::PreGenAction>(action_registry->next_id(),
+                                                 properties,
+                                                 cerenkov,
+                                                 scintillation,
+                                                 storage_);
     action_registry->insert(pregen_action_);
 }
 

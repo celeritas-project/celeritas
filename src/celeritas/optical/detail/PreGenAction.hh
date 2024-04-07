@@ -29,7 +29,6 @@ struct GenStorage;
 /*!
  * Generate optical distribution data.
  */
-template<StepPoint P>
 class PreGenAction final : public ExplicitCoreActionInterface
 {
   public:
@@ -67,23 +66,13 @@ class PreGenAction final : public ExplicitCoreActionInterface
     ActionId action_id() const final { return id_; }
 
     //! Short name for the action
-    std::string label() const final
-    {
-        return P == StepPoint::pre    ? "optical-pre-generator-pre"
-               : P == StepPoint::post ? "optical-pre-generator-post"
-                                      : "";
-    }
+    std::string label() const final { return "optical-pre-generator-post"; }
 
     // Name of the action (for user output)
     std::string description() const final;
 
     //! Dependency ordering of the action
-    ActionOrder order() const final
-    {
-        return P == StepPoint::pre    ? ActionOrder::pre
-               : P == StepPoint::post ? ActionOrder::post_post
-                                      : ActionOrder::size_;
-    }
+    ActionOrder order() const final { return ActionOrder::post_post; }
 
     //! Get the number of distributions generated for each process
     OpticalBufferOffsets const& num_distributions(StreamId stream) const
