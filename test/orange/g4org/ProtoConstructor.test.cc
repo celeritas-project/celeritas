@@ -213,6 +213,60 @@ TEST_F(ProtoConstructorTest, intersection_boxes)
 }
 
 //---------------------------------------------------------------------------//
+TEST_F(ProtoConstructorTest, simple_cms)
+{
+    // NOTE: GDML stores widths for box and cylinder Z; Geant4 uses halfwidths
+    LogicalVolume world = this->load("simple-cms.gdml");
+
+    auto global_proto = ProtoConstructor(/* verbose = */ true)(world);
+    ProtoMap protos{*global_proto};
+
+    static std::string const expected_proto_names[] = {"world0x0"};
+    EXPECT_VEC_EQ(expected_proto_names, get_proto_names(protos));
+
+    ASSERT_EQ(1, protos.size());
+    {
+        SCOPED_TRACE("global");
+        auto u = this->build_unit(protos, UniverseId{0});
+
+        static char const* const expected_surface_strings[] = {
+            "Plane: x=-1000",
+            "Plane: x=1000",
+            "Plane: y=-1000",
+            "Plane: y=1000",
+            "Plane: z=-2000",
+            "Plane: z=2000",
+            "Plane: z=-700",
+            "Plane: z=700",
+            "Cyl z: r=30",
+            "Cyl z: r=125",
+            "Cyl z: r=175",
+            "Cyl z: r=275",
+            "Cyl z: r=375",
+            "Cyl z: r=700",
+        };
+        static char const* const expected_volume_strings[] = {
+            "!all(+0, -1, +2, -3, +4, -5)",
+            "all(+6, -7, -8)",
+            "all(all(+6, -7, -9), !all(+6, -7, -8))",
+            "all(all(+6, -7, -10), !all(+6, -7, -9))",
+            "all(all(+6, -7, -11), !all(+6, -7, -10))",
+            "all(all(+6, -7, -12), !all(+6, -7, -11))",
+            "all(all(+6, -7, -13), !all(+6, -7, -12))",
+        };
+        static char const* const expected_fill_strings[]
+            = {"<UNASSIGNED>", "m0", "m1", "m2", "m3", "m4", "m5"};
+        static int const expected_volume_nodes[] = {12, 18, 23, 28, 33, 38, 43};
+
+        EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+        EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
+        EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
+        EXPECT_EQ(MaterialId{0}, u.background);
+    }
+}
+
+//---------------------------------------------------------------------------//
 TEST_F(ProtoConstructorTest, testem3)
 {
     LogicalVolume world = this->load("testem3.gdml");
@@ -243,6 +297,15 @@ TEST_F(ProtoConstructorTest, testem3)
             "28: {{{-18.4,-20,-20}, {-17.6,20,20}}, {{-18.4,-20,-20}, "
             "{-17.6,20,20}}}",
             bounds[4]);
+
+        auto vols = volume_strings(u);
+        ASSERT_EQ(53, vols.size());  // slabs, zero-size 'calo', world,
+                                     // exterior
+        EXPECT_EQ(
+            "all(all(+0, -1, +2, -3, +4, -5), !all(+6, +8, -9, +10, -11, "
+            "-84))",
+            vols.back());
+        EXPECT_EQ(MaterialId{}, u.background);
     }
     {
         SCOPED_TRACE("daughter");
