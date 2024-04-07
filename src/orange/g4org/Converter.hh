@@ -80,10 +80,9 @@ class Converter
 //---------------------------------------------------------------------------//
 
 #if !CELERITAS_USE_GEANT4
-inline Converter::Converter(Options)
+inline Converter::Converter(Options&&)
 {
-    CELER_DISCARD(tol_);
-    CELER_DISCARD(convert_world_);
+    CELER_DISCARD(opts_);
 }
 
 inline auto Converter::operator()(arg_type) -> result_type
