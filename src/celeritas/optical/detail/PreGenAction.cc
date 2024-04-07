@@ -148,6 +148,11 @@ PreGenAction::remove_if_invalid(ItemsRef<MemSpace::host> const& buffer,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
+void PreGenAction::pre_generate(CoreParams const&, CoreStateDevice&) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+
 size_type PreGenAction::remove_if_invalid(ItemsRef<MemSpace::device> const&,
                                           size_type,
                                           size_type,
