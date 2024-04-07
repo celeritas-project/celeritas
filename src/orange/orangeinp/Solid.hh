@@ -125,14 +125,26 @@ class Solid final : public SolidBase
     static_assert(std::is_base_of_v<ConvexRegionInterface, T>);
 
   public:
-    // Construct with an excluded interior and enclosed angle
+    //!@{
+    //! \name Type aliases
+    using OptionalRegion = std::optional<T>;
+    //!@}
+
+  public:
+    // Return a solid *or* shape given an optional interior or enclosed angle
+    static SPConstObject or_shape(std::string&& label,
+                                  T&& interior,
+                                  OptionalRegion&& excluded,
+                                  SolidEnclosedAngle&& enclosed);
+
+    // Construct with an excluded interior *and/or* enclosed angle
     Solid(std::string&& label,
           T&& interior,
-          T&& excluded,
-          SolidEnclosedAngle enclosed);
+          OptionalRegion&& excluded,
+          SolidEnclosedAngle&& enclosed);
 
-    // Construct with an less-than-full enclosed angle
-    Solid(std::string&& label, T&& interior, SolidEnclosedAngle enclosed);
+    // Construct with only an enclosed angle
+    Solid(std::string&& label, T&& interior, SolidEnclosedAngle&& enclosed);
 
     // Construct with only an excluded interior
     Solid(std::string&& label, T&& interior, T&& excluded);
@@ -152,7 +164,7 @@ class Solid final : public SolidBase
   private:
     std::string label_;
     T interior_;
-    std::optional<T> exclusion_;
+    OptionalRegion exclusion_;
     SolidEnclosedAngle enclosed_;
 };
 

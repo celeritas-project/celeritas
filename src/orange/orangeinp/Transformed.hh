@@ -22,6 +22,10 @@ namespace orangeinp
 class Transformed final : public ObjectInterface
 {
   public:
+    // Construct a transformed object if nontrivial, or return the original
+    static SPConstObject
+    or_object(SPConstObject obj, VariantTransform const& transform);
+
     // Construct with daughter object and transform
     Transformed(SPConstObject obj, VariantTransform const& transform);
 

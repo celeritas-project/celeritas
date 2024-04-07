@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "orange/orangeinp/Solid.hh"
 
+#include "orange/orangeinp/Shape.hh"
+
 #include "CsgTestUtils.hh"
 #include "ObjectTestBase.hh"
 #include "celeritas_test.hh"
@@ -75,6 +77,10 @@ TEST_F(SolidTest, errors)
     // No exclusion, no wedge
     EXPECT_THROW(ConeSolid("cone", Cone{{1, 2}, 10.0}, SolidEnclosedAngle{}),
                  RuntimeError);
+    EXPECT_THROW(
+        ConeSolid(
+            "cone", Cone{{1, 2}, 10.0}, std::nullopt, SolidEnclosedAngle{}),
+        RuntimeError);
 }
 
 TEST_F(SolidTest, inner)
@@ -290,6 +296,24 @@ TEST_F(SolidTest, cyl)
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+}
+
+TEST_F(SolidTest, or_shape)
+{
+    {
+        auto shape = ConeSolid::or_shape(
+            "cone", Cone{{1, 2}, 10.0}, std::nullopt, SolidEnclosedAngle{});
+        EXPECT_TRUE(shape);
+        EXPECT_TRUE(dynamic_cast<ConeShape const*>(shape.get()));
+    }
+    {
+        auto solid = ConeSolid::or_shape("cone",
+                                         Cone{{1.1, 2}, 10.0},
+                                         Cone{{0.9, 1.9}, 10.0},
+                                         SolidEnclosedAngle{});
+        EXPECT_TRUE(solid);
+        EXPECT_TRUE(dynamic_cast<ConeSolid const*>(solid.get()));
+    }
 }
 
 //---------------------------------------------------------------------------//

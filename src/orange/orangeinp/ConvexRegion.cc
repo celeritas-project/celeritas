@@ -14,6 +14,7 @@
 #include "corecel/io/JsonPimpl.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/Types.hh"
+#include "orange/orangeinp/detail/PolygonUtils.hh"
 #include "orange/surf/ConeAligned.hh"
 #include "orange/surf/CylCentered.hh"
 #include "orange/surf/PlaneAligned.hh"
@@ -32,6 +33,7 @@ namespace orangeinp
 {
 namespace
 {
+using Real2 = Array<real_type, 2>;
 //---------------------------------------------------------------------------//
 /*!
  * Create a z-aligned bounding box infinite along z and symmetric in r.
@@ -305,6 +307,90 @@ void Ellipsoid::build(ConvexSurfaceBuilder& insert_surface) const
  * Write output to the given JSON object.
  */
 void Ellipsoid::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+// GENTRAP
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from half Z height and 1-4 vertices for top and bottom planes.
+ */
+GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
+    : hz_{halfz}, lo_{std::move(lo)}, hi_{std::move(hi)}
+{
+    CELER_VALIDATE(hz_ > 0, << "nonpositive halfheight: " << hz_);
+    CELER_VALIDATE(lo_.size() >= 3 && lo_.size() <= 4,
+                   << "invalid number of vertices (" << lo_.size()
+                   << ") for -Z polygon");
+    CELER_VALIDATE(hi_.size() >= 3 && hi_.size() <= 4,
+                   << "invalid number of vertices <" << hi_.size()
+                   << ") for +Z polygon");
+
+    CELER_VALIDATE(lo_.size() >= 3 || hi_.size() >= 3,
+                   << "not enough vertices for both of the +Z/-Z polygons.");
+
+    // Input vertices must be arranged in a CCW order
+    CELER_VALIDATE(detail::is_convex(make_span(lo_)),
+                   << "-Z polygon is not convex");
+    CELER_VALIDATE(detail::is_convex(make_span(hi_)),
+                   << "+Z polygon is not convex");
+
+    // TODO: Temporarily ensure that all side faces are planar
+    for (auto i : range(lo_.size()))
+    {
+        auto j = (i + 1) % lo_.size();
+        Real3 const a{lo_[i][0], lo_[i][1], -hz_};
+        Real3 const b{lo_[j][0], lo_[j][1], -hz_};
+        Real3 const c{hi_[j][0], hi_[j][1], hz_};
+        Real3 const d{hi_[i][0], hi_[i][1], hz_};
+
+        // *Temporarily* throws if a side face is not planar
+        if (!detail::is_planar(a, b, c, d))
+        {
+            CELER_NOT_IMPLEMENTED("non-planar side faces");
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void GenTrap::build(ConvexSurfaceBuilder& insert_surface) const
+{
+    // Build the bottom and top planes
+    insert_surface(Sense::outside, PlaneZ{-hz_});
+    insert_surface(Sense::inside, PlaneZ{hz_});
+
+    // Build the side planes
+    for (auto i : range(lo_.size()))
+    {
+        auto j = (i + 1) % lo_.size();
+        Real3 const a{lo_[i][0], lo_[i][1], -hz_};
+        Real3 const b{lo_[j][0], lo_[j][1], -hz_};
+        Real3 const c{hi_[j][0], hi_[j][1], hz_};
+        Real3 const d{hi_[i][0], hi_[i][1], hz_};
+
+        // Calculate plane parameters
+        auto normal = make_unit_vector(cross_product(b - a, c - b));
+        auto offset = dot_product(d, normal);
+
+        // *Temporarily* throws if a side face is not planar
+        CELER_ASSERT(celeritas::orangeinp::detail::is_planar(a, b, c, d));
+        CELER_ASSERT(SoftZero<real_type>{}(dot_product(d - a, normal)));
+
+        // Insert the plane
+        insert_surface(Sense::inside, Plane{normal, offset});
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void GenTrap::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
 }

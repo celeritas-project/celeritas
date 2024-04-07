@@ -72,6 +72,28 @@ constexpr OperatorToken JoinObjects<Op>::op_token;
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct a joined object if nontrivial, or return the original.
+ *
+ * This should only be called if the label of the resulting object is not
+ * important.
+ */
+template<OperatorToken Op>
+auto JoinObjects<Op>::or_object(std::string&& label, VecObject&& objects)
+    -> SPConstObject
+{
+    CELER_EXPECT(!objects.empty());
+    if (objects.size() == 1)
+    {
+        SPConstObject result = std::move(objects.front());
+        objects.clear();
+        return result;
+    }
+    return std::make_shared<JoinObjects<Op>>(std::move(label),
+                                             std::move(objects));
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct with a name and a vector of objects.
  */
 template<OperatorToken Op>
@@ -127,8 +149,8 @@ void JoinObjects<Op>::output(JsonPimpl* j) const
  */
 std::shared_ptr<AllObjects const>
 make_subtraction(std::string&& label,
-                 std::shared_ptr<ObjectInterface const> const& minuend,
-                 std::shared_ptr<ObjectInterface const> const& subtrahend)
+                 SPConstObject const& minuend,
+                 SPConstObject const& subtrahend)
 {
     CELER_EXPECT(!label.empty());
     CELER_EXPECT(minuend && subtrahend);
@@ -146,9 +168,8 @@ make_subtraction(std::string&& label,
  * The Region Definition Vector is the SCALE way for defining media,
  * boundaries, etc. It must not be empty.
  */
-std::shared_ptr<AllObjects const> make_rdv(
-    std::string&& label,
-    std::vector<std::pair<Sense, std::shared_ptr<ObjectInterface const>>>&& inp)
+std::shared_ptr<AllObjects const>
+make_rdv(std::string&& label, VecSenseObj&& inp)
 {
     CELER_EXPECT(!label.empty());
     CELER_EXPECT(!inp.empty());

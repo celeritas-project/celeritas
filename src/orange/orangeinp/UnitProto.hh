@@ -98,7 +98,7 @@ class UnitProto : public ProtoInterface
         explicit inline operator bool() const;
 
         // Construct the daughter's shape in this unit's reference frame
-        std::shared_ptr<Transformed> make_interior() const;
+        SPConstObject make_interior() const;
     };
 
     //! Boundary conditions for the unit

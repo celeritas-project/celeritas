@@ -198,6 +198,53 @@ class Ellipsoid final : public ConvexRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
+ * A generalized trapezoid, inspired by VecGeom's GenTrap and also ROOT's Arb8.
+ *
+ * A GenTrap represents a general trapezoidal volume with up to eight vertices,
+ * or two 4-point sitting on two parallel planes perpendicular to Z axis.
+ * Both sets of up to four points provided need to be in counter-clockwise
+ * ordering. This ensures that the -z face will have an outward normal, and
+ * that the +z face points will correspond to their -z face counterparts for
+ * each side face.
+ * TODO: Add a check for this.
+ * TODO: Add proper treatment for degenerate cases.
+ */
+class GenTrap final : public ConvexRegionInterface
+{
+    //!@{
+    //! \name Type aliases
+    using Real2 = Array<real_type, 2>;
+    using VecReal2 = std::vector<Real2>;
+    //!@}
+
+  public:
+    // Construct from half Z height and 1-4 vertices for top and bottom planes
+    GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi);
+
+    // Build surfaces
+    void build(ConvexSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Half-height along Z
+    real_type halfheight() const { return hz_; }
+
+    //! Polygon on -z face
+    VecReal2 const& lower() const { return lo_; }
+    //! Polygon on +z face
+    VecReal2 const& upper() const { return hi_; }
+
+  private:
+    real_type hz_;  //!< half-height
+    VecReal2 lo_;  //!< corners of the -z face
+    VecReal2 hi_;  //!< corners of the +z face
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * An open wedge shape from the Z axis.
  *
  * The wedge is defined by an interior angle that *must* be less than or equal
@@ -267,7 +314,7 @@ class Parallelepiped final : public ConvexRegionInterface
     //// ACCESSORS ////
 
     //! Half-lengths of edge projections along each axis
-    Real3 const& half_projs() const { return hpr_; }
+    Real3 const& halfedges() const { return hpr_; }
     //! Angle between slanted y-edges and the y-axis (in turns)
     Turn alpha() const { return alpha_; }
     //! Polar angle of main axis (in turns)

@@ -22,6 +22,8 @@
 #    include "ObjectIO.json.hh"
 #endif
 
+#include "Shape.hh"
+
 namespace celeritas
 {
 namespace orangeinp
@@ -111,19 +113,44 @@ void SolidBase::output(JsonPimpl* j) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with an excluded interior and enclosed angle.
+ * Return a solid or shape given an optional interior or enclosed angle.
+ */
+template<class T>
+auto Solid<T>::or_shape(std::string&& label,
+                        T&& interior,
+                        OptionalRegion&& excluded,
+                        SolidEnclosedAngle&& enclosed) -> SPConstObject
+{
+    if (!excluded && !enclosed)
+    {
+        // Just a shape
+        return std::make_shared<Shape<T>>(std::move(label),
+                                          std::move(interior));
+    }
+
+    return std::make_shared<Solid<T>>(std::move(label),
+                                      std::move(interior),
+                                      std::move(excluded),
+                                      std::move(enclosed));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with optional components.
  */
 template<class T>
 Solid<T>::Solid(std::string&& label,
                 T&& interior,
-                T&& excluded,
-                SolidEnclosedAngle enclosed)
+                OptionalRegion&& excluded,
+                SolidEnclosedAngle&& enclosed)
     : label_{std::move(label)}
     , interior_{std::move(interior)}
     , exclusion_{std::move(excluded)}
-    , enclosed_(enclosed)
+    , enclosed_{std::move(enclosed)}
 {
-    CELER_VALIDATE(interior_.encloses(*exclusion_),
+    CELER_VALIDATE(exclusion_ || enclosed,
+                   << "solid requires either an excluded region or a shape");
+    CELER_VALIDATE(!exclusion_ || interior_.encloses(*exclusion_),
                    << "solid '" << this->label()
                    << "' was given an interior region that is not enclosed by "
                       "its exterior");
@@ -131,23 +158,7 @@ Solid<T>::Solid(std::string&& label,
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with an enclosed angle.
- */
-template<class T>
-Solid<T>::Solid(std::string&& label, T&& interior, SolidEnclosedAngle enclosed)
-    : label_{std::move(label)}
-    , interior_{std::move(interior)}
-    , enclosed_(enclosed)
-{
-    CELER_VALIDATE(enclosed_,
-                   << "solid '" << this->label()
-                   << "' did not exclude an interior or a wedge (use a Shape "
-                      "instead)");
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct with only an excluded interior.
+ * Construct with an excluded interior.
  */
 template<class T>
 Solid<T>::Solid(std::string&& label, T&& interior, T&& excluded)
@@ -156,6 +167,21 @@ Solid<T>::Solid(std::string&& label, T&& interior, T&& excluded)
             std::move(excluded),
             SolidEnclosedAngle{}}
 {
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with an enclosed angle.
+ */
+template<class T>
+Solid<T>::Solid(std::string&& label, T&& interior, SolidEnclosedAngle&& enclosed)
+    : Solid{
+        std::move(label), std::move(interior), std::nullopt, std::move(enclosed)}
+{
+    CELER_VALIDATE(enclosed_,
+                   << "solid '" << this->label()
+                   << "' did not exclude an interior or a wedge (use a Shape "
+                      "instead)");
 }
 
 //---------------------------------------------------------------------------//
