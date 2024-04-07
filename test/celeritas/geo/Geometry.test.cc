@@ -33,6 +33,7 @@ class TestEm3Test : public HeuristicGeoTestBase
         HeuristicGeoScalars result;
         result.lower = {-19.77, -20, -20};
         result.upper = {19.43, 20, 20};
+        result.world_volume = this->geometry()->find_volume("world");
         return result;
     }
 
@@ -75,19 +76,20 @@ auto TestEm3Test::reference_volumes() const -> SpanConstStr
 
 auto TestEm3Test::reference_avg_path() const -> SpanConstReal
 {
-    static real_type const orange_paths[] = {
-        8.617,  0.1079, 0.2445, 0.1325, 0.3059, 0.1198, 0.3179, 0.1258, 0.2803,
-        0.1793, 0.4181, 0.1638, 0.3871, 0.1701, 0.3309, 0.1706, 0.4996, 0.217,
-        0.5396, 0.188,  0.3784, 0.1758, 0.5439, 0.3073, 0.558,  0.2541, 0.5678,
-        0.2246, 0.5444, 0.3164, 0.6882, 0.3186, 0.6383, 0.2305, 0.6078, 0.2813,
-        0.6735, 0.278,  0.6635, 0.2961, 0.751,  0.3612, 0.7456, 0.319,  0.7395,
-        0.3557, 0.9123, 0.4129, 0.7772, 0.3561, 0.8535, 0.4207, 0.8974, 0.3674,
-        0.9314, 0.4164, 0.802,  0.3904, 0.7931, 0.3276, 0.712,  0.3259, 0.7212,
-        0.2625, 0.6184, 0.2654, 0.6822, 0.3073, 0.7249, 0.3216, 0.8117, 0.3101,
-        0.6056, 0.2372, 0.5184, 0.1985, 0.636,  0.3183, 0.6663, 0.2881, 0.725,
-        0.2805, 0.6565, 0.2635, 0.529,  0.2416, 0.5596, 0.2547, 0.5676, 0.2178,
-        0.5719, 0.2943, 0.5682, 0.2161, 0.4803, 0.1719, 0.4611, 0.1928, 0.3685,
-        0.1554, 0.2443};
+    static real_type const orange_paths[]
+        = {7.504,  0.07378, 0.2057, 0.102,  0.2408, 0.1006, 0.3019, 0.1153,
+           0.2812, 0.1774,  0.4032, 0.1354, 0.3163, 0.1673, 0.3465, 0.1786,
+           0.4494, 0.2237,  0.5863, 0.192,  0.4027, 0.1905, 0.5949, 0.3056,
+           0.5217, 0.2179,  0.5365, 0.2123, 0.5484, 0.2938, 0.634,  0.3144,
+           0.6364, 0.2207,  0.5688, 0.2685, 0.6717, 0.2697, 0.6468, 0.2824,
+           0.7424, 0.3395,  0.6919, 0.3018, 0.7078, 0.3441, 0.9093, 0.4125,
+           0.7614, 0.334,   0.8102, 0.3901, 0.8114, 0.3377, 0.8856, 0.39,
+           0.7765, 0.3847,  0.785,  0.3017, 0.6694, 0.3026, 0.7018, 0.2482,
+           0.6192, 0.2405,  0.6014, 0.2733, 0.6454, 0.2804, 0.6941, 0.2608,
+           0.5855, 0.2318,  0.5043, 0.1906, 0.6139, 0.3125, 0.6684, 0.3002,
+           0.7295, 0.2874,  0.6328, 0.2524, 0.532,  0.2354, 0.5435, 0.2612,
+           0.5484, 0.2294,  0.5671, 0.246,  0.5157, 0.1953, 0.3996, 0.1301,
+           0.3726, 0.1642,  0.3317, 0.1375, 0.1909};
     return make_span(orange_paths);
 }
 
@@ -108,6 +110,7 @@ class SimpleCmsTest : public HeuristicGeoTestBase
         result.upper = {30, 30, 700};
         result.log_min_step = std::log(1e-4);
         result.log_max_step = std::log(1e2);
+        result.world_volume = this->geometry()->find_volume("world");
         return result;
     }
 
@@ -131,7 +134,7 @@ auto SimpleCmsTest::reference_volumes() const -> SpanConstStr
 auto SimpleCmsTest::reference_avg_path() const -> SpanConstReal
 {
     static real_type const paths[]
-        = {58.02, 408.3, 274.9, 540.9, 496.3, 1134, 1694};
+        = {56.38, 403, 261.3, 507.5, 467.1, 1142, 1851};
     return make_span(paths);
 }
 
@@ -223,21 +226,14 @@ auto CmseTest::reference_avg_path() const -> SpanConstReal
 
 TEST_F(TestEm3Test, host)
 {
-    if (not_orange_geo)
-    {
-        EXPECT_TRUE(this->geometry()->supports_safety());
-    }
-    else
-    {
-        EXPECT_FALSE(this->geometry()->supports_safety());
-    }
-    real_type tol = not_orange_geo ? 0.35 : 1e-3;
+    EXPECT_TRUE(this->geometry()->supports_safety());
+    real_type tol = not_orange_geo ? 0.05 : 1e-3;
     this->run_host(512, tol);
 }
 
 TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
 {
-    real_type tol = not_orange_geo ? 0.25 : 1e-3;
+    real_type tol = not_orange_geo ? 0.05 : 1e-3;
     this->run_device(512, tol);
 }
 
@@ -248,14 +244,14 @@ TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
 TEST_F(SimpleCmsTest, host)
 {
     // Results were generated with ORANGE
-    real_type tol = not_orange_geo ? 0.05 : 1e-3;
+    real_type tol = not_orange_geo ? 0.01 : 1e-3;
     this->run_host(512, tol);
 }
 
 TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(device))
 {
     // Results were generated with ORANGE
-    real_type tol = not_orange_geo ? 0.025 : 1e-3;
+    real_type tol = not_orange_geo ? 0.01 : 1e-3;
     this->run_device(512, tol);
 }
 
@@ -277,8 +273,8 @@ TEST_F(SimpleCmsTest, output)
     else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
         EXPECT_JSON_EQ(
-            R"json({"bbox":[[-1000.0,-1000.0,-2000.0],[1000.0,1000.0,2000.0]],"supports_safety":false,"surfaces":{"label":["world_box.mx@global","world_box.px@global","world_box.my@global","world_box.py@global","world_box.mz@global","world_box.pz@global","guide_tube.coz@global","crystal_em_calorimeter_outer.mz@global","crystal_em_calorimeter_outer.pz@global","silicon_tracker_outer.coz@global","crystal_em_calorimeter_outer.coz@global","hadron_calorimeter_outer.coz@global","superconducting_solenoid_outer.coz@global","iron_muon_chambers_outer.coz@global"]},"volumes":{"label":["[EXTERIOR]@global","vacuum_tube@global","si_tracker@global","em_calorimeter@global","had_calorimeter@global","sc_solenoid@global","fe_muon_chambers@global","world@global"]}})json",
-            to_string(out));
+            R"json({"bbox":[[-1000.0,-1000.0,-2000.0],[1000.0,1000.0,2000.0]],"supports_safety":false,"surfaces":{"label":["world_box@mx","world_box@px","world_box@my","world_box@py","world_box@mz","world_box@pz","crystal_em_calorimeter@excluded.mz","crystal_em_calorimeter@excluded.pz","lhc_vacuum_tube@cz","crystal_em_calorimeter@excluded.cz","crystal_em_calorimeter@interior.cz","hadron_calorimeter@interior.cz","iron_muon_chambers@excluded.cz","iron_muon_chambers@interior.cz"]},"volumes":{"label":["[EXTERIOR]@world0x0","vacuum_tube@0x0","si_tracker@0x0","em_calorimeter@0x0","had_calorimeter@0x0","sc_solenoid@0x0","fe_muon_chambers@0x0","world@0x0"]}})json",
+            this->genericize_pointers(to_string(out)));
     }
 }
 
