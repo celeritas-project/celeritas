@@ -174,13 +174,13 @@ celeritas_add_test(field/MagFieldEquation.test.cc)
 # Geo
 set(CELERITASTEST_PREFIX celeritas/geo)
 
-set(_geo_args GPU ${_needs_geo} ${_needs_double}
-  SOURCES geo/HeuristicGeoTestBase.cc)
+set(_geo_args GPU ${_needs_geo} ${_needs_double} ${_fixme_cgs}
+  SOURCES geo/HeuristicGeoTestBase.cc
+  LINK_LIBRARIES ${_all_geo_libs})
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND _geo_args geo/HeuristicGeoTestBase.cu)
 endif()
-celeritas_add_test(geo/Geometry.test.cc
-  ${_geo_args} ${_fixme_cgs})
+celeritas_add_test(geo/Geometry.test.cc ${_geo_args})
 
 if(NOT (CELERITAS_USE_Geant4 OR CELERITAS_USE_ROOT))
   set(_needs_geant_or_root DISABLE)
