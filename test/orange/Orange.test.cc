@@ -38,25 +38,6 @@ class OrangeTest : public OrangeGeoTestBase
     real_type unit_length() const override { return 1; }
 };
 
-class OneVolumeTest : public OrangeTest
-{
-    void SetUp() override
-    {
-        OneVolInput geo_inp;
-        this->build_geometry(geo_inp);
-    }
-};
-
-class TwoVolumeTest : public OrangeTest
-{
-    void SetUp() override
-    {
-        TwoVolInput geo_inp;
-        geo_inp.radius = 1.5;
-        this->build_geometry(geo_inp);
-    }
-};
-
 class JsonOrangeTest : public OrangeTest
 {
   public:
@@ -68,31 +49,6 @@ class JsonOrangeTest : public OrangeTest
         }
         this->build_geometry(this->geometry_basename() + ".org.json");
     }
-};
-
-class FiveVolumesTest : public JsonOrangeTest
-{
-    std::string geometry_basename() const final { return "five-volumes"; }
-};
-
-class UniversesTest : public JsonOrangeTest
-{
-    std::string geometry_basename() const final { return "universes"; }
-};
-
-class RectArrayTest : public JsonOrangeTest
-{
-    std::string geometry_basename() const final { return "rect-array"; }
-};
-
-class HexArrayTest : public JsonOrangeTest
-{
-    std::string geometry_basename() const final { return "hex-array"; }
-};
-
-class TestEM3Test : public JsonOrangeTest
-{
-    std::string geometry_basename() const final { return "testem3"; }
 };
 
 class ShiftTrackerTest : public JsonOrangeTest
@@ -148,28 +104,29 @@ class ShiftTrackerTest : public JsonOrangeTest
     }
 };
 
-class NestedRectArraysTest : public JsonOrangeTest
+class GeantOrangeTest : public OrangeTest
 {
-    std::string geometry_basename() const final
+  public:
+    void SetUp() final
     {
-        return "nested-rect-arrays";
+        if (!CELERITAS_USE_GEANT4)
+        {
+            GTEST_SKIP() << "Geant4 is disabled";
+        }
+        this->build_gdml_geometry(this->geometry_basename() + ".gdml");
     }
-};
-
-class Geant4Testem15Test : public JsonOrangeTest
-{
-    std::string geometry_basename() const final { return "geant4-testem15"; }
-};
-
-class InputBuilderTest : public JsonOrangeTest
-{
-    std::string geometry_basename() const final
-    {
-        return const_cast<InputBuilderTest*>(this)->make_unique_filename();
-    }
+    real_type unit_length() const override { return lengthunits::centimeter; }
 };
 
 //---------------------------------------------------------------------------//
+class OneVolumeTest : public OrangeTest
+{
+    void SetUp() override
+    {
+        OneVolInput geo_inp;
+        this->build_geometry(geo_inp);
+    }
+};
 
 TEST_F(OneVolumeTest, params)
 {
@@ -231,6 +188,15 @@ TEST_F(OneVolumeTest, track_view)
 }
 
 //---------------------------------------------------------------------------//
+class TwoVolumeTest : public OrangeTest
+{
+    void SetUp() override
+    {
+        TwoVolInput geo_inp;
+        geo_inp.radius = 1.5;
+        this->build_geometry(geo_inp);
+    }
+};
 
 TEST_F(TwoVolumeTest, params)
 {
@@ -602,6 +568,12 @@ TEST_F(TwoVolumeTest, intersect_limited)
     EXPECT_FALSE(next.boundary);
 }
 
+//---------------------------------------------------------------------------//
+class FiveVolumesTest : public JsonOrangeTest
+{
+    std::string geometry_basename() const final { return "five-volumes"; }
+};
+
 TEST_F(FiveVolumesTest, params)
 {
     OrangeParams const& geo = this->params();
@@ -610,6 +582,12 @@ TEST_F(FiveVolumesTest, params)
     EXPECT_EQ(12, geo.num_surfaces());
     EXPECT_FALSE(geo.supports_safety());
 }
+
+//---------------------------------------------------------------------------//
+class UniversesTest : public JsonOrangeTest
+{
+    std::string geometry_basename() const final { return "universes"; }
+};
 
 TEST_F(UniversesTest, params)
 {
@@ -1016,6 +994,12 @@ TEST_F(UniversesTest, reentrant)
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -4, 0.7}), geo.pos());
 }
 
+//---------------------------------------------------------------------------//
+class RectArrayTest : public JsonOrangeTest
+{
+    std::string geometry_basename() const final { return "rect-array"; }
+};
+
 TEST_F(RectArrayTest, params)
 {
     OrangeParams const& geo = this->params();
@@ -1037,6 +1021,16 @@ TEST_F(RectArrayTest, tracking)
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
     EXPECT_EQ("Hfill", this->volume_name(geo));
 }
+
+//---------------------------------------------------------------------------//
+
+class NestedRectArraysTest : public JsonOrangeTest
+{
+    std::string geometry_basename() const final
+    {
+        return "nested-rect-arrays";
+    }
+};
 
 TEST_F(NestedRectArraysTest, tracking)
 {
@@ -1092,6 +1086,12 @@ TEST_F(NestedRectArraysTest, leaving)
     EXPECT_SOFT_EQ(16, next.distance);
 }
 
+//---------------------------------------------------------------------------//
+class Geant4Testem15Test : public JsonOrangeTest
+{
+    std::string geometry_basename() const final { return "geant4-testem15"; }
+};
+
 TEST_F(Geant4Testem15Test, safety)
 {
     OrangeTrackView geo = this->make_geo_track_view();
@@ -1124,6 +1124,13 @@ TEST_F(Geant4Testem15Test, safety)
     EXPECT_SOFT_EQ(10.0, geo.find_safety());
 }
 
+//---------------------------------------------------------------------------//
+
+class HexArrayTest : public JsonOrangeTest
+{
+    std::string geometry_basename() const final { return "hex-array"; }
+};
+
 TEST_F(HexArrayTest, TEST_IF_CELERITAS_DOUBLE(output))
 {
     OrangeParamsOutput out(this->geometry());
@@ -1155,6 +1162,13 @@ TEST_F(HexArrayTest, track_out)
     EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
 }
 
+//---------------------------------------------------------------------------//
+
+class TestEM3Test : public JsonOrangeTest
+{
+    std::string geometry_basename() const final { return "testem3"; }
+};
+
 // Test safety distance within a geometry that supports simple safety
 TEST_F(TestEM3Test, safety)
 {
@@ -1171,6 +1185,7 @@ TEST_F(TestEM3Test, safety)
     EXPECT_SOFT_EQ(0.01, geo.find_safety());
 }
 
+//---------------------------------------------------------------------------//
 TEST_F(ShiftTrackerTest, host)
 {
     std::vector<Real3> pos{
@@ -1228,6 +1243,15 @@ TEST_F(ShiftTrackerTest, host)
 }
 
 //---------------------------------------------------------------------------//
+
+class InputBuilderTest : public JsonOrangeTest
+{
+    std::string geometry_basename() const final
+    {
+        return const_cast<InputBuilderTest*>(this)->make_unique_filename();
+    }
+};
+
 TEST_F(InputBuilderTest, globalspheres)
 {
     {

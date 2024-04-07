@@ -1203,18 +1203,6 @@ class SolidsGeantTest : public VecgeomGeantTestBase
 
 //---------------------------------------------------------------------------//
 
-#define ZnenvGeantTest TEST_IF_CELERITAS_GEANT(ZnenvGeantTest)
-class ZnenvGeantTest : public VecgeomGeantTestBase
-{
-  public:
-    SPConstGeo build_geometry() final
-    {
-        return this->load_g4_gdml("znenv.gdml");
-    }
-};
-
-//---------------------------------------------------------------------------//
-
 TEST_F(SolidsGeantTest, DISABLED_dump)
 {
     this->geometry();
@@ -1474,6 +1462,18 @@ TEST_F(SolidsGeantTest, reflected_vol)
     EXPECT_EQ("trd3", label.name);
     EXPECT_TRUE(ends_with(label.ext, "_refl"));
 }
+
+//---------------------------------------------------------------------------//
+
+#define ZnenvGeantTest TEST_IF_CELERITAS_GEANT(ZnenvGeantTest)
+class ZnenvGeantTest : public VecgeomGeantTestBase
+{
+  public:
+    SPConstGeo build_geometry() final
+    {
+        return this->load_g4_gdml("znenv.gdml");
+    }
+};
 
 //---------------------------------------------------------------------------//
 
