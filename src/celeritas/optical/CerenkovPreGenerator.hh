@@ -59,7 +59,7 @@ class CerenkovPreGenerator
                          NativeCRef<CerenkovData> const& shared,
                          OpticalPreStepData const& step_data);
 
-    // Return populated Cerenkov optical distribution data
+    // Return a populated optical distribution data for the Cerenkov Generator
     template<class Generator>
     inline CELER_FUNCTION OpticalDistributionData operator()(Generator& rng);
 
@@ -109,10 +109,10 @@ CELER_FUNCTION CerenkovPreGenerator::CerenkovPreGenerator(
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample number of photons to generate and create optical distribution data.
+ * Return an \c OpticalDistributionData object. If no photons are sampled, an
+ * empty object is returned and can be verified via its own operator bool.
  *
- * If no photons are sampled, an empty object is returned. The number of
- * photons is sampled from a Poisson distribution with a mean
+ * The number of photons is sampled from a Poisson distribution with a mean
  * \f[
    \langle n \rangle = \ell_\text{step} \frac{dN}{dx}
  * \f]
@@ -127,20 +127,20 @@ CerenkovPreGenerator::operator()(Generator& rng)
         return {};
     }
 
-    OpticalDistributionData result;
-    result.num_photons = PoissonDistribution<real_type>(num_photons_per_len_
-                                                        * step_length_)(rng);
-    if (result.num_photons > 0)
+    OpticalDistributionData data;
+    data.num_photons = PoissonDistribution<real_type>(num_photons_per_len_
+                                                      * step_length_)(rng);
+    if (data.num_photons > 0)
     {
-        result.time = pre_step_.time;
-        result.step_length = step_length_;
-        result.charge = charge_;
-        result.material = optmat_id_;
-        result.points[StepPoint::pre].speed = pre_step_.speed;
-        result.points[StepPoint::pre].pos = pre_step_.pos;
-        result.points[StepPoint::post] = post_step_;
+        data.time = pre_step_.time;
+        data.step_length = step_length_;
+        data.charge = charge_;
+        data.material = optmat_id_;
+        data.points[StepPoint::pre].speed = pre_step_.speed;
+        data.points[StepPoint::pre].pos = pre_step_.pos;
+        data.points[StepPoint::post] = post_step_;
     }
-    return result;
+    return data;
 }
 
 //---------------------------------------------------------------------------//

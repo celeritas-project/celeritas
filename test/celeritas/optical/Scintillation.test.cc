@@ -137,7 +137,7 @@ class ScintillationTest : public OpticalTestBase
     Real3 post_pos_{0, 0, from_cm(1)};
     MevEnergy post_energy_{9.25};
     MevEnergy edep_{0.75};
-    real_type step_len_{2.5};  // [cm]
+    real_type step_length_{2.5};  // [cm]
 };
 
 //---------------------------------------------------------------------------//
@@ -270,7 +270,7 @@ TEST_F(ScintillationTest, pre_generator)
     auto const pre_step = this->build_pre_step();
 
     ScintillationPreGenerator generate(particle,
-                                       this->make_sim_track_view(step_len_),
+                                       this->make_sim_track_view(step_length_),
                                        post_pos_,
                                        opt_matid_,
                                        edep_,
@@ -282,7 +282,7 @@ TEST_F(ScintillationTest, pre_generator)
 
     EXPECT_EQ(4, result.num_photons);
     EXPECT_REAL_EQ(0, result.time);
-    EXPECT_REAL_EQ(from_cm(step_len_), result.step_length);
+    EXPECT_REAL_EQ(from_cm(step_length_), result.step_length);
     EXPECT_EQ(-1, result.charge.value());
     EXPECT_EQ(0, result.material.get());
     EXPECT_EQ(pre_step.speed.value(),
@@ -303,7 +303,7 @@ TEST_F(ScintillationTest, basic)
     // Pre-generate optical distribution data
     ScintillationPreGenerator generate(
         this->make_particle_track_view(post_energy_, pdg::electron()),
-        this->make_sim_track_view(step_len_),
+        this->make_sim_track_view(step_length_),
         post_pos_,
         opt_matid_,
         edep_,
@@ -374,7 +374,7 @@ TEST_F(ScintillationTest, stress_test)
 
     ScintillationPreGenerator generate(
         this->make_particle_track_view(post_energy_, pdg::electron()),
-        this->make_sim_track_view(step_len_),
+        this->make_sim_track_view(step_length_),
         post_pos_,
         opt_matid_,
         edep_,
@@ -382,7 +382,6 @@ TEST_F(ScintillationTest, stress_test)
         this->build_pre_step());
 
     auto result = generate(this->rng());
-    EXPECT_EQ(4, result.num_photons);
 
     // Overwrite result to force a large number of optical photons
     result.num_photons = 123456;

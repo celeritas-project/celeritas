@@ -41,7 +41,7 @@ class ScintillationPreGenerator
                               NativeCRef<ScintillationData> const& shared,
                               OpticalPreStepData const& step_data);
 
-    // Return populated scintillation optical distribution data
+    // Populate an optical distribution data for the Scintillation Generator
     template<class Generator>
     inline CELER_FUNCTION OpticalDistributionData operator()(Generator& rng);
 
@@ -102,9 +102,8 @@ CELER_FUNCTION ScintillationPreGenerator::ScintillationPreGenerator(
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample number of photons to generate and create optical distribution data.
- *
- * Returns the optical ditribution data.
+ * Return an \c OpticalDistributionData object. If no photons are sampled, an
+ * empty object is returned and can be verified via its own operator bool.
  */
 template<class Generator>
 CELER_FUNCTION OpticalDistributionData

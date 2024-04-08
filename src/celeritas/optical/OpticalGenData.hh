@@ -66,13 +66,13 @@ struct OpticalGenParamsData
 
 //---------------------------------------------------------------------------//
 /*!
- * Pre-step data needed for generating optical photon distributions.
+ * Pre-step data needed to generate optical photon distributions.
  */
 struct OpticalPreStepData
 {
-    units::LightSpeed speed;  //!< Pre-step speed
-    Real3 pos{};  //!< Pre-step position
-    real_type time{};  //!< Pre-step time
+    units::LightSpeed speed;
+    Real3 pos{};
+    real_type time{};
 
     //! Check whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
@@ -83,7 +83,7 @@ struct OpticalPreStepData
 
 //---------------------------------------------------------------------------//
 /*!
- * Optical photon distribution data and primaries.
+ * Optical photon distribution data.
  */
 template<Ownership W, MemSpace M>
 struct OpticalGenStateData

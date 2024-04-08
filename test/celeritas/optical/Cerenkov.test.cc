@@ -232,19 +232,19 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
         auto sim = this->make_sim_track_view(0.15);
         Real3 pos = {sim.step_length(), 0, 0};
 
-        size_type num_samples = 10;
-        CerenkovPreGenerator generate_dist(particle,
-                                           sim,
-                                           pos,
-                                           material,
-                                           properties->host_ref(),
-                                           params->host_ref(),
-                                           pre_step);
+        CerenkovPreGenerator pre_generate(particle,
+                                          sim,
+                                          pos,
+                                          material,
+                                          properties->host_ref(),
+                                          params->host_ref(),
+                                          pre_step);
 
+        size_type num_samples = 10;
         std::vector<size_type> sampled_num_photons;
         for ([[maybe_unused]] auto i : range(num_samples))
         {
-            auto const result = generate_dist(rng);
+            auto const result = pre_generate(rng);
             CELER_ASSERT(result);
             sampled_num_photons.push_back(result.num_photons);
 
@@ -281,15 +281,17 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
         auto sim = this->make_sim_track_view(0.1);
         Real3 pos = {sim.step_length(), 0, 0};
 
-        CerenkovPreGenerator generate_dist(particle,
-                                           sim,
-                                           pos,
-                                           material,
-                                           properties->host_ref(),
-                                           params->host_ref(),
-                                           pre_step);
-        auto const dist = generate_dist(rng);
-        EXPECT_EQ(0, dist.num_photons);
+        CerenkovPreGenerator pre_generate(particle,
+                                          sim,
+                                          pos,
+                                          material,
+                                          properties->host_ref(),
+                                          params->host_ref(),
+                                          pre_step);
+        auto const result = pre_generate(rng);
+
+        EXPECT_FALSE(result);
+        EXPECT_EQ(0, result.num_photons);
     }
 }
 
@@ -335,18 +337,18 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
         real_type ddel = (dmax - dmin) / num_bins;
 
         // Calculate the average number of photons produced per unit length
-        CerenkovPreGenerator generate_dist(particle,
-                                           sim,
-                                           pos,
-                                           material,
-                                           properties->host_ref(),
-                                           params->host_ref(),
-                                           pre_step);
+        CerenkovPreGenerator pre_generate(particle,
+                                          sim,
+                                          pos,
+                                          material,
+                                          properties->host_ref(),
+                                          params->host_ref(),
+                                          pre_step);
 
         Real3 inc_dir = make_unit_vector(pos - pre_step.pos);
         for (size_type i = 0; i < num_samples; ++i)
         {
-            auto const dist = generate_dist(rng);
+            auto const dist = pre_generate(rng);
             CELER_ASSERT(dist);
 
             // Sample the optical photons
