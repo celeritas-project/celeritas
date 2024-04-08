@@ -120,21 +120,24 @@ class ScintillationTest : public OpticalTestBase
     }
 
     //! Set up mock pre-generator step data
-    ScintillationPreGenerator::OpticalPreGenStepData build_pregen_step()
+    OpticalPreStepData build_pre_step()
     {
-        ScintillationPreGenerator::OpticalPreGenStepData pregen_data;
-        pregen_data.energy_dep = MevEnergy{0.75};
-        pregen_data.points[StepPoint::pre].speed = LightSpeed(0.99);
-        pregen_data.points[StepPoint::post].speed = LightSpeed(0.99 * 0.9);
-        pregen_data.points[StepPoint::pre].pos = {0, 0, 0};
-        pregen_data.points[StepPoint::post].pos = {0, 0, from_cm(1)};
-        return pregen_data;
+        OpticalPreStepData pre_step;
+        pre_step.speed = LightSpeed(0.99862874144970537);  // 10 MeV
+        pre_step.pos = {0, 0, 0};
+        pre_step.time = 0;
+        return pre_step;
     }
 
   protected:
     RandomEngine rng_;
     OpticalMaterialId opt_matid_{0};
-    real_type sim_track_view_step_len_{2.5};  // [cm]
+
+    // Post-step values
+    Real3 post_pos_{0, 0, from_cm(1)};
+    MevEnergy post_energy_{9.25};
+    MevEnergy edep_{0.75};
+    real_type step_length_{2.5};  // [cm]
 };
 
 //---------------------------------------------------------------------------//
@@ -261,29 +264,33 @@ TEST_F(ScintillationTest, pre_generator)
     EXPECT_FALSE(data.scintillation_by_particle());
 
     // The particle's energy is necessary for the particle track view but is
-    // irrelevant for the test since what matters is the energy deposition,
-    // which is hardcoded in this->build_pregen_step()
-    ScintillationPreGenerator generate(
-        this->make_particle_track_view(MevEnergy{10}, pdg::electron()),
-        this->make_sim_track_view(sim_track_view_step_len_),
-        opt_matid_,
-        data,
-        this->build_pregen_step());
+    // irrelevant for the test since what matters is the energy deposition
+    auto particle
+        = this->make_particle_track_view(post_energy_, pdg::electron());
+    auto const pre_step = this->build_pre_step();
+
+    ScintillationPreGenerator generate(particle,
+                                       this->make_sim_track_view(step_length_),
+                                       post_pos_,
+                                       opt_matid_,
+                                       edep_,
+                                       data,
+                                       pre_step);
 
     auto const result = generate(this->rng());
+    CELER_ASSERT(result);
+
     EXPECT_EQ(4, result.num_photons);
     EXPECT_REAL_EQ(0, result.time);
-    EXPECT_REAL_EQ(from_cm(sim_track_view_step_len_), result.step_length);
+    EXPECT_REAL_EQ(from_cm(step_length_), result.step_length);
     EXPECT_EQ(-1, result.charge.value());
     EXPECT_EQ(0, result.material.get());
-
-    auto const expected_step = this->build_pregen_step();
-    for (auto p : range(StepPoint::size_))
-    {
-        EXPECT_EQ(expected_step.points[p].speed.value(),
-                  result.points[p].speed.value());
-        EXPECT_VEC_EQ(expected_step.points[p].pos, result.points[p].pos);
-    }
+    EXPECT_EQ(pre_step.speed.value(),
+              result.points[StepPoint::pre].speed.value());
+    EXPECT_EQ(particle.speed().value(),
+              result.points[StepPoint::post].speed.value());
+    EXPECT_VEC_EQ(pre_step.pos, result.points[StepPoint::pre].pos);
+    EXPECT_VEC_EQ(post_pos_, result.points[StepPoint::post].pos);
 }
 
 //---------------------------------------------------------------------------//
@@ -295,13 +302,15 @@ TEST_F(ScintillationTest, basic)
 
     // Pre-generate optical distribution data
     ScintillationPreGenerator generate(
-        this->make_particle_track_view(MevEnergy{10}, pdg::electron()),
-        this->make_sim_track_view(sim_track_view_step_len_),
+        this->make_particle_track_view(post_energy_, pdg::electron()),
+        this->make_sim_track_view(step_length_),
+        post_pos_,
         opt_matid_,
+        edep_,
         data,
-        this->build_pregen_step());
+        this->build_pre_step());
 
-    auto result = generate(this->rng());
+    auto const result = generate(this->rng());
 
     // Output data
     std::vector<OpticalPrimary> storage(result.num_photons);
@@ -335,10 +344,10 @@ TEST_F(ScintillationTest, basic)
                                                  1.1217590386333e-05,
                                                  1.0717754890017e-05,
                                                  5.9167264717999e-06};
-        static double const expected_time[] = {3.2118958537493e-08,
-                                               6.178384625891e-09,
-                                               1.7964387171822e-06,
-                                               8.0855486708577e-07};
+        static double const expected_time[] = {3.211612780853e-08,
+                                               6.1750109166679e-09,
+                                               1.7964384622073e-06,
+                                               8.0855470955892e-07};
         static double const expected_cos_theta[] = {0.98576260383561,
                                                     0.27952671419631,
                                                     0.48129448935284,
@@ -364,11 +373,14 @@ TEST_F(ScintillationTest, stress_test)
     auto const& data = params->host_ref();
 
     ScintillationPreGenerator generate(
-        this->make_particle_track_view(MevEnergy{10}, pdg::electron()),
-        this->make_sim_track_view(sim_track_view_step_len_),
+        this->make_particle_track_view(post_energy_, pdg::electron()),
+        this->make_sim_track_view(step_length_),
+        post_pos_,
         opt_matid_,
+        edep_,
         data,
-        this->build_pregen_step());
+        this->build_pre_step());
+
     auto result = generate(this->rng());
 
     // Overwrite result to force a large number of optical photons

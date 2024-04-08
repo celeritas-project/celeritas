@@ -9,8 +9,10 @@
 
 #include <memory>
 
+#include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/optical/OpticalDistributionData.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/track/SimData.hh"
 
@@ -67,12 +69,14 @@ class OpticalTestBase : public Test
     }
 
   private:
+    template<template<Ownership, MemSpace> class S>
+    using StateStore = CollectionStateStore<S, MemSpace::host>;
+
     std::shared_ptr<ParticleParams> particle_params_;
     std::shared_ptr<SimParams> sim_params_;
-    HostVal<ParticleStateData> p_state_val_;
-    HostRef<ParticleStateData> p_state_ref_;
-    HostVal<SimStateData> sim_state_val_;
-    HostRef<SimStateData> sim_state_ref_;
+
+    StateStore<ParticleStateData> particle_state_;
+    StateStore<SimStateData> sim_state_;
 };
 
 //---------------------------------------------------------------------------//

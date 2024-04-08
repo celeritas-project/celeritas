@@ -16,6 +16,7 @@
 #include "CerenkovData.hh"
 #include "CerenkovDndxCalculator.hh"
 #include "OpticalDistributionData.hh"
+#include "OpticalGenData.hh"
 #include "OpticalPropertyData.hh"
 
 namespace celeritas
@@ -26,12 +27,13 @@ namespace celeritas
  * \c CerenkovGenerator and populate \c OpticalDistributionData values using
  * Param and State data.
  * \code
-    CerenkovPreGenerator::OpticalPreGenStepData step_data;
+    OpticalPreStepData step_data;
     // Populate step_data
 
-   CerenkovPreGenerator pre_generate(particle_view,
-                                     sim_view,
-                                     material,
+   CerenkovPreGenerator pre_generate(particle,
+                                     sim,
+                                     position,
+                                     optmat_id,
                                      properties->host_ref(),
                                      params->host_ref(),
                                      step_data);
@@ -47,28 +49,15 @@ namespace celeritas
 class CerenkovPreGenerator
 {
   public:
-    // Placeholder for data that is not available through Views
-    // TODO: Merge Cerenkov and Scintillation pre-gen data into one struct
-    struct OpticalPreGenStepData
-    {
-        real_type time{};  //!< Pre-step time
-        EnumArray<StepPoint, OpticalStepData> points;  //!< Pre- and post-steps
-
-        //! Check whether the data are assigned
-        explicit CELER_FUNCTION operator bool() const
-        {
-            return points[StepPoint::pre].speed > zero_quantity();
-        }
-    };
-
     // Construct with optical properties, Cerenkov, and step data
     inline CELER_FUNCTION
-    CerenkovPreGenerator(ParticleTrackView const& particle_view,
-                         SimTrackView const& sim_view,
-                         OpticalMaterialId mat_id,
+    CerenkovPreGenerator(ParticleTrackView const& particle,
+                         SimTrackView const& sim,
+                         Real3 const& pos,
+                         OpticalMaterialId optmat_id,
                          NativeCRef<OpticalPropertyData> const& properties,
                          NativeCRef<CerenkovData> const& shared,
-                         OpticalPreGenStepData const& step_data);
+                         OpticalPreStepData const& step_data);
 
     // Return a populated optical distribution data for the Cerenkov Generator
     template<class Generator>
@@ -76,9 +65,10 @@ class CerenkovPreGenerator
 
   private:
     units::ElementaryCharge charge_;
-    real_type step_len_;
-    OpticalMaterialId mat_id_;
-    OpticalPreGenStepData step_data_;
+    real_type step_length_;
+    OpticalMaterialId optmat_id_;
+    OpticalPreStepData pre_step_;
+    OpticalStepData post_step_;
     real_type num_photons_per_len_;
 };
 
@@ -91,28 +81,29 @@ class CerenkovPreGenerator
  * Construct with optical properties, Cerenkov, and step information.
  */
 CELER_FUNCTION CerenkovPreGenerator::CerenkovPreGenerator(
-    ParticleTrackView const& particle_view,
-    SimTrackView const& sim_view,
-    OpticalMaterialId mat_id,
+    ParticleTrackView const& particle,
+    SimTrackView const& sim,
+    Real3 const& pos,
+    OpticalMaterialId optmat_id,
     NativeCRef<OpticalPropertyData> const& properties,
     NativeCRef<CerenkovData> const& shared,
-    OpticalPreGenStepData const& step_data)
-    : charge_(particle_view.charge())
-    , step_len_(sim_view.step_length())
-    , mat_id_(mat_id)
-    , step_data_(step_data)
+    OpticalPreStepData const& step_data)
+    : charge_(particle.charge())
+    , step_length_(sim.step_length())
+    , optmat_id_(optmat_id)
+    , pre_step_(step_data)
+    , post_step_({particle.speed(), pos})
 {
     CELER_EXPECT(charge_ != zero_quantity());
-    CELER_EXPECT(step_len_ > 0);
-    CELER_EXPECT(mat_id_);
-    CELER_EXPECT(step_data_);
+    CELER_EXPECT(step_length_ > 0);
+    CELER_EXPECT(optmat_id_);
+    CELER_EXPECT(pre_step_);
 
-    auto const& pre = step_data_.points[StepPoint::pre];
-    auto const& post = step_data_.points[StepPoint::post];
-    units::LightSpeed beta(real_type{0.5}
-                           * (pre.speed.value() + post.speed.value()));
+    units::LightSpeed beta(
+        real_type{0.5} * (pre_step_.speed.value() + post_step_.speed.value()));
 
-    CerenkovDndxCalculator calculate_dndx(properties, shared, mat_id_, charge_);
+    CerenkovDndxCalculator calculate_dndx(
+        properties, shared, optmat_id_, charge_);
     num_photons_per_len_ = calculate_dndx(beta);
 }
 
@@ -138,14 +129,16 @@ CerenkovPreGenerator::operator()(Generator& rng)
 
     OpticalDistributionData data;
     data.num_photons = PoissonDistribution<real_type>(num_photons_per_len_
-                                                      * step_len_)(rng);
+                                                      * step_length_)(rng);
     if (data.num_photons > 0)
     {
-        data.time = step_data_.time;
-        data.step_length = step_len_;
+        data.time = pre_step_.time;
+        data.step_length = step_length_;
         data.charge = charge_;
-        data.material = mat_id_;
-        data.points = step_data_.points;
+        data.material = optmat_id_;
+        data.points[StepPoint::pre].speed = pre_step_.speed;
+        data.points[StepPoint::pre].pos = pre_step_.pos;
+        data.points[StepPoint::post] = post_step_;
     }
     return data;
 }

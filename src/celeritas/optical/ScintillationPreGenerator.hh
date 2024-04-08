@@ -16,6 +16,7 @@
 #include "celeritas/track/SimTrackView.hh"
 
 #include "OpticalDistributionData.hh"
+#include "OpticalGenData.hh"
 #include "OpticalPropertyData.hh"
 #include "ScintillationData.hh"
 
@@ -30,29 +31,15 @@ namespace celeritas
 class ScintillationPreGenerator
 {
   public:
-    // Placeholder for data that is not available through Views
-    // TODO: Merge Cerenkov and Scintillation pre-gen data into one struct
-    struct OpticalPreGenStepData
-    {
-        real_type time{};  //!< Pre-step time
-        units::MevEnergy energy_dep;  //!< Step energy deposition
-        EnumArray<StepPoint, OpticalStepData> points;  //!< Pre- and post-steps
-
-        //! Check whether the data are assigned
-        explicit CELER_FUNCTION operator bool() const
-        {
-            return energy_dep > zero_quantity()
-                   && points[StepPoint::pre].speed > zero_quantity();
-        }
-    };
-
     // Construct with optical properties, scintillation, and step data
     inline CELER_FUNCTION
-    ScintillationPreGenerator(ParticleTrackView const& particle_view,
-                              SimTrackView const& sim_view,
-                              OpticalMaterialId material,
+    ScintillationPreGenerator(ParticleTrackView const& particle,
+                              SimTrackView const& sim,
+                              Real3 const& pos,
+                              OpticalMaterialId optmat_id,
+                              units::MevEnergy energy_deposition,
                               NativeCRef<ScintillationData> const& shared,
-                              OpticalPreGenStepData const& step_data);
+                              OpticalPreStepData const& step_data);
 
     // Populate an optical distribution data for the Scintillation Generator
     template<class Generator>
@@ -60,10 +47,11 @@ class ScintillationPreGenerator
 
   private:
     units::ElementaryCharge charge_;
-    real_type step_len_;
-    OpticalMaterialId mat_id_;
+    real_type step_length_;
+    OpticalMaterialId optmat_id_;
+    OpticalPreStepData pre_step_;
+    OpticalStepData post_step_;
     NativeCRef<ScintillationData> const& shared_;
-    OpticalPreGenStepData step_;
     real_type mean_num_photons_;
 };
 
@@ -74,21 +62,24 @@ class ScintillationPreGenerator
  * Construct with input parameters.
  */
 CELER_FUNCTION ScintillationPreGenerator::ScintillationPreGenerator(
-    ParticleTrackView const& particle_view,
-    SimTrackView const& sim_view,
-    OpticalMaterialId material,
+    ParticleTrackView const& particle,
+    SimTrackView const& sim,
+    Real3 const& pos,
+    OpticalMaterialId optmat_id,
+    units::MevEnergy energy_deposition,
     NativeCRef<ScintillationData> const& shared,
-    OpticalPreGenStepData const& step_data)
-    : charge_(particle_view.charge())
-    , step_len_(sim_view.step_length())
-    , mat_id_(material)
+    OpticalPreStepData const& step_data)
+    : charge_(particle.charge())
+    , step_length_(sim.step_length())
+    , optmat_id_(optmat_id)
+    , pre_step_(step_data)
+    , post_step_({particle.speed(), pos})
     , shared_(shared)
-    , step_(step_data)
 {
-    CELER_EXPECT(step_len_ > 0);
-    CELER_EXPECT(mat_id_);
+    CELER_EXPECT(step_length_ > 0);
+    CELER_EXPECT(optmat_id_);
     CELER_EXPECT(shared_);
-    CELER_EXPECT(step_);
+    CELER_EXPECT(pre_step_);
 
     if (shared_.scintillation_by_particle())
     {
@@ -99,13 +90,13 @@ CELER_FUNCTION ScintillationPreGenerator::ScintillationPreGenerator(
     else
     {
         // Scintillation will be performed on materials only
-        CELER_EXPECT(!shared_.materials.empty()
-                     && mat_id_ < shared_.materials.size());
-        auto const& material = shared_.materials[mat_id_];
-        CELER_ASSERT(material);
+        CELER_ASSERT(optmat_id_ < shared_.materials.size());
+        auto const& material = shared_.materials[optmat_id_];
+
         // TODO: Use visible energy deposition when Birks law is implemented
-        mean_num_photons_ = material.yield_per_energy
-                            * step_.energy_dep.value();
+        mean_num_photons_ = material ? material.yield_per_energy
+                                           * energy_deposition.value()
+                                     : 0;
     }
 }
 
@@ -118,11 +109,16 @@ template<class Generator>
 CELER_FUNCTION OpticalDistributionData
 ScintillationPreGenerator::operator()(Generator& rng)
 {
+    if (mean_num_photons_ == 0)
+    {
+        return {};
+    }
+
     // Material-only sampling
     OpticalDistributionData result;
     if (mean_num_photons_ > 10)
     {
-        real_type sigma = shared_.resolution_scale[mat_id_]
+        real_type sigma = shared_.resolution_scale[optmat_id_]
                           * std::sqrt(mean_num_photons_);
         result.num_photons = clamp_to_nonneg(
             NormalDistribution<real_type>(mean_num_photons_, sigma)(rng)
@@ -137,11 +133,13 @@ ScintillationPreGenerator::operator()(Generator& rng)
     if (result.num_photons > 0)
     {
         // Assign remaining data
+        result.time = pre_step_.time;
+        result.step_length = step_length_;
         result.charge = charge_;
-        result.material = mat_id_;
-        result.step_length = step_len_;
-        result.time = step_.time;
-        result.points = step_.points;
+        result.material = optmat_id_;
+        result.points[StepPoint::pre].speed = pre_step_.speed;
+        result.points[StepPoint::pre].pos = pre_step_.pos;
+        result.points[StepPoint::post] = post_step_;
     }
     return result;
 }
