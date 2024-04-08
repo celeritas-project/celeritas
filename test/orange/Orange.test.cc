@@ -104,20 +104,6 @@ class ShiftTrackerTest : public JsonOrangeTest
     }
 };
 
-class GeantOrangeTest : public OrangeTest
-{
-  public:
-    void SetUp() final
-    {
-        if (!CELERITAS_USE_GEANT4)
-        {
-            GTEST_SKIP() << "Geant4 is disabled";
-        }
-        this->build_gdml_geometry(this->geometry_basename() + ".gdml");
-    }
-    real_type unit_length() const override { return lengthunits::centimeter; }
-};
-
 //---------------------------------------------------------------------------//
 class OneVolumeTest : public OrangeTest
 {
