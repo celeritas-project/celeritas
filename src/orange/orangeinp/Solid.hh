@@ -190,7 +190,7 @@ using CylinderSolid = Solid<Cylinder>;
  */
 SolidEnclosedAngle::operator bool() const
 {
-    return start_ != Turn{0} || interior_ != Turn{1};
+    return interior_ != Turn{1};
 }
 
 //---------------------------------------------------------------------------//
