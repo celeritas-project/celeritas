@@ -22,6 +22,8 @@ namespace g4org
 //---------------------------------------------------------------------------//
 /*!
  * Convert a unit from Geant4 scale to another.
+ *
+ * The input is the length scale of the original input in the new units.
  */
 class Scaler
 {
@@ -32,22 +34,22 @@ class Scaler
     //! Scale with an explicit factor, probably for testing
     explicit Scaler(double sc) : scale_{sc} { CELER_EXPECT(scale_ > 0); }
 
-    //! Convert a positional scalar
+    //! Multiply a value by the scale
     double operator()(double val) const { return val * scale_; }
 
-    //! Convert a two-vector
+    //! Convert and scale a 2D point
     Array<double, 2> operator()(G4TwoVector const& vec) const
     {
         return this->to<Array<double, 2>>(vec.x(), vec.y());
     }
 
-    //! Convert a three-vector
+    //! Convert and scale a 3D point
     Array<double, 3> operator()(G4ThreeVector const& vec) const
     {
         return this->to<Array<double, 3>>(vec.x(), vec.y(), vec.z());
     }
 
-    //! Create an array
+    //! Create an array or other object by scaling each argument
     template<class S, class... Ts>
     S to(Ts&&... args) const
     {

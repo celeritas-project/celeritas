@@ -69,25 +69,8 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Return theta, phi angles for a G4Para or G4Trap given their symmetry axis.
+ * Construct a shape using the solid's name and forwarded arguments.
  */
-[[maybe_unused]] auto calculate_theta_phi(G4ThreeVector const& axis)
-    -> std::pair<double, double>
-{
-    // The components of the symmetry axis for G4Para/Trap are alway encoded
-    // as a vector (A.tan(theta)cos(phi), A.tan(theta)sin(phi), A).
-    double const tan_theta_cos_phi = axis.x() / axis.z();
-    double const tan_theta_sin_phi = axis.y() / axis.z();
-
-    // Calculation taken from GetTheta/Phi implementations in Geant4 11
-    double const theta
-        = std::atan(std::sqrt(tan_theta_cos_phi * tan_theta_cos_phi
-                              + tan_theta_sin_phi * tan_theta_sin_phi));
-    double const phi = std::atan2(tan_theta_sin_phi, tan_theta_cos_phi);
-    return {theta, phi};
-}
-
-//---------------------------------------------------------------------------//
 template<class CR, class... Args>
 auto make_shape(G4VSolid const& solid, Args&&... args)
 {
@@ -99,7 +82,7 @@ auto make_shape(G4VSolid const& solid, Args&&... args)
 /*!
  * Get the enclosed azimuthal angle by a solid.
  *
- * This converts from radians (native, Geant4) to Turns.
+ * This internally converts from native Geant4 radians.
  */
 template<class S>
 SolidEnclosedAngle get_azimuthal_wedge(S const& solid)
@@ -112,7 +95,7 @@ SolidEnclosedAngle get_azimuthal_wedge(S const& solid)
 /*!
  * Get the enclosed polar angle by a solid.
  *
- * This converts from radians (native, Geant4) to Turns.
+ * This internally converts from native Geant4 radians.
  */
 template<class S>
 SolidEnclosedAngle get_polar_wedge(S const& solid)
@@ -123,6 +106,9 @@ SolidEnclosedAngle get_polar_wedge(S const& solid)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Construct an ORANGE solid using the G4Solid's name and forwarded arguments.
+ */
 template<class CR>
 auto make_solid(G4VSolid const& solid,
                 CR&& interior,
@@ -157,7 +143,7 @@ auto SolidConverter::operator()(arg_type solid_base) -> result_type
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert a geant4 solid to a VecGeom sphere with equivalent capacity.
+ * Convert a Geant4 solid to a VecGeom sphere with equivalent capacity.
  */
 auto SolidConverter::to_sphere(arg_type solid_base) const -> result_type
 {
@@ -388,7 +374,8 @@ auto SolidConverter::para(arg_type solid_base) -> result_type
     double const theta = solid.GetTheta();
     double const phi = solid.GetPhi();
 #else
-    CELER_NOT_IMPLEMENTED("older geant4, don't duplicate code");
+    // TODO: instead of duplicating with g4vg
+    CELER_NOT_IMPLEMENTED("older Geant4 for ORANGE conversion");
     double const theta = 0;
     double const phi = 0;
 #endif

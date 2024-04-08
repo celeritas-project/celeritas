@@ -57,11 +57,11 @@ class Transformer
     inline Transformation
     operator()(G4ThreeVector const& t, G4RotationMatrix const& rot) const;
 
-    //! Convert a translation + optional rotation
+    // Convert a translation + optional rotation
     inline VariantTransform
     operator()(G4ThreeVector const& t, G4RotationMatrix const* rot) const;
 
-    //! Convert an affine transform
+    // Convert an affine transform
     inline Transformation operator()(G4AffineTransform const& at) const;
 
   private:

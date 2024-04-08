@@ -31,7 +31,7 @@ class Transformer;
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert a Geant4 solid to a VecGeom "unplaced volume".
+ * Convert a Geant4 solid to an ORANGE object.
  */
 class SolidConverter
 {
@@ -43,10 +43,10 @@ class SolidConverter
     //!@}
 
   public:
-    inline SolidConverter(Scaler const& convert_scale,
-                          Transformer const& convert_transform);
+    // Construct with functors for applying scales and transformations
+    inline SolidConverter(Scaler const& scaler, Transformer const& transformer);
 
-    // Return a VecGeom-owned 'unplaced volume'
+    // Return a CSG object
     result_type operator()(arg_type);
 
     // Return a sphere with equivalent capacity
@@ -101,7 +101,7 @@ class SolidConverter
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with transform helper.
+ * Construct with functors for applying scales and transformations.
  */
 SolidConverter::SolidConverter(Scaler const& convert_scale,
                                Transformer const& convert_transform)
