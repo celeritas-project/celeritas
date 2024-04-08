@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "OpticalCollector.hh"
 
-#include "corecel/data/CollectionBuilder.hh"
-#include "corecel/data/CollectionMirror.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/optical/CerenkovParams.hh"
 #include "celeritas/optical/OpticalGenData.hh"
@@ -37,22 +35,22 @@ OpticalCollector::OpticalCollector(SPConstProperties properties,
     CELER_EXPECT(num_streams > 0);
     CELER_EXPECT(action_registry);
 
-    // Create params
+    // Create params and stream storage
     HostVal<OpticalGenParamsData> host_data;
     host_data.cerenkov = static_cast<bool>(cerenkov);
     host_data.scintillation = static_cast<bool>(scintillation);
     host_data.capacity = buffer_capacity;
     storage_->obj = {std::move(host_data), num_streams};
-    storage_->offsets.resize(num_streams, {});
+    storage_->size.resize(num_streams, {});
 
-    // Build action to gather pre-step data needed for generating optical
+    // Build action to gather pre-step data needed to generate optical
     // distributions
     gather_action_ = std::make_shared<detail::PreGenGatherAction>(
         action_registry->next_id(), storage_);
     action_registry->insert(gather_action_);
 
-    // Build action to generate optical distribution data from pre-step and
-    // state data
+    // Build action to generate Cerenkov and scintillation optical distribution
+    // data
     pregen_action_
         = std::make_shared<detail::PreGenAction>(action_registry->next_id(),
                                                  properties,

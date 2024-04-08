@@ -23,7 +23,7 @@ struct GenStorage
     using StoreT = StreamStore<OpticalGenParamsData, OpticalGenStateData>;
 
     StoreT obj;
-    std::vector<OpticalBufferOffsets> offsets;
+    std::vector<OpticalBufferSize> size;
 };
 
 //---------------------------------------------------------------------------//

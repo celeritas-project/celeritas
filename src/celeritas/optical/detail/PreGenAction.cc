@@ -53,7 +53,7 @@ PreGenAction::PreGenAction(ActionId id,
  */
 std::string PreGenAction::description() const
 {
-    return "generate optical distributions post-step";
+    return "generate Cerenkov and scintillation optical distribution data";
 }
 
 //---------------------------------------------------------------------------//
@@ -83,30 +83,31 @@ template<MemSpace M>
 void PreGenAction::execute_impl(CoreParams const& core_params,
                                 CoreState<M>& core_state) const
 {
-    size_type size = core_state.size();
+    size_type state_size = core_state.size();
     StreamId stream = core_state.stream_id();
-    auto& offsets = storage_->offsets[stream.get()];
-    auto const& state = storage_->obj.state<M>(stream, size);
+    auto& buffer_size = storage_->size[stream.get()];
+    auto const& state = storage_->obj.state<M>(stream, state_size);
 
-    CELER_VALIDATE(offsets.cerenkov + size <= state.cerenkov.size(),
+    CELER_VALIDATE(buffer_size.cerenkov + state_size <= state.cerenkov.size(),
                    << "insufficient capacity (" << state.cerenkov.size()
                    << ") for buffered Cerenkov distribution data (total "
                       "capacity requirement of "
-                   << offsets.cerenkov + size << ")");
-    CELER_VALIDATE(offsets.scintillation + size <= state.scintillation.size(),
-                   << "insufficient capacity (" << state.scintillation.size()
-                   << ") for buffered scintillation distribution data (total "
-                      "capacity requirement of "
-                   << offsets.scintillation + size << ")");
+                   << buffer_size.cerenkov + state_size << ")");
+    CELER_VALIDATE(
+        buffer_size.scintillation + state_size <= state.scintillation.size(),
+        << "insufficient capacity (" << state.scintillation.size()
+        << ") for buffered scintillation distribution data (total "
+           "capacity requirement of "
+        << buffer_size.scintillation + state_size << ")");
 
     // Generate the optical distribution data
     this->pre_generate(core_params, core_state);
 
     // Compact the buffers
-    offsets.cerenkov = this->remove_if_invalid(
-        state.cerenkov, offsets.cerenkov, size, stream);
-    offsets.scintillation = this->remove_if_invalid(
-        state.scintillation, offsets.scintillation, size, stream);
+    buffer_size.cerenkov = this->remove_if_invalid(
+        state.cerenkov, buffer_size.cerenkov, state_size, stream);
+    buffer_size.scintillation = this->remove_if_invalid(
+        state.scintillation, buffer_size.scintillation, state_size, stream);
 }
 
 //---------------------------------------------------------------------------//
@@ -116,15 +117,15 @@ void PreGenAction::execute_impl(CoreParams const& core_params,
 void PreGenAction::pre_generate(CoreParams const& core_params,
                                 CoreStateHost& core_state) const
 {
-    TrackExecutor execute{core_params.ptr<MemSpace::native>(),
-                          core_state.ptr(),
-                          detail::PreGenExecutor{
-                              properties_->host_ref(),
-                              cerenkov_->host_ref(),
-                              scintillation_->host_ref(),
-                              storage_->obj.state<MemSpace::native>(
-                                  core_state.stream_id(), core_state.size()),
-                              storage_->offsets[core_state.stream_id().get()]}};
+    TrackExecutor execute{
+        core_params.ptr<MemSpace::native>(),
+        core_state.ptr(),
+        detail::PreGenExecutor{properties_->host_ref(),
+                               cerenkov_->host_ref(),
+                               scintillation_->host_ref(),
+                               storage_->obj.state<MemSpace::native>(
+                                   core_state.stream_id(), core_state.size()),
+                               storage_->size[core_state.stream_id().get()]}};
     launch_action(*this, core_params, core_state, execute);
 }
 

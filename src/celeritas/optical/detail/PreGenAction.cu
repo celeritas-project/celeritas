@@ -36,15 +36,15 @@ namespace detail
 void PreGenAction::pre_generate(CoreParams const& core_params,
                                 CoreStateDevice& core_state) const
 {
-    TrackExecutor execute{core_params.ptr<MemSpace::native>(),
-                          core_state.ptr(),
-                          detail::PreGenExecutor{
-                              properties_->device_ref(),
-                              cerenkov_->device_ref(),
-                              scintillation_->device_ref(),
-                              storage_->obj.state<MemSpace::native>(
-                                  core_state.stream_id(), core_state.size()),
-                              storage_->offsets[core_state.stream_id().get()]}};
+    TrackExecutor execute{
+        core_params.ptr<MemSpace::native>(),
+        core_state.ptr(),
+        detail::PreGenExecutor{properties_->device_ref(),
+                               cerenkov_->device_ref(),
+                               scintillation_->device_ref(),
+                               storage_->obj.state<MemSpace::native>(
+                                   core_state.stream_id(), core_state.size()),
+                               storage_->size[core_state.stream_id().get()]}};
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(core_state, execute);
 }

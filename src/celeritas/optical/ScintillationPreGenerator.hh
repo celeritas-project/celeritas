@@ -36,22 +36,22 @@ class ScintillationPreGenerator
     ScintillationPreGenerator(ParticleTrackView const& particle,
                               SimTrackView const& sim,
                               Real3 const& pos,
-                              OpticalMaterialId mat_id,
+                              OpticalMaterialId optmat_id,
                               units::MevEnergy energy_deposition,
                               NativeCRef<ScintillationData> const& shared,
                               OpticalPreStepData const& step_data);
 
-    // Populate optical distribution data for the Scintillation Generator
+    // Return populated scintillation optical distribution data
     template<class Generator>
     inline CELER_FUNCTION OpticalDistributionData operator()(Generator& rng);
 
   private:
     units::ElementaryCharge charge_;
-    real_type step_len_;
-    real_type time_;
-    OpticalMaterialId mat_id_;
+    real_type step_length_;
+    OpticalMaterialId optmat_id_;
+    OpticalPreStepData pre_step_;
+    OpticalStepData post_step_;
     NativeCRef<ScintillationData> const& shared_;
-    EnumArray<StepPoint, OpticalStepData> points_;
     real_type mean_num_photons_;
 };
 
@@ -65,25 +65,21 @@ CELER_FUNCTION ScintillationPreGenerator::ScintillationPreGenerator(
     ParticleTrackView const& particle,
     SimTrackView const& sim,
     Real3 const& pos,
-    OpticalMaterialId mat_id,
+    OpticalMaterialId optmat_id,
     units::MevEnergy energy_deposition,
     NativeCRef<ScintillationData> const& shared,
     OpticalPreStepData const& step_data)
     : charge_(particle.charge())
-    , step_len_(sim.step_length())
-    , time_(step_data.time)
-    , mat_id_(mat_id)
+    , step_length_(sim.step_length())
+    , optmat_id_(optmat_id)
+    , pre_step_(step_data)
+    , post_step_({particle.speed(), pos})
     , shared_(shared)
 {
-    CELER_EXPECT(step_len_ > 0);
-    CELER_EXPECT(mat_id_);
+    CELER_EXPECT(step_length_ > 0);
+    CELER_EXPECT(optmat_id_);
     CELER_EXPECT(shared_);
-    CELER_EXPECT(step_data);
-
-    points_[StepPoint::pre].speed = step_data.speed;
-    points_[StepPoint::pre].pos = step_data.pos;
-    points_[StepPoint::post].speed = particle.speed();
-    points_[StepPoint::post].pos = pos;
+    CELER_EXPECT(pre_step_);
 
     if (shared_.scintillation_by_particle())
     {
@@ -94,8 +90,8 @@ CELER_FUNCTION ScintillationPreGenerator::ScintillationPreGenerator(
     else
     {
         // Scintillation will be performed on materials only
-        CELER_ASSERT(mat_id_ < shared_.materials.size());
-        auto const& material = shared_.materials[mat_id_];
+        CELER_ASSERT(optmat_id_ < shared_.materials.size());
+        auto const& material = shared_.materials[optmat_id_];
 
         // TODO: Use visible energy deposition when Birks law is implemented
         mean_num_photons_ = material ? material.yield_per_energy
@@ -123,7 +119,7 @@ ScintillationPreGenerator::operator()(Generator& rng)
     OpticalDistributionData result;
     if (mean_num_photons_ > 10)
     {
-        real_type sigma = shared_.resolution_scale[mat_id_]
+        real_type sigma = shared_.resolution_scale[optmat_id_]
                           * std::sqrt(mean_num_photons_);
         result.num_photons = clamp_to_nonneg(
             NormalDistribution<real_type>(mean_num_photons_, sigma)(rng)
@@ -138,11 +134,13 @@ ScintillationPreGenerator::operator()(Generator& rng)
     if (result.num_photons > 0)
     {
         // Assign remaining data
-        result.time = time_;
-        result.step_length = step_len_;
+        result.time = pre_step_.time;
+        result.step_length = step_length_;
         result.charge = charge_;
-        result.material = mat_id_;
-        result.points = points_;
+        result.material = optmat_id_;
+        result.points[StepPoint::pre].speed = pre_step_.speed;
+        result.points[StepPoint::pre].pos = pre_step_.pos;
+        result.points[StepPoint::post] = post_step_;
     }
     return result;
 }

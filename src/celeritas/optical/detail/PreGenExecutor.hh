@@ -33,7 +33,7 @@ struct PreGenExecutor
     NativeCRef<CerenkovData> const cerenkov;
     NativeCRef<ScintillationData> const scintillation;
     NativeRef<OpticalGenStateData> const state;
-    OpticalBufferOffsets offsets;
+    OpticalBufferSize size;
 };
 
 //---------------------------------------------------------------------------//
@@ -48,12 +48,14 @@ CELER_FUNCTION void PreGenExecutor::operator()(CoreTrackView const& track)
 
     using DistId = ItemId<OpticalDistributionData>;
 
-    // clear distribution data
     auto tsid = track.track_slot_id();
-    DistId cerenkov_offset(offsets.cerenkov + tsid.get());
-    DistId scintillation_offset(offsets.scintillation + tsid.get());
-    state.cerenkov[cerenkov_offset] = {};
-    state.scintillation[scintillation_offset] = {};
+    auto& cerenkov_dist = state.cerenkov[DistId(size.cerenkov + tsid.get())];
+    auto& scintillation_dist
+        = state.scintillation[DistId(size.scintillation + tsid.get())];
+
+    // clear distribution data
+    cerenkov_dist = {};
+    scintillation_dist = {};
 
     auto sim = track.make_sim_view();
     auto optmat_id
@@ -82,14 +84,14 @@ CELER_FUNCTION void PreGenExecutor::operator()(CoreTrackView const& track)
                                       properties,
                                       cerenkov,
                                       state.step[tsid]);
-        state.cerenkov[cerenkov_offset] = generate(rng);
+        cerenkov_dist = generate(rng);
     }
     if (scintillation)
     {
         auto edep = track.make_physics_step_view().energy_deposition();
         ScintillationPreGenerator generate(
             particle, sim, pos, optmat_id, edep, scintillation, state.step[tsid]);
-        state.scintillation[scintillation_offset] = generate(rng);
+        scintillation_dist = generate(rng);
     }
 }
 

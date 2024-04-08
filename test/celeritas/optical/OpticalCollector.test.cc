@@ -248,7 +248,7 @@ auto LArSpherePreGenTest::run(size_type num_tracks, size_type num_steps)
     RunResult result;
     CELER_ASSERT(collector_->storage()->obj.state<M>(stream_));
     auto const& state = *(collector_->storage()->obj.state<M>(stream_));
-    auto const& sizes = collector_->storage()->offsets[stream_.get()];
+    auto const& sizes = collector_->storage()->size[stream_.get()];
     get_result(result.cerenkov, state.cerenkov, sizes.cerenkov);
     get_result(result.scintillation, state.scintillation, sizes.scintillation);
 
