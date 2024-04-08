@@ -119,7 +119,11 @@ TEST_F(ConverterTest, DISABLED_arbitrary)
                       "--gtest_filter=*arbitrary "
                       "--gtest_also_run_disabled_tests");
 
-    Converter convert;
+    Converter convert([] {
+        Converter::Options opts;
+        opts.verbose = true;
+        return opts;
+    }());
     auto input = convert(this->load(filename)).input;
 
     filename += ".json";

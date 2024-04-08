@@ -213,7 +213,8 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
         {
             std::clog << std::string(depth_, ' ') << " :  "
                       << "daughter shape is "
-                      << to_string(*proto->daughters.back().make_interior());
+                      << to_string(*proto->daughters.back().make_interior())
+                      << std::endl;
         }
     }
 }
