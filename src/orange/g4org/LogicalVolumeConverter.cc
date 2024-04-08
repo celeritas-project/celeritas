@@ -8,6 +8,7 @@
 #include "LogicalVolumeConverter.hh"
 
 #include <G4LogicalVolume.hh>
+#include <G4Material.hh>
 #include <G4MaterialCutsCouple.hh>
 #include <G4VSolid.hh>
 
@@ -77,11 +78,11 @@ auto LogicalVolumeConverter::construct_impl(arg_type g4lv) -> SPLV
     }
 
     // Save material ID
-    if (auto* cuts = g4lv.GetMaterialCutsCouple())
+    // NOTE: this is *not* the physics material ("cut couple")
+    if (auto* mat = g4lv.GetMaterial())
     {
-        auto idx = cuts->GetIndex();
-        CELER_ASSERT(idx >= 0);
-        result->material_id = MaterialId{static_cast<size_type>(idx)};
+        result->material_id
+            = MaterialId{static_cast<size_type>(mat->GetIndex())};
     }
 
     // Convert solid
