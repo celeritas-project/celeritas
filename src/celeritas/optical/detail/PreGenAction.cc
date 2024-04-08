@@ -19,7 +19,7 @@
 #include "celeritas/optical/OpticalPropertyParams.hh"
 #include "celeritas/optical/ScintillationParams.hh"
 
-#include "GenStorage.hh"
+#include "OpticalGenStorage.hh"
 #include "PreGenExecutor.hh"
 
 namespace celeritas

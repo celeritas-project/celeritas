@@ -16,7 +16,7 @@
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
-#include "GenStorage.hh"
+#include "OpticalGenStorage.hh"
 #include "PreGenGatherExecutor.hh"
 
 namespace celeritas

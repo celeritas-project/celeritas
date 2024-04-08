@@ -22,7 +22,7 @@ class ScintillationParams;
 
 namespace detail
 {
-struct GenStorage;
+struct OpticalGenStorage;
 //---------------------------------------------------------------------------//
 /*!
  * Generate optical distribution data.
@@ -35,7 +35,7 @@ class PreGenAction final : public ExplicitCoreActionInterface
     using SPConstCerenkov = std::shared_ptr<CerenkovParams const>;
     using SPConstProperties = std::shared_ptr<OpticalPropertyParams const>;
     using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
-    using SPGenStorage = std::shared_ptr<detail::GenStorage>;
+    using SPGenStorage = std::shared_ptr<detail::OpticalGenStorage>;
     //!@}
 
     //! Check if the distribution data is valid

@@ -13,7 +13,7 @@
 #include "celeritas/optical/OpticalPropertyParams.hh"
 #include "celeritas/optical/ScintillationParams.hh"
 
-#include "detail/GenStorage.hh"
+#include "detail/OpticalGenStorage.hh"
 
 namespace celeritas
 {
@@ -27,7 +27,7 @@ OpticalCollector::OpticalCollector(SPConstProperties properties,
                                    size_type buffer_capacity,
                                    size_type num_streams,
                                    ActionRegistry* action_registry)
-    : storage_(std::make_shared<detail::GenStorage>())
+    : storage_(std::make_shared<detail::OpticalGenStorage>())
 {
     CELER_EXPECT(scintillation || (cerenkov && properties));
     CELER_EXPECT(!cerenkov == !properties);

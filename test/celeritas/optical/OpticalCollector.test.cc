@@ -21,7 +21,7 @@
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/optical/OpticalCollector.hh"
-#include "celeritas/optical/detail/GenStorage.hh"
+#include "celeritas/optical/detail/OpticalGenStorage.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"

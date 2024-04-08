@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/detail/GenStorage.hh
+//! \file celeritas/user/detail/OpticalGenStorage.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -18,7 +18,7 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-struct GenStorage
+struct OpticalGenStorage
 {
     using StoreT = StreamStore<OpticalGenParamsData, OpticalGenStateData>;
 
