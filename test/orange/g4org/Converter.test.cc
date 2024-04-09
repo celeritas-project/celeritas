@@ -121,7 +121,7 @@ TEST_F(ConverterTest, DISABLED_arbitrary)
 
     Converter convert([] {
         Converter::Options opts;
-        opts.verbose = true;
+        opts.verbose = false;
         return opts;
     }());
     auto input = convert(this->load(filename)).input;

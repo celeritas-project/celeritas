@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <numeric>
 
+#include "corecel/io/Logger.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeInput.hh"
 
@@ -104,6 +105,9 @@ void UnitProto::build(InputBuilder& input) const
 
     // Get the list of all surfaces actually used
     auto const sorted_local_surfaces = calc_surfaces(csg_unit.tree);
+    CELER_LOG(debug) << "...built " << this->label() << ": used "
+                     << sorted_local_surfaces.size() << " of "
+                     << csg_unit.surfaces.size() << " surfaces";
 
     UnitInput result;
     result.label = input_.label;
@@ -291,6 +295,11 @@ void UnitProto::build(InputBuilder& input) const
 auto UnitProto::build(Tol const& tol, ExteriorBoundary ext) const -> Unit
 {
     CELER_EXPECT(tol);
+
+    CELER_LOG(debug) << "Building " << this->label() << ": "
+                     << input_.daughters.size() << " daughters and "
+                     << input_.materials.size() << " materials...";
+
     detail::CsgUnit result;
     detail::CsgUnitBuilder unit_builder(&result, tol);
 
