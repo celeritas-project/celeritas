@@ -159,9 +159,11 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
         add_material(
             Transformed::or_object(pv.lv->solid, std::move(transform)));
     }
-    else if (pv.lv.use_count() == 1)
+    else if (pv.lv.use_count() == 1
+             && std::holds_alternative<NoTransformation>(pv.transform))
     {
         // Child can be inlined into the parent because it's used only once
+        // *and* it doesn't have a transform relative to the parent
         if (CELER_UNLIKELY(verbose_))
         {
             std::clog << std::string(depth_, ' ') << " -> "
