@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "corecel/cont/EnumArray.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/surf/SoftSurfaceEqual.hh"
 #include "orange/surf/VariantSurface.hh"
@@ -59,6 +60,7 @@ class LocalSurfaceInserter
     //// TYPES ////
 
     using MapSurfId = std::unordered_map<LocalSurfaceId, LocalSurfaceId>;
+    using VecSurfId = std::vector<LocalSurfaceId>;
 
     //// DATA ////
 
@@ -66,6 +68,8 @@ class LocalSurfaceInserter
     SoftSurfaceEqual soft_surface_equal_;
     ExactSurfaceEqual exact_surface_equal_;
     MapSurfId merged_;
+
+    EnumArray<SurfaceType, VecSurfId> types_;
 
     //// METHODS ////
 
