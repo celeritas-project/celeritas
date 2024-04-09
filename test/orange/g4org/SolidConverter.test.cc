@@ -260,6 +260,41 @@ TEST_F(SolidConverterTest, polyhedra)
         {{6.18, 6.18, 0.05}, {0, 0, 0.06}, {7.15, 7.15, 0.05}, {6.18, 7.15, 0}});
 }
 
+TEST_F(SolidConverterTest, sphere)
+{
+    this->build_and_test(
+        G4Sphere("Solid G4Sphere", 0, 50, 0, twopi, 0, pi),
+        R"json({"_type":"shape","interior":{"_type":"sphere","radius":5.0},"label":"Solid G4Sphere"})json");
+    this->build_and_test(
+        G4Sphere("sn1", 0, 50, halfpi, 3. * halfpi, 0, pi),
+        R"json({"_type":"solid","enclosed_angle":{"interior":0.75,"start":0.25},"interior":{"_type":"sphere","radius":5.0},"label":"sn1"})json",
+        {{-3, 0.05, 0}, {3, 0.5, 0}, {0, -0.01, 4.9}});
+    EXPECT_THROW(
+        this->build_and_test(G4Sphere("sn12", 0, 50, 0, twopi, 0., 0.25 * pi)),
+        DebugError);
+
+    this->build_and_test(
+        G4Sphere("Spherical Shell", 45, 50, 0, twopi, 0, pi),
+        R"json({"_type":"solid","excluded":{"_type":"sphere","radius":4.5},"interior":{"_type":"sphere","radius":5.0},"label":"Spherical Shell"})json",
+        {{0, 0, 4.4}, {0, 0, 4.6}, {0, 0, 5.1}});
+    EXPECT_THROW(
+        this->build_and_test(G4Sphere(
+            "Band (theta segment1)", 45, 50, 0, twopi, pi * 3 / 4, pi / 4)),
+        DebugError);
+
+    this->build_and_test(
+        G4Sphere("Band (phi segment)", 5, 50, -pi, 3. * pi / 2., 0, twopi),
+        R"json({"_type":"solid","enclosed_angle":{"interior":0.75,"start":-0.5},"excluded":{"_type":"sphere","radius":0.5},"interior":{"_type":"sphere","radius":5.0},"label":"Band (phi segment)"})json");
+    EXPECT_THROW(
+        this->build_and_test(G4Sphere(
+            "Patch (phi/theta seg)", 45, 50, -pi / 4, halfpi, pi / 4, halfpi)),
+        DebugError);
+
+    this->build_and_test(
+        G4Sphere("John example", 300, 500, 0, 5.76, 0, pi),
+        R"json({"_type":"solid","enclosed_angle":{"interior":0.9167324722093171,"start":0.0},"excluded":{"_type":"sphere","radius":30.0},"interior":{"_type":"sphere","radius":50.0},"label":"John example"})json");
+}
+
 TEST_F(SolidConverterTest, subtractionsolid)
 {
     G4Tubs t1("Solid Tube #1", 0, 50., 50., 0., 360. * degree);
