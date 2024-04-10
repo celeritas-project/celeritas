@@ -47,6 +47,7 @@ list(APPEND SOURCES
   orangeinp/detail/PostfixLogicBuilder.cc
   orangeinp/detail/ProtoMap.cc
   orangeinp/detail/SenseEvaluator.cc
+  orangeinp/detail/SurfaceGridHash.cc
   orangeinp/detail/TransformInserter.cc
   orangeinp/detail/VolumeBuilder.cc
   surf/ConeAligned.cc
