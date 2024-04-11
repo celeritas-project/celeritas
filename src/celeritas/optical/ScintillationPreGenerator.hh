@@ -111,11 +111,6 @@ template<class Generator>
 CELER_FUNCTION OpticalDistributionData
 ScintillationPreGenerator::operator()(Generator& rng)
 {
-    if (mean_num_photons_ == 0)
-    {
-        return {};
-    }
-
     // Material-only sampling
     OpticalDistributionData result;
     if (mean_num_photons_ > 10)
@@ -126,7 +121,7 @@ ScintillationPreGenerator::operator()(Generator& rng)
             NormalDistribution<real_type>(mean_num_photons_, sigma)(rng)
             + real_type{0.5});
     }
-    else
+    else if (mean_num_photons_ > 0)
     {
         result.num_photons
             = PoissonDistribution<real_type>(mean_num_photons_)(rng);
