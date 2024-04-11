@@ -105,7 +105,7 @@ namespace
 [[maybe_unused]] auto calculate_theta_phi(G4ThreeVector const& axis)
     -> std::pair<double, double>
 {
-    // The components of the symmetry axis for G4Para/Trap are alway encoded
+    // The components of the symmetry axis for G4Para/Trap are always encoded
     // as a vector (A.tan(theta)cos(phi), A.tan(theta)sin(phi), A).
     double const tan_theta_cos_phi = axis.x() / axis.z();
     double const tan_theta_sin_phi = axis.y() / axis.z();

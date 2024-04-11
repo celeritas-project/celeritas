@@ -128,7 +128,7 @@ struct OrangeInput
     Tolerance<> tol;
 
     //! Whether the unit definition is valid
-    explicit operator bool() const { return !universes.empty(); }
+    explicit operator bool() const { return !universes.empty() && tol; }
 };
 
 //---------------------------------------------------------------------------//

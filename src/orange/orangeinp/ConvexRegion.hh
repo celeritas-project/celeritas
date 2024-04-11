@@ -290,8 +290,8 @@ class InfWedge final : public ConvexRegionInterface
  * The shape has the center in the origin and it is defined by:
  *
  *   - `halfedges:` a 3-vector (dY, dY, dZ) with half-lengths of the
- * projections of the edges on X, Y, Z. The lower Z face is positioned at
- * `-dZ`, and the upper one at `+dZ`.
+ *     projections of the edges on X, Y, Z. The lower Z face is positioned at
+ *     `-dZ`, and the upper one at `+dZ`.
  *   - `alpha:` angle between the segment defined by the centers of the
  *     X-parallel edges and Y axis. Validity range is `(-1/4, 1/4)`;
  *   - `theta:` polar angle of the shape's main axis, e.g. the segment defined
@@ -410,6 +410,11 @@ class Sphere final : public ConvexRegionInterface
 
     // Output to JSON
     void output(JsonPimpl*) const final;
+
+    //// TEMPLATE INTERFACE ////
+
+    // Whether this encloses another sphere
+    bool encloses(Sphere const& other) const;
 
     //// ACCESSORS ////
 

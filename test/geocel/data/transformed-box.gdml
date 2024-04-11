@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+  <solids>
+    <box lunit="cm" name="simple_box" x="2" y="3" z="4"/>
+    <box lunit="cm" name="world_box" x="100" y="100" z="100"/>
+  </solids>
+  <structure>
+    <volume name="simple">
+      <solidref ref="simple_box"/>
+    </volume>
+    <volume name="world">
+      <solidref ref="world_box"/>
+      <physvol name="transrot">
+        <volumeref ref="simple"/>
+        <position unit="cm" x="0" y="0" z="-10"/>
+        <rotation unit="deg" x="0" y="30" z="0"/>
+      </physvol>
+      <physvol name="default">
+        <volumeref ref="simple"/>
+      </physvol>
+      <physvol name="trans">
+        <volumeref ref="simple"/>
+        <position unit="cm" x="0" y="0" z="10"/>
+      </physvol>
+    </volume>
+  </structure>
+  <setup name="default" version="1.0">
+    <world ref="world"/>
+  </setup>
+</gdml>

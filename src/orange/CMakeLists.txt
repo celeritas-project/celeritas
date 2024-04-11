@@ -82,6 +82,22 @@ if(CELERITAS_USE_JSON)
   list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()
 
+if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
+  set( _cg4org_sources
+    g4org/LogicalVolumeConverter.cc
+    g4org/PhysicalVolumeConverter.cc
+    g4org/SolidConverter.cc
+  )
+  celeritas_get_g4libs(_cg4org_libs geometry)
+  list(APPEND _cg4org_libs Celeritas::corecel Celeritas::geocel)
+
+  celeritas_add_object_library(geocel_g4org ${_cg4org_sources})
+  celeritas_target_link_libraries(geocel_g4org PRIVATE ${_cg4org_libs})
+
+  list(APPEND SOURCES $<TARGET_OBJECTS:geocel_g4org>)
+  list(APPEND PRIVATE_DEPS geocel_g4org)
+endif()
+
 #-----------------------------------------------------------------------------#
 # Create library
 #-----------------------------------------------------------------------------#

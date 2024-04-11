@@ -7,7 +7,7 @@
 if(NOT CELERITAS_USE_Geant4)
   set(_needs_geant4 DISABLE)
 else()
-  set(_needs_geant4 LINK_LIBRARIES ${Geant4_LIBRARIES})
+  celeritas_get_g4libs(_g4_geo_libs geometry)
 endif()
 
 if(CELERITAS_UNITS STREQUAL "CGS")
@@ -43,7 +43,7 @@ celeritas_target_link_libraries(testcel_geocel
   PUBLIC
     Celeritas::testcel_harness Celeritas::geocel
   PRIVATE
-    Celeritas::testcel_core ${Geant4_LIBRARIES} ${VecGeom_LIBRARIES}
+    Celeritas::testcel_core ${_g4_geo_libs} ${VecGeom_LIBRARIES}
 )
 
 #-----------------------------------------------------------------------------#
@@ -104,10 +104,10 @@ endif()
 
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   celeritas_add_test(g4/GeantGeo.test.cc
-    LINK_LIBRARIES ${Geant4_LIBRARIES}
+    LINK_LIBRARIES ${_g4_geo_libs}
   )
   celeritas_add_test(GeantGeoUtils.test.cc
-    LINK_LIBRARIES ${Geant4_LIBRARIES}
+    LINK_LIBRARIES ${_g4_geo_libs}
   )
 endif()
 

@@ -26,6 +26,10 @@ if(NOT CELERITAS_USE_JSON)
   set(_needs_json DISABLE)
 endif()
 
+if(CELERITAS_USE_Geant4)
+  celeritas_get_g4libs(_g4_geo_libs geometry)
+endif()
+
 #-----------------------------------------------------------------------------#
 # SETUP
 #-----------------------------------------------------------------------------#
@@ -106,7 +110,7 @@ celeritas_add_test(surf/detail/SurfaceTranslator.test.cc)
 celeritas_add_test(surf/detail/SurfaceTransformer.test.cc)
 
 #-----------------------------------------------------------------------------#
-# Universe details
+# Universe
 set(CELERITASTEST_PREFIX orange/univ)
 celeritas_add_test(univ/VolumeView.test.cc)
 celeritas_add_test(univ/RectArrayTracker.test.cc ${_needs_json})
@@ -119,5 +123,17 @@ celeritas_add_test(univ/detail/LogicStack.test.cc)
 celeritas_add_test(univ/detail/RaggedRightIndexer.test.cc)
 celeritas_add_test(univ/detail/SurfaceFunctors.test.cc)
 celeritas_add_test(univ/detail/SenseCalculator.test.cc)
+
+
+#-----------------------------------------------------------------------------#
+# Geant4 construction
+if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
+  set(CELERITASTEST_PREFIX orange/g4org)
+  list(APPEND CELERITASTEST_LINK_LIBRARIES ${_g4_geo_libs})
+
+  celeritas_add_test(g4org/SolidConverter.test.cc)
+  celeritas_add_test(g4org/PhysicalVolumeConverter.test.cc)
+  celeritas_add_test(g4org/Transformer.test.cc)
+endif()
 
 #-----------------------------------------------------------------------------#

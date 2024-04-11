@@ -200,6 +200,7 @@ void NestedTest::build_orange()
 
     OrangeInput input;
     input.universes.push_back(std::move(ui));
+    input.tol = Tolerance<>::from_default();
     auto geo = std::make_shared<OrangeParams>(std::move(input));
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
     geo_params_ = std::move(geo);
