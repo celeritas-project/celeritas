@@ -634,5 +634,14 @@ void Sphere::output(JsonPimpl* j) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Whether this encloses another sphere.
+ */
+bool Sphere::encloses(Sphere const& other) const
+{
+    return radius_ >= other.radius();
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace orangeinp
 }  // namespace celeritas
