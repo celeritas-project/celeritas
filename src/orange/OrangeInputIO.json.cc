@@ -550,6 +550,13 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
     {
         j.at("tol").get_to(value.tol);
     }
+    else
+    {
+        value.tol = Tolerance<>::from_default();
+        CELER_LOG(debug) << "No input tolerance provided: setting default "
+                            "tolerance";
+    }
+    CELER_ENSURE(value);
 }
 
 //---------------------------------------------------------------------------//

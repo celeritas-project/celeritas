@@ -22,7 +22,7 @@ class OrangeTypesTest : public ::celeritas::test::Test
 
 TEST_F(OrangeTypesTest, tolerances)
 {
-    using TolT = Tolerance<>;
+    using TolT = Tolerance<real_type>;
     EXPECT_FALSE(TolT{});
 
     {
@@ -30,18 +30,18 @@ TEST_F(OrangeTypesTest, tolerances)
         auto const tol = TolT::from_default();
         EXPECT_TRUE(tol);
         EXPECT_SOFT_NEAR(
-            std::sqrt(std::numeric_limits<real_type>::epsilon()), tol.rel, 0.5);
+            std::sqrt(std::numeric_limits<real_type>::epsilon()), tol.rel, 0.1);
         EXPECT_SOFT_EQ(tol.rel, tol.abs);
         if constexpr (std::is_same_v<real_type, double>)
         {
-            EXPECT_SOFT_EQ(1e-8, tol.rel);
+            EXPECT_SOFT_EQ(1.5e-8, tol.rel);
         }
     }
     {
         SCOPED_TRACE("Tolerance with other length scale");
         auto const tol = Tolerance<double>::from_default(1e-4);
-        EXPECT_SOFT_EQ(1e-8, tol.rel);
-        EXPECT_SOFT_EQ(1e-12, tol.abs);
+        EXPECT_SOFT_EQ(1.5e-8, tol.rel);
+        EXPECT_SOFT_EQ(1.5e-12, tol.abs);
         EXPECT_SOFT_EQ(1e-10, ipow<2>(Tolerance<double>::sqrt_quadratic()));
     }
     {

@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+  <define>
+    <position name="translate" unit="cm" x="1" y="2" z="4"/>
+    <rotation name="rotate" unit="deg" x="0" y="30" z="0"/>
+  </define>
+  <solids>
+    <box lunit="cm" name="first" x="2" y="3" z="4"/>
+    <box lunit="cm" name="second" x="3" y="4" z="5"/>
+    <box lunit="cm" name="world_box" x="100" y="100" z="100"/>
+    <intersection name="isect">
+      <first ref="first"/>
+      <second ref="second"/>
+      <positionref ref="translate"/>
+      <rotationref ref="rotate"/>
+    </intersection>
+  </solids>
+  <structure>
+    <volume name="inner">
+      <solidref ref="isect"/>
+    </volume>
+    <volume name="world">
+      <solidref ref="world_box"/>
+      <physvol>
+        <volumeref ref="inner"/>
+      </physvol>
+    </volume>
+  </structure>
+  <setup name="default" version="1.0">
+    <world ref="world"/>
+  </setup>
+</gdml>

@@ -42,7 +42,7 @@ class UnitInserter
     UnitInserter(UniverseInserter* insert_universe, Data* orange_data);
 
     // Create a simple unit and store in in OrangeParamsData
-    UniverseId operator()(UnitInput const& inp);
+    UniverseId operator()(UnitInput&& inp);
 
   private:
     Data* orange_data_{nullptr};

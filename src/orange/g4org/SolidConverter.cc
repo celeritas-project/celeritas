@@ -143,7 +143,7 @@ auto SolidConverter::operator()(arg_type solid_base) -> result_type
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert a Geant4 solid to a VecGeom sphere with equivalent capacity.
+ * Convert a Geant4 solid to a sphere with equivalent capacity.
  */
 auto SolidConverter::to_sphere(arg_type solid_base) const -> result_type
 {
@@ -279,6 +279,9 @@ auto SolidConverter::displaced(arg_type solid_base) -> result_type
     G4VSolid* g4daughter = solid.GetConstituentMovedSolid();
     CELER_ASSERT(g4daughter);
     auto daughter = (*this)(*g4daughter);
+
+    // Note that GetDirectTransform is the combination of GetFrameTranslation
+    // and GetFrameRotation .
     return std::make_shared<Transformed>(
         daughter, transform_(solid.GetDirectTransform()));
 }
@@ -508,8 +511,22 @@ auto SolidConverter::reflectedsolid(arg_type solid_base) -> result_type
 auto SolidConverter::sphere(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Sphere const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("sphere");
+    std::optional<Sphere> inner;
+    if (double inner_r = solid.GetInnerRadius())
+    {
+        inner = Sphere{scale_(inner_r)};
+    }
+
+    auto polar_wedge = get_polar_wedge(solid);
+    if (!soft_equal(value_as<Turn>(polar_wedge.interior()), 0.5))
+    {
+        CELER_NOT_IMPLEMENTED("sphere with polar limits");
+    }
+
+    return make_solid(solid,
+                      Sphere{scale_(solid.GetOuterRadius())},
+                      std::move(inner),
+                      get_azimuthal_wedge(solid));
 }
 
 //---------------------------------------------------------------------------//

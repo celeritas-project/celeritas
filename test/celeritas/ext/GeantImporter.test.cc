@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/GeantImporter.hh"
 
-#include <regex>
-
 #include "celeritas_cmake_strings.h"
 #include "celeritas_config.h"
 #include "corecel/ScopedLogStorer.hh"
@@ -47,12 +45,6 @@ std::vector<std::string> to_vec_string(Iter iter, Iter end)
         result.push_back(to_cstring(*iter));
     }
     return result;
-}
-
-std::string sub_pointer_string(std::string const& s)
-{
-    static std::regex const r("0x[0-9a-f]{2,}");
-    return std::regex_replace(s, r, "0x0");
 }
 
 double to_inv_cm(double v)
@@ -1112,7 +1104,7 @@ TEST_F(TestEm3, volume_names)
     std::vector<std::string> names;
     for (auto const& volume : volumes)
     {
-        names.push_back(sub_pointer_string(volume.name));
+        names.push_back(this->genericize_pointers(volume.name));
     }
 
     // clang-format off
@@ -1132,7 +1124,9 @@ TEST_F(TestEm3, unique_volumes)
 
     EXPECT_EQ(101, volumes.size());
     EXPECT_EQ("gap_00x0x0",
-              sub_pointer_string(sub_pointer_string(volumes.front().name)));
+              this->genericize_pointers(
+                  this->genericize_pointers(volumes.front().name)))
+        << "Front name: '" << volumes.front().name << "'";
 }
 
 //---------------------------------------------------------------------------//
@@ -1550,9 +1544,7 @@ TEST_F(Solids, volumes_unique)
     std::vector<std::string> names;
     for (auto const& volume : imported.volumes)
     {
-        static std::regex const subs_ptr("0x[0-9a-f]+");
-        auto name = std::regex_replace(volume.name, subs_ptr, "0x0");
-        names.push_back(name);
+        names.push_back(this->genericize_pointers(volume.name));
     }
     static char const* const expected_names[]
         = {"box5000x0",    "cone10x0",      "para10x0",

@@ -32,8 +32,8 @@ namespace g4org
  * matrix-vector multiply (aka \c gemv), this is *not* the same as the affine
  * transform's rotation, which applies the *inverse* of the stored matrix.
  *
- * All Celeritas transforms are "daughter to parent". The transforms returned
- * from this function \em must be daughter-to-parent!
+ * All ORANGE/Celeritas transforms are "daughter to parent". The transforms
+ * returned from this function \em must be daughter-to-parent!
  */
 class Transformer
 {
@@ -101,20 +101,11 @@ auto Transformer::operator()(G4ThreeVector const& t) const -> Translation
 /*!
  * Create a transform from a translation plus rotation.
  */
-auto Transformer::operator()(G4ThreeVector const&,
-                             G4RotationMatrix const&) const -> Transformation
+auto Transformer::operator()(G4ThreeVector const& trans,
+                             G4RotationMatrix const& rot) const
+    -> Transformation
 {
-    CELER_NOT_IMPLEMENTED("transformer");
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Create a transform from a translation plus optional rotation.
- */
-auto Transformer::operator()(G4ThreeVector const&,
-                             G4RotationMatrix const*) const -> VariantTransform
-{
-    CELER_NOT_IMPLEMENTED("transformer");
+    return Transformation{transposed_from_geant(rot), scale_.to<Real3>(trans)};
 }
 
 //---------------------------------------------------------------------------//
@@ -124,8 +115,7 @@ auto Transformer::operator()(G4ThreeVector const&,
 auto Transformer::operator()(G4AffineTransform const& affine) const
     -> Transformation
 {
-    return Transformation{transposed_from_geant(affine.NetRotation()),
-                          scale_.to<Real3>(affine.NetTranslation())};
+    return (*this)(affine.NetTranslation(), affine.NetRotation());
 }
 
 //---------------------------------------------------------------------------//
@@ -145,6 +135,7 @@ SquareMatrixReal3 convert_from_geant(G4RotationMatrix const& rot)
  */
 SquareMatrixReal3 transposed_from_geant(G4RotationMatrix const& rot)
 {
+    // TODO: check normality? Orthogonalize?
     return {Real3{{rot.xx(), rot.yx(), rot.zx()}},
             Real3{{rot.xy(), rot.yy(), rot.zy()}},
             Real3{{rot.xz(), rot.yz(), rot.zz()}}};
