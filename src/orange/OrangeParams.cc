@@ -9,6 +9,7 @@
 
 #include <fstream>
 #include <initializer_list>
+#include <limits>
 #include <numeric>
 #include <utility>
 #include <vector>
@@ -114,16 +115,19 @@ OrangeParams::OrangeParams(G4VPhysicalVolume const*)
  *
  * Volume and surface labels must be unique for the time being.
  */
-OrangeParams::OrangeParams(OrangeInput input)
+OrangeParams::OrangeParams(OrangeInput&& input)
 {
     CELER_VALIDATE(input, << "input geometry is incomplete");
     CELER_VALIDATE(!input.universes.empty(),
                    << "input geometry has no universes");
 
-    if (!input.tol)
-    {
-        input.tol = Tolerance<>::from_default();
-    }
+    // Save global bounding box
+    bbox_ = [&input] {
+        auto& global = input.universes[orange_global_universe.unchecked_get()];
+        CELER_VALIDATE(std::holds_alternative<UnitInput>(global),
+                       << "global universe is not a SimpleUnit");
+        return std::get<UnitInput>(global).bbox;
+    }();
 
     // Create host data for construction, setting tolerances first
     HostVal<OrangeParamsData> host_data;
@@ -142,9 +146,9 @@ OrangeParams::OrangeParams(OrangeInput input)
             detail::UnitInserter{&insert_universe_base, &host_data},
             detail::RectArrayInserter{&insert_universe_base, &host_data}};
 
-        for (auto const& u : input.universes)
+        for (auto&& u : input.universes)
         {
-            std::visit(insert_universe, u);
+            std::visit(insert_universe, std::move(u));
         }
 
         univ_labels_ = LabelIdMultiMap<UniverseId>{std::move(universe_labels)};
@@ -161,17 +165,13 @@ OrangeParams::OrangeParams(OrangeInput input)
               [](SimpleUnitRecord const& su) { return su.simple_safety; })
           && host_data.rect_arrays.empty();
 
-    CELER_VALIDATE(std::holds_alternative<UnitInput>(input.universes.front()),
-                   << "global universe is not a SimpleUnit");
-    bbox_ = std::get<UnitInput>(input.universes.front()).bbox;
-
     // Update scalars *after* loading all units
     CELER_VALIDATE(host_data.scalars.max_logic_depth
                        < detail::LogicStack::max_stack_depth(),
                    << "input geometry has at least one volume with a "
                       "logic depth of"
                    << host_data.scalars.max_logic_depth
-                   << " (surfaces are nested too deeply); but the logic "
+                   << " (a volume's CSG tree is too deep); but the logic "
                       "stack is limited to a depth of "
                    << detail::LogicStack::max_stack_depth());
 
