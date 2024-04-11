@@ -143,7 +143,7 @@ auto SolidConverter::operator()(arg_type solid_base) -> result_type
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert a Geant4 solid to a VecGeom sphere with equivalent capacity.
+ * Convert a Geant4 solid to a sphere with equivalent capacity.
  */
 auto SolidConverter::to_sphere(arg_type solid_base) const -> result_type
 {
@@ -279,6 +279,9 @@ auto SolidConverter::displaced(arg_type solid_base) -> result_type
     G4VSolid* g4daughter = solid.GetConstituentMovedSolid();
     CELER_ASSERT(g4daughter);
     auto daughter = (*this)(*g4daughter);
+
+    // Note that GetDirectTransform is the combination of GetFrameTranslation
+    // and GetFrameRotation .
     return std::make_shared<Transformed>(
         daughter, transform_(solid.GetDirectTransform()));
 }

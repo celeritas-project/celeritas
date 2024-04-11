@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
   <solids>
-    <box lunit="cm" name="inner_box" x="10" y="10" z="10" />
-    <box lunit="cm" name="world_box" x="1000" y="1000" z="1000" />
+    <box lunit="cm" name="inner_box" x="10" y="10" z="10"/>
+    <box lunit="cm" name="world_box" x="1000" y="1000" z="1000"/>
   </solids>
   <structure>
     <volume name="inner">
