@@ -43,12 +43,13 @@ Transformation::Transformation() : Transformation{Translation{}} {}
  * The input rotation matrix should be an orthonormal matrix. Its determinant
  * is 1 if not reflecting (proper) or -1 if reflecting (improper).  It is the
  * caller's job to ensure a user-provided low-precision matrix is
- * orthonormal: see \c celeritas::orthonormalize .
+ * orthonormal: see \c celeritas::orthonormalize . (Add \c CELER_VALIDATE to
+ * the calling code if constructing a transformation matrix from user input or
+ * a suspect source.)
  */
 Transformation::Transformation(Mat3 const& rot, Real3 const& trans)
     : rot_(rot), tra_(trans)
 {
-    // XXX: should this be a CELER_VALIDATE?
     CELER_EXPECT(soft_equal(std::fabs(determinant(rot_)), real_type(1)));
 }
 

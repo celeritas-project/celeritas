@@ -29,7 +29,10 @@ struct LogicalVolume;
 
 //---------------------------------------------------------------------------//
 /*!
- * An unconstructed Object with a transform.
+ * An unconstructed ORANGE CSG Object with a transform.
+ *
+ * This holds equivalent information to a Geant4 \c G4VPhysicalVolume, but with
+ * \em only ORANGE data structures.
  */
 struct PhysicalVolume
 {
@@ -42,6 +45,9 @@ struct PhysicalVolume
 //---------------------------------------------------------------------------//
 /*!
  * A reusable Object that can be turned into a UnitProto or a Material.
+ *
+ * This holds equivalent information to a Geant4 \c G4LogicalVolume, but with
+ * \em only ORANGE data structures plus a reference to the original G4LV.
  */
 struct LogicalVolume
 {

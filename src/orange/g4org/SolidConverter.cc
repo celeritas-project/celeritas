@@ -143,7 +143,7 @@ auto SolidConverter::operator()(arg_type solid_base) -> result_type
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert a Geant4 solid to a VecGeom sphere with equivalent capacity.
+ * Convert a Geant4 solid to a sphere with equivalent capacity.
  */
 auto SolidConverter::to_sphere(arg_type solid_base) const -> result_type
 {

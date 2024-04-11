@@ -32,8 +32,8 @@ namespace g4org
  * matrix-vector multiply (aka \c gemv), this is *not* the same as the affine
  * transform's rotation, which applies the *inverse* of the stored matrix.
  *
- * All Celeritas transforms are "daughter to parent". The transforms returned
- * from this function \em must be daughter-to-parent!
+ * All ORANGE/Celeritas transforms are "daughter to parent". The transforms
+ * returned from this function \em must be daughter-to-parent!
  */
 class Transformer
 {

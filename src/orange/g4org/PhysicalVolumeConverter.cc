@@ -173,7 +173,9 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct children in a logical volume.
+ * Convert physical volumes that belong to a Geant4 LV.
+ *
+ * This adds the result to the ORANGE LogicalVolume.
  */
 void PhysicalVolumeConverter::Builder::place_child(
     int depth, G4VPhysicalVolume const& g4pv, LogicalVolume* lv)
@@ -195,7 +197,7 @@ void PhysicalVolumeConverter::Builder::place_child(
         // Loop over number of replicas
         for (auto j : range(g4pv.GetMultiplicity()))
         {
-            // Use the paramterization to *change* the physical volume's
+            // Use the parameterization to *change* the physical volume's
             // position (yes, this is how Geant4 does it too)
             param->ComputeTransformation(
                 j, const_cast<G4VPhysicalVolume*>(&g4pv));

@@ -35,7 +35,7 @@ LogicalVolumeConverter::LogicalVolumeConverter(SolidConverter& convert_solid)
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert a Geant4 logical volume to a VecGeom LogicalVolume.
+ * Convert a Geant4 logical volume to an ORANGE LogicalVolume.
  *
  * This uses a cache to look up any previously converted volume.
  */
