@@ -22,7 +22,7 @@ namespace
 /*!
  * Whether the square of the tolerance rounds to zero for O(1) operations.
  *
- * This is an important criteria for construction and tracking operations that
+ * This is an important criterion for construction and tracking operations that
  * involve \c sqrt, for example:
  * - Rotation matrix simplification
  * - Shape simplification
