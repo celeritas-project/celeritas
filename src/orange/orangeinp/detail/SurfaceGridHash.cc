@@ -10,8 +10,6 @@
 #include <cmath>
 #include <iomanip>
 
-#include "corecel/io/Logger.hh"
-#include "corecel/io/Repr.hh"
 #include "corecel/math/HashUtils.hh"
 
 namespace celeritas
@@ -33,9 +31,6 @@ SurfaceGridHash::SurfaceGridHash(real_type grid_scale, real_type tol)
     CELER_EXPECT(eps_ > 0);
     CELER_EXPECT(grid_offset_ < 1 / inv_grid_width_);
     CELER_EXPECT(1 / inv_grid_width_ > 2 * eps_);
-
-    CELER_LOG(debug) << "Grid offset: " << grid_offset_
-                     << ", inverse width: " << inv_grid_width_;
 }
 
 //---------------------------------------------------------------------------//
@@ -116,10 +111,6 @@ auto SurfaceGridHash::calc_bin(SurfaceType type, real_type hash_point) const
     static_assert(static_cast<size_type>(SurfaceType::size_) < 32);
     hash &= (~static_cast<size_type>(0x50 - 1));
     hash |= static_cast<size_type>(type);
-
-    CELER_LOG(debug) << "Hashed " << to_cstring(type) << "@"
-                     << repr(hash_point) << " (bin " << grid_bin << ") -> "
-                     << std::hex << hash;
 
     return hash;
 }
