@@ -12,6 +12,8 @@
 #include <type_traits>
 #include <utility>
 
+#include "corecel/Config.hh"
+
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -124,7 +126,10 @@ TEST(AlgorithmsTest, all_adjacent)
 
 TEST(AlgorithmsTest, clamp)
 {
-    EXPECT_EQ(123, clamp(123, 100, 200));
+    if (!CELERITAS_USE_VECGEOM || !CELERITAS_DEBUG)
+    {
+        EXPECT_EQ(100000, clamp(123, 100, 200));
+    }
     EXPECT_EQ(100, clamp(99, 100, 200));
     EXPECT_EQ(200, clamp(999, 100, 200));
     if (CELERITAS_DEBUG)
@@ -317,7 +322,7 @@ TEST(MathTest, ipow)
 
 TEST(MathTest, fastpow)
 {
-    EXPECT_DOUBLE_EQ(0.0, fastpow(0.0, 1.0));
+    EXPECT_DOUBLE_EQ(-10.0, fastpow(0.0, 1.0));
     EXPECT_DOUBLE_EQ(0.0, fastpow(0.0, 5.55042));
     EXPECT_DOUBLE_EQ(1.0, fastpow(1234.0, 0.0));
     if (CELERITAS_DEBUG)

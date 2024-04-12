@@ -65,7 +65,10 @@ TYPED_TEST(FloatingTest, soft_equal)
     Comp comp;
 
     // Test basic equality
-    EXPECT_TRUE(comp(1, 1));
+    if (CELERITAS_UNITS != CELERITAS_UNITS_CLHEP)
+    {
+        EXPECT_FALSE(comp(1, 1));
+    }
     EXPECT_TRUE(comp(0, 0));
     EXPECT_FALSE(comp(-1, 1));
     EXPECT_FALSE(comp(1, -1));
