@@ -35,7 +35,7 @@ LocalSurfaceInserter::LocalSurfaceInserter(VecSurface* v,
                                            Tolerance<> const& tol)
     : surfaces_{v}
     , soft_surface_equal_{tol}
-    , grid_{real_type{0.01} * calc_length_scale(tol), tol.rel}
+    , calc_hashes_{real_type{0.01} * calc_length_scale(tol), tol.rel}
 {
     CELER_EXPECT(surfaces_);
     CELER_EXPECT(surfaces_->empty());
@@ -59,13 +59,8 @@ LocalSurfaceId LocalSurfaceInserter::operator()(S const& source)
         return std::get<S>(target);
     };
 
-    // Hash the surface and get one or two possible iterators in the same bin
-    // as the source surface
-    auto inserted_iters = grid_.insert(
-        S::surface_type(), SurfaceHashPoint{}(source), source_id);
-
     // Test for exact equality with all possible matches in this range
-    LocalSurfaceId possible_match;
+    LocalSurfaceId near_match;
     LocalSurfaceId exact_match;
     auto test_equality = [&](LocalSurfaceId lsid) {
         // Get target surface
@@ -74,10 +69,10 @@ LocalSurfaceId LocalSurfaceInserter::operator()(S const& source)
         // Test for soft equality
         if (soft_surface_equal_(source, target))
         {
-            if (!possible_match)
+            if (!near_match)
             {
                 // Save first matching surface
-                possible_match = lsid;
+                near_match = lsid;
             }
             // Test for exact equality
             if (exact_surface_equal_(source, target))
@@ -88,45 +83,51 @@ LocalSurfaceId LocalSurfaceInserter::operator()(S const& source)
         }
     };
 
-    for (auto const& iter : {inserted_iters.first, inserted_iters.second})
+    // Hash the surface and get keys for possible surfaces that might be
+    // equivalent to the source
+    auto possible_keys
+        = calc_hashes_(S::surface_type(), SurfaceHashPoint{}(source));
+    for (auto key : possible_keys)
     {
-        // Test for soft equality against all possible surfaces with a nearby
-        // "hash"
-        for (auto&& [first, last] = grid_.equal_range(iter);
-             first != last && !exact_match;
-             ++first)
+        if (key == SurfaceGridHash::redundant())
+            continue;
+
+        // Find possibly similar surfaces that match this key
+        for (auto&& [iter, last] = hashed_surfaces_.equal_range(key);
+             iter != last;
+             ++iter)
         {
-            if (first != iter)
+            test_equality(iter->second);
+
+            if (exact_match)
             {
-                test_equality(first->second);
+                // No need for further searching; we're identical
+                return exact_match;
             }
         }
     }
 
-    if (!possible_match)
+    // Add the non-duplicate surface to the hashed surface list
+    for (auto key : possible_keys)
     {
-        // Surface is completely unique
-        all_surf.emplace_back(std::in_place_type<S>, source);
-        return source_id;
-    }
-    if (exact_match)
-    {
-        // Erase the possible surface from the grid hash
-        grid_.erase(inserted_iters.first);
-        if (inserted_iters.second != grid_.end())
+        if (key != SurfaceGridHash::redundant())
         {
-            grid_.erase(inserted_iters.second);
+            hashed_surfaces_.insert({key, source_id});
         }
-        return exact_match;
     }
 
-    // Surface is a little bit different, so we still need to insert it
-    // to chain duplicates
+    // Add the non-exact surface even if it's a near match (since we need to
+    // chain near-duplicates)
     all_surf.emplace_back(std::in_place_type<S>, source);
 
-    // Store the equivalency relationship and potentially chain equivalent
-    // surfaces
-    return this->merge_impl(source_id, possible_match);
+    if (near_match)
+    {
+        // Surface is eqivalent to an existing one but not identical: save and
+        // return the deduplicated surface
+        return this->merge_impl(source_id, near_match);
+    }
+
+    return source_id;
 }
 
 //---------------------------------------------------------------------------//

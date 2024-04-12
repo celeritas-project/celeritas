@@ -8,7 +8,6 @@
 #include "SurfaceGridHash.hh"
 
 #include <cmath>
-#include <iomanip>
 
 #include "corecel/math/HashUtils.hh"
 
@@ -35,60 +34,34 @@ SurfaceGridHash::SurfaceGridHash(real_type grid_scale, real_type tol)
 
 //---------------------------------------------------------------------------//
 /*!
- * Update the capacity based on an expected number of surfaces.
- */
-void SurfaceGridHash::reserve(size_type cap)
-{
-    surfaces_.reserve(cap);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Insert a new surface and hash point.
  */
-auto SurfaceGridHash::insert(SurfaceType type,
-                             real_type hash_point,
-                             LocalSurfaceId lsid) -> Insertion
+auto SurfaceGridHash::operator()(SurfaceType type, real_type hash_point) const
+    -> result_type
 {
-    CELER_EXPECT(lsid);
-
     // Insert the actual surface
-    Insertion result;
-    auto const orig_bin = this->calc_bin(type, hash_point);
-    result.first = surfaces_.insert({orig_bin, lsid});
+    result_type result;
+    result[0] = this->calc_bin(type, hash_point);
 
-    // Bump the hash point to the left
-    if (auto bin = this->calc_bin(type, hash_point - eps_); bin != orig_bin)
+    if (auto second = this->calc_bin(type, hash_point - eps_);
+        second != result[0])
     {
-        // Left point is in a different bin
-        result.second = surfaces_.insert({bin, lsid});
+        // The hash point bumped to the left is in the same bin
+        result[1] = second;
     }
-    else if (auto bin = this->calc_bin(type, hash_point + eps_);
-             bin != orig_bin)
+    else if (auto second = this->calc_bin(type, hash_point + eps_);
+             second != result[0])
     {
         // Right point is in a different bin
-        result.second = surfaces_.insert({bin, lsid});
+        result[1] = second;
     }
     else
     {
         // Left and right are both in the same bin as the actual point
-        result.second = surfaces_.end();
+        result[1] = redundant();
     }
 
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Erase an added surface.
- *
- * The intended use case is after adding a surface (which returns one or two
- * iterators) the surface can be deleted if it's an exact duplicate.
- */
-void SurfaceGridHash::erase(iterator it)
-{
-    CELER_EXPECT(it != surfaces_.end());
-    surfaces_.erase(it);
 }
 
 //---------------------------------------------------------------------------//
@@ -107,9 +80,10 @@ auto SurfaceGridHash::calc_bin(SurfaceType type, real_type hash_point) const
     auto hash = hash_combine(grid_bin);
     static_assert(std::is_same_v<decltype(hash), size_type>);
 
-    // Clear the lowest 5 bits
-    static_assert(static_cast<size_type>(SurfaceType::size_) < 32);
-    hash &= (~static_cast<size_type>(0x50 - 1));
+    // Clear the lowest 4 bits; make sure there's no valid surface for the
+    // "redundant()" value
+    static_assert(static_cast<size_type>(SurfaceType::size_) < 0b11111);
+    hash &= (~static_cast<size_type>(0b11111));
     hash |= static_cast<size_type>(type);
 
     return hash;

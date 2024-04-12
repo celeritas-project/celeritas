@@ -61,15 +61,21 @@ class LocalSurfaceInserter
     //// TYPES ////
 
     using MapSurfId = std::unordered_map<LocalSurfaceId, LocalSurfaceId>;
-    using VecSurfId = std::vector<LocalSurfaceId>;
+    using MultimapSurfaces
+        = std::unordered_multimap<SurfaceGridHash::key_type, LocalSurfaceId>;
 
     //// DATA ////
 
     VecSurface* surfaces_;
+
+    // Deduplication
     SoftSurfaceEqual soft_surface_equal_;
     ExactSurfaceEqual exact_surface_equal_;
     MapSurfId merged_;
-    SurfaceGridHash grid_;
+
+    // Hash acceleration
+    MultimapSurfaces hashed_surfaces_;
+    SurfaceGridHash calc_hashes_;
 
     //// METHODS ////
 
