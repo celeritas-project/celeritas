@@ -17,13 +17,16 @@ namespace detail
 {
 namespace
 {
+//---------------------------------------------------------------------------//
 real_type calc_length_scale(Tolerance<> const& tol)
 {
     CELER_EXPECT(tol);
     return tol.abs / tol.rel;
 }
 
+//---------------------------------------------------------------------------//
 }  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with tolerance and a pointer to the surfaces vector.
@@ -35,7 +38,7 @@ LocalSurfaceInserter::LocalSurfaceInserter(VecSurface* v,
                                            Tolerance<> const& tol)
     : surfaces_{v}
     , soft_surface_equal_{tol}
-    , calc_hashes_{real_type{0.01} * calc_length_scale(tol), tol.rel}
+    , calc_hashes_{real_type{0.01} * calc_length_scale(tol), 2 * tol.rel}
 {
     CELER_EXPECT(surfaces_);
     CELER_EXPECT(surfaces_->empty());
