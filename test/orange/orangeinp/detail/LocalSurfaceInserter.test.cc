@@ -130,6 +130,7 @@ TEST_F(LocalSurfaceInserterTest, infwedge_quadrant)
 TEST_F(LocalSurfaceInserterTest, DISABLED_performance_test)
 {
     std::mt19937 rng;
+    UniformRealDistribution<> sample_radius{0.5, 1.5};
     UniformRealDistribution<> sample_point{-1, 1};
     UniformBoxDistribution<> sample_box{{-1, -1, -1}, {1, 1, 1}};
 
@@ -143,7 +144,7 @@ TEST_F(LocalSurfaceInserterTest, DISABLED_performance_test)
         Stopwatch get_time;
         for (int i = 0; i < num_samples; ++i)
         {
-            insert(Sphere(sample_box(rng), 1.0));
+            insert(Sphere(sample_box(rng), sample_radius(rng)));
             insert(PlaneX(sample_point(rng)));
         }
         cout << get_time() << " s" << endl;
