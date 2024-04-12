@@ -9,9 +9,8 @@
 
 #include <memory>
 
+#include "geocel/rasterize/ImageStore.hh"
 #include "celeritas/geo/GeoParams.hh"
-
-#include "ImageStore.hh"
 
 namespace celeritas
 {
@@ -27,7 +26,6 @@ class RDemoRunner
     //!@{
     //! \name Type aliases
     using SPConstGeo = std::shared_ptr<GeoParams const>;
-    using Args = ImageRunArgs;
     //!@}
 
   public:

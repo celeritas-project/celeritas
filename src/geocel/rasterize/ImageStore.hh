@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-rasterizer/ImageStore.hh
+//! \file geocel/rasterize/ImageStore.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,12 +16,19 @@
 #include "celeritas/Types.hh"
 
 #include "ImageData.hh"
-#include "ImageIO.hh"
 
 namespace celeritas
 {
-namespace app
+//---------------------------------------------------------------------------//
+//! Image construction arguments
+struct ImageInput
 {
+    Real3 lower_left;
+    Real3 upper_right;
+    Real3 rightward_ax;
+    unsigned int vertical_pixels;
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Initialization and storage for a raster image.
@@ -31,15 +38,13 @@ class ImageStore
   public:
     //!@{
     //! \name Type aliases
-
     using UInt2 = Array<unsigned int, 2>;
-
     using VecInt = std::vector<int>;
     //!@}
 
   public:
     // Construct with defaults
-    explicit ImageStore(ImageRunArgs);
+    explicit ImageStore(ImageInput const&);
 
     //// DEVICE ACCESSORS ////
 
@@ -79,5 +84,4 @@ class ImageStore
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace app
 }  // namespace celeritas

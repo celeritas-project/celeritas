@@ -9,9 +9,8 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "geocel/rasterize/ImageData.hh"
 #include "celeritas/geo/GeoData.hh"
-
-#include "ImageData.hh"
 
 namespace celeritas
 {

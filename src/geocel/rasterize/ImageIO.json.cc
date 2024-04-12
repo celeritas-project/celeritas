@@ -3,11 +3,14 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-rasterizer/ImageIO.cc
+//! \file geocel/rasterize/ImageIO.json.cc
 //---------------------------------------------------------------------------//
-#include "ImageIO.hh"
+#include "ImageIO.json.hh"
 
 #include "celeritas_cmake_strings.h"
+#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
 #include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "celeritas/Quantities.hh"
@@ -16,8 +19,6 @@
 #include "ImageStore.hh"
 
 namespace celeritas
-{
-namespace app
 {
 namespace
 {
@@ -34,7 +35,7 @@ Real3 from_cm(Real3 const& r)
 //---------------------------------------------------------------------------//
 //!@{
 //! I/O routines for JSON
-void to_json(nlohmann::json& j, ImageRunArgs const& v)
+void to_json(nlohmann::json& j, ImageInput const& v)
 {
     j = nlohmann::json{{"lower_left", v.lower_left},
                        {"upper_right", v.upper_right},
@@ -43,7 +44,7 @@ void to_json(nlohmann::json& j, ImageRunArgs const& v)
                        {"_units", celeritas_units}};
 }
 
-void from_json(nlohmann::json const& j, ImageRunArgs& v)
+void from_json(nlohmann::json const& j, ImageInput& v)
 {
     v.lower_left = from_cm(j.at("lower_left").get<Real3>());
     v.upper_right = from_cm(j.at("upper_right").get<Real3>());
@@ -64,5 +65,4 @@ void to_json(nlohmann::json& j, ImageStore const& v)
 
 //!@}
 //---------------------------------------------------------------------------//
-}  // namespace app
 }  // namespace celeritas

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-rasterizer/ImageStore.cc
+//! \file geocel/rasterize/ImageStore.cc
 //---------------------------------------------------------------------------//
 #include "ImageStore.hh"
 
@@ -12,13 +12,11 @@
 
 namespace celeritas
 {
-namespace app
-{
 //---------------------------------------------------------------------------//
 /*!
  * Construct with image slice and extents.
  */
-ImageStore::ImageStore(ImageRunArgs params)
+ImageStore::ImageStore(ImageInput const& params)
 {
     CELER_EXPECT(is_soft_unit_vector(params.rightward_ax));
     CELER_EXPECT(params.lower_left != params.upper_right);
@@ -113,5 +111,4 @@ auto ImageStore::data_to_host() const -> VecInt
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace app
 }  // namespace celeritas

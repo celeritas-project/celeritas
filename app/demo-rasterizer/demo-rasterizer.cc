@@ -23,6 +23,7 @@
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/Stopwatch.hh"
+#include "geocel/rasterize/ImageIO.json.hh"
 
 #include "RDemoRunner.hh"
 
@@ -59,7 +60,7 @@ void run(std::istream& is)
     timers["load"] = get_time();
 
     // Construct image
-    ImageStore image(inp.at("image").get<ImageRunArgs>());
+    ImageStore image(inp.at("image").get<ImageInput>());
 
     // Construct runner
     RDemoRunner run(geo_params);

@@ -7,8 +7,6 @@
 set(SOURCES
   demo-rasterizer.cc
   RDemoRunner.cc
-  ImageIO.cc
-  ImageStore.cc
 )
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
@@ -23,10 +21,13 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
 endif()
 
 set(_rasterizer_libs
-  Celeritas::celeritas
+  Celeritas::corecel
+  Celeritas::geocel
   nlohmann_json::nlohmann_json
 )
-if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
+if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
+  list(APPEND _rasterizer_libs Celeritas::orange)
+elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
   list(APPEND _rasterizer_libs VecGeom::vecgeom)
 endif()
 

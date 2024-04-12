@@ -11,9 +11,8 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "geocel/rasterize/ImageTrackView.hh"
 #include "celeritas/geo/GeoTrackView.hh"
-
-#include "ImageTrackView.hh"
 
 namespace celeritas
 {

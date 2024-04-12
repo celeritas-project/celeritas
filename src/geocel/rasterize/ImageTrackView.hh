@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-rasterizer/ImageTrackView.hh
+//! \file geocel/rasterize/ImageTrackView.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,8 +12,6 @@
 #include "ImageData.hh"
 
 namespace celeritas
-{
-namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -24,12 +22,6 @@ namespace app
  */
 class ImageTrackView
 {
-  public:
-    //!@{
-    //! \name Type aliases
-
-    //!@}
-
   public:
     // Construct with image data and thread ID
     inline CELER_FUNCTION
@@ -97,5 +89,4 @@ CELER_FUNCTION void ImageTrackView::set_pixel(unsigned int i, int value)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace app
 }  // namespace celeritas

@@ -12,9 +12,9 @@
 #include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Stopwatch.hh"
+#include "geocel/rasterize/ImageTrackView.hh"
 #include "celeritas/geo/GeoParams.hh"
 
-#include "ImageTrackView.hh"
 #include "RDemoKernel.hh"
 
 namespace celeritas
