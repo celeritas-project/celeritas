@@ -25,7 +25,7 @@ namespace detail
  * offset so that values near zero map to the same bin.
  */
 SurfaceGridHash::SurfaceGridHash(real_type grid_scale, real_type tol)
-    : eps_{tol}, grid_offset_{grid_scale * 0.5}, inv_grid_width_{1 / grid_scale}
+    : eps_{tol}, grid_offset_{grid_scale / 2}, inv_grid_width_{1 / grid_scale}
 {
     CELER_EXPECT(eps_ > 0);
     CELER_EXPECT(grid_offset_ < 1 / inv_grid_width_);
@@ -78,13 +78,13 @@ auto SurfaceGridHash::calc_bin(SurfaceType type, real_type hash_point) const
 {
     auto grid_bin = std::floor((hash_point + grid_offset_) * inv_grid_width_);
     auto hash = hash_combine(grid_bin);
-    static_assert(std::is_same_v<decltype(hash), size_type>);
+    static_assert(std::is_same_v<decltype(hash), key_type>);
 
     // Clear the lowest 4 bits; make sure there's no valid surface for the
     // "redundant()" value
-    static_assert(static_cast<size_type>(SurfaceType::size_) < 0b11111);
-    hash &= (~static_cast<size_type>(0b11111));
-    hash |= static_cast<size_type>(type);
+    static_assert(static_cast<key_type>(SurfaceType::size_) < 0b11111);
+    hash &= (~static_cast<key_type>(0b11111));
+    hash |= static_cast<key_type>(type);
 
     return hash;
 }
