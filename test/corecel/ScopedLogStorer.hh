@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include "corecel/Macros.hh"
 #include "corecel/io/LoggerTypes.hh"
 
 namespace celeritas
@@ -48,14 +49,6 @@ class ScopedLogStorer
     // Construct reference with default level
     explicit ScopedLogStorer(Logger* orig);
 
-    //!@{
-    //! Disallow move/copy
-    ScopedLogStorer(ScopedLogStorer const&) = delete;
-    ScopedLogStorer(ScopedLogStorer&&) = delete;
-    ScopedLogStorer& operator=(ScopedLogStorer const&) = delete;
-    ScopedLogStorer& operator=(ScopedLogStorer&&) = delete;
-    //!@}
-
     // Restore original logger on destruction
     ~ScopedLogStorer();
 
@@ -86,6 +79,9 @@ class ScopedLogStorer
     std::unique_ptr<Logger> saved_logger_;
     VecString messages_;
     VecString levels_;
+
+    //! Prevent copying and moving
+    CELER_DELETE_COPY_MOVE(ScopedLogStorer);
 };
 
 // Print expected results

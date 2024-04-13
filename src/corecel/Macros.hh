@@ -226,6 +226,18 @@
     CLS& operator=(CLS&&) = delete
 
 /*!
+ * \def CELER_DEFAULT_MOVE_DELETE_COPY
+ *
+ * Explicitly declare defaulted copy and move constructors and assignment
+ * operators. Use this if the destructor is declared explicitly.
+ */
+#define CELER_DEFAULT_MOVE_DELETE_COPY(CLS) \
+    CLS(CLS const&) = delete;               \
+    CLS& operator=(CLS const&) = delete;    \
+    CLS(CLS&&) = default;                   \
+    CLS& operator=(CLS&&) = default
+
+/*!
  * \def CELER_DISCARD
  *
  * The argument is an unevaluated operand which will generate no code but force
