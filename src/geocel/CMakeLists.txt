@@ -13,7 +13,7 @@ set(PUBLIC_DEPS Celeritas::corecel)
 
 list(APPEND SOURCES
   GeoParamsOutput.cc
-  rasterize/ImageStore.cc
+  rasterize/Image.cc
 )
 
 #-----------------------------------------------------------------------------#

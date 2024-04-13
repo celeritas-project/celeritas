@@ -13,12 +13,12 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 struct ImageInput;
-class ImageStore;
+class ImageParams;
 
 //---------------------------------------------------------------------------//
-void to_json(nlohmann::json& j, ImageInput const& value);
-void from_json(nlohmann::json const& j, ImageInput& value);
+void to_json(nlohmann::json& j, ImageInput const&);
+void from_json(nlohmann::json const& j, ImageInput&);
 
-void to_json(nlohmann::json& j, ImageStore const& value);
+void to_json(nlohmann::json& j, ImageParams const&);
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

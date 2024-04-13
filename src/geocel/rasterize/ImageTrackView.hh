@@ -31,7 +31,7 @@ class ImageTrackView
     inline CELER_FUNCTION Real3 start_pos() const;
 
     //! Start direction (rightward axis)
-    CELER_FUNCTION Real3 const& start_dir() const { return shared_.right_ax; }
+    CELER_FUNCTION Real3 const& start_dir() const { return shared_.right; }
 
     //! Pixel width
     CELER_FUNCTION real_type pixel_width() const
@@ -70,7 +70,7 @@ CELER_FUNCTION auto ImageTrackView::start_pos() const -> Real3
     real_type down_offset = (j_index_ + real_type(0.5)) * shared_.pixel_width;
     for (int i = 0; i < 3; ++i)
     {
-        result[i] = shared_.origin[i] + shared_.down_ax[i] * down_offset;
+        result[i] = shared_.origin[i] + shared_.down[i] * down_offset;
     }
     return result;
 }

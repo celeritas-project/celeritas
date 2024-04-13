@@ -64,6 +64,8 @@ celeritas_add_test(BoundingBox.test.cc
   LINK_LIBRARIES ${nlohmann_json_LIBRARIES}
 )
 
+celeritas_add_test(rasterize/Image.test.cc)
+
 #-----------------------------------------------------------------------------#
 # VecGeom
 
@@ -101,6 +103,9 @@ if(CELERITAS_USE_VecGeom)
     ${_fixme_cgs}
   )
 endif()
+
+#-----------------------------------------------------------------------------#
+# Geant4
 
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   celeritas_add_test(g4/GeantGeo.test.cc

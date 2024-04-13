@@ -12,11 +12,12 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/ArrayIO.json.hh"
+#include "corecel/io/JsonUtils.json.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
-#include "ImageStore.hh"
+#include "Image.hh"
 
 namespace celeritas
 {
@@ -39,7 +40,7 @@ void to_json(nlohmann::json& j, ImageInput const& v)
 {
     j = nlohmann::json{{"lower_left", v.lower_left},
                        {"upper_right", v.upper_right},
-                       {"rightward_ax", v.rightward_ax},
+                       {"rightward", v.rightward},
                        {"vertical_pixels", v.vertical_pixels},
                        {"_units", celeritas_units}};
 }
@@ -48,19 +49,22 @@ void from_json(nlohmann::json const& j, ImageInput& v)
 {
     v.lower_left = from_cm(j.at("lower_left").get<Real3>());
     v.upper_right = from_cm(j.at("upper_right").get<Real3>());
-    j.at("rightward_ax").get_to(v.rightward_ax);
+    j.at("rightward").get_to(v.rightward);
     j.at("vertical_pixels").get_to(v.vertical_pixels);
 }
 
-void to_json(nlohmann::json& j, ImageStore const& v)
+void to_json(nlohmann::json& j, ImageParams const& p)
 {
-    j = nlohmann::json{{"origin", v.origin()},
-                       {"down_ax", v.down_ax()},
-                       {"right_ax", v.right_ax()},
-                       {"pixel_width", v.pixel_width()},
-                       {"dims", v.dims()},
-                       {"int_size", sizeof(int)},
-                       {"_units", celeritas_units}};
+    auto const& scalars = p.host_ref().scalars;
+    j = nlohmann::json{
+        CELER_JSON_PAIR(scalars, origin),
+        CELER_JSON_PAIR(scalars, down),
+        CELER_JSON_PAIR(scalars, right),
+        CELER_JSON_PAIR(scalars, pixel_width),
+        CELER_JSON_PAIR(scalars, dims),
+    };
+    j["_units"] = celeritas_units;
+    j["int_size"] = sizeof(int);
 }
 
 //!@}
