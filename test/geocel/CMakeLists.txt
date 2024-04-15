@@ -65,6 +65,7 @@ celeritas_add_test(BoundingBox.test.cc
 )
 
 celeritas_add_test(rasterize/Image.test.cc)
+celeritas_add_test(rasterize/Raytracer.test.cc)
 
 #-----------------------------------------------------------------------------#
 # VecGeom
