@@ -72,6 +72,9 @@ using ParticleModelId = OpaqueId<ModelId>;
 //! Opaque index of electron subshell
 using SubshellId = OpaqueId<struct Subshell_>;
 
+//! Opaque index of particle-nucleon cascade channel
+using ChannelId = OpaqueId<struct Channel_>;
+
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//
