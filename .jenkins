@@ -2,6 +2,7 @@ pipeline {
   options {
     disableConcurrentBuilds(abortPrevious: true)
     newContainerPerStage()
+    timeout(time: 6, unit: 'HOURS')
   }
   triggers {
     issueCommentTrigger('.*do: test')
