@@ -41,7 +41,8 @@ class PreGenAction final : public ExplicitCoreActionInterface
     //! Check if the distribution data is valid
     struct IsInvalid
     {
-        CELER_FUNCTION bool operator()(OpticalDistributionData data) const
+        CELER_FUNCTION bool
+        operator()(OpticalDistributionData const& data) const
         {
             return !data;
         }

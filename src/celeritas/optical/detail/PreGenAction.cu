@@ -31,7 +31,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Generate optical distribution data post-step.
+ * Launch a kernel to generate optical distribution data post-step.
  */
 void PreGenAction::pre_generate(CoreParams const& core_params,
                                 CoreStateDevice& core_state) const
