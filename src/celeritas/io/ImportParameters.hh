@@ -56,6 +56,8 @@ struct ImportEmParameters
     bool apply_cuts{false};
     //! Nuclear screening factor for single/multiple Coulomb scattering
     double screening_factor{1};
+    //! Factor for dynamic computation of angular limit between SS and MSC
+    double angle_limit_factor{1};
 
     //! Whether parameters are assigned and valid
     explicit operator bool() const
@@ -64,7 +66,7 @@ struct ImportEmParameters
                && msc_step_algorithm != MscStepLimitAlgorithm::size_
                && msc_range_factor > 0 && msc_range_factor < 1
                && msc_safety_factor >= 0.1 && msc_lambda_limit > 0
-               && screening_factor > 0;
+               && screening_factor > 0 && angle_limit_factor > 0;
     }
 };
 

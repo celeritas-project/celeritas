@@ -17,6 +17,7 @@
 #include "celeritas/em/xs/MottRatioCalculator.hh"
 #include "celeritas/em/xs/WentzelHelper.hh"
 #include "celeritas/mat/IsotopeView.hh"
+#include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/GenerateCanonical.hh"
@@ -54,6 +55,7 @@ class WentzelDistribution
     // Construct with state and model data
     inline CELER_FUNCTION
     WentzelDistribution(ParticleTrackView const& particle,
+                        MaterialView const& material,
                         IsotopeView const& target,
                         CoulombScatteringElementData const& element_data,
                         Energy cutoff,
@@ -114,6 +116,7 @@ class WentzelDistribution
 CELER_FUNCTION
 WentzelDistribution::WentzelDistribution(
     ParticleTrackView const& particle,
+    MaterialView const& material,
     IsotopeView const& target,
     CoulombScatteringElementData const& element_data,
     Energy cutoff,
@@ -122,7 +125,7 @@ WentzelDistribution::WentzelDistribution(
     , particle_(particle)
     , target_(target)
     , element_data_(element_data)
-    , helper_(particle, target.atomic_number(), data, cutoff)
+    , helper_(particle, material, target.atomic_number(), data, cutoff)
 {
 }
 
@@ -134,7 +137,8 @@ template<class Engine>
 CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
 {
     real_type cos_theta = 1;
-    if (BernoulliDistribution(helper_.calc_xs_ratio())(rng))
+    if (BernoulliDistribution(
+            helper_.calc_xs_ratio(helper_.costheta_max_nuclear(), -1))(rng))
     {
         // Scattered off of electrons
         cos_theta = this->sample_cos_t(helper_.costheta_max_electron(), rng);
@@ -179,7 +183,7 @@ CELER_FUNCTION real_type
 WentzelDistribution::calculate_form_factor(real_type cos_t) const
 {
     real_type mt_sq = this->mom_transfer_sq(cos_t);
-    switch (data_.form_factor_type)
+    switch (data_.params.form_factor_type)
     {
         case NuclearFormFactorType::none:
             return 1;

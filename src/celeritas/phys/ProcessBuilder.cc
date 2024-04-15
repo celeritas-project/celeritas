@@ -69,6 +69,7 @@ ProcessBuilder::ProcessBuilder(ImportData const& data,
     , enable_lpm_(data.em_params.lpm)
     , use_integral_xs_(data.em_params.integral_approach)
     , coulomb_screening_factor_(data.em_params.screening_factor)
+    , coulomb_angle_limit_factor_(data.em_params.angle_limit_factor)
 {
     CELER_EXPECT(input_.material);
     CELER_EXPECT(input_.particle);
@@ -243,6 +244,7 @@ auto ProcessBuilder::build_coulomb() -> SPProcess
 {
     CoulombScatteringModel::Options options;
     options.screening_factor = coulomb_screening_factor_;
+    options.angle_limit_factor = coulomb_angle_limit_factor_;
     options.use_integral_xs = use_integral_xs_;
 
     return std::make_shared<CoulombScatteringProcess>(

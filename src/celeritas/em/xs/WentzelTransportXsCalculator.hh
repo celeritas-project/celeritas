@@ -30,7 +30,6 @@ class WentzelTransportXsCalculator
     //!@{
     //! \name Type aliases
     using XsUnits = units::Native;  // [len^2]
-    using Charge = units::ElementaryCharge;
     using Mass = units::MevMass;
     using MomentumSq = units::MevMomentumSq;
     //!@}
@@ -51,12 +50,9 @@ class WentzelTransportXsCalculator
     real_type screening_coeff_;
     real_type costheta_max_elec_;
     real_type beta_sq_;
-    real_type xs_factor_;
+    real_type kin_factor_;
 
     //// HELPER FUNCTIONS ////
-
-    // Calculate the multiplicative factor for the transport cross section
-    real_type calc_xs_factor(ParticleTrackView const&) const;
 
     // Calculate xs contribution from scattering off electrons or nucleus
     real_type calc_xs_contribution(real_type costheta_max) const;
@@ -83,7 +79,7 @@ WentzelTransportXsCalculator::WentzelTransportXsCalculator(
     , screening_coeff_(2 * helper.screening_coefficient())
     , costheta_max_elec_(helper.costheta_max_electron())
     , beta_sq_(particle.beta_sq())
-    , xs_factor_(this->calc_xs_factor(particle))
+    , kin_factor_(helper.kin_factor())
 {
 }
 
@@ -101,35 +97,10 @@ WentzelTransportXsCalculator::operator()(real_type costheta_max) const
     real_type xs_elec = costheta_max_elec_ > costheta_max
                             ? this->calc_xs_contribution(costheta_max_elec_)
                             : xs_nuc;
-    real_type result = xs_factor_ * (xs_elec + z_.get() * xs_nuc);
+    real_type result = kin_factor_ * (xs_elec + z_.get() * xs_nuc);
 
     CELER_ENSURE(result >= 0);
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate the multiplicative factor for the transport cross section.
- *
- * This calculates the factor
- * \f[
-   f = \frac{2 \pi m_e^2 r_e^2 Z q^2}{\beta^2 p^2},
- * \f]
- * where \f$ m_e, r_e, Z, q, \beta \f$, and \f$ p \f$ are the electron mass,
- * classical electron radius, atomic number of the target atom, charge,
- * relativistic speed, and momentum of the incident particle, respectively.
- */
-CELER_FUNCTION real_type WentzelTransportXsCalculator::calc_xs_factor(
-    ParticleTrackView const& particle) const
-{
-    real_type constexpr twopi_mrsq
-        = 2 * constants::pi
-          * ipow<2>(native_value_to<Mass>(constants::electron_mass).value()
-                    * constants::r_electron);
-
-    return twopi_mrsq * z_.get() * ipow<2>(value_as<Charge>(particle.charge()))
-           / (particle.beta_sq()
-              * value_as<MomentumSq>(particle.momentum_sq()));
 }
 
 //---------------------------------------------------------------------------//

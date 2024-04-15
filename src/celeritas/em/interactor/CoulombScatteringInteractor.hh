@@ -55,6 +55,7 @@ class CoulombScatteringInteractor
     CoulombScatteringInteractor(CoulombScatteringRef const& shared,
                                 ParticleTrackView const& particle,
                                 Real3 const& inc_direction,
+                                MaterialView const& material,
                                 IsotopeView const& target,
                                 ElementId const& el_id,
                                 CutoffView const& cutoffs);
@@ -76,7 +77,7 @@ class CoulombScatteringInteractor
     IsotopeView const& target_;
 
     // Scattering direction distribution of the Wentzel model
-    WentzelDistribution const sample_angle;
+    WentzelDistribution const sample_angle_;
 
     //// HELPER FUNCTIONS ////
 
@@ -95,18 +96,20 @@ CoulombScatteringInteractor::CoulombScatteringInteractor(
     CoulombScatteringRef const& shared,
     ParticleTrackView const& particle,
     Real3 const& inc_direction,
+    MaterialView const& material,
     IsotopeView const& target,
     ElementId const& el_id,
     CutoffView const& cutoffs)
     : inc_direction_(inc_direction)
     , particle_(particle)
     , target_(target)
-    , sample_angle(particle,
-                   target,
-                   shared.elem_data[el_id],
-                   // TODO: Use proton when supported
-                   cutoffs.energy(shared.ids.electron),
-                   shared)
+    , sample_angle_(particle,
+                    material,
+                    target,
+                    shared.elem_data[el_id],
+                    // TODO: Use proton when supported
+                    cutoffs.energy(shared.ids.electron),
+                    shared)
 {
     CELER_EXPECT(particle_.particle_id() == shared.ids.electron
                  || particle_.particle_id() == shared.ids.positron);
@@ -125,7 +128,7 @@ CELER_FUNCTION Interaction CoulombScatteringInteractor::operator()(Engine& rng)
     Interaction result;
 
     // Sample the new direction
-    real_type cos_theta = sample_angle(rng);
+    real_type cos_theta = sample_angle_(rng);
     UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
     result.direction
         = rotate(inc_direction_, from_spherical(cos_theta, sample_phi(rng)));

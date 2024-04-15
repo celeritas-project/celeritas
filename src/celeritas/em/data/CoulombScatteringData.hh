@@ -75,11 +75,31 @@ enum class NuclearFormFactorType
 
 //---------------------------------------------------------------------------//
 /*!
+ * Settable parameters and default values for single Coulomb scattering.
+ *
+ * For single Coulomb scattering, \c costheta_limit will be 1 (\f$ \cos
+ * \theta_{\text{min}} \f$). If single scattering is used in combination with
+ * multiple scattering, it will be \f$ \cos \theta_{\text{max}} \f$.
+ */
+struct CoulombScatteringParameters
+{
+    bool is_combined;  //!< Use combined single and multiple scattering
+    real_type costheta_limit;  //!< Limit on the cos of the scattering angle
+    real_type a_sq_factor;  //!< Factor used to calculate the maximum
+                            //!< scattering angle off of a nucleus
+    real_type screening_factor;  //!< Factor for the screening coefficient
+    NuclearFormFactorType form_factor_type;  //!< Model for the form factor
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Constant shared data used by the CoulombScatteringModel.
  */
 template<Ownership W, MemSpace M>
 struct CoulombScatteringData
 {
+    template<class T>
+    using MaterialItems = celeritas::Collection<T, W, M, MaterialId>;
     template<class T>
     using ElementItems = celeritas::Collection<T, W, M, ElementId>;
     template<class T>
@@ -88,22 +108,23 @@ struct CoulombScatteringData
     // Ids
     CoulombScatteringIds ids;
 
+    // User-assignable options
+    CoulombScatteringParameters params;
+
     //! Constant prefactor for the squared momentum transfer [(MeV/c)^-2]
     IsotopeItems<real_type> nuclear_form_prefactor;
 
     // Per element form factors
     ElementItems<CoulombScatteringElementData> elem_data;
 
-    // User-defined factor for the screening coefficient
-    real_type screening_factor;
-
-    // Model for the form factor to use
-    NuclearFormFactorType form_factor_type;
+    // Inverse of the effective atomic mass to the 2/3 power
+    MaterialItems<real_type> ma_cbrt_sq_inv;
 
     // Check if the data is initialized
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids && !nuclear_form_prefactor.empty() && !elem_data.empty();
+        return ids && !nuclear_form_prefactor.empty() && !elem_data.empty()
+               && params.is_combined == !ma_cbrt_sq_inv.empty();
     }
 
     // Copy initialize from an existing CoulombScatteringData
@@ -112,10 +133,10 @@ struct CoulombScatteringData
     {
         CELER_EXPECT(other);
         ids = other.ids;
+        params = other.params;
         nuclear_form_prefactor = other.nuclear_form_prefactor;
         elem_data = other.elem_data;
-        form_factor_type = other.form_factor_type;
-        screening_factor = other.screening_factor;
+        ma_cbrt_sq_inv = other.ma_cbrt_sq_inv;
         return *this;
     }
 };

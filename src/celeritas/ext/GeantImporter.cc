@@ -921,6 +921,7 @@ ImportEmParameters import_em_parameters()
 #endif
     import.apply_cuts = g4.ApplyCuts();
     import.screening_factor = g4.ScreeningFactor();
+    import.angle_limit_factor = g4.FactorForAngleLimit();
 
     CELER_ENSURE(import);
     return import;

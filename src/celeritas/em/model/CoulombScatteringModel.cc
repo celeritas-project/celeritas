@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "CoulombScatteringModel.hh"
 
+#include <vector>
+
 #include "celeritas_config.h"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Units.hh"
@@ -58,11 +60,15 @@ CoulombScatteringModel::CoulombScatteringModel(ActionId id,
                    << "missing IDs (required for " << this->description()
                    << ")");
 
-    // Select form factor
-    host_data.form_factor_type = options.form_factor_model;
-
-    // Pass user-defined screening factor
-    host_data.screening_factor = options.screening_factor;
+    // Set user-assignable options
+    host_data.params.is_combined = options.is_combined;
+    host_data.params.costheta_limit = options.costheta_limit;
+    host_data.params.a_sq_factor
+        = real_type(0.5)
+          * ipow<2>(options.angle_limit_factor * constants::hbar_planck
+                    * constants::c_light * 1e-15 * units::meter);
+    host_data.params.form_factor_type = options.form_factor_model;
+    host_data.params.screening_factor = options.screening_factor;
 
     // Load Mott coefficients
     build_data(host_data, materials);
@@ -138,7 +144,7 @@ ActionId CoulombScatteringModel::action_id() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Load Mott coefficients and construct per-element data.
+ * Load Mott coefficients and construct per-element and per-material data.
  */
 void CoulombScatteringModel::build_data(
     HostVal<CoulombScatteringData>& host_data, MaterialParams const& materials)
@@ -163,6 +169,29 @@ void CoulombScatteringModel::build_data(
     {
         prefactors.push_back(
             this->calc_nuclear_form_prefactor(materials.get(iso_id)));
+    }
+
+    // Build material data
+    if (host_data.params.is_combined)
+    {
+        std::vector<real_type> ma_cbrt_sq_inv(materials.num_materials(), 0);
+        for (auto mat_id : range(MaterialId(materials.num_materials())))
+        {
+            auto mat = materials.get(mat_id);
+            for (auto elcomp_id : range(ElementComponentId(mat.num_elements())))
+            {
+                auto const& el_comp = mat.elements()[elcomp_id.get()];
+                auto atomic_mass
+                    = mat.make_element_view(elcomp_id).atomic_mass();
+                ma_cbrt_sq_inv[mat_id.get()]
+                    += el_comp.fraction
+                       / std::pow(native_value_from(atomic_mass),
+                                  real_type(2) / 3);
+            }
+            ma_cbrt_sq_inv[mat_id.get()] *= mat.number_density();
+        }
+        make_builder(&host_data.ma_cbrt_sq_inv)
+            .insert_back(ma_cbrt_sq_inv.begin(), ma_cbrt_sq_inv.end());
     }
 }
 

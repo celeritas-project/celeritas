@@ -26,7 +26,8 @@ struct WentzelVIMscParameters
 {
     using Energy = units::MevEnergy;
 
-    real_type single_scattering_fact{1.25};  //!< single scattering factor
+    bool is_combined{true};  //!< Use combined single and multiple scattering
+    real_type single_scattering_factor{1.25};
     Energy low_energy_limit{0};
     Energy high_energy_limit{0};
 

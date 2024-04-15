@@ -56,7 +56,7 @@ CoulombScatteringExecutor::operator()(CoreTrackView const& track)
 
     // Construct the interactor
     CoulombScatteringInteractor interact(
-        params, particle, dir, target, element_id, cutoffs);
+        params, particle, dir, material, target, element_id, cutoffs);
 
     // Execute the interactor
     return interact(rng);

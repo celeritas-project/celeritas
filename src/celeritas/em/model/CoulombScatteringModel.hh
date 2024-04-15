@@ -39,6 +39,16 @@ class CoulombScatteringModel final : public Model
     //! Wentzel Coulomb scattering model configuration options
     struct Options
     {
+        //! Use combined single and multiple scattering
+        // TODO: default to true when WentzelVI MSC is implemented
+        bool is_combined{false};
+
+        //! Limit on the cos of the scattering angle
+        real_type costheta_limit{1};
+
+        //! Factor for dynamic computation of angular limit between SS and MSC
+        real_type angle_limit_factor{1};
+
         //! Nuclear form factor model
         NuclearFormFactorType form_factor_model{
             NuclearFormFactorType::exponential};
@@ -95,7 +105,7 @@ class CoulombScatteringModel final : public Model
     CollectionMirror<CoulombScatteringData> data_;
     ImportedModelAdapter imported_;
 
-    // Construct per element data (loads Mott coefficients)
+    // Construct per-material and per-element data (loads Mott coefficients)
     void build_data(HostVal<CoulombScatteringData>& host_data,
                     MaterialParams const& materials);
 
