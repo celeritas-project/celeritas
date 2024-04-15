@@ -53,7 +53,7 @@ CELER_FUNCTION void PreGenExecutor::operator()(CoreTrackView const& track)
     auto& scintillation_dist
         = state.scintillation[DistId(size.scintillation + tsid.get())];
 
-    // clear distribution data
+    // Clear distribution data
     cerenkov_dist = {};
     scintillation_dist = {};
 

@@ -46,6 +46,7 @@ CELER_FUNCTION void PreGenGatherExecutor::operator()(CoreTrackView const& track)
         return;
     }
 
+    CELER_ASSERT(track.track_slot_id() < state.step.size());
     OpticalPreStepData& step = state.step[track.track_slot_id()];
     step.speed = particle.speed();
     step.pos = track.make_geo_view().pos();

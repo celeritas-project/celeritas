@@ -43,7 +43,6 @@ PreGenAction::PreGenAction(ActionId id,
 {
     CELER_EXPECT(id_);
     CELER_EXPECT(scintillation_ || (cerenkov_ && properties_));
-    CELER_EXPECT(!cerenkov == !properties);
     CELER_EXPECT(storage_);
 }
 
@@ -58,7 +57,7 @@ std::string PreGenAction::description() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Generate optical distribution data on host.
+ * Execute the action with host data.
  */
 void PreGenAction::execute(CoreParams const& params, CoreStateHost& state) const
 {
@@ -67,7 +66,7 @@ void PreGenAction::execute(CoreParams const& params, CoreStateHost& state) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Generate optical distribution data on device.
+ * Execute the action with device data.
  */
 void PreGenAction::execute(CoreParams const& params,
                            CoreStateDevice& state) const
@@ -78,6 +77,11 @@ void PreGenAction::execute(CoreParams const& params,
 //---------------------------------------------------------------------------//
 /*!
  * Generate optical distribution data post-step.
+ *
+ * The distributions are stored in separate Cerenkov and scintillation buffers
+ * indexed by the current buffer size plus the track slot ID. The data is
+ * compacted at the end of each step by removing all invalid distributions. The
+ * order of the distributions in the buffers is guaranteed to be reproducible.
  */
 template<MemSpace M>
 void PreGenAction::execute_impl(CoreParams const& core_params,
@@ -112,7 +116,7 @@ void PreGenAction::execute_impl(CoreParams const& core_params,
 
 //---------------------------------------------------------------------------//
 /*!
- * Generate optical distribution data post-step.
+ * Launch a (host) kernel to generate optical distribution data post-step.
  */
 void PreGenAction::pre_generate(CoreParams const& core_params,
                                 CoreStateHost& core_state) const
