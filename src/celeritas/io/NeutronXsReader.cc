@@ -12,8 +12,8 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/math/Algorithms.hh"
 #include "corecel/sys/Environment.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Units.hh"
@@ -26,12 +26,12 @@ namespace celeritas
  * Construct the reader using the G4PARTICLEXSDATA environment variable to get
  * the path to the data.
  */
-NeutronXsReader::NeutronXsReader()
+NeutronXsReader::NeutronXsReader(NeutronXsType type) : type_(type)
 {
     std::string const& dir = celeritas::getenv("G4PARTICLEXSDATA");
     CELER_VALIDATE(!dir.empty(),
                    << "environment variable G4PARTICLEXSDATA is not defined "
-                      "(needed to locate neutron elastic cross section data)");
+                      "(needed to locate neutron cross section data)");
     path_ = dir + "/neutron";
 }
 
@@ -39,7 +39,8 @@ NeutronXsReader::NeutronXsReader()
 /*!
  * Construct the reader with the path to the directory containing the data.
  */
-NeutronXsReader::NeutronXsReader(char const* path) : path_(path)
+NeutronXsReader::NeutronXsReader(NeutronXsType type, char const* path)
+    : type_(type), path_(path)
 {
     CELER_EXPECT(!path_.empty());
     if (path_.back() == '/')
@@ -58,13 +59,14 @@ NeutronXsReader::operator()(AtomicNumber atomic_number) const
     CELER_EXPECT(atomic_number);
 
     std::string z_str = std::to_string(atomic_number.unchecked_get());
-    CELER_LOG(debug) << "Reading neutron elastic xs data for Z=" << z_str;
+    CELER_LOG(debug) << "Reading neutron xs data for " << to_cstring(type_)
+                     << " Z=" << z_str;
 
     result_type result;
 
     // Read neutron elastic cross section data for the given atomic_number
     {
-        std::string filename = path_ + "/el" + z_str;
+        std::string filename = path_ + "/" + to_cstring(type_) + z_str;
         std::ifstream infile(filename);
         CELER_VALIDATE(infile,
                        << "failed to open '" << filename
@@ -97,6 +99,21 @@ NeutronXsReader::operator()(AtomicNumber atomic_number) const
     }
 
     return result;
+}
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the string value for a neutron cross section data type.
+ */
+char const* to_cstring(NeutronXsType value)
+{
+    static EnumStringMapper<NeutronXsType> const to_cstring_impl{
+        "cap", "el", "inel"};
+    return to_cstring_impl(value);
 }
 
 //---------------------------------------------------------------------------//
