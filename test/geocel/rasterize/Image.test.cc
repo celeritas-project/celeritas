@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "geocel/rasterize/Image.hh"
 
+#include "geocel/rasterize/ImageLineView.hh"
+
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -52,9 +54,25 @@ TEST_F(ImageTest, exact)
     EXPECT_SOFT_EQ(128, scalars.max_length);
 
     Image<MemSpace::host> img(params);
+    {
+        ImageLineView line{params->host_ref(), img.ref(), TrackSlotId{0}};
+        EXPECT_EQ(64, line.max_index());
+        line.set_pixel(0, 123);
+        line.set_pixel(2, 345);
+        EXPECT_VEC_SOFT_EQ((Real3{0, 31, 0}), line.start_pos());
+    }
+    {
+        ImageLineView line{params->host_ref(), img.ref(), TrackSlotId{1}};
+        line.set_pixel(1, 567);
+        EXPECT_VEC_SOFT_EQ((Real3{0, 29, 0}), line.start_pos());
+    }
+
     std::vector<int> result(params->num_pixels());
     img.copy_to_host(make_span(result));
-    EXPECT_EQ(-1, result.front());
+    EXPECT_EQ(123, result[0]);
+    EXPECT_EQ(-1, result[1]);
+    EXPECT_EQ(345, result[2]);
+    EXPECT_EQ(567, result[65]);
 }
 
 TEST_F(ImageTest, inexact)

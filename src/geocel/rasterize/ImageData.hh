@@ -39,7 +39,7 @@ struct ImageParamsScalars
     Real3 down{};  //!< Downward basis vector
     Real3 right{};  //!< Rightward basis vector (increasing i, track movement)
     real_type pixel_width{};  //!< Width of a pixel
-    Size2 dims{};  //!< Image dimensions (j, i)
+    Size2 dims{};  //!< Image dimensions (rows, columns)
     real_type max_length{};  //!< Maximum distance along rightward to trace
 
     //! Whether the interface is initialized
@@ -96,7 +96,7 @@ struct ImageStateData
 
     //// DATA ////
 
-    Items<int> image;  //!< Stored image [j][i]
+    Items<int> image;  //!< Stored image [i][j]
 
     //// METHODS ////
 
