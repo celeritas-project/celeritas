@@ -174,7 +174,7 @@ auto NeutronInelasticModel::get_channel_xs(ChannelId ch_id)
 {
     CELER_EXPECT(ch_id);
     static ChannelXsData const channels[]
-        = {{{17.613, 4.00, 0.0069466, 9.0692, -5.0574},
+        = {{{17.613, 4.00, {0.0069466, 9.0692, -5.0574}},
             {0.8633,
              0.6746,
              0.4952,
@@ -188,7 +188,7 @@ auto NeutronInelasticModel::get_channel_xs(ChannelId ch_id)
              0.0445,
              0.0388,
              0.0351}},
-           {{20.360, 1.92, 0.0053107, 3.0885, -1.1748},
+           {{20.360, 1.92, {0.0053107, 3.0885, -1.1748}},
             {0.3024,
              0.2359,
              0.1733,
@@ -202,7 +202,7 @@ auto NeutronInelasticModel::get_channel_xs(ChannelId ch_id)
              0.0252,
              0.0240,
              0.0233}},
-           {{17.613, 4.00, 0.0069466, 9.0692, -5.0574},
+           {{17.613, 4.00, {0.0069466, 9.0692, -5.0574}},
             {0.8633,
              0.6746,
              0.4952,
