@@ -58,7 +58,7 @@ class ArraySoftUnit
 
     // Calculate whether the array is nearly a unit vector
     template<::celeritas::size_type N>
-    CELER_CONSTEXPR_FUNCTION bool operator()(Array<T, N> const& arr) const;
+    CELER_FUNCTION bool operator()(Array<T, N> const& arr) const;
 
   private:
     value_type tol_;
@@ -110,8 +110,7 @@ CELER_CONSTEXPR_FUNCTION ArraySoftUnit<T>::ArraySoftUnit()
  */
 template<class T>
 template<::celeritas::size_type N>
-CELER_CONSTEXPR_FUNCTION bool
-ArraySoftUnit<T>::operator()(Array<T, N> const& arr) const
+CELER_FUNCTION bool ArraySoftUnit<T>::operator()(Array<T, N> const& arr) const
 {
     T length_sq{};
     for (size_type i = 0; i != N; ++i)
