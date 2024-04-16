@@ -76,13 +76,8 @@ class CollectionStateStore
     template<Ownership W2, MemSpace M2>
     inline CollectionStateStore& operator=(S<W2, M2> const& other);
 
-    //!@{
-    //! Default copy/move construction/assignment
-    CollectionStateStore(CollectionStateStore const&) = default;
-    CollectionStateStore& operator=(CollectionStateStore const&) = default;
-    CollectionStateStore(CollectionStateStore&&) = default;
-    CollectionStateStore& operator=(CollectionStateStore&&) = default;
-    //!@}
+    //! Default move, delete copy (since ref "points to" val)
+    CELER_DEFAULT_MOVE_DELETE_COPY(CollectionStateStore);
 
     //! Whether any data is being stored
     explicit operator bool() const { return static_cast<bool>(val_); }

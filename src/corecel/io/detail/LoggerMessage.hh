@@ -41,13 +41,8 @@ class LoggerMessage
     // Flush message on destruction
     inline ~LoggerMessage();
 
-    //!@{
     //! Prevent copying but allow moving
-    LoggerMessage(LoggerMessage const&) = delete;
-    LoggerMessage& operator=(LoggerMessage const&) = delete;
-    LoggerMessage(LoggerMessage&&) = default;
-    LoggerMessage& operator=(LoggerMessage&&) = default;
-    //!@}
+    CELER_DEFAULT_MOVE_DELETE_COPY(LoggerMessage);
 
     // Write the object to the stream if applicable
     template<class T>

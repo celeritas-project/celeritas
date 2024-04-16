@@ -12,6 +12,7 @@ on:
       - '**.rst'
       - '**.md'
       - 'scripts/dev'
+      - '.jenkins'
 
 concurrency:
   group: pr-${{github.ref}}-${{github.event.number}}-${{github.workflow}}

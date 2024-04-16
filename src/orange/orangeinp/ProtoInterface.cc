@@ -7,6 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "ProtoInterface.hh"
 
+#include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/sys/ScopedMem.hh"
+#include "corecel/sys/ScopedProfiling.hh"
+
 #include "detail/InputBuilder.hh"
 
 namespace celeritas
@@ -19,6 +23,10 @@ namespace orangeinp
  */
 OrangeInput build_input(Tolerance<> const& tol, ProtoInterface const& global)
 {
+    ScopedProfiling profile_this{"build-orange-geo"};
+    ScopedMem record_mem("orangeinp::build_input");
+    ScopedTimeLog scoped_time;
+
     OrangeInput result;
     detail::ProtoMap const protos{global};
     CELER_ASSERT(protos.find(&global) == orange_global_universe);

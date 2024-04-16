@@ -104,7 +104,6 @@ void UnitProto::build(InputBuilder& input) const
 
     // Get the list of all surfaces actually used
     auto const sorted_local_surfaces = calc_surfaces(csg_unit.tree);
-    bool const has_background = csg_unit.background != MaterialId{};
 
     UnitInput result;
     result.label = input_.label;
@@ -156,7 +155,8 @@ void UnitProto::build(InputBuilder& input) const
     detail::PostfixLogicBuilder build_logic{csg_unit.tree,
                                             sorted_local_surfaces};
     detail::InternalSurfaceFlagger has_internal_surfaces{csg_unit.tree};
-    result.volumes.reserve(csg_unit.volumes.size() + has_background);
+    result.volumes.reserve(csg_unit.volumes.size()
+                           + static_cast<bool>(csg_unit.background));
 
     for (auto vol_idx : range(csg_unit.volumes.size()))
     {
@@ -185,7 +185,7 @@ void UnitProto::build(InputBuilder& input) const
         result.volumes.emplace_back(std::move(vi));
     }
 
-    if (has_background)
+    if (csg_unit.background)
     {
         // "Background" should be unreachable: 'nowhere' logic, null bbox
         // but it has to have all the surfaces that connect to an interior
@@ -196,11 +196,14 @@ void UnitProto::build(InputBuilder& input) const
         vi.logic = {logic::ltrue, logic::lnot};
         vi.bbox = {};  // XXX: input converter changes to infinite bbox
         vi.zorder = ZOrder::background;
-        vi.flags = VolumeRecord::implicit_vol;
+        // XXX the nearest internal surface is probably *not* the safety
+        // distance, but it's better than nothing
+        vi.flags = VolumeRecord::implicit_vol | VolumeRecord::simple_safety;
         result.volumes.emplace_back(std::move(vi));
     }
     CELER_ASSERT(result.volumes.size()
-                 == csg_unit.volumes.size() + has_background);
+                 == csg_unit.volumes.size()
+                        + static_cast<bool>(csg_unit.background));
 
     // Set labels and other attributes.
     // NOTE: this means we're entirely ignoring the "metadata" from the CSG
@@ -253,14 +256,18 @@ void UnitProto::build(InputBuilder& input) const
     // Save attributes from materials
     for (auto const& m : input_.materials)
     {
-        vol_iter->label = std::string{m.interior->label()};
+        vol_iter->label = !m.label.empty()
+                              ? m.label
+                              : Label{std::string(m.interior->label())};
         vol_iter->zorder = ZOrder::media;
         ++vol_iter;
     }
 
-    if (input_.fill)
+    if (input_.background)
     {
-        vol_iter->label = {input_.label, "bg"};
+        vol_iter->label = !input_.background.label.empty()
+                              ? input_.background.label
+                              : Label{input_.label, "bg"};
         ++vol_iter;
     }
     CELER_EXPECT(vol_iter == result.volumes.end());
@@ -294,7 +301,7 @@ auto UnitProto::build(Tol const& tol, ExteriorBoundary ext) const -> Unit
     };
 
     // Build exterior volume and optional background fill
-    if (input_.boundary.zorder != ZOrder::media && !input_.fill)
+    if (input_.boundary.zorder != ZOrder::media && !input_.background)
     {
         CELER_NOT_IMPLEMENTED("implicit exterior without background fill");
     }
@@ -318,11 +325,14 @@ auto UnitProto::build(Tol const& tol, ExteriorBoundary ext) const -> Unit
     for (auto const& m : input_.materials)
     {
         auto lv = build_volume(*m.interior);
-        unit_builder.fill_volume(lv, m.fill);
+        if (m.fill)
+        {
+            unit_builder.fill_volume(lv, m.fill);
+        }
     }
 
     // Build background fill (optional)
-    result.background = input_.fill;
+    result.background = input_.background.fill;
 
     if (ext == ExteriorBoundary::is_daughter)
     {
