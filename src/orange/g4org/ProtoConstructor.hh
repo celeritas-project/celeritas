@@ -21,7 +21,14 @@ namespace g4org
 {
 //---------------------------------------------------------------------------//
 /*!
- * Build a proto-universe from a logical volume.
+ * Recursively build ORANGE proto-universes from a \c LogicalVolume .
+ *
+ * The input to this function is the output of \c LogicalVolumeConverter . This
+ * class is responsible for "placing" the converted \c PhysicalVolume by
+ * transforming its children. Depending on heuristics, the children are
+ * directly inserted into a \c UnitProto as volumes (specifically, the logical
+ * volume becomes a \c UnitProto::MaterialInput), or a \c LogicalVolume is
+ * turned into a \em new \c UnitProto that can be used in multiple locations.
  */
 class ProtoConstructor
 {
@@ -51,8 +58,8 @@ class ProtoConstructor
                   PhysicalVolume const& pv,
                   ProtoInput* proto);
 
-    // Number of daughters above which we use a "fill" material
-    // TODO: make this configurable
+    // (TODO: make this configurable)
+    //! Number of daughters above which we use a "fill" material
     static constexpr int fill_daughter_threshold() { return 2; }
 };
 

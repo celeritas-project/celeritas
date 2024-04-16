@@ -112,15 +112,7 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
 
 //---------------------------------------------------------------------------//
 /*!
- * Place this PV into the proto.
- *
- * - proto boundary is already constructed as a parent unit
- * - when inlining a child, we explicitly subtract the children
- * - "top-level" children don't get subtracted; the parent volume has a
- *   "background"
- * - child is inlined if it's only used once; *its* shape needs to have the
- *   children subtracted from it explicitly
- * - child is inlined if it has no children
+ * Place this physical volume into the proto.
  */
 void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
                                 PhysicalVolume const& pv,
