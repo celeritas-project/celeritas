@@ -88,7 +88,7 @@ class ProtoConstructorTest : public ::celeritas::test::Test
 TEST_F(ProtoConstructorTest, two_boxes)
 {
     LogicalVolume world = this->load("two-boxes.gdml");
-    auto global_proto = ProtoConstructor(/* verbose = */ true)(world);
+    auto global_proto = ProtoConstructor(/* verbose = */ false)(world);
     ProtoMap protos{*global_proto};
     ASSERT_EQ(1, protos.size());
     {
@@ -218,7 +218,7 @@ TEST_F(ProtoConstructorTest, simple_cms)
     // NOTE: GDML stores widths for box and cylinder Z; Geant4 uses halfwidths
     LogicalVolume world = this->load("simple-cms.gdml");
 
-    auto global_proto = ProtoConstructor(/* verbose = */ true)(world);
+    auto global_proto = ProtoConstructor(/* verbose = */ false)(world);
     ProtoMap protos{*global_proto};
 
     static std::string const expected_proto_names[] = {"world0x0"};
@@ -372,7 +372,7 @@ TEST_F(ProtoConstructorTest, znenv)
     };
     EXPECT_VEC_EQ(expected_proto_names, get_proto_names(protos));
 
-    ASSERT_EQ(5, protos.size());
+    ASSERT_EQ(9, protos.size());
     {
         SCOPED_TRACE("World");
         auto u = this->build_unit(protos, UniverseId{0});
@@ -444,34 +444,39 @@ TEST_F(ProtoConstructorTest, znenv)
             "Plane: x=-0.05",
             "Plane: y=0.05",
             "Plane: y=0.11",
-            "Cyl z: r=0.01825 at x=-0.16, y=0.16",
-            "Cyl z: r=0.01825 at x=-0.08, y=0.08",
             "Plane: x=0.05",
             "Plane: x=0.11",
-            "Cyl z: r=0.01825 at x=0.16, y=0.16",
-            "Cyl z: r=0.01825 at x=0.08, y=0.08",
             "Plane: y=-0.11",
             "Plane: y=-0.05",
-            "Cyl z: r=0.01825 at x=-0.16, y=-0.16",
-            "Cyl z: r=0.01825 at x=-0.08, y=-0.08",
-            "Cyl z: r=0.01825 at x=0.16, y=-0.16",
-            "Cyl z: r=0.01825 at x=0.08, y=-0.08",
         };
         static char const* const expected_volume_strings[] = {
             "F",
-            "all(all(+6, -7, +8, -9), +10)",
-            "-11",
-            "all(all(+8, -9, +12, -13), +14)",
-            "-15",
-            "all(all(+6, -7, +16, -17), +18)",
-            "-19",
-            "all(all(+12, -13, +16, -17), +20)",
-            "-21",
+            "all(+6, -7, +8, -9)",
+            "all(+8, -9, +10, -11)",
+            "all(+6, -7, +12, -13)",
+            "all(+10, -11, +12, -13)",
         };
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_EQ(MaterialId{2}, u.background);
+    }
+    {
+        SCOPED_TRACE("ZNG1");
+        auto u = this->build_unit(protos, UniverseId{5});
+        static char const* const expected_surface_strings[]
+            = {"Plane: x=-0.03",
+               "Plane: x=0.03",
+               "Plane: y=-0.03",
+               "Plane: y=0.03",
+               "Plane: z=-50",
+               "Plane: z=50",
+               "Cyl z: r=0.01825"};
+        static char const* const expected_volume_strings[] = {"F", "-6", "+6"};
+
+        EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+        EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+        EXPECT_EQ(MaterialId{}, u.background);
     }
 }
 
