@@ -9,6 +9,7 @@
 
 #include "geocel/GenericGeoTestBase.hh"
 #include "geocel/vg/VecgeomData.hh"
+#include "geocel/vg/VecgeomGeoTraits.hh"
 #include "geocel/vg/VecgeomParams.hh"
 #include "geocel/vg/VecgeomTrackView.hh"
 
@@ -17,16 +18,6 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-template<>
-struct GenericGeoTraits<VecgeomParams>
-{
-    template<MemSpace M>
-    using StateStore = CollectionStateStore<VecgeomStateData, M>;
-    using TrackView = VecgeomTrackView;
-    static inline char const* ext = ".gdml";
-    static inline char const* name = "VecGeom";
-};
-
 using VecgeomTestBase = GenericGeoTestBase<VecgeomParams>;
 
 //---------------------------------------------------------------------------//

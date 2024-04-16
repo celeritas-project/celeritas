@@ -11,25 +11,13 @@
 #include "geocel/g4/GeantGeoData.hh"
 #include "geocel/g4/GeantGeoParams.hh"
 #include "geocel/g4/GeantGeoTrackView.hh"
+#include "geocel/g4/GeantGeoTraits.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-class GeantGeoTrackView;
-
 namespace test
 {
 //---------------------------------------------------------------------------//
-template<>
-struct GenericGeoTraits<GeantGeoParams>
-{
-    template<MemSpace M>
-    using StateStore = CollectionStateStore<GeantGeoStateData, M>;
-    using TrackView = GeantGeoTrackView;
-    static inline char const* ext = ".gdml";
-    static inline char const* name = "Geant4";
-};
-
 using GeantGeoTestBase = GenericGeoTestBase<GeantGeoParams>;
 
 //---------------------------------------------------------------------------//
