@@ -359,8 +359,17 @@ TEST_F(ProtoConstructorTest, znenv)
     auto global_proto = ProtoConstructor(/* verbose = */ false)(world);
     ProtoMap protos{*global_proto};
 
-    static std::string const expected_proto_names[]
-        = {"World0x0", "ZNTX0x0", "ZN10x0", "ZNSL0x0", "ZNST0x0"};
+    static std::string const expected_proto_names[] = {
+        "World0x0",
+        "ZNTX0x0",
+        "ZN10x0",
+        "ZNSL0x0",
+        "ZNST0x0",
+        "ZNG10x0",
+        "ZNG20x0",
+        "ZNG30x0",
+        "ZNG40x0",
+    };
     EXPECT_VEC_EQ(expected_proto_names, get_proto_names(protos));
 
     ASSERT_EQ(5, protos.size());
