@@ -108,7 +108,7 @@
 1,
 2
 ],
-"flags": 2,
+"flags": 6,
 "logic": "* ~",
 "zorder": "B"
 }

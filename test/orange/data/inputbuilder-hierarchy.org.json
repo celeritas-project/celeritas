@@ -293,7 +293,7 @@
 {
 "bbox": null,
 "faces": [],
-"flags": 2,
+"flags": 6,
 "logic": "* ~",
 "zorder": "B"
 }
@@ -336,7 +336,7 @@
 {
 "bbox": null,
 "faces": [],
-"flags": 2,
+"flags": 6,
 "logic": "* ~",
 "zorder": "B"
 }
@@ -521,7 +521,7 @@
 2,
 3
 ],
-"flags": 2,
+"flags": 6,
 "logic": "* ~",
 "zorder": "B"
 }
@@ -645,7 +645,7 @@
 {
 "bbox": null,
 "faces": [],
-"flags": 2,
+"flags": 6,
 "logic": "* ~",
 "zorder": "B"
 }
@@ -688,7 +688,7 @@
 {
 "bbox": null,
 "faces": [],
-"flags": 2,
+"flags": 6,
 "logic": "* ~",
 "zorder": "B"
 }
