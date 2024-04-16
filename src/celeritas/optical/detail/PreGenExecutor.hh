@@ -58,10 +58,13 @@ CELER_FUNCTION void PreGenExecutor::operator()(CoreTrackView const& track)
     scintillation_dist = {};
 
     auto sim = track.make_sim_view();
-    auto optmat_id
-        = track.make_material_view().make_material_view().optical_material_id();
-    if (sim.status() == TrackStatus::inactive || !optmat_id
-        || sim.step_length() == 0)
+    bool inactive = sim.status() == TrackStatus::inactive;
+    auto optmat_id = inactive ? OpticalMaterialId{}
+                              : track.make_material_view()
+                                    .make_material_view()
+                                    .optical_material_id();
+
+    if (inactive || !optmat_id || sim.step_length() == 0)
     {
         // Inactive tracks, materials with no optical properties, or particles
         // that started the step with zero energy (e.g. a stopped positron)
