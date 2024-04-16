@@ -37,6 +37,7 @@ OrangeInput to_input(UnitInput u)
 {
     OrangeInput result;
     result.universes.push_back(std::move(u));
+    result.tol = Tolerance<>::from_default();
     return result;
 }
 

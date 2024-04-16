@@ -45,7 +45,7 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
     explicit OrangeParams(G4VPhysicalVolume const*);
 
     // ADVANCED usage: construct from explicit host data
-    explicit OrangeParams(OrangeInput input);
+    explicit OrangeParams(OrangeInput&& input);
 
     //! Whether safety distance calculations are accurate and precise
     bool supports_safety() const final { return supports_safety_; }

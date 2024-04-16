@@ -45,35 +45,11 @@ class GeantGeoTest : public GeantGeoTestBase
     virtual SpanStringView expected_log_levels() const { return {}; }
 };
 
+//---------------------------------------------------------------------------//
 class FourLevelsTest : public GeantGeoTest
 {
     std::string geometry_basename() const override { return "four-levels"; }
 };
-
-class SolidsTest : public GeantGeoTest
-{
-    std::string geometry_basename() const override { return "solids"; }
-
-    SpanStringView expected_log_levels() const final
-    {
-        static std::string_view const levels[] = {"error"};
-        return make_span(levels);
-    }
-};
-
-class CmseTest : public GeantGeoTest
-{
-  public:
-    std::string geometry_basename() const override { return "cmse"; }
-};
-
-class ZnenvTest : public GeantGeoTest
-{
-  public:
-    std::string geometry_basename() const override { return "znenv"; }
-};
-
-//---------------------------------------------------------------------------//
 
 TEST_F(FourLevelsTest, accessors)
 {
@@ -351,6 +327,16 @@ TEST_F(FourLevelsTest, safety)
 }
 
 //---------------------------------------------------------------------------//
+class SolidsTest : public GeantGeoTest
+{
+    std::string geometry_basename() const override { return "solids"; }
+
+    SpanStringView expected_log_levels() const final
+    {
+        static std::string_view const levels[] = {"error"};
+        return make_span(levels);
+    }
+};
 
 TEST_F(SolidsTest, accessors)
 {
@@ -605,6 +591,11 @@ TEST_F(SolidsTest, reflected_vol)
 }
 
 //---------------------------------------------------------------------------//
+class CmseTest : public GeantGeoTest
+{
+  public:
+    std::string geometry_basename() const override { return "cmse"; }
+};
 
 TEST_F(CmseTest, trace)
 {
@@ -678,6 +669,11 @@ TEST_F(CmseTest, trace)
 }
 
 //---------------------------------------------------------------------------//
+class ZnenvTest : public GeantGeoTest
+{
+  public:
+    std::string geometry_basename() const override { return "znenv"; }
+};
 
 TEST_F(ZnenvTest, trace)
 {
