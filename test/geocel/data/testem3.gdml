@@ -76,7 +76,7 @@
     <box lunit="mm" name="Absorber1" x="2.3" y="400" z="400"/>
     <box lunit="mm" name="Absorber2" x="5.7" y="400" z="400"/>
     <box lunit="mm" name="Layer" x="8" y="400" z="400"/>
-    <box lunit="mm" name="Calorimeter" x="400" y="400" z="400"/>
+    <box lunit="mm" name="CaloBound" x="400" y="400" z="400"/>
     <box lunit="mm" name="World" x="480" y="480" z="480"/>
   </solids>
 
@@ -105,7 +105,7 @@
     </volume>
     <volume name="Calorimeter">
       <materialref ref="G4_Galactic"/>
-      <solidref ref="Calorimeter"/>
+      <solidref ref="CaloBound"/>
       <physvol copynumber="1" name="Layer0x560dcd38d7b0">
         <volumeref ref="Layer"/>
         <position name="Layer0x560dcd38d7b0_pos" unit="mm" x="-196" y="0" z="0"/>
