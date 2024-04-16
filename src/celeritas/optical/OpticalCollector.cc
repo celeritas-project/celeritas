@@ -30,27 +30,24 @@ OpticalCollector::OpticalCollector(SPConstProperties properties,
     : storage_(std::make_shared<detail::OpticalGenStorage>())
 {
     CELER_EXPECT(scintillation || (cerenkov && properties));
-    CELER_EXPECT(!cerenkov == !properties);
     CELER_EXPECT(buffer_capacity > 0);
     CELER_EXPECT(num_streams > 0);
     CELER_EXPECT(action_registry);
 
     // Create params and stream storage
     HostVal<OpticalGenParamsData> host_data;
-    host_data.cerenkov = static_cast<bool>(cerenkov);
+    host_data.cerenkov = cerenkov && properties;
     host_data.scintillation = static_cast<bool>(scintillation);
     host_data.capacity = buffer_capacity;
     storage_->obj = {std::move(host_data), num_streams};
     storage_->size.resize(num_streams, {});
 
-    // Build action to gather pre-step data needed to generate optical
-    // distributions
+    // Action to gather pre-step data needed to generate optical distributions
     gather_action_ = std::make_shared<detail::PreGenGatherAction>(
         action_registry->next_id(), storage_);
     action_registry->insert(gather_action_);
 
-    // Build action to generate Cerenkov and scintillation optical distribution
-    // data
+    // Action to generate Cerenkov and scintillation optical distributions
     pregen_action_
         = std::make_shared<detail::PreGenAction>(action_registry->next_id(),
                                                  properties,

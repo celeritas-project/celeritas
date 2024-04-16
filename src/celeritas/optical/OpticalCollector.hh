@@ -30,6 +30,10 @@ struct OpticalGenStorage;
 //---------------------------------------------------------------------------//
 /*!
  * Generate scintillation and Cerenkov optical distribution data at each step.
+ *
+ * This builds the actions for gathering the pre-step data needed to generate
+ * the optical distributions and generating the optical distributions at the
+ * end of the step.
  */
 class OpticalCollector
 {

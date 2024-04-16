@@ -29,8 +29,6 @@
 #include "celeritas_test.hh"
 #include "../LArSphereBase.hh"
 
-using celeritas::units::MevEnergy;
-
 namespace celeritas
 {
 namespace test
@@ -163,7 +161,7 @@ auto LArSpherePreGenTest::make_primaries(size_type count) -> VecPrimary
 {
     Primary p;
     p.event_id = EventId{0};
-    p.energy = MevEnergy{10.0};
+    p.energy = units::MevEnergy{10.0};
     p.position = from_cm(Real3{0, 0, 0});
     p.time = 0;
 

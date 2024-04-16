@@ -17,7 +17,8 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Mixin class providing "unreachable" implementations for param construction.
+ * Mixin class providing "unreachable" implementations for optical params
+ * construction.
  */
 class OnlyCoreTestBase : virtual public GlobalTestBase
 {
