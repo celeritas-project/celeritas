@@ -15,7 +15,9 @@
 #include "corecel/cont/Array.hh"
 
 #include "Algorithms.hh"
+#include "ArraySoftUnit.hh"
 #include "SoftEqual.hh"
+
 #include "detail/ArrayUtilsImpl.hh"
 
 namespace celeritas
@@ -65,11 +67,6 @@ from_spherical(T costheta, T phi);
 template<class T>
 [[nodiscard]] inline CELER_FUNCTION Array<T, 3>
 rotate(Array<T, 3> const& dir, Array<T, 3> const& rot);
-
-//---------------------------------------------------------------------------//
-// Test for being approximately a unit vector
-template<class T, size_type N>
-inline CELER_FUNCTION bool is_soft_unit_vector(Array<T, N> const& v);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -262,43 +259,6 @@ rotate(Array<T, 3> const& dir, Array<T, 3> const& rot)
 
     // Always normalize to prevent roundoff error from propagating
     return make_unit_vector(result);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Test for being approximately a unit vector.
- *
- * Consider a unit vector \em v with a small perturbation along a unit vector
- * \em e : \f[
-   \vec v + \epsilon \vec e
-  \f]
- * The magnitude squared is
- * \f[
-  m^2 = (v + \epsilon e) \cdot (v + \epsilon e)
-   = v \cdot v + 2 \epsilon v \cdot e +  \epsilon^2 e \cdot e
-   = 1 + 2 \epsilon v \cdot e + \epsilon^2
- \f]
- *
- * Since \f[ |v \cdot e|  <= |v||e| = 1 \f] by the triangle inequality,
- * then the magnitude squared of a perturbed unit vector is bounded
- * \f[
-  m^2 = 1 \pm 2 \epsilon + \epsilon^2
-  \f]
- *
- * Instead of calculating the square of the tolerance we loosely bound with
- * another epsilon.
- *
- * Example:
- * \code
-    CELER_EXPECT(is_soft_unit_vector(v));
- * \endcode
- */
-template<class T, size_type N>
-CELER_FUNCTION bool is_soft_unit_vector(Array<T, N> const& v)
-{
-    constexpr SoftEqual<T> default_soft_eq;
-    SoftEqual cmp{3 * default_soft_eq.rel(), 3 * default_soft_eq.abs()};
-    return cmp(T{1}, dot_product(v, v));
 }
 
 //---------------------------------------------------------------------------//

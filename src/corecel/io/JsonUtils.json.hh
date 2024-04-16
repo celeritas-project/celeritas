@@ -70,6 +70,15 @@
             OBJ[#NAME] = nullptr;                     \
         }                                             \
     } while (0)
+
+/*!
+ * Construct a key/value pair for a JSON object.
+ */
+#define CELER_JSON_PAIR(STRUCT, NAME) \
+    {                                 \
+        #NAME, STRUCT.NAME            \
+    }
+
 //---------------------------------------------------------------------------//
 
 namespace celeritas
