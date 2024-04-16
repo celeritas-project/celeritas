@@ -13,6 +13,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Environment.hh"
 #include "geocel/GeantGeoUtils.hh"
+#include "geocel/UnitUtils.hh"
 #include "orange/OrangeInput.hh"
 
 #include "celeritas_test.hh"
@@ -87,8 +88,8 @@ TEST_F(ConverterTest, testem3)
         EXPECT_EQ("World0x0", this->genericize_pointers(unit->label.name));
         EXPECT_EQ(53, unit->volumes.size());
         EXPECT_EQ(61, unit->surfaces.size());
-        EXPECT_VEC_SOFT_EQ((Real3{-24, -24, -24}), unit->bbox.lower());
-        EXPECT_VEC_SOFT_EQ((Real3{24, 24, 24}), unit->bbox.upper());
+        EXPECT_VEC_SOFT_EQ((Real3{-24, -24, -24}), to_cm(unit->bbox.lower()));
+        EXPECT_VEC_SOFT_EQ((Real3{24, 24, 24}), to_cm(unit->bbox.upper()));
     }
     else
     {
@@ -101,8 +102,8 @@ TEST_F(ConverterTest, testem3)
         EXPECT_EQ("Layer0x0", genericize_pointers(unit->label.name));
         EXPECT_EQ(4, unit->volumes.size());
         EXPECT_EQ(1, unit->surfaces.size());
-        EXPECT_VEC_SOFT_EQ((Real3{-0.4, -20, -20}), unit->bbox.lower());
-        EXPECT_VEC_SOFT_EQ((Real3{0.4, 20, 20}), unit->bbox.upper());
+        EXPECT_VEC_SOFT_EQ((Real3{-0.4, -20, -20}), to_cm(unit->bbox.lower()));
+        EXPECT_VEC_SOFT_EQ((Real3{0.4, 20, 20}), to_cm(unit->bbox.upper()));
     }
     else
     {
