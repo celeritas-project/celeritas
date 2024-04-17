@@ -60,6 +60,9 @@ class ImageParams final : public ParamsDataInterface<ImageParamsData>
         return dims[0] * dims[1];
     }
 
+    //! Number of horizontal lines to be used for raytracing
+    size_type num_lines() const { return this->scalars().dims[0]; }
+
     //! Access properties on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }
 
@@ -85,10 +88,17 @@ class ImageInterface
 
   public:
     //! Access image properties
-    virtual ImageParams const& params() const = 0;
+    virtual SPConstParams const& params() const = 0;
 
     //! Copy the image to the host
     virtual void copy_to_host(SpanInt) const = 0;
+
+  protected:
+    // Protected destructor prevents deletion of pointer-to-interface
+    ~ImageInterface() = default;
+
+    ImageInterface() = default;
+    CELER_DEFAULT_COPY_MOVE(ImageInterface);
 };
 
 //---------------------------------------------------------------------------//
@@ -110,7 +120,7 @@ class Image : public ImageInterface
     explicit Image(SPConstParams params);
 
     //! Access image properties
-    ImageParams const& params() const final { return *params_; }
+    SPConstParams const& params() const final { return params_; }
 
     // Write the image to a stream in binary format
     void copy_to_host(SpanInt) const final;

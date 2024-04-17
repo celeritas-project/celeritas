@@ -38,7 +38,7 @@ class ImageLineView
     // Construct with image data and thread ID
     inline CELER_FUNCTION ImageLineView(ParamsRef const& params,
                                         StateRef const& state,
-                                        TrackSlotId tid);
+                                        size_type row_index);
 
     // Calculate start position
     inline CELER_FUNCTION Real3 start_pos() const;
@@ -76,8 +76,8 @@ class ImageLineView
 CELER_FUNCTION
 ImageLineView::ImageLineView(ParamsRef const& params,
                              StateRef const& state,
-                             TrackSlotId tid)
-    : scalars_{params.scalars}, state_{state}, row_index_{tid.get()}
+                             size_type row_index)
+    : scalars_{params.scalars}, state_{state}, row_index_{row_index}
 {
     CELER_EXPECT(row_index_ < scalars_.dims[0]);
 }

@@ -52,17 +52,19 @@ TEST_F(ImageTest, exact)
     EXPECT_SOFT_EQ(2, scalars.pixel_width);
     EXPECT_VEC_EQ((Size2{16, 16 * 4}), scalars.dims);
     EXPECT_SOFT_EQ(128, scalars.max_length);
+    EXPECT_EQ(16, params->num_lines());
+    EXPECT_EQ(16 * 16 * 4, params->num_pixels());
 
     Image<MemSpace::host> img(params);
     {
-        ImageLineView line{params->host_ref(), img.ref(), TrackSlotId{0}};
+        ImageLineView line{params->host_ref(), img.ref(), 0};
         EXPECT_EQ(64, line.max_index());
         line.set_pixel(0, 123);
         line.set_pixel(2, 345);
         EXPECT_VEC_SOFT_EQ((Real3{0, 31, 0}), line.start_pos());
     }
     {
-        ImageLineView line{params->host_ref(), img.ref(), TrackSlotId{1}};
+        ImageLineView line{params->host_ref(), img.ref(), 1};
         line.set_pixel(1, 567);
         EXPECT_VEC_SOFT_EQ((Real3{0, 29, 0}), line.start_pos());
     }

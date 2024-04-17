@@ -79,7 +79,7 @@ TEST_F(RaytracerTest, exact)
     // Start at {0, 10.5, 32} and move along +z
     auto params = std::make_shared<ImageParams>(inp);
     Image<MemSpace::host> img(params);
-    ImageLineView line{params->host_ref(), img.ref(), TrackSlotId{5}};
+    ImageLineView line{params->host_ref(), img.ref(), 5};
 
     MockGeoTrackView geo;
     EXPECT_EQ(0, geo.init_count());
@@ -106,7 +106,7 @@ TEST_F(RaytracerTest, offset)
 
     auto params = std::make_shared<ImageParams>(inp);
     Image<MemSpace::host> img(params);
-    ImageLineView line{params->host_ref(), img.ref(), TrackSlotId{0}};
+    ImageLineView line{params->host_ref(), img.ref(), 0};
 
     MockGeoTrackView geo;
     Raytracer trace{geo, calc_id, line};
@@ -128,7 +128,7 @@ TEST_F(RaytracerTest, megapixels)
 
     auto params = std::make_shared<ImageParams>(inp);
     Image<MemSpace::host> img(params);
-    ImageLineView line{params->host_ref(), img.ref(), TrackSlotId{0}};
+    ImageLineView line{params->host_ref(), img.ref(), 0};
 
     MockGeoTrackView geo;
     Raytracer trace{geo, calc_id, line};
