@@ -52,7 +52,8 @@ std::string_view to_string_view(std::sub_match<T> const& cs)
 G4int log_impl(G4String const& str, LogLevel level)
 {
     static std::regex const err_warn_regex{
-        R"regex(^\W*(\w+)?\W*(warning|error)\W+)regex", std::regex::icase};
+        R"regex(^\W*(\w+)?\s*(warning|error|!+|\*+)\W+)regex",
+        std::regex::icase};
 
     static std::regex const info_regex{R"regex(^(\w+):\s+)regex"};
 
@@ -72,11 +73,11 @@ G4int log_impl(G4String const& str, LogLevel level)
         msg = to_string_view(m.suffix());
         // Update the warning level
         auto first_char = std::tolower(static_cast<unsigned char>(*m[2].first));
-        if (first_char == 'w')
+        if (first_char == 'w' || first_char == '*')
         {
             level = LogLevel::warning;
         }
-        else if (first_char == 'e')
+        else if (first_char == 'e' || first_char == '!')
         {
             level = LogLevel::error;
         }

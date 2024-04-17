@@ -38,6 +38,11 @@ TEST_F(ScopedGeantLoggerTest, host)
     G4cout << "warning: from cout" << endl;
     G4cerr << "ERROR - derpaderp" << endl;
     G4cout << "G4Material warning: things are bad" << endl;
+    G4cerr << "!!! Csv file name not defined." << endl;
+    G4cerr << "ERROR : smish" << endl;
+    G4cerr << "*** oh boy ***" << endl;
+    G4cerr << "Error! -- 123 HCIO assignment failed" << endl;
+    G4cout << "G4GDML: doing things" << endl;
 
     static char const* const expected_log_messages[] = {
         "Standard output",
@@ -46,10 +51,26 @@ TEST_F(ScopedGeantLoggerTest, host)
         "from cout",
         "derpaderp",
         "things are bad",
+        "Csv file name not defined.",
+        "smish",
+        "oh boy ***",
+        "123 HCIO assignment failed",
+        "doing things",
     };
     EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
-    static char const* const expected_log_levels[]
-        = {"diagnostic", "info", "warning", "warning", "error", "warning"};
+    static char const* const expected_log_levels[] = {
+        "diagnostic",
+        "info",
+        "warning",
+        "warning",
+        "error",
+        "warning",
+        "error",
+        "error",
+        "warning",
+        "error",
+        "diagnostic",
+    };
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
