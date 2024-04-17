@@ -61,6 +61,11 @@ class GeantOrangeTest : public OrangeTest
         {
             GTEST_SKIP() << "Geant4 is disabled";
         }
+        if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            GTEST_SKIP() << "Converting Geant4 requires double-precision "
+                            "reals";
+        }
         this->build_gdml_geometry(this->geometry_basename() + ".gdml");
     }
     real_type unit_length() const override { return lengthunits::centimeter; }
