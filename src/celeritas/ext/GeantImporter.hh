@@ -73,7 +73,7 @@ class GeantImporter final : public ImporterInterface
     //!@}
 
   public:
-    // Get an externally loaded Geant4 top-level geometry element
+    // Get the top-level geometry element from the run manager+navigator
     static G4VPhysicalVolume const* get_world_volume();
 
     // Construct from an existing Geant4 geometry, assuming physics is loaded
