@@ -7,12 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "NeutronInelasticModel.hh"
 
-#include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/TrackExecutor.hh"
-#include "celeritas/neutron/executor/NeutronInelasticExecutor.hh"
-#include "celeritas/phys/InteractionApplier.hh"
 
 namespace celeritas
 {
@@ -23,13 +19,7 @@ namespace celeritas
 void NeutronInelasticModel::execute(CoreParams const& params,
                                     CoreStateDevice& state) const
 {
-    auto execute = make_action_track_executor(
-        params.ptr<MemSpace::native>(),
-        state.ptr(),
-        this->action_id(),
-        InteractionApplier{NeutronInelasticExecutor{this->device_ref()}});
-    static ActionLauncher<decltype(execute)> const launch_kernel(*this);
-    launch_kernel(params, state, *this, execute);
+    CELER_NOT_IMPLEMENTED("Neutron inelastic interaction");
 }
 
 //---------------------------------------------------------------------------//
