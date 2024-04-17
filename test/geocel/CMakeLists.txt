@@ -104,14 +104,12 @@ if(CELERITAS_USE_VecGeom)
 endif()
 
 if(CELERITAS_USE_Geant4)
-  celeritas_add_test(GeantGeoUtils.test.cc LINK_LIBRARIES ${_g4_geo_libs})
   celeritas_add_test(ScopedGeantLogger.test.cc LINK_LIBRARIES ${_g4_global_libs})
 endif()
 
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
-  celeritas_add_test(g4/GeantGeo.test.cc
-    LINK_LIBRARIES ${_g4_geo_libs}
-  )
+  celeritas_add_test(g4/GeantGeo.test.cc LINK_LIBRARIES ${_g4_geo_libs})
+  celeritas_add_test(GeantGeoUtils.test.cc LINK_LIBRARIES ${_g4_geo_libs})
 endif()
 
 #-----------------------------------------------------------------------------#
