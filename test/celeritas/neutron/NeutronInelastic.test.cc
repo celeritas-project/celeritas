@@ -141,17 +141,17 @@ TEST_F(NeutronInelasticTest, nucleon_xs)
     size_type num_channels = shared.scalars.num_channels();
     EXPECT_EQ(num_channels, 3);
 
-    std::vector<real_type> xs_o;
+    std::vector<real_type> xs_zero;
     std::vector<real_type> xs;
     for (auto ch_id : range(ChannelId{num_channels}))
     {
-        xs_o.push_back(shared.xs_params[ch_id].xs_o);
+        xs_zero.push_back(shared.xs_params[ch_id].xs_zero);
         for (real_type inc_e : {0.01, 0.1, 1., 10., 100., 320.})
         {
             xs.push_back(calc_xs(ch_id, MevEnergy{inc_e}).value());
         }
     }
-    real_type const expected_xs_o[] = {17.613, 20.36, 17.613};
+    real_type const expected_xs_zero[] = {17.613, 20.36, 17.613};
     real_type const expected_xs[] = {17.613,
                                      17.613,
                                      4.0,
@@ -170,7 +170,7 @@ TEST_F(NeutronInelasticTest, nucleon_xs)
                                      0.8633,
                                      0.0691,
                                      0.0351};
-    EXPECT_VEC_SOFT_EQ(expected_xs_o, xs_o);
+    EXPECT_VEC_SOFT_EQ(expected_xs_zero, xs_zero);
     EXPECT_VEC_SOFT_EQ(expected_xs, xs);
 }
 

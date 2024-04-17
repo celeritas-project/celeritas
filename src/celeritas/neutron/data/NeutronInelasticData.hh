@@ -54,7 +54,7 @@ struct NeutronInelasticScalars
  */
 struct StepanovParameters
 {
-    real_type xs_o;  //!< nucleon-nucleon cross section at the zero energy
+    real_type xs_zero;  //!< nucleon-nucleon cross section at the zero energy
     real_type slope;  //!< parameter used for the low energy threshold
     Real3 coeffs;  //!< coefficients of a second order Stepanov's function
 };

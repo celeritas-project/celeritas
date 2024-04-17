@@ -77,8 +77,8 @@ NucleonNucleonXsCalculator::NucleonNucleonXsCalculator(ParamsRef const& shared)
  *  SF(E) = coeffs[0] + coeffs[1]/E + coeffs[2]/E^{2}
  * \f]
  * where the kinetic energy of the incident nucleon, \em E is in [1, 10] MeV.
- * Below 1 MeV, \f$ SF(E) = slope/E \f$ down to \f$ E = slope/xs_o \f$ while
- * \f$ SF(E) = xs_o \f$ if \em E is in [0, slope/xs_o] MeV.
+ * Below 1 MeV, \f$ SF(E) = slope/E \f$ down to \f$ E = slope/xs_zero \f$ while
+ * \f$ SF(E) = xs_zero \f$ if \em E is in [0, slope/xs_zero] MeV.
  */
 CELER_FUNCTION
 auto NucleonNucleonXsCalculator::operator()(ChannelId ch_id,
@@ -97,9 +97,9 @@ auto NucleonNucleonXsCalculator::operator()(ChannelId ch_id,
 
         result = (energy > this->low_otf_energy())
                      ? StepanovFunction(par.coeffs)(inv_energy)
-                 : (energy.value() > par.slope / par.xs_o)
+                 : (energy.value() > par.slope / par.xs_zero)
                      ? par.slope * inv_energy
-                     : par.xs_o;
+                     : par.xs_zero;
     }
     else
     {
