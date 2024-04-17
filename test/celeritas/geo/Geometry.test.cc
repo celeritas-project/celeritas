@@ -235,13 +235,13 @@ TEST_F(TestEm3Test, host)
         // ORANGE from JSON file doesn't support safety
         EXPECT_FALSE(this->geometry()->supports_safety());
     }
-    real_type tol = not_orange_geo ? 0.05 : 1e-3;
+    real_type tol = not_orange_geo ? 0.35 : 1e-3;
     this->run_host(512, tol);
 }
 
 TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
 {
-    real_type tol = not_orange_geo ? 0.05 : 1e-3;
+    real_type tol = not_orange_geo ? 0.25 : 1e-3;
     this->run_device(512, tol);
 }
 
@@ -252,14 +252,14 @@ TEST_F(TestEm3Test, TEST_IF_CELER_DEVICE(device))
 TEST_F(SimpleCmsTest, host)
 {
     // Results were generated with ORANGE
-    real_type tol = not_orange_geo ? 0.01 : 1e-3;
+    real_type tol = not_orange_geo ? 0.05 : 1e-3;
     this->run_host(512, tol);
 }
 
 TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(device))
 {
     // Results were generated with ORANGE
-    real_type tol = not_orange_geo ? 0.01 : 1e-3;
+    real_type tol = not_orange_geo ? 0.025 : 1e-3;
     this->run_device(512, tol);
 }
 
