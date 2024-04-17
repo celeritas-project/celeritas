@@ -9,6 +9,8 @@
 
 #include <type_traits>
 
+#include "corecel/Types.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
