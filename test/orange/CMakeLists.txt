@@ -46,6 +46,7 @@ celeritas_add_test(BoundingBoxUtils.test.cc)
 celeritas_add_test(MatrixUtils.test.cc)
 celeritas_add_test(OrangeTypes.test.cc)
 celeritas_add_device_test(Orange)
+celeritas_add_device_test(RaytraceImager)
 
 celeritas_add_test(detail/UniverseIndexer.test.cc)
 
