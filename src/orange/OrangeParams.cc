@@ -25,10 +25,12 @@
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
 #include "geocel/BoundingBox.hh"
+#include "geocel/GeantGeoUtils.hh"
 
 #include "OrangeData.hh"  // IWYU pragma: associated
 #include "OrangeInput.hh"
 #include "OrangeTypes.hh"
+#include "g4org/Converter.hh"
 #include "univ/detail/LogicStack.hh"
 
 #include "detail/DepthCalculator.hh"
@@ -48,7 +50,7 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Load a geometry from the given filename.
+ * Load a geometry from the given JSON file.
  */
 OrangeInput input_from_json(std::string filename)
 {
@@ -57,18 +59,6 @@ OrangeInput input_from_json(std::string filename)
 
     CELER_LOG(info) << "Loading ORANGE geometry from JSON at " << filename;
     ScopedTimeLog scoped_time;
-
-    if (ends_with(filename, ".gdml"))
-    {
-        CELER_LOG(warning) << "Using ORANGE geometry with GDML suffix: trying "
-                              "`.org.json` instead";
-        filename.erase(filename.end() - 5, filename.end());
-        filename += ".org.json";
-    }
-    else if (!ends_with(filename, ".json"))
-    {
-        CELER_LOG(warning) << "Expected '.json' extension for JSON input";
-    }
 
     OrangeInput result;
 
@@ -84,6 +74,40 @@ OrangeInput input_from_json(std::string filename)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Load a geometry from the given filename.
+ */
+OrangeInput input_from_file(std::string filename)
+{
+    if (ends_with(filename, ".gdml"))
+    {
+        if (CELERITAS_USE_GEANT4)
+        {
+            // Load with Geant4: must *not* be using run manager
+            auto* world = ::celeritas::load_geant_geometry_native(filename);
+            auto result = g4org::Converter{}(world).input;
+            ::celeritas::reset_geant_geometry();
+            return result;
+        }
+        else
+        {
+            CELER_LOG(warning) << "Using ORANGE geometry with GDML suffix "
+                                  "when Geant4 is disabled: trying "
+                                  "`.org.json` instead";
+            filename.erase(filename.end() - 5, filename.end());
+            filename += ".org.json";
+        }
+    }
+    else
+    {
+        CELER_VALIDATE(ends_with(filename, ".json"),
+                       << "expected JSON extension for ORANGE input '"
+                       << filename << "'");
+    }
+    return input_from_json(std::move(filename));
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -93,20 +117,20 @@ OrangeInput input_from_json(std::string filename)
  * The JSON format is defined by the SCALE ORANGE exporter (not currently
  * distributed).
  */
-OrangeParams::OrangeParams(std::string const& json_filename)
-    : OrangeParams(input_from_json(json_filename))
+OrangeParams::OrangeParams(std::string const& filename)
+    : OrangeParams(input_from_file(filename))
 {
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct in-memory from a Geant4 geometry (not implemented).
+ * Construct in-memory from a Geant4 geometry.
  *
- * Perhaps someday we'll implement in-memory translation...
+ * TODO: expose options? Fix volume mappings?
  */
-OrangeParams::OrangeParams(G4VPhysicalVolume const*)
+OrangeParams::OrangeParams(G4VPhysicalVolume const* world)
+    : OrangeParams(std::move(g4org::Converter{}(world).input))
 {
-    CELER_NOT_IMPLEMENTED("Geant4->VecGeom geometry translation");
 }
 
 //---------------------------------------------------------------------------//
@@ -118,8 +142,6 @@ OrangeParams::OrangeParams(G4VPhysicalVolume const*)
 OrangeParams::OrangeParams(OrangeInput&& input)
 {
     CELER_VALIDATE(input, << "input geometry is incomplete");
-    CELER_VALIDATE(!input.universes.empty(),
-                   << "input geometry has no universes");
 
     // Save global bounding box
     bbox_ = [&input] {

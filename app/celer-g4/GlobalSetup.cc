@@ -137,14 +137,6 @@ void GlobalSetup::ReadInput(std::string const& filename)
         CELER_NOT_CONFIGURED("nlohmann_json");
 #endif
 
-        // Input options
-        if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
-        {
-            // To allow ORANGE to work for testing purposes, pass the GDML
-            // input filename to Celeritas
-            options_->geometry_file = input_.geometry_file;
-        }
-
         // Output options
         options_->output_file = input_.output_file;
         options_->physics_output_file = input_.physics_output_file;

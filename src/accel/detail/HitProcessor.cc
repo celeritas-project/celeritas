@@ -109,8 +109,6 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
         tracks_.back()->SetParentID(-1);
     }
 
-    // Create secondary vector if using track data
-
     // Convert logical volumes (global) to sensitive detectors (thread local)
     CELER_LOG_LOCAL(debug) << "Setting up " << detector_volumes_->size()
                            << " sensitive detectors";
