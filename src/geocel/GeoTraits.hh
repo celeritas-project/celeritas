@@ -21,7 +21,6 @@ class GeoParamsInterface;
  * Traits class for defining params and device data.
  * \tparam G Geometry params class, e.g. VecgeomParams
  *
- *
  * This traits class \em must be defined for all geometry types. The generic
  * instance here is provided as a synopsis and to improve error checking.
  */
@@ -30,7 +29,7 @@ struct GeoTraits
 {
     static_assert(std::is_base_of_v<GeoParamsInterface, G>,
                   "G must be a geometry params, not params data");
-    static_assert(sizeof(G) == 0, "Geo traits must be specialized");
+    static_assert(std::is_void_v<G>, "Geo traits must be specialized");
 
     //! Params data used during runtime
     template<Ownership W, MemSpace M>
