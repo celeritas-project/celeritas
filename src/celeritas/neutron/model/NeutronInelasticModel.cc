@@ -11,6 +11,7 @@
 #include "corecel/math/Quantity.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/grid/GenericGridBuilder.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/InteractionApplier.hh"
@@ -45,11 +46,12 @@ NeutronInelasticModel::NeutronInelasticModel(ActionId id,
     data.scalars.neutron_mass = particles.get(data.scalars.neutron_id).mass();
 
     // Load neutron inelastic cross section data
-    make_builder(&data.micro_xs).reserve(materials.num_elements());
+    CollectionBuilder micro_xs{&data.micro_xs};
+    GenericGridBuilder build_grid{&data.reals};
     for (auto el_id : range(ElementId{materials.num_elements()}))
     {
         AtomicNumber z = materials.get(el_id).atomic_number();
-        this->append_micro_xs(load_data(z), &data);
+        micro_xs.push_back(build_grid(load_data(z)));
     }
     CELER_ASSERT(data.micro_xs.size() == materials.num_elements());
 
@@ -63,18 +65,12 @@ NeutronInelasticModel::NeutronInelasticModel(ActionId id,
     for (auto channel_id : range(ChannelId{num_channels}))
     {
         // Add nucleon-nucleon cross section parameters and data
-        ChannelXsData channel_data = this->get_channel_xs(channel_id);
+        ChannelXsData const& channel_data = this->get_channel_xs(channel_id);
         xs_params.push_back(channel_data.par);
 
-        auto reals = make_builder(&data.reals);
-        GenericGridData nucleon_xs;
-
-        auto xs = make_span(channel_data.xs);
-        CELER_ASSERT(xs.size() == bins.size());
-        nucleon_xs.grid = reals.insert_back(bins.begin(), bins.end());
-        nucleon_xs.value = reals.insert_back(xs.begin(), xs.end());
-        CELER_ASSERT(nucleon_xs);
-        make_builder(&data.nucleon_xs).push_back(nucleon_xs);
+        GenericGridBuilder build_grid{&data.reals};
+        make_builder(&data.nucleon_xs)
+            .push_back(build_grid(bins, make_span(channel_data.xs)));
     }
     CELER_ASSERT(data.nucleon_xs.size() == num_channels);
     CELER_ASSERT(data.xs_params.size() == data.nucleon_xs.size());
@@ -133,25 +129,6 @@ void NeutronInelasticModel::execute(CoreParams const&, CoreStateDevice&) const
 ActionId NeutronInelasticModel::action_id() const
 {
     return this->host_ref().scalars.action_id;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct neutron inelastic cross section data for a single element.
- */
-void NeutronInelasticModel::append_micro_xs(ImportPhysicsVector const& inp,
-                                            HostXsData* data) const
-{
-    auto reals = make_builder(&data->reals);
-    GenericGridData micro_xs;
-
-    // Add the tabulated interaction cross section from input
-    micro_xs.grid = reals.insert_back(inp.x.begin(), inp.x.end());
-    micro_xs.value = reals.insert_back(inp.y.begin(), inp.y.end());
-
-    // Add micro xs data
-    CELER_ASSERT(micro_xs);
-    make_builder(&data->micro_xs).push_back(micro_xs);
 }
 
 //---------------------------------------------------------------------------//

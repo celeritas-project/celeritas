@@ -94,8 +94,6 @@ class NeutronInelasticModel final : public Model
 
     //// HELPER FUNCTIONS ////
 
-    void
-    append_micro_xs(ImportPhysicsVector const& inp, HostXsData* xs_data) const;
     Span<double const> get_channel_bins() const;
     static ChannelXsData const& get_channel_xs(ChannelId id);
 };
