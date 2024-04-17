@@ -14,11 +14,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "geocel/rasterize/RaytraceImager.hh"
+
 #include "celeritas_config.h"
 #include "corecel/Macros.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/ThreadId.hh"
-#include "geocel/rasterize/RaytraceImager.t.hh"
+
+#include "detail/RaytraceExecutor.hh"
 
 namespace celeritas
 {
@@ -58,7 +61,7 @@ void RaytraceImager<G>::launch_raytrace_kernel(
     raytrace_kernel<Executor>
         <<<config.blocks_per_grid, config.threads_per_block, 0>>>(
             geo_states.size(),
-            Executor{geo_params, geo_states, img_params, img_state, CalcId{}});
+            Executor{geo_params, geo_states, img_params, img_states, CalcId{}});
 
     CELER_DEVICE_CALL_PREFIX(DeviceSynchronize());
 }
