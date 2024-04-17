@@ -10,6 +10,7 @@
 #include <type_traits>
 
 #include "corecel/data/CollectionStateStore.hh"
+#include "geocel/GeoTraits.hh"
 #include "geocel/detail/LengthUnits.hh"
 
 #include "LazyGeoManager.hh"
@@ -51,32 +52,27 @@ struct GenericGeoGeantImportVolumeResult
 };
 
 //---------------------------------------------------------------------------//
-//! Traits class templated on host params, to be extended by downstream files
-template<class HP>
-struct GenericGeoTraits;
-
-//---------------------------------------------------------------------------//
 /*!
  * Templated base class for loading geometry.
  *
- * \tparam HP Geometry host Params class
+ * \tparam G Geometry host params class, e.g. OrangeParams
  *
  * \sa AllGeoTypedTestBase
  *
  * \note This class is instantiated in XTestBase.cc for geometry type X.
  */
-template<class HP>
+template<class G>
 class GenericGeoTestBase : virtual public Test, private LazyGeoManager
 {
-    static_assert(std::is_base_of_v<GeoParamsInterface, HP>);
+    static_assert(std::is_base_of_v<GeoParamsInterface, G>);
 
-    using TraitsT = GenericGeoTraits<HP>;
+    using TraitsT = GeoTraits<G>;
 
   public:
     //!@{
     //! \name Type aliases
-    using SPConstGeo = std::shared_ptr<HP const>;
-    using GeoTrackView = typename GenericGeoTraits<HP>::TrackView;
+    using SPConstGeo = std::shared_ptr<G const>;
+    using GeoTrackView = typename TraitsT::TrackView;
     using TrackingResult = GenericGeoTrackingResult;
     using GeantVolResult = GenericGeoGeantImportVolumeResult;
     //!@}
@@ -130,8 +126,9 @@ class GenericGeoTestBase : virtual public Test, private LazyGeoManager
     }
 
   private:
-    using HostStateStore =
-        typename TraitsT::template StateStore<MemSpace::host>;
+    template<Ownership W, MemSpace M>
+    using StateData = typename TraitsT::template StateData<W, M>;
+    using HostStateStore = CollectionStateStore<StateData, MemSpace::host>;
 
     SPConstGeo geo_;
     HostStateStore host_state_;
