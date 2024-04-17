@@ -1,4 +1,4 @@
-Sphinx>=4.0.0
+Sphinx >= 4, < 7.3
 breathe
 furo
 sphinxcontrib-bibtex
