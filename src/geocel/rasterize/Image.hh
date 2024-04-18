@@ -14,6 +14,7 @@
 #include "corecel/data/ParamsDataInterface.hh"
 
 #include "ImageData.hh"
+#include "ImageInterface.hh"
 
 namespace celeritas
 {
@@ -45,7 +46,7 @@ class ImageParams final : public ParamsDataInterface<ImageParamsData>
 {
   public:
     // Construct with image properties
-    explicit ImageParams(ImageInput const&);
+    explicit ImageParams(ImageInput&&);
 
     //! Access scalar image properties
     ImageParamsScalars const& scalars() const
@@ -75,38 +76,10 @@ class ImageParams final : public ParamsDataInterface<ImageParamsData>
 
 //---------------------------------------------------------------------------//
 /*!
- * Access data from an image.
- */
-class ImageInterface
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using SpanInt = Span<int>;
-    using SPConstParams = std::shared_ptr<ImageParams const>;
-    //!@}
-
-  public:
-    //! Access image properties
-    virtual SPConstParams const& params() const = 0;
-
-    //! Copy the image to the host
-    virtual void copy_to_host(SpanInt) const = 0;
-
-  protected:
-    // Protected destructor prevents deletion of pointer-to-interface
-    ~ImageInterface() = default;
-
-    ImageInterface() = default;
-    CELER_DEFAULT_COPY_MOVE(ImageInterface);
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Implement an image on host or device.
  */
 template<MemSpace M>
-class Image : public ImageInterface
+class Image final : public ImageInterface
 {
   public:
     //!@{
