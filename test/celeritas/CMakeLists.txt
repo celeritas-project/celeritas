@@ -175,8 +175,9 @@ celeritas_add_test(field/MagFieldEquation.test.cc)
 set(CELERITASTEST_PREFIX celeritas/geo)
 
 set(_geo_args GPU ${_needs_geo} ${_needs_double} ${_fixme_cgs}
+  LINK_LIBRARIES ${_all_geo_libs}
   SOURCES geo/HeuristicGeoTestBase.cc
-  LINK_LIBRARIES ${_all_geo_libs})
+)
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND _geo_args geo/HeuristicGeoTestBase.cu)
 endif()
