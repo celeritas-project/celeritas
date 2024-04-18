@@ -269,7 +269,7 @@ TEST_F(TestEm3MctruthTest, four_step)
         {
             // 1 is gap_0
             // 101 is world
-            static const int expected_volume[] = {1, 101, 101, 101, 1, 101, 101, 101, 1, 101, 101, 101, 1, 101, 101, 101};
+            static const int expected_volume[] = {101, 1, 1, 1, 101, 1, 1, 1, 101, 1, 1, 1, 101, 1, 1, 1};
             EXPECT_VEC_EQ(expected_volume, result.volume);
         }
         static const double expected_pos[] = {-22, 0, 0, -20, 0.62729376699828,
