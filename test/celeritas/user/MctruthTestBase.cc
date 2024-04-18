@@ -90,7 +90,7 @@ auto MctruthTestBase::run(size_type num_tracks, size_type num_steps)
     {
         result.event.push_back(s.event);
         result.track.push_back(s.track);
-        result.step.push_back(s.step);
+        result.step.push_back(to_cm(s.step));
         result.volume.push_back(s.volume);
         for (auto pos_v : s.pos)
         {
