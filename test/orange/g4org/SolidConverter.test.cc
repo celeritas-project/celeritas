@@ -257,7 +257,7 @@ TEST_F(SolidConverterTest, polyhedra)
     this->build_and_test(
         G4Polyhedra(
             "HGCalEEAbs", 330 * deg, 360 * deg, 6, std::size(z), z, rmin, rmax),
-        R"json({"_type":"shape","interior":{"_type":"prism","apothem":6.1850000000000005,"halfheight":0.06,"num_sides":6,"orientation":0.15277777777777776},"label":"HGCalEEAbs"})json",
+        R"json({"_type":"shape","interior":{"_type":"prism","apothem":6.1850000000000005,"halfheight":0.06,"num_sides":6,"orientation":0.5},"label":"HGCalEEAbs"})json",
         {{6.18, 6.18, 0.05},
          {0, 0, 0.06},
          {7.15, 7.15, 0.05},
