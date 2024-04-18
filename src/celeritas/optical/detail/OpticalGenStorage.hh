@@ -3,23 +3,29 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/g4/GeantGeoTestBase.hh
+//! \file celeritas/optical/detail/OpticalGenStorage.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "geocel/GenericGeoTestBase.hh"
-#include "geocel/g4/GeantGeoData.hh"
-#include "geocel/g4/GeantGeoParams.hh"
-#include "geocel/g4/GeantGeoTrackView.hh"
-#include "geocel/g4/GeantGeoTraits.hh"
+#include <vector>
+
+#include "corecel/data/StreamStore.hh"
+
+#include "../OpticalGenData.hh"
 
 namespace celeritas
 {
-namespace test
+namespace detail
 {
 //---------------------------------------------------------------------------//
-using GeantGeoTestBase = GenericGeoTestBase<GeantGeoParams>;
+struct OpticalGenStorage
+{
+    using StoreT = StreamStore<OpticalGenParamsData, OpticalGenStateData>;
+
+    StoreT obj;
+    std::vector<OpticalBufferSize> size;
+};
 
 //---------------------------------------------------------------------------//
-}  // namespace test
+}  // namespace detail
 }  // namespace celeritas

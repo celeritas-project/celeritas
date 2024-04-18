@@ -129,11 +129,14 @@ celeritas_add_test(univ/detail/SenseCalculator.test.cc)
 # Geant4 construction
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   set(CELERITASTEST_PREFIX orange/g4org)
-  list(APPEND CELERITASTEST_LINK_LIBRARIES ${_g4_geo_libs})
 
-  celeritas_add_test(g4org/SolidConverter.test.cc)
+  celeritas_add_test(g4org/Converter.test.cc)
+  celeritas_add_test(g4org/SolidConverter.test.cc
+    LINK_LIBRARIES ${_g4_geo_libs})
   celeritas_add_test(g4org/PhysicalVolumeConverter.test.cc)
-  celeritas_add_test(g4org/Transformer.test.cc)
+  celeritas_add_test(g4org/ProtoConstructor.test.cc)
+  celeritas_add_test(g4org/Transformer.test.cc
+    LINK_LIBRARIES ${_g4_geo_libs})
 endif()
 
 #-----------------------------------------------------------------------------#
