@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas_config.h"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "geocel/detail/LengthUnits.hh"
@@ -18,7 +19,7 @@ namespace test
 //---------------------------------------------------------------------------//
 //! Whether the current geometry can correctly scale the input as needed
 inline constexpr bool unit_scaling_enabled
-    = (CELERITAS_UNITS == CELERITAS_UNITS_CSG
+    = (CELERITAS_UNITS == CELERITAS_UNITS_CGS
        || CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE
        || CELERITAS_USE_GEANT4);
 
