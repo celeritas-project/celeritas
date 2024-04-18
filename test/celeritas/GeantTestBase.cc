@@ -75,7 +75,8 @@ bool GeantTestBase::is_ci_build()
            && CELERITAS_UNITS == CELERITAS_UNITS_CGS
            && cstring_equal(celeritas_core_rng, "xorwow")
            && (cstring_equal(celeritas_clhep_version, "2.4.6.0")
-               || cstring_equal(celeritas_clhep_version, "2.4.6.4"))
+               || cstring_equal(celeritas_clhep_version, "2.4.6.4")
+               || cstring_equal(celeritas_clhep_version, "2.4.7.1"))
            && (cstring_equal(celeritas_geant4_version, "11.0.3")
                || cstring_equal(celeritas_geant4_version, "11.0.4"));
 }
