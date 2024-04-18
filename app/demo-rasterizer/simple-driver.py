@@ -59,3 +59,22 @@ except json.decoder.JSONDecodeError as e:
 print(json.dumps(result["metadata"], indent=1))
 with open(f'{problem_name}.out.json', 'w') as f:
     json.dump(result, f)
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    print("Skipping plot: matplotlib is unavailable")
+    exit(0)
+
+import importlib
+spec = importlib.util.spec_from_file_location(
+    "viz",
+    Path(__file__).parent / "visualize.py"
+)
+viz = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(viz)
+
+(fig, ax) = plt.subplots(layout="constrained")
+viz.load_and_plot_image(ax, result)
+fig.savefig(f"{problem_name}.png", dpi=150)
+print(f"Saved to {problem_name}.png")
