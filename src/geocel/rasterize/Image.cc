@@ -25,7 +25,7 @@ namespace celeritas
  *
  * All inputs should be in the native unit system.
  */
-ImageParams::ImageParams(ImageInput&& inp)
+ImageParams::ImageParams(ImageInput const& inp)
 {
     CELER_VALIDATE(ArraySoftUnit{real_type{0.001}}(inp.rightward),
                    << "rightward axis " << repr(inp.rightward)

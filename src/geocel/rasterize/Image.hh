@@ -46,7 +46,7 @@ class ImageParams final : public ParamsDataInterface<ImageParamsData>
 {
   public:
     // Construct with image properties
-    explicit ImageParams(ImageInput&&);
+    explicit ImageParams(ImageInput const&);
 
     //! Access scalar image properties
     ImageParamsScalars const& scalars() const
