@@ -58,6 +58,14 @@
       }
     },
     {
+      "name": "ultralite",
+      "inherits": ["base"],
+      "displayName": "ultralite build with no externals",
+      "cacheVariables": {
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
       "name": ".vecgeom",
       "hidden": true,
       "description": "Options to enable VecGeom on Ubuntu",

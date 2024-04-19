@@ -8,7 +8,7 @@ concurrency:
   group: build-spack-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
 
 env:
-  SPACK_REF: 968ad02473b12f6305cc1fe19f2a0d706f171154
+  SPACK_REF: 968ad02473b12f6305cc1fe19f2a0d706f171154 # develop-2024-03-10-70-g968ad02473
 
 jobs:
   spack:
