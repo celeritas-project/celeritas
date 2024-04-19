@@ -1,0 +1,37 @@
+!##############################################################################
+! File  : lar-sphere.org.omn
+!
+! One steel sphere.
+! Regenerate the JSON file with `orange2celeritas` from SCALE
+!##############################################################################
+
+[GEOMETRY]
+global "global"
+comp       : matid
+    "vacuum" 0
+    "lAr" 1
+
+[UNIVERSE=general global]
+interior "world"
+
+!##############################################################################
+! SHAPES ("solids")
+!##############################################################################
+
+[UNIVERSE][SHAPE=sphere sphere]
+radius 100
+
+[UNIVERSE][SHAPE=sphere world_sphere]
+radius 1000
+
+!##############################################################################
+! CELLS ("volumes")
+!##############################################################################
+
+[UNIVERSE][CELL sphere]
+comp "lAr"
+shapes sphere
+
+[UNIVERSE][CELL world]
+comp "vacuum"
+shapes world_sphere ~sphere
