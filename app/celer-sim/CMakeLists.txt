@@ -98,6 +98,12 @@ set_tests_properties("app/celer-sim:gpu" PROPERTIES
 if(CELERITAS_USE_ROOT)
   set(_mctruth_out "${CMAKE_CURRENT_BINARY_DIR}/mctruth_output.root")
 endif()
+set(CELER_GEO ${CELERITAS_CORE_GEO})
+if(CELERITAS_CORE_GEO STREQUAL "ORANGE" AND NOT CELERITAS_USE_Geant4)
+  # Signal to the app that we have to use the JSON input
+  set(CELER_GEO "${CELER_CORE_GEO}-JSON")
+endif()
+
 add_test(NAME "app/celer-sim:cpu"
   COMMAND "${CELER_PYTHON}"
   "${_driver}" "${_gdml_inp}" "${_hepmc3_inp}" "${_mctruth_out}"
