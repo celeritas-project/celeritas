@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file demo-rasterizer/demo-rasterizer.cc
+//! \file celer-geo/celer-geo.cc
 //---------------------------------------------------------------------------//
 #include <cstddef>
 #include <fstream>
