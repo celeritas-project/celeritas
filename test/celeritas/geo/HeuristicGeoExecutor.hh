@@ -90,7 +90,7 @@ CELER_FUNCTION void HeuristicGeoExecutor::operator()(TrackSlotId tid) const
 
     // Calculate latest safety and truncate estimated step length (MSC-like)
     // half the time
-    if (!geo.is_on_boundary())
+    if (!geo.is_on_boundary() && geo.volume_id() != params.s.world_volume)
     {
         real_type safety = geo.find_safety();
         constexpr real_type safety_tol = 0.01;

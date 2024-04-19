@@ -64,7 +64,7 @@ else:
     # Load directly from Geant4 rather than ROOT file
     physics_filename = geometry_filename
 
-if core_geo == "orange":
+if core_geo == "orange-json":
     print("Replacing .gdml extension since VecGeom is disabled", file=stderr)
     geometry_filename = re.sub(r"\.gdml$", ".org.json", geometry_filename)
 

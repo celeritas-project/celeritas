@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Macros.hh"
 #include "corecel/cont/Span.hh"  // IWYU pragma: export
 #include "corecel/io/Label.hh"  // IWYU pragma: export
 
@@ -64,6 +65,9 @@ class GeoParamsInterface
   protected:
     // Protected destructor prevents deletion of pointer-to-interface
     ~GeoParamsInterface() = default;
+
+    GeoParamsInterface() = default;
+    CELER_DEFAULT_COPY_MOVE(GeoParamsInterface);
 };
 
 //---------------------------------------------------------------------------//

@@ -474,7 +474,8 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
     {
         // A solid prism
         double const hh = (zs[1] - zs[0]) / 2;
-        double const orientation = startphi.value() / params.numSide;
+        double const orientation
+            = std::fmod(params.numSide * startphi.value(), real_type{1});
 
         if (rmin[0] != 0.0 || angle)
         {

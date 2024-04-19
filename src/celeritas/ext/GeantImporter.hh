@@ -11,6 +11,7 @@
 
 #include "celeritas_config.h"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/io/ImporterInterface.hh"
 
 #include "GeantSetup.hh"
 
@@ -63,7 +64,7 @@ struct GeantImportDataSelection
     ImportData data = import();
  *  \endcode
  */
-class GeantImporter
+class GeantImporter final : public ImporterInterface
 {
   public:
     //!@{

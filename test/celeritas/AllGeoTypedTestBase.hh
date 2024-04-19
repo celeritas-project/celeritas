@@ -60,7 +60,7 @@ class AllGeoTypedTestBase : public GenericGeoTestBase<HP>
   public:
     using SPConstGeo = typename GenericGeoTestBase<HP>::SPConstGeo;
 
-    static std::string geo_name() { return GenericGeoTraits<HP>::name; }
+    static std::string geo_name() { return GeoTraits<HP>::name; }
 
     SPConstGeo build_geometry() override
     {
@@ -87,7 +87,7 @@ struct AllGeoTestingTypeNames
     template<class U>
     static std::string GetName(int)
     {
-        return GenericGeoTraits<U>::name;
+        return GeoTraits<U>::name;
     }
 };
 
