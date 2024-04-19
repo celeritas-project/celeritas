@@ -62,6 +62,9 @@
       "inherits": ["base"],
       "displayName": "ultralite build with no externals",
       "cacheVariables": {
+        "BUILD_TESTING": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
       }
     },

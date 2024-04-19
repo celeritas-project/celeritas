@@ -61,6 +61,49 @@ jobs:
         if: ${{!cancelled()}}
         run: |
           ccache -s
+  windows:
+    name: ultralite-windows
+    env:
+      CCACHE_DIR: "${{github.workspace}}\\.ccache"
+      CCACHE_MAXSIZE: "20Mi"
+      CMAKE_PRESET: ultralite
+    runs-on: windows-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          choco install ninja ccache
+      - name: Check out Celeritas
+        uses: actions/checkout@v4
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ${{env.CCACHE_DIR}}
+          key: ccache-ultralite-${{github.run_id}}
+          restore-keys: |
+            ccache-ultralite
+      - name: Zero ccache stats
+        run: |
+          ccache -z
+      - name: Configure Celeritas
+        shell: pwsh
+        run: |
+          Copy-Item scripts/cmake-presets/ci-windows-github.json -Destination CMakeUserPresets.json
+          cmake --preset=$Env:CMAKE_PRESET `
+            -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
+              && format(';-pr.{0};', github.event.pull_request.number)
+              || format(';-{0};', github.ref_name)}}"
+      - name: Build all
+        run: |
+          cmake --build --preset=$Env:CMAKE_PRESET 
+      - name: Test all
+        continue-on-error: true
+        run: |
+          ctest --preset=$Env:CMAKE_PRESET 
+      - name: Show ccache stats
+        if: ${{!cancelled()}}
+        run: |
+          ccache -s
 
 # vim: set nowrap tw=100:
-
