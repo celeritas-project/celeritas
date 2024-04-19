@@ -21,40 +21,32 @@ namespace celeritas
 /*!
  * Construct with optical params, number of streams, and action registry.
  */
-OpticalCollector::OpticalCollector(SPConstProperties properties,
-                                   SPConstCerenkov cerenkov,
-                                   SPConstScintillation scintillation,
-                                   size_type buffer_capacity,
-                                   size_type num_streams,
-                                   ActionRegistry* action_registry)
+OpticalCollector::OpticalCollector(Input inp)
     : storage_(std::make_shared<detail::OpticalGenStorage>())
 {
-    CELER_EXPECT(scintillation || (cerenkov && properties));
-    CELER_EXPECT(buffer_capacity > 0);
-    CELER_EXPECT(num_streams > 0);
-    CELER_EXPECT(action_registry);
+    CELER_EXPECT(inp);
 
     // Create params and stream storage
     HostVal<OpticalGenParamsData> host_data;
-    host_data.cerenkov = cerenkov && properties;
-    host_data.scintillation = static_cast<bool>(scintillation);
-    host_data.capacity = buffer_capacity;
-    storage_->obj = {std::move(host_data), num_streams};
-    storage_->size.resize(num_streams, {});
+    host_data.cerenkov = inp.cerenkov && inp.properties;
+    host_data.scintillation = static_cast<bool>(inp.scintillation);
+    host_data.capacity = inp.buffer_capacity;
+    storage_->obj = {std::move(host_data), inp.num_streams};
+    storage_->size.resize(inp.num_streams, {});
 
     // Action to gather pre-step data needed to generate optical distributions
     gather_action_ = std::make_shared<detail::PreGenGatherAction>(
-        action_registry->next_id(), storage_);
-    action_registry->insert(gather_action_);
+        inp.action_registry->next_id(), storage_);
+    inp.action_registry->insert(gather_action_);
 
     // Action to generate Cerenkov and scintillation optical distributions
-    pregen_action_
-        = std::make_shared<detail::PreGenAction>(action_registry->next_id(),
-                                                 properties,
-                                                 cerenkov,
-                                                 scintillation,
-                                                 storage_);
-    action_registry->insert(pregen_action_);
+    pregen_action_ = std::make_shared<detail::PreGenAction>(
+        inp.action_registry->next_id(),
+        inp.properties,
+        inp.cerenkov,
+        inp.scintillation,
+        storage_);
+    inp.action_registry->insert(pregen_action_);
 }
 
 //---------------------------------------------------------------------------//

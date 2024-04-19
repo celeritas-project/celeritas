@@ -46,21 +46,33 @@ class OpticalCollector
     using SPGenStorage = std::shared_ptr<detail::OpticalGenStorage>;
     //!@}
 
+    struct Input
+    {
+        SPConstProperties properties;
+        SPConstCerenkov cerenkov;
+        SPConstScintillation scintillation;
+        ActionRegistry* action_registry;
+        size_type buffer_capacity{};
+        size_type num_streams{};
+
+        //! True if all input is assigned and valid
+        explicit operator bool() const
+        {
+            return (scintillation || (cerenkov && properties))
+                   && action_registry && buffer_capacity > 0 && num_streams > 0;
+        }
+    };
+
   public:
     // Construct with optical params, number of streams, and action registry
-    OpticalCollector(SPConstProperties properties,
-                     SPConstCerenkov cerenkov,
-                     SPConstScintillation scintillation,
-                     size_type buffer_capacity,
-                     size_type num_streams,
-                     ActionRegistry* action_registry);
+    explicit OpticalCollector(Input);
 
     // Default destructor and move and copy
     ~OpticalCollector() = default;
     CELER_DEFAULT_COPY_MOVE(OpticalCollector);
 
     //! Get the distribution data
-    SPGenStorage storage() const { return storage_; };
+    SPGenStorage const& storage() const { return storage_; };
 
   private:
     //// TYPES ////

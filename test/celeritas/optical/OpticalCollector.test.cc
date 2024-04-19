@@ -82,15 +82,17 @@ class LArSpherePreGenTest : public LArSphereBase
  */
 void LArSpherePreGenTest::SetUp()
 {
-    size_type buffer_capacity = 256;
-    size_type num_streams = 1;
     auto& action_reg = *this->action_reg();
-    collector_ = std::make_shared<OpticalCollector>(this->properties(),
-                                                    this->cerenkov(),
-                                                    this->scintillation(),
-                                                    buffer_capacity,
-                                                    num_streams,
-                                                    &action_reg);
+
+    OpticalCollector::Input inp;
+    inp.properties = this->properties();
+    inp.cerenkov = this->cerenkov();
+    inp.scintillation = this->scintillation();
+    inp.action_registry = &action_reg;
+    inp.buffer_capacity = 256;
+    inp.num_streams = 1;
+
+    collector_ = std::make_shared<OpticalCollector>(inp);
 }
 
 //---------------------------------------------------------------------------//
