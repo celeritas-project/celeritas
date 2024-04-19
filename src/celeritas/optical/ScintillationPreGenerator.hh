@@ -117,14 +117,14 @@ ScintillationPreGenerator::operator()(Generator& rng)
     {
         real_type sigma = shared_.resolution_scale[optmat_id_]
                           * std::sqrt(mean_num_photons_);
-        result.num_photons = clamp_to_nonneg(
+        result.num_photons = static_cast<size_type>(clamp_to_nonneg(
             NormalDistribution<real_type>(mean_num_photons_, sigma)(rng)
-            + real_type{0.5});
+            + real_type{0.5}));
     }
     else if (mean_num_photons_ > 0)
     {
-        result.num_photons
-            = PoissonDistribution<real_type>(mean_num_photons_)(rng);
+        result.num_photons = static_cast<size_type>(
+            PoissonDistribution<real_type>(mean_num_photons_)(rng));
     }
 
     if (result.num_photons > 0)
