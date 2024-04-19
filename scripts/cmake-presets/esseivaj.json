@@ -3,11 +3,11 @@
   "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
   "configurePresets": [
     {
-      "name": "base",
+      "name": ".base",
+      "hidden": true,
       "inherits": ["default", ".debug"],
-      "displayName": "esseivaj default options",
-      "binaryDir": "${sourceDir}/build-${presetName}",
       "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-${presetName}",
       "cacheVariables": {
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
@@ -21,8 +21,46 @@
         "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"},
         "CMAKE_CXX_STANDARD": {"type": "STRING", "value": "17"},
-        "CMAKE_CXX_FLAGS": "-Wall -Wextra -Werror -Wno-error=deprecated -pedantic -fdiagnostics-color=always"
+        "CMAKE_CXX_FLAGS": "-Wall -Wextra -Werror -Wno-error=deprecated -pedantic -fdiagnostics-color=always",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"}
       }
+    },
+    {
+      "name": ".no-vg",
+      "hidden": true,
+      "cacheVariables": {
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "base",
+      "displayName": "Vecgeom debug",
+      "inherits": [".base"]
+    },
+    {
+      "name": "base-novg",
+      "displayName": "ORANGE debug",
+      "inherits": [".no-vg", ".base"]
+    },
+    {
+      "name": "reldeb",
+      "displayName": "Vecgeom release debug",
+      "inherits": [".reldeb", ".base"]
+    },
+    {
+      "name": "reldeb-novg",
+      "displayName": "ORANGE release debug",
+      "inherits": [".no-vg", ".reldeb", ".base"]
+    },
+    {
+      "name": "ndebug",
+      "displayName": "Vecgeom release",
+      "inherits": [".ndebug", ".base"]
+    },
+    {
+      "name": "ndebug-novg",
+      "displayName": "ORANGE release",
+      "inherits": [".no-vg", ".ndebug", ".base"]
     }
   ],
   "buildPresets": [
@@ -31,14 +69,24 @@
       "configurePreset": "base",
       "jobs": 16,
       "nativeToolOptions": ["-k0"]
-    }
+    },
+    {"name": "base-novg", "configurePreset": "base-novg", "inherits": "base"},
+    {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"},
+    {"name": "ndebug-novg", "configurePreset": "ndebug-novg", "inherits": "base"},
+    {"name": "reldeb", "configurePreset": "reldeb", "inherits": "base"},
+    {"name": "reldeb-novg", "configurePreset": "reldeb-novg", "inherits": "base"}
   ],
   "testPresets": [
     {
       "name": "base",
       "configurePreset": "base",
       "output": {"outputOnFailure": true},
-      "execution": {"noTestsAction": "error", "stopOnFailure": false}
-    }
+      "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 8}
+    },
+    {"name": "base-novg", "configurePreset": "base-novg", "inherits": "base"},
+    {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"},
+    {"name": "ndebug-novg", "configurePreset": "ndebug-novg", "inherits": "base"},
+    {"name": "reldeb", "configurePreset": "reldeb", "inherits": "base"},
+    {"name": "reldeb-novg", "configurePreset": "reldeb-novg", "inherits": "base"}
   ]
 }
