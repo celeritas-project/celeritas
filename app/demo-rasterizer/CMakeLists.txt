@@ -6,19 +6,7 @@
 
 set(SOURCES
   demo-rasterizer.cc
-  RDemoRunner.cc
 )
-if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-  list(APPEND SOURCES
-    RDemoKernel.cu
-  )
-  if(CELERITAS_USE_HIP)
-    set_source_files_properties(
-      RDemoKernel.cu
-      PROPERTIES LANGUAGE HIP
-    )
-  endif()
-endif()
 
 set(_rasterizer_libs
   Celeritas::corecel
