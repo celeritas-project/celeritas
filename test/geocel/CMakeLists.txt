@@ -8,6 +8,7 @@ if(NOT CELERITAS_USE_Geant4)
   set(_needs_geant4 DISABLE)
 else()
   celeritas_get_g4libs(_g4_geo_libs geometry)
+  celeritas_get_g4libs(_g4_global_libs global)
 endif()
 
 if(CELERITAS_UNITS STREQUAL "CGS")
@@ -108,13 +109,13 @@ endif()
 #-----------------------------------------------------------------------------#
 # Geant4
 
+if(CELERITAS_USE_Geant4)
+  celeritas_add_test(ScopedGeantLogger.test.cc LINK_LIBRARIES ${_g4_global_libs})
+endif()
+
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
-  celeritas_add_test(g4/GeantGeo.test.cc
-    LINK_LIBRARIES ${_g4_geo_libs}
-  )
-  celeritas_add_test(GeantGeoUtils.test.cc
-    LINK_LIBRARIES ${_g4_geo_libs}
-  )
+  celeritas_add_test(g4/GeantGeo.test.cc LINK_LIBRARIES ${_g4_geo_libs})
+  celeritas_add_test(GeantGeoUtils.test.cc LINK_LIBRARIES ${_g4_geo_libs})
 endif()
 
 #-----------------------------------------------------------------------------#
