@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas_config.h"
 #include "geocel/GeoTraits.hh"
 
 namespace celeritas
