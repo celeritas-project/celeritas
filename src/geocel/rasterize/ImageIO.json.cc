@@ -7,50 +7,65 @@
 //---------------------------------------------------------------------------//
 #include "ImageIO.json.hh"
 
-#include "celeritas_cmake_strings.h"
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/math/ArrayOperators.hh"
-#include "celeritas/Quantities.hh"
-#include "celeritas/Types.hh"
+#include "geocel/detail/LengthUnits.hh"
 
 #include "Image.hh"
 
 namespace celeritas
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-Real3 from_cm(Real3 const& r)
-{
-    using CmPoint = Quantity<units::Centimeter, Real3>;
-    return native_value_from(CmPoint{r});
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 //!@{
 //! I/O routines for JSON
-void to_json(nlohmann::json& j, ImageInput const& v)
-{
-    j = nlohmann::json{{"lower_left", v.lower_left},
-                       {"upper_right", v.upper_right},
-                       {"rightward", v.rightward},
-                       {"vertical_pixels", v.vertical_pixels},
-                       {"_units", celeritas_units}};
-}
+#define IM_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, v, NAME)
+#define IM_LOAD_REQUIRED(NAME) CELER_JSON_LOAD_REQUIRED(j, v, NAME)
 
 void from_json(nlohmann::json const& j, ImageInput& v)
 {
-    v.lower_left = from_cm(j.at("lower_left").get<Real3>());
-    v.upper_right = from_cm(j.at("upper_right").get<Real3>());
-    j.at("rightward").get_to(v.rightward);
-    j.at("vertical_pixels").get_to(v.vertical_pixels);
+    IM_LOAD_REQUIRED(lower_left);
+    IM_LOAD_REQUIRED(upper_right);
+    IM_LOAD_REQUIRED(rightward);
+    IM_LOAD_REQUIRED(vertical_pixels);
+
+    real_type length{lengthunits::centimeter};
+    if (auto iter = j.find("_units"); iter != j.end())
+    {
+        switch (to_unit_system(iter->get<std::string>()))
+        {
+            case UnitSystem::cgs:
+                length = lengthunits::centimeter;
+                break;
+            case UnitSystem::si:
+                length = lengthunits::meter;
+                break;
+            case UnitSystem::clhep:
+                length = lengthunits::millimeter;
+                break;
+            default:
+                CELER_ASSERT_UNREACHABLE();
+        }
+    }
+    if (length != 1)
+    {
+        v.lower_left *= length;
+        v.upper_right *= length;
+    }
+}
+
+void to_json(nlohmann::json& j, ImageInput const& v)
+{
+    j = nlohmann::json{
+        CELER_JSON_PAIR(v, lower_left),
+        CELER_JSON_PAIR(v, upper_right),
+        CELER_JSON_PAIR(v, rightward),
+        CELER_JSON_PAIR(v, vertical_pixels),
+        {"_units", to_cstring(UnitSystem::native)},
+    };
 }
 
 void to_json(nlohmann::json& j, ImageParams const& p)
@@ -62,8 +77,8 @@ void to_json(nlohmann::json& j, ImageParams const& p)
         CELER_JSON_PAIR(scalars, right),
         CELER_JSON_PAIR(scalars, pixel_width),
         CELER_JSON_PAIR(scalars, dims),
+        {"_units", to_cstring(UnitSystem::native)},
     };
-    j["_units"] = celeritas_units;
     j["int_size"] = sizeof(int);
 }
 

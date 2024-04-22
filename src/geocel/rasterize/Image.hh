@@ -19,11 +19,21 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//! Image construction arguments
+/*!
+ * Image construction arguments.
+ *
+ * Image scale in this struct is *native* units, but JSON I/O defaults to
+ * centimeters for the window coordinates and accepts an optional "_units"
+ * parameter that can take values of cgs, si, or clhep to interpret the input
+ * as centimeters, meters, or millimeters.
+ */
 struct ImageInput
 {
+    //!@{
+    //! Coordinates of the window [length]
     Real3 lower_left{0, 0, 0};
     Real3 upper_right{};
+    //!@}
 
     //! Rightward basis vector, the new "x" axis
     Real3 rightward{1, 0, 0};
