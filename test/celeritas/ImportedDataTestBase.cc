@@ -10,6 +10,9 @@
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/optical/CerenkovParams.hh"
+#include "celeritas/optical/OpticalPropertyParams.hh"
+#include "celeritas/optical/ScintillationParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
@@ -117,6 +120,25 @@ auto ImportedDataTestBase::build_physics() -> SPConstPhysics
     }
 
     return std::make_shared<PhysicsParams>(std::move(input));
+}
+
+//---------------------------------------------------------------------------//
+auto ImportedDataTestBase::build_cerenkov() -> SPConstCerenkov
+{
+    return std::make_shared<CerenkovParams>(this->properties());
+}
+
+//---------------------------------------------------------------------------//
+auto ImportedDataTestBase::build_properties() -> SPConstProperties
+{
+    return OpticalPropertyParams::from_import(this->imported_data());
+}
+
+//---------------------------------------------------------------------------//
+auto ImportedDataTestBase::build_scintillation() -> SPConstScintillation
+{
+    return ScintillationParams::from_import(this->imported_data(),
+                                            this->particle());
 }
 
 //---------------------------------------------------------------------------//
