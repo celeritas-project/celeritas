@@ -25,21 +25,6 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Return whether to give an extra verbose message.
- */
-bool determine_verbose_message()
-{
-#if CELERITAS_DEBUG
-    // Always verbose if debug flags are enabled
-    return true;
-#else
-    // Verbose if the CELER_LOG environment variable is defined
-    return !celeritas::getenv("CELER_LOG").empty();
-#endif
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct a debug assertion message for printing.
  */
 std::string build_debug_error_msg(DebugErrorDetails const& d)
@@ -64,33 +49,31 @@ std::string build_debug_error_msg(DebugErrorDetails const& d)
  */
 std::string build_runtime_error_msg(RuntimeErrorDetails const& d)
 {
-    static bool const verbose_message = determine_verbose_message();
+    static bool const verbose_message = [] {
+#if CELERITAS_DEBUG
+        // Always verbose if debug flags are enabled
+        return true;
+#else
+        // Verbose if the CELER_LOG environment variable is defined
+        return !celeritas::getenv("CELER_LOG").empty();
+#endif
+    }();
 
     std::ostringstream msg;
 
-    if (d.which != RuntimeErrorType::validate || verbose_message)
+    msg << "celeritas: " << color_code('R') << to_cstring(d.which)
+        << " error: " << color_code(' ') << d.what;
+
+    if (verbose_message || d.which != RuntimeErrorType::validate
+        || d.what.empty())
     {
-        msg << color_code('W') << d.file;
+        msg << '\n' << color_code('W') << d.file;
         if (d.line)
         {
             msg << ':' << d.line;
         }
-        msg << ':' << color_code(' ') << '\n';
+        msg << ':' << color_code(' ') << " '" << d.condition << "' failed";
     }
-
-    msg << "celeritas: " << color_code('R') << to_cstring(d.which)
-        << " error: ";
-    if (verbose_message || d.what.empty())
-    {
-        msg << color_code('x') << d.condition << color_code(' ') << " failed";
-        if (!d.what.empty())
-            msg << ":\n    ";
-    }
-    else
-    {
-        msg << color_code(' ');
-    }
-    msg << d.what;
 
     return msg.str();
 }
