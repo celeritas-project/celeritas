@@ -27,7 +27,7 @@ namespace test
  * for z < 0.
  *
  * \note This class is only used by the raytracer test at present, so it
- * doesn't have full functionality. Consider using ORANGE geometery for more
+ * doesn't have full functionality. Consider using ORANGE geometry for more
  * complex test cases.
  */
 class MockGeoTrackView
