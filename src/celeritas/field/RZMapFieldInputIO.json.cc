@@ -12,10 +12,10 @@
 #include <string>
 #include <vector>
 
+#include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/Types.hh"
 #include "celeritas/Quantities.hh"
 
 #include "FieldDriverOptionsIO.json.hh"

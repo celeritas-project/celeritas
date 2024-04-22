@@ -8,6 +8,7 @@
 #pragma once
 
 #include <type_traits>
+
 #include "corecel/Assert.hh"
 #include "corecel/cont/Array.hh"
 
