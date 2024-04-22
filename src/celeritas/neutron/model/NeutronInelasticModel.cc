@@ -66,6 +66,7 @@ NeutronInelasticModel::NeutronInelasticModel(ActionId id,
     {
         // Add nucleon-nucleon cross section parameters and data
         ChannelXsData const& channel_data = this->get_channel_xs(channel_id);
+        CELER_ASSERT(channel_data.par.slope > 0);
         xs_params.push_back(channel_data.par);
 
         GenericGridBuilder build_grid{&data.reals};
