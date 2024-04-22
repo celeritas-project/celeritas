@@ -3,9 +3,8 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/PinnedAllocator.cc
+//! \file corecel/data/PinnedAllocator.cc
 //---------------------------------------------------------------------------//
-
 #include "corecel/Types.hh"
 
 #include "PinnedAllocator.t.hh"
