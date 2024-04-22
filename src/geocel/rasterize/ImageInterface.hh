@@ -19,13 +19,16 @@ class ImageParams;
 //---------------------------------------------------------------------------//
 /*!
  * Access data from an image.
+ *
+ * Images currently are arrays of integer pixels.
  */
 class ImageInterface
 {
   public:
     //!@{
     //! \name Type aliases
-    using SpanInt = Span<int>;
+    using int_type = int;
+    using SpanInt = Span<int_type>;
     using SPConstParams = std::shared_ptr<ImageParams const>;
     //!@}
 

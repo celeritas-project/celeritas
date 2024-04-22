@@ -33,6 +33,12 @@ struct ImageInput
 
     //! Round the number of horizontal pixels to this value
     size_type horizontal_divisor{CELER_USE_DEVICE ? 128 / sizeof(int) : 1};
+
+    //! True if the input is unassigned
+    explicit operator bool() const
+    {
+        return vertical_pixels != 0 && lower_left != upper_right;
+    }
 };
 
 //---------------------------------------------------------------------------//
