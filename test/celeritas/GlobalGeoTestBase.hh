@@ -38,9 +38,6 @@ class GlobalGeoTestBase : virtual public GlobalTestBase,
     // Construct a geometry that's persistent across tests
     SPConstGeo build_geometry() override;
 
-    // Clear the lazy geometry
-    static void reset_geometry();
-
   protected:
     //// LAZY GEOMETRY CONSTRUCTION AND CLEANUP ////
 

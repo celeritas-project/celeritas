@@ -3,22 +3,38 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/g4/GeantGeoTestBase.hh
+//! \file celeritas/LArSphereBase.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "geocel/GenericGeoTestBase.hh"
-#include "geocel/g4/GeantGeoData.hh"
-#include "geocel/g4/GeantGeoParams.hh"
-#include "geocel/g4/GeantGeoTrackView.hh"
-#include "geocel/g4/GeantGeoTraits.hh"
+#include "celeritas/phys/ProcessBuilder.hh"
+
+#include "GeantTestBase.hh"
 
 namespace celeritas
 {
 namespace test
 {
 //---------------------------------------------------------------------------//
-using GeantGeoTestBase = GenericGeoTestBase<GeantGeoParams>;
+/*!
+ * Test harness for liquid argon sphere with optical properties.
+ *
+ * This class requires Geant4 to import the data. MSC is on by default.
+ */
+class LArSphereBase : virtual public GeantTestBase
+{
+  protected:
+    std::string_view geometry_basename() const override
+    {
+        return "lar-sphere";
+    }
+
+    ProcessBuilderOptions build_process_options() const override
+    {
+        ProcessBuilderOptions opts = GeantTestBase::build_process_options();
+        return opts;
+    }
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace test

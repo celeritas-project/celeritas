@@ -14,6 +14,7 @@
 #include "celeritas/Types.hh"
 
 #include "GlobalGeoTestBase.hh"
+#include "OnlyCoreTestBase.hh"
 
 namespace celeritas
 {
@@ -43,7 +44,7 @@ namespace test
  *
  * Cutoff values are all zero.
  */
-class MockTestBase : virtual public GlobalGeoTestBase
+class MockTestBase : virtual public GlobalGeoTestBase, public OnlyCoreTestBase
 {
   public:
     //!@{

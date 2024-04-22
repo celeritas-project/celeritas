@@ -1,0 +1,70 @@
+{
+"_format": "SCALE ORANGE",
+"_version": 0,
+"materials": {
+"cell_to_mat": [
+-1,
+1,
+0
+],
+"names": [
+"vacuum",
+"lAr"
+]
+},
+"universes": [
+{
+"_type": "simple unit",
+"bbox": [
+[
+-1000.000000000001,
+-1000.000000000001,
+-1000.000000000001
+],
+[
+1000.000000000001,
+1000.000000000001,
+1000.000000000001
+]
+],
+"cell_names": [
+"[EXTERIOR]",
+"sphere",
+"world"
+],
+"cells": [
+{
+"faces": [ 0 ],
+"logic": "0",
+"num_intersections": 2,
+"zorder": 2
+},
+{
+"faces": [ 1 ],
+"logic": "0 ~",
+"num_intersections": 2,
+"zorder": 2
+},
+{
+"faces": [ 0, 1 ],
+"logic": "0 ~ 1 &",
+"num_intersections": 4,
+"zorder": 2
+}
+],
+"md": {
+"name": "global",
+"provenance": ""
+},
+"surface_names": [
+"world_sphere.s",
+"sphere.s"
+],
+"surfaces": {
+"data": [ 1000000.0, 10000.0 ],
+"sizes": [ 1, 1 ],
+"types": [ "sc", "sc" ]
+}
+}
+]
+}
