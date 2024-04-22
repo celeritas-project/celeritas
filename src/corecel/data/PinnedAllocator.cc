@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 
 #include "corecel/Types.hh"
+
 #include "PinnedAllocator.t.hh"
 
 namespace celeritas

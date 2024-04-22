@@ -48,6 +48,7 @@ enum class MemSpace
 #else
     native = host,
 #endif
+    size_
 };
 
 //! Data ownership flag
