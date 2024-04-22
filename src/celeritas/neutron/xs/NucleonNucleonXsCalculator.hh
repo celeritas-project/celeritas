@@ -91,15 +91,18 @@ auto NucleonNucleonXsCalculator::operator()(ChannelId ch_id,
     {
         // Calculate NN cross section according to the Stepanov's function
         // for the incident nucleon kinetic energy below 10 MeV
-        real_type inv_energy = 1 / energy.value();
-        StepanovParameters par = shared_.xs_params[ch_id];
-        using StepanovFunction = PolyEvaluator<real_type, 2>;
+        StepanovParameters const& par = shared_.xs_params[ch_id];
 
-        result = (energy > this->low_otf_energy())
-                     ? StepanovFunction(par.coeffs)(inv_energy)
-                 : (energy.value() > par.slope / par.xs_zero)
-                     ? par.slope * inv_energy
-                     : par.xs_zero;
+        if (energy <= this->low_otf_energy())
+        {
+            result = celeritas::min(par.slope / energy.value(), par.xs_zero);
+        }
+        else
+        {
+            using StepanovFunction = PolyEvaluator<real_type, 2>;
+            result
+                = StepanovFunction(par.coeffs)(real_type{1} / energy.value());
+        }
     }
     else
     {
@@ -110,6 +113,7 @@ auto NucleonNucleonXsCalculator::operator()(ChannelId ch_id,
         GenericCalculator calc_xs(grid, shared_.reals);
         result = calc_xs(energy.value());
     }
+
     return BarnXs{result};
 }
 
