@@ -40,7 +40,7 @@ class NeutronElasticTest : public NeutronTestBase
 
         // Load neutron elastic cross section data
         std::string data_path = this->test_data_path("celeritas", "");
-        NeutronXsReader read_el_data(data_path.c_str());
+        NeutronXsReader read_el_data(NeutronXsType::el, data_path.c_str());
 
         // Set up the default particle: 100 MeV neutron along +z direction
         auto const& particles = *this->particle_params();
