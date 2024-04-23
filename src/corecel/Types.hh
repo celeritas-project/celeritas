@@ -3,12 +3,20 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/Types.hh
-//! \brief Type definitions for common Celeritas functionality
+/*!
+ * \file corecel/Types.hh
+ * \brief Type definitions for common Celeritas functionality.
+ *
+ * This file includes types and properties particular to the build
+ * configuration.
+ */
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <cstddef>
+#include <string>
+
+#include "celeritas_config.h"
 
 #include "Macros.hh"
 
@@ -43,6 +51,7 @@ enum class MemSpace
     host,  //!< CPU memory
     device,  //!< GPU memory
     mapped,  //!< Unified virtual address space (both host and device)
+    size_,
 #ifdef CELER_DEVICE_SOURCE
     native = device,  //!< When included by a CUDA/HIP file; else 'host'
 #else
@@ -56,6 +65,18 @@ enum class Ownership
     value,  //!< Ownership of the data, only on host
     reference,  //!< Mutable reference to the data
     const_reference,  //!< Immutable reference to the data
+};
+
+//---------------------------------------------------------------------------//
+//! Unit system used by Celeritas
+enum class UnitSystem
+{
+    none,  //!< Invalid unit system
+    cgs,  //!< Gaussian CGS
+    si,  //!< International System
+    clhep,  //!< Geant4 native
+    size_,
+    native = CELERITAS_UNITS,  //!< Compile time selected system
 };
 
 #if !defined(SWIG) || SWIG_VERSION > 0x050000
@@ -104,14 +125,14 @@ using RefPtr = ObserverPtr<S<Ownership::reference, M>, M>;
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//
 
-//! Get a string corresponding to a memory space
-inline constexpr char const* to_cstring(MemSpace m)
-{
-    return m == MemSpace::host     ? "host"
-           : m == MemSpace::device ? "device"
-           : m == MemSpace::mapped ? "mapped"
-                                   : nullptr;
-}
+// Get a string corresponding to a memory space
+char const* to_cstring(MemSpace m);
+
+// Get a string corresponding to a unit system
+char const* to_cstring(UnitSystem);
+
+// Get a unit system corresponding to a string
+UnitSystem to_unit_system(std::string const& s);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

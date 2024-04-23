@@ -78,18 +78,6 @@ using ChannelId = OpaqueId<struct Channel_>;
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//
-//! Unit system used by Celeritas
-enum class UnitSystem
-{
-    none,  //!< Invalid unit system
-    cgs,  //!< Gaussian CGS
-    si,  //!< International System
-    clhep,  //!< Geant4 native
-    size_,
-    native = CELERITAS_UNITS,  //!< Compile time selected system
-};
-
-//---------------------------------------------------------------------------//
 //! Interpolation type
 enum class Interp
 {
@@ -193,14 +181,8 @@ struct StepLimit
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//
 
-// Get a string corresponding to a unit system
-char const* to_cstring(UnitSystem);
-
 // Get a string corresponding to an interpolation
 char const* to_cstring(Interp);
-
-// Get a unit system corresponding to a string
-UnitSystem to_unit_system(std::string const& s);
 
 // Get a string corresponding to a material state
 char const* to_cstring(MatterState);

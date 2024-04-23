@@ -276,7 +276,7 @@ TEST_F(SolidConverterTest, sphere)
         {{-3, 0.05, 0}, {3, 0.5, 0}, {0, -0.01, 4.9}});
     EXPECT_THROW(
         this->build_and_test(G4Sphere("sn12", 0, 50, 0, twopi, 0., 0.25 * pi)),
-        DebugError);
+        RuntimeError);
 
     this->build_and_test(
         G4Sphere("Spherical Shell", 45, 50, 0, twopi, 0, pi),
@@ -285,7 +285,7 @@ TEST_F(SolidConverterTest, sphere)
     EXPECT_THROW(
         this->build_and_test(G4Sphere(
             "Band (theta segment1)", 45, 50, 0, twopi, pi * 3 / 4, pi / 4)),
-        DebugError);
+        RuntimeError);
 
     this->build_and_test(
         G4Sphere("Band (phi segment)", 5, 50, -pi, 3. * pi / 2., 0, twopi),
@@ -293,7 +293,7 @@ TEST_F(SolidConverterTest, sphere)
     EXPECT_THROW(
         this->build_and_test(G4Sphere(
             "Patch (phi/theta seg)", 45, 50, -pi / 4, halfpi, pi / 4, halfpi)),
-        DebugError);
+        RuntimeError);
 
     this->build_and_test(
         G4Sphere("John example", 300, 500, 0, 5.76, 0, pi),

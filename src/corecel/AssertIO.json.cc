@@ -39,7 +39,7 @@ void to_json(nlohmann::json& j, DebugErrorDetails const& d)
 void to_json(nlohmann::json& j, RuntimeErrorDetails const& d)
 {
     j["what"] = d.what;
-    j["which"] = to_cstring(d.which);
+    j["which"] = d.which;
     if (!d.condition.empty())
     {
         j["condition"] = d.condition;
