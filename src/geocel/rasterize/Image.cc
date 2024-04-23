@@ -42,14 +42,20 @@ ImageParams::ImageParams(ImageInput const& inp)
 
     ImageParamsScalars scalars;
 
-    // Normalize rightward axis
-    scalars.right = make_unit_vector(inp.rightward);
-
     // Vector pointing toward the upper right from the lower left corner
     Real3 diagonal = inp.upper_right - inp.lower_left;
 
-    // Set downward axis to the diagonal with the rightward component
-    // subtracted out; then normalize
+    /*!
+     * Construct orthonormal basis functions using the rightward vector and
+     * user-supplied window.
+     *
+     * 1. Normalize rightward vector.
+     * 2. Project the image diagonal onto the rightward vector and subtract
+     *    that component from the diagonal to orthogonalize it.
+     * 3. Flip the resulting "upward" vector to become a downward direction.
+     * 4. Normalize the downward basis vector.
+     */
+    scalars.right = make_unit_vector(inp.rightward);
     real_type projection = dot_product(diagonal, scalars.right);
     CELER_VALIDATE(projection > 0,
                    << "rightward direction is incompatible with image window");
