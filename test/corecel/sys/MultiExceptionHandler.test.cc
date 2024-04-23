@@ -41,9 +41,8 @@ TEST_F(MultiExceptionHandlerTest, single)
 {
     MultiExceptionHandler capture_exception;
     EXPECT_TRUE(capture_exception.empty());
-    CELER_TRY_HANDLE(
-        throw RuntimeError::from_validate("first exception", "", "here", 1),
-        capture_exception);
+    CELER_TRY_HANDLE(CELER_RUNTIME_THROW("runtime", "first exception", ""),
+                     capture_exception);
     EXPECT_FALSE(capture_exception.empty());
 
     EXPECT_THROW(log_and_rethrow(std::move(capture_exception)), RuntimeError);
@@ -52,14 +51,13 @@ TEST_F(MultiExceptionHandlerTest, single)
 TEST_F(MultiExceptionHandlerTest, multi)
 {
     MultiExceptionHandler capture_exception;
-    CELER_TRY_HANDLE(
-        throw RuntimeError::from_validate("first exception", "", "here", 1),
-        capture_exception);
+    CELER_TRY_HANDLE(CELER_RUNTIME_THROW("runtime", "first exception", ""),
+                     capture_exception);
     for (auto i : range(3))
     {
         DebugErrorDetails deets{
             DebugErrorType::internal, "false", "test.cc", i};
-        CELER_TRY_HANDLE(throw DebugError(deets), capture_exception);
+        CELER_TRY_HANDLE(throw DebugError(std::move(deets)), capture_exception);
     }
     EXPECT_THROW(log_and_rethrow(std::move(capture_exception)), RuntimeError);
 
@@ -81,12 +79,13 @@ TEST_F(MultiExceptionHandlerTest, multi_nested)
 {
     MultiExceptionHandler capture_exception;
     CELER_TRY_HANDLE_CONTEXT(
-        throw RuntimeError::from_validate("first exception", "", "here", 1),
+        CELER_RUNTIME_THROW("runtime", "first exception", ""),
         capture_exception,
         MockContextException{});
     DebugErrorDetails deets{DebugErrorType::internal, "false", "test.cc", 2};
-    CELER_TRY_HANDLE_CONTEXT(
-        throw DebugError(deets), capture_exception, MockContextException{});
+    CELER_TRY_HANDLE_CONTEXT(throw DebugError(std::move(deets)),
+                             capture_exception,
+                             MockContextException{});
     EXPECT_THROW(log_and_rethrow(std::move(capture_exception)),
                  MockContextException);
 

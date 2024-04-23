@@ -33,7 +33,7 @@ void from_json(nlohmann::json const& j, ImageInput& v)
     IM_LOAD_REQUIRED(vertical_pixels);
     IM_LOAD_OPTION(horizontal_divisor);
 
-        real_type length{lengthunits::centimeter};
+    real_type length{lengthunits::centimeter};
     if (auto iter = j.find("_units"); iter != j.end())
     {
         switch (to_unit_system(iter->get<std::string>()))
