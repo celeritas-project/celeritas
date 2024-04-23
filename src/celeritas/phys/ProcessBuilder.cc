@@ -186,7 +186,7 @@ auto ProcessBuilder::build_neutron_elastic() -> SPProcess
 {
     if (!read_neutron_elastic_)
     {
-        read_neutron_elastic_ = NeutronXsReader{};
+        read_neutron_elastic_ = NeutronXsReader{NeutronXsType::el};
     }
 
     return std::make_shared<NeutronElasticProcess>(
