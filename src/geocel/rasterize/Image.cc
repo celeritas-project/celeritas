@@ -23,14 +23,16 @@ namespace celeritas
 /*!
  * Construct with image properties.
  *
- * All inputs should be in the native unit system.
+ * All inputs should be in the native unit system. This constructor uses the
+ * two user-provided points along with the basis vector to determine the new
+ * "origin" (upper-left corner) and the window's basis functions.
  */
 ImageParams::ImageParams(ImageInput const& inp)
 {
     CELER_VALIDATE(ArraySoftUnit{real_type{0.001}}(inp.rightward),
                    << "rightward axis " << repr(inp.rightward)
                    << " is not a unit vector");
-    CELER_VALIDATE(inp.lower_left != inp.upper_right,
+    CELER_VALIDATE(!(inp.lower_left == inp.upper_right),
                    << "lower left corner " << repr(inp.lower_left)
                    << " and upper right corner cannot be the same");
     CELER_VALIDATE(inp.vertical_pixels > 0,
@@ -49,6 +51,8 @@ ImageParams::ImageParams(ImageInput const& inp)
     // Set downward axis to the diagonal with the rightward component
     // subtracted out; then normalize
     real_type projection = dot_product(diagonal, scalars.right);
+    CELER_VALIDATE(projection > 0,
+                   << "rightward direction is incompatible with image window");
     scalars.down = -diagonal;
     axpy(projection, scalars.right, &scalars.down);
     scalars.down = make_unit_vector(scalars.down);

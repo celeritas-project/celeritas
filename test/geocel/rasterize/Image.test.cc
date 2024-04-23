@@ -28,13 +28,28 @@ class ImageTest : public ::celeritas::test::Test
 TEST_F(ImageTest, errors)
 {
     ImageInput inp;
+    // Missing pixel count
     inp.upper_right = {1, 1, 0};
     EXPECT_THROW(ImageParams{inp}, RuntimeError);
+
+    // Zero image size
     inp.vertical_pixels = 128;
     inp.upper_right = inp.lower_left;
     EXPECT_THROW(ImageParams{inp}, RuntimeError);
+
+    // Zero horizontal divisor
     inp.upper_right = {1, 1, 0};
     inp.horizontal_divisor = 0;
+    EXPECT_THROW(ImageParams{inp}, RuntimeError);
+
+    // Invalid basis function (orthogonal)
+    inp.upper_right = {1, 1, 0};
+    inp.horizontal_divisor = 1;
+    inp.rightward = {0, 0, 1};
+    EXPECT_THROW(ImageParams{inp}, RuntimeError);
+
+    // Invalid basis function (backward)
+    inp.rightward = {-1, 0, 0};
     EXPECT_THROW(ImageParams{inp}, RuntimeError);
 }
 
