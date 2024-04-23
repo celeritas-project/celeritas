@@ -31,8 +31,9 @@ void from_json(nlohmann::json const& j, ImageInput& v)
     IM_LOAD_REQUIRED(upper_right);
     IM_LOAD_REQUIRED(rightward);
     IM_LOAD_REQUIRED(vertical_pixels);
+    IM_LOAD_OPTION(horizontal_divisor);
 
-    real_type length{lengthunits::centimeter};
+        real_type length{lengthunits::centimeter};
     if (auto iter = j.find("_units"); iter != j.end())
     {
         switch (to_unit_system(iter->get<std::string>()))
@@ -64,6 +65,7 @@ void to_json(nlohmann::json& j, ImageInput const& v)
         CELER_JSON_PAIR(v, upper_right),
         CELER_JSON_PAIR(v, rightward),
         CELER_JSON_PAIR(v, vertical_pixels),
+        CELER_JSON_PAIR(v, horizontal_divisor),
         {"_units", to_cstring(UnitSystem::native)},
     };
 }
@@ -79,7 +81,6 @@ void to_json(nlohmann::json& j, ImageParams const& p)
         CELER_JSON_PAIR(scalars, dims),
         {"_units", to_cstring(UnitSystem::native)},
     };
-    j["int_size"] = sizeof(int);
 }
 
 //!@}
