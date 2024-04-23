@@ -55,6 +55,13 @@ struct ImageInput
 /*!
  * Manage properties of an image.
  *
+ * An image is a "window", a 2D rectangle slice of 3D space. As with computer
+ * GUI windows, matplotlib \c imshow, and other visual rendering layouts, the
+ * pixel order is like text on a page: left to right, then top to bottom.
+ * Because this is vertically flipped from "mathematical" ordering, we store
+ * the upper left coordinate and a \em -y basis vector rather than a lower left
+ * coordinate and a \em +y basis vector.
+ *
  * The same image params can be used to construct multiple images (using
  * different ray tracing methods or different geometries or on host vs device).
  */

@@ -38,6 +38,7 @@ TEST_F(ImageTest, errors)
     EXPECT_THROW(ImageParams{inp}, RuntimeError);
 }
 
+//! Pixel counts divide exactly into image dimensions
 TEST_F(ImageTest, exact)
 {
     ImageInput inp;
@@ -77,6 +78,7 @@ TEST_F(ImageTest, exact)
     EXPECT_EQ(567, result[65]);
 }
 
+//! Horizontal pixel count is padded beyond the requested window
 TEST_F(ImageTest, inexact)
 {
     ImageInput inp;

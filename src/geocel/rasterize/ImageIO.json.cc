@@ -83,6 +83,8 @@ void to_json(nlohmann::json& j, ImageParams const& p)
     };
 }
 
+#undef IM_LOAD_OPTION
+#undef IM_LOAD_REQUIRED
 //!@}
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
