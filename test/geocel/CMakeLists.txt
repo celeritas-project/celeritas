@@ -65,9 +65,6 @@ celeritas_add_test(BoundingBox.test.cc
   LINK_LIBRARIES ${nlohmann_json_LIBRARIES}
 )
 
-celeritas_add_test(rasterize/Image.test.cc)
-celeritas_add_test(rasterize/Raytracer.test.cc)
-
 #-----------------------------------------------------------------------------#
 # VecGeom
 
@@ -117,5 +114,13 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   celeritas_add_test(g4/GeantGeo.test.cc LINK_LIBRARIES ${_g4_geo_libs})
   celeritas_add_test(GeantGeoUtils.test.cc LINK_LIBRARIES ${_g4_geo_libs})
 endif()
+
+#-----------------------------------------------------------------------------#
+# Rasterization
+
+set(CELERITASTEST_PREFIX geocel/rasterize)
+
+celeritas_add_test(rasterize/Image.test.cc)
+celeritas_add_test(rasterize/Raytracer.test.cc)
 
 #-----------------------------------------------------------------------------#
