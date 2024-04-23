@@ -31,9 +31,15 @@ struct OpticalGenStorage;
 /*!
  * Generate scintillation and Cerenkov optical distribution data at each step.
  *
- * This builds the actions for gathering the pre-step data needed to generate
- * the optical distributions and generating the optical distributions at the
- * end of the step.
+ * This class is the interface between the main stepping loop and the photon
+ * stepping loop and constructs kernel actions for:
+ * - gathering the pre-step data needed to generate the optical distributions
+ * - generating the optical distributions at the end of the step
+ * - launching the photon stepping loop
+ *
+ * The "collector" (TODO: rename?) will "own" the optical state data and
+ * optical params since it's the only thing that launches the optical stepping
+ * loop.
  */
 class OpticalCollector
 {
@@ -51,6 +57,7 @@ class OpticalCollector
         SPConstProperties properties;
         SPConstCerenkov cerenkov;
         SPConstScintillation scintillation;
+        // TODO: main core params?
         ActionRegistry* action_registry;
         size_type buffer_capacity{};
         size_type num_streams{};
@@ -85,6 +92,8 @@ class OpticalCollector
     SPGenStorage storage_;
     SPGatherAction gather_action_;
     SPPreGenAction pregen_action_;
+    // TODO: tracking loop launcher
+    // TODO: store optical core params and state?
 };
 
 //---------------------------------------------------------------------------//

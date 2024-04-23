@@ -15,6 +15,8 @@
 #include "celeritas/track/SimData.hh"
 #include "celeritas/track/TrackInitData.hh"
 
+#include "Types.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
