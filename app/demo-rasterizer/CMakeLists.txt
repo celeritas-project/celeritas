@@ -47,7 +47,8 @@ add_test(NAME "app/demo-rasterizer"
   COMMAND "$<TARGET_FILE:Python::Interpreter>" "${_driver}" "${_gdml_inp}"
 )
 
-if((CELERITAS_CORE_GEO STREQUAL "ORANGE") OR CELER_DISABLE_DEVICE)
+if((CELERITAS_CORE_GEO STREQUAL "ORANGE" AND NOT CELERITAS_USE_Geant4)
+  OR CELER_DISABLE_DEVICE)
   # two-boxes.org.json isn't set up in the test directory
   # or device is unavailable
   set(_maybe_disable DISABLED true)

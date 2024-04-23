@@ -171,10 +171,15 @@ auto HeuristicGeoTestBase::get_avg_path_impl(std::vector<real_type> const& path,
     for (auto i : range(ref_vol_labels.size()))
     {
         auto vol_id = geo.find_volume(ref_vol_labels[i]);
-        CELER_VALIDATE(vol_id,
-                       << "reference volme '" << ref_vol_labels[i]
-                       << "' is not in the geometry");
-        result[i] = path[vol_id.unchecked_get()] * norm;
+        if (vol_id)
+        {
+            result[i] = path[vol_id.unchecked_get()] * norm;
+        }
+        else
+        {
+            ADD_FAILURE() << "reference volme '" << ref_vol_labels[i]
+                          << "' is not in the geometry";
+        }
     }
     return result;
 }

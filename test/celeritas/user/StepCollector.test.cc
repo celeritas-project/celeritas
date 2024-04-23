@@ -267,7 +267,9 @@ TEST_F(TestEm3MctruthTest, four_step)
         EXPECT_VEC_EQ(expected_step, result.step);
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
-            static const int expected_volume[] = {1, 2, 2, 2, 1, 2, 2, 2, 1, 2, 2, 2, 1, 2, 2, 2};
+            // 1 is gap_0
+            // 101 is world
+            static const int expected_volume[] = {101, 1, 1, 1, 101, 1, 1, 1, 101, 1, 1, 1, 101, 1, 1, 1};
             EXPECT_VEC_EQ(expected_volume, result.volume);
         }
         static const double expected_pos[] = {-22, 0, 0, -20, 0.62729376699828,
@@ -302,6 +304,12 @@ TEST_F(TestEm3MctruthTest, four_step)
         cout << "No output saved for combination of "
              << test::PrintableBuildConf{} << std::endl;
         result.print_expected();
+
+        if (this->strict_testing())
+        {
+            FAIL() << "Updated step collector results are required for CI "
+                      "tests";
+        }
     }
 }
 

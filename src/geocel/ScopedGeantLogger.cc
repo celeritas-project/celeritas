@@ -10,6 +10,7 @@
 #include <cctype>
 #include <memory>
 #include <mutex>
+#include <regex>
 #include <G4String.hh>
 #include <G4Threading.hh>
 #include <G4Types.hh>
@@ -33,13 +34,71 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
+//! Get a string view matched by a regular expression
+template<class T>
+std::string_view to_string_view(std::sub_match<T> const& cs)
+{
+    if (!cs.matched)
+    {
+        return {};
+    }
+    return {&(*cs.first), static_cast<std::size_t>(cs.length())};
+}
+
+//---------------------------------------------------------------------------//
 /*!
  * Log the actual message.
  */
 G4int log_impl(G4String const& str, LogLevel level)
 {
+    static std::regex const err_warn_regex{
+        R"regex(^\W*(\w+)?\s*(warning|error|!+|\*+)\W+)regex",
+        std::regex::icase};
+
+    static std::regex const info_regex{R"regex(^(\w+):\s+)regex"};
+
+    std::smatch m;
+    std::string_view msg;
+    std::string_view source{"Geant4"};
+    if (std::regex_search(str, m, err_warn_regex))
+    {
+        CELER_ASSERT(m.size() == 3);
+        if (m[1].matched)
+        {
+            // Warning is coming from somewhere in particular
+            source = to_string_view(m[1]);
+        }
+
+        // Strip the beginning text from the err/warning
+        msg = to_string_view(m.suffix());
+        // Update the warning level
+        auto first_char = std::tolower(static_cast<unsigned char>(*m[2].first));
+        if (first_char == 'w' || first_char == '*')
+        {
+            level = LogLevel::warning;
+        }
+        else if (first_char == 'e' || first_char == '!')
+        {
+            level = LogLevel::error;
+        }
+        else
+        {
+            CELER_ASSERT_UNREACHABLE();
+        }
+    }
+    else if (std::regex_search(str, m, info_regex))
+    {
+        CELER_ASSERT(m.size() == 2);
+        source = to_string_view(m[1]);
+        msg = to_string_view(m.suffix());
+    }
+    else
+    {
+        msg = str;
+    }
+
     // Output with dummy file/line
-    ::celeritas::world_logger()({"Geant4", 0}, level) << trim(str);
+    ::celeritas::world_logger()({source, 0}, level) << trim(msg);
 
     // 0 for success, -1 for failure
     return 0;

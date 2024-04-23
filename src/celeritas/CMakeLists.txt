@@ -66,6 +66,7 @@ list(APPEND SOURCES
   neutron/process/NeutronInelasticProcess.cc
   optical/CerenkovParams.cc
   optical/ScintillationParams.cc
+  optical/OpticalCollector.cc
   optical/OpticalPropertyParams.cc
   phys/CutoffParams.cc
   phys/ImportedModelAdapter.cc
