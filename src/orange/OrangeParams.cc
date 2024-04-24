@@ -81,7 +81,8 @@ OrangeInput input_from_file(std::string filename)
 {
     if (ends_with(filename, ".gdml"))
     {
-        if (CELERITAS_USE_GEANT4)
+        if (CELERITAS_USE_GEANT4
+            && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
             // Load with Geant4: must *not* be using run manager
             auto* world = ::celeritas::load_geant_geometry_native(filename);
@@ -92,7 +93,7 @@ OrangeInput input_from_file(std::string filename)
         else
         {
             CELER_LOG(warning) << "Using ORANGE geometry with GDML suffix "
-                                  "when Geant4 is disabled: trying "
+                                  "when Geant4 conversion is disabled: trying "
                                   "`.org.json` instead";
             filename.erase(filename.end() - 5, filename.end());
             filename += ".org.json";
