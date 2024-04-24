@@ -332,12 +332,12 @@ auto SolidConverter::genericpolycone(arg_type solid_base) -> result_type
 }
 
 //---------------------------------------------------------------------------//
-//! Convert a generic trapezoid
-auto SolidConverter::generictrap(arg_type solid_base) -> result_type
+//! Convert a trapezoid
+auto SolidConverter::trap(arg_type solid_base) -> result_type
 {
-    auto const& solid = dynamic_cast<G4GenericTrap const&>(solid_base);
+    auto const& solid = dynamic_cast<G4Trap const&>(solid_base);
     CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("generictrap");
+    CELER_NOT_IMPLEMENTED("trap");
 }
 
 //---------------------------------------------------------------------------//
@@ -570,11 +570,22 @@ auto SolidConverter::torus(arg_type solid_base) -> result_type
 
 //---------------------------------------------------------------------------//
 //! Convert a generic trapezoid
-auto SolidConverter::trap(arg_type solid_base) -> result_type
+auto SolidConverter::generictrap(arg_type solid_base) -> result_type
 {
-    auto const& solid = dynamic_cast<G4Trap const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("trap");
+    auto const& solid = dynamic_cast<G4GenericTrap const&>(solid_base);
+
+    auto const vtx = solid.GetVertices();
+    CELER_ASSERT(vtx.size() == 8);
+
+    std::vector<GenTrap::Real2> lower(4), upper(4);
+    for (auto i : range(4))
+    {
+        lower[i] = scale_.to<Cone::Real2>(vtx[i].x(), vtx[i].y());
+        upper[i] = scale_.to<Cone::Real2>(vtx[i + 4].x(), vtx[i + 4].y());
+    }
+    real_type hh = scale_(solid.GetZHalfLength());
+
+    return make_shape<GenTrap>(solid, hh, lower, upper);
 }
 
 //---------------------------------------------------------------------------//
