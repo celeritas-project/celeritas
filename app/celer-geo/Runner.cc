@@ -135,7 +135,7 @@ auto Runner::load_geometry() -> std::shared_ptr<GeoParams_t<G> const>
             if constexpr (G == Geometry::geant4)
             {
                 // Save world for later reuse
-                geant_world_ = static_cast<GeantGeoParams const&>(*geo).world();
+                geant_world_ = static_cast<GP const&>(*geo).world();
             }
         }
         // Save load time
