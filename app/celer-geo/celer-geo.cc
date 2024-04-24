@@ -147,12 +147,13 @@ void run_trace(Runner& run_trace, json const& input)
 
     // Write the output to disk
     CELER_LOG(info) << "Writing image to '" << trace_setup.bin_file << '\'';
-
-    std::ofstream image_file(trace_setup.bin_file, std::ios::binary);
-    std::vector<int> image_data(img_params.num_pixels());
-    image->copy_to_host(make_span(image_data));
-    image_file.write(reinterpret_cast<char const*>(image_data.data()),
-                     image_data.size() * sizeof(int));
+    {
+        std::ofstream image_file(trace_setup.bin_file, std::ios::binary);
+        std::vector<int> image_data(img_params.num_pixels());
+        image->copy_to_host(make_span(image_data));
+        image_file.write(reinterpret_cast<char const*>(image_data.data()),
+                         image_data.size() * sizeof(int));
+    }
 
     json out{
         {"trace", trace_setup},
