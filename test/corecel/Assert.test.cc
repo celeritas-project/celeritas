@@ -24,14 +24,13 @@ namespace test
 class AssertTest : public ::celeritas::test::Test
 {
   protected:
-    void SetUp() override
+    static void SetUpTestSuite()
     {
-        if ((celeritas::getenv("CELER_COLOR").empty()
-             && celeritas::getenv("GTEST_COLOR").empty())
-            || celeritas::getenv("CELER_LOG").empty())
-        {
-            GTEST_SKIP() << "Expected environment variables are not set";
-        }
+        EXPECT_FALSE(celeritas::getenv("CELER_COLOR").empty()
+                     && celeritas::getenv("GTEST_COLOR").empty())
+            << "Color must be enabled for this test";
+        EXPECT_FALSE(celeritas::getenv("CELER_LOG").empty())
+            << "Logging (for verbose output) must be enabled for this test";
     }
 };
 
@@ -57,6 +56,8 @@ TEST_F(AssertTest, runtime_error)
     }
     catch (RuntimeError const& e)
     {
+        EXPECT_TRUE(std::string{e.what()}.find("configuration error:")
+                    != std::string::npos);
         EXPECT_TRUE(std::string{e.what()}.find("required dependency is "
                                                "disabled in this build: foo")
                     != std::string::npos)
@@ -68,6 +69,8 @@ TEST_F(AssertTest, runtime_error)
     }
     catch (RuntimeError const& e)
     {
+        EXPECT_TRUE(std::string{e.what()}.find("implementation error:")
+                    != std::string::npos);
         EXPECT_TRUE(std::string{e.what()}.find("feature is not yet "
                                                "implemented: bar")
                     != std::string::npos)
@@ -116,7 +119,6 @@ TEST_F(AssertTest, runtime_error_variations)
         // Generate the message
         RuntimeError err{std::move(details)};
         messages.push_back(err.what());
-        cout << err.what() << endl;
     }
     static std::string const expected_messages[] = {
         "celeritas: \x1b[31;1munknown error: \x1b[0m\n\x1b[37;2munknown "

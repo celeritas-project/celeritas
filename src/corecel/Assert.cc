@@ -64,11 +64,11 @@ std::string build_runtime_error_msg(RuntimeErrorDetails const& d)
     msg << "celeritas: " << color_code('R')
         << (d.which.empty() ? "unknown" : d.which)
         << " error: " << color_code(' ');
-    if (d.which == "not configured")
+    if (d.which == "configuration")
     {
         msg << "required dependency is disabled in this build: ";
     }
-    else if (d.which == "not implemented")
+    else if (d.which == "implementation")
     {
         msg << "feature is not yet implemented: ";
     }
