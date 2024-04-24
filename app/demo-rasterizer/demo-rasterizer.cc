@@ -14,7 +14,6 @@
 
 #include "celeritas_version.h"
 #include "corecel/cont/Range.hh"
-#include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/DeviceIO.json.hh"
@@ -23,8 +22,7 @@
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/Stopwatch.hh"
-
-#include "RDemoRunner.hh"
+#include "celeritas/geo/GeoParams.hh"
 
 namespace celeritas
 {
@@ -58,14 +56,7 @@ void run(std::istream& is)
         inp.at("input").get<std::string>().c_str());
     timers["load"] = get_time();
 
-    // Construct image
-    ImageStore image(inp.at("image").get<ImageRunArgs>());
-
-    // Construct runner
-    RDemoRunner run(geo_params);
-    get_time = {};
-    run(&image);
-    timers["trace"] = get_time();
+    CELER_NOT_IMPLEMENTED("demo-rasterizer");
 
     // Get geometry names
     std::vector<std::string> vol_names;
@@ -78,7 +69,7 @@ void run(std::istream& is)
     CELER_LOG(status) << "Transferring image from GPU to disk";
     get_time = {};
     std::string out_filename = inp.at("output");
-    auto image_data = image.data_to_host();
+    std::vector<int> image_data;
     std::ofstream(out_filename, std::ios::binary)
         .write(reinterpret_cast<char const*>(image_data.data()),
                image_data.size() * sizeof(decltype(image_data)::value_type));
@@ -87,7 +78,7 @@ void run(std::istream& is)
     // Construct json output
     CELER_LOG(status) << "Exporting JSON metadata";
     nlohmann::json outp = {
-        {"metadata", image},
+        {"metadata", nullptr},
         {"data", out_filename},
         {"volumes", vol_names},
         {"timers", timers},

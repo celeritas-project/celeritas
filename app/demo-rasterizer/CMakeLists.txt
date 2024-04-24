@@ -6,27 +6,16 @@
 
 set(SOURCES
   demo-rasterizer.cc
-  RDemoRunner.cc
-  ImageIO.cc
-  ImageStore.cc
 )
-if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-  list(APPEND SOURCES
-    RDemoKernel.cu
-  )
-  if(CELERITAS_USE_HIP)
-    set_source_files_properties(
-      RDemoKernel.cu
-      PROPERTIES LANGUAGE HIP
-    )
-  endif()
-endif()
 
 set(_rasterizer_libs
-  Celeritas::celeritas
+  Celeritas::corecel
+  Celeritas::geocel
   nlohmann_json::nlohmann_json
 )
-if(CELERITAS_CORE_GEO STREQUAL "VecGeom")
+if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
+  list(APPEND _rasterizer_libs Celeritas::orange)
+elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
   list(APPEND _rasterizer_libs VecGeom::vecgeom)
 endif()
 
@@ -47,10 +36,8 @@ add_test(NAME "app/demo-rasterizer"
   COMMAND "$<TARGET_FILE:Python::Interpreter>" "${_driver}" "${_gdml_inp}"
 )
 
-if((CELERITAS_CORE_GEO STREQUAL "ORANGE" AND NOT CELERITAS_USE_Geant4)
-  OR CELER_DISABLE_DEVICE)
-  # two-boxes.org.json isn't set up in the test directory
-  # or device is unavailable
+if(TRUE)
+  # demo rasterizer is disabled until the next PR
   set(_maybe_disable DISABLED true)
 else()
   set(_maybe_disable)
