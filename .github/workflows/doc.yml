@@ -74,7 +74,7 @@ jobs:
       - name: Install Python packages
         run: |
             pip install --upgrade pip
-            pip install -r scripts/requirements.txt
+            pip install -r scripts/doc-requirements.txt
       - name: Configure celeritas
         run: |
           mkdir build && cd build
