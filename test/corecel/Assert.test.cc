@@ -24,7 +24,7 @@ namespace test
 class AssertTest : public ::celeritas::test::Test
 {
   protected:
-    static void SetUpTestSuite()
+    static void SetupTestSuite()
     {
         auto& env = celeritas::environment();
         env.insert({"CELER_COLOR", "1"});
