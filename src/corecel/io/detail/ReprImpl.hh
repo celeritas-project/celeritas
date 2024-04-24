@@ -9,6 +9,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <type_traits>
 
@@ -56,6 +57,18 @@ std::ostream& operator<<(std::ostream& os, Repr<T> const& s)
         os << '}';
     }
     return os;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write a streamable object to a stream.
+ */
+template<class T>
+std::string to_string(Repr<T> const& s)
+{
+    std::ostringstream os;
+    os << s;
+    return os.str();
 }
 
 //---------------------------------------------------------------------------//

@@ -77,8 +77,9 @@ std::string build_runtime_error_msg(RuntimeErrorDetails const& d)
     if (verbose_message || d.what.empty() || d.which != "runtime")
     {
         msg << '\n'
-            << color_code('W') << (d.file.empty() ? "unknown source" : d.file);
-        if (d.line)
+            << color_code(d.condition.empty() ? 'x' : 'W')
+            << (d.file.empty() ? "unknown source" : d.file);
+        if (d.line && !d.file.empty())
         {
             msg << ':' << d.line;
         }
@@ -90,7 +91,7 @@ std::string build_runtime_error_msg(RuntimeErrorDetails const& d)
         }
         else
         {
-            msg << " " << d.which;
+            msg << " failure";
         }
     }
 
