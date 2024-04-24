@@ -1,0 +1,41 @@
+//----------------------------------*-C++-*----------------------------------//
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
+// See the top-level COPYRIGHT file for details.
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+/*!
+ * \file geocel/rasterize/RaytraceImager.nocuda.t.hh
+ * \brief Template definition file for \c RaytraceImager when CUDA unsupported.
+ *
+ * If a particular geometry does not support device raytracing, include this
+ * file alongside \c RaytraceImager.t.hh before instantiating \c
+ * RaytraceImager.
+ */
+//---------------------------------------------------------------------------//
+#pragma once
+
+#include "geocel/rasterize/RaytraceImager.hh"
+
+#include "celeritas_config.h"
+#include "corecel/Macros.hh"
+
+namespace celeritas
+{
+#if CELER_USE_DEVICE
+//---------------------------------------------------------------------------//
+/*!
+ * Launch the raytrace kernel on device.
+ */
+template<class G>
+void RaytraceImager<G>::launch_raytrace_kernel(
+    GeoParamsCRef<MemSpace::device> const&,
+    GeoStateRef<MemSpace::device> const&,
+    ImageParamsCRef<MemSpace::device> const&,
+    ImageStateRef<MemSpace::device> const&) const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+#endif
+
+//---------------------------------------------------------------------------//
+}  // namespace celeritas

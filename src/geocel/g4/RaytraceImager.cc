@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "RaytraceImager.hh"
 
+#include "geocel/rasterize/RaytraceImager.nocuda.t.hh"
 #include "geocel/rasterize/RaytraceImager.t.hh"
 
 #include "GeantGeoData.hh"
