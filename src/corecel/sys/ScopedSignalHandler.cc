@@ -27,6 +27,9 @@ sig_atomic_t volatile g_celer_signal_bits_ = 0;
 extern "C" void celer_set_signal(int signal)
 {
 #ifndef _WIN32
+    // Windows exception handling settings do not allow throwing from a C
+    // function. It's not safe to do anyway if called from the signal handler,
+    // so expect this to terminate the code if the signal is invalid.
     CELER_ASSERT(signal >= 0 && signal < static_cast<int>(sizeof(int) * 8 - 1));
 #endif
     g_celer_signal_bits_ |= (1 << signal);
