@@ -4,26 +4,35 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-set(SOURCES
-  celer-geo.cc
-)
-set(_rasterizer_libs
-  Celeritas::corecel
-  Celeritas::geocel
-  Celeritas::orange
-  nlohmann_json::nlohmann_json
-)
-if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
-  list(APPEND _rasterizer_libs Celeritas::orange)
-elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
-  list(APPEND _rasterizer_libs VecGeom::vecgeom)
-elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
-  celeritas_get_g4libs(_g4_geo_libs geometry)
-  list(APPEND _rasterizer_libs ${_g4_geo_libs})
+if(CELERITAS_USE_JSON)
+  set(SOURCES
+    celer-geo.cc
+    Types.cc
+    GeoInput.cc
+    Runner.cc
+  )
+  set(LIBRARIES
+    Celeritas::corecel
+    Celeritas::geocel
+    Celeritas::orange
+    nlohmann_json::nlohmann_json
+  )
+  if(CELERITAS_USE_VecGeom)
+    list(APPEND LIBRARIES VecGeom::vecgeom)
+  endif()
+  if(CELERITAS_USE_Geant4)
+    celeritas_get_g4libs(_g4_geo_libs geometry)
+    list(APPEND LIBRARIES ${_g4_geo_libs})
+  endif()
+else()
+  set(SOURCES
+    celer-geo.nojson.cc
+  )
+  set(LIBRARIES)
 endif()
 
 celeritas_add_executable(celer-geo ${SOURCES})
-celeritas_target_link_libraries(celer-geo ${_rasterizer_libs})
+celeritas_target_link_libraries(celer-geo ${LIBRARIES})
 
 #-----------------------------------------------------------------------------#
 # TESTS
@@ -38,6 +47,9 @@ set(_model "${CELER_APP_DATA_DIR}/simple-cms.gdml")
 set(_env
   "CELERITAS_DEMO_EXE=$<TARGET_FILE:celer-geo>"
   "CELER_DISABLE_PARALLEL=1"
+)
+set(_props
+  TIMEOUT 20
 )
 
 #-----------------------------------------------------------------------------#

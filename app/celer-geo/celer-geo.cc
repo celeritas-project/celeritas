@@ -14,21 +14,25 @@
 
 #include "celeritas_config.h"
 #include "celeritas_version.h"
+#include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/Repr.hh"
+#include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/DeviceIO.json.hh"
 #include "corecel/sys/KernelRegistry.hh"
 #include "corecel/sys/KernelRegistryIO.json.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
-#include "corecel/sys/Stopwatch.hh"
-#include "geocel/GeoParamsInterface.hh"
+#include "corecel/sys/ScopedSignalHandler.hh"
 #include "geocel/rasterize/Image.hh"
 #include "geocel/rasterize/ImageIO.json.hh"
-#include "geocel/rasterize/RaytraceImager.hh"
 
-// TODO: replace with factory
-#include "celeritas/geo/GeoParams.hh"
+#include "GeoInput.hh"
+#include "Runner.hh"
+
+using namespace std::literals::string_view_literals;
+using nlohmann::json;
 
 namespace celeritas
 {
@@ -37,97 +41,183 @@ namespace app
 namespace
 {
 //---------------------------------------------------------------------------//
-using SPConstGeometry = std::shared_ptr<GeoParamsInterface const>;
-using SPImager = std::shared_ptr<ImagerInterface>;
-
-std::pair<SPConstGeometry, SPImager>
-load_geometry_imager(std::string const& filename)
+/*!
+ * Get a line of JSON input.
+ */
+nlohmann::json get_json_line(std::istream& is)
 {
-    auto geo = std::make_shared<GeoParams>(filename);
-    auto imager = std::make_shared<RaytraceImager<GeoParams>>(geo);
-    return {std::move(geo), std::move(imager)};
+    static std::string jsonline;
+
+    // TODO: separate thread for cin to check periodically for interrupts
+    if (!std::getline(is, jsonline))
+    {
+        CELER_LOG(debug) << "Reached end of file";
+        return nullptr;
+    }
+    if (trim(jsonline).empty())
+    {
+        CELER_LOG(debug) << "Got empty line";
+        // No input provided
+        return nullptr;
+    }
+
+    try
+    {
+        return json::parse(jsonline);
+    }
+    catch (json::parse_error const& e)
+    {
+        CELER_LOG(error) << "Failed to parse JSON input: " << e.what();
+        CELER_LOG(info) << "Failed line: " << repr(jsonline);
+        return nullptr;
+    }
 }
 
-template<MemSpace M>
-std::shared_ptr<Image<M>>
-make_traced_image(std::shared_ptr<ImageParams const> img_params,
-                  ImagerInterface& generate_image)
+//---------------------------------------------------------------------------//
+/*!
+ * Execute a single raytrace.
+ */
+Runner make_runner(json const& input)
 {
-    auto image = std::make_shared<Image<M>>(std::move(img_params));
-    CELER_LOG(status) << "Tracing image on " << to_cstring(M);
-    generate_image(image.get());
-    return image;
+    ModelSetup model_setup;
+    try
+    {
+        input.get_to(model_setup);
+    }
+    catch (std::exception const& e)
+    {
+        CELER_LOG(error) << "Invalid model setup; expected structure written "
+                            "to stdout";
+        std::cout << json(ModelSetup{}).dump() << std::endl;
+        throw;
+    }
+
+    Runner result(model_setup);
+    std::cout << json(model_setup) << std::endl;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Execute a single raytrace.
+ */
+void run_trace(Runner& run_trace, json const& input)
+{
+    // Load required trace setup (geometry/memspace/output)
+    TraceSetup trace_setup;
+    ImageInput image_setup;
+    try
+    {
+        CELER_VALIDATE(!input.empty(), << "no raytrace input was specified");
+        input.get_to(trace_setup);
+        if (auto iter = input.find("image"); iter != input.end())
+        {
+            iter->get_to(image_setup);
+        }
+    }
+    catch (std::exception const& e)
+    {
+        CELER_LOG(error) << "Invalid trace setup; expected structure written "
+                            "to stdout";
+        json temp = TraceSetup{};
+        temp["image"] = ImageInput{};
+        std::cout << json(temp).dump() << std::endl;
+        throw;
+    }
+
+    CELER_LOG(status) << "Tracing " << to_cstring(trace_setup.geometry)
+                      << " image on " << to_cstring(trace_setup.memspace);
+
+    // Run the raytrace
+    auto image = [&] {
+        if (image_setup)
+        {
+            // User specified a new image setup
+            return run_trace(trace_setup, image_setup);
+        }
+        else
+        {
+            // Reuse last image setup
+            return run_trace(trace_setup);
+        }
+    }();
+    CELER_ASSERT(image);
+
+    auto const& img_params = *image->params();
+
+    // Write the output to disk
+    CELER_LOG(info) << "Writing image to '" << trace_setup.bin_file << '\'';
+
+    std::ofstream image_file(trace_setup.bin_file, std::ios::binary);
+    std::vector<int> image_data(img_params.num_pixels());
+    image->copy_to_host(make_span(image_data));
+    image_file.write(reinterpret_cast<char const*>(image_data.data()),
+                     image_data.size() * sizeof(int));
+
+    json out{
+        {"trace", trace_setup},
+        {"image", img_params},
+        {"sizeof_int", sizeof(int)},
+    };
+    if (trace_setup.volumes)
+    {
+        // Get geometry names
+        out["volumes"] = run_trace.get_volumes(trace_setup.geometry);
+    }
+
+    std::cout << out.dump() << std::endl;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Run, launch, and output.
+ *
+ * The input stream is expected to be in "JSON lines" format. The first input
+ * \em must be a model setup; the following lines are individual commands to
+ * trace an image. Newlines must be sent exactly \em once per input, and the
+ * output \em must be flushed after doing so. (Recall that \em endl sends a
+ * newline and flushes the output buffer.)
  */
 void run(std::istream& is)
 {
-    // Read input options
-    auto inp = nlohmann::json::parse(is);
-    auto timers = nlohmann::json::object();
+    ScopedSignalHandler interrupted(SIGINT);
 
-    if (inp.contains("cuda_heap_size"))
-    {
-        set_cuda_heap_size(inp.at("cuda_heap_size").get<int>());
-    }
-    if (inp.contains("cuda_stack_size"))
-    {
-        set_cuda_stack_size(inp.at("cuda_stack_size").get<int>());
-    }
+    // Load the model
+    CELER_LOG(diagnostic) << "Waiting for model setup";
+    auto json_input = get_json_line(is);
+    CELER_VALIDATE(json_input.is_object(),
+                   << "missing or invalid JSON-formatted run input");
 
-    // Load geometry
-    Stopwatch get_time;
-    auto&& [geo_params, generate_image]
-        = load_geometry_imager(inp.at("input").get<std::string>().c_str());
-    timers["load"] = get_time();
+    auto runner = make_runner(json_input);
 
-    // Construct image
-    auto img_params
-        = std::make_shared<ImageParams>(inp.at("image").get<ImageInput>());
-
-    get_time = {};
-    std::shared_ptr<ImageInterface> image;
-    if (device())
+    while (true)
     {
-        image
-            = make_traced_image<MemSpace::device>(img_params, *generate_image);
-    }
-    else
-    {
-        image = make_traced_image<MemSpace::host>(img_params, *generate_image);
-    }
-    CELER_ASSERT(image);
-    timers["trace"] = get_time();
-
-    // Get geometry names
-    std::vector<std::string> vol_names;
-    for (auto vol_id : range(geo_params->num_volumes()))
-    {
-        vol_names.push_back(geo_params->id_to_label(VolumeId(vol_id)).name);
+        json_input = get_json_line(is);
+        if (interrupted())
+        {
+            CELER_LOG(diagnostic) << "Exiting raytrace loop: caught interrupt";
+            interrupted = {};
+            break;
+        }
+        if (json_input.is_null())
+        {
+            CELER_LOG(diagnostic) << "Exiting raytrace loop";
+            break;
+        }
+        try
+        {
+            run_trace(runner, json_input);
+        }
+        catch (std::exception const& e)
+        {
+            CELER_LOG(error) << "Failed raytrace: " << e.what();
+            std::cout << ExceptionOutput{std::current_exception()} << std::endl;
+        }
     }
 
-    // Write image
-    CELER_LOG(status) << "Transferring image and writing to disk";
-    get_time = {};
-
-    std::string out_filename = inp.at("output");
-    std::vector<int> image_data(img_params->num_pixels());
-    image->copy_to_host(make_span(image_data));
-    std::ofstream(out_filename, std::ios::binary)
-        .write(reinterpret_cast<char const*>(image_data.data()),
-               image_data.size() * sizeof(int));
-    timers["write"] = get_time();
-
-    // Construct json output
-    CELER_LOG(status) << "Exporting JSON metadata";
-    nlohmann::json outp = {
-        {"metadata", *img_params},
-        {"data", out_filename},
-        {"volumes", vol_names},
-        {"timers", timers},
+    // Construct json output (TODO: add build metadata)
+    std::cout << json{
+        {"timers", runner.timers()},
         {
             "runtime",
             {
@@ -136,10 +226,17 @@ void run(std::istream& is)
                 {"kernels", kernel_registry()},
             },
         },
-    };
-    outp["metadata"]["int_size"] = sizeof(int);
-    std::cout << outp.dump() << std::endl;
-    CELER_LOG(info) << "Exported image to " << out_filename;
+    } << std::endl;
+}
+
+//---------------------------------------------------------------------------//
+void print_usage(std::string_view exec_name)
+{
+    // clang-format off
+    std::cerr << "usage: " << exec_name << " {input}.json\n"
+                 "       " << exec_name << " -\n"
+                 "       " << exec_name << " [--help|-h]\n";
+    // clang-format on
 }
 
 //---------------------------------------------------------------------------//
@@ -150,9 +247,6 @@ void run(std::istream& is)
 //---------------------------------------------------------------------------//
 /*!
  * Execute and run.
- *
- * \todo This is copied from the other demo apps; move these to a shared driver
- * at some point.
  */
 int main(int argc, char* argv[])
 {
@@ -167,42 +261,49 @@ int main(int argc, char* argv[])
     }
 
     // Process input arguments
-    std::vector<std::string> args(argv, argv + argc);
-    if (args.size() != 2 || args[1] == "--help" || args[1] == "-h")
+    if (argc != 2)
     {
-        std::cerr << "usage: " << args[0] << " {input}.json" << std::endl;
+        celeritas::app::print_usage(argv[0]);
         return EXIT_FAILURE;
     }
-
-    std::ifstream infile;
-    std::istream* instream_ptr = nullptr;
-    if (args[1] != "-")
+    std::string_view filename{argv[1]};
+    if (filename == "--help"sv || filename == "-h"sv)
     {
-        infile.open(args[1]);
-        if (!infile)
-        {
-            CELER_LOG(critical) << "Failed to open '" << args[1] << "'";
-            return EXIT_FAILURE;
-        }
-        instream_ptr = &infile;
+        celeritas::app::print_usage(argv[0]);
+        return EXIT_SUCCESS;
+    }
+
+    // TODO: make a helper class that implicitly casts to std::istream&, has
+    // operator bool, and retains a file or creates with '-'
+    std::ifstream infile;
+    std::istream* instream = nullptr;
+    if (filename == "-")
+    {
+        instream = &std::cin;
+        filename = "<stdin>";  // For nicer output on failure
     }
     else
     {
-        // Read input from STDIN
-        instream_ptr = &std::cin;
+        // Open the specified file
+        infile.open(std::string{filename});
+        if (!infile)
+        {
+            CELER_LOG(critical) << "Failed to open '" << filename << "'";
+            return EXIT_FAILURE;
+        }
+        instream = &infile;
     }
-
-    // Initialize GPU
-    activate_device();
+    CELER_LOG(info) << "Reading JSON line input from " << filename;
 
     try
     {
-        CELER_ASSERT(instream_ptr);
-        celeritas::app::run(*instream_ptr);
+        celeritas::app::run(*instream);
     }
     catch (std::exception const& e)
     {
-        CELER_LOG(critical) << "caught exception: " << e.what();
+        CELER_LOG(critical)
+            << "While running input at " << filename << ": " << e.what();
+        std::cout << ExceptionOutput{std::current_exception()} << std::endl;
         return EXIT_FAILURE;
     }
 

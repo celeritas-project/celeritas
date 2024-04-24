@@ -69,6 +69,7 @@ class IdNorm(BoundaryNorm):
 
 class PlotDims:
     def __init__(self, md):
+        """Construct with image metadata"""
         self.down = np.array(md['down'])
         self.right = np.array(md['right'])
         pw = md['pixel_width']
@@ -77,9 +78,9 @@ class PlotDims:
         self.width = pw * dims[1]
         self.height = pw * dims[0]
         self.units = {
-            "CGS": "cm",
-            "CLHEP": "mm",
-            "SI": "m",
+            "cgs": "cm",
+            "clhep": "mm",
+            "si": "m",
         }[md['_units']]
 
         self.lower_left = self.down * self.height + self.upper_left
@@ -110,9 +111,11 @@ def get_ids_and_sentinels(image):
     return (ids, sentinels)
 
 _re_ptr = re.compile(r"0x[0-9a-f]+")
-def remap_ids(ids, volumes):
+def remap_ids(ids, volumes=None):
     """Create a set of unique volume names and corresponding ID map.
     """
+    if volumes is None:
+        volumes = [str(i) for i in range(np.max(ids))]
     new_ids = np.empty_like(volumes, dtype=np.int32)
     new_ids[:] = -1
 
@@ -128,12 +131,15 @@ def remap_ids(ids, volumes):
 
     return (new_ids, vol_names)
 
-
-def load_and_plot_image(ax, input):
-    assert input['metadata']['int_size'] == 4
-    image = np.fromfile(input['data'], dtype=np.int32)
-    image = np.reshape(image, input['metadata']['dims'])
-    dims = PlotDims(input['metadata'])
+    
+def load_and_plot_image(ax, out, image=None):
+    assert out['sizeof_int'] == 4
+    if image is None:
+        image = np.fromfile(out['trace']['bin_file'], dtype=np.int32)
+    elif isinstance(image, bytes):
+        image = np.frombuffer(image, dtype=np.int32)
+    image = np.reshape(image, out['image']['dims'])
+    dims = PlotDims(out['image'])
 
     (label, left, right) = dims.calc_axes(dims.width, dims.right)
     ax.set_xlabel(label)
@@ -145,7 +151,7 @@ def load_and_plot_image(ax, input):
     # Get unique set of IDs inside the raytraced image
     (ids, sentinels) = get_ids_and_sentinels(image)
 
-    (new_ids, labels) = remap_ids(ids, input['volumes'])
+    (new_ids, labels) = remap_ids(ids, out.get('volumes'))
 
     if sentinels:
         image = np.ma.masked_where((image == sentinels[0]), image)
@@ -178,12 +184,12 @@ def main():
         sys.exit(1)
     if json_input != '-':
         with open(json_input, 'r') as f:
-            input = json.load(f)
+            out = json.load(f)
     else:
-        input = json.load(sys.stdin)
+        out = json.load(sys.stdin)
 
     (fig, ax) = plt.subplots(layout="constrained", figsize=(5, 3))
-    load_and_plot_image(ax, input)
+    load_and_plot_image(ax, out)
     fig.savefig(imgname, dpi=300)
 
 if __name__ == '__main__':
