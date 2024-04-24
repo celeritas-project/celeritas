@@ -5,6 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file celer-geo/celer-geo.cc
 //---------------------------------------------------------------------------//
+#include <csignal>
 #include <cstddef>
 #include <fstream>
 #include <iostream>
@@ -161,7 +162,7 @@ void run_trace(Runner& run_trace,
  */
 void run(std::istream& is)
 {
-    ScopedSignalHandler interrupted(SIGINT);
+    ScopedSignalHandler interrupted{SIGINT};
 
     // Load the model
     CELER_LOG(diagnostic) << "Waiting for model setup";
