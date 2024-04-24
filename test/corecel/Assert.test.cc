@@ -26,9 +26,12 @@ class AssertTest : public ::celeritas::test::Test
   protected:
     void SetUp() override
     {
-        auto& env = celeritas::environment();
-        env.insert({"CELER_COLOR", "1"});
-        env.insert({"CELER_LOG", "diagnostic"});
+        if ((celeritas::getenv("CELER_COLOR").empty()
+             && celeritas::getenv("GTEST_COLOR").empty())
+            || celeritas::getenv("CELER_LOG").empty())
+        {
+            GTEST_SKIP() << "Expected environment variables are not set";
+        }
     }
 };
 
