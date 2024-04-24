@@ -101,30 +101,10 @@ Runner make_runner(json const& input)
 /*!
  * Execute a single raytrace.
  */
-void run_trace(Runner& run_trace, json const& input)
+void run_trace(Runner& run_trace,
+               TraceSetup const& trace_setup,
+               ImageInput const& image_setup)
 {
-    // Load required trace setup (geometry/memspace/output)
-    TraceSetup trace_setup;
-    ImageInput image_setup;
-    try
-    {
-        CELER_VALIDATE(!input.empty(), << "no raytrace input was specified");
-        input.get_to(trace_setup);
-        if (auto iter = input.find("image"); iter != input.end())
-        {
-            iter->get_to(image_setup);
-        }
-    }
-    catch (std::exception const& e)
-    {
-        CELER_LOG(error) << "Invalid trace setup; expected structure written "
-                            "to stdout";
-        json temp = TraceSetup{};
-        temp["image"] = ImageInput{};
-        std::cout << json(temp).dump() << std::endl;
-        throw;
-    }
-
     CELER_LOG(status) << "Tracing " << to_cstring(trace_setup.geometry)
                       << " image on " << to_cstring(trace_setup.memspace);
 
@@ -205,9 +185,33 @@ void run(std::istream& is)
             CELER_LOG(diagnostic) << "Exiting raytrace loop";
             break;
         }
+
+        // Load required trace setup (geometry/memspace/output)
+        TraceSetup trace_setup;
+        ImageInput image_setup;
         try
         {
-            run_trace(runner, json_input);
+            CELER_VALIDATE(!json_input.empty(),
+                           << "no raytrace input was specified");
+            json_input.get_to(trace_setup);
+            if (auto iter = json_input.find("image"); iter != json_input.end())
+            {
+                iter->get_to(image_setup);
+            }
+        }
+        catch (std::exception const& e)
+        {
+            CELER_LOG(error)
+                << "Invalid trace setup; expected structure written "
+                   "to stdout";
+            json temp = TraceSetup{};
+            temp["image"] = ImageInput{};
+            std::cout << json(temp).dump() << std::endl;
+            continue;
+        }
+        try
+        {
+            run_trace(runner, trace_setup, image_setup);
         }
         catch (std::exception const& e)
         {
