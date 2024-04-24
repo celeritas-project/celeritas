@@ -64,7 +64,7 @@ std::string build_runtime_error_msg(RuntimeErrorDetails const& d)
     msg << "celeritas: " << color_code('R')
         << (d.which.empty() ? "unknown" : d.which)
         << " error: " << color_code(' ');
-    if (d.which == "configuration")
+    if (d.which == "not configured")
     {
         msg << "required dependency is disabled in this build: ";
     }
@@ -82,9 +82,15 @@ std::string build_runtime_error_msg(RuntimeErrorDetails const& d)
         {
             msg << ':' << d.line;
         }
+
+        msg << ':' << color_code(' ');
         if (!d.condition.empty())
         {
-            msg << ':' << color_code(' ') << " '" << d.condition << "' failed";
+            msg << " '" << d.condition << '\'' << " failed";
+        }
+        else
+        {
+            msg << " " << d.which;
         }
     }
 
