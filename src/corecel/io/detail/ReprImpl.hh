@@ -61,7 +61,7 @@ std::ostream& operator<<(std::ostream& os, Repr<T> const& s)
 
 //---------------------------------------------------------------------------//
 /*!
- * Write a streamable object to a stream.
+ * Convert a streamable object to a string.
  */
 template<class T>
 std::string to_string(Repr<T> const& s)
