@@ -34,7 +34,7 @@ if(NOT BUILD_TESTING)
 endif()
 
 set(_driver "${CMAKE_CURRENT_SOURCE_DIR}/simple-driver.py")
-set(_model "${CELER_APP_DATA_DIR}/two-boxes.gdml")
+set(_model "${CELER_APP_DATA_DIR}/simple-cms.gdml")
 set(_env
   "CELERITAS_DEMO_EXE=$<TARGET_FILE:demo-rasterizer>"
   "CELER_DISABLE_PARALLEL=1"
@@ -53,8 +53,6 @@ function(celer_app_test ext)
     endif()
   elseif(ext STREQUAL "cpu")
     list(APPEND _extra_env "CELER_DISABLE_DEVICE=1")
-  else()
-    list(APPEND _extra_env "CELER_DISABLE=1")
   endif()
 
   add_test(NAME "app/demo-rasterizer:${ext}"

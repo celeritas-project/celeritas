@@ -26,8 +26,8 @@ eps = 0.01
 inp = {
     'image': {
         # TODO: input is cm for now; add 'units' argument?
-        'lower_left': [-10, -10, 0],
-        'upper_right': [10, 10, 0],
+        'lower_left': [-800, 0, -1500],
+        'upper_right': [800, 0, 1600],
         'rightward': [1, 0, 0],
         'vertical_pixels': 128,
     },
