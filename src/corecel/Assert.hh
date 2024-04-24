@@ -239,7 +239,7 @@
 #define CELER_NOT_CONFIGURED(WHAT) \
     CELER_RUNTIME_THROW("configuration", WHAT, {})
 #define CELER_NOT_IMPLEMENTED(WHAT) \
-    CELER_RUNTIME_THROW("not implemented", WHAT, {})
+    CELER_RUNTIME_THROW("implementation", WHAT, {})
 
 /*!
  * \def CELER_CUDA_CALL
