@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
   linux:
-    name: ultralite-linux
+    name: ultralite-ubuntu
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "20Mi"
