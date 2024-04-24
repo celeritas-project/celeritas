@@ -10,7 +10,6 @@ concurrency:
 
 jobs:
   linux:
-    continue-on-error: true
     name: ultralite-ubuntu
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
@@ -63,7 +62,6 @@ jobs:
         run: |
           ccache -s
   windows:
-    continue-on-error: true
     name: ultralite-windows
     env:
       CCACHE_DIR: "${{github.workspace}}\\.ccache"
