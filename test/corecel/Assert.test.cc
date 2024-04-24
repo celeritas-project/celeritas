@@ -24,7 +24,7 @@ namespace test
 class AssertTest : public ::celeritas::test::Test
 {
   protected:
-    static void SetupTestSuite()
+    void SetUp() override
     {
         auto& env = celeritas::environment();
         env.insert({"CELER_COLOR", "1"});
@@ -113,6 +113,7 @@ TEST_F(AssertTest, runtime_error_variations)
         // Generate the message
         RuntimeError err{std::move(details)};
         messages.push_back(err.what());
+        cout << err.what() << endl;
     }
     static std::string const expected_messages[] = {
         "celeritas: \x1b[31;1munknown error: \x1b[0m\n\x1b[37;2munknown "
