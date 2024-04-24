@@ -8,6 +8,7 @@
 #include "ScopedSignalHandler.hh"
 
 #include <algorithm>
+#include <cassert>
 #include <csignal>
 #include <string>
 
@@ -26,12 +27,11 @@ sig_atomic_t volatile g_celer_signal_bits_ = 0;
 //! Set the bit corresponding to a signal
 extern "C" void celer_set_signal(int signal)
 {
-#ifndef _WIN32
-    // Windows exception handling settings do not allow throwing from a C
-    // function. It's not safe to do anyway if called from the signal handler,
-    // so expect this to terminate the code if the signal is invalid.
-    CELER_ASSERT(signal >= 0 && signal < static_cast<int>(sizeof(int) * 8 - 1));
-#endif
+    // It's undefined behavior to throw C++ exceptions from inside a C function
+    // call, so use a C assert to check that the bit being set is within
+    // bounds.
+    assert(signal >= 0 && signal < static_cast<int>(sizeof(int) * 8 - 1));
+
     g_celer_signal_bits_ |= (1 << signal);
 }
 
