@@ -159,6 +159,7 @@ auto Runner::load_geometry() -> std::shared_ptr<GeoParams_t<G> const>
  */
 auto Runner::make_imager(Geometry g) -> SPImager
 {
+    imager_name_ = std::string{"raytrace_"} + to_cstring(g);
     switch (g)
     {
         CASE_RETURN_FUNC_T(Geometry::orange, make_imager, );
@@ -217,7 +218,7 @@ auto Runner::make_traced_image(ImagerInterface& generate_image) -> SPImage
 
     Stopwatch get_time;
     generate_image(image.get());
-    timers_[std::string("trace_") + to_cstring(M)] += get_time();
+    timers_[imager_name_ + '_' + to_cstring(M)] += get_time();
 
     return image;
 }
