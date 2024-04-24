@@ -22,9 +22,10 @@ namespace celeritas
    cout << celeritas::join(foo.begin(), foo.end(), ", ") << endl
    \endcode
  *
- * The result is a thin class that is implicitly convertible to a std::string
- * and is streamable. (It can explicitly be converted to a string with the
- * \c .str() method). By doing this instead of returning a std::string, large
+ * The result is a thin class that is streamable. (It can explicitly be
+ * converted to a string with the
+ * \c to_string method). By doing this instead of returning a std::string,
+ large
  * and dynamic containers can be e.g. saved to disk.
  */
 template<class InputIterator, class Conjunction>

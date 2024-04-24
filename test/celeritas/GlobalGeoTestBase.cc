@@ -39,9 +39,15 @@ auto GlobalGeoTestBase::build_fresh_geometry(std::string_view basename)
 
     // Construct filename:
     // ${SOURCE}/test/celeritas/data/${basename}${fileext}
-    auto ext = (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE)
-                   ? ".gdml"sv
-                   : ".org.json"sv;
+    auto ext = ".gdml"sv;
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+        && (!CELERITAS_USE_GEANT4
+            || CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE))
+    {
+        // Using ORANGE, either without Geant4 or without double-precision
+        // arithmetic
+        ext = ".org.json"sv;
+    }
     auto filename = std::string{basename} + std::string{ext};
     std::string test_file = this->test_data_path("geocel", filename);
     return std::make_shared<GeoParams>(test_file);

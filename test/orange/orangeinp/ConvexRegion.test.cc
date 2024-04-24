@@ -403,7 +403,7 @@ using GenTrapTest = ConvexRegionTest;
 
 TEST_F(GenTrapTest, construct)
 {
-    // validate contruction parameters
+    // Validate contruction parameters
     EXPECT_THROW(GenTrap(-3,
                          {{-1, -1}, {-1, 1}, {1, 1}, {1, -1}},
                          {{-2, -2}, {-2, 2}, {2, 2}, {2, -2}}),
@@ -417,12 +417,11 @@ TEST_F(GenTrapTest, construct)
                          {{-2, -2}, {-2, 2}, {2, 2}, {2, -2}}),
                  RuntimeError);  // non-convex
 
-    // a general, non-planar GenTrap, with 'twisted' faces - not yet
-    // implemented
+    // General non-planar GenTrap with 'twisted' faces is not yet implemented
     EXPECT_THROW(GenTrap(3,
                          {{-10, -10}, {-10, 10}, {10, 10}, {9, -11}},
                          {{-10, -10}, {-10, 10}, {10, 10}, {10, -10}}),
-                 DebugError);
+                 RuntimeError);
 }
 
 TEST_F(GenTrapTest, box_like)

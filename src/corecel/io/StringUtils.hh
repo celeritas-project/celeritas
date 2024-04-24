@@ -27,7 +27,7 @@ bool is_ignored_trailing(unsigned char c);
 
 //---------------------------------------------------------------------------//
 // Return a string view with leading and trailing whitespace removed
-std::string_view trim(std::string_view input);
+[[nodiscard]] std::string_view trim(std::string_view input);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

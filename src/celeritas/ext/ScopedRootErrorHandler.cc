@@ -58,7 +58,13 @@ void RootErrorHandler(Int_t rootlevel,
 
     if (must_abort)
     {
-        throw RuntimeError::from_root_error(location, msg);
+        throw RuntimeError{[&] {
+            RuntimeErrorDetails details;
+            details.which = "ROOT";
+            details.what = msg;
+            details.file = location;
+            return details;
+        }()};
     }
     else
     {
