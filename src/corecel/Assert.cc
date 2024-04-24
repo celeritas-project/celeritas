@@ -68,7 +68,7 @@ std::string build_runtime_error_msg(RuntimeErrorDetails const& d)
     {
         msg << "required dependency is disabled in this build: ";
     }
-    else if (d.which == "not implemented")
+    else if (d.which == "implementation")
     {
         msg << "feature is not yet implemented: ";
     }
@@ -77,14 +77,21 @@ std::string build_runtime_error_msg(RuntimeErrorDetails const& d)
     if (verbose_message || d.what.empty() || d.which != "runtime")
     {
         msg << '\n'
-            << color_code('W') << (d.file.empty() ? "unknown source" : d.file);
-        if (d.line)
+            << color_code(d.condition.empty() ? 'x' : 'W')
+            << (d.file.empty() ? "unknown source" : d.file);
+        if (d.line && !d.file.empty())
         {
             msg << ':' << d.line;
         }
+
+        msg << ':' << color_code(' ');
         if (!d.condition.empty())
         {
-            msg << ':' << color_code(' ') << " '" << d.condition << "' failed";
+            msg << " '" << d.condition << '\'' << " failed";
+        }
+        else
+        {
+            msg << " failure";
         }
     }
 
