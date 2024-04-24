@@ -9,7 +9,6 @@
 
 #include <string>
 #include <vector>
-#include <gmock/gmock.h>
 
 #include "corecel/io/Repr.hh"
 #include "corecel/sys/Environment.hh"
@@ -49,16 +48,16 @@ TEST_F(AssertTest, debug_error)
 
 TEST_F(AssertTest, runtime_error)
 {
-    using ::testing::HasSubstr;
     try
     {
         CELER_NOT_CONFIGURED("foo");
     }
     catch (RuntimeError const& e)
     {
-        EXPECT_THAT(e.what(),
-                    HasSubstr("required dependency is disabled in this build: "
-                              "foo"));
+        EXPECT_TRUE(std::string{e.what()}.find("required dependency is "
+                                               "disabled in this build: foo")
+                    != std::string::npos)
+            << e.what();
     }
     try
     {
@@ -66,7 +65,10 @@ TEST_F(AssertTest, runtime_error)
     }
     catch (RuntimeError const& e)
     {
-        EXPECT_THAT(e.what(), HasSubstr("feature is not yet implemented: bar"));
+        EXPECT_TRUE(std::string{e.what()}.find("feature is not yet "
+                                               "implemented: bar")
+                    != std::string::npos)
+            << e.what();
     }
     try
     {
@@ -74,8 +76,10 @@ TEST_F(AssertTest, runtime_error)
     }
     catch (RuntimeError const& e)
     {
-        EXPECT_THAT(e.what(),
-                    HasSubstr("runtime error: \x1B[0mthis is not OK"));
+        EXPECT_TRUE(std::string{e.what()}.find("runtime error: \x1B[0mthis is "
+                                               "not OK")
+                    != std::string::npos)
+            << e.what();
     }
 }
 
