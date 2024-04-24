@@ -26,9 +26,7 @@ sig_atomic_t volatile g_celer_signal_bits_ = 0;
 //! Set the bit corresponding to a signal
 extern "C" void celer_set_signal(int signal)
 {
-#ifndef _WIN32
     CELER_ASSERT(signal >= 0 && signal < static_cast<int>(sizeof(int) * 8 - 1));
-#endif
     g_celer_signal_bits_ |= (1 << signal);
 }
 

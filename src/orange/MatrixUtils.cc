@@ -16,26 +16,6 @@ using Mat3 = celeritas::SquareMatrixReal3;
 
 namespace celeritas
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-//! Use fused multiply-add for floating point calculations
-template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
-T generic_fma(T a, T b, T y)
-{
-    return std::fma(a, b, y);
-}
-
-//! Don't use FMA for integers
-template<class T, std::enable_if_t<!std::is_floating_point<T>::value, bool> = true>
-T generic_fma(T a, T b, T y)
-{
-    return a * b + y;
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the determiniant of a 3x3 matrix.
@@ -93,7 +73,7 @@ gemm(SquareMatrix<T, N> const& a, SquareMatrix<T, N> const& b)
             // Accumulate dot products
             for (size_type k = 0; k != N; ++k)
             {
-                result[i][j] = generic_fma(b[k][j], a[i][k], result[i][j]);
+                result[i][j] = std::fma(b[k][j], a[i][k], result[i][j]);
             }
         }
     }
@@ -126,7 +106,7 @@ SquareMatrix<T, N> gemm(matrix::TransposePolicy,
             // Accumulate dot products
             for (size_type k = 0; k != N; ++k)
             {
-                result[i][j] = generic_fma(b[k][j], a[k][i], result[i][j]);
+                result[i][j] = std::fma(b[k][j], a[k][i], result[i][j]);
             }
         }
     }

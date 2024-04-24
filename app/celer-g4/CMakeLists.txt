@@ -39,7 +39,7 @@ else()
   set(SOURCES
     celer-g4.nogeant.cc
   )
-  set(LIBRARIES Celeritas::corecel)
+  set(LIBRARIES)
 endif()
 
 if(CELERITAS_USE_ROOT AND CELERITAS_USE_Geant4)

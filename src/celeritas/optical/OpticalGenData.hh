@@ -42,7 +42,7 @@ struct OpticalGenParamsData
 
     bool cerenkov{false};  //!< Whether Cerenkov is enabled
     bool scintillation{false};  //!< Whether scintillation is enabled
-    size_type capacity{0};  //!< Distribution data buffer capacity
+    real_type capacity{0};  //!< Distribution data buffer capacity
 
     //// METHODS ////
 
