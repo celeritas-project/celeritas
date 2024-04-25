@@ -513,7 +513,7 @@ inline CELER_FUNCTION float rsqrt(float value)
  * std::fma directly in most cases.
  */
 template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
-T fma(T a, T b, T y)
+inline CELER_FUNCTION T fma(T a, T b, T y)
 {
     return std::fma(a, b, y);
 }
@@ -523,7 +523,7 @@ T fma(T a, T b, T y)
  * Provide an FMA-like interface for integers.
  */
 template<class T, std::enable_if_t<!std::is_floating_point<T>::value, bool> = true>
-T fma(T a, T b, T y)
+CELER_CONSTEXPR_FUNCTION T fma(T a, T b, T y)
 {
     return a * b + y;
 }
