@@ -16,6 +16,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  build-ultralite:
+    uses: ./.github/workflows/build-ultralite.yml
   build-fast:
     uses: ./.github/workflows/build-fast.yml
   build-docker:

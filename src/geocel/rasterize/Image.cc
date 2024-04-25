@@ -74,7 +74,8 @@ ImageParams::ImageParams(ImageInput const& inp)
     scalars.pixel_width = width_y / num_y;
     size_type num_x
         = inp.horizontal_divisor
-          * std::ceil(width_x / (inp.horizontal_divisor * scalars.pixel_width));
+          * static_cast<size_type>(std::ceil(
+              width_x / (inp.horizontal_divisor * scalars.pixel_width)));
     CELER_ASSERT(num_x >= inp.horizontal_divisor);
     scalars.dims = {num_y, num_x};
 

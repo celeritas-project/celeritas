@@ -21,10 +21,12 @@ concurrency:
 jobs:
   build-fast:
     uses: ./.github/workflows/build-fast.yml
+  build-ultralite:
+    uses: ./.github/workflows/build-ultralite.yml
   doc:
     uses: ./.github/workflows/doc.yml
   all-prechecks:
-    needs: [build-fast, doc]
+    needs: [build-fast, build-ultralite, doc]
     runs-on: ubuntu-latest
     steps:
     - name: Success

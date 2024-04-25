@@ -48,7 +48,7 @@ class FastSimulationOffload final : public G4VFastSimulationModel
     // Apply model
     void DoIt(G4FastTrack const& track, G4FastStep& step) override;
 
-#if G4VERSION_NUMBER > 1110
+#if G4VERSION_NUMBER >= 1110
     //! Complete processing of buffered tracks
     void Flush() override;
 #endif

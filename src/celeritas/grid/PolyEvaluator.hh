@@ -13,6 +13,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/math/Algorithms.hh"
 
 namespace celeritas
 {
@@ -82,7 +83,7 @@ class PolyEvaluator
     template<unsigned int M, std::enable_if_t<(M < N), bool> = true>
     CELER_CONSTEXPR_FUNCTION T calc_impl(T arg) const
     {
-        return std::fma(arg, calc_impl<M + 1>(arg), coeffs_[M]);
+        return fma(arg, calc_impl<M + 1>(arg), coeffs_[M]);
     }
 
     template<unsigned int M, std::enable_if_t<(M == N), bool> = true>
