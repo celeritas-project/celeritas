@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cmath>
+#include <type_traits>
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
@@ -35,6 +36,8 @@ namespace celeritas
 template<class RealType = ::celeritas::real_type>
 class NormalDistribution
 {
+    static_assert(std::is_floating_point_v<RealType>);
+
   public:
     //!@{
     //! \name Type aliases
