@@ -503,6 +503,33 @@ inline CELER_FUNCTION float rsqrt(float value)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Use fused multiply-add for generic calculations.
+ *
+ * This provides a floating point specialization so that \c fma can be used in
+ * code that is accelerated for floating point calculations but still works
+ * correctly with integer arithmetic.
+ *
+ * Because of the single template parameter, it may be easier to use \c
+ * std::fma directly in most cases.
+ */
+template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+inline CELER_FUNCTION T fma(T a, T b, T y)
+{
+    return std::fma(a, b, y);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Provide an FMA-like interface for integers.
+ */
+template<class T, std::enable_if_t<!std::is_floating_point<T>::value, bool> = true>
+CELER_CONSTEXPR_FUNCTION T fma(T a, T b, T y)
+{
+    return a * b + y;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Integer division, rounding up, for positive numbers.
  */
 template<class T>
