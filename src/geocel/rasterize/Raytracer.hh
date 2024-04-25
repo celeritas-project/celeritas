@@ -44,9 +44,9 @@ class Raytracer
     F calc_id_;
     ImageLineView const& image_;
 
-    size_type pixel_;  //!< Current pixel
-    real_type distance_;  //!< Distance to next boundary
-    int cur_id_;  //!< Current ID
+    size_type pixel_{invalid_pixel()};  //!< Current pixel
+    real_type distance_{0};  //!< Distance to next boundary
+    int cur_id_{-1};  //!< Current ID
 
     //// HELPER FUNCTIONS ////
 
@@ -89,8 +89,6 @@ Raytracer<GTV, F>::Raytracer(GTV&& geo, F&& calc_id, ImageLineView const& image)
     : geo_{celeritas::forward<GTV>(geo)}
     , calc_id_{celeritas::forward<F>(calc_id)}
     , image_{image}
-    , pixel_{invalid_pixel()}
-    , distance_{-1}
 {
 }
 
