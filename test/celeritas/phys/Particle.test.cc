@@ -94,7 +94,7 @@ TEST_F(ParticleTest, output)
     if (CELERITAS_USE_JSON && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
         EXPECT_JSON_EQ(
-            R"json({"_units":{"charge":"e","mass":"MeV/c^2"},"charge":[-1.0,0.0,0.0,1.0],"decay_constant":[0.0,0.0,0.0011371389583807142,0.0],"is_antiparticle":[false,false,false,true],"label":["electron","gamma","neutron","positron"],"mass":[0.5109989461,0.0,939.565413,0.5109989461],"pdg":[11,22,2112,-11]})json",
+            R"json({"_category":"internal","_label":"particle","_units":{"charge":"e","mass":"MeV/c^2"},"charge":[-1.0,0.0,0.0,1.0],"decay_constant":[0.0,0.0,0.0011371389583807142,0.0],"is_antiparticle":[false,false,false,true],"label":["electron","gamma","neutron","positron"],"mass":[0.5109989461,0.0,939.565413,0.5109989461],"pdg":[11,22,2112,-11]})json",
             to_string(out));
     }
 }
