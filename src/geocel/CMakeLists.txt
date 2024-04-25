@@ -13,6 +13,7 @@ set(PUBLIC_DEPS Celeritas::corecel)
 
 list(APPEND SOURCES
   GeoParamsOutput.cc
+  rasterize/Image.cc
 )
 
 #-----------------------------------------------------------------------------#
@@ -22,6 +23,7 @@ list(APPEND SOURCES
 if(CELERITAS_USE_JSON)
   list(APPEND SOURCES
     BoundingBoxIO.json.cc
+    rasterize/ImageIO.json.cc
   )
   list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()

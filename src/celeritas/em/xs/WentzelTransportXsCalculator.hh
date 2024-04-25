@@ -80,7 +80,7 @@ CELER_FUNCTION
 WentzelTransportXsCalculator::WentzelTransportXsCalculator(
     ParticleTrackView const& particle, WentzelHelper const& helper)
     : z_(helper.atomic_number())
-    , screening_coeff_(helper.screening_coefficient())
+    , screening_coeff_(2 * helper.screening_coefficient())
     , costheta_max_elec_(helper.costheta_max_electron())
     , beta_sq_(particle.beta_sq())
     , xs_factor_(this->calc_xs_factor(particle))

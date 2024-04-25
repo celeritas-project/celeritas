@@ -56,6 +56,8 @@ void to_json_pimpl(JsonPimpl* jp, T const& self)
     CELER_EXPECT(jp);
     to_json(jp->obj, self);
 #else
+    CELER_DISCARD(jp);
+    CELER_DISCARD(self);
     CELER_NOT_CONFIGURED("JSON");
 #endif
 }

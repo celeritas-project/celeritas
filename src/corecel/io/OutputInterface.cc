@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "OutputInterface.hh"
 
+#include <iostream>
+
 #include "celeritas_config.h"
 
 #include "EnumStringMapper.hh"
@@ -36,18 +38,35 @@ char const* to_cstring(Category value)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the JSON representation of a single output (mostly for testing).
+ * Get the JSON representation of a single output.
+ *
+ * This is used mostly for testing, but it can also be useful for quickly
+ * generating useful JSON output from applications, e.g. with exception output.
  */
 std::string to_string(OutputInterface const& output)
+{
+    std::ostringstream os;
+    os << output;
+    return std::move(os).str();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Stream the JSON representation of a single output.
+ */
+std::ostream& operator<<(std::ostream& os, OutputInterface const& output)
 {
 #if CELERITAS_USE_JSON
     JsonPimpl json_wrap;
     output.output(&json_wrap);
-    return json_wrap.obj.dump();
+    json_wrap.obj["_category"] = to_cstring(output.category());
+    json_wrap.obj["_label"] = output.label();
+    os << json_wrap.obj;
 #else
     CELER_DISCARD(output);
-    return "\"output unavailable\"";
+    os << "\"output unavailable\"";
 #endif
+    return os;
 }
 
 //---------------------------------------------------------------------------//
