@@ -510,6 +510,78 @@ TEST_F(GenTrapTest, triang_prism)
     EXPECT_VEC_SOFT_EQ((Real3{-1, inf, 3}), result.exterior.upper());
 }
 
+TEST_F(GenTrapTest, trapezoid_ccw)
+{
+    auto result
+        = this->test(GenTrap(40,
+                             {{-19, -30}, {21, -30}, {21, 30}, {-19, 30}},
+                             {{-21, -30}, {19, -30}, {19, 30}, {-21, 30}}));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-40",
+           "Plane: z=40",
+           "Plane: y=-30",
+           "Plane: n={0.99969,-0,0.024992}, d=19.994",
+           "Plane: y=30",
+           "Plane: n={0.99969,0,0.024992}, d=-19.994"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -30, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, 30, 40}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-1, -inf, -3}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 3}), result.exterior.upper());
+}
+
+TEST_F(GenTrapTest, trapezoid)
+{
+    auto result
+        = this->test(GenTrap(40,
+                             {{-19, -30}, {-19, 30}, {21, 30}, {21, -30}},
+                             {{-21, -30}, {-21, 30}, {19, 30}, {19, -30}}));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-40",
+           "Plane: z=40",
+           "Plane: n={0.99969,-0,0.024992}, d=-19.994",
+           "Plane: y=30",
+           "Plane: n={0.99969,0,0.024992}, d=19.994",
+           "Plane: y=-30"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -30, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, 30, 40}), result.exterior.upper());
+}
+
+TEST_F(GenTrapTest, trapezoid_trans)
+{
+    // trapezoid but translated -30, -30
+    auto result
+        = this->test(GenTrap(40,
+                             {{-49, -60}, {-49, 0}, {-9, 0}, {-9, -60}},
+                             {{-51, -60}, {-51, 0}, {-11, 0}, {-11, -60}}));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-40",
+           "Plane: z=40",
+           "Plane: n={0.99969,-0,0.024992}, d=-49.984",
+           "Plane: y=0",
+           "Plane: n={0.99969,0,0.024992}, d=-9.9969",
+           "Plane: y=-60"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -30, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, 30, 40}), result.exterior.upper());
+}
+
 // TODO: this should be valid
 TEST_F(GenTrapTest, DISABLED_pentahedron)
 {
