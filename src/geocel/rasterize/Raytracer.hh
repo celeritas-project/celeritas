@@ -111,12 +111,15 @@ CELER_FUNCTION auto Raytracer<GTV, F>::operator()(size_type pix) -> result_type
         }
     }
 
+    // Remaining distance to the end of the pixel
     real_type pix_dist = image_.pixel_width();
+    // Distance associated with the largest segment so far
     real_type max_dist = 0;
     int max_id = cur_id_;
+    // Countdown to limit stuck tracks or overdetailed pixels
     auto abort_counter = this->max_crossings_per_pixel();
 
-    while (cur_id_ >= 0 && distance_ <= pix_dist)
+    while (cur_id_ >= 0 && distance_ < pix_dist)
     {
         // Move to geometry boundary
         if (max_id == cur_id_)
