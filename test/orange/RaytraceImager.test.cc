@@ -106,15 +106,16 @@ struct TwoVolumeTestBackward : public TwoVolumeTest
         result.horizontal_divisor = 1;
         return result;
     }
+    // NOTE: image is different because the trace starts outside the geometry
     static constexpr char const expected_image[] = R"(
-     xxx|
+      xx|
+    xxxx|
    xxxxx|
   xxxxxx|
  xxxxxxx|
  xxxxxxx|
-xxxxxxxx|
-xxxxxxxx|
-xxxxxxxx|
+ xxxxxxx|
+ xxxxxxx|
 )";
 };
 

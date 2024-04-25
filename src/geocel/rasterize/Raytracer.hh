@@ -44,12 +44,17 @@ class Raytracer
     F calc_id_;
     ImageLineView const& image_;
 
-    size_type pixel_;
+    size_type pixel_;  //!< Current pixel
+    real_type distance_;  //!< Distance to next boundary
+    int cur_id_;  //!< Current ID
 
     //// HELPER FUNCTIONS ////
 
     // Initialize the geometry at this pixel index
     inline CELER_FUNCTION void initialize_at_pixel(size_type pix);
+
+    // Find the next step
+    inline CELER_FUNCTION void find_next_step();
 
     //! Sentinel value for needing the pixel to be reset
     static CELER_CONSTEXPR_FUNCTION size_type invalid_pixel()
@@ -85,6 +90,7 @@ Raytracer<GTV, F>::Raytracer(GTV&& geo, F&& calc_id, ImageLineView const& image)
     , calc_id_{celeritas::forward<F>(calc_id)}
     , image_{image}
     , pixel_{invalid_pixel()}
+    , distance_{-1}
 {
 }
 
@@ -98,35 +104,38 @@ CELER_FUNCTION auto Raytracer<GTV, F>::operator()(size_type pix) -> result_type
     if (pix != pixel_)
     {
         this->initialize_at_pixel(pix);
+        if (pixel_ == invalid_pixel())
+        {
+            // Pixel starts outside the geometry
+            return cur_id_;
+        }
     }
 
     real_type pix_dist = image_.pixel_width();
     real_type max_dist = 0;
-    int cur_id = this->calc_id_(geo_);
-    int max_id = cur_id;
+    int max_id = cur_id_;
     auto abort_counter = this->max_crossings_per_pixel();
 
-    auto next = geo_.find_next_step(pix_dist);
-    while (next.boundary && pix_dist > 0)
+    while (cur_id_ >= 0 && distance_ <= pix_dist)
     {
-        CELER_ASSERT(next.distance <= pix_dist);
         // Move to geometry boundary
-        pix_dist -= next.distance;
+        if (max_id == cur_id_)
+        {
+            max_dist += distance_;
+        }
+        else if (distance_ > max_dist)
+        {
+            max_dist = distance_;
+            max_id = cur_id_;
+        }
 
-        if (max_id == cur_id)
-        {
-            max_dist += next.distance;
-        }
-        else if (next.distance > max_dist)
-        {
-            max_dist = next.distance;
-            max_id = cur_id;
-        }
+        // Update pixel and boundary distance
+        pix_dist -= distance_;
+        distance_ = 0;
 
         // Cross surface and update post-crossing ID
         geo_.move_to_boundary();
         geo_.cross_boundary();
-        cur_id = this->calc_id_(geo_);
 
         if (--abort_counter == 0)
         {
@@ -135,19 +144,19 @@ CELER_FUNCTION auto Raytracer<GTV, F>::operator()(size_type pix) -> result_type
         }
         if (pix_dist > 0)
         {
-            // Next movement is to end of geo_ or pixel
-            next = geo_.find_next_step(pix_dist);
+            // Update next distance and current ID for the remaining pixel
+            this->find_next_step();
         }
     }
 
     if (pix_dist > 0)
     {
         // Move to pixel boundary
-        geo_.move_internal(pix_dist);
+        distance_ -= pix_dist;
         if (pix_dist > max_dist)
         {
             max_dist = pix_dist;
-            max_id = cur_id;
+            max_id = cur_id_;
         }
     }
 
@@ -176,6 +185,37 @@ CELER_FUNCTION void Raytracer<GTV, F>::initialize_at_pixel(size_type pix)
     axpy(pix * image_.pixel_width(), init.dir, &init.pos);
     geo_ = init;
     pixel_ = pix;
+    distance_ = 0;
+    this->find_next_step();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the distance to the next step.
+ */
+template<class GTV, class F>
+CELER_FUNCTION void Raytracer<GTV, F>::find_next_step()
+{
+    CELER_EXPECT(pixel_ != invalid_pixel());
+    CELER_EXPECT(distance_ <= 0);
+    if (geo_.is_outside())
+    {
+        // Skip this pixel since not all navigation engines can trace from
+        // outside the geometry
+        pixel_ = invalid_pixel();
+        distance_ = numeric_limits<real_type>::infinity();
+    }
+    else
+    {
+        // Search to distances just past the end of the saved pixels (so the
+        // last point isn't coincident with a boundary)
+        distance_ = geo_.find_next_step((image_.max_index() + 1 - pixel_)
+                                        * image_.pixel_width())
+                        .distance;
+    }
+    cur_id_ = this->calc_id_(geo_);
+
+    CELER_ENSURE(distance_ > 0);
 }
 
 //---------------------------------------------------------------------------//
