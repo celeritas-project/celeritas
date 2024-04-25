@@ -43,6 +43,20 @@ TEST(PolygonUtilsTest, orientation)
                 == Orientation::collinear);
 }
 
+TEST(PolygonUtilsTest, has_orientation)
+{
+    EXPECT_TRUE(has_orientation(
+        make_span(VecReal2{{-19, -30}, {-19, 30}, {21, 30}, {21, -30}}),
+        Orientation::clockwise));
+    EXPECT_FALSE(has_orientation(
+        make_span(VecReal2{{-19, -30}, {-19, 30}, {21, 30}, {21, -30}}),
+        Orientation::counterclockwise));
+
+    EXPECT_TRUE(has_orientation(
+        make_span(VecReal2{{-2, -2}, {0, -2}, {0, 0}, {-2, 0}}),
+        Orientation::counterclockwise));
+}
+
 TEST(PolygonUtilsTest, convexity)
 {
     VecReal2 cw{{1, 1}, {1, 2}, {2, 2}, {2, 1}};

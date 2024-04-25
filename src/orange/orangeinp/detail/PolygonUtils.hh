@@ -44,7 +44,7 @@ enum class Orientation
 /*!
  * Find orientation of ordered vertices in 2D coordinates.
  */
-CELER_FORCEINLINE_FUNCTION Orientation orientation(Real2 const& a,
+inline CELER_FUNCTION Orientation orientation(Real2 const& a,
                                                    Real2 const& b,
                                                    Real2 const& c)
 {
@@ -52,6 +52,26 @@ CELER_FORCEINLINE_FUNCTION Orientation orientation(Real2 const& a,
     return crossp < 0   ? Orientation::clockwise
            : crossp > 0 ? Orientation::counterclockwise
                         : Orientation::collinear;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Test whether a 2D polygon has the given orientation.
+ *
+ * The list of input corners must have at least 3 points to be a polygon.
+ */
+inline CELER_FUNCTION bool
+has_orientation(Span<Real2 const> const& corners, Orientation o)
+{
+    CELER_EXPECT(corners.size() > 2);
+    for (auto i : range(corners.size()))
+    {
+        auto j = (i + 1) % corners.size();
+        auto k = (i + 2) % corners.size();
+        if (orientation(corners[i], corners[j], corners[k]) != o)
+            return false;
+    }
+    return true;
 }
 
 //---------------------------------------------------------------------------//
