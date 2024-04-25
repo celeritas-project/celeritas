@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "PostfixLogicBuilder.hh"
 
+#include <algorithm>
+#include <vector>
+
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeTypes.hh"
