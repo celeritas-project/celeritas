@@ -323,19 +323,20 @@ GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
     CELER_VALIDATE(hz_ > 0, << "nonpositive halfheight: " << hz_);
     CELER_VALIDATE(lo_.size() >= 3 && lo_.size() <= 4,
                    << "invalid number of vertices (" << lo_.size()
-                   << ") for -Z polygon");
-    CELER_VALIDATE(hi_.size() >= 3 && hi_.size() <= 4,
-                   << "invalid number of vertices <" << hi_.size()
-                   << ") for +Z polygon");
+                   << ") for -z polygon");
+    CELER_VALIDATE(hi_.size() == lo_.size(),
+                   << "incompatible number of vertices (" << hi_.size()
+                   << ") for +z polygon: expected " << lo_.size());
 
     CELER_VALIDATE(lo_.size() >= 3 || hi_.size() >= 3,
-                   << "not enough vertices for both of the +Z/-Z polygons.");
+                   << "not enough vertices for both of the +z/-z polygons.");
 
     // Input vertices must be arranged in a CCW order
-    CELER_VALIDATE(detail::is_convex(make_span(lo_)),
-                   << "-Z polygon is not convex");
-    CELER_VALIDATE(detail::is_convex(make_span(hi_)),
-                   << "+Z polygon is not convex");
+    constexpr auto ccw = detail::Orientation::counterclockwise;
+    CELER_VALIDATE(detail::has_orientation(make_span(lo_), ccw),
+                   << "points on -z face are not counterclockwise");
+    CELER_VALIDATE(detail::has_orientation(make_span(hi_), ccw),
+                   << "points on +z face are not counterclockwise");
 
     // TODO: Temporarily ensure that all side faces are planar
     for (auto i : range(lo_.size()))

@@ -45,8 +45,8 @@ enum class Orientation
  * Find orientation of ordered vertices in 2D coordinates.
  */
 inline CELER_FUNCTION Orientation orientation(Real2 const& a,
-                                                   Real2 const& b,
-                                                   Real2 const& c)
+                                              Real2 const& b,
+                                              Real2 const& c)
 {
     auto crossp = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]);
     return crossp < 0   ? Orientation::clockwise
