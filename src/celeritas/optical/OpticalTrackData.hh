@@ -1,9 +1,9 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/CoreTrackData.hh
+//! \file celeritas/optical/OpticalTrackData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,41 +11,51 @@
 #include "corecel/data/Collection.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoData.hh"
-#include "celeritas/geo/GeoMaterialData.hh"
-#include "celeritas/mat/MaterialData.hh"
-#include "celeritas/phys/CutoffData.hh"
-#include "celeritas/phys/ParticleData.hh"
-#include "celeritas/phys/PhysicsData.hh"
 #include "celeritas/random/RngData.hh"
 #include "celeritas/track/SimData.hh"
 #include "celeritas/track/TrackInitData.hh"
 
-#include "CoreTrackDataFwd.hh"
+#include "Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+// XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX
+// IMPLEMENT ME!
+
+template<Ownership W, MemSpace M>
+struct OpticalPhysicsParamsData
+{
+    explicit CELER_FUNCTION operator bool() const { return false; }
+};
+template<Ownership W, MemSpace M>
+struct OpticalPhysicsStateData
+{
+};
+template<MemSpace M>
+void resize(OpticalPhysicsStateData<Ownership::value, M>*,
+            HostCRef<OpticalPhysicsParamsData> const&,
+            size_type)
+{
+    CELER_NOT_IMPLEMENTED("optical physics state");
+}
+
+// XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX
+//---------------------------------------------------------------------------//
 /*!
  * Memspace-independent core variables.
  */
-struct CoreScalars
+struct OpticalScalars
 {
     ActionId boundary_action;
-    ActionId propagation_limit_action;
-    ActionId abandon_looping_action;
-
-    // TODO: this is a hack until we improve the along-step interface
-    ActionId along_step_user_action;
-    ActionId along_step_neutral_action;
 
     StreamId::size_type max_streams{0};
+    OpticalMaterialId::size_type num_materials{0};
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return boundary_action && propagation_limit_action
-               && abandon_looping_action && along_step_user_action
-               && along_step_neutral_action && max_streams > 0;
+        return boundary_action && max_streams > 0 && num_materials > 0;
     }
 };
 
@@ -54,40 +64,35 @@ struct CoreScalars
  * Immutable problem data.
  */
 template<Ownership W, MemSpace M>
-struct CoreParamsData
+struct OpticalParamsData
 {
-    GeoParamsData<W, M> geometry;
-    GeoMaterialParamsData<W, M> geo_mats;
-    MaterialParamsData<W, M> materials;
-    ParticleParamsData<W, M> particles;
-    CutoffParamsData<W, M> cutoffs;
-    PhysicsParamsData<W, M> physics;
-    RngParamsData<W, M> rng;
-    SimParamsData<W, M> sim;
-    TrackInitParamsData<W, M> init;
+    template<class T>
+    using VolumeItems = celeritas::Collection<T, W, M, VolumeId>;
 
-    CoreScalars scalars;
+    GeoParamsData<W, M> geometry;
+    VolumeItems<OpticalMaterialId> materials;
+    OpticalPhysicsParamsData<W, M> physics;
+    RngParamsData<W, M> rng;
+    TrackInitParamsData<W, M> init;  // TODO: don't need max events
+
+    OpticalScalars scalars;
 
     //! True if all params are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && geo_mats && materials && particles && cutoffs
-               && physics && rng && sim && init && scalars;
+        return geometry && !materials.empty() && physics && rng && init
+               && scalars;
     }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    CoreParamsData& operator=(CoreParamsData<W2, M2> const& other)
+    OpticalParamsData& operator=(OpticalParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         geometry = other.geometry;
-        geo_mats = other.geo_mats;
         materials = other.materials;
-        particles = other.particles;
-        cutoffs = other.cutoffs;
         physics = other.physics;
         rng = other.rng;
-        sim = other.sim;
         init = other.init;
         scalars = other.scalars;
         return *this;
@@ -97,50 +102,44 @@ struct CoreParamsData
 //---------------------------------------------------------------------------//
 /*!
  * Thread-local state data.
- *
- * TODO: standardize variable names
  */
 template<Ownership W, MemSpace M>
-struct CoreStateData
+struct OpticalStateData
 {
     template<class T>
-    using ThreadItems = Collection<T, W, M, ThreadId>;
+    using Items = StateCollection<T, W, M>;
 
     GeoStateData<W, M> geometry;
-    MaterialStateData<W, M> materials;
-    ParticleStateData<W, M> particles;
-    PhysicsStateData<W, M> physics;
+    Items<OpticalMaterialId> materials;
+    OpticalPhysicsStateData<W, M> physics;
     RngStateData<W, M> rng;
-    SimStateData<W, M> sim;
-    TrackInitStateData<W, M> init;
-    ThreadItems<TrackSlotId::size_type> track_slots;
+    SimStateData<W, M> sim;  // TODO: has a few things we don't need
+    TrackInitStateData<W, M> init;  // Still need to track vacancies
 
     //! Unique identifier for "thread-local" data.
     StreamId stream_id;
 
     //! Number of state elements
-    CELER_FUNCTION size_type size() const { return particles.size(); }
+    CELER_FUNCTION size_type size() const { return geometry.size(); }
 
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && materials && particles && physics && rng && sim
-               && init && stream_id;
+        return geometry && materials && physics && rng && sim && init
+               && stream_id;
     }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    CoreStateData& operator=(CoreStateData<W2, M2>& other)
+    OpticalStateData& operator=(OpticalStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
         geometry = other.geometry;
         materials = other.materials;
-        particles = other.particles;
         physics = other.physics;
         rng = other.rng;
         sim = other.sim;
         init = other.init;
-        track_slots = other.track_slots;
         stream_id = other.stream_id;
         return *this;
     }
@@ -154,8 +153,8 @@ struct CoreStateData
  * Resize core states using parameter data, stream ID, and track slots.
  */
 template<MemSpace M>
-void resize(CoreStateData<Ownership::value, M>* state,
-            HostCRef<CoreParamsData> const& params,
+void resize(OpticalStateData<Ownership::value, M>* state,
+            HostCRef<OpticalParamsData> const& params,
             StreamId stream_id,
             size_type size);
 
