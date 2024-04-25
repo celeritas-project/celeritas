@@ -33,7 +33,7 @@ void resize(OpticalStateData<Ownership::value, M>* state,
     // Geant4 state is stream-local
     resize(&state->geometry, params.geometry, stream_id, size);
 #endif
-    CollectionBuilder{&state->materials}.resize(size);
+    resize(&state->materials, size);
     resize(&state->physics, params.physics, size);
     resize(&state->rng, params.rng, stream_id, size);
     resize(&state->sim, size);
