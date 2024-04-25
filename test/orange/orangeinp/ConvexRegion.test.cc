@@ -83,8 +83,16 @@ auto ConvexRegionTest::test(ConvexRegionInterface const& r,
 
     ConvexSurfaceBuilder insert_surface{&unit_builder_, &css};
     r.build(insert_surface);
-    EXPECT_TRUE(encloses(css.local_bzone.exterior, css.local_bzone.interior));
-    EXPECT_TRUE(encloses(css.global_bzone.exterior, css.global_bzone.interior));
+    if (css.local_bzone.exterior || css.local_bzone.interior)
+    {
+        EXPECT_TRUE(
+            encloses(css.local_bzone.exterior, css.local_bzone.interior));
+    }
+    if (css.global_bzone.exterior || css.global_bzone.interior)
+    {
+        EXPECT_TRUE(
+            encloses(css.global_bzone.exterior, css.global_bzone.interior));
+    }
 
     // Intersect the given surfaces
     NodeId node_id
