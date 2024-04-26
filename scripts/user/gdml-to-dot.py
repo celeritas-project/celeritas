@@ -43,8 +43,7 @@ class Graph:
 
         pname = self.replace_pointers(el.attrib["name"])
         self.nodes.append(pname)
-        for subel in el.iter("physvol"):
-            vrel = next(subel.iter("volumeref"))
+        for vrel in el.iter("volumeref"):
             dname = self.replace_pointers(vrel.attrib["ref"])
             edges[(pname, dname)] += 1
 
@@ -71,8 +70,11 @@ def read_graph(filename):
     structure = next(tree.iter("structure"))
 
     g = Graph()
-    for el in structure.iter("volume"):
-        g.add_volume(el)
+    for el in structure:
+        if el.tag in ('volume', 'assembly'):
+            g.add_volume(el)
+        else:
+            raise ValueError(f"Unrecognized structure tag: {el!r}")
     g.add_world(tree.findall("./setup/world")[0])
 
     return g

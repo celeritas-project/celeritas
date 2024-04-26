@@ -28,7 +28,7 @@ else()
   set(SOURCES
     celer-geo.nojson.cc
   )
-  set(LIBRARIES)
+  set(LIBRARIES Celeritas::corecel)
 endif()
 
 celeritas_add_executable(celer-geo ${SOURCES})
@@ -51,6 +51,9 @@ set(_env
 set(_props
   TIMEOUT 20
 )
+if(NOT CELERITAS_USE_JSON)
+  list(APPEND _props DISABLED true)
+endif()
 
 #-----------------------------------------------------------------------------#
 function(celer_app_test ext)
