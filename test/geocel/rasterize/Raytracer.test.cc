@@ -31,15 +31,22 @@ TEST(MockGeo, tracking)
 {
     MockGeoTrackView geo;
     geo = GeoTrackInitializer{{0, 0, 5.25}, {0, 0, 1}};
+    EXPECT_EQ(5, geo.volume_id().get());
     auto next_step = geo.find_next_step(2.0);
     EXPECT_TRUE(next_step.boundary);
     EXPECT_SOFT_EQ(0.75, next_step.distance);
     geo.move_to_boundary();
+    EXPECT_EQ(5, geo.volume_id().get());
     EXPECT_REAL_EQ(6.0, geo.pos()[2]);
+    geo.cross_boundary();
+    EXPECT_EQ(6, geo.volume_id().get());
     next_step = geo.find_next_step(1.5);
     EXPECT_TRUE(next_step.boundary);
     EXPECT_SOFT_EQ(1.0, next_step.distance);
     geo.move_to_boundary();
+    EXPECT_EQ(6, geo.volume_id().get());
+    geo.cross_boundary();
+    EXPECT_EQ(7, geo.volume_id().get());
     next_step = geo.find_next_step(0.5);
     EXPECT_FALSE(next_step.boundary);
     EXPECT_SOFT_EQ(0.5, next_step.distance);
@@ -49,11 +56,13 @@ TEST(MockGeo, tracking)
     EXPECT_SOFT_EQ(0.75, next_step.distance);
 
     geo = GeoTrackInitializer{{0, 0, 4.75}, make_unit_vector(Real3{0, 0, -1})};
+    EXPECT_EQ(4, geo.volume_id().get());
     next_step = geo.find_next_step(100.0);
     EXPECT_TRUE(next_step.boundary);
     EXPECT_SOFT_EQ(0.75, next_step.distance);
 
     geo = GeoTrackInitializer{{0, 0, 9.75}, make_unit_vector(Real3{0, 4, -3})};
+    EXPECT_EQ(9, geo.volume_id().get());
     next_step = geo.find_next_step(100.0);
     EXPECT_TRUE(next_step.boundary);
     EXPECT_SOFT_EQ(0.75 * 5.0 / 3.0, next_step.distance);
@@ -85,12 +94,15 @@ TEST_F(RaytracerTest, exact)
     EXPECT_EQ(0, geo.init_count());
 
     Raytracer trace{geo, calc_id, line};
+    // Position doesn't change until the next pixel
     EXPECT_EQ(32, trace(0));
     EXPECT_EQ(1, geo.init_count());
-    EXPECT_VEC_SOFT_EQ((Real3{0, 10.5, 33}), geo.pos());
+    EXPECT_VEC_SOFT_EQ((Real3{0, 10.5, 32}), geo.pos());
+
     EXPECT_EQ(33, trace(1));
-    EXPECT_VEC_SOFT_EQ((Real3{0, 10.5, 34}), geo.pos());
+    EXPECT_VEC_SOFT_EQ((Real3{0, 10.5, 33}), geo.pos());
     EXPECT_EQ(1, geo.init_count());
+
     EXPECT_EQ(40, trace(8));
     EXPECT_EQ(2, geo.init_count());
 }

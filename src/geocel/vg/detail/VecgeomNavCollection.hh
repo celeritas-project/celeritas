@@ -70,10 +70,14 @@ struct VecgeomNavCollection<Ownership::reference, MemSpace::host>
 
     Span<UPNavState> nav_state;
 
+    // Default construction and copy construction
+    VecgeomNavCollection() = default;
+    VecgeomNavCollection(VecgeomNavCollection const&) = default;
+
     // Obtain reference from host memory
     VecgeomNavCollection&
     operator=(VecgeomNavCollection<Ownership::value, MemSpace::host>& other);
-    // Default assignment
+    // Default copy assignment
     VecgeomNavCollection& operator=(VecgeomNavCollection const&) = default;
 
     // Get the navigation state for a given track slot

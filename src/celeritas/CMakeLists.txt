@@ -235,10 +235,7 @@ endif()
 #-----------------------------------------------------------------------------#
 
 macro(celeritas_polysource filename_we)
-  list(APPEND SOURCES "${filename_we}.cc")
-  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-    list(APPEND SOURCES "${filename_we}.cu")
-  endif()
+  celeritas_polysource_append(SOURCES ${filename_we})
 endmacro()
 
 celeritas_polysource(em/model/BetheHeitlerModel)

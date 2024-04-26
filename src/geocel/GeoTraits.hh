@@ -43,10 +43,34 @@ struct GeoTraits
     using TrackView = void;
 
     //! Descriptive name for the geometry
-    static inline char const* name = nullptr;
+    static constexpr inline char const* name = nullptr;
 
     //! TO BE REMOVED: "native" file extension for this geometry
-    static inline char const* ext = nullptr;
+    static constexpr inline char const* ext = nullptr;
+};
+
+//---------------------------------------------------------------------------//
+//! Helper for determining whether a geometry type is available.
+template<class G>
+inline constexpr bool is_geometry_configured_v
+    = !std::is_void_v<typename GeoTraits<G>::TrackView>;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Traits class for marking a geometry as not configured.
+ *
+ * Specializations should inherit from this class when the geometry is not
+ * configured.
+ */
+struct NotConfiguredGeoTraits
+{
+    template<Ownership W, MemSpace M>
+    using ParamsData = void;
+    template<Ownership W, MemSpace M>
+    using StateData = void;
+    using TrackView = void;
+    static constexpr inline char const* name = nullptr;
+    static constexpr inline char const* ext = nullptr;
 };
 
 //---------------------------------------------------------------------------//

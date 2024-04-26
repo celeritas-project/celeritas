@@ -100,6 +100,8 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   list(APPEND PRIVATE_DEPS geocel_g4org)
 endif()
 
+celeritas_polysource_append(SOURCES RaytraceImager)
+
 #-----------------------------------------------------------------------------#
 # Create library
 #-----------------------------------------------------------------------------#

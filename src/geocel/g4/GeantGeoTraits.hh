@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas_config.h"
 #include "geocel/GeoTraits.hh"
 
 namespace celeritas
@@ -19,6 +20,7 @@ struct GeantGeoParamsData;
 template<Ownership W, MemSpace M>
 struct GeantGeoStateData;
 
+#if CELERITAS_USE_GEANT4
 //---------------------------------------------------------------------------//
 /*!
  * Traits specialization for Geant4 geometry.
@@ -38,11 +40,18 @@ struct GeoTraits<GeantGeoParams>
     using TrackView = GeantGeoTrackView;
 
     //! Descriptive name for the geometry
-    static inline char const* name = "Geant4";
+    static constexpr inline char const* name = "Geant4";
 
     //! TO BE REMOVED: "native" file extension for this geometry
-    static inline char const* ext = ".gdml";
+    static constexpr inline char const* ext = ".gdml";
 };
+#else
+//! Geant4 is unavailable
+template<>
+struct GeoTraits<GeantGeoParams> : NotConfiguredGeoTraits
+{
+};
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

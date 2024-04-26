@@ -30,7 +30,7 @@ class ScopedGeantExceptionHandler;
 /*!
  * Shared Geant4 geometry model wrapper.
  *
- * This can be consructed directly by loading a GDML file, or in-memory using
+ * This can be constructed directly by loading a GDML file, or in-memory using
  * an existing physical volume. One "gotcha" is that due to persistent static
  * variables in Geant4, the volume IDs will be offset if a geometry has been
  * loaded and closed previously.

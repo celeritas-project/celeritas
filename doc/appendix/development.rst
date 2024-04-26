@@ -254,10 +254,10 @@ Thus we have the following rules:
 
 Some files have special extensions:
 
-- ``.t.hh`` is for non-inlined ``template`` implementations that can be
-  included and instantiated elsewhere. However, if the function
-  declaration in the ``.hh`` file is declared ``inline``, the definition
-  should be provided there as well.
+- ``.t.hh`` is for non-inlined ``template`` implementations intended to be
+  included and explicitly instantiated in a downstream C++ or CUDA compilation
+  unit.  Note that if the function in the ``.hh`` file is declared ``inline``,
+  the definition must be provided in the header as well.
 - ``.test.cc`` are unit test executables corresponding to the main ``.cc``
   file. These should only be in the main ``/test`` directory.
 
