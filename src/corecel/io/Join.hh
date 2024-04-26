@@ -25,8 +25,7 @@ namespace celeritas
  * The result is a thin class that is streamable. (It can explicitly be
  * converted to a string with the
  * \c to_string method). By doing this instead of returning a std::string,
- large
- * and dynamic containers can be e.g. saved to disk.
+ * large and dynamic containers can be e.g. saved to disk.
  */
 template<class InputIterator, class Conjunction>
 detail::Joined<InputIterator, Conjunction, detail::StreamValue>

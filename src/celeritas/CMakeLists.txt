@@ -68,6 +68,7 @@ list(APPEND SOURCES
   optical/ScintillationParams.cc
   optical/OpticalCollector.cc
   optical/OpticalPropertyParams.cc
+  optical/OpticalTrackData.cc
   phys/CutoffParams.cc
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc
