@@ -8,6 +8,7 @@
 #pragma once
 
 #include <memory>
+#include <type_traits>
 #include <vector>
 
 #include "corecel/Types.hh"
@@ -49,6 +50,12 @@ class ActionSequence
         = std::vector<SPConstSpecializedExplicit>;
     using VecDouble = std::vector<double>;
     //!@}
+
+    // Verify that we have a valid explicit action type for the given Params
+    static_assert(
+        std::is_base_of_v<ExplicitActionInterface, SpecializedExplicitAction>,
+        "ParamTraits<Params> explicit action must be derived from "
+        "ExplicitActionInterface");
 
     //! Construction/execution options
     struct Options
