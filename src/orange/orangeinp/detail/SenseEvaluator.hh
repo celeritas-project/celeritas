@@ -21,7 +21,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Evalate whether a point is inside a CSG tree node.
+ * Evaluate whether a point is inside a CSG tree node.
  *
  * This is a construction-time helper that combines \c SenseCalculator with \c
  * LogicEvaluator. Its intended use is primarily for testing.
