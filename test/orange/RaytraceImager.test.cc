@@ -139,7 +139,16 @@ struct UniversesTest
         result.horizontal_divisor = 2;
         return result;
     }
-    //! Mapping of volume ID to character
+    /*!
+     * Mapping of volume ID to character.
+     *
+     * - ` `: `[EXTERIOR]` volume (should not appear since ID should be -1 when
+     *   outside)
+     * - `-`: volume replaced by child universe (should never be "final"
+     *   volume)
+     * - `abc`: universes named as such
+     * - `BJP`: bobby, johnny, patty
+     */
     static constexpr char const id_to_char[] = " --BJ -abc P";
     //! Expected image
     static constexpr char const expected_image[] = R"(

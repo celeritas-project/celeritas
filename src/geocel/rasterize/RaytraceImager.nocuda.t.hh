@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 /*!
  * \file geocel/rasterize/RaytraceImager.nocuda.t.hh
- * \brief Template definition file for \c RaytraceImager when CUDA unsupported.
+ * \brief Template definitions for \c RaytraceImager when CUDA is unsupported
  *
  * If a particular geometry does not support device raytracing, include this
  * file alongside \c RaytraceImager.t.hh before instantiating \c

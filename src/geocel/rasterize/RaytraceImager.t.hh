@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 /*!
  * \file geocel/rasterize/RaytraceImager.t.hh
- * \brief Template definition file for \c RaytraceImager .
+ * \brief Template definition file for \c RaytraceImager
  *
  * Include this file in a .cc file and instantiate it explicitly. When
  * instantiating, you must provide access to the GeoTraits specialization as
