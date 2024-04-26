@@ -519,29 +519,6 @@ TEST_F(GenTrapTest, triang_prism)
     EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 3}), result.exterior.upper());
 }
 
-TEST_F(GenTrapTest, trapezoid_ccw)
-{
-    auto result
-        = this->test(GenTrap(40,
-                             {{-19, -30}, {21, -30}, {21, 30}, {-19, 30}},
-                             {{-21, -30}, {19, -30}, {19, 30}, {-21, 30}}));
-
-    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-40",
-           "Plane: z=40",
-           "Plane: y=-30",
-           "Plane: n={0.99969,-0,0.024992}, d=19.994",
-           "Plane: y=30",
-           "Plane: n={0.99969,0,0.024992}, d=-19.994"};
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -30, -40}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, 30, 40}), result.exterior.upper());
-}
-
 TEST_F(GenTrapTest, trapezoid)
 {
     auto result
@@ -589,6 +566,29 @@ TEST_F(GenTrapTest, trapezoid_trans)
     EXPECT_FALSE(result.interior) << result.interior;
     EXPECT_VEC_SOFT_EQ((Real3{-inf, -60, -40}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{inf, 0, 40}), result.exterior.upper());
+}
+
+TEST_F(GenTrapTest, trapezoid_ccw)
+{
+    auto result
+        = this->test(GenTrap(40,
+                             {{-19, -30}, {21, -30}, {21, 30}, {-19, 30}},
+                             {{-21, -30}, {19, -30}, {19, 30}, {-21, 30}}));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-40",
+           "Plane: z=40",
+           "Plane: y=-30",
+           "Plane: n={0.99969,-0,0.024992}, d=19.994",
+           "Plane: y=30",
+           "Plane: n={0.99969,0,0.024992}, d=-19.994"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -30, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, 30, 40}), result.exterior.upper());
 }
 
 // TODO: this should be valid

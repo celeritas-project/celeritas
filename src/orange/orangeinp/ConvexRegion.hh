@@ -201,11 +201,9 @@ class Ellipsoid final : public ConvexRegionInterface
  * A generalized trapezoid, inspired by VecGeom's GenTrap and also ROOT's Arb8.
  *
  * A GenTrap represents a general trapezoidal volume with up to eight vertices,
- * or two 4-point sitting on two parallel planes perpendicular to Z axis.
- * Both sets of up to four points provided need to be in counter-clockwise
- * ordering. This ensures that the -z face will have an outward normal, and
- * that the +z face points will correspond to their -z face counterparts for
- * each side face.
+ * or two 4-point sets, sitting on two parallel planes perpendicular to Z axis.
+ * The points in each set might be correspondingly ordered, in such a way to
+ * properly define the side faces.
  * TODO: Add a check for this.
  * TODO: Add proper treatment for degenerate cases.
  */
