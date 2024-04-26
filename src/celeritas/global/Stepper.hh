@@ -30,6 +30,7 @@ struct Primary;
 
 namespace detail
 {
+template<class Params>
 class ActionSequence;
 }
 
@@ -78,7 +79,7 @@ class StepperInterface
     //!@{
     //! \name Type aliases
     using Input = StepperInput;
-    using ActionSequence = detail::ActionSequence;
+    using ActionSequence = detail::ActionSequence<CoreParams>;
     using SpanConstPrimary = Span<Primary const>;
     using result_type = StepperResult;
     //!@}
@@ -137,27 +138,27 @@ class Stepper final : public StepperInterface
     ~Stepper();
 
     // Transport existing states
-    StepperResult operator()() final;
+    StepperResult operator()() override final;
 
     // Transport existing states and these new primaries
-    StepperResult operator()(SpanConstPrimary primaries) final;
+    StepperResult operator()(SpanConstPrimary primaries) override final;
 
     // Reseed the RNGs at the start of an event for reproducibility
-    void reseed(EventId event_id) final;
+    void reseed(EventId event_id) override final;
 
     //! Get action sequence for timing diagnostics
-    ActionSequence const& actions() const final { return *actions_; }
+    ActionSequence const& actions() const override final { return *actions_; }
 
     //! Access core data, primarily for debugging
     StateRef const& state_ref() const { return state_.ref(); }
 
     //! Get the core state interface for diagnostic output
-    CoreStateInterface const& state() const final { return state_; }
+    CoreStateInterface const& state() const override final { return state_; }
 
   private:
     // Params and call sequence
     std::shared_ptr<CoreParams const> params_;
-    std::shared_ptr<detail::ActionSequence> actions_;
+    std::shared_ptr<ActionSequence> actions_;
     // State data
     CoreState<M> state_;
 };
