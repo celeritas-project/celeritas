@@ -10,33 +10,12 @@
 
 #include "celeritas_config.h"
 #include "corecel/Types.hh"
+#include "geocel/g4/GeantGeoTraits.hh"
+#include "geocel/vg/VecgeomGeoTraits.hh"
+#include "orange/OrangeGeoTraits.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-// FORWARD DECLARATIONS
-//---------------------------------------------------------------------------//
-class VecgeomParams;
-template<Ownership, MemSpace>
-struct VecgeomParamsData;
-template<Ownership, MemSpace>
-struct VecgeomStateData;
-class VecgeomTrackView;
-
-class OrangeParams;
-template<Ownership, MemSpace>
-struct OrangeStateData;
-template<Ownership, MemSpace>
-struct OrangeParamsData;
-class OrangeTrackView;
-
-class GeantGeoParams;
-template<Ownership, MemSpace>
-struct GeantGeoStateData;
-template<Ownership, MemSpace>
-struct GeantGeoParamsData;
-class GeantGeoTrackView;
-
 //---------------------------------------------------------------------------//
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
 using GeoParams = VecgeomParams;

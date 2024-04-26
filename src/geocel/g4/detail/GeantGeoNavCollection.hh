@@ -96,6 +96,10 @@ struct GeantGeoNavCollection<Ownership::reference, MemSpace::host>
     Span<UPTouchHandle> touch_handles;
     Span<UPNavigator> navigators;
 
+    // Default constructors
+    GeantGeoNavCollection() = default;
+    GeantGeoNavCollection(GeantGeoNavCollection const&) = default;
+
     // Obtain reference from host memory
     GeantGeoNavCollection&
     operator=(GeantGeoNavCollection<Ownership::value, MemSpace::host>& other);
