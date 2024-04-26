@@ -12,6 +12,7 @@
 #include "corecel/Constants.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/Types.hh"
 #include "orange/orangeinp/detail/PolygonUtils.hh"
@@ -331,12 +332,24 @@ GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
     CELER_VALIDATE(lo_.size() >= 3 || hi_.size() >= 3,
                    << "not enough vertices for both of the +z/-z polygons.");
 
-    // Input vertices must be arranged in a CCW order
-    constexpr auto ccw = detail::Orientation::counterclockwise;
-    CELER_VALIDATE(detail::has_orientation(make_span(lo_), ccw),
-                   << "points on -z face are not counterclockwise");
-    CELER_VALIDATE(detail::has_orientation(make_span(hi_), ccw),
-                   << "points on +z face are not counterclockwise");
+    // Input vertices must be arranged in the same counter/clockwise order
+    // and be convex
+    using detail::calc_orientation;
+    constexpr auto cw = detail::Orientation::clockwise;
+    CELER_VALIDATE(detail::is_convex(make_span(lo_)),
+                   << "-z polygon is not convex");
+    CELER_VALIDATE(detail::is_convex(make_span(hi_)),
+                   << "+z polygon is not convex");
+    CELER_VALIDATE(calc_orientation(lo_[0], lo_[1], lo_[2])
+                       == calc_orientation(hi_[0], hi_[1], hi_[2]),
+                   << "-z and +z polygons have different orientations");
+    if (calc_orientation(lo_[0], lo_[1], lo_[2]) == cw)
+    {
+        // Reverse point orders so it's counterclockwise, needed for vectors to
+        // point outward
+        std::reverse(lo_.begin(), lo_.end());
+        std::reverse(hi_.begin(), hi_.end());
+    }
 
     // TODO: Temporarily ensure that all side faces are planar
     for (auto i : range(lo_.size()))
@@ -369,21 +382,20 @@ void GenTrap::build(ConvexSurfaceBuilder& insert_surface) const
     for (auto i : range(lo_.size()))
     {
         auto j = (i + 1) % lo_.size();
-        Real3 const a{lo_[i][0], lo_[i][1], -hz_};
-        Real3 const b{lo_[j][0], lo_[j][1], -hz_};
-        Real3 const c{hi_[j][0], hi_[j][1], hz_};
-        Real3 const d{hi_[i][0], hi_[i][1], hz_};
+        Real3 const ilo{lo_[i][0], lo_[i][1], -hz_};
+        Real3 const jlo{lo_[j][0], lo_[j][1], -hz_};
+        Real3 const jhi{hi_[j][0], hi_[j][1], hz_};
+        Real3 const ihi{hi_[i][0], hi_[i][1], hz_};
 
-        // Calculate plane parameters
-        auto normal = make_unit_vector(cross_product(b - a, c - b));
-        auto offset = dot_product(d, normal);
-
-        // *Temporarily* throws if a side face is not planar
-        CELER_ASSERT(celeritas::orangeinp::detail::is_planar(a, b, c, d));
-        CELER_ASSERT(SoftZero<real_type>{}(dot_product(d - a, normal)));
+        // Calculate outward normal
+        auto normal = make_unit_vector(cross_product(jlo - ilo, ihi - ilo));
+        CELER_ASSERT(soft_equal(
+            dot_product(make_unit_vector(cross_product(ihi - jhi, jlo - jhi)),
+                        normal),
+            1.0));
 
         // Insert the plane
-        insert_surface(Sense::inside, Plane{normal, offset});
+        insert_surface(Sense::inside, Plane{normal, ilo});
     }
 }
 

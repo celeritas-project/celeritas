@@ -44,9 +44,9 @@ enum class Orientation
 /*!
  * Find orientation of ordered vertices in 2D coordinates.
  */
-inline CELER_FUNCTION Orientation orientation(Real2 const& a,
-                                              Real2 const& b,
-                                              Real2 const& c)
+inline CELER_FUNCTION Orientation calc_orientation(Real2 const& a,
+                                                   Real2 const& b,
+                                                   Real2 const& c)
 {
     auto crossp = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]);
     return crossp < 0   ? Orientation::clockwise
@@ -68,7 +68,7 @@ has_orientation(Span<Real2 const> const& corners, Orientation o)
     {
         auto j = (i + 1) % corners.size();
         auto k = (i + 2) % corners.size();
-        if (orientation(corners[i], corners[j], corners[k]) != o)
+        if (calc_orientation(corners[i], corners[j], corners[k]) != o)
             return false;
     }
     return true;
@@ -85,6 +85,7 @@ CELER_FUNCTION bool
 is_convex(Span<const Real2> const& corners, bool degen_ok = false)
 {
     CELER_EXPECT(!corners.empty());
+
     // The cross product of all vector pairs corresponding to ordered
     // consecutive segments has to be positive.
     auto crossp = [&](Real2 const& v1, Real2 const& v2) {
