@@ -12,21 +12,6 @@ from sys import exit, argv
 from pathlib import Path
 
 try:
-    import matplotlib.pyplot as plt
-except ImportError:
-    print("Will not plot: matplotlib is unavailable")
-    plt = None
-    viz = None
-else:
-    import importlib
-    spec = importlib.util.spec_from_file_location(
-        "viz",
-        Path(__file__).parent / "visualize.py"
-    )
-    viz = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(viz)
-
-try:
     (model_file,) = argv[1:]
 except TypeError:
     print("usage: {} inp.gdml".format(sys.argv[0]))
@@ -104,12 +89,5 @@ for line in out_lines[1:-1]:
         # vecgeom or GPU
         print("Ray trace failed:")
         print(json.dumps(result, indent=1))
-    elif plt is not None:
-        (fig, ax) = plt.subplots(layout="constrained")
-        viz.load_and_plot_image(ax, result)
-        trace = result['trace']
-        filename = f"{problem_name}-{trace['geometry']}-{trace['memspace']}.png"
-        fig.savefig(filename, dpi=150)
-        print(f"Saved to {filename}.png")
 
 print(json.dumps(decode_line(out_lines[-1]), indent=1))
