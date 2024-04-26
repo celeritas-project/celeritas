@@ -136,8 +136,7 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
 // Explicit template instantiation
 //---------------------------------------------------------------------------//
 
-template ActionSequence<CoreParams>::ActionSequence(ActionRegistry const& reg,
-                                                    Options options);
+template class ActionSequence<CoreParams>;
 
 template void ActionSequence<CoreParams>::begin_run(CoreParams const&,
                                                     State<MemSpace::host>&);
