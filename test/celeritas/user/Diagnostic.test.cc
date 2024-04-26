@@ -172,23 +172,25 @@ TEST_F(TestEm3DiagnosticTest, host)
 
     if (this->is_ci_build() && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
     {
-        static size_type const expected_nonzero_action_counts[] = {121ul,
-                                                                   389ul,
-                                                                   480ul,
-                                                                   16ul,
-                                                                   57ul,
-                                                                   1024ul,
-                                                                   276ul,
-                                                                   290ul,
-                                                                   1798ul,
-                                                                   15u,
-                                                                   19u,
-                                                                   1171ul,
-                                                                   1541ul,
-                                                                   572ul,
-                                                                   86ul,
-                                                                   26ul,
-                                                                   311ul};
+        static size_type const expected_nonzero_action_counts[] = {
+            121u,
+            389u,
+            480u,
+            16u,
+            57u,
+            1024u,
+            276u,
+            290u,
+            1798u,
+            15u,
+            19u,
+            1171u,
+            1541u,
+            572u,
+            86u,
+            26u,
+            311u,
+        };
 
         EXPECT_VEC_EQ(expected_nonzero_action_counts,
                       result.nonzero_action_counts);
@@ -241,17 +243,11 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
 
         if (CELERITAS_USE_JSON)
         {
-            EXPECT_EQ(
-                "{\"_index\":[\"particle\",\"action\"],\"actions\":[[0,0,0,0,"
-                "0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,9,0],[0,0,0,996,0,0,2,0,0,0,"
-                "0,20,509,0,0,0,0,0,0,0,521,0],[0,0,0,902,0,0,10,0,0,0,9,20,"
-                "577,0,0,0,0,0,0,0,518,0]]}",
+            EXPECT_JSON_EQ(
+                R"json({"_category":"result","_index":["particle","action"],"_label":"action-diagnostic","actions":[[0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,9,0],[0,0,0,996,0,0,2,0,0,0,0,20,509,0,0,0,0,0,0,0,521,0],[0,0,0,902,0,0,10,0,0,0,9,20,577,0,0,0,0,0,0,0,518,0]]})json",
                 this->action_output());
-            EXPECT_EQ(
-                "{\"_index\":[\"particle\",\"num_steps\"],\"steps\":[[0,0,0,0,"
-                "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,1,0,0,0,0,0,0,"
-                "0,0,0,0,0,0,0,0,0,0,0],[0,0,5,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,"
-                "0,0,0,0]]}",
+            EXPECT_JSON_EQ(
+                R"json({"_category":"result","_index":["particle","num_steps"],"_label":"step-diagnostic","steps":[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,5,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]})json",
                 this->step_output());
         }
     }
