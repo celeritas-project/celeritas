@@ -337,6 +337,7 @@ GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
     CELER_VALIDATE(detail::is_convex(make_span(hi_)),
                    << "+Z polygon is not convex");
 
+    // TODO: Temporarily ensure that all side faces are planar
     for (auto i : range(lo_.size()))
     {
         auto j = (i + 1) % lo_.size();
@@ -381,8 +382,7 @@ void GenTrap::build(ConvexSurfaceBuilder& insert_surface) const
         CELER_ASSERT(SoftZero<real_type>{}(dot_product(d - a, normal)));
 
         // Insert the plane
-        auto sense = (offset < 0 ? Sense::outside : Sense::inside);
-        insert_surface(sense, Plane{normal, offset});
+        insert_surface(Sense::inside, Plane{normal, offset});
     }
 }
 
