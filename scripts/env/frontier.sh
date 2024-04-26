@@ -4,7 +4,7 @@ PROJID=hep143
 _celer_view=${PROJWORK}/${PROJID}/opt-view
 _tool_view=/ccs/proj/${PROJID}/opt-view
 
-module load PrgEnv-amd/8.5.0 cpe/23.12 amd/5.7.1 craype-x86-trento libfabric/1.15.2.0
+module load PrgEnv-amd/8.5.0 cpe/23.12 amd/5.7.1 craype-x86-trento libfabric/1.15.2.0 miniforge3/23.11.0
 # Disable warning "Using generic mem* routines instead of tuned routines"
 export RFE_811452_DISABLE=1
 
