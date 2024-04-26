@@ -22,7 +22,7 @@
         "CELERITAS_TEST_RESOURCE_LOCK": {"type": "BOOL", "value": "ON"},
         "CMAKE_HIP_ARCHITECTURES":  {"type": "STRING", "value": "gfx90a"},
         "CMAKE_HIP_FLAGS": "-munsafe-fp-atomics",
-        "CMAKE_CXX_FLAGS": "-Wno-unused-command-line-argument",
+        "CMAKE_CXX_FLAGS": "-Wno-unused-command-line-argument -Wall -Wextra -pedantic -fcolor-diagnostics",
         "CMAKE_EXE_LINKER_FLAGS": "-Wno-unused-command-line-argument",
         "CMAKE_HIP_FLAGS_DEBUG": "-g -ggdb -O",
         "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG -march=znver3 -mtune=znver3",
