@@ -381,18 +381,21 @@ void GenTrap::build(ConvexSurfaceBuilder& insert_surface) const
     // Build the side planes
     for (auto i : range(lo_.size()))
     {
+        // Viewed from the outside of the trapezoid, the points on the polygon
+        // here are from the lower left counterclockwise to the upper right
         auto j = (i + 1) % lo_.size();
         Real3 const ilo{lo_[i][0], lo_[i][1], -hz_};
         Real3 const jlo{lo_[j][0], lo_[j][1], -hz_};
         Real3 const jhi{hi_[j][0], hi_[j][1], hz_};
         Real3 const ihi{hi_[i][0], hi_[i][1], hz_};
 
-        // Calculate outward normal
+        // Calculate outward normal by taking the cross product of the edges
         auto normal = make_unit_vector(cross_product(jlo - ilo, ihi - ilo));
+        // Assert that the surface is (for now!) not twisted
         CELER_ASSERT(soft_equal(
             dot_product(make_unit_vector(cross_product(ihi - jhi, jlo - jhi)),
                         normal),
-            1.0));
+            real_type{1}));
 
         // Insert the plane
         insert_surface(Sense::inside, Plane{normal, ilo});
