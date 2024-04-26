@@ -47,6 +47,8 @@ OpticalCollector::OpticalCollector(Input inp)
         inp.scintillation,
         storage_);
     inp.action_registry->insert(pregen_action_);
+
+    // TODO: add an action to launch optical tracking loop
 }
 
 //---------------------------------------------------------------------------//
