@@ -83,8 +83,16 @@ auto ConvexRegionTest::test(ConvexRegionInterface const& r,
 
     ConvexSurfaceBuilder insert_surface{&unit_builder_, &css};
     r.build(insert_surface);
-    EXPECT_TRUE(encloses(css.local_bzone.exterior, css.local_bzone.interior));
-    EXPECT_TRUE(encloses(css.global_bzone.exterior, css.global_bzone.interior));
+    if (css.local_bzone.exterior || css.local_bzone.interior)
+    {
+        EXPECT_TRUE(
+            encloses(css.local_bzone.exterior, css.local_bzone.interior));
+    }
+    if (css.global_bzone.exterior || css.global_bzone.interior)
+    {
+        EXPECT_TRUE(
+            encloses(css.global_bzone.exterior, css.global_bzone.interior));
+    }
 
     // Intersect the given surfaces
     NodeId node_id
@@ -495,22 +503,72 @@ TEST_F(GenTrapTest, triang_prism)
     auto result = this->test(
         GenTrap(3, {{-1, -1}, {-1, 1}, {2, 0}}, {{-1, -1}, {-1, 1}, {2, 0}}));
 
-    static char const expected_node[] = "all(+0, -1, -2, +3, +4)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-3",
-           "Plane: z=3",
-           "Plane: x=-1",
-           "Plane: n={0.31623,0.94868,0}, d=0.63246",
-           "Plane: n={0.31623,-0.94868,0}, d=0.63246"};
+    static char const expected_node[] = "all(+0, -1, -2, +3, -4)";
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-3",
+        "Plane: z=3",
+        "Plane: n={0.31623,0.94868,-0}, d=0.63246",
+        "Plane: x=-1",
+        "Plane: n={0.31623,-0.94868,0}, d=0.63246",
+    };
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -3}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{-1, inf, 3}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-1, -inf, -3}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 3}), result.exterior.upper());
 }
 
-TEST_F(GenTrapTest, CCWtrap)
+TEST_F(GenTrapTest, trapezoid)
+{
+    auto result
+        = this->test(GenTrap(40,
+                             {{-19, -30}, {-19, 30}, {21, 30}, {21, -30}},
+                             {{-21, -30}, {-21, 30}, {19, 30}, {19, -30}}));
+
+    static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-40",
+        "Plane: z=40",
+        "Plane: n={0.99969,-0,0.024992}, d=19.994",
+        "Plane: y=30",
+        "Plane: n={0.99969,0,0.024992}, d=-19.994",
+        "Plane: y=-30",
+    };
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -30, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, 30, 40}), result.exterior.upper());
+}
+
+TEST_F(GenTrapTest, trapezoid_trans)
+{
+    // trapezoid but translated -30, -30
+    auto result
+        = this->test(GenTrap(40,
+                             {{-49, -60}, {-49, 0}, {-9, 0}, {-9, -60}},
+                             {{-51, -60}, {-51, 0}, {-11, 0}, {-11, -60}}));
+
+    static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-40",
+        "Plane: z=40",
+        "Plane: n={0.99969,-0,0.024992}, d=-9.9969",
+        "Plane: y=0",
+        "Plane: n={0.99969,0,0.024992}, d=-49.984",
+        "Plane: y=-60",
+    };
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -60, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, 0, 40}), result.exterior.upper());
+}
+
+TEST_F(GenTrapTest, trapezoid_ccw)
 {
     auto result
         = this->test(GenTrap(40,

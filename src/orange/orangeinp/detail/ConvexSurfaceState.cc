@@ -25,7 +25,9 @@ namespace detail
 BoundingZone calc_merged_bzone(ConvexSurfaceState const& css)
 {
     CELER_EXPECT(css.transform);
-    CELER_EXPECT(encloses(css.local_bzone.exterior, css.local_bzone.interior));
+    CELER_EXPECT(
+        (!css.local_bzone.exterior && !css.local_bzone.interior)
+        || encloses(css.local_bzone.exterior, css.local_bzone.interior));
     CELER_EXPECT(!css.local_bzone.negated);
     CELER_EXPECT(!css.global_bzone.negated);
 

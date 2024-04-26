@@ -12,6 +12,7 @@
 #include "corecel/Constants.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/Types.hh"
 #include "orange/orangeinp/detail/PolygonUtils.hh"
@@ -323,19 +324,32 @@ GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
     CELER_VALIDATE(hz_ > 0, << "nonpositive halfheight: " << hz_);
     CELER_VALIDATE(lo_.size() >= 3 && lo_.size() <= 4,
                    << "invalid number of vertices (" << lo_.size()
-                   << ") for -Z polygon");
-    CELER_VALIDATE(hi_.size() >= 3 && hi_.size() <= 4,
-                   << "invalid number of vertices <" << hi_.size()
-                   << ") for +Z polygon");
+                   << ") for -z polygon");
+    CELER_VALIDATE(hi_.size() == lo_.size(),
+                   << "incompatible number of vertices (" << hi_.size()
+                   << ") for +z polygon: expected " << lo_.size());
 
     CELER_VALIDATE(lo_.size() >= 3 || hi_.size() >= 3,
-                   << "not enough vertices for both of the +Z/-Z polygons.");
+                   << "not enough vertices for both of the +z/-z polygons.");
 
-    // Input vertices must be arranged in a CCW order
+    // Input vertices must be arranged in the same counter/clockwise order
+    // and be convex
+    using detail::calc_orientation;
+    constexpr auto cw = detail::Orientation::clockwise;
     CELER_VALIDATE(detail::is_convex(make_span(lo_)),
-                   << "-Z polygon is not convex");
+                   << "-z polygon is not convex");
     CELER_VALIDATE(detail::is_convex(make_span(hi_)),
-                   << "+Z polygon is not convex");
+                   << "+z polygon is not convex");
+    CELER_VALIDATE(calc_orientation(lo_[0], lo_[1], lo_[2])
+                       == calc_orientation(hi_[0], hi_[1], hi_[2]),
+                   << "-z and +z polygons have different orientations");
+    if (calc_orientation(lo_[0], lo_[1], lo_[2]) == cw)
+    {
+        // Reverse point orders so it's counterclockwise, needed for vectors to
+        // point outward
+        std::reverse(lo_.begin(), lo_.end());
+        std::reverse(hi_.begin(), hi_.end());
+    }
 
     // TODO: Temporarily ensure that all side faces are planar
     for (auto i : range(lo_.size()))
@@ -367,22 +381,24 @@ void GenTrap::build(ConvexSurfaceBuilder& insert_surface) const
     // Build the side planes
     for (auto i : range(lo_.size()))
     {
+        // Viewed from the outside of the trapezoid, the points on the polygon
+        // here are from the lower left counterclockwise to the upper right
         auto j = (i + 1) % lo_.size();
-        Real3 const a{lo_[i][0], lo_[i][1], -hz_};
-        Real3 const b{lo_[j][0], lo_[j][1], -hz_};
-        Real3 const c{hi_[j][0], hi_[j][1], hz_};
-        Real3 const d{hi_[i][0], hi_[i][1], hz_};
+        Real3 const ilo{lo_[i][0], lo_[i][1], -hz_};
+        Real3 const jlo{lo_[j][0], lo_[j][1], -hz_};
+        Real3 const jhi{hi_[j][0], hi_[j][1], hz_};
+        Real3 const ihi{hi_[i][0], hi_[i][1], hz_};
 
-        // Calculate plane parameters
-        auto normal = make_unit_vector(cross_product(b - a, c - b));
-        auto offset = dot_product(d, normal);
-
-        // *Temporarily* throws if a side face is not planar
-        CELER_ASSERT(celeritas::orangeinp::detail::is_planar(a, b, c, d));
-        CELER_ASSERT(SoftZero<real_type>{}(dot_product(d - a, normal)));
+        // Calculate outward normal by taking the cross product of the edges
+        auto normal = make_unit_vector(cross_product(jlo - ilo, ihi - ilo));
+        // Assert that the surface is (for now!) not twisted
+        CELER_ASSERT(soft_equal(
+            dot_product(make_unit_vector(cross_product(ihi - jhi, jlo - jhi)),
+                        normal),
+            real_type{1}));
 
         // Insert the plane
-        insert_surface(Sense::inside, Plane{normal, offset});
+        insert_surface(Sense::inside, Plane{normal, ilo});
     }
 }
 
