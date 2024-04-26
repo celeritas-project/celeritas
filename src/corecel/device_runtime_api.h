@@ -20,8 +20,10 @@
 
 #if CELERITAS_USE_CUDA
 #    include <cuda_runtime_api.h>
+#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CUDA
 #elif CELERITAS_USE_HIP
 #    include <hip/hip_runtime.h>
+#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_HIP
 #endif
 
 #if CELERITAS_USE_CUDA || CELERITAS_USE_HIP
