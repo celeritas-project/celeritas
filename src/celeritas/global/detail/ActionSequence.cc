@@ -39,6 +39,7 @@ ActionSequence<Params>::ActionSequence(ActionRegistry const& reg,
                                        Options options)
     : options_(std::move(options))
 {
+    actions_.reserve(reg.num_actions());
     // Loop over all action IDs
     for (auto aidx : range(reg.num_actions()))
     {
@@ -52,6 +53,7 @@ ActionSequence<Params>::ActionSequence(ActionRegistry const& reg,
         }
     }
 
+    begin_run_.reserve(reg.mutable_actions().size());
     // Loop over all mutable actions
     for (auto const& base : reg.mutable_actions())
     {
