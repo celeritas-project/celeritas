@@ -11,7 +11,6 @@
 #include <tuple>
 #include <type_traits>
 #include <utility>
-#include <celeritas/global/CoreParams.hh>
 
 #include "corecel/device_runtime_api.h"
 #include "corecel/Types.hh"
@@ -21,6 +20,7 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "corecel/sys/Stream.hh"
+#include "celeritas/global/CoreParams.hh"
 
 #include "../ActionInterface.hh"
 #include "../ActionRegistry.hh"

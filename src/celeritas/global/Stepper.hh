@@ -138,22 +138,22 @@ class Stepper final : public StepperInterface
     ~Stepper();
 
     // Transport existing states
-    StepperResult operator()() override final;
+    StepperResult operator()() final;
 
     // Transport existing states and these new primaries
-    StepperResult operator()(SpanConstPrimary primaries) override final;
+    StepperResult operator()(SpanConstPrimary primaries) final;
 
     // Reseed the RNGs at the start of an event for reproducibility
-    void reseed(EventId event_id) override final;
+    void reseed(EventId event_id) final;
 
     //! Get action sequence for timing diagnostics
-    ActionSequence const& actions() const override final { return *actions_; }
+    ActionSequence const& actions() const final { return *actions_; }
 
     //! Access core data, primarily for debugging
     StateRef const& state_ref() const { return state_.ref(); }
 
     //! Get the core state interface for diagnostic output
-    CoreStateInterface const& state() const override final { return state_; }
+    CoreStateInterface const& state() const final { return state_; }
 
   private:
     // Params and call sequence
