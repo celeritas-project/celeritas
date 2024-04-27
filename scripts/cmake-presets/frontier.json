@@ -81,7 +81,7 @@
     {
       "name": "base",
       "configurePreset": "base",
-      "jobs": 8,
+      "jobs": 64,
       "nativeToolOptions": ["-k0"]
     },
     {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"}
@@ -91,7 +91,7 @@
       "name": "base",
       "configurePreset": "base",
       "output": {"outputOnFailure": true},
-      "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 8}
+      "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 32}
     },
     {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"}
   ]
