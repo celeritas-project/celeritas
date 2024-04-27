@@ -3,6 +3,7 @@
 PROJID=hep143
 _celer_view=${PROJWORK}/${PROJID}/opt-view
 _tool_view=/ccs/proj/${PROJID}/opt-view
+_conda=/ccs/proj/${PROJID}/conda-frontier
 
 module load PrgEnv-amd/8.5.0 cpe/23.12 amd/5.7.1 craype-x86-trento \
   libfabric/1.15.2.0 miniforge3/23.11.0
@@ -25,7 +26,7 @@ export CC=${CRAYPE_DIR}/bin/cc
 
 # Set up celeritas
 export SPACK_ROOT=/ccs/proj/hep143/spack
-export PATH=${_celer_view}/bin:${_tool_view}/bin:$PATH
+export PATH=${_celer_view}/bin:${_tool_view}/bin:${_conda}/bin:$PATH
 export CMAKE_PREFIX_PATH=${_celer_view}:${CMAKE_PREFIX_PATH}
 export MODULEPATH=${PROJWORK}/${PROJID}/share/lmod/linux-sles15-x86_64/Core:${MODULEPATH}
 
