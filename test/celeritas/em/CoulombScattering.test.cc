@@ -340,7 +340,7 @@ TEST_F(CoulombScatteringTest, distribution)
     CoulombScatteringHostRef const& data = model_->host_ref();
     std::vector<real_type> avg_angles;
 
-    for (real_type energy : {50, 100, 200, 1000, 13000})
+    for (real_type energy : {1, 50, 100, 200, 1000, 13000})
     {
         this->set_inc_particle(pdg::electron(), MevEnergy{energy});
 
@@ -374,11 +374,12 @@ TEST_F(CoulombScatteringTest, distribution)
         avg_angles.push_back(avg_angle);
     }
 
-    static double const expected_avg_angles[] = {0.99999884778983,
-                                                 0.99999989561101,
-                                                 0.99999996281881,
-                                                 0.99999999909154,
-                                                 0.99999999999491};
+    static double const expected_avg_angles[] = {0.99963726055841,
+                                                 0.99999958777369,
+                                                 0.99999985224547,
+                                                 0.99999997740834,
+                                                 0.99999999913983,
+                                                 0.99999999999662};
     EXPECT_VEC_SOFT_EQ(expected_avg_angles, avg_angles);
 }
 
