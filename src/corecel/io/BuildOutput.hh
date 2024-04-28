@@ -22,7 +22,7 @@ class BuildOutput final : public OutputInterface
     Category category() const final { return Category::system; };
 
     //! Key for the entry inside the category.
-    std::string label() const final { return "build"; }
+    std::string_view label() const final { return "build"; }
 
     // Write output to the given JSON object
     void output(JsonPimpl*) const final;

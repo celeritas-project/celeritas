@@ -165,8 +165,7 @@ void Transporter<M>::accum_action_times(MapStrDouble* result) const
         CELER_ASSERT(action_ptrs.size() == times.size());
         for (auto i : range(action_ptrs.size()))
         {
-            auto&& label = action_ptrs[i]->label();
-            (*result)[label] += times[i];
+            (*result)[std::string{action_ptrs[i]->label()}] += times[i];
         }
     }
 }

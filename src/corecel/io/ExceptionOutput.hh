@@ -46,7 +46,7 @@ class ExceptionOutput final : public OutputInterface
     Category category() const final { return Category::result; }
 
     // Key for the entry inside the category.
-    std::string label() const final { return "exception"; }
+    std::string_view label() const final { return "exception"; }
 
     // Write output to the given JSON object
     void output(JsonPimpl*) const final;

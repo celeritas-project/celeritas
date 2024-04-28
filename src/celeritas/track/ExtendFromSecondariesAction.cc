@@ -23,7 +23,7 @@ namespace celeritas
 /*!
  * Get a long description of the action.
  */
-std::string ExtendFromSecondariesAction::description() const
+std::string_view ExtendFromSecondariesAction::description() const
 {
     return "create track initializers from secondaries";
 }

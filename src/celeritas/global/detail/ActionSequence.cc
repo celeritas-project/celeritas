@@ -89,7 +89,7 @@ void ActionSequence<Params>::begin_run(Params const& params, State<M>& state)
 {
     for (auto const& sp_action : begin_run_)
     {
-        ScopedProfiling profile_this{sp_action->label()};
+        ScopedProfiling profile_this{std::string{sp_action->label()}};
         sp_action->begin_run(params, state);
     }
 }
@@ -113,7 +113,7 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
         // Execute all actions and record the time elapsed
         for (auto i : range(actions_.size()))
         {
-            ScopedProfiling profile_this{actions_[i]->label()};
+            ScopedProfiling profile_this{std::string{actions_[i]->label()}};
             Stopwatch get_time;
             actions_[i]->execute(params, state);
             if (M == MemSpace::device)
@@ -128,7 +128,7 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
         // Just loop over the actions
         for (auto const& sp_action : actions_)
         {
-            ScopedProfiling profile_this{sp_action->label()};
+            ScopedProfiling profile_this{std::string{sp_action->label()}};
             sp_action->execute(params, state);
         }
     }

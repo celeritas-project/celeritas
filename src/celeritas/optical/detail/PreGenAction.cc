@@ -50,7 +50,7 @@ PreGenAction::PreGenAction(ActionId id,
 /*!
  * Descriptive name of the action.
  */
-std::string PreGenAction::description() const
+std::string_view PreGenAction::description() const
 {
     return "generate Cerenkov and scintillation optical distribution data";
 }

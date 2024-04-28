@@ -63,7 +63,7 @@ auto EPlusAnnihilationProcess::step_limits(Applicability range) const
 /*!
  * Name of the process.
  */
-std::string EPlusAnnihilationProcess::label() const
+std::string_view EPlusAnnihilationProcess::label() const
 {
     return "Positron annihiliation";
 }

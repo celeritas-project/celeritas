@@ -59,7 +59,7 @@ auto GammaConversionProcess::step_limits(Applicability applic) const
 /*!
  * Name of the process.
  */
-std::string GammaConversionProcess::label() const
+std::string_view GammaConversionProcess::label() const
 {
     return "Photon annihiliation";
 }

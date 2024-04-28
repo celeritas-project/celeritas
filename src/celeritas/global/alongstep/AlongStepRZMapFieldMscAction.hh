@@ -67,10 +67,10 @@ class AlongStepRZMapFieldMscAction final : public ExplicitCoreActionInterface
     ActionId action_id() const final { return id_; }
 
     //! Short name for the interaction kernel
-    std::string label() const final { return "along-step-rzmap-msc"; }
+    std::string_view label() const final { return "along-step-rzmap-msc"; }
 
     //! Short description of the action
-    std::string description() const final
+    std::string_view description() const final
     {
         return "apply along-step in a R-Z map field with Urban MSC";
     }

@@ -72,7 +72,7 @@ auto StepperTestBase::check_setup() -> SetupCheckResult
 
     for (auto process_id : range(ProcessId{p.num_processes()}))
     {
-        result.processes.push_back(p.process(process_id)->label());
+        result.processes.push_back(std::string{p.process(process_id)->label()});
     }
 
     // Create temporary host stepper to get action ordering
@@ -80,8 +80,8 @@ auto StepperTestBase::check_setup() -> SetupCheckResult
     auto const& action_seq = temp_stepper.actions();
     for (auto const& sp_action : action_seq.actions())
     {
-        result.actions.push_back(sp_action->label());
-        result.actions_desc.push_back(sp_action->description());
+        result.actions.push_back(std::string{sp_action->label()});
+        result.actions_desc.push_back(std::string{sp_action->description()});
     }
 
     return result;

@@ -262,8 +262,7 @@ auto LocalTransporter::GetActionTime() const -> MapStrReal
         CELER_ASSERT(action_ptrs.size() == time.size());
         for (auto i : range(action_ptrs.size()))
         {
-            auto&& label = action_ptrs[i]->label();
-            result[label] = time[i];
+            result[std::string{action_ptrs[i]->label()}] = time[i];
         }
     }
     return result;
