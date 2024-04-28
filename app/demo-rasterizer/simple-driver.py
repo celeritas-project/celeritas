@@ -9,29 +9,33 @@ import json
 import subprocess
 from os import environ
 from sys import exit, argv
+from pathlib import Path
 
 try:
-    (gdml_filename,) = argv[1:]
+    (model_file,) = argv[1:]
 except TypeError:
     print("usage: {} inp.gdml".format(sys.argv[0]))
     exit(2)
 
+exe = environ.get("CELERITAS_DEMO_EXE", "./demo-rasterizer")
+ext = environ.get("CELER_TEST_EXT", "unknown")
+
+problem_name = "-".join([Path(model_file).stem, ext])
+
+eps = 0.01
 inp = {
     'image': {
         # TODO: input is cm for now; add 'units' argument?
-        'lower_left': [-10, -10, 0],
-        'upper_right': [10, 10, 0],
-        'rightward_ax': [1, 0, 0],
-        'vertical_pixels': 32
+        'lower_left': [-800, 0, -1500],
+        'upper_right': [800, 0, 1600],
+        'rightward': [1, 0, 0],
+        'vertical_pixels': 128,
     },
-    'input': gdml_filename,
-    'output': 'two-boxes.bin'
+    'input': model_file,
+    'output': f"{problem_name}.bin"
 }
-
-exe = environ.get('CELERITAS_DEMO_EXE', './demo-rasterizer')
-
 print("Input:")
-with open(f'{exe}.inp.json', 'w') as f:
+with open(f"{problem_name}.inp.json", 'w') as f:
     json.dump(inp, f, indent=1)
 print(json.dumps(inp, indent=1))
 
@@ -52,6 +56,6 @@ except json.decoder.JSONDecodeError as e:
     print(out_text)
     print("fatal:", str(e))
     exit(1)
-print(json.dumps(result, indent=1))
-with open(f'{exe}.out.json', 'w') as f:
+print(json.dumps(result["metadata"], indent=1))
+with open(f'{problem_name}.out.json', 'w') as f:
     json.dump(result, f)

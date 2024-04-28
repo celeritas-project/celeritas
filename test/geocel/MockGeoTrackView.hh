@@ -76,7 +76,13 @@ class MockGeoTrackView
     int init_count() const { return init_count_; }
 
   private:
+    // Physical state
     GeoTrackInitializer state_;
+
+    // Logical state
+    int volume_id_{-1};
+    bool on_boundary_{false};
+
     real_type next_step_{};
     int init_count_{0};
 
@@ -93,20 +99,19 @@ MockGeoTrackView::operator=(Initializer_t const& init)
 {
     ++init_count_;
     this->state_ = init;
+    volume_id_ = std::floor(this->z());
+    on_boundary_ = false;
     return *this;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the volume ID in the current cell.
- *
- * XXX this doesn't correctly handle the logical change in state for boundary
- * crossing.
  */
 CELER_FUNCTION VolumeId MockGeoTrackView::volume_id() const
 {
     CELER_EXPECT(!this->is_outside());
-    return VolumeId{static_cast<size_type>(std::floor(this->z()))};
+    return VolumeId{static_cast<size_type>(volume_id_)};
 }
 
 //---------------------------------------------------------------------------//
@@ -115,7 +120,7 @@ CELER_FUNCTION VolumeId MockGeoTrackView::volume_id() const
  */
 CELER_FUNCTION bool MockGeoTrackView::is_outside() const
 {
-    return this->z() <= 0;
+    return volume_id_ < 0;
 }
 
 //---------------------------------------------------------------------------//
@@ -124,7 +129,7 @@ CELER_FUNCTION bool MockGeoTrackView::is_outside() const
  */
 CELER_FUNCTION bool MockGeoTrackView::is_on_boundary() const
 {
-    return soft_mod(this->z(), real_type{1});
+    return on_boundary_;
 }
 
 //---------------------------------------------------------------------------//
@@ -138,16 +143,10 @@ CELER_FUNCTION Propagation MockGeoTrackView::find_next_step(real_type max_step)
 
     real_type z = state_.pos[2];
     real_type w = state_.dir[2];
-    real_type next_surf{100000};
-    if (w > 0)
-    {
-        next_surf = (1 - std::fmod(z, real_type{1})) / w;
-    }
-    else if (w < 0)
-    {
-        next_surf = std::fmod(z, real_type{1}) / -w;
-    }
-    next_step_ = std::fmin(next_surf, max_step);
+
+    int next_z_plane = volume_id_ + (w > 0);
+    next_step_
+        = std::fmin((static_cast<real_type>(next_z_plane) - z) / w, max_step);
 
     Propagation result;
     result.boundary = next_step_ < max_step;
@@ -167,6 +166,7 @@ CELER_FUNCTION void MockGeoTrackView::move_to_boundary()
 {
     // Move next step
     this->move_internal(next_step_);
+    on_boundary_ = true;
     next_step_ = 0;
 
     CELER_ENSURE(this->is_on_boundary());
@@ -181,6 +181,10 @@ CELER_FUNCTION void MockGeoTrackView::move_to_boundary()
 CELER_FUNCTION void MockGeoTrackView::cross_boundary()
 {
     CELER_EXPECT(this->is_on_boundary());
+
+    // Update volume ID
+    real_type w = state_.dir[2];
+    volume_id_ += (w > 0 ? 1 : -1);
 
     // Make sure we're exactly on the value
     this->state_.pos[2] = std::round(this->state_.pos[2]);
@@ -201,6 +205,7 @@ CELER_FUNCTION void MockGeoTrackView::move_internal(real_type dist)
 
     axpy(dist, state_.dir, &state_.pos);
     next_step_ -= dist;
+    on_boundary_ = false;
 }
 
 //---------------------------------------------------------------------------//

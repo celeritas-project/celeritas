@@ -38,10 +38,10 @@ struct GeoTraits<OrangeParams>
     using TrackView = OrangeTrackView;
 
     //! Descriptive name for the geometry
-    static inline char const* name = "ORANGE";
+    static constexpr inline char const* name = "ORANGE";
 
     //! TO BE REMOVED: "native" file extension for this geometry
-    static inline char const* ext = ".org.json";
+    static constexpr inline char const* ext = ".org.json";
 };
 
 //---------------------------------------------------------------------------//
