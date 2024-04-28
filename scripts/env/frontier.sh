@@ -12,6 +12,8 @@ export RFE_811452_DISABLE=1
 
 # Avoid linking multiple different libsci (one with openmp, one without)
 module unload cray-libsci
+# Avoid libraries interfering with I/O
+module unload darshan-runtime
 
 # Set up compilers
 test -n "${CRAYPE_DIR}"
