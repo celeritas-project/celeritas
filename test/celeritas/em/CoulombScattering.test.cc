@@ -373,12 +373,12 @@ TEST_F(CoulombScatteringTest, distribution)
         avg_angles.push_back(avg_angle);
     }
 
-    static double const expected_avg_angles[] = {0.99965151914051,
-                                                 0.99999960659112,
-                                                 0.99999985998571,
-                                                 0.9999999805283,
-                                                 0.99999999916358,
-                                                 0.99999999999689};
+    static double const expected_avg_angles[] = {0.99933909299229,
+                                                 0.99999960697043,
+                                                 0.99999986035881,
+                                                 0.99999998052954,
+                                                 0.99999999917037,
+                                                 0.9999999999969};
     EXPECT_VEC_SOFT_EQ(expected_avg_angles, avg_angles);
 }
 

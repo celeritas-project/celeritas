@@ -262,9 +262,9 @@ CELER_FUNCTION real_type WentzelDistribution::sample_cos_t(real_type cos_t_max,
     real_type const xi = generate_canonical(rng);
     real_type const sc = helper_.screening_coefficient();
 
-    return clamp(1 + 2 * sc * mu * (1 - xi) / (sc - mu * xi),
-                 real_type{-1},
-                 real_type{1});
+    real_type result = 1 - 2 * sc * mu * (1 - xi) / (sc + mu * xi);
+    CELER_ENSURE(result >= -1 && result <= 1);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
