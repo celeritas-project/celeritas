@@ -30,6 +30,7 @@ struct Primary;
 
 namespace detail
 {
+template<class Params>
 class ActionSequence;
 }
 
@@ -78,7 +79,7 @@ class StepperInterface
     //!@{
     //! \name Type aliases
     using Input = StepperInput;
-    using ActionSequence = detail::ActionSequence;
+    using ActionSequence = detail::ActionSequence<CoreParams>;
     using SpanConstPrimary = Span<Primary const>;
     using result_type = StepperResult;
     //!@}
@@ -157,7 +158,7 @@ class Stepper final : public StepperInterface
   private:
     // Params and call sequence
     std::shared_ptr<CoreParams const> params_;
-    std::shared_ptr<detail::ActionSequence> actions_;
+    std::shared_ptr<ActionSequence> actions_;
     // State data
     CoreState<M> state_;
 };

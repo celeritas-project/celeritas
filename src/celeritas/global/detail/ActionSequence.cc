@@ -20,8 +20,8 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "corecel/sys/Stream.hh"
+#include "celeritas/global/CoreParams.hh"
 
-#include "ParamsTraits.hh"
 #include "../ActionInterface.hh"
 #include "../ActionRegistry.hh"
 #include "../CoreState.hh"
@@ -34,22 +34,26 @@ namespace detail
 /*!
  * Construct from an action registry and sequence options.
  */
-ActionSequence::ActionSequence(ActionRegistry const& reg, Options options)
+template<class Params>
+ActionSequence<Params>::ActionSequence(ActionRegistry const& reg,
+                                       Options options)
     : options_(std::move(options))
 {
+    actions_.reserve(reg.num_actions());
     // Loop over all action IDs
     for (auto aidx : range(reg.num_actions()))
     {
         // Get abstract action shared pointer and see if it's explicit
         auto const& base = reg.action(ActionId{aidx});
-        if (auto expl
-            = std::dynamic_pointer_cast<ExplicitActionInterface const>(base))
+        using element_type = typename SPConstSpecializedExplicit::element_type;
+        if (auto expl = std::dynamic_pointer_cast<element_type>(base))
         {
             // Add explicit action to our array
             actions_.push_back(std::move(expl));
         }
     }
 
+    begin_run_.reserve(reg.mutable_actions().size());
     // Loop over all mutable actions
     for (auto const& base : reg.mutable_actions())
     {
@@ -63,7 +67,8 @@ ActionSequence::ActionSequence(ActionRegistry const& reg, Options options)
     // Sort actions by increasing order (and secondarily, increasing IDs)
     std::sort(actions_.begin(),
               actions_.end(),
-              [](SPConstExplicit const& a, SPConstExplicit const& b) {
+              [](SPConstSpecializedExplicit const& a,
+                 SPConstSpecializedExplicit const& b) {
                   return std::make_tuple(a->order(), a->action_id())
                          < std::make_tuple(b->order(), b->action_id());
               });
@@ -78,8 +83,9 @@ ActionSequence::ActionSequence(ActionRegistry const& reg, Options options)
 /*!
  * Initialize actions and states.
  */
+template<class Params>
 template<MemSpace M>
-void ActionSequence::begin_run(CoreParams const& params, CoreState<M>& state)
+void ActionSequence<Params>::begin_run(Params const& params, State<M>& state)
 {
     for (auto const& sp_action : begin_run_)
     {
@@ -92,15 +98,10 @@ void ActionSequence::begin_run(CoreParams const& params, CoreState<M>& state)
 /*!
  * Call all explicit actions with host or device data.
  */
-template<typename Params, template<MemSpace M> class State, MemSpace M>
-void ActionSequence::execute(Params const& params, State<M>& state)
+template<class Params>
+template<MemSpace M>
+void ActionSequence<Params>::execute(Params const& params, State<M>& state)
 {
-    using ExplicitAction = typename ParamsTraits<Params>::ExplicitAction;
-
-    static_assert(
-        std::is_same_v<State<M>, typename ParamsTraits<Params>::template State<M>>,
-        "The Params and State type are not matching.");
-
     [[maybe_unused]] Stream::StreamT stream = nullptr;
     if (M == MemSpace::device && options_.sync)
     {
@@ -114,9 +115,7 @@ void ActionSequence::execute(Params const& params, State<M>& state)
         {
             ScopedProfiling profile_this{actions_[i]->label()};
             Stopwatch get_time;
-            auto const& concrete_action
-                = dynamic_cast<ExplicitAction const&>(*actions_[i]);
-            concrete_action.execute(params, state);
+            actions_[i]->execute(params, state);
             if (M == MemSpace::device)
             {
                 CELER_DEVICE_CALL_PREFIX(StreamSynchronize(stream));
@@ -127,12 +126,10 @@ void ActionSequence::execute(Params const& params, State<M>& state)
     else
     {
         // Just loop over the actions
-        for (SPConstExplicit const& sp_action : actions_)
+        for (auto const& sp_action : actions_)
         {
             ScopedProfiling profile_this{sp_action->label()};
-            auto const& concrete_action
-                = dynamic_cast<ExplicitAction const&>(*sp_action);
-            concrete_action.execute(params, state);
+            sp_action->execute(params, state);
         }
     }
 }
@@ -141,15 +138,17 @@ void ActionSequence::execute(Params const& params, State<M>& state)
 // Explicit template instantiation
 //---------------------------------------------------------------------------//
 
-template void
-ActionSequence::begin_run(CoreParams const&, CoreState<MemSpace::host>&);
-template void
-ActionSequence::begin_run(CoreParams const&, CoreState<MemSpace::device>&);
+template class ActionSequence<CoreParams>;
+
+template void ActionSequence<CoreParams>::begin_run(CoreParams const&,
+                                                    State<MemSpace::host>&);
+template void ActionSequence<CoreParams>::begin_run(CoreParams const&,
+                                                    State<MemSpace::device>&);
 
 template void
-ActionSequence::execute(CoreParams const&, CoreState<MemSpace::host>&);
-template void
-ActionSequence::execute(CoreParams const&, CoreState<MemSpace::device>&);
+ActionSequence<CoreParams>::execute(CoreParams const&, State<MemSpace::host>&);
+template void ActionSequence<CoreParams>::execute(CoreParams const&,
+                                                  State<MemSpace::device>&);
 
 // TODO: add explicit template instantiation of execute for optical data
 
