@@ -42,10 +42,11 @@ nvtxStringHandle_t message_handle_for(std::string_view message)
     static std::unordered_map<std::string, nvtxStringHandle_t> registry;
     static std::shared_mutex mutex;
 
+    std::string temp_message{message};
     {
         std::shared_lock lock(mutex);
 
-        if (auto message_handle = registry.find(message);
+        if (auto message_handle = registry.find(temp_message);
             message_handle != registry.end())
         {
             return message_handle->second;
@@ -53,9 +54,9 @@ nvtxStringHandle_t message_handle_for(std::string_view message)
     }
 
     // We did not find the handle; try to insert it
-    auto [iter, inserted] = [message] {
+    auto [iter, inserted] = [&temp_message] {
         std::unique_lock lock(mutex);
-        return registry.insert({std::string{message}, {}});
+        return registry.insert({std::move(temp_message), {}});
     }();
     if (inserted)
     {
