@@ -283,27 +283,6 @@ TEST_F(CoulombScatteringTest, simple_scattering)
 {
     int const num_samples = 10;
 
-    static real_type const expected_angle[] = {1,
-                                               0.99999999776622,
-                                               0.99999999990987,
-                                               0.99999999931707,
-                                               0.99999999847986,
-                                               0.9999999952274,
-                                               0.99999999905465,
-                                               0.99999999375773,
-                                               1,
-                                               0.99999999916491};
-    static real_type const expected_energy[] = {200,
-                                                199.99999999847,
-                                                199.99999999994,
-                                                199.99999999953,
-                                                199.99999999896,
-                                                199.99999999673,
-                                                199.99999999935,
-                                                199.99999999572,
-                                                200,
-                                                199.99999999943};
-
     IsotopeView const isotope = this->material_track()
                                     .make_material_view()
                                     .make_element_view(ElementComponentId{0})
@@ -331,6 +310,26 @@ TEST_F(CoulombScatteringTest, simple_scattering)
         angle.push_back(dot_product(this->direction(), result.direction));
     }
 
+    static double const expected_angle[] = {1,
+                                            0.99999999776622,
+                                            0.99999999990987,
+                                            0.99999999931707,
+                                            1,
+                                            0.9999999952274,
+                                            0.99999999905465,
+                                            0.99999999375773,
+                                            1,
+                                            0.99999999916491};
+    static double const expected_energy[] = {200,
+                                             199.99999999847,
+                                             199.99999999994,
+                                             199.99999999953,
+                                             200,
+                                             199.99999999673,
+                                             199.99999999935,
+                                             199.99999999572,
+                                             200,
+                                             199.99999999943};
     EXPECT_VEC_SOFT_EQ(expected_angle, angle);
     EXPECT_VEC_SOFT_EQ(expected_energy, energy);
 }
@@ -374,12 +373,12 @@ TEST_F(CoulombScatteringTest, distribution)
         avg_angles.push_back(avg_angle);
     }
 
-    static double const expected_avg_angles[] = {0.99963726055841,
-                                                 0.99999958777369,
-                                                 0.99999985224547,
-                                                 0.99999997740834,
-                                                 0.99999999913983,
-                                                 0.99999999999662};
+    static double const expected_avg_angles[] = {0.99965151914051,
+                                                 0.99999960659112,
+                                                 0.99999985998571,
+                                                 0.9999999805283,
+                                                 0.99999999916358,
+                                                 0.99999999999689};
     EXPECT_VEC_SOFT_EQ(expected_avg_angles, avg_angles);
 }
 
