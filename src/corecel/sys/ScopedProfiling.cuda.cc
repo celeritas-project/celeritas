@@ -37,7 +37,7 @@ nvtxDomainHandle_t domain_handle()
  *
  * Insert it if it doesn't already exist.
  */
-nvtxStringHandle_t message_handle_for(std::string const& message)
+nvtxStringHandle_t message_handle_for(std::string_view message)
 {
     static std::unordered_map<std::string, nvtxStringHandle_t> registry;
     static std::shared_mutex mutex;
@@ -53,15 +53,15 @@ nvtxStringHandle_t message_handle_for(std::string const& message)
     }
 
     // We did not find the handle; try to insert it
-    auto [iter, inserted] = [&message] {
+    auto [iter, inserted] = [message] {
         std::unique_lock lock(mutex);
-        return registry.insert({message, {}});
+        return registry.insert({std::string{message}, {}});
     }();
     if (inserted)
     {
         // Register the domain
         iter->second
-            = nvtxDomainRegisterStringA(domain_handle(), message.c_str());
+            = nvtxDomainRegisterStringA(domain_handle(), iter->first.c_str());
     }
     return iter->second;
 }
