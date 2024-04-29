@@ -352,42 +352,6 @@ auto SolidConverter::generictrap(arg_type solid_base) -> result_type
 }
 
 //---------------------------------------------------------------------------//
-
-//! Convert a trapezoid
-auto SolidConverter::trap(arg_type solid_base) -> result_type
-{
-    auto const& solid = dynamic_cast<G4Trap const&>(solid_base);
-
-    real_type sinphi, cosphi;
-    sincos(solid.GetPhi(), &sinphi, &cosphi);
-    auto tanTheta = std::tan(solid.GetTheta());
-
-    auto hz = scale_(solid.GetZHalfLength());
-    auto hy1 = scale_(solid.GetYHalfLength1());
-    auto hy2 = scale_(solid.GetYHalfLength2());
-    auto hx1 = scale_(solid.GetXHalfLength1());
-    auto hx2 = scale_(solid.GetXHalfLength2());
-    auto hx3 = scale_(solid.GetXHalfLength3());
-    auto hx4 = scale_(solid.GetXHalfLength4());
-    auto dxdzDz = hz * tanTheta * cosphi;
-    auto dydzDz = hz * tanTheta * sinphi;
-    auto dxdyDy1 = scale_(solid.GetTanAlpha1() * solid.GetYHalfLength1());
-    auto dxdyDy2 = scale_(solid.GetTanAlpha2() * solid.GetYHalfLength2());
-
-    std::vector<GenTrap::Real2> lower(4), upper(4);
-    lower[0] = GenTrap::Real2{-dxdzDz - dxdyDy1 - hx1, -dydzDz - hy1};
-    lower[1] = GenTrap::Real2{-dxdzDz - dxdyDy1 + hx1, -dydzDz - hy1};
-    lower[2] = GenTrap::Real2{-dxdzDz + dxdyDy1 + hx2, -dydzDz + hy1};
-    lower[3] = GenTrap::Real2{-dxdzDz + dxdyDy1 - hx2, -dydzDz + hy1};
-    upper[0] = GenTrap::Real2{+dxdzDz - dxdyDy2 - hx3, +dydzDz - hy2};
-    upper[1] = GenTrap::Real2{+dxdzDz - dxdyDy2 + hx3, +dydzDz - hy2};
-    upper[2] = GenTrap::Real2{+dxdzDz + dxdyDy2 + hx4, +dydzDz + hy2};
-    upper[3] = GenTrap::Real2{+dxdzDz + dxdyDy2 - hx4, +dydzDz + hy2};
-
-    return make_shape<GenTrap>(solid, hz, lower, upper);
-}
-
-//---------------------------------------------------------------------------//
 //! Convert a hyperbola
 auto SolidConverter::hype(arg_type solid_base) -> result_type
 {
@@ -613,6 +577,41 @@ auto SolidConverter::torus(arg_type solid_base) -> result_type
     auto const& solid = dynamic_cast<G4Torus const&>(solid_base);
     CELER_DISCARD(solid);
     CELER_NOT_IMPLEMENTED("torus");
+}
+
+//---------------------------------------------------------------------------//
+//! Convert a trapezoid
+auto SolidConverter::trap(arg_type solid_base) -> result_type
+{
+    auto const& solid = dynamic_cast<G4Trap const&>(solid_base);
+
+    real_type sinphi, cosphi;
+    sincos(solid.GetPhi(), &sinphi, &cosphi);
+    auto tanTheta = std::tan(solid.GetTheta());
+
+    auto hz = scale_(solid.GetZHalfLength());
+    auto hy1 = scale_(solid.GetYHalfLength1());
+    auto hy2 = scale_(solid.GetYHalfLength2());
+    auto hx1 = scale_(solid.GetXHalfLength1());
+    auto hx2 = scale_(solid.GetXHalfLength2());
+    auto hx3 = scale_(solid.GetXHalfLength3());
+    auto hx4 = scale_(solid.GetXHalfLength4());
+    auto dxdzDz = hz * tanTheta * cosphi;
+    auto dydzDz = hz * tanTheta * sinphi;
+    auto dxdyDy1 = scale_(solid.GetTanAlpha1() * solid.GetYHalfLength1());
+    auto dxdyDy2 = scale_(solid.GetTanAlpha2() * solid.GetYHalfLength2());
+
+    std::vector<GenTrap::Real2> lower(4), upper(4);
+    lower[0] = GenTrap::Real2{-dxdzDz - dxdyDy1 - hx1, -dydzDz - hy1};
+    lower[1] = GenTrap::Real2{-dxdzDz - dxdyDy1 + hx1, -dydzDz - hy1};
+    lower[2] = GenTrap::Real2{-dxdzDz + dxdyDy1 + hx2, -dydzDz + hy1};
+    lower[3] = GenTrap::Real2{-dxdzDz + dxdyDy1 - hx2, -dydzDz + hy1};
+    upper[0] = GenTrap::Real2{+dxdzDz - dxdyDy2 - hx3, +dydzDz - hy2};
+    upper[1] = GenTrap::Real2{+dxdzDz - dxdyDy2 + hx3, +dydzDz - hy2};
+    upper[2] = GenTrap::Real2{+dxdzDz + dxdyDy2 + hx4, +dydzDz + hy2};
+    upper[3] = GenTrap::Real2{+dxdzDz + dxdyDy2 - hx4, +dydzDz + hy2};
+
+    return make_shape<GenTrap>(solid, hz, lower, upper);
 }
 
 //---------------------------------------------------------------------------//
