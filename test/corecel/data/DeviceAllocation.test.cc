@@ -27,14 +27,14 @@ TEST(ConstructionTest, should_work_always)
     EXPECT_TRUE(alloc.empty());
 }
 
-TEST(ConstructionTest, nocuda)
-{
 #if !CELER_USE_DEVICE
+TEST(ConstructionTest, nodevice)
+#else
+TEST(ConstructionTest, DISABLED_nodevice)
+#endif
+{
     // Can't allocate
     EXPECT_THROW(DeviceAllocation(1234), DebugError);
-#else
-    GTEST_SKIP() << "CUDA is enabled";
-#endif
 }
 
 TEST(DeviceAllocationTest, TEST_IF_CELER_DEVICE(device))
