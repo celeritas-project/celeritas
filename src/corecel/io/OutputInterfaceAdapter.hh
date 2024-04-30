@@ -51,7 +51,7 @@ class OutputInterfaceAdapter final : public OutputInterface
     Category category() const final { return cat_; }
 
     //! Label of the entry inside the category.
-    std::string label() const final { return label_; }
+    std::string_view label() const final { return label_; }
 
     // Write output to the given JSON object
     void output(JsonPimpl* jp) const final;

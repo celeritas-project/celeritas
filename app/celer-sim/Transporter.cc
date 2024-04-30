@@ -88,6 +88,15 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
         result.alive.push_back(track_counts.alive);
     };
 
+    constexpr size_type min_alloc{65536};
+    result.initializers.reserve(std::min(min_alloc, max_steps_));
+    result.active.reserve(std::min(min_alloc, max_steps_));
+    result.alive.reserve(std::min(min_alloc, max_steps_));
+    if (store_step_times_)
+    {
+        result.step_times.reserve(std::min(min_alloc, max_steps_));
+    }
+
     // Abort cleanly for interrupt and user-defined signals
 #ifndef _WIN32
     ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
@@ -165,8 +174,7 @@ void Transporter<M>::accum_action_times(MapStrDouble* result) const
         CELER_ASSERT(action_ptrs.size() == times.size());
         for (auto i : range(action_ptrs.size()))
         {
-            auto&& label = action_ptrs[i]->label();
-            (*result)[label] += times[i];
+            (*result)[std::string{action_ptrs[i]->label()}] += times[i];
         }
     }
 }

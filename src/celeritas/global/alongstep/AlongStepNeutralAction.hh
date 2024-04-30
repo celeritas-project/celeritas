@@ -38,10 +38,10 @@ class AlongStepNeutralAction final : public ExplicitCoreActionInterface
     ActionId action_id() const final { return id_; }
 
     //! Short name for the along-step kernel
-    std::string label() const final { return "along-step-neutral"; }
+    std::string_view label() const final { return "along-step-neutral"; }
 
     //! Short description of the action
-    std::string description() const final
+    std::string_view description() const final
     {
         return "apply along-step for neutral particles";
     }

@@ -172,7 +172,7 @@ auto GeantSimpleCalo::CalcTotalEnergyDeposition() const -> VecReal
 /*!
  * Return the key in the JSON output.
  */
-std::string GeantSimpleCalo::label() const
+std::string_view GeantSimpleCalo::label() const
 {
     return storage_->name;
 }

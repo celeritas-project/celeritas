@@ -33,7 +33,7 @@ class TestInterface final : public OutputInterface
     }
 
     Category category() const final { return cat_; }
-    std::string label() const final { return label_; }
+    std::string_view label() const final { return label_; }
 
     void output(JsonPimpl* json) const final
     {

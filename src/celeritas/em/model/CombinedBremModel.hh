@@ -67,10 +67,10 @@ class CombinedBremModel final : public Model
     ActionId action_id() const final;
 
     //! Short name for the interaction kernel
-    std::string label() const final { return "brems-combined"; }
+    std::string_view label() const final { return "brems-combined"; }
 
     //! Short description of the post-step action
-    std::string description() const final
+    std::string_view description() const final
     {
         return "interact by bremsstrahlung (combined SB/relativistic, e+/-)";
     }

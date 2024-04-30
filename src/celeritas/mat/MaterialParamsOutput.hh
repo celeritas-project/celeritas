@@ -34,7 +34,7 @@ class MaterialParamsOutput final : public OutputInterface
     Category category() const final { return Category::internal; }
 
     //! Name of the entry inside the category.
-    std::string label() const final { return "material"; }
+    std::string_view label() const final { return "material"; }
 
     // Write output to the given JSON object
     void output(JsonPimpl*) const final;
