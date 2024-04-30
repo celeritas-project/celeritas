@@ -337,7 +337,7 @@ auto SolidConverter::generictrap(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4GenericTrap const&>(solid_base);
 
-    auto const vtx = solid.GetVertices();
+    auto const& vtx = solid.GetVertices();
     CELER_ASSERT(vtx.size() == 8);
 
     std::vector<GenTrap::Real2> lower(4), upper(4);
