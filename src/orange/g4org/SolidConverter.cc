@@ -348,7 +348,7 @@ auto SolidConverter::generictrap(arg_type solid_base) -> result_type
     }
     real_type hh = scale_(solid.GetZHalfLength());
 
-    return make_shape<GenTrap>(solid, hh, lower, upper);
+    return make_shape<GenTrap>(solid, hh, std::move(lower), std::move(upper));
 }
 
 //---------------------------------------------------------------------------//
