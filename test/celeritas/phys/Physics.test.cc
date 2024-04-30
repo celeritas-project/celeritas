@@ -64,7 +64,7 @@ TEST_F(PhysicsParamsTest, accessors)
     std::vector<std::string> process_names;
     for (auto process_id : range(ProcessId{p.num_processes()}))
     {
-        process_names.push_back(std::string{p.process(process_id)->label()});
+        process_names.emplace_back(p.process(process_id)->label());
     }
     static char const* const expected_process_names[]
         = {"scattering", "absorption", "purrs", "hisses", "meows", "barks"};
@@ -76,8 +76,8 @@ TEST_F(PhysicsParamsTest, accessors)
     for (auto model_id : range(ModelId{p.num_models()}))
     {
         Model const& m = *p.model(model_id);
-        model_names.push_back(std::string{m.label()});
-        model_desc.push_back(std::string{m.description()});
+        model_names.emplace_back(m.label());
+        model_desc.emplace_back(m.description());
     }
 
     static std::string const expected_model_names[] = {
