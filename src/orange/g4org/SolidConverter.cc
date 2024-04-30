@@ -580,14 +580,50 @@ auto SolidConverter::torus(arg_type solid_base) -> result_type
 }
 
 //---------------------------------------------------------------------------//
-//! Convert a trapezoid
+/** Convert a trapezoid.
+ *
+ * Here is the full description of the G4Trap parameters, as named here:
+ *
+ * hz  - Half Z length - distance from the origin to the bases
+ * hy1 - Half Y length of the base at -pDz
+ * hy2 - Half Y length of the base at +pDz
+ * hx1 - Half X length at smaller Y of the base at -pDz
+ * hx2 - Half X length at bigger Y of the base at -pDz
+ * hx3 - Half X length at smaller Y of the base at +pDz
+ * hx4 - Half X length at bigger y of the base at +pDz
+ * Theta - Polar angle of the line joining the centres of the bases at -/+hz
+ * Phi   - Azimuthal angle of the line joining the centre of the base at -hz
+ *         to the centre of the base at +hz
+ * Alph1 - Angle between the Y-axis and the centre line of the base at -hz
+ * Alph2 - Angle between the Y-axis and the centre line of the base at +hz
+ *
+ * Note that the numbers of x,y,z parameters in the G4Trap are related to the
+ * fact that the two z-faces are parallel (separated by hz) and the 4 x-wedges
+ * (2 in each z-face) are also parallel (separated by hy1,2).
+ *
+ * Reference:
+ * https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/Detector/Geometry/geomSolids.html#constructed-solid-geometry-csg-solids
+ */
 auto SolidConverter::trap(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Trap const&>(solid_base);
 
-    real_type sinphi, cosphi;
-    sincos(solid.GetPhi(), &sinphi, &cosphi);
-    auto tanTheta = std::tan(solid.GetTheta());
+    real_type sin_phi{}, cos_phi{}, tan_theta{};
+#if G4VERSION_NUMBER < 1100
+    // Geant4 10.7 and earlier - axis = (sinth.cosphi, sinth.sinphi, costh)
+    // Note: both sinth,costh >= 0 since theta is in [0, pi/2] for a G4Trap
+    auto axis = solid.GetSymAxis();
+    auto sin_theta = std::sqrt(real_type(1.0) - axis.z() * axis.z());
+    tan_theta = SoftZero<double>{1.e-8}(axis.z())
+                    ? sin_theta / axis.z()
+                    : numeric_limits<real_type>::infinity();
+    cos_phi = sin_theta > 0 ? axis.x() / sin_theta : 1.0;
+    sin_phi = sin_theta > 0 ? axis.y() / sin_theta : 1.0;
+#else
+    // Geant4 11 and later
+    sincos(solid.GetPhi(), &sin_phi, &cos_phi);
+    tan_theta = std::tan(solid.GetTheta());
+#endif
 
     auto hz = scale_(solid.GetZHalfLength());
     auto hy1 = scale_(solid.GetYHalfLength1());
@@ -596,20 +632,20 @@ auto SolidConverter::trap(arg_type solid_base) -> result_type
     auto hx2 = scale_(solid.GetXHalfLength2());
     auto hx3 = scale_(solid.GetXHalfLength3());
     auto hx4 = scale_(solid.GetXHalfLength4());
-    auto dxdzDz = hz * tanTheta * cosphi;
-    auto dydzDz = hz * tanTheta * sinphi;
-    auto dxdyDy1 = scale_(solid.GetTanAlpha1() * solid.GetYHalfLength1());
-    auto dxdyDy2 = scale_(solid.GetTanAlpha2() * solid.GetYHalfLength2());
+    auto dxdz_hz = tan_theta * cos_phi * hz;
+    auto dydz_hz = tan_theta * sin_phi * hz;
+    auto dxdy_hy1 = solid.GetTanAlpha1() * hy1;
+    auto dxdy_hy2 = solid.GetTanAlpha2() * hy2;
 
     std::vector<GenTrap::Real2> lower(4), upper(4);
-    lower[0] = GenTrap::Real2{-dxdzDz - dxdyDy1 - hx1, -dydzDz - hy1};
-    lower[1] = GenTrap::Real2{-dxdzDz - dxdyDy1 + hx1, -dydzDz - hy1};
-    lower[2] = GenTrap::Real2{-dxdzDz + dxdyDy1 + hx2, -dydzDz + hy1};
-    lower[3] = GenTrap::Real2{-dxdzDz + dxdyDy1 - hx2, -dydzDz + hy1};
-    upper[0] = GenTrap::Real2{+dxdzDz - dxdyDy2 - hx3, +dydzDz - hy2};
-    upper[1] = GenTrap::Real2{+dxdzDz - dxdyDy2 + hx3, +dydzDz - hy2};
-    upper[2] = GenTrap::Real2{+dxdzDz + dxdyDy2 + hx4, +dydzDz + hy2};
-    upper[3] = GenTrap::Real2{+dxdzDz + dxdyDy2 - hx4, +dydzDz + hy2};
+    lower[0] = GenTrap::Real2{-dxdz_hz - dxdy_hy1 - hx1, -dydz_hz - hy1};
+    lower[1] = GenTrap::Real2{-dxdz_hz - dxdy_hy1 + hx1, -dydz_hz - hy1};
+    lower[2] = GenTrap::Real2{-dxdz_hz + dxdy_hy1 + hx2, -dydz_hz + hy1};
+    lower[3] = GenTrap::Real2{-dxdz_hz + dxdy_hy1 - hx2, -dydz_hz + hy1};
+    upper[0] = GenTrap::Real2{+dxdz_hz - dxdy_hy2 - hx3, +dydz_hz - hy2};
+    upper[1] = GenTrap::Real2{+dxdz_hz - dxdy_hy2 + hx3, +dydz_hz - hy2};
+    upper[2] = GenTrap::Real2{+dxdz_hz + dxdy_hy2 + hx4, +dydz_hz + hy2};
+    upper[3] = GenTrap::Real2{+dxdz_hz + dxdy_hy2 - hx4, +dydz_hz + hy2};
 
     return make_shape<GenTrap>(solid, hz, lower, upper);
 }

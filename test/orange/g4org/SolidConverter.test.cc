@@ -257,29 +257,27 @@ TEST_F(SolidConverterTest, generictrap)
             {{-1, -2, -4 - 1.e-6}, {-1, -2, -3}, {0.5, 1, 3}, {1, 1, 3}});
     }
 
-    // TODO: most generic gentrap with twisted side faces
-    /*
     {
-        this->build_and_test(
-            G4GenericTrap("LArEMECInnerWheelAbsorber02",
-                          10.625,
-                          {{1.55857990922689, 302.468976599716},
-                           {-1.73031296208306, 302.468976599716},
-                           {-2.53451906396442, 609.918546236458},
-                           {2.18738922312177, 609.918546236458},
-                           {-11.9586196560814, 304.204253530802},
-                           {-15.2556006134987, 304.204253530802},
-                           {-31.2774318502685, 613.426120316623},
-                           {-26.5391748405779, 613.426120316623}}));
-        //
-    R"json({"_type":"shape","interior":{"_type":"gentrap","halfedges":[0.501588152875291,0.5,51.400000000000006],
-        //
-    "phi":0.0,"theta":0.22584674950181247},"label":"LArEMECInnerWheelAbsorber02"})json",
-        //  {
-        //      {51.2, 0.40, 7.76},
-        //      {51.4, 0.51, 7.78},
-        //  });
-    }*/
+        // TODO: most generic gentrap with twisted side faces
+        EXPECT_THROW(
+            this->build_and_test(
+                G4GenericTrap("LArEMECInnerWheelAbsorber02",
+                              10.625,
+                              {{1.55857990922689, 302.468976599716},
+                               {-1.73031296208306, 302.468976599716},
+                               {-2.53451906396442, 609.918546236458},
+                               {2.18738922312177, 609.918546236458},
+                               {-11.9586196560814, 304.204253530802},
+                               {-15.2556006134987, 304.204253530802},
+                               {-31.2774318502685, 613.426120316623},
+                               {-26.5391748405779, 613.426120316623}}),
+                R"json({"_type":"shape","interior":{"_type":"gentrap","halfedges":[0.501588152875291,0.5,51.400000000000006],"phi":0.0,"theta":0.22584674950181247},"label":"LArEMECInnerWheelAbsorber02"})json",
+                {
+                    {51.2, 0.40, 7.76},
+                    {51.4, 0.51, 7.78},
+                }),
+            celeritas::RuntimeError);
+    }
 }
 
 TEST_F(SolidConverterTest, intersectionsolid)
