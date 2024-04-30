@@ -49,7 +49,7 @@ class RunnerOutput final : public OutputInterface
     Category category() const final { return Category::result; }
 
     //! Name of the entry inside the category.
-    std::string label() const final { return "runner"; }
+    std::string_view label() const final { return "runner"; }
 
     // Write output to the given JSON object
     void output(JsonPimpl*) const final;

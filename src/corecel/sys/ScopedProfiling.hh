@@ -21,12 +21,12 @@ namespace celeritas
  */
 struct ScopedProfilingInput
 {
-    std::string name;  //!< Name of the range
+    std::string_view name;  //!< Name of the range
     uint32_t color{};  //!< ARGB
     int32_t payload{};  //!< User data
     uint32_t category{};  //!< Category, used to group ranges together
 
-    ScopedProfilingInput(std::string const& name) : name{name} {}
+    ScopedProfilingInput(std::string_view n) : name{n} {}
 };
 
 //---------------------------------------------------------------------------//
@@ -68,7 +68,7 @@ class ScopedProfiling
     // Activate profiling with options
     explicit inline ScopedProfiling(Input const& input);
     // Activate profiling with just a name
-    explicit inline ScopedProfiling(std::string const& name);
+    explicit inline ScopedProfiling(std::string_view name);
 
     // Deactivate profiling
     inline ~ScopedProfiling();
@@ -104,7 +104,7 @@ ScopedProfiling::ScopedProfiling(Input const& input)
 /*!
  * Activate device profiling with just a name.
  */
-ScopedProfiling::ScopedProfiling(std::string const& name)
+ScopedProfiling::ScopedProfiling(std::string_view name)
     : ScopedProfiling{Input{name}}
 {
 }

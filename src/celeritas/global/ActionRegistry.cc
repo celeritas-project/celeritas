@@ -49,7 +49,7 @@ void ActionRegistry::insert_const_impl(SPConstAction&& action)
  */
 void ActionRegistry::insert_impl(SPConstAction&& action)
 {
-    auto label = action->label();
+    auto label = std::string{action->label()};
     CELER_VALIDATE(!label.empty(), << "action label is empty");
 
     auto id = action->action_id();

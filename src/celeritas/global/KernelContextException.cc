@@ -46,8 +46,8 @@ KernelContextException::KernelContextException(
     HostCRef<CoreParamsData> const& params,
     HostRef<CoreStateData> const& states,
     ThreadId thread,
-    std::string&& label)
-    : thread_(thread), label_(std::move(label))
+    std::string_view label)
+    : thread_(thread), label_{label}
 {
     try
     {

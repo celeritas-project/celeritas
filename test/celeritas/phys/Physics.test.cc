@@ -64,9 +64,9 @@ TEST_F(PhysicsParamsTest, accessors)
     std::vector<std::string> process_names;
     for (auto process_id : range(ProcessId{p.num_processes()}))
     {
-        process_names.push_back(p.process(process_id)->label());
+        process_names.emplace_back(p.process(process_id)->label());
     }
-    std::string const expected_process_names[]
+    static char const* const expected_process_names[]
         = {"scattering", "absorption", "purrs", "hisses", "meows", "barks"};
     EXPECT_VEC_EQ(expected_process_names, process_names);
 
@@ -76,8 +76,8 @@ TEST_F(PhysicsParamsTest, accessors)
     for (auto model_id : range(ModelId{p.num_models()}))
     {
         Model const& m = *p.model(model_id);
-        model_names.push_back(m.label());
-        model_desc.push_back(m.description());
+        model_names.emplace_back(m.label());
+        model_desc.emplace_back(m.description());
     }
 
     static std::string const expected_model_names[] = {
@@ -252,7 +252,7 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
 
     ParamsHostRef params_ref;
     StateStore state;
-    std::map<std::string, ProcessId> process_names;
+    std::map<std::string_view, ProcessId> process_names;
     RandomEngine rng_;
 };
 

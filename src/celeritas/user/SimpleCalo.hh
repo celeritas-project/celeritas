@@ -77,7 +77,7 @@ class SimpleCalo final : public StepInterface, public OutputInterface
     // Category of data to write
     Category category() const final { return Category::result; }
     // Key for the entry inside the category.
-    std::string label() const final { return output_label_; }
+    std::string_view label() const final { return output_label_; }
     // Write output to the given JSON object
     void output(JsonPimpl*) const final;
     //!@}

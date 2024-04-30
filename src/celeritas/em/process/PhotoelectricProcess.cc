@@ -62,7 +62,7 @@ auto PhotoelectricProcess::step_limits(Applicability applic) const
 /*!
  * Name of the process.
  */
-std::string PhotoelectricProcess::label() const
+std::string_view PhotoelectricProcess::label() const
 {
     return "Photoelectric effect";
 }
