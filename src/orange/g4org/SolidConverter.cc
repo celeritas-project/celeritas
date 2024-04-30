@@ -580,7 +580,8 @@ auto SolidConverter::torus(arg_type solid_base) -> result_type
 }
 
 //---------------------------------------------------------------------------//
-/** Convert a trapezoid.
+/*!
+ * Convert a trapezoid.
  *
  * Here is the full description of the G4Trap parameters, as named here:
  *
