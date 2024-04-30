@@ -33,8 +33,11 @@ class MyExplicitAction final : public ExplicitCoreActionInterface,
     }
 
     ActionId action_id() const final { return action_id_; }
-    std::string label() const final { return "explicit"; }
-    std::string description() const final { return "explicit action test"; }
+    std::string_view label() const final { return "explicit"; }
+    std::string_view description() const final
+    {
+        return "explicit action test";
+    }
 
     void begin_run(CoreParams const&, CoreStateHost&) final
     {

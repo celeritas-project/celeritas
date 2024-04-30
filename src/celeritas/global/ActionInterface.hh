@@ -8,6 +8,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 
 #include "celeritas/Types.hh"  // IWYU pragma: export
 
@@ -58,10 +59,10 @@ class ActionInterface
     virtual ActionId action_id() const = 0;
 
     //! Short unique label of the action
-    virtual std::string label() const = 0;
+    virtual std::string_view label() const = 0;
 
     //! Description of the action
-    virtual std::string description() const = 0;
+    virtual std::string_view description() const = 0;
 
   protected:
     //!@{
@@ -194,10 +195,10 @@ class ConcreteAction : public virtual ActionInterface
     ActionId action_id() const final { return id_; }
 
     //! Short label
-    std::string label() const final { return label_; }
+    std::string_view label() const final { return label_; }
 
     //! Descriptive label
-    std::string description() const final { return description_; }
+    std::string_view description() const final { return description_; }
 
   private:
     ActionId id_;

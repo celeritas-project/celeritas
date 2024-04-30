@@ -40,19 +40,11 @@ StepGatherAction<P>::StepGatherAction(ActionId id,
     CELER_EXPECT(id_);
     CELER_EXPECT(!callbacks_.empty() || P == StepPoint::pre);
     CELER_EXPECT(storage_);
-}
 
-//---------------------------------------------------------------------------//
-/*!
- * Descriptive name of the action.
- */
-template<StepPoint P>
-std::string StepGatherAction<P>::description() const
-{
-    std::string result = "gather ";
-    result += P == StepPoint::pre ? "pre" : "post";
-    result += "-step steps/hits";
-    return result;
+    description_ = "gather ";
+    description_ += (P == StepPoint::pre ? "pre" : "post");
+    description_ += "-step steps/hits";
+    CELER_ENSURE(!description_.empty());
 }
 
 //---------------------------------------------------------------------------//

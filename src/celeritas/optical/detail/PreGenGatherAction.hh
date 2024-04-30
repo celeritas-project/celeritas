@@ -45,10 +45,13 @@ class PreGenGatherAction final : public ExplicitCoreActionInterface
     ActionId action_id() const final { return id_; }
 
     //! Short name for the action
-    std::string label() const final { return "optical-pre-generator-pre"; }
+    std::string_view label() const final
+    {
+        return "optical-pre-generator-pre";
+    }
 
     // Name of the action (for user output)
-    std::string description() const final;
+    std::string_view description() const final;
 
     //! Dependency ordering of the action
     ActionOrder order() const final { return ActionOrder::pre; }

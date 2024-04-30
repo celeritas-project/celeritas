@@ -38,7 +38,7 @@ class OrangeParamsOutput final : public OutputInterface
     Category category() const final { return Category::internal; }
 
     //! Name of the entry inside the category.
-    std::string label() const final { return "orange"; }
+    std::string_view label() const final { return "orange"; }
 
     // Write output to the given JSON object
     void output(JsonPimpl*) const final;

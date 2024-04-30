@@ -87,7 +87,7 @@ class MockProcess : public Process
     VecModel build_models(ActionIdIter start_id) const final;
     StepLimitBuilders step_limits(Applicability range) const final;
     bool use_integral_xs() const final;
-    std::string label() const final;
+    std::string_view label() const final;
 
   private:
     Input data_;

@@ -37,8 +37,11 @@ class MockInteractAction final : public ExplicitCoreActionInterface
     void execute(CoreParams const&, CoreStateDevice&) const final;
 
     ActionId action_id() const final { return id_; }
-    std::string label() const final { return "mock-interact"; }
-    std::string description() const final { return "mock interact kernel"; }
+    std::string_view label() const final { return "mock-interact"; }
+    std::string_view description() const final
+    {
+        return "mock interact kernel";
+    }
     ActionOrder order() const final { return ActionOrder::post; }
 
     // Get the number of secondaries

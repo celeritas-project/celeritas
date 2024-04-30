@@ -51,7 +51,7 @@ class CoulombScatteringProcess : public Process
     bool use_integral_xs() const final;
 
     // Name of the process
-    std::string label() const final;
+    std::string_view label() const final;
 
   private:
     SPConstParticles particles_;

@@ -23,6 +23,15 @@ MockModel::MockModel(Input data) : data_(std::move(data))
     CELER_EXPECT(data_.materials);
     CELER_EXPECT(data_.applic);
     CELER_EXPECT(data_.cb);
+    label_ = "mock-model-";
+    label_ += std::to_string(data_.id.get() - 4);
+
+    std::ostringstream os;
+    os << "MockModel(" << (data_.id.get() - 4)
+       << ", p=" << data_.applic.particle.get()
+       << ", emin=" << data_.applic.lower.value()
+       << ", emax=" << data_.applic.upper.value() << ")";
+    description_ = std::move(os).str();
 }
 
 auto MockModel::applicability() const -> SetApplicability
@@ -64,21 +73,6 @@ void MockModel::execute(CoreParams const&, CoreStateDevice&) const
 {
     // Inform calling test code that we've been executed
     data_.cb(this->action_id());
-}
-
-std::string MockModel::label() const
-{
-    return std::string("mock-model-") + std::to_string(data_.id.get() - 4);
-}
-
-std::string MockModel::description() const
-{
-    std::ostringstream os;
-    os << "MockModel(" << (data_.id.get() - 4)
-       << ", p=" << data_.applic.particle.get()
-       << ", emin=" << data_.applic.lower.value()
-       << ", emax=" << data_.applic.upper.value() << ")";
-    return os.str();
 }
 
 //---------------------------------------------------------------------------//

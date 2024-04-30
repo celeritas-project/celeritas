@@ -51,11 +51,13 @@ class MockModel final : public Model
     void execute(CoreParams const&, CoreStateHost&) const final;
     void execute(CoreParams const&, CoreStateDevice&) const final;
     ActionId action_id() const final { return data_.id; }
-    std::string label() const final;
-    std::string description() const final;
+    std::string_view label() const final { return label_; }
+    std::string_view description() const final { return description_; }
 
   private:
     Input data_;
+    std::string label_;
+    std::string description_;
 };
 
 //---------------------------------------------------------------------------//
