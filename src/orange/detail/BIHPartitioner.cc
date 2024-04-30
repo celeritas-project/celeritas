@@ -152,9 +152,13 @@ BIHPartitioner::make_partition(VecIndices const& indices,
         }
     }
 
+    CELER_ASSERT(!p.indices[Edge::left].empty());
+    CELER_ASSERT(!p.indices[Edge::right].empty());
+
     p.bboxes[Edge::left] = calc_union(*bboxes_, p.indices[Edge::left]);
     p.bboxes[Edge::right] = calc_union(*bboxes_, p.indices[Edge::right]);
 
+    CELER_ENSURE(p);
     return p;
 }
 

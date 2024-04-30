@@ -59,6 +59,7 @@ BIHTree BIHBuilder::operator()(VecBBox&& bboxes)
         }
         else if (is_infinite(temp_.bboxes[i]))
         {
+            // Infinite in *every* direction
             inf_volids.push_back(id);
         }
         else
