@@ -81,7 +81,9 @@ auto CoulombScatteringModel::applicability() const -> SetApplicability
 {
     Applicability electron_applic;
     electron_applic.particle = this->host_ref().ids.electron;
-    electron_applic.lower = detail::coulomb_scattering_limit();
+    // TODO: Set the lower energy limit equal to the MSC energy limit when
+    // combined single and multiple Coulomb scattering is supported and enabled
+    electron_applic.lower = zero_quantity();
     electron_applic.upper = detail::high_energy_limit();
 
     Applicability positron_applic = electron_applic;

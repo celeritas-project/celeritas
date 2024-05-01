@@ -147,7 +147,7 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
         // Calculate rejection for fake scattering
         // TODO: Reference?
         real_type mott_coeff
-            = 1 + real_type(1e-4) * ipow<2>(target_.atomic_number().get());
+            = 1 + real_type(2e-4) * ipow<2>(target_.atomic_number().get());
         MottRatioCalculator mott_xsec(element_data_,
                                       std::sqrt(particle_.beta_sq()));
         real_type g_rej = mott_xsec(cos_theta)
@@ -262,9 +262,9 @@ CELER_FUNCTION real_type WentzelDistribution::sample_cos_t(real_type cos_t_max,
     real_type const xi = generate_canonical(rng);
     real_type const sc = helper_.screening_coefficient();
 
-    return clamp(1 + 2 * sc * mu * (1 - xi) / (sc - mu * xi),
-                 real_type{-1},
-                 real_type{1});
+    real_type result = 1 - 2 * sc * mu * (1 - xi) / (sc + mu * xi);
+    CELER_ENSURE(result >= -1 && result <= 1);
+    return result;
 }
 
 //---------------------------------------------------------------------------//

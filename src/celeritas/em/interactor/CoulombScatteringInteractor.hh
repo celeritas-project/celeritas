@@ -110,7 +110,7 @@ CoulombScatteringInteractor::CoulombScatteringInteractor(
 {
     CELER_EXPECT(particle_.particle_id() == shared.ids.electron
                  || particle_.particle_id() == shared.ids.positron);
-    CELER_EXPECT(particle_.energy() > detail::coulomb_scattering_limit()
+    CELER_EXPECT(particle_.energy() > zero_quantity()
                  && particle_.energy() < detail::high_energy_limit());
 }
 
