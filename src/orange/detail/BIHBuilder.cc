@@ -60,10 +60,15 @@ BIHTree BIHBuilder::operator()(VecBBox&& bboxes)
         else if (is_infinite(temp_.bboxes[i]))
         {
             // Infinite in *every* direction
+            // TODO: make an exception for "EXTERIOR" volume and remove the
+            // "infinite volume" exceptions?
             inf_volids.push_back(id);
         }
         else
         {
+            // Prohibit semi-infinite bounding boxes because those break the
+            // cost function
+            CELER_ASSERT(is_finite(temp_.bboxes[i]));
             indices.push_back(id);
         }
     }

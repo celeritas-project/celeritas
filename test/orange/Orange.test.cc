@@ -1424,6 +1424,16 @@ TEST_F(InputBuilderTest, hierarchy)
 }
 
 //---------------------------------------------------------------------------//
+TEST_F(InputBuilderTest, incomplete_bb)
+{
+    if (CELERITAS_USE_JSON)
+    {
+        OrangeParamsOutput out(this->geometry());
+        EXPECT_JSON_EQ(R"json({})json", to_string(out));
+    }
+}
+
+//---------------------------------------------------------------------------//
 class TestEm3GeantTest : public GeantOrangeTest
 {
     std::string geometry_basename() const final { return "testem3"; }

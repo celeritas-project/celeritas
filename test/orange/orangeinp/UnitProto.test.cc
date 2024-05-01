@@ -632,6 +632,48 @@ TEST_F(InputBuilderTest, hierarchy)
     this->test(*global);
 }
 
+// Equivalent to universes.org.omn
+TEST_F(InputBuilderTest, incomplete_bb)
+{
+    auto inner = std::make_shared<UnitProto>([] {
+        UnitProto::Input inp;
+        inp.boundary.interior = make_sph("bound", 5.0);
+        inp.boundary.zorder = ZOrder::media;
+        inp.label = "inner";
+
+        using VR2 = GenTrap::VecReal2;
+        auto trd = make_shape<GenTrap>("turd",
+                                       3.0,
+                                       VR2{{-1, -1}, {1, -1}, {1, 1}, {-1, 1}},
+                                       VR2{{-2, -2}, {2, -2}, {2, 2}, {-2, 2}});
+        inp.materials.push_back(
+            make_material(make_rdv("fill",
+                                   {{Sense::inside, inp.boundary.interior},
+                                    {Sense::outside, trd}}),
+                          1));
+        inp.materials.push_back(make_material(std::move(trd), 2));
+        return inp;
+    }());
+
+    auto outer = std::make_shared<UnitProto>([&] {
+        UnitProto::Input inp;
+        inp.boundary.interior = make_sph("bound", 10.0);
+        inp.boundary.zorder = ZOrder::media;
+        inp.label = "global";
+
+        inp.daughters.push_back({inner, Translation{{2, 0, 0}}});
+
+        inp.materials.push_back(make_material(
+            make_rdv("shell",
+                     {{Sense::inside, inp.boundary.interior},
+                      {Sense::outside, inp.daughters.front().make_interior()}}),
+            1));
+        return inp;
+    }());
+
+    this->test(*outer);
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace orangeinp
