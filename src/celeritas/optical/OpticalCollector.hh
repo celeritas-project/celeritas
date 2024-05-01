@@ -12,8 +12,9 @@
 #include "celeritas/Types.hh"
 #include "celeritas/optical/OpticalGenData.hh"
 
-#include "detail/PreGenAction.hh"
+#include "detail/CerenkovPreGenAction.hh"
 #include "detail/PreGenGatherAction.hh"
+#include "detail/ScintPreGenAction.hh"
 
 namespace celeritas
 {
@@ -84,14 +85,17 @@ class OpticalCollector
   private:
     //// TYPES ////
 
-    using SPPreGenAction = std::shared_ptr<detail::PreGenAction>;
+    using SPCerenkovPreGenAction
+        = std::shared_ptr<detail::CerenkovPreGenAction>;
+    using SPScintPreGenAction = std::shared_ptr<detail::ScintPreGenAction>;
     using SPGatherAction = std::shared_ptr<detail::PreGenGatherAction>;
 
     //// DATA ////
 
     SPGenStorage storage_;
     SPGatherAction gather_action_;
-    SPPreGenAction pregen_action_;
+    SPCerenkovPreGenAction cerenkov_pregen_action_;
+    SPScintPreGenAction scint_pregen_action_;
     // TODO: tracking loop launcher
     // TODO: store optical core params and state?
 };

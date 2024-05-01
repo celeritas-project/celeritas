@@ -3,19 +3,21 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/PreGenGatherAction.hh
+//! \file celeritas/optical/detail/ScintPreGenAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
-#include <vector>
 
 #include "corecel/Macros.hh"
 #include "corecel/data/Collection.hh"
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/optical/OpticalDistributionData.hh"
 
 namespace celeritas
 {
+class ScintillationParams;
+
 namespace detail
 {
 struct OpticalGenStorage;
@@ -23,17 +25,20 @@ struct OpticalGenStorage;
 /*!
  * Generate optical distribution data.
  */
-class PreGenGatherAction final : public ExplicitCoreActionInterface
+class ScintPreGenAction final : public ExplicitCoreActionInterface
 {
   public:
     //!@{
     //! \name Type aliases
+    using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
     using SPGenStorage = std::shared_ptr<detail::OpticalGenStorage>;
     //!@}
 
   public:
-    // Construct with action ID and storage
-    PreGenGatherAction(ActionId id, SPGenStorage storage);
+    // Construct with action ID, optical properties, and storage
+    ScintPreGenAction(ActionId id,
+                      SPConstScintillation scintillation,
+                      SPGenStorage storage);
 
     // Launch kernel with host data
     void execute(CoreParams const&, CoreStateHost&) const final;
@@ -47,20 +52,29 @@ class PreGenGatherAction final : public ExplicitCoreActionInterface
     //! Short name for the action
     std::string_view label() const final
     {
-        return "optical-pre-generator-gather";
+        return "scintillation-pre-generator";
     }
 
     // Name of the action (for user output)
     std::string_view description() const final;
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::pre; }
+    ActionOrder order() const final { return ActionOrder::post_post; }
 
   private:
     //// DATA ////
 
     ActionId id_;
+    SPConstScintillation scintillation_;
     SPGenStorage storage_;
+
+    //// HELPER FUNCTIONS ////
+
+    template<MemSpace M>
+    void execute_impl(CoreParams const&, CoreState<M>&) const;
+
+    void pre_generate(CoreParams const&, CoreStateHost&) const;
+    void pre_generate(CoreParams const&, CoreStateDevice&) const;
 };
 
 //---------------------------------------------------------------------------//

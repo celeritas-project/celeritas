@@ -58,9 +58,11 @@ class LArSpherePreGenTest : public LArSphereBase
     };
 
   public:
-    void SetUp() override;
+    void SetUp() override {}
 
     SPConstAction build_along_step() override;
+
+    void build_optical_collector();
 
     VecPrimary make_primaries(size_type count);
 
@@ -74,26 +76,9 @@ class LArSpherePreGenTest : public LArSphereBase
 
     std::shared_ptr<OpticalCollector> collector_;
     StreamId stream_{0};
+    bool use_scintillation_{true};
+    bool use_cerenkov_{true};
 };
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct optical collector at setup time.
- */
-void LArSpherePreGenTest::SetUp()
-{
-    auto& action_reg = *this->action_reg();
-
-    OpticalCollector::Input inp;
-    inp.properties = this->properties();
-    inp.cerenkov = this->cerenkov();
-    inp.scintillation = this->scintillation();
-    inp.action_registry = &action_reg;
-    inp.buffer_capacity = 256;
-    inp.num_streams = 1;
-
-    collector_ = std::make_shared<OpticalCollector>(inp);
-}
 
 //---------------------------------------------------------------------------//
 //! Print the expected result
@@ -153,6 +138,31 @@ auto LArSpherePreGenTest::build_along_step() -> SPConstAction
     CELER_ASSERT(result->has_msc());
     action_reg.insert(result);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct optical collector.
+ */
+void LArSpherePreGenTest::build_optical_collector()
+{
+    auto& action_reg = *this->action_reg();
+
+    OpticalCollector::Input inp;
+    if (use_cerenkov_)
+    {
+        inp.properties = this->properties();
+        inp.cerenkov = this->cerenkov();
+    }
+    if (use_scintillation_)
+    {
+        inp.scintillation = this->scintillation();
+    }
+    inp.action_registry = &action_reg;
+    inp.buffer_capacity = 256;
+    inp.num_streams = 1;
+
+    collector_ = std::make_shared<OpticalCollector>(inp);
 }
 
 //---------------------------------------------------------------------------//
@@ -267,6 +277,7 @@ template LArSpherePreGenTest::RunResult
 
 TEST_F(LArSpherePreGenTest, host)
 {
+    this->build_optical_collector();
     auto result = this->run<MemSpace::host>(4, 64);
 
     static real_type const expected_cerenkov_charge[] = {-1, 1};
@@ -320,6 +331,7 @@ TEST_F(LArSpherePreGenTest, host)
 
 TEST_F(LArSpherePreGenTest, TEST_IF_CELER_DEVICE(device))
 {
+    this->build_optical_collector();
     auto result = this->run<MemSpace::device>(8, 32);
 
     static real_type const expected_cerenkov_charge[] = {-1, 1};
@@ -383,6 +395,50 @@ TEST_F(LArSpherePreGenTest, TEST_IF_CELER_DEVICE(device))
 
         EXPECT_EQ(3595786, result.scintillation.total_num_photons);
         EXPECT_EQ(196, result.scintillation.num_photons.size());
+    }
+}
+
+TEST_F(LArSpherePreGenTest, only_cerenkov)
+{
+    use_scintillation_ = false;
+    this->build_optical_collector();
+
+    auto result = this->run<MemSpace::host>(4, 16);
+
+    EXPECT_EQ(0, result.scintillation.total_num_photons);
+    EXPECT_EQ(0, result.scintillation.num_photons.size());
+
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_EQ(19601, result.cerenkov.total_num_photons);
+        EXPECT_EQ(37, result.cerenkov.num_photons.size());
+    }
+    else
+    {
+        EXPECT_EQ(20790, result.cerenkov.total_num_photons);
+        EXPECT_EQ(43, result.cerenkov.num_photons.size());
+    }
+}
+
+TEST_F(LArSpherePreGenTest, only_scintillation)
+{
+    use_cerenkov_ = false;
+    this->build_optical_collector();
+
+    auto result = this->run<MemSpace::host>(4, 16);
+
+    EXPECT_EQ(0, result.cerenkov.total_num_photons);
+    EXPECT_EQ(0, result.cerenkov.num_photons.size());
+
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_EQ(1629295, result.scintillation.total_num_photons);
+        EXPECT_EQ(53, result.scintillation.num_photons.size());
+    }
+    else
+    {
+        EXPECT_EQ(1656334, result.scintillation.total_num_photons);
+        EXPECT_EQ(52, result.scintillation.num_photons.size());
     }
 }
 
