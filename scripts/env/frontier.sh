@@ -1,9 +1,8 @@
 #!/bin/sh -e
 
 PROJID=hep143
-_celer_view=${PROJWORK}/${PROJID}/opt-view
-_tool_view=/ccs/proj/${PROJID}/opt-view
-_conda=/ccs/proj/${PROJID}/conda-frontier
+_worldwork=${WORLDWORK}/${PROJID}
+_ccsproj=/ccs/proj/${PROJID}
 
 module load PrgEnv-amd/8.5.0 cpe/23.12 amd/5.7.1 craype-x86-trento \
   libfabric/1.15.2.0 miniforge3/23.11.0
@@ -27,10 +26,10 @@ export CC=${CRAYPE_DIR}/bin/cc
 # module load craype-accel-amd-gfx90a
 
 # Set up celeritas
-export SPACK_ROOT=/ccs/proj/hep143/spack
-export PATH=${_celer_view}/bin:${_tool_view}/bin:${_conda}/bin:$PATH
-export CMAKE_PREFIX_PATH=${_celer_view}:${CMAKE_PREFIX_PATH}
-export MODULEPATH=${PROJWORK}/${PROJID}/share/lmod/linux-sles15-x86_64/Core:${MODULEPATH}
+export SPACK_ROOT=${_ccsproj}/spack
+export PATH=${_worldwork}/opt-view/bin:${_ccsproj}/opt-view/bin:${_ccsproj}/conda-frontier/bin:$PATH
+export CMAKE_PREFIX_PATH=${_worldwork}/opt-view:${CMAKE_PREFIX_PATH}
+export MODULEPATH=${_worldwork}/share/lmod/linux-sles15-x86_64/Core:${MODULEPATH}
 
 # Set up Geant4 data 
 module load geant4-data/11.0
