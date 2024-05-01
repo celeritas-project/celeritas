@@ -92,7 +92,6 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
         }
         ++result.num_step_iterations;
         result.num_steps += track_counts.active;
-        result.num_aborted = track_counts.alive + track_counts.queued;
         result.max_queued = std::max(result.max_queued, track_counts.queued);
     };
 
@@ -127,9 +126,8 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
         }
         if (CELER_UNLIKELY(interrupted()))
         {
-            CELER_LOG_LOCAL(error)
-                << "Caught interrupt signal: aborting transport "
-                   "loop";
+            CELER_LOG_LOCAL(error) << "Caught interrupt signal: aborting "
+                                      "transport loop";
             interrupted = {};
             break;
         }
@@ -144,6 +142,7 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
         }
     }
 
+    result.num_aborted = track_counts.alive + track_counts.queued;
     result.num_track_slots = stepper_->state().size();
     return result;
 }
