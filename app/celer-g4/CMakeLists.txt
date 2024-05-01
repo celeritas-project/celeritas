@@ -32,6 +32,12 @@ if(CELERITAS_USE_Geant4)
       nlohmann_json::nlohmann_json
     )
   endif()
+  if(CELERITAS_USE_ROOT)
+    list(APPEND SOURCES
+      RootIO.cc
+    )
+    list(APPEND LIBRARIES ROOT::Tree)
+  endif()
   celeritas_get_g4libs(_g4_libs geometry persistency intercoms run tasking
     physicslists interfaces)
   list(APPEND LIBRARIES ${_g4_libs})
@@ -40,13 +46,6 @@ else()
     celer-g4.nogeant.cc
   )
   set(LIBRARIES Celeritas::corecel)
-endif()
-
-if(CELERITAS_USE_ROOT AND CELERITAS_USE_Geant4)
-  list(APPEND SOURCES
-    RootIO.cc
-  )
-  list(APPEND LIBRARIES ROOT::Tree)
 endif()
 
 celeritas_add_executable(celer-g4 ${SOURCES})
