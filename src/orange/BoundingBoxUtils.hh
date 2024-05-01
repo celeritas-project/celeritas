@@ -27,17 +27,34 @@ class Transformation;
 //---------------------------------------------------------------------------//
 /*!
  * Check if a bounding box spans (-inf, inf) in every direction.
- *
- * \pre The bounding box cannot be null
  */
 template<class T>
 inline bool is_infinite(BoundingBox<T> const& bbox)
 {
+    constexpr T inf = numeric_limits<real_type>::infinity();
+
+    return all_of(bbox.lower().begin(),
+                  bbox.lower().end(),
+                  [](T value) { return value == -inf; })
+           && all_of(bbox.upper().begin(), bbox.upper().end(), [](T value) {
+                  return value == inf;
+              });
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Check if a bounding box is finite.
+ *
+ * \pre The bounding box cannot be null
+ */
+template<class T>
+inline bool is_finite(BoundingBox<T> const& bbox)
+{
     CELER_EXPECT(bbox);
 
     auto isinf = [](T value) { return std::isinf(value); };
-    return all_of(bbox.lower().begin(), bbox.lower().end(), isinf)
-           && all_of(bbox.upper().begin(), bbox.upper().end(), isinf);
+    return !any_of(bbox.lower().begin(), bbox.lower().end(), isinf)
+           && !any_of(bbox.upper().begin(), bbox.upper().end(), isinf);
 }
 
 //---------------------------------------------------------------------------//
