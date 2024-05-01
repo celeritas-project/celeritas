@@ -64,12 +64,6 @@ CELER_CONSTEXPR_FUNCTION units::MevEnergy seltzer_berger_limit()
     return units::MevEnergy{1e3};  //! 1 GeV
 }
 
-//! Minimum energy for Wentzel model to be applicable
-CELER_CONSTEXPR_FUNCTION units::MevEnergy coulomb_scattering_limit()
-{
-    return units::MevEnergy{1e2};  //! 100 MeV
-}
-
 //! Maximum energy for EM models to be valid
 CELER_CONSTEXPR_FUNCTION units::MevEnergy high_energy_limit()
 {
