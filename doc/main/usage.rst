@@ -186,6 +186,64 @@ Output
 The ROOT "MC truth" output file, if enabled with the command above, contains
 hits from all the sensitive detectors.
 
+
+.. _celer-geo:
+
+Visualization application (celer-geo)
+=====================================
+
+The ``celer-geo`` app is a server-like front end to the Celeritas geometry
+interfaces that can generate exact images of a user geometry model.
+
+Usage::
+
+  celer-geo {input}.jsonl
+            -
+
+Input
+-----
+
+The input and output are both formatted as `JSON lines`_, a format where each
+line (i.e., text ending with ``\\n``) is a valid JSON object. Each line of
+input executes a command in ``celer-geo`` which will print to ``stdout`` a
+single JSON line. Log messages are sent to ``stderr`` and can be
+controlled by the :ref:`environment` variables.
+
+The first input command must define the input model (and may define additional
+device settings)::
+
+   {"geometry_file": "simple-cms.gdml"}
+
+Subsequent lines will each specify the imaging window, the geometry, the
+binary image output filename, and the execution space (device or host for GPU
+or CPU, respectively).::
+
+   {"image": {"_units": "cgs", "lower_left": [-800, 0, -1500], "upper_right": [800, 0, 1600], "rightward": [1, 0, 0], "vertical_pixels": 128}, "volumes": true, "bin_file": "simple-cms-cpu.orange.bin"}
+
+After the first image window is specified, it will be reused if the "image" key
+is omitted. A new geometry and/or execution space may be specified, useful for
+verifying different navigators behave identically::
+
+   {"bin_file": "simple-cms-cpu.geant4.bin", "geometry": "geant4"}
+
+An interrupt signal (``^C``), end-of-file (``^D``), or empty command will all
+terminate the server.
+
+.. _JSON lines: https://jsonlines.org
+
+Output
+------
+
+If an input command is invalid or empty, an "example" (i.e., default but
+incomplete input) will be output and the program may continue or be terminated.
+
+A successful raytrace will print the actually-used image parameters, geometry,
+and execution space. If the "volumes" key was set to true, it will also
+determine and print all the volume names for the geometry.
+
+When the server is directed to terminate, it will print diagnostic information
+about the code, including timers about the geometry loading and tracing.
+
 Additional utilities
 ====================
 

@@ -281,28 +281,7 @@ TEST_F(CoulombScatteringTest, wokvi_transport_xs)
 
 TEST_F(CoulombScatteringTest, simple_scattering)
 {
-    int const num_samples = 10;
-
-    static real_type const expected_angle[] = {1,
-                                               0.99999999776622,
-                                               0.99999999990987,
-                                               0.99999999931707,
-                                               0.99999999847986,
-                                               0.9999999952274,
-                                               0.99999999905465,
-                                               0.99999999375773,
-                                               1,
-                                               0.99999999916491};
-    static real_type const expected_energy[] = {200,
-                                                199.99999999847,
-                                                199.99999999994,
-                                                199.99999999953,
-                                                199.99999999896,
-                                                199.99999999673,
-                                                199.99999999935,
-                                                199.99999999572,
-                                                200,
-                                                199.99999999943};
+    int const num_samples = 4;
 
     IsotopeView const isotope = this->material_track()
                                     .make_material_view()
@@ -310,46 +289,93 @@ TEST_F(CoulombScatteringTest, simple_scattering)
                                     .make_isotope_view(IsotopeComponentId{0});
     auto cutoffs = this->cutoff_params()->get(MaterialId{0});
 
-    CoulombScatteringInteractor interact(model_->host_ref(),
-                                         this->particle_track(),
-                                         this->direction(),
-                                         isotope,
-                                         ElementId{0},
-                                         cutoffs);
     RandomEngine& rng_engine = this->rng();
 
-    std::vector<real_type> angle;
-    std::vector<real_type> energy;
+    std::vector<real_type> cos_theta;
+    std::vector<real_type> delta_energy;
 
-    for ([[maybe_unused]] int i : range(num_samples))
+    std::vector<real_type> energies{0.2, 1, 10, 100, 1000, 100000};
+    for (auto energy : energies)
     {
-        Interaction result = interact(rng_engine);
-        SCOPED_TRACE(result);
-        this->sanity_check(result);
+        this->set_inc_particle(pdg::electron(), MevEnergy{energy});
+        CoulombScatteringInteractor interact(model_->host_ref(),
+                                             this->particle_track(),
+                                             this->direction(),
+                                             isotope,
+                                             ElementId{0},
+                                             cutoffs);
 
-        energy.push_back(result.energy.value());
-        angle.push_back(dot_product(this->direction(), result.direction));
+        for ([[maybe_unused]] int i : range(num_samples))
+        {
+            Interaction result = interact(rng_engine);
+            SCOPED_TRACE(result);
+            this->sanity_check(result);
+
+            cos_theta.push_back(
+                dot_product(this->direction(), result.direction));
+            delta_energy.push_back(energy - result.energy.value());
+        }
     }
-
-    EXPECT_VEC_SOFT_EQ(expected_angle, angle);
-    EXPECT_VEC_SOFT_EQ(expected_energy, energy);
+    static double const expected_cos_theta[] = {1,
+                                                0.9996601312603,
+                                                0.99998628518524,
+                                                0.9998960794451,
+                                                1,
+                                                0.99991152273528,
+                                                0.99998247385882,
+                                                0.99988427878015,
+                                                1,
+                                                0.99999970191006,
+                                                0.99999637934855,
+                                                0.99999885954183,
+                                                0.999999997443,
+                                                0.99999999406847,
+                                                0.99999999849197,
+                                                1,
+                                                0.99999999992169,
+                                                1,
+                                                0.99999999209019,
+                                                0.99999999999489,
+                                                1,
+                                                0.99999999999999,
+                                                0.99999999999999,
+                                                1};
+    static double const expected_delta_energy[] = {0,
+                                                   1.4170232209842e-09,
+                                                   5.7181509527382e-11,
+                                                   4.3327857968123e-10,
+                                                   0,
+                                                   3.0519519134131e-09,
+                                                   6.0455007666604e-10,
+                                                   3.9917101846143e-09,
+                                                   0,
+                                                   5.6049742624964e-10,
+                                                   6.8078875870015e-09,
+                                                   2.1443966602419e-09,
+                                                   4.406643938637e-10,
+                                                   1.0222294122286e-09,
+                                                   2.5988811103161e-10,
+                                                   0,
+                                                   1.3371845852816e-09,
+                                                   0,
+                                                   1.350750835627e-07,
+                                                   8.7311491370201e-11,
+                                                   4.8021320253611e-10,
+                                                   8.7311491370201e-10,
+                                                   1.6734702512622e-09,
+                                                   0};
+    EXPECT_VEC_SOFT_EQ(expected_cos_theta, cos_theta);
+    EXPECT_VEC_SOFT_EQ(expected_delta_energy, delta_energy);
 }
 
 TEST_F(CoulombScatteringTest, distribution)
 {
     CoulombScatteringHostRef const& data = model_->host_ref();
+    std::vector<real_type> avg_angles;
 
-    std::vector<real_type> const energies = {50, 100, 200, 1000, 13000};
-
-    static real_type const expected_avg_angles[] = {0.99999962180819,
-                                                    0.99999973999034,
-                                                    0.9999999728531,
-                                                    0.99999999909264,
-                                                    0.99999999999393};
-
-    for (size_t i : range(energies.size()))
+    for (real_type energy : {1, 50, 100, 200, 1000, 13000})
     {
-        this->set_inc_particle(pdg::electron(), MevEnergy{energies[i]});
+        this->set_inc_particle(pdg::electron(), MevEnergy{energy});
 
         CoulombScatteringElementData const& element_data
             = data.elem_data[ElementId(0)];
@@ -378,10 +404,16 @@ TEST_F(CoulombScatteringTest, distribution)
         }
 
         avg_angle /= num_samples;
-
-        EXPECT_SOFT_NEAR(
-            expected_avg_angles[i], avg_angle, std::sqrt(num_samples));
+        avg_angles.push_back(avg_angle);
     }
+
+    static double const expected_avg_angles[] = {0.99933909299229,
+                                                 0.99999960697043,
+                                                 0.99999986035881,
+                                                 0.99999998052954,
+                                                 0.99999999917037,
+                                                 0.9999999999969};
+    EXPECT_VEC_SOFT_EQ(expected_avg_angles, avg_angles);
 }
 
 //---------------------------------------------------------------------------//
