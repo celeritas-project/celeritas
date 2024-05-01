@@ -7,7 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string_view>
+
 #include "corecel/Assert.hh"
+#include "corecel/io/JsonPimpl.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
@@ -47,7 +50,7 @@ class KernelContextException : public RichContextException
     KernelContextException(HostCRef<CoreParamsData> const& params,
                            HostRef<CoreStateData> const& states,
                            ThreadId tid,
-                           std::string&& label);
+                           std::string_view label);
 
     // This class type
     char const* type() const final;

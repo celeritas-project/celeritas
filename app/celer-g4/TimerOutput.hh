@@ -43,7 +43,7 @@ class TimerOutput final : public OutputInterface
     //! Category of data to write
     Category category() const final { return Category::result; }
     //! Key for the entry inside the category.
-    std::string label() const final { return "time"; }
+    std::string_view label() const final { return "time"; }
     // Write output to the given JSON object
     void output(JsonPimpl*) const final;
     //!@}

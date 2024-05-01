@@ -57,7 +57,7 @@ auto RayleighProcess::step_limits(Applicability applic) const
 /*!
  * Name of the process.
  */
-std::string RayleighProcess::label() const
+std::string_view RayleighProcess::label() const
 {
     return "Rayleigh scattering";
 }

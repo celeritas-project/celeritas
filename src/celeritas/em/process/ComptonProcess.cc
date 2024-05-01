@@ -53,7 +53,7 @@ auto ComptonProcess::step_limits(Applicability applic) const
 /*!
  * Name of the process.
  */
-std::string ComptonProcess::label() const
+std::string_view ComptonProcess::label() const
 {
     return "Compton scattering";
 }

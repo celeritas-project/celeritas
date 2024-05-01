@@ -68,10 +68,13 @@ class AlongStepGeneralLinearAction final : public ExplicitCoreActionInterface
     ActionId action_id() const final { return id_; }
 
     //! Short name for the along-step kernel
-    std::string label() const final { return "along-step-general-linear"; }
+    std::string_view label() const final
+    {
+        return "along-step-general-linear";
+    }
 
     //! Short description of the action
-    std::string description() const final
+    std::string_view description() const final
     {
         return "apply along-step for particles with no field";
     }

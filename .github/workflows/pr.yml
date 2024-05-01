@@ -11,8 +11,11 @@ on:
     paths-ignore:
       - '**.rst'
       - '**.md'
-      - 'scripts/dev'
+      - 'scripts'
       - '.jenkins'
+      - '!scripts/cmake-presets/ci*'
+      - '!scripts/ci'
+      - '!scripts/build.sh'
 
 concurrency:
   group: pr-${{github.ref}}-${{github.event.number}}-${{github.workflow}}
