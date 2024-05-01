@@ -20,6 +20,10 @@
 #    include "geocel/vg/VecgeomParams.hh"
 #endif
 
+#define CASE_RETURN_FUNC_T(T, FUNC, ...) \
+    case T:                              \
+        return this->FUNC<T>(__VA_ARGS__)
+
 namespace celeritas
 {
 namespace app
@@ -65,6 +69,8 @@ auto Runner::operator()(TraceSetup const& trace, ImageInput const& image_inp)
 //---------------------------------------------------------------------------//
 /*!
  * Perform a raytrace using the last image but a new geometry/memspace.
+ *
+ * The memory space in Celeritas is the same as the execution space.
  */
 auto Runner::operator()(TraceSetup const& trace) -> SPImage
 {
@@ -95,6 +101,8 @@ std::vector<std::string> Runner::get_volumes(Geometry g) const&
     return result;
 }
 
+//---------------------------------------------------------------------------//
+// HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
  * Load a geometry, caching it.
@@ -151,11 +159,8 @@ auto Runner::load_geometry() -> std::shared_ptr<GeoParams_t<G> const>
 }
 
 //---------------------------------------------------------------------------//
-#define CASE_RETURN_FUNC_T(T, FUNC, ...) \
-    case T:                              \
-        return this->FUNC<T>(__VA_ARGS__)
 /*!
- * Create a tracer.
+ * Create a tracer from an enumeration.
  */
 auto Runner::make_imager(Geometry g) -> SPImager
 {
@@ -172,7 +177,7 @@ auto Runner::make_imager(Geometry g) -> SPImager
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a tracer.
+ * Create a tracer of a given type.
  */
 template<Geometry G>
 auto Runner::make_imager() -> SPImager
@@ -193,7 +198,7 @@ auto Runner::make_imager() -> SPImager
 
 //---------------------------------------------------------------------------//
 /*!
- * Allocate and perform a raytrace.
+ * Allocate and perform a raytrace using an enumeration.
  */
 auto Runner::make_traced_image(MemSpace m, ImagerInterface& generate_image)
     -> SPImage
@@ -209,7 +214,7 @@ auto Runner::make_traced_image(MemSpace m, ImagerInterface& generate_image)
 
 //---------------------------------------------------------------------------//
 /*!
- * Allocate and perform a raytrace.
+ * Allocate and perform a raytrace with the given memory/execution space.
  */
 template<MemSpace M>
 auto Runner::make_traced_image(ImagerInterface& generate_image) -> SPImage

@@ -25,7 +25,16 @@ namespace app
 {
 //---------------------------------------------------------------------------//
 /*!
- * Set up and run rasterization, caching geometry as needed..
+ * Set up and run rasterization, caching as needed.
+ *
+ * Each geometry instance is loaded when requested. If Geant4 is enabled, and a
+ * GDML file is loaded, the Geant4 geometry model will be loaded *first* and
+ * used to perform in-memory conversion.
+ *
+ * The first call to the runner \em must set an image using the call operator
+ * that takes \c ImageInput, but subsequent calls will reuse the same image.
+ * This is useful for comparing that multiple geometries are rendering the same
+ * geometry identically.
  */
 class Runner
 {
@@ -43,7 +52,7 @@ class Runner
     // Perform a raytrace
     SPImage operator()(TraceSetup const&, ImageInput const&);
 
-    // Perform a raytrace using the last image but a new geometry/
+    // Perform a raytrace using the last image but a new geometry
     SPImage operator()(TraceSetup const&);
 
     //! Access timers

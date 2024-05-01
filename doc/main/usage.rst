@@ -203,9 +203,10 @@ Usage::
 Input
 -----
 
-The input and output are both formatted as `JSON lines`_. A single input JSON
-on a single line executes a command in ``celer-geo``, and a single JSON line is
-printed to ``stdout``. Log messages are sent to ``stderr`` and can be
+The input and output are both formatted as `JSON lines`_, a format where each
+line (i.e., text ending with ``\\n``) is a valid JSON object. Each line of
+input executes a command in ``celer-geo`` which will print to ``stdout`` a
+single JSON line. Log messages are sent to ``stderr`` and can be
 controlled by the :ref:`environment` variables.
 
 The first input command must define the input model (and may define additional
@@ -220,7 +221,7 @@ or CPU, respectively).::
    {"image": {"_units": "cgs", "lower_left": [-800, 0, -1500], "upper_right": [800, 0, 1600], "rightward": [1, 0, 0], "vertical_pixels": 128}, "volumes": true, "bin_file": "simple-cms-cpu.orange.bin"}
 
 After the first image window is specified, it will be reused if the "image" key
-is omitted. A new geometry and/or memory space may be specified, useful for
+is omitted. A new geometry and/or execution space may be specified, useful for
 verifying different navigators behave identically::
 
    {"bin_file": "simple-cms-cpu.geant4.bin", "geometry": "geant4"}

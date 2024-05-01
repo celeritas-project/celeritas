@@ -76,7 +76,7 @@ nlohmann::json get_json_line(std::istream& is)
 
 //---------------------------------------------------------------------------//
 /*!
- * Execute a single raytrace.
+ * Create a Runner from user input.
  */
 Runner make_runner(json const& input)
 {
