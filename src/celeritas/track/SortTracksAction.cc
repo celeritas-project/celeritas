@@ -90,7 +90,7 @@ SortTracksAction::SortTracksAction(ActionId id, TrackOrder track_order)
 /*!
  * Short name for the action
  */
-std::string SortTracksAction::label() const
+std::string_view SortTracksAction::label() const
 {
     switch (track_order_)
     {

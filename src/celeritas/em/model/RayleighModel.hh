@@ -58,10 +58,10 @@ class RayleighModel final : public Model
     ActionId action_id() const final;
 
     //! Short name for the interaction kernel
-    std::string label() const final { return "scat-rayleigh"; }
+    std::string_view label() const final { return "scat-rayleigh"; }
 
     //! Short description of the post-step action
-    std::string description() const final
+    std::string_view description() const final
     {
         return "interact by Rayleigh scattering";
     }

@@ -57,15 +57,15 @@ class StepGatherAction final : public ExplicitCoreActionInterface
     ActionId action_id() const final { return id_; }
 
     //! Short name for the action
-    std::string label() const final
+    std::string_view label() const final
     {
         return P == StepPoint::pre    ? "step-gather-pre"
                : P == StepPoint::post ? "step-gather-post"
-                                      : "";
+                                      : std::string_view{};
     }
 
     // Name of the action (for user output)
-    std::string description() const final;
+    std::string_view description() const final { return description_; }
 
     //! Dependency ordering of the action
     ActionOrder order() const final
@@ -81,6 +81,7 @@ class StepGatherAction final : public ExplicitCoreActionInterface
     ActionId id_;
     SPStepStorage storage_;
     VecInterface callbacks_;
+    std::string description_;
 };
 
 //---------------------------------------------------------------------------//

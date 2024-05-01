@@ -209,6 +209,7 @@ class Ellipsoid final : public ConvexRegionInterface
  */
 class GenTrap final : public ConvexRegionInterface
 {
+  public:
     //!@{
     //! \name Type aliases
     using Real2 = Array<real_type, 2>;

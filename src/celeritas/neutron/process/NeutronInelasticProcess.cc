@@ -61,7 +61,7 @@ auto NeutronInelasticProcess::step_limits(Applicability applic) const
 /*!
  * Name of the process.
  */
-std::string NeutronInelasticProcess::label() const
+std::string_view NeutronInelasticProcess::label() const
 {
     return "Neutron inelastic";
 }
