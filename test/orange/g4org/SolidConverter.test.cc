@@ -443,6 +443,34 @@ TEST_F(SolidConverterTest, trap)
     }
 }
 
+TEST_F(SolidConverterTest, trd)
+{
+    {
+        this->build_and_test(
+            G4Trd("boxTrd", 10, 10, 20, 20, 30),
+            R"json({"_type":"shape","interior":{"_type":"gentrap",
+                "halfheight":3.0,
+                "lower":[[-1.0,-2.0],[1.0,-2.0],[1.0,2.0],[-1.0,2.0]],
+                "upper":[[-1.0,-2.0],[1.0,-2.0],[1.0,2.0],[-1.0,2.0]]},
+                "label":"boxTrd"})json",
+            {{-1, -2, -3}, {1, 2, 3}, {1, 2, 4}});
+    }
+
+    {
+        this->build_and_test(
+            G4Trd("trd", 50, 100, 100, 200, 300),
+            R"json({"_type":"shape","interior":{"_type":"gentrap",
+                "halfheight":30.0,
+                "lower":[[-5.0,-10.0],[5.0,-10.0],[5.0,10.0],[-5.0,10.0]],
+                "upper":[[-10.0,-20.0],[10.0,-20.0],[10.0,20.0],[-10.0,20.0]]},
+                "label":"trd"})json",
+            {{-10, -20, -40},
+             {-10, -20, -30 + 1.e-6},
+             {5, 10, 30},
+             {10, 10, 30}});
+    }
+}
+
 TEST_F(SolidConverterTest, tubs)
 {
     this->build_and_test(
