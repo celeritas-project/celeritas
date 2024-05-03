@@ -39,14 +39,25 @@ OpticalCollector::OpticalCollector(Input inp)
         inp.action_registry->next_id(), storage_);
     inp.action_registry->insert(gather_action_);
 
-    // Action to generate Cerenkov and scintillation optical distributions
-    pregen_action_ = std::make_shared<detail::PreGenAction>(
-        inp.action_registry->next_id(),
-        inp.properties,
-        inp.cerenkov,
-        inp.scintillation,
-        storage_);
-    inp.action_registry->insert(pregen_action_);
+    if (host_data.cerenkov)
+    {
+        // Action to generate Cerenkov optical distributions
+        cerenkov_pregen_action_
+            = std::make_shared<detail::CerenkovPreGenAction>(
+                inp.action_registry->next_id(),
+                inp.properties,
+                inp.cerenkov,
+                storage_);
+        inp.action_registry->insert(cerenkov_pregen_action_);
+    }
+
+    if (host_data.scintillation)
+    {
+        // Action to generate scintillation optical distributions
+        scint_pregen_action_ = std::make_shared<detail::ScintPreGenAction>(
+            inp.action_registry->next_id(), inp.scintillation, storage_);
+        inp.action_registry->insert(scint_pregen_action_);
+    }
 
     // TODO: add an action to launch optical tracking loop
 }
