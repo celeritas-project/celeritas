@@ -663,17 +663,8 @@ auto SolidConverter::trd(arg_type solid_base) -> result_type
     auto hx1 = scale_(solid.GetXHalfLength1());
     auto hx2 = scale_(solid.GetXHalfLength2());
 
-    std::vector<GenTrap::Real2> lower(4), upper(4);
-    lower[0] = GenTrap::Real2{-hx1, -hy1};
-    lower[1] = GenTrap::Real2{+hx1, -hy1};
-    lower[2] = GenTrap::Real2{+hx1, +hy1};
-    lower[3] = GenTrap::Real2{-hx1, +hy1};
-    upper[0] = GenTrap::Real2{-hx2, -hy2};
-    upper[1] = GenTrap::Real2{+hx2, -hy2};
-    upper[2] = GenTrap::Real2{+hx2, +hy2};
-    upper[3] = GenTrap::Real2{-hx2, +hy2};
-
-    return make_shape<GenTrap>(solid, hz, lower, upper);
+    GenTrap::Real2 lo_rectangle{hx1, hy1}, hi_rectangle{hx2, hy2};
+    return make_shape<GenTrap>(solid, hz, lo_rectangle, hi_rectangle);
 }
 
 //---------------------------------------------------------------------------//

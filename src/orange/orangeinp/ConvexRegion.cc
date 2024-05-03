@@ -368,6 +368,31 @@ GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
     }
 }
 
+/*!
+ * Construct a TRD from 5 half-lengths: one half-height, {hx1,hy1} for a in -z,
+ * and {hx2,hy2} in +z
+ */
+GenTrap::GenTrap(real_type halfz, Real2 const& hxy1, Real2 const& hxy2)
+    : hz_{halfz}, lo_{4}, hi_{4}
+{
+    CELER_VALIDATE(hxy1[0] > 0 && hxy2[0] > 0,
+                   << "nonpositive x half-length: " << hxy1[0] << " "
+                   << hxy2[0]);
+    CELER_VALIDATE(hxy1[1] > 0 && hxy2[1] > 0,
+                   << "nonpositive y half-length: " << hxy1[1] << " "
+                   << hxy2[1]);
+    CELER_VALIDATE(hz_ > 0, << "nonpositive halfheight: " << hz_);
+
+    lo_[0] = GenTrap::Real2{-hxy1[0], -hxy1[1]};
+    lo_[1] = GenTrap::Real2{+hxy1[0], -hxy1[1]};
+    lo_[2] = GenTrap::Real2{+hxy1[0], +hxy1[1]};
+    lo_[3] = GenTrap::Real2{-hxy1[0], +hxy1[1]};
+    hi_[0] = GenTrap::Real2{-hxy2[0], -hxy2[1]};
+    hi_[1] = GenTrap::Real2{+hxy2[0], -hxy2[1]};
+    hi_[2] = GenTrap::Real2{+hxy2[0], +hxy2[1]};
+    hi_[3] = GenTrap::Real2{-hxy2[0], +hxy2[1]};
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Build surfaces.

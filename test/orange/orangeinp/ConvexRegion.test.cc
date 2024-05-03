@@ -425,6 +425,13 @@ TEST_F(GenTrapTest, construct)
                          {{-2, -2}, {-2, 2}, {2, 2}, {2, -2}}),
                  RuntimeError);  // non-convex
 
+    // Validate TRD-like construction parameters - 5 half-lengths
+    EXPECT_THROW(GenTrap(-3, {1, 1}, {2, 2}), RuntimeError);  // negative dZ
+    EXPECT_THROW(GenTrap(3, {-1, 1}, {2, 2}), RuntimeError);  // negative hx1
+    EXPECT_THROW(GenTrap(3, {1, -1}, {2, 2}), RuntimeError);  // negative hy1
+    EXPECT_THROW(GenTrap(3, {1, 1}, {-2, 2}), RuntimeError);  // negative hx2
+    EXPECT_THROW(GenTrap(3, {1, 1}, {2, -2}), RuntimeError);  // negative hy2
+
     // General non-planar GenTrap with 'twisted' faces is not yet implemented
     EXPECT_THROW(GenTrap(3,
                          {{-10, -10}, {-10, 10}, {10, 10}, {9, -11}},
@@ -454,11 +461,31 @@ TEST_F(GenTrapTest, box_like)
     EXPECT_VEC_SOFT_EQ((Real3{1, 1, 3}), result.exterior.upper());
 }
 
-TEST_F(GenTrapTest, trd)
+TEST_F(GenTrapTest, trd1)
 {
     auto result = this->test(GenTrap(3,
                                      {{-1, -1}, {1, -1}, {1, 1}, {-1, 1}},
                                      {{-2, -2}, {2, -2}, {2, 2}, {-2, 2}}));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-3",
+           "Plane: z=3",
+           "Plane: n={0,0.98639,0.1644}, d=-1.4796",
+           "Plane: n={0.98639,0,-0.1644}, d=1.4796",
+           "Plane: n={0,0.98639,-0.1644}, d=1.4796",
+           "Plane: n={0.98639,0,0.1644}, d=-1.4796"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -3}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 3}), result.exterior.upper());
+}
+
+TEST_F(GenTrapTest, trd2)
+{
+    auto result = this->test(GenTrap(3, {1, 1}, {2, 2}));
 
     static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
     static char const* const expected_surfaces[]

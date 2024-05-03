@@ -220,6 +220,9 @@ class GenTrap final : public ConvexRegionInterface
     // Construct from half Z height and 1-4 vertices for top and bottom planes
     GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi);
 
+    // Construct from half Z height and 2 half-lengths {hx,hy} for each z-face
+    GenTrap(real_type halfz, Real2 const& hxylo, Real2 const& hxyhi);
+
     // Build surfaces
     void build(ConvexSurfaceBuilder&) const final;
 
