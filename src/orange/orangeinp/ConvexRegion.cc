@@ -368,6 +368,7 @@ GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
     }
 }
 
+//---------------------------------------------------------------------------//
 /*!
  * Construct a TRD from 5 half-lengths: one half-height, {hx1,hy1} for a in -z,
  * and {hx2,hy2} in +z
