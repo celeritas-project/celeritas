@@ -10,7 +10,6 @@
 #include <string_view>
 
 #include "corecel/Assert.hh"
-#include "corecel/io/JsonPimpl.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
@@ -18,7 +17,10 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+class JsonPimpl;
 class CoreTrackView;
+
 //---------------------------------------------------------------------------//
 /*!
  * Provide contextual information about failed errors on CPU.
