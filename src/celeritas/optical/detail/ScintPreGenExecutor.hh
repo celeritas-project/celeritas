@@ -13,6 +13,8 @@
 #include "celeritas/optical/OpticalGenData.hh"
 #include "celeritas/optical/ScintillationPreGenerator.hh"
 
+#include "Utils.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -54,13 +56,8 @@ CELER_FUNCTION void ScintPreGenExecutor::operator()(CoreTrackView const& track)
     scintillation_dist = {};
 
     auto sim = track.make_sim_view();
-    bool inactive = sim.status() == TrackStatus::inactive;
-    auto optmat_id = inactive ? OpticalMaterialId{}
-                              : track.make_material_view()
-                                    .make_material_view()
-                                    .optical_material_id();
-
-    if (inactive || !optmat_id || sim.step_length() == 0)
+    auto optmat_id = get_optical_material(track);
+    if (!optmat_id || sim.step_length() == 0)
     {
         // Inactive tracks, materials with no optical properties, or particles
         // that started the step with zero energy (e.g. a stopped positron)
