@@ -216,12 +216,47 @@ class GenTrap final : public ConvexRegionInterface
     using VecReal2 = std::vector<Real2>;
     //!@}
 
+    struct TrapFace
+    {
+        real_type hy_{};  // vertical distance between horizontal edges
+        real_type hx_lo_{};  // top horizontal edge
+        real_type hx_hi_{};  // botton horizontal edge
+
+        // tan(alpha), where alpha is the clockwise angle between the
+        // _centers_ of horizontal edges, with respect to the vertical
+        // (alpha=0)
+        real_type tan_alpha_{};
+
+        TrapFace(real_type hy,
+                 real_type hx_lo,
+                 real_type hx_hi,
+                 real_type tan_alpha)
+            : hy_{hy}, hx_lo_{hx_lo}, hx_hi_{hx_hi}, tan_alpha_{tan_alpha}
+        {
+            CELER_VALIDATE(hx_lo > 0,
+                           << ": nonpositive lower x half-edge: " << hx_lo);
+            CELER_VALIDATE(hx_hi > 0,
+                           << ": nonpositive lower x half-edge: " << hx_hi);
+            CELER_VALIDATE(hy > 0,
+                           << ": nonpositive y half-projection: " << hy);
+        }
+    };
+
   public:
-    // Construct from half Z height and 1-4 vertices for top and bottom planes
+    // Construct from half Z height and 4 vertices for top and bottom planes
     GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi);
 
-    // Construct from half Z height and 2 half-lengths {hx,hy} for each z-face
-    GenTrap(real_type halfz, Real2 const& hxylo, Real2 const& hxyhi);
+    // Helper function to construct a Trd shape from hz and two rectangles,
+    // one for each z-face
+    static GenTrap from_trd(real_type halfz, Real2 const& lo, Real2 const& hi);
+
+    // Helper function to construct a general trap from its half-height and
+    // the two trapezoids defining its lower and upper faces
+    static GenTrap from_trap(real_type hz,
+                             real_type tan_theta,
+                             Turn const& phi,
+                             TrapFace const& lo,
+                             TrapFace const& hi);
 
     // Build surfaces
     void build(ConvexSurfaceBuilder&) const final;

@@ -373,25 +373,68 @@ GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
  * Construct a TRD from 5 half-lengths: one half-height, {hx1,hy1} for a in -z,
  * and {hx2,hy2} in +z
  */
-GenTrap::GenTrap(real_type halfz, Real2 const& hxy1, Real2 const& hxy2)
-    : hz_{halfz}, lo_{4}, hi_{4}
+GenTrap GenTrap::from_trd(real_type halfz, Real2 const& lo, Real2 const& hi)
 {
-    CELER_VALIDATE(hxy1[0] > 0 && hxy2[0] > 0,
-                   << "nonpositive x half-length: " << hxy1[0] << " "
-                   << hxy2[0]);
-    CELER_VALIDATE(hxy1[1] > 0 && hxy2[1] > 0,
-                   << "nonpositive y half-length: " << hxy1[1] << " "
-                   << hxy2[1]);
-    CELER_VALIDATE(hz_ > 0, << "nonpositive halfheight: " << hz_);
+    CELER_VALIDATE(lo[0] > 0, << "nonpositive lower x half-edge: " << lo[0]);
+    CELER_VALIDATE(hi[0] > 0, << "nonpositive upper x half-edge: " << hi[0]);
+    CELER_VALIDATE(lo[1] > 0, << "nonpositive lower y half-edge: " << lo[1]);
+    CELER_VALIDATE(hi[1] > 0, << "nonpositive upper y half-edge: " << hi[1]);
+    CELER_VALIDATE(halfz > 0, << "nonpositive half-height: " << halfz);
 
-    lo_[0] = GenTrap::Real2{-hxy1[0], -hxy1[1]};
-    lo_[1] = GenTrap::Real2{+hxy1[0], -hxy1[1]};
-    lo_[2] = GenTrap::Real2{+hxy1[0], +hxy1[1]};
-    lo_[3] = GenTrap::Real2{-hxy1[0], +hxy1[1]};
-    hi_[0] = GenTrap::Real2{-hxy2[0], -hxy2[1]};
-    hi_[1] = GenTrap::Real2{+hxy2[0], -hxy2[1]};
-    hi_[2] = GenTrap::Real2{+hxy2[0], +hxy2[1]};
-    hi_[3] = GenTrap::Real2{-hxy2[0], +hxy2[1]};
+    VecReal2 lower
+        = {{-lo[0], -lo[1]}, {lo[0], -lo[1]}, {lo[0], lo[1]}, {-lo[0], lo[1]}};
+    VecReal2 upper
+        = {{-hi[0], -hi[1]}, {hi[0], -hi[1]}, {hi[0], hi[1]}, {-hi[0], hi[1]}};
+
+    return std::move(GenTrap{halfz, std::move(lower), std::move(upper)});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a general trap
+ */
+/*!
+ * Construct from half Z height and 1-4 vertices for top and bottom planes.
+ */
+GenTrap GenTrap::from_trap(real_type hz,
+                           real_type tan_theta,
+                           Turn const& phi,
+                           TrapFace const& lo,
+                           TrapFace const& hi)
+{
+    // TrapFace is validated in its constructor
+    CELER_VALIDATE(hz > 0, << "nonpositive half-height: " << hz);
+
+    CELER_VALIDATE(tan_theta >= 0, << "negative tan(theta): " << tan_theta);
+
+    CELER_VALIDATE(phi >= zero_quantity() && phi < Turn{1.},
+                   << "invalid angle " << phi.value()
+                   << " [turns]: must be in the range [0, 1)");
+
+    real_type cos_phi{}, sin_phi{};
+    sincos(phi, &sin_phi, &cos_phi);
+    auto dxdz_hz = tan_theta * cos_phi * hz;
+    auto dydz_hz = tan_theta * sin_phi * hz;
+
+    auto hy1 = lo.hy_;
+    auto hx1 = lo.hx_lo_;
+    auto hx2 = lo.hx_hi_;
+    auto hy2 = hi.hy_;
+    auto hx3 = hi.hx_lo_;
+    auto hx4 = hi.hx_hi_;
+    auto dxdy_hy1 = lo.tan_alpha_ * lo.hy_;
+    auto dxdy_hy2 = hi.tan_alpha_ * hi.hy_;
+
+    VecReal2 lower = {{-dxdz_hz - dxdy_hy1 - hx1, -dydz_hz - hy1},
+                      {-dxdz_hz - dxdy_hy1 + hx1, -dydz_hz - hy1},
+                      {-dxdz_hz + dxdy_hy1 + hx2, -dydz_hz + hy1},
+                      {-dxdz_hz + dxdy_hy1 - hx2, -dydz_hz + hy1}};
+    VecReal2 upper = {{+dxdz_hz - dxdy_hy2 - hx3, +dydz_hz - hy2},
+                      {+dxdz_hz - dxdy_hy2 + hx3, +dydz_hz - hy2},
+                      {+dxdz_hz + dxdy_hy2 + hx4, +dydz_hz + hy2},
+                      {+dxdz_hz + dxdy_hy2 - hx4, +dydz_hz + hy2}};
+
+    return std::move(GenTrap{hz, std::move(lower), std::move(upper)});
 }
 
 //---------------------------------------------------------------------------//

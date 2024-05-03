@@ -426,11 +426,11 @@ TEST_F(GenTrapTest, construct)
                  RuntimeError);  // non-convex
 
     // Validate TRD-like construction parameters - 5 half-lengths
-    EXPECT_THROW(GenTrap(-3, {1, 1}, {2, 2}), RuntimeError);  // negative dZ
-    EXPECT_THROW(GenTrap(3, {-1, 1}, {2, 2}), RuntimeError);  // negative hx1
-    EXPECT_THROW(GenTrap(3, {1, -1}, {2, 2}), RuntimeError);  // negative hy1
-    EXPECT_THROW(GenTrap(3, {1, 1}, {-2, 2}), RuntimeError);  // negative hx2
-    EXPECT_THROW(GenTrap(3, {1, 1}, {2, -2}), RuntimeError);  // negative hy2
+    EXPECT_THROW(GenTrap::from_trd(-3, {1, 1}, {2, 2}), RuntimeError);  // dZ<0
+    EXPECT_THROW(GenTrap::from_trd(3, {-1, 1}, {2, 2}), RuntimeError);  // hx1<0
+    EXPECT_THROW(GenTrap::from_trd(3, {1, -1}, {2, 2}), RuntimeError);  // hy1<0
+    EXPECT_THROW(GenTrap::from_trd(3, {1, 1}, {-2, 2}), RuntimeError);  // hx2<0
+    EXPECT_THROW(GenTrap::from_trd(3, {1, 1}, {2, -2}), RuntimeError);  // hy2<0
 
     // General non-planar GenTrap with 'twisted' faces is not yet implemented
     EXPECT_THROW(GenTrap(3,
@@ -442,23 +442,23 @@ TEST_F(GenTrapTest, construct)
 TEST_F(GenTrapTest, box_like)
 {
     auto result = this->test(GenTrap(3,
-                                     {{-1, -1}, {1, -1}, {1, 1}, {-1, 1}},
-                                     {{-1, -1}, {1, -1}, {1, 1}, {-1, 1}}));
+                                     {{-1, -2}, {1, -2}, {1, 2}, {-1, 2}},
+                                     {{-1, -2}, {1, -2}, {1, 2}, {-1, 2}}));
 
     static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
     static char const* const expected_surfaces[] = {"Plane: z=-3",
                                                     "Plane: z=3",
-                                                    "Plane: y=-1",
+                                                    "Plane: y=-2",
                                                     "Plane: x=1",
-                                                    "Plane: y=1",
+                                                    "Plane: y=2",
                                                     "Plane: x=-1"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -3}), result.interior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1, 1, 3}), result.interior.upper());
-    EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -3}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1, 1, 3}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-1, -2, -3}), result.interior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1, 2, 3}), result.interior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-1, -2, -3}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1, 2, 3}), result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, trd1)
@@ -485,7 +485,7 @@ TEST_F(GenTrapTest, trd1)
 
 TEST_F(GenTrapTest, trd2)
 {
-    auto result = this->test(GenTrap(3, {1, 1}, {2, 2}));
+    auto result = this->test(GenTrap::from_trd(3, {1, 1}, {2, 2}));
 
     static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
     static char const* const expected_surfaces[]
@@ -546,7 +546,7 @@ TEST_F(GenTrapTest, triang_prism)
     EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 3}), result.exterior.upper());
 }
 
-TEST_F(GenTrapTest, trapezoid)
+TEST_F(GenTrapTest, trap_corners)
 {
     auto result
         = this->test(GenTrap(40,
@@ -616,6 +616,69 @@ TEST_F(GenTrapTest, trapezoid_ccw)
     EXPECT_FALSE(result.interior) << result.interior;
     EXPECT_VEC_SOFT_EQ((Real3{-inf, -30, -40}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{inf, 30, 40}), result.exterior.upper());
+}
+
+TEST_F(GenTrapTest, trap_theta)
+{
+    auto result = this->test(
+        GenTrap::from_trap(40, 1, Turn{0}, {20, 10, 10, 0}, {20, 10, 10, 0}));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-40",
+           "Plane: z=40",
+           "Plane: y=-20",
+           "Plane: n={0.70711,0,-0.70711}, d=7.0711",
+           "Plane: y=20",
+           "Plane: n={0.70711,0,-0.70711}, d=-7.0711"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -20, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, 20, 40}), result.exterior.upper());
+}
+
+TEST_F(GenTrapTest, trap_thetaphi)
+{
+    auto result = this->test(GenTrap::from_trap(
+        40, 1, Turn{0.25}, {20, 10, 10, 0}, {20, 10, 10, 0}));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-40",
+           "Plane: z=40",
+           "Plane: n={0,0.70711,-0.70711}, d=-14.142",
+           "Plane: x=10",
+           "Plane: n={0,0.70711,-0.70711}, d=14.142",
+           "Plane: x=-10"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-10, -inf, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{10, inf, 40}), result.exterior.upper());
+}
+
+TEST_F(GenTrapTest, trap_full)
+{
+    auto result = this->test(GenTrap::from_trap(
+        40, 1, Turn{0.125}, {20, 10, 10, 0.1}, {20, 10, 10, 0.1}));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-40",
+           "Plane: z=40",
+           "Plane: n={0,0.8165,-0.57735}, d=-16.33",
+           "Plane: n={0.84066,-0.084066,-0.53499}, d=8.4066",
+           "Plane: n={0,0.8165,-0.57735}, d=16.33",
+           "Plane: n={0.84066,-0.084066,-0.53499}, d=-8.4066"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 40}), result.exterior.upper());
 }
 
 // TODO: this should be valid
