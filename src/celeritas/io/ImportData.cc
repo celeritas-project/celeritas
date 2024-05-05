@@ -50,4 +50,43 @@ void convert_to_native(ImportData* data)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Return a vector containing all imported models of the given class.
+ */
+std::vector<ImportModel const*>
+find_models(ImportData const& data, ImportModelClass model_class)
+{
+    std::vector<ImportModel const*> result;
+    for (ImportProcess const& process : data.processes)
+    {
+        for (ImportModel const& model : process.models)
+        {
+            if (model.model_class == model_class)
+            {
+                result.push_back(&model);
+            }
+        }
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a vector containing all imported MSC models of the given class.
+ */
+std::vector<ImportMscModel const*>
+find_msc_models(ImportData const& data, ImportModelClass model_class)
+{
+    std::vector<ImportMscModel const*> result;
+    for (ImportMscModel const& model : data.msc_models)
+    {
+        if (model.model_class == model_class)
+        {
+            result.push_back(&model);
+        }
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

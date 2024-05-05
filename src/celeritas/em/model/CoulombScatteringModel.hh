@@ -40,11 +40,10 @@ class CoulombScatteringModel final : public Model
     struct Options
     {
         //! Use combined single and multiple scattering
-        // TODO: default to true when WentzelVI MSC is implemented
-        bool is_combined{false};
+        bool is_combined{true};
 
-        //! Limit on the cos of the scattering angle
-        real_type costheta_limit{1};
+        //! Polar angle limit between single and multiple scattering
+        real_type polar_angle_limit{constants::pi};
 
         //! Factor for dynamic computation of angular limit between SS and MSC
         real_type angle_limit_factor{1};
@@ -60,7 +59,11 @@ class CoulombScatteringModel final : public Model
         bool use_integral_xs{true};
 
         //! Check if the options are valid
-        explicit operator bool() const { return screening_factor > 0; }
+        explicit operator bool() const
+        {
+            return polar_angle_limit >= 0 && polar_angle_limit <= constants::pi
+                   && angle_limit_factor > 0 && screening_factor > 0;
+        }
     };
 
   public:

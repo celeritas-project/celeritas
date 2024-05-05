@@ -10,6 +10,8 @@
 #include <string_view>
 #include <vector>
 
+#include "celeritas/Constants.hh"
+
 #include "ImportPhysicsTable.hh"
 #include "ImportUnits.hh"
 
@@ -87,6 +89,20 @@ struct ImportModelMaterial
 
 //---------------------------------------------------------------------------//
 /*!
+ * Parameters common to all models.
+ */
+struct ImportModelParameters
+{
+    double polar_angle_limit{};
+
+    explicit operator bool() const
+    {
+        return polar_angle_limit >= 0 && polar_angle_limit <= constants::pi;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Imported data for one model of a process.
  *
  * This is always for a particular particle type since we import Processes
@@ -99,10 +115,12 @@ struct ImportModel
 {
     ImportModelClass model_class{ImportModelClass::size_};
     std::vector<ImportModelMaterial> materials;
+    ImportModelParameters params;
 
     explicit operator bool() const
     {
-        return model_class != ImportModelClass::size_ && !materials.empty();
+        return model_class != ImportModelClass::size_ && !materials.empty()
+               && params;
     }
 };
 
@@ -115,11 +133,12 @@ struct ImportMscModel
     int particle_pdg{0};
     ImportModelClass model_class{ImportModelClass::size_};
     ImportPhysicsTable xs_table;
+    ImportModelParameters params;
 
     explicit operator bool() const
     {
         return particle_pdg != 0 && model_class != ImportModelClass::size_
-               && xs_table;
+               && xs_table && params;
     }
 };
 

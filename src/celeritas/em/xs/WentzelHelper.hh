@@ -40,6 +40,7 @@ class WentzelHelper
 
   public:
     // Construct from particle and material properties
+    // TODO: refactor so this can be used when Coulomb scattering isn't present
     inline CELER_FUNCTION WentzelHelper(ParticleTrackView const& particle,
                                         MaterialView const& material,
                                         AtomicNumber target_z,
@@ -334,13 +335,14 @@ CELER_FUNCTION real_type WentzelHelper::calc_costheta_max_nuclear(
     if (data.params.is_combined)
     {
         CELER_ASSERT(material.material_id() < data.ma_cbrt_sq_inv.size());
-        return max(data.params.costheta_limit,
+        // TODO: get costheta limit from either WentzelVI or Coulomb
+        return max(data.params.costheta_min,
                    1
                        - data.params.a_sq_factor
                              * data.ma_cbrt_sq_inv[material.material_id()]
                              / value_as<MomentumSq>(particle.momentum_sq()));
     }
-    return data.params.costheta_limit;
+    return data.params.costheta_min;
 }
 
 //---------------------------------------------------------------------------//

@@ -27,6 +27,7 @@ struct WentzelVIMscParameters
     using Energy = units::MevEnergy;
 
     bool is_combined{true};  //!< Use combined single and multiple scattering
+    real_type costheta_max{-1};  //!< Maximum scattering polar angle
     real_type single_scattering_factor{1.25};
     Energy low_energy_limit{0};
     Energy high_energy_limit{0};

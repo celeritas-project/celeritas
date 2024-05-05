@@ -110,6 +110,7 @@ class ProcessBuilder
   private:
     //// DATA ////
 
+    ImportData const& data_;
     UserBuildInput input_;
     UserBuildMap user_build_map_;
     std::function<ImportSBTable(AtomicNumber)> read_sb_;
@@ -118,10 +119,6 @@ class ProcessBuilder
 
     BremsModelSelection selection_;
     bool brem_combined_;
-    bool enable_lpm_;
-    bool use_integral_xs_;
-    real_type coulomb_screening_factor_;
-    real_type coulomb_angle_limit_factor_;
 
     //// HELPER FUNCTIONS ////
 

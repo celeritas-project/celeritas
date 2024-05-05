@@ -7,10 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "CoulombScatteringModel.hh"
 
+#include <cmath>
 #include <vector>
 
 #include "celeritas_config.h"
 #include "corecel/sys/ScopedMem.hh"
+#include "celeritas/Constants.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/em/data/CoulombScatteringData.hh"
 #include "celeritas/em/executor/CoulombScatteringExecutor.hh"
@@ -62,7 +64,8 @@ CoulombScatteringModel::CoulombScatteringModel(ActionId id,
 
     // Set user-assignable options
     host_data.params.is_combined = options.is_combined;
-    host_data.params.costheta_limit = options.costheta_limit;
+    host_data.params.costheta_min
+        = options.is_combined ? std::cos(options.polar_angle_limit) : 1;
     host_data.params.a_sq_factor
         = real_type(0.5)
           * ipow<2>(options.angle_limit_factor * constants::hbar_planck

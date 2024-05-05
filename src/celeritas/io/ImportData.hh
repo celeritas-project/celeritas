@@ -88,5 +88,13 @@ struct ImportData
 // Recursively convert imported data to the native unit type
 void convert_to_native(ImportData* data);
 
+// Return a vector containing all imported models of the given class
+std::vector<ImportModel const*>
+find_models(ImportData const&, ImportModelClass);
+
+// Return a vector containing all imported MSC models of the given class
+std::vector<ImportMscModel const*>
+find_msc_models(ImportData const&, ImportModelClass);
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

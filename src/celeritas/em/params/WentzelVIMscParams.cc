@@ -29,16 +29,26 @@ WentzelVIMscParams::from_import(ParticleParams const& particles,
                                 MaterialParams const& materials,
                                 ImportData const& data)
 {
-    auto is_wentzel = [](ImportMscModel const& imm) {
-        return imm.model_class == ImportModelClass::wentzel_vi_uni;
-    };
-    if (!std::any_of(data.msc_models.begin(), data.msc_models.end(), is_wentzel))
+    auto wentzel = find_msc_models(data, ImportModelClass::wentzel_vi_uni);
+    if (wentzel.empty())
     {
         // No WentzelVI MSC present
         return nullptr;
     }
+
+    Options opts;
+    // Use combined single and multiple Coulomb scattering if both the single
+    // scattering and the Wentzel VI models are present
+    opts.is_combined
+        = !find_models(data, ImportModelClass::e_coulomb_scattering).empty();
+    opts.polar_angle_limit = wentzel.front()->params.polar_angle_limit;
+    CELER_ASSERT(std::all_of(
+        wentzel.begin(), wentzel.end(), [&opts](ImportMscModel const* m) {
+            return m->params.polar_angle_limit == opts.polar_angle_limit;
+        }));
+
     return std::make_shared<WentzelVIMscParams>(
-        particles, materials, data.msc_models);
+        particles, materials, data.msc_models, opts);
 }
 
 //---------------------------------------------------------------------------//
@@ -47,7 +57,8 @@ WentzelVIMscParams::from_import(ParticleParams const& particles,
  */
 WentzelVIMscParams::WentzelVIMscParams(ParticleParams const& particles,
                                        MaterialParams const& materials,
-                                       VecImportMscModel const& mdata_vec)
+                                       VecImportMscModel const& mdata_vec,
+                                       Options options)
 {
     using units::MevEnergy;
 
@@ -62,6 +73,13 @@ WentzelVIMscParams::WentzelVIMscParams(ParticleParams const& particles,
 
     // Save electron mass
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();
+
+    // Whether to use combined single and multiple scattering
+    host_data.params.is_combined = options.is_combined;
+
+    // Maximum scattering polar angle
+    host_data.params.costheta_max
+        = options.is_combined ? std::cos(options.polar_angle_limit) : -1;
 
     // Save high/low energy limits
     XsCalculator calc_xs(host_data.xs[ItemId<XsGridData>(0)],

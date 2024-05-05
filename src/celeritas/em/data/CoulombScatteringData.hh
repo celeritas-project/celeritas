@@ -76,19 +76,21 @@ enum class NuclearFormFactorType
 //---------------------------------------------------------------------------//
 /*!
  * Settable parameters and default values for single Coulomb scattering.
- *
- * For single Coulomb scattering, \c costheta_limit will be 1 (\f$ \cos
- * \theta_{\text{min}} \f$). If single scattering is used in combination with
- * multiple scattering, it will be \f$ \cos \theta_{\text{max}} \f$.
  */
 struct CoulombScatteringParameters
 {
     bool is_combined;  //!< Use combined single and multiple scattering
-    real_type costheta_limit;  //!< Limit on the cos of the scattering angle
+    real_type costheta_min;  //!< Minimum scattering polar angle
     real_type a_sq_factor;  //!< Factor used to calculate the maximum
                             //!< scattering angle off of a nucleus
     real_type screening_factor;  //!< Factor for the screening coefficient
     NuclearFormFactorType form_factor_type;  //!< Model for the form factor
+
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return costheta_min >= -1 && costheta_min <= 1 && a_sq_factor > 0
+               && screening_factor > 0;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -123,7 +125,8 @@ struct CoulombScatteringData
     // Check if the data is initialized
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids && !nuclear_form_prefactor.empty() && !elem_data.empty()
+        return ids && params && !nuclear_form_prefactor.empty()
+               && !elem_data.empty()
                && params.is_combined == !ma_cbrt_sq_inv.empty();
     }
 
