@@ -343,8 +343,8 @@ auto SolidConverter::generictrap(arg_type solid_base) -> result_type
     std::vector<GenTrap::Real2> lower(4), upper(4);
     for (auto i : range(4))
     {
-        lower[i] = scale_.to<Cone::Real2>(vtx[i].x(), vtx[i].y());
-        upper[i] = scale_.to<Cone::Real2>(vtx[i + 4].x(), vtx[i + 4].y());
+        lower[i] = scale_.to<GenTrap::Real2>(vtx[i].x(), vtx[i].y());
+        upper[i] = scale_.to<GenTrap::Real2>(vtx[i + 4].x(), vtx[i + 4].y());
     }
     real_type hh = scale_(solid.GetZHalfLength());
 

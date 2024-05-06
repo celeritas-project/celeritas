@@ -44,9 +44,8 @@ enum class Orientation
 /*!
  * Find orientation of ordered vertices in 2D coordinates.
  */
-inline CELER_FUNCTION Orientation calc_orientation(Real2 const& a,
-                                                   Real2 const& b,
-                                                   Real2 const& c)
+inline Orientation
+calc_orientation(Real2 const& a, Real2 const& b, Real2 const& c)
 {
     auto crossp = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]);
     return crossp < 0   ? Orientation::clockwise
@@ -60,8 +59,7 @@ inline CELER_FUNCTION Orientation calc_orientation(Real2 const& a,
  *
  * The list of input corners must have at least 3 points to be a polygon.
  */
-inline CELER_FUNCTION bool
-has_orientation(Span<Real2 const> const& corners, Orientation o)
+inline bool has_orientation(Span<Real2 const> const& corners, Orientation o)
 {
     CELER_EXPECT(corners.size() > 2);
     for (auto i : range(corners.size()))
@@ -81,8 +79,7 @@ has_orientation(Span<Real2 const> const& corners, Orientation o)
  * \param corners the vertices of the polygon
  * \param degen_ok allow consecutive degenerate points
  */
-CELER_FUNCTION bool
-is_convex(Span<const Real2> const& corners, bool degen_ok = false)
+bool is_convex(Span<Real2 const> const& corners, bool degen_ok = false)
 {
     CELER_EXPECT(!corners.empty());
 
@@ -109,21 +106,6 @@ is_convex(Span<const Real2> const& corners, bool degen_ok = false)
         }
     }
     return true;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Check for coplanarity of four 3D polygon vertices.
- */
-CELER_FUNCTION bool
-is_planar(Real3 const& a, Real3 const& b, Real3 const& c, Real3 const& d)
-{
-    // Use the cross_product(last, first) as sign reference
-    auto norm = make_unit_vector(cross_product(b - a, c - a));
-    auto val = dot_product(norm, d - a);
-
-    return SoftZero{
-        ::celeritas::detail::SoftEqualTraits<real_type>::sqrt_prec()}(val);
 }
 
 //---------------------------------------------------------------------------//

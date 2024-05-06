@@ -12,6 +12,7 @@
 #include "corecel/Constants.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/io/Repr.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/Types.hh"
@@ -431,16 +432,22 @@ GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
     for (auto i : range(lo_.size()))
     {
         auto j = (i + 1) % lo_.size();
-        Real3 const a{lo_[i][0], lo_[i][1], -hz_};
-        Real3 const b{lo_[j][0], lo_[j][1], -hz_};
-        Real3 const c{hi_[j][0], hi_[j][1], hz_};
-        Real3 const d{hi_[i][0], hi_[i][1], hz_};
+        Real3 const ilo{lo_[i][0], lo_[i][1], -hz_};
+        Real3 const jlo{lo_[j][0], lo_[j][1], -hz_};
+        Real3 const jhi{hi_[j][0], hi_[j][1], hz_};
+        Real3 const ihi{hi_[i][0], hi_[i][1], hz_};
+
+        // Calculate outward normal by taking the cross product of the edges
+        auto lo_normal = make_unit_vector(cross_product(jlo - ilo, ihi - ilo));
+        auto hi_normal = make_unit_vector(cross_product(ihi - jhi, jlo - jhi));
 
         // *Temporarily* throws if a side face is not planar
-        if (!detail::is_planar(a, b, c, d))
-        {
-            CELER_NOT_IMPLEMENTED("non-planar side faces");
-        }
+        CELER_VALIDATE(
+            soft_equal(dot_product(lo_normal, hi_normal), real_type{1}),
+            << "non-planar face " << i << " on GenTrap: lower left normal is "
+            << repr(lo_normal) << " and upper right normal is "
+            << repr(hi_normal) << ": coordinates are lo = " << repr(lo_)
+            << ", hi = " << repr(hi));
     }
 }
 
@@ -462,16 +469,10 @@ void GenTrap::build(ConvexSurfaceBuilder& insert_surface) const
         auto j = (i + 1) % lo_.size();
         Real3 const ilo{lo_[i][0], lo_[i][1], -hz_};
         Real3 const jlo{lo_[j][0], lo_[j][1], -hz_};
-        Real3 const jhi{hi_[j][0], hi_[j][1], hz_};
         Real3 const ihi{hi_[i][0], hi_[i][1], hz_};
 
         // Calculate outward normal by taking the cross product of the edges
         auto normal = make_unit_vector(cross_product(jlo - ilo, ihi - ilo));
-        // Assert that the surface is (for now!) not twisted
-        CELER_ASSERT(soft_equal(
-            dot_product(make_unit_vector(cross_product(ihi - jhi, jlo - jhi)),
-                        normal),
-            real_type{1}));
 
         // Insert the plane
         insert_surface(Sense::inside, Plane{normal, ilo});
