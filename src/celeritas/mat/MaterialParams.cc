@@ -468,6 +468,7 @@ void MaterialParams::append_material_def(MaterialInput const& inp,
     double avg_z = 0;
     double rad_coeff = 0;
     double log_mean_exc_energy = 0;
+    double inv_mass_cbrt_sq = 0;
     for (MatElementComponent const& comp :
          host_data->elcomponents[result.elements])
     {
@@ -482,6 +483,9 @@ void MaterialParams::append_material_def(MaterialInput const& inp,
             += frac_z
                * std::log(value_as<units::MevEnergy>(
                    detail::get_mean_excitation_energy(el.atomic_number)));
+        inv_mass_cbrt_sq
+            += comp.fraction
+               / std::pow(el.atomic_mass.value(), real_type(2) / 3);
     }
     result.zeff = avg_z;
     result.density = result.number_density * avg_amu_mass
@@ -492,6 +496,7 @@ void MaterialParams::append_material_def(MaterialInput const& inp,
                                     : -numeric_limits<double>::infinity();
     result.log_mean_exc_energy = units::LogMevEnergy(log_mean_exc_energy);
     result.mean_exc_energy = units::MevEnergy(std::exp(log_mean_exc_energy));
+    result.inv_mass_cbrt_sq = inv_mass_cbrt_sq * result.number_density;
 
     // Add to host vector
     make_builder(&host_data->materials).push_back(result);
@@ -505,6 +510,7 @@ void MaterialParams::append_material_def(MaterialInput const& inp,
     CELER_ENSURE((result.density > 0) == (inp.number_density > 0));
     CELER_ENSURE((result.electron_density > 0) == (inp.number_density > 0));
     CELER_ENSURE(result.rad_length > 0);
+    CELER_ENSURE(result.inv_mass_cbrt_sq > 0);
 }
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

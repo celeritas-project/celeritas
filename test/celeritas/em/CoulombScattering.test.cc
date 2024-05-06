@@ -185,8 +185,12 @@ TEST_F(CoulombScatteringTest, wokvi_xs)
     {
         this->set_inc_particle(pdg::electron(), MevEnergy{energy});
 
-        WentzelHelper helper(
-            this->particle_track(), material, target_z, data, cutoff);
+        WentzelHelper helper(this->particle_track(),
+                             material,
+                             target_z,
+                             data.params,
+                             data.ids,
+                             cutoff);
 
         xs_ratio.push_back(
             helper.calc_xs_ratio(helper.costheta_max_nuclear(), -1));
@@ -251,7 +255,12 @@ TEST_F(CoulombScatteringTest, wokvi_transport_xs)
         this->set_inc_particle(pdg::electron(), MevEnergy{energy});
         auto const& particle = this->particle_track();
 
-        WentzelHelper helper(particle, material, z, model_->host_ref(), cutoff);
+        WentzelHelper helper(particle,
+                             material,
+                             z,
+                             model_->host_ref().params,
+                             model_->host_ref().ids,
+                             cutoff);
         WentzelTransportXsCalculator calc_transport_xs(particle, helper);
 
         for (real_type costheta_max : {-1.0, -0.5, 0.0, 0.5, 0.75, 0.99, 1.0})

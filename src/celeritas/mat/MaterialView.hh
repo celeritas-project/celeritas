@@ -97,6 +97,9 @@ class MaterialView
     // Radiation length for high-energy electron Bremsstrahlung [len]
     inline CELER_FUNCTION real_type radiation_length() const;
 
+    // Inverse effective atomic mass to the 2/3 power [1/mass^2/3]
+    inline CELER_FUNCTION real_type inv_mass_cbrt_sq() const;
+
     // Mean excitation energy [MeV]
     inline CELER_FUNCTION units::MevEnergy mean_excitation_energy() const;
 
@@ -265,6 +268,15 @@ CELER_FUNCTION real_type MaterialView::electron_density() const
 CELER_FUNCTION real_type MaterialView::radiation_length() const
 {
     return this->material_def().rad_length;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Inverse effective atomic mass to the 2/3 power [1/mass^2/3].
+ */
+CELER_FUNCTION real_type MaterialView::inv_mass_cbrt_sq() const
+{
+    return this->material_def().inv_mass_cbrt_sq;
 }
 
 //---------------------------------------------------------------------------//

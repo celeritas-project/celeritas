@@ -125,7 +125,12 @@ WentzelDistribution::WentzelDistribution(
     , particle_(particle)
     , target_(target)
     , element_data_(element_data)
-    , helper_(particle, material, target.atomic_number(), data, cutoff)
+    , helper_(particle,
+              material,
+              target.atomic_number(),
+              data.params,
+              data.ids,
+              cutoff)
 {
 }
 
@@ -183,7 +188,7 @@ CELER_FUNCTION real_type
 WentzelDistribution::calculate_form_factor(real_type cos_t) const
 {
     real_type mt_sq = this->mom_transfer_sq(cos_t);
-    switch (data_.params.form_factor_type)
+    switch (data_.form_factor_type)
     {
         case NuclearFormFactorType::none:
             return 1;

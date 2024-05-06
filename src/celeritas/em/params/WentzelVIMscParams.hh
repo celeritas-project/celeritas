@@ -42,6 +42,10 @@ class WentzelVIMscParams final : public ParamsDataInterface<WentzelVIMscData>
         bool is_combined{true};
         //! Polar angle limit between single and multiple scattering
         real_type polar_angle_limit{constants::pi};
+        //! Factor for dynamic computation of angular limit between SS and MSC
+        real_type angle_limit_factor{1};
+        //! User defined screening factor
+        real_type screening_factor{1};
     };
 
   public:

@@ -46,6 +46,8 @@ WentzelVIMscParams::from_import(ParticleParams const& particles,
         wentzel.begin(), wentzel.end(), [&opts](ImportMscModel const* m) {
             return m->params.polar_angle_limit == opts.polar_angle_limit;
         }));
+    opts.screening_factor = data.em_params.screening_factor;
+    opts.angle_limit_factor = data.em_params.angle_limit_factor;
 
     return std::make_shared<WentzelVIMscParams>(
         particles, materials, data.msc_models, opts);
@@ -75,11 +77,17 @@ WentzelVIMscParams::WentzelVIMscParams(ParticleParams const& particles,
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();
 
     // Whether to use combined single and multiple scattering
-    host_data.params.is_combined = options.is_combined;
+    host_data.coulomb_params.is_combined = options.is_combined;
 
     // Maximum scattering polar angle
-    host_data.params.costheta_max
+    host_data.coulomb_params.costheta_limit
         = options.is_combined ? std::cos(options.polar_angle_limit) : -1;
+
+    host_data.coulomb_params.a_sq_factor
+        = real_type(0.5)
+          * ipow<2>(options.angle_limit_factor * constants::hbar_planck
+                    * constants::c_light * 1e-15 * units::meter);
+    host_data.coulomb_params.screening_factor = options.screening_factor;
 
     // Save high/low energy limits
     XsCalculator calc_xs(host_data.xs[ItemId<XsGridData>(0)],

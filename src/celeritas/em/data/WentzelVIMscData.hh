@@ -14,7 +14,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/grid/XsGridData.hh"
 
-#include "MscData.hh"
+#include "CommonCoulombData.hh"
 
 namespace celeritas
 {
@@ -26,8 +26,6 @@ struct WentzelVIMscParameters
 {
     using Energy = units::MevEnergy;
 
-    bool is_combined{true};  //!< Use combined single and multiple scattering
-    real_type costheta_max{-1};  //!< Maximum scattering polar angle
     real_type single_scattering_factor{1.25};
     Energy low_energy_limit{0};
     Energy high_energy_limit{0};
@@ -54,11 +52,13 @@ struct WentzelVIMscData
     //// DATA ////
 
     //! Particle IDs
-    MscIds ids;
+    CoulombIds ids;
     //! Mass of of electron in MeV
     units::MevMass electron_mass;
     //! User-assignable options
     WentzelVIMscParameters params;
+    //! Parameters used in both single and multiple scattering
+    CoulombParameters coulomb_params;
     //! Scaled xs data
     Items<XsGridData> xs;  //!< [mat][particle]
 
@@ -70,8 +70,8 @@ struct WentzelVIMscData
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids && electron_mass > zero_quantity() && !xs.empty()
-               && !reals.empty();
+        return ids && electron_mass > zero_quantity() && coulomb_params
+               && !xs.empty() && !reals.empty();
     }
 
     //! Assign from another set of data
@@ -82,6 +82,7 @@ struct WentzelVIMscData
         ids = other.ids;
         electron_mass = other.electron_mass;
         params = other.params;
+        coulomb_params = other.coulomb_params;
         xs = other.xs;
         reals = other.reals;
         return *this;

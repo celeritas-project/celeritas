@@ -10,6 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "celeritas/em/data/CommonCoulombData.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -40,11 +41,11 @@ class WentzelHelper
 
   public:
     // Construct from particle and material properties
-    // TODO: refactor so this can be used when Coulomb scattering isn't present
     inline CELER_FUNCTION WentzelHelper(ParticleTrackView const& particle,
                                         MaterialView const& material,
                                         AtomicNumber target_z,
-                                        CoulombScatteringRef const& data,
+                                        CoulombParameters const& data,
+                                        CoulombIds const& ids,
                                         Energy cutoff);
 
     //! Get the target atomic number
@@ -108,13 +109,13 @@ class WentzelHelper
 
     // Calculate the (cosine of) the maximum scattering angle off of electrons
     inline CELER_FUNCTION real_type calc_costheta_max_electron(
-        ParticleTrackView const&, CoulombScatteringRef const&, Energy) const;
+        ParticleTrackView const&, CoulombIds const&, Energy) const;
 
     // Calculate the (cosine of) the maximum scattering angle off of nucleus
     inline CELER_FUNCTION real_type
     calc_costheta_max_nuclear(ParticleTrackView const&,
                               MaterialView const& material,
-                              CoulombScatteringRef const&) const;
+                              CoulombParameters const&) const;
 
     // Calculate the common factor in the electron and nuclear cross section
     inline CELER_FUNCTION real_type calc_xs_factor(real_type costheta_min,
@@ -131,17 +132,18 @@ CELER_FUNCTION
 WentzelHelper::WentzelHelper(ParticleTrackView const& particle,
                              MaterialView const& material,
                              AtomicNumber target_z,
-                             CoulombScatteringRef const& data,
+                             CoulombParameters const& data,
+                             CoulombIds const& ids,
                              Energy cutoff)
     : target_z_(target_z)
     , screening_coefficient_(this->calc_screening_coefficient(particle)
-                             * data.params.screening_factor)
+                             * data.screening_factor)
     , kin_factor_(this->calc_kin_factor(particle))
-    , mott_factor_(particle.particle_id() == data.ids.electron
+    , mott_factor_(particle.particle_id() == ids.electron
                        ? 1 + 2e-4 * ipow<2>(target_z_.get())
                        : 1)
     , costheta_max_elec_(
-          this->calc_costheta_max_electron(particle, data, cutoff))
+          this->calc_costheta_max_electron(particle, ids, cutoff))
     , costheta_max_nuc_(
           this->calc_costheta_max_nuclear(particle, material, data))
 {
@@ -298,15 +300,13 @@ WentzelHelper::calc_kin_factor(ParticleTrackView const& particle) const
  * This calculates the cosine of the maximum polar angle that the incident
  * particle can scatter off of the target's electrons.
  */
-CELER_FUNCTION real_type
-WentzelHelper::calc_costheta_max_electron(ParticleTrackView const& particle,
-                                          CoulombScatteringRef const& data,
-                                          Energy cutoff) const
+CELER_FUNCTION real_type WentzelHelper::calc_costheta_max_electron(
+    ParticleTrackView const& particle, CoulombIds const& ids, Energy cutoff) const
 {
     real_type inc_energy = value_as<Energy>(particle.energy());
     real_type mass = value_as<Mass>(particle.mass());
 
-    real_type max_energy = particle.particle_id() == data.ids.electron
+    real_type max_energy = particle.particle_id() == ids.electron
                                ? real_type{0.5} * inc_energy
                                : inc_energy;
     real_type final_energy = inc_energy
@@ -327,22 +327,19 @@ WentzelHelper::calc_costheta_max_electron(ParticleTrackView const& particle,
 /*!
  * Calculate the maximum scattering angle off the target nucleus.
  */
-CELER_FUNCTION real_type WentzelHelper::calc_costheta_max_nuclear(
-    ParticleTrackView const& particle,
-    MaterialView const& material,
-    CoulombScatteringRef const& data) const
+CELER_FUNCTION real_type
+WentzelHelper::calc_costheta_max_nuclear(ParticleTrackView const& particle,
+                                         MaterialView const& material,
+                                         CoulombParameters const& data) const
 {
-    if (data.params.is_combined)
+    if (data.is_combined)
     {
-        CELER_ASSERT(material.material_id() < data.ma_cbrt_sq_inv.size());
-        // TODO: get costheta limit from either WentzelVI or Coulomb
-        return max(data.params.costheta_min,
+        return max(data.costheta_limit,
                    1
-                       - data.params.a_sq_factor
-                             * data.ma_cbrt_sq_inv[material.material_id()]
+                       - data.a_sq_factor * material.inv_mass_cbrt_sq()
                              / value_as<MomentumSq>(particle.momentum_sq()));
     }
-    return data.params.costheta_min;
+    return data.costheta_limit;
 }
 
 //---------------------------------------------------------------------------//
