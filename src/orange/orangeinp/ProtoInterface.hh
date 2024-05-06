@@ -14,6 +14,9 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+struct OrangeInput;
+
 namespace orangeinp
 {
 class ObjectInterface;
@@ -68,6 +71,10 @@ class ProtoInterface
     CELER_DEFAULT_COPY_MOVE(ProtoInterface);
     //!@}
 };
+
+//---------------------------------------------------------------------------//
+// Construct an ORANGE input from a global proto-universe
+OrangeInput build_input(Tolerance<> const& tol, ProtoInterface const& global);
 
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp

@@ -13,8 +13,9 @@ celeritas_add_library(testcel_orange
 celeritas_target_link_libraries(testcel_orange
   PUBLIC
     Celeritas::orange Celeritas::testcel_harness Celeritas::testcel_core
+    Celeritas::testcel_geocel
   PRIVATE
-    Celeritas::testcel_geocel Celeritas::orange ${nlohmann_json_LIBRARIES}
+    Celeritas::orange ${nlohmann_json_LIBRARIES}
 )
 
 #-----------------------------------------------------------------------------#
@@ -23,6 +24,10 @@ celeritas_target_link_libraries(testcel_orange
 
 if(NOT CELERITAS_USE_JSON)
   set(_needs_json DISABLE)
+endif()
+
+if(CELERITAS_USE_Geant4)
+  celeritas_get_g4libs(_g4_geo_libs geometry)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -41,6 +46,7 @@ celeritas_add_test(BoundingBoxUtils.test.cc)
 celeritas_add_test(MatrixUtils.test.cc)
 celeritas_add_test(OrangeTypes.test.cc)
 celeritas_add_device_test(Orange)
+celeritas_add_test(RaytraceImager.test.cc GPU)
 
 celeritas_add_test(detail/UniverseIndexer.test.cc)
 
@@ -64,6 +70,7 @@ celeritas_add_test(orangeinp/Transformed.test.cc)
 celeritas_add_test(orangeinp/UnitProto.test.cc)
 
 celeritas_add_test(orangeinp/detail/BoundingZone.test.cc)
+celeritas_add_test(orangeinp/detail/PolygonUtils.test.cc)
 celeritas_add_test(orangeinp/detail/ProtoMap.test.cc)
 celeritas_add_test(orangeinp/detail/LocalSurfaceInserter.test.cc)
 celeritas_add_test(orangeinp/detail/TransformInserter.test.cc)
@@ -104,7 +111,7 @@ celeritas_add_test(surf/detail/SurfaceTranslator.test.cc)
 celeritas_add_test(surf/detail/SurfaceTransformer.test.cc)
 
 #-----------------------------------------------------------------------------#
-# Universe details
+# Universe
 set(CELERITASTEST_PREFIX orange/univ)
 celeritas_add_test(univ/VolumeView.test.cc)
 celeritas_add_test(univ/RectArrayTracker.test.cc ${_needs_json})
@@ -117,5 +124,20 @@ celeritas_add_test(univ/detail/LogicStack.test.cc)
 celeritas_add_test(univ/detail/RaggedRightIndexer.test.cc)
 celeritas_add_test(univ/detail/SurfaceFunctors.test.cc)
 celeritas_add_test(univ/detail/SenseCalculator.test.cc)
+
+
+#-----------------------------------------------------------------------------#
+# Geant4 construction
+if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
+  set(CELERITASTEST_PREFIX orange/g4org)
+
+  celeritas_add_test(g4org/Converter.test.cc)
+  celeritas_add_test(g4org/SolidConverter.test.cc
+    LINK_LIBRARIES ${_g4_geo_libs})
+  celeritas_add_test(g4org/PhysicalVolumeConverter.test.cc)
+  celeritas_add_test(g4org/ProtoConstructor.test.cc)
+  celeritas_add_test(g4org/Transformer.test.cc
+    LINK_LIBRARIES ${_g4_geo_libs})
+endif()
 
 #-----------------------------------------------------------------------------#

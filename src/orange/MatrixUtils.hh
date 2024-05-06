@@ -12,6 +12,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/Turn.hh"
 #include "geocel/Types.hh"
 
@@ -102,6 +103,9 @@ SquareMatrixReal3 make_rotation(Axis ax, Turn rev);
 // Apply a rotation to an existing C-ordered rotation matrix
 SquareMatrixReal3 make_rotation(Axis ax, Turn rev, SquareMatrixReal3 const&);
 
+// Construct a transposed matrix
+SquareMatrixReal3 make_transpose(SquareMatrixReal3 const&);
+
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
@@ -130,7 +134,7 @@ CELER_FUNCTION Array<T, N> gemv(T alpha,
         result[i] = beta * y[i];
         for (size_type j = 0; j != N; ++j)
         {
-            result[i] = std::fma(alpha, a[i][j] * x[j], result[i]);
+            result[i] = fma(alpha, a[i][j] * x[j], result[i]);
         }
     }
     return result;
@@ -166,7 +170,7 @@ CELER_FUNCTION Array<T, N> gemv(matrix::TransposePolicy,
     {
         for (size_type i = 0; i != N; ++i)
         {
-            result[i] = std::fma(alpha, a[j][i] * x[j], result[i]);
+            result[i] = fma(alpha, a[j][i] * x[j], result[i]);
         }
     }
     return result;

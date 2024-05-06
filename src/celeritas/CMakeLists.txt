@@ -65,11 +65,14 @@ list(APPEND SOURCES
   mat/MaterialParamsOutput.cc
   mat/detail/Utils.cc
   neutron/process/NeutronElasticProcess.cc
+  neutron/process/NeutronInelasticProcess.cc
   optical/CerenkovParams.cc
   optical/ImportedOpticalProcessAdapter.cc
   optical/OpticalPhysicsParams.cc
-  optical/OpticalPropertyParams.cc
   optical/ScintillationParams.cc
+  optical/OpticalCollector.cc
+  optical/OpticalPropertyParams.cc
+  optical/OpticalTrackData.cc
   phys/CutoffParams.cc
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc
@@ -236,10 +239,7 @@ endif()
 #-----------------------------------------------------------------------------#
 
 macro(celeritas_polysource filename_we)
-  list(APPEND SOURCES "${filename_we}.cc")
-  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-    list(APPEND SOURCES "${filename_we}.cu")
-  endif()
+  celeritas_polysource_append(SOURCES ${filename_we})
 endmacro()
 
 celeritas_polysource(em/model/BetheHeitlerModel)
@@ -260,6 +260,9 @@ celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
 celeritas_polysource(global/alongstep/AlongStepRZMapFieldMscAction)
 celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
 celeritas_polysource(optical/AbsorptionModel)
+celeritas_polysource(neutron/model/NeutronInelasticModel)
+celeritas_polysource(optical/detail/PreGenAction)
+celeritas_polysource(optical/detail/PreGenGatherAction)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)
 celeritas_polysource(random/RngReseed)

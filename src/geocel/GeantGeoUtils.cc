@@ -7,16 +7,21 @@
 //---------------------------------------------------------------------------//
 #include "GeantGeoUtils.hh"
 
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <string_view>
 #include <unordered_set>
+#include <G4Element.hh>
 #include <G4GDMLParser.hh>
 #include <G4GDMLWriteStructure.hh>
+#include <G4Isotope.hh>
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
+#include <G4Material.hh>
 #include <G4PhysicalVolumeStore.hh>
 #include <G4ReflectionFactory.hh>
+#include <G4RegionStore.hh>
 #include <G4SolidStore.hh>
 #include <G4Threading.hh>
 #include <G4TouchableHistory.hh>
@@ -87,6 +92,25 @@ load_geant_geometry_impl(std::string const& filename, bool strip_pointer_ext)
     G4VPhysicalVolume* result(gdml_parser.GetWorldVolume());
     CELER_ENSURE(result);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Free all pointers in a table.
+ *
+ * Geant4 requires "new"ing and *not* "delete"ing classes whose new/delete
+ * operators modify an entry in a global table.
+ */
+template<class T>
+void free_and_clear(std::vector<T*>* table)
+{
+    for (auto* ptr : *table)
+    {
+        delete ptr;
+    }
+    CELER_ASSERT(std::all_of(
+        table->begin(), table->end(), [](T* ptr) { return ptr == nullptr; }));
+    table->clear();
 }
 
 //---------------------------------------------------------------------------//
@@ -185,10 +209,15 @@ void reset_geant_geometry()
 
         G4PhysicalVolumeStore::Clean();
         G4LogicalVolumeStore::Clean();
+        G4RegionStore::Clean();
         G4SolidStore::Clean();
 #if G4VERSION_NUMBER >= 1100
         G4ReflectionFactory::Instance()->Clean();
 #endif
+        free_and_clear(G4Material::GetMaterialTable());
+        free_and_clear(G4Element::GetElementTable());
+        free_and_clear(const_cast<std::vector<G4Isotope*>*>(
+            G4Isotope::GetIsotopeTable()));
         msg = scoped_log.str();
     }
     if (!msg.empty())

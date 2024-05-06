@@ -38,14 +38,14 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
                            public ParamsDataInterface<OrangeParamsData>
 {
   public:
-    // Construct from a JSON file (if JSON is enabled)
-    explicit OrangeParams(std::string const& json_filename);
+    // Construct from a JSON or GDML file (if JSON or Geant4 are enabled)
+    explicit OrangeParams(std::string const& filename);
 
     // Construct in-memory from Geant4 (not implemented)
     explicit OrangeParams(G4VPhysicalVolume const*);
 
     // ADVANCED usage: construct from explicit host data
-    explicit OrangeParams(OrangeInput input);
+    explicit OrangeParams(OrangeInput&& input);
 
     //! Whether safety distance calculations are accurate and precise
     bool supports_safety() const final { return supports_safety_; }

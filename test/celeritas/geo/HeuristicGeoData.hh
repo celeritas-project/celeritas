@@ -38,6 +38,7 @@ struct HeuristicGeoScalars
     // Set from geometry
     VolumeId::size_type num_volumes{};
     bool ignore_zero_safety{};
+    VolumeId world_volume;
 
     explicit CELER_FUNCTION operator bool() const
     {

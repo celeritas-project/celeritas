@@ -53,8 +53,14 @@ G4bool GeantExceptionHandler::Notify(char const* origin_of_exception,
     CELER_EXPECT(exception_code);
 
     // Construct message
-    auto err = RuntimeError::from_geant_exception(
-        origin_of_exception, exception_code, description);
+    auto err = RuntimeError{[&] {
+        RuntimeErrorDetails details;
+        details.which = "Geant4";
+        details.what = description;
+        details.condition = exception_code;
+        details.file = origin_of_exception;
+        return details;
+    }()};
 
     switch (severity)
     {

@@ -9,6 +9,7 @@
 
 #include <fstream>
 #include <initializer_list>
+#include <limits>
 #include <numeric>
 #include <utility>
 #include <vector>
@@ -24,10 +25,12 @@
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
 #include "geocel/BoundingBox.hh"
+#include "geocel/GeantGeoUtils.hh"
 
 #include "OrangeData.hh"  // IWYU pragma: associated
 #include "OrangeInput.hh"
 #include "OrangeTypes.hh"
+#include "g4org/Converter.hh"
 #include "univ/detail/LogicStack.hh"
 
 #include "detail/DepthCalculator.hh"
@@ -47,7 +50,7 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Load a geometry from the given filename.
+ * Load a geometry from the given JSON file.
  */
 OrangeInput input_from_json(std::string filename)
 {
@@ -56,18 +59,6 @@ OrangeInput input_from_json(std::string filename)
 
     CELER_LOG(info) << "Loading ORANGE geometry from JSON at " << filename;
     ScopedTimeLog scoped_time;
-
-    if (ends_with(filename, ".gdml"))
-    {
-        CELER_LOG(warning) << "Using ORANGE geometry with GDML suffix: trying "
-                              "`.org.json` instead";
-        filename.erase(filename.end() - 5, filename.end());
-        filename += ".org.json";
-    }
-    else if (!ends_with(filename, ".json"))
-    {
-        CELER_LOG(warning) << "Expected '.json' extension for JSON input";
-    }
 
     OrangeInput result;
 
@@ -83,6 +74,41 @@ OrangeInput input_from_json(std::string filename)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Load a geometry from the given filename.
+ */
+OrangeInput input_from_file(std::string filename)
+{
+    if (ends_with(filename, ".gdml"))
+    {
+        if (CELERITAS_USE_GEANT4
+            && CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            // Load with Geant4: must *not* be using run manager
+            auto* world = ::celeritas::load_geant_geometry_native(filename);
+            auto result = g4org::Converter{}(world).input;
+            ::celeritas::reset_geant_geometry();
+            return result;
+        }
+        else
+        {
+            CELER_LOG(warning) << "Using ORANGE geometry with GDML suffix "
+                                  "when Geant4 conversion is disabled: trying "
+                                  "`.org.json` instead";
+            filename.erase(filename.end() - 5, filename.end());
+            filename += ".org.json";
+        }
+    }
+    else
+    {
+        CELER_VALIDATE(ends_with(filename, ".json"),
+                       << "expected JSON extension for ORANGE input '"
+                       << filename << "'");
+    }
+    return input_from_json(std::move(filename));
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -92,20 +118,20 @@ OrangeInput input_from_json(std::string filename)
  * The JSON format is defined by the SCALE ORANGE exporter (not currently
  * distributed).
  */
-OrangeParams::OrangeParams(std::string const& json_filename)
-    : OrangeParams(input_from_json(json_filename))
+OrangeParams::OrangeParams(std::string const& filename)
+    : OrangeParams(input_from_file(filename))
 {
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct in-memory from a Geant4 geometry (not implemented).
+ * Construct in-memory from a Geant4 geometry.
  *
- * Perhaps someday we'll implement in-memory translation...
+ * TODO: expose options? Fix volume mappings?
  */
-OrangeParams::OrangeParams(G4VPhysicalVolume const*)
+OrangeParams::OrangeParams(G4VPhysicalVolume const* world)
+    : OrangeParams(std::move(g4org::Converter{}(world).input))
 {
-    CELER_NOT_IMPLEMENTED("Geant4->VecGeom geometry translation");
 }
 
 //---------------------------------------------------------------------------//
@@ -114,16 +140,17 @@ OrangeParams::OrangeParams(G4VPhysicalVolume const*)
  *
  * Volume and surface labels must be unique for the time being.
  */
-OrangeParams::OrangeParams(OrangeInput input)
+OrangeParams::OrangeParams(OrangeInput&& input)
 {
     CELER_VALIDATE(input, << "input geometry is incomplete");
-    CELER_VALIDATE(!input.universes.empty(),
-                   << "input geometry has no universes");
 
-    if (!input.tol)
-    {
-        input.tol = Tolerance<>::from_default();
-    }
+    // Save global bounding box
+    bbox_ = [&input] {
+        auto& global = input.universes[orange_global_universe.unchecked_get()];
+        CELER_VALIDATE(std::holds_alternative<UnitInput>(global),
+                       << "global universe is not a SimpleUnit");
+        return std::get<UnitInput>(global).bbox;
+    }();
 
     // Create host data for construction, setting tolerances first
     HostVal<OrangeParamsData> host_data;
@@ -142,9 +169,9 @@ OrangeParams::OrangeParams(OrangeInput input)
             detail::UnitInserter{&insert_universe_base, &host_data},
             detail::RectArrayInserter{&insert_universe_base, &host_data}};
 
-        for (auto const& u : input.universes)
+        for (auto&& u : input.universes)
         {
-            std::visit(insert_universe, u);
+            std::visit(insert_universe, std::move(u));
         }
 
         univ_labels_ = LabelIdMultiMap<UniverseId>{std::move(universe_labels)};
@@ -161,17 +188,13 @@ OrangeParams::OrangeParams(OrangeInput input)
               [](SimpleUnitRecord const& su) { return su.simple_safety; })
           && host_data.rect_arrays.empty();
 
-    CELER_VALIDATE(std::holds_alternative<UnitInput>(input.universes.front()),
-                   << "global universe is not a SimpleUnit");
-    bbox_ = std::get<UnitInput>(input.universes.front()).bbox;
-
     // Update scalars *after* loading all units
     CELER_VALIDATE(host_data.scalars.max_logic_depth
                        < detail::LogicStack::max_stack_depth(),
                    << "input geometry has at least one volume with a "
                       "logic depth of"
                    << host_data.scalars.max_logic_depth
-                   << " (surfaces are nested too deeply); but the logic "
+                   << " (a volume's CSG tree is too deep); but the logic "
                       "stack is limited to a depth of "
                    << detail::LogicStack::max_stack_depth());
 

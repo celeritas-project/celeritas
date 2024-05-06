@@ -18,6 +18,20 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Construct by inverting another transformation.
+ */
+Transformation Transformation::from_inverse(Mat3 const& rot, Real3 const& trans)
+{
+    // Transpose the rotation
+    Mat3 const rinv = make_transpose(rot);
+
+    // Calculate the updated position
+    Real3 tinv = gemv(real_type{-1}, rinv, trans, real_type{0}, {});
+    return Transformation{rinv, tinv};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct as an identity transform.
  */
 Transformation::Transformation() : Transformation{Translation{}} {}
@@ -26,14 +40,17 @@ Transformation::Transformation() : Transformation{Translation{}} {}
 /*!
  * Construct and check the input.
  *
- * The input rotation matrix should be an orthonormal matrix without
- * reflecting, thus having a determinant of unity. It is the caller's job to
- * ensure a user-provided low-precision matrix is orthonormalized.
+ * The input rotation matrix should be an orthonormal matrix. Its determinant
+ * is 1 if not reflecting (proper) or -1 if reflecting (improper).  It is the
+ * caller's job to ensure a user-provided low-precision matrix is
+ * orthonormal: see \c celeritas::orthonormalize . (Add \c CELER_VALIDATE to
+ * the calling code if constructing a transformation matrix from user input or
+ * a suspect source.)
  */
 Transformation::Transformation(Mat3 const& rot, Real3 const& trans)
     : rot_(rot), tra_(trans)
 {
-    CELER_EXPECT(soft_equal(determinant(rot_), real_type(1)));
+    CELER_EXPECT(soft_equal(std::fabs(determinant(rot_)), real_type(1)));
 }
 
 //---------------------------------------------------------------------------//

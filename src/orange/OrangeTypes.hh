@@ -18,7 +18,6 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/NumericLimits.hh"
-#include "geocel/Types.hh"
 #include "geocel/Types.hh"  // IWYU pragma: export
 
 namespace celeritas
@@ -289,6 +288,8 @@ struct Daughter
  * \note For historical reasons, the absolute tolerance used by \c SoftEqual
  * defaults to 1/100 of the relative tolerance, whereas with \c Tolerance the
  * equivalent behavior is setting a length scale of 0.01.
+ *
+ * \todo Move this to a separate file.
  */
 template<class T = ::celeritas::real_type>
 struct Tolerance
@@ -344,6 +345,16 @@ CELER_CONSTEXPR_FUNCTION Sense to_sense(bool s)
 [[nodiscard]] CELER_CONSTEXPR_FUNCTION Sense flip_sense(Sense orig)
 {
     return static_cast<Sense>(!static_cast<bool>(orig));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Change the sense across a surface.
+ */
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION SignedSense flip_sense(SignedSense orig)
+{
+    using IntT = std::underlying_type_t<SignedSense>;
+    return static_cast<SignedSense>(-static_cast<IntT>(orig));
 }
 
 //---------------------------------------------------------------------------//
@@ -446,6 +457,9 @@ char const* to_cstring(SurfaceType);
 
 // Get a string corresponding to a transform type
 char const* to_cstring(TransformType);
+
+// Get a string corresponding to a signed sense
+char const* to_cstring(SignedSense);
 
 // Get a string corresponding to a surface state
 inline char const* to_cstring(SurfaceState s)

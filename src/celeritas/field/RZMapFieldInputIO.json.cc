@@ -12,7 +12,9 @@
 #include <string>
 #include <vector>
 
+#include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Quantities.hh"
 
@@ -142,20 +144,18 @@ void from_json(nlohmann::json const& j, RZMapFieldInput& inp)
  */
 void to_json(nlohmann::json& j, RZMapFieldInput const& inp)
 {
-#define RZFI_KEY_VALUE(NAME) {#NAME, inp.NAME}
     j = {
         {"_units", units::NativeTraits::label()},
-        RZFI_KEY_VALUE(num_grid_z),
-        RZFI_KEY_VALUE(num_grid_r),
-        RZFI_KEY_VALUE(min_z),
-        RZFI_KEY_VALUE(min_r),
-        RZFI_KEY_VALUE(max_z),
-        RZFI_KEY_VALUE(max_r),
-        RZFI_KEY_VALUE(field_z),
-        RZFI_KEY_VALUE(field_r),
-        RZFI_KEY_VALUE(driver_options),
+        CELER_JSON_PAIR(inp, num_grid_z),
+        CELER_JSON_PAIR(inp, num_grid_r),
+        CELER_JSON_PAIR(inp, min_z),
+        CELER_JSON_PAIR(inp, min_r),
+        CELER_JSON_PAIR(inp, max_z),
+        CELER_JSON_PAIR(inp, max_r),
+        CELER_JSON_PAIR(inp, field_z),
+        CELER_JSON_PAIR(inp, field_r),
+        CELER_JSON_PAIR(inp, driver_options),
     };
-#undef RZFI_KEY_VALUE
 }
 
 //---------------------------------------------------------------------------//

@@ -13,12 +13,19 @@
 #include "orange/orangeinp/CsgTreeUtils.hh"
 #include "orange/orangeinp/detail/ConvexSurfaceState.hh"
 #include "orange/orangeinp/detail/CsgUnitBuilder.hh"
+#include "orange/orangeinp/detail/SenseEvaluator.hh"
 
 #include "CsgTestUtils.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+std::ostream& operator<<(std::ostream& os, SignedSense s)
+{
+    return (os << to_cstring(s));
+}
+
 namespace orangeinp
 {
 namespace test
@@ -39,6 +46,7 @@ class ConvexRegionTest : public ::celeritas::test::Test
         std::vector<std::string> surfaces;
         BBox interior;
         BBox exterior;
+        NodeId node_id;
 
         void print_expected() const;
     };
@@ -50,6 +58,13 @@ class ConvexRegionTest : public ::celeritas::test::Test
     TestResult test(ConvexRegionInterface const& r)
     {
         return this->test(r, NoTransformation{});
+    }
+
+    SignedSense calc_sense(NodeId n, Real3 const& pos)
+    {
+        CELER_EXPECT(n < unit_.tree.size());
+        detail::SenseEvaluator eval_sense(unit_.tree, unit_.surfaces, pos);
+        return eval_sense(n);
     }
 
   private:
@@ -68,8 +83,16 @@ auto ConvexRegionTest::test(ConvexRegionInterface const& r,
 
     ConvexSurfaceBuilder insert_surface{&unit_builder_, &css};
     r.build(insert_surface);
-    EXPECT_TRUE(encloses(css.local_bzone.exterior, css.local_bzone.interior));
-    EXPECT_TRUE(encloses(css.global_bzone.exterior, css.global_bzone.interior));
+    if (css.local_bzone.exterior || css.local_bzone.interior)
+    {
+        EXPECT_TRUE(
+            encloses(css.local_bzone.exterior, css.local_bzone.interior));
+    }
+    if (css.global_bzone.exterior || css.global_bzone.interior)
+    {
+        EXPECT_TRUE(
+            encloses(css.global_bzone.exterior, css.global_bzone.interior));
+    }
 
     // Intersect the given surfaces
     NodeId node_id
@@ -78,6 +101,7 @@ auto ConvexRegionTest::test(ConvexRegionInterface const& r,
     TestResult result;
     result.node = build_infix_string(unit_.tree, node_id);
     result.surfaces = surface_strings(unit_);
+    result.node_id = node_id;
 
     // Combine the bounding zones
     auto merged_bzone = calc_merged_bzone(css);
@@ -139,6 +163,15 @@ TEST_F(BoxTest, standard)
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+
+    EXPECT_EQ(SignedSense::inside,
+              this->calc_sense(result.node_id, Real3{0, 0, 0}));
+    EXPECT_EQ(SignedSense::on,
+              this->calc_sense(result.node_id, Real3{1, 0, 0}));
+    EXPECT_EQ(SignedSense::outside,
+              this->calc_sense(result.node_id, Real3{0, 3, 0}));
+    EXPECT_EQ(SignedSense::outside,
+              this->calc_sense(result.node_id, Real3{0, 0, -4}));
 }
 
 //---------------------------------------------------------------------------//
@@ -372,6 +405,216 @@ TEST_F(EllipsoidTest, standard)
 }
 
 //---------------------------------------------------------------------------//
+// GENTRAP
+//---------------------------------------------------------------------------//
+using GenTrapTest = ConvexRegionTest;
+
+TEST_F(GenTrapTest, construct)
+{
+    // Validate contruction parameters
+    EXPECT_THROW(GenTrap(-3,
+                         {{-1, -1}, {-1, 1}, {1, 1}, {1, -1}},
+                         {{-2, -2}, {-2, 2}, {2, 2}, {2, -2}}),
+                 RuntimeError);  // negative dZ
+    EXPECT_THROW(GenTrap(3,
+                         {{-1, -1}, {-1, 1}, {1, 1}, {2, 0}, {1, -1}},
+                         {{-2, -2}, {-2, 2}, {2, 2}, {2, -2}}),
+                 RuntimeError);  // 5 pts in -dZ
+    EXPECT_THROW(GenTrap(3,
+                         {{-1, -1}, {0.4, -0.4}, {1, 1}, {1, -1}},
+                         {{-2, -2}, {-2, 2}, {2, 2}, {2, -2}}),
+                 RuntimeError);  // non-convex
+
+    // General non-planar GenTrap with 'twisted' faces is not yet implemented
+    EXPECT_THROW(GenTrap(3,
+                         {{-10, -10}, {-10, 10}, {10, 10}, {9, -11}},
+                         {{-10, -10}, {-10, 10}, {10, 10}, {10, -10}}),
+                 RuntimeError);
+}
+
+TEST_F(GenTrapTest, box_like)
+{
+    auto result = this->test(GenTrap(3,
+                                     {{-1, -1}, {1, -1}, {1, 1}, {-1, 1}},
+                                     {{-1, -1}, {1, -1}, {1, 1}, {-1, 1}}));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const* const expected_surfaces[] = {"Plane: z=-3",
+                                                    "Plane: z=3",
+                                                    "Plane: y=-1",
+                                                    "Plane: x=1",
+                                                    "Plane: y=1",
+                                                    "Plane: x=-1"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -3}), result.interior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1, 1, 3}), result.interior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -3}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1, 1, 3}), result.exterior.upper());
+}
+
+TEST_F(GenTrapTest, trd)
+{
+    auto result = this->test(GenTrap(3,
+                                     {{-1, -1}, {1, -1}, {1, 1}, {-1, 1}},
+                                     {{-2, -2}, {2, -2}, {2, 2}, {-2, 2}}));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-3",
+           "Plane: z=3",
+           "Plane: n={0,0.98639,0.1644}, d=-1.4796",
+           "Plane: n={0.98639,0,-0.1644}, d=1.4796",
+           "Plane: n={0,0.98639,-0.1644}, d=1.4796",
+           "Plane: n={0.98639,0,0.1644}, d=-1.4796"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -3}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 3}), result.exterior.upper());
+}
+
+TEST_F(GenTrapTest, ppiped)
+{
+    auto result = this->test(GenTrap(4,
+                                     {{-2, -2}, {0, -2}, {0, 0}, {-2, 0}},
+                                     {{0, 0}, {2, 0}, {2, 2}, {0, 2}}));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-4",
+           "Plane: z=4",
+           "Plane: n={0,0.97014,-0.24254}, d=-0.97014",
+           "Plane: n={0.97014,0,-0.24254}, d=0.97014",
+           "Plane: n={0,0.97014,-0.24254}, d=0.97014",
+           "Plane: n={0.97014,0,-0.24254}, d=-0.97014"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -4}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 4}), result.exterior.upper());
+}
+
+TEST_F(GenTrapTest, triang_prism)
+{
+    auto result = this->test(
+        GenTrap(3, {{-1, -1}, {-1, 1}, {2, 0}}, {{-1, -1}, {-1, 1}, {2, 0}}));
+
+    static char const expected_node[] = "all(+0, -1, -2, +3, -4)";
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-3",
+        "Plane: z=3",
+        "Plane: n={0.31623,0.94868,-0}, d=0.63246",
+        "Plane: x=-1",
+        "Plane: n={0.31623,-0.94868,0}, d=0.63246",
+    };
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-1, -inf, -3}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 3}), result.exterior.upper());
+}
+
+TEST_F(GenTrapTest, trapezoid)
+{
+    auto result
+        = this->test(GenTrap(40,
+                             {{-19, -30}, {-19, 30}, {21, 30}, {21, -30}},
+                             {{-21, -30}, {-21, 30}, {19, 30}, {19, -30}}));
+
+    static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-40",
+        "Plane: z=40",
+        "Plane: n={0.99969,-0,0.024992}, d=19.994",
+        "Plane: y=30",
+        "Plane: n={0.99969,0,0.024992}, d=-19.994",
+        "Plane: y=-30",
+    };
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -30, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, 30, 40}), result.exterior.upper());
+}
+
+TEST_F(GenTrapTest, trapezoid_trans)
+{
+    // trapezoid but translated -30, -30
+    auto result
+        = this->test(GenTrap(40,
+                             {{-49, -60}, {-49, 0}, {-9, 0}, {-9, -60}},
+                             {{-51, -60}, {-51, 0}, {-11, 0}, {-11, -60}}));
+
+    static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-40",
+        "Plane: z=40",
+        "Plane: n={0.99969,-0,0.024992}, d=-9.9969",
+        "Plane: y=0",
+        "Plane: n={0.99969,0,0.024992}, d=-49.984",
+        "Plane: y=-60",
+    };
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -60, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, 0, 40}), result.exterior.upper());
+}
+
+TEST_F(GenTrapTest, trapezoid_ccw)
+{
+    auto result
+        = this->test(GenTrap(40,
+                             {{-19, -30}, {21, -30}, {21, 30}, {-19, 30}},
+                             {{-21, -30}, {19, -30}, {19, 30}, {-21, 30}}));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-40",
+           "Plane: z=40",
+           "Plane: y=-30",
+           "Plane: n={0.99969,-0,0.024992}, d=19.994",
+           "Plane: y=30",
+           "Plane: n={0.99969,0,0.024992}, d=-19.994"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -30, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, 30, 40}), result.exterior.upper());
+}
+
+// TODO: this should be valid
+TEST_F(GenTrapTest, DISABLED_pentahedron)
+{
+    auto result = this->test(GenTrap(3, {{-2,-2}, {3,0}, {-2,2}},
+        {{-2,-1}, {-1,1}, {2,0}}));
+    result.print_expected();
+}
+
+// TODO: we may need to support this
+TEST_F(GenTrapTest, DISABLED_tetrahedron)
+{
+    auto result = this->test(GenTrap(3, {{-1,-1}, {2,0}, {-1,1}},
+        {{0,0}, {0,0}, {0,0}}));
+}
+
+// TODO: find a valid set of points
+TEST_F(GenTrapTest, DISABLED_full)
+{
+    auto result = this->test(GenTrap(4, {{-2,-2}, {-2,2}, {2,2}, {2,-2}},
+        {{-2,-2}, {-1,1}, {1,1}, {2,-2}}));
+    result.print_expected();
+}
+
+//---------------------------------------------------------------------------//
 // INFWEDGE
 //---------------------------------------------------------------------------//
 using InfWedgeTest = ConvexRegionTest;
@@ -472,6 +715,125 @@ TEST_F(InfWedgeTest, half_turn)
         EXPECT_EQ(expected_node, result.node);
         EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     }
+}
+
+//---------------------------------------------------------------------------//
+// PARALLELEPIPED
+//---------------------------------------------------------------------------//
+using ParallelepipedTest = ConvexRegionTest;
+
+TEST_F(ParallelepipedTest, errors)
+{
+    EXPECT_THROW(Parallelepiped({0, 1, 2}, Turn(0.1), Turn(0.1), Turn(0.1)),
+                 RuntimeError);  // bad x
+    EXPECT_THROW(Parallelepiped({2, 0, 1}, Turn(0.2), Turn(0.0), Turn(0.1)),
+                 RuntimeError);  // bad y
+    EXPECT_THROW(Parallelepiped({2, 1, 0}, Turn(0.1), Turn(0.1), Turn(0.1)),
+                 RuntimeError);  // bad z
+
+    Real3 sides{1, 2, 3};
+    EXPECT_THROW(Parallelepiped(sides, Turn(0.3), Turn(0.1), Turn(0.1)),
+                 RuntimeError);  // alpha
+    EXPECT_THROW(Parallelepiped(sides, Turn(0.1), Turn(0.3), Turn(0.1)),
+                 RuntimeError);  // theta
+    EXPECT_THROW(Parallelepiped(sides, Turn(0.1), Turn(0.1), Turn(1.0)),
+                 RuntimeError);  // phi
+}
+
+TEST_F(ParallelepipedTest, box)
+{
+    Real3 sides{1, 2, 3};
+    auto result
+        = this->test(Parallelepiped(sides, Turn(0.0), Turn(0.0), Turn(0.0)));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
+    static char const* const expected_surfaces[] = {"Plane: z=-3",
+                                                    "Plane: z=3",
+                                                    "Plane: y=-2",
+                                                    "Plane: y=2",
+                                                    "Plane: x=-1",
+                                                    "Plane: x=1"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_VEC_SOFT_EQ((Real3{-1, -2, -3}), result.interior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1, 2, 3}), result.interior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-1, -2, -3}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1, 2, 3}), result.exterior.upper());
+}
+
+TEST_F(ParallelepipedTest, alpha)
+{
+    Real3 sides{1, 2, 3};
+    auto result
+        = this->test(Parallelepiped(sides, Turn(0.1), Turn(0.0), Turn(0.0)));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-3",
+           "Plane: z=3",
+           "Plane: y=-1.618",
+           "Plane: y=1.618",
+           "Plane: n={0.80902,-0.58779,0}, d=-0.80902",
+           "Plane: n={0.80902,-0.58779,0}, d=0.80902"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-2.1755705045849, -1.6180339887499, -3}),
+                       result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2.1755705045849, 1.6180339887499, 3}),
+                       result.exterior.upper());
+}
+
+TEST_F(ParallelepipedTest, theta)
+{
+    Real3 sides{1, 2, 3};
+    auto result
+        = this->test(Parallelepiped(sides, Turn(0), Turn(0.1), Turn(0)));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-3",
+           "Plane: z=3",
+           "Plane: y=-2",
+           "Plane: y=2",
+           "Plane: n={0.80902,0,-0.58779}, d=-0.80902",
+           "Plane: n={0.80902,0,-0.58779}, d=0.80902"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-2.7633557568774, -2, -2.4270509831248}),
+                       result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2.7633557568774, 2, 2.4270509831248}),
+                       result.exterior.upper());
+}
+
+TEST_F(ParallelepipedTest, full)
+{
+    Real3 sides{1, 2, 3};
+    auto result
+        = this->test(Parallelepiped(sides, Turn(0.1), Turn(0.05), Turn(0.15)));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-3",
+           "Plane: z=3",
+           "Plane: n={0,0.96714,-0.25423}, d=-1.5649",
+           "Plane: n={0,0.96714,-0.25423}, d=1.5649",
+           "Plane: n={0.80902,-0.58779,0}, d=-0.80902",
+           "Plane: n={0.80902,-0.58779,0}, d=0.80902"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ(
+        (Real3{-2.720477400589, -2.3680339887499, -2.8531695488855}),
+        result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ(
+        (Real3{2.720477400589, 2.3680339887499, 2.8531695488855}),
+        result.exterior.upper());
 }
 
 //---------------------------------------------------------------------------//

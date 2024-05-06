@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <cctype>
 #include <fstream>
+#include <regex>
 
 #include "celeritas_test_config.h"
 #include "corecel/Assert.hh"
@@ -39,6 +40,16 @@ Test::test_data_path(std::string_view subdir, std::string_view filename)
                        << "Failed to open test data file at '" << path << "'");
     }
     return path;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Replace pointer addresses with 0x0 for improved testability.
+ */
+[[nodiscard]] std::string Test::genericize_pointers(std::string_view s)
+{
+    static std::regex const subs_ptr("0x[0-9a-f]{2,}");
+    return std::regex_replace(std::string{s}, subs_ptr, "0x0");
 }
 
 //---------------------------------------------------------------------------//

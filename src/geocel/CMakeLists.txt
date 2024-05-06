@@ -13,6 +13,7 @@ set(PUBLIC_DEPS Celeritas::corecel)
 
 list(APPEND SOURCES
   GeoParamsOutput.cc
+  rasterize/Image.cc
 )
 
 #-----------------------------------------------------------------------------#
@@ -22,6 +23,7 @@ list(APPEND SOURCES
 if(CELERITAS_USE_JSON)
   list(APPEND SOURCES
     BoundingBoxIO.json.cc
+    rasterize/ImageIO.json.cc
   )
   list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()
@@ -49,6 +51,7 @@ if(CELERITAS_USE_Geant4)
     ScopedGeantExceptionHandler.cc
     ScopedGeantLogger.cc
     g4/GeantGeoParams.cc
+    g4/RaytraceImager.cc
     g4/detail/GeantGeoNavCollection.cc
   )
   celeritas_get_g4libs(_cg4_libs global geometry persistency intercoms)
@@ -66,6 +69,7 @@ if(CELERITAS_USE_VecGeom)
     vg/VecgeomParams.cc
     vg/VecgeomParamsOutput.cc
     vg/detail/VecgeomNavCollection.cc
+    vg/RaytraceImager.cc
   )
   if(VecGeom_GDML_FOUND)
     list(APPEND PRIVATE_DEPS VecGeom::vgdml)
@@ -81,6 +85,9 @@ if(CELERITAS_USE_VecGeom)
     # to resolve the symbols generate by the `nvcc -dlink` of
     # one of the executable.
     list(APPEND PUBLIC_DEPS VecGeom::vecgeom)
+    list(APPEND SOURCES
+      vg/RaytraceImager.cu
+    )
   elseif(VecGeom_CUDA_FOUND)
     # VecGeom is built with CUDA but Celeritas is not
     list(APPEND PRIVATE_DEPS VecGeom::vecgeomcuda)

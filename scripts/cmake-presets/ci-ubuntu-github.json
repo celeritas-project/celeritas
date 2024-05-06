@@ -58,6 +58,17 @@
       }
     },
     {
+      "name": "ultralite",
+      "inherits": ["base"],
+      "displayName": "ultralite build with no externals",
+      "cacheVariables": {
+        "BUILD_TESTING": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
       "name": ".vecgeom",
       "hidden": true,
       "description": "Options to enable VecGeom on Ubuntu",
@@ -80,9 +91,10 @@
     },
     {
       "name": "reldeb-vecgeom",
-      "description": "Build with release, assertions, VecGeom",
+      "description": "Build with release, assertions, VecGeom, SWIG",
       "inherits": [".vecgeom", "spack"],
       "cacheVariables": {
+        "CELERITAS_USE_SWIG": {"type": "BOOL", "value": "ON"}
       }
     },
     {

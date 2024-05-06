@@ -42,7 +42,7 @@ class ProtoMap
     inline ProtoInterface const* at(UniverseId) const;
 
     // Find the universe ID for a given proto pointer (or raise)
-    inline UniverseId find(ProtoInterface const*);
+    inline UniverseId find(ProtoInterface const*) const;
 
     //! Get the number of protos to build
     UniverseId::size_type size() const { return protos_.size(); }
@@ -68,7 +68,7 @@ ProtoInterface const* ProtoMap::at(UniverseId uid) const
 /*!
  * Find the universe ID for a given proto pointer (or raise).
  */
-UniverseId ProtoMap::find(ProtoInterface const* proto)
+UniverseId ProtoMap::find(ProtoInterface const* proto) const
 {
     CELER_EXPECT(proto);
     auto iter = uids_.find(proto);

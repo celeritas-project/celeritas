@@ -35,6 +35,10 @@ class TrackInitParams;
 class CoreParams;
 class OutputRegistry;
 
+class CerenkovParams;
+class OpticalPropertyParams;
+class ScintillationParams;
+
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -67,6 +71,10 @@ class GlobalTestBase : public Test
 
     using SPActionRegistry = SP<ActionRegistry>;
     using SPOutputRegistry = SP<OutputRegistry>;
+
+    using SPConstCerenkov = SP<CerenkovParams const>;
+    using SPConstProperties = SP<OpticalPropertyParams const>;
+    using SPConstScintillation = SP<ScintillationParams const>;
     //!@}
 
   public:
@@ -91,6 +99,9 @@ class GlobalTestBase : public Test
     inline SPConstTrackInit const& init();
     inline SPActionRegistry const& action_reg();
     inline SPConstCore const& core();
+    inline SPConstCerenkov const& cerenkov();
+    inline SPConstProperties const& properties();
+    inline SPConstScintillation const& scintillation();
 
     inline SPConstGeo const& geometry() const;
     inline SPConstMaterial const& material() const;
@@ -104,6 +115,9 @@ class GlobalTestBase : public Test
     inline SPConstTrackInit const& init() const;
     inline SPActionRegistry const& action_reg() const;
     inline SPConstCore const& core() const;
+    inline SPConstCerenkov const& cerenkov() const;
+    inline SPConstProperties const& properties() const;
+    inline SPConstScintillation const& scintillation() const;
     //!@}
 
     //// OUTPUT ////
@@ -125,6 +139,9 @@ class GlobalTestBase : public Test
     [[nodiscard]] virtual SPConstSim build_sim() = 0;
     [[nodiscard]] virtual SPConstTrackInit build_init() = 0;
     [[nodiscard]] virtual SPConstAction build_along_step() = 0;
+    [[nodiscard]] virtual SPConstCerenkov build_cerenkov() = 0;
+    [[nodiscard]] virtual SPConstProperties build_properties() = 0;
+    [[nodiscard]] virtual SPConstScintillation build_scintillation() = 0;
 
   private:
     SPConstRng build_rng() const;
@@ -145,6 +162,9 @@ class GlobalTestBase : public Test
     SPConstTrackInit init_;
     SPConstCore core_;
     SPOutputRegistry output_reg_;
+    SPConstCerenkov cerenkov_;
+    SPConstProperties properties_;
+    SPConstScintillation scintillation_;
 };
 
 //---------------------------------------------------------------------------//
@@ -179,6 +199,9 @@ DEF_GTB_ACCESSORS(SPConstSim, sim)
 DEF_GTB_ACCESSORS(SPConstTrackInit, init)
 DEF_GTB_ACCESSORS(SPActionRegistry, action_reg)
 DEF_GTB_ACCESSORS(SPConstCore, core)
+DEF_GTB_ACCESSORS(SPConstCerenkov, cerenkov)
+DEF_GTB_ACCESSORS(SPConstProperties, properties)
+DEF_GTB_ACCESSORS(SPConstScintillation, scintillation)
 
 #undef DEF_GTB_ACCESSORS
 

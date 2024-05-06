@@ -7,10 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/GeantImporter.hh"
 
-#include <regex>
-
 #include "celeritas_cmake_strings.h"
 #include "celeritas_config.h"
+#include "corecel/ScopedLogStorer.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Version.hh"
@@ -45,12 +45,6 @@ std::vector<std::string> to_vec_string(Iter iter, Iter end)
         result.push_back(to_cstring(*iter));
     }
     return result;
-}
-
-std::string sub_pointer_string(std::string const& s)
-{
-    static std::regex const r("0x[0-9a-f]{2,}");
-    return std::regex_replace(s, r, "0x0");
 }
 
 double to_inv_cm(double v)
@@ -879,7 +873,9 @@ TEST_F(FourSteelSlabsEmStandard, sb_data)
 //---------------------------------------------------------------------------//
 TEST_F(FourSteelSlabsEmStandard, livermore_pe_data)
 {
+    ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::warning};
     auto&& import_data = this->imported_data();
+    EXPECT_TRUE(scoped_log.empty()) << scoped_log;
 
     auto const& lpe_map = import_data.livermore_pe_data;
     EXPECT_EQ(4, lpe_map.size());
@@ -1108,7 +1104,7 @@ TEST_F(TestEm3, volume_names)
     std::vector<std::string> names;
     for (auto const& volume : volumes)
     {
-        names.push_back(sub_pointer_string(volume.name));
+        names.push_back(this->genericize_pointers(volume.name));
     }
 
     // clang-format off
@@ -1128,7 +1124,9 @@ TEST_F(TestEm3, unique_volumes)
 
     EXPECT_EQ(101, volumes.size());
     EXPECT_EQ("gap_00x0x0",
-              sub_pointer_string(sub_pointer_string(volumes.front().name)));
+              this->genericize_pointers(
+                  this->genericize_pointers(volumes.front().name)))
+        << "Front name: '" << volumes.front().name << "'";
 }
 
 //---------------------------------------------------------------------------//
@@ -1361,12 +1359,12 @@ TEST_F(LarSphere, optical)
     EXPECT_TRUE(scint);
     // Material scintillation
     EXPECT_REAL_EQ(1, scint.resolution_scale);
-    EXPECT_REAL_EQ(50000, scint.material.yield);
+    EXPECT_REAL_EQ(50000, scint.material.yield_per_energy);
     EXPECT_EQ(3, scint.material.components.size());
     std::vector<double> components;
     for (auto const& comp : scint.material.components)
     {
-        components.push_back(comp.yield);
+        components.push_back(comp.yield_per_energy);
         components.push_back(to_cm(comp.lambda_mean));
         components.push_back(to_cm(comp.lambda_sigma));
         components.push_back(to_sec(comp.rise_time));
@@ -1398,7 +1396,7 @@ TEST_F(LarSphere, optical)
         comp_sizes.push_back(part.components.size());
         for (auto comp : part.components)
         {
-            comp_y.push_back(comp.yield);
+            comp_y.push_back(comp.yield_per_energy);
             comp_lm.push_back(to_cm(comp.lambda_mean));
             comp_ls.push_back(to_cm(comp.lambda_sigma));
             comp_rt.push_back(to_sec(comp.rise_time));
@@ -1457,6 +1455,31 @@ TEST_F(LarSphere, optical)
     EXPECT_DOUBLE_EQ(1.55e-05, abs.absorption_length.x.back());
     EXPECT_REAL_EQ(86.4473, to_cm(abs.absorption_length.y.front()));
     EXPECT_REAL_EQ(0.000296154, to_cm(abs.absorption_length.y.back()));
+
+    // Check WLS optical properties
+    auto const& wls = optical.wls;
+    EXPECT_TRUE(wls);
+    EXPECT_REAL_EQ(3, wls.mean_num_photons);
+    EXPECT_REAL_EQ(6e-9, wls.time_constant);
+    EXPECT_EQ(2, wls.absorption_length.x.size());
+    EXPECT_EQ(wls.absorption_length.x.size(), wls.absorption_length.y.size());
+    EXPECT_EQ(ImportPhysicsVectorType::free, wls.absorption_length.vector_type);
+    EXPECT_EQ(wls.component.vector_type, wls.absorption_length.vector_type);
+
+    std::vector<double> abslen_grid, comp_grid;
+    for (auto i : range(wls.absorption_length.x.size()))
+    {
+        abslen_grid.push_back(wls.absorption_length.x[i]);
+        abslen_grid.push_back(wls.absorption_length.y[i]);
+        comp_grid.push_back(wls.component.x[i]);
+        comp_grid.push_back(wls.component.y[i]);
+    }
+
+    static double const expected_abslen_grid[]
+        = {1.3778e-06, 86.4473, 1.55e-05, 0.000296154};
+    static double const expected_comp_grid[] = {1.3778e-06, 10, 1.55e-05, 20};
+    EXPECT_VEC_SOFT_EQ(expected_abslen_grid, abslen_grid);
+    EXPECT_VEC_SOFT_EQ(expected_comp_grid, comp_grid);
 
     // Check common optical properties
     // Refractive index data in the geometry comes from the refractive index
@@ -1521,9 +1544,7 @@ TEST_F(Solids, volumes_unique)
     std::vector<std::string> names;
     for (auto const& volume : imported.volumes)
     {
-        static std::regex const subs_ptr("0x[0-9a-f]+");
-        auto name = std::regex_replace(volume.name, subs_ptr, "0x0");
-        names.push_back(name);
+        names.push_back(this->genericize_pointers(volume.name));
     }
     static char const* const expected_names[]
         = {"box5000x0",    "cone10x0",      "para10x0",

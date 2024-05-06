@@ -16,11 +16,31 @@
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the square of the tolerance rounds to zero for O(1) operations.
+ *
+ * This is an important criterion for construction and tracking operations that
+ * involve \c sqrt, for example:
+ * - Rotation matrix simplification
+ * - Shape simplification
+ * - Tracking to quadric surfaces
+ */
+template<class T>
+constexpr bool is_tol_sq_nonnegligible(T value)
+{
+    return T{1} - ipow<2>(value) != T{1};
+}
+
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Use a relative error of \f$ \sqrt(\epsilon_\textrm{machine}) \f$ .
  *
- * Technically we're rounding the machine epsilon to a nearby power of 10. We
+ * Technically we're rounding the machine epsilon to a nearby value. We
  * could use numeric_limits<real_type>::epsilon instead.
  */
 template<class T>
@@ -29,14 +49,16 @@ Tolerance<T> Tolerance<T>::from_default(real_type length)
     constexpr real_type sqrt_emach = [] {
         if constexpr (std::is_same_v<real_type, double>)
         {
-            return 1.e-8;
+            // std::sqrt(LimitsT::epsilon()) = 1.4901161193847656e-08
+            return 1.5e-8;
         }
         else if constexpr (std::is_same_v<real_type, float>)
         {
-            return 5.e-3f;
+            // std::sqrt(LimitsT::epsilon()) = 0.00034526698f
+            return 3e-4f;
         }
     }();
-    static_assert(real_type{1} - ipow<2>(sqrt_emach) != real_type{1},
+    static_assert(is_tol_sq_nonnegligible(sqrt_emach),
                   "default tolerance is too low");
 
     return Tolerance<T>::from_relative(sqrt_emach, length);
@@ -66,6 +88,7 @@ Tolerance<T> Tolerance<T>::from_relative(real_type rel, real_type length)
     CELER_VALIDATE(length > 0,
                    << "length scale " << length
                    << " is invalid [must be positive]");
+
     Tolerance<T> result;
     result.rel = rel;
     result.abs = rel * length;
@@ -119,6 +142,24 @@ char const* to_cstring(TransformType value)
         "transformation",
     };
     return to_cstring_impl(value);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a string corresponding to a signed sense.
+ */
+char const* to_cstring(SignedSense s)
+{
+    switch (s)
+    {
+        case SignedSense::inside:
+            return "inside";
+        case SignedSense::on:
+            return "on";
+        case SignedSense::outside:
+            return "outside";
+    }
+    return "<invalid>";
 }
 
 //---------------------------------------------------------------------------//

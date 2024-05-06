@@ -8,6 +8,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas_config.h"
+#include "corecel/Types.hh"
+
 #define CELER_ICRT inline constexpr real_type
 
 namespace celeritas
@@ -27,6 +30,8 @@ CELER_ICRT millimeter = 0.001;
 CELER_ICRT meter = 1000;
 CELER_ICRT centimeter = 10;
 CELER_ICRT millimeter = 1;
+#else
+#    error "CELERITAS_UNITS is undefined"
 #endif
 
 //---------------------------------------------------------------------------//

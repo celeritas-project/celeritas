@@ -118,4 +118,14 @@ struct ImportTransParameters
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * TODO: Placeholder for optical parameter data.
+ * See \c G4OpticalParameters .
+ */
+struct ImportOpticalParameters
+{
+    bool scintillation_by_particle{false};
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -9,6 +9,7 @@
 
 #include <cmath>
 
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 
@@ -73,7 +74,7 @@ gemm(SquareMatrix<T, N> const& a, SquareMatrix<T, N> const& b)
             // Accumulate dot products
             for (size_type k = 0; k != N; ++k)
             {
-                result[i][j] = std::fma(b[k][j], a[i][k], result[i][j]);
+                result[i][j] = fma(b[k][j], a[i][k], result[i][j]);
             }
         }
     }
@@ -106,7 +107,7 @@ SquareMatrix<T, N> gemm(matrix::TransposePolicy,
             // Accumulate dot products
             for (size_type k = 0; k != N; ++k)
             {
-                result[i][j] = std::fma(b[k][j], a[k][i], result[i][j]);
+                result[i][j] = fma(b[k][j], a[k][i], result[i][j]);
             }
         }
     }
@@ -238,6 +239,27 @@ Mat3 make_rotation(Axis ax, Turn theta)
 Mat3 make_rotation(Axis ax, Turn theta, Mat3 const& other)
 {
     return gemm(make_rotation(ax, theta), other);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a transposed matrix.
+ *
+ * This should only be used for preprocessing. Prefer methods that transpose on
+ * the fly.
+ */
+SquareMatrixReal3 make_transpose(SquareMatrixReal3 const& mat)
+{
+    SquareMatrixReal3 result;
+    for (size_type i = 0; i != 3; ++i)
+    {
+        for (size_type j = 0; j != 3; ++j)
+        {
+            result[i][j] = mat[j][i];
+        }
+    }
+
+    return result;
 }
 
 //---------------------------------------------------------------------------//

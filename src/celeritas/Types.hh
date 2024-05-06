@@ -66,9 +66,6 @@ using ElementComponentId = OpaqueId<struct MatElementComponent>;
 //! Opaque index to one isotopic component datum in a particular element
 using IsotopeComponentId = OpaqueId<struct ElIsotopeComponent>;
 
-//! Opaque index to a material with optical properties
-using OpticalMaterialId = OpaqueId<struct OpticalMaterial_>;
-
 //! Opaque index of a process applicable to a single particle type
 using ParticleProcessId = OpaqueId<ProcessId>;
 
@@ -78,20 +75,11 @@ using ParticleModelId = OpaqueId<ModelId>;
 //! Opaque index of electron subshell
 using SubshellId = OpaqueId<struct Subshell_>;
 
+//! Opaque index of particle-nucleon cascade channel
+using ChannelId = OpaqueId<struct Channel_>;
+
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
-//---------------------------------------------------------------------------//
-//! Unit system used by Celeritas
-enum class UnitSystem
-{
-    none,  //!< Invalid unit system
-    cgs,  //!< Gaussian CGS
-    si,  //!< International System
-    clhep,  //!< Geant4 native
-    size_,
-    native = CELERITAS_UNITS,  //!< Compile time selected system
-};
-
 //---------------------------------------------------------------------------//
 //! Interpolation type
 enum class Interp
@@ -196,14 +184,8 @@ struct StepLimit
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//
 
-// Get a string corresponding to a unit system
-char const* to_cstring(UnitSystem);
-
 // Get a string corresponding to an interpolation
 char const* to_cstring(Interp);
-
-// Get a unit system corresponding to a string
-UnitSystem to_unit_system(std::string const& s);
 
 // Get a string corresponding to a material state
 char const* to_cstring(MatterState);

@@ -18,6 +18,9 @@ celeritas_setup_tests(SERIAL PREFIX corecel
 #-----------------------------------------------------------------------------#
 # TESTS
 #-----------------------------------------------------------------------------#
+celeritas_add_test(Assert.test.cc
+  ENVIRONMENT "CELER_COLOR=1;CELER_LOG=debug"
+)
 celeritas_add_test(OpaqueId.test.cc)
 
 # Cont

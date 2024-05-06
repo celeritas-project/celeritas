@@ -10,6 +10,7 @@
 
 #include "corecel/math/Algorithms.hh"
 #include "geocel/Types.hh"
+#include "geocel/detail/LengthUnits.hh"
 #include "orange/OrangeInput.hh"
 #include "orange/OrangeParams.hh"
 #include "orange/OrangeParamsOutput.hh"
@@ -34,75 +35,43 @@ class OrangeTest : public OrangeGeoTestBase
   protected:
     using Initializer_t = GeoTrackInitializer;
 
-    //! Create a host track view
-    OrangeTrackView make_track_view(TrackSlotId tsid = TrackSlotId{0})
+    size_type num_track_slots() const override { return 2; }
+    real_type unit_length() const override { return 1; }
+};
+
+class JsonOrangeTest : public OrangeTest
+{
+  public:
+    void SetUp() final
     {
-        if (!host_state_)
+        if (!CELERITAS_USE_JSON)
         {
-            host_state_ = HostStateStore(this->host_params(), 2);
+            GTEST_SKIP() << "JSON is disabled";
         }
-        CELER_EXPECT(tsid < host_state_.size());
-
-        return OrangeTrackView(this->host_params(), host_state_.ref(), tsid);
+        this->build_geometry(this->geometry_basename() + ".org.json");
     }
-
-  private:
-    using HostStateStore
-        = CollectionStateStore<OrangeStateData, MemSpace::host>;
-    HostStateStore host_state_;
 };
 
-class OneVolumeTest : public OrangeTest
+class GeantOrangeTest : public OrangeTest
 {
-    void SetUp() override
+  public:
+    void SetUp() final
     {
-        OneVolInput geo_inp;
-        this->build_geometry(geo_inp);
+        if (!CELERITAS_USE_GEANT4)
+        {
+            GTEST_SKIP() << "Geant4 is disabled";
+        }
+        if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            GTEST_SKIP() << "Converting Geant4 requires double-precision "
+                            "reals";
+        }
+        this->build_gdml_geometry(this->geometry_basename() + ".gdml");
     }
+    real_type unit_length() const override { return lengthunits::centimeter; }
 };
 
-class TwoVolumeTest : public OrangeTest
-{
-    void SetUp() override
-    {
-        TwoVolInput geo_inp;
-        geo_inp.radius = 1.5;
-        this->build_geometry(geo_inp);
-    }
-};
-
-#define FiveVolumesTest TEST_IF_CELERITAS_JSON(FiveVolumesTest)
-class FiveVolumesTest : public OrangeTest
-{
-    void SetUp() override { this->build_geometry("five-volumes.org.json"); }
-};
-
-#define UniversesTest TEST_IF_CELERITAS_JSON(UniversesTest)
-class UniversesTest : public OrangeTest
-{
-    void SetUp() override { this->build_geometry("universes.org.json"); }
-};
-
-#define RectArrayTest TEST_IF_CELERITAS_JSON(RectArrayTest)
-class RectArrayTest : public OrangeTest
-{
-    void SetUp() override { this->build_geometry("rect_array.org.json"); }
-};
-
-#define HexArrayTest TEST_IF_CELERITAS_JSON(HexArrayTest)
-class HexArrayTest : public OrangeTest
-{
-    void SetUp() override { this->build_geometry("hex_array.org.json"); }
-};
-
-#define TestEM3Test TEST_IF_CELERITAS_JSON(TestEM3Test)
-class TestEM3Test : public OrangeTest
-{
-    void SetUp() override { this->build_geometry("testem3.org.json"); }
-};
-
-#define ShiftTrackerTest TEST_IF_CELERITAS_JSON(ShiftTrackerTest)
-class ShiftTrackerTest : public OrangeTest
+class ShiftTrackerTest : public JsonOrangeTest
 {
   protected:
     enum class BoundaryState
@@ -111,7 +80,7 @@ class ShiftTrackerTest : public OrangeTest
         OUTSIDE = 1
     };
 
-    void SetUp() override { this->build_geometry("hex_array.org.json"); }
+    std::string geometry_basename() const final { return "hex-array"; }
 
     CELER_FUNCTION static constexpr unsigned int invalid_id()
     {
@@ -120,25 +89,25 @@ class ShiftTrackerTest : public OrangeTest
 
     void initialize(Real3 pos, Real3 dir)
     {
-        auto track = this->make_track_view();
+        auto track = this->make_geo_track_view();
         track = {pos, dir};
     }
 
     void distance_to_boundary(real_type& distance)
     {
-        auto track = this->make_track_view();
+        auto track = this->make_geo_track_view();
         distance = track.find_next_step().distance;
     }
 
     void move_to_point(real_type distance)
     {
-        auto track = this->make_track_view();
+        auto track = this->make_geo_track_view();
         track.move_internal(distance);
     }
 
     void move_across_surface(BoundaryState& boundary_state, unsigned int& cell)
     {
-        auto track = this->make_track_view();
+        auto track = this->make_geo_track_view();
         track.move_to_boundary();
         track.cross_boundary();
 
@@ -155,22 +124,15 @@ class ShiftTrackerTest : public OrangeTest
     }
 };
 
-#define NestedRectArraysTest TEST_IF_CELERITAS_JSON(NestedRectArraysTest)
-class NestedRectArraysTest : public OrangeTest
+//---------------------------------------------------------------------------//
+class OneVolumeTest : public OrangeTest
 {
     void SetUp() override
     {
-        this->build_geometry("nested_rect_arrays.org.json");
+        OneVolInput geo_inp;
+        this->build_geometry(geo_inp);
     }
 };
-
-#define Geant4Testem15Test TEST_IF_CELERITAS_JSON(Geant4Testem15Test)
-class Geant4Testem15Test : public OrangeTest
-{
-    void SetUp() override { this->build_geometry("geant4-testem15.org.json"); }
-};
-
-//---------------------------------------------------------------------------//
 
 TEST_F(OneVolumeTest, params)
 {
@@ -190,7 +152,7 @@ TEST_F(OneVolumeTest, params)
 
 TEST_F(OneVolumeTest, track_view)
 {
-    OrangeTrackView geo = this->make_track_view();
+    OrangeTrackView geo = this->make_geo_track_view();
 
     // Initialize
     geo = Initializer_t{{3, 4, 5}, {0, 1, 0}};
@@ -232,6 +194,15 @@ TEST_F(OneVolumeTest, track_view)
 }
 
 //---------------------------------------------------------------------------//
+class TwoVolumeTest : public OrangeTest
+{
+    void SetUp() override
+    {
+        TwoVolInput geo_inp;
+        geo_inp.radius = 1.5;
+        this->build_geometry(geo_inp);
+    }
+};
 
 TEST_F(TwoVolumeTest, params)
 {
@@ -251,7 +222,7 @@ TEST_F(TwoVolumeTest, params)
 
 TEST_F(TwoVolumeTest, simple_track)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
 
     // Initialize
     geo = Initializer_t{{0.5, 0, 0}, {0, 0, 1}};
@@ -321,7 +292,7 @@ TEST_F(TwoVolumeTest, simple_track)
 // on boundary so it ends up heading back in
 TEST_F(TwoVolumeTest, reentrant_boundary_setdir)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
@@ -361,7 +332,7 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir)
 
 TEST_F(TwoVolumeTest, nonreentrant_boundary_setdir)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
@@ -398,7 +369,7 @@ TEST_F(TwoVolumeTest, nonreentrant_boundary_setdir)
 // again
 TEST_F(TwoVolumeTest, doubly_reentrant_boundary_setdir)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
@@ -440,7 +411,7 @@ TEST_F(TwoVolumeTest, doubly_reentrant_boundary_setdir)
 // as part of the field propagation algorithm.
 TEST_F(TwoVolumeTest, reentrant_boundary_setdir_post)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{1.49, 0, 0}, {0, 1, 0}};
     EXPECT_EQ(VolumeId{1}, geo.volume_id());
     EXPECT_EQ(SurfaceId{}, geo.surface_id());
@@ -492,13 +463,13 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir_post)
 TEST_F(TwoVolumeTest, persistence)
 {
     {
-        auto geo = this->make_track_view();
+        auto geo = this->make_geo_track_view();
         geo = Initializer_t{{2.5, 0, 0}, {-1, 0, 0}};
         geo.find_next_step();
         geo.move_to_boundary();
     }
     {
-        auto geo = this->make_track_view();
+        auto geo = this->make_geo_track_view();
         EXPECT_EQ(VolumeId{0}, geo.volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.surface_id());
         EXPECT_VEC_SOFT_EQ(Real3({1.5, 0, 0}), geo.pos());
@@ -506,7 +477,7 @@ TEST_F(TwoVolumeTest, persistence)
         geo.cross_boundary();
     }
     {
-        auto geo = this->make_track_view();
+        auto geo = this->make_geo_track_view();
         EXPECT_EQ(VolumeId{1}, geo.volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.surface_id());
         EXPECT_VEC_SOFT_EQ(Real3({1.5, 0, 0}), geo.pos());
@@ -521,7 +492,7 @@ TEST_F(TwoVolumeTest, persistence)
         EXPECT_VEC_SOFT_EQ(Real3({-1.5, 0, 0}), geo.pos());
     }
     {
-        auto geo = this->make_track_view();
+        auto geo = this->make_geo_track_view();
         EXPECT_EQ(VolumeId{0}, geo.volume_id());
         EXPECT_EQ(SurfaceId{0}, geo.surface_id());
         EXPECT_VEC_SOFT_EQ(Real3({-1.5, 0, 0}), geo.pos());
@@ -529,12 +500,12 @@ TEST_F(TwoVolumeTest, persistence)
         EXPECT_EQ(SurfaceId{}, geo.surface_id());
     }
     {
-        auto geo = this->make_track_view();
+        auto geo = this->make_geo_track_view();
         EXPECT_VEC_SOFT_EQ(Real3({-1.5, .5, .5}), geo.pos());
         geo.set_dir({1, 0, 0});
     }
     {
-        auto geo = this->make_track_view();
+        auto geo = this->make_geo_track_view();
         EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
         auto next = geo.find_next_step();
         EXPECT_SOFT_EQ(0.17712434446770464, next.distance);
@@ -543,7 +514,7 @@ TEST_F(TwoVolumeTest, persistence)
         EXPECT_EQ(SurfaceId{}, geo.surface_id());
     }
     {
-        auto geo = this->make_track_view();
+        auto geo = this->make_geo_track_view();
         EXPECT_VEC_SOFT_EQ(Real3({-1.4, .5, .5}), geo.pos());
         EXPECT_EQ(SurfaceId{}, geo.surface_id());
         auto next = geo.find_next_step();
@@ -554,7 +525,7 @@ TEST_F(TwoVolumeTest, persistence)
 
 TEST_F(TwoVolumeTest, intersect_limited)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
 
     // Initialize
     geo = Initializer_t{{0.0, 0, 0}, {1, 0, 0}};
@@ -603,6 +574,12 @@ TEST_F(TwoVolumeTest, intersect_limited)
     EXPECT_FALSE(next.boundary);
 }
 
+//---------------------------------------------------------------------------//
+class FiveVolumesTest : public JsonOrangeTest
+{
+    std::string geometry_basename() const final { return "five-volumes"; }
+};
+
 TEST_F(FiveVolumesTest, params)
 {
     OrangeParams const& geo = this->params();
@@ -611,6 +588,12 @@ TEST_F(FiveVolumesTest, params)
     EXPECT_EQ(12, geo.num_surfaces());
     EXPECT_FALSE(geo.supports_safety());
 }
+
+//---------------------------------------------------------------------------//
+class UniversesTest : public JsonOrangeTest
+{
+    std::string geometry_basename() const final { return "universes"; }
+};
 
 TEST_F(UniversesTest, params)
 {
@@ -644,52 +627,102 @@ TEST_F(UniversesTest, params)
     EXPECT_VEC_EQ(expected, actual);
 }
 
+TEST_F(UniversesTest, tracking)
+{
+    {
+        SCOPED_TRACE("patty");
+        auto result = this->track({-1.0, -3.75, 0.75}, {1, 0, 0});
+        static char const* const expected_volumes[]
+            = {"johnny", "patty", "c", "johnny"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {1, 0.5, 5.5, 2};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {0.25, 0.25, 0.25, 0.25};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        SCOPED_TRACE("inner +x");
+        auto result = this->track({-1, -2, 1.0}, {1, 0, 0});
+        static char const* const expected_volumes[]
+            = {"johnny", "c", "a", "b", "c", "johnny"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {1, 1, 2, 2, 1, 2};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[]
+            = {0.5, 0, 0.5, 0.5, 0.5, 0.5};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        SCOPED_TRACE("inner +y");
+        auto result = this->track({4, -5, 1.0}, {0, 1, 0});
+        static char const* const expected_volumes[]
+            = {"johnny", "c", "b", "c", "bobby", "johnny"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {1, 1, 2, 1, 2, 2};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[]
+            = {0.5, 0, 0.5, 0.5, 0.5, 0.5};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        SCOPED_TRACE("inner +z");
+        auto result = this->track({4, -2, -0.75}, {0, 0, 1});
+        static char const* const expected_volumes[]
+            = {"johnny", "b", "b", "johnny"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {0.25, 1, 1, 0.5};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {0.125, 0.5, 0.5, 0.25};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+}
+
 TEST_F(UniversesTest, TEST_IF_CELERITAS_DOUBLE(output))
 {
-    OrangeParamsOutput out(this->sp_params());
+    OrangeParamsOutput out(this->geometry());
     EXPECT_EQ("orange", out.label());
 
     if (CELERITAS_USE_JSON)
     {
         EXPECT_JSON_EQ(
-            R"json({"scalars":{"max_depth":3,"max_faces":14,"max_intersections":14,"max_logic_depth":3,"tol":{"abs":1e-08,"rel":1e-08}},"sizes":{"bih":{"bboxes":12,"inner_nodes":6,"leaf_nodes":9,"local_volume_ids":12},"connectivity_records":25,"daughters":3,"local_surface_ids":53,"local_volume_ids":20,"logic_ints":162,"real_ids":25,"reals":24,"rect_arrays":0,"simple_units":3,"surface_types":25,"transforms":3,"universe_indices":3,"universe_types":3,"volume_records":12}})json",
+            R"json({"_category":"internal","_label":"orange","scalars":{"max_depth":3,"max_faces":14,"max_intersections":14,"max_logic_depth":3,"tol":{"abs":1.5e-08,"rel":1.5e-08}},"sizes":{"bih":{"bboxes":12,"inner_nodes":6,"leaf_nodes":9,"local_volume_ids":12},"connectivity_records":25,"daughters":3,"local_surface_ids":55,"local_volume_ids":21,"logic_ints":171,"real_ids":25,"reals":24,"rect_arrays":0,"simple_units":3,"surface_types":25,"transforms":3,"universe_indices":3,"universe_types":3,"volume_records":12}})json",
             to_string(out));
     }
 }
 
 TEST_F(UniversesTest, initialize_with_multiple_universes)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
 
     // Initialize in outermost universe
     geo = Initializer_t{{-1, -2, 1}, {1, 0, 0}};
     EXPECT_VEC_SOFT_EQ(Real3({-1, -2, 1}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
-    EXPECT_EQ("johnny", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("johnny", this->volume_name(geo));
     EXPECT_FALSE(geo.is_outside());
     EXPECT_FALSE(geo.is_on_boundary());
 
     // Initialize in daughter universe
-    geo = Initializer_t{{0.5, -2, 1}, {1, 0, 0}};
-    EXPECT_VEC_SOFT_EQ(Real3({0.5, -2, 1}), geo.pos());
+    geo = Initializer_t{{0.625, -2, 1}, {1, 0, 0}};
+    EXPECT_VEC_SOFT_EQ(Real3({0.625, -2, 1}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
-    EXPECT_EQ("c", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("c", this->volume_name(geo));
     EXPECT_FALSE(geo.is_outside());
     EXPECT_FALSE(geo.is_on_boundary());
 
     // Initialize in daughter universe using "this == &other"
     geo = OrangeTrackView::DetailedInitializer{geo, {0, 1, 0}};
-    EXPECT_VEC_SOFT_EQ(Real3({0.5, -2, 1}), geo.pos());
+    EXPECT_VEC_SOFT_EQ(Real3({0.625, -2, 1}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({0, 1, 0}), geo.dir());
-    EXPECT_EQ("c", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("c", this->volume_name(geo));
     EXPECT_FALSE(geo.is_outside());
     EXPECT_FALSE(geo.is_on_boundary());
 
     {
         // Initialize a separate track slot
-        auto other = this->make_track_view(TrackSlotId{1});
+        auto other = this->make_geo_track_view(TrackSlotId{1});
         other = OrangeTrackView::DetailedInitializer{geo, {1, 0, 0}};
-        EXPECT_VEC_SOFT_EQ(Real3({0.5, -2, 1}), other.pos());
+        EXPECT_VEC_SOFT_EQ(Real3({0.625, -2, 1}), other.pos());
         EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), other.dir());
         EXPECT_EQ("c", this->params().id_to_label(other.volume_id()).name);
         EXPECT_FALSE(other.is_outside());
@@ -699,13 +732,13 @@ TEST_F(UniversesTest, initialize_with_multiple_universes)
 
 TEST_F(UniversesTest, move_internal_multiple_universes)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
 
     // Initialize in daughter universe
-    geo = Initializer_t{{0.5, -2, 1}, {0, 1, 0}};
+    geo = Initializer_t{{0.625, -2, 1}, {0, 1, 0}};
 
     // Move internally, then check that the distance to boundary is correct
-    geo.move_internal({0.5, -1, 1});
+    geo.move_internal({0.625, -1, 1});
     auto next = geo.find_next_step();
     EXPECT_SOFT_EQ(1, next.distance);
 
@@ -719,7 +752,7 @@ TEST_F(UniversesTest, move_internal_multiple_universes)
 // correctly returned at the top level
 TEST_F(UniversesTest, change_dir_daughter_universe)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
 
     // Initialize inside daughter universe a
     geo = Initializer_t{{1.5, -2.0, 1.0}, {1.0, 0.0, 0.0}};
@@ -735,78 +768,78 @@ TEST_F(UniversesTest, change_dir_daughter_universe)
 // a boundary with another with a parent cell
 TEST_F(UniversesTest, cross_into_daughter_non_coincident)
 {
-    auto geo = this->make_track_view();
-    geo = Initializer_t{{2, -5, 1}, {0, 1, 0}};
+    auto geo = this->make_geo_track_view();
+    geo = Initializer_t{{2, -5, 0.75}, {0, 1, 0}};
 
     auto next = geo.find_next_step();
     EXPECT_SOFT_EQ(1, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("inner_a.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("johnny", this->params().id_to_label(geo.volume_id()).name);
-    EXPECT_VEC_SOFT_EQ(Real3({2, -4, 1}), geo.pos());
+    EXPECT_EQ("inner_a.my", this->surface_name(geo));
+    EXPECT_EQ("johnny", this->volume_name(geo));
+    EXPECT_VEC_SOFT_EQ(Real3({2, -4, 0.75}), geo.pos());
 
     // Cross universe boundary
     geo.cross_boundary();
-    EXPECT_EQ("inner_a.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("c", this->params().id_to_label(geo.volume_id()).name);
-    EXPECT_VEC_SOFT_EQ(Real3({2, -4, 1}), geo.pos());
+    EXPECT_EQ("inner_a.my", this->surface_name(geo));
+    EXPECT_EQ("c", this->volume_name(geo));
+    EXPECT_VEC_SOFT_EQ(Real3({2, -4, 0.75}), geo.pos());
 
     // Make sure we can take another step after crossing
     next = geo.find_next_step();
     EXPECT_SOFT_EQ(1, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("alpha.my", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("alpha.my", this->surface_name(geo));
 }
 
 // Cross into parent universe for the case where the hole cell does not share a
 // boundary with another with a parent cell
 TEST_F(UniversesTest, cross_into_parent_non_coincident)
 {
-    auto geo = this->make_track_view();
-    geo = Initializer_t{{2, -3.5, 1}, {0, -1, 0}};
+    auto geo = this->make_geo_track_view();
+    geo = Initializer_t{{2, -3.25, 0.75}, {0, -1, 0}};
 
     auto next = geo.find_next_step();
-    EXPECT_SOFT_EQ(0.5, next.distance);
+    EXPECT_SOFT_EQ(0.75, next.distance);
     geo.move_to_boundary();
-    EXPECT_EQ("inner_a.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("c", this->params().id_to_label(geo.volume_id()).name);
-    EXPECT_VEC_SOFT_EQ(Real3({2, -4, 1}), geo.pos());
+    EXPECT_EQ("inner_a.my", this->surface_name(geo));
+    EXPECT_EQ("c", this->volume_name(geo));
+    EXPECT_VEC_SOFT_EQ(Real3({2, -4, 0.75}), geo.pos());
 
     // Cross universe boundary
     geo.cross_boundary();
-    EXPECT_EQ("inner_a.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("johnny", this->params().id_to_label(geo.volume_id()).name);
-    EXPECT_VEC_SOFT_EQ(Real3({2, -4, 1}), geo.pos());
+    EXPECT_EQ("inner_a.my", this->surface_name(geo));
+    EXPECT_EQ("johnny", this->volume_name(geo));
+    EXPECT_VEC_SOFT_EQ(Real3({2, -4, 0.75}), geo.pos());
 
     // Make sure we can take another step after crossing
     next = geo.find_next_step();
     EXPECT_SOFT_EQ(2, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("john.my", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("john.my", this->surface_name(geo));
 }
 
 // Cross into daughter universe for the case where the hole cell shares a
 // boundary with another with a parent cell
 TEST_F(UniversesTest, cross_into_daughter_coincident)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{2, 1, 1}, {0, -1, 0}};
 
     auto next = geo.find_next_step();
     EXPECT_SOFT_EQ(1, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("bob.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("bobby", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("bob.my", this->surface_name(geo));
+    EXPECT_EQ("bobby", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, 0, 1}), geo.pos());
 
     // Cross universe boundary
     geo.cross_boundary();
-    EXPECT_EQ("bob.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("c", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("bob.my", this->surface_name(geo));
+    EXPECT_EQ("c", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, 0, 1}), geo.pos());
 
     // Make sure we can take another step after crossing
@@ -814,28 +847,28 @@ TEST_F(UniversesTest, cross_into_daughter_coincident)
     EXPECT_SOFT_EQ(1, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("alpha.py", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("alpha.py", this->surface_name(geo));
 }
 
 // Cross into parent universe for the case where the hole cell shares a
 // boundary with another with a parent cell
 TEST_F(UniversesTest, cross_into_parent_coincident)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{2, -0.5, 1}, {0, 1, 0}};
 
     auto next = geo.find_next_step();
     EXPECT_SOFT_EQ(0.5, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("bob.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("c", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("bob.my", this->surface_name(geo));
+    EXPECT_EQ("c", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, 0, 1}), geo.pos());
 
     // Cross universe boundary
     geo.cross_boundary();
-    EXPECT_EQ("bob.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("bobby", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("bob.my", this->surface_name(geo));
+    EXPECT_EQ("bobby", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, 0, 1}), geo.pos());
 
     // Make sure we can take another step after crossing
@@ -843,27 +876,27 @@ TEST_F(UniversesTest, cross_into_parent_coincident)
     EXPECT_SOFT_EQ(2, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("bob.py", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("bob.py", this->surface_name(geo));
 }
 
 // Cross into daughter universe that is two levels down
 TEST_F(UniversesTest, cross_into_daughter_doubly_coincident)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{0.25, -4.5, 1}, {0, 1, 0}};
 
     auto next = geo.find_next_step();
     EXPECT_SOFT_EQ(0.5, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("inner_a.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("johnny", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("inner_a.my", this->surface_name(geo));
+    EXPECT_EQ("johnny", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -4, 1}), geo.pos());
 
     // Cross universe boundary
     geo.cross_boundary();
-    EXPECT_EQ("inner_a.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("patty", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("inner_a.my", this->surface_name(geo));
+    EXPECT_EQ("patty", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -4, 1}), geo.pos());
 
     // Make sure we can take another step after crossing
@@ -871,27 +904,27 @@ TEST_F(UniversesTest, cross_into_daughter_doubly_coincident)
     EXPECT_SOFT_EQ(0.5, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("inner_c.py", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("inner_c.py", this->surface_name(geo));
 }
 
 // Cross into parent universe that is two levels down
 TEST_F(UniversesTest, cross_into_parent_doubly_coincident)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{0.25, -3.75, 1}, {0, -1, 0}};
 
     auto next = geo.find_next_step();
     EXPECT_SOFT_EQ(0.25, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("inner_a.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("patty", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("inner_a.my", this->surface_name(geo));
+    EXPECT_EQ("patty", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -4, 1}), geo.pos());
 
     // Cross universe boundary
     geo.cross_boundary();
-    EXPECT_EQ("inner_a.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("johnny", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("inner_a.my", this->surface_name(geo));
+    EXPECT_EQ("johnny", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -4, 1}), geo.pos());
 
     // Make sure we can take another step after crossing
@@ -899,13 +932,13 @@ TEST_F(UniversesTest, cross_into_parent_doubly_coincident)
     EXPECT_SOFT_EQ(2, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("john.my", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("john.my", this->surface_name(geo));
 }
 
 // Cross between two daughter universes that share a boundary
 TEST_F(UniversesTest, cross_between_daughters)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
 
     // Initialize in outermost universe
     geo = Initializer_t{{2, -2, 0.7}, {0, 0, -1}};
@@ -914,14 +947,14 @@ TEST_F(UniversesTest, cross_between_daughters)
     EXPECT_SOFT_EQ(0.2, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("inner_a.pz", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("a", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("inner_a.pz", this->surface_name(geo));
+    EXPECT_EQ("a", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, -2, 0.5}), geo.pos());
 
     // Cross universe boundary
     geo.cross_boundary();
-    EXPECT_EQ("inner_a.pz", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("a", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("inner_a.pz", this->surface_name(geo));
+    EXPECT_EQ("a", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, -2, 0.5}), geo.pos());
 
     // Make sure we can take another step after crossing
@@ -929,13 +962,13 @@ TEST_F(UniversesTest, cross_between_daughters)
     EXPECT_SOFT_EQ(1, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("bob.mz", this->params().id_to_label(geo.surface_id()).name);
+    EXPECT_EQ("bob.mz", this->surface_name(geo));
 }
 
 // Change direction on a universe boundary to reenter the cell
 TEST_F(UniversesTest, reentrant)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
 
     // Initialize in innermost universe
     geo = Initializer_t{{0.25, -3.7, 0.7}, {0, 1, 0}};
@@ -944,8 +977,8 @@ TEST_F(UniversesTest, reentrant)
 
     // Move to universe boundary
     geo.move_to_boundary();
-    EXPECT_EQ("inner_c.py", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("patty", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("inner_c.py", this->surface_name(geo));
+    EXPECT_EQ("patty", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -3.5, 0.7}), geo.pos());
 
     // Change direction on the universe boundary such that we are no longer
@@ -954,18 +987,24 @@ TEST_F(UniversesTest, reentrant)
 
     // Remain in same cell after crossing boundary
     geo.cross_boundary();
-    EXPECT_EQ("inner_c.py", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("patty", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("inner_c.py", this->surface_name(geo));
+    EXPECT_EQ("patty", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -3.5, 0.7}), geo.pos());
 
     // Make sure we can take another step after calling cross_boundary
     next = geo.find_next_step();
     EXPECT_SOFT_EQ(0.5, next.distance);
     geo.move_to_boundary();
-    EXPECT_EQ("inner_a.my", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("patty", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("inner_a.my", this->surface_name(geo));
+    EXPECT_EQ("patty", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({0.25, -4, 0.7}), geo.pos());
 }
+
+//---------------------------------------------------------------------------//
+class RectArrayTest : public JsonOrangeTest
+{
+    std::string geometry_basename() const final { return "rect-array"; }
+};
 
 TEST_F(RectArrayTest, params)
 {
@@ -981,35 +1020,45 @@ TEST_F(RectArrayTest, params)
 
 TEST_F(RectArrayTest, tracking)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{-1, 1, -1}, {1, 0, 0}};
 
     EXPECT_VEC_SOFT_EQ(Real3({-1, 1, -1}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
-    EXPECT_EQ("Hfill", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("Hfill", this->volume_name(geo));
 }
+
+//---------------------------------------------------------------------------//
+
+class NestedRectArraysTest : public JsonOrangeTest
+{
+    std::string geometry_basename() const final
+    {
+        return "nested-rect-arrays";
+    }
+};
 
 TEST_F(NestedRectArraysTest, tracking)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{1.5, 0.5, 0.5}, {1, 0, 0}};
 
     EXPECT_VEC_SOFT_EQ(Real3({1.5, 0.5, 0.5}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
-    EXPECT_EQ("Afill", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("Afill", this->volume_name(geo));
 
     auto next = geo.find_next_step();
     EXPECT_SOFT_EQ(0.5, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("{x,1}", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("Afill", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("{x,1}", this->surface_name(geo));
+    EXPECT_EQ("Afill", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, 0.5, 0.5}), geo.pos());
 
     // Cross universe boundary
     geo.cross_boundary();
-    EXPECT_EQ("{x,1}", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("Bfill", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("{x,1}", this->surface_name(geo));
+    EXPECT_EQ("Bfill", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({2, 0.5, 0.5}), geo.pos());
 
     next = geo.find_next_step();
@@ -1018,34 +1067,40 @@ TEST_F(NestedRectArraysTest, tracking)
 
 TEST_F(NestedRectArraysTest, leaving)
 {
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
     geo = Initializer_t{{3.5, 1.5, 0.5}, {1, 0, 0}};
 
     EXPECT_VEC_SOFT_EQ(Real3({3.5, 1.5, 0.5}), geo.pos());
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
-    EXPECT_EQ("Bfill", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("Bfill", this->volume_name(geo));
 
     auto next = geo.find_next_step();
     EXPECT_SOFT_EQ(0.5, next.distance);
 
     geo.move_to_boundary();
-    EXPECT_EQ("arrfill.px", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("Bfill", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("arrfill.px", this->surface_name(geo));
+    EXPECT_EQ("Bfill", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({4, 1.5, 0.5}), geo.pos());
 
     // Cross universe boundary
     geo.cross_boundary();
-    EXPECT_EQ("arrfill.px", this->params().id_to_label(geo.surface_id()).name);
-    EXPECT_EQ("interior", this->params().id_to_label(geo.volume_id()).name);
+    EXPECT_EQ("arrfill.px", this->surface_name(geo));
+    EXPECT_EQ("interior", this->volume_name(geo));
     EXPECT_VEC_SOFT_EQ(Real3({4, 1.5, 0.5}), geo.pos());
 
     next = geo.find_next_step();
     EXPECT_SOFT_EQ(16, next.distance);
 }
 
+//---------------------------------------------------------------------------//
+class Geant4Testem15Test : public JsonOrangeTest
+{
+    std::string geometry_basename() const final { return "geant4-testem15"; }
+};
+
 TEST_F(Geant4Testem15Test, safety)
 {
-    OrangeTrackView geo = this->make_track_view();
+    OrangeTrackView geo = this->make_geo_track_view();
 
     geo = Initializer_t{{0, 0, 0}, {1, 0, 0}};
     EXPECT_VEC_SOFT_EQ(Real3({0, 0, 0}), geo.pos());
@@ -1075,59 +1130,57 @@ TEST_F(Geant4Testem15Test, safety)
     EXPECT_SOFT_EQ(10.0, geo.find_safety());
 }
 
+//---------------------------------------------------------------------------//
+
+class HexArrayTest : public JsonOrangeTest
+{
+    std::string geometry_basename() const final { return "hex-array"; }
+};
+
 TEST_F(HexArrayTest, TEST_IF_CELERITAS_DOUBLE(output))
 {
-    OrangeParamsOutput out(this->sp_params());
+    OrangeParamsOutput out(this->geometry());
     EXPECT_EQ("orange", out.label());
 
     if (CELERITAS_USE_JSON)
     {
         EXPECT_JSON_EQ(
-            R"json({"scalars":{"max_depth":3,"max_faces":9,"max_intersections":10,"max_logic_depth":3,"tol":{"abs":1e-08,"rel":1e-08}},"sizes":{"bih":{"bboxes":58,"inner_nodes":49,"leaf_nodes":53,"local_volume_ids":58},"connectivity_records":53,"daughters":51,"local_surface_ids":191,"local_volume_ids":348,"logic_ints":585,"real_ids":53,"reals":272,"rect_arrays":0,"simple_units":4,"surface_types":53,"transforms":51,"universe_indices":4,"universe_types":4,"volume_records":58}})json",
+            R"json({"_category":"internal","_label":"orange","scalars":{"max_depth":3,"max_faces":9,"max_intersections":10,"max_logic_depth":3,"tol":{"abs":1.5e-08,"rel":1.5e-08}},"sizes":{"bih":{"bboxes":58,"inner_nodes":49,"leaf_nodes":53,"local_volume_ids":58},"connectivity_records":53,"daughters":51,"local_surface_ids":191,"local_volume_ids":348,"logic_ints":585,"real_ids":53,"reals":272,"rect_arrays":0,"simple_units":4,"surface_types":53,"transforms":51,"universe_indices":4,"universe_types":4,"volume_records":58}})json",
             to_string(out));
     }
 }
 
 TEST_F(HexArrayTest, track_out)
 {
-    OrangeTrackView geo = this->make_track_view();
+    auto result = this->track(
+        {-6.9258369494022292, -4.9982766629573767, -10.8378536157757495},
+        {0.6750034206933703, -0.3679917428721818, 0.6394939086732125});
 
-    // Initialize
-    Real3 pos{-6.9258369494022292, -4.9982766629573767, -10.8378536157757495};
-    Real3 dir{0.6750034206933703, -0.3679917428721818, 0.6394939086732125};
-
-    geo = Initializer_t{pos, dir};
-
-    std::vector<celeritas::VolumeId> vids;
-    std::vector<celeritas::VolumeId> refids = {celeritas::VolumeId{2},
-                                               celeritas::VolumeId{55},
-                                               celeritas::VolumeId{57},
-                                               celeritas::VolumeId{2}};
-
-    std::vector<real_type> d2b;
-    std::vector<real_type> refd2b = {1.99143, 5.30607, 0.306368, 5.98808};
-
-    while (!geo.is_outside())
-    {
-        vids.push_back(geo.volume_id());
-
-        auto next = geo.find_next_step();
-        d2b.push_back(next.distance);
-
-        geo.move_to_boundary();
-        geo.cross_boundary();
-    }
-
-    EXPECT_VEC_EQ(refids, vids);
-    EXPECT_VEC_CLOSE(d2b, refd2b, real_type(1e-5), real_type(1e-5));
+    static char const* const expected_volumes[]
+        = {"interior", "cfill", "dfill", "interior"};
+    EXPECT_VEC_EQ(expected_volumes, result.volumes);
+    static real_type const expected_distances[] = {
+        1.9914318088046, 5.3060674310398, 0.30636846908014, 5.9880767678838};
+    EXPECT_VEC_NEAR(
+        expected_distances, result.distances, 10 * SoftEqual<>{}.rel());
+    static real_type const expected_hw_safety[] = {
+        0.20109936014143, 0.29549138370648, 0.030952132652541, 0.90113367054536};
+    EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
 }
+
+//---------------------------------------------------------------------------//
+
+class TestEM3Test : public JsonOrangeTest
+{
+    std::string geometry_basename() const final { return "testem3"; }
+};
 
 // Test safety distance within a geometry that supports simple safety
 TEST_F(TestEM3Test, safety)
 {
     EXPECT_FALSE(this->params().supports_safety());
 
-    auto geo = this->make_track_view();
+    auto geo = this->make_geo_track_view();
 
     // Initialize in innermost universe, near the universe boundary
     geo = Initializer_t{{19.99, 19.9, 19.9}, {0, 1, 0}};
@@ -1138,6 +1191,7 @@ TEST_F(TestEM3Test, safety)
     EXPECT_SOFT_EQ(0.01, geo.find_safety());
 }
 
+//---------------------------------------------------------------------------//
 TEST_F(ShiftTrackerTest, host)
 {
     std::vector<Real3> pos{
@@ -1192,6 +1246,375 @@ TEST_F(ShiftTrackerTest, host)
 
     std::vector<unsigned int> ref_steps = {5, 3, 5, 5, 6, 5, 4, 4, 5, 3};
     EXPECT_VEC_EQ(ref_steps, steps);
+}
+
+//---------------------------------------------------------------------------//
+
+class InputBuilderTest : public JsonOrangeTest
+{
+    std::string geometry_basename() const final
+    {
+        return const_cast<InputBuilderTest*>(this)->make_unique_filename();
+    }
+};
+
+TEST_F(InputBuilderTest, globalspheres)
+{
+    {
+        auto result = this->track({0, 0, 0}, {0, 0, 1});
+
+        static char const* const expected_volumes[] = {"inner", "shell"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {5, 5};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {2.5, 2.5};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+
+    if (CELERITAS_USE_JSON)
+    {
+        OrangeParamsOutput out(this->geometry());
+        EXPECT_JSON_EQ(
+            R"json({"_category":"internal","_label":"orange","scalars":{"max_depth":1,"max_faces":2,"max_intersections":4,"max_logic_depth":2,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":3,"inner_nodes":0,"leaf_nodes":1,"local_volume_ids":3},"connectivity_records":2,"daughters":0,"local_surface_ids":4,"local_volume_ids":4,"logic_ints":7,"real_ids":2,"reals":2,"rect_arrays":0,"simple_units":1,"surface_types":2,"transforms":0,"universe_indices":1,"universe_types":1,"volume_records":3}})json",
+            to_string(out));
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(InputBuilderTest, bgspheres)
+{
+    {
+        SCOPED_TRACE("from background");
+        auto result = this->track({0, 0, -9}, {0, 0, 1});
+
+        static char const* const expected_volumes[]
+            = {"global", "bottom", "global", "top", "global"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {3, 6, 1, 4, 5};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        SCOPED_TRACE("from inside top");
+        auto result = this->track({0, 0, 3}, {0, 0, -1});
+
+        static char const* const expected_volumes[]
+            = {"top", "global", "bottom", "global"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {2, 1, 6, 4};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+
+    if (CELERITAS_USE_JSON)
+    {
+        OrangeParamsOutput out(this->geometry());
+        EXPECT_JSON_EQ(
+            R"json({"_category":"internal","_label":"orange","scalars":{"max_depth":1,"max_faces":3,"max_intersections":6,"max_logic_depth":1,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":4,"inner_nodes":1,"leaf_nodes":2,"local_volume_ids":4},"connectivity_records":3,"daughters":0,"local_surface_ids":6,"local_volume_ids":3,"logic_ints":5,"real_ids":3,"reals":9,"rect_arrays":0,"simple_units":1,"surface_types":3,"transforms":0,"universe_indices":1,"universe_types":1,"volume_records":4}})json",
+            to_string(out));
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(InputBuilderTest, universes)
+{
+    // NOTE: results should be identical to UniversesTest.tracking
+    {
+        SCOPED_TRACE("patty");
+        auto result = this->track({-1.0, -3.75, 0.75}, {1, 0, 0});
+        static char const* const expected_volumes[]
+            = {"johnny", "patty", "c", "johnny"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {1, 0.5, 5.5, 2};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {0.25, 0.25, 0.25, 0.25};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        SCOPED_TRACE("inner +x");
+        auto result = this->track({-1, -2, 1.0}, {1, 0, 0});
+        static char const* const expected_volumes[]
+            = {"johnny", "c", "a", "b", "c", "johnny"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {1, 1, 2, 2, 1, 2};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[]
+            = {0.5, 0, 0.5, 0.5, 0.5, 0.5};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        SCOPED_TRACE("inner +y");
+        auto result = this->track({4, -5, 1.0}, {0, 1, 0});
+        static char const* const expected_volumes[]
+            = {"johnny", "c", "b", "c", "bobby", "johnny"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {1, 1, 2, 1, 2, 2};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[]
+            = {0.5, 0, 0.5, 0.5, 0.5, 0.5};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        SCOPED_TRACE("inner +z");
+        auto result = this->track({4, -2, -0.75}, {0, 0, 1});
+        static char const* const expected_volumes[]
+            = {"johnny", "b", "b", "johnny"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {0.25, 1, 1, 0.5};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {0.125, 0.5, 0.5, 0.25};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(InputBuilderTest, hierarchy)
+{
+    {
+        SCOPED_TRACE("py");
+        auto result = this->track({0, -20, 0}, {0, 1, 0});
+        static char const* const expected_volumes[]
+            = {"interior", "d2", "interior", "d1", "interior"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {14, 2, 8, 2, 94};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        SCOPED_TRACE("py_filled");
+        auto result = this->track({0, -9, -20}, {0, 1, 0});
+        static char const* const expected_volumes[] = {"filled_daughter",
+                                                       "d2",
+                                                       "filled_daughter",
+                                                       "d1",
+                                                       "filled_daughter",
+                                                       "interior"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[]
+            = {3, 2, 8, 2, 4, 87.979589711327};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {1.5, 5, 4, 5, 2, 39};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        SCOPED_TRACE("pz");
+        auto result = this->track({0, 0, -50}, {0, 0, 1});
+        static char const* const expected_volumes[] = {"interior",
+                                                       "filled_daughter",
+                                                       "leaf1",
+                                                       "filled_daughter",
+                                                       "leaf2",
+                                                       "filled_daughter",
+                                                       "interior",
+                                                       "leaf1",
+                                                       "interior",
+                                                       "bottom",
+                                                       "top",
+                                                       "interior"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[]
+            = {20, 4, 2, 8, 2, 4, 4, 2, 23, 1, 1, 79};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+
+    if (CELERITAS_USE_JSON)
+    {
+        OrangeParamsOutput out(this->geometry());
+        EXPECT_JSON_EQ(
+            R"json({"_category":"internal","_label":"orange","scalars":{"max_depth":3,"max_faces":8,"max_intersections":14,"max_logic_depth":3,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":24,"inner_nodes":9,"leaf_nodes":16,"local_volume_ids":24},"connectivity_records":13,"daughters":6,"local_surface_ids":20,"local_volume_ids":18,"logic_ints":31,"real_ids":13,"reals":46,"rect_arrays":0,"simple_units":7,"surface_types":13,"transforms":6,"universe_indices":7,"universe_types":7,"volume_records":24}})json",
+            to_string(out));
+    }
+}
+
+//---------------------------------------------------------------------------//
+class TestEm3GeantTest : public GeantOrangeTest
+{
+    std::string geometry_basename() const final { return "testem3"; }
+};
+
+TEST_F(TestEm3GeantTest, trace)
+{
+    {
+        auto result = this->track({-20.1}, {1, 0, 0});
+
+        static char const* const expected_volumes[]
+            = {"World",  "G4_Pb", "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb",
+               "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb",
+               "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb",
+               "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb",
+               "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb",
+               "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb",
+               "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb",
+               "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb",
+               "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb",
+               "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb",
+               "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb",
+               "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb",
+               "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb",
+               "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb",
+               "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb",
+               "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb",
+               "G4_lAr", "G4_Pb", "G4_lAr", "G4_Pb", "G4_lAr", "World"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {
+            0.1,  0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57,
+            0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23,
+            0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57,
+            0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23,
+            0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57,
+            0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23,
+            0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57,
+            0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23,
+            0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57,
+            0.23, 0.57, 4};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[]
+            = {0.050, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+               0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115,
+               0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+               0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115,
+               0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+               0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115,
+               0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+               0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115,
+               0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+               0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115,
+               0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+               0.115, 0.285, 2};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+}
+
+//---------------------------------------------------------------------------//
+class TestEm3FlatGeantTest : public GeantOrangeTest
+{
+    std::string geometry_basename() const final { return "testem3-flat"; }
+};
+
+TEST_F(TestEm3FlatGeantTest, trace)
+{
+    {
+        auto result = this->track({-20.1}, {1, 0, 0});
+
+        static char const* const expected_volumes[]
+            = {"world",       "gap_0",  "absorber_0",  "gap_1",
+               "absorber_1",  "gap_2",  "absorber_2",  "gap_3",
+               "absorber_3",  "gap_4",  "absorber_4",  "gap_5",
+               "absorber_5",  "gap_6",  "absorber_6",  "gap_7",
+               "absorber_7",  "gap_8",  "absorber_8",  "gap_9",
+               "absorber_9",  "gap_10", "absorber_10", "gap_11",
+               "absorber_11", "gap_12", "absorber_12", "gap_13",
+               "absorber_13", "gap_14", "absorber_14", "gap_15",
+               "absorber_15", "gap_16", "absorber_16", "gap_17",
+               "absorber_17", "gap_18", "absorber_18", "gap_19",
+               "absorber_19", "gap_20", "absorber_20", "gap_21",
+               "absorber_21", "gap_22", "absorber_22", "gap_23",
+               "absorber_23", "gap_24", "absorber_24", "gap_25",
+               "absorber_25", "gap_26", "absorber_26", "gap_27",
+               "absorber_27", "gap_28", "absorber_28", "gap_29",
+               "absorber_29", "gap_30", "absorber_30", "gap_31",
+               "absorber_31", "gap_32", "absorber_32", "gap_33",
+               "absorber_33", "gap_34", "absorber_34", "gap_35",
+               "absorber_35", "gap_36", "absorber_36", "gap_37",
+               "absorber_37", "gap_38", "absorber_38", "gap_39",
+               "absorber_39", "gap_40", "absorber_40", "gap_41",
+               "absorber_41", "gap_42", "absorber_42", "gap_43",
+               "absorber_43", "gap_44", "absorber_44", "gap_45",
+               "absorber_45", "gap_46", "absorber_46", "gap_47",
+               "absorber_47", "gap_48", "absorber_48", "gap_49",
+               "absorber_49", "world"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {
+            0.1,  0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57,
+            0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23,
+            0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57,
+            0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23,
+            0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57,
+            0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23,
+            0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57,
+            0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23,
+            0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57, 0.23, 0.57,
+            0.23, 0.57, 4};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[]
+            = {0.05,  0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+               0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115,
+               0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+               0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115,
+               0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+               0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115,
+               0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+               0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115,
+               0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+               0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115,
+               0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285, 0.115, 0.285,
+               0.115, 0.285, 2};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+}
+
+//---------------------------------------------------------------------------//
+class SimpleCmsGeantTest : public GeantOrangeTest
+{
+    std::string geometry_basename() const final { return "simple-cms"; }
+};
+
+TEST_F(SimpleCmsGeantTest, trace)
+{
+    {
+        auto result = this->track({-75, 0, 0}, {1, 0, 0});
+        static char const* const expected_volumes[] = {"si_tracker",
+                                                       "vacuum_tube",
+                                                       "si_tracker",
+                                                       "em_calorimeter",
+                                                       "had_calorimeter",
+                                                       "sc_solenoid",
+                                                       "fe_muon_chambers",
+                                                       "world"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[]
+            = {45, 60, 95, 50, 100, 100, 325, 300};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[]
+            = {22.5, 700, 47.5, 25, 50, 50, 162.5, 150};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        auto result = this->track({25, 0, 701}, {0, 0, -1});
+        static char const* const expected_volumes[]
+            = {"world", "vacuum_tube", "world"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {1, 1400, 1300};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {0.5, 5, 5};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+}
+
+//---------------------------------------------------------------------------//
+class ZnenvGeantTest : public GeantOrangeTest
+{
+    std::string geometry_basename() const final { return "znenv"; }
+};
+
+TEST_F(ZnenvGeantTest, trace)
+{
+    static char const* const expected_mid_volumes[]
+        = {"World", "ZNENV", "ZNST", "ZNST",  "ZNST", "ZNST", "ZNST",
+           "ZNST",  "ZNST",  "ZNST", "ZNST",  "ZNST", "ZNST", "ZNST",
+           "ZNST",  "ZNST",  "ZNST", "ZNST",  "ZNST", "ZNST", "ZNST",
+           "ZNST",  "ZNST",  "ZNST", "ZNENV", "World"};
+    static real_type const expected_mid_distances[]
+        = {6.38, 0.1,  0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32,
+           0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.32,
+           0.32, 0.32, 0.32, 0.32, 0.32, 0.32, 0.1,  46.38};
+    {
+        auto result = this->track({-10, 0.0001, 0}, {1, 0, 0});
+        EXPECT_VEC_EQ(expected_mid_volumes, result.volumes);
+        EXPECT_VEC_SOFT_EQ(expected_mid_distances, result.distances);
+    }
+    {
+        auto result = this->track({0.0001, -10, 0}, {0, 1, 0});
+        EXPECT_VEC_EQ(expected_mid_volumes, result.volumes);
+        EXPECT_VEC_SOFT_EQ(expected_mid_distances, result.distances);
+    }
 }
 
 //---------------------------------------------------------------------------//

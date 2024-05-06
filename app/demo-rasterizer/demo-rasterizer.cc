@@ -12,9 +12,8 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
+#include "celeritas_config.h"
 #include "celeritas_version.h"
-#include "corecel/cont/Range.hh"
-#include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/DeviceIO.json.hh"
@@ -23,8 +22,13 @@
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/Stopwatch.hh"
+#include "geocel/GeoParamsInterface.hh"
+#include "geocel/rasterize/Image.hh"
+#include "geocel/rasterize/ImageIO.json.hh"
+#include "geocel/rasterize/RaytraceImager.hh"
 
-#include "RDemoRunner.hh"
+// TODO: replace with factory
+#include "celeritas/geo/GeoParams.hh"
 
 namespace celeritas
 {
@@ -32,6 +36,29 @@ namespace app
 {
 namespace
 {
+//---------------------------------------------------------------------------//
+using SPConstGeometry = std::shared_ptr<GeoParamsInterface const>;
+using SPImager = std::shared_ptr<ImagerInterface>;
+
+std::pair<SPConstGeometry, SPImager>
+load_geometry_imager(std::string const& filename)
+{
+    auto geo = std::make_shared<GeoParams>(filename);
+    auto imager = std::make_shared<RaytraceImager<GeoParams>>(geo);
+    return {std::move(geo), std::move(imager)};
+}
+
+template<MemSpace M>
+std::shared_ptr<Image<M>>
+make_traced_image(std::shared_ptr<ImageParams const> img_params,
+                  ImagerInterface& generate_image)
+{
+    auto image = std::make_shared<Image<M>>(std::move(img_params));
+    CELER_LOG(status) << "Tracing image on " << to_cstring(M);
+    generate_image(image.get());
+    return image;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Run, launch, and output.
@@ -44,8 +71,7 @@ void run(std::istream& is)
 
     if (inp.contains("cuda_heap_size"))
     {
-        int heapSize = inp.at("cuda_heap_size").get<int>();
-        set_cuda_heap_size(heapSize);
+        set_cuda_heap_size(inp.at("cuda_heap_size").get<int>());
     }
     if (inp.contains("cuda_stack_size"))
     {
@@ -54,17 +80,26 @@ void run(std::istream& is)
 
     // Load geometry
     Stopwatch get_time;
-    auto geo_params = std::make_shared<GeoParams>(
-        inp.at("input").get<std::string>().c_str());
+    auto&& [geo_params, generate_image]
+        = load_geometry_imager(inp.at("input").get<std::string>().c_str());
     timers["load"] = get_time();
 
     // Construct image
-    ImageStore image(inp.at("image").get<ImageRunArgs>());
+    auto img_params
+        = std::make_shared<ImageParams>(inp.at("image").get<ImageInput>());
 
-    // Construct runner
-    RDemoRunner run(geo_params);
     get_time = {};
-    run(&image);
+    std::shared_ptr<ImageInterface> image;
+    if (device())
+    {
+        image
+            = make_traced_image<MemSpace::device>(img_params, *generate_image);
+    }
+    else
+    {
+        image = make_traced_image<MemSpace::host>(img_params, *generate_image);
+    }
+    CELER_ASSERT(image);
     timers["trace"] = get_time();
 
     // Get geometry names
@@ -75,19 +110,21 @@ void run(std::istream& is)
     }
 
     // Write image
-    CELER_LOG(status) << "Transferring image from GPU to disk";
+    CELER_LOG(status) << "Transferring image and writing to disk";
     get_time = {};
+
     std::string out_filename = inp.at("output");
-    auto image_data = image.data_to_host();
+    std::vector<int> image_data(img_params->num_pixels());
+    image->copy_to_host(make_span(image_data));
     std::ofstream(out_filename, std::ios::binary)
         .write(reinterpret_cast<char const*>(image_data.data()),
-               image_data.size() * sizeof(decltype(image_data)::value_type));
+               image_data.size() * sizeof(int));
     timers["write"] = get_time();
 
     // Construct json output
     CELER_LOG(status) << "Exporting JSON metadata";
     nlohmann::json outp = {
-        {"metadata", image},
+        {"metadata", *img_params},
         {"data", out_filename},
         {"volumes", vol_names},
         {"timers", timers},
@@ -100,6 +137,7 @@ void run(std::istream& is)
             },
         },
     };
+    outp["metadata"]["int_size"] = sizeof(int);
     std::cout << outp.dump() << std::endl;
     CELER_LOG(info) << "Exported image to " << out_filename;
 }
@@ -156,12 +194,6 @@ int main(int argc, char* argv[])
 
     // Initialize GPU
     activate_device();
-
-    if (!device())
-    {
-        CELER_LOG(critical) << "CUDA capability is disabled";
-        return EXIT_FAILURE;
-    }
 
     try
     {

@@ -32,7 +32,9 @@ class Box;
 class Cone;
 class Cylinder;
 class Ellipsoid;
+class GenTrap;
 class InfWedge;
+class Parallelepiped;
 class Prism;
 class Sphere;
 
@@ -58,7 +60,9 @@ void to_json(nlohmann::json& j, Box const& cr);
 void to_json(nlohmann::json& j, Cone const& cr);
 void to_json(nlohmann::json& j, Cylinder const& cr);
 void to_json(nlohmann::json& j, Ellipsoid const& cr);
+void to_json(nlohmann::json& j, GenTrap const& cr);
 void to_json(nlohmann::json& j, InfWedge const& cr);
+void to_json(nlohmann::json& j, Parallelepiped const& cr);
 void to_json(nlohmann::json& j, Prism const& cr);
 void to_json(nlohmann::json& j, Sphere const& cr);
 

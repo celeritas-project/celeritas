@@ -45,35 +45,11 @@ class GeantGeoTest : public GeantGeoTestBase
     virtual SpanStringView expected_log_levels() const { return {}; }
 };
 
+//---------------------------------------------------------------------------//
 class FourLevelsTest : public GeantGeoTest
 {
     std::string geometry_basename() const override { return "four-levels"; }
 };
-
-class SolidsTest : public GeantGeoTest
-{
-    std::string geometry_basename() const override { return "solids"; }
-
-    SpanStringView expected_log_levels() const final
-    {
-        static std::string_view const levels[] = {"error"};
-        return make_span(levels);
-    }
-};
-
-class CmseTest : public GeantGeoTest
-{
-  public:
-    std::string geometry_basename() const override { return "cmse"; }
-};
-
-class ZnenvTest : public GeantGeoTest
-{
-  public:
-    std::string geometry_basename() const override { return "znenv"; }
-};
-
-//---------------------------------------------------------------------------//
 
 TEST_F(FourLevelsTest, accessors)
 {
@@ -351,6 +327,16 @@ TEST_F(FourLevelsTest, safety)
 }
 
 //---------------------------------------------------------------------------//
+class SolidsTest : public GeantGeoTest
+{
+    std::string geometry_basename() const override { return "solids"; }
+
+    SpanStringView expected_log_levels() const final
+    {
+        static std::string_view const levels[] = {"error"};
+        return make_span(levels);
+    }
+};
 
 TEST_F(SolidsTest, accessors)
 {
@@ -380,7 +366,7 @@ TEST_F(SolidsTest, output)
     if (CELERITAS_USE_JSON && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
         EXPECT_JSON_EQ(
-            R"json({"bbox":[[-600.0,-300.0,-75.0],[600.0,300.0,75.0]],"supports_safety":true,"volumes":{"label":["","","","","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","","trd3_refl","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","trd3_refl"]}})json",
+            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.0,-300.0,-75.0],[600.0,300.0,75.0]],"supports_safety":true,"volumes":{"label":["","","","","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","","trd3_refl","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","trd3_refl"]}})json",
             to_string(out));
     }
 }
@@ -605,6 +591,11 @@ TEST_F(SolidsTest, reflected_vol)
 }
 
 //---------------------------------------------------------------------------//
+class CmseTest : public GeantGeoTest
+{
+  public:
+    std::string geometry_basename() const override { return "cmse"; }
+};
 
 TEST_F(CmseTest, trace)
 {
@@ -678,6 +669,11 @@ TEST_F(CmseTest, trace)
 }
 
 //---------------------------------------------------------------------------//
+class ZnenvTest : public GeantGeoTest
+{
+  public:
+    std::string geometry_basename() const override { return "znenv"; }
+};
 
 TEST_F(ZnenvTest, trace)
 {

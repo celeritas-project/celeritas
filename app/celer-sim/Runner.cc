@@ -246,31 +246,41 @@ void Runner::setup_globals(RunnerInput const& inp) const
 void Runner::build_core_params(RunnerInput const& inp,
                                SPOutputRegistry&& outreg)
 {
+    using SPImporter = std::shared_ptr<ImporterInterface>;
+
     CELER_LOG(status) << "Loading input and initializing problem data";
     ScopedMem record_mem("Runner.build_core_params");
     ScopedProfiling profile_this{"construct-params"};
     CoreParams::Input params;
-    ImportData const imported = [&inp] {
+
+    // Possible Geant4 world volume so we can reuse geometry
+    G4VPhysicalVolume const* g4world{nullptr};
+
+    // Import data and load geometry
+    auto import = [&inp, &g4world]() -> SPImporter {
         if (ends_with(inp.physics_file, ".root"))
         {
             // Load from ROOT file
-            return RootImporter(inp.physics_file)();
+            return std::make_shared<RootImporter>(inp.physics_file);
         }
-        std::string filename = inp.physics_file;
-        if (filename.empty())
-        {
-            filename = inp.geometry_file;
-        }
-        // Load imported data directly from Geant4
-        return GeantImporter(GeantSetup(filename, inp.physics_options))();
+
+        std::string const& filename
+            = !inp.physics_file.empty() ? inp.physics_file : inp.geometry_file;
+
+        // Load Geant4 and retain to use geometry
+        GeantSetup setup(filename, inp.physics_options);
+        g4world = setup.world();
+        return std::make_shared<GeantImporter>(std::move(setup));
     }();
 
     // Create action manager
     params.action_reg = std::make_shared<ActionRegistry>();
     params.output_reg = std::move(outreg);
 
-    // Load geometry
-    params.geometry = std::make_shared<GeoParams>(inp.geometry_file);
+    // Load geometry: use existing world volume or reload from geometry file
+    params.geometry = g4world ? std::make_shared<GeoParams>(g4world)
+                              : std::make_shared<GeoParams>(inp.geometry_file);
+
     if (!params.geometry->supports_safety())
     {
         CELER_LOG(warning) << "Geometry contains surfaces that are "
@@ -278,6 +288,9 @@ void Runner::build_core_params(RunnerInput const& inp,
                               "safety algorithm: multiple scattering may "
                               "result in arbitrarily small steps";
     }
+
+    // Import physics
+    ImportData const imported = (*import)();
 
     // Load materials
     params.material = MaterialParams::from_import(imported);
@@ -392,6 +405,8 @@ void Runner::build_core_params(RunnerInput const& inp,
     }();
 
     core_params_ = std::make_shared<CoreParams>(std::move(params));
+
+    // TODO: if optical is enabled, construct from imported and core_params_
 }
 
 //---------------------------------------------------------------------------//

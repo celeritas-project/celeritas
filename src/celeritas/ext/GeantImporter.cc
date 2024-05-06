@@ -229,7 +229,7 @@ fill_vec_import_scint_comp(MatPropGetter& get_property,
     for (int comp_idx : range(1, 4))
     {
         ImportScintComponent comp;
-        get_property.scalar(&comp.yield,
+        get_property.scalar(&comp.yield_per_energy,
                             particle_name + "SCINTILLATIONYIELD",
                             comp_idx,
                             ImportUnits::inv_mev);
@@ -504,9 +504,10 @@ ImportData::ImportOpticalMap import_optical()
         // Save scintillation properties
         {
             // Material scintillation properties
-            get_property.scalar(&optical.scintillation.material.yield,
-                                "SCINTILLATIONYIELD",
-                                ImportUnits::inv_mev);
+            get_property.scalar(
+                &optical.scintillation.material.yield_per_energy,
+                "SCINTILLATIONYIELD",
+                ImportUnits::inv_mev);
             get_property.scalar(&optical.scintillation.resolution_scale,
                                 "RESOLUTIONSCALE",
                                 ImportUnits::unitless);
@@ -548,6 +549,17 @@ ImportData::ImportOpticalMap import_optical()
                             "ABSLENGTH",
                             ImportUnits::len);
 
+        // Save WLS properties
+        get_property.scalar(&optical.wls.mean_num_photons,
+                            "WLSMEANNUMBERPHOTONS",
+                            ImportUnits::unitless);
+        get_property.scalar(
+            &optical.wls.time_constant, "WLSTIMECONSTANT", ImportUnits::time);
+        get_property.vector(
+            &optical.wls.absorption_length, "WLSABSLENGTH", ImportUnits::len);
+        get_property.vector(
+            &optical.wls.component, "WLSCOMPONENT", ImportUnits::unitless);
+
         if (optical)
         {
             result[mat_idx] = optical;
@@ -578,8 +590,7 @@ import_materials(GeantImporter::DataSelection::Flags particle_flags)
     materials.resize(g4production_cuts_table.GetTableSize());
     CELER_VALIDATE(!materials.empty(),
                    << "no Geant4 production cuts are defined (you may "
-                      "need "
-                      "to call G4RunManager::RunInitialization)");
+                      "need to call G4RunManager::RunInitialization)");
 
     using CutRange = std::pair<G4ProductionCutsIndex,
                                std::unique_ptr<G4VRangeToEnergyConverter>>;

@@ -1,0 +1,5 @@
+Sphinx >= 4, ~= 7.3.0
+breathe
+furo
+sphinxcontrib-bibtex
+sphinxcontrib-mermaid

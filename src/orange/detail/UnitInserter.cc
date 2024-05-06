@@ -121,7 +121,7 @@ struct NumIntersectionGetter
 
 //---------------------------------------------------------------------------//
 //! Construct surface labels, empty if needed
-std::vector<Label> make_surface_labels(UnitInput const& inp)
+std::vector<Label> make_surface_labels(UnitInput& inp)
 {
     CELER_EXPECT(inp.surface_labels.empty()
                  || inp.surface_labels.size() == inp.surfaces.size());
@@ -131,24 +131,25 @@ std::vector<Label> make_surface_labels(UnitInput const& inp)
 
     for (auto i : range(inp.surface_labels.size()))
     {
-        Label surface_label = inp.surface_labels[i];
+        Label surface_label = std::move(inp.surface_labels[i]);
         if (surface_label.ext.empty())
         {
             surface_label.ext = inp.label.name;
         }
         result[i] = std::move(surface_label);
     }
+    inp.surface_labels.clear();
     return result;
 }
 
 //---------------------------------------------------------------------------//
 //! Construct volume labels from the input volumes
-std::vector<Label> make_volume_labels(UnitInput const& inp)
+std::vector<Label> make_volume_labels(UnitInput& inp)
 {
     std::vector<Label> result;
     for (auto const& v : inp.volumes)
     {
-        Label vl = v.label;
+        Label vl = std::move(v.label);
         if (vl.ext.empty())
         {
             vl.ext = inp.label.name;
@@ -196,7 +197,7 @@ UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
 /*!
  * Create a simple unit and return its ID.
  */
-UniverseId UnitInserter::operator()(UnitInput const& inp)
+UniverseId UnitInserter::operator()(UnitInput&& inp)
 {
     CELER_VALIDATE(inp,
                    << "simple unit '" << inp.label
@@ -296,10 +297,12 @@ UniverseId UnitInserter::operator()(UnitInput const& inp)
 
     CELER_ASSERT(unit);
     simple_units_.push_back(unit);
+    auto surf_labels = make_surface_labels(inp);
+    auto vol_labels = make_volume_labels(inp);
     return (*insert_universe_)(UniverseType::simple,
-                               inp.label,
-                               make_surface_labels(inp),
-                               make_volume_labels(inp));
+                               std::move(inp.label),
+                               std::move(surf_labels),
+                               std::move(vol_labels));
 }
 
 //---------------------------------------------------------------------------//
@@ -337,7 +340,10 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
                                 input_logic.end(),
                                 std::begin(nowhere_logic),
                                 std::end(nowhere_logic)));
-        CELER_EXPECT(is_infinite(v.bbox));
+        CELER_EXPECT(!v.bbox);
+        CELER_EXPECT(v.flags & VolumeRecord::implicit_vol);
+        // Rely on incoming flags for "simple_safety": false from .org.json,
+        // maybe true if built from GDML
     }
 
     VolumeRecord output;

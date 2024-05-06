@@ -142,9 +142,7 @@ void JsonComparer::Impl::operator()(json& a, json& b)
         // using FloatT = json::number_float_t;
         if (!this->soft_eq(a.get<real_type>(), b.get<real_type>()))
         {
-            this->add_failure("value",
-                              to_string(a.get<real_type>()),
-                              to_string(b.get<real_type>()));
+            this->add_failure("value", a.dump(), b.dump());
         }
     }
     else if (a != b)

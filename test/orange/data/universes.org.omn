@@ -43,6 +43,7 @@ comp         : matid
 
 !#### LEVEL 2 UNIVERSE ####!
 ! Since this is referenced by the outer universe, it must come first !
+! NOTE: faces are xmin xmax ymin ymax zmin zmax
 
 [UNIVERSE=general most_inner]
 interior "patricia"
@@ -84,8 +85,8 @@ shapes -beta
 
 [UNIVERSE][CELL c]
 comp "media 2"
-shapes +alpha +beta -gamma
-volume 16.0 ! 24 - 4 - 4
+shapes +alpha +beta -gamma +inner_c
+volume 15.75 ! 24 - 4 - 4 - 0.25
 
 [UNIVERSE][HOLE inner_c]
 fill most_inner

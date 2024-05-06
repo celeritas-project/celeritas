@@ -123,7 +123,30 @@ void from_json(nlohmann::json const& j, VolumeInput& value)
 
     if (auto iter = j.find("zorder"); iter != j.end())
     {
-        iter->get_to(value.zorder);
+        if (iter->is_string())
+        {
+            auto s = iter->get<std::string>();
+            CELER_VALIDATE(s.size() == 1, << "invalid zorder '" << s << "'");
+            value.zorder = to_zorder(s.front());
+        }
+        else
+        {
+            // Backward compatibility: integer value
+            iter->get_to(value.zorder);
+            constexpr size_type uint16_max = 65536;
+            if (static_cast<size_type>(value.zorder) == uint16_max - 2)
+            {
+                value.zorder = ZOrder::implicit_exterior;
+            }
+            else if (static_cast<size_type>(value.zorder) == uint16_max - 3)
+            {
+                value.zorder = ZOrder::exterior;
+            }
+            char c = to_char(value.zorder);
+            CELER_VALIDATE(to_zorder(c) != ZOrder::invalid,
+                           << "invalid zorder "
+                           << static_cast<int>(value.zorder));
+        }
     }
     else
     {
@@ -135,7 +158,7 @@ void from_json(nlohmann::json const& j, VolumeInput& value)
         // Background volumes should be "nowhere" explicitly using "inside"
         // logic
         value.logic = {logic::ltrue, logic::lnot};
-        value.bbox = BBox::from_infinite();
+        value.bbox = {};
     }
     else
     {
@@ -240,6 +263,7 @@ void from_json(nlohmann::json const& j, UnitInput& value)
                    << "incorrect size for surface labels: got "
                    << value.surface_labels.size() << ", expected "
                    << value.surfaces.size());
+
     value.bbox = get_bbox(j);
 
     for (char const* key : {"parent_volumes", "parent_cells"})
@@ -318,8 +342,11 @@ void to_json(nlohmann::json& j, UnitInput const& value)
         return volume_labels;
     }();
 
-    if (value.bbox != BBox::from_infinite())
+    if (value.bbox && value.bbox != BBox::from_infinite())
     {
+        // Write if not null or infinity (TODO: background volume is
+        // actually "null",
+        // other volumes should not be)
         j["bbox"] = value.bbox;
     }
 
@@ -523,6 +550,13 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
     {
         j.at("tol").get_to(value.tol);
     }
+    else
+    {
+        value.tol = Tolerance<>::from_default();
+        CELER_LOG(debug) << "No input tolerance provided: setting default "
+                            "tolerance";
+    }
+    CELER_ENSURE(value);
 }
 
 //---------------------------------------------------------------------------//
@@ -542,6 +576,34 @@ void to_json(nlohmann::json& j, OrangeInput const& value)
     {
         j["tol"] = value.tol;
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Helper to read the input from a file or stream.
+ *
+ * Example to read from a file:
+ * \code
+   OrangeInput inp;
+   std::ifstream("foo.org.json") >> inp;
+ * \endcode
+ */
+std::istream& operator>>(std::istream& is, OrangeInput& inp)
+{
+    auto j = nlohmann::json::parse(is);
+    j.get_to(inp);
+    return is;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Helper to write the input to a file or stream.
+ */
+std::ostream& operator<<(std::ostream& os, OrangeInput const& inp)
+{
+    nlohmann::json j = inp;
+    os << j.dump(0);
+    return os;
 }
 
 //---------------------------------------------------------------------------//

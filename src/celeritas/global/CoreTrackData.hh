@@ -72,7 +72,7 @@ struct CoreParamsData
     explicit CELER_FUNCTION operator bool() const
     {
         return geometry && geo_mats && materials && particles && cutoffs
-               && physics && sim && init && scalars;
+               && physics && rng && sim && init && scalars;
     }
 
     //! Assign from another set of data
@@ -103,9 +103,6 @@ struct CoreParamsData
 template<Ownership W, MemSpace M>
 struct CoreStateData
 {
-    template<class T>
-    using Items = StateCollection<T, W, M>;
-
     template<class T>
     using ThreadItems = Collection<T, W, M, ThreadId>;
 

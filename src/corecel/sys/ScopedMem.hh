@@ -58,13 +58,8 @@ class ScopedMem
     // Register data on destruction
     ~ScopedMem();
 
-    //!@{
-    //! Default move assign and construct; no copying
-    ScopedMem(ScopedMem&&) = default;
-    ScopedMem(ScopedMem const&) = delete;
-    ScopedMem& operator=(ScopedMem&&) = default;
-    ScopedMem& operator=(ScopedMem const&) = delete;
-    //!@}
+    //! Prevent copying but allow moving
+    CELER_DEFAULT_MOVE_DELETE_COPY(ScopedMem);
 
   private:
     using value_type = KibiBytes::value_type;

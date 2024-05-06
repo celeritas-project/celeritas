@@ -1,0 +1,471 @@
+{
+"_format": "ORANGE",
+"_version": 0,
+"universes": [
+{
+"_type": "unit",
+"bbox": [
+[
+-20.0,
+-20.0,
+-20.0
+],
+[
+20.0,
+20.0,
+20.0
+]
+],
+"daughters": [
+1
+],
+"md": {
+"name": "global"
+},
+"parent_cells": [
+1
+],
+"surface_labels": [
+"outer.mx",
+"outer.px",
+"outer.my",
+"outer.py",
+"outer.mz",
+"outer.pz",
+"arrfill.mx",
+"arrfill.px",
+"arrfill.my",
+"arrfill.py",
+"arrfill.mz",
+"arrfill.pz"
+],
+"surfaces": {
+"data": [
+-20.0,
+20.0,
+-20.0,
+20.0,
+-20.0,
+20.0,
+0.0,
+4.0,
+0.0,
+4.0,
+0.0,
+1.0
+],
+"sizes": [
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1,
+1
+],
+"types": [
+"px",
+"px",
+"py",
+"py",
+"pz",
+"pz",
+"px",
+"px",
+"py",
+"py",
+"pz",
+"pz"
+]
+},
+"transforms": [
+[]
+],
+"volume_labels": [
+"[EXTERIOR]",
+"arrfill",
+"interior"
+],
+"volumes": [
+{
+"faces": [
+0,
+1,
+2,
+3,
+4,
+5
+],
+"flags": 1,
+"logic": "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ & ~"
+},
+{
+"bbox": [
+[
+0.0,
+0.0,
+0.0
+],
+[
+4.0,
+4.0,
+1.0
+]
+],
+"faces": [
+6,
+7,
+8,
+9,
+10,
+11
+],
+"logic": "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ &"
+},
+{
+"bbox": [
+[
+-20.0,
+-20.0,
+-20.0
+],
+[
+20.0,
+20.0,
+20.0
+]
+],
+"faces": [
+0,
+1,
+2,
+3,
+4,
+5,
+6,
+7,
+8,
+9,
+10,
+11
+],
+"flags": 1,
+"logic": "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ & 6 7 ~ & 8 & 9 ~ & 10 & 11 ~ & ~ &"
+}
+]
+},
+{
+"_type": "unit",
+"bbox": [
+[
+0.0,
+0.0,
+0.0
+],
+[
+4.0,
+4.0,
+1.0
+]
+],
+"daughters": [
+2
+],
+"md": {
+"name": "parent"
+},
+"parent_cells": [
+1
+],
+"surface_labels": [],
+"surfaces": {
+"data": [],
+"sizes": [],
+"types": []
+},
+"transforms": [
+[]
+],
+"volume_labels": [
+"[EXTERIOR]",
+"parent+"
+],
+"volumes": [
+{
+"faces": [],
+"flags": 2,
+"logic": "* ~",
+"zorder": "x"
+},
+{
+"bbox": [
+[
+0.0,
+0.0,
+0.0
+],
+[
+4.0,
+4.0,
+1.0
+]
+],
+"faces": [],
+"logic": "*",
+"zorder": "A"
+}
+]
+},
+{
+"_type": "rectarray",
+"daughters": [
+3,
+3,
+3,
+3
+],
+"md": {
+"name": "parent+"
+},
+"translations": [
+0.0,
+0.0,
+0.0,
+0.0,
+2.0,
+0.0,
+2.0,
+0.0,
+0.0,
+2.0,
+2.0,
+0.0
+],
+"x": [
+0.0,
+2.0,
+4.0
+],
+"y": [
+0.0,
+2.0,
+4.0
+],
+"z": [
+0.0,
+1.0
+]
+},
+{
+"_type": "unit",
+"bbox": [
+[
+0.0,
+0.0,
+0.0
+],
+[
+2.0,
+2.0,
+1.0
+]
+],
+"daughters": [
+4
+],
+"md": {
+"name": "arr"
+},
+"parent_cells": [
+1
+],
+"surface_labels": [],
+"surfaces": {
+"data": [],
+"sizes": [],
+"types": []
+},
+"transforms": [
+[]
+],
+"volume_labels": [
+"[EXTERIOR]",
+"arr+"
+],
+"volumes": [
+{
+"faces": [],
+"flags": 2,
+"logic": "* ~",
+"zorder": "x"
+},
+{
+"bbox": [
+[
+0.0,
+0.0,
+0.0
+],
+[
+2.0,
+2.0,
+1.0
+]
+],
+"faces": [],
+"logic": "*",
+"zorder": "A"
+}
+]
+},
+{
+"_type": "rectarray",
+"daughters": [
+5,
+6,
+6,
+5
+],
+"md": {
+"name": "arr+"
+},
+"translations": [
+0.0,
+0.0,
+0.0,
+0.0,
+1.0,
+0.0,
+1.0,
+0.0,
+0.0,
+1.0,
+1.0,
+0.0
+],
+"x": [
+0.0,
+1.0,
+2.0
+],
+"y": [
+0.0,
+1.0,
+2.0
+],
+"z": [
+0.0,
+1.0
+]
+},
+{
+"_type": "unit",
+"bbox": [
+[
+0.0,
+0.0,
+0.0
+],
+[
+1.0,
+1.0,
+1.0
+]
+],
+"md": {
+"name": "B"
+},
+"surface_labels": [],
+"surfaces": {
+"data": [],
+"sizes": [],
+"types": []
+},
+"volume_labels": [
+"[EXTERIOR]",
+"Bfill"
+],
+"volumes": [
+{
+"faces": [],
+"flags": 2,
+"logic": "* ~",
+"zorder": "x"
+},
+{
+"bbox": [
+[
+0.0,
+0.0,
+0.0
+],
+[
+1.0,
+1.0,
+1.0
+]
+],
+"faces": [],
+"logic": "*"
+}
+]
+},
+{
+"_type": "unit",
+"bbox": [
+[
+0.0,
+0.0,
+0.0
+],
+[
+1.0,
+1.0,
+1.0
+]
+],
+"md": {
+"name": "A"
+},
+"surface_labels": [],
+"surfaces": {
+"data": [],
+"sizes": [],
+"types": []
+},
+"volume_labels": [
+"[EXTERIOR]",
+"Afill"
+],
+"volumes": [
+{
+"faces": [],
+"flags": 2,
+"logic": "* ~",
+"zorder": "x"
+},
+{
+"bbox": [
+[
+0.0,
+0.0,
+0.0
+],
+[
+1.0,
+1.0,
+1.0
+]
+],
+"faces": [],
+"logic": "*"
+}
+]
+}
+]
+}

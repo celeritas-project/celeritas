@@ -198,6 +198,51 @@ class Ellipsoid final : public ConvexRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
+ * A generalized trapezoid, inspired by VecGeom's GenTrap and also ROOT's Arb8.
+ *
+ * A GenTrap represents a general trapezoidal volume with up to eight vertices,
+ * or two 4-point sets, sitting on two parallel planes perpendicular to Z axis.
+ * The points in each set might be correspondingly ordered, in such a way to
+ * properly define the side faces.
+ * TODO: Add a check for this.
+ * TODO: Add proper treatment for degenerate cases.
+ */
+class GenTrap final : public ConvexRegionInterface
+{
+    //!@{
+    //! \name Type aliases
+    using Real2 = Array<real_type, 2>;
+    using VecReal2 = std::vector<Real2>;
+    //!@}
+
+  public:
+    // Construct from half Z height and 1-4 vertices for top and bottom planes
+    GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi);
+
+    // Build surfaces
+    void build(ConvexSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Half-height along Z
+    real_type halfheight() const { return hz_; }
+
+    //! Polygon on -z face
+    VecReal2 const& lower() const { return lo_; }
+    //! Polygon on +z face
+    VecReal2 const& upper() const { return hi_; }
+
+  private:
+    real_type hz_;  //!< half-height
+    VecReal2 lo_;  //!< corners of the -z face
+    VecReal2 hi_;  //!< corners of the +z face
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * An open wedge shape from the Z axis.
  *
  * The wedge is defined by an interior angle that *must* be less than or equal
@@ -228,6 +273,62 @@ class InfWedge final : public ConvexRegionInterface
   private:
     Turn start_;
     Turn interior_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * A general parallelepiped centered on the origin.
+ *
+ * A parallelepiped is a shape having 3 pairs of parallel faces out of
+ * which one is parallel with the XY plane (Z faces). All faces are
+ * parallelograms in the general case. The Z faces have 2 edges parallel
+ * with the X-axis. Note that all angle parameters are expressed in terms
+ * of fractions of a 360deg turn.
+ *
+ * The shape has the center in the origin and it is defined by:
+ *
+ *   - `halfedges:` a 3-vector (dY, dY, dZ) with half-lengths of the
+ *     projections of the edges on X, Y, Z. The lower Z face is positioned at
+ *     `-dZ`, and the upper one at `+dZ`.
+ *   - `alpha:` angle between the segment defined by the centers of the
+ *     X-parallel edges and Y axis. Validity range is `(-1/4, 1/4)`;
+ *   - `theta:` polar angle of the shape's main axis, e.g. the segment defined
+ *     by the centers of the Z faces. Validity range is `[0, 1/4)`;
+ *   - `phi:` azimuthal angle of the shape's main axis (as explained above).
+ *     Validity range is `[0, 1)`.
+ */
+class Parallelepiped final : public ConvexRegionInterface
+{
+  public:
+    // Construct with half widths and 3 angles
+    Parallelepiped(Real3 const& halfedges, Turn alpha, Turn theta, Turn phi);
+
+    // Build surfaces
+    void build(ConvexSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Half-lengths of edge projections along each axis
+    Real3 const& halfedges() const { return hpr_; }
+    //! Angle between slanted y-edges and the y-axis (in turns)
+    Turn alpha() const { return alpha_; }
+    //! Polar angle of main axis (in turns)
+    Turn theta() const { return theta_; }
+    //! Azimuthal angle of main axis (in turns)
+    Turn phi() const { return phi_; }
+
+  private:
+    // half-lengths
+    Real3 hpr_;
+    // angle between slanted y-edges and the y-axis
+    Turn alpha_;
+    // polar angle of main axis
+    Turn theta_;
+    // azimuthal angle of main axis
+    Turn phi_;
 };
 
 //---------------------------------------------------------------------------//
@@ -307,6 +408,11 @@ class Sphere final : public ConvexRegionInterface
 
     // Output to JSON
     void output(JsonPimpl*) const final;
+
+    //// TEMPLATE INTERFACE ////
+
+    // Whether this encloses another sphere
+    bool encloses(Sphere const& other) const;
 
     //// ACCESSORS ////
 
