@@ -18,13 +18,14 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
-#include "corecel/sys/Stopwatch.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/detail/ActionSequence.hh"
 #include "celeritas/grid/VectorUtils.hh"
 #include "celeritas/phys/Model.hh"
+
+#include "StepTimer.hh"
 
 namespace celeritas
 {
@@ -113,17 +114,15 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
     CELER_LOG_LOCAL(status)
         << "Transporting " << primaries.size() << " primaries";
 
-    Stopwatch get_step_time;
+    StepTimer record_step_time{store_step_times_ ? &result.step_times
+                                                 : nullptr};
     size_type remaining_steps = max_steps_;
 
     auto& step = *stepper_;
     // Copy primaries to device and transport the first step
     auto track_counts = step(primaries);
     append_track_counts(track_counts);
-    if (store_step_times_)
-    {
-        result.step_times.push_back(get_step_time());
-    }
+    record_step_time();
 
     while (track_counts)
     {
@@ -141,14 +140,9 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
             break;
         }
 
-        get_step_time = {};
         track_counts = step();
-
         append_track_counts(track_counts);
-        if (store_step_times_)
-        {
-            result.step_times.push_back(get_step_time());
-        }
+        record_step_time();
     }
 
     result.num_aborted = track_counts.alive + track_counts.queued;
