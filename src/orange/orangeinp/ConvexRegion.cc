@@ -381,18 +381,16 @@ GenTrap GenTrap::from_trd(real_type halfz, Real2 const& lo, Real2 const& hi)
     CELER_VALIDATE(hi[1] > 0, << "nonpositive upper y half-edge: " << hi[1]);
     CELER_VALIDATE(halfz > 0, << "nonpositive half-height: " << halfz);
 
+    // Construct points counterclockwise from lower left
     VecReal2 lower
         = {{-lo[0], -lo[1]}, {lo[0], -lo[1]}, {lo[0], lo[1]}, {-lo[0], lo[1]}};
     VecReal2 upper
         = {{-hi[0], -hi[1]}, {hi[0], -hi[1]}, {hi[0], hi[1]}, {-hi[0], hi[1]}};
 
-    return std::move(GenTrap{halfz, std::move(lower), std::move(upper)});
+    return GenTrap{halfz, std::move(lower), std::move(upper)};
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Construct a general trap
- */
 /*!
  * Construct from half Z height and 1-4 vertices for top and bottom planes.
  */
@@ -411,6 +409,15 @@ GenTrap GenTrap::from_trap(real_type hz,
                    << "invalid angle " << phi.value()
                    << " [turns]: must be in the range [0, 1)");
 
+    for (TrapFace const* tf : {&lo, &hi})
+    {
+        CELER_VALIDATE(tf->hx_lo_ > 0,
+                       << "nonpositive lower x half-edge: " << tf->hx_lo_);
+        CELER_VALIDATE(tf->hx_hi_ > 0,
+                       << "nonpositive upper x half-edge: " << tf->hx_hi_);
+        CELER_VALIDATE(tf->hy_ > 0,
+                       << "nonpositive y half-distance: " << tf->hy_);
+    }
     real_type cos_phi{}, sin_phi{};
     sincos(phi, &sin_phi, &cos_phi);
     auto dxdz_hz = tan_theta * cos_phi * hz;
@@ -434,7 +441,7 @@ GenTrap GenTrap::from_trap(real_type hz,
                       {+dxdz_hz + dxdy_hy2 + hx4, +dydz_hz + hy2},
                       {+dxdz_hz + dxdy_hy2 - hx4, +dydz_hz + hy2}};
 
-    return std::move(GenTrap{hz, std::move(lower), std::move(upper)});
+    return GenTrap{hz, std::move(lower), std::move(upper)};
 }
 
 //---------------------------------------------------------------------------//

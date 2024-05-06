@@ -615,7 +615,7 @@ auto SolidConverter::trap(arg_type solid_base) -> result_type
     // Geant4 10.7 and earlier - axis = (sinth.cosphi, sinth.sinphi, costh)
     // Note: both sinth,costh >= 0 since theta is in [0, pi/2] for a G4Trap
     auto axis = solid.GetSymAxis();
-    auto sin_theta = std::sqrt(1.0 - axis.x() * axis.x() + axis.y() * axis.y());
+    auto sin_theta = std::max(0.0, std::sqrt(1.0 - ipow<2>(axis.z())));
     tan_theta = SoftZero<double>{1.e-8}(axis.z())
                     ? sin_theta / axis.z()
                     : numeric_limits<real_type>::infinity();
