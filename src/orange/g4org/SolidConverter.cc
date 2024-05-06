@@ -583,21 +583,6 @@ auto SolidConverter::torus(arg_type solid_base) -> result_type
 /*!
  * Convert a trapezoid.
  *
- * Here is the full description of the G4Trap parameters, as named here:
- *
- * hz  - Half Z length - distance from the origin to the bases
- * hy1 - Half Y length of the base at -pDz
- * hy2 - Half Y length of the base at +pDz
- * hx1 - Half X length at smaller Y of the base at -pDz
- * hx2 - Half X length at bigger Y of the base at -pDz
- * hx3 - Half X length at smaller Y of the base at +pDz
- * hx4 - Half X length at bigger y of the base at +pDz
- * Theta - Polar angle of the line joining the centres of the bases at -/+hz
- * Phi   - Azimuthal angle of the line joining the centre of the base at -hz
- *         to the centre of the base at +hz
- * Alph1 - Angle between the Y-axis and the centre line of the base at -hz
- * Alph2 - Angle between the Y-axis and the centre line of the base at +hz
- *
  * Note that the numbers of x,y,z parameters in the G4Trap are related to the
  * fact that the two z-faces are parallel (separated by hz) and the 4 x-wedges
  * (2 in each z-face) are also parallel (separated by hy1,2).
@@ -629,20 +614,21 @@ auto SolidConverter::trap(arg_type solid_base) -> result_type
 #endif
 
     auto hz = scale_(solid.GetZHalfLength());
-    auto hy1 = scale_(solid.GetYHalfLength1());
-    auto hx1 = scale_(solid.GetXHalfLength1());
-    auto hx2 = scale_(solid.GetXHalfLength2());
-    auto hy2 = scale_(solid.GetYHalfLength2());
-    auto hx3 = scale_(solid.GetXHalfLength3());
-    auto hx4 = scale_(solid.GetXHalfLength4());
 
-    return make_shape<GenTrap>(
-        solid,
-        GenTrap::from_trap(hz,
-                           tan_theta,
-                           phi,
-                           {hy1, hx1, hx2, solid.GetTanAlpha1()},
-                           {hy2, hx3, hx4, solid.GetTanAlpha2()}));
+    GenTrap::TrapFace lo;
+    lo.hy = scale_(solid.GetYHalfLength1());
+    lo.hx_lo = scale_(solid.GetXHalfLength1());
+    lo.hx_hi = scale_(solid.GetXHalfLength2());
+    lo.tan_alpha = solid.GetTanAlpha1();
+
+    GenTrap::TrapFace hi;
+    hi.hy = scale_(solid.GetYHalfLength2());
+    hi.hx_lo = scale_(solid.GetXHalfLength3());
+    hi.hx_hi = scale_(solid.GetXHalfLength4());
+    lo.tan_alpha = solid.GetTanAlpha2();
+
+    return make_shape<GenTrap>(solid,
+                               GenTrap::from_trap(hz, tan_theta, phi, lo, hi));
 }
 
 //---------------------------------------------------------------------------//

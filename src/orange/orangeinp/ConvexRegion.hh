@@ -206,6 +206,10 @@ class Ellipsoid final : public ConvexRegionInterface
  *
  * TODO: Add proper treatment for degenerate cases.
  * TODO: support twisted faces.
+ *
+ * See
+ * https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/Detector/Geometry/geomSolids.html#constructed-solid-geometry-csg-solids
+ * for details on construction.
  */
 class GenTrap final : public ConvexRegionInterface
 {
@@ -216,18 +220,17 @@ class GenTrap final : public ConvexRegionInterface
     using VecReal2 = std::vector<Real2>;
     //!@}
 
-    //! Argument for building from regular trapezoidal top/bottom polygons
+    //! Regular trapezoidal top/bottom face
     struct TrapFace
     {
-        real_type hy_{};  //!< half the vertical distance between horizontal
-                          //!< edges
-        real_type hx_lo_{};  //!< top horizontal edge half-length
-        real_type hx_hi_{};  //!< botton horizontal edge half-length
-
-        // tan(alpha), where alpha is the clockwise angle between the
-        // _centers_ of horizontal edges, with respect to the vertical
-        // (alpha=0)
-        real_type tan_alpha_{};
+        //! Half the vertical distance between horizontal edges
+        real_type hy{};
+        //! Top horizontal edge half-length
+        real_type hx_lo{};
+        //! Bottom horizontal edge half-length
+        real_type hx_hi{};
+        //! Tangent of shear angle, between horizontal line centers and Y axis
+        real_type tan_alpha{};
     };
 
   public:

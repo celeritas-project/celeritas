@@ -347,7 +347,6 @@ GenTrap GenTrap::from_trap(real_type hz,
                            TrapFace const& lo,
                            TrapFace const& hi)
 {
-    // TrapFace is validated in its constructor
     CELER_VALIDATE(hz > 0, << "nonpositive half-height: " << hz);
 
     CELER_VALIDATE(tan_theta >= 0, << "negative tan(theta): " << tan_theta);
@@ -358,37 +357,38 @@ GenTrap GenTrap::from_trap(real_type hz,
 
     for (TrapFace const* tf : {&lo, &hi})
     {
-        CELER_VALIDATE(tf->hx_lo_ > 0,
-                       << "nonpositive lower x half-edge: " << tf->hx_lo_);
-        CELER_VALIDATE(tf->hx_hi_ > 0,
-                       << "nonpositive upper x half-edge: " << tf->hx_hi_);
-        CELER_VALIDATE(tf->hy_ > 0,
-                       << "nonpositive y half-distance: " << tf->hy_);
+        CELER_VALIDATE(tf->hx_lo > 0,
+                       << "nonpositive lower x half-edge: " << tf->hx_lo);
+        CELER_VALIDATE(tf->hx_hi > 0,
+                       << "nonpositive upper x half-edge: " << tf->hx_hi);
+        CELER_VALIDATE(tf->hy > 0,
+                       << "nonpositive y half-distance: " << tf->hy);
+        CELER_VALIDATE(!std::isinf(tf->tan_alpha),
+                       << "infinite trapezoidal shear: " << tf->tan_alpha);
     }
     real_type cos_phi{}, sin_phi{};
     sincos(phi, &sin_phi, &cos_phi);
     auto dxdz_hz = tan_theta * cos_phi * hz;
     auto dydz_hz = tan_theta * sin_phi * hz;
 
-    auto hy1 = lo.hy_;
-    auto hx1 = lo.hx_lo_;
-    auto hx2 = lo.hx_hi_;
-    auto hy2 = hi.hy_;
-    auto hx3 = hi.hx_lo_;
-    auto hx4 = hi.hx_hi_;
-    auto dxdy_hy1 = lo.tan_alpha_ * lo.hy_;
-    auto dxdy_hy2 = hi.tan_alpha_ * hi.hy_;
+    Array<VecReal2, 2> points;
+    TrapFace const* faces[] = {&lo, &hi};
+    for (auto i : range(2))
+    {
+        TrapFace const& face = *faces[i];
 
-    VecReal2 lower = {{-dxdz_hz - dxdy_hy1 - hx1, -dydz_hz - hy1},
-                      {-dxdz_hz - dxdy_hy1 + hx1, -dydz_hz - hy1},
-                      {-dxdz_hz + dxdy_hy1 + hx2, -dydz_hz + hy1},
-                      {-dxdz_hz + dxdy_hy1 - hx2, -dydz_hz + hy1}};
-    VecReal2 upper = {{+dxdz_hz - dxdy_hy2 - hx3, +dydz_hz - hy2},
-                      {+dxdz_hz - dxdy_hy2 + hx3, +dydz_hz - hy2},
-                      {+dxdz_hz + dxdy_hy2 + hx4, +dydz_hz + hy2},
-                      {+dxdz_hz + dxdy_hy2 - hx4, +dydz_hz + hy2}};
+        real_type const xoff = (i == 0 ? -dxdz_hz : dxdz_hz);
+        real_type const yoff = (i == 0 ? -dydz_hz : dydz_hz);
+        real_type const shear = face.tan_alpha * face.hy;
 
-    return GenTrap{hz, std::move(lower), std::move(upper)};
+        // Construct points counterclockwise from lower left
+        points[i] = {{xoff - shear - face.hx_lo, yoff - face.hy},
+                     {xoff - shear + face.hx_lo, yoff - face.hy},
+                     {xoff + shear + face.hx_hi, yoff + face.hy},
+                     {xoff + shear - face.hx_hi, yoff + face.hy}};
+    }
+
+    return GenTrap{hz, std::move(points[0]), std::move(points[1])};
 }
 
 //---------------------------------------------------------------------------//
