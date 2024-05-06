@@ -89,7 +89,7 @@ namespace
 size_type calc_num_streams(RunnerInput const& inp, size_type num_events)
 {
     size_type num_threads = 1;
-#if CELERITAS_USE_OPENMP
+#if CELERITAS_OPENMP == CELERITAS_OPENMP_EVENT
     if (!inp.merge_events)
     {
 #    pragma omp parallel
