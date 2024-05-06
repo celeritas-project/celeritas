@@ -25,10 +25,11 @@ set(CELERITAS_USE_VECGEOM ${CELERITAS_USE_VecGeom})
 # Start counter from 1 because undefined config have the implicit value of 0 in
 # the C preprocessor, so any unavailable options (e.g. CELERITAS_USE_CURAND
 # when HIP is in use) will implicitly be zero.
-celeritas_generate_option_config(CELERITAS_CORE_RNG)
 celeritas_generate_option_config(CELERITAS_CORE_GEO)
-celeritas_generate_option_config(CELERITAS_UNITS)
+celeritas_generate_option_config(CELERITAS_CORE_RNG)
+celeritas_generate_option_config(CELERITAS_OPENMP)
 celeritas_generate_option_config(CELERITAS_REAL_TYPE)
+celeritas_generate_option_config(CELERITAS_UNITS)
 celeritas_configure_file("celeritas_config.h.in" "celeritas_config.h" @ONLY)
 
 #----------------------------------------------------------------------------#

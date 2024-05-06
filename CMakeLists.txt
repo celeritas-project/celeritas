@@ -90,7 +90,7 @@ endif()
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # CELERITAS_CORE_RNG
-# random number generator selection
+# Random number generator selection
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 celeritas_setup_option(CELERITAS_CORE_RNG xorwow)
 celeritas_setup_option(CELERITAS_CORE_RNG cuRAND CELERITAS_USE_CUDA)
@@ -103,7 +103,7 @@ celeritas_define_options(CELERITAS_CORE_RNG
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # CELERITAS_CORE_GEO
-# runtime geometry selection
+# Runtime geometry selection
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 if(CELERITAS_USE_VecGeom AND NOT CELERITAS_USE_HIP)
   set(_allow_vecgeom TRUE)
@@ -113,7 +113,7 @@ else()
     message(SEND_ERROR "VecGeom core geometry is incompatible with HIP")
   endif()
 endif()
-if(CELERITAS_USE_Geant4 AND NOT (CELERITAS_USE_HIP OR CELERITAS_USE_CUDA OR CELERITAS_USE_OpenMP))
+if(CELERITAS_USE_Geant4 AND NOT (CELERITAS_USE_HIP OR CELERITAS_USE_CUDA OR CELERITAS_OPENMP))
   set(_allow_g4 TRUE)
 else()
   if(CELERITAS_CORE_GEO STREQUAL "Geant4")
@@ -125,6 +125,22 @@ celeritas_setup_option(CELERITAS_CORE_GEO VecGeom _allow_vecgeom)
 celeritas_setup_option(CELERITAS_CORE_GEO ORANGE)
 celeritas_setup_option(CELERITAS_CORE_GEO Geant4 _allow_g4)
 celeritas_define_options(CELERITAS_CORE_GEO "Celeritas runtime geometry")
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# CELERITAS_OPENMP
+# Thread parallelism
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+if(CELERITAS_USE_OpenMP)
+  set(_disable_openmp FALSE)
+else()
+  set(_disable_openmp TRUE)
+endif()
+
+celeritas_setup_option(CELERITAS_OPENMP disabled _disable_openmp)
+celeritas_setup_option(CELERITAS_OPENMP event CELERITAS_USE_OpenMP)
+celeritas_setup_option(CELERITAS_OPENMP track CELERITAS_USE_OpenMP)
+celeritas_define_options(CELERITAS_OPENMP "Celeritas OpenMP parallelism")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # CELERITAS_UNITS
@@ -284,6 +300,11 @@ endif()
 
 if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
   find_package(Geant4 REQUIRED)
+  if(CELERITAS_OPENMP STREQUAL "track" AND Geant4_multithreaded_FOUND)
+    message(WARNING "Track-level OpenMP will conflict with MT runs of geant4:"
+      "consider setting CELERITAS_OPENMP to \"event\" or disabling OpenMP"
+    )
+  endif()
 endif()
 
 if(CELERITAS_USE_HepMC3)
