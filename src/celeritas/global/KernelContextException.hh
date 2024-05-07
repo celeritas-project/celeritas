@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string_view>
+
 #include "corecel/Assert.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -15,7 +17,10 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 class CoreTrackView;
+struct JsonPimpl;
+
 //---------------------------------------------------------------------------//
 /*!
  * Provide contextual information about failed errors on CPU.
@@ -47,7 +52,7 @@ class KernelContextException : public RichContextException
     KernelContextException(HostCRef<CoreParamsData> const& params,
                            HostRef<CoreStateData> const& states,
                            ThreadId tid,
-                           std::string&& label);
+                           std::string_view label);
 
     // This class type
     char const* type() const final;

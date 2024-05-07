@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "Transporter.hh"
 
+#include <algorithm>
 #include <csignal>
 #include <memory>
 #include <utility>
@@ -82,11 +83,26 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
 {
     // Initialize results
     TransporterResult result;
-    auto append_track_counts = [&result](StepperResult const& track_counts) {
-        result.initializers.push_back(track_counts.queued);
-        result.active.push_back(track_counts.active);
-        result.alive.push_back(track_counts.alive);
+    auto append_track_counts = [&](StepperResult const& track_counts) {
+        if (store_track_counts_)
+        {
+            result.initializers.push_back(track_counts.queued);
+            result.active.push_back(track_counts.active);
+            result.alive.push_back(track_counts.alive);
+        }
+        ++result.num_step_iterations;
+        result.num_steps += track_counts.active;
+        result.max_queued = std::max(result.max_queued, track_counts.queued);
     };
+
+    constexpr size_type min_alloc{65536};
+    result.initializers.reserve(std::min(min_alloc, max_steps_));
+    result.active.reserve(std::min(min_alloc, max_steps_));
+    result.alive.reserve(std::min(min_alloc, max_steps_));
+    if (store_step_times_)
+    {
+        result.step_times.reserve(std::min(min_alloc, max_steps_));
+    }
 
     // Abort cleanly for interrupt and user-defined signals
 #ifndef _WIN32
@@ -103,10 +119,7 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
     auto& step = *stepper_;
     // Copy primaries to device and transport the first step
     auto track_counts = step(primaries);
-    if (store_track_counts_)
-    {
-        append_track_counts(track_counts);
-    }
+    append_track_counts(track_counts);
     if (store_step_times_)
     {
         result.step_times.push_back(get_step_time());
@@ -122,9 +135,8 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
         }
         if (CELER_UNLIKELY(interrupted()))
         {
-            CELER_LOG_LOCAL(error)
-                << "Caught interrupt signal: aborting transport "
-                   "loop";
+            CELER_LOG_LOCAL(error) << "Caught interrupt signal: aborting "
+                                      "transport loop";
             interrupted = {};
             break;
         }
@@ -132,16 +144,14 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
         get_step_time = {};
         track_counts = step();
 
-        if (store_track_counts_)
-        {
-            append_track_counts(track_counts);
-        }
+        append_track_counts(track_counts);
         if (store_step_times_)
         {
             result.step_times.push_back(get_step_time());
         }
     }
 
+    result.num_aborted = track_counts.alive + track_counts.queued;
     result.num_track_slots = stepper_->state().size();
     return result;
 }
@@ -165,8 +175,7 @@ void Transporter<M>::accum_action_times(MapStrDouble* result) const
         CELER_ASSERT(action_ptrs.size() == times.size());
         for (auto i : range(action_ptrs.size()))
         {
-            auto&& label = action_ptrs[i]->label();
-            (*result)[label] += times[i];
+            (*result)[std::string{action_ptrs[i]->label()}] += times[i];
         }
     }
 }

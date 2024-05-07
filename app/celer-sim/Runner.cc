@@ -228,6 +228,7 @@ auto Runner::get_action_times() const -> MapStrDouble
 //---------------------------------------------------------------------------//
 void Runner::setup_globals(RunnerInput const& inp) const
 {
+    // TODO: just use 0 instead of unspecified
     if (inp.cuda_heap_size != RunnerInput::unspecified)
     {
         set_cuda_heap_size(inp.cuda_heap_size);

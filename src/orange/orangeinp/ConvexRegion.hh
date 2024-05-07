@@ -209,14 +209,41 @@ class Ellipsoid final : public ConvexRegionInterface
  */
 class GenTrap final : public ConvexRegionInterface
 {
+  public:
     //!@{
     //! \name Type aliases
     using Real2 = Array<real_type, 2>;
     using VecReal2 = std::vector<Real2>;
     //!@}
 
+    //! Argument for building from regular trapezoidal top/bottom polygons
+    struct TrapFace
+    {
+        real_type hy_{};  //!< half the vertical distance between horizontal
+                          //!< edges
+        real_type hx_lo_{};  //!< top horizontal edge half-length
+        real_type hx_hi_{};  //!< botton horizontal edge half-length
+
+        // tan(alpha), where alpha is the clockwise angle between the
+        // _centers_ of horizontal edges, with respect to the vertical
+        // (alpha=0)
+        real_type tan_alpha_{};
+    };
+
   public:
-    // Construct from half Z height and 1-4 vertices for top and bottom planes
+    // Helper function to construct a Trd shape from hz and two rectangles,
+    // one for each z-face
+    static GenTrap from_trd(real_type halfz, Real2 const& lo, Real2 const& hi);
+
+    // Helper function to construct a general trap from its half-height and
+    // the two trapezoids defining its lower and upper faces
+    static GenTrap from_trap(real_type hz,
+                             real_type tan_theta,
+                             Turn const& phi,
+                             TrapFace const& lo,
+                             TrapFace const& hi);
+
+    // Construct from half Z height and 4 vertices for top and bottom planes
     GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi);
 
     // Build surfaces

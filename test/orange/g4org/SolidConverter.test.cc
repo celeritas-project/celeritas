@@ -195,6 +195,91 @@ TEST_F(SolidConverterTest, displaced)
         {{1, 2, 3}, {2, 2, 3}, {3, 0, 0}});
 }
 
+TEST_F(SolidConverterTest, generictrap)
+{
+    {
+        this->build_and_test(
+            G4GenericTrap("boxGenTrap",
+                          30,
+                          {{-10, -20},
+                           {-10, 20},
+                           {10, 20},
+                           {10, -20},
+                           {-10, -20},
+                           {-10, 20},
+                           {10, 20},
+                           {10, -20}}),
+            R"json({"_type":"shape","interior":{"_type":"gentrap",
+                "halfheight":3.0,
+                "lower":[[1.0,-2.0],[1.0,2.0],[-1.0,2.0],[-1.0,-2.0]],
+                "upper":[[1.0,-2.0],[1.0,2.0],[-1.0,2.0],[-1.0,-2.0]]},
+                "label":"boxGenTrap"})json",
+            {{-1, -2, -3}, {1, 2, 3}, {1, 2, 4}});
+    }
+
+    {
+        this->build_and_test(
+            G4GenericTrap("trdGenTrap",
+                          3,
+                          {{-10, -20},
+                           {-10, 20},
+                           {10, 20},
+                           {10, -20},
+                           {-5, -10},
+                           {-5, 10},
+                           {5, 10},
+                           {5, -10}}),
+            R"json({"_type":"shape","interior":{"_type":"gentrap"
+            ,"halfheight":0.30000000000000004,
+            "lower":[[1.0,-2.0],[1.0,2.0],[-1.0,2.0],[-1.0,-2.0]],
+            "upper":[[0.5,-1.0],[0.5,1.0],[-0.5,1.0],[-0.5,-1.0]]},
+            "label":"trdGenTrap"})json",
+            {{-1, -2, -4}, {-1, -2, -3}, {0.5, 1, 3}, {1, 1, 3}});
+    }
+
+    {
+        this->build_and_test(
+            G4GenericTrap("trap_GenTrap",
+                          40,
+                          {{-9, -20},
+                           {-9, 20},
+                           {11, 20},
+                           {11, -20},
+                           {-29, -40},
+                           {-29, 40},
+                           {31, 40},
+                           {31, -40}}),
+            R"json({"_type":"shape","interior":{"_type":"gentrap",
+            "halfheight":4.0,
+            "lower":[[1.1,-2.0],[1.1,2.0],[-0.9,2.0],[-0.9,-2.0]],
+            "upper":[[3.1,-4.0],[3.1,4.0],[-2.9,4.0],[-2.9,-4.0]]},
+            "label":"trap_GenTrap"})json",
+            {{-1, -2, -4 - 1.e-6}, {-1, -2, -3}, {0.5, 1, 3}, {1, 1, 3}});
+    }
+
+    {
+        // TODO: most generic gentrap with twisted side faces
+        EXPECT_THROW(
+            this->build_and_test(
+                G4GenericTrap("LArEMECInnerWheelAbsorber02",
+                              10.625,
+                              {{1.55857990922689, 302.468976599716},
+                               {-1.73031296208306, 302.468976599716},
+                               {-2.53451906396442, 609.918546236458},
+                               {2.18738922312177, 609.918546236458},
+                               {-11.9586196560814, 304.204253530802},
+                               {-15.2556006134987, 304.204253530802},
+                               {-31.2774318502685, 613.426120316623},
+                               {-26.5391748405779, 613.426120316623}}),
+                R"json({"_type":"shape","interior":{"_type":"gentrap","halfedges":[0.501588152875291,0.5,51.400000000000006],"phi":0.0,"theta":0.22584674950181247},"label":"LArEMECInnerWheelAbsorber02"})json",
+                {
+                    {51.2, 0.40, 7.76},
+                    {51.4, 0.51, 7.78},
+                }),
+            celeritas::RuntimeError);
+    }
+}
+
 TEST_F(SolidConverterTest, intersectionsolid)
 {
     G4Box b1("Test Box #1", 20, 30, 40);
@@ -311,6 +396,78 @@ TEST_F(SolidConverterTest, subtractionsolid)
         G4SubtractionSolid("t1Subtractionb3", &t1, &b3, transform),
         R"json({"_type":"all","daughters":[{"_type":"shape","interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Solid Tube #1"},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[1.0,2.0,5.0]},"label":"Test Box #3"},"transform":{"_type":"transformation","data":[-1.0,1.2246467991473532e-16,0.0,-1.2246467991473532e-16,-1.0,-0.0,0.0,0.0,1.0,0.0,3.0,0.0]}},"label":""}],"label":"t1Subtractionb3"})json",
         {{0, 0, 0}, {0, 0, 10}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1}});
+}
+
+TEST_F(SolidConverterTest, trap_box)
+{
+    {
+        this->build_and_test(
+            G4Trap("trap_box", 30, 0, 0, 20, 10, 10, 0, 20, 10, 10, 0),
+            R"json({"_type":"shape","interior":{"_type":"gentrap",
+                "halfheight":3.0,
+                "lower":[[-1.0,-2.0],[1.0,-2.0],[1.0,2.0],[-1.0,2.0]],
+                "upper":[[-1.0,-2.0],[1.0,-2.0],[1.0,2.0],[-1.0,2.0]]},
+                "label":"trap_box"})json",
+            {{-1, -2, -3}, {1, 2, 3}, {1, 2, 4}});
+    }
+}
+
+TEST_F(SolidConverterTest, trap_trd)
+{
+    {
+        this->build_and_test(
+            G4Trap("trap_trd", 50, 100, 100, 200, 300),
+            R"json({"_type":"shape","interior":{"_type":"gentrap",
+                "halfheight":30.0,
+                "lower":[[-5.0,-10.0],[5.0,-10.0],[5.0,10.0],[-5.0,10.0]],
+                "upper":[[-10.0,-20.0],[10.0,-20.0],[10.0,20.0],[-10.0,20.0]]},
+                "label":"trap_trd"})json",
+            {{-10, -20, -40},
+             {-10, -20, -30 + 1.e-6},
+             {5, 10, 30},
+             {10, 10, 30}});
+    }
+}
+
+TEST_F(SolidConverterTest, trap)
+{
+    this->build_and_test(
+        G4Trap("trap", 40, 0.02, 0.05, 20, 10, 10, 0.01, 30, 15, 15, 0.01),
+        R"json({"_type":"shape","interior":{"_type":"gentrap",
+            "halfheight":4.0,
+            "lower":[[-1.0999113425658524,-2.0039988667381046],
+                     [0.9000886574341476,-2.0039988667381046],
+                     [0.9400899908208165,1.9960011332618952],
+                     [-1.0599100091791835,1.9960011332618952]],
+            "upper":[[-1.4500903241674836,-2.9960011332618954],
+                     [1.5499096758325164,-2.9960011332618954],
+                     [1.6099116759125196,3.0039988667381046],
+                     [-1.3900883240874804,3.0039988667381046]]},
+            "label":"trap"})json",
+        {{-1, -2, -4 - 1.e-6}, {-1, -2, -3}, {0.5, 1, 3}, {1, 1, 3}});
+}
+
+TEST_F(SolidConverterTest, trd_box)
+{
+    this->build_and_test(G4Trd("trd_box", 10, 10, 20, 20, 30),
+                         R"json({"_type":"shape","interior":{"_type":"gentrap",
+            "halfheight":3.0,
+            "lower":[[-1.0,-2.0],[1.0,-2.0],[1.0,2.0],[-1.0,2.0]],
+            "upper":[[-1.0,-2.0],[1.0,-2.0],[1.0,2.0],[-1.0,2.0]]},
+            "label":"trd_box"})json",
+                         {{-1, -2, -3}, {1, 2, 3}, {1, 2, 4}});
+}
+
+TEST_F(SolidConverterTest, trd)
+{
+    this->build_and_test(
+        G4Trd("trd", 50, 100, 100, 200, 300),
+        R"json({"_type":"shape","interior":{"_type":"gentrap",
+            "halfheight":30.0,
+            "lower":[[-5.0,-10.0],[5.0,-10.0],[5.0,10.0],[-5.0,10.0]],
+            "upper":[[-10.0,-20.0],[10.0,-20.0],[10.0,20.0],[-10.0,20.0]]},
+            "label":"trd"})json",
+        {{-10, -20, -40}, {-10, -20, -30 + 1.e-6}, {5, 10, 30}, {10, 10, 30}});
 }
 
 TEST_F(SolidConverterTest, tubs)

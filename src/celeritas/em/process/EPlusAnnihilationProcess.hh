@@ -49,7 +49,7 @@ class EPlusAnnihilationProcess final : public Process
     bool use_integral_xs() const final { return options_.use_integral_xs; }
 
     // Name of the process
-    std::string label() const final;
+    std::string_view label() const final;
 
   private:
     SPConstParticles particles_;

@@ -57,7 +57,7 @@ auto EIonizationProcess::step_limits(Applicability applicability) const
 /*!
  * Name of the process.
  */
-std::string EIonizationProcess::label() const
+std::string_view EIonizationProcess::label() const
 {
     return "Electron/positron ionization";
 }

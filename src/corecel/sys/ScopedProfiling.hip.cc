@@ -8,6 +8,8 @@
 //---------------------------------------------------------------------------//
 #include "ScopedProfiling.hh"
 
+#include <string>
+
 #include "celeritas_sys_config.h"
 #include "corecel/io/Logger.hh"
 
@@ -56,7 +58,8 @@ void ScopedProfiling::activate(Input const& input) noexcept
 {
     int result = 0;
 #if CELERITAS_HAVE_ROCTX
-    result = roctxRangePush(input.name.c_str());
+    std::string temp_name{input.name};
+    result = roctxRangePush(temp_name.c_str());
 #endif
     if (result < 0)
     {

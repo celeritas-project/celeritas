@@ -67,7 +67,7 @@ class Process
     virtual bool use_integral_xs() const = 0;
 
     //! Name of the process
-    virtual std::string label() const = 0;
+    virtual std::string_view label() const = 0;
 
   protected:
     //!@{

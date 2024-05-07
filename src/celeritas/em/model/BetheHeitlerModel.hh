@@ -52,10 +52,10 @@ class BetheHeitlerModel final : public Model
     ActionId action_id() const final;
 
     //! Short name for the interaction kernel
-    std::string label() const final { return "conv-bethe-heitler"; }
+    std::string_view label() const final { return "conv-bethe-heitler"; }
 
     //! Short description of the post-step action
-    std::string description() const final
+    std::string_view description() const final
     {
         return "interact by Bethe-Heitler gamma conversion";
     }

@@ -89,7 +89,7 @@ void StepDiagnostic::execute(CoreParams const&, CoreStateDevice&) const
 /*!
  * Get a long description of the action.
  */
-std::string StepDiagnostic::description() const
+std::string_view StepDiagnostic::description() const
 {
     return "accumulate total step counters";
 }

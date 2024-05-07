@@ -336,8 +336,19 @@ auto SolidConverter::genericpolycone(arg_type solid_base) -> result_type
 auto SolidConverter::generictrap(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4GenericTrap const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("generictrap");
+
+    auto const& vtx = solid.GetVertices();
+    CELER_ASSERT(vtx.size() == 8);
+
+    std::vector<GenTrap::Real2> lower(4), upper(4);
+    for (auto i : range(4))
+    {
+        lower[i] = scale_.to<Cone::Real2>(vtx[i].x(), vtx[i].y());
+        upper[i] = scale_.to<Cone::Real2>(vtx[i + 4].x(), vtx[i + 4].y());
+    }
+    real_type hh = scale_(solid.GetZHalfLength());
+
+    return make_shape<GenTrap>(solid, hh, std::move(lower), std::move(upper));
 }
 
 //---------------------------------------------------------------------------//
@@ -569,12 +580,69 @@ auto SolidConverter::torus(arg_type solid_base) -> result_type
 }
 
 //---------------------------------------------------------------------------//
-//! Convert a generic trapezoid
+/*!
+ * Convert a trapezoid.
+ *
+ * Here is the full description of the G4Trap parameters, as named here:
+ *
+ * hz  - Half Z length - distance from the origin to the bases
+ * hy1 - Half Y length of the base at -pDz
+ * hy2 - Half Y length of the base at +pDz
+ * hx1 - Half X length at smaller Y of the base at -pDz
+ * hx2 - Half X length at bigger Y of the base at -pDz
+ * hx3 - Half X length at smaller Y of the base at +pDz
+ * hx4 - Half X length at bigger y of the base at +pDz
+ * Theta - Polar angle of the line joining the centres of the bases at -/+hz
+ * Phi   - Azimuthal angle of the line joining the centre of the base at -hz
+ *         to the centre of the base at +hz
+ * Alph1 - Angle between the Y-axis and the centre line of the base at -hz
+ * Alph2 - Angle between the Y-axis and the centre line of the base at +hz
+ *
+ * Note that the numbers of x,y,z parameters in the G4Trap are related to the
+ * fact that the two z-faces are parallel (separated by hz) and the 4 x-wedges
+ * (2 in each z-face) are also parallel (separated by hy1,2).
+ *
+ * Reference:
+ * https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/Detector/Geometry/geomSolids.html#constructed-solid-geometry-csg-solids
+ */
 auto SolidConverter::trap(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Trap const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("trap");
+
+    real_type tan_theta{};
+    Turn phi{};
+#if G4VERSION_NUMBER < 1100
+    // Geant4 10.7 and earlier - axis = (sinth.cosphi, sinth.sinphi, costh)
+    // Note: both sinth,costh >= 0 since theta is in [0, pi/2] for a G4Trap
+    auto axis = solid.GetSymAxis();
+    auto sin_theta = std::max(0.0, std::sqrt(1.0 - ipow<2>(axis.z())));
+    tan_theta = SoftZero<double>{1.e-8}(axis.z())
+                    ? sin_theta / axis.z()
+                    : numeric_limits<real_type>::infinity();
+    real_type cos_phi = sin_theta > 0 ? axis.x() / sin_theta : 1.0;
+    real_type sin_phi = sin_theta > 0 ? axis.y() / sin_theta : 1.0;
+    phi = native_value_to<Turn>(std::atan2(sin_phi, cos_phi));
+#else
+    // Geant4 11 and later
+    tan_theta = std::tan(solid.GetTheta());
+    phi = native_value_to<Turn>(solid.GetPhi());
+#endif
+
+    auto hz = scale_(solid.GetZHalfLength());
+    auto hy1 = scale_(solid.GetYHalfLength1());
+    auto hx1 = scale_(solid.GetXHalfLength1());
+    auto hx2 = scale_(solid.GetXHalfLength2());
+    auto hy2 = scale_(solid.GetYHalfLength2());
+    auto hx3 = scale_(solid.GetXHalfLength3());
+    auto hx4 = scale_(solid.GetXHalfLength4());
+
+    return make_shape<GenTrap>(
+        solid,
+        GenTrap::from_trap(hz,
+                           tan_theta,
+                           phi,
+                           {hy1, hx1, hx2, solid.GetTanAlpha1()},
+                           {hy2, hx3, hx4, solid.GetTanAlpha2()}));
 }
 
 //---------------------------------------------------------------------------//
@@ -582,8 +650,15 @@ auto SolidConverter::trap(arg_type solid_base) -> result_type
 auto SolidConverter::trd(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Trd const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("trd");
+
+    auto hz = scale_(solid.GetZHalfLength());
+    auto hy1 = scale_(solid.GetYHalfLength1());
+    auto hy2 = scale_(solid.GetYHalfLength2());
+    auto hx1 = scale_(solid.GetXHalfLength1());
+    auto hx2 = scale_(solid.GetXHalfLength2());
+
+    return make_shape<GenTrap>(solid,
+                               GenTrap::from_trd(hz, {hx1, hy1}, {hx2, hy2}));
 }
 
 //---------------------------------------------------------------------------//

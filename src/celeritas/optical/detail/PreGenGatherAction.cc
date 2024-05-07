@@ -38,7 +38,7 @@ PreGenGatherAction::PreGenGatherAction(ActionId id, SPGenStorage storage)
 /*!
  * Descriptive name of the action.
  */
-std::string PreGenGatherAction::description() const
+std::string_view PreGenGatherAction::description() const
 {
     return "gather pre-step data to generate optical distributions";
 }

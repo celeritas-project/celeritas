@@ -3,6 +3,50 @@
 .. SPDX-License-Identifier: CC-BY-4.0
 
 
+.. _release_v0.4.3:
+
+Version 0.4.3
+=============
+
+*Released 2024/05/01*
+
+Version 0.4.3 is a bugfix and minor feature update to Celeritas.
+
+- Adds diagnostic output for ``celer-sim`` even when not recording all steps
+- Fixes a sampling error for keV electron ionization
+- Builds with ROCm 5.7.1
+- Builds with Geant4 10.5–10.7, 11.1.0
+
+
+New features
+------------
+
+* Add JSON test comparator to improve testing reliability *(@sethrj, #1115)*
+* Add spack-based workflow to add all supported Geant4 versions to CI *(@sethrj, #1149)*
+* Add always-on basic diagnostics to celer-sim *(@amandalund, #1214)*
+
+Reviewers: @amandalund *(1)*, @drbenmorgan *(1)*, @sethrj *(1)*
+
+Bug fixes
+---------
+
+* Fix Moller-Bhahba energy distribution *(@amandalund, #1138)*
+* Fix Geant4 build from 10.5–10.7 and example build for 11.1 onward *(@sethrj, #1152)*
+* Fix missing Werror in build-fast workflow *(@sethrj, #1141)*
+* Fix build error with Geant4@11.1.0 *(@amandalund, #1199)*
+
+Reviewers: @sethrj *(2)*, @whokion *(1)*, @drbenmorgan *(1)*, @amandalund *(1)*
+
+Documentation improvements
+--------------------------
+
+* Update Frontier installation *(@sethrj, #1208)*
+
+Reviewers: @esseivaju *(1)*
+
+**Full Changelog**: https://github.com/celeritas-project/celeritas/compare/v0.4.2...v0.4.3
+
+
 .. _release_v0.4.2:
 
 Version 0.4.2

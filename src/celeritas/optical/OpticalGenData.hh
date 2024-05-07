@@ -84,6 +84,11 @@ struct OpticalPreStepData
 //---------------------------------------------------------------------------//
 /*!
  * Optical photon distribution data.
+ *
+ * The distributions are stored in separate Cerenkov and scintillation buffers
+ * indexed by the current buffer size plus the track slot ID. The data is
+ * compacted at the end of each step by removing all invalid distributions. The
+ * order of the distributions in the buffers is guaranteed to be reproducible.
  */
 template<Ownership W, MemSpace M>
 struct OpticalGenStateData
