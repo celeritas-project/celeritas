@@ -95,6 +95,7 @@ inp = {
     'action_diagnostic': True,
     'step_diagnostic': True,
     'step_diagnostic_bins': 200,
+    'write_step_times': use_device,
     'simple_calo': simple_calo,
     'sync': True,
     'merge_events': False,
@@ -141,6 +142,12 @@ with open(outfilename, 'w') as f:
     json.dump(j, f, indent=1)
 print("Results written to", outfilename, file=stderr)
 
-time = j['result']['runner']['time'].copy()
-time.pop('steps')
+run_output =j['result']['runner']
+time = run_output['time'].copy()
+steps = time.pop('steps')
+if use_device:
+    assert(len(steps) == run_output.num_steps[0])
+else:
+    # Step times disabled on CPU from input
+    assert(steps is None)
 print(json.dumps(time, indent=1))
