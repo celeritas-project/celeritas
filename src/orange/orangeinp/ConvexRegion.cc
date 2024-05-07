@@ -316,60 +316,6 @@ void Ellipsoid::output(JsonPimpl* j) const
 // GENTRAP
 //---------------------------------------------------------------------------//
 /*!
- * Construct from half Z height and 1-4 vertices for top and bottom planes.
- */
-GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
-    : hz_{halfz}, lo_{std::move(lo)}, hi_{std::move(hi)}
-{
-    CELER_VALIDATE(hz_ > 0, << "nonpositive halfheight: " << hz_);
-    CELER_VALIDATE(lo_.size() >= 3 && lo_.size() <= 4,
-                   << "invalid number of vertices (" << lo_.size()
-                   << ") for -z polygon");
-    CELER_VALIDATE(hi_.size() == lo_.size(),
-                   << "incompatible number of vertices (" << hi_.size()
-                   << ") for +z polygon: expected " << lo_.size());
-
-    CELER_VALIDATE(lo_.size() >= 3 || hi_.size() >= 3,
-                   << "not enough vertices for both of the +z/-z polygons.");
-
-    // Input vertices must be arranged in the same counter/clockwise order
-    // and be convex
-    using detail::calc_orientation;
-    constexpr auto cw = detail::Orientation::clockwise;
-    CELER_VALIDATE(detail::is_convex(make_span(lo_)),
-                   << "-z polygon is not convex");
-    CELER_VALIDATE(detail::is_convex(make_span(hi_)),
-                   << "+z polygon is not convex");
-    CELER_VALIDATE(calc_orientation(lo_[0], lo_[1], lo_[2])
-                       == calc_orientation(hi_[0], hi_[1], hi_[2]),
-                   << "-z and +z polygons have different orientations");
-    if (calc_orientation(lo_[0], lo_[1], lo_[2]) == cw)
-    {
-        // Reverse point orders so it's counterclockwise, needed for vectors to
-        // point outward
-        std::reverse(lo_.begin(), lo_.end());
-        std::reverse(hi_.begin(), hi_.end());
-    }
-
-    // TODO: Temporarily ensure that all side faces are planar
-    for (auto i : range(lo_.size()))
-    {
-        auto j = (i + 1) % lo_.size();
-        Real3 const a{lo_[i][0], lo_[i][1], -hz_};
-        Real3 const b{lo_[j][0], lo_[j][1], -hz_};
-        Real3 const c{hi_[j][0], hi_[j][1], hz_};
-        Real3 const d{hi_[i][0], hi_[i][1], hz_};
-
-        // *Temporarily* throws if a side face is not planar
-        if (!detail::is_planar(a, b, c, d))
-        {
-            CELER_NOT_IMPLEMENTED("non-planar side faces");
-        }
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct a TRD from 5 half-lengths: one half-height, {hx1,hy1} for a in -z,
  * and {hx2,hy2} in +z
  */
@@ -442,6 +388,60 @@ GenTrap GenTrap::from_trap(real_type hz,
                       {+dxdz_hz + dxdy_hy2 - hx4, +dydz_hz + hy2}};
 
     return GenTrap{hz, std::move(lower), std::move(upper)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from half Z height and 1-4 vertices for top and bottom planes.
+ */
+GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
+    : hz_{halfz}, lo_{std::move(lo)}, hi_{std::move(hi)}
+{
+    CELER_VALIDATE(hz_ > 0, << "nonpositive halfheight: " << hz_);
+    CELER_VALIDATE(lo_.size() >= 3 && lo_.size() <= 4,
+                   << "invalid number of vertices (" << lo_.size()
+                   << ") for -z polygon");
+    CELER_VALIDATE(hi_.size() == lo_.size(),
+                   << "incompatible number of vertices (" << hi_.size()
+                   << ") for +z polygon: expected " << lo_.size());
+
+    CELER_VALIDATE(lo_.size() >= 3 || hi_.size() >= 3,
+                   << "not enough vertices for both of the +z/-z polygons.");
+
+    // Input vertices must be arranged in the same counter/clockwise order
+    // and be convex
+    using detail::calc_orientation;
+    constexpr auto cw = detail::Orientation::clockwise;
+    CELER_VALIDATE(detail::is_convex(make_span(lo_)),
+                   << "-z polygon is not convex");
+    CELER_VALIDATE(detail::is_convex(make_span(hi_)),
+                   << "+z polygon is not convex");
+    CELER_VALIDATE(calc_orientation(lo_[0], lo_[1], lo_[2])
+                       == calc_orientation(hi_[0], hi_[1], hi_[2]),
+                   << "-z and +z polygons have different orientations");
+    if (calc_orientation(lo_[0], lo_[1], lo_[2]) == cw)
+    {
+        // Reverse point orders so it's counterclockwise, needed for vectors to
+        // point outward
+        std::reverse(lo_.begin(), lo_.end());
+        std::reverse(hi_.begin(), hi_.end());
+    }
+
+    // TODO: Temporarily ensure that all side faces are planar
+    for (auto i : range(lo_.size()))
+    {
+        auto j = (i + 1) % lo_.size();
+        Real3 const a{lo_[i][0], lo_[i][1], -hz_};
+        Real3 const b{lo_[j][0], lo_[j][1], -hz_};
+        Real3 const c{hi_[j][0], hi_[j][1], hz_};
+        Real3 const d{hi_[i][0], hi_[i][1], hz_};
+
+        // *Temporarily* throws if a side face is not planar
+        if (!detail::is_planar(a, b, c, d))
+        {
+            CELER_NOT_IMPLEMENTED("non-planar side faces");
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//

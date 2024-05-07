@@ -231,9 +231,6 @@ class GenTrap final : public ConvexRegionInterface
     };
 
   public:
-    // Construct from half Z height and 4 vertices for top and bottom planes
-    GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi);
-
     // Helper function to construct a Trd shape from hz and two rectangles,
     // one for each z-face
     static GenTrap from_trd(real_type halfz, Real2 const& lo, Real2 const& hi);
@@ -245,6 +242,9 @@ class GenTrap final : public ConvexRegionInterface
                              Turn const& phi,
                              TrapFace const& lo,
                              TrapFace const& hi);
+
+    // Construct from half Z height and 4 vertices for top and bottom planes
+    GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi);
 
     // Build surfaces
     void build(ConvexSurfaceBuilder&) const final;
