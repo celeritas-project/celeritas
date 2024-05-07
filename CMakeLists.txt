@@ -61,6 +61,13 @@ option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" OFF)
 # Assertion handling
 option(CELERITAS_DEBUG "Enable runtime assertions" OFF)
 
+# Feature toggles
+option(CELERITAS_ENABLE_CPU_TRACK_PARALLELISM "Enable track-level parallelism on CPU using OpenMP" ON)
+
+if(NOT CELERITAS_USE_OpenMP AND CELERITAS_ENABLE_CPU_TRACK_PARALLELISM)
+  message(WARNING "CELERITAS_ENABLE_CPU_TRACK_PARALLELISM has no effect with OpenMP disabled")
+endif()
+
 # Secondary testing options (only applies to CTest)
 if(NOT CELERITAS_DEBUG OR CELERITAS_USE_VecGeom)
   set(_default_lock ON)

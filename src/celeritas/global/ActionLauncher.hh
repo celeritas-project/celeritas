@@ -34,8 +34,10 @@ void launch_action(ExplicitActionInterface const& action,
                    F&& execute_thread)
 {
     MultiExceptionHandler capture_exception;
+#if CELERITAS_ENABLE_CPU_TRACK_PARALLELISM
 #ifdef _OPENMP
 #    pragma omp parallel for
+#endif
 #endif
     for (size_type i = 0; i < num_threads; ++i)
     {
