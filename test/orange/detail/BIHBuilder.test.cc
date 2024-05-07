@@ -440,7 +440,7 @@ TEST_F(BIHBuilderTest, multiple_infinite_volumes)
               storage_.local_volume_ids[bih_tree.inf_volids[1]]);
 }
 
-TEST_F(BIHBuilderTest, semi_finite_volumes)
+TEST_F(BIHBuilderTest, TEST_IF_CELERITAS_DEBUG(semi_finite_volumes))
 {
     constexpr auto inff = std::numeric_limits<fast_real_type>::infinity();
     bboxes_.push_back(FastBBox{{0, 0, -inff}, {1, 1, inff}});
@@ -451,11 +451,7 @@ TEST_F(BIHBuilderTest, semi_finite_volumes)
     bboxes_.push_back(FastBBox{{-inff, 0, 0}, {inff, 1, 1}});
 
     BIHBuilder build(&storage_);
-    auto bih_tree = build(std::move(bboxes_));
-
-    EXPECT_EQ(0, bih_tree.inner_nodes.size());
-    EXPECT_EQ(1, bih_tree.leaf_nodes.size());
-    EXPECT_EQ(2, bih_tree.inf_volids.size());
+    EXPECT_THROW(build(std::move(bboxes_)), DebugError);
 }
 
 //---------------------------------------------------------------------------//
