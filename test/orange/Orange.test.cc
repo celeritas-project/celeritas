@@ -1429,7 +1429,9 @@ TEST_F(InputBuilderTest, incomplete_bb)
     if (CELERITAS_USE_JSON)
     {
         OrangeParamsOutput out(this->geometry());
-        EXPECT_JSON_EQ(R"json({})json", to_string(out));
+        EXPECT_JSON_EQ(
+            R"json({"_category":"internal","_label":"orange","scalars":{"max_depth":2,"max_faces":6,"max_intersections":6,"max_logic_depth":2,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":6,"inner_nodes":1,"leaf_nodes":3,"local_volume_ids":6},"connectivity_records":8,"daughters":1,"local_surface_ids":10,"local_volume_ids":4,"logic_ints":38,"real_ids":8,"reals":26,"rect_arrays":0,"simple_units":2,"surface_types":8,"transforms":1,"universe_indices":2,"universe_types":2,"volume_records":6}})json",
+            to_string(out));
     }
 }
 

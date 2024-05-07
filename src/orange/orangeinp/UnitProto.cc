@@ -13,6 +13,7 @@
 #include "corecel/io/Logger.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeInput.hh"
+#include "orange/transform/VariantTransform.hh"
 
 #include "CsgObject.hh"
 #include "CsgTree.hh"
@@ -96,11 +97,12 @@ auto UnitProto::daughters() const -> VecProto
  */
 void UnitProto::build(InputBuilder& input) const
 {
+    // Bounding box should be finite if and only if this is the global universe
+    CELER_EXPECT((input.next_id() == orange_global_universe)
+                 == !input.bbox(input.next_id()));
+
     // Build CSG unit
-    auto csg_unit = this->build(input.tol(),
-                                input.next_id() == orange_global_universe
-                                    ? ExteriorBoundary::is_global
-                                    : ExteriorBoundary::is_daughter);
+    auto csg_unit = this->build(input.tol(), input.bbox(input.next_id()));
     CELER_ASSERT(csg_unit);
 
     // Get the list of all surfaces actually used
@@ -122,6 +124,7 @@ void UnitProto::build(InputBuilder& input) const
         {
             result.bbox = bz.interior;
         }
+        CELER_ENSURE(is_finite(result.bbox));
     }
 
     // Save surfaces
@@ -230,6 +233,7 @@ void UnitProto::build(InputBuilder& input) const
     vol_iter->label = {"[EXTERIOR]", input_.label};
     ++vol_iter;
 
+    BoundingBoxBumper<real_type> bump_bbox{input.tol()};
     for (auto const& d : input_.daughters)
     {
         LocalVolumeId const vol_id{
@@ -255,6 +259,13 @@ void UnitProto::build(InputBuilder& input) const
         auto transform_id = fill->transform_id;
         CELER_ASSERT(transform_id < csg_unit.transforms.size());
         iter->second.transform = csg_unit.transforms[transform_id.get()];
+
+        // Update bounding box of the daughter universe by inverting the
+        // daughter-to-parent reference transform and applying it to the
+        // parent-reference-frame bbox
+        auto local_bbox = apply_transform(calc_inverse(iter->second.transform),
+                                          result.volumes[vol_id.get()].bbox);
+        input.expand_bbox(iter->second.universe_id, bump_bbox(local_bbox));
     }
 
     // Save attributes from materials
@@ -292,17 +303,19 @@ void UnitProto::build(InputBuilder& input) const
  * to be deleted (assumed inside, implicit from the parent universe's boundary)
  * or preserved.
  */
-auto UnitProto::build(Tol const& tol, ExteriorBoundary ext) const -> Unit
+auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
 {
     CELER_EXPECT(tol);
+    CELER_EXPECT(!bbox || is_finite(bbox));
 
-    CELER_LOG(debug) << "Building " << this->label() << ": "
-                     << input_.daughters.size() << " daughters and "
+    bool const is_global_universe = !static_cast<bool>(bbox);
+    CELER_LOG(debug) << "Building '" << this->label() << "' inside " << bbox
+                     << ": " << input_.daughters.size() << " daughters and "
                      << input_.materials.size() << " materials...";
 
     detail::CsgUnit result;
     detail::CsgUnitBuilder unit_builder(
-        &result, tol, BBox::from_infinite());
+        &result, tol, is_global_universe ? BBox::from_infinite() : bbox);
 
     auto build_volume = [ub = &unit_builder](ObjectInterface const& obj) {
         detail::VolumeBuilder vb{ub};
@@ -344,11 +357,12 @@ auto UnitProto::build(Tol const& tol, ExteriorBoundary ext) const -> Unit
     // Build background fill (optional)
     result.background = input_.background.fill;
 
-    if (ext == ExteriorBoundary::is_daughter)
+    if (!is_global_universe)
     {
         // Replace "exterior" with "False" (i.e. interior with true)
         NodeId ext_node = result.volumes[ext_vol.unchecked_get()];
         auto min_node = replace_down(&result.tree, ext_node, False{});
+
         // Simplify recursively
         simplify(&result.tree, min_node);
     }

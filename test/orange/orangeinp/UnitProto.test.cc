@@ -19,7 +19,6 @@
 #include "orange/orangeinp/Shape.hh"
 #include "orange/orangeinp/Transformed.hh"
 #include "orange/orangeinp/detail/CsgUnit.hh"
-#include "orange/orangeinp/detail/InputBuilder.hh"
 
 #include "CsgTestUtils.hh"
 #include "celeritas_test.hh"
@@ -35,8 +34,6 @@ namespace test
 //---------------------------------------------------------------------------//
 using SPConstObject = std::shared_ptr<ObjectInterface const>;
 using SPConstProto = std::shared_ptr<ProtoInterface const>;
-inline constexpr auto is_global = UnitProto::ExteriorBoundary::is_global;
-inline constexpr auto is_daughter = UnitProto::ExteriorBoundary::is_daughter;
 
 //---------------------------------------------------------------------------//
 // Construction helper functions
@@ -143,7 +140,7 @@ TEST_F(LeafTest, explicit_exterior)
     EXPECT_EQ("", proto_labels(proto.daughters()));
 
     {
-        auto u = proto.build(tol_, is_global);
+        auto u = proto.build(tol_, BBox{});
 
         static char const* const expected_surface_strings[]
             = {"Plane: z=-1", "Plane: z=1", "Cyl z: r=1", "Plane: z=0"};
@@ -174,7 +171,7 @@ TEST_F(LeafTest, explicit_exterior)
         EXPECT_EQ(MaterialId{}, u.background);
     }
     {
-        auto u = proto.build(tol_, is_daughter);
+        auto u = proto.build(tol_, BBox{{-2, -2, -1}, {2, 2, 1}});
         static char const* const expected_volume_strings[] = {"F", "-3", "+3"};
 
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
@@ -193,7 +190,7 @@ TEST_F(LeafTest, implicit_exterior)
     UnitProto const proto{std::move(inp)};
 
     {
-        auto u = proto.build(tol_, is_global);
+        auto u = proto.build(tol_, BBox{});
 
         static char const* const expected_surface_strings[] = {
             "Plane: z=-1",
@@ -213,7 +210,7 @@ TEST_F(LeafTest, implicit_exterior)
         EXPECT_EQ(MaterialId{0}, u.background);
     }
     {
-        auto u = proto.build(tol_, is_daughter);
+        auto u = proto.build(tol_, BBox{{-2, -2, -1}, {2, 2, 1}});
 
         static char const* const expected_volume_strings[]
             = {"F", "all(+3, -4)"};
@@ -259,7 +256,7 @@ TEST_F(MotherTest, explicit_exterior)
     EXPECT_EQ("d1,d2", proto_labels(proto.daughters()));
 
     {
-        auto u = proto.build(tol_, is_global);
+        auto u = proto.build(tol_, BBox{});
 
         static char const* const expected_surface_strings[] = {
             "Sphere: r=10",
@@ -321,7 +318,7 @@ TEST_F(MotherTest, explicit_exterior)
         EXPECT_EQ(MaterialId{}, u.background);
     }
     {
-        auto u = proto.build(tol_, is_daughter);
+        auto u = proto.build(tol_, BBox{{-10, -10, -10}, {10, 10, 10}});
         static char const* const expected_volume_strings[]
             = {"F", "-1", "-2", "-3", "-4", "all(+1, +2, +3, +4)"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
@@ -349,7 +346,7 @@ TEST_F(MotherTest, implicit_exterior)
     EXPECT_EQ("d1,d2", proto_labels(proto.daughters()));
 
     {
-        auto u = proto.build(tol_, is_global);
+        auto u = proto.build(tol_, BBox{});
         static char const* const expected_volume_strings[]
             = {"+0", "-1", "-2", "-3", "-4"};
         static int const expected_volume_nodes[] = {2, 5, 7, 9, 11};
@@ -359,7 +356,7 @@ TEST_F(MotherTest, implicit_exterior)
         EXPECT_EQ(MaterialId{3}, u.background);
     }
     {
-        auto u = proto.build(tol_, is_daughter);
+        auto u = proto.build(tol_, BBox{{-10, -10, -10}, {10, 10, 10}});
         static char const* const expected_volume_strings[]
             = {"F", "-1", "-2", "-3", "-4"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
@@ -384,7 +381,7 @@ TEST_F(MotherTest, fuzziness)
     EXPECT_EQ("d1", proto_labels(proto.daughters()));
 
     {
-        auto u = proto.build(tol_, is_global);
+        auto u = proto.build(tol_, BBox{});
         static char const* const expected_surface_strings[]
             = {"Sphere: r=10", "Sphere: r=1", "Sphere: r=1.0001"};
         static char const* const expected_volume_strings[]
@@ -405,7 +402,7 @@ TEST_F(MotherTest, fuzziness)
     {
         // Simplify with lower tolerance because the user has tried to avoid
         // overlap by adding .0001 to the "similar" shape
-        auto u = proto.build(Tol::from_relative(1e-3), is_global);
+        auto u = proto.build(Tol::from_relative(1e-3), BBox{});
         static char const* const expected_volume_strings[]
             = {"+0", "-1", "all(-0, +1)"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
@@ -416,7 +413,7 @@ TEST_F(MotherTest, fuzziness)
 class InputBuilderTest : public UnitProtoTest
 {
   public:
-    void test(UnitProto const& global)
+    void run_test(UnitProto const& global)
     {
         OrangeInput inp = build_input(tol_, global);
         EXPECT_TRUE(inp);
@@ -474,7 +471,7 @@ TEST_F(InputBuilderTest, globalspheres)
         return inp;
     }()};
 
-    this->test(global);
+    this->run_test(global);
 }
 
 TEST_F(InputBuilderTest, bgspheres)
@@ -492,7 +489,7 @@ TEST_F(InputBuilderTest, bgspheres)
         return inp;
     }()};
 
-    this->test(global);
+    this->run_test(global);
 }
 
 // Equivalent to universes.org.omn
@@ -558,7 +555,7 @@ TEST_F(InputBuilderTest, universes)
         return inp;
     }());
 
-    this->test(*outer);
+    this->run_test(*outer);
 }
 
 TEST_F(InputBuilderTest, hierarchy)
@@ -629,7 +626,7 @@ TEST_F(InputBuilderTest, hierarchy)
         return inp;
     }());
 
-    this->test(*global);
+    this->run_test(*global);
 }
 
 // Equivalent to universes.org.omn
@@ -671,7 +668,7 @@ TEST_F(InputBuilderTest, incomplete_bb)
         return inp;
     }());
 
-    this->test(*outer);
+    this->run_test(*outer);
 }
 
 //---------------------------------------------------------------------------//
