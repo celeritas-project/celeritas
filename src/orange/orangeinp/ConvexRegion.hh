@@ -237,8 +237,8 @@ class GenTrap final : public ConvexRegionInterface
     // Helper function to construct a general trap from its half-height and
     // the two trapezoids defining its lower and upper faces
     static GenTrap from_trap(real_type hz,
-                             real_type tan_theta,
-                             Turn const& phi,
+                             Turn theta,
+                             Turn phi,
                              TrapFace const& lo,
                              TrapFace const& hi);
 

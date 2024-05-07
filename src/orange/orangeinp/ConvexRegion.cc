@@ -343,20 +343,24 @@ GenTrap GenTrap::from_trd(real_type halfz, Real2 const& lo, Real2 const& hi)
  * See
  * https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/Detector/Geometry/geomSolids.html#constructed-solid-geometry-csg-solids
  * for details on construction.
+ *
+ * \arg hz Half the distance between the faces
+ * \arg theta Polar angle of line between center of bases
+ * \arg phi Azimuthal angle of line between center of bases
+ * \arg lo Trapezoidal face at -hz
+ * \arg lo Trapezoidal face at +hz
  */
-GenTrap GenTrap::from_trap(real_type hz,
-                           real_type tan_theta,
-                           Turn const& phi,
-                           TrapFace const& lo,
-                           TrapFace const& hi)
+GenTrap GenTrap::from_trap(
+    real_type hz, Turn theta, Turn phi, TrapFace const& lo, TrapFace const& hi)
 {
     CELER_VALIDATE(hz > 0, << "nonpositive half-height: " << hz);
+    CELER_VALIDATE(theta >= zero_quantity() && theta < Turn{0.25},
+                   << "invalid angle " << theta.value()
+                   << " [turns]: must be in the range [0, 0.25)");
 
-    CELER_VALIDATE(tan_theta >= 0, << "negative tan(theta): " << tan_theta);
-
-    CELER_VALIDATE(phi >= zero_quantity() && phi < Turn{0.5},
+    CELER_VALIDATE(phi >= zero_quantity() && phi < Turn{1.},
                    << "invalid angle " << phi.value()
-                   << " [turns]: must be in the range [0, 0.5)");
+                   << " [turns]: must be in the range [0, 1)");
 
     for (TrapFace const* tf : {&lo, &hi})
     {
@@ -371,6 +375,7 @@ GenTrap GenTrap::from_trap(real_type hz,
     }
     real_type cos_phi{}, sin_phi{};
     sincos(phi, &sin_phi, &cos_phi);
+    real_type const tan_theta = std::tan(native_value_from(theta));
     auto dxdz_hz = tan_theta * cos_phi * hz;
     auto dydz_hz = tan_theta * sin_phi * hz;
 
