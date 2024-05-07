@@ -19,6 +19,13 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Add to a value, returning the original value.
+ *
+ * Note that on CPU, this assumes the atomic add is being done in with \em
+ * track-level parallelism rather than \em event-level because these utilities
+ * are meant for "kernel" code.
+ *
+ * \warning Multiple events must not use this function to simultaneously modify
+ * shared data.
  */
 template<class T>
 CELER_FORCEINLINE_FUNCTION T atomic_add(T* address, T value)
@@ -28,7 +35,7 @@ CELER_FORCEINLINE_FUNCTION T atomic_add(T* address, T value)
 #else
     CELER_EXPECT(address);
     T initial;
-#    if CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
+#    if defined(_OPENMP) && CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
 #        pragma omp atomic capture
 #    endif
     {
@@ -78,7 +85,7 @@ CELER_FORCEINLINE_FUNCTION T atomic_min(T* address, T value)
 #else
     CELER_EXPECT(address);
     T initial;
-#    if CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
+#    if defined(_OPENMP) && CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
 #        pragma omp atomic capture
 #    endif
     {
@@ -101,7 +108,7 @@ CELER_FORCEINLINE_FUNCTION T atomic_max(T* address, T value)
 #else
     CELER_EXPECT(address);
     T initial;
-#    if CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
+#    if defined(_OPENMP) && CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
 #        pragma omp atomic capture
 #    endif
     {
