@@ -10,11 +10,13 @@
 #include "corecel/io/Logger.hh"
 #include "accel/HepMC3PrimaryGenerator.hh"
 #include "accel/LocalTransporter.hh"
+#include "accel/RootPrimaryGenerator.hh"
 
 #include "EventAction.hh"
 #include "GlobalSetup.hh"
 #include "HepMC3PrimaryGeneratorAction.hh"
 #include "PGPrimaryGeneratorAction.hh"
+#include "RootPrimaryGeneratorAction.hh"
 #include "RunAction.hh"
 #include "TrackingAction.hh"
 
@@ -72,15 +74,21 @@ void ActionInitialization::Build() const
 {
     CELER_LOG_LOCAL(status) << "Constructing user action";
 
+    auto const* setup = GlobalSetup::Instance();
+
     // Primary generator emits source particles
-    if (auto hepmc_gen = GlobalSetup::Instance()->hepmc_gen())
+    if (auto hepmc_gen = setup->hepmc_gen())
     {
         this->SetUserAction(new HepMC3PrimaryGeneratorAction(hepmc_gen));
     }
+    else if (auto root_gen = setup->root_gen())
+    {
+        this->SetUserAction(new RootPrimaryGeneratorAction(root_gen));
+    }
     else
     {
-        this->SetUserAction(new PGPrimaryGeneratorAction(
-            GlobalSetup::Instance()->input().primary_options));
+        this->SetUserAction(
+            new PGPrimaryGeneratorAction(setup->input().primary_options));
     }
 
     // Create thread-local transporter to share between actions
@@ -88,12 +96,11 @@ void ActionInitialization::Build() const
 
     // Run action sets up Celeritas (init_shared_ will be true if and only if
     // using a serial run manager)
-    this->SetUserAction(
-        new RunAction{GlobalSetup::Instance()->GetSetupOptions(),
-                      params_,
-                      transport,
-                      diagnostics_,
-                      init_shared_});
+    this->SetUserAction(new RunAction{setup->GetSetupOptions(),
+                                      params_,
+                                      transport,
+                                      diagnostics_,
+                                      init_shared_});
     // Event action saves event ID for offloading and runs queued particles at
     // end of event
     this->SetUserAction(new EventAction{params_, transport, diagnostics_});
