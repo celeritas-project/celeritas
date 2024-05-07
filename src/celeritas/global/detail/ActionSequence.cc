@@ -114,9 +114,11 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
         for (auto i : range(actions_.size()))
         {
             ScopedProfiling profile_this{actions_[i]->label()};
+
+            // TODO: Stopwatch adds a significant overhead with a single track slot
             Stopwatch get_time;
             actions_[i]->execute(params, state);
-            if (M == MemSpace::device)
+            if constexpr (M == MemSpace::device)
             {
                 CELER_DEVICE_CALL_PREFIX(StreamSynchronize(stream));
             }
