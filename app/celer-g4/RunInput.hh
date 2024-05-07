@@ -57,7 +57,10 @@ struct RunInput
 
     // Problem definition
     std::string geometry_file;  //!< Path to GDML file
-    std::string event_file;  //!< Path to HepMC3 or ROOT event record file
+    std::string hepmc3_file;  //!< Path to HepMC3 event record file
+    std::string root_file;  //!< Path to ROOT input file with offloaded data
+    size_type root_num_events{};  //!< Number of events to be sampled
+    size_type root_primaries_per_event{};  //!< Particles to be sampled
 
     // Setup options for generating primaries from a distribution
     PrimaryGeneratorOptions primary_options;

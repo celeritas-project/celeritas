@@ -62,7 +62,10 @@ void from_json(nlohmann::json const& j, RunInput& v)
     check_format(j, "celer-g4");
 
     RI_LOAD_REQUIRED(geometry_file);
-    RI_LOAD_OPTION(event_file);
+    RI_LOAD_OPTION(hepmc3_file);
+    RI_LOAD_OPTION(root_file);
+    RI_LOAD_OPTION(root_num_events);
+    RI_LOAD_OPTION(root_primaries_per_event);
 
     RI_LOAD_OPTION(primary_options);
 
@@ -117,9 +120,10 @@ void from_json(nlohmann::json const& j, RunInput& v)
 #undef RI_LOAD_OPTION
 #undef RI_LOAD_REQUIRED
 
-    CELER_VALIDATE(v.event_file.empty() == static_cast<bool>(v.primary_options),
-                   << "either a HepMC3 filename or options to generate "
-                      "primaries must be provided (but not both)");
+    CELER_VALIDATE(static_cast<bool>(v.primary_options)
+                       != (!v.hepmc3_file.empty() || !v.root_file.empty()),
+                   << "only one of the three options to generate primaries "
+                      "should be provided");
     CELER_VALIDATE(v.physics_list == PhysicsListSelection::geant_physics_list
                        || !j.contains("physics_options"),
                    << "'physics_options' can only be specified for "
@@ -147,9 +151,9 @@ void to_json(nlohmann::json& j, RunInput const& v)
     save_format(j, "celer-g4");
 
     RI_SAVE(geometry_file);
-    RI_SAVE_OPTION(event_file);
+    RI_SAVE_OPTION(hepmc3_file);
 
-    if (v.event_file.empty())
+    if (v.hepmc3_file.empty())
     {
         RI_SAVE(primary_options);
     }

@@ -47,7 +47,8 @@ char const* to_cstring(SensitiveDetectorType value)
  */
 RunInput::operator bool() const
 {
-    return !geometry_file.empty() && (primary_options || !event_file.empty())
+    return !geometry_file.empty()
+           && (primary_options || !hepmc3_file.empty() || !root_file.empty())
            && physics_list < PhysicsListSelection::size_
            && (field == no_field() || field_options)
            && ((num_track_slots > 0 && max_steps > 0

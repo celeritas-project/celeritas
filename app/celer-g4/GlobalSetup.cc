@@ -67,8 +67,25 @@ GlobalSetup::GlobalSetup()
         cmd.SetGuidance("Filename of the GDML detector geometry");
     }
     {
-        auto& cmd = messenger_->DeclareProperty("eventFile", input_.event_file);
-        cmd.SetGuidance("Filename of the event input read by HepMC3 or ROOT");
+        auto& cmd
+            = messenger_->DeclareProperty("hepmc3File", input_.hepmc3_file);
+        cmd.SetGuidance("Filename of the event input read by HepMC3");
+    }
+    {
+        auto& cmd = messenger_->DeclareProperty("rootPrimariesFile",
+                                                input_.root_file);
+        cmd.SetGuidance("Filename of the ROOT input with primary data");
+    }
+    {
+        auto& cmd = messenger_->DeclareProperty("rootNumEvents",
+                                                input_.root_num_events);
+        cmd.SetGuidance("Number of events to be sampled from the ROOT file");
+    }
+    {
+        auto& cmd = messenger_->DeclareProperty(
+            "rootNumPrimariesPerEvent", input_.root_primaries_per_event);
+        cmd.SetGuidance(
+            "Number of primaries per event to be sampled from the ROOT file");
     }
     {
         auto& cmd = messenger_->DeclareProperty("stepDiagnostic",
@@ -146,45 +163,37 @@ void GlobalSetup::ReadInput(std::string const& filename)
         // Apply Celeritas \c SetupOptions commands
         options_->max_num_tracks = input_.num_track_slots;
         options_->max_num_events = [this] {
-            CELER_VALIDATE(input_.primary_options || !input_.event_file.empty(),
+            CELER_VALIDATE(input_.primary_options || !input_.hepmc3_file.empty()
+                               || !input_.root_file.empty(),
                            << "no event input file nor primary options were "
                               "specified");
-
-            if (!input_.event_file.empty())
+            size_type num_events{0};
+            if (!input_.hepmc3_file.empty())
             {
-                size_type num_events{0};
-                if (ends_with(input_.event_file, ".root"))
-                {
-                    CELER_VALIDATE(CELERITAS_USE_ROOT,
-                                   << "ROOT must be enabled to use '"
-                                   << input_.event_file << "' as input");
-
-                    root_gen_ = std::make_shared<RootPrimaryGenerator>(
-                        input_.event_file,
-                        input_.primary_options.num_events,
-                        input_.primary_options.primaries_per_event);
-                    num_events = root_gen_->NumEvents();
-                }
-                else if (ends_with(input_.event_file, ".hepmc3"))
-                {
-                    hepmc_gen_ = std::make_shared<HepMC3PrimaryGenerator>(
-                        input_.event_file);
-                    num_events = hepmc_gen_->NumEvents();
-                }
-                else
-                {
-                    CELER_VALIDATE(false,
-                                   << "'" << input_.event_file
-                                   << "' must be a HepMC3 or ROOT file");
-                }
-                CELER_VALIDATE(num_events > 0,
-                               << "Event input file has zero events");
-                return num_events;
+                hepmc_gen_ = std::make_shared<HepMC3PrimaryGenerator>(
+                    input_.hepmc3_file);
+                num_events = hepmc_gen_->NumEvents();
+            }
+            else if (!input_.root_file.empty())
+            {
+#if CELERITAS_USE_ROOT
+                root_gen_ = std::make_shared<RootPrimaryGenerator>(
+                    input_.root_file,
+                    input_.root_num_events,
+                    input_.root_primaries_per_event);
+                num_events = root_gen_->NumEvents();
+#else
+                CELER_NOT_CONFIGURED("ROOT");
+#endif
             }
             else
             {
                 return input_.primary_options.num_events;
             }
+
+            CELER_VALIDATE(num_events > 0,
+                           << "Event input file has zero events");
+            return num_events;
         }();
         options_->max_steps = input_.max_steps;
         options_->initializer_capacity = input_.initializer_capacity;
