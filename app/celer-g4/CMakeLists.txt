@@ -35,6 +35,7 @@ if(CELERITAS_USE_Geant4)
   if(CELERITAS_USE_ROOT)
     list(APPEND SOURCES
       RootIO.cc
+      RootPrimaryGeneratorAction.cc
     )
     list(APPEND LIBRARIES ROOT::Tree)
   endif()

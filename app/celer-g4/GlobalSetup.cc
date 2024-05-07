@@ -20,6 +20,7 @@
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "accel/ExceptionConverter.hh"
 #include "accel/HepMC3PrimaryGenerator.hh"
+#include "accel/RootPrimaryGenerator.hh"
 #include "accel/SetupOptionsMessenger.hh"
 
 #include "HepMC3PrimaryGeneratorAction.hh"
@@ -67,7 +68,7 @@ GlobalSetup::GlobalSetup()
     }
     {
         auto& cmd = messenger_->DeclareProperty("eventFile", input_.event_file);
-        cmd.SetGuidance("Filename of the event input read by HepMC3");
+        cmd.SetGuidance("Filename of the event input read by HepMC3 or ROOT");
     }
     {
         auto& cmd = messenger_->DeclareProperty("stepDiagnostic",
@@ -148,11 +149,37 @@ void GlobalSetup::ReadInput(std::string const& filename)
             CELER_VALIDATE(input_.primary_options || !input_.event_file.empty(),
                            << "no event input file nor primary options were "
                               "specified");
+
             if (!input_.event_file.empty())
             {
-                hepmc_gen_ = std::make_shared<HepMC3PrimaryGenerator>(
-                    input_.event_file);
-                return static_cast<size_type>(hepmc_gen_->NumEvents());
+                size_type num_events{0};
+                if (ends_with(input_.event_file, ".root"))
+                {
+                    CELER_VALIDATE(CELERITAS_USE_ROOT,
+                                   << "ROOT must be enabled to use '"
+                                   << input_.event_file << "' as input");
+
+                    root_gen_ = std::make_shared<RootPrimaryGenerator>(
+                        input_.event_file,
+                        input_.primary_options.num_events,
+                        input_.primary_options.primaries_per_event);
+                    num_events = root_gen_->NumEvents();
+                }
+                else if (ends_with(input_.event_file, ".hepmc3"))
+                {
+                    hepmc_gen_ = std::make_shared<HepMC3PrimaryGenerator>(
+                        input_.event_file);
+                    num_events = hepmc_gen_->NumEvents();
+                }
+                else
+                {
+                    CELER_VALIDATE(false,
+                                   << "'" << input_.event_file
+                                   << "' must be a HepMC3 or ROOT file");
+                }
+                CELER_VALIDATE(num_events > 0,
+                               << "Event input file has zero events");
+                return num_events;
             }
             else
             {

@@ -24,6 +24,7 @@ class G4GenericMessenger;
 namespace celeritas
 {
 class HepMC3PrimaryGenerator;
+class RootPrimaryGenerator;
 namespace app
 {
 //---------------------------------------------------------------------------//
@@ -35,7 +36,8 @@ class GlobalSetup
   public:
     //!@{
     //! \name Type aliases
-    using SPPrimaryGenerator = std::shared_ptr<HepMC3PrimaryGenerator>;
+    using SPHepMCPrimaryGenerator = std::shared_ptr<HepMC3PrimaryGenerator>;
+    using SPRootPrimaryGenerator = std::shared_ptr<RootPrimaryGenerator>;
     //!@}
 
   public:
@@ -99,7 +101,10 @@ class GlobalSetup
     bool root_sd_io() const { return root_sd_io_; }
 
     //! Get HepMC3 primary generator
-    SPPrimaryGenerator hepmc_gen() const { return hepmc_gen_; }
+    SPHepMCPrimaryGenerator hepmc_gen() const { return hepmc_gen_; }
+
+    //! Get ROOT primary generator
+    SPRootPrimaryGenerator root_gen() const { return root_gen_; }
 
   private:
     // Private constructor since we're a singleton
@@ -108,7 +113,8 @@ class GlobalSetup
 
     // Data
     std::shared_ptr<SetupOptions> options_;
-    std::shared_ptr<HepMC3PrimaryGenerator> hepmc_gen_;
+    SPHepMCPrimaryGenerator hepmc_gen_;
+    SPRootPrimaryGenerator root_gen_;
     RunInput input_;
     Stopwatch get_setup_time_;
     bool root_sd_io_{false};

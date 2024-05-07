@@ -45,6 +45,11 @@ if(CELERITAS_USE_HepMC3)
   list(APPEND SOURCES HepMC3PrimaryGenerator.cc)
 endif()
 
+if(CELERITAS_USE_ROOT)
+  list(APPEND PRIVATE_DEPS ROOT::Tree)
+  list(APPEND SOURCES RootPrimaryGenerator.cc)
+endif()
+
 if(CELERITAS_USE_OpenMP)
   list(APPEND PRIVATE_DEPS OpenMP::OpenMP_CXX)
 endif()

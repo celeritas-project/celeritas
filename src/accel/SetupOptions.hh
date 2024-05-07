@@ -110,7 +110,7 @@ struct SetupOptions
     std::string output_file;
     //! Filename for ROOT dump of physics data
     std::string physics_output_file;
-    //! Filename to dump a HepMC3 copy of offloaded tracks as events
+    //! Filename to dump a HepMC3 or ROOT copy of offloaded tracks as events
     std::string offload_output_file;
     //!@}
 
