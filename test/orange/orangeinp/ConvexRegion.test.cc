@@ -662,12 +662,14 @@ TEST_F(GenTrapTest, trap_thetaphi)
 
 TEST_F(GenTrapTest, trap_g4)
 {
-    auto result
-        = this->test(GenTrap::from_trap(4,
-                                        Turn{0.013888888888889},
-                                        Turn{0.027777777777778},
-                                        {2, 1, 1, 0.26794919243112},
-                                        {3, 1.5, 1.5, 0.26794919243112}));
+    constexpr Turn degree{real_type{1} / 360};
+    real_type tan_alpha = std::tan(15 * native_value_from(degree));
+
+    auto result = this->test(GenTrap::from_trap(4,
+                                                5 * degree,
+                                                10 * degree,
+                                                {2, 1, 1, tan_alpha},
+                                                {3, 1.5, 1.5, tan_alpha}));
     static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
     static char const* const expected_surfaces[]
         = {"Plane: z=-4",
