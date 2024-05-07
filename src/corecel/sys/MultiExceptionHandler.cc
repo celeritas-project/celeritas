@@ -106,7 +106,7 @@ MultiExceptionHandler::~MultiExceptionHandler()
  */
 void MultiExceptionHandler::operator()(std::exception_ptr p)
 {
-#ifdef _OPENMP
+#if CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
 #    pragma omp critical(MultiExceptionHandler)
 #endif
     {
