@@ -67,7 +67,7 @@ else:
 
 inp = {
     "geometry_file": model_file,
-    "event_file": events_file,
+    "hepmc3_file": events_file,
     "output_file": out_file,
     "offload_output_file": offload_file,
     "num_track_slots": max_tracks,
@@ -145,4 +145,3 @@ if not use_celeritas:
         json.dump(j, f, indent=1)
 
 pprint(j["result"])
-
