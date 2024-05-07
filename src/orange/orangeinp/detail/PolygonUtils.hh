@@ -122,8 +122,8 @@ is_planar(Real3 const& a, Real3 const& b, Real3 const& c, Real3 const& d)
     auto norm = make_unit_vector(cross_product(b - a, c - a));
     auto val = dot_product(norm, d - a);
 
-    // FIXME: SoftEqual and SoftZero should have rel = abs
-    return SoftZero{SoftEqual<>{}.rel()}(val);
+    return SoftZero{
+        ::celeritas::detail::SoftEqualTraits<real_type>::sqrt_prec()}(val);
 }
 
 //---------------------------------------------------------------------------//
