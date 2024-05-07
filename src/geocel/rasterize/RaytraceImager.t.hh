@@ -137,7 +137,7 @@ void RaytraceImager<G>::launch_raytrace_kernel(
     size_type const num_threads = geo_states.size();
 
     MultiExceptionHandler capture_exception;
-#ifdef _OPENMP
+#if CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
 #    pragma omp parallel for
 #endif
     for (size_type i = 0; i < num_threads; ++i)
