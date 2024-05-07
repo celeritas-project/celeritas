@@ -73,11 +73,12 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
         << params.Params()->max_streams() << ")");
 
     // Check that OpenMP and Geant4 threading models don't collide
-    if (CELERITAS_USE_OPENMP && !celeritas::device()
+    if (CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK && !celeritas::device()
         && G4Threading::IsMultithreadedApplication())
     {
         auto msg = CELER_LOG_LOCAL(warning);
-        msg << "Using multithreaded Geant4 with Celeritas OpenMP";
+        msg << "Using multithreaded Geant4 with Celeritas track-level OpenMP "
+               "parallelism";
         if (std::string const& nt_str = celeritas::getenv("OMP_NUM_THREADS");
             !nt_str.empty())
         {
