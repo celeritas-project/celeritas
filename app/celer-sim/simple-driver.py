@@ -146,7 +146,7 @@ run_output =j['result']['runner']
 time = run_output['time'].copy()
 steps = time.pop('steps')
 if use_device:
-    assert(len(steps) == run_output.num_steps[0])
+    assert(len(steps) == run_output['num_step_iterations'][0])
 else:
     # Step times disabled on CPU from input
     assert(steps is None)
