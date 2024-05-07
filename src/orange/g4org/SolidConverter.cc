@@ -609,46 +609,40 @@ auto SolidConverter::trap(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Trap const&>(solid_base);
 
-    real_type sin_phi{}, cos_phi{}, tan_theta{};
+    real_type tan_theta{};
+    Turn phi{};
 #if G4VERSION_NUMBER < 1100
     // Geant4 10.7 and earlier - axis = (sinth.cosphi, sinth.sinphi, costh)
     // Note: both sinth,costh >= 0 since theta is in [0, pi/2] for a G4Trap
     auto axis = solid.GetSymAxis();
-    auto sin_theta = std::sqrt(real_type(1.0) - axis.z() * axis.z());
+    auto sin_theta = std::max(0.0, std::sqrt(1.0 - ipow<2>(axis.z())));
     tan_theta = SoftZero<double>{1.e-8}(axis.z())
                     ? sin_theta / axis.z()
                     : numeric_limits<real_type>::infinity();
-    cos_phi = sin_theta > 0 ? axis.x() / sin_theta : 1.0;
-    sin_phi = sin_theta > 0 ? axis.y() / sin_theta : 1.0;
+    real_type cos_phi = sin_theta > 0 ? axis.x() / sin_theta : 1.0;
+    real_type sin_phi = sin_theta > 0 ? axis.y() / sin_theta : 1.0;
+    phi = native_value_to<Turn>(std::atan2(sin_phi, cos_phi));
 #else
     // Geant4 11 and later
-    sincos(solid.GetPhi(), &sin_phi, &cos_phi);
     tan_theta = std::tan(solid.GetTheta());
+    phi = native_value_to<Turn>(solid.GetPhi());
 #endif
 
     auto hz = scale_(solid.GetZHalfLength());
     auto hy1 = scale_(solid.GetYHalfLength1());
-    auto hy2 = scale_(solid.GetYHalfLength2());
     auto hx1 = scale_(solid.GetXHalfLength1());
     auto hx2 = scale_(solid.GetXHalfLength2());
+    auto hy2 = scale_(solid.GetYHalfLength2());
     auto hx3 = scale_(solid.GetXHalfLength3());
     auto hx4 = scale_(solid.GetXHalfLength4());
-    auto dxdz_hz = tan_theta * cos_phi * hz;
-    auto dydz_hz = tan_theta * sin_phi * hz;
-    auto dxdy_hy1 = solid.GetTanAlpha1() * hy1;
-    auto dxdy_hy2 = solid.GetTanAlpha2() * hy2;
 
-    std::vector<GenTrap::Real2> lower(4), upper(4);
-    lower[0] = GenTrap::Real2{-dxdz_hz - dxdy_hy1 - hx1, -dydz_hz - hy1};
-    lower[1] = GenTrap::Real2{-dxdz_hz - dxdy_hy1 + hx1, -dydz_hz - hy1};
-    lower[2] = GenTrap::Real2{-dxdz_hz + dxdy_hy1 + hx2, -dydz_hz + hy1};
-    lower[3] = GenTrap::Real2{-dxdz_hz + dxdy_hy1 - hx2, -dydz_hz + hy1};
-    upper[0] = GenTrap::Real2{+dxdz_hz - dxdy_hy2 - hx3, +dydz_hz - hy2};
-    upper[1] = GenTrap::Real2{+dxdz_hz - dxdy_hy2 + hx3, +dydz_hz - hy2};
-    upper[2] = GenTrap::Real2{+dxdz_hz + dxdy_hy2 + hx4, +dydz_hz + hy2};
-    upper[3] = GenTrap::Real2{+dxdz_hz + dxdy_hy2 - hx4, +dydz_hz + hy2};
-
-    return make_shape<GenTrap>(solid, hz, lower, upper);
+    return make_shape<GenTrap>(
+        solid,
+        GenTrap::from_trap(hz,
+                           tan_theta,
+                           phi,
+                           {hy1, hx1, hx2, solid.GetTanAlpha1()},
+                           {hy2, hx3, hx4, solid.GetTanAlpha2()}));
 }
 
 //---------------------------------------------------------------------------//
@@ -656,8 +650,15 @@ auto SolidConverter::trap(arg_type solid_base) -> result_type
 auto SolidConverter::trd(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Trd const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("trd");
+
+    auto hz = scale_(solid.GetZHalfLength());
+    auto hy1 = scale_(solid.GetYHalfLength1());
+    auto hy2 = scale_(solid.GetYHalfLength2());
+    auto hx1 = scale_(solid.GetXHalfLength1());
+    auto hx2 = scale_(solid.GetXHalfLength2());
+
+    return make_shape<GenTrap>(solid,
+                               GenTrap::from_trd(hz, {hx1, hy1}, {hx2, hy2}));
 }
 
 //---------------------------------------------------------------------------//
