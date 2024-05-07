@@ -125,7 +125,7 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
         CELER_LOG(status) << "Transporting " << run_stream.num_events()
                           << " on " << num_streams << " threads";
         MultiExceptionHandler capture_exception;
-#ifdef _OPENMP
+#if CELERITAS_OPENMP == CELERITAS_OPENMP_EVENT
 #    pragma omp parallel for
 #endif
         for (size_type event = 0; event < run_stream.num_events(); ++event)

@@ -28,7 +28,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{env.CCACHE_DIR}}
-          key: ccache-ultralite-${{github.run_id}}
+          key: ccache-ultralite-ubuntu-${{github.run_id}}
           restore-keys: |
             ccache-ultralite
       - name: Zero ccache stats
@@ -80,7 +80,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{env.CCACHE_DIR}}
-          key: ccache-ultralite-${{github.run_id}}
+          key: ccache-ultralite-windows-${{github.run_id}}
           restore-keys: |
             ccache-ultralite
       - name: Zero ccache stats
