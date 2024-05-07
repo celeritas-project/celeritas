@@ -331,6 +331,19 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
     auto ext_vol
         = build_volume(NegatedObject("[EXTERIOR]", input_.boundary.interior));
     CELER_ASSERT(ext_vol == orange_exterior_volume);
+    if (is_global_universe)
+    {
+        detail::VolumeBuilder vb{&unit_builder};
+        auto interior_node = input_.boundary.interior->build(vb);
+        auto region_iter = result.regions.find(interior_node);
+        CELER_ASSERT(region_iter != result.regions.end());
+        auto const& bz = region_iter->second.bounds;
+        CELER_VALIDATE(!bz.negated && is_finite(bz.exterior),
+                       << "global boundary must be finite: cannot determine "
+                          "extents of interior '"
+                       << input_.boundary.interior->label() << "' in '"
+                       << this->label() << '\'');
+    }
 
     // Build daughters
     UniverseId daughter_id{0};

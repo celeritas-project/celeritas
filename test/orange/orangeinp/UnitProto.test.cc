@@ -124,6 +124,25 @@ class UnitProtoTest : public ::celeritas::test::Test
 //---------------------------------------------------------------------------//
 using LeafTest = UnitProtoTest;
 
+TEST_F(LeafTest, errors)
+{
+    EXPECT_THROW(UnitProto(UnitProto::Input{}), RuntimeError);
+
+    {
+        SCOPED_TRACE("infinite global box");
+        UnitProto::Input inp;
+        inp.label = "leaf";
+        inp.boundary.interior = std::make_shared<NegatedObject>(
+            "bad-interior", make_cyl("bound", 1.0, 1.0));
+        inp.boundary.zorder = ZOrder::media;
+        inp.materials.push_back(
+            make_material(SPConstObject(inp.boundary.interior), 1));
+        UnitProto const proto{std::move(inp)};
+
+        EXPECT_THROW(proto.build(tol_, BBox{}), RuntimeError);
+    }
+}
+
 // All space is explicitly accounted for
 TEST_F(LeafTest, explicit_exterior)
 {
