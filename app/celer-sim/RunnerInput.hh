@@ -34,6 +34,8 @@ namespace app
 //---------------------------------------------------------------------------//
 /*!
  * Input for a single run.
+ *
+ * TODO for v1.0: unify these names
  */
 struct RunnerInput
 {
