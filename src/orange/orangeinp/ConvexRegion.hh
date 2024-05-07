@@ -206,10 +206,6 @@ class Ellipsoid final : public ConvexRegionInterface
  *
  * TODO: Add proper treatment for degenerate cases.
  * TODO: support twisted faces.
- *
- * See
- * https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/Detector/Geometry/geomSolids.html#constructed-solid-geometry-csg-solids
- * for details on construction.
  */
 class GenTrap final : public ConvexRegionInterface
 {

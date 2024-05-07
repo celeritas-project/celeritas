@@ -317,8 +317,7 @@ void Ellipsoid::output(JsonPimpl* j) const
 // GENTRAP
 //---------------------------------------------------------------------------//
 /*!
- * Construct a TRD from 5 half-lengths: one half-height, {hx1,hy1} for a in -z,
- * and {hx2,hy2} in +z
+ * Construct from two simple, centered trapezoids.
  */
 GenTrap GenTrap::from_trd(real_type halfz, Real2 const& lo, Real2 const& hi)
 {
@@ -339,7 +338,11 @@ GenTrap GenTrap::from_trd(real_type halfz, Real2 const& lo, Real2 const& hi)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct from half Z height and 1-4 vertices for top and bottom planes.
+ * Construct from skewed trapezoids.
+ *
+ * See
+ * https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/Detector/Geometry/geomSolids.html#constructed-solid-geometry-csg-solids
+ * for details on construction.
  */
 GenTrap GenTrap::from_trap(real_type hz,
                            real_type tan_theta,
@@ -351,9 +354,9 @@ GenTrap GenTrap::from_trap(real_type hz,
 
     CELER_VALIDATE(tan_theta >= 0, << "negative tan(theta): " << tan_theta);
 
-    CELER_VALIDATE(phi >= zero_quantity() && phi < Turn{1.},
+    CELER_VALIDATE(phi >= zero_quantity() && phi < Turn{0.5},
                    << "invalid angle " << phi.value()
-                   << " [turns]: must be in the range [0, 1)");
+                   << " [turns]: must be in the range [0, 0.5)");
 
     for (TrapFace const* tf : {&lo, &hi})
     {
