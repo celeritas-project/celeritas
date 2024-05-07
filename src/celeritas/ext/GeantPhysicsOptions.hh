@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/Types.hh"
+#include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 
 namespace celeritas
@@ -123,6 +124,8 @@ struct GeantPhysicsOptions
     double msc_safety_factor{0.6};
     //! Lambda limit for MSC models [len]
     double msc_lambda_limit{0.1 * units::centimeter};
+    //! Polar angle limii between single and multiple Coulomb scattering
+    double msc_theta_limit{constants::pi};
     //! Step limit algorithm for MSC models
     MscStepLimitAlgorithm msc_step_algorithm{MscStepLimitAlgorithm::safety};
     //!@}
@@ -160,6 +163,7 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.msc_range_factor == b.msc_range_factor
            && a.msc_safety_factor == b.msc_safety_factor
            && a.msc_lambda_limit == b.msc_lambda_limit
+           && a.msc_theta_limit == b.msc_theta_limit
            && a.msc_step_algorithm == b.msc_step_algorithm
            && a.verbose == b.verbose;
     // clang-format on

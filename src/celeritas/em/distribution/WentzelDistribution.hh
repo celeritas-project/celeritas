@@ -52,14 +52,17 @@ class WentzelDistribution
     //!@}
 
   public:
+    // TODO: update this to work with either SS or MSC: move element data and
+    // nuclear_form_prefactor to separate Mott data params?
     // Construct with state and model data
     inline CELER_FUNCTION
     WentzelDistribution(ParticleTrackView const& particle,
                         MaterialView const& material,
                         IsotopeView const& target,
-                        CoulombScatteringElementData const& element_data,
+                        ElementId el_id,
                         Energy cutoff,
-                        CoulombScatteringRef const& data);
+                        CoulombScatteringData const& data,
+                        NativeCRef<WentzelOKVIData> const& wentzel);
 
     // Sample the polar scattering angle
     template<class Engine>
@@ -68,20 +71,25 @@ class WentzelDistribution
   private:
     //// DATA ////
 
-    // Shared model data
-    CoulombScatteringRef const& data_;
-
     // Incident particle
     ParticleTrackView const& particle_;
 
     // Target isotope
     IsotopeView const& target_;
 
+    // Target element
+    ElementId el_id_;
+
+    // Maximum scattering angle
+    real_type costheta_max_;
+
     // Mott coefficients for the target element
-    CoulombScatteringElementData const& element_data_;
+    NativeCRef<WentzelOKVIData> const& wentzel_;
 
     // Helper for calculating xs ratio and other quantities
     WentzelHelper const helper_;
+
+    //// HELPER FUNCTIONS ////
 
     // Calculates the form factor from the scattered polar angle
     inline CELER_FUNCTION real_type calculate_form_factor(real_type cos_t) const;
@@ -118,20 +126,23 @@ WentzelDistribution::WentzelDistribution(
     ParticleTrackView const& particle,
     MaterialView const& material,
     IsotopeView const& target,
-    CoulombScatteringElementData const& element_data,
+    ElementId el_id,
     Energy cutoff,
-    CoulombScatteringRef const& data)
-    : data_(data)
-    , particle_(particle)
+    CoulombScatteringData const& data,
+    NativeCRef<WentzelOKVIData> const& wentzel)
+    : particle_(particle)
     , target_(target)
-    , element_data_(element_data)
+    , el_id_(el_id)
+    , costheta_max_(data.costheta_max())
+    , wentzel_(wentzel)
     , helper_(particle,
               material,
               target.atomic_number(),
-              data.params,
+              wentzel.params,
               data.ids,
               cutoff)
 {
+    CELER_EXPECT(el_id_ < wentzel_.elem_data.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -141,9 +152,11 @@ WentzelDistribution::WentzelDistribution(
 template<class Engine>
 CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
 {
+    // TODO: costheta min and max for wentzelVI and coulomb
+    // struct CosThetaLimit { min; max; } ?
     real_type cos_theta = 1;
-    if (BernoulliDistribution(
-            helper_.calc_xs_ratio(helper_.costheta_max_nuclear(), -1))(rng))
+    if (BernoulliDistribution(helper_.calc_xs_ratio(
+            helper_.costheta_max_nuclear(), costheta_max_))(rng))
     {
         // Scattered off of electrons
         cos_theta = this->sample_cos_t(helper_.costheta_max_electron(), rng);
@@ -157,7 +170,7 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
         // TODO: Reference?
         real_type mott_coeff
             = 1 + real_type(2e-4) * ipow<2>(target_.atomic_number().get());
-        MottRatioCalculator mott_xsec(element_data_,
+        MottRatioCalculator mott_xsec(wentzel_.elem_data[el_id_],
                                       std::sqrt(particle_.beta_sq()));
         real_type g_rej = mott_xsec(cos_theta)
                           * ipow<2>(this->calculate_form_factor(cos_theta))
@@ -188,7 +201,7 @@ CELER_FUNCTION real_type
 WentzelDistribution::calculate_form_factor(real_type cos_t) const
 {
     real_type mt_sq = this->mom_transfer_sq(cos_t);
-    switch (data_.form_factor_type)
+    switch (wentzel_.params.form_factor_type)
     {
         case NuclearFormFactorType::none:
             return 1;
@@ -250,7 +263,8 @@ CELER_FUNCTION real_type WentzelDistribution::mom_transfer_sq(real_type cos_t) c
  */
 CELER_FUNCTION real_type WentzelDistribution::nuclear_form_prefactor() const
 {
-    return data_.nuclear_form_prefactor[target_.isotope_id()];
+    CELER_EXPECT(target_.isotope_id() < wentzel_.nuclear_form_prefactor.size());
+    return wentzel_.nuclear_form_prefactor[target_.isotope_id()];
 }
 
 //---------------------------------------------------------------------------//

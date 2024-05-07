@@ -40,6 +40,7 @@ class WentzelVIXsCalculator
     WentzelVIXsCalculator(ParticleTrackView const& particle,
                           MaterialView const& material,
                           NativeCRef<WentzelVIMscData> const& data,
+                          NativeCRef<WentzelOKVIData> const& wentzel,
                           Energy cutoff);
 
     // Compute the total cross section for the given angle
@@ -48,7 +49,8 @@ class WentzelVIXsCalculator
   private:
     ParticleTrackView const& particle_;
     MaterialView const& material_;
-    NativeCRef<WentzelVIMscData> const& data_;
+    CoulombIds const& ids_;
+    CoulombParameters const& params_;
     Energy cutoff_;
 };
 
@@ -63,8 +65,13 @@ WentzelVIXsCalculator::WentzelVIXsCalculator(
     ParticleTrackView const& particle,
     MaterialView const& material,
     NativeCRef<WentzelVIMscData> const& data,
+    NativeCRef<WentzelOKVIData> const& wentzel,
     Energy cutoff)
-    : particle_(particle), material_(material), data_(data), cutoff_(cutoff)
+    : particle_(particle)
+    , material_(material)
+    , ids_(data.ids)
+    , params_(wentzel.params)
+    , cutoff_(cutoff)
 {
 }
 
@@ -80,8 +87,7 @@ WentzelVIXsCalculator::operator()(real_type cos_theta) const
     for (auto elcomp_id : range(ElementComponentId(material_.num_elements())))
     {
         AtomicNumber z = material_.make_element_view(elcomp_id).atomic_number();
-        WentzelHelper helper(
-            particle_, material_, z, data_.coulomb_params, data_.ids, cutoff_);
+        WentzelHelper helper(particle_, material_, z, params_, ids_, cutoff_);
 
         real_type costheta_max = helper.costheta_max_nuclear();
         if (costheta_max < cos_theta)

@@ -510,7 +510,7 @@ void MaterialParams::append_material_def(MaterialInput const& inp,
     CELER_ENSURE((result.density > 0) == (inp.number_density > 0));
     CELER_ENSURE((result.electron_density > 0) == (inp.number_density > 0));
     CELER_ENSURE(result.rad_length > 0);
-    CELER_ENSURE(result.inv_mass_cbrt_sq > 0);
+    CELER_ENSURE(result.inv_mass_cbrt_sq >= 0);
 }
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -10,6 +10,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/data/Collection.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/em/data/WentzelOKVIData.hh"
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoMaterialData.hh"
 #include "celeritas/mat/MaterialData.hh"
@@ -65,6 +66,7 @@ struct CoreParamsData
     RngParamsData<W, M> rng;
     SimParamsData<W, M> sim;
     TrackInitParamsData<W, M> init;
+    WentzelOKVIData<W, M> wentzel;
 
     CoreScalars scalars;
 
@@ -89,6 +91,7 @@ struct CoreParamsData
         rng = other.rng;
         sim = other.sim;
         init = other.init;
+        wentzel = other.wentzel;
         scalars = other.scalars;
         return *this;
     }

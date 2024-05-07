@@ -9,6 +9,7 @@
 
 #include <unordered_map>
 
+#include "celeritas/Constants.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
 
@@ -52,6 +53,8 @@ struct ImportEmParameters
     double msc_safety_factor{0.6};
     //! MSC lambda limit [length]
     double msc_lambda_limit{1 * units::millimeter};
+    //! Polar angle limii between single and multiple Coulomb scattering
+    double msc_theta_limit{constants::pi};
     //! Kill secondaries below production cut
     bool apply_cuts{false};
     //! Nuclear screening factor for single/multiple Coulomb scattering
@@ -66,6 +69,7 @@ struct ImportEmParameters
                && msc_step_algorithm != MscStepLimitAlgorithm::size_
                && msc_range_factor > 0 && msc_range_factor < 1
                && msc_safety_factor >= 0.1 && msc_lambda_limit > 0
+               && msc_theta_limit >= 0 && msc_theta_limit <= constants::pi
                && screening_factor > 0 && angle_limit_factor > 0;
     }
 };

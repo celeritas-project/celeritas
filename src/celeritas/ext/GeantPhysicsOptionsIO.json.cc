@@ -108,6 +108,7 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
     GPO_LOAD_OPTION(msc_range_factor);
     GPO_LOAD_OPTION(msc_safety_factor);
     GPO_LOAD_OPTION(msc_lambda_limit);
+    GPO_LOAD_OPTION(msc_theta_limit);
     GPO_LOAD_OPTION(msc_step_algorithm);
 
     GPO_LOAD_OPTION(verbose);
@@ -152,6 +153,7 @@ void to_json(nlohmann::json& j, GeantPhysicsOptions const& options)
     GPO_SAVE_OPTION(msc_range_factor);
     GPO_SAVE_OPTION(msc_safety_factor);
     GPO_SAVE_OPTION(msc_lambda_limit);
+    GPO_SAVE_OPTION(msc_theta_limit);
     GPO_SAVE_OPTION(msc_step_algorithm);
 
     GPO_SAVE_OPTION(verbose);

@@ -10,6 +10,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "celeritas/em/data/CoulombScatteringData.hh"
+#include "celeritas/em/data/WentzelOKVIData.hh"
 #include "celeritas/em/interactor/CoulombScatteringInteractor.hh"
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/mat/IsotopeSelector.hh"
@@ -27,7 +28,8 @@ struct CoulombScatteringExecutor
     inline CELER_FUNCTION Interaction
     operator()(celeritas::CoreTrackView const& track);
 
-    CoulombScatteringRef params;
+    CoulombScatteringData params;
+    NativeCRef<WentzelOKVIData> wentzel;
 };
 
 //---------------------------------------------------------------------------//
@@ -56,7 +58,7 @@ CoulombScatteringExecutor::operator()(CoreTrackView const& track)
 
     // Construct the interactor
     CoulombScatteringInteractor interact(
-        params, particle, dir, material, target, element_id, cutoffs);
+        params, wentzel, particle, dir, material, target, element_id, cutoffs);
 
     // Execute the interactor
     return interact(rng);

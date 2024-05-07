@@ -36,18 +36,6 @@ class WentzelVIMscParams final : public ParamsDataInterface<WentzelVIMscData>
     using VecImportMscModel = std::vector<ImportMscModel>;
     //!@}
 
-    struct Options
-    {
-        //! Use combined single and multiple scattering
-        bool is_combined{true};
-        //! Polar angle limit between single and multiple scattering
-        real_type polar_angle_limit{constants::pi};
-        //! Factor for dynamic computation of angular limit between SS and MSC
-        real_type angle_limit_factor{1};
-        //! User defined screening factor
-        real_type screening_factor{1};
-    };
-
   public:
     // Construct if MSC process data is present, else return nullptr
     static std::shared_ptr<WentzelVIMscParams>
@@ -58,8 +46,7 @@ class WentzelVIMscParams final : public ParamsDataInterface<WentzelVIMscData>
     // Construct from process data
     WentzelVIMscParams(ParticleParams const& particles,
                        MaterialParams const& materials,
-                       VecImportMscModel const& mdata,
-                       Options options);
+                       VecImportMscModel const& mdata);
 
     //! Access Wentzel VI data on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }

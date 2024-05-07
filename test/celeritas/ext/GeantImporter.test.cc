@@ -256,7 +256,7 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
         {
             nlohmann::json out = opts;
             EXPECT_JSON_EQ(
-                R"json({"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban_extended","msc_lambda_limit":0.1,"msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","verbose":true})json",
+                R"json({"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban_extended","msc_lambda_limit":0.1,"msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","msc_theta_limit":3.141592653589793,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","verbose":true})json",
                 std::string(out.dump()));
         }
 #endif
@@ -809,6 +809,7 @@ TEST_F(FourSteelSlabsEmStandard, em_parameters)
     EXPECT_DOUBLE_EQ(0.04, em_params.msc_range_factor);
     EXPECT_DOUBLE_EQ(0.6, em_params.msc_safety_factor);
     EXPECT_REAL_EQ(0.1, to_cm(em_params.msc_lambda_limit));
+    EXPECT_EQ(constants::pi, em_params.msc_theta_limit);
     EXPECT_EQ(false, em_params.apply_cuts);
     EXPECT_EQ(1, em_params.screening_factor);
     EXPECT_EQ(1, em_params.angle_limit_factor);

@@ -62,11 +62,12 @@ ProcessBuilder::ProcessBuilder(ImportData const& data,
                                SPConstMaterial material,
                                UserBuildMap user_build,
                                Options options)
-    : data_(data)
-    , input_{std::move(material), std::move(particle), nullptr}
+    : input_{std::move(material), std::move(particle), nullptr}
     , user_build_map_(std::move(user_build))
     , selection_(options.brems_selection)
     , brem_combined_(options.brem_combined)
+    , enable_lpm_(data.em_params.lpm)
+    , use_integral_xs_(data.em_params.integral_approach)
 {
     CELER_EXPECT(input_.material);
     CELER_EXPECT(input_.particle);
@@ -155,7 +156,7 @@ auto ProcessBuilder::operator()(IPC ipc) -> SPProcess
 auto ProcessBuilder::build_eioni() -> SPProcess
 {
     EIonizationProcess::Options options;
-    options.use_integral_xs = data_.em_params.integral_approach;
+    options.use_integral_xs = use_integral_xs_;
 
     return std::make_shared<EIonizationProcess>(
         this->particle(), this->imported(), options);
@@ -167,8 +168,8 @@ auto ProcessBuilder::build_ebrems() -> SPProcess
     BremsstrahlungProcess::Options options;
     options.selection = selection_;
     options.combined_model = brem_combined_;
-    options.enable_lpm = data_.em_params.lpm;
-    options.use_integral_xs = data_.em_params.integral_approach;
+    options.enable_lpm = enable_lpm_;
+    options.use_integral_xs = use_integral_xs_;
 
     if (!read_sb_)
     {
@@ -213,7 +214,7 @@ auto ProcessBuilder::build_compton() -> SPProcess
 auto ProcessBuilder::build_conversion() -> SPProcess
 {
     GammaConversionProcess::Options options;
-    options.enable_lpm = data_.em_params.lpm;
+    options.enable_lpm = enable_lpm_;
 
     return std::make_shared<GammaConversionProcess>(
         this->particle(), this->imported(), options);
@@ -230,7 +231,7 @@ auto ProcessBuilder::build_rayleigh() -> SPProcess
 auto ProcessBuilder::build_annihilation() -> SPProcess
 {
     EPlusAnnihilationProcess::Options options;
-    options.use_integral_xs = data_.em_params.integral_approach;
+    options.use_integral_xs = use_integral_xs_;
 
     return std::make_shared<EPlusAnnihilationProcess>(this->particle(),
                                                       options);
@@ -239,30 +240,11 @@ auto ProcessBuilder::build_annihilation() -> SPProcess
 //---------------------------------------------------------------------------//
 auto ProcessBuilder::build_coulomb() -> SPProcess
 {
-    SPConstParticle const particle = this->particle();
-
-    CoulombScatteringModel::Options options;
-    // Use combined single and multiple Coulomb scattering if both the single
-    // scattering and the Wentzel VI models are present
-    options.is_combined = std::any_of(
-        data_.msc_models.begin(),
-        data_.msc_models.end(),
-        [](ImportMscModel const& m) {
-            return m.model_class == ImportModelClass::wentzel_vi_uni;
-        });
-    auto coulomb = find_models(data_, ImportModelClass::e_coulomb_scattering);
-    CELER_ASSERT(!coulomb.empty());
-    options.polar_angle_limit = coulomb.front()->params.polar_angle_limit;
-    CELER_ASSERT(std::all_of(
-        coulomb.begin(), coulomb.end(), [&options](ImportModel const* m) {
-            return m->params.polar_angle_limit == options.polar_angle_limit;
-        }));
-    options.screening_factor = data_.em_params.screening_factor;
-    options.angle_limit_factor = data_.em_params.angle_limit_factor;
-    options.use_integral_xs = data_.em_params.integral_approach;
+    CoulombScatteringProcess::Options options;
+    options.use_integral_xs = use_integral_xs_;
 
     return std::make_shared<CoulombScatteringProcess>(
-        particle, this->material(), this->imported(), options);
+        this->particle(), this->imported(), options);
 }
 
 //---------------------------------------------------------------------------//

@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "ImportData.hh"
 
+#include <algorithm>
+
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/UnitTypes.hh"
@@ -51,41 +53,33 @@ void convert_to_native(ImportData* data)
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a vector containing all imported models of the given class.
+ * Whether an imported model of the given class is present.
  */
-std::vector<ImportModel const*>
-find_models(ImportData const& data, ImportModelClass model_class)
+bool has_model(ImportData const& data, ImportModelClass model_class)
 {
-    std::vector<ImportModel const*> result;
     for (ImportProcess const& process : data.processes)
     {
         for (ImportModel const& model : process.models)
         {
             if (model.model_class == model_class)
             {
-                result.push_back(&model);
+                return true;
             }
         }
     }
-    return result;
+    return false;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a vector containing all imported MSC models of the given class.
+ * Whether an imported MSC model of the given class is present.
  */
-std::vector<ImportMscModel const*>
-find_msc_models(ImportData const& data, ImportModelClass model_class)
+bool has_msc_model(ImportData const& data, ImportModelClass model_class)
 {
-    std::vector<ImportMscModel const*> result;
-    for (ImportMscModel const& model : data.msc_models)
-    {
-        if (model.model_class == model_class)
-        {
-            result.push_back(&model);
-        }
-    }
-    return result;
+    return std::any_of(
+        data.msc_models.begin(),
+        data.msc_models.end(),
+        [&](ImportMscModel const& m) { return m.model_class == model_class; });
 }
 
 //---------------------------------------------------------------------------//

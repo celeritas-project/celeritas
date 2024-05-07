@@ -919,6 +919,7 @@ ImportEmParameters import_em_parameters()
 #else
     CELER_DISCARD(len_scale);
 #endif
+    import.msc_theta_limit = g4.MscThetaLimit();
     import.apply_cuts = g4.ApplyCuts();
     import.screening_factor = g4.ScreeningFactor();
     import.angle_limit_factor = g4.FactorForAngleLimit();

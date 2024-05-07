@@ -132,9 +132,6 @@ ImportModel GeantModelImporter::operator()(G4VEmModel const& model) const
         result.model_class = ImportModelClass::other;
     }
 
-    // Get the common model parameters
-    result.params.polar_angle_limit = model.PolarAngleLimit();
-
     // Calculate lower cutoff energy for the model in each material
     result.materials.resize(materials_.size());
 

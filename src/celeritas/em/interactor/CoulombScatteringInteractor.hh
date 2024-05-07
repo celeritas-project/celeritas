@@ -13,6 +13,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/CoulombScatteringData.hh"
+#include "celeritas/em/data/WentzelOKVIData.hh"
 #include "celeritas/em/distribution/WentzelDistribution.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialView.hh"
@@ -52,12 +53,13 @@ class CoulombScatteringInteractor
   public:
     //! Construct with shared and state data
     inline CELER_FUNCTION
-    CoulombScatteringInteractor(CoulombScatteringRef const& shared,
+    CoulombScatteringInteractor(CoulombScatteringData const& shared,
+                                NativeCRef<WentzelOKVIData> const& wentzel,
                                 ParticleTrackView const& particle,
                                 Real3 const& inc_direction,
                                 MaterialView const& material,
                                 IsotopeView const& target,
-                                ElementId const& el_id,
+                                ElementId el_id,
                                 CutoffView const& cutoffs);
 
     //! Sample an interaction with the given RNG
@@ -93,12 +95,13 @@ class CoulombScatteringInteractor
  */
 CELER_FUNCTION
 CoulombScatteringInteractor::CoulombScatteringInteractor(
-    CoulombScatteringRef const& shared,
+    CoulombScatteringData const& shared,
+    NativeCRef<WentzelOKVIData> const& wentzel,
     ParticleTrackView const& particle,
     Real3 const& inc_direction,
     MaterialView const& material,
     IsotopeView const& target,
-    ElementId const& el_id,
+    ElementId el_id,
     CutoffView const& cutoffs)
     : inc_direction_(inc_direction)
     , particle_(particle)
@@ -106,10 +109,11 @@ CoulombScatteringInteractor::CoulombScatteringInteractor(
     , sample_angle_(particle,
                     material,
                     target,
-                    shared.elem_data[el_id],
+                    el_id,
                     // TODO: Use proton when supported
                     cutoffs.energy(shared.ids.electron),
-                    shared)
+                    shared,
+                    wentzel)
 {
     CELER_EXPECT(particle_.particle_id() == shared.ids.electron
                  || particle_.particle_id() == shared.ids.positron);

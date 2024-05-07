@@ -18,6 +18,7 @@ list(APPEND SOURCES
   em/params/AtomicRelaxationParams.cc
   em/params/FluctuationParams.cc
   em/params/UrbanMscParams.cc
+  em/params/WentzelOKVIParams.cc
   em/params/WentzelVIMscParams.cc
   em/params/detail/MscParamsHelper.cc
   em/process/BremsstrahlungProcess.cc

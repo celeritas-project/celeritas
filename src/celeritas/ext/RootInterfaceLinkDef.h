@@ -13,7 +13,6 @@
 #pragma link C++ class celeritas::ImportParticle+;
 #pragma link C++ class celeritas::ImportProcess+;
 #pragma link C++ class celeritas::ImportModelMaterial+;
-#pragma link C++ class celeritas::ImportModelParameters+;
 #pragma link C++ class celeritas::ImportModel+;
 #pragma link C++ class celeritas::ImportMscModel+;
 #pragma link C++ class celeritas::ImportPhysicsTable+;

@@ -94,6 +94,7 @@ auto GlobalTestBase::build_core() -> SPConstCore
     inp.rng = this->rng();
     inp.sim = this->sim();
     inp.init = this->init();
+    inp.wentzel = this->wentzel();
     inp.action_reg = this->action_reg();
     inp.output_reg = this->output_reg();
     CELER_ASSERT(inp);

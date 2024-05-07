@@ -104,6 +104,7 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
     em_parameters.SetMscLambdaLimit(
         native_value_to<ClhepLen>(options.msc_lambda_limit).value());
 #endif
+    em_parameters.SetMscThetaLimit(options.msc_theta_limit);
     em_parameters.SetLowestElectronEnergy(
         value_as<Options::MevEnergy>(options.lowest_electron_energy)
         * CLHEP::MeV);

@@ -9,6 +9,7 @@
 #include "celeritas/Units.hh"
 #include "celeritas/em/interactor/CoulombScatteringInteractor.hh"
 #include "celeritas/em/model/CoulombScatteringModel.hh"
+#include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/em/process/CoulombScatteringProcess.hh"
 #include "celeritas/em/xs/WentzelTransportXsCalculator.hh"
 #include "celeritas/em/xs/WentzelVIXsCalculator.hh"
@@ -86,15 +87,15 @@ class CoulombScatteringTest : public InteractorHostTestBase
                 {std::move(ip_electron), std::move(ip_positron)});
         }
 
-        // Use default options
-        CoulombScatteringModel::Options options;
+        // Default to single scattering
+        WentzelOKVIParams::Options options;
+        options.is_combined = false;
+        options.polar_angle_limit = 0;
+        wentzel_ = std::make_shared<WentzelOKVIParams>(this->material_params(),
+                                                       options);
 
         model_ = std::make_shared<CoulombScatteringModel>(
-            ActionId{0},
-            *this->particle_params(),
-            *this->material_params(),
-            options,
-            this->imported_processes());
+            ActionId{0}, *this->particle_params(), this->imported_processes());
 
         // Set cutoffs
         CutoffParams::Input input;
@@ -133,6 +134,7 @@ class CoulombScatteringTest : public InteractorHostTestBase
     }
 
   protected:
+    std::shared_ptr<WentzelOKVIParams> wentzel_;
     std::shared_ptr<CoulombScatteringModel> model_;
 };
 
@@ -149,8 +151,6 @@ TEST_F(CoulombScatteringTest, wokvi_xs)
         VecReal xs_elec;
         VecReal xs_nuc;
     };
-
-    CoulombScatteringHostRef const& data = model_->host_ref();
 
     auto const material = this->material_track().make_material_view();
     AtomicNumber const target_z
@@ -188,8 +188,8 @@ TEST_F(CoulombScatteringTest, wokvi_xs)
         WentzelHelper helper(this->particle_track(),
                              material,
                              target_z,
-                             data.params,
-                             data.ids,
+                             wentzel_->host_ref().params,
+                             model_->host_ref().ids,
                              cutoff);
 
         xs_ratio.push_back(
@@ -207,10 +207,8 @@ TEST_F(CoulombScatteringTest, wokvi_xs)
 
 TEST_F(CoulombScatteringTest, mott_xs)
 {
-    CoulombScatteringHostRef const& data = model_->host_ref();
-
-    CoulombScatteringElementData const& element_data
-        = data.elem_data[ElementId(0)];
+    MottElementData const& element_data
+        = wentzel_->host_ref().elem_data[ElementId(0)];
     MottRatioCalculator xsec(element_data,
                              sqrt(this->particle_track().beta_sq()));
 
@@ -258,7 +256,7 @@ TEST_F(CoulombScatteringTest, wokvi_transport_xs)
         WentzelHelper helper(particle,
                              material,
                              z,
-                             model_->host_ref().params,
+                             wentzel_->host_ref().params,
                              model_->host_ref().ids,
                              cutoff);
         WentzelTransportXsCalculator calc_transport_xs(particle, helper);
@@ -327,6 +325,7 @@ TEST_F(CoulombScatteringTest, simple_scattering)
     {
         this->set_inc_particle(pdg::electron(), MevEnergy{energy});
         CoulombScatteringInteractor interact(model_->host_ref(),
+                                             wentzel_->host_ref(),
                                              this->particle_track(),
                                              this->direction(),
                                              material,
@@ -399,31 +398,30 @@ TEST_F(CoulombScatteringTest, simple_scattering)
 
 TEST_F(CoulombScatteringTest, distribution)
 {
-    CoulombScatteringHostRef const& data = model_->host_ref();
+    // TODO: store IDs as member variables
+    ElementId el_id{0};
+    auto const material = this->material_track().make_material_view();
+    IsotopeView const isotope
+        = material.make_element_view(ElementComponentId{0})
+              .make_isotope_view(IsotopeComponentId{0});
+
+    // TODO: Use proton ParticleId{2}
+    MevEnergy const cutoff
+        = this->cutoff_params()->get(MaterialId{0}).energy(ParticleId{0});
+
     std::vector<real_type> avg_angles;
 
     for (real_type energy : {1, 50, 100, 200, 1000, 13000})
     {
         this->set_inc_particle(pdg::electron(), MevEnergy{energy});
 
-        CoulombScatteringElementData const& element_data
-            = data.elem_data[ElementId(0)];
-
-        auto const material = this->material_track().make_material_view();
-        IsotopeView const isotope
-            = material.make_element_view(ElementComponentId{0})
-                  .make_isotope_view(IsotopeComponentId{0});
-
-        // TODO: Use proton ParticleId{2}
-        MevEnergy const cutoff
-            = this->cutoff_params()->get(MaterialId{0}).energy(ParticleId{0});
-
         WentzelDistribution distrib(this->particle_track(),
                                     material,
                                     isotope,
-                                    element_data,
+                                    el_id,
                                     cutoff,
-                                    data);
+                                    model_->host_ref(),
+                                    wentzel_->host_ref());
 
         RandomEngine& rng_engine = this->rng();
 

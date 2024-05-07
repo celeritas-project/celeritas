@@ -31,26 +31,4 @@ struct CoulombIds
     }
 };
 
-//---------------------------------------------------------------------------//
-/*!
- * Parameters used in both single and multiple Coulomb scattering models.
- */
-struct CoulombParameters
-{
-    //! Whether to use combined single and multiple scattering
-    bool is_combined;
-    //! Polar angle limit between single and multiple scattering
-    real_type costheta_limit;
-    //! Factor for the screening coefficient
-    real_type screening_factor;
-    //! Factor used to calculate the maximum scattering angle off of a nucleus
-    real_type a_sq_factor;
-
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return costheta_limit >= -1 && costheta_limit <= 1
-               && screening_factor > 0 && a_sq_factor > 0;
-    }
-};
-
 }  // namespace celeritas
