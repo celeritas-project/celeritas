@@ -31,6 +31,10 @@ namespace detail
  * surface inserter. The input "CSG Unit" must exceed the lifetime of this
  * builder.
  *
+ * The geometry construction tolerance is passed to numerous other classes
+ * during construction. The input bounding box is used to restrict the maximum
+ * possible bounding box for any of the child objects.
+ *
  * This class is meant to be used by:
  * - Object builders
  * - Convex surface builder
@@ -46,13 +50,16 @@ class CsgUnitBuilder
     //!@}
 
   public:
-    // Construct with an empty unit and tolerance settings
-    CsgUnitBuilder(CsgUnit*, Tol const& tol);
+    // Construct with an empty unit, tolerance settings, and a priori bbox
+    CsgUnitBuilder(CsgUnit*, Tol const& tol, BBox const& extents);
 
     //// ACCESSORS ////
 
     //! Tolerance, needed for surface simplifier
     Tol const& tol() const { return tol_; }
+
+    //! Maximum extents of this unit
+    BBox const& extents() const { return bbox_; }
 
     // Access a typed surface, needed for clipping with deduplicated surface
     template<class S>
@@ -90,6 +97,9 @@ class CsgUnitBuilder
     // Mark a CSG node as a volume of real space
     LocalVolumeId insert_volume(NodeId);
 
+    // Fill LocalVolumeId{0} with "exterior" to adjust the interior region
+    void fill_exterior();
+
     // Fill a volume node with a material
     void fill_volume(LocalVolumeId, MaterialId);
 
@@ -100,6 +110,7 @@ class CsgUnitBuilder
   private:
     CsgUnit* unit_;
     Tol tol_;
+    BBox bbox_;
     LocalSurfaceInserter insert_surface_;
     TransformInserter insert_transform_;
 

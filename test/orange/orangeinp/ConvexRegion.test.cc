@@ -69,7 +69,8 @@ class ConvexRegionTest : public ::celeritas::test::Test
 
   private:
     Unit unit_;
-    UnitBuilder unit_builder_{&unit_, Tol::from_relative(1e-4)};
+    UnitBuilder unit_builder_{
+        &unit_, Tol::from_relative(1e-4), BBox::from_infinite()};
 };
 
 //---------------------------------------------------------------------------//

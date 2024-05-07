@@ -301,7 +301,8 @@ auto UnitProto::build(Tol const& tol, ExteriorBoundary ext) const -> Unit
                      << input_.materials.size() << " materials...";
 
     detail::CsgUnit result;
-    detail::CsgUnitBuilder unit_builder(&result, tol);
+    detail::CsgUnitBuilder unit_builder(
+        &result, tol, BBox::from_infinite());
 
     auto build_volume = [ub = &unit_builder](ObjectInterface const& obj) {
         detail::VolumeBuilder vb{ub};
