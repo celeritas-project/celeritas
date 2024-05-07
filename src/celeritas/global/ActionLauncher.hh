@@ -35,7 +35,7 @@ void launch_action(ExplicitActionInterface const& action,
                    F&& execute_thread)
 {
     MultiExceptionHandler capture_exception;
-#if CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
+#if defined(_OPENMP) && CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
 #    pragma omp parallel for
 #endif
     for (size_type i = 0; i < num_threads; ++i)
