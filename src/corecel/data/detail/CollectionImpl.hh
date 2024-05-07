@@ -213,19 +213,24 @@ struct CollectionAssigner
 template<>
 struct CollectionAssigner<Ownership::value, MemSpace::host>
 {
+    template <class T>
+    using StorageValHost
+        = CollectionStorage<T, Ownership::value, MemSpace::host>;
+
     template<class T, Ownership W2>
-    CollectionStorage<T, Ownership::value, MemSpace::host>
+    StorageValHost<T>
     operator()(CollectionStorage<T, W2, MemSpace::host> const& source)
     {
         return {{source.data.data(), source.data.data() + source.data.size()}};
     }
 
     template<class T, Ownership W2>
-    CollectionStorage<T, Ownership::value, MemSpace::host>
+    StorageValHost<T>
     operator()(CollectionStorage<T, W2, MemSpace::device> const& source)
     {
-        CollectionStorage<T, Ownership::value, MemSpace::host> result{
-            std::vector<T>(source.data.size())};
+        using storage = typename StorageValHost<T>::type;
+        StorageValHost<T> result{
+            storage(source.data.size())};
         Copier<T, MemSpace::host> copy{
             {result.data.data(), result.data.size()}};
         copy(MemSpace::device, {source.data.data(), source.data.size()});
