@@ -340,9 +340,8 @@ GenTrap GenTrap::from_trd(real_type halfz, Real2 const& lo, Real2 const& hi)
 /*!
  * Construct from skewed trapezoids.
  *
- * See
+ * For details on construction, see:
  * https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/Detector/Geometry/geomSolids.html#constructed-solid-geometry-csg-solids
- * for details on construction.
  *
  * \arg hz Half the distance between the faces
  * \arg theta Polar angle of line between center of bases
@@ -357,33 +356,32 @@ GenTrap GenTrap::from_trap(
     CELER_VALIDATE(theta >= zero_quantity() && theta < Turn{0.25},
                    << "invalid angle " << theta.value()
                    << " [turns]: must be in the range [0, 0.25)");
-
     CELER_VALIDATE(phi >= zero_quantity() && phi < Turn{1.},
                    << "invalid angle " << phi.value()
                    << " [turns]: must be in the range [0, 1)");
 
-    for (TrapFace const* tf : {&lo, &hi})
-    {
-        CELER_VALIDATE(tf->hx_lo > 0,
-                       << "nonpositive lower x half-edge: " << tf->hx_lo);
-        CELER_VALIDATE(tf->hx_hi > 0,
-                       << "nonpositive upper x half-edge: " << tf->hx_hi);
-        CELER_VALIDATE(tf->hy > 0,
-                       << "nonpositive y half-distance: " << tf->hy);
-        CELER_VALIDATE(!std::isinf(tf->tan_alpha),
-                       << "infinite trapezoidal shear: " << tf->tan_alpha);
-    }
-    real_type cos_phi{}, sin_phi{};
-    sincos(phi, &sin_phi, &cos_phi);
-    real_type const tan_theta = std::tan(native_value_from(theta));
-    auto dxdz_hz = tan_theta * cos_phi * hz;
-    auto dydz_hz = tan_theta * sin_phi * hz;
+    // Calculate offset of faces from z axis
+    auto [dxdz_hz, dydz_hz] = [&]() -> std::pair<real_type, real_type> {
+        real_type cos_phi{}, sin_phi{};
+        sincos(phi, &sin_phi, &cos_phi);
+        real_type const tan_theta = std::tan(native_value_from(theta));
+        return {hz * tan_theta * cos_phi, hz * tan_theta * sin_phi};
+    }();
 
+    // Construct points on faces
+    TrapFace const* const faces[] = {&lo, &hi};
     Array<VecReal2, 2> points;
-    TrapFace const* faces[] = {&lo, &hi};
     for (auto i : range(2))
     {
         TrapFace const& face = *faces[i];
+        CELER_VALIDATE(face.hx_lo > 0,
+                       << "nonpositive lower x half-edge: " << face.hx_lo);
+        CELER_VALIDATE(face.hx_hi > 0,
+                       << "nonpositive upper x half-edge: " << face.hx_hi);
+        CELER_VALIDATE(face.hy > 0,
+                       << "nonpositive y half-distance: " << face.hy);
+        CELER_VALIDATE(!std::isinf(face.tan_alpha),
+                       << "infinite trapezoidal shear: " << face.tan_alpha);
 
         real_type const xoff = (i == 0 ? -dxdz_hz : dxdz_hz);
         real_type const yoff = (i == 0 ? -dydz_hz : dydz_hz);
@@ -563,11 +561,9 @@ Parallelepiped::Parallelepiped(Real3 const& half_projs,
     CELER_VALIDATE(alpha_ > -Turn{0.25} && alpha_ < Turn{0.25},
                    << "invalid angle " << alpha_.value()
                    << " [turns]: must be in the range (-0.25, 0.25)");
-
     CELER_VALIDATE(theta_ >= zero_quantity() && theta_ < Turn{0.25},
                    << "invalid angle " << theta_.value()
                    << " [turns]: must be in the range [0, 0.25)");
-
     CELER_VALIDATE(phi_ >= zero_quantity() && phi_ < Turn{1.},
                    << "invalid angle " << phi_.value()
                    << " [turns]: must be in the range [0, 1)");

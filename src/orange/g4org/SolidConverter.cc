@@ -104,7 +104,8 @@ SolidEnclosedAngle get_polar_wedge(S const& solid)
  * transform by converting from cartesian to spherical coordinates.
  *
  * The components of the symmetry axis for G4Para/Trap are always encoded as a
- * vector \f$ (A \tan(\theta)\cos(\phi), A \tan(\theta)\sin(phi), A) \f$.
+ * vector
+ * \f$ (\mu \tan(\theta)\cos(\phi), \mu \tan(\theta)\sin(\phi), \mu) \f$.
  */
 [[maybe_unused]] auto to_polar(G4ThreeVector const& axis)
     -> std::pair<Turn, Turn>
