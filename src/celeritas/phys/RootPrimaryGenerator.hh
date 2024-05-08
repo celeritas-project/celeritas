@@ -86,7 +86,7 @@ inline RootPrimaryGenerator::RootPrimaryGenerator(
     CELER_DISCARD(ttree_);
     CELER_DISCARD(entry_selector_);
     CELER_DISCARD(rng_);
-    CELER_DISCARD(entry_count_);
+    CELER_DISCARD(event_count_);
     CELER_NOT_CONFIGURED("ROOT");
 }
 
