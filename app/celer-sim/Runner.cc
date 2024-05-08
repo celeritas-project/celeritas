@@ -476,6 +476,7 @@ Runner::build_events(RunnerInput const& inp, SPConstParticles particles)
     {
         if (inp.num_events > 0 && inp.primaries_per_event > 0)
         {
+            // Sampling options were given, use ROOT primary sampler
             return read_events(RootPrimaryGenerator(inp.event_file,
                                                     particles,
                                                     inp.num_events,
@@ -484,6 +485,7 @@ Runner::build_events(RunnerInput const& inp, SPConstParticles particles)
         }
         else
         {
+            // Use event reader
             return read_events(RootEventReader(inp.event_file, particles));
         }
     }

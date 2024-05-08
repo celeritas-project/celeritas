@@ -56,7 +56,8 @@ RootPrimaryGenerator::RootPrimaryGenerator(std::string const& filename,
 
 //---------------------------------------------------------------------------//
 /*!
- * Generate primaries from ROOT input file.
+ * Populate a vector of primaries from the ROOT offloaded primaries input file
+ * by uniformly selecting random primaries throughout the file.
  */
 auto RootPrimaryGenerator::operator()() -> result_type
 {
