@@ -31,14 +31,13 @@ class Transformation;
 template<class T>
 inline bool is_infinite(BoundingBox<T> const& bbox)
 {
-    constexpr T inf = numeric_limits<real_type>::infinity();
+    auto all_equal = [](Array<T, 3> const& values, T rhs) {
+        return all_of(
+            values.begin(), values.end(), [rhs](T lhs) { return lhs == rhs; });
+    };
+    constexpr T inf = numeric_limits<T>::infinity();
 
-    return all_of(bbox.lower().begin(),
-                  bbox.lower().end(),
-                  [](T value) { return value == -inf; })
-           && all_of(bbox.upper().begin(), bbox.upper().end(), [](T value) {
-                  return value == inf;
-              });
+    return all_equal(bbox.lower(), -inf) && all_equal(bbox.upper(), inf);
 }
 
 //---------------------------------------------------------------------------//
