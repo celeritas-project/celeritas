@@ -198,14 +198,14 @@ class Ellipsoid final : public ConvexRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * A generalized trapezoid, inspired by VecGeom's GenTrap and also ROOT's Arb8.
+ * A generalized polygon with flat faces along the z axis.
  *
- * A GenTrap represents a general trapezoidal volume with up to eight vertices,
- * or two 4-point sets, sitting on two parallel planes perpendicular to Z axis.
- * The points in each set might be correspondingly ordered, in such a way to
- * properly define the side faces.
- * TODO: Add a check for this.
+ * A GenTrap, like VecGeom's equivalent and ROOT's Arb8, represents a general
+ * trapezoidal volume with up to eight vertices, or two 4-point sets, sitting
+ * on two parallel planes perpendicular to Z axis.
+ *
  * TODO: Add proper treatment for degenerate cases.
+ * TODO: support twisted faces.
  */
 class GenTrap final : public ConvexRegionInterface
 {
@@ -216,8 +216,33 @@ class GenTrap final : public ConvexRegionInterface
     using VecReal2 = std::vector<Real2>;
     //!@}
 
+    //! Regular trapezoidal top/bottom face
+    struct TrapFace
+    {
+        //! Half the vertical distance between horizontal edges
+        real_type hy{};
+        //! Top horizontal edge half-length
+        real_type hx_lo{};
+        //! Bottom horizontal edge half-length
+        real_type hx_hi{};
+        //! Tangent of shear angle, between horizontal line centers and Y axis
+        real_type tan_alpha{};
+    };
+
   public:
-    // Construct from half Z height and 1-4 vertices for top and bottom planes
+    // Helper function to construct a Trd shape from hz and two rectangles,
+    // one for each z-face
+    static GenTrap from_trd(real_type halfz, Real2 const& lo, Real2 const& hi);
+
+    // Helper function to construct a general trap from its half-height and
+    // the two trapezoids defining its lower and upper faces
+    static GenTrap from_trap(real_type hz,
+                             Turn theta,
+                             Turn phi,
+                             TrapFace const& lo,
+                             TrapFace const& hi);
+
+    // Construct from half Z height and 4 vertices for top and bottom planes
     GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi);
 
     // Build surfaces
