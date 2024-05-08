@@ -32,6 +32,7 @@ namespace celeritas
     std::vector<GenericGridIndex> grid_ids;
     for (material : range(MaterialId{mats->size()}))
         grid_ids.push_back(insert(physics_vector[material.get()]));
+   \endcode
  */
 template<typename Index>
 class GenericGridInserter
