@@ -659,7 +659,7 @@ TEST_F(InputBuilderTest, incomplete_bb)
 
         using VR2 = GenTrap::VecReal2;
         auto trd = make_shape<GenTrap>("turd",
-                                       3.0,
+                                       real_type{3},
                                        VR2{{-1, -1}, {1, -1}, {1, 1}, {-1, 1}},
                                        VR2{{-2, -2}, {2, -2}, {2, 2}, {-2, 2}});
         inp.materials.push_back(
