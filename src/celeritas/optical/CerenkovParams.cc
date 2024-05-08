@@ -32,7 +32,8 @@ CerenkovParams::CerenkovParams(SPConstProperties properties)
     auto const& host_ref = properties->host_ref();
 
     HostVal<CerenkovData> data;
-    GenericGridInserter build_angle_integral(&data.reals, &data.angle_integral);
+    GenericGridInserter insert_angle_integral(&data.reals,
+                                              &data.angle_integral);
 
     for (auto mat_id :
          range(OpticalMaterialId(host_ref.refractive_index.size())))
@@ -41,7 +42,7 @@ CerenkovParams::CerenkovParams(SPConstProperties properties)
         if (!ri_grid)
         {
             // No refractive index data stored for this material
-            build_angle_integral();
+            insert_angle_integral();
             continue;
         }
 
@@ -57,8 +58,10 @@ CerenkovParams::CerenkovParams(SPConstProperties properties)
                                    + 1 / ipow<2>(refractive_index[i]));
         }
 
-        build_angle_integral(make_span(energy), make_span(integral));
+        insert_angle_integral(make_span(energy), make_span(integral));
     }
+    CELER_ASSERT(data.angle_integral.size()
+                 == host_ref.refractive_index.size());
 
     data_ = CollectionMirror<CerenkovData>{std::move(data)};
     CELER_ENSURE(data_ || host_ref.refractive_index.empty());

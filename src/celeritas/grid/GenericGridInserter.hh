@@ -48,20 +48,20 @@ class GenericGridInserter
     //!@}
 
   public:
-    //! Construct with a reference to mutable host data
+    // Construct with a reference to mutable host data
     GenericGridInserter(RealCollection* real_data, GenericGridCollection* grid);
 
-    //! Add a grid of generic data with linear interpolation
+    // Add a grid of generic data with linear interpolation
     Index operator()(SpanConstFlt grid, SpanConstFlt values);
 
-    //! Add a grid of generic data with linear interpolation
+    // Add a grid of generic data with linear interpolation
     Index operator()(SpanConstDbl grid, SpanConstDbl values);
 
-    //! Add an imported physics vector as a grid
+    // Add an imported physics vector as a grid
     Index operator()(ImportPhysicsVector const& vec);
 
-    //! Add an empty grid (no data present)
-    Index operator()(void);
+    // Add an empty grid (no data present)
+    Index operator()();
 
   private:
     GenericGridBuilder grid_builder_;
@@ -83,16 +83,15 @@ GenericGridInserter<Index>::GenericGridInserter(RealCollection* real_data,
 //---------------------------------------------------------------------------//
 /*!
  * Add an imported physics vector as a generic grid to the collection.
+ *
  * Returns the id of the inserted grid, or an empty id if the vector is
- empty.
+ * empty.
  */
 template<typename Index>
 auto GenericGridInserter<Index>::operator()(ImportPhysicsVector const& vec)
     -> Index
 {
-    if (vec.x.empty())
-        return Index{};
-
+    CELER_EXPECT(!vec.x.empty());
     return grids_.push_back(grid_builder_(vec));
 }
 
@@ -104,9 +103,7 @@ template<typename Index>
 auto GenericGridInserter<Index>::operator()(SpanConstFlt grid,
                                             SpanConstFlt values) -> Index
 {
-    if (grid.empty())
-        return Index{};
-
+    CELER_EXPECT(!grid.empty());
     return grids_.push_back(grid_builder_(grid, values));
 }
 
@@ -118,19 +115,18 @@ template<typename Index>
 auto GenericGridInserter<Index>::operator()(SpanConstDbl grid,
                                             SpanConstDbl values) -> Index
 {
-    if (grid.empty())
-        return Index{};
-
+    CELER_EXPECT(!grid.empty());
     return grids_.push_back(grid_builder_(grid, values));
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Add an empty grid. Useful for when there's no imported grid present for
- * a given material.
+ * Add an empty grid.
+ *
+ * Useful for when there's no imported grid present for a given material.
  */
 template<typename Index>
-auto GenericGridInserter<Index>::operator()(void) -> Index
+auto GenericGridInserter<Index>::operator()() -> Index
 {
     return grids_.push_back({});
 }
