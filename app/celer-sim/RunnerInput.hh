@@ -52,6 +52,11 @@ struct RunnerInput
     std::string physics_file;  //!< Path to ROOT exported Geant4 data
     std::string event_file;  //!< Path to input event data
 
+    // Optional setup options when event_file is a ROOT file that should be
+    // used for sampling primaries instead of simply reading events
+    size_type num_events{};  //!< Events to sample from ROOT file
+    size_type primaries_per_event{};  //!< Primaries to sample from ROOT file
+
     // Optional setup options for generating primaries programmatically
     PrimaryGeneratorOptions primary_options;
 

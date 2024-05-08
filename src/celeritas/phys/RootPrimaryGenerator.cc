@@ -13,6 +13,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/Logger.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
@@ -34,7 +35,9 @@ RootPrimaryGenerator::RootPrimaryGenerator(std::string const& filename,
     , primaries_per_event_(primaries_per_event)
 {
     CELER_EXPECT(!filename.empty());
-    CELER_EXPECT(num_events > 0 && primaries_per_event > 0);
+    CELER_VALIDATE(num_events > 0 && primaries_per_event > 0,
+                   << "'num_events' and 'primaries_per_event options in input "
+                      "file must be set and positive");
 
     ScopedRootErrorHandler scoped_root_error;
     tfile_.reset(TFile::Open(filename.c_str(), "read"));
@@ -57,9 +60,9 @@ RootPrimaryGenerator::RootPrimaryGenerator(std::string const& filename,
  */
 auto RootPrimaryGenerator::operator()() -> result_type
 {
-    if (event_count_.get() > num_events_)
+    if (event_count_.get() == num_events_)
     {
-        return result_type{};
+        return {};
     }
 
     ScopedRootErrorHandler scoped_root_error;

@@ -55,6 +55,7 @@
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "celeritas/phys/Process.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
+#include "celeritas/phys/RootPrimaryGenerator.hh"
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
@@ -473,7 +474,18 @@ Runner::build_events(RunnerInput const& inp, SPConstParticles particles)
     }
     else if (ends_with(inp.event_file, ".root"))
     {
-        return read_events(RootEventReader(inp.event_file, particles));
+        if (inp.num_events > 0 && inp.primaries_per_event > 0)
+        {
+            return read_events(RootPrimaryGenerator(inp.event_file,
+                                                    particles,
+                                                    inp.num_events,
+                                                    inp.primaries_per_event,
+                                                    inp.seed));
+        }
+        else
+        {
+            return read_events(RootEventReader(inp.event_file, particles));
+        }
     }
     else
     {
