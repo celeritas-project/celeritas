@@ -356,9 +356,9 @@ GenTrap GenTrap::from_trap(
     CELER_VALIDATE(theta >= zero_quantity() && theta < Turn{0.25},
                    << "invalid angle " << theta.value()
                    << " [turns]: must be in the range [0, 0.25)");
-    CELER_VALIDATE(phi >= zero_quantity() && phi < Turn{1.},
+    CELER_VALIDATE(phi > Turn{-1} && phi < Turn{1},
                    << "invalid angle " << phi.value()
-                   << " [turns]: must be in the range [0, 1)");
+                   << " [turns]: must be in the range (-1, 1)");
 
     // Calculate offset of faces from z axis
     auto [dxdz_hz, dydz_hz] = [&]() -> std::pair<real_type, real_type> {
