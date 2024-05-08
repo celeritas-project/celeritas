@@ -37,22 +37,19 @@ class AbsorptionModel : public OpticalModel
     execute(OpticalParams const&, OpticalStateDevice&) const override final;
 
     //! Label of the absorption model.
-    std::string label() const override final
+    std::string_view label() const override final
     {
         return "optical-absorption";
     }
 
     //! Description of the absorption model.
-    std::string description() const override final
+    std::string_view description() const override final
     {
         return "optical photon absorbed by material";
     }
 
     //! Label of the absorption process.
-    static std::string process_label()
-    {
-        return "Absorption";
-    }
+    static std::string_view process_label() { return "Absorption"; }
 
     //! IPC of the absorption process.
     constexpr static ImportOpticalProcessClass process_class()

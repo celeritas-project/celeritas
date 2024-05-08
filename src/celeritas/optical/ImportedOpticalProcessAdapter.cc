@@ -81,7 +81,9 @@ ImportedOpticalProcessAdapter::ImportedOpticalProcessAdapter(
     CELER_EXPECT(this->get_lambda());
 }
 
-std::vector<OpticalValueGridId> ImportedOpticalProcessAdapter::step_limits(GenericGridInserter& inserter, MaterialParams const& mats) const
+std::vector<OpticalValueGridId>
+ImportedOpticalProcessAdapter::step_limits(OpticalGridInserter& inserter,
+                                           MaterialParams const& mats) const
 {
     std::vector<OpticalValueGridId> grid_ids;
 

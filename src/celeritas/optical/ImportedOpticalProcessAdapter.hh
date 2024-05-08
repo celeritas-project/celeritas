@@ -77,6 +77,7 @@ class ImportedOpticalProcessAdapter
     //!@{
     //! \name Type aliases
     using SPConstImported = std::shared_ptr<ImportOpticalProcesses const>;
+    using OpticalGridInserter = GenericGridInserter<OpticalValueGridId>;
     //!@}
 
   public:
@@ -85,7 +86,8 @@ class ImportedOpticalProcessAdapter
                                   ImportOpticalProcessClass process_class);
 
     //! Construct step limits for the process
-    std::vector<OpticalValueGridId> step_limits(GenericGridInserter&, MaterialParams const&) const;
+    std::vector<OpticalValueGridId>
+    step_limits(OpticalGridInserter&, MaterialParams const&) const;
 
     //! Get the lambda table for the process
     inline ImportPhysicsTable const& get_lambda() const;

@@ -44,6 +44,7 @@ class OpticalProcess
     using SPConstImported = std::shared_ptr<ImportOpticalProcesses const>;
     using ActionIdIter = RangeIter<ActionId>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
+    using OpticalGridInserter = GenericGridInserter<OpticalValueGridId>;
     //!@}
 
   public:
@@ -55,7 +56,7 @@ class OpticalProcess
 
     //! Get the interaction cross sections for optical photons
     std::vector<OpticalValueGridId>
-    step_limits(GenericGridInserter& inserter) const;
+    step_limits(OpticalGridInserter& inserter) const;
 
     //! Build the corresponding OpticalModel with the given action id
     virtual SPConstModel build_model(ActionIdIter start_id) const = 0;
@@ -130,7 +131,7 @@ OpticalProcess::OpticalProcess(ImportOpticalProcessClass ipc,
  * Returns a list of grid ids added.
  */
 std::vector<OpticalValueGridId>
-OpticalProcess::step_limits(GenericGridInserter& inserter) const
+OpticalProcess::step_limits(OpticalGridInserter& inserter) const
 {
     return imported_.step_limits(inserter, *materials_);
 }

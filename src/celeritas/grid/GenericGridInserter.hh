@@ -15,13 +15,13 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/io/ImportPhysicsVector.hh"
 
 #include "GenericGridBuilder.hh"
 #include "GenericGridData.hh"
 
 namespace celeritas
 {
-struct ImportPhysicsVector;
 //---------------------------------------------------------------------------//
 /*!
  * Construct a generic grid using mutable host data and add it to
@@ -33,39 +33,61 @@ struct ImportPhysicsVector;
     for (material : range(MaterialId{mats->size()}))
         grid_ids.push_back(insert(physics_vector[material.get()]));
  */
+template<typename Index>
 class GenericGridInserter
 {
   public:
     //!@{
     //! \name Type aliases
+    using SpanConstFlt = Span<float const>;
+    using SpanConstDbl = Span<double const>;
     using RealCollection
         = Collection<real_type, Ownership::value, MemSpace::host>;
     using GenericGridCollection
-        = Collection<GenericGridData, Ownership::value, MemSpace::host>;
-    using SpanConstFlt = Span<float const>;
-    using SpanConstDbl = Span<double const>;
-    using GenericIndex = ItemId<GenericGridData>;
+        = Collection<GenericGridData, Ownership::value, MemSpace::host, Index>;
     //!@}
 
   public:
     //! Construct with a reference to mutable host data
-    GenericGridInserter(RealCollection* real_data, GenericGridCollection* grid);
+    GenericGridInserter(RealCollection* real_data, GenericGridCollection* grid)
+        : grid_builder_(real_data), grids_(grid)
+    {
+        CELER_EXPECT(real_data && grid);
+    }
 
     //! Add a grid of generic data with linear interpolation
-    GenericIndex operator()(SpanConstFlt grid, SpanConstFlt values);
+    Index operator()(SpanConstFlt grid, SpanConstFlt values)
+    {
+        if (grid.empty())
+            return Index{};
+
+        return grids_.push_back(grid_builder_(grid, values));
+    }
 
     //! Add a grid of generic data with linear interpolation
-    GenericIndex operator()(SpanConstDbl grid, SpanConstDbl values);
+    Index operator()(SpanConstDbl grid, SpanConstDbl values)
+    {
+        if (grid.empty())
+            return Index{};
+
+        return grids_.push_back(grid_builder_(grid, values));
+    }
 
     //! Add an imported physics vector as a grid
-    GenericIndex operator()(ImportPhysicsVector const& vec);
+    Index operator()(ImportPhysicsVector const& vec)
+    {
+        if (vec.x.empty())
+            return Index{};
+
+        return grids_.push_back(grid_builder_(vec));
+    }
 
     //! Add an empty grid (no data present)
-    GenericIndex operator()(void);
+    Index operator()(void) { return grids_.push_back({}); }
 
   private:
     GenericGridBuilder grid_builder_;
-    CollectionBuilder<GenericGridData, MemSpace::host, ItemId<GenericGridData>> grids_;
+    CollectionBuilder<GenericGridData, MemSpace::host, Index> grids_;
 };
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
