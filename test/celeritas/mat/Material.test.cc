@@ -183,6 +183,7 @@ TEST_F(MaterialTest, material_view)
                        mat.mean_excitation_energy().value());
         EXPECT_SOFT_EQ(std::log(400.00760709482647e-6),
                        mat.log_mean_excitation_energy().value());
+        EXPECT_SOFT_EQ(2.4075218757706837e+21, mat.inv_mass_cbrt_sq());
 
         // Test element view
         auto els = mat.elements();
@@ -195,17 +196,18 @@ TEST_F(MaterialTest, material_view)
     {
         // vacuum
         MaterialView mat = params->get(MaterialId{1});
-        EXPECT_SOFT_EQ(0, mat.number_density());
-        EXPECT_SOFT_EQ(0, mat.temperature());
+        EXPECT_EQ(0, mat.number_density());
+        EXPECT_EQ(0, mat.temperature());
         EXPECT_EQ(MatterState::unspecified, mat.matter_state());
-        EXPECT_SOFT_EQ(0, mat.zeff());
-        EXPECT_SOFT_EQ(0, mat.density());
-        EXPECT_SOFT_EQ(0, mat.electron_density());
-        EXPECT_SOFT_EQ(std::numeric_limits<real_type>::infinity(),
-                       mat.radiation_length());
-        EXPECT_SOFT_EQ(0, mat.mean_excitation_energy().value());
-        EXPECT_SOFT_EQ(-std::numeric_limits<real_type>::infinity(),
-                       mat.log_mean_excitation_energy().value());
+        EXPECT_EQ(0, mat.zeff());
+        EXPECT_EQ(0, mat.density());
+        EXPECT_EQ(0, mat.electron_density());
+        EXPECT_EQ(std::numeric_limits<real_type>::infinity(),
+                  mat.radiation_length());
+        EXPECT_EQ(0, mat.mean_excitation_energy().value());
+        EXPECT_EQ(-std::numeric_limits<real_type>::infinity(),
+                  mat.log_mean_excitation_energy().value());
+        EXPECT_EQ(0, mat.inv_mass_cbrt_sq());
 
         // Test element view
         auto els = mat.elements();
@@ -224,6 +226,7 @@ TEST_F(MaterialTest, material_view)
         EXPECT_SOFT_EQ(19.2e-6, mat.mean_excitation_energy().value());
         EXPECT_SOFT_EQ(std::log(19.2e-6),
                        mat.log_mean_excitation_energy().value());
+        EXPECT_SOFT_EQ(1.0682586261861725e+20, mat.inv_mass_cbrt_sq());
 
         // Test element view
         auto els = mat.elements();
@@ -248,6 +251,7 @@ TEST_F(MaterialTest, material_view)
                        value_as<MevEnergy>(mat.mean_excitation_energy()));
         EXPECT_SOFT_EQ(std::log(19.2e-6),
                        mat.log_mean_excitation_energy().value());
+        EXPECT_SOFT_EQ(1.0663205131511973e+20, mat.inv_mass_cbrt_sq());
 
         // Test element view
         auto els = mat.elements();
