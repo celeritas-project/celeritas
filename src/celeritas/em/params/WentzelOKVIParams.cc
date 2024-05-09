@@ -55,6 +55,7 @@ WentzelOKVIParams::from_import(ImportData const& data,
     }();
     opts.screening_factor = data.em_params.screening_factor;
     opts.angle_limit_factor = data.em_params.angle_limit_factor;
+    opts.form_factor = data.em_params.form_factor;
 
     return std::make_shared<WentzelOKVIParams>(materials, opts);
 }
@@ -79,7 +80,6 @@ WentzelOKVIParams::WentzelOKVIParams(SPConstMaterials materials,
           * ipow<2>(options.angle_limit_factor * constants::hbar_planck
                     * constants::c_light * units::femtometer);
     host_data.params.screening_factor = options.screening_factor;
-    // TODO: import from Geant4
     host_data.params.form_factor_type = options.form_factor;
 
     // Load Mott coefficients

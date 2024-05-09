@@ -213,8 +213,9 @@ WentzelDistribution::calculate_form_factor(real_type cos_t) const
             return 1 / ipow<2>(1 + this->nuclear_form_prefactor() * mt_sq);
         case NuclearFormFactorType::gaussian:
             return std::exp(-2 * this->nuclear_form_prefactor() * mt_sq);
+        default:
+            CELER_ASSERT_UNREACHABLE();
     }
-    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//

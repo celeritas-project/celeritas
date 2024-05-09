@@ -17,18 +17,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Supported models of nuclear form factors.
- */
-enum class NuclearFormFactorType
-{
-    none,
-    flat,
-    exponential,
-    gaussian
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Parameters used in both single and multiple Coulomb scattering models.
  *
  * When combined single and multiple scattering is enabled, the Wentzel VI MSC

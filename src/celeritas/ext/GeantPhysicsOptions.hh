@@ -130,6 +130,8 @@ struct GeantPhysicsOptions
     double angle_limit_factor{1};
     //! Step limit algorithm for MSC models
     MscStepLimitAlgorithm msc_step_algorithm{MscStepLimitAlgorithm::safety};
+    //! Nuclear form factor model for Coulomm scattering
+    NuclearFormFactorType form_factor{NuclearFormFactorType::exponential};
     //!@}
 
     //! Print detailed Geant4 output
@@ -168,6 +170,7 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.msc_theta_limit == b.msc_theta_limit
            && a.angle_limit_factor == b.angle_limit_factor
            && a.msc_step_algorithm == b.msc_step_algorithm
+           && a.form_factor == b.form_factor
            && a.verbose == b.verbose;
     // clang-format on
 }
