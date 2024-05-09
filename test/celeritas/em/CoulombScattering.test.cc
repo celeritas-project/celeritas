@@ -177,6 +177,7 @@ TEST_F(CoulombScatteringTest, helper)
                              model_->host_ref().ids,
                              cutoff);
 
+        EXPECT_SOFT_EQ(1.1682, helper.mott_factor());
         result.screen_z.push_back(helper.screening_coefficient());
         // Scale the xs factor by 1 / r_e^2 so the values will be large enough
         // for the soft equivalence comparison to catch any differences

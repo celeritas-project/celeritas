@@ -31,9 +31,9 @@ enum class NuclearFormFactorType
 /*!
  * Parameters used in both single and multiple Coulomb scattering models.
  *
- * The Wentzel VI MSC model is used to sample scatterings with angles below the
- * polar angle limit, and the single Coulomb scattering model is used for
- * angles above the limit.
+ * When combined single and multiple scattering is enabled, the Wentzel VI MSC
+ * model is used to sample scatterings with angles below the polar angle limit,
+ * and the single Coulomb scattering model is used for angles above the limit.
  */
 struct CoulombParameters
 {

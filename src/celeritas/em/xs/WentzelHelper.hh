@@ -11,6 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/em/data/CommonCoulombData.hh"
+#include "celeritas/em/data/WentzelOKVIData.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -57,6 +58,9 @@ class WentzelHelper
         return screening_coefficient_;
     }
 
+    //! Get the Mott factor
+    CELER_FUNCTION real_type mott_factor() const { return mott_factor_; }
+
     //! Get the multiplicative factor for the cross section
     CELER_FUNCTION real_type kin_factor() const { return kin_factor_; }
 
@@ -66,7 +70,7 @@ class WentzelHelper
         return costheta_max_elec_;
     }
 
-    //! Get the maximum scattering angle off of nucleus
+    //! Get the maximum scattering angle off of a nucleus
     CELER_FUNCTION real_type costheta_max_nuclear() const
     {
         return costheta_max_nuc_;
@@ -111,7 +115,7 @@ class WentzelHelper
     inline CELER_FUNCTION real_type calc_costheta_max_electron(
         ParticleTrackView const&, CoulombIds const&, Energy) const;
 
-    // Calculate the (cosine of) the maximum scattering angle off of nucleus
+    // Calculate the (cosine of) the maximum scattering angle off of a nucleus
     inline CELER_FUNCTION real_type
     calc_costheta_max_nuclear(ParticleTrackView const&,
                               MaterialView const& material,
@@ -140,7 +144,7 @@ WentzelHelper::WentzelHelper(ParticleTrackView const& particle,
                              * data.screening_factor)
     , kin_factor_(this->calc_kin_factor(particle))
     , mott_factor_(particle.particle_id() == ids.electron
-                       ? 1 + 2e-4 * ipow<2>(target_z_.get())
+                       ? 1 + real_type(2e-4) * ipow<2>(target_z_.get())
                        : 1)
     , costheta_max_elec_(
           this->calc_costheta_max_electron(particle, ids, cutoff))
@@ -149,6 +153,7 @@ WentzelHelper::WentzelHelper(ParticleTrackView const& particle,
 {
     CELER_EXPECT(screening_coefficient_ > 0);
     CELER_EXPECT(costheta_max_elec_ >= -1 && costheta_max_elec_ <= 1);
+    CELER_EXPECT(costheta_max_nuc_ >= -1 && costheta_max_nuc_ <= 1);
 }
 
 //---------------------------------------------------------------------------//

@@ -126,6 +126,8 @@ struct GeantPhysicsOptions
     double msc_lambda_limit{0.1 * units::centimeter};
     //! Polar angle limii between single and multiple Coulomb scattering
     double msc_theta_limit{constants::pi};
+    //! Factor for dynamic computation of angular limit between SS and MSC
+    double angle_limit_factor{1};
     //! Step limit algorithm for MSC models
     MscStepLimitAlgorithm msc_step_algorithm{MscStepLimitAlgorithm::safety};
     //!@}
@@ -164,6 +166,7 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.msc_safety_factor == b.msc_safety_factor
            && a.msc_lambda_limit == b.msc_lambda_limit
            && a.msc_theta_limit == b.msc_theta_limit
+           && a.angle_limit_factor == b.angle_limit_factor
            && a.msc_step_algorithm == b.msc_step_algorithm
            && a.verbose == b.verbose;
     // clang-format on

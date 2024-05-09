@@ -12,8 +12,6 @@
 
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMem.hh"
-#include "celeritas/em/params/detail/MscParamsHelper.hh"
-#include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 
@@ -21,7 +19,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct if Wentzel VI or Coulomb is present, else return nullptr
+ * Construct if Wentzel VI or Coulomb is present, else return nullptr.
  */
 std::shared_ptr<WentzelOKVIParams>
 WentzelOKVIParams::from_import(ImportData const& data,

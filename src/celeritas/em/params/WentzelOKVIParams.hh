@@ -23,8 +23,10 @@ struct ImportData;
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct and store data used by both single and multiple Coulomb
- * scattering.
+ * Construct and store shared Coulomb scattering data.
+ *
+ * This data is used by both the single Coulomb scattering and Wentzel VI
+ * multiple scattering models.
  */
 class WentzelOKVIParams final : public ParamsDataInterface<WentzelOKVIData>
 {
@@ -54,7 +56,7 @@ class WentzelOKVIParams final : public ParamsDataInterface<WentzelOKVIData>
     static std::shared_ptr<WentzelOKVIParams>
     from_import(ImportData const& data, SPConstMaterials materials);
 
-    // Construct from process data
+    // Construct from material data and options
     WentzelOKVIParams(SPConstMaterials materials, Options options);
 
     //! Access Wentzel OK&VI data on the host

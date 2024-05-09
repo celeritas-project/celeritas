@@ -7,8 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "CoulombScatteringModel.hh"
 
-#include <cmath>
-#include <vector>
+#include <utility>
 
 #include "celeritas_config.h"
 #include "celeritas/Constants.hh"
@@ -17,17 +16,14 @@
 #include "celeritas/em/executor/CoulombScatteringExecutor.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
-#include "celeritas/em/process/CoulombScatteringProcess.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/io/ImportParameters.hh"
 #include "celeritas/io/ImportProcess.hh"
-#include "celeritas/mat/ElementView.hh"
 #include "celeritas/phys/InteractionApplier.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
-#include "celeritas/phys/ParticleView.hh"
 
 namespace celeritas
 {

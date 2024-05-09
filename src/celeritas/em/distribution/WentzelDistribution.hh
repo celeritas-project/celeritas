@@ -12,12 +12,10 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
-#include "celeritas/em/data/CommonCoulombData.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/em/xs/MottRatioCalculator.hh"
 #include "celeritas/em/xs/WentzelHelper.hh"
 #include "celeritas/mat/IsotopeView.hh"
-#include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/GenerateCanonical.hh"
@@ -170,13 +168,11 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
 
         // Calculate rejection for fake scattering
         // TODO: Reference?
-        real_type mott_coeff
-            = 1 + real_type(2e-4) * ipow<2>(target_.atomic_number().get());
         MottRatioCalculator mott_xsec(wentzel_.elem_data[el_id_],
                                       std::sqrt(particle_.beta_sq()));
         real_type g_rej = mott_xsec(cos_theta)
                           * ipow<2>(this->calculate_form_factor(cos_theta))
-                          / mott_coeff;
+                          / helper_.mott_factor();
 
         if (!BernoulliDistribution(g_rej)(rng))
         {
