@@ -136,29 +136,20 @@ class CoulombScatteringTest : public InteractorHostTestBase
   protected:
     std::shared_ptr<WentzelOKVIParams> wentzel_;
     std::shared_ptr<CoulombScatteringModel> model_;
+    IsotopeComponentId isocomp_id_{0};
+    ElementComponentId elcomp_id_{0};
+    ElementId el_id_{0};
+    MaterialId mat_id_{0};
 };
 
 TEST_F(CoulombScatteringTest, wokvi_xs)
 {
-    struct Result
-    {
-        using VecReal = std::vector<real_type>;
-
-        VecReal screen_z;
-        VecReal kin_factor;
-        VecReal costheta_max_elec;
-        VecReal costheta_max_nuc;
-        VecReal xs_elec;
-        VecReal xs_nuc;
-    };
-
     auto const material = this->material_track().make_material_view();
     AtomicNumber const target_z
-        = this->material_params()->get(ElementId{0}).atomic_number();
+        = this->material_params()->get(el_id_).atomic_number();
 
-    MevEnergy const cutoff = this->cutoff_params()
-                                 ->get(MaterialId{0})
-                                 .energy(this->particle_track().particle_id());
+    MevEnergy const cutoff = this->cutoff_params()->get(mat_id_).energy(
+        this->particle_track().particle_id());
 
     std::vector<real_type> const energies = {50, 100, 200, 1000, 13000};
 
@@ -192,8 +183,8 @@ TEST_F(CoulombScatteringTest, wokvi_xs)
                              model_->host_ref().ids,
                              cutoff);
 
-        xs_ratio.push_back(
-            helper.calc_xs_ratio(helper.costheta_max_nuclear(), -1));
+        xs_ratio.push_back(helper.calc_xs_ratio(
+            helper.costheta_max_nuclear(), model_->host_ref().costheta_max()));
         costheta_max_elec.push_back(helper.costheta_max_electron());
         costheta_max_nuc.push_back(helper.costheta_max_nuclear());
         screen_z.push_back(helper.screening_coefficient());
@@ -208,7 +199,7 @@ TEST_F(CoulombScatteringTest, wokvi_xs)
 TEST_F(CoulombScatteringTest, mott_xs)
 {
     MottElementData const& element_data
-        = wentzel_->host_ref().elem_data[ElementId(0)];
+        = wentzel_->host_ref().elem_data[el_id_];
     MottRatioCalculator xsec(element_data,
                              sqrt(this->particle_track().beta_sq()));
 
@@ -236,15 +227,11 @@ TEST_F(CoulombScatteringTest, mott_xs)
 
 TEST_F(CoulombScatteringTest, wokvi_transport_xs)
 {
-    // Copper
-    MaterialId mat_id{0};
-    ElementId elm_id{0};
-
     auto const material = this->material_track().make_material_view();
-    AtomicNumber const z = this->material_params()->get(elm_id).atomic_number();
+    AtomicNumber const z = this->material_params()->get(el_id_).atomic_number();
 
     // Incident particle energy cutoff
-    MevEnergy const cutoff = this->cutoff_params()->get(mat_id).energy(
+    MevEnergy const cutoff = this->cutoff_params()->get(mat_id_).energy(
         this->particle_track().particle_id());
 
     std::vector<real_type> xs;
@@ -311,9 +298,8 @@ TEST_F(CoulombScatteringTest, simple_scattering)
 
     auto const material = this->material_track().make_material_view();
     IsotopeView const isotope
-        = material.make_element_view(ElementComponentId{0})
-              .make_isotope_view(IsotopeComponentId{0});
-    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
+        = material.make_element_view(elcomp_id_).make_isotope_view(isocomp_id_);
+    auto cutoffs = this->cutoff_params()->get(mat_id_);
 
     RandomEngine& rng_engine = this->rng();
 
@@ -330,7 +316,7 @@ TEST_F(CoulombScatteringTest, simple_scattering)
                                              this->direction(),
                                              material,
                                              isotope,
-                                             ElementId{0},
+                                             el_id_,
                                              cutoffs);
 
         for ([[maybe_unused]] int i : range(num_samples))
@@ -398,16 +384,13 @@ TEST_F(CoulombScatteringTest, simple_scattering)
 
 TEST_F(CoulombScatteringTest, distribution)
 {
-    // TODO: store IDs as member variables
-    ElementId el_id{0};
     auto const material = this->material_track().make_material_view();
     IsotopeView const isotope
-        = material.make_element_view(ElementComponentId{0})
-              .make_isotope_view(IsotopeComponentId{0});
+        = material.make_element_view(elcomp_id_).make_isotope_view(isocomp_id_);
 
     // TODO: Use proton ParticleId{2}
     MevEnergy const cutoff
-        = this->cutoff_params()->get(MaterialId{0}).energy(ParticleId{0});
+        = this->cutoff_params()->get(mat_id_).energy(ParticleId{0});
 
     std::vector<real_type> avg_angles;
 
@@ -415,13 +398,19 @@ TEST_F(CoulombScatteringTest, distribution)
     {
         this->set_inc_particle(pdg::electron(), MevEnergy{energy});
 
-        WentzelDistribution distrib(this->particle_track(),
-                                    material,
-                                    isotope,
-                                    el_id,
-                                    cutoff,
-                                    model_->host_ref(),
-                                    wentzel_->host_ref());
+        WentzelHelper helper(this->particle_track(),
+                             material,
+                             isotope.atomic_number(),
+                             wentzel_->host_ref().params,
+                             model_->host_ref().ids,
+                             cutoff);
+        WentzelDistribution sample_angle(wentzel_->host_ref(),
+                                         helper,
+                                         this->particle_track(),
+                                         isotope,
+                                         el_id_,
+                                         helper.costheta_max_nuclear(),
+                                         model_->host_ref().costheta_max());
 
         RandomEngine& rng_engine = this->rng();
 
@@ -430,7 +419,7 @@ TEST_F(CoulombScatteringTest, distribution)
         int const num_samples = 4096;
         for ([[maybe_unused]] int i : range(num_samples))
         {
-            avg_angle += distrib(rng_engine);
+            avg_angle += sample_angle(rng_engine);
         }
 
         avg_angle /= num_samples;

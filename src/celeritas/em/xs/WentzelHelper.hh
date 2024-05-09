@@ -154,16 +154,6 @@ WentzelHelper::WentzelHelper(ParticleTrackView const& particle,
 //---------------------------------------------------------------------------//
 /*!
  * Ratio of electron cross section to total (nuclear + electron) cross section.
- *
- * costheta_min = costheta_max_nuc = costheta_max: 1 (CS not combined),
- * something else (CS combined)
- * costheta_max = 1 (CS), something else (MSC)
- * TODO: For combined ss/ms costheta_min won't always be costheta_max = 1
- * we will need to calculate for different costheta min/max: remove this and
- * just use calc_xs_nuc and calc_xs_elec?
- * TODO: were any other parts of the single Coulomb scattering model simplified
- * under the assumption that there was no combined single and multiple
- * scattering?
  */
 CELER_FUNCTION real_type WentzelHelper::calc_xs_ratio(
     real_type costheta_min, real_type costheta_max) const

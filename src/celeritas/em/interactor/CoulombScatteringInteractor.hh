@@ -78,6 +78,9 @@ class CoulombScatteringInteractor
     // Target isotope
     IsotopeView const& target_;
 
+    // Helper for calculating xs ratio and other quantities
+    WentzelHelper const helper_;
+
     // Scattering direction distribution of the Wentzel model
     WentzelDistribution const sample_angle_;
 
@@ -106,14 +109,20 @@ CoulombScatteringInteractor::CoulombScatteringInteractor(
     : inc_direction_(inc_direction)
     , particle_(particle)
     , target_(target)
-    , sample_angle_(particle,
-                    material,
+    , helper_(particle,
+              material,
+              target.atomic_number(),
+              wentzel.params,
+              shared.ids,
+              // TODO: Use proton when supported
+              cutoffs.energy(shared.ids.electron))
+    , sample_angle_(wentzel,
+                    helper_,
+                    particle,
                     target,
                     el_id,
-                    // TODO: Use proton when supported
-                    cutoffs.energy(shared.ids.electron),
-                    shared,
-                    wentzel)
+                    helper_.costheta_max_nuclear(),
+                    shared.costheta_max())
 {
     CELER_EXPECT(particle_.particle_id() == shared.ids.electron
                  || particle_.particle_id() == shared.ids.positron);
