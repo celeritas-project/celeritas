@@ -142,8 +142,21 @@ class CoulombScatteringTest : public InteractorHostTestBase
     MaterialId mat_id_{0};
 };
 
-TEST_F(CoulombScatteringTest, wokvi_xs)
+TEST_F(CoulombScatteringTest, helper)
 {
+    struct Result
+    {
+        using VecReal = std::vector<real_type>;
+
+        VecReal screen_z;
+        VecReal scaled_kin_factor;
+        VecReal costheta_max_elec;
+        VecReal costheta_max_nuc;
+        VecReal xs_elec;
+        VecReal xs_nuc;
+        VecReal xs_ratio;
+    };
+
     auto const material = this->material_track().make_material_view();
     AtomicNumber const target_z
         = this->material_params()->get(el_id_).atomic_number();
@@ -151,28 +164,10 @@ TEST_F(CoulombScatteringTest, wokvi_xs)
     MevEnergy const cutoff = this->cutoff_params()->get(mat_id_).energy(
         this->particle_track().particle_id());
 
-    std::vector<real_type> const energies = {50, 100, 200, 1000, 13000};
+    real_type const costheta_max = model_->host_ref().costheta_max();
 
-    static double const expected_screen_z[] = {2.1181757502465e-08,
-                                               5.3641196710457e-09,
-                                               1.3498490873627e-09,
-                                               5.4280909096648e-11,
-                                               3.2158426877075e-13};
-    static double const expected_xs_ratio[] = {0.033319844069031,
-                                               0.033319738720425,
-                                               0.033319684608429,
-                                               0.033319640583261,
-                                               0.03331963032739};
-    static double const expected_costheta_max_elec[] = {0.99989885103277,
-                                                        0.99997458240728,
-                                                        0.99999362912075,
-                                                        0.99999974463379,
-                                                        0.99999999848823};
-    static double const expected_costheta_max_nuc[] = {1, 1, 1, 1, 1};
-
-    std::vector<real_type> xs_ratio, costheta_max_elec, costheta_max_nuc,
-        screen_z;
-    for (real_type energy : energies)
+    Result result;
+    for (real_type energy : {50, 100, 200, 1000, 13000})
     {
         this->set_inc_particle(pdg::electron(), MevEnergy{energy});
 
@@ -183,17 +178,62 @@ TEST_F(CoulombScatteringTest, wokvi_xs)
                              model_->host_ref().ids,
                              cutoff);
 
-        xs_ratio.push_back(helper.calc_xs_ratio(
-            helper.costheta_max_nuclear(), model_->host_ref().costheta_max()));
-        costheta_max_elec.push_back(helper.costheta_max_electron());
-        costheta_max_nuc.push_back(helper.costheta_max_nuclear());
-        screen_z.push_back(helper.screening_coefficient());
+        result.screen_z.push_back(helper.screening_coefficient());
+        // Scale the xs factor by 1 / r_e^2 so the values will be large enough
+        // for the soft equivalence comparison to catch any differences
+        result.scaled_kin_factor.push_back(helper.kin_factor()
+                                           / ipow<2>(constants::r_electron));
+        result.costheta_max_elec.push_back(helper.costheta_max_electron());
+        real_type const costheta_max_nuc = helper.costheta_max_nuclear();
+        result.costheta_max_nuc.push_back(costheta_max_nuc);
+        result.xs_elec.push_back(
+            helper.calc_xs_electron(costheta_max_nuc, costheta_max)
+            / units::barn);
+        result.xs_nuc.push_back(
+            helper.calc_xs_nuclear(costheta_max_nuc, costheta_max)
+            / units::barn);
+        result.xs_ratio.push_back(
+            helper.calc_xs_ratio(costheta_max_nuc, costheta_max));
     }
 
-    EXPECT_VEC_SOFT_EQ(expected_xs_ratio, xs_ratio);
-    EXPECT_VEC_SOFT_EQ(expected_screen_z, screen_z);
-    EXPECT_VEC_SOFT_EQ(expected_costheta_max_elec, costheta_max_elec);
-    EXPECT_VEC_SOFT_EQ(expected_costheta_max_nuc, costheta_max_nuc);
+    static double const expected_screen_z[] = {2.1181757502465e-08,
+                                               5.3641196710457e-09,
+                                               1.3498490873627e-09,
+                                               5.4280909096648e-11,
+                                               3.2158426877075e-13};
+    static double const expected_scaled_kin_factor[] = {0.018652406309778,
+                                                        0.0047099159161888,
+                                                        0.0011834423911797,
+                                                        4.7530717872407e-05,
+                                                        2.8151208086621e-07};
+    static double const expected_costheta_max_elec[] = {0.99989885103277,
+                                                        0.99997458240728,
+                                                        0.99999362912075,
+                                                        0.99999974463379,
+                                                        0.99999999848823};
+    static double const expected_costheta_max_nuc[] = {1, 1, 1, 1, 1};
+    static double const expected_xs_elec[] = {40826.46816866,
+                                              40708.229862005,
+                                              40647.018860182,
+                                              40596.955206725,
+                                              40585.257368735};
+    static double const expected_xs_nuc[] = {1184463.4246675,
+                                             1181036.9405781,
+                                             1179263.0534548,
+                                             1177812.2021574,
+                                             1177473.1955599};
+    static double const expected_xs_ratio[] = {0.033319844069031,
+                                               0.033319738720425,
+                                               0.033319684608429,
+                                               0.033319640583261,
+                                               0.03331963032739};
+    EXPECT_VEC_SOFT_EQ(expected_screen_z, result.screen_z);
+    EXPECT_VEC_SOFT_EQ(expected_scaled_kin_factor, result.scaled_kin_factor);
+    EXPECT_VEC_SOFT_EQ(expected_costheta_max_elec, result.costheta_max_elec);
+    EXPECT_VEC_SOFT_EQ(expected_costheta_max_nuc, result.costheta_max_nuc);
+    EXPECT_VEC_SOFT_EQ(expected_xs_elec, result.xs_elec);
+    EXPECT_VEC_SOFT_EQ(expected_xs_nuc, result.xs_nuc);
+    EXPECT_VEC_SOFT_EQ(expected_xs_ratio, result.xs_ratio);
 }
 
 TEST_F(CoulombScatteringTest, mott_xs)
