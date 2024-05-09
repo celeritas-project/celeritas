@@ -12,7 +12,6 @@
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/em/process/CoulombScatteringProcess.hh"
 #include "celeritas/em/xs/WentzelTransportXsCalculator.hh"
-#include "celeritas/em/xs/WentzelVIXsCalculator.hh"
 #include "celeritas/io/ImportParameters.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/mat/MaterialView.hh"
