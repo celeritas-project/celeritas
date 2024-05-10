@@ -64,4 +64,13 @@ Transformation::Transformation(Translation const& tr)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Calculate the inverse during preprocessing.
+ */
+Transformation Transformation::calc_inverse() const
+{
+    return Transformation::from_inverse(rot_, tra_);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -27,9 +27,13 @@ class BoundingBox;
 using VariantTransform = EnumVariant<TransformType, TransformTypeTraits>;
 
 //---------------------------------------------------------------------------//
-// Apply the left "daughter-to-parent" transform to the right.
+// Apply the left "daughter-to-parent" transform to the right
 [[nodiscard]] VariantTransform
 apply_transform(VariantTransform const& left, VariantTransform const& right);
+
+//---------------------------------------------------------------------------//
+// Calculate the inverse of a transform
+[[nodiscard]] VariantTransform calc_inverse(VariantTransform const& transform);
 
 //---------------------------------------------------------------------------//
 // Dispatch "daughter-to-parent" transform to bounding box utilities

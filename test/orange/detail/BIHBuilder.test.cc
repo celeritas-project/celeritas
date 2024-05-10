@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "orange/detail/BIHBuilder.hh"
 
+#include <limits>
+#include <vector>
+
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "orange/detail/BIHData.hh"
@@ -14,19 +17,15 @@
 
 #include "celeritas_test.hh"
 
-using BIHBuilder = celeritas::detail::BIHBuilder;
-using BIHInnerNode = celeritas::detail::BIHInnerNode;
-using BIHLeafNode = celeritas::detail::BIHLeafNode;
-
 namespace celeritas
+{
+namespace detail
 {
 namespace test
 {
-class BIHBuilderTest : public Test
+//---------------------------------------------------------------------------//
+class BIHBuilderTest : public ::celeritas::test::Test
 {
-  public:
-    void SetUp() {}
-
   protected:
     std::vector<FastBBox> bboxes_;
 
@@ -80,8 +79,8 @@ TEST_F(BIHBuilderTest, basic)
     bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
     bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
 
-    BIHBuilder bih(&storage_);
-    auto bih_tree = bih(std::move(bboxes_));
+    BIHBuilder build(&storage_);
+    auto bih_tree = build(std::move(bboxes_));
     ASSERT_EQ(1, bih_tree.inf_volids.size());
     EXPECT_EQ(LocalVolumeId{0},
               storage_.local_volume_ids[bih_tree.inf_volids[0]]);
@@ -234,8 +233,8 @@ TEST_F(BIHBuilderTest, grid)
     bboxes_.push_back({{2, 2, 0}, {3, 3, 100}});
     bboxes_.push_back({{2, 3, 0}, {3, 4, 100}});
 
-    BIHBuilder bih(&storage_);
-    auto bih_tree = bih(std::move(bboxes_));
+    BIHBuilder build(&storage_);
+    auto bih_tree = build(std::move(bboxes_));
     ASSERT_EQ(1, bih_tree.inf_volids.size());
     EXPECT_EQ(LocalVolumeId{0},
               storage_.local_volume_ids[bih_tree.inf_volids[0]]);
@@ -376,8 +375,8 @@ TEST_F(BIHBuilderTest, single_finite_volume)
 {
     bboxes_.push_back({{0, 0, 0}, {1, 1, 1}});
 
-    BIHBuilder bih(&storage_);
-    auto bih_tree = bih(std::move(bboxes_));
+    BIHBuilder build(&storage_);
+    auto bih_tree = build(std::move(bboxes_));
 
     ASSERT_EQ(0, bih_tree.inf_volids.size());
     ASSERT_EQ(0, bih_tree.inner_nodes.size());
@@ -394,8 +393,8 @@ TEST_F(BIHBuilderTest, multiple_nonpartitionable_volumes)
     bboxes_.push_back({{0, 0, 0}, {1, 1, 1}});
     bboxes_.push_back({{0, 0, 0}, {1, 1, 1}});
 
-    BIHBuilder bih(&storage_);
-    auto bih_tree = bih(std::move(bboxes_));
+    BIHBuilder build(&storage_);
+    auto bih_tree = build(std::move(bboxes_));
 
     ASSERT_EQ(0, bih_tree.inf_volids.size());
     ASSERT_EQ(0, bih_tree.inner_nodes.size());
@@ -412,8 +411,8 @@ TEST_F(BIHBuilderTest, single_infinite_volume)
 {
     bboxes_.push_back(FastBBox::from_infinite());
 
-    BIHBuilder bih(&storage_);
-    auto bih_tree = bih(std::move(bboxes_));
+    BIHBuilder build(&storage_);
+    auto bih_tree = build(std::move(bboxes_));
 
     ASSERT_EQ(0, bih_tree.inner_nodes.size());
     ASSERT_EQ(1, bih_tree.leaf_nodes.size());
@@ -428,8 +427,8 @@ TEST_F(BIHBuilderTest, multiple_infinite_volumes)
     bboxes_.push_back(FastBBox::from_infinite());
     bboxes_.push_back(FastBBox::from_infinite());
 
-    BIHBuilder bih(&storage_);
-    auto bih_tree = bih(std::move(bboxes_));
+    BIHBuilder build(&storage_);
+    auto bih_tree = build(std::move(bboxes_));
 
     ASSERT_EQ(0, bih_tree.inner_nodes.size());
     ASSERT_EQ(1, bih_tree.leaf_nodes.size());
@@ -441,6 +440,21 @@ TEST_F(BIHBuilderTest, multiple_infinite_volumes)
               storage_.local_volume_ids[bih_tree.inf_volids[1]]);
 }
 
+TEST_F(BIHBuilderTest, TEST_IF_CELERITAS_DEBUG(semi_finite_volumes))
+{
+    constexpr auto inff = std::numeric_limits<fast_real_type>::infinity();
+    bboxes_.push_back(FastBBox{{0, 0, -inff}, {1, 1, inff}});
+    bboxes_.push_back(FastBBox{{1, 0, -inff}, {2, 1, inff}});
+    bboxes_.push_back(FastBBox{{2, 0, -inff}, {4, 1, inff}});
+    bboxes_.push_back(FastBBox{{4, 0, -inff}, {8, 1, inff}});
+    bboxes_.push_back(FastBBox{{0, -inff, -inff}, {1, inff, inff}});
+    bboxes_.push_back(FastBBox{{-inff, 0, 0}, {inff, 1, 1}});
+
+    BIHBuilder build(&storage_);
+    EXPECT_THROW(build(std::move(bboxes_)), DebugError);
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
+}  // namespace detail
 }  // namespace celeritas

@@ -134,13 +134,6 @@ class UnitProto : public ProtoInterface
         // True if fully defined
         explicit inline operator bool() const;
     };
-
-    //! Whether to implicitly delete the exterior boundary
-    enum class ExteriorBoundary : bool
-    {
-        is_global,  //!< Explicit: bounding object remains
-        is_daughter  //!< Implicit: interior is replaced with "true"
-    };
     //!@}
 
   public:
@@ -162,7 +155,7 @@ class UnitProto : public ProtoInterface
     //// HELPER FUNCTIONS ////
 
     // Construct a standalone unit for testing and external interface
-    Unit build(Tol const& tol, ExteriorBoundary ext) const;
+    Unit build(Tol const& tol, BBox const& bbox) const;
 
   private:
     Input input_;

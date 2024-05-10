@@ -26,8 +26,18 @@ namespace test
  */
 void ObjectTestBase::reset()
 {
+    this->reset(BBox::from_infinite());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a new unit and unit builder with a known maximum extent.
+ */
+void ObjectTestBase::reset(BBox const& extents)
+{
     unit_ = std::make_shared<Unit>();
-    builder_ = std::make_shared<UnitBuilder>(unit_.get(), this->tolerance());
+    builder_ = std::make_shared<UnitBuilder>(
+        unit_.get(), this->tolerance(), extents);
 }
 
 //---------------------------------------------------------------------------//
