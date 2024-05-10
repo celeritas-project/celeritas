@@ -39,7 +39,7 @@ struct CoulombParameters
     explicit CELER_FUNCTION operator bool() const
     {
         return costheta_limit >= -1 && costheta_limit <= 1
-               && screening_factor > 0 && a_sq_factor > 0;
+               && screening_factor > 0 && a_sq_factor >= 0;
     }
 };
 
