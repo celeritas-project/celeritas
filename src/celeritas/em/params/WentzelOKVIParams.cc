@@ -39,7 +39,7 @@ WentzelOKVIParams::from_import(ImportData const& data,
     // scattering and the Wentzel VI models are present
     Options opts;
     opts.is_combined = wentzel && coulomb;
-    opts.polar_angle_limit = [&] {
+    opts.polar_angle_limit = [&]() -> real_type {
         if (!coulomb)
         {
             // Set the maximum scattering angle for Wentzel VI MSC
