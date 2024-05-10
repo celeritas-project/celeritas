@@ -53,7 +53,6 @@ BIHPartitioner::Partition
 BIHPartitioner::operator()(VecIndices const& indices) const
 {
     CELER_EXPECT(*this);
-    CELER_EXPECT(!indices.empty());
 
     Partition best_partition;
     real_type best_cost = std::numeric_limits<real_type>::infinity();
@@ -130,7 +129,7 @@ BIHPartitioner::make_partition(VecIndices const& indices,
                                Axis axis,
                                real_type position) const
 {
-    CELER_EXPECT(!indices.empty());
+    CELER_EXPECT(indices.size() > 1);
 
     using Edge = BIHInnerNode::Edge;
 

@@ -104,7 +104,6 @@ apply_transform(VariantTransform const& transform, BBox const& bbox)
 [[nodiscard]] VariantTransform calc_inverse(VariantTransform const& transform)
 {
     CELER_ASSUME(!transform.valueless_by_exception());
-    // Dispatch to bounding box utils or "monostate" case above
     return std::visit(
         [](auto const& t) -> VariantTransform { return t.calc_inverse(); },
         transform);

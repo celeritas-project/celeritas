@@ -42,7 +42,7 @@ inline bool is_infinite(BoundingBox<T> const& bbox)
 
 //---------------------------------------------------------------------------//
 /*!
- * Check if a bounding box is finite.
+ * Check if a bounding box has no infinities.
  *
  * \pre The bounding box cannot be null
  */
