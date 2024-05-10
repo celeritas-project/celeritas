@@ -271,7 +271,7 @@ CELER_FUNCTION real_type WentzelDistribution::nuclear_form_prefactor() const
  *
  * The probability is given in [Fern] eqn 88 and is nomalized on the interval
  * \f$ cos\theta \in [\cos\theta_{min}, \cos\theta_{max}] \f$. The sampling
- * function for \f$ \mu = \frac{1}{2}(1 - \cos\theta) \$ is
+ * function for \f$ \mu = \frac{1}{2}(1 - \cos\theta) \f$ is
  * \f[
    \mu = \mu_1 + \frac{(A + \mu_1) \xi (\mu_2 - \mu_1)}{A + \mu_2 - \xi (\mu_2
    - \mu_1)},
