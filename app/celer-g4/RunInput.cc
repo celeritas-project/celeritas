@@ -51,7 +51,8 @@ RunInput::operator bool() const
            && physics_list < PhysicsListSelection::size_
            && (field == no_field() || field_options)
            && ((num_track_slots > 0 && max_steps > 0
-                && initializer_capacity > 0 && secondary_stack_factor > 0)
+                && initializer_capacity > 0 && secondary_stack_factor > 0
+                && auto_flush > 0 && auto_flush <= initializer_capacity)
                || SharedParams::CeleritasDisabled())
            && (step_diagnostic_bins > 0 || !step_diagnostic);
 }

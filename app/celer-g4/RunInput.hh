@@ -67,6 +67,7 @@ struct RunInput
     size_type max_steps{unspecified};
     size_type initializer_capacity{};
     real_type secondary_stack_factor{};
+    size_type auto_flush{};
     bool sync{false};
     bool default_stream{false};  //!< Launch all kernels on the default stream
 

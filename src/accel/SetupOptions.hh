@@ -126,6 +126,8 @@ struct SetupOptions
     size_type initializer_capacity{};
     //! At least the average number of secondaries per track slot
     real_type secondary_stack_factor{3.0};
+    //! Number of tracks to buffer before offloading
+    size_type auto_flush{};
     //!@}
 
     //! Set the number of streams (defaults to run manager # threads)
