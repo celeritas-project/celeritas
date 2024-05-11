@@ -467,8 +467,8 @@ void GenTrap::build(ConvexSurfaceBuilder& insert_surface) const
             // Determine coefficients
             auto alo = jlo[1] - ilo[1];
             auto ahi = jhi[1] - ihi[1];
-            auto blo = -(jlo[0] - ilo[0]);
-            auto bhi = -(jhi[0] - ihi[0]);
+            auto blo = ilo[0] - jlo[0];
+            auto bhi = ihi[0] - jhi[0];
             auto clo = jlo[0] * ilo[1] - ilo[0] * jlo[1];
             auto chi = jhi[0] * ihi[1] - ihi[0] * jhi[1];
 
