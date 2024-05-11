@@ -429,28 +429,6 @@ GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
         std::reverse(lo_.begin(), lo_.end());
         std::reverse(hi_.begin(), hi_.end());
     }
-
-    // TODO: Temporarily ensure that all side faces are planar
-    for (auto i : range(lo_.size()))
-    {
-        auto j = (i + 1) % lo_.size();
-        Real3 const ilo{lo_[i][0], lo_[i][1], -hz_};
-        Real3 const jlo{lo_[j][0], lo_[j][1], -hz_};
-        Real3 const jhi{hi_[j][0], hi_[j][1], hz_};
-        Real3 const ihi{hi_[i][0], hi_[i][1], hz_};
-
-        // Calculate outward normal by taking the cross product of the edges
-        auto lo_normal = make_unit_vector(cross_product(jlo - ilo, ihi - ilo));
-        auto hi_normal = make_unit_vector(cross_product(ihi - jhi, jlo - jhi));
-
-        // *Temporarily* throws if a side face is not planar
-        CELER_VALIDATE(
-            soft_equal(dot_product(lo_normal, hi_normal), real_type{1}),
-            << "non-planar face " << i << " on GenTrap: lower left normal is "
-            << repr(lo_normal) << " and upper right normal is "
-            << repr(hi_normal) << ": coordinates are lo = " << repr(lo_)
-            << ", hi = " << repr(hi));
-    }
 }
 
 //---------------------------------------------------------------------------//
@@ -471,13 +449,42 @@ void GenTrap::build(ConvexSurfaceBuilder& insert_surface) const
         auto j = (i + 1) % lo_.size();
         Real3 const ilo{lo_[i][0], lo_[i][1], -hz_};
         Real3 const jlo{lo_[j][0], lo_[j][1], -hz_};
+        Real3 const jhi{hi_[j][0], hi_[j][1], hz_};
         Real3 const ihi{hi_[i][0], hi_[i][1], hz_};
 
         // Calculate outward normal by taking the cross product of the edges
-        auto normal = make_unit_vector(cross_product(jlo - ilo, ihi - ilo));
+        auto lo_normal = make_unit_vector(cross_product(jlo - ilo, ihi - ilo));
+        auto hi_normal = make_unit_vector(cross_product(ihi - jhi, jlo - jhi));
 
-        // Insert the plane
-        insert_surface(Sense::inside, Plane{normal, ilo});
+        // Insert appropriate service, planar or "twisted"
+        if (soft_equal(dot_product(lo_normal, hi_normal), real_type{1}))
+        {
+            // Insert a real plane
+            insert_surface(Sense::inside, Plane{lo_normal, ilo});
+        }
+        else
+        {
+            // Determine coefficients
+            auto alo = jlo[1] - ilo[1];
+            auto ahi = jhi[1] - ihi[1];
+            auto blo = -(jlo[0] - ilo[0]);
+            auto bhi = -(jhi[0] - ihi[0]);
+            auto clo = jlo[0] * ilo[1] - ilo[0] * jlo[1];
+            auto chi = jhi[0] * ihi[1] - ihi[0] * jhi[1];
+
+            Real3 abc{0, 0, 0}, def{0, 0, 0}, ghi{0, 0, 0};
+            auto factor = 0.5 / hz_;
+            def[0] = (ahi - alo) * factor;
+            def[1] = (bhi - blo) * factor;
+            ghi[2] = (chi - clo) * factor;
+            ghi[0] = 0.5 * (alo + ahi);
+            ghi[1] = 0.5 * (blo + bhi);
+            auto offset = 0.5 * (clo + chi);
+
+            // Insert a twisted plane
+            insert_surface(Sense::inside,
+                           GeneralQuadric{abc, def, ghi, offset});
+        }
     }
 }
 
