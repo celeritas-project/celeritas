@@ -473,13 +473,14 @@ void GenTrap::build(ConvexSurfaceBuilder& insert_surface) const
             auto chi = jhi[0] * ihi[1] - ihi[0] * jhi[1];
 
             Real3 abc{0, 0, 0}, def{0, 0, 0}, ghi{0, 0, 0};
-            auto factor = 0.5 / hz_;
+            constexpr real_type half = 0.5;
+            auto factor = half / hz_;
             def[0] = (ahi - alo) * factor;
             def[1] = (bhi - blo) * factor;
             ghi[2] = (chi - clo) * factor;
-            ghi[0] = 0.5 * (alo + ahi);
-            ghi[1] = 0.5 * (blo + bhi);
-            auto offset = 0.5 * (clo + chi);
+            ghi[0] = (alo + ahi) * half;
+            ghi[1] = (blo + bhi) * half;
+            auto offset = half * (clo + chi);
 
             // Insert a twisted plane
             insert_surface(Sense::inside,
