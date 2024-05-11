@@ -741,7 +741,6 @@ TEST_F(GenTrapTest, full)
 
 TEST_F(GenTrapTest, full2)
 {
-    // General non-planar GenTrap with 'twisted' faces is not yet implemented
     auto result = this->test(GenTrap::from_trap(
         40, Turn{0.125}, Turn{0}, {20, 10, 10, 0.1}, {20, 10, 15, -0.2}));
 
