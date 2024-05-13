@@ -71,6 +71,10 @@ TEST_F(TransformationTest, construction)
         EXPECT_VEC_SOFT_EQ(
             (Real3{2, -4, 0.1}),
             trinv.transform_down(tr.transform_down(Real3{2, -4, 0.1})));
+
+        auto trinv2 = tr.calc_inverse();
+        EXPECT_EQ(trinv.translation(), trinv2.translation());
+        EXPECT_EQ(trinv.rotation(), trinv2.rotation());
     }
 }
 

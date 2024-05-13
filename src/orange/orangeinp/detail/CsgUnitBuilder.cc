@@ -10,8 +10,10 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StreamableVariant.hh"
+#include "orange/OrangeData.hh"
 #include "orange/transform/TransformIO.hh"
 #include "orange/transform/TransformSimplifier.hh"
+
 namespace celeritas
 {
 namespace orangeinp
@@ -20,11 +22,16 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with an empty unit (which doesn't yet have any elements).
+ * Construct with an empty unit, tolerance settings, and a priori extents.
+ *
+ * The unit should have no elements to start with.
  */
-CsgUnitBuilder::CsgUnitBuilder(CsgUnit* u, Tolerance<> const& tol)
+CsgUnitBuilder::CsgUnitBuilder(CsgUnit* u,
+                               Tolerance<> const& tol,
+                               BBox const& extents)
     : unit_{u}
     , tol_{tol}
+    , bbox_{extents}
     , insert_surface_{&unit_->surfaces, tol}
     , insert_transform_{&unit_->transforms}
 {
@@ -120,6 +127,29 @@ LocalVolumeId CsgUnitBuilder::insert_volume(NodeId n)
 
     CELER_ENSURE(*unit_);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Fill LocalVolumeId{0} with "exterior" to adjust the interior region.
+ *
+ * This should be called to process the exterior volume *immediately* after its
+ * creation.
+ */
+void CsgUnitBuilder::fill_exterior()
+{
+    CELER_EXPECT(unit_->volumes.size() == 1);
+    static_assert(orange_exterior_volume == LocalVolumeId{0});
+
+    NodeId n = unit_->volumes[orange_exterior_volume.get()];
+    auto iter = unit_->regions.find(n);
+    CELER_ASSERT(iter != unit_->regions.end());
+    CELER_VALIDATE(!iter->second.bounds.negated,
+                   << "exterior volume is inside out");
+
+    // TODO handle edge case where exterior is the composite of two volumes and
+    // we need to adjust those volumes' bboxes?
+    bbox_ = calc_intersection(bbox_, iter->second.bounds.exterior);
 }
 
 //---------------------------------------------------------------------------//

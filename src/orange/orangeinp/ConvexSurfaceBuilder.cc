@@ -58,6 +58,10 @@ ConvexSurfaceBuilder::ConvexSurfaceBuilder(UnitBuilder* ub, State* state)
 {
     CELER_EXPECT(ub_ && state_);
     CELER_EXPECT(*state_);
+
+    // Truncate the region's global bounding box to the unit's global box
+    state_->global_bzone.exterior = ub->extents();
+    state_->global_bzone.interior = ub->extents();
 }
 
 //---------------------------------------------------------------------------//

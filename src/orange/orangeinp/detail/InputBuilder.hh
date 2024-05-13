@@ -31,6 +31,10 @@ namespace detail
  * This is passed to \c ProtoInterface::build. It acts like a two-way map
  * between universe IDs and pointers to Proto interfaces. It \em must not
  * exceed the lifetime of any of the protos.
+ *
+ * The bounding box for a universe starts as "null" and is expanded by the
+ * universes that use it: this allows, for example, different masked components
+ * of an array to be used in multiple universes.
  */
 class InputBuilder
 {
@@ -53,12 +57,19 @@ class InputBuilder
     //! Get the next universe ID
     UniverseId next_id() const { return UniverseId(inp_->universes.size()); }
 
+    // Get the bounding box of a universe
+    inline BBox const& bbox(UniverseId) const;
+
+    // Expand the bounding box of a universe
+    void expand_bbox(UniverseId, BBox const& local_box);
+
     // Construct a universe (to be called *once* per proto)
     void insert(VariantUniverseInput&& unit);
 
   private:
     OrangeInput* inp_;
     ProtoMap const& protos_;
+    std::vector<BBox> bboxes_;
 };
 
 //---------------------------------------------------------------------------//
@@ -70,6 +81,16 @@ class InputBuilder
 UniverseId InputBuilder::find_universe_id(ProtoInterface const* p) const
 {
     return protos_.find(p);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the bounding box of a universe.
+ */
+BBox const& InputBuilder::bbox(UniverseId uid) const
+{
+    CELER_EXPECT(uid < bboxes_.size());
+    return bboxes_[uid.get()];
 }
 
 //---------------------------------------------------------------------------//
