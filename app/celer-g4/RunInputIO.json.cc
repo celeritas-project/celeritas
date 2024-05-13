@@ -72,6 +72,14 @@ void from_json(nlohmann::json const& j, RunInput& v)
     RI_LOAD_OPTION(secondary_stack_factor);
     RI_LOAD_OPTION(sync);
     RI_LOAD_OPTION(default_stream);
+    if (auto iter = j.find("auto_flush"); iter != j.end())
+    {
+        iter->get_to(v.auto_flush);
+    }
+    else
+    {
+        v.auto_flush = v.num_track_slots;
+    }
 
     RI_LOAD_OPTION(physics_list);
     RI_LOAD_OPTION(physics_options);
@@ -162,6 +170,7 @@ void to_json(nlohmann::json& j, RunInput const& v)
     RI_SAVE_OPTION(cuda_heap_size);
     RI_SAVE(sync);
     RI_SAVE(default_stream);
+    RI_SAVE(auto_flush);
 
     RI_SAVE(physics_list);
     if (v.physics_list == PhysicsListSelection::geant_physics_list)
