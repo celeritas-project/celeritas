@@ -20,6 +20,7 @@
 
 #include "OrangeGeoTestBase.hh"
 #include "TestMacros.hh"
+#include "celeritas_test.hh"
 
 namespace celeritas
 {

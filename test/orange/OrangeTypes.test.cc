@@ -18,7 +18,6 @@
 #include "corecel/math/Algorithms.hh"
 
 #include "celeritas_test.hh"
-// #include "OrangeTypes.test.hh"
 
 namespace celeritas
 {
