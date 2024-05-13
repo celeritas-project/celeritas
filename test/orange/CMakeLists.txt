@@ -59,7 +59,7 @@ celeritas_add_test(RaytraceImager.test.cc GPU)
 celeritas_add_test(Orange.test.cc)
 celeritas_add_test(OrangeGeant.test.cc ${_needs_g4org})
 celeritas_add_test(OrangeJson.test.cc ${_needs_json})
-celeritas_add_device_test(OrangeShift)
+celeritas_add_device_test(OrangeShift ${_needs_json})
 
 celeritas_add_test(detail/UniverseIndexer.test.cc)
 
