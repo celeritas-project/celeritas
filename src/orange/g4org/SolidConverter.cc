@@ -114,9 +114,8 @@ SolidEnclosedAngle get_polar_wedge(S const& solid)
     CELER_EXPECT(
         is_soft_unit_vector(Array<double, 3>{axis.x(), axis.y(), axis.z()}));
 
-    double const theta = 1 / std::cos(axis.z());
-    double const phi = std::atan2(axis.x() / axis.z(), axis.y() / axis.z());
-
+    double const theta = std::acos(axis.z());
+    double const phi = std::atan2(axis.y(), axis.x());
     return {native_value_to<Turn>(theta), native_value_to<Turn>(phi)};
 }
 

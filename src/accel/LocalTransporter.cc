@@ -50,7 +50,8 @@ namespace celeritas
  */
 LocalTransporter::LocalTransporter(SetupOptions const& options,
                                    SharedParams const& params)
-    : auto_flush_(options.max_num_tracks)
+    : auto_flush_(options.auto_flush ? options.auto_flush
+                                     : options.max_num_tracks)
     , max_steps_(options.max_steps)
     , dump_primaries_{params.offload_writer()}
     , hit_manager_{params.hit_manager()}

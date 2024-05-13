@@ -9,6 +9,7 @@
 
 #include <memory>
 
+#include "geocel/BoundingBox.hh"
 #include "orange/OrangeTypes.hh"
 
 #include "Test.hh"
@@ -57,6 +58,9 @@ class ObjectTestBase : public ::celeritas::test::Test
 
     // Create a new unit and unit builder
     void reset();
+
+    // Create a new unit and unit builder with a known maximum extent
+    void reset(BBox const& extents);
 
     // Construct a volume
     LocalVolumeId build_volume(ObjectInterface const& s);
