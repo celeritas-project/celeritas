@@ -34,7 +34,7 @@ namespace celeritas
         grid_ids.push_back(insert(physics_vector[material.get()]));
    \endcode
  */
-template<typename Index>
+template<class Index>
 class GenericGridInserter
 {
   public:
@@ -73,7 +73,7 @@ class GenericGridInserter
 /*!
  * Construct with a reference to mutable host data.
  */
-template<typename Index>
+template<class Index>
 GenericGridInserter<Index>::GenericGridInserter(RealCollection* real_data,
                                                 GenericGridCollection* grid)
     : grid_builder_(real_data), grids_(grid)
@@ -88,7 +88,7 @@ GenericGridInserter<Index>::GenericGridInserter(RealCollection* real_data,
  * Returns the id of the inserted grid, or an empty id if the vector is
  * empty.
  */
-template<typename Index>
+template<class Index>
 auto GenericGridInserter<Index>::operator()(ImportPhysicsVector const& vec)
     -> Index
 {
@@ -100,7 +100,7 @@ auto GenericGridInserter<Index>::operator()(ImportPhysicsVector const& vec)
 /*!
  * Add a grid of generic data with linear interpolation to the collection.
  */
-template<typename Index>
+template<class Index>
 auto GenericGridInserter<Index>::operator()(SpanConstFlt grid,
                                             SpanConstFlt values) -> Index
 {
@@ -112,7 +112,7 @@ auto GenericGridInserter<Index>::operator()(SpanConstFlt grid,
 /*!
  * Add a grid of generic data with linear interpolation to the collection.
  */
-template<typename Index>
+template<class Index>
 auto GenericGridInserter<Index>::operator()(SpanConstDbl grid,
                                             SpanConstDbl values) -> Index
 {
@@ -126,7 +126,7 @@ auto GenericGridInserter<Index>::operator()(SpanConstDbl grid,
  *
  * Useful for when there's no imported grid present for a given material.
  */
-template<typename Index>
+template<class Index>
 auto GenericGridInserter<Index>::operator()() -> Index
 {
     return grids_.push_back({});
