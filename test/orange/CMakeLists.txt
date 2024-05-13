@@ -30,6 +30,14 @@ if(CELERITAS_USE_Geant4)
   celeritas_get_g4libs(_g4_geo_libs geometry)
 endif()
 
+if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
+  set(_use_g4org TRUE)
+  set(_needs_g4org)
+else()
+  set(_use_g4org FALSE)
+  set(_needs_g4org DISABLE)
+endif()
+
 #-----------------------------------------------------------------------------#
 # SETUP
 #-----------------------------------------------------------------------------#
@@ -45,8 +53,13 @@ celeritas_setup_tests(SERIAL PREFIX orange
 celeritas_add_test(BoundingBoxUtils.test.cc)
 celeritas_add_test(MatrixUtils.test.cc)
 celeritas_add_test(OrangeTypes.test.cc)
-celeritas_add_device_test(Orange)
 celeritas_add_test(RaytraceImager.test.cc GPU)
+
+# High level
+celeritas_add_test(Orange.test.cc)
+celeritas_add_test(OrangeGeant.test.cc ${_needs_g4org})
+celeritas_add_test(OrangeJson.test.cc ${_needs_json})
+celeritas_add_device_test(OrangeShift)
 
 celeritas_add_test(detail/UniverseIndexer.test.cc)
 
@@ -128,7 +141,7 @@ celeritas_add_test(univ/detail/SenseCalculator.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Geant4 construction
-if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
+if(_use_g4org)
   set(CELERITASTEST_PREFIX orange/g4org)
 
   celeritas_add_test(g4org/Converter.test.cc)

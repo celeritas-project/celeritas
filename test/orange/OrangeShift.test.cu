@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/Orange.test.cu
+//! \file orange/OrangeShift.test.cu
 //---------------------------------------------------------------------------//
 
 // Simply include these because SCALE does too :eyeroll:
