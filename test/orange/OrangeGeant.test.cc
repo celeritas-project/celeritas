@@ -5,22 +5,14 @@
 //---------------------------------------------------------------------------//
 //! \file orange/OrangeGeant.test.cc
 //---------------------------------------------------------------------------//
-#include <limits>
-#include <type_traits>
+#include <string>
 
-#include "corecel/math/Algorithms.hh"
-#include "geocel/Types.hh"
+#include "celeritas_config.h"
+#include "corecel/Types.hh"
 #include "geocel/detail/LengthUnits.hh"
-#include "orange/OrangeInput.hh"
-#include "orange/OrangeParams.hh"
-#include "orange/OrangeParamsOutput.hh"
-#include "orange/OrangeTrackView.hh"
-#include "orange/OrangeTypes.hh"
-#include "celeritas/Constants.hh"
 
 #include "OrangeGeoTestBase.hh"
 #include "TestMacros.hh"
-#include "celeritas_test.hh"
 
 namespace celeritas
 {
