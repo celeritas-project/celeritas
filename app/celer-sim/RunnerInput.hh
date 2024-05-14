@@ -53,9 +53,8 @@ struct RunnerInput
     std::string event_file;  //!< Path to input event data
 
     // Optional setup options when event_file is a ROOT file that should be
-    // used for sampling primaries instead of simply reading events
-    size_type num_events{};  //!< Events to sample from ROOT file
-    size_type primaries_per_event{};  //!< Primaries to sample from ROOT file
+    // used for sampling combinations of events as opposed to just reading them
+    size_type num_clumped_events{};  //!< Events to be joined from ROOT file
 
     // Optional setup options for generating primaries programmatically
     PrimaryGeneratorOptions primary_options;

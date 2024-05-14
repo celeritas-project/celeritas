@@ -55,7 +55,7 @@
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "celeritas/phys/Process.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
-#include "celeritas/phys/RootPrimaryGenerator.hh"
+#include "celeritas/phys/RootEventSampler.hh"
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
@@ -474,14 +474,11 @@ Runner::build_events(RunnerInput const& inp, SPConstParticles particles)
     }
     else if (ends_with(inp.event_file, ".root"))
     {
-        if (inp.num_events > 0 && inp.primaries_per_event > 0)
+        if (inp.num_clumped_events > 0)
         {
-            // Sampling options were given, use ROOT primary sampler
-            return read_events(RootPrimaryGenerator(inp.event_file,
-                                                    particles,
-                                                    inp.num_events,
-                                                    inp.primaries_per_event,
-                                                    inp.seed));
+            // Sampling option is valid; use ROOT event sampler
+            return read_events(RootEventSampler(
+                inp.event_file, particles, inp.num_clumped_events, inp.seed));
         }
         else
         {
@@ -611,8 +608,7 @@ auto Runner::get_transporter(StreamId stream) -> TransporterBase&
 /*!
  * Get an already-constructed transporter for the given stream.
  */
-auto Runner::get_transporter_ptr(StreamId stream) const
-    -> TransporterBase const*
+auto Runner::get_transporter_ptr(StreamId stream) const -> TransporterBase const*
 {
     CELER_EXPECT(stream < transporters_.size());
     return transporters_[stream.get()].get();
