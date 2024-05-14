@@ -487,6 +487,32 @@ void GenTrap::build(ConvexSurfaceBuilder& insert_surface) const
                            GeneralQuadric{abc, def, ghi, offset});
         }
     }
+
+    // Construct exterior bounding box
+    // TODO: general function for creating bbox from a convex hull
+    BBox exterior_bbox;
+    VecReal2 const* const polys[] = {&lo_, &hi_};
+    for (auto i : range(2))
+    {
+        for (Real2 const& xy : *polys[i])
+        {
+            for (auto b : {Bound::lo, Bound::hi})
+            {
+                for (auto ax : {Axis::x, Axis::y})
+                {
+                    exterior_bbox.grow(b, ax, xy[to_int(ax)]);
+                }
+            }
+        }
+    }
+    for (auto b : {Bound::lo, Bound::hi})
+    {
+        for (real_type p : {-hz_, hz_})
+        {
+            exterior_bbox.grow(b, Axis::z, p);
+        }
+    }
+    insert_surface(Sense::inside, exterior_bbox);
 }
 
 //---------------------------------------------------------------------------//
