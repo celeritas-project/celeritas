@@ -39,6 +39,7 @@
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
+
 #include "detail/HitManager.hh"
 #include "detail/OffloadWriter.hh"
 
@@ -189,10 +190,6 @@ void LocalTransporter::Flush()
     {
         return;
     }
-
-    CELER_LOG_LOCAL(info) << "Transporting " << buffer_.size()
-                          << " tracks from event " << event_id_.unchecked_get()
-                          << " with Celeritas";
 
     if (dump_primaries_)
     {
