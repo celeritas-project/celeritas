@@ -764,6 +764,67 @@ TEST_F(GenTrapTest, full2)
     EXPECT_VEC_SOFT_EQ((Real3{54, 20, 40}), result.exterior.upper());
 }
 
+TEST_F(GenTrapTest, adjacent_twisted)
+{
+    /* Lower polygons:
+     *
+     * x=-1      x=1
+     * +----+----+ y=1
+     * |    |    |
+     * |  L |  R |
+     * |    |    |
+     * |    |    |
+     * +----+----+ y=-1
+     *
+     *    x=-0.5
+     * +--+------+ y=1
+     * |   \     |
+     * |  L \  R |
+     * |     \   |
+     * |      \  |
+     * +-------+-+ y=-1
+     *         x=0.5
+     */
+    {
+        // Left
+        auto result
+            = this->test(GenTrap(1,
+                                 {{-1, -1}, {0, -1}, {0, 1}, {-1, 1}},
+                                 {{-1, -1}, {0.5, -1}, {-0.5, 1}, {-1, 1}}));
+
+        static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+
+        EXPECT_EQ(expected_node, result.node);
+        EXPECT_FALSE(result.interior) << result.interior;
+        EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{0.5, 1, 1}), result.exterior.upper());
+    }
+    {
+        // Right
+        auto result
+            = this->test(GenTrap(1,
+                                 {{0, -1}, {1, -1}, {1, 1}, {0, 1}},
+                                 {{0.5, -1}, {1, -1}, {1, 1}, {-0.5, 1}}));
+
+        static char const expected_node[] = "all(+0, -1, +2, -4, -6, -7)";
+        static char const* const expected_surfaces[]
+            = {"Plane: z=-1",
+               "Plane: z=1",
+               "Plane: y=-1",
+               "GQuadric: {0,0,0} {0,0.5,0} {2,0.5,0} 0",
+               "Plane: y=1",
+               "Plane: x=-1",
+               "Plane: x=1",
+               "GQuadric: {0,0,0} {0,-0.5,0} {-2,-0.5,0} 0"};
+
+        EXPECT_EQ(expected_node, result.node);
+        EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+        EXPECT_FALSE(result.interior) << result.interior;
+        EXPECT_VEC_SOFT_EQ((Real3{-0.5, -1, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{1, 1, 1}), result.exterior.upper());
+    }
+}
+
 //---------------------------------------------------------------------------//
 // INFWEDGE
 //---------------------------------------------------------------------------//
