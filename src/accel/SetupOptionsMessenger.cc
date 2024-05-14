@@ -193,6 +193,9 @@ SetupOptionsMessenger::SetupOptionsMessenger(SetupOptions* options)
     add_cmd(&options->auto_flush,
             "autoFlush",
             "Number of tracks to buffer before offloading");
+    add_cmd(&options->max_field_substeps,
+            "maxFieldSubsteps",
+            "Limit on substeps in the field propagator");
 
     directories_.emplace_back(new CelerDirectory(
         "/celer/detector/", "Celeritas sensitive detector setup options"));

@@ -139,6 +139,11 @@ struct SetupOptions
     //!@}
 
     //!@{
+    //! \name Field options
+    short int max_field_substeps{100};
+    //!@}
+
+    //!@{
     //! \name Sensitive detector options
     SDSetupOptions sd;
     //!@}
