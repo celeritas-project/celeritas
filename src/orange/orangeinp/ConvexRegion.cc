@@ -12,6 +12,7 @@
 #include "corecel/Constants.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/io/Repr.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/Types.hh"
@@ -34,7 +35,6 @@ namespace orangeinp
 {
 namespace
 {
-using Real2 = Array<real_type, 2>;
 //---------------------------------------------------------------------------//
 /*!
  * Create a z-aligned bounding box infinite along z and symmetric in r.
@@ -316,8 +316,7 @@ void Ellipsoid::output(JsonPimpl* j) const
 // GENTRAP
 //---------------------------------------------------------------------------//
 /*!
- * Construct a TRD from 5 half-lengths: one half-height, {hx1,hy1} for a in -z,
- * and {hx2,hy2} in +z
+ * Construct from two simple, centered trapezoids.
  */
 GenTrap GenTrap::from_trd(real_type halfz, Real2 const& lo, Real2 const& hi)
 {
@@ -338,56 +337,60 @@ GenTrap GenTrap::from_trd(real_type halfz, Real2 const& lo, Real2 const& hi)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct from half Z height and 1-4 vertices for top and bottom planes.
+ * Construct from skewed trapezoids.
+ *
+ * For details on construction, see:
+ * https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/Detector/Geometry/geomSolids.html#constructed-solid-geometry-csg-solids
+ *
+ * \arg hz Half the distance between the faces
+ * \arg theta Polar angle of line between center of bases
+ * \arg phi Azimuthal angle of line between center of bases
+ * \arg lo Trapezoidal face at -hz
+ * \arg lo Trapezoidal face at +hz
  */
-GenTrap GenTrap::from_trap(real_type hz,
-                           real_type tan_theta,
-                           Turn const& phi,
-                           TrapFace const& lo,
-                           TrapFace const& hi)
+GenTrap GenTrap::from_trap(
+    real_type hz, Turn theta, Turn phi, TrapFace const& lo, TrapFace const& hi)
 {
-    // TrapFace is validated in its constructor
     CELER_VALIDATE(hz > 0, << "nonpositive half-height: " << hz);
+    CELER_VALIDATE(theta >= zero_quantity() && theta < Turn{0.25},
+                   << "invalid angle " << theta.value()
+                   << " [turns]: must be in the range [0, 0.25)");
 
-    CELER_VALIDATE(tan_theta >= 0, << "negative tan(theta): " << tan_theta);
+    // Calculate offset of faces from z axis
+    auto [dxdz_hz, dydz_hz] = [&]() -> std::pair<real_type, real_type> {
+        real_type cos_phi{}, sin_phi{};
+        sincos(phi, &sin_phi, &cos_phi);
+        real_type const tan_theta = std::tan(native_value_from(theta));
+        return {hz * tan_theta * cos_phi, hz * tan_theta * sin_phi};
+    }();
 
-    CELER_VALIDATE(phi >= zero_quantity() && phi < Turn{1.},
-                   << "invalid angle " << phi.value()
-                   << " [turns]: must be in the range [0, 1)");
-
-    for (TrapFace const* tf : {&lo, &hi})
+    // Construct points on faces
+    TrapFace const* const faces[] = {&lo, &hi};
+    Array<VecReal2, 2> points;
+    for (auto i : range(2))
     {
-        CELER_VALIDATE(tf->hx_lo_ > 0,
-                       << "nonpositive lower x half-edge: " << tf->hx_lo_);
-        CELER_VALIDATE(tf->hx_hi_ > 0,
-                       << "nonpositive upper x half-edge: " << tf->hx_hi_);
-        CELER_VALIDATE(tf->hy_ > 0,
-                       << "nonpositive y half-distance: " << tf->hy_);
+        TrapFace const& face = *faces[i];
+        CELER_VALIDATE(face.hx_lo > 0,
+                       << "nonpositive lower x half-edge: " << face.hx_lo);
+        CELER_VALIDATE(face.hx_hi > 0,
+                       << "nonpositive upper x half-edge: " << face.hx_hi);
+        CELER_VALIDATE(face.hy > 0,
+                       << "nonpositive y half-distance: " << face.hy);
+        CELER_VALIDATE(!std::isinf(face.tan_alpha),
+                       << "infinite trapezoidal shear: " << face.tan_alpha);
+
+        real_type const xoff = (i == 0 ? -dxdz_hz : dxdz_hz);
+        real_type const yoff = (i == 0 ? -dydz_hz : dydz_hz);
+        real_type const shear = face.tan_alpha * face.hy;
+
+        // Construct points counterclockwise from lower left
+        points[i] = {{xoff - shear - face.hx_lo, yoff - face.hy},
+                     {xoff - shear + face.hx_lo, yoff - face.hy},
+                     {xoff + shear + face.hx_hi, yoff + face.hy},
+                     {xoff + shear - face.hx_hi, yoff + face.hy}};
     }
-    real_type cos_phi{}, sin_phi{};
-    sincos(phi, &sin_phi, &cos_phi);
-    auto dxdz_hz = tan_theta * cos_phi * hz;
-    auto dydz_hz = tan_theta * sin_phi * hz;
 
-    auto hy1 = lo.hy_;
-    auto hx1 = lo.hx_lo_;
-    auto hx2 = lo.hx_hi_;
-    auto hy2 = hi.hy_;
-    auto hx3 = hi.hx_lo_;
-    auto hx4 = hi.hx_hi_;
-    auto dxdy_hy1 = lo.tan_alpha_ * lo.hy_;
-    auto dxdy_hy2 = hi.tan_alpha_ * hi.hy_;
-
-    VecReal2 lower = {{-dxdz_hz - dxdy_hy1 - hx1, -dydz_hz - hy1},
-                      {-dxdz_hz - dxdy_hy1 + hx1, -dydz_hz - hy1},
-                      {-dxdz_hz + dxdy_hy1 + hx2, -dydz_hz + hy1},
-                      {-dxdz_hz + dxdy_hy1 - hx2, -dydz_hz + hy1}};
-    VecReal2 upper = {{+dxdz_hz - dxdy_hy2 - hx3, +dydz_hz - hy2},
-                      {+dxdz_hz - dxdy_hy2 + hx3, +dydz_hz - hy2},
-                      {+dxdz_hz + dxdy_hy2 + hx4, +dydz_hz + hy2},
-                      {+dxdz_hz + dxdy_hy2 - hx4, +dydz_hz + hy2}};
-
-    return GenTrap{hz, std::move(lower), std::move(upper)};
+    return GenTrap{hz, std::move(points[0]), std::move(points[1])};
 }
 
 //---------------------------------------------------------------------------//
@@ -426,22 +429,6 @@ GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
         std::reverse(lo_.begin(), lo_.end());
         std::reverse(hi_.begin(), hi_.end());
     }
-
-    // TODO: Temporarily ensure that all side faces are planar
-    for (auto i : range(lo_.size()))
-    {
-        auto j = (i + 1) % lo_.size();
-        Real3 const a{lo_[i][0], lo_[i][1], -hz_};
-        Real3 const b{lo_[j][0], lo_[j][1], -hz_};
-        Real3 const c{hi_[j][0], hi_[j][1], hz_};
-        Real3 const d{hi_[i][0], hi_[i][1], hz_};
-
-        // *Temporarily* throws if a side face is not planar
-        if (!detail::is_planar(a, b, c, d))
-        {
-            CELER_NOT_IMPLEMENTED("non-planar side faces");
-        }
-    }
 }
 
 //---------------------------------------------------------------------------//
@@ -466,15 +453,39 @@ void GenTrap::build(ConvexSurfaceBuilder& insert_surface) const
         Real3 const ihi{hi_[i][0], hi_[i][1], hz_};
 
         // Calculate outward normal by taking the cross product of the edges
-        auto normal = make_unit_vector(cross_product(jlo - ilo, ihi - ilo));
-        // Assert that the surface is (for now!) not twisted
-        CELER_ASSERT(soft_equal(
-            dot_product(make_unit_vector(cross_product(ihi - jhi, jlo - jhi)),
-                        normal),
-            real_type{1}));
+        auto lo_normal = make_unit_vector(cross_product(jlo - ilo, ihi - ilo));
+        auto hi_normal = make_unit_vector(cross_product(ihi - jhi, jlo - jhi));
 
-        // Insert the plane
-        insert_surface(Sense::inside, Plane{normal, ilo});
+        // Insert appropriate service, planar or "twisted"
+        if (soft_equal(dot_product(lo_normal, hi_normal), real_type{1}))
+        {
+            // Insert a real plane
+            insert_surface(Sense::inside, Plane{lo_normal, ilo});
+        }
+        else
+        {
+            // Determine coefficients
+            auto alo = jlo[1] - ilo[1];
+            auto ahi = jhi[1] - ihi[1];
+            auto blo = ilo[0] - jlo[0];
+            auto bhi = ihi[0] - jhi[0];
+            auto clo = jlo[0] * ilo[1] - ilo[0] * jlo[1];
+            auto chi = jhi[0] * ihi[1] - ihi[0] * jhi[1];
+
+            Real3 abc{0, 0, 0}, def{0, 0, 0}, ghi{0, 0, 0};
+            constexpr real_type half = 0.5;
+            auto factor = half / hz_;
+            def[0] = (ahi - alo) * factor;
+            def[1] = (bhi - blo) * factor;
+            ghi[2] = (chi - clo) * factor;
+            ghi[0] = (alo + ahi) * half;
+            ghi[1] = (blo + bhi) * half;
+            auto offset = half * (clo + chi);
+
+            // Insert a twisted plane
+            insert_surface(Sense::inside,
+                           GeneralQuadric{abc, def, ghi, offset});
+        }
     }
 }
 
@@ -554,11 +565,9 @@ Parallelepiped::Parallelepiped(Real3 const& half_projs,
     CELER_VALIDATE(alpha_ > -Turn{0.25} && alpha_ < Turn{0.25},
                    << "invalid angle " << alpha_.value()
                    << " [turns]: must be in the range (-0.25, 0.25)");
-
     CELER_VALIDATE(theta_ >= zero_quantity() && theta_ < Turn{0.25},
                    << "invalid angle " << theta_.value()
                    << " [turns]: must be in the range [0, 0.25)");
-
     CELER_VALIDATE(phi_ >= zero_quantity() && phi_ < Turn{1.},
                    << "invalid angle " << phi_.value()
                    << " [turns]: must be in the range [0, 1)");

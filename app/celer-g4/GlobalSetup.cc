@@ -167,6 +167,7 @@ void GlobalSetup::ReadInput(std::string const& filename)
         options_->cuda_heap_size = input_.cuda_heap_size;
         options_->sync = input_.sync;
         options_->default_stream = input_.default_stream;
+        options_->auto_flush = input_.auto_flush;
     }
     else if (ends_with(filename, ".mac"))
     {

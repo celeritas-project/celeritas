@@ -69,7 +69,8 @@ class ConvexRegionTest : public ::celeritas::test::Test
 
   private:
     Unit unit_;
-    UnitBuilder unit_builder_{&unit_, Tol::from_relative(1e-4)};
+    UnitBuilder unit_builder_{
+        &unit_, Tol::from_relative(1e-4), BBox::from_infinite()};
 };
 
 //---------------------------------------------------------------------------//
@@ -431,12 +432,6 @@ TEST_F(GenTrapTest, construct)
     EXPECT_THROW(GenTrap::from_trd(3, {1, -1}, {2, 2}), RuntimeError);  // hy1<0
     EXPECT_THROW(GenTrap::from_trd(3, {1, 1}, {-2, 2}), RuntimeError);  // hx2<0
     EXPECT_THROW(GenTrap::from_trd(3, {1, 1}, {2, -2}), RuntimeError);  // hy2<0
-
-    // General non-planar GenTrap with 'twisted' faces is not yet implemented
-    EXPECT_THROW(GenTrap(3,
-                         {{-10, -10}, {-10, 10}, {10, 10}, {9, -11}},
-                         {{-10, -10}, {-10, 10}, {10, 10}, {10, -10}}),
-                 RuntimeError);
 }
 
 TEST_F(GenTrapTest, box_like)
@@ -620,8 +615,8 @@ TEST_F(GenTrapTest, trapezoid_ccw)
 
 TEST_F(GenTrapTest, trap_theta)
 {
-    auto result = this->test(
-        GenTrap::from_trap(40, 1, Turn{0}, {20, 10, 10, 0}, {20, 10, 10, 0}));
+    auto result = this->test(GenTrap::from_trap(
+        40, Turn{0.125}, Turn{0}, {20, 10, 10, 0}, {20, 10, 10, 0}));
 
     static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
     static char const* const expected_surfaces[]
@@ -642,7 +637,7 @@ TEST_F(GenTrapTest, trap_theta)
 TEST_F(GenTrapTest, trap_thetaphi)
 {
     auto result = this->test(GenTrap::from_trap(
-        40, 1, Turn{0.25}, {20, 10, 10, 0}, {20, 10, 10, 0}));
+        40, Turn{0.125}, Turn{0.25}, {20, 10, 10, 0}, {20, 10, 10, 0}));
 
     static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
     static char const* const expected_surfaces[]
@@ -660,10 +655,36 @@ TEST_F(GenTrapTest, trap_thetaphi)
     EXPECT_VEC_SOFT_EQ((Real3{10, inf, 40}), result.exterior.upper());
 }
 
+TEST_F(GenTrapTest, trap_g4)
+{
+    constexpr Turn degree{real_type{1} / 360};
+    real_type tan_alpha = std::tan(15 * native_value_from(degree));
+
+    auto result = this->test(GenTrap::from_trap(4,
+                                                5 * degree,
+                                                10 * degree,
+                                                {2, 1, 1, tan_alpha},
+                                                {3, 1.5, 1.5, tan_alpha}));
+    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-4",
+           "Plane: z=4",
+           "Plane: n={0,0.99403,0.10915}, d=-2.4851",
+           "Plane: n={0.95664,-0.25633,-0.13832}, d=1.1958",
+           "Plane: n={0,0.99032,-0.13883}, d=2.4758",
+           "Plane: n={0.96575,-0.25877,-0.018918}, d=-1.2072"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -4}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 4}), result.exterior.upper());
+}
+
 TEST_F(GenTrapTest, trap_full)
 {
     auto result = this->test(GenTrap::from_trap(
-        40, 1, Turn{0.125}, {20, 10, 10, 0.1}, {20, 10, 10, 0.1}));
+        40, Turn{0.125}, Turn{0.125}, {20, 10, 10, 0.1}, {20, 10, 10, 0.1}));
 
     static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
     static char const* const expected_surfaces[]
@@ -697,11 +718,46 @@ TEST_F(GenTrapTest, DISABLED_tetrahedron)
 }
 
 // TODO: find a valid set of points
-TEST_F(GenTrapTest, DISABLED_full)
+TEST_F(GenTrapTest, full)
 {
     auto result = this->test(GenTrap(4, {{-2,-2}, {-2,2}, {2,2}, {2,-2}},
         {{-2,-2}, {-1,1}, {1,1}, {2,-2}}));
-    result.print_expected();
+
+    static char const expected_node[] = "all(+0, -1, -2, -3, -4, +5)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-4",
+           "Plane: z=4",
+           "GQuadric: {0,0,0} {-0.125,0.125,0} {3.5,0.5,0.5} -6",
+           "Plane: n={0,0.99228,0.12403}, d=1.4884",
+           "GQuadric: {0,0,0} {0.125,0.125,0} {-3.5,0.5,0.5} -6",
+           "Plane: y=-2"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -2, -4}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 4}), result.exterior.upper());
+}
+
+TEST_F(GenTrapTest, full2)
+{
+    auto result = this->test(GenTrap::from_trap(
+        40, Turn{0.125}, Turn{0}, {20, 10, 10, 0.1}, {20, 10, 15, -0.2}));
+
+    static char const expected_node[] = "all(+0, -1, +2, -3, -4, -5)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-40",
+           "Plane: z=40",
+           "Plane: y=-20",
+           "GQuadric: {0,0,0} {0,0.0875,0} {40,-0.5,-41.25} -450",
+           "Plane: y=20",
+           "GQuadric: {0,0,0} {0,-0.2125,0} {-40,-4.5,38.75} -450"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-inf, -20, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{inf, 20, 40}), result.exterior.upper());
 }
 
 //---------------------------------------------------------------------------//

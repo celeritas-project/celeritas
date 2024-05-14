@@ -49,6 +49,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArraySoftUnit.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "orange/orangeinp/CsgObject.hh"
@@ -67,17 +68,6 @@ namespace g4org
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-/*!
- * Construct a shape using the solid's name and forwarded arguments.
- */
-template<class CR, class... Args>
-auto make_shape(G4VSolid const& solid, Args&&... args)
-{
-    return std::make_shared<Shape<CR>>(std::string{solid.GetName()},
-                                       CR{std::forward<Args>(args)...});
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Get the enclosed azimuthal angle by a solid.
@@ -103,6 +93,64 @@ SolidEnclosedAngle get_polar_wedge(S const& solid)
     return SolidEnclosedAngle{
         native_value_to<Turn>(solid.GetStartThetaAngle()),
         native_value_to<Turn>(solid.GetDeltaThetaAngle())};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return theta, phi angles for a G4Para or G4Trap given their symmetry axis.
+ *
+ * Certain Geant4 shapes are constructed by skewing the z axis and providing
+ * the polar/azimuthal angle of the transformed axis. This calculates that
+ * transform by converting from cartesian to spherical coordinates.
+ *
+ * The components of the symmetry axis for G4Para/Trap are always encoded as a
+ * vector
+ * \f$ (\mu \tan(\theta)\cos(\phi), \mu \tan(\theta)\sin(\phi), \mu) \f$.
+ */
+[[maybe_unused]] auto to_polar(G4ThreeVector const& axis)
+    -> std::pair<Turn, Turn>
+{
+    CELER_EXPECT(axis.z() > 0);
+    CELER_EXPECT(
+        is_soft_unit_vector(Array<double, 3>{axis.x(), axis.y(), axis.z()}));
+
+    double const theta = std::acos(axis.z());
+    double const phi = std::atan2(axis.y(), axis.x());
+    return {native_value_to<Turn>(theta), native_value_to<Turn>(phi)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return theta, phi angles for a G4Para or G4Trap given their symmetry axis.
+ *
+ * Certain Geant4 shapes are constructed by skewing the z axis and providing
+ * the polar/azimuthal angle of the transformed axis. This calculates that
+ * transform by converting from cartesian to spherical coordinates.
+ *
+ * The components of the symmetry axis for G4Para/Trap are always encoded as a
+ * vector \f$ (A \tan(\theta)\cos(\phi), A \tan(\theta)\sin(phi), A) \f$.
+ */
+template<class S>
+auto calculate_theta_phi(S const& solid) -> std::pair<Turn, Turn>
+{
+#if G4VERSION_NUMBER >= 1100
+    double const theta = solid.GetTheta();
+    double const phi = solid.GetPhi();
+    return {native_value_to<Turn>(theta), native_value_to<Turn>(phi)};
+#else
+    return to_polar(solid.GetSymAxis());
+#endif
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a shape using the solid's name and forwarded arguments.
+ */
+template<class CR, class... Args>
+auto make_shape(G4VSolid const& solid, Args&&... args)
+{
+    return std::make_shared<Shape<CR>>(std::string{solid.GetName()},
+                                       CR{std::forward<Args>(args)...});
 }
 
 //---------------------------------------------------------------------------//
@@ -343,8 +391,8 @@ auto SolidConverter::generictrap(arg_type solid_base) -> result_type
     std::vector<GenTrap::Real2> lower(4), upper(4);
     for (auto i : range(4))
     {
-        lower[i] = scale_.to<Cone::Real2>(vtx[i].x(), vtx[i].y());
-        upper[i] = scale_.to<Cone::Real2>(vtx[i + 4].x(), vtx[i + 4].y());
+        lower[i] = scale_.to<GenTrap::Real2>(vtx[i].x(), vtx[i].y());
+        upper[i] = scale_.to<GenTrap::Real2>(vtx[i + 4].x(), vtx[i + 4].y());
     }
     real_type hh = scale_(solid.GetZHalfLength());
 
@@ -384,23 +432,15 @@ auto SolidConverter::orb(arg_type solid_base) -> result_type
 auto SolidConverter::para(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Para const&>(solid_base);
-#if G4VERSION_NUMBER >= 1100
-    double const theta = solid.GetTheta();
-    double const phi = solid.GetPhi();
-#else
-    // TODO: instead of duplicating with g4vg
-    CELER_NOT_IMPLEMENTED("older Geant4 for ORANGE conversion");
-    double const theta = 0;
-    double const phi = 0;
-#endif
+    auto const [theta, phi] = calculate_theta_phi(solid);
     return make_shape<Parallelepiped>(
         solid,
         scale_.to<Real3>(solid.GetXHalfLength(),
                          solid.GetYHalfLength(),
                          solid.GetZHalfLength()),
         native_value_to<Turn>(std::atan(solid.GetTanAlpha())),
-        native_value_to<Turn>(theta),
-        native_value_to<Turn>(phi));
+        theta,
+        phi);
 }
 
 //---------------------------------------------------------------------------//
@@ -583,21 +623,6 @@ auto SolidConverter::torus(arg_type solid_base) -> result_type
 /*!
  * Convert a trapezoid.
  *
- * Here is the full description of the G4Trap parameters, as named here:
- *
- * hz  - Half Z length - distance from the origin to the bases
- * hy1 - Half Y length of the base at -pDz
- * hy2 - Half Y length of the base at +pDz
- * hx1 - Half X length at smaller Y of the base at -pDz
- * hx2 - Half X length at bigger Y of the base at -pDz
- * hx3 - Half X length at smaller Y of the base at +pDz
- * hx4 - Half X length at bigger y of the base at +pDz
- * Theta - Polar angle of the line joining the centres of the bases at -/+hz
- * Phi   - Azimuthal angle of the line joining the centre of the base at -hz
- *         to the centre of the base at +hz
- * Alph1 - Angle between the Y-axis and the centre line of the base at -hz
- * Alph2 - Angle between the Y-axis and the centre line of the base at +hz
- *
  * Note that the numbers of x,y,z parameters in the G4Trap are related to the
  * fact that the two z-faces are parallel (separated by hz) and the 4 x-wedges
  * (2 in each z-face) are also parallel (separated by hy1,2).
@@ -609,40 +634,31 @@ auto SolidConverter::trap(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Trap const&>(solid_base);
 
-    real_type tan_theta{};
-    Turn phi{};
-#if G4VERSION_NUMBER < 1100
-    // Geant4 10.7 and earlier - axis = (sinth.cosphi, sinth.sinphi, costh)
-    // Note: both sinth,costh >= 0 since theta is in [0, pi/2] for a G4Trap
-    auto axis = solid.GetSymAxis();
-    auto sin_theta = std::max(0.0, std::sqrt(1.0 - ipow<2>(axis.z())));
-    tan_theta = SoftZero<double>{1.e-8}(axis.z())
-                    ? sin_theta / axis.z()
-                    : numeric_limits<real_type>::infinity();
-    real_type cos_phi = sin_theta > 0 ? axis.x() / sin_theta : 1.0;
-    real_type sin_phi = sin_theta > 0 ? axis.y() / sin_theta : 1.0;
-    phi = native_value_to<Turn>(std::atan2(sin_phi, cos_phi));
+    auto const [theta, phi] = calculate_theta_phi(solid);
+#if G4VERSION_NUMBER >= 1100
+    double const alpha_1 = solid.GetAlpha1();
+    double const alpha_2 = solid.GetAlpha2();
 #else
-    // Geant4 11 and later
-    tan_theta = std::tan(solid.GetTheta());
-    phi = native_value_to<Turn>(solid.GetPhi());
+    double const alpha_1 = std::atan(solid.GetTanAlpha1());
+    double const alpha_2 = std::atan(solid.GetTanAlpha2());
 #endif
 
     auto hz = scale_(solid.GetZHalfLength());
-    auto hy1 = scale_(solid.GetYHalfLength1());
-    auto hx1 = scale_(solid.GetXHalfLength1());
-    auto hx2 = scale_(solid.GetXHalfLength2());
-    auto hy2 = scale_(solid.GetYHalfLength2());
-    auto hx3 = scale_(solid.GetXHalfLength3());
-    auto hx4 = scale_(solid.GetXHalfLength4());
 
-    return make_shape<GenTrap>(
-        solid,
-        GenTrap::from_trap(hz,
-                           tan_theta,
-                           phi,
-                           {hy1, hx1, hx2, solid.GetTanAlpha1()},
-                           {hy2, hx3, hx4, solid.GetTanAlpha2()}));
+    GenTrap::TrapFace lo;
+    lo.hy = scale_(solid.GetYHalfLength1());
+    lo.hx_lo = scale_(solid.GetXHalfLength1());
+    lo.hx_hi = scale_(solid.GetXHalfLength2());
+    lo.tan_alpha = alpha_1;
+
+    GenTrap::TrapFace hi;
+    hi.hy = scale_(solid.GetYHalfLength2());
+    hi.hx_lo = scale_(solid.GetXHalfLength3());
+    hi.hx_hi = scale_(solid.GetXHalfLength4());
+    hi.tan_alpha = alpha_2;
+
+    return make_shape<GenTrap>(solid,
+                               GenTrap::from_trap(hz, theta, phi, lo, hi));
 }
 
 //---------------------------------------------------------------------------//

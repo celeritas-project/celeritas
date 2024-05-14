@@ -201,8 +201,8 @@ CELER_CONSTEXPR_FUNCTION auto operator*(Quantity<U, T> lhs, T2 rhs) noexcept
     return Quantity<U, std::common_type_t<T, T2>>{lhs.value() * rhs};
 }
 
-template<class U, class T, class T2>
-CELER_CONSTEXPR_FUNCTION auto operator*(T rhs, Quantity<U, T> lhs) noexcept
+template<class T, class U, class T2>
+CELER_CONSTEXPR_FUNCTION auto operator*(T rhs, Quantity<U, T2> lhs) noexcept
     -> decltype(auto)
 {
     return Quantity<U, std::common_type_t<T, T2>>{rhs * lhs.value()};
