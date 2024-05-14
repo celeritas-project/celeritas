@@ -157,11 +157,11 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
 template<MemSpace M>
 void Transporter<M>::accum_action_times(MapStrDouble* result) const
 {
-    // Get kernel timing if running with a single stream and if either on the
-    // device with synchronization enabled or on the host
+    // Get kernel timing if running with a single stream and if
+    // synchronization is enabled
     auto const& step = *stepper_;
     auto const& action_seq = step.actions();
-    if (M == MemSpace::host || action_seq.action_times())
+    if (action_seq.action_times())
     {
         auto const& action_ptrs = action_seq.actions();
         auto const& times = action_seq.accum_time();

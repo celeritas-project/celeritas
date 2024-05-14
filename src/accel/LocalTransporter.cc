@@ -256,10 +256,9 @@ auto LocalTransporter::GetActionTime() const -> MapStrReal
 
     MapStrReal result;
     auto const& action_seq = step_->actions();
-    if (action_seq.action_times() || !celeritas::device())
+    if (action_seq.action_times())
     {
-        // Save kernel timing if either on the device with synchronization
-        // enabled or on the host
+        // Save kernel timing if synchronization is enabled
         auto const& action_ptrs = action_seq.actions();
         auto const& time = action_seq.accum_time();
 
