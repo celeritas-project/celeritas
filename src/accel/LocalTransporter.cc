@@ -191,6 +191,10 @@ void LocalTransporter::Flush()
         return;
     }
 
+    CELER_LOG_LOCAL(info) << "Transporting " << buffer_.size()
+                          << " tracks from event " << event_id_.unchecked_get()
+                          << " with Celeritas";
+
     if (dump_primaries_)
     {
         // Write offload particles if user requested
