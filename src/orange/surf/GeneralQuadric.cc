@@ -17,12 +17,14 @@ namespace celeritas
 /*!
  * Construct with all coefficients.
  *
- * TODO: normalize so that largest eigenvalue is unity?
+ * TODO: normalize so that largest eigenvalue is unity? Or what? (It would be
+ * nice to have "slightly twisted planes" have order-epsilon cross terms as
+ * opposed to order 1/eps linear terms.)
  */
-CELER_FUNCTION GeneralQuadric::GeneralQuadric(Real3 const& abc,
-                                              Real3 const& def,
-                                              Real3 const& ghi,
-                                              real_type j)
+GeneralQuadric::GeneralQuadric(Real3 const& abc,
+                               Real3 const& def,
+                               Real3 const& ghi,
+                               real_type j)
     : a_(abc[0])
     , b_(abc[1])
     , c_(abc[2])
