@@ -62,8 +62,8 @@ TEST_F(GenericGridBuilderTest, build_vec)
 {
     ImportPhysicsVector vect;
     vect.vector_type = ImportPhysicsVectorType::free;
-    vect.x = std::vector(span_grid().begin(), span_grid().end());
-    vect.y = std::vector(span_values().begin(), span_values().end());
+    vect.x = std::vector<real_type>(span_grid().begin(), span_grid().end());
+    vect.y = std::vector<real_type>(span_values().begin(), span_values().end());
 
     auto builder = make_builder();
 
