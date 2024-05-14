@@ -280,19 +280,28 @@ TEST_F(SurfaceSimplifierTest, simple_quadric)
 
 TEST_F(SurfaceSimplifierTest, general_quadric)
 {
-    this->check_unchanged(
-        GeneralQuadric{{10.3125, 22.9375, 15.75},
-                       {-21.867141445557, -20.25, 11.69134295109},
-                       {-11.964745962156, -9.1328585544429, -65.69134295109},
-                       77.652245962156});
-
-    this->check_simplifies_to(
-        GeneralQuadric{{-2, 0, -2}, {0, 0, 0}, {4, 0, 12}, -2 * 3.75},
-        SimpleQuadric{{-2, 0, -2}, {4, 0, 12}, -2 * 3.75});
-
-    this->check_simplifies_to(
-        GeneralQuadric{{1, 2, 3}, {0, 0, 0}, {-1, -1, 1}, 6},
-        SimpleQuadric{{1, 2, 3}, {-1, -1, 1}, 6});
+    {
+        SCOPED_TRACE("Rotated ellipsoid");
+        this->check_unchanged(GeneralQuadric{
+            {10.3125, 22.9375, 15.75},
+            {-21.867141445557, -20.25, 11.69134295109},
+            {-11.964745962156, -9.1328585544429, -65.69134295109},
+            77.652245962156});
+    }
+    {
+        SCOPED_TRACE("Axis-aligned ellipsoid");
+        this->check_simplifies_to(
+            GeneralQuadric{{-2, 0, -2}, {0, 0, 0}, {4, 0, 12}, -2 * 3.75},
+            SimpleQuadric{{-2, 0, -2}, {4, 0, 12}, -2 * 3.75});
+    }
+    {
+        this->check_unchanged(
+            GeneralQuadric{{0, 0, 0}, {0, 0.5, 0}, {2, 0.5, 0}, 0});
+        this->check_simplifies_to(
+            GeneralQuadric{{0, 0, 0}, {0, -0.5, 0}, {-2, -0.5, 0}, 0},
+            GeneralQuadric{{0, 0, 0}, {0, 0.5, 0}, {2, 0.5, 0}, 0},
+            Sense::outside);
+    }
 }
 
 //---------------------------------------------------------------------------//
