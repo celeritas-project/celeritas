@@ -29,14 +29,14 @@ class GenericGridBuilderTest : public ::celeritas::test::Test
   protected:
     GenericGridBuilder make_builder() { return GenericGridBuilder(&scalars_); }
 
-    static Span<double const> span_grid() { return make_span(grid_); }
+    static Span<real_type const> span_grid() { return make_span(grid_); }
 
-    static Span<double const> span_values() { return make_span(values_); }
+    static Span<real_type const> span_values() { return make_span(values_); }
 
-    Collection<double, Ownership::value, MemSpace::host> scalars_;
+    Collection<real_type, Ownership::value, MemSpace::host> scalars_;
 
-    constexpr static double grid_[] = {0.0, 0.4, 0.9, 1.3};
-    constexpr static double values_[] = {-31.0, 12.1, 15.5, 92.0};
+    constexpr static real_type grid_[] = {0.0, 0.4, 0.9, 1.3};
+    constexpr static real_type values_[] = {-31.0, 12.1, 15.5, 92.0};
 };
 
 //---------------------------------------------------------------------------//
@@ -58,7 +58,7 @@ TEST_F(GenericGridBuilderTest, build_span)
     EXPECT_VEC_SOFT_EQ(values_, scalars_[grid_data.value]);
 }
 
-TEST_F(GenericGridBuilderTest, build_vec)
+TEST_F(GenericGridBuilderTest, TEST_IF_CELERITAS_DOUBLE(build_vec))
 {
     ImportPhysicsVector vect;
     vect.vector_type = ImportPhysicsVectorType::free;
