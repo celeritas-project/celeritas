@@ -100,7 +100,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_REQUIRED(initializer_capacity);
     LDIO_LOAD_REQUIRED(secondary_stack_factor);
     LDIO_LOAD_REQUIRED(use_device);
-    LDIO_LOAD_OPTION(sync);
+    LDIO_LOAD_OPTION(action_times);
     LDIO_LOAD_OPTION(merge_events);
     LDIO_LOAD_OPTION(default_stream);
     LDIO_LOAD_OPTION(warm_up);
@@ -174,7 +174,7 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE(initializer_capacity);
     LDIO_SAVE(secondary_stack_factor);
     LDIO_SAVE(use_device);
-    LDIO_SAVE(sync);
+    LDIO_SAVE(action_times);
     LDIO_SAVE(merge_events);
     LDIO_SAVE(default_stream);
     LDIO_SAVE(warm_up);

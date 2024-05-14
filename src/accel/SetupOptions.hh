@@ -152,7 +152,7 @@ struct SetupOptions
     size_type cuda_stack_size{};
     size_type cuda_heap_size{};
     //! Sync the GPU at every kernel for timing
-    bool sync{false};
+    bool action_times{false};
     //! Launch all kernels on the default stream
     bool default_stream{false};
     //!@}

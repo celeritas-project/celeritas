@@ -101,7 +101,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     inp.params = params.Params();
     inp.stream_id = StreamId{static_cast<size_type>(thread_id)};
     inp.num_track_slots = options.max_num_tracks;
-    inp.sync = options.sync;
+    inp.action_times = options.action_times;
 
     if (celeritas::device())
     {
@@ -250,7 +250,7 @@ auto LocalTransporter::GetActionTime() const -> MapStrReal
 
     MapStrReal result;
     auto const& action_seq = step_->actions();
-    if (action_seq.sync() || !celeritas::device())
+    if (action_seq.action_times() || !celeritas::device())
     {
         // Save kernel timing if either on the device with synchronization
         // enabled or on the host

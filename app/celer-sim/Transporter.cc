@@ -54,7 +54,7 @@ Transporter<M>::Transporter(TransporterInput inp)
     step_input.params = inp.params;
     step_input.num_track_slots = inp.num_track_slots;
     step_input.stream_id = inp.stream_id;
-    step_input.sync = inp.sync;
+    step_input.action_times = inp.action_times;
     stepper_ = std::make_shared<Stepper<M>>(std::move(step_input));
 }
 
@@ -161,7 +161,7 @@ void Transporter<M>::accum_action_times(MapStrDouble* result) const
     // device with synchronization enabled or on the host
     auto const& step = *stepper_;
     auto const& action_seq = step.actions();
-    if (M == MemSpace::host || action_seq.sync())
+    if (M == MemSpace::host || action_seq.action_times())
     {
         auto const& action_ptrs = action_seq.actions();
         auto const& times = action_seq.accum_time();

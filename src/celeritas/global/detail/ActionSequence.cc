@@ -103,12 +103,12 @@ template<MemSpace M>
 void ActionSequence<Params>::execute(Params const& params, State<M>& state)
 {
     [[maybe_unused]] Stream::StreamT stream = nullptr;
-    if (M == MemSpace::device && options_.sync)
+    if (M == MemSpace::device && options_.action_times)
     {
         stream = celeritas::device().stream(state.stream_id()).get();
     }
 
-    if ((M == MemSpace::host || options_.sync) && !state.warming_up())
+    if ((M == MemSpace::host || options_.action_times) && !state.warming_up())
     {
         // Execute all actions and record the time elapsed
         for (auto i : range(actions_.size()))
