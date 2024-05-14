@@ -57,6 +57,7 @@ void from_json(nlohmann::json const& j, RunInput& v)
 {
 #define RI_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, v, NAME)
 #define RI_LOAD_REQUIRED(NAME) CELER_JSON_LOAD_REQUIRED(j, v, NAME)
+#define RI_LOAD_DEPRECATED(OLD, NEW) CELER_JSON_LOAD_DEPRECATED(j, v, OLD, NEW)
 
     // Check version (if available)
     check_format(j, "celer-g4");
@@ -65,6 +66,8 @@ void from_json(nlohmann::json const& j, RunInput& v)
     RI_LOAD_OPTION(event_file);
 
     RI_LOAD_OPTION(primary_options);
+
+    RI_LOAD_DEPRECATED(sync, action_times);
 
     RI_LOAD_OPTION(num_track_slots);
     RI_LOAD_OPTION(max_steps);

@@ -115,8 +115,8 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
         {
             return false;
         }
-        return state.size() == 1 && action->order() == ActionOrder::post
-               && action->action_id()
+        return state.size() == 1 && action.order() == ActionOrder::post
+               && action.action_id()
                       != state.ref().sim.post_step_action[TrackSlotId{0}];
     };
 
@@ -125,11 +125,11 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
         // Execute all actions and record the time elapsed
         for (auto i : range(actions_.size()))
         {
-            if (auto const& action = actions_[i]; !skip_post_action(action))
+            if (auto const& action = *actions_[i]; !skip_post_action(action))
             {
-                ScopedProfiling profile_this{action->label()};
+                ScopedProfiling profile_this{action.label()};
                 Stopwatch get_time;
-                action->execute(params, state);
+                action.execute(params, state);
                 if constexpr (M == MemSpace::device)
                 {
                     CELER_DEVICE_CALL_PREFIX(StreamSynchronize(stream));
@@ -143,7 +143,7 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
         // Just loop over the actions
         for (auto const& sp_action : actions_)
         {
-            if (!skip_post_action(sp_action))
+            if (!skip_post_action(*sp_action))
             {
                 ScopedProfiling profile_this{sp_action->label()};
                 sp_action->execute(params, state);

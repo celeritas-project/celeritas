@@ -93,6 +93,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(write_step_times);
 
     LDIO_LOAD_DEPRECATED(max_num_tracks, num_track_slots);
+    LDIO_LOAD_DEPRECATED(sync, action_times);
 
     LDIO_LOAD_OPTION(seed);
     LDIO_LOAD_OPTION(num_track_slots);
