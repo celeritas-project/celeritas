@@ -212,7 +212,7 @@ SetupOptionsMessenger::SetupOptionsMessenger(SetupOptions* options)
                 "Set the CUDA per-thread heap size for VecGeom");
         add_cmd(&options->action_times,
                 "actionTimes",
-                "Sync the GPU at every kernel for timing");
+                "Add timers around every action (may reduce performance)");
         add_cmd(&options->default_stream,
                 "defaultStream",
                 "Launch all kernels on the default stream");
