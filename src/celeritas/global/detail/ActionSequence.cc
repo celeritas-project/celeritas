@@ -143,10 +143,10 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
         // Just loop over the actions
         for (auto const& sp_action : actions_)
         {
-            if (!skip_post_action(*sp_action))
+            if (auto const& action = *sp_action; !skip_post_action(action))
             {
-                ScopedProfiling profile_this{sp_action->label()};
-                sp_action->execute(params, state);
+                ScopedProfiling profile_this{action.label()};
+                action.execute(params, state);
             }
         }
     }
