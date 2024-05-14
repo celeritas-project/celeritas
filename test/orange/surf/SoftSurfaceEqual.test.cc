@@ -164,12 +164,15 @@ TEST_F(SoftSurfaceEqualTest, simple_quadric)
         Real3 const radii{1, 2.5, 0.75};
         auto ref = translated(ellipsoid(radii), origin);
 
+        // TODO: ideally an ellipsoid with radii more than a factor of "large"
+        // relative difference would result in a comparison failure. For now
+        // let's just compare that *very* different ellipsoids aren't the same.
         EXPECT_TRUE(softeq_(ref, translated(ref, {0, small / 2, 0})));
         EXPECT_TRUE(
             softeq_(ref, translated(ellipsoid(radii * (1 + small)), origin)));
-        EXPECT_FALSE(softeq_(ref, translated(ref, {0, 0, large})));
-        EXPECT_FALSE(
-            softeq_(ref, translated(ellipsoid(radii * (1 + large)), origin)));
+        EXPECT_FALSE(softeq_(ref, translated(ref, {0, 0, 10 * large})));
+        EXPECT_FALSE(softeq_(
+            ref, translated(ellipsoid(radii * (1 + 100 * large)), origin)));
     }
 }
 

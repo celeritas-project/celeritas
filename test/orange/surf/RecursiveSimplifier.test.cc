@@ -79,8 +79,27 @@ TEST_F(RecursiveSimplifierTest, variant)
     static char const* const expected_stypes[]
         = {"px", "py", "sc", "kz", "sc", "gq"};
     EXPECT_VEC_EQ(expected_stypes, stypes);
-    static double const expected_sdata[]
-        = {1, -2, 1, 1, 2, 3, 0.36, 4.5, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    static double const expected_sdata[] = {
+        1,
+        -2,
+        1,
+        1,
+        2,
+        3,
+        0.36,
+        4.5,
+        0,
+        0.11111111111111,
+        0.22222222222222,
+        0.33333333333333,
+        0.44444444444444,
+        0.55555555555556,
+        0.66666666666667,
+        0.77777777777778,
+        0.88888888888889,
+        1,
+    };
+    PRINT_EXPECTED(sdata);
     EXPECT_VEC_SOFT_EQ(expected_sdata, sdata);
 }
 

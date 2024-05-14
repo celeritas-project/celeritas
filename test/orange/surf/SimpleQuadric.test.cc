@@ -9,6 +9,7 @@
 
 #include "corecel/Constants.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "orange/surf/ConeAligned.hh"
 #include "orange/surf/CylAligned.hh"
 #include "orange/surf/Plane.hh"
@@ -70,9 +71,10 @@ TEST(SimpleQuadricTest, ellipsoid)
     real_type const zeroth = -1 * ipow<2>(2.5) * ipow<2>(0.3);
     SimpleQuadric sq{second, first, zeroth};
 
-    EXPECT_VEC_SOFT_EQ(second, sq.second());
-    EXPECT_VEC_SOFT_EQ(first, sq.first());
-    EXPECT_SOFT_EQ(zeroth, sq.zeroth());
+    real_type const norm{1 / 6.25};
+    EXPECT_VEC_SOFT_EQ(norm * second, sq.second());
+    EXPECT_VEC_SOFT_EQ(norm * first, sq.first());
+    EXPECT_SOFT_EQ(norm * zeroth, sq.zeroth());
 
     // Test intersections along major axes
     auto distances

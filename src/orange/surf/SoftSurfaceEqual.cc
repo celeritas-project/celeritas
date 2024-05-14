@@ -172,11 +172,7 @@ ORANGE_INSTANTIATE_OP(ConeAligned);
 bool SoftSurfaceEqual::operator()(SimpleQuadric const& a,
                                   SimpleQuadric const& b) const
 {
-    return this->soft_eq_distance(make_array(a.second()),
-                                  make_array(b.second()))
-           && this->soft_eq_distance(make_array(a.first()),
-                                     make_array(b.first()))
-           && soft_eq_(a.zeroth(), b.zeroth());
+    return this->soft_eq_data(a.data(), b.data());
 }
 
 //---------------------------------------------------------------------------//
@@ -186,13 +182,7 @@ bool SoftSurfaceEqual::operator()(SimpleQuadric const& a,
 bool SoftSurfaceEqual::operator()(GeneralQuadric const& a,
                                   GeneralQuadric const& b) const
 {
-    return this->soft_eq_distance(make_array(a.second()),
-                                  make_array(b.second()))
-           && this->soft_eq_distance(make_array(a.cross()),
-                                     make_array(b.cross()))
-           && this->soft_eq_distance(make_array(a.first()),
-                                     make_array(b.first()))
-           && soft_eq_(a.zeroth(), b.zeroth());
+    return this->soft_eq_data(a.data(), b.data());
 }
 
 //---------------------------------------------------------------------------//
@@ -220,6 +210,22 @@ bool SoftSurfaceEqual::soft_eq_distance(Real3 const& a, Real3 const& b) const
     // This is soft equal formula but using vector distance.
     real_type rel = soft_eq_.abs() * std::fmax(norm(a), norm(b));
     return distance(a, b) < std::fmax(soft_eq_.abs(), rel);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Compare each element of the data for soft equality.
+ */
+bool SoftSurfaceEqual::soft_eq_data(Span<real_type const> a,
+                                    Span<real_type const> b) const
+{
+    CELER_EXPECT(a.size() == b.size());
+    for (auto i : range(a.size()))
+    {
+        if (!soft_eq_(a[i], b[i]))
+            return false;
+    }
+    return true;
 }
 
 //---------------------------------------------------------------------------//

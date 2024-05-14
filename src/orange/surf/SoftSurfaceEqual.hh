@@ -10,6 +10,7 @@
 #include <algorithm>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "orange/OrangeTypes.hh"
 
@@ -78,6 +79,7 @@ class SoftSurfaceEqual
 
     bool soft_eq_sq(real_type a, real_type b) const;
     bool soft_eq_distance(Real3 const& a, Real3 const& b) const;
+    bool soft_eq_data(Span<real_type const> a, Span<real_type const> b) const;
 };
 
 //---------------------------------------------------------------------------//

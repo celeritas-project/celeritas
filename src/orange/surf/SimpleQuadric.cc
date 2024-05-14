@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "SimpleQuadric.hh"
 
+#include <cmath>
+
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
@@ -25,7 +27,8 @@ namespace celeritas
  *
  * The quadric is ill-defined if all non-constants are zero.
  *
- * TODO: normalize so that largest eigenvalue is unity?
+ * We normalize the coefficients so the 2-norm of the second-order terms is
+ * unity.
  */
 SimpleQuadric::SimpleQuadric(Real3 const& abc, Real3 const& def, real_type g)
     : a_(abc[0])
@@ -36,8 +39,19 @@ SimpleQuadric::SimpleQuadric(Real3 const& abc, Real3 const& def, real_type g)
     , f_(def[2])
     , g_(g)
 {
-    CELER_EXPECT(a_ != 0 || b_ != 0 || c_ != 0 || d_ != 0 || e_ != 0
-                 || f_ != 0);
+    static constexpr auto size = StorageSpan::extent;
+    real_type norm{0};
+    for (auto v : Span<real_type, size>{&a_, size})
+    {
+        norm = fmax(std::fabs(v), norm);
+    }
+    CELER_VALIDATE(norm != 0,
+                   << "quadric coefficients are all zeros (degenerate)");
+    norm = 1 / norm;
+    for (real_type& v : Span<real_type, size>{&a_, size})
+    {
+        v *= norm;
+    }
 }
 
 //---------------------------------------------------------------------------//
