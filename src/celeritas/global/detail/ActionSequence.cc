@@ -113,6 +113,13 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
         // Execute all actions and record the time elapsed
         for (auto i : range(actions_.size()))
         {
+            // if we're running on track slot on host, we can skip unnecessary
+            // post-step actions
+            if (M == MemSpace::host && state.size() == 1
+                && actions_[i]->order() == ActionOrder::post
+                && actions_[i]->action_id()
+                       != state.ref().sim.post_step_action[TrackSlotId{0}])
+                continue;
             ScopedProfiling profile_this{actions_[i]->label()};
             Stopwatch get_time;
             actions_[i]->execute(params, state);
