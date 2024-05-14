@@ -265,6 +265,27 @@ TEST_F(ConvexSurfaceBuilderTest, transform)
     }
 }
 
+TEST_F(ConvexSurfaceBuilderTest, finite_extents)
+{
+    this->reset(BBox{{-10, -10, -10}, {10, 10, 10}});
+    {
+        SCOPED_TRACE("slab");
+        auto css = this->make_state();
+        css.object_name = "sl";
+        ConvexSurfaceBuilder build{&this->unit_builder(), &css};
+        x_slab(build);
+
+        static real_type const expected_local_bz[] = {
+            -0.5, -inf, -inf, 0.5, inf, inf, -0.5, -inf, -inf, 0.5, inf, inf, 1};
+        static real_type const expected_global_bz[]
+            = {-0.5, -10, -10, 0.5, 10, 10, -0.5, -10, -10, 0.5, 10, 10, 1};
+        static int const expected_nodes[] = {2, 4};
+        EXPECT_VEC_SOFT_EQ(expected_local_bz, flattened(css.local_bzone));
+        EXPECT_VEC_SOFT_EQ(expected_global_bz, flattened(css.global_bzone));
+        EXPECT_VEC_EQ(expected_nodes, to_vec_int(css.nodes));
+    }
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace orangeinp

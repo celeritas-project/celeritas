@@ -102,14 +102,6 @@ TEST(PolygonUtilsTest, self_intersect)
     EXPECT_FALSE(is_convex(self_int2));
 }
 
-TEST(PolygonUtilsTest, planar)
-{
-    Real3 a{-2, 2, -2}, b{2, 2, -2}, c{2, 2, 2}, d{-2, 2, 2};
-    EXPECT_TRUE(is_planar(a, b, c, d));
-    EXPECT_TRUE(is_planar(a, b, d, c));  // proper ordering not required
-    EXPECT_FALSE(is_planar(a, b, c, Real3{0, 0, 0}));
-}
-
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace detail

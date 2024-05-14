@@ -114,6 +114,9 @@ class Transformation
     [[nodiscard]] inline CELER_FUNCTION Real3
     rotate_down(Real3 const& parent_dir) const;
 
+    // Calculate the inverse during preprocessing
+    Transformation calc_inverse() const;
+
   private:
     Mat3 rot_;
     Real3 tra_;
