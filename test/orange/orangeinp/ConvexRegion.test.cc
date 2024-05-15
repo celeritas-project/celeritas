@@ -393,7 +393,7 @@ TEST_F(EllipsoidTest, standard)
 
     static char const expected_node[] = "-0";
     static char const* const expected_surfaces[]
-        = {"SQuadric: {0.11111,0.25,1} {0,0,0} -1"};
+        = {"SQuadric: {4,9,36} {0,0,0} -36"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -726,16 +726,13 @@ TEST_F(GenTrapTest, full)
         {{-2,-2}, {-1,1}, {1,1}, {2,-2}}));
 
     static char const expected_node[] = "all(+0, -1, -2, -3, -4, +5)";
-    // clang-format off
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-4",
-        "Plane: z=4",
-        "GQuadric: {0,0,0} {-0.020833,0.020833,0} {0.58333,0.083333,0.083333} -1",
-        "Plane: n={0,0.99228,0.12403}, d=1.4884",
-        "GQuadric: {0,0,0} {0.020833,0.020833,0} {-0.58333,0.083333,0.083333} -1",
-        "Plane: y=-2",
-    };
-    // clang-format on
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-4",
+           "Plane: z=4",
+           "GQuadric: {0,0,0} {-0.125,0.125,0} {3.5,0.5,0.5} -6",
+           "Plane: n={0,0.99228,0.12403}, d=1.4884",
+           "GQuadric: {0,0,0} {0.125,0.125,0} {-3.5,0.5,0.5} -6",
+           "Plane: y=-2"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -750,16 +747,13 @@ TEST_F(GenTrapTest, full2)
         40, Turn{0.125}, Turn{0}, {20, 10, 10, 0.1}, {20, 10, 15, -0.2}));
 
     static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
-    // clang-format off
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-40",
-        "Plane: z=40",
-        "Plane: y=-20",
-        "GQuadric: {0,0,0} {0,0.00019444,0} {0.088889,-0.0011111,-0.091667} -1",
-        "Plane: y=20",
-        "GQuadric: {0,0,0} {0,0.00047222,0} {0.088889,0.01,-0.086111} 1",
-    };
-    // clang-format on
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-40",
+           "Plane: z=40",
+           "Plane: y=-20",
+           "GQuadric: {0,0,0} {0,0.0875,0} {40,-0.5,-41.25} -450",
+           "Plane: y=20",
+           "GQuadric: {0,0,0} {0,0.2125,0} {40,4.5,-38.75} 450"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -820,10 +814,11 @@ TEST_F(GenTrapTest, adjacent_twisted)
     {
         // Scaled (broadened) right side with the same hyperboloid but
         // different size
+        // TODO: the scaled GQ should be normalized
         auto result = this->test(GenTrap(1,
                                          {{0, -2}, {2, -2}, {2, 2}, {0, 2}},
                                          {{1, -2}, {2, -2}, {2, 2}, {-1, 2}}));
-        static char const expected_node[] = "all(+0, -1, +3, +7, -8, -9)";
+        static char const expected_node[] = "all(+0, -1, +7, -8, -9, +10)";
 
         EXPECT_EQ(expected_node, result.node);
         EXPECT_VEC_SOFT_EQ((Real3{-inf, -2, -1}), result.exterior.lower());
@@ -834,13 +829,14 @@ TEST_F(GenTrapTest, adjacent_twisted)
         "Plane: z=-1",
         "Plane: z=1",
         "Plane: y=-1",
-        "GQuadric: {0,0,0} {0,0.25,0} {1,0.25,0} 0",
+        "GQuadric: {0,0,0} {0,0.5,0} {2,0.5,0} 0",
         "Plane: y=1",
         "Plane: x=-1",
         "Plane: x=1",
         "Plane: y=-2",
         "Plane: x=2",
         "Plane: y=2",
+        "GQuadric: {0,0,0} {0,1,0} {4,1,0} 0",
     };
     EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
 }

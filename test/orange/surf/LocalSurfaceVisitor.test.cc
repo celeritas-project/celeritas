@@ -157,7 +157,7 @@ TEST_F(SurfaceActionTest, variant_surface)
         "Cyl x: r=5",
         "Sphere: r=1.5 at {1,2,3}",
         "Cone y: t=0.4 at {1,2,3}",
-        "SQuadric: {0,0.111111,0.222222} {0.666667,0.777778,0.888889} 1",
+        "SQuadric: {0,1,2} {6,7,8} 9",
     };
     EXPECT_VEC_EQ(expected_strings, strings);
 }
@@ -192,7 +192,6 @@ TEST_F(SurfaceActionTest, string)
         strings.push_back(visit(ToString{}, id));
     }
 
-    // clang-format off
     static char const* const expected_strings[] = {
         "Plane: x=1",
         "Plane: y=2",
@@ -208,11 +207,10 @@ TEST_F(SurfaceActionTest, string)
         "Cone x: t=0.2 at {1,2,3}",
         "Cone y: t=0.4 at {1,2,3}",
         "Cone z: t=0.6 at {1,2,3}",
-        "SQuadric: {0,0.111111,0.222222} {0.666667,0.777778,0.888889} 1",
-        "GQuadric: {0,0.111111,0.222222} {0.333333,0.444444,0.555556} {0.666667,0.777778,0.888889} 1",
+        "SQuadric: {0,1,2} {6,7,8} 9",
+        "GQuadric: {0,1,2} {3,4,5} {6,7,8} 9",
     };
     EXPECT_VEC_EQ(expected_strings, strings);
-    // clang-format on
 }
 
 TEST_F(SurfaceActionTest, host_distances)

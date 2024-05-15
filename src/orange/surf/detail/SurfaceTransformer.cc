@@ -142,8 +142,8 @@ GeneralQuadric SurfaceTransformer::operator()(SimpleQuadric const& other) const
  * Transform a quadric.
  *
  * See celeritas-doc/nb/geometry/quadric-transform.ipynb . The implementation
- * below is less than optimal because (1) we don't need to explicitly construct
- * the full Q matrix and (2) it does a *lot* of copying.
+ * below is less than optimal because we don't need to explicitly construct the
+ * full Q matrix.
  *
  * The inverse transform is: \f[
     \mathbf{R}^{-1}(\mathbf{x}' - \mathbf{t}) \to \mathbf{x}
@@ -169,7 +169,7 @@ GeneralQuadric SurfaceTransformer::operator()(GeneralQuadric const& other) const
     // Build inverse transform matrix
     Mat4 const tr_inv = [this] {
         // Reverse and rotate translation
-        Real3 trans = tr_.rotate_down(negate(tr_.translation()));
+        Real3 trans = tr_.rotate_down(Real3{0, 0, 0} - tr_.translation());
 
         // Combine inverted translation with inverse (transpose) of rotation
         Mat4 tr_inv;

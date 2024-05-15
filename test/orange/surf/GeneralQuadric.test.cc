@@ -8,7 +8,6 @@
 #include "orange/surf/GeneralQuadric.hh"
 
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/ArrayOperators.hh"
 #include "orange/surf/SimpleQuadric.hh"
 
 #include "SurfaceTestUtils.hh"
@@ -63,12 +62,11 @@ TEST(GeneralQuadricTest, all)
     Real3 const first{-11.964745962156, -9.1328585544429, -65.69134295109};
     real_type zeroth = 77.652245962156;
 
-    real_type const norm = 1 / zeroth;
     GeneralQuadric gq{second, cross, first, zeroth};
-    EXPECT_VEC_SOFT_EQ(norm * second, gq.second());
-    EXPECT_VEC_SOFT_EQ(norm * cross, gq.cross());
-    EXPECT_VEC_SOFT_EQ(norm * first, gq.first());
-    EXPECT_SOFT_EQ(real_type{1}, gq.zeroth());
+    EXPECT_VEC_SOFT_EQ(second, gq.second());
+    EXPECT_VEC_SOFT_EQ(cross, gq.cross());
+    EXPECT_VEC_SOFT_EQ(first, gq.first());
+    EXPECT_SOFT_EQ(zeroth, gq.zeroth());
 
     EXPECT_EQ(SignedSense::outside, gq.calc_sense({4, 5, 5}));
     EXPECT_EQ(SignedSense::inside, gq.calc_sense({1, 2, 3}));

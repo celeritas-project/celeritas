@@ -7,10 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "GeneralQuadric.hh"
 
-#include <cmath>
-
 #include "corecel/Assert.hh"
-#include "corecel/math/Algorithms.hh"
 
 #include "SimpleQuadric.hh"
 
@@ -20,9 +17,9 @@ namespace celeritas
 /*!
  * Construct with all coefficients.
  *
- * We normalize the coefficients so the infinity-norm of the terms is unity.
- *
- * \todo Use a more rigorous method to normalize the coefficients.
+ * TODO: normalize so that largest eigenvalue is unity? Or what? (It would be
+ * nice to have "slightly twisted planes" have order-epsilon cross terms as
+ * opposed to order 1/eps linear terms.)
  */
 GeneralQuadric::GeneralQuadric(Real3 const& abc,
                                Real3 const& def,
@@ -39,19 +36,8 @@ GeneralQuadric::GeneralQuadric(Real3 const& abc,
     , i_(ghi[2])
     , j_(j)
 {
-    static constexpr auto size = StorageSpan::extent;
-    real_type norm{0};
-    for (auto v : Span<real_type, size>{&a_, size})
-    {
-        norm = fmax(std::fabs(v), norm);
-    }
-    CELER_VALIDATE(norm != 0,
-                   << "quadric coefficients are all zeros (ill-defined)");
-    norm = 1 / norm;
-    for (real_type& v : Span<real_type, size>{&a_, size})
-    {
-        v *= norm;
-    }
+    CELER_EXPECT(a_ != 0 || b_ != 0 || c_ != 0 || d_ != 0 || e_ != 0 || f_ != 0
+                 || g_ != 0 || h_ != 0 || i_ != 0);
 }
 
 //---------------------------------------------------------------------------//
