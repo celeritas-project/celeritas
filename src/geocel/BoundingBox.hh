@@ -95,6 +95,9 @@ class BoundingBox
     CELER_CONSTEXPR_FUNCTION void
     grow(Bound bnd, Axis axis, real_type position);
 
+    // Increase the bounding box's extent on both bounds
+    CELER_CONSTEXPR_FUNCTION void grow(Axis axis, real_type position);
+
   private:
     Array<Real3, 2> points_;  //!< lo/hi points
 
@@ -287,6 +290,21 @@ BoundingBox<T>::grow(Bound bnd, Axis axis, real_type position)
         p = std::fmax(p, position);
     }
     points_[to_int(bnd)][to_int(axis)] = p;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Increase (expand) the bounding box's extent along an axis.
+ *
+ * If the point is outside the box, the box is expanded so the given boundary
+ * is on that point. Otherwise no change is made.
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION void
+BoundingBox<T>::grow(Axis axis, real_type position)
+{
+    this->grow(Bound::lo, axis, position);
+    this->grow(Bound::hi, axis, position);
 }
 
 //---------------------------------------------------------------------------//
