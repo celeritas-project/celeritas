@@ -180,8 +180,6 @@ template<class P>
 class RaytraceImagerTest : public OrangeGeoTestBase
 {
   protected:
-    using Initializer_t = GeoTrackInitializer;
-
     real_type unit_length() const override { return 1; }
 
     void SetUp() override

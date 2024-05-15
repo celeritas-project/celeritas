@@ -43,5 +43,4 @@ if [ -z "${SKIP_FORMAT}" ]; then
   git add -u :/
   SKIP_GCF=1 git commit --amend -m "IWYU+Clean" >/dev/null
   git reset HEAD^
-  git co HEAD -- ":/src/celeritas/*/generated/*"
 fi
