@@ -41,14 +41,14 @@ class ActionSequence;
  * - \c params : Problem definition
  * - \c num_track_slots : Maximum number of threads to run in parallel on GPU
  *   \c stream_id : Unique (thread/task) ID for this process
- * - \c sync : Whether to synchronize device between actions
+ * - \c action_times : Whether to synchronize device between actions for timing
  */
 struct StepperInput
 {
     std::shared_ptr<CoreParams const> params;
     StreamId stream_id{};
     size_type num_track_slots{};
-    bool sync{false};
+    bool action_times{false};
 
     //! True if defined
     explicit operator bool() const

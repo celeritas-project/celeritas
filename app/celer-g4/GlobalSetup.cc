@@ -165,7 +165,7 @@ void GlobalSetup::ReadInput(std::string const& filename)
         options_->sd.enabled = input_.sd_type != SensitiveDetectorType::none;
         options_->cuda_stack_size = input_.cuda_stack_size;
         options_->cuda_heap_size = input_.cuda_heap_size;
-        options_->sync = input_.sync;
+        options_->action_times = input_.action_times;
         options_->default_stream = input_.default_stream;
         options_->auto_flush = input_.auto_flush;
     }
