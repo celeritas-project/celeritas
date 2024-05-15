@@ -7,13 +7,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
 #include <type_traits>
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
-#include "corecel/math/Algorithms.hh"
 #include "corecel/math/NumericLimits.hh"
 
 #include "Types.hh"
@@ -257,11 +257,11 @@ BoundingBox<T>::shrink(Bound bnd, Axis axis, real_type position)
     real_type p = points_[to_int(bnd)][to_int(axis)];
     if (bnd == Bound::lo)
     {
-        p = ::celeritas::max(p, position);
+        p = std::fmax(p, position);
     }
     else
     {
-        p = ::celeritas::min(p, position);
+        p = std::fmin(p, position);
     }
     points_[to_int(bnd)][to_int(axis)] = p;
 }
@@ -280,11 +280,11 @@ BoundingBox<T>::grow(Bound bnd, Axis axis, real_type position)
     real_type p = points_[to_int(bnd)][to_int(axis)];
     if (bnd == Bound::lo)
     {
-        p = ::celeritas::min(p, position);
+        p = std::fmin(p, position);
     }
     else
     {
-        p = ::celeritas::max(p, position);
+        p = std::fmax(p, position);
     }
     points_[to_int(bnd)][to_int(axis)] = p;
 }
