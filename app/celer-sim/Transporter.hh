@@ -38,7 +38,8 @@ struct TransporterInput
     // Stepper input
     std::shared_ptr<CoreParams const> params;
     size_type num_track_slots{};  //!< AKA max_num_tracks
-    bool sync{false};  //!< Whether to synchronize device between actions
+    bool action_times{false};  //!< Whether to synchronize device between
+                               //!< actions for timing
 
     // Loop control
     size_type max_steps{};

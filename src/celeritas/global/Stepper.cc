@@ -35,7 +35,7 @@ Stepper<M>::Stepper(Input input)
     // Create action sequence
     actions_ = [&] {
         ActionSequence::Options opts;
-        opts.sync = input.sync;
+        opts.action_times = input.action_times;
         return std::make_shared<ActionSequence>(*params_->action_reg(), opts);
     }();
 

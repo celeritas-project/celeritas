@@ -97,7 +97,7 @@ inp = {
     'step_diagnostic_bins': 200,
     'write_step_times': use_device,
     'simple_calo': simple_calo,
-    'sync': True,
+    'action_times': True,
     'merge_events': False,
     'default_stream': False,
     'brem_combined': True,

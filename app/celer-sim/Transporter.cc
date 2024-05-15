@@ -54,7 +54,7 @@ Transporter<M>::Transporter(TransporterInput inp)
     step_input.params = inp.params;
     step_input.num_track_slots = inp.num_track_slots;
     step_input.stream_id = inp.stream_id;
-    step_input.sync = inp.sync;
+    step_input.action_times = inp.action_times;
     stepper_ = std::make_shared<Stepper<M>>(std::move(step_input));
 }
 
@@ -157,11 +157,11 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
 template<MemSpace M>
 void Transporter<M>::accum_action_times(MapStrDouble* result) const
 {
-    // Get kernel timing if running with a single stream and if either on the
-    // device with synchronization enabled or on the host
+    // Get kernel timing if running with a single stream and if
+    // synchronization is enabled
     auto const& step = *stepper_;
     auto const& action_seq = step.actions();
-    if (M == MemSpace::host || action_seq.sync())
+    if (action_seq.action_times())
     {
         auto const& action_ptrs = action_seq.actions();
         auto const& times = action_seq.accum_time();
