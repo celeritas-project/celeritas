@@ -749,15 +749,16 @@ TEST_F(GenTrapTest, full2)
         40, Turn{0.125}, Turn{0}, {20, 10, 10, 0.1}, {20, 10, 15, -0.2}));
 
     static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    // clang-format off
     static char const* const expected_surfaces[] = {
         "Plane: z=-40",
         "Plane: z=40",
         "Plane: y=-20",
-        "GQuadric: {0,0,0} {0,0.00019444,0} {0.088889,-0.0011111,-0.091667} "
-        "-1",
+        "GQuadric: {0,0,0} {0,0.00019444,0} {0.088889,-0.0011111,-0.091667} -1",
         "Plane: y=20",
         "GQuadric: {0,0,0} {0,0.00047222,0} {0.088889,0.01,-0.086111} 1",
     };
+    // clang-format on
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
