@@ -39,6 +39,7 @@
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
+
 #include "detail/HitManager.hh"
 #include "detail/OffloadWriter.hh"
 
@@ -101,7 +102,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     inp.params = params.Params();
     inp.stream_id = StreamId{static_cast<size_type>(thread_id)};
     inp.num_track_slots = options.max_num_tracks;
-    inp.sync = options.sync;
+    inp.action_times = options.action_times;
 
     if (celeritas::device())
     {
@@ -190,10 +191,12 @@ void LocalTransporter::Flush()
     {
         return;
     }
-
-    CELER_LOG_LOCAL(info) << "Transporting " << buffer_.size()
-                          << " tracks from event " << event_id_.unchecked_get()
-                          << " with Celeritas";
+    if (celeritas::device())
+    {
+        CELER_LOG_LOCAL(info)
+            << "Transporting " << buffer_.size() << " tracks from event "
+            << event_id_.unchecked_get() << " with Celeritas";
+    }
 
     if (dump_primaries_)
     {
@@ -254,10 +257,9 @@ auto LocalTransporter::GetActionTime() const -> MapStrReal
 
     MapStrReal result;
     auto const& action_seq = step_->actions();
-    if (action_seq.sync() || !celeritas::device())
+    if (action_seq.action_times())
     {
-        // Save kernel timing if either on the device with synchronization
-        // enabled or on the host
+        // Save kernel timing if synchronization is enabled
         auto const& action_ptrs = action_seq.actions();
         auto const& time = action_seq.accum_time();
 

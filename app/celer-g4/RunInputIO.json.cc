@@ -57,6 +57,7 @@ void from_json(nlohmann::json const& j, RunInput& v)
 {
 #define RI_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, v, NAME)
 #define RI_LOAD_REQUIRED(NAME) CELER_JSON_LOAD_REQUIRED(j, v, NAME)
+#define RI_LOAD_DEPRECATED(OLD, NEW) CELER_JSON_LOAD_DEPRECATED(j, v, OLD, NEW)
 
     // Check version (if available)
     check_format(j, "celer-g4");
@@ -66,11 +67,13 @@ void from_json(nlohmann::json const& j, RunInput& v)
 
     RI_LOAD_OPTION(primary_options);
 
+    RI_LOAD_DEPRECATED(sync, action_times);
+
     RI_LOAD_OPTION(num_track_slots);
     RI_LOAD_OPTION(max_steps);
     RI_LOAD_OPTION(initializer_capacity);
     RI_LOAD_OPTION(secondary_stack_factor);
-    RI_LOAD_OPTION(sync);
+    RI_LOAD_OPTION(action_times);
     RI_LOAD_OPTION(default_stream);
     if (auto iter = j.find("auto_flush"); iter != j.end())
     {
@@ -168,7 +171,7 @@ void to_json(nlohmann::json& j, RunInput const& v)
     RI_SAVE(secondary_stack_factor);
     RI_SAVE_OPTION(cuda_stack_size);
     RI_SAVE_OPTION(cuda_heap_size);
-    RI_SAVE(sync);
+    RI_SAVE(action_times);
     RI_SAVE(default_stream);
     RI_SAVE(auto_flush);
 
