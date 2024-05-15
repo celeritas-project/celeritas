@@ -16,6 +16,7 @@
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/Types.hh"
+#include "orange/BoundingBoxUtils.hh"
 #include "orange/orangeinp/detail/PolygonUtils.hh"
 #include "orange/surf/ConeAligned.hh"
 #include "orange/surf/CylCentered.hh"
@@ -491,25 +492,14 @@ void GenTrap::build(ConvexSurfaceBuilder& insert_surface) const
     // Construct exterior bounding box
     // TODO: general function for creating bbox from a convex hull
     BBox exterior_bbox;
+    BoundingBoxGrower grow(&exterior_bbox);
     VecReal2 const* const polys[] = {&lo_, &hi_};
+    real_type const zs[] = {-hz_, hz_};
     for (auto i : range(2))
     {
         for (Real2 const& xy : *polys[i])
         {
-            for (auto b : {Bound::lo, Bound::hi})
-            {
-                for (auto ax : {Axis::x, Axis::y})
-                {
-                    exterior_bbox.grow(b, ax, xy[to_int(ax)]);
-                }
-            }
-        }
-    }
-    for (auto b : {Bound::lo, Bound::hi})
-    {
-        for (real_type p : {-hz_, hz_})
-        {
-            exterior_bbox.grow(b, Axis::z, p);
+            grow({xy[0], xy[1], zs[i]});
         }
     }
     insert_surface(Sense::inside, exterior_bbox);

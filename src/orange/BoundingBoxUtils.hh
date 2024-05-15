@@ -265,6 +265,33 @@ class BoundingBoxBumper
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Grow a bounding box outward.
+ *
+ * This is used to expand a null bounding box to encompass all the points
+ * passed to it.
+ */
+class BoundingBoxGrower
+{
+  public:
+    BoundingBoxGrower(BBox* bb) : bb_{bb} { CELER_EXPECT(bb_); }
+
+    void operator()(Real3 const& point)
+    {
+        for (auto b : {Bound::lo, Bound::hi})
+        {
+            for (auto ax : {Axis::x, Axis::y, Axis::z})
+            {
+                bb_->grow(b, ax, point[to_int(ax)]);
+            }
+        }
+    }
+
+  private:
+    BBox* bb_;
+};
+
+//---------------------------------------------------------------------------//
 // Calculate the bounding box of a transformed box
 BBox calc_transform(Translation const& tr, BBox const& a);
 
