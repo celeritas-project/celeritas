@@ -41,9 +41,14 @@ class SimParams final : public ParamsDataInterface<SimParamsData>
     };
 
   public:
-    // Construct with imported data
+    // Construct with imported data and default max field substeps
     static std::shared_ptr<SimParams>
     from_import(ImportData const&, SPConstParticles);
+
+    // Construct with imported data
+    static std::shared_ptr<SimParams> from_import(ImportData const&,
+                                                  SPConstParticles,
+                                                  short int max_field_substeps);
 
     // Construct with simulation input data
     explicit SimParams(Input const&);
