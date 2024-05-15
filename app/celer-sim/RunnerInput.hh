@@ -77,7 +77,7 @@ struct RunnerInput
     size_type initializer_capacity{};  //!< Divided among streams
     real_type secondary_stack_factor{};
     bool use_device{};
-    bool sync{};
+    bool action_times{};
     bool merge_events{false};  //!< Run all events at once on a single stream
     bool default_stream{false};  //!< Launch all kernels on the default stream
     bool warm_up{CELER_USE_DEVICE};  //!< Run a nullop step first

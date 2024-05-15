@@ -11,9 +11,9 @@
 #include <iostream>
 #include <string_view>
 
+// IWYU pragma: begin_exports
 #include "celeritas_config.h"
 
-// IWYU pragma: begin_exports
 #include "Test.hh"
 #include "TestMacros.hh"
 #include "TestMain.hh"
