@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/OpaqueId.hh"
 #include "geocel/GenericGeoTestBase.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeGeoTraits.hh"

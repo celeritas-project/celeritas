@@ -68,7 +68,7 @@ struct RunInput
     size_type initializer_capacity{};
     real_type secondary_stack_factor{};
     size_type auto_flush{};  //!< Defaults to num_track_slots
-    bool sync{false};
+    bool action_times{false};
     bool default_stream{false};  //!< Launch all kernels on the default stream
 
     // Physics setup options

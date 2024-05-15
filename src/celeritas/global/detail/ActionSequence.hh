@@ -60,7 +60,7 @@ class ActionSequence
     //! Construction/execution options
     struct Options
     {
-        bool sync{false};  //!< Call DeviceSynchronize and add timer
+        bool action_times{false};  //!< Call DeviceSynchronize and add timer
     };
 
   public:
@@ -80,7 +80,7 @@ class ActionSequence
     //// ACCESSORS ////
 
     //! Whether synchronization is taking place
-    bool sync() const { return options_.sync; }
+    bool action_times() const { return options_.action_times; }
 
     //! Get the set of beginning-of-run actions
     VecBeginAction const& begin_run_actions() const { return begin_run_; }
