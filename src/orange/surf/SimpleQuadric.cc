@@ -25,10 +25,7 @@ namespace celeritas
 /*!
  * Construct with coefficients.
  *
- * The quadric is ill-defined if all non-constants are zero.
- *
- * We normalize the coefficients so the 2-norm of the second-order terms is
- * unity.
+ * We normalize the coefficients so the infinity-norm of the terms is unity.
  */
 SimpleQuadric::SimpleQuadric(Real3 const& abc, Real3 const& def, real_type g)
     : a_(abc[0])
@@ -46,7 +43,7 @@ SimpleQuadric::SimpleQuadric(Real3 const& abc, Real3 const& def, real_type g)
         norm = fmax(std::fabs(v), norm);
     }
     CELER_VALIDATE(norm != 0,
-                   << "quadric coefficients are all zeros (degenerate)");
+                   << "quadric coefficients are all zeros (ill-defined)");
     norm = 1 / norm;
     for (real_type& v : Span<real_type, size>{&a_, size})
     {

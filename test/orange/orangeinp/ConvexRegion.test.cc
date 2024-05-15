@@ -726,15 +726,16 @@ TEST_F(GenTrapTest, full)
         {{-2,-2}, {-1,1}, {1,1}, {2,-2}}));
 
     static char const expected_node[] = "all(+0, -1, -2, -3, -4, +5)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-4",
-           "Plane: z=4",
-           "GQuadric: {0,0,0} {-0.020833,0.020833,0} "
-           "{0.58333,0.083333,0.083333} -1",
-           "Plane: n={0,0.99228,0.12403}, d=1.4884",
-           "GQuadric: {0,0,0} {0.020833,0.020833,0} "
-           "{-0.58333,0.083333,0.083333} -1",
-           "Plane: y=-2"};
+    // clang-format off
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-4",
+        "Plane: z=4",
+        "GQuadric: {0,0,0} {-0.020833,0.020833,0} {0.58333,0.083333,0.083333} -1",
+        "Plane: n={0,0.99228,0.12403}, d=1.4884",
+        "GQuadric: {0,0,0} {0.020833,0.020833,0} {-0.58333,0.083333,0.083333} -1",
+        "Plane: y=-2",
+    };
+    // clang-format on
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -819,7 +820,6 @@ TEST_F(GenTrapTest, adjacent_twisted)
     {
         // Scaled (broadened) right side with the same hyperboloid but
         // different size
-        // TODO: the scaled GQ should be normalized
         auto result = this->test(GenTrap(1,
                                          {{0, -2}, {2, -2}, {2, 2}, {0, 2}},
                                          {{1, -2}, {2, -2}, {2, 2}, {-1, 2}}));

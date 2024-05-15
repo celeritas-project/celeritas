@@ -22,7 +22,7 @@ namespace celeritas
  *
  * We normalize the coefficients so the infinity-norm of the terms is unity.
  *
- * \todo Use a more rigorous method to normalize
+ * \todo Use a more rigorous method to normalize the coefficients.
  */
 GeneralQuadric::GeneralQuadric(Real3 const& abc,
                                Real3 const& def,
@@ -46,7 +46,7 @@ GeneralQuadric::GeneralQuadric(Real3 const& abc,
         norm = fmax(std::fabs(v), norm);
     }
     CELER_VALIDATE(norm != 0,
-                   << "quadric coefficients are all zeros (degenerate)");
+                   << "quadric coefficients are all zeros (ill-defined)");
     norm = 1 / norm;
     for (real_type& v : Span<real_type, size>{&a_, size})
     {
