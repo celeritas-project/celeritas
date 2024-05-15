@@ -41,6 +41,7 @@ void from_json(nlohmann::json const& j, FieldDriverOptions& opts)
     FDO_INPUT(max_stepping_increase);
     FDO_INPUT(max_stepping_decrease);
     FDO_INPUT(max_nsteps);
+    FDO_INPUT(max_substeps);
 
 #undef FDO_INPUT
 }
@@ -64,6 +65,7 @@ void to_json(nlohmann::json& j, FieldDriverOptions const& opts)
         CELER_JSON_PAIR(opts, max_stepping_increase),
         CELER_JSON_PAIR(opts, max_stepping_decrease),
         CELER_JSON_PAIR(opts, max_nsteps),
+        CELER_JSON_PAIR(opts, max_substeps),
     };
 }
 

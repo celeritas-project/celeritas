@@ -381,7 +381,8 @@ void Runner::build_core_params(RunnerInput const& inp,
     params.rng = std::make_shared<RngParams>(inp.seed);
 
     // Construct simulation params
-    params.sim = SimParams::from_import(imported, params.particle);
+    params.sim = SimParams::from_import(
+        imported, params.particle, inp.field_options.max_substeps);
 
     // Get the total number of events
     auto num_events = this->build_events(inp, params.particle);
