@@ -33,6 +33,7 @@ class RootEventSampler : public EventReaderInterface
     // Construct with input data for RootEventReader and sampling information
     RootEventSampler(std::string const& filename,
                      SPConstParticles params,
+                     size_type num_sampled_events,
                      size_type num_clumped_events,
                      unsigned int seed);
 
@@ -40,23 +41,23 @@ class RootEventSampler : public EventReaderInterface
     result_type operator()() final;
 
     //! Get total number of events
-    size_type num_events() const final { return reader_->num_events(); }
+    size_type num_events() const final { return num_sampled_events_; }
 
   private:
+    size_type num_sampled_events_;  // Total number of events
     size_type num_clumped_events_;  // Primaries to be sampled per event
     UPRootEventReader reader_;
     std::mt19937 rng_;
-    std::uniform_int_distribution<std::size_t> select_event_;
+    std::uniform_int_distribution<size_type> select_event_;
     EventId event_count_{0};
 };
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
-inline RootEventSampler::RootEventSampler(std::string const&,
-                                          SPConstParticles,
-                                          size_type,
-                                          unsigned int)
+inline RootEventSampler::RootEventSampler(
+    std::string const&, SPConstParticles, size_type, size_type, unsigned int)
 {
+    CELER_DISCARD(num_sampled_events_);
     CELER_DISCARD(num_clumped_events_);
     CELER_DISCARD(reader_);
     CELER_DISCARD(rng_);

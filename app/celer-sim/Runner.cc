@@ -474,11 +474,14 @@ Runner::build_events(RunnerInput const& inp, SPConstParticles particles)
     }
     else if (ends_with(inp.event_file, ".root"))
     {
-        if (inp.num_clumped_events > 0)
+        if (inp.num_sampled_events > 0 && inp.num_clumped_events > 0)
         {
             // Sampling option is valid; use ROOT event sampler
-            return read_events(RootEventSampler(
-                inp.event_file, particles, inp.num_clumped_events, inp.seed));
+            return read_events(RootEventSampler(inp.event_file,
+                                                particles,
+                                                inp.num_sampled_events,
+                                                inp.num_clumped_events,
+                                                inp.seed));
         }
         else
         {

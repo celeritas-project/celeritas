@@ -75,6 +75,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     }
     LDIO_LOAD_OPTION(physics_file);
     LDIO_LOAD_OPTION(event_file);
+    LDIO_LOAD_OPTION(num_sampled_events);
     LDIO_LOAD_OPTION(num_clumped_events);
 
     LDIO_LOAD_DEPRECATED(primary_gen_options, primary_options);
@@ -158,6 +159,8 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE(geometry_file);
     LDIO_SAVE(physics_file);
     LDIO_SAVE_OPTION(event_file);
+    LDIO_SAVE_WHEN(num_sampled_events,
+                   !v.event_file.empty() && ends_with(v.event_file, ".root"));
     LDIO_SAVE_WHEN(num_clumped_events,
                    !v.event_file.empty() && ends_with(v.event_file, ".root"));
     LDIO_SAVE_WHEN(primary_options, v.event_file.empty());

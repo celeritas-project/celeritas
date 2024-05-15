@@ -54,6 +54,7 @@ struct RunnerInput
 
     // Optional setup options when event_file is a ROOT file that should be
     // used for sampling combinations of events as opposed to just reading them
+    size_type num_sampled_events{};  //!< Events to be sampled from ROOT file
     size_type num_clumped_events{};  //!< Events to be joined from ROOT file
 
     // Optional setup options for generating primaries programmatically

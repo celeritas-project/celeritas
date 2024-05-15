@@ -17,9 +17,11 @@ namespace celeritas
  */
 RootEventSampler::RootEventSampler(std::string const& filename,
                                    SPConstParticles params,
+                                   size_type num_sampled_events,
                                    size_type num_clumped_events,
                                    unsigned int seed)
-    : num_clumped_events_(num_clumped_events)
+    : num_sampled_events_(num_sampled_events)
+    , num_clumped_events_(num_clumped_events)
 {
     CELER_EXPECT(!filename.empty());
     CELER_EXPECT(params);
@@ -30,7 +32,7 @@ RootEventSampler::RootEventSampler(std::string const& filename,
 
     rng_.seed(seed);
     select_event_
-        = std::uniform_int_distribution<std::size_t>(0, reader_->num_events());
+        = std::uniform_int_distribution<size_type>(0, reader_->num_events());
 }
 
 //---------------------------------------------------------------------------//
@@ -39,7 +41,7 @@ RootEventSampler::RootEventSampler(std::string const& filename,
  */
 auto RootEventSampler::operator()() -> result_type
 {
-    if (event_count_.get() == reader_->num_events())
+    if (event_count_.get() == num_sampled_events_)
     {
         return {};
     }
