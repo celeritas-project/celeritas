@@ -35,10 +35,9 @@ char const* to_cstring(MscModelSelection value)
     static EnumStringMapper<MscModelSelection> const to_cstring_impl{
         "none",
         "urban",
-        "urban_extended",
-        "wentzel_vi",
-        "urban_wentzel",
-        "goudsmit_saunderson",
+        "wentzelvi",
+        "urban_wentzelvi",
+        "gs_wentzelvi",
     };
     return to_cstring_impl(value);
 }
