@@ -93,8 +93,8 @@ class ScopedProfiling
   private:
     bool activated_;
 
-    static void activate(Input const& input) noexcept;
-    static void deactivate() noexcept;
+    void activate(Input const& input) noexcept;
+    void deactivate() noexcept;
 };
 
 //---------------------------------------------------------------------------//
