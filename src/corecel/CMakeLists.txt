@@ -92,6 +92,11 @@ if(CELERITAS_USE_OpenMP)
   list(APPEND PRIVATE_DEPS OpenMP::OpenMP_CXX)
 endif()
 
+if(CELERITAS_USE_Perfetto)
+  list(APPEND PRIVATE_DEPS Celeritas::Perfetto)
+  list(APPEND SOURCES sys/ScopedProfiling.perfetto.cc)
+endif()
+
 #-----------------------------------------------------------------------------#
 # Create library
 #-----------------------------------------------------------------------------#
@@ -123,6 +128,7 @@ celeritas_target_include_directories(corecel
   PUBLIC
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
     "$<BUILD_INTERFACE:${CELERITAS_HEADER_CONFIG_DIRECTORY}>"
+    "$<$<BOOL:${CELERITAS_USE_Perfetto}>:${Perfetto_INCLUDE_DIR}>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 celeritas_target_link_libraries(corecel

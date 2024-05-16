@@ -76,7 +76,9 @@ int get_openmp_thread()
 void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
 {
     CELER_EXPECT(is);
-
+    perfetto::TracingInitArgs args;
+    args.backends |= perfetto::kInProcessBackend;
+    celeritas::initialize_perfetto(args);
     ScopedProfiling profile_this{"celer-sim"};
     ScopedMem record_mem("celer-sim.run");
 
