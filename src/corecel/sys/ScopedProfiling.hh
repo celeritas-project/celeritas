@@ -15,11 +15,14 @@
 
 #if CELERITAS_USE_PERFETTO
 #   include <perfetto.h>
+
+PERFETTO_DEFINE_CATEGORIES(perfetto::Category("Celeritas")
+                               .SetDescription("Events from the celeritas "
+                                               "library"));
 #endif
 
 namespace celeritas
 {
-
 #if CELERITAS_USE_PERFETTO
 void initialize_perfetto(perfetto::TracingInitArgs const&);
 #endif
@@ -66,7 +69,7 @@ class ScopedProfiling
     //!@}
 
   public:
-#if CELER_USE_DEVICE
+#if CELER_USE_DEVICE || CELERITAS_USE_PERFETTO
     // Whether profiling is enabled
     static bool use_profiling();
 #else
@@ -90,8 +93,8 @@ class ScopedProfiling
   private:
     bool activated_;
 
-    void activate(Input const& input) noexcept;
-    void deactivate() noexcept;
+    static void activate(Input const& input) noexcept;
+    static void deactivate() noexcept;
 };
 
 //---------------------------------------------------------------------------//
@@ -105,7 +108,7 @@ ScopedProfiling::ScopedProfiling(Input const& input)
 {
     if (activated_)
     {
-        this->activate(input);
+        ScopedProfiling::activate(input);
     }
 }
 
@@ -126,11 +129,11 @@ ScopedProfiling::~ScopedProfiling()
 {
     if (activated_)
     {
-        this->deactivate();
+        ScopedProfiling::deactivate();
     }
 }
 
-#if !CELER_USE_DEVICE
+#if !CELER_USE_DEVICE && !CELERITAS_USE_PERFETTO
 inline void ScopedProfiling::activate(Input const&) noexcept
 {
     CELER_UNREACHABLE;
