@@ -48,6 +48,11 @@
 #    include "RunnerInputIO.json.hh"
 #endif
 
+#if CELERITAS_USE_PERFETTO
+#    include <fcntl.h>
+#    include <perfetto.h>
+#endif
+
 using namespace std::literals::string_view_literals;
 
 namespace celeritas
@@ -80,6 +85,23 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     perfetto::TracingInitArgs args;
     args.backends |= perfetto::kInProcessBackend;
     celeritas::initialize_perfetto(args);
+    std::unique_ptr tracing_session{perfetto::Tracing::NewTrace()};
+    int fd = -1;
+    if (ScopedProfiling::use_profiling())
+    {
+        perfetto::protos::gen::TrackEventConfig track_event_cfg;
+        track_event_cfg.add_disabled_categories("*");
+        track_event_cfg.add_enabled_categories("Celeritas");
+
+        perfetto::TraceConfig cfg;
+        cfg.add_buffers()->set_size_kb(1024 * 512);
+        auto* ds_cfg = cfg.add_data_sources()->mutable_config();
+        ds_cfg->set_name("track_event");
+        ds_cfg->set_track_event_config_raw(track_event_cfg.SerializeAsString());
+        fd = open("celer-sim.perfetto-trace", O_RDWR | O_CREAT | O_TRUNC, 0660);
+        tracing_session->Setup(cfg, fd);
+        tracing_session->Start();
+    }
 #endif
     ScopedProfiling profile_this{"celer-sim"};
     ScopedMem record_mem("celer-sim.run");
@@ -147,6 +169,16 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
     result.total_time = get_transport_time();
     record_mem = {};
     output->insert(std::make_shared<RunnerOutput>(std::move(result)));
+#if CELERITAS_USE_PERFETTO
+    if (ScopedProfiling::use_profiling())
+    {
+        tracing_session->StopBlocking();
+        if (fd != -1)
+        {
+            close(fd);
+        }
+    }
+#endif
 }
 
 //---------------------------------------------------------------------------//
