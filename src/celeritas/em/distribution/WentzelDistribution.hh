@@ -287,10 +287,7 @@ CELER_FUNCTION real_type WentzelDistribution::sample_costheta(
     // Sample scattering angle [Fern] eqn 92, where cos(theta) = 1 - 2*mu
     real_type const mu1 = real_type{0.5} * (1 - costheta_min);
     real_type const mu2 = real_type{0.5} * (1 - costheta_max);
-    real_type const xi = generate_canonical(rng);
-    // TODO: (1 - xi) --> xi and update tests (kept for now to ensure tests
-    // don't change)
-    real_type const w = (1 - xi) * (mu2 - mu1);
+    real_type const w = generate_canonical(rng) * (mu2 - mu1);
     real_type const sc = helper_.screening_coefficient();
 
     real_type result = 1 - 2 * mu1 - 2 * (sc + mu1) * w / (sc + mu2 - w);
