@@ -8,7 +8,7 @@ concurrency:
   group: build-spack-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
 
 env:
-  SPACK_REF: 968ad02473b12f6305cc1fe19f2a0d706f171154
+  SPACK_REF: 5fe93fee1eec46a0750bd340198bffcb92ff9eec # v0.22.0
 
 jobs:
   linux:
@@ -37,7 +37,7 @@ jobs:
           fetch-depth: 255
           fetch-tags: true # to get version information
       - name: Setup Spack
-        uses: spack/setup-spack@5ab3c91bdefffffad9a7e45d1d156146afebb3a7
+        uses: spack/setup-spack@0ce61628ed8a32a5664cf01a0e0b5a4834a3b413 # 2024/03
         with:
           ref: ${{env.SPACK_REF}}
           buildcache: true
@@ -45,6 +45,8 @@ jobs:
           path: spack-src
       - name: Initialize spack environment
         run: |
+          # TODO: https://github.com/spack/spack/pull/43136
+          curl -LfsS https://github.com/spack/spack/pull/43136.patch | git -C spack-src apply -
           cp scripts/ci/spack.yaml .
           spack -e . add geant4@${{matrix.geant}}
           spack -e . config add packages:all:require:"'%${{matrix.compiler}}@${{matrix.version}} target=x86_64_v3'"
