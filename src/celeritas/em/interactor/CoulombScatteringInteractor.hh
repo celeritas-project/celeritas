@@ -114,15 +114,16 @@ CoulombScatteringInteractor::CoulombScatteringInteractor(
               target.atomic_number(),
               wentzel.params,
               shared.ids,
-              // TODO: Use proton when supported
+              // TODO: Use the proton production cutoff when the recoiled
+              // nucleus production is supported
               cutoffs.energy(shared.ids.electron))
     , sample_angle_(wentzel,
                     helper_,
                     particle,
                     target,
                     el_id,
-                    helper_.costheta_max_nuclear(),
-                    shared.costheta_max())
+                    helper_.cos_thetamax_nuclear(),
+                    shared.cos_thetamax())
 {
     CELER_EXPECT(particle_.particle_id() == shared.ids.electron
                  || particle_.particle_id() == shared.ids.positron);

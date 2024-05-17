@@ -23,7 +23,7 @@ struct ImportData;
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct and store shared Coulomb scattering data.
+ * Construct and store shared Coulomb and multiple scattering data.
  *
  * This data is used by both the single Coulomb scattering and Wentzel VI
  * multiple scattering models.

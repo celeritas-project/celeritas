@@ -17,11 +17,12 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Parameters used in both single and multiple Coulomb scattering models.
+ * Parameters used in both single Coulomb scattering and Wentzel VI MSC models.
  *
- * When combined single and multiple scattering is enabled, the Wentzel VI MSC
- * model is used to sample scatterings with angles below the polar angle limit,
- * and the single Coulomb scattering model is used for angles above the limit.
+ * When the single Coulomb scattering and Wentzel VI MSC models are used
+ * together, the MSC model is used to sample scatterings with angles below the
+ * polar angle limit, and the single scattering model is used for angles above
+ * the limit.
  */
 struct CoulombParameters
 {
@@ -48,11 +49,9 @@ struct CoulombParameters
  * Per-element data used by the Coulomb scattering and Wentzel VI models.
  *
  * The matrix of coefficients used to approximate the ratio of the Mott to
- * Rutherford cross sections was developed in
- * T. Lijian, H. Quing and L. Zhengming, Radiat. Phys. Chem. 45 (1995),
- *   235-245
- * and
- * M. J. Boschini et al. arXiv:1111.4042
+ * Rutherford cross sections was developed in T. Lijian, H. Quing and L.
+ * Zhengming, Radiat. Phys. Chem. 45 (1995), 235-245 and M. J. Boschini et al.
+ * arXiv:1111.4042
  */
 struct MottElementData
 {

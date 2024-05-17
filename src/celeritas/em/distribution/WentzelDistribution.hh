@@ -57,8 +57,8 @@ class WentzelDistribution
                         ParticleTrackView const& particle,
                         IsotopeView const& target,
                         ElementId el_id,
-                        real_type costheta_min,
-                        real_type costheta_max);
+                        real_type cos_thetamin,
+                        real_type cos_thetamax);
 
     // Sample the polar scattering angle
     template<class Engine>
@@ -82,11 +82,11 @@ class WentzelDistribution
     // Target element
     ElementId el_id_;
 
-    // Minimum scattering angle
-    real_type costheta_min_;
+    // Cosine of the minimum scattering angle
+    real_type cos_thetamin_;
 
-    // Maximum scattering angle
-    real_type costheta_max_;
+    // Cosine of the maximum scattering angle
+    real_type cos_thetamax_;
 
     //// HELPER FUNCTIONS ////
 
@@ -104,8 +104,8 @@ class WentzelDistribution
 
     // Sample the scattered polar angle
     template<class Engine>
-    inline CELER_FUNCTION real_type sample_costheta(real_type costheta_min,
-                                                    real_type costheta_max,
+    inline CELER_FUNCTION real_type sample_costheta(real_type cos_thetamin,
+                                                    real_type cos_thetamax,
                                                     Engine& rng) const;
 
     // Helper function for calculating the flat form factor
@@ -128,19 +128,20 @@ WentzelDistribution::WentzelDistribution(
     ParticleTrackView const& particle,
     IsotopeView const& target,
     ElementId el_id,
-    real_type costheta_min,
-    real_type costheta_max)
+    real_type cos_thetamin,
+    real_type cos_thetamax)
     : wentzel_(wentzel)
     , helper_(helper)
     , particle_(particle)
     , target_(target)
     , el_id_(el_id)
-    , costheta_min_(costheta_min)
-    , costheta_max_(costheta_max)
+    , cos_thetamin_(cos_thetamin)
+    , cos_thetamax_(cos_thetamax)
 {
     CELER_EXPECT(el_id_ < wentzel_.elem_data.size());
-    CELER_EXPECT(costheta_min_ >= -1 && costheta_min_ <= 1);
-    CELER_EXPECT(costheta_max_ >= -1 && costheta_max_ <= 1);
+    CELER_EXPECT(cos_thetamin_ >= -1 && cos_thetamin_ <= 1);
+    CELER_EXPECT(cos_thetamax_ >= -1 && cos_thetamax_ <= 1);
+    CELER_EXPECT(cos_thetamax_ <= cos_thetamin_);
 }
 
 //---------------------------------------------------------------------------//
@@ -152,19 +153,19 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
 {
     real_type cos_theta = 1;
     if (BernoulliDistribution(
-            helper_.calc_xs_ratio(costheta_min_, costheta_max_))(rng))
+            helper_.calc_xs_ratio(cos_thetamin_, cos_thetamax_))(rng))
     {
         // Scattered off of electrons
-        real_type const ct_max_elec = helper_.costheta_max_electron();
-        real_type ct_min = max(costheta_min_, ct_max_elec);
-        real_type ct_max = max(costheta_max_, ct_max_elec);
-        CELER_ASSERT(ct_min > ct_max);
-        cos_theta = this->sample_costheta(ct_min, ct_max, rng);
+        real_type const cos_thetamax_elec = helper_.cos_thetamax_electron();
+        real_type cos_thetamin = max(cos_thetamin_, cos_thetamax_elec);
+        real_type cos_thetamax = max(cos_thetamax_, cos_thetamax_elec);
+        CELER_ASSERT(cos_thetamin > cos_thetamax);
+        cos_theta = this->sample_costheta(cos_thetamin, cos_thetamax, rng);
     }
     else
     {
         // Scattered off of nucleus
-        cos_theta = this->sample_costheta(costheta_min_, costheta_max_, rng);
+        cos_theta = this->sample_costheta(cos_thetamin_, cos_thetamax_, rng);
 
         // Calculate rejection for fake scattering
         // TODO: Reference?
@@ -282,11 +283,11 @@ CELER_FUNCTION real_type WentzelDistribution::nuclear_form_prefactor() const
  */
 template<class Engine>
 CELER_FUNCTION real_type WentzelDistribution::sample_costheta(
-    real_type costheta_min, real_type costheta_max, Engine& rng) const
+    real_type cos_thetamin, real_type cos_thetamax, Engine& rng) const
 {
     // Sample scattering angle [Fern] eqn 92, where cos(theta) = 1 - 2*mu
-    real_type const mu1 = real_type{0.5} * (1 - costheta_min);
-    real_type const mu2 = real_type{0.5} * (1 - costheta_max);
+    real_type const mu1 = real_type{0.5} * (1 - cos_thetamin);
+    real_type const mu2 = real_type{0.5} * (1 - cos_thetamax);
     real_type const w = generate_canonical(rng) * (mu2 - mu1);
     real_type const sc = helper_.screening_coefficient();
 

@@ -28,8 +28,8 @@ struct CoulombScatteringData
     // Action ID
     ActionId action;
 
-    //! Maximum scattering polar angle
-    static CELER_CONSTEXPR_FUNCTION real_type costheta_max() { return -1; }
+    //! Cosine of the maximum scattering polar angle
+    static CELER_CONSTEXPR_FUNCTION real_type cos_thetamax() { return -1; }
 
     // Check if the data is initialized
     explicit CELER_FUNCTION operator bool() const { return ids && action; }

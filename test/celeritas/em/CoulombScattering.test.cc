@@ -149,8 +149,8 @@ TEST_F(CoulombScatteringTest, helper)
 
         VecReal screen_z;
         VecReal scaled_kin_factor;
-        VecReal costheta_max_elec;
-        VecReal costheta_max_nuc;
+        VecReal cos_thetamax_elec;
+        VecReal cos_thetamax_nuc;
         VecReal xs_elec;
         VecReal xs_nuc;
         VecReal xs_ratio;
@@ -163,7 +163,7 @@ TEST_F(CoulombScatteringTest, helper)
     MevEnergy const cutoff = this->cutoff_params()->get(mat_id_).energy(
         this->particle_track().particle_id());
 
-    real_type const costheta_max = model_->host_ref().costheta_max();
+    real_type const cos_thetamax = model_->host_ref().cos_thetamax();
 
     Result result;
     for (real_type energy : {50, 100, 200, 1000, 13000})
@@ -183,17 +183,17 @@ TEST_F(CoulombScatteringTest, helper)
         // for the soft equivalence comparison to catch any differences
         result.scaled_kin_factor.push_back(helper.kin_factor()
                                            / ipow<2>(constants::r_electron));
-        result.costheta_max_elec.push_back(helper.costheta_max_electron());
-        real_type const costheta_max_nuc = helper.costheta_max_nuclear();
-        result.costheta_max_nuc.push_back(costheta_max_nuc);
+        result.cos_thetamax_elec.push_back(helper.cos_thetamax_electron());
+        real_type const cos_thetamax_nuc = helper.cos_thetamax_nuclear();
+        result.cos_thetamax_nuc.push_back(cos_thetamax_nuc);
         result.xs_elec.push_back(
-            helper.calc_xs_electron(costheta_max_nuc, costheta_max)
+            helper.calc_xs_electron(cos_thetamax_nuc, cos_thetamax)
             / units::barn);
         result.xs_nuc.push_back(
-            helper.calc_xs_nuclear(costheta_max_nuc, costheta_max)
+            helper.calc_xs_nuclear(cos_thetamax_nuc, cos_thetamax)
             / units::barn);
         result.xs_ratio.push_back(
-            helper.calc_xs_ratio(costheta_max_nuc, costheta_max));
+            helper.calc_xs_ratio(cos_thetamax_nuc, cos_thetamax));
     }
 
     static double const expected_screen_z[] = {2.1181757502465e-08,
@@ -206,12 +206,12 @@ TEST_F(CoulombScatteringTest, helper)
                                                         0.0011834423911797,
                                                         4.7530717872407e-05,
                                                         2.8151208086621e-07};
-    static double const expected_costheta_max_elec[] = {0.99989885103277,
+    static double const expected_cos_thetamax_elec[] = {0.99989885103277,
                                                         0.99997458240728,
                                                         0.99999362912075,
                                                         0.99999974463379,
                                                         0.99999999848823};
-    static double const expected_costheta_max_nuc[] = {1, 1, 1, 1, 1};
+    static double const expected_cos_thetamax_nuc[] = {1, 1, 1, 1, 1};
     static double const expected_xs_elec[] = {40826.46816866,
                                               40708.229862005,
                                               40647.018860182,
@@ -229,8 +229,8 @@ TEST_F(CoulombScatteringTest, helper)
                                                0.03331963032739};
     EXPECT_VEC_SOFT_EQ(expected_screen_z, result.screen_z);
     EXPECT_VEC_SOFT_EQ(expected_scaled_kin_factor, result.scaled_kin_factor);
-    EXPECT_VEC_SOFT_EQ(expected_costheta_max_elec, result.costheta_max_elec);
-    EXPECT_VEC_SOFT_EQ(expected_costheta_max_nuc, result.costheta_max_nuc);
+    EXPECT_VEC_SOFT_EQ(expected_cos_thetamax_elec, result.cos_thetamax_elec);
+    EXPECT_VEC_SOFT_EQ(expected_cos_thetamax_nuc, result.cos_thetamax_nuc);
     EXPECT_VEC_SOFT_EQ(expected_xs_elec, result.xs_elec);
     EXPECT_VEC_SOFT_EQ(expected_xs_nuc, result.xs_nuc);
     EXPECT_VEC_SOFT_EQ(expected_xs_ratio, result.xs_ratio);
@@ -288,10 +288,10 @@ TEST_F(CoulombScatteringTest, wokvi_transport_xs)
                              cutoff);
         WentzelTransportXsCalculator calc_transport_xs(particle, helper);
 
-        for (real_type costheta_max : {-1.0, -0.5, 0.0, 0.5, 0.75, 0.99, 1.0})
+        for (real_type cos_thetamax : {-1.0, -0.5, 0.0, 0.5, 0.75, 0.99, 1.0})
         {
             // Get cross section in barns
-            xs.push_back(calc_transport_xs(costheta_max) / units::barn);
+            xs.push_back(calc_transport_xs(cos_thetamax) / units::barn);
         }
     }
     static double const expected_xs[] = {0.18738907324438,
@@ -449,8 +449,8 @@ TEST_F(CoulombScatteringTest, distribution)
                                          this->particle_track(),
                                          isotope,
                                          el_id_,
-                                         helper.costheta_max_nuclear(),
-                                         model_->host_ref().costheta_max());
+                                         helper.cos_thetamax_nuclear(),
+                                         model_->host_ref().cos_thetamax());
 
         RandomEngine& rng_engine = this->rng();
 

@@ -35,8 +35,6 @@ WentzelOKVIParams::from_import(ImportData const& data,
         return nullptr;
     }
 
-    // Use combined single and multiple Coulomb scattering if both the single
-    // scattering and the Wentzel VI models are present
     Options opts;
     opts.is_combined = wentzel && coulomb;
     opts.polar_angle_limit = [&]() -> real_type {
@@ -50,7 +48,8 @@ WentzelOKVIParams::from_import(ImportData const& data,
             // Set the minimum scattering angle for Coulomb single scattering
             return real_type(0);
         }
-        // Polar angle limit between single and multiple scattering
+        // Polar angle limit between single and multiple scattering if both
+        // models are present
         return data.em_params.msc_theta_limit;
     }();
     opts.screening_factor = data.em_params.screening_factor;
@@ -127,11 +126,12 @@ void WentzelOKVIParams::build_data(HostVal<WentzelOKVIData>& host_data,
 /*!
  * Calculate the constant prefactors of the squared momentum transfer.
  *
- * This factor is used in the exponential and Gaussian nuclear form models: see
- * Eqs. 2.262--2.264 of [LR15].
+ * This factor is used in the exponential and Gaussian nuclear form factor
+ * types: see Eqs. 2.262--2.264 of [LR15].
  *
- * Specifically, it calculates \f$ (r_n/\bar h)^2 / 12 \f$. A special case is
- * inherited from Geant for hydrogen targets.
+ * Specifically, it calculates \f$ (r_n/\bar h)^2 / 12 \f$, where \f$ r_n =
+ * 1.27 A^{0.27} [fm] f$ is the nuclear radius. A special case is inherited
+ * from Geant for hydrogen targets.
  */
 real_type WentzelOKVIParams::calc_nuclear_form_prefactor(IsotopeView const& iso)
 {

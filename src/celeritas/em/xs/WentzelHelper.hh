@@ -65,28 +65,28 @@ class WentzelHelper
     CELER_FUNCTION real_type kin_factor() const { return kin_factor_; }
 
     //! Get the maximum scattering angle off of electrons
-    CELER_FUNCTION real_type costheta_max_electron() const
+    CELER_FUNCTION real_type cos_thetamax_electron() const
     {
-        return costheta_max_elec_;
+        return cos_thetamax_elec_;
     }
 
     //! Get the maximum scattering angle off of a nucleus
-    CELER_FUNCTION real_type costheta_max_nuclear() const
+    CELER_FUNCTION real_type cos_thetamax_nuclear() const
     {
-        return costheta_max_nuc_;
+        return cos_thetamax_nuc_;
     }
 
     // The ratio of electron to total cross section for Coulomb scattering
-    inline CELER_FUNCTION real_type calc_xs_ratio(real_type costheta_min,
-                                                  real_type costheta_max) const;
+    inline CELER_FUNCTION real_type calc_xs_ratio(real_type cos_thetamin,
+                                                  real_type cos_thetamax) const;
 
     // Calculate the electron cross section for Coulomb scattering
     inline CELER_FUNCTION real_type
-    calc_xs_electron(real_type costheta_min, real_type costheta_max) const;
+    calc_xs_electron(real_type cos_thetamin, real_type cos_thetamax) const;
 
     // Calculate the nuclear cross section for Coulomb scattering
     inline CELER_FUNCTION real_type
-    calc_xs_nuclear(real_type costheta_min, real_type costheta_max) const;
+    calc_xs_nuclear(real_type cos_thetamin, real_type cos_thetamax) const;
 
   private:
     //// DATA ////
@@ -95,8 +95,8 @@ class WentzelHelper
     real_type screening_coefficient_;
     real_type kin_factor_;
     real_type mott_factor_;
-    real_type costheta_max_elec_;
-    real_type costheta_max_nuc_;
+    real_type cos_thetamax_elec_;
+    real_type cos_thetamax_nuc_;
 
     //// HELPER FUNCTIONS ////
 
@@ -112,18 +112,18 @@ class WentzelHelper
     calc_kin_factor(ParticleTrackView const&) const;
 
     // Calculate the (cosine of) the maximum scattering angle off of electrons
-    inline CELER_FUNCTION real_type calc_costheta_max_electron(
+    inline CELER_FUNCTION real_type calc_cos_thetamax_electron(
         ParticleTrackView const&, CoulombIds const&, Energy) const;
 
     // Calculate the (cosine of) the maximum scattering angle off of a nucleus
     inline CELER_FUNCTION real_type
-    calc_costheta_max_nuclear(ParticleTrackView const&,
+    calc_cos_thetamax_nuclear(ParticleTrackView const&,
                               MaterialView const& material,
                               CoulombParameters const&) const;
 
     // Calculate the common factor in the electron and nuclear cross section
-    inline CELER_FUNCTION real_type calc_xs_factor(real_type costheta_min,
-                                                   real_type costheta_max) const;
+    inline CELER_FUNCTION real_type calc_xs_factor(real_type cos_thetamin,
+                                                   real_type cos_thetamax) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -146,14 +146,14 @@ WentzelHelper::WentzelHelper(ParticleTrackView const& particle,
     , mott_factor_(particle.particle_id() == ids.electron
                        ? 1 + real_type(2e-4) * ipow<2>(target_z_.get())
                        : 1)
-    , costheta_max_elec_(
-          this->calc_costheta_max_electron(particle, ids, cutoff))
-    , costheta_max_nuc_(
-          this->calc_costheta_max_nuclear(particle, material, data))
+    , cos_thetamax_elec_(
+          this->calc_cos_thetamax_electron(particle, ids, cutoff))
+    , cos_thetamax_nuc_(
+          this->calc_cos_thetamax_nuclear(particle, material, data))
 {
     CELER_EXPECT(screening_coefficient_ > 0);
-    CELER_EXPECT(costheta_max_elec_ >= -1 && costheta_max_elec_ <= 1);
-    CELER_EXPECT(costheta_max_nuc_ >= -1 && costheta_max_nuc_ <= 1);
+    CELER_EXPECT(cos_thetamax_elec_ >= -1 && cos_thetamax_elec_ <= 1);
+    CELER_EXPECT(cos_thetamax_nuc_ >= -1 && cos_thetamax_nuc_ <= 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -161,11 +161,11 @@ WentzelHelper::WentzelHelper(ParticleTrackView const& particle,
  * Ratio of electron cross section to total (nuclear + electron) cross section.
  */
 CELER_FUNCTION real_type WentzelHelper::calc_xs_ratio(
-    real_type costheta_min, real_type costheta_max) const
+    real_type cos_thetamin, real_type cos_thetamax) const
 {
-    real_type xs_elec = this->calc_xs_electron(costheta_min, costheta_max);
+    real_type xs_elec = this->calc_xs_electron(cos_thetamin, cos_thetamax);
     return xs_elec
-           / (xs_elec + this->calc_xs_nuclear(costheta_min, costheta_max));
+           / (xs_elec + this->calc_xs_nuclear(cos_thetamin, cos_thetamax));
 }
 
 //---------------------------------------------------------------------------//
@@ -173,15 +173,15 @@ CELER_FUNCTION real_type WentzelHelper::calc_xs_ratio(
  * Calculate the electron cross section for Coulomb scattering.
  */
 CELER_FUNCTION real_type WentzelHelper::calc_xs_electron(
-    real_type costheta_min, real_type costheta_max) const
+    real_type cos_thetamin, real_type cos_thetamax) const
 {
-    costheta_min = max(costheta_min, costheta_max_elec_);
-    costheta_max = max(costheta_max, costheta_max_elec_);
-    if (costheta_min <= costheta_max)
+    cos_thetamin = max(cos_thetamin, cos_thetamax_elec_);
+    cos_thetamax = max(cos_thetamax, cos_thetamax_elec_);
+    if (cos_thetamin <= cos_thetamax)
     {
         return 0;
     }
-    return this->calc_xs_factor(costheta_min, costheta_max);
+    return this->calc_xs_factor(cos_thetamin, cos_thetamax);
 }
 
 //---------------------------------------------------------------------------//
@@ -189,9 +189,9 @@ CELER_FUNCTION real_type WentzelHelper::calc_xs_electron(
  * Calculate the nuclear cross section for Coulomb scattering.
  */
 CELER_FUNCTION real_type WentzelHelper::calc_xs_nuclear(
-    real_type costheta_min, real_type costheta_max) const
+    real_type cos_thetamin, real_type cos_thetamax) const
 {
-    return target_z_.get() * this->calc_xs_factor(costheta_min, costheta_max);
+    return target_z_.get() * this->calc_xs_factor(cos_thetamin, cos_thetamax);
 }
 
 //---------------------------------------------------------------------------//
@@ -199,11 +199,11 @@ CELER_FUNCTION real_type WentzelHelper::calc_xs_nuclear(
  * Calculate the common factor in the electron and nuclear cross section.
  */
 CELER_FUNCTION real_type WentzelHelper::calc_xs_factor(
-    real_type costheta_min, real_type costheta_max) const
+    real_type cos_thetamin, real_type cos_thetamax) const
 {
-    return kin_factor_ * mott_factor_ * (costheta_min - costheta_max)
-           / ((1 - costheta_min + 2 * screening_coefficient_)
-              * (1 - costheta_max + 2 * screening_coefficient_));
+    return kin_factor_ * mott_factor_ * (cos_thetamin - cos_thetamax)
+           / ((1 - cos_thetamin + 2 * screening_coefficient_)
+              * (1 - cos_thetamax + 2 * screening_coefficient_));
 }
 
 //---------------------------------------------------------------------------//
@@ -295,7 +295,7 @@ WentzelHelper::calc_kin_factor(ParticleTrackView const& particle) const
  * This calculates the cosine of the maximum polar angle that the incident
  * particle can scatter off of the target's electrons.
  */
-CELER_FUNCTION real_type WentzelHelper::calc_costheta_max_electron(
+CELER_FUNCTION real_type WentzelHelper::calc_cos_thetamax_electron(
     ParticleTrackView const& particle, CoulombIds const& ids, Energy cutoff) const
 {
     real_type inc_energy = value_as<Energy>(particle.energy());
@@ -323,7 +323,7 @@ CELER_FUNCTION real_type WentzelHelper::calc_costheta_max_electron(
  * Calculate the maximum scattering angle off the target nucleus.
  */
 CELER_FUNCTION real_type
-WentzelHelper::calc_costheta_max_nuclear(ParticleTrackView const& particle,
+WentzelHelper::calc_cos_thetamax_nuclear(ParticleTrackView const& particle,
                                          MaterialView const& material,
                                          CoulombParameters const& data) const
 {
