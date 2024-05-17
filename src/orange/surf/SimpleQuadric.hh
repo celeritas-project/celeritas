@@ -62,7 +62,6 @@ class SimpleQuadric
     //// CONSTRUCTORS ////
 
     // Construct from coefficients
-    inline CELER_FUNCTION
     SimpleQuadric(Real3 const& abc, Real3 const& def, real_type g);
 
     // Construct from raw data
@@ -120,28 +119,6 @@ class SimpleQuadric
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Construct with coefficients.
- *
- * The quadric is ill-defined if all non-constants are zero.
- *
- * TODO: normalize?
- */
-CELER_FUNCTION
-SimpleQuadric::SimpleQuadric(Real3 const& abc, Real3 const& def, real_type g)
-    : a_(abc[0])
-    , b_(abc[1])
-    , c_(abc[2])
-    , d_(def[0])
-    , e_(def[1])
-    , f_(def[2])
-    , g_(g)
-{
-    CELER_EXPECT(a_ != 0 || b_ != 0 || c_ != 0 || d_ != 0 || e_ != 0
-                 || f_ != 0);
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct from raw data.
