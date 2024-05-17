@@ -382,6 +382,10 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
     {
         if (G4VEmModel* model = process.GetModelByIndex(i))
         {
+            CELER_LOG(debug) << "Saving MSC model '" << model->GetName()
+                             << "' for particle " << particle.GetParticleName()
+                             << " (" << particle.GetPDGEncoding() << ")";
+
             ImportMscModel imm;
             imm.particle_pdg = primary_pdg;
             try
@@ -391,7 +395,7 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
             }
             catch (celeritas::RuntimeError const&)
             {
-                CELER_LOG(warning) << "Encountered unknown process '"
+                CELER_LOG(warning) << "Encountered unknown MSC model '"
                                    << model->GetName() << "'";
                 imm.model_class = ImportModelClass::other;
             }
