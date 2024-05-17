@@ -8,6 +8,10 @@ concurrency:
   group: build-ultralite-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
   cancel-in-progress: true
 
+env:
+  DEBUG_CCACHE: 1
+  CCACHE_DEBUGDIR: ${{github.workspace}}/ccache-debug
+
 jobs:
   linux:
     name: ultralite-ubuntu
@@ -105,5 +109,13 @@ jobs:
         if: ${{!cancelled()}}
         run: |
           ccache -s
+      - name: Upload ccache debug
+        if: ${{env.DEBUG_CCACHE && !cancelled()}}
+        uses: actions/upload-artifact@v4
+        with:
+          path: ${{env.CCACHE_DEBUGDIR}}
+          name: ccache-debug-${{github.job}}
+          overwrite: true
+          retention-days: 7
 
 # vim: set nowrap tw=100:
