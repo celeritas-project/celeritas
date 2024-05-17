@@ -4,8 +4,8 @@
   "configurePresets": [
     {
       "name": "base",
-      "displayName": "CentOS7/rocm-docker default options",
-      "inherits": [".hip-mi100", "default"],
+      "displayName": "Ubuntu 22/rocm-docker default options",
+      "inherits": [".hip-mi250", "default"],
       "binaryDir": "${sourceDir}/build",
       "generator": "Ninja",
       "cacheVariables": {

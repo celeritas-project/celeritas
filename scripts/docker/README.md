@@ -3,14 +3,13 @@
 These docker images use [spack](https://github.com/spack/spack) to build a
 CUDA-enabled development environment for Celeritas. There are two sets of
 images:
-- `dev` (`dev` subdirectory) which leaves spack fully installed and
-  debug symbols intact; and
+- `dev` (`dev` subdirectory) which leaves spack fully installed; and
 - `ci` (`ci` subdirectory) which only copies the necessary software stack (thus
   requiring lower bandwidth on the CI servers).
 
 Additionally there are two image configurations:
-- `focal-cuda11`: Ubuntu 20 "Focal" with CUDA 11.
-- `bionic-minimal`: Ubuntu 18 "Bionic" with only googletest/nljson.
+- `rocky-cuda12`: Rocky 8 with CUDA 12.
+- `ubuntu-rocm5`: Ubuntu 22 with ROCm 5.7
 
 ## Building
 
@@ -50,7 +49,7 @@ where `${SOURCE}` is your local Celeritas source directory and `${DATE}` is the
 date time stamp of the desired image. If you just built locally, you can
 replace that last argument with the tag `ci-focal-cuda11`:
 ```console
-$ docker run --rm -ti -e "TERM=xterm-256color" -v /rnsdhpc/code/celeritas-docker:/home/celeritas/src ci-bionic-minimal
+$ docker run --rm -ti -e "TERM=xterm-256color" -v /rnsdhpc/code/celeritas-docker:/home/celeritas/src ci-ubuntu-minimal
 ```
 
 After mounting, use the build scripts to configure and go:

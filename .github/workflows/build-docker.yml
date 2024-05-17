@@ -24,7 +24,7 @@ jobs:
         special: [null]
         geometry: ["orange", "vecgeom"]
         buildtype: ["debug", "ndebug"]
-        image: ["ubuntu-cuda", "centos-rocm"]
+        image: ["rocky-cuda", "centos-rocm"]
         exclude:
           - geometry: "vecgeom"
             image: "centos-rocm" # VecGeom not installed on HIP
@@ -37,7 +37,7 @@ jobs:
             image: "centos-rocm"
           - geometry: "vecgeom"
             buildtype: "reldeb"
-            image: "ubuntu-cuda"
+            image: "rocky-cuda"
     env:
       ASAN_OPTIONS: "detect_leaks=0"
       CELER_TEST_STRICT: 1
@@ -52,11 +52,9 @@ jobs:
     container:
       image: >-
         docker.io/celeritas/${{
-             matrix.image == 'ubuntu-cuda' && 'ci-jammy-cuda11:2023-08-02'
-          || matrix.image == 'centos-rocm' && 'ci-centos7-rocm5:2022-12-14.2'
+             matrix.image == 'rocky-cuda' && 'ci-rocky-cuda12:2024-05-17.2'
+          || matrix.image == 'centos-rocm' && 'ci-ubuntu-rocm5:2024-05-17'
         }}
-      # See https://github.com/actions/checkout/issues/956
-      options: --user root
     steps:
       - name: Set up environment
         run: |
@@ -64,10 +62,9 @@ jobs:
           echo "/opt/view/bin" >> $GITHUB_PATH
           echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
       # NOTE: checkout must occur *after* setting up environment for git tags to work
-      # NOTE: checkout v4 fails: https://github.com/actions/checkout/issues/1487
       # NOTE: depth must be enough to include the previous tag
       - name: Check out Celeritas
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 255
           fetch-tags: true
@@ -83,7 +80,7 @@ jobs:
       - name: Test Celeritas
         working-directory: build
         run: |
-          ctest --parallel 2 --timeout 180 --output-on-failure \
+          ctest --parallel $(($(nproc) + 1)) --timeout 180 --output-on-failure \
             --test-output-size-passed=65536 --test-output-size-failed=1048576
       - name: Install Celeritas
         working-directory: build
