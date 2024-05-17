@@ -3,11 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/GeantPhysicsList.hh
+//! \file celeritas/ext/detail/CelerEmStandardPhysics.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <G4VModularPhysicsList.hh>
+#include <G4ParticleDefinition.hh>
+#include <G4VPhysicsConstructor.hh>
 
 #include "../GeantPhysicsOptions.hh"
 
@@ -17,9 +18,9 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct a user-defined physics list of particles and physics processes.
+ * Construct Celeritas-supported EM standard physics.
  */
-class GeantPhysicsList : public G4VModularPhysicsList
+class CelerEmStandardPhysics : public G4VPhysicsConstructor
 {
   public:
     //!@{
@@ -29,7 +30,20 @@ class GeantPhysicsList : public G4VModularPhysicsList
 
   public:
     // Set up during construction
-    explicit GeantPhysicsList(Options const& options);
+    explicit CelerEmStandardPhysics(Options const& options);
+
+    // Set up minimal EM particle list
+    void ConstructParticle() override;
+    // Set up process list
+    void ConstructProcess() override;
+
+  private:
+    Options options_;
+
+    // Add EM processes for photons
+    void add_gamma_processes();
+    // Add EM processes for electrons and positrons
+    void add_e_processes(G4ParticleDefinition* p);
 };
 
 //---------------------------------------------------------------------------//

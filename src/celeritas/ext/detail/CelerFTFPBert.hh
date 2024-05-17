@@ -1,9 +1,9 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/GeantPhysicsList.hh
+//! \file celeritas/ext/detail/CelerFTFPBert.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -17,9 +17,9 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct a user-defined physics list of particles and physics processes.
+ * Construct the FTFP_BERT physics list with modified EM standard physics.
  */
-class GeantPhysicsList : public G4VModularPhysicsList
+class CelerFTFPBert : public G4VModularPhysicsList
 {
   public:
     //!@{
@@ -28,8 +28,8 @@ class GeantPhysicsList : public G4VModularPhysicsList
     //!@}
 
   public:
-    // Set up during construction
-    explicit GeantPhysicsList(Options const& options);
+    // Construct with physics options
+    explicit CelerFTFPBert(Options const& options);
 };
 
 //---------------------------------------------------------------------------//
