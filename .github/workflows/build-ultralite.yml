@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  DEBUG_CCACHE: 1
+  CCACHE_DEBUG: 1
   CCACHE_DEBUGDIR: ${{github.workspace}}/ccache-debug
 
 jobs:
@@ -58,7 +58,7 @@ jobs:
         run: |
           ccache -s
       - name: Upload ccache debug
-        if: ${{env.DEBUG_CCACHE && !cancelled()}}
+        if: ${{env.CCACHE_DEBUG && !cancelled()}}
         uses: actions/upload-artifact@v4
         with:
           path: ${{env.CCACHE_DEBUGDIR}}
