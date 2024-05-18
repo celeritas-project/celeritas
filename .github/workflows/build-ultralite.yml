@@ -8,12 +8,16 @@ concurrency:
   group: build-ultralite-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
   cancel-in-progress: true
 
+# env:
+#   CCACHE_DEBUG: 1
+#   CCACHE_DEBUGDIR: ${{github.workspace}}/ccache-debug
+
 jobs:
   linux:
     name: ultralite-ubuntu
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
-      CCACHE_MAXSIZE: "20Mi"
+      CCACHE_MAXSIZE: "50Mi"
       CMAKE_PRESET: ultralite
     runs-on: ubuntu-latest
     steps:
@@ -61,11 +65,19 @@ jobs:
         if: ${{!cancelled()}}
         run: |
           ccache -s
+      - name: Upload ccache debug
+        if: ${{env.CCACHE_DEBUG && !cancelled()}}
+        uses: actions/upload-artifact@v4
+        with:
+          path: ${{env.CCACHE_DEBUGDIR}}
+          name: ccache-debug-${{github.job}}
+          overwrite: true
+          retention-days: 7
   windows:
     name: ultralite-windows
     env:
       CCACHE_DIR: "${{github.workspace}}\\.ccache"
-      CCACHE_MAXSIZE: "20Mi"
+      CCACHE_MAXSIZE: "50Mi"
       CMAKE_PRESET: ultralite
     runs-on: windows-latest
     steps:
@@ -105,5 +117,13 @@ jobs:
         if: ${{!cancelled()}}
         run: |
           ccache -s
+      - name: Upload ccache debug
+        if: ${{env.CCACHE_DEBUG && !cancelled()}}
+        uses: actions/upload-artifact@v4
+        with:
+          path: ${{env.CCACHE_DEBUGDIR}}
+          name: ccache-debug-${{github.job}}
+          overwrite: true
+          retention-days: 7
 
 # vim: set nowrap tw=100:
