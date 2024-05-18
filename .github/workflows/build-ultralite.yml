@@ -9,7 +9,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  CCACHE_DEBUG: 1
   CCACHE_DEBUGDIR: ${{github.workspace}}/ccache-debug
 
 jobs:
@@ -35,8 +34,9 @@ jobs:
           key: ccache-ultralite-windows-${{github.run_id}}
           restore-keys: |
             ccache-ultralite
-      - name: Zero ccache stats
+      - name: Clear ccache
         run: |
+          ccache -C
           ccache -z
       - name: Configure Celeritas
         shell: pwsh
