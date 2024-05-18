@@ -17,7 +17,7 @@ jobs:
     name: ultralite-windows
     env:
       CCACHE_DIR: "${{github.workspace}}\\.ccache"
-      CCACHE_MAXSIZE: "20Mi"
+      CCACHE_MAXSIZE: "100Mi"
       CMAKE_PRESET: ultralite
     runs-on: windows-latest
     steps:

@@ -21,6 +21,7 @@
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_TEST_VERBOSE": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_HOSTNAME": "rocky-cuda",
         "CMAKE_CXX_STANDARD": "17",
         "CMAKE_CXX_EXTENSIONS": {"type": "BOOL", "value": "OFF"},
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror -Wno-error=deprecated-declarations",
