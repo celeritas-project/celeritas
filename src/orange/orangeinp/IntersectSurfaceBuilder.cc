@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/ConvexSurfaceBuilder.cc
+//! \file orange/orangeinp/IntersectSurfaceBuilder.cc
 //---------------------------------------------------------------------------//
-#include "ConvexSurfaceBuilder.hh"
+#include "IntersectSurfaceBuilder.hh"
 
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/surf/RecursiveSimplifier.hh"
 #include "orange/surf/SurfaceClipper.hh"
 
-#include "detail/ConvexSurfaceState.hh"
 #include "detail/CsgUnitBuilder.hh"
+#include "detail/IntersectSurfaceState.hh"
 #include "detail/NegatedSurfaceClipper.hh"
 
 namespace celeritas
@@ -51,9 +51,9 @@ struct ClipImpl
  *
  * Both arguments must have lifetimes that exceed the surface builder, but the
  * "unit builder" will have a duration of the whole unit construction, whereas
- * the state just has the duration of the convex surface set being built.
+ * the state just has the duration of the surface set being built.
  */
-ConvexSurfaceBuilder::ConvexSurfaceBuilder(UnitBuilder* ub, State* state)
+IntersectSurfaceBuilder::IntersectSurfaceBuilder(UnitBuilder* ub, State* state)
     : ub_{ub}, state_{state}
 {
     CELER_EXPECT(ub_ && state_);
@@ -68,10 +68,10 @@ ConvexSurfaceBuilder::ConvexSurfaceBuilder(UnitBuilder* ub, State* state)
 /*!
  * Add a surface with a sense.
  *
- * The resulting surface *MUST* result in a convex region.
+ * The resulting surface *MUST* result in a intersect region.
  */
 template<class S>
-void ConvexSurfaceBuilder::operator()(Sense sense, S const& surf)
+void IntersectSurfaceBuilder::operator()(Sense sense, S const& surf)
 {
     // First, clip the local bounding zone based on the given surface
     RecursiveSimplifier clip_simplified_local(ClipImpl{&state_->local_bzone},
@@ -91,12 +91,12 @@ void ConvexSurfaceBuilder::operator()(Sense sense, S const& surf)
  * Add a surface after transforming it to an unknown type.
  *
  * \param extension Constructed metadata for the surface node
- * \param sense Whether the convex region is inside/outside this surface
+ * \param sense Whether the intersect region is inside/outside this surface
  * \param surf Type-deleted surface
  */
-void ConvexSurfaceBuilder::insert_transformed(std::string&& extension,
-                                              Sense sense,
-                                              VariantSurface const& surf)
+void IntersectSurfaceBuilder::insert_transformed(std::string&& extension,
+                                                 Sense sense,
+                                                 VariantSurface const& surf)
 {
     NodeId node_id;
     auto construct_impl = [&](Sense final_sense, auto&& final_surf) {
@@ -138,7 +138,7 @@ void ConvexSurfaceBuilder::insert_transformed(std::string&& extension,
 /*!
  * Shrink the exterior bounding boxes.
  */
-void ConvexSurfaceBuilder::shrink_exterior(BBox const& bbox)
+void IntersectSurfaceBuilder::shrink_exterior(BBox const& bbox)
 {
     CELER_EXPECT(bbox && !is_degenerate(bbox));
 
@@ -159,7 +159,7 @@ void ConvexSurfaceBuilder::shrink_exterior(BBox const& bbox)
 /*!
  * Grow the interior local bounding box.
  */
-void ConvexSurfaceBuilder::grow_interior(BBox const& bbox)
+void IntersectSurfaceBuilder::grow_interior(BBox const& bbox)
 {
     CELER_EXPECT(bbox);
 
@@ -182,7 +182,7 @@ void ConvexSurfaceBuilder::grow_interior(BBox const& bbox)
 /*!
  * Apply a convex surface builder to an unknown type.
  */
-void visit(ConvexSurfaceBuilder& csb, Sense sense, VariantSurface const& surf)
+void visit(IntersectSurfaceBuilder& csb, Sense sense, VariantSurface const& surf)
 {
     std::visit([&csb, sense](auto const& s) { csb(sense, s); }, surf);
 }
@@ -192,7 +192,7 @@ void visit(ConvexSurfaceBuilder& csb, Sense sense, VariantSurface const& surf)
 //---------------------------------------------------------------------------//
 //! \cond
 #define CSB_INSTANTIATE(SURF) \
-    template void ConvexSurfaceBuilder::operator()(Sense, SURF const&)
+    template void IntersectSurfaceBuilder::operator()(Sense, SURF const&)
 CSB_INSTANTIATE(PlaneAligned<Axis::x>);
 CSB_INSTANTIATE(PlaneAligned<Axis::y>);
 CSB_INSTANTIATE(PlaneAligned<Axis::z>);

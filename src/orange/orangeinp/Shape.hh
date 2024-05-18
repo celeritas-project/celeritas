@@ -9,7 +9,7 @@
 
 #include <type_traits>
 
-#include "ConvexRegion.hh"
+#include "IntersectRegion.hh"
 #include "ObjectInterface.hh"
 
 namespace celeritas
@@ -18,14 +18,14 @@ namespace orangeinp
 {
 //---------------------------------------------------------------------------//
 /*!
- * A simple, convex region of space.
+ * A simple, intersect region of space.
  *
  * This is an abstract class that implements \c build for constructing a volume
  * by dispatching to a method \c build_interior that the daughters must
- * override using a convex region.
+ * override using a intersect region.
  *
- * Use the implementation classes \c XShape where \c X is one of the convex
- * region types in ConvexRegion.hh :
+ * Use the implementation classes \c XShape where \c X is one of the
+ * region types in IntersectRegion.hh :
  * - \c BoxShape
  * - \c ConeShape
  * - \c CylinderShape
@@ -44,8 +44,8 @@ class ShapeBase : public ObjectInterface
     // Write the shape to JSON
     void output(JsonPimpl*) const final;
 
-    //! Interior convex region interface for construction and access
-    virtual ConvexRegionInterface const& interior() const = 0;
+    //! Interior intersect region interface for construction and access
+    virtual IntersectRegionInterface const& interior() const = 0;
 
   protected:
     //!@{
@@ -58,7 +58,7 @@ class ShapeBase : public ObjectInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * Shape that holds a convex region and forwards construction args to it.
+ * Shape that holds a intersect region and forwards construction args to it.
  *
  * Construct as: \code
     BoxShape s{"mybox", Real3{1, 2, 3}};
@@ -67,16 +67,16 @@ class ShapeBase : public ObjectInterface
  *  Shape s{"mybox", Box{{1, 2, 3}}};
  * \endcode
  *
- * See ConvexRegion.hh for a list of the regions and their construction
+ * See IntersectRegion.hh for a list of the regions and their construction
  * arguments.
  */
 template<class T>
 class Shape final : public ShapeBase
 {
-    static_assert(std::is_base_of_v<ConvexRegionInterface, T>);
+    static_assert(std::is_base_of_v<IntersectRegionInterface, T>);
 
   public:
-    //! Construct with a label and arguments of the convex region
+    //! Construct with a label and arguments of the intersect region
     template<class... Ts>
     Shape(std::string&& label, Ts... region_args)
         : label_{std::move(label)}, region_{std::forward<Ts>(region_args)...}
@@ -84,7 +84,7 @@ class Shape final : public ShapeBase
         CELER_EXPECT(!label_.empty());
     }
 
-    //! Construct with a label and convex region
+    //! Construct with a label and intersect region
     Shape(std::string&& label, T&& region)
         : label_{std::move(label)}, region_{std::move(region)}
     {
@@ -94,8 +94,8 @@ class Shape final : public ShapeBase
     //! Get the user-provided label
     std::string_view label() const final { return label_; }
 
-    //! Interior convex region
-    ConvexRegionInterface const& interior() const final { return region_; }
+    //! Interior intersect region
+    IntersectRegionInterface const& interior() const final { return region_; }
 
   private:
     std::string label_;

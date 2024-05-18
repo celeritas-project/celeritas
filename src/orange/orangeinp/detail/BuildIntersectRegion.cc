@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/detail/BuildConvexRegion.cc
+//! \file orange/orangeinp/detail/BuildIntersectRegion.cc
 //---------------------------------------------------------------------------//
-#include "BuildConvexRegion.hh"
+#include "BuildIntersectRegion.hh"
 
-#include "orange/orangeinp/ConvexRegion.hh"
-#include "orange/orangeinp/ConvexSurfaceBuilder.hh"
+#include "orange/orangeinp/IntersectRegion.hh"
+#include "orange/orangeinp/IntersectSurfaceBuilder.hh"
 #include "orange/surf/FaceNamer.hh"
 
-#include "ConvexSurfaceState.hh"
 #include "CsgUnitBuilder.hh"
+#include "IntersectSurfaceState.hh"
 #include "VolumeBuilder.hh"
 
 namespace celeritas
@@ -23,21 +23,21 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Build a convex region.
+ * Build a intersect region.
  */
-NodeId build_convex_region(VolumeBuilder& vb,
-                           std::string&& label,
-                           std::string&& face_prefix,
-                           ConvexRegionInterface const& region)
+NodeId build_intersect_region(VolumeBuilder& vb,
+                              std::string&& label,
+                              std::string&& face_prefix,
+                              IntersectRegionInterface const& region)
 {
     // Set input attributes for surface state
-    ConvexSurfaceState css;
+    IntersectSurfaceState css;
     css.transform = &vb.local_transform();
     css.object_name = std::move(label);
     css.make_face_name = FaceNamer{std::move(face_prefix)};
 
     // Construct surfaces
-    auto sb = ConvexSurfaceBuilder(&vb.unit_builder(), &css);
+    auto sb = IntersectSurfaceBuilder(&vb.unit_builder(), &css);
     region.build(sb);
 
     // Intersect the given surfaces to create a new CSG node
