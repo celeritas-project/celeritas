@@ -7,13 +7,18 @@
 //---------------------------------------------------------------------------//
 #include "MuHadEmStandardPhysics.hh"
 
-#include <G4BuilderType.hh>
-#include <G4EmBuilder.hh>
 #include <G4EmParameters.hh>
 #include <G4NuclearStopping.hh>
+#include <G4ParticleDefinition.hh>
 #include <G4PhysicsListHelper.hh>
+#include <G4Version.hh>
 #include <G4hMultipleScattering.hh>
 #include <G4ionIonisation.hh>
+#if G4VERSION_NUMBER >= 1070
+#    include <G4EmBuilder.hh>
+#else
+#    include "GeantEmBuilder.hh"
+#endif
 
 #include "G4GenericIon.hh"
 
@@ -36,7 +41,11 @@ MuHadEmStandardPhysics::MuHadEmStandardPhysics(int verbosity)
  */
 void MuHadEmStandardPhysics::ConstructParticle()
 {
+#if G4VERSION_NUMBER >= 1070
     G4EmBuilder::ConstructMinimalEmSet();
+#else
+    GeantEmBuilder().construct_minimal_em_set();
+#endif
 }
 
 //---------------------------------------------------------------------------//
@@ -66,7 +75,11 @@ void MuHadEmStandardPhysics::ConstructProcess()
         physics_list->RegisterProcess(nuclear_stopping, p);
     }
 
+#if G4VERSION_NUMBER >= 1070
     G4EmBuilder::ConstructCharged(ion_msc, nuclear_stopping);
+#else
+    GeantEmBuilder().construct_charged(ion_msc, nuclear_stopping);
+#endif
 }
 
 //---------------------------------------------------------------------------//

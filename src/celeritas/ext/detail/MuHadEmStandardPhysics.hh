@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <G4ParticleDefinition.hh>
 #include <G4VPhysicsConstructor.hh>
 
 namespace celeritas
