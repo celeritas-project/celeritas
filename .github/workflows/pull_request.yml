@@ -1,4 +1,4 @@
-name: pr
+name: pull_request
 run-name: >-
   ${{github.event.pull_request.title}}
   (#${{github.event.number}})
