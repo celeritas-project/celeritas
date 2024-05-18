@@ -131,10 +131,10 @@ void from_json(nlohmann::json const& j, RunInput& v)
     CELER_VALIDATE(v.event_file.empty() == static_cast<bool>(v.primary_options),
                    << "either a HepMC3 filename or options to generate "
                       "primaries must be provided (but not both)");
-    CELER_VALIDATE(v.physics_list == PhysicsListSelection::geant_physics_list
+    CELER_VALIDATE(v.physics_list != PhysicsListSelection::ftfp_bert
                        || !j.contains("physics_options"),
                    << "'physics_options' can only be specified for "
-                      "'geant_physics_list'");
+                      "'celer_ftfp_bert' or 'geant_physics_list'");
     CELER_VALIDATE((v.field != RunInput::no_field() || v.field_type == "rzmap")
                        || !j.contains("field_options"),
                    << "'field_options' cannot be specified without providing "
@@ -176,7 +176,7 @@ void to_json(nlohmann::json& j, RunInput const& v)
     RI_SAVE(auto_flush);
 
     RI_SAVE(physics_list);
-    if (v.physics_list == PhysicsListSelection::geant_physics_list)
+    if (v.physics_list != PhysicsListSelection::ftfp_bert)
     {
         RI_SAVE(physics_options);
     }

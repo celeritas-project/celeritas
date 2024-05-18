@@ -114,7 +114,7 @@ CelerEmStandardPhysics::CelerEmStandardPhysics(Options const& options)
         em_parameters.SetMscEnergyLimit(100 * CLHEP::TeV);
     }
     em_parameters.SetApplyCuts(options.apply_cuts);
-    em_parameters.SetVerbose(options_.verbose);
+    em_parameters.SetVerbose(options.verbose);
 }
 
 //---------------------------------------------------------------------------//

@@ -24,7 +24,8 @@ namespace app
 enum class PhysicsListSelection
 {
     ftfp_bert,
-    geant_physics_list,
+    celer_ftfp_bert,  //!< FTFP BERT with Celeritas EM standard physics
+    geant_physics_list,  //!< Celeritas EM standard physics only
     size_,
 };
 
@@ -72,7 +73,7 @@ struct RunInput
     bool default_stream{false};  //!< Launch all kernels on the default stream
 
     // Physics setup options
-    PhysicsListSelection physics_list{PhysicsListSelection::ftfp_bert};
+    PhysicsListSelection physics_list{PhysicsListSelection::celer_ftfp_bert};
     GeantPhysicsOptions physics_options;
 
     // Field setup options
