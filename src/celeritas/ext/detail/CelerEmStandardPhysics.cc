@@ -82,8 +82,6 @@ CelerEmStandardPhysics::CelerEmStandardPhysics(Options const& options)
                    << "number of EM bins per decade="
                    << options.em_bins_per_decade << " (must be at least 5)");
 
-    using ClhepLen = Quantity<units::ClhepTraits::Length, double>;
-
     em_parameters.SetNumberOfBinsPerDecade(options.em_bins_per_decade);
     em_parameters.SetLossFluctuations(options.eloss_fluctuation);
     em_parameters.SetMinEnergy(value_as<Options::MevEnergy>(options.min_energy)
@@ -99,6 +97,8 @@ CelerEmStandardPhysics::CelerEmStandardPhysics(Options const& options)
         from_msc_step_algorithm(options.msc_step_algorithm));
     em_parameters.SetMscRangeFactor(options.msc_range_factor);
 #if G4VERSION_NUMBER >= 1060
+    using ClhepLen = Quantity<units::ClhepTraits::Length, double>;
+
     // Customizable MSC safety factor/lambda limit were added in
     // emutils-V10-05-18
     em_parameters.SetMscSafetyFactor(options.msc_safety_factor);
