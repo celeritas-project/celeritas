@@ -21,6 +21,7 @@
 #include "celeritas/Quantities.hh"
 
 #include "CelerEmStandardPhysics.hh"
+#include "MuHadEmStandardPhysics.hh"
 
 namespace celeritas
 {
@@ -39,11 +40,15 @@ CelerFTFPBert::CelerFTFPBert(Options const& options)
     this->SetDefaultCutValue(
         native_value_to<ClhepLen>(options.default_cutoff).value());
 
-    // Celeritas-supported EM Physics
-    auto em_standard = std::make_unique<CelerEmStandardPhysics>(options);
-    RegisterPhysics(em_standard.release());
+    // Celeritas-supported EM physics
+    auto celer_em = std::make_unique<CelerEmStandardPhysics>(options);
+    RegisterPhysics(celer_em.release());
 
-    // Synchroton Radiation & GN Physics
+    // Muon and hadrom EM standard physics not supported in Celeritas
+    auto muhad_em = std::make_unique<MuHadEmStandardPhysics>(verbosity);
+    RegisterPhysics(muhad_em.release());
+
+    // Synchroton radiation & GN physics
     auto em_extra = std::make_unique<G4EmExtraPhysics>(verbosity);
     RegisterPhysics(em_extra.release());
 
@@ -51,19 +56,19 @@ CelerFTFPBert::CelerFTFPBert(Options const& options)
     auto decay = std::make_unique<G4DecayPhysics>(verbosity);
     RegisterPhysics(decay.release());
 
-    // Hadron Elastic scattering
+    // Hadron elastic scattering
     auto hadron_elastic = std::make_unique<G4HadronElasticPhysics>(verbosity);
     RegisterPhysics(hadron_elastic.release());
 
-    // Hadron Physics
+    // Hadron physics
     auto hadron = std::make_unique<G4HadronPhysicsFTFP_BERT>(verbosity);
     RegisterPhysics(hadron.release());
 
-    // Stopping Physics
+    // Stopping physics
     auto stopping = std::make_unique<G4StoppingPhysics>(verbosity);
     RegisterPhysics(stopping.release());
 
-    // Ion Physics
+    // Ion physics
     auto ion = std::make_unique<G4IonPhysics>(verbosity);
     RegisterPhysics(ion.release());
 
