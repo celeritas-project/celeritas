@@ -795,7 +795,7 @@ TEST_F(GenTrapTest, adjacent_twisted)
 
         EXPECT_EQ(expected_node, result.node);
         EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -1}), result.exterior.lower());
-        EXPECT_VEC_SOFT_EQ((Real3{inf, 1, 1}), result.exterior.upper());
+        EXPECT_VEC_SOFT_EQ((Real3{0.5, 1, 1}), result.exterior.upper());
     }
     {
         // Right
@@ -807,7 +807,7 @@ TEST_F(GenTrapTest, adjacent_twisted)
         static char const expected_node[] = "all(+0, -1, +2, +3, -4, -6)";
 
         EXPECT_EQ(expected_node, result.node);
-        EXPECT_VEC_SOFT_EQ((Real3{-inf, -1, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{-0.5, -1, -1}), result.exterior.lower());
         EXPECT_VEC_SOFT_EQ((Real3{1, 1, 1}), result.exterior.upper());
     }
     {
@@ -820,7 +820,7 @@ TEST_F(GenTrapTest, adjacent_twisted)
         static char const expected_node[] = "all(+0, -1, +7, -8, -9, +10)";
 
         EXPECT_EQ(expected_node, result.node);
-        EXPECT_VEC_SOFT_EQ((Real3{-inf, -2, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{-1, -2, -1}), result.exterior.lower());
         EXPECT_VEC_SOFT_EQ((Real3{2, 2, 1}), result.exterior.upper());
     }
 
