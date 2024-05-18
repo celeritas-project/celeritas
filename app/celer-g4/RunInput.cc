@@ -23,7 +23,7 @@ char const* to_cstring(PhysicsListSelection value)
     static EnumStringMapper<PhysicsListSelection> const to_cstring_impl{
         "ftfp_bert",
         "celer_ftfp_bert",
-        "geant_physics_list",
+        "celer_em",
     };
     return to_cstring_impl(value);
 }

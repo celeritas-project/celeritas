@@ -25,7 +25,7 @@ enum class PhysicsListSelection
 {
     ftfp_bert,
     celer_ftfp_bert,  //!< FTFP BERT with Celeritas EM standard physics
-    geant_physics_list,  //!< Celeritas EM standard physics only
+    celer_em,  //!< Celeritas EM standard physics only
     size_,
 };
 

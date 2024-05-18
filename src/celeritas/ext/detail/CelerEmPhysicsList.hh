@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/GeantPhysicsList.hh
+//! \file celeritas/ext/detail/CelerEmPhysicsList.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -19,7 +19,7 @@ namespace detail
 /*!
  * Construct a user-defined physics list of particles and physics processes.
  */
-class GeantPhysicsList : public G4VModularPhysicsList
+class CelerEmPhysicsList : public G4VModularPhysicsList
 {
   public:
     //!@{
@@ -29,7 +29,7 @@ class GeantPhysicsList : public G4VModularPhysicsList
 
   public:
     // Set up during construction
-    explicit GeantPhysicsList(Options const& options);
+    explicit CelerEmPhysicsList(Options const& options);
 };
 
 //---------------------------------------------------------------------------//

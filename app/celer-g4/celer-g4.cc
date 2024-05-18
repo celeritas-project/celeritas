@@ -55,8 +55,8 @@
 #include "geocel/ScopedGeantLogger.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
+#include "celeritas/ext/detail/CelerEmPhysicsList.hh"
 #include "celeritas/ext/detail/CelerFTFPBert.hh"
-#include "celeritas/ext/detail/GeantPhysicsList.hh"
 #include "accel/SharedParams.hh"
 
 #include "ActionInitialization.hh"
@@ -198,7 +198,7 @@ void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
         else
         {
             // Celeritas EM standard physics only
-            auto pl = std::make_unique<detail::GeantPhysicsList>(opts);
+            auto pl = std::make_unique<detail::CelerEmPhysicsList>(opts);
             run_manager->SetUserInitialization(pl.release());
         }
     }
