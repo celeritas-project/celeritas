@@ -1,6 +1,9 @@
 #!/bin/bash
 
-if ! args=$(getopt t:r: "$@"); then
+
+# shellcheck disable=SC2048
+# shellcheck disable=SC2086
+if ! args=$(getopt t:r: $*); then
     echo "Usage: $0 [-t tag_name] [-r repo_url]"
     exit
 fi

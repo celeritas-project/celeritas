@@ -19,7 +19,7 @@ done
 if [[ -n ${has_sys_admin_cap+x} ]]
 then
   if [[ ! -f /sys/kernel/tracing/current_tracer ]]; then
-    mount -t nodev tracefs /sys/kernel/tracing
+    mount -t tracefs nodev /sys/kernel/tracing
   fi
 else
   echo "cap_sys_admin not set, can't use tracefs-based tracing, run the container with '--cap-add=SYS_ADMIN'"

@@ -1,6 +1,8 @@
 #!/bin/bash -e
 
-if ! args=$(getopt t:m: "$@"); then
+# shellcheck disable=SC2048
+# shellcheck disable=SC2086
+if ! args=$(getopt t:m: $*); then
     echo "Usage: $0 [-t tag_name] [-m bind_mount]"
     exit
 fi
@@ -24,8 +26,10 @@ while :; do
     esac
 done
 
+CELER_DIR=$(readlink -f "$(dirname "${BASH_SOURCE[0]}")"/../../..)
+
 : "${TAG_NAME:=develop}"
-: "${HOST_MOUNT:=$(pwd)}"
+: "${HOST_MOUNT:=$CELER_DIR}"
 
 docker run --rm -it --mount source=celeritas_storage,target=/data \
         --mount type=bind,source="${HOST_MOUNT}",target=/host \

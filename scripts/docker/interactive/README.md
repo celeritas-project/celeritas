@@ -13,9 +13,10 @@ The container tag matches the git branch/tag name:
 ```
 
 ## Run
-By default, mount a volume in ```/data``` that persist data across executions and bind the current working directory to ```/host```
+By default, mount a volume in ```/data``` that persist data across
+executions and bind the celeritas root directory to ```/host```
 ```shell
 # -t container tag to run, default develop
-# -m host directory to mount inside the container under /host, default pwd
+# -m host directory to mount inside the container under /host, default celeritas root dir
 ./run.sh
 ```

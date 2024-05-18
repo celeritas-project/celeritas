@@ -53,6 +53,9 @@ RUN git clone -b${CELER_VERSION_TAG} ${CELER_REP} ${CELER_ROOT}
 
 COPY CMakeUserPresets.json ${CELER_ROOT}
 
+ENV CCACHE_DIR=/data/.ccache
+RUN mkdir -p ${CCACHE_DIR} /host
+
 WORKDIR ${CELER_ROOT}
 
 RUN eval $(${SPACK_EXE} env activate --sh ${CELERITAS_ENV_NAME}) \
@@ -68,4 +71,5 @@ RUN ln -s ${SPACK_ROOT}/share/spack/docker/entrypoint.bash \
     && chmod u+x /usr/local/bin/run-perfetto \
     && ln -s /sys/kernel/tracing /tracing
 
+WORKDIR /host
 ENTRYPOINT ["interactive-shell"]
