@@ -766,29 +766,24 @@ TEST_F(GenTrapTest, full2)
     EXPECT_VEC_SOFT_EQ((Real3{54, 20, 40}), result.exterior.upper());
 }
 
+/*!
+ * Test deduplication of two opposing quadric surfaces.
+ *
+ * \verbatim
+ * Lower polygons:      Upper polygons:
+ *
+ * x=-1      x=1           x=-0.5
+ * +----+----+ y=1      +--+------+ y=1
+ * |    |    |          |   \     |
+ * |    |  R |          |    \  R |
+ * |  L |    |          |  L  \   |
+ * |    |    |          |      \  |
+ * +----+----+ y=-1     +-------+-+ y=-1
+ *      x=0                     x=0.5
+ * \endverbatim
+ */
 TEST_F(GenTrapTest, adjacent_twisted)
 {
-    /* Lower polygons:
-     *
-     * x=-1      x=1
-     * +----+----+ y=1
-     * |    |    |
-     * |  L |  R |
-     * |    |    |
-     * |    |    |
-     * +----+----+ y=-1
-     *
-     *
-     * Upper polygons:
-     *    x=-0.5
-     * +--+------+ y=1
-     * |   \     |
-     * |    \  R |
-     * |  L  \   |
-     * |      \  |
-     * +-------+-+ y=-1
-     *         x=0.5
-     */
     {
         // Left
         auto result
