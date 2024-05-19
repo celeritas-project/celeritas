@@ -375,9 +375,6 @@ class Parallelepiped final : public IntersectRegionInterface
  * - n=3 is a downward-pointing triangle
  * - n=4 is a diamond
  * - n=6 is a pointy-top hexagon
- *
- * \note Whereas Geant4 uses the circumradius (outer radius), Celeritas uses
- * the apothem (inner radius).
  */
 class Prism final : public IntersectRegionInterface
 {

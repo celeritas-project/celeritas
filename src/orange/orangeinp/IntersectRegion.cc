@@ -441,6 +441,9 @@ void GenTrap::build(IntersectSurfaceBuilder& insert_surface) const
     insert_surface(Sense::outside, PlaneZ{-hz_});
     insert_surface(Sense::inside, PlaneZ{hz_});
 
+    // TODO: use plane normal equality from SoftSurfaceEqual
+    SoftEqual soft_equal{insert_surface.tol().rel};
+
     // Build the side planes
     for (auto i : range(lo_.size()))
     {
