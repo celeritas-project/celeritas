@@ -105,7 +105,6 @@ Cone::Cone(Real2 const& radii, real_type halfheight)
     {
         CELER_VALIDATE(radii_[i] >= 0, << "negative radius: " << radii_[i]);
     }
-    CELER_VALIDATE(radii_[0] != radii_[1], << "radii cannot be equal");
     CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
 }
 
@@ -134,6 +133,14 @@ bool Cone::encloses(Cone const& other) const
  */
 void Cone::build(IntersectSurfaceBuilder& insert_surface) const
 {
+    if (CELER_UNLIKELY(
+            SoftEqual{insert_surface.tol().rel}(radii_[0], radii_[1])))
+    {
+        // Degenerate cone: build a cylinder instead
+        Cylinder cyl{real_type{0.5} * (radii_[0] + radii_[1]), hh_};
+        return cyl.build(insert_surface);
+    }
+
     // Build the bottom and top planes
     insert_surface(Sense::outside, PlaneZ{-hh_});
     insert_surface(Sense::inside, PlaneZ{hh_});

@@ -312,20 +312,6 @@ auto SolidConverter::cons(arg_type solid_base) -> result_type
                                                 solid.GetInnerRadiusPlusZ());
     auto hh = scale_(solid.GetZHalfLength());
 
-    if (outer_r[0] == outer_r[1])
-    {
-        std::optional<Cylinder> inner;
-        if (inner_r[0] || inner_r[1])
-        {
-            inner = Cylinder{inner_r[0], hh};
-        }
-
-        return make_solid(solid,
-                          Cylinder{outer_r[0], hh},
-                          std::move(inner),
-                          make_wedge_azimuthal(solid));
-    }
-
     std::optional<Cone> inner;
     if (inner_r[0] || inner_r[1])
     {

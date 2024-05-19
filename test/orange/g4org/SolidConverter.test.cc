@@ -156,7 +156,7 @@ TEST_F(SolidConverterTest, cons)
 {
     this->build_and_test(
         G4Cons("Solid TubeLike #1", 0, 50, 0, 50, 50, 0, 360),
-        R"json({"_type":"shape","interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Solid TubeLike #1"})json",
+        R"json({"_type":"shape","interior":{"_type":"cone","halfheight":5.0,"radii":[5.0,5.0]},"label":"Solid TubeLike #1"})json",
         {{0, 0, 4}, {0, 0, 5}, {0, 0, 6}, {4, 0, 0}, {5, 0, 0}, {6, 0, 0}});
 
     this->build_and_test(
