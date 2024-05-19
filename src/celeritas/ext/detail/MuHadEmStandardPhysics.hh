@@ -27,6 +27,10 @@ class MuHadEmStandardPhysics : public G4VPhysicsConstructor
     void ConstructParticle() override;
     // Set up process list
     void ConstructProcess() override;
+
+  public:
+    void construct_particle();
+    void construct_process();
 };
 
 //---------------------------------------------------------------------------//
