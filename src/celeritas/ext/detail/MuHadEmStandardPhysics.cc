@@ -39,7 +39,6 @@
 #    include <G4MuonPlus.hh>
 #    include <G4NeutrinoE.hh>
 #    include <G4NeutrinoMu.hh>
-#    include <G4PhysListUtil.hh>
 #    include <G4PionMinus.hh>
 #    include <G4PionPlus.hh>
 #    include <G4PionZero.hh>
@@ -96,9 +95,6 @@ void MuHadEmStandardPhysics::construct_particle()
 #if G4VERSION_NUMBER >= 1070
     G4EmBuilder::ConstructMinimalEmSet();
 #else
-    // Instantiate singletons for physics
-    G4PhysListUtil::InitialiseParameters();
-
     // Pseudo-particles
     G4Geantino::GeantinoDefinition();
     G4ChargedGeantino::ChargedGeantinoDefinition();
