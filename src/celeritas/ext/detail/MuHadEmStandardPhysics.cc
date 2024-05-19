@@ -173,8 +173,8 @@ void MuHadEmStandardPhysics::construct_process()
     G4hPairProduction* pi_pair = new G4hPairProduction();
     G4hBremsstrahlung* ka_brems = new G4hBremsstrahlung();
     G4hPairProduction* ka_pair = new G4hPairProduction();
-    G4hBremsstrahlung* proton_brems = new G4hBremsstrahlung();
-    G4hPairProduction* proton_pair = new G4hPairProduction();
+    G4hBremsstrahlung* prot_brems = new G4hBremsstrahlung();
+    G4hPairProduction* prot_pair = new G4hPairProduction();
 
     // Muon & hadron multiple scattering
     G4MuMultipleScattering* mu_msc = new G4MuMultipleScattering();
@@ -237,13 +237,13 @@ void MuHadEmStandardPhysics::construct_process()
         }
         else if (name == "proton" || name == "anti_proton")
         {
-            G4hMultipleScattering* proton_msc = new G4hMultipleScattering();
-            proton_msc->SetEmModel(new G4WentzelVIModel());
+            G4hMultipleScattering* prot_msc = new G4hMultipleScattering();
+            prot_msc->SetEmModel(new G4WentzelVIModel());
 
-            ph->RegisterProcess(proton_msc, particle);
+            ph->RegisterProcess(prot_msc, particle);
             ph->RegisterProcess(new G4hIonisation(), particle);
-            ph->RegisterProcess(proton_brems, particle);
-            ph->RegisterProcess(proton_pair, particle);
+            ph->RegisterProcess(prot_brems, particle);
+            ph->RegisterProcess(prot_pair, particle);
             ph->RegisterProcess(new G4CoulombScattering(), particle);
         }
         else if (name == "B+" || name == "B-" || name == "D+" || name == "D-"
