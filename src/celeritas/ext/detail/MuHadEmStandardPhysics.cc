@@ -39,6 +39,7 @@
 #    include <G4MuonPlus.hh>
 #    include <G4NeutrinoE.hh>
 #    include <G4NeutrinoMu.hh>
+#    include <G4Neutron.hh>
 #    include <G4PionMinus.hh>
 #    include <G4PionPlus.hh>
 #    include <G4PionZero.hh>
