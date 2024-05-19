@@ -30,8 +30,7 @@ enum class MscModelSelection
     none,
     urban,  //!< Urban for all energies
     wentzelvi,  //!< Wentzel VI for all energies
-    urban_wentzelvi,  //!< Urban below 100 MeV, Wentzel VI abpve
-    gs_wentzelvi,  //!< Goudsmit-Saunderson below 100 MeV, Wentzel VI above
+    urban_wentzelvi,  //!< Urban below 100 MeV, Wentzel VI above
     size_
 };
 

@@ -339,8 +339,7 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
 
     // Energy limit between MSC models when multiple models are used
     double msc_energy_limit = G4EmParameters::Instance()->MscEnergyLimit();
-    bool set_energy_limit = options_.msc == MMS::urban_wentzelvi
-                            || options_.msc == MMS::gs_wentzelvi;
+    bool set_energy_limit = options_.msc == MMS::urban_wentzelvi;
 
     if (options_.coulomb_scattering)
     {
@@ -405,20 +404,6 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
             }
             CELER_LOG(debug) << "Loaded multiple scattering with "
                                 "G4WentzelVIModel from "
-                             << model->LowEnergyLimit() << " MeV to "
-                             << model->HighEnergyLimit() << " MeV";
-
-            process->SetEmModel(model.release());
-        }
-
-        if (options_.msc == MMS::gs_wentzelvi)
-        {
-            // Multiple scattering: Goudsmit-Saunderson (low E)
-            auto model = std::make_unique<G4GoudsmitSaundersonMscModel>();
-            model->SetHighEnergyLimit(msc_energy_limit);
-
-            CELER_LOG(debug) << "Loaded low-energy multiple scattering with "
-                                "G4GoudsmitSaundersonMscModel from "
                              << model->LowEnergyLimit() << " MeV to "
                              << model->HighEnergyLimit() << " MeV";
 
