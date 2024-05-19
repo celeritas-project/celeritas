@@ -18,7 +18,7 @@ namespace orangeinp
 {
 //---------------------------------------------------------------------------//
 /*!
- * A simple, intersect region of space.
+ * A simple, intersect-only region of space.
  *
  * This is an abstract class that implements \c build for constructing a volume
  * by dispatching to a method \c build_interior that the daughters must

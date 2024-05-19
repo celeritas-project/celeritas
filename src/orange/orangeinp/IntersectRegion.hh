@@ -206,7 +206,6 @@ class Ellipsoid final : public IntersectRegionInterface
  * on two parallel planes perpendicular to Z axis.
  *
  * TODO: Add proper treatment for degenerate cases.
- * TODO: support twisted faces.
  */
 class GenTrap final : public IntersectRegionInterface
 {
