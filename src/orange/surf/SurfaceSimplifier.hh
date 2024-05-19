@@ -79,8 +79,8 @@ class SurfaceSimplifier
              SimpleQuadric>
     operator()(SimpleQuadric const&);
 
-    // Quadric with no cross terms is simple
-    Optional<SimpleQuadric> operator()(GeneralQuadric const&);
+    // Quadric can be normalized or simplified
+    Optional<SimpleQuadric, GeneralQuadric> operator()(GeneralQuadric const&);
 
     //! Default: no simplifcation
     template<class S>
