@@ -500,8 +500,8 @@ void GenTrap::build(ConvexSurfaceBuilder& insert_surface) const
             }
         }
     }
-    exterior_bbox.grow(Axis::z, -hz_);
-    exterior_bbox.grow(Axis::z, hz_);
+    exterior_bbox.grow(Bound::lo, Axis::z, -hz_);
+    exterior_bbox.grow(Bound::hi, Axis::z, hz_);
     insert_surface(Sense::inside, exterior_bbox);
 }
 
