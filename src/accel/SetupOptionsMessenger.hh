@@ -33,6 +33,8 @@ struct SetupOptions;
   maxNumSteps          | Limit on number of step iterations before aborting
   maxInitializers      | Maximum number of track initializers
   secondaryStackFactor | At least the average number of secondaries per track
+  autoFlush            | Number of tracks to buffer before offloading
+  maxFieldSubsteps     | Limit on substeps in field propagator
 
  * The following option is exposed in the \c /celer/detector/ command
  * "directory":

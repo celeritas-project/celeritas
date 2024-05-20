@@ -10,7 +10,7 @@
 #include <cmath>
 #include <string>
 #include <string_view>
-#include <gtest/gtest.h>
+#include <gtest/gtest.h>  // IWYU pragma: export
 
 #include "celeritas_config.h"
 

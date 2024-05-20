@@ -44,7 +44,7 @@ physics_options = {
     'ionization': True,
     'annihilation': True,
     'brems': "all",
-    'msc': "urban_extended" if core_geo == "vecgeom" else "none",
+    'msc': "urban" if core_geo == "vecgeom" else "none",
     'eloss_fluctuation': True,
     'lpm': True,
 }
@@ -97,7 +97,7 @@ inp = {
     'step_diagnostic_bins': 200,
     'write_step_times': use_device,
     'simple_calo': simple_calo,
-    'sync': True,
+    'action_times': True,
     'merge_events': False,
     'default_stream': False,
     'brem_combined': True,

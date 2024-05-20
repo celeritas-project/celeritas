@@ -59,6 +59,15 @@ TEST_F(TranslatorTest, serialization)
     EXPECT_VEC_EQ((Real3{3, 2, 1}), tr2.translation());
 }
 
+TEST_F(TranslatorTest, inverse)
+{
+    Translation tr(Real3{1, 0, 3});
+
+    auto const inv = tr.calc_inverse();
+    EXPECT_VEC_SOFT_EQ((Real3{-1, 0, -3}), inv.translation());
+    EXPECT_FALSE(std::signbit(inv.translation()[1]));
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

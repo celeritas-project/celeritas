@@ -19,9 +19,6 @@
 using namespace celeritas::orangeinp::test;
 using celeritas::orangeinp::UnitProto;
 using celeritas::orangeinp::detail::ProtoMap;
-using ExteriorBoundary = celeritas::orangeinp::UnitProto::ExteriorBoundary;
-
-#include "celeritas_test.hh"
 
 namespace celeritas
 {
@@ -70,13 +67,13 @@ class ProtoConstructorTest : public ::celeritas::test::Test
 
     auto build_unit(ProtoMap const& protos, UniverseId id) const
     {
-        CELER_EXPECT(id);
+        CELER_EXPECT(id < protos.size());
         auto const* proto = dynamic_cast<UnitProto const*>(protos.at(id));
         CELER_ASSERT(proto);
         return proto->build(tol_,
-                            id == UniverseId{0}
-                                ? ExteriorBoundary::is_global
-                                : ExteriorBoundary::is_daughter);
+                            id == UniverseId{0} ? BBox{}
+                                                : BBox{{-1000, -1000, -1000},
+                                                       {1000, 1000, 1000}});
     }
 
     void TearDown() final { ::celeritas::reset_geant_geometry(); }

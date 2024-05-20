@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/GeantPhysicsList.cc
+//! \file celeritas/ext/detail/CelerEmStandardPhysics.cc
 //---------------------------------------------------------------------------//
-#include "GeantPhysicsList.hh"
+#include "CelerEmStandardPhysics.hh"
 
 #include <memory>
 #include <CLHEP/Units/SystemOfUnits.h>
@@ -95,15 +95,14 @@ from_form_factor_type(NuclearFormFactorType const& form_factor)
 /*!
  * Construct with physics options.
  */
-GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
+CelerEmStandardPhysics::CelerEmStandardPhysics(Options const& options)
+    : options_(options)
 {
     // Set EM options using limits from G4EmParameters
     auto& em_parameters = *G4EmParameters::Instance();
     CELER_VALIDATE(options_.em_bins_per_decade >= 5,
                    << "number of EM bins per decade="
                    << options.em_bins_per_decade << " (must be at least 5)");
-
-    using ClhepLen = Quantity<units::ClhepTraits::Length, double>;
 
     em_parameters.SetNumberOfBinsPerDecade(options.em_bins_per_decade);
     em_parameters.SetLossFluctuations(options.eloss_fluctuation);
@@ -122,6 +121,8 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
         from_msc_step_algorithm(options.msc_step_algorithm));
     em_parameters.SetMscRangeFactor(options.msc_range_factor);
 #if G4VERSION_NUMBER >= 1060
+    using ClhepLen = Quantity<units::ClhepTraits::Length, double>;
+
     // Customizable MSC safety factor/lambda limit were added in
     // emutils-V10-05-18
     em_parameters.SetMscSafetyFactor(options.msc_safety_factor);
@@ -132,18 +133,8 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
     em_parameters.SetLowestElectronEnergy(
         value_as<Options::MevEnergy>(options.lowest_electron_energy)
         * CLHEP::MeV);
-    if (options_.msc == MscModelSelection::urban_extended)
-    {
-        CELER_LOG(debug) << "Extended low-energy MSC limit to 100 TeV";
-        em_parameters.SetMscEnergyLimit(100 * CLHEP::TeV);
-    }
     em_parameters.SetApplyCuts(options.apply_cuts);
-    this->SetDefaultCutValue(
-        native_value_to<ClhepLen>(options.default_cutoff).value());
-
-    int verb = options_.verbose ? 1 : 0;
-    this->SetVerboseLevel(verb);
-    em_parameters.SetVerbose(verb);
+    em_parameters.SetVerbose(options.verbose);
 }
 
 //---------------------------------------------------------------------------//
@@ -159,7 +150,7 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
  * Currently only instantiating e+, e-, gamma, and proton (the latter is needed
  * for msc)
  */
-void GeantPhysicsList::ConstructParticle()
+void CelerEmStandardPhysics::ConstructParticle()
 {
     G4Gamma::GammaDefinition();
     G4Electron::ElectronDefinition();
@@ -174,11 +165,8 @@ void GeantPhysicsList::ConstructParticle()
 /*!
  * Build list of available processes and models.
  */
-void GeantPhysicsList::ConstructProcess()
+void CelerEmStandardPhysics::ConstructProcess()
 {
-    // Applies to all constructed particles
-    G4VUserPhysicsList::AddTransportation();
-
     // Add E.M. processes for photons, electrons, and positrons
     this->add_gamma_processes();
     this->add_e_processes(G4Electron::Electron());
@@ -203,7 +191,7 @@ void GeantPhysicsList::ConstructProcess()
  * calculates a combined total cross section. It's faster in Geant4 but
  * shouldn't result in different answers.
  */
-void GeantPhysicsList::add_gamma_processes()
+void CelerEmStandardPhysics::add_gamma_processes()
 {
     auto* physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
     auto* gamma = G4Gamma::Gamma();
@@ -297,7 +285,7 @@ void GeantPhysicsList::add_gamma_processes()
  * - Coulomb scattering and multiple scattering (high E) are currently
  *   disabled.
  */
-void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
+void CelerEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
 {
     auto* physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
 
@@ -365,58 +353,79 @@ void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
         }
     }
 
+    using MMS = MscModelSelection;
+
+    // Energy limit between MSC models when multiple models are used
+    double msc_energy_limit = G4EmParameters::Instance()->MscEnergyLimit();
+    bool set_energy_limit = options_.msc == MMS::urban_wentzelvi;
+
     if (options_.coulomb_scattering)
     {
         // Coulomb scattering: G4eCoulombScatteringModel
-        double msc_energy_limit = G4EmParameters::Instance()->MscEnergyLimit();
+        if (options_.msc == MMS::urban)
+        {
+            CELER_LOG(warning)
+                << "Urban multiple scattering is used for all "
+                   "energies: disabling G4eCoulombScatteringModel";
+        }
+        else
+        {
+            auto process = std::make_unique<G4CoulombScattering>();
+            auto model = std::make_unique<G4eCoulombScatteringModel>(
+                /* isCombined = */ options_.msc != MMS::none);
+            if (set_energy_limit)
+            {
+                process->SetMinKinEnergy(msc_energy_limit);
+                model->SetLowEnergyLimit(msc_energy_limit);
+                model->SetActivationLowEnergyLimit(msc_energy_limit);
+            }
 
-        auto process = std::make_unique<G4CoulombScattering>();
-        auto model = std::make_unique<G4eCoulombScatteringModel>();
-        process->SetMinKinEnergy(msc_energy_limit);
-        model->SetLowEnergyLimit(msc_energy_limit);
-        model->SetActivationLowEnergyLimit(msc_energy_limit);
-        process->SetEmModel(model.release());
-        physics_list->RegisterProcess(process.release(), p);
+            CELER_LOG(debug) << "Loaded single Coulomb scattering with "
+                                "G4eCoulombScatteringModel from "
+                             << model->LowEnergyLimit() << " MeV to "
+                             << model->HighEnergyLimit() << " MeV";
+
+            process->SetEmModel(model.release());
+            physics_list->RegisterProcess(process.release(), p);
+        }
     }
 
-    if (options_.msc != MscModelSelection::none)
+    if (options_.msc != MMS::none)
     {
-        // Multiple scattering: Urban (low E) and WentzelVI (high E) models
-        double msc_energy_limit = G4EmParameters::Instance()->MscEnergyLimit();
-
         auto process = std::make_unique<G4eMultipleScattering>();
 
-        if (options_.msc == MscModelSelection::urban
-            || options_.msc == MscModelSelection::urban_extended
-            || options_.msc == MscModelSelection::urban_wentzel)
+        if (options_.msc == MMS::urban || options_.msc == MMS::urban_wentzelvi)
         {
+            // Multiple scattering: Urban
             auto model = std::make_unique<G4UrbanMscModel>();
-            model->SetHighEnergyLimit(msc_energy_limit);
-            process->SetEmModel(model.release());
-
-            CELER_LOG(debug) << "Loaded low-energy multiple scattering with "
-                                "G4UrbanMscModel";
-        }
-
-        if (options_.msc == MscModelSelection::wentzel_vi
-            || options_.msc == MscModelSelection::urban_wentzel)
-        {
-            auto model = std::make_unique<G4WentzelVIModel>();
-            model->SetLowEnergyLimit(msc_energy_limit);
-            process->SetEmModel(model.release());
-
-            CELER_LOG(debug) << "Loaded high-energy multiple scattering with "
-                                "G4WentzelVIModel";
-        }
-
-        if (options_.msc == MscModelSelection::goudsmit_saunderson)
-        {
-            // Multiple scattering: Goudsmit-Saunderson (low E)
-            auto model = std::make_unique<G4GoudsmitSaundersonMscModel>();
-            process->SetEmModel(model.release());
+            if (set_energy_limit)
+            {
+                model->SetHighEnergyLimit(msc_energy_limit);
+            }
 
             CELER_LOG(debug) << "Loaded multiple scattering with "
-                                "G4GoudsmitSaundersonMscModel";
+                                "G4UrbanMscModel from "
+                             << model->LowEnergyLimit() << " MeV to "
+                             << model->HighEnergyLimit() << " MeV";
+
+            process->SetEmModel(model.release());
+        }
+
+        if (options_.msc == MMS::wentzelvi
+            || options_.msc == MMS::urban_wentzelvi)
+        {
+            // Multiple scattering: WentzelVI
+            auto model = std::make_unique<G4WentzelVIModel>();
+            if (set_energy_limit)
+            {
+                model->SetLowEnergyLimit(msc_energy_limit);
+            }
+            CELER_LOG(debug) << "Loaded multiple scattering with "
+                                "G4WentzelVIModel from "
+                             << model->LowEnergyLimit() << " MeV to "
+                             << model->HighEnergyLimit() << " MeV";
+
+            process->SetEmModel(model.release());
         }
 
         physics_list->RegisterProcess(process.release(), p);

@@ -7,8 +7,17 @@
 //---------------------------------------------------------------------------//
 #include "orange/OrangeTypes.hh"
 
+#include <cmath>
+#include <initializer_list>
+#include <limits>
+#include <string>
+#include <type_traits>
+#include <gtest/gtest.h>
+
+#include "corecel/Types.hh"
+#include "corecel/math/Algorithms.hh"
+
 #include "celeritas_test.hh"
-// #include "OrangeTypes.test.hh"
 
 namespace celeritas
 {

@@ -65,6 +65,9 @@ class NoTransformation
 
     //! Rotate from parent to daughter (identity)
     CELER_FUNCTION Real3 const& rotate_down(Real3 const& d) const { return d; }
+
+    // Calculate the inverse during preprocessing
+    inline NoTransformation calc_inverse() const { return {}; }
 };
 
 //---------------------------------------------------------------------------//

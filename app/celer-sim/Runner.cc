@@ -385,7 +385,8 @@ void Runner::build_core_params(RunnerInput const& inp,
     params.rng = std::make_shared<RngParams>(inp.seed);
 
     // Construct simulation params
-    params.sim = SimParams::from_import(imported, params.particle);
+    params.sim = SimParams::from_import(
+        imported, params.particle, inp.field_options.max_substeps);
 
     // Get the total number of events
     auto num_events = this->build_events(inp, params.particle);
@@ -431,7 +432,7 @@ void Runner::build_transporter_input(RunnerInput const& inp)
     transporter_input_->max_steps = inp.max_steps;
     transporter_input_->store_track_counts = inp.write_track_counts;
     transporter_input_->store_step_times = inp.write_step_times;
-    transporter_input_->sync = inp.sync;
+    transporter_input_->action_times = inp.action_times;
     transporter_input_->params = core_params_;
 }
 

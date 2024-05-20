@@ -29,11 +29,9 @@ enum class BremsModelSelection
 enum class MscModelSelection
 {
     none,
-    urban,
-    urban_extended,  //!< Use 100 TeV as upper bound instead of 100 MeV
-    wentzel_vi,
-    urban_wentzel,  //!< Urban for low-E, Wentzel_VI for high-E
-    goudsmit_saunderson,
+    urban,  //!< Urban for all energies
+    wentzelvi,  //!< Wentzel VI for all energies
+    urban_wentzelvi,  //!< Urban below 100 MeV, Wentzel VI above
     size_
 };
 
@@ -83,7 +81,7 @@ struct GeantPhysicsOptions
     //! Enable bremsstrahlung and select a model
     BremsModelSelection brems{BremsModelSelection::all};
     //! Enable multiple coulomb scattering and select a model
-    MscModelSelection msc{MscModelSelection::urban_extended};
+    MscModelSelection msc{MscModelSelection::urban};
     //! Enable atomic relaxation and select a model
     RelaxationSelection relaxation{RelaxationSelection::none};
     //!@}
