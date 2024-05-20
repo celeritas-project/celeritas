@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "SimpleQuadric.hh"
 
+#include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
@@ -18,6 +19,27 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with coefficients.
+ *
+ * The quadric is ill-defined if all non-constants are zero.
+ *
+ * TODO: normalize so that largest eigenvalue is unity?
+ */
+SimpleQuadric::SimpleQuadric(Real3 const& abc, Real3 const& def, real_type g)
+    : a_(abc[0])
+    , b_(abc[1])
+    , c_(abc[2])
+    , d_(def[0])
+    , e_(def[1])
+    , f_(def[2])
+    , g_(g)
+{
+    CELER_EXPECT(a_ != 0 || b_ != 0 || c_ != 0 || d_ != 0 || e_ != 0
+                 || f_ != 0);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Promote from a plane.

@@ -44,6 +44,8 @@ void validate_input(FieldDriverOptions const& opts)
         << "invalid max_stepping_decrease " << opts.max_stepping_decrease);
     CELER_VALIDATE(opts.max_nsteps > 0,
                    << "invalid max_nsteps " << opts.max_nsteps);
+    CELER_VALIDATE(opts.max_substeps > 0,
+                   << "invalid max_substeps " << opts.max_substeps);
     CELER_ENSURE(opts);
 }
 

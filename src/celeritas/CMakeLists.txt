@@ -114,11 +114,14 @@ if(CELERITAS_USE_Geant4)
     ext/GeantImporter.cc
     ext/GeantSetup.cc
     ext/GeantVolumeMapper.cc
+    ext/detail/CelerEmPhysicsList.cc
+    ext/detail/CelerEmStandardPhysics.cc
+    ext/detail/CelerFTFPBert.cc
     ext/detail/GeantBremsstrahlungProcess.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
-    ext/detail/GeantPhysicsList.cc
     ext/detail/GeantProcessImporter.cc
+    ext/detail/MuHadEmStandardPhysics.cc
   )
   celeritas_get_g4libs(_cg4_libs global geometry materials processes run
     physicslists tasking)

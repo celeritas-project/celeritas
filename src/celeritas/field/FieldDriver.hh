@@ -73,6 +73,11 @@ class FieldDriver
 
     //// ACCESSORS ////
 
+    CELER_FUNCTION short int max_substeps() const
+    {
+        return options_.max_substeps;
+    }
+
     CELER_FUNCTION real_type minimum_step() const
     {
         return options_.minimum_step;

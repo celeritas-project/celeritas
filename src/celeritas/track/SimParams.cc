@@ -10,7 +10,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/math/Algorithms.hh"
-#include "celeritas/field/FieldPropagator.hh"
+#include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -23,9 +23,12 @@ namespace celeritas
  * Construct with imported data.
  */
 std::shared_ptr<SimParams>
-SimParams::from_import(ImportData const& data, SPConstParticles particle_params)
+SimParams::from_import(ImportData const& data,
+                       SPConstParticles particle_params,
+                       short int max_field_substeps)
 {
     CELER_EXPECT(particle_params);
+    CELER_EXPECT(max_field_substeps > 0);
     CELER_EXPECT(data.trans_params);
     CELER_EXPECT(data.trans_params.looping.size() == particle_params->size());
 
@@ -35,10 +38,9 @@ SimParams::from_import(ImportData const& data, SPConstParticles particle_params)
     // Calculate the maximum number of steps a track below the threshold energy
     // can take while looping (ceil(max Geant4 field propagator substeps / max
     // Celeritas field propagator substeps))
-    size_type max_substeps = FieldPropagatorOptions::max_substeps;
-    size_type imported_max_substeps = data.trans_params.max_substeps;
-    CELER_ASSERT(imported_max_substeps >= max_substeps);
-    auto max_subthreshold_steps = ceil_div(imported_max_substeps, max_substeps);
+    CELER_ASSERT(data.trans_params.max_substeps >= max_field_substeps);
+    auto max_subthreshold_steps = ceil_div<size_type>(
+        data.trans_params.max_substeps, max_field_substeps);
 
     for (auto pid : range(ParticleId{input.particles->size()}))
     {
@@ -56,6 +58,17 @@ SimParams::from_import(ImportData const& data, SPConstParticles particle_params)
         input.looping.insert({pdg, looping});
     }
     return std::make_shared<SimParams>(input);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with imported data and default max field substeps.
+ */
+std::shared_ptr<SimParams>
+SimParams::from_import(ImportData const& data, SPConstParticles particle_params)
+{
+    return SimParams::from_import(
+        data, particle_params, FieldDriverOptions{}.max_substeps);
 }
 
 //---------------------------------------------------------------------------//

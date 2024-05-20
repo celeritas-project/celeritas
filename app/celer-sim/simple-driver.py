@@ -44,7 +44,7 @@ physics_options = {
     'ionization': True,
     'annihilation': True,
     'brems': "all",
-    'msc': "urban_extended" if core_geo == "vecgeom" else "none",
+    'msc': "urban" if core_geo == "vecgeom" else "none",
     'eloss_fluctuation': True,
     'lpm': True,
 }

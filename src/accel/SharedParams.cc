@@ -552,7 +552,8 @@ void SharedParams::initialize_core(SetupOptions const& options)
     params.rng = std::make_shared<RngParams>(CLHEP::HepRandom::getTheSeed());
 
     // Construct simulation params
-    params.sim = SimParams::from_import(*imported, params.particle);
+    params.sim = SimParams::from_import(
+        *imported, params.particle, options.max_field_substeps);
 
     // Construct track initialization params
     params.init = [&options] {
