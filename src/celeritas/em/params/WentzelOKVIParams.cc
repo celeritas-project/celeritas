@@ -130,7 +130,7 @@ void WentzelOKVIParams::build_data(HostVal<WentzelOKVIData>& host_data,
  * types: see Eqs. 2.262--2.264 of [LR15].
  *
  * Specifically, it calculates \f$ (r_n/\bar h)^2 / 12 \f$, where \f$ r_n =
- * 1.27 A^{0.27} [fm] f$ is the nuclear radius. A special case is inherited
+ * 1.27 A^{0.27} \f$ [fm] is the nuclear radius. A special case is inherited
  * from Geant for hydrogen targets.
  */
 real_type WentzelOKVIParams::calc_nuclear_form_prefactor(IsotopeView const& iso)
