@@ -503,9 +503,8 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
     auto const& solid = dynamic_cast<G4Polyhedra const&>(solid_base);
     auto const& params = *solid.GetOriginalParameters();
 
-    // Opening angle: end - start phi
-    double const radius_factor
-        = std::cos(0.5 * params.Opening_angle / params.numSide);
+    // Convert from circumradius to apothem
+    double const radius_factor = std::cos(m_pi / params.numSide);
 
     std::vector<double> zs(params.Num_z_planes);
     std::vector<double> rmin(zs.size());
