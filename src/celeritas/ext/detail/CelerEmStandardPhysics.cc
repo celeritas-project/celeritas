@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/GeantPhysicsList.cc
+//! \file celeritas/ext/detail/CelerEmStandardPhysics.cc
 //---------------------------------------------------------------------------//
-#include "GeantPhysicsList.hh"
+#include "CelerEmStandardPhysics.hh"
 
 #include <memory>
 #include <CLHEP/Units/SystemOfUnits.h>
@@ -73,15 +73,14 @@ from_msc_step_algorithm(MscStepLimitAlgorithm const& msc_step_algorithm)
 /*!
  * Construct with physics options.
  */
-GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
+CelerEmStandardPhysics::CelerEmStandardPhysics(Options const& options)
+    : options_(options)
 {
     // Set EM options using limits from G4EmParameters
     auto& em_parameters = *G4EmParameters::Instance();
     CELER_VALIDATE(options_.em_bins_per_decade >= 5,
                    << "number of EM bins per decade="
                    << options.em_bins_per_decade << " (must be at least 5)");
-
-    using ClhepLen = Quantity<units::ClhepTraits::Length, double>;
 
     em_parameters.SetNumberOfBinsPerDecade(options.em_bins_per_decade);
     em_parameters.SetLossFluctuations(options.eloss_fluctuation);
@@ -98,6 +97,8 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
         from_msc_step_algorithm(options.msc_step_algorithm));
     em_parameters.SetMscRangeFactor(options.msc_range_factor);
 #if G4VERSION_NUMBER >= 1060
+    using ClhepLen = Quantity<units::ClhepTraits::Length, double>;
+
     // Customizable MSC safety factor/lambda limit were added in
     // emutils-V10-05-18
     em_parameters.SetMscSafetyFactor(options.msc_safety_factor);
@@ -108,12 +109,7 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
         value_as<Options::MevEnergy>(options.lowest_electron_energy)
         * CLHEP::MeV);
     em_parameters.SetApplyCuts(options.apply_cuts);
-    this->SetDefaultCutValue(
-        native_value_to<ClhepLen>(options.default_cutoff).value());
-
-    int verb = options_.verbose ? 1 : 0;
-    this->SetVerboseLevel(verb);
-    em_parameters.SetVerbose(verb);
+    em_parameters.SetVerbose(options.verbose);
 }
 
 //---------------------------------------------------------------------------//
@@ -129,7 +125,7 @@ GeantPhysicsList::GeantPhysicsList(Options const& options) : options_(options)
  * Currently only instantiating e+, e-, gamma, and proton (the latter is needed
  * for msc)
  */
-void GeantPhysicsList::ConstructParticle()
+void CelerEmStandardPhysics::ConstructParticle()
 {
     G4Gamma::GammaDefinition();
     G4Electron::ElectronDefinition();
@@ -144,11 +140,8 @@ void GeantPhysicsList::ConstructParticle()
 /*!
  * Build list of available processes and models.
  */
-void GeantPhysicsList::ConstructProcess()
+void CelerEmStandardPhysics::ConstructProcess()
 {
-    // Applies to all constructed particles
-    G4VUserPhysicsList::AddTransportation();
-
     // Add E.M. processes for photons, electrons, and positrons
     this->add_gamma_processes();
     this->add_e_processes(G4Electron::Electron());
@@ -173,7 +166,7 @@ void GeantPhysicsList::ConstructProcess()
  * calculates a combined total cross section. It's faster in Geant4 but
  * shouldn't result in different answers.
  */
-void GeantPhysicsList::add_gamma_processes()
+void CelerEmStandardPhysics::add_gamma_processes()
 {
     auto* physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
     auto* gamma = G4Gamma::Gamma();
@@ -267,7 +260,7 @@ void GeantPhysicsList::add_gamma_processes()
  * - Coulomb scattering and multiple scattering (high E) are currently
  *   disabled.
  */
-void GeantPhysicsList::add_e_processes(G4ParticleDefinition* p)
+void CelerEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
 {
     auto* physics_list = G4PhysicsListHelper::GetPhysicsListHelper();
 
