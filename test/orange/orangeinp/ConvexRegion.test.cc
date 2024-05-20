@@ -476,8 +476,8 @@ TEST_F(GenTrapTest, trd1)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -3}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 3}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-2, -2, -3}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 2, 3}), result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, trd2)
@@ -496,8 +496,8 @@ TEST_F(GenTrapTest, trd2)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -3}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 3}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-2, -2, -3}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 2, 3}), result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, ppiped)
@@ -518,8 +518,8 @@ TEST_F(GenTrapTest, ppiped)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -4}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 4}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-2, -2, -4}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 2, 4}), result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, triang_prism)
@@ -539,8 +539,8 @@ TEST_F(GenTrapTest, triang_prism)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-1, -inf, -3}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 3}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -3}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 1, 3}), result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, trap_corners)
@@ -563,8 +563,8 @@ TEST_F(GenTrapTest, trap_corners)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -30, -40}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, 30, 40}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-21, -30, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{21, 30, 40}), result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, trapezoid_trans)
@@ -588,8 +588,8 @@ TEST_F(GenTrapTest, trapezoid_trans)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -60, -40}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, 0, 40}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-51, -60, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{-9, 0, 40}), result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, trapezoid_ccw)
@@ -611,8 +611,8 @@ TEST_F(GenTrapTest, trapezoid_ccw)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -30, -40}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, 30, 40}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-21, -30, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{21, 30, 40}), result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, trap_theta)
@@ -632,8 +632,8 @@ TEST_F(GenTrapTest, trap_theta)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -20, -40}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, 20, 40}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-50, -20, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{50, 20, 40}), result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, trap_thetaphi)
@@ -653,8 +653,8 @@ TEST_F(GenTrapTest, trap_thetaphi)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-10, -inf, -40}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{10, inf, 40}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-10, -60, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{10, 60, 40}), result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, trap_g4)
@@ -679,8 +679,10 @@ TEST_F(GenTrapTest, trap_g4)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -4}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 4}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-1.95920952072934, -2.93923101204883, -4}),
+                       result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2.64848563385739, 3.06076898795117, 4}),
+                       result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, trap_full)
@@ -700,8 +702,10 @@ TEST_F(GenTrapTest, trap_full)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -40}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 40}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-40.2842712474619, -48.2842712474619, -40}),
+                       result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{40.2842712474619, 48.2842712474619, 40}),
+                       result.exterior.upper());
 }
 
 // TODO: this should be valid
@@ -737,8 +741,8 @@ TEST_F(GenTrapTest, full)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -2, -4}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 4}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-2, -2, -4}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 2, 4}), result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, full2)
@@ -758,33 +762,28 @@ TEST_F(GenTrapTest, full2)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -20, -40}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, 20, 40}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-52, -20, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{54, 20, 40}), result.exterior.upper());
 }
 
+/*!
+ * Test deduplication of two opposing quadric surfaces.
+ *
+ * \verbatim
+ * Lower polygons:      Upper polygons:
+ *
+ * x=-1      x=1           x=-0.5
+ * +----+----+ y=1      +--+------+ y=1
+ * |    |    |          |   \     |
+ * |    |  R |          |    \  R |
+ * |  L |    |          |  L  \   |
+ * |    |    |          |      \  |
+ * +----+----+ y=-1     +-------+-+ y=-1
+ *      x=0                     x=0.5
+ * \endverbatim
+ */
 TEST_F(GenTrapTest, adjacent_twisted)
 {
-    /* Lower polygons:
-     *
-     * x=-1      x=1
-     * +----+----+ y=1
-     * |    |    |
-     * |  L |  R |
-     * |    |    |
-     * |    |    |
-     * +----+----+ y=-1
-     *
-     *
-     * Upper polygons:
-     *    x=-0.5
-     * +--+------+ y=1
-     * |   \     |
-     * |    \  R |
-     * |  L  \   |
-     * |      \  |
-     * +-------+-+ y=-1
-     *         x=0.5
-     */
     {
         // Left
         auto result
@@ -796,7 +795,7 @@ TEST_F(GenTrapTest, adjacent_twisted)
 
         EXPECT_EQ(expected_node, result.node);
         EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -1}), result.exterior.lower());
-        EXPECT_VEC_SOFT_EQ((Real3{inf, 1, 1}), result.exterior.upper());
+        EXPECT_VEC_SOFT_EQ((Real3{0.5, 1, 1}), result.exterior.upper());
     }
     {
         // Right
@@ -808,7 +807,7 @@ TEST_F(GenTrapTest, adjacent_twisted)
         static char const expected_node[] = "all(+0, -1, +2, +3, -4, -6)";
 
         EXPECT_EQ(expected_node, result.node);
-        EXPECT_VEC_SOFT_EQ((Real3{-inf, -1, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{-0.5, -1, -1}), result.exterior.lower());
         EXPECT_VEC_SOFT_EQ((Real3{1, 1, 1}), result.exterior.upper());
     }
     {
@@ -821,7 +820,7 @@ TEST_F(GenTrapTest, adjacent_twisted)
         static char const expected_node[] = "all(+0, -1, +7, -8, -9, +10)";
 
         EXPECT_EQ(expected_node, result.node);
-        EXPECT_VEC_SOFT_EQ((Real3{-inf, -2, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{-1, -2, -1}), result.exterior.lower());
         EXPECT_VEC_SOFT_EQ((Real3{2, 2, 1}), result.exterior.upper());
     }
 
