@@ -20,8 +20,8 @@
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/orangeinp/CsgTree.hh"
 #include "orange/orangeinp/CsgTreeUtils.hh"
-#include "orange/orangeinp/detail/ConvexSurfaceState.hh"
 #include "orange/orangeinp/detail/CsgUnit.hh"
+#include "orange/orangeinp/detail/IntersectSurfaceState.hh"
 #include "orange/surf/SurfaceIO.hh"
 #include "orange/transform/TransformIO.hh"
 
@@ -313,7 +313,7 @@ if (CELERITAS_USE_JSON)
 }
 
 //---------------------------------------------------------------------------//
-void print_expected(ConvexSurfaceState const& css)
+void print_expected(IntersectSurfaceState const& css)
 {
     std::cout << R"cpp(
 /***** EXPECTED STATE *****/

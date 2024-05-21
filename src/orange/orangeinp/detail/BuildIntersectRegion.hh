@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/detail/BuildConvexRegion.hh
+//! \file orange/orangeinp/detail/BuildIntersectRegion.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -15,24 +15,24 @@ namespace celeritas
 {
 namespace orangeinp
 {
-class ConvexRegionInterface;
+class IntersectRegionInterface;
 namespace detail
 {
 class VolumeBuilder;
 //---------------------------------------------------------------------------//
 
-// Build a convex region
-NodeId build_convex_region(VolumeBuilder& vb,
-                           std::string&& label,
-                           std::string&& face_prefix,
-                           ConvexRegionInterface const& region);
+// Build a intersect region
+NodeId build_intersect_region(VolumeBuilder& vb,
+                              std::string&& label,
+                              std::string&& face_prefix,
+                              IntersectRegionInterface const& region);
 
-//! Build a convex region with no face prefix
-inline NodeId build_convex_region(VolumeBuilder& vb,
-                                  std::string&& label,
-                                  ConvexRegionInterface const& region)
+//! Build an intersect region with no face prefix
+inline NodeId build_intersect_region(VolumeBuilder& vb,
+                                     std::string&& label,
+                                     IntersectRegionInterface const& region)
 {
-    return build_convex_region(vb, std::move(label), {}, region);
+    return build_intersect_region(vb, std::move(label), {}, region);
 }
 
 //---------------------------------------------------------------------------//

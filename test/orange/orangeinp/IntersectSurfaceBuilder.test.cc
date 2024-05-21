@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/ConvexSurfaceBuilder.test.cc
+//! \file orange/orangeinp/IntersectSurfaceBuilder.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/orangeinp/ConvexSurfaceBuilder.hh"
+#include "orange/orangeinp/IntersectSurfaceBuilder.hh"
 
 #include "orange/MatrixUtils.hh"
-#include "orange/orangeinp/detail/ConvexSurfaceState.hh"
+#include "orange/orangeinp/detail/IntersectSurfaceState.hh"
 
 #include "CsgTestUtils.hh"
 #include "ObjectTestBase.hh"
@@ -22,10 +22,10 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-class ConvexSurfaceBuilderTest : public ObjectTestBase
+class IntersectSurfaceBuilderTest : public ObjectTestBase
 {
   protected:
-    using State = detail::ConvexSurfaceState;
+    using State = detail::IntersectSurfaceState;
 
     Tol tolerance() const override { return Tol::from_relative(1e-4); }
 
@@ -41,19 +41,19 @@ class ConvexSurfaceBuilderTest : public ObjectTestBase
     VariantTransform transform_;
 };
 
-void x_slab(ConvexSurfaceBuilder& build)
+void x_slab(IntersectSurfaceBuilder& build)
 {
     build(Sense::outside, PlaneX{-0.5});
     build(Sense::inside, PlaneX{0.5});
 }
 
-TEST_F(ConvexSurfaceBuilderTest, no_transform)
+TEST_F(IntersectSurfaceBuilderTest, no_transform)
 {
     {
         SCOPED_TRACE("z_hemi");
         auto css = this->make_state();
         css.object_name = "zh";
-        ConvexSurfaceBuilder build{&this->unit_builder(), &css};
+        IntersectSurfaceBuilder build{&this->unit_builder(), &css};
         build(PlaneZ{0.0});
         build(SphereCentered{1.0});
 
@@ -71,7 +71,7 @@ TEST_F(ConvexSurfaceBuilderTest, no_transform)
         SCOPED_TRACE("reverse_hemi");
         auto css = this->make_state();
         css.object_name = "rh";
-        ConvexSurfaceBuilder build{&this->unit_builder(), &css};
+        IntersectSurfaceBuilder build{&this->unit_builder(), &css};
         build(Sense::outside, PlaneZ{1e-5});
         build(Sense::inside, SphereCentered{1.0});
 
@@ -92,7 +92,7 @@ TEST_F(ConvexSurfaceBuilderTest, no_transform)
         SCOPED_TRACE("dedupe hemi");
         auto css = this->make_state();
         css.object_name = "dh";
-        ConvexSurfaceBuilder build{&this->unit_builder(), &css};
+        IntersectSurfaceBuilder build{&this->unit_builder(), &css};
         build(PlaneZ{1e-5});
         build(SphereCentered{1.0});
 
@@ -110,7 +110,7 @@ TEST_F(ConvexSurfaceBuilderTest, no_transform)
         SCOPED_TRACE("slab");
         auto css = this->make_state();
         css.object_name = "sl";
-        ConvexSurfaceBuilder build{&this->unit_builder(), &css};
+        IntersectSurfaceBuilder build{&this->unit_builder(), &css};
         x_slab(build);
 
         static real_type const expected_local_bz[] = {
@@ -142,14 +142,14 @@ TEST_F(ConvexSurfaceBuilderTest, no_transform)
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
 }
 
-TEST_F(ConvexSurfaceBuilderTest, translate)
+TEST_F(IntersectSurfaceBuilderTest, translate)
 {
     transform_ = Translation{Real3{1, 2, 3}};
     {
         SCOPED_TRACE("slab");
         auto css = this->make_state();
         css.object_name = "sl";
-        ConvexSurfaceBuilder build{&this->unit_builder(), &css};
+        IntersectSurfaceBuilder build{&this->unit_builder(), &css};
         x_slab(build);
 
         // clang-format off
@@ -168,7 +168,7 @@ TEST_F(ConvexSurfaceBuilderTest, translate)
         SCOPED_TRACE("sphere");
         auto css = this->make_state();
         css.object_name = "sph";
-        ConvexSurfaceBuilder build{&this->unit_builder(), &css};
+        IntersectSurfaceBuilder build{&this->unit_builder(), &css};
         build(SphereCentered{1.0});
 
         // clang-format off
@@ -190,7 +190,7 @@ TEST_F(ConvexSurfaceBuilderTest, translate)
         SCOPED_TRACE("slab shared");
         auto css = this->make_state();
         css.object_name = "ss";
-        ConvexSurfaceBuilder build{&this->unit_builder(), &css};
+        IntersectSurfaceBuilder build{&this->unit_builder(), &css};
         x_slab(build);
 
         // clang-format off
@@ -206,8 +206,12 @@ TEST_F(ConvexSurfaceBuilderTest, translate)
         EXPECT_VEC_EQ(expected_nodes, to_vec_int(css.nodes));
     }
 
-    static char const * const expected_surface_strings[] = {"Plane: x=0.5",
-        "Plane: x=1.5", "Sphere: r=1 at {1,2,3}", "Plane: x=2.5"};
+    static char const* const expected_surface_strings[] = {
+        "Plane: x=0.5",
+        "Plane: x=1.5",
+        "Sphere: r=1 at {1,2,3}",
+        "Plane: x=2.5",
+    };
     static char const* const expected_md_strings[] = {
         "", "", "sl@c.mx", "sl@c.px,ss@c.mx", "", "sph@c.s", "", "ss@c.px", ""};
     static char const expected_tree_string[]
@@ -222,7 +226,7 @@ TEST_F(ConvexSurfaceBuilderTest, translate)
     }
 }
 
-TEST_F(ConvexSurfaceBuilderTest, transform)
+TEST_F(IntersectSurfaceBuilderTest, transform)
 {
     transform_
         = Transformation{make_rotation(Axis::x, Turn{0.25}), Real3{0, 0, 1}};
@@ -230,7 +234,7 @@ TEST_F(ConvexSurfaceBuilderTest, transform)
         SCOPED_TRACE("hemi");
         auto css = this->make_state();
         css.object_name = "h";
-        ConvexSurfaceBuilder build{&this->unit_builder(), &css};
+        IntersectSurfaceBuilder build{&this->unit_builder(), &css};
         build(PlaneZ{1e-5});
         build(SphereCentered{1.0});
 
@@ -249,8 +253,8 @@ TEST_F(ConvexSurfaceBuilderTest, transform)
         EXPECT_VEC_EQ(expected_nodes, to_vec_int(css.nodes));
     }
 
-    static char const * const expected_surface_strings[] = {"Plane: y=0",
-        "Sphere: r=1 at {0,0,1}"};
+    static char const* const expected_surface_strings[]
+        = {"Plane: y=0", "Sphere: r=1 at {0,0,1}"};
     static char const expected_tree_string[]
         = R"json(["t",["~",0],["S",0],["S",1],["~",3]])json";
     static char const* const expected_md_strings[]
@@ -265,14 +269,14 @@ TEST_F(ConvexSurfaceBuilderTest, transform)
     }
 }
 
-TEST_F(ConvexSurfaceBuilderTest, finite_extents)
+TEST_F(IntersectSurfaceBuilderTest, finite_extents)
 {
     this->reset(BBox{{-10, -10, -10}, {10, 10, 10}});
     {
         SCOPED_TRACE("slab");
         auto css = this->make_state();
         css.object_name = "sl";
-        ConvexSurfaceBuilder build{&this->unit_builder(), &css};
+        IntersectSurfaceBuilder build{&this->unit_builder(), &css};
         x_slab(build);
 
         static real_type const expected_local_bz[] = {

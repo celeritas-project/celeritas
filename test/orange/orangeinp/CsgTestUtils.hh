@@ -21,7 +21,7 @@ class CsgTree;
 namespace detail
 {
 struct BoundingZone;
-struct ConvexSurfaceState;
+struct IntersectSurfaceState;
 struct CsgUnit;
 }  // namespace detail
 
@@ -42,7 +42,7 @@ std::vector<std::string> fill_strings(detail::CsgUnit const& u);
 std::vector<real_type> flattened(detail::BoundingZone const& bz);
 
 void print_expected(detail::CsgUnit const& u);
-void print_expected(detail::ConvexSurfaceState const& css);
+void print_expected(detail::IntersectSurfaceState const& css);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

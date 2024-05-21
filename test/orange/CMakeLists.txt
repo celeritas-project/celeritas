@@ -72,11 +72,11 @@ celeritas_add_test(detail/BIHUtils.test.cc)
 #-----------------------------------------------------------------------------#
 # Input construction
 set(CELERITASTEST_PREFIX orange/orangeinp)
-celeritas_add_test(orangeinp/ConvexRegion.test.cc)
-celeritas_add_test(orangeinp/ConvexSurfaceBuilder.test.cc)
 celeritas_add_test(orangeinp/CsgObject.test.cc)
 celeritas_add_test(orangeinp/CsgTree.test.cc)
 celeritas_add_test(orangeinp/CsgTreeUtils.test.cc)
+celeritas_add_test(orangeinp/IntersectRegion.test.cc)
+celeritas_add_test(orangeinp/IntersectSurfaceBuilder.test.cc)
 celeritas_add_test(orangeinp/Shape.test.cc)
 celeritas_add_test(orangeinp/Solid.test.cc)
 celeritas_add_test(orangeinp/Transformed.test.cc)

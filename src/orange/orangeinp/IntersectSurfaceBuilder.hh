@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/ConvexSurfaceBuilder.hh
+//! \file orange/orangeinp/IntersectSurfaceBuilder.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -22,12 +22,12 @@ namespace orangeinp
 namespace detail
 {
 class CsgUnitBuilder;
-struct ConvexSurfaceState;
+struct IntersectSurfaceState;
 }  // namespace detail
 
 //---------------------------------------------------------------------------//
 /*!
- * Build a set of intersecting surfaces within a CSG node.
+ * Build a region of intersecting surfaces as a CSG node.
  *
  * This is the building block for constructing shapes, solids, and so forth.
  * The result of this class is:
@@ -44,14 +44,8 @@ struct ConvexSurfaceState;
  *   coordinate system
  * - \c RecursiveSimplifier to take transformed or user-input surfaces and
  *   reduce them to more compact quadric representations
- *
- * \todo Should we require that the user implicitly guarantee that the result
- * is convex, e.g. prohibit quadrics outside "saddle" points? What about a
- * torus, which (unless degenerate) is never convex? Or should we just require
- * that "exiting a surface exits the region"? (Think about application to OR-ed
- * combinations for safety calculation.)
  */
-class ConvexSurfaceBuilder
+class IntersectSurfaceBuilder
 {
   public:
     // Add a surface with negative quadric value being "inside"
@@ -62,17 +56,17 @@ class ConvexSurfaceBuilder
     template<class S>
     void operator()(Sense sense, S const& surf);
 
-    // Promise that the convex surface is inside/outside this bbox
+    // Promise that the resulting region is inside/outside this bbox
     inline void operator()(Sense sense, BBox const& bbox);
 
   public:
     // "Private", to be used by testing and detail
-    using State = detail::ConvexSurfaceState;
+    using State = detail::IntersectSurfaceState;
     using UnitBuilder = detail::CsgUnitBuilder;
     using VecNode = std::vector<NodeId>;
 
     // Construct with persistent unit builder and less persistent state
-    ConvexSurfaceBuilder(UnitBuilder* ub, State* state);
+    IntersectSurfaceBuilder(UnitBuilder* ub, State* state);
 
   private:
     //// TYPES ////
@@ -96,8 +90,10 @@ class ConvexSurfaceBuilder
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
-// Apply a convex surface builder to an unknown type
-void visit(ConvexSurfaceBuilder& csb, Sense sense, VariantSurface const& surf);
+// Apply a surface builder to an unknown type
+void visit(IntersectSurfaceBuilder& csb,
+           Sense sense,
+           VariantSurface const& surf);
 
 //---------------------------------------------------------------------------//
 // INLINE FUNCTION DEFINITIONS
@@ -106,7 +102,7 @@ void visit(ConvexSurfaceBuilder& csb, Sense sense, VariantSurface const& surf);
  * Add a surface with negative quadric value being "inside".
  */
 template<class S>
-void ConvexSurfaceBuilder::operator()(S const& surf)
+void IntersectSurfaceBuilder::operator()(S const& surf)
 {
     return (*this)(Sense::inside, surf);
 }
@@ -119,7 +115,7 @@ void ConvexSurfaceBuilder::operator()(S const& surf)
  * bbox. All bounding surfaces within the region must be *inside* the exterior
  * region and *outside* the interior region.
  */
-void ConvexSurfaceBuilder::operator()(Sense sense, BBox const& bbox)
+void IntersectSurfaceBuilder::operator()(Sense sense, BBox const& bbox)
 {
     if (sense == Sense::inside)
     {

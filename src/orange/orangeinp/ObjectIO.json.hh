@@ -27,7 +27,7 @@ class Transformed;
 
 class SolidEnclosedAngle;
 
-class ConvexRegionInterface;
+class IntersectRegionInterface;
 class Box;
 class Cone;
 class Cylinder;
@@ -54,8 +54,8 @@ void to_json(nlohmann::json& j, Transformed const& sb);
 // Write helper classes to JSON
 void to_json(nlohmann::json& j, SolidEnclosedAngle const& sea);
 
-// Write convex regions to JSON
-void to_json(nlohmann::json& j, ConvexRegionInterface const& cr);
+// Write intersect regions to JSON
+void to_json(nlohmann::json& j, IntersectRegionInterface const& cr);
 void to_json(nlohmann::json& j, Box const& cr);
 void to_json(nlohmann::json& j, Cone const& cr);
 void to_json(nlohmann::json& j, Cylinder const& cr);
