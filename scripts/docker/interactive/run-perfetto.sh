@@ -2,4 +2,4 @@
 
 cd "${PERFETTO_ROOT}" || exit
 
-tools/tmux -c test/configs/scheduling.cfg -C out/linux -n
+tools/tmux -c celer.cfg -C out/linux -n

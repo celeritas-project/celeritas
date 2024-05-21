@@ -46,7 +46,7 @@ RUN ${SPACK_EXE} env create ${CELERITAS_ENV_NAME} ${SPACK_ENV_SPEC} \
 # compile celeritas
 ARG CELER_REP=https://github.com/celeritas-project/celeritas.git
 ARG CELER_VERSION_TAG=develop
-ARG CMAKE_PROFILE=reldeb-novg-profile
+ARG CMAKE_PROFILE=reldeb-profile
 ENV CELER_ROOT=${DEVEL_ROOT}/celeritas
 
 RUN git clone -b${CELER_VERSION_TAG} ${CELER_REP} ${CELER_ROOT}
@@ -60,11 +60,24 @@ WORKDIR ${CELER_ROOT}
 
 RUN eval $(${SPACK_EXE} env activate --sh ${CELERITAS_ENV_NAME}) \
     && cmake --preset=${CMAKE_PROFILE} \
-    && cmake --build --preset=${CMAKE_PROFILE}
+    && cmake --build --preset=${CMAKE_PROFILE} \
+    && cmake --install build-${CMAKE_PROFILE}
 
-# setp entrypoint and utilities
+# compile geomodel
+ENV GEOMODEL_ROOT=${DEVEL_ROOT}/GeoModel
+RUN dnf install -y eigen3-devel hdf5-devel sqlite-devel \
+    && git clone -bceleritas https://github.com/celeritas-project/GeoModel.git ${GEOMODEL_ROOT}
+
+RUN eval $(${SPACK_EXE} env activate --sh ${CELERITAS_ENV_NAME}) \
+    && mkdir -p ${GEOMODEL_ROOT}/build && cd ${GEOMODEL_ROOT}/build \
+    && git submodule update --init \
+    && cmake -DGEOMODEL_BUILD_ATLASEXTENSIONS=ON -DGEOMODEL_BUILD_FULLSIMLIGHT=ON -DGEOMODEL_USE_HEPMC3=ON .. \
+    && make -j$(nproc)
+
+# setup entrypoint and utilities
 COPY setup_shell.sh /etc/profile.d/setup_shell.sh
 COPY run-perfetto.sh /usr/local/bin/run-perfetto
+COPY scheduling.cfg ${PERFETTO_ROOT}/celer.cfg
 
 RUN ln -s ${SPACK_ROOT}/share/spack/docker/entrypoint.bash \
               /usr/local/bin/interactive-shell \
