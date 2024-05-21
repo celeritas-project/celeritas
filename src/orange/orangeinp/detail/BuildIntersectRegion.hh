@@ -27,7 +27,7 @@ NodeId build_intersect_region(VolumeBuilder& vb,
                               std::string&& face_prefix,
                               IntersectRegionInterface const& region);
 
-//! Build a intersect region with no face prefix
+//! Build an intersect region with no face prefix
 inline NodeId build_intersect_region(VolumeBuilder& vb,
                                      std::string&& label,
                                      IntersectRegionInterface const& region)

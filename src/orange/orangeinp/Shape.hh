@@ -58,7 +58,7 @@ class ShapeBase : public ObjectInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * Shape that holds a intersect region and forwards construction args to it.
+ * Shape that holds an intersect region and forwards construction args to it.
  *
  * Construct as: \code
     BoxShape s{"mybox", Real3{1, 2, 3}};

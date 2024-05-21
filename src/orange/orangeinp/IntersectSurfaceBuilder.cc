@@ -180,7 +180,7 @@ void IntersectSurfaceBuilder::grow_interior(BBox const& bbox)
 // FREE FUNCTION DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Apply a convex surface builder to an unknown type.
+ * Apply an intersect surface builder to an unknown type.
  */
 void visit(IntersectSurfaceBuilder& csb, Sense sense, VariantSurface const& surf)
 {

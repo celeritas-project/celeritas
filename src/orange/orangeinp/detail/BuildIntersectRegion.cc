@@ -23,7 +23,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Build a intersect region.
+ * Build an intersect region.
  */
 NodeId build_intersect_region(VolumeBuilder& vb,
                               std::string&& label,
