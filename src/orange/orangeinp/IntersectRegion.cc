@@ -487,6 +487,22 @@ void GenTrap::build(IntersectSurfaceBuilder& insert_surface) const
                            GeneralQuadric{abc, def, ghi, offset});
         }
     }
+
+    // Construct exterior bounding box
+    BBox exterior_bbox;
+    for (VecReal2 const* p : {&lo_, &hi_})
+    {
+        for (Real2 const& xy : *p)
+        {
+            for (auto ax : {Axis::x, Axis::y})
+            {
+                exterior_bbox.grow(ax, xy[to_int(ax)]);
+            }
+        }
+    }
+    exterior_bbox.grow(Bound::lo, Axis::z, -hz_);
+    exterior_bbox.grow(Bound::hi, Axis::z, hz_);
+    insert_surface(Sense::inside, exterior_bbox);
 }
 
 //---------------------------------------------------------------------------//

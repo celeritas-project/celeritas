@@ -82,7 +82,7 @@ class SurfaceSimplifier
     // Quadric can be normalized or simplified
     Optional<SimpleQuadric, GeneralQuadric> operator()(GeneralQuadric const&);
 
-    //! Default: no simplifcation
+    //! Default: no simplification
     template<class S>
     std::variant<std::monostate> operator()(S const&) const
     {

@@ -466,7 +466,8 @@ class InputBuilderTest : public UnitProtoTest
 
         std::stringstream expected;
         expected << ref.rdbuf();
-        EXPECT_JSON_EQ(expected.str(), actual.str());
+        EXPECT_JSON_EQ(expected.str(), actual.str())
+            << "update the file at " << ref_path;
     }
 };
 
