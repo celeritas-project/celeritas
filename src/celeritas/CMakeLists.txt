@@ -198,9 +198,10 @@ if(CELERITAS_USE_ROOT)
     ext/ScopedRootErrorHandler.cc
     ext/RootUniquePtr.root.cc
     ext/RootFileManager.cc
-    user/RootStepWriter.cc
     io/RootEventReader.cc
     io/RootEventWriter.cc
+    phys/RootEventSampler.cc
+    user/RootStepWriter.cc
     "${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx"
   )
 
@@ -305,5 +306,3 @@ celeritas_target_link_libraries(celeritas
 )
 
 #-----------------------------------------------------------------------------#
-
-
