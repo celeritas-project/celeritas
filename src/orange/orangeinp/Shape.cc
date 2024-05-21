@@ -26,7 +26,7 @@ namespace orangeinp
 NodeId ShapeBase::build(VolumeBuilder& vb) const
 {
     return detail::build_intersect_region(
-        vb, std::string{this->label()}, {}, this->interior());
+        vb, this->label(), {}, this->interior());
 }
 
 //---------------------------------------------------------------------------//

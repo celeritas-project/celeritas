@@ -72,14 +72,14 @@ NodeId SolidBase::build(VolumeBuilder& vb) const
 
     // Build the outside-of-the-shell node
     nodes.push_back(build_intersect_region(
-        vb, std::string{this->label()}, "interior", this->interior()));
+        vb, this->label(), "interior", this->interior()));
 
     if (auto* exclu = this->excluded())
     {
         // Construct the excluded region by building a convex solid, then
         // negating it
-        NodeId smaller = build_intersect_region(
-            vb, std::string{this->label()}, "excluded", *exclu);
+        NodeId smaller
+            = build_intersect_region(vb, this->label(), "excluded", *exclu);
         nodes.push_back(vb.insert_region({}, Negated{smaller}));
     }
 
@@ -88,8 +88,8 @@ NodeId SolidBase::build(VolumeBuilder& vb) const
         // The enclosed angle is "true" (specified by the user to truncate the
         // shape azimuthally): construct a wedge to be added or deleted
         auto&& [sense, wedge] = sea.make_wedge();
-        NodeId wedge_id = build_intersect_region(
-            vb, std::string{this->label()}, "angle", wedge);
+        NodeId wedge_id
+            = build_intersect_region(vb, this->label(), "angle", wedge);
         if (sense == Sense::outside)
         {
             wedge_id = vb.insert_region({}, Negated{wedge_id});
