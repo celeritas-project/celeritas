@@ -318,34 +318,69 @@ TEST_F(SolidConverterTest, para)
 
 TEST_F(SolidConverterTest, polycone)
 {
-    static double const z[] = {6, 630};
-    static double const rmin[] = {0, 0};
-    static double const rmax[] = {95, 95};
-    this->build_and_test(
-        G4Polycone("HGCalEE", 0, 360 * deg, std::size(z), z, rmin, rmax),
-        R"json({"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"cylinder","halfheight":31.2,"radius":9.5},"label":"HGCalEE"},"transform":{"_type":"translation","data":[0.0,0.0,31.8]}})json",
-        {{-6.72, -6.72, 0.7},
-         {6.72, 6.72, 62.9},
-         {0, 0, 31.8},
-         {-9.5, -9.5, 0.5},
-         {-6.72, 9.0, 0.70}});
+    {
+        static double const z[] = {6, 630};
+        static double const rmin[] = {0, 0};
+        static double const rmax[] = {95, 95};
+        this->build_and_test(
+            G4Polycone("HGCalEE", 0, 360 * deg, std::size(z), z, rmin, rmax),
+            R"json({"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"cone","halfheight":31.2,"radii":[9.5,9.5]},"label":"HGCalEE"},"transform":{"_type":"translation","data":[0.0,0.0,31.8]}})json",
+            {{-6.72, -6.72, 0.7},
+             {6.72, 6.72, 62.9},
+             {0, 0, 31.8},
+             {-9.5, -9.5, 0.5},
+             {-6.72, 9.0, 0.70}});
+    }
+    {
+        static double const z[] = {0, 5, 20, 20, 63.3, 115.2, 144};
+        static double const rmin[] = {1954, 1954, 1954, 2016, 2016, 2044, 2044};
+        static double const rmax[] = {2065, 2070, 2070, 2070, 2070, 2070, 2070};
+
+        this->build_and_test(
+            G4Polycone(
+                "EMEC_FrontOuterRing", 0, 360 * deg, std::size(z), z, rmin, rmax),
+            R"json({"_type":"polycone","label":"EMEC_FrontOuterRing","segments":[{"outer":[206.5,207.0,207.0,207.0,207.0,207.0,207.0],"z":[0.0,0.5,2.0,2.0,6.33,11.52,14.4]},["inner",[195.4,195.4,195.4,201.6,201.6,204.4,204.4]]]})json",
+            {{0, 0, -0.1},
+             {195.3, 0, 4.999},
+             {195.5, 0, 4.999},
+             {206.9, 0, 0.25},
+             {204.5, 0, 14.3}});
+    }
+    {
+        static double const z[] = {-165, -10, -10, 10, 10, 165};
+        static double const rmin[] = {2044, 2044, 2050.5, 2050.5, 2044, 2044};
+        static double const rmax[] = {2070, 2070, 2070, 2070, 2070, 2070};
+
+        this->build_and_test(
+            G4Polycone("EMEC_WideStretchers",
+                       -5.625 * deg,
+                       11.25 * deg,
+                       std::size(z),
+                       z,
+                       rmin,
+                       rmax),
+            R"json({"_type":"polycone","enclosed_angle":{"interior":0.03125,"start":0.984375},"label":"EMEC_WideStretchers","segments":[{"outer":[207.0,207.0,207.0,207.0,207.0,207.0],"z":[-16.5,-1.0,-1.0,1.0,1.0,16.5]},["inner",[204.4,204.4,205.05,205.05,204.4,204.4]]]})json",
+            {{206, 0, 0}, {-206, 0, 0}});
+    }
 }
 
 TEST_F(SolidConverterTest, polyhedra)
 {
-    static double const z[] = {-0.6, 0.6};
-    static double const rmin[] = {0, 0};
-    static double const rmax[] = {61.85, 61.85};
-    // flat-top hexagon
-    this->build_and_test(
-        G4Polyhedra(
-            "HGCalEEAbs", 330 * deg, 360 * deg, 6, std::size(z), z, rmin, rmax),
-        R"json({"_type":"shape","interior":{"_type":"prism","apothem":6.1850000000000005,"halfheight":0.06,"num_sides":6,"orientation":0.5},"label":"HGCalEEAbs"})json",
-        {{6.18, 6.18, 0.05},
-         {0, 0, 0.06},
-         {7.15, 7.15, 0.05},
-         {3.0, 6.01, 0},
-         {6.18, 7.15, 0}});
+    {
+        static double const z[] = {-0.6, 0.6};
+        static double const rmin[] = {0, 0};
+        static double const rmax[] = {61.85, 61.85};
+        // flat-top hexagon
+        this->build_and_test(
+            G4Polyhedra(
+                "HGCalEEAbs", 330 * deg, 360 * deg, 6, std::size(z), z, rmin, rmax),
+            R"json({"_type":"shape","interior":{"_type":"prism","apothem":6.1850000000000005,"halfheight":0.06,"num_sides":6,"orientation":0.5},"label":"HGCalEEAbs"})json",
+            {{6.18, 6.18, 0.05},
+             {0, 0, 0.06},
+             {7.15, 7.15, 0.05},
+             {3.0, 6.01, 0},
+             {6.18, 7.15, 0}});
+    }
 }
 
 TEST_F(SolidConverterTest, sphere)
