@@ -54,21 +54,18 @@ RootEventReader::RootEventReader(std::string const& filename,
  */
 auto RootEventReader::operator()(EventId event_id) -> result_type
 {
-    CELER_EXPECT(event_id <= num_entries_);
+    CELER_EXPECT(event_id < num_events_);
 
-    if (!event_to_entry_.empty())
+    if (event_id < event_to_entry_.size())
     {
-        if (event_id < event_to_entry_.size())
-        {
-            // Cached event entry; Load entry and return event
-            entry_count_ = event_to_entry_[event_id.get()];
-            return this->operator()();
-        }
-        else
-        {
-            // Continue from latest entry count
-            entry_count_ = event_to_entry_.back();
-        }
+        // Cached event entry; Load entry and return event
+        entry_count_ = event_to_entry_[event_id.get()];
+        return this->operator()();
+    }
+    else
+    {
+        // Continue from latest entry count
+        entry_count_ = event_to_entry_.back();
     }
 
     ScopedRootErrorHandler scoped_root_error;
@@ -76,32 +73,28 @@ auto RootEventReader::operator()(EventId event_id) -> result_type
     // Enable only event_id branch
     ttree_->SetBranchStatus("*", false);  // Disable all branches
     ttree_->SetBranchStatus("event_id", true);
-    ttree_->GetEntry(entry_count_);
-    auto expected_evt_id
-        = EventId{from_leaf<size_type>(*ttree_->GetLeaf("event_id"))};
 
-    result_type result;
-    for (; entry_count_ < num_entries_; entry_count_++)
+    EventId entry_event_id;
+    do
     {
         ttree_->GetEntry(entry_count_);
-        auto entry_evt_id
+        entry_event_id
             = EventId{from_leaf<size_type>(*ttree_->GetLeaf("event_id"))};
 
-        if (entry_evt_id != expected_evt_id)
+        if (entry_event_id != expected_event_id_)
         {
             // Found new event; Add its entry to the cache
+            CELER_ASSERT(entry_event_id.get() == expected_event_id_.get() + 1);
             event_to_entry_.push_back(entry_count_);
-            expected_evt_id = entry_evt_id;
+            expected_event_id_ = entry_event_id;
         }
-        if (entry_evt_id == event_id)
-        {
-            // Found requested event
-            result = this->operator()();
-            break;
-        }
-    }
+
+        entry_count_++;
+    } while (entry_event_id != event_id);
+
     scoped_root_error.throw_if_errors();
 
+    auto result = this->operator()();
     CELER_ENSURE(!result.empty());
     return result;
 }
