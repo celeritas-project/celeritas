@@ -171,5 +171,44 @@ class PolyCone final : public PolySolidBase
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * A series of stacked regular prisms or cone-y prisms.
+ */
+class PolyPrism final : public PolySolidBase
+{
+  public:
+    // Return a polyprism *or* a simplified version for only a single segment
+    static SPConstObject or_solid(std::string&& label,
+                                  PolySegments&& segments,
+                                  SolidEnclosedAngle&& enclosed,
+                                  int num_sides,
+                                  real_type orientation);
+
+    // Build with label, axial segments, parameters, optional restriction
+    PolyPrism(std::string&& label,
+              PolySegments&& segments,
+              SolidEnclosedAngle&& enclosed,
+              int num_sides,
+              real_type orientation);
+
+    // Construct a volume from this object
+    NodeId build(VolumeBuilder&) const final;
+
+    // Write the shape to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Number of sides
+    int num_sides() const { return num_sides_; }
+    //! Rotation factor
+    real_type orientation() const { return orientation_; }
+
+  private:
+    int num_sides_;
+    real_type orientation_;
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace orangeinp
 }  // namespace celeritas
