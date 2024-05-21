@@ -732,6 +732,21 @@ void Prism::output(JsonPimpl* j) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Whether this encloses another sphere.
+ */
+bool Prism::encloses(Prism const& other) const
+{
+    if (num_sides_ != other.num_sides_ || orientation_ != other.orientation_)
+    {
+        CELER_NOT_IMPLEMENTED(
+            "hollow prism unless number of sides and orientation are "
+            "identical");
+    }
+    return apothem_ >= other.apothem() && hh_ >= other.halfheight();
+}
+
+//---------------------------------------------------------------------------//
 // SPHERE
 //---------------------------------------------------------------------------//
 /*!

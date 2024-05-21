@@ -391,6 +391,11 @@ class Prism final : public IntersectRegionInterface
     // Output to JSON
     void output(JsonPimpl*) const final;
 
+    //// TEMPLATE INTERFACE ////
+
+    // Whether this encloses another cylinder
+    bool encloses(Prism const& other) const;
+
     //// ACCESSORS ////
 
     //! Number of sides
