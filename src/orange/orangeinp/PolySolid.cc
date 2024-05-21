@@ -61,7 +61,7 @@ template<class T>
         {
             auto outer = build_region(segments.outer(i), hz);
             segment_node = build_intersect_region(
-                vb, {label}, std::to_string(i) + ".interior", outer);
+                vb, std::string{label}, std::to_string(i) + ".interior", outer);
         }
 
         if (segments.has_exclusion())
@@ -85,20 +85,30 @@ template<class T>
                             Joined{op_or, std::move(segment_nodes)});
 }
 
-[[nodiscard]] NodeId build_wedge(SolidEnclosedAngle const& sea,
-                                 std::string&& label,
-                                 detail::VolumeBuilder& vb)
+//---------------------------------------------------------------------------//
+/*!
+ * Construct an enclosed angle if applicable.
+ */
+[[nodiscard]] NodeId construct_enclosed_angle(PolySolidBase const& base,
+                                              detail::VolumeBuilder& vb,
+                                              NodeId result)
 {
-    // The enclosed angle is "true" (specified by the user to truncate the
-    // shape azimuthally): construct a wedge to be added or deleted
-    auto&& [sense, wedge] = sea.make_wedge();
-    NodeId wedge_id
-        = build_intersect_region(vb, std::move(label), "angle", wedge);
-    if (sense == Sense::outside)
+    if (auto const& sea = base.enclosed_angle())
     {
-        wedge_id = vb.insert_region({}, Negated{wedge_id});
+        // The enclosed angle is "true" (specified by the user to truncate the
+        // shape azimuthally): construct a wedge to be added or deleted
+        auto&& [sense, wedge] = sea.make_wedge();
+        NodeId wedge_id
+            = build_intersect_region(vb, base.label(), "angle", wedge);
+        if (sense == Sense::outside)
+        {
+            wedge_id = vb.insert_region({}, Negated{wedge_id});
+        }
+        result
+            = vb.insert_region(Label{std::string{base.label()}, "restricted"},
+                               Joined{op_and, {result, wedge_id}});
     }
-    return wedge_id;
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -131,7 +141,7 @@ PolySegments::PolySegments(VecReal&& inner, VecReal&& outer, VecReal&& z)
                    << "inconsistent inner radius size (" << inner_.size()
                    << "): expected " << z_.size());
 
-    CELER_VALIDATE(is_monotonic_increasing(make_span(z_)),
+    CELER_VALIDATE(is_monotonic_nondecreasing(make_span(z_)),
                    << "axial grid is not monotonically increasing");
     for (auto i : range(outer_.size()))
     {
@@ -210,7 +220,7 @@ PolyCone::PolyCone(std::string&& label,
  */
 NodeId PolyCone::build(VolumeBuilder& vb) const
 {
-    using Real2 = Cone::Real2;
+    using Real2 = PolySegments::Real2;
     auto build_cone = [](Real2 const& radii, real_type hh) {
         return Cone{radii, hh};
     };
@@ -222,14 +232,8 @@ NodeId PolyCone::build(VolumeBuilder& vb) const
     // structures here, e.g. "inside(inner cylinder) || [inside(outer cylinder)
     // && (original union)]"
 
-    if (auto const& sea = this->enclosed_angle())
-    {
-        // Restrict azimuthal angle based on solid enclosed angle
-        auto wedge_id = build_wedge(sea, std::string{this->label()}, vb);
-        result
-            = vb.insert_region(Label{std::string{this->label()}, "restricted"},
-                               Joined{op_and, {result, wedge_id}});
-    }
+    // Construct azimuthal truncation if applicable
+    result = construct_enclosed_angle(*this, vb, result);
 
     return result;
 }
@@ -242,16 +246,6 @@ void PolyCone::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
 }
-
-#if 0
-    auto build_prism = [this](Real2 const& radii, real_type hi) {
-        if (radii[0] == radii[1])
-        {
-            CELER_NOT_IMPLEMENTED("prism with different lo/hi radii");
-        }
-        return Prism{this->num_sides, radii[0], hh, this->orientation};
-    };
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp

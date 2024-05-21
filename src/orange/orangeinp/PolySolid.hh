@@ -149,7 +149,7 @@ class PolySolidBase : public ObjectInterface
 /*!
  * A series of stacked cones or cylinders or combination of both.
  */
-class PolyCone : public PolySolidBase
+class PolyCone final : public PolySolidBase
 {
   public:
     // Return a polycone *or* a simplified version for only a single segment

@@ -228,6 +228,43 @@ TEST_F(PolyconeTest, sliced)
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
 }
 
+TEST_F(PolyconeTest, degenerate)
+{
+    this->build_volume(
+        PolyCone{"cyls", PolySegments{{2, 2, 1, 1}, {-2, -1, -1, 2}}, {}});
+    static char const* const expected_surface_strings[] = {
+        "Plane: z=-2",
+        "Plane: z=-1",
+        "Cyl z: r=2",
+        "Plane: z=2",
+        "Cyl z: r=1",
+    };
+    static char const* const expected_volume_strings[] = {
+        "any(all(+0, -1, -2), all(+1, -3, -4))",
+    };
+    static char const* const expected_md_strings[] = {
+        "",
+        "",
+        "cyls@0.interior.mz",
+        "cyls@0.interior.pz,cyls@2.interior.mz",
+        "",
+        "cyls@0.interior.cz",
+        "",
+        "cyls",
+        "cyls@2.interior.pz",
+        "",
+        "cyls@2.interior.cz",
+        "",
+        "cyls",
+        "cyls@segments",
+    };
+
+    auto const& u = this->unit();
+    EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+    EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+    EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+}
+
 TEST_F(PolyconeTest, or_solid)
 {
     {
