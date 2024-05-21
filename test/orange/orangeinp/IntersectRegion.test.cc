@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/ConvexRegion.test.cc
+//! \file orange/orangeinp/IntersectRegion.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/orangeinp/ConvexRegion.hh"
+#include "orange/orangeinp/IntersectRegion.hh"
 
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/MatrixUtils.hh"
-#include "orange/orangeinp/ConvexSurfaceBuilder.hh"
 #include "orange/orangeinp/CsgTreeUtils.hh"
-#include "orange/orangeinp/detail/ConvexSurfaceState.hh"
+#include "orange/orangeinp/IntersectSurfaceBuilder.hh"
 #include "orange/orangeinp/detail/CsgUnitBuilder.hh"
+#include "orange/orangeinp/detail/IntersectSurfaceState.hh"
 #include "orange/orangeinp/detail/SenseEvaluator.hh"
 
 #include "CsgTestUtils.hh"
@@ -31,12 +31,12 @@ namespace orangeinp
 namespace test
 {
 //---------------------------------------------------------------------------//
-class ConvexRegionTest : public ::celeritas::test::Test
+class IntersectRegionTest : public ::celeritas::test::Test
 {
   private:
     using Unit = orangeinp::detail::CsgUnit;
     using UnitBuilder = orangeinp::detail::CsgUnitBuilder;
-    using State = orangeinp::detail::ConvexSurfaceState;
+    using State = orangeinp::detail::IntersectSurfaceState;
     using Tol = UnitBuilder::Tol;
 
   protected:
@@ -52,10 +52,10 @@ class ConvexRegionTest : public ::celeritas::test::Test
     };
 
   protected:
-    TestResult test(ConvexRegionInterface const& r, VariantTransform const&);
+    TestResult test(IntersectRegionInterface const& r, VariantTransform const&);
 
     //! Test with no transform
-    TestResult test(ConvexRegionInterface const& r)
+    TestResult test(IntersectRegionInterface const& r)
     {
         return this->test(r, NoTransformation{});
     }
@@ -76,15 +76,15 @@ class ConvexRegionTest : public ::celeritas::test::Test
 };
 
 //---------------------------------------------------------------------------//
-auto ConvexRegionTest::test(ConvexRegionInterface const& r,
-                            VariantTransform const& trans) -> TestResult
+auto IntersectRegionTest::test(IntersectRegionInterface const& r,
+                               VariantTransform const& trans) -> TestResult
 {
-    detail::ConvexSurfaceState css;
+    detail::IntersectSurfaceState css;
     css.transform = &trans;
     css.make_face_name = {};
     css.object_name = "cr";
 
-    ConvexSurfaceBuilder insert_surface{&unit_builder_, &css};
+    IntersectSurfaceBuilder insert_surface{&unit_builder_, &css};
     r.build(insert_surface);
     if (css.local_bzone.exterior || css.local_bzone.interior)
     {
@@ -115,7 +115,7 @@ auto ConvexRegionTest::test(ConvexRegionInterface const& r,
 }
 
 //---------------------------------------------------------------------------//
-void ConvexRegionTest::TestResult::print_expected() const
+void IntersectRegionTest::TestResult::print_expected() const
 {
     using std::cout;
     cout << "/***** EXPECTED REGION *****/\n"
@@ -145,7 +145,7 @@ void ConvexRegionTest::TestResult::print_expected() const
 //---------------------------------------------------------------------------//
 // BOX
 //---------------------------------------------------------------------------//
-using BoxTest = ConvexRegionTest;
+using BoxTest = IntersectRegionTest;
 
 TEST_F(BoxTest, errors)
 {
@@ -180,7 +180,7 @@ TEST_F(BoxTest, standard)
 //---------------------------------------------------------------------------//
 // CONE
 //---------------------------------------------------------------------------//
-using ConeTest = ConvexRegionTest;
+using ConeTest = IntersectRegionTest;
 
 TEST_F(ConeTest, errors)
 {
@@ -313,7 +313,7 @@ TEST_F(ConeTest, transformed)
 //---------------------------------------------------------------------------//
 // CYLINDER
 //---------------------------------------------------------------------------//
-using CylinderTest = ConvexRegionTest;
+using CylinderTest = IntersectRegionTest;
 
 TEST_F(CylinderTest, errors)
 {
@@ -380,7 +380,7 @@ TEST_F(CylinderTest, transformed)
 //---------------------------------------------------------------------------//
 // ELLIPSOID
 //---------------------------------------------------------------------------//
-using EllipsoidTest = ConvexRegionTest;
+using EllipsoidTest = IntersectRegionTest;
 
 TEST_F(EllipsoidTest, errors)
 {
@@ -410,7 +410,7 @@ TEST_F(EllipsoidTest, standard)
 //---------------------------------------------------------------------------//
 // GENTRAP
 //---------------------------------------------------------------------------//
-using GenTrapTest = ConvexRegionTest;
+using GenTrapTest = IntersectRegionTest;
 
 TEST_F(GenTrapTest, construct)
 {
@@ -711,23 +711,24 @@ TEST_F(GenTrapTest, trap_full)
 // TODO: this should be valid
 TEST_F(GenTrapTest, DISABLED_pentahedron)
 {
-    auto result = this->test(GenTrap(3, {{-2,-2}, {3,0}, {-2,2}},
-        {{-2,-1}, {-1,1}, {2,0}}));
+    auto result = this->test(
+        GenTrap(3, {{-2, -2}, {3, 0}, {-2, 2}}, {{-2, -1}, {-1, 1}, {2, 0}}));
     result.print_expected();
 }
 
 // TODO: we may need to support this
 TEST_F(GenTrapTest, DISABLED_tetrahedron)
 {
-    auto result = this->test(GenTrap(3, {{-1,-1}, {2,0}, {-1,1}},
-        {{0,0}, {0,0}, {0,0}}));
+    auto result = this->test(
+        GenTrap(3, {{-1, -1}, {2, 0}, {-1, 1}}, {{0, 0}, {0, 0}, {0, 0}}));
 }
 
 // TODO: find a valid set of points
 TEST_F(GenTrapTest, full)
 {
-    auto result = this->test(GenTrap(4, {{-2,-2}, {-2,2}, {2,2}, {2,-2}},
-        {{-2,-2}, {-1,1}, {1,1}, {2,-2}}));
+    auto result = this->test(GenTrap(4,
+                                     {{-2, -2}, {-2, 2}, {2, 2}, {2, -2}},
+                                     {{-2, -2}, {-1, 1}, {1, 1}, {2, -2}}));
 
     static char const expected_node[] = "all(+0, -1, -2, -3, -4, +5)";
     static char const* const expected_surfaces[]
@@ -843,7 +844,7 @@ TEST_F(GenTrapTest, adjacent_twisted)
 //---------------------------------------------------------------------------//
 // INFWEDGE
 //---------------------------------------------------------------------------//
-using InfWedgeTest = ConvexRegionTest;
+using InfWedgeTest = IntersectRegionTest;
 
 TEST_F(InfWedgeTest, errors)
 {
@@ -946,7 +947,7 @@ TEST_F(InfWedgeTest, half_turn)
 //---------------------------------------------------------------------------//
 // PARALLELEPIPED
 //---------------------------------------------------------------------------//
-using ParallelepipedTest = ConvexRegionTest;
+using ParallelepipedTest = IntersectRegionTest;
 
 TEST_F(ParallelepipedTest, errors)
 {
@@ -1065,7 +1066,7 @@ TEST_F(ParallelepipedTest, full)
 //---------------------------------------------------------------------------//
 // PRISM
 //---------------------------------------------------------------------------//
-using PrismTest = ConvexRegionTest;
+using PrismTest = IntersectRegionTest;
 
 TEST_F(PrismTest, errors)
 {
@@ -1187,7 +1188,7 @@ TEST_F(PrismTest, rhex)
 //---------------------------------------------------------------------------//
 // SPHERE
 //---------------------------------------------------------------------------//
-using SphereTest = ConvexRegionTest;
+using SphereTest = IntersectRegionTest;
 
 TEST_F(SphereTest, errors)
 {

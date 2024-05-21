@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/detail/ConvexSurfaceState.cc
+//! \file orange/orangeinp/detail/IntersectSurfaceState.cc
 //---------------------------------------------------------------------------//
-#include "ConvexSurfaceState.hh"
+#include "IntersectSurfaceState.hh"
 
 #include "orange/transform/VariantTransform.hh"
 
@@ -22,7 +22,7 @@ namespace detail
  * This requires that the local and global zones have been set, and the
  * transform be present.
  */
-BoundingZone calc_merged_bzone(ConvexSurfaceState const& css)
+BoundingZone calc_merged_bzone(IntersectSurfaceState const& css)
 {
     CELER_EXPECT(css.transform);
     CELER_EXPECT(
