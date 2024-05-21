@@ -68,22 +68,4 @@ std::vector<double> logspace(double start, double stop, size_type n)
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * True if the grid values are monotonically increasing.
- */
-bool is_monotonic_increasing(Span<double const> grid)
-{
-    CELER_EXPECT(!grid.empty());
-    auto iter = grid.begin();
-    auto prev = *iter++;
-    while (iter != grid.end())
-    {
-        if (*iter <= prev)
-            return false;
-        prev = *iter++;
-    }
-    return true;
-}
-
-//---------------------------------------------------------------------------//
 }  // namespace celeritas
