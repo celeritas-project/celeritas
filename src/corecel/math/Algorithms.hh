@@ -329,23 +329,17 @@ CELER_FORCEINLINE_FUNCTION void sort(RandomAccessIt first, RandomAccessIt last)
  * This function is specialized when building CUDA device code, which has
  * special intrinsics for max.
  */
-#ifndef __CUDA_ARCH__
-template<class T>
-#else
-template<class T, std::enable_if_t<!std::is_arithmetic<T>::value, bool> = true>
-#endif
+template<class T, std::enable_if_t<!std::is_floating_point<T>::value, bool> = true>
 CELER_CONSTEXPR_FUNCTION T const& max(T const& a, T const& b) noexcept
 {
     return (b > a) ? b : a;
 }
 
-#ifdef __CUDA_ARCH__
-template<class T, std::enable_if_t<std::is_arithmetic<T>::value, bool> = true>
+template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
 CELER_CONSTEXPR_FUNCTION T max(T a, T b) noexcept
 {
-    return ::max(a, b);
+    return std::fmax(a, b);
 }
-#endif
 
 //---------------------------------------------------------------------------//
 /*!
@@ -354,23 +348,17 @@ CELER_CONSTEXPR_FUNCTION T max(T a, T b) noexcept
  * This function is specialized when building CUDA device code, which has
  * special intrinsics for min.
  */
-#ifndef __CUDA_ARCH__
-template<class T>
-#else
-template<class T, std::enable_if_t<!std::is_arithmetic<T>::value, bool> = true>
-#endif
+template<class T, std::enable_if_t<!std::is_floating_point<T>::value, bool> = true>
 CELER_CONSTEXPR_FUNCTION T const& min(T const& a, T const& b) noexcept
 {
     return (b < a) ? b : a;
 }
 
-#ifdef __CUDA_ARCH__
-template<class T, std::enable_if_t<std::is_arithmetic<T>::value, bool> = true>
+template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
 CELER_CONSTEXPR_FUNCTION T min(T a, T b) noexcept
 {
-    return ::min(a, b);
+    return std::fmin(a, b);
 }
-#endif
 
 //---------------------------------------------------------------------------//
 /*!

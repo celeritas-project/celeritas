@@ -10,11 +10,11 @@
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/math/Algorithms.hh"
 
-#include "ConvexSurfaceBuilder.hh"
 #include "CsgTreeUtils.hh"
+#include "IntersectSurfaceBuilder.hh"
 
 #include "detail/BoundingZone.hh"
-#include "detail/BuildConvexRegion.hh"
+#include "detail/BuildIntersectRegion.hh"
 #include "detail/CsgUnitBuilder.hh"
 #include "detail/VolumeBuilder.hh"
 
@@ -71,14 +71,14 @@ NodeId SolidBase::build(VolumeBuilder& vb) const
     std::vector<NodeId> nodes;
 
     // Build the outside-of-the-shell node
-    nodes.push_back(build_convex_region(
+    nodes.push_back(build_intersect_region(
         vb, std::string{this->label()}, "interior", this->interior()));
 
     if (auto* exclu = this->excluded())
     {
         // Construct the excluded region by building a convex solid, then
         // negating it
-        NodeId smaller = build_convex_region(
+        NodeId smaller = build_intersect_region(
             vb, std::string{this->label()}, "excluded", *exclu);
         nodes.push_back(vb.insert_region({}, Negated{smaller}));
     }
@@ -88,7 +88,7 @@ NodeId SolidBase::build(VolumeBuilder& vb) const
         // The enclosed angle is "true" (specified by the user to truncate the
         // shape azimuthally): construct a wedge to be added or deleted
         auto&& [sense, wedge] = sea.make_wedge();
-        NodeId wedge_id = build_convex_region(
+        NodeId wedge_id = build_intersect_region(
             vb, std::string{this->label()}, "angle", wedge);
         if (sense == Sense::outside)
         {

@@ -13,8 +13,8 @@
 #include "corecel/cont/SpanIO.json.hh"
 #include "corecel/io/JsonPimpl.hh"
 
-#include "ConvexRegion.hh"
 #include "CsgObject.hh"
+#include "IntersectRegion.hh"
 #include "ObjectInterface.hh"
 #include "Shape.hh"
 #include "Solid.hh"
@@ -157,8 +157,8 @@ void to_json(nlohmann::json& j, SolidEnclosedAngle const& sea)
 
 //---------------------------------------------------------------------------//
 //!@{
-//! Write convex regions to JSON
-void to_json(nlohmann::json& j, ConvexRegionInterface const& cr)
+//! Write intersect regions to JSON
+void to_json(nlohmann::json& j, IntersectRegionInterface const& cr)
 {
     celeritas::JsonPimpl json_wrap;
     cr.output(&json_wrap);
