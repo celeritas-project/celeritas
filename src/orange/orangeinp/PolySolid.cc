@@ -142,7 +142,7 @@ PolySegments::PolySegments(VecReal&& inner, VecReal&& outer, VecReal&& z)
                    << "): expected " << z_.size());
 
     CELER_VALIDATE(is_monotonic_nondecreasing(make_span(z_)),
-                   << "axial grid is not monotonically increasing");
+                   << "axial grid has increasing grid points");
     for (auto i : range(outer_.size()))
     {
         CELER_VALIDATE(outer_[i] >= 0, << "invalid outer radius " << outer_[i]);
