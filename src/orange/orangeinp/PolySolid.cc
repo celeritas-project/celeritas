@@ -147,7 +147,7 @@ PolySegments::PolySegments(VecReal&& inner, VecReal&& outer, VecReal&& z)
     {
         CELER_VALIDATE(outer_[i] >= 0, << "invalid outer radius " << outer_[i]);
         CELER_VALIDATE(inner_.empty()
-                           || inner_[i] >= 0 && inner_[i] <= outer_[i],
+                           || (inner_[i] >= 0 && inner_[i] <= outer_[i]),
                        << "invalid inner radius " << inner_[i]);
     }
 }
