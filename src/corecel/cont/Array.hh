@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
+#include <utility>
+
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 
@@ -67,6 +70,22 @@ struct Array
     CELER_CONSTEXPR_FUNCTION reference back() { return data_[N - 1]; }
     CELER_CONSTEXPR_FUNCTION const_pointer data() const { return data_; }
     CELER_CONSTEXPR_FUNCTION pointer data() { return data_; }
+
+    //! Access for structured unpacking
+    template<std::size_t I>
+    CELER_CONSTEXPR_FUNCTION T& get()
+    {
+        static_assert(I < static_cast<std::size_t>(N));
+        return data_[I];
+    }
+
+    //! Access for structured unpacking
+    template<std::size_t I>
+    CELER_CONSTEXPR_FUNCTION T const& get() const
+    {
+        static_assert(I < static_cast<std::size_t>(N));
+        return data_[I];
+    }
     //!@}
 
     //!@{
@@ -127,3 +146,23 @@ operator!=(Array<T, N> const& lhs, Array<T, N> const& rhs)
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
+
+namespace std
+{
+//---------------------------------------------------------------------------//
+//! Support structured binding: array size
+template<class T, celeritas::size_type N>
+struct tuple_size<celeritas::Array<T, N>>
+{
+    static constexpr std::size_t value = N;
+};
+
+//! Support structured binding: array element type
+template<std::size_t I, class T, celeritas::size_type N>
+struct tuple_element<I, celeritas::Array<T, N>>
+{
+    using type = T;
+};
+
+//---------------------------------------------------------------------------//
+}  // namespace std

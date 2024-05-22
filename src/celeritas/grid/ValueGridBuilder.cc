@@ -15,10 +15,10 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/grid/UniformGrid.hh"
 #include "corecel/grid/UniformGridData.hh"
+#include "corecel/grid/VectorUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 
 #include "ValueGridInserter.hh"
-#include "VectorUtils.hh"
 
 namespace celeritas
 {

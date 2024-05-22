@@ -66,6 +66,15 @@ IntersectSurfaceBuilder::IntersectSurfaceBuilder(UnitBuilder* ub, State* state)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the construction tolerance.
+ */
+auto IntersectSurfaceBuilder::tol() const -> Tol const&
+{
+    return ub_->tol();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Add a surface with a sense.
  *
  * The resulting surface *MUST* result in a intersect region.
