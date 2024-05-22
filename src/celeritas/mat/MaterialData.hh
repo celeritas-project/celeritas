@@ -108,7 +108,6 @@ struct MaterialRecord
     real_type density;  //!< Density [mass/length^3]
     real_type electron_density;  //!< Electron number density [1/length^3]
     real_type rad_length;  //!< Radiation length [length]
-    real_type inv_mass_cbrt_sq;  //!< Inverse effective A^2/3 [1/mass^2/3]
     units::MevEnergy mean_exc_energy;  //!< Mean excitation energy [MeV]
     units::LogMevEnergy log_mean_exc_energy;  //!< Log mean excitation energy
 };

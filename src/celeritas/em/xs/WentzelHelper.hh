@@ -42,12 +42,13 @@ class WentzelHelper
 
   public:
     // Construct from particle and material properties
-    inline CELER_FUNCTION WentzelHelper(ParticleTrackView const& particle,
-                                        MaterialView const& material,
-                                        AtomicNumber target_z,
-                                        CoulombParameters const& data,
-                                        CoulombIds const& ids,
-                                        Energy cutoff);
+    inline CELER_FUNCTION
+    WentzelHelper(ParticleTrackView const& particle,
+                  MaterialView const& material,
+                  AtomicNumber target_z,
+                  NativeCRef<WentzelOKVIData> const& wentzel,
+                  CoulombIds const& ids,
+                  Energy cutoff);
 
     //! Get the target atomic number
     CELER_FUNCTION AtomicNumber atomic_number() const { return target_z_; }
@@ -116,10 +117,10 @@ class WentzelHelper
         ParticleTrackView const&, CoulombIds const&, Energy) const;
 
     // Calculate the (cosine of) the maximum scattering angle off of a nucleus
-    inline CELER_FUNCTION real_type
-    calc_cos_thetamax_nuclear(ParticleTrackView const&,
-                              MaterialView const& material,
-                              CoulombParameters const&) const;
+    inline CELER_FUNCTION real_type calc_cos_thetamax_nuclear(
+        ParticleTrackView const&,
+        MaterialView const& material,
+        NativeCRef<WentzelOKVIData> const& wentzel) const;
 
     // Calculate the common factor in the electron and nuclear cross section
     inline CELER_FUNCTION real_type calc_xs_factor(real_type cos_thetamin,
@@ -136,12 +137,12 @@ CELER_FUNCTION
 WentzelHelper::WentzelHelper(ParticleTrackView const& particle,
                              MaterialView const& material,
                              AtomicNumber target_z,
-                             CoulombParameters const& data,
+                             NativeCRef<WentzelOKVIData> const& wentzel,
                              CoulombIds const& ids,
                              Energy cutoff)
     : target_z_(target_z)
     , screening_coefficient_(this->calc_screening_coefficient(particle)
-                             * data.screening_factor)
+                             * wentzel.params.screening_factor)
     , kin_factor_(this->calc_kin_factor(particle))
     , mott_factor_(particle.particle_id() == ids.electron
                        ? 1 + real_type(2e-4) * ipow<2>(target_z_.get())
@@ -149,7 +150,7 @@ WentzelHelper::WentzelHelper(ParticleTrackView const& particle,
     , cos_thetamax_elec_(
           this->calc_cos_thetamax_electron(particle, ids, cutoff))
     , cos_thetamax_nuc_(
-          this->calc_cos_thetamax_nuclear(particle, material, data))
+          this->calc_cos_thetamax_nuclear(particle, material, wentzel))
 {
     CELER_EXPECT(screening_coefficient_ > 0);
     CELER_EXPECT(cos_thetamax_elec_ >= -1 && cos_thetamax_elec_ <= 1);
@@ -322,19 +323,21 @@ CELER_FUNCTION real_type WentzelHelper::calc_cos_thetamax_electron(
 /*!
  * Calculate the maximum scattering angle off the target nucleus.
  */
-CELER_FUNCTION real_type
-WentzelHelper::calc_cos_thetamax_nuclear(ParticleTrackView const& particle,
-                                         MaterialView const& material,
-                                         CoulombParameters const& data) const
+CELER_FUNCTION real_type WentzelHelper::calc_cos_thetamax_nuclear(
+    ParticleTrackView const& particle,
+    MaterialView const& material,
+    NativeCRef<WentzelOKVIData> const& wentzel) const
 {
-    if (data.is_combined)
+    if (wentzel.params.is_combined)
     {
-        return max(data.costheta_limit,
+        CELER_ASSERT(material.material_id() < wentzel.inv_mass_cbrt_sq.size());
+        return max(wentzel.params.costheta_limit,
                    1
-                       - data.a_sq_factor * material.inv_mass_cbrt_sq()
+                       - wentzel.params.a_sq_factor
+                             * wentzel.inv_mass_cbrt_sq[material.material_id()]
                              / value_as<MomentumSq>(particle.momentum_sq()));
     }
-    return data.costheta_limit;
+    return wentzel.params.costheta_limit;
 }
 
 //---------------------------------------------------------------------------//

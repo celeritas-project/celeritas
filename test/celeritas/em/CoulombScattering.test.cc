@@ -173,7 +173,7 @@ TEST_F(CoulombScatteringTest, helper)
         WentzelHelper helper(this->particle_track(),
                              material,
                              target_z,
-                             wentzel_->host_ref().params,
+                             wentzel_->host_ref(),
                              model_->host_ref().ids,
                              cutoff);
 
@@ -283,7 +283,7 @@ TEST_F(CoulombScatteringTest, wokvi_transport_xs)
         WentzelHelper helper(particle,
                              material,
                              z,
-                             wentzel_->host_ref().params,
+                             wentzel_->host_ref(),
                              model_->host_ref().ids,
                              cutoff);
         WentzelTransportXsCalculator calc_transport_xs(particle, helper);
@@ -441,7 +441,7 @@ TEST_F(CoulombScatteringTest, distribution)
         WentzelHelper helper(this->particle_track(),
                              material,
                              isotope.atomic_number(),
-                             wentzel_->host_ref().params,
+                             wentzel_->host_ref(),
                              model_->host_ref().ids,
                              cutoff);
         WentzelDistribution sample_angle(wentzel_->host_ref(),

@@ -112,7 +112,7 @@ CoulombScatteringInteractor::CoulombScatteringInteractor(
     , helper_(particle,
               material,
               target.atomic_number(),
-              wentzel.params,
+              wentzel,
               shared.ids,
               // TODO: Use the proton production cutoff when the recoiled
               // nucleus production is supported

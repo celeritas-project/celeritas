@@ -71,7 +71,7 @@ class WentzelDistribution
     NativeCRef<WentzelOKVIData> const& wentzel_;
 
     // Helper for calculating xs ratio and other quantities
-    WentzelHelper const helper_;
+    WentzelHelper const& helper_;
 
     // Incident particle
     ParticleTrackView const& particle_;

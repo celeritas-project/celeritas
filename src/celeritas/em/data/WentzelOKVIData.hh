@@ -10,6 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
@@ -27,20 +28,23 @@ namespace celeritas
 struct CoulombParameters
 {
     //! Whether to use combined single and multiple scattering
-    bool is_combined;
+    bool is_combined{true};
     //! Polar angle limit between single and multiple scattering
-    real_type costheta_limit;
+    real_type costheta_limit{-1};
     //! Factor for the screening coefficient
-    real_type screening_factor;
+    real_type screening_factor{1};
     //! Factor used to calculate the maximum scattering angle off of a nucleus
-    real_type a_sq_factor;
+    real_type a_sq_factor{0.5
+                          * ipow<2>(constants::hbar_planck * constants::c_light
+                                    * units::femtometer)};
     // Model for the form factor to use
-    NuclearFormFactorType form_factor_type;
+    NuclearFormFactorType form_factor_type{NuclearFormFactorType::exponential};
 
     explicit CELER_FUNCTION operator bool() const
     {
         return costheta_limit >= -1 && costheta_limit <= 1
-               && screening_factor > 0 && a_sq_factor >= 0;
+               && screening_factor > 0 && a_sq_factor >= 0
+               && form_factor_type != NuclearFormFactorType::size_;
     }
 };
 
@@ -81,6 +85,8 @@ struct WentzelOKVIData
     using ElementItems = celeritas::Collection<T, W, M, ElementId>;
     template<class T>
     using IsotopeItems = celeritas::Collection<T, W, M, IsotopeId>;
+    template<class T>
+    using MaterialItems = Collection<T, W, M, MaterialId>;
 
     // User-assignable parameters
     CoulombParameters params;
@@ -91,10 +97,14 @@ struct WentzelOKVIData
     // Per element form factors
     ElementItems<MottElementData> elem_data;
 
+    // Inverse effective A^2/3 [1/mass^2/3]
+    MaterialItems<real_type> inv_mass_cbrt_sq;
+
     // Check if the data is initialized
     explicit CELER_FUNCTION operator bool() const
     {
-        return params && !elem_data.empty();
+        return params && !elem_data.empty()
+               && params.is_combined == !inv_mass_cbrt_sq.empty();
     }
 
     template<Ownership W2, MemSpace M2>
@@ -104,6 +114,7 @@ struct WentzelOKVIData
         params = other.params;
         nuclear_form_prefactor = other.nuclear_form_prefactor;
         elem_data = other.elem_data;
+        inv_mass_cbrt_sq = other.inv_mass_cbrt_sq;
         return *this;
     }
 };
