@@ -66,6 +66,9 @@ perfetto::TraceConfig configure_session()
 namespace celeritas
 {
 
+/*!
+ * Start a system tracing session
+ */
 TracingSession::TracingSession()
     : session_{initialize_session(TracingMode::System)}
 {
@@ -75,6 +78,9 @@ TracingSession::TracingSession()
     }
 }
 
+/*!
+ * Start an in-process tracing session
+ */
 TracingSession::TracingSession(std::string_view filename)
     : session_{initialize_session(TracingMode::InProcess)}, fd_{[&] {
         return session_
@@ -88,6 +94,9 @@ TracingSession::TracingSession(std::string_view filename)
     }
 }
 
+/*!
+ * Block until the current session is closed.
+ */
 TracingSession::~TracingSession()
 {
     if (session_)
@@ -102,6 +111,10 @@ TracingSession::~TracingSession()
         }
     }
 }
+
+/*!
+ * Start the profiling session.
+ */
 void TracingSession::start()
 {
     if (session_)

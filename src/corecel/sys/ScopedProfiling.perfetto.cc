@@ -19,11 +19,18 @@
 namespace celeritas
 {
 
+/*!
+ * Start a thread-local slice track event
+ */
 void ScopedProfiling::activate([[maybe_unused]] Input const& input) noexcept
 {
     TRACE_EVENT_BEGIN(detail::perfetto_track_event_category,
                       perfetto::DynamicString{std::string{input.name}});
 }
+
+/*!
+ * End the slice track event that was started on the current thread
+ */
 void ScopedProfiling::deactivate() noexcept
 {
     TRACE_EVENT_END(detail::perfetto_track_event_category);
