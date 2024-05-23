@@ -334,6 +334,14 @@ if(CELERITAS_USE_Perfetto)
   find_package(Perfetto REQUIRED)
 endif()
 
+if( (CELERITAS_USE_CUDA OR CELERITAS_USE_HIP) AND CELERITAS_USE_Perfetto)
+  celeritas_error_incompatible_option(
+          "Perfetto is not supported with CUDA/HIP build"
+          CELERITAS_USE_Perfetto
+          OFF
+  )
+endif()
+
 if(CELERITAS_USE_Python)
   set(_components Interpreter)
   if(CELERITAS_USE_SWIG)
