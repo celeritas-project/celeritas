@@ -142,6 +142,26 @@ inline CELER_FUNCTION bool any_of(InputIt iter, InputIt last, Predicate p)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether the predicate is true for pairs of consecutive items.
+ */
+template<class InputIt, class Predicate>
+inline CELER_FUNCTION bool all_adjacent(InputIt iter, InputIt last, Predicate p)
+{
+    if (iter == last)
+        return true;
+
+    auto prev = *iter++;
+    while (iter != last)
+    {
+        if (!p(prev, *iter))
+            return false;
+        prev = *iter++;
+    }
+    return true;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Clamp the value between lo and hi values.
  *
  * If the value is between lo and hi, return the value. Otherwise, return lo if

@@ -48,6 +48,15 @@ struct IntersectSurfaceState;
 class IntersectSurfaceBuilder
 {
   public:
+    //!@{
+    //! \name Types
+    using Tol = Tolerance<>;
+    //!@}
+
+  public:
+    // Get the construction tolerance
+    Tol const& tol() const;
+
     // Add a surface with negative quadric value being "inside"
     template<class S>
     inline void operator()(S const& surf);

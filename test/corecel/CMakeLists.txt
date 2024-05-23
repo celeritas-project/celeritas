@@ -49,6 +49,7 @@ celeritas_add_test(grid/Interpolator.test.cc)
 celeritas_add_test(grid/NonuniformGrid.test.cc)
 celeritas_add_test(grid/TwodGridCalculator.test.cc)
 celeritas_add_test(grid/UniformGrid.test.cc)
+celeritas_add_test(grid/VectorUtils.test.cc)
 
 # IO
 set(CELERITASTEST_PREFIX corecel/io)

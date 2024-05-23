@@ -47,7 +47,6 @@ list(APPEND SOURCES
   grid/ValueGridBuilder.cc
   grid/ValueGridInserter.cc
   grid/ValueGridType.cc
-  grid/VectorUtils.cc
   io/AtomicRelaxationReader.cc
   io/ImportData.cc
   io/ImportMaterial.cc

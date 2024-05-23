@@ -93,7 +93,7 @@ class SolidBase : public ObjectInterface
     //! Optional excluded region
     virtual IntersectRegionInterface const* excluded() const = 0;
 
-    //! Angular restriction to add
+    //! Optional azimuthal angular restriction
     virtual SolidEnclosedAngle enclosed_angle() const = 0;
 
   protected:
