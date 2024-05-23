@@ -29,10 +29,7 @@ WentzelVIMscParams::from_import(ParticleParams const& particles,
                                 MaterialParams const& materials,
                                 ImportData const& data)
 {
-    auto is_wentzel = [](ImportMscModel const& imm) {
-        return imm.model_class == ImportModelClass::wentzel_vi_uni;
-    };
-    if (!std::any_of(data.msc_models.begin(), data.msc_models.end(), is_wentzel))
+    if (!has_msc_model(data, ImportModelClass::wentzel_vi_uni))
     {
         // No WentzelVI MSC present
         return nullptr;

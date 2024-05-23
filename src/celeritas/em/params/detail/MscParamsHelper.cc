@@ -43,7 +43,7 @@ MscParamsHelper::MscParamsHelper(ParticleParams const& particles,
 /*!
  * Validate and save MSC IDs.
  */
-void MscParamsHelper::build_ids(MscIds* ids) const
+void MscParamsHelper::build_ids(CoulombIds* ids) const
 {
     ids->electron = particles_.find(pdg::electron());
     ids->positron = particles_.find(pdg::positron());

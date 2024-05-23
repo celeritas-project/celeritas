@@ -14,7 +14,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/grid/XsGridData.hh"
 
-#include "MscData.hh"
+#include "CommonCoulombData.hh"
 
 namespace celeritas
 {
@@ -26,7 +26,7 @@ struct WentzelVIMscParameters
 {
     using Energy = units::MevEnergy;
 
-    real_type single_scattering_fact{1.25};  //!< single scattering factor
+    real_type single_scattering_factor{1.25};
     Energy low_energy_limit{0};
     Energy high_energy_limit{0};
 
@@ -52,7 +52,7 @@ struct WentzelVIMscData
     //// DATA ////
 
     //! Particle IDs
-    MscIds ids;
+    CoulombIds ids;
     //! Mass of of electron in MeV
     units::MevMass electron_mass;
     //! User-assignable options
