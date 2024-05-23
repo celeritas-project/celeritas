@@ -30,6 +30,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
+#include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootFileManager.hh"
@@ -307,6 +308,9 @@ void Runner::build_core_params(RunnerInput const& inp,
     // Construct cutoffs
     params.cutoff = CutoffParams::from_import(
         imported, params.particle, params.material);
+
+    // Construct shared data for Coulomb scattering
+    params.wentzel = WentzelOKVIParams::from_import(imported, params.material);
 
     // Load physics: create individual processes with make_shared
     params.physics = [&params, &inp, &imported] {

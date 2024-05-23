@@ -195,17 +195,17 @@ TEST_F(MaterialTest, material_view)
     {
         // vacuum
         MaterialView mat = params->get(MaterialId{1});
-        EXPECT_SOFT_EQ(0, mat.number_density());
-        EXPECT_SOFT_EQ(0, mat.temperature());
+        EXPECT_EQ(0, mat.number_density());
+        EXPECT_EQ(0, mat.temperature());
         EXPECT_EQ(MatterState::unspecified, mat.matter_state());
-        EXPECT_SOFT_EQ(0, mat.zeff());
-        EXPECT_SOFT_EQ(0, mat.density());
-        EXPECT_SOFT_EQ(0, mat.electron_density());
-        EXPECT_SOFT_EQ(std::numeric_limits<real_type>::infinity(),
-                       mat.radiation_length());
-        EXPECT_SOFT_EQ(0, mat.mean_excitation_energy().value());
-        EXPECT_SOFT_EQ(-std::numeric_limits<real_type>::infinity(),
-                       mat.log_mean_excitation_energy().value());
+        EXPECT_EQ(0, mat.zeff());
+        EXPECT_EQ(0, mat.density());
+        EXPECT_EQ(0, mat.electron_density());
+        EXPECT_EQ(std::numeric_limits<real_type>::infinity(),
+                  mat.radiation_length());
+        EXPECT_EQ(0, mat.mean_excitation_energy().value());
+        EXPECT_EQ(-std::numeric_limits<real_type>::infinity(),
+                  mat.log_mean_excitation_energy().value());
 
         // Test element view
         auto els = mat.elements();

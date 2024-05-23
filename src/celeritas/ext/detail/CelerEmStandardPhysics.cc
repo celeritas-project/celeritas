@@ -71,6 +71,28 @@ from_msc_step_algorithm(MscStepLimitAlgorithm const& msc_step_algorithm)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Safely switch from NuclearFormFactorType to G4NuclearFormfactorType.
+ */
+G4NuclearFormfactorType
+from_form_factor_type(NuclearFormFactorType const& form_factor)
+{
+    switch (form_factor)
+    {
+        case NuclearFormFactorType::none:
+            return G4NuclearFormfactorType::fNoneNF;
+        case NuclearFormFactorType::exponential:
+            return G4NuclearFormfactorType::fExponentialNF;
+        case NuclearFormFactorType::gaussian:
+            return G4NuclearFormfactorType::fGaussianNF;
+        case NuclearFormFactorType::flat:
+            return G4NuclearFormfactorType::fFlatNF;
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct with physics options.
  */
 CelerEmStandardPhysics::CelerEmStandardPhysics(Options const& options)
@@ -93,6 +115,8 @@ CelerEmStandardPhysics::CelerEmStandardPhysics(Options const& options)
     em_parameters.SetAuger(options.relaxation == RelaxationSelection::all);
     em_parameters.SetIntegral(options.integral_approach);
     em_parameters.SetLinearLossLimit(options.linear_loss_limit);
+    em_parameters.SetNuclearFormfactorType(
+        from_form_factor_type(options.form_factor));
     em_parameters.SetMscStepLimitType(
         from_msc_step_algorithm(options.msc_step_algorithm));
     em_parameters.SetMscRangeFactor(options.msc_range_factor);
@@ -105,6 +129,7 @@ CelerEmStandardPhysics::CelerEmStandardPhysics(Options const& options)
     em_parameters.SetMscLambdaLimit(
         native_value_to<ClhepLen>(options.msc_lambda_limit).value());
 #endif
+    em_parameters.SetMscThetaLimit(options.msc_theta_limit);
     em_parameters.SetLowestElectronEnergy(
         value_as<Options::MevEnergy>(options.lowest_electron_energy)
         * CLHEP::MeV);

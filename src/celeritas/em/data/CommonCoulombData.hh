@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/data/MscData.hh
+//! \file celeritas/em/data/CommonCoulombData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -19,7 +19,7 @@ namespace celeritas
  *
  * TODO these will probably be changed to a map over all particle IDs.
  */
-struct MscIds
+struct CoulombIds
 {
     ParticleId electron;
     ParticleId positron;
