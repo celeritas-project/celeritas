@@ -95,8 +95,9 @@ endif()
 if(CELERITAS_USE_Perfetto)
   list(APPEND PRIVATE_DEPS Celeritas::Perfetto)
   list(APPEND SOURCES
-          sys/ScopedProfiling.perfetto.cc
+          sys/Counter.perfetto.cc
           sys/PerfettoSession.cc
+          sys/ScopedProfiling.perfetto.cc
   )
 endif()
 

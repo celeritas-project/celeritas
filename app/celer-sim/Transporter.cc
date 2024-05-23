@@ -17,6 +17,7 @@
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/sys/Counter.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -90,6 +91,13 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
             result.initializers.push_back(track_counts.queued);
             result.active.push_back(track_counts.active);
             result.alive.push_back(track_counts.alive);
+            if constexpr (M == MemSpace::host)
+            {
+                Counter("active", track_counts.active);
+                Counter("alive", track_counts.alive);
+                Counter("dead", track_counts.active - track_counts.alive);
+                Counter("queued", track_counts.queued);
+            }
         }
         ++result.num_step_iterations;
         result.num_steps += track_counts.active;
