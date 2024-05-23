@@ -53,6 +53,7 @@
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "orange/orangeinp/CsgObject.hh"
+#include "orange/orangeinp/PolySolid.hh"
 #include "orange/orangeinp/Shape.hh"
 #include "orange/orangeinp/Solid.hh"
 #include "orange/orangeinp/Transformed.hh"
@@ -196,6 +197,13 @@ auto make_solid(G4VSolid const& solid,
 }
 
 //---------------------------------------------------------------------------//
+template<class Container>
+bool any_positive(Container const& c)
+{
+    return std::any_of(c.begin(), c.end(), [](auto r) { return r > 0; });
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -312,22 +320,8 @@ auto SolidConverter::cons(arg_type solid_base) -> result_type
                                                 solid.GetInnerRadiusPlusZ());
     auto hh = scale_(solid.GetZHalfLength());
 
-    if (outer_r[0] == outer_r[1])
-    {
-        std::optional<Cylinder> inner;
-        if (inner_r[0] || inner_r[1])
-        {
-            inner = Cylinder{inner_r[0], hh};
-        }
-
-        return make_solid(solid,
-                          Cylinder{outer_r[0], hh},
-                          std::move(inner),
-                          make_wedge_azimuthal(solid));
-    }
-
     std::optional<Cone> inner;
-    if (inner_r[0] || inner_r[1])
+    if (any_positive(inner_r))
     {
         inner = Cone{inner_r, hh};
     }
@@ -495,31 +489,16 @@ auto SolidConverter::polycone(arg_type solid_base) -> result_type
         rmax[i] = scale_(params.Rmax[i]);
     }
 
-    if (zs.size() == 2 && rmin[0] == 0 && rmin[1] == 0)
+    if (!any_positive(rmin))
     {
-        // Special case: displaced cone/cylinder
-        double const hh = (zs[1] - zs[0]) / 2;
-        result_type result;
-        if (rmax[0] == rmax[1])
-        {
-            // Cylinder is a special case
-            result = make_shape<Cylinder>(solid, rmax[0], hh);
-        }
-        else
-        {
-            result = make_shape<Cone>(solid, Cone::Real2{rmax[0], rmin[1]}, hh);
-        }
-
-        double dz = (zs[1] + zs[0]) / 2;
-        if (dz != 0)
-        {
-            result = std::make_shared<Transformed>(std::move(result),
-                                                   Translation{{0, 0, dz}});
-        }
-        return result;
+        // No interior shape
+        rmin.clear();
     }
 
-    CELER_NOT_IMPLEMENTED("polycone");
+    return PolyCone::or_solid(
+        std::string{solid.GetName()},
+        PolySegments{std::move(rmin), std::move(rmax), std::move(zs)},
+        make_wedge_azimuthal_poly(solid));
 }
 
 //---------------------------------------------------------------------------//
@@ -562,8 +541,8 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
         double dz = (zs[1] + zs[0]) / 2;
         if (dz != 0)
         {
-            result = std::make_shared<Transformed>(
-                std::move(result), Translation{{0, 0, zs[0] - hh}});
+            result = std::make_shared<Transformed>(std::move(result),
+                                                   Translation{{0, 0, dz}});
         }
 
         return result;

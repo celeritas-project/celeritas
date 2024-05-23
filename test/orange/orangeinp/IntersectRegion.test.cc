@@ -184,7 +184,6 @@ using ConeTest = IntersectRegionTest;
 
 TEST_F(ConeTest, errors)
 {
-    EXPECT_THROW(Cone({1.0, 1.0}, 0.5), RuntimeError);
     EXPECT_THROW(Cone({-1, 1}, 1), RuntimeError);
     EXPECT_THROW(Cone({0.5, 1}, 0), RuntimeError);
 }
@@ -230,6 +229,24 @@ TEST_F(ConeTest, downward)
     EXPECT_VEC_SOFT_EQ((Real3{-0.42426406871193, -0.42426406871193, 0}),
                        result.interior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{0.42426406871193, 0.42426406871193, 0.65}),
+                       result.interior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-1.2, -1.2, -0.65}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1.2, 1.2, 0.65}), result.exterior.upper());
+}
+
+TEST_F(ConeTest, cylinder)
+{
+    auto result = this->test(Cone({1.2, 1.2}, 1.3 / 2));
+
+    static char const expected_node[] = "all(+0, -1, -2)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-0.65", "Plane: z=0.65", "Cyl z: r=1.2"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_VEC_SOFT_EQ((Real3{-0.84852813742386, -0.84852813742386, -0.65}),
+                       result.interior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{0.84852813742386, 0.84852813742386, 0.65}),
                        result.interior.upper());
     EXPECT_VEC_SOFT_EQ((Real3{-1.2, -1.2, -0.65}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{1.2, 1.2, 0.65}), result.exterior.upper());

@@ -31,6 +31,7 @@ list(APPEND SOURCES
   orangeinp/CsgTreeUtils.cc
   orangeinp/IntersectRegion.cc
   orangeinp/IntersectSurfaceBuilder.cc
+  orangeinp/PolySolid.cc
   orangeinp/ProtoInterface.cc
   orangeinp/Shape.cc
   orangeinp/Solid.cc

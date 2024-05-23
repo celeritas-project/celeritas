@@ -21,10 +21,12 @@ class ObjectInterface;
 template<OperatorToken Op>
 class JoinObjects;
 class NegatedObject;
+class PolyCone;
 class ShapeBase;
 class SolidBase;
 class Transformed;
 
+class PolySegments;
 class SolidEnclosedAngle;
 
 class IntersectRegionInterface;
@@ -45,14 +47,16 @@ std::string to_string(ObjectInterface const&);
 
 // Write objects to JSON
 template<OperatorToken Op>
-void to_json(nlohmann::json& j, JoinObjects<Op> const& sb);
-void to_json(nlohmann::json& j, NegatedObject const& sb);
-void to_json(nlohmann::json& j, ShapeBase const& sb);
-void to_json(nlohmann::json& j, SolidBase const& sb);
-void to_json(nlohmann::json& j, Transformed const& sb);
+void to_json(nlohmann::json& j, JoinObjects<Op> const&);
+void to_json(nlohmann::json& j, NegatedObject const&);
+void to_json(nlohmann::json& j, PolyCone const&);
+void to_json(nlohmann::json& j, ShapeBase const&);
+void to_json(nlohmann::json& j, SolidBase const&);
+void to_json(nlohmann::json& j, Transformed const&);
 
 // Write helper classes to JSON
-void to_json(nlohmann::json& j, SolidEnclosedAngle const& sea);
+void to_json(nlohmann::json& j, PolySegments const&);
+void to_json(nlohmann::json& j, SolidEnclosedAngle const&);
 
 // Write intersect regions to JSON
 void to_json(nlohmann::json& j, IntersectRegionInterface const& cr);

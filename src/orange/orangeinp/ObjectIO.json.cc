@@ -16,6 +16,7 @@
 #include "CsgObject.hh"
 #include "IntersectRegion.hh"
 #include "ObjectInterface.hh"
+#include "PolySolid.hh"
 #include "Shape.hh"
 #include "Solid.hh"
 #include "Transformed.hh"
@@ -116,6 +117,17 @@ void to_json(nlohmann::json& j, NegatedObject const& obj)
          SIO_ATTR_PAIR(obj, daughter)};
 }
 
+void to_json(nlohmann::json& j, PolyCone const& obj)
+{
+    j = {{"_type", "polycone"},
+         SIO_ATTR_PAIR(obj, label),
+         SIO_ATTR_PAIR(obj, segments)};
+    if (auto sea = obj.enclosed_angle())
+    {
+        j["enclosed_angle"] = sea;
+    }
+}
+
 void to_json(nlohmann::json& j, ShapeBase const& obj)
 {
     j = {{"_type", "shape"},
@@ -150,6 +162,15 @@ void to_json(nlohmann::json& j, Transformed const& obj)
 //---------------------------------------------------------------------------//
 //!@{
 //! Write helper classes to JSON
+void to_json(nlohmann::json& j, PolySegments const& ps)
+{
+    j = {{SIO_ATTR_PAIR(ps, outer), SIO_ATTR_PAIR(ps, z)}};
+    if (ps.has_exclusion())
+    {
+        j.push_back(SIO_ATTR_PAIR(ps, inner));
+    }
+}
+
 void to_json(nlohmann::json& j, SolidEnclosedAngle const& sea)
 {
     j = {{"start", sea.start().value()}, {"interior", sea.interior().value()}};
