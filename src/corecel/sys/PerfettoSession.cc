@@ -11,6 +11,8 @@
 #include <fcntl.h>
 #include <perfetto.h>
 
+#include "ScopedProfiling.hh"
+
 #include "detail/TrackEvent.perfetto.hh"
 
 PERFETTO_TRACK_EVENT_STATIC_STORAGE();
@@ -22,6 +24,10 @@ using celeritas::ProfilingBackend;
 std::unique_ptr<perfetto::TracingSession>
 initialize_session(ProfilingBackend backend)
 {
+    if (!celeritas::use_profiling())
+    {
+        return nullptr;
+    }
     perfetto::TracingInitArgs args;
     args.backends |= [&] {
         switch (backend)
@@ -60,26 +66,45 @@ namespace celeritas
 PerfettoSession::PerfettoSession()
     : session_{initialize_session(ProfilingBackend::System)}
 {
-    session_->Setup(configure_session());
+    if (use_profiling())
+    {
+        session_->Setup(configure_session());
+    }
 }
 
 PerfettoSession::PerfettoSession(std::string_view filename)
-    : session_{initialize_session(ProfilingBackend::InProcess)}
-    , fd_{open(filename.data(), O_RDWR | O_CREAT | O_TRUNC, 0660)}
+    : session_{initialize_session(ProfilingBackend::InProcess)}, fd_{[&] {
+        return use_profiling()
+                   ? open(filename.data(), O_RDWR | O_CREAT | O_TRUNC, 0660)
+                   : -1;
+    }()}
 {
-    session_->Setup(configure_session(), fd_);
+    if (use_profiling())
+    {
+        session_->Setup(configure_session(), fd_);
+    }
 }
 
 PerfettoSession::~PerfettoSession()
 {
-    session_->StopBlocking();
-    if (fd_ != -1)
+    if (use_profiling())
     {
-        close(fd_);
+        if (started_)
+        {
+            session_->StopBlocking();
+        }
+        if (fd_ != -1)
+        {
+            close(fd_);
+        }
     }
 }
-void PerfettoSession::start() const
+void PerfettoSession::start()
 {
-    session_->Start();
+    if (use_profiling())
+    {
+        started_ = true;
+        session_->Start();
+    }
 }
 }  // namespace celeritas

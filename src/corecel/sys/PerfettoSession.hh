@@ -41,9 +41,10 @@ class PerfettoSession
     //! Prevent copying and moving for RAII class
     CELER_DEFAULT_MOVE_DELETE_COPY(PerfettoSession);
     //!@}
-    void start() const;
+    void start();
 
   private:
+    bool started_{false};
     std::unique_ptr<perfetto::TracingSession> session_;
     int fd_{-1};
 };

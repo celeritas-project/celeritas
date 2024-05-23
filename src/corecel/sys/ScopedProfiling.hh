@@ -12,10 +12,36 @@
 
 #include "celeritas_config.h"
 #include "corecel/Macros.hh"
+#include "corecel/io/Logger.hh"
+
+#include "Environment.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+#if CELER_USE_DEVICE || CELERITAS_USE_PERFETTO
+// Whether profiling is enabled
+inline bool use_profiling()
+{
+    static bool const result = [] {
+        if (!celeritas::getenv("CELER_ENABLE_PROFILING").empty())
+        {
+            CELER_LOG(info) << "Enabling profiling support since the "
+                               "'CELER_ENABLE_PROFILING' "
+                               "environment variable is present and non-empty";
+            return true;
+        }
+        return false;
+    }();
+    return result;
+}
+#else
+// Profiling is never enabled if CUDA/HIP/Perfetto isn't available
+constexpr inline bool use_profiling()
+{
+    return false;
+}
+#endif
 /*!
  * Input arguments for the nvtx implementation.
  */
@@ -57,14 +83,6 @@ class ScopedProfiling
     //!@}
 
   public:
-#if CELER_USE_DEVICE || CELERITAS_USE_PERFETTO
-    // Whether profiling is enabled
-    static bool use_profiling();
-#else
-    // Profiling is never enabled if CUDA isn't available
-    constexpr static bool use_profiling() { return false; }
-#endif
-
     // Activate profiling with options
     explicit inline ScopedProfiling(Input const& input);
     // Activate profiling with just a name
@@ -92,7 +110,7 @@ class ScopedProfiling
  * Activate device profiling with options.
  */
 ScopedProfiling::ScopedProfiling(Input const& input)
-    : activated_{ScopedProfiling::use_profiling()}
+    : activated_{use_profiling()}
 {
     if (activated_)
     {

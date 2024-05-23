@@ -19,29 +19,14 @@
 namespace celeritas
 {
 
-bool ScopedProfiling::use_profiling()
-{
-    static bool const result = [] {
-        if (!celeritas::getenv("CELER_ENABLE_PROFILING").empty())
-        {
-            CELER_LOG(info) << "Enabling profiling support since the "
-                               "'CELER_ENABLE_PROFILING' "
-                               "environment variable is present and non-empty";
-            return true;
-        }
-        return false;
-    }();
-    return result;
-}
-
 void ScopedProfiling::activate([[maybe_unused]] Input const& input) noexcept
 {
-    TRACE_EVENT_BEGIN("Celeritas",
+    TRACE_EVENT_BEGIN(detail::perfetto_track_event_category,
                       perfetto::DynamicString{std::string{input.name}});
 }
 void ScopedProfiling::deactivate() noexcept
 {
-    TRACE_EVENT_END("Celeritas");
+    TRACE_EVENT_END(detail::perfetto_track_event_category);
 }
 
 //---------------------------------------------------------------------------//

@@ -15,8 +15,6 @@
 
 #include "corecel/io/Logger.hh"
 
-#include "Environment.hh"
-
 namespace celeritas
 {
 namespace
@@ -92,28 +90,6 @@ nvtxEventAttributes_t make_attributes(ScopedProfiling::Input const& input)
 
 //---------------------------------------------------------------------------//
 }  // namespace
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether profiling is enabled.
- *
- * This is true only if the \c CELER_ENABLE_PROFILING environment variable is
- * set to a non-empty value.
- */
-bool ScopedProfiling::use_profiling()
-{
-    static bool const result = [] {
-        if (!celeritas::getenv("CELER_ENABLE_PROFILING").empty())
-        {
-            CELER_LOG(info) << "Enabling profiling support since the "
-                               "'CELER_ENABLE_PROFILING' "
-                               "environment variable is present and non-empty";
-            return true;
-        }
-        return false;
-    }();
-    return result;
-}
 
 //---------------------------------------------------------------------------//
 /*!
