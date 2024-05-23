@@ -8,10 +8,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <string_view>
 #include <type_traits>
 
 #include "celeritas_config.h"
+#include "corecel/Macros.hh"
 
 namespace celeritas
 {
@@ -21,14 +21,11 @@ class Counter
     static_assert(std::is_arithmetic_v<T>, "Only support numeric counters");
 
   public:
-    Counter(std::string_view, T);
-};
-
-#if !CELERITAS_USE_PERFETTO
-template<class T>
-Counter<T>::Counter(std::string_view, T)
-{
-}
+#if CELERITAS_USE_PERFETTO
+    CELER_FUNCTION Counter(char const*, T);
+#else
+    CELER_FUNCTION Counter(char const*, T) {}
 #endif
+};
 
 }  // namespace celeritas

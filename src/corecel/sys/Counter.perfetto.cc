@@ -17,9 +17,9 @@
 namespace celeritas
 {
 template<class T>
-Counter<T>::Counter(std::string_view name, T value)
+Counter<T>::Counter(char const* name, T value)
 {
-    TRACE_COUNTER(detail::perfetto_track_event_category, name.data(), value);
+    TRACE_COUNTER(detail::perfetto_track_event_category, name, value);
 }
 
 template class Counter<size_type>;
