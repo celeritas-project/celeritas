@@ -138,6 +138,10 @@ jobs:
           fi
           ctest --parallel $(nproc) --timeout 15 --output-on-failure \
             --test-output-size-passed=32768 --test-output-size-failed=1048576
+      - name: Check using build directory as install
+        run: |
+          . ${SPACK_VIEW}/rc
+          CELER_INSTALL_DIR=${PWD}/build ./scripts/ci/test-examples.sh
       - name: Install
         working-directory: build
         run: |
