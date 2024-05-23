@@ -42,7 +42,7 @@ inline bool is_monotonic_nondecreasing(Span<T> grid)
  * True if the grid values are monotonically increasing.
  */
 template<class T>
-bool is_monotonic_increasing(Span<T> grid)
+inline bool is_monotonic_increasing(Span<T> grid)
 {
     return all_adjacent(grid.begin(), grid.end(), [](T& left, T& right) {
         return left < right;

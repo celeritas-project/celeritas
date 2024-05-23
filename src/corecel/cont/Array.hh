@@ -147,6 +147,8 @@ operator!=(Array<T, N> const& lhs, Array<T, N> const& rhs)
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
 
+//---------------------------------------------------------------------------//
+//! \cond
 namespace std
 {
 //---------------------------------------------------------------------------//
@@ -161,8 +163,10 @@ struct tuple_size<celeritas::Array<T, N>>
 template<std::size_t I, class T, celeritas::size_type N>
 struct tuple_element<I, celeritas::Array<T, N>>
 {
+    static_assert(I < std::tuple_size<celeritas::Array<T, N>>::value);
     using type = T;
 };
 
 //---------------------------------------------------------------------------//
 }  // namespace std
+//! \endcond
