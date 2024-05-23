@@ -13,20 +13,8 @@
 #include "celeritas_config.h"
 #include "corecel/Macros.hh"
 
-#if CELERITAS_USE_PERFETTO
-#   include <perfetto.h>
-
-PERFETTO_DEFINE_CATEGORIES(perfetto::Category("Celeritas")
-                               .SetDescription("Events from the celeritas "
-                                               "library"));
-#endif
-
 namespace celeritas
 {
-#if CELERITAS_USE_PERFETTO
-void initialize_perfetto(perfetto::TracingInitArgs const&);
-#endif
-
 //---------------------------------------------------------------------------//
 /*!
  * Input arguments for the nvtx implementation.
