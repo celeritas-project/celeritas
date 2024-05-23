@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/sys/PerfettoSession.hh
+//! \file corecel/sys/TracingSession.hh
 //! \brief RAII class for managing a perfetto session and its resources.
 //---------------------------------------------------------------------------//
 #pragma once
@@ -13,8 +13,6 @@
 
 #include "celeritas_config.h"
 #include "corecel/Macros.hh"
-
-#include "PerfettoSession.hh"
 
 namespace perfetto
 {
@@ -30,23 +28,36 @@ enum class ProfilingBackend : uint32_t
     System
 };
 
-class PerfettoSession
+#if CELERITAS_USE_PERFETTO
+class TracingSession
 {
   public:
-    explicit PerfettoSession();
-    PerfettoSession(std::string_view);
-    ~PerfettoSession();
+    TracingSession();
+    explicit TracingSession(std::string_view);
+    ~TracingSession();
 
+    void start();
     //!@{
     //! Prevent copying and moving for RAII class
-    CELER_DEFAULT_MOVE_DELETE_COPY(PerfettoSession);
+    CELER_DEFAULT_MOVE_DELETE_COPY(TracingSession);
     //!@}
-    void start();
 
   private:
     bool started_{false};
     std::unique_ptr<perfetto::TracingSession> session_;
     int fd_{-1};
 };
+#else
+
+//! noop
+class TracingSession
+{
+  public:
+    TracingSession() = default;
+    explicit TracingSession(std::string_view) {}
+
+    void start() {};
+};
+#endif
 
 }  // namespace celeritas

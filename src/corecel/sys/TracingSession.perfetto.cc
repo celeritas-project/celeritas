@@ -3,10 +3,10 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/sys/PerfettoSession.cc
+//! \file corecel/sys/TracingSession.perfetto.cc
 //! \brief RAII class for managing a perfetto session and its resources.
 //---------------------------------------------------------------------------//
-#include "PerfettoSession.hh"
+#include "TracingSession.hh"
 
 #include <fcntl.h>
 #include <perfetto.h>
@@ -63,7 +63,7 @@ perfetto::TraceConfig configure_session()
 namespace celeritas
 {
 
-PerfettoSession::PerfettoSession()
+TracingSession::TracingSession()
     : session_{initialize_session(ProfilingBackend::System)}
 {
     if (use_profiling())
@@ -72,7 +72,7 @@ PerfettoSession::PerfettoSession()
     }
 }
 
-PerfettoSession::PerfettoSession(std::string_view filename)
+TracingSession::TracingSession(std::string_view filename)
     : session_{initialize_session(ProfilingBackend::InProcess)}, fd_{[&] {
         return use_profiling()
                    ? open(filename.data(), O_RDWR | O_CREAT | O_TRUNC, 0660)
@@ -85,7 +85,7 @@ PerfettoSession::PerfettoSession(std::string_view filename)
     }
 }
 
-PerfettoSession::~PerfettoSession()
+TracingSession::~TracingSession()
 {
     if (use_profiling())
     {
@@ -99,7 +99,7 @@ PerfettoSession::~PerfettoSession()
         }
     }
 }
-void PerfettoSession::start()
+void TracingSession::start()
 {
     if (use_profiling())
     {

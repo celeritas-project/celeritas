@@ -48,9 +48,7 @@
 #    include "RunnerInputIO.json.hh"
 #endif
 
-#if CELERITAS_USE_PERFETTO
-#    include "corecel/sys/PerfettoSession.hh"
-#endif
+#include "corecel/sys/TracingSession.hh"
 
 using namespace std::literals::string_view_literals;
 
@@ -80,10 +78,9 @@ int get_openmp_thread()
 void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
 {
     CELER_EXPECT(is);
-#if CELERITAS_USE_PERFETTO
-    PerfettoSession tracing_session("celer-sim.perfetto-trace");
+    TracingSession tracing_session("celer-sim.perfetto-trace");
     tracing_session.start();
-#endif
+
     ScopedProfiling profile_this{"celer-sim"};
     ScopedMem record_mem("celer-sim.run");
 
