@@ -16,26 +16,52 @@
 
 namespace perfetto
 {
+// FORWARD DECLARATION
 class TracingSession;
-}
+
+//---------------------------------------------------------------------------//
+}  // namespace perfetto
 
 namespace celeritas
 {
 
-enum class ProfilingBackend : uint32_t
+//! Supported tracing mode
+enum class TracingMode : uint32_t
 {
-    InProcess,
-    System
+    InProcess,  //!< Record in-process, writting to a file
+    System  //!< Record in a system daemon
 };
 
 #if CELERITAS_USE_PERFETTO
+/*!
+ * RAII wrapper for a tracing session.
+ *
+ * Constructors will only configure an initialize the session. It needs to
+ * be started explicitely by calling \c TracingSession::start
+ * Only a single tracing mode is supported. If you are only interested in
+ * application-level events (\c ScopedProfiling and \c Counter),
+ * then the in-process mode is sufficient and is enabled by providing the
+ * trace data filename to the constructor.
+ *
+ * If no filename is provided, start a system tracing session which records
+ * both application-level events and kernel events. Root privilege and
+ * Linux ftrace https://kernel.org/doc/Documentation/trace/ftrace.txt are
+ * required. To start the system daemons using the perfetto backend,
+ * see https://perfetto.dev/docs/quickstart/linux-tracing#capturing-a-trace
+ *
+ * TODO: Support multiple tracing mode.
+ */
 class TracingSession
 {
   public:
+    // Configure a system session recording to a daemon
     TracingSession();
-    explicit TracingSession(std::string_view);
+    // Configure an in-process session recording to filename
+    explicit TracingSession(std::string_view filename);
+    // Terminate thte session and close open files
     ~TracingSession();
 
+    // Start the profiling session
     void start();
     //!@{
     //! Prevent copying and moving for RAII class
@@ -49,15 +75,21 @@ class TracingSession
 };
 #else
 
-//! noop
+/*!
+ * Noop class if Perfetto is  disabled
+ */
 class TracingSession
 {
   public:
+    // noop
     TracingSession() = default;
+    // noop
     explicit TracingSession(std::string_view) {}
 
+    // noop
     void start() {};
 };
 #endif
 
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

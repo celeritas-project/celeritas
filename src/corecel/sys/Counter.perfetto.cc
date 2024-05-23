@@ -22,8 +22,10 @@ Counter<T>::Counter(char const* name, T value)
     TRACE_COUNTER(detail::perfetto_track_event_category, name, value);
 }
 
+// EXPLICIT INSTANTIATION
 template class Counter<size_type>;
 template class Counter<float>;
 template class Counter<double>;
 
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -19,10 +19,10 @@ PERFETTO_TRACK_EVENT_STATIC_STORAGE();
 
 namespace
 {
-using celeritas::ProfilingBackend;
+using celeritas::TracingMode;
 
-std::unique_ptr<perfetto::TracingSession>
-initialize_session(ProfilingBackend backend)
+// Initialize the session for the given mode if profiling is enabled
+std::unique_ptr<perfetto::TracingSession> initialize_session(TracingMode mode)
 {
     if (!celeritas::use_profiling())
     {
@@ -30,11 +30,11 @@ initialize_session(ProfilingBackend backend)
     }
     perfetto::TracingInitArgs args;
     args.backends |= [&] {
-        switch (backend)
+        switch (mode)
         {
-            case ProfilingBackend::InProcess:
+            case TracingMode::InProcess:
                 return perfetto::kInProcessBackend;
-            case ProfilingBackend::System:
+            case TracingMode::System:
                 return perfetto::kSystemBackend;
             default:
                 return perfetto::kSystemBackend;
@@ -45,6 +45,8 @@ initialize_session(ProfilingBackend backend)
     return perfetto::Tracing::NewTrace();
 }
 
+// configure the session to record the celeritas track events
+// TODO: custom buffer size?
 perfetto::TraceConfig configure_session()
 {
     perfetto::protos::gen::TrackEventConfig track_event_cfg;
@@ -58,28 +60,29 @@ perfetto::TraceConfig configure_session()
     ds_cfg->set_track_event_config_raw(track_event_cfg.SerializeAsString());
     return cfg;
 }
+//---------------------------------------------------------------------------//
 }  // namespace
 
 namespace celeritas
 {
 
 TracingSession::TracingSession()
-    : session_{initialize_session(ProfilingBackend::System)}
+    : session_{initialize_session(TracingMode::System)}
 {
-    if (use_profiling())
+    if (session_)
     {
         session_->Setup(configure_session());
     }
 }
 
 TracingSession::TracingSession(std::string_view filename)
-    : session_{initialize_session(ProfilingBackend::InProcess)}, fd_{[&] {
-        return use_profiling()
+    : session_{initialize_session(TracingMode::InProcess)}, fd_{[&] {
+        return session_
                    ? open(filename.data(), O_RDWR | O_CREAT | O_TRUNC, 0660)
                    : -1;
     }()}
 {
-    if (use_profiling())
+    if (session_)
     {
         session_->Setup(configure_session(), fd_);
     }
@@ -87,7 +90,7 @@ TracingSession::TracingSession(std::string_view filename)
 
 TracingSession::~TracingSession()
 {
-    if (use_profiling())
+    if (session_)
     {
         if (started_)
         {
@@ -101,10 +104,12 @@ TracingSession::~TracingSession()
 }
 void TracingSession::start()
 {
-    if (use_profiling())
+    if (session_)
     {
         started_ = true;
         session_->Start();
     }
 }
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

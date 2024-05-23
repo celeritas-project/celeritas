@@ -15,6 +15,13 @@
 
 namespace celeritas
 {
+/*!
+ * Simple tracing counter. Records a named value at the current timestamp which
+ * can then be displayed on a timeline. Only supported on host, this compiles
+ * but is a noop on device.
+ * See https://perfetto.dev/docs/instrumentation/track-events#counters
+ * @tparam T Arithmetic counter type
+ */
 template<class T>
 class Counter
 {
@@ -22,10 +29,13 @@ class Counter
 
   public:
 #if CELERITAS_USE_PERFETTO
-    CELER_FUNCTION Counter(char const*, T);
+    // Record value for the counter name
+    CELER_FUNCTION Counter(char const* name, T value);
 #else
+    // noop
     CELER_FUNCTION Counter(char const*, T) {}
 #endif
 };
 
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

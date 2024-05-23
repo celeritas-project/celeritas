@@ -13,7 +13,10 @@ namespace celeritas
 {
 namespace detail
 {
+// Global category name for celeritas
+// TODO: add more categories for fine-grained control of events to record
 constexpr auto* perfetto_track_event_category{"Celeritas"};
+
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas
