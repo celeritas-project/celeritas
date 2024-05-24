@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <perfetto.h>
 
+#include "Environment.hh"
 #include "ScopedProfiling.hh"
 
 #include "detail/TrackEvent.perfetto.hh"
@@ -46,15 +47,22 @@ std::unique_ptr<perfetto::TracingSession> initialize_session(TracingMode mode)
 }
 
 // configure the session to record the celeritas track events
-// TODO: custom buffer size?
 perfetto::TraceConfig configure_session()
 {
     perfetto::protos::gen::TrackEventConfig track_event_cfg;
     track_event_cfg.add_disabled_categories("*");
     track_event_cfg.add_enabled_categories(
         celeritas::detail::perfetto_track_event_category);
+
     perfetto::TraceConfig cfg;
-    cfg.add_buffers()->set_size_kb(1024 * 512);
+    constexpr int mb_kb = 1024;
+    uint32_t buffer_size_kb = 20 * mb_kb;
+    if (std::string var = celeritas::getenv("CELER_PERFETTO_BUFFER_SIZE_MB");
+        !var.empty())
+    {
+        buffer_size_kb = std::stoul(var) * mb_kb;
+    }
+    cfg.add_buffers()->set_size_kb(buffer_size_kb);
     auto* ds_cfg = cfg.add_data_sources()->mutable_config();
     ds_cfg->set_name("track_event");
     ds_cfg->set_track_event_config_raw(track_event_cfg.SerializeAsString());
@@ -120,7 +128,7 @@ void TracingSession::start()
     if (session_)
     {
         started_ = true;
-        session_->Start();
+        session_->StartBlocking();
     }
 }
 
