@@ -8,6 +8,7 @@
 #include "CsgTreeUtils.hh"
 
 #include <algorithm>
+#include <iostream>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -16,6 +17,8 @@
 
 #include "detail/InfixStringBuilder.hh"
 #include "detail/NodeReplacementInserter.hh"
+using std::cout;
+using std::endl;
 
 namespace celeritas
 {
@@ -48,6 +51,8 @@ NodeId replace_down(CsgTree* tree, NodeId n, Node repl)
     {
         n = std::move(stack.back().first);
         repl = std::move(stack.back().second);
+        cout << "Replacing " << n.get() << " = " << (*tree)[n] << " with "
+             << repl << endl;
         stack.pop_back();
         lowest_node = std::min(n, lowest_node);
 

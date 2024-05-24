@@ -80,7 +80,7 @@ PhysicalVolumeConverter::PhysicalVolumeConverter(Options opts)
     : data_{std::make_unique<Data>()}
 {
     data_->scale = Scaler{opts.scale};
-    data_->verbose = opts.verbose;
+    data_->verbose = true;  // opts.verbose;
 }
 
 //---------------------------------------------------------------------------//
