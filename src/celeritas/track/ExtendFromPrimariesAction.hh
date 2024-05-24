@@ -38,10 +38,10 @@ class ExtendFromPrimariesAction final : public ExplicitCoreActionInterface
     ActionId action_id() const final { return id_; }
 
     //! Short name for the action
-    std::string label() const final { return "extend-from-primaries"; }
+    std::string_view label() const final { return "extend-from-primaries"; }
 
     //! Description of the action for user interaction
-    std::string description() const final
+    std::string_view description() const final
     {
         return "create track initializers from primaries";
     }

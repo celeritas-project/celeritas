@@ -72,20 +72,11 @@ using ParticleModelId = OpaqueId<ModelId>;
 //! Opaque index of electron subshell
 using SubshellId = OpaqueId<struct Subshell_>;
 
+//! Opaque index of particle-nucleon cascade channel
+using ChannelId = OpaqueId<struct Channel_>;
+
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
-//---------------------------------------------------------------------------//
-//! Unit system used by Celeritas
-enum class UnitSystem
-{
-    none,  //!< Invalid unit system
-    cgs,  //!< Gaussian CGS
-    si,  //!< International System
-    clhep,  //!< Geant4 native
-    size_,
-    native = CELERITAS_UNITS,  //!< Compile time selected system
-};
-
 //---------------------------------------------------------------------------//
 //! Interpolation type
 enum class Interp
@@ -170,6 +161,17 @@ enum class MscStepLimitAlgorithm
 };
 
 //---------------------------------------------------------------------------//
+//! Nuclear form factor model for Coulomb scattering
+enum class NuclearFormFactorType
+{
+    none,
+    flat,
+    exponential,
+    gaussian,
+    size_
+};
+
+//---------------------------------------------------------------------------//
 // HELPER STRUCTS
 //---------------------------------------------------------------------------//
 //! Step length and limiting action to take
@@ -190,14 +192,8 @@ struct StepLimit
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//
 
-// Get a string corresponding to a unit system
-char const* to_cstring(UnitSystem);
-
 // Get a string corresponding to an interpolation
 char const* to_cstring(Interp);
-
-// Get a unit system corresponding to a string
-UnitSystem to_unit_system(std::string const& s);
 
 // Get a string corresponding to a material state
 char const* to_cstring(MatterState);
@@ -210,6 +206,9 @@ char const* to_cstring(TrackOrder);
 
 // Get a string corresponding to the MSC step limit algorithm
 char const* to_cstring(MscStepLimitAlgorithm value);
+
+// Get a string corresponding to the nuclear form factor model
+char const* to_cstring(NuclearFormFactorType value);
 
 // Checks that the TrackOrder will sort tracks by actions applied at the given
 // ActionOrder

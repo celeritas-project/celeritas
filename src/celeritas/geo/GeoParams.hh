@@ -17,5 +17,5 @@
 #    include "geocel/g4/GeantGeoParams.hh"  // IWYU pragma: export
 #endif
 
-// Include type alias for GeoParams
+// Include traits and type aliases for GeoParams
 #include "GeoFwd.hh"  // IWYU pragma: export

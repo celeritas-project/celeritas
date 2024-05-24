@@ -10,6 +10,7 @@
 #include "corecel/Types.hh"
 
 #include "GlobalGeoTestBase.hh"
+#include "OnlyCoreTestBase.hh"
 
 namespace celeritas
 {
@@ -19,7 +20,7 @@ namespace test
 /*!
  * Compton scattering with gammas in mock aluminum in a box in hard vacuum.
  */
-class SimpleTestBase : virtual public GlobalGeoTestBase
+class SimpleTestBase : virtual public GlobalGeoTestBase, public OnlyCoreTestBase
 {
   protected:
     std::string_view geometry_basename() const override { return "two-boxes"; }
@@ -34,6 +35,7 @@ class SimpleTestBase : virtual public GlobalGeoTestBase
     SPConstSim build_sim() override;
     SPConstTrackInit build_init() override;
     SPConstAction build_along_step() override;
+    SPConstWentzelOKVI build_wentzel() override;
 };
 
 //---------------------------------------------------------------------------//

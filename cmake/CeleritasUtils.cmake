@@ -155,7 +155,13 @@ CMake configuration utility functions for Celeritas.
   The ``<input>`` must be a relative path to the current source directory, and
   the ``<output>` path is configured to the project build "include" directory.
 
-.. comand:: celeritas_error_incompatible_option
+.. command:: celeritas_polysource_append
+
+  Add C++ and CUDA/HIP source files based on the enabled options.
+
+    celeritas_polysource_append(SOURCES my/Class)
+
+.. command:: celeritas_error_incompatible_option
 
   Print a descriptive failure message about conflicting cmake options.
 
@@ -490,6 +496,15 @@ function(celeritas_configure_file input output)
     "${CELERITAS_HEADER_CONFIG_DIRECTORY}/${output}"
     ${ARGN})
 endfunction()
+
+#-----------------------------------------------------------------------------#
+
+macro(celeritas_polysource_append var filename_we)
+  list(APPEND ${var} "${filename_we}.cc")
+  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+    list(APPEND ${var} "${filename_we}.cu")
+  endif()
+endmacro()
 
 #-----------------------------------------------------------------------------#
 

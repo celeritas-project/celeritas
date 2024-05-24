@@ -39,6 +39,7 @@
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
+
 #include "detail/HitManager.hh"
 #include "detail/OffloadWriter.hh"
 
@@ -50,7 +51,8 @@ namespace celeritas
  */
 LocalTransporter::LocalTransporter(SetupOptions const& options,
                                    SharedParams const& params)
-    : auto_flush_(options.max_num_tracks)
+    : auto_flush_(options.auto_flush ? options.auto_flush
+                                     : options.max_num_tracks)
     , max_steps_(options.max_steps)
     , dump_primaries_{params.offload_writer()}
     , hit_manager_{params.hit_manager()}
@@ -73,11 +75,12 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
         << params.Params()->max_streams() << ")");
 
     // Check that OpenMP and Geant4 threading models don't collide
-    if (CELERITAS_USE_OPENMP && !celeritas::device()
+    if (CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK && !celeritas::device()
         && G4Threading::IsMultithreadedApplication())
     {
         auto msg = CELER_LOG_LOCAL(warning);
-        msg << "Using multithreaded Geant4 with Celeritas OpenMP";
+        msg << "Using multithreaded Geant4 with Celeritas track-level OpenMP "
+               "parallelism";
         if (std::string const& nt_str = celeritas::getenv("OMP_NUM_THREADS");
             !nt_str.empty())
         {
@@ -99,7 +102,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     inp.params = params.Params();
     inp.stream_id = StreamId{static_cast<size_type>(thread_id)};
     inp.num_track_slots = options.max_num_tracks;
-    inp.sync = options.sync;
+    inp.action_times = options.action_times;
 
     if (celeritas::device())
     {
@@ -188,10 +191,12 @@ void LocalTransporter::Flush()
     {
         return;
     }
-
-    CELER_LOG_LOCAL(info) << "Transporting " << buffer_.size()
-                          << " tracks from event " << event_id_.unchecked_get()
-                          << " with Celeritas";
+    if (celeritas::device())
+    {
+        CELER_LOG_LOCAL(info)
+            << "Transporting " << buffer_.size() << " tracks from event "
+            << event_id_.unchecked_get() << " with Celeritas";
+    }
 
     if (dump_primaries_)
     {
@@ -252,18 +257,16 @@ auto LocalTransporter::GetActionTime() const -> MapStrReal
 
     MapStrReal result;
     auto const& action_seq = step_->actions();
-    if (action_seq.sync() || !celeritas::device())
+    if (action_seq.action_times())
     {
-        // Save kernel timing if either on the device with synchronization
-        // enabled or on the host
+        // Save kernel timing if synchronization is enabled
         auto const& action_ptrs = action_seq.actions();
         auto const& time = action_seq.accum_time();
 
         CELER_ASSERT(action_ptrs.size() == time.size());
         for (auto i : range(action_ptrs.size()))
         {
-            auto&& label = action_ptrs[i]->label();
-            result[label] = time[i];
+            result[std::string{action_ptrs[i]->label()}] = time[i];
         }
     }
     return result;

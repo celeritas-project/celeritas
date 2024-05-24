@@ -55,7 +55,8 @@
 #include "geocel/ScopedGeantLogger.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
-#include "celeritas/ext/detail/GeantPhysicsList.hh"
+#include "celeritas/ext/detail/CelerEmPhysicsList.hh"
+#include "celeritas/ext/detail/CelerFTFPBert.hh"
 #include "accel/SharedParams.hh"
 
 #include "ActionInitialization.hh"
@@ -171,29 +172,35 @@ void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
     }
     setup.SetIgnoreProcesses(ignore_processes);
 
-    // Construct geometry, SD factory, physics, actions
+    // Construct geometry and SD factory
     run_manager->SetUserInitialization(new DetectorConstruction{params});
-    switch (setup.input().physics_list)
+
+    // Construct physics
+    if (setup.input().physics_list == PhysicsListSelection::ftfp_bert)
     {
-        case PhysicsListSelection::ftfp_bert: {
-            run_manager->SetUserInitialization(
-                new FTFP_BERT{/* verbosity = */ 0});
-            break;
+        auto pl = std::make_unique<FTFP_BERT>(/* verbosity = */ 0);
+        run_manager->SetUserInitialization(pl.release());
+    }
+    else
+    {
+        auto opts = setup.GetPhysicsOptions();
+        if (std::find(ignore_processes.begin(), ignore_processes.end(), "Rayl")
+            != ignore_processes.end())
+        {
+            opts.rayleigh_scattering = false;
         }
-        case PhysicsListSelection::geant_physics_list: {
-            auto opts = setup.GetPhysicsOptions();
-            if (std::find(
-                    ignore_processes.begin(), ignore_processes.end(), "Rayl")
-                != ignore_processes.end())
-            {
-                opts.rayleigh_scattering = false;
-            }
-            run_manager->SetUserInitialization(
-                new detail::GeantPhysicsList{opts});
-            break;
+        if (setup.input().physics_list == PhysicsListSelection::celer_ftfp_bert)
+        {
+            // FTFP BERT with Celeritas EM standard physics
+            auto pl = std::make_unique<detail::CelerFTFPBert>(opts);
+            run_manager->SetUserInitialization(pl.release());
         }
-        default:
-            CELER_ASSERT_UNREACHABLE();
+        else
+        {
+            // Celeritas EM standard physics only
+            auto pl = std::make_unique<detail::CelerEmPhysicsList>(opts);
+            run_manager->SetUserInitialization(pl.release());
+        }
     }
 
     // Create action initializer

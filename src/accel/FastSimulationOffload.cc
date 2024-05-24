@@ -24,7 +24,7 @@ FastSimulationOffload::FastSimulationOffload(G4String const& name,
                                              LocalTransporter* local)
     : G4VFastSimulationModel(name), params_(params), transport_(local)
 {
-    CELER_VALIDATE(G4VERSION_NUMBER > 1110,
+    CELER_VALIDATE(G4VERSION_NUMBER >= 1110,
                    << "the current version of Geant4 (" << G4VERSION_NUMBER
                    << ") is too old to support the fast simulation Flush() "
                       "interface");
@@ -45,7 +45,7 @@ FastSimulationOffload::FastSimulationOffload(G4String const& name,
                                              LocalTransporter* local)
     : G4VFastSimulationModel(name, region), params_(params), transport_(local)
 {
-    CELER_VALIDATE(G4VERSION_NUMBER > 1110,
+    CELER_VALIDATE(G4VERSION_NUMBER >= 1110,
                    << "the current version of Geant4 (" << G4VERSION_NUMBER
                    << ") is too old to support the fast simulation Flush() "
                       "interface");

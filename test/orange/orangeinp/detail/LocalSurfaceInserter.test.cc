@@ -106,7 +106,7 @@ TEST_F(LocalSurfaceInserterTest, chained_duplicates)
     EXPECT_EQ(5, surfaces.size());
 }
 
-// Replicates InfWedge.quarter_turn from convex region test
+// Replicates InfWedge.quarter_turn from intersect region test
 TEST_F(LocalSurfaceInserterTest, infwedge_quadrant)
 {
     auto tol = Tolerance<>::from_relative(1e-4);

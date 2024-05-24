@@ -114,7 +114,9 @@ void count_tracks_per_action(
     std::fill(offsets.begin(), offsets.end(), ThreadId{});
     auto const size = states.size();
     // if get_action(0) != get_action(1), get_action(0) never gets initialized
-#pragma omp parallel for
+#if CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
+#    pragma omp parallel for
+#endif
     for (size_type i = 1; i < size; ++i)
     {
         ActionId current_action = get_action(ThreadId{i});

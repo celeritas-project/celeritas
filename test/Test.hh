@@ -10,7 +10,7 @@
 #include <cmath>
 #include <string>
 #include <string_view>
-#include <gtest/gtest.h>
+#include <gtest/gtest.h>  // IWYU pragma: export
 
 #include "celeritas_config.h"
 
@@ -45,8 +45,8 @@ class Test : public ::testing::Test
     static std::string
     test_data_path(std::string_view subdir, std::string_view filename);
 
-    // Replace pointer addresses with 0x0 for improved testability.
-    [[nodiscard]] static std::string genericize_pointers(std::string const& s);
+    // Replace pointer addresses with 0x0 for improved testability
+    [[nodiscard]] static std::string genericize_pointers(std::string_view s);
 
     // True if CELER_TEST_STRICT is set (under CI)
     static bool strict_testing();

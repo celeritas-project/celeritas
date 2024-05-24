@@ -42,7 +42,7 @@ struct OpticalGenParamsData
 
     bool cerenkov{false};  //!< Whether Cerenkov is enabled
     bool scintillation{false};  //!< Whether scintillation is enabled
-    real_type capacity{0};  //!< Distribution data buffer capacity
+    size_type capacity{0};  //!< Distribution data buffer capacity
 
     //// METHODS ////
 
@@ -84,6 +84,11 @@ struct OpticalPreStepData
 //---------------------------------------------------------------------------//
 /*!
  * Optical photon distribution data.
+ *
+ * The distributions are stored in separate Cerenkov and scintillation buffers
+ * indexed by the current buffer size plus the track slot ID. The data is
+ * compacted at the end of each step by removing all invalid distributions. The
+ * order of the distributions in the buffers is guaranteed to be reproducible.
  */
 template<Ownership W, MemSpace M>
 struct OpticalGenStateData

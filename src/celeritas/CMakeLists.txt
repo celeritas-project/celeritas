@@ -18,6 +18,7 @@ list(APPEND SOURCES
   em/params/AtomicRelaxationParams.cc
   em/params/FluctuationParams.cc
   em/params/UrbanMscParams.cc
+  em/params/WentzelOKVIParams.cc
   em/params/WentzelVIMscParams.cc
   em/params/detail/MscParamsHelper.cc
   em/process/BremsstrahlungProcess.cc
@@ -46,7 +47,6 @@ list(APPEND SOURCES
   grid/ValueGridBuilder.cc
   grid/ValueGridInserter.cc
   grid/ValueGridType.cc
-  grid/VectorUtils.cc
   io/AtomicRelaxationReader.cc
   io/ImportData.cc
   io/ImportMaterial.cc
@@ -63,9 +63,12 @@ list(APPEND SOURCES
   mat/MaterialParamsOutput.cc
   mat/detail/Utils.cc
   neutron/process/NeutronElasticProcess.cc
+  neutron/process/NeutronInelasticProcess.cc
   optical/CerenkovParams.cc
   optical/ScintillationParams.cc
+  optical/OpticalCollector.cc
   optical/OpticalPropertyParams.cc
+  optical/OpticalTrackData.cc
   phys/CutoffParams.cc
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc
@@ -111,11 +114,14 @@ if(CELERITAS_USE_Geant4)
     ext/GeantImporter.cc
     ext/GeantSetup.cc
     ext/GeantVolumeMapper.cc
+    ext/detail/CelerEmPhysicsList.cc
+    ext/detail/CelerEmStandardPhysics.cc
+    ext/detail/CelerFTFPBert.cc
     ext/detail/GeantBremsstrahlungProcess.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
-    ext/detail/GeantPhysicsList.cc
     ext/detail/GeantProcessImporter.cc
+    ext/detail/MuHadEmStandardPhysics.cc
   )
   celeritas_get_g4libs(_cg4_libs global geometry materials processes run
     physicslists tasking)
@@ -192,9 +198,10 @@ if(CELERITAS_USE_ROOT)
     ext/ScopedRootErrorHandler.cc
     ext/RootUniquePtr.root.cc
     ext/RootFileManager.cc
-    user/RootStepWriter.cc
     io/RootEventReader.cc
     io/RootEventWriter.cc
+    phys/RootEventSampler.cc
+    user/RootStepWriter.cc
     "${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx"
   )
 
@@ -232,10 +239,7 @@ endif()
 #-----------------------------------------------------------------------------#
 
 macro(celeritas_polysource filename_we)
-  list(APPEND SOURCES "${filename_we}.cc")
-  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-    list(APPEND SOURCES "${filename_we}.cu")
-  endif()
+  celeritas_polysource_append(SOURCES ${filename_we})
 endmacro()
 
 celeritas_polysource(em/model/BetheHeitlerModel)
@@ -255,6 +259,11 @@ celeritas_polysource(global/alongstep/AlongStepNeutralAction)
 celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
 celeritas_polysource(global/alongstep/AlongStepRZMapFieldMscAction)
 celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
+celeritas_polysource(neutron/model/NeutronInelasticModel)
+celeritas_polysource(optical/detail/CerenkovPreGenAction)
+celeritas_polysource(optical/detail/OpticalGenAlgorithms)
+celeritas_polysource(optical/detail/PreGenGatherAction)
+celeritas_polysource(optical/detail/ScintPreGenAction)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)
 celeritas_polysource(random/RngReseed)
@@ -297,5 +306,3 @@ celeritas_target_link_libraries(celeritas
 )
 
 #-----------------------------------------------------------------------------#
-
-

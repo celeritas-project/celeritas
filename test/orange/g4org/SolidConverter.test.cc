@@ -156,7 +156,7 @@ TEST_F(SolidConverterTest, cons)
 {
     this->build_and_test(
         G4Cons("Solid TubeLike #1", 0, 50, 0, 50, 50, 0, 360),
-        R"json({"_type":"shape","interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Solid TubeLike #1"})json",
+        R"json({"_type":"shape","interior":{"_type":"cone","halfheight":5.0,"radii":[5.0,5.0]},"label":"Solid TubeLike #1"})json",
         {{0, 0, 4}, {0, 0, 5}, {0, 0, 6}, {4, 0, 0}, {5, 0, 0}, {6, 0, 0}});
 
     this->build_and_test(
@@ -193,6 +193,89 @@ TEST_F(SolidConverterTest, displaced)
         G4DisplacedSolid("boxd", &box, transform),
         R"json({"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[2.0,3.0,4.0]},"label":"box"},"transform":{"_type":"transformation","data":[0.7598275605729691,-0.42970562748477137,0.4878679656440358,0.5702943725152286,0.8008326112068523,-0.18284271247461906,-0.31213203435596426,0.41715728752538106,0.8535533905932738,1.0,2.0,3.0]}})json",
         {{1, 2, 3}, {2, 2, 3}, {3, 0, 0}});
+}
+
+TEST_F(SolidConverterTest, generictrap)
+{
+    {
+        this->build_and_test(
+            G4GenericTrap("boxGenTrap",
+                          30,
+                          {{-10, -20},
+                           {-10, 20},
+                           {10, 20},
+                           {10, -20},
+                           {-10, -20},
+                           {-10, 20},
+                           {10, 20},
+                           {10, -20}}),
+            R"json({"_type":"shape","interior":{"_type":"gentrap",
+                "halfheight":3.0,
+                "lower":[[1.0,-2.0],[1.0,2.0],[-1.0,2.0],[-1.0,-2.0]],
+                "upper":[[1.0,-2.0],[1.0,2.0],[-1.0,2.0],[-1.0,-2.0]]},
+                "label":"boxGenTrap"})json",
+            {{-1, -2, -3}, {1, 2, 3}, {1, 2, 4}});
+    }
+
+    {
+        this->build_and_test(
+            G4GenericTrap("trdGenTrap",
+                          3,
+                          {{-10, -20},
+                           {-10, 20},
+                           {10, 20},
+                           {10, -20},
+                           {-5, -10},
+                           {-5, 10},
+                           {5, 10},
+                           {5, -10}}),
+            R"json({"_type":"shape","interior":{"_type":"gentrap"
+            ,"halfheight":0.30000000000000004,
+            "lower":[[1.0,-2.0],[1.0,2.0],[-1.0,2.0],[-1.0,-2.0]],
+            "upper":[[0.5,-1.0],[0.5,1.0],[-0.5,1.0],[-0.5,-1.0]]},
+            "label":"trdGenTrap"})json",
+            {{-1, -2, -4}, {-1, -2, -3}, {0.5, 1, 3}, {1, 1, 3}});
+    }
+
+    {
+        this->build_and_test(
+            G4GenericTrap("trap_GenTrap",
+                          40,
+                          {{-9, -20},
+                           {-9, 20},
+                           {11, 20},
+                           {11, -20},
+                           {-29, -40},
+                           {-29, 40},
+                           {31, 40},
+                           {31, -40}}),
+            R"json({"_type":"shape","interior":{"_type":"gentrap",
+            "halfheight":4.0,
+            "lower":[[1.1,-2.0],[1.1,2.0],[-0.9,2.0],[-0.9,-2.0]],
+            "upper":[[3.1,-4.0],[3.1,4.0],[-2.9,4.0],[-2.9,-4.0]]},
+            "label":"trap_GenTrap"})json",
+            {{-1, -2, -4 - 1.e-6}, {-1, -2, -3}, {0.5, 1, 3}, {1, 1, 3}});
+    }
+
+    {
+        // most general gentrap with twisted side faces
+        this->build_and_test(
+            G4GenericTrap("LArEMECInnerWheelAbsorber02",
+                          10.625,
+                          {{1.55857990922689, 302.468976599716},
+                           {-1.73031296208306, 302.468976599716},
+                           {-2.53451906396442, 609.918546236458},
+                           {2.18738922312177, 609.918546236458},
+                           {-11.9586196560814, 304.204253530802},
+                           {-15.2556006134987, 304.204253530802},
+                           {-31.2774318502685, 613.426120316623},
+                           {-26.5391748405779, 613.426120316623}}),
+            R"json({"_type":"shape","interior":{"_type":"gentrap","halfheight":1.0625,"lower":[[0.218738922312177,60.99185462364581],[-0.253451906396442,60.99185462364581],[-0.173031296208306,30.246897659971598],[0.155857990922689,30.246897659971598]],"upper":[[-2.65391748405779,61.342612031662306],[-3.12774318502685,61.342612031662306],[-1.52556006134987,30.420425353080205],[-1.19586196560814,30.420425353080205]]},"label":"LArEMECInnerWheelAbsorber02"})json",
+            {
+                {51.2, 0.40, 7.76},
+                {51.4, 0.51, 7.78},
+            });
+    }
 }
 
 TEST_F(SolidConverterTest, intersectionsolid)
@@ -235,29 +318,69 @@ TEST_F(SolidConverterTest, para)
 
 TEST_F(SolidConverterTest, polycone)
 {
-    static double const z[] = {6, 630};
-    static double const rmin[] = {0, 0};
-    static double const rmax[] = {95, 95};
-    this->build_and_test(
-        G4Polycone("HGCalEE", 0, 360 * deg, std::size(z), z, rmin, rmax),
-        R"json({"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"cylinder","halfheight":31.2,"radius":9.5},"label":"HGCalEE"},"transform":{"_type":"translation","data":[0.0,0.0,31.8]}})json",
-        {{-6.72, -6.72, 0.7},
-         {6.72, 6.72, 62.9},
-         {0, 0, 31.8},
-         {-9.5, -9.5, 0.5},
-         {-6.72, 9.0, 0.70}});
+    {
+        static double const z[] = {6, 630};
+        static double const rmin[] = {0, 0};
+        static double const rmax[] = {95, 95};
+        this->build_and_test(
+            G4Polycone("HGCalEE", 0, 360 * deg, std::size(z), z, rmin, rmax),
+            R"json({"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"cone","halfheight":31.2,"radii":[9.5,9.5]},"label":"HGCalEE"},"transform":{"_type":"translation","data":[0.0,0.0,31.8]}})json",
+            {{-6.72, -6.72, 0.7},
+             {6.72, 6.72, 62.9},
+             {0, 0, 31.8},
+             {-9.5, -9.5, 0.5},
+             {-6.72, 9.0, 0.70}});
+    }
+    {
+        static double const z[] = {0, 5, 20, 20, 63.3, 115.2, 144};
+        static double const rmin[] = {1954, 1954, 1954, 2016, 2016, 2044, 2044};
+        static double const rmax[] = {2065, 2070, 2070, 2070, 2070, 2070, 2070};
+
+        this->build_and_test(
+            G4Polycone(
+                "EMEC_FrontOuterRing", 0, 360 * deg, std::size(z), z, rmin, rmax),
+            R"json({"_type":"polycone","label":"EMEC_FrontOuterRing","segments":[{"outer":[206.5,207.0,207.0,207.0,207.0,207.0,207.0],"z":[0.0,0.5,2.0,2.0,6.33,11.52,14.4]},["inner",[195.4,195.4,195.4,201.6,201.6,204.4,204.4]]]})json",
+            {{0, 0, -0.1},
+             {195.3, 0, 4.999},
+             {195.5, 0, 4.999},
+             {206.9, 0, 0.25},
+             {204.5, 0, 14.3}});
+    }
+    {
+        static double const z[] = {-165, -10, -10, 10, 10, 165};
+        static double const rmin[] = {2044, 2044, 2050.5, 2050.5, 2044, 2044};
+        static double const rmax[] = {2070, 2070, 2070, 2070, 2070, 2070};
+
+        this->build_and_test(
+            G4Polycone("EMEC_WideStretchers",
+                       -5.625 * deg,
+                       11.25 * deg,
+                       std::size(z),
+                       z,
+                       rmin,
+                       rmax),
+            R"json({"_type":"polycone","enclosed_angle":{"interior":0.03125,"start":0.984375},"label":"EMEC_WideStretchers","segments":[{"outer":[207.0,207.0,207.0,207.0,207.0,207.0],"z":[-16.5,-1.0,-1.0,1.0,1.0,16.5]},["inner",[204.4,204.4,205.05,205.05,204.4,204.4]]]})json",
+            {{206, 0, 0}, {-206, 0, 0}});
+    }
 }
 
 TEST_F(SolidConverterTest, polyhedra)
 {
-    static double const z[] = {-0.6, 0.6};
-    static double const rmin[] = {0, 0};
-    static double const rmax[] = {61.85, 61.85};
-    this->build_and_test(
-        G4Polyhedra(
-            "HGCalEEAbs", 330 * deg, 360 * deg, 6, std::size(z), z, rmin, rmax),
-        R"json({"_type":"shape","interior":{"_type":"prism","apothem":6.1850000000000005,"halfheight":0.06,"num_sides":6,"orientation":0.15277777777777776},"label":"HGCalEEAbs"})json",
-        {{6.18, 6.18, 0.05}, {0, 0, 0.06}, {7.15, 7.15, 0.05}, {6.18, 7.15, 0}});
+    {
+        static double const z[] = {-0.6, 0.6};
+        static double const rmin[] = {0, 0};
+        static double const rmax[] = {61.85, 61.85};
+        // flat-top hexagon
+        this->build_and_test(
+            G4Polyhedra(
+                "HGCalEEAbs", 330 * deg, 360 * deg, 6, std::size(z), z, rmin, rmax),
+            R"json({"_type":"shape","interior":{"_type":"prism","apothem":6.1850000000000005,"halfheight":0.06,"num_sides":6,"orientation":0.5},"label":"HGCalEEAbs"})json",
+            {{6.18, 6.18, 0.05},
+             {0, 0, 0.06},
+             {7.15, 7.15, 0.05},
+             {3.0, 6.01, 0},
+             {6.18, 7.15, 0}});
+    }
 }
 
 TEST_F(SolidConverterTest, sphere)
@@ -271,7 +394,7 @@ TEST_F(SolidConverterTest, sphere)
         {{-3, 0.05, 0}, {3, 0.5, 0}, {0, -0.01, 4.9}});
     EXPECT_THROW(
         this->build_and_test(G4Sphere("sn12", 0, 50, 0, twopi, 0., 0.25 * pi)),
-        DebugError);
+        RuntimeError);
 
     this->build_and_test(
         G4Sphere("Spherical Shell", 45, 50, 0, twopi, 0, pi),
@@ -280,7 +403,7 @@ TEST_F(SolidConverterTest, sphere)
     EXPECT_THROW(
         this->build_and_test(G4Sphere(
             "Band (theta segment1)", 45, 50, 0, twopi, pi * 3 / 4, pi / 4)),
-        DebugError);
+        RuntimeError);
 
     this->build_and_test(
         G4Sphere("Band (phi segment)", 5, 50, -pi, 3. * pi / 2., 0, twopi),
@@ -288,7 +411,7 @@ TEST_F(SolidConverterTest, sphere)
     EXPECT_THROW(
         this->build_and_test(G4Sphere(
             "Patch (phi/theta seg)", 45, 50, -pi / 4, halfpi, pi / 4, halfpi)),
-        DebugError);
+        RuntimeError);
 
     this->build_and_test(
         G4Sphere("John example", 300, 500, 0, 5.76, 0, pi),
@@ -306,6 +429,105 @@ TEST_F(SolidConverterTest, subtractionsolid)
         G4SubtractionSolid("t1Subtractionb3", &t1, &b3, transform),
         R"json({"_type":"all","daughters":[{"_type":"shape","interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Solid Tube #1"},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"box","halfwidths":[1.0,2.0,5.0]},"label":"Test Box #3"},"transform":{"_type":"transformation","data":[-1.0,1.2246467991473532e-16,0.0,-1.2246467991473532e-16,-1.0,-0.0,0.0,0.0,1.0,0.0,3.0,0.0]}},"label":""}],"label":"t1Subtractionb3"})json",
         {{0, 0, 0}, {0, 0, 10}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1}});
+}
+
+TEST_F(SolidConverterTest, trap_box)
+{
+    this->build_and_test(
+        G4Trap("trap_box", 30, 0, 0, 20, 10, 10, 0, 20, 10, 10, 0),
+        R"json({"_type":"shape","interior":{"_type":"gentrap",
+                "halfheight":3.0,
+                "lower":[[-1.0,-2.0],[1.0,-2.0],[1.0,2.0],[-1.0,2.0]],
+                "upper":[[-1.0,-2.0],[1.0,-2.0],[1.0,2.0],[-1.0,2.0]]},
+                "label":"trap_box"})json",
+        {{-1, -2, -3}, {1, 2, 3}, {1, 2, 4}});
+}
+
+TEST_F(SolidConverterTest, trap_trd)
+{
+    this->build_and_test(
+        G4Trap("trap_trd", 50, 100, 100, 200, 300),
+        R"json({"_type":"shape","interior":{"_type":"gentrap",
+                "halfheight":30.0,
+                "lower":[[-5.0,-10.0],[5.0,-10.0],[5.0,10.0],[-5.0,10.0]],
+                "upper":[[-10.0,-20.0],[10.0,-20.0],[10.0,20.0],[-10.0,20.0]]},
+                "label":"trap_trd"})json",
+        {{-10, -20, -40}, {-10, -20, -30 + 1.e-6}, {5, 10, 30}, {10, 10, 30}});
+}
+
+TEST_F(SolidConverterTest, trap)
+{
+    double tan_alpha = std::tan(15 * degree);
+    this->build_and_test(G4Trap("trap",
+                                40,
+                                5 * degree,
+                                10 * degree,
+                                20,
+                                10,
+                                10,
+                                tan_alpha,
+                                30,
+                                15,
+                                15,
+                                tan_alpha),
+                         R"json({"_type":"shape","interior":{"_type":"gentrap",
+                "halfheight":4.0,
+                "lower":[[-1.8805364414262706,-2.060768987951168],
+                         [0.11946355857372937,-2.060768987951168],
+                         [1.1912603282982202,1.9392310120488323],
+                         [-0.8087396717017798,1.9392310120488323]],
+                "upper":[[-1.9592095207293427,-2.939231012048832],
+                         [1.0407904792706573,-2.939231012048832],
+                         [2.648485633857393,3.060768987951168],
+                         [-0.3515143661426068,3.060768987951168]]},
+                "label":"trap"})json",
+                         {{-1.89, -2.1, -4.01},
+                          {0.12, -2.07, -4.01},
+                          {1.20, 1.94, -4.01},
+                          {-0.81, 1.9, -4.01},
+                          {-1.96, -2.94, 4.01}});
+    tan_alpha = std::tan(30 * degree);
+    this->build_and_test(
+        G4Trap("trap",
+               10,
+               10 * degree,
+               -15 * degree,
+               20,
+               10,
+               10,
+               tan_alpha,
+               30,
+               15,
+               15,
+               tan_alpha),
+        R"json({"_type":"shape","interior":{"_type":"gentrap","halfheight":1.0,"lower":[[-2.325019322917132,-1.9543632192272244],[-0.32501932291713187,-1.9543632192272244],[1.9843817538413706,2.0456367807727753],[-0.01561824615862939,2.0456367807727753]],"upper":[[-3.061732023030996,-3.0456367807727753],[-0.06173202303099612,-3.0456367807727753],[3.4023695921067576,2.9543632192272247],[0.4023695921067574,2.9543632192272247]]},"label":"trap"})json",
+        {{-2.33, -1.96, -1.01},
+         {-2.32, -1.95, -0.99},
+         {3.41, 2.96, 1.01},
+         {3.40, 2.95, 0.99}});
+}
+
+TEST_F(SolidConverterTest, trd_box)
+{
+    this->build_and_test(G4Trd("trd_box", 10, 10, 20, 20, 30),
+                         R"json({"_type":"shape","interior":{"_type":"gentrap",
+            "halfheight":3.0,
+            "lower":[[-1.0,-2.0],[1.0,-2.0],[1.0,2.0],[-1.0,2.0]],
+            "upper":[[-1.0,-2.0],[1.0,-2.0],[1.0,2.0],[-1.0,2.0]]},
+            "label":"trd_box"})json",
+                         {{-1, -2, -3}, {1, 2, 3}, {1, 2, 4}});
+}
+
+TEST_F(SolidConverterTest, trd)
+{
+    this->build_and_test(
+        G4Trd("trd", 50, 100, 100, 200, 300),
+        R"json({"_type":"shape","interior":{"_type":"gentrap",
+            "halfheight":30.0,
+            "lower":[[-5.0,-10.0],[5.0,-10.0],[5.0,10.0],[-5.0,10.0]],
+            "upper":[[-10.0,-20.0],[10.0,-20.0],[10.0,20.0],[-10.0,20.0]]},
+            "label":"trd"})json",
+        {{-10, -20, -40}, {-10, -20, -30 + 1.e-6}, {5, 10, 30}, {10, 10, 30}});
 }
 
 TEST_F(SolidConverterTest, tubs)

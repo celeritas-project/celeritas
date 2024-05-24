@@ -44,9 +44,8 @@ enum class Orientation
 /*!
  * Find orientation of ordered vertices in 2D coordinates.
  */
-CELER_FORCEINLINE_FUNCTION Orientation orientation(Real2 const& a,
-                                                   Real2 const& b,
-                                                   Real2 const& c)
+inline Orientation
+calc_orientation(Real2 const& a, Real2 const& b, Real2 const& c)
 {
     auto crossp = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]);
     return crossp < 0   ? Orientation::clockwise
@@ -56,15 +55,34 @@ CELER_FORCEINLINE_FUNCTION Orientation orientation(Real2 const& a,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Test whether a 2D polygon has the given orientation.
+ *
+ * The list of input corners must have at least 3 points to be a polygon.
+ */
+inline bool has_orientation(Span<Real2 const> const& corners, Orientation o)
+{
+    CELER_EXPECT(corners.size() > 2);
+    for (auto i : range(corners.size()))
+    {
+        auto j = (i + 1) % corners.size();
+        auto k = (i + 2) % corners.size();
+        if (calc_orientation(corners[i], corners[j], corners[k]) != o)
+            return false;
+    }
+    return true;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Check if a 2D polygon is convex.
  *
  * \param corners the vertices of the polygon
  * \param degen_ok allow consecutive degenerate points
  */
-CELER_FUNCTION bool
-is_convex(Span<const Real2> const& corners, bool degen_ok = false)
+bool is_convex(Span<Real2 const> const& corners, bool degen_ok = false)
 {
     CELER_EXPECT(!corners.empty());
+
     // The cross product of all vector pairs corresponding to ordered
     // consecutive segments has to be positive.
     auto crossp = [&](Real2 const& v1, Real2 const& v2) {
@@ -88,21 +106,6 @@ is_convex(Span<const Real2> const& corners, bool degen_ok = false)
         }
     }
     return true;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Check for coplanarity of four 3D polygon vertices.
- */
-CELER_FUNCTION bool
-is_planar(Real3 const& a, Real3 const& b, Real3 const& c, Real3 const& d)
-{
-    // Use the cross_product(last, first) as sign reference
-    auto norm = make_unit_vector(cross_product(b - a, c - a));
-    auto val = dot_product(norm, d - a);
-
-    // FIXME: SoftEqual and SoftZero should have rel = abs
-    return SoftZero{SoftEqual<>{}.rel()}(val);
 }
 
 //---------------------------------------------------------------------------//

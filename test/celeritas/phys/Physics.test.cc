@@ -64,9 +64,9 @@ TEST_F(PhysicsParamsTest, accessors)
     std::vector<std::string> process_names;
     for (auto process_id : range(ProcessId{p.num_processes()}))
     {
-        process_names.push_back(p.process(process_id)->label());
+        process_names.emplace_back(p.process(process_id)->label());
     }
-    std::string const expected_process_names[]
+    static char const* const expected_process_names[]
         = {"scattering", "absorption", "purrs", "hisses", "meows", "barks"};
     EXPECT_VEC_EQ(expected_process_names, process_names);
 
@@ -76,8 +76,8 @@ TEST_F(PhysicsParamsTest, accessors)
     for (auto model_id : range(ModelId{p.num_models()}))
     {
         Model const& m = *p.model(model_id);
-        model_names.push_back(m.label());
-        model_desc.push_back(m.description());
+        model_names.emplace_back(m.label());
+        model_desc.emplace_back(m.description());
     }
 
     static std::string const expected_model_names[] = {
@@ -145,7 +145,7 @@ TEST_F(PhysicsParamsTest, output)
         GTEST_SKIP() << "JSON required to test output";
     }
     EXPECT_JSON_EQ(
-        R"json({"models":{"label":["mock-model-1","mock-model-2","mock-model-3","mock-model-4","mock-model-5","mock-model-6","mock-model-7","mock-model-8","mock-model-9","mock-model-10","mock-model-11"],"process_id":[0,0,1,2,2,2,3,3,4,4,5]},"options":{"fixed_step_limiter":0.0,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"max_step_over_range":0.2,"min_eprime_over_e":0.8,"min_range":0.1},"processes":{"label":["scattering","absorption","purrs","hisses","meows","barks"]},"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":5,"process_ids":8,"reals":231,"value_grid_ids":89,"value_grids":89,"value_tables":35}})json",
+        R"json({"_category":"internal","_label":"physics","models":{"label":["mock-model-1","mock-model-2","mock-model-3","mock-model-4","mock-model-5","mock-model-6","mock-model-7","mock-model-8","mock-model-9","mock-model-10","mock-model-11"],"process_id":[0,0,1,2,2,2,3,3,4,4,5]},"options":{"fixed_step_limiter":0.0,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"max_step_over_range":0.2,"min_eprime_over_e":0.8,"min_range":0.1},"processes":{"label":["scattering","absorption","purrs","hisses","meows","barks"]},"sizes":{"integral_xs":8,"model_groups":8,"model_ids":11,"process_groups":5,"process_ids":8,"reals":231,"value_grid_ids":89,"value_grids":89,"value_tables":35}})json",
         to_string(out));
 }
 
@@ -252,7 +252,7 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
 
     ParamsHostRef params_ref;
     StateStore state;
-    std::map<std::string, ProcessId> process_names;
+    std::map<std::string_view, ProcessId> process_names;
     RandomEngine rng_;
 };
 

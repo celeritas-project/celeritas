@@ -10,8 +10,10 @@
 #include <algorithm>
 #include <numeric>
 
+#include "corecel/io/Logger.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeInput.hh"
+#include "orange/transform/VariantTransform.hh"
 
 #include "CsgObject.hh"
 #include "CsgTree.hh"
@@ -95,16 +97,19 @@ auto UnitProto::daughters() const -> VecProto
  */
 void UnitProto::build(InputBuilder& input) const
 {
+    // Bounding box should be finite if and only if this is the global universe
+    CELER_EXPECT((input.next_id() == orange_global_universe)
+                 == !input.bbox(input.next_id()));
+
     // Build CSG unit
-    auto csg_unit = this->build(input.tol(),
-                                input.next_id() == orange_global_universe
-                                    ? ExteriorBoundary::is_global
-                                    : ExteriorBoundary::is_daughter);
+    auto csg_unit = this->build(input.tol(), input.bbox(input.next_id()));
     CELER_ASSERT(csg_unit);
 
     // Get the list of all surfaces actually used
     auto const sorted_local_surfaces = calc_surfaces(csg_unit.tree);
-    bool const has_background = csg_unit.background != MaterialId{};
+    CELER_LOG(debug) << "...built " << this->label() << ": used "
+                     << sorted_local_surfaces.size() << " of "
+                     << csg_unit.surfaces.size() << " surfaces";
 
     UnitInput result;
     result.label = input_.label;
@@ -119,6 +124,7 @@ void UnitProto::build(InputBuilder& input) const
         {
             result.bbox = bz.interior;
         }
+        CELER_ENSURE(is_finite(result.bbox));
     }
 
     // Save surfaces
@@ -156,7 +162,8 @@ void UnitProto::build(InputBuilder& input) const
     detail::PostfixLogicBuilder build_logic{csg_unit.tree,
                                             sorted_local_surfaces};
     detail::InternalSurfaceFlagger has_internal_surfaces{csg_unit.tree};
-    result.volumes.reserve(csg_unit.volumes.size() + has_background);
+    result.volumes.reserve(csg_unit.volumes.size()
+                           + static_cast<bool>(csg_unit.background));
 
     for (auto vol_idx : range(csg_unit.volumes.size()))
     {
@@ -185,7 +192,7 @@ void UnitProto::build(InputBuilder& input) const
         result.volumes.emplace_back(std::move(vi));
     }
 
-    if (has_background)
+    if (csg_unit.background)
     {
         // "Background" should be unreachable: 'nowhere' logic, null bbox
         // but it has to have all the surfaces that connect to an interior
@@ -196,11 +203,14 @@ void UnitProto::build(InputBuilder& input) const
         vi.logic = {logic::ltrue, logic::lnot};
         vi.bbox = {};  // XXX: input converter changes to infinite bbox
         vi.zorder = ZOrder::background;
-        vi.flags = VolumeRecord::implicit_vol;
+        // XXX the nearest internal surface is probably *not* the safety
+        // distance, but it's better than nothing
+        vi.flags = VolumeRecord::implicit_vol | VolumeRecord::simple_safety;
         result.volumes.emplace_back(std::move(vi));
     }
     CELER_ASSERT(result.volumes.size()
-                 == csg_unit.volumes.size() + has_background);
+                 == csg_unit.volumes.size()
+                        + static_cast<bool>(csg_unit.background));
 
     // Set labels and other attributes.
     // NOTE: this means we're entirely ignoring the "metadata" from the CSG
@@ -223,6 +233,7 @@ void UnitProto::build(InputBuilder& input) const
     vol_iter->label = {"[EXTERIOR]", input_.label};
     ++vol_iter;
 
+    BoundingBoxBumper<real_type> bump_bbox{input.tol()};
     for (auto const& d : input_.daughters)
     {
         LocalVolumeId const vol_id{
@@ -248,19 +259,30 @@ void UnitProto::build(InputBuilder& input) const
         auto transform_id = fill->transform_id;
         CELER_ASSERT(transform_id < csg_unit.transforms.size());
         iter->second.transform = csg_unit.transforms[transform_id.get()];
+
+        // Update bounding box of the daughter universe by inverting the
+        // daughter-to-parent reference transform and applying it to the
+        // parent-reference-frame bbox
+        auto local_bbox = apply_transform(calc_inverse(iter->second.transform),
+                                          result.volumes[vol_id.get()].bbox);
+        input.expand_bbox(iter->second.universe_id, bump_bbox(local_bbox));
     }
 
     // Save attributes from materials
     for (auto const& m : input_.materials)
     {
-        vol_iter->label = std::string{m.interior->label()};
+        vol_iter->label = !m.label.empty()
+                              ? m.label
+                              : Label{std::string(m.interior->label())};
         vol_iter->zorder = ZOrder::media;
         ++vol_iter;
     }
 
-    if (input_.fill)
+    if (input_.background)
     {
-        vol_iter->label = {input_.label, "bg"};
+        vol_iter->label = !input_.background.label.empty()
+                              ? input_.background.label
+                              : Label{input_.label, "bg"};
         ++vol_iter;
     }
     CELER_EXPECT(vol_iter == result.volumes.end());
@@ -281,11 +303,19 @@ void UnitProto::build(InputBuilder& input) const
  * to be deleted (assumed inside, implicit from the parent universe's boundary)
  * or preserved.
  */
-auto UnitProto::build(Tol const& tol, ExteriorBoundary ext) const -> Unit
+auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
 {
     CELER_EXPECT(tol);
+    CELER_EXPECT(!bbox || is_finite(bbox));
+
+    bool const is_global_universe = !static_cast<bool>(bbox);
+    CELER_LOG(debug) << "Building '" << this->label() << "' inside " << bbox
+                     << ": " << input_.daughters.size() << " daughters and "
+                     << input_.materials.size() << " materials...";
+
     detail::CsgUnit result;
-    detail::CsgUnitBuilder unit_builder(&result, tol);
+    detail::CsgUnitBuilder unit_builder(
+        &result, tol, is_global_universe ? BBox::from_infinite() : bbox);
 
     auto build_volume = [ub = &unit_builder](ObjectInterface const& obj) {
         detail::VolumeBuilder vb{ub};
@@ -294,13 +324,26 @@ auto UnitProto::build(Tol const& tol, ExteriorBoundary ext) const -> Unit
     };
 
     // Build exterior volume and optional background fill
-    if (input_.boundary.zorder != ZOrder::media && !input_.fill)
+    if (input_.boundary.zorder != ZOrder::media && !input_.background)
     {
         CELER_NOT_IMPLEMENTED("implicit exterior without background fill");
     }
     auto ext_vol
         = build_volume(NegatedObject("[EXTERIOR]", input_.boundary.interior));
     CELER_ASSERT(ext_vol == orange_exterior_volume);
+    if (is_global_universe)
+    {
+        detail::VolumeBuilder vb{&unit_builder};
+        auto interior_node = input_.boundary.interior->build(vb);
+        auto region_iter = result.regions.find(interior_node);
+        CELER_ASSERT(region_iter != result.regions.end());
+        auto const& bz = region_iter->second.bounds;
+        CELER_VALIDATE(!bz.negated && is_finite(bz.exterior),
+                       << "global boundary must be finite: cannot determine "
+                          "extents of interior '"
+                       << input_.boundary.interior->label() << "' in '"
+                       << this->label() << '\'');
+    }
 
     // Build daughters
     UniverseId daughter_id{0};
@@ -318,17 +361,21 @@ auto UnitProto::build(Tol const& tol, ExteriorBoundary ext) const -> Unit
     for (auto const& m : input_.materials)
     {
         auto lv = build_volume(*m.interior);
-        unit_builder.fill_volume(lv, m.fill);
+        if (m.fill)
+        {
+            unit_builder.fill_volume(lv, m.fill);
+        }
     }
 
     // Build background fill (optional)
-    result.background = input_.fill;
+    result.background = input_.background.fill;
 
-    if (ext == ExteriorBoundary::is_daughter)
+    if (!is_global_universe)
     {
         // Replace "exterior" with "False" (i.e. interior with true)
         NodeId ext_node = result.volumes[ext_vol.unchecked_get()];
         auto min_node = replace_down(&result.tree, ext_node, False{});
+
         // Simplify recursively
         simplify(&result.tree, min_node);
     }

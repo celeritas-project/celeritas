@@ -7,7 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <iosfwd>  // IWYU pragma: export
 #include <string>  // IWYU pragma: export
+#include <string_view>  // IWYU pragma: export
 
 namespace celeritas
 {
@@ -41,7 +43,7 @@ class OutputInterface
     virtual Category category() const = 0;
 
     //! Key for the entry inside the category.
-    virtual std::string label() const = 0;
+    virtual std::string_view label() const = 0;
 
     // Write output to the given JSON object
     virtual void output(JsonPimpl*) const = 0;
@@ -60,6 +62,9 @@ char const* to_cstring(OutputInterface::Category value);
 
 // Get the JSON representation of a single output (mostly for testing)
 std::string to_string(OutputInterface const& output);
+
+// Stream the JSON representation of a single output
+std::ostream& operator<<(std::ostream&, OutputInterface const& output);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

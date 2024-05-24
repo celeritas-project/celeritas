@@ -70,6 +70,19 @@ void to_json(nlohmann::json& j, MscStepLimitAlgorithm const& value)
     j = std::string{to_cstring(value)};
 }
 
+void from_json(nlohmann::json const& j, NuclearFormFactorType& value)
+{
+    static auto const from_string
+        = StringEnumMapper<NuclearFormFactorType>::from_cstring_func(
+            to_cstring, "form factor");
+    value = from_string(j.get<std::string>());
+}
+
+void to_json(nlohmann::json& j, NuclearFormFactorType const& value)
+{
+    j = std::string{to_cstring(value)};
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Read options from JSON.
@@ -108,7 +121,10 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
     GPO_LOAD_OPTION(msc_range_factor);
     GPO_LOAD_OPTION(msc_safety_factor);
     GPO_LOAD_OPTION(msc_lambda_limit);
+    GPO_LOAD_OPTION(msc_theta_limit);
+    GPO_LOAD_OPTION(angle_limit_factor);
     GPO_LOAD_OPTION(msc_step_algorithm);
+    GPO_LOAD_OPTION(form_factor);
 
     GPO_LOAD_OPTION(verbose);
 #undef GPO_LOAD_OPTION
@@ -152,7 +168,10 @@ void to_json(nlohmann::json& j, GeantPhysicsOptions const& options)
     GPO_SAVE_OPTION(msc_range_factor);
     GPO_SAVE_OPTION(msc_safety_factor);
     GPO_SAVE_OPTION(msc_lambda_limit);
+    GPO_SAVE_OPTION(msc_theta_limit);
+    GPO_SAVE_OPTION(angle_limit_factor);
     GPO_SAVE_OPTION(msc_step_algorithm);
+    GPO_SAVE_OPTION(form_factor);
 
     GPO_SAVE_OPTION(verbose);
 #undef GPO_SAVE_OPTION

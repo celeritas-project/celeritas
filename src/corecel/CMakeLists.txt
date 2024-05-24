@@ -14,9 +14,11 @@ set(PUBLIC_DEPS)
 
 list(APPEND SOURCES
   Assert.cc
-  PinnedAllocator.cc
+  Types.cc
   data/Copier.cc
   data/DeviceAllocation.cc
+  data/PinnedAllocator.cc
+  grid/VectorUtils.cc
   io/BuildOutput.cc
   io/ColorUtils.cc
   io/ExceptionOutput.cc

@@ -43,10 +43,7 @@ UrbanMscParams::from_import(ParticleParams const& particles,
                             MaterialParams const& materials,
                             ImportData const& data)
 {
-    auto is_urban = [](ImportMscModel const& imm) {
-        return imm.model_class == ImportModelClass::urban_msc;
-    };
-    if (!std::any_of(data.msc_models.begin(), data.msc_models.end(), is_urban))
+    if (!has_msc_model(data, ImportModelClass::urban_msc))
     {
         // No Urban MSC present
         return nullptr;

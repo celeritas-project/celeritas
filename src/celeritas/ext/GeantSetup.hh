@@ -50,13 +50,8 @@ class GeantSetup
     // Terminate run on destruction
     ~GeantSetup();
 
-    //!@{
     //! Prevent copying but allow moving
-    GeantSetup(GeantSetup const&) = delete;
-    GeantSetup& operator=(GeantSetup const&) = delete;
-    GeantSetup(GeantSetup&&) = default;
-    GeantSetup& operator=(GeantSetup&&) = default;
-    //!@}
+    CELER_DEFAULT_MOVE_DELETE_COPY(GeantSetup);
 
     // Get the world detector volume
     inline G4VPhysicalVolume const* world() const;

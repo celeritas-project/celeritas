@@ -80,16 +80,31 @@ cmake_dependent_option(CELERITAS_TEST_VERBOSE
 # CELERITAS CORE IMPLEMENTATION OPTIONS
 #----------------------------------------------------------------------------#
 
-# CELERITAS_CORE_RNG: random number generator selection
+if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+  set(CELERITAS_MAX_BLOCK_SIZE 256
+    CACHE STRING "Threads-per-block launch bound for Celeritas action kernels"
+  )
+else()
+  set(CELERITAS_MAX_BLOCK_SIZE 0)
+endif()
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# CELERITAS_CORE_RNG
+# Random number generator selection
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 celeritas_setup_option(CELERITAS_CORE_RNG xorwow)
 celeritas_setup_option(CELERITAS_CORE_RNG cuRAND CELERITAS_USE_CUDA)
 celeritas_setup_option(CELERITAS_CORE_RNG hipRAND CELERITAS_USE_HIP)
-# TODO: allow wrapper to standard library RNG when not building for device?
+# TODO: add wrapper to standard library RNG when not building for device?
+# TODO: add ranluxpp?
 # TODO: maybe even add wrapper to Geant4 RNG??
 celeritas_define_options(CELERITAS_CORE_RNG
   "Celeritas runtime random number generator")
 
-# CELERITAS_CORE_GEO: runtime geometry selection
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# CELERITAS_CORE_GEO
+# Runtime geometry selection
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 if(CELERITAS_USE_VecGeom AND NOT CELERITAS_USE_HIP)
   set(_allow_vecgeom TRUE)
 else()
@@ -98,7 +113,7 @@ else()
     message(SEND_ERROR "VecGeom core geometry is incompatible with HIP")
   endif()
 endif()
-if(CELERITAS_USE_Geant4 AND NOT (CELERITAS_USE_HIP OR CELERITAS_USE_CUDA OR CELERITAS_USE_OpenMP))
+if(CELERITAS_USE_Geant4 AND NOT (CELERITAS_USE_HIP OR CELERITAS_USE_CUDA OR CELERITAS_OPENMP))
   set(_allow_g4 TRUE)
 else()
   if(CELERITAS_CORE_GEO STREQUAL "Geant4")
@@ -111,14 +126,26 @@ celeritas_setup_option(CELERITAS_CORE_GEO ORANGE)
 celeritas_setup_option(CELERITAS_CORE_GEO Geant4 _allow_g4)
 celeritas_define_options(CELERITAS_CORE_GEO "Celeritas runtime geometry")
 
-if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-  set(CELERITAS_MAX_BLOCK_SIZE 256
-    CACHE STRING "Threads-per-block launch bound for Celeritas action kernels"
-  )
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# CELERITAS_OPENMP
+# Thread parallelism
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+if(CELERITAS_USE_OpenMP)
+  set(_disable_openmp FALSE)
 else()
-  set(CELERITAS_MAX_BLOCK_SIZE 0)
+  set(_disable_openmp TRUE)
 endif()
 
+celeritas_setup_option(CELERITAS_OPENMP disabled _disable_openmp)
+celeritas_setup_option(CELERITAS_OPENMP event CELERITAS_USE_OpenMP)
+celeritas_setup_option(CELERITAS_OPENMP track CELERITAS_USE_OpenMP)
+celeritas_define_options(CELERITAS_OPENMP "Celeritas OpenMP parallelism")
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# CELERITAS_UNITS
+# Unit system for celeritas runtime
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 if(CELERITAS_CORE_GEO STREQUAL Geant4)
   set(_allow_single_prec FALSE)
 else()
@@ -131,6 +158,10 @@ celeritas_setup_option(CELERITAS_UNITS CLHEP)
 celeritas_define_options(CELERITAS_UNITS
   "Native unit system for Celeritas")
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# CELERITAS_REAL_TYPE
+# Precision for real numbers
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 celeritas_setup_option(CELERITAS_REAL_TYPE double)
 celeritas_setup_option(CELERITAS_REAL_TYPE float)
 celeritas_define_options(CELERITAS_REAL_TYPE
@@ -232,7 +263,7 @@ celeritas_set_default(CMAKE_INSTALL_MESSAGE LAZY)
 # Output locations for Celeritas products (used by CeleritasUtils.cmake and
 # install code below) will mirror the installation layout
 set(CELERITAS_CMAKE_CONFIG_DIRECTORY
-  "${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}/cmake")
+  "${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 set(CELERITAS_HEADER_CONFIG_DIRECTORY
   "${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_INCLUDEDIR}")
 set(CELERITAS_LIBRARY_OUTPUT_DIRECTORY
@@ -269,6 +300,11 @@ endif()
 
 if(CELERITAS_USE_Geant4 AND NOT Geant4_FOUND)
   find_package(Geant4 REQUIRED)
+  if(CELERITAS_OPENMP STREQUAL "track" AND Geant4_multithreaded_FOUND)
+    message(WARNING "Track-level OpenMP will conflict with MT runs of geant4:"
+      "consider setting CELERITAS_OPENMP to \"event\" or disabling OpenMP"
+    )
+  endif()
 endif()
 
 if(CELERITAS_USE_HepMC3)
@@ -522,7 +558,7 @@ endif()
 
 # Where to install configured cmake files
 set(CELERITAS_INSTALL_CMAKECONFIGDIR
-  "${CMAKE_INSTALL_LIBDIR}/cmake/Celeritas")
+  "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 
 # Build list of CMake files to install
 set(_cmake_files
@@ -547,6 +583,11 @@ install(FILES ${_cmake_files}
 install(DIRECTORY "${PROJECT_SOURCE_DIR}/cmake/backport"
   DESTINATION "${CELERITAS_INSTALL_CMAKECONFIGDIR}"
   COMPONENT development
+)
+
+# Copy CMake files to support using Celeritas build dir as an install dir
+file(COPY ${_cmake_files}
+  DESTINATION "${CELERITAS_INSTALL_CMAKECONFIGDIR}"
 )
 
 # Export all cache variables that start with CELERITAS_
@@ -626,6 +667,12 @@ install(EXPORT celeritas-targets
   NAMESPACE Celeritas::
   DESTINATION "${CELERITAS_INSTALL_CMAKECONFIGDIR}"
   COMPONENT development
+)
+
+# Export targets to the build tree
+export(EXPORT celeritas-targets
+  FILE "${CELERITAS_CMAKE_CONFIG_DIRECTORY}/CeleritasTargets.cmake"
+  NAMESPACE Celeritas::
 )
 
 if(Celeritas_VERSION VERSION_EQUAL "0.0.0")

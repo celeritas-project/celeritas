@@ -25,23 +25,24 @@ list(APPEND SOURCES
   detail/SurfacesRecordBuilder.cc
   detail/UnitInserter.cc
   detail/UniverseInserter.cc
-  orangeinp/ConvexRegion.cc
-  orangeinp/ConvexSurfaceBuilder.cc
   orangeinp/CsgObject.cc
   orangeinp/CsgTree.cc
   orangeinp/CsgTypes.cc
   orangeinp/CsgTreeUtils.cc
+  orangeinp/IntersectRegion.cc
+  orangeinp/IntersectSurfaceBuilder.cc
+  orangeinp/PolySolid.cc
   orangeinp/ProtoInterface.cc
   orangeinp/Shape.cc
   orangeinp/Solid.cc
   orangeinp/Transformed.cc
   orangeinp/UnitProto.cc
   orangeinp/detail/BoundingZone.cc
-  orangeinp/detail/BuildConvexRegion.cc
-  orangeinp/detail/ConvexSurfaceState.cc
+  orangeinp/detail/BuildIntersectRegion.cc
   orangeinp/detail/CsgUnitBuilder.cc
   orangeinp/detail/InputBuilder.cc
   orangeinp/detail/InternalSurfaceFlagger.cc
+  orangeinp/detail/IntersectSurfaceState.cc
   orangeinp/detail/LocalSurfaceInserter.cc
   orangeinp/detail/NodeSimplifier.cc
   orangeinp/detail/PostfixLogicBuilder.cc
@@ -85,8 +86,10 @@ endif()
 
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   set( _cg4org_sources
+    g4org/Converter.cc
     g4org/LogicalVolumeConverter.cc
     g4org/PhysicalVolumeConverter.cc
+    g4org/ProtoConstructor.cc
     g4org/SolidConverter.cc
   )
   celeritas_get_g4libs(_cg4org_libs geometry)
@@ -98,6 +101,8 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   list(APPEND SOURCES $<TARGET_OBJECTS:geocel_g4org>)
   list(APPEND PRIVATE_DEPS geocel_g4org)
 endif()
+
+celeritas_polysource_append(SOURCES RaytraceImager)
 
 #-----------------------------------------------------------------------------#
 # Create library

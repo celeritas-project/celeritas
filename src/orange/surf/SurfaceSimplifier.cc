@@ -58,6 +58,40 @@ class ZeroSnapper
     SoftZero<> soft_zero_;
 };
 
+struct SignCount
+{
+    int pos{0};
+    int neg{0};
+};
+
+SignCount count_signs(Span<real_type const, 3> arr, real_type tol)
+{
+    SignCount result;
+    for (auto v : arr)
+    {
+        if (v < -tol)
+            ++result.neg;
+        else if (v > tol)
+            ++result.pos;
+    }
+    return result;
+}
+
+template<class S>
+S negate_coefficients(S const& orig)
+{
+    auto arr = make_array(orig.data());
+    for (real_type& v : arr)
+    {
+        v = negate(v);
+    }
+
+    // TODO: make_span doesn't use the correct overload and creates a
+    // dynamic extent span
+    using SpanT = decltype(orig.data());
+    return S{SpanT{arr.data(), arr.size()}};
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -236,9 +270,6 @@ auto SurfaceSimplifier::operator()(Sphere const& s) const
 //---------------------------------------------------------------------------//
 /*!
  * Simple quadric with near-zero terms can be another second-order surface.
- *
- * TODO: renormalize so that second-order terms are O(1) (and simplifying
- * quadrics that are scaled by a constant)?
  */
 auto SurfaceSimplifier::operator()(SimpleQuadric const& sq)
     -> Optional<Plane,
@@ -252,48 +283,28 @@ auto SurfaceSimplifier::operator()(SimpleQuadric const& sq)
                 SimpleQuadric>
 {
     // Determine possible simplifications by calculating number of zeros
-    int num_pos{0};
-    int num_neg{0};
-    for (auto v : sq.second())
-    {
-        if (v < -tol_)
-            ++num_neg;
-        else if (v > tol_)
-            ++num_pos;
-    }
+    auto signs = count_signs(sq.second(), tol_);
 
-    if (num_pos == 0 && num_neg == 0)
+    if (signs.pos == 0 && signs.neg == 0)
     {
         // It's a plane
         return detail::QuadricPlaneConverter{tol_}(sq);
     }
-    else if (num_neg > num_pos)
+    else if (signs.neg > signs.pos)
     {
-        // Normalize sign so that it has more positive signs than negative
-        auto arr = make_array(sq.data());
-        for (auto& v : arr)
-        {
-            v = negate(v);
-        }
-
-        // Flip sense
+        // More positive signs than negative:
+        // flip the sense and reverse the values
         *sense_ = flip_sense(*sense_);
-
-        // Construct reversed-sign quadric
-        // Todo: make_span doesn't use the correct overload and creates a
-        // dynamic extent span
-        return SimpleQuadric{
-            Span<decltype(arr)::value_type, SimpleQuadric::StorageSpan::extent>{
-                make_span(arr)}};
+        return negate_coefficients(sq);
     }
-    else if (num_pos == 3)
+    else if (signs.pos == 3)
     {
         // Could be a sphere
         detail::QuadricSphereConverter to_sphere{tol_};
         if (auto s = to_sphere(sq))
             return *s;
     }
-    else if (num_pos == 2 && num_neg == 1)
+    else if (signs.pos == 2 && signs.neg == 1)
     {
         // Cone: one second-order term less than zero, others equal
         detail::QuadricConeConverter to_cone{tol_};
@@ -304,7 +315,7 @@ auto SurfaceSimplifier::operator()(SimpleQuadric const& sq)
         if (auto c = to_cone(AxisTag<Axis::z>{}, sq))
             return *c;
     }
-    else if (num_pos == 2 && num_neg == 0)
+    else if (signs.pos == 2 && signs.neg == 0)
     {
         // Cyl: one second-order term is zero, others are equal
         detail::QuadricCylConverter to_cyl{tol_};
@@ -322,21 +333,35 @@ auto SurfaceSimplifier::operator()(SimpleQuadric const& sq)
 
 //---------------------------------------------------------------------------//
 /*!
- * Quadric with no cross terms is "simple".
+ * Quadric can be regularized or simplified.
  *
- * TODO: guard against different-signed GQs?
+ * - When no cross terms are present, it's "simple".
+ * - When the higher-order terms are negative, the signs need to be flipped.
  */
 auto SurfaceSimplifier::operator()(GeneralQuadric const& gq)
-    -> Optional<SimpleQuadric>
+    -> Optional<SimpleQuadric, GeneralQuadric>
 {
-    auto cross = gq.cross();
-    if (std::all_of(cross.begin(), cross.end(), SoftZero{tol_}))
+    // Cross term signs
+    auto csigns = count_signs(gq.cross(), tol_);
+    if (csigns.pos == 0 && csigns.neg == 0)
     {
         // No cross terms
         return SimpleQuadric{
             make_array(gq.second()), make_array(gq.first()), gq.zeroth()};
     }
 
+    // Second-order term signs
+    auto ssigns = count_signs(gq.second(), tol_);
+    if (ssigns.neg > ssigns.pos
+        || (ssigns.neg == 0 && ssigns.pos == 0 && csigns.neg > csigns.pos))
+    {
+        // More positive signs than negative:
+        // flip the sense and reverse the values
+        *sense_ = flip_sense(*sense_);
+        return negate_coefficients(gq);
+    }
+
+    // No simplification
     return {};
 }
 

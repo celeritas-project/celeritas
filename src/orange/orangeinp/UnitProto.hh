@@ -77,11 +77,22 @@ class UnitProto : public ProtoInterface
     using Unit = detail::CsgUnit;
     using Tol = Tolerance<>;
 
+    //! Optional "background" inside of exterior, outside of all mat/daughter
+    struct BackgroundInput
+    {
+        MaterialId fill{};
+        Label label;
+
+        // True if fill or label is specified
+        explicit inline operator bool() const;
+    };
+
     //! A homogeneous physical material
     struct MaterialInput
     {
         SPConstObject interior;
         MaterialId fill;
+        Label label;
 
         // True if fully defined
         explicit inline operator bool() const;
@@ -114,21 +125,14 @@ class UnitProto : public ProtoInterface
     //! Required input data to create a unit proto
     struct Input
     {
+        BackgroundInput background;
         std::vector<MaterialInput> materials;
         std::vector<DaughterInput> daughters;
-        MaterialId fill{};  //!< Optional "background" material
         BoundaryInput boundary;
         std::string label;
 
         // True if fully defined
         explicit inline operator bool() const;
-    };
-
-    //! Whether to implicitly delete the exterior boundary
-    enum class ExteriorBoundary : bool
-    {
-        is_global,  //!< Explicit: bounding object remains
-        is_daughter  //!< Implicit: interior is replaced with "true"
     };
     //!@}
 
@@ -151,7 +155,7 @@ class UnitProto : public ProtoInterface
     //// HELPER FUNCTIONS ////
 
     // Construct a standalone unit for testing and external interface
-    Unit build(Tol const& tol, ExteriorBoundary ext) const;
+    Unit build(Tol const& tol, BBox const& bbox) const;
 
   private:
     Input input_;
@@ -159,11 +163,20 @@ class UnitProto : public ProtoInterface
 
 //---------------------------------------------------------------------------//
 /*!
+ * True if either material or label is provided.
+ */
+UnitProto::BackgroundInput::operator bool() const
+{
+    return this->fill || !this->label.empty();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * True if fully defined.
  */
 UnitProto::MaterialInput::operator bool() const
 {
-    return this->interior && this->fill;
+    return static_cast<bool>(this->interior);
 }
 
 //---------------------------------------------------------------------------//
@@ -193,7 +206,8 @@ UnitProto::BoundaryInput::operator bool() const
  */
 UnitProto::Input::operator bool() const
 {
-    return (!this->materials.empty() || !this->daughters.empty() || this->fill)
+    return (!this->materials.empty() || !this->daughters.empty()
+            || this->background)
            && this->boundary;
 }
 

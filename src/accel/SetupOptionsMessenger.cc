@@ -190,6 +190,12 @@ SetupOptionsMessenger::SetupOptionsMessenger(SetupOptions* options)
     add_cmd(&options->secondary_stack_factor,
             "secondaryStackFactor",
             "At least the average number of secondaries per track slot");
+    add_cmd(&options->auto_flush,
+            "autoFlush",
+            "Number of tracks to buffer before offloading");
+    add_cmd(&options->max_field_substeps,
+            "maxFieldSubsteps",
+            "Limit on substeps in the field propagator");
 
     directories_.emplace_back(new CelerDirectory(
         "/celer/detector/", "Celeritas sensitive detector setup options"));
@@ -207,8 +213,9 @@ SetupOptionsMessenger::SetupOptionsMessenger(SetupOptions* options)
         add_cmd(&options->cuda_heap_size,
                 "heapSize",
                 "Set the CUDA per-thread heap size for VecGeom");
-        add_cmd(
-            &options->sync, "sync", "Sync the GPU at every kernel for timing");
+        add_cmd(&options->action_times,
+                "actionTimes",
+                "Add timers around every action (may reduce performance)");
         add_cmd(&options->default_stream,
                 "defaultStream",
                 "Launch all kernels on the default stream");

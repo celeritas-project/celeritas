@@ -46,10 +46,10 @@ Test::test_data_path(std::string_view subdir, std::string_view filename)
 /*!
  * Replace pointer addresses with 0x0 for improved testability.
  */
-[[nodiscard]] std::string Test::genericize_pointers(std::string const& s)
+[[nodiscard]] std::string Test::genericize_pointers(std::string_view s)
 {
     static std::regex const subs_ptr("0x[0-9a-f]{2,}");
-    return std::regex_replace(s, subs_ptr, "0x0");
+    return std::regex_replace(std::string{s}, subs_ptr, "0x0");
 }
 
 //---------------------------------------------------------------------------//

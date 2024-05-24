@@ -51,8 +51,12 @@ ImportData RootImporter::operator()()
     ScopedMem record_mem("RootImporter.read");
     ScopedTimeLog scoped_time;
 
-    std::unique_ptr<TTree> tree_data(root_input_->Get<TTree>(tree_name()));
-    CELER_ASSERT(tree_data);
+    std::unique_ptr<TTree> tree_data(
+        root_input_->Get<TTree>(this->tree_name()));
+    CELER_VALIDATE(tree_data,
+                   << "Cannot find TTree '" << this->tree_name()
+                   << "' in ROOT file '" << root_input_->GetName()
+                   << "'. Verify input file");
     CELER_ASSERT(tree_data->GetEntries() == 1);
 
     ImportData import_data;

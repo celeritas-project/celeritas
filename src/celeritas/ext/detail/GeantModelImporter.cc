@@ -20,9 +20,9 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/grid/VectorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/TypeDemangler.hh"
-#include "celeritas/grid/VectorUtils.hh"
 
 #include "GeantMicroXsCalculator.hh"
 

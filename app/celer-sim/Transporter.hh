@@ -38,7 +38,8 @@ struct TransporterInput
     // Stepper input
     std::shared_ptr<CoreParams const> params;
     size_type num_track_slots{};  //!< AKA max_num_tracks
-    bool sync{false};  //!< Whether to synchronize device between actions
+    bool action_times{false};  //!< Whether to synchronize device between
+                               //!< actions for timing
 
     // Loop control
     size_type max_steps{};
@@ -60,14 +61,20 @@ struct TransporterInput
  */
 struct TransporterResult
 {
-    using VecReal = std::vector<real_type>;
     using VecCount = std::vector<size_type>;
 
+    // Per-step diagnostics
     VecCount initializers;  //!< Num starting track initializers
     VecCount active;  //!< Num tracks active at beginning of step
     VecCount alive;  //!< Num living tracks at end of step
-    VecReal step_times;  //!< Real time per step
+    std::vector<double> step_times;  //!< Real time per step
+
+    // Always-on basic diagnostics
     size_type num_track_slots{};  //!< Number of total track slots
+    size_type num_step_iterations{};  //!< Total number of step iterations
+    size_type num_steps{};  //!< Total number of steps
+    size_type num_aborted{};  //!< Number of unconverged tracks
+    size_type max_queued{};  //!< Maximum track initializer count
 };
 
 //---------------------------------------------------------------------------//

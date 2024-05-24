@@ -18,6 +18,9 @@ celeritas_setup_tests(SERIAL PREFIX corecel
 #-----------------------------------------------------------------------------#
 # TESTS
 #-----------------------------------------------------------------------------#
+celeritas_add_test(Assert.test.cc
+  ENVIRONMENT "CELER_COLOR=1;CELER_LOG=debug"
+)
 celeritas_add_test(OpaqueId.test.cc)
 
 # Cont
@@ -46,6 +49,7 @@ celeritas_add_test(grid/Interpolator.test.cc)
 celeritas_add_test(grid/NonuniformGrid.test.cc)
 celeritas_add_test(grid/TwodGridCalculator.test.cc)
 celeritas_add_test(grid/UniformGrid.test.cc)
+celeritas_add_test(grid/VectorUtils.test.cc)
 
 # IO
 set(CELERITASTEST_PREFIX corecel/io)

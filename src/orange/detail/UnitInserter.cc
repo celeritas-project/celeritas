@@ -342,7 +342,8 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
                                 std::end(nowhere_logic)));
         CELER_EXPECT(!v.bbox);
         CELER_EXPECT(v.flags & VolumeRecord::implicit_vol);
-        simple_safety = false;
+        // Rely on incoming flags for "simple_safety": false from .org.json,
+        // maybe true if built from GDML
     }
 
     VolumeRecord output;

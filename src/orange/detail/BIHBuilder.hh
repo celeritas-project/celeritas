@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/data/CollectionBuilder.hh"
 #include "geocel/BoundingBox.hh"
 
 #include "BIHPartitioner.hh"
@@ -53,36 +54,42 @@ class BIHBuilder
     explicit BIHBuilder(Storage* storage);
 
     // Create BIH Nodes
-    BIHTree operator()(VecBBox bboxes);
+    BIHTree operator()(VecBBox&& bboxes);
 
   private:
     /// TYPES ///
 
     using Real3 = Array<fast_real_type, 3>;
-    using VecReal3 = std::vector<Real3>;
     using VecIndices = std::vector<LocalVolumeId>;
-    using PairVecIndices = std::pair<VecIndices, VecIndices>;
-    using AxesCenters = std::vector<std::vector<real_type>>;
     using VecNodes = std::vector<std::variant<BIHInnerNode, BIHLeafNode>>;
     using VecInnerNodes = std::vector<BIHInnerNode>;
     using VecLeafNodes = std::vector<BIHLeafNode>;
     using ArrangedNodes = std::pair<VecInnerNodes, VecLeafNodes>;
 
+    struct Temporaries
+    {
+        VecBBox bboxes;
+        std::vector<Real3> centers;
+    };
+
     //// DATA ////
 
-    VecBBox bboxes_;
-    VecReal3 centers_;
-    Storage* storage_;
+    Temporaries temp_;
+
+    CollectionBuilder<FastBBox> bboxes_;
+    CollectionBuilder<LocalVolumeId> local_volume_ids_;
+    CollectionBuilder<BIHInnerNode> inner_nodes_;
+    CollectionBuilder<BIHLeafNode> leaf_nodes_;
 
     //// HELPER FUNCTIONS ////
 
     // Recursively construct BIH nodes for a vector of bbox indices
     void construct_tree(VecIndices const& indices,
                         VecNodes* nodes,
-                        BIHNodeId parent) const;
+                        BIHNodeId parent);
 
     // Seperate nodes into inner and leaf vectors and renumber accordingly
-    ArrangedNodes arrange_nodes(VecNodes nodes) const;
+    ArrangedNodes arrange_nodes(VecNodes const& nodes) const;
 };
 
 //---------------------------------------------------------------------------//

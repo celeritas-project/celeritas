@@ -12,6 +12,7 @@
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/io/ImporterInterface.hh"
 
 #include "RootUniquePtr.hh"
 
@@ -43,7 +44,7 @@ namespace celeritas
  *  // And so on
  * \endcode
  */
-class RootImporter
+class RootImporter final : public ImporterInterface
 {
   public:
     // Construct with ROOT file name

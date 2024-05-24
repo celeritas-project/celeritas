@@ -37,10 +37,13 @@ class InitializeTracksAction final : public ExplicitCoreActionInterface
     ActionId action_id() const final { return id_; }
 
     //! Short name for the action
-    std::string label() const final { return "initialize-tracks"; }
+    std::string_view label() const final { return "initialize-tracks"; }
 
     //! Description of the action for user interaction
-    std::string description() const final { return "initialize track states"; }
+    std::string_view description() const final
+    {
+        return "initialize track states";
+    }
 
     //! Dependency ordering of the action
     ActionOrder order() const final { return ActionOrder::start; }

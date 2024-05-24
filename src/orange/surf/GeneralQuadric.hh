@@ -59,11 +59,11 @@ class GeneralQuadric
   public:
     //// CONSTRUCTORS ////
 
-    // Construct with radius
-    explicit inline CELER_FUNCTION GeneralQuadric(Real3 const& abc,
-                                                  Real3 const& def,
-                                                  Real3 const& ghi,
-                                                  real_type j);
+    // Construct from coefficients
+    explicit GeneralQuadric(Real3 const& abc,
+                            Real3 const& def,
+                            Real3 const& ghi,
+                            real_type j);
 
     // Construct from raw data
     template<class R>
@@ -114,31 +114,6 @@ class GeneralQuadric
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Construct with all coefficients.
- *
- * TODO: normalize?
- */
-CELER_FUNCTION GeneralQuadric::GeneralQuadric(Real3 const& abc,
-                                              Real3 const& def,
-                                              Real3 const& ghi,
-                                              real_type j)
-    : a_(abc[0])
-    , b_(abc[1])
-    , c_(abc[2])
-    , d_(def[0])
-    , e_(def[1])
-    , f_(def[2])
-    , g_(ghi[0])
-    , h_(ghi[1])
-    , i_(ghi[2])
-    , j_(j)
-{
-    CELER_EXPECT(a_ != 0 || b_ != 0 || c_ != 0 || d_ != 0 || e_ != 0 || f_ != 0
-                 || g_ != 0 || h_ != 0 || i_ != 0);
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct from raw data.

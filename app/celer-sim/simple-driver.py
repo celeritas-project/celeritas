@@ -44,7 +44,7 @@ physics_options = {
     'ionization': True,
     'annihilation': True,
     'brems': "all",
-    'msc': "urban_extended" if core_geo == "vecgeom" else "none",
+    'msc': "urban" if core_geo == "vecgeom" else "none",
     'eloss_fluctuation': True,
     'lpm': True,
 }
@@ -64,7 +64,7 @@ else:
     # Load directly from Geant4 rather than ROOT file
     physics_filename = geometry_filename
 
-if core_geo == "orange":
+if core_geo == "orange-json":
     print("Replacing .gdml extension since VecGeom is disabled", file=stderr)
     geometry_filename = re.sub(r"\.gdml$", ".org.json", geometry_filename)
 
@@ -95,8 +95,9 @@ inp = {
     'action_diagnostic': True,
     'step_diagnostic': True,
     'step_diagnostic_bins': 200,
+    'write_step_times': use_device,
     'simple_calo': simple_calo,
-    'sync': True,
+    'action_times': True,
     'merge_events': False,
     'default_stream': False,
     'brem_combined': True,
@@ -141,6 +142,13 @@ with open(outfilename, 'w') as f:
     json.dump(j, f, indent=1)
 print("Results written to", outfilename, file=stderr)
 
-time = j['result']['runner']['time'].copy()
-time.pop('steps')
+run_output =j['result']['runner']
+time = run_output['time'].copy()
+steps = time.pop('steps')
+if use_device:
+    assert steps
+    assert len(steps[0]) == run_output['num_step_iterations'][0]
+else:
+    # Step times disabled on CPU from input
+    assert steps is None
 print(json.dumps(time, indent=1))

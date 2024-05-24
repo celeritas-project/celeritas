@@ -23,18 +23,26 @@ class BoundingBoxUtilsTest : public Test
 
 TEST_F(BoundingBoxUtilsTest, is_infinite)
 {
-    BBox bbox1 = {{0, 0, 0}, {1, 1, 1}};
-    EXPECT_FALSE(is_infinite(bbox1));
+    EXPECT_FALSE(is_infinite(BBox{{0, 0, 0}, {1, 1, 1}}));
+    EXPECT_FALSE(is_infinite(BBox{{0, 0, 0}, {inf, inf, inf}}));
+    EXPECT_FALSE(is_infinite(BBox{{0, -inf, -inf}, {1, inf, inf}}));
+    EXPECT_FALSE(is_infinite(BBox{{inf, inf, inf}, {inf, inf, inf}}));
 
-    BBox bbox2 = {{0, 0, 0}, {inf, inf, inf}};
-    EXPECT_FALSE(is_infinite(bbox2));
+    EXPECT_TRUE(is_infinite(BBox{{-inf, -inf, -inf}, {inf, inf, inf}}));
+}
 
-    BBox bbox3 = {{-inf, -inf, -inf}, {inf, inf, inf}};
-    EXPECT_TRUE(is_infinite(bbox3));
+TEST_F(BoundingBoxUtilsTest, is_finite)
+{
+    EXPECT_TRUE(is_finite(BBox{{0, 0, 0}, {1, 1, 1}}));
+    EXPECT_FALSE(is_finite(BBox{{0, 0, 0}, {inf, inf, inf}}));
+    EXPECT_FALSE(is_finite(BBox{{0, -inf, -inf}, {1, inf, inf}}));
+    EXPECT_FALSE(is_finite(BBox{{inf, inf, inf}, {inf, inf, inf}}));
+
+    EXPECT_FALSE(is_finite(BBox{{-inf, -inf, -inf}, {inf, inf, inf}}));
 
     if (CELERITAS_DEBUG)
     {
-        EXPECT_THROW(is_infinite(BBox{}), DebugError);
+        EXPECT_THROW(is_finite(BBox{}), DebugError);
     }
 }
 

@@ -30,6 +30,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
+#include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootFileManager.hh"
@@ -55,6 +56,7 @@
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "celeritas/phys/Process.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
+#include "celeritas/phys/RootEventSampler.hh"
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
@@ -89,7 +91,7 @@ namespace
 size_type calc_num_streams(RunnerInput const& inp, size_type num_events)
 {
     size_type num_threads = 1;
-#if CELERITAS_USE_OPENMP
+#if CELERITAS_OPENMP == CELERITAS_OPENMP_EVENT
     if (!inp.merge_events)
     {
 #    pragma omp parallel
@@ -228,6 +230,7 @@ auto Runner::get_action_times() const -> MapStrDouble
 //---------------------------------------------------------------------------//
 void Runner::setup_globals(RunnerInput const& inp) const
 {
+    // TODO: just use 0 instead of unspecified
     if (inp.cuda_heap_size != RunnerInput::unspecified)
     {
         set_cuda_heap_size(inp.cuda_heap_size);
@@ -246,31 +249,41 @@ void Runner::setup_globals(RunnerInput const& inp) const
 void Runner::build_core_params(RunnerInput const& inp,
                                SPOutputRegistry&& outreg)
 {
+    using SPImporter = std::shared_ptr<ImporterInterface>;
+
     CELER_LOG(status) << "Loading input and initializing problem data";
     ScopedMem record_mem("Runner.build_core_params");
     ScopedProfiling profile_this{"construct-params"};
     CoreParams::Input params;
-    ImportData const imported = [&inp] {
+
+    // Possible Geant4 world volume so we can reuse geometry
+    G4VPhysicalVolume const* g4world{nullptr};
+
+    // Import data and load geometry
+    auto import = [&inp, &g4world]() -> SPImporter {
         if (ends_with(inp.physics_file, ".root"))
         {
             // Load from ROOT file
-            return RootImporter(inp.physics_file)();
+            return std::make_shared<RootImporter>(inp.physics_file);
         }
-        std::string filename = inp.physics_file;
-        if (filename.empty())
-        {
-            filename = inp.geometry_file;
-        }
-        // Load imported data directly from Geant4
-        return GeantImporter(GeantSetup(filename, inp.physics_options))();
+
+        std::string const& filename
+            = !inp.physics_file.empty() ? inp.physics_file : inp.geometry_file;
+
+        // Load Geant4 and retain to use geometry
+        GeantSetup setup(filename, inp.physics_options);
+        g4world = setup.world();
+        return std::make_shared<GeantImporter>(std::move(setup));
     }();
 
     // Create action manager
     params.action_reg = std::make_shared<ActionRegistry>();
     params.output_reg = std::move(outreg);
 
-    // Load geometry
-    params.geometry = std::make_shared<GeoParams>(inp.geometry_file);
+    // Load geometry: use existing world volume or reload from geometry file
+    params.geometry = g4world ? std::make_shared<GeoParams>(g4world)
+                              : std::make_shared<GeoParams>(inp.geometry_file);
+
     if (!params.geometry->supports_safety())
     {
         CELER_LOG(warning) << "Geometry contains surfaces that are "
@@ -278,6 +291,9 @@ void Runner::build_core_params(RunnerInput const& inp,
                               "safety algorithm: multiple scattering may "
                               "result in arbitrarily small steps";
     }
+
+    // Import physics
+    ImportData const imported = (*import)();
 
     // Load materials
     params.material = MaterialParams::from_import(imported);
@@ -292,6 +308,9 @@ void Runner::build_core_params(RunnerInput const& inp,
     // Construct cutoffs
     params.cutoff = CutoffParams::from_import(
         imported, params.particle, params.material);
+
+    // Construct shared data for Coulomb scattering
+    params.wentzel = WentzelOKVIParams::from_import(imported, params.material);
 
     // Load physics: create individual processes with make_shared
     params.physics = [&params, &inp, &imported] {
@@ -367,7 +386,8 @@ void Runner::build_core_params(RunnerInput const& inp,
     params.rng = std::make_shared<RngParams>(inp.seed);
 
     // Construct simulation params
-    params.sim = SimParams::from_import(imported, params.particle);
+    params.sim = SimParams::from_import(
+        imported, params.particle, inp.field_options.max_substeps);
 
     // Get the total number of events
     auto num_events = this->build_events(inp, params.particle);
@@ -392,6 +412,8 @@ void Runner::build_core_params(RunnerInput const& inp,
     }();
 
     core_params_ = std::make_shared<CoreParams>(std::move(params));
+
+    // TODO: if optical is enabled, construct from imported and core_params_
 }
 
 //---------------------------------------------------------------------------//
@@ -411,7 +433,7 @@ void Runner::build_transporter_input(RunnerInput const& inp)
     transporter_input_->max_steps = inp.max_steps;
     transporter_input_->store_track_counts = inp.write_track_counts;
     transporter_input_->store_step_times = inp.write_step_times;
-    transporter_input_->sync = inp.sync;
+    transporter_input_->action_times = inp.action_times;
     transporter_input_->params = core_params_;
 }
 
@@ -457,7 +479,21 @@ Runner::build_events(RunnerInput const& inp, SPConstParticles particles)
     }
     else if (ends_with(inp.event_file, ".root"))
     {
-        return read_events(RootEventReader(inp.event_file, particles));
+        if (inp.file_sampling_options)
+        {
+            // Sampling options are assigned; use ROOT event sampler
+            return read_events(
+                RootEventSampler(inp.event_file,
+                                 particles,
+                                 inp.file_sampling_options.num_events,
+                                 inp.file_sampling_options.num_merged,
+                                 inp.seed));
+        }
+        else
+        {
+            // Use event reader
+            return read_events(RootEventReader(inp.event_file, particles));
+        }
     }
     else
     {
@@ -581,8 +617,7 @@ auto Runner::get_transporter(StreamId stream) -> TransporterBase&
 /*!
  * Get an already-constructed transporter for the given stream.
  */
-auto Runner::get_transporter_ptr(StreamId stream) const
-    -> TransporterBase const*
+auto Runner::get_transporter_ptr(StreamId stream) const -> TransporterBase const*
 {
     CELER_EXPECT(stream < transporters_.size());
     return transporters_[stream.get()].get();

@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "Transporter.hh"
 
+#include <algorithm>
 #include <csignal>
 #include <memory>
 #include <utility>
@@ -14,16 +15,17 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/grid/VectorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
-#include "corecel/sys/Stopwatch.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/detail/ActionSequence.hh"
-#include "celeritas/grid/VectorUtils.hh"
 #include "celeritas/phys/Model.hh"
+
+#include "StepTimer.hh"
 
 namespace celeritas
 {
@@ -52,7 +54,7 @@ Transporter<M>::Transporter(TransporterInput inp)
     step_input.params = inp.params;
     step_input.num_track_slots = inp.num_track_slots;
     step_input.stream_id = inp.stream_id;
-    step_input.sync = inp.sync;
+    step_input.action_times = inp.action_times;
     stepper_ = std::make_shared<Stepper<M>>(std::move(step_input));
 }
 
@@ -77,16 +79,30 @@ void Transporter<M>::operator()()
  * Transport the input primaries and all secondaries produced.
  */
 template<MemSpace M>
-auto Transporter<M>::operator()(SpanConstPrimary primaries)
-    -> TransporterResult
+auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
 {
     // Initialize results
     TransporterResult result;
-    auto append_track_counts = [&result](StepperResult const& track_counts) {
-        result.initializers.push_back(track_counts.queued);
-        result.active.push_back(track_counts.active);
-        result.alive.push_back(track_counts.alive);
+    auto append_track_counts = [&](StepperResult const& track_counts) {
+        if (store_track_counts_)
+        {
+            result.initializers.push_back(track_counts.queued);
+            result.active.push_back(track_counts.active);
+            result.alive.push_back(track_counts.alive);
+        }
+        ++result.num_step_iterations;
+        result.num_steps += track_counts.active;
+        result.max_queued = std::max(result.max_queued, track_counts.queued);
     };
+
+    constexpr size_type min_alloc{65536};
+    result.initializers.reserve(std::min(min_alloc, max_steps_));
+    result.active.reserve(std::min(min_alloc, max_steps_));
+    result.alive.reserve(std::min(min_alloc, max_steps_));
+    if (store_step_times_)
+    {
+        result.step_times.reserve(std::min(min_alloc, max_steps_));
+    }
 
     // Abort cleanly for interrupt and user-defined signals
 #ifndef _WIN32
@@ -97,20 +113,15 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
     CELER_LOG_LOCAL(status)
         << "Transporting " << primaries.size() << " primaries";
 
-    Stopwatch get_step_time;
+    StepTimer record_step_time{store_step_times_ ? &result.step_times
+                                                 : nullptr};
     size_type remaining_steps = max_steps_;
 
     auto& step = *stepper_;
     // Copy primaries to device and transport the first step
     auto track_counts = step(primaries);
-    if (store_track_counts_)
-    {
-        append_track_counts(track_counts);
-    }
-    if (store_step_times_)
-    {
-        result.step_times.push_back(get_step_time());
-    }
+    append_track_counts(track_counts);
+    record_step_time();
 
     while (track_counts)
     {
@@ -122,26 +133,18 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
         }
         if (CELER_UNLIKELY(interrupted()))
         {
-            CELER_LOG_LOCAL(error)
-                << "Caught interrupt signal: aborting transport "
-                   "loop";
+            CELER_LOG_LOCAL(error) << "Caught interrupt signal: aborting "
+                                      "transport loop";
             interrupted = {};
             break;
         }
 
-        get_step_time = {};
         track_counts = step();
-
-        if (store_track_counts_)
-        {
-            append_track_counts(track_counts);
-        }
-        if (store_step_times_)
-        {
-            result.step_times.push_back(get_step_time());
-        }
+        append_track_counts(track_counts);
+        record_step_time();
     }
 
+    result.num_aborted = track_counts.alive + track_counts.queued;
     result.num_track_slots = stepper_->state().size();
     return result;
 }
@@ -153,11 +156,11 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
 template<MemSpace M>
 void Transporter<M>::accum_action_times(MapStrDouble* result) const
 {
-    // Get kernel timing if running with a single stream and if either on the
-    // device with synchronization enabled or on the host
+    // Get kernel timing if running with a single stream and if
+    // synchronization is enabled
     auto const& step = *stepper_;
     auto const& action_seq = step.actions();
-    if (M == MemSpace::host || action_seq.sync())
+    if (action_seq.action_times())
     {
         auto const& action_ptrs = action_seq.actions();
         auto const& times = action_seq.accum_time();
@@ -165,8 +168,7 @@ void Transporter<M>::accum_action_times(MapStrDouble* result) const
         CELER_ASSERT(action_ptrs.size() == times.size());
         for (auto i : range(action_ptrs.size()))
         {
-            auto&& label = action_ptrs[i]->label();
-            (*result)[label] += times[i];
+            (*result)[std::string{action_ptrs[i]->label()}] += times[i];
         }
     }
 }

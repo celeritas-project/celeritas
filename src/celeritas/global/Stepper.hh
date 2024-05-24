@@ -30,6 +30,7 @@ struct Primary;
 
 namespace detail
 {
+template<class Params>
 class ActionSequence;
 }
 
@@ -40,14 +41,14 @@ class ActionSequence;
  * - \c params : Problem definition
  * - \c num_track_slots : Maximum number of threads to run in parallel on GPU
  *   \c stream_id : Unique (thread/task) ID for this process
- * - \c sync : Whether to synchronize device between actions
+ * - \c action_times : Whether to synchronize device between actions for timing
  */
 struct StepperInput
 {
     std::shared_ptr<CoreParams const> params;
     StreamId stream_id{};
     size_type num_track_slots{};
-    bool sync{false};
+    bool action_times{false};
 
     //! True if defined
     explicit operator bool() const
@@ -78,7 +79,7 @@ class StepperInterface
     //!@{
     //! \name Type aliases
     using Input = StepperInput;
-    using ActionSequence = detail::ActionSequence;
+    using ActionSequence = detail::ActionSequence<CoreParams>;
     using SpanConstPrimary = Span<Primary const>;
     using result_type = StepperResult;
     //!@}
@@ -157,7 +158,7 @@ class Stepper final : public StepperInterface
   private:
     // Params and call sequence
     std::shared_ptr<CoreParams const> params_;
-    std::shared_ptr<detail::ActionSequence> actions_;
+    std::shared_ptr<ActionSequence> actions_;
     // State data
     CoreState<M> state_;
 };

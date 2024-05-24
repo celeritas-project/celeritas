@@ -34,9 +34,22 @@ namespace app
 //---------------------------------------------------------------------------//
 /*!
  * Input for a single run.
+ *
+ * TODO for v1.0: unify these names
  */
 struct RunnerInput
 {
+    struct EventFileSampling
+    {
+        size_type num_events{};  //!< Total number of events to sample
+        size_type num_merged{};  //!< ROOT file events per sampled event
+
+        explicit operator bool() const
+        {
+            return num_events > 0 && num_merged > 0;
+        };
+    };
+
     static constexpr Real3 no_field() { return Real3{0, 0, 0}; }
     static constexpr size_type unspecified{static_cast<size_type>(-1)};
 
@@ -49,6 +62,10 @@ struct RunnerInput
     std::string geometry_file;  //!< Path to GDML file
     std::string physics_file;  //!< Path to ROOT exported Geant4 data
     std::string event_file;  //!< Path to input event data
+
+    // Optional setup when event_file is a ROOT input used for sampling
+    // combinations of events as opposed to just reading them
+    EventFileSampling file_sampling_options;  //!< ROOT sampling options
 
     // Optional setup options for generating primaries programmatically
     PrimaryGeneratorOptions primary_options;
@@ -70,7 +87,7 @@ struct RunnerInput
     size_type initializer_capacity{};  //!< Divided among streams
     real_type secondary_stack_factor{};
     bool use_device{};
-    bool sync{};
+    bool action_times{};
     bool merge_events{false};  //!< Run all events at once on a single stream
     bool default_stream{false};  //!< Launch all kernels on the default stream
     bool warm_up{CELER_USE_DEVICE};  //!< Run a nullop step first

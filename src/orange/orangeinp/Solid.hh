@@ -13,7 +13,7 @@
 
 #include "corecel/math/Turn.hh"
 
-#include "ConvexRegion.hh"
+#include "IntersectRegion.hh"
 #include "ObjectInterface.hh"
 
 namespace celeritas
@@ -87,13 +87,13 @@ class SolidBase : public ObjectInterface
     // Write the shape to JSON
     void output(JsonPimpl*) const final;
 
-    //! Interior convex region interface for construction and access
-    virtual ConvexRegionInterface const& interior() const = 0;
+    //! Interior intersect region interface for construction and access
+    virtual IntersectRegionInterface const& interior() const = 0;
 
     //! Optional excluded region
-    virtual ConvexRegionInterface const* excluded() const = 0;
+    virtual IntersectRegionInterface const* excluded() const = 0;
 
-    //! Angular restriction to add
+    //! Optional azimuthal angular restriction
     virtual SolidEnclosedAngle enclosed_angle() const = 0;
 
   protected:
@@ -122,7 +122,7 @@ class SolidBase : public ObjectInterface
 template<class T>
 class Solid final : public SolidBase
 {
-    static_assert(std::is_base_of_v<ConvexRegionInterface, T>);
+    static_assert(std::is_base_of_v<IntersectRegionInterface, T>);
 
   public:
     //!@{
@@ -152,11 +152,14 @@ class Solid final : public SolidBase
     //! Get the user-provided label
     std::string_view label() const final { return label_; }
 
-    //! Interior convex region interface for construction and access
-    ConvexRegionInterface const& interior() const final { return interior_; }
+    //! Interior intersect region interface for construction and access
+    IntersectRegionInterface const& interior() const final
+    {
+        return interior_;
+    }
 
     // Optional excluded
-    ConvexRegionInterface const* excluded() const final;
+    IntersectRegionInterface const* excluded() const final;
 
     //! Optional angular restriction
     SolidEnclosedAngle enclosed_angle() const final { return enclosed_; }
@@ -199,7 +202,7 @@ SolidEnclosedAngle::operator bool() const
  * Access the optional excluded.
  */
 template<class T>
-ConvexRegionInterface const* Solid<T>::excluded() const
+IntersectRegionInterface const* Solid<T>::excluded() const
 {
     return exclusion_ ? &(*exclusion_) : nullptr;
 }

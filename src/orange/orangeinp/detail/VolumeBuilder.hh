@@ -42,6 +42,7 @@ class VolumeBuilder
     //!@{
     //! \name Type aliases
     using Metadata = Label;
+    using Tol = Tolerance<>;
     //!@}
 
   public:
@@ -49,6 +50,9 @@ class VolumeBuilder
     explicit VolumeBuilder(CsgUnitBuilder* ub);
 
     //// ACCESSORS ////
+
+    // Get the construction tolerance
+    Tol const& tol() const;
 
     //!@{
     //! Access the unit builder for construction

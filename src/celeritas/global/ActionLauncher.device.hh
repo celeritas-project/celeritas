@@ -75,7 +75,7 @@ class ActionLauncher
 
     //! Create a launcher with a string extension
     ActionLauncher(ExplicitActionInterface const& action, std::string_view ext)
-        : ActionLauncher{action.label() + "-" + std::string(ext)}
+        : ActionLauncher{std::string(action.label()) + "-" + std::string(ext)}
     {
     }
 

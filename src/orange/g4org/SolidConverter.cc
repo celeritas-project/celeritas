@@ -49,9 +49,11 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArraySoftUnit.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "orange/orangeinp/CsgObject.hh"
+#include "orange/orangeinp/PolySolid.hh"
 #include "orange/orangeinp/Shape.hh"
 #include "orange/orangeinp/Solid.hh"
 #include "orange/orangeinp/Transformed.hh"
@@ -69,26 +71,30 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct a shape using the solid's name and forwarded arguments.
- */
-template<class CR, class... Args>
-auto make_shape(G4VSolid const& solid, Args&&... args)
-{
-    return std::make_shared<Shape<CR>>(std::string{solid.GetName()},
-                                       CR{std::forward<Args>(args)...});
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get the enclosed azimuthal angle by a solid.
  *
  * This internally converts from native Geant4 radians.
  */
 template<class S>
-SolidEnclosedAngle get_azimuthal_wedge(S const& solid)
+SolidEnclosedAngle make_wedge_azimuthal(S const& solid)
 {
     return SolidEnclosedAngle{native_value_to<Turn>(solid.GetStartPhiAngle()),
                               native_value_to<Turn>(solid.GetDeltaPhiAngle())};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the enclosed azimuthal angle by a "poly" solid.
+ *
+ * Geant4 uses different function names for polycone, generic polycone, and
+ * polyhedra...
+ */
+template<class S>
+SolidEnclosedAngle make_wedge_azimuthal_poly(S const& solid)
+{
+    auto start = native_value_to<Turn>(solid.GetStartPhi());
+    auto stop = native_value_to<Turn>(solid.GetEndPhi());
+    return SolidEnclosedAngle{start, stop - start};
 }
 
 //---------------------------------------------------------------------------//
@@ -98,11 +104,80 @@ SolidEnclosedAngle get_azimuthal_wedge(S const& solid)
  * This internally converts from native Geant4 radians.
  */
 template<class S>
-SolidEnclosedAngle get_polar_wedge(S const& solid)
+SolidEnclosedAngle make_wedge_polar(S const& solid)
 {
     return SolidEnclosedAngle{
         native_value_to<Turn>(solid.GetStartThetaAngle()),
         native_value_to<Turn>(solid.GetDeltaThetaAngle())};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return theta, phi angles for a G4Para or G4Trap given their symmetry axis.
+ *
+ * Certain Geant4 shapes are constructed by skewing the z axis and providing
+ * the polar/azimuthal angle of the transformed axis. This calculates that
+ * transform by converting from cartesian to spherical coordinates.
+ *
+ * The components of the symmetry axis for G4Para/Trap are always encoded as a
+ * vector
+ * \f$ (\mu \tan(\theta)\cos(\phi), \mu \tan(\theta)\sin(\phi), \mu) \f$.
+ */
+[[maybe_unused]] auto to_polar(G4ThreeVector const& axis)
+    -> std::pair<Turn, Turn>
+{
+    CELER_EXPECT(axis.z() > 0);
+    CELER_EXPECT(
+        is_soft_unit_vector(Array<double, 3>{axis.x(), axis.y(), axis.z()}));
+
+    double const theta = std::acos(axis.z());
+    double const phi = std::atan2(axis.y(), axis.x());
+    return {native_value_to<Turn>(theta), native_value_to<Turn>(phi)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return theta, phi angles for a G4Para or G4Trap given their symmetry axis.
+ *
+ * Certain Geant4 shapes are constructed by skewing the z axis and providing
+ * the polar/azimuthal angle of the transformed axis. This calculates that
+ * transform by converting from cartesian to spherical coordinates.
+ *
+ * The components of the symmetry axis for G4Para/Trap are always encoded as a
+ * vector \f$ (A \tan(\theta)\cos(\phi), A \tan(\theta)\sin(phi), A) \f$.
+ */
+template<class S>
+auto calculate_theta_phi(S const& solid) -> std::pair<Turn, Turn>
+{
+#if G4VERSION_NUMBER >= 1100
+    double const theta = solid.GetTheta();
+    double const phi = solid.GetPhi();
+    return {native_value_to<Turn>(theta), native_value_to<Turn>(phi)};
+#else
+    return to_polar(solid.GetSymAxis());
+#endif
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a shape using the solid's name and forwarded arguments.
+ */
+template<class CR, class... Args>
+auto make_shape(std::string&& name, Args&&... args)
+{
+    return std::make_shared<Shape<CR>>(std::move(name),
+                                       CR{std::forward<Args>(args)...});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a shape using the solid's name and forwarded arguments.
+ */
+template<class CR, class... Args>
+auto make_shape(G4VSolid const& solid, Args&&... args)
+{
+    return make_shape<CR>(std::string{solid.GetName()},
+                          std::forward<Args>(args)...);
 }
 
 //---------------------------------------------------------------------------//
@@ -119,6 +194,13 @@ auto make_solid(G4VSolid const& solid,
                                std::move(interior),
                                std::move(excluded),
                                std::move(enclosed));
+}
+
+//---------------------------------------------------------------------------//
+template<class Container>
+bool any_positive(Container const& c)
+{
+    return std::any_of(c.begin(), c.end(), [](auto r) { return r > 0; });
 }
 
 //---------------------------------------------------------------------------//
@@ -238,28 +320,14 @@ auto SolidConverter::cons(arg_type solid_base) -> result_type
                                                 solid.GetInnerRadiusPlusZ());
     auto hh = scale_(solid.GetZHalfLength());
 
-    if (outer_r[0] == outer_r[1])
-    {
-        std::optional<Cylinder> inner;
-        if (inner_r[0] || inner_r[1])
-        {
-            inner = Cylinder{inner_r[0], hh};
-        }
-
-        return make_solid(solid,
-                          Cylinder{outer_r[0], hh},
-                          std::move(inner),
-                          get_azimuthal_wedge(solid));
-    }
-
     std::optional<Cone> inner;
-    if (inner_r[0] || inner_r[1])
+    if (any_positive(inner_r))
     {
         inner = Cone{inner_r, hh};
     }
 
     return make_solid(
-        solid, Cone{outer_r, hh}, std::move(inner), get_azimuthal_wedge(solid));
+        solid, Cone{outer_r, hh}, std::move(inner), make_wedge_azimuthal(solid));
 }
 
 //---------------------------------------------------------------------------//
@@ -336,8 +404,19 @@ auto SolidConverter::genericpolycone(arg_type solid_base) -> result_type
 auto SolidConverter::generictrap(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4GenericTrap const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("generictrap");
+
+    auto const& vtx = solid.GetVertices();
+    CELER_ASSERT(vtx.size() == 8);
+
+    std::vector<GenTrap::Real2> lower(4), upper(4);
+    for (auto i : range(4))
+    {
+        lower[i] = scale_.to<GenTrap::Real2>(vtx[i].x(), vtx[i].y());
+        upper[i] = scale_.to<GenTrap::Real2>(vtx[i + 4].x(), vtx[i + 4].y());
+    }
+    real_type hh = scale_(solid.GetZHalfLength());
+
+    return make_shape<GenTrap>(solid, hh, std::move(lower), std::move(upper));
 }
 
 //---------------------------------------------------------------------------//
@@ -373,23 +452,15 @@ auto SolidConverter::orb(arg_type solid_base) -> result_type
 auto SolidConverter::para(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Para const&>(solid_base);
-#if G4VERSION_NUMBER >= 1100
-    double const theta = solid.GetTheta();
-    double const phi = solid.GetPhi();
-#else
-    // TODO: instead of duplicating with g4vg
-    CELER_NOT_IMPLEMENTED("older Geant4 for ORANGE conversion");
-    double const theta = 0;
-    double const phi = 0;
-#endif
+    auto const [theta, phi] = calculate_theta_phi(solid);
     return make_shape<Parallelepiped>(
         solid,
         scale_.to<Real3>(solid.GetXHalfLength(),
                          solid.GetYHalfLength(),
                          solid.GetZHalfLength()),
         native_value_to<Turn>(std::atan(solid.GetTanAlpha())),
-        native_value_to<Turn>(theta),
-        native_value_to<Turn>(phi));
+        theta,
+        phi);
 }
 
 //---------------------------------------------------------------------------//
@@ -418,31 +489,16 @@ auto SolidConverter::polycone(arg_type solid_base) -> result_type
         rmax[i] = scale_(params.Rmax[i]);
     }
 
-    if (zs.size() == 2 && rmin[0] == 0 && rmin[1] == 0)
+    if (!any_positive(rmin))
     {
-        // Special case: displaced cone/cylinder
-        double const hh = (zs[1] - zs[0]) / 2;
-        result_type result;
-        if (rmax[0] == rmax[1])
-        {
-            // Cylinder is a special case
-            result = make_shape<Cylinder>(solid, rmax[0], hh);
-        }
-        else
-        {
-            result = make_shape<Cone>(solid, Cone::Real2{rmax[0], rmin[1]}, hh);
-        }
-
-        double dz = (zs[1] + zs[0]) / 2;
-        if (dz != 0)
-        {
-            result = std::make_shared<Transformed>(std::move(result),
-                                                   Translation{{0, 0, dz}});
-        }
-        return result;
+        // No interior shape
+        rmin.clear();
     }
 
-    CELER_NOT_IMPLEMENTED("polycone");
+    return PolyCone::or_solid(
+        std::string{solid.GetName()},
+        PolySegments{std::move(rmin), std::move(rmax), std::move(zs)},
+        make_wedge_azimuthal_poly(solid));
 }
 
 //---------------------------------------------------------------------------//
@@ -452,9 +508,8 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
     auto const& solid = dynamic_cast<G4Polyhedra const&>(solid_base);
     auto const& params = *solid.GetOriginalParameters();
 
-    // Opening angle: end - start phi
-    double const radius_factor
-        = std::cos(0.5 * params.Opening_angle / params.numSide);
+    // Convert from circumradius to apothem
+    double const radius_factor = std::cos(m_pi / params.numSide);
 
     std::vector<double> zs(params.Num_z_planes);
     std::vector<double> rmin(zs.size());
@@ -466,15 +521,14 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
         rmax[i] = scale_(params.Rmax[i]) * radius_factor;
     }
 
-    auto startphi = native_value_to<Turn>(solid.GetStartPhi());
-    SolidEnclosedAngle angle(
-        startphi, native_value_to<Turn>(solid.GetEndPhi()) - startphi);
+    auto angle = make_wedge_azimuthal_poly(solid);
 
     if (zs.size() == 2 && rmin[0] == rmin[1] && rmax[0] == rmax[1])
     {
         // A solid prism
         double const hh = (zs[1] - zs[0]) / 2;
-        double const orientation = startphi.value() / params.numSide;
+        double const orientation
+            = std::fmod(params.numSide * angle.start().value(), real_type{1});
 
         if (rmin[0] != 0.0 || angle)
         {
@@ -487,8 +541,8 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
         double dz = (zs[1] + zs[0]) / 2;
         if (dz != 0)
         {
-            result = std::make_shared<Transformed>(
-                std::move(result), Translation{{0, 0, zs[0] - hh}});
+            result = std::make_shared<Transformed>(std::move(result),
+                                                   Translation{{0, 0, dz}});
         }
 
         return result;
@@ -517,7 +571,7 @@ auto SolidConverter::sphere(arg_type solid_base) -> result_type
         inner = Sphere{scale_(inner_r)};
     }
 
-    auto polar_wedge = get_polar_wedge(solid);
+    auto polar_wedge = make_wedge_polar(solid);
     if (!soft_equal(value_as<Turn>(polar_wedge.interior()), 0.5))
     {
         CELER_NOT_IMPLEMENTED("sphere with polar limits");
@@ -526,7 +580,7 @@ auto SolidConverter::sphere(arg_type solid_base) -> result_type
     return make_solid(solid,
                       Sphere{scale_(solid.GetOuterRadius())},
                       std::move(inner),
-                      get_azimuthal_wedge(solid));
+                      make_wedge_azimuthal(solid));
 }
 
 //---------------------------------------------------------------------------//
@@ -568,12 +622,45 @@ auto SolidConverter::torus(arg_type solid_base) -> result_type
 }
 
 //---------------------------------------------------------------------------//
-//! Convert a generic trapezoid
+/*!
+ * Convert a trapezoid.
+ *
+ * Note that the numbers of x,y,z parameters in the G4Trap are related to the
+ * fact that the two z-faces are parallel (separated by hz) and the 4 x-wedges
+ * (2 in each z-face) are also parallel (separated by hy1,2).
+ *
+ * Reference:
+ * https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/Detector/Geometry/geomSolids.html#constructed-solid-geometry-csg-solids
+ */
 auto SolidConverter::trap(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Trap const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("trap");
+
+    auto const [theta, phi] = calculate_theta_phi(solid);
+#if G4VERSION_NUMBER >= 1100
+    double const alpha_1 = solid.GetAlpha1();
+    double const alpha_2 = solid.GetAlpha2();
+#else
+    double const alpha_1 = std::atan(solid.GetTanAlpha1());
+    double const alpha_2 = std::atan(solid.GetTanAlpha2());
+#endif
+
+    auto hz = scale_(solid.GetZHalfLength());
+
+    GenTrap::TrapFace lo;
+    lo.hy = scale_(solid.GetYHalfLength1());
+    lo.hx_lo = scale_(solid.GetXHalfLength1());
+    lo.hx_hi = scale_(solid.GetXHalfLength2());
+    lo.tan_alpha = alpha_1;
+
+    GenTrap::TrapFace hi;
+    hi.hy = scale_(solid.GetYHalfLength2());
+    hi.hx_lo = scale_(solid.GetXHalfLength3());
+    hi.hx_hi = scale_(solid.GetXHalfLength4());
+    hi.tan_alpha = alpha_2;
+
+    return make_shape<GenTrap>(solid,
+                               GenTrap::from_trap(hz, theta, phi, lo, hi));
 }
 
 //---------------------------------------------------------------------------//
@@ -581,8 +668,15 @@ auto SolidConverter::trap(arg_type solid_base) -> result_type
 auto SolidConverter::trd(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Trd const&>(solid_base);
-    CELER_DISCARD(solid);
-    CELER_NOT_IMPLEMENTED("trd");
+
+    auto hz = scale_(solid.GetZHalfLength());
+    auto hy1 = scale_(solid.GetYHalfLength1());
+    auto hy2 = scale_(solid.GetYHalfLength2());
+    auto hx1 = scale_(solid.GetXHalfLength1());
+    auto hx2 = scale_(solid.GetXHalfLength2());
+
+    return make_shape<GenTrap>(solid,
+                               GenTrap::from_trd(hz, {hx1, hy1}, {hx2, hy2}));
 }
 
 //---------------------------------------------------------------------------//
@@ -601,7 +695,7 @@ auto SolidConverter::tubs(arg_type solid_base) -> result_type
     return make_solid(solid,
                       Cylinder{scale_(solid.GetOuterRadius()), hh},
                       std::move(inner),
-                      get_azimuthal_wedge(solid));
+                      make_wedge_azimuthal(solid));
 }
 
 //---------------------------------------------------------------------------//

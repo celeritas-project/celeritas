@@ -43,6 +43,7 @@ class OrangeGeoTestBase : public OrangeTestBase
     using HostParamsRef = HostCRef<OrangeParamsData>;
     using Params = OrangeParams;
     using SPConstParams = std::shared_ptr<OrangeParams const>;
+    using Initializer_t = GeoTrackInitializer;
     //!@}
 
     //!@{
@@ -64,6 +65,9 @@ class OrangeGeoTestBase : public OrangeTestBase
 
     // Convert a string to a sense vector
     static std::vector<Sense> string_to_senses(std::string const& s);
+
+    // Load `test/geocel/data/{filename}` GDML input using Geant4
+    void build_gdml_geometry(std::string const& filename);
 
     // Load `test/orange/data/{filename}` JSON input
     void build_geometry(std::string const& filename);

@@ -36,6 +36,7 @@
 #include "geocel/GeantUtils.hh"
 #include "geocel/g4/GeantGeoParams.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/RootExporter.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
@@ -58,6 +59,7 @@
 
 #include "AlongStepFactory.hh"
 #include "SetupOptions.hh"
+
 #include "detail/HitManager.hh"
 #include "detail/OffloadWriter.hh"
 
@@ -530,6 +532,9 @@ void SharedParams::initialize_core(SetupOptions const& options)
     params.cutoff = CutoffParams::from_import(
         *imported, params.particle, params.material);
 
+    // Construct shared data for Coulomb scattering
+    params.wentzel = WentzelOKVIParams::from_import(*imported, params.material);
+
     // Load physics: create individual processes with make_shared
     params.physics = [&params, &options, &imported] {
         PhysicsParams::Input input;
@@ -552,7 +557,8 @@ void SharedParams::initialize_core(SetupOptions const& options)
     params.rng = std::make_shared<RngParams>(CLHEP::HepRandom::getTheSeed());
 
     // Construct simulation params
-    params.sim = SimParams::from_import(*imported, params.particle);
+    params.sim = SimParams::from_import(
+        *imported, params.particle, options.max_field_substeps);
 
     // Construct track initialization params
     params.init = [&options] {
