@@ -9,23 +9,26 @@
 
 #include "Counter.hh"
 
-#include <corecel/Types.hh>
+#include <type_traits>
 #include <perfetto.h>
+
+#include "corecel/Types.hh"
 
 #include "detail/TrackEvent.perfetto.hh"
 
 namespace celeritas
 {
 template<class T>
-Counter<T>::Counter(char const* name, T value)
+void trace_counter(char const* name, T value)
 {
+    static_assert(std::is_arithmetic_v<T>, "Only support numeric counters");
     TRACE_COUNTER(detail::perfetto_track_event_category, name, value);
 }
 
 // EXPLICIT INSTANTIATION
-template class Counter<size_type>;
-template class Counter<float>;
-template class Counter<double>;
+template void trace_counter(char const*, size_type);
+template void trace_counter(char const*, float);
+template void trace_counter(char const*, double);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

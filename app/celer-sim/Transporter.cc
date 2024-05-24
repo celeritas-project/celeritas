@@ -80,8 +80,7 @@ void Transporter<M>::operator()()
  * Transport the input primaries and all secondaries produced.
  */
 template<MemSpace M>
-auto Transporter<M>::operator()(SpanConstPrimary primaries)
-    -> TransporterResult
+auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
 {
     // Initialize results
     TransporterResult result;
@@ -93,10 +92,16 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
             result.alive.push_back(track_counts.alive);
             if constexpr (M == MemSpace::host)
             {
-                Counter("active", track_counts.active);
-                Counter("alive", track_counts.alive);
-                Counter("dead", track_counts.active - track_counts.alive);
-                Counter("queued", track_counts.queued);
+                auto stream_id
+                    = std::to_string(stepper_->state_ref().stream_id.get());
+                trace_counter(std::string("active-" + stream_id).data(),
+                              track_counts.active);
+                trace_counter(std::string("alive-" + stream_id).data(),
+                              track_counts.alive);
+                trace_counter(std::string("dead-" + stream_id).data(),
+                              track_counts.active - track_counts.alive);
+                trace_counter(std::string("queued-" + stream_id).data(),
+                              track_counts.queued);
             }
         }
         ++result.num_step_iterations;

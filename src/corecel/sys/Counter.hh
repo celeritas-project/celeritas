@@ -8,13 +8,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <type_traits>
-
 #include "celeritas_config.h"
 #include "corecel/Macros.hh"
 
 namespace celeritas
 {
+
+#if CELERITAS_USE_PERFETTO
 /*!
  * Simple tracing counter. Records a named value at the current timestamp which
  * can then be displayed on a timeline. Only supported on host, this compiles
@@ -23,19 +23,14 @@ namespace celeritas
  * @tparam T Arithmetic counter type
  */
 template<class T>
-class Counter
-{
-    static_assert(std::is_arithmetic_v<T>, "Only support numeric counters");
-
-  public:
-#if CELERITAS_USE_PERFETTO
-    // Record value for the counter name
-    CELER_FUNCTION Counter(char const* name, T value);
+CELER_FUNCTION void trace_counter(char const* name, T value);
 #else
-    // noop
-    CELER_FUNCTION Counter(char const*, T) {}
+// noop
+template<class T>
+CELER_FUNCTION inline void trace_counter(char const*, T)
+{
+}
 #endif
-};
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
