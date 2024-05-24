@@ -26,48 +26,6 @@
         #ATTR, OBJ.ATTR()        \
     }
 
-namespace nlohmann
-{
-//---------------------------------------------------------------------------//
-// Support serialization of shared pointers to ORANGE objects
-using SPObjConst = std::shared_ptr<celeritas::orangeinp::ObjectInterface const>;
-using VarTransform = celeritas::VariantTransform;
-
-template<>
-struct adl_serializer<SPObjConst>
-{
-    static void to_json(json& j, SPObjConst const& oi)
-    {
-        if (oi)
-        {
-            celeritas::JsonPimpl json_wrap;
-            oi->output(&json_wrap);
-            j = std::move(json_wrap.obj);
-        }
-        else
-        {
-            j = nullptr;
-        }
-    }
-};
-
-template<>
-struct adl_serializer<VarTransform>
-{
-    static void to_json(json& j, VarTransform const& vt)
-    {
-        std::visit(
-            [&j](auto&& tr) {
-                j = {{"_type", to_cstring(tr.transform_type())},
-                     {"data", tr.data()}};
-            },
-            vt);
-    }
-};
-
-//---------------------------------------------------------------------------//
-}  // namespace nlohmann
-
 namespace celeritas
 {
 namespace orangeinp
@@ -259,3 +217,26 @@ void to_json(nlohmann::json& j, Sphere const& cr)
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp
 }  // namespace celeritas
+
+namespace nlohmann
+{
+//---------------------------------------------------------------------------//
+void adl_serializer<CelerSPObjConst>::to_json(json& j,
+                                              CelerSPObjConst const& oi)
+{
+    j = oi ? celeritas::json_pimpl_output(*oi) : nullptr;
+}
+
+void adl_serializer<CelerVarTransform>::to_json(json& j,
+                                                CelerVarTransform const& vt)
+{
+    std::visit(
+        [&j](auto&& tr) {
+            j = {{"_type", to_cstring(tr.transform_type())},
+                 {"data", tr.data()}};
+        },
+        vt);
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace nlohmann

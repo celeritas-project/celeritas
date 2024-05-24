@@ -15,6 +15,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+struct JsonPimpl;
 struct OrangeInput;
 
 namespace orangeinp
@@ -63,6 +64,9 @@ class ProtoInterface
     //! Construct a universe input from this object
     virtual void build(InputBuilder&) const = 0;
 
+    //! Write the proto to a JSON object
+    virtual void output(JsonPimpl*) const = 0;
+
   protected:
     //!@{
     //! Allow construction and assignment only through subclasses
@@ -71,6 +75,10 @@ class ProtoInterface
     CELER_DEFAULT_COPY_MOVE(ProtoInterface);
     //!@}
 };
+
+//---------------------------------------------------------------------------//
+// Get a JSON string representing a proto
+std::string to_string(ProtoInterface const&);
 
 //---------------------------------------------------------------------------//
 // Construct an ORANGE input from a global proto-universe

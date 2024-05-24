@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <numeric>
 
+#include "celeritas_config.h"
 #include "corecel/io/Logger.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeInput.hh"
@@ -26,6 +27,15 @@
 #include "detail/InternalSurfaceFlagger.hh"
 #include "detail/PostfixLogicBuilder.hh"
 #include "detail/VolumeBuilder.hh"
+
+#if CELERITAS_USE_JSON
+#    include <nlohmann/json.hpp>
+
+#    include "corecel/io/JsonPimpl.hh"
+#    include "corecel/io/LabelIO.json.hh"
+
+#    include "ObjectIO.json.hh"
+#endif
 
 namespace celeritas
 {
@@ -381,6 +391,60 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
     }
 
     return result;
+}
+
+//---------------------------------------------------------------------------//
+void UnitProto::output(JsonPimpl* j) const
+{
+#if CELERITAS_USE_JSON
+    using json = nlohmann::json;
+
+    auto obj = json::object({{"label", input_.label}});
+
+    if (auto& bg = input_.background)
+    {
+        obj["background"] = {
+            {"fill", bg.fill.unchecked_get()},
+            {"label", bg.label},
+        };
+    }
+
+    obj["materials"] = [&ms = input_.materials] {
+        auto result = json::array();
+        for (auto const& m : ms)
+        {
+            result.push_back({
+                {"interior", m.interior},
+                {"fill", m.fill.get()},
+                {"label", m.label},
+            });
+        }
+        return result;
+    }();
+
+    obj["daughters"] = [&ds = input_.daughters] {
+        auto result = json::array();
+        for (auto const& d : ds)
+        {
+            result.push_back({
+                {"fill", d.fill->label()},
+                {"transform", d.transform},
+                {"zorder", to_cstring(d.zorder)},
+            });
+        }
+        return result;
+    }();
+
+    obj["boundary"] = {
+        {"interior", input_.boundary.interior},
+        {"zorder", to_cstring(input_.boundary.zorder)},
+    };
+
+    j->obj = std::move(obj);
+
+#else
+    CELER_DISCARD(obj);
+#endif
 }
 
 //---------------------------------------------------------------------------//

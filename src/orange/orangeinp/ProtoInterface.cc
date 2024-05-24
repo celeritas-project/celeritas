@@ -7,16 +7,34 @@
 //---------------------------------------------------------------------------//
 #include "ProtoInterface.hh"
 
+#include "celeritas_config.h"
+#include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 
 #include "detail/InputBuilder.hh"
+#if CELERITAS_USE_JSON
+#    include <nlohmann/json.hpp>
+#endif
 
 namespace celeritas
 {
 namespace orangeinp
 {
+//---------------------------------------------------------------------------//
+// Get a JSON string representing a proto
+std::string to_string(ProtoInterface const& proto)
+{
+#if CELERITAS_USE_JSON
+    JsonPimpl json_wrap;
+    proto.output(&json_wrap);
+    return json_wrap.obj.dump();
+#else
+    return "\"output unavailable\"";
+#endif
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct all universes.

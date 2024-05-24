@@ -60,6 +60,10 @@ auto Converter::operator()(arg_type g4world) -> result_type
     CELER_LOG(debug) << "Building protos";
     // Convert logical volumes into protos
     auto global_proto = ProtoConstructor{opts_.verbose}(*world.lv);
+    if (opts_.output_protos)
+    {
+        opts_.output_protos(*global_proto);
+    }
 
     CELER_LOG(debug) << "Building universes";
     // Build universes from protos

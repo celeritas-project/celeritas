@@ -152,6 +152,9 @@ class UnitProto : public ProtoInterface
     // Construct a universe input from this object
     void build(InputBuilder&) const final;
 
+    // Write the proto to a JSON object
+    void output(JsonPimpl*) const final;
+
     //// HELPER FUNCTIONS ////
 
     // Construct a standalone unit for testing and external interface
