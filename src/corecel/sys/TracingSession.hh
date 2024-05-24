@@ -14,17 +14,28 @@
 #include "celeritas_config.h"
 #include "corecel/Macros.hh"
 
+//---------------------------------------------------------------------------//
+// Forward declarations
+//---------------------------------------------------------------------------//
+
 namespace perfetto
 {
-// FORWARD DECLARATION
+//---------------------------------------------------------------------------//
+#if CELERITAS_USE_PERFETTO
 class TracingSession;
+#else
+//! Dummy as celeritas::TracingSession::~TracingSession needs the definition
+class TracingSession
+{
+};
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace perfetto
 
 namespace celeritas
 {
-
+//---------------------------------------------------------------------------//
 //! Supported tracing mode
 enum class TracingMode : uint32_t
 {
@@ -32,12 +43,11 @@ enum class TracingMode : uint32_t
     System  //!< Record in a system daemon
 };
 
-#if CELERITAS_USE_PERFETTO
 /*!
  * RAII wrapper for a tracing session.
  *
- * Constructors will only configure an initialize the session. It needs to
- * be started explicitely by calling \c TracingSession::start
+ * Constructors will only configure and initialize the session. It needs to
+ * be started explicitly by calling \c TracingSession::start
  * Only a single tracing mode is supported. If you are only interested in
  * application-level events (\c ScopedProfiling and \c Counter),
  * then the in-process mode is sufficient and is enabled by providing the
@@ -56,39 +66,36 @@ class TracingSession
   public:
     // Configure a system session recording to a daemon
     TracingSession();
+
     // Configure an in-process session recording to filename
     explicit TracingSession(std::string_view filename);
-    // Terminate thte session and close open files
+
+    // Terminate the session and close open files
     ~TracingSession();
 
     // Start the profiling session
     void start();
-    //!@{
-    //! Prevent copying and moving for RAII class
+
+    //! Prevent copying but allow moving, following \c std::unique_ptr
+    //! semantics
     CELER_DEFAULT_MOVE_DELETE_COPY(TracingSession);
-    //!@}
 
   private:
-    bool started_{false};
+    [[maybe_unused]] bool started_{false};
     std::unique_ptr<perfetto::TracingSession> session_;
-    int fd_{-1};
+    [[maybe_unused]] int fd_{-1};
 };
-#else
 
-/*!
- * Noop class if Perfetto is  disabled
- */
-class TracingSession
-{
-  public:
-    // noop
-    TracingSession() = default;
-    // noop
-    explicit TracingSession(std::string_view) {}
+#if !CELERITAS_USE_PERFETTO
 
-    // noop
-    void start() {};
-};
+inline TracingSession::TracingSession() = default;
+
+inline TracingSession::TracingSession(std::string_view) {}
+
+inline TracingSession::~TracingSession() = default;
+
+inline void TracingSession::start() {}
+
 #endif
 
 //---------------------------------------------------------------------------//

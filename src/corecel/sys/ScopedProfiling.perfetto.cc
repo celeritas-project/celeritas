@@ -18,7 +18,7 @@
 
 namespace celeritas
 {
-
+//---------------------------------------------------------------------------//
 /*!
  * Start a thread-local slice track event
  */

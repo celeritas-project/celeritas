@@ -18,6 +18,7 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 template<class T>
 void trace_counter(char const* name, T value)
 {
@@ -25,7 +26,10 @@ void trace_counter(char const* name, T value)
     TRACE_COUNTER(detail::perfetto_track_event_category, name, value);
 }
 
-// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATIONS
+//---------------------------------------------------------------------------//
+
 template void trace_counter(char const*, size_type);
 template void trace_counter(char const*, float);
 template void trace_counter(char const*, double);

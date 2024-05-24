@@ -20,9 +20,12 @@ PERFETTO_TRACK_EVENT_STATIC_STORAGE();
 
 namespace
 {
+//---------------------------------------------------------------------------//
 using celeritas::TracingMode;
 
-// Initialize the session for the given mode if profiling is enabled
+/*!
+ * Initialize the session for the given mode if profiling is enabled.
+ */
 std::unique_ptr<perfetto::TracingSession> initialize_session(TracingMode mode)
 {
     if (!celeritas::use_profiling())
@@ -46,7 +49,9 @@ std::unique_ptr<perfetto::TracingSession> initialize_session(TracingMode mode)
     return perfetto::Tracing::NewTrace();
 }
 
-// configure the session to record the celeritas track events
+/*!
+ * Configure the session to record Celeritas track events.
+ */
 perfetto::TraceConfig configure_session()
 {
     perfetto::protos::gen::TrackEventConfig track_event_cfg;
@@ -68,14 +73,15 @@ perfetto::TraceConfig configure_session()
     ds_cfg->set_track_event_config_raw(track_event_cfg.SerializeAsString());
     return cfg;
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
 namespace celeritas
 {
-
+//---------------------------------------------------------------------------//
 /*!
- * Start a system tracing session
+ * Start a system tracing session.
  */
 TracingSession::TracingSession()
     : session_{initialize_session(TracingMode::System)}
@@ -87,17 +93,14 @@ TracingSession::TracingSession()
 }
 
 /*!
- * Start an in-process tracing session
+ * Start an in-process tracing session.
  */
 TracingSession::TracingSession(std::string_view filename)
-    : session_{initialize_session(TracingMode::InProcess)}, fd_{[&] {
-        return session_
-                   ? open(filename.data(), O_RDWR | O_CREAT | O_TRUNC, 0660)
-                   : -1;
-    }()}
+    : session_{initialize_session(TracingMode::InProcess)}
 {
     if (session_)
     {
+        fd_ = open(filename.data(), O_RDWR | O_CREAT | O_TRUNC, 0660);
         session_->Setup(configure_session(), fd_);
     }
 }
