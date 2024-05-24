@@ -13,6 +13,7 @@
 #include "orange/orangeinp/detail/SenseEvaluator.hh"
 #include "orange/surf/VariantSurface.hh"
 
+#include "CsgTestUtils.hh"
 #include "celeritas_test.hh"
 
 using N = celeritas::orangeinp::NodeId;
@@ -256,6 +257,88 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
     }
+}
+
+TEST_F(CsgTreeUtilsTest, tilecal_bug)
+{
+    EXPECT_EQ(N{2}, this->insert(Surface{S{0}}));  // mz
+    EXPECT_EQ(N{3}, this->insert(Surface{S{1}}));  // pz
+    EXPECT_EQ(N{4}, this->insert(Negated{N{3}}));
+    EXPECT_EQ(N{5}, this->insert(Surface{S{2}}));  // interior.cz
+    EXPECT_EQ(N{6}, this->insert(Negated{N{5}}));
+    EXPECT_EQ(N{7},
+              this->insert(
+                  Joined{op_and, {N{2}, N{4}, N{6}}}));  // TileTBEnv.interior
+    EXPECT_EQ(N{8}, this->insert(Surface{S{3}}));  // excluded.cz
+    EXPECT_EQ(N{9}, this->insert(Negated{N{8}}));
+    EXPECT_EQ(N{10},
+              this->insert(
+                  Joined{op_and, {N{2}, N{4}, N{9}}}));  // TileTBEnv.excluded
+    EXPECT_EQ(N{11}, this->insert(Negated{N{10}}));
+    EXPECT_EQ(N{12}, this->insert(Surface{S{4}}));
+    EXPECT_EQ(N{13}, this->insert(Surface{S{5}}));
+    EXPECT_EQ(N{14},
+              this->insert(Joined{op_and, {N{12}, N{13}}}));  // TileTBEnv.angle
+    EXPECT_EQ(N{15},
+              this->insert(Joined{op_and, {N{7}, N{11}, N{14}}}));  // TileTBEnv
+    EXPECT_EQ(N{16}, this->insert(Negated{N{15}}));  // [EXTERIOR]
+    EXPECT_EQ(N{17}, this->insert(Surface{S{6}}));  // Barrel.angle.p0
+    EXPECT_EQ(N{18}, this->insert(Surface{S{7}}));  // Barrel.angle.p1
+    EXPECT_EQ(N{19}, this->insert(Negated{N{18}}));
+    EXPECT_EQ(
+        N{20},
+        this->insert(Joined{op_and, {N{6}, N{17}, N{19}}}));  // Barrel.interior
+    EXPECT_EQ(
+        N{21},
+        this->insert(Joined{op_and, {N{9}, N{17}, N{19}}}));  // Barrel.excluded
+    EXPECT_EQ(N{22}, this->insert(Negated{N{21}}));
+    EXPECT_EQ(N{23}, this->insert(Surface{S{8}}));  // Barrel.angle.p0
+    EXPECT_EQ(N{24}, this->insert(Surface{S{9}}));  // Barrel.angle.p1
+    EXPECT_EQ(N{25},
+              this->insert(Joined{op_and, {N{23}, N{24}}}));  // Barrel.angle
+    EXPECT_EQ(N{26},
+              this->insert(Joined{op_and, {N{20}, N{22}, N{25}}}));  // Barrel
+    EXPECT_EQ(N{27}, this->insert(Negated{N{26}}));
+    EXPECT_EQ(N{28}, this->insert(Joined{op_and, {N{15}, N{27}}}));
+
+    EXPECT_EQ(29, tree_.size());
+
+    cout << to_json_string(tree_) << endl;
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
+        "surface 2, 6: not{5}, 7: all{2,4,6}, 8: surface 3, 9: not{8}, 10: "
+        "all{2,4,9}, 11: not{10}, 12: surface 4, 13: surface 5, 14: "
+        "all{12,13}, 15: all{7,11,14}, 16: not{15}, 17: surface 6, 18: "
+        "surface 7, 19: not{18}, 20: all{6,17,19}, 21: all{9,17,19}, 22: "
+        "not{21}, 23: surface 8, 24: surface 9, 25: all{23,24}, 26: "
+        "all{20,22,25}, 27: not{26}, 28: all{15,27}, }",
+        to_string(tree_));
+
+    EXPECT_EQ("!all(all(+0, -1, -2), !all(+0, -1, -3), all(+4, +5))",
+              build_infix_string(tree_, N{16}));
+    auto min_node = replace_down(&tree_, N{16}, False{});
+    cout << to_json_string(tree_) << endl;
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: ->{0}, 3: ->{1}, 4: ->{0}, 5: ->{1}, 6: "
+        "->{0}, 7: ->{0}, 8: surface 3, 9: not{8}, 10: ->{1}, 11: ->{0}, 12: "
+        "->{0}, 13: ->{0}, 14: ->{0}, 15: ->{0}, 16: ->{1}, 17: surface 6, "
+        "18: surface 7, 19: not{18}, 20: all{6,17,19}, 21: all{9,17,19}, 22: "
+        "not{21}, 23: surface 8, 24: surface 9, 25: all{23,24}, 26: "
+        "all{20,22,25}, 27: not{26}, 28: all{15,27}, }",
+        to_string(tree_));
+
+    std::vector<int> nodes;
+    while (min_node)
+    {
+        nodes.push_back(min_node.get());
+        min_node = simplify_up(&tree_, min_node);
+        cout << to_json_string(tree_) << endl;
+    }
+    // PRINT_EXPECTED(nodes);
+    static int const expected_nodes[] = {2, 20};
+    EXPECT_VEC_EQ(nodes, expected_nodes);
+
+    EXPECT_EQ("", to_string(tree_));
 }
 
 TEST_F(CsgTreeUtilsTest, replace_union)
