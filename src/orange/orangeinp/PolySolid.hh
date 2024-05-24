@@ -25,7 +25,7 @@ namespace orangeinp
  *
  * Axial grid points must be nondecreasing. If "inner" points are specified,
  * they must be less than the outer points and more than zero. The inner list
- * is allowed to be empty indictating no inner (hollow) exclusion.
+ * is allowed to be empty indicating no inner (hollow) exclusion.
  */
 class PolySegments
 {
