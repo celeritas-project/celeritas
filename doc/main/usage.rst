@@ -339,7 +339,8 @@ tell what variables are in use or may be useful.
  CELER_ENABLE_PROFILING  corecel   Set up NVTX/ROCTX profiling ranges [#pr]
  CELER_LOG               corecel   Set the "global" logger verbosity
  CELER_LOG_LOCAL         corecel   Set the "local" logger verbosity
- CELER_MEMPOOL... [#mp]_ celeritas Change ``cudaMemPoolAttrReleaseThreshold``
+ CELER_MEMPOOL... [#mp]_ corecel   Change ``cudaMemPoolAttrReleaseThreshold``
+ CELER_PERFETT... [#bs]_ corecel   Set the in-process tracing buffer size
  CELER_PROFILE_DEVICE    corecel   Record extra kernel launch information
  CUDA_HEAP_SIZE          celeritas Change ``cudaLimitMallocHeapSize`` (VG)
  CUDA_STACK_SIZE         celeritas Change ``cudaLimitStackSize`` for VecGeom
@@ -351,6 +352,7 @@ tell what variables are in use or may be useful.
  CELER_STRIP_SOURCEDIR   accel     Strip directories from exception output
  ======================= ========= ==========================================
 
+.. [#bs] CELER_PERFETTO_BUFFER_SIZE_MB
 .. [#mp] CELER_MEMPOOL_RELEASE_THRESHOLD
 .. [#pr] See :ref:`profiling`
 
