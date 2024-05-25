@@ -43,6 +43,7 @@ enum class TracingMode : uint32_t
     System  //!< Record in a system daemon
 };
 
+//---------------------------------------------------------------------------//
 /*!
  * RAII wrapper for a tracing session.
  *
