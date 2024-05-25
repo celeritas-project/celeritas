@@ -41,6 +41,7 @@ list(APPEND SOURCES
   sys/MpiCommunicator.cc
   sys/MultiExceptionHandler.cc
   sys/ScopedMpiInit.cc
+  sys/ScopedProfiling.cc
   sys/ScopedSignalHandler.cc
   sys/Stream.cc
   sys/TypeDemangler.cc
@@ -96,8 +97,7 @@ if(CELERITAS_USE_Perfetto)
   list(APPEND PRIVATE_DEPS Celeritas::Perfetto)
   list(APPEND SOURCES
     sys/Counter.perfetto.cc
-    sys/TracingSession.perfetto.cc
-    sys/ScopedProfiling.perfetto.cc
+    sys/TracingSession.cc
   )
 endif()
 

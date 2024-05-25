@@ -1,5 +1,5 @@
-#!/bin/bash
+#!/bin/sh -e
 
 cd "${PERFETTO_ROOT}" || exit
 
-tools/tmux -c celer.cfg -C out/linux -n
+exec tools/tmux -c celer.cfg -C out/linux -n

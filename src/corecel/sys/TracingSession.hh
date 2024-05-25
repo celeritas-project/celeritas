@@ -24,7 +24,7 @@ namespace perfetto
 #if CELERITAS_USE_PERFETTO
 class TracingSession;
 #else
-//! Dummy as celeritas::TracingSession::~TracingSession needs the definition
+//! Dummy as celeritas::TracingSession::~TracingSession needs a definition
 class TracingSession
 {
 };
@@ -51,7 +51,9 @@ enum class TracingMode : uint32_t
  * Only a single tracing mode is supported. If you are only interested in
  * application-level events (\c ScopedProfiling and \c Counter),
  * then the in-process mode is sufficient and is enabled by providing the
- * trace data filename to the constructor.
+ * trace data filename to the constructor. When using in-process tracing,
+ * the buffer size can be configured by setting \c
+ * CELER_PERFETTO_BUFFER_SIZE_MB.
  *
  * If no filename is provided, start a system tracing session which records
  * both application-level events and kernel events. Root privilege and
@@ -81,10 +83,14 @@ class TracingSession
     CELER_DEFAULT_MOVE_DELETE_COPY(TracingSession);
 
   private:
-    [[maybe_unused]] bool started_{false};
+    bool started_{false};
     std::unique_ptr<perfetto::TracingSession> session_;
-    [[maybe_unused]] int fd_{-1};
+    int fd_{-1};
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
 
 #if !CELERITAS_USE_PERFETTO
 
@@ -94,7 +100,11 @@ inline TracingSession::TracingSession(std::string_view) {}
 
 inline TracingSession::~TracingSession() = default;
 
-inline void TracingSession::start() {}
+inline void TracingSession::start()
+{
+    CELER_DISCARD(started_);
+    CELER_DISCARD(fd_);
+}
 
 #endif
 

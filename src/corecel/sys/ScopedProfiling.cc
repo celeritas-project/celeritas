@@ -1,26 +1,45 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/sys/ScopedProfiling.hip.cc
-//! \brief The roctx implementation of \c ScopedProfiling
+//! \file corecel/sys/ScopedProfiling.cc
+//! \brief The perfetto implementation of \c ScopedProfiling
 //---------------------------------------------------------------------------//
 #include "ScopedProfiling.hh"
 
-#include <string>
-
-#include "celeritas_sys_config.h"
+#include "celeritas_config.h"
 #include "corecel/io/Logger.hh"
 
 #include "Environment.hh"
 
-#if CELERITAS_HAVE_ROCTX
-#    include <roctracer/roctx.h>
+#if CELERITAS_USE_PERFETTO
+#    include <perfetto.h>
+
+#    include "detail/TrackEvent.perfetto.hh"
 #endif
 
 namespace celeritas
 {
+#if !CELERITAS_USE_PERFETTO
+//---------------------------------------------------------------------------//
+/*!
+ * Profiling is never enabled if CUDA/HIP/Perfetto isn't available.
+ */
+bool use_profiling()
+{
+    static bool const result = [] {
+        if (!celeritas::getenv("CELER_ENABLE_PROFILING").empty())
+        {
+            CELER_LOG(warning)
+                << "CELER_ENABLE_PROFILING is set but Celeritas "
+                   "was compiled without a profiling backend.";
+        }
+        return false;
+    }();
+    return result;
+}
+#else
 //---------------------------------------------------------------------------//
 /*!
  * Whether profiling is enabled.
@@ -28,17 +47,11 @@ namespace celeritas
  * This is true only if the \c CELER_ENABLE_PROFILING environment variable is
  * set to a non-empty value.
  */
-bool ScopedProfiling::use_profiling()
+bool use_profiling()
 {
     static bool const result = [] {
         if (!celeritas::getenv("CELER_ENABLE_PROFILING").empty())
         {
-            if constexpr (!CELERITAS_HAVE_ROCTX)
-            {
-                CELER_LOG(warning) << "Disabling profiling support "
-                                      "since ROC-TX is unavailable";
-                return false;
-            }
             CELER_LOG(info) << "Enabling profiling support since the "
                                "'CELER_ENABLE_PROFILING' "
                                "environment variable is present and non-empty";
@@ -51,39 +64,23 @@ bool ScopedProfiling::use_profiling()
 
 //---------------------------------------------------------------------------//
 /*!
- * Activate profiling.
+ * Start a thread-local slice track event
  */
-void ScopedProfiling::activate(Input const& input) noexcept
+void ScopedProfiling::activate([[maybe_unused]] Input const& input) noexcept
 {
-    int result = 0;
-#if CELERITAS_HAVE_ROCTX
-    std::string temp_name{input.name};
-    result = roctxRangePush(temp_name.c_str());
-#endif
-    if (result < 0)
-    {
-        activated_ = false;
-        CELER_LOG(warning) << "Failed to activate profiling range '"
-                           << input.name << "'";
-    }
+    TRACE_EVENT_BEGIN(detail::perfetto_track_event_category,
+                      perfetto::DynamicString{std::string{input.name}});
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * End the profiling range.
+ * End the slice track event that was started on the current thread
  */
 void ScopedProfiling::deactivate() noexcept
 {
-    int result = 0;
-#if CELERITAS_HAVE_ROCTX
-    result = roctxRangePop();
-#endif
-    if (result < 0)
-    {
-        activated_ = false;
-        CELER_LOG(warning) << "Failed to deactivate profiling range";
-    }
+    TRACE_EVENT_END(detail::perfetto_track_event_category);
 }
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

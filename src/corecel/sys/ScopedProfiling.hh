@@ -19,29 +19,10 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-#if CELER_USE_DEVICE || CELERITAS_USE_PERFETTO
 // Whether profiling is enabled
-inline bool use_profiling()
-{
-    static bool const result = [] {
-        if (!celeritas::getenv("CELER_ENABLE_PROFILING").empty())
-        {
-            CELER_LOG(info) << "Enabling profiling support since the "
-                               "'CELER_ENABLE_PROFILING' "
-                               "environment variable is present and non-empty";
-            return true;
-        }
-        return false;
-    }();
-    return result;
-}
-#else
-// Profiling is never enabled if CUDA/HIP/Perfetto isn't available
-constexpr inline bool use_profiling()
-{
-    return false;
-}
-#endif
+bool use_profiling();
+
+//---------------------------------------------------------------------------//
 /*!
  * Input arguments for the nvtx implementation.
  */
@@ -73,6 +54,9 @@ struct ScopedProfilingInput
  *
  * \note The AMD roctx implementation requires the roctx library, which may not
  * be available on all systems.
+ *
+ * \note The CPU implementation requires Perfetto. It is not supported when
+ * Celeritas is build with device support (CUDA/HIP)
  */
 class ScopedProfiling
 {
