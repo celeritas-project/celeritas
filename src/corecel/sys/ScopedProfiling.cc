@@ -21,6 +21,7 @@
 
 namespace celeritas
 {
+#if !CELER_USE_DEVICE
 //---------------------------------------------------------------------------//
 /*!
  * Whether profiling is enabled.
@@ -50,6 +51,7 @@ bool use_profiling()
     }();
     return result;
 }
+#endif
 
 #if CELERITAS_USE_PERFETTO
 //---------------------------------------------------------------------------//
