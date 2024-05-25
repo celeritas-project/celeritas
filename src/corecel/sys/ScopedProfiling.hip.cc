@@ -28,7 +28,7 @@ namespace celeritas
  * This is true only if the \c CELER_ENABLE_PROFILING environment variable is
  * set to a non-empty value.
  */
-bool ScopedProfiling::use_profiling()
+bool use_profiling()
 {
     static bool const result = [] {
         if (!celeritas::getenv("CELER_ENABLE_PROFILING").empty())

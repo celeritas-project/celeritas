@@ -21,16 +21,27 @@
 
 namespace celeritas
 {
-#if !CELERITAS_USE_PERFETTO
 //---------------------------------------------------------------------------//
 /*!
- * Profiling is never enabled if CUDA/HIP/Perfetto isn't available.
+ * Whether profiling is enabled.
+ *
+ * This is true only if the \c CELER_ENABLE_PROFILING environment variable is
+ * set to a non-empty value. Profiling is never enabled if CUDA/HIP/Perfetto
+ * isn't available.
  */
 bool use_profiling()
 {
     static bool const result = [] {
         if (!celeritas::getenv("CELER_ENABLE_PROFILING").empty())
         {
+            if constexpr (CELERITAS_USE_PERFETTO)
+            {
+                CELER_LOG(info)
+                    << "Enabling profiling support since the "
+                       "'CELER_ENABLE_PROFILING' "
+                       "environment variable is present and non-empty";
+                return true;
+            }
             CELER_LOG(warning)
                 << "CELER_ENABLE_PROFILING is set but Celeritas "
                    "was compiled without a profiling backend.";
@@ -39,29 +50,8 @@ bool use_profiling()
     }();
     return result;
 }
-#else
-//---------------------------------------------------------------------------//
-/*!
- * Whether profiling is enabled.
- *
- * This is true only if the \c CELER_ENABLE_PROFILING environment variable is
- * set to a non-empty value.
- */
-bool use_profiling()
-{
-    static bool const result = [] {
-        if (!celeritas::getenv("CELER_ENABLE_PROFILING").empty())
-        {
-            CELER_LOG(info) << "Enabling profiling support since the "
-                               "'CELER_ENABLE_PROFILING' "
-                               "environment variable is present and non-empty";
-            return true;
-        }
-        return false;
-    }();
-    return result;
-}
 
+#if CELERITAS_USE_PERFETTO
 //---------------------------------------------------------------------------//
 /*!
  * Start a thread-local slice track event
