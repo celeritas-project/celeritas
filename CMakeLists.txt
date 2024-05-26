@@ -39,10 +39,13 @@ if(NOT CELERITAS_USE_CUDA)
   celeritas_optional_language(HIP)
 endif()
 
-# Dependencies
+# Required dependencies: find or fetch inside `external`
+celeritas_find_or_external_package(nlohmann_json 3.7.0)
+set(CELERITAS_USE_JSON ON)
+
+# Optional dependencies
 celeritas_optional_package(Geant4 "Enable Geant4 adapter tools")
 celeritas_optional_package(HepMC3 "Enable HepMC3 event record reader")
-celeritas_optional_package(JSON nlohmann_json "Enable JSON I/O")
 celeritas_optional_package(MPI "Enable distributed memory parallelism")
 celeritas_optional_package(OpenMP "Enable CPU shared-memory parallelism")
 celeritas_optional_package(Python "Use Python to generate and preprocess")
@@ -314,7 +317,7 @@ if(CELERITAS_USE_HepMC3)
   set(HepMC3_LIBRARIES HepMC3::HepMC3)
 endif()
 
-if(CELERITAS_USE_JSON)
+if(CELERITAS_USE_JSON AND NOT CELERITAS_EXTERNAL_nlohmann_json)
   if(NOT nlohmann_json_FOUND)
     find_package(nlohmann_json 3.7.0 REQUIRED)
   endif()
@@ -467,6 +470,15 @@ if(CELERITAS_BUILD_TESTS)
       OFF
     )
   endif()
+endif()
+
+#----------------------------------------------------------------------------#
+# EXTERNALS
+#----------------------------------------------------------------------------#
+
+if(CELERITAS_EXTERNAL)
+  include(FetchContent)
+  add_subdirectory(external)
 endif()
 
 #----------------------------------------------------------------------------#

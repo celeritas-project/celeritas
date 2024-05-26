@@ -9,6 +9,18 @@ CeleritasUtils
 
 CMake configuration utility functions for Celeritas.
 
+.. command:: celeritas_find_or_external_package
+
+  Look for an external dependency ``<package>`` and cache whether we found it or
+  not.
+
+    celeritas_find_or_external_package(<package>)
+
+  The cache variable ``CELERITAS_EXTERNAL_<package>`` is used so that on
+  subsequent configures we do not "find" an external that we
+  configured/installed ourself (since CMake's search path includes the
+  installation prefix).
+
 .. command:: celeritas_optional_language
 
   Add an configurable cache option ``CELERITAS_USE_<lang>`` that defaults to
@@ -236,7 +248,10 @@ include_guard(GLOBAL)
 include(CheckLanguage)
 include(CudaRdcUtils)
 
+# List of variables configured via `celeritas_set_default`
 set(CELERITAS_DEFAULT_VARIABLES)
+# True if any CELERITAS_EXTERNAL_XXX
+set(CELERITAS_EXTERNAL FALSE)
 
 #-----------------------------------------------------------------------------#
 
@@ -265,6 +280,36 @@ function(celeritas_to_onoff varname)
     set(${varname} OFF PARENT_SCOPE)
   endif()
 endfunction()
+
+#-----------------------------------------------------------------------------#
+
+macro(celeritas_find_or_external_package package)
+  set(_var "CELERITAS_EXTERNAL_${package}")
+  set(_use_external ${_var})
+  if(NOT ${_use_external})
+    if(NOT "${${package}_FOUND}")
+      # Only look for the package if it's not "found" (which can occur if
+      # Celeritas is a subproject)
+      find_package(${package} ${ARGN})
+    endif()
+    if(NOT DEFINED ${_var})
+      set(_found "${${package}_FOUND}")
+      if(NOT _found)
+        set(_use_external ON)
+        message(STATUS "Set external ${package} to fetch and build")
+      endif()
+      set("${_var}" "${_use_external}" CACHE BOOL
+        "Fetch and build ${package}")
+      mark_as_advanced(${_var})
+      unset(_found)
+    endif()
+  endif()
+  if(_use_external)
+    set(CELERITAS_EXTERNAL TRUE)
+  endif()
+  unset(_use_external)
+  unset(_var)
+endmacro()
 
 #-----------------------------------------------------------------------------#
 
