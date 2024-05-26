@@ -9,23 +9,19 @@
 
 #include <functional>
 #include <vector>
+#include <nlohmann/json.hpp>
 
 #include "celeritas_cmake_strings.h"
 #include "celeritas_config.h"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/Join.hh"
+#include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Label.hh"
+#include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/GeoParamsInterface.hh"  // IWYU pragma: keep
 
 #include "detail/SimpleCaloImpl.hh"
-
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-
-#    include "corecel/io/JsonPimpl.hh"
-#    include "corecel/io/LabelIO.json.hh"
-#endif
 
 namespace celeritas
 {
@@ -167,7 +163,6 @@ void SimpleCalo::process_steps(DeviceStepState state)
  */
 void SimpleCalo::output(JsonPimpl* j) const
 {
-#if CELERITAS_USE_JSON
     using json = nlohmann::json;
 
     auto obj = json::object();
@@ -192,9 +187,6 @@ void SimpleCalo::output(JsonPimpl* j) const
     }
 
     j->obj = std::move(obj);
-#else
-    CELER_DISCARD(j);
-#endif
 }
 
 //---------------------------------------------------------------------------//

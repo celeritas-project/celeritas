@@ -268,11 +268,7 @@ TEST_F(SimpleCmsTest, output)
     GeoParamsOutput out(this->geometry());
     EXPECT_EQ("geometry", out.label());
 
-    if (!CELERITAS_USE_JSON)
-    {
-        EXPECT_EQ(R"json("output unavailable")json", to_string(out));
-    }
-    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
     {
         EXPECT_JSON_EQ(
             R"json({"_category":"internal","_label":"geometry","bbox":[[-1000.001,-1000.001,-2000.001],[1000.001,1000.001,2000.001]],"supports_safety":true,"volumes":{"label":["vacuum_tube","si_tracker","em_calorimeter","had_calorimeter","sc_solenoid","fe_muon_chambers","world"]}})json",

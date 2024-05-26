@@ -7,17 +7,14 @@
 //---------------------------------------------------------------------------//
 #include "OrangeParamsOutput.hh"
 
+#include <nlohmann/json.hpp>
+
 #include "celeritas_config.h"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
 
+#include "OrangeInputIO.json.hh"
 #include "OrangeParams.hh"  // IWYU pragma: keep
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-
-// TODO: Tolerance is defined in OrangeTypes but IO is here
-#    include "OrangeInputIO.json.hh"
-#endif
 
 namespace celeritas
 {
@@ -37,7 +34,6 @@ OrangeParamsOutput::OrangeParamsOutput(SPConstOrangeParams orange)
  */
 void OrangeParamsOutput::output(JsonPimpl* j) const
 {
-#if CELERITAS_USE_JSON
     using json = nlohmann::json;
 
     auto obj = json::object();
@@ -94,9 +90,6 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
     // TODO: make universe metadata accessible from ORANGE, and write it
 
     j->obj = std::move(obj);
-#else
-    (void)sizeof(j);
-#endif
 }
 
 //---------------------------------------------------------------------------//

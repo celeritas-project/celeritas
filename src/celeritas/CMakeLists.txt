@@ -5,7 +5,7 @@
 #-----------------------------------------------------------------------------#
 
 set(SOURCES)
-set(PRIVATE_DEPS Celeritas::DeviceToolkit)
+set(PRIVATE_DEPS Celeritas::DeviceToolkit nlohmann_json::nlohmann_json)
 set(PUBLIC_DEPS Celeritas::corecel Celeritas::geocel)
 
 #-----------------------------------------------------------------------------#
@@ -30,7 +30,10 @@ list(APPEND SOURCES
   em/process/PhotoelectricProcess.cc
   em/process/RayleighProcess.cc
   ext/GeantPhysicsOptions.cc
+  ext/GeantPhysicsOptionsIO.json.cc
   field/FieldDriverOptions.cc
+  field/FieldDriverOptionsIO.json.cc
+  field/RZMapFieldInputIO.json.cc
   field/RZMapFieldParams.cc
   geo/GeoMaterialParams.cc
   global/ActionInterface.cc
@@ -65,10 +68,10 @@ list(APPEND SOURCES
   neutron/process/NeutronElasticProcess.cc
   neutron/process/NeutronInelasticProcess.cc
   optical/CerenkovParams.cc
-  optical/ScintillationParams.cc
   optical/OpticalCollector.cc
   optical/OpticalPropertyParams.cc
   optical/OpticalTrackData.cc
+  optical/ScintillationParams.cc
   phys/CutoffParams.cc
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc
@@ -78,6 +81,7 @@ list(APPEND SOURCES
   phys/PhysicsParamsOutput.cc
   phys/PrimaryGenerator.cc
   phys/PrimaryGeneratorOptions.cc
+  phys/PrimaryGeneratorOptionsIO.json.cc
   phys/Process.cc
   phys/ProcessBuilder.cc
   random/CuHipRngData.cc
@@ -87,8 +91,9 @@ list(APPEND SOURCES
   track/SimParams.cc
   track/SortTracksAction.cc
   track/TrackInitParams.cc
-  user/ParticleTallyData.cc
   user/DetectorSteps.cc
+  user/ParticleTallyData.cc
+  user/RootStepWriterIO.json.cc
   user/SimpleCalo.cc
   user/SimpleCaloData.cc
   user/StepCollector.cc
@@ -144,17 +149,6 @@ if(CELERITAS_USE_HepMC3)
   )
   list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_hepmc>)
   list(APPEND PRIVATE_DEPS celeritas_hepmc)
-endif()
-
-if(CELERITAS_USE_JSON)
-  list(APPEND SOURCES
-    ext/GeantPhysicsOptionsIO.json.cc
-    field/FieldDriverOptionsIO.json.cc
-    field/RZMapFieldInputIO.json.cc
-    phys/PrimaryGeneratorOptionsIO.json.cc
-    user/RootStepWriterIO.json.cc
-  )
-  list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()
 
 if(CELERITAS_USE_OpenMP)

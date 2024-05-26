@@ -24,10 +24,7 @@
 #include "orange/surf/SphereCentered.hh"
 
 #include "IntersectSurfaceBuilder.hh"
-
-#if CELERITAS_USE_JSON
-#    include "ObjectIO.json.hh"
-#endif
+#include "ObjectIO.json.hh"
 
 namespace celeritas
 {

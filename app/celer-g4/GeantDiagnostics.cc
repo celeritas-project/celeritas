@@ -9,8 +9,11 @@
 
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/sys/Environment.hh"
+#include "corecel/sys/EnvironmentIO.json.hh"
 #include "corecel/sys/MemRegistry.hh"
+#include "corecel/sys/MemRegistryIO.json.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/ActionRegistry.hh"
@@ -18,14 +21,7 @@
 #include "celeritas/user/StepDiagnostic.hh"
 
 #include "GlobalSetup.hh"
-
-#if CELERITAS_USE_JSON
-#    include "corecel/io/OutputInterfaceAdapter.hh"
-#    include "corecel/sys/EnvironmentIO.json.hh"
-#    include "corecel/sys/MemRegistryIO.json.hh"
-
-#    include "RunInputIO.json.hh"
-#endif
+#include "RunInputIO.json.hh"
 
 namespace celeritas
 {
@@ -80,7 +76,6 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
     if (!params)
     {
         // Celeritas core params didn't add system metadata: do it ourselves
-#if CELERITAS_USE_JSON
         // Save system diagnostic information
         output_reg->insert(OutputInterfaceAdapter<MemRegistry>::from_const_ref(
             OutputInterface::Category::system,
@@ -90,7 +85,6 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
             OutputInterface::Category::system,
             "environ",
             celeritas::environment()));
-#endif
         output_reg->insert(std::make_shared<BuildOutput>());
 
         // Save filename from global options (TODO: remove this hack)
@@ -98,11 +92,9 @@ GeantDiagnostics::GeantDiagnostics(SharedParams const& params)
             global_setup.setup_options().output_file);
     }
 
-#if CELERITAS_USE_JSON
     // Save input options
     output_reg->insert(OutputInterfaceAdapter<RunInput>::from_const_ref(
         OutputInterface::Category::input, "*", global_setup.input()));
-#endif
 
     // Create shared exception handler
     meh_ = std::make_shared<MultiExceptionHandler>();

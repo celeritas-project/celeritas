@@ -61,7 +61,7 @@ celeritas_setup_tests(SERIAL
 #-----------------------------------------------------------------------------#
 
 celeritas_add_test(BoundingBox.test.cc
-  LINK_LIBRARIES ${nlohmann_json_LIBRARIES}
+  LINK_LIBRARIES nlohmann_json::nlohmann_json
 )
 
 #-----------------------------------------------------------------------------#

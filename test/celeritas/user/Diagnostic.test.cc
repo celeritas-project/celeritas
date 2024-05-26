@@ -241,7 +241,6 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
             0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
         EXPECT_VEC_EQ(expected_steps, result.steps);
 
-        if (CELERITAS_USE_JSON)
         {
             EXPECT_JSON_EQ(
                 R"json({"_category":"result","_index":["particle","action"],"_label":"action-diagnostic","actions":[[0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,9,0],[0,0,0,996,0,0,2,0,0,0,0,20,509,0,0,0,0,0,0,0,521,0],[0,0,0,902,0,0,10,0,0,0,9,20,577,0,0,0,0,0,0,0,518,0]]})json",

@@ -116,13 +116,13 @@ class TwoVolumeTest : public SimpleUnitTrackerTest
     }
 };
 
-#define FieldLayersTest TEST_IF_CELERITAS_JSON(FieldLayersTest)
+#define FieldLayersTest FieldLayersTest
 class FieldLayersTest : public SimpleUnitTrackerTest
 {
     void SetUp() override { this->build_geometry("field-layers.org.json"); }
 };
 
-#define FiveVolumesTest TEST_IF_CELERITAS_JSON(FiveVolumesTest)
+#define FiveVolumesTest FiveVolumesTest
 class FiveVolumesTest : public SimpleUnitTrackerTest
 {
     void SetUp() override { this->build_geometry("five-volumes.org.json"); }

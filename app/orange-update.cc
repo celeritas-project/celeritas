@@ -11,19 +11,14 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
-
-#if CELERITAS_USE_JSON
-#    include <fstream>
-#    include <nlohmann/json.hpp>
-
-#    include "orange/OrangeInputIO.json.hh"
-#endif
+#include "orange/OrangeInputIO.json.hh"
 
 namespace celeritas
 {
@@ -41,15 +36,10 @@ void print_usage(char const* exec_name)
 //---------------------------------------------------------------------------//
 std::string run(std::istream* is)
 {
-#if CELERITAS_USE_JSON
     OrangeInput inp;
     nlohmann::json::parse(*is).get_to(inp);
 
     return nlohmann::json(inp).dump(/* indent = */ 0);
-#else
-    CELER_DISCARD(is);
-    CELER_NOT_CONFIGURED("JSON");
-#endif
 }
 
 //---------------------------------------------------------------------------//

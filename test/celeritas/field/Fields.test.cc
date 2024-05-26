@@ -91,7 +91,7 @@ TEST(CMSParameterizedFieldTest, all)
     EXPECT_VEC_SOFT_EQ(expected_field, actual);
 }
 
-#define RZMapFieldTest TEST_IF_CELERITAS_JSON(RZMapFieldTest)
+#define RZMapFieldTest RZMapFieldTest
 class RZMapFieldTest : public ::celeritas::test::Test
 {
 };

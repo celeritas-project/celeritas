@@ -16,11 +16,16 @@
 #include "corecel/data/Ref.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"  // IWYU pragma: keep
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/DeviceIO.json.hh"
 #include "corecel/sys/Environment.hh"
+#include "corecel/sys/EnvironmentIO.json.hh"
 #include "corecel/sys/KernelRegistry.hh"
+#include "corecel/sys/KernelRegistryIO.json.hh"
 #include "corecel/sys/MemRegistry.hh"
+#include "corecel/sys/MemRegistryIO.json.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
@@ -46,14 +51,6 @@
 #include "ActionRegistry.hh"  // IWYU pragma: keep
 #include "ActionRegistryOutput.hh"
 #include "alongstep/AlongStepNeutralAction.hh"
-
-#if CELERITAS_USE_JSON
-#    include "corecel/io/OutputInterfaceAdapter.hh"
-#    include "corecel/sys/DeviceIO.json.hh"
-#    include "corecel/sys/EnvironmentIO.json.hh"
-#    include "corecel/sys/KernelRegistryIO.json.hh"
-#    include "corecel/sys/MemRegistryIO.json.hh"
-#endif
 
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
 #    include "orange/OrangeParams.hh"
@@ -288,7 +285,6 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         device_ref_vec_.copy_to_device({&device_ref_, 1});
     }
 
-#if CELERITAS_USE_JSON
     // Save system diagnostic information
     input_.output_reg->insert(OutputInterfaceAdapter<Device>::from_const_ref(
         OutputInterface::Category::system, "device", celeritas::device()));
@@ -301,7 +297,6 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         OutputInterface::Category::system, "memory", celeritas::mem_registry()));
     input_.output_reg->insert(OutputInterfaceAdapter<Environment>::from_const_ref(
         OutputInterface::Category::system, "environ", celeritas::environment()));
-#endif
     input_.output_reg->insert(std::make_shared<BuildOutput>());
 
     // Save core diagnostic information

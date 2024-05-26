@@ -97,8 +97,6 @@ void OrangeGeoTestBase::build_gdml_geometry(std::string const& filename)
 void OrangeGeoTestBase::build_geometry(std::string const& filename)
 {
     CELER_EXPECT(!params_);
-    CELER_VALIDATE(CELERITAS_USE_JSON,
-                   << "JSON is not enabled so geometry cannot be loaded");
 
     ScopedLogStorer scoped_log_{&celeritas::world_logger()};
     params_

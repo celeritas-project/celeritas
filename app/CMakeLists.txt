@@ -53,23 +53,15 @@ endif()
 celeritas_add_executable(orange-update orange-update.cc)
 celeritas_target_link_libraries(orange-update
   Celeritas::orange
+  nlohmann_json::nlohmann_json
 )
-if(CELERITAS_USE_JSON)
-  celeritas_target_link_libraries(orange-update
-    nlohmann_json::nlohmann_json
-  )
-endif()
 
 # Exporter
 celeritas_add_executable(celer-export-geant celer-export-geant.cc)
 celeritas_target_link_libraries(celer-export-geant
   Celeritas::celeritas
+  nlohmann_json::nlohmann_json
 )
-if(CELERITAS_USE_JSON)
-  celeritas_target_link_libraries(celer-export-geant
-    nlohmann_json::nlohmann_json
-  )
-endif()
 
 # Reader
 celeritas_add_executable(celer-dump-data celer-dump-data.cc)

@@ -81,7 +81,7 @@ TEST_F(PhysicalVolumeConverterTest, intersection_boxes)
     ASSERT_TRUE(inner_pv.lv);
     EXPECT_EQ("inner0x0", this->genericize_pointers(inner_pv.lv->name));
     ASSERT_TRUE(inner_pv.lv->solid);
-    if (CELERITAS_USE_JSON)
+
     {
         EXPECT_JSON_EQ(
             R"json(
@@ -128,7 +128,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
         EXPECT_NE(nullptr, lv->g4lv);
         EXPECT_EQ("World0x0", this->genericize_pointers(lv->name));
         ASSERT_TRUE(lv->solid);
-        if (CELERITAS_USE_JSON)
+
         {
             EXPECT_JSON_EQ(
                 R"json({"_type":"shape","interior":{"_type":"box","halfwidths":[24.0,24.0,24.0]},"label":"World"})json",
@@ -172,7 +172,7 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
         ASSERT_EQ(2, lv->children.size());
 
         ASSERT_TRUE(lv->solid);
-        if (CELERITAS_USE_JSON)
+
         {
             EXPECT_JSON_EQ(
                 R"json({"_type":"shape","interior":{"_type":"box","halfwidths":[0.4,20.0,20.0]},"label":"Layer"})json",

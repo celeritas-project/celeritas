@@ -5,6 +5,7 @@
 #-----------------------------------------------------------------------------#
 
 set(SOURCES)
+set(PRIVATE_DEPS nlohmann_json::nlohmann_json)
 set(PUBLIC_DEPS Celeritas::corecel)
 
 #-----------------------------------------------------------------------------#
@@ -12,21 +13,15 @@ set(PUBLIC_DEPS Celeritas::corecel)
 #-----------------------------------------------------------------------------#
 
 list(APPEND SOURCES
+  BoundingBoxIO.json.cc
   GeoParamsOutput.cc
   rasterize/Image.cc
+  rasterize/ImageIO.json.cc
 )
 
 #-----------------------------------------------------------------------------#
 # Configuration-dependent code
 #-----------------------------------------------------------------------------#
-
-if(CELERITAS_USE_JSON)
-  list(APPEND SOURCES
-    BoundingBoxIO.json.cc
-    rasterize/ImageIO.json.cc
-  )
-  list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
-endif()
 
 if(CELERITAS_USE_VecGeom AND CELERITAS_USE_Geant4)
   set( _cg4vg_sources

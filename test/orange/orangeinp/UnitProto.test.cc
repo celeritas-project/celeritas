@@ -436,11 +436,6 @@ class InputBuilderTest : public UnitProtoTest
     {
         OrangeInput inp = build_input(tol_, global);
         EXPECT_TRUE(inp);
-        if (!CELERITAS_USE_JSON)
-        {
-            GTEST_SKIP() << "JSON is disabled: cannot compare output";
-        }
-
         std::string const ref_path = this->test_data_path("orange", "")
                                      + this->make_unique_filename(".org.json");
 

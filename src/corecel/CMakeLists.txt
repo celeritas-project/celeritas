@@ -5,7 +5,7 @@
 #-----------------------------------------------------------------------------#
 
 set(SOURCES)
-set(PRIVATE_DEPS)
+set(PRIVATE_DEPS nlohmann_json::nlohmann_json)
 set(PUBLIC_DEPS)
 
 #-----------------------------------------------------------------------------#
@@ -14,6 +14,7 @@ set(PUBLIC_DEPS)
 
 list(APPEND SOURCES
   Assert.cc
+  AssertIO.json.cc
   Types.cc
   data/Copier.cc
   data/DeviceAllocation.cc
@@ -22,6 +23,7 @@ list(APPEND SOURCES
   io/BuildOutput.cc
   io/ColorUtils.cc
   io/ExceptionOutput.cc
+  io/JsonUtils.json.cc
   io/Label.cc
   io/LogContextException.cc
   io/Logger.cc
@@ -35,12 +37,15 @@ list(APPEND SOURCES
   io/detail/LoggerMessage.cc
   io/detail/ReprImpl.cc
   sys/Device.cc
+  sys/DeviceIO.json.cc
   sys/Environment.cc
   sys/KernelRegistry.cc
+  sys/KernelRegistryIO.json.cc
   sys/MemRegistry.cc
-  sys/ScopedMem.cc
+  sys/MemRegistryIO.json.cc
   sys/MpiCommunicator.cc
   sys/MultiExceptionHandler.cc
+  sys/ScopedMem.cc
   sys/ScopedMpiInit.cc
   sys/ScopedProfiling.cc
   sys/ScopedSignalHandler.cc
@@ -73,17 +78,6 @@ if(CELERITAS_USE_HIP)
   list(APPEND SOURCES
     sys/ScopedProfiling.hip.cc
   )
-endif()
-
-if(CELERITAS_USE_JSON)
-  list(APPEND SOURCES
-    AssertIO.json.cc
-    io/JsonUtils.json.cc
-    sys/DeviceIO.json.cc
-    sys/KernelRegistryIO.json.cc
-    sys/MemRegistryIO.json.cc
-  )
-  list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()
 
 if(CELERITAS_USE_MPI)

@@ -660,7 +660,7 @@ void SharedParams::try_output() const
     }
 
     std::string filename = output_filename_;
-    if (CELERITAS_USE_JSON && !params_ && filename.empty())
+    if (!params_ && filename.empty())
     {
         // Setup was not called but JSON is available: make a default filename
         filename = "celeritas.out.json";
@@ -674,7 +674,6 @@ void SharedParams::try_output() const
         return;
     }
 
-    if (CELERITAS_USE_JSON)
     {
         auto msg = CELER_LOG(info);
         msg << "Wrote Geant4 diagnostic output to ";
@@ -695,12 +694,6 @@ void SharedParams::try_output() const
         }
         CELER_ASSERT(os);
         output_reg_->output(os);
-    }
-    else
-    {
-        CELER_LOG(warning) << "JSON support is not enabled, so no output will "
-                              "be written to \""
-                           << filename << '"';
     }
 }
 

@@ -10,9 +10,7 @@
 #include <vector>
 
 #include "celeritas_config.h"
-#if CELERITAS_USE_JSON
-#    include "corecel/sys/EnvironmentIO.json.hh"
-#endif
+#include "corecel/sys/EnvironmentIO.json.hh"
 
 #include "celeritas_test.hh"
 
@@ -72,9 +70,8 @@ TEST(EnvironmentTest, merge)
               os.str());
 }
 
-TEST(EnvironmentTest, TEST_IF_CELERITAS_JSON(json))
+TEST(EnvironmentTest, json)
 {
-#if CELERITAS_USE_JSON
     // Pre-set one environment variable
     Environment env;
     EXPECT_EQ("0", env["ENVTEST_ZERO"]);
@@ -93,7 +90,6 @@ TEST(EnvironmentTest, TEST_IF_CELERITAS_JSON(json))
             R"json([{"ENVTEST_CUSTOM":"custom","ENVTEST_ONE":"111111","ENVTEST_ZERO":"000000"}])json",
             out.dump());
     }
-#endif
 }
 
 //---------------------------------------------------------------------------//

@@ -34,11 +34,6 @@ if(NOT CELERITAS_USE_ROOT)
   set(_needs_root DISABLE)
 endif()
 
-if(CELERITAS_CORE_GEO STREQUAL "ORANGE" AND NOT CELERITAS_USE_JSON
-    AND NOT CELERITAS_USE_Geant4)
-  set(_needs_geo DISABLE)
-endif()
-
 if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
   set(_core_geo_libs testcel_orange Celeritas::orange)
 elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
@@ -97,7 +92,7 @@ celeritas_target_link_libraries(testcel_celeritas
     testcel_harness Celeritas::celeritas
   PRIVATE
     testcel_core testcel_orange testcel_geocel
-    ${nlohmann_json_LIBRARIES}
+    nlohmann_json::nlohmann_json
 )
 
 #-----------------------------------------------------------------------------#
@@ -144,7 +139,7 @@ set(CELERITASTEST_PREFIX celeritas/ext)
 
 celeritas_add_test(ext/GeantImporter.test.cc
   ${_needs_geant4}
-  LINK_LIBRARIES ${nlohmann_json_LIBRARIES}
+  LINK_LIBRARIES nlohmann_json::nlohmann_json
   FILTER
     "FourSteelSlabs*"
     "TestEm3*"
@@ -167,7 +162,6 @@ celeritas_add_test(field/FieldPropagator.test.cc
  ${_fixme_cgs}
   LINK_LIBRARIES ${_core_geo_libs})
 celeritas_add_test(field/LinearPropagator.test.cc
-  ${_needs_geo}
   LINK_LIBRARIES ${_all_geo_libs})
 celeritas_add_test(field/MagFieldEquation.test.cc)
 
@@ -175,7 +169,7 @@ celeritas_add_test(field/MagFieldEquation.test.cc)
 # Geo
 set(CELERITASTEST_PREFIX celeritas/geo)
 
-set(_geo_args GPU ${_needs_geo} ${_needs_double} ${_fixme_cgs}
+set(_geo_args GPU ${_needs_double} ${_fixme_cgs}
   LINK_LIBRARIES ${_all_geo_libs}
   SOURCES geo/HeuristicGeoTestBase.cc
 )
@@ -190,7 +184,7 @@ else()
   set(_needs_geant_or_root)
 endif()
 celeritas_add_test(geo/GeoMaterial.test.cc
-  ${_needs_geant_or_root} ${_needs_geo} ${_optional_geant4_env})
+  ${_needs_geant_or_root} ${_optional_geant4_env})
 
 #-----------------------------------------------------------------------------#
 # Global
@@ -243,14 +237,14 @@ set(_along_step_filter
 endif()
 
 celeritas_add_test(global/AlongStep.test.cc
-  NT 1 ${_needs_geo} ${_optional_geant4_env}
+  NT 1 ${_optional_geant4_env}
   ${_along_step_filter}
 )
 celeritas_add_test(global/KernelContextException.test.cc
-  NT 1 ${_needs_geo} LINK_LIBRARIES ${nlohmann_json_LIBRARIES}
+  NT 1 LINK_LIBRARIES nlohmann_json::nlohmann_json
 )
 celeritas_add_test(global/Stepper.test.cc
-  GPU NT 4 ${_needs_geo} ${_optional_geant4_env}
+  GPU NT 4 ${_optional_geant4_env}
   ${_stepper_filter}
 )
 
@@ -305,7 +299,7 @@ celeritas_add_device_test(phys/Particle)
 celeritas_add_device_test(phys/Physics)
 celeritas_add_test(phys/PhysicsStepUtils.test.cc)
 celeritas_add_test(phys/PrimaryGenerator.test.cc
-  LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
+  LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(phys/ProcessBuilder.test.cc ${_needs_root}
   ${_optional_geant4_env})
 
@@ -341,7 +335,7 @@ endif()
 # Track
 set(CELERITASTEST_PREFIX celeritas/track)
 celeritas_add_test(track/Sim.test.cc ${_needs_geant4})
-celeritas_add_test(track/TrackSort.test.cc GPU ${_needs_geant4} ${_needs_geo})
+celeritas_add_test(track/TrackSort.test.cc GPU ${_needs_geant4})
 
 set(_trackinit_sources
   track/MockInteractAction.cc
@@ -353,7 +347,7 @@ if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
 endif()
 
 celeritas_add_test(track/TrackInit.test.cc
-  GPU ${_needs_geo} SOURCES ${_trackinit_sources}
+  GPU SOURCES ${_trackinit_sources}
 )
 
 #-----------------------------------------------------------------------------#
@@ -376,11 +370,11 @@ endif()
 
 celeritas_add_test(user/DetectorSteps.test.cc GPU)
 celeritas_add_test(user/Diagnostic.test.cc
-  GPU NT 1 ${_optional_geant4_env} ${_needs_geo} ${_fails_g4geo} ${_needs_double}
+  GPU NT 1 ${_optional_geant4_env} ${_fails_g4geo} ${_needs_double}
   ${_diagnostic_filter}
 )
 celeritas_add_test(user/StepCollector.test.cc
-  GPU NT 1 ${_optional_geant4_env} ${_needs_geo} ${_fixme_single}
+  GPU NT 1 ${_optional_geant4_env} ${_fixme_single}
 )
 
 #-----------------------------------------------------------------------------#

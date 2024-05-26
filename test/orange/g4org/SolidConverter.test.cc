@@ -111,7 +111,7 @@ class SolidConverterTest : public ::celeritas::orangeinp::test::ObjectTestBase
         // Convert the object
         auto obj = convert(solid);
         CELER_ASSERT(obj);
-        if (CELERITAS_USE_JSON)
+
         {
             EXPECT_JSON_EQ(json_str, to_string(*obj));
         }

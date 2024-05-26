@@ -20,6 +20,8 @@
 #    include <omp.h>
 #endif
 
+#include <nlohmann/json.hpp>
+
 #include "celeritas_config.h"
 #include "celeritas_version.h"
 #include "corecel/device_runtime_api.h"
@@ -36,19 +38,13 @@
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stopwatch.hh"
+#include "corecel/sys/TracingSession.hh"
 #include "celeritas/Types.hh"
 
 #include "Runner.hh"
 #include "RunnerInput.hh"
+#include "RunnerInputIO.json.hh"
 #include "RunnerOutput.hh"
-
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-
-#    include "RunnerInputIO.json.hh"
-#endif
-
-#include "corecel/sys/TracingSession.hh"
 
 using namespace std::literals::string_view_literals;
 
@@ -82,16 +78,14 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
 
     // Read input options and save a copy for output
     auto run_input = std::make_shared<RunnerInput>();
-#if CELERITAS_USE_JSON
     nlohmann::json::parse(*is).get_to(*run_input);
-#else
-    CELER_ASSERT_UNREACHABLE();
-#endif
+    output->insert(std::make_shared<OutputInterfaceAdapter<RunnerInput>>(
+        OutputInterface::Category::input, "*", run_input));
+
+    // Start profiling
     TracingSession tracing_session{run_input->tracing_file};
     tracing_session.start();
     ScopedProfiling profile_this{"celer-sim"};
-    output->insert(std::make_shared<OutputInterfaceAdapter<RunnerInput>>(
-        OutputInterface::Category::input, "*", run_input));
 
     // Create runner and save setup time
     Stopwatch get_setup_time;
@@ -210,14 +204,6 @@ int main(int argc, char* argv[])
         std::cout << celeritas_version << std::endl;
         return EXIT_SUCCESS;
     }
-    if (!CELERITAS_USE_JSON)
-    {
-        // Check for JSON *before* checking the options below
-        std::cerr << argv[0]
-                  << ": JSON is not enabled in this build of Celeritas"
-                  << std::endl;
-        return EXIT_FAILURE;
-    }
     if (filename == "--config"sv)
     {
         std::cout << to_string(celeritas::BuildOutput{}) << std::endl;
@@ -225,10 +211,8 @@ int main(int argc, char* argv[])
     }
     if (filename == "--dump-default"sv)
     {
-#if CELERITAS_USE_JSON
         std::cout << nlohmann::json(celeritas::app::RunnerInput{}).dump(1)
                   << std::endl;
-#endif
         return EXIT_SUCCESS;
     }
 

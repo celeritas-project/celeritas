@@ -69,7 +69,7 @@ TEST_F(ShapeTest, single)
     EXPECT_VEC_EQ(expected_trans_strings, transform_strings(u));
     EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
     EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
-    if (CELERITAS_USE_JSON)
+
     {
         EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
     }
@@ -134,12 +134,11 @@ TEST_F(ShapeTest, multiple)
     EXPECT_VEC_EQ(expected_trans_strings, transform_strings(u));
     EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
     EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
-    if (CELERITAS_USE_JSON)
+
     {
         EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
     }
 
-    if (CELERITAS_USE_JSON)
     {
         EXPECT_JSON_EQ(
             R"json({"_type":"shape","interior":{"_type":"box","halfwidths":[1.0,1.0,2.0]},"label":"box"})json",

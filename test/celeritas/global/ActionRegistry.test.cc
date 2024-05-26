@@ -138,7 +138,6 @@ TEST_F(ActionRegistryTest, output)
         &mgr, [](ActionRegistry const*) {}));
     EXPECT_EQ("actions", out.label());
 
-    if (CELERITAS_USE_JSON)
     {
         EXPECT_JSON_EQ(
             R"json({"_category":"internal","_label":"actions","description":["","explicit action test","the second implicit action"],"label":["impl1","explicit","impl2"]})json",

@@ -102,7 +102,6 @@ TEST_F(NegatedObjectTest, pos_neg)
     EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
 
-    if (CELERITAS_USE_JSON)
     {
         EXPECT_JSON_EQ(
             R"json({"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"sphere","radius":1.0},"label":"sph"},"transform":{"_type":"translation","data":[0.0,0.0,1.0]}},"label":"antitrsph"})json",
@@ -172,12 +171,11 @@ TEST_F(AnyObjectsTest, adjoining)
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
     EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
     EXPECT_VEC_EQ(expected_trans_strings, transform_strings(u));
-    if (CELERITAS_USE_JSON)
+
     {
         EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
     }
 
-    if (CELERITAS_USE_JSON)
     {
         EXPECT_JSON_EQ(
             R"json({"_type":"any","daughters":[{"_type":"shape","interior":{"_type":"sphere","radius":1.0},"label":"sph"},{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"sphere","radius":1.0},"label":"sph"},"transform":{"_type":"translation","data":[0.0,0.0,1.0]}}],"label":"anysph"})json",
@@ -285,7 +283,6 @@ TEST_F(AllObjectsTest, allneg)
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
     EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
 
-    if (CELERITAS_USE_JSON)
     {
         EXPECT_JSON_EQ(
             R"json({"_type":"all","daughters":[{"_type":"negated","daughter":{"_type":"shape","interior":{"_type":"sphere","radius":1.0},"label":"sph"},"label":""},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"sphere","radius":1.0},"label":"sph"},"transform":{"_type":"translation","data":[0.0,0.0,1.0]}},"label":""},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"sphere","radius":1.0},"label":"sph"},"transform":{"_type":"translation","data":[0.0,0.0,2.0]}},"label":""}],"label":"allsph"})json",
@@ -395,7 +392,7 @@ TEST_F(CsgObjectTest, rdv)
     EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
 }
 
-TEST_F(CsgObjectTest, TEST_IF_CELERITAS_JSON(output))
+TEST_F(CsgObjectTest, output)
 {
     auto box = std::make_shared<BoxShape>("box", Box{{1, 1, 2}});
     auto cone = std::make_shared<ConeShape>("cone", Cone{{1.0, 0.5}, 2.0});
@@ -413,7 +410,6 @@ TEST_F(CsgObjectTest, TEST_IF_CELERITAS_JSON(output))
     auto any = std::make_shared<AnyObjects>("any_planar", VecObject{box, pri});
     auto negany = std::make_shared<NegatedObject>("none_planar", any);
 
-    if (CELERITAS_USE_JSON)
     {
         EXPECT_JSON_EQ(
             R"json({"_type":"all","daughters":[{"_type":"shape","interior":{"_type":"cone","halfheight":2.0,"radii":[1.0,0.5]},"label":"cone"},{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"cylinder","halfheight":2.0,"radius":1.0},"label":"cyl"},"transform":{"_type":"transformation","data":[1.0,0.0,0.0,0.0,0.7071067811865475,-0.7071067811865475,0.0,0.7071067811865475,0.7071067811865475,1.0,2.0,3.0]}},{"_type":"shape","interior":{"_type":"ellipsoid","radii":[1.0,2.0,3.0]},"label":"ell"},{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"sphere","radius":1.25},"label":"sph"},"transform":{"_type":"translation","data":[1.0,2.0,3.0]}}],"label":"all_quadric"})json",

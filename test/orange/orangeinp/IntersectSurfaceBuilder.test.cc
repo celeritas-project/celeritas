@@ -135,7 +135,7 @@ TEST_F(IntersectSurfaceBuilderTest, no_transform)
 
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
-    if (CELERITAS_USE_JSON)
+
     {
         EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
     }
@@ -220,7 +220,7 @@ TEST_F(IntersectSurfaceBuilderTest, translate)
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
-    if (CELERITAS_USE_JSON)
+
     {
         EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
     }
@@ -263,7 +263,7 @@ TEST_F(IntersectSurfaceBuilderTest, transform)
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
-    if (CELERITAS_USE_JSON)
+
     {
         EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
     }

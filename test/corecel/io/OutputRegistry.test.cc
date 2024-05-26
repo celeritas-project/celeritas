@@ -35,15 +35,7 @@ class TestInterface final : public OutputInterface
     Category category() const final { return cat_; }
     std::string_view label() const final { return label_; }
 
-    void output(JsonPimpl* json) const final
-    {
-#if CELERITAS_USE_JSON
-        json->obj = value_;
-#else
-        CELER_DISCARD(json);
-        CELER_DISCARD(value_);
-#endif
-    }
+    void output(JsonPimpl* json) const final { json->obj = value_; }
 
   private:
     Category cat_{};
@@ -66,16 +58,9 @@ class MockKernelContextException : public RichContextException
 
     void output(JsonPimpl* json) const final
     {
-#if CELERITAS_USE_JSON
         json->obj["thread"] = thread_;
         json->obj["event"] = event_;
         json->obj["track"] = track_;
-#else
-        CELER_DISCARD(json);
-        CELER_DISCARD(thread_);
-        CELER_DISCARD(event_);
-        CELER_DISCARD(track_);
-#endif
     }
 
   private:
@@ -116,13 +101,9 @@ TEST_F(OutputRegistryTest, empty)
     EXPECT_TRUE(reg.empty());
 
     std::string result = this->to_string(reg);
-    if (CELERITAS_USE_JSON)
+
     {
         EXPECT_EQ("null", result);
-    }
-    else
-    {
-        EXPECT_EQ("\"output unavailable\"", result);
     }
 }
 
@@ -143,19 +124,15 @@ TEST_F(OutputRegistryTest, minimal)
     EXPECT_THROW(reg.insert(first), RuntimeError);
 
     std::string result = this->to_string(reg);
-    if (CELERITAS_USE_JSON)
+
     {
         EXPECT_JSON_EQ(
             R"json({"input":{"input_value":42},"result":{"out":1,"timing":2}})json",
             result);
     }
-    else
-    {
-        EXPECT_EQ("\"output unavailable\"", result);
-    }
 }
 
-TEST_F(OutputRegistryTest, TEST_IF_CELERITAS_JSON(build_output))
+TEST_F(OutputRegistryTest, build_output)
 {
     OutputRegistry reg;
     reg.insert(std::make_shared<celeritas::BuildOutput>());
@@ -175,7 +152,7 @@ TEST_F(OutputRegistryTest, exception_output)
                      exception_to_output);
 
     std::string result = this->to_string(reg);
-    if (CELERITAS_USE_JSON)
+
     {
         EXPECT_JSON_EQ(
             R"json({"result":{"exception":{"condition":"false","file":"FILE","line":123,"type":"RuntimeError","what":"things went wrong","which":"runtime"}}})json",
@@ -195,7 +172,7 @@ TEST_F(OutputRegistryTest, nested_exception_output)
                              MockKernelContextException(123, 2, 4567));
 
     std::string result = this->to_string(reg);
-    if (CELERITAS_USE_JSON)
+
     {
         EXPECT_JSON_EQ(
             R"json({"result":{"exception":{"condition":"false","context":{"event":2,"thread":123,"track":4567,"type":"MockKernelContextException"},"file":"FILE","line":123,"type":"RuntimeError","what":"things went wrong","which":"runtime"}}})json",

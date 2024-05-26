@@ -14,16 +14,12 @@ celeritas_target_link_libraries(testcel_orange
   PUBLIC
     Celeritas::orange testcel_harness testcel_core testcel_geocel
   PRIVATE
-    Celeritas::orange ${nlohmann_json_LIBRARIES}
+    Celeritas::orange nlohmann_json::nlohmann_json
 )
 
 #-----------------------------------------------------------------------------#
 # VARIABLES
 #-----------------------------------------------------------------------------#
-
-if(NOT CELERITAS_USE_JSON)
-  set(_needs_json DISABLE)
-endif()
 
 if(CELERITAS_USE_Geant4)
   celeritas_get_g4libs(_g4_geo_libs geometry)
@@ -57,8 +53,8 @@ celeritas_add_test(RaytraceImager.test.cc GPU)
 # High level
 celeritas_add_test(Orange.test.cc)
 celeritas_add_test(OrangeGeant.test.cc ${_needs_g4org})
-celeritas_add_test(OrangeJson.test.cc ${_needs_json})
-celeritas_add_device_test(OrangeShift ${_needs_json})
+celeritas_add_test(OrangeJson.test.cc)
+celeritas_add_device_test(OrangeShift)
 
 celeritas_add_test(detail/UniverseIndexer.test.cc)
 
@@ -127,9 +123,9 @@ celeritas_add_test(surf/detail/SurfaceTransformer.test.cc)
 # Universe
 set(CELERITASTEST_PREFIX orange/univ)
 celeritas_add_test(univ/VolumeView.test.cc)
-celeritas_add_test(univ/RectArrayTracker.test.cc ${_needs_json})
+celeritas_add_test(univ/RectArrayTracker.test.cc)
 celeritas_add_device_test(univ/SimpleUnitTracker)
-celeritas_add_test(univ/TrackerVisitor.test.cc ${_needs_json})
+celeritas_add_test(univ/TrackerVisitor.test.cc)
 
 # Universe details
 celeritas_add_test(univ/detail/LogicEvaluator.test.cc)

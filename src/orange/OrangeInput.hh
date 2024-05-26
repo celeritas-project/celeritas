@@ -140,16 +140,4 @@ std::istream& operator>>(std::istream& is, OrangeInput&);
 std::ostream& operator<<(std::ostream& os, OrangeInput const&);
 
 //---------------------------------------------------------------------------//
-#if !CELERITAS_USE_JSON
-inline std::istream& operator>>(std::istream&, OrangeInput&)
-{
-    CELER_NOT_CONFIGURED("JSON");
-}
-inline std::ostream& operator<<(std::ostream&, OrangeInput const&)
-{
-    CELER_NOT_CONFIGURED("JSON");
-}
-#endif
-
-//---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -10,11 +10,9 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
+#include "celeritas/phys/PrimaryGeneratorOptionsIO.json.hh"
 #include "celeritas/random/distribution/DeltaDistribution.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
-#if CELERITAS_USE_JSON
-#    include "celeritas/phys/PrimaryGeneratorOptionsIO.json.hh"
-#endif
 
 #include "celeritas_test.hh"
 
@@ -133,14 +131,12 @@ TEST_F(PrimaryGeneratorTest, options)
     primaries = generate_primaries();
     EXPECT_TRUE(primaries.empty());
 
-#if CELERITAS_USE_JSON
     {
         nlohmann::json out = opts;
         EXPECT_JSON_EQ(
             R"json({"direction":{"distribution":"isotropic","params":[]},"energy":{"distribution":"delta","params":[1.0]},"num_events":1,"pdg":[22],"position":{"distribution":"box","params":[-3.0,-3.0,-3.0,3.0,3.0,3.0]},"primaries_per_event":10,"seed":0})json",
             std::string(out.dump()));
     }
-#endif
 }
 
 //---------------------------------------------------------------------------//

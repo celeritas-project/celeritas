@@ -58,7 +58,7 @@ celeritas_add_test(io/Label.test.cc)
 celeritas_add_test(io/Join.test.cc)
 celeritas_add_test(io/Logger.test.cc)
 celeritas_add_test(io/OutputRegistry.test.cc
-  LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
+  LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(io/Repr.test.cc)
 celeritas_add_test(io/StringEnumMapper.test.cc)
 celeritas_add_test(io/StringUtils.test.cc)
@@ -71,14 +71,14 @@ celeritas_add_test(math/ArrayUtils.test.cc)
 celeritas_add_test(math/HashUtils.test.cc)
 celeritas_add_device_test(math/NumericLimits)
 celeritas_add_test(math/Quantity.test.cc
-  LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
+  LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(math/SoftEqual.test.cc)
 
 # Sys
 set(CELERITASTEST_PREFIX corecel/sys)
 celeritas_add_test(sys/Environment.test.cc
   ENVIRONMENT "ENVTEST_ONE=1;ENVTEST_ZERO=0;ENVTEST_EMPTY="
-  LINK_LIBRARIES ${nlohmann_json_LIBRARIES}
+  LINK_LIBRARIES nlohmann_json::nlohmann_json
 )
 celeritas_add_test(sys/MpiCommunicator.test.cc
   NP ${CELERITASTEST_NP_DEFAULT})

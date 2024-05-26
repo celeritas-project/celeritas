@@ -64,14 +64,6 @@ class ObjectInterface
 // Get a JSON string representing an object
 std::string to_string(ObjectInterface const&);
 
-#if !CELERITAS_USE_JSON
-//! If JSON is unavailable, print a string. Otherwise, use ObjectIO.json.cc.
-inline std::string to_string(ObjectInterface const&)
-{
-    return "\"output unavailable\"";
-}
-#endif
-
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp
 }  // namespace celeritas
