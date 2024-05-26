@@ -25,7 +25,7 @@ inline constexpr auto* perfetto_track_event_category{"Celeritas"};
 
 // This declaration needs to be available when calling perfetto's
 // TRACE_EVENT_BEGIN (i.e. ScopedProfiling TU) and when initializing a tracing
-// session (i.e. PerfettoSession TU). Adding this in a public header would
+// session (i.e. TracingSession TU). Adding this in a public header would
 // propagate perfetto dependency to downstream so hide it in a header to be
 // included by corecel TU only.
 PERFETTO_DEFINE_CATEGORIES(
