@@ -78,10 +78,6 @@ int get_openmp_thread()
 void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
 {
     CELER_EXPECT(is);
-    TracingSession tracing_session("celer-sim.perfetto-trace");
-    tracing_session.start();
-
-    ScopedProfiling profile_this{"celer-sim"};
     ScopedMem record_mem("celer-sim.run");
 
     // Read input options and save a copy for output
@@ -91,6 +87,12 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
 #else
     CELER_ASSERT_UNREACHABLE();
 #endif
+    TracingSession tracing_session{
+        run_input->tracing_file.empty()
+            ? TracingSession{}
+            : TracingSession{run_input->tracing_file}};
+    tracing_session.start();
+    ScopedProfiling profile_this{"celer-sim"};
     output->insert(std::make_shared<OutputInterfaceAdapter<RunnerInput>>(
         OutputInterface::Category::input, "*", run_input));
 

@@ -11,6 +11,8 @@
 #include <fcntl.h>
 #include <perfetto.h>
 
+#include "corecel/Assert.hh"
+
 #include "Environment.hh"
 #include "ScopedProfiling.hh"
 
@@ -100,6 +102,7 @@ TracingSession::TracingSession()
 TracingSession::TracingSession(std::string_view filename)
     : session_{initialize_session(TracingMode::InProcess)}
 {
+    CELER_EXPECT(!filename.empty());
     if (session_)
     {
         fd_ = open(filename.data(), O_RDWR | O_CREAT | O_TRUNC, 0660);
