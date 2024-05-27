@@ -403,7 +403,7 @@ Profiling
 =========
 
 Since the primary motivator of Celeritas is performance on GPU hardware,
-profiling is a necessity. Celeritas uses NVTX (or ROCTX when using AMD HIP)
+profiling is a necessity. Celeritas uses NVTX (CUDA),  ROCTX (HIP) or Perfetto (CPU)
 to annotate the different sections of the code, allowing for fine-grained
 profiling and improved visualization.
 
@@ -456,6 +456,38 @@ tool.
 
 .. _Perfetto: https://ui.perfetto.dev/
 
+On CPU, timelines are generated using Perfetto. It is only supported when CUDA
+and HIP are disabled. Perfetto supports application-level and system-level profiling.
+To use the application-level profiling, set the ``tracing_file`` input key.
+
+.. sourcecode:: console
+   :linenos:
+
+   $ CELER_ENABLE_PROFILING=1 \
+   > celer-sim inp.json
+
+The system-level profiling, capturing both system and application events,
+requires starting external services. To use this mode, the ``tracing_file`` key must
+be absent or empty. Details on how to setup the system services can be found in
+the `Perfetto documentation`_. Root access on the system is required.
+
+If you integrate celeritas in your application, you need to create a ``TracingSession``
+instance. The profiling session will end when the object goes out of scope but it can be
+moved to extend its lifetime.
+
+.. sourcecode:: cpp
+   :linenos:
+
+   #include "TracingSession.hh"
+
+   int main()
+   {
+      // system-level profiling, pass a filename to use application-level profiling
+      TracingSession session;
+      session.start()
+   }
+
+.. _Perfetto documentation: https://perfetto.dev/docs/quickstart/linux-tracing
 
 Kernel profiling
 ----------------
