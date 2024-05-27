@@ -84,7 +84,7 @@ perfetto::TraceConfig configure_session() noexcept
 
 namespace celeritas
 {
-
+//---------------------------------------------------------------------------//
 // Defined here as we need the full definition of perfetto::TracingSession
 TracingSession::TracingSession(TracingSession&&) noexcept = default;
 TracingSession& TracingSession::operator=(TracingSession&&) noexcept = default;
@@ -102,6 +102,7 @@ TracingSession::TracingSession() noexcept
     }
 }
 
+//---------------------------------------------------------------------------//
 /*!
  * Start an in-process tracing session.
  */
@@ -117,6 +118,7 @@ TracingSession::TracingSession(std::string_view filename) noexcept(
     }
 }
 
+//---------------------------------------------------------------------------//
 /*!
  * Block until the current session is closed.
  */
@@ -135,6 +137,7 @@ TracingSession::~TracingSession()
     }
 }
 
+//---------------------------------------------------------------------------//
 /*!
  * Start the profiling session.
  */
