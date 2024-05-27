@@ -98,13 +98,15 @@ class TracingSession
 
 #if !CELERITAS_USE_PERFETTO
 
-inline TracingSession::TracingSession() = default;
+inline TracingSession::TracingSession() noexcept = default;
 
-inline TracingSession::TracingSession(std::string_view) {}
+inline TracingSession::TracingSession(std::string_view) noexcept(!CELERITAS_DEBUG)
+{
+}
 
 inline TracingSession::~TracingSession() = default;
 
-inline void TracingSession::start()
+inline void TracingSession::start() noexcept
 {
     CELER_DISCARD(started_);
     CELER_DISCARD(fd_);
