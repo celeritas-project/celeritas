@@ -334,6 +334,7 @@ if(CELERITAS_USE_OpenMP)
 endif()
 
 if(CELERITAS_USE_Perfetto)
+  include(FetchContent)
   if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     celeritas_error_incompatible_option(
             "Perfetto is not supported with CUDA/HIP build"
@@ -341,32 +342,24 @@ if(CELERITAS_USE_Perfetto)
             OFF
     )
   endif()
-  if(PERFETTO_ROOT)
-    if(CELERITAS_PERFETTO_DOWNLOAD)
-      message(WARNING "Both CELERITAS_PERFETTO_DOWNLOAD and PERFETTO_ROOT are set. "
-              "Getting dependency from PERFETTO_ROOT.")
-    endif()
-    set(Perfetto_SDK ${PERFETTO_ROOT}/sdk)
-    if(NOT IS_DIRECTORY ${Perfetto_SDK})
-      message(FATAL_ERROR "PERFETTO_ROOT must point to the top-level perfetto directory and the sdk subdir must exist. "
-              "Make sure that you downloaded an amalgamated release")
-    endif()
-  elseif(CELERITAS_PERFETTO_DOWNLOAD)
-    include(FetchContent)
-    FetchContent_Declare(
-            perfetto
-            GIT_REPOSITORY https://android.googlesource.com/platform/external/perfetto
-            GIT_TAG 7add4fded398ef47414a556b7b81d212a4482a66 # v45.0
-    )
-    FetchContent_MakeAvailable(perfetto)
-    if(NOT perfetto_POPULATED)
-      message(FATAL_ERROR "Failed to fetch perfetto dependency")
-    endif()
-    set(Perfetto_SDK ${perfetto_SOURCE_DIR}/sdk)
-  else()
-    message(FATAL_ERROR "Perfetto dependency is enabled. "
-            "You must set either PERFETTO_ROOT=/path/to/perfetto/repo or CELERITAS_PERFETTO_DOWNLOAD=ON")
+  if (PERFETTO_ROOT AND NOT FETCHCONTENT_SOURCE_DIR_PERFETTO)
+    set(FETCHCONTENT_SOURCE_DIR_PERFETTO ${PERFETTO_ROOT})
   endif()
+
+  FetchContent_Declare(
+          perfetto
+          #v45 .0
+          URL https://android.googlesource.com/platform/external/perfetto/+archive/7add4fded398ef47414a556b7b81d212a4482a66.tar.gz
+          DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  )
+
+  if (NOT FETCHCONTENT_SOURCE_DIR_PERFETTO)
+    message(STATUS "Fetching perfetto")
+  endif()
+
+  FetchContent_MakeAvailable(perfetto)
+
+  set(Perfetto_SDK ${perfetto_SOURCE_DIR}/sdk)
   add_library(celeritas_perfetto STATIC ${Perfetto_SDK}/perfetto.cc)
   add_library(Celeritas::Perfetto ALIAS celeritas_perfetto)
   target_include_directories(celeritas_perfetto INTERFACE ${Perfetto_SDK})
