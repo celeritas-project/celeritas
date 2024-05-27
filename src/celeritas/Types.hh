@@ -161,6 +161,17 @@ enum class MscStepLimitAlgorithm
 };
 
 //---------------------------------------------------------------------------//
+//! Nuclear form factor model for Coulomb scattering
+enum class NuclearFormFactorType
+{
+    none,
+    flat,
+    exponential,
+    gaussian,
+    size_
+};
+
+//---------------------------------------------------------------------------//
 // HELPER STRUCTS
 //---------------------------------------------------------------------------//
 //! Step length and limiting action to take
@@ -195,6 +206,9 @@ char const* to_cstring(TrackOrder);
 
 // Get a string corresponding to the MSC step limit algorithm
 char const* to_cstring(MscStepLimitAlgorithm value);
+
+// Get a string corresponding to the nuclear form factor model
+char const* to_cstring(NuclearFormFactorType value);
 
 // Checks that the TrackOrder will sort tracks by actions applied at the given
 // ActionOrder

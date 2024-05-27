@@ -76,6 +76,8 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(physics_file);
     LDIO_LOAD_OPTION(event_file);
 
+    LDIO_LOAD_OPTION(file_sampling_options);
+
     LDIO_LOAD_DEPRECATED(primary_gen_options, primary_options);
 
     LDIO_LOAD_OPTION(primary_options);
@@ -158,6 +160,9 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE(geometry_file);
     LDIO_SAVE(physics_file);
     LDIO_SAVE_OPTION(event_file);
+    LDIO_SAVE_WHEN(file_sampling_options,
+                   ends_with(v.event_file, ".root")
+                       && static_cast<bool>(v.file_sampling_options));
     LDIO_SAVE_WHEN(primary_options, v.event_file.empty());
 
     LDIO_SAVE_OPTION(mctruth_file);
@@ -194,6 +199,22 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
 #undef LDIO_SAVE_OPTION
 #undef LDIO_SAVE_WHEN
 #undef LDIO_SAVE
+}
+
+//---------------------------------------------------------------------------//
+void from_json(nlohmann::json const& j,
+               app::RunnerInput::EventFileSampling& efs)
+{
+    CELER_JSON_LOAD_REQUIRED(j, efs, num_events);
+    CELER_JSON_LOAD_REQUIRED(j, efs, num_merged);
+}
+
+void to_json(nlohmann::json& j, app::RunnerInput::EventFileSampling const& efs)
+{
+    j = nlohmann::json{
+        CELER_JSON_PAIR(efs, num_events),
+        CELER_JSON_PAIR(efs, num_merged),
+    };
 }
 
 //---------------------------------------------------------------------------//

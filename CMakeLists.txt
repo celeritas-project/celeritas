@@ -263,7 +263,7 @@ celeritas_set_default(CMAKE_INSTALL_MESSAGE LAZY)
 # Output locations for Celeritas products (used by CeleritasUtils.cmake and
 # install code below) will mirror the installation layout
 set(CELERITAS_CMAKE_CONFIG_DIRECTORY
-  "${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}/cmake")
+  "${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 set(CELERITAS_HEADER_CONFIG_DIRECTORY
   "${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_INCLUDEDIR}")
 set(CELERITAS_LIBRARY_OUTPUT_DIRECTORY
@@ -558,7 +558,7 @@ endif()
 
 # Where to install configured cmake files
 set(CELERITAS_INSTALL_CMAKECONFIGDIR
-  "${CMAKE_INSTALL_LIBDIR}/cmake/Celeritas")
+  "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 
 # Build list of CMake files to install
 set(_cmake_files
@@ -583,6 +583,11 @@ install(FILES ${_cmake_files}
 install(DIRECTORY "${PROJECT_SOURCE_DIR}/cmake/backport"
   DESTINATION "${CELERITAS_INSTALL_CMAKECONFIGDIR}"
   COMPONENT development
+)
+
+# Copy CMake files to support using Celeritas build dir as an install dir
+file(COPY ${_cmake_files}
+  DESTINATION "${CELERITAS_INSTALL_CMAKECONFIGDIR}"
 )
 
 # Export all cache variables that start with CELERITAS_
@@ -662,6 +667,12 @@ install(EXPORT celeritas-targets
   NAMESPACE Celeritas::
   DESTINATION "${CELERITAS_INSTALL_CMAKECONFIGDIR}"
   COMPONENT development
+)
+
+# Export targets to the build tree
+export(EXPORT celeritas-targets
+  FILE "${CELERITAS_CMAKE_CONFIG_DIRECTORY}/CeleritasTargets.cmake"
+  NAMESPACE Celeritas::
 )
 
 if(Celeritas_VERSION VERSION_EQUAL "0.0.0")

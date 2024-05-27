@@ -48,6 +48,9 @@ class RootEventReader : public EventReaderInterface
     //! Prevent copying and moving
     CELER_DELETE_COPY_MOVE(RootEventReader);
 
+    // Read a user-defined event from the ROOT file
+    result_type operator()(EventId event_id);
+
     // Read a single event from the ROOT file
     result_type operator()() final;
 
@@ -58,23 +61,18 @@ class RootEventReader : public EventReaderInterface
     //// DATA ////
 
     SPConstParticles params_;
-    std::size_t entry_count_{0};  // Current TTree entry
-    std::size_t num_entries_;  // Total number of entries in the TTree
-    size_type num_events_;  // Total number of events
     UPExtern<TFile> tfile_;
     UPExtern<TTree> ttree_;
+    std::size_t num_entries_;  // Total number of entries in the TTree
+    size_type num_events_;  // Total number of events
+    std::size_t entry_count_{0};  // Current TTree entry
+    EventId expected_event_id_{0};  // Last event ID read
+    std::vector<std::size_t> event_to_entry_{0};  // Cache event tree entry ids
 
     //// HELPER FUNCTIONS ////
 
     // Hardcoded ROOT TTree name defined by RootEventWriter
     char const* tree_name() { return "primaries"; }
-
-    // Fetch basic data types from leaves
-    template<class T>
-    auto from_leaf(char const* leaf_name) -> T;
-
-    // Fetch arrays from leaves
-    Real3 from_array_leaf(char const* leaf_name);
 };
 
 //---------------------------------------------------------------------------//
@@ -82,11 +80,13 @@ class RootEventReader : public EventReaderInterface
 inline RootEventReader::RootEventReader(std::string const&, SPConstParticles)
 {
     CELER_DISCARD(params_);
-    CELER_DISCARD(entry_count_);
-    CELER_DISCARD(num_entries_);
-    CELER_DISCARD(num_events_);
     CELER_DISCARD(tfile_);
     CELER_DISCARD(ttree_);
+    CELER_DISCARD(num_entries_);
+    CELER_DISCARD(num_events_);
+    CELER_DISCARD(entry_count_);
+    CELER_DISCARD(expected_event_id_);
+    CELER_DISCARD(event_to_entry_);
     CELER_NOT_CONFIGURED("ROOT");
 }
 

@@ -73,7 +73,7 @@ inp = {
     "num_track_slots": max_tracks,
     "initializer_capacity": init_capacity,
     "secondary_stack_factor": 2,
-    "physics_list": "ftfp_bert",
+    "physics_list": "celer_ftfp_bert",
     "field_type": "uniform",
     "field": [ 0.0, 0.0, 1.0 ],
     "field_options": {

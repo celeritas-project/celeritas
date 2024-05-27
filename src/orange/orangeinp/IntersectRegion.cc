@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/ConvexRegion.cc
+//! \file orange/orangeinp/IntersectRegion.cc
 //---------------------------------------------------------------------------//
-#include "ConvexRegion.hh"
+#include "IntersectRegion.hh"
 
 #include <cmath>
 
@@ -23,7 +23,7 @@
 #include "orange/surf/SimpleQuadric.hh"
 #include "orange/surf/SphereCentered.hh"
 
-#include "ConvexSurfaceBuilder.hh"
+#include "IntersectSurfaceBuilder.hh"
 
 #if CELERITAS_USE_JSON
 #    include "ObjectIO.json.hh"
@@ -69,7 +69,7 @@ Box::Box(Real3 const& halfwidths) : hw_{halfwidths}
 /*!
  * Build surfaces.
  */
-void Box::build(ConvexSurfaceBuilder& insert_surface) const
+void Box::build(IntersectSurfaceBuilder& insert_surface) const
 {
     constexpr auto X = to_int(Axis::x);
     constexpr auto Y = to_int(Axis::y);
@@ -105,7 +105,6 @@ Cone::Cone(Real2 const& radii, real_type halfheight)
     {
         CELER_VALIDATE(radii_[i] >= 0, << "negative radius: " << radii_[i]);
     }
-    CELER_VALIDATE(radii_[0] != radii_[1], << "radii cannot be equal");
     CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
 }
 
@@ -132,8 +131,16 @@ bool Cone::encloses(Cone const& other) const
  * - Truncate z so that it's not outside of the half-height
  * - Project that radial slice onto the xz plane by multiplying 1/sqrt(2)
  */
-void Cone::build(ConvexSurfaceBuilder& insert_surface) const
+void Cone::build(IntersectSurfaceBuilder& insert_surface) const
 {
+    if (CELER_UNLIKELY(
+            SoftEqual{insert_surface.tol().rel}(radii_[0], radii_[1])))
+    {
+        // Degenerate cone: build a cylinder instead
+        Cylinder cyl{real_type{0.5} * (radii_[0] + radii_[1]), hh_};
+        return cyl.build(insert_surface);
+    }
+
     // Build the bottom and top planes
     insert_surface(Sense::outside, PlaneZ{-hh_});
     insert_surface(Sense::inside, PlaneZ{hh_});
@@ -229,7 +236,7 @@ bool Cylinder::encloses(Cylinder const& other) const
 /*!
  * Build surfaces.
  */
-void Cylinder::build(ConvexSurfaceBuilder& insert_surface) const
+void Cylinder::build(IntersectSurfaceBuilder& insert_surface) const
 {
     insert_surface(Sense::outside, PlaneZ{-hh_});
     insert_surface(Sense::inside, PlaneZ{hh_});
@@ -265,7 +272,7 @@ Ellipsoid::Ellipsoid(Real3 const& radii) : radii_{radii}
 /*!
  * Build surfaces.
  */
-void Ellipsoid::build(ConvexSurfaceBuilder& insert_surface) const
+void Ellipsoid::build(IntersectSurfaceBuilder& insert_surface) const
 {
     // Second-order coefficients are product of the other two squared radii;
     // Zeroth-order coefficient is the product of all three squared radii
@@ -435,11 +442,14 @@ GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
 /*!
  * Build surfaces.
  */
-void GenTrap::build(ConvexSurfaceBuilder& insert_surface) const
+void GenTrap::build(IntersectSurfaceBuilder& insert_surface) const
 {
     // Build the bottom and top planes
     insert_surface(Sense::outside, PlaneZ{-hz_});
     insert_surface(Sense::inside, PlaneZ{hz_});
+
+    // TODO: use plane normal equality from SoftSurfaceEqual
+    SoftEqual soft_equal{insert_surface.tol().rel};
 
     // Build the side planes
     for (auto i : range(lo_.size()))
@@ -487,6 +497,22 @@ void GenTrap::build(ConvexSurfaceBuilder& insert_surface) const
                            GeneralQuadric{abc, def, ghi, offset});
         }
     }
+
+    // Construct exterior bounding box
+    BBox exterior_bbox;
+    for (VecReal2 const* p : {&lo_, &hi_})
+    {
+        for (Real2 const& xy : *p)
+        {
+            for (auto ax : {Axis::x, Axis::y})
+            {
+                exterior_bbox.grow(ax, xy[to_int(ax)]);
+            }
+        }
+    }
+    exterior_bbox.grow(Bound::lo, Axis::z, -hz_);
+    exterior_bbox.grow(Bound::hi, Axis::z, hz_);
+    insert_surface(Sense::inside, exterior_bbox);
 }
 
 //---------------------------------------------------------------------------//
@@ -522,7 +548,7 @@ InfWedge::InfWedge(Turn start, Turn interior)
  * Both planes should point "outward" to the wedge. In the degenerate case of
  * interior = 0.5 we rely on CSG object deduplication.
  */
-void InfWedge::build(ConvexSurfaceBuilder& insert_surface) const
+void InfWedge::build(IntersectSurfaceBuilder& insert_surface) const
 {
     real_type sinstart, cosstart, sinend, cosend;
     sincos(start_, &sinstart, &cosstart);
@@ -577,7 +603,7 @@ Parallelepiped::Parallelepiped(Real3 const& half_projs,
 /*!
  * Build surfaces.
  */
-void Parallelepiped::build(ConvexSurfaceBuilder& insert_surface) const
+void Parallelepiped::build(IntersectSurfaceBuilder& insert_surface) const
 {
     constexpr auto X = to_int(Axis::x);
     constexpr auto Y = to_int(Axis::y);
@@ -653,7 +679,7 @@ Prism::Prism(int num_sides,
 /*!
  * Build surfaces.
  */
-void Prism::build(ConvexSurfaceBuilder& insert_surface) const
+void Prism::build(IntersectSurfaceBuilder& insert_surface) const
 {
     using constants::pi;
 
@@ -720,7 +746,7 @@ Sphere::Sphere(real_type radius) : radius_{radius}
 /*!
  * Build surfaces.
  */
-void Sphere::build(ConvexSurfaceBuilder& insert_surface) const
+void Sphere::build(IntersectSurfaceBuilder& insert_surface) const
 {
     insert_surface(SphereCentered{radius_});
 }

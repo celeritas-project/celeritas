@@ -11,7 +11,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
-#include "celeritas/em/data/MscData.hh"
+#include "celeritas/em/data/CommonCoulombData.hh"
 #include "celeritas/io/ImportModel.hh"
 
 namespace celeritas
@@ -42,7 +42,7 @@ class MscParamsHelper
                     VecImportMscModel const&,
                     ImportModelClass);
 
-    void build_ids(MscIds* ids) const;
+    void build_ids(CoulombIds* ids) const;
     void build_xs(XsValues*, Values*) const;
 
   private:

@@ -13,6 +13,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/CoulombScatteringData.hh"
+#include "celeritas/em/data/WentzelOKVIData.hh"
 #include "celeritas/em/distribution/WentzelDistribution.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialView.hh"
@@ -52,11 +53,13 @@ class CoulombScatteringInteractor
   public:
     //! Construct with shared and state data
     inline CELER_FUNCTION
-    CoulombScatteringInteractor(CoulombScatteringRef const& shared,
+    CoulombScatteringInteractor(CoulombScatteringData const& shared,
+                                NativeCRef<WentzelOKVIData> const& wentzel,
                                 ParticleTrackView const& particle,
                                 Real3 const& inc_direction,
+                                MaterialView const& material,
                                 IsotopeView const& target,
-                                ElementId const& el_id,
+                                ElementId el_id,
                                 CutoffView const& cutoffs);
 
     //! Sample an interaction with the given RNG
@@ -75,8 +78,11 @@ class CoulombScatteringInteractor
     // Target isotope
     IsotopeView const& target_;
 
+    // Helper for calculating xs ratio and other quantities
+    WentzelHelper const helper_;
+
     // Scattering direction distribution of the Wentzel model
-    WentzelDistribution const sample_angle;
+    WentzelDistribution const sample_angle_;
 
     //// HELPER FUNCTIONS ////
 
@@ -92,21 +98,32 @@ class CoulombScatteringInteractor
  */
 CELER_FUNCTION
 CoulombScatteringInteractor::CoulombScatteringInteractor(
-    CoulombScatteringRef const& shared,
+    CoulombScatteringData const& shared,
+    NativeCRef<WentzelOKVIData> const& wentzel,
     ParticleTrackView const& particle,
     Real3 const& inc_direction,
+    MaterialView const& material,
     IsotopeView const& target,
-    ElementId const& el_id,
+    ElementId el_id,
     CutoffView const& cutoffs)
     : inc_direction_(inc_direction)
     , particle_(particle)
     , target_(target)
-    , sample_angle(particle,
-                   target,
-                   shared.elem_data[el_id],
-                   // TODO: Use proton when supported
-                   cutoffs.energy(shared.ids.electron),
-                   shared)
+    , helper_(particle,
+              material,
+              target.atomic_number(),
+              wentzel,
+              shared.ids,
+              // TODO: Use the proton production cutoff when the recoiled
+              // nucleus production is supported
+              cutoffs.energy(shared.ids.electron))
+    , sample_angle_(wentzel,
+                    helper_,
+                    particle,
+                    target,
+                    el_id,
+                    helper_.cos_thetamax_nuclear(),
+                    shared.cos_thetamax())
 {
     CELER_EXPECT(particle_.particle_id() == shared.ids.electron
                  || particle_.particle_id() == shared.ids.positron);
@@ -125,7 +142,7 @@ CELER_FUNCTION Interaction CoulombScatteringInteractor::operator()(Engine& rng)
     Interaction result;
 
     // Sample the new direction
-    real_type cos_theta = sample_angle(rng);
+    real_type cos_theta = sample_angle_(rng);
     UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
     result.direction
         = rotate(inc_direction_, from_spherical(cos_theta, sample_phi(rng)));

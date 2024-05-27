@@ -15,6 +15,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/grid/VectorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
@@ -22,7 +23,6 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/detail/ActionSequence.hh"
-#include "celeritas/grid/VectorUtils.hh"
 #include "celeritas/phys/Model.hh"
 
 #include "StepTimer.hh"
@@ -79,8 +79,7 @@ void Transporter<M>::operator()()
  * Transport the input primaries and all secondaries produced.
  */
 template<MemSpace M>
-auto Transporter<M>::operator()(SpanConstPrimary primaries)
-    -> TransporterResult
+auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
 {
     // Initialize results
     TransporterResult result;

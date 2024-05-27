@@ -31,6 +31,15 @@ VolumeBuilder::VolumeBuilder(CsgUnitBuilder* ub) : ub_{ub}
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the construction tolerance.
+ */
+auto VolumeBuilder::tol() const -> Tol const&
+{
+    return ub_->tol();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Access the local-to-global transform during construction.
  */
 VariantTransform const& VolumeBuilder::local_transform() const

@@ -18,6 +18,7 @@ list(APPEND SOURCES
   em/params/AtomicRelaxationParams.cc
   em/params/FluctuationParams.cc
   em/params/UrbanMscParams.cc
+  em/params/WentzelOKVIParams.cc
   em/params/WentzelVIMscParams.cc
   em/params/detail/MscParamsHelper.cc
   em/process/BremsstrahlungProcess.cc
@@ -46,7 +47,6 @@ list(APPEND SOURCES
   grid/ValueGridBuilder.cc
   grid/ValueGridInserter.cc
   grid/ValueGridType.cc
-  grid/VectorUtils.cc
   io/AtomicRelaxationReader.cc
   io/ImportData.cc
   io/ImportMaterial.cc
@@ -114,11 +114,14 @@ if(CELERITAS_USE_Geant4)
     ext/GeantImporter.cc
     ext/GeantSetup.cc
     ext/GeantVolumeMapper.cc
+    ext/detail/CelerEmPhysicsList.cc
+    ext/detail/CelerEmStandardPhysics.cc
+    ext/detail/CelerFTFPBert.cc
     ext/detail/GeantBremsstrahlungProcess.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
-    ext/detail/GeantPhysicsList.cc
     ext/detail/GeantProcessImporter.cc
+    ext/detail/MuHadEmStandardPhysics.cc
   )
   celeritas_get_g4libs(_cg4_libs global geometry materials processes run
     physicslists tasking)
@@ -195,9 +198,10 @@ if(CELERITAS_USE_ROOT)
     ext/ScopedRootErrorHandler.cc
     ext/RootUniquePtr.root.cc
     ext/RootFileManager.cc
-    user/RootStepWriter.cc
     io/RootEventReader.cc
     io/RootEventWriter.cc
+    phys/RootEventSampler.cc
+    user/RootStepWriter.cc
     "${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx"
   )
 
@@ -302,5 +306,3 @@ celeritas_target_link_libraries(celeritas
 )
 
 #-----------------------------------------------------------------------------#
-
-

@@ -23,6 +23,7 @@
 #include "corecel/sys/MemRegistry.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "geocel/GeoParamsOutput.hh"
+#include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/detail/BoundaryAction.hh"
@@ -88,6 +89,10 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.rng = get_ref<M>(*p.rng);
     ref.sim = get_ref<M>(*p.sim);
     ref.init = get_ref<M>(*p.init);
+    if (p.wentzel)
+    {
+        ref.wentzel = get_ref<M>(*p.wentzel);
+    }
 
     CELER_ENSURE(ref);
     return ref;

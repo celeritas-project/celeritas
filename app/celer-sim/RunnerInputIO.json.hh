@@ -20,6 +20,9 @@ namespace app
 void to_json(nlohmann::json& j, RunnerInput const& value);
 void from_json(nlohmann::json const& j, RunnerInput& value);
 
+void to_json(nlohmann::json& j, RunnerInput::EventFileSampling const& efs);
+void from_json(nlohmann::json const& j, RunnerInput::EventFileSampling& efs);
+
 //---------------------------------------------------------------------------//
 }  // namespace app
 }  // namespace celeritas

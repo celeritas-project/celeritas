@@ -35,6 +35,7 @@ class SimpleTestBase : virtual public GlobalGeoTestBase, public OnlyCoreTestBase
     SPConstSim build_sim() override;
     SPConstTrackInit build_init() override;
     SPConstAction build_along_step() override;
+    SPConstWentzelOKVI build_wentzel() override;
 };
 
 //---------------------------------------------------------------------------//

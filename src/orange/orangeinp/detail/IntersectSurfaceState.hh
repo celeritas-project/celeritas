@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/detail/ConvexSurfaceState.hh
+//! \file orange/orangeinp/detail/IntersectSurfaceState.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -29,7 +29,7 @@ namespace detail
  * Note that the surface clippers have *pointers* to local and global bounding
  * zones. Those must exceed the lifetime of this state.
  */
-struct ConvexSurfaceState
+struct IntersectSurfaceState
 {
     //!@{
     //! \name Input state
@@ -43,7 +43,7 @@ struct ConvexSurfaceState
 
     //!@{
     //! \name Output state
-    //! Local (to convex surface state) interior/exterior
+    //! Local (to intersecting surface state) interior/exterior
     BoundingZone local_bzone = BoundingZone::from_infinite();
     //! Global (to unit) interior/exterior
     BoundingZone global_bzone = BoundingZone::from_infinite();
@@ -60,7 +60,7 @@ struct ConvexSurfaceState
 
 //---------------------------------------------------------------------------//
 // Use the local and global bounding zones to create a better zone
-BoundingZone calc_merged_bzone(ConvexSurfaceState const& css);
+BoundingZone calc_merged_bzone(IntersectSurfaceState const& css);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
