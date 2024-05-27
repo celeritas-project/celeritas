@@ -62,9 +62,6 @@ option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" OFF)
 # Assertion handling
 option(CELERITAS_DEBUG "Enable runtime assertions" OFF)
 
-# Download external libraries
-option(CELERITAS_PERFETTO_DOWNLOAD "Fetch perfetto sources" OFF)
-
 # Secondary testing options (only applies to CTest)
 if(NOT CELERITAS_DEBUG OR CELERITAS_USE_VecGeom)
   set(_default_lock ON)
@@ -337,9 +334,9 @@ if(CELERITAS_USE_Perfetto)
   include(FetchContent)
   if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     celeritas_error_incompatible_option(
-            "Perfetto is not supported with CUDA/HIP build"
-            CELERITAS_USE_Perfetto
-            OFF
+      "Perfetto is not supported with CUDA/HIP build"
+      CELERITAS_USE_Perfetto
+      OFF
     )
   endif()
   if (PERFETTO_ROOT AND NOT FETCHCONTENT_SOURCE_DIR_PERFETTO)
@@ -347,10 +344,10 @@ if(CELERITAS_USE_Perfetto)
   endif()
 
   FetchContent_Declare(
-          perfetto
-          #v45 .0
-          URL https://android.googlesource.com/platform/external/perfetto/+archive/7add4fded398ef47414a556b7b81d212a4482a66.tar.gz
-          DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    perfetto
+    # v45 .0
+    URL https://android.googlesource.com/platform/external/perfetto/+archive/7add4fded398ef47414a556b7b81d212a4482a66.tar.gz
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
   )
 
   if (NOT FETCHCONTENT_SOURCE_DIR_PERFETTO)
