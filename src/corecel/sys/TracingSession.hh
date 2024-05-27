@@ -50,7 +50,7 @@ enum class TracingMode : uint32_t
  * Constructors will only configure and initialize the session. It needs to
  * be started explicitly by calling \c TracingSession::start
  * Only a single tracing mode is supported. If you are only interested in
- * application-level events (\c ScopedProfiling and \c Counter),
+ * application-level events (\c ScopedProfiling and \c trace_counter),
  * then the in-process mode is sufficient and is enabled by providing the
  * trace data filename to the constructor. When using in-process tracing,
  * the buffer size can be configured by setting \c
@@ -68,20 +68,23 @@ class TracingSession
 {
   public:
     // Configure a system session recording to a daemon
-    TracingSession();
+    TracingSession() noexcept;
 
     // Configure an in-process session recording to filename
-    explicit TracingSession(std::string_view filename);
+    explicit TracingSession(std::string_view filename) noexcept(!CELERITAS_DEBUG);
 
     // Terminate the session and close open files
     ~TracingSession();
 
     // Start the profiling session
-    void start();
+    void start() noexcept;
 
     //! Prevent copying but allow moving, following \c std::unique_ptr
     //! semantics
-    CELER_DEFAULT_MOVE_DELETE_COPY(TracingSession);
+    TracingSession(TracingSession const&) = delete;
+    TracingSession& operator=(TracingSession const&) = delete;
+    TracingSession(TracingSession&&) noexcept;
+    TracingSession& operator=(TracingSession&&) noexcept;
 
   private:
     bool started_{false};

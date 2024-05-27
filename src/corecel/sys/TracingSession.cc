@@ -29,7 +29,8 @@ using celeritas::TracingMode;
 /*!
  * Initialize the session for the given mode if profiling is enabled.
  */
-std::unique_ptr<perfetto::TracingSession> initialize_session(TracingMode mode)
+std::unique_ptr<perfetto::TracingSession>
+initialize_session(TracingMode mode) noexcept
 {
     if (!celeritas::use_profiling())
     {
@@ -56,7 +57,7 @@ std::unique_ptr<perfetto::TracingSession> initialize_session(TracingMode mode)
 /*!
  * Configure the session to record Celeritas track events.
  */
-perfetto::TraceConfig configure_session()
+perfetto::TraceConfig configure_session() noexcept
 {
     perfetto::protos::gen::TrackEventConfig track_event_cfg;
     track_event_cfg.add_disabled_categories("*");
@@ -83,11 +84,16 @@ perfetto::TraceConfig configure_session()
 
 namespace celeritas
 {
+
+// Defined here as we need the full definition of perfetto::TracingSession
+TracingSession::TracingSession(TracingSession&&) noexcept = default;
+TracingSession& TracingSession::operator=(TracingSession&&) noexcept = default;
+
 //---------------------------------------------------------------------------//
 /*!
  * Start a system tracing session.
  */
-TracingSession::TracingSession()
+TracingSession::TracingSession() noexcept
     : session_{initialize_session(TracingMode::System)}
 {
     if (session_)
@@ -99,7 +105,8 @@ TracingSession::TracingSession()
 /*!
  * Start an in-process tracing session.
  */
-TracingSession::TracingSession(std::string_view filename)
+TracingSession::TracingSession(std::string_view filename) noexcept(
+    !CELERITAS_DEBUG)
     : session_{initialize_session(TracingMode::InProcess)}
 {
     CELER_EXPECT(!filename.empty());
@@ -131,7 +138,7 @@ TracingSession::~TracingSession()
 /*!
  * Start the profiling session.
  */
-void TracingSession::start()
+void TracingSession::start() noexcept
 {
     if (session_)
     {
