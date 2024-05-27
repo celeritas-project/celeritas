@@ -55,17 +55,19 @@
   ],
   "buildPresets": [
     {
-      "name": "ultralite",
-      "configurePreset": "ultralite",
+      "name": "base",
+      "configurePreset": "base",
       "nativeToolOptions": ["-k0"],
       "verbose": true,
       "jobs": 4
-    }
+    },
+    {"name": "fast", "configurePreset": "fast", "inherits": "base"},
+    {"name": "ultralite", "configurePreset": "ultralite", "inherits": "base"}
   ],
   "testPresets": [
     {
-      "name": "ultralite",
-      "configurePreset": "ultralite",
+      "name": "base",
+      "configurePreset": "base",
       "execution": {
         "noTestsAction": "error",
         "stopOnFailure": false,
@@ -77,6 +79,8 @@
         "maxPassedTestOutputSize": 65536,
         "outputOnFailure": true
       }
-    }
+    },
+    {"name": "fast", "configurePreset": "fast", "inherits": "base"},
+    {"name": "ultralite", "configurePreset": "ultralite", "inherits": "base"}
   ]
 }
