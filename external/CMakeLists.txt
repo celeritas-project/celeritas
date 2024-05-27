@@ -4,6 +4,43 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
+set(_celer_external_packages)
+
+#-----------------------------------------------------------------------------#
+# GTest
+#-----------------------------------------------------------------------------#
+
+if(CELERITAS_EXTERNAL_GTest)
+  FetchContent_Declare(
+    GTest
+    URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  )
+  list(APPEND _celer_external_packages GTest)
+
+  set(BUILD_GMOCK OFF) # For compatibility
+  set(INSTALL_GTEST OFF)
+  set(gtest_hide_internal_symbols ON)
+endif()
+
+#-----------------------------------------------------------------------------#
+# nlohmann_json
+#-----------------------------------------------------------------------------#
+
+if(CELERITAS_EXTERNAL_nlohmann_json)
+  FetchContent_Declare(
+    nlohmann_json
+    URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  )
+  list(APPEND _celer_external_packages nlohmann_json)
+
+  set(JSON_Install ON)
+endif()
+
+#-----------------------------------------------------------------------------#
+# BUILD
+#-----------------------------------------------------------------------------#
 # Save some variables to see if badly behaving packages change them
 set(_checked_cmake_variables
   BUILD_SHARED_LIBS CMAKE_CXX_STANDARD CMAKE_CXX_EXTENSIONS
@@ -18,38 +55,10 @@ foreach(_var IN LISTS _checked_cmake_variables)
   set(_saved_${_var} "${${_var}}")
 endforeach()
 
-#-----------------------------------------------------------------------------#
-# GTest
-#-----------------------------------------------------------------------------#
+# Activate externals
+FetchContent_MakeAvailable(${_celer_external_packages})
 
-if(CELERITAS_EXTERNAL_GTest)
-  FetchContent_Declare(
-    GTest
-    URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-  )
-
-  set(BUILD_GMOCK OFF) # For compatibility
-  set(INSTALL_GTEST OFF)
-  set(gtest_hide_internal_symbols ON)
-  FetchContent_MakeAvailable(GTest)
-endif()
-
-#-----------------------------------------------------------------------------#
-# nlohmann_json
-#-----------------------------------------------------------------------------#
-
-if(CELERITAS_EXTERNAL_nlohmann_json)
-  FetchContent_Declare(
-    nlohmann_json
-    URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-  )
-
-  FetchContent_MakeAvailable(nlohmann_json)
-endif()
-
-#-----------------------------------------------------------------------------#
+# Check that variables are unmodified
 foreach(_var IN LISTS _checked_variables)
   set(_orig "${_saved_${_var}}")
   set(_new "${${_var}}")
