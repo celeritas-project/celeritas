@@ -27,7 +27,7 @@ endif()
 celeritas_add_library(testcel_harness ${_harness_sources})
 target_compile_features(testcel_harness PUBLIC cxx_std_17)
 celeritas_target_link_libraries(testcel_harness
-  PUBLIC Celeritas::corecel GTest::GTest
+  PUBLIC Celeritas::corecel GTest::gtest
   PRIVATE ${nlohmann_json_LIBRARIES}
 )
 celeritas_target_include_directories(testcel_harness

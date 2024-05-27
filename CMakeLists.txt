@@ -39,13 +39,10 @@ if(NOT CELERITAS_USE_CUDA)
   celeritas_optional_language(HIP)
 endif()
 
-# Required dependencies: find or fetch inside `external`
-celeritas_find_or_external_package(nlohmann_json 3.7.0)
-set(CELERITAS_USE_JSON ON)
-
 # Optional dependencies
 celeritas_optional_package(Geant4 "Enable Geant4 adapter tools")
 celeritas_optional_package(HepMC3 "Enable HepMC3 event record reader")
+option(CELERITAS_USE_JSON "Enable JSON I/O " ON)
 celeritas_optional_package(MPI "Enable distributed memory parallelism")
 celeritas_optional_package(OpenMP "Enable CPU shared-memory parallelism")
 celeritas_optional_package(Python "Use Python to generate and preprocess")
@@ -317,8 +314,10 @@ if(CELERITAS_USE_HepMC3)
   set(HepMC3_LIBRARIES HepMC3::HepMC3)
 endif()
 
-if(CELERITAS_USE_JSON AND NOT CELERITAS_EXTERNAL_nlohmann_json)
-  if(NOT nlohmann_json_FOUND)
+if(CELERITAS_USE_JSON)
+  # Required dependencies: find or fetch inside `external`
+  celeritas_find_or_external_package(nlohmann_json 3.7.0)
+  if(NOT CELERITAS_EXTERNAL_nlohmann_json AND NOT nlohmann_json_FOUND)
     find_package(nlohmann_json 3.7.0 REQUIRED)
   endif()
   set(nlohmann_json_LIBRARIES nlohmann_json::nlohmann_json)
@@ -459,17 +458,7 @@ if(CELERITAS_BUILD_DOCS)
 endif()
 
 if(CELERITAS_BUILD_TESTS)
-  # TODO: download and build GTest as a subproject if not available
-  if(NOT GTest_FOUND)
-    find_package(GTest 1.10)
-  endif()
-  if(NOT GTest_FOUND)
-    celeritas_error_incompatible_option(
-      "Googletest (GTest) is required for testing but was not found"
-      CELERITAS_BUILD_TESTS
-      OFF
-    )
-  endif()
+  celeritas_find_or_external_package(GTest 1.10)
 endif()
 
 #----------------------------------------------------------------------------#
