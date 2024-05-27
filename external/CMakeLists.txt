@@ -21,6 +21,7 @@ if(CELERITAS_EXTERNAL_GTest)
   set(BUILD_GMOCK OFF) # For compatibility
   set(INSTALL_GTEST OFF)
   set(gtest_hide_internal_symbols ON)
+  set(gtest_force_shared_crt ON) # Don't replace /MD with -MT for windows
 endif()
 
 #-----------------------------------------------------------------------------#
