@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-celeritas_add_library(testcel_orange
+celeritas_add_test_library(testcel_orange
   OrangeGeoTestBase.cc
   OrangeTestBase.cc
   orangeinp/CsgTestUtils.cc
@@ -12,8 +12,7 @@ celeritas_add_library(testcel_orange
 )
 celeritas_target_link_libraries(testcel_orange
   PUBLIC
-    Celeritas::orange Celeritas::testcel_harness Celeritas::testcel_core
-    Celeritas::testcel_geocel
+    Celeritas::orange testcel_harness testcel_core testcel_geocel
   PRIVATE
     Celeritas::orange ${nlohmann_json_LIBRARIES}
 )
