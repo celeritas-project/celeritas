@@ -9,11 +9,6 @@ get_filename_component(CELERITAS_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" DIRECTOR
 list(APPEND CMAKE_MODULE_PATH
   "${CELERITAS_CMAKE_DIR}"
 )
-if(CMAKE_VERSION VERSION_LESS 3.18)
-  list(APPEND CMAKE_MODULE_PATH
-    "${CELERITAS_CMAKE_DIR}/backport/3.18"
-  )
-endif()
 
 #-----------------------------------------------------------------------------#
 # Version compatibility

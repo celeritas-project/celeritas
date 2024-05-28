@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #----------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.18)
 
 # Set Celeritas_VERSION using git tags using the following format
 set(CGV_TAG_REGEX "v([0-9.]+)(-dev|-rc.[0-9]+)?")
@@ -15,12 +15,9 @@ set(CMAKE_USER_MAKE_RULES_OVERRIDE
   "${CMAKE_CURRENT_LIST_DIR}/cmake/CeleritasMakeRulesOverride.cmake")
 
 project(Celeritas VERSION "${Celeritas_VERSION}" LANGUAGES CXX)
-cmake_policy(VERSION 3.12...3.22)
+cmake_policy(VERSION 3.18...3.28)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
-if(CMAKE_VERSION VERSION_LESS 3.18)
-  list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/backport/3.18")
-endif()
 
 include(GNUInstallDirs)
 include(CudaRdcUtils)
@@ -180,19 +177,6 @@ endif()
 # CMAKE VERSION CHECKS
 #----------------------------------------------------------------------------#
 
-if(CMAKE_VERSION VERSION_LESS 3.13 AND CELERITAS_USE_CUDA AND CELERITAS_USE_MPI)
-  message(FATAL_ERROR "Celeritas requires CMake 3.13 or higher "
-    "when building with CUDA + MPI.")
-endif()
-if(CMAKE_VERSION VERSION_LESS 3.18 AND CELERITAS_USE_CUDA
-    AND CELERITAS_USE_VecGeom)
-  message(FATAL_ERROR "VecGeom+CUDA requires CMake 3.18 or higher to support "
-    "\"Separable compilation\".")
-endif()
-if(CMAKE_VERSION VERSION_LESS 3.18 AND CMAKE_CUDA_ARCHITECTURES)
-  message(FATAL_ERROR "The CMAKE_CUDA_ARCHITECTURES flag is not compatible "
-    "with this version of CMake. Set CMAKE_CUDA_FLAGS.")
-endif()
 if(CMAKE_VERSION VERSION_LESS 3.22 AND CELERITAS_USE_HIP)
   message(WARNING "HIP support is immature; CMake 3.22+ is recommended.")
 endif()
@@ -582,10 +566,6 @@ if(CELERITAS_BUILD_TESTS)
 endif()
 
 install(FILES ${_cmake_files}
-  DESTINATION "${CELERITAS_INSTALL_CMAKECONFIGDIR}"
-  COMPONENT development
-)
-install(DIRECTORY "${PROJECT_SOURCE_DIR}/cmake/backport"
   DESTINATION "${CELERITAS_INSTALL_CMAKECONFIGDIR}"
   COMPONENT development
 )

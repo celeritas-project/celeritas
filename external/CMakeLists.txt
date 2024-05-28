@@ -14,7 +14,6 @@ if(CELERITAS_EXTERNAL_GTest)
   FetchContent_Declare(
     GTest
     URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
   )
   list(APPEND _celer_external_packages GTest)
 
@@ -32,7 +31,6 @@ if(CELERITAS_EXTERNAL_nlohmann_json)
   FetchContent_Declare(
     nlohmann_json
     URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
   )
   list(APPEND _celer_external_packages nlohmann_json)
 
