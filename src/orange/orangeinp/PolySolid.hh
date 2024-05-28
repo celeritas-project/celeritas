@@ -25,7 +25,7 @@ namespace orangeinp
  *
  * Axial grid points must be nondecreasing. If "inner" points are specified,
  * they must be less than the outer points and more than zero. The inner list
- * is allowed to be empty indictating no inner (hollow) exclusion.
+ * is allowed to be empty indicating no inner (hollow) exclusion.
  */
 class PolySegments
 {
@@ -168,6 +168,45 @@ class PolyCone final : public PolySolidBase
 
     // Write the shape to JSON
     void output(JsonPimpl*) const final;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * A series of stacked regular prisms or cone-y prisms.
+ */
+class PolyPrism final : public PolySolidBase
+{
+  public:
+    // Return a polyprism *or* a simplified version for only a single segment
+    static SPConstObject or_solid(std::string&& label,
+                                  PolySegments&& segments,
+                                  SolidEnclosedAngle&& enclosed,
+                                  int num_sides,
+                                  real_type orientation);
+
+    // Build with label, axial segments, parameters, optional restriction
+    PolyPrism(std::string&& label,
+              PolySegments&& segments,
+              SolidEnclosedAngle&& enclosed,
+              int num_sides,
+              real_type orientation);
+
+    // Construct a volume from this object
+    NodeId build(VolumeBuilder&) const final;
+
+    // Write the shape to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Number of sides
+    int num_sides() const { return num_sides_; }
+    //! Rotation factor
+    real_type orientation() const { return orientation_; }
+
+  private:
+    int num_sides_;
+    real_type orientation_;
 };
 
 //---------------------------------------------------------------------------//
