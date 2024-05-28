@@ -74,7 +74,7 @@ def main():
     if not args.output:
         outfile = sys.stdout
     else:
-        outfile = open(args.output)
+        outfile = open(args.output, 'w')
 
     run(infile, outfile)
 

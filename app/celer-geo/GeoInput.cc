@@ -61,11 +61,11 @@ void from_json(nlohmann::json const& j, ModelSetup& v)
 
 void from_json(nlohmann::json const& j, TraceSetup& v)
 {
-    if (auto iter = j.find("geometry"); iter != j.end())
+    if (auto iter = j.find("geometry"); iter != j.end() && !iter->is_null())
     {
         v.geometry = to_geometry(iter->get<std::string>());
     }
-    if (auto iter = j.find("memspace"); iter != j.end())
+    if (auto iter = j.find("memspace"); iter != j.end() && !iter->is_null())
     {
         v.memspace = to_memspace(iter->get<std::string>());
     }
