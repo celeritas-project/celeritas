@@ -91,6 +91,9 @@ jobs:
         run: |
           ccache -s
   windows:
+    defaults:
+      run:
+        shell: pwsh
     env:
       CCACHE_DIR: "${{github.workspace}}\\.ccache"
       CCACHE_MAXSIZE: "100Mi"
@@ -115,7 +118,6 @@ jobs:
         run: |
           ccache -z
       - name: Configure Celeritas
-        shell: pwsh
         run: |
           Copy-Item scripts/cmake-presets/ci-windows-github.json -Destination CMakeUserPresets.json
           cmake --preset=$Env:CMAKE_PRESET `
@@ -126,7 +128,6 @@ jobs:
         run: |
           cmake --build --preset=$Env:CMAKE_PRESET 
       - name: Test all
-        continue-on-error: true
         run: |
           ctest --preset=$Env:CMAKE_PRESET 
       - name: Install
