@@ -249,7 +249,7 @@ if(BUILD_SHARED_LIBS)
 endif()
 set(_default_pic OFF)
 if(BUILD_SHARED_LIBS OR CELERITAS_USE_ROOT)
-  set(_default_pic OFF)
+  set(_default_pic ON)
 endif()
 celeritas_set_default(CMAKE_POSITION_INDEPENDENT_CODE ${_default_pic}
   "Make sure build can be used with shared libs or runtime modules")
