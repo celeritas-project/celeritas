@@ -87,10 +87,7 @@ void run(std::istream* is, std::shared_ptr<OutputRegistry> output)
 #else
     CELER_ASSERT_UNREACHABLE();
 #endif
-    TracingSession tracing_session{
-        run_input->tracing_file.empty()
-            ? TracingSession{}
-            : TracingSession{run_input->tracing_file}};
+    TracingSession tracing_session{run_input->tracing_file};
     tracing_session.start();
     ScopedProfiling profile_this{"celer-sim"};
     output->insert(std::make_shared<OutputInterfaceAdapter<RunnerInput>>(

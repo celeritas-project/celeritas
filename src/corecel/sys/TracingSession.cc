@@ -20,6 +20,8 @@
 
 PERFETTO_TRACK_EVENT_STATIC_STORAGE();
 
+namespace celeritas
+{
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -82,8 +84,6 @@ perfetto::TraceConfig configure_session() noexcept
 //---------------------------------------------------------------------------//
 }  // namespace
 
-namespace celeritas
-{
 //---------------------------------------------------------------------------//
 // Defined here as we need the full definition of perfetto::TracingSession
 TracingSession::TracingSession(TracingSession&&) noexcept = default;
@@ -106,14 +106,16 @@ TracingSession::TracingSession() noexcept
 /*!
  * Start an in-process tracing session.
  */
-TracingSession::TracingSession(std::string_view filename) noexcept(
-    !CELERITAS_DEBUG)
-    : session_{initialize_session(TracingMode::InProcess)}
+TracingSession::TracingSession(std::string_view filename) noexcept
+    : session_{initialize_session(filename.empty() ? TracingMode::System
+                                                   : TracingMode::InProcess)}
 {
-    CELER_EXPECT(!filename.empty());
     if (session_)
     {
-        fd_ = open(filename.data(), O_RDWR | O_CREAT | O_TRUNC, 0660);
+        if (!filename.empty())
+        {
+            fd_ = open(filename.data(), O_RDWR | O_CREAT | O_TRUNC, 0660);
+        }
         session_->Setup(configure_session(), fd_);
     }
 }

@@ -9,6 +9,7 @@
 
 #include <string>
 
+#include "celeritas_config.h"
 #include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/LabelIO.json.hh"
@@ -162,7 +163,7 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE_WHEN(primary_options, v.event_file.empty());
 
     LDIO_SAVE_OPTION(mctruth_file);
-    LDIO_SAVE_OPTION(tracing_file);
+    LDIO_SAVE_WHEN(tracing_file, CELERITAS_USE_PERFETTO);
     LDIO_SAVE_WHEN(mctruth_filter, !v.mctruth_file.empty());
     LDIO_SAVE(simple_calo);
     LDIO_SAVE(action_diagnostic);

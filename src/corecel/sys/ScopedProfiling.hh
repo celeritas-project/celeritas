@@ -56,7 +56,7 @@ struct ScopedProfilingInput
  * be available on all systems.
  *
  * \note The CPU implementation requires Perfetto. It is not supported when
- * Celeritas is build with device support (CUDA/HIP)
+ * Celeritas is built with device support (CUDA/HIP)
  */
 class ScopedProfiling
 {

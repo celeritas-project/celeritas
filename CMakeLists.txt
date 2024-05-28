@@ -48,7 +48,7 @@ celeritas_optional_package(OpenMP "Enable CPU shared-memory parallelism")
 celeritas_optional_package(Python "Use Python to generate and preprocess")
 celeritas_optional_package(ROOT "Enable ROOT I/O")
 celeritas_optional_package(VecGeom "Use VecGeom geometry")
-celeritas_optional_package(Perfetto "Perfetto tracing library")
+option(CELERITAS_USE_Perfetto "Perfetto tracing library" OFF)
 
 if(CELERITAS_USE_Python)
   celeritas_optional_package(SWIG SWIG@4.1 "Build SWIG Python bindings")
@@ -339,27 +339,23 @@ if(CELERITAS_USE_Perfetto)
       OFF
     )
   endif()
-  if (PERFETTO_ROOT AND NOT FETCHCONTENT_SOURCE_DIR_PERFETTO)
+  if(PERFETTO_ROOT AND NOT FETCHCONTENT_SOURCE_DIR_PERFETTO)
     set(FETCHCONTENT_SOURCE_DIR_PERFETTO ${PERFETTO_ROOT})
   endif()
 
   FetchContent_Declare(
     perfetto
-    # v45 .0
+    # v45.0
     URL https://android.googlesource.com/platform/external/perfetto/+archive/7add4fded398ef47414a556b7b81d212a4482a66.tar.gz
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
   )
 
-  if (NOT FETCHCONTENT_SOURCE_DIR_PERFETTO)
-    message(STATUS "Fetching perfetto")
-  endif()
-
   FetchContent_MakeAvailable(perfetto)
 
-  set(Perfetto_SDK ${perfetto_SOURCE_DIR}/sdk)
-  add_library(celeritas_perfetto STATIC ${Perfetto_SDK}/perfetto.cc)
+  set(Perfetto_INCLUDE_DIR ${perfetto_SOURCE_DIR}/sdk)
+  add_library(celeritas_perfetto STATIC ${Perfetto_INCLUDE_DIR}/perfetto.cc)
   add_library(Celeritas::Perfetto ALIAS celeritas_perfetto)
-  target_include_directories(celeritas_perfetto INTERFACE ${Perfetto_SDK})
+  target_include_directories(celeritas_perfetto INTERFACE ${Perfetto_INCLUDE_DIR})
 endif()
 
 if(CELERITAS_USE_Python)

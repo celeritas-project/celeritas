@@ -9,6 +9,8 @@
 #include "ScopedProfiling.hh"
 
 #include "celeritas_config.h"
+#include "celeritas_sys_config.h"
+#include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
 
 #include "Environment.hh"
@@ -21,7 +23,6 @@
 
 namespace celeritas
 {
-#if !CELER_USE_DEVICE
 //---------------------------------------------------------------------------//
 /*!
  * Whether profiling is enabled.
@@ -35,8 +36,14 @@ bool use_profiling()
     static bool const result = [] {
         if (!celeritas::getenv("CELER_ENABLE_PROFILING").empty())
         {
-            if constexpr (CELERITAS_USE_PERFETTO)
+            if constexpr (CELERITAS_USE_PERFETTO || CELER_USE_DEVICE)
             {
+                if constexpr (CELERITAS_USE_HIP && !CELERITAS_HAVE_ROCTX)
+                {
+                    CELER_LOG(warning) << "Disabling profiling support "
+                                          "since ROC-TX is unavailable";
+                    return false;
+                }
                 CELER_LOG(info)
                     << "Enabling profiling support since the "
                        "'CELER_ENABLE_PROFILING' "
@@ -51,14 +58,13 @@ bool use_profiling()
     }();
     return result;
 }
-#endif
 
 #if CELERITAS_USE_PERFETTO
 //---------------------------------------------------------------------------//
 /*!
  * Start a thread-local slice track event
  */
-void ScopedProfiling::activate([[maybe_unused]] Input const& input) noexcept
+void ScopedProfiling::activate(Input const& input) noexcept
 {
     TRACE_EVENT_BEGIN(detail::perfetto_track_event_category,
                       perfetto::DynamicString{std::string{input.name}});

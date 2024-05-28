@@ -71,7 +71,7 @@ class TracingSession
     TracingSession() noexcept;
 
     // Configure an in-process session recording to filename
-    explicit TracingSession(std::string_view filename) noexcept(!CELERITAS_DEBUG);
+    explicit TracingSession(std::string_view filename) noexcept;
 
     // Terminate the session and close open files
     ~TracingSession();
@@ -100,9 +100,7 @@ class TracingSession
 
 inline TracingSession::TracingSession() noexcept = default;
 
-inline TracingSession::TracingSession(std::string_view) noexcept(!CELERITAS_DEBUG)
-{
-}
+inline TracingSession::TracingSession(std::string_view) noexcept {}
 
 inline TracingSession::~TracingSession() = default;
 
