@@ -184,6 +184,7 @@ Solid(std::string&&, T&&, Us...) -> Solid<T>;
 
 using ConeSolid = Solid<Cone>;
 using CylinderSolid = Solid<Cylinder>;
+using PrismSolid = Solid<Prism>;
 using SphereSolid = Solid<Sphere>;
 
 //---------------------------------------------------------------------------//

@@ -142,7 +142,7 @@ PolySegments::PolySegments(VecReal&& inner, VecReal&& outer, VecReal&& z)
                    << "): expected " << z_.size());
 
     CELER_VALIDATE(is_monotonic_nondecreasing(make_span(z_)),
-                   << "axial grid has increasing grid points");
+                   << "axial grid has decreasing grid points");
     for (auto i : range(outer_.size()))
     {
         CELER_VALIDATE(outer_[i] >= 0, << "invalid outer radius " << outer_[i]);
@@ -243,6 +243,117 @@ NodeId PolyCone::build(VolumeBuilder& vb) const
  * Write the shape to JSON.
  */
 void PolyCone::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a polycone *or* a simplified version for only a single segment.
+ */
+auto PolyPrism::or_solid(std::string&& label,
+                         PolySegments&& segments,
+                         SolidEnclosedAngle&& enclosed,
+                         int num_sides,
+                         real_type orientation) -> SPConstObject
+{
+    if (segments.size() > 1)
+    {
+        // Can't be simplified: make a polycone
+        return std::make_shared<PolyPrism>(std::move(label),
+                                           std::move(segments),
+                                           std::move(enclosed),
+                                           num_sides,
+                                           orientation);
+    }
+
+    auto const [zlo, zhi] = segments.z(0);
+    real_type const hh = (zhi - zlo) / 2;
+
+    auto const [rlo, rhi] = segments.outer(0);
+    if (rlo != rhi)
+    {
+        CELER_NOT_IMPLEMENTED("prism with different lo/hi radii");
+    }
+
+    Prism outer{num_sides, rlo, hh, orientation};
+    std::optional<Prism> inner;
+    if (segments.has_exclusion())
+    {
+        auto const [rilo, rihi] = segments.inner(0);
+        if (rilo != rihi)
+        {
+            CELER_NOT_IMPLEMENTED("prism with different lo/hi radii");
+        }
+
+        inner = Prism{num_sides, rilo, hh, orientation};
+    }
+
+    auto result = PrismSolid::or_shape(std::move(label),
+                                       std::move(outer),
+                                       std::move(inner),
+                                       std::move(enclosed));
+    if (real_type dz = (zhi + zlo) / 2; dz != 0)
+    {
+        result = std::make_shared<Transformed>(std::move(result),
+                                               Translation{{0, 0, dz}});
+    }
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build with label, axial segments, optional restriction.
+ */
+PolyPrism::PolyPrism(std::string&& label,
+                     PolySegments&& segments,
+                     SolidEnclosedAngle&& enclosed,
+                     int num_sides,
+                     real_type orientation)
+    : PolySolidBase{std::move(label), std::move(segments), std::move(enclosed)}
+    , num_sides_{num_sides}
+    , orientation_{orientation}
+{
+    CELER_VALIDATE(num_sides_ >= 3,
+                   << "degenerate prism (num_sides = " << num_sides_ << ')');
+    CELER_VALIDATE(orientation_ >= 0 && orientation_ < 1,
+                   << "orientation is out of bounds [0, 1): " << orientation_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a volume from this shape.
+ */
+NodeId PolyPrism::build(VolumeBuilder& vb) const
+{
+    using Real2 = PolySegments::Real2;
+    auto build_prism = [this](Real2 const& radii, real_type hh) {
+        if (radii[0] != radii[1])
+        {
+            CELER_NOT_IMPLEMENTED("prism with different lo/hi radii");
+        }
+        return Prism{this->num_sides_, radii[0], hh, this->orientation_};
+    };
+
+    // Construct union of all cone segments
+    NodeId result = construct_segments(*this, build_prism, vb);
+
+    // TODO: after adding short-circuit logic to evaluator, add "acceleration"
+    // structures here, e.g. "inside(inner cylinder) || [inside(outer cylinder)
+    // && (original union)]"
+
+    // Construct azimuthal truncation if applicable
+    result = construct_enclosed_angle(*this, vb, result);
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write the shape to JSON.
+ */
+void PolyPrism::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
 }
