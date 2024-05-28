@@ -132,7 +132,7 @@ jobs:
       - name: Install
         working-directory: build
         run: |
-          cmake --install --preset=$Env:CMAKE_PRESET 
+          cmake --install .
       - name: Check installation
         working-directory: install
         run: |
