@@ -43,7 +43,14 @@ CMake configuration utility functions for Celeritas.
 
 .. command:: celeritas_set_default
 
-  Set a locally-scoped value for the given variable if it is undefined.
+  Set a value for the given variable if it is undefined. If a
+  third argument is given and Celeritas is the top-level project, create a cache
+  variable with the given documentation; otherwise, set the variable locally
+  so it's scoped only to Celeritas. ::
+
+     celeritas_set_default(<variable> <value>)
+     celeritas_set_default(<variable> <value> <doc>)
+     celeritas_set_default(<variable> <value> <type> <doc>)
 
 .. command:: celeritas_check_python_module
 
@@ -355,9 +362,17 @@ endmacro()
 macro(celeritas_set_default name value)
   if(NOT DEFINED ${name})
     message(VERBOSE "Celeritas: set default ${name}=${value}")
-    set(${name} "${value}")
+    if(PROJECT_NAME STREQUAL CMAKE_PROJECT_NAME AND "${ARGC}" GREATER 2)
+      if("${ARGC}" EQUAL 3)
+        option(${name} "${ARGV2}" "${value}")
+      else()
+        set(${name} "${value}" CACHE ${ARGN})
+      endif()
+    else()
+      set(${name} "${value}")
+      list(APPEND CELERITAS_DEFAULT_VARIABLES ${name})
+    endif()
   endif()
-  list(APPEND CELERITAS_DEFAULT_VARIABLES ${name})
 endmacro()
 
 #-----------------------------------------------------------------------------#

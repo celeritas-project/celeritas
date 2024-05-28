@@ -42,7 +42,7 @@ endif()
 # Optional dependencies
 celeritas_optional_package(Geant4 "Enable Geant4 adapter tools")
 celeritas_optional_package(HepMC3 "Enable HepMC3 event record reader")
-option(CELERITAS_USE_JSON "Enable JSON I/O " ON)
+option(CELERITAS_USE_JSON "Enable JSON I/O" ON)
 celeritas_optional_package(MPI "Enable distributed memory parallelism")
 celeritas_optional_package(OpenMP "Enable CPU shared-memory parallelism")
 celeritas_optional_package(Python "Use Python to generate and preprocess")
@@ -201,10 +201,11 @@ endif()
 # CMAKE INTRINSIC OPTIONS
 #
 # These are generally used to initialize properties on targets, and it's
-# possible Celeritas is being built inside another project. Instead of saving
-# these as cache variables (which change the defaults project-wide, including
-# changing behavior of other code that was loaded before Celeritas) set them as
-# local variables to be inherited underneath Celeritas.
+# possible Celeritas is being built inside another project. If documentation is
+# provided and Celeritas is the top-level project, create a cache variable to
+# make it easier for the user to override the behavior. Otherwise, create a
+# local variable to override the behavior of Celeritas and any projects it
+# includes.
 #----------------------------------------------------------------------------#
 
 ### Configuration ###
@@ -227,8 +228,8 @@ if(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE)
   unset(_default_build_type)
 endif()
 # Default to using C++17 everywhere
-celeritas_set_default(CMAKE_CXX_STANDARD 17)
-celeritas_set_default(CMAKE_CXX_EXTENSIONS OFF)
+celeritas_set_default(CMAKE_CXX_STANDARD 17 STRING "C++ standard")
+celeritas_set_default(CMAKE_CXX_EXTENSIONS OFF "Allow C++ compiler extensions")
 if(CELERITAS_USE_CUDA)
   # Default to setting CUDA C++ standard the same as C++
   celeritas_set_default(CMAKE_CUDA_STANDARD ${CMAKE_CXX_STANDARD})
@@ -236,20 +237,23 @@ if(CELERITAS_USE_CUDA)
 endif()
 
 ### Linking flags ###
-# Default to building shared libraries (*not* a cache variable)
-celeritas_set_default(BUILD_SHARED_LIBS ON)
-# Inform installed binaries of external library rpaths
-celeritas_set_default(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
+celeritas_set_default(BUILD_SHARED_LIBS ON
+  "Build shared libraries instead of static")
+celeritas_set_default(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON
+  "Inform installed binaries of external library rpaths")
 if(BUILD_SHARED_LIBS)
   # Inform installed binaries of internal library rpaths
   celeritas_set_default(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
   # Do not relink libs/binaries when dependent shared libs change
   celeritas_set_default(CMAKE_LINK_DEPENDS_NO_SHARED ON)
 endif()
+set(_default_pic OFF)
 if(BUILD_SHARED_LIBS OR CELERITAS_USE_ROOT)
-  # Make sure modules, sub-libraries, etc. are relocatable
-  celeritas_set_default(CMAKE_POSITION_INDEPENDENT_CODE ON)
+  set(_default_pic OFF)
 endif()
+celeritas_set_default(CMAKE_POSITION_INDEPENDENT_CODE ${_default_pic}
+  "Make sure build can be used with shared libs or runtime modules")
+unset(_default_pic)
 
 ### Installation flags ###
 # When developing add checking for proper usage of `install(`
@@ -606,7 +610,7 @@ foreach(_key IN LISTS _cachevar_keys)
 endforeach()
 
 # Export defaulted variables
-list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Defaulted variables")
+list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Defaulted local variables")
 foreach(_key IN LISTS CELERITAS_DEFAULT_VARIABLES)
   list(APPEND CELERITAS_EXPORT_VARIABLES "set(CELERITAS_${_key} \"${${_key}}\")")
 endforeach()
