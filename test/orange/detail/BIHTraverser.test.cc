@@ -66,9 +66,9 @@ class BIHTraverserTest : public Test
 TEST_F(BIHTraverserTest, basic)
 {
     bboxes_.push_back(FastBBox::from_infinite());
-    bboxes_.push_back({{0, 0, 0}, {1.6, 1, 100}});
-    bboxes_.push_back({{1.2, 0, 0}, {2.8, 1, 100}});
-    bboxes_.push_back({{2.8, 0, 0}, {5, 1, 100}});
+    bboxes_.push_back({{0, 0, 0}, {1.6f, 1, 100}});
+    bboxes_.push_back({{1.2f, 0, 0}, {2.8f, 1, 100}});
+    bboxes_.push_back({{2.8f, 0, 0}, {5, 1, 100}});
     bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
     bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
 
@@ -76,14 +76,14 @@ TEST_F(BIHTraverserTest, basic)
     auto bih_tree = bih(std::move(bboxes_));
 
     ref_storage_ = storage_;
-    BIHTraverser traverser(bih_tree, ref_storage_);
+    BIHTraverser traverse(bih_tree, ref_storage_);
 
-    EXPECT_EQ(LocalVolumeId{0}, traverser({0.8, 0.5, 110}, valid_volid_));
-    EXPECT_EQ(LocalVolumeId{1}, traverser({0.8, 0.5, 30}, valid_volid_));
-    EXPECT_EQ(LocalVolumeId{2}, traverser({2.0, 0.6, 40}, valid_volid_));
-    EXPECT_EQ(LocalVolumeId{3}, traverser({2.9, 0.7, 50}, valid_volid_));
-    EXPECT_EQ(LocalVolumeId{4}, traverser({2.9, -0.7, 50}, valid_volid_));
-    EXPECT_EQ(LocalVolumeId{5}, traverser({2.9, -0.7, 50}, odd_volid_));
+    EXPECT_EQ(LocalVolumeId{0}, traverse({0.8, 0.5, 110}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{1}, traverse({0.8, 0.5, 30}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{2}, traverse({2.0, 0.6, 40}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{3}, traverse({2.9, 0.7, 50}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{4}, traverse({2.9, -0.7, 50}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{5}, traverse({2.9, -0.7, 50}, odd_volid_));
 }
 
 //---------------------------------------------------------------------------//
@@ -118,9 +118,9 @@ TEST_F(BIHTraverserTest, grid)
     auto bih_tree = bih(std::move(bboxes_));
 
     ref_storage_ = storage_;
-    BIHTraverser traverser(bih_tree, ref_storage_);
+    BIHTraverser traverse(bih_tree, ref_storage_);
 
-    EXPECT_EQ(LocalVolumeId{0}, traverser({0.8, 0.5, 110}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{0}, traverse({0.8, 0.5, 110}, valid_volid_));
 
     size_type index{1};
     for (auto i : range(3))
@@ -129,7 +129,7 @@ TEST_F(BIHTraverserTest, grid)
         {
             constexpr real_type half{0.5};
             EXPECT_EQ(LocalVolumeId{index++},
-                      traverser({half + i, half + j, 30}, valid_volid_));
+                      traverse({half + i, half + j, 30}, valid_volid_));
         }
     }
 }
@@ -146,9 +146,9 @@ TEST_F(BIHTraverserTest, single_finite_volume)
     auto bih_tree = bih(std::move(bboxes_));
 
     ref_storage_ = storage_;
-    BIHTraverser traverser(bih_tree, ref_storage_);
+    BIHTraverser traverse(bih_tree, ref_storage_);
 
-    EXPECT_EQ(LocalVolumeId{0}, traverser({0.5, 0.5, 0.5}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{0}, traverse({0.5, 0.5, 0.5}, valid_volid_));
 }
 
 TEST_F(BIHTraverserTest, multiple_nonpartitionable_volumes)
@@ -160,10 +160,10 @@ TEST_F(BIHTraverserTest, multiple_nonpartitionable_volumes)
     auto bih_tree = bih(std::move(bboxes_));
 
     ref_storage_ = storage_;
-    BIHTraverser traverser(bih_tree, ref_storage_);
+    BIHTraverser traverse(bih_tree, ref_storage_);
 
-    EXPECT_EQ(LocalVolumeId{0}, traverser({0.5, 0.5, 0.5}, valid_volid_));
-    EXPECT_EQ(LocalVolumeId{1}, traverser({0.5, 0.5, 0.5}, odd_volid_));
+    EXPECT_EQ(LocalVolumeId{0}, traverse({0.5, 0.5, 0.5}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{1}, traverse({0.5, 0.5, 0.5}, odd_volid_));
 }
 
 TEST_F(BIHTraverserTest, single_infinite_volume)
@@ -174,9 +174,9 @@ TEST_F(BIHTraverserTest, single_infinite_volume)
     auto bih_tree = bih(std::move(bboxes_));
 
     ref_storage_ = storage_;
-    BIHTraverser traverser(bih_tree, ref_storage_);
+    BIHTraverser traverse(bih_tree, ref_storage_);
 
-    EXPECT_EQ(LocalVolumeId{0}, traverser({0.5, 0.5, 0.5}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{0}, traverse({0.5, 0.5, 0.5}, valid_volid_));
 }
 
 TEST_F(BIHTraverserTest, multiple_infinite_volumes)
@@ -188,10 +188,10 @@ TEST_F(BIHTraverserTest, multiple_infinite_volumes)
     auto bih_tree = bih(std::move(bboxes_));
 
     ref_storage_ = storage_;
-    BIHTraverser traverser(bih_tree, ref_storage_);
+    BIHTraverser traverse(bih_tree, ref_storage_);
 
-    EXPECT_EQ(LocalVolumeId{0}, traverser({0.5, 0.5, 0.5}, valid_volid_));
-    EXPECT_EQ(LocalVolumeId{1}, traverser({0.5, 0.5, 0.5}, odd_volid_));
+    EXPECT_EQ(LocalVolumeId{0}, traverse({0.5, 0.5, 0.5}, valid_volid_));
+    EXPECT_EQ(LocalVolumeId{1}, traverse({0.5, 0.5, 0.5}, odd_volid_));
 }
 
 //---------------------------------------------------------------------------//

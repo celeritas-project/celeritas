@@ -559,6 +559,8 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
     }
 }
 
+constexpr double step_is_range = -1;
+
 TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(msc_scattering))
 {
     // Test energies
@@ -575,7 +577,6 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(msc_scattering))
     // Calculate range instead of hardcoding to ensure step and range values
     // are bit-for-bit identical when range limits the step. The first three
     // steps are not limited by range
-    constexpr double step_is_range = -1;
     std::vector<double> step = {0.00279169, 0.412343, 0.0376414};  // [cm]
     step.resize(nsamples, step_is_range);
 

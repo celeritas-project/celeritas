@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/grid/GenericGridInserter.hh"
 
+#include <array>
+
 #include "corecel/OpaqueId.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
@@ -17,21 +19,12 @@ namespace celeritas
 {
 namespace test
 {
-
-/*
- * Dummy opaque id tag to make sure GenericGridInserter doesn't rely on a
- * specific type.
- */
-struct GenericIndexTag
-{
-};
-
 //---------------------------------------------------------------------------//
 
 class GenericGridInserterTest : public ::celeritas::test::Test
 {
   protected:
-    using GridIndexType = OpaqueId<GenericIndexTag>;
+    using GridIndexType = OpaqueId<struct GenericIndexTag_>;
     using RandomEngine = DiagnosticRngEngine<std::mt19937>;
 
     void SetUp() override { rng_.reset_count(); }

@@ -121,7 +121,7 @@ SequenceEngine SequenceEngine::from_reals(Span<double const> values)
         CELER_EXPECT(v >= 0 && v < 1);
         // Calculate first (big end) value
         v *= range;
-        result_type second = std::floor(v);
+        auto second = static_cast<result_type>(std::floor(v));
 
         // Calculate second (little end) value
         v -= second;
@@ -197,7 +197,7 @@ T GenerateCanonical<test::SequenceEngine, T>::operator()(
     // Range for sequence engine should be [0, 2^32 - 1) = 2^32
     real_type const range = static_cast<real_type>(test::SequenceEngine::max())
                             + real_type(1);
-    real_type result = rng();
+    real_type result = static_cast<real_type>(rng());
     result += rng() * range;
     result *= 1 / ipow<2>(range);
     if (CELER_UNLIKELY(result == real_type(1)))

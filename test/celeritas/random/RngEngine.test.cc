@@ -36,8 +36,8 @@ class SequenceEngineTest : public Test
   public:
     void SetUp() override
     {
-        double const inv_32 = std::ldexp(1.0, -32.0);
-        double const inv_64 = std::ldexp(1.0, -64.0);
+        double const inv_32 = std::ldexp(1.0, -32);
+        double const inv_64 = std::ldexp(1.0, -64);
         /*!
          * Note: even the lowest *normalized* float value (1e-38) is below
          * 2**-64, so the "min" values for both double and float are
