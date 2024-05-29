@@ -14,7 +14,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/grid/XsGridData.hh"
 
-#include "MscData.hh"
+#include "CommonCoulombData.hh"
 
 namespace celeritas
 {
@@ -137,7 +137,7 @@ struct UrbanMscData
     //// DATA ////
 
     //! Particle IDs
-    MscIds ids;
+    CoulombIds ids;
     //! Mass of of electron in MeV
     units::MevMass electron_mass;
     //! User-assignable options

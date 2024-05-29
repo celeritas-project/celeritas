@@ -25,6 +25,7 @@
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_HOSTNAME": "ubuntu-github",
         "CMAKE_BUILD_TYPE":      "Release",
         "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_EXTENSIONS": {"type": "BOOL", "value": "OFF"},

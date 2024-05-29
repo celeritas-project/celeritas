@@ -33,6 +33,7 @@ class OnlyGeoTestBase : virtual public GlobalTestBase
     {
         CELER_ASSERT_UNREACHABLE();
     }
+    SPConstWentzelOKVI build_wentzel() override { CELER_ASSERT_UNREACHABLE(); }
 };
 //---------------------------------------------------------------------------//
 }  // namespace test

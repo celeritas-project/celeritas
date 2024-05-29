@@ -25,23 +25,24 @@ list(APPEND SOURCES
   detail/SurfacesRecordBuilder.cc
   detail/UnitInserter.cc
   detail/UniverseInserter.cc
-  orangeinp/ConvexRegion.cc
-  orangeinp/ConvexSurfaceBuilder.cc
   orangeinp/CsgObject.cc
   orangeinp/CsgTree.cc
   orangeinp/CsgTypes.cc
   orangeinp/CsgTreeUtils.cc
+  orangeinp/IntersectRegion.cc
+  orangeinp/IntersectSurfaceBuilder.cc
+  orangeinp/PolySolid.cc
   orangeinp/ProtoInterface.cc
   orangeinp/Shape.cc
   orangeinp/Solid.cc
   orangeinp/Transformed.cc
   orangeinp/UnitProto.cc
   orangeinp/detail/BoundingZone.cc
-  orangeinp/detail/BuildConvexRegion.cc
-  orangeinp/detail/ConvexSurfaceState.cc
+  orangeinp/detail/BuildIntersectRegion.cc
   orangeinp/detail/CsgUnitBuilder.cc
   orangeinp/detail/InputBuilder.cc
   orangeinp/detail/InternalSurfaceFlagger.cc
+  orangeinp/detail/IntersectSurfaceState.cc
   orangeinp/detail/LocalSurfaceInserter.cc
   orangeinp/detail/NodeSimplifier.cc
   orangeinp/detail/PostfixLogicBuilder.cc

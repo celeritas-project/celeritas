@@ -72,8 +72,6 @@ std::size_t hash_combine(Args const&... args)
 }  // namespace celeritas
 
 //---------------------------------------------------------------------------//
-// HASH SPECIALIZATIONS
-//---------------------------------------------------------------------------//
 //! \cond
 namespace std
 {

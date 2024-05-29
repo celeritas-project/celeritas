@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/grid/VectorUtils.test.cc
+//! \file corecel/grid/VectorUtils.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/grid/VectorUtils.hh"
+#include "corecel/grid/VectorUtils.hh"
 
 #include <vector>
 

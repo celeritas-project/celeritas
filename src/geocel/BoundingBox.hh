@@ -7,13 +7,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cmath>
 #include <type_traits>
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
-#include "corecel/math/Algorithms.hh"
 #include "corecel/math/NumericLimits.hh"
 
 #include "Types.hh"
@@ -94,6 +94,9 @@ class BoundingBox
     // Increase the bounding box's extent along an axis
     CELER_CONSTEXPR_FUNCTION void
     grow(Bound bnd, Axis axis, real_type position);
+
+    // Increase the bounding box's extent on both bounds
+    CELER_CONSTEXPR_FUNCTION void grow(Axis axis, real_type position);
 
   private:
     Array<Real3, 2> points_;  //!< lo/hi points
@@ -257,11 +260,11 @@ BoundingBox<T>::shrink(Bound bnd, Axis axis, real_type position)
     real_type p = points_[to_int(bnd)][to_int(axis)];
     if (bnd == Bound::lo)
     {
-        p = ::celeritas::max(p, position);
+        p = std::fmax(p, position);
     }
     else
     {
-        p = ::celeritas::min(p, position);
+        p = std::fmin(p, position);
     }
     points_[to_int(bnd)][to_int(axis)] = p;
 }
@@ -280,13 +283,28 @@ BoundingBox<T>::grow(Bound bnd, Axis axis, real_type position)
     real_type p = points_[to_int(bnd)][to_int(axis)];
     if (bnd == Bound::lo)
     {
-        p = ::celeritas::min(p, position);
+        p = std::fmin(p, position);
     }
     else
     {
-        p = ::celeritas::max(p, position);
+        p = std::fmax(p, position);
     }
     points_[to_int(bnd)][to_int(axis)] = p;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Increase (expand) the bounding box's extent along an axis.
+ *
+ * If the point is outside the box, the box is expanded so the given boundary
+ * is on that point. Otherwise no change is made.
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION void
+BoundingBox<T>::grow(Axis axis, real_type position)
+{
+    this->grow(Bound::lo, axis, position);
+    this->grow(Bound::hi, axis, position);
 }
 
 //---------------------------------------------------------------------------//

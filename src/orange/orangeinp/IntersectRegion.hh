@@ -3,8 +3,8 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/ConvexRegion.hh
-//! \brief Contains ConvexRegionInterface and concrete daughters
+//! \file orange/orangeinp/IntersectRegion.hh
+//! \brief Contains IntersectRegionInterface and concrete daughters
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -19,19 +19,20 @@ struct JsonPimpl;
 
 namespace orangeinp
 {
-class ConvexSurfaceBuilder;
+class IntersectSurfaceBuilder;
 
 //---------------------------------------------------------------------------//
 /*!
  * Interface class for building non-reentrant spatial regions.
  *
  * This is a building block for constructing more complex objects out of
- * smaller spatial regions. A \c shape object will have a single convex region,
- * and a \c solid object region may have multiple adjacent convex regions.
+ * smaller spatial regions. A \c shape object will have a single intersect
+ * region, and a \c solid object region may have multiple adjacent intersect
+ * regions.
  *
  * Convex regions should be as minimal as possible and rely on transformations
  * to change axes, displacement, etc. As a general rule, the exterior bounding
- * box of a convex region should be <em>centered on the origin</em>, and
+ * box of a intersect region should be <em>centered on the origin</em>, and
  * objects should be aligned along the \em z axis.
  *
  * When implementing this class, prefer to build simpler surfaces (planes)
@@ -40,11 +41,11 @@ class ConvexSurfaceBuilder;
  *
  * \note Additional methods such as volume calculation may be added here later.
  */
-class ConvexRegionInterface
+class IntersectRegionInterface
 {
   public:
     //! Construct surfaces that are AND-ed into this region
-    virtual void build(ConvexSurfaceBuilder&) const = 0;
+    virtual void build(IntersectSurfaceBuilder&) const = 0;
 
     //! Write the region to a JSON object
     virtual void output(JsonPimpl*) const = 0;
@@ -52,9 +53,9 @@ class ConvexRegionInterface
   protected:
     //!@{
     //! Allow construction and assignment only through daughter classes
-    ConvexRegionInterface() = default;
-    virtual ~ConvexRegionInterface() = default;
-    CELER_DEFAULT_COPY_MOVE(ConvexRegionInterface);
+    IntersectRegionInterface() = default;
+    virtual ~IntersectRegionInterface() = default;
+    CELER_DEFAULT_COPY_MOVE(IntersectRegionInterface);
     //!@}
 };
 
@@ -62,14 +63,14 @@ class ConvexRegionInterface
 /*!
  * A rectangular parallelepiped/cuboid centered on the origin.
  */
-class Box final : public ConvexRegionInterface
+class Box final : public IntersectRegionInterface
 {
   public:
     // Construct with half-widths
     explicit Box(Real3 const& halfwidths);
 
     // Build surfaces
-    void build(ConvexSurfaceBuilder&) const final;
+    void build(IntersectSurfaceBuilder&) const final;
 
     // Output to JSON
     void output(JsonPimpl*) const final;
@@ -96,10 +97,10 @@ class Box final : public ConvexRegionInterface
  * have a single radius of zero, which puts the vanishing point on one end of
  * the cone.
  *
- * This convex region, along with the Cylinder, is a base component of the
+ * This intersect region, along with the Cylinder, is a base component of the
  * G4Polycone (PCON).
  */
-class Cone final : public ConvexRegionInterface
+class Cone final : public IntersectRegionInterface
 {
   public:
     //!@{
@@ -114,7 +115,7 @@ class Cone final : public ConvexRegionInterface
     //// INTERFACE ////
 
     // Build surfaces
-    void build(ConvexSurfaceBuilder&) const final;
+    void build(IntersectSurfaceBuilder&) const final;
 
     // Output to JSON
     void output(JsonPimpl*) const final;
@@ -141,14 +142,14 @@ class Cone final : public ConvexRegionInterface
 /*!
  * A Z-aligned cylinder centered on the origin.
  */
-class Cylinder final : public ConvexRegionInterface
+class Cylinder final : public IntersectRegionInterface
 {
   public:
     // Construct with radius
     Cylinder(real_type radius, real_type halfheight);
 
     // Build surfaces
-    void build(ConvexSurfaceBuilder&) const final;
+    void build(IntersectSurfaceBuilder&) const final;
 
     // Output to JSON
     void output(JsonPimpl*) const final;
@@ -175,14 +176,14 @@ class Cylinder final : public ConvexRegionInterface
 /*!
  * An axis-alligned ellipsoid centered at the origin.
  */
-class Ellipsoid final : public ConvexRegionInterface
+class Ellipsoid final : public IntersectRegionInterface
 {
   public:
     // Construct with radius
     explicit Ellipsoid(Real3 const& radii);
 
     // Build surfaces
-    void build(ConvexSurfaceBuilder&) const final;
+    void build(IntersectSurfaceBuilder&) const final;
 
     // Output to JSON
     void output(JsonPimpl*) const final;
@@ -205,9 +206,8 @@ class Ellipsoid final : public ConvexRegionInterface
  * on two parallel planes perpendicular to Z axis.
  *
  * TODO: Add proper treatment for degenerate cases.
- * TODO: support twisted faces.
  */
-class GenTrap final : public ConvexRegionInterface
+class GenTrap final : public IntersectRegionInterface
 {
   public:
     //!@{
@@ -246,7 +246,7 @@ class GenTrap final : public ConvexRegionInterface
     GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi);
 
     // Build surfaces
-    void build(ConvexSurfaceBuilder&) const final;
+    void build(IntersectSurfaceBuilder&) const final;
 
     // Output to JSON
     void output(JsonPimpl*) const final;
@@ -276,14 +276,14 @@ class GenTrap final : public ConvexRegionInterface
  * subtracted, or its negation can be subtracted. The start angle is mapped
  * onto [0, 1) on construction.
  */
-class InfWedge final : public ConvexRegionInterface
+class InfWedge final : public IntersectRegionInterface
 {
   public:
     // Construct from a starting angle and interior angle
     InfWedge(Turn start, Turn interior);
 
     // Build surfaces
-    void build(ConvexSurfaceBuilder&) const final;
+    void build(IntersectSurfaceBuilder&) const final;
 
     // Output to JSON
     void output(JsonPimpl*) const final;
@@ -323,14 +323,14 @@ class InfWedge final : public ConvexRegionInterface
  *   - `phi:` azimuthal angle of the shape's main axis (as explained above).
  *     Validity range is `[0, 1)`.
  */
-class Parallelepiped final : public ConvexRegionInterface
+class Parallelepiped final : public IntersectRegionInterface
 {
   public:
     // Construct with half widths and 3 angles
     Parallelepiped(Real3 const& halfedges, Turn alpha, Turn theta, Turn phi);
 
     // Build surfaces
-    void build(ConvexSurfaceBuilder&) const final;
+    void build(IntersectSurfaceBuilder&) const final;
 
     // Output to JSON
     void output(JsonPimpl*) const final;
@@ -376,7 +376,7 @@ class Parallelepiped final : public ConvexRegionInterface
  * - n=4 is a diamond
  * - n=6 is a pointy-top hexagon
  */
-class Prism final : public ConvexRegionInterface
+class Prism final : public IntersectRegionInterface
 {
   public:
     // Construct with inner radius (apothem), half height, and orientation
@@ -386,10 +386,15 @@ class Prism final : public ConvexRegionInterface
           real_type orientation);
 
     // Build surfaces
-    void build(ConvexSurfaceBuilder&) const final;
+    void build(IntersectSurfaceBuilder&) const final;
 
     // Output to JSON
     void output(JsonPimpl*) const final;
+
+    //// TEMPLATE INTERFACE ////
+
+    // Whether this encloses another cylinder
+    bool encloses(Prism const& other) const;
 
     //// ACCESSORS ////
 
@@ -423,14 +428,14 @@ class Prism final : public ConvexRegionInterface
  * \note Be aware there's also a sphere *surface* at orange/surf/Sphere.hh in a
  * different namespace.
  */
-class Sphere final : public ConvexRegionInterface
+class Sphere final : public IntersectRegionInterface
 {
   public:
     // Construct with radius
     explicit Sphere(real_type radius);
 
     // Build surfaces
-    void build(ConvexSurfaceBuilder&) const final;
+    void build(IntersectSurfaceBuilder&) const final;
 
     // Output to JSON
     void output(JsonPimpl*) const final;

@@ -28,6 +28,7 @@
 #include <G4MaterialCutsCouple.hh>
 #include <G4MscStepLimitType.hh>
 #include <G4Navigator.hh>
+#include <G4NuclearFormfactorType.hh>
 #include <G4NucleiProperties.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
@@ -323,6 +324,28 @@ to_msc_step_algorithm(G4MscStepLimitType const& msc_step_algorithm)
             return MscStepLimitAlgorithm::safety_plus;
         case G4MscStepLimitType::fUseDistanceToBoundary:
             return MscStepLimitAlgorithm::distance_to_boundary;
+    }
+    CELER_ASSERT_UNREACHABLE();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Safely switch from G4NuclearFormfactorType [G4NuclearFormfactorType.hh] to
+ * NuclearFormFactorType.
+ */
+NuclearFormFactorType
+to_form_factor_type(G4NuclearFormfactorType const& form_factor_type)
+{
+    switch (form_factor_type)
+    {
+        case G4NuclearFormfactorType::fNoneNF:
+            return NuclearFormFactorType::none;
+        case G4NuclearFormfactorType::fExponentialNF:
+            return NuclearFormFactorType::exponential;
+        case G4NuclearFormfactorType::fGaussianNF:
+            return NuclearFormFactorType::gaussian;
+        case G4NuclearFormfactorType::fFlatNF:
+            return NuclearFormFactorType::flat;
     }
     CELER_ASSERT_UNREACHABLE();
 }
@@ -919,8 +942,11 @@ ImportEmParameters import_em_parameters()
 #else
     CELER_DISCARD(len_scale);
 #endif
+    import.msc_theta_limit = g4.MscThetaLimit();
+    import.angle_limit_factor = g4.FactorForAngleLimit();
     import.apply_cuts = g4.ApplyCuts();
     import.screening_factor = g4.ScreeningFactor();
+    import.form_factor = to_form_factor_type(g4.NuclearFormfactorType());
 
     CELER_ENSURE(import);
     return import;

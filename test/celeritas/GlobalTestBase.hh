@@ -31,6 +31,7 @@ class ParticleParams;
 class PhysicsParams;
 class SimParams;
 class TrackInitParams;
+class WentzelOKVIParams;
 
 class CoreParams;
 class OutputRegistry;
@@ -67,6 +68,7 @@ class GlobalTestBase : public Test
     using SPConstRng = SP<RngParams const>;
     using SPConstSim = SP<SimParams const>;
     using SPConstTrackInit = SP<TrackInitParams const>;
+    using SPConstWentzelOKVI = SP<WentzelOKVIParams const>;
     using SPConstCore = SP<CoreParams const>;
 
     using SPActionRegistry = SP<ActionRegistry>;
@@ -97,6 +99,7 @@ class GlobalTestBase : public Test
     inline SPConstRng const& rng();
     inline SPConstSim const& sim();
     inline SPConstTrackInit const& init();
+    inline SPConstWentzelOKVI const& wentzel();
     inline SPActionRegistry const& action_reg();
     inline SPConstCore const& core();
     inline SPConstCerenkov const& cerenkov();
@@ -113,6 +116,7 @@ class GlobalTestBase : public Test
     inline SPConstRng const& rng() const;
     inline SPConstSim const& sim() const;
     inline SPConstTrackInit const& init() const;
+    inline SPConstWentzelOKVI const& wentzel() const;
     inline SPActionRegistry const& action_reg() const;
     inline SPConstCore const& core() const;
     inline SPConstCerenkov const& cerenkov() const;
@@ -138,6 +142,7 @@ class GlobalTestBase : public Test
     [[nodiscard]] virtual SPConstPhysics build_physics() = 0;
     [[nodiscard]] virtual SPConstSim build_sim() = 0;
     [[nodiscard]] virtual SPConstTrackInit build_init() = 0;
+    [[nodiscard]] virtual SPConstWentzelOKVI build_wentzel() = 0;
     [[nodiscard]] virtual SPConstAction build_along_step() = 0;
     [[nodiscard]] virtual SPConstCerenkov build_cerenkov() = 0;
     [[nodiscard]] virtual SPConstProperties build_properties() = 0;
@@ -160,6 +165,7 @@ class GlobalTestBase : public Test
     SPConstRng rng_;
     SPConstSim sim_;
     SPConstTrackInit init_;
+    SPConstWentzelOKVI wentzel_;
     SPConstCore core_;
     SPOutputRegistry output_reg_;
     SPConstCerenkov cerenkov_;
@@ -202,6 +208,18 @@ DEF_GTB_ACCESSORS(SPConstCore, core)
 DEF_GTB_ACCESSORS(SPConstCerenkov, cerenkov)
 DEF_GTB_ACCESSORS(SPConstProperties, properties)
 DEF_GTB_ACCESSORS(SPConstScintillation, scintillation)
+auto GlobalTestBase::wentzel() -> SPConstWentzelOKVI const&
+{
+    if (!this->wentzel_)
+    {
+        this->wentzel_ = this->build_wentzel();
+    }
+    return this->wentzel_;
+}
+auto GlobalTestBase::wentzel() const -> SPConstWentzelOKVI const&
+{
+    return this->wentzel_;
+}
 
 #undef DEF_GTB_ACCESSORS
 

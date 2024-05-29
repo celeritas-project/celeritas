@@ -31,7 +31,7 @@
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/ScopedGeantLogger.hh"
 
-#include "detail/GeantPhysicsList.hh"
+#include "detail/CelerEmPhysicsList.hh"
 
 namespace celeritas
 {
@@ -114,7 +114,8 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
         run_manager_->SetUserInitialization(detector.release());
 
         // Construct the physics
-        auto physics_list = std::make_unique<detail::GeantPhysicsList>(options);
+        auto physics_list
+            = std::make_unique<detail::CelerEmPhysicsList>(options);
         run_manager_->SetUserInitialization(physics_list.release());
     }
 

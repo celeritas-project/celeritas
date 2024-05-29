@@ -3,16 +3,16 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/ConvexRegion.test.cc
+//! \file orange/orangeinp/IntersectRegion.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/orangeinp/ConvexRegion.hh"
+#include "orange/orangeinp/IntersectRegion.hh"
 
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/MatrixUtils.hh"
-#include "orange/orangeinp/ConvexSurfaceBuilder.hh"
 #include "orange/orangeinp/CsgTreeUtils.hh"
-#include "orange/orangeinp/detail/ConvexSurfaceState.hh"
+#include "orange/orangeinp/IntersectSurfaceBuilder.hh"
 #include "orange/orangeinp/detail/CsgUnitBuilder.hh"
+#include "orange/orangeinp/detail/IntersectSurfaceState.hh"
 #include "orange/orangeinp/detail/SenseEvaluator.hh"
 
 #include "CsgTestUtils.hh"
@@ -31,12 +31,12 @@ namespace orangeinp
 namespace test
 {
 //---------------------------------------------------------------------------//
-class ConvexRegionTest : public ::celeritas::test::Test
+class IntersectRegionTest : public ::celeritas::test::Test
 {
   private:
     using Unit = orangeinp::detail::CsgUnit;
     using UnitBuilder = orangeinp::detail::CsgUnitBuilder;
-    using State = orangeinp::detail::ConvexSurfaceState;
+    using State = orangeinp::detail::IntersectSurfaceState;
     using Tol = UnitBuilder::Tol;
 
   protected:
@@ -52,10 +52,10 @@ class ConvexRegionTest : public ::celeritas::test::Test
     };
 
   protected:
-    TestResult test(ConvexRegionInterface const& r, VariantTransform const&);
+    TestResult test(IntersectRegionInterface const& r, VariantTransform const&);
 
     //! Test with no transform
-    TestResult test(ConvexRegionInterface const& r)
+    TestResult test(IntersectRegionInterface const& r)
     {
         return this->test(r, NoTransformation{});
     }
@@ -67,6 +67,8 @@ class ConvexRegionTest : public ::celeritas::test::Test
         return eval_sense(n);
     }
 
+    Unit const& unit() const { return unit_; }
+
   private:
     Unit unit_;
     UnitBuilder unit_builder_{
@@ -74,15 +76,15 @@ class ConvexRegionTest : public ::celeritas::test::Test
 };
 
 //---------------------------------------------------------------------------//
-auto ConvexRegionTest::test(ConvexRegionInterface const& r,
-                            VariantTransform const& trans) -> TestResult
+auto IntersectRegionTest::test(IntersectRegionInterface const& r,
+                               VariantTransform const& trans) -> TestResult
 {
-    detail::ConvexSurfaceState css;
+    detail::IntersectSurfaceState css;
     css.transform = &trans;
     css.make_face_name = {};
     css.object_name = "cr";
 
-    ConvexSurfaceBuilder insert_surface{&unit_builder_, &css};
+    IntersectSurfaceBuilder insert_surface{&unit_builder_, &css};
     r.build(insert_surface);
     if (css.local_bzone.exterior || css.local_bzone.interior)
     {
@@ -113,7 +115,7 @@ auto ConvexRegionTest::test(ConvexRegionInterface const& r,
 }
 
 //---------------------------------------------------------------------------//
-void ConvexRegionTest::TestResult::print_expected() const
+void IntersectRegionTest::TestResult::print_expected() const
 {
     using std::cout;
     cout << "/***** EXPECTED REGION *****/\n"
@@ -143,7 +145,7 @@ void ConvexRegionTest::TestResult::print_expected() const
 //---------------------------------------------------------------------------//
 // BOX
 //---------------------------------------------------------------------------//
-using BoxTest = ConvexRegionTest;
+using BoxTest = IntersectRegionTest;
 
 TEST_F(BoxTest, errors)
 {
@@ -178,11 +180,10 @@ TEST_F(BoxTest, standard)
 //---------------------------------------------------------------------------//
 // CONE
 //---------------------------------------------------------------------------//
-using ConeTest = ConvexRegionTest;
+using ConeTest = IntersectRegionTest;
 
 TEST_F(ConeTest, errors)
 {
-    EXPECT_THROW(Cone({1.0, 1.0}, 0.5), RuntimeError);
     EXPECT_THROW(Cone({-1, 1}, 1), RuntimeError);
     EXPECT_THROW(Cone({0.5, 1}, 0), RuntimeError);
 }
@@ -228,6 +229,24 @@ TEST_F(ConeTest, downward)
     EXPECT_VEC_SOFT_EQ((Real3{-0.42426406871193, -0.42426406871193, 0}),
                        result.interior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{0.42426406871193, 0.42426406871193, 0.65}),
+                       result.interior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-1.2, -1.2, -0.65}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1.2, 1.2, 0.65}), result.exterior.upper());
+}
+
+TEST_F(ConeTest, cylinder)
+{
+    auto result = this->test(Cone({1.2, 1.2}, 1.3 / 2));
+
+    static char const expected_node[] = "all(+0, -1, -2)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-0.65", "Plane: z=0.65", "Cyl z: r=1.2"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_VEC_SOFT_EQ((Real3{-0.84852813742386, -0.84852813742386, -0.65}),
+                       result.interior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{0.84852813742386, 0.84852813742386, 0.65}),
                        result.interior.upper());
     EXPECT_VEC_SOFT_EQ((Real3{-1.2, -1.2, -0.65}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{1.2, 1.2, 0.65}), result.exterior.upper());
@@ -311,7 +330,7 @@ TEST_F(ConeTest, transformed)
 //---------------------------------------------------------------------------//
 // CYLINDER
 //---------------------------------------------------------------------------//
-using CylinderTest = ConvexRegionTest;
+using CylinderTest = IntersectRegionTest;
 
 TEST_F(CylinderTest, errors)
 {
@@ -378,7 +397,7 @@ TEST_F(CylinderTest, transformed)
 //---------------------------------------------------------------------------//
 // ELLIPSOID
 //---------------------------------------------------------------------------//
-using EllipsoidTest = ConvexRegionTest;
+using EllipsoidTest = IntersectRegionTest;
 
 TEST_F(EllipsoidTest, errors)
 {
@@ -408,7 +427,7 @@ TEST_F(EllipsoidTest, standard)
 //---------------------------------------------------------------------------//
 // GENTRAP
 //---------------------------------------------------------------------------//
-using GenTrapTest = ConvexRegionTest;
+using GenTrapTest = IntersectRegionTest;
 
 TEST_F(GenTrapTest, construct)
 {
@@ -474,8 +493,8 @@ TEST_F(GenTrapTest, trd1)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -3}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 3}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-2, -2, -3}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 2, 3}), result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, trd2)
@@ -494,8 +513,8 @@ TEST_F(GenTrapTest, trd2)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -3}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 3}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-2, -2, -3}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 2, 3}), result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, ppiped)
@@ -516,8 +535,8 @@ TEST_F(GenTrapTest, ppiped)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -4}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 4}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-2, -2, -4}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 2, 4}), result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, triang_prism)
@@ -537,8 +556,8 @@ TEST_F(GenTrapTest, triang_prism)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-1, -inf, -3}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 3}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -3}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 1, 3}), result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, trap_corners)
@@ -561,8 +580,8 @@ TEST_F(GenTrapTest, trap_corners)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -30, -40}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, 30, 40}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-21, -30, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{21, 30, 40}), result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, trapezoid_trans)
@@ -586,8 +605,8 @@ TEST_F(GenTrapTest, trapezoid_trans)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -60, -40}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, 0, 40}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-51, -60, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{-9, 0, 40}), result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, trapezoid_ccw)
@@ -609,8 +628,8 @@ TEST_F(GenTrapTest, trapezoid_ccw)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -30, -40}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, 30, 40}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-21, -30, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{21, 30, 40}), result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, trap_theta)
@@ -630,8 +649,8 @@ TEST_F(GenTrapTest, trap_theta)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -20, -40}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, 20, 40}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-50, -20, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{50, 20, 40}), result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, trap_thetaphi)
@@ -651,8 +670,8 @@ TEST_F(GenTrapTest, trap_thetaphi)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-10, -inf, -40}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{10, inf, 40}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-10, -60, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{10, 60, 40}), result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, trap_g4)
@@ -677,8 +696,10 @@ TEST_F(GenTrapTest, trap_g4)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -4}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 4}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-1.95920952072934, -2.93923101204883, -4}),
+                       result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2.64848563385739, 3.06076898795117, 4}),
+                       result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, trap_full)
@@ -698,30 +719,33 @@ TEST_F(GenTrapTest, trap_full)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -inf, -40}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 40}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-40.2842712474619, -48.2842712474619, -40}),
+                       result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{40.2842712474619, 48.2842712474619, 40}),
+                       result.exterior.upper());
 }
 
 // TODO: this should be valid
 TEST_F(GenTrapTest, DISABLED_pentahedron)
 {
-    auto result = this->test(GenTrap(3, {{-2,-2}, {3,0}, {-2,2}},
-        {{-2,-1}, {-1,1}, {2,0}}));
+    auto result = this->test(
+        GenTrap(3, {{-2, -2}, {3, 0}, {-2, 2}}, {{-2, -1}, {-1, 1}, {2, 0}}));
     result.print_expected();
 }
 
 // TODO: we may need to support this
 TEST_F(GenTrapTest, DISABLED_tetrahedron)
 {
-    auto result = this->test(GenTrap(3, {{-1,-1}, {2,0}, {-1,1}},
-        {{0,0}, {0,0}, {0,0}}));
+    auto result = this->test(
+        GenTrap(3, {{-1, -1}, {2, 0}, {-1, 1}}, {{0, 0}, {0, 0}, {0, 0}}));
 }
 
 // TODO: find a valid set of points
 TEST_F(GenTrapTest, full)
 {
-    auto result = this->test(GenTrap(4, {{-2,-2}, {-2,2}, {2,2}, {2,-2}},
-        {{-2,-2}, {-1,1}, {1,1}, {2,-2}}));
+    auto result = this->test(GenTrap(4,
+                                     {{-2, -2}, {-2, 2}, {2, 2}, {2, -2}},
+                                     {{-2, -2}, {-1, 1}, {1, 1}, {2, -2}}));
 
     static char const expected_node[] = "all(+0, -1, -2, -3, -4, +5)";
     static char const* const expected_surfaces[]
@@ -735,8 +759,8 @@ TEST_F(GenTrapTest, full)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -2, -4}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, inf, 4}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-2, -2, -4}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 2, 4}), result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, full2)
@@ -744,26 +768,100 @@ TEST_F(GenTrapTest, full2)
     auto result = this->test(GenTrap::from_trap(
         40, Turn{0.125}, Turn{0}, {20, 10, 10, 0.1}, {20, 10, 15, -0.2}));
 
-    static char const expected_node[] = "all(+0, -1, +2, -3, -4, -5)";
+    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
     static char const* const expected_surfaces[]
         = {"Plane: z=-40",
            "Plane: z=40",
            "Plane: y=-20",
            "GQuadric: {0,0,0} {0,0.0875,0} {40,-0.5,-41.25} -450",
            "Plane: y=20",
-           "GQuadric: {0,0,0} {0,-0.2125,0} {-40,-4.5,38.75} -450"};
+           "GQuadric: {0,0,0} {0,0.2125,0} {40,4.5,-38.75} 450"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-inf, -20, -40}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{inf, 20, 40}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-52, -20, -40}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{54, 20, 40}), result.exterior.upper());
+}
+
+/*!
+ * Test deduplication of two opposing quadric surfaces.
+ *
+ * \verbatim
+ * Lower polygons:      Upper polygons:
+ *
+ * x=-1      x=1           x=-0.5
+ * +----+----+ y=1      +--+------+ y=1
+ * |    |    |          |   \     |
+ * |    |  R |          |    \  R |
+ * |  L |    |          |  L  \   |
+ * |    |    |          |      \  |
+ * +----+----+ y=-1     +-------+-+ y=-1
+ *      x=0                     x=0.5
+ * \endverbatim
+ */
+TEST_F(GenTrapTest, adjacent_twisted)
+{
+    {
+        // Left
+        auto result
+            = this->test(GenTrap(1,
+                                 {{-1, -1}, {0, -1}, {0, 1}, {-1, 1}},
+                                 {{-1, -1}, {0.5, -1}, {-0.5, 1}, {-1, 1}}));
+
+        static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+
+        EXPECT_EQ(expected_node, result.node);
+        EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{0.5, 1, 1}), result.exterior.upper());
+    }
+    {
+        // Right
+        auto result
+            = this->test(GenTrap(1,
+                                 {{0, -1}, {1, -1}, {1, 1}, {0, 1}},
+                                 {{0.5, -1}, {1, -1}, {1, 1}, {-0.5, 1}}));
+
+        static char const expected_node[] = "all(+0, -1, +2, +3, -4, -6)";
+
+        EXPECT_EQ(expected_node, result.node);
+        EXPECT_VEC_SOFT_EQ((Real3{-0.5, -1, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{1, 1, 1}), result.exterior.upper());
+    }
+    {
+        // Scaled (broadened) right side with the same hyperboloid but
+        // different size
+        // TODO: the scaled GQ should be normalized
+        auto result = this->test(GenTrap(1,
+                                         {{0, -2}, {2, -2}, {2, 2}, {0, 2}},
+                                         {{1, -2}, {2, -2}, {2, 2}, {-1, 2}}));
+        static char const expected_node[] = "all(+0, -1, +7, -8, -9, +10)";
+
+        EXPECT_EQ(expected_node, result.node);
+        EXPECT_VEC_SOFT_EQ((Real3{-1, -2, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{2, 2, 1}), result.exterior.upper());
+    }
+
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-1",
+        "Plane: z=1",
+        "Plane: y=-1",
+        "GQuadric: {0,0,0} {0,0.5,0} {2,0.5,0} 0",
+        "Plane: y=1",
+        "Plane: x=-1",
+        "Plane: x=1",
+        "Plane: y=-2",
+        "Plane: x=2",
+        "Plane: y=2",
+        "GQuadric: {0,0,0} {0,1,0} {4,1,0} 0",
+    };
+    EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
 }
 
 //---------------------------------------------------------------------------//
 // INFWEDGE
 //---------------------------------------------------------------------------//
-using InfWedgeTest = ConvexRegionTest;
+using InfWedgeTest = IntersectRegionTest;
 
 TEST_F(InfWedgeTest, errors)
 {
@@ -866,7 +964,7 @@ TEST_F(InfWedgeTest, half_turn)
 //---------------------------------------------------------------------------//
 // PARALLELEPIPED
 //---------------------------------------------------------------------------//
-using ParallelepipedTest = ConvexRegionTest;
+using ParallelepipedTest = IntersectRegionTest;
 
 TEST_F(ParallelepipedTest, errors)
 {
@@ -985,7 +1083,7 @@ TEST_F(ParallelepipedTest, full)
 //---------------------------------------------------------------------------//
 // PRISM
 //---------------------------------------------------------------------------//
-using PrismTest = ConvexRegionTest;
+using PrismTest = IntersectRegionTest;
 
 TEST_F(PrismTest, errors)
 {
@@ -1107,7 +1205,7 @@ TEST_F(PrismTest, rhex)
 //---------------------------------------------------------------------------//
 // SPHERE
 //---------------------------------------------------------------------------//
-using SphereTest = ConvexRegionTest;
+using SphereTest = IntersectRegionTest;
 
 TEST_F(SphereTest, errors)
 {

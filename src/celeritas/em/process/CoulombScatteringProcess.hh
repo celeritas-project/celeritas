@@ -12,7 +12,6 @@
 #include "celeritas/em/data/CoulombScatteringData.hh"
 #include "celeritas/em/model/CoulombScatteringModel.hh"
 #include "celeritas/io/ImportParameters.hh"
-#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/Applicability.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/Process.hh"
@@ -30,16 +29,20 @@ class CoulombScatteringProcess : public Process
     //!@{
     //! \name Type aliases
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
-    using SPConstMaterials = std::shared_ptr<MaterialParams const>;
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
+
+    struct Options
+    {
+        //! Whether to use integral method to sample interaction length
+        bool use_integral_xs{true};
+    };
 
   public:
     //! Construct from Coulomb scattering data
     CoulombScatteringProcess(SPConstParticles particles,
-                             SPConstMaterials materials,
                              SPConstImported process_data,
-                             CoulombScatteringModel::Options const& options);
+                             Options const& options);
 
     //! Construct the models associated with this process
     VecModel build_models(ActionIdIter start_id) const final;
@@ -55,9 +58,8 @@ class CoulombScatteringProcess : public Process
 
   private:
     SPConstParticles particles_;
-    SPConstMaterials materials_;
     ImportedProcessAdapter imported_;
-    CoulombScatteringModel::Options options_;
+    Options options_;
 };
 
 //---------------------------------------------------------------------------//

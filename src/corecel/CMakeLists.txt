@@ -18,6 +18,7 @@ list(APPEND SOURCES
   data/Copier.cc
   data/DeviceAllocation.cc
   data/PinnedAllocator.cc
+  grid/VectorUtils.cc
   io/BuildOutput.cc
   io/ColorUtils.cc
   io/ExceptionOutput.cc
