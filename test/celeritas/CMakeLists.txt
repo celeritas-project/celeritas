@@ -40,18 +40,18 @@ if(CELERITAS_CORE_GEO STREQUAL "ORANGE" AND NOT CELERITAS_USE_JSON
 endif()
 
 if(CELERITAS_CORE_GEO STREQUAL "ORANGE")
-  set(_core_geo_libs Celeritas::testcel_orange Celeritas::orange)
+  set(_core_geo_libs testcel_orange Celeritas::orange)
 elseif(CELERITAS_CORE_GEO STREQUAL "VecGeom")
-  set(_core_geo_libs Celeritas::testcel_geocel ${VecGeom_LIBRARIES})
+  set(_core_geo_libs testcel_geocel ${VecGeom_LIBRARIES})
 elseif(CELERITAS_CORE_GEO STREQUAL "Geant4")
-  set(_core_geo_libs Celeritas::testcel_geocel ${Geant4_LIBRARIES})
+  set(_core_geo_libs testcel_geocel ${Geant4_LIBRARIES})
 endif()
 
 set(_all_geo_libs
   # Geometry includes
   Celeritas::orange ${VecGeom_LIBRARIES} ${Geant4_LIBRARIES}
   # Test harness instantiations
-  Celeritas::testcel_geocel Celeritas::testcel_orange
+  testcel_geocel testcel_orange
 )
 
 if(CELERITAS_UNITS STREQUAL "CGS")
@@ -65,7 +65,7 @@ endif()
 # LIBRARY
 #-----------------------------------------------------------------------------#
 
-celeritas_add_library(testcel_celeritas
+celeritas_add_test_library(testcel_celeritas
   GeantTestBase.cc
   GlobalGeoTestBase.cc
   GlobalTestBase.cc
@@ -94,9 +94,9 @@ celeritas_add_library(testcel_celeritas
 
 celeritas_target_link_libraries(testcel_celeritas
   PUBLIC
-    Celeritas::testcel_harness Celeritas::celeritas
+    testcel_harness Celeritas::celeritas
   PRIVATE
-    Celeritas::testcel_core Celeritas::testcel_orange Celeritas::testcel_geocel
+    testcel_core testcel_orange testcel_geocel
     ${nlohmann_json_LIBRARIES}
 )
 
@@ -105,7 +105,7 @@ celeritas_target_link_libraries(testcel_celeritas
 #-----------------------------------------------------------------------------#
 
 celeritas_setup_tests(SERIAL PREFIX celeritas
-  LINK_LIBRARIES Celeritas::testcel_celeritas Celeritas::testcel_core
+  LINK_LIBRARIES testcel_celeritas testcel_core
 )
 
 #-----------------------------------------------------------------------------#

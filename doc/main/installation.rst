@@ -23,10 +23,12 @@ needed.
 
 .. _CMake: https://cmake.org
 
-The code requires external dependencies to build with full functionality.
-However, any combination of these requirements can be omitted to enable
-limited development on experimental HPC systems or personal machines with
-fewer available components.
+The code requires external dependencies to build with full functionality, but
+none of them need to be installed externally for the code to work.
+Most can be omitted entirely to enable limited development on experimental HPC
+systems or personal machines with fewer available components. Items with an
+asterisk in the category below will be fetched from the
+internet if required but not available on the user's system.
 
 .. tabularcolumns:: lll
 
@@ -39,7 +41,7 @@ fewer available components.
    G4EMLOW_, Runtime, "EM physics model data"
    HepMC3_, Runtime, "Event input"
    HIP_, Runtime, "GPU computation"
-   nljson_, Runtime, "Simple text-based I/O for diagnostics and program setup"
+   nljson_, Runtime*, "Simple text-based I/O for diagnostics and program setup"
    "`Open MPI`_", Runtime, "Shared-memory parallelism"
    ROOT_, Runtime, "Input and output"
    SWIG_, Runtime, "Low-level Python wrappers"
@@ -51,7 +53,7 @@ fewer available components.
    clang-format_, Development, "Code formatting enforcement"
    CMake_, Development, "Build system"
    Git_, Development, "Repository management"
-   GoogleTest_, Development, "Test harness"
+   GoogleTest_, Development*, "Test harness"
 
 .. _CMake: https://cmake.org
 .. _CUDA: https://developer.nvidia.com/cuda-toolkit

@@ -4,11 +4,11 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-celeritas_add_library(testcel_core
+celeritas_add_test_library(testcel_core
   ScopedLogStorer.cc
 )
 celeritas_target_link_libraries(testcel_core
-  PRIVATE Celeritas::testcel_harness Celeritas::corecel
+  PRIVATE testcel_harness Celeritas::corecel
 )
 
 celeritas_setup_tests(SERIAL PREFIX corecel

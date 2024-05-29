@@ -11,7 +11,7 @@
       "cacheVariables": {
         "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_DEBUG":       {"type": "BOOL", "value": "ON"},
         "CELERITAS_TEST_VERBOSE":{"type": "BOOL", "value": "OFF"},
@@ -35,6 +35,15 @@
       }
     },
     {
+      "name": "fast",
+      "inherits": ["base"],
+      "displayName": "fast build with testing and JSON",
+      "cacheVariables": {
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_JSON": {"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
       "name": "ultralite",
       "inherits": ["base"],
       "displayName": "ultralite build with no externals",
@@ -46,17 +55,19 @@
   ],
   "buildPresets": [
     {
-      "name": "ultralite",
-      "configurePreset": "ultralite",
+      "name": "base",
+      "configurePreset": "base",
       "nativeToolOptions": ["-k0"],
       "verbose": true,
       "jobs": 4
-    }
+    },
+    {"name": "fast", "configurePreset": "fast", "inherits": "base"},
+    {"name": "ultralite", "configurePreset": "ultralite", "inherits": "base"}
   ],
   "testPresets": [
     {
-      "name": "ultralite",
-      "configurePreset": "ultralite",
+      "name": "base",
+      "configurePreset": "base",
       "execution": {
         "noTestsAction": "error",
         "stopOnFailure": false,
@@ -68,6 +79,8 @@
         "maxPassedTestOutputSize": 65536,
         "outputOnFailure": true
       }
-    }
+    },
+    {"name": "fast", "configurePreset": "fast", "inherits": "base"},
+    {"name": "ultralite", "configurePreset": "ultralite", "inherits": "base"}
   ]
 }
