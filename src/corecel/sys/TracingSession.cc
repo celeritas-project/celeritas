@@ -11,8 +11,6 @@
 #include <fcntl.h>
 #include <perfetto.h>
 
-#include "corecel/Assert.hh"
-
 #include "Environment.hh"
 #include "ScopedProfiling.hh"
 

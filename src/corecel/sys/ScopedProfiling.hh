@@ -98,7 +98,7 @@ ScopedProfiling::ScopedProfiling(Input const& input)
 {
     if (activated_)
     {
-        ScopedProfiling::activate(input);
+        this->activate(input);
     }
 }
 
@@ -119,7 +119,7 @@ ScopedProfiling::~ScopedProfiling()
 {
     if (activated_)
     {
-        ScopedProfiling::deactivate();
+        this->deactivate();
     }
 }
 
