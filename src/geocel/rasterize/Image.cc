@@ -32,9 +32,6 @@ ImageParams::ImageParams(ImageInput const& inp)
     CELER_VALIDATE(ArraySoftUnit{real_type{0.001}}(inp.rightward),
                    << "rightward axis " << repr(inp.rightward)
                    << " is not a unit vector");
-    CELER_VALIDATE(!(inp.lower_left == inp.upper_right),
-                   << "lower left corner " << repr(inp.lower_left)
-                   << " and upper right corner cannot be the same");
     CELER_VALIDATE(inp.vertical_pixels > 0,
                    << "number of pixels must be positive");
     CELER_VALIDATE(inp.horizontal_divisor > 0,
@@ -66,7 +63,8 @@ ImageParams::ImageParams(ImageInput const& inp)
     // Calculate length along each axis
     real_type width_x = dot_product(diagonal, scalars.right);
     real_type width_y = -dot_product(diagonal, scalars.down);
-    CELER_ASSERT(width_x > 0 && width_y > 0);
+    CELER_VALIDATE(width_x > 0 && width_y > 0,
+                   << "window coordinates result in a degenerate window");
     scalars.max_length = width_x;
 
     // Set number of pixels in each direction.

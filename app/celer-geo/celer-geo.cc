@@ -204,7 +204,8 @@ void run(std::istream& is)
         {
             CELER_LOG(error)
                 << "Invalid trace setup; expected structure written "
-                   "to stdout";
+                   "to stdout ("
+                << e.what() << ")";
             json temp = TraceSetup{};
             temp["image"] = ImageInput{};
             std::cout << json(temp).dump() << std::endl;
