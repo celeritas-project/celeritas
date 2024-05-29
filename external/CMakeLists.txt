@@ -38,6 +38,22 @@ if(CELERITAS_EXTERNAL_nlohmann_json)
 endif()
 
 #-----------------------------------------------------------------------------#
+# Perfetto
+#-----------------------------------------------------------------------------#
+
+if(CELERITAS_EXTERNAL_Perfetto)
+  if(PERFETTO_ROOT AND NOT FETCHCONTENT_SOURCE_DIR_PERFETTO)
+    set(FETCHCONTENT_SOURCE_DIR_PERFETTO ${PERFETTO_ROOT})
+  endif()
+  FetchContent_Declare(
+    Perfetto
+    # v45.0
+    URL https://android.googlesource.com/platform/external/perfetto/+archive/7add4fded398ef47414a556b7b81d212a4482a66.tar.gz
+  )
+  list(APPEND _celer_external_packages Perfetto)
+endif()
+
+#-----------------------------------------------------------------------------#
 # BUILD
 #-----------------------------------------------------------------------------#
 # Save some variables to see if badly behaving packages change them
@@ -66,5 +82,16 @@ foreach(_var IN LISTS _checked_variables)
     set(${_var} "${_orig}" CACHE STRING "Reset to Celeritas default" FORCE)
   endif()
 endforeach()
+
+#-----------------------------------------------------------------------------#
+# POST-FETCH CONFIG
+#-----------------------------------------------------------------------------#
+
+if(CELERITAS_EXTERNAL_Perfetto AND perfetto_POPULATED)
+  set(Perfetto_INCLUDE_DIR ${perfetto_SOURCE_DIR}/sdk)
+  add_library(celeritas_perfetto STATIC ${Perfetto_INCLUDE_DIR}/perfetto.cc)
+  add_library(Celeritas::Perfetto ALIAS celeritas_perfetto)
+  target_include_directories(celeritas_perfetto INTERFACE ${Perfetto_INCLUDE_DIR})
+endif()
 
 #-----------------------------------------------------------------------------#

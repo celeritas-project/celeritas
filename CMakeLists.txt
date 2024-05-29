@@ -321,31 +321,15 @@ if(CELERITAS_USE_OpenMP)
 endif()
 
 if(CELERITAS_USE_Perfetto)
-  include(FetchContent)
   if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     celeritas_error_incompatible_option(
       "Perfetto is not supported with CUDA/HIP build"
       CELERITAS_USE_Perfetto
       OFF
     )
+  else()
+    celeritas_find_or_external_package(Perfetto)
   endif()
-  if(PERFETTO_ROOT AND NOT FETCHCONTENT_SOURCE_DIR_PERFETTO)
-    set(FETCHCONTENT_SOURCE_DIR_PERFETTO ${PERFETTO_ROOT})
-  endif()
-
-  FetchContent_Declare(
-    perfetto
-    # v45.0
-    URL https://android.googlesource.com/platform/external/perfetto/+archive/7add4fded398ef47414a556b7b81d212a4482a66.tar.gz
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-  )
-
-  FetchContent_MakeAvailable(perfetto)
-
-  set(Perfetto_INCLUDE_DIR ${perfetto_SOURCE_DIR}/sdk)
-  add_library(celeritas_perfetto STATIC ${Perfetto_INCLUDE_DIR}/perfetto.cc)
-  add_library(Celeritas::Perfetto ALIAS celeritas_perfetto)
-  target_include_directories(celeritas_perfetto INTERFACE ${Perfetto_INCLUDE_DIR})
 endif()
 
 if(CELERITAS_USE_Python)
