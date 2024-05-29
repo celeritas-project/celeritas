@@ -21,35 +21,6 @@
 
 namespace celeritas
 {
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether profiling is enabled.
- *
- * This is true only if the \c CELER_ENABLE_PROFILING environment variable is
- * set to a non-empty value.
- */
-bool ScopedProfiling::use_profiling()
-{
-    static bool const result = [] {
-        if (!celeritas::getenv("CELER_ENABLE_PROFILING").empty())
-        {
-            if (!CELERITAS_HAVE_ROCTX)
-            {
-                CELER_LOG(warning) << "Disabling profiling support "
-                                      "since ROC-TX is unavailable";
-                return false;
-            }
-            CELER_LOG(info) << "Enabling profiling support since the "
-                               "'CELER_ENABLE_PROFILING' "
-                               "environment variable is present and non-empty";
-            return true;
-        }
-        return false;
-    }();
-    return result;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Activate profiling.
