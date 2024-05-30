@@ -206,42 +206,12 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
 
     // Imply inside boundary
     replace_and_simplify(&tree_, bdy, True{});
-#if 0
-    EXPECT_EQ(mz, min_node);
-
-    // Save tree for later
-    CsgTree unsimplified_tree{tree_};
-
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: ->{0}, 3: ->{1}, 4: ->{0}, 5: surface 2, 6: "
-        "not{5}, 7: all{2,4,6}, 8: surface 3, 9: not{8}, 10: all{2,4,9}, 11: "
-        "not{7}, 12: all{10,11}, 13: ->{0}, 14: ->{0}, 15: all{2,4}, }",
-        to_string(tree_));
-
-    // Simplify once: first simplification is the inner cylinder
-    min_node = simplify_up(&tree_, min_node);
-    EXPECT_EQ(NodeId{7}, min_node);
-    EXPECT_EQ("all(-3, !-2)", build_infix_string(tree_, shell));
-
-    // Simplify again: the shell is simplified this time
-    min_node = simplify_up(&tree_, min_node);
-    EXPECT_EQ(NodeId{11}, min_node);
-    EXPECT_EQ("all(+2, -3)", build_infix_string(tree_, shell));
-
-    // Simplify one final time: nothing further is simplified
-    min_node = simplify_up(&tree_, min_node);
-    EXPECT_EQ(NodeId{}, min_node);
-    EXPECT_EQ("all(+2, -3)", build_infix_string(tree_, shell));
 
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: ->{0}, 3: ->{1}, 4: ->{0}, 5: surface 2, 6: "
         "not{5}, 7: ->{6}, 8: surface 3, 9: not{8}, 10: ->{9}, 11: ->{5}, 12: "
         "all{5,9}, 13: ->{0}, 14: ->{0}, 15: ->{0}, }",
         to_string(tree_));
-
-    // Try simplifying recursively from the original minimum node
-    simplify(&unsimplified_tree, mz);
-    EXPECT_EQ(to_string(tree_), to_string(unsimplified_tree));
 
     // Test postfix builder with remapping
     {
@@ -258,7 +228,6 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
     }
-#endif
 }
 
 TEST_F(CsgTreeUtilsTest, tilecal_bug)
@@ -305,7 +274,6 @@ TEST_F(CsgTreeUtilsTest, tilecal_bug)
 
     EXPECT_EQ(29, tree_.size());
 
-    cout << to_json_string(tree_) << endl;
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
         "surface 2, 6: not{5}, 7: all{2,4,6}, 8: surface 3, 9: not{8}, 10: "
@@ -319,15 +287,13 @@ TEST_F(CsgTreeUtilsTest, tilecal_bug)
     EXPECT_EQ("!all(all(+0, -1, -2), !all(+0, -1, -3), all(+4, +5))",
               build_infix_string(tree_, N{16}));
     replace_and_simplify(&tree_, N{16}, False{});
-    cout << to_json_string(tree_) << endl;
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: ->{0}, 3: ->{1}, 4: ->{0}, 5: ->{1}, 6: "
         "->{0}, 7: ->{0}, 8: ->{0}, 9: ->{1}, 10: ->{1}, 11: ->{0}, 12: "
         "->{0}, 13: ->{0}, 14: ->{0}, 15: ->{0}, 16: ->{1}, 17: surface 6, "
         "18: surface 7, 19: not{18}, 20: all{17,19}, 21: ->{1}, 22: ->{0}, "
         "23: surface 8, 24: surface 9, 25: all{23,24}, 26: all{20,25}, 27: "
-        "not{26}, 28: ->{27}, }"
-        ",
+        "not{26}, 28: ->{27}, }",
         to_string(tree_));
 }
 
@@ -359,16 +325,14 @@ TEST_F(CsgTreeUtilsTest, replace_union_2)
     this->insert(Negated{b});
     auto outside_a_or_b = this->insert(Joined{op_or, {a, b}});
     EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{2}, 5: "
-        "not{3}, 6: any{2,3}, }",
+        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
+        "any{2,3}, }",
         to_string(tree_));
 
     // Imply !(a | b) -> a & b
     replace_and_simplify(&tree_, outside_a_or_b, False{});
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: ->{1}, 3: ->{1}, 4: ->{0}, 5: ->{0}, 6: "
-        "->{1}, }",
-        to_string(tree_));
+    EXPECT_EQ("{0: true, 1: not{0}, 2: ->{1}, 3: ->{1}, 4: ->{0}, 5: ->{1}, }",
+              to_string(tree_));
 }
 
 TEST_F(CsgTreeUtilsTest, calc_surfaces)
