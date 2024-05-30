@@ -374,10 +374,7 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
     {
         // Replace "exterior" with "False" (i.e. interior with true)
         NodeId ext_node = result.volumes[ext_vol.unchecked_get()];
-        auto min_node = replace_down(&result.tree, ext_node, False{});
-
-        // Simplify recursively
-        simplify(&result.tree, min_node);
+        replace_and_simplify(&result.tree, ext_node, False{});
     }
 
     return result;

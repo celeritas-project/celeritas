@@ -41,7 +41,7 @@ class InfixStringBuilder
     // Construct with tree and a stream to write to
     inline InfixStringBuilder(CsgTree const& tree, std::ostream* os);
 
-    //! Build from a node ID
+    // Build from a node ID
     inline void operator()(NodeId const& n);
 
     //!@{

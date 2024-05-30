@@ -8,57 +8,19 @@
 #include "CsgTreeUtils.hh"
 
 #include <algorithm>
-#include <iostream>
 #include <utility>
 #include <variant>
 #include <vector>
 
 #include "corecel/cont/Range.hh"
-#include "corecel/io/EnumStringMapper.hh"
 
 #include "detail/InfixStringBuilder.hh"
-#include "detail/NodeReplacementInserter.hh"
-using std::cout;
-using std::endl;
+#include "detail/NodeReplacer.hh"
 
 namespace celeritas
 {
 namespace orangeinp
 {
-
-enum class Repl
-{
-    unvisited,
-    unknown,
-    f,
-    t,
-    finalized,
-    size_
-};
-std::ostream& operator<<(std::ostream& os, Repl const& r)
-{
-    static EnumStringMapper<Repl> const to_cstring_impl{
-        "unvisited",
-        "unknown",
-        "false",
-        "true",
-        "finalized",
-    };
-    os << to_cstring_impl(r);
-    return os;
-}
-Repl negate(Repl r)
-{
-    switch (r)
-    {
-        case Repl::f:
-            return Repl::t;
-        case Repl::t:
-            return Repl::f;
-        default:
-            return r;
-    }
-}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -73,34 +35,60 @@ Repl negate(Repl r)
  * - surface: "true"
  * - constant: check for contradiction
  *
+ * This operation is at worst O((number of nodes) * (depth of graph)).
+ *
  * \return Node ID of the lowest node that required simplification.
  */
-NodeId replace_down(CsgTree* tree, NodeId n, Node repl)
+void replace_and_simplify(CsgTree* tree, NodeId repl_node, Node repl)
 {
-    CELER_EXPECT(is_boolean_node(repl));
+    CELER_EXPECT(tree);
+    CELER_EXPECT(repl_node < tree->size());
+    CELER_ASSUME(is_boolean_node(repl));
 
-    detail::NodeReplacementInserter::VecNode stack{{n, std::move(repl)}};
+    using detail::NodeReplacer;
 
-    NodeId lowest_node{n};
-    std::vector<Repl> replacement(tree->size(), Repl::unvisited);
-    auto get_repl = [&replacement](NodeId n) -> Repl& {
-        CELER_ASSERT(n < replacement.size());
-        return replacement[n.get()];
-    };
+    NodeId max_node{repl_node};
+    NodeReplacer::VecRepl state{tree->size(), NodeReplacer::unvisited};
+    state[CsgTree::true_node_id().get()] = NodeReplacer::known_true;
+    state[CsgTree::false_node_id().get()] = NodeReplacer::known_false;
 
-    while (!stack.empty())
+    state[repl_node.get()] = (std::holds_alternative<True>(repl)
+                                  ? NodeReplacer::known_true
+                                  : NodeReplacer::known_false);
+
+    bool simplifying{true};
+    do
     {
-        n = std::move(stack.back().first);
-        repl = std::move(stack.back().second);
-        cout << "Replacing " << n.get() << " = " << (*tree)[n] << " with "
-             << repl << endl;
-        stack.pop_back();
-        lowest_node = std::min(n, lowest_node);
+        // Sweep backward, updating known state
+        simplifying = false;
+        for (auto n = max_node; n > CsgTree::false_node_id(); --n)
+        {
+            bool updated
+                = std::visit(detail::NodeReplacer{&state, n}, (*tree)[n]);
+            simplifying = simplifying || updated;
+        }
 
-        Node prev = tree->exchange(n, std::move(repl));
-        std::visit(detail::NodeReplacementInserter{&stack, repl}, prev);
-    }
-    return lowest_node;
+        // Replace literals and simplify
+        for (auto n : range(CsgTree::false_node_id() + 1, NodeId{tree->size()}))
+        {
+            auto repl = state[n.get()];
+            if ((repl == NodeReplacer::known_true
+                 || repl == NodeReplacer::known_false)
+                && std::holds_alternative<Surface>((*tree)[n]))
+            {
+                max_node = std::max(max_node, n);
+                auto old = tree->exchange(n,
+                                          repl == NodeReplacer::known_true
+                                              ? Node{True{}}
+                                              : Node{False{}});
+            }
+            else if (auto simplified = tree->simplify(n))
+            {
+                max_node = std::max(max_node, n);
+                simplifying = true;
+            }
+        }
+    } while (simplifying);
 }
 
 //---------------------------------------------------------------------------//
@@ -118,7 +106,7 @@ NodeId simplify_up(CsgTree* tree, NodeId start)
     NodeId result;
     for (auto node_id : range(start, NodeId{tree->size()}))
     {
-        bool simplified = tree->simplify(node_id);
+        auto simplified = tree->simplify(node_id);
         if (simplified && !result)
         {
             result = node_id;

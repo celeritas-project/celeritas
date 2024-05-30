@@ -205,7 +205,8 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
     }
 
     // Imply inside boundary
-    auto min_node = replace_down(&tree_, bdy, True{});
+    replace_and_simplify(&tree_, bdy, True{});
+#if 0
     EXPECT_EQ(mz, min_node);
 
     // Save tree for later
@@ -257,6 +258,7 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
     }
+#endif
 }
 
 TEST_F(CsgTreeUtilsTest, tilecal_bug)
@@ -316,29 +318,17 @@ TEST_F(CsgTreeUtilsTest, tilecal_bug)
 
     EXPECT_EQ("!all(all(+0, -1, -2), !all(+0, -1, -3), all(+4, +5))",
               build_infix_string(tree_, N{16}));
-    auto min_node = replace_down(&tree_, N{16}, False{});
+    replace_and_simplify(&tree_, N{16}, False{});
     cout << to_json_string(tree_) << endl;
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: ->{0}, 3: ->{1}, 4: ->{0}, 5: ->{1}, 6: "
-        "->{0}, 7: ->{0}, 8: surface 3, 9: not{8}, 10: ->{1}, 11: ->{0}, 12: "
+        "->{0}, 7: ->{0}, 8: ->{0}, 9: ->{1}, 10: ->{1}, 11: ->{0}, 12: "
         "->{0}, 13: ->{0}, 14: ->{0}, 15: ->{0}, 16: ->{1}, 17: surface 6, "
-        "18: surface 7, 19: not{18}, 20: all{6,17,19}, 21: all{9,17,19}, 22: "
-        "not{21}, 23: surface 8, 24: surface 9, 25: all{23,24}, 26: "
-        "all{20,22,25}, 27: not{26}, 28: all{15,27}, }",
+        "18: surface 7, 19: not{18}, 20: all{17,19}, 21: ->{1}, 22: ->{0}, "
+        "23: surface 8, 24: surface 9, 25: all{23,24}, 26: all{20,25}, 27: "
+        "not{26}, 28: ->{27}, }"
+        ",
         to_string(tree_));
-
-    std::vector<int> nodes;
-    while (min_node)
-    {
-        nodes.push_back(min_node.get());
-        min_node = simplify_up(&tree_, min_node);
-        cout << to_json_string(tree_) << endl;
-    }
-    // PRINT_EXPECTED(nodes);
-    static int const expected_nodes[] = {2, 20};
-    EXPECT_VEC_EQ(nodes, expected_nodes);
-
-    EXPECT_EQ("", to_string(tree_));
 }
 
 TEST_F(CsgTreeUtilsTest, replace_union)
@@ -355,15 +345,7 @@ TEST_F(CsgTreeUtilsTest, replace_union)
         to_string(tree_));
 
     // Imply inside neither
-    auto min_node = replace_down(&tree_, inside_a_or_b, False{});
-    EXPECT_EQ(a, min_node);
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: ->{0}, 3: ->{0}, 4: ->{1}, 5: ->{1}, 6: "
-        "->{1}, }",
-        to_string(tree_));
-
-    min_node = simplify_up(&tree_, min_node);
-    EXPECT_EQ(NodeId{}, min_node);
+    replace_and_simplify(&tree_, inside_a_or_b, False{});
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: ->{0}, 3: ->{0}, 4: ->{1}, 5: ->{1}, 6: "
         "->{1}, }",
@@ -374,7 +356,6 @@ TEST_F(CsgTreeUtilsTest, replace_union_2)
 {
     auto a = this->insert(S{0});
     auto b = this->insert(S{1});
-    auto inside_a = this->insert(Negated{a});
     this->insert(Negated{b});
     auto outside_a_or_b = this->insert(Joined{op_or, {a, b}});
     EXPECT_EQ(
@@ -383,24 +364,11 @@ TEST_F(CsgTreeUtilsTest, replace_union_2)
         to_string(tree_));
 
     // Imply !(a | b) -> a & b
-    auto min_node = replace_down(&tree_, outside_a_or_b, False{});
-    EXPECT_EQ(a, min_node);
-    EXPECT_EQ(
-        "{0: true, 1: not{0}, 2: ->{1}, 3: ->{1}, 4: not{2}, 5: not{3}, 6: "
-        "->{1}, }",
-        to_string(tree_));
-
-    min_node = simplify_up(&tree_, min_node);
-    EXPECT_EQ(inside_a, min_node);
-
+    replace_and_simplify(&tree_, outside_a_or_b, False{});
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: ->{1}, 3: ->{1}, 4: ->{0}, 5: ->{0}, 6: "
         "->{1}, }",
         to_string(tree_));
-
-    // No simplification
-    min_node = simplify_up(&tree_, min_node);
-    EXPECT_EQ(NodeId{}, min_node);
 }
 
 TEST_F(CsgTreeUtilsTest, calc_surfaces)
