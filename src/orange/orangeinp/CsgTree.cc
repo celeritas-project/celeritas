@@ -154,12 +154,16 @@ auto CsgTree::exchange(NodeId node_id, Node&& n) -> Node
 /*!
  * Perform a simplification of a node in-place.
  *
- * \return Whether simplification took place
+ * \return Simplified node
  */
-bool CsgTree::simplify(NodeId node_id)
+auto CsgTree::simplify(NodeId node_id) -> Simplification
 {
     auto repl = this->exchange(node_id, Node{this->at(node_id)});
-    return repl != this->at(node_id);
+    if (repl == this->at(node_id))
+    {
+        return {};
+    }
+    return Simplification{std::move(repl)};
 }
 
 //---------------------------------------------------------------------------//
