@@ -18,6 +18,7 @@
 #include "corecel/grid/VectorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/sys/Counter.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -89,6 +90,19 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
             result.initializers.push_back(track_counts.queued);
             result.active.push_back(track_counts.active);
             result.alive.push_back(track_counts.alive);
+            if constexpr (M == MemSpace::host)
+            {
+                auto stream_id
+                    = std::to_string(stepper_->state_ref().stream_id.get());
+                trace_counter(std::string("active-" + stream_id).data(),
+                              track_counts.active);
+                trace_counter(std::string("alive-" + stream_id).data(),
+                              track_counts.alive);
+                trace_counter(std::string("dead-" + stream_id).data(),
+                              track_counts.active - track_counts.alive);
+                trace_counter(std::string("queued-" + stream_id).data(),
+                              track_counts.queued);
+            }
         }
         ++result.num_step_iterations;
         result.num_steps += track_counts.active;

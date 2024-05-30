@@ -45,6 +45,7 @@ celeritas_optional_package(OpenMP "Enable CPU shared-memory parallelism")
 celeritas_optional_package(Python "Use Python to generate and preprocess")
 celeritas_optional_package(ROOT "Enable ROOT I/O")
 celeritas_optional_package(VecGeom "Use VecGeom geometry")
+option(CELERITAS_USE_Perfetto "Perfetto tracing library" OFF)
 
 if(CELERITAS_USE_Python)
   celeritas_optional_package(SWIG SWIG@4.1 "Build SWIG Python bindings")
@@ -317,6 +318,18 @@ endif()
 
 if(CELERITAS_USE_OpenMP)
   find_package(OpenMP REQUIRED)
+endif()
+
+if(CELERITAS_USE_Perfetto)
+  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+    celeritas_error_incompatible_option(
+      "Perfetto is not supported with CUDA/HIP build"
+      CELERITAS_USE_Perfetto
+      OFF
+    )
+  else()
+    celeritas_find_or_external_package(Perfetto)
+  endif()
 endif()
 
 if(CELERITAS_USE_Python)

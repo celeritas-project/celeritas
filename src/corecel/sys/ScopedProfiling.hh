@@ -12,9 +12,16 @@
 
 #include "celeritas_config.h"
 #include "corecel/Macros.hh"
+#include "corecel/io/Logger.hh"
+
+#include "Environment.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+// Whether profiling is enabled
+bool use_profiling();
+
 //---------------------------------------------------------------------------//
 /*!
  * Input arguments for the nvtx implementation.
@@ -47,6 +54,9 @@ struct ScopedProfilingInput
  *
  * \note The AMD roctx implementation requires the roctx library, which may not
  * be available on all systems.
+ *
+ * \note The CPU implementation requires Perfetto. It is not supported when
+ * Celeritas is built with device support (CUDA/HIP)
  */
 class ScopedProfiling
 {
@@ -57,14 +67,6 @@ class ScopedProfiling
     //!@}
 
   public:
-#if CELER_USE_DEVICE
-    // Whether profiling is enabled
-    static bool use_profiling();
-#else
-    // Profiling is never enabled if CUDA isn't available
-    constexpr static bool use_profiling() { return false; }
-#endif
-
     // Activate profiling with options
     explicit inline ScopedProfiling(Input const& input);
     // Activate profiling with just a name
@@ -92,7 +94,7 @@ class ScopedProfiling
  * Activate device profiling with options.
  */
 ScopedProfiling::ScopedProfiling(Input const& input)
-    : activated_{ScopedProfiling::use_profiling()}
+    : activated_{use_profiling()}
 {
     if (activated_)
     {
@@ -121,7 +123,7 @@ ScopedProfiling::~ScopedProfiling()
     }
 }
 
-#if !CELER_USE_DEVICE
+#if !CELER_USE_DEVICE && !CELERITAS_USE_PERFETTO
 inline void ScopedProfiling::activate(Input const&) noexcept
 {
     CELER_UNREACHABLE;
