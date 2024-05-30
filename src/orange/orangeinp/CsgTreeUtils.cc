@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/io/EnumStringMapper.hh"
 
 #include "detail/InfixStringBuilder.hh"
 #include "detail/NodeReplacementInserter.hh"
@@ -24,6 +25,41 @@ namespace celeritas
 {
 namespace orangeinp
 {
+
+enum class Repl
+{
+    unvisited,
+    unknown,
+    f,
+    t,
+    finalized,
+    size_
+};
+std::ostream& operator<<(std::ostream& os, Repl const& r)
+{
+    static EnumStringMapper<Repl> const to_cstring_impl{
+        "unvisited",
+        "unknown",
+        "false",
+        "true",
+        "finalized",
+    };
+    os << to_cstring_impl(r);
+    return os;
+}
+Repl negate(Repl r)
+{
+    switch (r)
+    {
+        case Repl::f:
+            return Repl::t;
+        case Repl::t:
+            return Repl::f;
+        default:
+            return r;
+    }
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Replace the given node ID with the replacement node.
@@ -46,6 +82,11 @@ NodeId replace_down(CsgTree* tree, NodeId n, Node repl)
     detail::NodeReplacementInserter::VecNode stack{{n, std::move(repl)}};
 
     NodeId lowest_node{n};
+    std::vector<Repl> replacement(tree->size(), Repl::unvisited);
+    auto get_repl = [&replacement](NodeId n) -> Repl& {
+        CELER_ASSERT(n < replacement.size());
+        return replacement[n.get()];
+    };
 
     while (!stack.empty())
     {
