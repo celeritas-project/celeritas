@@ -23,7 +23,7 @@ namespace test
 TEST(CsgTypes, hash)
 {
 #ifdef _MSC_VER
-    // XXX
+    // TODO: if performance on windows is negatively affected, fix this
     GTEST_SKIP()
         << "in MSVC, std::variant hash does *not* change based on the "
            "type index";

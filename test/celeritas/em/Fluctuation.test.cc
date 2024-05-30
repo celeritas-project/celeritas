@@ -272,7 +272,7 @@ TEST_F(EnergyLossDistributionTest, urban)
         sum += loss;
     }
 #ifdef _MSC_VER
-    // XXX
+    // TODO: determine why the sampled sequence is different
     GTEST_SKIP() << "Results differ statistically when built with MSVC...";
 #endif
 
