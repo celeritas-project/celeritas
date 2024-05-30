@@ -28,6 +28,17 @@ TEST(CsgTypes, hash)
 }
 
 //---------------------------------------------------------------------------//
+TEST(CsgTypes, literals)
+{
+    EXPECT_TRUE(is_boolean_node(True{}));
+    EXPECT_TRUE(is_boolean_node(False{}));
+    EXPECT_FALSE(is_boolean_node(Surface{S{1}}));
+    EXPECT_FALSE(is_boolean_node(Negated{N{1}}));
+    EXPECT_FALSE(is_boolean_node(Aliased{N{1}}));
+    EXPECT_FALSE(is_boolean_node(Joined{op_and, {N{1}}}));
+}
+
+//---------------------------------------------------------------------------//
 TEST(CsgTypes, stream)
 {
     auto to_string = [](auto&& n) {
