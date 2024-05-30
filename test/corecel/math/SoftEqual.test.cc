@@ -58,6 +58,7 @@ TYPED_TEST_SUITE(FloatingTest, FloatTypes, );
 TYPED_TEST(FloatingTest, soft_equal)
 {
     using value_type = typename TestFixture::value_type;
+    using R = value_type;
     using Limits_t = typename TestFixture::Limits_t;
     using Comp = SoftEqual<value_type>;
 
@@ -73,11 +74,11 @@ TYPED_TEST(FloatingTest, soft_equal)
     EXPECT_TRUE(comp(1, 1 + comp.rel() / 2));
     EXPECT_FALSE(comp(1, 1 + comp.rel() * 2));
     // Large scale
-    EXPECT_TRUE(comp(1e6, 1e6 * (1 + comp.rel() / 2)));
-    EXPECT_FALSE(comp(1e6, 1e6 * (1 + comp.rel() * 2)));
+    EXPECT_TRUE(comp(R(1e6), R(1e6) * (1 + comp.rel() / 2)));
+    EXPECT_FALSE(comp(R(1e6), R(1e6) * (1 + comp.rel() * 2)));
     // Smaller scale
-    EXPECT_TRUE(comp(1e-5, 1e-5 * (1 + comp.rel() / 2)));
-    EXPECT_FALSE(comp(1e-5, 1e-6));
+    EXPECT_TRUE(comp(R(1e-5), R(1e-5) * (1 + comp.rel() / 2)));
+    EXPECT_FALSE(comp(R(1e-5), R(1e-6)));
 
     if (std::is_same_v<double, value_type>)
     {
@@ -121,13 +122,15 @@ TYPED_TEST(FloatingTest, equal_or_soft_equal)
     using Limits_t = typename TestFixture::Limits_t;
     value_type const nan = Limits_t::quiet_NaN();
     value_type const inf = Limits_t::infinity();
+    value_type const one{1};
+    value_type const zero{0};
 
     EqualOr<SoftEqual<value_type>> comp;
 
-    EXPECT_TRUE(comp(1, 1));
-    EXPECT_TRUE(comp(0, 0));
-    EXPECT_FALSE(comp(-1, 1));
-    EXPECT_FALSE(comp(1, -1));
+    EXPECT_TRUE(comp(one, one));
+    EXPECT_TRUE(comp(zero, zero));
+    EXPECT_FALSE(comp(-one, one));
+    EXPECT_FALSE(comp(one, -one));
     EXPECT_FALSE(comp(inf, -inf));
     EXPECT_FALSE(comp(-inf, inf));
 
@@ -135,7 +138,7 @@ TYPED_TEST(FloatingTest, equal_or_soft_equal)
     EXPECT_TRUE(comp(1e6, 1e6 * (1 + comp.rel() / 2)));
     EXPECT_FALSE(comp(1e6, 1e6 * (1 + comp.rel() * 2)));
 
-    EXPECT_FALSE(comp(1, nan));
+    EXPECT_FALSE(comp(one, nan));
 }
 
 TYPED_TEST(FloatingTest, soft_zero)
