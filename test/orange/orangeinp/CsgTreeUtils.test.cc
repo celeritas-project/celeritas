@@ -305,26 +305,29 @@ TEST_F(CsgTreeUtilsTest, tilecal_bug)
 
     EXPECT_EQ(29, tree_.size());
 
+    cout << to_json_string(tree_) << endl;
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
         "surface 2, 6: not{5}, 7: all{2,4,6}, 8: surface 3, 9: not{8}, 10: "
         "all{2,4,9}, 11: not{10}, 12: surface 4, 13: surface 5, 14: "
-        "all{12,13}, 15: all{2,4,6,11,12,13}, 16: not{15}, 17: surface 6, 18: "
+        "all{12,13}, 15: all{7,11,14}, 16: not{15}, 17: surface 6, 18: "
         "surface 7, 19: not{18}, 20: all{6,17,19}, 21: all{9,17,19}, 22: "
         "not{21}, 23: surface 8, 24: surface 9, 25: all{23,24}, 26: "
-        "all{6,17,19,22,23,24}, 27: not{26}, 28: all{2,4,6,11,12,13,27}, }",
+        "all{20,22,25}, 27: not{26}, 28: all{15,27}, }",
         to_string(tree_));
 
-    EXPECT_EQ("!all(+0, -1, -2, !all(+0, -1, -3), +4, +5)",
+    EXPECT_EQ("!all(all(+0, -1, -2), !all(+0, -1, -3), all(+4, +5))",
               build_infix_string(tree_, N{16}));
     replace_and_simplify(&tree_, N{16}, False{});
+    cout << to_json_string(tree_) << endl;
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: ->{0}, 3: ->{1}, 4: ->{0}, 5: ->{1}, 6: "
         "->{0}, 7: ->{0}, 8: ->{0}, 9: ->{1}, 10: ->{1}, 11: ->{0}, 12: "
         "->{0}, 13: ->{0}, 14: ->{0}, 15: ->{0}, 16: ->{1}, 17: surface 6, "
         "18: surface 7, 19: not{18}, 20: all{17,19}, 21: ->{1}, 22: ->{0}, "
-        "23: surface 8, 24: surface 9, 25: all{23,24}, 26: all{17,19,23,24}, "
-        "27: not{26}, 28: ->{27}, }",
+        "23: surface 8, 24: surface 9, 25: all{23,24}, 26: all{20,25}, 27: "
+        "not{26}, 28: ->{27}, }"
+        ",
         to_string(tree_));
 }
 
