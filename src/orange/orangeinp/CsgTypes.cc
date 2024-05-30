@@ -31,9 +31,9 @@ std::ostream& operator<<(std::ostream& os, False const&)
     return os;
 }
 
-std::ostream& operator<<(std::ostream& os, Aliased const& n)
+std::ostream& operator<<(std::ostream& os, Surface const& n)
 {
-    os << "->{" << n.node.unchecked_get() << '}';
+    os << "surface " << n.id.unchecked_get();
     return os;
 }
 
@@ -43,9 +43,9 @@ std::ostream& operator<<(std::ostream& os, Negated const& n)
     return os;
 }
 
-std::ostream& operator<<(std::ostream& os, Surface const& n)
+std::ostream& operator<<(std::ostream& os, Aliased const& n)
 {
-    os << "surface " << n.id.unchecked_get();
+    os << "->{" << n.node.unchecked_get() << '}';
     return os;
 }
 
