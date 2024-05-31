@@ -77,10 +77,10 @@ void replace_and_simplify(CsgTree* tree, NodeId repl_node, Node repl)
                 && std::holds_alternative<Surface>((*tree)[n]))
             {
                 max_node = std::max(max_node, n);
-                auto old = tree->exchange(n,
-                                          repl == NodeReplacer::known_true
-                                              ? Node{True{}}
-                                              : Node{False{}});
+                tree->exchange(n,
+                               repl == NodeReplacer::known_true
+                                   ? Node{True{}}
+                                   : Node{False{}});
             }
             else if (auto simplified = tree->simplify(n))
             {
@@ -89,6 +89,20 @@ void replace_and_simplify(CsgTree* tree, NodeId repl_node, Node repl)
             }
         }
     } while (simplifying);
+
+    // Replace nonliterals
+    for (auto n : range(CsgTree::false_node_id() + 1, NodeId{tree->size()}))
+    {
+        auto repl = state[n.get()];
+        if ((repl == NodeReplacer::known_true
+             || repl == NodeReplacer::known_false)
+            && !std::holds_alternative<Surface>((*tree)[n]))
+        {
+            tree->exchange(n,
+                           repl == NodeReplacer::known_true ? Node{True{}}
+                                                            : Node{False{}});
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//

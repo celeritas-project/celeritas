@@ -263,8 +263,8 @@ TEST_F(CsgTreeUtilsTest, tilecal_polycone_bug)
 
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
-        "surface 2, 6: all{2,4,5}, 7: surface 3, 8: not{7}, 9: surface 4, 10: "
-        "all{3,8,9}, 11: ->{0}, 12: ->{1}, 13: surface 5, 14: not{13}, 15: "
+        "surface 2, 6: ->{1}, 7: surface 3, 8: not{7}, 9: surface 4, 10: "
+        "->{1}, 11: ->{1}, 12: ->{0}, 13: surface 5, 14: not{13}, 15: "
         "all{11,14}, }",
         to_string(tree_));
 }
