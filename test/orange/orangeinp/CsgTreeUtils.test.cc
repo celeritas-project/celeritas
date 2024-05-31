@@ -230,7 +230,47 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
     }
 }
 
-TEST_F(CsgTreeUtilsTest, tilecal_bug)
+//! Polycone didn't correctly get replaced with 'true' due to union
+TEST_F(CsgTreeUtilsTest, tilecal_polycone_bug)
+{
+    EXPECT_EQ(N{2}, this->insert(Surface{S{0}}));  // lower z
+    EXPECT_EQ(N{3}, this->insert(Surface{S{1}}));  // middle z
+    EXPECT_EQ(N{4}, this->insert(Negated{N{3}}));  // below middle z
+    EXPECT_EQ(N{5}, this->insert(Surface{S{2}}));  // cone
+    EXPECT_EQ(N{6}, this->insert(Joined{op_and, {N{2}, N{4}, N{5}}}));  // lower
+                                                                        // cone
+    EXPECT_EQ(N{7}, this->insert(Surface{S{3}}));  // top z
+    EXPECT_EQ(N{8}, this->insert(Negated{N{7}}));  // below top z
+    EXPECT_EQ(N{9}, this->insert(Surface{S{4}}));  // cone
+    EXPECT_EQ(N{10},
+              this->insert(Joined{op_and, {N{3}, N{8}, N{9}}}));  // upper
+                                                                  // cone
+    EXPECT_EQ(N{11}, this->insert(Joined{op_or, {N{6}, N{10}}}));  // cone
+    EXPECT_EQ(N{12}, this->insert(Negated{N{11}}));  // exterior
+    EXPECT_EQ(N{13}, this->insert(Surface{S{5}}));  // muon box
+    EXPECT_EQ(N{14}, this->insert(Negated{N{13}}));  // outside muon box
+    EXPECT_EQ(N{15}, this->insert(Joined{op_and, {N{14}, N{11}}}));  // interior
+
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
+        "surface 2, 6: all{2,4,5}, 7: surface 3, 8: not{7}, 9: surface 4, 10: "
+        "all{3,8,9}, 11: any{6,10}, 12: not{11}, 13: surface 5, 14: not{13}, "
+        "15: all{11,14}, }",
+        to_string(tree_));
+
+    // Imply inside boundary
+    replace_and_simplify(&tree_, N{12}, True{});
+
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
+        "surface 2, 6: all{2,4,5}, 7: surface 3, 8: not{7}, 9: surface 4, 10: "
+        "all{3,8,9}, 11: ->{0}, 12: ->{1}, 13: surface 5, 14: not{13}, 15: "
+        "all{11,14}, }",
+        to_string(tree_));
+}
+
+//! Cylinder segment didn't correctly propagate logic
+TEST_F(CsgTreeUtilsTest, tilecal_barrel_bug)
 {
     EXPECT_EQ(N{2}, this->insert(Surface{S{0}}));  // mz
     EXPECT_EQ(N{3}, this->insert(Surface{S{1}}));  // pz
