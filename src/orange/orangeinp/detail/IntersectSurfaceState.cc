@@ -22,22 +22,25 @@ namespace detail
  * This requires that the local and global zones have been set, and the
  * transform be present.
  */
-BoundingZone calc_merged_bzone(IntersectSurfaceState const& css)
+BoundingZone calc_merged_bzone(IntersectSurfaceState const& iss)
 {
-    CELER_EXPECT(css.transform);
+    CELER_EXPECT(iss.transform);
     CELER_EXPECT(
-        (!css.local_bzone.exterior && !css.local_bzone.interior)
-        || encloses(css.local_bzone.exterior, css.local_bzone.interior));
-    CELER_EXPECT(!css.local_bzone.negated);
-    CELER_EXPECT(!css.global_bzone.negated);
+        (!iss.local_bzone.exterior && !iss.local_bzone.interior)
+        || encloses(iss.local_bzone.exterior, iss.local_bzone.interior));
+    CELER_EXPECT(!iss.local_bzone.negated);
+    CELER_EXPECT(!iss.global_bzone.negated);
 
     BoundingZone transformed_local;
-    transformed_local.interior
-        = apply_transform(*css.transform, css.local_bzone.interior);
+    if (iss.local_bzone.interior)
+    {
+        transformed_local.interior
+            = apply_transform(*iss.transform, iss.local_bzone.interior);
+    }
     transformed_local.exterior
-        = apply_transform(*css.transform, css.local_bzone.exterior);
+        = apply_transform(*iss.transform, iss.local_bzone.exterior);
     transformed_local.negated = false;
-    return calc_intersection(transformed_local, css.global_bzone);
+    return calc_intersection(transformed_local, iss.global_bzone);
 }
 
 //---------------------------------------------------------------------------//
