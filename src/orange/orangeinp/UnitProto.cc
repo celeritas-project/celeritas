@@ -273,6 +273,7 @@ void UnitProto::build(InputBuilder& input) const
     // Save attributes from materials
     for (auto const& m : input_.materials)
     {
+        CELER_ASSERT(vol_iter != result.volumes.end());
         vol_iter->label = !m.label.empty()
                               ? m.label
                               : Label{std::string(m.interior->label())};
@@ -282,6 +283,7 @@ void UnitProto::build(InputBuilder& input) const
 
     if (input_.background)
     {
+        CELER_ASSERT(vol_iter != result.volumes.end());
         vol_iter->label = !input_.background.label.empty()
                               ? input_.background.label
                               : Label{input_.label, "bg"};
