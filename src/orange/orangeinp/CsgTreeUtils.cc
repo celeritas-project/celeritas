@@ -93,14 +93,23 @@ void replace_and_simplify(CsgTree* tree, NodeId repl_node, Node repl)
     // Replace nonliterals
     for (auto n : range(CsgTree::false_node_id() + 1, NodeId{tree->size()}))
     {
-        auto repl = state[n.get()];
-        if ((repl == NodeReplacer::known_true
-             || repl == NodeReplacer::known_false)
-            && !std::holds_alternative<Surface>((*tree)[n]))
+        if (std::holds_alternative<Surface>((*tree)[n]))
         {
-            tree->exchange(n,
-                           repl == NodeReplacer::known_true ? Node{True{}}
-                                                            : Node{False{}});
+            continue;
+        }
+
+        auto repl = state[n.get()];
+        if (repl == NodeReplacer::known_true)
+        {
+            tree->exchange(n, Node{True{}});
+        }
+        else if (repl == NodeReplacer::known_false)
+        {
+            tree->exchange(n, Node{False{}});
+        }
+        else
+        {
+            tree->simplify(n);
         }
     }
 }
