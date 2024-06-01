@@ -437,6 +437,9 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
         // Replace "exterior" with "False" (i.e. interior with true)
         NodeId ext_node = result.volumes[ext_vol.unchecked_get()];
         replace_and_simplify(&result.tree, ext_node, False{});
+
+        // TODO: we can sometimes eliminate CSG surfaces and nodes that aren't
+        // used by the actual volumes
     }
 
     return result;
