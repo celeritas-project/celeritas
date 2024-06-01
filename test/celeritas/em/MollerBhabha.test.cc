@@ -311,7 +311,7 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
 //---------------------------------------------------------------------------//
 TEST_F(MollerBhabhaInteractorTest, stress_test)
 {
-    int const num_samples = 1e4;
+    int const num_samples = 10000;
     std::vector<double> avg_engine_samples;
 
     CutoffView cutoff_view(this->cutoff_params()->host_ref(), MaterialId{0});

@@ -71,11 +71,12 @@ class BIHBuilderTest : public ::celeritas::test::Test
 TEST_F(BIHBuilderTest, basic)
 {
     using Edge = BIHInnerNode::Edge;
+    using Real3 = FastBBox::Real3;
 
     bboxes_.push_back(FastBBox::from_infinite());
-    bboxes_.push_back({{0, 0, 0}, {1.6, 1, 100}});
-    bboxes_.push_back({{1.2, 0, 0}, {2.8, 1, 100}});
-    bboxes_.push_back({{2.8, 0, 0}, {5, 1, 100}});
+    bboxes_.push_back({{0, 0, 0}, {1.6f, 1, 100}});
+    bboxes_.push_back({{1.2f, 0, 0}, {2.8f, 1, 100}});
+    bboxes_.push_back({{2.8f, 0, 0}, {5, 1, 100}});
     bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
     bboxes_.push_back({{0, -1, 0}, {5, 0, 100}});
 
@@ -87,8 +88,8 @@ TEST_F(BIHBuilderTest, basic)
 
     // Test bounding box storage
     auto bbox1 = storage_.bboxes[bih_tree.bboxes[LocalVolumeId{2}]];
-    EXPECT_VEC_SOFT_EQ(Real3({1.2, 0., 0.}), bbox1.lower());
-    EXPECT_VEC_SOFT_EQ(Real3({2.8, 1., 100.}), bbox1.upper());
+    EXPECT_VEC_SOFT_EQ(Real3({1.2f, 0, 0}), bbox1.lower());
+    EXPECT_VEC_SOFT_EQ(Real3({2.8f, 1, 100}), bbox1.upper());
 
     // Test nodes
     auto inner_nodes = bih_tree.inner_nodes;
@@ -102,8 +103,8 @@ TEST_F(BIHBuilderTest, basic)
         ASSERT_FALSE(node.parent);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_EQ(Axis{0}, node.axis);
-        EXPECT_SOFT_EQ(2.8, node.bounding_planes[Edge::left].position);
-        EXPECT_SOFT_EQ(0, node.bounding_planes[Edge::right].position);
+        EXPECT_SOFT_EQ(2.8f, node.bounding_planes[Edge::left].position);
+        EXPECT_SOFT_EQ(0.0f, node.bounding_planes[Edge::right].position);
         EXPECT_EQ(BIHNodeId{1}, node.bounding_planes[Edge::left].child);
         EXPECT_EQ(BIHNodeId{2}, node.bounding_planes[Edge::right].child);
     }
@@ -114,8 +115,8 @@ TEST_F(BIHBuilderTest, basic)
         ASSERT_EQ(BIHNodeId{0}, node.parent);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_EQ(Axis{0}, node.axis);
-        EXPECT_SOFT_EQ(1.6, node.bounding_planes[Edge::left].position);
-        EXPECT_SOFT_EQ(1.2, node.bounding_planes[Edge::right].position);
+        EXPECT_SOFT_EQ(1.6f, node.bounding_planes[Edge::left].position);
+        EXPECT_SOFT_EQ(1.2f, node.bounding_planes[Edge::right].position);
         EXPECT_EQ(BIHNodeId{3}, node.bounding_planes[Edge::left].child);
         EXPECT_EQ(BIHNodeId{4}, node.bounding_planes[Edge::right].child);
     }
@@ -126,8 +127,8 @@ TEST_F(BIHBuilderTest, basic)
         ASSERT_EQ(BIHNodeId{0}, node.parent);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_EQ(Axis{0}, node.axis);
-        EXPECT_SOFT_EQ(5, node.bounding_planes[Edge::left].position);
-        EXPECT_SOFT_EQ(2.8, node.bounding_planes[Edge::right].position);
+        EXPECT_SOFT_EQ(5.0f, node.bounding_planes[Edge::left].position);
+        EXPECT_SOFT_EQ(2.8f, node.bounding_planes[Edge::right].position);
         EXPECT_EQ(BIHNodeId{5}, node.bounding_planes[Edge::left].child);
         EXPECT_EQ(BIHNodeId{6}, node.bounding_planes[Edge::right].child);
     }
@@ -251,8 +252,8 @@ TEST_F(BIHBuilderTest, grid)
         ASSERT_FALSE(node.parent);
         EXPECT_EQ(Axis{1}, node.axis);
         EXPECT_EQ(Axis{1}, node.axis);
-        EXPECT_SOFT_EQ(2, node.bounding_planes[Edge::left].position);
-        EXPECT_SOFT_EQ(2, node.bounding_planes[Edge::right].position);
+        EXPECT_SOFT_EQ(2.f, node.bounding_planes[Edge::left].position);
+        EXPECT_SOFT_EQ(2.f, node.bounding_planes[Edge::right].position);
         EXPECT_EQ(BIHNodeId{1}, node.bounding_planes[Edge::left].child);
         EXPECT_EQ(BIHNodeId{6}, node.bounding_planes[Edge::right].child);
     }
@@ -263,8 +264,8 @@ TEST_F(BIHBuilderTest, grid)
         ASSERT_EQ(BIHNodeId{0}, node.parent);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_EQ(Axis{0}, node.axis);
-        EXPECT_SOFT_EQ(1, node.bounding_planes[Edge::left].position);
-        EXPECT_SOFT_EQ(1, node.bounding_planes[Edge::right].position);
+        EXPECT_SOFT_EQ(1.f, node.bounding_planes[Edge::left].position);
+        EXPECT_SOFT_EQ(1.f, node.bounding_planes[Edge::right].position);
         EXPECT_EQ(BIHNodeId{2}, node.bounding_planes[Edge::left].child);
         EXPECT_EQ(BIHNodeId{3}, node.bounding_planes[Edge::right].child);
     }
@@ -275,8 +276,8 @@ TEST_F(BIHBuilderTest, grid)
         ASSERT_EQ(BIHNodeId{1}, node.parent);
         EXPECT_EQ(Axis{1}, node.axis);
         EXPECT_EQ(Axis{1}, node.axis);
-        EXPECT_SOFT_EQ(1, node.bounding_planes[Edge::left].position);
-        EXPECT_SOFT_EQ(1, node.bounding_planes[Edge::right].position);
+        EXPECT_SOFT_EQ(1.f, node.bounding_planes[Edge::left].position);
+        EXPECT_SOFT_EQ(1.f, node.bounding_planes[Edge::right].position);
         EXPECT_EQ(BIHNodeId{11}, node.bounding_planes[Edge::left].child);
         EXPECT_EQ(BIHNodeId{12}, node.bounding_planes[Edge::right].child);
     }
@@ -287,8 +288,8 @@ TEST_F(BIHBuilderTest, grid)
         ASSERT_EQ(BIHNodeId{1}, node.parent);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_EQ(Axis{0}, node.axis);
-        EXPECT_SOFT_EQ(2, node.bounding_planes[Edge::left].position);
-        EXPECT_SOFT_EQ(2, node.bounding_planes[Edge::right].position);
+        EXPECT_SOFT_EQ(2.f, node.bounding_planes[Edge::left].position);
+        EXPECT_SOFT_EQ(2.f, node.bounding_planes[Edge::right].position);
         EXPECT_EQ(BIHNodeId{4}, node.bounding_planes[Edge::left].child);
         EXPECT_EQ(BIHNodeId{5}, node.bounding_planes[Edge::right].child);
     }
@@ -299,8 +300,8 @@ TEST_F(BIHBuilderTest, grid)
         ASSERT_EQ(BIHNodeId{3}, node.parent);
         EXPECT_EQ(Axis{1}, node.axis);
         EXPECT_EQ(Axis{1}, node.axis);
-        EXPECT_SOFT_EQ(1, node.bounding_planes[Edge::left].position);
-        EXPECT_SOFT_EQ(1, node.bounding_planes[Edge::right].position);
+        EXPECT_SOFT_EQ(1.f, node.bounding_planes[Edge::left].position);
+        EXPECT_SOFT_EQ(1.f, node.bounding_planes[Edge::right].position);
         EXPECT_EQ(BIHNodeId{13}, node.bounding_planes[Edge::left].child);
         EXPECT_EQ(BIHNodeId{14}, node.bounding_planes[Edge::right].child);
     }
@@ -311,8 +312,8 @@ TEST_F(BIHBuilderTest, grid)
         ASSERT_EQ(BIHNodeId{3}, node.parent);
         EXPECT_EQ(Axis{1}, node.axis);
         EXPECT_EQ(Axis{1}, node.axis);
-        EXPECT_SOFT_EQ(1, node.bounding_planes[Edge::left].position);
-        EXPECT_SOFT_EQ(1, node.bounding_planes[Edge::right].position);
+        EXPECT_SOFT_EQ(1.f, node.bounding_planes[Edge::left].position);
+        EXPECT_SOFT_EQ(1.f, node.bounding_planes[Edge::right].position);
         EXPECT_EQ(BIHNodeId{15}, node.bounding_planes[Edge::left].child);
         EXPECT_EQ(BIHNodeId{16}, node.bounding_planes[Edge::right].child);
     }

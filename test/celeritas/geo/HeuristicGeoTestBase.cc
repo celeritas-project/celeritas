@@ -56,7 +56,8 @@ void HeuristicGeoTestBase::run_host(size_type num_states, real_type tolerance)
         ADD_FAILURE() << "Implement the following as "
                          "TestCase::reference_avg_path() const";
 
-        int precision_digits = std::ceil(-std::log10(tolerance) + 0.5);
+        int precision_digits
+            = static_cast<int>(std::ceil(-std::log10(tolerance) + 0.5));
 
         std::cout << "/* REFERENCE PATH LENGTHS */\n"
                      "static real_type const paths[] = {"

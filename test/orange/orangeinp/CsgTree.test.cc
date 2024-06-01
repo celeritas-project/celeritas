@@ -22,6 +22,12 @@ namespace test
 //---------------------------------------------------------------------------//
 TEST(CsgTypes, hash)
 {
+#ifdef _MSC_VER
+    // TODO: if performance on windows is negatively affected, fix this
+    GTEST_SKIP()
+        << "in MSVC, std::variant hash does *not* change based on the "
+           "type index";
+#endif
     std::hash<Node> variant_hash;
     EXPECT_NE(variant_hash(True{}), variant_hash(False{}));
     EXPECT_NE(variant_hash(Aliased{N{0}}), variant_hash(Surface{S{0}}));
