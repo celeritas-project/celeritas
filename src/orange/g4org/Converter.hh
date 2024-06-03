@@ -64,8 +64,8 @@ class Converter
         Tolerance<> tol;
         //! Write interpreted geometry to a JSON file
         std::string proto_output_file;
-        //! Write constructed CSG units to a JSON file
-        std::string csg_output_file;
+        //! Write intermediate debug ouput (CSG construction) to a JSON file
+        std::string debug_output_file;
     };
 
     struct result_type

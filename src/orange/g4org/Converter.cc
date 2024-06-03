@@ -66,6 +66,8 @@ auto Converter::operator()(arg_type g4world) -> result_type
     InputBuilder build_input([&opts = opts_] {
         InputBuilder::Options ibo;
         ibo.tol = opts.tol;
+        ibo.proto_output_file = opts.proto_output_file;
+        ibo.debug_output_file = opts.debug_output_file;
         return ibo;
     }());
     result.input = build_input(*global_proto);

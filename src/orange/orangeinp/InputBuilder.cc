@@ -62,6 +62,60 @@ void write_protos(detail::ProtoMap const& map, std::string const& filename)
 }
 
 //---------------------------------------------------------------------------//
+//! Helper struct to save JSON to a file
+class JsonProtoOutput
+{
+  public:
+    JsonProtoOutput() = default;
+
+    //! Construct with the number of universes
+    explicit JsonProtoOutput(UniverseId::size_type size)
+    {
+        CELER_EXPECT(size > 0);
+#if CELERITAS_USE_JSON
+        output_ = nlohmann::json(std::vector<nullptr_t>(size));
+#endif
+    }
+
+    //! Save JSON
+    void operator()(UniverseId uid, JsonPimpl&& jpo)
+    {
+#if CELERITAS_USE_JSON
+        CELER_EXPECT(uid < output_.size());
+        output_[uid.unchecked_get()] = std::move(jpo.obj);
+#else
+        CELER_DISCARD(uid);
+        CELER_DISCARD(jpo);
+#endif
+    }
+
+    //! Write debug information to a file
+    void write(std::string const& filename) const
+    {
+        if (!CELERITAS_USE_JSON)
+        {
+            CELER_LOG(warning)
+                << "JSON support is not enabled: no debug output written to \""
+                << filename << '"';
+        }
+#if CELERITAS_USE_JSON
+        CELER_ASSERT(!output_.empty());
+        std::ofstream outf(filename);
+        CELER_VALIDATE(
+            outf, << "failed to open output file at \"" << filename << '"');
+        outf << output_.dump();
+
+        CELER_LOG(info) << "Wrote ORANGE debug info to " << filename;
+#endif
+    }
+
+  private:
+#if CELERITAS_USE_JSON
+    nlohmann::json output_;
+#endif
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -94,10 +148,25 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
 
     // Build surfaces and metadata
     OrangeInput result;
-    detail::ProtoBuilder builder(&result, opts_.tol, protos);
+    JsonProtoOutput debug_outp;
+    detail::ProtoBuilder builder(&result, protos, [&] {
+        detail::ProtoBuilder::Options pbopts;
+        pbopts.tol = opts_.tol;
+        if (!opts_.debug_output_file.empty())
+        {
+            debug_outp = JsonProtoOutput{protos.size()};
+            pbopts.save_json = std::ref(debug_outp);
+        }
+        return pbopts;
+    }());
     for (auto uid : range(UniverseId{protos.size()}))
     {
         protos.at(uid)->build(builder);
+    }
+
+    if (!opts_.debug_output_file.empty())
+    {
+        debug_outp.write(opts_.debug_output_file);
     }
 
     CELER_ENSURE(result);

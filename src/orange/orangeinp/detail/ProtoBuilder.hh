@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
+
 #include "orange/OrangeInput.hh"
 #include "orange/OrangeTypes.hh"
 
@@ -14,6 +16,7 @@
 
 namespace celeritas
 {
+struct JsonPimpl;
 namespace orangeinp
 {
 class ProtoInterface;
@@ -42,14 +45,27 @@ class ProtoBuilder
     //!@{
     //! \name Type aliases
     using Tol = Tolerance<>;
+    using SaveUnivJson = std::function<void(UniverseId, JsonPimpl&&)>;
     //!@}
+
+    //! Input options for construction
+    struct Options
+    {
+        //! Manually specify a tracking/construction tolerance
+        Tolerance<> tol;
+        //! Save metadata during construction for each universe
+        SaveUnivJson save_json;
+    };
 
   public:
     // Construct with output pointer, geometry construction options, and protos
-    ProtoBuilder(OrangeInput* inp, Tol const& tol, ProtoMap const& protos);
+    ProtoBuilder(OrangeInput* inp, ProtoMap const& protos, Options&& opts);
 
     //! Get the tolerance to use when constructing geometry
     Tol const& tol() const { return inp_->tol; }
+
+    //! Whether output should be saved for each
+    bool save_json() const { return static_cast<bool>(save_json_); }
 
     // Find a universe ID
     inline UniverseId find_universe_id(ProtoInterface const*) const;
@@ -63,12 +79,16 @@ class ProtoBuilder
     // Expand the bounding box of a universe
     void expand_bbox(UniverseId, BBox const& local_box);
 
+    // Save debugging data for a universe
+    void save_json(JsonPimpl&&) const;
+
     // Construct a universe (to be called *once* per proto)
     void insert(VariantUniverseInput&& unit);
 
   private:
     OrangeInput* inp_;
     ProtoMap const& protos_;
+    SaveUnivJson save_json_;
     std::vector<BBox> bboxes_;
 };
 

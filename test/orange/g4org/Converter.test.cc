@@ -120,16 +120,18 @@ TEST_F(ConverterTest, DISABLED_arbitrary)
                       "--gtest_filter=*arbitrary "
                       "--gtest_also_run_disabled_tests");
 
-    Converter convert([] {
+    Converter convert([&filename] {
         Converter::Options opts;
         opts.verbose = false;
+        opts.proto_output_file = filename + ".protos.json";
+        opts.debug_output_file = filename + ".csg.json";
         return opts;
     }());
     auto input = convert(this->load(filename)).input;
 
-    filename += ".json";
-    CELER_LOG(info) << "Writing JSON translation to " << filename;
-    std::ofstream os(filename);
+    auto out_filename = filename + ".org.json";
+    CELER_LOG(info) << "Writing JSON translation to " << out_filename;
+    std::ofstream os(out_filename);
     os << input;
 }
 
