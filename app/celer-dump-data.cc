@@ -124,7 +124,7 @@ void print_isotopes(std::vector<ImportIsotope>& isotopes)
 # Isotopes
 
 | Isotope ID | Name   | Atomic number | Atomic mass number | Binding energy (MeV) | Nuclear mass (MeV) |
-| ---------- | ------ | ------------- | ------------------ | ------------------ |
+| ---------- | ------ | ------------- | ------------------ | -------------------- | ------------------ |
 )gfm";
 
     for (unsigned int isotope_id : range(isotopes.size()))
