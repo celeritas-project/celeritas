@@ -348,8 +348,9 @@ auto SolidConverter::displaced(arg_type solid_base) -> result_type
     CELER_ASSERT(g4daughter);
     auto daughter = (*this)(*g4daughter);
 
-    // Note that GetDirectTransform is the combination of GetFrameTranslation
-    // and GetFrameRotation .
+    // Note that GetDirectTransform is an affine transform that combines the
+    // daughter-to-parent ("object") translation with an inverted
+    // [parent-to-daughter, "frame"] rotation
     return std::make_shared<Transformed>(
         daughter, transform_(solid.GetDirectTransform()));
 }

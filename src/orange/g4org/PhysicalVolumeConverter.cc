@@ -119,11 +119,16 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
     result.name = g4pv.GetName();
     result.copy_number = g4pv.GetCopyNo();
     result.transform = [&]() -> VariantTransform {
-        // IMPORTANT: object and frame rotations are backward!
         auto const& g4trans = g4pv.GetObjectTranslation();
-        if (auto* rot = g4pv.GetFrameRotation())
+        if (g4pv.GetFrameRotation())
         {
-            return this->data->make_transform(g4trans, *rot);
+            // Get the child-to-parent rotation and do another check for the
+            // identity matrix (parameterized volumes often have one)
+            auto const& rot = g4pv.GetObjectRotationValue();
+            if (!rot.isIdentity())
+            {
+                return this->data->make_transform(g4trans, rot);
+            }
         }
         if (g4trans[0] != 0 || g4trans[1] != 0 || g4trans[2] != 0)
         {
