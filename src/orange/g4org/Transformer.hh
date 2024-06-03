@@ -105,7 +105,7 @@ auto Transformer::operator()(G4ThreeVector const& trans,
                              G4RotationMatrix const& rot) const
     -> Transformation
 {
-    return Transformation{convert_from_geant(rot), scale_.to<Real3>(trans)};
+    return Transformation{transposed_from_geant(rot), scale_.to<Real3>(trans)};
 }
 
 //---------------------------------------------------------------------------//
@@ -115,8 +115,7 @@ auto Transformer::operator()(G4ThreeVector const& trans,
 auto Transformer::operator()(G4AffineTransform const& affine) const
     -> Transformation
 {
-    return Transformation{transposed_from_geant(affine.NetRotation()),
-                          scale_.to<Real3>(affine.NetTranslation())};
+    return (*this)(affine.NetTranslation(), affine.NetRotation());
 }
 
 //---------------------------------------------------------------------------//
