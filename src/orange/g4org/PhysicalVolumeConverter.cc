@@ -20,12 +20,10 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
-#include "corecel/io/StreamableVariant.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantGeoUtils.hh"
-#include "orange/transform/TransformIO.hh"
 
 #include "LogicalVolumeConverter.hh"
 #include "Scaler.hh"
@@ -155,8 +153,7 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
         if (CELER_UNLIKELY(data->verbose))
         {
             std::clog << std::string(depth, ' ') << "Converted "
-                      << g4lv->GetName() << " with transform "
-                      << StreamableVariant{result.transform} << std::endl;
+                      << g4lv->GetName() << std::endl;
         }
         // Queue up children for construction
         auto num_children = g4lv->GetNoDaughters();
