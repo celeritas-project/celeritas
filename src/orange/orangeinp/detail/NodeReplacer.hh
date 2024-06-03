@@ -24,8 +24,10 @@ namespace detail
 /*!
  * Add a node ID and its "replaced" value.
  *
- * This implementation detail of the "replace down" algorithm adds daughters
- * to a queue of nodes to visit, along with their replacement values.
+ * This implementation detail of the CSG simplify algorithm updates the
+ * dependent logical state from a single node.
+ *
+ * \return whether a change to the state took place
  */
 class NodeReplacer
 {
@@ -44,7 +46,7 @@ class NodeReplacer
     //!@}
 
   public:
-    // Construct with pointers to the stack and replacement
+    // Construct with pointers to the state and the node being replaced
     inline NodeReplacer(VecRepl* state, NodeId n);
 
     // Simplify node types that reference other nodes
@@ -71,7 +73,7 @@ class NodeReplacer
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with pointer to the stack and the replacement value.
+ * Construct with pointer to the state and the replacement value.
  *
  * For now the replacement must be a boolean.
  */
@@ -83,27 +85,27 @@ NodeReplacer::NodeReplacer(VecRepl* state, NodeId n) : state_{state}
 
 //---------------------------------------------------------------------------//
 /*!
- * Check that the replacement node matches this queued node.
+ * Check that the replacement node matches this state.
  */
 bool NodeReplacer::operator()(True const&)
 {
     CELER_ASSERT(repl_ == NodeRepl::known_true);
-    return {};
+    return false;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Check that the replacement node matches this queued node.
+ * Check that the replacement node matches this state.
  */
 bool NodeReplacer::operator()(False const&)
 {
     CELER_ASSERT(repl_ == NodeRepl::known_false);
-    return {};
+    return false;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Push the target of an aliased node onto the stack.
+ * Replace the target of an aliased node.
  *
  * Aliasing a node implies the alias has the same value.
  */
@@ -114,9 +116,9 @@ bool NodeReplacer::operator()(Aliased const& n)
 
 //---------------------------------------------------------------------------//
 /*!
- * Push a negated node onto the stack.
+ * Update the target of a negated node.
  *
- * Negating a node implies its daughter has the opposite value.
+ * Negating a node implies its child has the opposite value.
  */
 bool NodeReplacer::operator()(Negated const& n)
 {
