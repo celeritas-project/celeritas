@@ -41,10 +41,10 @@ struct False
 {
 };
 
-//! Node that is a single surface
-struct Surface
+//! (Internal) stand-in node for a replacement for another node ID
+struct Aliased
 {
-    LocalSurfaceId id;
+    NodeId node;
 };
 
 //! Node that negates the next ID
@@ -53,10 +53,10 @@ struct Negated
     NodeId node;
 };
 
-//! (Internal) stand-in node for a replacement for another node ID
-struct Aliased
+//! Node that is a single surface
+struct Surface
 {
-    NodeId node;
+    LocalSurfaceId id;
 };
 
 //! Internal node applying an operation to multiple leaf nodes
@@ -67,7 +67,7 @@ struct Joined
 };
 
 //! Generic node
-using Node = std::variant<True, False, Surface, Negated, Aliased, Joined>;
+using Node = std::variant<True, False, Aliased, Negated, Surface, Joined>;
 
 //---------------------------------------------------------------------------//
 // Equality operators
@@ -80,17 +80,17 @@ inline constexpr bool operator==(False const&, False const&)
 {
     return true;
 }
-inline constexpr bool operator==(Surface const& a, Surface const& b)
+inline constexpr bool operator==(Aliased const& a, Aliased const& b)
 {
-    return a.id == b.id;
+    return a.node == b.node;
 }
 inline constexpr bool operator==(Negated const& a, Negated const& b)
 {
     return a.node == b.node;
 }
-inline constexpr bool operator==(Aliased const& a, Aliased const& b)
+inline constexpr bool operator==(Surface const& a, Surface const& b)
 {
-    return a.node == b.node;
+    return a.id == b.id;
 }
 inline constexpr bool operator==(Joined const& a, Joined const& b)
 {
@@ -105,9 +105,9 @@ inline constexpr bool operator==(Joined const& a, Joined const& b)
 
 CELER_DEFINE_CSG_NE(True)
 CELER_DEFINE_CSG_NE(False)
-CELER_DEFINE_CSG_NE(Surface)
-CELER_DEFINE_CSG_NE(Negated)
 CELER_DEFINE_CSG_NE(Aliased)
+CELER_DEFINE_CSG_NE(Negated)
+CELER_DEFINE_CSG_NE(Surface)
 CELER_DEFINE_CSG_NE(Joined)
 
 //---------------------------------------------------------------------------//
@@ -115,9 +115,9 @@ CELER_DEFINE_CSG_NE(Joined)
 //---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, True const&);
 std::ostream& operator<<(std::ostream& os, False const&);
-std::ostream& operator<<(std::ostream& os, Surface const&);
-std::ostream& operator<<(std::ostream& os, Negated const&);
 std::ostream& operator<<(std::ostream& os, Aliased const&);
+std::ostream& operator<<(std::ostream& os, Negated const&);
+std::ostream& operator<<(std::ostream& os, Surface const&);
 std::ostream& operator<<(std::ostream& os, Joined const&);
 
 // Write a variant node to a stream
@@ -132,14 +132,7 @@ std::string to_string(Node const&);
 //! Whether a node is a boolean (True or False instances)
 inline constexpr bool is_boolean_node(Node const& n)
 {
-    return n.index() < 2;
-}
-
-//---------------------------------------------------------------------------//
-//! Whether a node is a literal (true, false, surface)
-inline constexpr bool is_literal_node(Node const& n)
-{
-    return n.index() < 3;
+    return std::holds_alternative<True>(n) || std::holds_alternative<False>(n);
 }
 
 //---------------------------------------------------------------------------//
@@ -175,13 +168,13 @@ struct hash<celeritas::orangeinp::False>
 };
 
 template<>
-struct hash<celeritas::orangeinp::Surface>
+struct hash<celeritas::orangeinp::Aliased>
 {
-    using argument_type = celeritas::orangeinp::Surface;
+    using argument_type = celeritas::orangeinp::Aliased;
     using result_type = std::size_t;
     result_type operator()(argument_type const& val) const noexcept
     {
-        return std::hash<celeritas::LocalSurfaceId>{}(val.id);
+        return std::hash<celeritas::orangeinp::NodeId>{}(val.node);
     }
 };
 
@@ -197,13 +190,13 @@ struct hash<celeritas::orangeinp::Negated>
 };
 
 template<>
-struct hash<celeritas::orangeinp::Aliased>
+struct hash<celeritas::orangeinp::Surface>
 {
-    using argument_type = celeritas::orangeinp::Aliased;
+    using argument_type = celeritas::orangeinp::Surface;
     using result_type = std::size_t;
     result_type operator()(argument_type const& val) const noexcept
     {
-        return std::hash<celeritas::orangeinp::NodeId>{}(val.node);
+        return std::hash<celeritas::LocalSurfaceId>{}(val.id);
     }
 };
 

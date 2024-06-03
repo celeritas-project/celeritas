@@ -42,13 +42,6 @@ TEST(CsgTypes, literals)
     EXPECT_FALSE(is_boolean_node(Negated{N{1}}));
     EXPECT_FALSE(is_boolean_node(Aliased{N{1}}));
     EXPECT_FALSE(is_boolean_node(Joined{op_and, {N{1}}}));
-
-    EXPECT_TRUE(is_literal_node(True{}));
-    EXPECT_TRUE(is_literal_node(False{}));
-    EXPECT_TRUE(is_literal_node(Surface{S{1}}));
-    EXPECT_FALSE(is_literal_node(Negated{N{1}}));
-    EXPECT_FALSE(is_literal_node(Aliased{N{1}}));
-    EXPECT_FALSE(is_literal_node(Joined{op_and, {N{1}}}));
 }
 
 //---------------------------------------------------------------------------//
