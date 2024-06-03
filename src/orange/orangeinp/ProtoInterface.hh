@@ -81,9 +81,5 @@ class ProtoInterface
 std::string to_string(ProtoInterface const&);
 
 //---------------------------------------------------------------------------//
-// Construct an ORANGE input from a global proto-universe
-OrangeInput build_input(Tolerance<> const& tol, ProtoInterface const& global);
-
-//---------------------------------------------------------------------------//
 }  // namespace orangeinp
 }  // namespace celeritas

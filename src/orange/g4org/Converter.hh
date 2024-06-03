@@ -62,8 +62,10 @@ class Converter
         bool verbose{false};
         //! Manually specify a tracking/construction tolerance
         Tolerance<> tol;
-        //! Callback to get info about the constructed proto graph
-        std::function<void(orangeinp::ProtoInterface const&)> output_protos;
+        //! Write interpreted geometry to a JSON file
+        std::string proto_output_file;
+        //! Write constructed CSG units to a JSON file
+        std::string csg_output_file;
     };
 
     struct result_type

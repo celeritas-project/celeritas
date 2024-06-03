@@ -29,6 +29,7 @@ list(APPEND SOURCES
   orangeinp/CsgTree.cc
   orangeinp/CsgTypes.cc
   orangeinp/CsgTreeUtils.cc
+  orangeinp/InputBuilder.cc
   orangeinp/IntersectRegion.cc
   orangeinp/IntersectSurfaceBuilder.cc
   orangeinp/PolySolid.cc

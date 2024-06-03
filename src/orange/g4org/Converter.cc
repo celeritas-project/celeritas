@@ -9,6 +9,7 @@
 
 #include "corecel/io/Logger.hh"
 #include "geocel/detail/LengthUnits.hh"
+#include "orange/orangeinp/InputBuilder.hh"
 
 #include "PhysicalVolumeConverter.hh"
 #include "ProtoConstructor.hh"
@@ -47,7 +48,7 @@ auto Converter::operator()(arg_type g4world) -> result_type
 {
     CELER_EXPECT(g4world);
 
-    CELER_LOG(debug) << "Converting Geant4 geometry elements";
+    using orangeinp::InputBuilder;
 
     // Convert solids, logical volumes, physical volumes
     PhysicalVolumeConverter::Options options;
@@ -57,18 +58,17 @@ auto Converter::operator()(arg_type g4world) -> result_type
     CELER_VALIDATE(std::holds_alternative<NoTransformation>(world.transform),
                    << "world volume should not have a transformation");
 
-    CELER_LOG(debug) << "Building protos";
     // Convert logical volumes into protos
     auto global_proto = ProtoConstructor{opts_.verbose}(*world.lv);
-    if (opts_.output_protos)
-    {
-        opts_.output_protos(*global_proto);
-    }
 
-    CELER_LOG(debug) << "Building universes";
     // Build universes from protos
     result_type result;
-    result.input = build_input(opts_.tol, *global_proto);
+    InputBuilder build_input([&opts = opts_] {
+        InputBuilder::Options ibo;
+        ibo.tol = opts.tol;
+        return ibo;
+    }());
+    result.input = build_input(*global_proto);
     return result;
 }
 
