@@ -123,7 +123,7 @@ void print_isotopes(std::vector<ImportIsotope>& isotopes)
     cout << R"gfm(
 # Isotopes
 
-| Isotope ID | Name   | Atomic number | Atomic mass number | Nuclear mass (MeV) |
+| Isotope ID | Name   | Atomic number | Atomic mass number | Binding energy (MeV) | Nuclear mass (MeV) |
 | ---------- | ------ | ------------- | ------------------ | ------------------ |
 )gfm";
 
@@ -136,6 +136,7 @@ void print_isotopes(std::vector<ImportIsotope>& isotopes)
              << setw(6) << isotope.name << " | "
              << setw(13) << isotope.atomic_number << " | "
              << setw(18) << isotope.atomic_mass_number << " | "
+             << setw(20) << isotope.binding_energy << " | "
              << setw(18) << isotope.nuclear_mass << " |\n";
         // clang-format on
     }
