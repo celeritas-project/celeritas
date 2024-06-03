@@ -34,6 +34,7 @@
 #    include "corecel/io/JsonPimpl.hh"
 #    include "corecel/io/LabelIO.json.hh"
 
+#    include "CsgTreeIO.json.hh"
 #    include "ObjectIO.json.hh"
 #endif
 
@@ -226,8 +227,6 @@ void UnitProto::build(ProtoBuilder& input) const
     // NOTE: this means we're entirely ignoring the "metadata" from the CSG
     // nodes for the region, because we can't know which ones have the
     // user-supplied volume names
-    // TODO: add JSON output to the input builder that includes the CSG
-    // metadata
     auto vol_iter = result.volumes.begin();
 
     // Save attributes for exterior volume
@@ -296,6 +295,37 @@ void UnitProto::build(ProtoBuilder& input) const
         ++vol_iter;
     }
     CELER_EXPECT(vol_iter == result.volumes.end());
+
+#if CELERITAS_USE_JSON
+    if (input.save_json())
+    {
+        // Write debug information
+        JsonPimpl jp;
+        jp.obj = csg_unit;
+        jp.obj["remapped_surfaces"] = [&sorted_local_surfaces] {
+            auto j = nlohmann::json::array();
+            for (auto const& lsid : sorted_local_surfaces)
+            {
+                j.push_back(lsid.unchecked_get());
+            }
+            return j;
+        }();
+
+        // Save label volumes
+        CELER_ASSERT(jp.obj.contains("volumes"));
+        auto& jv = jp.obj["volumes"];
+        CELER_VALIDATE(jv.size() == csg_unit.volumes.size(),
+                       << "jv = " << jv.size()
+                       << " csg = " << csg_unit.volumes.size());
+        CELER_ASSERT(csg_unit.volumes.size() <= result.volumes.size());
+        for (auto vol_idx : range(csg_unit.volumes.size()))
+        {
+            jv[vol_idx]["label"] = result.volumes[vol_idx].label;
+        }
+
+        input.save_json(std::move(jp));
+    }
+#endif
 
     // TODO: save material IDs as well
     input.insert(std::move(result));
