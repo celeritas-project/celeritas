@@ -44,7 +44,7 @@ void write_protos(detail::ProtoMap const& map, std::string const& filename)
     }
 
 #if CELERITAS_USE_JSON
-    auto result = nlohmann::json(std::vector<nullptr_t>(map.size()));
+    auto result = nlohmann::json(std::vector<std::nullptr_t>(map.size()));
     for (auto uid : range(UniverseId{map.size()}))
     {
         JsonPimpl j;
@@ -73,7 +73,7 @@ class JsonProtoOutput
     {
         CELER_EXPECT(size > 0);
 #if CELERITAS_USE_JSON
-        output_ = nlohmann::json(std::vector<nullptr_t>(size));
+        output_ = nlohmann::json(std::vector<std::nullptr_t>(size));
 #endif
     }
 
