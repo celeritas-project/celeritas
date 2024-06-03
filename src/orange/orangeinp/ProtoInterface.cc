@@ -27,6 +27,7 @@ std::string to_string(ProtoInterface const& proto)
     proto.output(&json_wrap);
     return json_wrap.obj.dump();
 #else
+    CELER_DISCARD(proto);
     return "\"output unavailable\"";
 #endif
 }
