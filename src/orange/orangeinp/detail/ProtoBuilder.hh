@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/detail/InputBuilder.hh
+//! \file orange/orangeinp/detail/ProtoBuilder.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -36,7 +36,7 @@ namespace detail
  * universes that use it: this allows, for example, different masked components
  * of an array to be used in multiple universes.
  */
-class InputBuilder
+class ProtoBuilder
 {
   public:
     //!@{
@@ -46,7 +46,7 @@ class InputBuilder
 
   public:
     // Construct with output pointer, geometry construction options, and protos
-    InputBuilder(OrangeInput* inp, Tol const& tol, ProtoMap const& protos);
+    ProtoBuilder(OrangeInput* inp, Tol const& tol, ProtoMap const& protos);
 
     //! Get the tolerance to use when constructing geometry
     Tol const& tol() const { return inp_->tol; }
@@ -78,7 +78,7 @@ class InputBuilder
 /*!
  * Find a universe ID.
  */
-UniverseId InputBuilder::find_universe_id(ProtoInterface const* p) const
+UniverseId ProtoBuilder::find_universe_id(ProtoInterface const* p) const
 {
     return protos_.find(p);
 }
@@ -87,7 +87,7 @@ UniverseId InputBuilder::find_universe_id(ProtoInterface const* p) const
 /*!
  * Get the bounding box of a universe.
  */
-BBox const& InputBuilder::bbox(UniverseId uid) const
+BBox const& ProtoBuilder::bbox(UniverseId uid) const
 {
     CELER_EXPECT(uid < bboxes_.size());
     return bboxes_[uid.get()];

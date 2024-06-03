@@ -13,7 +13,7 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 
-#include "detail/InputBuilder.hh"
+#include "detail/ProtoBuilder.hh"
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 #endif
@@ -48,7 +48,7 @@ OrangeInput build_input(Tolerance<> const& tol, ProtoInterface const& global)
     OrangeInput result;
     detail::ProtoMap const protos{global};
     CELER_ASSERT(protos.find(&global) == orange_global_universe);
-    detail::InputBuilder builder(&result, tol, protos);
+    detail::ProtoBuilder builder(&result, tol, protos);
     for (auto uid : range(UniverseId{protos.size()}))
     {
         protos.at(uid)->build(builder);

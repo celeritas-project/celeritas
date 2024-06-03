@@ -24,7 +24,7 @@ class ObjectInterface;
 
 namespace detail
 {
-class InputBuilder;
+class ProtoBuilder;
 }  // namespace detail
 
 //---------------------------------------------------------------------------//
@@ -48,7 +48,7 @@ class ProtoInterface
     using SPConstObject = std::shared_ptr<ObjectInterface const>;
     using SPConstProto = std::shared_ptr<ProtoInterface const>;
     using VecProto = std::vector<ProtoInterface const*>;
-    using InputBuilder = detail::InputBuilder;
+    using ProtoBuilder = detail::ProtoBuilder;
     //!@}
 
   public:
@@ -62,7 +62,7 @@ class ProtoInterface
     virtual VecProto daughters() const = 0;
 
     //! Construct a universe input from this object
-    virtual void build(InputBuilder&) const = 0;
+    virtual void build(ProtoBuilder&) const = 0;
 
     //! Write the proto to a JSON object
     virtual void output(JsonPimpl*) const = 0;

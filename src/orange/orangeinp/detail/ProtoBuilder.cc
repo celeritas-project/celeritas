@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/orangeinp/detail/InputBuilder.cc
+//! \file orange/orangeinp/detail/ProtoBuilder.cc
 //---------------------------------------------------------------------------//
-#include "InputBuilder.hh"
+#include "ProtoBuilder.hh"
 
 #include "orange/BoundingBoxUtils.hh"
 
@@ -21,7 +21,7 @@ namespace detail
 /*!
  * Construct with output pointer, geometry construction options, and protos.
  */
-InputBuilder::InputBuilder(OrangeInput* inp,
+ProtoBuilder::ProtoBuilder(OrangeInput* inp,
                            Tol const& tol,
                            ProtoMap const& protos)
     : inp_{inp}, protos_{protos}, bboxes_{protos_.size()}
@@ -42,7 +42,7 @@ InputBuilder::InputBuilder(OrangeInput* inp,
  * "holed" (placed) in different volumes with different bounds, so long as the
  * enclosures are within the extents of the child universe.
  */
-void InputBuilder::expand_bbox(UniverseId uid, BBox const& local_bbox)
+void ProtoBuilder::expand_bbox(UniverseId uid, BBox const& local_bbox)
 {
     CELER_EXPECT(uid < bboxes_.size());
     BBox& target = bboxes_[uid.get()];
@@ -55,7 +55,7 @@ void InputBuilder::expand_bbox(UniverseId uid, BBox const& local_bbox)
  *
  * This may be called *once* per proto.
  */
-void InputBuilder::insert(VariantUniverseInput&& unit)
+void ProtoBuilder::insert(VariantUniverseInput&& unit)
 {
     CELER_EXPECT(inp_->universes.size() < protos_.size());
 

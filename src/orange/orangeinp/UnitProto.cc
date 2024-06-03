@@ -23,9 +23,9 @@
 
 #include "detail/CsgUnit.hh"
 #include "detail/CsgUnitBuilder.hh"
-#include "detail/InputBuilder.hh"
 #include "detail/InternalSurfaceFlagger.hh"
 #include "detail/PostfixLogicBuilder.hh"
+#include "detail/ProtoBuilder.hh"
 #include "detail/VolumeBuilder.hh"
 
 #if CELERITAS_USE_JSON
@@ -105,7 +105,7 @@ auto UnitProto::daughters() const -> VecProto
  * Construction is done from highest masking precedence to lowest (reverse
  * zorder): exterior, then holes, then arrays, then media.
  */
-void UnitProto::build(InputBuilder& input) const
+void UnitProto::build(ProtoBuilder& input) const
 {
     // Bounding box should be finite if and only if this is the global universe
     CELER_EXPECT((input.next_id() == orange_global_universe)
