@@ -24,6 +24,7 @@ struct ImportIsotope
     std::string name;  //!< Isotope label
     int atomic_number;  //!< Atomic number Z
     int atomic_mass_number;  //!< Atomic number A
+    double binding_energy;  //!< Nuclear binding energy [MeV]
     double nuclear_mass;  //!< Sum of nucleons' mass + binding energy [MeV]
 };
 

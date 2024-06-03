@@ -28,6 +28,7 @@ class IsotopeView
     //!@{
     //! \name Type aliases
     using MaterialParamsRef = NativeCRef<MaterialParamsData>;
+    using MevEnergy = units::MevEnergy;
     using MevMass = units::MevMass;
     using AtomicMassNumber = AtomicNumber;
     //!@}
@@ -45,6 +46,9 @@ class IsotopeView
 
     // Atomic number A
     CELER_FORCEINLINE_FUNCTION AtomicMassNumber atomic_mass_number() const;
+
+    // Nuclear binding energy
+    CELER_FORCEINLINE_FUNCTION MevEnergy binding_energy() const;
 
     // Sum of nucleons + binding energy
     CELER_FORCEINLINE_FUNCTION MevMass nuclear_mass() const;
@@ -100,6 +104,15 @@ CELER_FUNCTION IsotopeView::AtomicMassNumber
 IsotopeView::atomic_mass_number() const
 {
     return isotope_def().atomic_mass_number;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Nuclear binding energy.
+ */
+CELER_FUNCTION units::MevEnergy IsotopeView::binding_energy() const
+{
+    return isotope_def().binding_energy;
 }
 
 //---------------------------------------------------------------------------//

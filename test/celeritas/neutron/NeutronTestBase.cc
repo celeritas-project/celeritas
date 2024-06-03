@@ -38,11 +38,26 @@ NeutronTestBase::NeutronTestBase()
     MaterialParams::Input mat_inp;
 
     // Isotopes
-    mat_inp.isotopes = {
-        {AtomicNumber{2}, AtomicNumber{3}, units::MevMass{3016.0}, "3He"},
-        {AtomicNumber{2}, AtomicNumber{4}, units::MevMass{4002.6}, "4He"},
-        {AtomicNumber{29}, AtomicNumber{63}, units::MevMass{58618.5}, "63Cu"},
-        {AtomicNumber{29}, AtomicNumber{65}, units::MevMass{60479.8}, "65Cu"}};
+    mat_inp.isotopes = {{AtomicNumber{2},
+                         AtomicNumber{3},
+                         units::MevEnergy{7.71804},
+                         units::MevMass{3016.0},
+                         "3He"},
+                        {AtomicNumber{2},
+                         AtomicNumber{4},
+                         units::MevEnergy{28.2957},
+                         units::MevMass{4002.6},
+                         "4He"},
+                        {AtomicNumber{29},
+                         AtomicNumber{63},
+                         units::MevEnergy{551.384},
+                         units::MevMass{58618.5},
+                         "63Cu"},
+                        {AtomicNumber{29},
+                         AtomicNumber{65},
+                         units::MevEnergy{569.211},
+                         units::MevMass{60479.8},
+                         "65Cu"}};
 
     // Elements
     mat_inp.elements = {{AtomicNumber{2},
