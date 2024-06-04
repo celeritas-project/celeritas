@@ -10,6 +10,7 @@
 #include <fstream>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedMem.hh"
@@ -23,7 +24,6 @@
 #if CELERITAS_USE_JSON
 #    include <nlohmann/json.hpp>
 
-#    include "corecel/io/JsonPimpl.hh"
 #endif
 
 namespace celeritas
