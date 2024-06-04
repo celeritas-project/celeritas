@@ -443,6 +443,7 @@ class InputBuilderTest : public UnitProtoTest
             if (CELERITAS_USE_JSON)
             {
                 opts.proto_output_file = output_base + ".protos.json";
+                opts.debug_output_file = output_base + ".csg.json";
             }
             return opts;
         }());
