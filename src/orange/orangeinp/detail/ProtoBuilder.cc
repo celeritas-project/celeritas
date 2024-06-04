@@ -62,7 +62,7 @@ void ProtoBuilder::save_json(JsonPimpl&& jp) const
     CELER_EXPECT(this->save_json());
     CELER_EXPECT(inp_->universes.size() < protos_.size());
 
-    save_json_(UniverseId{inp_->universes.size()}, std::move(jp));
+    save_json_(UniverseId(inp_->universes.size()), std::move(jp));
 }
 
 //---------------------------------------------------------------------------//
