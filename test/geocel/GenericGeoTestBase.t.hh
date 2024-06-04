@@ -169,8 +169,8 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
         result.distances.push_back(next.distance * inv_length);
         if (!next.boundary)
         {
-            // Failure to find the next boundary while inside the geometry
-            ADD_FAILURE();
+            ADD_FAILURE() << "failed to find the next boundary while inside "
+                             "the geometry";
             result.volumes.push_back("[NO INTERCEPT]");
             break;
         }
