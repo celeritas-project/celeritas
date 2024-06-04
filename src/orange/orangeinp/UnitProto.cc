@@ -323,6 +323,24 @@ void UnitProto::build(ProtoBuilder& input) const
             jv[vol_idx]["label"] = result.volumes[vol_idx].label;
         }
 
+        // Save our universe label
+        jp.obj["label"] = this->label();
+
+        // Update daughter universe IDs
+        for (auto& v : jp.obj["volumes"])
+        {
+            if (auto iter = v.find("universe"); iter != v.end())
+            {
+                // The "universe" key is set with `fill_volume` in `build`
+                // below as the daughter index
+                std::size_t daughter_index = iter->get<int>();
+                CELER_ASSERT(daughter_index < input_.daughters.size());
+                auto const& daughter = input_.daughters[daughter_index];
+                auto uid = input.find_universe_id(daughter.fill.get());
+                *iter = uid.unchecked_get();
+            }
+        }
+
         input.save_json(std::move(jp));
     }
 #endif
