@@ -208,7 +208,7 @@ ORANGE_INSTANTIATE_OP(ConeAligned, ConeAligned);
 /*!
  * Plane may be flipped, adjusted, or become axis-aligned.
  */
-auto SurfaceSimplifier::operator()(Plane const& p)
+auto SurfaceSimplifier::operator()(Plane const& p) const
     -> Optional<PlaneX, PlaneY, PlaneZ, Plane>
 {
     auto signs = count_signs(make_span(p.normal()), tol_);
@@ -284,8 +284,10 @@ auto SurfaceSimplifier::operator()(Sphere const& s) const
 //---------------------------------------------------------------------------//
 /*!
  * Simple quadric with near-zero terms can be another second-order surface.
+ *
+ * The sign can also be reversed as part of regularization.
  */
-auto SurfaceSimplifier::operator()(SimpleQuadric const& sq)
+auto SurfaceSimplifier::operator()(SimpleQuadric const& sq) const
     -> Optional<Plane,
                 Sphere,
                 CylAligned<Axis::x>,
@@ -350,9 +352,9 @@ auto SurfaceSimplifier::operator()(SimpleQuadric const& sq)
  * Quadric can be regularized or simplified.
  *
  * - When no cross terms are present, it's "simple".
- * - When the higher-order terms are negative, the signs need to be flipped.
+ * - When the higher-order terms are negative, the signs will be flipped.
  */
-auto SurfaceSimplifier::operator()(GeneralQuadric const& gq)
+auto SurfaceSimplifier::operator()(GeneralQuadric const& gq) const
     -> Optional<SimpleQuadric, GeneralQuadric>
 {
     // Cross term signs
@@ -368,7 +370,7 @@ auto SurfaceSimplifier::operator()(GeneralQuadric const& gq)
     auto ssigns = count_signs(gq.second(), tol_);
     if (ssigns.should_flip() || (!ssigns && csigns.should_flip()))
     {
-        // More positive signs than negative:
+        // More negative signs than positive:
         // flip the sense and reverse the values
         *sense_ = flip_sense(*sense_);
         return negate_coefficients(gq);
