@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "corecel/Constants.hh"
+#include "corecel/cont/ArrayIO.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 
@@ -41,16 +42,18 @@ TEST(PolygonUtilsTest, calc_orientation)
                 == Orientation::clockwise);
     EXPECT_TRUE(calc_orientation(Real2{0, 0}, Real2{4, 4}, Real2{2, 2})
                 == Orientation::collinear);
+    EXPECT_TRUE(calc_orientation(Real2{0, 0}, Real2{1, 1}, Real2{2, 2})
+                == Orientation::collinear);
+    EXPECT_TRUE(calc_orientation(Real2{2, 2}, Real2{1, 1}, Real2{0, 0})
+                == Orientation::collinear);
 }
 
 TEST(PolygonUtilsTest, has_orientation)
 {
-    EXPECT_TRUE(has_orientation(
-        make_span(VecReal2{{-19, -30}, {-19, 30}, {21, 30}, {21, -30}}),
-        Orientation::clockwise));
-    EXPECT_FALSE(has_orientation(
-        make_span(VecReal2{{-19, -30}, {-19, 30}, {21, 30}, {21, -30}}),
-        Orientation::counterclockwise));
+    static Real2 const points[] = {{-19, -30}, {-19, 30}, {21, 30}, {21, -30}};
+    EXPECT_TRUE(has_orientation(make_span(points), Orientation::clockwise));
+    EXPECT_FALSE(
+        has_orientation(make_span(points), Orientation::counterclockwise));
 
     EXPECT_TRUE(has_orientation(
         make_span(VecReal2{{-2, -2}, {0, -2}, {0, 0}, {-2, 0}}),
@@ -80,16 +83,23 @@ TEST(PolygonUtilsTest, convexity)
 TEST(PolygonUtilsTest, degenerate)
 {
     // degenerate: all points are colinear
-    Real2 line[] = {{1, 1}, {2, 2}, {3, 3}, {4, 4}};
+    static Real2 const line[] = {{1, 1}, {2, 2}, {3, 3}, {4, 4}};
     EXPECT_FALSE(is_convex(line));
+    EXPECT_TRUE(is_convex(line, /* degen_ok = */ true));
 
     // only three points are collinear
-    Real2 degen[] = {{1, 1}, {2, 2}, {3, 3}, {2, 4}};
+    static Real2 const degen[] = {{1, 1}, {2, 2}, {3, 3}, {2, 4}};
     EXPECT_FALSE(is_convex(degen));
     EXPECT_TRUE(is_convex(degen, /* degen_ok = */ true));
 
+    // first and last are collinear
+    static Real2 const degen3[] = {{1, 1}, {2, 2}, {0, 2}, {0, 0}};
+    EXPECT_FALSE(is_convex(degen3));
+    EXPECT_TRUE(is_convex(degen3, /* degen_ok = */ true));
+
     // degenerate: repeated consecutive points
-    Real2 repeated[] = {{0, 0}, {1, 0}, {1, 1}, {0.5, 0.5}, {0.5, 0.5}, {0, 1}};
+    static Real2 const repeated[]
+        = {{0, 0}, {1, 0}, {1, 1}, {0.5, 0.5}, {0.5, 0.5}, {0, 1}};
     EXPECT_FALSE(is_convex(repeated));
 }
 
