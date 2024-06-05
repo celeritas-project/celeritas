@@ -472,7 +472,8 @@ void GenTrap::build(IntersectSurfaceBuilder& insert_surface) const
         if (soft_equal(dot_product(lo_normal, hi_normal), real_type{1}))
         {
             // Insert a real plane
-            insert_surface(Sense::inside, Plane{lo_normal, ilo});
+            insert_surface(
+                Sense::inside, Plane{lo_normal, ilo}, "p" + std::to_string(i));
         }
         else
         {
@@ -484,19 +485,21 @@ void GenTrap::build(IntersectSurfaceBuilder& insert_surface) const
             auto clo = jlo[0] * ilo[1] - ilo[0] * jlo[1];
             auto chi = jhi[0] * ihi[1] - ihi[0] * jhi[1];
 
-            Real3 abc{0, 0, 0}, def{0, 0, 0}, ghi{0, 0, 0};
-            constexpr real_type half = 0.5;
-            auto factor = half / hz_;
+            constexpr real_type half{0.5};
+            real_type factor = half / hz_;
+            Real3 def, ghi;
             def[0] = (ahi - alo) * factor;
             def[1] = (bhi - blo) * factor;
+            def[2] = 0;
+            ghi[0] = (ahi + alo) * half;
+            ghi[1] = (bhi + blo) * half;
             ghi[2] = (chi - clo) * factor;
-            ghi[0] = (alo + ahi) * half;
-            ghi[1] = (blo + bhi) * half;
-            auto offset = half * (clo + chi);
+            real_type j = (clo + chi) * half;
 
             // Insert a twisted plane
             insert_surface(Sense::inside,
-                           GeneralQuadric{abc, def, ghi, offset});
+                           GeneralQuadric{Real3{0, 0, 0}, def, ghi, j},
+                           "t" + std::to_string(i));
         }
     }
 

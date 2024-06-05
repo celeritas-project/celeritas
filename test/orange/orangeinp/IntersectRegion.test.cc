@@ -57,12 +57,28 @@ class IntersectRegionTest : public ::celeritas::test::Test
     };
 
   protected:
-    TestResult test(IntersectRegionInterface const& r, VariantTransform const&);
+    // Test with an explicit name and transform
+    TestResult test(std::string&& name,
+                    IntersectRegionInterface const& r,
+                    VariantTransform const& vt);
+
+    //! Test with default name
+    TestResult
+    test(IntersectRegionInterface const& r, VariantTransform const& vt)
+    {
+        return this->test("cr", r, vt);
+    }
 
     //! Test with no transform
     TestResult test(IntersectRegionInterface const& r)
     {
         return this->test(r, NoTransformation{});
+    }
+
+    //! Test with no transform
+    TestResult test(std::string&& name, IntersectRegionInterface const& r)
+    {
+        return this->test(std::move(name), r, NoTransformation{});
     }
 
     SignedSense calc_sense(NodeId n, Real3 const& pos) const
@@ -81,13 +97,14 @@ class IntersectRegionTest : public ::celeritas::test::Test
 };
 
 //---------------------------------------------------------------------------//
-auto IntersectRegionTest::test(IntersectRegionInterface const& r,
+auto IntersectRegionTest::test(std::string&& name,
+                               IntersectRegionInterface const& r,
                                VariantTransform const& trans) -> TestResult
 {
     detail::IntersectSurfaceState css;
     css.transform = &trans;
     css.make_face_name = {};
-    css.object_name = "cr";
+    css.object_name = std::move(name);
 
     IntersectSurfaceBuilder insert_surface{&unit_builder_, &css};
     r.build(insert_surface);
@@ -915,7 +932,8 @@ TEST_F(GenTrapTest, adjacent_twisted)
     {
         // Left
         auto result
-            = this->test(GenTrap(1,
+            = this->test("left",
+                         GenTrap(1,
                                  {{-1, -1}, {0, -1}, {0, 1}, {-1, 1}},
                                  {{-1, -1}, {0.5, -1}, {-0.5, 1}, {-1, 1}}));
 
@@ -928,7 +946,8 @@ TEST_F(GenTrapTest, adjacent_twisted)
     {
         // Right
         auto result
-            = this->test(GenTrap(1,
+            = this->test("right",
+                         GenTrap(1,
                                  {{0, -1}, {1, -1}, {1, 1}, {0, 1}},
                                  {{0.5, -1}, {1, -1}, {1, 1}, {-0.5, 1}}));
 
@@ -942,7 +961,8 @@ TEST_F(GenTrapTest, adjacent_twisted)
         // Scaled (broadened) right side with the same hyperboloid but
         // different size
         // TODO: the scaled GQ should be normalized
-        auto result = this->test(GenTrap(1,
+        auto result = this->test("scaled",
+                                 GenTrap(1,
                                          {{0, -2}, {2, -2}, {2, 2}, {0, 2}},
                                          {{1, -2}, {2, -2}, {2, 2}, {-1, 2}}));
         static char const expected_node[] = "all(+0, -1, +7, -8, -9, +10)";
@@ -966,6 +986,33 @@ TEST_F(GenTrapTest, adjacent_twisted)
         "GQuadric: {0,0,0} {0,1,0} {4,1,0} 0",
     };
     EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
+
+    auto node_strings = md_strings(this->unit());
+    static char const* const expected_node_strings[] = {
+        "",
+        "",
+        "left@mz,right@mz,scaled@mz",
+        "left@pz,right@pz,scaled@pz",
+        "",
+        "left@p0,right@p0",
+        "left@t1,right@t3",
+        "",
+        "left@p2,right@p2",
+        "",
+        "left@p3",
+        "",
+        "right@p1",
+        "",
+        "",
+        "scaled@p0",
+        "scaled@p1",
+        "",
+        "scaled@p2",
+        "",
+        "scaled@t3",
+        "",
+    };
+    EXPECT_VEC_EQ(expected_node_strings, node_strings);
 }
 
 //---------------------------------------------------------------------------//
@@ -1207,13 +1254,13 @@ TEST_F(PrismTest, triangle)
     auto result = this->test(Prism(3, 1.0, 1.2, 0.0));
 
     static char const expected_node[] = "all(+0, -1, -2, +3, +4)";
-    static char const* const expected_surfaces[] = {"Plane: z=-1.2",
-                                                    "Plane: z=1.2",
-                                                    "Plane: "
-                                                    "n={0.86603,0.5,0}, d=1",
-                                                    "Plane: "
-                                                    "n={0.86603,-0.5,0}, d=-1",
-                                                    "Plane: y=-1"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-1.2",
+        "Plane: z=1.2",
+        "Plane: n={0.86603,0.5,0}, d=1",
+        "Plane: n={0.86603,-0.5,0}, d=-1",
+        "Plane: y=-1",
+    };
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -1228,13 +1275,13 @@ TEST_F(PrismTest, rtriangle)
     auto result = this->test(Prism(3, 1.0, 1.2, 0.5));
 
     static char const expected_node[] = "all(+0, -1, -2, +3, -4)";
-    static char const* const expected_surfaces[] = {"Plane: z=-1.2",
-                                                    "Plane: z=1.2",
-                                                    "Plane: y=1",
-                                                    "Plane: "
-                                                    "n={0.86603,0.5,0}, d=-1",
-                                                    "Plane: "
-                                                    "n={0.86603,-0.5,0}, d=1"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-1.2",
+        "Plane: z=1.2",
+        "Plane: y=1",
+        "Plane: n={0.86603,0.5,0}, d=-1",
+        "Plane: n={0.86603,-0.5,0}, d=1",
+    };
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
