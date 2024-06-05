@@ -45,7 +45,8 @@ class FaceNamer
   private:
     struct State
     {
-        int num_planes_{0};
+        int num_plane{0};
+        int num_gq{0};
     };
 
     // String prefix
