@@ -640,7 +640,7 @@ void Parallelepiped::build(IntersectSurfaceBuilder& insert_surface) const
     insert_surface(Sense::inside, Plane{ynorm, yoffset});
 
     // Build the side planes roughly perpendicular to x-axis
-    insert_surface(Sense::inside, Plane{-xnorm, xoffset});
+    insert_surface(Sense::outside, Plane{xnorm, -xoffset});
     insert_surface(Sense::inside, Plane{xnorm, xoffset});
 
     // Add an exterior bounding box
