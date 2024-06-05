@@ -333,11 +333,11 @@ GenTrap GenTrap::from_trd(real_type halfz, Real2 const& lo, Real2 const& hi)
     CELER_VALIDATE(hi[1] > 0, << "nonpositive upper y half-edge: " << hi[1]);
     CELER_VALIDATE(halfz > 0, << "nonpositive half-height: " << halfz);
 
-    // Construct points counterclockwise from lower left
+    // Construct points like prism: lower right is first
     VecReal2 lower
-        = {{-lo[0], -lo[1]}, {lo[0], -lo[1]}, {lo[0], lo[1]}, {-lo[0], lo[1]}};
+        = {{lo[0], -lo[1]}, {lo[0], lo[1]}, {-lo[0], lo[1]}, {-lo[0], -lo[1]}};
     VecReal2 upper
-        = {{-hi[0], -hi[1]}, {hi[0], -hi[1]}, {hi[0], hi[1]}, {-hi[0], hi[1]}};
+        = {{hi[0], -hi[1]}, {hi[0], hi[1]}, {-hi[0], hi[1]}, {-hi[0], -hi[1]}};
 
     return GenTrap{halfz, std::move(lower), std::move(upper)};
 }
@@ -392,11 +392,11 @@ GenTrap GenTrap::from_trap(
         real_type const shear = std::tan(native_value_from(face.alpha))
                                 * face.hy;
 
-        // Construct points counterclockwise from lower left
-        points[i] = {{xoff - shear - face.hx_lo, yoff - face.hy},
-                     {xoff - shear + face.hx_lo, yoff - face.hy},
+        // Construct points counterclockwise from lower right
+        points[i] = {{xoff - shear + face.hx_lo, yoff - face.hy},
                      {xoff + shear + face.hx_hi, yoff + face.hy},
-                     {xoff + shear - face.hx_hi, yoff + face.hy}};
+                     {xoff + shear - face.hx_hi, yoff + face.hy},
+                     {xoff - shear - face.hx_lo, yoff - face.hy}};
     }
 
     return GenTrap{hz, std::move(points[0]), std::move(points[1])};

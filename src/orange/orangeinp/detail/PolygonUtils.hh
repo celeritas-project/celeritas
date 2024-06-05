@@ -93,9 +93,11 @@ inline bool is_convex(Span<Real2 const> corners, bool degen_ok = false)
             // First non-collinear point
             ref = cur;
         }
-        if (cur != ref || (!degen_ok && cur == Orientation::collinear))
+        if ((!degen_ok && cur == Orientation::collinear)
+            || (!(degen_ok && cur == Orientation::collinear) && cur != ref))
         {
-            // Different or collinear orientation
+            // Prohibited collinear orientation, or different orientation from
+            // reference
             return false;
         }
     }

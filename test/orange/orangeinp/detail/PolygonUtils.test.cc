@@ -62,10 +62,10 @@ TEST(PolygonUtilsTest, has_orientation)
 
 TEST(PolygonUtilsTest, convexity)
 {
-    VecReal2 cw{{1, 1}, {1, 2}, {2, 2}, {2, 1}};
+    static Real2 const cw[] = {{1, 1}, {1, 2}, {2, 2}, {2, 1}};
     EXPECT_TRUE(is_convex(make_span(cw)));
 
-    Real2 ccw[] = {{1, 1}, {2, 1}, {2, 2}, {1, 2}};
+    static Real2 const ccw[] = {{1, 1}, {2, 1}, {2, 2}, {1, 2}};
     EXPECT_TRUE(is_convex(ccw));
 
     VecReal2 oct{8};
