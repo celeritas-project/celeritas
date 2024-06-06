@@ -23,10 +23,10 @@ rankdir=TB;
         self.write("}\n")
 
     def write_literal(self, i, value):
-        self.write(f"{i:02d} [label=\"{i}: {value}\"];\n")
+        self.write(f"{i:02d} [label=\"{value}\"];\n")
 
     def write_node(self, i, value, edges):
-        self.write_literal(i, value)
+        self.write_literal(i, f"{i}: {value}")
         for e in edges:
             self.write(f"{i:02d} -> {e:02d};\n")
 
