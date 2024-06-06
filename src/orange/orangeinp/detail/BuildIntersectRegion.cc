@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "BuildIntersectRegion.hh"
 
+#include <iostream>
+
 #include "orange/orangeinp/IntersectRegion.hh"
 #include "orange/orangeinp/IntersectSurfaceBuilder.hh"
 #include "orange/surf/FaceNamer.hh"
@@ -14,6 +16,8 @@
 #include "CsgUnitBuilder.hh"
 #include "IntersectSurfaceState.hh"
 #include "VolumeBuilder.hh"
+using std::cout;
+using std::endl;
 
 namespace celeritas
 {
@@ -30,6 +34,8 @@ NodeId build_intersect_region(VolumeBuilder& vb,
                               std::string&& face_prefix,
                               IntersectRegionInterface const& region)
 {
+    cout << "Building region " << label << endl;
+
     // Set input attributes for surface state
     IntersectSurfaceState css;
     css.transform = &vb.local_transform();

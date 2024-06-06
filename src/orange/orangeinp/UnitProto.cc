@@ -8,6 +8,7 @@
 #include "UnitProto.hh"
 
 #include <algorithm>
+#include <iostream>
 #include <numeric>
 
 #include "corecel/io/Logger.hh"
@@ -26,6 +27,8 @@
 #include "detail/InternalSurfaceFlagger.hh"
 #include "detail/PostfixLogicBuilder.hh"
 #include "detail/VolumeBuilder.hh"
+using std::cout;
+using std::endl;
 
 namespace celeritas
 {
@@ -311,6 +314,8 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
 {
     CELER_EXPECT(tol);
     CELER_EXPECT(!bbox || is_finite(bbox));
+
+    cout << "******** PROTO: " << this->label() << " ********" << endl;
 
     bool const is_global_universe = !static_cast<bool>(bbox);
     CELER_LOG(debug) << "Building '" << this->label() << "' inside " << bbox
