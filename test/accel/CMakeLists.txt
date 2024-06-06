@@ -15,7 +15,7 @@ celeritas_target_link_libraries(testcel_accel
     ${Geant4_LIBRARIES}
 )
 
-celeritas_setup_tests(SERIAL PREFIX accel
+celeritas_setup_tests(SERIAL
   LINK_LIBRARIES
     testcel_accel testcel_core Celeritas::accel
 )
