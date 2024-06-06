@@ -133,6 +133,7 @@ LocalSurfaceId LocalSurfaceInserter::operator()(S const& source)
             if (exact_match)
             {
                 // No need for further searching; we're identical
+                exact_match = this->find_merged(exact_match);
                 cout << "  -> Returned exact match " << exact_match.get()
                      << endl;
                 return exact_match;
@@ -170,6 +171,10 @@ LocalSurfaceId LocalSurfaceInserter::operator()(S const& source)
 //---------------------------------------------------------------------------//
 /*!
  * Look for duplicate surfaces and store equivalency relationship.
+ *
+ * This marks the "target" (existing near match) as equivalent to the "source"
+ * (new surface). It will chain merged surfaces so that multiple equivalent
+ * ones will point to a single original.
  */
 LocalSurfaceId
 LocalSurfaceInserter::merge_impl(LocalSurfaceId source, LocalSurfaceId target)
@@ -185,6 +190,24 @@ LocalSurfaceInserter::merge_impl(LocalSurfaceId source, LocalSurfaceId target)
     }
 
     merged_.emplace(source, target);
+    return target;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return an original chained target if one exists.
+ *
+ * This is necessary so that exact matches to a "soft" (deduplicated) surface
+ * return the ID of an original surface rather than the exact match.
+ */
+LocalSurfaceId LocalSurfaceInserter::find_merged(LocalSurfaceId target) const
+{
+    CELER_EXPECT(target < surfaces_->size());
+    if (auto iter = merged_.find(target); iter != merged_.end())
+    {
+        // Surface was already merged with another: chain them
+        target = iter->second;
+    }
     return target;
 }
 

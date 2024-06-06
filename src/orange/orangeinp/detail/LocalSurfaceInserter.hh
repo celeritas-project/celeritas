@@ -80,6 +80,7 @@ class LocalSurfaceInserter
     //// METHODS ////
 
     LocalSurfaceId merge_impl(LocalSurfaceId source, LocalSurfaceId target);
+    LocalSurfaceId find_merged(LocalSurfaceId target) const;
 };
 
 //---------------------------------------------------------------------------//
