@@ -7,15 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "LocalSurfaceInserter.hh"
 
-#include <iostream>
-
-#include "corecel/io/Repr.hh"
-#include "corecel/math/ArrayOperators.hh"
-#include "orange/surf/SurfaceIO.hh"
-
 #include "SurfaceHashPoint.hh"
-using std::cout;
-using std::endl;
 
 namespace celeritas
 {
@@ -70,16 +62,12 @@ LocalSurfaceId LocalSurfaceInserter::operator()(S const& source)
         return std::get<S>(target);
     };
 
-    cout << " * Adding surface " << source << endl;
-
     // Test for exact equality with all possible matches in this range
     LocalSurfaceId near_match;
     LocalSurfaceId exact_match;
     auto test_equality = [&](LocalSurfaceId lsid) {
         // Get target surface
         S const& target = get_surface(lsid);
-
-        cout << "   + Testing against " << target << ": ";
 
         // Test for soft equality
         if (soft_surface_equal_(source, target))
@@ -94,20 +82,8 @@ LocalSurfaceId LocalSurfaceInserter::operator()(S const& source)
             {
                 // Save match
                 exact_match = lsid;
-                cout << "exact match";
-            }
-            else
-            {
-                auto delta = make_array(source.data());
-                delta -= make_array(target.data());
-                cout << "inexact match (delta=" << repr(delta) << ")";
             }
         }
-        else
-        {
-            cout << "not soft equal";
-        }
-        cout << endl;
     };
 
     // Hash the surface and get keys for possible surfaces that might be
@@ -117,11 +93,7 @@ LocalSurfaceId LocalSurfaceInserter::operator()(S const& source)
     for (auto key : possible_keys)
     {
         if (key == SurfaceGridHash::redundant())
-        {
-            cout << "  - Skipping redundant key " << endl;
             continue;
-        }
-        cout << "  - Checking key " << key << endl;
 
         // Find possibly similar surfaces that match this key
         for (auto&& [iter, last] = hashed_surfaces_.equal_range(key);
@@ -132,11 +104,10 @@ LocalSurfaceId LocalSurfaceInserter::operator()(S const& source)
 
             if (exact_match)
             {
-                // No need for further searching; we're identical
-                exact_match = this->find_merged(exact_match);
-                cout << "  -> Returned exact match " << exact_match.get()
-                     << endl;
-                return exact_match;
+                // No need for further searching; we're identical to an
+                // existing surface (which may possibly be a "deduplicated"
+                // copy of another surface)
+                return this->find_merged(exact_match);
             }
         }
     }
@@ -158,13 +129,9 @@ LocalSurfaceId LocalSurfaceInserter::operator()(S const& source)
     {
         // Surface is eqivalent to an existing one but not identical: save and
         // return the deduplicated surface
-        auto result = this->merge_impl(source_id, near_match);
-        cout << "  -> Merged soft equal surface " << source_id.get() << " => "
-             << near_match.get() << endl;
-        return result;
+        return this->merge_impl(source_id, near_match);
     }
 
-    cout << "  -> Inserted new surface " << source_id.get() << endl;
     return source_id;
 }
 
