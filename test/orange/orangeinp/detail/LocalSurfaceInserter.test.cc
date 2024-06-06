@@ -106,6 +106,19 @@ TEST_F(LocalSurfaceInserterTest, chained_duplicates)
     EXPECT_EQ(5, surfaces.size());
 }
 
+/*!
+ * Check that inserting an exact match (S2) of soft equivalent surfaces (S1
+ * close to S0) returns the first surface (S0).
+ */
+TEST_F(LocalSurfaceInserterTest, soft_chain)
+{
+    LocalSurfaceInserter insert(&surfaces, tol);
+
+    EXPECT_EQ(0, insert(PlaneX{2}).unchecked_get());
+    EXPECT_EQ(0, insert(PlaneX{2 + eps / 2}).unchecked_get());
+    EXPECT_EQ(0, insert(PlaneX{2 + eps / 2}).unchecked_get());
+}
+
 // Replicates InfWedge.quarter_turn from intersect region test
 TEST_F(LocalSurfaceInserterTest, infwedge_quadrant)
 {
