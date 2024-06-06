@@ -57,9 +57,16 @@ class CoulombScatteringTest : public InteractorHostTestBase
 
         // Set up shared material data
         MaterialParams::Input mat_inp;
-        mat_inp.isotopes
-            = {{AtomicNumber{29}, AtomicNumber{63}, MevMass{58618.5}, "63Cu"},
-               {AtomicNumber{29}, AtomicNumber{65}, MevMass{60479.8}, "65Cu"}};
+        mat_inp.isotopes = {{AtomicNumber{29},
+                             AtomicNumber{63},
+                             MevEnergy{551.384},
+                             MevMass{58618.5},
+                             "63Cu"},
+                            {AtomicNumber{29},
+                             AtomicNumber{65},
+                             MevEnergy{569.211},
+                             MevMass{60479.8},
+                             "65Cu"}};
         mat_inp.elements = {{AtomicNumber{29},
                              AmuMass{63.546},
                              {{IsotopeId{0}, 0.692}, {IsotopeId{1}, 0.308}},

@@ -27,19 +27,50 @@ class MaterialTestBase
         MaterialParams::Input inp;
 
         // Using nuclear masses provided by Geant4 11.0.3
-        inp.isotopes = {
-            // H
-            {AtomicNumber{1}, AtomicNumber{1}, MevMass{938.272}, "1H"},
-            {AtomicNumber{1}, AtomicNumber{2}, MevMass{1875.61}, "2H"},
-            // Al
-            {AtomicNumber{13}, AtomicNumber{27}, MevMass{25126.5}, "27Al"},
-            {AtomicNumber{13}, AtomicNumber{28}, MevMass{26058.3}, "28Al"},
-            // Na
-            {AtomicNumber{11}, AtomicNumber{23}, MevMass{21409.2}, "23Na"},
-            // I
-            {AtomicNumber{53}, AtomicNumber{125}, MevMass{116321}, "125I"},
-            {AtomicNumber{53}, AtomicNumber{126}, MevMass{117253}, "126I"},
-            {AtomicNumber{53}, AtomicNumber{127}, MevMass{118184}, "127I"}};
+        inp.isotopes = {// H
+                        {AtomicNumber{1},
+                         AtomicNumber{1},
+                         MevEnergy{0},
+                         MevMass{938.272},
+                         "1H"},
+                        {AtomicNumber{1},
+                         AtomicNumber{2},
+                         MevEnergy{2.22457},
+                         MevMass{1875.61},
+                         "2H"},
+                        // Al
+                        {AtomicNumber{13},
+                         AtomicNumber{27},
+                         MevEnergy{224.952},
+                         MevMass{25126.5},
+                         "27Al"},
+                        {AtomicNumber{13},
+                         AtomicNumber{28},
+                         MevEnergy{232.677},
+                         MevMass{26058.3},
+                         "28Al"},
+                        // Na
+                        {AtomicNumber{11},
+                         AtomicNumber{23},
+                         MevEnergy{186.564},
+                         MevMass{21409.2},
+                         "23Na"},
+                        // I
+                        {AtomicNumber{53},
+                         AtomicNumber{125},
+                         MevEnergy{1056.29},
+                         MevMass{116321},
+                         "125I"},
+                        {AtomicNumber{53},
+                         AtomicNumber{126},
+                         MevEnergy{1063.43},
+                         MevMass{117253},
+                         "126I"},
+                        {AtomicNumber{53},
+                         AtomicNumber{127},
+                         MevEnergy{1072.58},
+                         MevMass{118184},
+                         "127I"}};
 
         inp.elements = {
             // H

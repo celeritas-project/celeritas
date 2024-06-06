@@ -114,7 +114,7 @@ void UnitProto::build(InputBuilder& input) const
     UnitInput result;
     result.label = input_.label;
 
-    // Save unit's bounding box (inverted bounding zone of exterior)
+    // Save unit's bounding box
     {
         NodeId node_id = csg_unit.volumes[orange_exterior_volume.get()];
         auto region_iter = csg_unit.regions.find(node_id);
@@ -122,7 +122,9 @@ void UnitProto::build(InputBuilder& input) const
         auto const& bz = region_iter->second.bounds;
         if (bz.negated)
         {
-            result.bbox = bz.interior;
+            // [EXTERIOR] bbox is negated, so negating again gives the
+            // "interior" bounding zone; we want its outer boundary.
+            result.bbox = bz.exterior;
         }
         CELER_ENSURE(is_finite(result.bbox));
     }
@@ -271,6 +273,7 @@ void UnitProto::build(InputBuilder& input) const
     // Save attributes from materials
     for (auto const& m : input_.materials)
     {
+        CELER_ASSERT(vol_iter != result.volumes.end());
         vol_iter->label = !m.label.empty()
                               ? m.label
                               : Label{std::string(m.interior->label())};
@@ -280,6 +283,7 @@ void UnitProto::build(InputBuilder& input) const
 
     if (input_.background)
     {
+        CELER_ASSERT(vol_iter != result.volumes.end());
         vol_iter->label = !input_.background.label.empty()
                               ? input_.background.label
                               : Label{input_.label, "bg"};
