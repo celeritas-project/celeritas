@@ -236,8 +236,6 @@ class BoundingBoxBumper
     //! Return the expanded and converted bounding box
     result_type operator()(argument_type const& bbox)
     {
-        CELER_EXPECT(bbox);
-
         Array<T, 3> lower;
         Array<T, 3> upper;
 

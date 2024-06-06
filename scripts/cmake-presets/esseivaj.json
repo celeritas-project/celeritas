@@ -17,9 +17,11 @@
         "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_Perfetto": {"type": "BOOL", "value": "ON"},
+        "PERFETTO_ROOT": {"type": "PATH", "value": "$env{PERFETTO_ROOT}/perfetto/sdk"},
         "CMAKE_CXX_STANDARD": {"type": "STRING", "value": "17"},
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -Werror -Wno-error=deprecated -pedantic -fdiagnostics-color=always",
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"}
@@ -30,6 +32,15 @@
       "hidden": true,
       "cacheVariables": {
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
+      }
+    },    {
+      "name": ".profile",
+      "hidden": true,
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS":{"type": "BOOL", "value": "ON"},
+        "CELERITAS_DEBUG":  {"type": "BOOL",   "value": "OFF"},
+        "CMAKE_BUILD_TYPE": {"type": "STRING", "value": "RelWithDebInfo"},
+        "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fno-omit-frame-pointer"
       }
     },
     {
@@ -48,9 +59,19 @@
       "inherits": [".reldeb", ".base"]
     },
     {
+      "name": "reldeb-profile",
+      "displayName": "Vecgeom profile mode",
+      "inherits": [".profile", "reldeb"]
+    },
+    {
       "name": "reldeb-novg",
       "displayName": "ORANGE release debug",
       "inherits": [".no-vg", ".reldeb", ".base"]
+    },
+    {
+      "name": "reldeb-novg-profile",
+      "displayName": "ORANGE profile mode",
+      "inherits": [".profile", "reldeb-novg"]
     },
     {
       "name": "ndebug",
@@ -74,7 +95,9 @@
     {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"},
     {"name": "ndebug-novg", "configurePreset": "ndebug-novg", "inherits": "base"},
     {"name": "reldeb", "configurePreset": "reldeb", "inherits": "base"},
-    {"name": "reldeb-novg", "configurePreset": "reldeb-novg", "inherits": "base"}
+    {"name": "reldeb-profile", "configurePreset": "reldeb-profile", "inherits": "base"},
+    {"name": "reldeb-novg", "configurePreset": "reldeb-novg", "inherits": "base"},
+    {"name": "reldeb-novg-profile", "configurePreset": "reldeb-novg-profile", "inherits": "base"}
   ],
   "testPresets": [
     {
@@ -87,6 +110,8 @@
     {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"},
     {"name": "ndebug-novg", "configurePreset": "ndebug-novg", "inherits": "base"},
     {"name": "reldeb", "configurePreset": "reldeb", "inherits": "base"},
-    {"name": "reldeb-novg", "configurePreset": "reldeb-novg", "inherits": "base"}
+    {"name": "reldeb-profile", "configurePreset": "reldeb-profile", "inherits": "base"},
+    {"name": "reldeb-novg", "configurePreset": "reldeb-novg", "inherits": "base"},
+    {"name": "reldeb-novg-profile", "configurePreset": "reldeb-novg-profile", "inherits": "base"}
   ]
 }

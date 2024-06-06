@@ -4,20 +4,20 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-celeritas_add_library(testcel_accel
+celeritas_add_test_library(testcel_accel
   SDTestBase.cc
   SimpleSensitiveDetector.cc
 )
 celeritas_target_link_libraries(testcel_accel
   PUBLIC
-    Celeritas::testcel_celeritas Celeritas::testcel_harness
+    testcel_celeritas testcel_harness
   PRIVATE
     ${Geant4_LIBRARIES}
 )
 
-celeritas_setup_tests(SERIAL PREFIX accel
+celeritas_setup_tests(SERIAL
   LINK_LIBRARIES
-    Celeritas::testcel_accel Celeritas::testcel_core Celeritas::accel
+    testcel_accel testcel_core Celeritas::accel
 )
 
 #-----------------------------------------------------------------------------#
@@ -36,7 +36,7 @@ if(CELERITAS_REAL_TYPE STREQUAL "double")
   # This test requires Geant4 *geometry* which is incompatible
   # with single-precision
   celeritas_add_test(detail/TouchableUpdater.test.cc
-    LINK_LIBRARIES Celeritas::testcel_geocel)
+    LINK_LIBRARIES testcel_geocel)
 endif()
 
 #-----------------------------------------------------------------------------#

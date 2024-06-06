@@ -11,7 +11,7 @@
       "cacheVariables": {
         "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_DEBUG":       {"type": "BOOL", "value": "ON"},
         "CELERITAS_TEST_VERBOSE":{"type": "BOOL", "value": "OFF"},
@@ -25,12 +25,22 @@
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_HOSTNAME": "windows-github",
         "CMAKE_BUILD_TYPE":      "Release",
         "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_EXTENSIONS": {"type": "BOOL", "value": "OFF"},
         "CMAKE_CXX_FLAGS": "/W2 /WX",
         "CMAKE_CXX_STANDARD": "17",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install"
+      }
+    },
+    {
+      "name": "fast",
+      "inherits": ["base"],
+      "displayName": "fast build with testing and JSON",
+      "cacheVariables": {
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_JSON": {"type": "BOOL", "value": "ON"}
       }
     },
     {
@@ -45,17 +55,19 @@
   ],
   "buildPresets": [
     {
-      "name": "ultralite",
-      "configurePreset": "ultralite",
+      "name": "base",
+      "configurePreset": "base",
       "nativeToolOptions": ["-k0"],
       "verbose": true,
       "jobs": 4
-    }
+    },
+    {"name": "fast", "configurePreset": "fast", "inherits": "base"},
+    {"name": "ultralite", "configurePreset": "ultralite", "inherits": "base"}
   ],
   "testPresets": [
     {
-      "name": "ultralite",
-      "configurePreset": "ultralite",
+      "name": "base",
+      "configurePreset": "base",
       "execution": {
         "noTestsAction": "error",
         "stopOnFailure": false,
@@ -67,6 +79,8 @@
         "maxPassedTestOutputSize": 65536,
         "outputOnFailure": true
       }
-    }
+    },
+    {"name": "fast", "configurePreset": "fast", "inherits": "base"},
+    {"name": "ultralite", "configurePreset": "ultralite", "inherits": "base"}
   ]
 }

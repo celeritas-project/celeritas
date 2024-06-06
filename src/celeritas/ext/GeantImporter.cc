@@ -423,6 +423,8 @@ std::vector<ImportIsotope> import_isotopes()
         isotope.name = g4isotope.GetName();
         isotope.atomic_number = g4isotope.GetZ();
         isotope.atomic_mass_number = g4isotope.GetN();
+        isotope.binding_energy = G4NucleiProperties::GetBindingEnergy(
+            isotope.atomic_mass_number, isotope.atomic_number);
         isotope.nuclear_mass = G4NucleiProperties::GetNuclearMass(
             isotope.atomic_mass_number, isotope.atomic_number);
     }

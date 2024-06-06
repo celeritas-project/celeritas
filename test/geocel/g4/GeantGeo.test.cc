@@ -591,6 +591,140 @@ TEST_F(SolidsTest, reflected_vol)
 }
 
 //---------------------------------------------------------------------------//
+class TransformedBoxTest : public GeantGeoTest
+{
+    std::string geometry_basename() const override
+    {
+        return "transformed-box";
+    }
+};
+
+TEST_F(TransformedBoxTest, trace)
+{
+    {
+        auto result = this->track({0, 0, -25}, {0, 0, 1});
+        static char const* const expected_volumes[] = {
+            "world",
+            "simple",
+            "world",
+            "enclosing",
+            "tiny",
+            "enclosing",
+            "world",
+            "simple",
+            "world",
+        };
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {
+            13,
+            4,
+            6,
+            1.75,
+            0.5,
+            1.75,
+            6,
+            4,
+            38,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {
+            5.3612159321677,
+            1,
+            2.3301270189222,
+            0.875,
+            0.25,
+            0.875,
+            3,
+            1,
+            19,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        auto result = this->track({0.25, 0, -25}, {0., 0, 1});
+        static char const* const expected_volumes[] = {
+            "world",
+            "simple",
+            "world",
+            "enclosing",
+            "tiny",
+            "enclosing",
+            "world",
+            "simple",
+            "world",
+        };
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {
+            12.834936490539,
+            3.7320508075689,
+            6.4330127018922,
+            1.75,
+            0.5,
+            1.75,
+            6,
+            4,
+            38,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {
+            5.5576905283833,
+            0.93301270189222,
+            2.0176270189222,
+            0.75,
+            0.25,
+            0.75,
+            3,
+            0.75,
+            19,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        auto result = this->track({0, 0.25, -25}, {0, 0., 1});
+        static char const* const expected_volumes[] = {
+            "world",
+            "simple",
+            "world",
+            "enclosing",
+            "tiny",
+            "enclosing",
+            "world",
+            "simple",
+            "world",
+        };
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {
+            13,
+            4,
+            6,
+            1.75,
+            0.5,
+            1.75,
+            6,
+            4,
+            38,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {
+            5.3612159321677,
+            1,
+            2.3301270189222,
+            0.875,
+            0.12530113594871,
+            0.875,
+            3,
+            1,
+            19,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        auto result = this->track({0.01, -20, 0.20}, {0, 1, 0});
+        result.print_expected();
+    }
+}
+
+//---------------------------------------------------------------------------//
 class CmseTest : public GeantGeoTest
 {
   public:

@@ -348,8 +348,9 @@ auto SolidConverter::displaced(arg_type solid_base) -> result_type
     CELER_ASSERT(g4daughter);
     auto daughter = (*this)(*g4daughter);
 
-    // Note that GetDirectTransform is the combination of GetFrameTranslation
-    // and GetFrameRotation .
+    // Note that GetDirectTransform is an affine transform that combines the
+    // daughter-to-parent ("object") translation with an inverted
+    // [parent-to-daughter, "frame"] rotation
     return std::make_shared<Transformed>(
         daughter, transform_(solid.GetDirectTransform()));
 }
@@ -521,34 +522,22 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
         rmax[i] = scale_(params.Rmax[i]) * radius_factor;
     }
 
-    auto angle = make_wedge_azimuthal_poly(solid);
-
-    if (zs.size() == 2 && rmin[0] == rmin[1] && rmax[0] == rmax[1])
+    if (!any_positive(rmin))
     {
-        // A solid prism
-        double const hh = (zs[1] - zs[0]) / 2;
-        double const orientation
-            = std::fmod(params.numSide * angle.start().value(), real_type{1});
-
-        if (rmin[0] != 0.0 || angle)
-        {
-            CELER_NOT_IMPLEMENTED("prism solid");
-        }
-
-        result_type result = make_shape<Prism>(
-            solid, params.numSide, rmax[0], hh, orientation);
-
-        double dz = (zs[1] + zs[0]) / 2;
-        if (dz != 0)
-        {
-            result = std::make_shared<Transformed>(std::move(result),
-                                                   Translation{{0, 0, dz}});
-        }
-
-        return result;
+        // No interior shape
+        rmin.clear();
     }
 
-    CELER_NOT_IMPLEMENTED("polyhedra");
+    auto angle = make_wedge_azimuthal_poly(solid);
+    double const orientation
+        = std::fmod(params.numSide * angle.start().value(), real_type{1});
+
+    return PolyPrism::or_solid(
+        std::string{solid.GetName()},
+        PolySegments{std::move(rmin), std::move(rmax), std::move(zs)},
+        std::move(angle),
+        params.numSide,
+        orientation);
 }
 
 //---------------------------------------------------------------------------//

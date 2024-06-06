@@ -38,13 +38,13 @@ if(CELERITAS_USE_VecGeom)
   list(APPEND PRIVATE_DEPS VecGeom::vecgeom)
 endif()
 
-celeritas_add_library(testcel_geocel ${SOURCES})
+celeritas_add_test_library(testcel_geocel ${SOURCES})
 
 celeritas_target_link_libraries(testcel_geocel
   PUBLIC
-    Celeritas::testcel_harness Celeritas::geocel
+    testcel_harness Celeritas::geocel
   PRIVATE
-    Celeritas::testcel_core ${_g4_geo_libs} ${VecGeom_LIBRARIES}
+    testcel_core ${_g4_geo_libs} ${VecGeom_LIBRARIES}
 )
 
 #-----------------------------------------------------------------------------#
@@ -52,9 +52,7 @@ celeritas_target_link_libraries(testcel_geocel
 #-----------------------------------------------------------------------------#
 
 celeritas_setup_tests(SERIAL
-  PREFIX geocel
-  LINK_LIBRARIES Celeritas::testcel_geocel Celeritas::testcel_core
-    Celeritas::geocel
+  LINK_LIBRARIES testcel_geocel testcel_core Celeritas::geocel
 )
 
 #-----------------------------------------------------------------------------#
@@ -118,7 +116,6 @@ endif()
 #-----------------------------------------------------------------------------#
 # Rasterization
 
-set(CELERITASTEST_PREFIX geocel/rasterize)
 
 celeritas_add_test(rasterize/Image.test.cc)
 celeritas_add_test(rasterize/Raytracer.test.cc)

@@ -99,7 +99,7 @@ MockGeoTrackView::operator=(Initializer_t const& init)
 {
     ++init_count_;
     this->state_ = init;
-    volume_id_ = std::floor(this->z());
+    volume_id_ = static_cast<int>(std::floor(this->z()));
     on_boundary_ = false;
     return *this;
 }

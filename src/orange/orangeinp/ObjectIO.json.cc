@@ -128,6 +128,21 @@ void to_json(nlohmann::json& j, PolyCone const& obj)
     }
 }
 
+void to_json(nlohmann::json& j, PolyPrism const& obj)
+{
+    j = {
+        {"_type", "polyprism"},
+        SIO_ATTR_PAIR(obj, label),
+        SIO_ATTR_PAIR(obj, segments),
+        SIO_ATTR_PAIR(obj, num_sides),
+        SIO_ATTR_PAIR(obj, orientation),
+    };
+    if (auto sea = obj.enclosed_angle())
+    {
+        j["enclosed_angle"] = sea;
+    }
+}
+
 void to_json(nlohmann::json& j, ShapeBase const& obj)
 {
     j = {{"_type", "shape"},

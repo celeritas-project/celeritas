@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-celeritas_add_library(testcel_orange
+celeritas_add_test_library(testcel_orange
   OrangeGeoTestBase.cc
   OrangeTestBase.cc
   orangeinp/CsgTestUtils.cc
@@ -12,8 +12,7 @@ celeritas_add_library(testcel_orange
 )
 celeritas_target_link_libraries(testcel_orange
   PUBLIC
-    Celeritas::orange Celeritas::testcel_harness Celeritas::testcel_core
-    Celeritas::testcel_geocel
+    Celeritas::orange testcel_harness testcel_core testcel_geocel
   PRIVATE
     Celeritas::orange ${nlohmann_json_LIBRARIES}
 )
@@ -42,7 +41,7 @@ endif()
 # SETUP
 #-----------------------------------------------------------------------------#
 
-celeritas_setup_tests(SERIAL PREFIX orange
+celeritas_setup_tests(SERIAL
   LINK_LIBRARIES testcel_orange Celeritas::orange
 )
 
@@ -64,14 +63,12 @@ celeritas_add_device_test(OrangeShift ${_needs_json})
 celeritas_add_test(detail/UniverseIndexer.test.cc)
 
 # Bounding interval hierarchy
-set(CELERITASTEST_PREFIX orange/bih)
 celeritas_add_test(detail/BIHBuilder.test.cc)
 celeritas_add_test(detail/BIHTraverser.test.cc)
 celeritas_add_test(detail/BIHUtils.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Input construction
-set(CELERITASTEST_PREFIX orange/orangeinp)
 celeritas_add_test(orangeinp/CsgObject.test.cc)
 celeritas_add_test(orangeinp/CsgTree.test.cc)
 celeritas_add_test(orangeinp/CsgTreeUtils.test.cc)
@@ -92,7 +89,6 @@ celeritas_add_test(orangeinp/detail/TransformInserter.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Transforms
-set(CELERITASTEST_PREFIX orange/transform)
 celeritas_add_test(transform/SignedPermutation.test.cc)
 celeritas_add_test(transform/TransformSimplifier.test.cc)
 celeritas_add_test(transform/Transformation.test.cc)
@@ -101,7 +97,6 @@ celeritas_add_test(transform/VariantTransform.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Surfaces
-set(CELERITASTEST_PREFIX orange/surf)
 celeritas_add_test(surf/ConeAligned.test.cc)
 celeritas_add_test(surf/CylAligned.test.cc)
 celeritas_add_test(surf/CylCentered.test.cc)
@@ -127,7 +122,6 @@ celeritas_add_test(surf/detail/SurfaceTransformer.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Universe
-set(CELERITASTEST_PREFIX orange/univ)
 celeritas_add_test(univ/VolumeView.test.cc)
 celeritas_add_test(univ/RectArrayTracker.test.cc ${_needs_json})
 celeritas_add_device_test(univ/SimpleUnitTracker)
@@ -144,8 +138,7 @@ celeritas_add_test(univ/detail/SenseCalculator.test.cc)
 #-----------------------------------------------------------------------------#
 # Geant4 construction
 if(_use_g4org)
-  set(CELERITASTEST_PREFIX orange/g4org)
-
+  
   celeritas_add_test(g4org/Converter.test.cc)
   celeritas_add_test(g4org/SolidConverter.test.cc
     LINK_LIBRARIES ${_g4_geo_libs})

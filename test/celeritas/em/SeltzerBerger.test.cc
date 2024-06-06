@@ -374,7 +374,7 @@ TEST_F(SeltzerBergerTest, basic)
 
 TEST_F(SeltzerBergerTest, stress_test)
 {
-    int const num_samples = 1e4;
+    int const num_samples = 10000;
     std::vector<real_type> avg_engine_samples;
 
     // Views

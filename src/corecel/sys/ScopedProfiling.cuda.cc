@@ -95,28 +95,6 @@ nvtxEventAttributes_t make_attributes(ScopedProfiling::Input const& input)
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether profiling is enabled.
- *
- * This is true only if the \c CELER_ENABLE_PROFILING environment variable is
- * set to a non-empty value.
- */
-bool ScopedProfiling::use_profiling()
-{
-    static bool const result = [] {
-        if (!celeritas::getenv("CELER_ENABLE_PROFILING").empty())
-        {
-            CELER_LOG(info) << "Enabling profiling support since the "
-                               "'CELER_ENABLE_PROFILING' "
-                               "environment variable is present and non-empty";
-            return true;
-        }
-        return false;
-    }();
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Activate nvtx profiling with options.
  *
  * The call to NVTX is checked for validity (it should return a nonnegative

@@ -135,8 +135,11 @@ template<class Value_E, class Value_A>
     using ValueT = typename SoftPrecisionType<VE, VA>::type;
     using BinaryOp = EqualOr<SoftEqual<ValueT>>;
 
-    return IsSoftEquivImpl(
-        expected, expected_expr, actual, actual_expr, BinaryOp{});
+    return IsSoftEquivImpl(static_cast<ValueT>(expected),
+                           expected_expr,
+                           static_cast<ValueT>(actual),
+                           actual_expr,
+                           BinaryOp{});
 }
 
 //---------------------------------------------------------------------------//

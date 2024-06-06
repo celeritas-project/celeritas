@@ -135,7 +135,7 @@ TEST_F(MuBremsstrahlungInteractorTest, basic)
 
 TEST_F(MuBremsstrahlungInteractorTest, stress_test)
 {
-    unsigned int const num_samples = 1e4;
+    unsigned int const num_samples = 10000;
     std::vector<double> avg_engine_samples;
 
     for (auto particle : {pdg::mu_minus(), pdg::mu_plus()})

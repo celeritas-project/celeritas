@@ -72,6 +72,7 @@ struct RunnerInput
 
     // Diagnostics and output
     std::string mctruth_file;  //!< Path to ROOT MC truth event data
+    std::string tracing_file;
     SimpleRootFilterInput mctruth_filter;
     std::vector<Label> simple_calo;
     bool action_diagnostic{};
