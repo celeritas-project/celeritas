@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <iostream>
-
 #include "corecel/Assert.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeData.hh"
@@ -20,8 +18,6 @@
 #include "detail/SurfaceFunctors.hh"
 #include "detail/Types.hh"
 #include "detail/Utils.hh"
-using std::cout;
-using std::endl;
 
 namespace celeritas
 {
@@ -212,10 +208,8 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const
     detail::OnLocalSurface on_surface;
     auto is_inside = [this, &state, &calc_senses, &on_surface](
                          LocalVolumeId const& id) -> bool {
-        cout << " - Testing volume " << id.get() << ": ";
         if (id == state.volume)
         {
-            cout << " Skipping exiting volume" << endl;
             // Cannot cross surface into the same volume
             return false;
         }
@@ -228,16 +222,8 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const
         {
             // Inside: find and save the local surface ID, and end the search
             on_surface = get_surface(vol, logic_state.face);
-
-            cout << "inside";
-            if (on_surface)
-            {
-                cout << " and on surface " << on_surface.id().get();
-            }
-            cout << endl;
             return true;
         }
-        cout << "outside" << endl;
         return false;
     };
 
@@ -263,12 +249,6 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const
         }
     }
 
-    cout << " - None found";
-    if (unit_record_.background)
-    {
-        cout << ": using background " << unit_record_.background.get();
-    }
-    cout << endl;
     return {unit_record_.background, state.surface};
 }
 
