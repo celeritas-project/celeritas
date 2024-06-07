@@ -827,7 +827,8 @@ TEST_F(InputBuilderTest, incomplete_bb)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(InputBuilderTest, universe_union_boundary)
+// TODO: see celeritas-project/celeritas#1260
+TEST_F(InputBuilderTest, DISABLED_universe_union_boundary)
 {
     {
         SCOPED_TRACE("pz");

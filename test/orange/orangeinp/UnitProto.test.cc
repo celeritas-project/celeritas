@@ -703,6 +703,11 @@ TEST_F(InputBuilderTest, incomplete_bb)
     this->run_test(*outer);
 }
 
+/*!
+ * Generate input for a universe with a 'union' exterior boundary.
+ *
+ * See issue 1260.
+ */
 TEST_F(InputBuilderTest, universe_union_boundary)
 {
     auto inner = std::make_shared<UnitProto>([] {
