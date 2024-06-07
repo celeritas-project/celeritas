@@ -24,7 +24,7 @@ class CsgTree;
 // Replace a node in the tree with a boolean constant
 void replace_and_simplify(CsgTree* tree,
                           orangeinp::NodeId n,
-                          orangeinp::Node repl_node);
+                          orangeinp::Node replacement);
 
 // Simplify the tree by sweeping
 orangeinp::NodeId simplify_up(CsgTree* tree, orangeinp::NodeId start);

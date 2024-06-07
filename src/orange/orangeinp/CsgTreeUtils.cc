@@ -39,22 +39,22 @@ namespace orangeinp
  *
  * \return Node ID of the lowest node that required simplification.
  */
-void replace_and_simplify(CsgTree* tree, NodeId repl_node, Node repl)
+void replace_and_simplify(CsgTree* tree, NodeId repl_key, Node repl_value)
 {
     CELER_EXPECT(tree);
-    CELER_EXPECT(repl_node < tree->size());
-    CELER_ASSUME(is_boolean_node(repl));
+    CELER_EXPECT(repl_key < tree->size());
+    CELER_ASSUME(is_boolean_node(repl_value));
 
     using detail::NodeReplacer;
 
-    NodeId max_node{repl_node};
+    NodeId max_node{repl_key};
     NodeReplacer::VecRepl state{tree->size(), NodeReplacer::unvisited};
     state[CsgTree::true_node_id().get()] = NodeReplacer::known_true;
     state[CsgTree::false_node_id().get()] = NodeReplacer::known_false;
 
-    state[repl_node.get()] = (std::holds_alternative<True>(repl)
-                                  ? NodeReplacer::known_true
-                                  : NodeReplacer::known_false);
+    state[repl_key.get()] = (std::holds_alternative<True>(repl_value)
+                                 ? NodeReplacer::known_true
+                                 : NodeReplacer::known_false);
 
     bool simplifying{true};
     do
@@ -71,14 +71,14 @@ void replace_and_simplify(CsgTree* tree, NodeId repl_node, Node repl)
         // Replace literals and simplify
         for (auto n : range(CsgTree::false_node_id() + 1, NodeId{tree->size()}))
         {
-            auto repl = state[n.get()];
-            if ((repl == NodeReplacer::known_true
-                 || repl == NodeReplacer::known_false)
+            auto repl_value = state[n.get()];
+            if ((repl_value == NodeReplacer::known_true
+                 || repl_value == NodeReplacer::known_false)
                 && std::holds_alternative<Surface>((*tree)[n]))
             {
                 max_node = std::max(max_node, n);
                 tree->exchange(n,
-                               repl == NodeReplacer::known_true
+                               repl_value == NodeReplacer::known_true
                                    ? Node{True{}}
                                    : Node{False{}});
             }
@@ -98,12 +98,12 @@ void replace_and_simplify(CsgTree* tree, NodeId repl_node, Node repl)
             continue;
         }
 
-        auto repl = state[n.get()];
-        if (repl == NodeReplacer::known_true)
+        auto repl_value = state[n.get()];
+        if (repl_value == NodeReplacer::known_true)
         {
             tree->exchange(n, Node{True{}});
         }
-        else if (repl == NodeReplacer::known_false)
+        else if (repl_value == NodeReplacer::known_false)
         {
             tree->exchange(n, Node{False{}});
         }
