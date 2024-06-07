@@ -23,6 +23,11 @@
 #include "detail/LevelStateAccessor.hh"
 #include "detail/UniverseIndexer.hh"
 
+#include <iostream>
+using std::cout;
+using std::endl;
+#include "corecel/io/Repr.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -593,6 +598,10 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
 
     LevelId sl = this->surface_level();
     auto lsa = this->make_lsa(sl);
+
+    cout << "* Crossing boundary from volume " << lsa.vol().get()
+         << " in universe " << lsa.universe().get() << " at "
+         << repr(this->pos()) << " on surface " << this->surf().get() << endl;
 
     if (CELER_UNLIKELY(this->boundary() == BoundaryResult::reentrant))
     {
