@@ -575,6 +575,16 @@ TEST_F(SolidConverterTest, tubs)
     this->build_and_test(
         G4Tubs("Solid Sector #3", 0, 50 * mm, 50 * mm, halfpi, 3. * halfpi),
         R"json({"_type":"solid","enclosed_angle":{"interior":0.75,"start":0.25},"interior":{"_type":"cylinder","halfheight":5.0,"radius":5.0},"label":"Solid Sector #3"})json");
+
+    this->build_and_test(
+        G4Tubs("Barrel",
+               2288 * mm,
+               4250 * mm,
+               (5640.0 / 2) * mm,
+               0 * degree,
+               11.25 * degree),
+        R"json({"_type":"solid","enclosed_angle":{"interior":0.03125,"start":0.0},"excluded":{"_type":"cylinder","halfheight":282.0,"radius":228.8},"interior":{"_type":"cylinder","halfheight":282.0,"radius":425.0},"label":"Barrel"})json",
+        {{300, 25, 0.1}, {300, -25, 0.1}, {450, 0.1, 0.1}});
 }
 
 TEST_F(SolidConverterTest, unionsolid)

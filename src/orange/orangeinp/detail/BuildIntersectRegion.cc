@@ -34,16 +34,17 @@ NodeId build_intersect_region(VolumeBuilder& vb,
     IntersectSurfaceState css;
     css.transform = &vb.local_transform();
     css.object_name = std::move(label);
-    css.make_face_name = FaceNamer{std::move(face_prefix)};
+    css.make_face_name = FaceNamer{std::string{face_prefix}};
 
     // Construct surfaces
     auto sb = IntersectSurfaceBuilder(&vb.unit_builder(), &css);
     region.build(sb);
 
     // Intersect the given surfaces to create a new CSG node
-    return vb.insert_region(Label{std::move(css.object_name)},
-                            Joined{op_and, std::move(css.nodes)},
-                            calc_merged_bzone(css));
+    return vb.insert_region(
+        Label{std::move(css.object_name), std::move(face_prefix)},
+        Joined{op_and, std::move(css.nodes)},
+        calc_merged_bzone(css));
 }
 
 //---------------------------------------------------------------------------//
