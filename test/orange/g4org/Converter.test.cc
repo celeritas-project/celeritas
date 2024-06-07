@@ -31,11 +31,13 @@ namespace test
 class ConverterTest : public ::celeritas::test::Test
 {
   protected:
+    void SetUp() override { verbose_ = !celeritas::getenv("VERBOSE").empty(); }
+
     //! Make a converter
     Converter make_converter(std::string_view filename = {})
     {
         Converter::Options opts;
-        opts.verbose = !celeritas::getenv("VERBOSE").empty();
+        opts.verbose = verbose_;
         if (!filename.empty())
         {
             opts.proto_output_file = std::string(filename) + ".protos.json";
@@ -77,6 +79,10 @@ class ConverterTest : public ::celeritas::test::Test
     //! Save ORANGE output
     void write_org_json(OrangeInput const& inp, std::string const& filename)
     {
+        if (!verbose_)
+        {
+            return;
+        }
         auto out_filename = filename + ".org.json";
         CELER_LOG(info) << "Writing JSON translation to " << out_filename;
         std::ofstream os(out_filename);
@@ -90,6 +96,8 @@ class ConverterTest : public ::celeritas::test::Test
         world_volume_ = nullptr;
     }
 
+    bool verbose_{false};
+
   private:
     static std::string loaded_filename_;
     static G4VPhysicalVolume* world_volume_;
@@ -101,8 +109,10 @@ G4VPhysicalVolume* ConverterTest::world_volume_{nullptr};
 //---------------------------------------------------------------------------//
 TEST_F(ConverterTest, testem3)
 {
-    auto convert = this->make_converter("testem3");
-    auto result = convert(this->load_test_gdml("testem3")).input;
+    std::string const basename = "testem3";
+    auto convert = this->make_converter(basename);
+    auto result = convert(this->load_test_gdml(basename)).input;
+    write_org_json(result, basename);
 
     ASSERT_EQ(2, result.universes.size());
     if (auto* unit = std::get_if<UnitInput>(&result.universes[0]))
@@ -158,6 +168,7 @@ TEST_F(ConverterTest, tilecal_plug)
 //---------------------------------------------------------------------------//
 TEST_F(ConverterTest, DISABLED_arbitrary)
 {
+    verbose_ = true;
     std::string filename = celeritas::getenv("GDML");
     CELER_VALIDATE(!filename.empty(),
                    << "Set the 'GDML' environment variable and run this "
