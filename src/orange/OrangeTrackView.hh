@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <iostream>
+
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
@@ -22,8 +24,6 @@
 
 #include "detail/LevelStateAccessor.hh"
 #include "detail/UniverseIndexer.hh"
-
-#include <iostream>
 using std::cout;
 using std::endl;
 #include "corecel/io/Repr.hh"
