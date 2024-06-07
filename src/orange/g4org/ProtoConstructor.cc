@@ -38,9 +38,8 @@ SPConstObject make_explicit_background(LogicalVolume const& lv,
     std::vector<SPConstObject> children;
     for (auto const& child_pv : lv.children)
     {
-        auto child_transform = apply_transform(transform, child_pv.transform);
         children.push_back(
-            Transformed::or_object(child_pv.lv->solid, child_transform));
+            Transformed::or_object(child_pv.lv->solid, child_pv.transform));
     }
 
     return Transformed::or_object(
