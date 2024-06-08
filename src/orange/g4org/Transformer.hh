@@ -105,17 +105,20 @@ auto Transformer::operator()(G4ThreeVector const& trans,
                              G4RotationMatrix const& rot) const
     -> Transformation
 {
-    return Transformation{transposed_from_geant(rot), scale_.to<Real3>(trans)};
+    return Transformation{convert_from_geant(rot), scale_.to<Real3>(trans)};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Create a transform from an affine transform.
+ *
+ * The affine transform's stored rotation matrix is \em inverted!
  */
 auto Transformer::operator()(G4AffineTransform const& affine) const
     -> Transformation
 {
-    return (*this)(affine.NetTranslation(), affine.NetRotation());
+    return Transformation{transposed_from_geant(affine.NetRotation()),
+                          scale_.to<Real3>(affine.NetTranslation())};
 }
 
 //---------------------------------------------------------------------------//
@@ -135,7 +138,6 @@ SquareMatrixReal3 convert_from_geant(G4RotationMatrix const& rot)
  */
 SquareMatrixReal3 transposed_from_geant(G4RotationMatrix const& rot)
 {
-    // TODO: check normality? Orthogonalize?
     return {Real3{{rot.xx(), rot.yx(), rot.zx()}},
             Real3{{rot.xy(), rot.yy(), rot.zy()}},
             Real3{{rot.xz(), rot.yz(), rot.zz()}}};

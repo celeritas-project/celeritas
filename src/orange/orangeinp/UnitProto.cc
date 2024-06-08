@@ -125,7 +125,7 @@ void UnitProto::build(ProtoBuilder& input) const
     UnitInput result;
     result.label = input_.label;
 
-    // Save unit's bounding box (inverted bounding zone of exterior)
+    // Save unit's bounding box
     {
         NodeId node_id = csg_unit.volumes[orange_exterior_volume.get()];
         auto region_iter = csg_unit.regions.find(node_id);
@@ -133,7 +133,9 @@ void UnitProto::build(ProtoBuilder& input) const
         auto const& bz = region_iter->second.bounds;
         if (bz.negated)
         {
-            result.bbox = bz.interior;
+            // [EXTERIOR] bbox is negated, so negating again gives the
+            // "interior" bounding zone; we want its outer boundary.
+            result.bbox = bz.exterior;
         }
         CELER_ENSURE(is_finite(result.bbox));
     }
@@ -280,6 +282,7 @@ void UnitProto::build(ProtoBuilder& input) const
     // Save attributes from materials
     for (auto const& m : input_.materials)
     {
+        CELER_ASSERT(vol_iter != result.volumes.end());
         vol_iter->label = !m.label.empty()
                               ? m.label
                               : Label{std::string(m.interior->label())};
@@ -289,6 +292,7 @@ void UnitProto::build(ProtoBuilder& input) const
 
     if (input_.background)
     {
+        CELER_ASSERT(vol_iter != result.volumes.end());
         vol_iter->label = !input_.background.label.empty()
                               ? input_.background.label
                               : Label{input_.label, "bg"};
@@ -432,10 +436,7 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
     {
         // Replace "exterior" with "False" (i.e. interior with true)
         NodeId ext_node = result.volumes[ext_vol.unchecked_get()];
-        auto min_node = replace_down(&result.tree, ext_node, False{});
-
-        // Simplify recursively
-        simplify(&result.tree, min_node);
+        replace_and_simplify(&result.tree, ext_node, False{});
     }
 
     return result;

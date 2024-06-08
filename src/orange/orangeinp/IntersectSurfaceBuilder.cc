@@ -146,6 +146,9 @@ void IntersectSurfaceBuilder::insert_transformed(std::string&& extension,
 //---------------------------------------------------------------------------//
 /*!
  * Shrink the exterior bounding boxes.
+ *
+ * This will also shrink the interior boxes to avoid any numerical truncation
+ * issues.
  */
 void IntersectSurfaceBuilder::shrink_exterior(BBox const& bbox)
 {
@@ -155,12 +158,20 @@ void IntersectSurfaceBuilder::shrink_exterior(BBox const& bbox)
         // Local
         BBox& exterior = state_->local_bzone.exterior;
         exterior = calc_intersection(exterior, bbox);
+        if (BBox& interior = state_->local_bzone.interior)
+        {
+            interior = calc_intersection(interior, exterior);
+        }
     }
     {
         // Global
         BBox& exterior = state_->global_bzone.exterior;
         exterior = calc_intersection(
             exterior, apply_transform(*state_->transform, bbox));
+        if (BBox& interior = state_->global_bzone.interior)
+        {
+            interior = calc_intersection(interior, exterior);
+        }
     }
 }
 

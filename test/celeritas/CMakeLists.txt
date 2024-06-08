@@ -104,7 +104,7 @@ celeritas_target_link_libraries(testcel_celeritas
 # SETUP
 #-----------------------------------------------------------------------------#
 
-celeritas_setup_tests(SERIAL PREFIX celeritas
+celeritas_setup_tests(SERIAL
   LINK_LIBRARIES testcel_celeritas testcel_core
 )
 
@@ -118,7 +118,6 @@ celeritas_add_test(Units.test.cc)
 
 #-----------------------------------------------------------------------------#
 # EM
-set(CELERITASTEST_PREFIX celeritas/em)
 celeritas_add_test(em/Fluctuation.test.cc ${_fixme_single})
 celeritas_add_test(em/TsaiUrbanDistribution.test.cc ${_needs_double})
 
@@ -140,7 +139,6 @@ celeritas_add_test(em/UrbanMsc.test.cc ${_needs_root}
 
 #-----------------------------------------------------------------------------#
 # External
-set(CELERITASTEST_PREFIX celeritas/ext)
 
 celeritas_add_test(ext/GeantImporter.test.cc
   ${_needs_geant4}
@@ -158,7 +156,6 @@ celeritas_add_test(ext/RootImporter.test.cc ${_needs_root})
 
 #-----------------------------------------------------------------------------#
 # Field
-set(CELERITASTEST_PREFIX celeritas/field)
 
 celeritas_add_test(field/Fields.test.cc)
 celeritas_add_test(field/Steppers.test.cc ${_fixme_cgs})
@@ -173,7 +170,6 @@ celeritas_add_test(field/MagFieldEquation.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Geo
-set(CELERITASTEST_PREFIX celeritas/geo)
 
 set(_geo_args GPU ${_needs_geo} ${_needs_double} ${_fixme_cgs}
   LINK_LIBRARIES ${_all_geo_libs}
@@ -194,7 +190,6 @@ celeritas_add_test(geo/GeoMaterial.test.cc
 
 #-----------------------------------------------------------------------------#
 # Global
-set(CELERITASTEST_PREFIX celeritas/global)
 celeritas_add_test(global/ActionRegistry.test.cc)
 
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
@@ -256,7 +251,6 @@ celeritas_add_test(global/Stepper.test.cc
 
 #-----------------------------------------------------------------------------#
 # Grid
-set(CELERITASTEST_PREFIX celeritas/grid)
 celeritas_add_test(grid/GenericCalculator.test.cc)
 celeritas_add_test(grid/GenericGridBuilder.test.cc)
 celeritas_add_test(grid/GenericGridInserter.test.cc)
@@ -270,7 +264,6 @@ celeritas_add_test(grid/XsCalculator.test.cc)
 
 #-----------------------------------------------------------------------------#
 # IO
-set(CELERITASTEST_PREFIX celeritas/io)
 celeritas_add_test(io/EventIO.test.cc ${_needs_hepmc}
   LINK_LIBRARIES ${HepMC3_LIBRARIES})
 celeritas_add_test(io/ImportUnits.test.cc)
@@ -279,27 +272,23 @@ celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
 #-----------------------------------------------------------------------------#
 # Optical
-set(CELERITASTEST_PREFIX celeritas/optical)
 celeritas_add_test(optical/Cerenkov.test.cc)
 celeritas_add_test(optical/OpticalCollector.test.cc ${_needs_geant4})
 celeritas_add_test(optical/Scintillation.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Mat
-set(CELERITASTEST_PREFIX celeritas/mat)
 celeritas_add_test(mat/IsotopeSelector.test.cc)
 celeritas_add_test(mat/ElementSelector.test.cc)
 celeritas_add_device_test(mat/Material)
 
 #-----------------------------------------------------------------------------#
 # Neutron
-set(CELERITASTEST_PREFIX celeritas/neutron)
 celeritas_add_test(neutron/NeutronElastic.test.cc ${_needs_double})
 celeritas_add_test(neutron/NeutronInelastic.test.cc ${_needs_double})
 
 #-----------------------------------------------------------------------------#
 # Phys
-set(CELERITASTEST_PREFIX celeritas/phys)
 celeritas_add_test(phys/CutoffParams.test.cc)
 celeritas_add_device_test(phys/Particle)
 celeritas_add_device_test(phys/Physics)
@@ -311,7 +300,6 @@ celeritas_add_test(phys/ProcessBuilder.test.cc ${_needs_root}
 
 #-----------------------------------------------------------------------------#
 # Random
-set(CELERITASTEST_PREFIX celeritas/random)
 
 celeritas_add_device_test(random/RngEngine)
 celeritas_add_test(random/Selector.test.cc)
@@ -339,7 +327,6 @@ endif()
 
 #-----------------------------------------------------------------------------#
 # Track
-set(CELERITASTEST_PREFIX celeritas/track)
 celeritas_add_test(track/Sim.test.cc ${_needs_geant4})
 celeritas_add_test(track/TrackSort.test.cc GPU ${_needs_geant4} ${_needs_geo})
 
@@ -358,7 +345,6 @@ celeritas_add_test(track/TrackInit.test.cc
 
 #-----------------------------------------------------------------------------#
 # User
-set(CELERITASTEST_PREFIX celeritas/user)
 
 if(CELERITAS_USE_Geant4)
   set(_diagnostic_filter

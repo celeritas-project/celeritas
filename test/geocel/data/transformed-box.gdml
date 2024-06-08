@@ -1,14 +1,44 @@
 <?xml version="1.0"?>
 <gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+  <materials>
+    <isotope N="1" Z="1" name="H1">
+      <atom unit="g/mole" value="1.00782503081372"/>
+    </isotope>
+    <element name="H">
+      <fraction n="1" ref="H1"/>
+    </element>
+    <material name="vacuum" state="gas">
+      <T unit="K" value="2.73"/>
+      <P unit="pascal" value="3e-18"/>
+      <MEE unit="eV" value="21.8"/>
+      <D unit="g/cm3" value="1e-25"/>
+      <fraction n="1" ref="H"/>
+    </material>
+  </materials>
   <solids>
+    <box lunit="cm" name="tiny_box" x="0.5" y="0.75" z="1"/>
     <box lunit="cm" name="simple_box" x="2" y="3" z="4"/>
     <box lunit="cm" name="world_box" x="100" y="100" z="100"/>
   </solids>
   <structure>
     <volume name="simple">
+      <materialref ref="vacuum"/>
       <solidref ref="simple_box"/>
     </volume>
+    <volume name="tiny">
+      <materialref ref="vacuum"/>
+      <solidref ref="tiny_box"/>
+    </volume>
+    <volume name="enclosing">
+      <materialref ref="vacuum"/>
+      <solidref ref="simple_box"/>
+      <physvol name="rot">
+        <volumeref ref="tiny"/>
+        <rotation unit="deg" x="90." y="-87.1875" z="90"/>
+      </physvol>
+    </volume>
     <volume name="world">
+      <materialref ref="vacuum"/>
       <solidref ref="world_box"/>
       <physvol name="transrot">
         <volumeref ref="simple"/>
@@ -16,7 +46,7 @@
         <rotation unit="deg" x="0" y="30" z="0"/>
       </physvol>
       <physvol name="default">
-        <volumeref ref="simple"/>
+        <volumeref ref="enclosing"/>
       </physvol>
       <physvol name="trans">
         <volumeref ref="simple"/>
