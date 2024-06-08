@@ -100,50 +100,55 @@ class SolidConverterTest : public ::celeritas::orangeinp::test::ObjectTestBase
 
     void build_and_test(G4VSolid const& solid,
                         std::string_view json_str = "null",
-                        std::initializer_list<Real3> points = {})
-    {
-        SCOPED_TRACE(solid.GetName());
-
-        // Recreate the converter at each step since the solid may be a
-        // temporary rather than in a "store"
-        SolidConverter convert{scale_, transform_};
-
-        // Convert the object
-        auto obj = convert(solid);
-        CELER_ASSERT(obj);
-        if (CELERITAS_USE_JSON)
-        {
-            EXPECT_JSON_EQ(json_str, to_string(*obj));
-        }
-
-        // Construct a volume from it
-        auto vol_id = this->build_volume(*obj);
-
-        // Set up functions to calculate in/on/out
-        auto const& u = this->unit();
-        CELER_ASSERT(vol_id < u.volumes.size());
-        auto calc_org_sense
-            = [&u, node = u.volumes[vol_id.get()]](Real3 const& pos) {
-                  SenseEvaluator eval_sense(u.tree, u.surfaces, pos);
-                  return eval_sense(node);
-              };
-        auto calc_g4_sense = [&solid,
-                              inv_scale = 1 / scale_(1.0)](Real3 const& pos) {
-            return to_signed_sense(solid.Inside(G4ThreeVector(
-                inv_scale * pos[0], inv_scale * pos[1], inv_scale * pos[2])));
-        };
-
-        for (Real3 const& r : points)
-        {
-            EXPECT_EQ(calc_g4_sense(r), calc_org_sense(r))
-                << "at " << r << " [cm]";
-        }
-    }
+                        std::initializer_list<Real3> points = {});
 
     Scaler scale_{0.1};
     Transformer transform_{scale_};
 };
 
+//---------------------------------------------------------------------------//
+void SolidConverterTest::build_and_test(G4VSolid const& solid,
+                                        std::string_view json_str,
+                                        std::initializer_list<Real3> points)
+{
+    SCOPED_TRACE(solid.GetName());
+
+    // Recreate the converter at each step since the solid may be a
+    // temporary rather than in a "store"
+    SolidConverter convert{scale_, transform_};
+
+    // Convert the object
+    auto obj = convert(solid);
+    CELER_ASSERT(obj);
+    if (CELERITAS_USE_JSON)
+    {
+        EXPECT_JSON_EQ(json_str, to_string(*obj));
+    }
+
+    // Construct a volume from it
+    auto vol_id = this->build_volume(*obj);
+
+    // Set up functions to calculate in/on/out
+    auto const& u = this->unit();
+    CELER_ASSERT(vol_id < u.volumes.size());
+    auto calc_org_sense
+        = [&u, node = u.volumes[vol_id.get()]](Real3 const& pos) {
+              SenseEvaluator eval_sense(u.tree, u.surfaces, pos);
+              return eval_sense(node);
+          };
+    auto calc_g4_sense = [&solid,
+                          inv_scale = 1 / scale_(1.0)](Real3 const& pos) {
+        return to_signed_sense(solid.Inside(G4ThreeVector(
+            inv_scale * pos[0], inv_scale * pos[1], inv_scale * pos[2])));
+    };
+
+    for (Real3 const& r : points)
+    {
+        EXPECT_EQ(calc_g4_sense(r), calc_org_sense(r)) << "at " << r << " [cm]";
+    }
+}
+
+//---------------------------------------------------------------------------//
 TEST_F(SolidConverterTest, box)
 {
     this->build_and_test(
