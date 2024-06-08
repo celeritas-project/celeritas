@@ -39,7 +39,10 @@ class TestProto : public ProtoInterface
     VecProto daughters() const { return daughters_; }
 
     //! Construct a universe input from this object
-    void build(InputBuilder&) const { CELER_ASSERT_UNREACHABLE(); }
+    void build(ProtoBuilder&) const { CELER_ASSERT_UNREACHABLE(); }
+
+    //! Write output to JSON
+    void output(JsonPimpl*) const {}
 
   private:
     std::string label_;

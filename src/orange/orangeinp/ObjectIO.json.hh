@@ -7,7 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
 #include <nlohmann/json.hpp>
+
+#include "orange/transform/VariantTransform.hh"
 
 #include "CsgTypes.hh"
 
@@ -75,3 +78,26 @@ void to_json(nlohmann::json& j, Sphere const& cr);
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp
 }  // namespace celeritas
+
+namespace nlohmann
+{
+//---------------------------------------------------------------------------//
+// Support serialization of shared pointers to ORANGE objects
+using CelerSPObjConst
+    = std::shared_ptr<celeritas::orangeinp::ObjectInterface const>;
+using CelerVarTransform = celeritas::VariantTransform;
+
+template<>
+struct adl_serializer<CelerSPObjConst>
+{
+    static void to_json(json& j, CelerSPObjConst const& oi);
+};
+
+template<>
+struct adl_serializer<CelerVarTransform>
+{
+    static void to_json(json& j, CelerVarTransform const& vt);
+};
+
+//---------------------------------------------------------------------------//
+}  // namespace nlohmann

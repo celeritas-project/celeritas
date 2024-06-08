@@ -16,6 +16,7 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "orange/orangeinp/CsgObject.hh"
+#include "orange/orangeinp/InputBuilder.hh"
 #include "orange/orangeinp/Shape.hh"
 #include "orange/orangeinp/Transformed.hh"
 #include "orange/orangeinp/detail/CsgUnit.hh"
@@ -434,15 +435,27 @@ class InputBuilderTest : public UnitProtoTest
   public:
     void run_test(UnitProto const& global)
     {
-        OrangeInput inp = build_input(tol_, global);
+        std::string const output_base = this->make_unique_filename("");
+
+        InputBuilder build_input([&] {
+            InputBuilder::Options opts;
+            opts.tol = this->tol_;
+            if (CELERITAS_USE_JSON)
+            {
+                opts.proto_output_file = output_base + ".protos.json";
+                opts.debug_output_file = output_base + ".csg.json";
+            }
+            return opts;
+        }());
+        OrangeInput inp = build_input(global);
         EXPECT_TRUE(inp);
         if (!CELERITAS_USE_JSON)
         {
             GTEST_SKIP() << "JSON is disabled: cannot compare output";
         }
 
-        std::string const ref_path = this->test_data_path("orange", "")
-                                     + this->make_unique_filename(".org.json");
+        std::string const base_path = this->test_data_path("orange", "");
+        std::string const ref_path = base_path + output_base + ".org.json";
 
         // Export input to JSON
         std::ostringstream actual;

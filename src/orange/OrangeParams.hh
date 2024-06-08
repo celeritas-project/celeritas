@@ -41,7 +41,7 @@ class OrangeParams final : public GeoParamsSurfaceInterface,
     // Construct from a JSON or GDML file (if JSON or Geant4 are enabled)
     explicit OrangeParams(std::string const& filename);
 
-    // Construct in-memory from Geant4 (not implemented)
+    // Construct in-memory from Geant4
     explicit OrangeParams(G4VPhysicalVolume const*);
 
     // ADVANCED usage: construct from explicit host data

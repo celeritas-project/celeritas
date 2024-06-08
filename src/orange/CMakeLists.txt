@@ -29,6 +29,7 @@ list(APPEND SOURCES
   orangeinp/CsgTree.cc
   orangeinp/CsgTypes.cc
   orangeinp/CsgTreeUtils.cc
+  orangeinp/InputBuilder.cc
   orangeinp/IntersectRegion.cc
   orangeinp/IntersectSurfaceBuilder.cc
   orangeinp/PolySolid.cc
@@ -40,12 +41,12 @@ list(APPEND SOURCES
   orangeinp/detail/BoundingZone.cc
   orangeinp/detail/BuildIntersectRegion.cc
   orangeinp/detail/CsgUnitBuilder.cc
-  orangeinp/detail/InputBuilder.cc
   orangeinp/detail/InternalSurfaceFlagger.cc
   orangeinp/detail/IntersectSurfaceState.cc
   orangeinp/detail/LocalSurfaceInserter.cc
   orangeinp/detail/NodeSimplifier.cc
   orangeinp/detail/PostfixLogicBuilder.cc
+  orangeinp/detail/ProtoBuilder.cc
   orangeinp/detail/ProtoMap.cc
   orangeinp/detail/SenseEvaluator.cc
   orangeinp/detail/TransformInserter.cc

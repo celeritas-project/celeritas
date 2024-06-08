@@ -150,7 +150,10 @@ class UnitProto : public ProtoInterface
     VecProto daughters() const final;
 
     // Construct a universe input from this object
-    void build(InputBuilder&) const final;
+    void build(ProtoBuilder&) const final;
+
+    // Write the proto to a JSON object
+    void output(JsonPimpl*) const final;
 
     //// HELPER FUNCTIONS ////
 

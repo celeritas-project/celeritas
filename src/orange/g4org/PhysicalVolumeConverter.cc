@@ -96,7 +96,9 @@ auto PhysicalVolumeConverter::operator()(arg_type g4world) -> result_type
     CELER_EXPECT(g4world.GetTranslation() == G4ThreeVector(0, 0, 0));
 
     ScopedProfiling profile_this{"import-geant-geo"};
-    ScopedMem record_mem("PhysicalVolumeConverter.convert");
+    ScopedMem record_mem("orange.convert-geant");
+
+    CELER_LOG(status) << "Converting Geant4 geometry elements to ORANGE input";
     ScopedTimeLog scoped_time;
 
     // Construct world volume

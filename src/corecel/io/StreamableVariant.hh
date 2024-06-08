@@ -8,6 +8,7 @@
 #pragma once
 
 #include <ostream>
+#include <sstream>
 #include <variant>
 
 #include "corecel/Assert.hh"
@@ -63,6 +64,18 @@ std::ostream& operator<<(std::ostream& os, StreamableVariant<T> const& svar)
     CELER_ASSUME(!svar.value.valueless_by_exception());
     std::visit(detail::GenericToStream{os}, svar.value);
     return os;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Save a variant object's value to a string.
+ */
+template<class T>
+std::string to_string(StreamableVariant<T> const& svar)
+{
+    std::ostringstream os;
+    os << svar;
+    return os.str();
 }
 
 //---------------------------------------------------------------------------//

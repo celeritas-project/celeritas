@@ -62,5 +62,15 @@ void to_json_pimpl(JsonPimpl* jp, T const& self)
 #endif
 }
 
+#if CELERITAS_USE_JSON
+template<class T>
+nlohmann::json json_pimpl_output(T const& self)
+{
+    JsonPimpl jp;
+    self.output(&jp);
+    return std::move(jp.obj);
+}
+#endif
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
