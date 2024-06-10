@@ -64,6 +64,7 @@ using CLHEP::cm;
 using CLHEP::deg;
 using CLHEP::halfpi;
 using CLHEP::mm;
+constexpr double half{0.5};
 
 namespace celeritas
 {
@@ -109,7 +110,7 @@ class SolidConverterTest : public ::celeritas::orangeinp::test::ObjectTestBase
 
     Scaler scale_{0.1};
     Transformer transform_{scale_};
-    std::size_t sample_count_{2048};  //! Number of points to sample
+    std::size_t num_samples_{4096};  //! Number of points to sample
 };
 
 //---------------------------------------------------------------------------//
@@ -174,10 +175,10 @@ void SolidConverterTest::build_and_test(G4VSolid const& solid,
         std::mt19937_64 rng;
         UniformBoxDistribution sample_box(expanded_bbox.lower(),
                                           expanded_bbox.upper());
-        for ([[maybe_unused]] auto i : range(this->sample_count_))
+        for ([[maybe_unused]] auto i : range(this->num_samples_))
         {
             auto r = sample_box(rng);
-            EXPECT_EQ(calc_g4_sense(r), calc_org_sense(r))
+            ASSERT_EQ(calc_g4_sense(r), calc_org_sense(r))
                 << "at " << r << " [cm]";
         }
     }
@@ -457,7 +458,7 @@ TEST_F(SolidConverterTest, sphere)
 
 TEST_F(SolidConverterTest, subtractionsolid)
 {
-    G4Tubs t1("Solid Tube #1", 0, 50., 50., 0., 360. * degree);
+    G4Tubs t1("Solid Tube #1", 0, 50., 50., 0., 360. * deg);
     G4Box b3("Test Box #3", 10., 20., 50.);
     G4RotationMatrix xRot;
     xRot.rotateZ(-pi);
@@ -470,6 +471,11 @@ TEST_F(SolidConverterTest, subtractionsolid)
 
 TEST_F(SolidConverterTest, trap)
 {
+    double tan_alpha = std::tan(45 * deg);
+    this->build_and_test(
+        G4Trap("trap0", 10, 0, 0, 10, 10, 10, tan_alpha, 10, 10, 10, tan_alpha),
+        R"json({"_type":"shape","interior":{"_type":"gentrap","halfheight":1.0,"lower":[[-2.557407724654902,-1.0],[-0.5574077246549016,-1.0],[2.557407724654902,1.0],[0.5574077246549016,1.0]],"upper":[[-2.557407724654902,-1.0],[-0.5574077246549016,-1.0],[2.557407724654902,1.0],[0.5574077246549016,1.0]]},"label":"trap0"})json");
+
     this->build_and_test(
         G4Trap("trap_box", 30, 0, 0, 20, 10, 10, 0, 20, 10, 10, 0),
         R"json({"_type":"shape","interior":{"_type":"gentrap",
@@ -488,41 +494,12 @@ TEST_F(SolidConverterTest, trap)
                 "label":"trap_trd"})json",
         {{-10, -20, -40}, {-10, -20, -30 + 1.e-6}, {5, 10, 30}, {10, 10, 30}});
 
-    double tan_alpha = std::tan(15 * degree);
-    this->build_and_test(G4Trap("trap1",
-                                40,
-                                5 * degree,
-                                10 * degree,
-                                20,
-                                10,
-                                10,
-                                tan_alpha,
-                                30,
-                                15,
-                                15,
-                                tan_alpha),
-                         R"json({"_type":"shape","interior":{"_type":"gentrap",
-                "halfheight":4.0,
-                "lower":[[-1.8805364414262706,-2.060768987951168],
-                         [0.11946355857372937,-2.060768987951168],
-                         [1.1912603282982202,1.9392310120488323],
-                         [-0.8087396717017798,1.9392310120488323]],
-                "upper":[[-1.9592095207293427,-2.939231012048832],
-                         [1.0407904792706573,-2.939231012048832],
-                         [2.648485633857393,3.060768987951168],
-                         [-0.3515143661426068,3.060768987951168]]},
-                "label":"trap1"})json",
-                         {{-1.89, -2.1, -4.01},
-                          {0.12, -2.07, -4.01},
-                          {1.20, 1.94, -4.01},
-                          {-0.81, 1.9, -4.01},
-                          {-1.96, -2.94, 4.01}});
-    tan_alpha = std::tan(30 * degree);
+    tan_alpha = std::tan(15 * deg);
     this->build_and_test(
-        G4Trap("trap2",
-               10,
-               10 * degree,
-               -15 * degree,
+        G4Trap("trap1",
+               40,
+               5 * deg,
+               10 * deg,
                20,
                10,
                10,
@@ -531,11 +508,62 @@ TEST_F(SolidConverterTest, trap)
                15,
                15,
                tan_alpha),
-        R"json({"_type":"shape","interior":{"_type":"gentrap","halfheight":1.0,"lower":[[-2.325019322917132,-1.9543632192272244],[-0.32501932291713187,-1.9543632192272244],[1.9843817538413706,2.0456367807727753],[-0.01561824615862939,2.0456367807727753]],"upper":[[-3.061732023030996,-3.0456367807727753],[-0.06173202303099612,-3.0456367807727753],[3.4023695921067576,2.9543632192272247],[0.4023695921067574,2.9543632192272247]]},"label":"trap2"})json",
+        R"json({"_type":"shape","interior":{"_type":"gentrap","halfheight":4.0,"lower":[[-1.8937410483871178,-2.060768987951168],[0.10625895161288212,-2.060768987951168],[1.2044649352590673,1.9392310120488323],[-0.7955350647409326,1.9392310120488323]],"upper":[[-1.9790164311706138,-2.939231012048832],[1.0209835688293862,-2.939231012048832],[2.668292544298664,3.060768987951168],[-0.33170745570133575,3.060768987951168]]},"label":"trap1"})json",
+        {{-1.89, -2.1, -4.01},
+         {0.12, -2.07, -4.01},
+         {1.20, 1.94, -4.01},
+         {-0.81, 1.9, -4.01},
+         {-1.96, -2.94, 4.01}});
+
+    tan_alpha = std::tan(30 * deg);
+    this->build_and_test(
+        G4Trap("trap2",
+               10,
+               10 * deg,
+               -15 * deg,
+               20,
+               10,
+               10,
+               tan_alpha,
+               30,
+               15,
+               15,
+               tan_alpha),
+        R"json({"_type":"shape","interior":{"_type":"gentrap","halfheight":1.0,"lower":[[-2.4730945579141697,-1.9543632192272244],[-0.4730945579141699,-1.9543632192272244],[2.132456988838409,2.0456367807727753],[0.13245698883840862,2.0456367807727753]],"upper":[[-3.2838448755265532,-3.0456367807727753],[-0.28384487552655324,-3.0456367807727753],[3.6244824446023145,2.9543632192272247],[0.6244824446023145,2.9543632192272247]]},"label":"trap2"})json",
         {{-2.33, -1.96, -1.01},
          {-2.32, -1.95, -0.99},
          {3.41, 2.96, 1.01},
          {3.40, 2.95, 0.99}});
+
+    this->build_and_test(
+        G4Trap(/* name = */ "TileTB_FingerIron",
+               /* z = */ 362 * half,
+               /* theta = */ 0 * deg,
+               /* phi = */ 0 * deg,
+               /* y1 = */ 360 * half,
+               /* x1 = */ 40 * half,
+               /* x2 = */ 22.5 * half,
+               /* alpha1 = */ -1.39233161727723 * deg,
+               /* y2 = */ 360 * half,
+               /* x3 = */ 40 * half,
+               /* x4 = */ 22.5 * half,
+               /* alpha2 = */ -1.39233161727723 * deg),
+        R"json({"_type":"shape","interior":{"_type":"gentrap","halfheight":18.1,"lower":[[-1.5624999999999987,-18.0],[2.4375000000000013,-18.0],[0.6874999999999987,18.0],[-1.5625000000000013,18.0]],"upper":[[-1.5624999999999987,-18.0],[2.4375000000000013,-18.0],[0.6874999999999987,18.0],[-1.5625000000000013,18.0]]},"label":"TileTB_FingerIron"})json");
+
+    this->build_and_test(
+        G4Trap(/* name = */ "cms_hllhc_notch_ext",
+               /* z = */ 126.5 * half,
+               /* theta = */ 32.7924191 * deg,
+               /* phi = */ 0 * deg,
+               /* y1 = */ 465 * half,
+               /* x1 = */ 200 * half,
+               /* x2 = */ 200 * half,
+               /* alpha1 = */ 0 * deg,
+               /* y2 = */ 350 * half,
+               /* x3 = */ 281.5 * half,
+               /* x4 = */ 281.5 * half,
+               /* alpha2 = */ 0 * deg),
+        R"json({"_type":"shape","interior":{"_type":"gentrap","halfheight":6.325,"lower":[[-14.07500000226096,-23.25],[5.92499999773904,-23.25],[5.92499999773904,23.25],[-14.07500000226096,23.25]],"upper":[[-9.999999997739042,-17.5],[18.15000000226096,-17.5],[18.15000000226096,17.5],[-9.999999997739042,17.5]]},"label":"cms_hllhc_notch_ext"})json");
 }
 
 TEST_F(SolidConverterTest, trd)
@@ -609,8 +637,8 @@ TEST_F(SolidConverterTest, tubs)
                2288 * mm,
                4250 * mm,
                (5640.0 / 2) * mm,
-               0 * degree,
-               11.25 * degree),
+               0 * deg,
+               11.25 * deg),
         R"json({"_type":"solid","enclosed_angle":{"interior":0.03125,"start":0.0},"excluded":{"_type":"cylinder","halfheight":282.0,"radius":228.8},"interior":{"_type":"cylinder","halfheight":282.0,"radius":425.0},"label":"Barrel"})json",
         {{300, 25, 0.1}, {300, -25, 0.1}, {450, 0.1, 0.1}});
 }

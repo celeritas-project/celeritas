@@ -26,6 +26,11 @@ std::ostream& operator<<(std::ostream& os, SignedSense s)
     return (os << to_cstring(s));
 }
 
+Turn atan_to_turn(real_type v)
+{
+    return native_value_to<Turn>(std::atan(v));
+}
+
 namespace orangeinp
 {
 namespace test
@@ -635,7 +640,7 @@ TEST_F(GenTrapTest, trapezoid_ccw)
 TEST_F(GenTrapTest, trap_theta)
 {
     auto result = this->test(GenTrap::from_trap(
-        40, Turn{0.125}, Turn{0}, {20, 10, 10, 0}, {20, 10, 10, 0}));
+        40, Turn{0.125}, Turn{0}, {20, 10, 10, Turn{}}, {20, 10, 10, Turn{}}));
 
     static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
     static char const* const expected_surfaces[]
@@ -655,8 +660,11 @@ TEST_F(GenTrapTest, trap_theta)
 
 TEST_F(GenTrapTest, trap_thetaphi)
 {
-    auto result = this->test(GenTrap::from_trap(
-        40, Turn{0.125}, Turn{0.25}, {20, 10, 10, 0}, {20, 10, 10, 0}));
+    auto result = this->test(GenTrap::from_trap(40,
+                                                Turn{0.125},
+                                                Turn{0.25},
+                                                {20, 10, 10, Turn{0}},
+                                                {20, 10, 10, Turn{0}}));
 
     static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
     static char const* const expected_surfaces[]
@@ -677,13 +685,12 @@ TEST_F(GenTrapTest, trap_thetaphi)
 TEST_F(GenTrapTest, trap_g4)
 {
     constexpr Turn degree{real_type{1} / 360};
-    real_type tan_alpha = std::tan(15 * native_value_from(degree));
 
     auto result = this->test(GenTrap::from_trap(4,
                                                 5 * degree,
                                                 10 * degree,
-                                                {2, 1, 1, tan_alpha},
-                                                {3, 1.5, 1.5, tan_alpha}));
+                                                {2, 1, 1, 15 * degree},
+                                                {3, 1.5, 1.5, 15 * degree}));
     static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
     static char const* const expected_surfaces[]
         = {"Plane: z=-4",
@@ -696,16 +703,20 @@ TEST_F(GenTrapTest, trap_g4)
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-1.95920952072934, -2.93923101204883, -4}),
+    EXPECT_VEC_SOFT_EQ((Real3{-1.9592095207293, -2.9392310120488, -4}),
                        result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{2.64848563385739, 3.06076898795117, 4}),
+    EXPECT_VEC_SOFT_EQ((Real3{2.6484856338574, 3.0607689879512, 4}),
                        result.exterior.upper());
 }
 
 TEST_F(GenTrapTest, trap_full)
 {
-    auto result = this->test(GenTrap::from_trap(
-        40, Turn{0.125}, Turn{0.125}, {20, 10, 10, 0.1}, {20, 10, 10, 0.1}));
+    auto result
+        = this->test(GenTrap::from_trap(40,
+                                        Turn{0.125},
+                                        Turn{0.125},
+                                        {20, 10, 10, atan_to_turn(0.1)},
+                                        {20, 10, 10, atan_to_turn(0.1)}));
 
     static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
     static char const* const expected_surfaces[]
@@ -765,8 +776,12 @@ TEST_F(GenTrapTest, full)
 
 TEST_F(GenTrapTest, full2)
 {
-    auto result = this->test(GenTrap::from_trap(
-        40, Turn{0.125}, Turn{0}, {20, 10, 10, 0.1}, {20, 10, 15, -0.2}));
+    auto result
+        = this->test(GenTrap::from_trap(40,
+                                        Turn{0.125},
+                                        Turn{0},
+                                        {20, 10, 10, atan_to_turn(0.1)},
+                                        {20, 10, 15, -atan_to_turn(0.2)}));
 
     static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
     static char const* const expected_surfaces[]

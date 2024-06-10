@@ -383,12 +383,14 @@ GenTrap GenTrap::from_trap(
                        << "nonpositive upper x half-edge: " << face.hx_hi);
         CELER_VALIDATE(face.hy > 0,
                        << "nonpositive y half-distance: " << face.hy);
-        CELER_VALIDATE(!std::isinf(face.tan_alpha),
-                       << "infinite trapezoidal shear: " << face.tan_alpha);
+        CELER_VALIDATE(face.alpha > Turn{-0.25} && face.alpha < Turn{0.5},
+                       << "invalid trapezoidal shear: " << face.alpha.value()
+                       << " [turns]: must be in the range (-0.25, -0.25)");
 
         real_type const xoff = (i == 0 ? -dxdz_hz : dxdz_hz);
         real_type const yoff = (i == 0 ? -dydz_hz : dydz_hz);
-        real_type const shear = face.tan_alpha * face.hy;
+        real_type const shear = std::tan(native_value_from(face.alpha))
+                                * face.hy;
 
         // Construct points counterclockwise from lower left
         points[i] = {{xoff - shear - face.hx_lo, yoff - face.hy},
