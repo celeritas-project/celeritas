@@ -383,7 +383,7 @@ GenTrap GenTrap::from_trap(
                        << "nonpositive upper x half-edge: " << face.hx_hi);
         CELER_VALIDATE(face.hy > 0,
                        << "nonpositive y half-distance: " << face.hy);
-        CELER_VALIDATE(face.alpha > Turn{-0.25} && face.alpha < Turn{0.5},
+        CELER_VALIDATE(face.alpha > Turn{-0.25} && face.alpha < Turn{0.25},
                        << "invalid trapezoidal shear: " << face.alpha.value()
                        << " [turns]: must be in the range (-0.25, -0.25)");
 

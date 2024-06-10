@@ -456,6 +456,22 @@ TEST_F(GenTrapTest, construct)
     EXPECT_THROW(GenTrap::from_trd(3, {1, -1}, {2, 2}), RuntimeError);  // hy1<0
     EXPECT_THROW(GenTrap::from_trd(3, {1, 1}, {-2, 2}), RuntimeError);  // hx2<0
     EXPECT_THROW(GenTrap::from_trd(3, {1, 1}, {2, -2}), RuntimeError);  // hy2<0
+
+    // Trap angles are invalid (note that we do *not* have the restriction of
+    // Geant4 that the turns be the same: this just ends up creating a gentrap
+    // (with twisted sides) instead of a trap
+    EXPECT_THROW(
+        GenTrap::from_trap(
+            2, Turn{0}, Turn{0}, {2, 4, 4, Turn{-.26}}, {2, 4, 4, Turn{0.}}),
+        RuntimeError);
+    EXPECT_THROW(
+        GenTrap::from_trap(
+            2, Turn{0}, Turn{0}, {2, 4, 4, Turn{.27}}, {2, 4, 4, Turn{0.}}),
+        RuntimeError);
+    EXPECT_THROW(
+        GenTrap::from_trap(
+            2, Turn{0}, Turn{0}, {2, 4, 4, Turn{0}}, {2, 4, 4, Turn{0.25}}),
+        RuntimeError);
 }
 
 TEST_F(GenTrapTest, box_like)
@@ -734,6 +750,29 @@ TEST_F(GenTrapTest, trap_full)
                        result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{40.2842712474619, 48.2842712474619, 40}),
                        result.exterior.upper());
+}
+
+TEST_F(GenTrapTest, trap_very_twisted)
+{
+    auto result = this->test(GenTrap::from_trap(
+        2, Turn{0}, Turn{0}, {1, 2, 2, -Turn{0.2}}, {1, 2, 2, Turn{0.2}}));
+
+    static char const expected_node[] = "all(+0, -1, +2, +3, -4, -5)";
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-2",
+        "Plane: z=2",
+        "Plane: y=-1",
+        "GQuadric: {0,0,0} {0,3.0777,0} {-2,0,0} 4",
+        "Plane: y=1",
+        "GQuadric: {0,0,0} {0,3.0777,0} {-2,0,0} -4",
+    };
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-5.0776835371753, -1, -2}),
+                       result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{5.0776835371753, 1, 2}), result.exterior.upper());
 }
 
 // TODO: this should be valid
