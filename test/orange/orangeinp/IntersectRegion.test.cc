@@ -90,6 +90,19 @@ class IntersectRegionTest : public ::celeritas::test::Test
 
     Unit const& unit() const { return unit_; }
 
+    void test_sense_bumped(NodeId nid, Real3 const& p, real_type bump) const
+    {
+        CELER_EXPECT(bump > 0);
+        auto outward = make_unit_vector(p);
+
+        EXPECT_EQ(SignedSense::inside,
+                  this->calc_sense(nid, p - bump * outward))
+            << "inward from " << repr(p);
+        EXPECT_EQ(SignedSense::outside,
+                  this->calc_sense(nid, p + bump * outward))
+            << "outward from " << repr(p);
+    }
+
   private:
     Unit unit_;
     UnitBuilder unit_builder_{
@@ -1013,6 +1026,81 @@ TEST_F(GenTrapTest, adjacent_twisted)
         "",
     };
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
+}
+
+/*!
+ * Simplified points from a failing EMEC blade (LArEMECInnerWheelAbsorber02).
+ */
+TEST_F(GenTrapTest, emec_simplified)
+{
+    GenTrap trap(10.0,
+                 {{0.5, 7}, {-0.25, 7}, {-0.15, 3.0}, {0.15, 3.0}},
+                 {{-2.5, 7}, {-3.0, 7}, {-1.5, 3}, {-1.0, 3}});
+    auto result = this->test(trap);
+
+    static char const expected_node[] = "all(+0, -1, -2, -3, +4, -5)";
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-10",
+        "Plane: z=10",
+        "Plane: n={0,0.99969,0.024992}, d=6.7479",
+        "GQuadric: {0,0,0} {0.05,-0.07,0} {-3.5,-0.8,0.0525} 0.225",
+        "Plane: n={0,0.99969,-0.024992}, d=3.249",
+        "GQuadric: {0,0,0} {-0.05,0.0775,0} {3.5,0.725,-0.09} -1.35",
+    };
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-3, 3, -10}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{0.2, 7, 10}), result.exterior.upper());
+
+    for (auto bound : {Bound::lo, Bound::hi})
+    {
+        auto const& points = (bound == Bound::lo ? trap.lower() : trap.upper());
+        real_type const z = (bound == Bound::lo ? -1 : 1) * trap.halfheight();
+        for (GenTrap::Real2 const& p : points)
+        {
+            this->test_sense_bumped(result.node_id, Real3{p[0], p[1], z}, 0.01);
+        }
+    }
+}
+
+/*!
+ * Simplified points from a failing EMEC blade (LArEMECInnerWheelAbsorber02).
+ */
+TEST_F(GenTrapTest, quarter_twist)
+{
+    GenTrap trap(1.0,
+                 {{1, -1}, {1, 1}, {-1, 1}, {-1, -1}},
+                 {{1, 1}, {-1, 1}, {-1, -1}, {1, -1}});
+    auto result = this->test(trap);
+    result.print_expected();
+
+    static char const expected_node[] = "all(+0, -1, -2, +3, -4, -5)";
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-1",
+        "Plane: z=1",
+        "GQuadric: {0,0,0} {-1,1,0} {1,1,0} -2",
+        "GQuadric: {0,0,0} {1,1,0} {1,-1,0} 2",
+        "GQuadric: {0,0,0} {1,-1,0} {-1,-1,0} -2",
+        "GQuadric: {0,0,0} {1,1,0} {1,-1,0} -2",
+    };
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -1}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1, 1, 1}), result.exterior.upper());
+
+    for (auto bound : {Bound::lo, Bound::hi})
+    {
+        auto const& points = (bound == Bound::lo ? trap.lower() : trap.upper());
+        real_type const z = (bound == Bound::lo ? -1 : 1) * trap.halfheight();
+        for (GenTrap::Real2 const& p : points)
+        {
+            this->test_sense_bumped(result.node_id, Real3{p[0], p[1], z}, 0.1);
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//

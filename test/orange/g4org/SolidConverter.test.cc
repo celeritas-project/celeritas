@@ -289,15 +289,15 @@ TEST_F(SolidConverterTest, generictrap)
                        {31, 40},
                        {31, -40}}),
         R"json({"_type":"shape","interior":{"_type":"gentrap",
-            "halfheight":4.0,
-            "lower":[[1.1,-2.0],[1.1,2.0],[-0.9,2.0],[-0.9,-2.0]],
-            "upper":[[3.1,-4.0],[3.1,4.0],[-2.9,4.0],[-2.9,-4.0]]},
-            "label":"trap_GenTrap"})json",
+                "halfheight":4.0,
+                "lower":[[1.1,-2.0],[1.1,2.0],[-0.9,2.0],[-0.9,-2.0]],
+                "upper":[[3.1,-4.0],[3.1,4.0],[-2.9,4.0],[-2.9,-4.0]]},
+                "label":"trap_GenTrap"})json",
         {{-1, -2, -4 - 1.e-6}, {-1, -2, -3}, {0.5, 1, 3}, {1, 1, 3}});
 
     GTEST_SKIP() << "LArEMECInnerWheelAbsorber02 point sampling fails!";
 
-    // most general gentrap with twisted side faces
+    // Most general gentrap with twisted side faces
     this->build_and_test(
         G4GenericTrap("LArEMECInnerWheelAbsorber02",
                       10.625,
@@ -314,6 +314,21 @@ TEST_F(SolidConverterTest, generictrap)
             {51.2, 0.40, 7.76},
             {51.4, 0.51, 7.78},
         });
+
+    // Most general gentrap with twisted side faces
+    this->build_and_test(
+        G4GenericTrap("emec-simple",
+                      100,
+                      {{1.5, 30},
+                       {-1.5, 30},
+                       {-2.5, 70},
+                       {2, 70},
+                       {-10, 35},
+                       {-15, 35},
+                       {-30, 65},
+                       {-25, 65}}),
+        R"json({"_type":"shape","interior":{"_type":"gentrap","halfheight":10.0,"lower":[[0.2,7.0],[-0.25,7.0],[-0.15,3.0],[0.15,3.0]],"upper":[[-2.5,6.5],[-3.0,6.5],[-1.5,3.5],[-1.0,3.5]]},"label":"emec-simple"})json",
+        {{-.95, 4.5, 3.8}});
 }
 
 TEST_F(SolidConverterTest, intersectionsolid)
@@ -404,21 +419,19 @@ TEST_F(SolidConverterTest, polycone)
 
 TEST_F(SolidConverterTest, polyhedra)
 {
-    {
-        static double const z[] = {-0.6, 0.6};
-        static double const rmin[] = {0, 0};
-        static double const rmax[] = {61.85, 61.85};
-        // flat-top hexagon
-        this->build_and_test(
-            G4Polyhedra(
-                "HGCalEEAbs", 330 * deg, 360 * deg, 6, std::size(z), z, rmin, rmax),
-            R"json({"_type":"shape","interior":{"_type":"prism","apothem":6.1850000000000005,"halfheight":0.06,"num_sides":6,"orientation":0.5},"label":"HGCalEEAbs"})json",
-            {{6.18, 6.18, 0.05},
-             {0, 0, 0.06},
-             {7.15, 7.15, 0.05},
-             {3.0, 6.01, 0},
-             {6.18, 7.15, 0}});
-    }
+    static double const z[] = {-0.6, 0.6};
+    static double const rmin[] = {0, 0};
+    static double const rmax[] = {61.85, 61.85};
+    // flat-top hexagon
+    this->build_and_test(
+        G4Polyhedra(
+            "HGCalEEAbs", 330 * deg, 360 * deg, 6, std::size(z), z, rmin, rmax),
+        R"json({"_type":"shape","interior":{"_type":"prism","apothem":6.1850000000000005,"halfheight":0.06,"num_sides":6,"orientation":0.5},"label":"HGCalEEAbs"})json",
+        {{6.18, 6.18, 0.05},
+         {0, 0, 0.06},
+         {7.15, 7.15, 0.05},
+         {3.0, 6.01, 0},
+         {6.18, 7.15, 0}});
 }
 
 TEST_F(SolidConverterTest, sphere)
