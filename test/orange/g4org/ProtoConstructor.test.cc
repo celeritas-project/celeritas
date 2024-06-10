@@ -309,12 +309,6 @@ TEST_F(ProtoConstructorTest, testem3)
         auto u = this->build_unit(protos, UniverseId{1});
 
         static char const* const expected_surface_strings[] = {
-            "Plane: x=-0.4",
-            "Plane: x=0.4",
-            "Plane: y=-20",
-            "Plane: y=20",
-            "Plane: z=-20",
-            "Plane: z=20",
             "Plane: x=-0.17",
         };
         static char const* const expected_volume_strings[]
@@ -411,12 +405,6 @@ TEST_F(ProtoConstructorTest, znenv)
         auto u = this->build_unit(protos, UniverseId{1});
 
         static char const* const expected_surface_strings[] = {
-            "Plane: x=-1.76",
-            "Plane: x=1.76",
-            "Plane: y=-3.52",
-            "Plane: y=3.52",
-            "Plane: z=-50",
-            "Plane: z=50",
             "Plane: y=0",
         };
         static char const* const expected_volume_strings[]
@@ -431,12 +419,6 @@ TEST_F(ProtoConstructorTest, znenv)
         auto u = this->build_unit(protos, UniverseId{4});
 
         static char const* const expected_surface_strings[] = {
-            "Plane: x=-0.16",
-            "Plane: x=0.16",
-            "Plane: y=-0.16",
-            "Plane: y=0.16",
-            "Plane: z=-50",
-            "Plane: z=50",
             "Plane: x=-0.11",
             "Plane: x=-0.05",
             "Plane: y=0.05",
@@ -462,13 +444,7 @@ TEST_F(ProtoConstructorTest, znenv)
         SCOPED_TRACE("ZNG1");
         auto u = this->build_unit(protos, UniverseId{5});
         static char const* const expected_surface_strings[]
-            = {"Plane: x=-0.03",
-               "Plane: x=0.03",
-               "Plane: y=-0.03",
-               "Plane: y=0.03",
-               "Plane: z=-50",
-               "Plane: z=50",
-               "Cyl z: r=0.01825"};
+            = {"Cyl z: r=0.01825"};
         static char const* const expected_volume_strings[] = {"F", "-6", "+6"};
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
