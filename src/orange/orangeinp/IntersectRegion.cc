@@ -10,6 +10,7 @@
 #include <cmath>
 
 #include "corecel/Constants.hh"
+#include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Repr.hh"
@@ -438,6 +439,22 @@ GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
         std::reverse(lo_.begin(), lo_.end());
         std::reverse(hi_.begin(), hi_.end());
     }
+
+    // Check that sides aren't rotated more than 90 degrees
+    for (auto i : range(lo_.size()))
+    {
+        auto j = (i + 1) % lo_.size();
+        real_type twist_angle_cosine
+            = dot_product(make_unit_vector(lo_[j] - lo_[i]),
+                          make_unit_vector(hi_[j] - hi_[i]));
+        CELER_VALIDATE(
+            twist_angle_cosine > 0,
+            << "twist angle between lo (" << lo_[i] << "->" << lo_[j]
+            << ") and hi (" << hi_[i] << "->" << hi_[j]
+            << ") is not less than a quarter turn (actual angle: "
+            << native_value_to<Turn>(std::acos(twist_angle_cosine)).value()
+            << " turns)");
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -450,7 +467,8 @@ void GenTrap::build(IntersectSurfaceBuilder& insert_surface) const
     insert_surface(Sense::outside, PlaneZ{-hz_});
     insert_surface(Sense::inside, PlaneZ{hz_});
 
-    // TODO: use plane normal equality from SoftSurfaceEqual
+    // TODO: use plane normal equality from SoftSurfaceEqual, or maybe soft
+    // equivalence on twist angle cosine?
     SoftEqual soft_equal{insert_surface.tol().rel};
 
     // Build the side planes

@@ -531,6 +531,12 @@ TEST_F(GenTrapTest, construct)
         GenTrap::from_trap(
             2, Turn{0}, Turn{0}, {2, 4, 4, Turn{0}}, {2, 4, 4, Turn{0.25}}),
         RuntimeError);
+
+    // Twist angle cannot be greater than 90 degrees
+    EXPECT_THROW(GenTrap(1.0,
+                         {{1, -1}, {1, 1}, {-1, 1}, {-1, -1}},
+                         {{1, 1}, {-1, 1}, {-1, -1}, {1, -1}}),
+                 RuntimeError);
 }
 
 TEST_F(GenTrapTest, box_like)
