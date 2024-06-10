@@ -301,6 +301,10 @@ TEST_F(SurfaceSimplifierTest, general_quadric)
             GeneralQuadric{{0, 0, 0}, {0, -0.5, 0}, {-2, -0.5, 0}, 0},
             GeneralQuadric{{0, 0, 0}, {0, 0.5, 0}, {2, 0.5, 0}, 0},
             Sense::outside);
+        this->check_simplifies_to(
+            GeneralQuadric{{0, 0, 0}, {-1, 1, 0}, {1, 1, 0}, 0},
+            GeneralQuadric{{0, 0, 0}, {1, -1, 0}, {-1, -1, 0}, 0},
+            Sense::outside);
     }
 }
 

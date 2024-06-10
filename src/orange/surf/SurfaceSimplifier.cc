@@ -62,17 +62,42 @@ struct SignCount
 {
     int pos{0};
     int neg{0};
+    int first{0};  // first nonzero sign
+
+    //! Whether any nonzero values exist
+    explicit operator bool() const { return pos || neg; }
+
+    //! Whether there are more negatives than positives
+    //! *or* the first nonzero sign is negative
+    bool should_flip() const { return neg > pos || first < 0; }
 };
 
 SignCount count_signs(Span<real_type const, 3> arr, real_type tol)
 {
+    CELER_EXPECT(tol > 0);
     SignCount result;
     for (auto v : arr)
     {
-        if (v < -tol)
+        if (std::fabs(v) < tol)
+        {
+            // Effectively zero
+            continue;
+        }
+
+        if (v < 0)
+        {
             ++result.neg;
-        else if (v > tol)
+        }
+        else
+        {
+            CELER_ASSERT(v > 0);
             ++result.pos;
+        }
+
+        if (result.first == 0)
+        {
+            result.first = v < 0 ? -1 : 1;
+        }
     }
     return result;
 }
@@ -343,7 +368,7 @@ auto SurfaceSimplifier::operator()(GeneralQuadric const& gq)
 {
     // Cross term signs
     auto csigns = count_signs(gq.cross(), tol_);
-    if (csigns.pos == 0 && csigns.neg == 0)
+    if (!csigns)
     {
         // No cross terms
         return SimpleQuadric{
@@ -352,8 +377,7 @@ auto SurfaceSimplifier::operator()(GeneralQuadric const& gq)
 
     // Second-order term signs
     auto ssigns = count_signs(gq.second(), tol_);
-    if (ssigns.neg > ssigns.pos
-        || (ssigns.neg == 0 && ssigns.pos == 0 && csigns.neg > csigns.pos))
+    if (ssigns.should_flip() || (!ssigns && csigns.should_flip()))
     {
         // More positive signs than negative:
         // flip the sense and reverse the values
