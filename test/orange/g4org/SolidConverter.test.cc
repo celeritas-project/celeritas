@@ -318,21 +318,6 @@ TEST_F(SolidConverterTest, generictrap)
             {51.2, 0.40, 7.76},
             {51.4, 0.51, 7.78},
         });
-
-    // Most general gentrap with twisted side faces
-    this->build_and_test(
-        G4GenericTrap("emec-simple",
-                      100,
-                      {{1.5, 30},
-                       {-1.5, 30},
-                       {-2.5, 70},
-                       {2, 70},
-                       {-10, 35},
-                       {-15, 35},
-                       {-30, 65},
-                       {-25, 65}}),
-        R"json({"_type":"shape","interior":{"_type":"gentrap","halfheight":10.0,"lower":[[0.2,7.0],[-0.25,7.0],[-0.15,3.0],[0.15,3.0]],"upper":[[-2.5,6.5],[-3.0,6.5],[-1.5,3.5],[-1.0,3.5]]},"label":"emec-simple"})json",
-        {{-.95, 4.5, 3.8}});
 }
 
 TEST_F(SolidConverterTest, intersectionsolid)

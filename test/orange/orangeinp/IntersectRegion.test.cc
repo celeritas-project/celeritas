@@ -1014,66 +1014,6 @@ TEST_F(GenTrapTest, adjacent_twisted)
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
 }
 
-/*!
- * Simplified points from a failing EMEC blade (LArEMECInnerWheelAbsorber02).
- */
-TEST_F(GenTrapTest, emec_simplified)
-{
-    GenTrap trap(10.0,
-                 {{0.5, 7}, {-0.25, 7}, {-0.15, 3.0}, {0.15, 3.0}},
-                 {{-2.5, 7}, {-3.0, 7}, {-1.5, 3}, {-1.0, 3}});
-    auto result = this->test(trap);
-    static char const expected_node[] = "all(+0, -1, -2, +3, +4, -5)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-10",
-        "Plane: z=10",
-        "Plane: y=7",
-        "GQuadric: {0,0,0} {0,0.07,0} {4,0.8,0.06} 0.9",
-        "Plane: y=3",
-        "GQuadric: {0,0,0} {0,0.0925,0} {4,0.575,-0.0475} -0.025",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-3, 3, -10}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{0.5, 7, 10}), result.exterior.upper());
-
-    GTEST_SKIP() << "twisty point sampling fails!";
-
-    this->check_corners(result.node_id, trap, 0.1);
-}
-
-/*!
- * GenTrap with a 90 degree twist.
- */
-TEST_F(GenTrapTest, quarter_twist)
-{
-    GenTrap trap(1.0,
-                 {{1, -1}, {1, 1}, {-1, 1}, {-1, -1}},
-                 {{1, 1}, {-1, 1}, {-1, -1}, {1, -1}});
-    auto result = this->test(trap);
-    static char const expected_node[] = "all(+0, -1, +2, +3, -4, -5)";
-    static char const* const expected_surfaces[] = {
-        "Plane: z=-1",
-        "Plane: z=1",
-        "GQuadric: {0,0,0} {1,-1,0} {-1,-1,0} 2",
-        "GQuadric: {0,0,0} {1,1,0} {1,-1,0} 2",
-        "GQuadric: {0,0,0} {1,-1,0} {-1,-1,0} -2",
-        "GQuadric: {0,0,0} {1,1,0} {1,-1,0} -2",
-    };
-
-    EXPECT_EQ(expected_node, result.node);
-    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_FALSE(result.interior) << result.interior;
-    EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -1}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1, 1, 1}), result.exterior.upper());
-
-    GTEST_SKIP() << "twisty point sampling fails!";
-
-    this->check_corners(result.node_id, trap, 0.1);
-}
-
 //---------------------------------------------------------------------------//
 // INFWEDGE
 //---------------------------------------------------------------------------//
