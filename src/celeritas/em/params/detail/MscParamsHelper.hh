@@ -18,7 +18,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ParticleParams;
-class MaterialParams;
 struct XsGridData;
 
 namespace detail
@@ -32,26 +31,27 @@ class MscParamsHelper
   public:
     //!@{
     //! \name Type aliases
+    using Real2 = Array<real_type, 2>;
     using VecImportMscModel = std::vector<ImportMscModel>;
     using XsValues = Collection<XsGridData, Ownership::value, MemSpace::host>;
     using Values = Collection<real_type, Ownership::value, MemSpace::host>;
     //!@}
 
     MscParamsHelper(ParticleParams const&,
-                    MaterialParams const&,
                     VecImportMscModel const&,
                     ImportModelClass);
 
     void build_ids(CoulombIds* ids) const;
     void build_xs(XsValues*, Values*) const;
+    Real2 energy_grid_bounds() const;
 
   private:
     //// DATA ////
 
     ParticleParams const& particles_;
-    MaterialParams const& materials_;
-    VecImportMscModel const& mdata_;
     ImportModelClass model_class_;
+    Array<ParticleId, 2> par_ids_;
+    Array<ImportPhysicsTable const*, 2> xs_tables_;
 };
 
 //---------------------------------------------------------------------------//

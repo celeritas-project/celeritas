@@ -9,6 +9,7 @@
 
 #include <memory>
 
+#include "celeritas/Quantities.hh"
 #include "celeritas/em/data/CoulombScatteringData.hh"
 #include "celeritas/phys/ImportedModelAdapter.hh"
 #include "celeritas/phys/Model.hh"
@@ -35,6 +36,7 @@ class CoulombScatteringModel final : public Model
     // Construct from model ID and other necessary data
     CoulombScatteringModel(ActionId id,
                            ParticleParams const& particles,
+                           MaterialParams const& materials,
                            SPConstImported data);
 
     // Particle types and energy ranges that this model applies to
@@ -70,6 +72,7 @@ class CoulombScatteringModel final : public Model
   private:
     CoulombScatteringData data_;
     ImportedModelAdapter imported_;
+    Array<real_type, 2> energy_limit_;  //!< [MeV]
 };
 
 //---------------------------------------------------------------------------//

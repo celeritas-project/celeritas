@@ -78,23 +78,11 @@ auto ImportedModelAdapter::micro_xs(Applicability applic) const
 {
     CELER_EXPECT(applic.material);
 
-    // Get the imported process that applies for the given particle
-    auto proc = particle_to_process_.find(applic.particle);
-    CELER_ASSERT(proc != particle_to_process_.end());
-    ImportProcess const& import_process = imported_->get(proc->second);
-
     // Get the micro xs grids for the given model, particle, and material
-    auto mod_iter = std::find_if(import_process.models.begin(),
-                                 import_process.models.end(),
-                                 [this](ImportModel const& m) {
-                                     return m.model_class == this->model_class_;
-                                 });
-    CELER_VALIDATE(mod_iter != import_process.models.end(),
-                   << "missing microscopic cross sections for "
-                   << to_cstring(model_class_));
-    CELER_ASSERT(applic.material < mod_iter->materials.size());
+    ImportModel const& model = this->get_model(applic.particle);
+    CELER_ASSERT(applic.material < model.materials.size());
     ImportModelMaterial const& imm
-        = mod_iter->materials[applic.material.unchecked_get()];
+        = model.materials[applic.material.unchecked_get()];
 
     MicroXsBuilders builders(imm.micro_xs.size());
     for (size_type elcomp_idx : range(builders.size()))
@@ -103,6 +91,44 @@ auto ImportedModelAdapter::micro_xs(Applicability applic) const
             make_span(imm.energy), make_span(imm.micro_xs[elcomp_idx]));
     }
     return builders;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the xs energy grid bounds for the given material and particle.
+ */
+auto ImportedModelAdapter::energy_grid_bounds(ParticleId pid,
+                                              MaterialId mid) const -> Real2
+{
+    CELER_EXPECT(pid && mid);
+
+    auto const& xs = this->get_model(pid).materials;
+    CELER_ASSERT(mid < xs.size());
+    Real2 result{xs[mid.get()].energy.front(), xs[mid.get()].energy.back()};
+
+    CELER_ENSURE(result[0] < result[1]);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the imported model for the given particle.
+ */
+ImportModel const& ImportedModelAdapter::get_model(ParticleId particle) const
+{
+    // Get the imported process that applies for the given particle
+    auto proc = particle_to_process_.find(particle);
+    CELER_ASSERT(proc != particle_to_process_.end());
+    ImportProcess const& import_process = imported_->get(proc->second);
+
+    auto mod_iter = std::find_if(import_process.models.begin(),
+                                 import_process.models.end(),
+                                 [this](ImportModel const& m) {
+                                     return m.model_class == model_class_;
+                                 });
+    CELER_VALIDATE(mod_iter != import_process.models.end(),
+                   << "missing imported model " << to_cstring(model_class_));
+    return *mod_iter;
 }
 
 //---------------------------------------------------------------------------//

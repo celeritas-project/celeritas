@@ -40,6 +40,7 @@ class ImportedModelAdapter
     using MicroXsBuilders = Model::MicroXsBuilders;
     using SpanConstPDG = Span<PDGNumber const>;
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
+    using Real2 = Array<real_type, 2>;
     //!@}
 
   public:
@@ -60,12 +61,23 @@ class ImportedModelAdapter
     // Construct micro cross sections from the given particle/material type
     MicroXsBuilders micro_xs(Applicability range) const;
 
+    // Get the xs energy grid bounds for the given material and particle
+    Real2 energy_grid_bounds(ParticleId, MaterialId) const;
+
   private:
+    //// TYPES ////
+
     using ImportProcessId = ImportedProcesses::ImportProcessId;
+
+    //// DATA ////
 
     SPConstImported imported_;
     ImportModelClass model_class_;
     std::unordered_map<ParticleId, ImportProcessId> particle_to_process_;
+
+    //// HELPER FUNCTIONS ////
+
+    ImportModel const& get_model(ParticleId) const;
 };
 
 //---------------------------------------------------------------------------//

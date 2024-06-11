@@ -16,7 +16,6 @@
 #include "celeritas/grid/ValueGridInserter.hh"
 #include "celeritas/grid/XsGridData.hh"
 #include "celeritas/io/ImportModel.hh"
-#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -29,46 +28,16 @@ namespace detail
  * Construct from cross section data and particle and material properties.
  */
 MscParamsHelper::MscParamsHelper(ParticleParams const& particles,
-                                 MaterialParams const& materials,
                                  VecImportMscModel const& mdata,
                                  ImportModelClass model_class)
     : particles_(particles)
-    , materials_(materials)
-    , mdata_(mdata)
     , model_class_(model_class)
-{
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Validate and save MSC IDs.
- */
-void MscParamsHelper::build_ids(CoulombIds* ids) const
-{
-    ids->electron = particles_.find(pdg::electron());
-    ids->positron = particles_.find(pdg::positron());
-    CELER_VALIDATE(ids->electron && ids->positron,
-                   << "missing e-/e+ (required for MSC)");
-
-    // TODO: change IDs to a vector for all particles. This should apply
-    // to muons and protons as well
-    if (particles_.find(pdg::mu_minus()) || particles_.find(pdg::mu_plus())
-        || particles_.find(pdg::proton()))
-    {
-        CELER_LOG(warning) << "Multiple scattering is not implemented for for "
-                              "particles other than electron and positron";
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Build the macroscopic cross section scaled by energy squared.
- */
-void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
+    , par_ids_(
+          {particles_.find(pdg::electron()), particles_.find(pdg::positron())})
 {
     // Filter MSC data by model and particle type
     std::vector<ImportMscModel const*> msc_data(particles_.size(), nullptr);
-    for (ImportMscModel const& imm : mdata_)
+    for (ImportMscModel const& imm : mdata)
     {
         // Filter out other MSC models
         if (imm.model_class != model_class_)
@@ -109,44 +78,55 @@ void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
     };
 
     // Particle-dependent data
-    Array<ParticleId, 2> const par_ids{
-        {particles_.find(pdg::electron()), particles_.find(pdg::positron())}};
-    Array<ImportPhysicsTable const*, 2> const xs_tables{{
-        get_scaled_xs(par_ids[0]),
-        get_scaled_xs(par_ids[1]),
-    }};
+    xs_tables_ = {get_scaled_xs(par_ids_[0]), get_scaled_xs(par_ids_[1])};
+}
 
-    // Get initial high/low energy limits to validate energy grids
-    auto const& phys_vec = get_scaled_xs(par_ids[0])->physics_vectors;
-    CELER_ASSERT(!phys_vec.empty() && phys_vec[0]);
-    real_type energy_min = phys_vec[0].x.front();
-    real_type energy_max = phys_vec[0].x.back();
+//---------------------------------------------------------------------------//
+/*!
+ * Validate and save MSC IDs.
+ */
+void MscParamsHelper::build_ids(CoulombIds* ids) const
+{
+    ids->electron = particles_.find(pdg::electron());
+    ids->positron = particles_.find(pdg::positron());
+    CELER_VALIDATE(ids->electron && ids->positron,
+                   << "missing e-/e+ (required for MSC)");
 
+    // TODO: change IDs to a vector for all particles. This should apply
+    // to muons and protons as well
+    if (particles_.find(pdg::mu_minus()) || particles_.find(pdg::mu_plus())
+        || particles_.find(pdg::proton()))
+    {
+        CELER_LOG(warning) << "Multiple scattering is not implemented for for "
+                              "particles other than electron and positron";
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build the macroscopic cross section scaled by energy squared.
+ */
+void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
+{
     // Scaled cross section builder
     CollectionBuilder xs(scaled_xs);
-    xs.reserve(2 * materials_.num_materials());
+    size_type num_materials
+        = xs_tables_[par_ids_[0].get()]->physics_vectors.size();
+    xs.reserve(par_ids_.size() * num_materials);
 
     // TODO: simplify when refactoring ValueGridInserter, etc
     ValueGridInserter::XsGridCollection xgc;
     ValueGridInserter vgi{reals, &xgc};
 
-    for (size_type mat_idx : range(materials_.num_materials()))
+    for (size_type mat_idx : range(num_materials))
     {
-        for (size_type par_idx : range(par_ids.size()))
+        for (size_type par_idx : range(par_ids_.size()))
         {
             // Get the cross section data for this particle and material
+            CELER_ASSERT(mat_idx < xs_tables_[par_idx]->physics_vectors.size());
             ImportPhysicsVector const& pvec
-                = xs_tables[par_idx]->physics_vectors[mat_idx];
+                = xs_tables_[par_idx]->physics_vectors[mat_idx];
             CELER_ASSERT(pvec.vector_type == ImportPhysicsVectorType::log);
-
-            // Check that the limits are the same for all materials and
-            // particles; otherwise we need to change \c *Msc::is_applicable to
-            // look up the particle and material
-            CELER_VALIDATE(energy_min == real_type(pvec.x.front())
-                               && energy_max == real_type(pvec.x.back()),
-                           << "multiple scattering cross section energy "
-                              "limits are inconsistent across particles "
-                              "and/or materials");
 
             // To reuse existing code (TODO: simplify when refactoring)
             // use the value grid builder to construct the grid entry in a
@@ -158,6 +138,41 @@ void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
             xs.push_back(xgc[grid_id]);
         }
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the cross section table energy grid bounds.
+ *
+ * This expects the grid bounds to be the same for all particles and materials.
+ */
+auto MscParamsHelper::energy_grid_bounds() const -> Real2
+{
+    Real2 result;
+    {
+        // Get initial high/low energy limits
+        CELER_ASSERT(!xs_tables_[par_ids_[0].get()]->physics_vectors.empty());
+        auto const& pvec = xs_tables_[par_ids_[0].get()]->physics_vectors[0];
+        CELER_ASSERT(pvec);
+        result = {pvec.x.front(), pvec.x.back()};
+    }
+    for (size_type par_idx : range(par_ids_.size()))
+    {
+        auto const& phys_vectors = xs_tables_[par_idx]->physics_vectors;
+        for (auto const& pvec : phys_vectors)
+        {
+            // Check that the limits are the same for all materials and
+            // particles; otherwise we need to change \c *Msc::is_applicable to
+            // look up the particle and material
+            CELER_VALIDATE(result[0] == real_type(pvec.x.front())
+                               && result[1] == real_type(pvec.x.back()),
+                           << "multiple scattering cross section energy "
+                              "limits are inconsistent across particles "
+                              "and/or materials");
+        }
+    }
+    CELER_ENSURE(result[0] < result[1]);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
