@@ -481,6 +481,18 @@ class GenTrapTest : public IntersectRegionTest
         }
     }
 
+    //! Calculate the twist angles in fractions of a turn
+    VecReal get_twist_angles(GenTrap const& trap) const
+    {
+        VecReal result;
+        for (auto i : range(trap.num_sides()))
+        {
+            real_type twist_angle = std::acos(trap.calc_twist_cosine(i));
+            result.push_back(native_value_to<Turn>(twist_angle).value());
+        }
+        return result;
+    }
+
     VecReal to_vec(std::vector<Real2> const& inp) const
     {
         VecReal result;
@@ -544,6 +556,10 @@ TEST_F(GenTrapTest, box_like)
     GenTrap trap(3,
                  {{-1, -2}, {1, -2}, {1, 2}, {-1, 2}},
                  {{-1, -2}, {1, -2}, {1, 2}, {-1, 2}});
+
+    static real_type const expected_twist_angles[] = {0, 0, 0, 0};
+    EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(trap));
+
     auto result = this->test(trap);
 
     static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
@@ -672,6 +688,11 @@ TEST_F(GenTrapTest, full)
     GenTrap trap(4,
                  {{-2, -2}, {-2, 2}, {2, 2}, {2, -2}},
                  {{-2, -2}, {-1, 1}, {1, 1}, {2, -2}});
+
+    static real_type const expected_twist_angles[]
+        = {0.051208191174783, 0, 0.051208191174783, 0};
+    EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(trap));
+
     auto result = this->test(trap);
     static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
     static char const* const expected_surfaces[] = {
@@ -718,7 +739,7 @@ TEST_F(GenTrapTest, triang_prism)
 }
 
 // TODO: this should be valid
-TEST_F(GenTrapTest, DISABLED_pentahedron)
+TEST_F(GenTrapTest, DISABLED_triprism)
 {
     auto trap
         = GenTrap(3, {{-2, -2}, {3, 0}, {-2, 2}}, {{-2, -1}, {-1, 1}, {2, 0}});
@@ -834,6 +855,10 @@ TEST_F(GenTrapTest, trap_full)
                                    Turn{0.125},
                                    {20, 10, 10, atan_to_turn(0.1)},
                                    {20, 10, 10, atan_to_turn(0.1)});
+
+    static real_type const expected_twist_angles[] = {0, 0, 0, 0};
+    EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(trap));
+
     static real_type const expected_lower[] = {
         -20.284271247462,
         -48.284271247462,
@@ -861,13 +886,18 @@ TEST_F(GenTrapTest, trap_full)
     this->check_corners(result.node_id, trap, 1.0);
 }
 
-TEST_F(GenTrapTest, full2)
+TEST_F(GenTrapTest, trap_full2)
 {
     auto trap = GenTrap::from_trap(40,
                                    Turn{0.125},
                                    Turn{0},
                                    {20, 10, 10, atan_to_turn(0.1)},
                                    {20, 10, 15, -atan_to_turn(0.2)});
+
+    static real_type const expected_twist_angles[]
+        = {0.027777073517552, 0, 0.065874318731703, 0};
+    EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(trap));
+
     auto result = this->test(trap);
     static char const expected_node[] = "all(+0, -1, -2, -3, +4, +5)";
     static char const* const expected_surfaces[] = {
@@ -890,6 +920,9 @@ TEST_F(GenTrapTest, trap_pretty_twisted)
 {
     auto trap = GenTrap::from_trap(
         1, Turn{0}, Turn{0}, {1, 2, 2, -Turn{0.125}}, {1, 2, 2, Turn{0.125}});
+
+    static real_type const expected_twist_angles[] = {0.25, 0, 0.25, 0};
+    EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(trap));
 
     static Real2 const expected_lower[] = {{3, -1}, {1, 1}, {-3, 1}, {-1, -1}};
     static Real2 const expected_upper[] = {{1, -1}, {3, 1}, {-1, 1}, {-3, -1}};

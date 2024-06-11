@@ -441,12 +441,10 @@ GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
     }
 
     // Check that sides aren't rotated more than 90 degrees
-    for (auto i : range(lo_.size()))
+    for (auto i : range<size_type>(lo_.size()))
     {
+        real_type twist_angle_cosine = this->calc_twist_cosine(i);
         auto j = (i + 1) % lo_.size();
-        real_type twist_angle_cosine
-            = dot_product(make_unit_vector(lo_[j] - lo_[i]),
-                          make_unit_vector(hi_[j] - hi_[i]));
         CELER_VALIDATE(
             twist_angle_cosine > 0,
             << "twist angle between lo (" << lo_[i] << "->" << lo_[j]
@@ -455,6 +453,26 @@ GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
             << native_value_to<Turn>(std::acos(twist_angle_cosine)).value()
             << " turns)");
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the cosine of the twist angle for a given side.
+ *
+ * The index \c i is the lower left point on the face when looking from the
+ * outside. The result is the dot product between the
+ * rightward direction vector of the lower and upper edges.
+ */
+real_type GenTrap::calc_twist_cosine(size_type i) const
+{
+    CELER_EXPECT(i < lo_.size());
+    CELER_EXPECT(lo_.size() == hi_.size());
+
+    auto j = (i + 1) % lo_.size();
+    auto lo = make_unit_vector(lo_[j] - lo_[i]);
+    auto hi = make_unit_vector(hi_[j] - hi_[i]);
+
+    return dot_product(lo, hi);
 }
 
 //---------------------------------------------------------------------------//
