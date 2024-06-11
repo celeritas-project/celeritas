@@ -478,7 +478,7 @@ TEST_F(ProcessBuilderTest, coulomb)
     ASSERT_EQ(2, all_applic.size());
     Applicability applic = *all_applic.begin();
     EXPECT_EQ(100, value_as<units::MevEnergy>(applic.lower));
-    EXPECT_EQ(1e6, value_as<units::MevEnergy>(applic.upper));
+    EXPECT_EQ(1e8, value_as<units::MevEnergy>(applic.upper));
 
     for (auto mat_id : range(MaterialId{this->material()->num_materials()}))
     {

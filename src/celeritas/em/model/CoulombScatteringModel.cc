@@ -57,7 +57,7 @@ CoulombScatteringModel::CoulombScatteringModel(ActionId id,
     energy_limit_
         = imported_.energy_grid_bounds(data_.ids.electron, MaterialId{0});
 
-    // Validate that the bounds are the same for all particles/materials
+    // Check that the bounds are the same for all particles/materials
     for (auto pid : {data_.ids.electron, data_.ids.positron})
     {
         for (auto mid : range(MaterialId{materials.num_materials()}))
