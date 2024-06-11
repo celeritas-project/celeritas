@@ -36,31 +36,27 @@ using constants::pi;
 
 TEST(PolygonUtilsTest, calc_orientation)
 {
-    EXPECT_TRUE(calc_orientation(Real2{0, 0}, Real2{4, 4}, Real2{1, 2})
-                == Orientation::counterclockwise);
-    EXPECT_TRUE(calc_orientation(Real2{0, 0}, Real2{4, 4}, Real2{2, 1})
-                == Orientation::clockwise);
-    EXPECT_TRUE(calc_orientation(Real2{0, 0}, Real2{4, 4}, Real2{2, 2})
-                == Orientation::collinear);
-    EXPECT_TRUE(calc_orientation(Real2{0, 0}, Real2{1, 1}, Real2{2, 2})
-                == Orientation::collinear);
-    EXPECT_TRUE(calc_orientation(Real2{2, 2}, Real2{1, 1}, Real2{0, 0})
-                == Orientation::collinear);
+    EXPECT_EQ(Orientation::counterclockwise,
+              calc_orientation({0, 0}, {4, 4}, {1, 2}));
+    EXPECT_EQ(Orientation::clockwise, calc_orientation({0, 0}, {4, 4}, {2, 1}));
+    EXPECT_EQ(Orientation::collinear, calc_orientation({0, 0}, {4, 4}, {2, 2}));
+    EXPECT_EQ(Orientation::collinear, calc_orientation({0, 0}, {1, 1}, {2, 2}));
+    EXPECT_EQ(Orientation::collinear, calc_orientation({2, 2}, {1, 1}, {0, 0}));
+    EXPECT_EQ(Orientation::collinear, calc_orientation({0, 0}, {0, 0}, {1, 1}));
+    EXPECT_EQ(Orientation::collinear, calc_orientation({0, 0}, {0, 0}, {0, 0}));
 }
 
 TEST(PolygonUtilsTest, has_orientation)
 {
-    static Real2 const points[] = {{-19, -30}, {-19, 30}, {21, 30}, {21, -30}};
-    EXPECT_TRUE(has_orientation(make_span(points), Orientation::clockwise));
-    EXPECT_FALSE(
-        has_orientation(make_span(points), Orientation::counterclockwise));
+    static Real2 const cw[] = {{-19, -30}, {-19, 30}, {21, 30}, {21, -30}};
+    EXPECT_TRUE(has_orientation(make_span(cw), Orientation::clockwise));
+    EXPECT_FALSE(has_orientation(make_span(cw), Orientation::counterclockwise));
 
-    EXPECT_TRUE(has_orientation(
-        make_span(VecReal2{{-2, -2}, {0, -2}, {0, 0}, {-2, 0}}),
-        Orientation::counterclockwise));
+    static Real2 const cw[] = {{-2, -2}, {0, -2}, {0, 0}, {-2, 0}};
+    EXPECT_TRUE(has_orientation(make_span(ccw), Orientation::counterclockwise));
 }
 
-TEST(PolygonUtilsTest, convexity)
+TEST(PolygonUtilsTest, convex)
 {
     static Real2 const cw[] = {{1, 1}, {1, 2}, {2, 2}, {2, 1}};
     EXPECT_TRUE(is_convex(make_span(cw)));
@@ -80,7 +76,7 @@ TEST(PolygonUtilsTest, convexity)
     EXPECT_FALSE(is_convex(bad));
 }
 
-TEST(PolygonUtilsTest, degenerate)
+TEST(PolygonUtilsTest, convex_degenerate)
 {
     // degenerate: all points are colinear
     static Real2 const line[] = {{1, 1}, {2, 2}, {3, 3}, {4, 4}};
@@ -103,7 +99,7 @@ TEST(PolygonUtilsTest, degenerate)
     EXPECT_FALSE(is_convex(repeated));
 }
 
-TEST(PolygonUtilsTest, self_intersect)
+TEST(PolygonUtilsTest, convex_self_intersect)
 {
     Real2 self_int[] = {{0, 0}, {1, 1}, {1, 0}, {0, 1}};
     EXPECT_FALSE(is_convex(self_int));
