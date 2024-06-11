@@ -16,6 +16,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Span.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportProcess.hh"
 
@@ -40,7 +41,8 @@ class ImportedModelAdapter
     using MicroXsBuilders = Model::MicroXsBuilders;
     using SpanConstPDG = Span<PDGNumber const>;
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
-    using Real2 = Array<real_type, 2>;
+    using Energy = units::MevEnergy;
+    using EnergyBounds = Array<Energy, 2>;
     //!@}
 
   public:
@@ -62,7 +64,7 @@ class ImportedModelAdapter
     MicroXsBuilders micro_xs(Applicability range) const;
 
     // Get the xs energy grid bounds for the given material and particle
-    Real2 energy_grid_bounds(ParticleId, MaterialId) const;
+    EnergyBounds energy_grid_bounds(ParticleId, MaterialId) const;
 
   private:
     //// TYPES ////

@@ -11,6 +11,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/em/data/CommonCoulombData.hh"
 #include "celeritas/io/ImportModel.hh"
 
@@ -31,7 +32,8 @@ class MscParamsHelper
   public:
     //!@{
     //! \name Type aliases
-    using Real2 = Array<real_type, 2>;
+    using Energy = units::MevEnergy;
+    using EnergyBounds = Array<Energy, 2>;
     using VecImportMscModel = std::vector<ImportMscModel>;
     using XsValues = Collection<XsGridData, Ownership::value, MemSpace::host>;
     using Values = Collection<real_type, Ownership::value, MemSpace::host>;
@@ -43,7 +45,7 @@ class MscParamsHelper
 
     void build_ids(CoulombIds* ids) const;
     void build_xs(XsValues*, Values*) const;
-    Real2 energy_grid_bounds() const;
+    EnergyBounds energy_grid_bounds() const;
 
   private:
     //// DATA ////

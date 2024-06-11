@@ -98,13 +98,15 @@ auto ImportedModelAdapter::micro_xs(Applicability applic) const
  * Get the xs energy grid bounds for the given material and particle.
  */
 auto ImportedModelAdapter::energy_grid_bounds(ParticleId pid,
-                                              MaterialId mid) const -> Real2
+                                              MaterialId mid) const
+    -> EnergyBounds
 {
     CELER_EXPECT(pid && mid);
 
     auto const& xs = this->get_model(pid).materials;
     CELER_ASSERT(mid < xs.size());
-    Real2 result{xs[mid.get()].energy.front(), xs[mid.get()].energy.back()};
+    EnergyBounds result{Energy(xs[mid.get()].energy.front()),
+                        Energy(xs[mid.get()].energy.back())};
 
     CELER_ENSURE(result[0] < result[1]);
     return result;

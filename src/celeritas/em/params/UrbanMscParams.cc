@@ -127,8 +127,8 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
     // Get the cross section energy grid limits (this checks that the limits
     // are the same for all particles/materials)
     auto energy_limit = helper.energy_grid_bounds();
-    host_data.params.low_energy_limit = MevEnergy{energy_limit[0]};
-    host_data.params.high_energy_limit = MevEnergy{energy_limit[1]};
+    host_data.params.low_energy_limit = energy_limit[0];
+    host_data.params.high_energy_limit = energy_limit[1];
 
     CELER_ASSERT(host_data);
 

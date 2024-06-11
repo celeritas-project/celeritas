@@ -146,15 +146,15 @@ void MscParamsHelper::build_xs(XsValues* scaled_xs, Values* reals) const
  *
  * This expects the grid bounds to be the same for all particles and materials.
  */
-auto MscParamsHelper::energy_grid_bounds() const -> Real2
+auto MscParamsHelper::energy_grid_bounds() const -> EnergyBounds
 {
-    Real2 result;
+    EnergyBounds result;
     {
         // Get initial high/low energy limits
         CELER_ASSERT(!xs_tables_[par_ids_[0].get()]->physics_vectors.empty());
         auto const& pvec = xs_tables_[par_ids_[0].get()]->physics_vectors[0];
         CELER_ASSERT(pvec);
-        result = {pvec.x.front(), pvec.x.back()};
+        result = {Energy(pvec.x.front()), Energy(pvec.x.back())};
     }
     for (size_type par_idx : range(par_ids_.size()))
     {
@@ -164,8 +164,8 @@ auto MscParamsHelper::energy_grid_bounds() const -> Real2
             // Check that the limits are the same for all materials and
             // particles; otherwise we need to change \c *Msc::is_applicable to
             // look up the particle and material
-            CELER_VALIDATE(result[0] == real_type(pvec.x.front())
-                               && result[1] == real_type(pvec.x.back()),
+            CELER_VALIDATE(result[0].value() == real_type(pvec.x.front())
+                               && result[1].value() == real_type(pvec.x.back()),
                            << "multiple scattering cross section energy "
                               "limits are inconsistent across particles "
                               "and/or materials");

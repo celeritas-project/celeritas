@@ -80,8 +80,8 @@ auto CoulombScatteringModel::applicability() const -> SetApplicability
 {
     Applicability electron_applic;
     electron_applic.particle = this->host_ref().ids.electron;
-    electron_applic.lower = units::MevEnergy{energy_limit_[0]};
-    electron_applic.upper = units::MevEnergy{energy_limit_[1]};
+    electron_applic.lower = energy_limit_[0];
+    electron_applic.upper = energy_limit_[1];
 
     Applicability positron_applic = electron_applic;
     positron_applic.particle = this->host_ref().ids.positron;

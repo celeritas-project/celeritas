@@ -72,7 +72,7 @@ class CoulombScatteringModel final : public Model
   private:
     CoulombScatteringData data_;
     ImportedModelAdapter imported_;
-    Array<real_type, 2> energy_limit_;  //!< [MeV]
+    ImportedModelAdapter::EnergyBounds energy_limit_;
 };
 
 //---------------------------------------------------------------------------//
