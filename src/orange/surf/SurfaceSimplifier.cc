@@ -286,6 +286,11 @@ auto SurfaceSimplifier::operator()(Sphere const& s) const
  * Simple quadric with near-zero terms can be another second-order surface.
  *
  * The sign can also be reversed as part of regularization.
+ *
+ * \note Differently scaled SQs are *not* simplified at the moment due to small
+ * changes in the intercept distances that haven't yet been investigated.
+ * Geant4's GenericTrap twisted surfaces *are* normalized by the magnitude of
+ * their linear component.
  */
 auto SurfaceSimplifier::operator()(SimpleQuadric const& sq) const
     -> Optional<Plane,
@@ -353,6 +358,9 @@ auto SurfaceSimplifier::operator()(SimpleQuadric const& sq) const
  *
  * - When no cross terms are present, it's "simple".
  * - When the higher-order terms are negative, the signs will be flipped.
+ *
+ * \note Differently scaled GQs are *not* simplified at the moment due to small
+ * changes in the intercept distances that haven't yet been investigated.
  */
 auto SurfaceSimplifier::operator()(GeneralQuadric const& gq) const
     -> Optional<SimpleQuadric, GeneralQuadric>

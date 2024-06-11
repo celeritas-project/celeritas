@@ -463,6 +463,9 @@ GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
  */
 void GenTrap::build(IntersectSurfaceBuilder& insert_surface) const
 {
+    constexpr int X = 0;
+    constexpr int Y = 1;
+
     // Build the bottom and top planes
     insert_surface(Sense::outside, PlaneZ{-hz_});
     insert_surface(Sense::inside, PlaneZ{hz_});
@@ -477,47 +480,42 @@ void GenTrap::build(IntersectSurfaceBuilder& insert_surface) const
         // Viewed from the outside of the trapezoid, the points on the polygon
         // here are from the lower left counterclockwise to the upper right
         auto j = (i + 1) % lo_.size();
-        Real3 const ilo{lo_[i][0], lo_[i][1], -hz_};
-        Real3 const jlo{lo_[j][0], lo_[j][1], -hz_};
-        Real3 const jhi{hi_[j][0], hi_[j][1], hz_};
-        Real3 const ihi{hi_[i][0], hi_[i][1], hz_};
+        Real3 const ilo{lo_[i][X], lo_[i][Y], -hz_};
+        Real3 const jlo{lo_[j][X], lo_[j][Y], -hz_};
+        Real3 const jhi{hi_[j][X], hi_[j][Y], hz_};
+        Real3 const ihi{hi_[i][X], hi_[i][Y], hz_};
 
         // Calculate outward normal by taking the cross product of the edges
         auto lo_normal = make_unit_vector(cross_product(jlo - ilo, ihi - ilo));
         auto hi_normal = make_unit_vector(cross_product(ihi - jhi, jlo - jhi));
 
-        // Insert appropriate service, planar or "twisted"
         if (soft_equal(dot_product(lo_normal, hi_normal), real_type{1}))
         {
-            // Insert a real plane
+            // Insert a planar surface
             insert_surface(
                 Sense::inside, Plane{lo_normal, ilo}, "p" + std::to_string(i));
         }
         else
         {
-            // Determine coefficients
-            auto alo = jlo[1] - ilo[1];
-            auto ahi = jhi[1] - ihi[1];
-            auto blo = ilo[0] - jlo[0];
-            auto bhi = ihi[0] - jhi[0];
-            auto clo = jlo[0] * ilo[1] - ilo[0] * jlo[1];
-            auto chi = jhi[0] * ihi[1] - ihi[0] * jhi[1];
+            // Insert a "twisted" surface (hyperbolic paraboloid)
+            auto alo = jlo[Y] - ilo[Y];
+            auto ahi = jhi[Y] - ihi[Y];
+            auto blo = ilo[X] - jlo[X];
+            auto bhi = ihi[X] - jhi[X];
+            auto clo = jlo[X] * ilo[Y] - ilo[X] * jlo[Y];
+            auto chi = jhi[X] * ihi[Y] - ihi[X] * jhi[Y];
 
-            constexpr real_type half{0.5};
-            real_type factor = half / hz_;
-            Real3 def, ghi;
-            def[0] = (ahi - alo) * factor;
-            def[1] = (bhi - blo) * factor;
-            def[2] = 0;
-            ghi[0] = (ahi + alo) * half;
-            ghi[1] = (bhi + blo) * half;
-            ghi[2] = (chi - clo) * factor;
-            real_type j = (clo + chi) * half;
+            real_type xy = ahi - alo;
+            real_type yz = bhi - blo;
+            real_type x = hz_ * (ahi + alo);
+            real_type y = hz_ * (bhi + blo);
+            real_type z = chi - clo;
+            real_type s = hz_ * (clo + chi);
 
-            // Insert a twisted plane
-            insert_surface(Sense::inside,
-                           GeneralQuadric{Real3{0, 0, 0}, def, ghi, j},
-                           "t" + std::to_string(i));
+            insert_surface(
+                Sense::inside,
+                GeneralQuadric{Real3{0, 0, 0}, {xy, yz, 0}, {x, y, z}, s},
+                "t" + std::to_string(i));
         }
     }
 

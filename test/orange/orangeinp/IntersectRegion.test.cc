@@ -677,9 +677,9 @@ TEST_F(GenTrapTest, full)
     static char const* const expected_surfaces[] = {
         "Plane: z=-4",
         "Plane: z=4",
-        "GQuadric: {0,0,0} {0.125,-0.125,0} {-3.5,-0.5,-0.5} 6",
+        "GQuadric: {0,0,0} {1,-1,0} {-28,-4,-4} 48",
         "Plane: n={0,0.99228,0.12403}, d=1.4884",
-        "GQuadric: {0,0,0} {0.125,0.125,0} {-3.5,0.5,0.5} -6",
+        "GQuadric: {0,0,0} {1,1,0} {-28,4,4} -48",
         "Plane: y=-2",
     };
 
@@ -873,9 +873,9 @@ TEST_F(GenTrapTest, full2)
     static char const* const expected_surfaces[] = {
         "Plane: z=-40",
         "Plane: z=40",
-        "GQuadric: {0,0,0} {0,0.0875,0} {40,-0.5,-41.25} -450",
+        "GQuadric: {0,0,0} {0,7,0} {3200,-40,-3300} -36000",
         "Plane: y=20",
-        "GQuadric: {0,0,0} {0,0.2125,0} {40,4.5,-38.75} 450",
+        "GQuadric: {0,0,0} {0,17,0} {3200,360,-3100} 36000",
         "Plane: y=-20",
     };
 
@@ -901,9 +901,9 @@ TEST_F(GenTrapTest, trap_pretty_twisted)
     static char const* const expected_surfaces[] = {
         "Plane: z=-1",
         "Plane: z=1",
-        "GQuadric: {0,0,0} {0,2,0} {-2,0,0} 4",
+        "GQuadric: {0,0,0} {0,4,0} {-4,0,0} 8",
         "Plane: y=1",
-        "GQuadric: {0,0,0} {0,2,0} {-2,0,0} -4",
+        "GQuadric: {0,0,0} {0,4,0} {-4,0,0} -8",
         "Plane: y=-1",
     };
 
@@ -981,14 +981,14 @@ TEST_F(GenTrapTest, adjacent_twisted)
         "Plane: z=-1",
         "Plane: z=1",
         "Plane: y=-1",
-        "GQuadric: {0,0,0} {0,0.5,0} {2,0.5,0} 0",
+        "GQuadric: {0,0,0} {0,1,0} {4,1,0} 0",
         "Plane: y=1",
         "Plane: x=-1",
         "Plane: x=1",
         "Plane: y=-2",
         "Plane: x=2",
         "Plane: y=2",
-        "GQuadric: {0,0,0} {0,1,0} {4,1,0} 0",
+        "GQuadric: {0,0,0} {0,2,0} {8,2,0} 0",
     };
     EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
 
