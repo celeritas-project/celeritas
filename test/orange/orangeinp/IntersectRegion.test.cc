@@ -521,11 +521,15 @@ TEST_F(GenTrapTest, construct)
     EXPECT_THROW(GenTrap(3,
                          {{-1, -1}, {-1, 1}, {1, 1}, {2, 0}, {1, -1}},
                          {{-2, -2}, {-2, 2}, {2, 2}, {2, -2}}),
-                 RuntimeError);  // 5 pts in -dZ
+                 RuntimeError);  // incompatible number of points
     EXPECT_THROW(GenTrap(3,
                          {{-1, -1}, {0.4, -0.4}, {1, 1}, {1, -1}},
                          {{-2, -2}, {-2, 2}, {2, 2}, {2, -2}}),
                  RuntimeError);  // non-convex
+    EXPECT_THROW(GenTrap(3,
+                         {{-1, -2}, {1, -2}, {1, 2}, {-1, 2}},
+                         {{-1, 2}, {1, 2}, {1, -2}, {-1, -2}}),
+                 RuntimeError);  // different orientations
 
     // Validate TRD-like construction parameters - 5 half-lengths
     EXPECT_THROW(GenTrap::from_trd(-3, {1, 1}, {2, 2}), RuntimeError);  // dZ<0
@@ -715,9 +719,6 @@ TEST_F(GenTrapTest, full)
     EXPECT_FALSE(result.interior) << result.interior;
     EXPECT_VEC_SOFT_EQ((Real3{-2, -2, -4}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{2, 2, 4}), result.exterior.upper());
-
-    GTEST_SKIP() << "twisty point sampling fails!";
-    this->check_corners(result.node_id, trap, 0.01);
 }
 
 TEST_F(GenTrapTest, triang_prism)
@@ -744,23 +745,58 @@ TEST_F(GenTrapTest, triang_prism)
     this->check_corners(result.node_id, trap, 0.1);
 }
 
-// TODO: this should be valid
-TEST_F(GenTrapTest, DISABLED_triprism)
-{
-    auto trap
-        = GenTrap(3, {{-2, -2}, {3, 0}, {-2, 2}}, {{-2, -1}, {-1, 1}, {2, 0}});
-    auto result = this->test(trap);
-    this->check_corners(result.node_id, trap, 0.1);
-}
-
-// TODO: we may need to support this
-TEST_F(GenTrapTest, DISABLED_tetrahedron)
+TEST_F(GenTrapTest, tetrahedron)
 {
     auto trap
         = GenTrap(3, {{-1, -1}, {2, 0}, {-1, 1}}, {{0, 0}, {0, 0}, {0, 0}});
+
+    static real_type const expected_twist_angles[] = {0, 0, 0};
+    EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(trap));
+
     auto result = this->test(trap);
-    result.print_expected();
-    this->check_corners(result.node_id, trap, 0.1);
+    static char const expected_node[] = "all(+0, -1, -2, -3, +4)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-3",
+           "Plane: z=3",
+           "Plane: n={0.31449,-0.94346,0.10483}, d=0.31449",
+           "Plane: n={0.31449,0.94346,0.10483}, d=0.31449",
+           "Plane: n={0.98639,0,-0.1644}, d=-0.4932"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -3}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 1, 3}), result.exterior.upper());
+
+    this->check_corners(result.node_id, trap, 0.01);
+}
+
+TEST_F(GenTrapTest, envelope)
+{
+    GenTrap trap(2,
+                 {{-1, -2}, {1, -2}, {1, 2}, {-1, 2}},
+                 {{-0.5, 0}, {0.5, 0}, {0.5, 0}, {-0.5, 0}});
+
+    static real_type const expected_twist_angles[] = {0, 0, 0, 0};
+    EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(trap));
+
+    auto result = this->test(trap);
+    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-2",
+           "Plane: z=2",
+           "Plane: n={0,0.89443,-0.44721}, d=-0.89443",
+           "Plane: n={0.99228,-0,0.12403}, d=0.74421",
+           "Plane: n={0,0.89443,0.44721}, d=0.89443",
+           "Plane: n={0.99228,0,-0.12403}, d=-0.74421"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-1, -2, -2}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{1, 2, 2}), result.exterior.upper());
+
+    this->check_corners(result.node_id, trap, 0.01);
 }
 
 TEST_F(GenTrapTest, trd)

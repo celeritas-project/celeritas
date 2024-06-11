@@ -411,28 +411,28 @@ GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
     : hz_{halfz}, lo_{std::move(lo)}, hi_{std::move(hi)}
 {
     CELER_VALIDATE(hz_ > 0, << "nonpositive halfheight: " << hz_);
-    CELER_VALIDATE(lo_.size() >= 3 && lo_.size() <= 4,
-                   << "invalid number of vertices (" << lo_.size()
+    CELER_VALIDATE(lo_.size() >= 3,
+                   << "insufficient number of vertices (" << lo_.size()
                    << ") for -z polygon");
     CELER_VALIDATE(hi_.size() == lo_.size(),
                    << "incompatible number of vertices (" << hi_.size()
                    << ") for +z polygon: expected " << lo_.size());
 
-    CELER_VALIDATE(lo_.size() >= 3 || hi_.size() >= 3,
-                   << "not enough vertices for both of the +z/-z polygons.");
-
     // Input vertices must be arranged in the same counter/clockwise order
     // and be convex
     using detail::calc_orientation;
     constexpr auto cw = detail::Orientation::clockwise;
-    CELER_VALIDATE(detail::is_convex(make_span(lo_)),
+    constexpr bool allow_degen = true;
+    CELER_VALIDATE(detail::is_convex(make_span(lo_), allow_degen),
                    << "-z polygon is not convex");
-    CELER_VALIDATE(detail::is_convex(make_span(hi_)),
+    CELER_VALIDATE(detail::is_convex(make_span(hi_), allow_degen),
                    << "+z polygon is not convex");
-    CELER_VALIDATE(calc_orientation(lo_[0], lo_[1], lo_[2])
-                       == calc_orientation(hi_[0], hi_[1], hi_[2]),
+
+    auto lo_orient = calc_orientation(lo_[0], lo_[1], lo_[2]);
+    auto hi_orient = calc_orientation(hi_[0], hi_[1], hi_[2]);
+    CELER_VALIDATE(is_same_orientation(lo_orient, hi_orient, allow_degen),
                    << "-z and +z polygons have different orientations");
-    if (calc_orientation(lo_[0], lo_[1], lo_[2]) == cw)
+    if (lo_orient == cw || hi_orient == cw)
     {
         // Reverse point orders so it's counterclockwise, needed for vectors to
         // point outward
@@ -461,14 +461,20 @@ GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
  *
  * The index \c i is the lower left point on the face when looking from the
  * outside. The result is the dot product between the
- * rightward direction vector of the lower and upper edges.
+ * rightward direction vector of the lower and upper edges. If one edge is
+ * degenerate, the twist angle is zero (cosine of 1).
  */
 real_type GenTrap::calc_twist_cosine(size_type i) const
 {
     CELER_EXPECT(i < lo_.size());
-    CELER_EXPECT(lo_.size() == hi_.size());
 
     auto j = (i + 1) % lo_.size();
+    if (lo_[i] == lo_[j] || hi_[i] == hi_[j])
+    {
+        // Degenerate face: top or bottom is a single point
+        return 1;
+    }
+
     auto lo = make_unit_vector(lo_[j] - lo_[i]);
     auto hi = make_unit_vector(hi_[j] - hi_[i]);
 
@@ -495,9 +501,8 @@ void GenTrap::build(IntersectSurfaceBuilder& insert_surface) const
     // Build the side planes
     for (auto i : range(lo_.size()))
     {
-        // Viewed from the outside of the trapezoid, the points on the polygon
-        // here are from the lower left counterclockwise to the upper right
         auto j = (i + 1) % lo_.size();
+
         Real3 const ilo{lo_[i][X], lo_[i][Y], -hz_};
         Real3 const jlo{lo_[j][X], lo_[j][Y], -hz_};
         Real3 const jhi{hi_[j][X], hi_[j][Y], hz_};
@@ -507,15 +512,22 @@ void GenTrap::build(IntersectSurfaceBuilder& insert_surface) const
         auto lo_normal = make_unit_vector(cross_product(jlo - ilo, ihi - ilo));
         auto hi_normal = make_unit_vector(cross_product(ihi - jhi, jlo - jhi));
 
-        if (soft_equal(dot_product(lo_normal, hi_normal), real_type{1}))
+        if (soft_equal(dot_product(lo_normal, hi_normal), real_type{1})
+            || ihi == jhi)
         {
-            // Insert a planar surface
+            // Insert a planar face
             insert_surface(
                 Sense::inside, Plane{lo_normal, ilo}, "p" + std::to_string(i));
         }
+        else if (ilo == jlo)
+        {
+            // Insert a degenerate planar face
+            insert_surface(
+                Sense::inside, Plane{hi_normal, ihi}, "p" + std::to_string(i));
+        }
         else
         {
-            // Insert a "twisted" surface (hyperbolic paraboloid)
+            // Insert a "twisted" face (hyperbolic paraboloid)
             auto alo = jlo[Y] - ilo[Y];
             auto ahi = jhi[Y] - ihi[Y];
             auto blo = ilo[X] - jlo[X];
