@@ -21,6 +21,7 @@
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/io/ImportParameters.hh"
 #include "celeritas/io/ImportProcess.hh"
+#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/InteractionApplier.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -33,6 +34,7 @@ namespace celeritas
  */
 CoulombScatteringModel::CoulombScatteringModel(ActionId id,
                                                ParticleParams const& particles,
+                                               MaterialParams const& materials,
                                                SPConstImported data)
     : imported_(data,
                 particles,
@@ -51,6 +53,22 @@ CoulombScatteringModel::CoulombScatteringModel(ActionId id,
                       "for "
                    << this->description() << ")");
 
+    // Get high/low energy limits
+    energy_limit_
+        = imported_.energy_grid_bounds(data_.ids.electron, MaterialId{0});
+
+    // Check that the bounds are the same for all particles/materials
+    for (auto pid : {data_.ids.electron, data_.ids.positron})
+    {
+        for (auto mid : range(MaterialId{materials.num_materials()}))
+        {
+            CELER_VALIDATE(
+                energy_limit_ == imported_.energy_grid_bounds(pid, mid),
+                << "Coulomb scattering cross section energy limits are "
+                   "inconsistent across particles and/or materials");
+        }
+    }
+
     CELER_ENSURE(data_);
 }
 
@@ -62,10 +80,8 @@ auto CoulombScatteringModel::applicability() const -> SetApplicability
 {
     Applicability electron_applic;
     electron_applic.particle = this->host_ref().ids.electron;
-    // TODO: Set the lower energy limit equal to the MSC energy limit when
-    // combined single and multiple Coulomb scattering is supported and enabled
-    electron_applic.lower = zero_quantity();
-    electron_applic.upper = detail::high_energy_limit();
+    electron_applic.lower = energy_limit_[0];
+    electron_applic.upper = energy_limit_[1];
 
     Applicability positron_applic = electron_applic;
     positron_applic.particle = this->host_ref().ids.positron;

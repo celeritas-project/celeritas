@@ -22,6 +22,7 @@
 #include <G4PhysicsVector.hh>
 #include <G4PhysicsVectorType.hh>
 #include <G4ProcessType.hh>
+#include <G4ProductionCutsTable.hh>
 #include <G4String.hh>
 #include <G4VEmProcess.hh>
 #include <G4VEnergyLossProcess.hh>
@@ -238,6 +239,9 @@ void append_table(G4PhysicsTable const* g4table,
         table.physics_vectors.push_back(std::move(import_vec));
     }
 
+    CELER_ENSURE(
+        table.physics_vectors.size()
+        == G4ProductionCutsTable::GetProductionCutsTable()->GetTableSize());
     tables->push_back(std::move(table));
 }
 

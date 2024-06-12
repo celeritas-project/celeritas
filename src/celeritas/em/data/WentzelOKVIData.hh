@@ -34,7 +34,7 @@ struct CoulombParameters
     //! Factor for the screening coefficient
     real_type screening_factor{1};
     //! Factor used to calculate the maximum scattering angle off of a nucleus
-    real_type a_sq_factor{0.5
+    real_type a_sq_factor{real_type(0.5)
                           * ipow<2>(constants::hbar_planck * constants::c_light
                                     * units::femtometer)};
     // Model for the form factor to use

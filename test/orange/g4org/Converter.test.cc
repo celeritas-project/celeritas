@@ -31,6 +31,21 @@ namespace test
 class ConverterTest : public ::celeritas::test::Test
 {
   protected:
+    void SetUp() override { verbose_ = !celeritas::getenv("VERBOSE").empty(); }
+
+    //! Make a converter
+    Converter make_converter(std::string_view filename = {})
+    {
+        Converter::Options opts;
+        opts.verbose = verbose_;
+        if (!filename.empty())
+        {
+            opts.proto_output_file = std::string(filename) + ".protos.json";
+            opts.debug_output_file = std::string(filename) + ".csg.json";
+        }
+        return Converter{std::move(opts)};
+    };
+
     //! Helper function: build via Geant4 GDML reader
     G4VPhysicalVolume const* load(std::string const& filename)
     {
@@ -54,10 +69,24 @@ class ConverterTest : public ::celeritas::test::Test
         return world_volume_;
     }
 
+    //! Load a test input
     G4VPhysicalVolume const* load_test_gdml(std::string_view basename)
     {
         return this->load(
             this->test_data_path("geocel", std::string(basename) + ".gdml"));
+    }
+
+    //! Save ORANGE output
+    void write_org_json(OrangeInput const& inp, std::string const& filename)
+    {
+        if (!verbose_)
+        {
+            return;
+        }
+        auto out_filename = filename + ".org.json";
+        CELER_LOG(info) << "Writing JSON translation to " << out_filename;
+        std::ofstream os(out_filename);
+        os << inp;
     }
 
     static void TearDownTestSuite()
@@ -66,6 +95,8 @@ class ConverterTest : public ::celeritas::test::Test
         ::celeritas::reset_geant_geometry();
         world_volume_ = nullptr;
     }
+
+    bool verbose_{false};
 
   private:
     static std::string loaded_filename_;
@@ -78,8 +109,10 @@ G4VPhysicalVolume* ConverterTest::world_volume_{nullptr};
 //---------------------------------------------------------------------------//
 TEST_F(ConverterTest, testem3)
 {
-    Converter convert;
-    auto result = convert(this->load_test_gdml("testem3")).input;
+    std::string const basename = "testem3";
+    auto convert = this->make_converter(basename);
+    auto result = convert(this->load_test_gdml(basename)).input;
+    write_org_json(result, basename);
 
     ASSERT_EQ(2, result.universes.size());
     if (auto* unit = std::get_if<UnitInput>(&result.universes[0]))
@@ -111,8 +144,31 @@ TEST_F(ConverterTest, testem3)
     }
 }
 
+//---------------------------------------------------------------------------//
+TEST_F(ConverterTest, tilecal_plug)
+{
+    std::string const basename = "tilecal-plug";
+    auto convert = this->make_converter(basename);
+    auto result = convert(this->load_test_gdml(basename)).input;
+    write_org_json(result, basename);
+
+    ASSERT_EQ(1, result.universes.size());
+    {
+        auto const& unit = std::get<UnitInput>(result.universes[0]);
+        ASSERT_EQ(4, unit.volumes.size());
+        EXPECT_EQ("Tile_Plug1Module",
+                  this->genericize_pointers(unit.volumes[1].label.name));
+        EXPECT_EQ("Tile_Absorber",
+                  this->genericize_pointers(unit.volumes[2].label.name));
+        EXPECT_EQ("Tile_ITCModule",
+                  this->genericize_pointers(unit.volumes[3].label.name));
+    }
+}
+
+//---------------------------------------------------------------------------//
 TEST_F(ConverterTest, DISABLED_arbitrary)
 {
+    verbose_ = true;
     std::string filename = celeritas::getenv("GDML");
     CELER_VALIDATE(!filename.empty(),
                    << "Set the 'GDML' environment variable and run this "
@@ -120,19 +176,10 @@ TEST_F(ConverterTest, DISABLED_arbitrary)
                       "--gtest_filter=*arbitrary "
                       "--gtest_also_run_disabled_tests");
 
-    Converter convert([&filename] {
-        Converter::Options opts;
-        opts.verbose = false;
-        opts.proto_output_file = filename + ".protos.json";
-        opts.debug_output_file = filename + ".csg.json";
-        return opts;
-    }());
+    auto convert = this->make_converter(filename);
     auto input = convert(this->load(filename)).input;
 
-    auto out_filename = filename + ".org.json";
-    CELER_LOG(info) << "Writing JSON translation to " << out_filename;
-    std::ofstream os(out_filename);
-    os << input;
+    write_org_json(input, filename);
 }
 
 //---------------------------------------------------------------------------//

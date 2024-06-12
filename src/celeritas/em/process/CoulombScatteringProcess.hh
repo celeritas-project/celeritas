@@ -12,13 +12,13 @@
 #include "celeritas/em/data/CoulombScatteringData.hh"
 #include "celeritas/em/model/CoulombScatteringModel.hh"
 #include "celeritas/io/ImportParameters.hh"
+#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/Applicability.hh"
 #include "celeritas/phys/ImportedProcessAdapter.hh"
 #include "celeritas/phys/Process.hh"
 
 namespace celeritas
 {
-
 //---------------------------------------------------------------------------//
 /*!
  * Coulomb scattering process for electrons off of atoms.
@@ -29,6 +29,7 @@ class CoulombScatteringProcess : public Process
     //!@{
     //! \name Type aliases
     using SPConstParticles = std::shared_ptr<ParticleParams const>;
+    using SPConstMaterials = std::shared_ptr<MaterialParams const>;
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 
@@ -41,6 +42,7 @@ class CoulombScatteringProcess : public Process
   public:
     //! Construct from Coulomb scattering data
     CoulombScatteringProcess(SPConstParticles particles,
+                             SPConstMaterials materials,
                              SPConstImported process_data,
                              Options const& options);
 
@@ -58,6 +60,7 @@ class CoulombScatteringProcess : public Process
 
   private:
     SPConstParticles particles_;
+    SPConstMaterials materials_;
     ImportedProcessAdapter imported_;
     Options options_;
 };

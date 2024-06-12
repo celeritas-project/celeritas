@@ -244,7 +244,7 @@ auto ProcessBuilder::build_coulomb() -> SPProcess
     options.use_integral_xs = use_integral_xs_;
 
     return std::make_shared<CoulombScatteringProcess>(
-        this->particle(), this->imported(), options);
+        this->particle(), this->material(), this->imported(), options);
 }
 
 //---------------------------------------------------------------------------//
