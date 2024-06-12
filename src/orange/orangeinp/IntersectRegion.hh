@@ -225,8 +225,8 @@ class GenTrap final : public IntersectRegionInterface
         real_type hx_lo{};
         //! Bottom horizontal edge half-length
         real_type hx_hi{};
-        //! Tangent of shear angle, between horizontal line centers and Y axis
-        real_type tan_alpha{};
+        //! Shear angle, between horizontal line centers and Y axis
+        Turn alpha;
     };
 
   public:
