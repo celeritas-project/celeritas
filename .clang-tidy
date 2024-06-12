@@ -19,11 +19,6 @@ Checks: |
 CheckOptions:
   cppcoreguidelines-macro-usage.CheckCapsOnly: true
   cppcoreguidelines-avoid-do-while.IgnoreMacros: true
-SystemHeaders: false
 HeaderFilterRegex: ''
-ImplementationFileExtensions:
-  - cc
-HeaderFileExtensions:
-  - hh
 FormatStyle: file
 ...
