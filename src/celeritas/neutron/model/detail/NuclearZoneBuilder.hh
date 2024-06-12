@@ -365,7 +365,7 @@ real_type NuclearZoneBuilder::integrate_potential(real_type rmin,
                                                   real_type integral,
                                                   real_type ws_shift) const
 {
-    constexpr int max_trials = 1e+3;
+    constexpr int max_trials = 1000;
     constexpr real_type epsilon = 1e-3;
 
     int depth = 1;
