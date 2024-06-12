@@ -289,8 +289,6 @@ auto SurfaceSimplifier::operator()(Sphere const& s) const
  *
  * \note Differently scaled SQs are *not* simplified at the moment due to small
  * changes in the intercept distances that haven't yet been investigated.
- * Geant4's GenericTrap twisted surfaces *are* normalized by the magnitude of
- * their linear component.
  */
 auto SurfaceSimplifier::operator()(SimpleQuadric const& sq) const
     -> Optional<Plane,
@@ -361,6 +359,9 @@ auto SurfaceSimplifier::operator()(SimpleQuadric const& sq) const
  *
  * \note Differently scaled GQs are *not* simplified at the moment due to small
  * changes in the intercept distances that haven't yet been investigated.
+ * Normalization should be done inside the GQ at construction time.
+ * Geant4's GenericTrap twisted surfaces are normalized by the magnitude of
+ * their linear component.
  */
 auto SurfaceSimplifier::operator()(GeneralQuadric const& gq) const
     -> Optional<SimpleQuadric, GeneralQuadric>
