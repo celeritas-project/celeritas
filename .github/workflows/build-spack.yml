@@ -123,12 +123,12 @@ jobs:
         run: |
           ccache -z
       - name: Configure Celeritas
+        env:
+          CLANG_TIDY: "clang-tidy-15"
         run: |
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
           cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
       - name: Build all
-        env:
-          CLANG_TIDY: "clang-tidy-15"
         working-directory: build
         continue-on-error: ${{matrix.special == 'clang-tidy'}}
         run: |
