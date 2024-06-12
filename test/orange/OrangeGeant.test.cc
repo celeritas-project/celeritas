@@ -206,7 +206,6 @@ class TilecalPlugTest : public GeantOrangeTest
 
 TEST_F(TilecalPlugTest, trace)
 {
-    if (0)
     {
         SCOPED_TRACE("lo x");
         auto result = this->track({5.75, 0.01, -40}, {0, 0, 1});

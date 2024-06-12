@@ -36,8 +36,6 @@ namespace orangeinp
  * - constant: check for contradiction
  *
  * This operation is at worst O((number of nodes) * (depth of graph)).
- *
- * \return Node ID of the lowest node that required simplification.
  */
 std::vector<NodeId>
 replace_and_simplify(CsgTree* tree, NodeId repl_key, Node repl_value)
@@ -101,8 +99,8 @@ replace_and_simplify(CsgTree* tree, NodeId repl_key, Node repl_value)
         {
             if (repl_state == NodeReplacer::unknown)
             {
-                // Track boundary surfaces that we can't prove, likely because
-                // of a union boundary
+                // Keep track of boundary surfaces that we can't prove, likely
+                // because of a union boundary
                 unknown_surface_nodes.push_back(n);
             }
         }
