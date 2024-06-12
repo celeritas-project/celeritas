@@ -1,0 +1,200 @@
+{
+"_format": "ORANGE",
+"_version": 0,
+"tol": {
+"abs": 1e-05,
+"rel": 1e-05
+},
+"universes": [
+{
+"_type": "unit",
+"bbox": [
+[
+-20.0,
+-20.0,
+-20.0
+],
+[
+20.0,
+20.0,
+20.0
+]
+],
+"daughters": [
+1
+],
+"md": {
+"name": "global"
+},
+"parent_cells": [
+1
+],
+"surface_labels": [
+"[EXTERIOR]",
+"bottomsph@s",
+"topsph@s"
+],
+"surfaces": {
+"data": [
+400.0,
+0.0,
+0.0,
+1.234,
+25.0,
+0.0,
+0.0,
+5.234,
+25.0
+],
+"sizes": [
+1,
+4,
+4
+],
+"types": [
+"sc",
+"s",
+"s"
+]
+},
+"transforms": [
+[
+0.0,
+0.0,
+1.234
+]
+],
+"volume_labels": [
+"[EXTERIOR]@global",
+"inner@global",
+"shell"
+],
+"volumes": [
+{
+"faces": [
+0
+],
+"logic": "0"
+},
+{
+"bbox": [
+[
+-5.0,
+-5.0,
+-3.766
+],
+[
+5.0,
+5.0,
+10.234
+]
+],
+"faces": [
+1,
+2
+],
+"flags": 1,
+"logic": "0 ~ 1 ~ |"
+},
+{
+"bbox": [
+[
+-20.0,
+-20.0,
+-20.0
+],
+[
+20.0,
+20.0,
+20.0
+]
+],
+"faces": [
+0,
+1,
+2
+],
+"flags": 1,
+"logic": "0 ~ 1 ~ 2 ~ | ~ &"
+}
+]
+},
+{
+"_type": "unit",
+"bbox": [
+[
+-5.0,
+-5.0,
+-5.0
+],
+[
+5.0,
+5.0,
+9.0
+]
+],
+"md": {
+"name": "inner"
+},
+"surface_labels": [
+"bottomsph@s",
+"topsph@s"
+],
+"surfaces": {
+"data": [
+25.0,
+0.0,
+0.0,
+4.0,
+25.0
+],
+"sizes": [
+1,
+4
+],
+"types": [
+"sc",
+"s"
+]
+},
+"volume_labels": [
+"[EXTERIOR]@inner",
+"bottomsph",
+"bite"
+],
+"volumes": [
+{
+"faces": [],
+"flags": 2,
+"logic": "* ~",
+"zorder": "x"
+},
+{
+"bbox": [
+[
+-5.0,
+-5.0,
+-5.0
+],
+[
+5.0,
+5.0,
+5.0
+]
+],
+"faces": [
+0
+],
+"logic": "0 ~"
+},
+{
+"faces": [
+0,
+1
+],
+"logic": "0 1 ~ &"
+}
+]
+}
+]
+}

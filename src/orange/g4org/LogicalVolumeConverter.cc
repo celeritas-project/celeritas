@@ -9,7 +9,6 @@
 
 #include <G4LogicalVolume.hh>
 #include <G4Material.hh>
-#include <G4MaterialCutsCouple.hh>
 #include <G4VSolid.hh>
 
 #include "corecel/Assert.hh"
