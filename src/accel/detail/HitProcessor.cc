@@ -266,6 +266,10 @@ void HitProcessor::update_track(ParticleId id) const
         track.SetKineticEnergy(post_step->GetKineticEnergy());
         track.SetMomentumDirection(post_step->GetMomentumDirection());
     }
+
+    // TODO: Celeritas currently ignores incoming particle weight and does not
+    // perform any variance reduction. See issue #1268.
+    track.SetWeight(1.0);
 }
 
 //---------------------------------------------------------------------------//
