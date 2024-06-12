@@ -38,6 +38,9 @@ jobs:
           - geometry: "geant4"
             special: null
             geant: "11.0"
+          - geometry: "orange"
+            special: "clang-tidy"
+            geant: "11.2"
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "100Mi"
@@ -120,11 +123,14 @@ jobs:
         run: |
           ccache -z
       - name: Configure Celeritas
+        env:
+          CLANG_TIDY: "clang-tidy-15"
         run: |
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
           cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
       - name: Build all
         working-directory: build
+        continue-on-error: ${{matrix.special == 'clang-tidy'}}
         run: |
           ninja -v -k0
       - name: Run tests
