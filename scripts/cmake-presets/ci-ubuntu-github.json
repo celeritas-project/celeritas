@@ -83,6 +83,20 @@
       "inherits": ["spack"]
     },
     {
+      "name": "reldeb-orange-clang-tidy",
+      "description": "Build with ORANGE and clang-tidy checks",
+      "inherits": ["spack"],
+      "cacheVariables": {
+        "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"},
+        "CMAKE_CXX_CLANG_TIDY": {"type": "PATH", "value": "$env{CLANG_TIDY}"}
+
+      }
+    },
+    {
       "name": "reldeb-vecgeom-clhep",
       "description": "Build with VecGeom and CLHEP units",
       "inherits": [".vecgeom", "spack"],
