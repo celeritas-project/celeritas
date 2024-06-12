@@ -18,10 +18,12 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 class ActionRegistry;
 class CerenkovParams;
 class OpticalPropertyParams;
 class ScintillationParams;
+class CoreParams;
 
 namespace detail
 {
@@ -48,6 +50,7 @@ class OpticalCollector
     //!@{
     //! \name Type aliases
     using SPConstCerenkov = std::shared_ptr<CerenkovParams const>;
+    using SPConstCore = std::shared_ptr<CoreParams const>;
     using SPConstProperties = std::shared_ptr<OpticalPropertyParams const>;
     using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
     using SPGenStorage = std::shared_ptr<detail::OpticalGenStorage>;
@@ -55,19 +58,22 @@ class OpticalCollector
 
     struct Input
     {
+        //! Global parameters including geometry and materials
+        SPConstCore core;
+
+        //! Optical physics properties for materials
         SPConstProperties properties;
         SPConstCerenkov cerenkov;
         SPConstScintillation scintillation;
-        // TODO: main core params?
-        ActionRegistry* action_registry;
+
+        //! Number of steps that have created optical particles
         size_type buffer_capacity{};
-        size_type num_streams{};
 
         //! True if all input is assigned and valid
         explicit operator bool() const
         {
-            return (scintillation || (cerenkov && properties))
-                   && action_registry && buffer_capacity > 0 && num_streams > 0;
+            return core && (scintillation || (cerenkov && properties))
+                   && buffer_capacity > 0;
         }
     };
 
@@ -96,6 +102,7 @@ class OpticalCollector
     SPGatherAction gather_action_;
     SPCerenkovPreGenAction cerenkov_pregen_action_;
     SPScintPreGenAction scint_pregen_action_;
+
     // TODO: tracking loop launcher
     // TODO: store optical core params and state?
 };

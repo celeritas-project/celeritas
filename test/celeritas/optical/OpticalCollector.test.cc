@@ -146,8 +146,6 @@ auto LArSpherePreGenTest::build_along_step() -> SPConstAction
  */
 void LArSpherePreGenTest::build_optical_collector()
 {
-    auto& action_reg = *this->action_reg();
-
     OpticalCollector::Input inp;
     if (use_cerenkov_)
     {
@@ -158,9 +156,8 @@ void LArSpherePreGenTest::build_optical_collector()
     {
         inp.scintillation = this->scintillation();
     }
-    inp.action_registry = &action_reg;
+    inp.core = this->core();
     inp.buffer_capacity = 256;
-    inp.num_streams = 1;
 
     collector_ = std::make_shared<OpticalCollector>(inp);
 }
