@@ -18,6 +18,10 @@
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
+#include "CascadeOptions.hh"
+
+#include "detail/NuclearZoneBuilder.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -27,6 +31,7 @@ namespace celeritas
 NeutronInelasticModel::NeutronInelasticModel(ActionId id,
                                              ParticleParams const& particles,
                                              MaterialParams const& materials,
+                                             CascadeOptions const& options,
                                              ReadData load_data)
 {
     CELER_EXPECT(id);
@@ -37,13 +42,16 @@ NeutronInelasticModel::NeutronInelasticModel(ActionId id,
     // Save IDs
     data.scalars.action_id = id;
     data.scalars.neutron_id = particles.find(pdg::neutron());
+    data.scalars.proton_id = particles.find(pdg::proton());
 
-    CELER_VALIDATE(data.scalars.neutron_id,
-                   << "missing neutron particles (required for "
+    CELER_VALIDATE(data.scalars.neutron_id && data.scalars.proton_id,
+                   << "missing neutron and/or proton particles (required for "
                    << this->description() << ")");
 
     // Save particle properties
     data.scalars.neutron_mass = particles.get(data.scalars.neutron_id).mass();
+    data.scalars.proton_mass = particles.get(data.scalars.proton_id).mass();
+    CELER_EXPECT(data.scalars);
 
     // Load neutron inelastic cross section data
     CollectionBuilder micro_xs{&data.micro_xs};
@@ -75,6 +83,16 @@ NeutronInelasticModel::NeutronInelasticModel(ActionId id,
     }
     CELER_ASSERT(data.nucleon_xs.size() == num_channels);
     CELER_ASSERT(data.xs_params.size() == data.nucleon_xs.size());
+
+    // Build (A, Z)-dependent nuclear zone data
+    detail::NuclearZoneBuilder zone_builder(
+        options, data.scalars, &data.nuclear_zones);
+
+    for (auto iso_id : range(IsotopeId{materials.num_isotopes()}))
+    {
+        zone_builder(materials.get(iso_id));
+    }
+    CELER_ASSERT(data.nuclear_zones.zones.size() == materials.num_isotopes());
 
     // Move to mirrored data, copying to device
     data_ = CollectionMirror<NeutronInelasticData>{std::move(data)};

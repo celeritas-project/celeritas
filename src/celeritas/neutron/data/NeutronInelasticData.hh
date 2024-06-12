@@ -26,9 +26,11 @@ struct NeutronInelasticScalars
     // Action and particle IDs
     ActionId action_id;
     ParticleId neutron_id;
+    ParticleId proton_id;
 
     // Particle mass * c^2 [MeV]
     units::MevMass neutron_mass;
+    units::MevMass proton_mass;
 
     //! Number of nucleon-nucleon channels
     static CELER_CONSTEXPR_FUNCTION size_type num_channels() { return 3; }
@@ -43,7 +45,9 @@ struct NeutronInelasticScalars
     //! Whether data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return action_id && neutron_id && neutron_mass > zero_quantity();
+        return action_id && neutron_id && proton_id
+               && neutron_mass > zero_quantity()
+               && neutron_mass > zero_quantity();
     }
 };
 
@@ -57,6 +61,73 @@ struct StepanovParameters
     real_type xs_zero;  //!< nucleon-nucleon cross section at the zero energy
     real_type slope;  //!< parameter used for the low energy threshold
     Real3 coeffs;  //!< coefficients of a second order Stepanov's function
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Components of nuclear zone properties of the Bertini cascade model.
+ */
+struct ZoneComponent
+{
+    using NucleonArray = Array<real_type, 2>;  //!< [proton, neutron]
+
+    real_type radius{};  //!< radius of zones in [femtometer]
+    real_type volume{};  //!< volume of zones in [femtometer^3]
+    NucleonArray density{0, 0};  //!< nucleon densities [1/femtometer^3]
+    NucleonArray fermi_mom{0, 0};  //!< fermi momenta in [MeV/c]
+    NucleonArray potential{0, 0};  //!< nucleon potentials [MeV]
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Data characterizing the nuclear zones.
+ */
+struct NuclearZones
+{
+    size_type num_zones{};
+    ItemRange<ZoneComponent> zones;
+
+    //! Whether all data are assigned and valid
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return num_zones > 0 && !zones.empty();
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Device data for nuclear zone properties
+ */
+template<Ownership W, MemSpace M>
+struct NuclearZoneData
+{
+    template<class T>
+    using Items = Collection<T, W, M>;
+    template<class T>
+    using IsotopeItems = Collection<T, W, M, IsotopeId>;
+
+    //// MEMBER DATA ////
+
+    // Nuclear zone data
+    Items<ZoneComponent> components;
+    IsotopeItems<NuclearZones> zones;
+
+    //! Whether the data are assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return !components.empty() && !zones.empty();
+    }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    NuclearZoneData& operator=(NuclearZoneData<W2, M2> const& other)
+    {
+        CELER_EXPECT(other);
+        components = other.components;
+        zones = other.zones;
+
+        return *this;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -90,11 +161,14 @@ struct NeutronInelasticData
     // Backend data
     Items<real_type> reals;
 
+    // Nuclear zone data
+    NuclearZoneData<W, M> nuclear_zones;
+
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
         return scalars && !micro_xs.empty() && !nucleon_xs.empty()
-               && !xs_params.empty() && !reals.empty();
+               && !xs_params.empty() && !reals.empty() && nuclear_zones;
     }
 
     //! Assign from another set of data
@@ -107,6 +181,7 @@ struct NeutronInelasticData
         nucleon_xs = other.nucleon_xs;
         xs_params = other.xs_params;
         reals = other.reals;
+        nuclear_zones = other.nuclear_zones;
         return *this;
     }
 };
