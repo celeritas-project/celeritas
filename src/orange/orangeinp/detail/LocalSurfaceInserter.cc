@@ -38,7 +38,7 @@ LocalSurfaceInserter::LocalSurfaceInserter(VecSurface* v,
                                            Tolerance<> const& tol)
     : surfaces_{v}
     , soft_surface_equal_{tol}
-    , calc_hashes_{real_type{0.01} * calc_length_scale(tol), 2 * tol.rel}
+    , calc_hashes_{bin_width_frac() * calc_length_scale(tol), 2 * tol.rel}
 {
     CELER_EXPECT(surfaces_);
     CELER_EXPECT(surfaces_->empty());
@@ -95,7 +95,8 @@ LocalSurfaceId LocalSurfaceInserter::operator()(S const& source)
         if (key == SurfaceGridHash::redundant())
             continue;
 
-        // Find possibly similar surfaces that match this key
+        // Find possibly similar surfaces that match this key. The key
+        // is *specific* to a surface type and *likely* the same spatial bin.
         for (auto&& [iter, last] = hashed_surfaces_.equal_range(key);
              iter != last;
              ++iter)
@@ -127,7 +128,7 @@ LocalSurfaceId LocalSurfaceInserter::operator()(S const& source)
 
     if (near_match)
     {
-        // Surface is eqivalent to an existing one but not identical: save and
+        // Surface is equivalent to an existing one but not identical: save and
         // return the deduplicated surface
         return this->merge_impl(source_id, near_match);
     }
