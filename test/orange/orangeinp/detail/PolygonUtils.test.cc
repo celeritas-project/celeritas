@@ -52,7 +52,7 @@ TEST(PolygonUtilsTest, has_orientation)
     EXPECT_TRUE(has_orientation(make_span(cw), Orientation::clockwise));
     EXPECT_FALSE(has_orientation(make_span(cw), Orientation::counterclockwise));
 
-    static Real2 const cw[] = {{-2, -2}, {0, -2}, {0, 0}, {-2, 0}};
+    static Real2 const ccw[] = {{-2, -2}, {0, -2}, {0, 0}, {-2, 0}};
     EXPECT_TRUE(has_orientation(make_span(ccw), Orientation::counterclockwise));
 }
 
