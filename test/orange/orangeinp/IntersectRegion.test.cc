@@ -487,7 +487,13 @@ class GenTrapTest : public IntersectRegionTest
         VecReal result;
         for (auto i : range(trap.num_sides()))
         {
-            real_type twist_angle = std::acos(trap.calc_twist_cosine(i));
+            // Due to floating point errors in unit vector normalization, the
+            // cosine could be *slightly* above 1.
+            auto twist_cosine = trap.calc_twist_cosine(i);
+            EXPECT_GT(twist_cosine, 0);
+            EXPECT_LT(twist_cosine, 1 + SoftEqual<>{}.abs());
+            real_type twist_angle
+                = std::acos(std::fmin(twist_cosine, real_type(1)));
             result.push_back(native_value_to<Turn>(twist_angle).value());
         }
         return result;
