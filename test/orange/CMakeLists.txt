@@ -138,10 +138,9 @@ celeritas_add_test(univ/detail/SenseCalculator.test.cc)
 #-----------------------------------------------------------------------------#
 # Geant4 construction
 if(_use_g4org)
-  
   celeritas_add_test(g4org/Converter.test.cc)
   celeritas_add_test(g4org/SolidConverter.test.cc
-    LINK_LIBRARIES ${_g4_geo_libs})
+    LINK_LIBRARIES ${_g4_geo_libs} Celeritas::celeritas)
   celeritas_add_test(g4org/PhysicalVolumeConverter.test.cc)
   celeritas_add_test(g4org/ProtoConstructor.test.cc)
   celeritas_add_test(g4org/Transformer.test.cc

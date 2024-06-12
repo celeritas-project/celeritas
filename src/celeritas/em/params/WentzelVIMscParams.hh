@@ -17,8 +17,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ParticleParams;
-class MaterialParams;
-class MaterialView;
 struct ImportData;
 struct ImportMscModel;
 
@@ -39,13 +37,10 @@ class WentzelVIMscParams final : public ParamsDataInterface<WentzelVIMscData>
   public:
     // Construct if MSC process data is present, else return nullptr
     static std::shared_ptr<WentzelVIMscParams>
-    from_import(ParticleParams const& particles,
-                MaterialParams const& materials,
-                ImportData const& data);
+    from_import(ParticleParams const& particles, ImportData const& data);
 
     // Construct from process data
     WentzelVIMscParams(ParticleParams const& particles,
-                       MaterialParams const& materials,
                        VecImportMscModel const& mdata);
 
     //! Access Wentzel VI data on the host

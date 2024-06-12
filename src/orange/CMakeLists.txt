@@ -29,6 +29,7 @@ list(APPEND SOURCES
   orangeinp/CsgTree.cc
   orangeinp/CsgTypes.cc
   orangeinp/CsgTreeUtils.cc
+  orangeinp/InputBuilder.cc
   orangeinp/IntersectRegion.cc
   orangeinp/IntersectSurfaceBuilder.cc
   orangeinp/PolySolid.cc
@@ -40,12 +41,12 @@ list(APPEND SOURCES
   orangeinp/detail/BoundingZone.cc
   orangeinp/detail/BuildIntersectRegion.cc
   orangeinp/detail/CsgUnitBuilder.cc
-  orangeinp/detail/InputBuilder.cc
   orangeinp/detail/InternalSurfaceFlagger.cc
   orangeinp/detail/IntersectSurfaceState.cc
   orangeinp/detail/LocalSurfaceInserter.cc
   orangeinp/detail/NodeSimplifier.cc
   orangeinp/detail/PostfixLogicBuilder.cc
+  orangeinp/detail/ProtoBuilder.cc
   orangeinp/detail/ProtoMap.cc
   orangeinp/detail/SenseEvaluator.cc
   orangeinp/detail/SurfaceGridHash.cc
@@ -92,7 +93,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
     g4org/ProtoConstructor.cc
     g4org/SolidConverter.cc
   )
-  celeritas_get_g4libs(_cg4org_libs geometry)
+  celeritas_get_g4libs(_cg4org_libs geometry materials)
   list(APPEND _cg4org_libs Celeritas::corecel Celeritas::geocel)
 
   celeritas_add_object_library(geocel_g4org ${_cg4org_sources})

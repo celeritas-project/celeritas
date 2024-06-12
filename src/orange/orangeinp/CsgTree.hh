@@ -8,6 +8,7 @@
 #pragma once
 
 #include <iostream>
+#include <optional>
 #include <unordered_map>
 #include <variant>
 #include <vector>
@@ -51,6 +52,7 @@ class CsgTree
     using NodeId = orangeinp::NodeId;
     using size_type = NodeId::size_type;
     using Insertion = std::pair<NodeId, bool>;
+    using Simplification = std::optional<Node>;
     //!@}
 
   public:
@@ -73,11 +75,13 @@ class CsgTree
     Node exchange(NodeId node_id, Node&& n);
 
     // Simplify a single node in-place [O(1)]
-    bool simplify(NodeId);
+    Simplification simplify(NodeId);
 
     //// STATIC HELPERS ////
 
+    //! Special ID of a node that's always 'true'
     static constexpr NodeId true_node_id() { return NodeId{0}; }
+    //! Special ID of a node that's always 'false'
     static constexpr NodeId false_node_id() { return NodeId{1}; }
 
   private:

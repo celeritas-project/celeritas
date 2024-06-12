@@ -66,6 +66,7 @@ struct NegationSimplifier
         return NodeSimplifier::no_simplification();
     }
 };
+
 //---------------------------------------------------------------------------//
 }  // namespace
 

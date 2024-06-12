@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <numeric>
 
+#include "celeritas_config.h"
+#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeInput.hh"
@@ -22,10 +24,20 @@
 
 #include "detail/CsgUnit.hh"
 #include "detail/CsgUnitBuilder.hh"
-#include "detail/InputBuilder.hh"
 #include "detail/InternalSurfaceFlagger.hh"
 #include "detail/PostfixLogicBuilder.hh"
+#include "detail/ProtoBuilder.hh"
 #include "detail/VolumeBuilder.hh"
+
+#if CELERITAS_USE_JSON
+#    include <nlohmann/json.hpp>
+
+#    include "corecel/io/JsonPimpl.hh"
+#    include "corecel/io/LabelIO.json.hh"
+
+#    include "CsgTreeIO.json.hh"
+#    include "ObjectIO.json.hh"
+#endif
 
 namespace celeritas
 {
@@ -95,7 +107,7 @@ auto UnitProto::daughters() const -> VecProto
  * Construction is done from highest masking precedence to lowest (reverse
  * zorder): exterior, then holes, then arrays, then media.
  */
-void UnitProto::build(InputBuilder& input) const
+void UnitProto::build(ProtoBuilder& input) const
 {
     // Bounding box should be finite if and only if this is the global universe
     CELER_EXPECT((input.next_id() == orange_global_universe)
@@ -218,8 +230,6 @@ void UnitProto::build(InputBuilder& input) const
     // NOTE: this means we're entirely ignoring the "metadata" from the CSG
     // nodes for the region, because we can't know which ones have the
     // user-supplied volume names
-    // TODO: add JSON output to the input builder that includes the CSG
-    // metadata
     auto vol_iter = result.volumes.begin();
 
     // Save attributes for exterior volume
@@ -290,6 +300,55 @@ void UnitProto::build(InputBuilder& input) const
         ++vol_iter;
     }
     CELER_EXPECT(vol_iter == result.volumes.end());
+
+#if CELERITAS_USE_JSON
+    if (input.save_json())
+    {
+        // Write debug information
+        JsonPimpl jp;
+        jp.obj = csg_unit;
+        jp.obj["remapped_surfaces"] = [&sorted_local_surfaces] {
+            auto j = nlohmann::json::array();
+            for (auto const& lsid : sorted_local_surfaces)
+            {
+                j.push_back(lsid.unchecked_get());
+            }
+            return j;
+        }();
+
+        // Save label volumes
+        CELER_ASSERT(jp.obj.contains("volumes"));
+        auto& jv = jp.obj["volumes"];
+        CELER_VALIDATE(jv.size() == csg_unit.volumes.size(),
+                       << "jv = " << jv.size()
+                       << " csg = " << csg_unit.volumes.size());
+        CELER_ASSERT(csg_unit.volumes.size() <= result.volumes.size());
+        for (auto vol_idx : range(csg_unit.volumes.size()))
+        {
+            jv[vol_idx]["label"] = result.volumes[vol_idx].label;
+        }
+
+        // Save our universe label
+        jp.obj["label"] = this->label();
+
+        // Update daughter universe IDs
+        for (auto& v : jp.obj["volumes"])
+        {
+            if (auto iter = v.find("universe"); iter != v.end())
+            {
+                // The "universe" key is set with `fill_volume` in `build`
+                // below as the daughter index
+                std::size_t daughter_index = iter->get<int>();
+                CELER_ASSERT(daughter_index < input_.daughters.size());
+                auto const& daughter = input_.daughters[daughter_index];
+                auto uid = input.find_universe_id(daughter.fill.get());
+                *iter = uid.unchecked_get();
+            }
+        }
+
+        input.save_json(std::move(jp));
+    }
+#endif
 
     // TODO: save material IDs as well
     input.insert(std::move(result));
@@ -378,13 +437,84 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
     {
         // Replace "exterior" with "False" (i.e. interior with true)
         NodeId ext_node = result.volumes[ext_vol.unchecked_get()];
-        auto min_node = replace_down(&result.tree, ext_node, False{});
+        auto unknowns = replace_and_simplify(&result.tree, ext_node, False{});
+        if (!unknowns.empty())
+        {
+            auto write_node_labels = [&md = result.metadata](std::ostream& os,
+                                                             NodeId nid) {
+                CELER_ASSERT(nid < md.size());
+                auto const& labels = md[nid.get()];
+                os << '{' << join(labels.begin(), labels.end(), ", ") << '}';
+            };
+            CELER_LOG(warning)
+                << "While building '" << this->label()
+                << "', encountered surfaces that could not be logically "
+                   "eliminated from the boundary: "
+                << join_stream(unknowns.begin(),
+                               unknowns.end(),
+                               ", ",
+                               write_node_labels);
+        }
 
-        // Simplify recursively
-        simplify(&result.tree, min_node);
+        // TODO: we can sometimes eliminate CSG surfaces and nodes that aren't
+        // used by the actual volumes
     }
 
     return result;
+}
+
+//---------------------------------------------------------------------------//
+void UnitProto::output(JsonPimpl* j) const
+{
+#if CELERITAS_USE_JSON
+    using json = nlohmann::json;
+
+    auto obj = json::object({{"label", input_.label}});
+
+    if (auto& bg = input_.background)
+    {
+        obj["background"] = {
+            {"fill", bg.fill.unchecked_get()},
+            {"label", bg.label},
+        };
+    }
+
+    obj["materials"] = [&ms = input_.materials] {
+        auto result = json::array();
+        for (auto const& m : ms)
+        {
+            result.push_back({
+                {"interior", m.interior},
+                {"fill", m.fill.get()},
+                {"label", m.label},
+            });
+        }
+        return result;
+    }();
+
+    obj["daughters"] = [&ds = input_.daughters] {
+        auto result = json::array();
+        for (auto const& d : ds)
+        {
+            result.push_back({
+                {"fill", d.fill->label()},
+                {"transform", d.transform},
+                {"zorder", to_cstring(d.zorder)},
+            });
+        }
+        return result;
+    }();
+
+    obj["boundary"] = {
+        {"interior", input_.boundary.interior},
+        {"zorder", to_cstring(input_.boundary.zorder)},
+    };
+
+    j->obj = std::move(obj);
+
+#else
+    CELER_DISCARD(j);
+#endif
 }
 
 //---------------------------------------------------------------------------//

@@ -72,9 +72,24 @@ class OpaqueId
     //! Post-increment of the ID
     CELER_FUNCTION OpaqueId operator++(int)
     {
-        CELER_EXPECT(*this);
         OpaqueId old{*this};
         ++*this;
+        return old;
+    }
+
+    //! Pre-decrement of the ID
+    CELER_FUNCTION OpaqueId& operator--()
+    {
+        CELER_EXPECT(*this && value_ > 0);
+        value_ -= 1;
+        return *this;
+    }
+
+    //! Post-decrement of the ID
+    CELER_FUNCTION OpaqueId operator--(int)
+    {
+        OpaqueId old{*this};
+        --*this;
         return old;
     }
 
