@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define/>
+
+  <materials>
+    <isotope N="54" Z="26" name="Fe54">
+      <atom unit="g/mole" value="53.9396"/>
+    </isotope>
+    <isotope N="56" Z="26" name="Fe56">
+      <atom unit="g/mole" value="55.9349"/>
+    </isotope>
+    <isotope N="57" Z="26" name="Fe57">
+      <atom unit="g/mole" value="56.9354"/>
+    </isotope>
+    <isotope N="58" Z="26" name="Fe58">
+      <atom unit="g/mole" value="57.9333"/>
+    </isotope>
+    <element name="Iron">
+      <fraction n="0.05845" ref="Fe54"/>
+      <fraction n="0.91754" ref="Fe56"/>
+      <fraction n="0.02119" ref="Fe57"/>
+      <fraction n="0.00282" ref="Fe58"/>
+    </element>
+    <material name="Iron" state="solid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="286"/>
+      <D unit="g/cm3" value="7.87"/>
+      <fraction n="1" ref="Iron"/>
+    </material>
+    <isotope N="14" Z="7" name="N14">
+      <atom unit="g/mole" value="14.0031"/>
+    </isotope>
+    <isotope N="15" Z="7" name="N15">
+      <atom unit="g/mole" value="15.0001"/>
+    </isotope>
+    <element name="Nitrogen">
+      <fraction n="0.99632" ref="N14"/>
+      <fraction n="0.00368" ref="N15"/>
+    </element>
+    <isotope N="16" Z="8" name="O16">
+      <atom unit="g/mole" value="15.9949"/>
+    </isotope>
+    <isotope N="17" Z="8" name="O17">
+      <atom unit="g/mole" value="16.9991"/>
+    </isotope>
+    <isotope N="18" Z="8" name="O18">
+      <atom unit="g/mole" value="17.9992"/>
+    </isotope>
+    <element name="Oxygen">
+      <fraction n="0.99757" ref="O16"/>
+      <fraction n="0.00038" ref="O17"/>
+      <fraction n="0.00205" ref="O18"/>
+    </element>
+    <isotope N="36" Z="18" name="Ar36">
+      <atom unit="g/mole" value="35.9675"/>
+    </isotope>
+    <isotope N="38" Z="18" name="Ar38">
+      <atom unit="g/mole" value="37.9627"/>
+    </isotope>
+    <isotope N="40" Z="18" name="Ar40">
+      <atom unit="g/mole" value="39.9624"/>
+    </isotope>
+    <element name="Argon">
+      <fraction n="0.003365" ref="Ar36"/>
+      <fraction n="0.000632" ref="Ar38"/>
+      <fraction n="0.996003" ref="Ar40"/>
+    </element>
+    <isotope N="1" Z="1" name="H1">
+      <atom unit="g/mole" value="1.00782503081372"/>
+    </isotope>
+    <isotope N="2" Z="1" name="H2">
+      <atom unit="g/mole" value="2.01410199966617"/>
+    </isotope>
+    <element name="Hydrogen">
+      <fraction n="0.999885" ref="H1"/>
+      <fraction n="0.000115" ref="H2"/>
+    </element>
+    <material name="Air" state="gas">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="85.5378230492444"/>
+      <D unit="g/cm3" value="0.001214"/>
+      <fraction n="0.7494" ref="Nitrogen"/>
+      <fraction n="0.2369" ref="Oxygen"/>
+      <fraction n="0.0129" ref="Argon"/>
+      <fraction n="0.0008" ref="Hydrogen"/>
+    </material>
+  </materials>
+
+  <solids>
+    <trd lunit="mm" name="Absorber0x3b492500" x1="309" x2="309" y1="336.492726413935" y2="377.759280220287" z="420"/>
+    <trd lunit="mm" name="G4Trd0x468ff600" x1="309" x2="309" y1="337.992726413935" y2="415.613149049693" z="790"/>
+    <trd lunit="mm" name="G4Trd0x468ff700" x1="214.15" x2="214.15" y1="337.879734659465" y2="337.992726413935" z="1.15000000000009"/>
+    <union name="Plug1Module0x48db80d0">
+      <first ref="G4Trd0x468ff600"/>
+      <second ref="G4Trd0x468ff700"/>
+      <position name="Plug1Module0x48db80d0_pos" unit="mm" x="-47.425" y="0" z="-395.575"/>
+    </union>
+    <trd lunit="mm" name="ITCModule0x468ff500" x1="309" x2="309" y1="293.665569866944" y2="415.613149049693" z="1241.15"/>
+  </solids>
+
+  <structure>
+    <volume name="Tile_Absorber0x3c278f00">
+      <materialref ref="Iron"/>
+      <solidref ref="Absorber0x3b492500"/>
+    </volume>
+    <volume name="Tile_Plug1Module0x44bf18e0">
+      <materialref ref="Air"/>
+      <solidref ref="Plug1Module0x48db80d0"/>
+      <physvol copynumber="16969" name="Tile_Absorber0x491dd9f0">
+        <volumeref ref="Tile_Absorber0x3c278f00"/>
+        <position name="Tile_Absorber0x491dd9f0_pos" unit="mm" x="0" y="0" z="-185"/>
+      </physvol>
+    </volume>
+    <volume name="Tile_ITCModule0x42009a40">
+      <materialref ref="Air"/>
+      <solidref ref="ITCModule0x468ff500"/>
+      <physvol copynumber="16969" name="Tile_Plug1Module0x491dd9a0">
+        <volumeref ref="Tile_Plug1Module0x44bf18e0"/>
+        <position name="Tile_Plug1Module0x491dd9a0_pos" unit="mm" x="0" y="0" z="225.575"/>
+      </physvol>
+    </volume>
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="Tile_ITCModule0x42009a40"/>
+  </setup>
+
+</gdml>
