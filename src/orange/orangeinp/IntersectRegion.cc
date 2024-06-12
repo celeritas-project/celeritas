@@ -321,12 +321,12 @@ void Ellipsoid::output(JsonPimpl* j) const
 }
 
 //---------------------------------------------------------------------------//
-// GENTRAP
+// GENPRISM
 //---------------------------------------------------------------------------//
 /*!
  * Construct from two simple, centered trapezoids.
  */
-GenTrap GenTrap::from_trd(real_type halfz, Real2 const& lo, Real2 const& hi)
+GenPrism GenPrism::from_trd(real_type halfz, Real2 const& lo, Real2 const& hi)
 {
     CELER_VALIDATE(lo[0] > 0, << "nonpositive lower x half-edge: " << lo[0]);
     CELER_VALIDATE(hi[0] > 0, << "nonpositive upper x half-edge: " << hi[0]);
@@ -340,7 +340,7 @@ GenTrap GenTrap::from_trd(real_type halfz, Real2 const& lo, Real2 const& hi)
     VecReal2 upper
         = {{hi[0], -hi[1]}, {hi[0], hi[1]}, {-hi[0], hi[1]}, {-hi[0], -hi[1]}};
 
-    return GenTrap{halfz, std::move(lower), std::move(upper)};
+    return GenPrism{halfz, std::move(lower), std::move(upper)};
 }
 
 //---------------------------------------------------------------------------//
@@ -356,7 +356,7 @@ GenTrap GenTrap::from_trd(real_type halfz, Real2 const& lo, Real2 const& hi)
  * \arg lo Trapezoidal face at -hz
  * \arg lo Trapezoidal face at +hz
  */
-GenTrap GenTrap::from_trap(
+GenPrism GenPrism::from_trap(
     real_type hz, Turn theta, Turn phi, TrapFace const& lo, TrapFace const& hi)
 {
     CELER_VALIDATE(hz > 0, << "nonpositive half-height: " << hz);
@@ -400,14 +400,14 @@ GenTrap GenTrap::from_trap(
                      {xoff - shear - face.hx_lo, yoff - face.hy}};
     }
 
-    return GenTrap{hz, std::move(points[0]), std::move(points[1])};
+    return GenPrism{hz, std::move(points[0]), std::move(points[1])};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct from half Z height and 1-4 vertices for top and bottom planes.
  */
-GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
+GenPrism::GenPrism(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
     : hz_{halfz}, lo_{std::move(lo)}, hi_{std::move(hi)}
 {
     CELER_VALIDATE(hz_ > 0, << "nonpositive halfheight: " << hz_);
@@ -464,7 +464,7 @@ GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
  * rightward direction vector of the lower and upper edges. If one edge is
  * degenerate, the twist angle is zero (cosine of 1).
  */
-real_type GenTrap::calc_twist_cosine(size_type i) const
+real_type GenPrism::calc_twist_cosine(size_type i) const
 {
     CELER_EXPECT(i < lo_.size());
 
@@ -485,7 +485,7 @@ real_type GenTrap::calc_twist_cosine(size_type i) const
 /*!
  * Build surfaces.
  */
-void GenTrap::build(IntersectSurfaceBuilder& insert_surface) const
+void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
 {
     constexpr int X = 0;
     constexpr int Y = 1;
@@ -570,7 +570,7 @@ void GenTrap::build(IntersectSurfaceBuilder& insert_surface) const
 /*!
  * Write output to the given JSON object.
  */
-void GenTrap::output(JsonPimpl* j) const
+void GenPrism::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
 }

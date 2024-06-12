@@ -199,19 +199,21 @@ class Ellipsoid final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * A generalized polygon with flat faces along the z axis.
+ * A generalized polygon with parallel flat faces along the z axis.
  *
- * A GenTrap, like VecGeom's equivalent and ROOT's Arb8, represents a general
- * trapezoidal volume with up to eight vertices, or two 4-point sets, sitting
- * on two parallel planes perpendicular to the Z axis.
+ * A GenPrism, like VecGeom's GenPrism, ROOT's Arb8, and Geant4's
+ * G4GenericTrap, represents a generalized volume with polyhedral faces on two
+ * parallel planes perpendicular to the Z axis. Unlike those other codes, the
+ * number of faces can be arbitrary in number.
+ *
+ * The faces have an orientation and ordering so that \em rotated faces,
+ * hyperbolic paraboloids, can be constructed as sides in place of planes.
  *
  * Trapezoids constructed from the helper functions will have sides that are
  * same ordering as a prism: the rightward face is first (normal is along the
  * +x axis), then the others follow counterclockwise.
- *
- * TODO: Add proper treatment for degenerate cases.
  */
-class GenTrap final : public IntersectRegionInterface
+class GenPrism final : public IntersectRegionInterface
 {
   public:
     //!@{
@@ -236,18 +238,18 @@ class GenTrap final : public IntersectRegionInterface
   public:
     // Helper function to construct a Trd shape from hz and two rectangles,
     // one for each z-face
-    static GenTrap from_trd(real_type halfz, Real2 const& lo, Real2 const& hi);
+    static GenPrism from_trd(real_type halfz, Real2 const& lo, Real2 const& hi);
 
     // Helper function to construct a general trap from its half-height and
     // the two trapezoids defining its lower and upper faces
-    static GenTrap from_trap(real_type hz,
-                             Turn theta,
-                             Turn phi,
-                             TrapFace const& lo,
-                             TrapFace const& hi);
+    static GenPrism from_trap(real_type hz,
+                              Turn theta,
+                              Turn phi,
+                              TrapFace const& lo,
+                              TrapFace const& hi);
 
     // Construct from half Z height and 4 vertices for top and bottom planes
-    GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi);
+    GenPrism(real_type halfz, VecReal2 const& lo, VecReal2 const& hi);
 
     // Build surfaces
     void build(IntersectSurfaceBuilder&) const final;

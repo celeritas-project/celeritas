@@ -670,11 +670,12 @@ TEST_F(InputBuilderTest, incomplete_bb)
         inp.boundary.zorder = ZOrder::media;
         inp.label = "inner";
 
-        using VR2 = GenTrap::VecReal2;
-        auto trd = make_shape<GenTrap>("turd",
-                                       real_type{3},
-                                       VR2{{-1, -1}, {1, -1}, {1, 1}, {-1, 1}},
-                                       VR2{{-2, -2}, {2, -2}, {2, 2}, {-2, 2}});
+        using VR2 = GenPrism::VecReal2;
+        auto trd
+            = make_shape<GenPrism>("turd",
+                                   real_type{3},
+                                   VR2{{-1, -1}, {1, -1}, {1, 1}, {-1, 1}},
+                                   VR2{{-2, -2}, {2, -2}, {2, 2}, {-2, 2}});
         inp.materials.push_back(
             make_material(make_rdv("fill",
                                    {{Sense::inside, inp.boundary.interior},
