@@ -591,7 +591,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     CELER_EXPECT(this->is_on_boundary());
     CELER_EXPECT(!this->has_next_step());
 
-    auto sl = this->surface_level();
+    LevelId sl = this->surface_level();
     auto lsa = this->make_lsa(sl);
 
     if (CELER_UNLIKELY(this->boundary() == BoundaryResult::reentrant))
@@ -617,7 +617,8 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
         local.dir = t.rotate_down(local.dir);
     };
 
-    // Update the post-crossing volume
+    // Update the post-crossing volume by crossing the boundary of the "surface
+    // crossing" level universes
     TrackerVisitor visit_tracker{params_};
     auto tinit = visit_tracker(
         [&local](auto&& t) { return t.cross_boundary(local); }, lsa.universe());
