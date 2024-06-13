@@ -8,7 +8,9 @@
 #pragma once
 
 #include <cmath>
+#include <numeric>
 
+#include "corecel/math/SoftEqual.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/neutron/data/NeutronInelasticData.hh"
@@ -38,9 +40,9 @@ class NuclearZoneBuilder
 
   public:
     // Construct with cascade options and shared data
-    explicit inline NuclearZoneBuilder(CascadeOptions const& options,
-                                       NeutronInelasticScalars const& scalars,
-                                       Data* data);
+    inline NuclearZoneBuilder(CascadeOptions const& options,
+                              NeutronInelasticScalars const& scalars,
+                              Data* data);
 
     // Construct nuclear zone data for a target (isotope)
     inline void operator()(IsotopeView const& target);
@@ -138,7 +140,15 @@ void NuclearZoneBuilder::operator()(IsotopeView const& target)
  */
 size_type NuclearZoneBuilder::num_nuclear_zones(AtomicMassNumber a)
 {
-    return (a.get() < 5) ? 1 : (a.get() < 100) ? 3 : 6;
+    if (a < AtomicMassNumber{5})
+    {
+        return 1;
+    }
+    if (a < AtomicMassNumber{100})
+    {
+        return 3;
+    }
+    return 6;
 }
 
 //---------------------------------------------------------------------------//
@@ -161,53 +171,43 @@ void NuclearZoneBuilder::calc_zone_component(IsotopeView const& target,
 
     // Temporary data for the zone-by-zone density function
     size_type num_of_zones = components.size();
-    std::vector<real_type> ur(num_of_zones + 1);
     std::vector<real_type> integral(num_of_zones);
-    real_type total_integral{0};
 
     // Fill the nuclear radius by each zone
     auto amass = a.get();
-    ur[0] = (amass < 12) ? 0 : -skin_ratio;
+    real_type ymin = (amass < 12) ? 0 : -skin_ratio;
 
     if (amass < 5)
     {
         // Light ions treated as simple balls
         components[0].radius = nuclear_radius;
         integral[0] = 1;
-        total_integral = integral[0];
+    }
+    else if (amass < 12)
+    {
+        // Small nuclei have a three-zone Gaussian potential
+        real_type gauss_radius = std::sqrt(
+            ipow<2>(nuclear_radius) * (1 - 1 / static_cast<real_type>(amass))
+            + real_type{6.4});
+        // Precompute y = sqrt(-log(alpha)) where alpha[3] = {0.7, 0.3, 0.01}
+        constexpr Real3 y = {0.597223, 1.09726, 2.14597};
+        for (auto i : range(num_of_zones))
+        {
+            components[i].radius = gauss_radius * y[i];
+            integral[i] = this->integrate_gaussian(ymin, y[i], gauss_radius);
+            ymin = y[i];
+        }
     }
     else if (amass < 100)
     {
+        // Intermediate nuclei have a three-zone Woods-Saxon potential
         constexpr Real3 alpha = {0.7, 0.3, 0.01};
-        if (amass < 12)
+        for (auto i : range(num_of_zones))
         {
-            // Small nuclei have a three-zone Gaussian potential
-            real_type gauss_radius
-                = std::sqrt(ipow<2>(nuclear_radius)
-                                * (1 - 1 / static_cast<real_type>(amass))
-                            + real_type{6.4});
-            for (auto i : range(num_of_zones))
-            {
-                real_type y = std::sqrt(-std::log(alpha[i]));
-                components[i].radius = gauss_radius * y;
-                ur[i + 1] = y;
-                integral[i]
-                    = this->integrate_gaussian(ur[i], ur[i + 1], gauss_radius);
-                total_integral += integral[i];
-            }
-        }
-        else
-        {
-            // Intermediate nuclei have a three-zone Woods-Saxon potential
-            for (auto i : range(num_of_zones))
-            {
-                real_type y = std::log((1 + skin_decay) / alpha[i] - 1);
-                components[i].radius = nuclear_radius + skin_depth_ * y;
-                ur[i + 1] = y;
-                integral[i] = this->integrate_woods_saxon(
-                    ur[i], ur[i + 1], nuclear_radius);
-                total_integral += integral[i];
-            }
+            real_type y = std::log((1 + skin_decay) / alpha[i] - 1);
+            components[i].radius = nuclear_radius + skin_depth_ * y;
+            integral[i] = this->integrate_woods_saxon(ymin, y, nuclear_radius);
+            ymin = y;
         }
     }
     else
@@ -219,14 +219,12 @@ void NuclearZoneBuilder::calc_zone_component(IsotopeView const& target,
         {
             real_type y = std::log((1 + skin_decay) / alpha[i] - 1);
             components[i].radius = nuclear_radius + skin_depth_ * y;
-            ur[i + 1] = y;
-            integral[i] = this->integrate_woods_saxon(
-                ur[i], ur[i + 1], nuclear_radius);
-            total_integral += integral[i];
+            integral[i] = this->integrate_woods_saxon(ymin, y, nuclear_radius);
+            ymin = y;
         }
     }
-
-    ur.clear();
+    real_type total_integral
+        = std::accumulate(integral.begin(), integral.end(), real_type{0});
 
     // Fill the nuclear volume by each zone
     for (auto i : range(num_of_zones))
@@ -263,8 +261,6 @@ void NuclearZoneBuilder::calc_zone_component(IsotopeView const& target,
                   + dm[ptype];
         }
     }
-
-    integral.clear();
 }
 
 //---------------------------------------------------------------------------//
@@ -351,7 +347,7 @@ real_type NuclearZoneBuilder::integrate_gaussian(real_type rmin,
         = this->half() * delta_r
           * (rmin_sq * std::exp(-rmin_sq) + rmax_sq * std::exp(-rmax_sq));
 
-    real_type result = integrate_potential(false, rmin, delta_r, integral);
+    real_type result = integrate_potential(rmin, delta_r, integral);
 
     return ipow<3>(gauss_radius) * result;
 }
@@ -374,6 +370,8 @@ real_type NuclearZoneBuilder::integrate_potential(real_type rmin,
 
     bool succeeded = false;
     int remaining_trials = max_trials;
+    SoftEqual const soft_eq{epsilon};
+
     do
     {
         delta_r *= this->half();
@@ -390,7 +388,7 @@ real_type NuclearZoneBuilder::integrate_potential(real_type rmin,
 
         result = this->half() * integral + fi * delta_r;
 
-        if (std::fabs(1 - integral / result) < epsilon)
+        if (soft_eq(1, integral / result))
         {
             succeeded = true;
         }
