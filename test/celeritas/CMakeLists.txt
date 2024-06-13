@@ -73,6 +73,7 @@ celeritas_add_test_library(testcel_celeritas
   MockTestBase.cc
   RootTestBase.cc
   SimpleTestBase.cc
+  em/MscTestBase.cc
   field/FieldTestBase.cc
   global/AlongStepTestBase.cc
   global/StepperTestBase.cc
@@ -135,6 +136,8 @@ celeritas_add_test(em/SeltzerBerger.test.cc ${_needs_double})
 celeritas_add_test(em/CoulombScattering.test.cc ${_fixme_single})
 
 celeritas_add_test(em/UrbanMsc.test.cc ${_needs_root}
+  ${_optional_geant4_env})
+celeritas_add_test(em/WentzelVIMsc.test.cc ${_needs_root}
   ${_optional_geant4_env})
 
 #-----------------------------------------------------------------------------#

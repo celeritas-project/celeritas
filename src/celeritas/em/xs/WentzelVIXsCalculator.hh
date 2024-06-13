@@ -22,7 +22,8 @@ namespace celeritas
 /*!
  * Calculate the total cross section for the Wentzel VI MSC model.
  *
- * \note This performs the same calculation as the Geant4 method
+ * \note This performs the same calculation of the total cross section (\c
+ * xtsec) as the Geant4 method
  * G4WentzelVIModel::ComputeTransportXSectionPerVolume.
  */
 class WentzelVIXsCalculator
