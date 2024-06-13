@@ -9,6 +9,7 @@
 
 #include <cmath>
 #include <numeric>
+#include <vector>
 
 #include "corecel/cont/Span.hh"
 #include "corecel/math/Integrator.hh"
@@ -121,19 +122,17 @@ auto NuclearZoneBuilder::calc_zone_components(IsotopeView const& target) const
     -> ComponentVec
 {
     using A = AtomicNumber;
-    A const a = target.atomic_mass_number();
+    using R = real_type;
 
     // Calculate nuclear radius
+    A const a = target.atomic_mass_number();
     real_type nuclear_radius = this->calc_nuclear_radius(a);
-    real_type skin_ratio = nuclear_radius / skin_depth_;
 
     // Temporary data for the zone-by-zone density function
     std::vector<real_type> radii;
     std::vector<real_type> integral;
 
     // Fill the nuclear radius by each zone
-    real_type ymin = (a < A{12}) ? 0 : -skin_ratio;
-
     if (a < A{5})
     {
         // Light ions treated as simple balls
@@ -151,39 +150,41 @@ auto NuclearZoneBuilder::calc_zone_components(IsotopeView const& target) const
             [](real_type r) { return ipow<2>(r) * std::exp(-ipow<2>(r)); }};
 
         // Precompute y = sqrt(-log(alpha)) where alpha[3] = {0.7, 0.3, 0.01}
-        constexpr Real3 y = {0.597223, 1.09726, 2.14597};
-        for (auto i : range(y.size()))
+        real_type ymin = 0;
+        for (auto y : {R{0.597223}, R{1.09726}, R{2.14597}})
         {
-            radii.push_back(gauss_radius * y[i]);
+            radii.push_back(gauss_radius * y);
             integral.push_back(ipow<3>(gauss_radius)
-                               * integrate_gauss(ymin, y[i]));
-            ymin = y[i];
+                               * integrate_gauss(ymin, y));
+            ymin = y;
         }
     }
     else
     {
         // Heavier nuclei use Woods-Saxon potential: three zones for
         // intermediate nuclei, six zones for heavy (A >= 100)
-        Span<real_type const> alpha;
+        Span<real_type const> all_alpha;
         if (a < A{100})
         {
             static real_type const alpha_i[] = {0.7, 0.3, 0.01};
-            alpha = make_span(alpha_i);
+            all_alpha = make_span(alpha_i);
         }
         else
         {
             static real_type const alpha_h[] = {0.9, 0.6, 0.4, 0.2, 0.1, 0.05};
-            alpha = make_span(alpha_h);
+            all_alpha = make_span(alpha_h);
         }
 
+        real_type skin_ratio = nuclear_radius / skin_depth_;
         real_type skin_decay = std::exp(-skin_ratio);
         Integrator integrate_ws{[ws_shift = 2 * skin_ratio](real_type r) {
             return r * (r + ws_shift) / (1 + std::exp(r));
         }};
 
-        for (auto i : range(alpha.size()))
+        real_type ymin = -skin_ratio;
+        for (auto alpha : all_alpha)
         {
-            real_type y = std::log((1 + skin_decay) / alpha[i] - 1);
+            real_type y = std::log((1 + skin_decay) / alpha - 1);
             radii.push_back(nuclear_radius + skin_depth_ * y);
 
             integral.push_back(ipow<3>(skin_depth_)
