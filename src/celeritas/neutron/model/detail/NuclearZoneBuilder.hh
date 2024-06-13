@@ -10,6 +10,7 @@
 #include <cmath>
 #include <numeric>
 
+#include "corecel/cont/Span.hh"
 #include "corecel/math/Integrator.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/mat/IsotopeView.hh"
@@ -53,15 +54,6 @@ class NuclearZoneBuilder
 
     // Calculate components of nuclear zone properties
     inline ComponentVec calc_zone_components(IsotopeView const& target) const;
-
-    // Integrate the Woods-Saxon potential in [rmin, rmax]
-    inline real_type integrate_woods_saxon(real_type rmin,
-                                           real_type rmax,
-                                           real_type radius) const;
-
-    // Integrate the Gaussoan potential in [rmin, rmax]
-    inline real_type
-    integrate_gaussian(real_type rmin, real_type rmax, real_type radius) const;
 
   private:
     //// DATA ////
@@ -115,72 +107,90 @@ void NuclearZoneBuilder::operator()(IsotopeView const& target)
  * Calculate components of nuclear zone data: the nuclear zone radius, volume,
  * density, Fermi momentum and potential function as in G4NucleiModel and as
  * documented in section 24.2.3 of the Geant4 Physics Reference (release 11.2).
+ *
+ * The Woods-Saxon potential, \f$ V(r) \f$,
+ *
+ * \f[
+     V(r) = frac{V_{o}}{1 + e^{\frac{r - R}{a}}}
+   \f]
+ * numerically over the volume from \f$ r_{min} \f$ to \f$ r_{rmax} \f$, where
+ * \f$ V_{o}, R, a\f$ are the potential well depth, nuclear radius, and
+ * surface thickness (skin depth), respectively.
  */
 auto NuclearZoneBuilder::calc_zone_components(IsotopeView const& target) const
     -> ComponentVec
 {
-    AtomicNumber a = target.atomic_mass_number();
+    using A = AtomicNumber;
+    A const a = target.atomic_mass_number();
 
     // Calculate nuclear radius
     real_type nuclear_radius = this->calc_nuclear_radius(a);
-
     real_type skin_ratio = nuclear_radius / skin_depth_;
-    real_type skin_decay = std::exp(-skin_ratio);
 
     // Temporary data for the zone-by-zone density function
     std::vector<real_type> radii;
     std::vector<real_type> integral;
 
     // Fill the nuclear radius by each zone
-    auto amass = a.get();
-    real_type ymin = (amass < 12) ? 0 : -skin_ratio;
+    real_type ymin = (a < A{12}) ? 0 : -skin_ratio;
 
-    if (amass < 5)
+    if (a < A{5})
     {
         // Light ions treated as simple balls
         radii.push_back(nuclear_radius);
         integral.push_back(1);
     }
-    else if (amass < 12)
+    else if (a < A{12})
     {
         // Small nuclei have a three-zone Gaussian potential
         real_type gauss_radius = std::sqrt(
-            ipow<2>(nuclear_radius) * (1 - 1 / static_cast<real_type>(amass))
+            ipow<2>(nuclear_radius) * (1 - 1 / static_cast<real_type>(a.get()))
             + real_type{6.4});
+
+        Integrator integrate_gauss{
+            [](real_type r) { return ipow<2>(r) * std::exp(-ipow<2>(r)); }};
 
         // Precompute y = sqrt(-log(alpha)) where alpha[3] = {0.7, 0.3, 0.01}
         constexpr Real3 y = {0.597223, 1.09726, 2.14597};
         for (auto i : range(y.size()))
         {
             radii.push_back(gauss_radius * y[i]);
-            integral.push_back(
-                this->integrate_gaussian(ymin, y[i], gauss_radius));
+            integral.push_back(ipow<3>(gauss_radius)
+                               * integrate_gauss(ymin, y[i]));
             ymin = y[i];
-        }
-    }
-    else if (amass < 100)
-    {
-        // Intermediate nuclei have a three-zone Woods-Saxon potential
-        constexpr Real3 alpha = {0.7, 0.3, 0.01};
-        for (auto i : range(alpha.size()))
-        {
-            real_type y = std::log((1 + skin_decay) / alpha[i] - 1);
-            radii.push_back(nuclear_radius + skin_depth_ * y);
-            integral.push_back(
-                this->integrate_woods_saxon(ymin, y, nuclear_radius));
-            ymin = y;
         }
     }
     else
     {
-        // Heavy nuclei have a six-zone Woods-Saxon potential
-        constexpr Array<real_type, 6> alpha = {0.9, 0.6, 0.4, 0.2, 0.1, 0.05};
+        // Heavier nuclei use Woods-Saxon potential: three zones for
+        // intermediate nuclei, six zones for heavy (A >= 100)
+        Span<real_type const> alpha;
+        if (a < A{100})
+        {
+            static real_type const alpha_i[] = {0.7, 0.3, 0.01};
+            alpha = make_span(alpha_i);
+        }
+        else
+        {
+            static real_type const alpha_h[] = {0.9, 0.6, 0.4, 0.2, 0.1, 0.05};
+            alpha = make_span(alpha_h);
+        }
+
+        real_type skin_decay = std::exp(-skin_ratio);
+        Integrator integrate_ws{[ws_shift = 2 * skin_ratio](real_type r) {
+            return r * (r + ws_shift) / (1 + std::exp(r));
+        }};
+
         for (auto i : range(alpha.size()))
         {
             real_type y = std::log((1 + skin_decay) / alpha[i] - 1);
             radii.push_back(nuclear_radius + skin_depth_ * y);
-            integral.push_back(
-                this->integrate_woods_saxon(ymin, y, nuclear_radius));
+
+            integral.push_back(ipow<3>(skin_depth_)
+                               * (integrate_ws(ymin, y)
+                                  + ipow<2>(skin_ratio)
+                                        * std::log((1 + std::exp(-ymin))
+                                                   / (1 + std::exp(-y)))));
             ymin = y;
         }
     }
@@ -262,49 +272,6 @@ real_type NuclearZoneBuilder::calc_nuclear_radius(AtomicMassNumber a) const
     }
 
     return nuclear_radius;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Integrate the Woods-Saxon potential, \f$ V(r) \f$,
- *
- * \f[
-     V(r) = frac{V_{o}}{1 + e^{\frac{r - R}{a}}}
-   \f]
- * numerically over the volume from \f$ r_{min} \f$ to \f$ r_{rmax} \f$, where
- * \f$ V_{o}, R, a\f$ are the potential well depth, nuclear radius, and
- * surface thickness (skin depth), respectively.
- */
-real_type
-NuclearZoneBuilder::integrate_woods_saxon(real_type rmin,
-                                          real_type rmax,
-                                          real_type nuclear_radius) const
-{
-    real_type skin_ratio = nuclear_radius / skin_depth_;
-    Integrator integrate_ws{[ws_shift = 2 * skin_ratio](real_type r) {
-        return r * (r + ws_shift) / (1 + std::exp(r));
-    }};
-
-    real_type result = integrate_ws(rmin, rmax);
-
-    return ipow<3>(skin_depth_)
-           * (result
-              + ipow<2>(skin_ratio)
-                    * std::log((1 + std::exp(-rmin)) / (1 + std::exp(-rmax))));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Integrate the Gaussian potential function from \f$ r_1 \f$ to \f$ r_2 \f$.
- */
-real_type NuclearZoneBuilder::integrate_gaussian(real_type rmin,
-                                                 real_type rmax,
-                                                 real_type gauss_radius) const
-{
-    Integrator integrate_gauss{
-        [](real_type r) { return ipow<2>(r) * std::exp(-ipow<2>(r)); }};
-
-    return ipow<3>(gauss_radius) * integrate_gauss(rmin, rmax);
 }
 
 //---------------------------------------------------------------------------//
