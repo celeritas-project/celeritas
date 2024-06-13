@@ -92,7 +92,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
     g4org/ProtoConstructor.cc
     g4org/SolidConverter.cc
   )
-  celeritas_get_g4libs(_cg4org_libs geometry)
+  celeritas_get_g4libs(_cg4org_libs geometry materials)
   list(APPEND _cg4org_libs Celeritas::corecel Celeritas::geocel)
 
   celeritas_add_object_library(geocel_g4org ${_cg4org_sources})

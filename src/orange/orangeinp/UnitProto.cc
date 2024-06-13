@@ -11,6 +11,7 @@
 #include <numeric>
 
 #include "celeritas_config.h"
+#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeInput.hh"
@@ -436,7 +437,27 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
     {
         // Replace "exterior" with "False" (i.e. interior with true)
         NodeId ext_node = result.volumes[ext_vol.unchecked_get()];
-        replace_and_simplify(&result.tree, ext_node, False{});
+        auto unknowns = replace_and_simplify(&result.tree, ext_node, False{});
+        if (!unknowns.empty())
+        {
+            auto write_node_labels = [&md = result.metadata](std::ostream& os,
+                                                             NodeId nid) {
+                CELER_ASSERT(nid < md.size());
+                auto const& labels = md[nid.get()];
+                os << '{' << join(labels.begin(), labels.end(), ", ") << '}';
+            };
+            CELER_LOG(warning)
+                << "While building '" << this->label()
+                << "', encountered surfaces that could not be logically "
+                   "eliminated from the boundary: "
+                << join_stream(unknowns.begin(),
+                               unknowns.end(),
+                               ", ",
+                               write_node_labels);
+        }
+
+        // TODO: we can sometimes eliminate CSG surfaces and nodes that aren't
+        // used by the actual volumes
     }
 
     return result;

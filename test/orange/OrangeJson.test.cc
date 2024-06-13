@@ -827,5 +827,26 @@ TEST_F(InputBuilderTest, incomplete_bb)
 }
 
 //---------------------------------------------------------------------------//
+// TODO: see celeritas-project/celeritas#1260
+TEST_F(InputBuilderTest, DISABLED_universe_union_boundary)
+{
+    {
+        SCOPED_TRACE("pz");
+        auto result = this->track({0, 0, -15}, {0, 0, 1});
+
+        static char const* const expected_volumes[]
+            = {"shell", "bottomsph", "bite", "shell"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {11.234, 10, 4, 9.766};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        SCOPED_TRACE("mz");
+        auto result = this->track({0, 0, 15}, {0, 0, -1});
+        result.print_expected();
+    }
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

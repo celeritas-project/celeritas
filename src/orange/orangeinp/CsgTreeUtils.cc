@@ -36,10 +36,9 @@ namespace orangeinp
  * - constant: check for contradiction
  *
  * This operation is at worst O((number of nodes) * (depth of graph)).
- *
- * \return Node ID of the lowest node that required simplification.
  */
-void replace_and_simplify(CsgTree* tree, NodeId repl_key, Node repl_value)
+std::vector<NodeId>
+replace_and_simplify(CsgTree* tree, NodeId repl_key, Node repl_value)
 {
     CELER_EXPECT(tree);
     CELER_EXPECT(repl_key < tree->size());
@@ -90,20 +89,26 @@ void replace_and_simplify(CsgTree* tree, NodeId repl_key, Node repl_value)
         }
     } while (simplifying);
 
+    std::vector<NodeId> unknown_surface_nodes;
+
     // Replace nonliterals
     for (auto n : range(CsgTree::false_node_id() + 1, NodeId{tree->size()}))
     {
+        auto repl_state = state[n.get()];
         if (std::holds_alternative<Surface>((*tree)[n]))
         {
-            continue;
+            if (repl_state == NodeReplacer::unknown)
+            {
+                // Keep track of boundary surfaces that we can't prove, likely
+                // because of a union boundary
+                unknown_surface_nodes.push_back(n);
+            }
         }
-
-        auto repl_value = state[n.get()];
-        if (repl_value == NodeReplacer::known_true)
+        else if (repl_state == NodeReplacer::known_true)
         {
             tree->exchange(n, Node{True{}});
         }
-        else if (repl_value == NodeReplacer::known_false)
+        else if (repl_state == NodeReplacer::known_false)
         {
             tree->exchange(n, Node{False{}});
         }
@@ -112,6 +117,7 @@ void replace_and_simplify(CsgTree* tree, NodeId repl_key, Node repl_value)
             tree->simplify(n);
         }
     }
+    return unknown_surface_nodes;
 }
 
 //---------------------------------------------------------------------------//
