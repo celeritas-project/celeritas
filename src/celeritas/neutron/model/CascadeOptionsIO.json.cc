@@ -22,12 +22,7 @@ namespace celeritas
  */
 void from_json(nlohmann::json const& j, CascadeOptions& opts)
 {
-#define FDO_INPUT(NAME)                    \
-    do                                     \
-    {                                      \
-        if (j.contains(#NAME))             \
-            j.at(#NAME).get_to(opts.NAME); \
-    } while (0)
+#define FDO_INPUT(NAME) CELER_JSON_LOAD_OPTION(j, opts, NAME)
 
     FDO_INPUT(use_precompound);
     FDO_INPUT(use_abla);
