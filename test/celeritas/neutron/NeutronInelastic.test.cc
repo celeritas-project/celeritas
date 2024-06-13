@@ -190,7 +190,7 @@ TEST_F(NeutronInelasticTest, model_data)
 
     // Check the size of the number of nuclear zones
     NuclearZones he3_nuclear_zones = shared.nuclear_zones.zones[iso_id];
-    EXPECT_EQ(he3_nuclear_zones.num_zones, 1);
+    EXPECT_EQ(he3_nuclear_zones.zones.size(), 1);
 
     // Check zone data
     for (auto sid : he3_nuclear_zones.zones)
@@ -213,7 +213,7 @@ TEST_F(NeutronInelasticTest, model_data)
 
     // Check the size of the number of nuclear zones
     NuclearZones cu63_nuclear_zones = shared.nuclear_zones.zones[iso_cu63];
-    EXPECT_EQ(cu63_nuclear_zones.num_zones, 3);
+    EXPECT_EQ(cu63_nuclear_zones.zones.size(), 3);
 
     // Check zone data
     std::vector<real_type> radii;
@@ -266,7 +266,7 @@ TEST_F(NeutronInelasticTest, model_data)
 
     // Check the size of the number of nuclear zones
     NuclearZones pb208_nuclear_zones = shared.nuclear_zones.zones[iso_pb208];
-    EXPECT_EQ(pb208_nuclear_zones.num_zones, 6);
+    EXPECT_EQ(pb208_nuclear_zones.zones.size(), 6);
 
     // Check zone data
     radii.clear();
@@ -327,7 +327,7 @@ TEST_F(NeutronInelasticTest, model_data)
 
     // Check the size of the number of nuclear zones
     NuclearZones b11_nuclear_zones = shared.nuclear_zones.zones[iso_b11];
-    EXPECT_EQ(b11_nuclear_zones.num_zones, 3);
+    EXPECT_EQ(b11_nuclear_zones.zones.size(), 3);
 
     // Clear zone data
     radii.clear();

@@ -84,14 +84,10 @@ struct ZoneComponent
  */
 struct NuclearZones
 {
-    size_type num_zones{};
     ItemRange<ZoneComponent> zones;
 
     //! Whether all data are assigned and valid
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return num_zones > 0 && !zones.empty();
-    }
+    explicit CELER_FUNCTION operator bool() const { return !zones.empty(); }
 };
 
 //---------------------------------------------------------------------------//
