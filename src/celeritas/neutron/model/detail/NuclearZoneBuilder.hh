@@ -10,7 +10,7 @@
 #include <cmath>
 #include <numeric>
 
-#include "corecel/math/SoftEqual.hh"
+#include "corecel/math/Integrator.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/neutron/data/NeutronInelasticData.hh"
@@ -66,12 +66,6 @@ class NuclearZoneBuilder
     // Integrate the Gaussoan potential in [rmin, rmax]
     inline real_type
     integrate_gaussian(real_type rmin, real_type rmax, real_type radius) const;
-
-    // Integrate a nuclear potential by adaptive quadrature
-    inline real_type integrate_potential(real_type rmin,
-                                         real_type delta_r,
-                                         real_type integral1,
-                                         real_type ws_shift = 0) const;
 
   private:
     //// DATA ////
@@ -311,16 +305,11 @@ NuclearZoneBuilder::integrate_woods_saxon(real_type rmin,
                                           real_type nuclear_radius) const
 {
     real_type skin_ratio = nuclear_radius / skin_depth_;
+    Integrator integrate_ws{[ws_shift = 2 * skin_ratio](real_type r) {
+        return r * (r + ws_shift) / (1 + std::exp(r));
+    }};
 
-    real_type ws_shift = 2 * skin_ratio;
-    real_type delta_r = rmax - rmin;
-
-    // Average value of \f$ r^{2} V(r) dr \f$ at boundaries
-    real_type integral = half() * delta_r
-                         * (rmin * (rmin + ws_shift) / (1 + std::exp(rmin))
-                            + rmax * (rmax + ws_shift) / (1 + std::exp(rmax)));
-
-    real_type result = integrate_potential(rmin, delta_r, integral, ws_shift);
+    real_type result = integrate_ws(rmin, rmax);
 
     return ipow<3>(skin_depth_)
            * (result
@@ -336,68 +325,10 @@ real_type NuclearZoneBuilder::integrate_gaussian(real_type rmin,
                                                  real_type rmax,
                                                  real_type gauss_radius) const
 {
-    real_type delta_r = rmax - rmin;
-    real_type rmin_sq = ipow<2>(rmin);
-    real_type rmax_sq = ipow<2>(rmax);
+    Integrator integrate_gauss{
+        [](real_type r) { return ipow<2>(r) * std::exp(-ipow<2>(r)); }};
 
-    real_type integral
-        = this->half() * delta_r
-          * (rmin_sq * std::exp(-rmin_sq) + rmax_sq * std::exp(-rmax_sq));
-
-    real_type result = integrate_potential(rmin, delta_r, integral);
-
-    return ipow<3>(gauss_radius) * result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Integrate a nuclear potential numerically by adaptive quadrature.
- */
-real_type NuclearZoneBuilder::integrate_potential(real_type rmin,
-                                                  real_type delta_r,
-                                                  real_type integral,
-                                                  real_type ws_shift) const
-{
-    constexpr int max_trials = 1000;
-    constexpr real_type epsilon = 1e-3;
-
-    int depth = 1;
-    real_type interval = delta_r;
-    real_type result = 0;
-
-    bool succeeded = false;
-    int remaining_trials = max_trials;
-    SoftEqual const soft_eq{epsilon};
-
-    do
-    {
-        delta_r *= this->half();
-
-        real_type r = rmin - delta_r;
-        real_type fi = 0;
-
-        for (int i = 0; i < depth; ++i)
-        {
-            r += interval;
-            fi += (ws_shift > 0) ? r * (r + ws_shift) / (1 + std::exp(r))
-                                 : ipow<2>(r) * std::exp(-ipow<2>(r));
-        }
-
-        result = this->half() * integral + fi * delta_r;
-
-        if (soft_eq(1, integral / result))
-        {
-            succeeded = true;
-        }
-        else
-        {
-            depth *= 2;
-            interval = delta_r;
-            integral = result;
-        }
-    } while (!succeeded && --remaining_trials > 0);
-
-    return result;
+    return ipow<3>(gauss_radius) * integrate_gauss(rmin, rmax);
 }
 
 //---------------------------------------------------------------------------//
