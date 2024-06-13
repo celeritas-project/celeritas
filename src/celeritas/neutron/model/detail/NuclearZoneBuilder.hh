@@ -101,7 +101,6 @@ class NuclearZoneBuilder
 /*!
  * Construct with cascade options and data.
  */
-CELER_FUNCTION
 NuclearZoneBuilder::NuclearZoneBuilder(CascadeOptions const& options,
                                        NeutronInelasticScalars const& scalars,
                                        Data* data)
@@ -129,7 +128,6 @@ void NuclearZoneBuilder::operator()(IsotopeView const& target)
     this->calc_zone_component(target, comp);
 
     NuclearZones nucl_zones;
-    nucl_zones.num_zones = num_zones;
     nucl_zones.zones = components_.insert_back(comp.begin(), comp.end());
     zones_.push_back(nucl_zones);
 }
@@ -157,7 +155,6 @@ size_type NuclearZoneBuilder::num_nuclear_zones(AtomicMassNumber a)
  * density, Fermi momentum and potential function as in G4NucleiModel and as
  * documented in section 24.2.3 of the Geant4 Physics Reference (release 11.2).
  */
-CELER_FUNCTION
 void NuclearZoneBuilder::calc_zone_component(IsotopeView const& target,
                                              ComponentVec& components)
 {
@@ -214,7 +211,6 @@ void NuclearZoneBuilder::calc_zone_component(IsotopeView const& target,
     {
         // Heavy nuclei have a six-zone Woods-Saxon potential
         constexpr Array<real_type, 6> alpha = {0.9, 0.6, 0.4, 0.2, 0.1, 0.05};
-
         for (auto i : range(num_of_zones))
         {
             real_type y = std::log((1 + skin_decay) / alpha[i] - 1);
@@ -238,16 +234,17 @@ void NuclearZoneBuilder::calc_zone_component(IsotopeView const& target,
     }
 
     // Fill the nuclear zone density, fermi momentum, and potential
-    int const dim = ZoneComponent::NucleonArray::size();
     int num_protons = target.atomic_number().get();
-    int num_nucleons[dim] = {num_protons, a.get() - num_protons};
-    real_type mass[dim] = {proton_mass_.value(), neutron_mass_.value()};
-    real_type dm[dim] = {target.proton_loss_energy().value(),
-                         target.neutron_loss_energy().value()};
+    int num_nucleons[] = {num_protons, a.get() - num_protons};
+    real_type mass[] = {proton_mass_.value(), neutron_mass_.value()};
+    real_type dm[] = {target.proton_loss_energy().value(),
+                      target.neutron_loss_energy().value()};
+    static_assert(std::size(mass) == ZoneComponent::NucleonArray::size());
+    static_assert(std::size(dm) == std::size(mass));
 
     for (auto i : range(num_of_zones))
     {
-        for (auto ptype : range(dim))
+        for (auto ptype : range(ZoneComponent::NucleonArray::size()))
         {
             components[i].density[ptype]
                 = static_cast<real_type>(num_nucleons[ptype]) * integral[i]
