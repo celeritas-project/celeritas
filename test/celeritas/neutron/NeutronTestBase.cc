@@ -95,7 +95,21 @@ NeutronTestBase::NeutronTestBase()
                          units::MevEnergy{8.004},
                          units::MevEnergy{7.368},
                          units::MevMass{193687.6762},
-                         "208Pb"}};
+                         "208Pb"},
+                        {AtomicNumber{5},
+                         AtomicNumber{10},
+                         units::MevEnergy{64.751},
+                         units::MevEnergy{6.587},
+                         units::MevEnergy{8.437},
+                         units::MevMass{9324.437},
+                         "10B"},
+                        {AtomicNumber{5},
+                         AtomicNumber{11},
+                         units::MevEnergy{76.205},
+                         units::MevEnergy{11.229},
+                         units::MevEnergy{11.454},
+                         units::MevMass{10252.548},
+                         "11B"}};
 
     // Elements
     mat_inp.elements = {{AtomicNumber{2},

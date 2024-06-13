@@ -321,6 +321,59 @@ TEST_F(NeutronInelasticTest, model_data)
     EXPECT_VEC_SOFT_EQ(expected_pb_densities, densities);
     EXPECT_VEC_SOFT_EQ(expected_pb_fermi_moms, fermi_moms);
     EXPECT_VEC_SOFT_EQ(expected_pb_potentials, potentials);
+
+    // Set the target to isotope B11 and validate the Gaussian potential
+    IsotopeId iso_b11{9};
+
+    // Check the size of the number of nuclear zones
+    NuclearZones b11_nuclear_zones = shared.nuclear_zones.zones[iso_b11];
+    EXPECT_EQ(b11_nuclear_zones.num_zones, 3);
+
+    // Clear zone data
+    radii.clear();
+    volumes.clear();
+    densities.clear();
+    fermi_moms.clear();
+    potentials.clear();
+
+    for (auto sid : b11_nuclear_zones.zones)
+    {
+        ZoneComponent components = shared.nuclear_zones.components[sid];
+        radii.push_back(components.radius);
+        volumes.push_back(components.volume);
+        for (auto nucleon_index : range(2))
+        {
+            densities.push_back(components.density[nucleon_index]);
+            fermi_moms.push_back(components.fermi_mom[nucleon_index]);
+            potentials.push_back(components.potential[nucleon_index]);
+        }
+    }
+
+    real_type const expected_b_radii[]
+        = {4.54355900675881, 8.34774540792328, 16.3261316488719};
+
+    real_type const expected_b_volumes[]
+        = {392.895565424687, 2043.77151146382, 15791.3107610447};
+
+    // clang-format off
+    real_type const expected_b_densities[]
+        = {0.00169984536247725, 0.0020398144349727, 0.000949798766722706,
+           0.00113975852006725, 0.00015141027051547, 0.000181692324618564};
+
+    real_type const expected_b_fermi_moms[]
+        = {230.573961004183, 245.021395491472, 189.911379816935,
+	   201.810955147759, 102.973522012059, 109.425695565028};
+
+    real_type const expected_b_potentials[]
+        = {39.5599907769562, 43.4025388663509, 30.4485502393036,
+	   33.1276701038221, 16.8795715233179, 17.8260857964719};
+    // clang-format on
+
+    EXPECT_VEC_SOFT_EQ(expected_b_radii, radii);
+    EXPECT_VEC_SOFT_EQ(expected_b_volumes, volumes);
+    EXPECT_VEC_SOFT_EQ(expected_b_densities, densities);
+    EXPECT_VEC_SOFT_EQ(expected_b_fermi_moms, fermi_moms);
+    EXPECT_VEC_SOFT_EQ(expected_b_potentials, potentials);
 }
 
 //---------------------------------------------------------------------------//
