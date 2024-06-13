@@ -36,7 +36,7 @@ struct CoulombParameters
     //! Factor used to calculate the maximum scattering angle off of a nucleus
     real_type a_sq_factor{real_type(0.5)
                           * ipow<2>(constants::hbar_planck * constants::c_light
-                                    * units::femtometer)};
+                                    / units::femtometer)};
     // Model for the form factor to use
     NuclearFormFactorType form_factor_type{NuclearFormFactorType::exponential};
 

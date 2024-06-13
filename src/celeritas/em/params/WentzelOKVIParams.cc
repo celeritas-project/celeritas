@@ -77,7 +77,7 @@ WentzelOKVIParams::WentzelOKVIParams(SPConstMaterials materials,
     host_data.params.a_sq_factor
         = real_type(0.5)
           * ipow<2>(options.angle_limit_factor * constants::hbar_planck
-                    * constants::c_light * units::femtometer);
+                    * constants::c_light / units::femtometer);
     host_data.params.screening_factor = options.screening_factor;
     host_data.params.form_factor_type = options.form_factor;
 
