@@ -62,6 +62,7 @@ list(APPEND SOURCES
   mat/MaterialParams.cc
   mat/MaterialParamsOutput.cc
   mat/detail/Utils.cc
+  neutron/model/CascadeOptions.cc
   neutron/process/NeutronElasticProcess.cc
   neutron/process/NeutronInelasticProcess.cc
   optical/CerenkovParams.cc
@@ -151,6 +152,7 @@ if(CELERITAS_USE_JSON)
     ext/GeantPhysicsOptionsIO.json.cc
     field/FieldDriverOptionsIO.json.cc
     field/RZMapFieldInputIO.json.cc
+    neutron/model/CascadeOptionsIO.json.cc
     phys/PrimaryGeneratorOptionsIO.json.cc
     user/RootStepWriterIO.json.cc
   )

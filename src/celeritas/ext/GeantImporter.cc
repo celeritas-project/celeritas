@@ -425,6 +425,29 @@ std::vector<ImportIsotope> import_isotopes()
         isotope.atomic_mass_number = g4isotope.GetN();
         isotope.binding_energy = G4NucleiProperties::GetBindingEnergy(
             isotope.atomic_mass_number, isotope.atomic_number);
+
+        // Binding energy difference for losing a nucleon
+        if (isotope.atomic_mass_number > 1 && isotope.atomic_number > 1
+            && isotope.atomic_mass_number >= isotope.atomic_number)
+        {
+            isotope.proton_loss_energy
+                = G4NucleiProperties::GetBindingEnergy(
+                      isotope.atomic_mass_number, isotope.atomic_number)
+                  - G4NucleiProperties::GetBindingEnergy(
+                      isotope.atomic_mass_number - 1,
+                      isotope.atomic_number - 1);
+            isotope.neutron_loss_energy
+                = G4NucleiProperties::GetBindingEnergy(
+                      isotope.atomic_mass_number, isotope.atomic_number)
+                  - G4NucleiProperties::GetBindingEnergy(
+                      isotope.atomic_mass_number - 1, isotope.atomic_number);
+        }
+        else
+        {
+            isotope.proton_loss_energy = 0;
+            isotope.neutron_loss_energy = 0;
+        }
+
         isotope.nuclear_mass = G4NucleiProperties::GetNuclearMass(
             isotope.atomic_mass_number, isotope.atomic_number);
     }

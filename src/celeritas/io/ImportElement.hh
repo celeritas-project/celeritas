@@ -22,10 +22,12 @@ namespace celeritas
 struct ImportIsotope
 {
     std::string name;  //!< Isotope label
-    int atomic_number;  //!< Atomic number Z
-    int atomic_mass_number;  //!< Atomic number A
-    double binding_energy;  //!< Nuclear binding energy [MeV]
-    double nuclear_mass;  //!< Sum of nucleons' mass + binding energy [MeV]
+    int atomic_number{0};  //!< Atomic number Z
+    int atomic_mass_number{0};  //!< Atomic number A
+    double binding_energy{0};  //!< Nuclear binding energy (BE) [MeV]
+    double proton_loss_energy{0};  //!< BE(A, Z) - BE(A-1, Z-1) [MeV]
+    double neutron_loss_energy{0};  //!< BE(A, Z) - BE(A-1, Z) [MeV]
+    double nuclear_mass{0};  //!< Sum of nucleons' mass + binding energy [MeV]
 };
 
 //---------------------------------------------------------------------------//
