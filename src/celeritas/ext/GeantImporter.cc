@@ -426,7 +426,7 @@ std::vector<ImportIsotope> import_isotopes()
         isotope.binding_energy = G4NucleiProperties::GetBindingEnergy(
             isotope.atomic_mass_number, isotope.atomic_number);
 
-        // Binding energy difference for lossing a nucleon
+        // Binding energy difference for losing a nucleon
         if (isotope.atomic_mass_number > 1 && isotope.atomic_number > 1
             && isotope.atomic_mass_number >= isotope.atomic_number)
         {
