@@ -3,18 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/xs/WentzelVIXsCalculator.hh
+//! \file celeritas/em/xs/WentzelMacroXsCalculator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Span.hh"
+#include "celeritas/em/data/WentzelOKVIData.hh"
 #include "celeritas/em/data/WentzelVIMscData.hh"
 #include "celeritas/mat/MaterialView.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
 
-#include "WentzelTransportXsCalculator.hh"
+#include "WentzelHelper.hh"
 
 namespace celeritas
 {
@@ -26,7 +27,7 @@ namespace celeritas
  * xtsec) as the Geant4 method
  * G4WentzelVIModel::ComputeTransportXSectionPerVolume.
  */
-class WentzelVIXsCalculator
+class WentzelMacroXsCalculator
 {
   public:
     //!@{
@@ -38,11 +39,11 @@ class WentzelVIXsCalculator
   public:
     // Construct with particle, material, and precalculatad Wentzel data
     inline CELER_FUNCTION
-    WentzelVIXsCalculator(ParticleTrackView const& particle,
-                          MaterialView const& material,
-                          NativeCRef<WentzelVIMscData> const& data,
-                          NativeCRef<WentzelOKVIData> const& wentzel,
-                          Energy cutoff);
+    WentzelMacroXsCalculator(ParticleTrackView const& particle,
+                             MaterialView const& material,
+                             NativeCRef<WentzelVIMscData> const& data,
+                             NativeCRef<WentzelOKVIData> const& wentzel,
+                             Energy cutoff);
 
     // Compute the total cross section for the given angle
     inline CELER_FUNCTION real_type operator()(real_type cos_theta) const;
@@ -62,7 +63,7 @@ class WentzelVIXsCalculator
  * Construct with shared model and material data.
  */
 CELER_FUNCTION
-WentzelVIXsCalculator::WentzelVIXsCalculator(
+WentzelMacroXsCalculator::WentzelMacroXsCalculator(
     ParticleTrackView const& particle,
     MaterialView const& material,
     NativeCRef<WentzelVIMscData> const& data,
@@ -81,7 +82,7 @@ WentzelVIXsCalculator::WentzelVIXsCalculator(
  * Compute the total cross section for the given angle.
  */
 CELER_FUNCTION real_type
-WentzelVIXsCalculator::operator()(real_type cos_theta) const
+WentzelMacroXsCalculator::operator()(real_type cos_theta) const
 {
     real_type result = 0;
 

@@ -10,7 +10,7 @@
 #include "celeritas/Units.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/em/params/WentzelVIMscParams.hh"
-#include "celeritas/em/xs/WentzelVIXsCalculator.hh"
+#include "celeritas/em/xs/WentzelMacroXsCalculator.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/mat/MaterialView.hh"
@@ -97,7 +97,7 @@ TEST_F(WentzelVIMscTest, total_xs)
         for (real_type theta :
              {0.0, 1e-4, 1e-3, 0.01, 0.05, 0.1, 0.15, constants::pi / 2})
         {
-            WentzelVIXsCalculator calc_xs(
+            WentzelMacroXsCalculator calc_xs(
                 particle, material, data, wentzel, cutoff);
             xs.push_back(calc_xs(std::cos(theta)));
         }
