@@ -85,12 +85,12 @@ NeutronInelasticModel::NeutronInelasticModel(ActionId id,
     CELER_ASSERT(data.xs_params.size() == data.nucleon_xs.size());
 
     // Build (A, Z)-dependent nuclear zone data
-    detail::NuclearZoneBuilder zone_builder(
+    detail::NuclearZoneBuilder build_nuclear_zones(
         options, data.scalars, &data.nuclear_zones);
 
     for (auto iso_id : range(IsotopeId{materials.num_isotopes()}))
     {
-        zone_builder(materials.get(iso_id));
+        build_nuclear_zones(materials.get(iso_id));
     }
     CELER_ASSERT(data.nuclear_zones.zones.size() == materials.num_isotopes());
 
