@@ -74,8 +74,8 @@ class NuclearZoneBuilder
 
     //// HELPER FUNCTIONS ////
 
-    // Calculate the nuclear radius
-    inline real_type calc_nuclear_radius(AtomicMassNumber a) const;
+    // Calculate components of nuclear zone properties
+    inline ComponentVec calc_zone_components(IsotopeView const& target) const;
 
     // Calculate zone densities for lightweight nuclei (A < 5)
     VecZoneDensity calc_zones_light(AtomicMassNumber a) const;
@@ -86,8 +86,8 @@ class NuclearZoneBuilder
     // Calculate zone densities for heavier nuclei (A >= 12)
     VecZoneDensity calc_zones_heavy(AtomicMassNumber a) const;
 
-    // Calculate components of nuclear zone properties
-    inline ComponentVec calc_zone_components(IsotopeView const& target) const;
+    // Calculate the nuclear radius
+    inline real_type calc_nuclear_radius(AtomicMassNumber a) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -121,6 +121,90 @@ void NuclearZoneBuilder::operator()(IsotopeView const& target)
     NuclearZones nucl_zones;
     nucl_zones.zones = components_.insert_back(comp.begin(), comp.end());
     zones_.push_back(nucl_zones);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate components of nuclear zone data.
+ *
+ * The nuclear zone radius, volume,
+ * density, Fermi momentum and potential function as in G4NucleiModel and as
+ * documented in section 24.2.3 of the Geant4 Physics Reference (release 11.2).
+ *
+ */
+auto NuclearZoneBuilder::calc_zone_components(IsotopeView const& target) const
+    -> ComponentVec
+{
+    using A = AtomicMassNumber;
+
+    // Calculate nuclear radius
+    A const a = target.atomic_mass_number();
+
+    // Calculate per-zone radius and potential integral
+    VecZoneDensity zone_dens;
+    if (a < A{5})
+    {
+        zone_dens = this->calc_zones_light(a);
+    }
+    else if (a < A{12})
+    {
+        zone_dens = this->calc_zones_small(a);
+    }
+    else
+    {
+        zone_dens = this->calc_zones_heavy(a);
+    }
+    CELER_ASSERT(!zone_dens.empty());
+
+    // Fill the differential nuclear volume by each zone
+    constexpr real_type four_thirds_pi = 4 * constants::pi / real_type{3};
+
+    ComponentVec components(zone_dens.size());
+    real_type prev_volume{0};
+    for (auto i : range(components.size()))
+    {
+        real_type volume = four_thirds_pi * ipow<3>(zone_dens[i].radius);
+
+        // Save radius and differential volume
+        components[i].radius = zone_dens[i].radius;
+        components[i].volume = volume - prev_volume;
+        prev_volume = volume;
+    }
+
+    // Fill the nuclear zone density, fermi momentum, and potential
+    int num_protons = target.atomic_number().get();
+    int num_nucleons[] = {num_protons, a.get() - num_protons};
+    real_type mass[] = {proton_mass_.value(), neutron_mass_.value()};
+    real_type dm[] = {target.proton_loss_energy().value(),
+                      target.neutron_loss_energy().value()};
+    static_assert(std::size(mass) == ZoneComponent::NucleonArray::size());
+    static_assert(std::size(dm) == std::size(mass));
+
+    real_type const total_integral
+        = std::accumulate(zone_dens.begin(),
+                          zone_dens.end(),
+                          real_type{0},
+                          [](real_type sum, ZoneDensity const& zone) {
+                              return sum + zone.integral;
+                          });
+
+    for (auto i : range(components.size()))
+    {
+        for (auto ptype : range(ZoneComponent::NucleonArray::size()))
+        {
+            components[i].density[ptype]
+                = static_cast<real_type>(num_nucleons[ptype])
+                  * zone_dens[i].integral
+                  / (total_integral * components[i].volume);
+            components[i].fermi_mom[ptype]
+                = options_.fermi_scale
+                  * std::cbrt(components[i].density[ptype]);
+            components[i].potential[ptype]
+                = ipow<2>(components[i].fermi_mom[ptype]) / (2 * mass[ptype])
+                  + dm[ptype];
+        }
+    }
+    return components;
 }
 
 //---------------------------------------------------------------------------//
@@ -221,90 +305,6 @@ auto NuclearZoneBuilder::calc_zones_heavy(AtomicMassNumber a) const
     }
 
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate components of nuclear zone data.
- *
- * The nuclear zone radius, volume,
- * density, Fermi momentum and potential function as in G4NucleiModel and as
- * documented in section 24.2.3 of the Geant4 Physics Reference (release 11.2).
- *
- */
-auto NuclearZoneBuilder::calc_zone_components(IsotopeView const& target) const
-    -> ComponentVec
-{
-    using A = AtomicNumber;
-
-    // Calculate nuclear radius
-    A const a = target.atomic_mass_number();
-
-    // Fill the nuclear radius by each zone
-    VecZoneDensity zone_dens;
-    if (a < A{5})
-    {
-        zone_dens = this->calc_zones_light(a);
-    }
-    else if (a < A{12})
-    {
-        zone_dens = this->calc_zones_small(a);
-    }
-    else
-    {
-        zone_dens = this->calc_zones_heavy(a);
-    }
-    CELER_ASSERT(!zone_dens.empty());
-
-    // Fill the differential nuclear volume by each zone
-    constexpr real_type four_thirds_pi = 4 * constants::pi / real_type{3};
-
-    ComponentVec components(zone_dens.size());
-    real_type prev_volume{0};
-    for (auto i : range(components.size()))
-    {
-        components[i].radius = zone_dens[i].radius;
-        real_type volume = four_thirds_pi * ipow<3>(zone_dens[i].radius);
-
-        // Save differential volume
-        components[i].volume = volume - prev_volume;
-        prev_volume = volume;
-    }
-
-    // Fill the nuclear zone density, fermi momentum, and potential
-    int num_protons = target.atomic_number().get();
-    int num_nucleons[] = {num_protons, a.get() - num_protons};
-    real_type mass[] = {proton_mass_.value(), neutron_mass_.value()};
-    real_type dm[] = {target.proton_loss_energy().value(),
-                      target.neutron_loss_energy().value()};
-    static_assert(std::size(mass) == ZoneComponent::NucleonArray::size());
-    static_assert(std::size(dm) == std::size(mass));
-
-    real_type const total_integral
-        = std::accumulate(zone_dens.begin(),
-                          zone_dens.end(),
-                          real_type{0},
-                          [](real_type sum, ZoneDensity const& zone) {
-                              return sum + zone.integral;
-                          });
-
-    for (auto i : range(components.size()))
-    {
-        for (auto ptype : range(ZoneComponent::NucleonArray::size()))
-        {
-            components[i].density[ptype]
-                = static_cast<real_type>(num_nucleons[ptype])
-                  * zone_dens[i].integral
-                  / (total_integral * components[i].volume);
-            components[i].fermi_mom[ptype]
-                = options_.fermi_scale
-                  * std::cbrt(components[i].density[ptype]);
-            components[i].potential[ptype]
-                = ipow<2>(components[i].fermi_mom[ptype]) / (2 * mass[ptype])
-                  + dm[ptype];
-        }
-    }
-    return components;
 }
 
 //---------------------------------------------------------------------------//
