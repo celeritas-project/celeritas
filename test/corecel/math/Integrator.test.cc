@@ -113,7 +113,18 @@ TEST(IntegratorTest, gauss)
     }
 }
 
-TEST(IntegratorTest, TEST_IF_CELERITAS_DOUBLE(nasty))
+/*!
+ * Integrate a pathological function.
+ *
+ * This is disabled because:
+ * - The integrated result changes based on the executing system, possibly due
+ *   to fma implementation.
+ * - There is an overflow or NaN with single precision.
+ * - The convergence takes slightly different number of iterations on different
+ *   compilers.
+ * - The result is wrong anyway.
+ */
+TEST(IntegratorTest, DISABLED_nasty)
 {
     DiagnosticFunc f{[](real_type x) { return std::cos(std::exp(1 / x)); }};
     {
