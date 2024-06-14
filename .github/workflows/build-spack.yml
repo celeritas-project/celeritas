@@ -135,7 +135,7 @@ jobs:
           ninja -v -k0
       - name: Run tests
         working-directory: build
-        continue-on-error: ${{matrix.geant != '11.0'}} # TODO: disable or fix failing tests
+        continue-on-error: ${{fromJSON(matrix.geant) < 11}} # TODO: fix failing tests
         run: |
           if [ "${{matrix.geant}}" == "11.0" ]; then
             # TODO: add 11.0.4 and clhep version to tests
