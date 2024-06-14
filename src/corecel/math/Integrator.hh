@@ -21,14 +21,14 @@ namespace celeritas
 struct IntegratorOptions
 {
     real_type epsilon{1e-3};  //!< Convergence criterion
-    int max_depth{1000};  //!< Maximum number of divisions for integrating
+    int max_depth{30};  //!< Maximum number of outer iterations
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Perform numerical integration of a generic 1-D function.
  *
- * Currently this is a very simple Newton-Coates-like integrator extracted from
+ * Currently this is a very simple Newton-Coates integrator extracted from
  * NuclearZoneBuilder. It should be improved for robustness, accuracy, and
  * efficiency, probably by using a Gauss-Legendre quadrature.
  *
@@ -86,7 +86,7 @@ Integrator<F>::Integrator(F&& func, Options opts)
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the integral over the given interval.
+ * Calculate the integral over the given dx.
  */
 template<class F>
 auto Integrator<F>::operator()(argument_type lo, argument_type hi) -> result_type
@@ -94,41 +94,33 @@ auto Integrator<F>::operator()(argument_type lo, argument_type hi) -> result_typ
     constexpr real_type half{0.5};
 
     real_type delta = hi - lo;
-    real_type prev = half * delta * (eval_(lo) + eval_(hi));
+    real_type result = half * delta * (eval_(lo) + eval_(hi));
 
-    int depth = 1;
-    real_type interval = delta;
-    real_type result = 0;
+    size_type points = 1;
+    real_type dx = delta;
 
-    bool succeeded = false;
     int remaining_trials = max_depth_;
-
     do
     {
-        delta *= half;
-
-        real_type x = lo - delta;
-        real_type fi = 0;
-
-        for (int i = 0; i < depth; ++i)
+        // Accumulate the sum of midpoints along the grid spacing
+        real_type accum = 0;
+        for (size_type i = 0; i < points; ++i)
         {
-            x += interval;
-            fi += eval_(x);
+            real_type x = std::fma((half + static_cast<real_type>(i)), dx, lo);
+            accum += eval_(x);
         }
 
-        result = half * prev + fi * delta;
-
+        // Average previous and new integrations, i.e. combining all the
+        // existing and current grid points
+        real_type prev = result;
+        result = half * (prev + accum * dx);
         if (std::fabs(result - prev) < epsilon_ * std::fabs(result))
         {
-            succeeded = true;
+            return result;
         }
-        else
-        {
-            depth *= 2;
-            interval = delta;
-            prev = result;
-        }
-    } while (!succeeded && --remaining_trials > 0);
+        points *= 2;
+        dx *= half;
+    } while (--remaining_trials > 0);
 
     return result;
 }
