@@ -11,6 +11,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
 
 #include "Algorithms.hh"
 
@@ -20,19 +21,28 @@ namespace celeritas
 //! Solver options
 struct IntegratorOptions
 {
+    using DepthInt = short unsigned int;
+
     real_type epsilon{1e-3};  //!< Convergence criterion
-    int max_depth{30};  //!< Maximum number of outer iterations
+    DepthInt max_depth{16};  //!< Maximum number of outer iterations
+
+    //! Whether the options are valid
+    explicit operator bool() const
+    {
+        return epsilon > 0 && max_depth > 0
+               && static_cast<std::size_t>(max_depth) < 8 * sizeof(size_type);
+    }
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Perform numerical integration of a generic 1-D function.
  *
- * Currently this is a very simple Newton-Coates integrator extracted from
- * NuclearZoneBuilder. It should be improved for robustness, accuracy, and
+ * Currently this is a simple nonrecursive Newton-Coates integrator extracted
+ * from NuclearZoneBuilder. It should be improved for robustness, accuracy, and
  * efficiency, probably by using a Gauss-Legendre quadrature.
  *
- * This class is \em only to be used during setup.
+ * This class is to be used \em only during setup.
  */
 template<class F>
 class Integrator
@@ -57,8 +67,14 @@ class Integrator
 
   private:
     F eval_;
-    real_type epsilon_;
-    int max_depth_;
+    Options options_;
+
+    //! Whether convergence is achieved (simple soft equality)
+    bool converged(real_type prev, real_type cur) const
+    {
+        CELER_EXPECT(!std::isinf(cur) && !std::isnan(cur));
+        return std::fabs(cur - prev) <= options_.epsilon * std::fabs(cur);
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -76,12 +92,9 @@ Integrator(F&&, Args...) -> Integrator<F>;
  */
 template<class F>
 Integrator<F>::Integrator(F&& func, Options opts)
-    : eval_{std::forward<F>(func)}
-    , epsilon_{opts.epsilon}
-    , max_depth_{opts.max_depth}
+    : eval_{std::forward<F>(func)}, options_{opts}
 {
-    CELER_EXPECT(epsilon_ > 0);
-    CELER_EXPECT(max_depth_ > 0);
+    CELER_EXPECT(options_);
 }
 
 //---------------------------------------------------------------------------//
@@ -91,20 +104,22 @@ Integrator<F>::Integrator(F&& func, Options opts)
 template<class F>
 auto Integrator<F>::operator()(argument_type lo, argument_type hi) -> result_type
 {
+    CELER_EXPECT(lo < hi);
     constexpr real_type half{0.5};
 
-    real_type delta = hi - lo;
-    real_type result = half * delta * (eval_(lo) + eval_(hi));
+    size_type num_points = 1;
+    real_type dx = (hi - lo);
 
-    size_type points = 1;
-    real_type dx = delta;
+    // Initial estimate is the endpoints of the function
+    real_type result = half * dx * (eval_(lo) + eval_(hi));
+    real_type prev{};
 
-    int remaining_trials = max_depth_;
+    auto remaining_trials = options_.max_depth;
     do
     {
         // Accumulate the sum of midpoints along the grid spacing
         real_type accum = 0;
-        for (size_type i = 0; i < points; ++i)
+        for (auto i : range(num_points))
         {
             real_type x = std::fma((half + static_cast<real_type>(i)), dx, lo);
             accum += eval_(x);
@@ -112,15 +127,13 @@ auto Integrator<F>::operator()(argument_type lo, argument_type hi) -> result_typ
 
         // Average previous and new integrations, i.e. combining all the
         // existing and current grid points
-        real_type prev = result;
+        prev = result;
         result = half * (prev + accum * dx);
-        if (std::fabs(result - prev) < epsilon_ * std::fabs(result))
-        {
-            return result;
-        }
-        points *= 2;
+
+        // Increase number of intervals (and decrease dx) for next iteration
+        num_points *= 2;
         dx *= half;
-    } while (--remaining_trials > 0);
+    } while (!this->converged(prev, result) && --remaining_trials > 0);
 
     return result;
 }
