@@ -234,7 +234,7 @@ auto GeantTestBase::import_helper() -> ImportHelper&
          * This is needed because Geant4 is filled with static data, so we must
          * destroy our references before it gets cleaned up.
          */
-        CELER_LOG(debug) << "Registering CleanupGeoEnvironment";
+        CELER_LOG(debug) << "Registering CleanupGeantEnvironment";
         ::testing::AddGlobalTestEnvironment(new CleanupGeantEnvironment());
         registered_cleanup = true;
     }
