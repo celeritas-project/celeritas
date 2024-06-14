@@ -24,7 +24,7 @@ struct IntegratorOptions
     using DepthInt = short unsigned int;
 
     real_type epsilon{1e-3};  //!< Convergence criterion
-    DepthInt max_depth{16};  //!< Maximum number of outer iterations
+    DepthInt max_depth{20};  //!< Maximum number of outer iterations
 
     //! Whether the options are valid
     explicit operator bool() const

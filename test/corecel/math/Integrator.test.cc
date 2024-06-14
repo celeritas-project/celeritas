@@ -10,6 +10,8 @@
 #include <cmath>
 #include <utility>
 
+#include "celeritas_config.h"
+
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -92,6 +94,39 @@ TEST(IntegratorTest, gauss)
         EXPECT_EQ(17, f.exchange_count());
         EXPECT_SOFT_EQ(0.20618863449804861, integrate(1.09726, 2.14597));
         EXPECT_EQ(5, f.exchange_count());
+    }
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        IntegratorOptions opts;
+        opts.epsilon = 1e-8;
+        opts.max_depth = 30;
+        Integrator integrate{f, opts};
+        EXPECT_SOFT_NEAR(
+            0.057578453318570512, integrate(0, 0.597223), opts.epsilon);
+        EXPECT_EQ(16385, f.exchange_count());
+        EXPECT_SOFT_NEAR(
+            0.16745460321713002, integrate(0.597223, 1.09726), opts.epsilon);
+        EXPECT_EQ(8193, f.exchange_count());
+        EXPECT_SOFT_NEAR(
+            0.20628439788305011, integrate(1.09726, 2.14597), opts.epsilon);
+        EXPECT_EQ(2049, f.exchange_count());
+    }
+}
+
+TEST(IntegratorTest, nasty)
+{
+    DiagnosticFunc f{[](real_type x) { return std::cos(std::exp(1 / x)); }};
+    {
+        Integrator integrate{f};
+        if (CELERITAS_DEBUG)
+        {
+            // Out of range
+            EXPECT_THROW(integrate(0, 1), DebugError);
+        }
+        EXPECT_SOFT_EQ(-0.21782054493256212, integrate(0.1, 1));
+        EXPECT_EQ(516, f.exchange_count());
+        EXPECT_SOFT_EQ(-5.4049272068148396e-05, integrate(0.01, 0.1));
+        EXPECT_EQ(1048577, f.exchange_count());
     }
 }
 
