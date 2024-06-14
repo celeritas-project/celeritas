@@ -115,6 +115,7 @@ if use_celeritas:
     except json.decoder.JSONDecodeError as e:
         print(f"error ({e}): expected a JSON object but got the following stdout:")
         print(out_text)
+        j = {}
     else:
         with open(out_file, 'w') as f:
             json.dump(j, f, indent=1)
