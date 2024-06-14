@@ -17,12 +17,22 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+//! Solver options
+struct IntegratorOptions
+{
+    real_type epsilon{1e-3};  //!< Convergence criterion
+    int max_depth{1000};  //!< Maximum number of divisions for integrating
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Perform numerical integration of a generic 1-D function.
  *
  * Currently this is a very simple Newton-Coates-like integrator extracted from
- * NuclearZoneBuilder . It should be improved for robustness, accuracy, and
+ * NuclearZoneBuilder. It should be improved for robustness, accuracy, and
  * efficiency, probably by using a Gauss-Legendre quadrature.
+ *
+ * This class is \em only to be used during setup.
  */
 template<class F>
 class Integrator
@@ -32,14 +42,8 @@ class Integrator
     //! \name Type aliases
     using argument_type = real_type;
     using result_type = real_type;
+    using Options = IntegratorOptions;
     //!@}
-
-    //! Solver options
-    struct Options
-    {
-        real_type epsilon{1e-3}; //!< Convergence criterion
-        int max_depth{1000}; //!< Maximum number of divisions for integrating
-    };
 
   public:
     // Construct with the function and options
@@ -56,6 +60,13 @@ class Integrator
     real_type epsilon_;
     int max_depth_;
 };
+
+//---------------------------------------------------------------------------//
+// TEMPLATE DEDUCTION
+//---------------------------------------------------------------------------//
+
+template<class F, class... Args>
+Integrator(F&&, Args...) -> Integrator<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -91,7 +102,6 @@ auto Integrator<F>::operator()(argument_type lo, argument_type hi) -> result_typ
 
     bool succeeded = false;
     int remaining_trials = max_depth_;
-    SoftEqual const soft_eq{epsilon_};
 
     do
     {
