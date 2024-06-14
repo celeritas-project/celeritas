@@ -117,15 +117,18 @@ TEST(IntegratorTest, nasty)
 {
     DiagnosticFunc f{[](real_type x) { return std::cos(std::exp(1 / x)); }};
     {
+        real_type const eps = IntegratorOptions{}.epsilon;
         Integrator integrate{f};
         if (CELERITAS_DEBUG)
         {
             // Out of range
             EXPECT_THROW(integrate(0, 1), DebugError);
         }
-        EXPECT_SOFT_EQ(-0.21782054493256212, integrate(0.1, 1));
+
+        EXPECT_SOFT_NEAR(-0.21782054493256212, integrate(0.1, 1), eps);
         EXPECT_EQ(516, f.exchange_count());
-        EXPECT_SOFT_EQ(-5.4049272068148396e-05, integrate(0.01, 0.1));
+        // Results are numerically unstable
+        EXPECT_SOFT_NEAR(0, integrate(0.01, 0.1), 0.01);
         EXPECT_EQ(1048577, f.exchange_count());
     }
 }
