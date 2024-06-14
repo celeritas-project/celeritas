@@ -17,14 +17,11 @@
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantSetup.hh"
+#include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/track/TrackInitParams.hh"
-
-#if CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE
-#    include "celeritas/geo/GeoParams.hh"
-#endif
 
 namespace celeritas
 {
@@ -157,13 +154,15 @@ auto GeantTestBase::build_along_step() -> SPConstAction
 auto GeantTestBase::build_fresh_geometry(std::string_view filename)
     -> SPConstGeoI
 {
-#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
-    // Load fake version of geometry
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE \
+    && CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE
+    // Load fake version of geometry because Geant4 conversion isn't available
     return Base::build_fresh_geometry(filename);
 #else
-    // Import geometry from Geant4
-    CELER_LOG(info) << "Importing Geant4 geometry instead of loading from "
-                    << filename;
+    // Import geometry directly from in-memory Geant4
+    CELER_LOG(info) << "Importing geometry from Geant4 (instead of directly "
+                       "from "
+                    << filename << ")";
     auto* world = this->get_world_volume();
     CELER_EXPECT(world);
     return std::make_shared<GeoParams>(world);
@@ -234,7 +233,7 @@ auto GeantTestBase::import_helper() -> ImportHelper&
          * This is needed because Geant4 is filled with static data, so we must
          * destroy our references before it gets cleaned up.
          */
-        CELER_LOG(debug) << "Registering CleanupGeoEnvironment";
+        CELER_LOG(debug) << "Registering CleanupGeantEnvironment";
         ::testing::AddGlobalTestEnvironment(new CleanupGeantEnvironment());
         registered_cleanup = true;
     }

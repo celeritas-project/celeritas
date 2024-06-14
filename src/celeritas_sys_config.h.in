@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: (Apache-2.0 OR MIT)
  *---------------------------------------------------------------------------*/
 /*! \file celeritas_sys_config.h
- * System-specific configuration options for Corecel.
+ * System-specific configuration options for Celeritas.
  *---------------------------------------------------------------------------*/
 #ifndef celeritas_sys_config_h
 #define celeritas_sys_config_h
