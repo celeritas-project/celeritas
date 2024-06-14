@@ -137,7 +137,6 @@ void WentzelOKVIParams::build_data(HostVal<WentzelOKVIData>& host_data,
                     += el_comp.fraction
                        / std::pow(atomic_mass.value(), real_type(2) / 3);
             }
-            inv_mass_cbrt_sq[mat_id.get()] *= mat.number_density();
         }
         make_builder(&host_data.inv_mass_cbrt_sq)
             .insert_back(inv_mass_cbrt_sq.begin(), inv_mass_cbrt_sq.end());
