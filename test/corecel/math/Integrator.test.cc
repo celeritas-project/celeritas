@@ -69,6 +69,15 @@ TEST(IntegratorTest, quadratic)
         EXPECT_SOFT_NEAR(64 - 8, integrate(2, 4), eps);
         EXPECT_EQ(17, f.exchange_count());
     }
+    {
+        IntegratorOptions opts;
+        opts.epsilon = 1e-5;
+        Integrator integrate{f, opts};
+        EXPECT_SOFT_NEAR(8 - 1, integrate(1, 2), opts.epsilon);
+        EXPECT_EQ(257, f.exchange_count());
+        EXPECT_SOFT_NEAR(64 - 8, integrate(2, 4), opts.epsilon);
+        EXPECT_EQ(257, f.exchange_count());
+    }
 }
 
 TEST(IntegratorTest, gauss)
