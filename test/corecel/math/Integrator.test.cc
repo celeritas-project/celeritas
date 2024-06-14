@@ -113,7 +113,7 @@ TEST(IntegratorTest, gauss)
     }
 }
 
-TEST(IntegratorTest, nasty)
+TEST(IntegratorTest, TEST_IF_CELERITAS_DOUBLE(nasty))
 {
     DiagnosticFunc f{[](real_type x) { return std::cos(std::exp(1 / x)); }};
     {
