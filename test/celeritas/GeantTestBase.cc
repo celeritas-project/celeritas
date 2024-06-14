@@ -17,14 +17,11 @@
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantSetup.hh"
+#include "celeritas/geo/GeoParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/track/TrackInitParams.hh"
-
-#if CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE
-#    include "celeritas/geo/GeoParams.hh"
-#endif
 
 namespace celeritas
 {
