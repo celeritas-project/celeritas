@@ -27,6 +27,16 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+namespace
+{
+real_type to_inv_cm(real_type xs_native)
+{
+    return native_value_to<units::InvCmXs>(xs_native).value();
+}
+
+}  // namespace
+
+//---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
@@ -73,7 +83,10 @@ TEST_F(WentzelVIMscTest, params)
     EXPECT_TRUE(wentzel.params.is_combined);
     EXPECT_SOFT_EQ(0.98877107793604224, wentzel.params.costheta_limit);
     EXPECT_SOFT_EQ(1, wentzel.params.screening_factor);
-    EXPECT_SOFT_EQ(4.9976257697681963e-8, wentzel.params.a_sq_factor);
+    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    {
+        EXPECT_SOFT_EQ(4.9976257697681963e-8, wentzel.params.a_sq_factor);
+    }
 }
 
 TEST_F(WentzelVIMscTest, total_xs)
@@ -95,11 +108,11 @@ TEST_F(WentzelVIMscTest, total_xs)
         // The cross section is zero if theta is above the polar angle limit,
         // i.e. if single Coulomb scattering is used
         for (real_type theta :
-             {0.0, 1e-4, 1e-3, 0.01, 0.05, 0.1, 0.15, constants::pi / 2})
+             {0.0, 1e-4, 1e-3, 0.01, 0.05, 0.1, 0.15, constants::pi / 2.0})
         {
             WentzelMacroXsCalculator calc_xs(
                 particle, material, data, wentzel, cutoff);
-            xs.push_back(calc_xs(std::cos(theta)));
+            xs.push_back(to_inv_cm(calc_xs(std::cos(theta))));
         }
     }
 
