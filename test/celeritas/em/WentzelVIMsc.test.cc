@@ -89,7 +89,7 @@ TEST_F(WentzelVIMscTest, params)
     }
 }
 
-TEST_F(WentzelVIMscTest, total_xs)
+TEST_F(WentzelVIMscTest, TEST_IF_CELERITAS_DOUBLE(total_xs))
 {
     auto const& data = msc_params_->host_ref();
     auto const& wentzel = wentzel_params_->host_ref();
