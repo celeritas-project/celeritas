@@ -157,13 +157,15 @@ auto GeantTestBase::build_along_step() -> SPConstAction
 auto GeantTestBase::build_fresh_geometry(std::string_view filename)
     -> SPConstGeoI
 {
-#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
-    // Load fake version of geometry
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE \
+    && CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE
+    // Load fake version of geometry because Geant4 conversion isn't available
     return Base::build_fresh_geometry(filename);
 #else
-    // Import geometry from Geant4
-    CELER_LOG(info) << "Importing Geant4 geometry instead of loading from "
-                    << filename;
+    // Import geometry directly from in-memory Geant4
+    CELER_LOG(info) << "Importing geometry from Geant4 (instead of directly "
+                       "from "
+                    << filename << ")";
     auto* world = this->get_world_volume();
     CELER_EXPECT(world);
     return std::make_shared<GeoParams>(world);
