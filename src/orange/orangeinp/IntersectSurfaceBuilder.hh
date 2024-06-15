@@ -65,6 +65,10 @@ class IntersectSurfaceBuilder
     template<class S>
     void operator()(Sense sense, S const& surf);
 
+    // Add a surface with specified sense and explicit face name
+    template<class S>
+    void operator()(Sense sense, S const& surf, std::string&& face_name);
+
     // Promise that the resulting region is inside/outside this bbox
     inline void operator()(Sense sense, BBox const& bbox);
 
@@ -88,9 +92,9 @@ class IntersectSurfaceBuilder
 
     //// HELPER FUNCTION ////
 
-    void insert_transformed(std::string&& ext,
-                            Sense sense,
-                            VariantSurface const& surf);
+    void insert_transformed(Sense sense,
+                            VariantSurface const& surf,
+                            std::string&& ext);
     void shrink_exterior(BBox const& bbox);
     void grow_interior(BBox const& bbox);
 };
