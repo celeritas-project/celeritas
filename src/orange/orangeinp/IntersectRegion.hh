@@ -205,7 +205,7 @@ class Ellipsoid final : public IntersectRegionInterface
  * trapezoidal volume with up to eight vertices, or two 4-point sets, sitting
  * on two parallel planes perpendicular to the Z axis.
  *
- * Trapezoid constructed from the helper functions will have sides that are
+ * Trapezoids constructed from the helper functions will have sides that are
  * same ordering as a prism: the rightward face is first (normal is along the
  * +x axis), then the others follow counterclockwise.
  *

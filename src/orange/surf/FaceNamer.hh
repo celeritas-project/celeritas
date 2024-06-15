@@ -119,7 +119,7 @@ std::string FaceNamer::operator()(Sense s, S const& surf)
  * Apply with an explicit face name.
  *
  * This can be useful for instances such as "generic trapezoid" where the
- * surface type can change based on the
+ * surface type can change based on whether the face is planar or twisted.
  */
 std::string FaceNamer::operator()(std::string const& s) const
 {
