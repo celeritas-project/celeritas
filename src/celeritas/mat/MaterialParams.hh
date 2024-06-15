@@ -53,11 +53,14 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
         //!@{
         //! \name Type aliases
         using AtomicMassNumber = AtomicNumber;
+        using MevEnergy = units::MevEnergy;
         //!@}
 
         AtomicNumber atomic_number;  //!< Atomic number Z
         AtomicMassNumber atomic_mass_number;  //!< Atomic number A
-        units::MevEnergy binding_energy;  //!< Nuclear binding energy
+        MevEnergy binding_energy;  //!< Nuclear binding energy (BE)
+        MevEnergy proton_loss_energy;  //!< BE(A, Z) - BE(A-1, Z-1)
+        MevEnergy neutron_loss_energy;  //!< BE(A, Z) - BE(A-1, Z)
         units::MevMass nuclear_mass;  //!< Nucleons' mass + binding energy
         Label label;  //!< Isotope name
     };

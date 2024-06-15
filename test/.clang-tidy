@@ -1,0 +1,6 @@
+---
+# clang-tidy needs at least one check enabled
+Checks: |
+  -*
+  cppcoreguidelines-avoid-goto
+...

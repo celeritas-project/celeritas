@@ -3,36 +3,22 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/CelerFTFPBert.hh
-// TODO: Move out of detail since this is used by celer-g4
+//! \file celeritas/neutron/model/CascadeOptionsIO.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <G4VModularPhysicsList.hh>
-
-#include "../GeantPhysicsOptions.hh"
+#include <nlohmann/json.hpp>
 
 namespace celeritas
 {
-namespace detail
-{
+struct CascadeOptions;
 //---------------------------------------------------------------------------//
-/*!
- * Construct the FTFP_BERT physics list with modified EM standard physics.
- */
-class CelerFTFPBert : public G4VModularPhysicsList
-{
-  public:
-    //!@{
-    //! \name Type aliases
-    using Options = GeantPhysicsOptions;
-    //!@}
 
-  public:
-    // Construct with physics options
-    explicit CelerFTFPBert(Options const& options);
-};
+// Read options from JSON
+void from_json(nlohmann::json const& j, CascadeOptions& opts);
+
+// Write options to JSON
+void to_json(nlohmann::json& j, CascadeOptions const& opts);
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

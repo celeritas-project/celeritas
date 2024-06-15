@@ -139,17 +139,24 @@ celeritas_add_test(em/UrbanMsc.test.cc ${_needs_root}
 
 #-----------------------------------------------------------------------------#
 # External
+set(_import_filter
+  "FourSteelSlabs*"
+  "TestEm3*"
+  "OneSteelSphere.*"
+  "OneSteelSphereGG.*"
+  "Solids.*"
+)
+if(Geant4_VERSION VERSION_LESS 11.0)
+  list(REMOVE_ITEM _import_filter
+    "OneSteelSphere.*" # cutoffs changed
+  )
+endif()
 
 celeritas_add_test(ext/GeantImporter.test.cc
   ${_needs_geant4}
   LINK_LIBRARIES ${nlohmann_json_LIBRARIES}
-  FILTER
-    "FourSteelSlabs*"
-    "TestEm3*"
-    "OneSteelSphere.*"
-    "OneSteelSphereGG.*"
-    "Solids.*"
-  )
+  FILTER ${_import_filter}
+)
 celeritas_add_test(ext/GeantVolumeMapper.test.cc ${_needs_geant4}
   LINK_LIBRARIES ${Geant4_LIBRARIES} Celeritas::orange)
 celeritas_add_test(ext/RootImporter.test.cc ${_needs_root})
@@ -194,59 +201,60 @@ celeritas_add_test(global/ActionRegistry.test.cc)
 
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   set(_along_step_filter
-    FILTER
-      "-Em3*:SimpleCms*:LeadBox*"
-      "Em3AlongStepTest.nofluct_nomsc"
-      "Em3AlongStepTest.msc_nofluct"
+    "-Em3*:SimpleCms*:LeadBox*"
+    "Em3AlongStepTest.nofluct_nomsc"
+    "Em3AlongStepTest.msc_nofluct"
+    "Em3AlongStepTest.msc_nofluct_finegrid"
+    "Em3AlongStepTest.fluct_nomsc"
+    "SimpleCmsAlongStepTest.msc_field"
+    "SimpleCmsAlongStepTest.msc_field_finegrid"
+    "SimpleCmsRZFieldAlongStepTest.msc_rzfield"
+    "SimpleCmsRZFieldAlongStepTest.msc_rzfield_finegrid"
+  )
+  set(_stepper_filter
+    "-TestEm*:OneSteelSphere*"
+    "TestEm3Compton.*"
+    "TestEm3NoMsc.*"
+    "TestEm3Msc.*"
+    "TestEm3MscNofluct.*"
+    "TestEm15FieldMsc.*"
+    "OneSteelSphere.*"
+  )
+  if(Geant4_VERSION VERSION_LESS 11.0)
+    list(REMOVE_ITEM _along_step_filter
       "Em3AlongStepTest.msc_nofluct_finegrid"
-      "Em3AlongStepTest.fluct_nomsc"
-      "SimpleCmsAlongStepTest.msc_field"
-      "SimpleCmsAlongStepTest.msc_field_finegrid"
-      "SimpleCmsRZFieldAlongStepTest.msc_rzfield"
-      "SimpleCmsRZFieldAlongStepTest.msc_rzfield_finegrid"
       "LeadBox*"
-  )
-  set(_stepper_filter
-    FILTER
-      "-TestEm*:OneSteelSphere*"
-      "TestEm3Compton.*"
-      "TestEm3NoMsc.*"
-      "TestEm3Msc.*"
-      "TestEm3MscNofluct.*"
-      "TestEm15FieldMsc.*"
-      "OneSteelSphere.*"
-  )
-elseif(CELERITAS_USE_Geant4)
-set(_along_step_filter
-    FILTER
-      "-Em3*:SimpleCms*:LeadBox*"
-      "Em3AlongStepTest.nofluct_nomsc"
-      "Em3AlongStepTest.fluct_nomsc"
-      "LeadBox*"
-  )
-  set(_stepper_filter
-    FILTER
-      "-TestEm*:OneSteelSphere*"
-      "TestEm3Compton.*"
-      "TestEm3Msc.*"
-      "TestEm3MscNofluct.*"
-      "TestEm15FieldMsc.*"
     )
-  else()
+  endif()
+elseif(CELERITAS_USE_Geant4)
+  set(_along_step_filter
+    "-Em3*:SimpleCms*:LeadBox*"
+    "Em3AlongStepTest.nofluct_nomsc"
+    "Em3AlongStepTest.fluct_nomsc"
+    "LeadBox*"
+  )
+  set(_stepper_filter
+    "-TestEm*:OneSteelSphere*"
+    "TestEm3Compton.*"
+    "TestEm3Msc.*"
+    "TestEm3MscNofluct.*"
+    "TestEm15FieldMsc.*"
+  )
+else()
   set(_along_step_filter)
   set(_stepper_filter)
 endif()
 
 celeritas_add_test(global/AlongStep.test.cc
   NT 1 ${_needs_geo} ${_optional_geant4_env}
-  ${_along_step_filter}
+  FILTER ${_along_step_filter}
 )
 celeritas_add_test(global/KernelContextException.test.cc
   NT 1 ${_needs_geo} LINK_LIBRARIES ${nlohmann_json_LIBRARIES}
 )
 celeritas_add_test(global/Stepper.test.cc
   GPU NT 4 ${_needs_geo} ${_optional_geant4_env}
-  ${_stepper_filter}
+  FILTER ${_stepper_filter}
 )
 
 #-----------------------------------------------------------------------------#
@@ -348,9 +356,8 @@ celeritas_add_test(track/TrackInit.test.cc
 
 if(CELERITAS_USE_Geant4)
   set(_diagnostic_filter
-    FILTER
-      "-TestEm3*"
-      "TestEm3*"
+    "-TestEm3*"
+    "TestEm3*"
   )
 else()
   set(_diagnostic_filter)
@@ -363,7 +370,7 @@ endif()
 celeritas_add_test(user/DetectorSteps.test.cc GPU)
 celeritas_add_test(user/Diagnostic.test.cc
   GPU NT 1 ${_optional_geant4_env} ${_needs_geo} ${_fails_g4geo} ${_needs_double}
-  ${_diagnostic_filter}
+  FILTER ${_diagnostic_filter}
 )
 celeritas_add_test(user/StepCollector.test.cc
   GPU NT 1 ${_optional_geant4_env} ${_needs_geo} ${_fixme_single}

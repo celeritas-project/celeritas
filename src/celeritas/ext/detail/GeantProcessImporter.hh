@@ -11,13 +11,13 @@
 #include <unordered_map>
 #include <vector>
 
+#include "corecel/cont/Array.hh"
 #include "celeritas/io/ImportElement.hh"
 #include "celeritas/io/ImportMaterial.hh"
 #include "celeritas/io/ImportModel.hh"
+#include "celeritas/io/ImportPhysicsVector.hh"
 #include "celeritas/io/ImportProcess.hh"
 
-class TFile;
-class TTree;
 class G4VProcess;
 class G4VEmProcess;
 class G4VEmModel;
@@ -25,6 +25,7 @@ class G4VEnergyLossProcess;
 class G4VMultipleScattering;
 class G4ParticleDefinition;
 class G4PhysicsTable;
+class G4PhysicsVector;
 
 namespace celeritas
 {
@@ -109,6 +110,13 @@ class GeantProcessImporter
     std::vector<ImportMaterial> const& materials_;
     std::vector<ImportElement> const& elements_;
 };
+
+//---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+// Import a physics vector with the given x, y units
+ImportPhysicsVector
+import_physics_vector(G4PhysicsVector const& g4v, Array<ImportUnits, 2> units);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

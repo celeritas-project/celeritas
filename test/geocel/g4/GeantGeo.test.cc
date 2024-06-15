@@ -8,10 +8,12 @@
 #include <string_view>
 #include <G4LogicalVolume.hh>
 
+#include "celeritas_cmake_strings.h"
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
+#include "corecel/sys/Version.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/g4/GeantGeoData.hh"
@@ -25,6 +27,13 @@ namespace celeritas
 {
 namespace test
 {
+namespace
+{
+auto const geant4_version = celeritas::Version::from_string(
+    CELERITAS_USE_GEANT4 ? celeritas_geant4_version : "0.0.0");
+
+}  // namespace
+
 //---------------------------------------------------------------------------//
 
 class GeantGeoTest : public GeantGeoTestBase
@@ -333,6 +342,9 @@ class SolidsTest : public GeantGeoTest
 
     SpanStringView expected_log_levels() const final
     {
+        if (geant4_version < Version{11})
+            return {};
+
         static std::string_view const levels[] = {"error"};
         return make_span(levels);
     }
@@ -750,7 +762,15 @@ TEST_F(TransformedBoxTest, trace)
     }
     {
         auto result = this->track({0.01, -20, 0.20}, {0, 1, 0});
-        result.print_expected();
+        static char const* const expected_volumes[]
+            = {"world", "enclosing", "tiny", "enclosing", "world"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[]
+            = {18.5, 1.1250390198213, 0.75090449735279, 1.1240564828259, 48.5};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[]
+            = {9.25, 0.56184193052552, 0.05, 0.56135125378224, 24.25};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
 }
 
