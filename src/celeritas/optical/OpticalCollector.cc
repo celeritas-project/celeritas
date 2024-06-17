@@ -30,12 +30,13 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     size_type num_streams = core.max_streams();
     ActionRegistry& actions = *core.action_reg();
 
+    OpticalGenSetup setup;
+    setup.cerenkov = inp.cerenkov && inp.properties;
+    setup.scintillation = static_cast<bool>(inp.scintillation);
+    setup.capacity = inp.buffer_capacity;
+
     // Create params and stream storage
-    HostVal<OpticalGenParamsData> host_data;
-    host_data.cerenkov = inp.cerenkov && inp.properties;
-    host_data.scintillation = static_cast<bool>(inp.scintillation);
-    host_data.capacity = inp.buffer_capacity;
-    storage_->obj = {std::move(host_data), num_streams};
+    storage_->obj = {HostVal<OpticalGenParamsData>{setup}, num_streams};
     storage_->size.resize(num_streams, {});
 
     // Action to gather pre-step data needed to generate optical distributions
@@ -43,7 +44,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
         actions.next_id(), storage_);
     actions.insert(gather_action_);
 
-    if (host_data.cerenkov)
+    if (setup.cerenkov)
     {
         // Action to generate Cerenkov optical distributions
         cerenkov_pregen_action_
@@ -55,7 +56,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
         actions.insert(cerenkov_pregen_action_);
     }
 
-    if (host_data.scintillation)
+    if (setup.scintillation)
     {
         // Action to generate scintillation optical distributions
         scint_pregen_action_ = std::make_shared<detail::ScintPreGenAction>(

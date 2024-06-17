@@ -33,6 +33,25 @@ struct OpticalBufferSize
 
 //---------------------------------------------------------------------------//
 /*!
+ * Setup options for optical generation.
+ *
+ * At least one of cerenkov and scintillation must be enabled.
+ */
+struct OpticalGenSetup
+{
+    bool cerenkov{false};  //!< Whether Cerenkov is enabled
+    bool scintillation{false};  //!< Whether scintillation is enabled
+    size_type capacity{0};  //!< Distribution data buffer capacity
+
+    //! True if valid
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return (cerenkov || scintillation) && capacity > 0;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Immutable problem data for generating optical photon distributions.
  */
 template<Ownership W, MemSpace M>
@@ -40,16 +59,14 @@ struct OpticalGenParamsData
 {
     //// DATA ////
 
-    bool cerenkov{false};  //!< Whether Cerenkov is enabled
-    bool scintillation{false};  //!< Whether scintillation is enabled
-    size_type capacity{0};  //!< Distribution data buffer capacity
+    OpticalGenSetup setup;
 
     //// METHODS ////
 
     //! True if all params are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return (cerenkov || scintillation) && capacity > 0;
+        return static_cast<bool>(setup);
     }
 
     //! Assign from another set of data
@@ -57,9 +74,7 @@ struct OpticalGenParamsData
     OpticalGenParamsData& operator=(OpticalGenParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        cerenkov = other.cerenkov;
-        scintillation = other.scintillation;
-        capacity = other.capacity;
+        setup = other.setup;
         return *this;
     }
 };
@@ -146,13 +161,14 @@ void resize(OpticalGenStateData<Ownership::value, M>* state,
     CELER_EXPECT(size > 0);
 
     resize(&state->step, size);
-    if (params.cerenkov)
+    OpticalGenSetup const& setup = params.setup;
+    if (setup.cerenkov)
     {
-        resize(&state->cerenkov, params.capacity);
+        resize(&state->cerenkov, setup.capacity);
     }
-    if (params.scintillation)
+    if (setup.scintillation)
     {
-        resize(&state->scintillation, params.capacity);
+        resize(&state->scintillation, setup.capacity);
     }
 
     CELER_ENSURE(*state);
