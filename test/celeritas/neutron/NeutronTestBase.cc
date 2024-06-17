@@ -27,11 +27,13 @@ NeutronTestBase::NeutronTestBase()
     using namespace units;
     constexpr auto zero = zero_quantity();
 
-    constexpr MevMass neutronmass{939.5654133};
+    constexpr MevMass neutron_mass{939.5654133};
+    constexpr MevMass proton_mass{938.272013};
 
     // Setup default particle params
     ParticleParams::Input par_inp = {
-        {"neutron", pdg::neutron(), neutronmass, zero, stable_decay_constant}};
+        {"neutron", pdg::neutron(), neutron_mass, zero, stable_decay_constant},
+        {"proton", pdg::proton(), proton_mass, zero, stable_decay_constant}};
     this->set_particle_params(std::move(par_inp));
 
     // Setup default material params
@@ -41,23 +43,73 @@ NeutronTestBase::NeutronTestBase()
     mat_inp.isotopes = {{AtomicNumber{2},
                          AtomicNumber{3},
                          units::MevEnergy{7.71804},
+                         units::MevEnergy{5.49},
+                         units::MevEnergy{44},
                          units::MevMass{3016.0},
                          "3He"},
                         {AtomicNumber{2},
                          AtomicNumber{4},
                          units::MevEnergy{28.2957},
+                         units::MevEnergy{19.814},
+                         units::MevEnergy{20.578},
                          units::MevMass{4002.6},
                          "4He"},
                         {AtomicNumber{29},
                          AtomicNumber{63},
                          units::MevEnergy{551.384},
+                         units::MevEnergy{6.122},
+                         units::MevEnergy{10.864},
                          units::MevMass{58618.5},
                          "63Cu"},
                         {AtomicNumber{29},
                          AtomicNumber{65},
                          units::MevEnergy{569.211},
+                         units::MevEnergy{7.454},
+                         units::MevEnergy{9.911},
                          units::MevMass{60479.8},
-                         "65Cu"}};
+                         "65Cu"},
+                        {AtomicNumber{82},
+                         AtomicNumber{202},
+                         units::MevEnergy{1607.5056},
+                         units::MevEnergy{6.637},
+                         units::MevEnergy{8.395},
+                         units::MevMass{189958.3388},
+                         "202Pb"},
+                        {AtomicNumber{82},
+                         AtomicNumber{206},
+                         units::MevEnergy{1622.3240},
+                         units::MevEnergy{7.254},
+                         units::MevEnergy{8.087},
+                         units::MevMass{191822.6512},
+                         "206Pb"},
+                        {AtomicNumber{82},
+                         AtomicNumber{207},
+                         units::MevEnergy{1629.0618},
+                         units::MevEnergy{7.488},
+                         units::MevEnergy{6.738},
+                         units::MevMass{192755.4787},
+                         "207Pb"},
+                        {AtomicNumber{82},
+                         AtomicNumber{208},
+                         units::MevEnergy{1636.4296},
+                         units::MevEnergy{8.004},
+                         units::MevEnergy{7.368},
+                         units::MevMass{193687.6762},
+                         "208Pb"},
+                        {AtomicNumber{5},
+                         AtomicNumber{10},
+                         units::MevEnergy{64.751},
+                         units::MevEnergy{6.587},
+                         units::MevEnergy{8.437},
+                         units::MevMass{9324.437},
+                         "10B"},
+                        {AtomicNumber{5},
+                         AtomicNumber{11},
+                         units::MevEnergy{76.205},
+                         units::MevEnergy{11.229},
+                         units::MevEnergy{11.454},
+                         units::MevMass{10252.548},
+                         "11B"}};
 
     // Elements
     mat_inp.elements = {{AtomicNumber{2},

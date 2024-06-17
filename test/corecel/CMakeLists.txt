@@ -64,6 +64,7 @@ celeritas_add_test(math/Algorithms.test.cc)
 celeritas_add_test(math/ArrayOperators.test.cc)
 celeritas_add_test(math/ArrayUtils.test.cc)
 celeritas_add_test(math/HashUtils.test.cc)
+celeritas_add_test(math/Integrator.test.cc)
 celeritas_add_device_test(math/NumericLimits)
 celeritas_add_test(math/Quantity.test.cc
   LINK_LIBRARIES ${nlohmann_json_LIBRARIES})

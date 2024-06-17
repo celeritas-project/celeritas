@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include <fstream>
 
+#include "celeritas_sys_config.h"
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/UnitUtils.hh"
@@ -606,6 +607,9 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield_finegrid)
     }
 }
 
+// Whether Geant4 is less than version 11.2, when the step length changes
+constexpr bool g4_lt_11_2 = CELERITAS_GEANT4_VERSION < 0x0b0200;
+
 TEST_F(LeadBoxAlongStepTest, position_change)
 {
     size_type num_tracks = 1;
@@ -619,10 +623,11 @@ TEST_F(LeadBoxAlongStepTest, position_change)
         inp.position = {1e9, 0, 0};
         ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::error};
         auto result = this->run(inp, num_tracks);
-        static double const expected_step_length = 5.38228333877273e-8;
+        static double const expected_step_length
+            = (g4_lt_11_2 ? 5.38228333877273e-8 : 5.3825861448155134e-8);
         if (CELERITAS_DEBUG)
         {
-            static double const expected_distance = 5.3822833387727e-8;
+            static double const expected_distance = expected_step_length;
             std::stringstream ss;
             ss << "Propagation of step length "
                << repr(from_cm(expected_step_length))
@@ -650,8 +655,16 @@ TEST_F(LeadBoxAlongStepTest, position_change)
         ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::error};
         auto result = this->run(inp, num_tracks);
         EXPECT_TRUE(scoped_log.empty()) << scoped_log;
-        EXPECT_SOFT_EQ(0.072970479114469966, result.step);
-        EXPECT_SOFT_EQ(0.0056608379081902749, result.displacement);
+        if (g4_lt_11_2)
+        {
+            EXPECT_SOFT_EQ(0.072970479114469966, result.step);
+            EXPECT_SOFT_EQ(0.0056608379081902749, result.displacement);
+        }
+        else
+        {
+            EXPECT_SOFT_EQ(0.072970479512448713, result.step);
+            EXPECT_SOFT_EQ(0.00566083791058547, result.displacement);
+        }
         EXPECT_EQ("eloss-range", result.action);
     }
 }

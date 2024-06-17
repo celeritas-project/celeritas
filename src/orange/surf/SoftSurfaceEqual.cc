@@ -168,6 +168,8 @@ ORANGE_INSTANTIATE_OP(ConeAligned);
 //---------------------------------------------------------------------------//
 /*!
  * Compare two simple quadrics for near equality.
+ *
+ * \note This is an ad hoc comparison.
  */
 bool SoftSurfaceEqual::operator()(SimpleQuadric const& a,
                                   SimpleQuadric const& b) const
@@ -182,6 +184,8 @@ bool SoftSurfaceEqual::operator()(SimpleQuadric const& a,
 //---------------------------------------------------------------------------//
 /*!
  * Compare two general quadrics for near equality.
+ *
+ * \note This is an ad hoc comparison.
  */
 bool SoftSurfaceEqual::operator()(GeneralQuadric const& a,
                                   GeneralQuadric const& b) const

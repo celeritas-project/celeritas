@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/global/ActionRegistryOutput.hh
+//! \todo Move to corecel
 //---------------------------------------------------------------------------//
 #pragma once
 

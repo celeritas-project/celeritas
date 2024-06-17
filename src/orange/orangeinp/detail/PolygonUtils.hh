@@ -59,7 +59,7 @@ calc_orientation(Real2 const& a, Real2 const& b, Real2 const& c)
  *
  * The list of input corners must have at least 3 points to be a polygon.
  */
-inline bool has_orientation(Span<Real2 const> const& corners, Orientation o)
+inline bool has_orientation(Span<Real2 const> corners, Orientation o)
 {
     CELER_EXPECT(corners.size() > 2);
     for (auto i : range(corners.size()))
@@ -77,31 +77,27 @@ inline bool has_orientation(Span<Real2 const> const& corners, Orientation o)
  * Check if a 2D polygon is convex.
  *
  * \param corners the vertices of the polygon
- * \param degen_ok allow consecutive degenerate points
+ * \param degen_ok allow consecutive collinear points
  */
-bool is_convex(Span<Real2 const> const& corners, bool degen_ok = false)
+inline bool is_convex(Span<Real2 const> corners, bool degen_ok = false)
 {
-    CELER_EXPECT(!corners.empty());
-
-    // The cross product of all vector pairs corresponding to ordered
-    // consecutive segments has to be positive.
-    auto crossp = [&](Real2 const& v1, Real2 const& v2) {
-        return v1[0] * v2[1] - v1[1] * v2[0];
-    };
-
-    // Use the cross_product(last, first) as sign reference
-    auto num_corners = corners.size();
-    Real2 vec1 = corners[0] - corners[num_corners - 1];
-    Real2 vec2 = corners[1] - corners[0];
-    real_type const ref = crossp(vec1, vec2);
-    for (auto i : range(num_corners - 1))
+    CELER_EXPECT(corners.size() > 2);
+    auto ref = Orientation::collinear;
+    for (auto i : range<size_type>(corners.size()))
     {
-        vec1 = vec2;
-        vec2 = corners[(i + 2) % num_corners] - corners[(i + 1) % num_corners];
-        auto val = crossp(vec1, vec2);
-        // Make sure the sign is the same as the reference
-        if (val * ref < 0 || (!degen_ok && val == 0))
+        auto j = (i + 1) % corners.size();
+        auto k = (i + 2) % corners.size();
+        auto cur = calc_orientation(corners[i], corners[j], corners[k]);
+        if (ref == Orientation::collinear)
         {
+            // First non-collinear point
+            ref = cur;
+        }
+        if ((!degen_ok && cur == Orientation::collinear)
+            || (!(degen_ok && cur == Orientation::collinear) && cur != ref))
+        {
+            // Prohibited collinear orientation, or different orientation from
+            // reference
             return false;
         }
     }

@@ -10,8 +10,10 @@
 #include "corecel/data/Copier.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/track/detail/TrackSortUtils.hh"
 
+#include "ActionRegistry.hh"
 #include "CoreParams.hh"
 
 namespace celeritas
@@ -51,6 +53,11 @@ CoreState<M>::CoreState(CoreParams const& params,
         ptr_ = make_observer(&this->ref());
     }
 
+    if (is_action_sorted(params.init()->host_ref().track_order))
+    {
+        offsets_.resize(params.action_reg()->num_actions() + 1);
+    }
+
     CELER_LOG_LOCAL(status) << "Celeritas core state initialization complete";
     CELER_ENSURE(states_);
     CELER_ENSURE(ptr_);
@@ -79,8 +86,10 @@ void CoreState<M>::insert_primaries(Span<Primary const> host_primaries)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get a range delimiting the [start, end) of the track partition assigned
- * action_id in track_slots
+ * Get a range of sorted track slots about to undergo a given action.
+ *
+ * The result delimits the [start, end) of the track partition assigned
+ * \c action_id in track_slots.
  */
 template<MemSpace M>
 Range<ThreadId> CoreState<M>::get_action_range(ActionId action_id) const
@@ -88,26 +97,6 @@ Range<ThreadId> CoreState<M>::get_action_range(ActionId action_id) const
     auto const& thread_offsets = offsets_.host_action_thread_offsets();
     CELER_EXPECT((action_id + 1) < thread_offsets.size());
     return {thread_offsets[action_id], thread_offsets[action_id + 1]};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * resize ActionThreads collection to the number of actions
- */
-template<MemSpace M>
-void CoreState<M>::num_actions(size_type n)
-{
-    offsets_.resize(n);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return the number of actions, i.e. thread_offsets_ size
- */
-template<MemSpace M>
-size_type CoreState<M>::num_actions() const
-{
-    return offsets_.host_action_thread_offsets().size();
 }
 
 //---------------------------------------------------------------------------//
