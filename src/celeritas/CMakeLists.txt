@@ -70,6 +70,7 @@ list(APPEND SOURCES
   optical/OpticalCollector.cc
   optical/OpticalPropertyParams.cc
   optical/OpticalTrackData.cc
+  optical/detail/OpticalGenParams.cc
   phys/CutoffParams.cc
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc

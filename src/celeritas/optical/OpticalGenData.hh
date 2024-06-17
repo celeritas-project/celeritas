@@ -10,12 +10,14 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/optical/CerenkovData.hh"
-#include "celeritas/optical/OpticalDistributionData.hh"
-#include "celeritas/optical/OpticalPropertyData.hh"
-#include "celeritas/optical/ScintillationData.hh"
+
+#include "CerenkovData.hh"
+#include "OpticalDistributionData.hh"
+#include "OpticalPropertyData.hh"
+#include "ScintillationData.hh"
 
 namespace celeritas
 {
