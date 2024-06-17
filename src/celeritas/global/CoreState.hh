@@ -55,7 +55,7 @@ class CoreStateInterface
     virtual CoreStateCounters const& counters() const = 0;
 
     //! Access user state data
-    virtual UserStateVec const& user_state() const = 0;
+    virtual UserStateVec const& user() const = 0;
 
     // Inject primaries to be turned into TrackInitializers
     virtual void insert_primaries(Span<Primary const> host_primaries) = 0;
@@ -140,14 +140,14 @@ class CoreState final : public CoreStateInterface
     //// USER DATA ////
 
     //! Access user state data
-    UserStateVec const& user_state() const final { return user_state_; }
+    UserStateVec const& user() const final { return user_state_; }
 
     //! Access user state data (mutable)
-    UserStateVec& user_state() { return user_state_; }
+    UserStateVec& user() { return user_state_; }
 
     // Convenience function to access user "collection group" data
     template<template<Ownership, MemSpace> class S>
-    inline StateRef<S>& user_state_data(UserId uid);
+    inline StateRef<S>& user_data(UserId uid);
 
     //// TRACK SORTING ////
 
@@ -228,7 +228,7 @@ auto CoreState<M>::primary_storage() const -> PrimaryCRef
  */
 template<MemSpace M>
 template<template<Ownership, MemSpace> class S>
-auto CoreState<M>::user_state_data(UserId uid) -> StateRef<S>&
+auto CoreState<M>::user_data(UserId uid) -> StateRef<S>&
 {
     CELER_EXPECT(uid < user_state_.size());
 
