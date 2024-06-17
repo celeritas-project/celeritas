@@ -12,6 +12,7 @@
 #include <string>
 
 #include "celeritas_config.h"
+#include "corecel/data/UserParamsRegistry.hh"
 #include "corecel/io/ColorUtils.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
@@ -82,6 +83,12 @@ auto GlobalTestBase::build_action_reg() const -> SPActionRegistry
 }
 
 //---------------------------------------------------------------------------//
+auto GlobalTestBase::build_user_reg() const -> SPUserRegistry
+{
+    return std::make_shared<UserParamsRegistry>();
+}
+
+//---------------------------------------------------------------------------//
 auto GlobalTestBase::build_core() -> SPConstCore
 {
     CoreParams::Input inp;
@@ -97,6 +104,7 @@ auto GlobalTestBase::build_core() -> SPConstCore
     inp.wentzel = this->wentzel();
     inp.action_reg = this->action_reg();
     inp.output_reg = this->output_reg();
+    inp.user_reg = this->user_reg();
     CELER_ASSERT(inp);
 
     // Build along-step action to add to the stepping loop
