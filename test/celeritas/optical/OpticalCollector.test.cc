@@ -20,7 +20,6 @@
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
-#include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/optical/detail/OpticalGenStorage.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
@@ -156,10 +155,10 @@ void LArSpherePreGenTest::build_optical_collector()
     {
         inp.scintillation = this->scintillation();
     }
-    inp.core = this->core();
     inp.buffer_capacity = 256;
 
-    collector_ = std::make_shared<OpticalCollector>(inp);
+    collector_
+        = std::make_shared<OpticalCollector>(*this->core(), std::move(inp));
 }
 
 //---------------------------------------------------------------------------//

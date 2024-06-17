@@ -22,13 +22,13 @@ namespace celeritas
 /*!
  * Construct with optical params, number of streams, and core data.
  */
-OpticalCollector::OpticalCollector(Input inp)
+OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     : storage_(std::make_shared<detail::OpticalGenStorage>())
 {
     CELER_EXPECT(inp);
 
-    size_type num_streams = inp.core->max_streams();
-    ActionRegistry& actions = *inp.core->action_reg();
+    size_type num_streams = core.max_streams();
+    ActionRegistry& actions = *core.action_reg();
 
     // Create params and stream storage
     HostVal<OpticalGenParamsData> host_data;
@@ -48,7 +48,10 @@ OpticalCollector::OpticalCollector(Input inp)
         // Action to generate Cerenkov optical distributions
         cerenkov_pregen_action_
             = std::make_shared<detail::CerenkovPreGenAction>(
-                actions.next_id(), inp.properties, inp.cerenkov, storage_);
+                actions.next_id(),
+                std::move(inp.properties),
+                std::move(inp.cerenkov),
+                storage_);
         actions.insert(cerenkov_pregen_action_);
     }
 
@@ -56,7 +59,7 @@ OpticalCollector::OpticalCollector(Input inp)
     {
         // Action to generate scintillation optical distributions
         scint_pregen_action_ = std::make_shared<detail::ScintPreGenAction>(
-            actions.next_id(), inp.scintillation, storage_);
+            actions.next_id(), std::move(inp.scintillation), storage_);
         actions.insert(scint_pregen_action_);
     }
 

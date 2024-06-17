@@ -58,9 +58,6 @@ class OpticalCollector
 
     struct Input
     {
-        //! Global parameters including geometry and materials
-        SPConstCore core;
-
         //! Optical physics properties for materials
         SPConstProperties properties;
         SPConstCerenkov cerenkov;
@@ -72,14 +69,14 @@ class OpticalCollector
         //! True if all input is assigned and valid
         explicit operator bool() const
         {
-            return core && (scintillation || (cerenkov && properties))
+            return (scintillation || (cerenkov && properties))
                    && buffer_capacity > 0;
         }
     };
 
   public:
-    // Construct with optical params, number of streams, and action registry
-    explicit OpticalCollector(Input);
+    // Construct with core data and optical params
+    OpticalCollector(CoreParams const&, Input&&);
 
     // Default destructor and move and copy
     ~OpticalCollector() = default;
