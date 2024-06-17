@@ -18,17 +18,26 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
+template<MemSpace M>
+class CoreStateThreadOffsets;
+
+//---------------------------------------------------------------------------//
 /*!
  * Holds Collections used by CoreState to store thread offsets.
+ *
+ * Note that \c ActionThreads is not "actions by thread" but is "threads by
+ * action": it's indexed into using the action ID, and its value is the thread
+ * ID at which the sorted state vector begins having an action.
  */
-template<MemSpace M>
-class CoreStateThreadOffsets
+template<>
+class CoreStateThreadOffsets<MemSpace::host>
 {
   public:
     //!@{
     //! \name Type aliases
-    template<MemSpace M2>
-    using ThreadActions = Collection<ThreadId, Ownership::value, M2, ActionId>;
+    using NativeActionThreads
+        = Collection<ThreadId, Ownership::value, MemSpace::host, ActionId>;
+    using HostActionThreads = NativeActionThreads;
     //!@}
 
   public:
@@ -47,7 +56,7 @@ class CoreStateThreadOffsets
     void resize(size_type n) { celeritas::resize(&thread_offsets_, n); }
 
   private:
-    ThreadActions<M> thread_offsets_;
+    NativeActionThreads thread_offsets_;
 };
 
 //---------------------------------------------------------------------------//
@@ -64,8 +73,10 @@ class CoreStateThreadOffsets<MemSpace::device>
   public:
     //!@{
     //! \name Type aliases
-    template<MemSpace M>
-    using ThreadActions = Collection<ThreadId, Ownership::value, M, ActionId>;
+    using NativeActionThreads
+        = Collection<ThreadId, Ownership::value, MemSpace::device, ActionId>;
+    using HostActionThreads
+        = Collection<ThreadId, Ownership::value, MemSpace::mapped, ActionId>;
     //!@}
 
   public:
@@ -86,8 +97,8 @@ class CoreStateThreadOffsets<MemSpace::device>
     }
 
   private:
-    ThreadActions<MemSpace::device> thread_offsets_;
-    ThreadActions<MemSpace::mapped> host_thread_offsets_;
+    NativeActionThreads thread_offsets_;
+    HostActionThreads host_thread_offsets_;
 };
 
 //---------------------------------------------------------------------------//

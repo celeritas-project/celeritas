@@ -94,7 +94,7 @@ Range<ThreadId> CoreState<M>::get_action_range(ActionId action_id) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Resize ActionThreads collection to the number of actions
+ * Resize action threads if sorting track slots.
  */
 template<MemSpace M>
 void CoreState<M>::num_actions(size_type n)
@@ -104,7 +104,7 @@ void CoreState<M>::num_actions(size_type n)
 
 //---------------------------------------------------------------------------//
 /*!
- * Return the number of actions, i.e. thread_offsets_ size
+ * Return the number of actions when sorting track slots.
  */
 template<MemSpace M>
 size_type CoreState<M>::num_actions() const

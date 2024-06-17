@@ -126,7 +126,7 @@ class CoreState final : public CoreStateInterface
 
     //// ACTIONS ////
 
-    // Resize ActionThreads collection to the number of actions
+    // Resize action threads if sorting track slots
     void num_actions(size_type n);
 
     // Return the number of actions
