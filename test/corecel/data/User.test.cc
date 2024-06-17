@@ -78,12 +78,12 @@ TEST_F(UserTest, state_host)
 
     {
         // Check the first state
-        auto* svec = dynamic_cast<StateT*>(&states.at(UserId{0}));
-        ASSERT_TRUE(svec);
-        EXPECT_TRUE(*svec);
-        EXPECT_EQ(128, svec->size());
+        auto* sptr = dynamic_cast<StateT*>(&states.at(UserId{0}));
+        ASSERT_TRUE(sptr);
+        EXPECT_TRUE(*sptr);
+        EXPECT_EQ(128, sptr->size());
 
-        HostRef<UserMockStateData>& data = svec->ref();
+        HostRef<UserMockStateData>& data = sptr->ref();
         EXPECT_EQ(StreamId{1}, data.stream);
         EXPECT_EQ(128, data.size());
         EXPECT_EQ(128, data.local_state.size());
@@ -91,15 +91,20 @@ TEST_F(UserTest, state_host)
     }
     {
         // Check the second state
-        auto* svec = dynamic_cast<StateT*>(&states.at(UserId{1}));
-        ASSERT_TRUE(svec);
-        EXPECT_TRUE(*svec);
-        EXPECT_EQ(128, svec->size());
+        auto* sptr = dynamic_cast<StateT*>(&states.at(UserId{1}));
+        ASSERT_TRUE(sptr);
+        EXPECT_TRUE(*sptr);
+        EXPECT_EQ(128, sptr->size());
 
-        HostRef<UserMockStateData>& data = svec->ref();
+        HostRef<UserMockStateData>& data = sptr->ref();
         EXPECT_EQ(StreamId{1}, data.stream);
         EXPECT_EQ(128, data.local_state.size());
         EXPECT_EQ(234, data.counts.size());
+    }
+    {
+        // Check 'get'
+        auto& s = get<StateT>(states, UserId{1});
+        EXPECT_EQ(128, s.size());
     }
 }
 

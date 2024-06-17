@@ -62,6 +62,36 @@ class UserStateVec
 };
 
 //---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Get a mutable item from a state vector efficiently and safely.
+ */
+template<class S>
+S& get(UserStateVec& vec, UserId uid)
+{
+    CELER_EXPECT(uid < vec.size());
+    auto* ptr = &vec.at(uid);
+    CELER_ENSURE(dynamic_cast<S*>(ptr));
+    return *static_cast<S*>(ptr);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a const item from a state vector efficiently and safely.
+ */
+template<class S>
+S const& get(UserStateVec const& vec, UserId uid)
+{
+    CELER_EXPECT(uid < vec.size());
+    auto* ptr = &vec.at(uid);
+    CELER_ENSURE(dynamic_cast<S const*>(ptr));
+    return *static_cast<S const*>(ptr);
+}
+
+//---------------------------------------------------------------------------//
+// INLINE DEFININTIONS
+//---------------------------------------------------------------------------//
 /*!
  * Access a mutable user state interface for a given ID.
  */
