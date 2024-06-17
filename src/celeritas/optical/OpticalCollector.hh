@@ -9,8 +9,10 @@
 
 #include <memory>
 
+#include "corecel/data/AuxInterface.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/optical/OpticalGenData.hh"
+
+#include "OpticalGenData.hh"
 
 #include "detail/CerenkovPreGenAction.hh"
 #include "detail/PreGenGatherAction.hh"
@@ -27,7 +29,7 @@ class CoreParams;
 
 namespace detail
 {
-struct OpticalGenStorage;
+class OpticalGenParams;
 }  // namespace detail
 
 //---------------------------------------------------------------------------//
@@ -78,16 +80,13 @@ class OpticalCollector
     // Construct with core data and optical params
     OpticalCollector(CoreParams const&, Input&&);
 
-    // Default destructor and move and copy
-    ~OpticalCollector() = default;
-    CELER_DEFAULT_COPY_MOVE(OpticalCollector);
-
-    //! Get the distribution data
-    SPGenStorage const& storage() const { return storage_; };
+    // Aux ID for optical generator data
+    AuxId aux_id() const;
 
   private:
     //// TYPES ////
 
+    using SPOpticalGenParams = std::shared_ptr<detail::OpticalGenParams>;
     using SPCerenkovPreGenAction
         = std::shared_ptr<detail::CerenkovPreGenAction>;
     using SPScintPreGenAction = std::shared_ptr<detail::ScintPreGenAction>;
@@ -95,7 +94,8 @@ class OpticalCollector
 
     //// DATA ////
 
-    SPGenStorage storage_;
+    SPOpticalGenParams gen_params_;
+
     SPGatherAction gather_action_;
     SPCerenkovPreGenAction cerenkov_pregen_action_;
     SPScintPreGenAction scint_pregen_action_;

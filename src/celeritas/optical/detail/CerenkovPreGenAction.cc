@@ -10,6 +10,7 @@
 #include <algorithm>
 
 #include "corecel/Assert.hh"
+#include "corecel/data/AuxStateVec.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -20,7 +21,7 @@
 
 #include "CerenkovPreGenExecutor.hh"
 #include "OpticalGenAlgorithms.hh"
-#include "OpticalGenStorage.hh"
+#include "OpticalGenParams.hh"
 
 namespace celeritas
 {
@@ -28,20 +29,20 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with action ID, optical properties, and storage.
+ * Construct with action ID, data ID, optical properties.
  */
 CerenkovPreGenAction::CerenkovPreGenAction(ActionId id,
+                                           AuxId data_id,
                                            SPConstProperties properties,
-                                           SPConstCerenkov cerenkov,
-                                           SPGenStorage storage)
+                                           SPConstCerenkov cerenkov)
     : id_(id)
+    , data_id_{data_id}
     , properties_(std::move(properties))
     , cerenkov_(std::move(cerenkov))
-    , storage_(std::move(storage))
 {
     CELER_EXPECT(id_);
+    CELER_EXPECT(data_id_);
     CELER_EXPECT(cerenkov_ && properties_);
-    CELER_EXPECT(storage_);
 }
 
 //---------------------------------------------------------------------------//
@@ -81,23 +82,22 @@ template<MemSpace M>
 void CerenkovPreGenAction::execute_impl(CoreParams const& core_params,
                                         CoreState<M>& core_state) const
 {
-    size_type state_size = core_state.size();
-    StreamId stream = core_state.stream_id();
-    auto& buffer_size = storage_->size[stream.get()];
-    auto const& state = storage_->obj.state<M>(stream, state_size);
+    auto& state = get<OpticalGenState<M>>(core_state.aux(), data_id_);
+    auto& buffer = state.store.ref().cerenkov;
+    auto& buffer_size = state.buffer_size.cerenkov;
 
-    CELER_VALIDATE(buffer_size.cerenkov + state_size <= state.cerenkov.size(),
-                   << "insufficient capacity (" << state.cerenkov.size()
+    CELER_VALIDATE(buffer_size + core_state.size() <= buffer.size(),
+                   << "insufficient capacity (" << buffer.size()
                    << ") for buffered Cerenkov distribution data (total "
                       "capacity requirement of "
-                   << buffer_size.cerenkov + state_size << ")");
+                   << buffer_size + core_state.size() << ")");
 
     // Generate the optical distribution data
     this->pre_generate(core_params, core_state);
 
     // Compact the buffer
-    buffer_size.cerenkov = remove_if_invalid(
-        state.cerenkov, buffer_size.cerenkov, state_size, stream);
+    buffer_size = remove_if_invalid(
+        buffer, buffer_size, core_state.size(), core_state.stream_id());
 }
 
 //---------------------------------------------------------------------------//
@@ -107,14 +107,16 @@ void CerenkovPreGenAction::execute_impl(CoreParams const& core_params,
 void CerenkovPreGenAction::pre_generate(CoreParams const& core_params,
                                         CoreStateHost& core_state) const
 {
-    TrackExecutor execute{core_params.ptr<MemSpace::native>(),
-                          core_state.ptr(),
-                          detail::CerenkovPreGenExecutor{
-                              properties_->host_ref(),
-                              cerenkov_->host_ref(),
-                              storage_->obj.state<MemSpace::native>(
-                                  core_state.stream_id(), core_state.size()),
-                              storage_->size[core_state.stream_id().get()]}};
+    auto& state
+        = get<OpticalGenState<MemSpace::native>>(core_state.aux(), data_id_);
+
+    TrackExecutor execute{
+        core_params.ptr<MemSpace::native>(),
+        core_state.ptr(),
+        detail::CerenkovPreGenExecutor{properties_->host_ref(),
+                                       cerenkov_->host_ref(),
+                                       state.store.ref(),
+                                       state.buffer_size}};
     launch_action(*this, core_params, core_state, execute);
 }
 

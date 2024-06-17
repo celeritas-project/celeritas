@@ -16,7 +16,7 @@
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
-#include "OpticalGenStorage.hh"
+#include "OpticalGenParams.hh"
 #include "PreGenGatherExecutor.hh"
 
 namespace celeritas
@@ -27,11 +27,11 @@ namespace detail
 /*!
  * Construct with action ID, optical properties, and storage.
  */
-PreGenGatherAction::PreGenGatherAction(ActionId id, SPGenStorage storage)
-    : id_(id), storage_(std::move(storage))
+PreGenGatherAction::PreGenGatherAction(ActionId id, AuxId data_id)
+    : id_(id), data_id_(data_id)
 {
     CELER_EXPECT(id_);
-    CELER_EXPECT(storage_);
+    CELER_EXPECT(data_id_);
 }
 
 //---------------------------------------------------------------------------//
@@ -50,11 +50,13 @@ std::string_view PreGenGatherAction::description() const
 void PreGenGatherAction::execute(CoreParams const& params,
                                  CoreStateHost& state) const
 {
+    auto& optical_state
+        = get<OpticalGenState<MemSpace::native>>(state.aux(), data_id_);
+
     auto execute = make_active_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
-        detail::PreGenGatherExecutor{storage_->obj.state<MemSpace::native>(
-            state.stream_id(), state.size())});
+        detail::PreGenGatherExecutor{optical_state.store.ref()});
     launch_action(*this, params, state, execute);
 }
 

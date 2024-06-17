@@ -20,13 +20,15 @@
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
-#include "celeritas/optical/detail/OpticalGenStorage.hh"
+#include "celeritas/optical/detail/OpticalGenParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
 
 #include "celeritas_test.hh"
 #include "../LArSphereBase.hh"
+
+using celeritas::detail::OpticalGenState;
 
 namespace celeritas
 {
@@ -252,9 +254,11 @@ auto LArSpherePreGenTest::run(size_type num_tracks, size_type num_steps)
     };
 
     RunResult result;
-    CELER_ASSERT(collector_->storage()->obj.state<M>(stream_));
-    auto const& state = *(collector_->storage()->obj.state<M>(stream_));
-    auto const& sizes = collector_->storage()->size[stream_.get()];
+    auto& optical_state
+        = get<OpticalGenState<M>>(step.state().aux(), collector_->aux_id());
+
+    auto const& state = optical_state.store.ref();
+    auto const& sizes = optical_state.buffer_size;
     get_result(result.cerenkov, state.cerenkov, sizes.cerenkov);
     get_result(result.scintillation, state.scintillation, sizes.scintillation);
 
