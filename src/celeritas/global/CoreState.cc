@@ -79,8 +79,10 @@ void CoreState<M>::insert_primaries(Span<Primary const> host_primaries)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get a range delimiting the [start, end) of the track partition assigned
- * action_id in track_slots
+ * Get a range of sorted track slots about to undergo a given action.
+ *
+ * The result delimits the [start, end) of the track partition assigned
+ * \c action_id in track_slots.
  */
 template<MemSpace M>
 Range<ThreadId> CoreState<M>::get_action_range(ActionId action_id) const
@@ -92,7 +94,7 @@ Range<ThreadId> CoreState<M>::get_action_range(ActionId action_id) const
 
 //---------------------------------------------------------------------------//
 /*!
- * resize ActionThreads collection to the number of actions
+ * Resize ActionThreads collection to the number of actions
  */
 template<MemSpace M>
 void CoreState<M>::num_actions(size_type n)

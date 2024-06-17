@@ -71,9 +71,6 @@ class CoreState final : public CoreStateInterface
     using Ref = CoreStateData<Ownership::reference, M>;
     using Ptr = ObserverPtr<Ref, M>;
     using PrimaryCRef = Collection<Primary, Ownership::const_reference, M>;
-    template<MemSpace M2>
-    using ActionThreads =
-        typename detail::CoreStateThreadOffsets<M>::template ActionThreads<M2>;
     //!@}
 
   public:
@@ -94,6 +91,8 @@ class CoreState final : public CoreStateInterface
         return counters_.num_active == 0 && counters_.num_primaries == 0;
     }
 
+    //// CORE DATA ////
+
     //! Get a reference to the mutable state data
     Ref& ref() { return states_.ref(); }
 
@@ -102,6 +101,8 @@ class CoreState final : public CoreStateInterface
 
     //! Get a native-memspace pointer to the mutable state data
     Ptr ptr() { return ptr_; }
+
+    //// COUNTERS ////
 
     //! Track initialization counters
     CoreStateCounters& counters() { return counters_; }
@@ -123,26 +124,24 @@ class CoreState final : public CoreStateInterface
     //! Clear primaries after constructing initializers from them
     void clear_primaries() { counters_.num_primaries = 0; }
 
-    // resize ActionThreads collection to the number of actions
+    //// ACTIONS ////
+
+    // Resize ActionThreads collection to the number of actions
     void num_actions(size_type n);
 
-    // Return the number of actions, i.e. thread_offsets_ size
+    // Return the number of actions
     size_type num_actions() const;
 
-    // Get a range delimiting the [start, end) of the track partition assigned
-    // action_id in track_slots
+    // Get a range of sorted track slots about to undergo a given action
     Range<ThreadId> get_action_range(ActionId action_id) const;
 
-    // Reference to the host ActionThread collection for holding result of
-    // action counting
+    // Access the range of actions to apply for all track IDs
     inline auto& action_thread_offsets();
 
-    // Const reference to the host ActionThread collection for holding result
-    // of action counting
+    // Access the range of actions to apply for all track IDs
     inline auto const& action_thread_offsets() const;
 
-    // Reference to the ActionThread collection matching the state memory
-    // space
+    // Access action offsets for computation (native memory space)
     inline auto& native_action_thread_offsets();
 
   private:
@@ -187,8 +186,9 @@ auto CoreState<M>::primary_storage() const -> PrimaryCRef
 
 //---------------------------------------------------------------------------//
 /*!
- * Reference to the host ActionThread collection for holding result of
- * action counting
+ * Access the range of actions to apply for all track IDs.
+ *
+ * The result is size \c num_actions .
  */
 template<MemSpace M>
 auto& CoreState<M>::action_thread_offsets()
@@ -198,8 +198,9 @@ auto& CoreState<M>::action_thread_offsets()
 
 //---------------------------------------------------------------------------//
 /*!
- * Const reference to the host ActionThread collection for holding result
- * of action counting
+ * Access the range of actions to apply for all track IDs.
+ *
+ * The result is size \c num_actions .
  */
 template<MemSpace M>
 auto const& CoreState<M>::action_thread_offsets() const
@@ -209,7 +210,7 @@ auto const& CoreState<M>::action_thread_offsets() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Reference to the ActionThread collection matching the state memory space
+ * Access action offsets for computation (native memory space).
  */
 template<MemSpace M>
 auto& CoreState<M>::native_action_thread_offsets()
