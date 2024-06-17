@@ -10,8 +10,10 @@
 #include "corecel/data/Copier.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/track/detail/TrackSortUtils.hh"
 
+#include "ActionRegistry.hh"
 #include "CoreParams.hh"
 
 namespace celeritas
@@ -49,6 +51,11 @@ CoreState<M>::CoreState(CoreParams const& params,
     else if constexpr (M == MemSpace::host)
     {
         ptr_ = make_observer(&this->ref());
+    }
+
+    if (is_action_sorted(params.init()->host_ref().track_order))
+    {
+        offsets_.resize(params.action_reg()->num_actions() + 1);
     }
 
     CELER_LOG_LOCAL(status) << "Celeritas core state initialization complete";
@@ -90,26 +97,6 @@ Range<ThreadId> CoreState<M>::get_action_range(ActionId action_id) const
     auto const& thread_offsets = offsets_.host_action_thread_offsets();
     CELER_EXPECT((action_id + 1) < thread_offsets.size());
     return {thread_offsets[action_id], thread_offsets[action_id + 1]};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Resize action threads if sorting track slots.
- */
-template<MemSpace M>
-void CoreState<M>::num_actions(size_type n)
-{
-    offsets_.resize(n);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return the number of actions when sorting track slots.
- */
-template<MemSpace M>
-size_type CoreState<M>::num_actions() const
-{
-    return offsets_.host_action_thread_offsets().size();
 }
 
 //---------------------------------------------------------------------------//

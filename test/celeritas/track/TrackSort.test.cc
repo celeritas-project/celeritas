@@ -181,7 +181,6 @@ TEST_F(TestEm3NoMsc, host_is_sorting)
 
     auto primaries = this->make_primaries(state.size());
     state.insert_primaries(make_span(primaries));
-    state.num_actions(this->action_reg()->num_actions() + 1);
     execute("extend-from-primaries");
     execute("initialize-tracks");
     execute("pre-step");

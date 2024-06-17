@@ -124,13 +124,7 @@ class CoreState final : public CoreStateInterface
     //! Clear primaries after constructing initializers from them
     void clear_primaries() { counters_.num_primaries = 0; }
 
-    //// ACTIONS ////
-
-    // Resize action threads if sorting track slots
-    void num_actions(size_type n);
-
-    // Return the number of actions
-    size_type num_actions() const;
+    //// TRACK SORTING ////
 
     // Get a range of sorted track slots about to undergo a given action
     Range<ThreadId> get_action_range(ActionId action_id) const;
@@ -187,8 +181,6 @@ auto CoreState<M>::primary_storage() const -> PrimaryCRef
 //---------------------------------------------------------------------------//
 /*!
  * Access the range of actions to apply for all track IDs.
- *
- * The result is size \c num_actions .
  */
 template<MemSpace M>
 auto& CoreState<M>::action_thread_offsets()
@@ -199,8 +191,6 @@ auto& CoreState<M>::action_thread_offsets()
 //---------------------------------------------------------------------------//
 /*!
  * Access the range of actions to apply for all track IDs.
- *
- * The result is size \c num_actions .
  */
 template<MemSpace M>
 auto const& CoreState<M>::action_thread_offsets() const

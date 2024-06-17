@@ -43,13 +43,10 @@ class CoreStateThreadOffsets<MemSpace::host>
   public:
     auto& host_action_thread_offsets() { return thread_offsets_; }
     auto const& host_action_thread_offsets() const { return thread_offsets_; }
-    auto& native_action_thread_offsets()
-    {
-        return host_action_thread_offsets();
-    }
+    auto& native_action_thread_offsets() { return thread_offsets_; }
     auto const& native_action_thread_offsets() const
     {
-        return host_action_thread_offsets();
+        return thread_offsets_;
     }
 
     //! Initialize using the number of actions
