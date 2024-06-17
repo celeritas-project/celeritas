@@ -257,6 +257,9 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     };
     switch (TrackOrder track_order = input_.init->host_ref().track_order)
     {
+        case TrackOrder::unsorted:
+        case TrackOrder::shuffled:
+            break;
         case TrackOrder::partition_status:
         case TrackOrder::sort_step_limit_action:
         case TrackOrder::sort_along_step_action:
@@ -269,10 +272,8 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
             insert_sort_tracks_action(TrackOrder::sort_step_limit_action);
             insert_sort_tracks_action(TrackOrder::sort_along_step_action);
             break;
-        case TrackOrder::unsorted:
-        case TrackOrder::shuffled:
         case TrackOrder::size_:
-            break;
+            CELER_ASSERT_UNREACHABLE();
     }
 
     // Save maximum number of streams

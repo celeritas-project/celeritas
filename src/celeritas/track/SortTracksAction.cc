@@ -147,7 +147,11 @@ void SortTracksAction::execute(CoreParams const&, CoreStateDevice& state) const
  */
 void SortTracksAction::begin_run(CoreParams const& params, CoreStateHost& state)
 {
-    state.num_actions(params.action_reg()->num_actions() + 1);
+    CELER_VALIDATE(state.action_thread_offsets().size()
+                       == params.action_reg()->num_actions() + 1,
+                   << "state action size is incorrect: actions might have "
+                      "been added "
+                      "after creating states");
 }
 
 //---------------------------------------------------------------------------//
@@ -157,7 +161,11 @@ void SortTracksAction::begin_run(CoreParams const& params, CoreStateHost& state)
 void SortTracksAction::begin_run(CoreParams const& params,
                                  CoreStateDevice& state)
 {
-    state.num_actions(params.action_reg()->num_actions() + 1);
+    CELER_VALIDATE(state.action_thread_offsets().size()
+                       == params.action_reg()->num_actions() + 1,
+                   << "state action size is incorrect: actions might have "
+                      "been added "
+                      "after creating states");
 }
 
 //---------------------------------------------------------------------------//
