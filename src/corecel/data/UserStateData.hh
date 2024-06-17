@@ -12,6 +12,7 @@
 #include "corecel/Types.hh"
 
 #include "CollectionStateStore.hh"
+#include "ParamsDataInterface.hh"
 #include "UserInterface.hh"
 
 namespace celeritas

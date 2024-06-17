@@ -27,6 +27,9 @@ class UserParamsRegistry;
  * completely added and while the state is being constructed (with its size,
  * etc.). The UserId for an element of this class corresponds to the
  * UserParamsRegistry.
+ *
+ * This class can be empty either by default or if the given user registry
+ * doesn't have any entries.
  */
 class UserStateVec
 {
@@ -38,8 +41,14 @@ class UserStateVec
     //@}
 
   public:
+    //! Create without any user data
+    UserStateVec() = default;
+
     // Create from params on a device/host stream
     UserStateVec(UserParamsRegistry const&, MemSpace, StreamId, size_type);
+
+    // Allow moving; copying is prohibited due to unique pointers
+    CELER_DEFAULT_MOVE_DELETE_COPY(UserStateVec);
 
     // Access user state interfaces
     inline UserStateInterface& at(UserId);
@@ -50,8 +59,6 @@ class UserStateVec
 
   private:
     std::vector<UPState> states_;
-
-    CELER_DEFAULT_MOVE_DELETE_COPY(UserStateVec);
 };
 
 //---------------------------------------------------------------------------//

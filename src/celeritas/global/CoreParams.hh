@@ -31,6 +31,7 @@ class ParticleParams;
 class PhysicsParams;
 class SimParams;
 class TrackInitParams;
+class UserParamsRegistry;
 class WentzelOKVIParams;
 
 //---------------------------------------------------------------------------//
@@ -54,6 +55,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstWentzelOKVI = std::shared_ptr<WentzelOKVIParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
+    using SPUserRegistry = std::shared_ptr<UserParamsRegistry>;
 
     template<MemSpace M>
     using ConstRef = CoreParamsData<Ownership::const_reference, M>;
@@ -72,10 +74,11 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstRng rng;
         SPConstSim sim;
         SPConstTrackInit init;
-        SPConstWentzelOKVI wentzel;
+        SPConstWentzelOKVI wentzel;  //!< Optional
 
         SPActionRegistry action_reg;
         SPOutputRegistry output_reg;
+        SPUserRegistry user_reg;  //!< Optional
 
         //! Maximum number of simultaneous threads/tasks per process
         StreamId::size_type max_streams{1};
@@ -110,6 +113,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPConstWentzelOKVI const& wentzel() const { return input_.wentzel; }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
     SPOutputRegistry const& output_reg() const { return input_.output_reg; }
+    SPUserRegistry const& user_reg() const { return input_.user_reg; }
     //!@}
 
     //! Access data on the host
