@@ -94,13 +94,13 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
             {
                 auto stream_id
                     = std::to_string(stepper_->state_ref().stream_id.get());
-                trace_counter(std::string("active-" + stream_id).data(),
+                trace_counter(std::string("active-" + stream_id).c_str(),
                               track_counts.active);
-                trace_counter(std::string("alive-" + stream_id).data(),
+                trace_counter(std::string("alive-" + stream_id).c_str(),
                               track_counts.alive);
-                trace_counter(std::string("dead-" + stream_id).data(),
+                trace_counter(std::string("dead-" + stream_id).c_str(),
                               track_counts.active - track_counts.alive);
-                trace_counter(std::string("queued-" + stream_id).data(),
+                trace_counter(std::string("queued-" + stream_id).c_str(),
                               track_counts.queued);
             }
         }
