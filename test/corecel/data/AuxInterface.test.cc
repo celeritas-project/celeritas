@@ -3,9 +3,10 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/data/User.test.cc
+//! \file corecel/data/AuxInterface.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/data/AuxInterface.hh"
+
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
 
