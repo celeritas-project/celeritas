@@ -5,11 +5,10 @@
 //---------------------------------------------------------------------------//
 //! \file corecel/data/UserStateVec.cc
 //---------------------------------------------------------------------------//
-#include "UserStateVec.hh"
-
 #include "corecel/cont/Range.hh"
 
 #include "UserParamsRegistry.hh"
+#include "UserStateVec.hh"
 
 namespace celeritas
 {
