@@ -391,7 +391,7 @@ In daughter classes:
 - Use the ``final`` keyword on classes *except* in the rare case that this
   class is providing new extensible interfaces.
 - Use exactly one of the ``final`` or ``override`` keywords for inherited
-  virtual functions. Usually classes
+  virtual functions. Most classes should only have "final" methods.
 
 
 Odds and ends
@@ -412,61 +412,3 @@ where ``typename`` *doesn't* mean a class: namely,
 Use ``this->`` when calling member functions inside a class to convey that the
 ``this`` pointer is implicitly being passed to the function and to make it
 easier to differentiate from a free function in the current scope.
-
-Data management in Celeritas
-============================
-
-.. todo::
-   This section needs updating to more accurately describe the Collection
-   paradigm used by Celeritas for data management.
-
-Data management must be isolated from data use for any code that is to run on
-the device. This
-allows low-level physics classes to operate on references to data using the
-exact same device/host code. Furthermore, state data (one per track) and
-shared data (definitions, persistent data, model data) should be separately
-allocated and managed.
-
-Params
-  Provide a CPU-based interface to manage and provide access to constant shared
-  GPU data, usually model parameters or the like. The Params class itself can
-  only be accessed via host code. A params class can contain metadata (string
-  names, etc.) suitable for host-side debug output and for helping related
-  classes convert from user-friendly input (e.g. particle name) to
-  device-friendly IDs (e.g. particle def ID).
-
-State
-  Thread-local data specifying the state of a single particle track with
-  respect to a corresponding model (``FooParams``).
-
-TrackView
-  Device-friendly class that provides read/write access to the data for a
-  single track, in the spirit of `std::string_view` which adds functionality to
-  data owned by someone else. It combines the state variables and model
-  parameters into a single class. The constructor always takes const references
-  to ParamsData and StateData as well as the track ID. It encapsulates
-  the storage/layout of the state and parameters, as well as what (if any) data
-  is cached in the state.
-
-View
-  Device-friendly class with read/write access for data shared across
-  threads.  For example, allocation for Secondary particles is performed on
-  device, but the data is not specific to a thread.
-
-.. hint::
-
-   Consider the following example.
-
-   All SM physics particles share a common set of properties such as mass and
-   charge, and each instance of particle has a particular set of
-   associated variables such as kinetic energy. The shared data (SM parameters)
-   reside in ``ParticleParams``, and the particle track properties are managed
-   by a ``ParticleStateStore`` class.
-
-   A separate class, the ``ParticleTrackView``, is instantiated with a
-   specific thread ID so that it acts as an accessor to the
-   stored data for a particular track. It can calculate properties that depend
-   on both the state and parameters. For example, momentum depends on both the
-   mass of a particle (constant, set by the model) and the speed (variable,
-   depends on particle track state).
-

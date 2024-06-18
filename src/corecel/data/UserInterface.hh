@@ -80,7 +80,7 @@ class UserParamsInterface
     virtual std::string_view label() const = 0;
 
     //! Factory function for building multithread state for a stream
-    virtual UPState create_state(MemSpace, StreamId, size_type) const = 0;
+    virtual UPState create_state(MemSpace, StreamId, size_type size) const = 0;
 
   protected:
     //!@{

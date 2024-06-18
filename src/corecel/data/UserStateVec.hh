@@ -8,6 +8,7 @@
 #pragma once
 
 #include <memory>
+#include <type_traits>
 #include <vector>
 
 #include "corecel/Macros.hh"
@@ -70,6 +71,7 @@ class UserStateVec
 template<class S>
 S& get(UserStateVec& vec, UserId uid)
 {
+    static_assert(std::is_base_of_v<UserStateInterface, S>);
     CELER_EXPECT(uid < vec.size());
     auto* ptr = &vec.at(uid);
     CELER_ENSURE(dynamic_cast<S*>(ptr));
@@ -83,6 +85,7 @@ S& get(UserStateVec& vec, UserId uid)
 template<class S>
 S const& get(UserStateVec const& vec, UserId uid)
 {
+    static_assert(std::is_base_of_v<UserStateInterface, S>);
     CELER_EXPECT(uid < vec.size());
     auto* ptr = &vec.at(uid);
     CELER_ENSURE(dynamic_cast<S const*>(ptr));
