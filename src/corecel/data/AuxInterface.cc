@@ -3,19 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/data/UserInterface.cc
+//! \file corecel/data/AuxInterface.cc
 //---------------------------------------------------------------------------//
-#include "UserInterface.hh"
+#include "AuxInterface.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 //! Default destructor.
-UserStateInterface::~UserStateInterface() = default;
+AuxStateInterface::~AuxStateInterface() = default;
 
 //---------------------------------------------------------------------------//
 //! Default destructor.
-UserParamsInterface::~UserParamsInterface() = default;
+AuxParamsInterface::~AuxParamsInterface() = default;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

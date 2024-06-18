@@ -40,8 +40,8 @@ celeritas_add_device_test(data/ObserverPtr)
 celeritas_add_test(data/LdgIterator.test.cc)
 celeritas_add_test(data/HyperslabIndexer.test.cc)
 celeritas_add_device_test(data/StackAllocator)
-celeritas_add_test(data/User.test.cc
-  SOURCES data/UserMockParams.cc)
+celeritas_add_test(data/Aux.test.cc
+  SOURCES data/AuxMockParams.cc)
 
 # Grid
 celeritas_add_test(grid/Interpolator.test.cc)

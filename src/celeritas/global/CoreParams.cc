@@ -13,8 +13,8 @@
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
+#include "corecel/data/AuxParamsRegistry.hh"  // IWYU pragma: keep
 #include "corecel/data/Ref.hh"
-#include "corecel/data/UserParamsRegistry.hh"  // IWYU pragma: keep
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"  // IWYU pragma: keep
@@ -326,7 +326,7 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         std::make_shared<VecgeomParamsOutput>(input_.geometry));
 #endif
 
-    // TODO: add "user" output
+    // TODO: add output from auxiliary params/data
 
     CELER_LOG(status) << "Celeritas core setup complete";
 

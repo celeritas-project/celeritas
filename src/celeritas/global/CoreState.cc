@@ -57,11 +57,11 @@ CoreState<M>::CoreState(CoreParams const& params,
         ptr_ = make_observer(&this->ref());
     }
 
-    if (params.user_reg())
+    if (params.aux_reg())
     {
-        // Allocate user data
-        user_state_
-            = UserStateVec{*params.user_reg(), M, stream_id, num_track_slots};
+        // Allocate auxiliary data
+        aux_state_
+            = AuxStateVec{*params.aux_reg(), M, stream_id, num_track_slots};
     }
 
     if (is_action_sorted(params.init()->host_ref().track_order))

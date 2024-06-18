@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/data/UserMockData.hh
+//! \file corecel/data/AuxMockData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -21,7 +21,7 @@ namespace test
  * Shared diagnostic attributes.
  */
 template<Ownership W, MemSpace M>
-struct UserMockParamsData
+struct AuxMockParamsData
 {
     //// TYPES ////
 
@@ -46,7 +46,7 @@ struct UserMockParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    UserMockParamsData& operator=(UserMockParamsData<W2, M2> const& other)
+    AuxMockParamsData& operator=(AuxMockParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         num_bins = other.num_bins;
@@ -62,7 +62,7 @@ struct UserMockParamsData
  * \c counts is indexed as particle_id * num_bins + bin_index.
  */
 template<Ownership W, MemSpace M>
-struct UserMockStateData
+struct AuxMockStateData
 {
     //// TYPES ////
 
@@ -91,7 +91,7 @@ struct UserMockStateData
 
     //! Assign from another set of states
     template<Ownership W2, MemSpace M2>
-    UserMockStateData& operator=(UserMockStateData<W2, M2>& other)
+    AuxMockStateData& operator=(AuxMockStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
         stream = other.stream;
@@ -106,8 +106,8 @@ struct UserMockStateData
 //---------------------------------------------------------------------------//
 
 template<MemSpace M>
-inline void resize(UserMockStateData<Ownership::value, M>* state,
-                   HostCRef<UserMockParamsData> const& params,
+inline void resize(AuxMockStateData<Ownership::value, M>* state,
+                   HostCRef<AuxMockParamsData> const& params,
                    StreamId sid,
                    size_type count)
 {

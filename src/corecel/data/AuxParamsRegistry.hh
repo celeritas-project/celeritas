@@ -3,62 +3,62 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/data/UserParamsRegistry.hh
+//! \file corecel/data/AuxParamsRegistry.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
 
-#include "UserInterface.hh"
+#include "AuxInterface.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Manage user-added parameter classes.
+ * Manage auxiliary-added parameter classes.
  *
  * An instance of this class can be added to shared problem data so that users
- * can share arbitrary information between parts of the code and create
- * independent state data for each stream.
+ * (and other parts of Celeritas) can share arbitrary information between parts
+ * of the code and create independent state data for each stream.
  */
-class UserParamsRegistry
+class AuxParamsRegistry
 {
   public:
     //!@{
     //! \name Type aliases
-    using SPParams = std::shared_ptr<UserParamsInterface>;
-    using SPConstParams = std::shared_ptr<UserParamsInterface const>;
+    using SPParams = std::shared_ptr<AuxParamsInterface>;
+    using SPConstParams = std::shared_ptr<AuxParamsInterface const>;
     //!@}
 
   public:
     // Default constructor
-    UserParamsRegistry() = default;
+    AuxParamsRegistry() = default;
 
     //// CONSTRUCTION ////
 
     //! Get the next available ID
-    UserId next_id() const { return UserId(params_.size()); }
+    AuxId next_id() const { return AuxId(params_.size()); }
 
-    // Register user parameters
+    // Register auxiliary parameters
     void insert(SPParams params);
 
     //! Get the number of defined params
-    UserId::size_type size() const { return params_.size(); }
+    AuxId::size_type size() const { return params_.size(); }
 
     // Access params at the given ID
-    inline SPParams const& at(UserId);
-    inline SPConstParams at(UserId) const;
+    inline SPParams const& at(AuxId);
+    inline SPConstParams at(AuxId) const;
 
-    // Get the label corresponding to user params
-    inline std::string const& id_to_label(UserId id) const;
+    // Get the label corresponding to auxiliary params
+    inline std::string const& id_to_label(AuxId id) const;
 
     // Find the ID corresponding to an label
-    UserId find(std::string const& label) const;
+    AuxId find(std::string const& label) const;
 
   private:
     std::vector<SPParams> params_;
     std::vector<std::string> labels_;
-    std::unordered_map<std::string, UserId> user_ids_;
+    std::unordered_map<std::string, AuxId> aux_ids_;
 };
 
 //---------------------------------------------------------------------------//
@@ -67,7 +67,7 @@ class UserParamsRegistry
 /*!
  * Access mutable params at the given ID.
  */
-auto UserParamsRegistry::at(UserId id) -> SPParams const&
+auto AuxParamsRegistry::at(AuxId id) -> SPParams const&
 {
     CELER_EXPECT(id < params_.size());
     return params_[id.unchecked_get()];
@@ -77,7 +77,7 @@ auto UserParamsRegistry::at(UserId id) -> SPParams const&
 /*!
  * Access params at the given ID.
  */
-auto UserParamsRegistry::at(UserId id) const -> SPConstParams
+auto AuxParamsRegistry::at(AuxId id) const -> SPConstParams
 {
     CELER_EXPECT(id < params_.size());
     return params_[id.unchecked_get()];
@@ -85,9 +85,9 @@ auto UserParamsRegistry::at(UserId id) const -> SPConstParams
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the label corresponding to user params.
+ * Get the label corresponding to auxiliary params.
  */
-std::string const& UserParamsRegistry::id_to_label(UserId id) const
+std::string const& AuxParamsRegistry::id_to_label(AuxId id) const
 {
     CELER_EXPECT(id < params_.size());
     return labels_[id.unchecked_get()];

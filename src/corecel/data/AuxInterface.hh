@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/data/UserInterface.hh
+//! \file corecel/data/AuxInterface.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -21,34 +21,34 @@ namespace celeritas
 // TYPES
 //---------------------------------------------------------------------------//
 
-//! Index for user-added data
-using UserId = OpaqueId<struct User_>;
+//! Index for auxiliary data
+using AuxId = OpaqueId<struct Aux_>;
 
 //---------------------------------------------------------------------------//
 // INTERFACES
 //---------------------------------------------------------------------------//
 /*!
- * User-specified state data owned by a single stream.
+ * Auxiliary state data owned by a single stream.
  *
  * This interface class is strictly to allow polymorphism and dynamic casting.
  */
-class UserStateInterface
+class AuxStateInterface
 {
   public:
     //@{
     //! \name Type aliases
-    using SPState = std::shared_ptr<UserStateInterface>;
+    using SPState = std::shared_ptr<AuxStateInterface>;
     //@}
 
   public:
     // Virtual destructor for polymorphism
-    virtual ~UserStateInterface();
+    virtual ~AuxStateInterface();
 
   protected:
     //!@{
     //! Allow construction and assignment only through daughter classes
-    UserStateInterface() = default;
-    CELER_DEFAULT_COPY_MOVE(UserStateInterface);
+    AuxStateInterface() = default;
+    CELER_DEFAULT_COPY_MOVE(AuxStateInterface);
     //!@}
 };
 
@@ -56,27 +56,28 @@ class UserStateInterface
 /*!
  * Base class for extensible shared data that has associated state.
  *
- * "User" data can be added to a \c UserParamsInterface at runtime to be passed
- * among multiple classes, and then \c dynamic_cast to the expected type. It
- * needs to supply a factory function for creating the a state instance for
- * multithreaded data on a particular stream and a given memory space.
+ * Auxiliary data can be added to a \c AuxParamsInterface at runtime to be
+ * passed among multiple classes, and then \c dynamic_cast to the expected
+ * type. It needs to supply a factory function for creating the a state
+ * instance for multithreaded data on a particular stream and a given memory
+ * space.
  */
-class UserParamsInterface
+class AuxParamsInterface
 {
   public:
     //@{
     //! \name Type aliases
-    using UPState = std::unique_ptr<UserStateInterface>;
+    using UPState = std::unique_ptr<AuxStateInterface>;
     //@}
 
   public:
     // Virtual destructor for polymorphism
-    virtual ~UserParamsInterface();
+    virtual ~AuxParamsInterface();
 
     //! Index of this class instance in its registry
-    virtual UserId user_id() const = 0;
+    virtual AuxId aux_id() const = 0;
 
-    //! Label for the user data
+    //! Label for the auxiliary data
     virtual std::string_view label() const = 0;
 
     //! Factory function for building multithread state for a stream
@@ -85,8 +86,8 @@ class UserParamsInterface
   protected:
     //!@{
     //! Allow construction and assignment only through daughter classes
-    UserParamsInterface() = default;
-    CELER_DEFAULT_COPY_MOVE(UserParamsInterface);
+    AuxParamsInterface() = default;
+    CELER_DEFAULT_COPY_MOVE(AuxParamsInterface);
     //!@}
 };
 

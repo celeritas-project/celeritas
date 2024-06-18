@@ -3,18 +3,18 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/data/UserMockParams.hh
+//! \file corecel/data/AuxMockParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <vector>
 
+#include "corecel/data/AuxInterface.hh"
+#include "corecel/data/AuxStateData.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
-#include "corecel/data/UserInterface.hh"
-#include "corecel/data/UserStateData.hh"
 
-#include "UserMockData.hh"
+#include "AuxMockData.hh"
 
 namespace celeritas
 {
@@ -24,30 +24,30 @@ namespace test
 /*!
  * Mock class for shared host data that has associated thread-local data.
  */
-class UserMockParams : public UserParamsInterface,
-                       public ParamsDataInterface<UserMockParamsData>
+class AuxMockParams : public AuxParamsInterface,
+                      public ParamsDataInterface<AuxMockParamsData>
 {
   public:
     //!@{
     //! \name Type aliases
     using VecInt = std::vector<int>;
     template<MemSpace M>
-    using StateT = UserStateData<UserMockStateData, M>;
+    using StateT = AuxStateData<AuxMockStateData, M>;
     //!@}
 
   public:
     // Construct with properties and IDs
-    UserMockParams(std::string&& label,
-                   UserId uid,
-                   int num_bins,
-                   VecInt const& integers);
+    AuxMockParams(std::string&& label,
+                  AuxId auxid,
+                  int num_bins,
+                  VecInt const& integers);
 
     //!@{
     //! \name User interface
     //! Short name for the data
     std::string_view label() const final { return label_; }
     //! Index of this class instance in its registry
-    UserId user_id() const final { return user_id_; }
+    AuxId aux_id() const final { return aux_id_; }
     // Build state data for a stream
     UPState create_state(MemSpace, StreamId, size_type) const final;
     //!@}
@@ -62,8 +62,8 @@ class UserMockParams : public UserParamsInterface,
 
   private:
     std::string label_;
-    UserId user_id_;
-    CollectionMirror<UserMockParamsData> data_;
+    AuxId aux_id_;
+    CollectionMirror<AuxMockParamsData> data_;
 };
 
 //---------------------------------------------------------------------------//

@@ -18,9 +18,9 @@ list(APPEND SOURCES
   data/Copier.cc
   data/DeviceAllocation.cc
   data/PinnedAllocator.cc
-  data/UserInterface.cc
-  data/UserParamsRegistry.cc
-  data/UserStateVec.cc
+  data/AuxInterface.cc
+  data/AuxParamsRegistry.cc
+  data/AuxStateVec.cc
   grid/VectorUtils.cc
   io/BuildOutput.cc
   io/ColorUtils.cc

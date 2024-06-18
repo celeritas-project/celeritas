@@ -10,13 +10,13 @@
 #include <vector>
 
 #include "corecel/Types.hh"
+#include "corecel/data/AuxInterface.hh"
+#include "corecel/data/AuxStateData.hh"
+#include "corecel/data/AuxStateVec.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/Ref.hh"
-#include "corecel/data/UserInterface.hh"
-#include "corecel/data/UserStateData.hh"
-#include "corecel/data/UserStateVec.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/track/CoreStateCounters.hh"
@@ -54,8 +54,8 @@ class CoreStateInterface
     //! Access track initialization counters
     virtual CoreStateCounters const& counters() const = 0;
 
-    //! Access user state data
-    virtual UserStateVec const& user() const = 0;
+    //! Access auxiliary state data
+    virtual AuxStateVec const& auxiliary() const = 0;
 
     // Inject primaries to be turned into TrackInitializers
     virtual void insert_primaries(Span<Primary const> host_primaries) = 0;
@@ -139,15 +139,15 @@ class CoreState final : public CoreStateInterface
 
     //// USER DATA ////
 
-    //! Access user state data
-    UserStateVec const& user() const final { return user_state_; }
+    //! Access auxiliary state data
+    AuxStateVec const& auxiliary() const final { return aux_state_; }
 
-    //! Access user state data (mutable)
-    UserStateVec& user() { return user_state_; }
+    //! Access auxiliary state data (mutable)
+    AuxStateVec& auxiliary() { return aux_state_; }
 
-    // Convenience function to access user "collection group" data
+    // Convenience function to access auxiliary "collection group" data
     template<template<Ownership, MemSpace> class S>
-    inline StateRef<S>& user_data(UserId uid);
+    inline StateRef<S>& aux_data(AuxId auxid);
 
     //// TRACK SORTING ////
 
@@ -180,7 +180,7 @@ class CoreState final : public CoreStateInterface
     Collection<Primary, Ownership::value, M> primaries_;
 
     // User-added data associated with params
-    UserStateVec user_state_;
+    AuxStateVec aux_state_;
 
     // Indices of first thread assigned to a given action
     detail::CoreStateThreadOffsets<M> offsets_;
@@ -194,7 +194,7 @@ class CoreState final : public CoreStateInterface
  * step iteration can do the following:
  * - Initialize asynchronous memory pools
  * - Interrogate kernel functions for properties to be output later
- * - Allocate "lazy" user data (e.g. action diagnostics)
+ * - Allocate "lazy" auxiliary data (e.g. action diagnostics)
  */
 template<MemSpace M>
 bool CoreState<M>::warming_up() const
@@ -224,16 +224,16 @@ auto CoreState<M>::primary_storage() const -> PrimaryCRef
 
 //---------------------------------------------------------------------------//
 /*!
- * Convenience function to access user "collection group" data.
+ * Convenience function to access auxiliary "collection group" data.
  */
 template<MemSpace M>
 template<template<Ownership, MemSpace> class S>
-auto CoreState<M>::user_data(UserId uid) -> StateRef<S>&
+auto CoreState<M>::aux_data(AuxId auxid) -> StateRef<S>&
 {
-    CELER_EXPECT(uid < user_state_.size());
+    CELER_EXPECT(auxid < aux_state_.size());
 
     // TODO: use "checked static cast" for better runtime performance
-    auto* state = dynamic_cast<UserStateData<S, M>*>(&user_state_.at(uid));
+    auto* state = dynamic_cast<AuxStateData<S, M>*>(&aux_state_.at(auxid));
     CELER_ASSERT(state);
 
     CELER_ENSURE(*state);
