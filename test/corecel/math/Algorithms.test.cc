@@ -389,7 +389,7 @@ TEST(MathTest, diffsq)
     EXPECT_DOUBLE_EQ(9.0, diffsq(5.0, 4.0));
     EXPECT_DOUBLE_EQ(ipow<2>(std::sin(0.2)), diffsq(1.0, std::cos(0.2)));
 
-    float a{10000.001}, b{10000}, actual{20};
+    float a{10000.001f}, b{10000.f}, actual{20.f};
     EXPECT_FLOAT_EQ(0.46875f, actual - diffsq(a, b));
     EXPECT_LE(actual - diffsq(a, b), actual - (a * a - b * b));
 }

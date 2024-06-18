@@ -203,7 +203,11 @@ class Ellipsoid final : public IntersectRegionInterface
  *
  * A GenTrap, like VecGeom's equivalent and ROOT's Arb8, represents a general
  * trapezoidal volume with up to eight vertices, or two 4-point sets, sitting
- * on two parallel planes perpendicular to Z axis.
+ * on two parallel planes perpendicular to the Z axis.
+ *
+ * Trapezoids constructed from the helper functions will have sides that are
+ * same ordering as a prism: the rightward face is first (normal is along the
+ * +x axis), then the others follow counterclockwise.
  *
  * TODO: Add proper treatment for degenerate cases.
  */
@@ -225,8 +229,8 @@ class GenTrap final : public IntersectRegionInterface
         real_type hx_lo{};
         //! Bottom horizontal edge half-length
         real_type hx_hi{};
-        //! Tangent of shear angle, between horizontal line centers and Y axis
-        real_type tan_alpha{};
+        //! Shear angle, between horizontal line centers and Y axis
+        Turn alpha;
     };
 
   public:
@@ -258,8 +262,15 @@ class GenTrap final : public IntersectRegionInterface
 
     //! Polygon on -z face
     VecReal2 const& lower() const { return lo_; }
+
     //! Polygon on +z face
     VecReal2 const& upper() const { return hi_; }
+
+    //! Number of sides (points on the Z face)
+    size_type num_sides() const { return lo_.size(); }
+
+    // Calculate the cosine of the twist angle for a given side
+    real_type calc_twist_cosine(size_type size_idx) const;
 
   private:
     real_type hz_;  //!< half-height

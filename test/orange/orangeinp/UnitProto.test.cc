@@ -16,6 +16,7 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "orange/orangeinp/CsgObject.hh"
+#include "orange/orangeinp/InputBuilder.hh"
 #include "orange/orangeinp/Shape.hh"
 #include "orange/orangeinp/Transformed.hh"
 #include "orange/orangeinp/detail/CsgUnit.hh"
@@ -434,10 +435,19 @@ class InputBuilderTest : public UnitProtoTest
   public:
     void run_test(UnitProto const& global)
     {
-        OrangeInput inp = build_input(tol_, global);
+        std::string const output_base = this->make_unique_filename("");
+
+        InputBuilder build_input([&] {
+            InputBuilder::Options opts;
+            opts.tol = this->tol_;
+            opts.proto_output_file = output_base + ".protos.json";
+            opts.debug_output_file = output_base + ".csg.json";
+            return opts;
+        }());
+        OrangeInput inp = build_input(global);
         EXPECT_TRUE(inp);
-        std::string const ref_path = this->test_data_path("orange", "")
-                                     + this->make_unique_filename(".org.json");
+        std::string const base_path = this->test_data_path("orange", "");
+        std::string const ref_path = base_path + output_base + ".org.json";
 
         // Export input to JSON
         std::ostringstream actual;
@@ -644,7 +654,6 @@ TEST_F(InputBuilderTest, hierarchy)
     this->run_test(*global);
 }
 
-// Equivalent to universes.org.omn
 TEST_F(InputBuilderTest, incomplete_bb)
 {
     auto inner = std::make_shared<UnitProto>([] {
@@ -674,6 +683,47 @@ TEST_F(InputBuilderTest, incomplete_bb)
         inp.label = "global";
 
         inp.daughters.push_back({inner, Translation{{2, 0, 0}}});
+
+        inp.materials.push_back(make_material(
+            make_rdv("shell",
+                     {{Sense::inside, inp.boundary.interior},
+                      {Sense::outside, inp.daughters.front().make_interior()}}),
+            1));
+        return inp;
+    }());
+
+    this->run_test(*outer);
+}
+
+/*!
+ * Generate input for a universe with a 'union' exterior boundary.
+ *
+ * See issue 1260.
+ */
+TEST_F(InputBuilderTest, universe_union_boundary)
+{
+    auto inner = std::make_shared<UnitProto>([] {
+        auto bottom = make_sph("bottomsph", 5.0);
+        auto top = make_translated(make_sph("topsph", 5.0), {0, 0, 4});
+        UnitProto::Input inp;
+        inp.boundary.interior = std::make_shared<AnyObjects>(
+            "union", AnyObjects::VecObject{bottom, top});
+        inp.boundary.zorder = ZOrder::media;
+        inp.label = "inner";
+
+        inp.materials.push_back(make_material(SPConstObject{bottom}, 1));
+        inp.materials.push_back(
+            make_material(make_subtraction("bite", top, bottom), 1));
+        return inp;
+    }());
+
+    auto outer = std::make_shared<UnitProto>([&] {
+        UnitProto::Input inp;
+        inp.boundary.interior = make_sph("bound", 20.0);
+        inp.boundary.zorder = ZOrder::media;
+        inp.label = "global";
+
+        inp.daughters.push_back({inner, Translation{{0, 0, 1.234}}});
 
         inp.materials.push_back(make_material(
             make_rdv("shell",

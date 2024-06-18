@@ -254,7 +254,7 @@ TEST_F(CombinedBremTest, basic_relativistic_brem)
 
 TEST_F(CombinedBremTest, stress_test_combined)
 {
-    int const num_samples = 1e4;
+    int const num_samples = 10000;
     std::vector<double> avg_engine_samples;
     std::vector<double> avg_energy_samples;
 

@@ -42,10 +42,14 @@ class FaceNamer
     // Apply to a surface with unknown type
     std::string operator()(Sense s, VariantSurface const& surf);
 
+    // Apply with an explicit name
+    inline std::string operator()(std::string const& s) const;
+
   private:
     struct State
     {
-        int num_planes_{0};
+        int num_plane{0};
+        int num_gq{0};
     };
 
     // String prefix
@@ -107,6 +111,20 @@ std::string FaceNamer::operator()(Sense s, S const& surf)
 {
     std::string result = prefix_;
     result += Impl{&state_, s}(surf);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Apply with an explicit face name.
+ *
+ * This can be useful for instances such as "generic trapezoid" where the
+ * surface type can change based on whether the face is planar or twisted.
+ */
+std::string FaceNamer::operator()(std::string const& s) const
+{
+    std::string result = prefix_;
+    result += s;
     return result;
 }
 

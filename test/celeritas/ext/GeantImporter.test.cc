@@ -679,6 +679,12 @@ TEST_F(FourSteelSlabsEmStandard, ebrems)
         celeritas::pdg::electron(), ImportProcessClass::e_brems);
     EXPECT_EQ(celeritas::pdg::gamma().get(), proc.secondary_pdg);
     ASSERT_EQ(2, proc.models.size());
+    if (geant4_version < Version{11})
+    {
+        GTEST_SKIP() << "Cross sections changed with Geant4 version 11; older "
+                        "versions are not checked";
+    }
+
     {
         // Check Seltzer-Berger electron micro xs
         auto const& model = proc.models[0];

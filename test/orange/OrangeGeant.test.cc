@@ -199,6 +199,138 @@ TEST_F(SimpleCmsGeantTest, trace)
 }
 
 //---------------------------------------------------------------------------//
+class TilecalPlugTest : public GeantOrangeTest
+{
+    std::string geometry_basename() const final { return "tilecal-plug"; }
+};
+
+TEST_F(TilecalPlugTest, trace)
+{
+    {
+        SCOPED_TRACE("lo x");
+        auto result = this->track({5.75, 0.01, -40}, {0, 0, 1});
+        static char const* const expected_volumes[] = {
+            "Tile_ITCModule",
+            "Tile_Plug1Module",
+            "Tile_Absorber",
+            "Tile_Plug1Module",
+        };
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {22.9425, 0.115, 42, 37};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        SCOPED_TRACE("hi x");
+        auto result = this->track({6.25, 0.01, -40}, {0, 0, 1});
+        static char const* const expected_volumes[]
+            = {"Tile_ITCModule", "Tile_Absorber", "Tile_Plug1Module"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {23.0575, 42, 37};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+}
+
+//---------------------------------------------------------------------------//
+class TransformedBoxGeantTest : public GeantOrangeTest
+{
+    std::string geometry_basename() const final { return "transformed-box"; }
+};
+
+TEST_F(TransformedBoxGeantTest, trace)
+{
+    {
+        auto result = this->track({0, 0, -25}, {0, 0, 1});
+        static char const* const expected_volumes[] = {
+            "world",
+            "simple",
+            "world",
+            "enclosing",
+            "tiny",
+            "enclosing",
+            "world",
+            "simple",
+            "world",
+        };
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {
+            13,
+            4,
+            6,
+            1.75,
+            0.5,
+            1.75,
+            6,
+            4,
+            38,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        auto result = this->track({0.25, 0, -25}, {0., 0, 1});
+        static char const* const expected_volumes[] = {
+            "world",
+            "simple",
+            "world",
+            "enclosing",
+            "tiny",
+            "enclosing",
+            "world",
+            "simple",
+            "world",
+        };
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {
+            12.834936490539,
+            3.7320508075689,
+            6.4330127018922,
+            1.75,
+            0.5,
+            1.75,
+            6,
+            4,
+            38,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        auto result = this->track({0, 0.25, -25}, {0, 0., 1});
+        static char const* const expected_volumes[] = {
+            "world",
+            "simple",
+            "world",
+            "enclosing",
+            "tiny",
+            "enclosing",
+            "world",
+            "simple",
+            "world",
+        };
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {
+            13,
+            4,
+            6,
+            1.75,
+            0.5,
+            1.75,
+            6,
+            4,
+            38,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        auto result = this->track({0.01, -20, 0.20}, {0, 1, 0});
+        static char const* const expected_volumes[]
+            = {"world", "enclosing", "tiny", "enclosing", "world"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[]
+            = {18.5, 1.1250390198213, 0.75090449735279, 1.1240564828259, 48.5};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+}
+
+//---------------------------------------------------------------------------//
 class ZnenvGeantTest : public GeantOrangeTest
 {
     std::string geometry_basename() const final { return "znenv"; }

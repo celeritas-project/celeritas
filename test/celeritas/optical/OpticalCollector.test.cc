@@ -20,14 +20,15 @@
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
-#include "celeritas/optical/OpticalCollector.hh"
-#include "celeritas/optical/detail/OpticalGenStorage.hh"
+#include "celeritas/optical/detail/OpticalGenParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
 
 #include "celeritas_test.hh"
 #include "../LArSphereBase.hh"
+
+using celeritas::detail::OpticalGenState;
 
 namespace celeritas
 {
@@ -146,8 +147,6 @@ auto LArSpherePreGenTest::build_along_step() -> SPConstAction
  */
 void LArSpherePreGenTest::build_optical_collector()
 {
-    auto& action_reg = *this->action_reg();
-
     OpticalCollector::Input inp;
     if (use_cerenkov_)
     {
@@ -158,11 +157,10 @@ void LArSpherePreGenTest::build_optical_collector()
     {
         inp.scintillation = this->scintillation();
     }
-    inp.action_registry = &action_reg;
     inp.buffer_capacity = 256;
-    inp.num_streams = 1;
 
-    collector_ = std::make_shared<OpticalCollector>(inp);
+    collector_
+        = std::make_shared<OpticalCollector>(*this->core(), std::move(inp));
 }
 
 //---------------------------------------------------------------------------//
@@ -256,9 +254,11 @@ auto LArSpherePreGenTest::run(size_type num_tracks, size_type num_steps)
     };
 
     RunResult result;
-    CELER_ASSERT(collector_->storage()->obj.state<M>(stream_));
-    auto const& state = *(collector_->storage()->obj.state<M>(stream_));
-    auto const& sizes = collector_->storage()->size[stream_.get()];
+    auto& optical_state
+        = get<OpticalGenState<M>>(step.state().aux(), collector_->aux_id());
+
+    auto const& state = optical_state.store.ref();
+    auto const& sizes = optical_state.buffer_size;
     get_result(result.cerenkov, state.cerenkov, sizes.cerenkov);
     get_result(result.scintillation, state.scintillation, sizes.scintillation);
 

@@ -25,6 +25,8 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
+#include "corecel/sys/ScopedMem.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/GeantGeoUtils.hh"
 
@@ -134,6 +136,12 @@ OrangeParams::OrangeParams(G4VPhysicalVolume const* world)
 OrangeParams::OrangeParams(OrangeInput&& input)
 {
     CELER_VALIDATE(input, << "input geometry is incomplete");
+
+    ScopedProfiling profile_this{"finalize-orange-runtime"};
+    ScopedMem record_mem("orange.finalize_runtime");
+    CELER_LOG(debug) << "Merging runtime data"
+                     << (celeritas::device() ? " and copying to GPU" : "");
+    ScopedTimeLog scoped_time;
 
     // Save global bounding box
     bbox_ = [&input] {

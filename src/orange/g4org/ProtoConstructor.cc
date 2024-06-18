@@ -11,6 +11,7 @@
 
 #include "corecel/io/StreamableVariant.hh"
 #include "orange/orangeinp/CsgObject.hh"
+#include "orange/orangeinp/PolySolid.hh"
 #include "orange/orangeinp/Transformed.hh"
 #include "orange/transform/TransformIO.hh"
 
@@ -37,9 +38,8 @@ SPConstObject make_explicit_background(LogicalVolume const& lv,
     std::vector<SPConstObject> children;
     for (auto const& child_pv : lv.children)
     {
-        auto child_transform = apply_transform(transform, child_pv.transform);
         children.push_back(
-            Transformed::or_object(child_pv.lv->solid, child_transform));
+            Transformed::or_object(child_pv.lv->solid, child_pv.transform));
     }
 
     return Transformed::or_object(
@@ -49,6 +49,13 @@ SPConstObject make_explicit_background(LogicalVolume const& lv,
             orangeinp::AnyObjects::or_object(lv.name + ".children",
                                              std::move(children))),
         transform);
+}
+
+//---------------------------------------------------------------------------//
+bool is_union(SPConstObject const& obj)
+{
+    return dynamic_cast<orangeinp::AnyObjects const*>(obj.get())
+           || dynamic_cast<orangeinp::PolySolidBase const*>(obj.get());
 }
 
 //---------------------------------------------------------------------------//
@@ -159,11 +166,13 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
         add_material(
             Transformed::or_object(pv.lv->solid, std::move(transform)));
     }
-    else if (pv.lv.use_count() == 1
-             && std::holds_alternative<NoTransformation>(pv.transform))
+    else if ((pv.lv.use_count() == 1
+              && std::holds_alternative<NoTransformation>(pv.transform))
+             || is_union(pv.lv->solid))
     {
         // Child can be inlined into the parent because it's used only once
-        // *and* it doesn't have a transform relative to the parent
+        // *and* it doesn't have a rotation relative to the parent
+        // OR: it must be inlined if it's a union (see  #1260)
         if (CELER_UNLIKELY(verbose_))
         {
             std::clog << std::string(depth_, ' ') << " -> "
@@ -192,7 +201,8 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
     }
     else
     {
-        // LV is referenced more than once *AND* has children
+        // LV is referenced more than once *AND* has children *AND* has a
+        // transform *BUT* is not a union
         if (CELER_UNLIKELY(verbose_))
         {
             std::clog << std::string(depth_, ' ') << " -> "

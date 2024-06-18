@@ -348,8 +348,9 @@ auto SolidConverter::displaced(arg_type solid_base) -> result_type
     CELER_ASSERT(g4daughter);
     auto daughter = (*this)(*g4daughter);
 
-    // Note that GetDirectTransform is the combination of GetFrameTranslation
-    // and GetFrameRotation .
+    // Note that GetDirectTransform is an affine transform that combines the
+    // daughter-to-parent ("object") translation with an inverted
+    // [parent-to-daughter, "frame"] rotation
     return std::make_shared<Transformed>(
         daughter, transform_(solid.GetDirectTransform()));
 }
@@ -639,13 +640,13 @@ auto SolidConverter::trap(arg_type solid_base) -> result_type
     lo.hy = scale_(solid.GetYHalfLength1());
     lo.hx_lo = scale_(solid.GetXHalfLength1());
     lo.hx_hi = scale_(solid.GetXHalfLength2());
-    lo.tan_alpha = alpha_1;
+    lo.alpha = native_value_to<Turn>(alpha_1);
 
     GenTrap::TrapFace hi;
     hi.hy = scale_(solid.GetYHalfLength2());
     hi.hx_lo = scale_(solid.GetXHalfLength3());
     hi.hx_hi = scale_(solid.GetXHalfLength4());
-    hi.tan_alpha = alpha_2;
+    hi.alpha = native_value_to<Turn>(alpha_2);
 
     return make_shape<GenTrap>(solid,
                                GenTrap::from_trap(hz, theta, phi, lo, hi));

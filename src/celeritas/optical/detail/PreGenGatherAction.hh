@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "corecel/Macros.hh"
+#include "corecel/data/AuxInterface.hh"
 #include "corecel/data/Collection.hh"
 #include "celeritas/global/ActionInterface.hh"
 
@@ -33,7 +34,7 @@ class PreGenGatherAction final : public ExplicitCoreActionInterface
 
   public:
     // Construct with action ID and storage
-    PreGenGatherAction(ActionId id, SPGenStorage storage);
+    PreGenGatherAction(ActionId id, AuxId data_id);
 
     // Launch kernel with host data
     void execute(CoreParams const&, CoreStateHost&) const final;
@@ -60,6 +61,7 @@ class PreGenGatherAction final : public ExplicitCoreActionInterface
     //// DATA ////
 
     ActionId id_;
+    AuxId data_id_;
     SPGenStorage storage_;
 };
 

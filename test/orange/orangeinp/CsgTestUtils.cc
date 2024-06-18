@@ -58,17 +58,22 @@ std::vector<int> to_vec_int(std::vector<NodeId> const& nodes)
 //---------------------------------------------------------------------------//
 std::vector<std::string> surface_strings(CsgUnit const& u)
 {
+    // Loop through CSG tree's encountered surfaces
     std::vector<std::string> result;
-
-    for (auto const& vs : u.surfaces)
+    for (auto nid : range(NodeId{u.tree.size()}))
     {
-        result.push_back(std::visit(
-            [](auto&& surf) {
-                std::ostringstream os;
-                os << std::setprecision(5) << surf;
-                return os.str();
-            },
-            vs));
+        if (auto* surf_node = std::get_if<Surface>(&u.tree[nid]))
+        {
+            auto lsid = surf_node->id;
+            CELER_ASSERT(lsid < u.surfaces.size());
+            result.push_back(std::visit(
+                [](auto&& surf) {
+                    std::ostringstream os;
+                    os << std::setprecision(5) << surf;
+                    return os.str();
+                },
+                u.surfaces[lsid.get()]));
+        }
     }
     return result;
 }

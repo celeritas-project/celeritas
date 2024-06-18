@@ -82,15 +82,28 @@ auto IntersectSurfaceBuilder::tol() const -> Tol const&
 template<class S>
 void IntersectSurfaceBuilder::operator()(Sense sense, S const& surf)
 {
+    return (*this)(sense, surf, state_->make_face_name(sense, surf));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add a surface with a sense.
+ *
+ * The resulting surface *MUST* result in a intersect region.
+ */
+template<class S>
+void IntersectSurfaceBuilder::operator()(Sense sense,
+                                         S const& surf,
+                                         std::string&& name)
+{
     // First, clip the local bounding zone based on the given surface
     RecursiveSimplifier clip_simplified_local(ClipImpl{&state_->local_bzone},
                                               ub_->tol());
     clip_simplified_local(sense, surf);
 
     // Next, apply the transform and insert
-    return this->insert_transformed(state_->make_face_name(sense, surf),
-                                    sense,
-                                    apply_transform(*state_->transform, surf));
+    return this->insert_transformed(
+        sense, apply_transform(*state_->transform, surf), std::move(name));
 }
 
 //---------------------------------------------------------------------------//
@@ -103,9 +116,9 @@ void IntersectSurfaceBuilder::operator()(Sense sense, S const& surf)
  * \param sense Whether the intersect region is inside/outside this surface
  * \param surf Type-deleted surface
  */
-void IntersectSurfaceBuilder::insert_transformed(std::string&& extension,
-                                                 Sense sense,
-                                                 VariantSurface const& surf)
+void IntersectSurfaceBuilder::insert_transformed(Sense sense,
+                                                 VariantSurface const& surf,
+                                                 std::string&& extension)
 {
     NodeId node_id;
     auto construct_impl = [&](Sense final_sense, auto&& final_surf) {
@@ -146,6 +159,9 @@ void IntersectSurfaceBuilder::insert_transformed(std::string&& extension,
 //---------------------------------------------------------------------------//
 /*!
  * Shrink the exterior bounding boxes.
+ *
+ * This will also shrink the interior boxes to avoid any numerical truncation
+ * issues.
  */
 void IntersectSurfaceBuilder::shrink_exterior(BBox const& bbox)
 {
@@ -155,12 +171,20 @@ void IntersectSurfaceBuilder::shrink_exterior(BBox const& bbox)
         // Local
         BBox& exterior = state_->local_bzone.exterior;
         exterior = calc_intersection(exterior, bbox);
+        if (BBox& interior = state_->local_bzone.interior)
+        {
+            interior = calc_intersection(interior, exterior);
+        }
     }
     {
         // Global
         BBox& exterior = state_->global_bzone.exterior;
         exterior = calc_intersection(
             exterior, apply_transform(*state_->transform, bbox));
+        if (BBox& interior = state_->global_bzone.interior)
+        {
+            interior = calc_intersection(interior, exterior);
+        }
     }
 }
 
@@ -200,7 +224,9 @@ void visit(IntersectSurfaceBuilder& csb, Sense sense, VariantSurface const& surf
 // EXPLICIT INSTANTIATIONS
 //---------------------------------------------------------------------------//
 //! \cond
-#define CSB_INSTANTIATE(SURF) \
+#define CSB_INSTANTIATE(SURF)                          \
+    template void IntersectSurfaceBuilder::operator()( \
+        Sense, SURF const&, std::string&&);            \
     template void IntersectSurfaceBuilder::operator()(Sense, SURF const&)
 CSB_INSTANTIATE(PlaneAligned<Axis::x>);
 CSB_INSTANTIATE(PlaneAligned<Axis::y>);

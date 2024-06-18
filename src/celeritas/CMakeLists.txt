@@ -65,6 +65,8 @@ list(APPEND SOURCES
   mat/MaterialParams.cc
   mat/MaterialParamsOutput.cc
   mat/detail/Utils.cc
+  neutron/model/CascadeOptions.cc
+  neutron/model/CascadeOptionsIO.json.cc
   neutron/process/NeutronElasticProcess.cc
   neutron/process/NeutronInelasticProcess.cc
   optical/CerenkovParams.cc
@@ -72,6 +74,7 @@ list(APPEND SOURCES
   optical/OpticalPropertyParams.cc
   optical/OpticalTrackData.cc
   optical/ScintillationParams.cc
+  optical/detail/OpticalGenParams.cc
   phys/CutoffParams.cc
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc

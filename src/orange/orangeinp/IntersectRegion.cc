@@ -10,6 +10,7 @@
 #include <cmath>
 
 #include "corecel/Constants.hh"
+#include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Repr.hh"
@@ -330,11 +331,11 @@ GenTrap GenTrap::from_trd(real_type halfz, Real2 const& lo, Real2 const& hi)
     CELER_VALIDATE(hi[1] > 0, << "nonpositive upper y half-edge: " << hi[1]);
     CELER_VALIDATE(halfz > 0, << "nonpositive half-height: " << halfz);
 
-    // Construct points counterclockwise from lower left
+    // Construct points like prism: lower right is first
     VecReal2 lower
-        = {{-lo[0], -lo[1]}, {lo[0], -lo[1]}, {lo[0], lo[1]}, {-lo[0], lo[1]}};
+        = {{lo[0], -lo[1]}, {lo[0], lo[1]}, {-lo[0], lo[1]}, {-lo[0], -lo[1]}};
     VecReal2 upper
-        = {{-hi[0], -hi[1]}, {hi[0], -hi[1]}, {hi[0], hi[1]}, {-hi[0], hi[1]}};
+        = {{hi[0], -hi[1]}, {hi[0], hi[1]}, {-hi[0], hi[1]}, {-hi[0], -hi[1]}};
 
     return GenTrap{halfz, std::move(lower), std::move(upper)};
 }
@@ -380,18 +381,20 @@ GenTrap GenTrap::from_trap(
                        << "nonpositive upper x half-edge: " << face.hx_hi);
         CELER_VALIDATE(face.hy > 0,
                        << "nonpositive y half-distance: " << face.hy);
-        CELER_VALIDATE(!std::isinf(face.tan_alpha),
-                       << "infinite trapezoidal shear: " << face.tan_alpha);
+        CELER_VALIDATE(face.alpha > Turn{-0.25} && face.alpha < Turn{0.25},
+                       << "invalid trapezoidal shear: " << face.alpha.value()
+                       << " [turns]: must be in the range (-0.25, -0.25)");
 
         real_type const xoff = (i == 0 ? -dxdz_hz : dxdz_hz);
         real_type const yoff = (i == 0 ? -dydz_hz : dydz_hz);
-        real_type const shear = face.tan_alpha * face.hy;
+        real_type const shear = std::tan(native_value_from(face.alpha))
+                                * face.hy;
 
-        // Construct points counterclockwise from lower left
-        points[i] = {{xoff - shear - face.hx_lo, yoff - face.hy},
-                     {xoff - shear + face.hx_lo, yoff - face.hy},
+        // Construct points counterclockwise from lower right
+        points[i] = {{xoff - shear + face.hx_lo, yoff - face.hy},
                      {xoff + shear + face.hx_hi, yoff + face.hy},
-                     {xoff + shear - face.hx_hi, yoff + face.hy}};
+                     {xoff + shear - face.hx_hi, yoff + face.hy},
+                     {xoff - shear - face.hx_lo, yoff - face.hy}};
     }
 
     return GenTrap{hz, std::move(points[0]), std::move(points[1])};
@@ -433,6 +436,40 @@ GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
         std::reverse(lo_.begin(), lo_.end());
         std::reverse(hi_.begin(), hi_.end());
     }
+
+    // Check that sides aren't rotated more than 90 degrees
+    for (auto i : range<size_type>(lo_.size()))
+    {
+        real_type twist_angle_cosine = this->calc_twist_cosine(i);
+        auto j = (i + 1) % lo_.size();
+        CELER_VALIDATE(
+            twist_angle_cosine > 0,
+            << "twist angle between lo (" << lo_[i] << "->" << lo_[j]
+            << ") and hi (" << hi_[i] << "->" << hi_[j]
+            << ") is not less than a quarter turn (actual angle: "
+            << native_value_to<Turn>(std::acos(twist_angle_cosine)).value()
+            << " turns)");
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the cosine of the twist angle for a given side.
+ *
+ * The index \c i is the lower left point on the face when looking from the
+ * outside. The result is the dot product between the
+ * rightward direction vector of the lower and upper edges.
+ */
+real_type GenTrap::calc_twist_cosine(size_type i) const
+{
+    CELER_EXPECT(i < lo_.size());
+    CELER_EXPECT(lo_.size() == hi_.size());
+
+    auto j = (i + 1) % lo_.size();
+    auto lo = make_unit_vector(lo_[j] - lo_[i]);
+    auto hi = make_unit_vector(hi_[j] - hi_[i]);
+
+    return dot_product(lo, hi);
 }
 
 //---------------------------------------------------------------------------//
@@ -441,11 +478,15 @@ GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
  */
 void GenTrap::build(IntersectSurfaceBuilder& insert_surface) const
 {
+    constexpr int X = 0;
+    constexpr int Y = 1;
+
     // Build the bottom and top planes
     insert_surface(Sense::outside, PlaneZ{-hz_});
     insert_surface(Sense::inside, PlaneZ{hz_});
 
-    // TODO: use plane normal equality from SoftSurfaceEqual
+    // TODO: use plane normal equality from SoftSurfaceEqual, or maybe soft
+    // equivalence on twist angle cosine?
     SoftEqual soft_equal{insert_surface.tol().rel};
 
     // Build the side planes
@@ -454,44 +495,42 @@ void GenTrap::build(IntersectSurfaceBuilder& insert_surface) const
         // Viewed from the outside of the trapezoid, the points on the polygon
         // here are from the lower left counterclockwise to the upper right
         auto j = (i + 1) % lo_.size();
-        Real3 const ilo{lo_[i][0], lo_[i][1], -hz_};
-        Real3 const jlo{lo_[j][0], lo_[j][1], -hz_};
-        Real3 const jhi{hi_[j][0], hi_[j][1], hz_};
-        Real3 const ihi{hi_[i][0], hi_[i][1], hz_};
+        Real3 const ilo{lo_[i][X], lo_[i][Y], -hz_};
+        Real3 const jlo{lo_[j][X], lo_[j][Y], -hz_};
+        Real3 const jhi{hi_[j][X], hi_[j][Y], hz_};
+        Real3 const ihi{hi_[i][X], hi_[i][Y], hz_};
 
         // Calculate outward normal by taking the cross product of the edges
         auto lo_normal = make_unit_vector(cross_product(jlo - ilo, ihi - ilo));
         auto hi_normal = make_unit_vector(cross_product(ihi - jhi, jlo - jhi));
 
-        // Insert appropriate service, planar or "twisted"
         if (soft_equal(dot_product(lo_normal, hi_normal), real_type{1}))
         {
-            // Insert a real plane
-            insert_surface(Sense::inside, Plane{lo_normal, ilo});
+            // Insert a planar surface
+            insert_surface(
+                Sense::inside, Plane{lo_normal, ilo}, "p" + std::to_string(i));
         }
         else
         {
-            // Determine coefficients
-            auto alo = jlo[1] - ilo[1];
-            auto ahi = jhi[1] - ihi[1];
-            auto blo = ilo[0] - jlo[0];
-            auto bhi = ihi[0] - jhi[0];
-            auto clo = jlo[0] * ilo[1] - ilo[0] * jlo[1];
-            auto chi = jhi[0] * ihi[1] - ihi[0] * jhi[1];
+            // Insert a "twisted" surface (hyperbolic paraboloid)
+            auto alo = jlo[Y] - ilo[Y];
+            auto ahi = jhi[Y] - ihi[Y];
+            auto blo = ilo[X] - jlo[X];
+            auto bhi = ihi[X] - jhi[X];
+            auto clo = jlo[X] * ilo[Y] - ilo[X] * jlo[Y];
+            auto chi = jhi[X] * ihi[Y] - ihi[X] * jhi[Y];
 
-            Real3 abc{0, 0, 0}, def{0, 0, 0}, ghi{0, 0, 0};
-            constexpr real_type half = 0.5;
-            auto factor = half / hz_;
-            def[0] = (ahi - alo) * factor;
-            def[1] = (bhi - blo) * factor;
-            ghi[2] = (chi - clo) * factor;
-            ghi[0] = (alo + ahi) * half;
-            ghi[1] = (blo + bhi) * half;
-            auto offset = half * (clo + chi);
+            real_type xy = ahi - alo;
+            real_type yz = bhi - blo;
+            real_type x = hz_ * (ahi + alo);
+            real_type y = hz_ * (bhi + blo);
+            real_type z = chi - clo;
+            real_type s = hz_ * (clo + chi);
 
-            // Insert a twisted plane
-            insert_surface(Sense::inside,
-                           GeneralQuadric{abc, def, ghi, offset});
+            insert_surface(
+                Sense::inside,
+                GeneralQuadric{Real3{0, 0, 0}, {xy, yz, 0}, {x, y, z}, s},
+                "t" + std::to_string(i));
         }
     }
 
@@ -632,7 +671,7 @@ void Parallelepiped::build(IntersectSurfaceBuilder& insert_surface) const
     insert_surface(Sense::inside, Plane{ynorm, yoffset});
 
     // Build the side planes roughly perpendicular to x-axis
-    insert_surface(Sense::inside, Plane{-xnorm, xoffset});
+    insert_surface(Sense::outside, Plane{xnorm, -xoffset});
     insert_surface(Sense::inside, Plane{xnorm, xoffset});
 
     // Add an exterior bounding box

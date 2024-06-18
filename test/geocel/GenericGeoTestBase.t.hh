@@ -169,15 +169,25 @@ auto GenericGeoTestBase<HP>::track(Real3 const& pos,
         result.distances.push_back(next.distance * inv_length);
         if (!next.boundary)
         {
-            // Failure to find the next boundary while inside the geometry
-            ADD_FAILURE();
+            ADD_FAILURE() << "failed to find the next boundary while inside "
+                             "the geometry";
             result.volumes.push_back("[NO INTERCEPT]");
             break;
         }
         if (next.distance > real_type(from_cm(1e-7)))
         {
             geo.move_internal(next.distance / 2);
-            geo.find_next_step();
+            try
+            {
+                geo.find_next_step();
+            }
+            catch (std::exception const& e)
+            {
+                ADD_FAILURE()
+                    << "failed to find next step at " << geo.pos() * inv_length
+                    << " along " << geo.dir() << ": " << e.what();
+                break;
+            }
             result.halfway_safeties.push_back(geo.find_safety() * inv_length);
 
             if (result.halfway_safeties.back() > 0)

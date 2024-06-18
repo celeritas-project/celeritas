@@ -221,15 +221,15 @@ TEST_F(KleinNishinaInteractorTest, distributions)
         Interaction out = interact(rng_engine);
         // Bin energy loss
         double eps = out.energy.value() / inc_energy;
-        int eps_bin = eps * nbins;
+        int eps_bin = static_cast<int>(std::floor(eps * nbins));
         if (eps_bin >= 0 && eps_bin < nbins)
         {
             ++eps_dist[eps_bin];
         }
 
-        // Bin directional change
+        // Bin directional change, remapping from [-1,1] to [0,1]
         double costheta = dot_product(inc_direction, out.direction);
-        int ct_bin = (1 + costheta) / 2 * nbins;  // Remap from [-1,1] to [0,1]
+        int ct_bin = static_cast<int>(std::floor((1 + costheta) / 2 * nbins));
         if (ct_bin >= 0 && ct_bin < nbins)
         {
             ++costheta_dist[ct_bin];

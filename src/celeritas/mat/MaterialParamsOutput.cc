@@ -48,6 +48,9 @@ void MaterialParamsOutput::output(JsonPimpl* j) const
         auto label = json::array();
         auto atomic_number = json::array();
         auto atomic_mass_number = json::array();
+        auto binding_energy = json::array();
+        auto proton_loss_energy = json::array();
+        auto neutron_loss_energy = json::array();
         auto nuclear_mass = json::array();
 
         for (auto id : range(IsotopeId{material_->num_isotopes()}))
@@ -57,14 +60,27 @@ void MaterialParamsOutput::output(JsonPimpl* j) const
             atomic_number.push_back(iso_view.atomic_number().unchecked_get());
             atomic_mass_number.push_back(
                 iso_view.atomic_mass_number().unchecked_get());
+            binding_energy.push_back(iso_view.binding_energy().value());
+            proton_loss_energy.push_back(iso_view.proton_loss_energy().value());
+            neutron_loss_energy.push_back(
+                iso_view.neutron_loss_energy().value());
             nuclear_mass.push_back(iso_view.nuclear_mass().value());
         }
         obj["isotopes"] = {
             {"label", std::move(label)},
             {"atomic_number", std::move(atomic_number)},
             {"atomic_mass_number", std::move(atomic_mass_number)},
+            {"binding_energy", std::move(binding_energy)},
+            {"proton_loss_energy", std::move(proton_loss_energy)},
+            {"neutron_loss_energy", std::move(neutron_loss_energy)},
             {"nuclear_mass", std::move(nuclear_mass)},
         };
+        units["binding_energy"]
+            = accessor_unit_label<decltype(&IsotopeView::binding_energy)>();
+        units["proton_loss_energy"]
+            = accessor_unit_label<decltype(&IsotopeView::proton_loss_energy)>();
+        units["neutron_loss_energy"]
+            = accessor_unit_label<decltype(&IsotopeView::neutron_loss_energy)>();
         units["nuclear_mass"]
             = accessor_unit_label<decltype(&IsotopeView::nuclear_mass)>();
     }

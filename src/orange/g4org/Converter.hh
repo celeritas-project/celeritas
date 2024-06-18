@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <unordered_map>
 
@@ -23,6 +24,12 @@ class G4VPhysicalVolume;
 
 namespace celeritas
 {
+struct OrangeInput;
+namespace orangeinp
+{
+class ProtoInterface;
+}
+
 namespace g4org
 {
 //---------------------------------------------------------------------------//
@@ -55,6 +62,10 @@ class Converter
         bool verbose{false};
         //! Manually specify a tracking/construction tolerance
         Tolerance<> tol;
+        //! Write interpreted geometry to a JSON file
+        std::string proto_output_file;
+        //! Write intermediate debug ouput (CSG construction) to a JSON file
+        std::string debug_output_file;
     };
 
     struct result_type

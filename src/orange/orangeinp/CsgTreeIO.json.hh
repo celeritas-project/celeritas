@@ -19,6 +19,13 @@ namespace orangeinp
 
 void to_json(nlohmann::json& j, CsgTree const& tree);
 
+namespace detail
+{
 //---------------------------------------------------------------------------//
+struct CsgUnit;
+void to_json(nlohmann::json& j, CsgUnit const& tree);
+
+//---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace orangeinp
 }  // namespace celeritas

@@ -79,6 +79,7 @@ void to_json(nlohmann::json& j, ImageParams const& p)
         CELER_JSON_PAIR(scalars, right),
         CELER_JSON_PAIR(scalars, pixel_width),
         CELER_JSON_PAIR(scalars, dims),
+        CELER_JSON_PAIR(scalars, max_length),
         {"_units", to_cstring(UnitSystem::native)},
     };
 }

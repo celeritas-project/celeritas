@@ -101,6 +101,12 @@ TEST_F(SoftSurfaceEqualTest, plane)
     EXPECT_FALSE(softeq_(ref, Plane{ndiff, p}));
     EXPECT_FALSE(softeq_(ref, Plane{make_unit_vector(Real3{-1, 1, 0}), p}));
     EXPECT_FALSE(softeq_(ref, Plane{make_unit_vector(Real3{1, -1, 0}), p}));
+
+    // Test nearly axis-aligned plane
+    EXPECT_TRUE(softeq_(Plane{{1, 0, 0}, 1},
+                        Plane{make_unit_vector(Real3{1, 0, small}), 1}));
+    EXPECT_FALSE(softeq_(Plane{{1, 0, 0}, 1},
+                         Plane{make_unit_vector(Real3{1, 0, large}), 1}));
 }
 
 TEST_F(SoftSurfaceEqualTest, infwedge_quadrant)

@@ -13,6 +13,7 @@
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
+#include "corecel/data/AuxParamsRegistry.hh"  // IWYU pragma: keep
 #include "corecel/data/Ref.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
@@ -254,6 +255,9 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     };
     switch (TrackOrder track_order = input_.init->host_ref().track_order)
     {
+        case TrackOrder::unsorted:
+        case TrackOrder::shuffled:
+            break;
         case TrackOrder::partition_status:
         case TrackOrder::sort_step_limit_action:
         case TrackOrder::sort_along_step_action:
@@ -266,10 +270,8 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
             insert_sort_tracks_action(TrackOrder::sort_step_limit_action);
             insert_sort_tracks_action(TrackOrder::sort_along_step_action);
             break;
-        case TrackOrder::unsorted:
-        case TrackOrder::shuffled:
         case TrackOrder::size_:
-            break;
+            CELER_ASSERT_UNREACHABLE();
     }
 
     // Save maximum number of streams
@@ -318,6 +320,8 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     input_.output_reg->insert(
         std::make_shared<VecgeomParamsOutput>(input_.geometry));
 #endif
+
+    // TODO: add output from auxiliary params/data
 
     CELER_LOG(status) << "Celeritas core setup complete";
 

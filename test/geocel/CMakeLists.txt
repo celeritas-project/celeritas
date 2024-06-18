@@ -52,7 +52,6 @@ celeritas_target_link_libraries(testcel_geocel
 #-----------------------------------------------------------------------------#
 
 celeritas_setup_tests(SERIAL
-  PREFIX geocel
   LINK_LIBRARIES testcel_geocel testcel_core Celeritas::geocel
 )
 
@@ -117,7 +116,6 @@ endif()
 #-----------------------------------------------------------------------------#
 # Rasterization
 
-set(CELERITASTEST_PREFIX geocel/rasterize)
 
 celeritas_add_test(rasterize/Image.test.cc)
 celeritas_add_test(rasterize/Raytracer.test.cc)

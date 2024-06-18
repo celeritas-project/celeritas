@@ -57,9 +57,20 @@ class CoulombScatteringTest : public InteractorHostTestBase
 
         // Set up shared material data
         MaterialParams::Input mat_inp;
-        mat_inp.isotopes
-            = {{AtomicNumber{29}, AtomicNumber{63}, MevMass{58618.5}, "63Cu"},
-               {AtomicNumber{29}, AtomicNumber{65}, MevMass{60479.8}, "65Cu"}};
+        mat_inp.isotopes = {{AtomicNumber{29},
+                             AtomicNumber{63},
+                             MevEnergy{551.384},
+                             MevEnergy{6.122},
+                             MevEnergy{10.864},
+                             MevMass{58618.5},
+                             "63Cu"},
+                            {AtomicNumber{29},
+                             AtomicNumber{65},
+                             MevEnergy{569.211},
+                             MevEnergy{7.454},
+                             MevEnergy{9.911},
+                             MevMass{60479.8},
+                             "65Cu"}};
         mat_inp.elements = {{AtomicNumber{29},
                              AmuMass{63.546},
                              {{IsotopeId{0}, 0.692}, {IsotopeId{1}, 0.308}},
@@ -94,7 +105,10 @@ class CoulombScatteringTest : public InteractorHostTestBase
                                                        options);
 
         model_ = std::make_shared<CoulombScatteringModel>(
-            ActionId{0}, *this->particle_params(), this->imported_processes());
+            ActionId{0},
+            *this->particle_params(),
+            *this->material_params(),
+            this->imported_processes());
 
         // Set cutoffs
         CutoffParams::Input input;

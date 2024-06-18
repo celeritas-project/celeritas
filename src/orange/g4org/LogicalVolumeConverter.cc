@@ -9,7 +9,6 @@
 
 #include <G4LogicalVolume.hh>
 #include <G4Material.hh>
-#include <G4MaterialCutsCouple.hh>
 #include <G4VSolid.hh>
 
 #include "corecel/Assert.hh"
@@ -83,6 +82,12 @@ auto LogicalVolumeConverter::construct_impl(arg_type g4lv) -> SPLV
     {
         result->material_id
             = MaterialId{static_cast<size_type>(mat->GetIndex())};
+    }
+    else
+    {
+        CELER_LOG(warning) << "Logical volume '" << result->name
+                           << "' has no associated material";
+        result->material_id = MaterialId{0};
     }
 
     // Convert solid

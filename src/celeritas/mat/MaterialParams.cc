@@ -24,6 +24,7 @@
 #include "celeritas/io/ImportData.hh"
 
 #include "MaterialData.hh"  // IWYU pragma: associated
+
 #include "detail/Utils.hh"
 
 namespace celeritas
@@ -75,6 +76,12 @@ MaterialParams::from_import(ImportData const& data)
         isotope_params.atomic_number = AtomicNumber{isotope.atomic_number};
         isotope_params.atomic_mass_number
             = AtomicNumber{isotope.atomic_mass_number};
+        isotope_params.binding_energy
+            = units::MevEnergy(isotope.binding_energy);
+        isotope_params.proton_loss_energy
+            = units::MevEnergy(isotope.proton_loss_energy);
+        isotope_params.neutron_loss_energy
+            = units::MevEnergy(isotope.neutron_loss_energy);
         // Convert from MeV (Geant4) to MeV/c^2 (Celeritas)
         isotope_params.nuclear_mass = units::MevMass(isotope.nuclear_mass);
 
@@ -369,6 +376,9 @@ void MaterialParams::append_isotope_def(IsotopeInput const& inp,
 {
     CELER_EXPECT(inp.atomic_number);
     CELER_EXPECT(inp.atomic_mass_number);
+    CELER_EXPECT(inp.binding_energy >= zero_quantity());
+    CELER_EXPECT(inp.proton_loss_energy >= zero_quantity());
+    CELER_EXPECT(inp.neutron_loss_energy >= zero_quantity());
     CELER_EXPECT(inp.nuclear_mass > zero_quantity());
 
     IsotopeRecord result;
@@ -376,6 +386,9 @@ void MaterialParams::append_isotope_def(IsotopeInput const& inp,
     // Copy basic properties
     result.atomic_number = inp.atomic_number;
     result.atomic_mass_number = inp.atomic_mass_number;
+    result.binding_energy = inp.binding_energy;
+    result.proton_loss_energy = inp.proton_loss_energy;
+    result.neutron_loss_energy = inp.neutron_loss_energy;
     result.nuclear_mass = inp.nuclear_mass;
 
     // Add to host vector
