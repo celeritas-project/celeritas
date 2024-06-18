@@ -101,12 +101,9 @@ TEST_F(NegatedObjectTest, pos_neg)
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
-
-    {
-        EXPECT_JSON_EQ(
-            R"json({"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"sphere","radius":1.0},"label":"sph"},"transform":{"_type":"translation","data":[0.0,0.0,1.0]}},"label":"antitrsph"})json",
-            to_string(*antitrsph));
-    }
+    EXPECT_JSON_EQ(
+        R"json({"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"sphere","radius":1.0},"label":"sph"},"transform":{"_type":"translation","data":[0.0,0.0,1.0]}},"label":"antitrsph"})json",
+        to_string(*antitrsph));
 }
 
 TEST_F(NegatedObjectTest, double_neg)
@@ -171,16 +168,10 @@ TEST_F(AnyObjectsTest, adjoining)
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
     EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
     EXPECT_VEC_EQ(expected_trans_strings, transform_strings(u));
-
-    {
-        EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
-    }
-
-    {
-        EXPECT_JSON_EQ(
-            R"json({"_type":"any","daughters":[{"_type":"shape","interior":{"_type":"sphere","radius":1.0},"label":"sph"},{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"sphere","radius":1.0},"label":"sph"},"transform":{"_type":"translation","data":[0.0,0.0,1.0]}}],"label":"anysph"})json",
-            to_string(anysph));
-    }
+    EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
+    EXPECT_JSON_EQ(
+        R"json({"_type":"any","daughters":[{"_type":"shape","interior":{"_type":"sphere","radius":1.0},"label":"sph"},{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"sphere","radius":1.0},"label":"sph"},"transform":{"_type":"translation","data":[0.0,0.0,1.0]}}],"label":"anysph"})json",
+        to_string(anysph));
 }
 
 //---------------------------------------------------------------------------//
@@ -282,12 +273,9 @@ TEST_F(AllObjectsTest, allneg)
     EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
     EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
     EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
-
-    {
-        EXPECT_JSON_EQ(
-            R"json({"_type":"all","daughters":[{"_type":"negated","daughter":{"_type":"shape","interior":{"_type":"sphere","radius":1.0},"label":"sph"},"label":""},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"sphere","radius":1.0},"label":"sph"},"transform":{"_type":"translation","data":[0.0,0.0,1.0]}},"label":""},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"sphere","radius":1.0},"label":"sph"},"transform":{"_type":"translation","data":[0.0,0.0,2.0]}},"label":""}],"label":"allsph"})json",
-            to_string(allsph));
-    }
+    EXPECT_JSON_EQ(
+        R"json({"_type":"all","daughters":[{"_type":"negated","daughter":{"_type":"shape","interior":{"_type":"sphere","radius":1.0},"label":"sph"},"label":""},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"sphere","radius":1.0},"label":"sph"},"transform":{"_type":"translation","data":[0.0,0.0,1.0]}},"label":""},{"_type":"negated","daughter":{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"sphere","radius":1.0},"label":"sph"},"transform":{"_type":"translation","data":[0.0,0.0,2.0]}},"label":""}],"label":"allsph"})json",
+        to_string(allsph));
 }
 
 //---------------------------------------------------------------------------//
@@ -410,14 +398,12 @@ TEST_F(CsgObjectTest, output)
     auto any = std::make_shared<AnyObjects>("any_planar", VecObject{box, pri});
     auto negany = std::make_shared<NegatedObject>("none_planar", any);
 
-    {
         EXPECT_JSON_EQ(
             R"json({"_type":"all","daughters":[{"_type":"shape","interior":{"_type":"cone","halfheight":2.0,"radii":[1.0,0.5]},"label":"cone"},{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"cylinder","halfheight":2.0,"radius":1.0},"label":"cyl"},"transform":{"_type":"transformation","data":[1.0,0.0,0.0,0.0,0.7071067811865475,-0.7071067811865475,0.0,0.7071067811865475,0.7071067811865475,1.0,2.0,3.0]}},{"_type":"shape","interior":{"_type":"ellipsoid","radii":[1.0,2.0,3.0]},"label":"ell"},{"_type":"transformed","daughter":{"_type":"shape","interior":{"_type":"sphere","radius":1.25},"label":"sph"},"transform":{"_type":"translation","data":[1.0,2.0,3.0]}}],"label":"all_quadric"})json",
             to_string(*all));
         EXPECT_JSON_EQ(
             R"json({"_type":"negated","daughter":{"_type":"any","daughters":[{"_type":"shape","interior":{"_type":"box","halfwidths":[1.0,1.0,2.0]},"label":"box"},{"_type":"shape","interior":{"_type":"prism","apothem":1.0,"halfheight":2.0,"num_sides":6,"orientation":0.5},"label":"rhex"}],"label":"any_planar"},"label":"none_planar"})json",
             to_string(*negany));
-    }
 }
 
 //---------------------------------------------------------------------------//

@@ -55,13 +55,6 @@ GeantPhysicsOptions load_options(std::string const& option_filename)
         // ... but add verbosity
         options.verbose = true;
     }
-    else if (false)
-    {
-        CELER_LOG(critical) << "JSON is unavailable so only default Geant4 "
-                               "options are supported: use '' as the second "
-                               "argument";
-        CELER_NOT_CONFIGURED("JSON");
-    }
     else if (option_filename == "-")
     {
         auto inp = nlohmann::json::parse(std::cin);

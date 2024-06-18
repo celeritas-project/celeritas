@@ -91,10 +91,7 @@ TEST(CMSParameterizedFieldTest, all)
     EXPECT_VEC_SOFT_EQ(expected_field, actual);
 }
 
-#define RZMapFieldTest RZMapFieldTest
-class RZMapFieldTest : public ::celeritas::test::Test
-{
-};
+using RZMapFieldTest = ::celeritas::test::Test;
 
 TEST_F(RZMapFieldTest, all)
 {

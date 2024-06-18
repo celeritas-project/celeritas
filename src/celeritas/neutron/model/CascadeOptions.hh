@@ -9,7 +9,6 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-// #include "celeritas/Units.hh"
 
 namespace celeritas
 {

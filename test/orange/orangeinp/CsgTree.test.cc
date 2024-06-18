@@ -180,11 +180,9 @@ TEST_F(CsgTreeTest, manual_simplify)
     auto below_mz = this->insert(Negated{mz}).first;
     auto dumb_union = this->insert(Joined{op_or, {sphere, below_mz}}).first;
 
-    {
-        EXPECT_JSON_EQ(
-            R"json(["t",["~",0],["S",0],["S",1],["~",3],["S",2],["~",5],["&",[2,4,6]],["S",3],["~",8],["&",[2,4,9]],["~",7],["&",[10,11]],["S",4],["~",2],["|",[13,14]]])json",
-            this->to_json_string());
-    }
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["S",0],["S",1],["~",3],["S",2],["~",5],["&",[2,4,6]],["S",3],["~",8],["&",[2,4,9]],["~",7],["&",[10,11]],["S",4],["~",2],["|",[13,14]]])json",
+        this->to_json_string());
 
     // Suppose we implied above mz and below pz: sweep down
     {
@@ -238,12 +236,11 @@ TEST_F(CsgTreeTest, manual_simplify)
         EXPECT_EQ(Node{Aliased{sphere}}, tree_[dumb_union]);
     }
 
-    {
-        EXPECT_JSON_EQ(
-            R"json(["t",["~",0],["=",0],["=",1],["=",0],["S",2],["~",5],["=",6],["S",3],["~",8],["=",9],["=",5],["&",[5,9]],["S",4],["=",1],["=",13]])json",
-            this->to_json_string());
-    }
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["=",0],["=",1],["=",0],["S",2],["~",5],["=",6],["S",3],["~",8],["=",9],["=",5],["&",[5,9]],["S",4],["=",1],["=",13]])json",
+        this->to_json_string());
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace orangeinp

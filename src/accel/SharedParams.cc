@@ -674,27 +674,25 @@ void SharedParams::try_output() const
         return;
     }
 
+    auto msg = CELER_LOG(info);
+    msg << "Wrote Geant4 diagnostic output to ";
+    std::ofstream outf;
+    std::ostream* os{nullptr};
+    if (filename == "-")
     {
-        auto msg = CELER_LOG(info);
-        msg << "Wrote Geant4 diagnostic output to ";
-        std::ofstream outf;
-        std::ostream* os{nullptr};
-        if (filename == "-")
-        {
-            os = &std::cout;
-            msg << "<stdout>";
-        }
-        else
-        {
-            os = &outf;
-            outf.open(filename);
-            CELER_VALIDATE(
-                outf, << "failed to open output file at \"" << filename << '"');
-            msg << '"' << filename << '"';
-        }
-        CELER_ASSERT(os);
-        output_reg_->output(os);
+        os = &std::cout;
+        msg << "<stdout>";
     }
+    else
+    {
+        os = &outf;
+        outf.open(filename);
+        CELER_VALIDATE(
+            outf, << "failed to open output file at \"" << filename << '"');
+        msg << '"' << filename << '"';
+    }
+    CELER_ASSERT(os);
+    output_reg_->output(os);
 }
 
 //---------------------------------------------------------------------------//

@@ -211,11 +211,7 @@ TEST_F(KernelContextExceptionTest, bad_thread)
     this->check_kce = [](KernelContextException const& e) {
         EXPECT_STREQ("dumb-kernel (error processing track state)", e.what());
         EXPECT_EQ(TrackSlotId{}, e.track_slot());
-
-        {
-            EXPECT_JSON_EQ(R"json({"label":"dumb-kernel"})json",
-                           get_json_str(e));
-        }
+        EXPECT_JSON_EQ(R"json({"label":"dumb-kernel"})json", get_json_str(e));
     };
     CELER_TRY_HANDLE_CONTEXT(
         throw DebugError({DebugErrorType::internal, "false", "test.cc", 0}),
