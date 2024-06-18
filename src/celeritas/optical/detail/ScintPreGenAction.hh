@@ -10,12 +10,16 @@
 #include <memory>
 
 #include "corecel/Macros.hh"
+#include "corecel/data/AuxInterface.hh"
 #include "corecel/data/Collection.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/optical/OpticalDistributionData.hh"
 
+#include "OpticalGenParams.hh"
+
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 class ScintillationParams;
 
 namespace detail
@@ -37,8 +41,8 @@ class ScintPreGenAction final : public ExplicitCoreActionInterface
   public:
     // Construct with action ID, optical properties, and storage
     ScintPreGenAction(ActionId id,
-                      SPConstScintillation scintillation,
-                      SPGenStorage storage);
+                      AuxId data_id,
+                      SPConstScintillation scintillation);
 
     // Launch kernel with host data
     void execute(CoreParams const&, CoreStateHost&) const final;
@@ -65,8 +69,8 @@ class ScintPreGenAction final : public ExplicitCoreActionInterface
     //// DATA ////
 
     ActionId id_;
+    AuxId data_id_;
     SPConstScintillation scintillation_;
-    SPGenStorage storage_;
 
     //// HELPER FUNCTIONS ////
 

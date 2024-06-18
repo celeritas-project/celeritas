@@ -55,7 +55,7 @@ class CoreStateInterface
     virtual CoreStateCounters const& counters() const = 0;
 
     //! Access auxiliary state data
-    virtual AuxStateVec const& auxiliary() const = 0;
+    virtual AuxStateVec const& aux() const = 0;
 
     // Inject primaries to be turned into TrackInitializers
     virtual void insert_primaries(Span<Primary const> host_primaries) = 0;
@@ -140,10 +140,10 @@ class CoreState final : public CoreStateInterface
     //// USER DATA ////
 
     //! Access auxiliary state data
-    AuxStateVec const& auxiliary() const final { return aux_state_; }
+    AuxStateVec const& aux() const final { return aux_state_; }
 
     //! Access auxiliary state data (mutable)
-    AuxStateVec& auxiliary() { return aux_state_; }
+    AuxStateVec& aux() { return aux_state_; }
 
     // Convenience function to access auxiliary "collection group" data
     template<template<Ownership, MemSpace> class S>

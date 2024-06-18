@@ -18,7 +18,7 @@
 
 #include "CerenkovPreGenExecutor.hh"
 #include "OpticalGenAlgorithms.hh"
-#include "OpticalGenStorage.hh"
+#include "OpticalGenParams.hh"
 
 namespace celeritas
 {
@@ -31,14 +31,15 @@ namespace detail
 void CerenkovPreGenAction::pre_generate(CoreParams const& core_params,
                                         CoreStateDevice& core_state) const
 {
-    TrackExecutor execute{core_params.ptr<MemSpace::native>(),
-                          core_state.ptr(),
-                          detail::CerenkovPreGenExecutor{
-                              properties_->device_ref(),
-                              cerenkov_->device_ref(),
-                              storage_->obj.state<MemSpace::native>(
-                                  core_state.stream_id(), core_state.size()),
-                              storage_->size[core_state.stream_id().get()]}};
+    auto& state
+        = get<OpticalGenState<MemSpace::native>>(core_state.aux(), data_id_);
+    TrackExecutor execute{
+        core_params.ptr<MemSpace::native>(),
+        core_state.ptr(),
+        detail::CerenkovPreGenExecutor{properties_->device_ref(),
+                                       cerenkov_->device_ref(),
+                                       state.store.ref(),
+                                       state.buffer_size}};
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(core_state, execute);
 }
