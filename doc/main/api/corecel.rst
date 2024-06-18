@@ -20,7 +20,8 @@ defines static C strings with configuration options such as key dependent
 library versions. Finally, ``celeritas_version.h`` defines version numbers as
 a preprocessor definition, a set of integers, and a descriptive string.
 
-.. doxygenfile:: celeritas_version.h
+.. doxygendefine:: CELERITAS_VERSION
+.. doxygenvariable:: celeritas_version
 
 Fundamentals
 ------------
@@ -41,7 +42,9 @@ and "postcondition contract".
 System
 ------
 
-.. doxygenfile:: corecel/sys/Device.hh
+.. doxygenclass:: celeritas::Device
+.. doxygenfunction:: celeritas::device
+.. doxygenfunction:: celeritas::activate_device()
 
 Containers
 ----------
@@ -131,4 +134,14 @@ View
    on both the state and parameters. For example, momentum depends on both the
    mass of a particle (constant, set by the model) and the speed (variable,
    depends on particle track state).
+
+Users and other parts of the code can add their own shared and stream-local
+(i.e., thread-local) data to Celeritas using the ``AuxParamsInterface`` and ``AuxStateInterface`` classes, accessed through the  ``AuxParamsRegistry`` and ``AuxStateVec`` classes, respectively.
+
+.. doxygenclass:: celeritas::AuxParamsInterface
+
+.. doxygenclass:: celeritas::AuxParamsRegistry
+
+.. doxygenclass:: celeritas::AuxStateVec
+
 
