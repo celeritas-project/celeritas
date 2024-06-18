@@ -69,7 +69,7 @@ TEST_F(VolumeViewTest, one_volume)
     }
 }
 
-TEST_F(VolumeViewTest, TEST_IF_CELERITAS_JSON(five_volumes))
+TEST_F(VolumeViewTest, five_volumes)
 {
     this->build_geometry("five-volumes.org.json");
 

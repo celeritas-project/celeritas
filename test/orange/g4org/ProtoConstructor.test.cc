@@ -382,10 +382,7 @@ TEST_F(ProtoConstructorTest, tilecal_plug)
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
         EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
-        if (CELERITAS_USE_JSON)
-        {
-            EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
-        }
+        EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
         EXPECT_EQ(MaterialId{}, u.background);
     }
 }
@@ -442,10 +439,7 @@ TEST_F(ProtoConstructorTest, znenv)
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
         EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
-        if (CELERITAS_USE_JSON)
-        {
-            EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
-        }
+        EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
         EXPECT_EQ(MaterialId{}, u.background);
     }
     {

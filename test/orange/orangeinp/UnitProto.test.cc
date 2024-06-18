@@ -440,20 +440,12 @@ class InputBuilderTest : public UnitProtoTest
         InputBuilder build_input([&] {
             InputBuilder::Options opts;
             opts.tol = this->tol_;
-            if (CELERITAS_USE_JSON)
-            {
-                opts.proto_output_file = output_base + ".protos.json";
-                opts.debug_output_file = output_base + ".csg.json";
-            }
+            opts.proto_output_file = output_base + ".protos.json";
+            opts.debug_output_file = output_base + ".csg.json";
             return opts;
         }());
         OrangeInput inp = build_input(global);
         EXPECT_TRUE(inp);
-        if (!CELERITAS_USE_JSON)
-        {
-            GTEST_SKIP() << "JSON is disabled: cannot compare output";
-        }
-
         std::string const base_path = this->test_data_path("orange", "");
         std::string const ref_path = base_path + output_base + ".org.json";
 
