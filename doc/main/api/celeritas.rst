@@ -217,7 +217,7 @@ as properties of any secondary particles produced.
    :members: none
 .. doxygenclass:: celeritas::EnergyLossHelper
    :members: none
-.. doxygenclass:: celeritas::detail::UrbanMscStepLimit
+.. doxygenclass:: celeritas::detail::UrbanMscSafetyStepLimit
    :members: none
 .. doxygenclass:: celeritas::detail::UrbanMscScatter
    :members: none

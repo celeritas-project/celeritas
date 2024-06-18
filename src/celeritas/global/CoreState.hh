@@ -10,6 +10,9 @@
 #include <vector>
 
 #include "corecel/Types.hh"
+#include "corecel/data/AuxInterface.hh"
+#include "corecel/data/AuxStateData.hh"
+#include "corecel/data/AuxStateVec.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/DeviceVector.hh"
@@ -19,6 +22,7 @@
 #include "celeritas/track/CoreStateCounters.hh"
 
 #include "CoreTrackData.hh"
+
 #include "detail/CoreStateThreadOffsets.hh"
 
 namespace celeritas
@@ -38,6 +42,9 @@ class CoreStateInterface
     //!@}
 
   public:
+    // Support polymorphic deletion
+    virtual ~CoreStateInterface();
+
     //! Thread/stream ID
     virtual StreamId stream_id() const = 0;
 
@@ -47,11 +54,15 @@ class CoreStateInterface
     //! Access track initialization counters
     virtual CoreStateCounters const& counters() const = 0;
 
+    //! Access auxiliary state data
+    virtual AuxStateVec const& auxiliary() const = 0;
+
     // Inject primaries to be turned into TrackInitializers
     virtual void insert_primaries(Span<Primary const> host_primaries) = 0;
 
   protected:
-    ~CoreStateInterface() = default;
+    CoreStateInterface() = default;
+    CELER_DEFAULT_COPY_MOVE(CoreStateInterface);
 };
 
 //---------------------------------------------------------------------------//
@@ -61,6 +72,8 @@ class CoreStateInterface
  * When the state lives on the device, we maintain a separate copy of the
  * device "ref" in device memory: otherwise we'd have to copy the entire state
  * in launch arguments and access it through constant memory.
+ *
+ * \todo Encapsulate all the action management accessors in a helper class.
  */
 template<MemSpace M>
 class CoreState final : public CoreStateInterface
@@ -68,7 +81,10 @@ class CoreState final : public CoreStateInterface
   public:
     //!@{
     //! \name Type aliases
-    using Ref = CoreStateData<Ownership::reference, M>;
+    template<template<Ownership, MemSpace> class S>
+    using StateRef = S<Ownership::reference, M>;
+
+    using Ref = StateRef<CoreStateData>;
     using Ptr = ObserverPtr<Ref, M>;
     using PrimaryCRef = Collection<Primary, Ownership::const_reference, M>;
     //!@}
@@ -85,11 +101,8 @@ class CoreState final : public CoreStateInterface
     //! Number of track slots
     size_type size() const final { return states_.size(); }
 
-    //! Whether the state is being transported with no active particles
-    bool warming_up() const
-    {
-        return counters_.num_active == 0 && counters_.num_primaries == 0;
-    }
+    // Whether the state is being transported with no active particles
+    inline bool warming_up() const;
 
     //// CORE DATA ////
 
@@ -124,6 +137,18 @@ class CoreState final : public CoreStateInterface
     //! Clear primaries after constructing initializers from them
     void clear_primaries() { counters_.num_primaries = 0; }
 
+    //// USER DATA ////
+
+    //! Access auxiliary state data
+    AuxStateVec const& auxiliary() const final { return aux_state_; }
+
+    //! Access auxiliary state data (mutable)
+    AuxStateVec& auxiliary() { return aux_state_; }
+
+    // Convenience function to access auxiliary "collection group" data
+    template<template<Ownership, MemSpace> class S>
+    inline StateRef<S>& aux_data(AuxId auxid);
+
     //// TRACK SORTING ////
 
     // Get a range of sorted track slots about to undergo a given action
@@ -142,12 +167,6 @@ class CoreState final : public CoreStateInterface
     // State data
     CollectionStateStore<CoreStateData, M> states_;
 
-    // Indices of first thread assigned to a given action
-    detail::CoreStateThreadOffsets<M> offsets_;
-
-    // Primaries to be added
-    Collection<Primary, Ownership::value, M> primaries_;
-
     // Copy of state ref in device memory, if M == MemSpace::device
     DeviceVector<Ref> device_ref_vec_;
 
@@ -156,7 +175,32 @@ class CoreState final : public CoreStateInterface
 
     // Counters for track initialization and activity
     CoreStateCounters counters_;
+
+    // Primaries to be added
+    Collection<Primary, Ownership::value, M> primaries_;
+
+    // User-added data associated with params
+    AuxStateVec aux_state_;
+
+    // Indices of first thread assigned to a given action
+    detail::CoreStateThreadOffsets<M> offsets_;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the state is being transported with no active particles.
+ *
+ * The warmup stage is useful for profiling and debugging since the first
+ * step iteration can do the following:
+ * - Initialize asynchronous memory pools
+ * - Interrogate kernel functions for properties to be output later
+ * - Allocate "lazy" auxiliary data (e.g. action diagnostics)
+ */
+template<MemSpace M>
+bool CoreState<M>::warming_up() const
+{
+    return counters_.num_active == 0 && counters_.num_primaries == 0;
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -176,6 +220,24 @@ template<MemSpace M>
 auto CoreState<M>::primary_storage() const -> PrimaryCRef
 {
     return PrimaryCRef{primaries_};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convenience function to access auxiliary "collection group" data.
+ */
+template<MemSpace M>
+template<template<Ownership, MemSpace> class S>
+auto CoreState<M>::aux_data(AuxId auxid) -> StateRef<S>&
+{
+    CELER_EXPECT(auxid < aux_state_.size());
+
+    // TODO: use "checked static cast" for better runtime performance
+    auto* state = dynamic_cast<AuxStateData<S, M>*>(&aux_state_.at(auxid));
+    CELER_ASSERT(state);
+
+    CELER_ENSURE(*state);
+    return state->ref();
 }
 
 //---------------------------------------------------------------------------//
