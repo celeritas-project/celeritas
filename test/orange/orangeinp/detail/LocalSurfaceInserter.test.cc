@@ -106,6 +106,19 @@ TEST_F(LocalSurfaceInserterTest, chained_duplicates)
     EXPECT_EQ(5, surfaces.size());
 }
 
+/*!
+ * Check that inserting an exact match (S2) of soft equivalent surfaces (S1
+ * close to S0) returns the first surface (S0).
+ */
+TEST_F(LocalSurfaceInserterTest, soft_chain)
+{
+    LocalSurfaceInserter insert(&surfaces, tol);
+
+    EXPECT_EQ(0, insert(PlaneX{2}).unchecked_get());
+    EXPECT_EQ(0, insert(PlaneX{2 + eps / 2}).unchecked_get());
+    EXPECT_EQ(0, insert(PlaneX{2 + eps / 2}).unchecked_get());
+}
+
 // Replicates InfWedge.quarter_turn from intersect region test
 TEST_F(LocalSurfaceInserterTest, infwedge_quadrant)
 {
@@ -130,6 +143,7 @@ TEST_F(LocalSurfaceInserterTest, infwedge_quadrant)
 TEST_F(LocalSurfaceInserterTest, DISABLED_performance_test)
 {
     std::mt19937 rng;
+    UniformRealDistribution<> sample_radius{0.5, 1.5};
     UniformRealDistribution<> sample_point{-1, 1};
     UniformBoxDistribution<> sample_box{{-1, -1, -1}, {1, 1, 1}};
 
@@ -143,7 +157,7 @@ TEST_F(LocalSurfaceInserterTest, DISABLED_performance_test)
         Stopwatch get_time;
         for (int i = 0; i < num_samples; ++i)
         {
-            insert(Sphere(sample_box(rng), 1.0));
+            insert(Sphere(sample_box(rng), sample_radius(rng)));
             insert(PlaneX(sample_point(rng)));
         }
         cout << get_time() << " s" << endl;
