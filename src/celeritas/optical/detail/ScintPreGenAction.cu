@@ -33,10 +33,12 @@ void ScintPreGenAction::pre_generate(CoreParams const& core_params,
     auto& state
         = get<OpticalGenState<MemSpace::native>>(core_state.aux(), data_id_);
 
-    TrackExecutor execute{core_params.ptr<MemSpace::native>(),
-                          core_state.ptr(),
-                          detail::ScintPreGenExecutor{
-                              scintillation_->device_ref(), state.store.ref()}};
+    TrackExecutor execute{
+        core_params.ptr<MemSpace::native>(),
+        core_state.ptr(),
+        detail::ScintPreGenExecutor{scintillation_->device_ref(),
+                                    state.store.ref(),
+                                    state.buffer_size}};
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(core_state, execute);
 }
