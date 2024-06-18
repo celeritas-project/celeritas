@@ -24,16 +24,22 @@ namespace detail
 /*!
  * Hash "similar" surfaces for faster lookups.
  *
- * This is meant to generate one or more "key" values for a hash
+ * This is meant to generate one or more "key" values for a hash of surfaces.
  *
- * This returns hashes to give local surface indices on an infinite grid.
+ * This creates a hash map of local surfaces based on a characteristic
+ * dimension (i.e. the radius of a sphere), which is used to accelerate surface
+ * deduplication. For a given surface in bin N, possible duplicates may be
+ * found in bins N-1, N, N+1.
+ *
  * - Nearby surfaces should always have nearby "hash points", within some
- *   comparison tolerance
+ *   comparison tolerance.
  * - The comparison tolerance must be less than the grid width, probably \em
- *   much less
+ *   much less.
  * - Different surfaces can have an identical hash point but have
- *   different surface types
+ *   different surface types.
  * - The bin values will *always* be unique given a surface type.
+ *
+ * \sa LocalSurfaceInserter
  */
 class SurfaceGridHash
 {
