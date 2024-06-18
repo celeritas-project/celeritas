@@ -363,6 +363,37 @@ Device code has exceptions from the rules above:
   the argument in ``__constant__`` memory rather than taking up register space.
 
 
+Polymorphism and virtual functions
+----------------------------------
+
+Since polymorphism on GPUs incurs severe performance and infrastructure
+penalties, virtual functions *must* be limited to host-only setup and runtime
+functions. If at all possible, follow these guidelines:
+
+- Use only pure abstract virtual classes if possible (no methods should be
+  defined; all methods should be ``virtual ... = 0;``). Instead of adding helper
+  functions or protected data, use *composition* to define such things in a
+  separate class.
+- If the abstract class is to be used in downstream code, `define an
+  out-of-line function to reduce potential code bloat
+  <https://stackoverflow.com/questions/12024642/placing-of-external-virtual-tables/12025816#12025816>`.
+- Use public virtual destructors to allow base-class deletion (e.g., a
+  ``unique_ptr`` to the base class) *or* use a protected nonvirtual destructor
+  if the classes are not meant to be stored by the user.
+- Define protected ``CELER_DEFAULT_COPY_MOVE`` constructors to prohibit
+  accidental operations between base classes.
+
+In daughter classes:
+
+- Prefer daughter classes to implement all of the functionality of the base
+  classes; this makes it easier to reason about the code because all the
+  operations are local to that implementation.
+- Use the ``final`` keyword on classes *except* in the rare case that this
+  class is providing new extensible interfaces.
+- Use exactly one of the ``final`` or ``override`` keywords for inherited
+  virtual functions. Usually classes
+
+
 Odds and ends
 -------------
 
