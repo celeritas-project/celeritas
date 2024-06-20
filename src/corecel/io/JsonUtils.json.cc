@@ -9,6 +9,7 @@
 #include "JsonUtils.json.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/Types.hh"
 #include "corecel/sys/Version.hh"
 
 #include "Logger.hh"
@@ -31,15 +32,26 @@ void warn_deprecated_json_option(char const* old_name, char const* new_name)
  */
 void save_format(nlohmann::json& j, std::string const& format)
 {
+    CELER_EXPECT(j.is_object());
     j["_format"] = format;
     j["_version"] = to_string(celer_version());
 }
 
 //---------------------------------------------------------------------------//
 /*!
+ * Save units for provenance/reproducibility.
+ */
+void save_units(nlohmann::json& j)
+{
+    CELER_EXPECT(j.is_object());
+    j["_units"] = to_cstring(UnitSystem::native);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Load and check for a format and compatible version marker.
  */
-void check_format(nlohmann::json const& j, std::string const& format)
+void check_format(nlohmann::json const& j, std::string_view format)
 {
     if (auto iter = j.find("_version"); iter != j.end())
     {
@@ -59,6 +71,23 @@ void check_format(nlohmann::json const& j, std::string const& format)
         CELER_VALIDATE(format_str == format,
                        << "invalid format for \"" << format << "\" input: \""
                        << format_str << "\"");
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Check units for consistency.
+ */
+void check_units(nlohmann::json const& j, std::string_view format)
+{
+    if (auto iter = j.find("_units"); iter != j.end())
+    {
+        CELER_VALIDATE(
+            to_unit_system(iter->get<std::string>()) == UnitSystem::native,
+            << "incompatible unit system in " << format
+            << " JSON file: constructed with " << iter->get<std::string>()
+            << " units, but current executable requires "
+            << to_cstring(UnitSystem::native));
     }
 }
 

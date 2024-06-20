@@ -21,6 +21,7 @@
 #include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/Logger.hh"
@@ -28,8 +29,9 @@
 
 #include "OrangeInput.hh"
 #include "OrangeTypes.hh"
-#include "detail/OrangeInputIOImpl.json.hh"
 #include "surf/SurfaceTypeTraits.hh"
+
+#include "detail/OrangeInputIOImpl.json.hh"
 
 namespace celeritas
 {
@@ -525,16 +527,7 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
     }
     CELER_LOG(debug) << "Reading '" << fmt << "' input version " << version;
 
-    if (auto iter = j.find("_units"); iter != j.end())
-    {
-        CELER_VALIDATE(
-            to_unit_system(iter->get<std::string>()) == UnitSystem::native,
-            << "incompatible unit system in ORANGE JSON file: constructed "
-               "with "
-            << iter->get<std::string>()
-            << " units, but current executable requires "
-            << to_cstring(UnitSystem::native));
-    }
+    check_units(j, "ORANGE");
 
     auto const& universes = j.at("universes");
     value.universes.reserve(universes.size());
@@ -581,13 +574,13 @@ void to_json(nlohmann::json& j, OrangeInput const& value)
     j = nlohmann::json::object({
         {"_format", "ORANGE"},
         {"_version", 0},
-        {"_units", to_cstring(UnitSystem::native)},
         {"universes", variants_to_json(value.universes)},
     });
     if (value.tol)
     {
         j["tol"] = value.tol;
     }
+    save_units(j);
 }
 
 //---------------------------------------------------------------------------//
