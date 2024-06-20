@@ -18,7 +18,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-static char const format_str[] = "GeantPhysicsOptions";
+static char const format_str[] = "geant-physics";
 
 //---------------------------------------------------------------------------//
 void from_json(nlohmann::json const& j, MscModelSelection& value)

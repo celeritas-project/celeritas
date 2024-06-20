@@ -24,7 +24,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-static char const format_str[] = "RZMapFieldInput";
+static char const format_str[] = "rz-map-field";
 
 //---------------------------------------------------------------------------//
 /*!

@@ -24,7 +24,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-static char const format_str[] = "PrimaryGeneratorOptions";
+static char const format_str[] = "primary-generator";
 
 //---------------------------------------------------------------------------//
 // JSON serializers

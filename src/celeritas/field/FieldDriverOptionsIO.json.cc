@@ -17,7 +17,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-static char const format_str[] = "FieldDriverOptions";
+static char const format_str[] = "field-driver";
 
 //---------------------------------------------------------------------------//
 /*!
