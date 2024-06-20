@@ -366,7 +366,10 @@ endif()
 if(CELERITAS_USE_VecGeom)
   set(_min_vecgeom_version 1.2.4)
   if(NOT VecGeom_FOUND)
+    cmake_policy(PUSH)
+    cmake_policy(SET CMP0146 OLD)
     find_package(VecGeom ${_min_vecgeom_version} REQUIRED)
+    cmake_policy(POP)
   elseif(VecGeom_VERSION VERSION_LESS _min_vecgeom_version)
     # Another package, probably Geant4, is already using vecgeom
     celeritas_error_incompatible_option(
