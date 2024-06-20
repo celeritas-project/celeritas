@@ -525,6 +525,17 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
     }
     CELER_LOG(debug) << "Reading '" << fmt << "' input version " << version;
 
+    if (auto iter = j.find("_units"); iter != j.end())
+    {
+        CELER_VALIDATE(
+            to_unit_system(iter->get<std::string>()) == UnitSystem::native,
+            << "incompatible unit system in ORANGE JSON file: constructed "
+               "with "
+            << iter->get<std::string>()
+            << " units, but current executable requires "
+            << to_cstring(UnitSystem::native));
+    }
+
     auto const& universes = j.at("universes");
     value.universes.reserve(universes.size());
 
@@ -546,9 +557,9 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
         }
     }
 
-    if (j.count("tol"))
+    if (auto iter = j.find("tol"); iter != j.end())
     {
-        j.at("tol").get_to(value.tol);
+        iter->get_to(value.tol);
     }
     else
     {
@@ -570,6 +581,7 @@ void to_json(nlohmann::json& j, OrangeInput const& value)
     j = nlohmann::json::object({
         {"_format", "ORANGE"},
         {"_version", 0},
+        {"_units", to_cstring(UnitSystem::native)},
         {"universes", variants_to_json(value.universes)},
     });
     if (value.tol)
