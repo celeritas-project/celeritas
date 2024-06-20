@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
   linux:
-    name: ${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}
+    name: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}"
     strategy:
       matrix:
         include:
@@ -26,16 +26,17 @@ jobs:
           - runner: jammy
             compiler: clang
             version: 15
+    env:
+      GHA_JOB_NAME: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}"
+      CCACHE_DIR: "${{github.workspace}}/.ccache"
+      CCACHE_MAXSIZE: "100Mi"
+      CMAKE_PRESET: fast
+      CC: ${{matrix.compiler}}-${{matrix.version}}
+      CXX: ${{matrix.compiler == 'gcc' && 'g++' || 'clang++'}}-${{matrix.version}}
     runs-on: >-
       ${{  matrix.runner == 'focal' && 'ubuntu-20.04'
         || matrix.runner == 'jammy' && 'ubuntu-22.04'
-        || null
       }}
-    env:
-      CCACHE_DIR: "${{github.workspace}}/.ccache"
-      CCACHE_MAXSIZE: "10G"
-      CC: ${{matrix.compiler}}-${{matrix.version}}
-      CXX: ${{matrix.compiler == 'gcc' && 'g++' || 'clang++'}}-${{matrix.version}}
     steps:
       - name: Install dependencies
         run: |
@@ -52,30 +53,23 @@ jobs:
       - name: Check out Celeritas
         uses: actions/checkout@v4
       - name: Cache ccache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{env.CCACHE_DIR}}
-          key: ccache-${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}-${{github.run_id}}
-          restore-keys: ccache-${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}
+          key: ccache-backport-${{env.GHA_JOB_NAME}}-${{github.run_id}}
+          restore-keys: |
+            ccache-backport-${{env.GHA_JOB_NAME}}
+            ccache-${{env.GHA_JOB_NAME}}
       - name: Zero ccache stats
         run: |
           ccache -z
       - name: Configure Celeritas
         run: |
-          mkdir build && cd build
-          cmake -GNinja \
+          ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
+          cmake --preset=${CMAKE_PRESET} \
             -DCeleritas_GIT_DESCRIBE="${{github.event.pull_request
               && format(';-pr.{0};', github.event.pull_request.number)
-              || format(';-{0};', github.ref_name)}}" \
-            -DCELERITAS_BUILD_DEMOS:BOOL=ON \
-            -DCELERITAS_BUILD_TESTS:BOOL=ON \
-            -DCELERITAS_USE_SWIG=OFF \
-            -DCELERITAS_DEBUG:BOOL=ON \
-            -DCMAKE_BUILD_TYPE="Release" \
-            -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install" \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_FLAGS="-Werror -Wall -Wextra -pedantic -Wno-error=deprecated-declarations" \
-            ..
+              || format(';-{0};', github.ref_name)}}"
       - name: Build all
         working-directory: build
         run: |
@@ -83,7 +77,7 @@ jobs:
       - name: Run tests
         working-directory: build
         run: |
-          ctest --parallel 2 --timeout 15 --output-on-failure \
+          ctest --parallel $(nproc) --timeout 15 --output-on-failure \
             --test-output-size-passed=32768 --test-output-size-failed=1048576
       - name: Install
         working-directory: build

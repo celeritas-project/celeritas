@@ -46,12 +46,15 @@ jobs:
         working-directory: build
         run: |
           ninja doxygen
-      - name: Upload pages artifacts
+      - name: Upload artifacts
         if: ${{env.celer_upload_doc}}
-        id: upload-pages-user
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           path: build/doc/doxygen-html
+          name: doc-dev
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 7
   user:
     runs-on: ubuntu-latest
     steps:
@@ -60,7 +63,7 @@ jobs:
             sudo apt-get -y update
             sudo apt-get -y install \
                 cmake graphviz ninja-build doxygen gcc
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.10' 
       - name: Check out Celeritas
@@ -71,7 +74,7 @@ jobs:
       - name: Install Python packages
         run: |
             pip install --upgrade pip
-            pip install -r scripts/requirements.txt
+            pip install -r scripts/doc-requirements.txt
       - name: Configure celeritas
         run: |
           mkdir build && cd build
@@ -84,12 +87,16 @@ jobs:
         working-directory: build
         run: |
           ninja doc
-      - name: Upload pages artifacts
+      - name: Upload artifacts
         if: ${{env.celer_upload_doc}}
-        id: upload-pages-user
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           path: build/doc/html
+          name: doc-user
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 7
+
 #TODO: deploy with actions/deploy-pages@v2 ?
 
 # vim: set nowrap tw=100:
