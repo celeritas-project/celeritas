@@ -13,11 +13,19 @@ jobs:
         with:
           script: |
             console.log("Getting action cache")
-            const caches = await github.rest.actions.getActionsCacheList({
+            const parameters = {
               owner: context.repo.owner,
               repo: context.repo.repo,
-            })
-            for (const cache of caches.data.actions_caches) {
+              per_page: 100,
+              direction: "asc",
+              sort: "created_at",
+            }
+            const caches = await github.paginate(
+              github.rest.actions.getActionsCacheList,
+              parameters,
+              (response) => response.data,
+            )
+            for (const cache of caches) {
               if (cache.key.startsWith("ccache-")) {
                 console.log("Deleting cache entry", cache)
                 github.rest.actions.deleteActionsCacheById({
