@@ -133,8 +133,10 @@ TEST_F(PrimaryGeneratorTest, options)
 
     {
         nlohmann::json out = opts;
+        out.erase("_units");
+        out.erase("_version");
         EXPECT_JSON_EQ(
-            R"json({"direction":{"distribution":"isotropic","params":[]},"energy":{"distribution":"delta","params":[1.0]},"num_events":1,"pdg":[22],"position":{"distribution":"box","params":[-3.0,-3.0,-3.0,3.0,3.0,3.0]},"primaries_per_event":10,"seed":0})json",
+            R"json({"_format":"primary-generator","direction":{"distribution":"isotropic","params":[]},"energy":{"distribution":"delta","params":[1.0]},"num_events":1,"pdg":[22],"position":{"distribution":"box","params":[-3.0,-3.0,-3.0,3.0,3.0,3.0]},"primaries_per_event":10,"seed":0})json",
             std::string(out.dump()));
     }
 }
