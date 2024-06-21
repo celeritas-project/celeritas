@@ -19,6 +19,24 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * User-imposed cutoffs and restrictions.
+ *
+ * Used as tracking cuts, see \c G4UserLimits , used by \c G4UserSpecialCuts.
+ * As "production" cuts, only for electron/positron/proton/gamma, see \c
+ * G4ProductionCuts .
+ */
+struct ImportCutoff
+{
+    //! Kill particles later than this global time [time]
+    real_type time{};
+    //! Kill particles below this kinetic energy [MeV]
+    real_type energy{};
+    //! Kill particles below this range [len]
+    real_type range{};
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Common electromagnetic physics parameters (see G4EmParameters.hh).
  *
  * \note Geant4 v11 removed the Spline() option from G4EmParameters.hh.

@@ -14,15 +14,22 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Store logical volume properties.
+ *
+ * \note The "phys material ID" is the index of the MaterialCutsCouple, and the
+ * "geo material ID" is the index of the Material (physical properties).
+ *
+ * \note The index of this volume in the \c volumes vector is the "instance ID"
+ * which is not necessarily reproducible.
  */
 struct ImportVolume
 {
-    int material_id{-1};
+    unsigned int geo_material_id{};  //!< Actual material properties
+    unsigned int material_id{};  //!< Material properties modified by physics
     std::string name;
     std::string solid_name;
 
     //! Whether this represents a physical volume or is just a placeholder
-    explicit operator bool() const { return material_id >= 0; }
+    explicit operator bool() const { return !name.empty(); }
 };
 
 //---------------------------------------------------------------------------//

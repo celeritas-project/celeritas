@@ -33,6 +33,11 @@ ImportDataConverter::ImportDataConverter(UnitSystem usys) : usys_{usys}
 //---------------------------------------------------------------------------//
 void ImportDataConverter::operator()(ImportData* data)
 {
+    for (auto& m : data->geo_materials)
+    {
+        (*this)(&m);
+    }
+
     for (auto& m : data->materials)
     {
         (*this)(&m);
@@ -72,11 +77,17 @@ void ImportDataConverter::operator()(ImportEmParameters* data)
 }
 
 //---------------------------------------------------------------------------//
-void ImportDataConverter::operator()(ImportMaterial* data)
+void ImportDataConverter::operator()(ImportGeoMaterial* data)
 {
     CELER_EXPECT(data);
 
     data->number_density *= numdens_;
+}
+
+//---------------------------------------------------------------------------//
+void ImportDataConverter::operator()(ImportMaterial* data)
+{
+    CELER_EXPECT(data);
 
     for (auto& [pdg, cut] : data->pdg_cutoffs)
     {

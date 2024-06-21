@@ -63,6 +63,7 @@ MatterState to_matter_state(ImportMaterialState state)
 std::shared_ptr<MaterialParams>
 MaterialParams::from_import(ImportData const& data)
 {
+    CELER_EXPECT(!data.geo_materials.empty());
     CELER_EXPECT(!data.materials.empty());
     CELER_EXPECT(!data.elements.empty());
 
@@ -106,33 +107,44 @@ MaterialParams::from_import(ImportData const& data)
         input.elements.push_back(std::move(element_params));
     }
 
-    // Create mapping from material to optical property data
+    // Prepare for optical
+    OpticalMaterialId::size_type optical_id{0};
     if (!data.optical.empty())
     {
-        input.mat_to_optical.resize(data.materials.size(), {});
-        OpticalMaterialId::size_type optical_id{0};
-        for (auto const& [mat_id, optical] : data.optical)
-        {
-            input.mat_to_optical[mat_id] = OpticalMaterialId(optical_id++);
-        }
+        // Initialize optical material array with "not an optical material"
+        input.mat_to_optical.assign(data.materials.size(), OpticalMaterialId{});
     }
 
-    // Populate input.materials
-    for (auto const& material : data.materials)
+    // Populate input.materials *using physics material ID* but with *geo
+    // material data* (possibly duplicating it)
+    for (auto mat_idx : range(data.materials.size()))
     {
-        MaterialParams::MaterialInput material_params;
-        material_params.temperature = material.temperature;
-        material_params.number_density = material.number_density;
-        material_params.matter_state = to_matter_state(material.state);
-        material_params.label = Label::from_geant(material.name);
+        auto geo_mat_idx = data.materials[mat_idx].geo_material_id;
+        CELER_VALIDATE(geo_mat_idx < data.geo_materials.size(),
+                       << "geo material id " << geo_mat_idx
+                       << " is out of range");
+        auto const& geo_mat = data.geo_materials[geo_mat_idx];
 
-        for (auto const& elem_comp : material.elements)
+        MaterialParams::MaterialInput material_params;
+        material_params.temperature = geo_mat.temperature;
+        material_params.number_density = geo_mat.number_density;
+        material_params.matter_state = to_matter_state(geo_mat.state);
+        material_params.label = Label::from_geant(geo_mat.name);
+
+        for (auto const& elem_comp : geo_mat.elements)
         {
             // Populate MaterialParams number fractions
             material_params.elements_fractions.push_back(
                 {ElementId{elem_comp.element_id}, elem_comp.number_fraction});
         }
         input.materials.push_back(std::move(material_params));
+
+        // Check for optical data
+        if (auto iter = data.optical.find(geo_mat_idx);
+            iter != data.optical.end())
+        {
+            input.mat_to_optical[mat_idx] = OpticalMaterialId{optical_id++};
+        }
     }
 
     // Return a MaterialParams shared_ptr

@@ -15,13 +15,14 @@ struct ImportData;
 struct ImportElement;
 struct ImportEmParameters;
 struct ImportMaterial;
-struct ImportOpticalMaterial;
 struct ImportModel;
 struct ImportModelMaterial;
 struct ImportMscModel;
+struct ImportOpticalMaterial;
 struct ImportParticle;
 struct ImportPhysicsTable;
 struct ImportProcess;
+struct ImportGeoMaterial;
 
 namespace detail
 {
@@ -40,6 +41,7 @@ class ImportDataConverter
     void operator()(ImportData* data);
     void operator()(ImportElement* data);
     void operator()(ImportEmParameters* data);
+    void operator()(ImportGeoMaterial* data);
     void operator()(ImportMaterial* data);
     void operator()(ImportOpticalMaterial* data);
     void operator()(ImportModel* data);

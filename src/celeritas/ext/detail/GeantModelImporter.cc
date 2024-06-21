@@ -34,7 +34,7 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Get a G4Material from a material index.
+ * Get a G4Material from a *physics material* index.
  */
 G4Material const& get_g4material(unsigned int mat_idx)
 {

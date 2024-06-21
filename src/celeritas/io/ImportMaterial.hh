@@ -50,11 +50,10 @@ struct ImportMatElemComponent
 /*!
  * Store material data.
  */
-struct ImportMaterial
+struct ImportGeoMaterial
 {
     //!@{
     //! \name Type aliases
-    using MapIntCutoff = std::map<int, ImportProductionCut>;
     using VecComponent = std::vector<ImportMatElemComponent>;
     //!@}
 
@@ -62,8 +61,24 @@ struct ImportMaterial
     ImportMaterialState state{ImportMaterialState::size_};
     double temperature;  //!< [K]
     double number_density;  //!< [1/length^3]
-    MapIntCutoff pdg_cutoffs;  //!< Cutoff per PDG
     VecComponent elements;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Store information for distinct material regions modified by physics.
+ *
+ * TODO: update names Material -> PhysMaterial ; GeoMaterial -> Material
+ */
+struct ImportMaterial
+{
+    //!@{
+    //! \name Type aliases
+    using MapIntCutoff = std::map<int, ImportProductionCut>;
+    //!@}
+
+    unsigned int geo_material_id{};  //!< Index in geo_materials list
+    MapIntCutoff pdg_cutoffs;  //!< Cutoff per PDG
 };
 
 //---------------------------------------------------------------------------//
