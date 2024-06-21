@@ -42,6 +42,8 @@
 #include <G4RToEConvForGamma.hh>
 #include <G4RToEConvForPositron.hh>
 #include <G4RToEConvForProton.hh>
+#include <G4Region.hh>
+#include <G4RegionStore.hh>
 #include <G4String.hh>
 #include <G4Transportation.hh>
 #include <G4TransportationManager.hh>
@@ -604,7 +606,9 @@ ImportData::ImportOpticalMap import_optical()
 /*!
  * Return a populated \c ImportGeoMaterial vector.
  *
- * These
+ * These are the ground-truth physical properties of the materials with no
+ * information about how user physics selections/options affect
+ * production cutoffs etc.
  */
 std::vector<ImportGeoMaterial> import_geo_materials()
 {
@@ -758,6 +762,38 @@ import_materials(GeantImporter::DataSelection::Flags particle_flags)
     CELER_LOG(debug) << "Loaded " << materials.size() << " physics materials";
     CELER_ENSURE(!materials.empty());
     return materials;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a populated \c ImportVolume vector.
+ */
+std::vector<ImportRegion> import_regions()
+{
+    auto& regions = *G4RegionStore::GetInstance();
+
+    std::vector<ImportRegion> result(regions.size());
+
+    // Loop over region data
+    for (auto i : range(result.size()))
+    {
+        // Fetch material, element, and production cuts lists
+        auto const* g4reg = regions[i];
+        CELER_ASSERT(g4reg);
+        CELER_ASSERT(static_cast<std::size_t>(g4reg->GetInstanceID()) == i);
+
+        ImportRegion region;
+        region.name = g4reg->GetName();
+        region.field_manager = (g4reg->GetFieldManager() != nullptr);
+        region.production_cuts = (g4reg->GetProductionCuts() != nullptr);
+        region.user_limits = (g4reg->GetUserLimits() != nullptr);
+
+        // Add region to result
+        result[i] = std::move(region);
+    }
+
+    CELER_LOG(debug) << "Loaded " << result.size() << " regions";
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -1064,6 +1100,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
                                    imported.elements,
                                    imported.materials);
         }
+        imported.regions = import_regions();
         imported.volumes = this->import_volumes(selected.unique_volumes);
         if (selected.particles != DataSelection::none)
         {
@@ -1145,6 +1182,10 @@ GeantImporter::import_volumes(bool unique_volumes) const
             if (auto* mat = lv.GetMaterial())
             {
                 volume.geo_material_id = mat->GetIndex();
+            }
+            if (auto* reg = lv.GetRegion())
+            {
+                volume.region_id = reg->GetInstanceID();
             }
             if (auto* cuts = lv.GetMaterialCutsCouple())
             {

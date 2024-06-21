@@ -69,6 +69,7 @@ struct ImportData
     std::vector<ImportMaterial> materials;
     std::vector<ImportProcess> processes;
     std::vector<ImportMscModel> msc_models;
+    std::vector<ImportRegion> regions;
     std::vector<ImportVolume> volumes;
     ImportOpticalMap optical;
     ImportEmParameters em_params;
