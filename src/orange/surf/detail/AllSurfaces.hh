@@ -17,3 +17,4 @@
 #include "../SimpleQuadric.hh"
 #include "../Sphere.hh"
 #include "../SphereCentered.hh"
+#include "../Involute.hh"
