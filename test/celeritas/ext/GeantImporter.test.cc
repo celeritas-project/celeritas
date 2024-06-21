@@ -557,18 +557,21 @@ TEST_F(FourSteelSlabsEmStandard, geo_materials)
 
     real_type const tol = this->comparison_tolerance();
 
-    static char const* expected_names[] = {"G4_Galactic", "G4_STAINLESS-STEEL"};
+    static char const* expected_names[] = {"G4_STAINLESS-STEEL", "G4_Galactic"};
     EXPECT_VEC_EQ(expected_names, names);
-    static int const expected_states[] = {3, 1};
+    static int const expected_states[] = {1, 3};
     EXPECT_VEC_EQ(expected_states, states);
     static double const expected_num_densities[]
-        = {0.05974697167543, 8.699348925899e+22};
+        = {8.699348925899e+22, 0.05974697167543};
     EXPECT_VEC_NEAR(expected_num_densities, num_densities, tol);
-    static double const expected_temperatures[] = {2.73, 293.15};
+    static double const expected_temperatures[] = {
+        293.15,
+        2.73,
+    };
     EXPECT_VEC_SOFT_EQ(expected_temperatures, temperatures);
-    static double const expected_el_comps_ids[] = {3, 0, 1, 2};
+    static double const expected_el_comps_ids[] = {0, 1, 2, 3};
     EXPECT_VEC_SOFT_EQ(expected_el_comps_ids, el_comps_ids);
-    static double const expected_el_comps_num_fracs[] = {1, 0.74, 0.18, 0.08};
+    static double const expected_el_comps_num_fracs[] = {0.74, 0.18, 0.08, 1};
     EXPECT_VEC_SOFT_EQ(expected_el_comps_num_fracs, el_comps_num_fracs);
 }
 
@@ -1543,7 +1546,7 @@ TEST_F(Solids, volumes_only)
     EXPECT_EQ(0, imported.particles.size());
     EXPECT_EQ(0, imported.elements.size());
     EXPECT_EQ(0, imported.geo_materials.size());
-    EXPECT_EQ(0, imported.regions.size());
+    EXPECT_EQ(3, imported.regions.size());
     EXPECT_EQ(0, imported.phys_materials.size());
 
     std::vector<std::string> names;

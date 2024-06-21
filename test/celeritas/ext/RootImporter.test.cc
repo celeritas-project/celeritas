@@ -128,7 +128,7 @@ TEST_F(RootImporterTest, geo_materials)
         names.push_back(material.name);
     }
 
-    static char const* expected_names[] = {"G4_Galactic", "G4_STAINLESS-STEEL"};
+    static char const* expected_names[] = {"G4_STAINLESS-STEEL", "G4_Galactic"};
     EXPECT_VEC_EQ(expected_names, names);
 }
 
@@ -144,7 +144,7 @@ TEST_F(RootImporterTest, phys_materials)
         ids.push_back(material.geo_material_id);
     }
 
-    static unsigned int const expected_ids[] = {0, 1};
+    static unsigned int const expected_ids[] = {1, 0};
     EXPECT_VEC_EQ(expected_ids, ids);
 }
 
