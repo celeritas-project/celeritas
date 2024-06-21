@@ -147,25 +147,24 @@ void print_isotopes(std::vector<ImportIsotope>& isotopes)
 
 //---------------------------------------------------------------------------//
 /*!
- * Print material properties.
+ * Print true material properties.
  */
-void print_materials(std::vector<ImportPhysMaterial>& materials,
-                     std::vector<ImportElement>& elements,
-                     ParticleParams const& particles)
+void print_geo_materials(std::vector<ImportGeoMaterial> const& materials,
+                         std::vector<ImportElement> const& elements)
 {
     CELER_LOG(info) << "Loaded " << materials.size() << " materials";
     cout << R"gfm(
 # Materials
 
-| Material ID | Name                            | Composition                     |
-| ----------- | ------------------------------- | ------------------------------- |
+| ID  | Name                            | Composition                     |
+| --- | ------------------------------- | ------------------------------- |
 )gfm";
 
     for (unsigned int material_id : range(materials.size()))
     {
         auto const& material = materials[material_id];
 
-        cout << "| " << setw(11) << material_id << " | " << setw(31)
+        cout << "| " << setw(4) << material_id << " | " << setw(31)
              << material.name << " | " << setw(31)
              << to_string(join(
                     material.elements.begin(),
@@ -178,11 +177,20 @@ void print_materials(std::vector<ImportPhysMaterial>& materials,
              << " |\n";
     }
     cout << endl;
+}
 
+//---------------------------------------------------------------------------//
+/*!
+ * Print physics-modified material properties.
+ */
+void print_phys_materials(std::vector<ImportPhysMaterial> const& materials,
+                          std::vector<ImportGeoMaterial> const& geo_materials,
+                          ParticleParams const& particles)
+{
     //// PRINT CUTOFF LIST ///
 
     cout << R"gfm(
-## Cutoffs
+# Material physics
 
 | Material                   | Particle  | Energy [MeV] | Range [cm] |
 | -------------------------- | --------- | ------------ | ---------- |
@@ -197,8 +205,14 @@ void print_materials(std::vector<ImportPhysMaterial>& materials,
         {
             if (is_first_line)
             {
+                CELER_VALIDATE(material.geo_material_id < geo_materials.size(),
+                               << "geo material ID " << material.geo_material_id
+                               << " out of range for physics material ID "
+                               << material_id);
+                ImportGeoMaterial const& geo
+                    = geo_materials[material.geo_material_id];
                 cout << "| " << std::right << setw(4) << material_id << ": "
-                     << setw(20) << material.name;
+                     << setw(20) << geo.name;
                 is_first_line = false;
             }
             else
@@ -248,7 +262,8 @@ void print_table(ImportPhysicsTable const& table)
  * Print process information.
  */
 void print_process(ImportProcess const& proc,
-                   std::vector<ImportPhysMaterial> const& materials,
+                   std::vector<ImportGeoMaterial> const& geo_materials,
+                   std::vector<ImportPhysMaterial> const& phys_materials,
                    std::vector<ImportElement> const& elements,
                    ParticleParams const& particles)
 {
@@ -263,27 +278,26 @@ void print_process(ImportProcess const& proc,
 
     for (ImportModel const& model : proc.models)
     {
-        cout << "### Model: " << to_cstring(model.model_class)
-             << "\n"
-                "\n"
-                "Energy grids per material: \n\n"
-                "| Material             | Size  | Endpoints (MeV)         "
-                "    "
-                " |\n"
-                "| -------------------- | ----- | "
-                "---------------------------- |\n";
+        cout << "### Model: " << to_cstring(model.model_class) << R"gfm(
+Energy grids per material:
+
+| Material             | Size  | Endpoints (MeV)              |
+| -------------------- | ----- | ---------------------------- |
+)gfm";
 
         for (auto m : range(model.materials.size()))
         {
             auto const& energy = model.materials[m].energy;
             CELER_ASSERT(!energy.empty());
-            cout << "| " << setw(20) << std::left << materials[m].name << " | "
+            auto const& geo_mat
+                = geo_materials[phys_materials[m].geo_material_id];
+            cout << "| " << setw(20) << std::left << geo_mat.name << " | "
                  << setw(5) << energy.size() << " | " << setprecision(3)
                  << setw(12) << setprecision(3) << setw(12) << energy.front()
                  << " -> " << setprecision(3) << setw(12) << energy.back()
                  << " |\n";
         }
-        cout << "\n\n";
+        cout << "\n";
 
         if (std::all_of(model.materials.begin(),
                         model.materials.end(),
@@ -295,26 +309,32 @@ void print_process(ImportProcess const& proc,
             continue;
         }
 
-        cout << "Microscopic cross sections:\n\n"
-                "| Material             | Element       | Endpoints (bn) "
-                "|\n"
-                "| -------------------- | ------------- | "
-                "---------------------------- |\n";
+        cout << R"gfm(
+Microscopic cross sections:
+
+| Material             | Element       | Endpoints (bn) |
+| -------------------- | ------------- | ---------------------------- |
+)gfm";
 
         for (auto m : range(model.materials.size()))
         {
             using units::barn;
 
             auto const& xs = model.materials[m].micro_xs;
+            CELER_VALIDATE(xs.size() == elements.size(),
+                           << "mismatched cross section/element size");
 
             for (auto i : range(xs.size()))
             {
-                cout << "| " << setw(20) << std::left
-                     << (i == 0 ? materials[m].name : std::string{}) << " | "
-                     << setw(13) << std::left << elements[i].name << " | "
-                     << setprecision(3) << setw(12) << xs[i].front() / barn
-                     << " -> " << setprecision(3) << setw(12)
-                     << xs[i].back() / barn << " |\n";
+                cout
+                    << "| " << setw(20) << std::left
+                    << (i == 0
+                            ? geo_materials[phys_materials[m].geo_material_id].name
+                            : std::string{})
+                    << " | " << setw(13) << std::left << elements[i].name
+                    << " | " << setprecision(3) << setw(12)
+                    << xs[i].front() / barn << " -> " << setprecision(3)
+                    << setw(12) << xs[i].back() / barn << " |\n";
             }
         }
         cout << endl;
@@ -387,7 +407,11 @@ void print_processes(ImportData const& data, ParticleParams const& particles)
     // Print details
     for (ImportProcess const& proc : processes)
     {
-        print_process(proc, data.phys_materials, data.elements, particles);
+        print_process(proc,
+                      data.geo_materials,
+                      data.phys_materials,
+                      data.elements,
+                      particles);
     }
 }
 
@@ -420,14 +444,14 @@ void print_msc_models(ImportData const& data, ParticleParams const& particles)
  * Print volume properties.
  */
 void print_volumes(std::vector<ImportVolume> const& volumes,
-                   std::vector<ImportPhysMaterial> const& materials)
+                   std::vector<ImportGeoMaterial> const& geo_materials)
 {
     CELER_LOG(info) << "Loaded " << volumes.size() << " volumes";
     cout << R"gfm(
 # Volumes
 
-| Volume ID | Volume name                          | Material ID | Material Name               |
-| --------- | ------------------------------------ | ----------- | --------------------------- |
+| Volume ID/name                           | Geo material ID/name  | Phys ID | Region ID |
+| ---------------------------------------- | --------------------- | ------- | --------- |
 )gfm";
 
     for (unsigned int volume_id : range(volumes.size()))
@@ -437,16 +461,34 @@ void print_volumes(std::vector<ImportVolume> const& volumes,
         {
             continue;
         }
-        CELER_ASSERT(static_cast<std::size_t>(volume.material_id)
-                     < materials.size());
+        CELER_ASSERT(static_cast<std::size_t>(volume.geo_material_id)
+                     < geo_materials.size());
 
         // clang-format off
         cout << "| "
-             << setw(9) << std::left << volume_id << " | "
-             << setw(36) << volume.name << " | "
-             << setw(11) << volume.material_id << " | "
-             << setw(27) << materials[volume.material_id].name << " |\n";
+             << setw(5) << std::left << volume_id << ": "
+             << setw(33) << volume.name << " | "
+             << setw(4) << volume.geo_material_id << ": "
+             << setw(7);
         // clang-format on
+        if (volume.phys_material_id != ImportVolume::unspecified)
+        {
+            cout << volume.phys_material_id;
+        }
+        else
+        {
+            cout << "---";
+        }
+        cout << " | " << setw(9);
+        if (volume.region_id != ImportVolume::unspecified)
+        {
+            cout << volume.region_id;
+        }
+        else
+        {
+            cout << "---";
+        }
+        cout << " |\n";
     }
     cout << endl;
 }
@@ -775,10 +817,12 @@ int main(int argc, char* argv[])
     print_particles(*particle_params);
     print_elements(data.elements, data.isotopes);
     print_isotopes(data.isotopes);
-    print_materials(data.phys_materials, data.elements, *particle_params);
+    print_geo_materials(data.geo_materials, data.elements);
+    print_phys_materials(
+        data.phys_materials, data.geo_materials, *particle_params);
     print_processes(data, *particle_params);
     print_msc_models(data, *particle_params);
-    print_volumes(data.volumes, data.phys_materials);
+    print_volumes(data.volumes, data.geo_materials);
     print_em_params(data.em_params);
     print_trans_params(data.trans_params, *particle_params);
     print_sb_data(data.sb_data);

@@ -147,9 +147,11 @@ namespace celeritas
 %template(VecImportElement) std::vector<celeritas::ImportElement>;
 
 %include "celeritas/io/ImportMaterial.hh"
-%template(VecImportMaterial) std::vector<celeritas::ImportMaterial>;
+%template(VecImportGeoMaterial) std::vector<celeritas::ImportGeoMaterial>;
+%template(VecImportPhysMaterial) std::vector<celeritas::ImportPhysMaterial>;
 
 %include "celeritas/io/ImportVolume.hh"
+%template(VecImportRegion) std::vector<celeritas::ImportRegion>;
 %template(VecImportVolume) std::vector<celeritas::ImportVolume>;
 
 %include "celeritas/io/ImportAtomicRelaxation.hh"
