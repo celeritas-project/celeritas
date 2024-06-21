@@ -261,7 +261,7 @@ GeoMaterialParams::from_import(ImportData const& data,
             continue;
 
         input.volume_to_mat[volume_idx]
-            = MaterialId(data.volumes[volume_idx].material_id);
+            = MaterialId(data.volumes[volume_idx].phys_material_id);
     }
 
     // Assume that since Geant4 is using internal geometry and

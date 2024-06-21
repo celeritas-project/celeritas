@@ -1189,7 +1189,7 @@ GeantImporter::import_volumes(bool unique_volumes) const
             }
             if (auto* cuts = lv.GetMaterialCutsCouple())
             {
-                volume.material_id = cuts->GetIndex();
+                volume.phys_material_id = cuts->GetIndex();
             }
             volume.name = lv.GetName();
             volume.solid_name = lv.GetSolid()->GetName();
@@ -1198,7 +1198,7 @@ GeantImporter::import_volumes(bool unique_volumes) const
             {
                 CELER_LOG(warning)
                     << "No logical volume name specified for instance ID " << i
-                    << " (material " << volume.material_id << ")";
+                    << " (material " << volume.phys_material_id << ")";
             }
             else if (unique_volumes)
             {

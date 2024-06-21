@@ -35,14 +35,18 @@ struct ImportRegion
  */
 struct ImportVolume
 {
-    unsigned int geo_material_id{};  //!< Material defined by geometry
-    unsigned int region_id{};  //!< Optional region associated
-    unsigned int material_id{};  //!< Material modified by physics
+    static inline constexpr unsigned int unspecified = -1;
+
+    unsigned int geo_material_id{unspecified};  //!< Material defined by
+                                                //!< geometry
+    unsigned int region_id{unspecified};  //!< Optional region associated
+    unsigned int phys_material_id{unspecified};  //!< Material modified by
+                                                 //!< physics
     std::string name;
     std::string solid_name;
 
     //! Whether this represents a physical volume or is just a placeholder
-    explicit operator bool() const { return !name.empty(); }
+    explicit operator bool() const { return geo_material_id != unspecified; }
 };
 
 //---------------------------------------------------------------------------//
