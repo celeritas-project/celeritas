@@ -81,13 +81,13 @@ auto LogicalVolumeConverter::construct_impl(arg_type g4lv) -> SPLV
     if (auto* mat = g4lv.GetMaterial())
     {
         result->material_id
-            = MaterialId{static_cast<size_type>(mat->GetIndex())};
+            = GeoMaterialId{static_cast<size_type>(mat->GetIndex())};
     }
     else
     {
         CELER_LOG(warning) << "Logical volume '" << result->name
                            << "' has no associated material";
-        result->material_id = MaterialId{0};
+        result->material_id = GeoMaterialId{0};
     }
 
     // Convert solid
