@@ -321,20 +321,22 @@ Microscopic cross sections:
             using units::barn;
 
             auto const& xs = model.materials[m].micro_xs;
-            CELER_VALIDATE(xs.size() == elements.size(),
-                           << "mismatched cross section/element size");
+            auto const& geo_mat
+                = geo_materials[phys_materials[m].geo_material_id];
+            CELER_VALIDATE(xs.size() == geo_mat.elements.size(),
+                           << "mismatched cross section/element size: got "
+                           << xs.size() << " micros for "
+                           << geo_mat.elements.size() << " element components");
 
             for (auto i : range(xs.size()))
             {
-                cout
-                    << "| " << setw(20) << std::left
-                    << (i == 0
-                            ? geo_materials[phys_materials[m].geo_material_id].name
-                            : std::string{})
-                    << " | " << setw(13) << std::left << elements[i].name
-                    << " | " << setprecision(3) << setw(12)
-                    << xs[i].front() / barn << " -> " << setprecision(3)
-                    << setw(12) << xs[i].back() / barn << " |\n";
+                auto el_id = geo_mat.elements[i].element_id;
+                cout << "| " << setw(20) << std::left
+                     << (i == 0 ? geo_mat.name : std::string{}) << " | "
+                     << setw(13) << std::left << elements[el_id].name << " | "
+                     << setprecision(3) << setw(12) << xs[i].front() / barn
+                     << " -> " << setprecision(3) << setw(12)
+                     << xs[i].back() / barn << " |\n";
             }
         }
         cout << endl;
