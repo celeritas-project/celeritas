@@ -517,7 +517,7 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
     CELER_VALIDATE(j.contains("_format"),
                    << "invalid ORANGE JSON input: no '_format' found");
     auto const& fmt = j.at("_format").get<std::string>();
-    CELER_VALIDATE(fmt == "SCALE ORANGE" || fmt == "ORANGE",
+    CELER_VALIDATE(fmt == "orange" || fmt == "ORANGE" || fmt == "SCALE ORANGE",
                    << "invalid ORANGE JSON input: unknown format '" << fmt
                    << "'");
     std::string version{"<unknown>"};

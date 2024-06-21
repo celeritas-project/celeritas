@@ -20,7 +20,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-static char const format_str[] = "ImageInput";
+static char const format_str[] = "image-input";
 
 //---------------------------------------------------------------------------//
 //!@{

@@ -29,6 +29,10 @@ void warn_deprecated_json_option(char const* old_name, char const* new_name)
 //---------------------------------------------------------------------------//
 /*!
  * Save a format and version marker.
+ *
+ * This should be only used for JSON structs intended for \em input in addition
+ * to output. Format strings should be all lowercase with hyphens for
+ * consistency.
  */
 void save_format(nlohmann::json& j, std::string const& format)
 {
