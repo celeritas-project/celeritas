@@ -64,7 +64,7 @@ std::shared_ptr<MaterialParams>
 MaterialParams::from_import(ImportData const& data)
 {
     CELER_EXPECT(!data.geo_materials.empty());
-    CELER_EXPECT(!data.materials.empty());
+    CELER_EXPECT(!data.phys_materials.empty());
     CELER_EXPECT(!data.elements.empty());
 
     MaterialParams::Input input;
@@ -112,14 +112,15 @@ MaterialParams::from_import(ImportData const& data)
     if (!data.optical.empty())
     {
         // Initialize optical material array with "not an optical material"
-        input.mat_to_optical.assign(data.materials.size(), OpticalMaterialId{});
+        input.mat_to_optical.assign(data.phys_materials.size(),
+                                    OpticalMaterialId{});
     }
 
     // Populate input.materials *using physics material ID* but with *geo
     // material data* (possibly duplicating it)
-    for (auto mat_idx : range(data.materials.size()))
+    for (auto mat_idx : range(data.phys_materials.size()))
     {
-        auto geo_mat_idx = data.materials[mat_idx].geo_material_id;
+        auto geo_mat_idx = data.phys_materials[mat_idx].geo_material_id;
         CELER_VALIDATE(geo_mat_idx < data.geo_materials.size(),
                        << "geo material id " << geo_mat_idx
                        << " is out of range");

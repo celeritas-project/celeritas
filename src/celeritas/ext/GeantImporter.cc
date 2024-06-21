@@ -674,15 +674,15 @@ std::vector<ImportGeoMaterial> import_geo_materials()
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a populated \c ImportMaterial vector.
+ * Return a populated \c ImportPhysMaterial vector.
  */
-std::vector<ImportMaterial>
-import_materials(GeantImporter::DataSelection::Flags particle_flags)
+std::vector<ImportPhysMaterial>
+import_phys_materials(GeantImporter::DataSelection::Flags particle_flags)
 {
     ParticleFilter include_particle{particle_flags};
     auto const& pct = *G4ProductionCutsTable::GetProductionCutsTable();
 
-    std::vector<ImportMaterial> materials;
+    std::vector<ImportPhysMaterial> materials;
     materials.resize(pct.GetTableSize());
     CELER_VALIDATE(!materials.empty(),
                    << "no Geant4 production cuts are defined (you may "
@@ -738,7 +738,7 @@ import_materials(GeantImporter::DataSelection::Flags particle_flags)
         CELER_ASSERT(g4prod_cuts);
 
         // Populate material production cut values
-        ImportMaterial material;
+        ImportPhysMaterial material;
         material.geo_material_id = g4material->GetIndex();
         for (auto const& idx_convert : cut_converters)
         {
@@ -803,7 +803,7 @@ std::vector<ImportRegion> import_regions()
 auto import_processes(GeantImporter::DataSelection::Flags process_flags,
                       std::vector<ImportParticle> const& particles,
                       std::vector<ImportElement> const& elements,
-                      std::vector<ImportMaterial> const& materials)
+                      std::vector<ImportPhysMaterial> const& materials)
     -> std::pair<std::vector<ImportProcess>, std::vector<ImportMscModel>>
 {
     ParticleFilter include_particle{process_flags};
@@ -1089,7 +1089,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
             imported.isotopes = import_isotopes();
             imported.elements = import_elements();
             imported.geo_materials = import_geo_materials();
-            imported.materials = import_materials(selected.particles);
+            imported.phys_materials = import_phys_materials(selected.particles);
             imported.optical = import_optical();
         }
         if (selected.processes != DataSelection::none)
@@ -1098,7 +1098,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
                 = import_processes(selected.processes,
                                    imported.particles,
                                    imported.elements,
-                                   imported.materials);
+                                   imported.phys_materials);
         }
         imported.regions = import_regions();
         imported.volumes = this->import_volumes(selected.unique_volumes);

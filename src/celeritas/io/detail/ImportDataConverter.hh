@@ -14,7 +14,7 @@ namespace celeritas
 struct ImportData;
 struct ImportElement;
 struct ImportEmParameters;
-struct ImportMaterial;
+struct ImportPhysMaterial;
 struct ImportModel;
 struct ImportModelMaterial;
 struct ImportMscModel;
@@ -42,7 +42,7 @@ class ImportDataConverter
     void operator()(ImportElement* data);
     void operator()(ImportEmParameters* data);
     void operator()(ImportGeoMaterial* data);
-    void operator()(ImportMaterial* data);
+    void operator()(ImportPhysMaterial* data);
     void operator()(ImportOpticalMaterial* data);
     void operator()(ImportModel* data);
     void operator()(ImportModelMaterial* data);

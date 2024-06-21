@@ -66,7 +66,7 @@ struct ImportData
     std::vector<ImportIsotope> isotopes;
     std::vector<ImportElement> elements;
     std::vector<ImportGeoMaterial> geo_materials;
-    std::vector<ImportMaterial> materials;
+    std::vector<ImportPhysMaterial> phys_materials;
     std::vector<ImportProcess> processes;
     std::vector<ImportMscModel> msc_models;
     std::vector<ImportRegion> regions;

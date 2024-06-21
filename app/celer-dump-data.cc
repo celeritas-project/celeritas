@@ -149,7 +149,7 @@ void print_isotopes(std::vector<ImportIsotope>& isotopes)
 /*!
  * Print material properties.
  */
-void print_materials(std::vector<ImportMaterial>& materials,
+void print_materials(std::vector<ImportPhysMaterial>& materials,
                      std::vector<ImportElement>& elements,
                      ParticleParams const& particles)
 {
@@ -248,7 +248,7 @@ void print_table(ImportPhysicsTable const& table)
  * Print process information.
  */
 void print_process(ImportProcess const& proc,
-                   std::vector<ImportMaterial> const& materials,
+                   std::vector<ImportPhysMaterial> const& materials,
                    std::vector<ImportElement> const& elements,
                    ParticleParams const& particles)
 {
@@ -387,7 +387,7 @@ void print_processes(ImportData const& data, ParticleParams const& particles)
     // Print details
     for (ImportProcess const& proc : processes)
     {
-        print_process(proc, data.materials, data.elements, particles);
+        print_process(proc, data.phys_materials, data.elements, particles);
     }
 }
 
@@ -420,7 +420,7 @@ void print_msc_models(ImportData const& data, ParticleParams const& particles)
  * Print volume properties.
  */
 void print_volumes(std::vector<ImportVolume> const& volumes,
-                   std::vector<ImportMaterial> const& materials)
+                   std::vector<ImportPhysMaterial> const& materials)
 {
     CELER_LOG(info) << "Loaded " << volumes.size() << " volumes";
     cout << R"gfm(
@@ -775,10 +775,10 @@ int main(int argc, char* argv[])
     print_particles(*particle_params);
     print_elements(data.elements, data.isotopes);
     print_isotopes(data.isotopes);
-    print_materials(data.materials, data.elements, *particle_params);
+    print_materials(data.phys_materials, data.elements, *particle_params);
     print_processes(data, *particle_params);
     print_msc_models(data, *particle_params);
-    print_volumes(data.volumes, data.materials);
+    print_volumes(data.volumes, data.phys_materials);
     print_em_params(data.em_params);
     print_trans_params(data.trans_params, *particle_params);
     print_sb_data(data.sb_data);

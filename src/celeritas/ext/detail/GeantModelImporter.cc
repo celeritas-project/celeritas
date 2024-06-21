@@ -195,7 +195,8 @@ ImportModel GeantModelImporter::operator()(G4VEmModel const& model) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the energy cutoff for secondary production (in ImportMaterial units!).
+ * Get the energy cutoff for secondary production (in ImportPhysMaterial
+ * units!).
  */
 double GeantModelImporter::get_cutoff(size_type mat_idx) const
 {

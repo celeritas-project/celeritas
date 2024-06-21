@@ -38,7 +38,7 @@ void ImportDataConverter::operator()(ImportData* data)
         (*this)(&m);
     }
 
-    for (auto& m : data->materials)
+    for (auto& m : data->phys_materials)
     {
         (*this)(&m);
     }
@@ -85,7 +85,7 @@ void ImportDataConverter::operator()(ImportGeoMaterial* data)
 }
 
 //---------------------------------------------------------------------------//
-void ImportDataConverter::operator()(ImportMaterial* data)
+void ImportDataConverter::operator()(ImportPhysMaterial* data)
 {
     CELER_EXPECT(data);
 

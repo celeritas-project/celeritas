@@ -70,7 +70,7 @@ struct ImportGeoMaterial
  *
  * TODO: update names Material -> PhysMaterial ; GeoMaterial -> Material
  */
-struct ImportMaterial
+struct ImportPhysMaterial
 {
     //!@{
     //! \name Type aliases
