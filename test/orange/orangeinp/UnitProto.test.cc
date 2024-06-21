@@ -15,6 +15,7 @@
 #include "corecel/io/Join.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "orange/OrangeInputIO.json.hh"
 #include "orange/orangeinp/CsgObject.hh"
 #include "orange/orangeinp/InputBuilder.hh"
 #include "orange/orangeinp/Shape.hh"
@@ -449,9 +450,13 @@ class InputBuilderTest : public UnitProtoTest
         std::string const base_path = this->test_data_path("orange", "");
         std::string const ref_path = base_path + output_base + ".org.json";
 
-        // Export input to JSON
-        std::ostringstream actual;
-        actual << inp;
+        // Export input to JSON, erasing units since these particular
+        // geometries are unitless
+        std::string actual = [&inp] {
+            nlohmann::json obj = inp;
+            obj.erase("_units");
+            return obj.dump(0);
+        }();
 
         // Read 'gold' file
         std::ifstream ref{ref_path};
@@ -465,13 +470,13 @@ class InputBuilderTest : public UnitProtoTest
             CELER_VALIDATE(out,
                            << "failed to open gold file '" << ref_path
                            << "' for writing");
-            out << actual.str();
+            out << actual;
             return;
         }
 
         std::stringstream expected;
         expected << ref.rdbuf();
-        EXPECT_JSON_EQ(expected.str(), actual.str())
+        EXPECT_JSON_EQ(expected.str(), actual)
             << "update the file at " << ref_path;
     }
 };
