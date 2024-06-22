@@ -155,11 +155,6 @@ TEST_F(SenseCalculatorTest, two_volumes)
 
 TEST_F(SenseCalculatorTest, five_volumes)
 {
-    if (!CELERITAS_USE_JSON)
-    {
-        GTEST_SKIP() << "JSON is not enabled";
-    }
-
     this->build_geometry("five-volumes.org.json");
     // this->describe(std::cout);
 

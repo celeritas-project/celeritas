@@ -3,29 +3,22 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/OpticalGenStorage.hh
+//! \file celeritas/neutron/model/CascadeOptionsIO.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <vector>
-
-#include "corecel/data/StreamStore.hh"
-
-#include "../OpticalGenData.hh"
+#include <nlohmann/json.hpp>
 
 namespace celeritas
 {
-namespace detail
-{
+struct CascadeOptions;
 //---------------------------------------------------------------------------//
-struct OpticalGenStorage
-{
-    using StoreT = StreamStore<OpticalGenParamsData, OpticalGenStateData>;
 
-    StoreT obj;
-    std::vector<OpticalBufferSize> size;
-};
+// Read options from JSON
+void from_json(nlohmann::json const& j, CascadeOptions& opts);
+
+// Write options to JSON
+void to_json(nlohmann::json& j, CascadeOptions const& opts);
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

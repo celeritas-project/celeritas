@@ -111,8 +111,9 @@ char const* to_cstring(NuclearFormFactorType value)
 //---------------------------------------------------------------------------//
 /*!
  * Checks that the TrackOrder will sort tracks by actions applied at the given
- * ActionOrder. This should match the mapping in the \c SortTracksAction
- * constructor.
+ * ActionOrder.
+ *
+ * This should match the mapping in the \c SortTracksAction constructor.
  *
  * TODO: Have a single source of truth for mapping TrackOrder to ActionOrder
  */

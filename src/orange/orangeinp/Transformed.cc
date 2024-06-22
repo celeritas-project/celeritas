@@ -9,12 +9,10 @@
 
 #include "corecel/io/JsonPimpl.hh"
 
+#include "ObjectIO.json.hh"
+
 #include "detail/CsgUnitBuilder.hh"
 #include "detail/VolumeBuilder.hh"
-
-#if CELERITAS_USE_JSON
-#    include "ObjectIO.json.hh"
-#endif
 
 namespace celeritas
 {

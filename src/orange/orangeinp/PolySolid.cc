@@ -13,14 +13,11 @@
 #include "corecel/math/SoftEqual.hh"
 #include "orange/transform/Translation.hh"
 
+#include "ObjectIO.json.hh"
 #include "Transformed.hh"
 
 #include "detail/BuildIntersectRegion.hh"
 #include "detail/VolumeBuilder.hh"
-
-#if CELERITAS_USE_JSON
-#    include "ObjectIO.json.hh"
-#endif
 
 namespace celeritas
 {

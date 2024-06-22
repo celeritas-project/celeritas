@@ -46,6 +46,9 @@ namespace
 {
 auto const vecgeom_version
     = celeritas::Version::from_string(celeritas_vecgeom_version);
+auto const geant4_version = celeritas::Version::from_string(
+    CELERITAS_USE_GEANT4 ? celeritas_geant4_version : "0.0.0");
+
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -280,7 +283,7 @@ class FourLevelsTest : public VecgeomVgdmlTestBase
 
     SpanStringView expected_log_levels() const final
     {
-        if (VECGEOM_VERSION >= 0x020000)
+        if (vecgeom_version >= Version{2})
         {
             static std::string_view const levels[] = {"warning"};
             return make_span(levels);
@@ -625,16 +628,21 @@ class SolidsTest : public VecgeomVgdmlTestBase
 
     SpanStringView expected_log_levels() const final
     {
-        if (VECGEOM_VERSION >= 0x020000)
+        if (vecgeom_version >= Version{2})
         {
             static std::string_view const levels[]
                 = {"warning", "warning", "warning"};
             return make_span(levels);
         }
-        else
+        else if (geant4_version >= Version{11})
         {
             static std::string_view const levels[] = {"warning"};
             return make_span(levels);
+        }
+        else
+        {
+            // Vecgeom 1 and Geant4 10 have no warnings
+            return {};
         }
     }
 };
@@ -704,7 +712,7 @@ TEST_F(SolidsTest, output)
     GeoParamsOutput out(this->geometry());
     EXPECT_EQ("geometry", out.label());
 
-    if (CELERITAS_USE_JSON && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
         auto out_str = this->genericize_pointers(to_string(out));
 
@@ -946,7 +954,7 @@ class CmseTest : public VecgeomVgdmlTestBase
 
     SpanStringView expected_log_levels() const final
     {
-        if (VECGEOM_VERSION >= 0x020000)
+        if (vecgeom_version >= Version(2))
         {
             static std::string_view const levels[] = {"warning"};
             return make_span(levels);
@@ -1259,7 +1267,7 @@ TEST_F(SolidsGeantTest, output)
     GeoParamsOutput out(this->geometry());
     EXPECT_EQ("geometry", out.label());
 
-    if (CELERITAS_USE_JSON && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
         auto out_str = this->genericize_pointers(to_string(out));
 

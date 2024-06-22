@@ -50,6 +50,12 @@ class IsotopeView
     // Nuclear binding energy
     CELER_FORCEINLINE_FUNCTION MevEnergy binding_energy() const;
 
+    // Nuclear binding energy difference for a proton loss
+    CELER_FORCEINLINE_FUNCTION MevEnergy proton_loss_energy() const;
+
+    // Nuclear binding energy difference for a neutron loss
+    CELER_FORCEINLINE_FUNCTION MevEnergy neutron_loss_energy() const;
+
     // Sum of nucleons + binding energy
     CELER_FORCEINLINE_FUNCTION MevMass nuclear_mass() const;
 
@@ -113,6 +119,24 @@ IsotopeView::atomic_mass_number() const
 CELER_FUNCTION units::MevEnergy IsotopeView::binding_energy() const
 {
     return isotope_def().binding_energy;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Nuclear binding energy difference for a proton loss.
+ */
+CELER_FUNCTION units::MevEnergy IsotopeView::proton_loss_energy() const
+{
+    return isotope_def().proton_loss_energy;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Nuclear binding energy difference for a neutron loss.
+ */
+CELER_FUNCTION units::MevEnergy IsotopeView::neutron_loss_energy() const
+{
+    return isotope_def().neutron_loss_energy;
 }
 
 //---------------------------------------------------------------------------//

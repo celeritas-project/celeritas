@@ -29,13 +29,9 @@
 #    include <G4GlobalConfig.hh>
 #endif
 
+#include <nlohmann/json.hpp>
+
 #include "celeritas_config.h"
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-
-#    include "RunInputIO.json.hh"
-#endif
-
 #include "celeritas_version.h"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
@@ -63,6 +59,7 @@
 #include "DetectorConstruction.hh"
 #include "GlobalSetup.hh"
 #include "LocalLogger.hh"
+#include "RunInputIO.json.hh"
 
 using namespace std::literals::string_view_literals;
 
@@ -274,15 +271,9 @@ int main(int argc, char* argv[])
     }
     if (filename == "--dump-default"sv)
     {
-#if CELERITAS_USE_JSON
         std::cout << nlohmann::json(celeritas::app::RunInput{}).dump(1)
                   << std::endl;
         return EXIT_SUCCESS;
-#else
-        CELER_LOG(critical) << "JSON is not enabled in this build of "
-                               "Celeritas";
-        return EXIT_FAILURE;
-#endif
     }
     if (celeritas::starts_with(filename, "--"))
     {

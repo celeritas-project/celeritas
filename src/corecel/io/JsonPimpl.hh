@@ -7,12 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <nlohmann/json.hpp>
+
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
-
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-#endif
 
 namespace celeritas
 {
@@ -26,21 +24,13 @@ namespace celeritas
  * \code
     void output(JsonPimpl* json) const
     {
-#if CELERITAS_USE_JSON
         json->obj = value_;
-#else
-        CELER_DISCARD(json);
-#endif
     }
  * \endcode
  */
 struct JsonPimpl
 {
-#if CELERITAS_USE_JSON
     nlohmann::json obj;
-#else
-    JsonPimpl() = delete;
-#endif
 };
 
 //---------------------------------------------------------------------------//
@@ -52,17 +42,10 @@ struct JsonPimpl
 template<class T>
 void to_json_pimpl(JsonPimpl* jp, T const& self)
 {
-#if CELERITAS_USE_JSON
     CELER_EXPECT(jp);
     to_json(jp->obj, self);
-#else
-    CELER_DISCARD(jp);
-    CELER_DISCARD(self);
-    CELER_NOT_CONFIGURED("JSON");
-#endif
 }
 
-#if CELERITAS_USE_JSON
 template<class T>
 nlohmann::json json_pimpl_output(T const& self)
 {
@@ -70,7 +53,6 @@ nlohmann::json json_pimpl_output(T const& self)
     self.output(&jp);
     return std::move(jp.obj);
 }
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -10,8 +10,10 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
+#include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/io/ColorUtils.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
@@ -20,9 +22,6 @@
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/random/RngParams.hh"
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-#endif
 
 namespace celeritas
 {
@@ -82,6 +81,12 @@ auto GlobalTestBase::build_action_reg() const -> SPActionRegistry
 }
 
 //---------------------------------------------------------------------------//
+auto GlobalTestBase::build_aux_reg() const -> SPUserRegistry
+{
+    return std::make_shared<AuxParamsRegistry>();
+}
+
+//---------------------------------------------------------------------------//
 auto GlobalTestBase::build_core() -> SPConstCore
 {
     CoreParams::Input inp;
@@ -97,6 +102,7 @@ auto GlobalTestBase::build_core() -> SPConstCore
     inp.wentzel = this->wentzel();
     inp.action_reg = this->action_reg();
     inp.output_reg = this->output_reg();
+    inp.aux_reg = this->aux_reg();
     CELER_ASSERT(inp);
 
     // Build along-step action to add to the stepping loop
@@ -109,11 +115,6 @@ auto GlobalTestBase::build_core() -> SPConstCore
 //---------------------------------------------------------------------------//
 void GlobalTestBase::write_output()
 {
-    if (!CELERITAS_USE_JSON)
-    {
-        CELER_LOG(error) << "JSON unavailable: cannot write output";
-        return;
-    }
     std::string filename = this->make_unique_filename(".json");
     std::ofstream of(filename);
     this->write_output(of);
@@ -123,15 +124,11 @@ void GlobalTestBase::write_output()
 //---------------------------------------------------------------------------//
 void GlobalTestBase::write_output(std::ostream& os) const
 {
-#if CELERITAS_USE_JSON
     JsonPimpl json_wrap;
     this->output_reg()->output(&json_wrap);
 
     // Print with pretty indentation
     os << json_wrap.obj.dump(1) << '\n';
-#else
-    os << "\"output unavailable\"";
-#endif
 }
 
 //---------------------------------------------------------------------------//

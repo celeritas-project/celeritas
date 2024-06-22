@@ -19,7 +19,6 @@
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_HIP":     {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
@@ -41,7 +40,6 @@
       "cacheVariables": {
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
@@ -54,8 +52,7 @@
       "inherits": ["base"],
       "displayName": "fast build using apt-get",
       "cacheVariables": {
-        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_JSON":    {"type": "BOOL", "value": "ON"}
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"}
       }
     },
     {
@@ -81,6 +78,20 @@
       "name": "reldeb-orange",
       "description": "Build with ORANGE",
       "inherits": ["spack"]
+    },
+    {
+      "name": "reldeb-orange-clang-tidy",
+      "description": "Build with ORANGE and clang-tidy checks",
+      "inherits": ["spack"],
+      "cacheVariables": {
+        "CELERITAS_DEBUG":       {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"},
+        "CMAKE_CXX_CLANG_TIDY": {"type": "PATH", "value": "$env{CLANG_TIDY}"}
+
+      }
     },
     {
       "name": "reldeb-vecgeom-clhep",

@@ -9,8 +9,10 @@
 
 #include <memory>
 
+#include "corecel/data/AuxInterface.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/optical/OpticalGenData.hh"
+
+#include "OpticalGenData.hh"
 
 #include "detail/CerenkovPreGenAction.hh"
 #include "detail/PreGenGatherAction.hh"
@@ -18,14 +20,16 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 class ActionRegistry;
 class CerenkovParams;
 class OpticalPropertyParams;
 class ScintillationParams;
+class CoreParams;
 
 namespace detail
 {
-struct OpticalGenStorage;
+class OpticalGenParams;
 }  // namespace detail
 
 //---------------------------------------------------------------------------//
@@ -48,6 +52,7 @@ class OpticalCollector
     //!@{
     //! \name Type aliases
     using SPConstCerenkov = std::shared_ptr<CerenkovParams const>;
+    using SPConstCore = std::shared_ptr<CoreParams const>;
     using SPConstProperties = std::shared_ptr<OpticalPropertyParams const>;
     using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
     using SPGenStorage = std::shared_ptr<detail::OpticalGenStorage>;
@@ -55,36 +60,33 @@ class OpticalCollector
 
     struct Input
     {
+        //! Optical physics properties for materials
         SPConstProperties properties;
         SPConstCerenkov cerenkov;
         SPConstScintillation scintillation;
-        // TODO: main core params?
-        ActionRegistry* action_registry;
+
+        //! Number of steps that have created optical particles
         size_type buffer_capacity{};
-        size_type num_streams{};
 
         //! True if all input is assigned and valid
         explicit operator bool() const
         {
             return (scintillation || (cerenkov && properties))
-                   && action_registry && buffer_capacity > 0 && num_streams > 0;
+                   && buffer_capacity > 0;
         }
     };
 
   public:
-    // Construct with optical params, number of streams, and action registry
-    explicit OpticalCollector(Input);
+    // Construct with core data and optical params
+    OpticalCollector(CoreParams const&, Input&&);
 
-    // Default destructor and move and copy
-    ~OpticalCollector() = default;
-    CELER_DEFAULT_COPY_MOVE(OpticalCollector);
-
-    //! Get the distribution data
-    SPGenStorage const& storage() const { return storage_; };
+    // Aux ID for optical generator data
+    AuxId aux_id() const;
 
   private:
     //// TYPES ////
 
+    using SPOpticalGenParams = std::shared_ptr<detail::OpticalGenParams>;
     using SPCerenkovPreGenAction
         = std::shared_ptr<detail::CerenkovPreGenAction>;
     using SPScintPreGenAction = std::shared_ptr<detail::ScintPreGenAction>;
@@ -92,10 +94,12 @@ class OpticalCollector
 
     //// DATA ////
 
-    SPGenStorage storage_;
+    SPOpticalGenParams gen_params_;
+
     SPGatherAction gather_action_;
     SPCerenkovPreGenAction cerenkov_pregen_action_;
     SPScintPreGenAction scint_pregen_action_;
+
     // TODO: tracking loop launcher
     // TODO: store optical core params and state?
 };

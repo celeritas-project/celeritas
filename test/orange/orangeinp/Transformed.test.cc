@@ -46,10 +46,7 @@ TEST_F(TransformedTest, notran)
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
     EXPECT_VEC_EQ(expected_trans_strings, transform_strings(u));
     EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
-    if (CELERITAS_USE_JSON)
-    {
-        EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
-    }
+    EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
 }
 
 TEST_F(TransformedTest, single)

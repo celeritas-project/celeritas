@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/ext/detail/CelerFTFPBert.hh
+// TODO: Move out of detail since this is used by celer-g4
 //---------------------------------------------------------------------------//
 #pragma once
 

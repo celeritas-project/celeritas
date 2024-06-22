@@ -8,6 +8,7 @@
 #pragma once
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 
 #include "Ref.hh"
@@ -41,6 +42,10 @@ class ParamsDataInterface
   protected:
     // Protected destructor prevents deletion of pointer-to-interface
     ~ParamsDataInterface() = default;
+
+    // Prohibit copy/move beween interface classes
+    ParamsDataInterface() = default;
+    CELER_DEFAULT_COPY_MOVE(ParamsDataInterface);
 };
 
 //---------------------------------------------------------------------------//

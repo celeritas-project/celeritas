@@ -84,10 +84,8 @@ TEST_F(PhysicalVolumeConverterTest, intersection_boxes)
     ASSERT_TRUE(inner_pv.lv);
     EXPECT_EQ("inner0x0", this->genericize_pointers(inner_pv.lv->name));
     ASSERT_TRUE(inner_pv.lv->solid);
-    if (CELERITAS_USE_JSON)
-    {
-        EXPECT_JSON_EQ(
-            R"json(
+    EXPECT_JSON_EQ(
+        R"json(
 {"_type":"all","daughters":[
   {"_type":"shape","interior": {"_type":"box","halfwidths":[1.0,1.5,2.0]},"label":"first"},
   {"_type":"transformed",
@@ -97,8 +95,7 @@ TEST_F(PhysicalVolumeConverterTest, intersection_boxes)
  0.0,1.0,0.0,
  -0.5,0.0,0.8660254037844388,
  1.0,2.0,4.0]}}],"label":"isect"})json",
-            to_string(*inner_pv.lv->solid));
-    }
+        to_string(*inner_pv.lv->solid));
 }
 
 //---------------------------------------------------------------------------//
@@ -131,12 +128,9 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
         EXPECT_NE(nullptr, lv->g4lv);
         EXPECT_EQ("World0x0", this->genericize_pointers(lv->name));
         ASSERT_TRUE(lv->solid);
-        if (CELERITAS_USE_JSON)
-        {
-            EXPECT_JSON_EQ(
-                R"json({"_type":"shape","interior":{"_type":"box","halfwidths":[24.0,24.0,24.0]},"label":"World"})json",
-                to_string(*lv->solid));
-        }
+        EXPECT_JSON_EQ(
+            R"json({"_type":"shape","interior":{"_type":"box","halfwidths":[24.0,24.0,24.0]},"label":"World"})json",
+            to_string(*lv->solid));
         ASSERT_EQ(1, lv->children.size());
 
         auto const& calo_pv = lv->children.front();
@@ -175,12 +169,9 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
         ASSERT_EQ(2, lv->children.size());
 
         ASSERT_TRUE(lv->solid);
-        if (CELERITAS_USE_JSON)
-        {
-            EXPECT_JSON_EQ(
-                R"json({"_type":"shape","interior":{"_type":"box","halfwidths":[0.4,20.0,20.0]},"label":"Layer"})json",
-                to_string(*lv->solid));
-        }
+        EXPECT_JSON_EQ(
+            R"json({"_type":"shape","interior":{"_type":"box","halfwidths":[0.4,20.0,20.0]},"label":"Layer"})json",
+            to_string(*lv->solid));
 
         auto const& lead = lv->children.front();
         EXPECT_EQ(1, lead.lv.use_count());

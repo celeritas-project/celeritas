@@ -8,14 +8,12 @@
 #include "OutputInterface.hh"
 
 #include <iostream>
+#include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
 
 #include "EnumStringMapper.hh"
 #include "JsonPimpl.hh"
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-#endif
 
 using Category = celeritas::OutputInterface::Category;
 
@@ -56,16 +54,11 @@ std::string to_string(OutputInterface const& output)
  */
 std::ostream& operator<<(std::ostream& os, OutputInterface const& output)
 {
-#if CELERITAS_USE_JSON
     JsonPimpl json_wrap;
     output.output(&json_wrap);
     json_wrap.obj["_category"] = to_cstring(output.category());
     json_wrap.obj["_label"] = output.label();
     os << json_wrap.obj;
-#else
-    CELER_DISCARD(output);
-    os << "\"output unavailable\"";
-#endif
     return os;
 }
 

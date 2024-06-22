@@ -33,7 +33,9 @@ struct IsotopeRecord
 
     AtomicNumber atomic_number;  //!< Atomic number Z
     AtomicMassNumber atomic_mass_number;  //!< Atomic number A
-    units::MevEnergy binding_energy;  //!< Nuclear binding energy
+    units::MevEnergy binding_energy;  //!< Nuclear binding energy (BE)
+    units::MevEnergy proton_loss_energy;  //!< BE(A, Z) - BE(A-1, Z-1)
+    units::MevEnergy neutron_loss_energy;  //!< BE(A, Z) - BE(A-1, Z)
     units::MevMass nuclear_mass;  //!< Nucleons' mass + binding energy
 };
 

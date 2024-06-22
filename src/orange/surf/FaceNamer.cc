@@ -99,7 +99,7 @@ ORANGE_INSTANTIATE_OP(CylAligned);
  */
 std::string FaceNamer::Impl::operator()(Plane const&) const
 {
-    return "p" + std::to_string(state_->num_planes_++);
+    return "p" + std::to_string(state_->num_plane++);
 }
 
 //---------------------------------------------------------------------------//
@@ -136,11 +136,19 @@ std::string FaceNamer::Impl::operator()(SimpleQuadric const&) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct a name for a quadric.
+ * Construct a name for a general quadric.
+ *
+ * Although some shapes are a single GQ, others (e.g. generic trapezoid) can
+ * have faces comprised of GQs.
  */
 std::string FaceNamer::Impl::operator()(GeneralQuadric const&) const
 {
-    return "gq";
+    std::string result{"gq"};
+    if (int gqid = state_->num_gq++; gqid > 0)
+    {
+        result += std::to_string(gqid);
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//

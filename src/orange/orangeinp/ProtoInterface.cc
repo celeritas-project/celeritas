@@ -7,12 +7,10 @@
 //---------------------------------------------------------------------------//
 #include "ProtoInterface.hh"
 
+#include <nlohmann/json.hpp>
+
 #include "celeritas_config.h"
 #include "corecel/io/JsonPimpl.hh"
-
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-#endif
 
 namespace celeritas
 {
@@ -22,14 +20,9 @@ namespace orangeinp
 // Get a JSON string representing a proto
 std::string to_string(ProtoInterface const& proto)
 {
-#if CELERITAS_USE_JSON
     JsonPimpl json_wrap;
     proto.output(&json_wrap);
     return json_wrap.obj.dump();
-#else
-    CELER_DISCARD(proto);
-    return "\"output unavailable\"";
-#endif
 }
 
 //---------------------------------------------------------------------------//

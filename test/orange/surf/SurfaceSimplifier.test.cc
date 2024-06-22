@@ -151,6 +151,10 @@ TEST_F(SurfaceSimplifierTest, plane)
 {
     this->check_unchanged(Plane{{1 / sqrt_two, 0, 1 / sqrt_two}, 2.0});
     this->check_unchanged(Plane{{1 / sqrt_two, 0, 1 / sqrt_two}, 0.0});
+    this->check_unchanged(
+        Plane{{1 / sqrt_three, -1 / sqrt_three, 1 / sqrt_three}, 0.0});
+    this->check_unchanged(
+        Plane{{-1 / sqrt_three, 1 / sqrt_three, 1 / sqrt_three}, 0.0});
 
     this->check_round_trip<Plane>(PlaneX{4.0});
     this->check_round_trip<Plane>(PlaneY{-1.0});
@@ -160,18 +164,23 @@ TEST_F(SurfaceSimplifierTest, plane)
         Plane{{-1 / sqrt_two, -1 / sqrt_two, 0.0}, -2 * sqrt_two},
         Plane{{1 / sqrt_two, 1 / sqrt_two, 0.0}, 2 * sqrt_two},
         Sense::outside);
+    this->check_simplifies_to(
+        Plane{{1 / sqrt_three, -1 / sqrt_three, -1 / sqrt_three},
+              -2 * sqrt_three},
+        Plane{{-1 / sqrt_three, 1 / sqrt_three, 1 / sqrt_three}, 2 * sqrt_three},
+        Sense::outside);
 
     this->check_simplifies_to(Plane{{sqrt_three / 2, 0.5, 0.0}, 1e-15},
                               Plane{{sqrt_three / 2, 0.5, 0.0}, 0});
 
     // Check vector/displacement normalization
-    Real3 n = make_unit_vector(Real3{1, 0, 1e-4});
+    Real3 n = make_unit_vector(Real3{1, 0, 1e-7});
     this->check_simplifies_to(Plane{n, {5.0, 0, 0}}, PlaneX{5.0});
 
-    // First pass should clip zeros and normalize
+    // First pass should normalize
     n = make_unit_vector(Real3{-1, 0, 1e-7});
     this->check_simplifies_to(
-        Plane{n, {5.0, 0, 0}}, Plane{{1, 0, 0}, {5, 0, 0}}, Sense::outside);
+        Plane{n, {5.0, 0, 0}}, Plane{{1, 0, -1e-7}, {5, 0, 0}}, Sense::outside);
 }
 
 TEST_F(SurfaceSimplifierTest, sphere)
@@ -300,6 +309,10 @@ TEST_F(SurfaceSimplifierTest, general_quadric)
         this->check_simplifies_to(
             GeneralQuadric{{0, 0, 0}, {0, -0.5, 0}, {-2, -0.5, 0}, 0},
             GeneralQuadric{{0, 0, 0}, {0, 0.5, 0}, {2, 0.5, 0}, 0},
+            Sense::outside);
+        this->check_simplifies_to(
+            GeneralQuadric{{0, 0, 0}, {-1, 1, 0}, {1, 1, 0}, 0},
+            GeneralQuadric{{0, 0, 0}, {1, -1, 0}, {-1, -1, 0}, 0},
             Sense::outside);
     }
 }

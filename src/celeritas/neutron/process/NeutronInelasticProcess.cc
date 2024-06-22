@@ -9,6 +9,7 @@
 
 #include "corecel/Assert.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
+#include "celeritas/neutron/model/CascadeOptions.hh"
 #include "celeritas/neutron/model/NeutronInelasticModel.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
@@ -38,8 +39,9 @@ NeutronInelasticProcess::NeutronInelasticProcess(SPConstParticles particles,
  */
 auto NeutronInelasticProcess::build_models(ActionIdIter id) const -> VecModel
 {
+    CascadeOptions options;  // TODO: options as an argument of this process
     return {std::make_shared<NeutronInelasticModel>(
-        *id++, *particles_, *materials_, load_data_)};
+        *id++, *particles_, *materials_, options, load_data_)};
 }
 
 //---------------------------------------------------------------------------//

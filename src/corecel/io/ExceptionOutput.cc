@@ -8,24 +8,20 @@
 #include "ExceptionOutput.hh"
 
 #include <string>
+#include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
+#include "corecel/AssertIO.json.hh"
 #include "corecel/sys/TypeDemangler.hh"
 
 #include "JsonPimpl.hh"
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-
-#    include "corecel/AssertIO.json.hh"
-#endif
 
 namespace celeritas
 {
 namespace
 {
 //---------------------------------------------------------------------------//
-#if CELERITAS_USE_JSON
 void eptr_to_json(nlohmann::json&, std::exception_ptr const&);
 
 void try_nested_to_json(nlohmann::json& j, std::exception const& e)
@@ -91,7 +87,6 @@ void eptr_to_json(nlohmann::json& j, std::exception_ptr const& eptr)
     {
     }
 }
-#endif
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -102,10 +97,8 @@ void eptr_to_json(nlohmann::json& j, std::exception_ptr const& eptr)
 ExceptionOutput::ExceptionOutput(std::exception_ptr eptr)
 {
     CELER_EXPECT(eptr);
-#if CELERITAS_USE_JSON
     output_ = std::make_unique<JsonPimpl>();
     eptr_to_json(output_->obj, eptr);
-#endif
 }
 
 //---------------------------------------------------------------------------//
@@ -118,12 +111,8 @@ ExceptionOutput::~ExceptionOutput() = default;
  */
 void ExceptionOutput::output(JsonPimpl* j) const
 {
-#if CELERITAS_USE_JSON
     CELER_EXPECT(output_);
     j->obj = output_->obj;
-#else
-    CELER_DISCARD(j);
-#endif
 }
 
 //---------------------------------------------------------------------------//
