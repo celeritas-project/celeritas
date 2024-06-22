@@ -80,26 +80,24 @@ CELER_FUNCTION bool InfixEvaluator::operator()(SpanConstSense values) const
             --par_depth;
             i = short_circuit(i);
         }
-        else
+        else if (lgc == logic::ltrue)
         {
-            switch (lgc)
-            {
-                case logic::lnot: {
-                    auto next = logic_[++i];
-                    // negation of a sub-expression is not supported
-                    CELER_EXPECT(!logic::is_operator_token(next));
-                    result = !static_cast<bool>(values[next]);
-                    break;
-                }
-                    // clang-format off
-                case logic::ltrue: result = true; break;
-                case logic::lpar_open: ++par_depth; break;
-                case logic::lpar_close: --par_depth; break;
-                case logic::land: break;
-                case logic::lor: break;
-                default: CELER_ASSERT_UNREACHABLE();
-                    // clang-format on
-            }
+            result = true;
+        }
+        else if (lgc == logic::lpar_open)
+        {
+            ++par_depth;
+        }
+        else if (lgc == logic::lpar_close)
+        {
+            --par_depth;
+        }
+        else if (lgc == logic::lnot && i + 1 < logic_.size())
+        {
+            auto next = logic_[++i];
+            // negation of a sub-expression is not supported
+            CELER_EXPECT(!logic::is_operator_token(next));
+            result = !static_cast<bool>(values[next]);
         }
     }
     return result;
@@ -111,15 +109,15 @@ CELER_FUNCTION bool InfixEvaluator::operator()(SpanConstSense values) const
  */
 CELER_FUNCTION uint32_t InfixEvaluator::short_circuit(uint32_t i) const
 {
-    for (size_type parenthesis_depth{1}; parenthesis_depth > 0;)
+    for (size_type par_depth{1}; par_depth > 0;)
     {
         if (logic_int const lgc{logic_[++i]}; lgc == logic::lpar_open)
         {
-            ++parenthesis_depth;
+            ++par_depth;
         }
         else if (lgc == logic::lpar_close)
         {
-            --parenthesis_depth;
+            --par_depth;
         }
     }
     return i;
