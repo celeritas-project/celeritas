@@ -224,11 +224,13 @@ namespace logic
 // The enum values are set to the highest 4 values of logic_int.
 enum OperatorToken : logic_int
 {
-    lbegin = logic_int(~logic_int(4)),
+    lbegin = logic_int(~logic_int(6)),
     ltrue = lbegin,  //!< Push 'true'
     lor,  //!< Binary logical OR
     land,  //!< Binary logical AND
     lnot,  //!< Unary negation
+    lpar_open,  //!< Open parenthesis
+    lpar_close,  //!< Close parenthesis
     lend
 };
 }  // namespace logic
@@ -472,7 +474,7 @@ namespace logic
 {
 inline constexpr char to_char(OperatorToken tok)
 {
-    return is_operator_token(tok) ? "*|&~"[tok - lbegin] : '\a';
+    return is_operator_token(tok) ? "*|&~()"[tok - lbegin] : '\a';
 }
 }  // namespace logic
 
