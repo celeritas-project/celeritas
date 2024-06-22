@@ -28,15 +28,13 @@ namespace celeritas
 struct CoulombParameters
 {
     //! Whether to use combined single and multiple scattering
-    bool is_combined{true};
+    bool is_combined{};
     //! Polar angle limit between single and multiple scattering
-    real_type costheta_limit{-1};
+    real_type costheta_limit{};
     //! Factor for the screening coefficient
-    real_type screening_factor{1};
+    real_type screening_factor{};
     //! Factor used to calculate the maximum scattering angle off of a nucleus
-    real_type a_sq_factor{real_type(0.5)
-                          * ipow<2>(constants::hbar_planck * constants::c_light
-                                    * units::femtometer)};
+    real_type a_sq_factor{};
     // Model for the form factor to use
     NuclearFormFactorType form_factor_type{NuclearFormFactorType::exponential};
 
