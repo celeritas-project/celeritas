@@ -63,9 +63,9 @@ CELER_FUNCTION bool InfixEvaluator::operator()(SpanConstSense values) const
 {
     bool result{true};
 
-    for (auto par_depth{0}, i{0}; i < logic_.size(); ++i)
+    for (size_type par_depth{0}, i{0}; i < logic_.size(); ++i)
     {
-        if (auto const lgc{logic_[i]}; !logic::is_operator_token(lgc))
+        if (logic_int const lgc{logic_[i]}; !logic::is_operator_token(lgc))
         {
             CELER_EXPECT(lgc < values.size());
             result = static_cast<bool>(values[lgc]);
@@ -111,9 +111,9 @@ CELER_FUNCTION bool InfixEvaluator::operator()(SpanConstSense values) const
  */
 CELER_FUNCTION uint32_t InfixEvaluator::short_circuit(uint32_t i) const
 {
-    for (auto parenthesis_depth{1}; parenthesis_depth > 0;)
+    for (size_type parenthesis_depth{1}; parenthesis_depth > 0;)
     {
-        if (auto const lgc{logic_[++i]}; lgc == logic::lpar_open)
+        if (logic_int const lgc{logic_[++i]}; lgc == logic::lpar_open)
         {
             ++parenthesis_depth;
         }

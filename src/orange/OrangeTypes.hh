@@ -221,7 +221,7 @@ enum class BoundaryResult : bool
 namespace logic
 {
 //! Special logical Evaluator tokens.
-// The enum values are set to the highest 4 values of logic_int.
+// The enum values are set to the highest 6 values of logic_int.
 enum OperatorToken : logic_int
 {
     lbegin = logic_int(~logic_int(6)),
