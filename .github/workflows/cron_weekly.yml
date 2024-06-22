@@ -1,14 +1,11 @@
-name: pull_request
-run-name: >-
-  ${{github.event.pull_request.title}}
-  (#${{github.event.number}})
+name: cron_weekly
 
 on:
   schedule:
     - cron: "33 06 * * 0"   # Sunday at 6:33 am UTC
 
 jobs:
-  clear-ccache:
+  clear-cache:
     uses: ./.github/workflows/clear-cache.yml
   build-fast:
     needs: [clear-cache]

@@ -40,6 +40,8 @@ celeritas_add_device_test(data/ObserverPtr)
 celeritas_add_test(data/LdgIterator.test.cc)
 celeritas_add_test(data/HyperslabIndexer.test.cc)
 celeritas_add_device_test(data/StackAllocator)
+celeritas_add_test(data/AuxInterface.test.cc
+  SOURCES data/AuxMockParams.cc)
 
 # Grid
 celeritas_add_test(grid/Interpolator.test.cc)
@@ -54,7 +56,7 @@ celeritas_add_test(io/Label.test.cc)
 celeritas_add_test(io/Join.test.cc)
 celeritas_add_test(io/Logger.test.cc)
 celeritas_add_test(io/OutputRegistry.test.cc
-  LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
+  LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(io/Repr.test.cc)
 celeritas_add_test(io/StringEnumMapper.test.cc)
 celeritas_add_test(io/StringUtils.test.cc)
@@ -64,15 +66,16 @@ celeritas_add_test(math/Algorithms.test.cc)
 celeritas_add_test(math/ArrayOperators.test.cc)
 celeritas_add_test(math/ArrayUtils.test.cc)
 celeritas_add_test(math/HashUtils.test.cc)
+celeritas_add_test(math/Integrator.test.cc)
 celeritas_add_device_test(math/NumericLimits)
 celeritas_add_test(math/Quantity.test.cc
-  LINK_LIBRARIES ${nlohmann_json_LIBRARIES})
+  LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(math/SoftEqual.test.cc)
 
 # Sys
 celeritas_add_test(sys/Environment.test.cc
   ENVIRONMENT "ENVTEST_ONE=1;ENVTEST_ZERO=0;ENVTEST_EMPTY="
-  LINK_LIBRARIES ${nlohmann_json_LIBRARIES}
+  LINK_LIBRARIES nlohmann_json::nlohmann_json
 )
 celeritas_add_test(sys/MpiCommunicator.test.cc
   NP ${CELERITASTEST_NP_DEFAULT})

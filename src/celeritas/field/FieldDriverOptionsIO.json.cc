@@ -17,17 +17,18 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+static char const format_str[] = "field-driver";
+
+//---------------------------------------------------------------------------//
 /*!
  * Read options from JSON.
  */
 void from_json(nlohmann::json const& j, FieldDriverOptions& opts)
 {
-#define FDO_INPUT(NAME)                    \
-    do                                     \
-    {                                      \
-        if (j.contains(#NAME))             \
-            j.at(#NAME).get_to(opts.NAME); \
-    } while (0)
+#define FDO_INPUT(NAME) CELER_JSON_LOAD_OPTION(j, opts, NAME)
+
+    check_format(j, format_str);
+    check_units(j, format_str);
 
     FDO_INPUT(minimum_step);
     FDO_INPUT(delta_chord);
@@ -67,6 +68,9 @@ void to_json(nlohmann::json& j, FieldDriverOptions const& opts)
         CELER_JSON_PAIR(opts, max_nsteps),
         CELER_JSON_PAIR(opts, max_substeps),
     };
+
+    save_format(j, format_str);
+    save_units(j);
 }
 
 //---------------------------------------------------------------------------//

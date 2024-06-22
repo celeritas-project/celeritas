@@ -57,6 +57,7 @@ struct hash;
 };
 
 %ignore *::operator++;
+%ignore *::operator--;
 
 //---------------------------------------------------------------------------//
 // CORECEL
@@ -179,6 +180,18 @@ namespace celeritas
 %}
 
 %include "celeritas/io/LivermorePEReader.hh"
+
+//---------------------------------------------------------------------------//
+namespace celeritas
+{
+class ImporterInterface
+{
+  public:
+    virtual ImportData operator()() = 0;
+  private:
+    ~ImporterInterface() = delete;
+};
+}
 
 //---------------------------------------------------------------------------//
 // EXT

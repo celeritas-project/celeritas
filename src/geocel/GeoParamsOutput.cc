@@ -8,21 +8,16 @@
 #include "GeoParamsOutput.hh"
 
 #include <utility>
+#include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/io/LabelIO.json.hh"
 
+#include "BoundingBoxIO.json.hh"
 #include "GeoParamsInterface.hh"
-
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-
-#    include "corecel/io/LabelIO.json.hh"
-
-#    include "BoundingBoxIO.json.hh"
-#endif
 
 namespace celeritas
 {
@@ -41,7 +36,6 @@ GeoParamsOutput::GeoParamsOutput(SPConstGeoParams geo) : geo_(std::move(geo))
  */
 void GeoParamsOutput::output(JsonPimpl* j) const
 {
-#if CELERITAS_USE_JSON
     using json = nlohmann::json;
 
     auto obj = json::object();
@@ -78,9 +72,6 @@ void GeoParamsOutput::output(JsonPimpl* j) const
     }
 
     j->obj = std::move(obj);
-#else
-    CELER_DISCARD(j);
-#endif
 }
 
 //---------------------------------------------------------------------------//

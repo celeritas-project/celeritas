@@ -22,7 +22,7 @@
 #include "SimpleQuadric.hh"
 #include "Sphere.hh"
 #include "SphereCentered.hh"
-#include "detail/PlaneAlignedConverter.hh"
+
 #include "detail/QuadricConeConverter.hh"
 #include "detail/QuadricCylConverter.hh"
 #include "detail/QuadricPlaneConverter.hh"
@@ -62,6 +62,17 @@ struct SignCount
 {
     int pos{0};
     int neg{0};
+    int first{0};  // first nonzero sign
+
+    //! Whether any nonzero values exist
+    explicit operator bool() const { return pos || neg; }
+
+    //! Whether there are more negatives than positives
+    //! *or* the first nonzero sign is negative
+    bool should_flip() const
+    {
+        return *this && (neg > pos || (neg == pos && first < 0));
+    }
 };
 
 SignCount count_signs(Span<real_type const, 3> arr, real_type tol)
@@ -69,10 +80,25 @@ SignCount count_signs(Span<real_type const, 3> arr, real_type tol)
     SignCount result;
     for (auto v : arr)
     {
-        if (v < -tol)
+        if (std::fabs(v) < tol)
+        {
+            // Effectively zero
+            continue;
+        }
+
+        if (v < 0)
+        {
             ++result.neg;
-        else if (v > tol)
+        }
+        else
+        {
             ++result.pos;
+        }
+
+        if (result.first == 0)
+        {
+            result.first = v < 0 ? -1 : 1;
+        }
     }
     return result;
 }
@@ -181,23 +207,37 @@ ORANGE_INSTANTIATE_OP(ConeAligned, ConeAligned);
 //---------------------------------------------------------------------------//
 /*!
  * Plane may be flipped, adjusted, or become axis-aligned.
- *
- * If a plane has a normal of {-1, 0 + eps, 0}, it will first be truncated to
- * {-1, 0, 0}, then flipped to {1, 0, 0}, and a new Plane will be returned.
- * That plane can *then* be simplified to an axis-aligned one.
  */
-auto SurfaceSimplifier::operator()(Plane const& p)
+auto SurfaceSimplifier::operator()(Plane const& p) const
     -> Optional<PlaneX, PlaneY, PlaneZ, Plane>
 {
+    auto signs = count_signs(make_span(p.normal()), tol_);
+    CELER_ASSERT(signs);
+
+    if (signs.should_flip())
     {
-        // First, try to snap to aligned plane
-        detail::PlaneAlignedConverter to_aligned{tol_};
-        if (auto pa = to_aligned(AxisTag<Axis::x>{}, p))
-            return *pa;
-        if (auto pa = to_aligned(AxisTag<Axis::y>{}, p))
-            return *pa;
-        if (auto pa = to_aligned(AxisTag<Axis::z>{}, p))
-            return *pa;
+        // Flip the sense and reverse the values so that there are more
+        // positives than negatives, or so the positive comes first
+        *sense_ = flip_sense(*sense_);
+        return negate_coefficients(p);
+    }
+    else if (signs.pos == 1 && signs.neg == 0)
+    {
+        // Only one plane direction is positive: snap to axis-aligned
+        Real3 const& n = p.normal();
+        if (n[to_int(Axis::x)] > tol_)
+        {
+            return PlaneX{p.displacement()};
+        }
+        else if (n[to_int(Axis::y)] > tol_)
+        {
+            return PlaneY{p.displacement()};
+        }
+        else
+        {
+            CELER_ASSUME(n[to_int(Axis::z)] > tol_);
+            return PlaneZ{p.displacement()};
+        }
     }
 
     Real3 n{p.normal()};
@@ -205,32 +245,6 @@ auto SurfaceSimplifier::operator()(Plane const& p)
 
     // Snap nearly-zero normals to zero
     std::transform(n.begin(), n.end(), n.begin(), ZeroSnapper{tol_});
-
-    // To prevent opposite-value planes from being defined but not
-    // deduplicated, ensure the first non-zero normal component is in the
-    // positive half-space. This also takes care of flipping orthogonal planes
-    // defined like {-x = 3}, translating them to { x = -3 }.
-    for (auto ax : range(to_int(Axis::size_)))
-    {
-        if (n[ax] > 0)
-        {
-            break;
-        }
-        else if (n[ax] < 0)
-        {
-            // Flip the sign of this and any remaining nonzero axes
-            // (previous axes are zero so just skip them)
-            for (auto ax2 : range(ax, to_int(Axis::size_)))
-            {
-                n[ax2] = negate(n[ax2]);
-            }
-            // Flip sign of d (without introducing -0)
-            d = negate(d);
-            // Flip sense
-            *sense_ = flip_sense(*sense_);
-            break;
-        }
-    }
 
     if (n != p.normal())
     {
@@ -270,8 +284,13 @@ auto SurfaceSimplifier::operator()(Sphere const& s) const
 //---------------------------------------------------------------------------//
 /*!
  * Simple quadric with near-zero terms can be another second-order surface.
+ *
+ * The sign can also be reversed as part of regularization.
+ *
+ * \note Differently scaled SQs are *not* simplified at the moment due to small
+ * changes in the intercept distances that haven't yet been investigated.
  */
-auto SurfaceSimplifier::operator()(SimpleQuadric const& sq)
+auto SurfaceSimplifier::operator()(SimpleQuadric const& sq) const
     -> Optional<Plane,
                 Sphere,
                 CylAligned<Axis::x>,
@@ -285,15 +304,15 @@ auto SurfaceSimplifier::operator()(SimpleQuadric const& sq)
     // Determine possible simplifications by calculating number of zeros
     auto signs = count_signs(sq.second(), tol_);
 
-    if (signs.pos == 0 && signs.neg == 0)
+    if (!signs)
     {
         // It's a plane
         return detail::QuadricPlaneConverter{tol_}(sq);
     }
-    else if (signs.neg > signs.pos)
+    else if (signs.should_flip())
     {
-        // More positive signs than negative:
-        // flip the sense and reverse the values
+        // Flip the sense and reverse the values so that there are more
+        // positives than negatives, or so the positive comes first
         *sense_ = flip_sense(*sense_);
         return negate_coefficients(sq);
     }
@@ -336,14 +355,20 @@ auto SurfaceSimplifier::operator()(SimpleQuadric const& sq)
  * Quadric can be regularized or simplified.
  *
  * - When no cross terms are present, it's "simple".
- * - When the higher-order terms are negative, the signs need to be flipped.
+ * - When the higher-order terms are negative, the signs will be flipped.
+ *
+ * \note Differently scaled GQs are *not* simplified at the moment due to small
+ * changes in the intercept distances that haven't yet been investigated.
+ * Normalization should be done inside the GQ at construction time.
+ * Geant4's GenericTrap twisted surfaces are normalized by the magnitude of
+ * their linear component.
  */
-auto SurfaceSimplifier::operator()(GeneralQuadric const& gq)
+auto SurfaceSimplifier::operator()(GeneralQuadric const& gq) const
     -> Optional<SimpleQuadric, GeneralQuadric>
 {
     // Cross term signs
     auto csigns = count_signs(gq.cross(), tol_);
-    if (csigns.pos == 0 && csigns.neg == 0)
+    if (!csigns)
     {
         // No cross terms
         return SimpleQuadric{
@@ -352,10 +377,9 @@ auto SurfaceSimplifier::operator()(GeneralQuadric const& gq)
 
     // Second-order term signs
     auto ssigns = count_signs(gq.second(), tol_);
-    if (ssigns.neg > ssigns.pos
-        || (ssigns.neg == 0 && ssigns.pos == 0 && csigns.neg > csigns.pos))
+    if (ssigns.should_flip() || (!ssigns && csigns.should_flip()))
     {
-        // More positive signs than negative:
+        // More negative signs than positive:
         // flip the sense and reverse the values
         *sense_ = flip_sense(*sense_);
         return negate_coefficients(gq);

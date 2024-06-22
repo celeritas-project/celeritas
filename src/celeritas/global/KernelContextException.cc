@@ -9,11 +9,9 @@
 
 #include "corecel/OpaqueIdIO.hh"
 #include "corecel/cont/ArrayIO.hh"
+#include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/io/JsonPimpl.hh"
-#if CELERITAS_USE_JSON
-#    include "corecel/cont/ArrayIO.json.hh"
-#    include "corecel/math/QuantityIO.json.hh"
-#endif
+#include "corecel/math/QuantityIO.json.hh"
 
 #include "CoreTrackView.hh"
 
@@ -22,7 +20,6 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-#if CELERITAS_USE_JSON
 template<class V, class S>
 void insert_if_valid(char const* key,
                      OpaqueId<V, S> const& val,
@@ -33,7 +30,6 @@ void insert_if_valid(char const* key,
         (*obj)[key] = val.unchecked_get();
     }
 }
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -82,7 +78,6 @@ char const* KernelContextException::type() const
  */
 void KernelContextException::output(JsonPimpl* json) const
 {
-#if CELERITAS_USE_JSON
     nlohmann::json j;
 #    define KCE_INSERT_IF_VALID(ATTR) insert_if_valid(#ATTR, ATTR##_, &j)
 
@@ -107,9 +102,6 @@ void KernelContextException::output(JsonPimpl* json) const
     }
 #    undef KCE_INSERT_IF_VALID
     json->obj = std::move(j);
-#else
-    CELER_DISCARD(json);
-#endif
 }
 
 //---------------------------------------------------------------------------//

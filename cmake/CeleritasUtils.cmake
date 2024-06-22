@@ -14,12 +14,13 @@ CMake configuration utility functions for Celeritas.
   Look for an external dependency ``<package>`` and cache whether we found it or
   not.
 
-    celeritas_find_or_external_package(<package>)
+    celeritas_find_or_external_package(<package> [...])
 
   The cache variable ``CELERITAS_EXTERNAL_<package>`` is used so that on
   subsequent configures we do not "find" an external that we
   configured/installed ourself (since CMake's search path includes the
-  installation prefix).
+  installation prefix). Additional arguments (e.g. a version number) will be
+  forwarded to ``find_package``.
 
 .. command:: celeritas_optional_language
 

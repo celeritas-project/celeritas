@@ -16,9 +16,12 @@ namespace celeritas
  * Quantity of measure enumeration for imported data.
  *
  * These enumeration values are used to scale values between the Celeritas
- * native unit system and the CLHEP/Geant4 values.
+ * native unit system and the CLHEP/Geant4 values. Note that MeV quantities are
+ * set to unity for this special case (i.e. they retain their energy scaling
+ * and need to be wrapped with the \c MevEnergy quantity when used in
+ * Celeritas).
  *
- * \todo Rename to ImportUnit??
+ * \todo Rename to ImportUnit
  */
 enum class ImportUnits
 {

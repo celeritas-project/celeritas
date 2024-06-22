@@ -9,11 +9,9 @@
 
 #include "corecel/io/JsonPimpl.hh"
 
-#include "detail/BuildIntersectRegion.hh"
+#include "ObjectIO.json.hh"
 
-#if CELERITAS_USE_JSON
-#    include "ObjectIO.json.hh"
-#endif
+#include "detail/BuildIntersectRegion.hh"
 
 namespace celeritas
 {

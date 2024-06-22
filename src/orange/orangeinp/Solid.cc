@@ -12,17 +12,13 @@
 
 #include "CsgTreeUtils.hh"
 #include "IntersectSurfaceBuilder.hh"
+#include "ObjectIO.json.hh"
+#include "Shape.hh"
 
 #include "detail/BoundingZone.hh"
 #include "detail/BuildIntersectRegion.hh"
 #include "detail/CsgUnitBuilder.hh"
 #include "detail/VolumeBuilder.hh"
-
-#if CELERITAS_USE_JSON
-#    include "ObjectIO.json.hh"
-#endif
-
-#include "Shape.hh"
 
 namespace celeritas
 {

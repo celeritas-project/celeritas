@@ -7,14 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "TimerOutput.hh"
 
+#include <nlohmann/json.hpp>
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "geocel/GeantUtils.hh"
-
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-#endif
 
 namespace celeritas
 {
@@ -38,7 +36,6 @@ TimerOutput::TimerOutput(size_type num_threads)
  */
 void TimerOutput::output(JsonPimpl* j) const
 {
-#if CELERITAS_USE_JSON
     using json = nlohmann::json;
 
     auto obj = json::object();
@@ -52,9 +49,6 @@ void TimerOutput::output(JsonPimpl* j) const
     };
 
     j->obj = std::move(obj);
-#else
-    CELER_DISCARD(j);
-#endif
 }
 
 //---------------------------------------------------------------------------//

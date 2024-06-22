@@ -14,6 +14,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringEnumMapper.hh"
 
@@ -22,6 +23,9 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+static char const format_str[] = "primary-generator";
+
 //---------------------------------------------------------------------------//
 // JSON serializers
 //---------------------------------------------------------------------------//
@@ -64,9 +68,12 @@ void to_json(nlohmann::json& j, DistributionOptions const& opts)
  */
 void from_json(nlohmann::json const& j, PrimaryGeneratorOptions& opts)
 {
-    if (j.contains("seed"))
+    check_format(j, format_str);
+    check_units(j, format_str);
+
+    if (auto iter = j.find("seed"); iter != j.end())
     {
-        j.at("seed").get_to(opts.seed);
+        iter->get_to(opts.seed);
     }
     else
     {
@@ -92,8 +99,10 @@ void from_json(nlohmann::json const& j, PrimaryGeneratorOptions& opts)
         opts.pdg.push_back(p);
         CELER_VALIDATE(p, << "invalid PDG number " << i);
     }
-    j.at("num_events").get_to(opts.num_events);
-    j.at("primaries_per_event").get_to(opts.primaries_per_event);
+
+    CELER_JSON_LOAD_REQUIRED(j, opts, num_events);
+    CELER_JSON_LOAD_REQUIRED(j, opts, primaries_per_event);
+
     auto&& energy_input = j.at("energy");
     if (energy_input.is_object())
     {
@@ -140,13 +149,19 @@ void to_json(nlohmann::json& j, PrimaryGeneratorOptions const& opts)
         opts.pdg.begin(), opts.pdg.end(), pdg.begin(), [](PDGNumber p) {
             return p.unchecked_get();
         });
-    j = nlohmann::json{{"seed", opts.seed},
-                       {"pdg", pdg},
-                       {"num_events", opts.num_events},
-                       {"primaries_per_event", opts.primaries_per_event},
-                       {"energy", opts.energy},
-                       {"position", opts.position},
-                       {"direction", opts.direction}};
+
+    j = nlohmann::json{
+        {"pdg", pdg},
+        CELER_JSON_PAIR(opts, seed),
+        CELER_JSON_PAIR(opts, num_events),
+        CELER_JSON_PAIR(opts, primaries_per_event),
+        CELER_JSON_PAIR(opts, energy),
+        CELER_JSON_PAIR(opts, position),
+        CELER_JSON_PAIR(opts, direction),
+    };
+
+    save_format(j, format_str);
+    save_units(j);
 }
 
 //---------------------------------------------------------------------------//

@@ -15,6 +15,7 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Version.hh"
 #include "geocel/UnitUtils.hh"
+#include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -22,9 +23,6 @@
 
 #include "celeritas_test.hh"
 #include "../GeantTestBase.hh"
-#if CELERITAS_USE_JSON
-#    include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
-#endif
 
 using namespace celeritas::units;
 
@@ -251,15 +249,14 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
         GeantPhysicsOptions opts;
         opts.relaxation = RelaxationSelection::all;
         opts.verbose = true;
-#if CELERITAS_USE_JSON
         if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
         {
             nlohmann::json out = opts;
+            out.erase("_version");
             EXPECT_JSON_EQ(
-                R"json({"angle_limit_factor":1.0,"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"form_factor":"exponential","gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","msc_lambda_limit":0.1,"msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","msc_theta_limit":3.141592653589793,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","verbose":true})json",
+                R"json({"_format":"geant-physics","_units":"cgs","angle_limit_factor":1.0,"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"form_factor":"exponential","gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","msc_lambda_limit":0.1,"msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","msc_theta_limit":3.141592653589793,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","verbose":true})json",
                 std::string(out.dump()));
         }
-#endif
         return opts;
     }
 };
@@ -683,6 +680,12 @@ TEST_F(FourSteelSlabsEmStandard, ebrems)
         celeritas::pdg::electron(), ImportProcessClass::e_brems);
     EXPECT_EQ(celeritas::pdg::gamma().get(), proc.secondary_pdg);
     ASSERT_EQ(2, proc.models.size());
+    if (geant4_version < Version{11})
+    {
+        GTEST_SKIP() << "Cross sections changed with Geant4 version 11; older "
+                        "versions are not checked";
+    }
+
     {
         // Check Seltzer-Berger electron micro xs
         auto const& model = proc.models[0];

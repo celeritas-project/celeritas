@@ -10,13 +10,10 @@
 #include <type_traits>
 
 #include "celeritas_config.h"
+#include "corecel/math/QuantityIO.json.hh"
 #include "corecel/math/Turn.hh"
 
 #include "celeritas_test.hh"
-
-#if CELERITAS_USE_JSON
-#    include "corecel/math/QuantityIO.json.hh"
-#endif
 
 namespace celeritas
 {
@@ -217,9 +214,8 @@ TEST(QuantityTest, swappiness)
     EXPECT_EQ(144, native_value_from(gross));
 }
 
-TEST(QuantityTest, TEST_IF_CELERITAS_JSON(io))
+TEST(QuantityTest, io)
 {
-#if CELERITAS_USE_JSON
     using Dozen = Quantity<DozenUnit>;
 
     {
@@ -250,7 +246,6 @@ TEST(QuantityTest, TEST_IF_CELERITAS_JSON(io))
         static char const expected[] = R"json([2,"dozen"])json";
         EXPECT_EQ(std::string(expected), std::string(out.dump()));
     }
-#endif
 }
 
 TEST(TurnTest, basic)

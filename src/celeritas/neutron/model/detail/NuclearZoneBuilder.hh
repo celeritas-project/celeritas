@@ -9,8 +9,11 @@
 
 #include <cmath>
 #include <numeric>
+#include <vector>
 
-#include "corecel/math/SoftEqual.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/math/Integrator.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/neutron/data/NeutronInelasticData.hh"
@@ -48,32 +51,15 @@ class NuclearZoneBuilder
     inline void operator()(IsotopeView const& target);
 
   private:
-    // Calculate the number of nuclear zones
-    inline size_type num_nuclear_zones(AtomicMassNumber a);
+    //// TYPES ////
 
-    // Calculate the nuclear radius
-    inline real_type calc_nuclear_radius(AtomicMassNumber a);
+    struct ZoneDensity
+    {
+        real_type radius;
+        real_type integral;
+    };
+    using VecZoneDensity = std::vector<ZoneDensity>;
 
-    // Calculate components of nuclear zone properties
-    inline void
-    calc_zone_component(IsotopeView const& target, ComponentVec& components);
-
-    // Integrate the Woods-Saxon potential in [rmin, rmax]
-    inline real_type integrate_woods_saxon(real_type rmin,
-                                           real_type rmax,
-                                           real_type radius) const;
-
-    // Integrate the Gaussoan potential in [rmin, rmax]
-    inline real_type
-    integrate_gaussian(real_type rmin, real_type rmax, real_type radius) const;
-
-    // Integrate a nuclear potential by adaptive quadrature
-    inline real_type integrate_potential(real_type rmin,
-                                         real_type delta_r,
-                                         real_type integral1,
-                                         real_type ws_shift = 0) const;
-
-  private:
     //// DATA ////
 
     // Cascade model configurations and nuclear structure parameters
@@ -86,13 +72,22 @@ class NuclearZoneBuilder
     CollectionBuilder<ZoneComponent> components_;
     CollectionBuilder<NuclearZones, MemSpace::host, IsotopeId> zones_;
 
-    //// COMMON PROPERTIES ////
+    //// HELPER FUNCTIONS ////
 
-    static CELER_CONSTEXPR_FUNCTION real_type half() { return 0.5; }
-    static CELER_CONSTEXPR_FUNCTION real_type four_thirds_pi()
-    {
-        return 4 * constants::pi / real_type{3};
-    }
+    // Calculate components of nuclear zone properties
+    inline ComponentVec calc_zone_components(IsotopeView const& target) const;
+
+    // Calculate zone densities for lightweight nuclei (A < 5)
+    VecZoneDensity calc_zones_light(AtomicMassNumber a) const;
+
+    // Calculate zone densities for small nuclei (5 <= A < 12)
+    VecZoneDensity calc_zones_small(AtomicMassNumber a) const;
+
+    // Calculate zone densities for heavier nuclei (A >= 12)
+    VecZoneDensity calc_zones_heavy(AtomicMassNumber a) const;
+
+    // Calculate the nuclear radius
+    inline real_type calc_nuclear_radius(AtomicMassNumber a) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -121,11 +116,7 @@ NuclearZoneBuilder::NuclearZoneBuilder(CascadeOptions const& options,
  */
 void NuclearZoneBuilder::operator()(IsotopeView const& target)
 {
-    AtomicNumber a = target.atomic_mass_number();
-    size_type num_zones = this->num_nuclear_zones(a);
-
-    std::vector<ZoneComponent> comp(num_zones);
-    this->calc_zone_component(target, comp);
+    auto comp = this->calc_zone_components(target);
 
     NuclearZones nucl_zones;
     nucl_zones.zones = components_.insert_back(comp.begin(), comp.end());
@@ -134,103 +125,50 @@ void NuclearZoneBuilder::operator()(IsotopeView const& target)
 
 //---------------------------------------------------------------------------//
 /*!
- * Return the number of nuclear zones.
- */
-size_type NuclearZoneBuilder::num_nuclear_zones(AtomicMassNumber a)
-{
-    if (a < AtomicMassNumber{5})
-    {
-        return 1;
-    }
-    if (a < AtomicMassNumber{100})
-    {
-        return 3;
-    }
-    return 6;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate components of nuclear zone data: the nuclear zone radius, volume,
+ * Calculate components of nuclear zone data.
+ *
+ * The nuclear zone radius, volume,
  * density, Fermi momentum and potential function as in G4NucleiModel and as
  * documented in section 24.2.3 of the Geant4 Physics Reference (release 11.2).
+ *
  */
-void NuclearZoneBuilder::calc_zone_component(IsotopeView const& target,
-                                             ComponentVec& components)
+auto NuclearZoneBuilder::calc_zone_components(IsotopeView const& target) const
+    -> ComponentVec
 {
-    AtomicNumber a = target.atomic_mass_number();
+    using A = AtomicMassNumber;
 
     // Calculate nuclear radius
-    real_type nuclear_radius = this->calc_nuclear_radius(a);
+    A const a = target.atomic_mass_number();
 
-    real_type skin_ratio = nuclear_radius / skin_depth_;
-    real_type skin_decay = std::exp(-skin_ratio);
-
-    // Temporary data for the zone-by-zone density function
-    size_type num_of_zones = components.size();
-    std::vector<real_type> integral(num_of_zones);
-
-    // Fill the nuclear radius by each zone
-    auto amass = a.get();
-    real_type ymin = (amass < 12) ? 0 : -skin_ratio;
-
-    if (amass < 5)
+    // Calculate per-zone radius and potential integral
+    VecZoneDensity zone_dens;
+    if (a < A{5})
     {
-        // Light ions treated as simple balls
-        components[0].radius = nuclear_radius;
-        integral[0] = 1;
+        zone_dens = this->calc_zones_light(a);
     }
-    else if (amass < 12)
+    else if (a < A{12})
     {
-        // Small nuclei have a three-zone Gaussian potential
-        real_type gauss_radius = std::sqrt(
-            ipow<2>(nuclear_radius) * (1 - 1 / static_cast<real_type>(amass))
-            + real_type{6.4});
-        // Precompute y = sqrt(-log(alpha)) where alpha[3] = {0.7, 0.3, 0.01}
-        constexpr Real3 y = {0.597223, 1.09726, 2.14597};
-        for (auto i : range(num_of_zones))
-        {
-            components[i].radius = gauss_radius * y[i];
-            integral[i] = this->integrate_gaussian(ymin, y[i], gauss_radius);
-            ymin = y[i];
-        }
-    }
-    else if (amass < 100)
-    {
-        // Intermediate nuclei have a three-zone Woods-Saxon potential
-        constexpr Real3 alpha = {0.7, 0.3, 0.01};
-        for (auto i : range(num_of_zones))
-        {
-            real_type y = std::log((1 + skin_decay) / alpha[i] - 1);
-            components[i].radius = nuclear_radius + skin_depth_ * y;
-            integral[i] = this->integrate_woods_saxon(ymin, y, nuclear_radius);
-            ymin = y;
-        }
+        zone_dens = this->calc_zones_small(a);
     }
     else
     {
-        // Heavy nuclei have a six-zone Woods-Saxon potential
-        constexpr Array<real_type, 6> alpha = {0.9, 0.6, 0.4, 0.2, 0.1, 0.05};
-        for (auto i : range(num_of_zones))
-        {
-            real_type y = std::log((1 + skin_decay) / alpha[i] - 1);
-            components[i].radius = nuclear_radius + skin_depth_ * y;
-            integral[i] = this->integrate_woods_saxon(ymin, y, nuclear_radius);
-            ymin = y;
-        }
+        zone_dens = this->calc_zones_heavy(a);
     }
-    real_type total_integral
-        = std::accumulate(integral.begin(), integral.end(), real_type{0});
+    CELER_ASSERT(!zone_dens.empty());
 
-    // Fill the nuclear volume by each zone
-    for (auto i : range(num_of_zones))
+    // Fill the differential nuclear volume by each zone
+    constexpr real_type four_thirds_pi = 4 * constants::pi / real_type{3};
+
+    ComponentVec components(zone_dens.size());
+    real_type prev_volume{0};
+    for (auto i : range(components.size()))
     {
-        components[i].volume = ipow<3>(components[i].radius);
-        if (i > 0)
-        {
-            components[i].volume -= ipow<3>(components[i - 1].radius);
-        }
-        components[i].volume *= this->four_thirds_pi();
+        real_type volume = four_thirds_pi * ipow<3>(zone_dens[i].radius);
+
+        // Save radius and differential volume
+        components[i].radius = zone_dens[i].radius;
+        components[i].volume = volume - prev_volume;
+        prev_volume = volume;
     }
 
     // Fill the nuclear zone density, fermi momentum, and potential
@@ -242,22 +180,131 @@ void NuclearZoneBuilder::calc_zone_component(IsotopeView const& target,
     static_assert(std::size(mass) == ZoneComponent::NucleonArray::size());
     static_assert(std::size(dm) == std::size(mass));
 
-    for (auto i : range(num_of_zones))
+    real_type const total_integral
+        = std::accumulate(zone_dens.begin(),
+                          zone_dens.end(),
+                          real_type{0},
+                          [](real_type sum, ZoneDensity const& zone) {
+                              return sum + zone.integral;
+                          });
+
+    for (auto i : range(components.size()))
     {
         for (auto ptype : range(ZoneComponent::NucleonArray::size()))
         {
             components[i].density[ptype]
-                = static_cast<real_type>(num_nucleons[ptype]) * integral[i]
+                = static_cast<real_type>(num_nucleons[ptype])
+                  * zone_dens[i].integral
                   / (total_integral * components[i].volume);
             components[i].fermi_mom[ptype]
                 = options_.fermi_scale
                   * std::cbrt(components[i].density[ptype]);
             components[i].potential[ptype]
-                = this->half() * ipow<2>(components[i].fermi_mom[ptype])
-                      / mass[ptype]
+                = ipow<2>(components[i].fermi_mom[ptype]) / (2 * mass[ptype])
                   + dm[ptype];
         }
     }
+    return components;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Lightweight nuclei are treated as simple balls.
+ */
+auto NuclearZoneBuilder::calc_zones_light(AtomicMassNumber a) const
+    -> VecZoneDensity
+{
+    CELER_EXPECT(a <= AtomicMassNumber{4});
+    ZoneDensity result;
+    result.radius = options_.radius_small
+                    * (a == AtomicMassNumber{4} ? options_.radius_alpha : 1);
+    result.integral = 1;
+    return {result};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Small nuclei have a three-zone gaussian potential.
+ */
+auto NuclearZoneBuilder::calc_zones_small(AtomicMassNumber a) const
+    -> VecZoneDensity
+{
+    real_type const nuclear_radius = this->calc_nuclear_radius(a);
+    real_type gauss_radius = std::sqrt(
+        ipow<2>(nuclear_radius) * (1 - 1 / static_cast<real_type>(a.get()))
+        + real_type{6.4});
+
+    Integrator integrate_gauss{
+        [](real_type r) { return ipow<2>(r) * std::exp(-ipow<2>(r)); }};
+
+    // Precompute y = sqrt(-log(alpha)) where alpha[3] = {0.7, 0.3, 0.01}
+    real_type const y[] = {0.597223, 1.09726, 2.14597};
+    VecZoneDensity result(std::size(y));
+
+    real_type ymin = 0;
+    for (auto i : range(result.size()))
+    {
+        result[i].radius = gauss_radius * y[i];
+        result[i].integral = ipow<3>(gauss_radius)
+                             * integrate_gauss(ymin, y[i]);
+        ymin = y[i];
+    }
+
+    CELER_ENSURE(result.size() == 3);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Heavy nuclei have a three- or six-zone Woods-Saxon potential.
+ *
+ * The Woods-Saxon potential, \f$ V(r) \f$,
+ *
+ * \f[
+     V(r) = frac{V_{o}}{1 + e^{\frac{r - R}{a}}}
+   \f]
+ * is integrated numerically over the volume from \f$ r_{min} \f$ to \f$
+ * r_{rmax} \f$, where \f$ V_{o}, R, a\f$ are the potential well depth, nuclear
+ * radius, and surface thickness (skin depth), respectively.
+ */
+auto NuclearZoneBuilder::calc_zones_heavy(AtomicMassNumber a) const
+    -> VecZoneDensity
+{
+    real_type const nuclear_radius = this->calc_nuclear_radius(a);
+    real_type const skin_ratio = nuclear_radius / skin_depth_;
+    real_type const skin_decay = std::exp(-skin_ratio);
+    Integrator integrate_ws{[ws_shift = 2 * skin_ratio](real_type r) {
+        return r * (r + ws_shift) / (1 + std::exp(r));
+    }};
+
+    Span<real_type const> alpha;
+    if (a < AtomicMassNumber{100})
+    {
+        static real_type const alpha_i[] = {0.7, 0.3, 0.01};
+        alpha = make_span(alpha_i);
+    }
+    else
+    {
+        static real_type const alpha_h[] = {0.9, 0.6, 0.4, 0.2, 0.1, 0.05};
+        alpha = make_span(alpha_h);
+    }
+
+    VecZoneDensity result(alpha.size());
+    real_type ymin = -skin_ratio;
+    for (auto i : range(result.size()))
+    {
+        real_type y = std::log((1 + skin_decay) / alpha[i] - 1);
+        result[i].radius = nuclear_radius + skin_depth_ * y;
+
+        result[i].integral
+            = ipow<3>(skin_depth_)
+              * (integrate_ws(ymin, y)
+                 + ipow<2>(skin_ratio)
+                       * std::log((1 + std::exp(-ymin)) / (1 + std::exp(-y))));
+        ymin = y;
+    }
+
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -271,133 +318,15 @@ void NuclearZoneBuilder::calc_zone_component(IsotopeView const& target,
  * where \f$ R_{scale} \f$ is a configurable parameter in [femtometer], while
  * \f$ R = 1.2 A^{1/3} \cdot R_{scale} \f$ (default) with a single parameter.
  */
-real_type NuclearZoneBuilder::calc_nuclear_radius(AtomicMassNumber a)
+real_type NuclearZoneBuilder::calc_nuclear_radius(AtomicMassNumber a) const
 {
+    CELER_EXPECT(a > AtomicMassNumber{4});
+
     // Nuclear radius computed from A
-    real_type nuclear_radius{0};
-    auto amass = a.get();
-
-    if (amass > 4)
-    {
-        real_type cbrt_a = std::cbrt(static_cast<real_type>(amass));
-        real_type par_a = (options_.use_two_params ? 1.16 : 1.2);
-        real_type par_b = (options_.use_two_params ? -1.3456 : 0);
-        nuclear_radius = options_.radius_scale
-                         * (par_a * cbrt_a + par_b / cbrt_a);
-    }
-    else
-    {
-        nuclear_radius = options_.radius_small
-                         * (amass == 4 ? options_.radius_alpha : 1);
-    }
-
-    return nuclear_radius;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Integrate the Woods-Saxon potential, \f$ V(r) \f$,
- *
- * \f[
-     V(r) = frac{V_{o}}{1 + e^{\frac{r - R}{a}}}
-   \f]
- * numerically over the volume from \f$ r_{min} \f$ to \f$ r_{rmax} \f$, where
- * \f$ V_{o}, R, a\f$ are the potential well depth, nuclear radius, and
- * surface thickness (skin depth), respectively.
- */
-real_type
-NuclearZoneBuilder::integrate_woods_saxon(real_type rmin,
-                                          real_type rmax,
-                                          real_type nuclear_radius) const
-{
-    real_type skin_ratio = nuclear_radius / skin_depth_;
-
-    real_type ws_shift = 2 * skin_ratio;
-    real_type delta_r = rmax - rmin;
-
-    // Average value of \f$ r^{2} V(r) dr \f$ at boundaries
-    real_type integral = half() * delta_r
-                         * (rmin * (rmin + ws_shift) / (1 + std::exp(rmin))
-                            + rmax * (rmax + ws_shift) / (1 + std::exp(rmax)));
-
-    real_type result = integrate_potential(rmin, delta_r, integral, ws_shift);
-
-    return ipow<3>(skin_depth_)
-           * (result
-              + ipow<2>(skin_ratio)
-                    * std::log((1 + std::exp(-rmin)) / (1 + std::exp(-rmax))));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Integrate the Gaussian potential function from \f$ r_1 \f$ to \f$ r_2 \f$.
- */
-real_type NuclearZoneBuilder::integrate_gaussian(real_type rmin,
-                                                 real_type rmax,
-                                                 real_type gauss_radius) const
-{
-    real_type delta_r = rmax - rmin;
-    real_type rmin_sq = ipow<2>(rmin);
-    real_type rmax_sq = ipow<2>(rmax);
-
-    real_type integral
-        = this->half() * delta_r
-          * (rmin_sq * std::exp(-rmin_sq) + rmax_sq * std::exp(-rmax_sq));
-
-    real_type result = integrate_potential(rmin, delta_r, integral);
-
-    return ipow<3>(gauss_radius) * result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Integrate a nuclear potential numerically by adaptive quadrature.
- */
-real_type NuclearZoneBuilder::integrate_potential(real_type rmin,
-                                                  real_type delta_r,
-                                                  real_type integral,
-                                                  real_type ws_shift) const
-{
-    constexpr int max_trials = 1000;
-    constexpr real_type epsilon = 1e-3;
-
-    int depth = 1;
-    real_type interval = delta_r;
-    real_type result = 0;
-
-    bool succeeded = false;
-    int remaining_trials = max_trials;
-    SoftEqual const soft_eq{epsilon};
-
-    do
-    {
-        delta_r *= this->half();
-
-        real_type r = rmin - delta_r;
-        real_type fi = 0;
-
-        for (int i = 0; i < depth; ++i)
-        {
-            r += interval;
-            fi += (ws_shift > 0) ? r * (r + ws_shift) / (1 + std::exp(r))
-                                 : ipow<2>(r) * std::exp(-ipow<2>(r));
-        }
-
-        result = this->half() * integral + fi * delta_r;
-
-        if (soft_eq(1, integral / result))
-        {
-            succeeded = true;
-        }
-        else
-        {
-            depth *= 2;
-            interval = delta_r;
-            integral = result;
-        }
-    } while (!succeeded && --remaining_trials > 0);
-
-    return result;
+    real_type cbrt_a = std::cbrt(static_cast<real_type>(a.get()));
+    real_type par_a = (options_.use_two_params ? 1.16 : 1.2);
+    real_type par_b = (options_.use_two_params ? -1.3456 : 0);
+    return options_.radius_scale * (par_a * cbrt_a + par_b / cbrt_a);
 }
 
 //---------------------------------------------------------------------------//

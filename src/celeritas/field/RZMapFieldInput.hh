@@ -78,16 +78,4 @@ std::istream& operator>>(std::istream& is, RZMapFieldInput&);
 std::ostream& operator<<(std::ostream& os, RZMapFieldInput const&);
 
 //---------------------------------------------------------------------------//
-#if !CELERITAS_USE_JSON
-inline std::istream& operator>>(std::istream&, RZMapFieldInput&)
-{
-    CELER_NOT_CONFIGURED("JSON");
-}
-inline std::ostream& operator<<(std::ostream&, RZMapFieldInput const&)
-{
-    CELER_NOT_CONFIGURED("JSON");
-}
-#endif
-
-//---------------------------------------------------------------------------//
 }  // namespace celeritas

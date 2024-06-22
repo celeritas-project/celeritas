@@ -79,6 +79,7 @@ set(DOXYGEN_REFERENCES_LINK_SOURCE YES)
 
 celeritas_set_default(DOXYGEN_VERBATIM_HEADERS NO)
 celeritas_set_default(DOXYGEN_MAX_DOT_GRAPH_DEPTH 2)
+celeritas_set_default(DOXYGEN_DOT_GRAPH_MAX_NODES 50)
 
 doxygen_add_docs(doxygen
   "${PROJECT_SOURCE_DIR}/src"
@@ -108,6 +109,7 @@ if(NOT Sphinx_FOUND)
         -UCELERITAS_CHECK_PYTHON_MODULE_sphinx
         -DCELERITAS_PYTHONPATH_RERUN:BOOL=ON
         "${CMAKE_BINARY_DIR}"
+      BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/${type}"
       COMMENT "Rerunning CMake because Sphinx was not found"
       ${ARGN}
     )
@@ -180,6 +182,8 @@ configure_file("config.json.in" "config.json" @ONLY)
 set(DOXYGEN_GENERATE_HTML NO)
 set(DOXYGEN_GENERATE_XML YES)
 set(DOXYGEN_XML_PROGRAMLISTING NO)
+set(DOXYGEN_INCLUDE_GRAPH NO)
+set(DOXYGEN_INCLUDED_BY_GRAPH NO)
 
 # Annotations break breathe parsing
 foreach(_var

@@ -205,7 +205,9 @@
  * \def CELER_DEFAULT_COPY_MOVE
  *
  * Explicitly declare defaulted copy and move constructors and assignment
- * operators. Use this if the destructor is declared explicitly.
+ * operators. Use this if the destructor is declared explicitly, or as part of
+ * the "protected" section of an interface class to prevent assignment between
+ * incompatible classes.
  */
 #define CELER_DEFAULT_COPY_MOVE(CLS)      \
     CLS(CLS const&) = default;            \

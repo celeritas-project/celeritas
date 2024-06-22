@@ -139,9 +139,9 @@ enum class StepPoint
 enum class TrackOrder
 {
     unsorted,  //!< Don't do any sorting: tracks are in an arbitrary order
-    shuffled,  //!< Tracks are shuffled at the start of the simulation
-    partition_status,  //!< Tracks are partitioned by status at the start of
-                       //!< each step
+    shuffled,  //!< Shuffle at the start of the simulation
+
+    partition_status,  //!< Partition by status at the start of each step
     sort_along_step_action,  //!< Sort only by the along-step action id
     sort_step_limit_action,  //!< Sort only by the step limit action id
     sort_action,  //!< Sort by along-step id, then post-step ID
@@ -210,9 +210,15 @@ char const* to_cstring(MscStepLimitAlgorithm value);
 // Get a string corresponding to the nuclear form factor model
 char const* to_cstring(NuclearFormFactorType value);
 
-// Checks that the TrackOrder will sort tracks by actions applied at the given
+// Whether the TrackOrder will sort tracks by actions with the given
 // ActionOrder
 bool is_action_sorted(ActionOrder action, TrackOrder track);
+
+//! Whether track sorting is enabled
+inline constexpr bool is_action_sorted(TrackOrder track)
+{
+    return static_cast<int>(track) > static_cast<int>(TrackOrder::shuffled);
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

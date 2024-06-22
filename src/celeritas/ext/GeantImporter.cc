@@ -186,17 +186,7 @@ struct MatPropGetter
         {
             return;
         }
-        CELER_ASSERT(g4vector->GetType()
-                     == G4PhysicsVectorType::T_G4PhysicsFreeVector);
-        double const y_scale = native_value_from_clhep(q);
-        dst->vector_type = ImportPhysicsVectorType::free;
-        dst->x.resize(g4vector->GetVectorLength());
-        dst->y.resize(dst->x.size());
-        for (auto i : range(dst->x.size()))
-        {
-            dst->x[i] = g4vector->Energy(i);
-            dst->y[i] = (*g4vector)[i] * y_scale;
-        }
+        *dst = detail::import_physics_vector(*g4vector, {ImportUnits::mev, q});
     }
 };
 

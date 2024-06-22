@@ -7,14 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "VecgeomParamsOutput.hh"
 
+#include <nlohmann/json.hpp>
+
 #include "celeritas_config.h"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
 
 #include "VecgeomParams.hh"  // IWYU pragma: keep
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-#endif
 
 namespace celeritas
 {
@@ -34,7 +33,6 @@ VecgeomParamsOutput::VecgeomParamsOutput(SPConstVecgeomParams vecgeom)
  */
 void VecgeomParamsOutput::output(JsonPimpl* j) const
 {
-#if CELERITAS_USE_JSON
     using json = nlohmann::json;
 
     auto scalars = json::object({
@@ -43,9 +41,6 @@ void VecgeomParamsOutput::output(JsonPimpl* j) const
         {"use_surface_tracking", vecgeom_->use_surface_tracking()},
     });
     j->obj = json::object({{"scalars", std::move(scalars)}});
-#else
-    (void)sizeof(j);
-#endif
 }
 
 //---------------------------------------------------------------------------//

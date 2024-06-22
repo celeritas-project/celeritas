@@ -3,29 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/OpticalGenStorage.hh
+//! \file corecel/data/AuxInterface.cc
 //---------------------------------------------------------------------------//
-#pragma once
-
-#include <vector>
-
-#include "corecel/data/StreamStore.hh"
-
-#include "../OpticalGenData.hh"
+#include "AuxInterface.hh"
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
-struct OpticalGenStorage
-{
-    using StoreT = StreamStore<OpticalGenParamsData, OpticalGenStateData>;
-
-    StoreT obj;
-    std::vector<OpticalBufferSize> size;
-};
+//! Default destructor.
+AuxStateInterface::~AuxStateInterface() = default;
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
+//! Default destructor.
+AuxParamsInterface::~AuxParamsInterface() = default;
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

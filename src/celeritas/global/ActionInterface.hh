@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/global/ActionInterface.hh
+//! \todo Move non-core-specific code to corecel
 //---------------------------------------------------------------------------//
 #pragma once
 

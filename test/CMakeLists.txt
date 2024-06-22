@@ -40,20 +40,16 @@ configure_file(celeritas_test_config.h.in celeritas_test_config.h @ONLY)
 
 set(_harness_sources
   Test.cc
+  testdetail/JsonComparer.json.cc
   testdetail/NonMasterResultPrinter.cc
   testdetail/TestMacrosImpl.cc
   testdetail/TestMainImpl.cc
 )
-if(CELERITAS_USE_JSON)
-  list(APPEND _harness_sources
-    testdetail/JsonComparer.json.cc
-  )
-endif()
 celeritas_add_test_library(testcel_harness ${_harness_sources})
 target_compile_features(testcel_harness PUBLIC cxx_std_17)
 celeritas_target_link_libraries(testcel_harness
   PUBLIC Celeritas::corecel GTest::gtest
-  PRIVATE ${nlohmann_json_LIBRARIES}
+  PRIVATE nlohmann_json::nlohmann_json
 )
 celeritas_target_include_directories(testcel_harness
   PUBLIC
