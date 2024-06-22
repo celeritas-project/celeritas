@@ -85,7 +85,7 @@ TEST_F(WentzelVIMscTest, params)
     EXPECT_SOFT_EQ(1, wentzel.params.screening_factor);
     if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
-        EXPECT_SOFT_EQ(4.9976257697681963e-8, wentzel.params.a_sq_factor);
+        EXPECT_SOFT_EQ(19468.968608592968, wentzel.params.a_sq_factor);
     }
     EXPECT_EQ(2, wentzel.inv_mass_cbrt_sq.size());
     EXPECT_SOFT_EQ(9.947409502757395e-1,
@@ -102,6 +102,7 @@ TEST_F(WentzelVIMscTest, TEST_IF_CELERITAS_DOUBLE(total_xs))
     MaterialView material = this->material()->get(mat_id_);
 
     std::vector<real_type> xs;
+    std::vector<real_type> costheta_limit;
 
     for (real_type energy : {1e2, 1e3, 1e4, 1e6, 1e8})
     {
@@ -110,10 +111,15 @@ TEST_F(WentzelVIMscTest, TEST_IF_CELERITAS_DOUBLE(total_xs))
         MevEnergy cutoff
             = this->cutoff()->get(mat_id_).energy(particle.particle_id());
 
-        // The cross section is zero if theta is above the polar angle limit,
-        // i.e. if single Coulomb scattering is used
-        for (real_type theta :
-             {0.0, 1e-4, 1e-3, 0.01, 0.05, 0.1, 0.15, constants::pi / 2.0})
+        costheta_limit.push_back(
+            1
+            - wentzel.params.a_sq_factor * wentzel.inv_mass_cbrt_sq[mat_id_]
+                  / value_as<units::MevMomentumSq>(particle.momentum_sq()));
+
+        // The cross section is zero if cos(theta) is above the maximum of the
+        // cosine of the polar angle limit (i.e. if single Coulomb scattering
+        // is used) and \c 1 - a_sq_factor * inv_mass_cbrt_sq / momentum_sq
+        for (real_type theta : {0.0, 1e-5, 1e-4, 1e-3, 0.01, 0.1, 0.15})
         {
             WentzelMacroXsCalculator calc_xs(
                 particle, material, data, wentzel, cutoff);
@@ -121,46 +127,47 @@ TEST_F(WentzelVIMscTest, TEST_IF_CELERITAS_DOUBLE(total_xs))
         }
     }
 
+    static double const expected_costheta_limit[] = {0.86727876568524,
+                                                     0.99866059244724,
+                                                     0.99998659360589,
+                                                     0.99999999865922,
+                                                     0.99999999999987};
     static double const expected_xs[] = {91006.507959232,
+                                         90538.37519678,
                                          59996.714258593,
                                          1728.0331005902,
                                          17.052850682495,
-                                         0.60318444563625,
                                          0.094248051366407,
                                          0,
-                                         0,
-                                         90817.190202029,
-                                         1743.5666374716,
-                                         17.283094948715,
-                                         0.1704403315308,
-                                         0.0060871647822985,
-                                         0.00095111888348471,
+                                         90817.184573409,
+                                         60099.856390416,
+                                         1743.5610088526,
+                                         17.277466329628,
+                                         0.1648117124442,
                                          0,
                                          0,
-                                         90797.863755017,
-                                         17.299608080995,
-                                         0.17135102283357,
-                                         0.001705973746997,
-                                         6.0927621246887e-05,
-                                         9.5199341224158e-06,
+                                         90797.857371705,
+                                         1745.1257938247,
+                                         17.293224769687,
+                                         0.16496771152581,
                                          0,
                                          0,
-                                         90795.733286547,
-                                         0.0017137623373227,
-                                         1.7136869559277e-05,
-                                         1.7061463826407e-07,
-                                         6.0933785656387e-09,
-                                         9.5208973051175e-10,
+                                         0,
+                                         90795.726895606,
+                                         0.16498502022457,
                                          0,
                                          0,
-                                         90795.909178441,
-                                         1.7137641049041e-07,
-                                         1.7136886901341e-09,
-                                         1.7061481088847e-11,
-                                         6.093384730783e-13,
-                                         9.5209069381481e-14,
+                                         0,
+                                         0,
+                                         0,
+                                         90795.902789277,
+                                         0,
+                                         0,
+                                         0,
+                                         0,
                                          0,
                                          0};
+    EXPECT_VEC_SOFT_EQ(expected_costheta_limit, costheta_limit);
     EXPECT_VEC_SOFT_EQ(expected_xs, xs);
 }
 
