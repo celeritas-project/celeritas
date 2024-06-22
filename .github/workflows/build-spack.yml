@@ -143,9 +143,8 @@ jobs:
         continue-on-error: ${{fromJSON(matrix.geant) < 11}} # TODO: fix failing tests
         run: |
           if [ "${{matrix.geant}}" == "11.0" ]; then
-            # TODO: add 11.0.4 and clhep version to tests
-            #export CELER_TEST_STRICT=1
-            echo "warning: strict testing is disabled"
+            # Note this is ignored for geant4, float, clhep
+            export CELER_TEST_STRICT=1
           fi
           ctest --parallel $(nproc) --timeout 15 --output-on-failure \
             --test-output-size-passed=32768 --test-output-size-failed=1048576
