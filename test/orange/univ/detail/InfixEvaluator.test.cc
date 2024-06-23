@@ -26,8 +26,8 @@ constexpr auto ltrue = logic::ltrue;
 constexpr auto lor = logic::lor;
 constexpr auto land = logic::land;
 constexpr auto lnot = logic::lnot;
-constexpr auto lpar_open = logic::lpar_open;
-constexpr auto lpar_close = logic::lpar_close;
+constexpr auto lopen = logic::lopen;
+constexpr auto lclose = logic::lclose;
 constexpr auto lend = logic::lend;
 
 constexpr auto s_in = Sense::inside;
@@ -43,16 +43,16 @@ TEST(InfixEvaluatorTest, enumeration)
     EXPECT_GE(lnot, lbegin);
     EXPECT_GE(land, lbegin);
     EXPECT_GE(lor, lbegin);
-    EXPECT_GE(lpar_open, lbegin);
-    EXPECT_GE(lpar_close, lbegin);
+    EXPECT_GE(lopen, lbegin);
+    EXPECT_GE(lclose, lbegin);
     EXPECT_LT(lbegin, lend);
 
     EXPECT_EQ('*', to_char(ltrue));
     EXPECT_EQ('|', to_char(lor));
     EXPECT_EQ('&', to_char(land));
     EXPECT_EQ('~', to_char(lnot));
-    EXPECT_EQ('(', to_char(lpar_open));
-    EXPECT_EQ(')', to_char(lpar_close));
+    EXPECT_EQ('(', to_char(lopen));
+    EXPECT_EQ(')', to_char(lclose));
 }
 
 TEST(InfixEvaluatorTest, evaluate)
@@ -65,25 +65,25 @@ TEST(InfixEvaluatorTest, evaluate)
     //
     // Logic for beta : ((((5 & !1) & 6) & !7) & 8)
     // With senses substituted: ((((T & F) & F) & T) & T)
-    logic_int const beta_logic[] = {lpar_open,
-                                    lpar_open,
-                                    lpar_open,
-                                    lpar_open,
+    logic_int const beta_logic[] = {lopen,
+                                    lopen,
+                                    lopen,
+                                    lopen,
                                     5,
                                     land,
                                     lnot,
                                     1,
-                                    lpar_close,
+                                    lclose,
                                     land,
                                     6,
-                                    lpar_close,
+                                    lclose,
                                     land,
                                     lnot,
                                     7,
-                                    lpar_close,
+                                    lclose,
                                     land,
                                     8,
-                                    lpar_close};
+                                    lclose};
 
     // Logic for gamma : 8 ~ ~ ~ ~
     // With senses substituted: T
@@ -91,12 +91,10 @@ TEST(InfixEvaluatorTest, evaluate)
 
     // Logic for delta : ((((!1 | 2 | !3 | 4) & !5 | 1 | !6 | 7) & 8) & !0)
     // With senses substituted: ((((F | F | F | T) & F | 1 | F | F) & T) & T)
-    logic_int const delta_logic[]
-        = {lpar_open, lpar_open, lpar_open, lpar_open,  lnot, 1,   lor,
-           2,         lor,       lnot,      3,          lor,  4,   lpar_close,
-           land,      lnot,      5,         lor,        1,    lor, lnot,
-           6,         lor,       7,         lpar_close, land, 8,   lpar_close,
-           land,      lnot,      0,         lpar_close};
+    logic_int const delta_logic[] = {
+        lopen, lopen, lopen,  lopen, lnot, 1,      lor,  2,    lor, lnot,  3,
+        lor,   4,     lclose, land,  lnot, 5,      lor,  1,    lor, lnot,  6,
+        lor,   7,     lclose, land,  8,    lclose, land, lnot, 0,   lclose};
 
     logic_int const everywhere_logic[] = {ltrue};
 

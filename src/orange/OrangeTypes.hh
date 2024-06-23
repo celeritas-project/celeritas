@@ -225,12 +225,12 @@ namespace logic
 enum OperatorToken : logic_int
 {
     lbegin = logic_int(~logic_int(6)),
-    ltrue = lbegin,  //!< Push 'true'
+    lopen = lbegin,  //!< Open parenthesis
+    lclose,  //!< Close parenthesis
+    ltrue,  //!< Push 'true'
     lor,  //!< Binary logical OR
     land,  //!< Binary logical AND
     lnot,  //!< Unary negation
-    lpar_open,  //!< Open parenthesis
-    lpar_close,  //!< Close parenthesis
     lend
 };
 }  // namespace logic
@@ -474,7 +474,7 @@ namespace logic
 {
 inline constexpr char to_char(OperatorToken tok)
 {
-    return is_operator_token(tok) ? "*|&~()"[tok - lbegin] : '\a';
+    return is_operator_token(tok) ? "()*|&~"[tok - lbegin] : '\a';
 }
 }  // namespace logic
 

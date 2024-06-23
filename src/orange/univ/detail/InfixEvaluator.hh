@@ -63,7 +63,9 @@ CELER_FUNCTION bool InfixEvaluator::operator()(SpanConstSense values) const
 {
     bool result{true};
 
-    for (size_type par_depth{0}, i{0}; i < logic_.size(); ++i)
+    int par_depth{0};
+    size_type i{0};
+    while (i < logic_.size())
     {
         if (logic_int const lgc{logic_[i]}; !logic::is_operator_token(lgc))
         {
@@ -78,27 +80,28 @@ CELER_FUNCTION bool InfixEvaluator::operator()(SpanConstSense values) const
                 break;
             }
             --par_depth;
-            i = short_circuit(i);
+            i = this->short_circuit(i);
         }
         else if (lgc == logic::ltrue)
         {
             result = true;
         }
-        else if (lgc == logic::lpar_open)
+        else if (lgc == logic::lopen)
         {
             ++par_depth;
         }
-        else if (lgc == logic::lpar_close)
+        else if (lgc == logic::lclose)
         {
+            CELER_ASSERT(par_depth > 0);
             --par_depth;
         }
         else if (lgc == logic::lnot && i + 1 < logic_.size())
         {
-            auto next = logic_[++i];
             // negation of a sub-expression is not supported
-            CELER_EXPECT(!logic::is_operator_token(next));
-            result = !static_cast<bool>(values[next]);
+            CELER_EXPECT(!logic::is_operator_token(logic_[i + 1]));
+            result = !static_cast<bool>(values[logic_[++i]]);
         }
+        ++i;
     }
     return result;
 }
@@ -109,15 +112,18 @@ CELER_FUNCTION bool InfixEvaluator::operator()(SpanConstSense values) const
  */
 CELER_FUNCTION uint32_t InfixEvaluator::short_circuit(uint32_t i) const
 {
-    for (size_type par_depth{1}; par_depth > 0;)
+    int par_depth{1};
+    while (par_depth > 0)
     {
-        if (logic_int const lgc{logic_[++i]}; lgc == logic::lpar_open)
+        switch (logic_[++i])
         {
-            ++par_depth;
-        }
-        else if (lgc == logic::lpar_close)
-        {
-            --par_depth;
+            case logic::lopen:
+                ++par_depth;
+                break;
+            case logic::lclose:
+                --par_depth;
+                break;
+            default:;
         }
     }
     return i;
