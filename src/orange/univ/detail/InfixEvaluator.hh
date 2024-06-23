@@ -18,6 +18,13 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Evaluate an explicit infix logical expression applied to a vector of senses.
+ *
+ * Exlicit infix notation explicitly spells out the intersection operator,
+ * i.e., \c logic::land wehereas implicit infix notation omits it.
+ *
+ * These two expressions are equivalent:
+ * Implicit notation: A(BC | DE)
+ * Explicit notation: A&((B&C) | (D&E))
  */
 class InfixEvaluator
 {
@@ -37,7 +44,7 @@ class InfixEvaluator
 
   private:
     // Short-circuit evaluation of the second operand
-    inline CELER_FUNCTION uint32_t short_circuit(uint32_t i) const;
+    inline CELER_FUNCTION size_type short_circuit(size_type i) const;
 
     //// DATA ////
 
@@ -111,7 +118,7 @@ CELER_FUNCTION bool InfixEvaluator::operator()(SpanConstSense values) const
 /*!
  * Short-circuit evaluation of the second operand.
  */
-CELER_FUNCTION uint32_t InfixEvaluator::short_circuit(uint32_t i) const
+CELER_FUNCTION size_type InfixEvaluator::short_circuit(size_type i) const
 {
     int par_depth{1};
     while (par_depth > 0)
