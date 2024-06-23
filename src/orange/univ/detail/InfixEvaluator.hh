@@ -95,9 +95,10 @@ CELER_FUNCTION bool InfixEvaluator::operator()(SpanConstSense values) const
             CELER_ASSERT(par_depth > 0);
             --par_depth;
         }
-        else if (lgc == logic::lnot && i + 1 < logic_.size())
+        else if (lgc == logic::lnot)
         {
             // negation of a sub-expression is not supported
+            CELER_ASSUME(i + 1 < logic_.size());
             CELER_EXPECT(!logic::is_operator_token(logic_[i + 1]));
             result = !static_cast<bool>(values[logic_[++i]]);
         }
@@ -115,6 +116,7 @@ CELER_FUNCTION uint32_t InfixEvaluator::short_circuit(uint32_t i) const
     int par_depth{1};
     while (par_depth > 0)
     {
+        CELER_ASSUME(i + 1 < logic_.size());
         switch (logic_[++i])
         {
             case logic::lopen:
