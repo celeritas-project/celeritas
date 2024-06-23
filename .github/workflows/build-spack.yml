@@ -137,7 +137,7 @@ jobs:
         working-directory: build
         if: ${{matrix.geant == '11.0'}}
         run: |
-          ninja -v -k0 update-root-data
+          ninja -v -k0 update-root-test-data
       - name: Run tests
         working-directory: build
         continue-on-error: ${{fromJSON(matrix.geant) < 11}} # TODO: fix failing tests
