@@ -32,7 +32,6 @@ class InfixEvaluator
     //@{
     //! \name Type aliases
     using SpanConstLogic = LdgSpan<logic_int const>;
-    using SpanConstSense = Span<Sense const>;
     //@}
 
   public:
@@ -40,7 +39,8 @@ class InfixEvaluator
     explicit CELER_FORCEINLINE_FUNCTION InfixEvaluator(SpanConstLogic logic);
 
     // Evaluate a logical expression, substituting bools from the vector
-    inline CELER_FUNCTION bool operator()(SpanConstSense values) const;
+    template<class F>
+    inline CELER_FUNCTION bool operator()(F&& eval_sense) const;
 
   private:
     // Short-circuit evaluation of the second operand
@@ -66,7 +66,8 @@ CELER_FUNCTION InfixEvaluator::InfixEvaluator(SpanConstLogic logic)
  * Evaluate a logical expression, substituting bools from the vector.
  * TODO: values don't need to be pre-calculated
  */
-CELER_FUNCTION bool InfixEvaluator::operator()(SpanConstSense values) const
+template<class F>
+CELER_FUNCTION bool InfixEvaluator::operator()(F&& eval_sense) const
 {
     bool result{true};
 
@@ -76,8 +77,7 @@ CELER_FUNCTION bool InfixEvaluator::operator()(SpanConstSense values) const
     {
         if (logic_int const lgc{logic_[i]}; !logic::is_operator_token(lgc))
         {
-            CELER_EXPECT(lgc < values.size());
-            result = static_cast<bool>(values[lgc]);
+            result = eval_sense(FaceId{lgc});
         }
         else if ((lgc == logic::lor && result)
                  || (lgc == logic::land && !result))
@@ -107,7 +107,7 @@ CELER_FUNCTION bool InfixEvaluator::operator()(SpanConstSense values) const
             // negation of a sub-expression is not supported
             CELER_ASSUME(i + 1 < logic_.size());
             CELER_EXPECT(!logic::is_operator_token(logic_[i + 1]));
-            result = !static_cast<bool>(values[logic_[++i]]);
+            result = !eval_sense(FaceId{logic_[++i]});
         }
         ++i;
     }

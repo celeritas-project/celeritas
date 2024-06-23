@@ -110,16 +110,21 @@ TEST(InfixEvaluatorTest, evaluate)
 
     VecSense senses
         = {s_in, s_out, s_in, s_out, s_in, s_out, s_in, s_in, s_out};
-    EXPECT_FALSE(eval_alpha(make_span(senses)));
-    EXPECT_FALSE(eval_beta(make_span(senses)));
-    EXPECT_TRUE(eval_gamma(make_span(senses)));
-    EXPECT_TRUE(eval_everywhere(make_span(senses)));
+
+    auto eval = [&senses](FaceId i) {
+        CELER_EXPECT(i < senses.size());
+        return static_cast<bool>(senses[i.unchecked_get()]);
+    };
+    EXPECT_FALSE(eval_alpha(eval));
+    EXPECT_FALSE(eval_beta(eval));
+    EXPECT_TRUE(eval_gamma(eval));
+    EXPECT_TRUE(eval_everywhere(eval));
 
     // Should evaluate to true (inside delta)
     senses
         = {s_in, s_out, s_in, s_out, s_out, s_out, s_out, s_in, s_out, s_out};
-    EXPECT_TRUE(eval_delta(make_span(senses)));
-    EXPECT_TRUE(eval_everywhere(make_span(senses)));
+    EXPECT_TRUE(eval_delta(eval));
+    EXPECT_TRUE(eval_everywhere(eval));
 }
 
 //---------------------------------------------------------------------------//
