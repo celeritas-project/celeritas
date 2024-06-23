@@ -64,7 +64,10 @@ CELER_FUNCTION InfixEvaluator::InfixEvaluator(SpanConstLogic logic)
 //---------------------------------------------------------------------------//
 /*!
  * Evaluate a logical expression, substituting bools from the vector.
- * TODO: values don't need to be pre-calculated
+ *
+ * The functor eval_sense takes as argument a \c celeritas::FaceId present in
+ * the logic expression passed to the constructor and returns a boolean value
+ * matching \c celeritas::Sense
  */
 template<class F>
 CELER_FUNCTION bool InfixEvaluator::operator()(F&& eval_sense) const
