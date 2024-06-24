@@ -77,6 +77,9 @@ class CsgTree
     // Simplify a single node in-place [O(1)]
     Simplification simplify(NodeId);
 
+    // Replace !&(xs...) with |(!xs...) and !|(xs...) with &(!xs...)
+    void simplify_negated_joins();
+
     //// STATIC HELPERS ////
 
     //! Special ID of a node that's always 'true'

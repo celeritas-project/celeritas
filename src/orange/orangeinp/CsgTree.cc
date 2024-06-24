@@ -168,6 +168,65 @@ auto CsgTree::simplify(NodeId node_id) -> Simplification
 
 //---------------------------------------------------------------------------//
 /*!
+ * Simplify negated joins using De Morgan's law.
+ *
+ * This is required if the tree's logic expression is used with
+ * \c InfixEvaluator as negated joins are not supported.
+ */
+void CsgTree::simplify_negated_joins()
+{
+    // Vector of node_id Negated{}
+    std::vector<std::tuple<NodeId, Joined*>> stack;
+    stack.reserve(nodes_.size());
+
+    // First pass through all nodes to find all nand / nor
+    for (auto const& [node, node_id] : ids_)
+    {
+        if (auto* negated = std::get_if<orangeinp::Negated>(&node))
+        {
+            if (auto* join
+                = std::get_if<orangeinp::Joined>(&this->at(negated->node)))
+            {
+                // Current node is Negated{Joined{...}}
+                stack.emplace_back(node_id, join);
+            }
+        }
+    }
+
+    while (!stack.empty())
+    {
+        // Get one node
+        auto [negated_id, joined] = stack.back();
+        stack.pop_back();
+
+        Joined transformed;
+        transformed.op = joined->op == op_and ? op_or : op_and;
+        transformed.nodes.reserve(joined->nodes.size());
+
+        // Negate all the join operands
+        for (auto& join_operand : joined->nodes)
+        {
+            // Try to insert the negated operand
+            auto [new_node, inserted] = this->insert(Negated{join_operand});
+            if (inserted)
+            {
+                // Update the new join node with the negated operand
+                transformed.nodes.push_back(new_node);
+                if (auto* join
+                    = std::get_if<orangeinp::Joined>(&this->at(join_operand)))
+                {
+                    // we just inserted a Negated{Join{...}}, need to simplify
+                    stack.emplace_back(new_node, join);
+                }
+            }
+        }
+        // Override the old negated join node with the new join
+        this->exchange(negated_id, std::move(transformed));
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get a mutable node.
  */
 auto CsgTree::at(NodeId node_id) -> Node&
