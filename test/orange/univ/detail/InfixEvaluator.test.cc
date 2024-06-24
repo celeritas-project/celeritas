@@ -65,25 +65,10 @@ TEST(InfixEvaluatorTest, evaluate)
     //
     // Logic for beta : ((((5 & !1) & 6) & !7) & 8)
     // With senses substituted: ((((T & F) & F) & T) & T)
-    logic_int const beta_logic[] = {lopen,
-                                    lopen,
-                                    lopen,
-                                    lopen,
-                                    5,
-                                    land,
-                                    lnot,
-                                    1,
-                                    lclose,
-                                    land,
-                                    6,
-                                    lclose,
-                                    land,
-                                    lnot,
-                                    7,
-                                    lclose,
-                                    land,
-                                    8,
-                                    lclose};
+    logic_int const beta_logic[] = {
+        lopen, lopen,  lopen, lopen, 5, land,   lnot, 1, lclose, land,
+        6,     lclose, land,  lnot,  7, lclose, land, 8, lclose,
+    };
 
     // Logic for gamma : 8 ~ ~ ~ ~
     // With senses substituted: T
