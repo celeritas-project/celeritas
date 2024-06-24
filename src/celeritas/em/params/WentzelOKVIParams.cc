@@ -76,8 +76,10 @@ WentzelOKVIParams::WentzelOKVIParams(SPConstMaterials materials,
     host_data.params.costheta_limit = std::cos(options.polar_angle_limit);
     host_data.params.a_sq_factor
         = real_type(0.5)
-          * ipow<2>(options.angle_limit_factor * constants::hbar_planck
-                    * constants::c_light * units::femtometer);
+          * ipow<2>(native_value_to<units::MevEnergy>(
+                        options.angle_limit_factor * constants::hbar_planck
+                        * constants::c_light / units::femtometer)
+                        .value());
     host_data.params.screening_factor = options.screening_factor;
     host_data.params.form_factor_type = options.form_factor;
 
@@ -137,7 +139,6 @@ void WentzelOKVIParams::build_data(HostVal<WentzelOKVIData>& host_data,
                     += el_comp.fraction
                        / std::pow(atomic_mass.value(), real_type(2) / 3);
             }
-            inv_mass_cbrt_sq[mat_id.get()] *= mat.number_density();
         }
         make_builder(&host_data.inv_mass_cbrt_sq)
             .insert_back(inv_mass_cbrt_sq.begin(), inv_mass_cbrt_sq.end());

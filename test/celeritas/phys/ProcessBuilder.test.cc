@@ -71,16 +71,26 @@ class ProcessBuilderTest : public Test
         CELER_ENSURE(particle() && material());
     }
 
+    static bool has_env(std::string const& var)
+    {
+        bool result = !celeritas::getenv(var).empty();
+        if (!result && strict_testing())
+        {
+            ADD_FAILURE() << "CI testing requires '" << var
+                          << "' to be defined";
+        }
+        return result;
+    }
+
     static bool has_le_data()
     {
-        static bool const result = !celeritas::getenv("G4LEDATA").empty();
+        static bool const result = has_env("G4LEDATA");
         return result;
     }
 
     static bool has_neutron_data()
     {
-        static bool const result
-            = !celeritas::getenv("G4PARTICLEXSDATA").empty();
+        static bool const result = has_env("G4PARTICLEXSDATA");
         return result;
     }
 };
@@ -558,7 +568,7 @@ TEST_F(ProcessBuilderTest, neutron_elastic)
         }
     }
 }
-  
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

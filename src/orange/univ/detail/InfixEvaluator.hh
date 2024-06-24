@@ -19,7 +19,7 @@ namespace detail
 /*!
  * Evaluate an explicit infix logical expression applied to a vector of senses.
  *
- * Exlicit infix notation explicitly spells out the intersection operator,
+ * Explicit infix notation explicitly spells out the intersection operator,
  * i.e., \c logic::land wehereas implicit infix notation omits it.
  *
  * These two expressions are equivalent:
@@ -127,15 +127,13 @@ CELER_FUNCTION size_type InfixEvaluator::short_circuit(size_type i) const
     while (par_depth > 0)
     {
         CELER_ASSUME(i + 1 < logic_.size());
-        switch (logic_[++i])
+        if (logic_int lgc = logic_[++i]; lgc == logic::lopen)
         {
-            case logic::lopen:
-                ++par_depth;
-                break;
-            case logic::lclose:
-                --par_depth;
-                break;
-            default:;
+            ++par_depth;
+        }
+        else if (lgc == logic::lclose)
+        {
+            --par_depth;
         }
     }
     return i;

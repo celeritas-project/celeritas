@@ -13,14 +13,14 @@
 "apply_cuts": false,
 "lpm": true,
 "max_energy": [
- 1000000.0,
+ 100000000.0,
  "MeV"
 ],
 "min_energy": [
  0.0001,
  "MeV"
 ],
-"msc": "urban",
+"msc": "urban_wentzelvi",
 "rayleigh_scattering": true
 }
  
