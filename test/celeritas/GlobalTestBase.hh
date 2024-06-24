@@ -134,8 +134,6 @@ class GlobalTestBase : public Test
     SPOutputRegistry const& output_reg() const { return output_reg_; }
     //! Write output to a debug text file
     void write_output();
-    //! Write output to a stream
-    void write_output(std::ostream& os) const;
 
   protected:
     [[nodiscard]] virtual SPConstGeo build_geometry() = 0;
