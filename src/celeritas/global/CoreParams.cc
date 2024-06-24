@@ -33,6 +33,7 @@
 #include "celeritas/geo/GeoMaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/geo/detail/BoundaryAction.hh"
+#include "celeritas/geo/detail/GeoErrorAction.hh"
 #include "celeritas/mat/MaterialParams.hh"  // IWYU pragma: keep
 #include "celeritas/mat/MaterialParamsOutput.hh"
 #include "celeritas/phys/CutoffParams.hh"  // IWYU pragma: keep
@@ -129,18 +130,6 @@ class PropagationLimitAction final : public ConcreteAction
 };
 
 //---------------------------------------------------------------------------//
-class AbandonLoopingAction final : public ConcreteAction
-{
-  public:
-    //! Construct with ID
-    explicit AbandonLoopingAction(ActionId id)
-        : ConcreteAction(
-            id, "kill-looping", "kill due to too many field substeps")
-    {
-    }
-};
-
-//---------------------------------------------------------------------------//
 /*!
  * Construct always-required actions and set IDs.
  */
@@ -195,17 +184,18 @@ CoreScalars build_actions(ActionRegistry* reg)
     reg->insert(
         make_shared<PropagationLimitAction>(scalars.propagation_limit_action));
 
-    // Construct action for killed looping tracks
-    scalars.abandon_looping_action = reg->next_id();
-    reg->insert(
-        make_shared<AbandonLoopingAction>(scalars.abandon_looping_action));
-
     //// POST-STEP ACTIONS ////
 
-    // Construct geometry action
+    // Construct geometry boundary action
     scalars.boundary_action = reg->next_id();
     reg->insert(make_shared<celeritas::detail::BoundaryAction>(
         scalars.boundary_action));
+
+    // Construct action for killed looping tracks/error geometry
+    // NOTE: due to ordering by {start, ID}, GeoErrorAction *must*
+    // be after BoundaryAction
+    scalars.geo_error_action = reg->next_id();
+    reg->insert(make_shared<detail::GeoErrorAction>(scalars.geo_error_action));
 
     //// END ACTIONS ////
 

@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/geo/detail/BoundaryAction.cc
+//! \file celeritas/geo/detail/GeoErrorAction.cc
 //---------------------------------------------------------------------------//
-#include "BoundaryAction.hh"
+#include "GeoErrorAction.hh"
 
 #include <string>
 
@@ -16,7 +16,7 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
-#include "BoundaryExecutor.hh"  // IWYU pragma: associated
+#include "GeoErrorExecutor.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -26,8 +26,9 @@ namespace detail
 /*!
  * Construct with action ID.
  */
-BoundaryAction::BoundaryAction(ActionId aid)
-    : ConcreteAction(aid, "geo-boundary", "cross a geometry boundary")
+GeoErrorAction::GeoErrorAction(ActionId aid)
+    : ConcreteAction(
+          aid, "kill-geo-error", "kill a track due to a navigation error")
 {
 }
 
@@ -35,18 +36,18 @@ BoundaryAction::BoundaryAction(ActionId aid)
 /*!
  * Launch the boundary action on host.
  */
-void BoundaryAction::execute(CoreParams const& params,
+void GeoErrorAction::execute(CoreParams const& params,
                              CoreStateHost& state) const
 {
     auto execute = make_action_track_executor(params.ptr<MemSpace::native>(),
                                               state.ptr(),
                                               this->action_id(),
-                                              BoundaryExecutor{});
+                                              GeoErrorExecutor{});
     return launch_action(*this, params, state, execute);
 }
 
 #if !CELER_USE_DEVICE
-void BoundaryAction::execute(CoreParams const&, CoreStateDevice&) const
+void GeoErrorAction::execute(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

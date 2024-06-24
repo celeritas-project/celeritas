@@ -22,6 +22,12 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Cross a geometry boundary.
+ *
+ * \pre The track must have already been physically moved to the correct point
+ * on the boundary.
+ */
 struct BoundaryExecutor
 {
     inline CELER_FUNCTION void
@@ -29,12 +35,6 @@ struct BoundaryExecutor
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Cross a geometry boundary.
- *
- * \pre The track must have already been physically moved to the correct point
- * on the boundary.
- */
 CELER_FUNCTION void
 BoundaryExecutor::operator()(celeritas::CoreTrackView const& track)
 {

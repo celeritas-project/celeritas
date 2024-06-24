@@ -155,34 +155,15 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
 
         // Kill the track if it's stable and below the threshold energy or
         // above the threshold number of steps allowed while looping.
-        auto particle = track.make_particle_view();
-        sim.post_step_action([&track, &particle, &sim] {
+        sim.post_step_action([&track, &sim] {
+            auto particle = track.make_particle_view();
             if (particle.is_stable()
                 && sim.is_looping(particle.particle_id(), particle.energy()))
             {
-                return track.abandon_looping_action();
+                return track.geo_error_action();
             }
             return track.propagation_limit_action();
         }());
-
-        if (sim.post_step_action() == track.abandon_looping_action())
-        {
-            // TODO: move this branch into a separate post-step kernel.
-            // If the track is looping (or if it's a stuck track that was
-            // flagged as looping), deposit the energy locally.
-            auto deposited = particle.energy().value();
-            if (particle.is_antiparticle())
-            {
-                // Energy conservation for killed positrons
-                deposited += 2 * particle.mass().value();
-            }
-            track.make_physics_step_view().deposit_energy(
-                ParticleTrackView::Energy{deposited});
-            particle.subtract_energy(particle.energy());
-
-            // Mark that this track was abandoned while looping
-            sim.status(TrackStatus::killed);
-        }
     }
     else if (p.boundary)
     {

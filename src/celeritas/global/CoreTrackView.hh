@@ -84,7 +84,7 @@ class CoreTrackView
     inline CELER_FUNCTION ActionId propagation_limit_action() const;
 
     // Action ID for being abandoned while looping
-    inline CELER_FUNCTION ActionId abandon_looping_action() const;
+    inline CELER_FUNCTION ActionId geo_error_action() const;
 
     // HACK: return scalars (maybe have a struct for all actions?)
     inline CELER_FUNCTION CoreScalars const& core_scalars() const;
@@ -250,11 +250,16 @@ CELER_FUNCTION ActionId CoreTrackView::propagation_limit_action() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the action ID for being abandoned while looping.
+ * Get the action ID for being killed due to a geometry error.
+ *
+ * This can happen due to:
+ * - Initialization in an invalid region
+ * - Looping in a magnetic field
+ * - A tracking error due to an invalid user geometry or a bug
  */
-CELER_FUNCTION ActionId CoreTrackView::abandon_looping_action() const
+CELER_FUNCTION ActionId CoreTrackView::geo_error_action() const
 {
-    return params_.scalars.abandon_looping_action;
+    return params_.scalars.geo_error_action;
 }
 
 //---------------------------------------------------------------------------//

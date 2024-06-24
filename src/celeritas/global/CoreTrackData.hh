@@ -33,7 +33,7 @@ struct CoreScalars
 {
     ActionId boundary_action;
     ActionId propagation_limit_action;
-    ActionId abandon_looping_action;
+    ActionId geo_error_action;  //!< Fatal geometry error
 
     // TODO: this is a hack until we improve the along-step interface
     ActionId along_step_user_action;
@@ -44,9 +44,9 @@ struct CoreScalars
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return boundary_action && propagation_limit_action
-               && abandon_looping_action && along_step_user_action
-               && along_step_neutral_action && max_streams > 0;
+        return boundary_action && propagation_limit_action && geo_error_action
+               && along_step_user_action && along_step_neutral_action
+               && max_streams > 0;
     }
 };
 

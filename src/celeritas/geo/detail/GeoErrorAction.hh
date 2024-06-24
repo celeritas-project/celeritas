@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/geo/detail/BoundaryAction.hh
+//! \file celeritas/geo/detail/GeoErrorAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -15,14 +15,16 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Move a track across a boundary.
+ * Kill the track due to a geometry error.
+ *
+ * \sa CoreTrackView::geo_error_action
  */
-class BoundaryAction final : public ExplicitCoreActionInterface,
+class GeoErrorAction final : public ExplicitCoreActionInterface,
                              public ConcreteAction
 {
   public:
     // Construct with ID
-    explicit BoundaryAction(ActionId);
+    explicit GeoErrorAction(ActionId);
 
     // Launch kernel with host data
     void execute(CoreParams const&, CoreStateHost&) const final;
