@@ -46,20 +46,9 @@ GlobalTestBase::~GlobalTestBase()
     {
         try
         {
-            std::string destination = "screen";
-            std::ostream* os = &std::cout;
-            std::ofstream ofile;
-            if (celeritas::use_color())
-            {
-                destination = this->make_unique_filename(".json");
-                ofile.open(destination,
-                           std::ios_base::out | std::ios_base::trunc);
-                os = &ofile;
-            }
-
-            std::cerr << "Writing diagnostic output to " << destination
-                      << " because test failed\n";
-            this->write_output(*os);
+            std::string destination = this->make_unique_filename(".out.json");
+            std::cerr << "Writing diagnostic output because test failed\n";
+            this->write_output();
         }
         catch (std::exception const& e)
         {
@@ -115,20 +104,18 @@ auto GlobalTestBase::build_core() -> SPConstCore
 //---------------------------------------------------------------------------//
 void GlobalTestBase::write_output()
 {
-    std::string filename = this->make_unique_filename(".json");
-    std::ofstream of(filename);
-    this->write_output(of);
-    CELER_LOG(info) << "Wrote output to " << filename;
-}
-
-//---------------------------------------------------------------------------//
-void GlobalTestBase::write_output(std::ostream& os) const
-{
-    JsonPimpl json_wrap;
-    this->output_reg()->output(&json_wrap);
+    std::string filename = this->make_unique_filename(".out.json");
+    std::ofstream ofs(filename);
+    CELER_VALIDATE(ofs, << "failed to open output file at " << filename);
 
     // Print with pretty indentation
-    os << json_wrap.obj.dump(1) << '\n';
+    {
+        JsonPimpl json_wrap;
+        this->output_reg()->output(&json_wrap);
+        ofs << json_wrap.obj.dump(1) << '\n';
+    }
+
+    CELER_LOG(info) << "Wrote output to " << filename;
 }
 
 //---------------------------------------------------------------------------//
