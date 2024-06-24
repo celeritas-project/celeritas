@@ -68,6 +68,7 @@ celeritas_add_test_library(testcel_celeritas
   MockTestBase.cc
   RootTestBase.cc
   SimpleTestBase.cc
+  em/MscTestBase.cc
   field/FieldTestBase.cc
   global/AlongStepTestBase.cc
   global/StepperTestBase.cc
@@ -130,6 +131,8 @@ celeritas_add_test(em/SeltzerBerger.test.cc ${_needs_double})
 celeritas_add_test(em/CoulombScattering.test.cc ${_fixme_single})
 
 celeritas_add_test(em/UrbanMsc.test.cc ${_needs_root}
+  ${_optional_geant4_env})
+celeritas_add_test(em/WentzelVIMsc.test.cc ${_needs_root}
   ${_optional_geant4_env})
 
 #-----------------------------------------------------------------------------#
@@ -374,29 +377,34 @@ celeritas_add_test(user/StepCollector.test.cc
 # DATA UPDATE
 #-----------------------------------------------------------------------------#
 
-function(celeritas_add_rootupdate_target target filename)
-  set(_gdml "${PROJECT_SOURCE_DIR}/test/geocel/data/${filename}.gdml")
-  set(_basename "${CMAKE_CURRENT_SOURCE_DIR}/data/${filename}")
-  if(CELERITAS_USE_Geant4)
-    set(_cmake_env
-      "${CMAKE_COMMAND}" "-E" "env" "${CELERITASTEST_G4ENV}"
+set(_root_data)
+if(CELERITAS_USE_Geant4 AND CELERITAS_USE_ROOT)
+  foreach(_filename "four-steel-slabs" "simple-cms")
+    set(_gdml "${PROJECT_SOURCE_DIR}/test/geocel/data/${_filename}.gdml")
+    set(_basename "${CMAKE_CURRENT_SOURCE_DIR}/data/${_filename}")
+    set(_output "${_basename}.root")
+    add_custom_command(
+      OUTPUT "${_output}"
+      DEPENDS
+        celer-export-geant
+        "${_gdml}"
+        "${_basename}.geant.json"
+        "${PROJECT_SOURCE_DIR}/src/celeritas/ext/RootInterfaceLinkDef.h"
+      COMMAND
+        "${CMAKE_COMMAND}" "-E" "env" ${CELERITASTEST_G4ENV}
+        "$<TARGET_FILE:celer-export-geant>"
+        "${_gdml}"
+        "${_basename}.geant.json"
+        "${_output}"
+      VERBATIM
     )
-  else()
-    set(_cmake_env)
-  endif()
-  add_custom_target(${target}
-    COMMAND
-      ${_cmake_env}
-      "$<TARGET_FILE:celer-export-geant>"
-      "${_gdml}"
-      "${_basename}.geant.json"
-      "${_basename}.root"
-    VERBATIM
-  )
-  add_dependencies(${target} celer-export-geant)
-endfunction()
+    list(APPEND _root_data "${_output}")
+  endforeach()
+endif()
 
-celeritas_add_rootupdate_target(update-four-slabs four-steel-slabs)
-celeritas_add_rootupdate_target(update-simple-cms simple-cms)
+add_custom_target(update-root-test-data
+  COMMENT "Regenerate ROOT test data"
+  DEPENDS ${_root_data}
+)
 
 #-----------------------------------------------------------------------------#
