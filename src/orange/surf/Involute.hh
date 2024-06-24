@@ -131,8 +131,10 @@ CELER_FUNCTION Involute::Involute(Real3 const& origin, real_type radius,
                                   real_type tmin, real_type tmax)
     : origin_(origin), r_b_(radius), a_(a) , sign_(sign) , tmin_(tmin) , tmax_(tmax)
 {
+    const double pi = 3.14159265358979323846;
     CELER_EXPECT(radius > 0);
     CELER_EXPECT(a > 0);
+    CELER_EXPECT(abs(tmax) < 2*pi+abs(tmin));
 }
 
 //---------------------------------------------------------------------------//

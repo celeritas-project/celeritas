@@ -91,8 +91,10 @@ CELER_FUNCTION InvoluteSolver::InvoluteSolver(real_type r_b,
                                               real_type tmin, real_type tmax)
     : r_b_(r_b), a_(a) , sign_(sign) , tmin_(tmin) , tmax_(tmax)
 {
+    const double pi = 3.14159265358979323846;
     CELER_EXPECT(r_b > 0);
     CELER_EXPECT(a > 0);
+    CELER_EXPECT(abs(tmax) < 2*pi+abs(tmin));
 }
 
 //---------------------------------------------------------------------------//
