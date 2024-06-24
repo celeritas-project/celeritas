@@ -21,6 +21,7 @@
 #include "SimpleQuadric.hh"  // IWYU pragma: associated
 #include "Sphere.hh"  // IWYU pragma: associated
 #include "SphereCentered.hh"  // IWYU pragma: associated
+#include "Involute.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -105,6 +106,14 @@ std::ostream& operator<<(std::ostream& os, Sphere const& s)
 std::ostream& operator<<(std::ostream& os, SphereCentered const& s)
 {
     os << "Sphere: r=" << std::sqrt(s.radius_sq());
+    return os;
+}
+
+//---------------------------------------------------------------------------//
+std::ostream& operator<<(std::ostream& os, Involute const& s)
+{
+    os << "Involute: r=" << s.r_b() << ' a=' << s.a() << ' sign=' << s.sign() 
+       << ' tmin=' << s.tmin() << ' tmax=' << s.tmax() << " at " << s.origin();
     return os;
 }
 

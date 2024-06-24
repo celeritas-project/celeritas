@@ -55,6 +55,7 @@ list(APPEND SOURCES
   surf/CylAligned.cc
   surf/FaceNamer.cc
   surf/GeneralQuadric.cc
+  surf/Involute.cc
   surf/Plane.cc
   surf/PlaneAligned.cc
   surf/SimpleQuadric.cc

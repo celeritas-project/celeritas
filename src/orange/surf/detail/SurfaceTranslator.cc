@@ -108,6 +108,17 @@ Sphere SurfaceTranslator::operator()(Sphere const& other) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct a translated Involute.
+ */
+Involute SurfaceTranslator::operator()(Involute const& other) const
+{
+    return Involute::at0origin(tr_.transform_up(other.origin()),
+                                  other.r_b(), other.a(), other.sign(), 
+                                  other.tmin(), other.tmax());
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct a translated cone.
  */
 template<Axis T>

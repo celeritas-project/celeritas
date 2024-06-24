@@ -121,6 +121,7 @@ LSI_INSTANTIATE(ConeAligned<Axis::y>);
 LSI_INSTANTIATE(ConeAligned<Axis::z>);
 LSI_INSTANTIATE(SimpleQuadric);
 LSI_INSTANTIATE(GeneralQuadric);
+LSI_INSTANTIATE(Involute);
 
 #undef LSI_INSTANTIATE
 //! \endcond

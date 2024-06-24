@@ -70,6 +70,8 @@ class SurfaceClipper
 
     void operator()(GeneralQuadric const&) const;
 
+    void operator()(Involute const&) const;
+
     // Apply to a surface with unknown type
     void operator()(VariantSurface const& surf) const;
 

@@ -21,6 +21,7 @@
 #include "../SimpleQuadric.hh"
 #include "../Sphere.hh"
 #include "../SphereCentered.hh"
+#include "../Involute.hh"
 
 namespace celeritas
 {
@@ -112,6 +113,17 @@ Sphere SurfaceTransformer::operator()(Sphere const& other) const
     // Transform origin, keep the same radius
     return Sphere::from_radius_sq(tr_.transform_up(other.origin()),
                                   other.radius_sq());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Transform a Involute.
+ */
+Involute SurfaceTransformer::operator()(Involute const& other) const
+{
+    return Involute::at0origin(tr_.transform_up(other.origin()),
+                                  other.r_b(), other.a(), other.sign(), 
+                                  other.tmin(), other.tmax());
 }
 
 //---------------------------------------------------------------------------//
