@@ -80,6 +80,12 @@ jobs:
         working-directory: build
         run: |
           ninja
+      - name: Regenerate ROOT test data
+        working-directory: build
+          # NOTE: we have to do this for now because the ROOT version on the CI image is too old:
+          # see https://github.com/root-project/root/pull/12845
+        run: |
+          ninja -v -k0 update-root-test-data
       - name: Test Celeritas
         working-directory: build
         run: |
