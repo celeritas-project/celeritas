@@ -44,8 +44,7 @@ GeoErrorExecutor::operator()(celeritas::CoreTrackView const& track)
     auto particle = track.make_particle_view();
     auto sim = track.make_sim_view();
 
-    // If the track is looping (or if it's a stuck track that was
-    // flagged as looping), deposit the energy locally.
+    // Deposit the remaining energy locally
     auto deposited = particle.energy().value();
     if (particle.is_antiparticle())
     {
@@ -62,15 +61,16 @@ GeoErrorExecutor::operator()(celeritas::CoreTrackView const& track)
     auto geo = track.make_geo_view();
     auto msg = CELER_LOG(error);
     msg << "Tracking error at " << repr(geo.pos()) << " along "
-        << repr(geo.dir()) << ": depositing " << deposited << " ["
-        << Energy::unit_type::label() << "] in ";
-    if (geo.is_outside())
+        << repr(geo.dir()) << ": ";
+    if (!geo.is_outside())
     {
-        msg << "exterior";
+        msg << "depositing " << deposited << " [" << Energy::unit_type::label()
+            << "] in "
+            << "volume " << geo.volume_id().unchecked_get();
     }
     else
     {
-        msg << "volume " << geo.volume_id().unchecked_get();
+        msg << "lost " << deposited << " energy";
     }
 #endif
 }

@@ -24,13 +24,27 @@
 #include "../SimTrackView.hh"
 
 #if !CELER_DEVICE_COMPILE
-#    include "corecel/cont/ArrayIO.hh"
+#    include "corecel/io/Logger.hh"
+#    include "corecel/io/Repr.hh"
 #endif
 
 namespace celeritas
 {
 namespace detail
 {
+namespace
+{
+//! Kill a track due to geometry error
+CELER_FUNCTION void kill_geo_error(SimTrackView& sim, ActionId action_id)
+{
+    sim.status(TrackStatus::killed);
+    // Set a bogus along-step action
+    sim.along_step_action(action_id);
+    // Kill and warn at the end of the step
+    sim.post_step_action(action_id);
+}
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Initialize the track states.
@@ -103,35 +117,44 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
         GeoTrackView geo(params->geometry, state->geometry, vacancy);
         if (tid < counters.num_secondaries)
         {
-            // Copy the geometry state from the parent for improved
-            // performance
+            // Copy the geometry state from the parent for improved performance
             TrackSlotId parent_id = data.parents[TrackSlotId{
                 index_before(data.parents.size(), tid)}];
             GeoTrackView const parent_geo(
                 params->geometry, state->geometry, parent_id);
             geo = GeoTrackView::DetailedInitializer{parent_geo, init.geo.dir};
+            CELER_ASSERT(!geo.is_outside());
         }
         else
         {
             // Initialize it from the position (more expensive)
             geo = init.geo;
+            if (CELER_UNLIKELY(geo.is_outside()))
+            {
 #if !CELER_DEVICE_COMPILE
-            // TODO: kill particle with 'error' state if this happens
-            CELER_VALIDATE(!geo.is_outside(),
-                           << "track started outside the geometry at "
-                           << init.geo.pos);
+                CELER_LOG(error) << "Track started outside the geometry at "
+                                 << repr(init.geo.pos);
 #endif
+                SimTrackView sim(params->sim, state->sim, vacancy);
+                kill_geo_error(sim, params->scalars.geo_error_action);
+                return;
+            }
         }
 
         // Initialize the material
         auto matid
             = GeoMaterialView(params->geo_mats).material_id(geo.volume_id());
+        if (CELER_UNLIKELY(!matid))
+        {
 #if !CELER_DEVICE_COMPILE
-        // TODO: kill particle with 'error' state if this happens
-        CELER_VALIDATE(matid,
-                       << "track started in an unknown material (volume ID "
-                       << geo.volume_id().unchecked_get() << ")");
+            CELER_LOG(error) << "Track started in an unknown material, volume "
+                             << geo.volume_id().unchecked_get();
 #endif
+            SimTrackView sim(params->sim, state->sim, vacancy);
+            kill_geo_error(sim, params->scalars.geo_error_action);
+            return;
+        }
+
         MaterialTrackView mat(params->materials, state->materials, vacancy);
         mat = {matid};
     }

@@ -299,10 +299,13 @@ CELER_FUNCTION void SimTrackView::along_step_action(ActionId action)
 //---------------------------------------------------------------------------//
 /*!
  * Set whether the track is active, dying, or inactive.
+ *
+ * For efficiency we require that the track status isn't changed redundantly,
+ * except for "killing" .
  */
 CELER_FUNCTION void SimTrackView::status(TrackStatus status)
 {
-    CELER_EXPECT(status != this->status());
+    CELER_EXPECT(status != this->status() || status == TrackStatus::killed);
     states_.status[track_slot_] = status;
 }
 

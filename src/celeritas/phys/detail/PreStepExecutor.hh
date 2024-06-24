@@ -70,6 +70,12 @@ PreStepExecutor::operator()(celeritas::CoreTrackView const& track)
         step.element({});
     }
 
+    if (CELER_UNLIKELY(sim.status() == TrackStatus::killed))
+    {
+        // Track was killed during initialization
+        return;
+    }
+
     auto phys = track.make_physics_view();
     if (!phys.has_interaction_mfp())
     {
