@@ -32,6 +32,9 @@ orangeinp::NodeId simplify_up(CsgTree* tree, orangeinp::NodeId start);
 // Simplify the tree iteratively
 void simplify(CsgTree* tree, orangeinp::NodeId start);
 
+// Replace ~&(xs...) with |(~xs...) and ~|(xs...) with &(~xs...)
+void transform_negated_joins(CsgTree* tree);
+
 // Transform a CSG node into a string expression
 [[nodiscard]] std::string
 build_infix_string(CsgTree const& tree, orangeinp::NodeId n);

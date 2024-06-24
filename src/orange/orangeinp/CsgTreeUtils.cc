@@ -167,6 +167,66 @@ void simplify(CsgTree* tree, NodeId start)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Simplify negated joins using De Morgan's law.
+ *
+ * This is required if the tree's logic expression is used with
+ * \c InfixEvaluator as negated joins are not supported.
+ */
+void transform_negated_joins(CsgTree* tree)
+{
+    // Vector of node_id of Negated node pointing to a Joined node
+    std::vector<std::tuple<NodeId, Joined const*>> stack;
+    stack.reserve(tree->size());
+    auto const& tree_ref = *tree;
+
+    // First pass through all nodes to find all nand / nor
+    for (auto node_id : range(NodeId{tree->size()}))
+    {
+        if (auto* negated = std::get_if<orangeinp::Negated>(&tree_ref[node_id]))
+        {
+            if (auto* join
+                = std::get_if<orangeinp::Joined>(&tree_ref[negated->node]))
+            {
+                // Current node is Negated{Joined{...}}
+                stack.emplace_back(node_id, join);
+            }
+        }
+    }
+
+    while (!stack.empty())
+    {
+        // Get one node
+        auto [negated_id, joined] = stack.back();
+        stack.pop_back();
+
+        Joined transformed;
+        transformed.op = joined->op == op_and ? op_or : op_and;
+        transformed.nodes.reserve(joined->nodes.size());
+
+        // Negate all the join operands
+        for (auto const& join_operand : joined->nodes)
+        {
+            // Try to insert the negated operand
+            if (auto [new_node, inserted] = tree->insert(Negated{join_operand});
+                inserted)
+            {
+                // Update the new join node with the negated operand
+                transformed.nodes.push_back(new_node);
+                if (auto* join
+                    = std::get_if<orangeinp::Joined>(&tree_ref[join_operand]))
+                {
+                    // we just inserted a Negated{Join{...}}, need to simplify
+                    stack.emplace_back(new_node, join);
+                }
+            }
+        }
+        // Override the old negated join node with the new join
+        tree->exchange(negated_id, std::move(transformed));
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Convert a node to an infix string expression.
  */
 [[nodiscard]] std::string build_infix_string(CsgTree const& tree, NodeId n)
