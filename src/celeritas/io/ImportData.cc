@@ -28,8 +28,8 @@ void convert_to_native(ImportData* data)
     // Convert data
     if (data->units.empty())
     {
-        CELER_LOG(debug) << "Unit system missing from import data: assuming "
-                            "CGS";
+        CELER_LOG(warning) << "Unit system missing from import data: assuming "
+                              "CGS";
         data->units = to_cstring(UnitSystem::cgs);
     }
 
