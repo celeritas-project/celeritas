@@ -73,7 +73,7 @@ class ProcessBuilderTest : public Test
 
     static bool has_env(std::string const& var)
     {
-        bool result = !celeritas::getenv("G4LEDATA").empty();
+        bool result = !celeritas::getenv(var).empty();
         if (!result && strict_testing())
         {
             ADD_FAILURE() << "CI testing requires '" << var
