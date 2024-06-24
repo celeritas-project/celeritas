@@ -175,7 +175,7 @@ auto CsgTree::simplify(NodeId node_id) -> Simplification
  */
 void CsgTree::simplify_negated_joins()
 {
-    // Vector of node_id Negated{}
+    // Vector of node_id of Negated node pointing to a Joined node
     std::vector<std::tuple<NodeId, Joined*>> stack;
     stack.reserve(nodes_.size());
 
@@ -204,11 +204,11 @@ void CsgTree::simplify_negated_joins()
         transformed.nodes.reserve(joined->nodes.size());
 
         // Negate all the join operands
-        for (auto& join_operand : joined->nodes)
+        for (auto const& join_operand : joined->nodes)
         {
             // Try to insert the negated operand
-            auto [new_node, inserted] = this->insert(Negated{join_operand});
-            if (inserted)
+            if (auto [new_node, inserted] = this->insert(Negated{join_operand});
+                inserted)
             {
                 // Update the new join node with the negated operand
                 transformed.nodes.push_back(new_node);
