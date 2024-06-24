@@ -305,12 +305,12 @@ TEST_F(SimpleComptonTest, fail_initialize)
     auto primaries = this->make_primaries(16);
     primaries.back().position = from_cm({1001, 0, 0});
     {
-        ScopedLogStorer scoped_log{&celeritas::world_logger()};
+        ScopedLogStorer scoped_log{&celeritas::self_logger()};
         CELER_TRY_HANDLE(step(make_span(primaries)),
                          LogContextException{this->output_reg().get()});
 
         static char const* const expected_log_messages[] = {
-            "Track started outside the geometry at {1001, 0, 0}",
+            "Track started outside the geometry",
             "Tracking error at {1001, 0, 0} along {1, 0, 0}: lost 100 energy"};
         EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages());
         static char const* const expected_log_levels[] = {"error", "error"};
@@ -427,6 +427,7 @@ TEST_F(TestEm3NoMsc, setup)
         "ioni-moller-bhabha",
         "brems-combined",
         "geo-boundary",
+        "geo-kill",
         "dummy-action",
         "extend-from-secondaries",
     };
@@ -569,6 +570,7 @@ TEST_F(TestEm3Msc, setup)
         "ioni-moller-bhabha",
         "brems-combined",
         "geo-boundary",
+        "geo-kill",
         "dummy-action",
         "extend-from-secondaries",
     };
@@ -588,6 +590,7 @@ TEST_F(TestEm3Msc, setup)
         "interact by Moller+Bhabha ionization",
         "interact by bremsstrahlung (combined SB/relativistic, e+/-)",
         "cross a geometry boundary",
+        "kill a track due to a navigation error",
         "count the number of executions",
         "create track initializers from secondaries",
     };
@@ -745,6 +748,7 @@ TEST_F(TestEm15FieldMsc, setup)
         "brems-sb",
         "brems-rel",
         "geo-boundary",
+        "geo-kill",
         "dummy-action",
         "extend-from-secondaries",
     };
@@ -838,6 +842,7 @@ TEST_F(OneSteelSphere, setup)
         "brems-sb",
         "brems-rel",
         "geo-boundary",
+        "geo-kill",
         "dummy-action",
         "extend-from-secondaries",
     };

@@ -27,8 +27,7 @@ namespace detail
  * Construct with action ID.
  */
 GeoErrorAction::GeoErrorAction(ActionId aid)
-    : ConcreteAction(
-          aid, "kill-geo-error", "kill a track due to a navigation error")
+    : ConcreteAction(aid, "geo-kill", "kill a track due to a navigation error")
 {
 }
 

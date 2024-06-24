@@ -13,12 +13,14 @@
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/global/detail/ApplierTraits.hh"
 
-#if CELERITAS_DEBUG && !CELER_DEVICE_COMPILE
-#    define CELER_CHECK_POSITION 1
+#define CELER_CHECK_POSITION 0
+#if !CELER_DEVICE_COMPILE
 #    include "corecel/io/Logger.hh"
-#    include "corecel/io/Repr.hh"
-#else
-#    define CELER_CHECK_POSITION 0
+#    if CELERITAS_DEBUG
+#        undef CELER_CHECK_POSITION
+#        define CELER_CHECK_POSITION 0
+#        include "corecel/io/Repr.hh"
+#    endif
 #endif
 
 namespace celeritas
@@ -127,7 +129,7 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
             // machine epsilon compared to the actual position. This case seems
             // to happen mostly in vecgeom when "stuck" on a boundary, so it
             // may not lead to an infinite loop because the state is changing.
-            CELER_LOG(error)
+            CELER_LOG_LOCAL(error)
                 << "Propagation of step length " << repr(sim.step_length())
                 << " due to post-step action "
                 << sim.post_step_action().unchecked_get()
@@ -160,6 +162,9 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
             if (particle.is_stable()
                 && sim.is_looping(particle.particle_id(), particle.energy()))
             {
+#if !CELER_DEVICE_COMPILE
+                CELER_LOG_LOCAL(error) << "Killing looping track";
+#endif
                 return track.geo_error_action();
             }
             return track.propagation_limit_action();

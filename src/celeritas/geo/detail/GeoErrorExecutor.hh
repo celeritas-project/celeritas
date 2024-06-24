@@ -59,7 +59,7 @@ GeoErrorExecutor::operator()(celeritas::CoreTrackView const& track)
 
 #if !CELER_DEVICE_COMPILE
     auto geo = track.make_geo_view();
-    auto msg = CELER_LOG(error);
+    auto msg = CELER_LOG_LOCAL(error);
     msg << "Tracking error at " << repr(geo.pos()) << " along "
         << repr(geo.dir()) << ": ";
     if (!geo.is_outside())

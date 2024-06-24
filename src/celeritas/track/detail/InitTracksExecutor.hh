@@ -132,8 +132,7 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
             if (CELER_UNLIKELY(geo.is_outside()))
             {
 #if !CELER_DEVICE_COMPILE
-                CELER_LOG(error) << "Track started outside the geometry at "
-                                 << repr(init.geo.pos);
+                CELER_LOG_LOCAL(error) << "Track started outside the geometry";
 #endif
                 SimTrackView sim(params->sim, state->sim, vacancy);
                 kill_geo_error(sim, params->scalars.geo_error_action);
@@ -147,8 +146,7 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
         if (CELER_UNLIKELY(!matid))
         {
 #if !CELER_DEVICE_COMPILE
-            CELER_LOG(error) << "Track started in an unknown material, volume "
-                             << geo.volume_id().unchecked_get();
+            CELER_LOG_LOCAL(error) << "Track started in an unknown material";
 #endif
             SimTrackView sim(params->sim, state->sim, vacancy);
             kill_geo_error(sim, params->scalars.geo_error_action);
