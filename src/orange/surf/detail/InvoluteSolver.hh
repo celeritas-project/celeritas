@@ -134,7 +134,9 @@ CELER_FUNCTION auto InvoluteSolver::solve(real_type x, real_type y, real_type z,
     Intersections result;
     result = {no_intersection(), no_intersection(), no_intersection()};
 
-    std::vector< real_type > dist;
+    Array<real_type, 3> dist;
+
+    real_type j=0;
 
     real_type convert = sqrt(pow(2.0,v) + pow(2.0,u)+ pow(2.0,w)) / 
                         sqrt(pow(2.0,v) + pow(2.0,u));
@@ -152,7 +154,8 @@ CELER_FUNCTION auto InvoluteSolver::solve(real_type x, real_type y, real_type z,
     real_type xInv = r_b_ * (std::cos(angle) + tPoint * std::sin(angle));
     real_type yInv = r_b_ * (std::sin(angle) - tPoint * std::cos(angle));
     if (abs(x-xInv) < tolPoint && abs(y-yInv) < tolPoint) {
-        dist.push_back(0);
+        dist[j]=0;
+        j++;
     }
     
     // Line angle parameter
@@ -229,7 +232,8 @@ CELER_FUNCTION auto InvoluteSolver::solve(real_type x, real_type y, real_type z,
                 dot = u*u2 + v*v2;
 
                 if (dot >= 0) {
-                    dist.push_back( sqrt(pow(2.0,u2)+pow(2.0,v2)) );
+                    dist[j]=0;
+                    j++;
                 }
             }
 
@@ -253,7 +257,7 @@ CELER_FUNCTION auto InvoluteSolver::solve(real_type x, real_type y, real_type z,
             i++;
         }
         
-        for(int i=0; i < dist.size(); i++){
+        for(int i=0; i < j; i++){
             result[i] = dist[i] * convert;
         }
     }
@@ -298,7 +302,8 @@ CELER_FUNCTION auto InvoluteSolver::operator()(real_type x, real_type y,
     Intersections result;
     result = {no_intersection(), no_intersection(), no_intersection()};
 
-    std::vector< real_type > dist;
+    Array<real_type, 3> dist;
+    real_type j = 0;
 
     real_type convert = sqrt(pow(2.0,v) + pow(2.0,u)+ pow(2.0,w)) / 
                         sqrt(pow(2.0,v) + pow(2.0,u));
@@ -316,7 +321,8 @@ CELER_FUNCTION auto InvoluteSolver::operator()(real_type x, real_type y,
     real_type xInv = r_b_ * (std::cos(angle) + tPoint * std::sin(angle));
     real_type yInv = r_b_ * (std::sin(angle) - tPoint * std::cos(angle));
     if (abs(x-xInv) < tolPoint && abs(y-yInv) < tolPoint) {
-        dist.push_back(0);
+        dist[j]=0;
+        j++;
     }
     
     // Line angle parameter
@@ -393,7 +399,8 @@ CELER_FUNCTION auto InvoluteSolver::operator()(real_type x, real_type y,
                 dot = u*u2 + v*v2;
 
                 if (dot >= 0) {
-                    dist.push_back( sqrt(pow(2.0,u2)+pow(2.0,v2)) );
+                    dist[j]=0;
+                    j++;
                 }
             }
 
@@ -416,8 +423,10 @@ CELER_FUNCTION auto InvoluteSolver::operator()(real_type x, real_type y,
             }
             i++;
         }
+
         
-        for(int i=0; i < dist.size(); i++){
+        
+        for(int i=0; i < j; i++){
             result[i] = dist[i] * convert;
         }
     }
