@@ -38,6 +38,10 @@ using EventId = OpaqueId<struct Event_>;
 //! Opaque index to IsotopeRecord in a vector
 using IsotopeId = OpaqueId<struct IsotopeRecord>;
 
+//! Opaque index of a material modified by physics options
+// TODO: rename to PhysMatId; equivalent to "material cuts couple"
+using MaterialId = OpaqueId<class Material_>;
+
 //! Opaque index of model in the list of physics processes
 using ModelId = OpaqueId<class Model>;
 

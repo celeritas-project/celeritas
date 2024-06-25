@@ -246,7 +246,7 @@ bool all_are_assigned(std::vector<T> const& arr)
  */
 GeantProcessImporter::GeantProcessImporter(
     TableSelection,
-    std::vector<ImportMaterial> const& materials,
+    std::vector<ImportPhysMaterial> const& materials,
     std::vector<ImportElement> const& elements)
     : materials_(materials), elements_(elements)
 {
