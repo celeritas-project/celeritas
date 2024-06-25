@@ -13,6 +13,7 @@
 #include "orange/detail/BIHTraverser.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 
+#include "detail/InfixEvaluator.hh"
 #include "detail/LogicEvaluator.hh"
 #include "detail/SenseCalculator.hh"
 #include "detail/SurfaceFunctors.hh"

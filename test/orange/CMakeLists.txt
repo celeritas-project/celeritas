@@ -125,6 +125,7 @@ celeritas_add_device_test(univ/SimpleUnitTracker)
 celeritas_add_test(univ/TrackerVisitor.test.cc)
 
 # Universe details
+celeritas_add_test(univ/detail/InfixEvaluator.test.cc)
 celeritas_add_test(univ/detail/LogicEvaluator.test.cc)
 celeritas_add_test(univ/detail/LogicStack.test.cc)
 celeritas_add_test(univ/detail/RaggedRightIndexer.test.cc)
