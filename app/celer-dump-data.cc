@@ -16,6 +16,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Join.hh"
+#include "corecel/io/Label.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/detail/Joined.hh"
 #include "corecel/sys/MpiCommunicator.hh"
@@ -69,7 +70,7 @@ void print_particles(ParticleParams const& particles)
              << setw(11) << particles.id_to_pdg(particle_id).get() << " | "
              << setw(10) << setprecision(6) << p.mass().value() << " | "
              << setw(10) << setprecision(3) << p.charge().value() << " | "
-             << setw(11) << setprecision(3) << p.decay_constant()
+             << setw(14) << setprecision(3) << p.decay_constant()
              << " |\n";
         // clang-format on
     }
@@ -212,7 +213,7 @@ void print_phys_materials(std::vector<ImportPhysMaterial> const& materials,
     //// PRINT CUTOFF LIST ///
 
     cout << R"gfm(
-# Material physics
+# Physical material secondary production cutoff
 
 | Material ID/Name                | Particle  | Energy [MeV] | Range [len] |
 | ------------------------------- | --------- | ------------ | ----------- |
@@ -234,9 +235,9 @@ void print_phys_materials(std::vector<ImportPhysMaterial> const& materials,
                 ImportGeoMaterial const& geo
                     = geo_materials[material.geo_material_id];
                 // clang-format off
-                cout << "| "
-                     << setw(4) << std::right << material_id << ": "
-                     << setw(25) << std::left << geo.name;
+                cout << "| " << setw(4) << std::right << material_id
+                     << ": " << setw(25) << std::left << geo.name;
+                // clang-format on
                 is_first_line = false;
             }
             else
@@ -246,9 +247,12 @@ void print_phys_materials(std::vector<ImportPhysMaterial> const& materials,
 
             auto pdef_id = particles.find(PDGNumber{pdg});
             CELER_ASSERT(pdef_id);
-            cout << " | " << setw(9) << particles.id_to_label(pdef_id) << " | "
-                 << setw(12) << cuts.energy << " | " << setw(10) << cuts.range
+            // clang-format off
+            cout << " | " << setw(9) << particles.id_to_label(pdef_id)
+                 << " | " << setw(12) << cuts.energy
+                 << " | " << setw(11) << cuts.range
                  << " |\n";
+            // clang-format on
         }
     }
     cout << endl;
@@ -264,10 +268,10 @@ void print_table(ImportPhysicsTable const& table)
 
     cout << "| Type          | Size  | Endpoints ("
          << to_cstring(table.x_units) << ", " << to_cstring(table.y_units)
-         << ") |\n"
-         << "| ------------- | ----- | "
-            "------------------------------------------------------------ "
-            "|\n";
+         << ") |"
+         << R"gfm(
+| ------------- | ----- | ------------------------------------------------------------ |
+)gfm";
 
     for (auto const& physvec : table.physics_vectors)
     {
@@ -475,8 +479,8 @@ void print_regions(std::vector<ImportRegion> const& regions)
     cout << R"gfm(
 # Regions
 
-| Region ID/name                           | FM | PC | UL |
-| ---------------------------------------- | -- | -- | -- |
+| Region ID/name                               | FM | PC | UL |
+| -------------------------------------------- | -- | -- | -- |
 )gfm";
 
     auto to_yn = [](bool v) { return v ? 'Y': 'N'; };
@@ -487,8 +491,8 @@ void print_regions(std::vector<ImportRegion> const& regions)
 
         // clang-format off
         cout << "| "
-             << setw(4) << std::left << region_id << ": "
-             << setw(34) << region.name
+             << setw(4) << std::right << region_id << ": "
+             << setw(34) << std::left << region.name
              << " |  " << to_yn(region.field_manager)
              << " |  " << to_yn(region.production_cuts)
              << " |  " << to_yn(region.user_limits)
@@ -505,14 +509,15 @@ void print_regions(std::vector<ImportRegion> const& regions)
  * Print volume properties.
  */
 void print_volumes(std::vector<ImportVolume> const& volumes,
-                   std::vector<ImportGeoMaterial> const& geo_materials)
+                   std::vector<ImportGeoMaterial> const& geo_materials,
+                   std::vector<ImportRegion> const& regions)
 {
     CELER_LOG(info) << "Loaded " << volumes.size() << " volumes";
     cout << R"gfm(
 # Volumes
 
-| Volume ID/name                                     | Phys ID | Region ID | Geo material ID/name  |
-| -------------------------------------------------- | ------- | --------- | --------------------- |
+| Volume ID/name                                     | Phys ID | Region ID/name    | Geo material ID/name  |
+| -------------------------------------------------- | ------- | ----------------- | --------------------- |
 )gfm";
 
     for (auto volume_id : range(volumes.size()))
@@ -536,18 +541,28 @@ void print_volumes(std::vector<ImportVolume> const& volumes,
         {
             cout << "---";
         }
-        cout << " | " << setw(9);
+
         if (volume.region_id != ImportVolume::unspecified)
         {
-            cout << volume.region_id;
+            CELER_VALIDATE(
+                static_cast<std::size_t>(volume.region_id) < regions.size(),
+                << "region ID " << volume.region_id << " is out of range");
+            auto const& region = regions[volume.region_id];
+            // Strip pointers
+            auto region_name = Label::from_geant(region.name).name;
+
+            cout << " | " << setw(3) << std::right << volume.region_id << ": "
+                 << setw(12) << std::left << region_name;
         }
         else
         {
-            cout << "---";
+            cout << " | " << setw(17) << "---";
         }
 
-        CELER_ASSERT(static_cast<std::size_t>(volume.geo_material_id)
-                     < geo_materials.size());
+        CELER_VALIDATE(static_cast<std::size_t>(volume.geo_material_id)
+                           < geo_materials.size(),
+                       << "geo material ID " << volume.geo_material_id
+                       << " is out of range");
         auto const& geo_mat = geo_materials[volume.geo_material_id];
 
         cout << " | " << setw(4) << std::right << volume.geo_material_id
@@ -636,7 +651,7 @@ void print_sb_data(ImportData::ImportSBMap const& sb_map)
     cout << R"gfm(
 # Seltzer-Berger data
 
-| Atomic number | Endpoints (x, y, value [mb]) |
+| Atomic number | Endpoints (x, y, value [mb])                               |
 | ------------- | ---------------------------------------------------------- |
 )gfm";
 
@@ -753,7 +768,7 @@ void print_optical_material_data(ImportData::ImportOpticalMap const& iom)
          << ") -> (" << setprecision(3) << setw(10) << STRUCT.NAME.x.back()   \
          << ", " << setprecision(3) << setw(10) << STRUCT.NAME.y.back()       \
          << ") | " << setw(7) << STRUCT.NAME.x.size() << " |\n";
-    std::string header = R"gfm(
+    static char const header[] = R"gfm(
 
 | Material ID | Property                   | Units           | Scalar    | Vector endpoints (MeV, value)                        | Size    |
 | ----------- | -------------------------- | --------------- | --------- | ---------------------------------------------------- | ------- |
@@ -769,6 +784,7 @@ void print_optical_material_data(ImportData::ImportOpticalMap const& iom)
         auto const& prop = val.properties;
         cout << POM_STREAM_VECTOR(mid, prop, refractive_index, IU::unitless);
     }
+
     cout << "\n## Scintillation";
     cout << header;
     char const* comp_str[] = {"(fast)", " (mid)", "(slow)"};
@@ -793,6 +809,7 @@ void print_optical_material_data(ImportData::ImportOpticalMap const& iom)
                 mid, comp, fall_time, IU::time, comp_str[i]);
         }
     }
+
     cout << "\n## Rayleigh";
     cout << header;
     for (auto const& [mid, val] : iom)
@@ -803,6 +820,7 @@ void print_optical_material_data(ImportData::ImportOpticalMap const& iom)
             mid, rayl, compressibility, IU::len_time_sq_per_mass);
         cout << POM_STREAM_VECTOR(mid, rayl, mfp, IU::len);
     }
+
     cout << "\n## Absorption";
     cout << header;
     for (auto const& [mid, val] : iom)
@@ -811,6 +829,7 @@ void print_optical_material_data(ImportData::ImportOpticalMap const& iom)
         cout << POM_STREAM_VECTOR(mid, abs, absorption_length, IU::len);
     }
     cout << endl;
+
     cout << "\n## WLS";
     cout << header;
     for (auto const& [mid, val] : iom)
@@ -886,7 +905,7 @@ int main(int argc, char* argv[])
     print_processes(data, *particle_params);
     print_msc_models(data, *particle_params);
     print_regions(data.regions);
-    print_volumes(data.volumes, data.geo_materials);
+    print_volumes(data.volumes, data.geo_materials, data.regions);
     print_em_params(data.em_params);
     print_trans_params(data.trans_params, *particle_params);
     print_sb_data(data.sb_data);

@@ -766,7 +766,7 @@ import_phys_materials(GeantImporter::DataSelection::Flags particle_flags)
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a populated \c ImportVolume vector.
+ * Return a populated \c ImportRegion vector.
  */
 std::vector<ImportRegion> import_regions()
 {
