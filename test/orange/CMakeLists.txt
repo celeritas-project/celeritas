@@ -118,6 +118,7 @@ celeritas_add_device_test(surf/LocalSurfaceVisitor)
 celeritas_add_test(surf/detail/QuadraticSolver.test.cc)
 celeritas_add_test(surf/detail/SurfaceTranslator.test.cc)
 celeritas_add_test(surf/detail/SurfaceTransformer.test.cc)
+celeritas_add_test(surf/detail/InvoluteSolver.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Universe
