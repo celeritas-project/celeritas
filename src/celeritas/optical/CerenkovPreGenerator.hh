@@ -50,7 +50,7 @@ class CerenkovPreGenerator
     units::ElementaryCharge charge_;
     real_type step_length_;
     OpticalMaterialId optmat_id_;
-    OpticalPreStepData pre_step_;
+    OpticalPreStepData const& pre_step_;
     OpticalStepData post_step_;
     real_type num_photons_per_len_;
 };

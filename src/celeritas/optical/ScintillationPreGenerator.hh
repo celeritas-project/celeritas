@@ -51,7 +51,7 @@ class ScintillationPreGenerator
     units::ElementaryCharge charge_;
     real_type step_length_;
     OpticalMaterialId optmat_id_;
-    OpticalPreStepData pre_step_;
+    OpticalPreStepData const& pre_step_;
     OpticalStepData post_step_;
     NativeCRef<ScintillationData> const& shared_;
     real_type mean_num_photons_;
