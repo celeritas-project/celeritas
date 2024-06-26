@@ -42,13 +42,6 @@ class InvoluteSolver
     //!@{
     //! \name Type aliases
     using Intersections = Array<real_type, 3>;
-    //!@}
-    // static inline CELER_FUNCTION Intersections solve(real_type r_b_, real_type a_, 
-    //                                      real_type sign_, real_type tmin_, 
-    //                                      real_type tmax_,
-    //     real_type x, real_type y, real_type z, real_type u, real_type v, 
-    //     real_type w
-    //     );
   public:
     // Construct with 
     inline CELER_FUNCTION InvoluteSolver(real_type r_b_, real_type a_, 
@@ -103,184 +96,6 @@ CELER_FUNCTION InvoluteSolver::InvoluteSolver(real_type r_b,
 
 //---------------------------------------------------------------------------//
 
-// /*!
-//  * Find all positive roots for involute surfaces that are within the bounds.
-//  */
-// CELER_FUNCTION auto InvoluteSolver::solve(real_type r_b_, real_type a_, 
-//                                          real_type sign_, real_type tmin_, 
-//                                          real_type tmax_, real_type x, 
-//                                          real_type y, real_type z, 
-//                                          real_type u, real_type v, real_type w)
-//     -> Intersections
-// {
-//     const double pi = 3.14159265358979323846;
-
-//     // Involute parameters
-//     real_type r_b_;
-//     real_type a_;
-//     real_type sign_;
-
-//     // Bounds
-//     real_type tmin_;
-//     real_type tmax_;
-
-//     // Lambda used for calculating the roots
-//     auto root = [](real_type t, real_type x, real_type y, 
-//                    real_type u, real_type v) 
-//     { 
-//         // Involute parameters
-//         real_type r_b_;
-//         real_type a_;
-        
-//         real_type a = u * std::sin(t+a_) - v * std::cos(t+a_);
-//         real_type b =  t * (u * std::cos(t+a_) + v * std::sin(t+a_));
-//         real_type c = r_b_ * (a-b);
-//         return c + x*v - y*u;
-//     };
-//     /*
-//      * Results initalization
-//      */
-//     Intersections result;
-//     result = {no_intersection(), no_intersection(), no_intersection()};
-
-//     Array<real_type, 3> dist;
-
-//     real_type j=0;
-
-//     real_type convert = sqrt(pow(2.0,v) + pow(2.0,u)+ pow(2.0,w)) / 
-//                         sqrt(pow(2.0,v) + pow(2.0,u));
-
-//     /*
-//      * Define tolerances.
-//      */
-//     real_type const tolPoint = 1e-7;
-//     real_type const tolConv = 1e-8;
-
-//     // 0 distance ofparticle on invoute surface
-//     real_type const rxy2 = pow(2.0,x) + pow(2.0,y);
-//     real_type const tPoint = sqrt((rxy2/pow(2.0,r_b_))-1);
-//     real_type angle = tPoint + a_;
-//     real_type xInv = r_b_ * (std::cos(angle) + tPoint * std::sin(angle));
-//     real_type yInv = r_b_ * (std::sin(angle) - tPoint * std::cos(angle));
-//     if (abs(x-xInv) < tolPoint && abs(y-yInv) < tolPoint) {
-//         dist[j]=0;
-//         j++;
-//     }
-
-//     real_type beta;
-//     // Line angle parameter
-//     if (u!=0) {
-//         beta = std::atan(-v/u);
-//     } else if ( -v < 0) {
-//         beta = pi * -0.5;
-//     } else {
-//         beta = pi * 0.5;
-//     }
-        
-
-//     // Setting first interval bounds, needs to be done to ensure roots are found
-//     real_type tLower;
-//     real_type tUpper;
-//     if (sign_ == 1) {
-//         tLower = 0;
-//         tUpper = beta - a_;
-//         while (tUpper <= 0) {
-//             tUpper += pi;
-//         }
-//     } else if (sign_ == -1) {
-//         tLower = 0;
-//         tUpper = beta - a_ + 2*pi;
-//         while (tUpper >= 0) {
-//             tUpper -= pi;
-//         }
-//     }
-
-//     // Parameters that will be used in loop
-//     int i = 1;
-//     real_type talpha;
-//     real_type tbeta;
-//     real_type tgamma;
-//     real_type ftalpha;
-//     real_type ftbeta;
-//     real_type ftgamma = 1;
-//     real_type t;
-//     real_type u2;
-//     real_type v2;
-//     real_type dot;
-
-//     // Iterate on roots
-//     while ((tLower<tmax_ && sign_ == 1) | (tUpper>tmax_ && sign_ == -1) ) {
-//         talpha = tLower;
-//         tbeta = tUpper;
-
-//         ftalpha = root(talpha, x, y, u, v);
-//         ftbeta = root(tbeta, x, y, u, v);
-
-//         if ((talpha > tmax_ && sign_==1) | (abs(tbeta) < abs(tmax_) && sign_==-1)){
-//             break;
-//         }
-
-
-//         if ((0<ftalpha) - (ftalpha<0) != (0<ftbeta) - (ftbeta<0)) {
-//             // Regula Falsi Iteration
-//             while (abs(ftgamma)>=tolConv) {
-//                 tgamma = (talpha*ftbeta-tbeta*ftalpha)/(ftbeta-ftalpha);
-
-//                 ftgamma = root(tgamma, x, y, u, v);
-
-//                 if ((0<ftbeta) - (ftbeta<0) == (0<ftgamma) - (ftgamma<0)) {
-//                     tbeta = tgamma;
-//                     ftbeta = root(tbeta, x, y, u, v);
-//                 } else {
-//                     talpha = tgamma;
-//                     ftalpha = root(talpha, x, y, u, v);
-//                 }
-//             }
-//             t = tgamma;
-//             angle = t + a_;
-//             xInv = r_b_ * (std::cos(angle)+t*std::sin(angle));
-//             yInv = r_b_ * (std::sin(angle)-t*std::cos(angle));
-
-//             // Check if point is interval
-//             if (abs(tgamma)>=abs(tmin_) - tolPoint && abs(tgamma)<=abs(tmax_)) {
-//                 u2 = xInv - x;
-//                 v2 = yInv - y;
-
-//                 real_type newdist = sqrt(std::pow(2.0,u2)+std::pow(2.0,v2));
-
-//                 if (dot >= 0 && newdist > tolPoint) {
-//                     dist[j]=newdist;
-//                     j++;
-//                 }
-//             }
-
-//             // Set next interval bounds
-//             if (sign_==1) {
-//                 tLower = tUpper;
-//                 tUpper += pi;
-//             } else if (sign_==-1) {
-//                 tUpper = tLower;
-//                 tLower -= pi;
-//             }
-//         } else {
-//             // Incremet interval slowly until root is in interval
-//             if (sign_==1) {
-//                 tLower = tUpper;
-//                 tUpper += pi/i;
-//             } else if (sign_==-1) {
-//                 tUpper = tLower;
-//                 tLower -= pi/i;
-//             }
-//             i++;
-//         }
-        
-//         for(int i=0; i < j; i++){
-//             result[i] = dist[i] * convert;
-//         }
-//     }
-//     return result;
-// };
-
 /*!
  * Find all positive roots for involute surfaces that are within the bounds.
  */
@@ -291,23 +106,10 @@ CELER_FUNCTION auto InvoluteSolver::operator()(real_type x, real_type y,
 {
     const double pi = 3.14159265358979323846;
 
-    // Involute parameters
-    real_type r_b_;
-    real_type a_;
-    real_type sign_;
-
-    // Bounds
-    real_type tmin_;
-    real_type tmax_;
-
     // Lambda used for calculating the roots
     auto root = [](real_type t, real_type x, real_type y, 
-                   real_type u, real_type v) 
+                   real_type u, real_type v, real_type r_b_, real_type a_) 
     { 
-        // Involute parameters
-        real_type r_b_;
-        real_type a_;
-        
         real_type a = u * std::sin(t+a_) - v * std::cos(t+a_);
         real_type b =  t * (u * std::cos(t+a_) + v * std::sin(t+a_));
         real_type c = r_b_ * (a-b);
@@ -346,28 +148,28 @@ CELER_FUNCTION auto InvoluteSolver::operator()(real_type x, real_type y,
     
     real_type beta;
     // Line angle parameter
-    if (u!=0) {
+    if (u!=0.0) {
         beta = std::atan(-v/u);
-    } else if ( -v < 0) {
+    } else if ( -v < 0.0) {
         beta = pi * -0.5;
     } else {
         beta = pi * 0.5;
-    }
+    }    
 
     // Setting first interval bounds, needs to be done to ensure roots are found
     real_type tLower;
     real_type tUpper;
-    if (sign_ == 1) {
+    if (sign_ > 0) {
         tLower = 0;
         tUpper = beta - a_;
-        while (tUpper <= 0) {
+        while (tUpper <= 0.0) {
             tUpper += pi;
         }
-    } else if (sign_ == -1) {
-        tLower = 0;
-        tUpper = beta - a_ + 2*pi;
-        while (tUpper >= 0) {
-            tUpper -= pi;
+    } else if (sign_ < 0) {
+        tUpper = 0;
+        tLower = beta - a_ + 2*pi;
+        while (tLower >= 0.0) {
+            tLower -= pi;
         }
     }
 
@@ -378,38 +180,40 @@ CELER_FUNCTION auto InvoluteSolver::operator()(real_type x, real_type y,
     real_type tgamma;
     real_type ftalpha;
     real_type ftbeta;
-    real_type ftgamma = 1;
+    real_type ftgamma;
     real_type t;
     real_type u2;
     real_type v2;
     real_type dot;
 
     // Iterate on roots
-    while ((tLower<tmax_ && sign_ == 1) | (tUpper>tmax_ && sign_ == -1) ) {
+    while ((tLower<tmax_ && sign_ > 0) | (abs(tUpper)<tmax_ && sign_ < 0) ) {
         talpha = tLower;
         tbeta = tUpper;
 
-        ftalpha = root(talpha, x, y, u, v);
-        ftbeta = root(tbeta, x, y, u, v);
+        ftalpha = root(talpha, x, y, u, v, r_b_, a_);
+        ftbeta = root(tbeta, x, y, u, v, r_b_, a_);
 
-        if ((talpha > tmax_ && sign_==1) | (abs(tbeta) > abs(tmax_) && sign_==-1)){
+        if ((talpha > tmax_ && sign_==1.0) | 
+            (abs(tbeta) > abs(tmax_) && sign_==-1.0)){
             break;
         }
 
 
-        if ((0<ftalpha) - (ftalpha<0) != (0<ftbeta) - (ftbeta<0)) {
+        if ((0.0<ftalpha) - (ftalpha<0.0) != (0.0<ftbeta) - (ftbeta<0.0)) {
             // Regula Falsi Iteration
+            ftgamma = 1;
             while (abs(ftgamma)>=tolConv) {
                 tgamma = (talpha*ftbeta-tbeta*ftalpha)/(ftbeta-ftalpha);
 
-                ftgamma = root(tgamma, x, y, u, v);
+                ftgamma = root(tgamma, x, y, u, v, r_b_, a_);
 
-                if ((0<ftbeta) - (ftbeta<0) == (0<ftgamma) - (ftgamma<0)) {
+                if ((0.0<ftbeta) - (ftbeta<0.0) == (0.0<ftgamma) - (ftgamma<0.0)) {
                     tbeta = tgamma;
-                    ftbeta = root(tbeta, x, y, u, v);
+                    ftbeta = root(tbeta, x, y, u, v, r_b_, a_);
                 } else {
                     talpha = tgamma;
-                    ftalpha = root(talpha, x, y, u, v);
+                    ftalpha = root(talpha, x, y, u, v, r_b_, a_);
                 }
             }
             t = tgamma;
@@ -454,8 +258,8 @@ CELER_FUNCTION auto InvoluteSolver::operator()(real_type x, real_type y,
 
         
         
-        for(int i=0; i < j; i++){
-            result[i] = dist[i] * convert;
+        for(int k=0; k < j; k++){
+            result[k] = dist[k] * convert;
         }
     }
     return result;
