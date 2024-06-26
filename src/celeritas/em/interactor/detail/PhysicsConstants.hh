@@ -64,6 +64,12 @@ CELER_CONSTEXPR_FUNCTION units::MevEnergy seltzer_berger_limit()
     return units::MevEnergy{1e3};  //! 1 GeV
 }
 
+//! Energy threshold between muon ionization models. TODO: make configurable
+CELER_CONSTEXPR_FUNCTION units::MevEnergy mu_ionization_limit()
+{
+    return units::MevEnergy{0.2};  //! 200 keV
+}
+
 //! Maximum energy for EM models to be valid
 CELER_CONSTEXPR_FUNCTION units::MevEnergy high_energy_limit()
 {
