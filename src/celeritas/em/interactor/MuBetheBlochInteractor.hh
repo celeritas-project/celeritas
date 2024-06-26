@@ -24,14 +24,16 @@
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
+#include "detail/PhysicsConstants.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
  * Perform the discrete part of the muon ionization process.
  *
- * This simulates the production of delta rays by incident mu- and mu+ for
- * incident muons with energies above 200 keV.
+ * This simulates the production of delta rays by incident mu- and mu+ with
+ * energies above 200 keV.
  *
  * \note This performs the same sampling routine as in Geant4's
  * G4MuBetheBlochModel.
@@ -68,9 +70,9 @@ class MuBetheBlochInteractor
     StackAllocator<Secondary>& allocate_;
     // Incident direction
     Real3 const& inc_direction_;
-    // Incident energy [MeV]
+    // Incident particle energy [MeV]
     real_type inc_energy_;
-    // Incident momentum [MeV / c]
+    // Incident particle momentum [MeV / c]
     real_type inc_momentum_;
     // Square of fractional speed of light
     real_type beta_sq_;
@@ -78,27 +80,27 @@ class MuBetheBlochInteractor
     real_type mass_;
     // Electron mass
     real_type electron_mass_;
-    // Total energy of incident particle
+    // Total energy of the incident particle [MeV]
     real_type total_energy_;
     // Secondary electron cutoff for current material [MeV]
     real_type electron_cutoff_;
     // Maximum energy of the secondary electron [MeV]
     real_type max_secondary_energy_;
-    // Whether to apply the radiation correction
+    // Whether to apply the radiative correction
     bool use_rad_corr_;
     // Envelope distribution for rejection sampling
     real_type envelope_dist_;
 
     //// CONSTANTS ////
 
-    //! Incident energy above which the radiation correction is applied [MeV]
-    static CELER_CONSTEXPR_FUNCTION Energy rad_corr_limit()
+    //! Incident energy above which the radiative correction is applied [MeV]
+    static CELER_CONSTEXPR_FUNCTION Energy inc_energy_limit()
     {
-        return Energy{250};
+        return Energy{250};  //!< 250 MeV
     }
 
-    //! Kinetic energy limit [MeV]
-    static CELER_CONSTEXPR_FUNCTION Energy kin_energy_limit()
+    //! Secondary energy above which the radiative correction is applied [MeV]
+    static CELER_CONSTEXPR_FUNCTION Energy secondary_energy_limit()
     {
         return Energy{0.1};  //!< 100 keV
     }
@@ -138,13 +140,16 @@ CELER_FUNCTION MuBetheBlochInteractor::MuBetheBlochInteractor(
     , total_energy_(inc_energy_ + mass_)
     , electron_cutoff_(value_as<Energy>(cutoffs.energy(shared_.ids.electron)))
     , max_secondary_energy_(this->calc_max_secondary_energy())
-    , use_rad_corr_(max_secondary_energy_ > kin_energy_limit().value()
-                    && inc_energy_ > rad_corr_limit().value())
+    , use_rad_corr_(inc_energy_ > value_as<Energy>(inc_energy_limit())
+                    && max_secondary_energy_
+                           > value_as<Energy>(secondary_energy_limit()))
     , envelope_dist_(this->calc_envelope_distribution())
 {
     CELER_EXPECT(particle.particle_id() == shared_.ids.mu_minus
                  || particle.particle_id() == shared_.ids.mu_plus);
     CELER_EXPECT(inc_energy_ > electron_cutoff_);
+    CELER_EXPECT(inc_energy_
+                 >= value_as<Energy>(detail::mu_ionization_limit()));
 }
 
 //---------------------------------------------------------------------------//
@@ -156,6 +161,7 @@ CELER_FUNCTION Interaction MuBetheBlochInteractor::operator()(Engine& rng)
 {
     if (electron_cutoff_ > max_secondary_energy_)
     {
+        // No interaction if the maximum secondary energy is below the cutoff
         return Interaction::from_unchanged();
     }
 
@@ -176,10 +182,11 @@ CELER_FUNCTION Interaction MuBetheBlochInteractor::operator()(Engine& rng)
             = electron_cutoff_ * max_secondary_energy_
               / (electron_cutoff_ * (1 - u) + max_secondary_energy_ * u);
         target_dist = 1 - beta_sq_ * secondary_energy / max_secondary_energy_
-                      + real_type(0.5) * ipow<2>(secondary_energy)
-                            / ipow<2>(total_energy_);
+                      + ipow<2>(secondary_energy)
+                            / (2 * ipow<2>(total_energy_));
 
-        if (use_rad_corr_ && secondary_energy > kin_energy_limit().value())
+        if (use_rad_corr_
+            && secondary_energy > value_as<Energy>(secondary_energy_limit()))
         {
             real_type a1 = std::log(1 + 2 * secondary_energy / electron_mass_);
             real_type a3 = std::log(4 * total_energy_

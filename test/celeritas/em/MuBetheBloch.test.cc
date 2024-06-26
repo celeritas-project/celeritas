@@ -103,13 +103,10 @@ TEST_F(MuBetheBlochTest, basic)
     int const num_samples = 4;
     this->resize_secondaries(num_samples);
 
-    // Get production cuts
-    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
-
     // Create the interactor
     MuBetheBlochInteractor interact(data_,
                                     this->particle_track(),
-                                    cutoffs,
+                                    this->cutoff_params()->get(MaterialId{0}),
                                     this->direction(),
                                     this->secondary_allocator());
     RandomEngine& rng = this->rng();
@@ -154,14 +151,21 @@ TEST_F(MuBetheBlochTest, basic)
         EXPECT_EQ(Action::failed, result.action);
     }
 
-    // Null interaction when max secondary energy is below production cut
+    // No interaction when max secondary energy is below production cut
     {
-        this->set_inc_particle(pdg::mu_minus(), MevEnergy{0.01});
-        MuBetheBlochInteractor interact(data_,
-                                        this->particle_track(),
-                                        cutoffs,
-                                        this->direction(),
-                                        this->secondary_allocator());
+        CutoffParams::Input cut_inp;
+        cut_inp.materials = this->material_params();
+        cut_inp.particles = this->particle_params();
+        cut_inp.cutoffs = {{pdg::electron(), {{MevEnergy{0.01}, 0.1234}}}};
+        this->set_cutoff_params(cut_inp);
+
+        this->set_inc_particle(pdg::mu_minus(), MevEnergy{0.2});
+        MuBetheBlochInteractor interact(
+            data_,
+            this->particle_track(),
+            this->cutoff_params()->get(MaterialId{0}),
+            this->direction(),
+            this->secondary_allocator());
 
         Interaction result = interact(rng);
         EXPECT_EQ(0, result.secondaries.size());
@@ -175,9 +179,6 @@ TEST_F(MuBetheBlochTest, stress_test)
     std::vector<real_type> avg_engine_samples;
     std::vector<real_type> avg_energy;
     std::vector<real_type> avg_costheta;
-
-    // Get production cuts
-    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
 
     for (real_type inc_e : {0.2, 1.0, 10.0, 1e2, 1e3, 1e4, 1e6, 1e8})
     {
@@ -198,11 +199,12 @@ TEST_F(MuBetheBlochTest, stress_test)
             this->resize_secondaries(num_samples);
 
             // Create interactor
-            MuBetheBlochInteractor interact(data_,
-                                            this->particle_track(),
-                                            cutoffs,
-                                            this->direction(),
-                                            this->secondary_allocator());
+            MuBetheBlochInteractor interact(
+                data_,
+                this->particle_track(),
+                this->cutoff_params()->get(MaterialId{0}),
+                this->direction(),
+                this->secondary_allocator());
 
             // Loop over many particles
             for (unsigned int i = 0; i < num_samples; ++i)
