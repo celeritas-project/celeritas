@@ -13,6 +13,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/Environment.hh"
 #include "celeritas/Types.hh"
 
 #if CELERITAS_USE_CUDA
@@ -34,13 +35,19 @@ namespace
 void* malloc_async_impl(std::size_t bytes, Stream::StreamT s)
 {
     void* ptr{};
+    if (Stream::async())
+    {
 #if CELER_STREAM_SUPPORTS_ASYNC
-    CELER_DEVICE_CALL_PREFIX(MallocAsync(&ptr, bytes, s));
+        CELER_DEVICE_CALL_PREFIX(MallocAsync(&ptr, bytes, s));
 #else
-    CELER_DISCARD(bytes);
-    CELER_DISCARD(s);
-    CELER_DEVICE_CALL_PREFIX(Malloc(&ptr, bytes));
+        CELER_DISCARD(s);
+        CELER_ASSERT_UNREACHABLE();
 #endif
+    }
+    else
+    {
+        CELER_DEVICE_CALL_PREFIX(Malloc(&ptr, bytes));
+    }
     return ptr;
 }
 
@@ -48,13 +55,19 @@ void* malloc_async_impl(std::size_t bytes, Stream::StreamT s)
 //! Free asynchronously for CUDA and newer HIP versions
 void free_async_impl(void* ptr, Stream::StreamT s)
 {
+    if (Stream::async())
+    {
 #if CELER_STREAM_SUPPORTS_ASYNC
-    CELER_DEVICE_CALL_PREFIX(FreeAsync(ptr, s));
+        CELER_DEVICE_CALL_PREFIX(FreeAsync(ptr, s));
 #else
-    CELER_DISCARD(ptr);
-    CELER_DISCARD(s);
-    CELER_DEVICE_CALL_PREFIX(Free(ptr));
+        CELER_DISCARD(s);
+        CELER_ASSERT_UNREACHABLE();
 #endif
+    }
+    else
+    {
+        CELER_DEVICE_CALL_PREFIX(Free(ptr));
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -98,6 +111,32 @@ void AsyncMemoryResource<Pointer>::do_deallocate(pointer p,
         }
         ++warn_count;
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether asynchronous operations are supported.
+ *
+ * This is true if CUDA or HIP>=5.2 is in use, and can be disabled by setting
+ * the \c DEVICE_DISABLE_ASYNC environment variable.
+ */
+bool Stream::async()
+{
+#if CELER_STREAM_SUPPORTS_ASYNC
+    static bool const result = [] {
+        if (!celeritas::getenv("DEVICE_DISABLE_ASYNC").empty())
+        {
+            CELER_LOG(info) << "Disabling asynchronous stream memory "
+                               "allocations since the 'DEVICE_DISABLE_ASYNC' "
+                               "environment variable is present and non-empty";
+            return false;
+        }
+        return true;
+    }();
+    return result;
+#else
+    return false;
+#endif
 }
 
 //---------------------------------------------------------------------------//

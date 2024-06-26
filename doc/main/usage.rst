@@ -342,9 +342,10 @@ tell what variables are in use or may be useful.
  CELER_MEMPOOL... [#mp]_ corecel   Change ``cudaMemPoolAttrReleaseThreshold``
  CELER_PERFETT... [#bs]_ corecel   Set the in-process tracing buffer size
  CELER_PROFILE_DEVICE    corecel   Record extra kernel launch information
- CUDA_HEAP_SIZE          celeritas Change ``cudaLimitMallocHeapSize`` (VG)
- CUDA_STACK_SIZE         celeritas Change ``cudaLimitStackSize`` for VecGeom
- G4VG_COMPARE_VOLUMES    celeritas Check G4VG volume capacity when converting
+ DEVICE_DISABLE_ASYNC    corecel   Disable asyncronous memory allocation
+ CUDA_HEAP_SIZE          geocel    Change ``cudaLimitMallocHeapSize`` (VG)
+ CUDA_STACK_SIZE         geocel    Change ``cudaLimitStackSize`` for VecGeom
+ G4VG_COMPARE_VOLUMES    geocel    Check G4VG volume capacity when converting
  HEPMC3_VERBOSE          celeritas HepMC3 debug verbosity
  VECGEOM_VERBOSE         celeritas VecGeom CUDA verbosity
  CELER_DISABLE           accel     Disable Celeritas offloading entirely
@@ -355,6 +356,13 @@ tell what variables are in use or may be useful.
 .. [#bs] CELER_PERFETTO_BUFFER_SIZE_MB
 .. [#mp] CELER_MEMPOOL_RELEASE_THRESHOLD
 .. [#pr] See :ref:`profiling`
+
+Some of the Celeritas-defined environment variables have prefixes from other
+libraries because they directly control the behavior of that library and
+nothing else. The ``DEVICE_DISABLE_ASYNC`` may be needed when running HIP 5.7
+or later due to the "beta" nature of hipMallocAsync_.
+
+.. _hipMallocAsync: https://rocm.docs.amd.com/projects/HIP/en/latest/doxygen/html/group___stream_o.html
 
 Environment variables from external libraries can also be referenced by
 Celeritas or its apps:
