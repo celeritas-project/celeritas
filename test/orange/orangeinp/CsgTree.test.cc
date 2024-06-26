@@ -22,9 +22,26 @@ namespace test
 //---------------------------------------------------------------------------//
 TEST(CsgTypes, hash)
 {
+#ifdef _MSC_VER
+    // TODO: if performance on windows is negatively affected, fix this
+    GTEST_SKIP()
+        << "in MSVC, std::variant hash does *not* change based on the "
+           "type index";
+#endif
     std::hash<Node> variant_hash;
     EXPECT_NE(variant_hash(True{}), variant_hash(False{}));
     EXPECT_NE(variant_hash(Aliased{N{0}}), variant_hash(Surface{S{0}}));
+}
+
+//---------------------------------------------------------------------------//
+TEST(CsgTypes, literals)
+{
+    EXPECT_TRUE(is_boolean_node(True{}));
+    EXPECT_TRUE(is_boolean_node(False{}));
+    EXPECT_FALSE(is_boolean_node(Surface{S{1}}));
+    EXPECT_FALSE(is_boolean_node(Negated{N{1}}));
+    EXPECT_FALSE(is_boolean_node(Aliased{N{1}}));
+    EXPECT_FALSE(is_boolean_node(Joined{op_and, {N{1}}}));
 }
 
 //---------------------------------------------------------------------------//
@@ -163,12 +180,9 @@ TEST_F(CsgTreeTest, manual_simplify)
     auto below_mz = this->insert(Negated{mz}).first;
     auto dumb_union = this->insert(Joined{op_or, {sphere, below_mz}}).first;
 
-    if (CELERITAS_USE_JSON)
-    {
-        EXPECT_JSON_EQ(
-            R"json(["t",["~",0],["S",0],["S",1],["~",3],["S",2],["~",5],["&",[2,4,6]],["S",3],["~",8],["&",[2,4,9]],["~",7],["&",[10,11]],["S",4],["~",2],["|",[13,14]]])json",
-            this->to_json_string());
-    }
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["S",0],["S",1],["~",3],["S",2],["~",5],["&",[2,4,6]],["S",3],["~",8],["&",[2,4,9]],["~",7],["&",[10,11]],["S",4],["~",2],["|",[13,14]]])json",
+        this->to_json_string());
 
     // Suppose we implied above mz and below pz: sweep down
     {
@@ -222,13 +236,11 @@ TEST_F(CsgTreeTest, manual_simplify)
         EXPECT_EQ(Node{Aliased{sphere}}, tree_[dumb_union]);
     }
 
-    if (CELERITAS_USE_JSON)
-    {
-        EXPECT_JSON_EQ(
-            R"json(["t",["~",0],["=",0],["=",1],["=",0],["S",2],["~",5],["=",6],["S",3],["~",8],["=",9],["=",5],["&",[5,9]],["S",4],["=",1],["=",13]])json",
-            this->to_json_string());
-    }
+    EXPECT_JSON_EQ(
+        R"json(["t",["~",0],["=",0],["=",1],["=",0],["S",2],["~",5],["=",6],["S",3],["~",8],["=",9],["=",5],["&",[5,9]],["S",4],["=",1],["=",13]])json",
+        this->to_json_string());
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace orangeinp

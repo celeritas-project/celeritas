@@ -30,6 +30,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
+#include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootFileManager.hh"
@@ -55,6 +56,7 @@
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 #include "celeritas/phys/Process.hh"
 #include "celeritas/phys/ProcessBuilder.hh"
+#include "celeritas/phys/RootEventSampler.hh"
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
@@ -307,6 +309,9 @@ void Runner::build_core_params(RunnerInput const& inp,
     params.cutoff = CutoffParams::from_import(
         imported, params.particle, params.material);
 
+    // Construct shared data for Coulomb scattering
+    params.wentzel = WentzelOKVIParams::from_import(imported, params.material);
+
     // Load physics: create individual processes with make_shared
     params.physics = [&params, &inp, &imported] {
         PhysicsParams::Input input;
@@ -381,7 +386,8 @@ void Runner::build_core_params(RunnerInput const& inp,
     params.rng = std::make_shared<RngParams>(inp.seed);
 
     // Construct simulation params
-    params.sim = SimParams::from_import(imported, params.particle);
+    params.sim = SimParams::from_import(
+        imported, params.particle, inp.field_options.max_substeps);
 
     // Get the total number of events
     auto num_events = this->build_events(inp, params.particle);
@@ -427,7 +433,7 @@ void Runner::build_transporter_input(RunnerInput const& inp)
     transporter_input_->max_steps = inp.max_steps;
     transporter_input_->store_track_counts = inp.write_track_counts;
     transporter_input_->store_step_times = inp.write_step_times;
-    transporter_input_->sync = inp.sync;
+    transporter_input_->action_times = inp.action_times;
     transporter_input_->params = core_params_;
 }
 
@@ -473,7 +479,21 @@ Runner::build_events(RunnerInput const& inp, SPConstParticles particles)
     }
     else if (ends_with(inp.event_file, ".root"))
     {
-        return read_events(RootEventReader(inp.event_file, particles));
+        if (inp.file_sampling_options)
+        {
+            // Sampling options are assigned; use ROOT event sampler
+            return read_events(
+                RootEventSampler(inp.event_file,
+                                 particles,
+                                 inp.file_sampling_options.num_events,
+                                 inp.file_sampling_options.num_merged,
+                                 inp.seed));
+        }
+        else
+        {
+            // Use event reader
+            return read_events(RootEventReader(inp.event_file, particles));
+        }
     }
     else
     {
@@ -597,8 +617,7 @@ auto Runner::get_transporter(StreamId stream) -> TransporterBase&
 /*!
  * Get an already-constructed transporter for the given stream.
  */
-auto Runner::get_transporter_ptr(StreamId stream) const
-    -> TransporterBase const*
+auto Runner::get_transporter_ptr(StreamId stream) const -> TransporterBase const*
 {
     CELER_EXPECT(stream < transporters_.size());
     return transporters_[stream.get()].get();

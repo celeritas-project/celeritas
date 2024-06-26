@@ -24,6 +24,7 @@
 #include "celeritas/io/ImportData.hh"
 
 #include "MaterialData.hh"  // IWYU pragma: associated
+
 #include "detail/Utils.hh"
 
 namespace celeritas
@@ -62,7 +63,8 @@ MatterState to_matter_state(ImportMaterialState state)
 std::shared_ptr<MaterialParams>
 MaterialParams::from_import(ImportData const& data)
 {
-    CELER_EXPECT(!data.materials.empty());
+    CELER_EXPECT(!data.geo_materials.empty());
+    CELER_EXPECT(!data.phys_materials.empty());
     CELER_EXPECT(!data.elements.empty());
 
     MaterialParams::Input input;
@@ -75,6 +77,12 @@ MaterialParams::from_import(ImportData const& data)
         isotope_params.atomic_number = AtomicNumber{isotope.atomic_number};
         isotope_params.atomic_mass_number
             = AtomicNumber{isotope.atomic_mass_number};
+        isotope_params.binding_energy
+            = units::MevEnergy(isotope.binding_energy);
+        isotope_params.proton_loss_energy
+            = units::MevEnergy(isotope.proton_loss_energy);
+        isotope_params.neutron_loss_energy
+            = units::MevEnergy(isotope.neutron_loss_energy);
         // Convert from MeV (Geant4) to MeV/c^2 (Celeritas)
         isotope_params.nuclear_mass = units::MevMass(isotope.nuclear_mass);
 
@@ -99,33 +107,45 @@ MaterialParams::from_import(ImportData const& data)
         input.elements.push_back(std::move(element_params));
     }
 
-    // Create mapping from material to optical property data
+    // Prepare for optical
+    OpticalMaterialId::size_type optical_id{0};
     if (!data.optical.empty())
     {
-        input.mat_to_optical.resize(data.materials.size(), {});
-        OpticalMaterialId::size_type optical_id{0};
-        for (auto const& [mat_id, optical] : data.optical)
-        {
-            input.mat_to_optical[mat_id] = OpticalMaterialId(optical_id++);
-        }
+        // Initialize optical material array with "not an optical material"
+        input.mat_to_optical.assign(data.phys_materials.size(),
+                                    OpticalMaterialId{});
     }
 
-    // Populate input.materials
-    for (auto const& material : data.materials)
+    // Populate input.materials *using physics material ID* but with *geo
+    // material data* (possibly duplicating it)
+    for (auto mat_idx : range(data.phys_materials.size()))
     {
-        MaterialParams::MaterialInput material_params;
-        material_params.temperature = material.temperature;
-        material_params.number_density = material.number_density;
-        material_params.matter_state = to_matter_state(material.state);
-        material_params.label = Label::from_geant(material.name);
+        auto geo_mat_idx = data.phys_materials[mat_idx].geo_material_id;
+        CELER_VALIDATE(geo_mat_idx < data.geo_materials.size(),
+                       << "geo material id " << geo_mat_idx
+                       << " is out of range");
+        auto const& geo_mat = data.geo_materials[geo_mat_idx];
 
-        for (auto const& elem_comp : material.elements)
+        MaterialParams::MaterialInput material_params;
+        material_params.temperature = geo_mat.temperature;
+        material_params.number_density = geo_mat.number_density;
+        material_params.matter_state = to_matter_state(geo_mat.state);
+        material_params.label = Label::from_geant(geo_mat.name);
+
+        for (auto const& elem_comp : geo_mat.elements)
         {
             // Populate MaterialParams number fractions
             material_params.elements_fractions.push_back(
                 {ElementId{elem_comp.element_id}, elem_comp.number_fraction});
         }
         input.materials.push_back(std::move(material_params));
+
+        // Check for optical data
+        if (auto iter = data.optical.find(geo_mat_idx);
+            iter != data.optical.end())
+        {
+            input.mat_to_optical[mat_idx] = OpticalMaterialId{optical_id++};
+        }
     }
 
     // Return a MaterialParams shared_ptr
@@ -369,6 +389,9 @@ void MaterialParams::append_isotope_def(IsotopeInput const& inp,
 {
     CELER_EXPECT(inp.atomic_number);
     CELER_EXPECT(inp.atomic_mass_number);
+    CELER_EXPECT(inp.binding_energy >= zero_quantity());
+    CELER_EXPECT(inp.proton_loss_energy >= zero_quantity());
+    CELER_EXPECT(inp.neutron_loss_energy >= zero_quantity());
     CELER_EXPECT(inp.nuclear_mass > zero_quantity());
 
     IsotopeRecord result;
@@ -376,6 +399,9 @@ void MaterialParams::append_isotope_def(IsotopeInput const& inp,
     // Copy basic properties
     result.atomic_number = inp.atomic_number;
     result.atomic_mass_number = inp.atomic_mass_number;
+    result.binding_energy = inp.binding_energy;
+    result.proton_loss_energy = inp.proton_loss_energy;
+    result.neutron_loss_energy = inp.neutron_loss_energy;
     result.nuclear_mass = inp.nuclear_mass;
 
     // Add to host vector

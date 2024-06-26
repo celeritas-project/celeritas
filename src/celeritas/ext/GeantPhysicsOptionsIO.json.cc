@@ -18,6 +18,9 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+static char const format_str[] = "geant-physics";
+
+//---------------------------------------------------------------------------//
 void from_json(nlohmann::json const& j, MscModelSelection& value)
 {
     static auto const from_string
@@ -70,6 +73,19 @@ void to_json(nlohmann::json& j, MscStepLimitAlgorithm const& value)
     j = std::string{to_cstring(value)};
 }
 
+void from_json(nlohmann::json const& j, NuclearFormFactorType& value)
+{
+    static auto const from_string
+        = StringEnumMapper<NuclearFormFactorType>::from_cstring_func(
+            to_cstring, "form factor");
+    value = from_string(j.get<std::string>());
+}
+
+void to_json(nlohmann::json& j, NuclearFormFactorType const& value)
+{
+    j = std::string{to_cstring(value)};
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Read options from JSON.
@@ -77,8 +93,8 @@ void to_json(nlohmann::json& j, MscStepLimitAlgorithm const& value)
 void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
 {
 #define GPO_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, options, NAME)
-
-    options = {};
+    check_format(j, format_str);
+    check_units(j, format_str);
 
     GPO_LOAD_OPTION(coulomb_scattering);
     GPO_LOAD_OPTION(compton_scattering);
@@ -108,7 +124,10 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
     GPO_LOAD_OPTION(msc_range_factor);
     GPO_LOAD_OPTION(msc_safety_factor);
     GPO_LOAD_OPTION(msc_lambda_limit);
+    GPO_LOAD_OPTION(msc_theta_limit);
+    GPO_LOAD_OPTION(angle_limit_factor);
     GPO_LOAD_OPTION(msc_step_algorithm);
+    GPO_LOAD_OPTION(form_factor);
 
     GPO_LOAD_OPTION(verbose);
 #undef GPO_LOAD_OPTION
@@ -118,44 +137,47 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
 /*!
  * Write options to JSON.
  */
-void to_json(nlohmann::json& j, GeantPhysicsOptions const& options)
+void to_json(nlohmann::json& j, GeantPhysicsOptions const& inp)
 {
-#define GPO_SAVE_OPTION(NAME) CELER_JSON_SAVE(j, options, NAME)
+    j = {
+        CELER_JSON_PAIR(inp, coulomb_scattering),
+        CELER_JSON_PAIR(inp, compton_scattering),
+        CELER_JSON_PAIR(inp, photoelectric),
+        CELER_JSON_PAIR(inp, rayleigh_scattering),
+        CELER_JSON_PAIR(inp, gamma_conversion),
+        CELER_JSON_PAIR(inp, gamma_general),
 
-    j = nlohmann::json::object();
+        CELER_JSON_PAIR(inp, ionization),
+        CELER_JSON_PAIR(inp, annihilation),
+        CELER_JSON_PAIR(inp, brems),
+        CELER_JSON_PAIR(inp, msc),
+        CELER_JSON_PAIR(inp, relaxation),
 
-    GPO_SAVE_OPTION(coulomb_scattering);
-    GPO_SAVE_OPTION(compton_scattering);
-    GPO_SAVE_OPTION(photoelectric);
-    GPO_SAVE_OPTION(rayleigh_scattering);
-    GPO_SAVE_OPTION(gamma_conversion);
-    GPO_SAVE_OPTION(gamma_general);
+        CELER_JSON_PAIR(inp, em_bins_per_decade),
+        CELER_JSON_PAIR(inp, eloss_fluctuation),
+        CELER_JSON_PAIR(inp, lpm),
+        CELER_JSON_PAIR(inp, integral_approach),
 
-    GPO_SAVE_OPTION(ionization);
-    GPO_SAVE_OPTION(annihilation);
-    GPO_SAVE_OPTION(brems);
-    GPO_SAVE_OPTION(msc);
-    GPO_SAVE_OPTION(relaxation);
+        CELER_JSON_PAIR(inp, min_energy),
+        CELER_JSON_PAIR(inp, max_energy),
+        CELER_JSON_PAIR(inp, linear_loss_limit),
+        CELER_JSON_PAIR(inp, lowest_electron_energy),
+        CELER_JSON_PAIR(inp, apply_cuts),
+        CELER_JSON_PAIR(inp, default_cutoff),
 
-    GPO_SAVE_OPTION(em_bins_per_decade);
-    GPO_SAVE_OPTION(eloss_fluctuation);
-    GPO_SAVE_OPTION(lpm);
-    GPO_SAVE_OPTION(integral_approach);
+        CELER_JSON_PAIR(inp, msc_range_factor),
+        CELER_JSON_PAIR(inp, msc_safety_factor),
+        CELER_JSON_PAIR(inp, msc_lambda_limit),
+        CELER_JSON_PAIR(inp, msc_theta_limit),
+        CELER_JSON_PAIR(inp, angle_limit_factor),
+        CELER_JSON_PAIR(inp, msc_step_algorithm),
+        CELER_JSON_PAIR(inp, form_factor),
 
-    GPO_SAVE_OPTION(min_energy);
-    GPO_SAVE_OPTION(max_energy);
-    GPO_SAVE_OPTION(linear_loss_limit);
-    GPO_SAVE_OPTION(lowest_electron_energy);
-    GPO_SAVE_OPTION(apply_cuts);
-    GPO_SAVE_OPTION(default_cutoff);
+        CELER_JSON_PAIR(inp, verbose),
+    };
 
-    GPO_SAVE_OPTION(msc_range_factor);
-    GPO_SAVE_OPTION(msc_safety_factor);
-    GPO_SAVE_OPTION(msc_lambda_limit);
-    GPO_SAVE_OPTION(msc_step_algorithm);
-
-    GPO_SAVE_OPTION(verbose);
-#undef GPO_SAVE_OPTION
+    save_format(j, format_str);
+    save_units(j);
 }
 
 //---------------------------------------------------------------------------//

@@ -16,6 +16,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Span.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportProcess.hh"
 
@@ -40,6 +41,8 @@ class ImportedModelAdapter
     using MicroXsBuilders = Model::MicroXsBuilders;
     using SpanConstPDG = Span<PDGNumber const>;
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
+    using Energy = units::MevEnergy;
+    using EnergyBounds = Array<Energy, 2>;
     //!@}
 
   public:
@@ -60,12 +63,23 @@ class ImportedModelAdapter
     // Construct micro cross sections from the given particle/material type
     MicroXsBuilders micro_xs(Applicability range) const;
 
+    // Get the xs energy grid bounds for the given material and particle
+    EnergyBounds energy_grid_bounds(ParticleId, MaterialId) const;
+
   private:
+    //// TYPES ////
+
     using ImportProcessId = ImportedProcesses::ImportProcessId;
+
+    //// DATA ////
 
     SPConstImported imported_;
     ImportModelClass model_class_;
     std::unordered_map<ParticleId, ImportProcessId> particle_to_process_;
+
+    //// HELPER FUNCTIONS ////
+
+    ImportModel const& get_model(ParticleId) const;
 };
 
 //---------------------------------------------------------------------------//

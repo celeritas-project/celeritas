@@ -12,9 +12,9 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/grid/VectorUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/grid/GenericCalculator.hh"
-#include "celeritas/grid/VectorUtils.hh"
 
 #include "CerenkovData.hh"
 #include "OpticalPropertyData.hh"

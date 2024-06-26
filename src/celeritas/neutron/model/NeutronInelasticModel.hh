@@ -19,6 +19,7 @@
 
 namespace celeritas
 {
+struct CascadeOptions;
 struct ImportPhysicsVector;
 class MaterialParams;
 class ParticleParams;
@@ -43,6 +44,7 @@ class NeutronInelasticModel final : public Model
     NeutronInelasticModel(ActionId id,
                           ParticleParams const& particles,
                           MaterialParams const& materials,
+                          CascadeOptions const& options,
                           ReadData load_data);
 
     // Particle types and energy ranges that this model applies to

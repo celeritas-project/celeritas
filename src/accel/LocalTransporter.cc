@@ -39,6 +39,7 @@
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
+
 #include "detail/HitManager.hh"
 #include "detail/OffloadWriter.hh"
 
@@ -50,7 +51,8 @@ namespace celeritas
  */
 LocalTransporter::LocalTransporter(SetupOptions const& options,
                                    SharedParams const& params)
-    : auto_flush_(options.max_num_tracks)
+    : auto_flush_(options.auto_flush ? options.auto_flush
+                                     : options.max_num_tracks)
     , max_steps_(options.max_steps)
     , dump_primaries_{params.offload_writer()}
     , hit_manager_{params.hit_manager()}
@@ -100,7 +102,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     inp.params = params.Params();
     inp.stream_id = StreamId{static_cast<size_type>(thread_id)};
     inp.num_track_slots = options.max_num_tracks;
-    inp.sync = options.sync;
+    inp.action_times = options.action_times;
 
     if (celeritas::device())
     {
@@ -148,8 +150,8 @@ void LocalTransporter::Push(G4Track const& g4track)
 
     Primary track;
 
-    track.particle_id = particles_->find(
-        PDGNumber{g4track.GetDefinition()->GetPDGEncoding()});
+    PDGNumber const pdg{g4track.GetDefinition()->GetPDGEncoding()};
+    track.particle_id = particles_->find(pdg);
     track.energy = units::MevEnergy(
         convert_from_geant(g4track.GetKineticEnergy(), CLHEP::MeV));
 
@@ -161,6 +163,14 @@ void LocalTransporter::Push(G4Track const& g4track)
     track.position = convert_from_geant(g4track.GetPosition(), clhep_length);
     track.direction = convert_from_geant(g4track.GetMomentumDirection(), 1);
     track.time = convert_from_geant(g4track.GetGlobalTime(), clhep_time);
+
+    if (CELER_UNLIKELY(g4track.GetWeight() != 1.0))
+    {
+        // TODO: see issue #1268
+        CELER_LOG(error) << "incoming track (PDG " << pdg.get()
+                         << ", track ID " << g4track.GetTrackID()
+                         << ") has non-unit weight " << g4track.GetWeight();
+    }
 
     // TODO: Celeritas track IDs are independent from Geant4 track IDs, since
     // they must be sequential from zero for a given event. We may need to save
@@ -189,10 +199,12 @@ void LocalTransporter::Flush()
     {
         return;
     }
-
-    CELER_LOG_LOCAL(info) << "Transporting " << buffer_.size()
-                          << " tracks from event " << event_id_.unchecked_get()
-                          << " with Celeritas";
+    if (celeritas::device())
+    {
+        CELER_LOG_LOCAL(info)
+            << "Transporting " << buffer_.size() << " tracks from event "
+            << event_id_.unchecked_get() << " with Celeritas";
+    }
 
     if (dump_primaries_)
     {
@@ -253,10 +265,9 @@ auto LocalTransporter::GetActionTime() const -> MapStrReal
 
     MapStrReal result;
     auto const& action_seq = step_->actions();
-    if (action_seq.sync() || !celeritas::device())
+    if (action_seq.action_times())
     {
-        // Save kernel timing if either on the device with synchronization
-        // enabled or on the host
+        // Save kernel timing if synchronization is enabled
         auto const& action_ptrs = action_seq.actions();
         auto const& time = action_seq.accum_time();
 

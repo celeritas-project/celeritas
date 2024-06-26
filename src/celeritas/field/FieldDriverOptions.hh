@@ -61,6 +61,9 @@ struct FieldDriverOptions
     //! Maximum number of integrations (or trials)
     short int max_nsteps = 100;
 
+    //! Maximum number of substeps in the field propagator
+    short int max_substeps = 100;
+
     //! Initial step tolerance
     static constexpr inline real_type initial_step_tol = 1e-6;
 
@@ -84,7 +87,7 @@ struct FieldDriverOptions
 	       && (safety > 0 && safety < 1)
 	       && (max_stepping_increase > 1)
 	       && (max_stepping_decrease > 0 && max_stepping_decrease < 1)
-	       && (max_nsteps > 0);
+	       && (max_nsteps > 0) && (max_substeps > 0);
         // clang-format on
     }
 };
@@ -107,6 +110,7 @@ operator==(FieldDriverOptions const& a, FieldDriverOptions const& b)
            && a.max_stepping_increase == b.max_stepping_increase
            && a.max_stepping_decrease == b.max_stepping_decrease
            && a.max_nsteps == b.max_nsteps
+           && a.max_substeps == b.max_substeps
            && a.initial_step_tol == b.initial_step_tol
            && a.dchord_tol == b.dchord_tol
            && a.min_chord_shrink == b.min_chord_shrink;

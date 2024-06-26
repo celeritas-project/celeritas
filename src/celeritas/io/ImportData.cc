@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "ImportData.hh"
 
+#include <algorithm>
+
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/UnitTypes.hh"
@@ -26,8 +28,8 @@ void convert_to_native(ImportData* data)
     // Convert data
     if (data->units.empty())
     {
-        CELER_LOG(debug) << "Unit system missing from import data: assuming "
-                            "CGS";
+        CELER_LOG(warning) << "Unit system missing from import data: assuming "
+                              "CGS";
         data->units = to_cstring(UnitSystem::cgs);
     }
 
@@ -47,6 +49,37 @@ void convert_to_native(ImportData* data)
     convert(data);
 
     CELER_ENSURE(data->units == units::NativeTraits::label());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether an imported model of the given class is present.
+ */
+bool has_model(ImportData const& data, ImportModelClass model_class)
+{
+    for (ImportProcess const& process : data.processes)
+    {
+        for (ImportModel const& model : process.models)
+        {
+            if (model.model_class == model_class)
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether an imported MSC model of the given class is present.
+ */
+bool has_msc_model(ImportData const& data, ImportModelClass model_class)
+{
+    return std::any_of(
+        data.msc_models.begin(),
+        data.msc_models.end(),
+        [&](ImportMscModel const& m) { return m.model_class == model_class; });
 }
 
 //---------------------------------------------------------------------------//

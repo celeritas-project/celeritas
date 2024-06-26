@@ -329,22 +329,22 @@ TEST(IsVecEq, failures)
         IsVecEq("expectedddddddddd", "actualllllllllll", expected, actual));
 
     // multiple wrong values
-    expected.push_back(100.);
-    actual.push_back(102.);
+    expected.push_back(100);
+    actual.push_back(102);
     EXPECT_FALSE(IsVecEq("expected", "actual", expected, actual));
     EXPECT_FALSE(IsVecEq("static_array", "actual", static_array, actual));
 
     // Ten wrong values
-    expected.assign(10, 5.);
-    actual.assign(10, 6.);
+    expected.assign(10, 5);
+    actual.assign(10, 6);
     EXPECT_FALSE(IsVecEq("expected", "actual", expected, actual));
 
     // Uncomment this line to test output
     // EXPECT_VEC_EQ(expected, actual);
 
     // 100 wrong values (should truncate)
-    expected.assign(100, 5.);
-    actual.assign(100, 6.);
+    expected.assign(100, 5);
+    actual.assign(100, 6);
     EXPECT_FALSE(IsVecEq("expected", "actual", expected, actual));
 
     // A couple of wrong values in a large array

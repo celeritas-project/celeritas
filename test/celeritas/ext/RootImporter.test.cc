@@ -117,9 +117,9 @@ TEST_F(RootImporterTest, elements)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(RootImporterTest, materials)
+TEST_F(RootImporterTest, geo_materials)
 {
-    auto const& materials = this->imported_data().materials;
+    auto const& materials = this->imported_data().geo_materials;
     EXPECT_EQ(2, materials.size());
 
     std::vector<std::string> names;
@@ -128,8 +128,24 @@ TEST_F(RootImporterTest, materials)
         names.push_back(material.name);
     }
 
-    static char const* expected_names[] = {"G4_Galactic", "G4_STAINLESS-STEEL"};
+    static char const* expected_names[] = {"G4_STAINLESS-STEEL", "G4_Galactic"};
     EXPECT_VEC_EQ(expected_names, names);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(RootImporterTest, phys_materials)
+{
+    auto const& materials = this->imported_data().phys_materials;
+    EXPECT_EQ(2, materials.size());
+
+    std::vector<unsigned int> ids;
+    for (auto const& material : materials)
+    {
+        ids.push_back(material.geo_material_id);
+    }
+
+    static unsigned int const expected_ids[] = {1, 0};
+    EXPECT_VEC_EQ(expected_ids, ids);
 }
 
 //---------------------------------------------------------------------------//
@@ -167,7 +183,7 @@ TEST_F(RootImporterTest, volumes)
 
     for (auto const& volume : volumes)
     {
-        material_ids.push_back(volume.material_id);
+        material_ids.push_back(volume.phys_material_id);
         names.push_back(volume.name);
         solids.push_back(volume.solid_name);
     }

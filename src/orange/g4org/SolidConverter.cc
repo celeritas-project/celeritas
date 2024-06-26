@@ -53,6 +53,7 @@
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "orange/orangeinp/CsgObject.hh"
+#include "orange/orangeinp/PolySolid.hh"
 #include "orange/orangeinp/Shape.hh"
 #include "orange/orangeinp/Solid.hh"
 #include "orange/orangeinp/Transformed.hh"
@@ -75,10 +76,25 @@ namespace
  * This internally converts from native Geant4 radians.
  */
 template<class S>
-SolidEnclosedAngle get_azimuthal_wedge(S const& solid)
+SolidEnclosedAngle make_wedge_azimuthal(S const& solid)
 {
     return SolidEnclosedAngle{native_value_to<Turn>(solid.GetStartPhiAngle()),
                               native_value_to<Turn>(solid.GetDeltaPhiAngle())};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the enclosed azimuthal angle by a "poly" solid.
+ *
+ * Geant4 uses different function names for polycone, generic polycone, and
+ * polyhedra...
+ */
+template<class S>
+SolidEnclosedAngle make_wedge_azimuthal_poly(S const& solid)
+{
+    auto start = native_value_to<Turn>(solid.GetStartPhi());
+    auto stop = native_value_to<Turn>(solid.GetEndPhi());
+    return SolidEnclosedAngle{start, stop - start};
 }
 
 //---------------------------------------------------------------------------//
@@ -88,7 +104,7 @@ SolidEnclosedAngle get_azimuthal_wedge(S const& solid)
  * This internally converts from native Geant4 radians.
  */
 template<class S>
-SolidEnclosedAngle get_polar_wedge(S const& solid)
+SolidEnclosedAngle make_wedge_polar(S const& solid)
 {
     return SolidEnclosedAngle{
         native_value_to<Turn>(solid.GetStartThetaAngle()),
@@ -114,9 +130,8 @@ SolidEnclosedAngle get_polar_wedge(S const& solid)
     CELER_EXPECT(
         is_soft_unit_vector(Array<double, 3>{axis.x(), axis.y(), axis.z()}));
 
-    double const theta = 1 / std::cos(axis.z());
-    double const phi = std::atan2(axis.x() / axis.z(), axis.y() / axis.z());
-
+    double const theta = std::acos(axis.z());
+    double const phi = std::atan2(axis.y(), axis.x());
     return {native_value_to<Turn>(theta), native_value_to<Turn>(phi)};
 }
 
@@ -148,10 +163,21 @@ auto calculate_theta_phi(S const& solid) -> std::pair<Turn, Turn>
  * Construct a shape using the solid's name and forwarded arguments.
  */
 template<class CR, class... Args>
+auto make_shape(std::string&& name, Args&&... args)
+{
+    return std::make_shared<Shape<CR>>(std::move(name),
+                                       CR{std::forward<Args>(args)...});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a shape using the solid's name and forwarded arguments.
+ */
+template<class CR, class... Args>
 auto make_shape(G4VSolid const& solid, Args&&... args)
 {
-    return std::make_shared<Shape<CR>>(std::string{solid.GetName()},
-                                       CR{std::forward<Args>(args)...});
+    return make_shape<CR>(std::string{solid.GetName()},
+                          std::forward<Args>(args)...);
 }
 
 //---------------------------------------------------------------------------//
@@ -168,6 +194,13 @@ auto make_solid(G4VSolid const& solid,
                                std::move(interior),
                                std::move(excluded),
                                std::move(enclosed));
+}
+
+//---------------------------------------------------------------------------//
+template<class Container>
+bool any_positive(Container const& c)
+{
+    return std::any_of(c.begin(), c.end(), [](auto r) { return r > 0; });
 }
 
 //---------------------------------------------------------------------------//
@@ -287,28 +320,14 @@ auto SolidConverter::cons(arg_type solid_base) -> result_type
                                                 solid.GetInnerRadiusPlusZ());
     auto hh = scale_(solid.GetZHalfLength());
 
-    if (outer_r[0] == outer_r[1])
-    {
-        std::optional<Cylinder> inner;
-        if (inner_r[0] || inner_r[1])
-        {
-            inner = Cylinder{inner_r[0], hh};
-        }
-
-        return make_solid(solid,
-                          Cylinder{outer_r[0], hh},
-                          std::move(inner),
-                          get_azimuthal_wedge(solid));
-    }
-
     std::optional<Cone> inner;
-    if (inner_r[0] || inner_r[1])
+    if (any_positive(inner_r))
     {
         inner = Cone{inner_r, hh};
     }
 
     return make_solid(
-        solid, Cone{outer_r, hh}, std::move(inner), get_azimuthal_wedge(solid));
+        solid, Cone{outer_r, hh}, std::move(inner), make_wedge_azimuthal(solid));
 }
 
 //---------------------------------------------------------------------------//
@@ -329,8 +348,9 @@ auto SolidConverter::displaced(arg_type solid_base) -> result_type
     CELER_ASSERT(g4daughter);
     auto daughter = (*this)(*g4daughter);
 
-    // Note that GetDirectTransform is the combination of GetFrameTranslation
-    // and GetFrameRotation .
+    // Note that GetDirectTransform is an affine transform that combines the
+    // daughter-to-parent ("object") translation with an inverted
+    // [parent-to-daughter, "frame"] rotation
     return std::make_shared<Transformed>(
         daughter, transform_(solid.GetDirectTransform()));
 }
@@ -470,31 +490,16 @@ auto SolidConverter::polycone(arg_type solid_base) -> result_type
         rmax[i] = scale_(params.Rmax[i]);
     }
 
-    if (zs.size() == 2 && rmin[0] == 0 && rmin[1] == 0)
+    if (!any_positive(rmin))
     {
-        // Special case: displaced cone/cylinder
-        double const hh = (zs[1] - zs[0]) / 2;
-        result_type result;
-        if (rmax[0] == rmax[1])
-        {
-            // Cylinder is a special case
-            result = make_shape<Cylinder>(solid, rmax[0], hh);
-        }
-        else
-        {
-            result = make_shape<Cone>(solid, Cone::Real2{rmax[0], rmin[1]}, hh);
-        }
-
-        double dz = (zs[1] + zs[0]) / 2;
-        if (dz != 0)
-        {
-            result = std::make_shared<Transformed>(std::move(result),
-                                                   Translation{{0, 0, dz}});
-        }
-        return result;
+        // No interior shape
+        rmin.clear();
     }
 
-    CELER_NOT_IMPLEMENTED("polycone");
+    return PolyCone::or_solid(
+        std::string{solid.GetName()},
+        PolySegments{std::move(rmin), std::move(rmax), std::move(zs)},
+        make_wedge_azimuthal_poly(solid));
 }
 
 //---------------------------------------------------------------------------//
@@ -504,9 +509,8 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
     auto const& solid = dynamic_cast<G4Polyhedra const&>(solid_base);
     auto const& params = *solid.GetOriginalParameters();
 
-    // Opening angle: end - start phi
-    double const radius_factor
-        = std::cos(0.5 * params.Opening_angle / params.numSide);
+    // Convert from circumradius to apothem
+    double const radius_factor = std::cos(m_pi / params.numSide);
 
     std::vector<double> zs(params.Num_z_planes);
     std::vector<double> rmin(zs.size());
@@ -518,36 +522,22 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
         rmax[i] = scale_(params.Rmax[i]) * radius_factor;
     }
 
-    auto startphi = native_value_to<Turn>(solid.GetStartPhi());
-    SolidEnclosedAngle angle(
-        startphi, native_value_to<Turn>(solid.GetEndPhi()) - startphi);
-
-    if (zs.size() == 2 && rmin[0] == rmin[1] && rmax[0] == rmax[1])
+    if (!any_positive(rmin))
     {
-        // A solid prism
-        double const hh = (zs[1] - zs[0]) / 2;
-        double const orientation
-            = std::fmod(params.numSide * startphi.value(), real_type{1});
-
-        if (rmin[0] != 0.0 || angle)
-        {
-            CELER_NOT_IMPLEMENTED("prism solid");
-        }
-
-        result_type result = make_shape<Prism>(
-            solid, params.numSide, rmax[0], hh, orientation);
-
-        double dz = (zs[1] + zs[0]) / 2;
-        if (dz != 0)
-        {
-            result = std::make_shared<Transformed>(
-                std::move(result), Translation{{0, 0, zs[0] - hh}});
-        }
-
-        return result;
+        // No interior shape
+        rmin.clear();
     }
 
-    CELER_NOT_IMPLEMENTED("polyhedra");
+    auto angle = make_wedge_azimuthal_poly(solid);
+    double const orientation
+        = std::fmod(params.numSide * angle.start().value(), real_type{1});
+
+    return PolyPrism::or_solid(
+        std::string{solid.GetName()},
+        PolySegments{std::move(rmin), std::move(rmax), std::move(zs)},
+        std::move(angle),
+        params.numSide,
+        orientation);
 }
 
 //---------------------------------------------------------------------------//
@@ -570,7 +560,7 @@ auto SolidConverter::sphere(arg_type solid_base) -> result_type
         inner = Sphere{scale_(inner_r)};
     }
 
-    auto polar_wedge = get_polar_wedge(solid);
+    auto polar_wedge = make_wedge_polar(solid);
     if (!soft_equal(value_as<Turn>(polar_wedge.interior()), 0.5))
     {
         CELER_NOT_IMPLEMENTED("sphere with polar limits");
@@ -579,7 +569,7 @@ auto SolidConverter::sphere(arg_type solid_base) -> result_type
     return make_solid(solid,
                       Sphere{scale_(solid.GetOuterRadius())},
                       std::move(inner),
-                      get_azimuthal_wedge(solid));
+                      make_wedge_azimuthal(solid));
 }
 
 //---------------------------------------------------------------------------//
@@ -650,13 +640,13 @@ auto SolidConverter::trap(arg_type solid_base) -> result_type
     lo.hy = scale_(solid.GetYHalfLength1());
     lo.hx_lo = scale_(solid.GetXHalfLength1());
     lo.hx_hi = scale_(solid.GetXHalfLength2());
-    lo.tan_alpha = alpha_1;
+    lo.alpha = native_value_to<Turn>(alpha_1);
 
     GenTrap::TrapFace hi;
     hi.hy = scale_(solid.GetYHalfLength2());
     hi.hx_lo = scale_(solid.GetXHalfLength3());
     hi.hx_hi = scale_(solid.GetXHalfLength4());
-    hi.tan_alpha = alpha_2;
+    hi.alpha = native_value_to<Turn>(alpha_2);
 
     return make_shape<GenTrap>(solid,
                                GenTrap::from_trap(hz, theta, phi, lo, hi));
@@ -694,7 +684,7 @@ auto SolidConverter::tubs(arg_type solid_base) -> result_type
     return make_solid(solid,
                       Cylinder{scale_(solid.GetOuterRadius()), hh},
                       std::move(inner),
-                      get_azimuthal_wedge(solid));
+                      make_wedge_azimuthal(solid));
 }
 
 //---------------------------------------------------------------------------//

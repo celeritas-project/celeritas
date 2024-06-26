@@ -23,7 +23,6 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/params/detail/MscParamsHelper.hh"
 #include "celeritas/grid/PolyEvaluator.hh"
-#include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -43,10 +42,7 @@ UrbanMscParams::from_import(ParticleParams const& particles,
                             MaterialParams const& materials,
                             ImportData const& data)
 {
-    auto is_urban = [](ImportMscModel const& imm) {
-        return imm.model_class == ImportModelClass::urban_msc;
-    };
-    if (!std::any_of(data.msc_models.begin(), data.msc_models.end(), is_urban))
+    if (!has_msc_model(data, ImportModelClass::urban_msc))
     {
         // No Urban MSC present
         return nullptr;
@@ -70,7 +66,7 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
     HostVal<UrbanMscData> host_data;
 
     detail::MscParamsHelper helper(
-        particles, materials, mdata_vec, ImportModelClass::urban_msc);
+        particles, mdata_vec, ImportModelClass::urban_msc);
     helper.build_ids(&host_data.ids);
     helper.build_xs(&host_data.xs, &host_data.reals);
 
@@ -128,11 +124,11 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
         }
     }
 
-    // Save high/low energy limits
-    XsCalculator calc_xs(host_data.xs[ItemId<XsGridData>(0)],
-                         make_const_ref(host_data).reals);
-    host_data.params.low_energy_limit = calc_xs.energy_min();
-    host_data.params.high_energy_limit = calc_xs.energy_max();
+    // Get the cross section energy grid limits (this checks that the limits
+    // are the same for all particles/materials)
+    auto energy_limit = helper.energy_grid_bounds();
+    host_data.params.low_energy_limit = energy_limit[0];
+    host_data.params.high_energy_limit = energy_limit[1];
 
     CELER_ASSERT(host_data);
 

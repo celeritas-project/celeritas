@@ -1,0 +1,156 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
+  "configurePresets": [
+    {
+      "name": ".cuda-hopper",
+      "hidden": true,
+      "description": "Options to enable CUDA for Hopper architecture GPUs, requires CUDA 11.8+",
+      "cacheVariables": {
+        "CELERITAS_USE_CUDA":       {"type": "BOOL",   "value": "ON"},
+        "CELERITAS_USE_HIP":        {"type": "BOOL",   "value": "OFF"},
+        "CMAKE_CUDA_ARCHITECTURES": {"type": "STRING", "value": "90"}
+      }
+    },
+    {
+      "name": ".vg",
+      "hidden": true,
+      "description": "Options to use VecGeom not Orange",
+      "cacheVariables": {
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
+      }
+    },
+    {
+      "name": ".novg",
+      "hidden": true,
+      "description": "Options to use Orange not VecGeom",
+      "cacheVariables": {
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": ".gpudebug",
+      "hidden": true,
+      "inherits": [".debug"],
+      "description": "Enable GPU debug symbols (mutually exclusive with -lineinfo)",
+      "cacheVariables": {
+        "CMAKE_CUDA_FLAGS_DEBUG": "-O0 -g -DNDEBUG -G"
+      }
+    },
+    {
+      "name": ".ndebug-lineinfo",
+      "hidden": true,
+      "description": ".ndebug but without overwriting CMAKE_CXX_FLAGS_RELEASE to allow -lineinfo",
+      "cacheVariables": {
+        "CELERITAS_DEBUG":  {"type": "BOOL",   "value": "OFF"},
+        "CMAKE_BUILD_TYPE": {"type": "STRING", "value": "Release"}
+      }
+    },
+    {
+      "name": ".base",
+      "description": "Preset for GH200 480GB nodes in N8 CIR Bede (UK Tier 2 HPC), including psABI warning suppression.",
+      "hidden": true,
+      "inherits": [".vg", ".cuda-hopper", "full"],
+      "binaryDir": "${sourceDir}/build-${presetName}",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS":             {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_DOCS":          {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP":          {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_Geant4":          {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HepMC3":          {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_MPI":             {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT":            {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_SWIG":            {"type": "BOOL", "value": "OFF"},
+        "CMAKE_CXX_STANDARD":            {"type": "STRING", "value": "17"},
+        "CMAKE_CXX_EXTENSIONS":          {"type": "BOOL", "value": "OFF"},
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"},
+        "CMAKE_INSTALL_PREFIX":            "${sourceDir}/install-${presetName}",
+        "CMAKE_CXX_FLAGS_RELEASE":         "-O3 -DNDEBUG",
+        "CMAKE_CUDA_FLAGS_RELEASE":        "-O3 -DNDEBUG -lineinfo",
+        "CMAKE_CXX_FLAGS_RELWITHDEBINFO":  "-O2 -g -DNDEBUG",
+        "CMAKE_CUDA_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -lineinfo",
+        "CMAKE_CXX_FLAGS_MINSIZEREL":      "-Os -DNDEBUG",
+        "CMAKE_CUDA_FLAGS_MINSIZEREL":     "-Os -DNDEBUG -lineinfo",
+        "CMAKE_CXX_FLAGS_DEBUG":           "-O0 -g -DNDEBUG",
+        "CMAKE_CUDA_FLAGS_DEBUG":          "-O0 -g -DNDEBUG -lineinfo",
+        "CMAKE_CXX_FLAGS":                 "-Wall -Wextra -Wno-psabi -mcpu=native",
+        "CMAKE_CUDA_FLAGS":                "-Xcompiler -Wno-psabi -Xcompiler -mcpu=native"
+      }
+    },
+    {
+      "name": "base",
+      "displayName": "Bede GH200 host debug build (vecgeom)",
+      "inherits": [".vg", ".debug", ".base"],
+      "binaryDir": "${sourceDir}/build"
+    },
+    {
+      "name": "base-novg",
+      "displayName": "Bede GH200 host debug build (orange)",
+      "inherits": [".novg", ".debug", ".base"],
+      "binaryDir": "${sourceDir}/build-novg"
+    },
+    {
+      "name": "gpudebug",
+      "displayName": "Bede GH200 device debug build (vecgeom)",
+      "inherits": [".vg", ".gpudebug", ".base"]
+    },
+    {
+      "name": "gpudebug-novg",
+      "displayName": "Bede GH200 device debug build (orange)",
+      "inherits": [".novg", ".gpudebug", ".base"]
+    },
+    {
+      "name": "reldeb",
+      "displayName": "Bede GH200 optimised with debug symbols (vecgeom)",
+      "inherits": [".vg", ".reldeb", ".base"]
+    },
+    {
+      "name": "reldeb-novg",
+      "displayName": "Bede GH200 optimised with debug symbols (orange)",
+      "inherits": [".novg", ".reldeb", ".base"]
+    },
+    {
+      "name": "ndebug",
+      "displayName": "Bede GH200 optimised build (vecgeom)" ,
+      "inherits": [".vg", ".ndebug-lineinfo", ".base"]
+    },
+    {
+      "name": "ndebug-novg",
+      "displayName": "Bede GH200 optimised build (orange)",
+      "inherits": [".novg", ".ndebug-lineinfo", ".base"]
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": ".base",
+      "hidden": true,
+      "jobs": 4,
+      "nativeToolOptions": ["-k0"]
+    },
+    {"name": "base", "configurePreset": "base", "inherits": ".base"},
+    {"name": "base-novg", "configurePreset": "base-novg", "inherits": ".base"},
+    {"name": "gpudebug", "configurePreset": "gpudebug", "inherits": ".base"},
+    {"name": "gpudebug-novg", "configurePreset": "gpudebug-novg", "inherits": ".base"},
+    {"name": "ndebug", "configurePreset": "ndebug", "inherits": ".base"},
+    {"name": "ndebug-novg", "configurePreset": "ndebug-novg", "inherits": ".base"},
+    {"name": "reldeb", "configurePreset": "reldeb", "inherits": ".base"},
+    {"name": "reldeb-novg", "configurePreset": "reldeb-novg", "inherits": ".base"}
+  ],
+  "testPresets": [
+    {
+      "name": ".base",
+      "hidden": true,
+      "output": {"outputOnFailure": true},
+      "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 4}
+    },
+    {"name": "base", "configurePreset": "base", "inherits": ".base"},
+    {"name": "base-novg", "configurePreset": "base-novg", "inherits": ".base"},
+    {"name": "gpudebug", "configurePreset": "gpudebug", "inherits": ".base"},
+    {"name": "gpudebug-novg", "configurePreset": "gpudebug-novg", "inherits": ".base"},
+    {"name": "ndebug", "configurePreset": "ndebug", "inherits": ".base"},
+    {"name": "ndebug-novg", "configurePreset": "ndebug-novg", "inherits": ".base"},
+    {"name": "reldeb", "configurePreset": "reldeb", "inherits": ".base"},
+    {"name": "reldeb-novg", "configurePreset": "reldeb-novg", "inherits": ".base"}
+  ]
+}

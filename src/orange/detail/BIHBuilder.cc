@@ -18,47 +18,57 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from a Storage object
+ * Construct from a Storage object.
  */
-BIHBuilder::BIHBuilder(Storage* storage) : storage_(storage)
+BIHBuilder::BIHBuilder(Storage* storage)
+    : bboxes_{&storage->bboxes}
+    , local_volume_ids_{&storage->local_volume_ids}
+    , inner_nodes_{&storage->inner_nodes}
+    , leaf_nodes_{&storage->leaf_nodes}
 {
-    CELER_EXPECT(storage_);
+    CELER_EXPECT(storage);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Create BIH Nodes.
  */
-BIHTree BIHBuilder::operator()(VecBBox bboxes)
+BIHTree BIHBuilder::operator()(VecBBox&& bboxes)
 {
     CELER_EXPECT(!bboxes.empty());
 
     // Store bounding boxes and their corresponding centers
-    bboxes_ = std::move(bboxes);
-    centers_.resize(bboxes_.size());
-    std::transform(bboxes_.begin(),
-                   bboxes_.end(),
-                   centers_.begin(),
+    temp_.bboxes = std::move(bboxes);
+    temp_.centers.resize(temp_.bboxes.size());
+    std::transform(temp_.bboxes.begin(),
+                   temp_.bboxes.end(),
+                   temp_.centers.begin(),
                    &celeritas::calc_center<fast_real_type>);
 
     // Separate infinite bounding boxes from finite
     VecIndices indices;
     VecIndices inf_volids;
-    for (auto i : range(bboxes_.size()))
+    for (auto i : range(temp_.bboxes.size()))
     {
         LocalVolumeId id(i);
 
-        if (!bboxes_[i])
+        if (!temp_.bboxes[i])
         {
             // Null bbox (background volume) is unreachable by volume
             // initialization
         }
-        else if (is_infinite(bboxes_[i]))
+        else if (is_infinite(temp_.bboxes[i]))
         {
+            // Infinite in *every* direction
+            // TODO: make an exception for "EXTERIOR" volume and remove the
+            // "infinite volume" exceptions?
             inf_volids.push_back(id);
         }
         else
         {
+            // Prohibit semi-infinite bounding boxes because those break the
+            // cost function
+            CELER_ASSERT(is_finite(temp_.bboxes[i]));
             indices.push_back(id);
         }
     }
@@ -66,11 +76,10 @@ BIHTree BIHBuilder::operator()(VecBBox bboxes)
     BIHTree tree;
 
     tree.bboxes = ItemMap<LocalVolumeId, FastBBoxId>(
-        make_builder(&storage_->bboxes)
-            .insert_back(bboxes_.begin(), bboxes_.end()));
+        bboxes_.insert_back(temp_.bboxes.begin(), temp_.bboxes.end()));
 
-    tree.inf_volids = make_builder(&storage_->local_volume_ids)
-                          .insert_back(inf_volids.begin(), inf_volids.end());
+    tree.inf_volids
+        = local_volume_ids_.insert_back(inf_volids.begin(), inf_volids.end());
 
     if (!indices.empty())
     {
@@ -79,22 +88,19 @@ BIHTree BIHBuilder::operator()(VecBBox bboxes)
         auto [inner_nodes, leaf_nodes] = this->arrange_nodes(std::move(nodes));
 
         tree.inner_nodes
-            = make_builder(&storage_->inner_nodes)
-                  .insert_back(inner_nodes.begin(), inner_nodes.end());
+            = inner_nodes_.insert_back(inner_nodes.begin(), inner_nodes.end());
 
         tree.leaf_nodes
-            = make_builder(&storage_->leaf_nodes)
-                  .insert_back(leaf_nodes.begin(), leaf_nodes.end());
+            = leaf_nodes_.insert_back(leaf_nodes.begin(), leaf_nodes.end());
     }
     else
     {
         // Degenerate case where all bounding boxes are infinite. Create a
         // single empty leaf node, so that the existence of leaf nodes does not
         // need to be checked at runtime.
-        VecLeafNodes leaf_nodes{1};
-        tree.leaf_nodes
-            = make_builder(&storage_->leaf_nodes)
-                  .insert_back(leaf_nodes.begin(), leaf_nodes.end());
+        BIHLeafNode const empty_nodes[] = {{}};
+        tree.leaf_nodes = leaf_nodes_.insert_back(std::begin(empty_nodes),
+                                                  std::end(empty_nodes));
     }
 
     return tree;
@@ -108,14 +114,14 @@ BIHTree BIHBuilder::operator()(VecBBox bboxes)
  */
 void BIHBuilder::construct_tree(VecIndices const& indices,
                                 VecNodes* nodes,
-                                BIHNodeId parent) const
+                                BIHNodeId parent)
 {
     using Edge = BIHInnerNode::Edge;
 
     auto current_index = nodes->size();
     nodes->resize(nodes->size() + 1);
 
-    BIHPartitioner partition(&bboxes_, &centers_);
+    BIHPartitioner partition(&temp_.bboxes, &temp_.centers);
 
     if (auto p = partition(indices))
     {
@@ -145,8 +151,8 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
     {
         BIHLeafNode node;
         node.parent = parent;
-        node.vol_ids = make_builder(&storage_->local_volume_ids)
-                           .insert_back(indices.begin(), indices.end());
+        node.vol_ids
+            = local_volume_ids_.insert_back(indices.begin(), indices.end());
 
         CELER_EXPECT(node);
         (*nodes)[current_index] = node;
@@ -157,7 +163,7 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
 /*!
  * Separate inner nodes from leaf nodes and renumber accordingly.
  */
-BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes nodes) const
+BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes const& nodes) const
 {
     VecInnerNodes inner_nodes;
     VecLeafNodes leaf_nodes;

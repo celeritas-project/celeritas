@@ -12,12 +12,12 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "corecel/grid/VectorUtils.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/GenericGridBuilder.hh"
 #include "celeritas/grid/GenericGridData.hh"
-#include "celeritas/grid/VectorUtils.hh"
 #include "celeritas/io/ImportData.hh"
 
 namespace celeritas

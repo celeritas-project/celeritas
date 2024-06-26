@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <set>
 #include <G4Track.hh>
+#include <nlohmann/json.hpp>
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
@@ -18,10 +19,6 @@
 #include "geocel/GeantUtils.hh"
 
 #include "ExceptionConverter.hh"
-
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-#endif
 
 namespace celeritas
 {
@@ -47,7 +44,6 @@ GeantStepDiagnostic::GeantStepDiagnostic(size_type num_bins,
  */
 void GeantStepDiagnostic::output(JsonPimpl* j) const
 {
-#if CELERITAS_USE_JSON
     using json = nlohmann::json;
 
     auto obj = json::object();
@@ -57,9 +53,6 @@ void GeantStepDiagnostic::output(JsonPimpl* j) const
     obj["_index"] = {"particle", "num_steps"};
 
     j->obj = std::move(obj);
-#else
-    CELER_DISCARD(j);
-#endif
 }
 
 //---------------------------------------------------------------------------//

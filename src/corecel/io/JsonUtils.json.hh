@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string_view>
 #include <nlohmann/json.hpp>
 
 //---------------------------------------------------------------------------//
@@ -90,8 +91,14 @@ void warn_deprecated_json_option(char const* old_name, char const* new_name);
 // Save a format and version marker
 void save_format(nlohmann::json& j, std::string const& format);
 
+// Save units
+void save_units(nlohmann::json& j);
+
 // Load and check for a format and compatible version marker
-void check_format(nlohmann::json const& j, std::string const& format);
+void check_format(nlohmann::json const& j, std::string_view format);
+
+// Check units for consistency
+void check_units(nlohmann::json const& j, std::string_view format);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

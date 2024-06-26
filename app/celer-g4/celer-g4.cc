@@ -29,13 +29,9 @@
 #    include <G4GlobalConfig.hh>
 #endif
 
+#include <nlohmann/json.hpp>
+
 #include "celeritas_config.h"
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-
-#    include "RunInputIO.json.hh"
-#endif
-
 #include "celeritas_version.h"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
@@ -55,13 +51,15 @@
 #include "geocel/ScopedGeantLogger.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
-#include "celeritas/ext/detail/GeantPhysicsList.hh"
+#include "celeritas/ext/detail/CelerEmPhysicsList.hh"
+#include "celeritas/ext/detail/CelerFTFPBert.hh"
 #include "accel/SharedParams.hh"
 
 #include "ActionInitialization.hh"
 #include "DetectorConstruction.hh"
 #include "GlobalSetup.hh"
 #include "LocalLogger.hh"
+#include "RunInputIO.json.hh"
 
 using namespace std::literals::string_view_literals;
 
@@ -171,29 +169,35 @@ void run(int argc, char** argv, std::shared_ptr<SharedParams> params)
     }
     setup.SetIgnoreProcesses(ignore_processes);
 
-    // Construct geometry, SD factory, physics, actions
+    // Construct geometry and SD factory
     run_manager->SetUserInitialization(new DetectorConstruction{params});
-    switch (setup.input().physics_list)
+
+    // Construct physics
+    if (setup.input().physics_list == PhysicsListSelection::ftfp_bert)
     {
-        case PhysicsListSelection::ftfp_bert: {
-            run_manager->SetUserInitialization(
-                new FTFP_BERT{/* verbosity = */ 0});
-            break;
+        auto pl = std::make_unique<FTFP_BERT>(/* verbosity = */ 0);
+        run_manager->SetUserInitialization(pl.release());
+    }
+    else
+    {
+        auto opts = setup.GetPhysicsOptions();
+        if (std::find(ignore_processes.begin(), ignore_processes.end(), "Rayl")
+            != ignore_processes.end())
+        {
+            opts.rayleigh_scattering = false;
         }
-        case PhysicsListSelection::geant_physics_list: {
-            auto opts = setup.GetPhysicsOptions();
-            if (std::find(
-                    ignore_processes.begin(), ignore_processes.end(), "Rayl")
-                != ignore_processes.end())
-            {
-                opts.rayleigh_scattering = false;
-            }
-            run_manager->SetUserInitialization(
-                new detail::GeantPhysicsList{opts});
-            break;
+        if (setup.input().physics_list == PhysicsListSelection::celer_ftfp_bert)
+        {
+            // FTFP BERT with Celeritas EM standard physics
+            auto pl = std::make_unique<detail::CelerFTFPBert>(opts);
+            run_manager->SetUserInitialization(pl.release());
         }
-        default:
-            CELER_ASSERT_UNREACHABLE();
+        else
+        {
+            // Celeritas EM standard physics only
+            auto pl = std::make_unique<detail::CelerEmPhysicsList>(opts);
+            run_manager->SetUserInitialization(pl.release());
+        }
     }
 
     // Create action initializer
@@ -267,15 +271,9 @@ int main(int argc, char* argv[])
     }
     if (filename == "--dump-default"sv)
     {
-#if CELERITAS_USE_JSON
         std::cout << nlohmann::json(celeritas::app::RunInput{}).dump(1)
                   << std::endl;
         return EXIT_SUCCESS;
-#else
-        CELER_LOG(critical) << "JSON is not enabled in this build of "
-                               "Celeritas";
-        return EXIT_FAILURE;
-#endif
     }
     if (celeritas::starts_with(filename, "--"))
     {

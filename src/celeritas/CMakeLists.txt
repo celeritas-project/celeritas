@@ -5,7 +5,7 @@
 #-----------------------------------------------------------------------------#
 
 set(SOURCES)
-set(PRIVATE_DEPS Celeritas::DeviceToolkit)
+set(PRIVATE_DEPS Celeritas::DeviceToolkit nlohmann_json::nlohmann_json)
 set(PUBLIC_DEPS Celeritas::corecel Celeritas::geocel)
 
 #-----------------------------------------------------------------------------#
@@ -18,6 +18,7 @@ list(APPEND SOURCES
   em/params/AtomicRelaxationParams.cc
   em/params/FluctuationParams.cc
   em/params/UrbanMscParams.cc
+  em/params/WentzelOKVIParams.cc
   em/params/WentzelVIMscParams.cc
   em/params/detail/MscParamsHelper.cc
   em/process/BremsstrahlungProcess.cc
@@ -29,7 +30,10 @@ list(APPEND SOURCES
   em/process/PhotoelectricProcess.cc
   em/process/RayleighProcess.cc
   ext/GeantPhysicsOptions.cc
+  ext/GeantPhysicsOptionsIO.json.cc
   field/FieldDriverOptions.cc
+  field/FieldDriverOptionsIO.json.cc
+  field/RZMapFieldInputIO.json.cc
   field/RZMapFieldParams.cc
   geo/GeoMaterialParams.cc
   global/ActionInterface.cc
@@ -47,7 +51,6 @@ list(APPEND SOURCES
   grid/ValueGridBuilder.cc
   grid/ValueGridInserter.cc
   grid/ValueGridType.cc
-  grid/VectorUtils.cc
   io/AtomicRelaxationReader.cc
   io/ImportData.cc
   io/ImportMaterial.cc
@@ -64,15 +67,18 @@ list(APPEND SOURCES
   mat/MaterialParams.cc
   mat/MaterialParamsOutput.cc
   mat/detail/Utils.cc
+  neutron/model/CascadeOptions.cc
+  neutron/model/CascadeOptionsIO.json.cc
   neutron/process/NeutronElasticProcess.cc
   neutron/process/NeutronInelasticProcess.cc
   optical/CerenkovParams.cc
   optical/ImportedOpticalProcessAdapter.cc
   optical/OpticalPhysicsParams.cc
-  optical/ScintillationParams.cc
   optical/OpticalCollector.cc
   optical/OpticalPropertyParams.cc
   optical/OpticalTrackData.cc
+  optical/ScintillationParams.cc
+  optical/detail/OpticalGenParams.cc
   phys/CutoffParams.cc
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc
@@ -82,6 +88,7 @@ list(APPEND SOURCES
   phys/PhysicsParamsOutput.cc
   phys/PrimaryGenerator.cc
   phys/PrimaryGeneratorOptions.cc
+  phys/PrimaryGeneratorOptionsIO.json.cc
   phys/Process.cc
   phys/ProcessBuilder.cc
   random/CuHipRngData.cc
@@ -91,8 +98,9 @@ list(APPEND SOURCES
   track/SimParams.cc
   track/SortTracksAction.cc
   track/TrackInitParams.cc
-  user/ParticleTallyData.cc
   user/DetectorSteps.cc
+  user/ParticleTallyData.cc
+  user/RootStepWriterIO.json.cc
   user/SimpleCalo.cc
   user/SimpleCaloData.cc
   user/StepCollector.cc
@@ -118,11 +126,14 @@ if(CELERITAS_USE_Geant4)
     ext/GeantImporter.cc
     ext/GeantSetup.cc
     ext/GeantVolumeMapper.cc
+    ext/detail/CelerEmPhysicsList.cc
+    ext/detail/CelerEmStandardPhysics.cc
+    ext/detail/CelerFTFPBert.cc
     ext/detail/GeantBremsstrahlungProcess.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
-    ext/detail/GeantPhysicsList.cc
     ext/detail/GeantProcessImporter.cc
+    ext/detail/MuHadEmStandardPhysics.cc
   )
   celeritas_get_g4libs(_cg4_libs global geometry materials processes run
     physicslists tasking)
@@ -145,17 +156,6 @@ if(CELERITAS_USE_HepMC3)
   )
   list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_hepmc>)
   list(APPEND PRIVATE_DEPS celeritas_hepmc)
-endif()
-
-if(CELERITAS_USE_JSON)
-  list(APPEND SOURCES
-    ext/GeantPhysicsOptionsIO.json.cc
-    field/FieldDriverOptionsIO.json.cc
-    field/RZMapFieldInputIO.json.cc
-    phys/PrimaryGeneratorOptionsIO.json.cc
-    user/RootStepWriterIO.json.cc
-  )
-  list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()
 
 if(CELERITAS_USE_OpenMP)
@@ -199,9 +199,10 @@ if(CELERITAS_USE_ROOT)
     ext/ScopedRootErrorHandler.cc
     ext/RootUniquePtr.root.cc
     ext/RootFileManager.cc
-    user/RootStepWriter.cc
     io/RootEventReader.cc
     io/RootEventWriter.cc
+    phys/RootEventSampler.cc
+    user/RootStepWriter.cc
     "${CMAKE_CURRENT_BINARY_DIR}/CeleritasRootInterface.cxx"
   )
 
@@ -307,5 +308,3 @@ celeritas_target_link_libraries(celeritas
 )
 
 #-----------------------------------------------------------------------------#
-
-

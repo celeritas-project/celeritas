@@ -125,11 +125,7 @@ template<class T>
 void OutputInterfaceAdapter<T>::output(JsonPimpl* j) const
 {
     CELER_EXPECT(j);
-#if CELERITAS_USE_JSON
     to_json(j->obj, *obj_);
-#else
-    CELER_NOT_CONFIGURED("nlohmann_json");
-#endif
 }
 
 //---------------------------------------------------------------------------//

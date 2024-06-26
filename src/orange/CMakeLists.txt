@@ -5,7 +5,7 @@
 #-----------------------------------------------------------------------------#
 
 set(SOURCES)
-set(PRIVATE_DEPS Celeritas::geocel)
+set(PRIVATE_DEPS Celeritas::geocel nlohmann_json::nlohmann_json)
 set(PUBLIC_DEPS Celeritas::corecel)
 
 #-----------------------------------------------------------------------------#
@@ -15,38 +15,45 @@ set(PUBLIC_DEPS Celeritas::corecel)
 list(APPEND SOURCES
   BoundingBoxUtils.cc
   MatrixUtils.cc
+  OrangeInputIO.json.cc
   OrangeParams.cc
   OrangeParamsOutput.cc
   OrangeTypes.cc
   detail/BIHBuilder.cc
   detail/BIHPartitioner.cc
   detail/DepthCalculator.cc
+  detail/OrangeInputIOImpl.json.cc
   detail/RectArrayInserter.cc
   detail/SurfacesRecordBuilder.cc
   detail/UnitInserter.cc
   detail/UniverseInserter.cc
-  orangeinp/ConvexRegion.cc
-  orangeinp/ConvexSurfaceBuilder.cc
   orangeinp/CsgObject.cc
   orangeinp/CsgTree.cc
-  orangeinp/CsgTypes.cc
+  orangeinp/CsgTreeIO.json.cc
   orangeinp/CsgTreeUtils.cc
+  orangeinp/CsgTypes.cc
+  orangeinp/InputBuilder.cc
+  orangeinp/IntersectRegion.cc
+  orangeinp/IntersectSurfaceBuilder.cc
+  orangeinp/ObjectIO.json.cc
+  orangeinp/PolySolid.cc
   orangeinp/ProtoInterface.cc
   orangeinp/Shape.cc
   orangeinp/Solid.cc
   orangeinp/Transformed.cc
   orangeinp/UnitProto.cc
   orangeinp/detail/BoundingZone.cc
-  orangeinp/detail/BuildConvexRegion.cc
-  orangeinp/detail/ConvexSurfaceState.cc
+  orangeinp/detail/BuildIntersectRegion.cc
   orangeinp/detail/CsgUnitBuilder.cc
-  orangeinp/detail/InputBuilder.cc
   orangeinp/detail/InternalSurfaceFlagger.cc
+  orangeinp/detail/IntersectSurfaceState.cc
   orangeinp/detail/LocalSurfaceInserter.cc
   orangeinp/detail/NodeSimplifier.cc
   orangeinp/detail/PostfixLogicBuilder.cc
+  orangeinp/detail/ProtoBuilder.cc
   orangeinp/detail/ProtoMap.cc
   orangeinp/detail/SenseEvaluator.cc
+  orangeinp/detail/SurfaceGridHash.cc
   orangeinp/detail/TransformInserter.cc
   orangeinp/detail/VolumeBuilder.cc
   surf/ConeAligned.cc
@@ -56,14 +63,14 @@ list(APPEND SOURCES
   surf/Plane.cc
   surf/PlaneAligned.cc
   surf/SimpleQuadric.cc
-  surf/Sphere.cc
   surf/SoftSurfaceEqual.cc
+  surf/Sphere.cc
   surf/SurfaceClipper.cc
   surf/SurfaceIO.cc
   surf/SurfaceSimplifier.cc
   surf/VariantSurface.cc
-  surf/detail/SurfaceTranslator.cc
   surf/detail/SurfaceTransformer.cc
+  surf/detail/SurfaceTranslator.cc
   transform/SignedPermutation.cc
   transform/TransformHasher.cc
   transform/TransformIO.cc
@@ -72,15 +79,6 @@ list(APPEND SOURCES
   transform/VariantTransform.cc
 )
 
-if(CELERITAS_USE_JSON)
-  list(APPEND SOURCES
-    OrangeInputIO.json.cc
-    detail/OrangeInputIOImpl.json.cc
-    orangeinp/CsgTreeIO.json.cc
-    orangeinp/ObjectIO.json.cc
-  )
-  list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
-endif()
 
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   set( _cg4org_sources
@@ -90,7 +88,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
     g4org/ProtoConstructor.cc
     g4org/SolidConverter.cc
   )
-  celeritas_get_g4libs(_cg4org_libs geometry)
+  celeritas_get_g4libs(_cg4org_libs geometry materials)
   list(APPEND _cg4org_libs Celeritas::corecel Celeritas::geocel)
 
   celeritas_add_object_library(geocel_g4org ${_cg4org_sources})

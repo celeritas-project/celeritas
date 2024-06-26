@@ -11,6 +11,7 @@
 #include <utility>
 #include <G4GenericMessenger.hh>
 #include <G4UImanager.hh>
+#include <nlohmann/json.hpp>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
@@ -24,12 +25,7 @@
 
 #include "HepMC3PrimaryGeneratorAction.hh"
 #include "RootIO.hh"
-
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-
-#    include "RunInputIO.json.hh"
-#endif
+#include "RunInputIO.json.hh"
 
 namespace celeritas
 {
@@ -131,11 +127,7 @@ void GlobalSetup::ReadInput(std::string const& filename)
             instream = &std::cin;
         }
         CELER_ASSERT(instream);
-#if CELERITAS_USE_JSON
         nlohmann::json::parse(*instream).get_to(input_);
-#else
-        CELER_NOT_CONFIGURED("nlohmann_json");
-#endif
 
         // Output options
         options_->output_file = input_.output_file;
@@ -165,8 +157,10 @@ void GlobalSetup::ReadInput(std::string const& filename)
         options_->sd.enabled = input_.sd_type != SensitiveDetectorType::none;
         options_->cuda_stack_size = input_.cuda_stack_size;
         options_->cuda_heap_size = input_.cuda_heap_size;
-        options_->sync = input_.sync;
+        options_->action_times = input_.action_times;
         options_->default_stream = input_.default_stream;
+        options_->auto_flush = input_.auto_flush;
+        options_->max_field_substeps = input_.field_options.max_substeps;
     }
     else if (ends_with(filename, ".mac"))
     {
@@ -184,7 +178,7 @@ void GlobalSetup::ReadInput(std::string const& filename)
     }
 
     // Set the filename for JSON output
-    if (CELERITAS_USE_JSON && input_.output_file.empty())
+    if (input_.output_file.empty())
     {
         input_.output_file = "celer-g4.out.json";
         options_->output_file = input_.output_file;

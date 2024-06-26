@@ -54,20 +54,22 @@ struct ImportData
     //!@{
     //! \name Type aliases
     using ZInt = int;
-    using MatIdx = int;
+    using GeoMatIdx = int;
     using ImportSBMap = std::map<ZInt, ImportSBTable>;
     using ImportLivermorePEMap = std::map<ZInt, ImportLivermorePE>;
     using ImportAtomicRelaxationMap = std::map<ZInt, ImportAtomicRelaxation>;
     using ImportNeutronElasticMap = std::map<ZInt, ImportPhysicsVector>;
-    using ImportOpticalMap = std::map<MatIdx, ImportOpticalMaterial>;
+    using ImportOpticalMap = std::map<GeoMatIdx, ImportOpticalMaterial>;
     //!@}
 
     std::vector<ImportParticle> particles;
     std::vector<ImportIsotope> isotopes;
     std::vector<ImportElement> elements;
-    std::vector<ImportMaterial> materials;
+    std::vector<ImportGeoMaterial> geo_materials;
+    std::vector<ImportPhysMaterial> phys_materials;
     std::vector<ImportProcess> processes;
     std::vector<ImportMscModel> msc_models;
+    std::vector<ImportRegion> regions;
     std::vector<ImportVolume> volumes;
     ImportOpticalMap optical;
     ImportEmParameters em_params;
@@ -87,6 +89,12 @@ struct ImportData
 
 // Recursively convert imported data to the native unit type
 void convert_to_native(ImportData* data);
+
+// Whether an imported model of the given class is present
+bool has_model(ImportData const&, ImportModelClass);
+
+// Whether an imported MSC model of the given class is present
+bool has_msc_model(ImportData const&, ImportModelClass);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

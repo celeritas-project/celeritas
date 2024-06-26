@@ -8,10 +8,12 @@
 #include <string_view>
 #include <G4LogicalVolume.hh>
 
+#include "celeritas_cmake_strings.h"
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
+#include "corecel/sys/Version.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/g4/GeantGeoData.hh"
@@ -25,6 +27,13 @@ namespace celeritas
 {
 namespace test
 {
+namespace
+{
+auto const geant4_version = celeritas::Version::from_string(
+    CELERITAS_USE_GEANT4 ? celeritas_geant4_version : "0.0.0");
+
+}  // namespace
+
 //---------------------------------------------------------------------------//
 
 class GeantGeoTest : public GeantGeoTestBase
@@ -333,6 +342,9 @@ class SolidsTest : public GeantGeoTest
 
     SpanStringView expected_log_levels() const final
     {
+        if (geant4_version < Version{11})
+            return {};
+
         static std::string_view const levels[] = {"error"};
         return make_span(levels);
     }
@@ -363,7 +375,7 @@ TEST_F(SolidsTest, output)
     GeoParamsOutput out(this->geometry());
     EXPECT_EQ("geometry", out.label());
 
-    if (CELERITAS_USE_JSON && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
         EXPECT_JSON_EQ(
             R"json({"_category":"internal","_label":"geometry","bbox":[[-600.0,-300.0,-75.0],[600.0,300.0,75.0]],"supports_safety":true,"volumes":{"label":["","","","","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","","trd3_refl","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","trd3_refl"]}})json",
@@ -588,6 +600,178 @@ TEST_F(SolidsTest, reflected_vol)
     auto const& label = this->geometry()->id_to_label(geo.volume_id());
     EXPECT_EQ("trd3_refl", label.name);
     EXPECT_FALSE(ends_with(label.ext, "_refl"));
+}
+
+//---------------------------------------------------------------------------//
+class TilecalPlugTest : public GeantGeoTest
+{
+    std::string geometry_basename() const final { return "tilecal-plug"; }
+};
+
+TEST_F(TilecalPlugTest, trace)
+{
+    {
+        SCOPED_TRACE("+z");
+        auto result = this->track({5.75, 0.01, -40}, {0, 0, 1});
+        static char const* const expected_volumes[] = {"Tile_ITCModule",
+                                                       "Tile_Plug1Module",
+                                                       "Tile_Absorber",
+                                                       "Tile_Plug1Module"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {22.9425, 0.115, 42, 37};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+    {
+        SCOPED_TRACE("+z");
+        auto result = this->track({6.25, 0.01, -40}, {0, 0, 1});
+        static char const* const expected_volumes[]
+            = {"Tile_ITCModule", "Tile_Absorber", "Tile_Plug1Module"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {23.0575, 42, 37};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+}
+
+//---------------------------------------------------------------------------//
+class TransformedBoxTest : public GeantGeoTest
+{
+    std::string geometry_basename() const override
+    {
+        return "transformed-box";
+    }
+};
+
+TEST_F(TransformedBoxTest, trace)
+{
+    {
+        auto result = this->track({0, 0, -25}, {0, 0, 1});
+        static char const* const expected_volumes[] = {
+            "world",
+            "simple",
+            "world",
+            "enclosing",
+            "tiny",
+            "enclosing",
+            "world",
+            "simple",
+            "world",
+        };
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {
+            13,
+            4,
+            6,
+            1.75,
+            0.5,
+            1.75,
+            6,
+            4,
+            38,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {
+            5.3612159321677,
+            1,
+            2.3301270189222,
+            0.875,
+            0.25,
+            0.875,
+            3,
+            1,
+            19,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        auto result = this->track({0.25, 0, -25}, {0., 0, 1});
+        static char const* const expected_volumes[] = {
+            "world",
+            "simple",
+            "world",
+            "enclosing",
+            "tiny",
+            "enclosing",
+            "world",
+            "simple",
+            "world",
+        };
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {
+            12.834936490539,
+            3.7320508075689,
+            6.4330127018922,
+            1.75,
+            0.5,
+            1.75,
+            6,
+            4,
+            38,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {
+            5.5576905283833,
+            0.93301270189222,
+            2.0176270189222,
+            0.75,
+            0.25,
+            0.75,
+            3,
+            0.75,
+            19,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        auto result = this->track({0, 0.25, -25}, {0, 0., 1});
+        static char const* const expected_volumes[] = {
+            "world",
+            "simple",
+            "world",
+            "enclosing",
+            "tiny",
+            "enclosing",
+            "world",
+            "simple",
+            "world",
+        };
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {
+            13,
+            4,
+            6,
+            1.75,
+            0.5,
+            1.75,
+            6,
+            4,
+            38,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[] = {
+            5.3612159321677,
+            1,
+            2.3301270189222,
+            0.875,
+            0.12530113594871,
+            0.875,
+            3,
+            1,
+            19,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
+    {
+        auto result = this->track({0.01, -20, 0.20}, {0, 1, 0});
+        static char const* const expected_volumes[]
+            = {"world", "enclosing", "tiny", "enclosing", "world"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[]
+            = {18.5, 1.1250390198213, 0.75090449735279, 1.1240564828259, 48.5};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        static real_type const expected_hw_safety[]
+            = {9.25, 0.56184193052552, 0.05, 0.56135125378224, 24.25};
+        EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
+    }
 }
 
 //---------------------------------------------------------------------------//

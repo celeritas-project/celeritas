@@ -10,12 +10,14 @@
 #include <mutex>
 #include <type_traits>
 #include <utility>
+#include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/ActionRegistry.hh"  // IWYU pragma: keep
@@ -25,13 +27,8 @@
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 
 #include "ParticleTallyData.hh"
+
 #include "detail/ActionDiagnosticExecutor.hh"
-
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-
-#    include "corecel/io/LabelIO.json.hh"
-#endif
 
 namespace celeritas
 {
@@ -106,7 +103,6 @@ std::string_view ActionDiagnostic::description() const
  */
 void ActionDiagnostic::output(JsonPimpl* j) const
 {
-#if CELERITAS_USE_JSON
     using json = nlohmann::json;
 
     auto obj = json::object();
@@ -115,9 +111,6 @@ void ActionDiagnostic::output(JsonPimpl* j) const
     obj["_index"] = {"particle", "action"};
 
     j->obj = std::move(obj);
-#else
-    CELER_DISCARD(j);
-#endif
 }
 
 //---------------------------------------------------------------------------//

@@ -19,7 +19,6 @@
 
 namespace celeritas
 {
-
 //---------------------------------------------------------------------------//
 /*!
  * Coulomb scattering process for electrons off of atoms.
@@ -34,12 +33,18 @@ class CoulombScatteringProcess : public Process
     using SPConstImported = std::shared_ptr<ImportedProcesses const>;
     //!@}
 
+    struct Options
+    {
+        //! Whether to use integral method to sample interaction length
+        bool use_integral_xs{true};
+    };
+
   public:
     //! Construct from Coulomb scattering data
     CoulombScatteringProcess(SPConstParticles particles,
                              SPConstMaterials materials,
                              SPConstImported process_data,
-                             CoulombScatteringModel::Options const& options);
+                             Options const& options);
 
     //! Construct the models associated with this process
     VecModel build_models(ActionIdIter start_id) const final;
@@ -57,7 +62,7 @@ class CoulombScatteringProcess : public Process
     SPConstParticles particles_;
     SPConstMaterials materials_;
     ImportedProcessAdapter imported_;
-    CoulombScatteringModel::Options options_;
+    Options options_;
 };
 
 //---------------------------------------------------------------------------//

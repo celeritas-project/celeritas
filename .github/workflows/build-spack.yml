@@ -8,7 +8,7 @@ concurrency:
   group: build-spack-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
 
 env:
-  SPACK_REF: 968ad02473b12f6305cc1fe19f2a0d706f171154 # develop-2024-03-10-70-g968ad02473
+  SPACK_REF: 5fe93fee1eec46a0750bd340198bffcb92ff9eec # v0.22.0
 
 jobs:
   spack:
@@ -38,6 +38,9 @@ jobs:
           - geometry: "geant4"
             special: null
             geant: "11.0"
+          - geometry: "orange"
+            special: "clang-tidy"
+            geant: "11.2"
     env:
       CCACHE_DIR: "${{github.workspace}}/.ccache"
       CCACHE_MAXSIZE: "100Mi"
@@ -59,7 +62,7 @@ jobs:
           fetch-depth: 255
           fetch-tags: true # to get version information
       - name: Setup Spack
-        uses: spack/setup-spack@5ab3c91bdefffffad9a7e45d1d156146afebb3a7
+        uses: spack/setup-spack@0ce61628ed8a32a5664cf01a0e0b5a4834a3b413 # 2024/03
         with:
           ref: ${{env.SPACK_REF}}
           buildcache: true
@@ -67,6 +70,8 @@ jobs:
           path: spack-src
       - name: Initialize spack environment
         run: |
+          # TODO: https://github.com/spack/spack/pull/43136
+          curl -LfsS https://github.com/spack/spack/pull/43136.patch | git -C spack-src apply -
           cp scripts/ci/spack.yaml .
           if [ "${{matrix.geometry}}" == "vecgeom" ]; then
             spack -e . add vecgeom
@@ -118,24 +123,47 @@ jobs:
         run: |
           ccache -z
       - name: Configure Celeritas
+        env:
+          CLANG_TIDY: "clang-tidy-15"
         run: |
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
           cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
       - name: Build all
         working-directory: build
+        continue-on-error: ${{matrix.special == 'clang-tidy'}}
         run: |
           ninja -v -k0
-      - name: Run tests
+      - name: Regenerate ROOT test data
+        if: ${{matrix.geant == '11.0'}}
         working-directory: build
-        continue-on-error: ${{matrix.geant != '11.0'}} # TODO: disable or fix failing tests
+        run: |
+          ninja -v -k0 update-root-test-data
+      - name: Run tests
+        id: test
+        working-directory: build
+        continue-on-error: ${{fromJSON(matrix.geant) < 11}} # TODO: fix failing tests
         run: |
           if [ "${{matrix.geant}}" == "11.0" ]; then
-            # TODO: add 11.0.4 and clhep version to tests
-            #export CELER_TEST_STRICT=1
-            echo "warning: strict testing is disabled"
+            # Note this is ignored for geant4, float, clhep
+            export CELER_TEST_STRICT=1
           fi
           ctest --parallel $(nproc) --timeout 15 --output-on-failure \
             --test-output-size-passed=32768 --test-output-size-failed=1048576
+      - name: Upload failed tests
+        if: ${{steps.test.outcome == 'failure'}}
+        uses: actions/upload-artifact@v4
+        with:
+          name: failed-${{github.job}}-${{env.CMAKE_PRESET}}-${{matrix.geant}}
+          if-no-files-found: warn
+          retention-days: 3
+          path: |
+            build/**/*.out.json
+            build/Testing/Temporary/LastTest.log
+            build/Testing/Temporary/LastTestsFailed.log
+      - name: Check using build directory as install
+        run: |
+          . ${SPACK_VIEW}/rc
+          CELER_INSTALL_DIR=${PWD}/build ./scripts/ci/test-examples.sh
       - name: Install
         working-directory: build
         run: |

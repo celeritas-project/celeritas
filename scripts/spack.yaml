@@ -2,7 +2,7 @@ spack:
   specs: 
     - cmake
     - doxygen
-    - "geant4@11 cxxstd=17"
+    - "geant4@11"
     - git
     - git-lfs
     - "googletest@1.10:"
@@ -16,9 +16,9 @@ spack:
     - py-sphinx
     - py-sphinxcontrib-bibtex
     - py-sphinxcontrib-mermaid
-    - "root@6.24: cxxstd=17"
+    - "root@6.28:"
     - "swig@4.1:"
-    - "vecgeom@1.2.4: +gdml cxxstd=17"
+    - "vecgeom@1.2.4: +gdml"
   view: true
   concretizer:
     unify: true
@@ -27,10 +27,6 @@ spack:
       # Note: ~gsl and ~math are removed because dd4hep requires them
       variants: ~aqua ~davix ~examples ~opengl ~x ~tbb
     all:
-      providers:
-        blas: [openblas]
-        lapack: [openblas]
-        mpi: [openmpi]
-      # Uncomment to enable cuda build or run within the spack env:
+      # Note: for CUDA support run this command in your environment:
       # spack config add packages:all:variants:"cxxstd=17 +cuda cuda_arch=<ARCH>"
-      variants: cxxstd=17 # +cuda cuda_arch=<ARCH>
+      variants: cxxstd=17

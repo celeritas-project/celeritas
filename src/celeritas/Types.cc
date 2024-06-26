@@ -95,9 +95,25 @@ char const* to_cstring(MscStepLimitAlgorithm value)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get a string corresponding to the nuclear form factor model.
+ */
+char const* to_cstring(NuclearFormFactorType value)
+{
+    static EnumStringMapper<NuclearFormFactorType> const to_cstring_impl{
+        "none",
+        "flat",
+        "exponential",
+        "gaussian",
+    };
+    return to_cstring_impl(value);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Checks that the TrackOrder will sort tracks by actions applied at the given
- * ActionOrder. This should match the mapping in the \c SortTracksAction
- * constructor.
+ * ActionOrder.
+ *
+ * This should match the mapping in the \c SortTracksAction constructor.
  *
  * TODO: Have a single source of truth for mapping TrackOrder to ActionOrder
  */

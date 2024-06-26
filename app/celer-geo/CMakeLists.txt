@@ -4,31 +4,24 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-if(CELERITAS_USE_JSON)
-  set(SOURCES
-    celer-geo.cc
-    Types.cc
-    GeoInput.cc
-    Runner.cc
-  )
-  set(LIBRARIES
-    Celeritas::corecel
-    Celeritas::geocel
-    Celeritas::orange
-    nlohmann_json::nlohmann_json
-  )
-  if(CELERITAS_USE_VecGeom)
-    list(APPEND LIBRARIES VecGeom::vecgeom)
-  endif()
-  if(CELERITAS_USE_Geant4)
-    celeritas_get_g4libs(_g4_geo_libs geometry)
-    list(APPEND LIBRARIES ${_g4_geo_libs})
-  endif()
-else()
-  set(SOURCES
-    celer-geo.nojson.cc
-  )
-  set(LIBRARIES Celeritas::corecel)
+set(SOURCES
+  celer-geo.cc
+  Types.cc
+  GeoInput.cc
+  Runner.cc
+)
+set(LIBRARIES
+  Celeritas::corecel
+  Celeritas::geocel
+  Celeritas::orange
+  nlohmann_json::nlohmann_json
+)
+if(CELERITAS_USE_VecGeom)
+  list(APPEND LIBRARIES VecGeom::vecgeom)
+endif()
+if(CELERITAS_USE_Geant4)
+  celeritas_get_g4libs(_g4_geo_libs geometry)
+  list(APPEND LIBRARIES ${_g4_geo_libs})
 endif()
 
 celeritas_add_executable(celer-geo ${SOURCES})
@@ -51,9 +44,6 @@ set(_env
 set(_props
   TIMEOUT 20
 )
-if(NOT CELERITAS_USE_JSON)
-  list(APPEND _props DISABLED true)
-endif()
 
 #-----------------------------------------------------------------------------#
 function(celer_app_test ext)

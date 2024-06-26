@@ -12,7 +12,6 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
-#include "celeritas/em/data/CoulombScatteringData.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/em/xs/MottRatioCalculator.hh"
 #include "celeritas/em/xs/WentzelHelper.hh"
@@ -53,11 +52,13 @@ class WentzelDistribution
   public:
     // Construct with state and model data
     inline CELER_FUNCTION
-    WentzelDistribution(ParticleTrackView const& particle,
+    WentzelDistribution(NativeCRef<WentzelOKVIData> const& wentzel,
+                        WentzelHelper const& helper,
+                        ParticleTrackView const& particle,
                         IsotopeView const& target,
-                        CoulombScatteringElementData const& element_data,
-                        Energy cutoff,
-                        CoulombScatteringRef const& data);
+                        ElementId el_id,
+                        real_type cos_thetamin,
+                        real_type cos_thetamax);
 
     // Sample the polar scattering angle
     template<class Engine>
@@ -66,8 +67,11 @@ class WentzelDistribution
   private:
     //// DATA ////
 
-    // Shared model data
-    CoulombScatteringRef const& data_;
+    // Shared Coulomb scattering data
+    NativeCRef<WentzelOKVIData> const& wentzel_;
+
+    // Helper for calculating xs ratio and other quantities
+    WentzelHelper const& helper_;
 
     // Incident particle
     ParticleTrackView const& particle_;
@@ -75,11 +79,16 @@ class WentzelDistribution
     // Target isotope
     IsotopeView const& target_;
 
-    // Mott coefficients for the target element
-    CoulombScatteringElementData const& element_data_;
+    // Target element
+    ElementId el_id_;
 
-    // Helper for calculating xs ratio and other quantities
-    WentzelHelper const helper_;
+    // Cosine of the minimum scattering angle
+    real_type cos_thetamin_;
+
+    // Cosine of the maximum scattering angle
+    real_type cos_thetamax_;
+
+    //// HELPER FUNCTIONS ////
 
     // Calculates the form factor from the scattered polar angle
     inline CELER_FUNCTION real_type calculate_form_factor(real_type cos_t) const;
@@ -95,8 +104,9 @@ class WentzelDistribution
 
     // Sample the scattered polar angle
     template<class Engine>
-    inline CELER_FUNCTION real_type sample_cos_t(real_type cos_t_max,
-                                                 Engine& rng) const;
+    inline CELER_FUNCTION real_type sample_costheta(real_type cos_thetamin,
+                                                    real_type cos_thetamax,
+                                                    Engine& rng) const;
 
     // Helper function for calculating the flat form factor
     inline static CELER_FUNCTION real_type flat_form_factor(real_type x);
@@ -113,17 +123,25 @@ class WentzelDistribution
  */
 CELER_FUNCTION
 WentzelDistribution::WentzelDistribution(
+    NativeCRef<WentzelOKVIData> const& wentzel,
+    WentzelHelper const& helper,
     ParticleTrackView const& particle,
     IsotopeView const& target,
-    CoulombScatteringElementData const& element_data,
-    Energy cutoff,
-    CoulombScatteringRef const& data)
-    : data_(data)
+    ElementId el_id,
+    real_type cos_thetamin,
+    real_type cos_thetamax)
+    : wentzel_(wentzel)
+    , helper_(helper)
     , particle_(particle)
     , target_(target)
-    , element_data_(element_data)
-    , helper_(particle, target.atomic_number(), data, cutoff)
+    , el_id_(el_id)
+    , cos_thetamin_(cos_thetamin)
+    , cos_thetamax_(cos_thetamax)
 {
+    CELER_EXPECT(el_id_ < wentzel_.elem_data.size());
+    CELER_EXPECT(cos_thetamin_ >= -1 && cos_thetamin_ <= 1);
+    CELER_EXPECT(cos_thetamax_ >= -1 && cos_thetamax_ <= 1);
+    CELER_EXPECT(cos_thetamax_ <= cos_thetamin_);
 }
 
 //---------------------------------------------------------------------------//
@@ -134,25 +152,28 @@ template<class Engine>
 CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
 {
     real_type cos_theta = 1;
-    if (BernoulliDistribution(helper_.calc_xs_ratio())(rng))
+    if (BernoulliDistribution(
+            helper_.calc_xs_ratio(cos_thetamin_, cos_thetamax_))(rng))
     {
         // Scattered off of electrons
-        cos_theta = this->sample_cos_t(helper_.costheta_max_electron(), rng);
+        real_type const cos_thetamax_elec = helper_.cos_thetamax_electron();
+        real_type cos_thetamin = max(cos_thetamin_, cos_thetamax_elec);
+        real_type cos_thetamax = max(cos_thetamax_, cos_thetamax_elec);
+        CELER_ASSERT(cos_thetamin > cos_thetamax);
+        cos_theta = this->sample_costheta(cos_thetamin, cos_thetamax, rng);
     }
     else
     {
         // Scattered off of nucleus
-        cos_theta = this->sample_cos_t(-1, rng);
+        cos_theta = this->sample_costheta(cos_thetamin_, cos_thetamax_, rng);
 
         // Calculate rejection for fake scattering
         // TODO: Reference?
-        real_type mott_coeff
-            = 1 + real_type(2e-4) * ipow<2>(target_.atomic_number().get());
-        MottRatioCalculator mott_xsec(element_data_,
+        MottRatioCalculator mott_xsec(wentzel_.elem_data[el_id_],
                                       std::sqrt(particle_.beta_sq()));
         real_type g_rej = mott_xsec(cos_theta)
                           * ipow<2>(this->calculate_form_factor(cos_theta))
-                          / mott_coeff;
+                          / helper_.mott_factor();
 
         if (!BernoulliDistribution(g_rej)(rng))
         {
@@ -160,7 +181,6 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
             cos_theta = 1;
         }
     }
-
     return cos_theta;
 }
 
@@ -179,7 +199,7 @@ CELER_FUNCTION real_type
 WentzelDistribution::calculate_form_factor(real_type cos_t) const
 {
     real_type mt_sq = this->mom_transfer_sq(cos_t);
-    switch (data_.form_factor_type)
+    switch (wentzel_.params.form_factor_type)
     {
         case NuclearFormFactorType::none:
             return 1;
@@ -194,8 +214,9 @@ WentzelDistribution::calculate_form_factor(real_type cos_t) const
             return 1 / ipow<2>(1 + this->nuclear_form_prefactor() * mt_sq);
         case NuclearFormFactorType::gaussian:
             return std::exp(-2 * this->nuclear_form_prefactor() * mt_sq);
+        default:
+            CELER_ASSERT_UNREACHABLE();
     }
-    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
@@ -241,28 +262,36 @@ CELER_FUNCTION real_type WentzelDistribution::mom_transfer_sq(real_type cos_t) c
  */
 CELER_FUNCTION real_type WentzelDistribution::nuclear_form_prefactor() const
 {
-    return data_.nuclear_form_prefactor[target_.isotope_id()];
+    CELER_EXPECT(target_.isotope_id() < wentzel_.nuclear_form_prefactor.size());
+    return wentzel_.nuclear_form_prefactor[target_.isotope_id()];
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Sample the scattering polar angle of the incident particle.
  *
- * The probability is given in [Fern]
- * eqn 88 and is nomalized on the interval
- * \f$ cos\theta \in [1, \cos\theta_{max}] \f$.
+ * The probability is given in [Fern] eqn 88 and is nomalized on the interval
+ * \f$ cos\theta \in [\cos\theta_{min}, \cos\theta_{max}] \f$. The sampling
+ * function for \f$ \mu = \frac{1}{2}(1 - \cos\theta) \f$ is
+ * \f[
+   \mu = \mu_1 + \frac{(A + \mu_1) \xi (\mu_2 - \mu_1)}{A + \mu_2 - \xi (\mu_2
+   - \mu_1)},
+ * \f]
+ * where \f$ \mu_1 = \frac{1}{2}(1 - \cos\theta_{min}) \f$, \f$ \mu_2 =
+ * \frac{1}{2}(1 - \cos\theta_{max}) \f$, \f$ A \f$ is the screening
+ * coefficient, and \f$ \xi \sim U(0,1) \f$.
  */
 template<class Engine>
-CELER_FUNCTION real_type WentzelDistribution::sample_cos_t(real_type cos_t_max,
-                                                           Engine& rng) const
+CELER_FUNCTION real_type WentzelDistribution::sample_costheta(
+    real_type cos_thetamin, real_type cos_thetamax, Engine& rng) const
 {
     // Sample scattering angle [Fern] eqn 92, where cos(theta) = 1 - 2*mu
-    // For incident electrons / positrons, theta_min = 0 always
-    real_type const mu = real_type{0.5} * (1 - cos_t_max);
-    real_type const xi = generate_canonical(rng);
+    real_type const mu1 = real_type{0.5} * (1 - cos_thetamin);
+    real_type const mu2 = real_type{0.5} * (1 - cos_thetamax);
+    real_type const w = generate_canonical(rng) * (mu2 - mu1);
     real_type const sc = helper_.screening_coefficient();
 
-    real_type result = 1 - 2 * sc * mu * (1 - xi) / (sc + mu * xi);
+    real_type result = 1 - 2 * mu1 - 2 * (sc + mu1) * w / (sc + mu2 - w);
     CELER_ENSURE(result >= -1 && result <= 1);
     return result;
 }

@@ -12,6 +12,7 @@
 #include <sstream>
 #include <variant>
 #include <vector>
+#include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
 #include "corecel/io/Join.hh"
@@ -19,19 +20,14 @@
 #include "corecel/io/StreamableVariant.hh"
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/orangeinp/CsgTree.hh"
+#include "orange/orangeinp/CsgTreeIO.json.hh"
 #include "orange/orangeinp/CsgTreeUtils.hh"
-#include "orange/orangeinp/detail/ConvexSurfaceState.hh"
 #include "orange/orangeinp/detail/CsgUnit.hh"
+#include "orange/orangeinp/detail/IntersectSurfaceState.hh"
 #include "orange/surf/SurfaceIO.hh"
 #include "orange/transform/TransformIO.hh"
 
 #include "Test.hh"
-
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-
-#    include "orange/orangeinp/CsgTreeIO.json.hh"
-#endif
 
 using namespace celeritas::orangeinp::detail;
 
@@ -44,13 +40,8 @@ namespace test
 //---------------------------------------------------------------------------//
 std::string to_json_string(CsgTree const& tree)
 {
-#if CELERITAS_USE_JSON
     nlohmann::json obj(tree);
     return obj.dump();
-#else
-    CELER_DISCARD(tree);
-    return {};
-#endif
 }
 
 //---------------------------------------------------------------------------//
@@ -67,17 +58,22 @@ std::vector<int> to_vec_int(std::vector<NodeId> const& nodes)
 //---------------------------------------------------------------------------//
 std::vector<std::string> surface_strings(CsgUnit const& u)
 {
+    // Loop through CSG tree's encountered surfaces
     std::vector<std::string> result;
-
-    for (auto const& vs : u.surfaces)
+    for (auto nid : range(NodeId{u.tree.size()}))
     {
-        result.push_back(std::visit(
-            [](auto&& surf) {
-                std::ostringstream os;
-                os << std::setprecision(5) << surf;
-                return os.str();
-            },
-            vs));
+        if (auto* surf_node = std::get_if<Surface>(&u.tree[nid]))
+        {
+            auto lsid = surf_node->id;
+            CELER_ASSERT(lsid < u.surfaces.size());
+            result.push_back(std::visit(
+                [](auto&& surf) {
+                    std::ostringstream os;
+                    os << std::setprecision(5) << surf;
+                    return os.str();
+                },
+                u.surfaces[lsid.get()]));
+        }
     }
     return result;
 }
@@ -222,7 +218,7 @@ std::vector<std::string> fill_strings(CsgUnit const& u)
         {
             result.push_back("<UNASSIGNED>");
         }
-        else if (auto* mid = std::get_if<MaterialId>(&f))
+        else if (auto* mid = std::get_if<GeoMaterialId>(&f))
         {
             result.push_back("m" + std::to_string(mid->unchecked_get()));
         }
@@ -297,12 +293,9 @@ EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
 EXPECT_VEC_EQ(expected_trans_strings, transform_strings(u));
 EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
 EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
-if (CELERITAS_USE_JSON)
-{
-    EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
-}
+EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
 )cpp"
-              << "EXPECT_EQ(MaterialId{";
+              << "EXPECT_EQ(GeoMaterialId{";
     if (u.background)
     {
         std::cout << u.background.unchecked_get();
@@ -313,7 +306,7 @@ if (CELERITAS_USE_JSON)
 }
 
 //---------------------------------------------------------------------------//
-void print_expected(ConvexSurfaceState const& css)
+void print_expected(IntersectSurfaceState const& css)
 {
     std::cout << R"cpp(
 /***** EXPECTED STATE *****/

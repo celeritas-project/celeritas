@@ -15,11 +15,12 @@
 #include "corecel/io/Join.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "orange/OrangeInputIO.json.hh"
 #include "orange/orangeinp/CsgObject.hh"
+#include "orange/orangeinp/InputBuilder.hh"
 #include "orange/orangeinp/Shape.hh"
 #include "orange/orangeinp/Transformed.hh"
 #include "orange/orangeinp/detail/CsgUnit.hh"
-#include "orange/orangeinp/detail/InputBuilder.hh"
 
 #include "CsgTestUtils.hh"
 #include "celeritas_test.hh"
@@ -35,8 +36,6 @@ namespace test
 //---------------------------------------------------------------------------//
 using SPConstObject = std::shared_ptr<ObjectInterface const>;
 using SPConstProto = std::shared_ptr<ProtoInterface const>;
-inline constexpr auto is_global = UnitProto::ExteriorBoundary::is_global;
-inline constexpr auto is_daughter = UnitProto::ExteriorBoundary::is_daughter;
 
 //---------------------------------------------------------------------------//
 // Construction helper functions
@@ -83,7 +82,7 @@ SPConstProto make_daughter(std::string label)
 {
     UnitProto::Input inp;
     inp.boundary.interior = make_sph(label + ":ext", 1);
-    inp.background.fill = MaterialId{0};
+    inp.background.fill = GeoMaterialId{0};
     inp.label = std::move(label);
 
     return std::make_shared<UnitProto>(std::move(inp));
@@ -105,12 +104,12 @@ std::string proto_labels(ProtoInterface::VecProto const& vp)
 }
 
 UnitProto::MaterialInput
-make_material(SPConstObject&& obj, MaterialId::size_type m)
+make_material(SPConstObject&& obj, GeoMaterialId::size_type m)
 {
     CELER_EXPECT(obj);
     UnitProto::MaterialInput result;
     result.interior = std::move(obj);
-    result.fill = MaterialId{m};
+    result.fill = GeoMaterialId{m};
     return result;
 }
 
@@ -126,6 +125,25 @@ class UnitProtoTest : public ::celeritas::test::Test
 
 //---------------------------------------------------------------------------//
 using LeafTest = UnitProtoTest;
+
+TEST_F(LeafTest, errors)
+{
+    EXPECT_THROW(UnitProto(UnitProto::Input{}), RuntimeError);
+
+    {
+        SCOPED_TRACE("infinite global box");
+        UnitProto::Input inp;
+        inp.label = "leaf";
+        inp.boundary.interior = std::make_shared<NegatedObject>(
+            "bad-interior", make_cyl("bound", 1.0, 1.0));
+        inp.boundary.zorder = ZOrder::media;
+        inp.materials.push_back(
+            make_material(SPConstObject(inp.boundary.interior), 1));
+        UnitProto const proto{std::move(inp)};
+
+        EXPECT_THROW(proto.build(tol_, BBox{}), RuntimeError);
+    }
+}
 
 // All space is explicitly accounted for
 TEST_F(LeafTest, explicit_exterior)
@@ -143,7 +161,7 @@ TEST_F(LeafTest, explicit_exterior)
     EXPECT_EQ("", proto_labels(proto.daughters()));
 
     {
-        auto u = proto.build(tol_, is_global);
+        auto u = proto.build(tol_, BBox{});
 
         static char const* const expected_surface_strings[]
             = {"Plane: z=-1", "Plane: z=1", "Cyl z: r=1", "Plane: z=0"};
@@ -171,10 +189,10 @@ TEST_F(LeafTest, explicit_exterior)
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
         EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
-        EXPECT_EQ(MaterialId{}, u.background);
+        EXPECT_EQ(GeoMaterialId{}, u.background);
     }
     {
-        auto u = proto.build(tol_, is_daughter);
+        auto u = proto.build(tol_, BBox{{-2, -2, -1}, {2, 2, 1}});
         static char const* const expected_volume_strings[] = {"F", "-3", "+3"};
 
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
@@ -187,13 +205,13 @@ TEST_F(LeafTest, implicit_exterior)
     UnitProto::Input inp;
     inp.boundary.interior = make_cyl("bound", 1.0, 1.0);
     inp.boundary.zorder = ZOrder::exterior;
-    inp.background.fill = MaterialId{0};
+    inp.background.fill = GeoMaterialId{0};
     inp.label = "leaf";
     inp.materials.push_back(make_material(make_cyl("middle", 1, 0.5), 1));
     UnitProto const proto{std::move(inp)};
 
     {
-        auto u = proto.build(tol_, is_global);
+        auto u = proto.build(tol_, BBox{});
 
         static char const* const expected_surface_strings[] = {
             "Plane: z=-1",
@@ -210,15 +228,15 @@ TEST_F(LeafTest, implicit_exterior)
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
-        EXPECT_EQ(MaterialId{0}, u.background);
+        EXPECT_EQ(GeoMaterialId{0}, u.background);
     }
     {
-        auto u = proto.build(tol_, is_daughter);
+        auto u = proto.build(tol_, BBox{{-2, -2, -1}, {2, 2, 1}});
 
         static char const* const expected_volume_strings[]
             = {"F", "all(+3, -4)"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
-        EXPECT_EQ(MaterialId{0}, u.background);
+        EXPECT_EQ(GeoMaterialId{0}, u.background);
     }
 }
 
@@ -259,7 +277,7 @@ TEST_F(MotherTest, explicit_exterior)
     EXPECT_EQ("d1,d2", proto_labels(proto.daughters()));
 
     {
-        auto u = proto.build(tol_, is_global);
+        auto u = proto.build(tol_, BBox{});
 
         static char const* const expected_surface_strings[] = {
             "Sphere: r=10",
@@ -318,10 +336,10 @@ TEST_F(MotherTest, explicit_exterior)
         EXPECT_VEC_EQ(expected_trans_strings, transform_strings(u));
         EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
         EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
-        EXPECT_EQ(MaterialId{}, u.background);
+        EXPECT_EQ(GeoMaterialId{}, u.background);
     }
     {
-        auto u = proto.build(tol_, is_daughter);
+        auto u = proto.build(tol_, BBox{{-10, -10, -10}, {10, 10, 10}});
         static char const* const expected_volume_strings[]
             = {"F", "-1", "-2", "-3", "-4", "all(+1, +2, +3, +4)"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
@@ -342,24 +360,24 @@ TEST_F(MotherTest, implicit_exterior)
     inp.daughters.push_back(
         {make_daughter("d2"),
          Transformation{make_rotation(Axis::x, Turn{0.25}), {0, -5, 0}}});
-    inp.background.fill = MaterialId{3};
+    inp.background.fill = GeoMaterialId{3};
 
     UnitProto const proto{std::move(inp)};
 
     EXPECT_EQ("d1,d2", proto_labels(proto.daughters()));
 
     {
-        auto u = proto.build(tol_, is_global);
+        auto u = proto.build(tol_, BBox{});
         static char const* const expected_volume_strings[]
             = {"+0", "-1", "-2", "-3", "-4"};
         static int const expected_volume_nodes[] = {2, 5, 7, 9, 11};
 
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
-        EXPECT_EQ(MaterialId{3}, u.background);
+        EXPECT_EQ(GeoMaterialId{3}, u.background);
     }
     {
-        auto u = proto.build(tol_, is_daughter);
+        auto u = proto.build(tol_, BBox{{-10, -10, -10}, {10, 10, 10}});
         static char const* const expected_volume_strings[]
             = {"F", "-1", "-2", "-3", "-4"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
@@ -384,7 +402,7 @@ TEST_F(MotherTest, fuzziness)
     EXPECT_EQ("d1", proto_labels(proto.daughters()));
 
     {
-        auto u = proto.build(tol_, is_global);
+        auto u = proto.build(tol_, BBox{});
         static char const* const expected_surface_strings[]
             = {"Sphere: r=10", "Sphere: r=1", "Sphere: r=1.0001"};
         static char const* const expected_volume_strings[]
@@ -405,7 +423,7 @@ TEST_F(MotherTest, fuzziness)
     {
         // Simplify with lower tolerance because the user has tried to avoid
         // overlap by adding .0001 to the "similar" shape
-        auto u = proto.build(Tol::from_relative(1e-3), is_global);
+        auto u = proto.build(Tol::from_relative(1e-3), BBox{});
         static char const* const expected_volume_strings[]
             = {"+0", "-1", "all(-0, +1)"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
@@ -416,21 +434,29 @@ TEST_F(MotherTest, fuzziness)
 class InputBuilderTest : public UnitProtoTest
 {
   public:
-    void test(UnitProto const& global)
+    void run_test(UnitProto const& global)
     {
-        OrangeInput inp = build_input(tol_, global);
+        std::string const output_base = this->make_unique_filename("");
+
+        InputBuilder build_input([&] {
+            InputBuilder::Options opts;
+            opts.tol = this->tol_;
+            opts.proto_output_file = output_base + ".protos.json";
+            opts.debug_output_file = output_base + ".csg.json";
+            return opts;
+        }());
+        OrangeInput inp = build_input(global);
         EXPECT_TRUE(inp);
-        if (!CELERITAS_USE_JSON)
-        {
-            GTEST_SKIP() << "JSON is disabled: cannot compare output";
-        }
+        std::string const base_path = this->test_data_path("orange", "");
+        std::string const ref_path = base_path + output_base + ".org.json";
 
-        std::string const ref_path = this->test_data_path("orange", "")
-                                     + this->make_unique_filename(".org.json");
-
-        // Export input to JSON
-        std::ostringstream actual;
-        actual << inp;
+        // Export input to JSON, erasing units since these particular
+        // geometries are unitless
+        std::string actual = [&inp] {
+            nlohmann::json obj = inp;
+            obj.erase("_units");
+            return obj.dump(0);
+        }();
 
         // Read 'gold' file
         std::ifstream ref{ref_path};
@@ -444,13 +470,14 @@ class InputBuilderTest : public UnitProtoTest
             CELER_VALIDATE(out,
                            << "failed to open gold file '" << ref_path
                            << "' for writing");
-            out << actual.str();
+            out << actual;
             return;
         }
 
         std::stringstream expected;
         expected << ref.rdbuf();
-        EXPECT_JSON_EQ(expected.str(), actual.str());
+        EXPECT_JSON_EQ(expected.str(), actual)
+            << "update the file at " << ref_path;
     }
 };
 
@@ -474,7 +501,7 @@ TEST_F(InputBuilderTest, globalspheres)
         return inp;
     }()};
 
-    this->test(global);
+    this->run_test(global);
 }
 
 TEST_F(InputBuilderTest, bgspheres)
@@ -488,11 +515,11 @@ TEST_F(InputBuilderTest, bgspheres)
             make_translated(make_sph("top", 2.0), {0, 0, 3}), 1));
         inp.materials.push_back(make_material(
             make_translated(make_sph("bottom", 3.0), {0, 0, -3}), 2));
-        inp.background.fill = MaterialId{3};
+        inp.background.fill = GeoMaterialId{3};
         return inp;
     }()};
 
-    this->test(global);
+    this->run_test(global);
 }
 
 // Equivalent to universes.org.omn
@@ -558,7 +585,7 @@ TEST_F(InputBuilderTest, universes)
         return inp;
     }());
 
-    this->test(*outer);
+    this->run_test(*outer);
 }
 
 TEST_F(InputBuilderTest, hierarchy)
@@ -588,7 +615,7 @@ TEST_F(InputBuilderTest, hierarchy)
         inp.daughters.push_back(
             {make_daughter("d2"),
              Transformation{make_rotation(Axis::x, Turn{0.25}), {0, -5, 0}}});
-        inp.background.fill = MaterialId{3};
+        inp.background.fill = GeoMaterialId{3};
         return inp;
     }());
 
@@ -629,7 +656,89 @@ TEST_F(InputBuilderTest, hierarchy)
         return inp;
     }());
 
-    this->test(*global);
+    this->run_test(*global);
+}
+
+TEST_F(InputBuilderTest, incomplete_bb)
+{
+    auto inner = std::make_shared<UnitProto>([] {
+        UnitProto::Input inp;
+        inp.boundary.interior = make_sph("bound", 5.0);
+        inp.boundary.zorder = ZOrder::media;
+        inp.label = "inner";
+
+        using VR2 = GenTrap::VecReal2;
+        auto trd = make_shape<GenTrap>("turd",
+                                       real_type{3},
+                                       VR2{{-1, -1}, {1, -1}, {1, 1}, {-1, 1}},
+                                       VR2{{-2, -2}, {2, -2}, {2, 2}, {-2, 2}});
+        inp.materials.push_back(
+            make_material(make_rdv("fill",
+                                   {{Sense::inside, inp.boundary.interior},
+                                    {Sense::outside, trd}}),
+                          1));
+        inp.materials.push_back(make_material(std::move(trd), 2));
+        return inp;
+    }());
+
+    auto outer = std::make_shared<UnitProto>([&] {
+        UnitProto::Input inp;
+        inp.boundary.interior = make_sph("bound", 10.0);
+        inp.boundary.zorder = ZOrder::media;
+        inp.label = "global";
+
+        inp.daughters.push_back({inner, Translation{{2, 0, 0}}});
+
+        inp.materials.push_back(make_material(
+            make_rdv("shell",
+                     {{Sense::inside, inp.boundary.interior},
+                      {Sense::outside, inp.daughters.front().make_interior()}}),
+            1));
+        return inp;
+    }());
+
+    this->run_test(*outer);
+}
+
+/*!
+ * Generate input for a universe with a 'union' exterior boundary.
+ *
+ * See issue 1260.
+ */
+TEST_F(InputBuilderTest, universe_union_boundary)
+{
+    auto inner = std::make_shared<UnitProto>([] {
+        auto bottom = make_sph("bottomsph", 5.0);
+        auto top = make_translated(make_sph("topsph", 5.0), {0, 0, 4});
+        UnitProto::Input inp;
+        inp.boundary.interior = std::make_shared<AnyObjects>(
+            "union", AnyObjects::VecObject{bottom, top});
+        inp.boundary.zorder = ZOrder::media;
+        inp.label = "inner";
+
+        inp.materials.push_back(make_material(SPConstObject{bottom}, 1));
+        inp.materials.push_back(
+            make_material(make_subtraction("bite", top, bottom), 1));
+        return inp;
+    }());
+
+    auto outer = std::make_shared<UnitProto>([&] {
+        UnitProto::Input inp;
+        inp.boundary.interior = make_sph("bound", 20.0);
+        inp.boundary.zorder = ZOrder::media;
+        inp.label = "global";
+
+        inp.daughters.push_back({inner, Translation{{0, 0, 1.234}}});
+
+        inp.materials.push_back(make_material(
+            make_rdv("shell",
+                     {{Sense::inside, inp.boundary.interior},
+                      {Sense::outside, inp.daughters.front().make_interior()}}),
+            1));
+        return inp;
+    }());
+
+    this->run_test(*outer);
 }
 
 //---------------------------------------------------------------------------//

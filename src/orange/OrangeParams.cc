@@ -13,6 +13,7 @@
 #include <numeric>
 #include <utility>
 #include <vector>
+#include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
@@ -24,11 +25,14 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
+#include "corecel/sys/ScopedMem.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/GeantGeoUtils.hh"
 
 #include "OrangeData.hh"  // IWYU pragma: associated
 #include "OrangeInput.hh"
+#include "OrangeInputIO.json.hh"
 #include "OrangeTypes.hh"
 #include "g4org/Converter.hh"
 #include "univ/detail/LogicStack.hh"
@@ -37,12 +41,6 @@
 #include "detail/RectArrayInserter.hh"
 #include "detail/UnitInserter.hh"
 #include "detail/UniverseInserter.hh"
-
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-
-#    include "OrangeInputIO.json.hh"
-#endif
 
 namespace celeritas
 {
@@ -54,21 +52,16 @@ namespace
  */
 OrangeInput input_from_json(std::string filename)
 {
-    CELER_VALIDATE(CELERITAS_USE_JSON,
-                   << "JSON is not enabled so geometry cannot be loaded");
-
     CELER_LOG(info) << "Loading ORANGE geometry from JSON at " << filename;
     ScopedTimeLog scoped_time;
 
     OrangeInput result;
 
-#if CELERITAS_USE_JSON
     std::ifstream infile(filename);
     CELER_VALIDATE(infile,
                    << "failed to open geometry at '" << filename << '\'');
     // Use the `from_json` defined in OrangeInputIO.json to read the JSON input
     nlohmann::json::parse(infile).get_to(result);
-#endif
 
     return result;
 }
@@ -143,6 +136,12 @@ OrangeParams::OrangeParams(G4VPhysicalVolume const* world)
 OrangeParams::OrangeParams(OrangeInput&& input)
 {
     CELER_VALIDATE(input, << "input geometry is incomplete");
+
+    ScopedProfiling profile_this{"finalize-orange-runtime"};
+    ScopedMem record_mem("orange.finalize_runtime");
+    CELER_LOG(debug) << "Merging runtime data"
+                     << (celeritas::device() ? " and copying to GPU" : "");
+    ScopedTimeLog scoped_time;
 
     // Save global bounding box
     bbox_ = [&input] {

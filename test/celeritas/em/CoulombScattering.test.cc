@@ -9,6 +9,7 @@
 #include "celeritas/Units.hh"
 #include "celeritas/em/interactor/CoulombScatteringInteractor.hh"
 #include "celeritas/em/model/CoulombScatteringModel.hh"
+#include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/em/process/CoulombScatteringProcess.hh"
 #include "celeritas/em/xs/WentzelTransportXsCalculator.hh"
 #include "celeritas/io/ImportParameters.hh"
@@ -56,9 +57,20 @@ class CoulombScatteringTest : public InteractorHostTestBase
 
         // Set up shared material data
         MaterialParams::Input mat_inp;
-        mat_inp.isotopes
-            = {{AtomicNumber{29}, AtomicNumber{63}, MevMass{58618.5}, "63Cu"},
-               {AtomicNumber{29}, AtomicNumber{65}, MevMass{60479.8}, "65Cu"}};
+        mat_inp.isotopes = {{AtomicNumber{29},
+                             AtomicNumber{63},
+                             MevEnergy{551.384},
+                             MevEnergy{6.122},
+                             MevEnergy{10.864},
+                             MevMass{58618.5},
+                             "63Cu"},
+                            {AtomicNumber{29},
+                             AtomicNumber{65},
+                             MevEnergy{569.211},
+                             MevEnergy{7.454},
+                             MevEnergy{9.911},
+                             MevMass{60479.8},
+                             "65Cu"}};
         mat_inp.elements = {{AtomicNumber{29},
                              AmuMass{63.546},
                              {{IsotopeId{0}, 0.692}, {IsotopeId{1}, 0.308}},
@@ -85,14 +97,17 @@ class CoulombScatteringTest : public InteractorHostTestBase
                 {std::move(ip_electron), std::move(ip_positron)});
         }
 
-        // Use default options
-        CoulombScatteringModel::Options options;
+        // Default to single scattering
+        WentzelOKVIParams::Options options;
+        options.is_combined = false;
+        options.polar_angle_limit = 0;
+        wentzel_ = std::make_shared<WentzelOKVIParams>(this->material_params(),
+                                                       options);
 
         model_ = std::make_shared<CoulombScatteringModel>(
             ActionId{0},
             *this->particle_params(),
             *this->material_params(),
-            options,
             this->imported_processes());
 
         // Set cutoffs
@@ -132,63 +147,113 @@ class CoulombScatteringTest : public InteractorHostTestBase
     }
 
   protected:
+    std::shared_ptr<WentzelOKVIParams> wentzel_;
     std::shared_ptr<CoulombScatteringModel> model_;
+    IsotopeComponentId isocomp_id_{0};
+    ElementComponentId elcomp_id_{0};
+    ElementId el_id_{0};
+    MaterialId mat_id_{0};
 };
 
-TEST_F(CoulombScatteringTest, wokvi_xs)
+TEST_F(CoulombScatteringTest, helper)
 {
-    CoulombScatteringHostRef const& data = model_->host_ref();
+    struct Result
+    {
+        using VecReal = std::vector<real_type>;
 
+        VecReal screen_z;
+        VecReal scaled_kin_factor;
+        VecReal cos_thetamax_elec;
+        VecReal cos_thetamax_nuc;
+        VecReal xs_elec;
+        VecReal xs_nuc;
+        VecReal xs_ratio;
+    };
+
+    auto const material = this->material_track().make_material_view();
     AtomicNumber const target_z
-        = this->material_params()->get(ElementId{0}).atomic_number();
+        = this->material_params()->get(el_id_).atomic_number();
 
-    MevEnergy const cutoff = this->cutoff_params()
-                                 ->get(MaterialId{0})
-                                 .energy(this->particle_track().particle_id());
+    MevEnergy const cutoff = this->cutoff_params()->get(mat_id_).energy(
+        this->particle_track().particle_id());
 
-    std::vector<real_type> const energies = {50, 100, 200, 1000, 13000};
+    real_type const cos_thetamax = model_->host_ref().cos_thetamax();
 
-    static real_type const expected_screen_z[] = {2.1181757502465e-08,
-                                                  5.3641196710457e-09,
-                                                  1.3498490873627e-09,
-                                                  5.4280909096648e-11,
-                                                  3.2158426877075e-13};
+    Result result;
+    for (real_type energy : {50, 100, 200, 1000, 13000})
+    {
+        this->set_inc_particle(pdg::electron(), MevEnergy{energy});
 
-    static real_type const expected_cos_t_max[] = {0.99989885103277,
-                                                   0.99997458240728,
-                                                   0.99999362912075,
-                                                   0.99999974463379,
-                                                   0.99999999848823};
+        WentzelHelper helper(this->particle_track(),
+                             material,
+                             target_z,
+                             wentzel_->host_ref(),
+                             model_->host_ref().ids,
+                             cutoff);
 
-    static real_type const expected_xsecs[] = {0.033319844069031,
+        EXPECT_SOFT_EQ(1.1682, helper.mott_factor());
+        result.screen_z.push_back(helper.screening_coefficient());
+        // Scale the xs factor by 1 / r_e^2 so the values will be large enough
+        // for the soft equivalence comparison to catch any differences
+        result.scaled_kin_factor.push_back(helper.kin_factor()
+                                           / ipow<2>(constants::r_electron));
+        result.cos_thetamax_elec.push_back(helper.cos_thetamax_electron());
+        real_type const cos_thetamax_nuc = helper.cos_thetamax_nuclear();
+        result.cos_thetamax_nuc.push_back(cos_thetamax_nuc);
+        result.xs_elec.push_back(
+            helper.calc_xs_electron(cos_thetamax_nuc, cos_thetamax)
+            / units::barn);
+        result.xs_nuc.push_back(
+            helper.calc_xs_nuclear(cos_thetamax_nuc, cos_thetamax)
+            / units::barn);
+        result.xs_ratio.push_back(
+            helper.calc_xs_ratio(cos_thetamax_nuc, cos_thetamax));
+    }
+
+    static double const expected_screen_z[] = {2.1181757502465e-08,
+                                               5.3641196710457e-09,
+                                               1.3498490873627e-09,
+                                               5.4280909096648e-11,
+                                               3.2158426877075e-13};
+    static double const expected_scaled_kin_factor[] = {0.018652406309778,
+                                                        0.0047099159161888,
+                                                        0.0011834423911797,
+                                                        4.7530717872407e-05,
+                                                        2.8151208086621e-07};
+    static double const expected_cos_thetamax_elec[] = {0.99989885103277,
+                                                        0.99997458240728,
+                                                        0.99999362912075,
+                                                        0.99999974463379,
+                                                        0.99999999848823};
+    static double const expected_cos_thetamax_nuc[] = {1, 1, 1, 1, 1};
+    static double const expected_xs_elec[] = {40826.46816866,
+                                              40708.229862005,
+                                              40647.018860182,
+                                              40596.955206725,
+                                              40585.257368735};
+    static double const expected_xs_nuc[] = {1184463.4246675,
+                                             1181036.9405781,
+                                             1179263.0534548,
+                                             1177812.2021574,
+                                             1177473.1955599};
+    static double const expected_xs_ratio[] = {0.033319844069031,
                                                0.033319738720425,
                                                0.033319684608429,
                                                0.033319640583261,
                                                0.03331963032739};
-
-    std::vector<real_type> xsecs, cos_t_maxs, screen_zs;
-    for (real_type energy : energies)
-    {
-        this->set_inc_particle(pdg::electron(), MevEnergy{energy});
-
-        WentzelHelper helper(this->particle_track(), target_z, data, cutoff);
-
-        xsecs.push_back(helper.calc_xs_ratio());
-        cos_t_maxs.push_back(helper.costheta_max_electron());
-        screen_zs.push_back(helper.screening_coefficient());
-    }
-
-    EXPECT_VEC_SOFT_EQ(expected_xsecs, xsecs);
-    EXPECT_VEC_SOFT_EQ(expected_screen_z, screen_zs);
-    EXPECT_VEC_SOFT_EQ(expected_cos_t_max, cos_t_maxs);
+    EXPECT_VEC_SOFT_EQ(expected_screen_z, result.screen_z);
+    EXPECT_VEC_SOFT_EQ(expected_scaled_kin_factor, result.scaled_kin_factor);
+    EXPECT_VEC_SOFT_EQ(expected_cos_thetamax_elec, result.cos_thetamax_elec);
+    EXPECT_VEC_SOFT_EQ(expected_cos_thetamax_nuc, result.cos_thetamax_nuc);
+    EXPECT_VEC_SOFT_EQ(expected_xs_elec, result.xs_elec);
+    EXPECT_VEC_SOFT_EQ(expected_xs_nuc, result.xs_nuc);
+    EXPECT_VEC_SOFT_EQ(expected_xs_ratio, result.xs_ratio);
 }
 
 TEST_F(CoulombScatteringTest, mott_xs)
 {
-    CoulombScatteringHostRef const& data = model_->host_ref();
-
-    CoulombScatteringElementData const& element_data
-        = data.elem_data[ElementId(0)];
+    MottElementData const& element_data
+        = wentzel_->host_ref().elem_data[el_id_];
     MottRatioCalculator xsec(element_data,
                              sqrt(this->particle_track().beta_sq()));
 
@@ -216,14 +281,11 @@ TEST_F(CoulombScatteringTest, mott_xs)
 
 TEST_F(CoulombScatteringTest, wokvi_transport_xs)
 {
-    // Copper
-    MaterialId mat_id{0};
-    ElementId elm_id{0};
-
-    AtomicNumber const z = this->material_params()->get(elm_id).atomic_number();
+    auto const material = this->material_track().make_material_view();
+    AtomicNumber const z = this->material_params()->get(el_id_).atomic_number();
 
     // Incident particle energy cutoff
-    MevEnergy const cutoff = this->cutoff_params()->get(mat_id).energy(
+    MevEnergy const cutoff = this->cutoff_params()->get(mat_id_).energy(
         this->particle_track().particle_id());
 
     std::vector<real_type> xs;
@@ -232,13 +294,18 @@ TEST_F(CoulombScatteringTest, wokvi_transport_xs)
         this->set_inc_particle(pdg::electron(), MevEnergy{energy});
         auto const& particle = this->particle_track();
 
-        WentzelHelper helper(particle, z, model_->host_ref(), cutoff);
+        WentzelHelper helper(particle,
+                             material,
+                             z,
+                             wentzel_->host_ref(),
+                             model_->host_ref().ids,
+                             cutoff);
         WentzelTransportXsCalculator calc_transport_xs(particle, helper);
 
-        for (real_type costheta_max : {-1.0, -0.5, 0.0, 0.5, 0.75, 0.99, 1.0})
+        for (real_type cos_thetamax : {-1.0, -0.5, 0.0, 0.5, 0.75, 0.99, 1.0})
         {
             // Get cross section in barns
-            xs.push_back(calc_transport_xs(costheta_max) / units::barn);
+            xs.push_back(calc_transport_xs(cos_thetamax) / units::barn);
         }
     }
     static double const expected_xs[] = {0.18738907324438,
@@ -283,11 +350,10 @@ TEST_F(CoulombScatteringTest, simple_scattering)
 {
     int const num_samples = 4;
 
-    IsotopeView const isotope = this->material_track()
-                                    .make_material_view()
-                                    .make_element_view(ElementComponentId{0})
-                                    .make_isotope_view(IsotopeComponentId{0});
-    auto cutoffs = this->cutoff_params()->get(MaterialId{0});
+    auto const material = this->material_track().make_material_view();
+    IsotopeView const isotope
+        = material.make_element_view(elcomp_id_).make_isotope_view(isocomp_id_);
+    auto cutoffs = this->cutoff_params()->get(mat_id_);
 
     RandomEngine& rng_engine = this->rng();
 
@@ -299,10 +365,12 @@ TEST_F(CoulombScatteringTest, simple_scattering)
     {
         this->set_inc_particle(pdg::electron(), MevEnergy{energy});
         CoulombScatteringInteractor interact(model_->host_ref(),
+                                             wentzel_->host_ref(),
                                              this->particle_track(),
                                              this->direction(),
+                                             material,
                                              isotope,
-                                             ElementId{0},
+                                             el_id_,
                                              cutoffs);
 
         for ([[maybe_unused]] int i : range(num_samples))
@@ -317,52 +385,52 @@ TEST_F(CoulombScatteringTest, simple_scattering)
         }
     }
     static double const expected_cos_theta[] = {1,
-                                                0.9996601312603,
-                                                0.99998628518524,
-                                                0.9998960794451,
+                                                0.99950360343422,
+                                                0.98776892641281,
+                                                0.99837727448607,
                                                 1,
-                                                0.99991152273528,
-                                                0.99998247385882,
-                                                0.99988427878015,
+                                                0.9999716884097,
+                                                0.99985707764428,
+                                                0.99997835395879,
                                                 1,
-                                                0.99999970191006,
-                                                0.99999637934855,
-                                                0.99999885954183,
-                                                0.999999997443,
-                                                0.99999999406847,
-                                                0.99999999849197,
+                                                0.99999688465904,
+                                                0.99999974351257,
+                                                0.99999918571981,
+                                                0.99999995498814,
+                                                0.99999998059604,
+                                                0.99999992367847,
                                                 1,
-                                                0.99999999992169,
+                                                0.99999999984949,
                                                 1,
-                                                0.99999999209019,
-                                                0.99999999999489,
-                                                1,
-                                                0.99999999999999,
+                                                0.99999999999851,
+                                                0.99999999769513,
+                                                0.99999999999996,
+                                                0.99999999999998,
                                                 0.99999999999999,
                                                 1};
     static double const expected_delta_energy[] = {0,
-                                                   1.4170232209842e-09,
-                                                   5.7181509527382e-11,
-                                                   4.3327857968123e-10,
+                                                   2.069638599389e-09,
+                                                   5.0995313499724e-08,
+                                                   6.7656699409557e-09,
                                                    0,
-                                                   3.0519519134131e-09,
-                                                   6.0455007666604e-10,
-                                                   3.9917101846143e-09,
+                                                   9.7658547915103e-10,
+                                                   4.9299914151035e-09,
+                                                   7.4666273164326e-10,
                                                    0,
-                                                   5.6049742624964e-10,
-                                                   6.8078875870015e-09,
-                                                   2.1443966602419e-09,
-                                                   4.406643938637e-10,
-                                                   1.0222294122286e-09,
-                                                   2.5988811103161e-10,
+                                                   5.8577551698136e-09,
+                                                   4.8227200011297e-10,
+                                                   1.5310863688001e-09,
+                                                   7.7572508416779e-09,
+                                                   3.3440414881625e-09,
+                                                   1.315311237704e-08,
                                                    0,
-                                                   1.3371845852816e-09,
+                                                   2.5702320272103e-09,
                                                    0,
-                                                   1.350750835627e-07,
-                                                   8.7311491370201e-11,
-                                                   4.8021320253611e-10,
-                                                   8.7311491370201e-10,
-                                                   1.6734702512622e-09,
+                                                   2.5465851649642e-11,
+                                                   3.9359974834952e-08,
+                                                   7.1158865466714e-09,
+                                                   3.9435690268874e-09,
+                                                   2.0663719624281e-09,
                                                    0};
     EXPECT_VEC_SOFT_EQ(expected_cos_theta, cos_theta);
     EXPECT_VEC_SOFT_EQ(expected_delta_energy, delta_energy);
@@ -370,28 +438,33 @@ TEST_F(CoulombScatteringTest, simple_scattering)
 
 TEST_F(CoulombScatteringTest, distribution)
 {
-    CoulombScatteringHostRef const& data = model_->host_ref();
+    auto const material = this->material_track().make_material_view();
+    IsotopeView const isotope
+        = material.make_element_view(elcomp_id_).make_isotope_view(isocomp_id_);
+
+    // TODO: Use proton ParticleId{2}
+    MevEnergy const cutoff
+        = this->cutoff_params()->get(mat_id_).energy(ParticleId{0});
+
     std::vector<real_type> avg_angles;
 
     for (real_type energy : {1, 50, 100, 200, 1000, 13000})
     {
         this->set_inc_particle(pdg::electron(), MevEnergy{energy});
 
-        CoulombScatteringElementData const& element_data
-            = data.elem_data[ElementId(0)];
-
-        IsotopeView const isotope
-            = this->material_track()
-                  .make_material_view()
-                  .make_element_view(ElementComponentId{0})
-                  .make_isotope_view(IsotopeComponentId{0});
-
-        // TODO: Use proton ParticleId{2}
-        MevEnergy const cutoff
-            = this->cutoff_params()->get(MaterialId{0}).energy(ParticleId{0});
-
-        WentzelDistribution distrib(
-            this->particle_track(), isotope, element_data, cutoff, data);
+        WentzelHelper helper(this->particle_track(),
+                             material,
+                             isotope.atomic_number(),
+                             wentzel_->host_ref(),
+                             model_->host_ref().ids,
+                             cutoff);
+        WentzelDistribution sample_angle(wentzel_->host_ref(),
+                                         helper,
+                                         this->particle_track(),
+                                         isotope,
+                                         el_id_,
+                                         helper.cos_thetamax_nuclear(),
+                                         model_->host_ref().cos_thetamax());
 
         RandomEngine& rng_engine = this->rng();
 
@@ -400,19 +473,19 @@ TEST_F(CoulombScatteringTest, distribution)
         int const num_samples = 4096;
         for ([[maybe_unused]] int i : range(num_samples))
         {
-            avg_angle += distrib(rng_engine);
+            avg_angle += sample_angle(rng_engine);
         }
 
         avg_angle /= num_samples;
         avg_angles.push_back(avg_angle);
     }
 
-    static double const expected_avg_angles[] = {0.99933909299229,
-                                                 0.99999960697043,
-                                                 0.99999986035881,
-                                                 0.99999998052954,
-                                                 0.99999999917037,
-                                                 0.9999999999969};
+    static double const expected_avg_angles[] = {0.99957853627426,
+                                                 0.99999954645904,
+                                                 0.99999989882947,
+                                                 0.99999996985799,
+                                                 0.99999999945722,
+                                                 0.99999999999487};
     EXPECT_VEC_SOFT_EQ(expected_avg_angles, avg_angles);
 }
 

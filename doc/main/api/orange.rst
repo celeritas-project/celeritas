@@ -21,8 +21,8 @@ Runtime interfaces
 Geometry creation
 -----------------
 
-ORANGE geometry can (TODO: not yet, but eventually) be constructed from
-multiple geometry representations, including Geant4 HEP geometry.
+ORANGE geometry can be constructed from multiple geometry representations,
+including Geant4 HEP geometry.
 
 CSG unit
 ^^^^^^^^
@@ -36,17 +36,18 @@ implementations and relationships, and specifying which of them are volumes.
 The Object interface is implemented by:
 
 Shape
-   A convex, finite region of space defined by the intersection of multiple
-   quadric surfaces. The Shape is implemented using a single ConvexRegion,
+   A finite (and usually convex) region of space defined by the intersection of
+   multiple quadric surfaces. The Shape is implemented using a single
+   IntersectRegion,
    which is an implementation that builds the underlying surfaces and bounding
    boxes. Shapes should be as simple as possible, aligned along and centered on
    the Z axis.
 Solid
    A shape that's hollowed out and/or has a slice removed. It is equivalent to
    a CSG operation on two shapes of the same type and an azimuthal wedge.
-ExtrudedSolid
-   NOT YET IMPLEMENTED: a union of transformed solids along the Z axis, which
-   can also be hollowed and sliced.
+PolySolid
+   A union of transformed solids along the Z axis, which can also be hollowed
+   and sliced azimuthally.
 Transformed
    Applies a transform to another CSG object.
 AnyObjects, AllObjects, and NegatedObject
@@ -59,6 +60,8 @@ be reused in multiple locations.
 .. doxygenclass:: celeritas::orangeinp::Shape
 
 .. doxygenclass:: celeritas::orangeinp::Solid
+
+.. doxygenclass:: celeritas::orangeinp::PolyCone
 
 .. doxygenclass:: celeritas::orangeinp::Transformed
 
@@ -90,22 +93,22 @@ be reused in multiple locations.
      Transformed *-- Object
 
      class ShapeBase {
-       #ConvexRegion const& interior()*
+       #IntersectRegion const& interior()*
      }
      <<Abstract>> ShapeBase
 
      class Shape {
        -string label;
-       -ConvexRegion region;
+       -IntersectRegion region;
      }
-     Shape *-- ConvexRegion
+     Shape *-- IntersectRegion
 
-     class ConvexRegion {
-       +void build(ConvexSurfaceBuilder&)*
+     class IntersectRegion {
+       +void build(IntersectSurfaceBuilder&)*
      }
-     <<Interface>> ConvexRegion
-     ConvexRegion <|-- Box
-     ConvexRegion <|-- Sphere
+     <<Interface>> IntersectRegion
+     IntersectRegion <|-- Box
+     IntersectRegion <|-- Sphere
 
      class Box {
        -Real3 halfwidths
@@ -144,7 +147,7 @@ Geant4 geometry translation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The Geant4 geometry is a hierarchy of "logical volumes" comprised of solids.
-Deeper ("daughter") volumes are "placed" into a parent ("mother") volume after
+Child ("daughter") volumes are "placed" into a parent ("mother") volume after
 applying a transformation (translation, rotation, reflection, or a
 combination), displacing the material in the parent volume. Besides this
 displacement, no overlap is allowed.
@@ -155,12 +158,16 @@ always convex. See the `Geant4 documentation`_ for descriptions of all the
 predefined solids.
 
 A logical volume can be referenced multiple times, i.e., placed multiple times in
-multiple different volumes. The Geant4-ORANGE converter decomposes (TODO: not
-yet implemented) the graph of logical volume relationships into subgraphs that
-each become a CSG unit. The decomposition should minimize the number of
-subgraphs while minimizing (eliminating even?) the number of interior nodes
-with multiple incoming edges, i.e., the number of solids that have to be
-duplicated *within* a unit.
+multiple different volumes. The Geant4-ORANGE converter decomposes the graph of
+logical volume relationships into subgraphs that
+each become a CSG unit. This decomposition is currently tuned so that:
+
+- Volumes with no children are directly placed as "material" leaf nodes into a
+  unit
+- Logical volumes placed in a singular location without transforms are also
+  placed as materials with child volumes explicitly subtracted out
+- Union or poly volumes (for now!) must be placed as materials even if they are
+  used multiple times and have daughter volumes.
 
 .. _Geant4 documentation: https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/index.html
 

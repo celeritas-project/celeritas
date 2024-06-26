@@ -11,6 +11,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/grid/VectorUtils.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -18,7 +19,6 @@
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Units.hh"
-#include "celeritas/grid/VectorUtils.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/CerenkovDndxCalculator.hh"
 #include "celeritas/optical/CerenkovGenerator.hh"
@@ -367,7 +367,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
                     real_type costheta = dot_product(inc_dir, photon.direction);
                     avg_costheta += costheta;
                     // Remap from [-1,1] to [0,1]
-                    int bin = (1 + costheta) / 2 * num_bins;
+                    int bin = static_cast<int>((1 + costheta) / 2 * num_bins);
                     CELER_ASSERT(bin < num_bins);
                     ++costheta_dist[bin];
                 }
@@ -375,7 +375,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
                 {
                     real_type energy = photon.energy.value();
                     avg_energy += energy;
-                    int bin = (energy - emin) / edel;
+                    int bin = static_cast<int>((energy - emin) / edel);
                     CELER_ASSERT(bin < num_bins);
                     ++energy_dist[bin];
                 }
@@ -384,7 +384,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
                     real_type displacement
                         = distance(pre_step.pos, photon.position);
                     avg_displacement += displacement;
-                    int bin = (displacement - dmin) / ddel;
+                    int bin = static_cast<int>((displacement - dmin) / ddel);
                     CELER_ASSERT(bin < num_bins);
                     ++displacement_dist[bin];
                 }

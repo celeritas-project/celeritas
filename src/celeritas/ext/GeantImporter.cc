@@ -28,6 +28,7 @@
 #include <G4MaterialCutsCouple.hh>
 #include <G4MscStepLimitType.hh>
 #include <G4Navigator.hh>
+#include <G4NuclearFormfactorType.hh>
 #include <G4NucleiProperties.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
@@ -41,6 +42,8 @@
 #include <G4RToEConvForGamma.hh>
 #include <G4RToEConvForPositron.hh>
 #include <G4RToEConvForProton.hh>
+#include <G4Region.hh>
+#include <G4RegionStore.hh>
 #include <G4String.hh>
 #include <G4Transportation.hh>
 #include <G4TransportationManager.hh>
@@ -185,17 +188,7 @@ struct MatPropGetter
         {
             return;
         }
-        CELER_ASSERT(g4vector->GetType()
-                     == G4PhysicsVectorType::T_G4PhysicsFreeVector);
-        double const y_scale = native_value_from_clhep(q);
-        dst->vector_type = ImportPhysicsVectorType::free;
-        dst->x.resize(g4vector->GetVectorLength());
-        dst->y.resize(dst->x.size());
-        for (auto i : range(dst->x.size()))
-        {
-            dst->x[i] = g4vector->Energy(i);
-            dst->y[i] = (*g4vector)[i] * y_scale;
-        }
+        *dst = detail::import_physics_vector(*g4vector, {ImportUnits::mev, q});
     }
 };
 
@@ -329,6 +322,28 @@ to_msc_step_algorithm(G4MscStepLimitType const& msc_step_algorithm)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Safely switch from G4NuclearFormfactorType [G4NuclearFormfactorType.hh] to
+ * NuclearFormFactorType.
+ */
+NuclearFormFactorType
+to_form_factor_type(G4NuclearFormfactorType const& form_factor_type)
+{
+    switch (form_factor_type)
+    {
+        case G4NuclearFormfactorType::fNoneNF:
+            return NuclearFormFactorType::none;
+        case G4NuclearFormfactorType::fExponentialNF:
+            return NuclearFormFactorType::exponential;
+        case G4NuclearFormfactorType::fGaussianNF:
+            return NuclearFormFactorType::gaussian;
+        case G4NuclearFormfactorType::fFlatNF:
+            return NuclearFormFactorType::flat;
+    }
+    CELER_ASSERT_UNREACHABLE();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return a populated \c ImportParticle vector.
  */
 std::vector<ImportParticle>
@@ -400,6 +415,31 @@ std::vector<ImportIsotope> import_isotopes()
         isotope.name = g4isotope.GetName();
         isotope.atomic_number = g4isotope.GetZ();
         isotope.atomic_mass_number = g4isotope.GetN();
+        isotope.binding_energy = G4NucleiProperties::GetBindingEnergy(
+            isotope.atomic_mass_number, isotope.atomic_number);
+
+        // Binding energy difference for losing a nucleon
+        if (isotope.atomic_mass_number > 1 && isotope.atomic_number > 1
+            && isotope.atomic_mass_number >= isotope.atomic_number)
+        {
+            isotope.proton_loss_energy
+                = G4NucleiProperties::GetBindingEnergy(
+                      isotope.atomic_mass_number, isotope.atomic_number)
+                  - G4NucleiProperties::GetBindingEnergy(
+                      isotope.atomic_mass_number - 1,
+                      isotope.atomic_number - 1);
+            isotope.neutron_loss_energy
+                = G4NucleiProperties::GetBindingEnergy(
+                      isotope.atomic_mass_number, isotope.atomic_number)
+                  - G4NucleiProperties::GetBindingEnergy(
+                      isotope.atomic_mass_number - 1, isotope.atomic_number);
+        }
+        else
+        {
+            isotope.proton_loss_energy = 0;
+            isotope.neutron_loss_energy = 0;
+        }
+
         isotope.nuclear_mass = G4NucleiProperties::GetNuclearMass(
             isotope.atomic_mass_number, isotope.atomic_number);
     }
@@ -470,22 +510,18 @@ std::vector<ImportElement> import_elements()
  */
 ImportData::ImportOpticalMap import_optical()
 {
-    auto const& pct = *G4ProductionCutsTable::GetProductionCutsTable();
-    auto num_materials = pct.GetTableSize();
-    CELER_ASSERT(num_materials > 0);
+    auto const& mt = *G4Material::GetMaterialTable();
+    CELER_ASSERT(mt.size() > 0);
 
     auto const& particle_map = optical_particles_map();
     ImportData::ImportOpticalMap result;
 
     // Loop over optical materials
-    for (auto mat_idx : range(num_materials))
+    for (auto mat_idx : range(mt.size()))
     {
-        auto const* mcc = pct.GetMaterialCutsCouple(mat_idx);
-        CELER_ASSERT(mcc);
-        CELER_ASSERT(static_cast<std::size_t>(mcc->GetIndex()) == mat_idx);
-
-        auto const* material = mcc->GetMaterial();
+        G4Material const* material = mt[mat_idx];
         CELER_ASSERT(material);
+        CELER_ASSERT(mat_idx == static_cast<std::size_t>(material->GetIndex()));
 
         // Add optical material properties, if any are present
         auto const* mpt = material->GetMaterialPropertiesTable();
@@ -502,35 +538,31 @@ ImportData::ImportOpticalMap import_optical()
                             ImportUnits::unitless);
 
         // Save scintillation properties
+        get_property.scalar(&optical.scintillation.material.yield_per_energy,
+                            "SCINTILLATIONYIELD",
+                            ImportUnits::inv_mev);
+        get_property.scalar(&optical.scintillation.resolution_scale,
+                            "RESOLUTIONSCALE",
+                            ImportUnits::unitless);
+        optical.scintillation.material.components
+            = fill_vec_import_scint_comp(get_property);
+
+        // Particle scintillation properties
+        for (auto const& iter : particle_map)
         {
-            // Material scintillation properties
-            get_property.scalar(
-                &optical.scintillation.material.yield_per_energy,
-                "SCINTILLATIONYIELD",
-                ImportUnits::inv_mev);
-            get_property.scalar(&optical.scintillation.resolution_scale,
-                                "RESOLUTIONSCALE",
-                                ImportUnits::unitless);
-            optical.scintillation.material.components
-                = fill_vec_import_scint_comp(get_property);
+            auto const& particle_name = iter.first;
 
-            // Particle scintillation properties
-            for (auto const& iter : particle_map)
+            ImportScintData::IPSS scint_part_spec;
+            get_property.vector(&scint_part_spec.yield_vector,
+                                particle_name + "SCINTILLATIONYIELD",
+                                ImportUnits::inv_mev);
+            scint_part_spec.components
+                = fill_vec_import_scint_comp(get_property, particle_name);
+
+            if (scint_part_spec)
             {
-                auto const& particle_name = iter.first;
-
-                ImportScintData::IPSS scint_part_spec;
-                get_property.vector(&scint_part_spec.yield_vector,
-                                    particle_name + "SCINTILLATIONYIELD",
-                                    ImportUnits::inv_mev);
-                scint_part_spec.components
-                    = fill_vec_import_scint_comp(get_property, particle_name);
-
-                if (scint_part_spec)
-                {
-                    optical.scintillation.particles.insert(
-                        {iter.second.get(), std::move(scint_part_spec)});
-                }
+                optical.scintillation.particles.insert(
+                    {iter.second.get(), std::move(scint_part_spec)});
             }
         }
 
@@ -562,7 +594,7 @@ ImportData::ImportOpticalMap import_optical()
 
         if (optical)
         {
-            result[mat_idx] = optical;
+            result.insert({mat_idx, std::move(optical)});
         }
     }
 
@@ -572,22 +604,86 @@ ImportData::ImportOpticalMap import_optical()
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a populated \c ImportMaterial vector.
+ * Return a populated \c ImportGeoMaterial vector.
  *
- * TODO: there is an inconsitency between "materials" (index in the
- * global material table) and "material cut couple" (which is what we're
- * defining here?). We need another level of indirection for material and
- * material+cutoff ("physics material").
+ * These are the ground-truth physical properties of the materials with no
+ * information about how user physics selections/options affect
+ * production cutoffs etc.
  */
-std::vector<ImportMaterial>
-import_materials(GeantImporter::DataSelection::Flags particle_flags)
+std::vector<ImportGeoMaterial> import_geo_materials()
+{
+    auto const& mt = *G4Material::GetMaterialTable();
+
+    std::vector<ImportGeoMaterial> materials;
+    materials.resize(mt.size());
+    CELER_VALIDATE(!materials.empty(), << "no Geant4 materials are defined");
+
+    double const numdens_scale
+        = native_value_from_clhep(ImportUnits::inv_len_cb);
+
+    // Loop over material data
+    for (auto i : range(materials.size()))
+    {
+        auto const* g4material = mt[i];
+        CELER_ASSERT(g4material);
+        CELER_ASSERT(i == static_cast<std::size_t>(g4material->GetIndex()));
+        auto const* g4elements = g4material->GetElementVector();
+        CELER_ASSERT(g4elements);
+
+        // Populate material information
+        ImportGeoMaterial material;
+        material.name = g4material->GetName();
+        material.state = to_material_state(g4material->GetState());
+        material.temperature = g4material->GetTemperature();  // [K]
+        material.number_density = g4material->GetTotNbOfAtomsPerVolume()
+                                  * numdens_scale;
+
+        // Populate element information for this material
+        for (int j : range(g4elements->size()))
+        {
+            auto const& g4element = g4elements->at(j);
+            CELER_ASSERT(g4element);
+
+            ImportMatElemComponent elem_comp;
+            elem_comp.element_id = g4element->GetIndex();
+            double elem_num_density = g4material->GetVecNbOfAtomsPerVolume()[j]
+                                      * numdens_scale;
+            elem_comp.number_fraction = elem_num_density
+                                        / material.number_density;
+
+            // Add material's element information
+            material.elements.push_back(elem_comp);
+        }
+
+        // Sort element components by increasing element ID
+        std::sort(material.elements.begin(),
+                  material.elements.end(),
+                  [](ImportMatElemComponent const& lhs,
+                     ImportMatElemComponent const& rhs) {
+                      return lhs.element_id < rhs.element_id;
+                  });
+
+        // Add material to vector
+        materials[i] = std::move(material);
+    }
+
+    CELER_LOG(debug) << "Loaded " << materials.size() << " geo materials";
+    CELER_ENSURE(!materials.empty());
+    return materials;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a populated \c ImportPhysMaterial vector.
+ */
+std::vector<ImportPhysMaterial>
+import_phys_materials(GeantImporter::DataSelection::Flags particle_flags)
 {
     ParticleFilter include_particle{particle_flags};
-    auto const& g4production_cuts_table
-        = *G4ProductionCutsTable::GetProductionCutsTable();
+    auto const& pct = *G4ProductionCutsTable::GetProductionCutsTable();
 
-    std::vector<ImportMaterial> materials;
-    materials.resize(g4production_cuts_table.GetTableSize());
+    std::vector<ImportPhysMaterial> materials;
+    materials.resize(pct.GetTableSize());
     CELER_VALIDATE(!materials.empty(),
                    << "no Geant4 production cuts are defined (you may "
                       "need to call G4RunManager::RunInitialization)");
@@ -626,36 +722,24 @@ import_materials(GeantImporter::DataSelection::Flags particle_flags)
         cut_converters.emplace_back(gi, std::move(converter));
     }
 
-    double const numdens_scale
-        = native_value_from_clhep(ImportUnits::inv_len_cb);
     double const len_scale = native_value_from_clhep(ImportUnits::len);
 
     // Loop over material data
     for (auto i : range(materials.size()))
     {
         // Fetch material, element, and production cuts lists
-        auto const* g4material_cuts_couple
-            = g4production_cuts_table.GetMaterialCutsCouple(i);
-        auto const* g4material = g4material_cuts_couple->GetMaterial();
-        auto const* g4elements = g4material->GetElementVector();
-        auto const* g4prod_cuts = g4material_cuts_couple->GetProductionCuts();
+        auto const* mcc = pct.GetMaterialCutsCouple(i);
+        CELER_ASSERT(mcc);
+        CELER_ASSERT(static_cast<std::size_t>(mcc->GetIndex()) == i);
 
-        CELER_ASSERT(g4material_cuts_couple);
+        auto const* g4material = mcc->GetMaterial();
         CELER_ASSERT(g4material);
-        CELER_ASSERT(g4elements);
+        auto const* g4prod_cuts = mcc->GetProductionCuts();
         CELER_ASSERT(g4prod_cuts);
-        CELER_ASSERT(
-            static_cast<std::size_t>(g4material_cuts_couple->GetIndex()) == i);
-
-        // Populate material information
-        ImportMaterial material;
-        material.name = g4material->GetName();
-        material.state = to_material_state(g4material->GetState());
-        material.temperature = g4material->GetTemperature();  // [K]
-        material.number_density = g4material->GetTotNbOfAtomsPerVolume()
-                                  * numdens_scale;
 
         // Populate material production cut values
+        ImportPhysMaterial material;
+        material.geo_material_id = g4material->GetIndex();
         for (auto const& idx_convert : cut_converters)
         {
             G4ProductionCutsIndex g4i = idx_convert.first;
@@ -671,38 +755,45 @@ import_materials(GeantImporter::DataSelection::Flags particle_flags)
             material.pdg_cutoffs.insert({to_pdg(g4i).get(), cutoffs});
         }
 
-        // Populate element information for this material
-        for (int j : range(g4elements->size()))
-        {
-            auto const& g4element = g4elements->at(j);
-            CELER_ASSERT(g4element);
-
-            ImportMatElemComponent elem_comp;
-            elem_comp.element_id = g4element->GetIndex();
-            double elem_num_density = g4material->GetVecNbOfAtomsPerVolume()[j]
-                                      * numdens_scale;
-            elem_comp.number_fraction = elem_num_density
-                                        / material.number_density;
-
-            // Add material's element information
-            material.elements.push_back(elem_comp);
-        }
-
-        // Sort element components by increasing element ID
-        std::sort(material.elements.begin(),
-                  material.elements.end(),
-                  [](ImportMatElemComponent const& lhs,
-                     ImportMatElemComponent const& rhs) {
-                      return lhs.element_id < rhs.element_id;
-                  });
-
         // Add material to vector
-        materials[i] = material;
+        materials[i] = std::move(material);
     }
 
-    CELER_LOG(debug) << "Loaded " << materials.size() << " materials";
+    CELER_LOG(debug) << "Loaded " << materials.size() << " physics materials";
     CELER_ENSURE(!materials.empty());
     return materials;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a populated \c ImportRegion vector.
+ */
+std::vector<ImportRegion> import_regions()
+{
+    auto& regions = *G4RegionStore::GetInstance();
+
+    std::vector<ImportRegion> result(regions.size());
+
+    // Loop over region data
+    for (auto i : range(result.size()))
+    {
+        // Fetch material, element, and production cuts lists
+        auto const* g4reg = regions[i];
+        CELER_ASSERT(g4reg);
+        CELER_ASSERT(static_cast<std::size_t>(g4reg->GetInstanceID()) == i);
+
+        ImportRegion region;
+        region.name = g4reg->GetName();
+        region.field_manager = (g4reg->GetFieldManager() != nullptr);
+        region.production_cuts = (g4reg->GetProductionCuts() != nullptr);
+        region.user_limits = (g4reg->GetUserLimits() != nullptr);
+
+        // Add region to result
+        result[i] = std::move(region);
+    }
+
+    CELER_LOG(debug) << "Loaded " << result.size() << " regions";
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -712,7 +803,7 @@ import_materials(GeantImporter::DataSelection::Flags particle_flags)
 auto import_processes(GeantImporter::DataSelection::Flags process_flags,
                       std::vector<ImportParticle> const& particles,
                       std::vector<ImportElement> const& elements,
-                      std::vector<ImportMaterial> const& materials)
+                      std::vector<ImportPhysMaterial> const& materials)
     -> std::pair<std::vector<ImportProcess>, std::vector<ImportMscModel>>
 {
     ParticleFilter include_particle{process_flags};
@@ -919,8 +1010,11 @@ ImportEmParameters import_em_parameters()
 #else
     CELER_DISCARD(len_scale);
 #endif
+    import.msc_theta_limit = g4.MscThetaLimit();
+    import.angle_limit_factor = g4.FactorForAngleLimit();
     import.apply_cuts = g4.ApplyCuts();
     import.screening_factor = g4.ScreeningFactor();
+    import.form_factor = to_form_factor_type(g4.NuclearFormfactorType());
 
     CELER_ENSURE(import);
     return import;
@@ -994,7 +1088,8 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         {
             imported.isotopes = import_isotopes();
             imported.elements = import_elements();
-            imported.materials = import_materials(selected.particles);
+            imported.geo_materials = import_geo_materials();
+            imported.phys_materials = import_phys_materials(selected.particles);
             imported.optical = import_optical();
         }
         if (selected.processes != DataSelection::none)
@@ -1003,8 +1098,9 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
                 = import_processes(selected.processes,
                                    imported.particles,
                                    imported.elements,
-                                   imported.materials);
+                                   imported.phys_materials);
         }
+        imported.regions = import_regions();
         imported.volumes = this->import_volumes(selected.unique_volumes);
         if (selected.particles != DataSelection::none)
         {
@@ -1072,18 +1168,28 @@ GeantImporter::import_volumes(bool unique_volumes) const
     result.reserve(lv_store->size());
 
     // Recursive loop over all logical volumes to populate volumes
+    int count = 0;
     visit_geant_volumes(
-        [unique_volumes, &result](G4LogicalVolume const& lv) {
+        [unique_volumes, &result, &count](G4LogicalVolume const& lv) {
             auto i = static_cast<std::size_t>(lv.GetInstanceID());
             if (i >= result.size())
             {
                 result.resize(i + 1);
             }
+            ++count;
 
             ImportVolume& volume = result[lv.GetInstanceID()];
+            if (auto* mat = lv.GetMaterial())
+            {
+                volume.geo_material_id = mat->GetIndex();
+            }
+            if (auto* reg = lv.GetRegion())
+            {
+                volume.region_id = reg->GetInstanceID();
+            }
             if (auto* cuts = lv.GetMaterialCutsCouple())
             {
-                volume.material_id = cuts->GetIndex();
+                volume.phys_material_id = cuts->GetIndex();
             }
             volume.name = lv.GetName();
             volume.solid_name = lv.GetSolid()->GetName();
@@ -1092,7 +1198,7 @@ GeantImporter::import_volumes(bool unique_volumes) const
             {
                 CELER_LOG(warning)
                     << "No logical volume name specified for instance ID " << i
-                    << " (material " << volume.material_id << ")";
+                    << " (material " << volume.phys_material_id << ")";
             }
             else if (unique_volumes)
             {
@@ -1102,7 +1208,7 @@ GeantImporter::import_volumes(bool unique_volumes) const
         },
         *world_->GetLogicalVolume());
 
-    CELER_LOG(debug) << "Loaded " << result.size() << " volumes with "
+    CELER_LOG(debug) << "Loaded " << count << " volumes with "
                      << (unique_volumes ? "uniquified" : "original")
                      << " names";
     return result;

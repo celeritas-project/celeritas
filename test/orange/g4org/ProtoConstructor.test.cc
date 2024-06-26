@@ -19,9 +19,6 @@
 using namespace celeritas::orangeinp::test;
 using celeritas::orangeinp::UnitProto;
 using celeritas::orangeinp::detail::ProtoMap;
-using ExteriorBoundary = celeritas::orangeinp::UnitProto::ExteriorBoundary;
-
-#include "celeritas_test.hh"
 
 namespace celeritas
 {
@@ -70,13 +67,13 @@ class ProtoConstructorTest : public ::celeritas::test::Test
 
     auto build_unit(ProtoMap const& protos, UniverseId id) const
     {
-        CELER_EXPECT(id);
+        CELER_EXPECT(id < protos.size());
         auto const* proto = dynamic_cast<UnitProto const*>(protos.at(id));
         CELER_ASSERT(proto);
         return proto->build(tol_,
-                            id == UniverseId{0}
-                                ? ExteriorBoundary::is_global
-                                : ExteriorBoundary::is_daughter);
+                            id == UniverseId{0} ? BBox{}
+                                                : BBox{{-1000, -1000, -1000},
+                                                       {1000, 1000, 1000}});
     }
 
     void TearDown() final { ::celeritas::reset_geant_geometry(); }
@@ -262,7 +259,7 @@ TEST_F(ProtoConstructorTest, simple_cms)
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
         EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
-        EXPECT_EQ(MaterialId{0}, u.background);
+        EXPECT_EQ(GeoMaterialId{0}, u.background);
     }
 }
 
@@ -305,19 +302,13 @@ TEST_F(ProtoConstructorTest, testem3)
             "all(all(+0, -1, +2, -3, +4, -5), !all(+6, +8, -9, +10, -11, "
             "-84))",
             vols.back());
-        EXPECT_EQ(MaterialId{}, u.background);
+        EXPECT_EQ(GeoMaterialId{}, u.background);
     }
     {
         SCOPED_TRACE("daughter");
         auto u = this->build_unit(protos, UniverseId{1});
 
         static char const* const expected_surface_strings[] = {
-            "Plane: x=-0.4",
-            "Plane: x=0.4",
-            "Plane: y=-20",
-            "Plane: y=20",
-            "Plane: z=-20",
-            "Plane: z=20",
             "Plane: x=-0.17",
         };
         static char const* const expected_volume_strings[]
@@ -348,6 +339,51 @@ TEST_F(ProtoConstructorTest, testem3)
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_VEC_EQ(expected_md_strings, md_strings(u));
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(ProtoConstructorTest, tilecal_plug)
+{
+    LogicalVolume world = this->load("tilecal-plug.gdml");
+
+    auto global_proto = ProtoConstructor(/* verbose = */ false)(world);
+    ProtoMap protos{*global_proto};
+
+    static std::string const expected_proto_names[] = {
+        "Tile_ITCModule0x0",
+    };
+    EXPECT_VEC_EQ(expected_proto_names, get_proto_names(protos));
+
+    ASSERT_EQ(1, protos.size());
+    {
+        auto u = this->build_unit(protos, UniverseId{0});
+
+        static char const* const expected_surface_strings[] = {
+            "Plane: z=-62.058",
+            "Plane: z=62.058",
+            "Plane: x=15.45",
+            "Plane: n={0,0.9988,-0.049068}, d=17.711",
+            "Plane: x=-15.45",
+            "Plane: n={0,0.9988,0.049068}, d=-17.711",
+            "Plane: z=-16.942",
+            "Plane: z=-17.058",
+            "Plane: x=5.965",
+            "Plane: z=25.058",
+            "Plane: n={0,0.9988,-0.049068}, d=17.636",
+            "Plane: n={0,0.9988,0.049068}, d=-17.636",
+        };
+        static char const* const expected_fill_strings[]
+            = {"<UNASSIGNED>", "m1", "m0", "m1"};
+        static int const expected_volume_nodes[] = {12, 28, 26, 30};
+        static char const expected_tree_string[]
+            = R"json(["t",["~",0],["S",0],["S",1],["~",3],["S",2],["~",5],["S",3],["~",7],["S",4],["S",5],["&",[2,4,6,8,9,10]],["~",11],["S",6],["&",[4,6,8,9,10,13]],["S",9],["~",13],["S",10],["~",17],["&",[8,9,10,15,16,18]],["|",[14,19]],["S",13],["~",21],["S",14],["~",23],["S",15],["&",[6,9,13,22,24,25]],["~",26],["&",[20,27]],["~",20],["&",[11,29]]])json";
+
+        EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+        EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
+        EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
+        EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
+        EXPECT_EQ(GeoMaterialId{}, u.background);
     }
 }
 
@@ -403,23 +439,14 @@ TEST_F(ProtoConstructorTest, znenv)
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_fill_strings, fill_strings(u));
         EXPECT_VEC_EQ(expected_volume_nodes, volume_nodes(u));
-        if (CELERITAS_USE_JSON)
-        {
-            EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
-        }
-        EXPECT_EQ(MaterialId{}, u.background);
+        EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
+        EXPECT_EQ(GeoMaterialId{}, u.background);
     }
     {
         SCOPED_TRACE("ZNTX");
         auto u = this->build_unit(protos, UniverseId{1});
 
         static char const* const expected_surface_strings[] = {
-            "Plane: x=-1.76",
-            "Plane: x=1.76",
-            "Plane: y=-3.52",
-            "Plane: y=3.52",
-            "Plane: z=-50",
-            "Plane: z=50",
             "Plane: y=0",
         };
         static char const* const expected_volume_strings[]
@@ -427,19 +454,13 @@ TEST_F(ProtoConstructorTest, znenv)
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
-        EXPECT_EQ(MaterialId{}, u.background);
+        EXPECT_EQ(GeoMaterialId{}, u.background);
     }
     {
         SCOPED_TRACE("ZNST");
         auto u = this->build_unit(protos, UniverseId{4});
 
         static char const* const expected_surface_strings[] = {
-            "Plane: x=-0.16",
-            "Plane: x=0.16",
-            "Plane: y=-0.16",
-            "Plane: y=0.16",
-            "Plane: z=-50",
-            "Plane: z=50",
             "Plane: x=-0.11",
             "Plane: x=-0.05",
             "Plane: y=0.05",
@@ -459,24 +480,18 @@ TEST_F(ProtoConstructorTest, znenv)
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
-        EXPECT_EQ(MaterialId{2}, u.background);
+        EXPECT_EQ(GeoMaterialId{2}, u.background);
     }
     {
         SCOPED_TRACE("ZNG1");
         auto u = this->build_unit(protos, UniverseId{5});
         static char const* const expected_surface_strings[]
-            = {"Plane: x=-0.03",
-               "Plane: x=0.03",
-               "Plane: y=-0.03",
-               "Plane: y=0.03",
-               "Plane: z=-50",
-               "Plane: z=50",
-               "Cyl z: r=0.01825"};
+            = {"Cyl z: r=0.01825"};
         static char const* const expected_volume_strings[] = {"F", "-6", "+6"};
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
-        EXPECT_EQ(MaterialId{}, u.background);
+        EXPECT_EQ(GeoMaterialId{}, u.background);
     }
 }
 

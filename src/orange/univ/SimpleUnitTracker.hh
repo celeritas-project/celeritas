@@ -7,14 +7,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <iostream>
-
 #include "corecel/Assert.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeData.hh"
 #include "orange/detail/BIHTraverser.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 
+#include "detail/InfixEvaluator.hh"
 #include "detail/LogicEvaluator.hh"
 #include "detail/SenseCalculator.hh"
 #include "detail/SurfaceFunctors.hh"

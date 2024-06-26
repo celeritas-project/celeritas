@@ -20,6 +20,9 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+static char const format_str[] = "image-input";
+
+//---------------------------------------------------------------------------//
 //!@{
 //! I/O routines for JSON
 #define IM_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, v, NAME)
@@ -27,6 +30,8 @@ namespace celeritas
 
 void from_json(nlohmann::json const& j, ImageInput& v)
 {
+    check_format(j, format_str);
+
     IM_LOAD_REQUIRED(lower_left);
     IM_LOAD_REQUIRED(upper_right);
     IM_LOAD_REQUIRED(rightward);
@@ -66,8 +71,10 @@ void to_json(nlohmann::json& j, ImageInput const& v)
         CELER_JSON_PAIR(v, rightward),
         CELER_JSON_PAIR(v, vertical_pixels),
         CELER_JSON_PAIR(v, horizontal_divisor),
-        {"_units", to_cstring(UnitSystem::native)},
     };
+
+    save_format(j, format_str);
+    save_units(j);
 }
 
 void to_json(nlohmann::json& j, ImageParams const& p)
@@ -79,8 +86,10 @@ void to_json(nlohmann::json& j, ImageParams const& p)
         CELER_JSON_PAIR(scalars, right),
         CELER_JSON_PAIR(scalars, pixel_width),
         CELER_JSON_PAIR(scalars, dims),
-        {"_units", to_cstring(UnitSystem::native)},
+        CELER_JSON_PAIR(scalars, max_length),
     };
+
+    save_units(j);
 }
 
 #undef IM_LOAD_OPTION

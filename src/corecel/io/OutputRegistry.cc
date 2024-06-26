@@ -11,19 +11,15 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+#include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
-
-#include "OutputInterface.hh"
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-#endif
-
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 
 #include "JsonPimpl.hh"
 #include "Logger.hh"  // IWYU pragma: keep
+#include "OutputInterface.hh"
 
 namespace celeritas
 {
@@ -53,7 +49,6 @@ void OutputRegistry::insert(SPConstInterface interface)
  */
 void OutputRegistry::output(JsonPimpl* j) const
 {
-#if CELERITAS_USE_JSON
     nlohmann::json result;
 
     for (auto cat : range(Category::size_))
@@ -88,10 +83,6 @@ void OutputRegistry::output(JsonPimpl* j) const
     }
 
     j->obj = std::move(result);
-#else
-    CELER_DISCARD(j);
-    CELER_NOT_CONFIGURED("nljson");
-#endif
 }
 
 //---------------------------------------------------------------------------//
@@ -100,16 +91,9 @@ void OutputRegistry::output(JsonPimpl* j) const
  */
 void OutputRegistry::output(std::ostream* os) const
 {
-#if CELERITAS_USE_JSON
     JsonPimpl json_wrap;
     this->output(&json_wrap);
     *os << json_wrap.obj.dump();
-#else
-    // Write a JSON-compatible string and print an explanation to stderr
-    CELER_LOG(error) << "Cannot write output to JSON: nljson is not enabled "
-                        "in the current build configuration";
-    *os << "\"output unavailable\"";
-#endif
 }
 
 //---------------------------------------------------------------------------//

@@ -221,8 +221,12 @@ function(celeritas_setup_tests)
     ${ARGN}
   )
 
+  # Set the directory relative to the "test" directory
+  file(RELATIVE_PATH PARSE_DIR
+    "${PROJECT_SOURCE_DIR}/test" "${CMAKE_CURRENT_SOURCE_DIR}")
+
   # Set special variables
-  foreach(_var LINK_LIBRARIES ADD_DEPENDENCIES PREFIX)
+  foreach(_var LINK_LIBRARIES ADD_DEPENDENCIES PREFIX DIR)
     set(CELERITASTEST_${_var} "${PARSE_${_var}}" PARENT_SCOPE)
   endforeach()
 
@@ -278,14 +282,27 @@ function(celeritas_add_test SOURCE_FILE)
 
   # Add prefix to test name and possibly dependent name
   get_filename_component(_BASENAME "${SOURCE_FILE}" NAME_WE)
+  get_filename_component(_BASEDIR "${SOURCE_FILE}" DIRECTORY)
+  if(_BASEDIR)
+    set(_BASENAME "${_BASEDIR}/${_BASENAME}")
+  endif()
+  set(_TARGET "${_BASENAME}")
   if(CELERITASTEST_PREFIX)
-    set(_TARGET "${CELERITASTEST_PREFIX}/${_BASENAME}")
-    string(REGEX REPLACE "[^a-zA-Z0-9_]+" "_" _TARGET "${_TARGET}")
+    set(_TARGET "${CELERITASTEST_PREFIX}/${_TARGET}")
     if(PARSE_DEPTEST)
       set(PARSE_DEPTEST "${CELERITASTEST_PREFIX}/${PARSE_DEPTEST}")
     endif()
     set(_PREFIX "${CELERITASTEST_PREFIX}/")
   endif()
+  set(_OUTPUT_NAME "${_TARGET}")
+  if(CELERITASTEST_DIR)
+    set(_TARGET "${CELERITASTEST_DIR}/${_TARGET}")
+    if(PARSE_DEPTEST)
+      set(PARSE_DEPTEST "${CELERITASTEST_DIR}/${PARSE_DEPTEST}")
+    endif()
+    set(_PREFIX "${CELERITASTEST_DIR}/${CELERITASTEST_PREFIX}")
+  endif()
+
   if(PARSE_SUFFIX)
     set(_TARGET "${_TARGET}_${PARSE_SUFFIX}")
     if(PARSE_DEPTEST)
@@ -293,6 +310,9 @@ function(celeritas_add_test SOURCE_FILE)
     endif()
     set(_SUFFIX "/${PARSE_SUFFIX}")
   endif()
+
+  string(REGEX REPLACE "[^a-zA-Z0-9_]+" "_" _TARGET "${_TARGET}")
+  string(REGEX REPLACE "[^a-zA-Z0-9_]+" "_" _OUTPUT_NAME "${_OUTPUT_NAME}")
 
   if(_CELERITASTEST_IS_PYTHON)
     get_filename_component(SOURCE_FILE "${SOURCE_FILE}" ABSOLUTE)
@@ -316,11 +336,15 @@ function(celeritas_add_test SOURCE_FILE)
     # Create an executable and link libraries against it
     add_executable(${_TARGET} "${SOURCE_FILE}" ${PARSE_SOURCES})
 
+    set_property(TARGET ${_TARGET}
+      PROPERTY OUTPUT_NAME "${_OUTPUT_NAME}"
+    )
+
     # Note: for static linking the library order is relevant.
     celeritas_target_link_libraries(${_TARGET}
       ${CELERITASTEST_LINK_LIBRARIES}
       ${PARSE_LINK_LIBRARIES}
-      Celeritas::testcel_harness
+      testcel_harness
     )
 
     if(PARSE_ADD_DEPENDENCIES OR CELERITASTEST_ADD_DEPENDENCIES)

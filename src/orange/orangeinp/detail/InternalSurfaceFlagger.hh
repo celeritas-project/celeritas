@@ -58,7 +58,7 @@ class InternalSurfaceFlagger
   private:
     //// TYPES ////
 
-    enum Status : char
+    enum Status : signed char
     {
         unknown = -1,  //!< Node has not yet been evaluated
         simple = 0,  //!< Known not to have reentrant surfaces

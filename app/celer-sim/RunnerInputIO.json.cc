@@ -9,6 +9,7 @@
 
 #include <string>
 
+#include "celeritas_config.h"
 #include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/LabelIO.json.hh"
@@ -76,6 +77,8 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(physics_file);
     LDIO_LOAD_OPTION(event_file);
 
+    LDIO_LOAD_OPTION(file_sampling_options);
+
     LDIO_LOAD_DEPRECATED(primary_gen_options, primary_options);
 
     LDIO_LOAD_OPTION(primary_options);
@@ -84,6 +87,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_DEPRECATED(step_diagnostic_maxsteps, step_diagnostic_bins);
 
     LDIO_LOAD_OPTION(mctruth_file);
+    LDIO_LOAD_OPTION(tracing_file);
     LDIO_LOAD_OPTION(mctruth_filter);
     LDIO_LOAD_OPTION(simple_calo);
     LDIO_LOAD_OPTION(action_diagnostic);
@@ -93,6 +97,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(write_step_times);
 
     LDIO_LOAD_DEPRECATED(max_num_tracks, num_track_slots);
+    LDIO_LOAD_DEPRECATED(sync, action_times);
 
     LDIO_LOAD_OPTION(seed);
     LDIO_LOAD_OPTION(num_track_slots);
@@ -100,7 +105,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_REQUIRED(initializer_capacity);
     LDIO_LOAD_REQUIRED(secondary_stack_factor);
     LDIO_LOAD_REQUIRED(use_device);
-    LDIO_LOAD_OPTION(sync);
+    LDIO_LOAD_OPTION(action_times);
     LDIO_LOAD_OPTION(merge_events);
     LDIO_LOAD_OPTION(default_stream);
     LDIO_LOAD_OPTION(warm_up);
@@ -157,9 +162,13 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE(geometry_file);
     LDIO_SAVE(physics_file);
     LDIO_SAVE_OPTION(event_file);
+    LDIO_SAVE_WHEN(file_sampling_options,
+                   ends_with(v.event_file, ".root")
+                       && static_cast<bool>(v.file_sampling_options));
     LDIO_SAVE_WHEN(primary_options, v.event_file.empty());
 
     LDIO_SAVE_OPTION(mctruth_file);
+    LDIO_SAVE_WHEN(tracing_file, CELERITAS_USE_PERFETTO);
     LDIO_SAVE_WHEN(mctruth_filter, !v.mctruth_file.empty());
     LDIO_SAVE(simple_calo);
     LDIO_SAVE(action_diagnostic);
@@ -174,7 +183,7 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE(initializer_capacity);
     LDIO_SAVE(secondary_stack_factor);
     LDIO_SAVE(use_device);
-    LDIO_SAVE(sync);
+    LDIO_SAVE(action_times);
     LDIO_SAVE(merge_events);
     LDIO_SAVE(default_stream);
     LDIO_SAVE(warm_up);
@@ -193,6 +202,22 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
 #undef LDIO_SAVE_OPTION
 #undef LDIO_SAVE_WHEN
 #undef LDIO_SAVE
+}
+
+//---------------------------------------------------------------------------//
+void from_json(nlohmann::json const& j,
+               app::RunnerInput::EventFileSampling& efs)
+{
+    CELER_JSON_LOAD_REQUIRED(j, efs, num_events);
+    CELER_JSON_LOAD_REQUIRED(j, efs, num_merged);
+}
+
+void to_json(nlohmann::json& j, app::RunnerInput::EventFileSampling const& efs)
+{
+    j = nlohmann::json{
+        CELER_JSON_PAIR(efs, num_events),
+        CELER_JSON_PAIR(efs, num_merged),
+    };
 }
 
 //---------------------------------------------------------------------------//

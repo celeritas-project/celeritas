@@ -18,17 +18,18 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Return a simplified version of a surface, possibly flipping associated
- * sense.
+ * Return a simplified, regularized version of a surface/sense pair.
  *
- * This class is meant for using SurfaceAction or std::variant to visit a
- * surface type.
+ * This class takes a general surface with an associated sense and will
+ * simplify (e.g., turning a general plane into an axis-aligned one) and
+ * regularize (e.g., flipping normals so that the plane points in a positive
+ * direction) it, modifying the sense as needed.
+ *
+ * It is meant to be used with \c VariantSurface to visit a surface type.
  *
  * The result of each simplification type should be a \c std::variant of
  * possible simplified class forms, or a \c std::monostate if no simplification
  * was applied.
- *
- * The embedded sense may be flipped as part of the simplifications.
  *
  * \todo Use a \c Tolerance object instead of a single tolerance, and compare
  * implementations with \c SoftSurfaceEqual for consistency.
@@ -62,7 +63,7 @@ class SurfaceSimplifier
 
     // Plane may be flipped, adjusted, or become axis-aligned
     Optional<PlaneAligned<Axis::x>, PlaneAligned<Axis::y>, PlaneAligned<Axis::z>, Plane>
-    operator()(Plane const&);
+    operator()(Plane const&) const;
 
     // Sphere near center can be snapped
     Optional<SphereCentered> operator()(Sphere const&) const;
@@ -77,12 +78,13 @@ class SurfaceSimplifier
              ConeAligned<Axis::y>,
              ConeAligned<Axis::z>,
              SimpleQuadric>
-    operator()(SimpleQuadric const&);
+    operator()(SimpleQuadric const&) const;
 
-    // Quadric with no cross terms is simple
-    Optional<SimpleQuadric> operator()(GeneralQuadric const&);
+    // Quadric can be normalized or simplified
+    Optional<SimpleQuadric, GeneralQuadric>
+    operator()(GeneralQuadric const&) const;
 
-    //! Default: no simplifcation
+    //! Default: no simplification
     template<class S>
     std::variant<std::monostate> operator()(S const&) const
     {

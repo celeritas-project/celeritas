@@ -126,6 +126,8 @@ struct SetupOptions
     size_type initializer_capacity{};
     //! At least the average number of secondaries per track slot
     real_type secondary_stack_factor{3.0};
+    //! Number of tracks to buffer before offloading (if unset: max num tracks)
+    size_type auto_flush{};
     //!@}
 
     //! Set the number of streams (defaults to run manager # threads)
@@ -134,6 +136,11 @@ struct SetupOptions
     //!@{
     //! \name Stepping actions
     AlongStepFactory make_along_step;
+    //!@}
+
+    //!@{
+    //! \name Field options
+    short int max_field_substeps{100};
     //!@}
 
     //!@{
@@ -152,7 +159,7 @@ struct SetupOptions
     size_type cuda_stack_size{};
     size_type cuda_heap_size{};
     //! Sync the GPU at every kernel for timing
-    bool sync{false};
+    bool action_times{false};
     //! Launch all kernels on the default stream
     bool default_stream{false};
     //!@}

@@ -98,6 +98,30 @@ TEST(AlgorithmsTest, any_of)
     EXPECT_FALSE(any_of(std::begin(items) + 2, std::end(items), is_true));
 }
 
+TEST(AlgorithmsTest, all_adjacent)
+{
+    static int const incr[] = {0, 1, 3, 20, 200};
+    static int const vee[] = {3, 2, 1, 2, 3};
+    static int const nondecr[] = {1, 1, 2, 3, 5, 8};
+
+    // Empty and single-element ranges
+    EXPECT_TRUE(all_adjacent(
+        std::begin(incr), std::begin(incr), [](int, int) { return false; }));
+    EXPECT_TRUE(all_adjacent(std::begin(incr),
+                             std::begin(incr) + 1,
+                             [](int, int) { return false; }));
+
+    auto lt = [](int a, int b) { return a < b; };
+    auto le = [](int a, int b) { return a <= b; };
+    EXPECT_TRUE(all_adjacent(std::begin(incr), std::end(incr), lt));
+    EXPECT_FALSE(all_adjacent(std::begin(vee), std::end(vee), lt));
+    EXPECT_FALSE(all_adjacent(std::begin(nondecr), std::end(nondecr), lt));
+
+    EXPECT_TRUE(all_adjacent(std::begin(incr), std::end(incr), le));
+    EXPECT_FALSE(all_adjacent(std::begin(vee), std::end(vee), le));
+    EXPECT_TRUE(all_adjacent(std::begin(nondecr), std::end(nondecr), le));
+}
+
 TEST(AlgorithmsTest, clamp)
 {
     EXPECT_EQ(123, clamp(123, 100, 200));
@@ -365,7 +389,7 @@ TEST(MathTest, diffsq)
     EXPECT_DOUBLE_EQ(9.0, diffsq(5.0, 4.0));
     EXPECT_DOUBLE_EQ(ipow<2>(std::sin(0.2)), diffsq(1.0, std::cos(0.2)));
 
-    float a{10000.001}, b{10000}, actual{20};
+    float a{10000.001f}, b{10000.f}, actual{20.f};
     EXPECT_FLOAT_EQ(0.46875f, actual - diffsq(a, b));
     EXPECT_LE(actual - diffsq(a, b), actual - (a * a - b * b));
 }

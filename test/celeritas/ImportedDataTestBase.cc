@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "ImportedDataTestBase.hh"
 
+#include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -68,6 +69,13 @@ auto ImportedDataTestBase::build_cutoff() -> SPConstCutoff
 auto ImportedDataTestBase::build_sim() -> SPConstSim
 {
     return SimParams::from_import(this->imported_data(), this->particle());
+}
+
+//---------------------------------------------------------------------------//
+auto ImportedDataTestBase::build_wentzel() -> SPConstWentzelOKVI
+{
+    return WentzelOKVIParams::from_import(this->imported_data(),
+                                          this->material());
 }
 
 //---------------------------------------------------------------------------//

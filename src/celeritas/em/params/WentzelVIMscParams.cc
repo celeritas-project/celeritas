@@ -13,9 +13,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/em/params/detail/MscParamsHelper.hh"
-#include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/io/ImportData.hh"
-#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
 namespace celeritas
@@ -26,19 +24,14 @@ namespace celeritas
  */
 std::shared_ptr<WentzelVIMscParams>
 WentzelVIMscParams::from_import(ParticleParams const& particles,
-                                MaterialParams const& materials,
                                 ImportData const& data)
 {
-    auto is_wentzel = [](ImportMscModel const& imm) {
-        return imm.model_class == ImportModelClass::wentzel_vi_uni;
-    };
-    if (!std::any_of(data.msc_models.begin(), data.msc_models.end(), is_wentzel))
+    if (!has_msc_model(data, ImportModelClass::wentzel_vi_uni))
     {
         // No WentzelVI MSC present
         return nullptr;
     }
-    return std::make_shared<WentzelVIMscParams>(
-        particles, materials, data.msc_models);
+    return std::make_shared<WentzelVIMscParams>(particles, data.msc_models);
 }
 
 //---------------------------------------------------------------------------//
@@ -46,7 +39,6 @@ WentzelVIMscParams::from_import(ParticleParams const& particles,
  * Construct from cross section data and material properties.
  */
 WentzelVIMscParams::WentzelVIMscParams(ParticleParams const& particles,
-                                       MaterialParams const& materials,
                                        VecImportMscModel const& mdata_vec)
 {
     using units::MevEnergy;
@@ -56,18 +48,18 @@ WentzelVIMscParams::WentzelVIMscParams(ParticleParams const& particles,
     HostVal<WentzelVIMscData> host_data;
 
     detail::MscParamsHelper helper(
-        particles, materials, mdata_vec, ImportModelClass::wentzel_vi_uni);
+        particles, mdata_vec, ImportModelClass::wentzel_vi_uni);
     helper.build_ids(&host_data.ids);
     helper.build_xs(&host_data.xs, &host_data.reals);
 
     // Save electron mass
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();
 
-    // Save high/low energy limits
-    XsCalculator calc_xs(host_data.xs[ItemId<XsGridData>(0)],
-                         make_const_ref(host_data).reals);
-    host_data.params.low_energy_limit = calc_xs.energy_min();
-    host_data.params.high_energy_limit = calc_xs.energy_max();
+    // Get the cross section energy grid limits (this checks that the limits
+    // are the same for all particles/materials)
+    auto energy_limit = helper.energy_grid_bounds();
+    host_data.params.low_energy_limit = energy_limit[0];
+    host_data.params.high_energy_limit = energy_limit[1];
 
     CELER_ASSERT(host_data);
 

@@ -7,10 +7,19 @@
 //---------------------------------------------------------------------------//
 #include "CsgTreeIO.json.hh"
 
+#include <string>
+
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/VariantUtils.hh"
+#include "corecel/io/LabelIO.json.hh"
+#include "corecel/io/StreamableVariant.hh"
+#include "geocel/BoundingBoxIO.json.hh"
+#include "orange/surf/SurfaceIO.hh"
+#include "orange/transform/TransformIO.hh"
 
 #include "CsgTree.hh"
+
+#include "detail/CsgUnit.hh"
 
 using nlohmann::json;
 
@@ -63,6 +72,107 @@ void to_json(json& j, CsgTree const& tree)
     }
 }
 
+namespace detail
+{
 //---------------------------------------------------------------------------//
+//! Write CSG unit to JSON
+void to_json(nlohmann::json& j, CsgUnit const& unit)
+{
+    using nlohmann::json;
+    j = json::object();
+
+    j["surfaces"] = [&all_s = unit.surfaces] {
+        json result = json::array();
+        for (auto const& s : all_s)
+        {
+            result.push_back(to_string(StreamableVariant{s}));
+        }
+        return result;
+    }();
+
+    j["tree"] = unit.tree;
+
+    j["metadata"] = [&all_md = unit.metadata] {
+        json result = json::array();
+        for (auto const& md : all_md)
+        {
+            json entry = json::array();
+            for (auto const& label : md)
+            {
+                entry.push_back(label);
+            }
+            result.push_back(std::move(entry));
+        }
+        return result;
+    }();
+
+    j["regions"] = [&all_regions = unit.regions] {
+        json result = json::object();
+        for (auto&& [node, reg] : all_regions)
+        {
+            auto entry = nlohmann::json{
+                {"exterior", reg.bounds.exterior},
+                {"transform", reg.transform_id.unchecked_get()},
+            };
+            if (reg.bounds.interior)
+            {
+                entry["interior"] = reg.bounds.interior;
+            }
+            if (reg.bounds.negated)
+            {
+                entry["negated"] = true;
+            }
+
+            result[std::to_string(node.unchecked_get())] = std::move(entry);
+        }
+        return result;
+    }();
+
+    j["volumes"] = [&unit] {
+        CELER_ASSERT(unit.volumes.size() == unit.fills.size());
+        json result = json::array();
+        for (auto i : range(unit.volumes.size()))
+        {
+            auto entry = nlohmann::json{{"csg_node", unit.volumes[i].get()}};
+            if (auto* m = std::get_if<GeoMaterialId>(&unit.fills[i]))
+            {
+                entry["material"] = m->unchecked_get();
+            }
+            else if (auto* d = std::get_if<Daughter>(&unit.fills[i]))
+            {
+                entry["universe"] = d->universe_id.unchecked_get();
+                entry["transform"] = d->transform_id.unchecked_get();
+            }
+            result.push_back(entry);
+        }
+        return result;
+    }();
+
+    j["fills"] = [&volumes = unit.volumes] {
+        json result = json::array();
+        for (auto const& v : volumes)
+        {
+            result.push_back(v.unchecked_get());
+        }
+        return result;
+    }();
+
+    if (unit.background)
+    {
+        j["background"] = unit.background.get();
+    }
+
+    j["transforms"] = [&all_t = unit.transforms] {
+        json result = json::array();
+        for (auto const& t : all_t)
+        {
+            result.push_back(to_string(StreamableVariant{t}));
+        }
+        return result;
+    }();
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace orangeinp
 }  // namespace celeritas

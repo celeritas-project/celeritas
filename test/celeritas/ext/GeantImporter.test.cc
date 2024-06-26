@@ -15,6 +15,7 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Version.hh"
 #include "geocel/UnitUtils.hh"
+#include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -22,9 +23,6 @@
 
 #include "celeritas_test.hh"
 #include "../GeantTestBase.hh"
-#if CELERITAS_USE_JSON
-#    include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
-#endif
 
 using namespace celeritas::units;
 
@@ -251,15 +249,14 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
         GeantPhysicsOptions opts;
         opts.relaxation = RelaxationSelection::all;
         opts.verbose = true;
-#if CELERITAS_USE_JSON
         if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
         {
             nlohmann::json out = opts;
+            out.erase("_version");
             EXPECT_JSON_EQ(
-                R"json({"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban_extended","msc_lambda_limit":0.1,"msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","verbose":true})json",
+                R"json({"_format":"geant-physics","_units":"cgs","angle_limit_factor":1.0,"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"form_factor":"exponential","gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","msc_lambda_limit":0.1,"msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","msc_theta_limit":3.141592653589793,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","verbose":true})json",
                 std::string(out.dump()));
         }
-#endif
         return opts;
     }
 };
@@ -295,7 +292,7 @@ class OneSteelSphere : public GeantImporterTest
     GeantPhysicsOptions build_geant_options() const override
     {
         GeantPhysicsOptions opts;
-        opts.msc = MscModelSelection::urban_wentzel;
+        opts.msc = MscModelSelection::urban_wentzelvi;
         opts.relaxation = RelaxationSelection::none;
         opts.verbose = false;
         return opts;
@@ -318,7 +315,7 @@ class OneSteelSphereGG : public OneSteelSphere
     {
         auto opts = OneSteelSphere::build_geant_options();
         opts.gamma_general = true;
-        opts.msc = MscModelSelection::urban_extended;
+        opts.msc = MscModelSelection::urban;
         return opts;
     }
 };
@@ -530,17 +527,15 @@ TEST_F(FourSteelSlabsEmStandard, isotopes)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(FourSteelSlabsEmStandard, materials)
+TEST_F(FourSteelSlabsEmStandard, geo_materials)
 {
     auto&& import_data = this->imported_data();
 
-    auto const& materials = import_data.materials;
+    auto const& materials = import_data.geo_materials;
     EXPECT_EQ(2, materials.size());
 
     std::vector<std::string> names;
     std::vector<int> states;
-    std::vector<int> pdgs;
-    std::vector<double> cutoff_energies, cutoff_ranges;
     std::vector<double> el_comps_ids, el_comps_num_fracs;
     std::vector<double> num_densities;
     std::vector<double> temperatures;
@@ -553,13 +548,6 @@ TEST_F(FourSteelSlabsEmStandard, materials)
             native_value_to<InvCcDensity>(material.number_density).value());
         temperatures.push_back(material.temperature);
 
-        for (auto const& key : material.pdg_cutoffs)
-        {
-            pdgs.push_back(key.first);
-            cutoff_energies.push_back(key.second.energy);
-            cutoff_ranges.push_back(to_cm(key.second.range));
-        }
-
         for (auto const& el_comp : material.elements)
         {
             el_comps_ids.push_back(el_comp.element_id);
@@ -569,10 +557,47 @@ TEST_F(FourSteelSlabsEmStandard, materials)
 
     real_type const tol = this->comparison_tolerance();
 
-    static char const* expected_names[] = {"G4_Galactic", "G4_STAINLESS-STEEL"};
+    static char const* expected_names[] = {"G4_STAINLESS-STEEL", "G4_Galactic"};
     EXPECT_VEC_EQ(expected_names, names);
-    static int const expected_states[] = {3, 1};
+    static int const expected_states[] = {1, 3};
     EXPECT_VEC_EQ(expected_states, states);
+    static double const expected_num_densities[]
+        = {8.699348925899e+22, 0.05974697167543};
+    EXPECT_VEC_NEAR(expected_num_densities, num_densities, tol);
+    static double const expected_temperatures[] = {
+        293.15,
+        2.73,
+    };
+    EXPECT_VEC_SOFT_EQ(expected_temperatures, temperatures);
+    static double const expected_el_comps_ids[] = {0, 1, 2, 3};
+    EXPECT_VEC_SOFT_EQ(expected_el_comps_ids, el_comps_ids);
+    static double const expected_el_comps_num_fracs[] = {0.74, 0.18, 0.08, 1};
+    EXPECT_VEC_SOFT_EQ(expected_el_comps_num_fracs, el_comps_num_fracs);
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(FourSteelSlabsEmStandard, phys_materials)
+{
+    auto&& import_data = this->imported_data();
+
+    auto const& materials = import_data.phys_materials;
+    EXPECT_EQ(2, materials.size());
+
+    std::vector<unsigned int> geo_ids;
+    std::vector<int> pdgs;
+    std::vector<double> cutoff_energies, cutoff_ranges;
+
+    for (auto const& material : materials)
+    {
+        for (auto const& key : material.pdg_cutoffs)
+        {
+            pdgs.push_back(key.first);
+            cutoff_energies.push_back(key.second.energy);
+            cutoff_ranges.push_back(to_cm(key.second.range));
+        }
+    }
+
+    real_type const tol = this->comparison_tolerance();
     static int const expected_pdgs[] = {-11, 11, 22, -11, 11, 22};
     EXPECT_VEC_EQ(expected_pdgs, pdgs);
     static double const expected_cutoff_energies[] = {0.00099,
@@ -587,15 +612,6 @@ TEST_F(FourSteelSlabsEmStandard, materials)
     static double const expected_cutoff_ranges[]
         = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
     EXPECT_VEC_NEAR(expected_cutoff_ranges, cutoff_ranges, tol);
-    static double const expected_num_densities[]
-        = {0.05974697167543, 8.699348925899e+22};
-    EXPECT_VEC_NEAR(expected_num_densities, num_densities, tol);
-    static double const expected_temperatures[] = {2.73, 293.15};
-    EXPECT_VEC_SOFT_EQ(expected_temperatures, temperatures);
-    static double const expected_el_comps_ids[] = {3, 0, 1, 2};
-    EXPECT_VEC_SOFT_EQ(expected_el_comps_ids, el_comps_ids);
-    static double const expected_el_comps_num_fracs[] = {1, 0.74, 0.18, 0.08};
-    EXPECT_VEC_SOFT_EQ(expected_el_comps_num_fracs, el_comps_num_fracs);
 }
 
 //---------------------------------------------------------------------------//
@@ -683,6 +699,12 @@ TEST_F(FourSteelSlabsEmStandard, ebrems)
         celeritas::pdg::electron(), ImportProcessClass::e_brems);
     EXPECT_EQ(celeritas::pdg::gamma().get(), proc.secondary_pdg);
     ASSERT_EQ(2, proc.models.size());
+    if (geant4_version < Version{11})
+    {
+        GTEST_SKIP() << "Cross sections changed with Geant4 version 11; older "
+                        "versions are not checked";
+    }
+
     {
         // Check Seltzer-Berger electron micro xs
         auto const& model = proc.models[0];
@@ -769,7 +791,7 @@ TEST_F(FourSteelSlabsEmStandard, volumes)
 
     for (auto const& volume : volumes)
     {
-        material_ids.push_back(volume.material_id);
+        material_ids.push_back(volume.phys_material_id);
         names.push_back(volume.name);
         solids.push_back(volume.solid_name);
     }
@@ -805,9 +827,14 @@ TEST_F(FourSteelSlabsEmStandard, em_parameters)
     EXPECT_DOUBLE_EQ(0.01, em_params.linear_loss_limit);
     EXPECT_DOUBLE_EQ(0.001, em_params.lowest_electron_energy);
     EXPECT_EQ(true, em_params.auger);
+    EXPECT_EQ(MscStepLimitAlgorithm::safety, em_params.msc_step_algorithm);
     EXPECT_DOUBLE_EQ(0.04, em_params.msc_range_factor);
     EXPECT_DOUBLE_EQ(0.6, em_params.msc_safety_factor);
     EXPECT_REAL_EQ(0.1, to_cm(em_params.msc_lambda_limit));
+    EXPECT_REAL_EQ(constants::pi, em_params.msc_theta_limit);
+    EXPECT_EQ(false, em_params.apply_cuts);
+    EXPECT_EQ(1, em_params.screening_factor);
+    EXPECT_EQ(1, em_params.angle_limit_factor);
 }
 
 //---------------------------------------------------------------------------//
@@ -1136,12 +1163,12 @@ TEST_F(OneSteelSphere, cutoffs)
     auto&& import_data = this->imported_data();
 
     EXPECT_EQ(2, import_data.volumes.size());
-    EXPECT_EQ(2, import_data.materials.size());
+    EXPECT_EQ(2, import_data.phys_materials.size());
 
     // Check secondary production cuts
     std::vector<int> pdg;
     std::vector<double> range_cut, energy_cut;
-    for (auto const& mat : import_data.materials)
+    for (auto const& mat : import_data.phys_materials)
     {
         for (auto const& cut : mat.pdg_cutoffs)
         {
@@ -1327,16 +1354,22 @@ TEST_F(LarSphere, optical)
 {
     auto&& imported = this->imported_data();
     EXPECT_EQ(1, imported.optical.size());
+    ASSERT_EQ(2, imported.geo_materials.size());
+    ASSERT_EQ(2, imported.phys_materials.size());
 
     // First material is vacuum, no optical properties
     MaterialId vacuum_id{0};
-    EXPECT_EQ("vacuum", imported.materials[vacuum_id.get()].name);
+    ASSERT_EQ(vacuum_id.get(),
+              imported.phys_materials[vacuum_id.get()].geo_material_id);
+    EXPECT_EQ("vacuum", imported.geo_materials[vacuum_id.get()].name);
     auto const vacuum_iter = imported.optical.find(vacuum_id.get());
     EXPECT_TRUE(vacuum_iter == imported.optical.end());
 
     // Second material is liquid argon
     MaterialId lar_id{1};
-    EXPECT_EQ("lAr", imported.materials[lar_id.get()].name);
+    ASSERT_EQ(lar_id.get(),
+              imported.phys_materials[lar_id.get()].geo_material_id);
+    EXPECT_EQ("lAr", imported.geo_materials[lar_id.get()].name);
     auto const lar_iter = imported.optical.find(lar_id.get());
     ASSERT_FALSE(lar_iter == imported.optical.end());
     auto const& optical = lar_iter->second;
@@ -1512,7 +1545,9 @@ TEST_F(Solids, volumes_only)
     EXPECT_EQ(0, imported.processes.size());
     EXPECT_EQ(0, imported.particles.size());
     EXPECT_EQ(0, imported.elements.size());
-    EXPECT_EQ(0, imported.materials.size());
+    EXPECT_EQ(0, imported.geo_materials.size());
+    EXPECT_EQ(3, imported.regions.size());
+    EXPECT_EQ(0, imported.phys_materials.size());
 
     std::vector<std::string> names;
     for (auto const& volume : imported.volumes)

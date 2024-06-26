@@ -1,0 +1,37 @@
+name: clear-cache
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  clear-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clear ccache
+        uses: actions/github-script@v7
+        with:
+          script: |
+            console.log("Getting action cache")
+            const parameters = {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100,
+              direction: "asc",
+              sort: "created_at",
+            }
+            const caches = await github.paginate(
+              github.rest.actions.getActionsCacheList,
+              parameters,
+              (response) => response.data,
+            )
+            for (const cache of caches) {
+              if (cache.key.startsWith("ccache-")) {
+                console.log("Deleting cache entry", cache)
+                github.rest.actions.deleteActionsCacheById({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  cache_id: cache.id,
+                })
+              }
+            }

@@ -22,6 +22,7 @@
 #include <G4PhysicsVector.hh>
 #include <G4PhysicsVectorType.hh>
 #include <G4ProcessType.hh>
+#include <G4ProductionCutsTable.hh>
 #include <G4String.hh>
 #include <G4VEmProcess.hh>
 #include <G4VEnergyLossProcess.hh>
@@ -215,29 +216,16 @@ void append_table(G4PhysicsTable const* g4table,
             CELER_ASSERT_UNREACHABLE();
     };
 
-    // Convert units
-    double const x_scaling = native_value_from_clhep(table.x_units);
-    double const y_scaling = native_value_from_clhep(table.y_units);
-
     // Save physics vectors
     for (auto const* g4vector : *g4table)
     {
-        ImportPhysicsVector import_vec;
-
-        // Populate ImportPhysicsVectors
-        import_vec.vector_type
-            = to_import_physics_vector_type(g4vector->GetType());
-        import_vec.x.reserve(g4vector->GetVectorLength());
-        import_vec.y.reserve(import_vec.x.size());
-
-        for (auto j : celeritas::range(g4vector->GetVectorLength()))
-        {
-            import_vec.x.push_back(g4vector->Energy(j) * x_scaling);
-            import_vec.y.push_back((*g4vector)[j] * y_scaling);
-        }
-        table.physics_vectors.push_back(std::move(import_vec));
+        table.physics_vectors.emplace_back(
+            import_physics_vector(*g4vector, {table.x_units, table.y_units}));
     }
 
+    CELER_ENSURE(
+        table.physics_vectors.size()
+        == G4ProductionCutsTable::GetProductionCutsTable()->GetTableSize());
     tables->push_back(std::move(table));
 }
 
@@ -258,7 +246,7 @@ bool all_are_assigned(std::vector<T> const& arr)
  */
 GeantProcessImporter::GeantProcessImporter(
     TableSelection,
-    std::vector<ImportMaterial> const& materials,
+    std::vector<ImportPhysMaterial> const& materials,
     std::vector<ImportElement> const& elements)
     : materials_(materials), elements_(elements)
 {
@@ -382,6 +370,10 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
     {
         if (G4VEmModel* model = process.GetModelByIndex(i))
         {
+            CELER_LOG(debug) << "Saving MSC model '" << model->GetName()
+                             << "' for particle " << particle.GetParticleName()
+                             << " (" << particle.GetPDGEncoding() << ")";
+
             ImportMscModel imm;
             imm.particle_pdg = primary_pdg;
             try
@@ -391,7 +383,7 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
             }
             catch (celeritas::RuntimeError const&)
             {
-                CELER_LOG(warning) << "Encountered unknown process '"
+                CELER_LOG(warning) << "Encountered unknown MSC model '"
                                    << model->GetName() << "'";
                 imm.model_class = ImportModelClass::other;
             }
@@ -407,6 +399,30 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
 
     CELER_ENSURE(all_are_assigned(result));
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Import a physics vector with the given x, y units.
+ */
+ImportPhysicsVector
+import_physics_vector(G4PhysicsVector const& g4v, Array<ImportUnits, 2> units)
+{
+    // Convert units
+    double const x_scaling = native_value_from_clhep(units[0]);
+    double const y_scaling = native_value_from_clhep(units[1]);
+
+    ImportPhysicsVector import_vec;
+    import_vec.vector_type = to_import_physics_vector_type(g4v.GetType());
+    import_vec.x.resize(g4v.GetVectorLength());
+    import_vec.y.resize(import_vec.x.size());
+
+    for (auto i : range(g4v.GetVectorLength()))
+    {
+        import_vec.x[i] = g4v.Energy(i) * x_scaling;
+        import_vec.y[i] = g4v[i] * y_scaling;
+    }
+    return import_vec;
 }
 
 //---------------------------------------------------------------------------//

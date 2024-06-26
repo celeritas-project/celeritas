@@ -73,7 +73,7 @@ inp = {
     "num_track_slots": max_tracks,
     "initializer_capacity": init_capacity,
     "secondary_stack_factor": 2,
-    "physics_list": "ftfp_bert",
+    "physics_list": "celer_ftfp_bert",
     "field_type": "uniform",
     "field": [ 0.0, 0.0, 1.0 ],
     "field_options": {
@@ -115,6 +115,7 @@ if use_celeritas:
     except json.decoder.JSONDecodeError as e:
         print(f"error ({e}): expected a JSON object but got the following stdout:")
         print(out_text)
+        j = {}
     else:
         with open(out_file, 'w') as f:
             json.dump(j, f, indent=1)

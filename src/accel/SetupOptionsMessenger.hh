@@ -33,6 +33,8 @@ struct SetupOptions;
   maxNumSteps          | Limit on number of step iterations before aborting
   maxInitializers      | Maximum number of track initializers
   secondaryStackFactor | At least the average number of secondaries per track
+  autoFlush            | Number of tracks to buffer before offloading
+  maxFieldSubsteps     | Limit on substeps in field propagator
 
  * The following option is exposed in the \c /celer/detector/ command
  * "directory":
@@ -48,7 +50,7 @@ struct SetupOptions;
   -------------- | ------------------------------------------------
   stackSize      | Set the CUDA per-thread stack size for VecGeom
   heapSize       | Set the CUDA per-thread heap size for VecGeom
-  sync           | Sync the GPU at every kernel for timing
+  actionTimes    | Add timers around every action (may reduce performance)
   defaultStream  | Launch all kernels on the default stream
  *
  * \warning The given SetupOptions should be global *or* otherwise must exceed

@@ -8,6 +8,7 @@
 #include "SimpleTestBase.hh"
 
 #include "celeritas/Quantities.hh"
+#include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/em/process/ComptonProcess.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/global/ActionRegistry.hh"
@@ -179,6 +180,13 @@ auto SimpleTestBase::build_init() -> SPConstTrackInit
     input.max_events = 4096;
     input.track_order = TrackOrder::unsorted;
     return std::make_shared<TrackInitParams>(input);
+}
+
+//---------------------------------------------------------------------------//
+auto SimpleTestBase::build_wentzel() -> SPConstWentzelOKVI
+{
+    WentzelOKVIParams::Options options;
+    return std::make_shared<WentzelOKVIParams>(this->material(), options);
 }
 
 //---------------------------------------------------------------------------//

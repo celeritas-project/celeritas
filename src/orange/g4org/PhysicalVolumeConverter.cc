@@ -20,10 +20,12 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
+#include "corecel/io/StreamableVariant.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantGeoUtils.hh"
+#include "orange/transform/TransformIO.hh"
 
 #include "LogicalVolumeConverter.hh"
 #include "Scaler.hh"
@@ -94,7 +96,9 @@ auto PhysicalVolumeConverter::operator()(arg_type g4world) -> result_type
     CELER_EXPECT(g4world.GetTranslation() == G4ThreeVector(0, 0, 0));
 
     ScopedProfiling profile_this{"import-geant-geo"};
-    ScopedMem record_mem("PhysicalVolumeConverter.convert");
+    ScopedMem record_mem("orange.convert-geant");
+
+    CELER_LOG(status) << "Converting Geant4 geometry elements to ORANGE input";
     ScopedTimeLog scoped_time;
 
     // Construct world volume
@@ -120,8 +124,8 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
         auto const& g4trans = g4pv.GetObjectTranslation();
         if (g4pv.GetFrameRotation())
         {
-            // Get the child-to-parent rotation and check for being identity
-            // (parameterized volumes inject an identity matrix)
+            // Get the child-to-parent rotation and do another check for the
+            // identity matrix (parameterized volumes often have one)
             auto const& rot = g4pv.GetObjectRotationValue();
             if (!rot.isIdentity())
             {
@@ -130,7 +134,7 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
         }
         if (g4trans[0] != 0 || g4trans[1] != 0 || g4trans[2] != 0)
         {
-            return this->data->make_transform(g4pv.GetObjectTranslation());
+            return this->data->make_transform(g4trans);
         }
         return NoTransformation{};
     }();
@@ -153,7 +157,8 @@ PhysicalVolumeConverter::Builder::make_pv(int depth,
         if (CELER_UNLIKELY(data->verbose))
         {
             std::clog << std::string(depth, ' ') << "Converted "
-                      << g4lv->GetName() << std::endl;
+                      << g4lv->GetName() << " with transform "
+                      << StreamableVariant{result.transform} << std::endl;
         }
         // Queue up children for construction
         auto num_children = g4lv->GetNoDaughters();

@@ -80,7 +80,7 @@ class UnitProto : public ProtoInterface
     //! Optional "background" inside of exterior, outside of all mat/daughter
     struct BackgroundInput
     {
-        MaterialId fill{};
+        GeoMaterialId fill{};
         Label label;
 
         // True if fill or label is specified
@@ -91,7 +91,7 @@ class UnitProto : public ProtoInterface
     struct MaterialInput
     {
         SPConstObject interior;
-        MaterialId fill;
+        GeoMaterialId fill;
         Label label;
 
         // True if fully defined
@@ -134,13 +134,6 @@ class UnitProto : public ProtoInterface
         // True if fully defined
         explicit inline operator bool() const;
     };
-
-    //! Whether to implicitly delete the exterior boundary
-    enum class ExteriorBoundary : bool
-    {
-        is_global,  //!< Explicit: bounding object remains
-        is_daughter  //!< Implicit: interior is replaced with "true"
-    };
     //!@}
 
   public:
@@ -157,12 +150,15 @@ class UnitProto : public ProtoInterface
     VecProto daughters() const final;
 
     // Construct a universe input from this object
-    void build(InputBuilder&) const final;
+    void build(ProtoBuilder&) const final;
+
+    // Write the proto to a JSON object
+    void output(JsonPimpl*) const final;
 
     //// HELPER FUNCTIONS ////
 
     // Construct a standalone unit for testing and external interface
-    Unit build(Tol const& tol, ExteriorBoundary ext) const;
+    Unit build(Tol const& tol, BBox const& bbox) const;
 
   private:
     Input input_;

@@ -10,7 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "celeritas/em/data/CoulombScatteringData.hh"
+#include "celeritas/em/data/WentzelOKVIData.hh"
 #include "celeritas/grid/PolyEvaluator.hh"
 
 namespace celeritas
@@ -31,14 +31,13 @@ class MottRatioCalculator
   public:
     //! Construct with state data
     inline CELER_FUNCTION
-    MottRatioCalculator(CoulombScatteringElementData const& element_data,
-                        real_type beta);
+    MottRatioCalculator(MottElementData const& element_data, real_type beta);
 
     //! Ratio of Mott and Rutherford cross sections
     inline CELER_FUNCTION real_type operator()(real_type cos_t) const;
 
   private:
-    CoulombScatteringElementData const& element_data_;
+    MottElementData const& element_data_;
     real_type beta_;
 };
 
@@ -49,8 +48,8 @@ class MottRatioCalculator
  * Construct with state data.
  */
 CELER_FUNCTION
-MottRatioCalculator::MottRatioCalculator(
-    CoulombScatteringElementData const& element_data, real_type beta)
+MottRatioCalculator::MottRatioCalculator(MottElementData const& element_data,
+                                         real_type beta)
     : element_data_(element_data), beta_(beta)
 {
     CELER_EXPECT(0 <= beta_ && beta_ < 1);
@@ -80,12 +79,14 @@ real_type MottRatioCalculator::operator()(real_type cos_theta) const
     real_type beta0 = beta_ - beta_shift;
 
     // Evaluate polynomial of powers of beta0 and fcos_t
-    CoulombScatteringElementData::ThetaArray theta_coeffs;
+    MottElementData::ThetaArray theta_coeffs;
     for (auto i : range(theta_coeffs.size()))
     {
         theta_coeffs[i] = PolyEvaluator(element_data_.mott_coeff[i])(beta0);
     }
-    return PolyEvaluator(theta_coeffs)(fcos_t);
+    real_type result = PolyEvaluator(theta_coeffs)(fcos_t);
+    CELER_ENSURE(result >= 0);
+    return result;
 }
 
 //---------------------------------------------------------------------------//

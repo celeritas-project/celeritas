@@ -69,8 +69,11 @@ class Translation
     // Rotate from daughter to parent (identity)
     inline CELER_FUNCTION Real3 const& rotate_up(Real3 const& d) const;
 
-    //! Rotate from parent to daughter (identity)
+    // Rotate from parent to daughter (identity)
     inline CELER_FUNCTION Real3 const& rotate_down(Real3 const& d) const;
+
+    //! Calculate the inverse during preprocessing
+    Translation calc_inverse() const { return Translation{negate(tra_)}; }
 
   private:
     Real3 tra_;

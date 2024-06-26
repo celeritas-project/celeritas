@@ -9,11 +9,6 @@ get_filename_component(CELERITAS_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" DIRECTOR
 list(APPEND CMAKE_MODULE_PATH
   "${CELERITAS_CMAKE_DIR}"
 )
-if(CMAKE_VERSION VERSION_LESS 3.18)
-  list(APPEND CMAKE_MODULE_PATH
-    "${CELERITAS_CMAKE_DIR}/backport/3.18"
-  )
-endif()
 
 #-----------------------------------------------------------------------------#
 # Version compatibility
@@ -70,9 +65,7 @@ if(CELERITAS_USE_HepMC3)
   find_dependency(HepMC3 @HepMC3_VERSION@ REQUIRED)
 endif()
 
-if(CELERITAS_USE_JSON)
-  find_dependency(nlohmann_json @nlohmann_json_VERSION@ REQUIRED)
-endif()
+find_dependency(nlohmann_json @nlohmann_json_VERSION@ REQUIRED)
 
 if(CELERITAS_USE_MPI)
   find_dependency(MPI REQUIRED)

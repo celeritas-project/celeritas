@@ -20,9 +20,9 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/grid/VectorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/TypeDemangler.hh"
-#include "celeritas/grid/VectorUtils.hh"
 
 #include "GeantMicroXsCalculator.hh"
 
@@ -34,7 +34,7 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Get a G4Material from a material index.
+ * Get a G4Material from a *physics material* index.
  */
 G4Material const& get_g4material(unsigned int mat_idx)
 {
@@ -195,7 +195,8 @@ ImportModel GeantModelImporter::operator()(G4VEmModel const& model) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the energy cutoff for secondary production (in ImportMaterial units!).
+ * Get the energy cutoff for secondary production (in ImportPhysMaterial
+ * units!).
  */
 double GeantModelImporter::get_cutoff(size_type mat_idx) const
 {

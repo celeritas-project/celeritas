@@ -103,24 +103,39 @@ template<MemSpace M>
 void ActionSequence<Params>::execute(Params const& params, State<M>& state)
 {
     [[maybe_unused]] Stream::StreamT stream = nullptr;
-    if (M == MemSpace::device && options_.sync)
+    if (M == MemSpace::device && options_.action_times)
     {
         stream = celeritas::device().stream(state.stream_id()).get();
     }
 
-    if ((M == MemSpace::host || options_.sync) && !state.warming_up())
+    // Running a single track slot on host:
+    // Skip inapplicable post-step action
+    auto const skip_post_action = [&](auto const& action) {
+        if constexpr (M != MemSpace::host)
+        {
+            return false;
+        }
+        return state.size() == 1 && action.order() == ActionOrder::post
+               && action.action_id()
+                      != state.ref().sim.post_step_action[TrackSlotId{0}];
+    };
+
+    if (options_.action_times && !state.warming_up())
     {
         // Execute all actions and record the time elapsed
         for (auto i : range(actions_.size()))
         {
-            ScopedProfiling profile_this{actions_[i]->label()};
-            Stopwatch get_time;
-            actions_[i]->execute(params, state);
-            if (M == MemSpace::device)
+            if (auto const& action = *actions_[i]; !skip_post_action(action))
             {
-                CELER_DEVICE_CALL_PREFIX(StreamSynchronize(stream));
+                ScopedProfiling profile_this{action.label()};
+                Stopwatch get_time;
+                action.execute(params, state);
+                if constexpr (M == MemSpace::device)
+                {
+                    CELER_DEVICE_CALL_PREFIX(StreamSynchronize(stream));
+                }
+                accum_time_[i] += get_time();
             }
-            accum_time_[i] += get_time();
         }
     }
     else
@@ -128,8 +143,11 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
         // Just loop over the actions
         for (auto const& sp_action : actions_)
         {
-            ScopedProfiling profile_this{sp_action->label()};
-            sp_action->execute(params, state);
+            if (auto const& action = *sp_action; !skip_post_action(action))
+            {
+                ScopedProfiling profile_this{action.label()};
+                action.execute(params, state);
+            }
         }
     }
 }

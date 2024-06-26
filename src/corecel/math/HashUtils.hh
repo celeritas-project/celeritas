@@ -72,8 +72,6 @@ std::size_t hash_combine(Args const&... args)
 }  // namespace celeritas
 
 //---------------------------------------------------------------------------//
-// HASH SPECIALIZATIONS
-//---------------------------------------------------------------------------//
 //! \cond
 namespace std
 {
@@ -113,7 +111,7 @@ struct hash<celeritas::Span<T, Extent>>
             celeritas::Hasher hash{&result};
             for (auto const& v : s)
             {
-                hash(std::hash<decltype(v)>{}(v));
+                hash(std::hash<std::remove_cv_t<T>>{}(v));
             }
             return result;
         }

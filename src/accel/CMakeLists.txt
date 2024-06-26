@@ -5,7 +5,7 @@
 #-----------------------------------------------------------------------------#
 
 set(SOURCES)
-set(PRIVATE_DEPS)
+set(PRIVATE_DEPS nlohmann_json::nlohmann_json)
 set(PUBLIC_DEPS Celeritas::celeritas Celeritas::corecel)
 
 #-----------------------------------------------------------------------------#
@@ -34,10 +34,6 @@ celeritas_polysource(ExceptionConverter)
 
 if(Geant4_VERSION VERSION_GREATER_EQUAL 11.0)
   list(APPEND SOURCES TrackingManagerOffload.cc)
-endif()
-
-if(CELERITAS_USE_JSON)
-  list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()
 
 if(CELERITAS_USE_HepMC3)

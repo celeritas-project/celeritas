@@ -23,16 +23,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Configuration options for the field propagator.
- */
-struct FieldPropagatorOptions
-{
-    //! Limit on substeps
-    static constexpr short int max_substeps = 100;
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Propagate a charged particle in a field.
  *
  * For a given initial state (position, momentum), it propagates a charged
@@ -74,10 +64,7 @@ class FieldPropagator
     static CELER_CONSTEXPR_FUNCTION bool tracks_can_loop() { return true; }
 
     //! Limit on substeps
-    static CELER_CONSTEXPR_FUNCTION short int max_substeps()
-    {
-        return FieldPropagatorOptions::max_substeps;
-    }
+    inline CELER_FUNCTION short int max_substeps() const;
 
     // Intersection tolerance
     inline CELER_FUNCTION real_type delta_intersection() const;
@@ -351,6 +338,16 @@ template<class DriverT, class GTV>
 CELER_FUNCTION real_type FieldPropagator<DriverT, GTV>::delta_intersection() const
 {
     return driver_.delta_intersection();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Maximum number of substeps.
+ */
+template<class DriverT, class GTV>
+CELER_FUNCTION short int FieldPropagator<DriverT, GTV>::max_substeps() const
+{
+    return driver_.max_substeps();
 }
 
 //---------------------------------------------------------------------------//

@@ -32,8 +32,9 @@ namespace celeritas
     std::vector<GenericGridIndex> grid_ids;
     for (material : range(MaterialId{mats->size()}))
         grid_ids.push_back(insert(physics_vector[material.get()]));
+   \endcode
  */
-template<typename Index>
+template<class Index>
 class GenericGridInserter
 {
   public:
@@ -48,46 +49,88 @@ class GenericGridInserter
     //!@}
 
   public:
-    //! Construct with a reference to mutable host data
-    GenericGridInserter(RealCollection* real_data, GenericGridCollection* grid)
-        : grid_builder_(real_data), grids_(grid)
-    {
-        CELER_EXPECT(real_data && grid);
-    }
+    // Construct with a reference to mutable host data
+    GenericGridInserter(RealCollection* real_data, GenericGridCollection* grid);
 
-    //! Add a grid of generic data with linear interpolation
-    Index operator()(SpanConstFlt grid, SpanConstFlt values)
-    {
-        if (grid.empty())
-            return Index{};
+    // Add a grid of generic data with linear interpolation
+    Index operator()(SpanConstFlt grid, SpanConstFlt values);
 
-        return grids_.push_back(grid_builder_(grid, values));
-    }
+    // Add a grid of generic data with linear interpolation
+    Index operator()(SpanConstDbl grid, SpanConstDbl values);
 
-    //! Add a grid of generic data with linear interpolation
-    Index operator()(SpanConstDbl grid, SpanConstDbl values)
-    {
-        if (grid.empty())
-            return Index{};
+    // Add an imported physics vector as a grid
+    Index operator()(ImportPhysicsVector const& vec);
 
-        return grids_.push_back(grid_builder_(grid, values));
-    }
-
-    //! Add an imported physics vector as a grid
-    Index operator()(ImportPhysicsVector const& vec)
-    {
-        if (vec.x.empty())
-            return Index{};
-
-        return grids_.push_back(grid_builder_(vec));
-    }
-
-    //! Add an empty grid (no data present)
-    Index operator()(void) { return grids_.push_back({}); }
+    // Add an empty grid (no data present)
+    Index operator()();
 
   private:
     GenericGridBuilder grid_builder_;
     CollectionBuilder<GenericGridData, MemSpace::host, Index> grids_;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with a reference to mutable host data.
+ */
+template<class Index>
+GenericGridInserter<Index>::GenericGridInserter(RealCollection* real_data,
+                                                GenericGridCollection* grid)
+    : grid_builder_(real_data), grids_(grid)
+{
+    CELER_EXPECT(real_data && grid);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add an imported physics vector as a generic grid to the collection.
+ *
+ * Returns the id of the inserted grid, or an empty id if the vector is
+ * empty.
+ */
+template<class Index>
+auto GenericGridInserter<Index>::operator()(ImportPhysicsVector const& vec)
+    -> Index
+{
+    CELER_EXPECT(!vec.x.empty());
+    return grids_.push_back(grid_builder_(vec));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add a grid of generic data with linear interpolation to the collection.
+ */
+template<class Index>
+auto GenericGridInserter<Index>::operator()(SpanConstFlt grid,
+                                            SpanConstFlt values) -> Index
+{
+    CELER_EXPECT(!grid.empty());
+    return grids_.push_back(grid_builder_(grid, values));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add a grid of generic data with linear interpolation to the collection.
+ */
+template<class Index>
+auto GenericGridInserter<Index>::operator()(SpanConstDbl grid,
+                                            SpanConstDbl values) -> Index
+{
+    CELER_EXPECT(!grid.empty());
+    return grids_.push_back(grid_builder_(grid, values));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Add an empty grid.
+ *
+ * Useful for when there's no imported grid present for a given material.
+ */
+template<class Index>
+auto GenericGridInserter<Index>::operator()() -> Index
+{
+    return grids_.push_back({});
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

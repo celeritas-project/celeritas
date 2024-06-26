@@ -23,9 +23,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ActionRegistry;
-class AtomicRelaxationParams;
 class CutoffParams;
-class FluctuationParams;
 class GeoMaterialParams;
 class MaterialParams;
 class OutputRegistry;
@@ -33,6 +31,8 @@ class ParticleParams;
 class PhysicsParams;
 class SimParams;
 class TrackInitParams;
+class AuxParamsRegistry;
+class WentzelOKVIParams;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -52,8 +52,10 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstRng = std::shared_ptr<RngParams const>;
     using SPConstSim = std::shared_ptr<SimParams const>;
     using SPConstTrackInit = std::shared_ptr<TrackInitParams const>;
+    using SPConstWentzelOKVI = std::shared_ptr<WentzelOKVIParams const>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
+    using SPUserRegistry = std::shared_ptr<AuxParamsRegistry>;
 
     template<MemSpace M>
     using ConstRef = CoreParamsData<Ownership::const_reference, M>;
@@ -72,9 +74,11 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstRng rng;
         SPConstSim sim;
         SPConstTrackInit init;
+        SPConstWentzelOKVI wentzel;  //!< Optional
 
         SPActionRegistry action_reg;
         SPOutputRegistry output_reg;
+        SPUserRegistry aux_reg;  //!< Optional
 
         //! Maximum number of simultaneous threads/tasks per process
         StreamId::size_type max_streams{1};
@@ -106,8 +110,10 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPConstRng const& rng() const { return input_.rng; }
     SPConstSim const& sim() const { return input_.sim; }
     SPConstTrackInit const& init() const { return input_.init; }
+    SPConstWentzelOKVI const& wentzel() const { return input_.wentzel; }
     SPActionRegistry const& action_reg() const { return input_.action_reg; }
     SPOutputRegistry const& output_reg() const { return input_.output_reg; }
+    SPUserRegistry const& aux_reg() const { return input_.aux_reg; }
     //!@}
 
     //! Access data on the host

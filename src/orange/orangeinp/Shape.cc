@@ -9,11 +9,9 @@
 
 #include "corecel/io/JsonPimpl.hh"
 
-#include "detail/BuildConvexRegion.hh"
+#include "ObjectIO.json.hh"
 
-#if CELERITAS_USE_JSON
-#    include "ObjectIO.json.hh"
-#endif
+#include "detail/BuildIntersectRegion.hh"
 
 namespace celeritas
 {
@@ -25,8 +23,8 @@ namespace orangeinp
  */
 NodeId ShapeBase::build(VolumeBuilder& vb) const
 {
-    return detail::build_convex_region(
-        vb, std::string{this->label()}, {}, this->interior());
+    return detail::build_intersect_region(
+        vb, this->label(), {}, this->interior());
 }
 
 //---------------------------------------------------------------------------//

@@ -22,6 +22,9 @@ namespace g4org
 {
 namespace test
 {
+//---------------------------------------------------------------------------//
+constexpr Turn degree{1 / real_type{360}};
+
 auto make_options()
 {
     PhysicalVolumeConverter::Options opts;
@@ -81,10 +84,8 @@ TEST_F(PhysicalVolumeConverterTest, intersection_boxes)
     ASSERT_TRUE(inner_pv.lv);
     EXPECT_EQ("inner0x0", this->genericize_pointers(inner_pv.lv->name));
     ASSERT_TRUE(inner_pv.lv->solid);
-    if (CELERITAS_USE_JSON)
-    {
-        EXPECT_JSON_EQ(
-            R"json(
+    EXPECT_JSON_EQ(
+        R"json(
 {"_type":"all","daughters":[
   {"_type":"shape","interior": {"_type":"box","halfwidths":[1.0,1.5,2.0]},"label":"first"},
   {"_type":"transformed",
@@ -94,8 +95,7 @@ TEST_F(PhysicalVolumeConverterTest, intersection_boxes)
  0.0,1.0,0.0,
  -0.5,0.0,0.8660254037844388,
  1.0,2.0,4.0]}}],"label":"isect"})json",
-            to_string(*inner_pv.lv->solid));
-    }
+        to_string(*inner_pv.lv->solid));
 }
 
 //---------------------------------------------------------------------------//
@@ -128,12 +128,9 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
         EXPECT_NE(nullptr, lv->g4lv);
         EXPECT_EQ("World0x0", this->genericize_pointers(lv->name));
         ASSERT_TRUE(lv->solid);
-        if (CELERITAS_USE_JSON)
-        {
-            EXPECT_JSON_EQ(
-                R"json({"_type":"shape","interior":{"_type":"box","halfwidths":[24.0,24.0,24.0]},"label":"World"})json",
-                to_string(*lv->solid));
-        }
+        EXPECT_JSON_EQ(
+            R"json({"_type":"shape","interior":{"_type":"box","halfwidths":[24.0,24.0,24.0]},"label":"World"})json",
+            to_string(*lv->solid));
         ASSERT_EQ(1, lv->children.size());
 
         auto const& calo_pv = lv->children.front();
@@ -172,12 +169,9 @@ TEST_F(PhysicalVolumeConverterTest, testem3)
         ASSERT_EQ(2, lv->children.size());
 
         ASSERT_TRUE(lv->solid);
-        if (CELERITAS_USE_JSON)
-        {
-            EXPECT_JSON_EQ(
-                R"json({"_type":"shape","interior":{"_type":"box","halfwidths":[0.4,20.0,20.0]},"label":"Layer"})json",
-                to_string(*lv->solid));
-        }
+        EXPECT_JSON_EQ(
+            R"json({"_type":"shape","interior":{"_type":"box","halfwidths":[0.4,20.0,20.0]},"label":"Layer"})json",
+            to_string(*lv->solid));
 
         auto const& lead = lv->children.front();
         EXPECT_EQ(1, lead.lv.use_count());
@@ -210,7 +204,8 @@ TEST_F(PhysicalVolumeConverterTest, transformed_box)
         if (auto* trans = std::get_if<Transformation>(&pv.transform))
         {
             EXPECT_VEC_SOFT_EQ((Real3{0, 0, -10}), trans->translation());
-            auto const mat = make_rotation(Axis::y, Turn{30.0 / 360.0});
+            auto mat = make_rotation(Axis::y, 30 * degree);
+            mat = make_transpose(mat);
             EXPECT_VEC_SOFT_EQ(mat[0], trans->rotation()[0]);
             EXPECT_VEC_SOFT_EQ(mat[1], trans->rotation()[1]);
             EXPECT_VEC_SOFT_EQ(mat[2], trans->rotation()[2]);
@@ -236,6 +231,29 @@ TEST_F(PhysicalVolumeConverterTest, transformed_box)
         if (auto* trans = std::get_if<Translation>(&pv.transform))
         {
             EXPECT_VEC_SOFT_EQ((Real3{0, 0, 10}), trans->translation());
+        }
+        else
+        {
+            ADD_FAILURE() << "Unexpected transform type: "
+                          << StreamableVariant{pv.transform};
+        }
+    }
+    {
+        auto const& lv_parent = world.lv->children[1].lv;
+        CELER_ASSERT(lv_parent);
+        ASSERT_EQ(1, lv_parent->children.size());
+        auto const& pv = lv_parent->children[0];
+        EXPECT_EQ("rot", pv.name);
+        if (auto* trans = std::get_if<Transformation>(&pv.transform))
+        {
+            EXPECT_VEC_SOFT_EQ((Real3{0, 0, 0}), trans->translation());
+            auto mat = make_rotation(Axis::x, 90 * degree);
+            mat = make_rotation(Axis::y, -87.1875 * degree, mat);
+            mat = make_rotation(Axis::z, 90 * degree, mat);
+            mat = make_transpose(mat);
+            EXPECT_VEC_SOFT_EQ(mat[0], trans->rotation()[0]);
+            EXPECT_VEC_SOFT_EQ(mat[1], trans->rotation()[1]);
+            EXPECT_VEC_SOFT_EQ(mat[2], trans->rotation()[2]);
         }
         else
         {

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #----------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.18)
 
 # Set Celeritas_VERSION using git tags using the following format
 set(CGV_TAG_REGEX "v([0-9.]+)(-dev|-rc.[0-9]+)?")
@@ -15,12 +15,9 @@ set(CMAKE_USER_MAKE_RULES_OVERRIDE
   "${CMAKE_CURRENT_LIST_DIR}/cmake/CeleritasMakeRulesOverride.cmake")
 
 project(Celeritas VERSION "${Celeritas_VERSION}" LANGUAGES CXX)
-cmake_policy(VERSION 3.12...3.22)
+cmake_policy(VERSION 3.18...3.28)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
-if(CMAKE_VERSION VERSION_LESS 3.18)
-  list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/backport/3.18")
-endif()
 
 include(GNUInstallDirs)
 include(CudaRdcUtils)
@@ -39,15 +36,15 @@ if(NOT CELERITAS_USE_CUDA)
   celeritas_optional_language(HIP)
 endif()
 
-# Dependencies
+# Optional dependencies
 celeritas_optional_package(Geant4 "Enable Geant4 adapter tools")
 celeritas_optional_package(HepMC3 "Enable HepMC3 event record reader")
-celeritas_optional_package(JSON nlohmann_json "Enable JSON I/O")
 celeritas_optional_package(MPI "Enable distributed memory parallelism")
 celeritas_optional_package(OpenMP "Enable CPU shared-memory parallelism")
 celeritas_optional_package(Python "Use Python to generate and preprocess")
 celeritas_optional_package(ROOT "Enable ROOT I/O")
 celeritas_optional_package(VecGeom "Use VecGeom geometry")
+option(CELERITAS_USE_Perfetto "Perfetto tracing library" OFF)
 
 if(CELERITAS_USE_Python)
   celeritas_optional_package(SWIG SWIG@4.1 "Build SWIG Python bindings")
@@ -180,19 +177,6 @@ endif()
 # CMAKE VERSION CHECKS
 #----------------------------------------------------------------------------#
 
-if(CMAKE_VERSION VERSION_LESS 3.13 AND CELERITAS_USE_CUDA AND CELERITAS_USE_MPI)
-  message(FATAL_ERROR "Celeritas requires CMake 3.13 or higher "
-    "when building with CUDA + MPI.")
-endif()
-if(CMAKE_VERSION VERSION_LESS 3.18 AND CELERITAS_USE_CUDA
-    AND CELERITAS_USE_VecGeom)
-  message(FATAL_ERROR "VecGeom+CUDA requires CMake 3.18 or higher to support "
-    "\"Separable compilation\".")
-endif()
-if(CMAKE_VERSION VERSION_LESS 3.18 AND CMAKE_CUDA_ARCHITECTURES)
-  message(FATAL_ERROR "The CMAKE_CUDA_ARCHITECTURES flag is not compatible "
-    "with this version of CMake. Set CMAKE_CUDA_FLAGS.")
-endif()
 if(CMAKE_VERSION VERSION_LESS 3.22 AND CELERITAS_USE_HIP)
   message(WARNING "HIP support is immature; CMake 3.22+ is recommended.")
 endif()
@@ -201,10 +185,11 @@ endif()
 # CMAKE INTRINSIC OPTIONS
 #
 # These are generally used to initialize properties on targets, and it's
-# possible Celeritas is being built inside another project. Instead of saving
-# these as cache variables (which change the defaults project-wide, including
-# changing behavior of other code that was loaded before Celeritas) set them as
-# local variables to be inherited underneath Celeritas.
+# possible Celeritas is being built inside another project. If documentation is
+# provided and Celeritas is the top-level project, create a cache variable to
+# make it easier for the user to override the behavior. Otherwise, create a
+# local variable to override the behavior of Celeritas and any projects it
+# includes.
 #----------------------------------------------------------------------------#
 
 ### Configuration ###
@@ -227,8 +212,8 @@ if(DEFINED CMAKE_BUILD_TYPE AND NOT CMAKE_BUILD_TYPE)
   unset(_default_build_type)
 endif()
 # Default to using C++17 everywhere
-celeritas_set_default(CMAKE_CXX_STANDARD 17)
-celeritas_set_default(CMAKE_CXX_EXTENSIONS OFF)
+celeritas_set_default(CMAKE_CXX_STANDARD 17 STRING "C++ standard")
+celeritas_set_default(CMAKE_CXX_EXTENSIONS OFF "Allow C++ compiler extensions")
 if(CELERITAS_USE_CUDA)
   # Default to setting CUDA C++ standard the same as C++
   celeritas_set_default(CMAKE_CUDA_STANDARD ${CMAKE_CXX_STANDARD})
@@ -236,20 +221,23 @@ if(CELERITAS_USE_CUDA)
 endif()
 
 ### Linking flags ###
-# Default to building shared libraries (*not* a cache variable)
-celeritas_set_default(BUILD_SHARED_LIBS ON)
-# Inform installed binaries of external library rpaths
-celeritas_set_default(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
+celeritas_set_default(BUILD_SHARED_LIBS ON
+  "Build shared libraries instead of static")
+celeritas_set_default(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON
+  "Inform installed binaries of external library rpaths")
 if(BUILD_SHARED_LIBS)
   # Inform installed binaries of internal library rpaths
   celeritas_set_default(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
   # Do not relink libs/binaries when dependent shared libs change
   celeritas_set_default(CMAKE_LINK_DEPENDS_NO_SHARED ON)
 endif()
+set(_default_pic OFF)
 if(BUILD_SHARED_LIBS OR CELERITAS_USE_ROOT)
-  # Make sure modules, sub-libraries, etc. are relocatable
-  celeritas_set_default(CMAKE_POSITION_INDEPENDENT_CODE ON)
+  set(_default_pic ON)
 endif()
+celeritas_set_default(CMAKE_POSITION_INDEPENDENT_CODE ${_default_pic}
+  "Make sure build can be used with shared libs or runtime modules")
+unset(_default_pic)
 
 ### Installation flags ###
 # When developing add checking for proper usage of `install(`
@@ -263,7 +251,7 @@ celeritas_set_default(CMAKE_INSTALL_MESSAGE LAZY)
 # Output locations for Celeritas products (used by CeleritasUtils.cmake and
 # install code below) will mirror the installation layout
 set(CELERITAS_CMAKE_CONFIG_DIRECTORY
-  "${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}/cmake")
+  "${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 set(CELERITAS_HEADER_CONFIG_DIRECTORY
   "${PROJECT_BINARY_DIR}/${CMAKE_INSTALL_INCLUDEDIR}")
 set(CELERITAS_LIBRARY_OUTPUT_DIRECTORY
@@ -314,12 +302,7 @@ if(CELERITAS_USE_HepMC3)
   set(HepMC3_LIBRARIES HepMC3::HepMC3)
 endif()
 
-if(CELERITAS_USE_JSON)
-  if(NOT nlohmann_json_FOUND)
-    find_package(nlohmann_json 3.7.0 REQUIRED)
-  endif()
-  set(nlohmann_json_LIBRARIES nlohmann_json::nlohmann_json)
-endif()
+celeritas_find_or_external_package(nlohmann_json 3.7.0)
 
 if(CELERITAS_USE_MPI)
   find_package(MPI REQUIRED)
@@ -327,6 +310,18 @@ endif()
 
 if(CELERITAS_USE_OpenMP)
   find_package(OpenMP REQUIRED)
+endif()
+
+if(CELERITAS_USE_Perfetto)
+  if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+    celeritas_error_incompatible_option(
+      "Perfetto is not supported with CUDA/HIP build"
+      CELERITAS_USE_Perfetto
+      OFF
+    )
+  else()
+    celeritas_find_or_external_package(Perfetto)
+  endif()
 endif()
 
 if(CELERITAS_USE_Python)
@@ -419,14 +414,6 @@ if(CELERITAS_USE_VecGeom)
   endif()
 endif()
 
-if(CELERITAS_BUILD_DEMOS AND NOT CELERITAS_USE_JSON)
-  celeritas_error_incompatible_option(
-    "JSON support is required for demos but was not found"
-    CELERITAS_BUILD_DEMOS
-    OFF
-  )
-endif()
-
 if(CELERITAS_BUILD_DOCS)
   if(NOT Doxygen_FOUND)
     find_package(Doxygen)
@@ -456,17 +443,16 @@ if(CELERITAS_BUILD_DOCS)
 endif()
 
 if(CELERITAS_BUILD_TESTS)
-  # TODO: download and build GTest as a subproject if not available
-  if(NOT GTest_FOUND)
-    find_package(GTest 1.10)
-  endif()
-  if(NOT GTest_FOUND)
-    celeritas_error_incompatible_option(
-      "Googletest (GTest) is required for testing but was not found"
-      CELERITAS_BUILD_TESTS
-      OFF
-    )
-  endif()
+  celeritas_find_or_external_package(GTest 1.10)
+endif()
+
+#----------------------------------------------------------------------------#
+# EXTERNALS
+#----------------------------------------------------------------------------#
+
+if(CELERITAS_EXTERNAL)
+  include(FetchContent)
+  add_subdirectory(external)
 endif()
 
 #----------------------------------------------------------------------------#
@@ -558,7 +544,7 @@ endif()
 
 # Where to install configured cmake files
 set(CELERITAS_INSTALL_CMAKECONFIGDIR
-  "${CMAKE_INSTALL_LIBDIR}/cmake/Celeritas")
+  "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 
 # Build list of CMake files to install
 set(_cmake_files
@@ -580,9 +566,10 @@ install(FILES ${_cmake_files}
   DESTINATION "${CELERITAS_INSTALL_CMAKECONFIGDIR}"
   COMPONENT development
 )
-install(DIRECTORY "${PROJECT_SOURCE_DIR}/cmake/backport"
+
+# Copy CMake files to support using Celeritas build dir as an install dir
+file(COPY ${_cmake_files}
   DESTINATION "${CELERITAS_INSTALL_CMAKECONFIGDIR}"
-  COMPONENT development
 )
 
 # Export all cache variables that start with CELERITAS_
@@ -600,7 +587,7 @@ foreach(_key IN LISTS _cachevar_keys)
 endforeach()
 
 # Export defaulted variables
-list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Defaulted variables")
+list(APPEND CELERITAS_EXPORT_VARIABLES "\n# Defaulted local variables")
 foreach(_key IN LISTS CELERITAS_DEFAULT_VARIABLES)
   list(APPEND CELERITAS_EXPORT_VARIABLES "set(CELERITAS_${_key} \"${${_key}}\")")
 endforeach()
@@ -662,6 +649,12 @@ install(EXPORT celeritas-targets
   NAMESPACE Celeritas::
   DESTINATION "${CELERITAS_INSTALL_CMAKECONFIGDIR}"
   COMPONENT development
+)
+
+# Export targets to the build tree
+export(EXPORT celeritas-targets
+  FILE "${CELERITAS_CMAKE_CONFIG_DIRECTORY}/CeleritasTargets.cmake"
+  NAMESPACE Celeritas::
 )
 
 if(Celeritas_VERSION VERSION_EQUAL "0.0.0")

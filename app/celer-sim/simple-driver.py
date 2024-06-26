@@ -44,7 +44,7 @@ physics_options = {
     'ionization': True,
     'annihilation': True,
     'brems': "all",
-    'msc': "urban_extended" if core_geo == "vecgeom" else "none",
+    'msc': "urban" if core_geo == "vecgeom" else "none",
     'eloss_fluctuation': True,
     'lpm': True,
 }
@@ -97,7 +97,7 @@ inp = {
     'step_diagnostic_bins': 200,
     'write_step_times': use_device,
     'simple_calo': simple_calo,
-    'sync': True,
+    'action_times': True,
     'merge_events': False,
     'default_stream': False,
     'brem_combined': True,
@@ -146,8 +146,9 @@ run_output =j['result']['runner']
 time = run_output['time'].copy()
 steps = time.pop('steps')
 if use_device:
-    assert(len(steps) == run_output['num_step_iterations'][0])
+    assert steps
+    assert len(steps[0]) == run_output['num_step_iterations'][0]
 else:
     # Step times disabled on CPU from input
-    assert(steps is None)
+    assert steps is None
 print(json.dumps(time, indent=1))
