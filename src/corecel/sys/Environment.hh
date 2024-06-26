@@ -20,14 +20,14 @@ namespace celeritas
 /*!
  * Interrogate and extend environment variables.
  *
- * This makes it easier to generate reproducible runs or launch Celeritas
- * remotely: the environment variables may be encoded as JSON input to
- * supplement or override system environment variables. Later it can be
- * interrogated to find which environment variables were accessed.
+ * This makes it easier to generate reproducible runs, launch Celeritas
+ * remotely, or integrate with application drivers. The environment variables
+ * may be encoded as JSON input to supplement or override system environment
+ * variables, or set programmatically via this API call. Later the environment
+ * class can be interrogated to find which environment variables were accessed.
  *
  * Unlike the standard environment which returns a null pointer for an *unset*
- * variable, this returns an empty string. When we switch to C++17 we can
- * return a `std::optional<std::string>` if this behavior isn't appropriate.
+ * variable, this returns an empty string.
  *
  * \note This class is not thread-safe on its own. The \c celeritas::getenv
  * free function however is safe, although it should only be used in setup
@@ -56,7 +56,7 @@ class Environment
     inline mapped_type const& operator[](key_type const&);
 
     // Insert possibly new environment variables (not thread-safe)
-    void insert(value_type const& value);
+    bool insert(value_type const& value);
 
     //! Get an ordered (by access) vector of key/value pairs
     VecKVRef const& ordered_environment() const { return ordered_; }

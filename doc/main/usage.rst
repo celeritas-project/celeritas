@@ -372,6 +372,13 @@ Celeritas or its apps:
  OMP_NUM_THREADS          OpenMP    Number of threads per process
  ======================== ========= ==========================================
 
+.. note::
+
+   For frameworks integrating Celeritas, these options are configurable via the
+   Celeritas API. Before Celeritas is set up for the first time, on a single
+   thread access the ``celeritas::environment()`` struct (see
+   :ref:`api_system`), and call ``insert`` for the desired key/value pairs.
+
 .. _logging:
 
 Logging

@@ -85,8 +85,10 @@ auto Environment::load_from_getenv(key_type const& key) -> mapped_type const&
  * Set a single environment variable that hasn't yet been set.
  *
  * Existing environment variables will *not* be overwritten.
+ *
+ * \return Whether insertion took place
  */
-void Environment::insert(value_type const& value)
+bool Environment::insert(value_type const& value)
 {
     auto [iter, inserted] = vars_.insert(value);
     if (inserted)
@@ -94,6 +96,7 @@ void Environment::insert(value_type const& value)
         ordered_.push_back(std::ref(*iter));
     }
     CELER_ENSURE(ordered_.size() == vars_.size());
+    return inserted;
 }
 
 //---------------------------------------------------------------------------//

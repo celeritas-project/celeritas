@@ -75,12 +75,18 @@ incorrect configuration or input values.
 .. doxygendefine:: CELER_NOT_CONFIGURED
 .. doxygendefine:: CELER_NOT_IMPLEMENTED
 
+.. _api_system:
+
 System
 ------
 
 .. doxygenclass:: celeritas::Device
 .. doxygenfunction:: celeritas::device
 .. doxygenfunction:: celeritas::activate_device()
+
+.. doxygenclass:: celeritas::Environment
+.. doxygenfunction:: celeritas::environment
+.. doxygenfunction:: celeritas::getenv
 
 Containers
 ----------
