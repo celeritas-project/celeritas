@@ -198,14 +198,14 @@ class Ellipsoid final : public ConvexRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * A generalized trapezoid, inspired by VecGeom's GenTrap and also ROOT's Arb8.
+ * A generalized polygon with flat faces along the z axis.
  *
- * A GenTrap represents a general trapezoidal volume with up to eight vertices,
- * or two 4-point sets, sitting on two parallel planes perpendicular to Z axis.
- * The points in each set might be correspondingly ordered, in such a way to
- * properly define the side faces.
- * TODO: Add a check for this.
+ * A GenTrap, like VecGeom's equivalent and ROOT's Arb8, represents a general
+ * trapezoidal volume with up to eight vertices, or two 4-point sets, sitting
+ * on two parallel planes perpendicular to Z axis.
+ *
  * TODO: Add proper treatment for degenerate cases.
+ * TODO: support twisted faces.
  */
 class GenTrap final : public ConvexRegionInterface
 {
@@ -216,18 +216,17 @@ class GenTrap final : public ConvexRegionInterface
     using VecReal2 = std::vector<Real2>;
     //!@}
 
-    //! Argument for building from regular trapezoidal top/bottom polygons
+    //! Regular trapezoidal top/bottom face
     struct TrapFace
     {
-        real_type hy_{};  //!< half the vertical distance between horizontal
-                          //!< edges
-        real_type hx_lo_{};  //!< top horizontal edge half-length
-        real_type hx_hi_{};  //!< botton horizontal edge half-length
-
-        // tan(alpha), where alpha is the clockwise angle between the
-        // _centers_ of horizontal edges, with respect to the vertical
-        // (alpha=0)
-        real_type tan_alpha_{};
+        //! Half the vertical distance between horizontal edges
+        real_type hy{};
+        //! Top horizontal edge half-length
+        real_type hx_lo{};
+        //! Bottom horizontal edge half-length
+        real_type hx_hi{};
+        //! Tangent of shear angle, between horizontal line centers and Y axis
+        real_type tan_alpha{};
     };
 
   public:
@@ -238,8 +237,8 @@ class GenTrap final : public ConvexRegionInterface
     // Helper function to construct a general trap from its half-height and
     // the two trapezoids defining its lower and upper faces
     static GenTrap from_trap(real_type hz,
-                             real_type tan_theta,
-                             Turn const& phi,
+                             Turn theta,
+                             Turn phi,
                              TrapFace const& lo,
                              TrapFace const& hi);
 

@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "SimpleCaloImpl.hh"
 
+#include "celeritas_config.h"
 #include "corecel/Types.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"
@@ -27,7 +28,9 @@ void simple_calo_accum(HostRef<StepStateData> const& step,
     CELER_EXPECT(step && calo);
     MultiExceptionHandler capture_exception;
     SimpleCaloExecutor execute{step, calo};
-#pragma omp parallel for
+#if CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
+#    pragma omp parallel for
+#endif
     for (ThreadId::size_type i = 0; i < step.size(); ++i)
     {
         CELER_TRY_HANDLE(execute(ThreadId{i}), capture_exception);

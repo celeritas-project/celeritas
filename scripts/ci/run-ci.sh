@@ -20,7 +20,7 @@ if [ -f "${_ENV_SCRIPT}" ]; then
 fi
 
 # Fetch tags for version provenance
-git fetch --tags
+git fetch -f --tags
 
 # Clean older builds from jenkins *BEFORE* setting up presets
 git clean -fxd
