@@ -10,6 +10,8 @@
 #include <cmath>
 #include <vector>
 
+#include <iostream>
+
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
@@ -320,8 +322,8 @@ CELER_FUNCTION auto InvoluteSolver::operator()(real_type x, real_type y,
     Array<real_type, 3> dist;
     real_type j = 0;
 
-    real_type convert = sqrt(pow(2.0,v) + pow(2.0,u)+ pow(2.0,w)) / 
-                        sqrt(pow(2.0,v) + pow(2.0,u));
+    real_type convert = sqrt(v*v + u*u+ w*w) / 
+                        sqrt(v*v + u*u);
 
     /*
      * Define tolerances.
@@ -329,9 +331,10 @@ CELER_FUNCTION auto InvoluteSolver::operator()(real_type x, real_type y,
     real_type const tolPoint = 1e-7;
     real_type const tolConv = 1e-8;
 
-    // 0 distance ofparticle on invoute surface
-    real_type const rxy2 = pow(2.0,x) + pow(2.0,y);
-    real_type const tPoint = sqrt((rxy2/pow(2.0,r_b_))-1);
+    // 0 distance of particle on invoute surface
+    
+    real_type const rxy2 = x*x + y*y;
+    real_type const tPoint = sqrt((rxy2/(r_b_*r_b_))-1);
     real_type angle = tPoint + a_;
     real_type xInv = r_b_ * (std::cos(angle) + tPoint * std::sin(angle));
     real_type yInv = r_b_ * (std::sin(angle) - tPoint * std::cos(angle));
@@ -339,6 +342,7 @@ CELER_FUNCTION auto InvoluteSolver::operator()(real_type x, real_type y,
         dist[j]=0;
         j++;
     }
+    
     
     real_type beta;
     // Line angle parameter
@@ -388,7 +392,7 @@ CELER_FUNCTION auto InvoluteSolver::operator()(real_type x, real_type y,
         ftalpha = root(talpha, x, y, u, v);
         ftbeta = root(tbeta, x, y, u, v);
 
-        if ((talpha > tmax_ && sign_==1) | (abs(tbeta) < abs(tmax_) && sign_==-1)){
+        if ((talpha > tmax_ && sign_==1) | (abs(tbeta) > abs(tmax_) && sign_==-1)){
             break;
         }
 
@@ -420,7 +424,7 @@ CELER_FUNCTION auto InvoluteSolver::operator()(real_type x, real_type y,
 
                 dot = u*u2 + v*v2;
 
-                real_type newdist = sqrt(std::pow(2.0,u2)+std::pow(2.0,v2));
+                real_type newdist = sqrt(u2*u2+v2*v2);
 
                 if (dot >= 0 && newdist > tolPoint) {
                     dist[j]=newdist;

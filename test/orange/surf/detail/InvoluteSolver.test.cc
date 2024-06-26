@@ -31,13 +31,13 @@ TEST(SolveSurface,one_root)
         double x = 0;
         double y = 0;
         double u = 0;
-        double v = 0;
+        double v = 1;
 
         double tmin = 0;
         double tmax = 1.99*pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(x,y,0,u,v,0);
+        auto dist = solve(x,y,0.0,u,v,0.0);
 
         EXPECT_SOFT_EQ(2.97169387, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);

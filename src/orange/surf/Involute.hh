@@ -167,8 +167,8 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     /*
      * Calculate distance to origin and obtain t value for disance.
      */
-    real_type const rxy2 = pow(2.0,x) + pow(2.0,y);
-    real_type const tPoint2 = (rxy2/pow(2.0,r_b_))-1;
+    real_type const rxy2 = x*x + y*y;
+    real_type const tPoint2 = (rxy2/(r_b_*r_b_))-1;
     real_type const tPoint = sqrt(tPoint2);
 
      /*
@@ -185,10 +185,10 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     /*
      * Check if point is in defined bounds. 
      */
-    if (abs(tPoint2) < abs(pow(2.0,tmin_)) - tol) {
+    if (abs(tPoint2) < abs(tmin_*tmin_) - tol) {
        return real_to_sense(1);
     }
-    if (abs(tPoint2) > abs(pow(2.0,tmax_)) + tol) {
+    if (abs(tPoint2) > abs(tmax_*tmax_) + tol) {
        return real_to_sense(1);
     }
 
@@ -206,22 +206,22 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     real_type ya, yb, yc, yd;
     real_type yalpha, ybeta;
 
-    b = -2 * pow(2.0,r_b_) * x;
-    c = pow(4.0,r_b_) - pow(2.0,y) * pow(2.0,r_b_);
+    b = -2 * r_b_*r_b_ * x;
+    c = r_b_*r_b_*r_b_*r_b_ - y*y * r_b_*r_b_;
 
-    xa = (-b + sqrt(pow(2.0,b)-4*a*c))/(2*a);
-    xb = (-b - sqrt(pow(2.0,b)-4*a*c))/(2*a);
+    xa = (-b + sqrt(b*b-4*a*c))/(2*a);
+    xb = (-b - sqrt(b*b-4*a*c))/(2*a);
     
-    ya = sqrt(pow(2.0,r_b_)-pow(2.0,xa));
-    yb = -sqrt(pow(2.0,r_b_)-pow(2.0,xa));
-    yc = sqrt(pow(2.0,r_b_)-pow(2.0,xb));
-    yd = -sqrt(pow(2.0,r_b_)-pow(2.0,xb));
+    ya = sqrt(r_b_*r_b_-xa*xa);
+    yb = -sqrt(r_b_*r_b_-xa*xa);
+    yc = sqrt(r_b_*r_b_-xb*xb);
+    yd = -sqrt(r_b_*r_b_-xb*xb);
 
-    b =  -2 * pow(2.0,r_b_) * y;
-    c = pow(4.0,r_b_) - pow(2.0,x) * pow(2.0,r_b_);
+    b =  -2 * r_b_*r_b_ * y;
+    c = r_b_*r_b_*r_b_*r_b_ - x*x * r_b_*r_b_;
 
-    yalpha = (-b + sqrt(pow(2.0,b)-4*a*c))/(2*a);
-    ybeta = (-b - sqrt(pow(2.0,b)-4*a*c))/(2*a);
+    yalpha = (-b + sqrt(b*b-4*a*c))/(2*a);
+    ybeta = (-b - sqrt(b*b-4*a*c))/(2*a);
 
     Array<real_type, 2> point1;
     Array<real_type, 2> point2;
@@ -250,7 +250,8 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     }
 
     // Calculate angle of tangent
-    real_type theta = std::acos(point[0]/sqrt(pow(2.0,point[0])+pow(2.0,point[1])));
+    real_type theta = std::acos(point[0]/sqrt(point[0]*point[0]+
+                                              point[1]*point[1]));
     if (point[1] < 0) {
         theta = (pi - theta) + pi;
     }
@@ -301,8 +302,8 @@ CELER_FORCEINLINE_FUNCTION Real3 Involute::calc_normal(Real3 const& pos) const
     /*
      * Calculate distance to origin and obtain t value for disance.
      */
-    real_type const rxy2 = pow(2.0,x) + pow(2.0,y);
-    real_type const tPoint = sqrt((rxy2/pow(2.0,r_b_))-1) * sign_;
+    real_type const rxy2 = x*x + y*y;
+    real_type const tPoint = sqrt((rxy2/(r_b_*r_b_))-1) * sign_;
 
     /*
      * Calculate normal
