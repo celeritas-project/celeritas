@@ -40,8 +40,15 @@ Problem definition
 
 .. doxygenclass:: celeritas::PhysicsParams
 
-Transport interface
--------------------
+
+.. _api_stepping:
+
+Stepping mechanics
+------------------
+
+.. doxygenenum:: celeritas::TrackStatus
+
+.. doxygenenum:: celeritas::ActionOrder
 
 .. doxygenclass:: celeritas::Stepper
 
