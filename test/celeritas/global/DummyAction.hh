@@ -33,7 +33,7 @@ class DummyAction final : public ExplicitCoreActionInterface,
     int num_execute_host() const { return num_execute_host_; }
     int num_execute_device() const { return num_execute_device_; }
 
-    ActionOrder order() const final { return ActionOrder::post_post; }
+    ActionOrder order() const final { return ActionOrder::user_post; }
 
   private:
     mutable int num_execute_host_{0};

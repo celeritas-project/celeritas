@@ -116,15 +116,17 @@ enum class TrackStatus : std::int_least8_t
 enum class ActionOrder
 {
     start,  //!< Initialize tracks
+    user_start,  //!< User initialization of new tracks
     sort_start,  //!< Sort track slots after initialization
     pre,  //!< Pre-step physics and setup
+    user_pre,  //!< User actions for querying pre-step data
     sort_pre,  //!< Sort track slots after setting pre-step
     along,  //!< Along-step
     sort_along,  //!< Sort track slots after determining first step action
     pre_post,  //!< Discrete selection kernel
     sort_pre_post,  //! Sort track slots after selecting discrete interaction
     post,  //!< After step
-    post_post,  //!< User actions after boundary crossing, collision
+    user_post,  //!< User actions after boundary crossing, collision
     end,  //!< Processing secondaries, including replacing primaries
     size_
 };

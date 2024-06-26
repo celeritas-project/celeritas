@@ -55,7 +55,7 @@ class PreGenGatherAction final : public ExplicitCoreActionInterface
     std::string_view description() const final;
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::pre; }
+    ActionOrder order() const final { return ActionOrder::user_pre; }
 
   private:
     //// DATA ////
