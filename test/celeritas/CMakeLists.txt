@@ -71,6 +71,7 @@ celeritas_add_test_library(testcel_celeritas
   em/MscTestBase.cc
   field/FieldTestBase.cc
   global/AlongStepTestBase.cc
+  global/DummyAction.cc
   global/StepperTestBase.cc
   grid/CalculatorTestBase.cc
   io/EventIOTestBase.cc

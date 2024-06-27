@@ -21,8 +21,8 @@ namespace detail
 /*!
  * Manage metadata about optical generation.
  */
-class OpticalGenParams : public AuxParamsInterface,
-                         public ParamsDataInterface<OpticalGenParamsData>
+class OpticalGenParams final : public AuxParamsInterface,
+                               public ParamsDataInterface<OpticalGenParamsData>
 {
   public:
     // Construct with aux ID and optical data

@@ -324,7 +324,6 @@ TEST_F(TestEm3NoMsc, setup)
         "ioni-moller-bhabha",
         "brems-combined",
         "geo-boundary",
-        "dummy-action",
         "extend-from-secondaries",
     };
     EXPECT_VEC_EQ(expected_actions, result.actions);
@@ -357,10 +356,6 @@ TEST_F(TestEm3NoMsc, host)
             FAIL() << "Updated stepper results are required for CI tests";
         }
     }
-
-    // Check that callback was called
-    EXPECT_EQ(result.active.size(), this->dummy_action().num_execute_host());
-    EXPECT_EQ(0, this->dummy_action().num_execute_device());
 }
 
 TEST_F(TestEm3NoMsc, host_multi)
@@ -429,10 +424,6 @@ TEST_F(TestEm3NoMsc, TEST_IF_CELER_DEVICE(device))
             FAIL() << "Updated stepper results are required for CI tests";
         }
     }
-
-    // Check that callback was called
-    EXPECT_EQ(result.active.size(), this->dummy_action().num_execute_device());
-    EXPECT_EQ(0, this->dummy_action().num_execute_host());
 }
 
 //---------------------------------------------------------------------------//
@@ -466,7 +457,6 @@ TEST_F(TestEm3Msc, setup)
         "ioni-moller-bhabha",
         "brems-combined",
         "geo-boundary",
-        "dummy-action",
         "extend-from-secondaries",
     };
     EXPECT_VEC_EQ(expected_actions, result.actions);
@@ -642,7 +632,6 @@ TEST_F(TestEm15FieldMsc, setup)
         "brems-sb",
         "brems-rel",
         "geo-boundary",
-        "dummy-action",
         "extend-from-secondaries",
     };
     EXPECT_VEC_EQ(expected_actions, result.actions);
@@ -735,7 +724,6 @@ TEST_F(OneSteelSphere, setup)
         "brems-sb",
         "brems-rel",
         "geo-boundary",
-        "dummy-action",
         "extend-from-secondaries",
     };
     EXPECT_VEC_EQ(expected_actions, result.actions);
