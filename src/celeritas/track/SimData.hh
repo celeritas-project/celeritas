@@ -97,8 +97,6 @@ struct SimTrackInitializer
     EventId event_id;  //!< ID of originating event
     real_type time{0};  //!< Time elapsed in lab frame since start of event
 
-    TrackStatus status{TrackStatus::inactive};
-
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {

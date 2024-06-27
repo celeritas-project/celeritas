@@ -25,6 +25,15 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Set up the beginning of a physics step.
+ *
+ * - Reset track properties (todo: move to track initialization?)
+ * - Sample the mean free path and calculate the physics step limits.
+ *
+ * \note This executor applies to *all* tracks, including inactive ones. It
+ *   \em must be run on all thread IDs to properly initialize secondaries.
+ */
 struct PreStepExecutor
 {
     inline CELER_FUNCTION void
@@ -32,12 +41,6 @@ struct PreStepExecutor
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Set up the beginning of a physics step.
- *
- * - Reset track properties (todo: move to track initialization?)
- * - Sample the mean free path and calculate the physics step limits.
- */
 CELER_FUNCTION void
 PreStepExecutor::operator()(celeritas::CoreTrackView const& track)
 {
@@ -61,6 +64,12 @@ PreStepExecutor::operator()(celeritas::CoreTrackView const& track)
         sim.reset_step_limit();
         return;
     }
+
+    // Complete the "initializing" stage of tracks, since pre-step happens
+    // after user initialization
+    CELER_ASSERT(sim.status() == TrackStatus::initializing
+                 || sim.status() == TrackStatus::alive);
+    sim.status(TrackStatus::alive);
 
     auto step = track.make_physics_step_view();
     {

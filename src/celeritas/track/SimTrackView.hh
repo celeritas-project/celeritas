@@ -146,7 +146,7 @@ CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer_t const& other)
     states_.num_steps[track_slot_] = 0;
     states_.num_looping_steps[track_slot_] = 0;
     states_.time[track_slot_] = other.time;
-    states_.status[track_slot_] = other.status;
+    states_.status[track_slot_] = TrackStatus::initializing;
     states_.step_length[track_slot_] = {};
     states_.post_step_action[track_slot_] = {};
     states_.along_step_action[track_slot_] = {};
@@ -302,7 +302,7 @@ CELER_FUNCTION void SimTrackView::along_step_action(ActionId action)
  */
 CELER_FUNCTION void SimTrackView::status(TrackStatus status)
 {
-    CELER_EXPECT(status != this->status());
+    CELER_EXPECT(status != TrackStatus::size_);
     states_.status[track_slot_] = status;
 }
 
