@@ -16,8 +16,6 @@ namespace celeritas
 //! IDs used by brems
 struct ElectronBremIds
 {
-    //! Model ID
-    ActionId action;
     //! ID of a gamma
     ParticleId gamma;
     //! ID of an electron
@@ -28,7 +26,7 @@ struct ElectronBremIds
     //! Whether the IDs are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return action && gamma && electron && positron;
+        return gamma && electron && positron;
     }
 };
 

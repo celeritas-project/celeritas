@@ -17,7 +17,7 @@ namespace celeritas
 /*!
  * Set up and launch the Klein-Nishina model interaction.
  */
-class KleinNishinaModel final : public Model
+class KleinNishinaModel final : public Model, public ConcreteAction
 {
   public:
     // Construct from model ID and other necessary data
@@ -34,18 +34,6 @@ class KleinNishinaModel final : public Model
 
     // Apply the interaction kernel to device data
     void execute(CoreParams const&, CoreStateDevice&) const final;
-
-    // ID of the model
-    ActionId action_id() const final;
-
-    //! Short name for the interaction kernel
-    std::string_view label() const final { return "scat-klein-nishina"; }
-
-    //! Short description of the post-step action
-    std::string_view description() const final
-    {
-        return "interact by Compton scattering (simple Klein-Nishina)";
-    }
 
     //!@{
     //! Access model data

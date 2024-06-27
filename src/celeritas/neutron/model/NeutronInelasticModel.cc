@@ -33,6 +33,9 @@ NeutronInelasticModel::NeutronInelasticModel(ActionId id,
                                              MaterialParams const& materials,
                                              CascadeOptions const& options,
                                              ReadData load_data)
+    : ConcreteAction(id,
+                     "neutron-inelastic-bertini",
+                     "interact by neutron inelastic (Bertini)")
 {
     CELER_EXPECT(id);
     CELER_EXPECT(load_data);
@@ -40,7 +43,6 @@ NeutronInelasticModel::NeutronInelasticModel(ActionId id,
     HostVal<NeutronInelasticData> data;
 
     // Save IDs
-    data.scalars.action_id = id;
     data.scalars.neutron_id = particles.find(pdg::neutron());
     data.scalars.proton_id = particles.find(pdg::proton());
 
@@ -140,15 +142,6 @@ void NeutronInelasticModel::execute(CoreParams const&, CoreStateDevice&) const
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the acition ID for this model.
- */
-ActionId NeutronInelasticModel::action_id() const
-{
-    return this->host_ref().scalars.action_id;
-}
 
 //---------------------------------------------------------------------------//
 /*!

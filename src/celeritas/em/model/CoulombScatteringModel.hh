@@ -24,7 +24,7 @@ class IsotopeView;
 /*!
  * Set up and launch the Wentzel Coulomb scattering model interaction.
  */
-class CoulombScatteringModel final : public Model
+class CoulombScatteringModel final : public Model, public ConcreteAction
 {
   public:
     //!@{
@@ -50,18 +50,6 @@ class CoulombScatteringModel final : public Model
 
     // Apply the interaction kernel on device
     void execute(CoreParams const&, CoreStateDevice&) const final;
-
-    // ID of the model
-    ActionId action_id() const final;
-
-    //! Short name for the interaction kernel
-    std::string_view label() const final { return "coulomb-wentzel"; }
-
-    //! Short description of the post-step action
-    std::string_view description() const final
-    {
-        return "interact by Coulomb scattering (Wentzel)";
-    }
 
     //!@{
     //! Access model data

@@ -132,18 +132,13 @@ struct LivermorePEXsData
  */
 struct LivermorePEIds
 {
-    //! Model ID
-    ActionId action;
     //! ID of an electron
     ParticleId electron;
     //! ID of a gamma
     ParticleId gamma;
 
     //! Whether the IDs are assigned
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return action && electron && gamma;
-    }
+    explicit CELER_FUNCTION operator bool() const { return electron && gamma; }
 };
 
 //---------------------------------------------------------------------------//

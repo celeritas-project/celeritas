@@ -39,7 +39,8 @@ RelativisticBremModel::RelativisticBremModel(ActionId id,
                                              MaterialParams const& materials,
                                              SPConstImported data,
                                              bool enable_lpm)
-    : imported_(data,
+    : ConcreteAction(id, "brems-rel", "interact by relativistic bremsstrahlung")
+    , imported_(data,
                 particles,
                 ImportProcessClass::e_brems,
                 ImportModelClass::e_brems_lpm,
@@ -49,7 +50,6 @@ RelativisticBremModel::RelativisticBremModel(ActionId id,
 
     HostValue host_ref;
 
-    host_ref.ids.action = id;
     host_ref.ids.electron = particles.find(pdg::electron());
     host_ref.ids.positron = particles.find(pdg::positron());
     host_ref.ids.gamma = particles.find(pdg::gamma());
@@ -124,15 +124,6 @@ void RelativisticBremModel::execute(CoreParams const&, CoreStateDevice&) const
 #endif
 
 //!@}
-//---------------------------------------------------------------------------//
-/*!
- * Get the model ID for this model.
- */
-ActionId RelativisticBremModel::action_id() const
-{
-    return this->host_ref().ids.action;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Build RelativisticBremData (lpm_table and elem_data).

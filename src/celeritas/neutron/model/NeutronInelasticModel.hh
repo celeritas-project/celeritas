@@ -28,7 +28,7 @@ class ParticleParams;
 /*!
  * Set up and launch the neutron inelastic model interaction.
  */
-class NeutronInelasticModel final : public Model
+class NeutronInelasticModel final : public Model, public ConcreteAction
 {
   public:
     //!@{
@@ -58,21 +58,6 @@ class NeutronInelasticModel final : public Model
 
     // Apply the interaction kernel to device data
     void execute(CoreParams const&, CoreStateDevice&) const final;
-
-    // ID of the model
-    ActionId action_id() const final;
-
-    //! Short name for the interaction kernel
-    std::string_view label() const final
-    {
-        return "neutron-inelastic-bertini";
-    }
-
-    //! Short description of the post-step action
-    std::string_view description() const final
-    {
-        return "interact by neutron inelastic (Bertini)";
-    }
 
     //!@{
     //! Access model data

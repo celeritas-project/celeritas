@@ -41,7 +41,7 @@ class RayleighInteractorTest : public InteractorHostTestBase
         Base::set_particle_params(
             {{"gamma", pdg::gamma(), zero, zero, stable_decay_constant}});
         auto const& particles = *this->particle_params();
-        model_ref_.ids.gamma = particles.find(pdg::gamma());
+        model_ref_.gamma = particles.find(pdg::gamma());
 
         // Setup MaterialView
         MaterialParams::Input inp;
