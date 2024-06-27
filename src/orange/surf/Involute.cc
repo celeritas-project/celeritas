@@ -11,7 +11,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 Involute
-Involute::at_origin(Real3 const& origin, real_type radius, 
+Involute::at0origin(Real3 const& origin, real_type radius, 
                                   real_type a, real_type sign, 
                                   real_type tmin, real_type tmax)
 {

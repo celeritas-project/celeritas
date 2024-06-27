@@ -190,6 +190,30 @@ TEST(SolveSurface,one_root)
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
+
+    // Solve for rb = 1.1, a = 0.5*pi, sign = -1
+    // Point (-0.2,1.1) Direction (0,0)
+    // tmin = 0 and tmax = 1.99*pi
+    {
+        double r_b = 1.1;
+        double a = 0.5*pi;
+        double sign = -1.0;
+
+        double x = -0.2;
+        double y = 1.1;
+        double u = 0;
+        double v = 0;
+
+        double tmin = 0;
+        double tmax = 1.99*pi;
+
+        InvoluteSolver solve(r_b, a, sign, tmin, tmax);
+        auto dist = solve(x,y,0.0,u,v,1.0);
+
+        EXPECT_SOFT_EQ(no_intersection(), dist[0]);
+        EXPECT_SOFT_EQ(no_intersection(), dist[1]);
+        EXPECT_SOFT_EQ(no_intersection(), dist[2]);
+    }
 }
 
 TEST(SolveSurface,two_roots)

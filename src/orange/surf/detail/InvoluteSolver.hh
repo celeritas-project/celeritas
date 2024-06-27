@@ -121,6 +121,10 @@ CELER_FUNCTION auto InvoluteSolver::operator()(real_type x, real_type y,
     Intersections result;
     result = {no_intersection(), no_intersection(), no_intersection()};
 
+    if (u==0 && v==0) {
+        return result;
+    }
+
     Array<real_type, 3> dist;
     real_type j = 0;
 

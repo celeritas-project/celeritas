@@ -49,10 +49,13 @@ class Involute
         return SurfaceType::inv;
     }
 
+    // Safety
+    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return false; }
+
   public:
     //// CONSTRUCTORS ////
     // Construct at (0,0,z)
-    static Involute at_origin(Real3 const& origin, real_type radius, 
+    static Involute at0origin(Real3 const& origin, real_type radius, 
                               real_type a, real_type sign, 
                               real_type tmin, real_type tmax);
 
@@ -176,17 +179,17 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     real_type const yInv = r_b_ * (std::sin(angle) - tPoint * std::cos(angle));
 
     if (abs(x-xInv) < tol && abs(y-yInv) < tol) { 
-       return real_to_sense(0);
+       return SignedSense::on;
      }
 
     /*
      * Check if point is in defined bounds. 
      */
     if (abs(tPoint2) < abs(tmin_*tmin_) - tol) {
-       return real_to_sense(1);
+       return SignedSense::outside;
     }
     if (abs(tPoint2) > abs(tmax_*tmax_) + tol) {
-       return real_to_sense(1);
+       return SignedSense::outside;
     }
 
     
@@ -231,9 +234,9 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     }
     // Second tangent
     if (abs(yb-ybeta) <= tol) {
-        point1 = { xa, yb };
+        point2 = { xa, yb };
     } else {
-        point1 = { xb, yd };
+        point2 = { xb, yd };
     }
 
     // Determine which tangent
@@ -252,16 +255,21 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     if (point[1] < 0) {
         theta = (pi - theta) + pi;
     }
+    real_type a1 = theta - tPoint;
+    if (abs(theta) < abs(tmax_ + a_) + tol && a1 >= a_ - tol) {
+            return SignedSense::inside;
+    }
 
-    while (abs(theta) < (abs(tmin_ + a_) - tol)) {
+    while (abs(theta) < (abs(tmax_ + a_) - tol)) {
         theta += pi*2*sign_;
+        a1 = theta - tPoint;
+        if (abs(theta) < abs(tmax_ + a_) + tol*100 && a1 >= a_ - tol) {
+            return SignedSense::inside;
+        }
+    
     }
 
-    if (abs(theta) < abs(tmax_ + a_) + tol) {
-        return real_to_sense(-1);
-    }
-
-    return real_to_sense(1);
+    return SignedSense::outside;
 }
 
 //---------------------------------------------------------------------------//
