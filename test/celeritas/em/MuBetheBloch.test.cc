@@ -53,10 +53,10 @@ class MuBetheBlochTest : public InteractorHostTestBase
 
         // Set model data
         auto const& particles = *this->particle_params();
-        data_.ids.electron = particles.find(pdg::electron());
-        data_.ids.mu_minus = particles.find(pdg::mu_minus());
-        data_.ids.mu_plus = particles.find(pdg::mu_plus());
-        data_.electron_mass = particles.get(data_.ids.electron).mass();
+        data_.electron = particles.find(pdg::electron());
+        data_.mu_minus = particles.find(pdg::mu_minus());
+        data_.mu_plus = particles.find(pdg::mu_plus());
+        data_.electron_mass = particles.get(data_.electron).mass();
 
         // Set default particle to muon with energy of 1 GeV
         this->set_inc_particle(pdg::mu_minus(), MevEnergy{1e3});
@@ -78,7 +78,7 @@ class MuBetheBlochTest : public InteractorHostTestBase
 
         auto const& electron = interaction.secondaries.front();
         EXPECT_TRUE(electron);
-        EXPECT_EQ(data_.ids.electron, electron.particle_id);
+        EXPECT_EQ(data_.electron, electron.particle_id);
         EXPECT_GT(this->particle_track().energy().value(),
                   electron.energy.value());
         EXPECT_LT(0, electron.energy.value());

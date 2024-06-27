@@ -18,7 +18,7 @@ class ParticleParams;
 /*!
  * Set up and launch the Bethe-Bloch muon ionization model interaction.
  */
-class MuBetheBlochModel final : public Model
+class MuBetheBlochModel final : public Model, public ConcreteAction
 {
   public:
     // Construct from model ID and other necessary data
@@ -35,18 +35,6 @@ class MuBetheBlochModel final : public Model
 
     // Apply the interaction kernel on device
     void execute(CoreParams const&, CoreStateDevice&) const final;
-
-    // ID of the model
-    ActionId action_id() const final;
-
-    //! Short name for the interaction kernel
-    std::string_view label() const final { return "ioni-mu-bethe-bloch"; }
-
-    //! Short description of the post-step action
-    std::string_view description() const final
-    {
-        return "interact by muon ionization (Bethe-Bloch)";
-    }
 
     //!@{
     //! Access model data

@@ -28,19 +28,19 @@ namespace celeritas
  */
 MuBetheBlochModel::MuBetheBlochModel(ActionId id,
                                      ParticleParams const& particles)
+    : ConcreteAction(
+        id, "ioni-mu-bethe-bloch", "interact by muon ionization (Bethe-Bloch)")
 {
     CELER_EXPECT(id);
-    data_.ids.action = id;
-    data_.ids.electron = particles.find(pdg::electron());
-    data_.ids.mu_minus = particles.find(pdg::mu_minus());
-    data_.ids.mu_plus = particles.find(pdg::mu_plus());
+    data_.electron = particles.find(pdg::electron());
+    data_.mu_minus = particles.find(pdg::mu_minus());
+    data_.mu_plus = particles.find(pdg::mu_plus());
 
-    CELER_VALIDATE(
-        data_.ids.electron && data_.ids.mu_minus && data_.ids.mu_plus,
-        << "missing electron and/or muon particles (required for "
-        << this->description() << ")");
+    CELER_VALIDATE(data_.electron && data_.mu_minus && data_.mu_plus,
+                   << "missing electron and/or muon particles (required for "
+                   << this->description() << ")");
 
-    data_.electron_mass = particles.get(data_.ids.electron).mass();
+    data_.electron_mass = particles.get(data_.electron).mass();
 
     CELER_ENSURE(data_);
 }
@@ -51,15 +51,13 @@ MuBetheBlochModel::MuBetheBlochModel(ActionId id,
  */
 auto MuBetheBlochModel::applicability() const -> SetApplicability
 {
-    Applicability mu_minus_applic, mu_plus_applic;
-
-    mu_minus_applic.particle = data_.ids.mu_minus;
-    mu_minus_applic.lower = detail::mu_ionization_limit();
+    Applicability mu_minus_applic;
+    mu_minus_applic.particle = data_.mu_minus;
+    mu_minus_applic.lower = detail::mu_bethe_bloch_lower_limit();
     mu_minus_applic.upper = detail::high_energy_limit();
 
-    mu_plus_applic.particle = data_.ids.mu_plus;
-    mu_plus_applic.lower = detail::mu_ionization_limit();
-    mu_plus_applic.upper = detail::high_energy_limit();
+    Applicability mu_plus_applic = mu_minus_applic;
+    mu_plus_applic.particle = data_.mu_plus;
 
     return {mu_minus_applic, mu_plus_applic};
 }
@@ -97,15 +95,6 @@ void MuBetheBlochModel::execute(CoreParams const&, CoreStateDevice&) const
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the model ID for this model.
- */
-ActionId MuBetheBlochModel::action_id() const
-{
-    return data_.ids.action;
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

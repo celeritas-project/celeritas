@@ -12,8 +12,6 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
-#include "MuIonizationData.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -22,15 +20,19 @@ namespace celeritas
  */
 struct MuBetheBlochData
 {
-    //! Model/particle IDs
-    MuIonizationIds ids;
+    //! Particle IDs
+    ParticleId electron;
+    ParticleId mu_minus;
+    ParticleId mu_plus;
+
     //! Electron mass [MeV / c^2]
     units::MevMass electron_mass;
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids && electron_mass > zero_quantity();
+        return electron && mu_minus && mu_plus
+               && electron_mass > zero_quantity();
     }
 };
 
