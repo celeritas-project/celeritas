@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas/Types.hh"
 #include "celeritas/global/CoreTrackView.hh"
 
 namespace celeritas
@@ -14,11 +15,13 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-// Get the optical material ID, or an invalid ID if the track is inactive
+/*!
+ * Get the optical material ID, or an invalid ID if the track is inactive.
+ */
 inline CELER_FUNCTION OpticalMaterialId
 get_optical_material(CoreTrackView const& track)
 {
-    if (track.make_sim_view().status() == TrackStatus::inactive)
+    if (!is_track_valid(track.make_sim_view().status()))
         return {};
 
     return track.make_material_view().make_material_view().optical_material_id();

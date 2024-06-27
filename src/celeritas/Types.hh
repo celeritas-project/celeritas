@@ -91,7 +91,7 @@ enum class Interp
 };
 
 //---------------------------------------------------------------------------//
-//! Physical state of matter.
+//! Physical state of matter
 enum class MatterState
 {
     unspecified = 0,
@@ -102,17 +102,39 @@ enum class MatterState
 };
 
 //---------------------------------------------------------------------------//
-//! Whether a track slot is alive, inactive, or dying
-enum class TrackStatus : std::int_least8_t
+/*!
+ * Whether a track slot is alive, inactive, or dying inside a step iteration.
+ *
+ * - A track slot starts as \c inactive . If not filled with a new track, it is
+ *   inactive for the rest of the step iteration.
+ * - When it is populated with a new particle, it is \c initializing . If an
+ *   error occurs during initialization it is \c errored .
+ * - During the pre-step setup, a non-errored active track slot is marked as \c
+ *   alive .
+ * - During along-step or post-step a track can be marked as \c errored or
+ *   \c killed .
+ */
+enum class TrackStatus : std::uint_least8_t
 {
-    killed = -1,  //!< Killed inside the step, awaiting replacement
     inactive = 0,  //!< No tracking in this thread slot
-    // TODO: add 'initial' enum here, change "alive" to helper function
-    alive = 1  //!< Track is active and alive
+    initializing,  //!< Before pre-step, after initialization
+    alive,  //!< Track is active and alive
+    begin_dying_,
+    errored = begin_dying_,  //!< Track failed during this step
+    killed,  //!< Killed physically inside the step
+    size_
 };
 
 //---------------------------------------------------------------------------//
-//! Within-step ordering of explicit actions
+/*!
+ * Within-step ordering of explicit actions.
+ *
+ * Each "step iteration", wherein many tracks undergo a single step in
+ * parallel, consists of an ordered series of actions. An action with an
+ * earlier order always precedes an action with a later order.
+ *
+ * \sa ExplicitActionInterface
+ */
 enum class ActionOrder
 {
     start,  //!< Initialize tracks
@@ -215,6 +237,12 @@ char const* to_cstring(MscStepLimitAlgorithm value);
 
 // Get a string corresponding to the nuclear form factor model
 char const* to_cstring(NuclearFormFactorType value);
+
+//! Whether a track is in a consistent, valid state
+CELER_CONSTEXPR_FUNCTION bool is_track_valid(TrackStatus status)
+{
+    return status != TrackStatus::inactive && status != TrackStatus::errored;
+}
 
 // Whether the TrackOrder will sort tracks by actions with the given
 // ActionOrder

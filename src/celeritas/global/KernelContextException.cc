@@ -112,7 +112,7 @@ void KernelContextException::initialize(CoreTrackView const& core)
 {
     track_slot_ = core.track_slot_id();
     auto const&& sim = core.make_sim_view();
-    if (sim.status() == TrackStatus::alive)
+    if (sim.status() != TrackStatus::inactive)
     {
         event_ = sim.event_id();
         track_ = sim.track_id();
@@ -127,7 +127,10 @@ void KernelContextException::initialize(CoreTrackView const& core)
             auto const&& geo = core.make_geo_view();
             pos_ = geo.pos();
             dir_ = geo.dir();
-            volume_ = geo.volume_id();
+            if (!geo.is_outside())
+            {
+                volume_ = geo.volume_id();
+            }
             surface_ = geo.surface_id();
         }
     }

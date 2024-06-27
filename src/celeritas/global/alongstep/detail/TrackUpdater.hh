@@ -32,7 +32,7 @@ struct TrackUpdater
 CELER_FUNCTION void TrackUpdater::operator()(CoreTrackView const& track)
 {
     auto sim = track.make_sim_view();
-    if (sim.status() != TrackStatus::killed)
+    if (sim.status() == TrackStatus::alive)
     {
         CELER_ASSERT(sim.step_length() > 0
                      || track.make_particle_view().is_stopped());

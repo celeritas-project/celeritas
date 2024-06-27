@@ -24,6 +24,10 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Generate optical distribution data.
+ *
+ * Note that the track may be inactive! TODO: we could add a `user_start`
+ * action to clear distribution data rather than applying it to inactive tracks
+ * at every step.
  */
 struct ScintPreGenExecutor
 {
