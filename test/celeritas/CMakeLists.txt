@@ -250,7 +250,11 @@ celeritas_add_test(global/KernelContextException.test.cc
   NT 1 LINK_LIBRARIES nlohmann_json::nlohmann_json
 )
 celeritas_add_test(global/Stepper.test.cc
-  GPU NT 4 ${_optional_geant4_env}
+  GPU NT 4
+)
+celeritas_add_test(global/StepperGeant.test.cc
+  ${_needs_geant4}
+  GPU NT 4
   FILTER ${_stepper_filter}
 )
 
