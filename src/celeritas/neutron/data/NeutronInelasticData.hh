@@ -23,8 +23,7 @@ namespace celeritas
  */
 struct NeutronInelasticScalars
 {
-    // Action and particle IDs
-    ActionId action_id;
+    // Particle IDs
     ParticleId neutron_id;
     ParticleId proton_id;
 
@@ -45,8 +44,7 @@ struct NeutronInelasticScalars
     //! Whether data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return action_id && neutron_id && proton_id
-               && neutron_mass > zero_quantity()
+        return neutron_id && proton_id && neutron_mass > zero_quantity()
                && neutron_mass > zero_quantity();
     }
 };

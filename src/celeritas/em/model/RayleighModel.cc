@@ -34,7 +34,8 @@ RayleighModel::RayleighModel(ActionId id,
                              ParticleParams const& particles,
                              MaterialParams const& materials,
                              SPConstImported data)
-    : imported_(data,
+    : ConcreteAction(id, "scat-rayleigh", "interact by Rayleigh scattering")
+    , imported_(data,
                 particles,
                 ImportProcessClass::rayleigh,
                 ImportModelClass::livermore_rayleigh,
@@ -44,9 +45,8 @@ RayleighModel::RayleighModel(ActionId id,
 
     HostValue host_ref;
 
-    host_ref.ids.action = id;
-    host_ref.ids.gamma = particles.find(pdg::gamma());
-    CELER_VALIDATE(host_ref.ids.gamma,
+    host_ref.gamma = particles.find(pdg::gamma());
+    CELER_VALIDATE(host_ref.gamma,
                    << "missing gamma particles (required for "
                    << this->description() << ")");
 
@@ -65,7 +65,7 @@ RayleighModel::RayleighModel(ActionId id,
 auto RayleighModel::applicability() const -> SetApplicability
 {
     Applicability rayleigh_scattering;
-    rayleigh_scattering.particle = this->host_ref().ids.gamma;
+    rayleigh_scattering.particle = this->host_ref().gamma;
     rayleigh_scattering.lower = zero_quantity();
     rayleigh_scattering.upper = units::MevEnergy{1e+8};
 
@@ -102,15 +102,6 @@ void RayleighModel::execute(CoreParams const&, CoreStateDevice&) const
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the model ID for this model.
- */
-ActionId RayleighModel::action_id() const
-{
-    return this->host_ref().ids.action;
-}
 
 //---------------------------------------------------------------------------//
 /*!

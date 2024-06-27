@@ -47,19 +47,6 @@ struct ChipsDiffXsCoefficients
 
 //---------------------------------------------------------------------------//
 /*!
- * Model and particles IDs for neutron--nucleus elastic scattering.
- */
-struct NeutronElasticIds
-{
-    ActionId action;
-    ParticleId neutron;
-
-    //! Whether the IDs are assigned
-    explicit CELER_FUNCTION operator bool() const { return action && neutron; }
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Device data for creating an interactor.
  */
 template<Ownership W, MemSpace M>
@@ -76,8 +63,8 @@ struct NeutronElasticData
 
     //// MEMBER DATA ////
 
-    //! Model and particle IDs
-    NeutronElasticIds ids;
+    //! ID of a neutron
+    ParticleId neutron;
 
     //! Particle mass * c^2 [MeV]
     units::MevMass neutron_mass;
@@ -107,7 +94,7 @@ struct NeutronElasticData
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids && neutron_mass > zero_quantity() && !micro_xs.empty()
+        return neutron && neutron_mass > zero_quantity() && !micro_xs.empty()
                && !coeffs.empty() && !reals.empty();
     }
 
@@ -116,7 +103,7 @@ struct NeutronElasticData
     NeutronElasticData& operator=(NeutronElasticData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        ids = other.ids;
+        neutron = other.neutron;
         neutron_mass = other.neutron_mass;
         micro_xs = other.micro_xs;
         coeffs = other.coeffs;

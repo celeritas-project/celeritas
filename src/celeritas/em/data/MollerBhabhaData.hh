@@ -20,14 +20,13 @@ namespace celeritas
  */
 struct MollerBhabhaIds
 {
-    ActionId action;
     ParticleId electron;
     ParticleId positron;
 
     //! Whether the IDs are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return action && electron && positron;
+        return electron && positron;
     }
 };
 

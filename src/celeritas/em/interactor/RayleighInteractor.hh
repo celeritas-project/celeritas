@@ -94,7 +94,7 @@ RayleighInteractor::RayleighInteractor(RayleighRef const& shared,
     , inc_direction_(direction)
     , element_id_(el_id)
 {
-    CELER_EXPECT(particle.particle_id() == shared_.ids.gamma);
+    CELER_EXPECT(particle.particle_id() == shared_.gamma);
     CELER_EXPECT(element_id_ < shared_.params.size());
 }
 
