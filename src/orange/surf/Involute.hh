@@ -49,13 +49,10 @@ class Involute
         return SurfaceType::inv;
     }
 
-    // Construct with square of tangent for simplification
-    static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return false; }
-
   public:
     //// CONSTRUCTORS ////
     // Construct at (0,0,z)
-    static Involute at0origin(Real3 const& origin, real_type radius, 
+    static Involute at_origin(Real3 const& origin, real_type radius, 
                               real_type a, real_type sign, 
                               real_type tmin, real_type tmax);
 
