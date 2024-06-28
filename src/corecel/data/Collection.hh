@@ -127,7 +127,8 @@ using ItemRange = Range<OpaqueId<T, Size>>;
 /*!
  * Access data in a Range<T2> with an index of type T1.
  *
- * Here, T1 and T2 are expected to be OpaqueId types.
+ * Here, T1 and T2 are expected to be OpaqueId types. This is simply a
+ * type-safe "offset" with range checking.
  */
 template<class T1, class T2>
 class ItemMap
@@ -223,11 +224,12 @@ struct AllItems
  * coalesced read or write from device code.
  * https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#zero-copy
  *
- * \todo It would be easy to specialize the traits for the const_reference
- * ownership so that for device primitive data types (int, double) we access
- * via __ldg -- speeding up everywhere in the code without any invasive
- * changes. This is another good argument for using Collection instead of Span
- * for device-compatible helper classes (e.g. grid calculator).
+ * Accessing a \c const_reference collection in \c device memory will return a
+ * wrapper container that accesses the low-level data through the \c __ldg
+ * primitive, which can accelerate random access by telling the compiler
+ * <em>the memory will not be changed during the lifetime of the kernel</em>.
+ * Therefore it is important to \em only use Collections for shared,
+ * constant "params" data.
  */
 template<class T, Ownership W, MemSpace M, class I = ItemId<T>>
 class Collection

@@ -18,17 +18,17 @@ Fundamentals
 
 .. doxygennamespace:: units
 
+.. doxygenfile:: celeritas/Units.hh
+   :sections: user-defined var innernamespace
+
 .. _api_constants:
 
 .. doxygennamespace:: constants
 
-.. doxygenfile:: celeritas/Units.hh
+.. doxygenfile:: celeritas/Constants.hh
    :sections: user-defined var innernamespace
 
 .. doxygenfile:: celeritas/Quantities.hh
-   :sections: user-defined var innernamespace
-
-.. doxygenfile:: celeritas/Constants.hh
    :sections: user-defined var innernamespace
 
 Problem definition
