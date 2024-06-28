@@ -113,8 +113,11 @@ Sphere SurfaceTranslator::operator()(Sphere const& other) const
 Involute SurfaceTranslator::operator()(Involute const& other) const
 {
     return Involute::at0origin(tr_.transform_up(other.origin()),
-                                  other.r_b(), other.a(), other.sign(), 
-                                  other.tmin(), other.tmax());
+                               other.r_b(),
+                               other.a(),
+                               other.sign(),
+                               other.tmin(),
+                               other.tmax());
 }
 
 //---------------------------------------------------------------------------//

@@ -16,12 +16,12 @@
 #include "../CylAligned.hh"
 #include "../CylCentered.hh"
 #include "../GeneralQuadric.hh"
+#include "../Involute.hh"
 #include "../Plane.hh"
 #include "../PlaneAligned.hh"
 #include "../SimpleQuadric.hh"
 #include "../Sphere.hh"
 #include "../SphereCentered.hh"
-#include "../Involute.hh"
 
 namespace celeritas
 {
@@ -122,8 +122,11 @@ Sphere SurfaceTransformer::operator()(Sphere const& other) const
 Involute SurfaceTransformer::operator()(Involute const& other) const
 {
     return Involute::at0origin(tr_.transform_up(other.origin()),
-                                  other.r_b(), other.a(), other.sign(), 
-                                  other.tmin(), other.tmax());
+                               other.r_b(),
+                               other.a(),
+                               other.sign(),
+                               other.tmin(),
+                               other.tmax());
 }
 
 //---------------------------------------------------------------------------//

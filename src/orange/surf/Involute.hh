@@ -15,26 +15,27 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "orange/OrangeTypes.hh"
 
-#include "detail/InvoluteSolver.hh" 
+#include "detail/InvoluteSolver.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
  * Involute:
- * 
+ *
  * \f[
     x = r_b * (cos(t+a) + tsin(t+a)) + x_0
-    y = r_b * (sin(t+a) - tcos(t+a)) + y_0   
+    y = r_b * (sin(t+a) - tcos(t+a)) + y_0
    \f]
 
- * where \em t is the normal angle of the tangent to the circle of involute with
+ * where \em t is the normal angle of the tangent to the circle of involute
+ with
  * radius \em r_b from a starting angle of \em a (\f$r/h\f$ for a finite cone.
  */
 class Involute
 {
   public:
-     //@{
+    //@{
     //! \name Type aliases
     using Intersections = Array<real_type, 3>;
     using StorageSpan = Span<real_type const, 4>;
@@ -55,14 +56,20 @@ class Involute
   public:
     //// CONSTRUCTORS ////
     // Construct at (0,0,z)
-    static Involute at0origin(Real3 const& origin, real_type radius, 
-                              real_type a, real_type sign, 
-                              real_type tmin, real_type tmax);
+    static Involute at0origin(Real3 const& origin,
+                              real_type radius,
+                              real_type a,
+                              real_type sign,
+                              real_type tmin,
+                              real_type tmax);
 
     // Construct from origin and radius of circle of involute
-    inline CELER_FUNCTION Involute(Real3 const& origin, real_type radius, 
-                                   real_type a, real_type sign, 
-                                   real_type tmin, real_type tmax);
+    inline CELER_FUNCTION Involute(Real3 const& origin,
+                                   real_type radius,
+                                   real_type a,
+                                   real_type sign,
+                                   real_type tmin,
+                                   real_type tmax);
 
     // Construct from raw data
     template<class R>
@@ -113,7 +120,6 @@ class Involute
     real_type tmin_;
     real_type tmax_;
 
-
     //! Private default constructor for manual construction
     Involute() = default;
 };
@@ -126,15 +132,18 @@ class Involute
 /*!
  * Construct from origin and radius.
  */
-CELER_FUNCTION Involute::Involute(Real3 const& origin, real_type radius, 
-                                  real_type a, real_type sign, 
-                                  real_type tmin, real_type tmax)
-    : origin_(origin), r_b_(radius), a_(a) , sign_(sign) , tmin_(tmin) , tmax_(tmax)
+CELER_FUNCTION Involute::Involute(Real3 const& origin,
+                                  real_type radius,
+                                  real_type a,
+                                  real_type sign,
+                                  real_type tmin,
+                                  real_type tmax)
+    : origin_(origin), r_b_(radius), a_(a), sign_(sign), tmin_(tmin), tmax_(tmax)
 {
-    const double pi = 3.14159265358979323846;
+    double const pi = 3.14159265358979323846;
     CELER_EXPECT(radius > 0);
     CELER_EXPECT(a > 0);
-    CELER_EXPECT(abs(tmax) < 2*pi+abs(tmin));
+    CELER_EXPECT(abs(tmax) < 2 * pi + abs(tmin));
 }
 
 //---------------------------------------------------------------------------//
@@ -143,8 +152,12 @@ CELER_FUNCTION Involute::Involute(Real3 const& origin, real_type radius,
  */
 template<class R>
 CELER_FUNCTION Involute::Involute(Span<R, StorageSpan::extent> data)
-    : origin_{data[0], data[1], data[2]}, r_b_{data[3]}, a_{data[4]}, 
-      sign_{data[5]}, tmin_{data[6]}, tmax_{data[7]} 
+    : origin_{data[0], data[1], data[2]}
+    , r_b_{data[3]}
+    , a_{data[4]}
+    , sign_{data[5]}
+    , tmin_{data[6]}
+    , tmax_{data[7]}
 {
 }
 
@@ -153,8 +166,8 @@ CELER_FUNCTION Involute::Involute(Span<R, StorageSpan::extent> data)
  * Determine the sense of the position relative to this surface.
  */
 CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
-{   
-    const double pi = 3.14159265358979323846;
+{
+    double const pi = 3.14159265358979323846;
 
     /*
      * Define tolerances.
@@ -163,36 +176,37 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
 
     real_type const x = pos[0] - origin_[0];
     real_type const y = pos[1] - origin_[1];
-    
+
     /*
      * Calculate distance to origin and obtain t value for disance.
      */
-    real_type const rxy2 = ipow<2>(x)+ ipow<2>(y);
-    real_type const tPoint2 = (rxy2/ipow<2>(r_b_))-1;
+    real_type const rxy2 = ipow<2>(x) + ipow<2>(y);
+    real_type const tPoint2 = (rxy2 / ipow<2>(r_b_)) - 1;
     real_type const tPoint = sqrt(tPoint2);
 
-     /*
-      * Check if Point is on involute.
-      */
+    /*
+     * Check if Point is on involute.
+     */
     real_type const angle = tPoint + a_;
     real_type const xInv = r_b_ * (std::cos(angle) + tPoint * std::sin(angle));
     real_type const yInv = r_b_ * (std::sin(angle) - tPoint * std::cos(angle));
 
-    if (abs(x-xInv) < tol && abs(y-yInv) < tol) { 
-       return SignedSense::on;
-     }
+    if (abs(x - xInv) < tol && abs(y - yInv) < tol)
+    {
+        return SignedSense::on;
+    }
 
     /*
-     * Check if point is in defined bounds. 
+     * Check if point is in defined bounds.
      */
-    if (abs(tPoint2) < ipow<2>(tmin_) - tol) {
-       return SignedSense::outside;
+    if (abs(tPoint2) < ipow<2>(tmin_) - tol)
+    {
+        return SignedSense::outside;
     }
-    if (abs(tPoint2) > ipow<2>(tmax_) + tol) {
-       return SignedSense::outside;
+    if (abs(tPoint2) > ipow<2>(tmax_) + tol)
+    {
+        return SignedSense::outside;
     }
-
-    
 
     /*
      * Check if point is inside involute
@@ -209,64 +223,76 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     b = -2 * ipow<2>(r_b_) * x;
     c = ipow<4>(r_b_) - ipow<2>(y) * ipow<2>(r_b_);
 
-    xa = (-b + sqrt(ipow<2>(b)-4*a*c))/(2*a);
-    xb = (-b - sqrt(ipow<2>(b)-4*a*c))/(2*a);
-    
-    ya = sqrt(ipow<2>(r_b_)-ipow<2>(xa));
-    yb = -sqrt(ipow<2>(r_b_)-ipow<2>(xa));
-    yc = sqrt(ipow<2>(r_b_)-ipow<2>(xb));
-    yd = -sqrt(ipow<2>(r_b_)-ipow<2>(xb));
+    xa = (-b + sqrt(ipow<2>(b) - 4 * a * c)) / (2 * a);
+    xb = (-b - sqrt(ipow<2>(b) - 4 * a * c)) / (2 * a);
 
-    b =  -2 * ipow<2>(r_b_) * y;
+    ya = sqrt(ipow<2>(r_b_) - ipow<2>(xa));
+    yb = -sqrt(ipow<2>(r_b_) - ipow<2>(xa));
+    yc = sqrt(ipow<2>(r_b_) - ipow<2>(xb));
+    yd = -sqrt(ipow<2>(r_b_) - ipow<2>(xb));
+
+    b = -2 * ipow<2>(r_b_) * y;
     c = ipow<4>(r_b_) - ipow<2>(x) * ipow<2>(r_b_);
 
-    yalpha = (-b + sqrt(ipow<2>(b)-4*a*c))/(2*a);
-    ybeta = (-b - sqrt(ipow<2>(b)-4*a*c))/(2*a);
+    yalpha = (-b + sqrt(ipow<2>(b) - 4 * a * c)) / (2 * a);
+    ybeta = (-b - sqrt(ipow<2>(b) - 4 * a * c)) / (2 * a);
 
     Array<real_type, 2> point1;
     Array<real_type, 2> point2;
 
     // First tangent
-    if (abs(ya-yalpha) <= tol) {
-        point1 = { xa, ya };
-    } else {
-        point1 = { xb, yc };
+    if (abs(ya - yalpha) <= tol)
+    {
+        point1 = {xa, ya};
+    }
+    else
+    {
+        point1 = {xb, yc};
     }
     // Second tangent
-    if (abs(yb-ybeta) <= tol) {
-        point2 = { xa, yb };
-    } else {
-        point2 = { xb, yd };
+    if (abs(yb - ybeta) <= tol)
+    {
+        point2 = {xa, yb};
+    }
+    else
+    {
+        point2 = {xb, yd};
     }
 
     // Determine which tangent
     Array<real_type, 2> point;
-    Array<real_type, 2> norm = { -y, x };
+    Array<real_type, 2> norm = {-y, x};
     real_type dot = point1[0] * norm[0] + point1[1] * norm[1];
-    if ( ((0<dot) - (dot<0)) == sign_) {
+    if (((0 < dot) - (dot < 0)) == sign_)
+    {
         point = point1;
-    } else {
+    }
+    else
+    {
         point = point2;
     }
 
     // Calculate angle of tangent
-    real_type theta = std::acos(point[0]/sqrt(point[0]*point[0]+
-                                              point[1]*point[1]));
-    if (point[1] < 0) {
+    real_type theta = std::acos(
+        point[0] / sqrt(point[0] * point[0] + point[1] * point[1]));
+    if (point[1] < 0)
+    {
         theta = (pi - theta) + pi;
     }
     real_type a1 = theta - tPoint;
-    if (abs(theta) < abs(tmax_ + a_) + tol && a1 >= a_ - tol) {
-            return SignedSense::inside;
+    if (abs(theta) < abs(tmax_ + a_) + tol && a1 >= a_ - tol)
+    {
+        return SignedSense::inside;
     }
 
-    while (abs(theta) < (abs(tmax_ + a_) - tol)) {
-        theta += pi*2*sign_;
+    while (abs(theta) < (abs(tmax_ + a_) - tol))
+    {
+        theta += pi * 2 * sign_;
         a1 = theta - tPoint;
-        if (abs(theta) < abs(tmax_ + a_) + tol*100 && a1 >= a_ - tol) {
+        if (abs(theta) < abs(tmax_ + a_) + tol * 100 && a1 >= a_ - tol)
+        {
             return SignedSense::inside;
         }
-    
     }
 
     return SignedSense::outside;
@@ -276,12 +302,12 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
 /*!
  * Calculate all possible straight-line intersections with this surface.
  */
-CELER_FUNCTION auto Involute::calc_intersections(Real3 const& pos,
-                                              Real3 const& dir,
-                                              SurfaceState on_surface) const
-    -> Intersections
+CELER_FUNCTION auto
+Involute::calc_intersections(Real3 const& pos,
+                             Real3 const& dir,
+                             SurfaceState on_surface) const -> Intersections
 {
-     // Expand translated positions into 'xyz' coordinate system
+    // Expand translated positions into 'xyz' coordinate system
     real_type const x = pos[0] - origin_[0];
     real_type const y = pos[1] - origin_[1];
     real_type const z = pos[2] - origin_[2];
@@ -308,14 +334,14 @@ CELER_FORCEINLINE_FUNCTION Real3 Involute::calc_normal(Real3 const& pos) const
      * Calculate distance to origin and obtain t value for disance.
      */
     real_type const rxy2 = ipow<2>(x) + ipow<2>(y);
-    real_type const tPoint = sqrt((rxy2/(ipow<2>(r_b_)))-1) * sign_;
+    real_type const tPoint = sqrt((rxy2 / (ipow<2>(r_b_))) - 1) * sign_;
 
     /*
      * Calculate normal
-     */ 
+     */
     real_type const angle = tPoint + a_;
     Real3 normal_ = {std::sin(angle), -std::cos(angle), 0};
 
     return normal_;
 }
-}
+}  // namespace celeritas

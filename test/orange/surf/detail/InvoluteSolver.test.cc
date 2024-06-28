@@ -16,9 +16,9 @@ namespace detail
 namespace test
 {
 //---------------------------------------------------------------------------//
-const double pi = 3.14159265358979323846;
+double const pi = 3.14159265358979323846;
 
-TEST(SolveSurface,no_roots)
+TEST(SolveSurface, no_roots)
 {
     // Solve for rb = 3.0, a = pi, sign = 1
     // Point (0,-2) Direction (1,0)
@@ -37,7 +37,7 @@ TEST(SolveSurface,no_roots)
         double tmax = 4;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(x,y,0.0,u,v,0.0);
+        auto dist = solve(x, y, 0.0, u, v, 0.0);
 
         EXPECT_SOFT_EQ(no_intersection(), dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
@@ -49,7 +49,7 @@ TEST(SolveSurface,no_roots)
     // tmin = 2 and tmax = 4
     {
         double r_b = 0.75;
-        double a = -2*pi;
+        double a = -2 * pi;
         double sign = 1.0;
 
         double x = -7;
@@ -61,7 +61,7 @@ TEST(SolveSurface,no_roots)
         double tmax = 4;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(x,y,0.0,u,v,0.0);
+        auto dist = solve(x, y, 0.0, u, v, 0.0);
 
         EXPECT_SOFT_EQ(no_intersection(), dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
@@ -73,7 +73,7 @@ TEST(SolveSurface,no_roots)
     // tmin = 2 and tmax = 4
     {
         double r_b = 0.75;
-        double a = -2*pi;
+        double a = -2 * pi;
         double sign = 1.0;
 
         double x = -7;
@@ -85,7 +85,7 @@ TEST(SolveSurface,no_roots)
         double tmax = 4;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(x,y,0.0,u,v,0.0);
+        auto dist = solve(x, y, 0.0, u, v, 0.0);
 
         EXPECT_SOFT_EQ(no_intersection(), dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
@@ -93,7 +93,7 @@ TEST(SolveSurface,no_roots)
     }
 }
 
-TEST(SolveSurface,one_root) 
+TEST(SolveSurface, one_root)
 {
     // Solve for rb = 1.0, a = 0, sign = 1
     // Point (0,0) Direction (0,1)
@@ -109,16 +109,16 @@ TEST(SolveSurface,one_root)
         double v = 1;
 
         double tmin = 0;
-        double tmax = 1.99*pi;
+        double tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(x,y,0.0,u,v,0.0);
+        auto dist = solve(x, y, 0.0, u, v, 0.0);
 
         EXPECT_SOFT_EQ(2.9716938706909275, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
-    
+
     // Solve for rb = 1.5, a = 0, sign = 1
     // Point (-1.5,1) Direction (0.2,0.9797958971)
     // tmin = 0 and tmax = 1.99*pi
@@ -133,10 +133,10 @@ TEST(SolveSurface,one_root)
         double v = 0.9797958971;
 
         double tmin = 0;
-        double tmax = 1.99*pi;
+        double tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(x,y,0.0,u,v,0.0);
+        auto dist = solve(x, y, 0.0, u, v, 0.0);
 
         EXPECT_SOFT_EQ(3.7273045229241015, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
@@ -160,7 +160,7 @@ TEST(SolveSurface,one_root)
         double tmax = 4;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(x,y,0.0,u,v,0.0);
+        auto dist = solve(x, y, 0.0, u, v, 0.0);
 
         EXPECT_SOFT_EQ(0, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
@@ -172,7 +172,7 @@ TEST(SolveSurface,one_root)
     // tmin = 2 and tmax = 4
     {
         double r_b = 0.5;
-        double a = 0.4*pi;
+        double a = 0.4 * pi;
         double sign = -1.0;
 
         double x = -4.0;
@@ -184,7 +184,7 @@ TEST(SolveSurface,one_root)
         double tmax = 4;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(x,y,0.0,u,v,0.0);
+        auto dist = solve(x, y, 0.0, u, v, 0.0);
 
         EXPECT_SOFT_EQ(6.0371012183803652, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
@@ -196,7 +196,7 @@ TEST(SolveSurface,one_root)
     // tmin = 0 and tmax = 1.99*pi
     {
         double r_b = 1.1;
-        double a = 0.5*pi;
+        double a = 0.5 * pi;
         double sign = -1.0;
 
         double x = -0.2;
@@ -205,10 +205,10 @@ TEST(SolveSurface,one_root)
         double v = 0;
 
         double tmin = 0;
-        double tmax = 1.99*pi;
+        double tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(x,y,0.0,u,v,1.0);
+        auto dist = solve(x, y, 0.0, u, v, 1.0);
 
         EXPECT_SOFT_EQ(no_intersection(), dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
@@ -216,14 +216,14 @@ TEST(SolveSurface,one_root)
     }
 }
 
-TEST(SolveSurface,two_roots)
+TEST(SolveSurface, two_roots)
 {
     // Solve for rb = 1.1, a = 0.5*pi, sign = -1
     // Point (-0.2,1.1) Direction (1,0)
     // tmin = 0 and tmax = 1.99*pi
     {
         double r_b = 1.1;
-        double a = 0.5*pi;
+        double a = 0.5 * pi;
         double sign = -1.0;
 
         double x = -0.2;
@@ -232,10 +232,10 @@ TEST(SolveSurface,two_roots)
         double v = 0;
 
         double tmin = 0;
-        double tmax = 1.99*pi;
+        double tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(x,y,0.0,u,v,0.0);
+        auto dist = solve(x, y, 0.0, u, v, 0.0);
 
         EXPECT_SOFT_EQ(0.2, dist[0]);
         EXPECT_SOFT_EQ(2.764234602725404, dist[1]);
@@ -247,7 +247,7 @@ TEST(SolveSurface,two_roots)
     // tmin = 0 and tmax = 1.99*pi
     {
         double r_b = 1.1;
-        double a = -0.5*pi;
+        double a = -0.5 * pi;
         double sign = -1.0;
 
         double x = -0.0001;
@@ -256,10 +256,10 @@ TEST(SolveSurface,two_roots)
         double v = 0.9949874371;
 
         double tmin = 0;
-        double tmax = 1.99*pi;
+        double tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(x,y,0.0,u,v,0.0);
+        auto dist = solve(x, y, 0.0, u, v, 0.0);
 
         EXPECT_SOFT_EQ(0.0036178033243678843, dist[0]);
         EXPECT_SOFT_EQ(6.0284475628795926, dist[1]);
@@ -267,12 +267,12 @@ TEST(SolveSurface,two_roots)
     }
 
     // Solve for rb = 1.1, a = -0.5*pi, sign = 1
-    // Point (0.0058102462574510716,-1.1342955336941216) 
+    // Point (0.0058102462574510716,-1.1342955336941216)
     // Direction (0.7071067812,0.7071067812)
     // tmin = 0 and tmax = 1.99*pi
     {
         double r_b = 1.1;
-        double a = -0.5*pi;
+        double a = -0.5 * pi;
         double sign = 1.0;
 
         double x = 0.0058102462574510716;
@@ -281,27 +281,25 @@ TEST(SolveSurface,two_roots)
         double v = 0.7071067812;
 
         double tmin = 0;
-        double tmax = 1.99*pi;
+        double tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(x,y,0.0,u,v,0.0);
+        auto dist = solve(x, y, 0.0, u, v, 0.0);
 
         EXPECT_SOFT_EQ(0.0, dist[0]);
         EXPECT_SOFT_EQ(4.652832754892369, dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
-
-    
 }
-TEST(SolveSurface,three_roots)
-    {
+TEST(SolveSurface, three_roots)
+{
     // Solve for rb = 1.1, a = -0.5*pi, sign = 1
-    // Point (-6.865305298657132,-0.30468305643505367) 
+    // Point (-6.865305298657132,-0.30468305643505367)
     // Direction (0.9933558377574788,-0.11508335932330707)
     // tmin = 0 and tmax = 1.99*pi
     {
         double r_b = 1.1;
-        double a = -0.5*pi;
+        double a = -0.5 * pi;
         double sign = 1.0;
 
         double x = -6.8653052986571326;
@@ -310,16 +308,16 @@ TEST(SolveSurface,three_roots)
         double v = -0.11508335932330707;
 
         double tmin = 0;
-        double tmax = 1.99*pi;
+        double tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(x,y,0.0,u,v,0.0);
+        auto dist = solve(x, y, 0.0, u, v, 0.0);
 
         EXPECT_SOFT_EQ(0.0, dist[0]);
         EXPECT_SOFT_EQ(6.911224915264738, dist[1]);
         EXPECT_SOFT_EQ(9.167603472624553, dist[2]);
     }
-    }
 }
-}
-}
+}  // namespace test
+}  // namespace detail
+}  // namespace celeritas
