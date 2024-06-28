@@ -300,6 +300,8 @@ TEST_F(ScintillationTest, basic)
     auto const& data = params->host_ref();
     EXPECT_FALSE(data.scintillation_by_particle());
 
+    auto const pre_step = this->build_pre_step();
+
     // Pre-generate optical distribution data
     ScintillationPreGenerator generate(
         this->make_particle_track_view(post_energy_, pdg::electron()),
@@ -307,7 +309,7 @@ TEST_F(ScintillationTest, basic)
         post_pos_,
         edep_,
         data,
-        this->build_pre_step());
+        pre_step);
 
     auto const result = generate(this->rng());
 
@@ -370,6 +372,7 @@ TEST_F(ScintillationTest, stress_test)
 {
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
+    auto const pre_step = this->build_pre_step();
 
     ScintillationPreGenerator generate(
         this->make_particle_track_view(post_energy_, pdg::electron()),
@@ -377,7 +380,7 @@ TEST_F(ScintillationTest, stress_test)
         post_pos_,
         edep_,
         data,
-        this->build_pre_step());
+        pre_step);
 
     auto result = generate(this->rng());
 
