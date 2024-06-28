@@ -90,8 +90,8 @@ TEST(Involute, solve_intersect)
     double u = 0.9933558377574788*std::sin(1);
     double v = -0.11508335932330707*std::sin(1);
     double w = std::cos(1);
-    double convert = sqrt(v*v + u*u+ w*w) / 
-                        sqrt(v*v + u*u);
+    real_type convert = sqrt(ipow<2>(v) + ipow<2>(u) + ipow<2>(w)) / 
+                        sqrt(ipow<2>(v) + ipow<2>(u));
 
 
     auto dist = invo.calc_intersections(Real3{-5.8653052986571326, -0.30468305643505367+1,0},

@@ -128,8 +128,8 @@ CELER_FUNCTION auto InvoluteSolver::operator()(real_type x, real_type y,
     Array<real_type, 3> dist;
     real_type j = 0;
 
-    real_type convert = sqrt(v*v + u*u+ w*w) / 
-                        sqrt(v*v + u*u);
+    real_type convert = sqrt(ipow<2>(v) + ipow<2>(u) + ipow<2>(w)) / 
+                        sqrt(ipow<2>(v) + ipow<2>(u));
 
     /*
      * Define tolerances.
@@ -139,8 +139,8 @@ CELER_FUNCTION auto InvoluteSolver::operator()(real_type x, real_type y,
 
     // 0 distance of particle on invoute surface
     
-    real_type const rxy2 = x*x + y*y;
-    real_type const tPoint = sqrt((rxy2/(r_b_*r_b_))-1);
+    real_type const rxy2 = ipow<2>(x) + ipow<2>(y);
+    real_type const tPoint = sqrt((rxy2/(ipow<2>(r_b_)))-1);
     real_type angle = tPoint + a_;
     real_type xInv = r_b_ * (std::cos(angle) + tPoint * std::sin(angle));
     real_type yInv = r_b_ * (std::sin(angle) - tPoint * std::cos(angle));
@@ -232,7 +232,7 @@ CELER_FUNCTION auto InvoluteSolver::operator()(real_type x, real_type y,
 
                 dot = u*u2 + v*v2;
 
-                real_type newdist = sqrt(u2*u2+v2*v2);
+                real_type newdist = sqrt(ipow<2>(u2)+ipow<2>(v2));
 
                 if (dot >= 0 && newdist > tolPoint) {
                     dist[j]=newdist;
