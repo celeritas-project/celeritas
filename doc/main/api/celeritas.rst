@@ -117,13 +117,31 @@ These classes correspond to JSON input files to the field setup.
 
 .. _celeritas_random:
 
-Random number distributions
----------------------------
+Random number generation
+------------------------
 
 The 2011 ISO C++ standard defined a new functional paradigm for sampling from
 random number distributions. In this paradigm, random number *engines* generate
 a uniformly distributed stream of bits. Then, *distributions* use that entropy
-to sample a random number from a distribution. Distributions are function-like
+to sample a random number from a distribution.
+
+Engines
+~~~~~~~
+
+Celeritas defaults to using an in-house implementation of the XORWOW
+:cite:`marsaglia_xorshift_2003` bit shifting generator. Each thread's state is
+seeded at runtime (or at the start of each event when integrating with Geant4)
+by filling the state with bits generated from a 32-bit
+
+.. doxygenfunction:: celeritas::initialize_xorwow
+
+.. doxygenclass:: celeritas::XorwowRngEngine
+   :members: none
+
+Distributions
+~~~~~~~~~~~~~
+
+Distributions are function-like
 objects whose constructors take the *parameters* of the distribution: for
 example, a uniform distribution over the range :math:`[a, b)` takes the *a* and
 *b* parameters as constructor arguments. The templated call operator accepts a
