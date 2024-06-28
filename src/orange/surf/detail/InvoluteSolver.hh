@@ -54,12 +54,8 @@ class InvoluteSolver
                                          real_type tmax_);
 
     // Solve fully general case
-    inline CELER_FUNCTION Intersections operator()(real_type x,
-                                                   real_type y,
-                                                   real_type z,
-                                                   real_type u,
-                                                   real_type v,
-                                                   real_type w) const;
+    inline CELER_FUNCTION Intersections operator()(Real3 const& pos,
+                                                   Real3 const& dir) const;
 
     //// ACCESSORS ////
 
@@ -97,7 +93,7 @@ CELER_FUNCTION InvoluteSolver::InvoluteSolver(
 {
     CELER_EXPECT(r_b > 0);
     CELER_EXPECT(a > 0);
-    CELER_EXPECT(abs(tmax) < 2 * pi + abs(tmin));
+    CELER_EXPECT(std::fabs(tmax) < 2 * pi + std::fabs(tmin));
 }
 
 //---------------------------------------------------------------------------//
@@ -106,13 +102,18 @@ CELER_FUNCTION InvoluteSolver::InvoluteSolver(
  * Find all positive roots for involute surfaces that are within the bounds.
  */
 CELER_FUNCTION auto
-InvoluteSolver::operator()(real_type x,
-                           real_type y,
-                           real_type z,
-                           real_type u,
-                           real_type v,
-                           real_type w) const -> Intersections
+InvoluteSolver::operator()(Real3 const& pos,
+                           Real3 const& dir) const -> Intersections
 {
+    // Expand translated positions into 'xyz' coordinate system
+    real_type const x = pos[0];
+    real_type const y = pos[1];
+    real_type const z = pos[2];
+
+    real_type const u = dir[0];
+    real_type const v = dir[1];
+    real_type const w = dir[2];
+
     // Lambda used for calculating the roots
     auto root = [](real_type t,
                    real_type x,
@@ -140,8 +141,8 @@ InvoluteSolver::operator()(real_type x,
     Array<real_type, 3> dist;
     real_type j = 0;
 
-    real_type convert = sqrt(ipow<2>(v) + ipow<2>(u) + ipow<2>(w))
-                        / sqrt(ipow<2>(v) + ipow<2>(u));
+    real_type convert = std::sqrt(ipow<2>(v) + ipow<2>(u) + ipow<2>(w))
+                        / std::sqrt(ipow<2>(v) + ipow<2>(u));
 
     /*
      * Define tolerances.
@@ -152,11 +153,11 @@ InvoluteSolver::operator()(real_type x,
     // 0 distance of particle on invoute surface
 
     real_type const rxy2 = ipow<2>(x) + ipow<2>(y);
-    real_type const tPoint = sqrt((rxy2 / (ipow<2>(r_b_))) - 1);
+    real_type const tPoint = std::sqrt((rxy2 / (ipow<2>(r_b_))) - 1);
     real_type angle = tPoint + a_;
     real_type xInv = r_b_ * (std::cos(angle) + tPoint * std::sin(angle));
     real_type yInv = r_b_ * (std::sin(angle) - tPoint * std::cos(angle));
-    if (abs(x - xInv) < tolPoint && abs(y - yInv) < tolPoint)
+    if (std::fabs(x - xInv) < tolPoint && std::fabs(y - yInv) < tolPoint)
     {
         dist[j] = 0;
         j++;
@@ -164,11 +165,11 @@ InvoluteSolver::operator()(real_type x,
 
     real_type beta;
     // Line angle parameter
-    if (u != 0.0)
+    if (u != 0)
     {
         beta = std::atan(-v / u);
     }
-    else if (-v < 0.0)
+    else if (-v < 0)
     {
         beta = pi * -0.5;
     }
@@ -185,19 +186,13 @@ InvoluteSolver::operator()(real_type x,
     {
         tLower = 0;
         tUpper = beta - a_;
-        while (tUpper <= 0.0)
-        {
-            tUpper += pi;
-        }
+        tUpper += std::fmax(0, -std::floorf(tUpper / pi)) * pi;
     }
     else if (sign_ < 0)
     {
         tUpper = 0;
         tLower = beta - a_ + 2 * pi;
-        while (tLower >= 0.0)
-        {
-            tLower -= pi;
-        }
+        tLower -= std::fmax(0, std::ceilf(tLower / pi)) * pi;
     }
 
     // Parameters that will be used in loop
@@ -214,7 +209,8 @@ InvoluteSolver::operator()(real_type x,
     real_type dot;
 
     // Iterate on roots
-    while ((tLower < tmax_ && sign_ > 0) | (abs(tUpper) < tmax_ && sign_ < 0))
+    while ((tLower < tmax_ && sign_ > 0)
+           | (std::fabs(tUpper) < tmax_ && sign_ < 0))
     {
         talpha = tLower;
         tbeta = tUpper;
@@ -223,25 +219,24 @@ InvoluteSolver::operator()(real_type x,
         ftbeta = root(tbeta, x, y, u, v, r_b_, a_);
 
         if ((talpha > tmax_ && sign_ == 1.0)
-            | (abs(tbeta) > abs(tmax_) && sign_ == -1.0))
+            | (std::fabs(tbeta) > std::fabs(tmax_) && sign_ == -1.0))
         {
             break;
         }
 
-        if ((0.0 < ftalpha) - (ftalpha < 0.0)
-            != (0.0 < ftbeta) - (ftbeta < 0.0))
+        if ((0 < ftalpha) - (ftalpha < 0) != (0 < ftbeta) - (ftbeta < 0))
         {
             // Regula Falsi Iteration
             ftgamma = 1;
-            while (abs(ftgamma) >= tolConv)
+            while (std::fabs(ftgamma) >= tolConv)
             {
                 tgamma = (talpha * ftbeta - tbeta * ftalpha)
                          / (ftbeta - ftalpha);
 
                 ftgamma = root(tgamma, x, y, u, v, r_b_, a_);
 
-                if ((0.0 < ftbeta) - (ftbeta < 0.0)
-                    == (0.0 < ftgamma) - (ftgamma < 0.0))
+                if ((0 < ftbeta) - (ftbeta < 0)
+                    == (0 < ftgamma) - (ftgamma < 0))
                 {
                     tbeta = tgamma;
                     ftbeta = root(tbeta, x, y, u, v, r_b_, a_);
@@ -258,15 +253,15 @@ InvoluteSolver::operator()(real_type x,
             yInv = r_b_ * (std::sin(angle) - t * std::cos(angle));
 
             // Check if point is interval
-            if (abs(tgamma) >= abs(tmin_) - tolPoint
-                && abs(tgamma) <= abs(tmax_))
+            if (std::fabs(tgamma) >= std::fabs(tmin_) - tolPoint
+                && std::fabs(tgamma) <= std::fabs(tmax_))
             {
                 u2 = xInv - x;
                 v2 = yInv - y;
 
                 dot = u * u2 + v * v2;
 
-                real_type newdist = sqrt(ipow<2>(u2) + ipow<2>(v2));
+                real_type newdist = std::sqrt(ipow<2>(u2) + ipow<2>(v2));
 
                 if (dot >= 0 && newdist > tolPoint)
                 {

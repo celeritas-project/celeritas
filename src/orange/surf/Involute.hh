@@ -144,7 +144,7 @@ CELER_FUNCTION Involute::Involute(Real3 const& origin,
 {
     CELER_EXPECT(radius > 0);
     CELER_EXPECT(a > 0);
-    CELER_EXPECT(abs(tmax) < 2 * pi + abs(tmin));
+    CELER_EXPECT(std::fabs(tmax) < 2 * pi + std::fabs(tmin));
 }
 
 //---------------------------------------------------------------------------//
@@ -181,7 +181,7 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
      */
     real_type const rxy2 = ipow<2>(x) + ipow<2>(y);
     real_type const tPoint2 = (rxy2 / ipow<2>(r_b_)) - 1;
-    real_type const tPoint = sqrt(tPoint2);
+    real_type const tPoint = std::sqrt(tPoint2);
 
     /*
      * Check if Point is on involute.
@@ -190,7 +190,7 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     real_type const xInv = r_b_ * (std::cos(angle) + tPoint * std::sin(angle));
     real_type const yInv = r_b_ * (std::sin(angle) - tPoint * std::cos(angle));
 
-    if (abs(x - xInv) < tol && abs(y - yInv) < tol)
+    if (std::fabs(x - xInv) < tol && std::fabs(y - yInv) < tol)
     {
         return SignedSense::on;
     }
@@ -198,11 +198,11 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     /*
      * Check if point is in defined bounds.
      */
-    if (abs(tPoint2) < ipow<2>(tmin_))
+    if (std::fabs(tPoint2) < ipow<2>(tmin_))
     {
         return SignedSense::outside;
     }
-    if (abs(tPoint2) > ipow<2>(tmax_))
+    if (std::fabs(tPoint2) > ipow<2>(tmax_))
     {
         return SignedSense::outside;
     }
@@ -222,25 +222,29 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     b = -2 * ipow<2>(r_b_) * x;
     c = ipow<4>(r_b_) - ipow<2>(y) * ipow<2>(r_b_);
 
-    xa = (-b + sqrt(ipow<2>(b) - 4 * a * c)) / (2 * a);
-    xb = (-b - sqrt(ipow<2>(b) - 4 * a * c)) / (2 * a);
+    // Manual solution to quadratic.
+    // QuadraticSolver avoided due to it ignoring negative results,
+    // which may be the case here.
 
-    ya = sqrt(ipow<2>(r_b_) - ipow<2>(xa));
-    yb = -sqrt(ipow<2>(r_b_) - ipow<2>(xa));
-    yc = sqrt(ipow<2>(r_b_) - ipow<2>(xb));
-    yd = -sqrt(ipow<2>(r_b_) - ipow<2>(xb));
+    xa = (-b + std::sqrt(ipow<2>(b) - 4 * a * c)) / (2 * a);
+    xb = (-b - std::sqrt(ipow<2>(b) - 4 * a * c)) / (2 * a);
+
+    ya = std::sqrt(ipow<2>(r_b_) - ipow<2>(xa));
+    yb = -std::sqrt(ipow<2>(r_b_) - ipow<2>(xa));
+    yc = std::sqrt(ipow<2>(r_b_) - ipow<2>(xb));
+    yd = -std::sqrt(ipow<2>(r_b_) - ipow<2>(xb));
 
     b = -2 * ipow<2>(r_b_) * y;
     c = ipow<4>(r_b_) - ipow<2>(x) * ipow<2>(r_b_);
 
-    yalpha = (-b + sqrt(ipow<2>(b) - 4 * a * c)) / (2 * a);
-    ybeta = (-b - sqrt(ipow<2>(b) - 4 * a * c)) / (2 * a);
+    yalpha = (-b + std::sqrt(ipow<2>(b) - 4 * a * c)) / (2 * a);
+    ybeta = (-b - std::sqrt(ipow<2>(b) - 4 * a * c)) / (2 * a);
 
     Array<real_type, 2> point1;
     Array<real_type, 2> point2;
 
     // First tangent
-    if (abs(ya - yalpha) <= 0)
+    if (std::fabs(ya - yalpha) <= 0)
     {
         point1 = {xa, ya};
     }
@@ -249,7 +253,7 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
         point1 = {xb, yc};
     }
     // Second tangent
-    if (abs(yb - ybeta) <= 0)
+    if (std::fabs(yb - ybeta) <= 0)
     {
         point2 = {xa, yb};
     }
@@ -273,22 +277,22 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
 
     // Calculate angle of tangent
     real_type theta = std::acos(
-        point[0] / sqrt(point[0] * point[0] + point[1] * point[1]));
+        point[0] / std::sqrt(point[0] * point[0] + point[1] * point[1]));
     if (point[1] < 0)
     {
         theta = (pi - theta) + pi;
     }
     real_type a1 = theta - tPoint;
-    if (abs(theta) < abs(tmax_ + a_) && a1 >= a_)
+    if (std::fabs(theta) < std::fabs(tmax_ + a_) && a1 >= a_)
     {
         return SignedSense::inside;
     }
 
-    while (abs(theta) < (abs(tmax_ + a_)))
+    while (std::fabs(theta) < (std::fabs(tmax_ + a_)))
     {
         theta += pi * 2 * sign_;
         a1 = theta - tPoint;
-        if (abs(theta) < abs(tmax_ + a_) && a1 >= a_)
+        if (std::fabs(theta) < std::fabs(tmax_ + a_) && a1 >= a_)
         {
             return SignedSense::inside;
         }
@@ -317,7 +321,7 @@ Involute::calc_intersections(Real3 const& pos,
 
     detail::InvoluteSolver solve(r_b_, a_, sign_, tmin_, tmax_);
 
-    return solve(x, y, z, u, v, w);
+    return solve(Real3{x, y, z}, Real3{u, v, w});
 }
 
 //---------------------------------------------------------------------------//
@@ -333,7 +337,7 @@ CELER_FORCEINLINE_FUNCTION Real3 Involute::calc_normal(Real3 const& pos) const
      * Calculate distance to origin and obtain t value for disance.
      */
     real_type const rxy2 = ipow<2>(x) + ipow<2>(y);
-    real_type const tPoint = sqrt((rxy2 / (ipow<2>(r_b_))) - 1) * sign_;
+    real_type const tPoint = std::sqrt((rxy2 / (ipow<2>(r_b_))) - 1) * sign_;
 
     /*
      * Calculate normal
