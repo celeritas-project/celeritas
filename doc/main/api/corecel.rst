@@ -50,7 +50,6 @@ Containers
 ----------
 
 .. doxygenstruct:: celeritas::Array
-   :undoc-members:
 
 .. doxygenclass:: celeritas::Span
 
@@ -78,7 +77,9 @@ Math, numerics, and algorithms
 I/O
 ---
 
-.. doxygenfile:: corecel/io/Logger.hh
+.. doxygendefine:: CELER_LOG
+.. doxygendefine:: CELER_LOG_LOCAL
+.. doxygenenum:: celeritas::LogLevel
 
 .. doxygenclass:: celeritas::OutputInterface
 
@@ -143,5 +144,4 @@ Users and other parts of the code can add their own shared and stream-local
 .. doxygenclass:: celeritas::AuxParamsRegistry
 
 .. doxygenclass:: celeritas::AuxStateVec
-
 
