@@ -5,8 +5,6 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/global/StepperGeant.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/global/StepperGeant.hh"
-
 #include <random>
 
 #include "corecel/Types.hh"
@@ -18,6 +16,7 @@
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/ActionRegistry.hh"
+#include "celeritas/global/Stepper.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
