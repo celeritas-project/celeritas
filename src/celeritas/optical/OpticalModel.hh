@@ -15,34 +15,32 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Brief class description.
- *
- * Optional detailed class description, and possibly example usage:
- * \code
-    OpticalModel ...;
-   \endcode
  */
-class OpticalModel : public ExplicitOpticalActionInterface
+class OpticalModel : public ExplicitOpticalActionInterface, public ConcreteAction
 {
   public:
     //!@{
     //! \name Type aliases
+    using StepLimitBuilder = std::unique_ptr<BaseGridBuilder const>;
     //!@}
 
   public:
-    virtual ~OpticalModel() {}
+    OpticalModel(ActionId id, std::string label)
+        : ConcreteAction(id, label)
+    {}
+
+    OpticalModel(ActionId id, std::string label, std::string description)
+        : ConcreteAction(id, label, description)
+    {}
+
+    //! Virtual destructor for polymorphic deletion
+    virtual ~OpticalModel() = default;
 
     //! Action order for optical models is always post-step
     ActionOrder order() const override final { return ActionOrder::post; }
 
-    //! Aciton ID of the optical model.
-    ActionId action_id() const override final { return action_id_; }
-
-  protected:
-    //! Construct the optical model with a given action id.
-    OpticalModel(ActionId id) : action_id_(id) {}
-
-    ActionId action_id_;
+    //! Get mean free paths for the given optical material
+    virtual StepLimitBuilder step_limits(OpticalMaterialId id) const = 0;
 };
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

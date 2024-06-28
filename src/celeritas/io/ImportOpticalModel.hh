@@ -26,12 +26,21 @@ enum class ImportOpticalModelClass
 //---------------------------------------------------------------------------//
 /*!
  * Store imported physics data associated with a given optical model.
+ *
+ * Only lambda tables per process are needed, which are usually determined
+ * from the relevant optical material properties.
  */
 struct ImportOpticalModel
 {
     ImportProcessType const process_type{ImportProcessType::optical};
     ImportOpticalModelClass model_class{ImportOpticalModelClass::size_};
     ImportPhysicsTable lambda_table;
+
+    ImportOpticalModel(ImportOpticalModelClass iomc)
+        : model_class(iomc)
+    {
+        lambda_table.table_type = ImportTableType::lambda;
+    }
 
     explicit operator bool() const
     {

@@ -106,16 +106,27 @@ struct ImportScintData
 
 //---------------------------------------------------------------------------//
 /*!
+ * Store data common to all optical models.
+ *
+ * This is just the mean free path / absorption length, but gives uniform
+ * access for optical models to build their lambda tables.
+ */
+struct ImportOpticalModelMaterial
+{
+    ImportPhysicsVector mfp;  //!< Mean free path / absorption length
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Store optical material properties for Rayleigh scattering.
  *
  * The isothermal compressibility is used to calculate the Rayleigh mean free
  * path if no mean free paths are provided.
  */
-struct ImportOpticalRayleigh
+struct ImportOpticalRayleigh : public ImportOpticalModelMaterial
 {
     double scale_factor{1};  //!< Scale the scattering length (optional)
     double compressibility{};  //!< Isothermal compressibility
-    ImportPhysicsVector mfp;  //!< Rayleigh mean free path
 
     //! Whether all data are assigned and valid
     explicit operator bool() const
@@ -129,14 +140,16 @@ struct ImportOpticalRayleigh
 /*!
  * Store optical material properties for absorption.
  */
-struct ImportOpticalAbsorption
+struct ImportOpticalAbsorption : public ImportOpticalModelMaterial
 {
-    ImportPhysicsVector absorption_length;
+    //! Convenience function for aliasing the mfp as the absorption length
+    ImportPhysicsVector& absorption_length() { return mfp; }
+    ImportPhysicsVector const& absorption_length() { return mfp; }
 
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
-        return static_cast<bool>(absorption_length);
+        return static_cast<bool>(mfp);
     }
 };
 
@@ -163,21 +176,24 @@ struct ImportOpticalProperty
  * re-emission energy. It is used to define an inverse CDF needed to sample the
  * re-emitted optical photon energy.
  */
-struct ImportWavelengthShift
+struct ImportWavelengthShift : public ImportOpticalModelMaterial
 {
     double mean_num_photons;  //!< Mean number of re-emitted photons
     double time_constant;  //!< Time delay between absorption and re-emission
-    ImportPhysicsVector absorption_length;  //!< Absorption length [MeV, len]
     ImportPhysicsVector component;  //!< Re-emission population [MeV, unitless]
+
+    //! Convenience function for aliasing the mfp as the absorption length
+    ImportPhysicsVector& absorption_length() { return mfp; }
+    ImportPhysicsVector const& absorption_length() { return mfp; }
 
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
         return mean_num_photons > 0 && time_constant > 0
-               && static_cast<bool>(absorption_length)
+               && static_cast<bool>(mfp)
                && static_cast<bool>(component)
-               && absorption_length.vector_type == ImportPhysicsVectorType::free
-               && component.vector_type == absorption_length.vector_type;
+               && mfp.vector_type == ImportPhysicsVectorType::free
+               && component.vector_type == mfp.vector_type;
     }
 };
 
@@ -192,6 +208,17 @@ struct ImportOpticalMaterial
     ImportOpticalAbsorption absorption;
     ImportOpticalProperty properties;
     ImportWavelengthShift wls;
+
+    ImportOpticalModelMaterial const* model_material(ImportOpticalModelClass mc) const
+    {
+        switch (mc)
+        {
+            case ImportOpticalModelClass::absorption: return &absorption;
+            case ImportOpticalModelClass::rayleigh: return &rayleigh;
+            case ImportOpticalModelClass::wavelength_shifting: return &wls;
+            default: return nullptr;
+        }
+    }
 
     //! Whether all data are assigned and valid
     explicit operator bool() const
