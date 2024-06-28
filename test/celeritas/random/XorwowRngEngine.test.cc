@@ -125,7 +125,7 @@ class XorwowRngEngineTest : public Test
     using HostStore = CollectionStateStore<XorwowRngStateData, MemSpace::host>;
     using DeviceStore
         = CollectionStateStore<XorwowRngStateData, MemSpace::device>;
-    using uint_t = XorwowState::uint_t;
+    using uint_t = XorwowUInt;
 
     void SetUp() override
     {

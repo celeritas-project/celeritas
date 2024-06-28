@@ -54,7 +54,7 @@ class XorwowRngEngine
   public:
     //!@{
     //! \name Type aliases
-    using uint_t = unsigned int;
+    using uint_t = XorwowUInt;
     using result_type = uint_t;
     using Initializer_t = XorwowRngInitializer;
     using ParamsRef = NativeCRef<XorwowRngParamsData>;
@@ -102,8 +102,8 @@ class XorwowRngEngine
     // Helper RNG for initializing the state
     struct SplitMix64
     {
-        uint64_t state;
-        inline CELER_FUNCTION uint64_t operator()();
+        std::uint64_t state;
+        inline CELER_FUNCTION std::uint64_t operator()();
     };
 };
 
@@ -165,7 +165,7 @@ XorwowRngEngine::operator=(Initializer_t const& init)
 
     // Initialize the state from the seed
     SplitMix64 rng{init.seed[0]};
-    uint64_t seed = rng();
+    std::uint64_t seed = rng();
     s[0] = static_cast<uint_t>(seed);
     s[1] = static_cast<uint_t>(seed >> 32);
     seed = rng();
@@ -317,9 +317,9 @@ CELER_FUNCTION void XorwowRngEngine::jump(JumpPoly const& jump_poly)
  *
  * This is used to initialize the XORWOW state. See https://prng.di.unimi.it.
  */
-CELER_FUNCTION uint64_t XorwowRngEngine::SplitMix64::operator()()
+CELER_FUNCTION std::uint64_t XorwowRngEngine::SplitMix64::operator()()
 {
-    uint64_t z = (state += 0x9e3779b97f4a7c15ull);
+    std::uint64_t z = (state += 0x9e3779b97f4a7c15ull);
     z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ull;
     z = (z ^ (z >> 27)) * 0x94d049bb133111ebull;
     return z ^ (z >> 31);
