@@ -18,23 +18,21 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Resize and initialize with the seed stored in params.
+ * Initialize XORWOW states with well-distributed random data.
+ *
+ * cuRAND and hipRAND implement functions that permute the original (but
+ * seemingly arbitrary) seeds given in Marsaglia with 64 bits of seed data. We
+ * simply generate pseudorandom, independent starting states for all data in
+ * all threads using a 32-bit MT19937 engine.
  */
-template<MemSpace M>
-void resize(XorwowRngStateData<Ownership::value, M>* state,
-            HostCRef<XorwowRngParamsData> const& params,
-            StreamId stream,
-            size_type size)
+void initialize_xorwow(Span<XorwowState> state,
+                       XorwowSeed const& seed,
+                       StreamId stream)
 {
-    CELER_EXPECT(size > 0);
-    CELER_EXPECT(params);
-
-    using uint_t = XorwowState::uint_t;
-
     // Seed sequence to generate well-distributed seed numbers, including
     // stream ID to give strings different starting contributions
-    std::vector<std::seed_seq::result_type> host_seeds(params.seed.begin(),
-                                                       params.seed.end());
+    std::vector<std::seed_seq::result_type> host_seeds(seed.begin(),
+                                                       seed.end());
     if (stream != StreamId{0})
     {
         // For backward compatibility with prior RNG seed, don't modify the
@@ -45,22 +43,39 @@ void resize(XorwowRngStateData<Ownership::value, M>* state,
 
     // 32-bit generator to fill initial states
     std::mt19937 rng(seed_seq);
-    std::uniform_int_distribution<uint_t> sample_uniform_int;
-
-    // Create seeds for device in host memory
-    HostVal<XorwowRngStateData> host_state;
-    resize(&host_state.state, size);
+    std::uniform_int_distribution<XorwowUInt> sample_uniform_int;
 
     // Fill all seeds with random data. The xorstate is never all
     // zeros, with probability 2^{-320}.
-    for (XorwowState& init : host_state.state[AllItems<XorwowState>{}])
+    for (XorwowState& init : state)
     {
-        for (uint_t& u : init.xorstate)
+        for (XorwowUInt& u : init.xorstate)
         {
             u = sample_uniform_int(rng);
         }
         init.weylstate = sample_uniform_int(rng);
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Resize and seed the RNG states.
+ */
+template<MemSpace M>
+void resize(XorwowRngStateData<Ownership::value, M>* state,
+            HostCRef<XorwowRngParamsData> const& params,
+            StreamId stream,
+            size_type size)
+{
+    CELER_EXPECT(size > 0);
+    CELER_EXPECT(params);
+
+    // Create seeds for device in host memory
+    HostVal<XorwowRngStateData> host_state;
+    resize(&host_state.state, size);
+
+    initialize_xorwow(
+        host_state.state[AllItems<XorwowState>{}], params.seed, stream);
 
     // Move or copy to input
     if (M == MemSpace::host)

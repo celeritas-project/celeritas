@@ -85,7 +85,7 @@ if celer_config['options']['breathe']:
     breathe_projects = {
         breathe_default_project: build_dir / 'xml'
     }
-    breathe_default_members = ('members',)
+    breathe_default_members = ()
     breathe_domain_by_extension = {
         "h": "cpp",
         "hh": "cpp",
