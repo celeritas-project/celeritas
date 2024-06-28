@@ -18,7 +18,12 @@ Library API
 The bulk of Celeritas' code is in several code libraries meant (with varying
 degrees of polish) to be used by external users and application developers.
 Currently, the most stable and user-ready component of Celeritas is its
-:ref:`accel` code library for offloading to Geant4.
+:ref:`accel` code library for offloading to Geant4. High-level documentation
+for many of the classes and other data constructs are described in this user
+manual, but further details for developers can be found in the full
+Doxygen-generated `developer documentation`_.
+
+.. _developer documentation: https://celeritas-project.github.io/celeritas/dev/index.html
 
 The Celeritas codebase lives under the ``src/`` directory and is partitioned
 into several libraries of increasing complexity:

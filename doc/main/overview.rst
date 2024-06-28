@@ -219,7 +219,8 @@ secondaries. In Python pseudocode this looks like:
 There is effectively a data dependency between the track at step *i* and step
 *i + 1* that prevents vectorization. The approach Celeritas takes to
 "vectorize" the stepping loop on GPU is to have an outer loop over "step
-iterations" and an inner loop over "track slots":
+iterations" and an inner loop over "track slots", which are elements in a
+fixed-size vector of tracks that may be in flight:
 
 .. code-block:: python
 

@@ -137,8 +137,11 @@ Engines
 
 Celeritas defaults to using an in-house implementation of the XORWOW
 :cite:`marsaglia_xorshift_2003` bit shifting generator. Each thread's state is
-seeded at runtime (or at the start of each event when integrating with Geant4)
-by filling the state with bits generated from a 32-bit
+seeded at runtime by filling the state with bits generated from a 32-bit
+Mersenne twister. When a new event begins through the Geant4 interface, each
+thread's state is initialized using same seed and skipped ahead a different
+number of subsequences so the sequences on different threads will not have
+statistically correlated values.
 
 .. doxygenfunction:: celeritas::initialize_xorwow
 
