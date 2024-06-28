@@ -42,12 +42,14 @@ allows their conversion back to native units. This allows, for example,
 particles to represent their energy as MeV and charge as fractions of e but
 work seamlessly with a field definition in native (macro-scale quantity) units.
 
-Physics
-=======
+EM Physics
+==========
 
-Celeritas implements physics processes and models for transporting electron, positron,
-and gamma particles as shown in the accompanying table. Implementation details of these models
-and their corresponding Geant4 classes are documented in :ref:`celeritas_physics`.
+Celeritas implements physics processes and models for transporting electron,
+positron, and gamma particles as shown in the accompanying table. Initial
+support is being added for muon physics and is not shown below.
+Implementation details of these models
+and their corresponding Geant4 classes are documented in :ref:`api_em_physics`.
 
 .. only:: html
 
@@ -169,6 +171,16 @@ and single scattering for large angles. The Wentzel VI model, used together
 with the single Coulomb scattering model, is an implementation of the mixed
 simulation algorithm. It is the default model in Geant4 above 100 MeV and
 currently under development in Celeritas.
+
+Optical Physics
+===============
+
+TODO:
+
+- Describe integration into the main stepping loop
+- Add mermaid plot of optical stepping loop
+- Describe pre-generation, generation
+- Add optical models
 
 Geometry
 ========

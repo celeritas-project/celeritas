@@ -175,10 +175,18 @@ three-vectors (such as sampling an isotropic direction).
 .. doxygenclass:: celeritas::UniformRealDistribution
    :members: none
 
-.. _celeritas_physics:
+.. _api_em_physics:
 
-Physics distributions
----------------------
+EM physics
+----------
+
+The physics models in Celeritas are primarily derived from references cited by Geant4,
+including the Geant4 physics reference manual. Undocumented adjustments to
+those models in Geant4 may also be implemented, and hopefully, explained in our
+documentation.
+
+Distributions
+~~~~~~~~~~~~~
 
 At a higher level, Celeritas expresses many physics operations as
 distributions of *updated* track states based on *original* track states. For
@@ -205,8 +213,8 @@ and mass, and it samples the exiting polar angle cosine.
    :members: none
 
 
-Physics implementations
------------------------
+Implementations
+~~~~~~~~~~~~~~~
 
 Additional distributions are built on top of the helper distributions above.
 All discrete interactions (in Geant4 parlance, "post-step do-it"s) use
@@ -216,6 +224,8 @@ as properties of any secondary particles produced.
 
 .. doxygenclass:: celeritas::BetheHeitlerInteractor
    :members: none
+.. doxygenclass:: celeritas::CoulombScatteringInteractor
+   :members: none
 .. doxygenclass:: celeritas::EPlusGGInteractor
    :members: none
 .. doxygenclass:: celeritas::KleinNishinaInteractor
@@ -223,6 +233,10 @@ as properties of any secondary particles produced.
 .. doxygenclass:: celeritas::MollerBhabhaInteractor
    :members: none
 .. doxygenclass:: celeritas::LivermorePEInteractor
+   :members: none
+.. doxygenclass:: celeritas::MuBetheBlochInteractor
+   :members: none
+.. doxygenclass:: celeritas::MuBremsstrahlungInteractor
    :members: none
 .. doxygenclass:: celeritas::RayleighInteractor
    :members: none
@@ -262,13 +276,19 @@ The following classes enumerate all the data used at runtime.
 Material and geometry properties
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. doxygenstruct:: celeritas::ImportElement
+.. doxygenstruct:: celeritas::ImportIsotope
    :undoc-members:
-.. doxygenstruct:: celeritas::ImportProductionCut
+.. doxygenstruct:: celeritas::ImportElement
    :undoc-members:
 .. doxygenstruct:: celeritas::ImportMatElemComponent
    :undoc-members:
-.. doxygenstruct:: celeritas::ImportMaterial
+.. doxygenstruct:: celeritas::ImportGeoMaterial
+   :undoc-members:
+.. doxygenstruct:: celeritas::ImportProductionCut
+   :undoc-members:
+.. doxygenstruct:: celeritas::ImportPhysMaterial
+   :undoc-members:
+.. doxygenstruct:: celeritas::ImportRegion
    :undoc-members:
 .. doxygenstruct:: celeritas::ImportVolume
    :undoc-members:
@@ -323,3 +343,20 @@ EM data
 
 .. doxygenstruct:: celeritas::ImportSBTable
    :undoc-members:
+
+Optical data
+~~~~~~~~~~~~
+
+.. doxygenstruct:: celeritas::ImportOpticalAbsorption
+.. doxygenstruct:: celeritas::ImportOpticalMaterial
+.. doxygenstruct:: celeritas::ImportOpticalParameters
+.. doxygenstruct:: celeritas::ImportOpticalProperty
+.. doxygenstruct:: celeritas::ImportOpticalRayleigh
+
+.. doxygenstruct:: celeritas::ImportScintComponent
+.. doxygenstruct:: celeritas::ImportScintData
+.. doxygenstruct:: celeritas::ImportParticleScintSpectrum
+.. doxygenstruct:: celeritas::ImportMaterialScintSpectrum
+
+.. doxygenstruct:: celeritas::ImportWavelengthShift
+
