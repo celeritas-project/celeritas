@@ -40,7 +40,7 @@ class Involute
     //@{
     //! \name Type aliases
     using Intersections = Array<real_type, 3>;
-    using StorageSpan = Span<real_type const, 4>;
+    using StorageSpan = Span<real_type const, 8>;
     //@}
 
   public:
@@ -58,6 +58,7 @@ class Involute
   public:
     //// CONSTRUCTORS ////
     // Construct at (0,0,z)
+    // Redundant method, required due to causing an error when excluded.
     static Involute at0origin(Real3 const& origin,
                               real_type radius,
                               real_type a,
@@ -92,10 +93,7 @@ class Involute
     CELER_FUNCTION real_type tmax() const { return tmax_; }
 
     //! Get a view to the data for type-deleted storage
-    CELER_FUNCTION StorageSpan data() const { return {&origin_[0], 4}; }
-
-    // // Helper function to get the origin as a 3-vector
-    // Real3 calc_origin() const;
+    CELER_FUNCTION StorageSpan data() const { return {&origin_[0], 8}; }
 
     //// CALCULATION ////
 
