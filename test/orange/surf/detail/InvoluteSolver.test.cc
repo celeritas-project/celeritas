@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "orange/surf/detail/InvoluteSolver.hh"
 
+#include "corecel/Constants.hh"
+
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -16,7 +18,7 @@ namespace detail
 namespace test
 {
 //---------------------------------------------------------------------------//
-double const pi = 3.14159265358979323846;
+using constants::pi;
 
 TEST(SolveSurface, no_roots)
 {

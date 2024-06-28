@@ -9,6 +9,7 @@
 
 #include <cmath>
 
+#include "corecel/Constants.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
@@ -19,6 +20,7 @@
 
 namespace celeritas
 {
+using constants::pi;
 //---------------------------------------------------------------------------//
 /*!
  * Involute:
@@ -140,7 +142,6 @@ CELER_FUNCTION Involute::Involute(Real3 const& origin,
                                   real_type tmax)
     : origin_(origin), r_b_(radius), a_(a), sign_(sign), tmin_(tmin), tmax_(tmax)
 {
-    double const pi = 3.14159265358979323846;
     CELER_EXPECT(radius > 0);
     CELER_EXPECT(a > 0);
     CELER_EXPECT(abs(tmax) < 2 * pi + abs(tmin));
@@ -167,10 +168,8 @@ CELER_FUNCTION Involute::Involute(Span<R, StorageSpan::extent> data)
  */
 CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
 {
-    double const pi = 3.14159265358979323846;
-
     /*
-     * Define tolerances.
+     * Define tolerances for on surface.
      */
     real_type const tol = 1e-7;
 
@@ -199,11 +198,11 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     /*
      * Check if point is in defined bounds.
      */
-    if (abs(tPoint2) < ipow<2>(tmin_) - tol)
+    if (abs(tPoint2) < ipow<2>(tmin_))
     {
         return SignedSense::outside;
     }
-    if (abs(tPoint2) > ipow<2>(tmax_) + tol)
+    if (abs(tPoint2) > ipow<2>(tmax_))
     {
         return SignedSense::outside;
     }
@@ -241,7 +240,7 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     Array<real_type, 2> point2;
 
     // First tangent
-    if (abs(ya - yalpha) <= tol)
+    if (abs(ya - yalpha) <= 0)
     {
         point1 = {xa, ya};
     }
@@ -250,7 +249,7 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
         point1 = {xb, yc};
     }
     // Second tangent
-    if (abs(yb - ybeta) <= tol)
+    if (abs(yb - ybeta) <= 0)
     {
         point2 = {xa, yb};
     }
@@ -280,16 +279,16 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
         theta = (pi - theta) + pi;
     }
     real_type a1 = theta - tPoint;
-    if (abs(theta) < abs(tmax_ + a_) + tol && a1 >= a_ - tol)
+    if (abs(theta) < abs(tmax_ + a_) && a1 >= a_)
     {
         return SignedSense::inside;
     }
 
-    while (abs(theta) < (abs(tmax_ + a_) - tol))
+    while (abs(theta) < (abs(tmax_ + a_)))
     {
         theta += pi * 2 * sign_;
         a1 = theta - tPoint;
-        if (abs(theta) < abs(tmax_ + a_) + tol * 100 && a1 >= a_ - tol)
+        if (abs(theta) < abs(tmax_ + a_) && a1 >= a_)
         {
             return SignedSense::inside;
         }

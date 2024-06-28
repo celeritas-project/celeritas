@@ -11,6 +11,7 @@
 #include <iostream>
 #include <vector>
 
+#include "corecel/Constants.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
@@ -20,6 +21,7 @@ namespace celeritas
 {
 namespace detail
 {
+using constants::pi;
 //---------------------------------------------------------------------------//
 /*!
  * Find positive, real, nonzero roots for involute intersection function.
@@ -93,7 +95,6 @@ CELER_FUNCTION InvoluteSolver::InvoluteSolver(
     real_type r_b, real_type a, real_type sign, real_type tmin, real_type tmax)
     : r_b_(r_b), a_(a), sign_(sign), tmin_(tmin), tmax_(tmax)
 {
-    double const pi = 3.14159265358979323846;
     CELER_EXPECT(r_b > 0);
     CELER_EXPECT(a > 0);
     CELER_EXPECT(abs(tmax) < 2 * pi + abs(tmin));
@@ -112,8 +113,6 @@ InvoluteSolver::operator()(real_type x,
                            real_type v,
                            real_type w) const -> Intersections
 {
-    double const pi = 3.14159265358979323846;
-
     // Lambda used for calculating the roots
     auto root = [](real_type t,
                    real_type x,

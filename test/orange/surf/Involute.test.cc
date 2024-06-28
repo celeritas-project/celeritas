@@ -11,6 +11,7 @@
 #include <iostream>
 
 #include "celeritas_config.h"
+#include "corecel/Constants.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 
@@ -19,7 +20,7 @@
 
 namespace celeritas
 {
-double const pi = 3.14159265358979323846;
+using constants::pi;
 namespace test
 {
 TEST(InvoluteTest, construction)
