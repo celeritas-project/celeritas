@@ -30,14 +30,15 @@ BetheHeitlerModel::BetheHeitlerModel(ActionId id,
                                      ParticleParams const& particles,
                                      SPConstImported data,
                                      bool enable_lpm)
-    : imported_(data,
+    : ConcreteAction(
+        id, "conv-bethe-heitler", "interact by Bethe-Heitler gamma conversion")
+    , imported_(data,
                 particles,
                 ImportProcessClass::conversion,
                 ImportModelClass::bethe_heitler_lpm,
                 {pdg::gamma()})
 {
     CELER_EXPECT(id);
-    data_.ids.action = id;
     data_.ids.electron = particles.find(pdg::electron());
     data_.ids.positron = particles.find(pdg::positron());
     data_.ids.gamma = particles.find(pdg::gamma());
@@ -98,15 +99,6 @@ void BetheHeitlerModel::execute(CoreParams const&, CoreStateDevice&) const
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the model ID for this model.
- */
-ActionId BetheHeitlerModel::action_id() const
-{
-    return data_.ids.action;
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

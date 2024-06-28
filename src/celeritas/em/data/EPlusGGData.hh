@@ -22,24 +22,17 @@ struct EPlusGGData
 {
     using Mass = units::MevMass;
 
-    struct
-    {
-        //! Model ID
-        ActionId action;
-        //! ID of an positron
-        ParticleId positron;
-        //! ID of a gamma
-        ParticleId gamma;
-    } ids;
-
+    //! ID of an positron
+    ParticleId positron;
+    //! ID of a gamma
+    ParticleId gamma;
     //! Electron mass
     units::MevMass electron_mass;
 
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids.action && ids.positron && ids.gamma
-               && electron_mass > zero_quantity();
+        return positron && gamma && electron_mass > zero_quantity();
     }
 };
 

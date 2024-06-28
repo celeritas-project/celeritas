@@ -21,7 +21,7 @@ namespace celeritas
 /*!
  * Set up and launch the Muon Bremsstrahlung model interaction.
  */
-class MuBremsstrahlungModel final : public Model
+class MuBremsstrahlungModel final : public Model, public ConcreteAction
 {
   public:
     //!@{
@@ -46,18 +46,6 @@ class MuBremsstrahlungModel final : public Model
 
     // Apply the interaction kernel on device
     void execute(CoreParams const&, CoreStateDevice&) const final;
-
-    // ID of the model
-    ActionId action_id() const final;
-
-    //! Short name for the interaction kernel
-    std::string_view label() const final { return "brems-muon"; }
-
-    //! Short description of the post-step action
-    std::string_view description() const final
-    {
-        return "interact by bremsstrahlung (muon)";
-    }
 
     //!@{
     //! Access model data

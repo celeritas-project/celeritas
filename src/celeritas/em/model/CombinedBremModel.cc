@@ -38,6 +38,10 @@ CombinedBremModel::CombinedBremModel(ActionId id,
                                      SPConstImported data,
                                      ReadData sb_table,
                                      bool enable_lpm)
+    : ConcreteAction(id,
+                     "brems-combined",
+                     "interact by bremsstrahlung (combined SB/relativistic, "
+                     "e+/-)")
 {
     CELER_EXPECT(id);
     CELER_EXPECT(sb_table);
@@ -51,7 +55,6 @@ CombinedBremModel::CombinedBremModel(ActionId id,
         id, particles, materials, data, enable_lpm);
 
     HostVal<CombinedBremData> host_ref;
-    host_ref.ids.action = id;
     host_ref.sb_differential_xs = sb_model_->host_ref().differential_xs;
     host_ref.rb_data = rb_model_->host_ref();
 
@@ -110,16 +113,7 @@ void CombinedBremModel::execute(CoreParams const&, CoreStateDevice&) const
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
-
 //!@}
-//---------------------------------------------------------------------------//
-/*!
- * Get the model ID for this model.
- */
-ActionId CombinedBremModel::action_id() const
-{
-    return this->host_ref().rb_data.ids.action;
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

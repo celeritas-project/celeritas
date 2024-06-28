@@ -40,6 +40,8 @@ LivermorePEModel::LivermorePEModel(ActionId id,
                                    ParticleParams const& particles,
                                    MaterialParams const& materials,
                                    ReadData load_data)
+    : ConcreteAction(
+        id, "photoel-livermore", "interact by Livermore photoelectric effect")
 {
     CELER_EXPECT(id);
     CELER_EXPECT(load_data);
@@ -47,7 +49,6 @@ LivermorePEModel::LivermorePEModel(ActionId id,
     HostVal<LivermorePEData> host_data;
 
     // Save IDs
-    host_data.ids.action = id;
     host_data.ids.electron = particles.find(pdg::electron());
     host_data.ids.gamma = particles.find(pdg::gamma());
     CELER_VALIDATE(host_data.ids,
@@ -122,16 +123,7 @@ void LivermorePEModel::execute(CoreParams const&, CoreStateDevice&) const
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
-
 //!@}
-//---------------------------------------------------------------------------//
-/*!
- * Get the model ID for this model.
- */
-ActionId LivermorePEModel::action_id() const
-{
-    return this->host_ref().ids.action;
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

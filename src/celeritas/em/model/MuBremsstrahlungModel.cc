@@ -28,14 +28,14 @@ namespace celeritas
 MuBremsstrahlungModel::MuBremsstrahlungModel(ActionId id,
                                              ParticleParams const& particles,
                                              SPConstImported data)
-    : imported_(data,
+    : ConcreteAction(id, "brems-muon", "interact by bremsstrahlung (muon)")
+    , imported_(data,
                 particles,
                 ImportProcessClass::mu_brems,
                 ImportModelClass::mu_brems,
                 {pdg::mu_minus(), pdg::mu_plus()})
 {
     CELER_EXPECT(id);
-    data_.ids.action = id;
     data_.ids.gamma = particles.find(pdg::gamma());
     data_.ids.mu_minus = particles.find(pdg::mu_minus());
     data_.ids.mu_plus = particles.find(pdg::mu_plus());
@@ -102,14 +102,5 @@ void MuBremsstrahlungModel::execute(CoreParams const&, CoreStateDevice&) const
 #endif
 
 //!@}
-//---------------------------------------------------------------------------//
-/*!
- * Get the model ID for this model.
- */
-ActionId MuBremsstrahlungModel::action_id() const
-{
-    return data_.ids.action;
-}
-
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

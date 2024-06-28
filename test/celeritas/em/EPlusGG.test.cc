@@ -32,8 +32,8 @@ class EPlusGGInteractorTest : public InteractorHostTestBase
     void SetUp() override
     {
         auto const& params = *this->particle_params();
-        data_.ids.positron = params.find(pdg::positron());
-        data_.ids.gamma = params.find(pdg::gamma());
+        data_.positron = params.find(pdg::positron());
+        data_.gamma = params.find(pdg::gamma());
         data_.electron_mass = params.get(params.find(pdg::electron())).mass();
 
         // Set default particle to incident 10 MeV positron
@@ -53,7 +53,7 @@ class EPlusGGInteractorTest : public InteractorHostTestBase
 
         auto const& gamma1 = interaction.secondaries.front();
         EXPECT_TRUE(gamma1);
-        EXPECT_EQ(data_.ids.gamma, gamma1.particle_id);
+        EXPECT_EQ(data_.gamma, gamma1.particle_id);
 
         EXPECT_GT(this->particle_track().energy().value()
                       + 2 * data_.electron_mass.value(),
@@ -63,7 +63,7 @@ class EPlusGGInteractorTest : public InteractorHostTestBase
 
         auto const& gamma2 = interaction.secondaries.back();
         EXPECT_TRUE(gamma2);
-        EXPECT_EQ(data_.ids.gamma, gamma2.particle_id);
+        EXPECT_EQ(data_.gamma, gamma2.particle_id);
         EXPECT_GT(this->particle_track().energy().value()
                       + 2 * data_.electron_mass.value(),
                   gamma2.energy.value());

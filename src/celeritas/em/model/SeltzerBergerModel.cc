@@ -43,7 +43,9 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
                                        MaterialParams const& materials,
                                        SPConstImported data,
                                        ReadData load_sb_table)
-    : imported_(data,
+    : ConcreteAction(
+        id, "brems-sb", "interact by Seltzer-Berger bremsstrahlung")
+    , imported_(data,
                 particles,
                 ImportProcessClass::e_brems,
                 ImportModelClass::e_brems_sb,
@@ -57,7 +59,6 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
     HostVal<SeltzerBergerData> host_data;
 
     // Save IDs
-    host_data.ids.action = id;
     host_data.ids.electron = particles.find(pdg::electron());
     host_data.ids.positron = particles.find(pdg::positron());
     host_data.ids.gamma = particles.find(pdg::gamma());
@@ -139,15 +140,6 @@ void SeltzerBergerModel::execute(CoreParams const&, CoreStateDevice&) const
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the model ID for this model.
- */
-ActionId SeltzerBergerModel::action_id() const
-{
-    return this->host_ref().ids.action;
-}
 
 //---------------------------------------------------------------------------//
 /*!

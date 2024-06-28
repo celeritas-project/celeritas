@@ -25,9 +25,11 @@ namespace celeritas
  */
 KleinNishinaModel::KleinNishinaModel(ActionId id,
                                      ParticleParams const& particles)
+    : ConcreteAction(id,
+                     "scat-klein-nishina",
+                     "interact by Compton scattering (simple Klein-Nishina)")
 {
     CELER_EXPECT(id);
-    data_.ids.action = id;
     data_.ids.electron = particles.find(pdg::electron());
     data_.ids.gamma = particles.find(pdg::gamma());
 
@@ -88,16 +90,7 @@ void KleinNishinaModel::execute(CoreParams const&, CoreStateDevice&) const
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the model ID for this model.
- */
-ActionId KleinNishinaModel::action_id() const
-{
-    return data_.ids.action;
-}
-
 //!@}
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
