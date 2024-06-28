@@ -57,7 +57,7 @@ CerenkovPreGenExecutor::operator()(CoreTrackView const& track)
     cerenkov_dist = {};
 
     auto sim = track.make_sim_view();
-    auto step = state.step[tsid];
+    auto const& step = state.step[tsid];
 
     if (!step || sim.status() == TrackStatus::inactive)
     {

@@ -54,7 +54,7 @@ CELER_FUNCTION void ScintPreGenExecutor::operator()(CoreTrackView const& track)
     scintillation_dist = {};
 
     auto sim = track.make_sim_view();
-    auto step = state.step[tsid];
+    auto const& step = state.step[tsid];
 
     if (!step || sim.status() == TrackStatus::inactive)
     {

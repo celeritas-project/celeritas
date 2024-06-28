@@ -95,7 +95,7 @@ struct OpticalPreStepData
     //! Check whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return speed > zero_quantity() && opt_mat;
+        return opt_mat && speed > zero_quantity();
     }
 };
 
