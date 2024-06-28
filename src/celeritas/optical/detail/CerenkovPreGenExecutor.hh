@@ -13,8 +13,6 @@
 #include "celeritas/optical/CerenkovPreGenerator.hh"
 #include "celeritas/optical/OpticalGenData.hh"
 
-#include "Utils.hh"
-
 namespace celeritas
 {
 namespace detail
@@ -59,8 +57,9 @@ CerenkovPreGenExecutor::operator()(CoreTrackView const& track)
     cerenkov_dist = {};
 
     auto sim = track.make_sim_view();
-    auto optmat_id = get_optical_material(track);
-    if (!optmat_id || sim.step_length() == 0)
+    auto step = state.step[tsid];
+
+    if (!step || sim.status() == TrackStatus::inactive)
     {
         // Inactive tracks, materials with no optical properties, or particles
         // that started the step with zero energy (e.g. a stopped positron)
@@ -75,13 +74,8 @@ CerenkovPreGenExecutor::operator()(CoreTrackView const& track)
         Real3 const& pos = track.make_geo_view().pos();
         auto rng = track.make_rng_engine();
 
-        CerenkovPreGenerator generate(particle,
-                                      sim,
-                                      pos,
-                                      optmat_id,
-                                      properties,
-                                      cerenkov,
-                                      state.step[tsid]);
+        CerenkovPreGenerator generate(
+            particle, sim, pos, properties, cerenkov, step);
         cerenkov_dist = generate(rng);
     }
 }

@@ -13,8 +13,6 @@
 #include "celeritas/optical/OpticalGenData.hh"
 #include "celeritas/optical/ScintillationPreGenerator.hh"
 
-#include "Utils.hh"
-
 namespace celeritas
 {
 namespace detail
@@ -56,8 +54,9 @@ CELER_FUNCTION void ScintPreGenExecutor::operator()(CoreTrackView const& track)
     scintillation_dist = {};
 
     auto sim = track.make_sim_view();
-    auto optmat_id = get_optical_material(track);
-    if (!optmat_id || sim.step_length() == 0)
+    auto step = state.step[tsid];
+
+    if (!step || sim.status() == TrackStatus::inactive)
     {
         // Inactive tracks, materials with no optical properties, or particles
         // that started the step with zero energy (e.g. a stopped positron)
@@ -71,7 +70,7 @@ CELER_FUNCTION void ScintPreGenExecutor::operator()(CoreTrackView const& track)
 
     // Get the distribution data used to generate scintillation optical photons
     ScintillationPreGenerator generate(
-        particle, sim, pos, optmat_id, edep, scintillation, state.step[tsid]);
+        particle, sim, pos, edep, scintillation, step);
     scintillation_dist = generate(rng);
 }
 
