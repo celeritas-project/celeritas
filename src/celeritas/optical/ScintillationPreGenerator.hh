@@ -38,7 +38,6 @@ class ScintillationPreGenerator
     ScintillationPreGenerator(ParticleTrackView const& particle,
                               SimTrackView const& sim,
                               Real3 const& pos,
-                              OpticalMaterialId optmat_id,
                               units::MevEnergy energy_deposition,
                               NativeCRef<ScintillationData> const& shared,
                               OpticalPreStepData const& step_data);
@@ -50,8 +49,7 @@ class ScintillationPreGenerator
   private:
     units::ElementaryCharge charge_;
     real_type step_length_;
-    OpticalMaterialId optmat_id_;
-    OpticalPreStepData pre_step_;
+    OpticalPreStepData const& pre_step_;
     OpticalStepData post_step_;
     NativeCRef<ScintillationData> const& shared_;
     real_type mean_num_photons_;
@@ -67,19 +65,16 @@ CELER_FUNCTION ScintillationPreGenerator::ScintillationPreGenerator(
     ParticleTrackView const& particle,
     SimTrackView const& sim,
     Real3 const& pos,
-    OpticalMaterialId optmat_id,
     units::MevEnergy energy_deposition,
     NativeCRef<ScintillationData> const& shared,
     OpticalPreStepData const& step_data)
     : charge_(particle.charge())
     , step_length_(sim.step_length())
-    , optmat_id_(optmat_id)
     , pre_step_(step_data)
     , post_step_({particle.speed(), pos})
     , shared_(shared)
 {
     CELER_EXPECT(step_length_ > 0);
-    CELER_EXPECT(optmat_id_);
     CELER_EXPECT(shared_);
     CELER_EXPECT(pre_step_);
 
@@ -92,8 +87,8 @@ CELER_FUNCTION ScintillationPreGenerator::ScintillationPreGenerator(
     else
     {
         // Scintillation will be performed on materials only
-        CELER_ASSERT(optmat_id_ < shared_.materials.size());
-        auto const& material = shared_.materials[optmat_id_];
+        CELER_ASSERT(pre_step_.opt_mat < shared_.materials.size());
+        auto const& material = shared_.materials[pre_step_.opt_mat];
 
         // TODO: Use visible energy deposition when Birks law is implemented
         mean_num_photons_ = material ? material.yield_per_energy
@@ -115,7 +110,7 @@ ScintillationPreGenerator::operator()(Generator& rng)
     OpticalDistributionData result;
     if (mean_num_photons_ > 10)
     {
-        real_type sigma = shared_.resolution_scale[optmat_id_]
+        real_type sigma = shared_.resolution_scale[pre_step_.opt_mat]
                           * std::sqrt(mean_num_photons_);
         result.num_photons = static_cast<size_type>(clamp_to_nonneg(
             NormalDistribution<real_type>(mean_num_photons_, sigma)(rng)
@@ -133,7 +128,7 @@ ScintillationPreGenerator::operator()(Generator& rng)
         result.time = pre_step_.time;
         result.step_length = step_length_;
         result.charge = charge_;
-        result.material = optmat_id_;
+        result.material = pre_step_.opt_mat;
         result.points[StepPoint::pre].speed = pre_step_.speed;
         result.points[StepPoint::pre].pos = pre_step_.pos;
         result.points[StepPoint::post] = post_step_;

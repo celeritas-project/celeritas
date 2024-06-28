@@ -90,11 +90,12 @@ struct OpticalPreStepData
     units::LightSpeed speed;
     Real3 pos{};
     real_type time{};
+    OpticalMaterialId opt_mat;
 
     //! Check whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return speed > zero_quantity();
+        return opt_mat && speed > zero_quantity();
     }
 };
 

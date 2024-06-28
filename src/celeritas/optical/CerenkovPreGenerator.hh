@@ -37,7 +37,6 @@ class CerenkovPreGenerator
     CerenkovPreGenerator(ParticleTrackView const& particle,
                          SimTrackView const& sim,
                          Real3 const& pos,
-                         OpticalMaterialId optmat_id,
                          NativeCRef<OpticalPropertyData> const& properties,
                          NativeCRef<CerenkovData> const& shared,
                          OpticalPreStepData const& step_data);
@@ -49,8 +48,7 @@ class CerenkovPreGenerator
   private:
     units::ElementaryCharge charge_;
     real_type step_length_;
-    OpticalMaterialId optmat_id_;
-    OpticalPreStepData pre_step_;
+    OpticalPreStepData const& pre_step_;
     OpticalStepData post_step_;
     real_type num_photons_per_len_;
 };
@@ -67,26 +65,23 @@ CELER_FUNCTION CerenkovPreGenerator::CerenkovPreGenerator(
     ParticleTrackView const& particle,
     SimTrackView const& sim,
     Real3 const& pos,
-    OpticalMaterialId optmat_id,
     NativeCRef<OpticalPropertyData> const& properties,
     NativeCRef<CerenkovData> const& shared,
     OpticalPreStepData const& step_data)
     : charge_(particle.charge())
     , step_length_(sim.step_length())
-    , optmat_id_(optmat_id)
     , pre_step_(step_data)
     , post_step_({particle.speed(), pos})
 {
     CELER_EXPECT(charge_ != zero_quantity());
     CELER_EXPECT(step_length_ > 0);
-    CELER_EXPECT(optmat_id_);
     CELER_EXPECT(pre_step_);
 
     units::LightSpeed beta(
         real_type{0.5} * (pre_step_.speed.value() + post_step_.speed.value()));
 
     CerenkovDndxCalculator calculate_dndx(
-        properties, shared, optmat_id_, charge_);
+        properties, shared, pre_step_.opt_mat, charge_);
     num_photons_per_len_ = calculate_dndx(beta);
 }
 
@@ -118,7 +113,7 @@ CerenkovPreGenerator::operator()(Generator& rng)
         data.time = pre_step_.time;
         data.step_length = step_length_;
         data.charge = charge_;
-        data.material = optmat_id_;
+        data.material = pre_step_.opt_mat;
         data.points[StepPoint::pre].speed = pre_step_.speed;
         data.points[StepPoint::pre].pos = pre_step_.pos;
         data.points[StepPoint::post] = post_step_;
