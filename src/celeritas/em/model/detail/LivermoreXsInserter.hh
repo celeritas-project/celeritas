@@ -9,7 +9,7 @@
 
 #include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
-#include "celeritas/grid/GenericGridBuilder.hh"
+#include "celeritas/grid/GenericGridInserter.hh"
 #include "celeritas/io/ImportLivermorePE.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
 
@@ -37,7 +37,7 @@ class LivermoreXsInserter
     inline void operator()(ImportLivermorePE const& inp);
 
   private:
-    GenericGridBuilder build_grid_;
+    GenericGridSingleInserter insert_grid_;
 
     CollectionBuilder<LivermoreSubshell> shells_;
     CollectionBuilder<LivermoreElement, MemSpace::host, ElementId> elements_;
@@ -50,7 +50,7 @@ class LivermoreXsInserter
  * Construct with data.
  */
 LivermoreXsInserter::LivermoreXsInserter(Data* data)
-    : build_grid_{&data->reals}
+    : insert_grid_{&data->reals}
     , shells_{&data->shells}
     , elements_{&data->elements}
 {
@@ -82,9 +82,9 @@ void LivermoreXsInserter::operator()(ImportLivermorePE const& inp)
     if (inp.xs_lo)
     {
         // Z < 3 have no low-energy cross sections
-        el.xs_lo = build_grid_(inp.xs_lo);
+        el.xs_lo = insert_grid_(inp.xs_lo);
     }
-    el.xs_hi = build_grid_(inp.xs_hi);
+    el.xs_hi = insert_grid_(inp.xs_hi);
 
     // Add energy thresholds for using low and high xs parameterization
     el.thresh_lo = MevEnergy(inp.thresh_lo);
@@ -100,8 +100,8 @@ void LivermoreXsInserter::operator()(ImportLivermorePE const& inp)
         shells[i].binding_energy = MevEnergy(inp.shells[i].binding_energy);
 
         // Tabulated subshell cross section
-        shells[i].xs = build_grid_(make_span(inp.shells[i].energy),
-                                   make_span(inp.shells[i].xs));
+        shells[i].xs = insert_grid_(make_span(inp.shells[i].energy),
+                                    make_span(inp.shells[i].xs));
 
         // Subshell cross section fit parameters
         std::copy(inp.shells[i].param_lo.begin(),

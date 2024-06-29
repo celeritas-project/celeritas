@@ -14,7 +14,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/GenericGridBuilder.hh"
+#include "celeritas/grid/GenericGridInserter.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -182,7 +182,7 @@ ScintillationParams::ScintillationParams(Input const& input)
 
         // Store particle spectra
         CELER_EXPECT(!input.particles.empty());
-        GenericGridBuilder build_grid(&host_data.reals);
+        GenericGridSingleInserter insert_grid(&host_data.reals);
         CollectionBuilder build_particles(&host_data.particles);
 
         for (auto spec : input.particles)
@@ -191,7 +191,7 @@ ScintillationParams::ScintillationParams(Input const& input)
                            << "particle yield vector is not assigned "
                               "correctly");
             ParticleScintillationSpectrum part_spec;
-            part_spec.yield_vector = build_grid(spec.yield_vector);
+            part_spec.yield_vector = insert_grid(spec.yield_vector);
             auto comps = this->build_components(spec.components);
             part_spec.components
                 = build_components.insert_back(comps.begin(), comps.end());

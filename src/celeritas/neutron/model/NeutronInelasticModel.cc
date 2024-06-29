@@ -11,7 +11,7 @@
 #include "corecel/math/Quantity.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/grid/GenericGridBuilder.hh"
+#include "celeritas/grid/GenericGridInserter.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/InteractionApplier.hh"
@@ -56,12 +56,14 @@ NeutronInelasticModel::NeutronInelasticModel(ActionId id,
     CELER_EXPECT(data.scalars);
 
     // Load neutron inelastic cross section data
-    CollectionBuilder micro_xs{&data.micro_xs};
-    GenericGridBuilder build_grid{&data.reals};
+    // CollectionBuilder micro_xs{&data.micro_xs};
+    // GenericGridBuilder build_grid{&data.reals};
+    GenericGridInserter insert_grid{&data.reals, &data.micro_xs};
     for (auto el_id : range(ElementId{materials.num_elements()}))
     {
         AtomicNumber z = materials.get(el_id).atomic_number();
-        micro_xs.push_back(build_grid(load_data(z)));
+        // micro_xs.push_back(build_grid(load_data(z)));
+        insert_grid(load_data(z));
     }
     CELER_ASSERT(data.micro_xs.size() == materials.num_elements());
 
@@ -79,9 +81,11 @@ NeutronInelasticModel::NeutronInelasticModel(ActionId id,
         CELER_ASSERT(channel_data.par.slope > 0);
         xs_params.push_back(channel_data.par);
 
-        GenericGridBuilder build_grid{&data.reals};
-        make_builder(&data.nucleon_xs)
-            .push_back(build_grid(bins, make_span(channel_data.xs)));
+        // GenericGridBuilder build_grid{&data.reals};
+        // make_builder(&data.nucleon_xs)
+        //     .push_back(build_grid(bins, make_span(channel_data.xs)));
+        GenericGridInserter insert_grid{&data.reals, &data.nucleon_xs};
+        insert_grid(bins, make_span(channel_data.xs));
     }
     CELER_ASSERT(data.nucleon_xs.size() == num_channels);
     CELER_ASSERT(data.xs_params.size() == data.nucleon_xs.size());

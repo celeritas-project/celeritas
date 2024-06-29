@@ -16,8 +16,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/GenericGridBuilder.hh"
-#include "celeritas/grid/GenericGridData.hh"
+#include "celeritas/grid/GenericGridInserter.hh"
 #include "celeritas/io/ImportData.hh"
 
 namespace celeritas
@@ -55,8 +54,8 @@ OpticalPropertyParams::from_import(ImportData const& data)
 OpticalPropertyParams::OpticalPropertyParams(Input const& inp)
 {
     HostVal<OpticalPropertyData> data;
-    CollectionBuilder refractive_index{&data.refractive_index};
-    GenericGridBuilder build_grid(&data.reals);
+    GenericGridInserter insert_refractive_index{&data.reals,
+                                                &data.refractive_index};
     for (auto const& mat : inp.data)
     {
         // Store refractive index tabulated as a function of photon energy
@@ -64,7 +63,7 @@ OpticalPropertyParams::OpticalPropertyParams(Input const& inp)
         if (ri_vec.x.empty())
         {
             // No refractive index data for this material
-            refractive_index.push_back({});
+            insert_refractive_index();
             continue;
         }
 
@@ -77,9 +76,11 @@ OpticalPropertyParams::OpticalPropertyParams(Input const& inp)
                        << "refractive index values are not monotonically "
                           "increasing");
 
-        refractive_index.push_back(build_grid(ri_vec));
+        // refractive_index.push_back(build_grid(ri_vec));
+        insert_refractive_index(ri_vec);
     }
-    CELER_ASSERT(refractive_index.size() == inp.data.size());
+    // CELER_ASSERT(refractive_index.size() == inp.data.size());
+    CELER_ASSERT(data.refractive_index.size() == inp.data.size());
 
     data_ = CollectionMirror<OpticalPropertyData>{std::move(data)};
     CELER_ENSURE(data_ || inp.data.empty());

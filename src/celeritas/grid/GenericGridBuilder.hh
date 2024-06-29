@@ -7,53 +7,67 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/data/Collection.hh"
-#include "corecel/data/CollectionBuilder.hh"
-#include "corecel/data/DedupeCollectionBuilder.hh"
+#include <memory>
 
-#include "GenericGridData.hh"
+#include "corecel/cont/Span.hh"
 
 namespace celeritas
 {
-struct ImportPhysicsVector;
 //---------------------------------------------------------------------------//
 /*!
- * Construct a generic grid.
+ * Intermediate storage for generic grids and their associated values.
  *
- * This uses a deduplicating inserter for real values to improve cacheing.
+ * Matches the behavior of ValueGridBuilder, with the intention of
+ * constructing builders independently of allocating and populating the
+ * host collection where the data will reside during processing.
  */
 class GenericGridBuilder
 {
   public:
     //!@{
     //! \name Type aliases
-    template<class T>
-    using Items = Collection<T, Ownership::value, MemSpace::host>;
-    using Grid = GenericGridData;
-    using SpanConstFlt = Span<float const>;
     using SpanConstDbl = Span<double const>;
     //!@}
 
   public:
-    // Construct with pointers to data that will be modified
-    explicit GenericGridBuilder(Items<real_type>* reals);
+    //! Construct the builder from imported Geant grids
+    static std::unique_ptr<GenericGridBuilder>
+    from_geant(SpanConstDbl grid, SpanConstDbl values);
 
-    // Add a grid of generic data with linear interpolation
-    Grid operator()(SpanConstFlt grid, SpanConstFlt values);
+    //! Construct the builder directly from grids
+    GenericGridBuilder(SpanConstDbl grid, SpanConstDbl values);
 
-    // Add a grid of generic data with linear interpolation
-    Grid operator()(SpanConstDbl grid, SpanConstDbl values);
-
-    // Add a grid from an imported physics vector
-    Grid operator()(ImportPhysicsVector const&);
+    //! Build the grid in the given store
+    template<class Inserter>
+    inline typename Inserter::GridId build(Inserter insert) const;
 
   private:
-    DedupeCollectionBuilder<real_type> reals_;
+    SpanConstDbl grid_, values_;
 
-    // Insert with floating point conversion if needed
-    template<class T>
-    Grid insert_impl(Span<T const> grid, Span<T const> values);
+    //!@{
+    //! Prevent copy/move expect by daughters that know what they're doing
+    GenericGridBuilder(GenericGridBuilder const&) = default;
+    GenericGridBuilder& operator=(GenericGridBuilder const&) = default;
+    GenericGridBuilder(GenericGridBuilder&&) = default;
+    GenericGridBuilder& operator=(GenericGridBuilder&&) = default;
+    //!@}
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Build the grid in the given store.
+ *
+ * This is primarily intended to be used with GenericGridInserters that are
+ * templated against a specific opaque ID.
+ */
+template<class Inserter>
+auto GenericGridBuilder::build(Inserter insert) const ->
+    typename Inserter::GridId
+{
+    return insert(grid_, values_);
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -13,7 +13,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Ref.hh"
-#include "celeritas/grid/GenericGridBuilder.hh"
+#include "celeritas/grid/GenericGridInserter.hh"
 
 #include "celeritas_test.hh"
 
@@ -36,8 +36,8 @@ class GenericCalculatorTest : public Test
         std::vector<real_type> const grid = {1.0, 2.0, 1e2, 1e4};
         std::vector<real_type> const value = {4.0, 8.0, 8.0, 2.0};
 
-        GenericGridBuilder build_grid(&reals_);
-        grid_ = build_grid(make_span(grid), make_span(value));
+        GenericGridSingleInserter insert_grid(&reals_);
+        grid_ = insert_grid(make_span(grid), make_span(value));
         CELER_ENSURE(grid_);
     }
 

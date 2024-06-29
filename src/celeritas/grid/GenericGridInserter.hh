@@ -7,32 +7,65 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <utility>
-#include <vector>
-
-#include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "celeritas/Types.hh"
+#include "corecel/data/DedupeCollectionBuilder.hh"
 #include "celeritas/io/ImportPhysicsVector.hh"
 
-#include "GenericGridBuilder.hh"
 #include "GenericGridData.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct a generic grid using mutable host data and add it to
- * the specified grid collection.
+ * Stores generic, linearly interpolated grids data in a single scalar
+ * collection.
  *
- * \code
-    GenericGridInserter insert(&data->reals, &data->generic_grids);
-    std::vector<GenericGridIndex> grid_ids;
-    for (material : range(MaterialId{mats->size()}))
-        grid_ids.push_back(insert(physics_vector[material.get()]));
-   \endcode
+ * Only stores the grid and values in a scalar collection, returing the
+ * grid itself.
+ */
+class GenericGridSingleInserter
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using RealCollection
+        = Collection<real_type, Ownership::value, MemSpace::host>;
+    using SpanConstFlt = Span<float const>;
+    using SpanConstDbl = Span<double const>;
+    //!}
+
+  public:
+    //! Construct with collection to be populated
+    explicit GenericGridSingleInserter(RealCollection* reals);
+
+    //! Add a grid of generic data with linear interpolation
+    GenericGridData operator()(SpanConstFlt grid, SpanConstFlt values);
+
+    //! Add a grid of generic data with linear interpolation
+    GenericGridData operator()(SpanConstDbl grid, SpanConstDbl values);
+
+    //! Add an imported physics vector as a generic grid
+    GenericGridData operator()(ImportPhysicsVector const& vec);
+
+    //! Add an empty grid (no data present)
+    GenericGridData operator()();
+
+  private:
+    DedupeCollectionBuilder<real_type> reals_;
+
+    //! Add a grid with appropriate type conversion
+    template<class T>
+    GenericGridData insert_impl(Span<T const> grid, Span<T const> values);
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Stores generic, linearly interpolated grids in a collection.
+ *
+ * Stores both the grid as scalars in a collection, as well as the grid
+ * in a collection indexed by the template parameter.
  */
 template<class Index>
 class GenericGridInserter
@@ -40,96 +73,89 @@ class GenericGridInserter
   public:
     //!@{
     //! \name Type aliases
-    using SpanConstFlt = Span<float const>;
-    using SpanConstDbl = Span<double const>;
     using RealCollection
         = Collection<real_type, Ownership::value, MemSpace::host>;
-    using GenericGridCollection
+    using GridCollection
         = Collection<GenericGridData, Ownership::value, MemSpace::host, Index>;
+    using SpanConstFlt = Span<float const>;
+    using SpanConstDbl = Span<double const>;
+    using GridId = Index;
     //!@}
 
   public:
-    // Construct with a reference to mutable host data
-    GenericGridInserter(RealCollection* real_data, GenericGridCollection* grid);
+    //! Construct with collections to be populated
+    explicit GenericGridInserter(RealCollection* reals, GridCollection* grids);
 
-    // Add a grid of generic data with linear interpolation
+    //! Add a grid of generic data with linear interpolation
     Index operator()(SpanConstFlt grid, SpanConstFlt values);
 
-    // Add a grid of generic data with linear interpolation
+    //! Add a grid of generic data with linear interpolation
     Index operator()(SpanConstDbl grid, SpanConstDbl values);
 
-    // Add an imported physics vector as a grid
+    //! Add an imported physics vector as a generic grid
     Index operator()(ImportPhysicsVector const& vec);
 
-    // Add an empty grid (no data present)
+    //! Add an empty grid (no data present)
     Index operator()();
 
   private:
-    GenericGridBuilder grid_builder_;
+    GenericGridSingleInserter single_inserter_;
     CollectionBuilder<GenericGridData, MemSpace::host, Index> grids_;
 };
 
 //---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
 /*!
- * Construct with a reference to mutable host data.
+ * Construct with collections to be populated.
  */
 template<class Index>
-GenericGridInserter<Index>::GenericGridInserter(RealCollection* real_data,
-                                                GenericGridCollection* grid)
-    : grid_builder_(real_data), grids_(grid)
+GenericGridInserter<Index>::GenericGridInserter(RealCollection* reals,
+                                                GridCollection* grids)
+    : single_inserter_(reals), grids_(grids)
 {
-    CELER_EXPECT(real_data && grid);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Add an imported physics vector as a generic grid to the collection.
- *
- * Returns the id of the inserted grid, or an empty id if the vector is
- * empty.
+ * Add a grid of generic data with linear interpolation.
  */
 template<class Index>
-auto GenericGridInserter<Index>::operator()(ImportPhysicsVector const& vec)
-    -> Index
+Index GenericGridInserter<Index>::operator()(SpanConstFlt grid,
+                                             SpanConstFlt values)
 {
-    CELER_EXPECT(!vec.x.empty());
-    return grids_.push_back(grid_builder_(vec));
+    return grids_.push_back(single_inserter_(grid, values));
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Add a grid of generic data with linear interpolation to the collection.
+ * Add a grid of generic data with linear interpolation.
  */
 template<class Index>
-auto GenericGridInserter<Index>::operator()(SpanConstFlt grid,
-                                            SpanConstFlt values) -> Index
+Index GenericGridInserter<Index>::operator()(SpanConstDbl grid,
+                                             SpanConstDbl values)
 {
-    CELER_EXPECT(!grid.empty());
-    return grids_.push_back(grid_builder_(grid, values));
+    return grids_.push_back(single_inserter_(grid, values));
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Add a grid of generic data with linear interpolation to the collection.
+ * Add an imported physics vector as a generic grid.
  */
 template<class Index>
-auto GenericGridInserter<Index>::operator()(SpanConstDbl grid,
-                                            SpanConstDbl values) -> Index
+Index GenericGridInserter<Index>::operator()(ImportPhysicsVector const& vec)
 {
-    CELER_EXPECT(!grid.empty());
-    return grids_.push_back(grid_builder_(grid, values));
+    return grids_.push_back(single_inserter_(vec));
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Add an empty grid.
- *
- * Useful for when there's no imported grid present for a given material.
+ * Add an empty grid (no data present).
  */
 template<class Index>
-auto GenericGridInserter<Index>::operator()() -> Index
+Index GenericGridInserter<Index>::operator()()
 {
-    return grids_.push_back({});
+    return grids_.push_back(single_inserter_());
 }
 
 //---------------------------------------------------------------------------//
