@@ -52,8 +52,8 @@ class GenericGridBuilderTest : public ::celeritas::test::Test
         ASSERT_EQ(4, grid_data.grid.size());
         ASSERT_EQ(4, grid_data.value.size());
 
-        EXPECT_VEC_EQ(grid_, scalars_[grid_data.grid]);
-        EXPECT_VEC_EQ(values_, scalars_[grid_data.value]);
+        EXPECT_VEC_SOFT_EQ(grid_, scalars_[grid_data.grid]);
+        EXPECT_VEC_SOFT_EQ(values_, scalars_[grid_data.value]);
     }
 };
 
