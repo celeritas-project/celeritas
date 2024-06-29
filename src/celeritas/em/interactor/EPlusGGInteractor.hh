@@ -21,6 +21,8 @@
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
 #include "celeritas/random/distribution/ReciprocalDistribution.hh"
 
+#include "detail/Utils.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -159,14 +161,9 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
         secondaries[0].energy = Energy{gamma_energy};
         secondaries[0].direction
             = rotate(from_spherical(cost, sample_phi(rng)), inc_direction_);
-
         secondaries[1].energy = Energy{total_energy - gamma_energy};
-        for (int i = 0; i < 3; ++i)
-        {
-            secondaries[1].direction[i] = eplus_moment * inc_direction_[i]
-                                          - inc_energy_ * inc_direction_[i];
-        }
-        secondaries[1].direction = make_unit_vector(secondaries[1].direction);
+        secondaries[1].direction = detail::calc_exiting_direction(
+            eplus_moment, inc_energy_, inc_direction_, inc_direction_);
     }
 
     return result;

@@ -23,6 +23,8 @@
 #include "celeritas/random/distribution/ReciprocalDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
+#include "detail/Utils.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -143,20 +145,12 @@ CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
     real_type cost = this->sample_cos_theta(epsilon, rng);
     Real3 gamma_dir = rotate(from_spherical(cost, phi(rng)), inc_direction_);
 
-    Real3 inc_direction;
-    for (int i = 0; i < 3; ++i)
-    {
-        inc_direction[i] = value_as<Momentum>(particle_.momentum())
-                               * inc_direction_[i]
-                           - epsilon * gamma_dir[i];
-    }
-    inc_direction = make_unit_vector(inc_direction);
-
     // Construct interaction for change to primary (incident) particle
     Interaction result;
     result.energy
         = units::MevEnergy{value_as<Energy>(particle_.energy()) - epsilon};
-    result.direction = inc_direction;
+    result.direction = detail::calc_exiting_direction(
+        particle_.momentum().value(), epsilon, inc_direction_, gamma_dir);
     result.secondaries = {secondaries, 1};
 
     // Save outgoing secondary data

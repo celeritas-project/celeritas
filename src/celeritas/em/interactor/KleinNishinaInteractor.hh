@@ -21,6 +21,8 @@
 #include "celeritas/random/distribution/ReciprocalDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
+#include "detail/Utils.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -183,14 +185,11 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
     // Outgoing secondary is an electron
     electron_secondary->particle_id = shared_.ids.electron;
     // Calculate exiting electron direction via conservation of momentum
-    for (int i = 0; i < 3; ++i)
-    {
-        electron_secondary->direction[i]
-            = inc_direction_[i] * inc_energy_.value()
-              - result.direction[i] * result.energy.value();
-    }
     electron_secondary->direction
-        = make_unit_vector(electron_secondary->direction);
+        = detail::calc_exiting_direction(inc_energy_.value(),
+                                         result.energy.value(),
+                                         inc_direction_,
+                                         result.direction);
 
     return result;
 }

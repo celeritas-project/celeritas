@@ -25,6 +25,7 @@
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 #include "detail/PhysicsConstants.hh"
+#include "detail/Utils.hh"
 
 namespace celeritas
 {
@@ -217,12 +218,8 @@ CELER_FUNCTION Interaction MuBetheBlochInteractor::operator()(Engine& rng)
 
     Interaction result;
     result.energy = Energy{inc_energy_ - secondary_energy};
-    for (int i = 0; i < 3; ++i)
-    {
-        result.direction[i] = inc_momentum_ * inc_direction_[i]
-                              - secondary_momentum * secondary->direction[i];
-    }
-    result.direction = make_unit_vector(result.direction);
+    result.direction = detail::calc_exiting_direction(
+        inc_momentum_, secondary_momentum, inc_direction_, secondary->direction);
     result.secondaries = {secondary, 1};
 
     return result;

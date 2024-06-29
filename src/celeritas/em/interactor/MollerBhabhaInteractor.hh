@@ -26,6 +26,8 @@
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
+#include "detail/Utils.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -175,23 +177,13 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
     Real3 secondary_direction = rotate(
         from_spherical(secondary_cos_theta, sample_phi(rng)), inc_direction_);
 
-    // Calculate incident particle final direction
-    Real3 inc_exiting_direction;
-    for (int i = 0; i < 3; ++i)
-    {
-        real_type inc_momentum_ijk = inc_momentum_ * inc_direction_[i];
-        real_type secondary_momentum_ijk = secondary_momentum
-                                           * secondary_direction[i];
-        inc_exiting_direction[i] = inc_momentum_ijk - secondary_momentum_ijk;
-    }
-    inc_exiting_direction = make_unit_vector(inc_exiting_direction);
-
     // Construct interaction for change to primary (incident) particle
     real_type const inc_exiting_energy = inc_energy_ - secondary_energy;
     Interaction result;
     result.energy = Energy{inc_exiting_energy};
     result.secondaries = {electron_secondary, 1};
-    result.direction = inc_exiting_direction;
+    result.direction = detail::calc_exiting_direction(
+        inc_momentum_, secondary_momentum, inc_direction_, secondary_direction);
 
     // Assign values to the secondary particle
     electron_secondary[0].particle_id = shared_.ids.electron;
