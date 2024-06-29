@@ -79,7 +79,6 @@ OpticalPropertyParams::OpticalPropertyParams(Input const& inp)
         // refractive_index.push_back(build_grid(ri_vec));
         insert_refractive_index(ri_vec);
     }
-    // CELER_ASSERT(refractive_index.size() == inp.data.size());
     CELER_ASSERT(data.refractive_index.size() == inp.data.size());
 
     data_ = CollectionMirror<OpticalPropertyData>{std::move(data)};

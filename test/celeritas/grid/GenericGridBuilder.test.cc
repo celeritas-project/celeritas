@@ -30,14 +30,14 @@ class GenericGridBuilderTest : public ::celeritas::test::Test
   protected:
     using GridIndex = OpaqueId<struct GenericGridTag_>;
 
-    static Span<real_type const> span_grid() { return make_span(grid_); }
-    static Span<real_type const> span_values() { return make_span(values_); }
+    static Span<double const> span_grid() { return make_span(grid_); }
+    static Span<double const> span_values() { return make_span(values_); }
 
     Collection<real_type, Ownership::value, MemSpace::host> scalars_;
     Collection<GenericGridData, Ownership::value, MemSpace::host, GridIndex> grids_;
 
-    constexpr static real_type grid_[] = {0.0, 0.4, 0.9, 1.3};
-    constexpr static real_type values_[] = {-31.0, 12.1, 15.5, 92.0};
+    constexpr static double grid_[] = {0.0, 0.4, 0.9, 1.3};
+    constexpr static double values_[] = {-31.0, 12.1, 15.5, 92.0};
 
     void check(GridIndex grid_index) const
     {
@@ -70,7 +70,7 @@ TEST_F(GenericGridBuilderTest, build_span)
     check(grid_index);
 }
 
-TEST_F(GenericGridBuilderTest, TEST_IF_CELERITAS_DOUBLE(from_geant))
+TEST_F(GenericGridBuilderTest, from_geant)
 {
     auto builder = GenericGridBuilder::from_geant(span_grid(), span_values());
     GridIndex grid_index

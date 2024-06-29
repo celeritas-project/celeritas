@@ -53,14 +53,11 @@ ChipsNeutronElasticModel::ChipsNeutronElasticModel(
     data.neutron_mass = particles.get(data.neutron).mass();
 
     // Load neutron elastic cross section data
-    // CollectionBuilder micro_xs{&data.micro_xs};
-    // GenericGridBuilder build_grid{&data.reals};
     GenericGridInserter insert_grid{&data.reals, &data.micro_xs};
     for (auto el_id : range(ElementId{materials.num_elements()}))
     {
         AtomicNumber z = materials.get(el_id).atomic_number();
         insert_grid(load_data(z));
-        // micro_xs.push_back(build_grid(load_data(z)));
     }
     CELER_ASSERT(data.micro_xs.size() == materials.num_elements());
 
