@@ -21,6 +21,8 @@
 #include "celeritas/random/distribution/GenerateCanonical.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
 
+#include "detail/Utils.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -147,11 +149,9 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
 
     } while (2 * generate_canonical(rng) > 1 + ipow<2>(cost) || cost < -1);
 
-    UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
-
     // Scattered direction
     result.direction
-        = rotate(from_spherical(cost, sample_phi(rng)), inc_direction_);
+        = detail::CartesianTransformSampler{cost, inc_direction_}(rng);
 
     CELER_ENSURE(result.action == Interaction::Action::scattered);
     return result;

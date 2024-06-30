@@ -21,9 +21,10 @@
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 #include "AtomicRelaxationHelper.hh"
+
+#include "detail/Utils.hh"
 
 namespace celeritas
 {
@@ -351,8 +352,7 @@ CELER_FUNCTION Real3 LivermorePEInteractor::sample_direction(Engine& rng) const
 
     // Sample the azimuthal angle and calculate the direction of the
     // photoelectron
-    UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
-    return rotate(from_spherical(1 - nu, sample_phi(rng)), inc_direction_);
+    return detail::CartesianTransformSampler{1 - nu, inc_direction_}(rng);
 }
 
 //---------------------------------------------------------------------------//

@@ -166,29 +166,23 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
         = secondary_energy
           * (total_energy + value_as<Mass>(shared_.electron_mass))
           / (secondary_momentum * inc_momentum_);
-
-    secondary_cos_theta = celeritas::min<real_type>(secondary_cos_theta, 1);
     CELER_ASSERT(secondary_cos_theta >= -1 && secondary_cos_theta <= 1);
 
-    // Sample phi isotropically
-    UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
-
-    // Create cartesian direction from the sampled theta and phi
-    Real3 secondary_direction = rotate(
-        from_spherical(secondary_cos_theta, sample_phi(rng)), inc_direction_);
+    // Assign values to the secondary particle
+    electron_secondary->particle_id = shared_.ids.electron;
+    electron_secondary->energy = Energy{secondary_energy};
+    electron_secondary->direction = detail::CartesianTransformSampler{
+        secondary_cos_theta, inc_direction_}(rng);
 
     // Construct interaction for change to primary (incident) particle
-    real_type const inc_exiting_energy = inc_energy_ - secondary_energy;
     Interaction result;
-    result.energy = Energy{inc_exiting_energy};
+    result.energy = Energy{inc_energy_ - secondary_energy};
     result.secondaries = {electron_secondary, 1};
-    result.direction = detail::calc_exiting_direction(
-        inc_momentum_, secondary_momentum, inc_direction_, secondary_direction);
-
-    // Assign values to the secondary particle
-    electron_secondary[0].particle_id = shared_.ids.electron;
-    electron_secondary[0].energy = Energy{secondary_energy};
-    electron_secondary[0].direction = secondary_direction;
+    result.direction
+        = detail::calc_exiting_direction(inc_momentum_,
+                                         secondary_momentum,
+                                         inc_direction_,
+                                         electron_secondary->direction);
 
     return result;
 }

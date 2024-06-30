@@ -210,9 +210,8 @@ CELER_FUNCTION Interaction MuBetheBlochInteractor::operator()(Engine& rng)
     CELER_ASSERT(costheta <= 1);
 
     // Sample and save outgoing secondary data
-    UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
     secondary->direction
-        = rotate(from_spherical(costheta, sample_phi(rng)), inc_direction_);
+        = detail::CartesianTransformSampler{costheta, inc_direction_}(rng);
     secondary->energy = Energy{secondary_energy};
     secondary->particle_id = shared_.electron;
 

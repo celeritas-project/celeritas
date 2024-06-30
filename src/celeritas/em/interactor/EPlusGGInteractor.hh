@@ -156,11 +156,9 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
         real_type const eplus_moment = std::sqrt(inc_energy_ * total_energy);
 
         // Sample and save outgoing secondary data
-        UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
-
         secondaries[0].energy = Energy{gamma_energy};
         secondaries[0].direction
-            = rotate(from_spherical(cost, sample_phi(rng)), inc_direction_);
+            = detail::CartesianTransformSampler{cost, inc_direction_}(rng);
         secondaries[1].energy = Energy{total_energy - gamma_energy};
         secondaries[1].direction = detail::calc_exiting_direction(
             eplus_moment, inc_energy_, inc_direction_, inc_direction_);

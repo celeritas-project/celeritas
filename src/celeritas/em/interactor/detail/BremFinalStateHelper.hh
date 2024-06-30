@@ -97,10 +97,8 @@ CELER_FUNCTION Interaction BremFinalStateHelper::operator()(Engine& rng)
 {
     // Generate exiting gamma direction from isotropic azimuthal angle and
     // TsaiUrbanDistribution for polar angle (based on G4ModifiedTsai)
-    UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
-    real_type cost = sample_polar_angle_(rng);
-    secondary_->direction
-        = rotate(from_spherical(cost, sample_phi(rng)), inc_direction_);
+    secondary_->direction = CartesianTransformSampler{sample_polar_angle_(rng),
+                                                      inc_direction_}(rng);
     secondary_->particle_id = gamma_id_;
     secondary_->energy = gamma_energy_;
 
