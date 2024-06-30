@@ -56,7 +56,7 @@ class ActionInterface
     // Default virtual destructor allows deletion by pointer-to-interface
     virtual ~ActionInterface();
 
-    //! ID of this action for verification
+    //! ID of this action for verification and ordering
     virtual ActionId action_id() const = 0;
 
     //! Short unique label of the action
@@ -103,6 +103,9 @@ class BeginRunActionInterface : public virtual ActionInterface
 //---------------------------------------------------------------------------//
 /*!
  * Interface for an action that launches a kernel or performs an action.
+ *
+ * TODO: rename to OrderedAction, SequenceAction, StepAction, ... ? since these
+ * are the actions that \em always are executed exactly once per step.
  */
 class ExplicitActionInterface : public virtual ActionInterface
 {

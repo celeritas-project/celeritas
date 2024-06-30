@@ -9,6 +9,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -62,18 +63,24 @@ void ExtendFromPrimariesAction::execute_impl(CoreParams const& params,
 //---------------------------------------------------------------------------//
 /*!
  * Launch a (host) kernel to create track initializers from primary particles.
+ *
+ * This function loops over *primaries and initializers*, not *track slots*, so
+ * we do not use \c launch_core or \c launch_action .
  */
 void ExtendFromPrimariesAction::process_primaries(
-    CoreParams const& params,
-    CoreStateHost& state,
-    Span<Primary const> primaries) const
+    CoreParams const&, CoreStateHost& state, Span<Primary const> primaries) const
 {
-    launch_action(*this,
-                  primaries.size(),
-                  params,
-                  state,
-                  detail::ProcessPrimariesExecutor{
-                      state.ptr(), primaries, state.counters()});
+    MultiExceptionHandler capture_exception;
+    detail::ProcessPrimariesExecutor execute_thread{
+        state.ptr(), primaries, state.counters()};
+#if defined(_OPENMP) && CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
+#    pragma omp parallel for
+#endif
+    for (size_type i = 0, size = primaries.size(); i != size; ++i)
+    {
+        CELER_TRY_HANDLE(execute_thread(ThreadId{i}), capture_exception);
+    }
+    log_and_rethrow(std::move(capture_exception));
 }
 
 //---------------------------------------------------------------------------//
