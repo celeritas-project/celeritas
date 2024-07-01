@@ -217,6 +217,24 @@ struct StepLimit
 };
 
 //---------------------------------------------------------------------------//
+//! Action order/ID tuple for comparison in sorting
+struct OrderedAction
+{
+    ActionOrder order;
+    ActionId id;
+
+    //! Ordering comparison for an action/ID
+    CELER_CONSTEXPR_FUNCTION bool operator<(OrderedAction const& other)
+    {
+        if (this->order < other.order)
+            return true;
+        if (this->order > other.order)
+            return false;
+        return this->id < other.id;
+    }
+};
+
+//---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 

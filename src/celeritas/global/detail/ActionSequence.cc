@@ -69,8 +69,8 @@ ActionSequence<Params>::ActionSequence(ActionRegistry const& reg,
               actions_.end(),
               [](SPConstSpecializedExplicit const& a,
                  SPConstSpecializedExplicit const& b) {
-                  return std::make_tuple(a->order(), a->action_id())
-                         < std::make_tuple(b->order(), b->action_id());
+                  return OrderedAction{a->order(), a->action_id()}
+                         < OrderedAction{b->order(), b->action_id()};
               });
 
     // Initialize timing
