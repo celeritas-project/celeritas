@@ -15,10 +15,21 @@ Library API
 
    .. _breathe: https://github.com/michaeljones/breathe#readme
 
-The bulk of Celeritas' code is in several code libraries meant (with varying
-degrees of polish) to be used by external users and application developers.
-Currently, the most stable and user-ready component of Celeritas is its
-:ref:`accel` code library for offloading to Geant4.
+The bulk of Celeritas' code is in several code libraries to be used by external
+users and application developers.  Currently, the most stable and user-ready
+component of Celeritas is its :ref:`accel` code library for offloading to
+Geant4. This section has two audiences:
+
+- high-level developers, particularly those who might want to write a new
+  physics code; and
+- external users of Celeritas as a library for integration into a Geant4
+  application.
+
+Cursory documentation for many of the classes and other data constructs are
+described in this user manual, but further details for developers can be found
+in the full Doxygen-generated `developer documentation`_.
+
+.. _developer documentation: https://celeritas-project.github.io/celeritas/dev/index.html
 
 The Celeritas codebase lives under the ``src/`` directory and is partitioned
 into several libraries of increasing complexity:

@@ -416,6 +416,7 @@ CELER_FORCEINLINE_FUNCTION ForwardIt min_element(ForwardIt first,
 //---------------------------------------------------------------------------//
 // Replace/extend <cmath>
 //---------------------------------------------------------------------------//
+//!\cond
 //! Generate overloads for a single-argument math function
 #define CELER_WRAP_MATH_FLOAT_DBL_1(PREFIX, FUNC)        \
     CELER_FORCEINLINE_FUNCTION float FUNC(float value)   \
@@ -435,6 +436,7 @@ CELER_FORCEINLINE_FUNCTION ForwardIt min_element(ForwardIt first,
     {                                                                        \
         return ::PREFIX##FUNC(value, a, b);                                  \
     }
+//!\endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -628,6 +630,8 @@ CELER_WRAP_MATH_FLOAT_DBL_PTR_2(__, sincos)
 #else
 using ::celeritas::detail::cospi;
 using ::celeritas::detail::sinpi;
+//!@{
+//! Simultaneously evaluate the sine and cosine of a value
 CELER_FORCEINLINE void sincos(float a, float* s, float* c)
 {
     return detail::sincos(a, s, c);
@@ -644,6 +648,7 @@ CELER_FORCEINLINE void sincospi(double a, double* s, double* c)
 {
     return detail::sincospi(a, s, c);
 }
+//!@}
 #endif
 //!@}
 

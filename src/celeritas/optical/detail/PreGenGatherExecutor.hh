@@ -39,20 +39,14 @@ struct PreGenGatherExecutor
 CELER_FUNCTION void PreGenGatherExecutor::operator()(CoreTrackView const& track)
 {
     CELER_EXPECT(state);
+    CELER_EXPECT(track.track_slot_id() < state.step.size());
 
-    auto particle = track.make_particle_view();
-    if (particle.is_stopped())
-    {
-        return;
-    }
-
-    CELER_ASSERT(track.track_slot_id() < state.step.size());
     OpticalPreStepData& step = state.step[track.track_slot_id()];
-    step.speed = particle.speed();
+    step.speed = track.make_particle_view().speed();
     step.pos = track.make_geo_view().pos();
     step.time = track.make_sim_view().time();
-
-    CELER_ENSURE(step);
+    step.opt_mat
+        = track.make_material_view().make_material_view().optical_material_id();
 }
 
 //---------------------------------------------------------------------------//

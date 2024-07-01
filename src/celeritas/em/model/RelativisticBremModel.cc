@@ -80,7 +80,7 @@ auto RelativisticBremModel::applicability() const -> SetApplicability
 {
     Applicability electron_brem;
     electron_brem.particle = this->host_ref().ids.electron;
-    electron_brem.lower = detail::seltzer_berger_limit();
+    electron_brem.lower = detail::seltzer_berger_upper_limit();
     electron_brem.upper = detail::high_energy_limit();
 
     Applicability positron_brem = electron_brem;

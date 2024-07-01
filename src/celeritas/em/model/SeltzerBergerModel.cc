@@ -101,7 +101,7 @@ auto SeltzerBergerModel::applicability() const -> SetApplicability
     Applicability electron_applic;
     electron_applic.particle = this->host_ref().ids.electron;
     electron_applic.lower = zero_quantity();
-    electron_applic.upper = detail::seltzer_berger_limit();
+    electron_applic.upper = detail::seltzer_berger_upper_limit();
 
     Applicability positron_applic = electron_applic;
     positron_applic.particle = this->host_ref().ids.positron;

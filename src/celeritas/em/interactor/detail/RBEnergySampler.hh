@@ -30,6 +30,8 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Sample the bremsstrahlung photon energy from the relativistic model.
+ *
+ * Based on \c G4eBremsstrahlungRelModel of the Geant4 10.7 release.
  */
 class RBEnergySampler
 {
@@ -87,8 +89,7 @@ RBEnergySampler::RBEnergySampler(RelativisticBremRef const& shared,
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample the bremsstrahlung photon energy based on G4eBremsstrahlungRelModel
- * of the Geant4 10.7 release.
+ * Sample the bremsstrahlung photon energy.
  */
 template<class Engine>
 CELER_FUNCTION auto RBEnergySampler::operator()(Engine& rng) -> Energy

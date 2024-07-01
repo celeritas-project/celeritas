@@ -25,13 +25,13 @@ the calling application; the options described below must also be set up and
 provided.
 
 .. doxygenclass:: celeritas::SimpleOffload
+   :members:
 
 The SetupOptionsMessenger can be instantiated with a reference to a global
 SetupOptions instance in order to provide a Geant4 "UI" macro interface to an
 app's Celeritas options.
 
 .. doxygenclass:: celeritas::SetupOptionsMessenger
-   :members: none
 
 Celeritas setup
 ---------------
@@ -42,8 +42,10 @@ characteristics. Future versions of Celeritas will automate more of these
 settings.
 
 .. doxygenstruct:: celeritas::SetupOptions
+   :members:
 
 .. doxygenstruct:: celeritas::SDSetupOptions
+   :members:
 
 .. doxygenclass:: celeritas::UniformAlongStepFactory
 
@@ -57,8 +59,10 @@ interface above hides the complexity of these classes, or for more complex
 applications you can choose to use these classes directly instead of it.
 
 .. doxygenclass:: celeritas::SharedParams
+   :members:
 
 .. doxygenclass:: celeritas::LocalTransporter
+   :members:
 
 Interface utilities
 -------------------
