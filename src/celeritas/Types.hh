@@ -217,6 +217,16 @@ struct StepLimit
 };
 
 //---------------------------------------------------------------------------//
+// HELPER FUNCTIONS
+//---------------------------------------------------------------------------//
+
+//! Whether a track is in a consistent, valid state
+CELER_CONSTEXPR_FUNCTION bool is_track_valid(TrackStatus status)
+{
+    return status != TrackStatus::inactive && status != TrackStatus::errored;
+}
+
+//---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//
 
@@ -237,12 +247,6 @@ char const* to_cstring(MscStepLimitAlgorithm value);
 
 // Get a string corresponding to the nuclear form factor model
 char const* to_cstring(NuclearFormFactorType value);
-
-//! Whether a track is in a consistent, valid state
-CELER_CONSTEXPR_FUNCTION bool is_track_valid(TrackStatus status)
-{
-    return status != TrackStatus::inactive && status != TrackStatus::errored;
-}
 
 // Whether the TrackOrder will sort tracks by actions with the given
 // ActionOrder
