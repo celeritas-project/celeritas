@@ -182,7 +182,7 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     // Calculate tangents
     real_type r = std::sqrt(ipow<2>(x) + ipow<2>(y));
     real_type xp = (ipow<2>(r_b_)) / (2 * r);
-    real_type yp = std::sqrt(ipow<2>(r_b_) - ipow<2>(xp));
+    real_type yp = std::sqrt(ipow<2>(r_b_) - ipow<2>(xp)) * sign_;
     real_type theta = std::atan(y / x);
     if (x < 0)
     {
