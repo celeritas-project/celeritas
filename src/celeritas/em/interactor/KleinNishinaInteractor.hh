@@ -16,12 +16,11 @@
 #include "celeritas/em/data/KleinNishinaData.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/PhysicsUtils.hh"
 #include "celeritas/phys/Secondary.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/ReciprocalDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
-
-#include "detail/Utils.hh"
 
 namespace celeritas
 {
@@ -165,8 +164,8 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
     result.secondaries = {electron_secondary, 1};
 
     // Sample azimuthal direction and rotate the outgoing direction
-    result.direction = detail::CartesianTransformSampler{
-        1 - one_minus_costheta, result.direction}(rng);
+    result.direction = ExitingDirectionSampler{1 - one_minus_costheta,
+                                               result.direction}(rng);
 
     // Construct secondary energy by neglecting electron binding energy
     electron_secondary->energy
@@ -184,10 +183,8 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
     electron_secondary->particle_id = shared_.ids.electron;
     // Calculate exiting electron direction via conservation of momentum
     electron_secondary->direction
-        = detail::calc_exiting_direction(inc_energy_.value(),
-                                         result.energy.value(),
-                                         inc_direction_,
-                                         result.direction);
+        = calc_exiting_direction({inc_energy_.value(), inc_direction_},
+                                 {result.energy.value(), result.direction});
 
     return result;
 }

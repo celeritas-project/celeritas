@@ -20,12 +20,12 @@
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/PhysicsUtils.hh"
 #include "celeritas/phys/Secondary.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 #include "detail/PhysicsConstants.hh"
-#include "detail/Utils.hh"
 
 namespace celeritas
 {
@@ -211,14 +211,15 @@ CELER_FUNCTION Interaction MuBetheBlochInteractor::operator()(Engine& rng)
 
     // Sample and save outgoing secondary data
     secondary->direction
-        = detail::CartesianTransformSampler{costheta, inc_direction_}(rng);
+        = ExitingDirectionSampler{costheta, inc_direction_}(rng);
     secondary->energy = Energy{secondary_energy};
     secondary->particle_id = shared_.electron;
 
     Interaction result;
     result.energy = Energy{inc_energy_ - secondary_energy};
-    result.direction = detail::calc_exiting_direction(
-        inc_momentum_, secondary_momentum, inc_direction_, secondary->direction);
+    result.direction
+        = calc_exiting_direction({inc_momentum_, inc_direction_},
+                                 {secondary_momentum, secondary->direction});
     result.secondaries = {secondary, 1};
 
     return result;

@@ -9,10 +9,9 @@
 
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/distribution/TsaiUrbanDistribution.hh"
+#include "celeritas/phys/PhysicsUtils.hh"
 #include "celeritas/phys/Secondary.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
-
-#include "Utils.hh"
 
 namespace celeritas
 {
@@ -97,18 +96,17 @@ CELER_FUNCTION Interaction BremFinalStateHelper::operator()(Engine& rng)
 {
     // Generate exiting gamma direction from isotropic azimuthal angle and
     // TsaiUrbanDistribution for polar angle (based on G4ModifiedTsai)
-    secondary_->direction = CartesianTransformSampler{sample_polar_angle_(rng),
-                                                      inc_direction_}(rng);
+    secondary_->direction = ExitingDirectionSampler{sample_polar_angle_(rng),
+                                                    inc_direction_}(rng);
     secondary_->particle_id = gamma_id_;
     secondary_->energy = gamma_energy_;
 
     // Construct interaction for change to parent (incoming) particle
     Interaction result;
     result.energy = exit_energy_;
-    result.direction = calc_exiting_direction(inc_momentum_.value(),
-                                              gamma_energy_.value(),
-                                              inc_direction_,
-                                              secondary_->direction);
+    result.direction = calc_exiting_direction(
+        {inc_momentum_.value(), inc_direction_},
+        {gamma_energy_.value(), secondary_->direction});
     result.secondaries = {secondary_, 1};
 
     return result;

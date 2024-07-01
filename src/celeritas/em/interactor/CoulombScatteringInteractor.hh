@@ -20,9 +20,9 @@
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/PhysicsUtils.hh"
 
 #include "detail/PhysicsConstants.hh"
-#include "detail/Utils.hh"
 
 namespace celeritas
 {
@@ -144,8 +144,7 @@ CELER_FUNCTION Interaction CoulombScatteringInteractor::operator()(Engine& rng)
 
     // Sample the new direction
     real_type cos_theta = sample_angle_(rng);
-    result.direction
-        = detail::CartesianTransformSampler{cos_theta, inc_direction_}(rng);
+    result.direction = ExitingDirectionSampler{cos_theta, inc_direction_}(rng);
 
     // Recoil energy is kinetic energy transfered to the atom
     real_type inc_energy = value_as<Energy>(particle_.energy());

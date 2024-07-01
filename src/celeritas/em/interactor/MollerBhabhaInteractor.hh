@@ -22,11 +22,10 @@
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/PhysicsUtils.hh"
 #include "celeritas/phys/Secondary.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
-
-#include "detail/Utils.hh"
 
 namespace celeritas
 {
@@ -171,18 +170,16 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
     // Assign values to the secondary particle
     electron_secondary->particle_id = shared_.ids.electron;
     electron_secondary->energy = Energy{secondary_energy};
-    electron_secondary->direction = detail::CartesianTransformSampler{
-        secondary_cos_theta, inc_direction_}(rng);
+    electron_secondary->direction
+        = ExitingDirectionSampler{secondary_cos_theta, inc_direction_}(rng);
 
     // Construct interaction for change to primary (incident) particle
     Interaction result;
     result.energy = Energy{inc_energy_ - secondary_energy};
     result.secondaries = {electron_secondary, 1};
-    result.direction
-        = detail::calc_exiting_direction(inc_momentum_,
-                                         secondary_momentum,
-                                         inc_direction_,
-                                         electron_secondary->direction);
+    result.direction = calc_exiting_direction(
+        {inc_momentum_, inc_direction_},
+        {secondary_momentum, electron_secondary->direction});
 
     return result;
 }

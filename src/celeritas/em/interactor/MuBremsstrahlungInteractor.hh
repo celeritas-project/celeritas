@@ -18,11 +18,10 @@
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/PhysicsUtils.hh"
 #include "celeritas/phys/Secondary.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/ReciprocalDistribution.hh"
-
-#include "detail/Utils.hh"
 
 namespace celeritas
 {
@@ -141,18 +140,16 @@ CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
     // Save outgoing secondary data
     secondary->particle_id = shared_.ids.gamma;
     secondary->energy = Energy{epsilon};
-    secondary->direction = detail::CartesianTransformSampler{
+    secondary->direction = ExitingDirectionSampler{
         this->sample_cos_theta(epsilon, rng), inc_direction_}(rng);
 
     // Construct interaction for change to primary (incident) particle
     Interaction result;
     result.energy
         = units::MevEnergy{value_as<Energy>(particle_.energy()) - epsilon};
-    result.direction = detail::calc_exiting_direction(
-        value_as<Momentum>(particle_.momentum()),
-        epsilon,
-        inc_direction_,
-        secondary->direction);
+    result.direction = calc_exiting_direction(
+        {value_as<Momentum>(particle_.momentum()), inc_direction_},
+        {epsilon, secondary->direction});
     result.secondaries = {secondary, 1};
 
     return result;

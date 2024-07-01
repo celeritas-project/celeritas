@@ -20,11 +20,10 @@
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/PhysicsUtils.hh"
 #include "celeritas/phys/Secondary.hh"
 
 #include "AtomicRelaxationHelper.hh"
-
-#include "detail/Utils.hh"
 
 namespace celeritas
 {
@@ -352,7 +351,7 @@ CELER_FUNCTION Real3 LivermorePEInteractor::sample_direction(Engine& rng) const
 
     // Sample the azimuthal angle and calculate the direction of the
     // photoelectron
-    return detail::CartesianTransformSampler{1 - nu, inc_direction_}(rng);
+    return ExitingDirectionSampler{1 - nu, inc_direction_}(rng);
 }
 
 //---------------------------------------------------------------------------//

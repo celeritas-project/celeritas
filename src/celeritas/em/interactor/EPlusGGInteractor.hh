@@ -16,12 +16,11 @@
 #include "celeritas/em/data/EPlusGGData.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
+#include "celeritas/phys/PhysicsUtils.hh"
 #include "celeritas/phys/Secondary.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
 #include "celeritas/random/distribution/ReciprocalDistribution.hh"
-
-#include "detail/Utils.hh"
 
 namespace celeritas
 {
@@ -158,10 +157,10 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
         // Sample and save outgoing secondary data
         secondaries[0].energy = Energy{gamma_energy};
         secondaries[0].direction
-            = detail::CartesianTransformSampler{cost, inc_direction_}(rng);
+            = ExitingDirectionSampler{cost, inc_direction_}(rng);
         secondaries[1].energy = Energy{total_energy - gamma_energy};
-        secondaries[1].direction = detail::calc_exiting_direction(
-            eplus_moment, inc_energy_, inc_direction_, inc_direction_);
+        secondaries[1].direction = calc_exiting_direction(
+            {eplus_moment, inc_direction_}, {inc_energy_, inc_direction_});
     }
 
     return result;
