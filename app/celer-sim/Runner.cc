@@ -45,9 +45,12 @@
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/io/EventReader.hh"
-#include "celeritas/io/ImportData.hh"
 #include "celeritas/io/RootEventReader.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/optical/CerenkovParams.hh"
+#include "celeritas/optical/OpticalCollector.hh"
+#include "celeritas/optical/OpticalPropertyParams.hh"
+#include "celeritas/optical/ScintillationParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"
@@ -126,6 +129,7 @@ Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
     this->build_core_params(inp, std::move(output));
     this->build_diagnostics(inp);
     this->build_step_collectors(inp);
+    this->build_optical_collector(inp);
     this->build_transporter_input(inp);
     use_device_ = inp.use_device;
 
@@ -293,24 +297,27 @@ void Runner::build_core_params(RunnerInput const& inp,
     }
 
     // Import physics
-    ImportData const imported = (*import)();
+    imported_ = (*import)();
 
     // Load materials
-    params.material = MaterialParams::from_import(imported);
+    params.material = MaterialParams::from_import(imported_);
 
     // Create geometry/material coupling
     params.geomaterial = GeoMaterialParams::from_import(
-        imported, params.geometry, params.material);
+        imported_, params.geometry, params.material);
 
     // Construct particle params
-    params.particle = ParticleParams::from_import(imported);
+    params.particle = ParticleParams::from_import(imported_);
 
     // Construct cutoffs
     params.cutoff = CutoffParams::from_import(
-        imported, params.particle, params.material);
+        imported_, params.particle, params.material);
 
     // Construct shared data for Coulomb scattering
-    params.wentzel = WentzelOKVIParams::from_import(imported, params.material);
+    params.wentzel = WentzelOKVIParams::from_import(imported_, params.material);
+
+    // FIX ME: can't pass private member to lambda so I made a copy
+    auto const imported = imported_;
 
     // Load physics: create individual processes with make_shared
     params.physics = [&params, &inp, &imported] {
@@ -544,6 +551,31 @@ void Runner::build_step_collectors(RunnerInput const& inp)
             core_params_->max_streams(),
             core_params_->action_reg().get());
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct optical collector. This *MUST* be called *AFTER*
+ * \c this->build_core_params , as it depends on it.
+ */
+void Runner::build_optical_collector(RunnerInput const& inp)
+{
+    if (imported_.optical.empty())
+    {
+        // No optical data loaded
+        return;
+    }
+
+    CELER_EXPECT(core_params_);
+    OpticalCollector::Input oc_inp;
+    oc_inp.buffer_capacity = inp.num_track_slots;  // FIX ME
+    oc_inp.properties = OpticalPropertyParams::from_import(imported_);
+    oc_inp.cerenkov = std::make_shared<CerenkovParams>(oc_inp.properties);
+    oc_inp.scintillation = ScintillationParams::from_import(
+        imported_, core_params_->particle());
+
+    optical_collector_
+        = std::make_shared<OpticalCollector>(*core_params_, std::move(oc_inp));
 }
 
 //---------------------------------------------------------------------------//
