@@ -55,6 +55,7 @@ struct LoopingThreshold
                && threshold_energy >= zero_quantity();
     }
 };
+
 //---------------------------------------------------------------------------//
 /*!
  * Persistent simulation data.

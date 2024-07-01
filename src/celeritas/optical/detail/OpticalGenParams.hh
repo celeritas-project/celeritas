@@ -10,6 +10,7 @@
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/ParamsDataInterface.hh"
 
 #include "../OpticalGenData.hh"
 
