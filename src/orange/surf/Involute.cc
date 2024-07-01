@@ -10,15 +10,16 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-Involute Involute::at0origin(Real3 const& origin,
-                             real_type radius,
-                             real_type a,
-                             real_type sign,
-                             real_type tmin,
-                             real_type tmax)
+Involute Involute::involute(Real3 const& origin,
+                            real_type radius,
+                            real_type a,
+                            real_type sign,
+                            real_type tmin,
+                            real_type tmax)
 {
     CELER_EXPECT(radius > 0);
     CELER_EXPECT(a > 0);
+    CELER_EXPECT(std::fabs(tmax) < 2 * pi + std::fabs(tmin));
     Involute results;
     results.origin_ = origin;
     results.r_b_ = radius;

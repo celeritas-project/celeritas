@@ -59,20 +59,12 @@ class Involute
     //// CONSTRUCTORS ////
     // Construct at (0,0,z)
     // Redundant method, required due to causing an error when excluded.
-    static Involute at0origin(Real3 const& origin,
-                              real_type radius,
-                              real_type a,
-                              real_type sign,
-                              real_type tmin,
-                              real_type tmax);
-
-    // Construct from origin and radius of circle of involute
-    inline CELER_FUNCTION Involute(Real3 const& origin,
-                                   real_type radius,
-                                   real_type a,
-                                   real_type sign,
-                                   real_type tmin,
-                                   real_type tmax);
+    static Involute involute(Real3 const& origin,
+                             real_type radius,
+                             real_type a,
+                             real_type sign,
+                             real_type tmin,
+                             real_type tmax);
 
     // Construct from raw data
     template<class R>
@@ -130,23 +122,6 @@ class Involute
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct from origin and radius.
- */
-CELER_FUNCTION Involute::Involute(Real3 const& origin,
-                                  real_type radius,
-                                  real_type a,
-                                  real_type sign,
-                                  real_type tmin,
-                                  real_type tmax)
-    : origin_(origin), r_b_(radius), a_(a), sign_(sign), tmin_(tmin), tmax_(tmax)
-{
-    CELER_EXPECT(radius > 0);
-    CELER_EXPECT(a > 0);
-    CELER_EXPECT(std::fabs(tmax) < 2 * pi + std::fabs(tmin));
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct from raw data.
  */
 template<class R>
@@ -166,11 +141,6 @@ CELER_FUNCTION Involute::Involute(Span<R, StorageSpan::extent> data)
  */
 CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
 {
-    /*
-     * Define tolerances for on surface.
-     */
-    real_type const tol = 1e-7;
-
     real_type const x = pos[0] - origin_[0];
     real_type const y = pos[1] - origin_[1];
 
@@ -188,7 +158,7 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     real_type const xInv = r_b_ * (std::cos(angle) + tPoint * std::sin(angle));
     real_type const yInv = r_b_ * (std::sin(angle) - tPoint * std::cos(angle));
 
-    if (std::fabs(x - xInv) < tol && std::fabs(y - yInv) < tol)
+    if (x == xInv && y == yInv)
     {
         return SignedSense::on;
     }
@@ -210,72 +180,22 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
      */
 
     // Calculate tangents
-    real_type a = rxy2;
-    real_type b;
-    real_type c;
-    real_type xa, xb;
-    real_type ya, yb, yc, yd;
-    real_type yalpha, ybeta;
-
-    b = -2 * ipow<2>(r_b_) * x;
-    c = ipow<4>(r_b_) - ipow<2>(y) * ipow<2>(r_b_);
-
-    // Manual solution to quadratic.
-    // QuadraticSolver avoided due to it ignoring negative results,
-    // which may be the case here.
-
-    xa = (-b + std::sqrt(ipow<2>(b) - 4 * a * c)) / (2 * a);
-    xb = (-b - std::sqrt(ipow<2>(b) - 4 * a * c)) / (2 * a);
-
-    ya = std::sqrt(ipow<2>(r_b_) - ipow<2>(xa));
-    yb = -std::sqrt(ipow<2>(r_b_) - ipow<2>(xa));
-    yc = std::sqrt(ipow<2>(r_b_) - ipow<2>(xb));
-    yd = -std::sqrt(ipow<2>(r_b_) - ipow<2>(xb));
-
-    b = -2 * ipow<2>(r_b_) * y;
-    c = ipow<4>(r_b_) - ipow<2>(x) * ipow<2>(r_b_);
-
-    yalpha = (-b + std::sqrt(ipow<2>(b) - 4 * a * c)) / (2 * a);
-    ybeta = (-b - std::sqrt(ipow<2>(b) - 4 * a * c)) / (2 * a);
-
-    Array<real_type, 2> point1;
-    Array<real_type, 2> point2;
-
-    // First tangent
-    if (std::fabs(ya - yalpha) <= 0)
+    real_type r = std::sqrt(ipow<2>(x) + ipow<2>(y));
+    real_type xp = (ipow<2>(r_b_)) / (2 * r);
+    real_type yp = std::sqrt(ipow<2>(r_b_) - ipow<2>(xp));
+    real_type theta = std::atan(y / x);
+    if (x < 0)
     {
-        point1 = {xa, ya};
-    }
-    else
-    {
-        point1 = {xb, yc};
-    }
-    // Second tangent
-    if (std::fabs(yb - ybeta) <= 0)
-    {
-        point2 = {xa, yb};
-    }
-    else
-    {
-        point2 = {xb, yd};
+        theta += pi;
     }
 
-    // Determine which tangent
     Array<real_type, 2> point;
-    Array<real_type, 2> norm = {-y, x};
-    real_type dot = point1[0] * norm[0] + point1[1] * norm[1];
-    if (((0 < dot) - (dot < 0)) == sign_)
-    {
-        point = point1;
-    }
-    else
-    {
-        point = point2;
-    }
+    point[0] = xp * std::cos(theta) - yp * std::sin(theta);
+    point[1] = yp * std::cos(theta) + xp * std::cos(theta);
 
     // Calculate angle of tangent
-    real_type theta = std::acos(
-        point[0] / std::sqrt(point[0] * point[0] + point[1] * point[1]));
+    theta = std::acos(point[0]
+                      / std::sqrt(point[0] * point[0] + point[1] * point[1]));
     if (point[1] < 0)
     {
         theta = (pi - theta) + pi;

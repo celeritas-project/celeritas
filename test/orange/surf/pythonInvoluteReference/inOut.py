@@ -56,43 +56,20 @@ class inOut:
             return False
         
         # Find Location where Tangent from Point Intersects
-        a = (x**2+y**2)
-        b = -2*self.rb**2*x
-        c = self.rb**4-y**2*self.rb**2
+        r = np.sqrt(x**2+y**2)*0.5
+        xp = (self.rb**2)/(2*r)
+        yp = np.sqrt(self.rb**2-xp**2)*self.sign
         
-        xa = (-b + np.sqrt(b**2-4*a*c))/(2*a)
-        xb = (-b - np.sqrt(b**2-4*a*c))/(2*a)
         
-        ya = np.sqrt(self.rb**2-xa**2)
-        yb = -np.sqrt(self.rb**2-xa**2)
-        yc = np.sqrt(self.rb**2-xb**2)
-        yd = -np.sqrt(self.rb**2-xb**2)
         
-        a = (x**2+y**2)
-        b = -2*self.rb**2*y
-        c = self.rb**4-x**2*self.rb**2
-        
-        yalpha = (-b + np.sqrt(b**2-4*a*c))/(2*a)
-        ybeta = (-b - np.sqrt(b**2-4*a*c))/(2*a)
-        
-        # Get First Tangent
-        if math.isclose(yalpha, ya):
-            point1 = np.array([xa,ya])
-        else:
-            point1 = np.array([xb,yc])
-        
-        # Get Seccond Tangent
-        if math.isclose(ybeta, yb):
-            point2 = np.array([xa,yb])
-        else:
-            point2 = np.array([xb,yd])
-        
-        # Determine which Tangent is used for Involute
-        norm = np.array([-y,x])
-        if np.sign(np.dot(point1,norm)) == self.sign:
-            point = point1
-        else:
-            point = point2
+        # Calculate angle of tangent   
+        theta = np.arctan(y/x)
+        if x < 0:
+            theta += np.pi
+            
+        point = np.array([xp*np.cos(theta)-yp*np.sin(theta),
+                              yp*np.cos(theta)+xp*np.sin(theta)])
+            
         
         # Calculate angle of tangent   
         theta = np.arccos(point[0]/\

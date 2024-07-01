@@ -121,12 +121,12 @@ Sphere SurfaceTransformer::operator()(Sphere const& other) const
  */
 Involute SurfaceTransformer::operator()(Involute const& other) const
 {
-    return Involute::at0origin(tr_.transform_up(other.origin()),
-                               other.r_b(),
-                               other.a(),
-                               other.sign(),
-                               other.tmin(),
-                               other.tmax());
+    return Involute::involute(tr_.transform_up(other.origin()),
+                              other.r_b(),
+                              other.a(),
+                              other.sign(),
+                              other.tmin(),
+                              other.tmax());
 }
 
 //---------------------------------------------------------------------------//
