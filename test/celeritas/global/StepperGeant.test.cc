@@ -474,7 +474,6 @@ TEST_F(TestEm3Msc, setup)
         "interact by Moller+Bhabha ionization",
         "interact by bremsstrahlung (combined SB/relativistic, e+/-)",
         "cross a geometry boundary",
-        "count the number of executions",
         "create track initializers from secondaries",
     };
     EXPECT_VEC_EQ(expected_actions_desc, result.actions_desc);

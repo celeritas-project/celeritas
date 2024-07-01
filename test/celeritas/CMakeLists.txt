@@ -211,13 +211,12 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
     "SimpleCmsRZFieldAlongStepTest.msc_rzfield_finegrid"
   )
   set(_stepper_filter
-    "-TestEm*:OneSteelSphere*"
+    "-TestEm*"
     "TestEm3Compton.*"
     "TestEm3NoMsc.*"
     "TestEm3Msc.*"
     "TestEm3MscNofluct.*"
     "TestEm15FieldMsc.*"
-    "OneSteelSphere.*"
   )
   if(Geant4_VERSION VERSION_LESS 11.0)
     list(REMOVE_ITEM _along_step_filter
@@ -233,7 +232,7 @@ elseif(CELERITAS_USE_Geant4)
     "LeadBox*"
   )
   set(_stepper_filter
-    "-TestEm*:OneSteelSphere*"
+    "-TestEm*"
     "TestEm3Compton.*"
     "TestEm3Msc.*"
     "TestEm3MscNofluct.*"
