@@ -9,6 +9,7 @@
 
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/distribution/TsaiUrbanDistribution.hh"
+#include "celeritas/phys/InteractionUtils.hh"
 #include "celeritas/phys/Secondary.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
@@ -93,29 +94,19 @@ BremFinalStateHelper::BremFinalStateHelper(Energy const& inc_energy,
 template<class Engine>
 CELER_FUNCTION Interaction BremFinalStateHelper::operator()(Engine& rng)
 {
+    // Generate exiting gamma direction from isotropic azimuthal angle and
+    // TsaiUrbanDistribution for polar angle (based on G4ModifiedTsai)
+    secondary_->direction = ExitingDirectionSampler{sample_polar_angle_(rng),
+                                                    inc_direction_}(rng);
+    secondary_->particle_id = gamma_id_;
+    secondary_->energy = gamma_energy_;
+
     // Construct interaction for change to parent (incoming) particle
     Interaction result;
     result.energy = exit_energy_;
-
-    // Generate exiting gamma direction from isotropic azimuthal angle and
-    // TsaiUrbanDistribution for polar angle (based on G4ModifiedTsai)
-    UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
-    real_type cost = sample_polar_angle_(rng);
-    secondary_->direction
-        = rotate(from_spherical(cost, sample_phi(rng)), inc_direction_);
-
-    // Update parent particle direction
-    for (int i = 0; i < 3; ++i)
-    {
-        real_type inc_momentum_i = inc_momentum_.value() * inc_direction_[i];
-        real_type gamma_momentum_i = gamma_energy_.value()
-                                     * secondary_->direction[i];
-        result.direction[i] = inc_momentum_i - gamma_momentum_i;
-    }
-    result.direction = make_unit_vector(result.direction);
-
-    secondary_->particle_id = gamma_id_;
-    secondary_->energy = gamma_energy_;
+    result.direction = calc_exiting_direction(
+        {inc_momentum_.value(), inc_direction_},
+        {gamma_energy_.value(), secondary_->direction});
     result.secondaries = {secondary_, 1};
 
     return result;
