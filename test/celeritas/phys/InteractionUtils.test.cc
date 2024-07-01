@@ -27,10 +27,14 @@ TEST(InteractionUtilsTest, calc_exiting_direction)
     Real3 inc_dir = {1, 0, 0};
     Real3 out_dir = {0, 1, 0};
 
-    EXPECT_VEC_SOFT_EQ(Real3({1.0 / std::sqrt(2), -1.0 / std::sqrt(2), 0}),
+    EXPECT_VEC_SOFT_EQ(Real3({real_type(1.0 / std::sqrt(2)),
+                              real_type(-1.0 / std::sqrt(2)),
+                              0}),
                        calc_exiting_direction({10, inc_dir}, {10, out_dir}));
 
-    EXPECT_VEC_SOFT_EQ(Real3({1.0 / std::sqrt(101), -10.0 / std::sqrt(101), 0}),
+    EXPECT_VEC_SOFT_EQ(Real3({real_type(1.0 / std::sqrt(101)),
+                              real_type(-10.0 / std::sqrt(101)),
+                              0}),
                        calc_exiting_direction({1, inc_dir}, {10, out_dir}));
 }
 
