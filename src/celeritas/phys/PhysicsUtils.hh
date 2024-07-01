@@ -9,6 +9,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "geocel/Types.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 

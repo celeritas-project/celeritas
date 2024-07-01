@@ -299,6 +299,7 @@ celeritas_add_test(phys/CutoffParams.test.cc)
 celeritas_add_device_test(phys/Particle)
 celeritas_add_device_test(phys/Physics)
 celeritas_add_test(phys/PhysicsStepUtils.test.cc)
+celeritas_add_test(phys/PhysicsUtils.test.cc)
 celeritas_add_test(phys/PrimaryGenerator.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(phys/ProcessBuilder.test.cc ${_needs_root}
