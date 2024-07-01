@@ -9,7 +9,7 @@
 
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/distribution/TsaiUrbanDistribution.hh"
-#include "celeritas/phys/PhysicsUtils.hh"
+#include "celeritas/phys/InteractionUtils.hh"
 #include "celeritas/phys/Secondary.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 

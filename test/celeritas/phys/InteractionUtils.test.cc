@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/phys/PhysicsUtils.test.cc
+//! \file celeritas/phys/InteractionUtils.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/phys/PhysicsUtils.hh"
+#include "celeritas/phys/InteractionUtils.hh"
 
 #include <cmath>
 #include <random>
@@ -22,21 +22,19 @@ namespace test
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST(PhysicsUtilsTest, calc_exiting_direction)
+TEST(InteractionUtilsTest, calc_exiting_direction)
 {
     Real3 inc_dir = {1, 0, 0};
     Real3 out_dir = {0, 1, 0};
 
-    Real3 result = calc_exiting_direction({10, inc_dir}, {10, out_dir});
-    Real3 expected = {1.0 / std::sqrt(2), -1.0 / std::sqrt(2), 0};
-    EXPECT_VEC_SOFT_EQ(expected, result);
+    EXPECT_VEC_SOFT_EQ(Real3({1.0 / std::sqrt(2), -1.0 / std::sqrt(2), 0}),
+                       calc_exiting_direction({10, inc_dir}, {10, out_dir}));
 
-    result = calc_exiting_direction({1, inc_dir}, {10, out_dir});
-    expected = {1.0 / std::sqrt(101), -10.0 / std::sqrt(101), 0};
-    EXPECT_VEC_SOFT_EQ(expected, result);
+    EXPECT_VEC_SOFT_EQ(Real3({1.0 / std::sqrt(101), -10.0 / std::sqrt(101), 0}),
+                       calc_exiting_direction({1, inc_dir}, {10, out_dir}));
 }
 
-TEST(PhysicsUtilsTest, sample_exiting_direction)
+TEST(InteractionUtilsTest, sample_exiting_direction)
 {
     std::mt19937 rng;
     Real3 inc_dir = make_unit_vector(Real3{1, 2, 3});

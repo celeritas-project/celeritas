@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/phys/PhysicsUtils.hh
+//! \file celeritas/phys/InteractionUtils.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -30,6 +30,9 @@ struct Momentum
 inline CELER_FUNCTION Real3 calc_exiting_direction(Momentum inc_momentum,
                                                    Momentum out_momentum)
 {
+    CELER_EXPECT(inc_momentum.magnitude > 0);
+    CELER_EXPECT(out_momentum.magnitude > 0);
+
     Real3 result;
     for (int i = 0; i < 3; ++i)
     {

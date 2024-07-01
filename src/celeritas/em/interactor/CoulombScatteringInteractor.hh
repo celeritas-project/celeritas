@@ -19,8 +19,8 @@
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/InteractionUtils.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
-#include "celeritas/phys/PhysicsUtils.hh"
 
 #include "detail/PhysicsConstants.hh"
 
