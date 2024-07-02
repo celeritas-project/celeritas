@@ -99,7 +99,12 @@ CELER_FUNCTION InvoluteSolver::InvoluteSolver(
 //---------------------------------------------------------------------------//
 
 /*!
- * Find all positive roots for involute surfaces that are within the bounds.
+ * Find all roots for involute surfaces that are within the bounds and result
+ * in positive distances. Performed by doing a Regular Falsi Iteration on the
+ * root function, f(t) = r_b * [v{cos(a+t) + tsin(a+t)} + u{sin(a+t)
+ * -tcos(a+t)}] + xv - yu where the Regular Falsi Iteration is given by: tc =
+ * [ta*f(tb) - tb*f(ta)] / [f(tb) - f(ta)] where tc replaces the bound with the
+ * same sign.
  */
 CELER_FUNCTION auto
 InvoluteSolver::operator()(Real3 const& pos,
@@ -131,8 +136,10 @@ InvoluteSolver::operator()(Real3 const& pos,
      * Results initalization
      */
     Intersections result;
+    // Initial result vector.
     result = {no_intersection(), no_intersection(), no_intersection()};
 
+    // Return result if particle is travelling along z-axis.
     if (u == 0 && v == 0)
     {
         return result;
@@ -146,11 +153,15 @@ InvoluteSolver::operator()(Real3 const& pos,
 
     /*
      * Define tolerances.
+     * tolPoint gives the tolerence level for a point and is set to 1e-7,
+     * account for the floating point error when performing square roots.
+     * tolConv gives the tolerence for the Regular Falsi iteration,
+     * ensuring that the root found produces a result that within 1e-8 of 0.
      */
     real_type const tolPoint = 1e-7;
     real_type const tolConv = 1e-8;
 
-    // 0 distance of particle on invoute surface
+    // Particle on surface has distance of 0 to surface.
 
     real_type const rxy2 = ipow<2>(x) + ipow<2>(y);
     real_type const tPoint = std::sqrt((rxy2 / (ipow<2>(r_b_))) - 1);

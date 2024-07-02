@@ -117,7 +117,7 @@ Sphere SurfaceTransformer::operator()(Sphere const& other) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Transform a Involute.
+ * Transform an Involute.
  */
 Involute SurfaceTransformer::operator()(Involute const& other) const
 {

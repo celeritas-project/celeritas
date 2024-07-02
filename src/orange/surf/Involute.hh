@@ -57,8 +57,6 @@ class Involute
 
   public:
     //// CONSTRUCTORS ////
-    // Construct at (0,0,z)
-    // Redundant method, required due to causing an error when excluded.
     static Involute involute(Real3 const& origin,
                              real_type radius,
                              real_type a,
@@ -145,7 +143,7 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     real_type const y = pos[1] - origin_[1];
 
     /*
-     * Calculate distance to origin and obtain t value for disance.
+     * Calculate distance to origin and obtain t value for distance.
      */
     real_type const rxy2 = ipow<2>(x) + ipow<2>(y);
     real_type const tPoint2 = (rxy2 / ipow<2>(r_b_)) - 1;
@@ -252,7 +250,7 @@ CELER_FORCEINLINE_FUNCTION Real3 Involute::calc_normal(Real3 const& pos) const
     real_type const y = pos[1] - origin_[1];
 
     /*
-     * Calculate distance to origin and obtain t value for disance.
+     * Calculate distance to origin and obtain t value for distance.
      */
     real_type const rxy2 = ipow<2>(x) + ipow<2>(y);
     real_type const tPoint = std::sqrt((rxy2 / (ipow<2>(r_b_))) - 1) * sign_;
