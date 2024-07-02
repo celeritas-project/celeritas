@@ -17,19 +17,25 @@ class AbsorptionModel : public OpticalModel
   public:
     //!@{
     //! \name Type aliases
-    using SPConstImported = std::shared_ptr<ImportedOpticalModels const>;
+    using SPConstImported = std::shared_ptr<ImportedOpticalMaterials const>;
     //!@}
 
   public:
-    AbsorptionModel(ActionId id, SPConstImported imported);
+    AbsorptionModel(ActionId id, SPConstImported imported)
+        : OpticalModel(id, "absorption", "volumetric optical absorption")
+        , imported_(imported)
+    {}
 
-    StepLimitBuilder step_limits(OpticalMaterialId opt_mat) const override final;
+    void build_mfp(OpticalModelMfpBuilder& build) const override final
+    {
+        builder(imported_->get(builder.optical_material()).absorption.mfp);
+    }
 
     void execute(OpticalParams const&, OpticalStateHost&) const override final;
     void execute(OpticalParams const&, OpticalStateDevice&) const override final;
 
   private:
-    ImportedOpticalModelAdapter imported_;
+    SPConstImported imported_;
 };
 
 //---------------------------------------------------------------------------//

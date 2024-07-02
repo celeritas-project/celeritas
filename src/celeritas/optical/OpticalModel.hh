@@ -21,14 +21,9 @@ class OpticalModel : public ExplicitOpticalActionInterface, public ConcreteActio
   public:
     //!@{
     //! \name Type aliases
-    using StepLimitBuilder = std::unique_ptr<BaseGridBuilder const>;
     //!@}
 
   public:
-    OpticalModel(ActionId id, std::string label)
-        : ConcreteAction(id, label)
-    {}
-
     OpticalModel(ActionId id, std::string label, std::string description)
         : ConcreteAction(id, label, description)
     {}
@@ -40,7 +35,8 @@ class OpticalModel : public ExplicitOpticalActionInterface, public ConcreteActio
     ActionOrder order() const override final { return ActionOrder::post; }
 
     //! Get mean free paths for the given optical material
-    virtual StepLimitBuilder step_limits(OpticalMaterialId id) const = 0;
+    virtual void build_mfp(OpticalModelMfpBuilder&) const = 0;
 };
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

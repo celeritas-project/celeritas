@@ -16,21 +16,22 @@ namespace celeritas
  * Assigns a unique ImportOpticalModelId to each imported optical model,
  * and associates the ImportOpticalModelClass enum with the corresponding ID.
  */
-class ImportOpticalModels
+class ImportedOpticalModels
 {
   public:
     //!@{
     //! \name Type aliases
+    using SPConstImported = std::shared_ptr<ImportedOpticalMaterials const>;
     using ImportOpticalModelId = OpaqueId<ImportOpticalModel>;
     using key_type = ImportOpticalModelClass;
     //!@}
 
   public:
     //! Construct with imported data
-    static std::shared_ptr<ImportOpticalModels> from_import(ImportData const& data);
+    static std::shared_ptr<ImportedOpticalModels> from_import(SPConstImported const& imported);
 
     //! Construct with imported tables
-    explicit ImportOpticalModels(std:vector<ImportOpticalModel> io);
+    explicit ImportedOpticalModels(std:vector<ImportOpticalModel> io);
 
     //! Return the optical process ID for the given optical model class
     ImportOpticalModelId find(key_type) const;
@@ -56,7 +57,7 @@ class ImportedOpticalModelAdapter
   public:
     //!@{
     //! \name Type aliases
-    using SPConstImported = std::shared_ptr<ImportOpticalModels const>;
+    using SPConstImported = std::shared_ptr<ImportedOpticalModels const>;
     using StepLimitBuilder = OpticalModel::StepLimitBuilder;
     //!@}
 
@@ -86,7 +87,7 @@ class ImportedOpticalModelAdapter
 /*!
  * Get the imported optical model data associated with the given model id.
  */
-ImportOpticalModel const& ImportOpticalModels::get(ImportOpticalModelId id) const
+ImportOpticalModel const& ImportedOpticalModels::get(ImportOpticalModelId id) const
 {
     CELER_EXPECT(id < this->size());
     return models_[id.get()];
@@ -96,7 +97,7 @@ ImportOpticalModel const& ImportOpticalModels::get(ImportOpticalModelId id) cons
 /*!
  * Get the number of imported optical models.
  */
-auto ImportOpticalModels::size() const -> ImportOpticalModelId::size_type
+auto ImportedOpticalModels::size() const -> ImportOpticalModelId::size_type
 {
     return models_.size();
 }
