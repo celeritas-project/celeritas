@@ -7,6 +7,17 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/OpaqueId.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/data/StackAllocatorData.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/grid/GenericGridData.hh"
+#include "celeritas/optical/Types.hh"
+
+#include "OpticalPrimary.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -26,7 +37,7 @@ struct OpticalPhysicsParamsScalars
     //! Offset to create an ActionId from a ModelId
     ActionId::size_type model_to_action{};
     //! Number of optical physics models
-    ModelId::size_type num_models{};
+    OpticalModelId::size_type num_models{};
 
     //! Secondary storage per state size
     real_type secondary_stack_factor = 2;
@@ -80,6 +91,7 @@ struct OpticalPhysicsParamsData
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
+        return !mat_model_mfp.empty() && scalars;
     }
 
     //! Assign from another set of data
@@ -87,6 +99,10 @@ struct OpticalPhysicsParamsData
     OpticalPhysicsParamsData& operator=(OpticalPhysicsParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
+
+        reals = other.reals;
+        grids = other.grids;
+        mat_model_mfp = other.mat_model_mfp;
 
         return *this;
     }
@@ -111,7 +127,7 @@ struct OpticalPhysicsTrackState
 
     // TEMPORARY STATE
     real_type macro_xs;  //!< Total cross section for discrete interactions
-    Span<OpticalSecondary> secondaries;  //!< Emitted secondaries
+    Span<OpticalPrimary> secondaries;  //!< Emitted secondaries
 };
 
 //---------------------------------------------------------------------------//
@@ -126,6 +142,7 @@ struct OpticalPhysicsTrackInitializer
 /*!
  * Dynamic optical physics state data.
  */
+template<Ownership W, MemSpace M>
 struct OpticalPhysicsData
 {
     //!@{
@@ -138,7 +155,7 @@ struct OpticalPhysicsData
 
     
     StateItems<OpticalPhysicsTrackState> state;  //!< Track state [track]
-    StackAllocatorData<OpticalSecondary, W, M> secondaries;  //!< Secondary stack
+    StackAllocatorData<OpticalPrimary, W, M> secondaries;  //!< Secondary stack
 };
 
 //---------------------------------------------------------------------------//

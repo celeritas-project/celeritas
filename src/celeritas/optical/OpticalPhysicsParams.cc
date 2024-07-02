@@ -7,9 +7,22 @@
 //---------------------------------------------------------------------------//
 #include "OpticalPhysicsParams.hh"
 
+#include "corecel/data/CollectionBuilder.hh"
+#include "celeritas/global/ActionInterface.hh"
+#include "celeritas/grid/GenericGridBuilder.hh"
+#include "celeritas/phys/detail/DiscreteSelectAction.hh"
+
+#include "ImportedOpticalMaterials.hh"
+#include "OpticalMfpBuilder.hh"
+#include "OpticalModel.hh"
+#include "OpticalModelBuilder.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Construct optical physics parameters from a model builder and input.
+ */
 OpticalPhysicsParams::OpticalPhysicsParams(
         OpticalModelBuilder const& model_builder,
         Input input)
@@ -21,12 +34,13 @@ OpticalPhysicsParams::OpticalPhysicsParams(
     input.action_registry->insert(discrete_action_);
     
     // Create models
-    models_ = this->build_models(model_builder, input.imported, *input.action_registry);
+    models_ = this->build_models(model_builder, *input.action_registry);
 
     // Construct data on host
     HostValue host_data;
     this->build_options(input.options, &host_data);
-    this->build_xs(range(OpticalMaterialId{input.imported->size()}), &host_data);
+    this->build_mfp(range(OpticalMaterialId{input.imported->size()}),
+                    &host_data);
 
     // Copy data to device
     data_ = CollectionMirror<OpticalPhysicsParamsData>{std::move(host_data)};
@@ -34,15 +48,21 @@ OpticalPhysicsParams::OpticalPhysicsParams(
     CELER_ENSURE(discrete_action_->action_id() == host_ref().scalars.discrete_action());
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Build options from provided optical physics options.
+ */
 void OpticalPhysicsParams::build_options(Options const&, HostValue*) const
 {
     // TODO: construct options
 }
 
-VecModel OpticalPhysicsParams::build_models(
-        OpticalModelBuilder const& model_builder,
-        SPConstImported imported,
-        ActionRegistry& reg) const
+//---------------------------------------------------------------------------//
+/*!
+ * Build optical models from imported data.
+ */
+auto OpticalPhysicsParams::build_models(OpticalModelBuilder const& model_builder,
+                                        ActionRegistry& reg) const -> VecModel
 {
     VecModel models;
 
@@ -67,7 +87,12 @@ VecModel OpticalPhysicsParams::build_models(
     return models;
 }
 
-void OpticalPhysicsParams::build_xs(Range<OpticalMaterialId> optical_materials, HostValue* data) const
+//---------------------------------------------------------------------------//
+/*!
+ * Build mean free paths for all optical models.
+ */
+void OpticalPhysicsParams::build_mfp(Range<OpticalMaterialId> optical_materials,
+                                     HostValue* data) const
 {
     GenericGridBuilder reals_builder{&data->reals};
     auto grid_builder = CollectionBuilder{&data->grids};
@@ -81,12 +106,12 @@ void OpticalPhysicsParams::build_xs(Range<OpticalMaterialId> optical_materials, 
         // Loop over all optical models
         for (auto const& model : models_)
         {
-            model->build_mfp(model_xs_builder);
+            model->build_mfp(model_mfp_builder);
         }
 
         // Insert per-model grids
-        auto grid_ids = grid_builder.push_back(model_mfp_builder.grids().begin(),
-                                               model_mfp_builder.grids().end());
+        auto grid_ids = grid_builder.insert_back(
+            model_mfp_builder.grids().begin(), model_mfp_builder.grids().end());
 
         // Insert per-material per-model grids
         mfp_builder.push_back(ItemMap<OpticalModelId, OpticalValueGridId>{grid_ids});

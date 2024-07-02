@@ -7,40 +7,57 @@
 //---------------------------------------------------------------------------//
 #include "OpticalModelBuilder.hh"
 
+#include <unordered_map>
+
+#include "corecel/io/EnumStringMapper.hh"
+#include "celeritas/io/ImportData.hh"
+#include "celeritas/optical/model/AbsorptionModel.hh"
+#include "celeritas/optical/model/OpticalRayleighModel.hh"
+
+#include "ImportedOpticalMaterials.hh"
+#include "OpticalModel.hh"
+
 namespace celeritas
 {
-//  //---------------------------------------------------------------------------//
-//  /*!
-//   * Get an ordered set of all available optical models.
-//   */
-//  auto OpticalModelBuilder::get_all_model_classes(std::vector<ImportOpticalModel> const& models) -> std::set<IOMC>
-//  {
-//      std::set<IOMC> result;
-//      for (auto const& model : models)
-//      {
-//          result.insert(model.model_class);
-//      }
-//      return result;
-//  }
+//---------------------------------------------------------------------------//
+/*!
+ * Get an ordered set of all available optical models.
+ */
+auto OpticalModelBuilder::get_all_model_classes() -> std::set<IOMC>
+{
+    return std::set<IOMC>{
+        IOMC::absorption, IOMC::rayleigh, IOMC::wavelength_shifting};
+}
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct imported optical model data.
+ * Construct from imported optical model data.
  */
 OpticalModelBuilder::OpticalModelBuilder(ImportData const& data,
                                          UserBuildMap user_build,
-                                         Options options)
+                                         Options /* options */)
     : input_{ImportedOpticalMaterials::from_import(data)}
     , user_build_map_(std::move(user_build))
 {}
 
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from imported optical model data without custom user builders.
+ */
 OpticalModelBuilder::OpticalModelBuilder(ImportData const& data, Options options)
     : OpticalModelBuilder(data, UserBuildMap{}, std::move(options))
 {}
 
-OpticalModelBuilder::~OpticalModelBuilder() = default;
-
-auto OpticalModelBuilder::operator()(IOMC iomc, ActionIdIter start_id) -> SPModel
+//---------------------------------------------------------------------------//
+/*!
+ * Create an optical model from the data.
+ *
+ * An ActionIdIter is used instead of just an action ID in the case where
+ * user models do not produce an action (e.g. when the user decided to
+ * not use a model).
+ */
+auto OpticalModelBuilder::operator()(IOMC iomc, ActionIdIter start_id) const
+    -> SPModel
 {
     // First, look for user-supplied models
     {
@@ -51,11 +68,11 @@ auto OpticalModelBuilder::operator()(IOMC iomc, ActionIdIter start_id) -> SPMode
         }
     }
 
-    using BuilderMemFn = SPModel (OpticalModelBuilder::*)(ActionId);
+    using BuilderMemFn = SPModel (OpticalModelBuilder::*)(ActionId) const;
     static std::unordered_map<IOMC, BuilderMemFn> const builtin_build{
-        {IOMC::absorption, &ProcessBuilder::build_absorption},
-        {IOMC::rayleigh, &ProcessBuilder::build_rayleigh},
-        {IOMC::wavelength_shifting, &ProcessBuilder::build_wls}
+        {IOMC::absorption, &OpticalModelBuilder::build_absorption},
+        {IOMC::rayleigh, &OpticalModelBuilder::build_rayleigh}
+        // , {IOMC::wavelength_shifting, &OpticalModelBuilder::build_wls}
     };
 
     // Next, try built-in models
@@ -64,26 +81,49 @@ auto OpticalModelBuilder::operator()(IOMC iomc, ActionIdIter start_id) -> SPMode
         CELER_VALIDATE(iter != builtin_build.end(),
                        << "cannot build unsupported EM process '"
                        << to_cstring(iomc) << "'");
-        BuilderMemFn build_imp{iter->second};
+        BuilderMemFn build_impl{iter->second};
         auto result = (this->*build_impl)(*start_id++);
         CELER_ENSURE(result);
-        return resutl;
+        return result;
     }
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Helper function to build an optical absorption model.
+ */
 auto OpticalModelBuilder::build_absorption(ActionId id) const -> SPModel
 {
     return std::make_shared<AbsorptionModel>(id, this->imported());
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Helper function to build an optical Rayleigh scattering model.
+ */
 auto OpticalModelBuilder::build_rayleigh(ActionId id) const -> SPModel
 {
-    return std::make_shared<RayleighModel>(id, this->imported());
+    return std::make_shared<OpticalRayleighModel>(id, this->imported());
 }
 
-auto OpticalModelBuilder::build_wls(ActionId id) const -> SPModel
+//---------------------------------------------------------------------------//
+/*!
+ * Helper function to build an optical wavelength shifting model.
+ */
+// auto OpticalModelBuilder::build_wls(ActionId id) const -> SPModel
+// {
+//     return std::make_shared<WavelengthShiftingModel>(id, this->imported());
+// }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the string form of the ImportOpticalModelClass enumeration.
+ */
+char const* to_cstring(ImportOpticalModelClass value)
 {
-    return std::make_shared<WavelengthShiftingModel>(id, this->imported());
+    static EnumStringMapper<ImportOpticalModelClass> const to_cstring_impl{
+        "", "absorption", "rayleigh", "wavelength_shifting"};
+    return to_cstring_impl(value);
 }
 
 //---------------------------------------------------------------------------//

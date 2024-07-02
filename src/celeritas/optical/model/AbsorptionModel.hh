@@ -7,10 +7,16 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+
+#include "celeritas/optical/OpticalModel.hh"
+
 namespace celeritas
 {
+class ImportedOpticalMaterials;
 //---------------------------------------------------------------------------//
 /*!
+ * Set up and launch the optical absorption model interaction.
  */
 class AbsorptionModel : public OpticalModel
 {
@@ -21,28 +27,21 @@ class AbsorptionModel : public OpticalModel
     //!@}
 
   public:
-    AbsorptionModel(ActionId id, SPConstImported imported)
-        : OpticalModel(id, "absorption", "volumetric optical absorption")
-        , imported_(imported)
-    {}
+    //! Construct model with imported data
+    AbsorptionModel(ActionId id, SPConstImported imported);
 
-    void build_mfp(OpticalModelMfpBuilder& build) const override final
-    {
-        builder(imported_->get(builder.optical_material()).absorption.mfp);
-    }
+    //! Build the mean free paths for this model
+    void build_mfp(OpticalModelMfpBuilder& build) const override final;
 
+    //! Execute the model with host data
     void execute(OpticalParams const&, OpticalStateHost&) const override final;
+
+    //! Execute the model with device data
     void execute(OpticalParams const&, OpticalStateDevice&) const override final;
 
   private:
     SPConstImported imported_;
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- */
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

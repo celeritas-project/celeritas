@@ -10,6 +10,12 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Execute the model with device data.
+ */
+void AbsorptionModel::execute(OpticalParams const&, OpticalStateDevice&) const
+{
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

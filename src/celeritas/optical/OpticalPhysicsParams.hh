@@ -7,10 +7,28 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+#include <vector>
+
+#include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
+#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataInterface.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/global/ActionRegistry.hh"
+
+#include "OpticalPhysicsData.hh"
+
 namespace celeritas
 {
+class ImportedOpticalMaterials;
+class OpticalModel;
+class OpticalModelBuilder;
+class ConcreteAction;
+
 //---------------------------------------------------------------------------//
 /*!
+ * Options to construct the optical physics data.
  */
 struct OpticalPhysicsParamsOptions
 {
@@ -18,6 +36,11 @@ struct OpticalPhysicsParamsOptions
 
 //---------------------------------------------------------------------------//
 /*!
+ * Parameter interface for optical physics data.
+ *
+ * Performs the construction of optical physics data and optical models
+ * from imported data, and provides an interface for accessing this data
+ * on the host and on the device.
  */
 class OpticalPhysicsParams : public ParamsDataInterface<OpticalPhysicsParamsData>
 {
@@ -75,9 +98,9 @@ class OpticalPhysicsParams : public ParamsDataInterface<OpticalPhysicsParamsData
 
   private:
     void build_options(Options const&, HostValue*) const;
-    void build_xs(HostValue*) const;
+    void build_mfp(Range<OpticalMaterialId>, HostValue*) const;
 
-    VecModel build_models(OpticalModelBuilder const&, SPConstImported, ActionRegistry&) const;
+    VecModel build_models(OpticalModelBuilder const&, ActionRegistry&) const;
 };
 
 //---------------------------------------------------------------------------//

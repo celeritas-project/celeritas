@@ -7,8 +7,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <vector>
+
+#include "celeritas/grid/GenericGridData.hh"
+#include "celeritas/optical/Types.hh"
+
 namespace celeritas
 {
+class GenericGridBuilder;
+class ImportPhysicsVector;
 //---------------------------------------------------------------------------//
 /*!
  * Builder used by optical models to construct mean free path grids in the
@@ -20,33 +27,44 @@ namespace celeritas
 class OpticalModelMfpBuilder
 {
   public:
-    OpticalModelMfpBuilder(GenericGridBuilder* build_grid, OpticalMaterialId optical_material)
-        : build_grid_(*build_grid), optical_material_(optical_material)
-    {
-        CELER_EXPECT(build_grid_);
-        CELER_EXPECT(optical_material_);
-    }
+    //! Construct builder for a given optical material
+    OpticalModelMfpBuilder(GenericGridBuilder* build_grid,
+                           OpticalMaterialId optical_material);
 
-    void operator()(ImportPhysicsVector const& mfp)
-    {
-        grids_.push_back((*build_grid_)(mfp));
-    }
+    //! Build a grid from the given physics vector
+    void operator()(ImportPhysicsVector const& mfp);
 
-    OpticalMaterialId optical_material() const
-    {
-        return optical_material_;
-    }
+    //! Optical material this builder makes grids for
+    inline OpticalMaterialId optical_material() const;
 
-    std::vector<OpticalValueGrid> const& grids() const
-    {
-        return grids_;
-    }
+    //! Grids built by the builder
+    inline std::vector<GenericGridData> const& grids() const;
 
   private:
     GenericGridBuilder& build_grid_;
     OpticalMaterialId optical_material_;
-    std::vector<OpticalValueGrid> grids_;
+    std::vector<GenericGridData> grids_;
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Retrieve the optical material the grids should be built for.
+ */
+OpticalMaterialId OpticalModelMfpBuilder::optical_material() const
+{
+    return optical_material_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Retrieve all of the grids built by this builder so far.
+ */
+std::vector<GenericGridData> const& OpticalModelMfpBuilder::grids() const
+{
+    return grids_;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

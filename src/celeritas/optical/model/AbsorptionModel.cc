@@ -7,30 +7,53 @@
 //---------------------------------------------------------------------------//
 #include "AbsorptionModel.hh"
 
+#include "celeritas/optical/ImportedOpticalMaterials.hh"
+#include "celeritas/optical/OpticalMfpBuilder.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Construct the model from imported data.
+ */
 AbsorptionModel::AbsorptionModel(ActionId id, SPConstImported imported)
     : OpticalModel(id, "absorption", "interact by optical absorption")
     , imported_(imported)
-{}
-
-auto AbsorptionModel::step_limits(OpticalMaterialId opt_mat) const -> StepLimitBuilder
 {
-    return imported_.step_limits(opt_mat);
+    CELER_EXPECT(imported_);
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Build the mean free paths for the model.
+ */
+void AbsorptionModel::build_mfp(OpticalModelMfpBuilder& build) const
+{
+    build(
+        imported_->get(build.optical_material()).absorption.absorption_length);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Execute the model on the host.
+ */
 void AbsorptionModel::execute(OpticalParams const& params, OpticalStateHost& state) const
 {
-    // TODO: Need an optical state version of make action track executor and launch action?
-    auto execute = make_action_track_executor(
+    /*
+    // TODO: Need an optical state version of make action track executor and
+    launch action? auto execute = make_action_track_executor(
             params.ptr<MemSpace::native>(),
             state.ptr(),
             this->action_id(),
             InteractionApplier{AbsorptionExecutor{}});
     return launch_action(*this, params, state, execute);
+    */
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Execute the model on the device.
+ */
 #if !CELER_USE_DEVICE
 void AbsorptionModel::execute(OpticalParams const&, OpticalStateDevice&) const
 {

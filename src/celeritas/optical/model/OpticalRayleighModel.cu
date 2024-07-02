@@ -3,13 +3,20 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/model/RayleighModel.cu
+//! \file celeritas/optical/model/OpticalRayleighModel.cu
 //---------------------------------------------------------------------------//
-#include "RayleighModel.hh"
+#include "OpticalRayleighModel.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Execute model on device.
+ */
+void OpticalRayleighModel::execute(OpticalParams const&,
+                                   OpticalStateDevice&) const
+{
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

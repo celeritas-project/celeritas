@@ -15,6 +15,9 @@ namespace celeritas
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
 
+//! Opaque index to an optical model
+using OpticalModelId = OpaqueId<struct OpticalModel>;
+
 //! Opaque index to a material with optical properties
 using OpticalMaterialId = OpaqueId<struct OpticalMaterial_>;
 

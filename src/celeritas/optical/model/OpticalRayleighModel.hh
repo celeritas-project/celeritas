@@ -3,16 +3,27 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/model/RayleighModel.hh
+//! \file celeritas/optical/model/OpticalRayleighModel.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+
+#include "corecel/data/CollectionMirror.hh"
+#include "corecel/data/ParamsDataInterface.hh"
+#include "celeritas/optical/OpticalModel.hh"
+
+#include "OpticalRayleighData.hh"
+
 namespace celeritas
 {
+class ImportedOpticalMaterials;
 //---------------------------------------------------------------------------//
 /*!
+ * Set up and launch the optical Rayleigh scattering model interaction.
  */
-class RayleighModel : public OpticalModel, public ParamsDataInterface<RayleighData>
+class OpticalRayleighModel : public OpticalModel,
+                             public ParamsDataInterface<OpticalRayleighData>
 {
   public:
     //!@{
@@ -21,32 +32,29 @@ class RayleighModel : public OpticalModel, public ParamsDataInterface<RayleighDa
     //!@}
 
   public:
-    RayleighModel(ActionId id, SPConstImported imported)
-        : OpticalModel(id, "rayleigh", "optical rayleigh scattering")
-        , imported_(imported)
-    {
-        CELER_EXPECT(imported_);
-    }
+    //! Construct the model from imported data
+    OpticalRayleighModel(ActionId id, SPConstImported imported);
 
-    void build_mfp(OpticalModelMfpBuilder& builder) const override final
-    {
-        builder(imported_->get(builder.optical_material()).rayleigh.mfp);
-    }
+    //! Build mean free paths
+    void build_mfp(OpticalModelMfpBuilder& builder) const override final;
 
+    //! Execute model on host
     void execute(OpticalParams const&, OpticalStateHost&) const override final;
-    void execute(OpticalParams const&, OpticalStateDevice&) const override final;
 
+    //! Execute model on device
+    void
+    execute(OpticalParams const&, OpticalStateDevice&) const override final;
+
+    //! Retrieve host reference to model data
     HostRef const& host_ref() const { return data_.host_ref(); }
+
+    //! Retrieve device reference to model data
     DeviceRef const& device_ref() const { return data_.device_ref(); }
 
   private:
-    CollectionMirror<RayleighData> data_;
+    CollectionMirror<OpticalRayleighData> data_;
     SPConstImported imported_;
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
