@@ -12,10 +12,10 @@
 #include "celeritas/grid/GenericGridBuilder.hh"
 #include "celeritas/phys/detail/DiscreteSelectAction.hh"
 
-#include "ImportedOpticalMaterials.hh"
 #include "OpticalMfpBuilder.hh"
 #include "OpticalModel.hh"
 #include "OpticalModelBuilder.hh"
+#include "OpticalPropertyParams.hh"
 
 namespace celeritas
 {
@@ -39,8 +39,7 @@ OpticalPhysicsParams::OpticalPhysicsParams(
     // Construct data on host
     HostValue host_data;
     this->build_options(input.options, &host_data);
-    this->build_mfp(range(OpticalMaterialId{input.imported->size()}),
-                    &host_data);
+    this->build_mfp(input.properties, &host_data);
 
     // Copy data to device
     data_ = CollectionMirror<OpticalPhysicsParamsData>{std::move(host_data)};
@@ -91,7 +90,7 @@ auto OpticalPhysicsParams::build_models(OpticalModelBuilder const& model_builder
 /*!
  * Build mean free paths for all optical models.
  */
-void OpticalPhysicsParams::build_mfp(Range<OpticalMaterialId> optical_materials,
+void OpticalPhysicsParams::build_mfp(SPConstProperties properties,
                                      HostValue* data) const
 {
     GenericGridBuilder reals_builder{&data->reals};
@@ -99,7 +98,8 @@ void OpticalPhysicsParams::build_mfp(Range<OpticalMaterialId> optical_materials,
     auto mfp_builder = CollectionBuilder{&data->mat_model_mfp};
 
     // Loop over all optical materials
-    for (auto opt_mat_id : optical_materials)
+    for (auto opt_mat_id : range(OpticalMaterialId{
+             properties->host_ref().refractive_index.size()}))
     {
         OpticalModelMfpBuilder model_mfp_builder{&reals_builder, opt_mat_id};
 

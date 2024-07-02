@@ -21,7 +21,7 @@
 
 namespace celeritas
 {
-class ImportedOpticalMaterials;
+class OpticalPropertyParams;
 class OpticalModel;
 class OpticalModelBuilder;
 class ConcreteAction;
@@ -48,7 +48,7 @@ class OpticalPhysicsParams : public ParamsDataInterface<OpticalPhysicsParamsData
     //!@{
     //! \name Type aliases
     using SPConstModel = std::shared_ptr<OpticalModel const>;
-    using SPConstImport = std::shared_ptr<ImportedOpticalMaterials const>;
+    using SPConstProperties = std::shared_ptr<OpticalPropertyParams const>;
 
     using ActionIdRange = Range<ActionId>;
     using Options = OpticalPhysicsParamsOptions;
@@ -58,7 +58,7 @@ class OpticalPhysicsParams : public ParamsDataInterface<OpticalPhysicsParamsData
     //! Optical physics parameter construction arguments
     struct Input
     {
-        SPConstImport imported;
+        SPConstProperties properties;
         ActionRegistry* action_registry = nullptr;
         Options options;
     };
@@ -98,7 +98,7 @@ class OpticalPhysicsParams : public ParamsDataInterface<OpticalPhysicsParamsData
 
   private:
     void build_options(Options const&, HostValue*) const;
-    void build_mfp(Range<OpticalMaterialId>, HostValue*) const;
+    void build_mfp(SPConstProperties, HostValue*) const;
 
     VecModel build_models(OpticalModelBuilder const&, ActionRegistry&) const;
 };
