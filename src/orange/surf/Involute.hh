@@ -171,7 +171,7 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     }
 
     /*
-     * Check if point is inside involute
+     * Check if point is in interval
      */
 
     // Calculate tangents

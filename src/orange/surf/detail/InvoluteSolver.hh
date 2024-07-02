@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/surf/detail/QuadraticSolver.hh
+//! \file orange/surf/detail/InvoluteSolver.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -29,8 +29,7 @@ using constants::pi;
  * The involute intersection equation \f[
    r_b * [v{cos(t+a)+tsin(t+a)} + u{sin(t+a)-tcos(t+a)}] + xv - yu = 0
  * \f]
- * has n solutions mathematically, but we only want solutions where t is
- results
+ * has n solutions mathematically, but we only want solutions where t results
  * in a real, positive, and in the defined bounds.  Furthermore the equation is
  * subject to catastrophic roundoff due to floating point precision (see
  * \c Tolerance::sqrt_quadratic and the derivation in \c CylAligned ).
@@ -46,7 +45,7 @@ class InvoluteSolver
     using Intersections = Array<real_type, 3>;
 
   public:
-    // Construct with
+    // Construct Involute from parameters
     inline CELER_FUNCTION InvoluteSolver(real_type r_b_,
                                          real_type a_,
                                          real_type sign_,
@@ -85,7 +84,7 @@ class InvoluteSolver
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct from radius.
+ * Construct from involute parameters.
  */
 CELER_FUNCTION InvoluteSolver::InvoluteSolver(
     real_type r_b, real_type a, real_type sign, real_type tmin, real_type tmax)
@@ -148,6 +147,8 @@ InvoluteSolver::operator()(Real3 const& pos,
     Array<real_type, 3> dist;
     real_type j = 0;
 
+    // Convert 2-D distance to 3-D distance
+
     real_type convert = std::sqrt(ipow<2>(v) + ipow<2>(u) + ipow<2>(w))
                         / std::sqrt(ipow<2>(v) + ipow<2>(u));
 
@@ -174,8 +175,10 @@ InvoluteSolver::operator()(Real3 const& pos,
         j++;
     }
 
-    real_type beta;
     // Line angle parameter
+
+    real_type beta;
+
     if (u != 0)
     {
         beta = std::atan(-v / u);
