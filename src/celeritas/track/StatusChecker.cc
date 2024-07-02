@@ -90,6 +90,8 @@ void StatusChecker::execute(ActionId prev_action,
                             CoreState<M>& state) const
 {
     CELER_EXPECT(prev_action);
+    CELER_EXPECT(params.action_reg()->num_actions()
+                 == this->ref<M>().orders.size());
 
     using StateT = AuxStateData<StatusCheckStateData, M>;
     auto& aux_state = get<StateT>(state.aux(), aux_id_).ref();

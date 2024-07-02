@@ -33,7 +33,9 @@ class CoreState;
  * and simulation state are consistent.
  *
  * Since this is called manually by the stepper, multiple times per step, it is
- * \em not an "explicit" action.
+ * \em not an "explicit" action. It's meant to be
+ *
+ * It \em must be created after all actions have been registered.
  */
 class StatusChecker final : public AuxParamsInterface,
                             public ParamsDataInterface<StatusCheckParamsData>

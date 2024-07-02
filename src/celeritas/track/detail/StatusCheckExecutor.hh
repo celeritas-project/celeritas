@@ -84,7 +84,7 @@ CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
     if (state.order > ActionOrder::pre)
     {
         SCE_ASSERT(last_along_step == next_along_step,
-                   "along-step action can't yet change");
+                   "along-step action cannot yet change");
     }
 
     ActionId const last_post_step = state.post_step_action[tsid];
