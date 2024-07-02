@@ -57,12 +57,12 @@ class Involute
 
   public:
     //// CONSTRUCTORS ////
-    static Involute involute(Real3 const& origin,
-                             real_type radius,
-                             real_type a,
-                             real_type sign,
-                             real_type tmin,
-                             real_type tmax);
+    explicit Involute(Real3 const& origin,
+                      real_type radius,
+                      real_type a,
+                      real_type sign,
+                      real_type tmin,
+                      real_type tmax);
 
     // Construct from raw data
     template<class R>
@@ -109,9 +109,6 @@ class Involute
     // Bounds
     real_type tmin_;
     real_type tmax_;
-
-    //! Private default constructor for manual construction
-    Involute() = default;
 };
 
 //---------------------------------------------------------------------------//

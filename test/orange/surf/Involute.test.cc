@@ -25,7 +25,7 @@ namespace test
 {
 TEST(InvoluteTest, construction)
 {
-    auto invo = Involute::involute({1, 0, 1}, 2.0, 0.2, -1.0, 1.0, 3.0);
+    Involute invo{{1, 0, 1}, 2.0, 0.2, -1.0, 1.0, 3.0};
     EXPECT_VEC_SOFT_EQ((Real3{1, 0, 1}), invo.origin());
     EXPECT_SOFT_EQ(2.0, invo.r_b());
     EXPECT_SOFT_EQ(0.2, invo.a());
@@ -36,8 +36,7 @@ TEST(InvoluteTest, construction)
 
 TEST(InvoluteTest, sense)
 {
-    auto invo = Involute::involute(
-        {1, 0, 1}, 1.0, 0.5 * pi, 1.0, 1.732050808, 8.01536114);
+    Involute invo{{1, 0, 1}, 1.0, 0.5 * pi, 1.0, 1.732050808, 8.01536114};
     EXPECT_EQ(SignedSense::outside, invo.calc_sense({0, 0, 1}));
     EXPECT_EQ(SignedSense::outside, invo.calc_sense({0, 1.0, 1}));
     EXPECT_EQ(SignedSense::outside, invo.calc_sense({5, 9.0, 1}));
@@ -46,7 +45,7 @@ TEST(InvoluteTest, sense)
     EXPECT_EQ(SignedSense::inside, invo.calc_sense({6, 2.5, 1}));
     EXPECT_EQ(SignedSense::outside, invo.calc_sense({-5, -5, 1}));
 
-    auto invo2 = Involute::involute({1, 0, 1}, 1.0, 0.0, 1.0, 1.0, 8.01536114);
+    Involute invo2{{1, 0, 1}, 1.0, 0.0, 1.0, 1.0, 8.01536114};
     EXPECT_EQ(SignedSense::on,
               invo2.calc_sense({
                   2.0,
@@ -57,7 +56,7 @@ TEST(InvoluteTest, sense)
 
 TEST(Involute, normal)
 {
-    auto invo = Involute::involute({0, 0, 0}, 1.0, 0.5 * pi, 1.0, 0, 3.28);
+    Involute invo{{0, 0, 0}, 1.0, 0.5 * pi, 1.0, 0, 3.28};
 
     EXPECT_VEC_SOFT_EQ(
         make_unit_vector(Real3{0.875820953349345, 0.48263615454527, 0}),
@@ -67,8 +66,7 @@ TEST(Involute, normal)
 TEST(Involute, solve_intersect)
 {
     // z coord of origin does not matter
-    auto invo
-        = Involute::involute({1, 1, 200}, 1.1, -0.5 * pi, 1.0, 0, 1.99 * pi);
+    Involute invo{{1, 1, 200}, 1.1, -0.5 * pi, 1.0, 0, 1.99 * pi};
 
     double u = 0.9933558377574788 * std::sin(1);
     double v = -0.11508335932330707 * std::sin(1);
