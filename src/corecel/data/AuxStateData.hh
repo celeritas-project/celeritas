@@ -66,7 +66,7 @@ class AuxStateData : public AuxStateInterface
  *
  * Example:
  * \code
-    return make_aux_state<ParticleTallyStateData, ParticleTallyParamsData>(
+    return make_aux_state<ParticleTallyStateData>(
         *this, memspace, stream, size);
  * \endcode
  */

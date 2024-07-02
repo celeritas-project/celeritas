@@ -71,6 +71,7 @@ celeritas_add_test_library(testcel_celeritas
   em/MscTestBase.cc
   field/FieldTestBase.cc
   global/AlongStepTestBase.cc
+  global/DummyAction.cc
   global/StepperTestBase.cc
   grid/CalculatorTestBase.cc
   io/EventIOTestBase.cc
@@ -210,13 +211,12 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
     "SimpleCmsRZFieldAlongStepTest.msc_rzfield_finegrid"
   )
   set(_stepper_filter
-    "-TestEm*:OneSteelSphere*"
+    "-TestEm*"
     "TestEm3Compton.*"
     "TestEm3NoMsc.*"
     "TestEm3Msc.*"
     "TestEm3MscNofluct.*"
     "TestEm15FieldMsc.*"
-    "OneSteelSphere.*"
   )
   if(Geant4_VERSION VERSION_LESS 11.0)
     list(REMOVE_ITEM _along_step_filter
@@ -232,7 +232,7 @@ elseif(CELERITAS_USE_Geant4)
     "LeadBox*"
   )
   set(_stepper_filter
-    "-TestEm*:OneSteelSphere*"
+    "-TestEm*"
     "TestEm3Compton.*"
     "TestEm3Msc.*"
     "TestEm3MscNofluct.*"
@@ -251,7 +251,11 @@ celeritas_add_test(global/KernelContextException.test.cc
   NT 1 LINK_LIBRARIES nlohmann_json::nlohmann_json
 )
 celeritas_add_test(global/Stepper.test.cc
-  GPU NT 4 ${_optional_geant4_env}
+  GPU NT 4
+)
+celeritas_add_test(global/StepperGeant.test.cc
+  ${_needs_geant4}
+  GPU NT 4
   FILTER ${_stepper_filter}
 )
 

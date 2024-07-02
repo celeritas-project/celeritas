@@ -211,7 +211,7 @@ TEST_F(TestTrackPartitionEm3Stepper, host_is_partitioned)
             span.begin(),
             span.end(),
             [&status = step.state_ref().sim.status](auto const track_slot) {
-                return status[TrackSlotId{track_slot}] == TrackStatus::alive;
+                return status[TrackSlotId{track_slot}] != TrackStatus::inactive;
             });
     };
 

@@ -28,8 +28,9 @@ namespace celeritas
  */
 MuBetheBlochModel::MuBetheBlochModel(ActionId id,
                                      ParticleParams const& particles)
-    : ConcreteAction(
-        id, "ioni-mu-bethe-bloch", "interact by muon ionization (Bethe-Bloch)")
+    : ConcreteAction(id,
+                     "ioni-mu-bethe-bloch",
+                     "interact by muon ionization (Bethe-Bloch)")
 {
     CELER_EXPECT(id);
     data_.electron = particles.find(pdg::electron());

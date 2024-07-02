@@ -28,6 +28,8 @@ using ThreadItems
 
 using TrackSlots = ThreadItems<TrackSlotId::size_type>;
 
+//---------------------------------------------------------------------------//
+//! Partition track slots based on a unary predicate
 template<class F>
 void partition_impl(TrackSlots const& track_slots, F&& func)
 {
@@ -36,7 +38,7 @@ void partition_impl(TrackSlots const& track_slots, F&& func)
 }
 
 //---------------------------------------------------------------------------//
-
+//! Sort track slots based on a binary predicate
 template<class F>
 void sort_impl(TrackSlots const& track_slots, F&& func)
 {
@@ -45,11 +47,29 @@ void sort_impl(TrackSlots const& track_slots, F&& func)
 }
 
 //---------------------------------------------------------------------------//
+//! Compare indices by indirection from a track slot index
+template<class Id>
+struct IdLess
+{
+    ObserverPtr<Id const> ids_;
+
+    bool operator()(size_type a, size_type b) const
+    {
+        return ids_.get()[a] < ids_.get()[b];
+    }
+};
+
+template<class Id>
+IdLess(ObserverPtr<Id>) -> IdLess<Id>;
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize default threads to track_slots mapping, track_slots[i] = i
+ * Initialize default threads to track_slots mapping.
+ *
+ * This sets \code track_slots[i] = i \endcode .
  */
 template<>
 void fill_track_slots<MemSpace::host>(Span<TrackSlotId::size_type> track_slots,
@@ -58,8 +78,9 @@ void fill_track_slots<MemSpace::host>(Span<TrackSlotId::size_type> track_slots,
     std::iota(track_slots.data(), track_slots.data() + track_slots.size(), 0);
 }
 
+//---------------------------------------------------------------------------//
 /*!
- * Shuffle track slots
+ * Shuffle track slots.
  */
 template<>
 void shuffle_track_slots<MemSpace::host>(
@@ -80,14 +101,14 @@ void sort_tracks(HostRef<CoreStateData> const& states, TrackOrder order)
     {
         case TrackOrder::partition_status:
             return partition_impl(states.track_slots,
-                                  AlivePredicate{states.sim.status.data()});
+                                  IsNotInactive{states.sim.status.data()});
         case TrackOrder::sort_along_step_action:
         case TrackOrder::sort_step_limit_action:
             return sort_impl(states.track_slots,
-                             IdComparator{get_action_ptr(states, order)});
+                             IdLess{get_action_ptr(states, order)});
         case TrackOrder::sort_particle_type:
             return sort_impl(states.track_slots,
-                             IdComparator{states.particles.particle_id.data()});
+                             IdLess{states.particles.particle_id.data()});
         default:
             CELER_ASSERT_UNREACHABLE();
     }
