@@ -112,6 +112,7 @@ void ExtendFromSecondariesAction::locate_alive(CoreParams const& core_params,
 void ExtendFromSecondariesAction::process_secondaries(
     CoreParams const& core_params, CoreStateHost& core_state) const
 {
+    // TODO: wrap with a regular track executor but without remapping slots?
     detail::ProcessSecondariesExecutor execute{
         core_params.ptr<MemSpace::native>(),
         core_state.ptr(),

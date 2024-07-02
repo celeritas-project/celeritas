@@ -34,9 +34,9 @@ namespace celeritas
  * \endcode
  */
 template<class F>
-void launch_core(celeritas::CoreParams const& params,
+void launch_core(std::string_view label,
+                 celeritas::CoreParams const& params,
                  celeritas::CoreState<MemSpace::host>& state,
-                 std::string_view label,
                  F&& execute_thread)
 {
     MultiExceptionHandler capture_exception;
@@ -74,7 +74,7 @@ void launch_action(ExplicitActionInterface const& action,
                    F&& execute_thread)
 {
     return launch_core(
-        params, state, action.label(), std::forward<F>(execute_thread));
+        action.label(), params, state, std::forward<F>(execute_thread));
 }
 
 //---------------------------------------------------------------------------//
