@@ -19,6 +19,7 @@
 #include "celeritas/em/data/MuBetheBlochData.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/InteractionUtils.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
@@ -209,20 +210,16 @@ CELER_FUNCTION Interaction MuBetheBlochInteractor::operator()(Engine& rng)
     CELER_ASSERT(costheta <= 1);
 
     // Sample and save outgoing secondary data
-    UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
     secondary->direction
-        = rotate(from_spherical(costheta, sample_phi(rng)), inc_direction_);
+        = ExitingDirectionSampler{costheta, inc_direction_}(rng);
     secondary->energy = Energy{secondary_energy};
     secondary->particle_id = shared_.electron;
 
     Interaction result;
     result.energy = Energy{inc_energy_ - secondary_energy};
-    for (int i = 0; i < 3; ++i)
-    {
-        result.direction[i] = inc_momentum_ * inc_direction_[i]
-                              - secondary_momentum * secondary->direction[i];
-    }
-    result.direction = make_unit_vector(result.direction);
+    result.direction
+        = calc_exiting_direction({inc_momentum_, inc_direction_},
+                                 {secondary_momentum, secondary->direction});
     result.secondaries = {secondary, 1};
 
     return result;

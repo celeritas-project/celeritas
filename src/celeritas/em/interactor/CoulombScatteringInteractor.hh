@@ -19,6 +19,7 @@
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/InteractionUtils.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 
 #include "detail/PhysicsConstants.hh"
@@ -143,9 +144,7 @@ CELER_FUNCTION Interaction CoulombScatteringInteractor::operator()(Engine& rng)
 
     // Sample the new direction
     real_type cos_theta = sample_angle_(rng);
-    UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
-    result.direction
-        = rotate(inc_direction_, from_spherical(cos_theta, sample_phi(rng)));
+    result.direction = ExitingDirectionSampler{cos_theta, inc_direction_}(rng);
 
     // Recoil energy is kinetic energy transfered to the atom
     real_type inc_energy = value_as<Energy>(particle_.energy());
