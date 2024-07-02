@@ -109,7 +109,7 @@ CELER_FUNCTION auto
 InvoluteSolver::operator()(Real3 const& pos,
                            Real3 const& dir) const -> Intersections
 {
-    // Expand translated positions into 'xyz' coordinate system
+    // Flatten pos and dir in xyz and uv respectively
     real_type const x = pos[0];
     real_type const y = pos[1];
     real_type const z = pos[2];
@@ -118,7 +118,7 @@ InvoluteSolver::operator()(Real3 const& pos,
     real_type const v = dir[1];
     real_type const w = dir[2];
 
-    // Lambda used for calculating the roots
+    // Lambda used for calculating the roots using Regular Flasi Iteration
     auto root = [](real_type t,
                    real_type x,
                    real_type y,
@@ -144,10 +144,11 @@ InvoluteSolver::operator()(Real3 const& pos,
         return result;
     }
 
+    // Initialize distance vecctor with root counter j
     Array<real_type, 3> dist;
     real_type j = 0;
 
-    // Convert 2-D distance to 3-D distance
+    // Convertion constant for 2-D distance to 3-D distance
 
     real_type convert = std::sqrt(ipow<2>(v) + ipow<2>(u) + ipow<2>(w))
                         / std::sqrt(ipow<2>(v) + ipow<2>(u));
@@ -162,7 +163,7 @@ InvoluteSolver::operator()(Real3 const& pos,
     real_type const tolPoint = 1e-7;
     real_type const tolConv = 1e-8;
 
-    // Particle on surface has distance of 0 to surface.
+    // Check if particle is on a surface within tolerence, and add a 0 distance
 
     real_type const rxy2 = ipow<2>(x) + ipow<2>(y);
     real_type const tPoint = std::sqrt((rxy2 / (ipow<2>(r_b_))) - 1);
@@ -181,8 +182,9 @@ InvoluteSolver::operator()(Real3 const& pos,
 
     if (u != 0)
     {
+        // Standard method
         beta = std::atan(-v / u);
-    }
+    }  // Edge case
     else if (-v < 0)
     {
         beta = pi * -0.5;
@@ -200,12 +202,14 @@ InvoluteSolver::operator()(Real3 const& pos,
     {
         tLower = 0;
         tUpper = beta - a_;
+        // Move tUpper to be  first bound above 0
         tUpper += std::fmax(0, -std::floorf(tUpper / pi)) * pi;
     }
     else if (sign_ < 0)
     {
         tUpper = 0;
         tLower = beta - a_ + 2 * pi;
+        // Move tLower to be first bound below 0
         tLower -= std::fmax(0, std::ceilf(tLower / pi)) * pi;
     }
 
@@ -226,29 +230,36 @@ InvoluteSolver::operator()(Real3 const& pos,
     while ((tLower < tmax_ && sign_ > 0)
            | (std::fabs(tUpper) < tmax_ && sign_ < 0))
     {
+        // Set bounds on current iteration
         talpha = tLower;
         tbeta = tUpper;
 
+        // Find value in root function
         ftalpha = root(talpha, x, y, u, v, r_b_, a_);
         ftbeta = root(tbeta, x, y, u, v, r_b_, a_);
 
+        // If bounds exceed tmax break
         if ((talpha > tmax_ && sign_ == 1.0)
             | (std::fabs(tbeta) > std::fabs(tmax_) && sign_ == -1.0))
         {
             break;
         }
 
+        // Only iterate when roots have different signs
         if ((0 < ftalpha) - (ftalpha < 0) != (0 < ftbeta) - (ftbeta < 0))
         {
             // Regula Falsi Iteration
             ftgamma = 1;
             while (std::fabs(ftgamma) >= tolConv)
             {
+                // Iterate on root
                 tgamma = (talpha * ftbeta - tbeta * ftalpha)
                          / (ftbeta - ftalpha);
 
+                // Obtain root value of iterated root
                 ftgamma = root(tgamma, x, y, u, v, r_b_, a_);
 
+                // Update bounds with iterated root
                 if ((0 < ftbeta) - (ftbeta < 0)
                     == (0 < ftgamma) - (ftgamma < 0))
                 {
@@ -261,6 +272,7 @@ InvoluteSolver::operator()(Real3 const& pos,
                     ftalpha = root(talpha, x, y, u, v, r_b_, a_);
                 }
             }
+            // Extract root and calculate point on involute
             t = tgamma;
             angle = t + a_;
             xInv = r_b_ * (std::cos(angle) + t * std::sin(angle));
@@ -270,13 +282,15 @@ InvoluteSolver::operator()(Real3 const& pos,
             if (std::fabs(tgamma) >= std::fabs(tmin_) - tolPoint
                 && std::fabs(tgamma) <= std::fabs(tmax_))
             {
+                // Obatin direction to point on Involute
                 u2 = xInv - x;
                 v2 = yInv - y;
 
+                // Dot with direction of particle
                 dot = u * u2 + v * v2;
-
+                // Obtain distance to point
                 real_type newdist = std::sqrt(ipow<2>(u2) + ipow<2>(v2));
-
+                // Only record distance if dot product is positive
                 if (dot >= 0 && newdist > tolPoint)
                 {
                     dist[j] = newdist;
@@ -299,6 +313,7 @@ InvoluteSolver::operator()(Real3 const& pos,
         else
         {
             // Incremet interval slowly until root is in interval
+            // i used to slow down approach to next root
             if (sign_ == 1)
             {
                 tLower = tUpper;
@@ -314,6 +329,7 @@ InvoluteSolver::operator()(Real3 const& pos,
 
         for (int k = 0; k < j; k++)
         {
+            // Convert 2-D distances to 3-D distances
             result[k] = dist[k] * convert;
         }
     }
