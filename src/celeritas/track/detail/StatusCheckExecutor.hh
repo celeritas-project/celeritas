@@ -7,9 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/track/SimTrackView.hh"
+
+#include "../StatusCheckData.hh"
 
 //! Check that the condition is true, otherwise throw an error/assertion
 #define SCE_ASSERT(COND, MSG)                                         \

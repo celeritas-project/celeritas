@@ -8,7 +8,7 @@
 #include "StatusChecker.hh"
 
 #include "corecel/Assert.hh"
-#include "corecel/sys/ScopedProfiling.hh"
+#include "corecel/sys/Stream.hh"
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -19,6 +19,24 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Execute with with the last action's ID and the state.
+ */
+void StatusChecker::launch_impl(
+    CoreParams const& params,
+    CoreState<MemSpace::device>& state,
+    StatusStateRef<MemSpace::device> const& aux_state) const
+{
+    TrackExecutor execute_thread{
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        detail::StatusCheckExecutor{this->ref<MemSpace::native>(), aux_state}};
+    static ActionLauncher<decltype(execute_thread)> const launch_kernel(
+        this->label());
+    launch_kernel(state, execute_thread);
+    CELER_DEVICE_CALL_PREFIX(StreamSynchronize(
+        celeritas::device().stream(state.stream_id()).get()));
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

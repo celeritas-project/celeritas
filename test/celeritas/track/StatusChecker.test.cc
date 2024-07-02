@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/track/StatusChecker.hh"
 
+#include "corecel/Types.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Logger.hh"
@@ -28,9 +29,9 @@ void copy_to_device(Collection<T, W, MemSpace::host, I> const& src,
                     Collection<T, W2, MemSpace::device, I> const& dst)
 {
     CELER_EXPECT(src.size() == dst.size());
-    Copier<T, MemSpace::host> copy_to_result{
+    Copier<T, MemSpace::device> copy_to_device{
         dst[AllItems<T, MemSpace::device>{}]};
-    copy_to_result(MemSpace::host, src[AllItems<T, MemSpace::host>{}]);
+    copy_to_device(MemSpace::host, src[AllItems<T, MemSpace::host>{}]);
 }
 
 //---------------------------------------------------------------------------//
@@ -127,6 +128,11 @@ class StatusCheckerTest : public SimpleTestBase
         {
             actual_message = e.details().condition;
         }
+        catch (RuntimeError const& e)
+        {
+            // This gets thrown if a CUDA assert is triggered
+            actual_message = e.details().what;
+        }
 
         EXPECT_TRUE(actual_message.find(match) != std::string::npos)
             << "Actual message: '" << actual_message << "'";
@@ -184,10 +190,11 @@ TEST_F(StatusCheckerTest, host)
 TEST_F(StatusCheckerTest, TEST_IF_CELER_DEVICE(device))
 {
     CoreState<MemSpace::device> state{*this->core(), StreamId{0}, 128};
-    state.insert_primaries(make_span(this->make_primaries(32)));
+    state.insert_primaries(make_span(this->make_primaries(64)));
 
     // Check that the first half of a stepping loop is fine
     for (auto label : {"extend-from-primaries",
+                       "initialize-tracks",
                        "pre-step",
                        "physics-discrete-select",
                        "scat-klein-nishina"})
@@ -197,15 +204,18 @@ TEST_F(StatusCheckerTest, TEST_IF_CELER_DEVICE(device))
     }
 
     // Incorrectly and hackily adjust the state
+    TrackSlotId const target_track{72};
     StateCollection<ActionId, Ownership::value, MemSpace::host> post_step;
     post_step = state.ref().sim.post_step_action;
-    CELER_ASSERT(post_step.size() == state.size());
-    post_step[TrackSlotId{4}] = this->find_action("physics-discrete-select");
+    ASSERT_EQ(post_step.size(), state.size());
+    ASSERT_NE(ActionId{}, post_step[target_track]);
+    EXPECT_EQ("scat-klein-nishina", this->id_to_label(post_step[target_track]));
+    post_step[target_track] = this->find_action("physics-discrete-select");
     copy_to_device(post_step, state.ref().sim.post_step_action);
 
     this->check_throw(this->find_action("scat-klein-nishina"),
                       state,
-                      "new post-step action is out of order");
+                      "device-side assert triggered");
 }
 
 //---------------------------------------------------------------------------//
