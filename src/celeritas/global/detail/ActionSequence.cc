@@ -20,6 +20,7 @@
 #include "corecel/sys/Stopwatch.hh"
 #include "corecel/sys/Stream.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/track/StatusChecker.hh"
 
 #include "../ActionInterface.hh"
 #include "../ActionRegistry.hh"
@@ -59,7 +60,7 @@ ActionSequence<Params>::ActionSequence(ActionRegistry const& reg,
         if (auto brun = std::dynamic_pointer_cast<BeginRunActionInterface>(base))
         {
             // Add beginning-of-run to the array
-            begin_run_.push_back(std::move(brun));
+            begin_run_.emplace_back(std::move(brun));
         }
     }
 
@@ -74,6 +75,19 @@ ActionSequence<Params>::ActionSequence(ActionRegistry const& reg,
 
     // Initialize timing
     accum_time_.resize(actions_.size());
+
+    // Get status checker if available
+    for (auto const& brun_sp : begin_run_)
+    {
+        if (auto sc = std::dynamic_pointer_cast<StatusChecker>(brun_sp))
+        {
+            // Add status checker
+            status_checker_ = std::move(sc);
+            CELER_LOG(info) << "Executing actions with additional debug "
+                               "checking";
+            break;
+        }
+    }
 
     CELER_ENSURE(actions_.size() == accum_time_.size());
 }
@@ -134,6 +148,10 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
                     CELER_DEVICE_CALL_PREFIX(StreamSynchronize(stream));
                 }
                 accum_time_[i] += get_time();
+                if (CELER_UNLIKELY(status_checker_))
+                {
+                    status_checker_->execute(action.action_id(), params, state);
+                }
             }
         }
     }
@@ -146,6 +164,10 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
             {
                 ScopedProfiling profile_this{action.label()};
                 action.execute(params, state);
+                if (CELER_UNLIKELY(status_checker_))
+                {
+                    status_checker_->execute(action.action_id(), params, state);
+                }
             }
         }
     }

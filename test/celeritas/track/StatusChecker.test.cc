@@ -41,8 +41,8 @@ class StatusCheckerTest : public SimpleTestBase
   protected:
     void SetUp() override
     {
-        // Create core params to set up actions
-        this->core();
+        // Disable base-class status checker
+        this->disable_status_checker();
 
         // Create status checker
         auto& action_reg = *this->action_reg();
@@ -50,6 +50,7 @@ class StatusCheckerTest : public SimpleTestBase
         status_checker_ = std::make_shared<StatusChecker>(action_reg.next_id(),
                                                           aux_reg.next_id());
         aux_reg.insert(status_checker_);
+        action_reg.insert(status_checker_);
     }
 
     // Create primary particles
