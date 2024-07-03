@@ -25,11 +25,25 @@ using constants::pi;
 /*!
  * Involute:
  *
+ * Involutes are curves are created by unwinding a chord from a parent shape.
+ * The involute implemented here is constructed from a circle and can be made
+to
+ * be clockwise (negative) or anti-clockwise (positive).
+ * This involute is the same type of that found in HFIR, and is necessary for
+ * building accurate models.
+ *
+ * While the parameters define the curve itself have no restriction, except for
+ * the radius of involute being positive, the involute needs to be bounded for
+ * there to be finite solutions to the roots of the intersection points.
+ * Additionally this bound cannot exceed an interval of size of 2 to be able to
+ * determine if whether a particle is in, out, or on the involute surface.
+ * Lastly the involute geometry is fixed to be z-aligned.
+ *
  * \f[
-    x = r_b * (cos(t+a) + tsin(t+a)) + x_0
-    y = r_b * (sin(t+a) - tcos(t+a)) + y_0
-   \f]
-
+ *   x = r_b * (cos(t+a) + tsin(t+a)) + x_0
+ *   y = r_b * (sin(t+a) - tcos(t+a)) + y_0
+ *  \f]
+ *
  * where \em t is the normal angle of the tangent to the circle of involute
  with
  * radius \em r_b from a starting angle of \em a (\f$r/h\f$ for a finite cone.
