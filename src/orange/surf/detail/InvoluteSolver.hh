@@ -61,7 +61,7 @@ class InvoluteSolver
     //! Get involute parameters
     CELER_FUNCTION real_type r_b() const { return r_b_; }
     CELER_FUNCTION real_type a() const { return a_; }
-    CELER_FUNCTION real_type sign() const { return sign_; }
+    CELER_FUNCTION real_type sign() const { return mirror_; }
 
     //! Get bounds of the involute
     CELER_FUNCTION real_type tmin() const { return tmin_; }
@@ -72,7 +72,7 @@ class InvoluteSolver
     // Involute parameters
     real_type r_b_;
     real_type a_;
-    real_type sign_;
+    bool mirror_;
 
     // Bounds
     real_type tmin_;
@@ -88,11 +88,16 @@ class InvoluteSolver
  */
 CELER_FUNCTION InvoluteSolver::InvoluteSolver(
     real_type r_b, real_type a, real_type sign, real_type tmin, real_type tmax)
-    : r_b_(r_b), a_(a), sign_(sign), tmin_(tmin), tmax_(tmax)
+    : r_b_(r_b), a_(a), mirror_(sign < 0), tmin_(tmin), tmax_(tmax)
 {
     CELER_EXPECT(r_b > 0);
     CELER_EXPECT(a > 0);
     CELER_EXPECT(std::fabs(tmax) < 2 * pi + std::fabs(tmin));
+
+    if (mirror_)
+    {
+        a_ = -a + pi;
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -100,25 +105,37 @@ CELER_FUNCTION InvoluteSolver::InvoluteSolver(
 /*!
  * Find all roots for involute surfaces that are within the bounds and result
  * in positive distances. Performed by doing a Regular Falsi Iteration on the
- * root function, f(t) = r_b * [v{cos(a+t) + tsin(a+t)} + u{sin(a+t)
- * -tcos(a+t)}] + xv - yu where the Regular Falsi Iteration is given by: tc =
- * [ta*f(tb) - tb*f(ta)] / [f(tb) - f(ta)] where tc replaces the bound with the
- * same sign.
+ * root function, \f[
+ * f(t) = r_b * [v{cos(a+t) + tsin(a+t)} + u{sin(a+t) - tcos(a+t)}] + xv - yu
+ * \f]
+ * where the Regular Falsi Iteration is given by: \f[
+ * tc = [ta*f(tb) - tb*f(ta)] / [f(tb) - f(ta)]
+ * \f]
+ * where \em tc replaces the bound with the same sign (e.g. \em ta and \em tb
+ * ). The initial bounds can be determined by the set of: /f[ {0, beta - a,
+ * beta - a - pi, beta - a + pi, beta - a - 2pi, beta - a + 2pi ...} /f] Where
+ * \em beta is: \f[ beta = arctan(-v/u) \f]
  */
 CELER_FUNCTION auto
 InvoluteSolver::operator()(Real3 const& pos,
                            Real3 const& dir) const -> Intersections
 {
     // Flatten pos and dir in xyz and uv respectively
-    real_type const x = pos[0];
+    real_type x = pos[0];
     real_type const y = pos[1];
     real_type const z = pos[2];
 
-    real_type const u = dir[0];
+    real_type u = dir[0];
     real_type const v = dir[1];
     real_type const w = dir[2];
 
-    // Lambda used for calculating the roots using Regular Flasi Iteration
+    if (mirror_)
+    {
+        x = -x;
+        u = -u;
+    }
+
+    // Lambda used for calculating the roots using Regular Falsi Iteration
     auto root = [](real_type t,
                    real_type x,
                    real_type y,
@@ -144,33 +161,33 @@ InvoluteSolver::operator()(Real3 const& pos,
         return result;
     }
 
-    // Initialize distance vecctor with root counter j
+    // Initialize distance vector with root counter j
     Array<real_type, 3> dist;
     real_type j = 0;
 
-    // Convertion constant for 2-D distance to 3-D distance
+    // Conversion constant for 2-D distance to 3-D distance
 
     real_type convert = std::sqrt(ipow<2>(v) + ipow<2>(u) + ipow<2>(w))
                         / std::sqrt(ipow<2>(v) + ipow<2>(u));
 
     /*
      * Define tolerances.
-     * tolPoint gives the tolerence level for a point and is set to 1e-7,
+     * tol_point gives the tolerance level for a point and is set to 1e-7,
      * account for the floating point error when performing square roots.
-     * tolConv gives the tolerence for the Regular Falsi iteration,
+     * tol_conv gives the tolerance for the Regular Falsi iteration,
      * ensuring that the root found produces a result that within 1e-8 of 0.
      */
-    real_type const tolPoint = 1e-7;
-    real_type const tolConv = 1e-8;
+    real_type const tol_point = 1e-7;
+    real_type const tol_conv = 1e-8;
 
-    // Check if particle is on a surface within tolerence, and add a 0 distance
+    // Check if particle is on a surface within tolerance
 
     real_type const rxy2 = ipow<2>(x) + ipow<2>(y);
-    real_type const tPoint = std::sqrt((rxy2 / (ipow<2>(r_b_))) - 1);
-    real_type angle = tPoint + a_;
-    real_type xInv = r_b_ * (std::cos(angle) + tPoint * std::sin(angle));
-    real_type yInv = r_b_ * (std::sin(angle) - tPoint * std::cos(angle));
-    if (std::fabs(x - xInv) < tolPoint && std::fabs(y - yInv) < tolPoint)
+    real_type const t_point = std::sqrt((rxy2 / (ipow<2>(r_b_))) - 1);
+    real_type angle = t_point + a_;
+    real_type x_inv = r_b_ * (std::cos(angle) + t_point * std::sin(angle));
+    real_type y_inv = r_b_ * (std::sin(angle) - t_point * std::cos(angle));
+    if (std::fabs(x - x_inv) < tol_point && std::fabs(y - y_inv) < tol_point)
     {
         dist[j] = 0;
         j++;
@@ -196,134 +213,100 @@ InvoluteSolver::operator()(Real3 const& pos,
 
     // Setting first interval bounds, needs to be done to ensure roots are
     // found
-    real_type tLower;
-    real_type tUpper;
-    if (sign_ > 0)
-    {
-        tLower = 0;
-        tUpper = beta - a_;
-        // Move tUpper to be  first bound above 0
-        tUpper += std::fmax(0, -std::floorf(tUpper / pi)) * pi;
-    }
-    else if (sign_ < 0)
-    {
-        tUpper = 0;
-        tLower = beta - a_ + 2 * pi;
-        // Move tLower to be first bound below 0
-        tLower -= std::fmax(0, std::ceilf(tLower / pi)) * pi;
-    }
+    real_type t_lower = 0;
+    real_type t_upper = beta - a_;
+
+    // Round t_upper to the first positive multiple of pi
+    t_upper += std::fmax(0, -std::floor(t_upper / pi)) * pi;
 
     // Parameters that will be used in loop
     int i = 1;
-    real_type talpha;
-    real_type tbeta;
-    real_type tgamma;
-    real_type ftalpha;
-    real_type ftbeta;
-    real_type ftgamma;
-    real_type t;
-    real_type u2;
-    real_type v2;
-    real_type dot;
+    real_type t_alpha;
+    real_type t_beta;
+    real_type t_gamma;
+    real_type ft_gamma;
+    real_type ft_alpha;
+    real_type ft_beta;
 
     // Iterate on roots
-    while ((tLower < tmax_ && sign_ > 0)
-           | (std::fabs(tUpper) < tmax_ && sign_ < 0))
+    while (t_lower < tmax_)
     {
         // Set bounds on current iteration
-        talpha = tLower;
-        tbeta = tUpper;
+
+        t_alpha = t_lower;
+        t_beta = t_upper;
 
         // Find value in root function
-        ftalpha = root(talpha, x, y, u, v, r_b_, a_);
-        ftbeta = root(tbeta, x, y, u, v, r_b_, a_);
+        ft_alpha = root(t_lower, x, y, u, v, r_b_, a_);
+        ft_beta = root(t_upper, x, y, u, v, r_b_, a_);
 
         // If bounds exceed tmax break
-        if ((talpha > tmax_ && sign_ == 1.0)
-            | (std::fabs(tbeta) > std::fabs(tmax_) && sign_ == -1.0))
+        if (t_lower > tmax_)
         {
             break;
         }
 
         // Only iterate when roots have different signs
-        if ((0 < ftalpha) - (ftalpha < 0) != (0 < ftbeta) - (ftbeta < 0))
+        if ((0 < ft_alpha) - (ft_alpha < 0) != (0 < ft_beta) - (ft_beta < 0))
         {
             // Regula Falsi Iteration
-            ftgamma = 1;
-            while (std::fabs(ftgamma) >= tolConv)
+            ft_gamma = 1;
+            while (std::fabs(ft_gamma) >= tol_conv)
             {
                 // Iterate on root
-                tgamma = (talpha * ftbeta - tbeta * ftalpha)
-                         / (ftbeta - ftalpha);
+                t_gamma = (t_alpha * ft_beta - t_beta * ft_alpha)
+                          / (ft_beta - ft_alpha);
 
                 // Obtain root value of iterated root
-                ftgamma = root(tgamma, x, y, u, v, r_b_, a_);
+                ft_gamma = root(t_gamma, x, y, u, v, r_b_, a_);
 
                 // Update bounds with iterated root
-                if ((0 < ftbeta) - (ftbeta < 0)
-                    == (0 < ftgamma) - (ftgamma < 0))
+                if ((0 < ft_beta) - (ft_beta < 0)
+                    == (0 < ft_gamma) - (ft_gamma < 0))
                 {
-                    tbeta = tgamma;
-                    ftbeta = root(tbeta, x, y, u, v, r_b_, a_);
+                    t_beta = t_gamma;
+                    ft_beta = ft_gamma;
                 }
                 else
                 {
-                    talpha = tgamma;
-                    ftalpha = root(talpha, x, y, u, v, r_b_, a_);
+                    t_alpha = t_gamma;
+                    ft_alpha = ft_gamma;
                 }
             }
             // Extract root and calculate point on involute
-            t = tgamma;
-            angle = t + a_;
-            xInv = r_b_ * (std::cos(angle) + t * std::sin(angle));
-            yInv = r_b_ * (std::sin(angle) - t * std::cos(angle));
+            angle = t_gamma + a_;
+            x_inv = r_b_ * (std::cos(angle) + t_gamma * std::sin(angle));
+            y_inv = r_b_ * (std::sin(angle) - t_gamma * std::cos(angle));
 
             // Check if point is interval
-            if (std::fabs(tgamma) >= std::fabs(tmin_) - tolPoint
-                && std::fabs(tgamma) <= std::fabs(tmax_))
+            if (std::fabs(t_gamma) >= std::fabs(tmin_) - tol_point
+                && std::fabs(t_gamma) <= std::fabs(tmax_))
             {
                 // Obatin direction to point on Involute
-                u2 = xInv - x;
-                v2 = yInv - y;
+                real_type u2 = x_inv - x;
+                real_type v2 = y_inv - y;
 
                 // Dot with direction of particle
-                dot = u * u2 + v * v2;
+                real_type dot = u * u2 + v * v2;
                 // Obtain distance to point
                 real_type newdist = std::sqrt(ipow<2>(u2) + ipow<2>(v2));
                 // Only record distance if dot product is positive
-                if (dot >= 0 && newdist > tolPoint)
+                if (dot >= 0 && newdist > tol_point)
                 {
                     dist[j] = newdist;
                     j++;
                 }
             }
 
-            // Set next interval bounds
-            if (sign_ == 1)
-            {
-                tLower = tUpper;
-                tUpper += pi;
-            }
-            else if (sign_ == -1)
-            {
-                tUpper = tLower;
-                tLower -= pi;
-            }
+            t_lower = t_upper;
+            t_upper += pi;
         }
         else
         {
             // Incremet interval slowly until root is in interval
             // i used to slow down approach to next root
-            if (sign_ == 1)
-            {
-                tLower = tUpper;
-                tUpper += pi / i;
-            }
-            else if (sign_ == -1)
-            {
-                tUpper = tLower;
-                tLower -= pi / i;
-            }
+            t_lower = t_upper;
+            t_upper += pi / i;
             i++;
         }
 

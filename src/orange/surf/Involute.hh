@@ -33,6 +33,8 @@ using constants::pi;
  * where \em t is the normal angle of the tangent to the circle of involute
  with
  * radius \em r_b from a starting angle of \em a (\f$r/h\f$ for a finite cone.
+
+high level what it does
  */
 class Involute
 {
@@ -133,6 +135,34 @@ CELER_FUNCTION Involute::Involute(Span<R, StorageSpan::extent> data)
 //---------------------------------------------------------------------------//
 /*!
  * Determine the sense of the position relative to this surface.
+ * This is performed by first checking if the particle is outside the bounding
+ * circles given by tmin and tmax.
+ *
+ * Then position is compared to a point on the involute at the same radius from
+ * the origin.
+ *
+ * Next the point is determined to be inside if an involute that passes it,
+ * has an \em t that is within the bounds and an \em a greater than the
+ * involute being tested for. To do this, the tangent to the involute must be
+ * determined by calculating the intercepts of the circle of involute and
+ * circle centered at the midpoint of the origin and the point being tested for
+ * that extends to the origin. After which the angle of tangent point can be
+ * determined and used to calculate \em a via: /f[ a = angle - t_point /f]
+ *
+ * To calculate the intercept of two circles it is assumed that the two circles
+ * are \em xp axis. The coordinate along \em xp originating from the center of
+ * one of the circles is given by: /f[
+ * xp = (d^2 - r^2 + R^2)/(2d)
+ * /f]
+ * Where \em d is the distance between the center of the two circles, \em r is
+ * the radius of the displaced circle, and \em R is the radius of the circle at
+ * the orgin. Then the point \em yp can be obatined from: \f[
+ * yp = +- sqrt(R^2 - xp^2)
+ * \f]
+ * Then to convert ( \em xp , \em yp ) to ( \em x, \em y ) the following
+ * roation is applied:/f[ x = xp*cos(theta) - yp*sin(theta) y = yp*cos(theta) +
+ * xp*sin(theta) /f] Where \em theta is the angle between the \em xp axis and
+ * the \em x axis.
  */
 CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
 {
@@ -143,17 +173,19 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
      * Calculate distance to origin and obtain t value for distance.
      */
     real_type const rxy2 = ipow<2>(x) + ipow<2>(y);
-    real_type const tPoint2 = (rxy2 / ipow<2>(r_b_)) - 1;
-    real_type const tPoint = std::sqrt(tPoint2);
+    real_type const t_point2 = (rxy2 / ipow<2>(r_b_)) - 1;
+    real_type const t_point = std::sqrt(t_point2);
 
     /*
      * Check if Point is on involute.
      */
-    real_type const angle = tPoint + a_;
-    real_type const xInv = r_b_ * (std::cos(angle) + tPoint * std::sin(angle));
-    real_type const yInv = r_b_ * (std::sin(angle) - tPoint * std::cos(angle));
+    real_type const angle = t_point + a_;
+    real_type const x_inv = r_b_
+                            * (std::cos(angle) + t_point * std::sin(angle));
+    real_type const y_inv = r_b_
+                            * (std::sin(angle) - t_point * std::cos(angle));
 
-    if (x == xInv && y == yInv)
+    if (x == x_inv && y == y_inv)
     {
         return SignedSense::on;
     }
@@ -161,11 +193,11 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     /*
      * Check if point is in defined bounds.
      */
-    if (std::fabs(tPoint2) < ipow<2>(tmin_))
+    if (std::fabs(t_point2) < ipow<2>(tmin_))
     {
         return SignedSense::outside;
     }
-    if (std::fabs(tPoint2) > ipow<2>(tmax_))
+    if (std::fabs(t_point2) > ipow<2>(tmax_))
     {
         return SignedSense::outside;
     }
@@ -173,6 +205,8 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     /*
      * Check if point is in interval
      */
+
+    // Describ
 
     // Calculate tangents
     real_type r = std::sqrt(ipow<2>(x) + ipow<2>(y));
@@ -195,7 +229,7 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     {
         theta = (pi - theta) + pi;
     }
-    real_type a1 = theta - tPoint;
+    real_type a1 = theta - t_point;
     if (std::fabs(theta) < std::fabs(tmax_ + a_) && a1 >= a_)
     {
         return SignedSense::inside;
@@ -204,7 +238,7 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     while (std::fabs(theta) < (std::fabs(tmax_ + a_)))
     {
         theta += pi * 2 * sign_;
-        a1 = theta - tPoint;
+        a1 = theta - t_point;
         if (std::fabs(theta) < std::fabs(tmax_ + a_) && a1 >= a_)
         {
             return SignedSense::inside;
@@ -240,6 +274,9 @@ Involute::calc_intersections(Real3 const& pos,
 //---------------------------------------------------------------------------//
 /*!
  * Calculate outward normal at a position on the surface.
+ * This is done by taking the derivative of the involute equation : /f[
+ * normal_vec = {sin(t+a) -cos(t+a), 0}
+ * /f]
  */
 CELER_FORCEINLINE_FUNCTION Real3 Involute::calc_normal(Real3 const& pos) const
 {
@@ -250,12 +287,12 @@ CELER_FORCEINLINE_FUNCTION Real3 Involute::calc_normal(Real3 const& pos) const
      * Calculate distance to origin and obtain t value for distance.
      */
     real_type const rxy2 = ipow<2>(x) + ipow<2>(y);
-    real_type const tPoint = std::sqrt((rxy2 / (ipow<2>(r_b_))) - 1) * sign_;
+    real_type const t_point = std::sqrt((rxy2 / (ipow<2>(r_b_))) - 1) * sign_;
 
     /*
      * Calculate normal
      */
-    real_type const angle = tPoint + a_;
+    real_type const angle = t_point + a_;
     Real3 normal_ = {std::sin(angle), -std::cos(angle), 0};
 
     return normal_;
