@@ -14,8 +14,18 @@
 
 #include "../StatusCheckData.hh"
 
-//! Check that the condition is true, otherwise throw an error/assertion
-#define SCE_ASSERT(COND, MSG)                                         \
+namespace celeritas
+{
+namespace detail
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Check that the condition is true, otherwise throw an error/assertion.
+ *
+ * \note This macro is defined so that the condition is still checked in
+ * "release" mode.
+ */
+#define CELER_FAIL_IF(COND, MSG)                                      \
     do                                                                \
     {                                                                 \
         if (CELER_UNLIKELY(!(COND)))                                  \
@@ -24,10 +34,6 @@
         }                                                             \
     } while (0)
 
-namespace celeritas
-{
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Assert that a track's status and actions are valid.
@@ -61,8 +67,8 @@ CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
     if (state.order > ActionOrder::start && state.order < ActionOrder::end)
     {
         auto prev_status = state.status[tsid];
-        SCE_ASSERT(sim.status() >= prev_status,
-                   "status was improperly reverted");
+        CELER_FAIL_IF(sim.status() >= prev_status,
+                      "status was improperly reverted");
     }
     if (state.order >= ActionOrder::pre && state.order < ActionOrder::end)
     {
@@ -70,8 +76,8 @@ CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
         // stepping loop *or* at the very end (in the case where a track is
         // initialized in-place from a secondary). It should be cleared in
         // pre-step
-        SCE_ASSERT(sim.status() != TrackStatus::initializing,
-                   "status cannot be 'initializing' after pre-step");
+        CELER_FAIL_IF(sim.status() != TrackStatus::initializing,
+                      "status cannot be 'initializing' after pre-step");
     }
     if (sim.status() == TrackStatus::inactive)
     {
@@ -90,16 +96,16 @@ CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
         // processes for the current particle type.
         // TODO: change this behavior to be a *tracking cut* rather than
         // lost energy
-        SCE_ASSERT(sim.post_step_action(), "missing post-step action");
+        CELER_FAIL_IF(sim.post_step_action(), "missing post-step action");
     }
-    SCE_ASSERT(sim.along_step_action(), "missing along-step action");
+    CELER_FAIL_IF(sim.along_step_action(), "missing along-step action");
 
     ActionId const prev_along_step = state.along_step_action[tsid];
     ActionId const next_along_step = sim.along_step_action();
     if (state.order > ActionOrder::pre)
     {
-        SCE_ASSERT(prev_along_step == next_along_step,
-                   "along-step action cannot yet change");
+        CELER_FAIL_IF(prev_along_step == next_along_step,
+                      "along-step action cannot yet change");
     }
 
     ActionId const prev_post_step = state.post_step_action[tsid];
@@ -110,11 +116,11 @@ CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
         // Check that order is increasing if not an "implicit" action
         auto prev_order = params.orders[prev_post_step];
         auto next_order = params.orders[next_post_step];
-        SCE_ASSERT((prev_order == params.implicit_order
-                    || next_order == params.implicit_order
-                    || OrderedAction{prev_order, prev_post_step}
-                           < OrderedAction{next_order, next_post_step}),
-                   "new post-step action is out of order");
+        CELER_FAIL_IF((prev_order == params.implicit_order
+                       || next_order == params.implicit_order
+                       || OrderedAction{prev_order, prev_post_step}
+                              < OrderedAction{next_order, next_post_step}),
+                      "new post-step action is out of order");
     }
 }
 

@@ -224,7 +224,7 @@ struct OrderedAction
     ActionId id;
 
     //! Ordering comparison for an action/ID
-    CELER_CONSTEXPR_FUNCTION bool operator<(OrderedAction const& other)
+    CELER_CONSTEXPR_FUNCTION bool operator<(OrderedAction const& other) const
     {
         if (this->order < other.order)
             return true;
