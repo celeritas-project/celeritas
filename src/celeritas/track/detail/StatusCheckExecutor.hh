@@ -68,7 +68,7 @@ CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
     {
         // Initializing takes place *either* at the very beginning of the
         // stepping loop *or* at the very end (in the case where a track is
-        // initialized in-place from a secondary when its primary dies)
+        // initialized in-place from a secondary)
         SCE_ASSERT(sim.status() != TrackStatus::initializing,
                    "status cannot be 'initializing' after user start");
     }
@@ -77,7 +77,7 @@ CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
         // Remaining tests only apply to active tracks
         return;
     }
-    if (state.order < ActionOrder::pre)
+    if (state.order < ActionOrder::pre || state.order == ActionOrder::end)
     {
         // Skip remaining tests since step actions get reset in "pre-step"
         return;
@@ -93,24 +93,25 @@ CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
     }
     SCE_ASSERT(sim.along_step_action(), "missing along-step action");
 
-    ActionId const last_along_step = state.along_step_action[tsid];
+    ActionId const prev_along_step = state.along_step_action[tsid];
     ActionId const next_along_step = sim.along_step_action();
     if (state.order > ActionOrder::pre)
     {
-        SCE_ASSERT(last_along_step == next_along_step,
+        SCE_ASSERT(prev_along_step == next_along_step,
                    "along-step action cannot yet change");
     }
 
-    ActionId const last_post_step = state.post_step_action[tsid];
+    ActionId const prev_post_step = state.post_step_action[tsid];
     ActionId const next_post_step = sim.post_step_action();
-    if (state.order > ActionOrder::pre && last_post_step
-        && last_post_step != next_post_step)
+    if (state.order > ActionOrder::pre && prev_post_step
+        && prev_post_step != next_post_step)
     {
         // Check that order is increasing if not an "implicit" action
-        auto last_order = params.orders[last_post_step];
+        auto prev_order = params.orders[prev_post_step];
         auto next_order = params.orders[next_post_step];
-        SCE_ASSERT((next_order == params.implicit_order
-                    || OrderedAction{last_order, last_post_step}
+        SCE_ASSERT((prev_order == params.implicit_order
+                    || next_order == params.implicit_order
+                    || OrderedAction{prev_order, prev_post_step}
                            < OrderedAction{next_order, next_post_step}),
                    "new post-step action is out of order");
     }
