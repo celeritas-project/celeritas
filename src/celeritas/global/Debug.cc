@@ -11,6 +11,9 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 
+#include "celeritas/geo/GeoTrackView.hh"
+#include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/track/SimTrackView.hh"
 
 #include "DebugIO.json.hh"
@@ -24,7 +27,7 @@ template<class T>
 void debug_print_impl(T const& view)
 {
     nlohmann::json j = view;
-    std::clog << j.dump(1);
+    std::clog << j.dump(1) << std::endl;
 }
 
 //---------------------------------------------------------------------------//
@@ -48,13 +51,18 @@ void debug_print_impl(T const& view)
 CoreParams const* g_debug_executing_params{nullptr};
 
 //---------------------------------------------------------------------------//
-/*!
- * Print a SimTrackView on host to std::clog.
- */
-void debug_print(SimTrackView const& view)
-{
-    debug_print_impl(view);
-}
+#define DEFINE_DEBUG_PRINT(TYPE)       \
+    void debug_print(TYPE const& view) \
+    {                                  \
+        debug_print_impl(view);        \
+    }
+
+//!@{
+//! Print a host view to std::clog.
+DEFINE_DEBUG_PRINT(CoreTrackView)
+DEFINE_DEBUG_PRINT(SimTrackView)
+DEFINE_DEBUG_PRINT(ParticleTrackView)
+//!@}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

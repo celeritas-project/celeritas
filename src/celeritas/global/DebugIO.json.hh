@@ -10,9 +10,25 @@
 
 #include <nlohmann/json.hpp>
 
+#include "celeritas/geo/GeoFwd.hh"
+
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+// Forward declarations
+class CoreParams;
+class CoreTrackView;
+class ParticleTrackView;
 class SimTrackView;
+
+//---------------------------------------------------------------------------//
+void to_json(nlohmann::json& j, CoreTrackView const&);
+
+//---------------------------------------------------------------------------//
+void to_json(nlohmann::json& j, GeoTrackView const&);
+
+//---------------------------------------------------------------------------//
+void to_json(nlohmann::json& j, ParticleTrackView const&);
 
 //---------------------------------------------------------------------------//
 void to_json(nlohmann::json& j, SimTrackView const&);

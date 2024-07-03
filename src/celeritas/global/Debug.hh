@@ -8,9 +8,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "celeritas/geo/GeoFwd.hh"
+
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+// Forward declarations
 class CoreParams;
+class CoreTrackView;
+class ParticleTrackView;
 class SimTrackView;
 
 //---------------------------------------------------------------------------//
@@ -18,8 +24,16 @@ class SimTrackView;
 extern CoreParams const* g_debug_executing_params;
 
 //---------------------------------------------------------------------------//
+// Print everything that can be printed about a core track view
+void debug_print(CoreTrackView const&);
+
+//---------------------------------------------------------------------------//
 // Print a SimTrackView on host
 void debug_print(SimTrackView const&);
+
+//---------------------------------------------------------------------------//
+// Print a ParticleTrackView on host
+void debug_print(ParticleTrackView const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
