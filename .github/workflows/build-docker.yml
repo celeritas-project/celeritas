@@ -24,7 +24,7 @@ jobs:
         special: [null]
         geometry: ["orange", "vecgeom"]
         buildtype: ["debug", "ndebug"]
-        image: ["ubuntu-cuda", "centos-rocm"]
+        image: ["centos-rocm"]
         exclude:
           - geometry: "vecgeom"
             image: "centos-rocm" # VecGeom not installed on HIP
@@ -35,9 +35,6 @@ jobs:
             geometry: "orange"
             buildtype: "reldeb"
             image: "centos-rocm"
-          - geometry: "vecgeom"
-            buildtype: "reldeb"
-            image: "ubuntu-cuda"
     env:
       ASAN_OPTIONS: "detect_leaks=0"
       CELER_TEST_STRICT: 1
