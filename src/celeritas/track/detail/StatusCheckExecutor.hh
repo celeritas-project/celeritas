@@ -64,8 +64,11 @@ CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
         SCE_ASSERT(sim.status() >= prev_status,
                    "status was improperly reverted");
     }
-    if (state.order > ActionOrder::user_start)
+    if (state.order > ActionOrder::user_start && state.order < ActionOrder::end)
     {
+        // Initializing takes place *either* at the very beginning of the
+        // stepping loop *or* at the very end (in the case where a track is
+        // initialized in-place from a secondary when its primary dies)
         SCE_ASSERT(sim.status() != TrackStatus::initializing,
                    "status cannot be 'initializing' after user start");
     }
