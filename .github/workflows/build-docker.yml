@@ -45,6 +45,7 @@ jobs:
                 matrix.geometry,
                 matrix.special && '-' || '',
                 matrix.special)}}
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true # TODO: DELETEME, see #1305
     runs-on: ubuntu-latest
     container:
       image: >-
