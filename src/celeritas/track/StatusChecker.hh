@@ -14,6 +14,7 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/global/ActionInterface.hh"
 
 #include "StatusCheckData.hh"
 
@@ -33,24 +34,35 @@ class CoreState;
  * and simulation state are consistent.
  *
  * Since this is called manually by the stepper, multiple times per step, it is
- * \em not an "explicit" action. It's meant to be
- *
- * It \em must be created after all actions have been registered.
+ * \em not an "explicit" action. It's meant to be used inside the \c
+ * ActionSequence itself, called after every action.
  */
-class StatusChecker final : public AuxParamsInterface,
+class StatusChecker final : public BeginRunActionInterface,
+                            public AuxParamsInterface,
                             public ParamsDataInterface<StatusCheckParamsData>
 {
   public:
-    // Construct with aux ID and action registry
-    StatusChecker(AuxId aux_id, ActionRegistry const& registry);
+    // Construct with IDs
+    StatusChecker(ActionId action_id, AuxId aux_id);
 
     //!@{
-    //! \name Aux interface
+    //! \name Begin run interface
+    //! Index of this class instance in its registry
+    ActionId action_id() const final { return action_id_; }
+    //! Label for the auxiliary data and action
+    std::string_view label() const final { return "status-check"; }
+    // Description of the action
+    std::string_view description() const final;
+    // Set host data at the beginning of a run
+    void begin_run(CoreParams const&, CoreStateHost&) final;
+    // Set device data at the beginning of a run
+    void begin_run(CoreParams const&, CoreStateDevice&) final;
+    //!@}
+
+    //!@{
+    //! \name Aux params interface
     //! Index of this class instance in its registry
     AuxId aux_id() const final { return aux_id_; }
-
-    //! Label for the auxiliary data
-    std::string_view label() const final { return "status-check"; }
 
     // Build state data for a stream
     UPState create_state(MemSpace m, StreamId id, size_type size) const final;
@@ -75,10 +87,13 @@ class StatusChecker final : public AuxParamsInterface,
 
     //// DATA ////
 
+    ActionId action_id_;
     AuxId aux_id_;
     CollectionMirror<StatusCheckParamsData> data_;
 
     //// HELPER FUNCTIONS ////
+
+    void begin_run_impl(CoreParams const&);
 
     void launch_impl(CoreParams const&,
                      CoreState<MemSpace::host>&,

@@ -45,10 +45,11 @@ class StatusCheckerTest : public SimpleTestBase
         this->core();
 
         // Create status checker
-        auto& reg = *this->aux_reg();
-        status_checker_ = std::make_shared<StatusChecker>(reg.next_id(),
-                                                          *this->action_reg());
-        reg.insert(status_checker_);
+        auto& action_reg = *this->action_reg();
+        auto& aux_reg = *this->aux_reg();
+        status_checker_ = std::make_shared<StatusChecker>(action_reg.next_id(),
+                                                          aux_reg.next_id());
+        aux_reg.insert(status_checker_);
     }
 
     // Create primary particles
@@ -81,6 +82,12 @@ class StatusCheckerTest : public SimpleTestBase
     std::string const& id_to_label(ActionId id) const
     {
         return this->action_reg()->id_to_label(id);
+    }
+
+    template<MemSpace M>
+    void begin_run(CoreState<M>& state)
+    {
+        status_checker_->begin_run(*this->core(), state);
     }
 
     template<MemSpace M>
@@ -145,6 +152,7 @@ class StatusCheckerTest : public SimpleTestBase
 TEST_F(StatusCheckerTest, host)
 {
     CoreState<MemSpace::host> state{*this->core(), StreamId{0}, 16};
+    this->begin_run(state);
     state.insert_primaries(make_span(this->make_primaries(8)));
 
     // Keep a persistent view to the last track slot
@@ -190,6 +198,7 @@ TEST_F(StatusCheckerTest, host)
 TEST_F(StatusCheckerTest, TEST_IF_CELER_DEVICE(device))
 {
     CoreState<MemSpace::device> state{*this->core(), StreamId{0}, 128};
+    this->begin_run(state);
     state.insert_primaries(make_span(this->make_primaries(64)));
 
     // Check that the first half of a stepping loop is fine

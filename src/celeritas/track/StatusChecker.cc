@@ -40,11 +40,95 @@ void copy_in_memspace(Collection<T, W, M, I> const& src,
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with aux ID and regisry.
+ * Construct with action and aux IDs.
  */
-StatusChecker::StatusChecker(AuxId aux_id, ActionRegistry const& reg)
-    : aux_id_{aux_id}
+StatusChecker::StatusChecker(ActionId action_id, AuxId aux_id)
+    : action_id_{action_id}, aux_id_{aux_id}
 {
+    CELER_EXPECT(action_id_);
+    CELER_EXPECT(aux_id_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Description of the action.
+ */
+std::string_view StatusChecker::description() const
+{
+    return "verify simulation state";
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build state data for a stream.
+ */
+auto StatusChecker::create_state(MemSpace m,
+                                 StreamId id,
+                                 size_type size) const -> UPState
+{
+    return make_aux_state<StatusCheckStateData>(*this, m, id, size);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set host data at the beginning of a run.
+ */
+void StatusChecker::begin_run(CoreParams const& params, CoreStateHost&)
+{
+    return this->begin_run_impl(params);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set device data at the beginning of a run.
+ */
+void StatusChecker::begin_run(CoreParams const& params, CoreStateDevice&)
+{
+    return this->begin_run_impl(params);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Execute with with the last action's ID and the state.
+ *
+ * This must be called after both \c create_state and \c begin_run .
+ */
+template<MemSpace M>
+void StatusChecker::execute(ActionId prev_action,
+                            CoreParams const& params,
+                            CoreState<M>& state) const
+{
+    CELER_EXPECT(data_);
+    CELER_EXPECT(prev_action);
+    CELER_EXPECT(params.action_reg()->num_actions()
+                 == this->ref<M>().orders.size());
+
+    using StateT = AuxStateData<StatusCheckStateData, M>;
+    auto& aux_state = get<StateT>(state.aux(), aux_id_).ref();
+
+    // Update action before launching kernel
+    CELER_ASSERT(prev_action < this->host_ref().orders.size());
+    aux_state.action = prev_action;
+    aux_state.order = this->host_ref().orders[prev_action];
+
+    CELER_ASSERT(aux_state.order != ActionOrder::size_);
+    this->launch_impl(params, state, aux_state);
+
+    // Save the status and limiting action IDs
+    auto const& sim_state = state.ref().sim;
+    copy_in_memspace(sim_state.status, &aux_state.status);
+    copy_in_memspace(sim_state.post_step_action, &aux_state.post_step_action);
+    copy_in_memspace(sim_state.along_step_action, &aux_state.along_step_action);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct host/device data
+ */
+void StatusChecker::begin_run_impl(CoreParams const& params)
+{
+    auto const& reg = *params.action_reg();
+
     HostVal<StatusCheckParamsData> host_val;
     auto build_orders = CollectionBuilder{&host_val.orders};
 
@@ -67,48 +151,8 @@ StatusChecker::StatusChecker(AuxId aux_id, ActionRegistry const& reg)
 
     // Construct host/device data
     data_ = CollectionMirror{std::move(host_val)};
-}
 
-//---------------------------------------------------------------------------//
-/*!
- * Build state data for a stream.
- */
-auto StatusChecker::create_state(MemSpace m,
-                                 StreamId id,
-                                 size_type size) const -> UPState
-{
-    return make_aux_state<StatusCheckStateData>(*this, m, id, size);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Execute with with the last action's ID and the state.
- */
-template<MemSpace M>
-void StatusChecker::execute(ActionId prev_action,
-                            CoreParams const& params,
-                            CoreState<M>& state) const
-{
-    CELER_EXPECT(prev_action);
-    CELER_EXPECT(params.action_reg()->num_actions()
-                 == this->ref<M>().orders.size());
-
-    using StateT = AuxStateData<StatusCheckStateData, M>;
-    auto& aux_state = get<StateT>(state.aux(), aux_id_).ref();
-
-    // Update action before launching kernel
-    CELER_ASSERT(prev_action < this->host_ref().orders.size());
-    aux_state.action = prev_action;
-    aux_state.order = this->host_ref().orders[prev_action];
-
-    CELER_ASSERT(aux_state.order != ActionOrder::size_);
-    this->launch_impl(params, state, aux_state);
-
-    // Save the status and limiting action IDs
-    auto const& sim_state = state.ref().sim;
-    copy_in_memspace(sim_state.status, &aux_state.status);
-    copy_in_memspace(sim_state.post_step_action, &aux_state.post_step_action);
-    copy_in_memspace(sim_state.along_step_action, &aux_state.along_step_action);
+    CELER_ENSURE(data_);
 }
 
 //---------------------------------------------------------------------------//
