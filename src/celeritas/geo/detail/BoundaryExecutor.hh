@@ -17,17 +17,14 @@
 #include "../GeoMaterialView.hh"
 #include "../GeoTrackView.hh"
 
+#if !CELER_DEVICE_COMPILE
+#    include "corecel/io/Logger.hh"
+#endif
+
 namespace celeritas
 {
 namespace detail
 {
-//---------------------------------------------------------------------------//
-struct BoundaryExecutor
-{
-    inline CELER_FUNCTION void
-    operator()(celeritas::CoreTrackView const& track);
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Cross a geometry boundary.
@@ -35,6 +32,13 @@ struct BoundaryExecutor
  * \pre The track must have already been physically moved to the correct point
  * on the boundary.
  */
+struct BoundaryExecutor
+{
+    inline CELER_FUNCTION void
+    operator()(celeritas::CoreTrackView const& track);
+};
+
+//---------------------------------------------------------------------------//
 CELER_FUNCTION void
 BoundaryExecutor::operator()(celeritas::CoreTrackView const& track)
 {

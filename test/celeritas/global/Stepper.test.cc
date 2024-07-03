@@ -156,6 +156,7 @@ TEST_F(StepperOrderTest, setup)
         "physics-discrete-select",
         "scat-klein-nishina",
         "geo-boundary",
+        "tracking-cut",
         "dummy-user_post",
         "extend-from-secondaries",
     };

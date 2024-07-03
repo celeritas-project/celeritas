@@ -323,6 +323,7 @@ TEST_F(TestEm3NoMsc, setup)
         "ioni-moller-bhabha",
         "brems-combined",
         "geo-boundary",
+        "tracking-cut",
         "extend-from-secondaries",
     };
     EXPECT_VEC_EQ(expected_actions, result.actions);
@@ -456,6 +457,7 @@ TEST_F(TestEm3Msc, setup)
         "ioni-moller-bhabha",
         "brems-combined",
         "geo-boundary",
+        "tracking-cut",
         "extend-from-secondaries",
     };
     EXPECT_VEC_EQ(expected_actions, result.actions);
@@ -474,6 +476,7 @@ TEST_F(TestEm3Msc, setup)
         "interact by Moller+Bhabha ionization",
         "interact by bremsstrahlung (combined SB/relativistic, e+/-)",
         "cross a geometry boundary",
+        "kill a track and deposit its energy",
         "create track initializers from secondaries",
     };
     EXPECT_VEC_EQ(expected_actions_desc, result.actions_desc);
@@ -630,6 +633,7 @@ TEST_F(TestEm15FieldMsc, setup)
         "brems-sb",
         "brems-rel",
         "geo-boundary",
+        "tracking-cut",
         "extend-from-secondaries",
     };
     EXPECT_VEC_EQ(expected_actions, result.actions);
@@ -722,6 +726,7 @@ TEST_F(OneSteelSphere, setup)
         "brems-sb",
         "brems-rel",
         "geo-boundary",
+        "tracking-cut",
         "extend-from-secondaries",
     };
     EXPECT_VEC_EQ(expected_actions, result.actions);

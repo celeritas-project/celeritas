@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/geo/detail/BoundaryAction.hh
+//! \file celeritas/phys/detail/TrackingCutAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -15,14 +15,16 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Move a track across a boundary.
+ * Kill tracks and deposit energy locally.
+ *
+ * \sa CoreTrackView::tracking_cut_action
  */
-class BoundaryAction final : public ExplicitCoreActionInterface,
-                             public ConcreteAction
+class TrackingCutAction final : public ExplicitCoreActionInterface,
+                                public ConcreteAction
 {
   public:
     // Construct with ID
-    explicit BoundaryAction(ActionId);
+    explicit TrackingCutAction(ActionId);
 
     // Launch kernel with host data
     void execute(CoreParams const&, CoreStateHost&) const final;

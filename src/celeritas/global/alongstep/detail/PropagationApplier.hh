@@ -13,12 +13,14 @@
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/global/detail/ApplierTraits.hh"
 
-#if CELERITAS_DEBUG && !CELER_DEVICE_COMPILE
-#    define CELER_CHECK_POSITION 1
+#define CELER_CHECK_POSITION 0
+#if !CELER_DEVICE_COMPILE
 #    include "corecel/io/Logger.hh"
-#    include "corecel/io/Repr.hh"
-#else
-#    define CELER_CHECK_POSITION 0
+#    if CELERITAS_DEBUG
+#        undef CELER_CHECK_POSITION
+#        define CELER_CHECK_POSITION 1
+#        include "corecel/io/Repr.hh"
+#    endif
 #endif
 
 namespace celeritas
@@ -127,7 +129,7 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
             // machine epsilon compared to the actual position. This case seems
             // to happen mostly in vecgeom when "stuck" on a boundary, so it
             // may not lead to an infinite loop because the state is changing.
-            CELER_LOG(error)
+            CELER_LOG_LOCAL(error)
                 << "Propagation of step length " << repr(sim.step_length())
                 << " due to post-step action "
                 << sim.post_step_action().unchecked_get()
@@ -155,34 +157,18 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
 
         // Kill the track if it's stable and below the threshold energy or
         // above the threshold number of steps allowed while looping.
-        auto particle = track.make_particle_view();
-        sim.post_step_action([&track, &particle, &sim] {
+        sim.post_step_action([&track, &sim] {
+            auto particle = track.make_particle_view();
             if (particle.is_stable()
                 && sim.is_looping(particle.particle_id(), particle.energy()))
             {
-                return track.abandon_looping_action();
+#if !CELER_DEVICE_COMPILE
+                CELER_LOG_LOCAL(error) << "Killing looping track";
+#endif
+                return track.tracking_cut_action();
             }
             return track.propagation_limit_action();
         }());
-
-        if (sim.post_step_action() == track.abandon_looping_action())
-        {
-            // TODO: move this branch into a separate post-step kernel.
-            // If the track is looping (or if it's a stuck track that was
-            // flagged as looping), deposit the energy locally.
-            auto deposited = particle.energy().value();
-            if (particle.is_antiparticle())
-            {
-                // Energy conservation for killed positrons
-                deposited += 2 * particle.mass().value();
-            }
-            track.make_physics_step_view().deposit_energy(
-                ParticleTrackView::Energy{deposited});
-            particle.subtract_energy(particle.energy());
-
-            // Mark that this track was abandoned while looping
-            sim.status(TrackStatus::killed);
-        }
     }
     else if (p.boundary)
     {
