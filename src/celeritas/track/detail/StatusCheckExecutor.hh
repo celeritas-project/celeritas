@@ -58,9 +58,10 @@ CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
     auto tsid = track.track_slot_id();
     auto sim = track.make_sim_view();
 
-    if (state.order > ActionOrder::start)
+    if (state.order > ActionOrder::start && state.order < ActionOrder::end)
     {
-        SCE_ASSERT(sim.status() >= state.status[tsid],
+        auto prev_status = state.status[tsid];
+        SCE_ASSERT(sim.status() >= prev_status,
                    "status was improperly reverted");
     }
     if (state.order > ActionOrder::user_start)
