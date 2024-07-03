@@ -79,7 +79,14 @@ CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
         return;
     }
 
-    SCE_ASSERT(sim.post_step_action(), "missing post-step action");
+    if (sim.step_length() != numeric_limits<real_type>::infinity())
+    {
+        // It's allowable to have *no* post step action if there are no physics
+        // processes for the current particle type.
+        // TODO: change this behavior to be a *tracking cut* rather than
+        // lost energy
+        SCE_ASSERT(sim.post_step_action(), "missing post-step action");
+    }
     SCE_ASSERT(sim.along_step_action(), "missing along-step action");
 
     ActionId const last_along_step = state.along_step_action[tsid];
@@ -92,7 +99,8 @@ CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
 
     ActionId const last_post_step = state.post_step_action[tsid];
     ActionId const next_post_step = sim.post_step_action();
-    if (state.order > ActionOrder::pre && last_post_step != next_post_step)
+    if (state.order > ActionOrder::pre && last_post_step
+        && last_post_step != next_post_step)
     {
         // Check that order is increasing if not an "implicit" action
         auto last_order = params.orders[last_post_step];
