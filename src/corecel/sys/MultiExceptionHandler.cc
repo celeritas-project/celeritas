@@ -73,31 +73,30 @@ namespace detail
 
 //---------------------------------------------------------------------------//
 /*!
- * Terminate if destroyed without handling exceptions.
+ * Terminate when destroyed without handling exceptions.
  */
-MultiExceptionHandler::~MultiExceptionHandler()
+[[noreturn]] void MultiExceptionHandler::log_and_terminate() const
 {
-    if (CELER_UNLIKELY(!exceptions_.empty()))
+    CELER_EXPECT(!exceptions_.empty());
+
+    for (auto eptr : exceptions_)
     {
-        for (auto eptr : exceptions_)
+        try
         {
-            try
-            {
-                std::rethrow_exception(eptr);
-            }
-            catch (std::exception const& e)
-            {
-                CELER_LOG_LOCAL(critical) << e.what();
-            }
-            catch (...)
-            {
-                CELER_LOG_LOCAL(critical) << "(unknown exception)";
-            }
+            std::rethrow_exception(eptr);
         }
-        CELER_LOG(critical) << "failed to clear exceptions from "
-                               "MultiExceptionHandler";
-        std::terminate();
+        catch (std::exception const& e)
+        {
+            CELER_LOG_LOCAL(critical) << e.what();
+        }
+        catch (...)
+        {
+            CELER_LOG_LOCAL(critical) << "(unknown exception)";
+        }
     }
+    CELER_LOG(critical) << "failed to clear exceptions from "
+                           "MultiExceptionHandler";
+    std::terminate();
 }
 
 //---------------------------------------------------------------------------//

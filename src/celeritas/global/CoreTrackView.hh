@@ -219,6 +219,13 @@ CELER_FUNCTION auto CoreTrackView::make_rng_engine() const -> RngEngine
 //---------------------------------------------------------------------------//
 /*!
  * Get the track's index among the states.
+ *
+ * TODO: if params is 'unsorted', would it be an optimization if we leave the
+ * "track slots" vector empty and return \code
+ *  TrackSlotId{states_.track_slots.empty()
+ *              ? thread_.get()
+ *              : states_.track_slots[thread_]}
+ * \endcode
  */
 CELER_FUNCTION TrackSlotId CoreTrackView::track_slot_id() const
 {

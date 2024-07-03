@@ -87,7 +87,7 @@ std::string build_runtime_error_msg(RuntimeErrorDetails const& d)
         msg << ':' << color_code(' ');
         if (!d.condition.empty())
         {
-            msg << " '" << d.condition << '\'' << " failed";
+            msg << " '" << d.condition << "' failed";
         }
         else
         {

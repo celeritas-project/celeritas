@@ -21,6 +21,13 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Simulation properties for a single track.
+ *
+ * TODO: refactor "reset_step_limit" and the along/post-step action setters to
+ * validate that setting a new action may only \c increase the ID (if it's
+ * explicit) and can only \c reduce the step limit. See \c StatusCheckExecutor
+ * . Maybe we also need to reconsider having separate along- and post-step
+ * action IDs: perhaps find a way to have a "step limit action" and a "next
+ * action"?
  */
 class SimTrackView
 {

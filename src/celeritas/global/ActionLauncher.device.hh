@@ -31,7 +31,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Profile and launch Celeritas kernels from inside an action.
+ * Profile and launch Celeritas kernels.
  *
  * The template argument \c F may define a member type named \c Applier.
  * \c F::Applier should have up to two static constexpr int variables named
@@ -67,6 +67,12 @@ class ActionLauncher
                   "object");
 
   public:
+    //! Create a launcher from a label
+    explicit ActionLauncher(std::string_view name)
+        : calc_launch_params_{name, &detail::launch_action_impl<F>}
+    {
+    }
+
     //! Create a launcher from an action
     explicit ActionLauncher(ExplicitActionInterface const& action)
         : ActionLauncher{action.label()}
@@ -114,7 +120,6 @@ class ActionLauncher
     }
 
     //! Launch with reduced grid size for when tracks are sorted
-    // TODO: Reuse ActionLauncher order/ID from constructor argument
     void operator()(CoreParams const& params,
                     CoreState<MemSpace::device> const& state,
                     ExplicitActionInterface const& action,
@@ -137,12 +142,6 @@ class ActionLauncher
 
   private:
     KernelParamCalculator calc_launch_params_;
-
-    //// PRIVATE CONSTRUCTORS ////
-    explicit ActionLauncher(std::string_view name)
-        : calc_launch_params_{name, &detail::launch_action_impl<F>}
-    {
-    }
 };
 
 //---------------------------------------------------------------------------//

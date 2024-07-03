@@ -339,6 +339,7 @@ endif()
 #-----------------------------------------------------------------------------#
 # Track
 celeritas_add_test(track/Sim.test.cc ${_needs_geant4})
+celeritas_add_test(track/StatusChecker.test.cc GPU)
 celeritas_add_test(track/TrackSort.test.cc GPU ${_needs_geant4})
 
 set(_trackinit_sources
