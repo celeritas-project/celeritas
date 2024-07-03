@@ -11,7 +11,6 @@
 #include "celeritas/em/distribution/TsaiUrbanDistribution.hh"
 #include "celeritas/phys/InteractionUtils.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
 {
@@ -33,13 +32,13 @@ class BremFinalStateHelper
 
   public:
     // Construct from data
-    inline CELER_FUNCTION BremFinalStateHelper(Energy const& inc_energy,
+    inline CELER_FUNCTION BremFinalStateHelper(Energy inc_energy,
                                                Real3 const& inc_direction,
-                                               Momentum const& inc_momentum,
-                                               Mass const& inc_mass,
-                                               ParticleId const& gamma_id,
-                                               Energy const gamma_energy,
-                                               Secondary* secondaries);
+                                               Momentum inc_momentum,
+                                               Mass inc_mass,
+                                               ParticleId gamma_id,
+                                               Energy gamma_energy,
+                                               Secondary* secondary);
 
     // Update the final state for the given RNG and the photon energy
     template<class Engine>
@@ -49,16 +48,16 @@ class BremFinalStateHelper
     // Incident particle direction
     Real3 const& inc_direction_;
     // Incident particle momentum
-    Momentum const inc_momentum_;
+    Momentum inc_momentum_;
     // Exiting energy
-    Energy const exit_energy_;
+    Energy exit_energy_;
     // Bremsstrahlung photon id
-    ParticleId const gamma_id_;
+    ParticleId gamma_id_;
     // Exiting gamma energy
-    Energy const gamma_energy_;
+    Energy gamma_energy_;
     // Allocated secondary gamma
     Secondary* secondary_;
-    // Incident particle mass
+    // Secondary angular distribution
     TsaiUrbanDistribution sample_polar_angle_;
 };
 
@@ -69,19 +68,19 @@ class BremFinalStateHelper
  * Construct from incident particle and exiting gamma data.
  */
 CELER_FUNCTION
-BremFinalStateHelper::BremFinalStateHelper(Energy const& inc_energy,
+BremFinalStateHelper::BremFinalStateHelper(Energy inc_energy,
                                            Real3 const& inc_direction,
-                                           Momentum const& inc_momentum,
-                                           Mass const& inc_mass,
-                                           ParticleId const& gamma_id,
-                                           Energy const gamma_energy,
-                                           Secondary* secondaries)
+                                           Momentum inc_momentum,
+                                           Mass inc_mass,
+                                           ParticleId gamma_id,
+                                           Energy gamma_energy,
+                                           Secondary* secondary)
     : inc_direction_(inc_direction)
     , inc_momentum_(inc_momentum)
-    , exit_energy_{inc_energy.value() - gamma_energy.value()}
+    , exit_energy_{inc_energy - gamma_energy}
     , gamma_id_(gamma_id)
     , gamma_energy_{gamma_energy}
-    , secondary_{secondaries}
+    , secondary_{secondary}
     , sample_polar_angle_{inc_energy, inc_mass}
 {
     CELER_EXPECT(secondary_);
@@ -89,7 +88,7 @@ BremFinalStateHelper::BremFinalStateHelper(Energy const& inc_energy,
 
 //---------------------------------------------------------------------------//
 /*!
- * Update the final state of the primary particle and the secondary photon
+ * Update the final state of the primary particle and the secondary photon.
  */
 template<class Engine>
 CELER_FUNCTION Interaction BremFinalStateHelper::operator()(Engine& rng)
