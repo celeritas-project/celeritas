@@ -135,7 +135,7 @@ CELER_FUNCTION auto MuBBEnergyDistribution::operator()(Engine& rng) -> Energy
                  / UniformRealDistribution(electron_cutoff_,
                                            max_secondary_energy_)(rng);
         target = 1 - beta_sq_ * energy / max_secondary_energy_
-                 + ipow<2>(energy) / (2 * ipow<2>(total_energy_));
+                 + real_type(0.5) * ipow<2>(energy / total_energy_);
 
         if (use_rad_correction_
             && energy > value_as<Energy>(kin_energy_limit()))

@@ -97,9 +97,7 @@ IoniFinalStateHelper::IoniFinalStateHelper(Energy inc_energy,
 template<class Engine>
 CELER_FUNCTION Interaction IoniFinalStateHelper::operator()(Engine& rng)
 {
-    // TODO: If the \c UseAngularGeneratorFlag is set (false by default), use
-    // the angular generator interface to sample the secondary direction (see
-    // \c G4EmParameters::UseAngularGeneratorForIonisation())
+    // Calculate the polar angle of the exiting electron
     real_type momentum = std::sqrt(electron_energy_
                                    * (electron_energy_ + 2 * electron_mass_));
     real_type costheta = electron_energy_
