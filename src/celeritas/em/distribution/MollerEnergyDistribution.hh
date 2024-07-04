@@ -10,6 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
@@ -24,10 +25,17 @@ namespace celeritas
 class MollerEnergyDistribution
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using Mass = units::MevMass;
+    using Energy = units::MevEnergy;
+    //!@}
+
+  public:
     // Construct with data from MollerBhabhaInteractor
-    inline CELER_FUNCTION MollerEnergyDistribution(real_type electron_mass_c_sq,
-                                                   real_type min_valid_energy,
-                                                   real_type inc_energy);
+    inline CELER_FUNCTION MollerEnergyDistribution(Mass electron_mass,
+                                                   Energy min_valid_energy,
+                                                   Energy inc_energy);
 
     // Sample the exiting energy
     template<class Engine>
@@ -63,15 +71,15 @@ class MollerEnergyDistribution
  * Construct with data from MollerBhabhaInteractor.
  */
 CELER_FUNCTION
-MollerEnergyDistribution::MollerEnergyDistribution(real_type electron_mass_c_sq,
-                                                   real_type min_valid_energy,
-                                                   real_type inc_energy)
-    : inc_energy_(inc_energy)
-    , total_energy_(inc_energy + electron_mass_c_sq)
-    , min_energy_fraction_(min_valid_energy / inc_energy)
-    , gamma_(total_energy_ / electron_mass_c_sq)
+MollerEnergyDistribution::MollerEnergyDistribution(Mass electron_mass,
+                                                   Energy min_valid_energy,
+                                                   Energy inc_energy)
+    : inc_energy_(value_as<Energy>(inc_energy))
+    , total_energy_(inc_energy_ + value_as<Mass>(electron_mass))
+    , min_energy_fraction_(value_as<Energy>(min_valid_energy) / inc_energy_)
+    , gamma_(total_energy_ / value_as<Mass>(electron_mass))
 {
-    CELER_EXPECT(electron_mass_c_sq > 0 && inc_energy_ > 0);
+    CELER_EXPECT(electron_mass > zero_quantity() && inc_energy_ > 0);
 }
 
 //---------------------------------------------------------------------------//
