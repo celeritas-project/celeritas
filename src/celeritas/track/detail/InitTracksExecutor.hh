@@ -24,7 +24,8 @@
 #include "../SimTrackView.hh"
 
 #if !CELER_DEVICE_COMPILE
-#    include "corecel/cont/ArrayIO.hh"
+#    include "corecel/io/Logger.hh"
+#    include "corecel/io/Repr.hh"
 #endif
 
 namespace celeritas
@@ -103,35 +104,44 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
         GeoTrackView geo(params->geometry, state->geometry, vacancy);
         if (tid < counters.num_secondaries)
         {
-            // Copy the geometry state from the parent for improved
-            // performance
+            // Copy the geometry state from the parent for improved performance
             TrackSlotId parent_id = data.parents[TrackSlotId{
                 index_before(data.parents.size(), tid)}];
             GeoTrackView const parent_geo(
                 params->geometry, state->geometry, parent_id);
             geo = GeoTrackView::DetailedInitializer{parent_geo, init.geo.dir};
+            CELER_ASSERT(!geo.is_outside());
         }
         else
         {
             // Initialize it from the position (more expensive)
             geo = init.geo;
+            if (CELER_UNLIKELY(geo.is_outside()))
+            {
 #if !CELER_DEVICE_COMPILE
-            // TODO: kill particle with 'error' state if this happens
-            CELER_VALIDATE(!geo.is_outside(),
-                           << "track started outside the geometry at "
-                           << init.geo.pos);
+                CELER_LOG_LOCAL(error) << "Track started outside the geometry";
 #endif
+                SimTrackView sim(params->sim, state->sim, vacancy);
+                sim.status(TrackStatus::errored);
+                sim.post_step_action(params->scalars.tracking_cut_action);
+                return;
+            }
         }
 
         // Initialize the material
         auto matid
             = GeoMaterialView(params->geo_mats).material_id(geo.volume_id());
+        if (CELER_UNLIKELY(!matid))
+        {
 #if !CELER_DEVICE_COMPILE
-        // TODO: kill particle with 'error' state if this happens
-        CELER_VALIDATE(matid,
-                       << "track started in an unknown material (volume ID "
-                       << geo.volume_id().unchecked_get() << ")");
+            CELER_LOG_LOCAL(error) << "Track started in an unknown material";
 #endif
+            SimTrackView sim(params->sim, state->sim, vacancy);
+            sim.status(TrackStatus::errored);
+            sim.post_step_action(params->scalars.tracking_cut_action);
+            return;
+        }
+
         MaterialTrackView mat(params->materials, state->materials, vacancy);
         mat = {matid};
     }

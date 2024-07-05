@@ -10,11 +10,17 @@
 #include <memory>
 #include <random>
 
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
+#include "corecel/io/LogContextException.hh"
+#include "corecel/io/Logger.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/global/ActionRegistry.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
@@ -104,6 +110,35 @@ TEST_F(SimpleComptonTest, setup)
     auto result = this->check_setup();
     static char const* expected_process[] = {"Compton scattering"};
     EXPECT_VEC_EQ(expected_process, result.processes);
+}
+
+TEST_F(SimpleComptonTest, fail_initialize)
+{
+    Stepper<MemSpace::host> step(this->make_stepper_input(32));
+
+    auto primaries = this->make_primaries(16);
+    primaries.back().position = from_cm({1001, 0, 0});
+    {
+        ScopedLogStorer scoped_log{&celeritas::self_logger()};
+        CELER_TRY_HANDLE(step(make_span(primaries)),
+                         LogContextException{this->output_reg().get()});
+
+        // clang-format off
+        static char const* const expected_log_messages[] = {
+            "Track started outside the geometry",
+            "Tracking error (track ID 0, track slot 31) at {1001, 0, 0} along {1, 0, 0}: lost 100 MeV energy",
+        };
+        // clang-format on
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages());
+        static char const* const expected_log_levels[] = {"error", "error"};
+        EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
+    }
+
+    // Check that the out-of-bounds track was killed
+    auto const& core_scalars = this->core()->host_ref().scalars;
+    auto const& sim_state = step.state_ref().sim;
+    EXPECT_EQ(core_scalars.tracking_cut_action,
+              sim_state.post_step_action[TrackSlotId{31}]);
 }
 
 TEST_F(SimpleComptonTest, host)

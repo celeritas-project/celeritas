@@ -155,7 +155,7 @@ CELER_FUNCTION ConditionalTrackExecutor(CoreParamsPtr<MemSpace::native>,
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Return a track executor that only applies to alive tracks.
+ * Return a track executor that only applies to active, non-errored tracks.
  */
 template<class T>
 inline CELER_FUNCTION decltype(auto)

@@ -58,7 +58,17 @@ BoundaryExecutor::operator()(celeritas::CoreTrackView const& track)
         // Update the material in the new region
         auto geo_mat = track.make_geo_material_view();
         auto matid = geo_mat.material_id(geo.volume_id());
-        CELER_ASSERT(matid);
+        if (CELER_UNLIKELY(!matid))
+        {
+#if !CELER_DEVICE_COMPILE
+            CELER_LOG_LOCAL(error) << "Track entered a volume without an "
+                                      "associated material";
+#endif
+            auto sim = track.make_sim_view();
+            sim.status(TrackStatus::errored);
+            sim.post_step_action(track.tracking_cut_action());
+            return;
+        }
         auto mat = track.make_material_view();
         mat = {matid};
 
