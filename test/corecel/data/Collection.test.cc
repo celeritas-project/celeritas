@@ -590,8 +590,19 @@ TEST_F(CollectionTest, TEST_IF_CELER_DEVICE(device))
 
     // For brevity, only check the first 6 values (they repeat after that)
     result.resize(6);
-    double const expected_result[] = {2.2, 41, 0, 3.333333333333, 41, 0};
+    static double const expected_result[] = {2.2, 41, 0, 3.333333333333, 41, 0};
     EXPECT_VEC_SOFT_EQ(expected_result, result);
+
+    {
+        // Create an in-memory copy of the entire collection group
+        auto host_states = make_host_val(device_states);
+        EXPECT_EQ(1024, host_states.size());
+
+        // Create a track view
+        auto host_ref = make_ref(host_states);
+        MockTrackView mtv{mock_params.host_ref(), host_ref, TrackSlotId{2}};
+        EXPECT_EQ(MockMaterialId{2}, mtv.matid());
+    }
 
     // Check that we can copy back to the device
     MockStateData<Ownership::value, MemSpace::host> host_states;
