@@ -11,12 +11,9 @@
 
 #include "celeritas_config.h"
 #include "corecel/cont/ArrayIO.hh"
+#include "geocel/BoundingBoxIO.json.hh"
 
 #include "celeritas_test.hh"
-
-#if CELERITAS_USE_JSON
-#    include "geocel/BoundingBoxIO.json.hh"
-#endif
 
 namespace celeritas
 {
@@ -137,23 +134,15 @@ TEST_F(BoundingBoxTest, is_inside)
     EXPECT_TRUE(is_inside(degenerate, Real3{1, 1, 1}));
 }
 
-TEST_F(BoundingBoxTest, TEST_IF_CELERITAS_JSON(io))
+TEST_F(BoundingBoxTest, io)
 {
     using BoundingBoxT = BoundingBox<double>;
     auto to_json_string = [](BoundingBoxT const& bbox) {
-#if CELERITAS_USE_JSON
         nlohmann::json j = bbox;
         return j.dump();
-#else
-        return std::string{};
-#endif
     };
     auto from_json_string = [](std::string const& s) {
-#if CELERITAS_USE_JSON
         return nlohmann::json::parse(s).get<BoundingBoxT>();
-#else
-        return BoundingBoxT{};
-#endif
     };
 
     static BoundingBoxT const bboxes[] = {

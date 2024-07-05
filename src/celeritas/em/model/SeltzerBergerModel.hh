@@ -46,7 +46,7 @@ class ParticleParams;
  * screened nuclei and orbital electrons of neutral atoms with Z = 1–100", At.
  * Data Nucl. Data Tables 35, 345–418.
  */
-class SeltzerBergerModel final : public Model
+class SeltzerBergerModel final : public Model, public ConcreteAction
 {
   public:
     //!@{
@@ -76,18 +76,6 @@ class SeltzerBergerModel final : public Model
 
     // Apply the interaction kernel
     void execute(CoreParams const&, CoreStateDevice&) const final;
-
-    // ID of the model
-    ActionId action_id() const final;
-
-    //! Short name for the interaction kernel
-    std::string_view label() const final { return "brems-sb"; }
-
-    //! Short description of the post-step action
-    std::string_view description() const final
-    {
-        return "interact by Seltzer-Berger bremsstrahlung";
-    }
 
     //! Access SB data on the host
     HostRef const& host_ref() const { return data_.host_ref(); }

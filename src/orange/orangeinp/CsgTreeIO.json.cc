@@ -134,7 +134,7 @@ void to_json(nlohmann::json& j, CsgUnit const& unit)
         for (auto i : range(unit.volumes.size()))
         {
             auto entry = nlohmann::json{{"csg_node", unit.volumes[i].get()}};
-            if (auto* m = std::get_if<MaterialId>(&unit.fills[i]))
+            if (auto* m = std::get_if<GeoMaterialId>(&unit.fills[i]))
             {
                 entry["material"] = m->unchecked_get();
             }

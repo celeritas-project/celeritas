@@ -17,11 +17,11 @@
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/InteractionUtils.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/ReciprocalDistribution.hh"
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
 {
@@ -113,8 +113,8 @@ template<class Engine>
 CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
 {
     // Allocate space for gamma
-    Secondary* secondaries = allocate_(1);
-    if (secondaries == nullptr)
+    Secondary* secondary = allocate_(1);
+    if (secondary == nullptr)
     {
         // Failed to allocate space for a secondary
         return Interaction::from_failure();
@@ -137,32 +137,20 @@ CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
     } while (!BernoulliDistribution(
         epsilon * this->differential_cross_section(epsilon) / func_1)(rng));
 
-    // Sample secondary direction.
-    UniformRealDistribution<real_type> phi(0, 2 * constants::pi);
-
-    real_type cost = this->sample_cos_theta(epsilon, rng);
-    Real3 gamma_dir = rotate(from_spherical(cost, phi(rng)), inc_direction_);
-
-    Real3 inc_direction;
-    for (int i = 0; i < 3; ++i)
-    {
-        inc_direction[i] = value_as<Momentum>(particle_.momentum())
-                               * inc_direction_[i]
-                           - epsilon * gamma_dir[i];
-    }
-    inc_direction = make_unit_vector(inc_direction);
+    // Save outgoing secondary data
+    secondary->particle_id = shared_.ids.gamma;
+    secondary->energy = Energy{epsilon};
+    secondary->direction = ExitingDirectionSampler{
+        this->sample_cos_theta(epsilon, rng), inc_direction_}(rng);
 
     // Construct interaction for change to primary (incident) particle
     Interaction result;
     result.energy
         = units::MevEnergy{value_as<Energy>(particle_.energy()) - epsilon};
-    result.direction = inc_direction;
-    result.secondaries = {secondaries, 1};
-
-    // Save outgoing secondary data
-    secondaries[0].particle_id = shared_.ids.gamma;
-    secondaries[0].energy = units::MevEnergy{epsilon};
-    secondaries[0].direction = gamma_dir;
+    result.direction = calc_exiting_direction(
+        {value_as<Momentum>(particle_.momentum()), inc_direction_},
+        {epsilon, secondary->direction});
+    result.secondaries = {secondary, 1};
 
     return result;
 }

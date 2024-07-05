@@ -131,10 +131,11 @@ template<MemSpace M>
 class TestActionCountEm3Stepper : public TestEm3NoMsc, public TrackSortTestBase
 {
   protected:
-    template<MemSpace M2>
-    using ActionThreads = typename CoreState<M>::template ActionThreads<M2>;
-    template<MemSpace M2>
-    using ActionThreadsItems = AllItems<ThreadId, M2>;
+    using HostActionThreads =
+        typename detail::CoreStateThreadOffsets<M>::HostActionThreads;
+    using NativeActionThreads =
+        typename detail::CoreStateThreadOffsets<M>::NativeActionThreads;
+    using AllActionThreads = typename HostActionThreads::AllItemsT;
 
     auto build_init() -> SPConstTrackInit override
     {
@@ -145,13 +146,10 @@ class TestActionCountEm3Stepper : public TestEm3NoMsc, public TrackSortTestBase
         return std::make_shared<TrackInitParams>(input);
     }
 
-    template<MemSpace M2>
-    void check_action_count(ActionThreads<M2> const& items, size_t size)
+    void check_action_count(HostActionThreads const& items, std::size_t size)
     {
-        static_assert(M2 == MemSpace::host || M2 == MemSpace::mapped,
-                      "ActionThreads must be host or mapped");
         auto total_threads = 0;
-        Span<ThreadId const> items_span = items[ActionThreadsItems<M2>{}];
+        Span<ThreadId const> items_span = items[AllActionThreads{}];
         auto pos = std::find(items_span.begin(), items_span.end(), ThreadId{});
         ASSERT_EQ(pos, items_span.end());
         for (size_type i = 0; i < items.size() - 1; ++i)
@@ -183,7 +181,6 @@ TEST_F(TestEm3NoMsc, host_is_sorting)
 
     auto primaries = this->make_primaries(state.size());
     state.insert_primaries(make_span(primaries));
-    state.num_actions(this->action_reg()->num_actions() + 1);
     execute("extend-from-primaries");
     execute("initialize-tracks");
     execute("pre-step");
@@ -214,7 +211,7 @@ TEST_F(TestTrackPartitionEm3Stepper, host_is_partitioned)
             span.begin(),
             span.end(),
             [&status = step.state_ref().sim.status](auto const track_slot) {
-                return status[TrackSlotId{track_slot}] == TrackStatus::alive;
+                return status[TrackSlotId{track_slot}] != TrackStatus::inactive;
             });
     };
 
@@ -259,7 +256,7 @@ TEST_F(TestTrackPartitionEm3Stepper,
         return std::is_partitioned(
             span.begin(), span.end(), [&track_status](auto const track_slot) {
                 return track_status[TrackSlotId{track_slot}]
-                       == TrackStatus::alive;
+                       != TrackStatus::inactive;
             });
     };
     // we partition at the start of the step so we need to explictly partition
@@ -371,9 +368,6 @@ TEST_F(TestTrackSortActionIdEm3Stepper, TEST_IF_CELER_DEVICE(device_is_sorted))
 using TestActionCountEm3StepperH = TestActionCountEm3Stepper<MemSpace::host>;
 TEST_F(TestActionCountEm3StepperH, host_count_actions)
 {
-    using ActionThreadsH = ActionThreads<MemSpace::host>;
-    using ActionThreadsItemsH = ActionThreadsItems<MemSpace::host>;
-
     // Initialize some primaries and take a step
     auto step = this->make_stepper<MemSpace::host>(128);
     auto primaries = this->make_primaries(8);
@@ -384,14 +378,14 @@ TEST_F(TestActionCountEm3StepperH, host_count_actions)
     auto num_actions = this->action_reg()->num_actions();
     // can't access the collection in CoreState, so test do the counting in a
     // temporary instead
-    ActionThreadsH buffer;
+    HostActionThreads buffer;
     resize(&buffer, num_actions + 1);
 
     auto loop = [&] {
         detail::sort_tracks(step.state_ref(),
                             TrackOrder::sort_step_limit_action);
         detail::count_tracks_per_action(step.state_ref(),
-                                        buffer[ActionThreadsItemsH{}],
+                                        buffer[AllActionThreads{}],
                                         buffer,
                                         TrackOrder::sort_step_limit_action);
 
@@ -425,8 +419,8 @@ TEST_F(TestActionCountEm3StepperD, TEST_IF_CELER_DEVICE(device_count_actions))
     auto num_actions = this->action_reg()->num_actions();
     // can't access the collection in CoreState, so test do the counting in a
     // temporary instead
-    ActionThreads<MemSpace::device> buffer_d;
-    ActionThreads<MemSpace::mapped> buffer_h;
+    NativeActionThreads buffer_d;
+    HostActionThreads buffer_h;
     resize(&buffer_d, num_actions + 1);
     resize(&buffer_h, num_actions + 1);
 
@@ -435,7 +429,7 @@ TEST_F(TestActionCountEm3StepperD, TEST_IF_CELER_DEVICE(device_count_actions))
                             TrackOrder::sort_step_limit_action);
         detail::count_tracks_per_action(
             step.state_ref(),
-            buffer_d[ActionThreadsItems<MemSpace::device>{}],
+            buffer_d[NativeActionThreads::AllItemsT{}],
             buffer_h,
             TrackOrder::sort_step_limit_action);
 

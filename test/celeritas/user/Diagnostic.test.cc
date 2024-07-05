@@ -5,6 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/user/Diagnostic.test.cc
 //---------------------------------------------------------------------------//
+#include "celeritas_cmake_strings.h"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/StringUtils.hh"
 #include "geocel/UnitUtils.hh"
@@ -170,39 +171,45 @@ TEST_F(TestEm3DiagnosticTest, host)
            "scat-klein-nishina gamma"};
     EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
 
-    if (this->is_ci_build() && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
+    if (this->is_ci_build()
+        && std::string(celeritas_geant4_version) == "11.0.4")
     {
         static size_type const expected_nonzero_action_counts[] = {
-            121u,
-            389u,
-            480u,
-            16u,
-            57u,
-            1024u,
-            276u,
-            290u,
-            1798u,
+            119u,
+            398u,
+            462u,
+            14u,
+            59u,
+            1002u,
+            277u,
+            294u,
+            1713u,
             15u,
             19u,
-            1171u,
-            1541u,
-            572u,
-            86u,
-            26u,
-            311u,
+            1204u,
+            1645u,
+            567u,
+            81u,
+            24u,
+            299u,
         };
-
         EXPECT_VEC_EQ(expected_nonzero_action_counts,
                       result.nonzero_action_counts);
 
         static size_type const expected_steps[]
-            = {0u, 308u, 214u, 97u, 42u, 32u, 26u, 17u, 5u,  8u, 8u,
-               5u, 2u,   5u,   2u,  0u,  1u,  1u,  1u,  0u,  0u, 1u,
-               0u, 756u, 42u,  12u, 10u, 9u,  8u,  5u,  10u, 5u, 3u,
-               7u, 10u,  10u,  11u, 13u, 4u,  4u,  4u,  3u,  3u, 23u,
-               0u, 2u,   2u,   1u,  2u,  4u,  5u,  7u,  4u,  6u, 7u,
-               7u, 7u,   13u,  8u,  6u,  3u,  2u,  5u,  6u,  2u, 24u};
+            = {0u, 312u, 213u, 78u, 45u, 33u, 20u, 16u, 7u, 9u, 8u,
+               2u, 7u,   5u,   1u,  1u,  0u,  0u,  0u,  0u, 0u, 2u,
+               0u, 736u, 51u,  10u, 6u,  10u, 5u,  9u,  9u, 3u, 3u,
+               7u, 12u,  6u,   11u, 15u, 3u,  5u,  5u,  4u, 3u, 22u,
+               0u, 2u,   2u,   1u,  0u,  4u,  5u,  8u,  5u, 6u, 6u,
+               9u, 6u,   12u,  9u,  5u,  3u,  2u,  5u,  6u, 2u, 23u};
         EXPECT_VEC_EQ(expected_steps, result.steps);
+    }
+    else
+    {
+        cout << "No output saved for combination of "
+             << test::PrintableBuildConf{} << std::endl;
+        result.print_expected();
     }
 }
 
@@ -241,15 +248,12 @@ TEST_F(TestEm3DiagnosticTest, TEST_IF_CELER_DEVICE(device))
             0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
         EXPECT_VEC_EQ(expected_steps, result.steps);
 
-        if (CELERITAS_USE_JSON)
-        {
-            EXPECT_JSON_EQ(
-                R"json({"_category":"result","_index":["particle","action"],"_label":"action-diagnostic","actions":[[0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,9,0],[0,0,0,996,0,0,2,0,0,0,0,20,509,0,0,0,0,0,0,0,521,0],[0,0,0,902,0,0,10,0,0,0,9,20,577,0,0,0,0,0,0,0,518,0]]})json",
-                this->action_output());
-            EXPECT_JSON_EQ(
-                R"json({"_category":"result","_index":["particle","num_steps"],"_label":"step-diagnostic","steps":[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,5,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]})json",
-                this->step_output());
-        }
+        EXPECT_JSON_EQ(
+            R"json({"_category":"result","_index":["particle","action"],"_label":"action-diagnostic","actions":[[0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,9,0],[0,0,0,996,0,0,2,0,0,0,0,20,509,0,0,0,0,0,0,0,0,521,0],[0,0,0,902,0,0,10,0,0,0,9,20,577,0,0,0,0,0,0,0,0,518,0]]})json",
+            this->action_output());
+        EXPECT_JSON_EQ(
+            R"json({"_category":"result","_index":["particle","num_steps"],"_label":"step-diagnostic","steps":[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,5,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]})json",
+            this->step_output());
     }
     else
     {

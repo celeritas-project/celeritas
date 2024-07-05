@@ -22,31 +22,34 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Helper function to run an action in parallel on CPU.
+ * Helper function to run an executor in parallel on CPU.
  *
- * This interface accepts a *range* of thread IDs that is independent from the
- * state size.
+ * Example:
+ * \code
+ void FooHelper::execute(CoreParams const& params,
+                         CoreStateHost& state) const
+ {
+    launch_core(params, state, "foo-helper", make_blah_executor(blah));
+ }
+ * \endcode
  */
 template<class F>
-void launch_action(ExplicitActionInterface const& action,
-                   size_type const num_threads,
-                   celeritas::CoreParams const& params,
-                   celeritas::CoreState<MemSpace::host>& state,
-                   F&& execute_thread)
+void launch_core(std::string_view label,
+                 celeritas::CoreParams const& params,
+                 celeritas::CoreState<MemSpace::host>& state,
+                 F&& execute_thread)
 {
     MultiExceptionHandler capture_exception;
 #if defined(_OPENMP) && CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
 #    pragma omp parallel for
 #endif
-    for (size_type i = 0; i < num_threads; ++i)
+    for (size_type i = 0, size = state.size(); i != size; ++i)
     {
         CELER_TRY_HANDLE_CONTEXT(
             execute_thread(ThreadId{i}),
             capture_exception,
-            KernelContextException(params.ref<MemSpace::host>(),
-                                   state.ref(),
-                                   ThreadId{i},
-                                   action.label()));
+            KernelContextException(
+                params.ref<MemSpace::host>(), state.ref(), ThreadId{i}, label));
     }
     log_and_rethrow(std::move(capture_exception));
 }
@@ -70,8 +73,8 @@ void launch_action(ExplicitActionInterface const& action,
                    celeritas::CoreState<MemSpace::host>& state,
                    F&& execute_thread)
 {
-    return launch_action(
-        action, state.size(), params, state, std::forward<F>(execute_thread));
+    return launch_core(
+        action.label(), params, state, std::forward<F>(execute_thread));
 }
 
 //---------------------------------------------------------------------------//

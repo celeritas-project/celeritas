@@ -25,16 +25,18 @@ namespace celeritas
  * Construct from model ID and other necessary data.
  */
 EPlusGGModel::EPlusGGModel(ActionId id, ParticleParams const& particles)
+    : ConcreteAction(id,
+                     "annihil-2-gamma",
+                     "interact by positron annihilation yielding two gammas")
 {
     CELER_EXPECT(id);
-    data_.ids.action = id;
-    data_.ids.positron = particles.find(pdg::positron());
-    data_.ids.gamma = particles.find(pdg::gamma());
+    data_.positron = particles.find(pdg::positron());
+    data_.gamma = particles.find(pdg::gamma());
 
-    CELER_VALIDATE(data_.ids.positron && data_.ids.gamma,
+    CELER_VALIDATE(data_.positron && data_.gamma,
                    << "missing positron and/or gamma particles (required for "
                    << this->description() << ")");
-    data_.electron_mass = particles.get(data_.ids.positron).mass();
+    data_.electron_mass = particles.get(data_.positron).mass();
     CELER_ENSURE(data_);
 }
 
@@ -45,7 +47,7 @@ EPlusGGModel::EPlusGGModel(ActionId id, ParticleParams const& particles)
 auto EPlusGGModel::applicability() const -> SetApplicability
 {
     Applicability applic;
-    applic.particle = data_.ids.positron;
+    applic.particle = data_.positron;
     applic.lower = zero_quantity();  // Valid at rest
     applic.upper = units::MevEnergy{1e8};  // 100 TeV
 
@@ -83,15 +85,6 @@ void EPlusGGModel::execute(CoreParams const&, CoreStateDevice&) const
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the model ID for this model.
- */
-ActionId EPlusGGModel::action_id() const
-{
-    return data_.ids.action;
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

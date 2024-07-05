@@ -8,21 +8,15 @@ set(SOURCES
   celer-sim.cc
   Runner.cc
   RunnerOutput.cc
+  RunnerInputIO.json.cc
   Transporter.cc
 )
 set(LIBRARIES
   Celeritas::celeritas
   Celeritas::DeviceToolkit
+  nlohmann_json::nlohmann_json
 )
 
-if(CELERITAS_USE_JSON)
-  list(APPEND SOURCES
-    RunnerInputIO.json.cc
-  )
-  list(APPEND LIBRARIES
-    nlohmann_json::nlohmann_json
-  )
-endif()
 if(CELERITAS_USE_CUDA AND CELERITAS_CORE_GEO STREQUAL "VecGeom")
   list(APPEND LIBRARIES VecGeom::vecgeom)
 endif()

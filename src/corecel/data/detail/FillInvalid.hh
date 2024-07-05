@@ -109,9 +109,8 @@ struct InvalidValueTraits<T, typename std::enable_if<std::is_trivial<T>::value>:
 
 //---------------------------------------------------------------------------//
 /*!
- * Fill a collection with an invalid value (host only).
+ * Fill a collection with an invalid value (nullop if not host/mapped).
  */
-
 template<MemSpace M>
 struct InvalidFiller
 {
@@ -121,7 +120,7 @@ struct InvalidFiller
         CELER_EXPECT(c);
 
         T val = InvalidValueTraits<T>::value();
-        auto items = (*c)[AllItems<T>{}];
+        auto items = (*c)[AllItems<T, M>{}];
         std::fill(items.begin(), items.end(), val);
     }
 };
@@ -132,6 +131,7 @@ struct InvalidFiller<MemSpace::device>
     template<class T>
     void operator()(T*)
     {
+        /* Null-op */
     }
 };
 

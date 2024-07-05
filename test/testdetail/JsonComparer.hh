@@ -60,19 +60,6 @@ class JsonComparer
     struct Impl;
 };
 
-#if !CELERITAS_USE_JSON
-inline auto JsonComparer::operator()(std::string_view expected,
-                                     std::string_view actual) -> result_type
-{
-    CELER_DISCARD(expected);
-    CELER_DISCARD(actual);
-    auto result = ::testing::AssertionFailure();
-    result << "JSON is not enabled: "
-              "wrap this test in 'if (CELERITAS_USE_JSON)'";
-    return result;
-}
-#endif
-
 //---------------------------------------------------------------------------//
 }  // namespace testdetail
 }  // namespace celeritas

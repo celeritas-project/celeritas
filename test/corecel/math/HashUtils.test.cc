@@ -9,8 +9,39 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
+#include <limits>
 
 #include "celeritas_test.hh"
+
+namespace celeritas
+{
+namespace test
+{
+//---------------------------------------------------------------------------//
+struct PaddedStruct
+{
+    bool b;
+    int i;
+    long long int lli;
+};
+//---------------------------------------------------------------------------//
+}  // namespace test
+}  // namespace celeritas
+
+namespace std
+{
+//---------------------------------------------------------------------------//
+template<>
+struct hash<celeritas::test::PaddedStruct>
+{
+    std::size_t operator()(celeritas::test::PaddedStruct const& s) const
+    {
+        return celeritas::hash_combine(s.b, s.i, s.lli);
+    }
+};
+//---------------------------------------------------------------------------//
+}  // namespace std
 
 namespace celeritas
 {
@@ -59,6 +90,45 @@ TEST(HashUtilsTest, hash_combine)
     EXPECT_NE(hash_combine(), hash_combine(0));
     EXPECT_NE(hash_combine(0, 1), hash_combine(1, 0));
     EXPECT_NE(hash_combine(foo, bar), hash_combine(bar, foo));
+}
+
+//---------------------------------------------------------------------------//
+struct UnpaddedStruct
+{
+    int i;
+    int j;
+};
+
+TEST(HashSpan, padded_struct)
+{
+    PaddedStruct temp;
+    std::memset(&temp, 0x0f, sizeof(temp));
+    temp.b = false;
+    temp.i = 0x1234567;
+    temp.lli = 0xabcde01234ll;
+    Span<PaddedStruct const, 1> s{&temp, 1};
+    EXPECT_EQ(std::hash<decltype(s)>{}(s),
+              hash_combine(hash_combine(temp.b, temp.i, temp.lli)));
+}
+
+TEST(HashSpan, unpadded_struct)
+{
+    static int const values[] = {0x1234567, 0x2345678};
+    UnpaddedStruct temp;
+    temp.i = values[0];
+    temp.j = values[1];
+    Span<UnpaddedStruct const, 1> s{&temp, 1};
+    EXPECT_EQ(std::hash<decltype(s)>{}(s), hash_as_bytes(s));
+}
+
+TEST(HashSpan, reals)
+{
+    if (CELERITAS_DEBUG)
+    {
+        auto nan = std::numeric_limits<double>::quiet_NaN();
+        Span<double const, 1> s{&nan, 1};
+        EXPECT_THROW(std::hash<decltype(s)>{}(s), DebugError);
+    }
 }
 
 //---------------------------------------------------------------------------//

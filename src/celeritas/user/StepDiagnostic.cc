@@ -9,12 +9,14 @@
 
 #include <type_traits>
 #include <utility>
+#include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/io/LabelIO.json.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -22,13 +24,8 @@
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 
 #include "ParticleTallyData.hh"
+
 #include "detail/StepDiagnosticExecutor.hh"
-
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-
-#    include "corecel/io/LabelIO.json.hh"
-#endif
 
 namespace celeritas
 {
@@ -100,7 +97,6 @@ std::string_view StepDiagnostic::description() const
  */
 void StepDiagnostic::output(JsonPimpl* j) const
 {
-#if CELERITAS_USE_JSON
     using json = nlohmann::json;
 
     auto obj = json::object();
@@ -109,9 +105,6 @@ void StepDiagnostic::output(JsonPimpl* j) const
     obj["_index"] = {"particle", "num_steps"};
 
     j->obj = std::move(obj);
-#else
-    CELER_DISCARD(j);
-#endif
 }
 
 //---------------------------------------------------------------------------//

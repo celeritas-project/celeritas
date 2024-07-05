@@ -21,6 +21,7 @@
 #include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/Logger.hh"
@@ -28,8 +29,9 @@
 
 #include "OrangeInput.hh"
 #include "OrangeTypes.hh"
-#include "detail/OrangeInputIOImpl.json.hh"
 #include "surf/SurfaceTypeTraits.hh"
+
+#include "detail/OrangeInputIOImpl.json.hh"
 
 namespace celeritas
 {
@@ -515,7 +517,7 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
     CELER_VALIDATE(j.contains("_format"),
                    << "invalid ORANGE JSON input: no '_format' found");
     auto const& fmt = j.at("_format").get<std::string>();
-    CELER_VALIDATE(fmt == "SCALE ORANGE" || fmt == "ORANGE",
+    CELER_VALIDATE(fmt == "orange" || fmt == "ORANGE" || fmt == "SCALE ORANGE",
                    << "invalid ORANGE JSON input: unknown format '" << fmt
                    << "'");
     std::string version{"<unknown>"};
@@ -524,6 +526,8 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
         version = std::to_string(iter->get<int>());
     }
     CELER_LOG(debug) << "Reading '" << fmt << "' input version " << version;
+
+    check_units(j, "ORANGE");
 
     auto const& universes = j.at("universes");
     value.universes.reserve(universes.size());
@@ -546,9 +550,9 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
         }
     }
 
-    if (j.count("tol"))
+    if (auto iter = j.find("tol"); iter != j.end())
     {
-        j.at("tol").get_to(value.tol);
+        iter->get_to(value.tol);
     }
     else
     {
@@ -576,6 +580,7 @@ void to_json(nlohmann::json& j, OrangeInput const& value)
     {
         j["tol"] = value.tol;
     }
+    save_units(j);
 }
 
 //---------------------------------------------------------------------------//

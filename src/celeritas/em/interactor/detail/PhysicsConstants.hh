@@ -59,9 +59,15 @@ CELER_CONSTEXPR_FUNCTION MevPerLen lpm_constant()
 //---------------------------------------------------------------------------//
 
 //! Maximum energy for the SeltzerBerger model - TODO: make this configurable
-CELER_CONSTEXPR_FUNCTION units::MevEnergy seltzer_berger_limit()
+CELER_CONSTEXPR_FUNCTION units::MevEnergy seltzer_berger_upper_limit()
 {
     return units::MevEnergy{1e3};  //! 1 GeV
+}
+
+//! Energy threshold between muon ionization models. TODO: make configurable
+CELER_CONSTEXPR_FUNCTION units::MevEnergy mu_bethe_bloch_lower_limit()
+{
+    return units::MevEnergy{0.2};  //! 200 keV
 }
 
 //! Maximum energy for EM models to be valid

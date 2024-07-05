@@ -33,6 +33,9 @@ ChipsNeutronElasticModel::ChipsNeutronElasticModel(
     ParticleParams const& particles,
     MaterialParams const& materials,
     ReadData load_data)
+    : ConcreteAction(id,
+                     "neutron-elastic-chips",
+                     "interact by neutron elastic scattering (CHIPS)")
 {
     CELER_EXPECT(id);
     CELER_EXPECT(load_data);
@@ -40,15 +43,14 @@ ChipsNeutronElasticModel::ChipsNeutronElasticModel(
     HostVal<NeutronElasticData> data;
 
     // Save IDs
-    data.ids.action = id;
-    data.ids.neutron = particles.find(pdg::neutron());
+    data.neutron = particles.find(pdg::neutron());
 
-    CELER_VALIDATE(data.ids.neutron,
+    CELER_VALIDATE(data.neutron,
                    << "missing neutron particles (required for "
                    << this->description() << ")");
 
     // Save particle properties
-    data.neutron_mass = particles.get(data.ids.neutron).mass();
+    data.neutron_mass = particles.get(data.neutron).mass();
 
     // Load neutron elastic cross section data
     CollectionBuilder micro_xs{&data.micro_xs};
@@ -81,7 +83,7 @@ ChipsNeutronElasticModel::ChipsNeutronElasticModel(
 auto ChipsNeutronElasticModel::applicability() const -> SetApplicability
 {
     Applicability neutron_applic;
-    neutron_applic.particle = this->host_ref().ids.neutron;
+    neutron_applic.particle = this->host_ref().neutron;
     neutron_applic.lower = this->host_ref().min_valid_energy();
     neutron_applic.upper = this->host_ref().max_valid_energy();
 
@@ -121,15 +123,6 @@ void ChipsNeutronElasticModel::execute(CoreParams const&, CoreStateDevice&) cons
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the model ID for this model.
- */
-ActionId ChipsNeutronElasticModel::action_id() const
-{
-    return this->host_ref().ids.action;
-}
 
 //---------------------------------------------------------------------------//
 /*!

@@ -39,7 +39,6 @@ endif()
 # Optional dependencies
 celeritas_optional_package(Geant4 "Enable Geant4 adapter tools")
 celeritas_optional_package(HepMC3 "Enable HepMC3 event record reader")
-option(CELERITAS_USE_JSON "Enable JSON I/O" ON)
 celeritas_optional_package(MPI "Enable distributed memory parallelism")
 celeritas_optional_package(OpenMP "Enable CPU shared-memory parallelism")
 celeritas_optional_package(Python "Use Python to generate and preprocess")
@@ -303,14 +302,7 @@ if(CELERITAS_USE_HepMC3)
   set(HepMC3_LIBRARIES HepMC3::HepMC3)
 endif()
 
-if(CELERITAS_USE_JSON)
-  # Required dependencies: find or fetch inside `external`
-  celeritas_find_or_external_package(nlohmann_json 3.7.0)
-  if(NOT CELERITAS_EXTERNAL_nlohmann_json AND NOT nlohmann_json_FOUND)
-    find_package(nlohmann_json 3.7.0 REQUIRED)
-  endif()
-  set(nlohmann_json_LIBRARIES nlohmann_json::nlohmann_json)
-endif()
+celeritas_find_or_external_package(nlohmann_json 3.7.0)
 
 if(CELERITAS_USE_MPI)
   find_package(MPI REQUIRED)
@@ -420,14 +412,6 @@ if(CELERITAS_USE_VecGeom)
   if(NOT VecGeom_LIBRARIES)
     set(VecGeom_LIBRARIES VecGeom::vecgeom)
   endif()
-endif()
-
-if(CELERITAS_BUILD_DEMOS AND NOT CELERITAS_USE_JSON)
-  celeritas_error_incompatible_option(
-    "JSON support is required for demos but was not found"
-    CELERITAS_BUILD_DEMOS
-    OFF
-  )
 endif()
 
 if(CELERITAS_BUILD_DOCS)

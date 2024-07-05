@@ -20,7 +20,6 @@ namespace celeritas
  */
 struct MuBremsstrahlungIds
 {
-    ActionId action;
     ParticleId gamma;
     ParticleId mu_minus;
     ParticleId mu_plus;
@@ -28,7 +27,7 @@ struct MuBremsstrahlungIds
     //! Whether the IDs are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return action && gamma && mu_minus && mu_plus;
+        return gamma && mu_minus && mu_plus;
     }
 };
 

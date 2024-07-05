@@ -7,14 +7,23 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstdint>
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+//! 32-bit unsigned integer type for xorwow
+using XorwowUInt = std::uint32_t;
+//! Seed type used to generate initial states for the RNG
+using XorwowSeed = Array<XorwowUInt, 1>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Persistent data for XORWOW generator.
@@ -24,15 +33,14 @@ struct XorwowRngParamsData
 {
     //// TYPES ////
 
-    using uint_t = unsigned int;
-    using JumpPoly = Array<uint_t, 5>;
+    using JumpPoly = Array<XorwowUInt, 5>;
     using ArrayJumpPoly = Array<JumpPoly, 32>;
 
     //// DATA ////
 
     // TODO: 256-bit seed used to generate initial states for the RNGs
     // For now, just 4 bytes (same as our existing cuda/hip interface)
-    Array<uint_t, 1> seed;
+    XorwowSeed seed;
 
     // Jump polynomials
     ArrayJumpPoly jump;
@@ -46,7 +54,7 @@ struct XorwowRngParamsData
     }
     static CELER_CONSTEXPR_FUNCTION size_type num_bits()
     {
-        return 8 * sizeof(uint_t);
+        return 8 * sizeof(XorwowUInt);
     }
 
     //! Whether the data is assigned
@@ -79,11 +87,8 @@ struct XorwowRngInitializer
 //! Individual RNG state
 struct XorwowState
 {
-    using uint_t = unsigned int;
-    static_assert(sizeof(uint_t) == 4, "Expected 32-bit int");
-
-    Array<uint_t, 5> xorstate;  //!< x, y, z, w, v
-    uint_t weylstate;  //!< d
+    Array<XorwowUInt, 5> xorstate;  //!< x, y, z, w, v
+    XorwowUInt weylstate;  //!< d
 };
 
 //---------------------------------------------------------------------------//
@@ -123,14 +128,13 @@ struct XorwowRngStateData
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Resize and seed the RNG states.
- *
- * cuRAND and hipRAND implement functions that permute the original (but
- * seemingly arbitrary) seeds given in Marsaglia with 64 bits of seed data. We
- * simply generate pseudorandom, independent starting states for all data in
- * all threads using MT19937.
- */
+// Initialize XORWOW states with well-distributed random data
+void initialize_xorwow(Span<XorwowState> state,
+                       XorwowSeed const& seed,
+                       StreamId stream);
+
+//---------------------------------------------------------------------------//
+// Resize and seed the RNG states
 template<MemSpace M>
 void resize(XorwowRngStateData<Ownership::value, M>* state,
             HostCRef<XorwowRngParamsData> const& params,

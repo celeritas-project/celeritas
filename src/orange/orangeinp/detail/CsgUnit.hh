@@ -48,7 +48,7 @@ struct CsgUnit
 
     using Metadata = Label;
     using SetMd = std::set<Metadata>;
-    using Fill = std::variant<std::monostate, MaterialId, Daughter>;
+    using Fill = std::variant<std::monostate, GeoMaterialId, Daughter>;
 
     //! Attributes about a closed volume of space
     struct Region
@@ -78,7 +78,7 @@ struct CsgUnit
     //! Vectors are indexed by LocalVolumeId.
     std::vector<NodeId> volumes;  //!< CSG node of each volume
     std::vector<Fill> fills;  //!< Content of each volume
-    MaterialId background;  //!< Optional background fill
+    GeoMaterialId background;  //!< Optional background fill
     //!@}
 
     //!@{

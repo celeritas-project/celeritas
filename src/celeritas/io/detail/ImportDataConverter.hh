@@ -14,14 +14,15 @@ namespace celeritas
 struct ImportData;
 struct ImportElement;
 struct ImportEmParameters;
-struct ImportMaterial;
-struct ImportOpticalMaterial;
+struct ImportPhysMaterial;
 struct ImportModel;
 struct ImportModelMaterial;
 struct ImportMscModel;
+struct ImportOpticalMaterial;
 struct ImportParticle;
 struct ImportPhysicsTable;
 struct ImportProcess;
+struct ImportGeoMaterial;
 
 namespace detail
 {
@@ -40,7 +41,8 @@ class ImportDataConverter
     void operator()(ImportData* data);
     void operator()(ImportElement* data);
     void operator()(ImportEmParameters* data);
-    void operator()(ImportMaterial* data);
+    void operator()(ImportGeoMaterial* data);
+    void operator()(ImportPhysMaterial* data);
     void operator()(ImportOpticalMaterial* data);
     void operator()(ImportModel* data);
     void operator()(ImportModelMaterial* data);

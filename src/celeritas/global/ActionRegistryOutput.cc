@@ -9,6 +9,7 @@
 
 #include <type_traits>
 #include <utility>
+#include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
 #include "corecel/cont/Range.hh"
@@ -16,9 +17,6 @@
 
 #include "ActionInterface.hh"
 #include "ActionRegistry.hh"  // IWYU pragma: keep
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-#endif
 
 namespace celeritas
 {
@@ -38,7 +36,6 @@ ActionRegistryOutput::ActionRegistryOutput(SPConstActionRegistry actions)
  */
 void ActionRegistryOutput::output(JsonPimpl* j) const
 {
-#if CELERITAS_USE_JSON
     using json = nlohmann::json;
 
     auto label = json::array();
@@ -55,9 +52,6 @@ void ActionRegistryOutput::output(JsonPimpl* j) const
         {"label", std::move(label)},
         {"description", std::move(description)},
     };
-#else
-    CELER_DISCARD(j);
-#endif
 }
 
 //---------------------------------------------------------------------------//

@@ -42,12 +42,14 @@ allows their conversion back to native units. This allows, for example,
 particles to represent their energy as MeV and charge as fractions of e but
 work seamlessly with a field definition in native (macro-scale quantity) units.
 
-Physics
-=======
+EM Physics
+==========
 
-Celeritas implements physics processes and models for transporting electron, positron,
-and gamma particles as shown in the accompanying table. Implementation details of these models
-and their corresponding Geant4 classes are documented in :ref:`celeritas_physics`.
+Celeritas implements physics processes and models for transporting electron,
+positron, and gamma particles as shown in the accompanying table. Initial
+support is being added for muon physics and is not shown below.
+Implementation details of these models
+and their corresponding Geant4 classes are documented in :ref:`api_em_physics`.
 
 .. only:: html
 
@@ -170,6 +172,16 @@ with the single Coulomb scattering model, is an implementation of the mixed
 simulation algorithm. It is the default model in Geant4 above 100 MeV and
 currently under development in Celeritas.
 
+Optical Physics
+===============
+
+TODO:
+
+- Describe integration into the main stepping loop
+- Add mermaid plot of optical stepping loop
+- Describe pre-generation, generation
+- Add optical models
+
 Geometry
 ========
 
@@ -186,8 +198,50 @@ and querying the geometry state.
 Stepping loop
 =============
 
-The stepping loop in Celeritas is a sorted loop over "actions", each of which
-is usually a kernel launch (or an inner loop over tracks if running on CPU).
+The core algorithm in Celeritas is to perform a *loop interchange*
+:cite:`allen_automatic_1984` between particle tracks and steps. The classical
+(serial) way of simulating an event is to have an outer loop over tracks and an
+inner loop over steps, and inside each step are the various actions applied to
+a track such as evaluating cross sections, calculating the distance to the
+nearest geometry boundary, and undergoing an interaction to produce
+secondaries. In Python pseudocode this looks like:
+
+.. code-block:: python
+
+   track_queue = primaries
+   while track_queue:
+      track = track_queue.pop()
+      while track.alive:
+         for apply_action in [pre, along, post]:
+            apply_action(track)
+         track_queue += track.secondaries
+
+There is effectively a data dependency between the track at step *i* and step
+*i + 1* that prevents vectorization. The approach Celeritas takes to
+"vectorize" the stepping loop on GPU is to have an outer loop over "step
+iterations" and an inner loop over "track slots", which are elements in a
+fixed-size vector of tracks that may be in flight:
+
+.. code-block:: python
+
+   initializers = primaries
+   track_slots = [None] * num_track_slots
+   while initializers or any(track_slots):
+      fill_track_slots(track_slots, initializers)
+      for apply_action in [pre, along, post]:
+         for (i, track) in enumerate(track_slots):
+            apply_action(track)
+            track_queue += track.secondaries
+      if not track.alive:
+         track_slots[i] = None
+
+
+The stepping loop in Celeritas is therefore a sorted loop over "actions", each
+of which is usually a kernel launch (or an inner loop over tracks if running on
+CPU).
+
+See :ref:`api_stepping` for implementation details on the ordering of actions
+and the status of a track slot during iteration.
 
 GPU usage
 =========

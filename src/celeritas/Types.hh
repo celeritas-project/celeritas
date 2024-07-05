@@ -38,6 +38,10 @@ using EventId = OpaqueId<struct Event_>;
 //! Opaque index to IsotopeRecord in a vector
 using IsotopeId = OpaqueId<struct IsotopeRecord>;
 
+//! Opaque index of a material modified by physics options
+// TODO: rename to PhysMatId; equivalent to "material cuts couple"
+using MaterialId = OpaqueId<class Material_>;
+
 //! Opaque index of model in the list of physics processes
 using ModelId = OpaqueId<class Model>;
 
@@ -87,7 +91,7 @@ enum class Interp
 };
 
 //---------------------------------------------------------------------------//
-//! Physical state of matter.
+//! Physical state of matter
 enum class MatterState
 {
     unspecified = 0,
@@ -98,29 +102,53 @@ enum class MatterState
 };
 
 //---------------------------------------------------------------------------//
-//! Whether a track slot is alive, inactive, or dying
-enum class TrackStatus : std::int_least8_t
+/*!
+ * Whether a track slot is alive, inactive, or dying inside a step iteration.
+ *
+ * - A track slot starts as \c inactive . If not filled with a new track, it is
+ *   inactive for the rest of the step iteration.
+ * - When it is populated with a new particle, it is \c initializing . If an
+ *   error occurs during initialization it is \c errored .
+ * - During the pre-step setup, a non-errored active track slot is marked as \c
+ *   alive .
+ * - During along-step or post-step a track can be marked as \c errored or
+ *   \c killed .
+ */
+enum class TrackStatus : std::uint_least8_t
 {
-    killed = -1,  //!< Killed inside the step, awaiting replacement
     inactive = 0,  //!< No tracking in this thread slot
-    // TODO: add 'initial' enum here, change "alive" to helper function
-    alive = 1  //!< Track is active and alive
+    initializing,  //!< Before pre-step, after initialization
+    alive,  //!< Track is active and alive
+    begin_dying_,
+    errored = begin_dying_,  //!< Track failed during this step
+    killed,  //!< Killed physically inside the step
+    size_
 };
 
 //---------------------------------------------------------------------------//
-//! Within-step ordering of explicit actions
+/*!
+ * Within-step ordering of explicit actions.
+ *
+ * Each "step iteration", wherein many tracks undergo a single step in
+ * parallel, consists of an ordered series of actions. An action with an
+ * earlier order always precedes an action with a later order.
+ *
+ * \sa ExplicitActionInterface
+ */
 enum class ActionOrder
 {
     start,  //!< Initialize tracks
+    user_start,  //!< User initialization of new tracks
     sort_start,  //!< Sort track slots after initialization
     pre,  //!< Pre-step physics and setup
+    user_pre,  //!< User actions for querying pre-step data
     sort_pre,  //!< Sort track slots after setting pre-step
     along,  //!< Along-step
     sort_along,  //!< Sort track slots after determining first step action
     pre_post,  //!< Discrete selection kernel
     sort_pre_post,  //! Sort track slots after selecting discrete interaction
     post,  //!< After step
-    post_post,  //!< User actions after boundary crossing, collision
+    user_post,  //!< User actions after boundary crossing, collision
     end,  //!< Processing secondaries, including replacing primaries
     size_
 };
@@ -139,9 +167,9 @@ enum class StepPoint
 enum class TrackOrder
 {
     unsorted,  //!< Don't do any sorting: tracks are in an arbitrary order
-    shuffled,  //!< Tracks are shuffled at the start of the simulation
-    partition_status,  //!< Tracks are partitioned by status at the start of
-                       //!< each step
+    shuffled,  //!< Shuffle at the start of the simulation
+
+    partition_status,  //!< Partition by status at the start of each step
     sort_along_step_action,  //!< Sort only by the along-step action id
     sort_step_limit_action,  //!< Sort only by the step limit action id
     sort_action,  //!< Sort by along-step id, then post-step ID
@@ -189,6 +217,34 @@ struct StepLimit
 };
 
 //---------------------------------------------------------------------------//
+//! Action order/ID tuple for comparison in sorting
+struct OrderedAction
+{
+    ActionOrder order;
+    ActionId id;
+
+    //! Ordering comparison for an action/ID
+    CELER_CONSTEXPR_FUNCTION bool operator<(OrderedAction const& other) const
+    {
+        if (this->order < other.order)
+            return true;
+        if (this->order > other.order)
+            return false;
+        return this->id < other.id;
+    }
+};
+
+//---------------------------------------------------------------------------//
+// HELPER FUNCTIONS
+//---------------------------------------------------------------------------//
+
+//! Whether a track is in a consistent, valid state
+CELER_CONSTEXPR_FUNCTION bool is_track_valid(TrackStatus status)
+{
+    return status != TrackStatus::inactive && status != TrackStatus::errored;
+}
+
+//---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST)
 //---------------------------------------------------------------------------//
 
@@ -197,6 +253,9 @@ char const* to_cstring(Interp);
 
 // Get a string corresponding to a material state
 char const* to_cstring(MatterState);
+
+// Get a string corresponding to a track stats
+char const* to_cstring(TrackStatus);
 
 // Get a string corresponding to a surface type
 char const* to_cstring(ActionOrder);
@@ -210,9 +269,15 @@ char const* to_cstring(MscStepLimitAlgorithm value);
 // Get a string corresponding to the nuclear form factor model
 char const* to_cstring(NuclearFormFactorType value);
 
-// Checks that the TrackOrder will sort tracks by actions applied at the given
+// Whether the TrackOrder will sort tracks by actions with the given
 // ActionOrder
 bool is_action_sorted(ActionOrder action, TrackOrder track);
+
+//! Whether track sorting is enabled
+inline constexpr bool is_action_sorted(TrackOrder track)
+{
+    return static_cast<int>(track) > static_cast<int>(TrackOrder::shuffled);
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

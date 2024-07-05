@@ -9,20 +9,17 @@
 
 #include <type_traits>
 #include <utility>
+#include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/math/QuantityIO.json.hh"
 
 #include "Model.hh"
 #include "PhysicsData.hh"
 #include "PhysicsParams.hh"  // IWYU pragma: keep
 #include "Process.hh"
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-
-#    include "corecel/math/QuantityIO.json.hh"
-#endif
 
 namespace celeritas
 {
@@ -42,7 +39,6 @@ PhysicsParamsOutput::PhysicsParamsOutput(SPConstPhysicsParams physics)
  */
 void PhysicsParamsOutput::output(JsonPimpl* j) const
 {
-#if CELERITAS_USE_JSON
     using json = nlohmann::json;
 
     auto obj = json::object();
@@ -112,9 +108,6 @@ void PhysicsParamsOutput::output(JsonPimpl* j) const
     }
 
     j->obj = std::move(obj);
-#else
-    CELER_DISCARD(j);
-#endif
 }
 
 //---------------------------------------------------------------------------//

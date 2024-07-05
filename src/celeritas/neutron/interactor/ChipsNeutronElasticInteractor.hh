@@ -98,7 +98,7 @@ CELER_FUNCTION ChipsNeutronElasticInteractor::ChipsNeutronElasticInteractor(
     , sample_phi_(0, 2 * constants::pi)
     , sample_momentum_square_(shared_, target_, neutron_p_)
 {
-    CELER_EXPECT(particle.particle_id() == shared_.ids.neutron);
+    CELER_EXPECT(particle.particle_id() == shared_.neutron);
 }
 //---------------------------------------------------------------------------//
 /*!

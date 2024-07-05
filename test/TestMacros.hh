@@ -91,13 +91,6 @@
 #    define TEST_IF_CELERITAS_GEANT(name) DISABLED_##name
 #endif
 
-//! Construct a test name that is disabled when JSON is disabled
-#if CELERITAS_USE_JSON
-#    define TEST_IF_CELERITAS_JSON(name) name
-#else
-#    define TEST_IF_CELERITAS_JSON(name) DISABLED_##name
-#endif
-
 //! Construct a test name that is disabled when ROOT is disabled
 #if CELERITAS_USE_ROOT
 #    define TEST_IF_CELERITAS_USE_ROOT(name) name

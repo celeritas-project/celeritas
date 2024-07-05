@@ -28,17 +28,17 @@ class TrackingManagerOffload final : public G4VTrackingManager
 
     // Prepare cross-section tables for rebuild (e.g. if new materials have
     // been defined).
-    void PreparePhysicsTable(G4ParticleDefinition const&) override;
+    void PreparePhysicsTable(G4ParticleDefinition const&) final;
 
     // Rebuild physics cross-section tables (e.g. if new materials have been
     // defined).
-    void BuildPhysicsTable(G4ParticleDefinition const&) override;
+    void BuildPhysicsTable(G4ParticleDefinition const&) final;
 
     // Hand over passed track to this tracking manager.
-    void HandOverOneTrack(G4Track* aTrack) override;
+    void HandOverOneTrack(G4Track* aTrack) final;
 
     // Complete processing of any buffered tracks.
-    void FlushEvent() override;
+    void FlushEvent() final;
 
   private:
     SharedParams const* params_{nullptr};

@@ -3,29 +3,38 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/OpticalGenStorage.hh
+//! \file celeritas/em/data/MuBetheBlochData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <vector>
-
-#include "corecel/data/StreamStore.hh"
-
-#include "../OpticalGenData.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
-struct OpticalGenStorage
+/*!
+ * Device data for creating an interactor.
+ */
+struct MuBetheBlochData
 {
-    using StoreT = StreamStore<OpticalGenParamsData, OpticalGenStateData>;
+    //! Particle IDs
+    ParticleId electron;
+    ParticleId mu_minus;
+    ParticleId mu_plus;
 
-    StoreT obj;
-    std::vector<OpticalBufferSize> size;
+    //! Electron mass [MeV / c^2]
+    units::MevMass electron_mass;
+
+    //! Whether all data are assigned and valid
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return electron && mu_minus && mu_plus
+               && electron_mass > zero_quantity();
+    }
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

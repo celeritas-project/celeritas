@@ -66,7 +66,6 @@ CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
     ti.sim.parent_id = TrackId{};
     ti.sim.event_id = primary.event_id;
     ti.sim.time = primary.time;
-    ti.sim.status = TrackStatus::alive;
     ti.geo.pos = primary.position;
     ti.geo.dir = primary.direction;
     ti.particle.particle_id = primary.particle_id;

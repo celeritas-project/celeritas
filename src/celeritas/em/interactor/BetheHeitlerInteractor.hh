@@ -302,8 +302,8 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
 
     // Sample secondary directions.
     // Note that momentum is not exactly conserved.
-    UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
-    real_type phi = sample_phi(rng);
+    real_type phi
+        = UniformRealDistribution<real_type>(0, 2 * constants::pi)(rng);
 
     // Electron
     TsaiUrbanDistribution sample_electron_angle(secondaries[0].energy,
