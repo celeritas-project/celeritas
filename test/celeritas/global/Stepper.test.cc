@@ -24,10 +24,12 @@
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
+#include "celeritas/track/SimTrackView.hh"
 
 #include "DummyAction.hh"
 #include "StepperTestBase.hh"
 #include "celeritas_test.hh"
+#include "../InvalidOrangeTestBase.hh"
 #include "../SimpleTestBase.hh"
 
 using celeritas::units::MevEnergy;
@@ -99,6 +101,56 @@ class StepperOrderTest : public SimpleComptonTest
     }
 
     std::shared_ptr<DummyParams> dummy_params_;
+};
+
+#define BadGeometryTest TEST_IF_CELERITAS_ORANGE(BadGeometryTest)
+class BadGeometryTest : public InvalidOrangeTestBase
+{
+  public:
+    Primary make_primary(Real3 const& pos)
+    {
+        Primary p;
+        p.particle_id = this->particle()->find(pdg::gamma());
+        CELER_ASSERT(p.particle_id);
+        p.energy = units::MevEnergy{100};
+        p.event_id = EventId{0};
+        p.track_id = TrackId{0};
+        p.position = pos;
+        p.direction = {1, 0, 0};
+        p.time = 0;
+        return p;
+    }
+
+    StepperInput make_stepper_input()
+    {
+        StepperInput result;
+        result.params = this->core();
+        result.stream_id = StreamId{0};
+        result.num_track_slots = 1;
+        return result;
+    }
+
+    template<MemSpace M>
+    ScopedLogStorer run_one_failure(Real3 const& point)
+    {
+        Stepper<M> step(this->make_stepper_input());
+
+        auto primary = this->make_primary(point);
+        ScopedLogStorer scoped_log{&celeritas::self_logger()};
+        CELER_TRY_HANDLE(step({&primary, 1}),
+                         LogContextException{this->output_reg().get()});
+
+        {
+            // Check that the state failed
+            auto sim_state = make_host_val(step.state_ref().sim);
+            auto state_ref = make_ref(sim_state);
+            SimTrackView sim(
+                this->core()->host_ref().sim, state_ref, TrackSlotId{0});
+            EXPECT_EQ(this->core()->host_ref().scalars.tracking_cut_action,
+                      sim.post_step_action());
+        }
+        return scoped_log;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -220,6 +272,62 @@ TEST_F(StepperOrderTest, host)
     static char const* const expected_action_order[]
         = {"user_start", "user_pre", "user_post"};
     EXPECT_VEC_EQ(expected_action_order, state.action_order);
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(BadGeometryTest, no_volume_host)
+{
+    GTEST_SKIP() << "missing volume in ORANGE is currently a debug failure, "
+                    "not an error status";
+    auto scoped_log = this->run_one_failure<MemSpace::host>({-5, 0, 0});
+    scoped_log.print_expected();
+}
+
+TEST_F(BadGeometryTest, no_material_host)
+{
+    auto scoped_log = this->run_one_failure<MemSpace::host>({5, 0, 0});
+
+    // clang-format off
+    static char const* const expected_log_messages[] = {
+        "Track started in an unknown material",
+        "Tracking error (track ID 0, track slot 0) at {5, 0, 0} along {1, 0, 0}: depositing 100 [MeV] in volume 4",
+    };
+    // clang-format on
+
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages());
+    static char const* const expected_log_levels[] = {"error", "error"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
+}
+
+TEST_F(BadGeometryTest, start_outside_host)
+{
+    auto scoped_log = this->run_one_failure<MemSpace::host>({20, 0, 0});
+
+    // clang-format off
+    static char const* const expected_log_messages[] = {
+        "Track started outside the geometry",
+        "Tracking error (track ID 0, track slot 0) at {20, 0, 0} along {1, 0, 0}: lost 100 MeV energy",
+    };
+    // clang-format on
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages());
+}
+
+TEST_F(BadGeometryTest, TEST_IF_CELER_DEVICE(no_volume_device))
+{
+    GTEST_SKIP() << "missing volume in ORANGE is currently a debug failure, "
+                    "not an error status";
+    this->run_one_failure<MemSpace::device>({-5, 0, 0});
+}
+
+TEST_F(BadGeometryTest, TEST_IF_CELER_DEVICE(no_material_device))
+{
+    this->run_one_failure<MemSpace::device>({5, 0, 0});
+}
+
+TEST_F(BadGeometryTest, TEST_IF_CELER_DEVICE(start_outside_device))
+{
+    this->run_one_failure<MemSpace::device>({20, 0, 0});
 }
 
 //---------------------------------------------------------------------------//
