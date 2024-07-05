@@ -19,13 +19,14 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct in unallocated state
+ * Construct in unallocated state.
  */
 DeviceAllocation::DeviceAllocation(StreamId stream)
     : size_{0}, stream_{stream}, data_{nullptr, {stream}}
 {
 }
 
+//---------------------------------------------------------------------------//
 /*!
  * Allocate a buffer with the given number of bytes.
  */

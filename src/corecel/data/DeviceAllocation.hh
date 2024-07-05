@@ -23,10 +23,13 @@ namespace celeritas
 /*!
  * Allocate raw uninitialized memory.
  *
- * This class is intended to be used by host-compiler `.hh` code as a bridge to
- * device memory. It allows Storage classes to allocate and manage device
- * memory without using `thrust`, which requires NVCC and propagates that
- * requirement into all upstream code.
+ * This class is intended to be used by host-compiler \c .hh code as a bridge
+ * to device memory. It allows Storage classes to allocate and manage device
+ * memory without using \c thrust, which requires NVCC and propagates that
+ * requirement into all downstream code.
+ *
+ * TODO: remove the stream constructor data members and rely on \c Copier or
+ * \c thrust to do streamed async operations?
  */
 class DeviceAllocation
 {
@@ -61,6 +64,9 @@ class DeviceAllocation
 
     //! Whether memory is allocated
     bool empty() const { return size_ == 0; }
+
+    //! Access the stream, set for asynchonous allocation/copy
+    StreamId stream_id() const { return stream_; }
 
     //// DEVICE ACCESSORS ////
 
