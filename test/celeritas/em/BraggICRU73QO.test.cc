@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/MuHadIonization.test.cc
+//! \file celeritas/em/BraggICRU73QO.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Range.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/em/interactor/MuHadIonizationInteractor.hh"
+#include "celeritas/em/interactor/BraggICRU73QOInteractor.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/InteractionIO.hh"
@@ -24,7 +24,7 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class MuHadIonizationTest : public InteractorHostTestBase
+class BraggICRU73QOTest : public InteractorHostTestBase
 {
     using Base = InteractorHostTestBase;
 
@@ -53,29 +53,28 @@ class MuHadIonizationTest : public InteractorHostTestBase
         this->set_cutoff_params(cut_inp);
 
         // Set model data: default to ICRU73QO
+        auto const& particles = *this->particle_params();
+        data_.electron = particles.find(pdg::electron());
+        data_.electron_mass = particles.get(data_.electron).mass();
         this->set_icru73qo();
 
         // Set default particle to muon with energy of 100 keV
-        this->set_inc_particle(pdg::mu_minus(), MevEnergy{0.1});
+        this->set_inc_particle(inc_particle_, MevEnergy{0.1});
         this->set_inc_direction({0, 0, 1});
         this->set_material("Cu");
     }
 
     void set_bragg()
     {
-        auto const& particles = *this->particle_params();
-        data_.inc_particle = particles.find(pdg::mu_plus());
-        data_.electron = particles.find(pdg::electron());
-        data_.electron_mass = particles.get(data_.electron).mass();
+        inc_particle_ = pdg::mu_plus();
+        data_.inc_particle = this->particle_params()->find(inc_particle_);
         data_.lowest_kin_energy = detail::bragg_lowest_kin_energy();
     }
 
     void set_icru73qo()
     {
-        auto const& particles = *this->particle_params();
-        data_.inc_particle = particles.find(pdg::mu_minus());
-        data_.electron = particles.find(pdg::electron());
-        data_.electron_mass = particles.get(data_.electron).mass();
+        inc_particle_ = pdg::mu_minus();
+        data_.inc_particle = this->particle_params()->find(inc_particle_);
         data_.lowest_kin_energy = detail::icru73qo_lowest_kin_energy();
     }
 
@@ -105,19 +104,20 @@ class MuHadIonizationTest : public InteractorHostTestBase
     }
 
   protected:
-    MuHadIonizationData data_;
+    BraggICRU73QOData data_;
+    PDGNumber inc_particle_;
 };
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(MuHadIonizationTest, basic)
+TEST_F(BraggICRU73QOTest, basic)
 {
     std::vector<real_type> energy;
     std::vector<real_type> costheta;
 
-    auto sample = [&](PDGNumber pdg) {
+    auto sample = [&]() {
         // Reserve 4 secondaries, one for each sample
         int const num_samples = 4;
         this->resize_secondaries(num_samples);
@@ -125,10 +125,10 @@ TEST_F(MuHadIonizationTest, basic)
         energy.clear();
         costheta.clear();
 
-        this->set_inc_particle(pdg, MevEnergy{0.1});
+        this->set_inc_particle(inc_particle_, MevEnergy{0.1});
 
         // Create the interactor
-        MuHadIonizationInteractor interact(
+        BraggICRU73QOInteractor interact(
             data_,
             this->particle_track(),
             this->cutoff_params()->get(MaterialId{0}),
@@ -162,8 +162,8 @@ TEST_F(MuHadIonizationTest, basic)
 
         // No interaction when max secondary energy is below production cut
         {
-            this->set_inc_particle(pdg, MevEnergy{0.0011});
-            MuHadIonizationInteractor interact(
+            this->set_inc_particle(inc_particle_, MevEnergy{0.0011});
+            BraggICRU73QOInteractor interact(
                 data_,
                 this->particle_track(),
                 this->cutoff_params()->get(MaterialId{0}),
@@ -179,7 +179,7 @@ TEST_F(MuHadIonizationTest, basic)
     // Sample ICRU73QO model with incident mu-
     {
         this->set_icru73qo();
-        sample(pdg::mu_minus());
+        sample();
 
         static double const expected_energy[] = {0.0014458653777536,
                                                  0.001251648293082,
@@ -196,7 +196,7 @@ TEST_F(MuHadIonizationTest, basic)
     // Sample Bragg model with incident mu+
     {
         this->set_bragg();
-        sample(pdg::mu_plus());
+        sample();
 
         static double const expected_energy[] = {0.00022900204776481,
                                                  0.0014511488605566,
@@ -211,13 +211,13 @@ TEST_F(MuHadIonizationTest, basic)
     }
 }
 
-TEST_F(MuHadIonizationTest, stress_test)
+TEST_F(BraggICRU73QOTest, stress_test)
 {
     std::vector<real_type> avg_engine_samples;
     std::vector<real_type> avg_energy;
     std::vector<real_type> avg_costheta;
 
-    auto sample = [&](PDGNumber pdg) {
+    auto sample = [&]() {
         unsigned int const num_samples = 10000;
 
         avg_engine_samples.clear();
@@ -227,7 +227,7 @@ TEST_F(MuHadIonizationTest, stress_test)
         for (real_type inc_e : {0.03, 0.05, 0.1, 0.15, 0.1999})
         {
             SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
-            this->set_inc_particle(pdg, MevEnergy{inc_e});
+            this->set_inc_particle(inc_particle_, MevEnergy{inc_e});
 
             RandomEngine& rng = this->rng();
             RandomEngine::size_type num_particles_sampled = 0;
@@ -245,7 +245,7 @@ TEST_F(MuHadIonizationTest, stress_test)
                 this->resize_secondaries(num_samples);
 
                 // Create interactor
-                MuHadIonizationInteractor interact(
+                BraggICRU73QOInteractor interact(
                     data_,
                     this->particle_track(),
                     this->cutoff_params()->get(MaterialId{0}),
@@ -276,7 +276,7 @@ TEST_F(MuHadIonizationTest, stress_test)
     // Sample ICRU73QO model with incident mu-
     {
         this->set_icru73qo();
-        sample(pdg::mu_minus());
+        sample();
 
         static double const expected_avg_engine_samples[]
             = {6.0027, 6.0021, 6.003, 6.0034, 6.0047};
@@ -297,7 +297,7 @@ TEST_F(MuHadIonizationTest, stress_test)
     // Sample Bragg model with incident mu+
     {
         this->set_bragg();
-        sample(pdg::mu_plus());
+        sample();
 
         static double const expected_avg_engine_samples[]
             = {6.0004, 6.0004, 6.0006, 6.0003, 6.0005};

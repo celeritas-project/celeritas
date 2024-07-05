@@ -8,8 +8,8 @@
 #include "BraggModel.hh"
 
 #include "celeritas/Quantities.hh"
-#include "celeritas/em/data/MuHadIonizationData.hh"
-#include "celeritas/em/executor/MuHadIonizationExecutor.hh"
+#include "celeritas/em/data/BraggICRU73QOData.hh"
+#include "celeritas/em/executor/BraggICRU73QOExecutor.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -25,6 +25,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Construct from model ID and other necessary data.
+ *
+ * TODO: This model also applies to hadrons.
  */
 BraggModel::BraggModel(ActionId id, ParticleParams const& particles)
     : ConcreteAction(id, "ioni-bragg", "interact by muon ionization (Bragg)")
@@ -79,7 +81,7 @@ void BraggModel::execute(CoreParams const& params, CoreStateHost& state) const
         params.ptr<MemSpace::native>(),
         state.ptr(),
         this->action_id(),
-        InteractionApplier{MuHadIonizationExecutor{this->host_ref()}});
+        InteractionApplier{BraggICRU73QOExecutor{this->host_ref()}});
     return launch_action(*this, params, state, execute);
 }
 

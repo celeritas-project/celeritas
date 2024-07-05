@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/em/data/MuHadIonizationData.hh"
+#include "celeritas/em/data/BraggICRU73QOData.hh"
 #include "celeritas/phys/Model.hh"
 
 namespace celeritas
@@ -17,8 +17,6 @@ class ParticleParams;
 //---------------------------------------------------------------------------//
 /*!
  * Set up and launch the ICRU73QO ionization model interaction.
- *
- * TODO: This model also applies to hadrons.
  */
 class ICRU73QOModel final : public Model, public ConcreteAction
 {
@@ -40,12 +38,12 @@ class ICRU73QOModel final : public Model, public ConcreteAction
 
     //!@{
     //! Access model data
-    MuHadIonizationData const& host_ref() const { return data_; }
-    MuHadIonizationData const& device_ref() const { return data_; }
+    BraggICRU73QOData const& host_ref() const { return data_; }
+    BraggICRU73QOData const& device_ref() const { return data_; }
     //!@}
 
   private:
-    MuHadIonizationData data_;
+    BraggICRU73QOData data_;
 };
 
 //---------------------------------------------------------------------------//

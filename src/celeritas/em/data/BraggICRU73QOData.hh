@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/data/MuHadIonizationData.hh
+//! \file celeritas/em/data/BraggICRU73QOData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -19,12 +19,14 @@ namespace celeritas
  * Data for the Bragg and ICRU73QO ionization models.
  *
  * The ICRU73QO and Bragg models apply to negatively and positively charged
- * muons and hadrons, respectively.
+ * incident particles, respectively. Both models apply to muons and hadrons.
+ * Because the sampling of the secondary and final state is identical in the
+ * two models, the same data and interactor are used for both.
  */
-struct MuHadIonizationData
+struct BraggICRU73QOData
 {
     //! Particle IDs
-    ParticleId inc_particle;  //!< Muon or hadron, depending on model
+    ParticleId inc_particle;  //!< Model-dependent incident particle
     ParticleId electron;
 
     //! Electron mass [MeV / c^2]

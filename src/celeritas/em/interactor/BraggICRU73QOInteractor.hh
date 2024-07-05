@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/interactor/MuHadIonizationInteractor.hh
+//! \file celeritas/em/interactor/BraggICRU73QOInteractor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,7 +14,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/em/data/MuHadIonizationData.hh"
+#include "celeritas/em/data/BraggICRU73QOData.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -32,14 +32,17 @@ namespace celeritas
  * Perform the discrete part of the muon or hadron ionization process.
  *
  * This simulates the production of delta rays by incident muons or hadrons
- * in the low energy region according to the Bragg and ICRU73QO models.
+ * in the low energy region according to the Bragg and ICRU73QO models. The
+ * ICRU73QO model applies to negatively charged incident particles, and the
+ * Bragg model applies to positively charged particles. The sampling of the
+ * secondary and the final state is identical in the two models, so a single
+ * interactor is used for both.
  *
  * \note This performs the same sampling routine as in Geant4's G4ICRU73QOModel
  * and G4BraggModel and as documented in the Geant4 Physics Reference Manual
- * (Release 11.1) section 12.2.1 and section 12.1. The sampling of the
- * secondary and the final state is identical in the ICRU73QO and Bragg models.
+ * (Release 11.1) section 12.2.1 and section 12.1.
  */
-class MuHadIonizationInteractor
+class BraggICRU73QOInteractor
 {
   public:
     //!@{
@@ -52,11 +55,11 @@ class MuHadIonizationInteractor
   public:
     //! Construct with shared and state data
     inline CELER_FUNCTION
-    MuHadIonizationInteractor(MuHadIonizationData const& shared,
-                              ParticleTrackView const& particle,
-                              CutoffView const& cutoffs,
-                              Real3 const& inc_direction,
-                              StackAllocator<Secondary>& allocate);
+    BraggICRU73QOInteractor(BraggICRU73QOData const& shared,
+                            ParticleTrackView const& particle,
+                            CutoffView const& cutoffs,
+                            Real3 const& inc_direction,
+                            StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -98,8 +101,8 @@ class MuHadIonizationInteractor
  * Construct with shared and state data.
  */
 CELER_FUNCTION
-MuHadIonizationInteractor::MuHadIonizationInteractor(
-    MuHadIonizationData const& shared,
+BraggICRU73QOInteractor::BraggICRU73QOInteractor(
+    BraggICRU73QOData const& shared,
     ParticleTrackView const& particle,
     CutoffView const& cutoffs,
     Real3 const& inc_direction,
@@ -128,7 +131,7 @@ MuHadIonizationInteractor::MuHadIonizationInteractor(
  * Simulate discrete muon ionization.
  */
 template<class Engine>
-CELER_FUNCTION Interaction MuHadIonizationInteractor::operator()(Engine& rng)
+CELER_FUNCTION Interaction BraggICRU73QOInteractor::operator()(Engine& rng)
 {
     if (min_secondary_energy_ >= max_secondary_energy_)
     {
@@ -144,6 +147,7 @@ CELER_FUNCTION Interaction MuHadIonizationInteractor::operator()(Engine& rng)
         return Interaction::from_failure();
     }
 
+    // Sample the delta ray energy
     real_type energy;
     real_type target;
     do
@@ -154,18 +158,15 @@ CELER_FUNCTION Interaction MuHadIonizationInteractor::operator()(Engine& rng)
         target = 1 - beta_sq_ * energy / max_secondary_energy_;
     } while (!BernoulliDistribution(target)(rng));
 
-    // Sample the delta ray energy to construct the final sampler
-    detail::IoniFinalStateHelper sample_interaction(inc_energy_,
-                                                    inc_direction_,
-                                                    inc_momentum_,
-                                                    inc_mass_,
-                                                    Energy{energy},
-                                                    electron_mass_,
-                                                    electron_id_,
-                                                    secondary);
-
-    // Update kinematics of the final state and return this interaction
-    return sample_interaction(rng);
+    // Update kinematics of the final state and return the interaction
+    return detail::IoniFinalStateHelper(inc_energy_,
+                                        inc_direction_,
+                                        inc_momentum_,
+                                        inc_mass_,
+                                        Energy{energy},
+                                        electron_mass_,
+                                        electron_id_,
+                                        secondary)(rng);
 }
 
 //---------------------------------------------------------------------------//
@@ -174,8 +175,8 @@ CELER_FUNCTION Interaction MuHadIonizationInteractor::operator()(Engine& rng)
  *
  * TODO: Duplicated in \c MuBetheBlochInteractor.
  */
-CELER_FUNCTION auto
-MuHadIonizationInteractor::calc_max_secondary_energy() const -> Energy
+CELER_FUNCTION auto BraggICRU73QOInteractor::calc_max_secondary_energy() const
+    -> Energy
 {
     real_type mass_ratio = value_as<Mass>(electron_mass_)
                            / value_as<Mass>(inc_mass_);
