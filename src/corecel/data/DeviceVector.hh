@@ -27,8 +27,8 @@ namespace celeritas
  * initialization on the data: the host code must define and copy over suitable
  * data.
  *
- * For more complex data usage (dynamic size increases and assignment without
- * memory reallocation), use \c thrust::device_vector inside a \c .cu file.
+ * For more complex data usage (dynamic size increases, std vector-like access,
+ * object initialization), use \c thrust::device_vector inside a \c .cu file.
  *
  * When a \c StreamId is passed as the last constructor argument,
  * all memory operations are asynchronous and ordered within that stream.
@@ -39,7 +39,8 @@ namespace celeritas
     myvec.copy_to_host(make_span(hostvec));
    \endcode
  *
- * TODO: remove stream?
+ * - TODO: remove stream?
+ * - TODO: move to detail since this is basically only a backend for Collection
  */
 template<class T>
 class DeviceVector
@@ -171,15 +172,15 @@ template<class T>
 void DeviceVector<T>::assign(T const* first, T const* last)
 {
     auto const new_size = static_cast<size_type>(last - first);
-    if (new_size > size_)
+    if (new_size > size_ && new_size * sizeof(T) > allocation_.size())
     {
         // Reallocate
         *this = DeviceVector<T>(new_size, allocation_.stream_id());
     }
-    else if (new_size == 0)
+    else
     {
-        // Deallocate
-        *this = DeviceVector<T>(allocation_.stream_id());
+        // Update size to fit capacity
+        size_ = new_size;
     }
 
     this->copy_to_device({first, new_size});

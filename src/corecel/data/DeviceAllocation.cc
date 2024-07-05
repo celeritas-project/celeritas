@@ -57,7 +57,7 @@ DeviceAllocation::DeviceAllocation(size_type bytes, StreamId stream)
  */
 void DeviceAllocation::copy_to_device(SpanConstBytes bytes)
 {
-    CELER_EXPECT(bytes.size() == this->size());
+    CELER_EXPECT(bytes.size() <= this->size());
     if (stream_)
     {
         CELER_DEVICE_CALL_PREFIX(
@@ -83,7 +83,7 @@ void DeviceAllocation::copy_to_device(SpanConstBytes bytes)
  */
 void DeviceAllocation::copy_to_host(SpanBytes bytes) const
 {
-    CELER_EXPECT(bytes.size() == this->size());
+    CELER_EXPECT(bytes.size() <= this->size());
     if (stream_)
     {
         CELER_DEVICE_CALL_PREFIX(

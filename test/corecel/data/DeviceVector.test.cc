@@ -85,7 +85,7 @@ TEST(DeviceVectorTest, TEST_IF_CELER_DEVICE(assign))
 
     out.resize(vec.size());
     vec.copy_to_host(make_span(out));
-    EXPECT_VEC_EQ((std::vector<int>{5, 8}), out);
+    EXPECT_VEC_EQ(mylongdata, out);
 }
 
 /*!
