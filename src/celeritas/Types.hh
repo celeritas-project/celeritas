@@ -254,6 +254,9 @@ char const* to_cstring(Interp);
 // Get a string corresponding to a material state
 char const* to_cstring(MatterState);
 
+// Get a string corresponding to a track stats
+char const* to_cstring(TrackStatus);
+
 // Get a string corresponding to a surface type
 char const* to_cstring(ActionOrder);
 

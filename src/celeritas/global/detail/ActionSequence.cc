@@ -25,6 +25,7 @@
 #include "../ActionInterface.hh"
 #include "../ActionRegistry.hh"
 #include "../CoreState.hh"
+#include "../Debug.hh"
 
 namespace celeritas
 {
@@ -121,6 +122,14 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
         stream = celeritas::device().stream(state.stream_id()).get();
     }
 
+    if constexpr (M == MemSpace::host && std::is_same_v<CoreParams, Params>)
+    {
+        if (status_checker_)
+        {
+            g_debug_executing_params = &params;
+        }
+    }
+
     // Running a single track slot on host:
     // Skip inapplicable post-step action
     auto const skip_post_action = [&](auto const& action) {
@@ -170,6 +179,12 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
                 }
             }
         }
+    }
+
+    if (M == MemSpace::host
+        && std::is_same_v<CoreParams, Params> && status_checker_)
+    {
+        g_debug_executing_params = nullptr;
     }
 }
 

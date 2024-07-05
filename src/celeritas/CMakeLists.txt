@@ -42,6 +42,8 @@ list(APPEND SOURCES
   global/CoreParams.cc
   global/CoreState.cc
   global/CoreTrackData.cc
+  global/Debug.cc
+  global/DebugIO.json.cc
   global/KernelContextException.cc
   global/Stepper.cc
   global/detail/ActionSequence.cc
