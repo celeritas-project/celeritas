@@ -146,7 +146,7 @@ class StatusCheckerTest : public SimpleTestBase
             << "Actual message: '" << actual_message << "'";
     }
 
-  private:
+  protected:
     std::shared_ptr<StatusChecker> status_checker_;
 };
 
@@ -223,9 +223,10 @@ TEST_F(StatusCheckerTest, TEST_IF_CELER_DEVICE(device))
     post_step[target_track] = this->find_action("physics-discrete-select");
     copy_to_device(post_step, state.ref().sim.post_step_action);
 
-    this->check_throw(this->find_action("scat-klein-nishina"),
-                      state,
-                      "device-side assert triggered");
+    EXPECT_THROW(
+        status_checker_->execute(
+            this->find_action("scat-klein-nishina"), *this->core(), state),
+        RuntimeError);
 }
 
 //---------------------------------------------------------------------------//

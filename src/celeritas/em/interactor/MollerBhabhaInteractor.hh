@@ -21,11 +21,10 @@
 #include "celeritas/em/distribution/MollerEnergyDistribution.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
-#include "celeritas/phys/InteractionUtils.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
+
+#include "detail/IoniFinalStateHelper.hh"
 
 namespace celeritas
 {
@@ -67,13 +66,13 @@ class MollerBhabhaInteractor
     // Shared constant physics properties
     MollerBhabhaData const& shared_;
     // Incident energy [MeV]
-    real_type const inc_energy_;
+    Energy inc_energy_;
     // Incident momentum [MeV]
-    real_type const inc_momentum_;
+    Momentum inc_momentum_;
     // Incident direction
     Real3 const& inc_direction_;
     // Secondary electron cutoff for current material
-    real_type const electron_cutoff_;
+    Energy electron_cutoff_;
     // Allocate space for the secondary particle
     StackAllocator<Secondary>& allocate_;
     // Incident particle flag for selecting Moller or Bhabha scattering
@@ -96,10 +95,10 @@ CELER_FUNCTION MollerBhabhaInteractor::MollerBhabhaInteractor(
     Real3 const& inc_direction,
     StackAllocator<Secondary>& allocate)
     : shared_(shared)
-    , inc_energy_{value_as<Energy>(particle.energy())}
-    , inc_momentum_{value_as<Momentum>(particle.momentum())}
+    , inc_energy_(particle.energy())
+    , inc_momentum_(particle.momentum())
     , inc_direction_(inc_direction)
-    , electron_cutoff_(value_as<Energy>(cutoffs.energy(shared_.ids.electron)))
+    , electron_cutoff_(cutoffs.energy(shared_.ids.electron))
     , allocate_(allocate)
     , inc_particle_is_electron_(particle.particle_id() == shared_.ids.electron)
 {
@@ -128,60 +127,30 @@ CELER_FUNCTION Interaction MollerBhabhaInteractor::operator()(Engine& rng)
         return Interaction::from_failure();
     }
 
-    // Sample energy transfer fraction
-    real_type epsilon;
-    if (inc_particle_is_electron_)
-    {
-        MollerEnergyDistribution sample_moller(
-            value_as<Mass>(shared_.electron_mass),
-            electron_cutoff_,
-            inc_energy_);
-        epsilon = sample_moller(rng);
-    }
-    else
-    {
-        BhabhaEnergyDistribution sample_bhabha(
-            value_as<Mass>(shared_.electron_mass),
-            electron_cutoff_,
-            inc_energy_);
-        epsilon = sample_bhabha(rng);
-    }
-
-    // Sampled secondary kinetic energy
-    real_type const secondary_energy = epsilon * inc_energy_;
+    // Sample secondary electron energy
+    Energy secondary_energy = inc_energy_ * [this, &rng] {
+        if (inc_particle_is_electron_)
+        {
+            return MollerEnergyDistribution(
+                shared_.electron_mass, electron_cutoff_, inc_energy_)(rng);
+        }
+        return BhabhaEnergyDistribution(
+            shared_.electron_mass, electron_cutoff_, inc_energy_)(rng);
+    }();
     CELER_ASSERT(secondary_energy >= electron_cutoff_);
 
-    // Same equation as in ParticleTrackView::momentum_sq()
-    // TODO: use local data ParticleTrackView
-    real_type const secondary_momentum = std::sqrt(
-        secondary_energy
-        * (secondary_energy + 2 * value_as<Mass>(shared_.electron_mass)));
+    // Sample the delta ray energy to construct the final sampler
+    detail::IoniFinalStateHelper sample_interaction(inc_energy_,
+                                                    inc_direction_,
+                                                    inc_momentum_,
+                                                    shared_.electron_mass,
+                                                    secondary_energy,
+                                                    shared_.electron_mass,
+                                                    shared_.ids.electron,
+                                                    electron_secondary);
 
-    real_type const total_energy = inc_energy_
-                                   + value_as<Mass>(shared_.electron_mass);
-
-    // Calculate theta from energy-momentum conservation
-    real_type secondary_cos_theta
-        = secondary_energy
-          * (total_energy + value_as<Mass>(shared_.electron_mass))
-          / (secondary_momentum * inc_momentum_);
-    CELER_ASSERT(secondary_cos_theta >= -1 && secondary_cos_theta <= 1);
-
-    // Assign values to the secondary particle
-    electron_secondary->particle_id = shared_.ids.electron;
-    electron_secondary->energy = Energy{secondary_energy};
-    electron_secondary->direction
-        = ExitingDirectionSampler{secondary_cos_theta, inc_direction_}(rng);
-
-    // Construct interaction for change to primary (incident) particle
-    Interaction result;
-    result.energy = Energy{inc_energy_ - secondary_energy};
-    result.secondaries = {electron_secondary, 1};
-    result.direction = calc_exiting_direction(
-        {inc_momentum_, inc_direction_},
-        {secondary_momentum, electron_secondary->direction});
-
-    return result;
+    // Update kinematics of the final state and return this interaction
+    return sample_interaction(rng);
 }
 
 //---------------------------------------------------------------------------//
