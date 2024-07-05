@@ -205,38 +205,46 @@ void copy_collection(S& src, CollectionStorage<T, DW, DM>* dst)
     auto* data = src.data.data();
     size_type size = src.data.size();
 
-    if constexpr (DW == Ownership::value)
+    if constexpr (DW == Ownership::value && DM == MemSpace::mapped)
     {
-        // Allocate and copy: destination "owns" the memory
-        if constexpr (DM == MemSpace::mapped)
-        {
-            CELER_VALIDATE(celeritas::device().can_map_host_memory(),
-                           << "device " << celeritas::device().device_id()
-                           << " doesn't support unified addressing");
-        }
+        CELER_VALIDATE(celeritas::device().can_map_host_memory(),
+                       << "device " << celeritas::device().device_id()
+                       << " doesn't support unified addressing");
+    }
+
+    if constexpr (DW == Ownership::value && DM == SM)
+    {
+        // Allocate and copy at the same time: destination "owns" the memory
         dst->data.assign(data, data + size);
     }
     else if constexpr (DM == SM)
     {
+        // Copy pointers in same memspace, prohibiting const violation
         constexpr Ownership SW = std::remove_const_t<S>::ownership;
 
         static_assert(
             !(SW == Ownership::const_reference && DW == Ownership::reference),
             "cannot assign from const reference to reference");
 
-        // Copy pointers in same memspace
         dst->data = DstStorageT{data, size};
     }
     else
     {
+        if constexpr (DW == Ownership::value)
+        {
+            // Allocate destination
+            dst->data = DstStorageT(size);
+        }
+
         CELER_VALIDATE(dst->data.size() == size,
                        << "collection assignment from " << to_cstring(SM)
                        << " to " << to_cstring(DM)
                        << " failed: cannot copy from source size " << size
                        << " to destination size " << dst->data.size());
 
-        Copier<T, SM> copy_to_dst{make_span(dst->data)};
-        copy_to_dst(DM, {data, size});
+        // Copy across memory boundary
+        Copier<T, DM> copy_to_dst{{dst->data.data(), dst->data.size()}};
+        copy_to_dst(SM, {data, size});
     }
 }
 

@@ -454,15 +454,20 @@ TEST_F(AssignmentTest, TEST_IF_CELER_DEVICE(device_host))
 
         // Now copy correct size
         temp_ref = temp;
+        EXPECT_EQ(1, temp[ItemId<int>{1}]);
+        temp[ItemId<int>{2}] = -1;
         temp_ref = device_val;
+        EXPECT_EQ(2, temp[ItemId<int>{2}]);
     }
     {
         // Assignment from ref
         Value<host> temp;
+        resize(&temp, 4);
         EXPECT_EQ(4, temp.size());
 
         Ref<host> temp_ref{temp};
         temp_ref = device_val;
+        EXPECT_EQ(2, temp[ItemId<int>{2}]);
     }
 }
 
