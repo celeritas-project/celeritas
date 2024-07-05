@@ -83,7 +83,7 @@ class TrackExecutor
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch the track only when a certain condition applies.
+ * Launch the track only when a certain condition applies to the sim state.
  *
  * The condition C must have the signature \code
  * <bool(SimTrackView const&)>
@@ -165,7 +165,7 @@ make_active_track_executor(CoreParamsPtr<MemSpace::native> params,
 {
     return ConditionalTrackExecutor{params,
                                     state,
-                                    detail::AppliesActive{},
+                                    detail::AppliesValid{},
                                     celeritas::forward<T>(apply_track)};
 }
 
