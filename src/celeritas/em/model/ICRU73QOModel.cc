@@ -27,10 +27,10 @@ namespace celeritas
  * Construct from model ID and other necessary data.
  */
 ICRU73QOModel::ICRU73QOModel(ActionId id, ParticleParams const& particles)
-    : ConcreteAction(
-        id, "ioni-bragg", "interact by muon/hadron ionization (ICRU73QO)")
+    : ConcreteAction(id, "ioni-bragg", "interact by muon ionization (ICRU73QO)")
 {
     CELER_EXPECT(id);
+
     data_.inc_particle = particles.find(pdg::mu_minus());
     data_.electron = particles.find(pdg::electron());
 

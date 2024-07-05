@@ -18,8 +18,7 @@ class ParticleParams;
 /*!
  * Set up and launch the ICRU73QO ionization model interaction.
  *
- * TODO: This model also applies to hadrons. Make the incident particle type
- * configurable.
+ * TODO: This model also applies to hadrons.
  */
 class ICRU73QOModel final : public Model, public ConcreteAction
 {

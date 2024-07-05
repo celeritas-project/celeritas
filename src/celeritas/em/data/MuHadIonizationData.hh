@@ -30,7 +30,7 @@ struct MuHadIonizationData
     //! Electron mass [MeV / c^2]
     units::MevMass electron_mass;
 
-    //! Minimum energy of the secondary electron [MeV]
+    //! Model-dependent kinetic energy limit [MeV]
     units::MevEnergy lowest_kin_energy;
 
     //! Whether all data are assigned and valid

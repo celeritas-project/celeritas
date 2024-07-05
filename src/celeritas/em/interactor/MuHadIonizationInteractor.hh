@@ -31,13 +31,13 @@ namespace celeritas
 /*!
  * Perform the discrete part of the muon or hadron ionization process.
  *
- * This simulates the production of delta rays by negatively charged incident
- * particles in the low energy region. The sampling of the secondary and the
- * final state is identical in the ICRU73QO and Bragg models.
+ * This simulates the production of delta rays by incident muons or hadrons
+ * in the low energy region according to the Bragg and ICRU73QO models.
  *
  * \note This performs the same sampling routine as in Geant4's G4ICRU73QOModel
  * and G4BraggModel and as documented in the Geant4 Physics Reference Manual
- * (Release 11.1) section 12.2.1 and section 12.1.
+ * (Release 11.1) section 12.2.1 and section 12.1. The sampling of the
+ * secondary and the final state is identical in the ICRU73QO and Bragg models.
  */
 class MuHadIonizationInteractor
 {
@@ -170,7 +170,7 @@ CELER_FUNCTION Interaction MuHadIonizationInteractor::operator()(Engine& rng)
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate maximum kinetic energy of the secondary electron.
+ * Calculate maximum kinematically allowed kinetic energy of the secondary.
  *
  * TODO: Duplicated in \c MuBetheBlochInteractor.
  */

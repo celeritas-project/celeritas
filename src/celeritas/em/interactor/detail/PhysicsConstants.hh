@@ -76,13 +76,13 @@ CELER_CONSTEXPR_FUNCTION units::MevEnergy high_energy_limit()
     return units::MevEnergy{1e8};  //! 100 TeV
 }
 
-//! Minimum kinetic energy for the Bragg model
+//! Kinetic energy limit for the Bragg model
 CELER_CONSTEXPR_FUNCTION units::MevEnergy bragg_lowest_kin_energy()
 {
     return units::MevEnergy{2.5e-4};  //! 0.25 keV
 }
 
-//! Minimum kinetic energy for the ICRU73QO model
+//! Kinetic energy limit for the ICRU73QO model
 CELER_CONSTEXPR_FUNCTION units::MevEnergy icru73qo_lowest_kin_energy()
 {
     return units::MevEnergy{5e-3};  //! 5 keV

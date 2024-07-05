@@ -27,10 +27,10 @@ namespace celeritas
  * Construct from model ID and other necessary data.
  */
 BraggModel::BraggModel(ActionId id, ParticleParams const& particles)
-    : ConcreteAction(
-        id, "ioni-bragg", "interact by muon/hadron ionization (Bragg)")
+    : ConcreteAction(id, "ioni-bragg", "interact by muon ionization (Bragg)")
 {
     CELER_EXPECT(id);
+
     data_.inc_particle = particles.find(pdg::mu_plus());
     data_.electron = particles.find(pdg::electron());
 
