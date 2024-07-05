@@ -357,6 +357,116 @@ TEST_F(SimpleCollectionTest, TEST_IF_CELER_DEVICE(algo_device))
 }
 
 //---------------------------------------------------------------------------//
+// ASSIGNMENT TESTS
+//---------------------------------------------------------------------------//
+
+class AssignmentTest : public SimpleCollectionTest
+{
+  protected:
+    void SetUp()
+    {
+        CollectionBuilder{&host_val_}.insert_back({0, 1, 2, 3});
+        ASSERT_EQ(4, host_val_.size());
+        host_ref_ = host_val_;
+        ASSERT_EQ(4, host_ref_.size());
+        host_cref_ = host_val_;
+        ASSERT_EQ(4, host_cref_.size());
+    }
+
+    Value<host> host_val_;
+    Ref<host> host_ref_;
+    CRef<host> host_cref_;
+};
+
+TEST_F(AssignmentTest, host_host)
+{
+    {
+        // Assignment: ref -> value
+        Value<host> temp;
+        temp = host_ref_;
+        EXPECT_EQ(4, temp.size());
+    }
+    {
+        // Assignment: cref -> value
+        Value<host> temp;
+        temp = host_cref_;
+        EXPECT_EQ(4, temp.size());
+    }
+    {
+        // Assignment: value -> value
+        Value<host> temp;
+        temp = host_val_;
+        EXPECT_EQ(4, temp.size());
+    }
+    if constexpr (false)
+    {
+        // PROHIBITED: cref -> ref
+        Ref<host> temp;
+        temp = host_cref_;
+        EXPECT_EQ(4, temp.size());
+    }
+}
+
+TEST_F(AssignmentTest, TEST_IF_CELER_DEVICE(host_device))
+{
+    {
+        // Assignment: ref -> value
+        Value<device> temp;
+        temp = host_ref_;
+        EXPECT_EQ(4, temp.size());
+    }
+    {
+        // Assignment: cref -> value
+        Value<device> temp;
+        temp = host_cref_;
+        EXPECT_EQ(4, temp.size());
+    }
+    {
+        // Assignment: value -> value
+        Value<device> temp;
+        temp = host_val_;
+        EXPECT_EQ(4, temp.size());
+    }
+}
+
+TEST_F(AssignmentTest, TEST_IF_CELER_DEVICE(device_host))
+{
+    Value<device> device_val;
+    Ref<device> device_ref;
+    CRef<device> device_cref;
+
+    device_val = host_val_;
+    ASSERT_EQ(4, device_val.size());
+    device_ref = device_val;
+    ASSERT_EQ(4, device_ref.size());
+    device_cref = device_val;
+    ASSERT_EQ(4, device_cref.size());
+
+    {
+        // Assignment from value
+        Value<host> temp;
+        temp = device_val;
+        EXPECT_EQ(4, temp.size());
+
+        Ref<host> temp_ref;
+        // First copy to incorrectly sized vector
+        EXPECT_THROW(temp_ref = device_val, RuntimeError);
+
+        // Now copy correct size
+        temp_ref = temp;
+        temp_ref = device_val;
+    }
+    {
+        // Assignment from ref
+        Value<host> temp;
+        EXPECT_EQ(4, temp.size());
+
+        Ref<host> temp_ref{temp};
+        temp_ref = device_val;
+    }
+}
+
+//---------------------------------------------------------------------------//
 // COMPLEX TESTS
 //---------------------------------------------------------------------------//
 
@@ -505,6 +615,7 @@ TEST_F(CollectionTest, TEST_IF_CELER_DEVICE(device))
     device_state_ref = reference_device_test(device_states);
     EXPECT_EQ(4, device_state_ref.size());
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
