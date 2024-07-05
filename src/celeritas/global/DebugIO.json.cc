@@ -156,9 +156,10 @@ void to_json(nlohmann::json& j, SimTrackView const& view)
         ASSIGN_TRANSFORMED(event_id, to_int);
         ASSIGN_TRANSFORMED(time, passthrough);
         ASSIGN_TRANSFORMED(step_length, passthrough);
+
+        ASSIGN_TRANSFORMED_IF(num_looping_steps, passthrough, bool);
     }
 
-    ASSIGN_TRANSFORMED_IF(num_looping_steps, passthrough, bool);
     ASSIGN_TRANSFORMED_IF(post_step_action, from_id, bool);
     ASSIGN_TRANSFORMED_IF(along_step_action, from_id, bool);
 }

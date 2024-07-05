@@ -35,7 +35,7 @@ void debug_print_impl(T const& view)
 
 //---------------------------------------------------------------------------//
 /*!
- * During an execute call, for interactive debugging, a pointer.
+ * In the stepping loop, for interactive breakpoints, a debug pointer.
  *
  * This is accessible when:
  * - Inside an \c execute call (i.e., during stepping)
