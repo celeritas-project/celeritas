@@ -25,7 +25,19 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Kill the track due to a geometry error.
+ * Kill the current track and deposit its energy.
+ *
+ * This is called to kill a track due to "user cuts" (i.e., minimum energy,
+ * maximum number of steps, maximum lab-frame time) and due to geometry errors
+ * (i.e.  initialization, boundary crossing). It deposits the track's energy
+ * plus, if an anitiparticle, the annihilation energy as well.
+ *
+ * If the track has an "error" status and the track is on the host, a message
+ * will be printed.
+ *
+ * TODO: we could use a stack allocator to perform a reduction in this kernel
+ * so that the host can print out warning messages (or print at the end of the
+ * simulation).
  */
 struct TrackingCutExecutor
 {

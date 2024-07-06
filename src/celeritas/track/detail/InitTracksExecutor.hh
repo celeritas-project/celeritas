@@ -25,7 +25,6 @@
 
 #if !CELER_DEVICE_COMPILE
 #    include "corecel/io/Logger.hh"
-#    include "corecel/io/Repr.hh"
 #endif
 
 namespace celeritas
