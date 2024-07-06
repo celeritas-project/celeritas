@@ -107,6 +107,9 @@ struct CollectionStorage
 {
     using type = typename CollectionTraits<T, W, M>::SpanT;
     type data;
+
+    inline static constexpr Ownership ownership = W;
+    inline static constexpr MemSpace memspace = M;
 };
 
 //---------------------------------------------------------------------------//
@@ -124,6 +127,9 @@ struct CollectionStorage<T, Ownership::value, MemSpace::host>
     using type = std::vector<T>;
 #endif
     type data;
+
+    inline static constexpr Ownership ownership = Ownership::value;
+    inline static constexpr MemSpace memspace = MemSpace::host;
 };
 
 //! Storage implementation for managed device data
@@ -138,6 +144,9 @@ struct CollectionStorage<T, Ownership::value, MemSpace::device>
     using type = DeviceVector<T>;
 #endif
     type data;
+
+    inline static constexpr Ownership ownership = Ownership::value;
+    inline static constexpr MemSpace memspace = MemSpace::device;
 };
 
 //! Storage implementation for mapped host/device data
@@ -154,6 +163,9 @@ struct CollectionStorage<T, Ownership::value, MemSpace::mapped>
     using type = std::vector<T, PinnedAllocator<T>>;
 #endif
     type data;
+
+    inline static constexpr Ownership ownership = Ownership::value;
+    inline static constexpr MemSpace memspace = MemSpace::mapped;
 };
 
 //---------------------------------------------------------------------------//
@@ -181,99 +193,60 @@ struct CollectionStorageValidator<Ownership::value>
 };
 
 //---------------------------------------------------------------------------//
-//! Assignment semantics for a collection
-template<Ownership W, MemSpace M>
-struct CollectionAssigner
+/*!
+ * Copy assign a collection via its storage.
+ */
+template<class S, class T, Ownership DW, MemSpace DM>
+void copy_collection(S& src, CollectionStorage<T, DW, DM>* dst)
 {
-    template<class T, Ownership W2, MemSpace M2>
-    CollectionStorage<T, W, M>
-    operator()(CollectionStorage<T, W2, M2> const& source)
-    {
-        static_assert(W != Ownership::reference || W2 == W,
-                      "Can't create a reference from a const reference");
-        static_assert(M == M2,
-                      "Collection assignment from a different memory space");
-        return {{source.data.data(), source.data.size()}};
-    }
+    constexpr MemSpace SM = std::remove_const_t<S>::memspace;
+    using DstStorageT = typename CollectionStorage<T, DW, DM>::type;
 
-    template<class T, Ownership W2, MemSpace M2>
-    CollectionStorage<T, W, M> operator()(CollectionStorage<T, W2, M2>& source)
-    {
-        static_assert(M == M2,
-                      "Collection assignment from a different memory space");
-        static_assert(
-            !(W == Ownership::reference && W2 == Ownership::const_reference),
-            "Can't create a reference from a const reference");
-        return {{source.data.data(), source.data.size()}};
-    }
-};
+    auto* data = src.data.data();
+    size_type size = src.data.size();
 
-//---------------------------------------------------------------------------//
-//! Assignment semantics for copying to host memory
-template<>
-struct CollectionAssigner<Ownership::value, MemSpace::host>
-{
-    template<class T, Ownership W2>
-    CollectionStorage<T, Ownership::value, MemSpace::host>
-    operator()(CollectionStorage<T, W2, MemSpace::host> const& source)
-    {
-        return {{source.data.data(), source.data.data() + source.data.size()}};
-    }
-
-    template<class T, Ownership W2>
-    CollectionStorage<T, Ownership::value, MemSpace::host>
-    operator()(CollectionStorage<T, W2, MemSpace::device> const& source)
-    {
-        CollectionStorage<T, Ownership::value, MemSpace::host> result{
-            std::vector<T>(source.data.size())};
-        Copier<T, MemSpace::host> copy{
-            {result.data.data(), result.data.size()}};
-        copy(MemSpace::device, {source.data.data(), source.data.size()});
-        return result;
-    }
-};
-
-//---------------------------------------------------------------------------//
-//! Assignment semantics for copying to device memory
-template<>
-struct CollectionAssigner<Ownership::value, MemSpace::device>
-{
-    template<class T>
-    using StorageValDev
-        = CollectionStorage<T, Ownership::value, MemSpace::device>;
-
-    template<class T, Ownership W2, MemSpace M2>
-    StorageValDev<T> operator()(CollectionStorage<T, W2, M2> const& source)
-    {
-        static_assert(M2 == MemSpace::host,
-                      "Can only assign by value from host to device");
-
-        StorageValDev<T> result{
-            typename StorageValDev<T>::type(source.data.size())};
-        result.data.copy_to_device({source.data.data(), source.data.size()});
-        return result;
-    }
-};
-
-//---------------------------------------------------------------------------//
-//! Assignment semantics for copying to mapped memory
-template<>
-struct CollectionAssigner<Ownership::value, MemSpace::mapped>
-{
-    CollectionAssigner()
+    if constexpr (DW == Ownership::value && DM == MemSpace::mapped)
     {
         CELER_VALIDATE(celeritas::device().can_map_host_memory(),
-                       << "Device " << celeritas::device().device_id()
+                       << "device " << celeritas::device().device_id()
                        << " doesn't support unified addressing");
     }
 
-    template<class T, Ownership W2, MemSpace M2>
-    auto operator()(CollectionStorage<T, W2, M2> const& source)
-        -> CollectionStorage<T, Ownership::value, M2>
+    if constexpr (DW == Ownership::value && DM == SM)
     {
-        return {{source.data.data(), source.data.data() + source.data.size()}};
+        // Allocate and copy at the same time: destination "owns" the memory
+        dst->data.assign(data, data + size);
     }
-};
+    else if constexpr (DM == SM)
+    {
+        // Copy pointers in same memspace, prohibiting const violation
+        constexpr Ownership SW = std::remove_const_t<S>::ownership;
+
+        static_assert(
+            !(SW == Ownership::const_reference && DW == Ownership::reference),
+            "cannot assign from const reference to reference");
+
+        dst->data = DstStorageT{data, size};
+    }
+    else
+    {
+        if constexpr (DW == Ownership::value)
+        {
+            // Allocate destination
+            dst->data = DstStorageT(size);
+        }
+
+        CELER_VALIDATE(dst->data.size() == size,
+                       << "collection assignment from " << to_cstring(SM)
+                       << " to " << to_cstring(DM)
+                       << " failed: cannot copy from source size " << size
+                       << " to destination size " << dst->data.size());
+
+        // Copy across memory boundary
+        Copier<T, DM> copy_to_dst{{dst->data.data(), dst->data.size()}};
+        copy_to_dst(SM, {data, size});
+    }
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
