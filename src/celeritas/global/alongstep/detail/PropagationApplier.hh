@@ -137,9 +137,9 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
                 << (p.boundary  ? " (boundary hit)"
                     : p.looping ? " (**LOOPING**)"
                                 : "")
-                << " failed to change position at " << repr(orig_pos)
-                << " with ending direction "
-                << repr(track.make_geo_view().dir());
+                << " failed to change position";
+            sim.status(TrackStatus::errored);
+            sim.post_step_action(track.tracking_cut_action());
         }
 #endif
     }
