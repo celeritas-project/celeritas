@@ -93,7 +93,7 @@ auto InvalidOrangeTestBase::build_geometry() -> SPConstGeo
     inp.materials.push_back(make_material("[missing material]", 2, right));
 
     // Construct input
-    OrangeInput orangeinp = InputBuilder{[] {
+    OrangeInput orangeinp = InputBuilder{[&] {
         InputBuilder::Options opts;
         opts.tol = Tolerance<>::from_default(1 * cm);
         return opts;
