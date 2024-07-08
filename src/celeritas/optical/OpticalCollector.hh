@@ -55,7 +55,6 @@ class OpticalCollector
     using SPConstCore = std::shared_ptr<CoreParams const>;
     using SPConstProperties = std::shared_ptr<OpticalPropertyParams const>;
     using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
-    using SPGenStorage = std::shared_ptr<detail::OpticalGenStorage>;
     //!@}
 
     struct Input
@@ -78,7 +77,7 @@ class OpticalCollector
 
   public:
     // Construct with core data and optical params
-    OpticalCollector(CoreParams const&, Input&&);
+    OpticalCollector(SPConstCore, Input&&);
 
     // Aux ID for optical generator data
     AuxId aux_id() const;

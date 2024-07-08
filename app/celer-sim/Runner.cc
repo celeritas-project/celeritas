@@ -566,16 +566,28 @@ void Runner::build_optical_collector(RunnerInput const& inp)
         return;
     }
 
+    // TODO: if an optical process builder exists, GeantPhysicsOptions may have
+    // to be moved
     CELER_EXPECT(core_params_);
     OpticalCollector::Input oc_inp;
-    oc_inp.buffer_capacity = inp.num_track_slots;  // FIX ME
-    oc_inp.properties = OpticalPropertyParams::from_import(imported_);
-    oc_inp.cerenkov = std::make_shared<CerenkovParams>(oc_inp.properties);
-    oc_inp.scintillation = ScintillationParams::from_import(
-        imported_, core_params_->particle());
+    if (static_cast<bool>(imported_.optical.begin()->second.properties))
+    {
+        oc_inp.properties = OpticalPropertyParams::from_import(imported_);
+    }
+    if (inp.physics_options.cerenkov)
+    {
+        oc_inp.cerenkov = std::make_shared<CerenkovParams>(oc_inp.properties);
+    }
+    if (inp.physics_options.scintillation)
+    {
+        oc_inp.scintillation = ScintillationParams::from_import(
+            imported_, core_params_->particle());
+    }
+    oc_inp.buffer_capacity = inp.optical_buffer_capacity;
+    CELER_ASSERT(oc_inp);
 
     optical_collector_
-        = std::make_shared<OpticalCollector>(*core_params_, std::move(oc_inp));
+        = std::make_shared<OpticalCollector>(core_params_, std::move(oc_inp));
 }
 
 //---------------------------------------------------------------------------//

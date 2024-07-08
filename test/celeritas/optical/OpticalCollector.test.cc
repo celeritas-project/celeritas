@@ -160,7 +160,7 @@ void LArSpherePreGenTest::build_optical_collector()
     inp.buffer_capacity = 256;
 
     collector_
-        = std::make_shared<OpticalCollector>(*this->core(), std::move(inp));
+        = std::make_shared<OpticalCollector>(this->core(), std::move(inp));
 }
 
 //---------------------------------------------------------------------------//
@@ -199,8 +199,8 @@ auto LArSpherePreGenTest::make_primaries(size_type count) -> VecPrimary
  * Run a number of tracks.
  */
 template<MemSpace M>
-auto LArSpherePreGenTest::run(size_type num_tracks, size_type num_steps)
-    -> RunResult
+auto LArSpherePreGenTest::run(size_type num_tracks,
+                              size_type num_steps) -> RunResult
 {
     StepperInput step_inp;
     step_inp.params = this->core();
@@ -223,35 +223,35 @@ auto LArSpherePreGenTest::run(size_type num_tracks, size_type num_steps)
     using ItemsRef
         = Collection<OpticalDistributionData, Ownership::reference, M>;
 
-    auto get_result = [&](PreGenResult& result,
-                          ItemsRef const& buffer,
-                          size_type size) {
-        // Copy buffer to host
-        std::vector<OpticalDistributionData> data(size);
-        Copier<OpticalDistributionData, MemSpace::host> copy_data{
-            make_span(data)};
-        copy_data(M, buffer[BufferRange(BufferId(0), BufferId(size))]);
+    auto get_result
+        = [&](PreGenResult& result, ItemsRef const& buffer, size_type size) {
+              // Copy buffer to host
+              std::vector<OpticalDistributionData> data(size);
+              Copier<OpticalDistributionData, MemSpace::host> copy_data{
+                  make_span(data)};
+              copy_data(M, buffer[BufferRange(BufferId(0), BufferId(size))]);
 
-        std::set<real_type> charge;
-        for (auto const& dist : data)
-        {
-            result.total_num_photons += dist.num_photons;
-            result.num_photons.push_back(dist.num_photons);
-            if (!dist)
-            {
-                continue;
-            }
-            charge.insert(dist.charge.value());
+              std::set<real_type> charge;
+              for (auto const& dist : data)
+              {
+                  result.total_num_photons += dist.num_photons;
+                  result.num_photons.push_back(dist.num_photons);
+                  if (!dist)
+                  {
+                      continue;
+                  }
+                  charge.insert(dist.charge.value());
 
-            auto const& pre = dist.points[StepPoint::pre];
-            auto const& post = dist.points[StepPoint::post];
-            EXPECT_GT(pre.speed, zero_quantity());
-            EXPECT_NE(post.pos, pre.pos);
-            EXPECT_GT(dist.step_length, 0);
-            EXPECT_EQ(0, dist.material.get());
-        }
-        result.charge.insert(result.charge.end(), charge.begin(), charge.end());
-    };
+                  auto const& pre = dist.points[StepPoint::pre];
+                  auto const& post = dist.points[StepPoint::post];
+                  EXPECT_GT(pre.speed, zero_quantity());
+                  EXPECT_NE(post.pos, pre.pos);
+                  EXPECT_GT(dist.step_length, 0);
+                  EXPECT_EQ(0, dist.material.get());
+              }
+              result.charge.insert(
+                  result.charge.end(), charge.begin(), charge.end());
+          };
 
     RunResult result;
     auto& optical_state

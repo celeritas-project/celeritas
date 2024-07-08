@@ -47,6 +47,9 @@ physics_options = {
     'msc': "urban" if core_geo == "vecgeom" else "none",
     'eloss_fluctuation': True,
     'lpm': True,
+    'cerenkov': True,
+    'scintillation': True,
+    'optical_rayleigh': True,
 }
 
 if geant_exp_exe:

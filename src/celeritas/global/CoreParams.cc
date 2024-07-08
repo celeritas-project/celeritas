@@ -122,8 +122,9 @@ class PropagationLimitAction final : public ConcreteAction
   public:
     //! Construct with ID
     explicit PropagationLimitAction(ActionId id)
-        : ConcreteAction(
-            id, "geo-propagation-limit", "pause due to propagation misbehavior")
+        : ConcreteAction(id,
+                         "geo-propagation-limit",
+                         "pause due to propagation misbehavior")
     {
     }
 };
@@ -135,7 +136,7 @@ class AbandonLoopingAction final : public ConcreteAction
     //! Construct with ID
     explicit AbandonLoopingAction(ActionId id)
         : ConcreteAction(
-            id, "kill-looping", "kill due to too many field substeps")
+              id, "kill-looping", "kill due to too many field substeps")
     {
     }
 };
@@ -242,6 +243,11 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
 #undef CP_VALIDATE_INPUT
 
     CELER_EXPECT(input_);
+
+    if (!input_.aux_reg)
+    {
+        input_.aux_reg = std::make_shared<AuxParamsRegistry>();
+    }
 
     ScopedMem record_mem("CoreParams.construct");
 

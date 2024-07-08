@@ -109,6 +109,10 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
     GPO_LOAD_OPTION(msc);
     GPO_LOAD_OPTION(relaxation);
 
+    GPO_LOAD_OPTION(cerenkov);
+    GPO_LOAD_OPTION(scintillation);
+    GPO_LOAD_OPTION(optical_rayleigh);
+
     GPO_LOAD_OPTION(em_bins_per_decade);
     GPO_LOAD_OPTION(eloss_fluctuation);
     GPO_LOAD_OPTION(lpm);
@@ -152,6 +156,10 @@ void to_json(nlohmann::json& j, GeantPhysicsOptions const& inp)
         CELER_JSON_PAIR(inp, brems),
         CELER_JSON_PAIR(inp, msc),
         CELER_JSON_PAIR(inp, relaxation),
+
+        CELER_JSON_PAIR(inp, cerenkov),
+        CELER_JSON_PAIR(inp, scintillation),
+        CELER_JSON_PAIR(inp, optical_rayleigh),
 
         CELER_JSON_PAIR(inp, em_bins_per_decade),
         CELER_JSON_PAIR(inp, eloss_fluctuation),
