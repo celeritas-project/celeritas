@@ -17,6 +17,7 @@
 #if !CELER_DEVICE_COMPILE
 #    include "corecel/io/Logger.hh"
 #    include "corecel/io/Repr.hh"
+#    include "celeritas/UnitTypes.hh"
 #endif
 
 namespace celeritas
@@ -71,7 +72,8 @@ TrackingCutExecutor::operator()(celeritas::CoreTrackView const& track)
         auto msg = CELER_LOG_LOCAL(error);
         msg << "Tracking error (track ID " << sim.track_id().get()
             << ", track slot " << track.track_slot_id().get() << ") at "
-            << repr(geo.pos()) << " along " << repr(geo.dir()) << ": ";
+            << repr(geo.pos()) << " [" << units::NativeTraits::Length::label()
+            << "] along " << repr(geo.dir()) << ": ";
         if (!geo.is_outside())
         {
             msg << "depositing " << deposited << " ["

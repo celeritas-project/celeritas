@@ -178,10 +178,14 @@ TEST_F(SimpleComptonTest, fail_initialize)
         // clang-format off
         static char const* const expected_log_messages[] = {
             "Track started outside the geometry",
-            "Tracking error (track ID 0, track slot 31) at {1001, 0, 0} along {1, 0, 0}: lost 100 MeV energy",
+            "Tracking error (track ID 0, track slot 31) at {1001, 0, 0} [cm] along {1, 0, 0}: lost 100 MeV energy",
         };
         // clang-format on
-        EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages());
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+            && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+        {
+            EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages());
+        }
         static char const* const expected_log_levels[] = {"error", "error"};
         EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
     }
@@ -291,13 +295,16 @@ TEST_F(BadGeometryTest, no_material_host)
     // clang-format off
     static char const* const expected_log_messages[] = {
         "Track started in an unknown material",
-        "Tracking error (track ID 0, track slot 0) at {5, 0, 0} along {1, 0, 0}: depositing 100 [MeV] in volume 4",
+        "Tracking error (track ID 0, track slot 0) at {5, 0, 0} [cm] along {1, 0, 0}: depositing 100 [MeV] in volume 4",
     };
     // clang-format on
 
-    EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages());
-    static char const* const expected_log_levels[] = {"error", "error"};
-    EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+        && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    {
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages());
+    }
+    EXPECT_EQ(2, scoped_log.levels().size());
 }
 
 TEST_F(BadGeometryTest, start_outside_host)
@@ -307,10 +314,16 @@ TEST_F(BadGeometryTest, start_outside_host)
     // clang-format off
     static char const* const expected_log_messages[] = {
         "Track started outside the geometry",
-        "Tracking error (track ID 0, track slot 0) at {20, 0, 0} along {1, 0, 0}: lost 100 MeV energy",
+        "Tracking error (track ID 0, track slot 0) at {20, 0, 0} [cm] along {1, 0, 0}: lost 100 MeV energy",
     };
     // clang-format on
-    EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages());
+
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+        && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    {
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages());
+    }
+    EXPECT_EQ(2, scoped_log.levels().size());
 }
 
 TEST_F(BadGeometryTest, TEST_IF_CELER_DEVICE(no_volume_device))

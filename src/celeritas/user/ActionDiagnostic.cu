@@ -23,14 +23,13 @@ namespace celeritas
 void ActionDiagnostic::execute(CoreParams const& params,
                                CoreStateDevice& state) const
 {
-    ConditionalTrackExecutor execute{
+    auto execute = make_active_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
-        ActionDiagnosticCondition{},
         detail::ActionDiagnosticExecutor{
             store_.params<MemSpace::native>(),
             store_.state<MemSpace::native>(state.stream_id(),
-                                           this->state_size())}};
+                                           this->state_size())});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 }
