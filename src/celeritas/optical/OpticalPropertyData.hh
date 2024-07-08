@@ -16,6 +16,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
  * Shared optical properties data.
@@ -57,4 +59,5 @@ struct OpticalPropertyData
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

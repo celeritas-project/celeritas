@@ -11,6 +11,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
  * Resize states in host code.
@@ -57,4 +59,5 @@ resize<MemSpace::device>(OpticalStateData<Ownership::value, MemSpace::device>*,
                          size_type);
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

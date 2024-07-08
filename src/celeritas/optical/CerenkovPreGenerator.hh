@@ -21,6 +21,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
  * Sample the number of Cerenkov photons to be generated.
@@ -120,4 +122,5 @@ CerenkovPreGenerator::operator()(Generator& rng)
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

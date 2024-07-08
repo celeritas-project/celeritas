@@ -16,6 +16,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -68,4 +70,5 @@ struct OpticalGenState : public AuxStateInterface
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

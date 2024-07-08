@@ -37,6 +37,8 @@ namespace celeritas
 {
 namespace test
 {
+using namespace celeritas::optical;
+
 struct InvCentimeter
 {
     static CELER_CONSTEXPR_FUNCTION real_type value()

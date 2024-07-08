@@ -19,6 +19,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
  * Construct with core data and optical data.
@@ -78,4 +80,5 @@ AuxId OpticalCollector::aux_id() const
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

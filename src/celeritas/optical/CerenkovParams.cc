@@ -22,6 +22,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
  * Construct with optical property data.
@@ -68,4 +70,5 @@ CerenkovParams::CerenkovParams(SPConstProperties properties)
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

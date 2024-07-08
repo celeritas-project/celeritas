@@ -22,6 +22,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -46,4 +48,5 @@ void CerenkovPreGenAction::pre_generate(CoreParams const& core_params,
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

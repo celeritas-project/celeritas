@@ -16,6 +16,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
  * Pre- and post-step data for sampling optical photons.
@@ -53,4 +55,5 @@ struct OpticalDistributionData
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

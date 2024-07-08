@@ -21,6 +21,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -70,4 +72,5 @@ void PreGenGatherAction::execute(CoreParams const&, CoreStateDevice&) const
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

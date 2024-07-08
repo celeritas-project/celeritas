@@ -15,6 +15,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -80,4 +82,5 @@ CELER_FUNCTION void ScintPreGenExecutor::operator()(CoreTrackView const& track)
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

@@ -27,6 +27,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
  * Sample Cerenkov photons from the given distribution.
@@ -203,4 +205,5 @@ CELER_FUNCTION GenericCalculator CerenkovGenerator::make_calculator(
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

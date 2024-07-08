@@ -15,6 +15,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -82,4 +84,5 @@ CerenkovPreGenExecutor::operator()(CoreTrackView const& track)
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

@@ -28,12 +28,14 @@
 #include "celeritas_test.hh"
 #include "../LArSphereBase.hh"
 
-using celeritas::detail::OpticalGenState;
+using celeritas::optical::detail::OpticalGenState;
 
 namespace celeritas
 {
 namespace test
 {
+using namespace celeritas::optical;
+
 //---------------------------------------------------------------------------//
 // TEST FIXTURES
 //---------------------------------------------------------------------------//

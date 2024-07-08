@@ -27,6 +27,9 @@ class OpticalPropertyParams;
 class ScintillationParams;
 class CoreParams;
 
+namespace optical
+{
+
 namespace detail
 {
 class OpticalGenParams;
@@ -105,4 +108,5 @@ class OpticalCollector
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

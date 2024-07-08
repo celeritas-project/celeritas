@@ -13,6 +13,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -34,4 +36,5 @@ size_type remove_if_invalid(Collection<OpticalDistributionData,
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

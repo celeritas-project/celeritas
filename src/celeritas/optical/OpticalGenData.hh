@@ -21,6 +21,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
  * Current sizes of the buffers of distribution data.
@@ -178,4 +180,5 @@ void resize(OpticalGenStateData<Ownership::value, M>* state,
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

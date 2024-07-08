@@ -17,6 +17,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 namespace detail
 {
 struct OpticalGenStorage;
@@ -67,4 +69,5 @@ class PreGenGatherAction final : public ExplicitCoreActionInterface
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

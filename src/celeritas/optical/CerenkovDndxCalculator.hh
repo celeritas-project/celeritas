@@ -21,6 +21,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the mean number of Cerenkov photons produced per unit length.
@@ -152,4 +154,5 @@ CerenkovDndxCalculator::operator()(units::LightSpeed beta)
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

@@ -15,6 +15,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 class OpticalPropertyParams;
 
 //---------------------------------------------------------------------------//
@@ -44,4 +46,5 @@ class CerenkovParams final : public ParamsDataInterface<CerenkovData>
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

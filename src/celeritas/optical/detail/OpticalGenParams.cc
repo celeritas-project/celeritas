@@ -9,6 +9,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 namespace detail
 {
 namespace
@@ -68,4 +70,5 @@ auto OpticalGenParams::create_state(MemSpace m,
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

@@ -14,6 +14,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
  * Optical photon data used to initialize a photon track state.
@@ -29,4 +31,5 @@ struct OpticalPrimary
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

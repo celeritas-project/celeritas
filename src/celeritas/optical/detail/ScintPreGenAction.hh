@@ -19,6 +19,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 class ScintillationParams;
 
@@ -83,4 +85,5 @@ class ScintPreGenAction final : public ExplicitCoreActionInterface
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

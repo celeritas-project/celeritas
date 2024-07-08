@@ -22,6 +22,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
  * Construct with imported data.
@@ -86,4 +88,5 @@ OpticalPropertyParams::OpticalPropertyParams(Input const& inp)
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

@@ -19,6 +19,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 // XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX
 // IMPLEMENT ME!
@@ -159,4 +161,5 @@ void resize(OpticalStateData<Ownership::value, M>* state,
             size_type size);
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

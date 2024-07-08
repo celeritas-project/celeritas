@@ -20,6 +20,9 @@ namespace celeritas
 {
 struct ImportData;
 
+namespace optical
+{
+
 //---------------------------------------------------------------------------//
 /*!
  * Build and manage optical property data for materials.
@@ -53,4 +56,5 @@ class OpticalPropertyParams final
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

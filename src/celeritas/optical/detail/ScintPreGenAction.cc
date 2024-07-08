@@ -24,6 +24,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -122,4 +124,5 @@ void ScintPreGenAction::pre_generate(CoreParams const&, CoreStateDevice&) const
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
+}  // namespace optical
 }  // namespace celeritas
