@@ -321,7 +321,7 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
     result.distance = convert_from_geant(g4step, clhep_length);
     if (result.distance <= max_step)
     {
-        result.boundary = PropagationStatus::boundary;
+        result.boundary = true;
         result.distance
             = celeritas::max<real_type>(result.distance, this->extra_push());
         CELER_ENSURE(result.distance > 0);
@@ -338,8 +338,7 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
 
     CELER_ENSURE(result.distance > 0);
     CELER_ENSURE(result.distance <= max(max_step, this->extra_push()));
-    CELER_ENSURE(result.boundary == PropagationStatus::boundary
-                 || result.distance == max_step
+    CELER_ENSURE(result.boundary || result.distance == max_step
                  || max_step < this->extra_push());
     CELER_ENSURE(this->has_next_step());
     return result;

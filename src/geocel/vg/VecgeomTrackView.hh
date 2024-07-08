@@ -346,14 +346,12 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
 
     Propagation result;
     result.distance = next_step_;
-    result.status = this->is_next_boundary() ? PropagationStatus::boundary
-                                             : PropagationStatus::success;
+    result.boundary = this->is_next_boundary();
 
     CELER_ENSURE(this->has_next_step());
     CELER_ENSURE(result.distance > 0);
     CELER_ENSURE(result.distance <= max(max_step, this->extra_push()));
-    CELER_ENSURE(result.status == PropagationStatus::boundary
-                 || result.distance == max_step
+    CELER_ENSURE(result.boundary || result.distance == max_step
                  || max_step < this->extra_push());
     return result;
 }

@@ -909,8 +909,7 @@ OrangeTrackView::find_next_step_impl(detail::Intersection isect)
 
     Propagation result;
     result.distance = isect.distance;
-    result.status = isect ? PropagationStatus::boundary
-                          : PropagationStatus::success;
+    result.boundary = static_cast<bool>(isect);
     return result;
 }
 
