@@ -68,6 +68,19 @@ enum class Bound : bool
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Status at the end of a propagation step.
+ */
+enum class PropagationStatus
+{
+    success,  //!< Travelled the requested length
+    boundary,  //!< Encountered a boundary
+    looping,  //!< Stopped early because of substep limits
+    error,  //!< Failed internally
+    size_,
+};
+
+//---------------------------------------------------------------------------//
 // STRUCTS
 //---------------------------------------------------------------------------//
 /*!
@@ -95,8 +108,7 @@ struct GeoTrackInitializer
 struct Propagation
 {
     real_type distance{0};  //!< Distance traveled
-    bool boundary{false};  //!< True if hit a boundary before given distance
-    bool looping{false};  //!< True if track is looping in the field propagator
+    PropagationStatus status{PropagationStatus::success};
 };
 
 //---------------------------------------------------------------------------//
