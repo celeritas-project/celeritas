@@ -10,11 +10,11 @@
 #include <unordered_map>
 
 #include "corecel/io/EnumStringMapper.hh"
+#include "corecel/io/Logger.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/optical/model/AbsorptionModel.hh"
 #include "celeritas/optical/model/OpticalRayleighModel.hh"
 
-#include "ImportedOpticalMaterials.hh"
 #include "OpticalModel.hh"
 
 namespace celeritas
@@ -25,8 +25,7 @@ namespace celeritas
  */
 auto OpticalModelBuilder::get_all_model_classes() -> std::set<IOMC>
 {
-    return std::set<IOMC>{
-        IOMC::absorption, IOMC::rayleigh, IOMC::wavelength_shifting};
+    return std::set<IOMC>{IOMC::absorption, IOMC::rayleigh};
 }
 
 //---------------------------------------------------------------------------//
@@ -36,9 +35,9 @@ auto OpticalModelBuilder::get_all_model_classes() -> std::set<IOMC>
 OpticalModelBuilder::OpticalModelBuilder(ImportData const& data,
                                          UserBuildMap user_build,
                                          Options /* options */)
-    : input_{ImportedOpticalMaterials::from_import(data)}
-    , user_build_map_(std::move(user_build))
-{}
+    : input_{&data.opt_materials}, user_build_map_(std::move(user_build))
+{
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -94,7 +93,7 @@ auto OpticalModelBuilder::operator()(IOMC iomc, ActionIdIter start_id) const
  */
 auto OpticalModelBuilder::build_absorption(ActionId id) const -> SPModel
 {
-    return std::make_shared<AbsorptionModel>(id, this->imported());
+    return std::make_shared<AbsorptionModel>(id, this->optical_materials());
 }
 
 //---------------------------------------------------------------------------//
@@ -103,7 +102,8 @@ auto OpticalModelBuilder::build_absorption(ActionId id) const -> SPModel
  */
 auto OpticalModelBuilder::build_rayleigh(ActionId id) const -> SPModel
 {
-    return std::make_shared<OpticalRayleighModel>(id, this->imported());
+    return std::make_shared<OpticalRayleighModel>(id,
+                                                  this->optical_materials());
 }
 
 //---------------------------------------------------------------------------//
@@ -112,8 +112,23 @@ auto OpticalModelBuilder::build_rayleigh(ActionId id) const -> SPModel
  */
 // auto OpticalModelBuilder::build_wls(ActionId id) const -> SPModel
 // {
-//     return std::make_shared<WavelengthShiftingModel>(id, this->imported());
+//     return std::make_shared<WavelengthShiftingModel>(id, input_.wls);
 // }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Warn and return a null optical model.
+ *
+ * Doesn't increment the action ID iterator.
+ */
+auto WarnAndIgnoreOpticalModel::operator()(ActionIdIter,
+                                           UserBuildInput const&) const
+    -> SPModel
+{
+    CELER_LOG(warning) << "Omitting " << to_cstring(this->model)
+                       << " from optical physics model list";
+    return nullptr;
+}
 
 //---------------------------------------------------------------------------//
 /*!

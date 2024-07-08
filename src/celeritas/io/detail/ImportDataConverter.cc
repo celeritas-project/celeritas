@@ -43,9 +43,9 @@ void ImportDataConverter::operator()(ImportData* data)
         (*this)(&m);
     }
 
-    for (auto& m : data->optical)
+    for (auto& m : data->opt_materials)
     {
-        (*this)(&m.second);
+        (*this)(&m);
     }
 
     for (auto& p : data->processes)

@@ -19,8 +19,8 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ImportData;
-class ImportedOpticalMaterials;
 class OpticalModel;
+class ImportOpticalMaterial;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -60,14 +60,13 @@ class OpticalModelBuilder
     using IOMC = ImportOpticalModelClass;
     using Options = OpticalModelBuilderOptions;
     using SPModel = std::shared_ptr<OpticalModel>;
-    using SPConstImported = std::shared_ptr<ImportedOpticalMaterials const>;
     using ActionIdIter = RangeIter<ActionId>;
     //!@}
 
     //! Input argument for user-provided optical model construction
     struct UserBuildInput
     {
-        SPConstImported imported;
+        std::vector<ImportOpticalMaterial> const* opt_materials;
     };
 
     //!@{
@@ -97,7 +96,10 @@ class OpticalModelBuilder
     UserBuildInput input_;
     UserBuildMap user_build_map_;
 
-    SPConstImported const imported() const { return input_.imported; }
+    std::vector<ImportOpticalMaterial> const& optical_materials() const
+    {
+        return *input_.opt_materials;
+    }
 
     //!@{
     //! \name Helper functions to build specific models
@@ -105,6 +107,26 @@ class OpticalModelBuilder
     SPModel build_rayleigh(ActionId) const;
     // SPModel build_wls() const;
     //!@}
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Warn about a missing optical model and deliberately skip it.
+ */
+struct WarnAndIgnoreOpticalModel
+{
+    //!@{
+    //! \name Type aliases
+    using UserBuildInput = OpticalModelBuilder::UserBuildInput;
+    using ActionIdIter = OpticalModelBuilder::ActionIdIter;
+    using SPModel = OpticalModelBuilder::SPModel;
+    //!@}
+
+    //! Warn about a missing optical model and return a null model.
+    SPModel operator()(ActionIdIter, UserBuildInput const&) const;
+
+    //! Optical model class to warn about
+    ImportOpticalModelClass model;
 };
 
 //---------------------------------------------------------------------------//

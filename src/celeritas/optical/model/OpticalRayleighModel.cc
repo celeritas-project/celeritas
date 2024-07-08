@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "OpticalRayleighModel.hh"
 
-#include "celeritas/optical/ImportedOpticalMaterials.hh"
+#include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/OpticalMfpBuilder.hh"
 #include "celeritas/optical/OpticalModelBuilder.hh"
 #include "celeritas/optical/OpticalPhysicsParams.hh"
@@ -18,12 +18,11 @@ namespace celeritas
 /*!
  * Construct the model from imported data.
  */
-OpticalRayleighModel::OpticalRayleighModel(ActionId id,
-                                           SPConstImported imported)
-    : OpticalModel(id, "rayleigh", "optical rayleigh scattering")
-    , imported_(imported)
+OpticalRayleighModel::OpticalRayleighModel(
+    ActionId id, std::vector<ImportOpticalMaterial> const& imported)
+    : OpticalModel(id, "rayleigh", "optical rayleigh scattering"), imported_()
 {
-    CELER_EXPECT(imported_);
+    imported_.reserve(imported.size());
 
     HostVal<OpticalRayleighData> data;
     CollectionBuilder<real_type, MemSpace::host, OpticalMaterialId>
@@ -31,10 +30,11 @@ OpticalRayleighModel::OpticalRayleighModel(ActionId id,
     CollectionBuilder<real_type, MemSpace::host, OpticalMaterialId>
         build_compressibility{&data.compressibility};
 
-    for (auto opt_mat_id : range(OpticalMaterialId{imported_->size()}))
+    for (auto const& opt_mat : imported)
     {
-        auto const& import_rayleigh = imported_->get(opt_mat_id).rayleigh;
+        auto const& import_rayleigh = opt_mat.rayleigh;
 
+        imported_.push_back(import_rayleigh);
         build_scale_factor.push_back(import_rayleigh.scale_factor);
         build_compressibility.push_back(import_rayleigh.compressibility);
     }
@@ -48,7 +48,8 @@ OpticalRayleighModel::OpticalRayleighModel(ActionId id,
  */
 void OpticalRayleighModel::build_mfp(OpticalModelMfpBuilder& builder) const
 {
-    builder(imported_->get(builder.optical_material()).rayleigh.mfp);
+    CELER_EXPECT(builder.optical_material().get() < imported_.size());
+    builder(imported_[builder.optical_material().get()].mfp);
 }
 
 //---------------------------------------------------------------------------//

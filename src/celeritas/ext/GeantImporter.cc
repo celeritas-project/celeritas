@@ -508,13 +508,17 @@ std::vector<ImportElement> import_elements()
  *
  * This returns a map of material index to imported optical property data.
  */
-ImportData::ImportOpticalMap import_optical()
+std::tuple<std::vector<ImportOpticalMaterial>, ImportData::ImportOpticalMap>
+import_optical()
 {
     auto const& mt = *G4Material::GetMaterialTable();
     CELER_ASSERT(mt.size() > 0);
 
     auto const& particle_map = optical_particles_map();
-    ImportData::ImportOpticalMap result;
+    std::tuple<std::vector<ImportOpticalMaterial>, ImportData::ImportOpticalMap>
+        result;
+    auto& optical_materials = std::get<0>(result);
+    auto& optical_map = std::get<1>(result);
 
     // Loop over optical materials
     for (auto mat_idx : range(mt.size()))
@@ -594,11 +598,14 @@ ImportData::ImportOpticalMap import_optical()
 
         if (optical)
         {
-            result.insert({mat_idx, std::move(optical)});
+            int opt_mat_idx = optical_materials.size();
+            optical_materials.emplace_back(std::move(optical));
+            optical_map.insert({mat_idx, opt_mat_idx});
         }
     }
 
-    CELER_LOG(debug) << "Loaded " << result.size() << " optical materials";
+    CELER_LOG(debug) << "Loaded " << optical_materials.size()
+                     << " optical materials";
     return result;
 }
 
@@ -1090,7 +1097,8 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
             imported.elements = import_elements();
             imported.geo_materials = import_geo_materials();
             imported.phys_materials = import_phys_materials(selected.particles);
-            imported.optical = import_optical();
+            std::tie(imported.opt_materials, imported.optical)
+                = import_optical();
         }
         if (selected.processes != DataSelection::none)
         {

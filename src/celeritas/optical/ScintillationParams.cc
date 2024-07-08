@@ -28,18 +28,19 @@ std::shared_ptr<ScintillationParams>
 ScintillationParams::from_import(ImportData const& data,
                                  SPConstParticles particle_params)
 {
-    CELER_EXPECT(!data.optical.empty());
+    CELER_EXPECT(!data.opt_materials.empty());
 
-    if (!std::any_of(
-            data.optical.begin(), data.optical.end(), [](auto const& iter) {
-                return static_cast<bool>(iter.second.scintillation);
-            }))
+    if (!std::any_of(data.opt_materials.begin(),
+                     data.opt_materials.end(),
+                     [](auto const& opt_mat) {
+                         return static_cast<bool>(opt_mat.scintillation);
+                     }))
     {
         // No scintillation data present
         return nullptr;
     }
 
-    auto const& num_optmats = data.optical.size();
+    auto const& num_optmats = data.opt_materials.size();
 
     Input input;
     input.resolution_scale.resize(num_optmats);
@@ -48,7 +49,7 @@ ScintillationParams::from_import(ImportData const& data,
         // Collect ScintillationParticleIds
         input.pid_to_scintpid.resize(data.particles.size());
         ScintillationParticleId scintpid{0};
-        for (auto const& [matid, iom] : data.optical)
+        for (auto const& iom : data.opt_materials)
         {
             auto const& iomsp = iom.scintillation.particles;
             for (auto const& [pdg, ipss] : iomsp)
@@ -70,10 +71,11 @@ ScintillationParams::from_import(ImportData const& data,
         input.materials.resize(num_optmats);
     }
 
-    size_type optmatidx{0};
-    for (auto const& [matid, iom] : data.optical)
+    for (auto optmatidx : range(OpticalMaterialId{num_optmats}))
     {
-        input.resolution_scale[optmatidx] = iom.scintillation.resolution_scale;
+        auto const& iom = data.opt_materials[optmatidx.get()];
+        input.resolution_scale[optmatidx.get()]
+            = iom.scintillation.resolution_scale;
 
         if (!data.optical_params.scintillation_by_particle)
         {
@@ -82,7 +84,7 @@ ScintillationParams::from_import(ImportData const& data,
             ImportMaterialScintSpectrum mat_spec;
             mat_spec.yield_per_energy = iomsm.yield_per_energy;
             mat_spec.components = iomsm.components;
-            input.materials[optmatidx] = std::move(mat_spec);
+            input.materials[optmatidx.get()] = std::move(mat_spec);
         }
         else
         {
@@ -98,12 +100,12 @@ ScintillationParams::from_import(ImportData const& data,
                     ImportParticleScintSpectrum part_spec;
                     part_spec.yield_vector = ipss.yield_vector;
                     part_spec.components = ipss.components;
-                    input.particles[num_optmats * scintpid.get() + optmatidx]
+                    input.particles[num_optmats * scintpid.get()
+                                    + optmatidx.get()]
                         = std::move(part_spec);
                 }
             }
         }
-        optmatidx++;
     }
 
     return std::make_shared<ScintillationParams>(std::move(input));

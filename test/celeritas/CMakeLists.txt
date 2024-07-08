@@ -280,6 +280,7 @@ celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 celeritas_add_test(optical/Cerenkov.test.cc)
 celeritas_add_test(optical/OpticalCollector.test.cc ${_needs_geant4})
 celeritas_add_test(optical/Scintillation.test.cc)
+celeritas_add_test(optical/OpticalModelBuilder.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Mat

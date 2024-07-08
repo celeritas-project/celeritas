@@ -741,7 +741,9 @@ void print_atomic_relaxation_data(
 /*!
  * Print optical material properties map.
  */
-void print_optical_material_data(ImportData::ImportOpticalMap const& iom)
+void print_optical_material_data(
+    std::vector<ImportOpticalMaterial> const& opt_mats,
+    ImportData::ImportOpticalMap const& iom)
 {
     if (iom.empty())
     {
@@ -779,18 +781,18 @@ void print_optical_material_data(ImportData::ImportOpticalMap const& iom)
     cout << "\n# Optical properties\n";
     cout << "\n## Common properties";
     cout << header;
-    for (auto const& [mid, val] : iom)
+    for (auto const& [mid, omid] : iom)
     {
-        auto const& prop = val.properties;
+        auto const& prop = opt_mats[omid].properties;
         cout << POM_STREAM_VECTOR(mid, prop, refractive_index, IU::unitless);
     }
 
     cout << "\n## Scintillation";
     cout << header;
     char const* comp_str[] = {"(fast)", " (mid)", "(slow)"};
-    for (auto const& [mid, val] : iom)
+    for (auto const& [mid, omid] : iom)
     {
-        auto const& scint = val.scintillation;
+        auto const& scint = opt_mats[omid].scintillation;
         cout << POM_STREAM_SCALAR(
             mid, scint, material.yield_per_energy, IU::inv_mev);
         cout << POM_STREAM_SCALAR(mid, scint, resolution_scale, IU::unitless);
@@ -812,9 +814,9 @@ void print_optical_material_data(ImportData::ImportOpticalMap const& iom)
 
     cout << "\n## Rayleigh";
     cout << header;
-    for (auto const& [mid, val] : iom)
+    for (auto const& [mid, omid] : iom)
     {
-        auto const& rayl = val.rayleigh;
+        auto const& rayl = opt_mats[omid].rayleigh;
         cout << POM_STREAM_SCALAR(mid, rayl, scale_factor, IU::unitless);
         cout << POM_STREAM_SCALAR(
             mid, rayl, compressibility, IU::len_time_sq_per_mass);
@@ -823,18 +825,18 @@ void print_optical_material_data(ImportData::ImportOpticalMap const& iom)
 
     cout << "\n## Absorption";
     cout << header;
-    for (auto const& [mid, val] : iom)
+    for (auto const& [mid, omid] : iom)
     {
-        auto const& abs = val.absorption;
+        auto const& abs = opt_mats[omid].absorption;
         cout << POM_STREAM_VECTOR(mid, abs, absorption_length, IU::len);
     }
     cout << endl;
 
     cout << "\n## WLS";
     cout << header;
-    for (auto const& [mid, val] : iom)
+    for (auto const& [mid, omid] : iom)
     {
-        auto const& wls = val.wls;
+        auto const& wls = opt_mats[omid].wls;
         cout << POM_STREAM_SCALAR(mid, wls, mean_num_photons, IU::unitless);
         cout << POM_STREAM_SCALAR(mid, wls, time_constant, IU::time);
         cout << POM_STREAM_VECTOR(mid, wls, absorption_length, IU::len);
@@ -911,7 +913,7 @@ int main(int argc, char* argv[])
     print_sb_data(data.sb_data);
     print_livermore_pe_data(data.livermore_pe_data);
     print_atomic_relaxation_data(data.atomic_relaxation_data);
-    print_optical_material_data(data.optical);
+    print_optical_material_data(data.opt_materials, data.optical);
 
     return EXIT_SUCCESS;
 }

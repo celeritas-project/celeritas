@@ -75,7 +75,6 @@ list(APPEND SOURCES
   optical/OpticalTrackData.cc
   optical/ScintillationParams.cc
   optical/detail/OpticalGenParams.cc
-  optical/ImportedOpticalMaterials.cc
   optical/OpticalMfpBuilder.cc
   optical/OpticalModelBuilder.cc
   optical/OpticalPhysicsParams.cc

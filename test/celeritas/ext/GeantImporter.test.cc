@@ -1354,6 +1354,7 @@ TEST_F(LarSphere, optical)
 {
     auto&& imported = this->imported_data();
     EXPECT_EQ(1, imported.optical.size());
+    EXPECT_EQ(1, imported.opt_materials.size());
     ASSERT_EQ(2, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
 
@@ -1372,7 +1373,7 @@ TEST_F(LarSphere, optical)
     EXPECT_EQ("lAr", imported.geo_materials[lar_id.get()].name);
     auto const lar_iter = imported.optical.find(lar_id.get());
     ASSERT_FALSE(lar_iter == imported.optical.end());
-    auto const& optical = lar_iter->second;
+    auto const& optical = imported.opt_materials[lar_iter->second];
 
     // Check optical material ID
     auto materials = MaterialParams::from_import(imported);

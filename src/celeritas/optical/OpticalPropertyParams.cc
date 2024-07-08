@@ -29,21 +29,22 @@ namespace celeritas
 std::shared_ptr<OpticalPropertyParams>
 OpticalPropertyParams::from_import(ImportData const& data)
 {
-    CELER_EXPECT(!data.optical.empty());
+    CELER_EXPECT(!data.opt_materials.empty());
 
-    if (!std::any_of(
-            data.optical.begin(), data.optical.end(), [](auto const& iter) {
-                return static_cast<bool>(iter.second.properties);
-            }))
+    if (!std::any_of(data.opt_materials.begin(),
+                     data.opt_materials.end(),
+                     [](auto const& opt_mat) {
+                         return static_cast<bool>(opt_mat.properties);
+                     }))
     {
         // No optical property data present
         return nullptr;
     }
 
     Input input;
-    for (auto const& mat : data.optical)
+    for (auto const& mat : data.opt_materials)
     {
-        input.data.push_back(mat.second.properties);
+        input.data.push_back(mat.properties);
     }
     return std::make_shared<OpticalPropertyParams>(std::move(input));
 }

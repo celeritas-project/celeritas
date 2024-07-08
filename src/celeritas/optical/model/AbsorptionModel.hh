@@ -8,12 +8,15 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #include "celeritas/optical/OpticalModel.hh"
 
 namespace celeritas
 {
-class ImportedOpticalMaterials;
+class ImportOpticalMaterial;
+class ImportOpticalAbsorption;
+
 //---------------------------------------------------------------------------//
 /*!
  * Set up and launch the optical absorption model interaction.
@@ -21,14 +24,9 @@ class ImportedOpticalMaterials;
 class AbsorptionModel : public OpticalModel
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using SPConstImported = std::shared_ptr<ImportedOpticalMaterials const>;
-    //!@}
-
-  public:
     //! Construct model with imported data
-    AbsorptionModel(ActionId id, SPConstImported imported);
+    AbsorptionModel(ActionId id,
+                    std::vector<ImportOpticalMaterial> const& imported);
 
     //! Build the mean free paths for this model
     void build_mfp(OpticalModelMfpBuilder& build) const override final;
@@ -40,7 +38,7 @@ class AbsorptionModel : public OpticalModel
     void execute(OpticalParams const&, OpticalStateDevice&) const override final;
 
   private:
-    SPConstImported imported_;
+    std::vector<ImportOpticalAbsorption> imported_;
 };
 
 //---------------------------------------------------------------------------//
