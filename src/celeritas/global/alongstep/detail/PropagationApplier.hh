@@ -13,14 +13,9 @@
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/global/detail/ApplierTraits.hh"
 
-#define CELER_CHECK_POSITION 0
 #if !CELER_DEVICE_COMPILE
 #    include "corecel/io/Logger.hh"
-#    if CELERITAS_DEBUG
-#        undef CELER_CHECK_POSITION
-#        define CELER_CHECK_POSITION 1
-#        include "corecel/io/Repr.hh"
-#    endif
+#    include "corecel/io/Repr.hh"
 #endif
 
 namespace celeritas
@@ -115,20 +110,22 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
     bool tracks_can_loop;
     Propagation p;
     {
-#if CELER_CHECK_POSITION
+#if CELERITAS_DEBUG
         Real3 const orig_pos = track.make_geo_view().pos();
 #endif
         auto propagate = make_propagator(track);
         p = propagate(sim.step_length());
         tracks_can_loop = propagate.tracks_can_loop();
         CELER_ASSERT(p.distance > 0);
-#if CELER_CHECK_POSITION
+#if CELERITAS_DEBUG
         if (CELER_UNLIKELY(track.make_geo_view().pos() == orig_pos))
         {
             // This unusual case happens when the step length is less than
             // machine epsilon compared to the actual position. This case seems
-            // to happen mostly in vecgeom when "stuck" on a boundary, so it
-            // may not lead to an infinite loop because the state is changing.
+            // to occur in vecgeom when "stuck" on a boundary, and when in a
+            // field taking a small step when the track's position has a large
+            // magnitude.
+#    if !CELER_DEVICE_COMPILE
             CELER_LOG_LOCAL(error)
                 << "Propagation of step length " << repr(sim.step_length())
                 << " due to post-step action "
@@ -138,6 +135,7 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
                     : p.looping ? " (**LOOPING**)"
                                 : "")
                 << " failed to change position";
+#    endif
             sim.status(TrackStatus::errored);
             sim.post_step_action(track.tracking_cut_action());
         }
