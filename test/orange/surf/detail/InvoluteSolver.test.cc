@@ -19,6 +19,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 using constants::pi;
+using Sign = InvoluteSolver::Sign;
 
 TEST(SolveSurface, no_roots)
 {
@@ -28,7 +29,7 @@ TEST(SolveSurface, no_roots)
     {
         double r_b = 1.0;
         double a = 0;
-        double sign = 1.0;
+        auto sign = InvoluteSolver::ANTICLOCKWISE;
 
         double x = 0;
         double y = -2;
@@ -52,7 +53,7 @@ TEST(SolveSurface, no_roots)
     {
         double r_b = 0.75;
         double a = -2 * pi;
-        double sign = 1.0;
+        auto sign = InvoluteSolver::ANTICLOCKWISE;
 
         double x = -7;
         double y = -1;
@@ -76,7 +77,7 @@ TEST(SolveSurface, no_roots)
     {
         double r_b = 0.75;
         double a = -2 * pi;
-        double sign = 1.0;
+        auto sign = InvoluteSolver::ANTICLOCKWISE;
 
         double x = -7;
         double y = -1;
@@ -103,7 +104,7 @@ TEST(SolveSurface, one_root)
     {
         double r_b = 1.0;
         double a = 0;
-        double sign = 1.0;
+        auto sign = InvoluteSolver::ANTICLOCKWISE;
 
         double x = 0;
         double y = 0;
@@ -127,7 +128,7 @@ TEST(SolveSurface, one_root)
     {
         double r_b = 1.5;
         double a = 0;
-        double sign = 1.0;
+        auto sign = InvoluteSolver::ANTICLOCKWISE;
 
         double x = -1.5;
         double y = 1.0;
@@ -140,7 +141,7 @@ TEST(SolveSurface, one_root)
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
         auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0});
 
-        EXPECT_SOFT_EQ(3.7273045229241015, dist[0]);
+        EXPECT_SOFT_EQ(3.7273045229725681, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
@@ -151,7 +152,7 @@ TEST(SolveSurface, one_root)
     {
         double r_b = 3.0;
         double a = pi;
-        double sign = 1.0;
+        auto sign = InvoluteSolver::ANTICLOCKWISE;
 
         double x = -4.101853006408607;
         double y = -5.443541628262038;
@@ -175,7 +176,7 @@ TEST(SolveSurface, one_root)
     {
         double r_b = 0.5;
         double a = 0.4 * pi;
-        double sign = -1.0;
+        auto sign = InvoluteSolver::CLOCKWISE;
 
         double x = -4.0;
         double y = 2.0;
@@ -199,7 +200,7 @@ TEST(SolveSurface, one_root)
     {
         double r_b = 1.1;
         double a = 0.5 * pi;
-        double sign = -1.0;
+        auto sign = InvoluteSolver::CLOCKWISE;
 
         double x = -0.2;
         double y = 1.1;
@@ -226,7 +227,7 @@ TEST(SolveSurface, two_roots)
     {
         double r_b = 1.1;
         double a = 0.5 * pi;
-        double sign = -1.0;
+        auto sign = InvoluteSolver::CLOCKWISE;
 
         double x = -0.2;
         double y = 1.1;
@@ -250,7 +251,7 @@ TEST(SolveSurface, two_roots)
     {
         double r_b = 1.1;
         double a = -0.5 * pi;
-        double sign = -1.0;
+        auto sign = InvoluteSolver::CLOCKWISE;
 
         double x = -0.0001;
         double y = -1.11;
@@ -263,8 +264,8 @@ TEST(SolveSurface, two_roots)
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
         auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0});
 
-        EXPECT_SOFT_EQ(0.0036178033243678843, dist[0]);
-        EXPECT_SOFT_EQ(6.0284475628795926, dist[1]);
+        EXPECT_SOFT_EQ(0.0036178033243907904, dist[0]);
+        EXPECT_SOFT_EQ(6.0284475629193013, dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
 
@@ -275,7 +276,7 @@ TEST(SolveSurface, two_roots)
     {
         double r_b = 1.1;
         double a = -0.5 * pi;
-        double sign = 1.0;
+        auto sign = InvoluteSolver::ANTICLOCKWISE;
 
         double x = 0.0058102462574510716;
         double y = -1.1342955336941216;
@@ -289,7 +290,7 @@ TEST(SolveSurface, two_roots)
         auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0});
 
         EXPECT_SOFT_EQ(0.0, dist[0]);
-        EXPECT_SOFT_EQ(4.652832754892369, dist[1]);
+        EXPECT_SOFT_EQ(4.6528327548038506, dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
 }
@@ -302,7 +303,7 @@ TEST(SolveSurface, three_roots)
     {
         double r_b = 1.1;
         double a = -0.5 * pi;
-        double sign = 1.0;
+        auto sign = InvoluteSolver::ANTICLOCKWISE;
 
         double x = -6.8653052986571326;
         double y = -0.30468305643505367;

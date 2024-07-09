@@ -44,11 +44,18 @@ class InvoluteSolver
     //! \name Type aliases
     using Intersections = Array<real_type, 3>;
 
+    //! Enum defining chirality of involute
+    enum Sign
+    {
+        CLOCKWISE = 1 == 1,
+        ANTICLOCKWISE = 1 != 1
+    };
+
   public:
     // Construct Involute from parameters
     inline CELER_FUNCTION InvoluteSolver(real_type r_b_,
                                          real_type a_,
-                                         real_type sign_,
+                                         Sign sign_,
                                          real_type tmin_,
                                          real_type tmax_);
 
@@ -61,7 +68,7 @@ class InvoluteSolver
     //! Get involute parameters
     CELER_FUNCTION real_type r_b() const { return r_b_; }
     CELER_FUNCTION real_type a() const { return a_; }
-    CELER_FUNCTION real_type sign() const { return mirror_; }
+    CELER_FUNCTION Sign sign() const { return sign_; }
 
     //! Get bounds of the involute
     CELER_FUNCTION real_type tmin() const { return tmin_; }
@@ -72,7 +79,7 @@ class InvoluteSolver
     // Involute parameters
     real_type r_b_;
     real_type a_;
-    bool mirror_;
+    Sign sign_;
 
     // Bounds
     real_type tmin_;
@@ -87,14 +94,16 @@ class InvoluteSolver
  * Construct from involute parameters.
  */
 CELER_FUNCTION InvoluteSolver::InvoluteSolver(
-    real_type r_b, real_type a, real_type sign, real_type tmin, real_type tmax)
-    : r_b_(r_b), a_(a), mirror_(sign < 0), tmin_(tmin), tmax_(tmax)
+    real_type r_b, real_type a, Sign sign, real_type tmin, real_type tmax)
+    : r_b_(r_b), a_(a), sign_(sign), tmin_(tmin), tmax_(tmax)
 {
     CELER_EXPECT(r_b > 0);
     CELER_EXPECT(a > 0);
-    CELER_EXPECT(std::fabs(tmax) < 2 * pi + std::fabs(tmin));
+    CELER_EXPECT(tmax > 0);
+    CELER_EXPECT(tmin > 0);
+    CELER_EXPECT(tmax < 2 * pi + tmin);
 
-    if (mirror_)
+    if (sign_)
     {
         a_ = -a + pi;
     }
@@ -112,9 +121,9 @@ CELER_FUNCTION InvoluteSolver::InvoluteSolver(
  * tc = [ta*f(tb) - tb*f(ta)] / [f(tb) - f(ta)]
  * \f]
  * where \em tc replaces the bound with the same sign (e.g. \em ta and \em tb
- * ). The initial bounds can be determined by the set of: /f[ {0, beta - a,
- * beta - a - pi, beta - a + pi, beta - a - 2pi, beta - a + 2pi ...} /f] Where
- * \em beta is: \f[ beta = arctan(-v/u) \f]
+ * ). The initial bounds can be determined by the set of: \f[
+ * {0, beta - a, beta - a - pi, beta - a + pi, beta - a - 2pi, beta - a + 2pi
+ * ...} /f] Where \em beta is: \f[ beta = arctan(-v/u) \f]
  */
 CELER_FUNCTION auto
 InvoluteSolver::operator()(Real3 const& pos,
@@ -129,7 +138,7 @@ InvoluteSolver::operator()(Real3 const& pos,
     real_type const v = dir[1];
     real_type const w = dir[2];
 
-    if (mirror_)
+    if (sign_)
     {
         x = -x;
         u = -u;
@@ -148,9 +157,7 @@ InvoluteSolver::operator()(Real3 const& pos,
         real_type c = r_b_ * (a - b);
         return c + x * v - y * u;
     };
-    /*
-     * Results initalization
-     */
+    // Results initalization
     Intersections result;
     // Initial result vector.
     result = {no_intersection(), no_intersection(), no_intersection()};
@@ -167,8 +174,7 @@ InvoluteSolver::operator()(Real3 const& pos,
 
     // Conversion constant for 2-D distance to 3-D distance
 
-    real_type convert = std::sqrt(ipow<2>(v) + ipow<2>(u) + ipow<2>(w))
-                        / std::sqrt(ipow<2>(v) + ipow<2>(u));
+    real_type convert = 1 / std::sqrt(ipow<2>(v) + ipow<2>(u));
 
     /*
      * Define tolerances.
@@ -182,11 +188,13 @@ InvoluteSolver::operator()(Real3 const& pos,
 
     // Check if particle is on a surface within tolerance
 
-    real_type const rxy2 = ipow<2>(x) + ipow<2>(y);
-    real_type const t_point = std::sqrt((rxy2 / (ipow<2>(r_b_))) - 1);
+    real_type const rxy_sq = ipow<2>(x) + ipow<2>(y);
+    real_type const t_point = std::sqrt((rxy_sq / (ipow<2>(r_b_))) - 1);
     real_type angle = t_point + a_;
     real_type x_inv = r_b_ * (std::cos(angle) + t_point * std::sin(angle));
     real_type y_inv = r_b_ * (std::sin(angle) - t_point * std::cos(angle));
+
+    // Remove 0 dist
     if (std::fabs(x - x_inv) < tol_point && std::fabs(y - y_inv) < tol_point)
     {
         dist[j] = 0;
@@ -201,9 +209,10 @@ InvoluteSolver::operator()(Real3 const& pos,
     {
         // Standard method
         beta = std::atan(-v / u);
-    }  // Edge case
+    }
     else if (-v < 0)
     {
+        // Edge case
         beta = pi * -0.5;
     }
     else
@@ -221,24 +230,18 @@ InvoluteSolver::operator()(Real3 const& pos,
 
     // Parameters that will be used in loop
     int i = 1;
-    real_type t_alpha;
-    real_type t_beta;
-    real_type t_gamma;
-    real_type ft_gamma;
-    real_type ft_alpha;
-    real_type ft_beta;
 
     // Iterate on roots
     while (t_lower < tmax_)
     {
         // Set bounds on current iteration
 
-        t_alpha = t_lower;
-        t_beta = t_upper;
+        real_type t_alpha = t_lower;
+        real_type t_beta = t_upper;
 
         // Find value in root function
-        ft_alpha = root(t_lower, x, y, u, v, r_b_, a_);
-        ft_beta = root(t_upper, x, y, u, v, r_b_, a_);
+        real_type ft_alpha = root(t_lower, x, y, u, v, r_b_, a_);
+        real_type ft_beta = root(t_upper, x, y, u, v, r_b_, a_);
 
         // If bounds exceed tmax break
         if (t_lower > tmax_)
@@ -250,7 +253,9 @@ InvoluteSolver::operator()(Real3 const& pos,
         if ((0 < ft_alpha) - (ft_alpha < 0) != (0 < ft_beta) - (ft_beta < 0))
         {
             // Regula Falsi Iteration
-            ft_gamma = 1;
+            real_type ft_gamma = 1;
+            real_type t_gamma;
+
             while (std::fabs(ft_gamma) >= tol_conv)
             {
                 // Iterate on root
@@ -279,17 +284,17 @@ InvoluteSolver::operator()(Real3 const& pos,
             y_inv = r_b_ * (std::sin(angle) - t_gamma * std::cos(angle));
 
             // Check if point is interval
-            if (std::fabs(t_gamma) >= std::fabs(tmin_) - tol_point
-                && std::fabs(t_gamma) <= std::fabs(tmax_))
+            if (t_gamma >= tmin_ - tol_point && t_gamma <= tmax_)
             {
                 // Obatin direction to point on Involute
-                real_type u2 = x_inv - x;
-                real_type v2 = y_inv - y;
+                real_type u_point = x_inv - x;
+                real_type v_point = y_inv - y;
 
                 // Dot with direction of particle
-                real_type dot = u * u2 + v * v2;
+                real_type dot = u * u_point + v * v_point;
                 // Obtain distance to point
-                real_type newdist = std::sqrt(ipow<2>(u2) + ipow<2>(v2));
+                real_type newdist
+                    = std::sqrt(ipow<2>(u_point) + ipow<2>(v_point));
                 // Only record distance if dot product is positive
                 if (dot >= 0 && newdist > tol_point)
                 {
@@ -309,12 +314,11 @@ InvoluteSolver::operator()(Real3 const& pos,
             t_upper += pi / i;
             i++;
         }
-
-        for (int k = 0; k < j; k++)
-        {
-            // Convert 2-D distances to 3-D distances
-            result[k] = dist[k] * convert;
-        }
+    }
+    for (int k = 0; k < j; k++)
+    {
+        // Convert 2-D distances to 3-D distances
+        result[k] = dist[k] * convert;
     }
     return result;
 }

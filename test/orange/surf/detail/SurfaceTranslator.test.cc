@@ -120,6 +120,18 @@ TEST_F(SurfaceTranslatorTest, general_quadric)
     EXPECT_SOFT_EQ(7.0, distances[1]);
 }
 
+TEST_F(SurfaceTranslatorTest, involute)
+{
+    // See Involute.tst.cc
+    auto invo = translate(Involute{{1, 0, 0}, -2.0, 0.2, 1.0, 3.0});
+    EXPECT_VEC_SOFT_EQ((Real3{3, 3, 4}), invo.origin());
+    EXPECT_SOFT_EQ(2.0, invo.r_b());
+    EXPECT_SOFT_EQ(pi - 0.2, invo.a());
+    EXPECT_TRUE(detail::InvoluteSolver::ANTICLOCKWISE == invo.sign());
+    EXPECT_SOFT_EQ(1.0, invo.tmin());
+    EXPECT_SOFT_EQ(3.0, invo.tmax());
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace detail

@@ -132,20 +132,21 @@ t = np.linspace(0,4*np.pi,500)
 sign = 1
 involute = Involute(rb, a0, t, sign)
 
-inout = inOut(involute, 2.0, 9.5)
+inout = inOut(involute, 2.0, 8.07750492)
 
 # Plotting Information
 tau = np.linspace(0,2*np.pi,500)
 xmin = 2*np.cos(tau)
 ymin = 2*np.sin(tau)
-xmax = 9.5*np.cos(tau)
-ymax = 9.5*np.sin(tau)
-xlin = np.linspace(-3.2,-9.45,10)
-theta = np.sqrt(9.5**2-1)+np.pi*0.5
+xmax = 8.07750492*np.cos(tau)
+ymax = 8.07750492*np.sin(tau)
+xlin = np.linspace(-1.25,-2.28,10)
+theta = np.sqrt(8.07750492**2-1)+np.pi*0.5
 ylin = -1/np.tan(theta)*(xlin-rb*np.cos(theta))+rb*np.sin(theta)
 
 # Plot
-plt.figure(figsize=(10,10))
+plt.figure(figsize=(15,10))
+plt.xlim(-11,20)
 plt.plot(involute.involuteX,involute.involuteY, color="black")
 plt.plot(xmin,ymin, color="Blue", label="Rmin")
 plt.plot(xmax,ymax, color="Purple", label="Rmax")
@@ -218,7 +219,7 @@ if inout.isIn(x, y):
 else:
     plt.plot([x],[y], 'x', color="Red")
     
-# On Involute between rmin and t=2pi Test
+# On Involute
 print("-------------------\n"
       "Testing Point ({},{})\nExpected Result: True".format(\
                             involute.involuteX[100],involute.involuteY[100]))
@@ -226,47 +227,14 @@ x = involute.involuteX[100]
 y = involute.involuteY[100]
 print("Obtained Result : {}".format(inout.isIn(x, y)))
 if inout.isIn(x, y):
-    plt.plot([x],[y], 'o', color="Green")
+    plt.plot([x],[y], 'o', color="Blue", label='On Involute')
 else:
     plt.plot([x],[y], 'x', color="Red")
     
-# On Involute between t=2pi and rmax Test
-print("-------------------\n"
-      "Testing Point ({},{})\nExpected Result: True".format(\
-                            involute.involuteX[350],involute.involuteY[350]))
-x = involute.involuteX[350]
-y = involute.involuteY[350]
-print("Obtained Result : {}".format(inout.isIn(x, y)))
-if inout.isIn(x, y):
-    plt.plot([x],[y], 'o', color="Green")
-else:
-    plt.plot([x],[y], 'x', color="Red")
-    
-# Fuzzy On Involute between t=2pi and rmax Test
-print("-------------------\n"
-      "Testing Point ({},{})\nExpected Result: True".format(\
-                            involute.involuteX[300],involute.involuteY[300]))
-x = involute.involuteX[300]+1e-8
-y = involute.involuteY[300]+1e-8
-print("Obtained Result : {}".format(inout.isIn(x, y)))
-if inout.isIn(x, y):
-    plt.plot([x],[y], 'o', color="Green")
-else:
-    plt.plot([x],[y], 'x', color="Red")
-    
-# Fuzzy Theta Max Test
-print("-------------------")
-
-x = -4
-y = -1/np.tan(theta)*(x-rb*np.cos(theta))+rb*np.sin(theta)-1e-8
-print("Testing Point ({},{})\nExpected Result: True".format(\
-                            x,y))
-print("Obtained Result : {}".format(inout.isIn(x, y)))
-if inout.isIn(x, y):
-    plt.plot([x],[y], 'o', color="Green")
-else:
-    plt.plot([x],[y], 'x', color="Red")
 
 plt.legend()
+plt.gca().set_aspect("equal")
 plt.grid()
+plt.xlabel('x')
+plt.ylabel('y')
 

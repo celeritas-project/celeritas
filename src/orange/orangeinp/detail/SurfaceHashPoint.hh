@@ -47,6 +47,8 @@ struct SurfaceHashPoint
         return std::sqrt(s.radius_sq());
     }
 
+    real_type operator()(Involute const& s) const { return s.r_b(); }
+
     template<Axis T>
     real_type operator()(CylAligned<T> const& s) const
     {

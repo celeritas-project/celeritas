@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import newton 
 import copy
+import math
 
 class Involute:
     
@@ -75,13 +76,17 @@ class Involute:
         self.u = u
         self.v = v
         dir = np.array([u,v])
+        distA = np.array([])
         
         # Test if Particle is on involute
         if self.IsOn(x,y):
-            return 0
+            distA = np.append(distA, 0)
        
         # Line angle parameter
-        beta = np.arctan(-v/u)
+        try:
+            beta = np.arctan(-v/u)
+        except:
+            beta = np.pi*0.5*np.sign(-v)
         
         # First Interval Bounds
         if self.sign == 1:
@@ -175,12 +180,15 @@ class Involute:
                 t = tc
                 xInv,yInv = point(t)
                 
-                if xInv**2+yInv**2 >= rmin**2:
+                if xInv**2+yInv**2 >= rmin**2 -self.tol*10 and \
+                    xInv**2+yInv**2 < rmax**2 + self.tol*10:
                 
                     dir2 = np.array([xInv-x,yInv-y])
                     
                     if np.dot(dir,dir2) >= 0:
                         newdist = np.sqrt((xInv-x)**2+(yInv-y)**2)
+                        if newdist >= self.tol*10:
+                            distA = np.append(distA, newdist)
             
                 if self.sign == 1:
                     tLower = copy.deepcopy(tUpper)
@@ -204,17 +212,8 @@ class Involute:
                     
             if newdist <= distArray[-1]:
                 distArray = np.append(distArray, newdist)
-                    
-        dist = distArray[-1]
-        if dist >= 1e9:
-            print("No Solution Found For Given Bounds")
-            print("Bounds : rmin = {}, rmax = {} ".format(rmin,rmax))
-            print("Particle Position : x = {}, y = {}".format(x,y))
-            print("Particle Directiom : u = {}, v = {}".format(u,v))
-            
-            return 0
         
-        return dist
+        return distA
                  
             
             
@@ -224,6 +223,267 @@ class Involute:
         b = t * (self.u * np.cos(t+self.a0) + self.v * np.sin(t+self.a0))
         c = self.rb * (a-b)
         return c + self.x * self.v - self.y * self.u          
+        
+if False:                
+    # First Test   
+    rb = 1.0
+    a0 = 0
+    t = np.linspace(0,1.999*np.pi,500)
+    sign = 1
+    involute = Involute(rb, a0, t, sign)
+    
+    #First Point (0,0) Direction (0,1)
+    x = 0
+    y = 0
+    u = 0
+    v = 1
+    tmin = 0
+    tmax = 1.999*np.pi
+    rmin = rb*np.sqrt(1+tmin**2)
+    rmax = rb*np.sqrt(1+tmax**2)
+    dist  = involute.Distance(x, y, u, v, rmin, rmax)
+    distTrue = np.array([2.9716938706909275])
+    if math.isclose(dist[0],distTrue[0]):
+        print("Test 1: Passed")
+    else:
+        print("Test 1: Failed")
+        
+    # Second Test   
+    rb = 1.5
+    a0 = 0
+    t = np.linspace(0,1.999*np.pi,500)
+    sign = 1
+    involute = Involute(rb, a0, t, sign)
+    
+    #Second Point (-1.5,1) Direction (0.2,0.9797958971)
+    x = -1.5
+    y = 1
+    u = 0.2
+    v = 0.9797958971
+    tmin = 0
+    tmax = 1.999*np.pi
+    rmin = rb*np.sqrt(1+tmin**2)
+    rmax = rb*np.sqrt(1+tmax**2)
+    dist  = involute.Distance(x, y, u, v, rmin, rmax)
+    distTrue = np.array([3.7273045229241015])
+    if math.isclose(dist[0],distTrue[0]):
+        print("Test 2: Passed")
+    else:
+        print("Test 2: Failed")
+        
+    # Third Test   
+    rb = 1.1
+    a0 = np.pi*0.5
+    t = np.linspace(0,1.999*np.pi,500)
+    sign = -1
+    involute = Involute(rb, a0, t, sign)
+    
+    #Third Point (-0.2,1.1) Direction (1,0)
+    x = -0.2
+    y = 1.1
+    u = 1
+    v = 0
+    tmin = 0
+    tmax = 1.999*np.pi
+    rmin = rb*np.sqrt(1+tmin**2)
+    rmax = rb*np.sqrt(1+tmax**2)
+    dist  = involute.Distance(x, y, u, v, rmin, rmax)
+    distTrue = np.array([0.2, 2.764234602725404])
+    if math.isclose(dist[0],distTrue[0]) and math.isclose(dist[1],distTrue[1]):
+        print("Test 3: Passed")
+    else:
+        print("Test 3: Failed")
+    
+    # Fourth Test   
+    rb = 1.1
+    a0 = -np.pi*0.5
+    t = np.linspace(0,1.999*np.pi,500)
+    sign = -1
+    involute = Involute(rb, a0, t, sign)
+    
+    #Fourth Point (-0.0001,-1.11) Direction (-0.2,0.9797958971)
+    x = -0.0001
+    y = -1.11
+    u = -0.1
+    v = 0.9949874371
+    tmin = 0
+    tmax = 1.999*np.pi
+    rmin = rb*np.sqrt(1+tmin**2)
+    rmax = rb*np.sqrt(1+tmax**2)
+    dist  = involute.Distance(x, y, u, v, rmin, rmax)
+    distTrue = np.array([0.0036178033243678843, 6.0284475628795926])
+    if math.isclose(dist[0],distTrue[0],rel_tol=1e-7) and math.isclose(dist[1],distTrue[1]):
+        print("Test 4: Passed")
+    else:
+        print("Test 4: Failed")
+        
+    # Fifth Test   
+    rb = 1.1
+    a0 = -np.pi*0.5
+    t = np.linspace(0,1.999*np.pi,500)
+    sign = 1
+    involute = Involute(rb, a0, t, sign)
+    
+    #Fifth Point (0.0058102462574510716,-1.1342955336941216) 
+    #      Direction (0.7071067812,0.7071067812)
+    x = 0.0058102462574510716
+    y = -1.1342955336941216
+    u = 0.7071067812
+    v = 0.7071067812
+    tmin = 0
+    tmax = 1.999*np.pi
+    rmin = rb*np.sqrt(1+tmin**2)
+    rmax = rb*np.sqrt(1+tmax**2)
+    dist  = involute.Distance(x, y, u, v, rmin, rmax)
+    distTrue = np.array([0, 4.652832754892369])
+    if math.isclose(dist[0],distTrue[0]) and math.isclose(dist[1],distTrue[1]):
+        print("Test 5: Passed")
+    else:
+        print("Test 5: Failed")
+        
+    # Sixth Test   
+    rb = 1.1
+    a0 = -np.pi*0.5
+    t = np.linspace(0,1.999*np.pi,500)
+    sign = 1
+    involute = Involute(rb, a0, t, sign)
+    
+    #Sixth Point ( -6.865305298657132,2.723377881785643) 
+    #      Direction (0.7071067812,0.7071067812)
+    x = -6.865305298657132
+    y = -0.30468305643505367
+    u = 0.9933558377574788
+    v = -0.11508335932330707
+    tmin = 0
+    tmax = 1.999*np.pi
+    rmin = rb*np.sqrt(1+tmin**2)
+    rmax = rb*np.sqrt(1+tmax**2)
+    dist  = involute.Distance(x, y, u, v, rmin, rmax)
+    distTrue = np.array([0, 6.911224915264738, 9.167603472624553])
+    if math.isclose(dist[0],distTrue[0]) and math.isclose(dist[1],distTrue[1]) \
+       and math.isclose(dist[2],distTrue[2]):
+        print("Test 6: Passed")
+    else:
+        print("Test 6: Failed")
+        
+    # Seventh Test   
+    rb = 3
+    a0 = np.pi
+    t = np.linspace(0.5, 4,500)
+    sign = 1
+    involute = Involute(rb, a0, t, sign)
+        
+    #Seventh Point ( 0,-2) 
+    #      Direction (1,0)
+    x = 0
+    y = -2
+    u = 1
+    v = 0
+    tmin = 0.5
+    tmax = 4
+    rmin = rb*np.sqrt(1+tmin**2)
+    rmax = rb*np.sqrt(1+tmax**2)
+    dist  = involute.Distance(x, y, u, v, rmin, rmax)
+    if dist.size == 0:
+        print("Test 7: Passed")
+    else:
+        print("Test 7: Failed")
+        
+    # Eighth Test   
+    rb = 3
+    a0 = np.pi
+    t = np.linspace(2, 4,500)
+    sign = 1
+    involute = Involute(rb, a0, t, sign)
+        
+    #Eighth Point ( -4.101853006408607,-5.443541628262038) 
+    #      Direction (0,1)
+    x = -4.101853006408607
+    y = -5.443541628262038
+    u = 0
+    v = 1
+    tmin = 2
+    tmax = 4
+    rmin = rb*np.sqrt(1+tmin**2)
+    rmax = rb*np.sqrt(1+tmax**2)
+    dist  = involute.Distance(x, y, u, v, rmin, rmax)
+    distTrue = np.array([0])
+    if math.isclose(dist[0],distTrue[0]):
+        print("Test 8: Passed")
+    else:
+        print("Test 8: Failed")
+        
+    # Ninth Test   
+    rb = 0.5
+    a0 = -np.pi * 0.4 + np.pi
+    t = np.linspace(2.5*np.pi, 3.5*np.pi,500)
+    sign = 1
+    involute = Involute(rb, a0, t, sign)
+        
+    #Ninth Point ( -4,2) 
+    #      Direction (0.894427191,-0.4472135955)
+    x = 4
+    y = 2
+    u = -0.894427191
+    v = -0.4472135955
+    tmin = 2
+    tmax = 4
+    rmin = rb*np.sqrt(1+tmin**2)
+    rmax = rb*np.sqrt(1+tmax**2)
+    dist  = involute.Distance(x, y, u, v, rmin, rmax)
+    distTrue = np.array([6.0371012183803652])
+    if math.isclose(dist[0],distTrue[0]):
+        print("Test 9: Passed")
+    else:
+        print("Test 9: Failed")
+        
+    # Tenth Test   
+    rb = 0.75
+    a0 = -2*np.pi
+    t = np.linspace(2.5*np.pi, 3.5*np.pi,500)
+    sign = -1
+    involute = Involute(rb, a0, t, sign)
+        
+    #Tenth Point ( -7,-1) 
+    #      Direction (0.894427191,-0.4472135955)
+    x = -7
+    y = -1
+    u = 0.894427191
+    v = -0.4472135955
+    tmin = 2
+    tmax = 4
+    rmin = rb*np.sqrt(1+tmin**2)
+    rmax = rb*np.sqrt(1+tmax**2)
+    dist  = involute.Distance(x, y, u, v, rmin, rmax)
+    if dist.size == 0:
+        print("Test 10: Passed")
+    else:
+        print("Test 10: Failed")
+        
+    # Elventh Test   
+    rb = 0.25
+    a0 = -2*np.pi
+    t = np.linspace(2.5*np.pi, 3.5*np.pi,500)
+    sign = 1
+    involute = Involute(rb, a0, t, sign)
+    
+    plt.plot(involute.involuteX, involute.involuteY)
+    
+    #Elventh Point (-2,1) 
+    #      Direction (0.894427191,-0.4472135955)
+    x = -2
+    y = 1
+    u = 0.4472135955
+    v = -0.894427191
+    tmin = 2
+    tmax = 4
+    rmin = rb*np.sqrt(1+tmin**2)
+    rmax = rb*np.sqrt(1+tmax**2)
+    dist  = involute.Distance(x, y, u, v, rmin, rmax)
+    if dist.size == 0:
+        print("Test 11: Passed")
+    else:
+        print("Test 11: Failed")       
         
                 
 # Test Involute      
