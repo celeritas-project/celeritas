@@ -178,7 +178,7 @@ TEST_F(SimpleComptonTest, fail_initialize)
         // clang-format off
         static char const* const expected_log_messages[] = {
             "Track started outside the geometry",
-            "Tracking error (track ID 0, track slot 31) at {1001, 0, 0} [cm] along {1, 0, 0}: lost 100 MeV energy",
+            "Tracking error (track ID 0, track slot 31) at {1001, 0, 0} [cm] along {1, 0, 0}: lost 100 [MeV] energy",
         };
         // clang-format on
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
@@ -314,7 +314,7 @@ TEST_F(BadGeometryTest, start_outside_host)
     // clang-format off
     static char const* const expected_log_messages[] = {
         "Track started outside the geometry",
-        "Tracking error (track ID 0, track slot 0) at {20, 0, 0} [cm] along {1, 0, 0}: lost 100 MeV energy",
+        "Tracking error (track ID 0, track slot 0) at {20, 0, 0} [cm] along {1, 0, 0}: lost 100 [MeV] energy",
     };
     // clang-format on
 
