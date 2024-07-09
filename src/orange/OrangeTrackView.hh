@@ -652,15 +652,20 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     auto tinit = visit_tracker(
         [&local](auto&& t) { return t.cross_boundary(local); }, lsa.universe());
 
-    CELER_ASSERT(tinit.volume);
-    if (!CELERITAS_DEBUG && CELER_UNLIKELY(!tinit.volume))
+    if (CELER_UNLIKELY(!tinit.volume))
     {
-        // Initialization failure on release mode: set to exterior volume
-        // rather than segfaulting
-        // TODO: error correction or more graceful failure than losing
-        // energy
+        // Boundary crossing failure
+#if !CELER_DEVICE_COMPILE
+        CELER_LOG_LOCAL(error)
+            << "track failed to cross local surface "
+            << this->surf().unchecked_get() << " in universe "
+            << lsa.universe().unchecked_get() << " at local position "
+            << repr(local.pos) << " along local direction " << repr(local.dir);
+#endif
+        // Mark as failed and place in local "exterior" to end the search
+        // but preserve the current level information
+        failed_ = true;
         tinit.volume = orange_exterior_volume;
-        tinit.surface = {};
     }
 
     lsa.vol() = tinit.volume;
@@ -695,7 +700,20 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
             [&local](auto&& t) { return t.initialize(local).volume; },
             universe_id);
 
-        CELER_ASSERT(volume);
+        if (!local.volume)
+        {
+#if !CELER_DEVICE_COMPILE
+            auto msg = CELER_LOG_LOCAL(error);
+            msg << "track failed to cross boundary: could not find associated "
+                   "volume in universe "
+                << universe_id.unchecked_get() << " at local position "
+                << repr(local.pos);
+#endif
+            // Mark as failed and place in local "exterior" to end the search
+            // but preserve the current level information
+            failed_ = true;
+            local.volume = orange_exterior_volume;
+        }
         daughter_id = visit_tracker(
             [&volume](auto&& t) { return t.daughter(volume); }, universe_id);
 

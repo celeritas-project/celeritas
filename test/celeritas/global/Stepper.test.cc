@@ -319,6 +319,28 @@ TEST_F(BadGeometryTest, no_material_host)
     EXPECT_EQ(2, scoped_log.levels().size());
 }
 
+TEST_F(BadGeometryTest, no_new_volume_host)
+{
+    auto scoped_log = this->run_one_failure<MemSpace::host>({-6.001, 0, 0});
+
+    // clang-format off
+    static char const* const expected_log_messages[] = {
+        "track failed to cross local surface 2 in universe 0 at local position {-6, 0, 0} along local direction {1, 0, 0}",
+        "Tracking error (track ID 0, track slot 0) at {-6, 0, 0} [cm] along {1, 0, 0}: lost 100 [MeV] energy",
+    };
+
+    // clang-format on
+
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+        && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    {
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    }
+    static char const* const expected_log_levels[] = {"error", "error"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+    scoped_log.print_expected();
+}
+
 TEST_F(BadGeometryTest, start_outside_host)
 {
     auto scoped_log = this->run_one_failure<MemSpace::host>({20, 0, 0});
@@ -346,6 +368,11 @@ TEST_F(BadGeometryTest, TEST_IF_CELER_DEVICE(no_volume_device))
 TEST_F(BadGeometryTest, TEST_IF_CELER_DEVICE(no_material_device))
 {
     this->run_one_failure<MemSpace::device>({5, 0, 0});
+}
+
+TEST_F(BadGeometryTest, TEST_IF_CELER_DEVICE(no_new_volume_device))
+{
+    this->run_one_failure<MemSpace::device>({-6.001, 0, 0});
 }
 
 TEST_F(BadGeometryTest, TEST_IF_CELER_DEVICE(start_outside_device))
