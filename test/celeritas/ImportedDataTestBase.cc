@@ -12,7 +12,7 @@
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/CerenkovParams.hh"
-#include "celeritas/optical/OpticalPropertyParams.hh"
+#include "celeritas/optical/MaterialPropertyParams.hh"
 #include "celeritas/optical/ScintillationParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -139,7 +139,7 @@ auto ImportedDataTestBase::build_cerenkov() -> SPConstCerenkov
 //---------------------------------------------------------------------------//
 auto ImportedDataTestBase::build_properties() -> SPConstProperties
 {
-    return optical::OpticalPropertyParams::from_import(this->imported_data());
+    return optical::MaterialPropertyParams::from_import(this->imported_data());
 }
 
 //---------------------------------------------------------------------------//

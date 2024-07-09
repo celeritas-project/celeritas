@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/OpticalPrimary.hh
+//! \file celeritas/optical/Primary.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -20,7 +20,7 @@ namespace optical
 /*!
  * Optical photon data used to initialize a photon track state.
  */
-struct OpticalPrimary
+struct Primary
 {
     units::MevEnergy energy;
     Real3 position{0, 0, 0};

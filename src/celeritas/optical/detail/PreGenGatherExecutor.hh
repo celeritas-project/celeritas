@@ -10,7 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "celeritas/global/CoreTrackView.hh"
-#include "celeritas/optical/OpticalGenData.hh"
+#include "celeritas/optical/PreGenData.hh"
 
 namespace celeritas
 {
@@ -29,7 +29,7 @@ struct PreGenGatherExecutor
     inline CELER_FUNCTION void
     operator()(celeritas::CoreTrackView const& track);
 
-    NativeRef<OpticalGenStateData> const state;
+    NativeRef<PreGenStateData> const state;
 };
 
 //---------------------------------------------------------------------------//
@@ -43,7 +43,7 @@ CELER_FUNCTION void PreGenGatherExecutor::operator()(CoreTrackView const& track)
     CELER_EXPECT(state);
     CELER_EXPECT(track.track_slot_id() < state.step.size());
 
-    OpticalPreStepData& step = state.step[track.track_slot_id()];
+    PreGenPreStepData& step = state.step[track.track_slot_id()];
     step.speed = track.make_particle_view().speed();
     step.pos = track.make_geo_view().pos();
     step.time = track.make_sim_view().time();

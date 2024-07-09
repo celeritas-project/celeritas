@@ -11,8 +11,8 @@
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/optical/OpticalDistributionData.hh"
-#include "celeritas/optical/OpticalPrimary.hh"
+#include "celeritas/optical/PreGenDistributionData.hh"
+#include "celeritas/optical/Primary.hh"
 #include "celeritas/optical/ScintillationData.hh"
 #include "celeritas/optical/ScintillationGenerator.hh"
 #include "celeritas/optical/ScintillationParams.hh"
@@ -121,9 +121,9 @@ class ScintillationTest : public OpticalTestBase
     }
 
     //! Set up mock pre-generator step data
-    OpticalPreStepData build_pre_step()
+    PreGenPreStepData build_pre_step()
     {
-        OpticalPreStepData pre_step;
+        PreGenPreStepData pre_step;
         pre_step.speed = LightSpeed(0.99862874144970537);  // 10 MeV
         pre_step.pos = {0, 0, 0};
         pre_step.time = 0;
@@ -315,7 +315,7 @@ TEST_F(ScintillationTest, basic)
     auto const result = generate(this->rng());
 
     // Output data
-    std::vector<OpticalPrimary> storage(result.num_photons);
+    std::vector<Primary> storage(result.num_photons);
 
     // Create the generator
     ScintillationGenerator generate_photons(
@@ -389,7 +389,7 @@ TEST_F(ScintillationTest, stress_test)
     result.num_photons = 123456;
 
     // Output data
-    std::vector<OpticalPrimary> storage(result.num_photons);
+    std::vector<Primary> storage(result.num_photons);
 
     // Create the generator
     ScintillationGenerator generate_photons(result, data, make_span(storage));

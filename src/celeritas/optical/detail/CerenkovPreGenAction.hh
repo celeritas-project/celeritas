@@ -13,16 +13,16 @@
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/Collection.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/optical/OpticalDistributionData.hh"
+#include "celeritas/optical/PreGenDistributionData.hh"
 
-#include "OpticalGenParams.hh"
+#include "PreGenParams.hh"
 
 namespace celeritas
 {
 namespace optical
 {
 class CerenkovParams;
-class OpticalPropertyParams;
+class MaterialPropertyParams;
 
 namespace detail
 {
@@ -37,7 +37,7 @@ class CerenkovPreGenAction final : public ExplicitCoreActionInterface
     //!@{
     //! \name Type aliases
     using SPConstCerenkov = std::shared_ptr<CerenkovParams const>;
-    using SPConstProperties = std::shared_ptr<OpticalPropertyParams const>;
+    using SPConstProperties = std::shared_ptr<MaterialPropertyParams const>;
     using SPGenStorage = std::shared_ptr<detail::OpticalGenStorage>;
     //!@}
 

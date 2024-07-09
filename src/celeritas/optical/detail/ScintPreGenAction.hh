@@ -13,9 +13,9 @@
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/Collection.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/optical/OpticalDistributionData.hh"
+#include "celeritas/optical/PreGenDistributionData.hh"
 
-#include "OpticalGenParams.hh"
+#include "PreGenParams.hh"
 
 namespace celeritas
 {

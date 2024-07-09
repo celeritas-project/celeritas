@@ -12,7 +12,7 @@
 #include "corecel/data/AuxInterface.hh"
 #include "celeritas/Types.hh"
 
-#include "OpticalGenData.hh"
+#include "PreGenData.hh"
 
 #include "detail/CerenkovPreGenAction.hh"
 #include "detail/PreGenGatherAction.hh"
@@ -23,7 +23,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 class ActionRegistry;
 class CerenkovParams;
-class OpticalPropertyParams;
+class MaterialPropertyParams;
 class ScintillationParams;
 class CoreParams;
 
@@ -32,7 +32,7 @@ namespace optical
 
 namespace detail
 {
-class OpticalGenParams;
+class PreGenParams;
 }  // namespace detail
 
 //---------------------------------------------------------------------------//
@@ -56,7 +56,7 @@ class OpticalCollector
     //! \name Type aliases
     using SPConstCerenkov = std::shared_ptr<CerenkovParams const>;
     using SPConstCore = std::shared_ptr<CoreParams const>;
-    using SPConstProperties = std::shared_ptr<OpticalPropertyParams const>;
+    using SPConstProperties = std::shared_ptr<MaterialPropertyParams const>;
     using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
     using SPGenStorage = std::shared_ptr<detail::OpticalGenStorage>;
     //!@}
@@ -89,7 +89,7 @@ class OpticalCollector
   private:
     //// TYPES ////
 
-    using SPOpticalGenParams = std::shared_ptr<detail::OpticalGenParams>;
+    using SPPreGenParams = std::shared_ptr<detail::PreGenParams>;
     using SPCerenkovPreGenAction
         = std::shared_ptr<detail::CerenkovPreGenAction>;
     using SPScintPreGenAction = std::shared_ptr<detail::ScintPreGenAction>;
@@ -97,7 +97,7 @@ class OpticalCollector
 
     //// DATA ////
 
-    SPOpticalGenParams gen_params_;
+    SPPreGenParams gen_params_;
 
     SPGatherAction gather_action_;
     SPCerenkovPreGenAction cerenkov_pregen_action_;

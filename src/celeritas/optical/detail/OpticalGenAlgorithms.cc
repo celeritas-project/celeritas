@@ -21,14 +21,14 @@ namespace detail
 /*!
  * Remove all invalid distributions from the buffer.
  */
-size_type remove_if_invalid(Collection<OpticalDistributionData,
-                                       Ownership::reference,
-                                       MemSpace::host> const& buffer,
-                            size_type offset,
-                            size_type size,
-                            StreamId)
+size_type remove_if_invalid(
+    Collection<PreGenDistributionData, Ownership::reference, MemSpace::host> const&
+        buffer,
+    size_type offset,
+    size_type size,
+    StreamId)
 {
-    auto* start = static_cast<OpticalDistributionData*>(buffer.data());
+    auto* start = static_cast<PreGenDistributionData*>(buffer.data());
     auto* stop
         = std::remove_if(start + offset, start + offset + size, IsInvalid{});
     return stop - start;

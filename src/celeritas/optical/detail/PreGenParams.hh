@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/OpticalGenParams.hh
+//! \file celeritas/optical/detail/PreGenParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,7 +12,7 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 
-#include "../OpticalGenData.hh"
+#include "../PreGenData.hh"
 
 namespace celeritas
 {
@@ -24,12 +24,12 @@ namespace detail
 /*!
  * Manage metadata about optical generation.
  */
-class OpticalGenParams final : public AuxParamsInterface,
-                               public ParamsDataInterface<OpticalGenParamsData>
+class PreGenParams final : public AuxParamsInterface,
+                           public ParamsDataInterface<PreGenParamsData>
 {
   public:
     // Construct with aux ID and optical data
-    OpticalGenParams(AuxId aux_id, OpticalGenSetup const& setup);
+    PreGenParams(AuxId aux_id, PreGenOptions const& setup);
 
     //!@{
     //! \name Aux interface
@@ -51,7 +51,7 @@ class OpticalGenParams final : public AuxParamsInterface,
 
   private:
     AuxId aux_id_;
-    CollectionMirror<OpticalGenParamsData> data_;
+    CollectionMirror<PreGenParamsData> data_;
 };
 
 //---------------------------------------------------------------------------//
@@ -61,8 +61,8 @@ class OpticalGenParams final : public AuxParamsInterface,
 template<MemSpace M>
 struct OpticalGenState : public AuxStateInterface
 {
-    CollectionStateStore<OpticalGenStateData, M> store;
-    OpticalBufferSize buffer_size;
+    CollectionStateStore<PreGenStateData, M> store;
+    PreGenBufferSize buffer_size;
 
     //! True if states have been allocated
     explicit operator bool() const { return static_cast<bool>(store); }

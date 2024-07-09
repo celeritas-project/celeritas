@@ -10,7 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "celeritas/global/CoreTrackView.hh"
-#include "celeritas/optical/OpticalGenData.hh"
+#include "celeritas/optical/PreGenData.hh"
 #include "celeritas/optical/ScintillationPreGenerator.hh"
 
 namespace celeritas
@@ -35,8 +35,8 @@ struct ScintPreGenExecutor
     operator()(celeritas::CoreTrackView const& track);
 
     NativeCRef<ScintillationData> const scintillation;
-    NativeRef<OpticalGenStateData> const state;
-    OpticalBufferSize size;
+    NativeRef<PreGenStateData> const state;
+    PreGenBufferSize size;
 };
 
 //---------------------------------------------------------------------------//
@@ -49,7 +49,7 @@ CELER_FUNCTION void ScintPreGenExecutor::operator()(CoreTrackView const& track)
 {
     CELER_EXPECT(state);
 
-    using DistId = ItemId<OpticalDistributionData>;
+    using DistId = ItemId<PreGenDistributionData>;
 
     auto tsid = track.track_slot_id();
     CELER_ASSERT(size.scintillation + tsid.get() < state.scintillation.size());

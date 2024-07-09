@@ -26,17 +26,17 @@ namespace optical
 // IMPLEMENT ME!
 
 template<Ownership W, MemSpace M>
-struct OpticalPhysicsParamsData
+struct PhysicsParamsData
 {
     explicit CELER_FUNCTION operator bool() const { return false; }
 };
 template<Ownership W, MemSpace M>
-struct OpticalPhysicsStateData
+struct PhysicsStateData
 {
 };
 template<MemSpace M>
-void resize(OpticalPhysicsStateData<Ownership::value, M>*,
-            HostCRef<OpticalPhysicsParamsData> const&,
+void resize(PhysicsStateData<Ownership::value, M>*,
+            HostCRef<PhysicsParamsData> const&,
             size_type)
 {
     CELER_NOT_IMPLEMENTED("optical physics state");
@@ -47,7 +47,7 @@ void resize(OpticalPhysicsStateData<Ownership::value, M>*,
 /*!
  * Memspace-independent core variables.
  */
-struct OpticalScalars
+struct PhysicsScalars
 {
     ActionId boundary_action;
 
@@ -73,11 +73,11 @@ struct OpticalParamsData
 
     GeoParamsData<W, M> geometry;
     VolumeItems<OpticalMaterialId> materials;
-    OpticalPhysicsParamsData<W, M> physics;
+    PhysicsParamsData<W, M> physics;
     RngParamsData<W, M> rng;
     TrackInitParamsData<W, M> init;  // TODO: don't need max events
 
-    OpticalScalars scalars;
+    PhysicsScalars scalars;
 
     //! True if all params are assigned
     explicit CELER_FUNCTION operator bool() const
@@ -113,7 +113,7 @@ struct OpticalStateData
 
     GeoStateData<W, M> geometry;
     Items<OpticalMaterialId> materials;
-    OpticalPhysicsStateData<W, M> physics;
+    PhysicsStateData<W, M> physics;
     RngStateData<W, M> rng;
     SimStateData<W, M> sim;  // TODO: has a few things we don't need
     TrackInitStateData<W, M> init;  // Still need to track vacancies

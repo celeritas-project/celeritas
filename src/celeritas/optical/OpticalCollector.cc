@@ -11,11 +11,11 @@
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/optical/CerenkovParams.hh"
-#include "celeritas/optical/OpticalGenData.hh"
-#include "celeritas/optical/OpticalPropertyParams.hh"
+#include "celeritas/optical/MaterialPropertyParams.hh"
+#include "celeritas/optical/PreGenData.hh"
 #include "celeritas/optical/ScintillationParams.hh"
 
-#include "detail/OpticalGenParams.hh"
+#include "detail/PreGenParams.hh"
 
 namespace celeritas
 {
@@ -29,13 +29,13 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
 {
     CELER_EXPECT(inp);
 
-    OpticalGenSetup setup;
+    PreGenOptions setup;
     setup.cerenkov = inp.cerenkov && inp.properties;
     setup.scintillation = static_cast<bool>(inp.scintillation);
     setup.capacity = inp.buffer_capacity;
 
     // Create aux params and add to core
-    gen_params_ = std::make_shared<detail::OpticalGenParams>(
+    gen_params_ = std::make_shared<detail::PreGenParams>(
         core.aux_reg()->next_id(), setup);
     core.aux_reg()->insert(gen_params_);
 

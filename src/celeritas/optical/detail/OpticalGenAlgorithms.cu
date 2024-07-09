@@ -27,7 +27,7 @@ namespace detail
 /*!
  * Remove all invalid distributions from the buffer.
  */
-size_type remove_if_invalid(Collection<OpticalDistributionData,
+size_type remove_if_invalid(Collection<PreGenDistributionData,
                                        Ownership::reference,
                                        MemSpace::device> const& buffer,
                             size_type offset,

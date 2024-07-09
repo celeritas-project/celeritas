@@ -40,7 +40,7 @@ class OutputRegistry;
 namespace optical
 {
 class CerenkovParams;
-class OpticalPropertyParams;
+class MaterialPropertyParams;
 class ScintillationParams;
 }  // namespace optical
 
@@ -80,7 +80,7 @@ class GlobalTestBase : public Test
     using SPUserRegistry = SP<AuxParamsRegistry>;
 
     using SPConstCerenkov = SP<optical::CerenkovParams const>;
-    using SPConstProperties = SP<optical::OpticalPropertyParams const>;
+    using SPConstProperties = SP<optical::MaterialPropertyParams const>;
     using SPConstScintillation = SP<optical::ScintillationParams const>;
     //!@}
 

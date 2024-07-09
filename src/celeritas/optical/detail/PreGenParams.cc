@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/OpticalGenParams.cc
+//! \file celeritas/optical/detail/PreGenParams.cc
 //---------------------------------------------------------------------------//
-#include "OpticalGenParams.hh"
+#include "PreGenParams.hh"
 
 namespace celeritas
 {
@@ -18,9 +18,9 @@ namespace
 //---------------------------------------------------------------------------//
 //! Construct a state
 template<MemSpace M>
-auto make_state(OpticalGenParams const& params, StreamId stream, size_type size)
+auto make_state(PreGenParams const& params, StreamId stream, size_type size)
 {
-    using StoreT = CollectionStateStore<OpticalGenStateData, M>;
+    using StoreT = CollectionStateStore<PreGenStateData, M>;
 
     auto result = std::make_unique<OpticalGenState<M>>();
     result->store = StoreT{params.host_ref(), stream, size};
@@ -38,13 +38,13 @@ auto make_state(OpticalGenParams const& params, StreamId stream, size_type size)
 /*!
  * Construct with aux ID and optical data.
  */
-OpticalGenParams::OpticalGenParams(AuxId aux_id, OpticalGenSetup const& setup)
+PreGenParams::PreGenParams(AuxId aux_id, PreGenOptions const& setup)
     : aux_id_{aux_id}
 {
     CELER_EXPECT(aux_id_);
     CELER_EXPECT(setup);
 
-    data_ = CollectionMirror{HostVal<OpticalGenParamsData>{setup}};
+    data_ = CollectionMirror{HostVal<PreGenParamsData>{setup}};
 
     CELER_ENSURE(data_);
 }
@@ -53,9 +53,8 @@ OpticalGenParams::OpticalGenParams(AuxId aux_id, OpticalGenSetup const& setup)
 /*!
  * Build state data for a stream.
  */
-auto OpticalGenParams::create_state(MemSpace m,
-                                    StreamId sid,
-                                    size_type size) const -> UPState
+auto PreGenParams::create_state(MemSpace m, StreamId sid, size_type size) const
+    -> UPState
 {
     if (m == MemSpace::host)
     {

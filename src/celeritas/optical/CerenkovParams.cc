@@ -18,7 +18,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/grid/GenericGridInserter.hh"
 
-#include "OpticalPropertyParams.hh"
+#include "MaterialPropertyParams.hh"
 
 namespace celeritas
 {

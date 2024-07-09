@@ -11,7 +11,7 @@
 #include "corecel/Types.hh"
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/optical/CerenkovPreGenerator.hh"
-#include "celeritas/optical/OpticalGenData.hh"
+#include "celeritas/optical/PreGenData.hh"
 
 namespace celeritas
 {
@@ -30,10 +30,10 @@ struct CerenkovPreGenExecutor
     inline CELER_FUNCTION void
     operator()(celeritas::CoreTrackView const& track);
 
-    NativeCRef<OpticalPropertyData> const properties;
+    NativeCRef<MaterialPropertyData> const properties;
     NativeCRef<CerenkovData> const cerenkov;
-    NativeRef<OpticalGenStateData> const state;
-    OpticalBufferSize size;
+    NativeRef<PreGenStateData> const state;
+    PreGenBufferSize size;
 };
 
 //---------------------------------------------------------------------------//
@@ -49,7 +49,7 @@ CerenkovPreGenExecutor::operator()(CoreTrackView const& track)
     CELER_EXPECT(cerenkov);
     CELER_EXPECT(properties);
 
-    using DistId = ItemId<OpticalDistributionData>;
+    using DistId = ItemId<PreGenDistributionData>;
 
     auto tsid = track.track_slot_id();
     CELER_ASSERT(size.cerenkov + tsid.get() < state.cerenkov.size());

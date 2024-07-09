@@ -16,8 +16,8 @@
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
-#include "OpticalGenParams.hh"
 #include "PreGenGatherExecutor.hh"
+#include "PreGenParams.hh"
 
 namespace celeritas
 {

@@ -16,7 +16,7 @@
 #include "celeritas/optical/ScintillationParams.hh"
 
 #include "OpticalGenAlgorithms.hh"
-#include "OpticalGenParams.hh"
+#include "PreGenParams.hh"
 #include "ScintPreGenExecutor.hh"
 
 namespace celeritas

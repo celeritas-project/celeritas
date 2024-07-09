@@ -17,7 +17,7 @@ namespace celeritas
 {
 namespace optical
 {
-class OpticalPropertyParams;
+class MaterialPropertyParams;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -28,7 +28,7 @@ class CerenkovParams final : public ParamsDataInterface<CerenkovData>
   public:
     //!@{
     //! \name Type aliases
-    using SPConstProperties = std::shared_ptr<OpticalPropertyParams const>;
+    using SPConstProperties = std::shared_ptr<MaterialPropertyParams const>;
     //!@}
 
   public:

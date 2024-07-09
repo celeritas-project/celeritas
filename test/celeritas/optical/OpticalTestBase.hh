@@ -12,7 +12,7 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/optical/OpticalDistributionData.hh"
+#include "celeritas/optical/PreGenDistributionData.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/track/SimData.hh"
 

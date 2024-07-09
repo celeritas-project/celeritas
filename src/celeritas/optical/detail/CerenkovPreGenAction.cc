@@ -17,11 +17,11 @@
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/optical/CerenkovParams.hh"
-#include "celeritas/optical/OpticalPropertyParams.hh"
+#include "celeritas/optical/MaterialPropertyParams.hh"
 
 #include "CerenkovPreGenExecutor.hh"
 #include "OpticalGenAlgorithms.hh"
-#include "OpticalGenParams.hh"
+#include "PreGenParams.hh"
 
 namespace celeritas
 {

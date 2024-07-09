@@ -20,7 +20,7 @@
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
-#include "celeritas/optical/detail/OpticalGenParams.hh"
+#include "celeritas/optical/detail/PreGenParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
@@ -74,8 +74,8 @@ class LArSpherePreGenTest : public LArSphereBase
 
   protected:
     using SizeId = ItemId<size_type>;
-    using BufferId = ItemId<OpticalDistributionData>;
-    using BufferRange = ItemRange<OpticalDistributionData>;
+    using BufferId = ItemId<PreGenDistributionData>;
+    using BufferRange = ItemRange<PreGenDistributionData>;
 
     std::shared_ptr<OpticalCollector> collector_;
     StreamId stream_{0};
@@ -223,14 +223,14 @@ auto LArSpherePreGenTest::run(size_type num_tracks, size_type num_steps)
     }
 
     using ItemsRef
-        = Collection<OpticalDistributionData, Ownership::reference, M>;
+        = Collection<PreGenDistributionData, Ownership::reference, M>;
 
     auto get_result = [&](PreGenResult& result,
                           ItemsRef const& buffer,
                           size_type size) {
         // Copy buffer to host
-        std::vector<OpticalDistributionData> data(size);
-        Copier<OpticalDistributionData, MemSpace::host> copy_data{
+        std::vector<PreGenDistributionData> data(size);
+        Copier<PreGenDistributionData, MemSpace::host> copy_data{
             make_span(data)};
         copy_data(M, buffer[BufferRange(BufferId(0), BufferId(size))]);
 
