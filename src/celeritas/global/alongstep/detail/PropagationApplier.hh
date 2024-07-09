@@ -29,7 +29,7 @@ namespace detail
 template<class MP>
 struct PropagationApplierBaseImpl
 {
-    inline CELER_FUNCTION void operator()(CoreTrackView const& track);
+    inline CELER_FUNCTION void operator()(CoreTrackView& track);
 
     MP make_propagator;
 };
@@ -92,7 +92,7 @@ CELER_FUNCTION PropagationApplier(MP&&) -> PropagationApplier<MP>;
 //---------------------------------------------------------------------------//
 template<class MP>
 CELER_FUNCTION void
-PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
+PropagationApplierBaseImpl<MP>::operator()(CoreTrackView& track)
 {
     auto sim = track.make_sim_view();
     if (sim.step_length() == 0)
@@ -136,8 +136,8 @@ PropagationApplierBaseImpl<MP>::operator()(CoreTrackView const& track)
                                 : "")
                 << " failed to change position";
 #    endif
-            sim.status(TrackStatus::errored);
-            sim.post_step_action(track.tracking_cut_action());
+            track.apply_errored();
+            return;
         }
 #endif
     }

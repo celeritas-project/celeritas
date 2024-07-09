@@ -332,4 +332,20 @@ CELER_FUNCTION CoreScalars const& CoreTrackView::core_scalars() const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Set the 'errored' flag and tracking cut post-step action.
+ *
+ * \pre This cannot be applied if the current action is *after* post-step. (You
+ * can't guarantee for example that sensitive detectors will pick up the energy
+ * deposition.)
+ */
+CELER_FUNCTION void CoreTrackView::apply_errored()
+{
+    auto sim = this->make_sim_view();
+    CELER_EXPECT(is_track_valid(sim.status()));
+    sim.status(TrackStatus::errored);
+    sim.post_step_action(this->tracking_cut_action());
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

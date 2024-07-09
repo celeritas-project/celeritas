@@ -113,9 +113,7 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
 #if !CELER_DEVICE_COMPILE
                 CELER_LOG_LOCAL(error) << "Track started outside the geometry";
 #endif
-                auto sim = vacancy.make_sim_view();
-                sim.status(TrackStatus::errored);
-                sim.post_step_action(params->scalars.tracking_cut_action);
+                vacancy.apply_errored();
                 return;
             }
         }

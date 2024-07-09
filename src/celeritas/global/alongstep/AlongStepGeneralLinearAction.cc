@@ -91,7 +91,7 @@ void AlongStepGeneralLinearAction::execute(CoreParams const& params,
                 std::forward<decltype(execute_track)>(execute_track)));
     };
 
-    launch_impl([&](CoreTrackView const& track) {
+    launch_impl([&](CoreTrackView& track) {
         if (this->has_msc())
         {
             MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);
