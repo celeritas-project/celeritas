@@ -15,6 +15,7 @@
 #include "celeritas/geo/GeoMaterialView.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
@@ -24,7 +25,7 @@
 #include "../SimTrackView.hh"
 
 #if !CELER_DEVICE_COMPILE
-#    include "corecel/cont/ArrayIO.hh"
+#    include "corecel/io/Logger.hh"
 #endif
 
 namespace celeritas
@@ -77,70 +78,62 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
     // parent they can copy the geometry state from.
     auto const& data = state->init;
     ItemId<TrackInitializer> idx{index_before(counters.num_initializers, tid)};
+
+    // View to the new track to be initialized
+    CoreTrackView vacancy{
+        *params, *state, [&] {
+            TrackSlotId idx{index_before(counters.num_vacancies, tid)};
+            return data.vacancies[idx];
+        }()};
+
+    // Initialize the simulation state and particle attributes
     TrackInitializer const& init = data.initializers[idx];
-
-    // Thread ID of vacant track where the new track will be initialized
-    TrackSlotId vacancy = [&] {
-        TrackSlotId idx{index_before(counters.num_vacancies, tid)};
-        return data.vacancies[idx];
-    }();
-
-    // Initialize the simulation state
-    {
-        SimTrackView sim(params->sim, state->sim, vacancy);
-        sim = init.sim;
-    }
-
-    // Initialize the particle physics data
-    {
-        ParticleTrackView particle(
-            params->particles, state->particles, vacancy);
-        particle = init.particle;
-    }
+    vacancy.make_sim_view() = init.sim;
+    vacancy.make_particle_view() = init.particle;
 
     // Initialize the geometry
     {
-        GeoTrackView geo(params->geometry, state->geometry, vacancy);
+        auto geo = vacancy.make_geo_view();
         if (tid < counters.num_secondaries)
         {
-            // Copy the geometry state from the parent for improved
-            // performance
+            // Copy the geometry state from the parent for improved performance
             TrackSlotId parent_id = data.parents[TrackSlotId{
                 index_before(data.parents.size(), tid)}];
             GeoTrackView const parent_geo(
                 params->geometry, state->geometry, parent_id);
             geo = GeoTrackView::DetailedInitializer{parent_geo, init.geo.dir};
+            CELER_ASSERT(!geo.is_outside());
         }
         else
         {
             // Initialize it from the position (more expensive)
             geo = init.geo;
+            if (CELER_UNLIKELY(geo.is_outside()))
+            {
 #if !CELER_DEVICE_COMPILE
-            // TODO: kill particle with 'error' state if this happens
-            CELER_VALIDATE(!geo.is_outside(),
-                           << "track started outside the geometry at "
-                           << init.geo.pos);
+                CELER_LOG_LOCAL(error) << "Track started outside the geometry";
 #endif
+                vacancy.apply_errored();
+                return;
+            }
         }
 
         // Initialize the material
         auto matid
-            = GeoMaterialView(params->geo_mats).material_id(geo.volume_id());
+            = vacancy.make_geo_material_view().material_id(geo.volume_id());
+        if (CELER_UNLIKELY(!matid))
+        {
 #if !CELER_DEVICE_COMPILE
-        // TODO: kill particle with 'error' state if this happens
-        CELER_VALIDATE(matid,
-                       << "track started in an unknown material (volume ID "
-                       << geo.volume_id().unchecked_get() << ")");
+            CELER_LOG_LOCAL(error) << "Track started in an unknown material";
 #endif
-        MaterialTrackView mat(params->materials, state->materials, vacancy);
-        mat = {matid};
+            vacancy.apply_errored();
+            return;
+        }
+        vacancy.make_material_view() = {matid};
     }
 
     // Initialize the physics state
-    {
-        PhysicsTrackView phys(params->physics, state->physics, {}, {}, vacancy);
-        phys = {};
-    }
+    vacancy.make_physics_view() = {};
 }
 
 //---------------------------------------------------------------------------//

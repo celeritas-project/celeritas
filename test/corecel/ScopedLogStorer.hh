@@ -52,6 +52,9 @@ class ScopedLogStorer
     // Restore original logger on destruction
     ~ScopedLogStorer();
 
+    //! Prevent copying but allow moving
+    CELER_DEFAULT_MOVE_DELETE_COPY(ScopedLogStorer);
+
     // Save a log message
     void operator()(LogProvenance, LogLevel lev, std::string msg);
 
@@ -79,9 +82,6 @@ class ScopedLogStorer
     std::unique_ptr<Logger> saved_logger_;
     VecString messages_;
     VecString levels_;
-
-    //! Prevent copying and moving
-    CELER_DELETE_COPY_MOVE(ScopedLogStorer);
 };
 
 // Print expected results

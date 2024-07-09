@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/geo/detail/BoundaryAction.cc
+//! \file celeritas/phys/detail/TrackingCutAction.cc
 //---------------------------------------------------------------------------//
-#include "BoundaryAction.hh"
+#include "TrackingCutAction.hh"
 
 #include <string>
 
@@ -16,7 +16,7 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
-#include "BoundaryExecutor.hh"  // IWYU pragma: associated
+#include "TrackingCutExecutor.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -26,27 +26,27 @@ namespace detail
 /*!
  * Construct with action ID.
  */
-BoundaryAction::BoundaryAction(ActionId aid)
-    : ConcreteAction(aid, "geo-boundary", "cross a geometry boundary")
+TrackingCutAction::TrackingCutAction(ActionId aid)
+    : ConcreteAction(aid, "tracking-cut", "kill a track and deposit its energy")
 {
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch the boundary action on host.
+ * Launch the action on host.
  */
-void BoundaryAction::execute(CoreParams const& params,
-                             CoreStateHost& state) const
+void TrackingCutAction::execute(CoreParams const& params,
+                                CoreStateHost& state) const
 {
     auto execute = make_action_track_executor(params.ptr<MemSpace::native>(),
                                               state.ptr(),
                                               this->action_id(),
-                                              BoundaryExecutor{});
+                                              TrackingCutExecutor{});
     return launch_action(*this, params, state, execute);
 }
 
 #if !CELER_USE_DEVICE
-void BoundaryAction::execute(CoreParams const&, CoreStateDevice&) const
+void TrackingCutAction::execute(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

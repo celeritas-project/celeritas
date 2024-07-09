@@ -65,6 +65,7 @@ celeritas_add_test_library(testcel_celeritas
   GlobalGeoTestBase.cc
   GlobalTestBase.cc
   ImportedDataTestBase.cc
+  InvalidOrangeTestBase.cc
   MockTestBase.cc
   RootTestBase.cc
   SimpleTestBase.cc

@@ -63,6 +63,31 @@ TEST(DeviceVectorTest, all)
     }
 }
 
+TEST(DeviceVectorTest, TEST_IF_CELER_DEVICE(assign))
+{
+    using Vec_t = DeviceVector<int>;
+    Vec_t vec;
+
+    static int const mydata[] = {1, 3, 5, 8};
+    vec.assign(std::begin(mydata), std::end(mydata));
+    EXPECT_EQ(4, vec.size());
+
+    // Shouldn't reallocate
+    vec.assign(std::begin(mydata) + 2, std::end(mydata));
+    std::vector<int> out(vec.size());
+    vec.copy_to_host(make_span(out));
+
+    EXPECT_VEC_EQ((std::vector<int>{5, 8}), out);
+
+    // Should reallocate
+    static int const mylongdata[] = {1, 3, 5, 8, 13, 21};
+    vec.assign(std::begin(mylongdata), std::end(mylongdata));
+
+    out.resize(vec.size());
+    vec.copy_to_host(make_span(out));
+    EXPECT_VEC_EQ(mylongdata, out);
+}
+
 /*!
  * The following test code is intentionally commented out. Define
  * CELERITAS_SHOULD_NOT_COMPILE to check that the enclosed code results in
