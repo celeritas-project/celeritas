@@ -71,7 +71,7 @@ class TrackExecutor
     CELER_FUNCTION void operator()(ThreadId thread)
     {
         CELER_EXPECT(thread < state_->size());
-        CoreTrackView const track(*params_, *state_, thread);
+        CoreTrackView track(*params_, *state_, thread);
         return execute_track_(track);
     }
 
@@ -121,7 +121,7 @@ class ConditionalTrackExecutor
     CELER_FUNCTION void operator()(ThreadId thread)
     {
         CELER_EXPECT(thread < state_->size());
-        CoreTrackView const track(*params_, *state_, thread);
+        CoreTrackView track(*params_, *state_, thread);
         if (!applies_(track.make_sim_view()))
         {
             return;

@@ -42,13 +42,12 @@ namespace detail
  */
 struct TrackingCutExecutor
 {
-    inline CELER_FUNCTION void
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION void operator()(celeritas::CoreTrackView& track);
 };
 
 //---------------------------------------------------------------------------//
 CELER_FUNCTION void
-TrackingCutExecutor::operator()(celeritas::CoreTrackView const& track)
+TrackingCutExecutor::operator()(celeritas::CoreTrackView& track)
 {
     using Energy = ParticleTrackView::Energy;
 
@@ -68,7 +67,7 @@ TrackingCutExecutor::operator()(celeritas::CoreTrackView const& track)
 #if !CELER_DEVICE_COMPILE
     if (sim.status() == TrackStatus::errored)
     {
-        auto geo = track.make_geo_view();
+        auto const geo = track.make_geo_view();
         auto msg = CELER_LOG_LOCAL(error);
         msg << "Tracking error (track ID " << sim.track_id().get()
             << ", track slot " << track.track_slot_id().get() << ") at "

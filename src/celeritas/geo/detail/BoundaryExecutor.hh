@@ -34,13 +34,12 @@ namespace detail
  */
 struct BoundaryExecutor
 {
-    inline CELER_FUNCTION void
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION void operator()(celeritas::CoreTrackView& track);
 };
 
 //---------------------------------------------------------------------------//
 CELER_FUNCTION void
-BoundaryExecutor::operator()(celeritas::CoreTrackView const& track)
+BoundaryExecutor::operator()(celeritas::CoreTrackView& track)
 {
     CELER_EXPECT([track] {
         auto sim = track.make_sim_view();
@@ -64,9 +63,7 @@ BoundaryExecutor::operator()(celeritas::CoreTrackView const& track)
             CELER_LOG_LOCAL(error) << "Track entered a volume without an "
                                       "associated material";
 #endif
-            auto sim = track.make_sim_view();
-            sim.status(TrackStatus::errored);
-            sim.post_step_action(track.tracking_cut_action());
+            track.apply_errored();
             return;
         }
         auto mat = track.make_material_view();
