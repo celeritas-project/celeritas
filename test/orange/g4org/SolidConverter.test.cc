@@ -175,7 +175,7 @@ void SolidConverterTest::build_and_test(G4VSolid const& solid,
         for ([[maybe_unused]] auto i : range(this->num_samples_))
         {
             auto r = sample_box(rng);
-            ASSERT_EQ(calc_g4_sense(r), calc_org_sense(r))
+            EXPECT_EQ(calc_g4_sense(r), calc_org_sense(r))
                 << "at " << r << " [cm]";
         }
     }
@@ -296,6 +296,7 @@ TEST_F(SolidConverterTest, generictrap)
 })json",
         {{-1, -2, -4 - 1.e-6}, {-1, -2, -3}, {0.5, 1, 3}, {1, 1, 3}});
 
+#if 0
     GTEST_SKIP() << "LArEMECInnerWheelAbsorber02 point sampling fails!";
 
     // Most general gentrap with twisted side faces
@@ -314,6 +315,45 @@ TEST_F(SolidConverterTest, generictrap)
         {
             {51.2, 0.40, 7.76},
             {51.4, 0.51, 7.78},
+        });
+#endif
+
+    // GenTrapTest, trap_uneven_twist
+    this->build_and_test(
+        G4GenericTrap("trap_uneven_twist",
+                      1,
+                      {
+                          {2, -1},
+                          {2, 1},
+                          {-2, 1},
+                          {-2, -1},
+                          {0.5, -0.5},
+                          {1.5, 0.5},
+                          {-0.5, 0.5},
+                          {-1.5, -0.5},
+                      }),
+        R"json({"_type":"shape","interior":{"_type":"gentrap","halfheight":0.1,"lower":[[0.2,-0.1],[0.2,0.1],[-0.2,0.1],[-0.2,-0.1]],"upper":[[0.05,-0.05],[0.15,0.05],[-0.05,0.05],[-0.15,-0.05]]},"label":"trap_uneven_twist"})json",
+        {
+            {1.99, -0.99, -0.99},
+            {0.49, -0.49, 0.99},
+        });
+
+    // GenTrapTest, trap_even_twist
+    this->build_and_test(
+        G4GenericTrap("trap_even_twist",
+                      1,
+                      {{2, -1},
+                       {2, 1},
+                       {-2, 1},
+                       {-2, -1},
+                       {1, -1},
+                       {3, 1},
+                       {-1, 1},
+                       {-3, -1}}),
+        R"json({"_type":"shape","interior":{"_type":"gentrap","halfheight":0.1,"lower":[[0.2,-0.1],[0.2,0.1],[-0.2,0.1],[-0.2,-0.1]],"upper":[[0.1,-0.1],[0.3,0.1],[-0.1,0.1],[-0.3,-0.1]]},"label":"trap_even_twist"})json",
+        {
+            {1.99, -0.99, -0.99},
+            {0.49, -0.49, 0.99},
         });
 }
 

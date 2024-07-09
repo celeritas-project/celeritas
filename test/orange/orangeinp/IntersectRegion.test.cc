@@ -1051,6 +1051,23 @@ TEST_F(GenPrismTest, trap_uneven_twist)
     this->check_corners(result.node_id, pri, 0.1);
 }
 
+TEST_F(GenTrapTest, trap_even_twist)
+{
+    auto trap = GenTrap::from_trap(
+        1, Turn{0}, Turn{0}, {1, 2, 2, Turn{0}}, {1, 2, 2, Turn{0.125}});
+
+    static real_type const expected_twist_angles[] = {0.125, 0, 0.125, 0};
+    EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(trap));
+
+    static real_type const expected_lower[] = {2, -1, 2, 1, -2, 1, -2, -1};
+    static real_type const expected_upper[]
+        = {0.5, -0.5, 1.5, 0.5, -0.5, 0.5, -1.5, -0.5};
+    EXPECT_VEC_SOFT_EQ(expected_lower, to_vec(trap.lower()));
+    EXPECT_VEC_SOFT_EQ(expected_upper, to_vec(trap.upper()));
+
+    cout << repr(trap.lower()) << ',' << repr(trap.upper());
+}
+
 /*!
  * Test deduplication of two opposing quadric surfaces.
  *
