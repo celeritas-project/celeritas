@@ -78,7 +78,6 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
     // parent they can copy the geometry state from.
     auto const& data = state->init;
     ItemId<TrackInitializer> idx{index_before(counters.num_initializers, tid)};
-    TrackInitializer const& init = data.initializers[idx];
 
     // View to the new track to be initialized
     CoreTrackView vacancy{
@@ -87,7 +86,8 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
             return data.vacancies[idx];
         }()};
 
-    // Initialize the simulation state
+    // Initialize the simulation state and particle attributes
+    TrackInitializer const& init = data.initializers[idx];
     vacancy.make_sim_view() = init.sim;
     vacancy.make_particle_view() = init.particle;
 

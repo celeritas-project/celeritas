@@ -264,7 +264,7 @@ CELER_FUNCTION auto CoreTrackView::make_rng_engine() const -> RngEngine
  */
 CELER_FORCEINLINE_FUNCTION ThreadId CoreTrackView::thread_id() const
 {
-    CELER_ENSURE(thread_id_);
+    CELER_EXPECT(thread_id_);
     return thread_id_;
 }
 
