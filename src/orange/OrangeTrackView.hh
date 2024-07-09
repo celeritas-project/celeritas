@@ -93,6 +93,8 @@ class OrangeTrackView
     inline CELER_FUNCTION bool is_outside() const;
     // Whether the track is exactly on a surface
     inline CELER_FUNCTION bool is_on_boundary() const;
+    //! Whether the last operation resulted in an error
+    CELER_FORCEINLINE_FUNCTION bool failed() const { return failed_; }
 
     //// OPERATIONS ////
 
@@ -133,6 +135,7 @@ class OrangeTrackView
     ParamsRef const& params_;
     StateRef const& states_;
     TrackSlotId track_slot_;
+    bool failed_{false};
 
     //// PRIVATE STATE MUTATORS ////
 
