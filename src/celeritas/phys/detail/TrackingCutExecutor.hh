@@ -82,8 +82,8 @@ TrackingCutExecutor::operator()(celeritas::CoreTrackView const& track)
         }
         else
         {
-            msg << "lost " << deposited << " " << Energy::unit_type::label()
-                << " energy";
+            msg << "lost " << deposited << " [" << Energy::unit_type::label()
+                << "] energy";
         }
     }
 #endif
