@@ -113,13 +113,6 @@ class CoreTrackView
 //---------------------------------------------------------------------------//
 /*!
  * Construct with comprehensive param/state data and thread.
- *
- * TODO: if params is 'unsorted', we could leave the
- * "track slots" vector empty and set \code
- *  track_slot_id_ = TrackSlotId{states_.track_slots.empty()
- *              ? thread_id_.get()
- *              : states_.track_slots[thread_id_]};
- * \endcode
  */
 CELER_FUNCTION
 CoreTrackView::CoreTrackView(ParamsRef const& params,
@@ -127,8 +120,11 @@ CoreTrackView::CoreTrackView(ParamsRef const& params,
                              ThreadId thread)
     : states_(states), params_(params), thread_id_(thread)
 {
-    CELER_EXPECT(thread_id_ < states_.track_slots.size());
-    track_slot_id_ = TrackSlotId{states_.track_slots[thread_id_]};
+    CELER_EXPECT(states_.track_slots.empty()
+                 || thread_id_ < states_.track_slots.size());
+    track_slot_id_ = TrackSlotId{states_.track_slots.empty()
+                                     ? thread_id_.get()
+                                     : states_.track_slots[thread_id_]};
     CELER_ENSURE(track_slot_id_ < states_.size());
 }
 

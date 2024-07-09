@@ -116,6 +116,8 @@ struct CoreStateData
     RngStateData<W, M> rng;
     SimStateData<W, M> sim;
     TrackInitStateData<W, M> init;
+
+    //! Indirection array for sorting (empty if unsorted)
     ThreadItems<TrackSlotId::size_type> track_slots;
 
     //! Unique identifier for "thread-local" data.
