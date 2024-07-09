@@ -20,13 +20,13 @@ namespace detail
 // CONDITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Condition for ConditionalTrackExecutor for active tracks.
+ * Condition for ConditionalTrackExecutor for active, non-errored tracks.
  */
-struct AppliesActive
+struct AppliesValid
 {
     CELER_FUNCTION bool operator()(SimTrackView const& sim) const
     {
-        return sim.status() != TrackStatus::inactive;
+        return is_track_valid(sim.status());
     }
 };
 
@@ -54,7 +54,7 @@ struct IsAlongStepActionEqual
 
     CELER_FUNCTION bool operator()(SimTrackView const& sim) const
     {
-        CELER_EXPECT(AppliesActive{}(sim)
+        CELER_EXPECT(AppliesValid{}(sim)
                      == static_cast<bool>(sim.along_step_action()));
         return sim.along_step_action() == this->action;
     }

@@ -67,10 +67,6 @@ PreStepExecutor::operator()(celeritas::CoreTrackView const& track)
 
     // Complete the "initializing" stage of tracks, since pre-step happens
     // after user initialization
-    CELER_ASSERT(sim.status() == TrackStatus::initializing
-                 || sim.status() == TrackStatus::alive);
-    sim.status(TrackStatus::alive);
-
     auto step = track.make_physics_step_view();
     {
         // Clear out energy deposition, secondary pointers, and sampled element
@@ -78,6 +74,16 @@ PreStepExecutor::operator()(celeritas::CoreTrackView const& track)
         step.secondaries({});
         step.element({});
     }
+
+    if (CELER_UNLIKELY(sim.status() == TrackStatus::errored))
+    {
+        // Failed during initialization: don't calculate step limits
+        return;
+    }
+
+    CELER_ASSERT(sim.status() == TrackStatus::initializing
+                 || sim.status() == TrackStatus::alive);
+    sim.status(TrackStatus::alive);
 
     auto phys = track.make_physics_view();
     if (!phys.has_interaction_mfp())

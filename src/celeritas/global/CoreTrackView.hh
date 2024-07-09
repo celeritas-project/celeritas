@@ -84,7 +84,7 @@ class CoreTrackView
     inline CELER_FUNCTION ActionId propagation_limit_action() const;
 
     // Action ID for being abandoned while looping
-    inline CELER_FUNCTION ActionId abandon_looping_action() const;
+    inline CELER_FUNCTION ActionId tracking_cut_action() const;
 
     // HACK: return scalars (maybe have a struct for all actions?)
     inline CELER_FUNCTION CoreScalars const& core_scalars() const;
@@ -257,11 +257,17 @@ CELER_FUNCTION ActionId CoreTrackView::propagation_limit_action() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the action ID for being abandoned while looping.
+ * Get the action ID for killing a track prematurely.
+ *
+ * This \em unphysical local energy deposition can happen due to:
+ * - Initialization in an invalid region
+ * - Looping in a magnetic field
+ * - A tracking error due to an invalid user geometry or a bug
+ * - User tracking cuts
  */
-CELER_FUNCTION ActionId CoreTrackView::abandon_looping_action() const
+CELER_FUNCTION ActionId CoreTrackView::tracking_cut_action() const
 {
-    return params_.scalars.abandon_looping_action;
+    return params_.scalars.tracking_cut_action;
 }
 
 //---------------------------------------------------------------------------//

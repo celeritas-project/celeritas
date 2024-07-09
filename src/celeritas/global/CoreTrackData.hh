@@ -33,7 +33,7 @@ struct CoreScalars
 {
     ActionId boundary_action;
     ActionId propagation_limit_action;
-    ActionId abandon_looping_action;
+    ActionId tracking_cut_action;  //!< Deposit a track's energy locally
 
     // TODO: this is a hack until we improve the along-step interface
     ActionId along_step_user_action;
@@ -45,7 +45,7 @@ struct CoreScalars
     explicit CELER_FUNCTION operator bool() const
     {
         return boundary_action && propagation_limit_action
-               && abandon_looping_action && along_step_user_action
+               && tracking_cut_action && along_step_user_action
                && along_step_neutral_action && max_streams > 0;
     }
 };
