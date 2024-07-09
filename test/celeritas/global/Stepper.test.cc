@@ -334,11 +334,10 @@ TEST_F(BadGeometryTest, no_new_volume_host)
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
         && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
-        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages());
     }
     static char const* const expected_log_levels[] = {"error", "error"};
-    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
-    scoped_log.print_expected();
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
 }
 
 TEST_F(BadGeometryTest, start_outside_host)
