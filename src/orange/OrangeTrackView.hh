@@ -23,6 +23,11 @@
 #include "detail/LevelStateAccessor.hh"
 #include "detail/UniverseIndexer.hh"
 
+#if !CELER_DEVICE_COMPILE
+#    include "corecel/io/Logger.hh"
+#    include "corecel/io/Repr.hh"
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -257,6 +262,8 @@ OrangeTrackView::operator=(Initializer_t const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
 
+    failed_ = false;
+
     // Create local state
     detail::LocalState local;
     local.pos = init.pos;
@@ -275,23 +282,42 @@ OrangeTrackView::operator=(Initializer_t const& init)
     // Recurse into daughter universes starting with the outermost universe
     UniverseId uid = top_universe_id();
     DaughterId daughter_id;
-    size_type level = 0;
+    LevelId level{0};
     do
     {
         TrackerVisitor visit_tracker{params_};
         auto tinit = visit_tracker(
             [&local](auto&& t) { return t.initialize(local); }, uid);
 
-        // TODO: error correction/graceful failure if initialization failed
-        CELER_ASSERT(tinit.volume && !tinit.surface);
+        if (!tinit.volume || tinit.surface)
+        {
+#if !CELER_DEVICE_COMPILE
+            auto msg = CELER_LOG_LOCAL(error);
+            msg << "Failed to initialize geometry state: ";
+            if (!tinit.volume)
+            {
+                msg << "could not find associated volume";
+            }
+            else
+            {
+                msg << "started on a surface ("
+                    << tinit.surface.id().unchecked_get() << ")";
+            }
+            msg << " in universe " << uid.unchecked_get()
+                << " at local position " << repr(local.pos);
+#endif
+            // Mark as failed and place in local "exterior" to end the search
+            // but preserve the current level information
+            failed_ = true;
+            tinit.volume = orange_exterior_volume;
+        }
 
-        auto lsa = this->make_lsa(LevelId{level});
+        auto lsa = this->make_lsa(level);
         lsa.vol() = tinit.volume;
         lsa.pos() = local.pos;
         lsa.dir() = local.dir;
         lsa.universe() = uid;
 
-        CELER_ASSERT(tinit.volume);
         daughter_id = visit_tracker(
             [&tinit](auto&& t) { return t.daughter(tinit.volume); }, uid);
 
@@ -307,13 +333,11 @@ OrangeTrackView::operator=(Initializer_t const& init)
 
     } while (daughter_id);
 
-    // Save fiound level
-    this->level(LevelId{level});
+    // Save found level
+    this->level(level);
 
-    // Set default boundary condition
+    // Reset surface/boundary information
     this->boundary(BoundaryResult::exiting);
-
-    // Clear surface information
     this->clear_surface();
     this->clear_next();
 
@@ -329,6 +353,8 @@ CELER_FUNCTION
 OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
+
+    failed_ = false;
 
     if (this != &init.other)
     {

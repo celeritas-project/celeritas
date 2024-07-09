@@ -282,10 +282,22 @@ TEST_F(StepperOrderTest, host)
 
 TEST_F(BadGeometryTest, no_volume_host)
 {
-    GTEST_SKIP() << "missing volume in ORANGE is currently a debug failure, "
-                    "not an error status";
     auto scoped_log = this->run_one_failure<MemSpace::host>({-5, 0, 0});
-    scoped_log.print_expected();
+
+    // clang-format off
+    static char const* const expected_log_messages[] = {
+        "Failed to initialize geometry state: could not find associated volume in universe 0 at local position {-5, 0, 0}",
+        "Tracking error (track ID 0, track slot 0) at {-5, 0, 0} [cm] along {1, 0, 0}: lost 100 [MeV] energy",
+    };
+    // clang-format on
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+        && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    {
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages());
+    }
+
+    static char const* const expected_log_levels[] = {"error", "error"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
 }
 
 TEST_F(BadGeometryTest, no_material_host)
@@ -328,8 +340,6 @@ TEST_F(BadGeometryTest, start_outside_host)
 
 TEST_F(BadGeometryTest, TEST_IF_CELER_DEVICE(no_volume_device))
 {
-    GTEST_SKIP() << "missing volume in ORANGE is currently a debug failure, "
-                    "not an error status";
     this->run_one_failure<MemSpace::device>({-5, 0, 0});
 }
 
