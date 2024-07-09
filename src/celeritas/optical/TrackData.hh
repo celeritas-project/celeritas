@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/OpticalTrackData.hh
+//! \file celeritas/optical/TrackData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

@@ -74,7 +74,7 @@ list(APPEND SOURCES
   optical/CerenkovParams.cc
   optical/OpticalCollector.cc
   optical/MaterialPropertyParams.cc
-  optical/OpticalTrackData.cc
+  optical/TrackData.cc
   optical/ScintillationParams.cc
   optical/detail/PreGenParams.cc
   phys/CutoffParams.cc
