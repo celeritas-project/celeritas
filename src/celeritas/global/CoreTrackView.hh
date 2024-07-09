@@ -25,6 +25,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Helper class to create views from core track data.
+ *
+ * TODO: const correctness? (Maybe have to wait till C++23's "deducing this"?)
  */
 class CoreTrackView
 {
@@ -40,6 +42,11 @@ class CoreTrackView
     inline CELER_FUNCTION CoreTrackView(ParamsRef const& params,
                                         StateRef const& states,
                                         ThreadId thread);
+
+    // Construct directly from a track slot ID
+    inline CELER_FUNCTION CoreTrackView(ParamsRef const& params,
+                                        StateRef const& states,
+                                        TrackSlotId slot);
 
     // Return a simulation management view
     inline CELER_FUNCTION SimTrackView make_sim_view() const;
@@ -71,8 +78,8 @@ class CoreTrackView
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine make_rng_engine() const;
 
-    //! Get the index of the current thread in the current kernel
-    CELER_FUNCTION ThreadId thread_id() const { return thread_; }
+    // Get the index of the current thread in the current kernel
+    inline CELER_FUNCTION ThreadId thread_id() const;
 
     // Get the track's index among the states
     inline CELER_FUNCTION TrackSlotId track_slot_id() const;
@@ -89,10 +96,16 @@ class CoreTrackView
     // HACK: return scalars (maybe have a struct for all actions?)
     inline CELER_FUNCTION CoreScalars const& core_scalars() const;
 
+    //// MUTATORS ////
+
+    // Set the 'errored' flag and tracking cut post-step action
+    inline CELER_FUNCTION void apply_errored();
+
   private:
     StateRef const& states_;
     ParamsRef const& params_;
-    ThreadId const thread_;
+    ThreadId const thread_id_;
+    TrackSlotId track_slot_id_;
 };
 
 //---------------------------------------------------------------------------//
@@ -100,14 +113,39 @@ class CoreTrackView
 //---------------------------------------------------------------------------//
 /*!
  * Construct with comprehensive param/state data and thread.
+ *
+ * TODO: if params is 'unsorted', we could leave the
+ * "track slots" vector empty and set \code
+ *  track_slot_id_ = TrackSlotId{states_.track_slots.empty()
+ *              ? thread_id_.get()
+ *              : states_.track_slots[thread_id_]};
+ * \endcode
  */
 CELER_FUNCTION
 CoreTrackView::CoreTrackView(ParamsRef const& params,
                              StateRef const& states,
                              ThreadId thread)
-    : states_(states), params_(params), thread_(thread)
+    : states_(states), params_(params), thread_id_(thread)
 {
-    CELER_EXPECT(thread_ < states_.size());
+    CELER_EXPECT(thread_id_ < states_.track_slots.size());
+    track_slot_id_ = TrackSlotId{states_.track_slots[thread_id_]};
+    CELER_ENSURE(track_slot_id_ < states_.size());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with comprehensive param/state data and track slot.
+ *
+ * This signature is used for creating a view of a \em second track in a kernel
+ * for initialization.
+ */
+CELER_FUNCTION
+CoreTrackView::CoreTrackView(ParamsRef const& params,
+                             StateRef const& states,
+                             TrackSlotId track_slot)
+    : states_(states), params_(params), track_slot_id_(track_slot)
+{
+    CELER_EXPECT(track_slot_id_ < states_.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -218,18 +256,29 @@ CELER_FUNCTION auto CoreTrackView::make_rng_engine() const -> RngEngine
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the track's index among the states.
+ * Get the index of the current thread in the current kernel.
  *
- * TODO: if params is 'unsorted', would it be an optimization if we leave the
- * "track slots" vector empty and return \code
- *  TrackSlotId{states_.track_slots.empty()
- *              ? thread_.get()
- *              : states_.track_slots[thread_]}
- * \endcode
+ * \warning If the kernel calling this function is not applied to \em all
+ * tracks, then comparing against a particular thread ID (e.g. zero for a
+ * once-per-kernel initialization) may result in an error.
+ *
+ * \pre The thread ID is only set if the class is initialized with the thread
+ * ID (e.g. from \c TrackExecutor ), which is not the case in track
+ * initialization (where the "core track" is constructed from a vacancy).
  */
-CELER_FUNCTION TrackSlotId CoreTrackView::track_slot_id() const
+CELER_FORCEINLINE_FUNCTION ThreadId CoreTrackView::thread_id() const
 {
-    return TrackSlotId{states_.track_slots[thread_]};
+    CELER_ENSURE(thread_id_);
+    return thread_id_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the track's index among the states.
+ */
+CELER_FORCEINLINE_FUNCTION TrackSlotId CoreTrackView::track_slot_id() const
+{
+    return track_slot_id_;
 }
 
 //---------------------------------------------------------------------------//
@@ -274,7 +323,8 @@ CELER_FUNCTION ActionId CoreTrackView::tracking_cut_action() const
 /*!
  * Get access to all the core scalars.
  *
- * TODO: maybe have a struct for all actions to simplify the class?
+ * TODO: maybe have a struct for all actions to simplify the class? (Action
+ * view?)
  */
 CELER_FUNCTION CoreScalars const& CoreTrackView::core_scalars() const
 {

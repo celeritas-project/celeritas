@@ -15,6 +15,7 @@
 #include "celeritas/geo/GeoMaterialView.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
@@ -79,28 +80,20 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
     ItemId<TrackInitializer> idx{index_before(counters.num_initializers, tid)};
     TrackInitializer const& init = data.initializers[idx];
 
-    // Thread ID of vacant track where the new track will be initialized
-    TrackSlotId vacancy = [&] {
-        TrackSlotId idx{index_before(counters.num_vacancies, tid)};
-        return data.vacancies[idx];
-    }();
+    // View to the new track to be initialized
+    CoreTrackView vacancy{
+        *params, *state, [&] {
+            TrackSlotId idx{index_before(counters.num_vacancies, tid)};
+            return data.vacancies[idx];
+        }()};
 
     // Initialize the simulation state
-    {
-        SimTrackView sim(params->sim, state->sim, vacancy);
-        sim = init.sim;
-    }
-
-    // Initialize the particle physics data
-    {
-        ParticleTrackView particle(
-            params->particles, state->particles, vacancy);
-        particle = init.particle;
-    }
+    vacancy.make_sim_view() = init.sim;
+    vacancy.make_particle_view() = init.particle;
 
     // Initialize the geometry
     {
-        GeoTrackView geo(params->geometry, state->geometry, vacancy);
+        auto geo = vacancy.make_geo_view();
         if (tid < counters.num_secondaries)
         {
             // Copy the geometry state from the parent for improved performance
@@ -120,7 +113,7 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
 #if !CELER_DEVICE_COMPILE
                 CELER_LOG_LOCAL(error) << "Track started outside the geometry";
 #endif
-                SimTrackView sim(params->sim, state->sim, vacancy);
+                auto sim = vacancy.make_sim_view();
                 sim.status(TrackStatus::errored);
                 sim.post_step_action(params->scalars.tracking_cut_action);
                 return;
@@ -129,27 +122,20 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
 
         // Initialize the material
         auto matid
-            = GeoMaterialView(params->geo_mats).material_id(geo.volume_id());
+            = vacancy.make_geo_material_view().material_id(geo.volume_id());
         if (CELER_UNLIKELY(!matid))
         {
 #if !CELER_DEVICE_COMPILE
             CELER_LOG_LOCAL(error) << "Track started in an unknown material";
 #endif
-            SimTrackView sim(params->sim, state->sim, vacancy);
-            sim.status(TrackStatus::errored);
-            sim.post_step_action(params->scalars.tracking_cut_action);
+            vacancy.apply_errored();
             return;
         }
-
-        MaterialTrackView mat(params->materials, state->materials, vacancy);
-        mat = {matid};
+        vacancy.make_material_view() = {matid};
     }
 
     // Initialize the physics state
-    {
-        PhysicsTrackView phys(params->physics, state->physics, {}, {}, vacancy);
-        phys = {};
-    }
+    vacancy.make_physics_view() = {};
 }
 
 //---------------------------------------------------------------------------//
