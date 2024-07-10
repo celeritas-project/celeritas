@@ -5,18 +5,22 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/OpticalRayleigh.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/optical/model/OpticalRayleighInteractor.hh"
+#include "celeritas/optical/model/RayleighInteractor.hh"
 #include "celeritas/phys/InteractorHostTestBase.hh"
 
 #include "celeritas_test.hh"
 
 namespace celeritas
 {
+namespace optical
+{
 namespace test
 {
+using namespace ::celeritas::test;
+
 //---------------------------------------------------------------------------//
 
-class OpticalRayleighInteractorTest : public InteractorHostTestBase
+class RayleighInteractorTest : public InteractorHostTestBase
 {
   protected:
     void SetUp() override
@@ -36,28 +40,28 @@ class OpticalRayleighInteractorTest : public InteractorHostTestBase
         EXPECT_SOFT_EQ(0, dot_product(direction, polarization));
     }
 
-    void sanity_check(OpticalInteraction const& interaction) const
+    void sanity_check(Interaction const& interaction) const
     {
         // Interactions should always be scattering
-        EXPECT_EQ(OpticalInteraction::Action::scattered, interaction.action);
+        EXPECT_EQ(Interaction::Action::scattered, interaction.action);
         sanity_check(interaction.direction, interaction.polarization);
     }
 
-    OpticalTrackView const& track_view() const
+    TrackView const& track_view() const
     {
         // Energy doesn't matter; initial polarization should be perpendicular
-        static OpticalTrackView view{units::MevEnergy{13e-6}, {1, 0, 0}};
+        static TrackView view{units::MevEnergy{13e-6}, {1, 0, 0}};
         return view;
     }
 
     Real3 inc_direction_;
 };
 
-TEST_F(OpticalRayleighInteractorTest, basic)
+TEST_F(RayleighInteractorTest, basic)
 {
     int const num_samples = 4;
 
-    OpticalRayleighInteractor interact{track_view(), inc_direction_};
+    RayleighInteractor interact{track_view(), inc_direction_};
 
     auto& rng_engine = this->rng();
 
@@ -66,7 +70,7 @@ TEST_F(OpticalRayleighInteractorTest, basic)
 
     for ([[maybe_unused]] int i : range(num_samples))
     {
-        OpticalInteraction result = interact(rng_engine);
+        Interaction result = interact(rng_engine);
         this->sanity_check(result);
 
         dir_angle.push_back(dot_product(result.direction, inc_direction_));
@@ -85,11 +89,11 @@ TEST_F(OpticalRayleighInteractorTest, basic)
     EXPECT_VEC_SOFT_EQ(expected_pol_angle, pol_angle);
 }
 
-TEST_F(OpticalRayleighInteractorTest, stress_test)
+TEST_F(RayleighInteractorTest, stress_test)
 {
     int const num_samples = 1'000;
 
-    OpticalRayleighInteractor interact{track_view(), inc_direction_};
+    RayleighInteractor interact{track_view(), inc_direction_};
 
     auto& rng_engine = this->rng();
 
@@ -101,7 +105,7 @@ TEST_F(OpticalRayleighInteractorTest, stress_test)
 
     for ([[maybe_unused]] int i : range(num_samples))
     {
-        OpticalInteraction result = interact(rng_engine);
+        Interaction result = interact(rng_engine);
         this->sanity_check(result);
 
         real_type dir_angle = dot_product(result.direction, inc_direction_);
@@ -132,4 +136,5 @@ TEST_F(OpticalRayleighInteractorTest, stress_test)
 
 //---------------------------------------------------------------------------//
 }  // namespace test
+}  // namespace optical
 }  // namespace celeritas

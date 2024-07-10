@@ -8,9 +8,11 @@
 #pragma once
 
 #include "corecel/Macros.hh"
-#include "celeritas/optical/OpticalInteraction.hh"
+#include "celeritas/optical/Interaction.hh"
 
 namespace celeritas
+{
+namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -24,7 +26,7 @@ class AbsorptionInteractor
 {
   public:
     //! Sample an interaction (no RNG needed)
-    inline CELER_FUNCTION OpticalInteraction operator()() const;
+    inline CELER_FUNCTION Interaction operator()() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -33,10 +35,11 @@ class AbsorptionInteractor
 /*!
  * Sample an absorption interaction.
  */
-CELER_FUNCTION OpticalInteraction AbsorptionInteractor::operator()() const
+CELER_FUNCTION Interaction AbsorptionInteractor::operator()() const
 {
-    return OpticalInteraction::from_absorption();
+    return Interaction::from_absorption();
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

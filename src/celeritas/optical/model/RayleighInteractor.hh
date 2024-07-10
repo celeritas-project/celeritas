@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/model/OpticalRayleighInteractor.hh
+//! \file celeritas/optical/model/RayleighInteractor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,13 +12,15 @@
 #include "corecel/math/ArraySoftUnit.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
-#include "celeritas/optical/OpticalInteraction.hh"
-#include "celeritas/optical/OpticalTrackView.hh"
+#include "celeritas/optical/Interaction.hh"
+#include "celeritas/optical/TrackView.hh"
 #include "celeritas/phys/InteractionUtils.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
 
 namespace celeritas
+{
+namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -30,17 +32,16 @@ namespace celeritas
  * vectors are not parallel. Otherwise it will just be perpendicular to
  * the new direction.
  */
-class OpticalRayleighInteractor
+class RayleighInteractor
 {
   public:
     //! Construct interactor from an optical track
     inline CELER_FUNCTION
-    OpticalRayleighInteractor(OpticalTrackView const& particle,
-                              Real3 const& direction);
+    RayleighInteractor(TrackView const& particle, Real3 const& direction);
 
     //! Sample an interaction with the given RNG
     template<class Engine>
-    inline CELER_FUNCTION OpticalInteraction operator()(Engine& rng) const;
+    inline CELER_FUNCTION Interaction operator()(Engine& rng) const;
 
   private:
     Real3 const& inc_dir_;  //!< Direction of incident photon
@@ -53,8 +54,8 @@ class OpticalRayleighInteractor
 /*!
  * Construct the interactor for the given optical track.
  */
-CELER_FUNCTION OpticalRayleighInteractor::OpticalRayleighInteractor(
-    OpticalTrackView const& particle, Real3 const& direction)
+CELER_FUNCTION RayleighInteractor::RayleighInteractor(TrackView const& particle,
+                                                      Real3 const& direction)
     : inc_dir_(direction), inc_pol_(particle.polarization())
 {
     CELER_EXPECT(is_soft_unit_vector(inc_dir_));
@@ -68,10 +69,9 @@ CELER_FUNCTION OpticalRayleighInteractor::OpticalRayleighInteractor(
  * Rayeliegh interaction.
  */
 template<class Engine>
-CELER_FUNCTION OpticalInteraction
-OpticalRayleighInteractor::operator()(Engine& rng) const
+CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng) const
 {
-    OpticalInteraction result;
+    Interaction result;
     Real3& new_dir = result.direction;
     Real3& new_pol = result.polarization;
 
@@ -107,4 +107,5 @@ OpticalRayleighInteractor::operator()(Engine& rng) const
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

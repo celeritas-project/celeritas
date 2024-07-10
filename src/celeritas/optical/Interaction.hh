@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/OpticalInteraction.hh
+//! \file celeritas/optical/Interaction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,6 +12,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
  * The result of a discrete optical interaction.
@@ -19,7 +21,7 @@ namespace celeritas
  * Discrete optical interactions are always elastic. The wavelength of a
  * a photon is only changed through absorption re-emission processes.
  */
-struct OpticalInteraction
+struct Interaction
 {
     //! Interaction result category
     enum class Action
@@ -35,13 +37,13 @@ struct OpticalInteraction
     Action action{Action::scattered};  //!< Flags for interaction result
 
     //! Return an interaction representing a recoverable error
-    static inline CELER_FUNCTION OpticalInteraction from_failure();
+    static inline CELER_FUNCTION Interaction from_failure();
 
     //! Return an interaction respresenting an absorbed process
-    static inline CELER_FUNCTION OpticalInteraction from_absorption();
+    static inline CELER_FUNCTION Interaction from_absorption();
 
     //! Return an interaction with no change in the track state
-    static inline CELER_FUNCTION OpticalInteraction from_unchanged();
+    static inline CELER_FUNCTION Interaction from_unchanged();
 
     //! Whether the state changed but did not fail
     CELER_FUNCTION bool changed() const
@@ -56,9 +58,9 @@ struct OpticalInteraction
 /*!
  * Indicate a failure to allocate memory for secondaries.
  */
-CELER_FUNCTION OpticalInteraction OpticalInteraction::from_failure()
+CELER_FUNCTION Interaction Interaction::from_failure()
 {
-    OpticalInteraction result;
+    Interaction result;
     result.action = Action::failed;
     return result;
 }
@@ -67,9 +69,9 @@ CELER_FUNCTION OpticalInteraction OpticalInteraction::from_failure()
 /*!
  * Construct an interaction for an absorbed optical photon.
  */
-CELER_FUNCTION OpticalInteraction OpticalInteraction::from_absorption()
+CELER_FUNCTION Interaction Interaction::from_absorption()
 {
-    OpticalInteraction result;
+    Interaction result;
     result.action = Action::absorbed;
     return result;
 }
@@ -78,12 +80,13 @@ CELER_FUNCTION OpticalInteraction OpticalInteraction::from_absorption()
 /*!
  * Construct an interaction for edge cases where this is no state change.
  */
-CELER_FUNCTION OpticalInteraction OpticalInteraction::from_unchanged()
+CELER_FUNCTION Interaction Interaction::from_unchanged()
 {
-    OpticalInteraction result;
+    Interaction result;
     result.action = Action::unchanged;
     return result;
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas
