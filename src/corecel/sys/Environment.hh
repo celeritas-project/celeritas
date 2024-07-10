@@ -55,7 +55,7 @@ class Environment
     // Get an environment variable from current or system environments
     inline mapped_type const& operator[](key_type const&);
 
-    // Insert possibly new environment variables (not thread-safe)
+    // Insert possibly new environment variables
     bool insert(value_type const& value);
 
     //! Get an ordered (by access) vector of key/value pairs
@@ -74,6 +74,12 @@ class Environment
     mapped_type const& load_from_getenv(key_type const&);
 };
 
+struct GetenvFlagResult
+{
+    bool value{};
+    bool defaulted{};
+};
+
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
@@ -83,6 +89,9 @@ Environment& environment();
 
 // Thread-safe access to environment variables
 std::string const& getenv(std::string const& key);
+
+// Thread-safe flag access to environment variables
+GetenvFlagResult getenv_flag(std::string const& key, bool default_val);
 
 // Write the accessed environment variables to a stream
 std::ostream& operator<<(std::ostream&, Environment const&);

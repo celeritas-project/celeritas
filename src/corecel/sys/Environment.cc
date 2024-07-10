@@ -7,13 +7,26 @@
 //---------------------------------------------------------------------------//
 #include "Environment.hh"
 
+#include <algorithm>
 #include <cstdlib>
 #include <mutex>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/Logger.hh"
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+std::mutex& getenv_mutex()
+{
+    static std::mutex mu;
+    return mu;
+}
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
@@ -34,9 +47,48 @@ Environment& environment()
  */
 std::string const& getenv(std::string const& key)
 {
-    static std::mutex getenv_mutex;
-    std::lock_guard<std::mutex> scoped_lock{getenv_mutex};
+    std::lock_guard<std::mutex> scoped_lock{getenv_mutex()};
     return environment()[key];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a true/false flag with a default value.
+ *
+ * The return value is a combination of the transformed environment value,
+ * and a flag specifying whether the environment variable was inserted or
+ * otherwise uses the default value.
+ */
+GetenvFlagResult getenv_flag(std::string const& key, bool default_val)
+{
+    std::lock_guard<std::mutex> scoped_lock{getenv_mutex()};
+    bool inserted = environment().insert({key, default_val ? "1" : "0"});
+    if (inserted)
+    {
+        return {default_val, true};
+    }
+    std::string const& result = environment()[key];
+    if (result.empty())
+    {
+        // Variable was queried but is empty
+        return {default_val, true};
+    }
+
+    static char const* const true_str[] = {"1", "t", "yes", "true", "True"};
+    if (std::find(std::begin(true_str), std::end(true_str), result)
+        != std::end(true_str))
+    {
+        return {true, false};
+    }
+    static char const* const false_str[] = {"0", "f", "no", "false", "False"};
+    if (std::find(std::begin(false_str), std::end(false_str), result)
+        != std::end(false_str))
+    {
+        return {false, false};
+    }
+    CELER_LOG(warning) << "Invalid environment value " << key << "=" << result
+                       << ": expected a flag";
+    return {default_val, true};
 }
 
 //---------------------------------------------------------------------------//

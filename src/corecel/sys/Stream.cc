@@ -123,15 +123,24 @@ void AsyncMemoryResource<Pointer>::do_deallocate(pointer p,
 bool Stream::async()
 {
 #if CELER_STREAM_SUPPORTS_ASYNC
+#    if CELERITAS_USE_CUDA
+    constexpr bool default_val{true};
+#    elif (HIP_VERSION_MAJOR > 5 \
+           || (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR >= 7))
+    constexpr bool default_val{false};
+#    else
+    constexpr bool default_val{true};
+#    endif
     static bool const result = [] {
-        if (!celeritas::getenv("DEVICE_DISABLE_ASYNC").empty())
+        auto result = getenv_flag("CELER_DEVICE_ASYNC", default_val);
+        if (!result.defaulted && result.value != default_val)
         {
-            CELER_LOG(info) << "Disabling asynchronous stream memory "
-                               "allocations since the 'DEVICE_DISABLE_ASYNC' "
-                               "environment variable is present and non-empty";
+            CELER_LOG(info) << "Overriding asynchronous stream memory default "
+                               "with CELER_DEVICE_ASYNC="
+                            << result.value;
             return false;
         }
-        return true;
+        return result.value;
     }();
     return result;
 #else
