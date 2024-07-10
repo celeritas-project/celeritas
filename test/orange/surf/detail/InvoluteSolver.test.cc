@@ -29,7 +29,7 @@ TEST(SolveSurface, no_roots)
     {
         double r_b = 1.0;
         double a = 0;
-        auto sign = InvoluteSolver::ANTICLOCKWISE;
+        auto sign = InvoluteSolver::counterclockwise;
 
         double x = 0;
         double y = -2;
@@ -53,7 +53,7 @@ TEST(SolveSurface, no_roots)
     {
         double r_b = 0.75;
         double a = -2 * pi;
-        auto sign = InvoluteSolver::ANTICLOCKWISE;
+        auto sign = InvoluteSolver::counterclockwise;
 
         double x = -7;
         double y = -1;
@@ -77,7 +77,7 @@ TEST(SolveSurface, no_roots)
     {
         double r_b = 0.75;
         double a = -2 * pi;
-        auto sign = InvoluteSolver::ANTICLOCKWISE;
+        auto sign = InvoluteSolver::counterclockwise;
 
         double x = -7;
         double y = -1;
@@ -104,7 +104,7 @@ TEST(SolveSurface, one_root)
     {
         double r_b = 1.0;
         double a = 0;
-        auto sign = InvoluteSolver::ANTICLOCKWISE;
+        auto sign = InvoluteSolver::counterclockwise;
 
         double x = 0;
         double y = 0;
@@ -128,7 +128,7 @@ TEST(SolveSurface, one_root)
     {
         double r_b = 1.5;
         double a = 0;
-        auto sign = InvoluteSolver::ANTICLOCKWISE;
+        auto sign = InvoluteSolver::counterclockwise;
 
         double x = -1.5;
         double y = 1.0;
@@ -152,7 +152,7 @@ TEST(SolveSurface, one_root)
     {
         double r_b = 3.0;
         double a = pi;
-        auto sign = InvoluteSolver::ANTICLOCKWISE;
+        auto sign = InvoluteSolver::counterclockwise;
 
         double x = -4.101853006408607;
         double y = -5.443541628262038;
@@ -176,7 +176,7 @@ TEST(SolveSurface, one_root)
     {
         double r_b = 0.5;
         double a = 0.4 * pi;
-        auto sign = InvoluteSolver::CLOCKWISE;
+        auto sign = InvoluteSolver::clockwise;
 
         double x = -4.0;
         double y = 2.0;
@@ -200,7 +200,7 @@ TEST(SolveSurface, one_root)
     {
         double r_b = 1.1;
         double a = 0.5 * pi;
-        auto sign = InvoluteSolver::CLOCKWISE;
+        auto sign = InvoluteSolver::clockwise;
 
         double x = -0.2;
         double y = 1.1;
@@ -227,7 +227,7 @@ TEST(SolveSurface, two_roots)
     {
         double r_b = 1.1;
         double a = 0.5 * pi;
-        auto sign = InvoluteSolver::CLOCKWISE;
+        auto sign = InvoluteSolver::clockwise;
 
         double x = -0.2;
         double y = 1.1;
@@ -251,7 +251,7 @@ TEST(SolveSurface, two_roots)
     {
         double r_b = 1.1;
         double a = -0.5 * pi;
-        auto sign = InvoluteSolver::CLOCKWISE;
+        auto sign = InvoluteSolver::clockwise;
 
         double x = -0.0001;
         double y = -1.11;
@@ -264,7 +264,7 @@ TEST(SolveSurface, two_roots)
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
         auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0});
 
-        EXPECT_SOFT_EQ(0.0036178033243907904, dist[0]);
+        EXPECT_SOFT_EQ(0.0036178081060022097, dist[0]);
         EXPECT_SOFT_EQ(6.0284475629193013, dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
@@ -276,7 +276,7 @@ TEST(SolveSurface, two_roots)
     {
         double r_b = 1.1;
         double a = -0.5 * pi;
-        auto sign = InvoluteSolver::ANTICLOCKWISE;
+        auto sign = InvoluteSolver::counterclockwise;
 
         double x = 0.0058102462574510716;
         double y = -1.1342955336941216;
@@ -303,7 +303,7 @@ TEST(SolveSurface, three_roots)
     {
         double r_b = 1.1;
         double a = -0.5 * pi;
-        auto sign = InvoluteSolver::ANTICLOCKWISE;
+        auto sign = InvoluteSolver::counterclockwise;
 
         double x = -6.8653052986571326;
         double y = -0.30468305643505367;
@@ -317,9 +317,86 @@ TEST(SolveSurface, three_roots)
         auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0});
 
         EXPECT_SOFT_EQ(0.0, dist[0]);
-        EXPECT_SOFT_EQ(6.911224915264738, dist[1]);
+        EXPECT_SOFT_EQ(6.9112249151160547, dist[1]);
         EXPECT_SOFT_EQ(9.167603472624553, dist[2]);
     }
+}
+TEST(Components, line_angle_param)
+{
+    // Direction (0,1)
+    // beta = -pi*0.5
+    {
+        double u = 0;
+        double v = 1;
+
+        auto beta = InvoluteSolver::line_angle_param(u, v);
+        EXPECT_SOFT_EQ(-pi * 0.5, beta);
+    }
+
+    // Direction (0,-1)
+    // beta = pi*0.5
+    {
+        double u = 0;
+        double v = -1;
+
+        auto beta = InvoluteSolver::line_angle_param(u, v);
+        EXPECT_SOFT_EQ(pi * 0.5, beta);
+    }
+
+    // Direction (0.5,sin(pi/3))
+    // beta = -pi/3
+    {
+        double u = 0.5;
+        double v = std::sin(pi / 3);
+
+        auto beta = InvoluteSolver::line_angle_param(u, v);
+        EXPECT_SOFT_EQ(-pi / 3, beta);
+    }
+}
+TEST(Compoents, regular_falsi)
+{
+    // r_b = 1.1, a = 0.5*pi
+    // Point (-0.2, 1.1)
+    // Directionn (1, 0)
+    // t_gamma = 0
+    {
+        double r_b = 1.1;
+        double a = 0.5 * pi;
+
+        double x = -0.2;
+        double y = 1.1;
+        double u = 1;
+        double v = 0;
+
+        double t_alpha = 0;
+        double ft_alpha = 0;
+
+        double t_beta = 0.5 * pi;
+        double ft_beta = r_b * 0.5 * pi - y * u;
+
+        auto t_gamma = InvoluteSolver::regular_falsi(
+            t_alpha, t_beta, ft_alpha, ft_beta, r_b, a, x, y, u, v, 1e-8 * r_b);
+        EXPECT_SOFT_EQ(0, t_gamma);
+    }
+}
+TEST(Components, calc_dist)
+{
+    double r_b = 1.1;
+    double a = 0.5 * pi;
+
+    double x = -0.2;
+    double y = 1.1;
+    double u = 1;
+    double v = 0;
+
+    double tmin = 0;
+    double tmax = 1.99 * pi;
+
+    double t_gamma = 0;
+
+    auto dist
+        = InvoluteSolver::calc_dist(x, y, u, v, t_gamma, r_b, a, tmin, tmax);
+    EXPECT_SOFT_EQ(0.2, dist);
 }
 }  // namespace test
 }  // namespace detail

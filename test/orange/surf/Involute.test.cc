@@ -30,7 +30,7 @@ TEST(InvoluteTest, construction)
     EXPECT_VEC_SOFT_EQ((Real3{1, 0, 1}), invo.origin());
     EXPECT_SOFT_EQ(2.0, invo.r_b());
     EXPECT_SOFT_EQ(pi - 0.2, invo.a());
-    EXPECT_TRUE(detail::InvoluteSolver::CLOCKWISE == invo.sign());
+    EXPECT_TRUE(detail::InvoluteSolver::clockwise == invo.sign());
     EXPECT_SOFT_EQ(1.0, invo.tmin());
     EXPECT_SOFT_EQ(3.0, invo.tmax());
 }
@@ -91,7 +91,7 @@ TEST(Involute, solve_intersect)
         SurfaceState::on);
 
     EXPECT_SOFT_EQ(0.0, dist[0]);
-    EXPECT_SOFT_EQ(8.2132658639260558, dist[1]);
+    EXPECT_SOFT_EQ(8.2132658637859848, dist[1]);
     EXPECT_SOFT_EQ(9.167603472624553 * convert, dist[2]);
 }
 

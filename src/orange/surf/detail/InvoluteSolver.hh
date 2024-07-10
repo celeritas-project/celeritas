@@ -15,6 +15,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/ArrayOperators.hh"
 #include "orange/OrangeTypes.hh"
 
 namespace celeritas
@@ -22,6 +23,20 @@ namespace celeritas
 namespace detail
 {
 using constants::pi;
+
+// Lambda used for calculating the roots using Regular Falsi Iteration
+auto root = [](real_type t,
+               real_type x,
+               real_type y,
+               real_type u,
+               real_type v,
+               real_type r_b_,
+               real_type a_) {
+    real_type a = u * std::sin(t + a_) - v * std::cos(t + a_);
+    real_type b = t * (u * std::cos(t + a_) + v * std::sin(t + a_));
+    real_type c = r_b_ * (a - b);
+    return c + x * v - y * u;
+};
 //---------------------------------------------------------------------------//
 /*!
  * Find positive, real, nonzero roots for involute intersection function.
@@ -45,19 +60,41 @@ class InvoluteSolver
     using Intersections = Array<real_type, 3>;
 
     //! Enum defining chirality of involute
-    enum Sign
+    enum Sign : bool
     {
-        CLOCKWISE = 1 == 1,
-        ANTICLOCKWISE = 1 != 1
+        counterclockwise = 0,
+        clockwise,  //!< Apply symmetry when solving
     };
+
+    static inline CELER_FUNCTION real_type line_angle_param(real_type u,
+                                                            real_type v);
+
+    static inline CELER_FUNCTION real_type regular_falsi(real_type t_alpha,
+                                                         real_type t_beta,
+                                                         real_type ft_alpha,
+                                                         real_type ft_beta,
+                                                         real_type r_b,
+                                                         real_type a,
+                                                         real_type x,
+                                                         real_type y,
+                                                         real_type u,
+                                                         real_type v,
+                                                         real_type tol_conv);
+
+    static inline CELER_FUNCTION real_type calc_dist(real_type x,
+                                                     real_type y,
+                                                     real_type u,
+                                                     real_type v,
+                                                     real_type t,
+                                                     real_type r_b,
+                                                     real_type a,
+                                                     real_type tmin,
+                                                     real_type tmax);
 
   public:
     // Construct Involute from parameters
-    inline CELER_FUNCTION InvoluteSolver(real_type r_b_,
-                                         real_type a_,
-                                         Sign sign_,
-                                         real_type tmin_,
-                                         real_type tmax_);
+    inline CELER_FUNCTION InvoluteSolver(
+        real_type r_b, real_type a, Sign sign, real_type tmin, real_type tmax);
 
     // Solve fully general case
     inline CELER_FUNCTION Intersections operator()(Real3 const& pos,
@@ -129,6 +166,8 @@ CELER_FUNCTION auto
 InvoluteSolver::operator()(Real3 const& pos,
                            Real3 const& dir) const -> Intersections
 {
+    using Tolerance = celeritas::Tolerance<real_type>;
+
     // Flatten pos and dir in xyz and uv respectively
     real_type x = pos[0];
     real_type const y = pos[1];
@@ -138,27 +177,25 @@ InvoluteSolver::operator()(Real3 const& pos,
     real_type const v = dir[1];
     real_type const w = dir[2];
 
+    // Mirror systemm for counterclockwise involutes
     if (sign_)
     {
         x = -x;
         u = -u;
     }
 
-    // Lambda used for calculating the roots using Regular Falsi Iteration
-    auto root = [](real_type t,
-                   real_type x,
-                   real_type y,
-                   real_type u,
-                   real_type v,
-                   real_type r_b_,
-                   real_type a_) {
-        real_type a = u * std::sin(t + a_) - v * std::cos(t + a_);
-        real_type b = t * (u * std::cos(t + a_) + v * std::sin(t + a_));
-        real_type c = r_b_ * (a - b);
-        return c + x * v - y * u;
-    };
-    // Results initalization
+    /*
+     * Define tolerances.
+     * tol_point gives the tolerance level for a point,
+     * account for the floating point error when performing square roots.
+     * tol_conv gives the tolerance for the Regular Falsi iteration.
+     */
+    Tolerance tol_point = Tolerance::from_relative(1e-7, r_b_);
+    Tolerance tol_conv = Tolerance::from_relative(1e-8, r_b_);
+
+    // Results initalization and root counter
     Intersections result;
+    real_type j = 0;
     // Initial result vector.
     result = {no_intersection(), no_intersection(), no_intersection()};
 
@@ -168,23 +205,9 @@ InvoluteSolver::operator()(Real3 const& pos,
         return result;
     }
 
-    // Initialize distance vector with root counter j
-    Array<real_type, 3> dist;
-    real_type j = 0;
-
     // Conversion constant for 2-D distance to 3-D distance
 
     real_type convert = 1 / std::sqrt(ipow<2>(v) + ipow<2>(u));
-
-    /*
-     * Define tolerances.
-     * tol_point gives the tolerance level for a point and is set to 1e-7,
-     * account for the floating point error when performing square roots.
-     * tol_conv gives the tolerance for the Regular Falsi iteration,
-     * ensuring that the root found produces a result that within 1e-8 of 0.
-     */
-    real_type const tol_point = 1e-7;
-    real_type const tol_conv = 1e-8;
 
     // Check if particle is on a surface within tolerance
 
@@ -195,30 +218,16 @@ InvoluteSolver::operator()(Real3 const& pos,
     real_type y_inv = r_b_ * (std::sin(angle) - t_point * std::cos(angle));
 
     // Remove 0 dist
-    if (std::fabs(x - x_inv) < tol_point && std::fabs(y - y_inv) < tol_point)
+    if (std::fabs(x - x_inv) < tol_point.abs
+        && std::fabs(y - y_inv) < tol_point.abs)
     {
-        dist[j] = 0;
+        result[j] = 0;
         j++;
     }
 
     // Line angle parameter
 
-    real_type beta;
-
-    if (u != 0)
-    {
-        // Standard method
-        beta = std::atan(-v / u);
-    }
-    else if (-v < 0)
-    {
-        // Edge case
-        beta = pi * -0.5;
-    }
-    else
-    {
-        beta = pi * 0.5;
-    }
+    real_type beta = line_angle_param(u, v);
 
     // Setting first interval bounds, needs to be done to ensure roots are
     // found
@@ -243,66 +252,32 @@ InvoluteSolver::operator()(Real3 const& pos,
         real_type ft_alpha = root(t_lower, x, y, u, v, r_b_, a_);
         real_type ft_beta = root(t_upper, x, y, u, v, r_b_, a_);
 
-        // If bounds exceed tmax break
-        if (t_lower > tmax_)
-        {
-            break;
-        }
-
         // Only iterate when roots have different signs
         if ((0 < ft_alpha) - (ft_alpha < 0) != (0 < ft_beta) - (ft_beta < 0))
         {
             // Regula Falsi Iteration
-            real_type ft_gamma = 1;
-            real_type t_gamma;
+            real_type t_gamma = regular_falsi(t_alpha,
+                                              t_beta,
+                                              ft_alpha,
+                                              ft_beta,
+                                              r_b_,
+                                              a_,
+                                              x,
+                                              y,
+                                              u,
+                                              v,
+                                              tol_conv.abs);
 
-            while (std::fabs(ft_gamma) >= tol_conv)
+            // Convert root to distance and store if positive and in interval
+            real_type dist
+                = calc_dist(x, y, u, v, t_gamma, r_b_, a_, tmin_, tmax_);
+            if (dist > tol_point.abs)
             {
-                // Iterate on root
-                t_gamma = (t_alpha * ft_beta - t_beta * ft_alpha)
-                          / (ft_beta - ft_alpha);
-
-                // Obtain root value of iterated root
-                ft_gamma = root(t_gamma, x, y, u, v, r_b_, a_);
-
-                // Update bounds with iterated root
-                if ((0 < ft_beta) - (ft_beta < 0)
-                    == (0 < ft_gamma) - (ft_gamma < 0))
-                {
-                    t_beta = t_gamma;
-                    ft_beta = ft_gamma;
-                }
-                else
-                {
-                    t_alpha = t_gamma;
-                    ft_alpha = ft_gamma;
-                }
-            }
-            // Extract root and calculate point on involute
-            angle = t_gamma + a_;
-            x_inv = r_b_ * (std::cos(angle) + t_gamma * std::sin(angle));
-            y_inv = r_b_ * (std::sin(angle) - t_gamma * std::cos(angle));
-
-            // Check if point is interval
-            if (t_gamma >= tmin_ - tol_point && t_gamma <= tmax_)
-            {
-                // Obatin direction to point on Involute
-                real_type u_point = x_inv - x;
-                real_type v_point = y_inv - y;
-
-                // Dot with direction of particle
-                real_type dot = u * u_point + v * v_point;
-                // Obtain distance to point
-                real_type newdist
-                    = std::sqrt(ipow<2>(u_point) + ipow<2>(v_point));
-                // Only record distance if dot product is positive
-                if (dot >= 0 && newdist > tol_point)
-                {
-                    dist[j] = newdist;
-                    j++;
-                }
+                result[j] = convert * dist;
+                j++;
             }
 
+            // Obtain next bounds
             t_lower = t_upper;
             t_upper += pi;
         }
@@ -315,12 +290,107 @@ InvoluteSolver::operator()(Real3 const& pos,
             i++;
         }
     }
-    for (int k = 0; k < j; k++)
-    {
-        // Convert 2-D distances to 3-D distances
-        result[k] = dist[k] * convert;
-    }
     return result;
+}
+
+/*!
+ * Calculate the line-angle parameter \em beta used to find bounds of roots.
+ * \f[ beta = arctan(-v/u) \f]
+ */
+CELER_FUNCTION real_type InvoluteSolver::line_angle_param(real_type u,
+                                                          real_type v)
+{
+    if (u != 0)
+    {
+        // Standard method
+        return std::atan(-v / u);
+    }
+    else if (-v < 0)
+    {
+        // Edge case
+        return pi * -0.5;
+    }
+    else
+    {
+        return pi * 0.5;
+    }
+}
+
+/*!
+ * Perform single Regular Falsi Iteration
+ */
+CELER_FUNCTION real_type InvoluteSolver::regular_falsi(real_type t_alpha,
+                                                       real_type t_beta,
+                                                       real_type ft_alpha,
+                                                       real_type ft_beta,
+                                                       real_type r_b,
+                                                       real_type a,
+                                                       real_type x,
+                                                       real_type y,
+                                                       real_type u,
+                                                       real_type v,
+                                                       real_type tol_conv)
+{
+    real_type ft_gamma = 1;
+    real_type t_gamma;
+
+    while (std::fabs(ft_gamma) >= tol_conv)
+    {
+        // Iterate on root
+        t_gamma = (t_alpha * ft_beta - t_beta * ft_alpha)
+                  / (ft_beta - ft_alpha);
+
+        // Obtain root value of iterated root
+        ft_gamma = root(t_gamma, x, y, u, v, r_b, a);
+
+        // Update bounds with iterated root
+        if ((0 < ft_beta) - (ft_beta < 0) == (0 < ft_gamma) - (ft_gamma < 0))
+        {
+            t_beta = t_gamma;
+            ft_beta = ft_gamma;
+        }
+        else
+        {
+            t_alpha = t_gamma;
+            ft_alpha = ft_gamma;
+        }
+    }
+    return t_gamma;
+}
+
+/*!
+ * Convert root to distance by calculating the point on the involute given by
+ * the root and then taking the distance to that point from the particle.
+ */
+CELER_FUNCTION real_type InvoluteSolver::calc_dist(real_type x,
+                                                   real_type y,
+                                                   real_type u,
+                                                   real_type v,
+                                                   real_type t,
+                                                   real_type r_b,
+                                                   real_type a,
+                                                   real_type tmin,
+                                                   real_type tmax)
+{
+    real_type angle = t + a;
+    real_type x_inv = r_b * (std::cos(angle) + t * std::sin(angle));
+    real_type y_inv = r_b * (std::sin(angle) - t * std::cos(angle));
+    real_type dist = 0;
+
+    // Check if point is interval
+    if (t >= tmin && t <= tmax)
+    {
+        // Obatin direction to point on Involute
+        real_type u_point = x_inv - x;
+        real_type v_point = y_inv - y;
+
+        // Dot with direction of particle
+        real_type dot = u * u_point + v * v_point;
+        real_type dot_sign = (0 < dot) - (dot < 0);
+        // Obtain distance to point
+        dist = std::sqrt(ipow<2>(u_point) + ipow<2>(v_point)) * dot_sign;
+    }
+    return dist;
 }
 
 }  // namespace detail

@@ -11,7 +11,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*
- * \parma radius: radius of the circle of involute
+ * \param radius: radius of the circle of involute
  * \param a: displacement angle of the involute
  * \param sign: chirality of involute
  * \param tmin: minimum tangent angle
@@ -37,7 +37,7 @@ Involute::Involute(Real3 const& origin,
 
     if (sign_)
     {
-        a_ = -a + pi;
+        a_ = pi - a;
     }
 }
 //---------------------------------------------------------------------------//

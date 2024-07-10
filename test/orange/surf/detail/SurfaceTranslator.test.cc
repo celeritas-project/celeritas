@@ -127,7 +127,7 @@ TEST_F(SurfaceTranslatorTest, involute)
     EXPECT_VEC_SOFT_EQ((Real3{3, 3, 4}), invo.origin());
     EXPECT_SOFT_EQ(2.0, invo.r_b());
     EXPECT_SOFT_EQ(pi - 0.2, invo.a());
-    EXPECT_TRUE(detail::InvoluteSolver::ANTICLOCKWISE == invo.sign());
+    EXPECT_TRUE(detail::InvoluteSolver::counterclockwise == invo.sign());
     EXPECT_SOFT_EQ(1.0, invo.tmin());
     EXPECT_SOFT_EQ(3.0, invo.tmax());
 }

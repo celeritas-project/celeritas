@@ -168,16 +168,16 @@ CELER_FUNCTION Involute::Involute(Span<R, StorageSpan::extent> data)
  * \f]
  *
  * To calculate the intercept of two circles it is assumed that the two circles
- * are \em xprime axis. The coordinate along \em xprime originating from the
- * center of one of the circles is given by: \f[ xprime = (d^2 - r^2 +
+ * are \em x_prime axis. The coordinate along \em x_prime originating from the
+ * center of one of the circles is given by: \f[ x_prime = (d^2 - r^2 +
  * R^2)/(2d) \f] Where \em d is the distance between the center of the two
  * circles, \em r is the radius of the displaced circle, and \em R is the
- * radius of the circle at the orgin. Then the point \em yprime can be obatined
- * from: \f[ yprime = \pm sqrt(R^2 - xprime^2) \f] Then to convert ( \em xprime
- * , \em yprime ) to ( \em x, \em y ) the following rotation is applied:\f[ x =
- * xprime*cos(theta) - yprime*sin(theta) y = yprime*cos(theta) +
- * xprime*sin(theta) \f] Where \em theta is the angle between the \em xprime
- * axis and the \em x axis.
+ * radius of the circle at the orgin. Then the point \em y_prime can be
+ * obatined from: \f[ y_prime = \pm sqrt(R^2 - x_prime^2) \f] Then to convert (
+ * \em x_prime , \em y_prime ) to ( \em x, \em y ) the following rotation is
+ * applied:\f[ x = x_prime*cos(theta) - y_prime*sin(theta) y =
+ * y_prime*cos(theta) + x_prime*sin(theta) \f] Where \em theta is the angle
+ * between the \em x_prime axis and the \em x axis.
  */
 CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
 {
@@ -227,8 +227,8 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     // Check if point is in interval
 
     // Calculate tangent point
-    real_type xprime = ipow<2>(r_b_) / std::sqrt(ipow<2>(x) + ipow<2>(y));
-    real_type yprime = std::sqrt(ipow<2>(r_b_) - ipow<2>(xprime));
+    real_type x_prime = ipow<2>(r_b_) / std::sqrt(ipow<2>(x) + ipow<2>(y));
+    real_type y_prime = std::sqrt(ipow<2>(r_b_) - ipow<2>(x_prime));
     real_type theta = std::atan(y / x);
     if (x < 0)
     {
@@ -236,8 +236,8 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     }
 
     Array<real_type, 2> point;
-    point[0] = xprime * std::cos(theta) - yprime * std::sin(theta);
-    point[1] = yprime * std::cos(theta) + xprime * std::sin(theta);
+    point[0] = x_prime * std::cos(theta) - y_prime * std::sin(theta);
+    point[1] = y_prime * std::cos(theta) + x_prime * std::sin(theta);
 
     // Calculate angle of tangent
     theta = std::acos(point[0] / norm(point));

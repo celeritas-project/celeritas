@@ -145,7 +145,7 @@ theta = np.sqrt(8.07750492**2-1)+np.pi*0.5
 ylin = -1/np.tan(theta)*(xlin-rb*np.cos(theta))+rb*np.sin(theta)
 
 # Plot
-plt.figure(figsize=(15,10))
+plt.figure(figsize=(7.5,5))
 plt.xlim(-11,20)
 plt.plot(involute.involuteX,involute.involuteY, color="black")
 plt.plot(xmin,ymin, color="Blue", label="Rmin")
@@ -153,83 +153,83 @@ plt.plot(xmax,ymax, color="Purple", label="Rmax")
 plt.plot(xlin,ylin, color ="Orange", label="ThetaMax")
 
 
-# Origin Test
-print("-------------------\n"
-      "Testing Point (0,0)\nExpected Result: False")
-x = 0 
-y = 0
-print("Obtained Result : {}".format(inout.isIn(x, y)))
-if inout.isIn(x, y):
-    plt.plot([x],[y], 'o', color="Green")
-else:
-    plt.plot([x],[y], 'x', color="Red",label="Out of Bounds")
+# # Origin Test
+# print("-------------------\n"
+#       "Testing Point (0,0)\nExpected Result: False")
+# x = 0 
+# y = 0
+# print("Obtained Result : {}".format(inout.isIn(x, y)))
+# if inout.isIn(x, y):
+#     plt.plot([x],[y], 'o', color="Green")
+# else:
+#     plt.plot([x],[y], 'x', color="Red",label="Out of Bounds")
 
-# Second in Minimum Circle Test
-print("-------------------\n"
-      "Testing Point (0,1)\nExpected Result: False")
-x = 0 
-y = 1
-print("Obtained Result : {}".format(inout.isIn(x, y)))
-if inout.isIn(x, y):
-    plt.plot([x],[y], 'o', color="Green")
-else:
-    plt.plot([x],[y], 'x', color="Red")
+# # Second in Minimum Circle Test
+# print("-------------------\n"
+#       "Testing Point (0,1)\nExpected Result: False")
+# x = 0 
+# y = 1
+# print("Obtained Result : {}".format(inout.isIn(x, y)))
+# if inout.isIn(x, y):
+#     plt.plot([x],[y], 'o', color="Green")
+# else:
+#     plt.plot([x],[y], 'x', color="Red")
 
-# Outside Maximum Circle Test
-print("-------------------\n"
-      "Testing Point (5,9)\nExpected Result: False")
-x = 5 
-y = 9
-print("Obtained Result : {}".format(inout.isIn(x, y)))
-if inout.isIn(x, y):
-    plt.plot([x],[y], 'o', color="Green")
-else:
-    plt.plot([x],[y], 'x', color="Red")
+# # Outside Maximum Circle Test
+# print("-------------------\n"
+#       "Testing Point (5,9)\nExpected Result: False")
+# x = 5 
+# y = 9
+# print("Obtained Result : {}".format(inout.isIn(x, y)))
+# if inout.isIn(x, y):
+#     plt.plot([x],[y], 'o', color="Green")
+# else:
+#     plt.plot([x],[y], 'x', color="Red")
 
-# Firts Interval after tmin Test
-print("-------------------\n"
-      "Testing Point (-2.5,0)\nExpected Result: True")
-x = -2.5 
-y = 0
-print("Obtained Result : {}".format(inout.isIn(x, y)))
-if inout.isIn(x, y):
-    plt.plot([x],[y], 'o', color="Green", label="In Bounds")
-else:
-    plt.plot([x],[y], 'x', color="Red")
+# # Firts Interval after tmin Test
+# print("-------------------\n"
+#       "Testing Point (-2.5,0)\nExpected Result: True")
+# x = -2.5 
+# y = 0
+# print("Obtained Result : {}".format(inout.isIn(x, y)))
+# if inout.isIn(x, y):
+#     plt.plot([x],[y], 'o', color="Green", label="In Bounds")
+# else:
+#     plt.plot([x],[y], 'x', color="Red")
 
-# Second Interval Test after tmin Test
-print("-------------------\n"
-      "Testing Point (5,2.5)\nExpected Result: True")
-x = 5
-y = 2.5
-print("Obtained Result : {}".format(inout.isIn(x, y)))
-if inout.isIn(x, y):
-    plt.plot([x],[y], 'o', color="Green")
-else:
-    plt.plot([x],[y], 'x', color="Red")
+# # Second Interval Test after tmin Test
+# print("-------------------\n"
+#       "Testing Point (5,2.5)\nExpected Result: True")
+# x = 5
+# y = 2.5
+# print("Obtained Result : {}".format(inout.isIn(x, y)))
+# if inout.isIn(x, y):
+#     plt.plot([x],[y], 'o', color="Green")
+# else:
+#     plt.plot([x],[y], 'x', color="Red")
 
-# Outside but between rmin and rmax Test
-print("-------------------\n"
-      "Testing Point (-5,-5)\nExpected Result: False")
-x = -5
-y = -5
-print("Obtained Result : {}".format(inout.isIn(x, y)))
-if inout.isIn(x, y):
-    plt.plot([x],[y], 'o', color="Green")
-else:
-    plt.plot([x],[y], 'x', color="Red")
+# # Outside but between rmin and rmax Test
+# print("-------------------\n"
+#       "Testing Point (-5,-5)\nExpected Result: False")
+# x = -5
+# y = -5
+# print("Obtained Result : {}".format(inout.isIn(x, y)))
+# if inout.isIn(x, y):
+#     plt.plot([x],[y], 'o', color="Green")
+# else:
+#     plt.plot([x],[y], 'x', color="Red")
     
-# On Involute
-print("-------------------\n"
-      "Testing Point ({},{})\nExpected Result: True".format(\
-                            involute.involuteX[100],involute.involuteY[100]))
-x = involute.involuteX[100]
-y = involute.involuteY[100]
-print("Obtained Result : {}".format(inout.isIn(x, y)))
-if inout.isIn(x, y):
-    plt.plot([x],[y], 'o', color="Blue", label='On Involute')
-else:
-    plt.plot([x],[y], 'x', color="Red")
+# # On Involute
+# print("-------------------\n"
+#       "Testing Point ({},{})\nExpected Result: True".format(\
+#                             involute.involuteX[100],involute.involuteY[100]))
+# x = involute.involuteX[100]
+# y = involute.involuteY[100]
+# print("Obtained Result : {}".format(inout.isIn(x, y)))
+# if inout.isIn(x, y):
+#     plt.plot([x],[y], 'o', color="Blue", label='On Involute')
+# else:
+#     plt.plot([x],[y], 'x', color="Red")
     
 
 plt.legend()
