@@ -42,18 +42,6 @@ struct MuBremsstrahlungData
     //! Electron mass [MeV / c^2]
     units::MevMass electron_mass;
 
-    //! Minimum incident energy for this model to be valid
-    static CELER_CONSTEXPR_FUNCTION units::MevEnergy min_incident_energy()
-    {
-        return units::MevEnergy{1e3};
-    }
-
-    //! Maximum incident energy for this model to be valid
-    static CELER_CONSTEXPR_FUNCTION units::MevEnergy max_incident_energy()
-    {
-        return units::MevEnergy{1e7};
-    }
-
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {

@@ -16,18 +16,18 @@
 #include "celeritas/em/data/MuBremsstrahlungData.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialView.hh"
+#include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/InteractionUtils.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
-#include "celeritas/random/distribution/ReciprocalDistribution.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Muon bremsstrahlung.
+ * Perform muon bremsstrahlung interaction.
  *
  * This is a model for the Bremsstrahlung process for muons. Given an incident
  * muon, the class computes the change to the incident muon direction and
@@ -52,6 +52,7 @@ class MuBremsstrahlungInteractor
     MuBremsstrahlungInteractor(MuBremsstrahlungData const& shared,
                                ParticleTrackView const& particle,
                                Real3 const& inc_direction,
+                               CutoffView const& cutoffs,
                                StackAllocator<Secondary>& allocate,
                                MaterialView const& material,
                                ElementComponentId elcomp_id);
@@ -61,12 +62,7 @@ class MuBremsstrahlungInteractor
     inline CELER_FUNCTION Interaction operator()(Engine& rng);
 
   private:
-    template<class Engine>
-    inline CELER_FUNCTION real_type sample_cos_theta(real_type gamma_energy,
-                                                     Engine& rng) const;
-
-    inline CELER_FUNCTION real_type
-    differential_cross_section(real_type gamma_energy) const;
+    //// DATA ////
 
     // Shared constant physics properties
     MuBremsstrahlungData const& shared_;
@@ -78,6 +74,27 @@ class MuBremsstrahlungInteractor
     ElementView const element_;
     // Incident particle
     ParticleTrackView const& particle_;
+    // Production cutoff for gammas
+    real_type gamma_cutoff_;
+    // Envelope distribution for rejection sampling of gamma energy
+    real_type envelope_;
+
+    //// CONSTANTS ////
+
+    //! Minimum allowed secondary cutoff energy [MeV]
+    static CELER_CONSTEXPR_FUNCTION Energy min_cutoff_energy()
+    {
+        return units::MevEnergy{9e-4};  //!< 0.9 keV
+    }
+
+    //// HELPER FUNCTIONS ////
+
+    template<class Engine>
+    inline CELER_FUNCTION real_type sample_cos_theta(real_type gamma_energy,
+                                                     Engine& rng) const;
+
+    inline CELER_FUNCTION real_type
+    calc_differential_xs(real_type gamma_energy) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -90,6 +107,7 @@ CELER_FUNCTION MuBremsstrahlungInteractor::MuBremsstrahlungInteractor(
     MuBremsstrahlungData const& shared,
     ParticleTrackView const& particle,
     Real3 const& inc_direction,
+    CutoffView const& cutoffs,
     StackAllocator<Secondary>& allocate,
     MaterialView const& material,
     ElementComponentId elcomp_id)
@@ -98,16 +116,18 @@ CELER_FUNCTION MuBremsstrahlungInteractor::MuBremsstrahlungInteractor(
     , allocate_(allocate)
     , element_(material.make_element_view(elcomp_id))
     , particle_(particle)
+    , gamma_cutoff_(value_as<Energy>(cutoffs.energy(shared.ids.gamma)))
+    , envelope_(gamma_cutoff_ * this->calc_differential_xs(gamma_cutoff_))
 {
-    CELER_EXPECT(particle_.energy() >= shared_.min_incident_energy()
-                 && particle_.energy() <= shared_.max_incident_energy());
     CELER_EXPECT(particle.particle_id() == shared_.ids.mu_minus
                  || particle.particle_id() == shared_.ids.mu_plus);
+    CELER_EXPECT(gamma_cutoff_ >= value_as<Energy>(min_cutoff_energy()));
+    CELER_EXPECT(value_as<Energy>(particle_.energy()) > gamma_cutoff_);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample using the Muon Bremsstrahlung model.
+ * Sample using the muon bremsstrahlung model.
  */
 template<class Engine>
 CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
@@ -120,36 +140,32 @@ CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
         return Interaction::from_failure();
     }
 
-    real_type const min_inc_kinetic_energy
-        = min(value_as<Energy>(particle_.energy()),
-              value_as<Energy>(shared_.min_incident_energy()));
-    real_type const func_1
-        = min_inc_kinetic_energy
-          * this->differential_cross_section(min_inc_kinetic_energy);
-
-    ReciprocalDistribution<real_type> sample_epsilon(
-        min_inc_kinetic_energy, value_as<Energy>(particle_.energy()));
-
-    real_type epsilon;
+    // Sample the energy transfer
+    real_type xmin
+        = std::log(gamma_cutoff_ / value_as<Energy>(min_cutoff_energy()));
+    real_type xmax
+        = std::log(value_as<Energy>(particle_.energy()) / gamma_cutoff_);
+    real_type gamma_energy;
     do
     {
-        epsilon = sample_epsilon(rng);
-    } while (!BernoulliDistribution(
-        epsilon * this->differential_cross_section(epsilon) / func_1)(rng));
+        gamma_energy = value_as<Energy>(min_cutoff_energy())
+                       * std::exp(xmin + xmax * generate_canonical(rng));
+    } while (!BernoulliDistribution(gamma_energy
+                                    * this->calc_differential_xs(gamma_energy)
+                                    / envelope_)(rng));
 
     // Save outgoing secondary data
     secondary->particle_id = shared_.ids.gamma;
-    secondary->energy = Energy{epsilon};
+    secondary->energy = Energy{gamma_energy};
     secondary->direction = ExitingDirectionSampler{
-        this->sample_cos_theta(epsilon, rng), inc_direction_}(rng);
+        this->sample_cos_theta(gamma_energy, rng), inc_direction_}(rng);
 
     // Construct interaction for change to primary (incident) particle
     Interaction result;
-    result.energy
-        = units::MevEnergy{value_as<Energy>(particle_.energy()) - epsilon};
+    result.energy = particle_.energy() - secondary->energy;
     result.direction = calc_exiting_direction(
         {value_as<Momentum>(particle_.momentum()), inc_direction_},
-        {epsilon, secondary->direction});
+        {gamma_energy, secondary->direction});
     result.secondaries = {secondary, 1};
 
     return result;
@@ -177,14 +193,12 @@ CELER_FUNCTION real_type MuBremsstrahlungInteractor::sample_cos_theta(
 
 //---------------------------------------------------------------------------//
 
-CELER_FUNCTION real_type MuBremsstrahlungInteractor::differential_cross_section(
-    real_type gamma_energy) const
+CELER_FUNCTION real_type
+MuBremsstrahlungInteractor::calc_differential_xs(real_type gamma_energy) const
 {
-    real_type dxsection = 0;
-
     if (gamma_energy >= value_as<Energy>(particle_.energy()))
     {
-        return dxsection;
+        return 0;
     }
 
     int const atomic_number = element_.atomic_number().unchecked_get();
@@ -241,14 +255,13 @@ CELER_FUNCTION real_type MuBremsstrahlungInteractor::differential_cross_section(
                * (electron_m + delta * sqrt_e * b1 * inv_cbrt_z_sq))));
     }
 
-    dxsection = 16 * constants::alpha_fine_structure * constants::na_avogadro
-                * ipow<2>(electron_m * constants::r_electron) * atomic_number
-                * (atomic_number * phi_n + phi_e)
-                * (1
-                   - rel_energy_transfer
-                         * (1 - real_type(0.75) * rel_energy_transfer))
-                / (3 * inc_mass_sq * gamma_energy * atomic_mass);
-    return dxsection;
+    return 16 * constants::alpha_fine_structure * constants::na_avogadro
+           * ipow<2>(electron_m * constants::r_electron) * atomic_number
+           * (atomic_number * phi_n + phi_e)
+           * (1
+              - rel_energy_transfer
+                    * (1 - real_type(0.75) * rel_energy_transfer))
+           / (3 * inc_mass_sq * gamma_energy * atomic_mass);
 }
 
 //---------------------------------------------------------------------------//

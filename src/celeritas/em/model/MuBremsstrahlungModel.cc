@@ -11,6 +11,7 @@
 
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/executor/MuBremsstrahlungExecutor.hh"
+#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/TrackExecutor.hh"
@@ -58,7 +59,7 @@ auto MuBremsstrahlungModel::applicability() const -> SetApplicability
 
     mu_minus_applic.particle = data_.ids.mu_minus;
     mu_minus_applic.lower = zero_quantity();
-    mu_minus_applic.upper = data_.max_incident_energy();
+    mu_minus_applic.upper = detail::high_energy_limit();
 
     mu_plus_applic.particle = data_.ids.mu_plus;
     mu_plus_applic.lower = mu_minus_applic.lower;
