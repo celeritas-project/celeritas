@@ -3,22 +3,19 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/AbsorptionExecutor.hh
+//! \file celeritas/optical/model/OpticalRayleighExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
-
-#include "celeritas/optical/OpticalInteraction.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
  */
-struct AbsorptionExecutor
+struct OpticalRayleighExecutor
 {
     inline CELER_FUNCTION OpticalInteraction operator()(OpticalTrackView const&)
     {
-        return OpticalInteraction::from_absorption();
     }
 };
 
