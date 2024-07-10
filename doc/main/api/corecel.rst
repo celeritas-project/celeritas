@@ -26,18 +26,54 @@ a preprocessor definition, a set of integers, and a descriptive string.
 Fundamentals
 ------------
 
-.. doxygenfile:: corecel/Macros.hh
+Several high-level types are defined as aliases since they may change based on
+configuration: for example, ``size_type`` is a 32-bit integer when building
+with device code enabled, but is a 64-bit integer on other 64-bit systems.
 
-Celeritas assertions are only enabled when the ``CELERITAS_DEBUG``
+.. doxygentypedef:: celeritas::size_type
+.. doxygentypedef:: celeritas::real_type
+
+Macros
+~~~~~~
+
+The :file:`Macros.hh` file defines language and compiler abstraction macro
+definitions.  It includes cross-platform (CUDA, C++, HIP) macros that expand to
+attributes depending on the compiler and build configuration.
+
+.. doxygendefine:: CELER_FUNCTION
+.. doxygendefine:: CELER_CONSTEXPR_FUNCTION
+.. doxygendefine:: CELER_DEVICE_COMPILE
+.. doxygendefine:: CELER_TRY_HANDLE
+.. doxygendefine:: CELER_TRY_HANDLE_CONTEXT
+.. doxygendefine:: CELER_DEFAULT_COPY_MOVE
+.. doxygendefine:: CELER_DELETE_COPY_MOVE
+.. doxygendefine:: CELER_DEFAULT_MOVE_DELETE_COPY
+.. doxygendefine:: CELER_DISCARD
+
+Debug assertions
+~~~~~~~~~~~~~~~~
+
+Celeritas debug assertions are only enabled when the ``CELERITAS_DEBUG``
 configuration option is set. The macros ``CELER_EXPECT``, ``CELER_ASSERT``, and
 ``CELER_ENSURE`` correspond to "precondition contract", "internal assertion",
 and "postcondition contract".
 
-.. doxygenfile:: corecel/Assert.hh
+.. doxygendefine:: CELER_EXPECT
+.. doxygendefine:: CELER_ASSERT
+.. doxygendefine:: CELER_ENSURE
 
-.. doxygenfile:: corecel/Types.hh
+The following two macros will throw debug assertions *or* cause undefined
+behavior at runtime:
 
-.. doxygenclass:: celeritas::OpaqueId
+.. doxygendefine:: CELER_ASSERT_UNREACHABLE
+.. doxygendefine:: CELER_ASSUME
+
+Finally, a few runtime macros will always throw helpful errors based on
+incorrect configuration or input values.
+
+.. doxygendefine:: CELER_VALIDATE
+.. doxygendefine:: CELER_NOT_CONFIGURED
+.. doxygendefine:: CELER_NOT_IMPLEMENTED
 
 System
 ------
@@ -50,7 +86,6 @@ Containers
 ----------
 
 .. doxygenstruct:: celeritas::Array
-   :undoc-members:
 
 .. doxygenclass:: celeritas::Span
 
@@ -65,12 +100,19 @@ Math, numerics, and algorithms
 .. doxygenfile:: corecel/math/Atomics.hh
 
 .. doxygenstruct:: celeritas::numeric_limits
+   :members:
+
+.. doxygenclass:: celeritas::SoftEqual
 
 .. _api_quantity:
 
-.. doxygenfile:: corecel/math/Quantity.hh
-
-.. doxygenclass:: celeritas::SoftEqual
+.. doxygenclass:: celeritas::Quantity
+.. doxygenfunction:: celeritas::native_value_to
+.. doxygenfunction:: celeritas::native_value_from(Quantity<UnitT, ValueT> quant)
+.. doxygenfunction:: celeritas::value_as
+.. doxygenfunction:: celeritas::zero_quantity
+.. doxygenfunction:: celeritas::max_quantity
+.. doxygenfunction:: celeritas::neg_max_quantity
 
 
 .. _api_io:
@@ -78,9 +120,11 @@ Math, numerics, and algorithms
 I/O
 ---
 
-.. doxygenfile:: corecel/io/Logger.hh
+These functions and classes are for communicating helpfully with the user.
 
-.. doxygenclass:: celeritas::OutputInterface
+.. doxygendefine:: CELER_LOG
+.. doxygendefine:: CELER_LOG_LOCAL
+.. doxygenenum:: celeritas::LogLevel
 
 Data
 ----
@@ -135,6 +179,26 @@ View
    mass of a particle (constant, set by the model) and the speed (variable,
    depends on particle track state).
 
+Storage
+~~~~~~~
+
+.. doxygenpage:: collections
+
+.. doxygenenum:: celeritas::MemSpace
+.. doxygenenum:: celeritas::Ownership
+
+.. doxygenclass:: celeritas::OpaqueId
+
+.. doxygentypedef:: celeritas::ItemId
+.. doxygentypedef:: celeritas::ItemRange
+.. doxygenclass:: celeritas::ItemMap
+
+.. doxygenclass:: celeritas::Collection
+.. doxygenclass:: celeritas::CollectionMirror
+
+Auxiliary user data
+~~~~~~~~~~~~~~~~~~~
+
 Users and other parts of the code can add their own shared and stream-local
 (i.e., thread-local) data to Celeritas using the ``AuxParamsInterface`` and ``AuxStateInterface`` classes, accessed through the  ``AuxParamsRegistry`` and ``AuxStateVec`` classes, respectively.
 
@@ -143,5 +207,3 @@ Users and other parts of the code can add their own shared and stream-local
 .. doxygenclass:: celeritas::AuxParamsRegistry
 
 .. doxygenclass:: celeritas::AuxStateVec
-
-

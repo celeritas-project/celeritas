@@ -42,12 +42,14 @@ allows their conversion back to native units. This allows, for example,
 particles to represent their energy as MeV and charge as fractions of e but
 work seamlessly with a field definition in native (macro-scale quantity) units.
 
-Physics
-=======
+EM Physics
+==========
 
-Celeritas implements physics processes and models for transporting electron, positron,
-and gamma particles as shown in the accompanying table. Implementation details of these models
-and their corresponding Geant4 classes are documented in :ref:`celeritas_physics`.
+Celeritas implements physics processes and models for transporting electron,
+positron, and gamma particles as shown in the accompanying table. Initial
+support is being added for muon physics and is not shown below.
+Implementation details of these models
+and their corresponding Geant4 classes are documented in :ref:`api_em_physics`.
 
 .. only:: html
 
@@ -56,7 +58,7 @@ and their corresponding Geant4 classes are documented in :ref:`celeritas_physics
       +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
       | **Particle**   | **Processes**       |  **Models**                 | **Celeritas Implementation**                        | **Applicability**        |
       +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
-      | :math:`e^-`    | Ionisation          |  Møller                     | :cpp:class:`celeritas::MollerBhabhaInteractor`      |       0--100 TeV         |
+      | :math:`e^-`    | Ionization          |  Møller                     | :cpp:class:`celeritas::MollerBhabhaInteractor`      |       0--100 TeV         |
       |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
       |                | Bremsstrahlung      |  Seltzer--Berger            | :cpp:class:`celeritas::SeltzerBergerInteractor`     |       0--1 GeV           |
       |                |                     +-----------------------------+-----------------------------------------------------+--------------------------+
@@ -66,7 +68,7 @@ and their corresponding Geant4 classes are documented in :ref:`celeritas_physics
       |                |                     +-----------------------------+-----------------------------------------------------+--------------------------+
       |                |                     |  Coulomb                    | :cpp:class:`celeritas::CoulombScatteringInteractor` |       0--100 TeV         |
       +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
-      | :math:`e^+`    | Ionisation          |  Bhabha                     | :cpp:class:`celeritas::MollerBhabhaInteractor`      |       0--100 TeV         |
+      | :math:`e^+`    | Ionization          |  Bhabha                     | :cpp:class:`celeritas::MollerBhabhaInteractor`      |       0--100 TeV         |
       |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
       |                | Bremsstrahlung      |  Seltzer-Berger             | :cpp:class:`celeritas::SeltzerBergerInteractor`     |       0--1 GeV           |
       |                |                     +-----------------------------+-----------------------------------------------------+--------------------------+
@@ -86,6 +88,18 @@ and their corresponding Geant4 classes are documented in :ref:`celeritas_physics
       |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
       |                | Rayleigh scattering |  Livermore                  | :cpp:class:`celeritas::RayleighInteractor`          |       0--100 TeV         |
       +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      | :math:`\mu^-`  | Ionization          |  ICRU73QO                   | :cpp:class:`celeritas::BraggICRU73QOInteractor`     |       0--200 keV         |
+      |                +                     +-----------------------------+-----------------------------------------------------+--------------------------+
+      |                |                     |  Bethe--Bloch               | :cpp:class:`celeritas::MuBetheBlochInteractor`      |   200 keV--100 TeV       |
+      |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      |                | Bremsstrahlung      |  Mu bremsstrahlung          | :cpp:class:`celeritas::MuBremsstrahlungInteractor`  |       0--100 TeV         |
+      +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      | :math:`\mu^+`  | Ionization          |  Bragg                      | :cpp:class:`celeritas::BraggICRU73QOInteractor`     |       0--200 keV         |
+      |                +                     +-----------------------------+-----------------------------------------------------+--------------------------+
+      |                |                     |  Bethe--Bloch               | :cpp:class:`celeritas::MuBetheBlochInteractor`      |   200 keV--100 TeV       |
+      |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      |                | Bremsstrahlung      |  Mu bremsstrahlung          | :cpp:class:`celeritas::MuBremsstrahlungInteractor`  |       0--100 TeV         |
+      +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
 
 .. only:: latex
 
@@ -98,7 +112,7 @@ and their corresponding Geant4 classes are documented in :ref:`celeritas_physics
           \hline
           \textbf{Particle}         & \textbf{Processes}                  & \textbf{Models}      & \textbf{Celeritas Implementation}                           & \textbf{Applicability} \\
           \hline
-          \multirow{4}{*}{$e^-$}    & Ionisation                          & Møller               & \texttt{\scriptsize celeritas::MollerBhabhaInteractor}      & 0--100 TeV \\
+          \multirow{4}{*}{$e^-$}    & Ionization                          & Møller               & \texttt{\scriptsize celeritas::MollerBhabhaInteractor}      & 0--100 TeV \\
                                     \cline{2-5}
                                     & \multirow{2}{*}{Bremsstrahlung}     & Seltzer--Berger      & \texttt{\scriptsize celeritas::SeltzerBergerInteractor}     & 0--1 GeV \\
                                                                           \cline{3-5}
@@ -109,7 +123,7 @@ and their corresponding Geant4 classes are documented in :ref:`celeritas_physics
                                     &                                     & Coulomb              & \texttt{\scriptsize celeritas::CoulombScatteringInteractor} & 0--100 TeV \\
                                     \cline{2-5}
           \hline
-          \multirow{5}{*}{$e^+$}    & Ionisation                          & Bhabha               & \texttt{\scriptsize celeritas::MollerBhabhaInteractor}      & 0--100 TeV \\
+          \multirow{5}{*}{$e^+$}    & Ionization                          & Bhabha               & \texttt{\scriptsize celeritas::MollerBhabhaInteractor}      & 0--100 TeV \\
                                     \cline{2-5}
                                     & \multirow{2}{*}{Bremsstrahlung}     & Seltzer--Berger      & \texttt{\scriptsize celeritas::SeltzerBergerInteractor}     & 0--1 GeV \\
                                                                           \cline{3-5}
@@ -129,10 +143,21 @@ and their corresponding Geant4 classes are documented in :ref:`celeritas_physics
                                     \cline{2-5}
                                     & Rayleigh scattering                 & Livermore            & \texttt{\scriptsize celeritas::RayleighInteractor}          & 0--100 TeV \\
           \hline
+          \multirow{3}{*}{$\mu^-$}  & \multirow{2}{*}{Ionization}         & ICRU73QO             & \texttt{\scriptsize celeritas::BraggICRU73QOInteractor}     & 0--200 keV \\
+                                                                          \cline{3-5}
+                                    &                                     & Bethe--Bloch         & \texttt{\scriptsize celeritas::MuBetheBlochInteractor}      & 200 keV -- 100 TeV \\
+                                    \cline{2-5}
+                                    & Bremsstrahlung                      & Mu bremsstrahlung    & \texttt{\scriptsize celeritas::MuBremsstrahlungInteractor}  & 0--100 TeV \\
+          \hline
+          \multirow{3}{*}{$\mu^+$}  & \multirow{2}{*}{Ionization}         & Bragg                & \texttt{\scriptsize celeritas::BraggICRU73QOInteractor}     & 0--200 keV \\
+                                                                          \cline{3-5}
+                                    &                                     & Bethe--Bloch         & \texttt{\scriptsize celeritas::MuBetheBlochInteractor}      & 200 keV -- 100 TeV \\
+                                    \cline{2-5}
+                                    & Bremsstrahlung                      & Mu bremsstrahlung    & \texttt{\scriptsize celeritas::MuBremsstrahlungInteractor}  & 0--100 TeV \\
+          \hline
         \end{tabular}
         \end{threeparttable}
       \end{table}
-
 
 The implemented physics models are meant to match the defaults constructed in
 ``G4EmStandardPhysics``.  Known differences are:
@@ -170,6 +195,16 @@ with the single Coulomb scattering model, is an implementation of the mixed
 simulation algorithm. It is the default model in Geant4 above 100 MeV and
 currently under development in Celeritas.
 
+Optical Physics
+===============
+
+TODO:
+
+- Describe integration into the main stepping loop
+- Add mermaid plot of optical stepping loop
+- Describe pre-generation, generation
+- Add optical models
+
 Geometry
 ========
 
@@ -186,8 +221,50 @@ and querying the geometry state.
 Stepping loop
 =============
 
-The stepping loop in Celeritas is a sorted loop over "actions", each of which
-is usually a kernel launch (or an inner loop over tracks if running on CPU).
+The core algorithm in Celeritas is to perform a *loop interchange*
+:cite:`allen_automatic_1984` between particle tracks and steps. The classical
+(serial) way of simulating an event is to have an outer loop over tracks and an
+inner loop over steps, and inside each step are the various actions applied to
+a track such as evaluating cross sections, calculating the distance to the
+nearest geometry boundary, and undergoing an interaction to produce
+secondaries. In Python pseudocode this looks like:
+
+.. code-block:: python
+
+   track_queue = primaries
+   while track_queue:
+      track = track_queue.pop()
+      while track.alive:
+         for apply_action in [pre, along, post]:
+            apply_action(track)
+         track_queue += track.secondaries
+
+There is effectively a data dependency between the track at step *i* and step
+*i + 1* that prevents vectorization. The approach Celeritas takes to
+"vectorize" the stepping loop on GPU is to have an outer loop over "step
+iterations" and an inner loop over "track slots", which are elements in a
+fixed-size vector of tracks that may be in flight:
+
+.. code-block:: python
+
+   initializers = primaries
+   track_slots = [None] * num_track_slots
+   while initializers or any(track_slots):
+      fill_track_slots(track_slots, initializers)
+      for apply_action in [pre, along, post]:
+         for (i, track) in enumerate(track_slots):
+            apply_action(track)
+            track_queue += track.secondaries
+      if not track.alive:
+         track_slots[i] = None
+
+
+The stepping loop in Celeritas is therefore a sorted loop over "actions", each
+of which is usually a kernel launch (or an inner loop over tracks if running on
+CPU).
+
+See :ref:`api_stepping` for implementation details on the ordering of actions
+and the status of a track slot during iteration.
 
 GPU usage
 =========

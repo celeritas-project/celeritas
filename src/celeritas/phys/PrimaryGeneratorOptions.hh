@@ -93,6 +93,7 @@ using PrimaryGeneratorEngine = std::mt19937;
 char const* to_cstring(DistributionSelection value);
 
 // TODO: move these to PrimaryGenerator.hh
+//! \cond
 
 // Return a distribution for sampling the energy
 std::function<real_type(PrimaryGeneratorEngine&)>
@@ -106,5 +107,6 @@ make_position_sampler(DistributionOptions options);
 std::function<Real3(PrimaryGeneratorEngine&)>
 make_direction_sampler(DistributionOptions options);
 
+//! \endcond
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

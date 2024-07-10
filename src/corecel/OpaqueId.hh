@@ -25,13 +25,13 @@ struct LdgLoader;
 
 //---------------------------------------------------------------------------//
 /*!
- * Type-safe index for accessing an array.
+ * Type-safe index for accessing an array or collection of data.
  *
  * \tparam ValueT Type of each item in the array.
  * \tparam SizeT Integer index
  *
  * This allows type-safe, read-only indexing/access for a class. The value is
- * 'true' if it's assigned, 'false' if invalid.
+ * "true" if it"s assigned, "false" if invalid.
  */
 template<class ValueT, class SizeT = ::celeritas::size_type>
 class OpaqueId

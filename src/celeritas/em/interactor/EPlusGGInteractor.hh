@@ -15,6 +15,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/EPlusGGData.hh"
 #include "celeritas/phys/Interaction.hh"
+#include "celeritas/phys/InteractionUtils.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
@@ -154,19 +155,12 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
         real_type const eplus_moment = std::sqrt(inc_energy_ * total_energy);
 
         // Sample and save outgoing secondary data
-        UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
-
         secondaries[0].energy = Energy{gamma_energy};
         secondaries[0].direction
-            = rotate(from_spherical(cost, sample_phi(rng)), inc_direction_);
-
+            = ExitingDirectionSampler{cost, inc_direction_}(rng);
         secondaries[1].energy = Energy{total_energy - gamma_energy};
-        for (int i = 0; i < 3; ++i)
-        {
-            secondaries[1].direction[i] = eplus_moment * inc_direction_[i]
-                                          - inc_energy_ * inc_direction_[i];
-        }
-        secondaries[1].direction = make_unit_vector(secondaries[1].direction);
+        secondaries[1].direction = calc_exiting_direction(
+            {eplus_moment, inc_direction_}, {inc_energy_, inc_direction_});
     }
 
     return result;

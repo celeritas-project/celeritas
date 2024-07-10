@@ -57,9 +57,6 @@ struct LocateAliveExecutor
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Determine which tracks are alive and count secondaries.
- */
 CELER_FUNCTION void LocateAliveExecutor::operator()(TrackSlotId tid) const
 {
     CELER_EXPECT(tid < state->size());

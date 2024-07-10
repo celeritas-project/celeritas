@@ -76,27 +76,18 @@ void backfill_action_count(Span<ThreadId>, size_type);
 //---------------------------------------------------------------------------//
 // HELPER CLASSES AND FUNCTIONS
 //---------------------------------------------------------------------------//
-struct AlivePredicate
+//! Uses as a predicate to sort inactive tracks from active
+struct IsNotInactive
 {
     ObserverPtr<TrackStatus const> status_;
 
     CELER_FUNCTION bool operator()(size_type track_slot) const
     {
-        return status_.get()[track_slot] == TrackStatus::alive;
+        return status_.get()[track_slot] != TrackStatus::inactive;
     }
 };
 
-template<class Id>
-struct IdComparator
-{
-    ObserverPtr<Id const> ids_;
-
-    CELER_FUNCTION bool operator()(size_type a, size_type b) const
-    {
-        return ids_.get()[a] < ids_.get()[b];
-    }
-};
-
+//! Map from a thread ID to an action ID by pointer indirection
 struct ActionAccessor
 {
     ObserverPtr<ActionId const> action_;
@@ -109,7 +100,7 @@ struct ActionAccessor
 };
 
 //---------------------------------------------------------------------------//
-// Return the correct action pointer based on the track sort order
+//! Return a raw pointer to action IDs based on the given sort order
 template<Ownership W, MemSpace M>
 CELER_FUNCTION ObserverPtr<ActionId const>
 get_action_ptr(CoreStateData<W, M> const& states, TrackOrder order)
@@ -124,13 +115,6 @@ get_action_ptr(CoreStateData<W, M> const& states, TrackOrder order)
     }
     CELER_ASSERT_UNREACHABLE();
 }
-
-//---------------------------------------------------------------------------//
-// DEDUCTION GUIDES
-//---------------------------------------------------------------------------//
-
-template<class Id>
-IdComparator(ObserverPtr<Id>) -> IdComparator<Id>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

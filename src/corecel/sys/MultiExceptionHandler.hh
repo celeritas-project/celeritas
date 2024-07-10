@@ -53,7 +53,7 @@ class MultiExceptionHandler
     CELER_DEFAULT_COPY_MOVE(MultiExceptionHandler);
 
     // Terminate if destroyed without handling exceptions
-    ~MultiExceptionHandler();
+    inline ~MultiExceptionHandler();
 
     // Thread-safe capture of the given exception
     void operator()(std::exception_ptr p);
@@ -66,6 +66,8 @@ class MultiExceptionHandler
 
   private:
     VecExceptionPtr exceptions_;
+
+    [[noreturn]] void log_and_terminate() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -88,6 +90,20 @@ inline void log_and_rethrow(MultiExceptionHandler&& exceptions)
     if (CELER_UNLIKELY(!exceptions.empty()))
     {
         detail::log_and_rethrow_impl(std::move(exceptions));
+    }
+}
+
+//---------------------------------------------------------------------------//
+// INLINE FUNCTIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Terminate if destroyed without handling exceptions.
+ */
+MultiExceptionHandler::~MultiExceptionHandler()
+{
+    if (CELER_UNLIKELY(!exceptions_.empty()))
+    {
+        this->log_and_terminate();
     }
 }
 

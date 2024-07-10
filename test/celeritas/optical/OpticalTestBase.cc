@@ -69,19 +69,19 @@ OpticalTestBase::make_particle_track_view(units::MevEnergy energy,
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize sim track state with step length with a step lenght in [cm].
+ * Initialize sim track state with step length in [cm].
  */
 SimTrackView OpticalTestBase::make_sim_track_view(real_type step_len_cm)
 {
     SimTrackView::Initializer_t init_track;
     init_track.event_id = EventId{0};
     init_track.parent_id = TrackId{0};
-    init_track.status = TrackStatus::alive;
 
     SimTrackView sim_view(
         sim_params_->host_ref(), sim_state_.ref(), TrackSlotId(0));
     sim_view = init_track;
     sim_view.step_length(from_cm(step_len_cm));
+    sim_view.status(TrackStatus::alive);
     return sim_view;
 }
 

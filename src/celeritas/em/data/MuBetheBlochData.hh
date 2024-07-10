@@ -3,27 +3,38 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/Utils.hh
+//! \file celeritas/em/data/MuBetheBlochData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/global/CoreTrackView.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
-// Get the optical material ID, or an invalid ID if the track is inactive
-inline CELER_FUNCTION OpticalMaterialId
-get_optical_material(CoreTrackView const& track)
+/*!
+ * Device data for creating an interactor.
+ */
+struct MuBetheBlochData
 {
-    if (track.make_sim_view().status() == TrackStatus::inactive)
-        return {};
+    //! Particle IDs
+    ParticleId electron;
+    ParticleId mu_minus;
+    ParticleId mu_plus;
 
-    return track.make_material_view().make_material_view().optical_material_id();
-}
+    //! Electron mass [MeV / c^2]
+    units::MevMass electron_mass;
+
+    //! Whether all data are assigned and valid
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return electron && mu_minus && mu_plus
+               && electron_mass > zero_quantity();
+    }
+};
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

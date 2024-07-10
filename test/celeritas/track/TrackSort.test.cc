@@ -211,7 +211,7 @@ TEST_F(TestTrackPartitionEm3Stepper, host_is_partitioned)
             span.begin(),
             span.end(),
             [&status = step.state_ref().sim.status](auto const track_slot) {
-                return status[TrackSlotId{track_slot}] == TrackStatus::alive;
+                return status[TrackSlotId{track_slot}] != TrackStatus::inactive;
             });
     };
 
@@ -256,7 +256,7 @@ TEST_F(TestTrackPartitionEm3Stepper,
         return std::is_partitioned(
             span.begin(), span.end(), [&track_status](auto const track_slot) {
                 return track_status[TrackSlotId{track_slot}]
-                       == TrackStatus::alive;
+                       != TrackStatus::inactive;
             });
     };
     // we partition at the start of the step so we need to explictly partition

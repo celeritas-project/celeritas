@@ -10,6 +10,7 @@
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "corecel/data/ParamsDataInterface.hh"
 
 #include "../OpticalGenData.hh"
 
@@ -21,8 +22,8 @@ namespace detail
 /*!
  * Manage metadata about optical generation.
  */
-class OpticalGenParams : public AuxParamsInterface,
-                         public ParamsDataInterface<OpticalGenParamsData>
+class OpticalGenParams final : public AuxParamsInterface,
+                               public ParamsDataInterface<OpticalGenParamsData>
 {
   public:
     // Construct with aux ID and optical data

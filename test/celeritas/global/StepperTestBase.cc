@@ -15,7 +15,6 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/io/LogContextException.hh"
 #include "corecel/io/Repr.hh"
-#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/detail/ActionSequence.hh"
 #include "celeritas/phys/PhysicsParams.hh"
@@ -26,18 +25,6 @@ namespace celeritas
 {
 namespace test
 {
-//---------------------------------------------------------------------------//
-//! Construct dummy action at creation
-StepperTestBase::StepperTestBase()
-{
-    auto& action_reg = *this->action_reg();
-
-    static char const desc[] = "count the number of executions";
-    dummy_action_ = std::make_shared<DummyAction>(
-        action_reg.next_id(), "dummy-action", desc);
-    action_reg.insert(dummy_action_);
-}
-
 //---------------------------------------------------------------------------//
 //! Whether the build uses the default real type and RNG.
 bool StepperTestBase::is_default_build()

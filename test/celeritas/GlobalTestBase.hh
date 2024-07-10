@@ -150,6 +150,9 @@ class GlobalTestBase : public Test
     [[nodiscard]] virtual SPConstProperties build_properties() = 0;
     [[nodiscard]] virtual SPConstScintillation build_scintillation() = 0;
 
+    // Do not insert StatusChecker
+    void disable_status_checker();
+
   private:
     SPConstRng build_rng() const;
     SPActionRegistry build_action_reg() const;
@@ -175,6 +178,7 @@ class GlobalTestBase : public Test
     SPConstCerenkov cerenkov_;
     SPConstProperties properties_;
     SPConstScintillation scintillation_;
+    bool insert_status_checker_{true};
 };
 
 //---------------------------------------------------------------------------//

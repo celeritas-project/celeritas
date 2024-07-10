@@ -621,7 +621,7 @@ TEST_F(LeadBoxAlongStepTest, position_change)
         SCOPED_TRACE("Electron with no change in position after propagation");
         inp.energy = MevEnergy{1e-6};
         inp.position = {1e9, 0, 0};
-        ScopedLogStorer scoped_log{&celeritas::world_logger(), LogLevel::error};
+        ScopedLogStorer scoped_log{&celeritas::self_logger(), LogLevel::error};
         auto result = this->run(inp, num_tracks);
         static double const expected_step_length
             = (g4_lt_11_2 ? 5.38228333877273e-8 : 5.3825861448155134e-8);
@@ -633,10 +633,11 @@ TEST_F(LeadBoxAlongStepTest, position_change)
                << repr(from_cm(expected_step_length))
                << " due to post-step action 2 leading to distance "
                << repr(from_cm(expected_distance))
-               << " failed to change position at "
-               << repr(from_cm(inp.position)) << " with ending direction "
-               << repr(inp.direction);
-            EXPECT_EQ(ss.str(), scoped_log.messages().front());
+               << " failed to change position";
+            if (!scoped_log.empty())
+            {
+                EXPECT_EQ(ss.str(), scoped_log.messages().front());
+            }
             static char const* const expected_log_levels[] = {"error"};
             EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
         }

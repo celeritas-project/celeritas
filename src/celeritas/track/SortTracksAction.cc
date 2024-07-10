@@ -40,6 +40,7 @@ bool is_sort_trackorder(TrackOrder to)
            != std::end(allowed);
 }
 
+//---------------------------------------------------------------------------//
 /*!
  * Checks whether the TrackOrder sort tracks using an ActionId.
  */
@@ -88,7 +89,7 @@ SortTracksAction::SortTracksAction(ActionId id, TrackOrder track_order)
 
 //---------------------------------------------------------------------------//
 /*!
- * Short name for the action
+ * Short name for the action.
  */
 std::string_view SortTracksAction::label() const
 {
