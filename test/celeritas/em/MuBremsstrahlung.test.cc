@@ -54,9 +54,9 @@ class MuBremsstrahlungInteractorTest : public InteractorHostTestBase
 
         // Set model data
         auto const& params = this->particle_params();
-        data_.ids.gamma = params->find(pdg::gamma());
-        data_.ids.mu_minus = params->find(pdg::mu_minus());
-        data_.ids.mu_plus = params->find(pdg::mu_plus());
+        data_.gamma = params->find(pdg::gamma());
+        data_.mu_minus = params->find(pdg::mu_minus());
+        data_.mu_plus = params->find(pdg::mu_plus());
         data_.electron_mass = params->get(params->find(pdg::electron())).mass();
 
         // Set default particle to muon with energy of 1100 MeV
@@ -79,7 +79,7 @@ class MuBremsstrahlungInteractorTest : public InteractorHostTestBase
 
         auto const& gamma = interaction.secondaries.front();
         EXPECT_TRUE(gamma);
-        EXPECT_EQ(data_.ids.gamma, gamma.particle_id);
+        EXPECT_EQ(data_.gamma, gamma.particle_id);
         EXPECT_GT(this->particle_track().energy().value(),
                   gamma.energy.value());
         EXPECT_LT(0, gamma.energy.value());

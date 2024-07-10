@@ -116,11 +116,11 @@ CELER_FUNCTION MuBremsstrahlungInteractor::MuBremsstrahlungInteractor(
     , allocate_(allocate)
     , element_(material.make_element_view(elcomp_id))
     , particle_(particle)
-    , gamma_cutoff_(value_as<Energy>(cutoffs.energy(shared.ids.gamma)))
+    , gamma_cutoff_(value_as<Energy>(cutoffs.energy(shared.gamma)))
     , envelope_(gamma_cutoff_ * this->calc_differential_xs(gamma_cutoff_))
 {
-    CELER_EXPECT(particle.particle_id() == shared_.ids.mu_minus
-                 || particle.particle_id() == shared_.ids.mu_plus);
+    CELER_EXPECT(particle.particle_id() == shared_.mu_minus
+                 || particle.particle_id() == shared_.mu_plus);
     CELER_EXPECT(gamma_cutoff_ >= value_as<Energy>(min_cutoff_energy()));
     CELER_EXPECT(value_as<Energy>(particle_.energy()) > gamma_cutoff_);
 }
@@ -155,7 +155,7 @@ CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
                                     / envelope_)(rng));
 
     // Save outgoing secondary data
-    secondary->particle_id = shared_.ids.gamma;
+    secondary->particle_id = shared_.gamma;
     secondary->energy = Energy{gamma_energy};
     secondary->direction = ExitingDirectionSampler{
         this->sample_cos_theta(gamma_energy, rng), inc_direction_}(rng);

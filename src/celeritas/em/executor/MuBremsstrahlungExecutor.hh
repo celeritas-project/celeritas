@@ -26,7 +26,7 @@ struct MuBremsstrahlungExecutor
     inline CELER_FUNCTION Interaction
     operator()(celeritas::CoreTrackView const& track);
 
-    MuBremsstrahlungRef params;
+    MuBremsstrahlungData params;
 };
 
 //---------------------------------------------------------------------------//

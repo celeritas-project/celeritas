@@ -16,42 +16,24 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Particle IDs used in muon brems.
- */
-struct MuBremsstrahlungIds
-{
-    ParticleId gamma;
-    ParticleId mu_minus;
-    ParticleId mu_plus;
-
-    //! Whether the IDs are assigned
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return gamma && mu_minus && mu_plus;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Device data for creating an interactor.
  */
 struct MuBremsstrahlungData
 {
-    //! Model/particle IDs
-    MuBremsstrahlungIds ids;
+    //! Particle IDs
+    ParticleId gamma;
+    ParticleId mu_minus;
+    ParticleId mu_plus;
+
     //! Electron mass [MeV / c^2]
     units::MevMass electron_mass;
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids && electron_mass > zero_quantity();
+        return gamma && mu_minus && mu_plus && electron_mass > zero_quantity();
     }
 };
-
-using MuBremsstrahlungHostRef = MuBremsstrahlungData;
-using MuBremsstrahlungDeviceRef = MuBremsstrahlungData;
-using MuBremsstrahlungRef = MuBremsstrahlungData;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
