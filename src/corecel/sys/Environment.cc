@@ -55,9 +55,15 @@ std::string const& getenv(std::string const& key)
 /*!
  * Get a true/false flag with a default value.
  *
- * The return value is a combination of the transformed environment value,
- * and a flag specifying whether the environment variable was inserted or
- * otherwise uses the default value.
+ * The return value is a pair that has (1) the flag as determined by the
+ * environment variable or default value, and (2) an "insertion" flag
+ * specifying whether the default was used. The insertion result can be useful
+ * for providing a diagnostic message to the user.
+ *
+ * - Allowed true values: <code>"1", "t", "yes", "true", "True"</code>
+ * - Allowed false values: <code>"0", "f", "no", "false", "False"</code>
+ * - Empty value returns the default
+ * - Other value warns and returns the default
  */
 GetenvFlagResult getenv_flag(std::string const& key, bool default_val)
 {

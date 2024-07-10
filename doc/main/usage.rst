@@ -336,7 +336,7 @@ tell what variables are in use or may be useful.
  CELER_DISABLE_DEVICE    corecel   Disable CUDA/HIP support
  CELER_DISABLE_PARALLEL  corecel   Disable MPI support
  CELER_DISABLE_ROOT      corecel   Disable ROOT I/O calls
- CELER_DEVICE_ASYNC      corecel   Flag for asyncronous memory allocation
+ CELER_DEVICE_ASYNC      corecel   Flag for asynchronous memory allocation
  CELER_ENABLE_PROFILING  corecel   Set up NVTX/ROCTX profiling ranges [#pr]
  CELER_LOG               corecel   Set the "global" logger verbosity
  CELER_LOG_LOCAL         corecel   Set the "local" logger verbosity

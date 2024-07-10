@@ -74,10 +74,11 @@ class Environment
     mapped_type const& load_from_getenv(key_type const&);
 };
 
+//! Return result from \c getenv_flag
 struct GetenvFlagResult
 {
-    bool value{};
-    bool defaulted{};
+    bool value{};  //!< Determined by user or default
+    bool defaulted{};  //!< True if no valid user value was present
 };
 
 //---------------------------------------------------------------------------//
