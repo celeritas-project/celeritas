@@ -44,10 +44,15 @@ Environment& environment()
 //---------------------------------------------------------------------------//
 /*!
  * Thread-safe access to global modified environment variables.
+ *
+ * This function will \em insert the current value of the key into the
+ * environment, which remains immutable over the lifetime of the program
+ * (allowing the use of <code>static const</code> data to be set from the
+ * environment).
  */
 std::string const& getenv(std::string const& key)
 {
-    std::lock_guard<std::mutex> scoped_lock{getenv_mutex()};
+    std::scoped_lock lock_{getenv_mutex()};
     return environment()[key];
 }
 
@@ -67,7 +72,7 @@ std::string const& getenv(std::string const& key)
  */
 GetenvFlagResult getenv_flag(std::string const& key, bool default_val)
 {
-    std::lock_guard<std::mutex> scoped_lock{getenv_mutex()};
+    std::scoped_lock lock_{getenv_mutex()};
     bool inserted = environment().insert({key, default_val ? "1" : "0"});
     if (inserted)
     {

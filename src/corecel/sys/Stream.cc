@@ -120,8 +120,9 @@ void AsyncMemoryResource<Pointer>::do_deallocate(pointer p,
 /*!
  * Whether asynchronous operations are supported.
  *
- * This is true if CUDA or HIP>=5.2 is in use, and can be disabled by setting
- * the \c DEVICE_DISABLE_ASYNC environment variable.
+ * This is true by default if CUDA or HIP (5.2 <= HIP_VERSION < 5.7) is in use,
+ * and can be disabled by setting the \c CELER_DEVICE_ASYNC environment
+ * variable.
  */
 bool Stream::async()
 {

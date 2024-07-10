@@ -32,6 +32,13 @@ namespace celeritas
  * \note This class is not thread-safe on its own. The \c celeritas::getenv
  * free function however is safe, although it should only be used in setup
  * (single-thread) steps.
+ *
+ * \note Once inserted into the environment map, values cannot be changed.
+ * Standard practice in the code is to evaluate the environment variable
+ * exactly \em once and cache the result as a static const variable. If you
+ * really wanted to, you could call <code> celeritas::environment() = {};
+ * </code> but that could result in the end-of-run diagnostic reporting
+ * different values than the ones actually used during the code's setup.
  */
 class Environment
 {
@@ -74,6 +81,7 @@ class Environment
     mapped_type const& load_from_getenv(key_type const&);
 };
 
+//---------------------------------------------------------------------------//
 //! Return result from \c getenv_flag
 struct GetenvFlagResult
 {
