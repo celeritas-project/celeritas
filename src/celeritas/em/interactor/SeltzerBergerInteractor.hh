@@ -14,6 +14,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/SeltzerBergerData.hh"
+#include "celeritas/em/distribution/TsaiUrbanDistribution.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/CutoffView.hh"
@@ -90,6 +91,8 @@ class SeltzerBergerInteractor
     //// HELPER CLASSES ////
     // A helper to sample the bremsstrahlung photon energy
     detail::SBEnergySampler sample_photon_energy_;
+    // Secondary angular distribution
+    TsaiUrbanDistribution sample_costheta_;
 };
 
 //---------------------------------------------------------------------------//
@@ -124,6 +127,7 @@ CELER_FUNCTION SeltzerBergerInteractor::SeltzerBergerInteractor(
                             elcomp_id,
                             shared.electron_mass,
                             inc_particle_is_electron_)
+    , sample_costheta_(inc_energy_, particle.mass())
 {
     CELER_EXPECT(particle.particle_id() == shared_.ids.electron
                  || particle.particle_id() == shared_.ids.positron);
@@ -149,17 +153,14 @@ CELER_FUNCTION Interaction SeltzerBergerInteractor::operator()(Engine& rng)
         return Interaction::from_failure();
     }
 
-    // Sample the bremsstrahlung photon energy to construct the final sampler
-    detail::BremFinalStateHelper sample_interaction(inc_energy_,
-                                                    inc_direction_,
-                                                    inc_momentum_,
-                                                    shared_.electron_mass,
-                                                    shared_.ids.gamma,
-                                                    sample_photon_energy_(rng),
-                                                    secondaries);
-
     // Update kinematics of the final state and return this interaction
-    return sample_interaction(rng);
+    return detail::BremFinalStateHelper{inc_energy_,
+                                        inc_direction_,
+                                        inc_momentum_,
+                                        shared_.ids.gamma,
+                                        sample_photon_energy_(rng),
+                                        sample_costheta_(rng),
+                                        secondaries}(rng);
 }
 
 //---------------------------------------------------------------------------//

@@ -14,6 +14,7 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/MuBremsstrahlungData.hh"
+#include "celeritas/em/distribution/TsaiUrbanDistribution.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/CutoffView.hh"
@@ -22,6 +23,8 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
+
+#include "detail/BremFinalStateHelper.hh"
 
 namespace celeritas
 {
@@ -74,8 +77,10 @@ class MuBremsstrahlungInteractor
     ElementView const element_;
     // Incident particle
     ParticleTrackView const& particle_;
-    // Production cutoff for gammas
-    real_type gamma_cutoff_;
+    // Ratio of gamma production cutoff to minimum energy cutoff
+    real_type xmin_;
+    // Ratio of incident energy to gamma production cutoff
+    real_type xmax_;
     // Envelope distribution for rejection sampling of gamma energy
     real_type envelope_;
 
@@ -116,13 +121,18 @@ CELER_FUNCTION MuBremsstrahlungInteractor::MuBremsstrahlungInteractor(
     , allocate_(allocate)
     , element_(material.make_element_view(elcomp_id))
     , particle_(particle)
-    , gamma_cutoff_(value_as<Energy>(cutoffs.energy(shared.gamma)))
-    , envelope_(gamma_cutoff_ * this->calc_differential_xs(gamma_cutoff_))
+    , xmin_(std::log(value_as<Energy>(cutoffs.energy(shared.gamma))
+                     / value_as<Energy>(min_cutoff_energy())))
+    , xmax_(std::log(value_as<Energy>(particle_.energy())
+                     / value_as<Energy>(cutoffs.energy(shared.gamma))))
+    , envelope_(value_as<Energy>(cutoffs.energy(shared.gamma))
+                * this->calc_differential_xs(
+                    value_as<Energy>(cutoffs.energy(shared.gamma))))
 {
     CELER_EXPECT(particle.particle_id() == shared_.mu_minus
                  || particle.particle_id() == shared_.mu_plus);
-    CELER_EXPECT(gamma_cutoff_ >= value_as<Energy>(min_cutoff_energy()));
-    CELER_EXPECT(value_as<Energy>(particle_.energy()) > gamma_cutoff_);
+    CELER_EXPECT(cutoffs.energy(shared.gamma) >= min_cutoff_energy());
+    CELER_EXPECT(particle_.energy() > cutoffs.energy(shared.gamma));
 }
 
 //---------------------------------------------------------------------------//
@@ -141,34 +151,24 @@ CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
     }
 
     // Sample the energy transfer
-    real_type xmin
-        = std::log(gamma_cutoff_ / value_as<Energy>(min_cutoff_energy()));
-    real_type xmax
-        = std::log(value_as<Energy>(particle_.energy()) / gamma_cutoff_);
     real_type gamma_energy;
     do
     {
         gamma_energy = value_as<Energy>(min_cutoff_energy())
-                       * std::exp(xmin + xmax * generate_canonical(rng));
+                       * std::exp(xmin_ + xmax_ * generate_canonical(rng));
     } while (!BernoulliDistribution(gamma_energy
                                     * this->calc_differential_xs(gamma_energy)
                                     / envelope_)(rng));
 
-    // Save outgoing secondary data
-    secondary->particle_id = shared_.gamma;
-    secondary->energy = Energy{gamma_energy};
-    secondary->direction = ExitingDirectionSampler{
-        this->sample_cos_theta(gamma_energy, rng), inc_direction_}(rng);
-
-    // Construct interaction for change to primary (incident) particle
-    Interaction result;
-    result.energy = particle_.energy() - secondary->energy;
-    result.direction = calc_exiting_direction(
-        {value_as<Momentum>(particle_.momentum()), inc_direction_},
-        {gamma_energy, secondary->direction});
-    result.secondaries = {secondary, 1};
-
-    return result;
+    // Update kinematics of the final state and return this interaction
+    return detail::BremFinalStateHelper(
+        particle_.energy(),
+        inc_direction_,
+        particle_.momentum(),
+        shared_.gamma,
+        Energy{gamma_energy},
+        this->sample_cos_theta(gamma_energy, rng),
+        secondary)(rng);
 }
 
 //---------------------------------------------------------------------------//
