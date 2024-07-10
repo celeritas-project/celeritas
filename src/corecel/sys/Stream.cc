@@ -40,9 +40,7 @@ void* malloc_async_impl(std::size_t bytes, Stream::StreamT s)
 #if CELER_STREAM_SUPPORTS_ASYNC
         CELER_DEVICE_CALL_PREFIX(MallocAsync(&ptr, bytes, s));
 #else
-        CELER_DISCARD(ptr);
-        CELER_DISCARD(bytes);
-        CELER_DISCARD(s);
+        CELER_DISCARD((ptr, bytes, s));
         CELER_ASSERT_UNREACHABLE();
 #endif
     }
@@ -62,8 +60,7 @@ void free_async_impl(void* ptr, Stream::StreamT s)
 #if CELER_STREAM_SUPPORTS_ASYNC
         CELER_DEVICE_CALL_PREFIX(FreeAsync(ptr, s));
 #else
-        CELER_DISCARD(ptr);
-        CELER_DISCARD(s);
+        CELER_DISCARD((ptr, s));
         CELER_ASSERT_UNREACHABLE();
 #endif
     }
