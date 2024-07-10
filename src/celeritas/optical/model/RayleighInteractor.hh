@@ -66,7 +66,7 @@ CELER_FUNCTION RayleighInteractor::RayleighInteractor(TrackView const& particle,
 //---------------------------------------------------------------------------//
 /*!
  * Sample the scattered direction and polarization for a single optical
- * Rayeliegh interaction.
+ * Rayliegh interaction.
  */
 template<class Engine>
 CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng) const

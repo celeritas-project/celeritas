@@ -29,15 +29,11 @@ struct Interaction
         scattered,  //!< Still alive, state has changed
         absorbed,  //!< Absorbed by the material
         unchanged,  //!< No state change, no secondaries
-        failed,  //!< Ran out of memory during sampling
     };
 
     Real3 direction;  //!< Post-interaction direction
     Real3 polarization;  //!< Post-interaction polarization
     Action action{Action::scattered};  //!< Flags for interaction result
-
-    //! Return an interaction representing a recoverable error
-    static inline CELER_FUNCTION Interaction from_failure();
 
     //! Return an interaction respresenting an absorbed process
     static inline CELER_FUNCTION Interaction from_absorption();
@@ -54,17 +50,6 @@ struct Interaction
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Indicate a failure to allocate memory for secondaries.
- */
-CELER_FUNCTION Interaction Interaction::from_failure()
-{
-    Interaction result;
-    result.action = Action::failed;
-    return result;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct an interaction for an absorbed optical photon.

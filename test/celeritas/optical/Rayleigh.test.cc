@@ -6,8 +6,8 @@
 //! \file celeritas/optical/OpticalRayleigh.test.cc
 //---------------------------------------------------------------------------//
 #include "celeritas/optical/model/RayleighInteractor.hh"
-#include "celeritas/phys/InteractorHostTestBase.hh"
 
+#include "InteractorHostTestBase.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -25,43 +25,24 @@ class RayleighInteractorTest : public InteractorHostTestBase
   protected:
     void SetUp() override
     {
-        inc_direction_ = {0, 0, 1};
-
         // Check incident quantities are valid
-        sanity_check(inc_direction_, track_view().polarization());
-    }
-
-    void sanity_check(Real3 const& direction, Real3 const& polarization) const
-    {
-        // Check that direction and polarization are unit vectors
-        EXPECT_SOFT_EQ(1, norm(direction));
-        EXPECT_SOFT_EQ(1, norm(polarization));
-        // Check that direction and polarization are perpendicular
-        EXPECT_SOFT_EQ(0, dot_product(direction, polarization));
+        this->check_direction_polarization(
+            this->direction(), this->photon_track().polarization());
     }
 
     void sanity_check(Interaction const& interaction) const
     {
         // Interactions should always be scattering
         EXPECT_EQ(Interaction::Action::scattered, interaction.action);
-        sanity_check(interaction.direction, interaction.polarization);
+        this->check_direction_polarization(interaction);
     }
-
-    TrackView const& track_view() const
-    {
-        // Energy doesn't matter; initial polarization should be perpendicular
-        static TrackView view{units::MevEnergy{13e-6}, {1, 0, 0}};
-        return view;
-    }
-
-    Real3 inc_direction_;
 };
 
 TEST_F(RayleighInteractorTest, basic)
 {
     int const num_samples = 4;
 
-    RayleighInteractor interact{track_view(), inc_direction_};
+    RayleighInteractor interact{this->photon_track(), this->direction()};
 
     auto& rng_engine = this->rng();
 
@@ -73,9 +54,9 @@ TEST_F(RayleighInteractorTest, basic)
         Interaction result = interact(rng_engine);
         this->sanity_check(result);
 
-        dir_angle.push_back(dot_product(result.direction, inc_direction_));
-        pol_angle.push_back(
-            dot_product(result.polarization, track_view().polarization()));
+        dir_angle.push_back(dot_product(result.direction, this->direction()));
+        pol_angle.push_back(dot_product(result.polarization,
+                                        this->photon_track().polarization()));
     }
 
     static double const expected_dir_angle[] = {-0.38366589898599,
@@ -93,7 +74,7 @@ TEST_F(RayleighInteractorTest, stress_test)
 {
     int const num_samples = 1'000;
 
-    RayleighInteractor interact{track_view(), inc_direction_};
+    RayleighInteractor interact{this->photon_track(), this->direction()};
 
     auto& rng_engine = this->rng();
 
@@ -108,12 +89,12 @@ TEST_F(RayleighInteractorTest, stress_test)
         Interaction result = interact(rng_engine);
         this->sanity_check(result);
 
-        real_type dir_angle = dot_product(result.direction, inc_direction_);
+        real_type dir_angle = dot_product(result.direction, this->direction());
         dir_angle_1st_moment += dir_angle;
         dir_angle_2nd_moment += dir_angle * dir_angle;
 
-        real_type pol_angle
-            = dot_product(result.polarization, track_view().polarization());
+        real_type pol_angle = dot_product(result.polarization,
+                                          this->photon_track().polarization());
         pol_angle_1st_moment += pol_angle;
         pol_angle_2nd_moment += pol_angle * pol_angle;
     }

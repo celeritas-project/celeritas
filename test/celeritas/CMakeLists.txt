@@ -78,6 +78,7 @@ celeritas_add_test_library(testcel_celeritas
   io/EventIOTestBase.cc
   neutron/NeutronTestBase.cc
   optical/OpticalTestBase.cc
+  optical/InteractorHostTestBase.cc
   phys/InteractionIO.cc
   phys/InteractorHostTestBase.cc
   phys/MockModel.cc
