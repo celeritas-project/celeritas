@@ -77,8 +77,7 @@ jobs:
       - name: Run tests
         working-directory: build
         run: |
-          ctest --parallel $(nproc) --timeout 15 --output-on-failure \
-            --test-output-size-passed=32768 --test-output-size-failed=1048576
+          ctest --parallel $(nproc) --timeout 15 --output-on-failure
       - name: Install
         working-directory: build
         run: |

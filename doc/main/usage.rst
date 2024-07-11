@@ -276,14 +276,15 @@ tell what variables are in use or may be useful.
  CELER_DISABLE_DEVICE    corecel   Disable CUDA/HIP support
  CELER_DISABLE_PARALLEL  corecel   Disable MPI support
  CELER_DISABLE_ROOT      corecel   Disable ROOT I/O calls
+ CELER_DEVICE_ASYNC      corecel   Flag for asynchronous memory allocation
  CELER_ENABLE_PROFILING  corecel   Set up NVTX/ROCTX profiling ranges [#pr]
  CELER_LOG               corecel   Set the "global" logger verbosity
  CELER_LOG_LOCAL         corecel   Set the "local" logger verbosity
  CELER_MEMPOOL... [#mp]_ celeritas Change ``cudaMemPoolAttrReleaseThreshold``
  CELER_PROFILE_DEVICE    corecel   Record extra kernel launch information
- CUDA_HEAP_SIZE          celeritas Change ``cudaLimitMallocHeapSize`` (VG)
- CUDA_STACK_SIZE         celeritas Change ``cudaLimitStackSize`` for VecGeom
- G4VG_COMPARE_VOLUMES    celeritas Check G4VG volume capacity when converting
+ CUDA_HEAP_SIZE          geocel    Change ``cudaLimitMallocHeapSize`` (VG)
+ CUDA_STACK_SIZE         geocel    Change ``cudaLimitStackSize`` for VecGeom
+ G4VG_COMPARE_VOLUMES    geocel    Check G4VG volume capacity when converting
  HEPMC3_VERBOSE          celeritas HepMC3 debug verbosity
  VECGEOM_VERBOSE         celeritas VecGeom CUDA verbosity
  CELER_DISABLE           accel     Disable Celeritas offloading entirely
@@ -293,6 +294,14 @@ tell what variables are in use or may be useful.
 
 .. [#mp] CELER_MEMPOOL_RELEASE_THRESHOLD
 .. [#pr] See :ref:`profiling`
+
+Some of the Celeritas-defined environment variables have prefixes from other
+libraries because they directly control the behavior of that library and
+nothing else. The ``CELER_DEVICE_ASYNC`` may be needed when running HIP 5.7
+or later due to the "beta" nature of hipMallocAsync_: it defaults to "true"
+*except* for HIP less than 5.2 (where it is not implemented) or greater than 5.6.
+
+.. _hipMallocAsync: https://rocm.docs.amd.com/projects/HIP/en/latest/doxygen/html/group___stream_o.html
 
 Environment variables from external libraries can also be referenced by
 Celeritas or its apps:
@@ -309,6 +318,13 @@ Celeritas or its apps:
  G4FORCENUMBEROFTHREADS   Geant4    Set CPU worker thread count
  OMP_NUM_THREADS          OpenMP    Number of threads per process
  ======================== ========= ==========================================
+
+.. note::
+
+   For frameworks integrating Celeritas, these options are configurable via the
+   Celeritas API. Before Celeritas is set up for the first time, on a single
+   thread access the ``celeritas::environment()`` struct (see
+   :ref:`api_system`), and call ``insert`` for the desired key/value pairs.
 
 .. _logging:
 

@@ -18,6 +18,10 @@
 
 namespace celeritas
 {
+inline bool operator==(GetenvFlagResult a, GetenvFlagResult b)
+{
+    return a.value == b.value && a.defaulted == b.defaulted;
+}
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -32,7 +36,7 @@ TEST(EnvironmentTest, local)
     EXPECT_EQ("", env["ENVTEST_UNSET"]);
 
     // Insert shouldn't override existing value
-    env.insert({"ENVTEST_ZERO", "2"});
+    EXPECT_FALSE(env.insert({"ENVTEST_ZERO", "2"}));
     EXPECT_EQ("0", env["ENVTEST_ZERO"]);
 
     std::ostringstream os;
@@ -49,13 +53,35 @@ TEST(EnvironmentTest, local)
 TEST(EnvironmentTest, global)
 {
     EXPECT_EQ("1", environment()["ENVTEST_ONE"]);
+    EXPECT_EQ("0", getenv("ENVTEST_ZERO"));
     EXPECT_EQ("1", getenv("ENVTEST_ONE"));
+    EXPECT_EQ("", getenv("ENVTEST_EMPTY"));
+
+    EXPECT_EQ((GetenvFlagResult{false, false}),
+              getenv_flag("ENVTEST_ZERO", false));
+    EXPECT_EQ((GetenvFlagResult{true, false}),
+              getenv_flag("ENVTEST_ONE", false));
+    EXPECT_EQ((GetenvFlagResult{false, true}),
+              getenv_flag("ENVTEST_EMPTY", false));
+    EXPECT_EQ((GetenvFlagResult{true, true}),
+              getenv_flag("ENVTEST_EMPTY", true));
+    EXPECT_EQ((GetenvFlagResult{true, true}),
+              getenv_flag("ENVTEST_NEW_T", true));
+    EXPECT_EQ((GetenvFlagResult{false, true}),
+              getenv_flag("ENVTEST_NEW_F", false));
+
+    environment().insert({"ENVTEST_FALSE", "false"});
+    environment().insert({"ENVTEST_TRUE", "true"});
+    EXPECT_EQ((GetenvFlagResult{false, false}),
+              getenv_flag("ENVTEST_FALSE", false));
+    EXPECT_EQ((GetenvFlagResult{true, false}),
+              getenv_flag("ENVTEST_TRUE", false));
 }
 
 TEST(EnvironmentTest, merge)
 {
     Environment sys;
-    sys.insert({"FOO", "foo"});
+    EXPECT_TRUE(sys.insert({"FOO", "foo"}));
     sys.insert({"BAR", "bar"});
     Environment input;
     input.insert({"FOO", "foo2"});
@@ -88,9 +114,9 @@ TEST(EnvironmentTest, TEST_IF_CELERITAS_JSON(json))
     }
     {
         // Save environment
-        nlohmann::json out{env};
+        nlohmann::json out = env;
         EXPECT_JSON_EQ(
-            R"json([{"ENVTEST_CUSTOM":"custom","ENVTEST_ONE":"111111","ENVTEST_ZERO":"000000"}])json",
+            R"json({"ENVTEST_CUSTOM":"custom","ENVTEST_ONE":"111111","ENVTEST_ZERO":"000000"})json",
             out.dump());
     }
 #endif

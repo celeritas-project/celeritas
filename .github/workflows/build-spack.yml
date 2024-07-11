@@ -134,8 +134,18 @@ jobs:
             #export CELER_TEST_STRICT=1
             echo "warning: strict testing is disabled"
           fi
-          ctest --parallel $(nproc) --timeout 15 --output-on-failure \
-            --test-output-size-passed=32768 --test-output-size-failed=1048576
+          ctest --parallel $(nproc) --timeout 15 --output-on-failure
+      - name: Upload failed tests
+        if: ${{steps.test.outcome == 'failure'}}
+        uses: actions/upload-artifact@v4
+        with:
+          name: failed-${{github.job}}-${{env.CMAKE_PRESET}}-${{matrix.geant}}
+          if-no-files-found: warn
+          retention-days: 3
+          path: |
+            build/**/*.out.json
+            build/Testing/Temporary/LastTest.log
+            build/Testing/Temporary/LastTestsFailed.log
       - name: Install
         working-directory: build
         run: |

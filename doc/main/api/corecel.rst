@@ -38,10 +38,17 @@ and "postcondition contract".
 
 .. doxygenclass:: celeritas::OpaqueId
 
+.. _api_system:
+
 System
 ------
 
 .. doxygenfile:: corecel/sys/Device.hh
+
+.. doxygenclass:: celeritas::Environment
+.. doxygenfunction:: celeritas::environment
+.. doxygenfunction:: celeritas::getenv
+.. doxygenfunction:: celeritas::getenv_flag
 
 Containers
 ----------
