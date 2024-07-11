@@ -49,7 +49,7 @@ CELER_FUNCTION void ScintPreGenExecutor::operator()(CoreTrackView const& track)
 {
     CELER_EXPECT(state);
 
-    using DistId = ItemId<PreGenDistributionData>;
+    using DistId = ItemId<GeneratorDistributionData>;
 
     auto tsid = track.track_slot_id();
     CELER_ASSERT(size.scintillation + tsid.get() < state.scintillation.size());

@@ -15,8 +15,8 @@
 #include "celeritas/Types.hh"
 
 #include "CerenkovData.hh"
+#include "GeneratorDistributionData.hh"
 #include "MaterialPropertyData.hh"
-#include "PreGenDistributionData.hh"
 #include "ScintillationData.hh"
 
 namespace celeritas
@@ -126,8 +126,8 @@ struct PreGenStateData
     StateItems<PreGenPreStepData> step;
 
     // Buffers of distribution data for generating optical primaries
-    Items<PreGenDistributionData> cerenkov;
-    Items<PreGenDistributionData> scintillation;
+    Items<GeneratorDistributionData> cerenkov;
+    Items<GeneratorDistributionData> scintillation;
 
     //// METHODS ////
 

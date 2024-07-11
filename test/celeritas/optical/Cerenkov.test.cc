@@ -24,8 +24,8 @@
 #include "celeritas/optical/CerenkovGenerator.hh"
 #include "celeritas/optical/CerenkovParams.hh"
 #include "celeritas/optical/CerenkovPreGenerator.hh"
+#include "celeritas/optical/GeneratorDistributionData.hh"
 #include "celeritas/optical/MaterialPropertyParams.hh"
-#include "celeritas/optical/PreGenDistributionData.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/random/distribution/PoissonDistribution.hh"
 

@@ -18,7 +18,7 @@
 #include "celeritas/random/distribution/NormalDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
-#include "PreGenDistributionData.hh"
+#include "GeneratorDistributionData.hh"
 #include "Primary.hh"
 #include "ScintillationData.hh"
 
@@ -44,7 +44,7 @@ class ScintillationGenerator
   public:
     // Construct from scintillation data and distribution parameters
     inline CELER_FUNCTION
-    ScintillationGenerator(PreGenDistributionData const& dist,
+    ScintillationGenerator(GeneratorDistributionData const& dist,
                            NativeCRef<ScintillationData> const& shared,
                            Span<Primary> photons);
 
@@ -60,7 +60,7 @@ class ScintillationGenerator
 
     //// DATA ////
 
-    PreGenDistributionData const& dist_;
+    GeneratorDistributionData const& dist_;
     NativeCRef<ScintillationData> const& shared_;
     Span<Primary> photons_;
 
@@ -80,7 +80,7 @@ class ScintillationGenerator
  */
 CELER_FUNCTION
 ScintillationGenerator::ScintillationGenerator(
-    PreGenDistributionData const& dist,
+    GeneratorDistributionData const& dist,
     NativeCRef<ScintillationData> const& shared,
     Span<Primary> photons)
     : dist_(dist)

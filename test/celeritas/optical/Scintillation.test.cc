@@ -11,7 +11,7 @@
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/optical/PreGenDistributionData.hh"
+#include "celeritas/optical/GeneratorDistributionData.hh"
 #include "celeritas/optical/Primary.hh"
 #include "celeritas/optical/ScintillationData.hh"
 #include "celeritas/optical/ScintillationGenerator.hh"

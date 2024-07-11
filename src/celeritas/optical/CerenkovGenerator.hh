@@ -21,8 +21,8 @@
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 #include "CerenkovDndxCalculator.hh"
+#include "GeneratorDistributionData.hh"
 #include "MaterialPropertyData.hh"
-#include "PreGenDistributionData.hh"
 #include "Primary.hh"
 
 namespace celeritas
@@ -54,7 +54,7 @@ class CerenkovGenerator
     inline CELER_FUNCTION
     CerenkovGenerator(NativeCRef<MaterialPropertyData> const& properties,
                       NativeCRef<CerenkovData> const& shared,
-                      PreGenDistributionData const& dist,
+                      GeneratorDistributionData const& dist,
                       Span<Primary> photons);
 
     // Sample Cerenkov photons from the distribution
@@ -68,7 +68,7 @@ class CerenkovGenerator
 
     //// DATA ////
 
-    PreGenDistributionData const& dist_;
+    GeneratorDistributionData const& dist_;
     Span<Primary> photons_;
     GenericCalculator calc_refractive_index_;
     UniformRealDist sample_phi_;
@@ -99,7 +99,7 @@ CELER_FUNCTION
 CerenkovGenerator::CerenkovGenerator(
     NativeCRef<MaterialPropertyData> const& properties,
     NativeCRef<CerenkovData> const& shared,
-    PreGenDistributionData const& dist,
+    GeneratorDistributionData const& dist,
     Span<Primary> photons)
     : dist_(dist)
     , photons_(photons)

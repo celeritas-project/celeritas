@@ -74,8 +74,8 @@ class LArSpherePreGenTest : public LArSphereBase
 
   protected:
     using SizeId = ItemId<size_type>;
-    using BufferId = ItemId<PreGenDistributionData>;
-    using BufferRange = ItemRange<PreGenDistributionData>;
+    using BufferId = ItemId<GeneratorDistributionData>;
+    using BufferRange = ItemRange<GeneratorDistributionData>;
 
     std::shared_ptr<OpticalCollector> collector_;
     StreamId stream_{0};
@@ -223,14 +223,14 @@ auto LArSpherePreGenTest::run(size_type num_tracks, size_type num_steps)
     }
 
     using ItemsRef
-        = Collection<PreGenDistributionData, Ownership::reference, M>;
+        = Collection<GeneratorDistributionData, Ownership::reference, M>;
 
     auto get_result = [&](PreGenResult& result,
                           ItemsRef const& buffer,
                           size_type size) {
         // Copy buffer to host
-        std::vector<PreGenDistributionData> data(size);
-        Copier<PreGenDistributionData, MemSpace::host> copy_data{
+        std::vector<GeneratorDistributionData> data(size);
+        Copier<GeneratorDistributionData, MemSpace::host> copy_data{
             make_span(data)};
         copy_data(M, buffer[BufferRange(BufferId(0), BufferId(size))]);
 

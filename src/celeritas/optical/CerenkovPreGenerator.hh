@@ -15,9 +15,9 @@
 
 #include "CerenkovData.hh"
 #include "CerenkovDndxCalculator.hh"
+#include "GeneratorDistributionData.hh"
 #include "MaterialPropertyData.hh"
 #include "PreGenData.hh"
-#include "PreGenDistributionData.hh"
 
 namespace celeritas
 {
@@ -27,7 +27,7 @@ namespace optical
 /*!
  * Sample the number of Cerenkov photons to be generated.
  *
- * This populates the \c PreGenDistributionData used by the \c
+ * This populates the \c GeneratorDistributionData used by the \c
  * CerenkovGenerator to generate optical photons using post-step and cached
  * pre-step data.
  */
@@ -45,7 +45,7 @@ class CerenkovPreGenerator
 
     // Return a populated optical distribution data for the Cerenkov Generator
     template<class Generator>
-    inline CELER_FUNCTION PreGenDistributionData operator()(Generator& rng);
+    inline CELER_FUNCTION GeneratorDistributionData operator()(Generator& rng);
 
   private:
     units::ElementaryCharge charge_;
@@ -87,7 +87,7 @@ CELER_FUNCTION CerenkovPreGenerator::CerenkovPreGenerator(
 
 //---------------------------------------------------------------------------//
 /*!
- * Return an \c PreGenDistributionData object. If no photons are sampled, an
+ * Return an \c GeneratorDistributionData object. If no photons are sampled, an
  * empty object is returned and can be verified via its own operator bool.
  *
  * The number of photons is sampled from a Poisson distribution with a mean
@@ -97,7 +97,7 @@ CELER_FUNCTION CerenkovPreGenerator::CerenkovPreGenerator(
  * where \f$ \ell_\text{step} \f$ is the step length.
  */
 template<class Generator>
-CELER_FUNCTION PreGenDistributionData
+CELER_FUNCTION GeneratorDistributionData
 CerenkovPreGenerator::operator()(Generator& rng)
 {
     if (num_photons_per_len_ == 0)
@@ -105,7 +105,7 @@ CerenkovPreGenerator::operator()(Generator& rng)
         return {};
     }
 
-    PreGenDistributionData data;
+    GeneratorDistributionData data;
     data.num_photons = PoissonDistribution<real_type>(num_photons_per_len_
                                                       * step_length_)(rng);
     if (data.num_photons > 0)

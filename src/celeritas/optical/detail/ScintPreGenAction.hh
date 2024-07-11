@@ -13,7 +13,7 @@
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/Collection.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/optical/PreGenDistributionData.hh"
+#include "celeritas/optical/GeneratorDistributionData.hh"
 
 #include "PreGenParams.hh"
 

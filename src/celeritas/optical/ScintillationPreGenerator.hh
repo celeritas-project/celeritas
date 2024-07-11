@@ -15,9 +15,9 @@
 #include "celeritas/random/distribution/PoissonDistribution.hh"
 #include "celeritas/track/SimTrackView.hh"
 
+#include "GeneratorDistributionData.hh"
 #include "MaterialPropertyData.hh"
 #include "PreGenData.hh"
-#include "PreGenDistributionData.hh"
 #include "ScintillationData.hh"
 
 namespace celeritas
@@ -28,7 +28,7 @@ namespace optical
 /*!
  * Sample the number of scintillation photons to be generated.
  *
- * This populates the \c PreGenDistributionData used by the \c
+ * This populates the \c GeneratorDistributionData used by the \c
  * ScintillationGenerator to generate optical photons using post-step and
  * cached pre-step data.
  */
@@ -46,7 +46,7 @@ class ScintillationPreGenerator
 
     // Populate an optical distribution data for the Scintillation Generator
     template<class Generator>
-    inline CELER_FUNCTION PreGenDistributionData operator()(Generator& rng);
+    inline CELER_FUNCTION GeneratorDistributionData operator()(Generator& rng);
 
   private:
     units::ElementaryCharge charge_;
@@ -101,15 +101,15 @@ CELER_FUNCTION ScintillationPreGenerator::ScintillationPreGenerator(
 
 //---------------------------------------------------------------------------//
 /*!
- * Return an \c PreGenDistributionData object. If no photons are sampled, an
+ * Return an \c GeneratorDistributionData object. If no photons are sampled, an
  * empty object is returned and can be verified via its own operator bool.
  */
 template<class Generator>
-CELER_FUNCTION PreGenDistributionData
+CELER_FUNCTION GeneratorDistributionData
 ScintillationPreGenerator::operator()(Generator& rng)
 {
     // Material-only sampling
-    PreGenDistributionData result;
+    GeneratorDistributionData result;
     if (mean_num_photons_ > 10)
     {
         real_type sigma = shared_.resolution_scale[pre_step_.opt_mat]

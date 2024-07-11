@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/PreGenDistributionData.hh
+//! \file celeritas/optical/GeneratorDistributionData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -38,7 +38,7 @@ struct PreGenStepData
 /*!
  * Input data for sampling optical photons.
  */
-struct PreGenDistributionData
+struct GeneratorDistributionData
 {
     size_type num_photons{};  //!< Sampled number of photons to generate
     real_type time{};  //!< Pre-step time

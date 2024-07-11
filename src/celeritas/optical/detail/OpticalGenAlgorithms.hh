@@ -10,7 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
-#include "celeritas/optical/PreGenDistributionData.hh"
+#include "celeritas/optical/GeneratorDistributionData.hh"
 
 namespace celeritas
 {
@@ -22,7 +22,7 @@ namespace detail
 struct IsInvalid
 {
     // Check if the distribution data is valid
-    CELER_FUNCTION bool operator()(PreGenDistributionData const& data) const
+    CELER_FUNCTION bool operator()(GeneratorDistributionData const& data) const
     {
         return !data;
     }
@@ -30,12 +30,13 @@ struct IsInvalid
 
 //---------------------------------------------------------------------------//
 // Remove all invalid distributions from the buffer.
-size_type remove_if_invalid(
-    Collection<PreGenDistributionData, Ownership::reference, MemSpace::host> const&,
-    size_type,
-    size_type,
-    StreamId);
-size_type remove_if_invalid(Collection<PreGenDistributionData,
+size_type remove_if_invalid(Collection<GeneratorDistributionData,
+                                       Ownership::reference,
+                                       MemSpace::host> const&,
+                            size_type,
+                            size_type,
+                            StreamId);
+size_type remove_if_invalid(Collection<GeneratorDistributionData,
                                        Ownership::reference,
                                        MemSpace::device> const&,
                             size_type,
@@ -46,7 +47,7 @@ size_type remove_if_invalid(Collection<PreGenDistributionData,
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-inline size_type remove_if_invalid(Collection<PreGenDistributionData,
+inline size_type remove_if_invalid(Collection<GeneratorDistributionData,
                                               Ownership::reference,
                                               MemSpace::device> const&,
                                    size_type,

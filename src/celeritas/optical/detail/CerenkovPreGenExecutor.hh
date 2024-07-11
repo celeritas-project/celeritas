@@ -49,7 +49,7 @@ CerenkovPreGenExecutor::operator()(CoreTrackView const& track)
     CELER_EXPECT(cerenkov);
     CELER_EXPECT(properties);
 
-    using DistId = ItemId<PreGenDistributionData>;
+    using DistId = ItemId<GeneratorDistributionData>;
 
     auto tsid = track.track_slot_id();
     CELER_ASSERT(size.cerenkov + tsid.get() < state.cerenkov.size());
