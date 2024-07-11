@@ -223,6 +223,11 @@ TEST_F(StatusCheckerTest, TEST_IF_CELER_DEVICE(device))
     post_step[target_track] = this->find_action("physics-discrete-select");
     copy_to_device(post_step, state.ref().sim.post_step_action);
 
+    if constexpr (CELERITAS_USE_HIP)
+    {
+        GTEST_SKIP() << "HIP debug calls 'abort' rather than asserting";
+    }
+
     EXPECT_THROW(
         status_checker_->execute(
             this->find_action("scat-klein-nishina"), *this->core(), state),
