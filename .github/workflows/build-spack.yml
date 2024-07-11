@@ -147,8 +147,7 @@ jobs:
             # Note this is ignored for geant4, float, clhep
             export CELER_TEST_STRICT=1
           fi
-          ctest --parallel $(nproc) --timeout 15 --output-on-failure \
-            --test-output-size-passed=32768 --test-output-size-failed=1048576
+          ctest --parallel $(nproc) --timeout 15 --output-on-failure
       - name: Upload failed tests
         if: ${{steps.test.outcome == 'failure'}}
         uses: actions/upload-artifact@v4
