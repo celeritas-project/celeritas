@@ -55,6 +55,7 @@ class InvoluteSolver
     //!@{
     //! \name Type aliases
     using Intersections = Array<real_type, 3>;
+    using SurfaceSate = celeritas::SurfaceState;
 
     //! Enum defining chirality of involute
     enum Sign : bool
@@ -94,8 +95,8 @@ class InvoluteSolver
         real_type r_b, real_type a, Sign sign, real_type tmin, real_type tmax);
 
     // Solve fully general case
-    inline CELER_FUNCTION Intersections operator()(Real3 const& pos,
-                                                   Real3 const& dir) const;
+    inline CELER_FUNCTION Intersections operator()(
+        Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     //// ACCESSORS ////
 
@@ -156,18 +157,17 @@ CELER_FUNCTION InvoluteSolver::InvoluteSolver(
  */
 CELER_FUNCTION auto
 InvoluteSolver::operator()(Real3 const& pos,
-                           Real3 const& dir) const -> Intersections
+                           Real3 const& dir,
+                           SurfaceState on_surface) const -> Intersections
 {
     using Tolerance = celeritas::Tolerance<real_type>;
 
     // Flatten pos and dir in xyz and uv respectively
     real_type x = pos[0];
     real_type const y = pos[1];
-    real_type const z = pos[2];
 
     real_type u = dir[0];
     real_type v = dir[1];
-    real_type const w = dir[2];
 
     // Mirror systemm for counterclockwise involutes
     if (sign_)
@@ -203,17 +203,8 @@ InvoluteSolver::operator()(Real3 const& pos,
     u *= convert;
     v *= convert;
 
-    // Check if particle is on a surface within tolerance
-
-    real_type const rxy_sq = ipow<2>(x) + ipow<2>(y);
-    real_type const t_point = std::sqrt((rxy_sq / (ipow<2>(r_b_))) - 1);
-    real_type angle = t_point + a_;
-    real_type x_inv = r_b_ * (std::cos(angle) + t_point * std::sin(angle));
-    real_type y_inv = r_b_ * (std::sin(angle) - t_point * std::cos(angle));
-
-    // Remove 0 dist
-    if (std::fabs(x - x_inv) < tol_point.abs
-        && std::fabs(y - y_inv) < tol_point.abs)
+    // Remove 0 dist if particle is on surface
+    if (on_surface == SurfaceState::on)
     {
         result[j] = 0;
         j++;

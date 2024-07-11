@@ -112,7 +112,7 @@ TEST(Involute, solve_intersect)
         real_type convert = 2;
 
         auto dist = invo.calc_intersections(
-            Real3{-4.0, 2.0}, Real3{u, v, w}, SurfaceState::on);
+            Real3{-4.0, 2.0}, Real3{u, v, w}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(6.0371012183803652 * convert, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
@@ -129,7 +129,7 @@ TEST(Involute, solve_intersect)
         double v = 0;
 
         auto dist = invo.calc_intersections(
-            Real3{0, -2.0, 0}, Real3{u, v, 0.0}, SurfaceState::on);
+            Real3{0, -2.0, 0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(no_intersection(), dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);

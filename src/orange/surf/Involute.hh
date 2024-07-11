@@ -279,7 +279,7 @@ Involute::calc_intersections(Real3 const& pos,
 
     detail::InvoluteSolver solve(r_b_, a_, sign_, tmin_, tmax_);
 
-    return solve(rel_pos, dir);
+    return solve(rel_pos, dir, on_surface);
 }
 
 //---------------------------------------------------------------------------//

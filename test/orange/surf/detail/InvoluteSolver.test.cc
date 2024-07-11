@@ -20,6 +20,7 @@ namespace test
 //---------------------------------------------------------------------------//
 using constants::pi;
 using Sign = InvoluteSolver::Sign;
+using SurfaceSate = celeritas::SurfaceState;
 
 //! Python reference can be found in \file test/orange/surf/doc/involute.py
 TEST(SolveSurface, no_roots)
@@ -41,7 +42,8 @@ TEST(SolveSurface, no_roots)
         double tmax = 4;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0});
+        auto dist
+            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(no_intersection(), dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
@@ -65,7 +67,8 @@ TEST(SolveSurface, no_roots)
         double tmax = 4;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0});
+        auto dist
+            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(no_intersection(), dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
@@ -89,7 +92,8 @@ TEST(SolveSurface, no_roots)
         double tmax = 4;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0});
+        auto dist
+            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(no_intersection(), dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
@@ -116,7 +120,8 @@ TEST(SolveSurface, one_root)
         double tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0});
+        auto dist
+            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(2.9716938706909275, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
@@ -140,7 +145,8 @@ TEST(SolveSurface, one_root)
         double tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0});
+        auto dist
+            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(3.7273045229725681, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
@@ -164,7 +170,7 @@ TEST(SolveSurface, one_root)
         double tmax = 4;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0});
+        auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
         EXPECT_SOFT_EQ(0, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
@@ -188,7 +194,8 @@ TEST(SolveSurface, one_root)
         double tmax = 4;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0});
+        auto dist
+            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(6.0371012183803652, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
@@ -212,7 +219,8 @@ TEST(SolveSurface, one_root)
         double tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0});
+        auto dist
+            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(no_intersection(), dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
@@ -239,7 +247,8 @@ TEST(SolveSurface, two_roots)
         double tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0});
+        auto dist
+            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(0.2, dist[0]);
         EXPECT_SOFT_EQ(2.764234602725404, dist[1]);
@@ -263,7 +272,8 @@ TEST(SolveSurface, two_roots)
         double tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0});
+        auto dist
+            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(0.0036178081060022097, dist[0]);
         EXPECT_SOFT_EQ(6.0284475629193013, dist[1]);
@@ -288,7 +298,7 @@ TEST(SolveSurface, two_roots)
         double tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0});
+        auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
         EXPECT_SOFT_EQ(0.0, dist[0]);
         EXPECT_SOFT_EQ(4.6528327548038506, dist[1]);
@@ -315,7 +325,7 @@ TEST(SolveSurface, three_roots)
         double tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0});
+        auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
         EXPECT_SOFT_EQ(0.0, dist[0]);
         EXPECT_SOFT_EQ(6.9112249151160547, dist[1]);
