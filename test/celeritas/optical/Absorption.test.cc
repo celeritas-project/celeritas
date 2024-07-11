@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/Absorption.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/optical/model/AbsorptionInteractor.hh"
+#include "celeritas/optical/interactor/AbsorptionInteractor.hh"
 
 #include "celeritas_test.hh"
 

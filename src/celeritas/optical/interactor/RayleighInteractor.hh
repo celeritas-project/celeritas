@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/model/RayleighInteractor.hh
+//! \file celeritas/optical/interactor/RayleighInteractor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -91,7 +91,7 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng) const
         {
             // Project polarization onto plane perpendicular to new direction
             new_pol = make_unit_vector(inc_pol_ - projected_pol * new_dir);
-            new_pol *= BernoulliDistribution{0.5}(rng) ? 1 : -1;
+            new_pol *= BernoulliDistribution{real_type{0.5}}(rng) ? 1 : -1;
         }
 
         // Perform rejection sampling for with the probability of the

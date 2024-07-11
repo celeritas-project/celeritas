@@ -18,8 +18,8 @@ namespace optical
 /*!
  * The result of a discrete optical interaction.
  *
- * Discrete optical interactions are always elastic. The wavelength of a
- * a photon is only changed through absorption re-emission processes.
+ * All optical interactions are discrete. The wavelength of a photon is only
+ * changed through absorption re-emission processes.
  */
 struct Interaction
 {

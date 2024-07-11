@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/OpticalRayleigh.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/optical/model/RayleighInteractor.hh"
+#include "celeritas/optical/interactor/RayleighInteractor.hh"
 
 #include "InteractorHostTestBase.hh"
 #include "celeritas_test.hh"
@@ -59,11 +59,11 @@ TEST_F(RayleighInteractorTest, basic)
                                         this->photon_track().polarization()));
     }
 
-    static double const expected_dir_angle[] = {-0.38366589898599,
-                                                -0.18253767807648,
-                                                0.42140775018143,
-                                                -0.15366976713254};
-    static double const expected_pol_angle[] = {
+    static real_type const expected_dir_angle[] = {-0.38366589898599,
+                                                   -0.18253767807648,
+                                                   0.42140775018143,
+                                                   -0.15366976713254};
+    static real_type const expected_pol_angle[] = {
         0.46914077892327, 0.31484033374691, 0.82815845476385, 0.50516788333603};
 
     EXPECT_VEC_SOFT_EQ(expected_dir_angle, dir_angle);
@@ -104,10 +104,12 @@ TEST_F(RayleighInteractorTest, stress_test)
     pol_angle_1st_moment /= num_samples;
     pol_angle_2nd_moment /= num_samples;
 
-    static double const expected_dir_angle_1st_moment = -0.0037666175399340422;
-    static double const expected_dir_angle_2nd_moment = 0.19865973173404519;
-    static double const expected_pol_angle_1st_moment = -0.020707206147726396;
-    static double const expected_pol_angle_2nd_moment = 0.40045856568225996;
+    static real_type const expected_dir_angle_1st_moment
+        = -0.0037666175399340422;
+    static real_type const expected_dir_angle_2nd_moment = 0.19865973173404519;
+    static real_type const expected_pol_angle_1st_moment
+        = -0.020707206147726396;
+    static real_type const expected_pol_angle_2nd_moment = 0.40045856568225996;
 
     EXPECT_SOFT_EQ(expected_dir_angle_1st_moment, dir_angle_1st_moment);
     EXPECT_SOFT_EQ(expected_dir_angle_2nd_moment, dir_angle_2nd_moment);
