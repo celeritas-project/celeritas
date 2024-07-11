@@ -8,8 +8,6 @@
 #pragma once
 
 #include <cmath>
-#include <iostream>
-#include <vector>
 
 #include "corecel/Constants.hh"
 #include "corecel/Types.hh"
@@ -23,19 +21,18 @@ namespace celeritas
 namespace detail
 {
 using constants::pi;
-
 // Lambda used for calculating the roots using Regular Falsi Iteration
 auto root = [](real_type t,
                real_type x,
                real_type y,
                real_type u,
                real_type v,
-               real_type r_b_,
-               real_type a_) {
-    real_type a = u * std::sin(t + a_) - v * std::cos(t + a_);
-    real_type b = t * (u * std::cos(t + a_) + v * std::sin(t + a_));
-    real_type c = r_b_ * (a - b);
-    return c + x * v - y * u;
+               real_type r_b,
+               real_type a) {
+    real_type alpha = u * std::sin(t + a) - v * std::cos(t + a);
+    real_type beta = t * (u * std::cos(t + a) + v * std::sin(t + a));
+    real_type gamma = r_b * (alpha - beta);
+    return gamma + x * v - y * u;
 };
 //---------------------------------------------------------------------------//
 /*!
@@ -139,11 +136,6 @@ CELER_FUNCTION InvoluteSolver::InvoluteSolver(
     CELER_EXPECT(tmax > 0);
     CELER_EXPECT(tmin > 0);
     CELER_EXPECT(tmax < 2 * pi + tmin);
-
-    if (sign_)
-    {
-        a_ = -a + pi;
-    }
 }
 
 //---------------------------------------------------------------------------//
@@ -174,7 +166,7 @@ InvoluteSolver::operator()(Real3 const& pos,
     real_type const z = pos[2];
 
     real_type u = dir[0];
-    real_type const v = dir[1];
+    real_type v = dir[1];
     real_type const w = dir[2];
 
     // Mirror systemm for counterclockwise involutes
@@ -208,6 +200,8 @@ InvoluteSolver::operator()(Real3 const& pos,
     // Conversion constant for 2-D distance to 3-D distance
 
     real_type convert = 1 / std::sqrt(ipow<2>(v) + ipow<2>(u));
+    u *= convert;
+    v *= convert;
 
     // Check if particle is on a surface within tolerance
 

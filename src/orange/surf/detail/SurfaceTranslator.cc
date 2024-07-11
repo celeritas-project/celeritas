@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "SurfaceTranslator.hh"
 
+#include "corecel/Constants.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "orange/MatrixUtils.hh"
@@ -112,13 +113,27 @@ Sphere SurfaceTranslator::operator()(Sphere const& other) const
  */
 Involute SurfaceTranslator::operator()(Involute const& other) const
 {
+    using constants::pi;
     using Sign = Involute::Sign;
-    Involute invo{tr_.transform_up(other.origin()),
-                  other.r_b(),
-                  other.a(),
-                  other.tmin(),
-                  other.tmax()};
-    return invo;
+    using Real2 = Involute::Real2;
+    Real3 other_origin = {other.origin()[0], other.origin()[1], 0};
+    Real3 other_origin_tr_3 = tr_.transform_up(other_origin);
+    Real2 other_origin_tr = {other_origin_tr_3[0], other_origin_tr_3[1]};
+    if (other.sign())
+    {
+        Involute invo{other_origin_tr,
+                      -other.r_b(),
+                      pi - other.a(),
+                      other.tmin(),
+                      other.tmax()};
+        return invo;
+    }
+    else
+    {
+        Involute invo{
+            other_origin_tr, other.r_b(), other.a(), other.tmin(), other.tmax()};
+        return invo;
+    }
 }
 
 //---------------------------------------------------------------------------//

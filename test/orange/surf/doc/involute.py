@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
+# See the top-level COPYRIGHT file for details.
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+"""\
+Store involute parameters and calculate distance from a point in a direction.
+"""
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import newton 
@@ -486,12 +493,12 @@ if False:
         print("Test 11: Failed")       
         
                 
-# Test Involute      
-rb = 1.0
-a0 = 0
-t = np.linspace(0,4*np.pi,500)
-sign = 1
-involute = Involute(rb, a0, t, sign)
+# # Test Involute      
+# rb = 1.0
+# a0 = 0
+# t = np.linspace(0,4*np.pi,500)
+# sign = 1
+# involute = Involute(rb, a0, t, sign)
 
 # # IsOn test
 # onBool = involute.IsOn(involute.involuteX[4], involute.involuteY[4])

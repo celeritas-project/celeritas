@@ -9,7 +9,6 @@
 
 #include <cassert>
 #include <cmath>
-#include <iostream>
 
 #include "corecel/Constants.hh"
 #include "corecel/Types.hh"
@@ -57,10 +56,10 @@ class Involute
     //@{
     //! \name Type aliases
     using Intersections = Array<real_type, 3>;
-    using StorageSpan = Span<real_type const, 7>;
-    //@}
-
+    using StorageSpan = Span<real_type const, 6>;
     using Sign = detail::InvoluteSolver::Sign;
+    using Real2 = Array<real_type, 2>;
+    //@}
 
   public:
     //// CLASS ATTRIBUTES ////
@@ -76,7 +75,7 @@ class Involute
 
   public:
     //// CONSTRUCTORS ////
-    explicit Involute(Real3 const& origin,
+    explicit Involute(Real2 const& origin,
                       real_type radius,
                       real_type a,
                       real_type tmin,
@@ -89,7 +88,7 @@ class Involute
     //// ACCESSORS ////
 
     //! Get the origin position
-    CELER_FUNCTION Real3 const& origin() const { return origin_; }
+    CELER_FUNCTION Real2 const& origin() const { return origin_; }
 
     //! Get involute parameters
     CELER_FUNCTION real_type r_b() const { return r_b_; }
@@ -101,7 +100,7 @@ class Involute
     CELER_FUNCTION real_type tmax() const { return tmax_; }
 
     //! Get a view to the data for type-deleted storage
-    CELER_FUNCTION StorageSpan data() const { return {&origin_[0], 7}; }
+    CELER_FUNCTION StorageSpan data() const { return {&origin_[0], 6}; }
 
     //// CALCULATION ////
 
@@ -117,7 +116,7 @@ class Involute
 
   private:
     // Location of the center of circle of involute
-    Real3 origin_;
+    Real2 origin_;
 
     // Involute parameters
     real_type r_b_;
@@ -139,12 +138,12 @@ class Involute
  */
 template<class R>
 CELER_FUNCTION Involute::Involute(Span<R, StorageSpan::extent> data)
-    : origin_{data[0], data[1], data[2]}
-    , r_b_{data[3]}
-    , a_{data[4]}
-    , sign_{static_cast<Sign>(data[3] < 0)}
-    , tmin_{data[5]}
-    , tmax_{data[6]}
+    : origin_{data[0], data[1]}
+    , r_b_{data[2]}
+    , a_{data[3]}
+    , sign_{static_cast<Sign>(data[2] < 0)}
+    , tmin_{data[4]}
+    , tmax_{data[5]}
 {
 }
 
@@ -275,7 +274,8 @@ Involute::calc_intersections(Real3 const& pos,
 {
     // Expand translated positions into 'xyz' coordinate system
     Real3 rel_pos{pos};
-    rel_pos -= origin_;
+    rel_pos[0] -= origin_[0];
+    rel_pos[1] -= origin_[1];
 
     detail::InvoluteSolver solve(r_b_, a_, sign_, tmin_, tmax_);
 
