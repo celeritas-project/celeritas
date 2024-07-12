@@ -113,7 +113,8 @@ TEST_F(MuBremsstrahlungTest, dcs)
     for (real_type gamma_energy :
          {1e-3, 5e-3, 1e-2, 5e-2, 0.1, 1.0, 10.0, 1e2, 1e3, 1e4})
     {
-        dcs.push_back(calc_dcs(MevEnergy{gamma_energy}));
+        dcs.push_back(calc_dcs(MevEnergy{gamma_energy})
+                      / ipow<2>(units::centimeter));
     }
 
     // Note: these are "gold" differential cross sections by the photon energy
