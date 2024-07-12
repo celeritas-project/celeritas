@@ -20,12 +20,16 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Host-compiler-friendly vector for uninitialized device-storage data.
+ * Host vector for managing uninitialized device-storage data.
  *
- * This class does *not* perform initialization on the data. The host code must
- * define and copy over suitable data. For more complex data usage (dynamic
- * size increases and assignment without memory reallocation), use \c
- * thrust::device_vector.
+ * This is a class used only in host memory (not passed to kernels) to manage
+ * device allocation and host/device copies.  It does \em not perform
+ * initialization on the data: the host code must define and copy over suitable
+ * data.
+ *
+ * For more complex data usage (dynamic size increases, std vector-like access,
+ * object initialization), use \c thrust::device_vector inside a \c .cu file.
+ *
  * When a \c StreamId is passed as the last constructor argument,
  * all memory operations are asynchronous and ordered within that stream.
  *
@@ -34,6 +38,9 @@ namespace celeritas
     myvec.copy_to_device(make_span(hostvec));
     myvec.copy_to_host(make_span(hostvec));
    \endcode
+ *
+ * - TODO: remove stream?
+ * - TODO: move to detail since this is basically only a backend for Collection
  */
 template<class T>
 class DeviceVector
@@ -71,6 +78,9 @@ class DeviceVector
 
     // Swap with another vector
     inline void swap(DeviceVector& other) noexcept;
+
+    // Allocate and copy from host pointers
+    void assign(T const* first, T const* last);
 
     //// ACCESSORS ////
 
@@ -113,13 +123,14 @@ inline void swap(DeviceVector<T>& a, DeviceVector<T>& b) noexcept;
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with a number of allocated elements.
+ * Construct with a stream.
  */
 template<class T>
 DeviceVector<T>::DeviceVector(StreamId stream) : allocation_{stream}, size_{0}
 {
 }
 
+//---------------------------------------------------------------------------//
 /*!
  * Construct with a number of allocated elements.
  */
@@ -129,8 +140,9 @@ DeviceVector<T>::DeviceVector(size_type count)
 {
 }
 
+//---------------------------------------------------------------------------//
 /*!
- * Construct with a number of allocated elements.
+ * Construct with a number of allocated elements and a stream.
  */
 template<class T>
 DeviceVector<T>::DeviceVector(size_type count, StreamId stream)
@@ -148,6 +160,30 @@ void DeviceVector<T>::swap(DeviceVector& other) noexcept
     using std::swap;
     swap(size_, other.size_);
     swap(allocation_, other.allocation_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Allocate and copy from \em host pointers.
+ *
+ * Not exception safe: if the copy fails, the original contents are lost.
+ */
+template<class T>
+void DeviceVector<T>::assign(T const* first, T const* last)
+{
+    auto const new_size = static_cast<size_type>(last - first);
+    if (new_size > size_ && new_size * sizeof(T) > allocation_.size())
+    {
+        // Reallocate
+        *this = DeviceVector<T>(new_size, allocation_.stream_id());
+    }
+    else
+    {
+        // Update size to fit capacity
+        size_ = new_size;
+    }
+
+    this->copy_to_device({first, new_size});
 }
 
 //---------------------------------------------------------------------------//

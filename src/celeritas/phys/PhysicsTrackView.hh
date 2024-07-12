@@ -216,10 +216,10 @@ PhysicsTrackView::operator=(Initializer_t const&)
  *
  * This value will be decremented at each step.
  */
-CELER_FUNCTION void PhysicsTrackView::interaction_mfp(real_type count)
+CELER_FUNCTION void PhysicsTrackView::interaction_mfp(real_type mfp)
 {
-    CELER_EXPECT(count > 0);
-    this->state().interaction_mfp = count;
+    CELER_EXPECT(mfp > 0);
+    this->state().interaction_mfp = mfp;
 }
 
 //---------------------------------------------------------------------------//

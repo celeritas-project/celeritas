@@ -98,11 +98,17 @@ CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
         // lost energy
         CELER_FAIL_IF(sim.post_step_action(), "missing post-step action");
     }
-    CELER_FAIL_IF(sim.along_step_action(), "missing along-step action");
+
+    if (sim.status() == TrackStatus::alive)
+    {
+        // If the track fails during initialization, it won't get an
+        // along-step action, so only check this if alive
+        CELER_FAIL_IF(sim.along_step_action(), "missing along-step action");
+    }
 
     ActionId const prev_along_step = state.along_step_action[tsid];
     ActionId const next_along_step = sim.along_step_action();
-    if (state.order > ActionOrder::pre)
+    if (state.order > ActionOrder::pre && next_along_step)
     {
         CELER_FAIL_IF(prev_along_step == next_along_step,
                       "along-step action cannot yet change");

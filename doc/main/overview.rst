@@ -58,7 +58,7 @@ and their corresponding Geant4 classes are documented in :ref:`api_em_physics`.
       +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
       | **Particle**   | **Processes**       |  **Models**                 | **Celeritas Implementation**                        | **Applicability**        |
       +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
-      | :math:`e^-`    | Ionisation          |  Møller                     | :cpp:class:`celeritas::MollerBhabhaInteractor`      |       0--100 TeV         |
+      | :math:`e^-`    | Ionization          |  Møller                     | :cpp:class:`celeritas::MollerBhabhaInteractor`      |       0--100 TeV         |
       |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
       |                | Bremsstrahlung      |  Seltzer--Berger            | :cpp:class:`celeritas::SeltzerBergerInteractor`     |       0--1 GeV           |
       |                |                     +-----------------------------+-----------------------------------------------------+--------------------------+
@@ -68,7 +68,7 @@ and their corresponding Geant4 classes are documented in :ref:`api_em_physics`.
       |                |                     +-----------------------------+-----------------------------------------------------+--------------------------+
       |                |                     |  Coulomb                    | :cpp:class:`celeritas::CoulombScatteringInteractor` |       0--100 TeV         |
       +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
-      | :math:`e^+`    | Ionisation          |  Bhabha                     | :cpp:class:`celeritas::MollerBhabhaInteractor`      |       0--100 TeV         |
+      | :math:`e^+`    | Ionization          |  Bhabha                     | :cpp:class:`celeritas::MollerBhabhaInteractor`      |       0--100 TeV         |
       |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
       |                | Bremsstrahlung      |  Seltzer-Berger             | :cpp:class:`celeritas::SeltzerBergerInteractor`     |       0--1 GeV           |
       |                |                     +-----------------------------+-----------------------------------------------------+--------------------------+
@@ -88,6 +88,18 @@ and their corresponding Geant4 classes are documented in :ref:`api_em_physics`.
       |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
       |                | Rayleigh scattering |  Livermore                  | :cpp:class:`celeritas::RayleighInteractor`          |       0--100 TeV         |
       +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      | :math:`\mu^-`  | Ionization          |  ICRU73QO                   | :cpp:class:`celeritas::BraggICRU73QOInteractor`     |       0--200 keV         |
+      |                +                     +-----------------------------+-----------------------------------------------------+--------------------------+
+      |                |                     |  Bethe--Bloch               | :cpp:class:`celeritas::MuBetheBlochInteractor`      |   200 keV--100 TeV       |
+      |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      |                | Bremsstrahlung      |  Mu bremsstrahlung          | :cpp:class:`celeritas::MuBremsstrahlungInteractor`  |       0--100 TeV         |
+      +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      | :math:`\mu^+`  | Ionization          |  Bragg                      | :cpp:class:`celeritas::BraggICRU73QOInteractor`     |       0--200 keV         |
+      |                +                     +-----------------------------+-----------------------------------------------------+--------------------------+
+      |                |                     |  Bethe--Bloch               | :cpp:class:`celeritas::MuBetheBlochInteractor`      |   200 keV--100 TeV       |
+      |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      |                | Bremsstrahlung      |  Mu bremsstrahlung          | :cpp:class:`celeritas::MuBremsstrahlungInteractor`  |       0--100 TeV         |
+      +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
 
 .. only:: latex
 
@@ -100,7 +112,7 @@ and their corresponding Geant4 classes are documented in :ref:`api_em_physics`.
           \hline
           \textbf{Particle}         & \textbf{Processes}                  & \textbf{Models}      & \textbf{Celeritas Implementation}                           & \textbf{Applicability} \\
           \hline
-          \multirow{4}{*}{$e^-$}    & Ionisation                          & Møller               & \texttt{\scriptsize celeritas::MollerBhabhaInteractor}      & 0--100 TeV \\
+          \multirow{4}{*}{$e^-$}    & Ionization                          & Møller               & \texttt{\scriptsize celeritas::MollerBhabhaInteractor}      & 0--100 TeV \\
                                     \cline{2-5}
                                     & \multirow{2}{*}{Bremsstrahlung}     & Seltzer--Berger      & \texttt{\scriptsize celeritas::SeltzerBergerInteractor}     & 0--1 GeV \\
                                                                           \cline{3-5}
@@ -111,7 +123,7 @@ and their corresponding Geant4 classes are documented in :ref:`api_em_physics`.
                                     &                                     & Coulomb              & \texttt{\scriptsize celeritas::CoulombScatteringInteractor} & 0--100 TeV \\
                                     \cline{2-5}
           \hline
-          \multirow{5}{*}{$e^+$}    & Ionisation                          & Bhabha               & \texttt{\scriptsize celeritas::MollerBhabhaInteractor}      & 0--100 TeV \\
+          \multirow{5}{*}{$e^+$}    & Ionization                          & Bhabha               & \texttt{\scriptsize celeritas::MollerBhabhaInteractor}      & 0--100 TeV \\
                                     \cline{2-5}
                                     & \multirow{2}{*}{Bremsstrahlung}     & Seltzer--Berger      & \texttt{\scriptsize celeritas::SeltzerBergerInteractor}     & 0--1 GeV \\
                                                                           \cline{3-5}
@@ -131,10 +143,21 @@ and their corresponding Geant4 classes are documented in :ref:`api_em_physics`.
                                     \cline{2-5}
                                     & Rayleigh scattering                 & Livermore            & \texttt{\scriptsize celeritas::RayleighInteractor}          & 0--100 TeV \\
           \hline
+          \multirow{3}{*}{$\mu^-$}  & \multirow{2}{*}{Ionization}         & ICRU73QO             & \texttt{\scriptsize celeritas::BraggICRU73QOInteractor}     & 0--200 keV \\
+                                                                          \cline{3-5}
+                                    &                                     & Bethe--Bloch         & \texttt{\scriptsize celeritas::MuBetheBlochInteractor}      & 200 keV -- 100 TeV \\
+                                    \cline{2-5}
+                                    & Bremsstrahlung                      & Mu bremsstrahlung    & \texttt{\scriptsize celeritas::MuBremsstrahlungInteractor}  & 0--100 TeV \\
+          \hline
+          \multirow{3}{*}{$\mu^+$}  & \multirow{2}{*}{Ionization}         & Bragg                & \texttt{\scriptsize celeritas::BraggICRU73QOInteractor}     & 0--200 keV \\
+                                                                          \cline{3-5}
+                                    &                                     & Bethe--Bloch         & \texttt{\scriptsize celeritas::MuBetheBlochInteractor}      & 200 keV -- 100 TeV \\
+                                    \cline{2-5}
+                                    & Bremsstrahlung                      & Mu bremsstrahlung    & \texttt{\scriptsize celeritas::MuBremsstrahlungInteractor}  & 0--100 TeV \\
+          \hline
         \end{tabular}
         \end{threeparttable}
       \end{table}
-
 
 The implemented physics models are meant to match the defaults constructed in
 ``G4EmStandardPhysics``.  Known differences are:
