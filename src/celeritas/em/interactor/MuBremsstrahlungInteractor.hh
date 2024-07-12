@@ -179,14 +179,12 @@ template<class Engine>
 CELER_FUNCTION real_type MuBremsstrahlungInteractor::sample_cos_theta(
     real_type gamma_energy, Engine& rng) const
 {
-    real_type const gamma = particle_.lorentz_factor();
-    real_type const r_max
-        = gamma * constants::pi * real_type(0.5)
-          * min(real_type(1.0),
-                gamma * value_as<Mass>(particle_.mass()) / gamma_energy - 1);
-    real_type const r_max_sq = ipow<2>(r_max);
-
-    real_type const a = generate_canonical(rng) * r_max_sq / (1 + r_max_sq);
+    real_type gamma = particle_.lorentz_factor();
+    real_type r_max_sq = ipow<2>(
+        gamma * constants::pi * real_type(0.5)
+        * min(real_type(1.0),
+              gamma * value_as<Mass>(particle_.mass()) / gamma_energy - 1));
+    real_type a = generate_canonical(rng) * r_max_sq / (1 + r_max_sq);
 
     return std::cos(std::sqrt(a / (1 - a)) / gamma);
 }
