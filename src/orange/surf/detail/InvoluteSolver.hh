@@ -240,7 +240,7 @@ InvoluteSolver::operator()(Real3 const& pos,
         // Only iterate when roots have different signs
         if ((0 < ft_alpha) - (ft_alpha < 0) != (0 < ft_beta) - (ft_beta < 0))
         {
-            // Regula Falsi Iteration
+            // Regular Falsi Iteration
             real_type t_gamma = regular_falsi(t_alpha,
                                               t_beta,
                                               ft_alpha,
