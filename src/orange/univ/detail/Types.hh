@@ -73,24 +73,6 @@ class OnTface
     Sense sense_{Sense::inside};
 };
 
-//! Equality of an OnFace (mostly for testing)
-template<class IdT>
-CELER_CONSTEXPR_FUNCTION bool
-operator==(OnTface<IdT> const& lhs, OnTface<IdT> const& rhs) noexcept
-{
-    return lhs.id() == rhs.id()
-           && (!lhs || lhs.uncheckced_sense() == rhs.unchecked_sense());
-}
-
-//! Inequality for OnFace
-template<class IdT>
-CELER_CONSTEXPR_FUNCTION bool
-operator!=(OnTface<IdT> const& lhs, OnTface<IdT> const& rhs) noexcept
-{
-    return !(lhs == rhs);
-}
-
-using OnSurface = OnTface<SurfaceId>;
 using OnLocalSurface = OnTface<LocalSurfaceId>;
 using OnFace = OnTface<FaceId>;
 

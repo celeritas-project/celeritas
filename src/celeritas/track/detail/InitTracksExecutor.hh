@@ -108,10 +108,21 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
         {
             // Initialize it from the position (more expensive)
             geo = init.geo;
-            if (CELER_UNLIKELY(geo.is_outside()))
+            if (CELER_UNLIKELY(geo.failed() || geo.is_outside()))
             {
 #if !CELER_DEVICE_COMPILE
-                CELER_LOG_LOCAL(error) << "Track started outside the geometry";
+                if (!geo.failed())
+                {
+                    // Print an error message if initialization was
+                    // "successful" but track is outside
+                    CELER_LOG_LOCAL(error) << "Track started outside the "
+                                              "geometry";
+                }
+                else
+                {
+                    // Do not print anything: the geometry track view itself
+                    // should've printed a detailed error message
+                }
 #endif
                 vacancy.apply_errored();
                 return;
