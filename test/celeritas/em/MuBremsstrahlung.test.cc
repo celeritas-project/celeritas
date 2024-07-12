@@ -24,7 +24,7 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class MuBremsstrahlungInteractorTest : public InteractorHostTestBase
+class MuBremsstrahlungTest : public InteractorHostTestBase
 {
     using Base = InteractorHostTestBase;
 
@@ -99,7 +99,41 @@ class MuBremsstrahlungInteractorTest : public InteractorHostTestBase
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(MuBremsstrahlungInteractorTest, basic)
+TEST_F(MuBremsstrahlungTest, dcs)
+{
+    auto particle = this->particle_track();
+    auto element
+        = this->material_track().make_material_view().make_element_view(
+            ElementComponentId{0});
+
+    MuBremsDiffXsCalculator calc_dcs(
+        element, particle.energy(), particle.mass(), data_.electron_mass);
+
+    std::vector<real_type> dcs;
+    for (real_type gamma_energy :
+         {1e-3, 5e-3, 1e-2, 5e-2, 0.1, 1.0, 10.0, 1e2, 1e3, 1e4})
+    {
+        dcs.push_back(calc_dcs(MevEnergy{gamma_energy})
+                      / ipow<2>(units::centimeter));
+    }
+
+    // Note: these are "gold" differential cross sections by the photon energy
+    static double const expected_dcs[] = {
+        0.004767766673037,
+        0.00095316629837454,
+        0.00047634214548039,
+        9.4889763823363e-05,
+        4.7216419355064e-05,
+        4.4118702152857e-06,
+        3.4059618626578e-07,
+        1.8880368752007e-08,
+        1.2292516852155e-10,
+        0,
+    };
+    EXPECT_VEC_SOFT_EQ(expected_dcs, dcs);
+}
+
+TEST_F(MuBremsstrahlungTest, basic)
 {
     // Reserve 4 secondaries
     int num_samples = 4;
@@ -163,7 +197,7 @@ TEST_F(MuBremsstrahlungInteractorTest, basic)
     }
 }
 
-TEST_F(MuBremsstrahlungInteractorTest, stress_test)
+TEST_F(MuBremsstrahlungTest, stress_test)
 {
     unsigned int const num_samples = 10000;
     std::vector<real_type> avg_engine_samples;
