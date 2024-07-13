@@ -26,6 +26,9 @@
         "CMAKE_CUDA_ARCHITECTURES": {"type": "STRING", "value": "80"},
         "CMAKE_CXX_STANDARD": {"type": "STRING", "value": "17"},
         "CMAKE_CXX_EXTENSIONS": {"type": "BOOL", "value": "OFF"},
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_C_COMPILER": {"type": "PATH", "value": "cc"},
+        "CMAKE_CXX_COMPILER": {"type": "PATH", "value": "CC"},
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-${presetName}",
         "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG -march=znver3 -mtune=znver3",
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"}

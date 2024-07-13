@@ -24,6 +24,7 @@
         "CMAKE_CXX_STANDARD":   {"type": "STRING",   "value": "17"},
         "CMAKE_CXX_EXTENSIONS": {"type": "BOOL",   "value": "OFF"},
         "CMAKE_FIND_FRAMEWORK": {"type": "STRING", "value": "LAST"},
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-${presetName}",
         "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fno-inline -fno-omit-frame-pointer",
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -Werror -Wno-error=deprecated -pedantic -fdiagnostics-color=always"
       }
@@ -56,6 +57,25 @@
       "cacheVariables": {
         "CELERITAS_USE_SWIG":    {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_REAL_TYPE": "float"
+      }
+    },
+    {
+      "name": "clhep",
+      "displayName": "With CLHEP units",
+      "inherits": [".base", ".debug", "default"],
+      "cacheVariables": {
+        "CELERITAS_UNITS": "CLHEP",
+        "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "ON"}
+      }
+    },
+    {
+      "name": "si",
+      "displayName": "With SI units",
+      "inherits": [".base", ".debug", "default"],
+      "cacheVariables": {
+        "CELERITAS_UNITS": "SI",
+        "CELERITAS_CORE_GEO": "VecGeom",
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"}
       }
     },
     {
