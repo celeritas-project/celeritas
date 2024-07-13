@@ -21,11 +21,13 @@ namespace celeritas
  */
 void InitializeTracksAction::execute_impl(CoreParams const& params,
                                           CoreStateDevice& state,
-                                          size_type num_new_tracks) const
+                                          size_type num_new_tracks,
+                                          size_type partition_index) const
 {
     detail::InitTracksExecutor execute_thread{params.ptr<MemSpace::native>(),
                                               state.ptr(),
                                               num_new_tracks,
+                                              partition_index,
                                               state.counters()};
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(*this);
     if (num_new_tracks > 0)

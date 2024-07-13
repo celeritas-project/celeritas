@@ -165,6 +165,8 @@ enum class TrackOrder
     sort_step_limit_action,  //!< Sort only by the step limit action id
     sort_action,  //!< Sort by along-step id, then post-step ID
     sort_particle_type,  //!< Sort by particle type
+
+    partition_data,  //!< Partition data layout of tracks by charged/neutral
     size_
 };
 

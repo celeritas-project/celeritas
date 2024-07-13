@@ -49,5 +49,22 @@ CELER_FORCEINLINE_FUNCTION size_type index_after(size_type size, ThreadId tid)
 }
 
 //---------------------------------------------------------------------------//
+//! Get an initializer index starting from one end or the other
+CELER_FORCEINLINE_FUNCTION size_type index_partitioned(size_type num_new_tracks,
+                                                       size_type num_vacancies,
+                                                       size_type partition_index,
+                                                       ThreadId tid)
+{
+    CELER_EXPECT(tid.get() < num_new_tracks);
+    CELER_EXPECT(num_new_tracks <= num_vacancies);
+
+    if (tid.unchecked_get() < partition_index)
+    {
+        return index_before(num_vacancies, tid);
+    }
+    return index_before(num_new_tracks, tid);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

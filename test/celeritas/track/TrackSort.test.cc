@@ -18,6 +18,7 @@
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -45,22 +46,28 @@ class TestEm3NoMsc : public TestEm3Base
         return opts;
     }
 
-    //! Make 10GeV electrons along +x
+    //! Make a mix of 1 GeV electrons, positrons, and photons along +x
     std::vector<Primary> make_primaries(size_type count) const
     {
         Primary p;
-        p.particle_id = this->particle()->find(pdg::electron());
-        CELER_ASSERT(p.particle_id);
-        p.energy = units::MevEnergy{10000};
+        p.energy = units::MevEnergy{1000};
         p.track_id = TrackId{0};
         p.position = from_cm({-22, 0, 0});
         p.direction = {1, 0, 0};
         p.time = 0;
 
+        Array<ParticleId, 3> const particles = {
+            this->particle()->find(pdg::electron()),
+            this->particle()->find(pdg::positron()),
+            this->particle()->find(pdg::gamma()),
+        };
+        CELER_ASSERT(particles[0] && particles[1] && particles[2]);
+
         std::vector<Primary> result(count, p);
         for (auto i : range(count))
         {
             result[i].event_id = EventId{i};
+            result[i].particle_id = particles[i % particles.size()];
         }
         return result;
     }
@@ -159,6 +166,70 @@ class TestActionCountEm3Stepper : public TestEm3NoMsc, public TrackSortTestBase
             ASSERT_LE(items[ActionId{i}], items[ActionId{i + 1}]);
         }
         ASSERT_EQ(total_threads, size);
+    }
+};
+
+#define PartitionDataTest TEST_IF_CELERITAS_GEANT(PartitionDataTest)
+class PartitionDataTest : public TestEm3NoMsc, public TrackSortTestBase
+{
+  protected:
+    auto build_init() -> SPConstTrackInit override
+    {
+        TrackInitParams::Input input;
+        input.capacity = 4096;
+        input.max_events = 128;
+        input.track_order = TrackOrder::partition_data;
+        return std::make_shared<TrackInitParams>(input);
+    }
+
+    template<MemSpace M>
+    void init_from_primaries(CoreState<M>& state, size_type num_primaries)
+    {
+        auto execute = [&](std::string const& label) {
+            ActionId action_id = this->action_reg()->find_action(label);
+            CELER_ASSERT(action_id);
+
+            auto action = dynamic_cast<ExplicitCoreActionInterface const*>(
+                this->action_reg()->action(action_id).get());
+            CELER_ASSERT(action);
+
+            action->execute(*this->core(), state);
+        };
+
+        auto primaries = this->make_primaries(num_primaries);
+        state.insert_primaries(make_span(primaries));
+        execute("extend-from-primaries");
+        execute("initialize-tracks");
+    }
+
+    template<MemSpace M>
+    std::string get_result_string(CoreState<M> const& state)
+    {
+        auto const& params = this->core()->host_ref();
+        auto sim_state = make_host_val(state.ref().sim);
+        auto par_state = make_host_val(state.ref().particles);
+
+        std::string result;
+        for (size_type i = 0; i < state.size(); ++i)
+        {
+            TrackSlotId tsid{i};
+            SimTrackView sim(params.sim, make_ref(sim_state), tsid);
+            ParticleTrackView par(params.particles, make_ref(par_state), tsid);
+
+            if (sim.status() == TrackStatus::inactive)
+            {
+                result += '_';
+            }
+            else if (par.particle_view().charge() == zero_quantity())
+            {
+                result += 'N';
+            }
+            else
+            {
+                result += 'C';
+            }
+        }
+        return result;
     }
 };
 
@@ -450,5 +521,161 @@ TEST_F(TestActionCountEm3StepperD, TEST_IF_CELER_DEVICE(device_count_actions))
     }
 }
 
+TEST_F(PartitionDataTest, init_primaries_host)
+{
+    // Initialize tracks from primaries and return a string representing the
+    // location of the neutral and charged particles in the track vector
+    {
+        // 32 track slots and 2 primaries
+        CoreState<MemSpace::host> state{*this->core(), StreamId{0}, 32};
+        this->init_from_primaries(state, 2);
+        auto result = this->get_result_string(state);
+        EXPECT_EQ("______________________________CC", result);
+    }
+    {
+        // 32 track slots and 16 primaries
+        CoreState<MemSpace::host> state{*this->core(), StreamId{0}, 32};
+        this->init_from_primaries(state, 16);
+        auto result = this->get_result_string(state);
+        EXPECT_EQ("NNNNN________________CCCCCCCCCCC", result);
+    }
+    {
+        // 32 track slots and 32 primaries
+        CoreState<MemSpace::host> state{*this->core(), StreamId{0}, 32};
+        this->init_from_primaries(state, 32);
+        auto result = this->get_result_string(state);
+        EXPECT_EQ("NNNNNNNNNNCCCCCCCCCCCCCCCCCCCCCC", result);
+    }
+    {
+        // 32 track slots and 64 primaries
+        CoreState<MemSpace::host> state{*this->core(), StreamId{0}, 32};
+        this->init_from_primaries(state, 64);
+        auto result = this->get_result_string(state);
+        EXPECT_EQ("NNNNNNNNNNNCCCCCCCCCCCCCCCCCCCCC", result);
+    }
+}
+
+TEST_F(PartitionDataTest, init_primaries_device)
+{
+    // Initialize tracks from primaries and return a string representing the
+    // location of the neutral and charged particles in the track vector
+    {
+        // 8 track slots and 3 primaries
+        CoreState<MemSpace::device> state{*this->core(), StreamId{0}, 8};
+        this->init_from_primaries(state, 3);
+        auto result = this->get_result_string(state);
+        EXPECT_EQ("N_____CC", result);
+    }
+    {
+        // 16 track slots and 17 primaries
+        CoreState<MemSpace::device> state{*this->core(), StreamId{0}, 16};
+        this->init_from_primaries(state, 17);
+        auto result = this->get_result_string(state);
+        EXPECT_EQ("NNNNNCCCCCCCCCCC", result);
+    }
+    {
+        // 32 track slots and 30 primaries
+        CoreState<MemSpace::device> state{*this->core(), StreamId{0}, 32};
+        this->init_from_primaries(state, 31);
+        auto result = this->get_result_string(state);
+        EXPECT_EQ("NNNNNNNNNN_CCCCCCCCCCCCCCCCCCCCC", result);
+    }
+}
+
+TEST_F(PartitionDataTest, step_host)
+{
+    // Take full steps in the transport loop and return a string representing
+    // the location of the neutral and charged particles in the track vector at
+    // the *end* of each step
+
+    auto step = this->make_stepper<MemSpace::host>(64);
+    auto primaries = this->make_primaries(4);
+
+    std::vector<std::string> result;
+
+    step(make_span(primaries));
+    result.push_back(this->get_result_string(
+        dynamic_cast<CoreState<MemSpace::host> const&>(step.state())));
+
+    for (int i = 0; i < 20; ++i)
+    {
+        step();
+        result.push_back(this->get_result_string(
+            dynamic_cast<CoreState<MemSpace::host> const&>(step.state())));
+    }
+    static std::string const expected_result[] = {
+        "N____________________________________________________________CCC",
+        "C____________________________________________________________CCC",
+        "CNNN________________________________________________________CCCC",
+        "CNNNNNNNC___________________________________________________CCCC",
+        "CNNNNNNNCNN________________________________________________CCCCC",
+        "CNNNNNNCCNNNNN____________________________________________CCCCCC",
+        "CNNNCNN_CNCNNNN_________________________________________C__CCCCC",
+        "CNNN_NCN_NCCNCNNCC______________________________________CC_CCCCC",
+        "CNNNNNCNNNC_NCNN__NNNNC________________________________CCCCCCCCC",
+        "CNNNNNCNNNCCNCNNCNNNNNCNNNNN_________________________CCCCCCCCCCC",
+        "CNNNNNCNCNC_NCNCCNNNNNCNNNNNNNNNNNN_______________C__CCCCCCCCCCC",
+        "CNNCNNCN_NCCNCN__NNNNNCCNNCNNCNNNNNCCCNCNCN_________C_CCCCCCCCCC",
+        "CNNCNNCNNNC_NCNNNCNNNNC_NN_NN_NCNNC___N_N_CNCNNC_C_CCCCCCCCCCCCC",
+        "CNNCNCCNCNCCCCNCC_NNNNCNNNNNNNN_NN_NCCNNN__N_NCCC_CCC_CCCCCCCCCC",
+        "CNNCNCCN_NC__CN__NNNNNCNNNNNNNCNCNNN__NNNNNNNN_CCN___CCC_CCCCCCC",
+        "CNNCNCCCCNCNNCNCNNNNNNCNNNNNNN_NCNNNNNNNCNNNNNNCCNNN_CCCCCCCCCCC",
+        "CNNCNCCC_N_NNCN_CCNNNNCNNNNNNNNNCNCNNNNN_NNNNNNCCNNNC_CCCCCCCCCC",
+        "CNNCNCC_CNNNNCCN_CNNNNCNNCNNNNNNCNCCNNCNNNNNCNNCCNNC_NCCCCCCCCCC",
+        "CNNCNCCN_NNNNCCNC_NNNNCNNCNNNCCNCNC_NNCNNNNNCNNC_NNCCNCCCCCCCCCC",
+        "CNCCNCCNNNCNNCCNCNNNNNCCNCNNN_CNCNCCNNCNNNNNCNNCNNNCCNCCCCCNCCCC",
+        "CN_CNCCNNNCNNCCNCNNNNCC_NCNNNCCNCNC_NNCNNNNNCCNCNNNC_NCCCCCNCCCC",
+    };
+    EXPECT_VEC_EQ(expected_result, result);
+}
+
+TEST_F(PartitionDataTest, step_device)
+{
+    // Take full steps in the transport loop and return a string representing
+    // the location of the neutral and charged particles in the track vector at
+    // the *end* of each step
+
+    auto step = this->make_stepper<MemSpace::device>(64);
+    auto primaries = this->make_primaries(32);
+
+    std::vector<std::string> result;
+
+    step(make_span(primaries));
+    result.push_back(this->get_result_string(
+        dynamic_cast<CoreState<MemSpace::device> const&>(step.state())));
+
+    for (int i = 0; i < 20; ++i)
+    {
+        step();
+        result.push_back(this->get_result_string(
+            dynamic_cast<CoreState<MemSpace::device> const&>(step.state())));
+    }
+    static std::string const expected_result[] = {
+        "NNNNNNNNNN________________________________CCCCCCCCCCCCCCCCCCCCCC",
+        "CNNNNNNNCN________________________________CCCCCCCCCCCCCCCCCCCCCC",
+        "CNNNNNNNCNNNNCNNNNNNNNCNNNNNNNN________CCCCCCCCCCCCCCCCCCCCCCCCC",
+        "CCNNNNNCCNNNNCNNNNNNNN_NNNNNNNNNNNNNNNNCC_CCCCCCCCCCCCCCCCCCCCCC",
+        "CCNNNNNCCNCNNCNNNCNNNNNNNNNNNNNNNNNNNNNCCNCCCCCCCCCCCCCCCCCCCCCC",
+        "CCNNCNCCCNCNNCNNNCNNNNNNNNNNNNNCNNNNNNNCCNCCCCCCCCCCCCCCCCCCCCCC",
+        "CCNNCNCCCNCNNCNNNCNNNNNNNNNNNNCCNNNNNNNCCNCCCCCCCCCCCCCCCCCCCCCC",
+        "CCNNCCCCCNCNNCNNNCNNNNNNNNNNNNCCNNNNNNNCCNCCCCCCCCCCCCCCCCCCCCCC",
+        "CCNNCCCCCNCNNCNNNCNNCNNNNNCNNNCCNNNNNCNCCNCCCCCCCCCCCCCCCCCCCCCC",
+        "CCNCCCCCCNCNNCNNNCNN_NNNNN_NNNCCNNCNN_NCCNCCCCCCCCCCCCCCCCCCCCCC",
+        "CCNCCCCCCNCNNCNCNCNNNNNNNNNNNNCCNN_NNNNCCCCCCCCCCCCCCCCCCCCCCCCC",
+        "CCNCCCCCCNCNN_NCNCNNNNNNNNNNNCCCNNNNNNCCCCCCCCCCCCCCCCCCCCCCCCCC",
+        "CCNC_CCCCNCNCNNCCCCNNNNNNNNNN_CCNNNNNNCCCCCCCCCCCCCCCCCCCCCCCCCC",
+        "CCNCNCCCCNCN_NNCCC_NNNNNNNNNNNCCNNNNNCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+        "CCNCNCCCCNCNNNCCCCNNCNNNNNNCNCCCNNNNN_CCCCCCCCCCCCCCCCCCCCCCCCCC",
+        "CCCCNCCCCNCNNNCCC_NNCNNNNNNCN_CCNNCNCNCCCCCCCCCCCCCCCCCCCCCCCCCC",
+        "CCC_NCCCCNCNNCCCCNNNCCNNNNNCNNCCNNCNCNCCCCCCCCCCCCCCCCCCCCCCCCCC",
+        "CCCNNCCCCNCNN_CCCNNNCCNNNNNCNNC_NNCNCNCCCCCCCCCCCCCCCCCCCCCCCCCC",
+        "CCCNNCCCCNCNNNC_CNNCCCNNNNNCNNCNNNCNCNCCC_CCCCCCCCCCCCCCCCCCCCCC",
+        "CCCNNCCCCCCNNNCN_NNCCCNNNNN_NNCNNNCNCN_CCNCCCCCCCCCCCCCCCCCCCCCC",
+        "CCCNNCCCCCCNNNCNNCNCCCNNNNNNNNCNCNCNCNNCCNCCCCCCCCCCCCCCCCCCCCCC",
+    };
+    EXPECT_VEC_EQ(expected_result, result);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

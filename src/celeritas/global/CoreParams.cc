@@ -268,6 +268,8 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
             insert_sort_tracks_action(TrackOrder::sort_step_limit_action);
             insert_sort_tracks_action(TrackOrder::sort_along_step_action);
             break;
+        case TrackOrder::partition_data:
+            break;
         case TrackOrder::size_:
             CELER_ASSERT_UNREACHABLE();
     }

@@ -82,6 +82,7 @@ char const* to_cstring(TrackOrder value)
         "sort_step_limit_action",
         "sort_action",
         "sort_particle_type",
+        "partition_data",
     };
     return to_cstring_impl(value);
 }

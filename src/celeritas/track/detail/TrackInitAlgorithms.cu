@@ -9,6 +9,7 @@
 
 #include <thrust/device_ptr.h>
 #include <thrust/execution_policy.h>
+#include <thrust/partition.h>
 #include <thrust/remove.h>
 #include <thrust/scan.h>
 
@@ -74,6 +75,34 @@ size_type exclusive_scan_counts(
 
     // Copy the last element (accumulated total) back to host
     return *(stop - 1);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sort the tracks that will be initialized in this step by charged/neutral.
+ *
+ * The return value is the partition point between neutral and charged tracks.
+ */
+size_type partition_initializers(
+    CoreParams const& params,
+    Collection<TrackInitializer, Ownership::reference, MemSpace::device> const&
+        init,
+    CoreStateCounters const& counters,
+    size_type count,
+    StreamId stream_id)
+{
+    ScopedProfiling profile_this{"partition-initializers"};
+    auto end = device_pointer_cast(init.data()) + counters.num_initializers;
+    auto start = end - count;
+    auto partition_index
+        = thrust::stable_partition(thrust_execute_on(stream_id),
+                                   start,
+                                   end,
+                                   IsNeutral{params.ptr<MemSpace::native>()});
+    CELER_DEVICE_CHECK_ERROR();
+
+    // Number of neutral tracks
+    return partition_index - start;
 }
 
 //---------------------------------------------------------------------------//

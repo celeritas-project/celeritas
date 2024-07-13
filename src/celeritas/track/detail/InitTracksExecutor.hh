@@ -52,6 +52,7 @@ struct InitTracksExecutor
     ParamsPtr params;
     StatePtr state;
     size_type num_new_tracks;
+    size_type partition_index;
     CoreStateCounters counters;
 
     //// FUNCTIONS ////
@@ -71,6 +72,7 @@ struct InitTracksExecutor
 CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
 {
     CELER_EXPECT(tid < num_new_tracks);
+    CELER_EXPECT(partition_index <= num_new_tracks);
 
     // Get the track initializer from the back of the vector. Since new
     // initializers are pushed to the back of the vector, these will be the
@@ -82,7 +84,10 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
     // View to the new track to be initialized
     CoreTrackView vacancy{
         *params, *state, [&] {
-            TrackSlotId idx{index_before(counters.num_vacancies, tid)};
+            TrackSlotId idx{index_partitioned(num_new_tracks,
+                                              counters.num_vacancies,
+                                              num_new_tracks - partition_index,
+                                              tid)};
             return data.vacancies[idx];
         }()};
 
