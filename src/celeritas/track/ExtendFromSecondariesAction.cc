@@ -12,6 +12,7 @@
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/track/TrackInitParams.hh"
 
 #include "detail/LocateAliveExecutor.hh"  // IWYU pragma: associated
 #include "detail/ProcessSecondariesExecutor.hh"  // IWYU pragma: associated
@@ -100,8 +101,11 @@ void ExtendFromSecondariesAction::execute_impl(CoreParams const& core_params,
 void ExtendFromSecondariesAction::locate_alive(CoreParams const& core_params,
                                                CoreStateHost& core_state) const
 {
-    detail::LocateAliveExecutor execute{core_params.ptr<MemSpace::native>(),
-                                        core_state.ptr()};
+    detail::LocateAliveExecutor execute{
+        core_params.ptr<MemSpace::native>(),
+        core_state.ptr(),
+        core_params.init()->host_ref().track_order
+            != TrackOrder::partition_data};
     launch_action(*this, core_params, core_state, execute);
 }
 
@@ -116,7 +120,9 @@ void ExtendFromSecondariesAction::process_secondaries(
     detail::ProcessSecondariesExecutor execute{
         core_params.ptr<MemSpace::native>(),
         core_state.ptr(),
-        core_state.counters()};
+        core_state.counters(),
+        core_params.init()->host_ref().track_order
+            != TrackOrder::partition_data};
     launch_action(*this, core_params, core_state, execute);
 }
 

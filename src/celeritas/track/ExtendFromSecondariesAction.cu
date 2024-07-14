@@ -14,6 +14,7 @@
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/track/TrackInitParams.hh"
 
 #include "detail/LocateAliveExecutor.hh"
 #include "detail/ProcessSecondariesExecutor.hh"
@@ -49,7 +50,10 @@ void ExtendFromSecondariesAction::locate_alive(CoreParams const& core_params,
     using Executor = detail::LocateAliveExecutor;
     static ActionLauncher<Executor> launch(*this, "locate-alive");
     launch(core_state,
-           Executor{core_params.ptr<MemSpace::native>(), core_state.ptr()});
+           Executor{core_params.ptr<MemSpace::native>(),
+                    core_state.ptr(),
+                    core_params.init()->host_ref().track_order
+                        != TrackOrder::partition_data});
 }
 
 //---------------------------------------------------------------------------//
@@ -65,7 +69,9 @@ void ExtendFromSecondariesAction::process_secondaries(
     launch(core_state,
            Executor{core_params.ptr<MemSpace::native>(),
                     core_state.ptr(),
-                    core_state.counters()});
+                    core_state.counters(),
+                    core_params.init()->host_ref().track_order
+                        != TrackOrder::partition_data});
 }
 
 //---------------------------------------------------------------------------//

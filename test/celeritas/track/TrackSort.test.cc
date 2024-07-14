@@ -208,13 +208,15 @@ class PartitionDataTest : public TestEm3NoMsc, public TrackSortTestBase
         auto const& params = this->core()->host_ref();
         auto sim_state = make_host_val(state.ref().sim);
         auto par_state = make_host_val(state.ref().particles);
+        auto sim_ref = make_ref(sim_state);
+        auto par_ref = make_ref(par_state);
 
         std::string result;
         for (size_type i = 0; i < state.size(); ++i)
         {
             TrackSlotId tsid{i};
-            SimTrackView sim(params.sim, make_ref(sim_state), tsid);
-            ParticleTrackView par(params.particles, make_ref(par_state), tsid);
+            SimTrackView sim(params.sim, sim_ref, tsid);
+            ParticleTrackView par(params.particles, par_ref, tsid);
 
             if (sim.status() == TrackStatus::inactive)
             {
@@ -555,7 +557,7 @@ TEST_F(PartitionDataTest, init_primaries_host)
     }
 }
 
-TEST_F(PartitionDataTest, init_primaries_device)
+TEST_F(PartitionDataTest, TEST_IF_CELER_DEVICE(init_primaries_device))
 {
     // Initialize tracks from primaries and return a string representing the
     // location of the neutral and charged particles in the track vector
@@ -603,33 +605,36 @@ TEST_F(PartitionDataTest, step_host)
         result.push_back(this->get_result_string(
             dynamic_cast<CoreState<MemSpace::host> const&>(step.state())));
     }
-    static std::string const expected_result[] = {
-        "N____________________________________________________________CCC",
-        "C____________________________________________________________CCC",
-        "CNNN________________________________________________________CCCC",
-        "CNNNNNNNC___________________________________________________CCCC",
-        "CNNNNNNNCNN________________________________________________CCCCC",
-        "CNNNNNNCCNNNNN____________________________________________CCCCCC",
-        "CNNNCNN_CNCNNNN_________________________________________C__CCCCC",
-        "CNNN_NCN_NCCNCNNCC______________________________________CC_CCCCC",
-        "CNNNNNCNNNC_NCNN__NNNNC________________________________CCCCCCCCC",
-        "CNNNNNCNNNCCNCNNCNNNNNCNNNNN_________________________CCCCCCCCCCC",
-        "CNNNNNCNCNC_NCNCCNNNNNCNNNNNNNNNNNN_______________C__CCCCCCCCCCC",
-        "CNNCNNCN_NCCNCN__NNNNNCCNNCNNCNNNNNCCCNCNCN_________C_CCCCCCCCCC",
-        "CNNCNNCNNNC_NCNNNCNNNNC_NN_NN_NCNNC___N_N_CNCNNC_C_CCCCCCCCCCCCC",
-        "CNNCNCCNCNCCCCNCC_NNNNCNNNNNNNN_NN_NCCNNN__N_NCCC_CCC_CCCCCCCCCC",
-        "CNNCNCCN_NC__CN__NNNNNCNNNNNNNCNCNNN__NNNNNNNN_CCN___CCC_CCCCCCC",
-        "CNNCNCCCCNCNNCNCNNNNNNCNNNNNNN_NCNNNNNNNCNNNNNNCCNNN_CCCCCCCCCCC",
-        "CNNCNCCC_N_NNCN_CCNNNNCNNNNNNNNNCNCNNNNN_NNNNNNCCNNNC_CCCCCCCCCC",
-        "CNNCNCC_CNNNNCCN_CNNNNCNNCNNNNNNCNCCNNCNNNNNCNNCCNNC_NCCCCCCCCCC",
-        "CNNCNCCN_NNNNCCNC_NNNNCNNCNNNCCNCNC_NNCNNNNNCNNC_NNCCNCCCCCCCCCC",
-        "CNCCNCCNNNCNNCCNCNNNNNCCNCNNN_CNCNCCNNCNNNNNCNNCNNNCCNCCCCCNCCCC",
-        "CN_CNCCNNNCNNCCNCNNNNCC_NCNNNCCNCNC_NNCNNNNNCCNCNNNC_NCCCCCNCCCC",
-    };
-    EXPECT_VEC_EQ(expected_result, result);
+    if (this->is_ci_build())
+    {
+        static std::string const expected_result[] = {
+            "N____________________________________________________________CCC",
+            "_____________________________________________________________CCC",
+            "NNN________________________________________________________CCCCC",
+            "NNNNNNNN___________________________________________________CCCCC",
+            "NNNNNNNNN__________________________________________________CCCCC",
+            "N_NNNNNNNN________________________________________________CCCCCC",
+            "_NNNNNNN_N_N_______________________________________________CCCCC",
+            "N_NNNNNNNN_N________________________________________C__CCCCCCCCC",
+            "NNNNNNNNNNNNN_N_____________________________________C__CCCCCCCCC",
+            "NNNNN_N__N_NNNNNNNN________________________________CCCCCCCCCCCCC",
+            "N_NNNNNNNNNNNNN_NNNNN______________________CCCC_CC_CCCCCCCCCCCCC",
+            "NNNNNNNNNNNNNNNNNNNNNNNN_N_________________CCCCCCC_C_CCCCCCCCCCC",
+            "NNNNNNNNNN_NNNNNN_NNNNNNNN_NNN_NN_NNN______CCCCCCCCCCC__CCCCCCCC",
+            "NNNNNN_NNN_N__NNNNNNNNNNNNNNNNNN_NNNN_N____CCCCCCCCC_CCCCCCCCCCC",
+            "NNNNNNNNNNNNN_NNNNNNNNNNNNNNNNNN_NNNN__NNNCCCCCCCC_CCCCCCCCCCCCC",
+            "NNNNNNNNNNN_NNNNN_NNNNNNNNNNNNNNNNNNN_NNNN_CCCCCCCNC_CCCCCCCCCCC",
+            "NNNNNNNNNNNNNNNNNN_NNNNNNNNN_NN_NNN_NNNNNNNCCCCCC_N_NC_CC_CCCCCC",
+            "NNNNNNNNNNNNNNNN_NNNNNNNNNNNNNN_NNNNNNNNNNNCCCCCC_NNNCNCCCCCCCCC",
+            "NN_N__NNNNN_NNNNNNNNNNNNNNNNNNNNNN_NNNNNNNNCCC_CCCNN_CN_C_CCCCCC",
+            "NNNNNNNNNN__NNNNN_NNNNNN_NNNNN_NNNNNNNNNNNNCCCNC_CNNNCNN__CCCCCC",
+            "NNNNNNNNNNN_NN_NN__NNNNNNNNNNNNNNNNNNNNNNNNCCCNCNC_NNCNNN_CCCCCC",
+        };
+        EXPECT_VEC_EQ(expected_result, result);
+    }
 }
 
-TEST_F(PartitionDataTest, step_device)
+TEST_F(PartitionDataTest, TEST_IF_CELER_DEVICE(step_device))
 {
     // Take full steps in the transport loop and return a string representing
     // the location of the neutral and charged particles in the track vector at
@@ -650,30 +655,33 @@ TEST_F(PartitionDataTest, step_device)
         result.push_back(this->get_result_string(
             dynamic_cast<CoreState<MemSpace::device> const&>(step.state())));
     }
-    static std::string const expected_result[] = {
-        "NNNNNNNNNN________________________________CCCCCCCCCCCCCCCCCCCCCC",
-        "CNNNNNNNCN________________________________CCCCCCCCCCCCCCCCCCCCCC",
-        "CNNNNNNNCNNNNCNNNNNNNNCNNNNNNNN________CCCCCCCCCCCCCCCCCCCCCCCCC",
-        "CCNNNNNCCNNNNCNNNNNNNN_NNNNNNNNNNNNNNNNCC_CCCCCCCCCCCCCCCCCCCCCC",
-        "CCNNNNNCCNCNNCNNNCNNNNNNNNNNNNNNNNNNNNNCCNCCCCCCCCCCCCCCCCCCCCCC",
-        "CCNNCNCCCNCNNCNNNCNNNNNNNNNNNNNCNNNNNNNCCNCCCCCCCCCCCCCCCCCCCCCC",
-        "CCNNCNCCCNCNNCNNNCNNNNNNNNNNNNCCNNNNNNNCCNCCCCCCCCCCCCCCCCCCCCCC",
-        "CCNNCCCCCNCNNCNNNCNNNNNNNNNNNNCCNNNNNNNCCNCCCCCCCCCCCCCCCCCCCCCC",
-        "CCNNCCCCCNCNNCNNNCNNCNNNNNCNNNCCNNNNNCNCCNCCCCCCCCCCCCCCCCCCCCCC",
-        "CCNCCCCCCNCNNCNNNCNN_NNNNN_NNNCCNNCNN_NCCNCCCCCCCCCCCCCCCCCCCCCC",
-        "CCNCCCCCCNCNNCNCNCNNNNNNNNNNNNCCNN_NNNNCCCCCCCCCCCCCCCCCCCCCCCCC",
-        "CCNCCCCCCNCNN_NCNCNNNNNNNNNNNCCCNNNNNNCCCCCCCCCCCCCCCCCCCCCCCCCC",
-        "CCNC_CCCCNCNCNNCCCCNNNNNNNNNN_CCNNNNNNCCCCCCCCCCCCCCCCCCCCCCCCCC",
-        "CCNCNCCCCNCN_NNCCC_NNNNNNNNNNNCCNNNNNCCCCCCCCCCCCCCCCCCCCCCCCCCC",
-        "CCNCNCCCCNCNNNCCCCNNCNNNNNNCNCCCNNNNN_CCCCCCCCCCCCCCCCCCCCCCCCCC",
-        "CCCCNCCCCNCNNNCCC_NNCNNNNNNCN_CCNNCNCNCCCCCCCCCCCCCCCCCCCCCCCCCC",
-        "CCC_NCCCCNCNNCCCCNNNCCNNNNNCNNCCNNCNCNCCCCCCCCCCCCCCCCCCCCCCCCCC",
-        "CCCNNCCCCNCNN_CCCNNNCCNNNNNCNNC_NNCNCNCCCCCCCCCCCCCCCCCCCCCCCCCC",
-        "CCCNNCCCCNCNNNC_CNNCCCNNNNNCNNCNNNCNCNCCC_CCCCCCCCCCCCCCCCCCCCCC",
-        "CCCNNCCCCCCNNNCN_NNCCCNNNNN_NNCNNNCNCN_CCNCCCCCCCCCCCCCCCCCCCCCC",
-        "CCCNNCCCCCCNNNCNNCNCCCNNNNNNNNCNCNCNCNNCCNCCCCCCCCCCCCCCCCCCCCCC",
-    };
-    EXPECT_VEC_EQ(expected_result, result);
+    if (this->is_ci_build())
+    {
+        static std::string const expected_result[] = {
+            "NNNNNNNNNN________________________________CCCCCCCCCCCCCCCCCCCCCC",
+            "_NNNNNNN_N________________________________CCCCCCCCCCCCCCCCCCCCCC",
+            "NNNNNNNNNNNNN_NNNN_NNNNNNNNNN________CCCCCCCCCCCCCCCCCCCCCCCCCCC",
+            "N_NNNNN_NNNNN_NNNNNNNNNNNNNNN_NNNN_NNCCCC_CCCCCCCCCCCCCCCCCCCCCC",
+            "__NNNNNNNNNNNNNNN_NNNNNNNNNNNNNNNNNNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "NNNN_N_NNN_NNNNNNCNNNNNNNNNNNNNNNNNNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "N_NNNNN_NNNNNNNNNCNNNNNNNNNNNNNNNNNNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "N_NNN_N_NNNNNNNNN_NNNNNNNNNNNNNNNNNNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "_NNNNNN_NNN__NNNNNNN__NNNN__NNNNNNNNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "NNN_NNNNNN_NNNNNNNNNN_NNNNNNNNN_NNNNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "NNNNNNNNNNNNNNN_N_NNNNNNN_NNN_NNNNNNNCCCC_CCCCCCCCCCCCCCCCCCCCCC",
+            "NNNNNNNNNNNNNNNNNNNNNNNNN_NNNNNNNN_NNCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+            "_NN_NNNNNN_NNNNNNNNNNNNNN_NNNNNNNNC_NCCCC_CCCCCCCCCCCCCCCCCCCCCC",
+            "NNNNNNN_NNNNNNNNNNNNNNNNNNNNNN__NNCNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "NNNNNNNNNNNNN_NNNNNNNNNNNNNN_NNNNN_NNCCCC_CCCCCCCCCCCCCCCCCCCCCC",
+            "N__NNNNNNNNNNNN_NN_NNNNNNNNN_NNNNNNNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "_NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN_NNNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "NNNNN_NNNNNNNNNNN_NNNNNNNNNNNNNNNNN_NCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "NNNNN_NNNNNNNNNN_N_N_NNNNNNNNNNNNNNNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "NNN_NNNNN_NNNN_NNNNNNN_NNN_NNNNN_NNNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+            "NNNNNN__N_NNNNNNNNNNNNNNNNNNNNNNCNNNNCCCCNCCCCCCCCCCCCCCCCCCCCCC",
+        };
+        EXPECT_VEC_EQ(expected_result, result);
+    }
 }
 
 //---------------------------------------------------------------------------//

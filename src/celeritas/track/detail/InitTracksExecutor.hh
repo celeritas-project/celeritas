@@ -99,9 +99,11 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
     // Initialize the geometry
     {
         auto geo = vacancy.make_geo_view();
-        if (tid < counters.num_secondaries)
+        if (partition_index == 0 && tid < counters.num_secondaries)
         {
-            // Copy the geometry state from the parent for improved performance
+            // Copy the geometry state from the parent for improved
+            // performance, unless the track initializers have been
+            // partitioned by charge
             TrackSlotId parent_id = data.parents[TrackSlotId{
                 index_before(data.parents.size(), tid)}];
             GeoTrackView const parent_geo(

@@ -122,6 +122,7 @@ void InitializeTracksAction::execute_impl(CoreParams const& core_params,
 #if !CELER_USE_DEVICE
 void InitializeTracksAction::execute_impl(CoreParams const&,
                                           CoreStateDevice&,
+                                          size_type,
                                           size_type) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");

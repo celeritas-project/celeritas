@@ -45,6 +45,7 @@ struct ProcessSecondariesExecutor
     ParamsPtr params;
     StatePtr state;
     CoreStateCounters counters;
+    bool copy_geo_state;
 
     //// FUNCTIONS ////
 
@@ -123,7 +124,8 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
             ti.particle.energy = secondary.energy;
             CELER_ASSERT(ti);
 
-            if (!initialized && sim.status() != TrackStatus::alive)
+            if (copy_geo_state && !initialized
+                && sim.status() != TrackStatus::alive)
             {
                 ParticleTrackView particle(
                     params->particles, state->particles, tid);
