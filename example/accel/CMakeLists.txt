@@ -5,7 +5,7 @@
 #-----------------------------------------------------------------------------#
 
 cmake_minimum_required(VERSION 3.18)
-project(CeleritasAccelExample VERSION 0.0.1 LANGUAGES CXX)
+project(CeleritasAccelExample VERSION 0.0.1 LANGUAGES CXX CUDA)
 cmake_policy(VERSION 3.12...3.22)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/..")
