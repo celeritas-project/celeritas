@@ -19,19 +19,25 @@
 #pragma once
 
 #include <cmath>
+#include <functional>
 #include <type_traits>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/cont/Span.hh"
+#include "corecel/math/ArrayOperators.hh"
+#include "corecel/math/ArrayUtils.hh"
+#include "orange/OrangeTypes.hh"
 
 #include "detail/MathImpl.hh"
 
 namespace celeritas
 {
 template<class F>
-class RegularFalsiRootFinder
+class RegularFalsi
 {
   public:
     //@{
@@ -41,7 +47,7 @@ class RegularFalsiRootFinder
 
   public:
     // Contructpr of Regular Falsi
-    CELER_FUNCTION inline RegulaFalsiRootFinder(F&& func, real_type tol);
+    inline CELER_FUNCTION RegularFalsi(F&& func, real_type tol);
 
     // Solve between
     real_type operator()(real_type left, real_type right, Real4 params);
@@ -59,7 +65,8 @@ class RegularFalsiRootFinder
 /*!
  * Construct from function.
  */
-CELER_FUNCTION RegularFalsiRootFinder(F&& func, real_type tol)
+template<class F>
+CELER_FUNCTION RegularFalsi<F>::RegularFalsi(F&& func, real_type tol)
     : func_{func}, tol_{tol}
 {
     CELER_EXPECT(tol > 0);
@@ -70,22 +77,39 @@ CELER_FUNCTION RegularFalsiRootFinder(F&& func, real_type tol)
  * Perform Regular Falsi in defined bounds \em left and \em right with
  * parameters defined in \em params.
  */
-CELER_FUNCTION real_type operator()(real_type left,
-                                    real_type right,
-                                    Real4 params)
+template<class F>
+CELER_FUNCTION real_type RegularFalsi<F>::operator()(real_type left,
+                                                     real_type right,
+                                                     Real4 params)
 {
+    // Initialize Iteration parameters
     real_type f_left = func_(left, params);
     real_type f_right = func_(right, params);
     real_type f_root = 1;
-    real_type root;
+    real_type root = 0;
 
+    // Iterate on root
     while (f_root > tol_)
     {
-        root = (left * func_right - right * func_left)
-               / (func_right - func_left);
-        f_root = func_(root, params)
+        // Calcuate root
+        root = (left * f_right - right * f_left) / (f_right - f_left);
+
+        // Root function value of root
+        f_root = func_(root, params);
+
+        // Update bounds with iterated root
+        if ((0 < f_left) - (f_left < 0) == (0 < f_root) - (f_root < 0))
+        {
+            left = root;
+            f_left = f_root;
+        }
+        else
+        {
+            right = root;
+            f_right = f_root;
+        }
     }
-    return root
+    return root;
 }
 
 }  // namespace celeritas
