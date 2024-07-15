@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-/*! \file corecel/math/RegularFalsiRootFinder.hh
+/*! \file corecel/math/RegulaFalsiRootFinder.hh
  *
- * Perform a Regular Falsi Iteration given a root function \em func and
+ * Perform a Regula Falsi Iteration given a root function \em func and
  * toolerance \em tol .
  *
- * Using a \em left and \em right bound a Regular Falsi approximates the \em
+ * Using a \em left and \em right bound a Regula Falsi approximates the \em
  * root as: \f[ root = (left * func(right) - right * func(left)) / (func(right)
  * - func(left)) \f]
  *
@@ -19,38 +19,27 @@
 #pragma once
 
 #include <cmath>
-#include <functional>
 #include <type_traits>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Array.hh"
-#include "corecel/cont/Span.hh"
-#include "corecel/math/ArrayOperators.hh"
-#include "corecel/math/ArrayUtils.hh"
-#include "orange/OrangeTypes.hh"
+#include "corecel/math/Algorithms.hh"
 
 #include "detail/MathImpl.hh"
 
 namespace celeritas
 {
 template<class F>
-class RegularFalsi
+class RegulaFalsi
 {
   public:
-    //@{
-    //! \name Type aliases
-    using Real4 = Array<real_type, 4>;
-    //@}
-
-  public:
-    // Contructpr of Regular Falsi
-    inline CELER_FUNCTION RegularFalsi(F&& func, real_type tol);
+    // Contructpr of Regula Falsi
+    inline CELER_FUNCTION RegulaFalsi(F&& func, real_type tol);
 
     // Solve between
-    real_type operator()(real_type left, real_type right, Real4 params);
+    real_type operator()(real_type left, real_type right);
 
   private:
     F&& func_;
@@ -66,7 +55,7 @@ class RegularFalsi
  * Construct from function.
  */
 template<class F>
-CELER_FUNCTION RegularFalsi<F>::RegularFalsi(F&& func, real_type tol)
+CELER_FUNCTION RegulaFalsi<F>::RegulaFalsi(F&& func, real_type tol)
     : func_{func}, tol_{tol}
 {
     CELER_EXPECT(tol > 0);
@@ -74,17 +63,16 @@ CELER_FUNCTION RegularFalsi<F>::RegularFalsi(F&& func, real_type tol)
 
 //---------------------------------------------------------------------------//
 /*!
- * Perform Regular Falsi in defined bounds \em left and \em right with
+ * Perform Regula Falsi in defined bounds \em left and \em right with
  * parameters defined in \em params.
  */
 template<class F>
-CELER_FUNCTION real_type RegularFalsi<F>::operator()(real_type left,
-                                                     real_type right,
-                                                     Real4 params)
+CELER_FUNCTION real_type RegulaFalsi<F>::operator()(real_type left,
+                                                    real_type right)
 {
     // Initialize Iteration parameters
-    real_type f_left = func_(left, params);
-    real_type f_right = func_(right, params);
+    real_type f_left = func_(left);
+    real_type f_right = func_(right);
     real_type f_root = 1;
     real_type root = 0;
 
@@ -95,7 +83,7 @@ CELER_FUNCTION real_type RegularFalsi<F>::operator()(real_type left,
         root = (left * f_right - right * f_left) / (f_right - f_left);
 
         // Root function value of root
-        f_root = func_(root, params);
+        f_root = func_(root);
 
         // Update bounds with iterated root
         if ((0 < f_left) - (f_left < 0) == (0 < f_root) - (f_root < 0))
