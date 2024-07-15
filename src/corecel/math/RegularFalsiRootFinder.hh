@@ -34,21 +34,58 @@ template<class F>
 class RegularFalsiRootFinder
 {
   public:
+    //@{
+    //! \name Type aliases
+    using Real4 = Array<real_type, 4>;
+    //@}
+
+  public:
     // Contructpr of Regular Falsi
     CELER_FUNCTION inline RegulaFalsiRootFinder(F&& func, real_type tol);
 
     // Solve between
-    real_type operator()(real_type left, real_type right);
+    real_type operator()(real_type left, real_type right, Real4 params);
 
   private:
     F&& func_;
     real_type tol_;
 };
 
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from function.
+ */
 CELER_FUNCTION RegularFalsiRootFinder(F&& func, real_type tol)
     : func_{func}, tol_{tol}
 {
     CELER_EXPECT(tol > 0);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Perform Regular Falsi in defined bounds \em left and \em right with
+ * parameters defined in \em params.
+ */
+CELER_FUNCTION real_type operator()(real_type left,
+                                    real_type right,
+                                    Real4 params)
+{
+    real_type f_left = func_(left, params);
+    real_type f_right = func_(right, params);
+    real_type f_root = 1;
+    real_type root;
+
+    while (f_root > tol_)
+    {
+        root = (left * func_right - right * func_left)
+               / (func_right - func_left);
+        f_root = func_(root, params)
+    }
+    return root
 }
 
 }  // namespace celeritas
