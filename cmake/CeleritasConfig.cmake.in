@@ -43,10 +43,21 @@ endif()
 include(CMakeFindDependencyMacro)
 
 if(CELERITAS_USE_CUDA)
-  enable_language(CUDA)
   find_dependency(CUDAToolkit REQUIRED QUIET)
+  if(CELERITAS_USE_VecGeom AND NOT CMAKE_CUDA_COMPILER_LOADED)
+    include(CheckLanguage)
+    check_language(CUDA)
+    if(CMAKE_CUDA_COMPILER)
+      message(SEND_ERROR "CUDA compiler/linker are required when compiling with CUDA+VecGeom. "
+        "Enable CUDA language support in your CMake project.")
+    else()
+      message(SEND_ERROR "CUDA compiler/linker are required when compiling with CUDA+VecGeom. "
+        "Couldn't find the nvcc compiler. Make sure the CUDA toolchain is installed "
+        "and enable CUDA language support in your CMake project.")
+    endif()
+  endif()
 elseif(CELERITAS_USE_HIP)
-  enable_language(HIP)
+  find_dependency(hip REQUIRED QUIET)
 endif()
 
 if(CELERITAS_USE_Geant4)
