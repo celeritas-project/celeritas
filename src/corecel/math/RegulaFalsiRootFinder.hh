@@ -51,6 +51,13 @@ class RegulaFalsi
 //---------------------------------------------------------------------------//
 
 //---------------------------------------------------------------------------//
+// TEMPLATE DEDUCTION
+//---------------------------------------------------------------------------//
+
+template<class F, class... Args>
+RegulaFalsi(F&&, Args...) -> RegulaFalsi<F>;
+
+//---------------------------------------------------------------------------//
 /*!
  * Construct from function.
  */
@@ -77,7 +84,7 @@ CELER_FUNCTION real_type RegulaFalsi<F>::operator()(real_type left,
     real_type root = 0;
 
     // Iterate on root
-    while (f_root > tol_)
+    while (std::fabs(f_root) > tol_)
     {
         // Calcuate root
         root = (left * f_right - right * f_left) / (f_right - f_left);
