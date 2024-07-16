@@ -8,7 +8,6 @@
 #include <string_view>
 #include <G4LogicalVolume.hh>
 
-#include "celeritas_cmake_strings.h"
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
@@ -21,6 +20,7 @@
 #include "geocel/g4/GeantGeoTrackView.hh"
 
 #include "GeantGeoTestBase.hh"
+#include "celeritas_cmake_strings.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas

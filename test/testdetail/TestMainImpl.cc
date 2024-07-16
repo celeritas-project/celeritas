@@ -11,7 +11,6 @@
 #include <string_view>
 
 #include "celeritas_config.h"
-#include "celeritas_version.h"
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/ColorUtils.hh"
@@ -23,6 +22,7 @@
 #include "corecel/sys/ScopedMpiInit.hh"
 
 #include "NonMasterResultPrinter.hh"
+#include "celeritas_version.hh"
 
 using std::cout;
 using std::endl;

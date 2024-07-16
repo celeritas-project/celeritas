@@ -10,7 +10,7 @@
 # Celeritas version
 
 celeritas_version_to_hex(CELERITAS_VERSION PROJECT_VERSION)
-celeritas_configure_file("celeritas_version.h.in" "celeritas_version.h" @ONLY)
+celeritas_configure_file("celeritas_version.hh.in" "celeritas_version.hh" @ONLY)
 
 #----------------------------------------------------------------------------#
 # Build configuration
@@ -67,7 +67,7 @@ foreach(_var CLHEP_VERSION Geant4_VERSION VecGeom_VERSION)
     "inline constexpr char celeritas_${_lower}[] = \"${_value}\";\n"
   )
 endforeach()
-celeritas_configure_file("celeritas_cmake_strings.h.in" "celeritas_cmake_strings.h" @ONLY)
+celeritas_configure_file("celeritas_cmake_strings.hh.in" "celeritas_cmake_strings.hh" @ONLY)
 
 # Save dependency versions to sys_config
 set(CELERITAS_DEPENDENCY_VERSIONS)

@@ -9,7 +9,6 @@
 
 #include <string_view>
 
-#include "celeritas_cmake_strings.h"
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Span.hh"
@@ -26,6 +25,7 @@
 #include "geocel/vg/VecgeomTrackView.hh"
 
 #include "VecgeomTestBase.hh"
+#include "celeritas_cmake_strings.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas

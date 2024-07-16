@@ -23,7 +23,6 @@
 #include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
-#include "celeritas_version.h"
 #include "corecel/device_runtime_api.h"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
@@ -45,6 +44,7 @@
 #include "RunnerInput.hh"
 #include "RunnerInputIO.json.hh"
 #include "RunnerOutput.hh"
+#include "celeritas_version.hh"
 
 using namespace std::literals::string_view_literals;
 

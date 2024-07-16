@@ -9,7 +9,6 @@
 
 #include <string>
 
-#include "celeritas_cmake_strings.h"
 #include "celeritas_config.h"
 #include "corecel/io/Logger.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
@@ -22,6 +21,8 @@
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/track/TrackInitParams.hh"
+
+#include "celeritas_cmake_strings.hh"
 
 namespace celeritas
 {

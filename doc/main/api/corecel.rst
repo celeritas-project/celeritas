@@ -15,9 +15,9 @@ Configuration
 
 The ``celeritas_config.h`` configure file contains all-caps definitions of the
 CMake configuration options as 0/1 defines so they can be used with ``if
-constexpr`` and other C++ expressions. The ``celeritas_cmake_strings.h``
+constexpr`` and other C++ expressions. The ``celeritas_cmake_strings.hh``
 defines static C strings with configuration options such as key dependent
-library versions. Finally, ``celeritas_version.h`` defines version numbers as
+library versions. Finally, ``celeritas_version.hh`` defines version numbers as
 a preprocessor definition, a set of integers, and a descriptive string.
 
 .. doxygendefine:: CELERITAS_VERSION

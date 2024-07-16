@@ -32,7 +32,6 @@
 #include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
-#include "celeritas_version.h"
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/ExceptionOutput.hh"
@@ -60,6 +59,7 @@
 #include "GlobalSetup.hh"
 #include "LocalLogger.hh"
 #include "RunInputIO.json.hh"
+#include "celeritas_version.hh"
 
 using namespace std::literals::string_view_literals;
 

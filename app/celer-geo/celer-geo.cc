@@ -14,7 +14,6 @@
 #include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
-#include "celeritas_version.h"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
@@ -31,6 +30,7 @@
 
 #include "GeoInput.hh"
 #include "Runner.hh"
+#include "celeritas_version.hh"
 
 using namespace std::literals::string_view_literals;
 using nlohmann::json;

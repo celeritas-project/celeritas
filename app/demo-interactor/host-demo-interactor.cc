@@ -15,7 +15,6 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_version.h"
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
@@ -34,6 +33,7 @@
 #include "HostKNDemoRunner.hh"
 #include "KNDemoIO.hh"
 #include "LoadXs.hh"
+#include "celeritas_version.hh"
 
 using std::cerr;
 using std::cout;

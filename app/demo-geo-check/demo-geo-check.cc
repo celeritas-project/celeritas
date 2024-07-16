@@ -17,7 +17,6 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_cmake_strings.h"
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/ArrayIO.json.hh"
@@ -30,6 +29,7 @@
 #include "celeritas/geo/GeoFwd.hh"
 
 #include "GCheckRunner.hh"
+#include "celeritas_cmake_strings.hh"
 
 namespace celeritas
 {

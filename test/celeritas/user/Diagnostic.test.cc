@@ -5,7 +5,6 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/user/Diagnostic.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas_cmake_strings.h"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/StringUtils.hh"
 #include "geocel/UnitUtils.hh"
@@ -19,6 +18,7 @@
 #include "celeritas/phys/Primary.hh"
 
 #include "DiagnosticTestBase.hh"
+#include "celeritas_cmake_strings.hh"
 #include "celeritas_test.hh"
 #include "../SimpleTestBase.hh"
 #include "../TestEm3Base.hh"

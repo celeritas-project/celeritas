@@ -10,7 +10,6 @@
 #include <cmath>
 #include <regex>
 
-#include "celeritas_cmake_strings.h"
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/Logger.hh"
@@ -34,6 +33,7 @@
 #include "CMSParameterizedField.hh"
 #include "DiagnosticStepper.hh"
 #include "FieldTestBase.hh"
+#include "celeritas_cmake_strings.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas

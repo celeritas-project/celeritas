@@ -14,7 +14,6 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_version.h"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/DeviceIO.json.hh"
@@ -27,6 +26,7 @@
 #include "KNDemoIO.hh"
 #include "KNDemoRunner.hh"
 #include "LoadXs.hh"
+#include "celeritas_version.hh"
 
 namespace celeritas
 {

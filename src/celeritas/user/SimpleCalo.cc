@@ -11,7 +11,6 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_cmake_strings.h"
 #include "celeritas_config.h"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/Join.hh"
@@ -20,6 +19,8 @@
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/GeoParamsInterface.hh"  // IWYU pragma: keep
+
+#include "celeritas_cmake_strings.hh"
 
 #include "detail/SimpleCaloImpl.hh"
 

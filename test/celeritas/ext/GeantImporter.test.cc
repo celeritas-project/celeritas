@@ -7,7 +7,6 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/GeantImporter.hh"
 
-#include "celeritas_cmake_strings.h"
 #include "celeritas_config.h"
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
@@ -21,6 +20,7 @@
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
+#include "celeritas_cmake_strings.hh"
 #include "celeritas_test.hh"
 #include "../GeantTestBase.hh"
 

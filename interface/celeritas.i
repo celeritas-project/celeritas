@@ -19,14 +19,14 @@
 // CONFIG FILE
 //---------------------------------------------------------------------------//
 %{
-#include "celeritas_version.h"
+#include "celeritas_version.hh"
 #include "celeritas_config.h"
-#include "celeritas_cmake_strings.h"
+#include "celeritas_cmake_strings.hh"
 %}
 
-%include "celeritas_version.h"
+%include "celeritas_version.hh"
 %include "celeritas_config.h"
-%include "celeritas_cmake_strings.h"
+%include "celeritas_cmake_strings.hh"
 
 //---------------------------------------------------------------------------//
 // ASSERTIONS

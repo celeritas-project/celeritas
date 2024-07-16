@@ -11,9 +11,10 @@
 #include <iostream>
 #include <regex>
 
-#include "celeritas_version.h"
 #include "corecel/Assert.hh"
 #include "corecel/io/Join.hh"
+
+#include "celeritas_version.hh"
 
 namespace celeritas
 {
