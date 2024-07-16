@@ -604,6 +604,16 @@ CELER_CONSTEXPR_FUNCTION T eumod(T numer, T denom)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Calculate the sign of a number.
+ */
+template<class T>
+CELER_FORCEINLINE int signum(T x)
+{
+    return (0 < x) - (x < 0);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Double-precision math constant (POSIX derivative).
  *
  * These should be used in *host* or *type-dependent* circumstances because, if
