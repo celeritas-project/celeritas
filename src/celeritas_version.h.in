@@ -14,12 +14,12 @@
 #define CELERITAS_VERSION @CELERITAS_VERSION@
 
 //! Celeritas version string with git metadata
-inline constexpr char celeritas_version[]    = "@Celeritas_VERSION_STRING@";
+static const char celeritas_version[]    = "@Celeritas_VERSION_STRING@";
 //! Celeritas major version
-inline constexpr int celeritas_version_major = @PROJECT_VERSION_MAJOR@;
+static const int celeritas_version_major = @PROJECT_VERSION_MAJOR@;
 //! Celeritas minor version
-inline constexpr int celeritas_version_minor = @PROJECT_VERSION_MINOR@;
+static const int celeritas_version_minor = @PROJECT_VERSION_MINOR@;
 //! Celeritas patch version
-inline constexpr int celeritas_version_patch = @PROJECT_VERSION_PATCH@;
+static const int celeritas_version_patch = @PROJECT_VERSION_PATCH@;
 
 #endif /* celeritas_version_h */
