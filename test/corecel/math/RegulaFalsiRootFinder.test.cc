@@ -12,6 +12,7 @@
 
 #include "corecel/Constants.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "orange/OrangeTypes.hh"
 
 #include "celeritas_test.hh"
@@ -28,7 +29,9 @@ TEST(RegulaFalsi, root_two)
 {
     auto root = [](real_type t) { return (t - 2) * (t + 2); };
 
-    RegulaFalsi find_root{root, 1e-13};
+    constexpr real_type tol = SoftEqual<>{}.rel();
+
+    RegulaFalsi find_root{root, tol};
 
     EXPECT_SOFT_EQ(2.0, find_root(1.0, 3.0));
     EXPECT_SOFT_EQ(-2.0, find_root(-3.0, -1.0));
@@ -39,7 +42,9 @@ TEST(RegulaFalsi, golden_ratio)
 {
     auto root = [](real_type t) { return ipow<2>(t) - t - 1; };
 
-    RegulaFalsi find_root{root, 1e-13};
+    constexpr real_type tol = SoftEqual<>{}.rel();
+
+    RegulaFalsi find_root{root, tol};
 
     EXPECT_SOFT_EQ(1.618033988749, find_root(1.0, 2.0));
     EXPECT_SOFT_EQ(-0.6180339887498, find_root(-1.0, 0.0));
@@ -50,7 +55,9 @@ TEST(RegulaFalsi, trigometric)
 {
     auto root = [](real_type t) { return std::cos(t); };
 
-    RegulaFalsi find_root{root, 1e-8};
+    constexpr real_type tol = SoftEqual<>{}.rel();
+
+    RegulaFalsi find_root{root, tol};
 
     EXPECT_SOFT_EQ(pi * 0.5, find_root(0, pi));
     EXPECT_SOFT_EQ(pi * 1.5, find_root(pi, 2 * pi));
@@ -63,20 +70,22 @@ TEST(RegulaFalsi, trigometric)
  * x(t) = t
  * y(t) = exp(t)
  *
- * Point (0,1)
- * Direction (1,0)
+ * Point (0,2)
+ * Direction (0,-1)
  */
 TEST(RegulaFalsi, expomential_intersect)
 {
     double x = 0.0;
-    double y = 1.0;
-    double u = 1.0;
-    double v = 0;
+    double y = 2.0;
+    double u = 0.0;
+    double v = -1.0;
 
     auto root
         = [&](real_type t) { return u * std::exp(t) - v * t + v * x - u * y; };
 
-    RegulaFalsi find_root{root, 1e-15};
+    constexpr real_type tol = SoftEqual<>{}.rel();
+
+    RegulaFalsi find_root{root, tol};
 
     EXPECT_SOFT_EQ(0.0, find_root(-0.5, 0.5));
 }
