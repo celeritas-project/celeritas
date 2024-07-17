@@ -26,7 +26,7 @@ struct MuBremsstrahlungExecutor
     inline CELER_FUNCTION Interaction
     operator()(celeritas::CoreTrackView const& track);
 
-    MuBremsstrahlungRef params;
+    MuBremsstrahlungData params;
 };
 
 //---------------------------------------------------------------------------//
@@ -36,6 +36,7 @@ struct MuBremsstrahlungExecutor
 CELER_FUNCTION Interaction
 MuBremsstrahlungExecutor::operator()(CoreTrackView const& track)
 {
+    auto cutoff = track.make_cutoff_view();
     auto material_track = track.make_material_view();
     auto material = material_track.make_material_view();
     auto particle = track.make_particle_view();
@@ -47,7 +48,7 @@ MuBremsstrahlungExecutor::operator()(CoreTrackView const& track)
     auto const& dir = track.make_geo_view().dir();
 
     MuBremsstrahlungInteractor interact(
-        params, particle, dir, allocate_secondaries, material, elcomp_id);
+        params, particle, dir, cutoff, allocate_secondaries, material, elcomp_id);
 
     auto rng = track.make_rng_engine();
     return interact(rng);

@@ -16,6 +16,7 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/CombinedBremData.hh"
+#include "celeritas/em/distribution/TsaiUrbanDistribution.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/CutoffView.hh"
@@ -89,6 +90,8 @@ class CombinedBremInteractor
     ElementComponentId const elcomp_id_;
     // Incident particle flag for selecting XS correction factor
     bool const is_electron_;
+    // Secondary angular distribution
+    TsaiUrbanDistribution sample_costheta_;
 };
 
 //---------------------------------------------------------------------------//
@@ -116,6 +119,7 @@ CombinedBremInteractor::CombinedBremInteractor(
     , material_(material)
     , elcomp_id_(elcomp_id)
     , is_electron_(particle.particle_id() == shared.rb_data.ids.electron)
+    , sample_costheta_(inc_energy_, particle.mass())
 {
     CELER_EXPECT(is_electron_
                  || particle.particle_id() == shared.rb_data.ids.positron);
@@ -158,18 +162,14 @@ CELER_FUNCTION Interaction CombinedBremInteractor::operator()(Engine& rng)
         gamma_energy = sample_energy(rng);
     }
 
-    // Sample the bremsstrahlung photon energy to construct the final sampler
-    detail::BremFinalStateHelper sample_interaction(
-        inc_energy_,
-        inc_direction_,
-        inc_momentum_,
-        shared_.rb_data.electron_mass,
-        shared_.rb_data.ids.gamma,
-        gamma_energy,
-        secondaries);
-
     // Update kinematics of the final state and return this interaction
-    return sample_interaction(rng);
+    return detail::BremFinalStateHelper(inc_energy_,
+                                        inc_direction_,
+                                        inc_momentum_,
+                                        shared_.rb_data.ids.gamma,
+                                        gamma_energy,
+                                        sample_costheta_(rng),
+                                        secondaries)(rng);
 }
 
 //---------------------------------------------------------------------------//

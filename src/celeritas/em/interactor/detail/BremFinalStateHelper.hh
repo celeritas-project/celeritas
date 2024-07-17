@@ -8,7 +8,6 @@
 #pragma once
 
 #include "celeritas/Quantities.hh"
-#include "celeritas/em/distribution/TsaiUrbanDistribution.hh"
 #include "celeritas/phys/InteractionUtils.hh"
 #include "celeritas/phys/Secondary.hh"
 
@@ -35,9 +34,9 @@ class BremFinalStateHelper
     inline CELER_FUNCTION BremFinalStateHelper(Energy inc_energy,
                                                Real3 const& inc_direction,
                                                Momentum inc_momentum,
-                                               Mass inc_mass,
                                                ParticleId gamma_id,
                                                Energy gamma_energy,
+                                               real_type costheta,
                                                Secondary* secondary);
 
     // Update the final state for the given RNG and the photon energy
@@ -55,10 +54,10 @@ class BremFinalStateHelper
     ParticleId gamma_id_;
     // Exiting gamma energy
     Energy gamma_energy_;
+    // Secondary polar angle
+    real_type costheta_;
     // Allocated secondary gamma
     Secondary* secondary_;
-    // Secondary angular distribution
-    TsaiUrbanDistribution sample_polar_angle_;
 };
 
 //---------------------------------------------------------------------------//
@@ -71,17 +70,17 @@ CELER_FUNCTION
 BremFinalStateHelper::BremFinalStateHelper(Energy inc_energy,
                                            Real3 const& inc_direction,
                                            Momentum inc_momentum,
-                                           Mass inc_mass,
                                            ParticleId gamma_id,
                                            Energy gamma_energy,
+                                           real_type costheta,
                                            Secondary* secondary)
     : inc_direction_(inc_direction)
     , inc_momentum_(inc_momentum)
     , exit_energy_{inc_energy - gamma_energy}
     , gamma_id_(gamma_id)
     , gamma_energy_{gamma_energy}
+    , costheta_(costheta)
     , secondary_{secondary}
-    , sample_polar_angle_{inc_energy, inc_mass}
 {
     CELER_EXPECT(secondary_);
 }
@@ -95,8 +94,8 @@ CELER_FUNCTION Interaction BremFinalStateHelper::operator()(Engine& rng)
 {
     // Generate exiting gamma direction from isotropic azimuthal angle and
     // TsaiUrbanDistribution for polar angle (based on G4ModifiedTsai)
-    secondary_->direction = ExitingDirectionSampler{sample_polar_angle_(rng),
-                                                    inc_direction_}(rng);
+    secondary_->direction
+        = ExitingDirectionSampler{costheta_, inc_direction_}(rng);
     secondary_->particle_id = gamma_id_;
     secondary_->energy = gamma_energy_;
 

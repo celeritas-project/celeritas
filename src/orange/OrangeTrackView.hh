@@ -23,6 +23,11 @@
 #include "detail/LevelStateAccessor.hh"
 #include "detail/UniverseIndexer.hh"
 
+#if !CELER_DEVICE_COMPILE
+#    include "corecel/io/Logger.hh"
+#    include "corecel/io/Repr.hh"
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -93,6 +98,8 @@ class OrangeTrackView
     inline CELER_FUNCTION bool is_outside() const;
     // Whether the track is exactly on a surface
     inline CELER_FUNCTION bool is_on_boundary() const;
+    //! Whether the last operation resulted in an error
+    CELER_FORCEINLINE_FUNCTION bool failed() const { return failed_; }
 
     //// OPERATIONS ////
 
@@ -133,6 +140,7 @@ class OrangeTrackView
     ParamsRef const& params_;
     StateRef const& states_;
     TrackSlotId track_slot_;
+    bool failed_{false};
 
     //// PRIVATE STATE MUTATORS ////
 
@@ -254,6 +262,8 @@ OrangeTrackView::operator=(Initializer_t const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
 
+    failed_ = false;
+
     // Create local state
     detail::LocalState local;
     local.pos = init.pos;
@@ -272,23 +282,42 @@ OrangeTrackView::operator=(Initializer_t const& init)
     // Recurse into daughter universes starting with the outermost universe
     UniverseId uid = top_universe_id();
     DaughterId daughter_id;
-    size_type level = 0;
+    LevelId level{0};
     do
     {
         TrackerVisitor visit_tracker{params_};
         auto tinit = visit_tracker(
             [&local](auto&& t) { return t.initialize(local); }, uid);
 
-        // TODO: error correction/graceful failure if initialization failed
-        CELER_ASSERT(tinit.volume && !tinit.surface);
+        if (!tinit.volume || tinit.surface)
+        {
+#if !CELER_DEVICE_COMPILE
+            auto msg = CELER_LOG_LOCAL(error);
+            msg << "Failed to initialize geometry state: ";
+            if (!tinit.volume)
+            {
+                msg << "could not find associated volume";
+            }
+            else
+            {
+                msg << "started on a surface ("
+                    << tinit.surface.id().unchecked_get() << ")";
+            }
+            msg << " in universe " << uid.unchecked_get()
+                << " at local position " << repr(local.pos);
+#endif
+            // Mark as failed and place in local "exterior" to end the search
+            // but preserve the current level information
+            failed_ = true;
+            tinit.volume = orange_exterior_volume;
+        }
 
-        auto lsa = this->make_lsa(LevelId{level});
+        auto lsa = this->make_lsa(level);
         lsa.vol() = tinit.volume;
         lsa.pos() = local.pos;
         lsa.dir() = local.dir;
         lsa.universe() = uid;
 
-        CELER_ASSERT(tinit.volume);
         daughter_id = visit_tracker(
             [&tinit](auto&& t) { return t.daughter(tinit.volume); }, uid);
 
@@ -304,13 +333,11 @@ OrangeTrackView::operator=(Initializer_t const& init)
 
     } while (daughter_id);
 
-    // Save fiound level
-    this->level(LevelId{level});
+    // Save found level
+    this->level(level);
 
-    // Set default boundary condition
+    // Reset surface/boundary information
     this->boundary(BoundaryResult::exiting);
-
-    // Clear surface information
     this->clear_surface();
     this->clear_next();
 
@@ -326,6 +353,8 @@ CELER_FUNCTION
 OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
+
+    failed_ = false;
 
     if (this != &init.other)
     {
@@ -591,9 +620,6 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     CELER_EXPECT(this->is_on_boundary());
     CELER_EXPECT(!this->has_next_step());
 
-    LevelId sl = this->surface_level();
-    auto lsa = this->make_lsa(sl);
-
     if (CELER_UNLIKELY(this->boundary() == BoundaryResult::reentrant))
     {
         // Direction changed while on boundary leading to no change in
@@ -602,82 +628,104 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
         return;
     }
 
-    // Flip current sense from "before crossing" to "after"
-    detail::LocalState local;
-    local.pos = lsa.pos();
-    local.dir = lsa.dir();
-    local.volume = lsa.vol();
-    local.surface = {this->surf(), flip_sense(this->sense())};
-    local.temp_sense = this->make_temp_sense();
-
-    // Helpers for updating local transforms
-    TransformVisitor apply_transform{params_};
-    auto transform_down_local = [&local](auto&& t) {
-        local.pos = t.transform_down(local.pos);
-        local.dir = t.rotate_down(local.dir);
-    };
-
-    // Update the post-crossing volume by crossing the boundary of the "surface
-    // crossing" level universes
-    TrackerVisitor visit_tracker{params_};
-    auto tinit = visit_tracker(
-        [&local](auto&& t) { return t.cross_boundary(local); }, lsa.universe());
-
-    CELER_ASSERT(tinit.volume);
-    if (!CELERITAS_DEBUG && CELER_UNLIKELY(!tinit.volume))
-    {
-        // Initialization failure on release mode: set to exterior volume
-        // rather than segfaulting
-        // TODO: error correction or more graceful failure than losing
-        // energy
-        tinit.volume = orange_exterior_volume;
-        tinit.surface = {};
-    }
-
-    lsa.vol() = tinit.volume;
-    this->surface(sl, tinit.surface);
+    // Cross surface by flipping the sense
+    states_.sense[track_slot_] = flip_sense(this->sense());
     this->boundary(BoundaryResult::exiting);
 
+    // Create local state from post-crossing level and updated sense
+    LevelId level{this->surface_level()};
+    UniverseId universe;
+    LocalVolumeId volume;
+    detail::LocalState local;
+    {
+        auto lsa = this->make_lsa(level);
+        universe = lsa.universe();
+        local.pos = lsa.pos();
+        local.dir = lsa.dir();
+        local.volume = lsa.vol();
+        local.surface = {this->surf(), this->sense()};
+        local.temp_sense = this->make_temp_sense();
+    }
+
+    TrackerVisitor visit_tracker{params_};
+
+    // Update the post-crossing volume by crossing the boundary of the "surface
+    // crossing" level universe
+    volume = visit_tracker(
+        [&local](auto&& t) { return t.cross_boundary(local).volume; },
+        universe);
+    if (CELER_UNLIKELY(!volume))
+    {
+        // Boundary crossing failure
+#if !CELER_DEVICE_COMPILE
+        CELER_LOG_LOCAL(error)
+            << "track failed to cross local surface "
+            << this->surf().unchecked_get() << " in universe "
+            << universe.unchecked_get() << " at local position "
+            << repr(local.pos) << " along local direction " << repr(local.dir);
+#endif
+        // Mark as failed and place in local "exterior" to end the search
+        // but preserve the current level information
+        failed_ = true;
+        volume = orange_exterior_volume;
+    }
+    make_lsa(level).vol() = volume;
+
+    // Clear local surface before diving into daughters
+    // TODO: this is where we'd do inter-universe mapping
+    local.volume = {};
+    local.surface = {};
+
     // Starting with the current level (i.e., next_surface_level), iterate
-    // down into the deepest level
-    size_type level = sl.get();
-    LocalVolumeId volume = tinit.volume;
-    auto universe_id = lsa.universe();
-
-    CELER_ASSERT(volume);
+    // down into the deepest level: *initializing* not *crossing*
     auto daughter_id = visit_tracker(
-        [&volume](auto&& t) { return t.daughter(volume); }, lsa.universe());
-
+        [volume](auto&& t) { return t.daughter(volume); }, universe);
     while (daughter_id)
     {
-        auto const& daughter = params_.daughters[daughter_id];
-
-        // Make the current level the daughter level
         ++level;
-        universe_id = daughter.universe_id;
-
-        // Create local state on the daughter level
-        apply_transform(transform_down_local, daughter.transform_id);
-        local.volume = {};
-        local.surface = {};
+        {
+            // Update universe, local position/direction
+            auto const& daughter = params_.daughters[daughter_id];
+            TransformVisitor apply_transform{params_};
+            auto transform_down_local = [&local](auto&& t) {
+                local.pos = t.transform_down(local.pos);
+                local.dir = t.rotate_down(local.dir);
+            };
+            apply_transform(transform_down_local, daughter.transform_id);
+            universe = daughter.universe_id;
+        }
 
         // Initialize in daughter and get IDs of volume and potential daughter
         volume = visit_tracker(
             [&local](auto&& t) { return t.initialize(local).volume; },
-            universe_id);
+            universe);
 
-        CELER_ASSERT(volume);
+        if (!volume)
+        {
+#if !CELER_DEVICE_COMPILE
+            auto msg = CELER_LOG_LOCAL(error);
+            msg << "track failed to cross boundary: could not find associated "
+                   "volume in universe "
+                << universe.unchecked_get() << " at local position "
+                << repr(local.pos);
+#endif
+            // Mark as failed and place in local "exterior" to end the search
+            // but preserve the current level information
+            failed_ = true;
+            volume = orange_exterior_volume;
+        }
         daughter_id = visit_tracker(
-            [&volume](auto&& t) { return t.daughter(volume); }, universe_id);
+            [volume](auto&& t) { return t.daughter(volume); }, universe);
 
-        auto lsa = make_lsa(LevelId{level});
+        auto lsa = make_lsa(level);
         lsa.vol() = volume;
         lsa.pos() = local.pos;
         lsa.dir() = local.dir;
-        lsa.universe() = universe_id;
+        lsa.universe() = universe;
     }
 
-    this->level(LevelId{level});
+    // Save final level
+    this->level(level);
 
     CELER_ENSURE(this->is_on_boundary());
 }
