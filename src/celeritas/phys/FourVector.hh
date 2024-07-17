@@ -28,6 +28,8 @@ struct FourVector
     real_type energy{0};  //!< Particle energy
 };
 
+namespace lorentz
+{
 //---------------------------------------------------------------------------//
 // INLINE UTILITY FUNCTIONS
 //---------------------------------------------------------------------------//
@@ -62,4 +64,26 @@ inline CELER_FUNCTION void boost(Real3 const& v, FourVector* p)
     p->energy = gamma * (p->energy + vp);
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Add two four-vectors.
+ */
+inline CELER_FUNCTION FourVector add(FourVector const& a, FourVector const& b)
+{
+    FourVector result;
+    result.mom = a.mom + b.mom;
+    result.energy = a.energy + b.energy;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the magnitude of a four vector.
+ */
+inline CELER_FUNCTION real_type norm(FourVector const& a)
+{
+    return std::sqrt(std::fabs(ipow<2>(a.energy) - dot_product(a.mom, a.mom)));
+}
+
+}  // namespace lorentz
 }  // namespace celeritas

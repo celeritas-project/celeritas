@@ -143,7 +143,7 @@ CELER_FUNCTION Interaction ChipsNeutronElasticInteractor::operator()(Engine& rng
 
     FourVector lv({{0, 0, value_as<units::MevMomentum>(neutron_p_)},
                    neutron_energy_ + target_mass});
-    boost(boost_vector(lv), &nlv1);
+    lorentz::boost(lorentz::boost_vector(lv), &nlv1);
 
     result.direction = rotate(make_unit_vector(nlv1.mom), inc_direction_);
 
