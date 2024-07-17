@@ -112,7 +112,7 @@ CELER_FUNCTION real_type RegulaFalsi<F>::operator()(real_type left,
         }
     } while (std::fabs(f_root) > tol_ && --remaining_iters > 0);
 
-    CELER_ENSURE(std::fabs(f_root) <= tol_);
+    CELER_ENSURE(remaining_iters > 0);
 
     return root;
 }
