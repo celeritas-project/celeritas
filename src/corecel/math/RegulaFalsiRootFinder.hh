@@ -20,9 +20,10 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 /*!
- * Perform a Regula Falsi Iteration given a root function \em func and
- * toolerance \em tol .
+ * Perform Regula Falsi iterations given a root function \em func and
+ * tolerance \em tol .
  *
  * Using a \em left and \em right bound a Regula Falsi approximates the \em
  * root as: \f[ root = (left * func(right) - right * func(left)) / (func(right)
@@ -39,18 +40,18 @@ template<class F>
 class RegulaFalsi
 {
   public:
-    // Contructpr of Regula Falsi
+    // Contruct with function to solve and solution tolerance
     inline CELER_FUNCTION RegulaFalsi(F&& func, real_type tol);
 
     // Solve for a root between two points
-    real_type operator()(real_type left, real_type right);
-
-    // Maximum amount of iterations
-    static constexpr inline int max_iters_ = 100;
+    inline real_type operator()(real_type left, real_type right);
 
   private:
     F func_;
     real_type tol_;
+
+    // Maximum amount of iterations
+    static constexpr inline int max_iters_ = 100;
 };
 
 //---------------------------------------------------------------------------//
@@ -61,6 +62,8 @@ template<class F, class... Args>
 RegulaFalsi(F&&, Args...) -> RegulaFalsi<F>;
 
 //---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
 /*!
  * Construct from function.
  */
@@ -68,16 +71,12 @@ template<class F>
 CELER_FUNCTION RegulaFalsi<F>::RegulaFalsi(F&& func, real_type tol)
     : func_{celeritas::forward<F>(func)}, tol_{tol}
 {
-    CELER_EXPECT(tol > 0);
+    CELER_EXPECT(tol_ > 0);
 }
 
 //---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-
 /*!
- * Perform Regula Falsi in defined bounds \em left and \em right with
- * parameters defined in \em params.
+ * Solve for a root between the two points.
  */
 template<class F>
 CELER_FUNCTION real_type RegulaFalsi<F>::operator()(real_type left,
@@ -93,10 +92,8 @@ CELER_FUNCTION real_type RegulaFalsi<F>::operator()(real_type left,
     // Iterate on root
     do
     {
-        // Calcuate root
+        // Estimate root and update value
         root = (left * f_right - right * f_left) / (f_right - f_left);
-
-        // Root function value of root
         f_root = func_(root);
 
         // Update the bound which produces the same sign as the root
@@ -113,8 +110,8 @@ CELER_FUNCTION real_type RegulaFalsi<F>::operator()(real_type left,
     } while (std::fabs(f_root) > tol_ && --remaining_iters > 0);
 
     CELER_ENSURE(remaining_iters > 0);
-
     return root;
 }
 
+//---------------------------------------------------------------------------//
 }  // namespace celeritas
