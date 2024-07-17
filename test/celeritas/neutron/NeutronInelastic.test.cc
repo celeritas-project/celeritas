@@ -9,6 +9,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/grid/TwodGridCalculator.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/grid/GenericGridData.hh"
@@ -16,6 +17,8 @@
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/neutron/NeutronTestBase.hh"
 #include "celeritas/neutron/interactor/NeutronInelasticInteractor.hh"
+#include "celeritas/neutron/interactor/detail/CascadeCollider.hh"
+#include "celeritas/neutron/interactor/detail/CascadeParticle.hh"
 #include "celeritas/neutron/model/CascadeOptions.hh"
 #include "celeritas/neutron/model/NeutronInelasticModel.hh"
 #include "celeritas/neutron/xs/NeutronInelasticMicroXsCalculator.hh"
@@ -145,7 +148,7 @@ TEST_F(NeutronInelasticTest, nucleon_xs)
 
     NucleonNucleonXsCalculator calc_xs(shared);
     size_type num_channels = shared.scalars.num_channels();
-    EXPECT_EQ(num_channels, 3);
+    EXPECT_EQ(num_channels, 2);
 
     std::vector<real_type> xs_zero;
     std::vector<real_type> xs;
@@ -157,7 +160,7 @@ TEST_F(NeutronInelasticTest, nucleon_xs)
             xs.push_back(calc_xs(ch_id, MevEnergy{inc_e}).value());
         }
     }
-    real_type const expected_xs_zero[] = {17.613, 20.36, 17.613};
+    real_type const expected_xs_zero[] = {17.613, 20.36};
     real_type const expected_xs[] = {17.613,
                                      17.613,
                                      4.0,
@@ -169,13 +172,7 @@ TEST_F(NeutronInelasticTest, nucleon_xs)
                                      1.92,
                                      0.3024,
                                      0.0316,
-                                     0.0233,
-                                     17.613,
-                                     17.613,
-                                     4.0,
-                                     0.8633,
-                                     0.0691,
-                                     0.0351};
+                                     0.0233};
     EXPECT_VEC_SOFT_EQ(expected_xs_zero, xs_zero);
     EXPECT_VEC_SOFT_EQ(expected_xs, xs);
 }
@@ -374,6 +371,95 @@ TEST_F(NeutronInelasticTest, model_data)
     EXPECT_VEC_SOFT_EQ(expected_b_densities, densities);
     EXPECT_VEC_SOFT_EQ(expected_b_fermi_moms, fermi_moms);
     EXPECT_VEC_SOFT_EQ(expected_b_potentials, potentials);
+}
+
+TEST_F(NeutronInelasticTest, angular_cdf)
+{
+    // Check the tabulated cummulative distribution function (c.d.f) data used
+    // for sampling cos\theta of the intra-nucleus nucleon-nucleon collision
+    NeutronInelasticRef shared = model_->host_ref();
+
+    TwodGridData grid_cdf = shared.angular_cdf[ChannelId{0}];
+    NonuniformGrid<real_type> const y_grid{grid_cdf.y, shared.reals};
+    TwodGridCalculator calc_cdf(grid_cdf, shared.reals);
+
+    EXPECT_EQ(shared.angular_cdf.size(), 2);
+    EXPECT_EQ(grid_cdf.x.size(), 6);
+    EXPECT_EQ(grid_cdf.y.size(), 19);
+    EXPECT_EQ(grid_cdf.values.size(), 114);
+    EXPECT_EQ(calc_cdf({0, -1}), 0);
+
+    // Calculate the c.d.f value at a given point of energy and cos\theta
+    std::vector<real_type> cdf;
+    for (real_type inc_e : {50., 150., 250.})
+    {
+        for (real_type cos_theta : {-0.5, 0., 0.5})
+        {
+            cdf.push_back(calc_cdf({inc_e, cos_theta}));
+        }
+    }
+
+    real_type const expected_cdf[] = {0.25583333333333,
+                                      0.5,
+                                      0.74416666666667,
+                                      0.264,
+                                      0.5,
+                                      0.736,
+                                      0.25795,
+                                      0.5,
+                                      0.74205};
+
+    EXPECT_VEC_SOFT_EQ(expected_cdf, cdf);
+}
+
+TEST_F(NeutronInelasticTest, cascade_collider)
+{
+    using ParticleType = CascadeParticle::ParticleType;
+    using FinalState = Array<CascadeParticle, 2>;
+
+    // Test nuleon-nucleon intra-nuclear cascade interactions
+    NeutronInelasticRef shared = model_->host_ref();
+    RandomEngine& rng_engine = this->rng();
+
+    // Neutron-neutron channel
+    CascadeParticle bullet{ParticleType::neutron,
+                           shared.scalars.neutron_mass,
+                           {{23.1269, -25.7938, 603.536}, 1117.25}};
+    CascadeParticle target{ParticleType::neutron,
+                           shared.scalars.neutron_mass,
+                           {{29.5146, -127.849, 83.849}, 952.381}};
+
+    detail::CascadeCollider nn_collider(shared, bullet, target);
+    FinalState nn_result = nn_collider(rng_engine);
+
+    // Neutron-proton channel
+    bullet = {ParticleType::neutron,
+              shared.scalars.neutron_mass,
+              {{289.968, -55.9082, 22.8334}, 985.145}};
+    target = {ParticleType::proton,
+              shared.scalars.proton_mass,
+              {{-43.6161, 112.144, -146.784}, 957.277}};
+
+    detail::CascadeCollider np_collider(shared, bullet, target);
+    FinalState np_result = np_collider(rng_engine);
+
+    // Expected results (verified with Geant4 11.2.2)
+    real_type expected_nn_energy[] = {985.07411365134317, 1084.5568863486567};
+    real_type expected_np_energy[] = {985.94825543412617, 956.47374456587363};
+    Real3 expected_np_mom[]
+        = {{295.582760097549, -7.33588399587099, 43.4489730961597},
+           {-49.2308600975493, 63.571683995871, -167.39957309616}};
+    Real3 expected_nn_mom[]
+        = {{-91.1374627277095, -224.52912872407, 169.907259286778},
+           {143.77896272771, 70.8863287240703, 517.477740713221}};
+
+    for (auto i : range(2))
+    {
+        EXPECT_SOFT_EQ(expected_nn_energy[i], nn_result[i].vec4.energy);
+        EXPECT_SOFT_EQ(expected_np_energy[i], np_result[i].vec4.energy);
+        EXPECT_VEC_SOFT_EQ(expected_nn_mom[i], nn_result[i].vec4.mom);
+        EXPECT_VEC_SOFT_EQ(expected_np_mom[i], np_result[i].vec4.mom);
+    }
 }
 
 //---------------------------------------------------------------------------//
