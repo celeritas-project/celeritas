@@ -605,6 +605,8 @@ CELER_CONSTEXPR_FUNCTION T eumod(T numer, T denom)
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the sign of a number.
+ *
+ * \return -1 if negative, 0 if exactly zero (or NaN), 1 if positive
  */
 template<class T>
 CELER_FORCEINLINE int signum(T x)

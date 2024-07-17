@@ -3,18 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-/*! \file corecel/math/RegulaFalsiRootFinder.hh
- *
- * Perform a Regula Falsi Iteration given a root function \em func and
- * toolerance \em tol .
- *
- * Using a \em left and \em right bound a Regula Falsi approximates the \em
- * root as: \f[ root = (left * func(right) - right * func(left)) / (func(right)
- * - func(left)) \f]
- *
- * Then value of \em func at the root is calculated compared to values of
- * \em func at the bounds. The bound which has the same sign \em func(root)
- */
+//! \file corecel/math/RegulaFalsiRootFinder.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -31,6 +20,21 @@
 
 namespace celeritas
 {
+/*!
+ * Perform a Regula Falsi Iteration given a root function \em func and
+ * toolerance \em tol .
+ *
+ * Using a \em left and \em right bound a Regula Falsi approximates the \em
+ * root as: \f[ root = (left * func(right) - right * func(left)) / (func(right)
+ * - func(left)) \f]
+ *
+ * Then value of \em func at the root is calculated compared to values of
+ * \em func at the bounds. The \em root is then used update the bounds based on
+ * the sign of \em func(root) and whether it matches the sign of \em func(left)
+ * or \em func(right) . Performing this update of the bounds allows for the
+ * iteration on root, using the convergence criteria based on \em func(root)
+ * proximity to 0.
+ */
 template<class F>
 class RegulaFalsi
 {
@@ -40,6 +44,9 @@ class RegulaFalsi
 
     // Solve for a root between two points
     real_type operator()(real_type left, real_type right);
+
+    // Maximum amount of iterations
+    static constexpr inline int max_iters_ = 100;
 
   private:
     F func_;
@@ -68,7 +75,6 @@ CELER_FUNCTION RegulaFalsi<F>::RegulaFalsi(F&& func, real_type tol)
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 
-//---------------------------------------------------------------------------//
 /*!
  * Perform Regula Falsi in defined bounds \em left and \em right with
  * parameters defined in \em params.
@@ -82,7 +88,7 @@ CELER_FUNCTION real_type RegulaFalsi<F>::operator()(real_type left,
     real_type f_right = func_(right);
     real_type f_root = 1;
     real_type root = 0;
-    int i = 0;
+    int remaining_iters = max_iters_;
 
     // Iterate on root
     do
@@ -104,8 +110,9 @@ CELER_FUNCTION real_type RegulaFalsi<F>::operator()(real_type left,
             right = root;
             f_right = f_root;
         }
-        i++;
-    } while (std::fabs(f_root) > tol_ && i <= 100);
+    } while (std::fabs(f_root) > tol_ && --remaining_iters > 0);
+
+    CELER_ENSURE(std::fabs(f_root) <= tol_);
 
     return root;
 }
