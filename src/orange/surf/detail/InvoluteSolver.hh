@@ -103,7 +103,7 @@ CELER_FUNCTION InvoluteSolver::InvoluteSolver(
     : r_b_(r_b), a_(a), sign_(sign), tmin_(tmin), tmax_(tmax)
 {
     CELER_EXPECT(r_b > 0);
-    CELER_EXPECT(a > 0);
+    CELER_EXPECT(a >= 0);
     CELER_EXPECT(tmax > 0);
     CELER_EXPECT(tmin > 0);
     CELER_EXPECT(tmax < 2 * pi + tmin);

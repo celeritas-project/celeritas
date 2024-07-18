@@ -25,11 +25,11 @@ using SurfaceSate = celeritas::SurfaceState;
 //! Python reference can be found in \file test/orange/surf/doc/involute.py
 TEST(SolveSurface, no_roots)
 {
-    // Solve for rb = 3.0, a = pi, sign = CCW
+    // Solve for rb = 3.0, a = 0, sign = CCW
     // Point (0,-2) Direction (1,0)
     // tmin = 0.5 and tmax = 4
     {
-        double r_b = 1.0;
+        double r_b = 3.0;
         double a = 0;
         auto sign = InvoluteSolver::counterclockwise;
 
