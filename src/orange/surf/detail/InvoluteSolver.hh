@@ -153,8 +153,8 @@ InvoluteSolver::operator()(Real3 const& pos,
      * account for the floating point error when performing square roots.
      * tol_conv gives the tolerance for the Regular Falsi iteration.
      */
-    Tolerance tol_point = Tolerance::from_relative(1e-5, r_b_);
-    Tolerance tol_conv = Tolerance::from_relative(1e-6, r_b_);
+    Tolerance tol_point = Tolerance::from_relative(5e-5, r_b_);
+    Tolerance tol_conv = Tolerance::from_relative(1e-5, r_b_);
 
     // Results initalization and root counter
     Intersections result;

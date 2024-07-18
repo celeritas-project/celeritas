@@ -51,7 +51,7 @@ class RegulaFalsi
     real_type tol_;
 
     // Maximum amount of iterations
-    static constexpr inline int max_iters_ = 1000;
+    static constexpr inline int max_iters_ = 500;
 };
 
 //---------------------------------------------------------------------------//
