@@ -13,6 +13,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#define CELERITAS_VERSION @CELERITAS_VERSION@
 //! Celeritas version string with git metadata
 inline constexpr char celeritas_version[]    = "@Celeritas_VERSION_STRING@";
 //! Celeritas major version
