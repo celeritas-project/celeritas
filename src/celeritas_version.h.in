@@ -12,14 +12,18 @@
 /*! Celeritas version. Encoded as a big-endian hexidecimal with one byte per
  * component: (major * 256 + minor) * 256 + patch. */
 #define CELERITAS_VERSION @CELERITAS_VERSION@
-
+#if __cplusplus >= 201703L
+#   include "corecel/Version.hh"
+#else
+#   define CELER_INLINE_CONSTEXPR inline const
+#endif
 //! Celeritas version string with git metadata
-inline constexpr char celeritas_version[]    = "@Celeritas_VERSION_STRING@";
+CELER_INLINE_CONSTEXPR char celeritas_version[]    = "@Celeritas_VERSION_STRING@";
 //! Celeritas major version
-inline constexpr int celeritas_version_major = @PROJECT_VERSION_MAJOR@;
+CELER_INLINE_CONSTEXPR int celeritas_version_major = @PROJECT_VERSION_MAJOR@;
 //! Celeritas minor version
-inline constexpr int celeritas_version_minor = @PROJECT_VERSION_MINOR@;
+CELER_INLINE_CONSTEXPR int celeritas_version_minor = @PROJECT_VERSION_MINOR@;
 //! Celeritas patch version
-inline constexpr int celeritas_version_patch = @PROJECT_VERSION_PATCH@;
-
+CELER_INLINE_CONSTEXPR int celeritas_version_patch = @PROJECT_VERSION_PATCH@;
+#undef CELER_INLINE_CONSTEXPR
 #endif /* celeritas_version_h */
