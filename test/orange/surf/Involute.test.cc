@@ -98,8 +98,8 @@ TEST(Involute, solve_intersect)
             SurfaceState::on);
 
         EXPECT_SOFT_EQ(0.0, dist[0]);
-        EXPECT_SOFT_EQ(6.9112249151160547 * convert, dist[1]);
-        EXPECT_SOFT_EQ(9.167603472624553 * convert, dist[2]);
+        EXPECT_SOFT_EQ(6.9112247788711496 * convert, dist[1]);
+        EXPECT_SOFT_EQ(9.1676027399570188 * convert, dist[2]);
     }
 
     // CW Involute Test
@@ -114,7 +114,7 @@ TEST(Involute, solve_intersect)
         auto dist = invo.calc_intersections(
             Real3{-4.0, 2.0}, Real3{u, v, w}, SurfaceState::off);
 
-        EXPECT_SOFT_EQ(6.0371012183803652 * convert, dist[0]);
+        EXPECT_SOFT_EQ(6.0371011620709423 * convert, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }

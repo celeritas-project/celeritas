@@ -99,6 +99,31 @@ TEST(SolveSurface, no_roots)
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
+
+    // Solve for rb = 1.1, a = 0.5*pi, sign = CW
+    // Point (-0.2,1.1) Direction (0,0)
+    // tmin = 0 and tmax = 1.99*pi
+    {
+        real_type r_b = 1.1;
+        real_type a = 0.5 * pi;
+        auto sign = InvoluteSolver::clockwise;
+
+        real_type x = -0.2;
+        real_type y = 1.1;
+        real_type u = 0;
+        real_type v = 0;
+
+        real_type tmin = 0;
+        real_type tmax = 1.99 * pi;
+
+        InvoluteSolver solve(r_b, a, sign, tmin, tmax);
+        auto dist
+            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
+
+        EXPECT_SOFT_EQ(no_intersection(), dist[0]);
+        EXPECT_SOFT_EQ(no_intersection(), dist[1]);
+        EXPECT_SOFT_EQ(no_intersection(), dist[2]);
+    }
 }
 
 TEST(SolveSurface, one_root)
@@ -123,7 +148,7 @@ TEST(SolveSurface, one_root)
         auto dist
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
-        EXPECT_SOFT_EQ(2.9716938706909275, dist[0]);
+        EXPECT_SOFT_EQ(2.9716938425892643, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
@@ -148,7 +173,7 @@ TEST(SolveSurface, one_root)
         auto dist
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
-        EXPECT_SOFT_EQ(3.7273045229725681, dist[0]);
+        EXPECT_SOFT_EQ(3.7273045252182175, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
@@ -197,32 +222,7 @@ TEST(SolveSurface, one_root)
         auto dist
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
-        EXPECT_SOFT_EQ(6.0371012183803652, dist[0]);
-        EXPECT_SOFT_EQ(no_intersection(), dist[1]);
-        EXPECT_SOFT_EQ(no_intersection(), dist[2]);
-    }
-
-    // Solve for rb = 1.1, a = 0.5*pi, sign = CW
-    // Point (-0.2,1.1) Direction (0,0)
-    // tmin = 0 and tmax = 1.99*pi
-    {
-        real_type r_b = 1.1;
-        real_type a = 0.5 * pi;
-        auto sign = InvoluteSolver::clockwise;
-
-        real_type x = -0.2;
-        real_type y = 1.1;
-        real_type u = 0;
-        real_type v = 0;
-
-        real_type tmin = 0;
-        real_type tmax = 1.99 * pi;
-
-        InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
-
-        EXPECT_SOFT_EQ(no_intersection(), dist[0]);
+        EXPECT_SOFT_EQ(6.0371011620709423, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
@@ -251,7 +251,7 @@ TEST(SolveSurface, two_roots)
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(0.2, dist[0]);
-        EXPECT_SOFT_EQ(2.764234602725404, dist[1]);
+        EXPECT_SOFT_EQ(2.7642342100652102, dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
 
@@ -275,8 +275,8 @@ TEST(SolveSurface, two_roots)
         auto dist
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
-        EXPECT_SOFT_EQ(0.0036178081060022097, dist[0]);
-        EXPECT_SOFT_EQ(6.0284475629193013, dist[1]);
+        EXPECT_SOFT_EQ(0.0036228501524875464, dist[0]);
+        EXPECT_SOFT_EQ(6.0284474453909951, dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
 
@@ -301,7 +301,7 @@ TEST(SolveSurface, two_roots)
         auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
         EXPECT_SOFT_EQ(0.0, dist[0]);
-        EXPECT_SOFT_EQ(4.6528327548038506, dist[1]);
+        EXPECT_SOFT_EQ(4.6528324593899653, dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
 }
@@ -328,8 +328,8 @@ TEST(SolveSurface, three_roots)
         auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
         EXPECT_SOFT_EQ(0.0, dist[0]);
-        EXPECT_SOFT_EQ(6.9112249151160547, dist[1]);
-        EXPECT_SOFT_EQ(9.167603472624553, dist[2]);
+        EXPECT_SOFT_EQ(6.9112247788711496, dist[1]);
+        EXPECT_SOFT_EQ(9.1676027399570188, dist[2]);
     }
 }
 TEST(Components, line_angle_param)

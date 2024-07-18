@@ -8,7 +8,6 @@
 #pragma once
 
 #include <cmath>
-#include <iostream>
 #include <type_traits>
 
 #include "celeritas_config.h"
@@ -108,7 +107,6 @@ CELER_FUNCTION real_type RegulaFalsi<F>::operator()(real_type left,
             right = root;
             f_right = f_root;
         }
-        std::cout << "f_root: " << f_root << std::endl;
     } while (std::fabs(f_root) > tol_ && --remaining_iters > 0);
 
     CELER_ENSURE(remaining_iters > 0);
