@@ -158,7 +158,7 @@ InvoluteSolver::operator()(Real3 const& pos,
 
     // Results initalization and root counter
     Intersections result;
-    real_type j = 0;
+    int j = 0;
     // Initial result vector.
     result = {no_intersection(), no_intersection(), no_intersection()};
 
