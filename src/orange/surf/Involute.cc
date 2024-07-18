@@ -31,7 +31,7 @@ Involute::Involute(Real2 const& origin,
     , tmax_(tmax)
 {
     CELER_EXPECT(a >= 0);
-    CELER_EXPECT(tmax >= 0);
+    CELER_EXPECT(tmax > 0);
     CELER_EXPECT(tmin >= 0);
     CELER_EXPECT(tmax < 2 * pi + tmin);
 

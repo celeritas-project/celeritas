@@ -105,7 +105,7 @@ CELER_FUNCTION InvoluteSolver::InvoluteSolver(
     CELER_EXPECT(r_b > 0);
     CELER_EXPECT(a >= 0);
     CELER_EXPECT(tmax > 0);
-    CELER_EXPECT(tmin > 0);
+    CELER_EXPECT(tmin >= 0);
     CELER_EXPECT(tmax < 2 * pi + tmin);
 }
 
@@ -159,13 +159,11 @@ InvoluteSolver::operator()(Real3 const& pos,
     // Results initalization and root counter
     Intersections result;
     real_type j = 0;
-    // Initial result vector.
-    result = {no_intersection(), no_intersection(), no_intersection()};
 
     // Return result if particle is travelling along z-axis.
     if (u == 0 && v == 0)
     {
-        return result;
+        return {no_intersection(), no_intersection(), no_intersection()};
     }
 
     // Conversion constant for 2-D distance to 3-D distance
@@ -238,6 +236,13 @@ InvoluteSolver::operator()(Real3 const& pos,
             t_upper += pi / i;
             i++;
         }
+    }
+
+    // remaining points result in no intersections
+    while (j < 3)
+    {
+        result[j] = no_intersection();
+        j++;
     }
     return result;
 }
