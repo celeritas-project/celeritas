@@ -364,32 +364,6 @@ TEST(Components, line_angle_param)
         EXPECT_SOFT_EQ(-pi / 3, beta);
     }
 }
-TEST(Compoents, regular_falsi)
-{
-    // r_b = 1.1, a = 0.5*pi
-    // Point (-0.2, 1.1)
-    // Directionn (1, 0)
-    // t_gamma = 0
-    {
-        double r_b = 1.1;
-        double a = 0.5 * pi;
-
-        double x = -0.2;
-        double y = 1.1;
-        double u = 1;
-        double v = 0;
-
-        double t_alpha = 0;
-        double ft_alpha = 0;
-
-        double t_beta = 0.5 * pi;
-        double ft_beta = r_b * 0.5 * pi - y * u;
-
-        auto t_gamma = InvoluteSolver::regular_falsi(
-            t_alpha, t_beta, ft_alpha, ft_beta, r_b, a, x, y, u, v, 1e-8 * r_b);
-        EXPECT_SOFT_EQ(0, t_gamma);
-    }
-}
 TEST(Components, calc_dist)
 {
     double r_b = 1.1;
