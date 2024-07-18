@@ -13,10 +13,10 @@
 
 #include "celeritas_config.h"
 #include "corecel/Macros.hh"
+#include "corecel/Version.hh"
 
-#include "JsonPimpl.hh"
 #include "celeritas_cmake_strings.hh"
-#include "celeritas_version.hh"
+#include "JsonPimpl.hh"
 
 namespace celeritas
 {

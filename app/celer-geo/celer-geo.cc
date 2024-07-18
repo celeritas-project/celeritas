@@ -25,12 +25,12 @@
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
+#include "corecel/Version.hh"
 #include "geocel/rasterize/Image.hh"
 #include "geocel/rasterize/ImageIO.json.hh"
 
 #include "GeoInput.hh"
 #include "Runner.hh"
-#include "celeritas_version.hh"
 
 using namespace std::literals::string_view_literals;
 using nlohmann::json;

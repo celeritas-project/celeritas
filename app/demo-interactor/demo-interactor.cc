@@ -21,12 +21,12 @@
 #include "corecel/sys/KernelRegistryIO.json.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
+#include "corecel/Version.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
 #include "KNDemoIO.hh"
 #include "KNDemoRunner.hh"
 #include "LoadXs.hh"
-#include "celeritas_version.hh"
 
 namespace celeritas
 {

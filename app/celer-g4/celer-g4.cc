@@ -33,25 +33,26 @@
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
+#include "corecel/Macros.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TypeDemangler.hh"
+#include "corecel/Version.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/ScopedGeantLogger.hh"
-#include "celeritas/ext/GeantPhysicsOptions.hh"
-#include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/ext/detail/CelerEmPhysicsList.hh"
 #include "celeritas/ext/detail/CelerFTFPBert.hh"
+#include "celeritas/ext/GeantPhysicsOptions.hh"
+#include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "accel/SharedParams.hh"
 
 #include "ActionInitialization.hh"
@@ -59,7 +60,6 @@
 #include "GlobalSetup.hh"
 #include "LocalLogger.hh"
 #include "RunInputIO.json.hh"
-#include "celeritas_version.hh"
 
 using namespace std::literals::string_view_literals;
 

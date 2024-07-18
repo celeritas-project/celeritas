@@ -10,7 +10,8 @@
 # Celeritas version
 
 celeritas_version_to_hex(CELERITAS_VERSION PROJECT_VERSION)
-celeritas_configure_file("celeritas_version.hh.in" "celeritas_version.hh" @ONLY)
+celeritas_configure_file("celeritas_version.h.in" "celeritas_version.h" @ONLY)
+celeritas_configure_file("corecel/Version.hh.in" "corecel/Version.hh" @ONLY)
 
 #----------------------------------------------------------------------------#
 # Build configuration

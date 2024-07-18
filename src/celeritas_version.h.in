@@ -3,27 +3,27 @@
  * See the top-level COPYRIGHT file for details.
  * SPDX-License-Identifier: (Apache-2.0 OR MIT)
  *---------------------------------------------------------------------------*/
-/*! \file celeritas_version.hh
+/*! \file celeritas_version.h
  * Version metadata for Celeritas.
  *---------------------------------------------------------------------------*/
 #ifndef celeritas_version_h
 #define celeritas_version_h
 
+#if __cplusplus >= 201703L
+// uses inline variables introduced in c++17
+#   include "corecel/Version.hh"
+#else
 /*! Celeritas version. Encoded as a big-endian hexidecimal with one byte per
  * component: (major * 256 + minor) * 256 + patch. */
 #define CELERITAS_VERSION @CELERITAS_VERSION@
-#if __cplusplus >= 201703L
-#   include "corecel/Version.hh"
-#else
-#   define CELER_INLINE_CONSTEXPR inline const
-#endif
 //! Celeritas version string with git metadata
-CELER_INLINE_CONSTEXPR char celeritas_version[]    = "@Celeritas_VERSION_STRING@";
+static const char celeritas_version[]    = "@Celeritas_VERSION_STRING@";
 //! Celeritas major version
-CELER_INLINE_CONSTEXPR int celeritas_version_major = @PROJECT_VERSION_MAJOR@;
+static const int celeritas_version_major = @PROJECT_VERSION_MAJOR@;
 //! Celeritas minor version
-CELER_INLINE_CONSTEXPR int celeritas_version_minor = @PROJECT_VERSION_MINOR@;
+static const int celeritas_version_minor = @PROJECT_VERSION_MINOR@;
 //! Celeritas patch version
-CELER_INLINE_CONSTEXPR int celeritas_version_patch = @PROJECT_VERSION_PATCH@;
-#undef CELER_INLINE_CONSTEXPR
+static const int celeritas_version_patch = @PROJECT_VERSION_PATCH@;
+#endif
+
 #endif /* celeritas_version_h */

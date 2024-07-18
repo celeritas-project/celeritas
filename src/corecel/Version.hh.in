@@ -1,0 +1,23 @@
+//---------------------------------*-C++-*----------------------------------//
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
+// See the top-level COPYRIGHT file for details.
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+/*!
+ * \file corecel/Version.hh
+ * \brief Celeritas version.
+ *
+ * Encoded as a big-endian hexidecimal with one byte per
+ * component: (major * 256 + minor) * 256 + patch.
+ */
+//---------------------------------------------------------------------------//
+#pragma once
+
+//! Celeritas version string with git metadata
+inline constexpr char celeritas_version[]    = "@Celeritas_VERSION_STRING@";
+//! Celeritas major version
+inline constexpr int celeritas_version_major = @PROJECT_VERSION_MAJOR@;
+//! Celeritas minor version
+inline constexpr int celeritas_version_minor = @PROJECT_VERSION_MINOR@;
+//! Celeritas patch version
+inline constexpr int celeritas_version_patch = @PROJECT_VERSION_PATCH@;

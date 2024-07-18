@@ -38,13 +38,13 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "corecel/sys/TracingSession.hh"
+#include "corecel/Version.hh"
 #include "celeritas/Types.hh"
 
 #include "Runner.hh"
 #include "RunnerInput.hh"
 #include "RunnerInputIO.json.hh"
 #include "RunnerOutput.hh"
-#include "celeritas_version.hh"
 
 using namespace std::literals::string_view_literals;
 

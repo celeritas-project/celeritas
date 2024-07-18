@@ -19,12 +19,12 @@
 // CONFIG FILE
 //---------------------------------------------------------------------------//
 %{
-#include "celeritas_version.hh"
+#include "corecel/Version.hh"
 #include "celeritas_config.h"
 #include "celeritas_cmake_strings.hh"
 %}
 
-%include "celeritas_version.hh"
+%include "corecel/Version.hh"
 %include "celeritas_config.h"
 %include "celeritas_cmake_strings.hh"
 

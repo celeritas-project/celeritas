@@ -23,17 +23,17 @@
 #include "corecel/sys/KernelRegistryIO.json.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
-#include "celeritas/Quantities.hh"
-#include "celeritas/Units.hh"
-#include "celeritas/phys/PDGNumber.hh"
+#include "corecel/Version.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Units.hh"
 
 #include "DetectorData.hh"
 #include "HostKNDemoRunner.hh"
 #include "KNDemoIO.hh"
 #include "LoadXs.hh"
-#include "celeritas_version.hh"
 
 using std::cerr;
 using std::cout;

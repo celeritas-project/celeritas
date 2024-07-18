@@ -13,8 +13,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Join.hh"
-
-#include "celeritas_version.hh"
+#include "corecel/Version.hh"
 
 namespace celeritas
 {
