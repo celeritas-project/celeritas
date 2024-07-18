@@ -85,7 +85,7 @@ TEST(Involute, solve_intersect)
 
     // CCW Involute  Test
     {
-        Involute invo{{1, 1}, 1.1, -0.5 * pi, 0, 1.99 * pi};
+        Involute invo{{1, 1}, 1.1, 1.5 * pi, 0, 1.99 * pi};
 
         double u = 0.9933558377574788 * std::sin(1);
         double v = -0.11508335932330707 * std::sin(1);

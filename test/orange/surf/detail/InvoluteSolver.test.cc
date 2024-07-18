@@ -50,12 +50,12 @@ TEST(SolveSurface, no_roots)
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
 
-    // Solve for rb = 0.75, a = -2*pi, sign = CCW
+    // Solve for rb = 0.75, a = 0, sign = CCW
     // Point (-7,-1) Direction (0.894427191,-0.4472135955)
     // tmin = 2 and tmax = 4
     {
         double r_b = 0.75;
-        double a = -2 * pi;
+        double a = 0;
         auto sign = InvoluteSolver::counterclockwise;
 
         double x = -7;
@@ -75,12 +75,12 @@ TEST(SolveSurface, no_roots)
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
 
-    // Solve for rb = 0.25, a = -2*pi, sign = CCW
+    // Solve for rb = 0.25, a = 0, sign = CCW
     // Point (-2,1) Direction (0.4472135955,0.894427191)
     // tmin = 2 and tmax = 4
     {
         double r_b = 0.75;
-        double a = -2 * pi;
+        double a = 0;
         auto sign = InvoluteSolver::counterclockwise;
 
         double x = -7;
@@ -255,7 +255,7 @@ TEST(SolveSurface, two_roots)
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
 
-    // Solve for rb = 1.1, a = -0.5*pi, sign = CW
+    // Solve for rb = 1.1, a = 1.5*pi, sign = CW
     // Point (-0.0001,-1.11) Direction (-0.1,0.9949874371)
     // tmin = 0 and tmax = 1.99*pi
     {
@@ -280,13 +280,13 @@ TEST(SolveSurface, two_roots)
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
 
-    // Solve for rb = 1.1, a = -0.5*pi, sign = CCW
+    // Solve for rb = 1.1, a = 1.5*pi, sign = CCW
     // Point (0.0058102462574510716,-1.1342955336941216)
     // Direction (0.7071067812,0.7071067812)
     // tmin = 0 and tmax = 1.99*pi
     {
         double r_b = 1.1;
-        double a = -0.5 * pi;
+        double a = 1.5 * pi;
         auto sign = InvoluteSolver::counterclockwise;
 
         double x = 0.0058102462574510716;
@@ -307,13 +307,13 @@ TEST(SolveSurface, two_roots)
 }
 TEST(SolveSurface, three_roots)
 {
-    // Solve for rb = 1.1, a = -0.5*pi, sign = CCW
+    // Solve for rb = 1.1, a = 1.5*pi, sign = CCW
     // Point (-6.865305298657132,-0.30468305643505367)
     // Direction (0.9933558377574788,-0.11508335932330707)
     // tmin = 0 and tmax = 1.99*pi
     {
         double r_b = 1.1;
-        double a = -0.5 * pi;
+        double a = 1.5 * pi;
         auto sign = InvoluteSolver::counterclockwise;
 
         double x = -6.8653052986571326;
