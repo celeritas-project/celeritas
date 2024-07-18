@@ -142,7 +142,7 @@ PenaltyReturnTypeOnItsOwnLine: 10
 PointerAlignment: Left
 QualifierAlignment: Right
 ReflowComments:  true
-SortIncludes:    CaseInsensitive
+SortIncludes:    CaseSensitive
 SortUsingDeclarations: true
 SpaceAfterCStyleCast: false
 SpaceAfterTemplateKeyword: false
