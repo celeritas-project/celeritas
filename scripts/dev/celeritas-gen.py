@@ -110,8 +110,8 @@ TEST_F({name}Test, host)
 TEST_HEADER_FILE = '''
 #pragma once
 
-#include "celeritas_config.h"
 #include "corecel/Assert.hh"
+#include "corecel/Config.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 

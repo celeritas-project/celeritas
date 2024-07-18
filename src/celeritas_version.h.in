@@ -3,8 +3,9 @@
  * See the top-level COPYRIGHT file for details.
  * SPDX-License-Identifier: (Apache-2.0 OR MIT)
  *---------------------------------------------------------------------------*/
-/*! \file celeritas_version.h
- * Version metadata for Celeritas.
+/*!
+ * \file celeritas_version.h
+ * \brief Version metadata for Celeritas.
  *---------------------------------------------------------------------------*/
 #ifndef celeritas_version_h
 #define celeritas_version_h

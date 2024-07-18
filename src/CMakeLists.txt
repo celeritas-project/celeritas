@@ -49,12 +49,17 @@ if(NOT DEFINED CELERITAS_HOSTNAME)
 endif()
 
 set(CELERITAS_CMAKE_STRINGS)
+set(CELERITAS_CMAKE_STRINGS_COMPAT)
 set(CELERITAS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS OPENMP CORE_GEO CORE_RNG)
   set(_var "CELERITAS_${_var}")
   string(TOLOWER "${_var}" _lower)
+  set(_var_def "char ${_lower}[] = \"${${_var}}\";\n")
   string(APPEND CELERITAS_CMAKE_STRINGS
-    "inline constexpr char ${_lower}[] = \"${${_var}}\";\n"
+    "inline constexpr ${_var_def}"
+  )
+  string(APPEND CELERITAS_CMAKE_STRINGS_COMPAT
+    "static const ${_var_def}"
   )
 endforeach()
 
@@ -64,11 +69,15 @@ foreach(_var CLHEP_VERSION Geant4_VERSION VecGeom_VERSION)
     set(_var "${_var}_STRING")
   endif()
   set(_value "${${_var}}")
+  set(_var_def "char celeritas_${_lower}[] = \"${_value}\";\n")
   string(APPEND CELERITAS_CMAKE_STRINGS
-    "inline constexpr char celeritas_${_lower}[] = \"${_value}\";\n"
+    "inline constexpr ${_var_def}"
+  )
+  string(APPEND CELERITAS_CMAKE_STRINGS_COMPAT
+    "static const ${_var_def}"
   )
 endforeach()
-celeritas_configure_file("celeritas_cmake_strings.hh.in" "celeritas_cmake_strings.hh" @ONLY)
+celeritas_configure_file("celeritas_cmake_strings.h.in" "celeritas_cmake_strings.h" @ONLY)
 
 # Save dependency versions to sys_config
 set(CELERITAS_DEPENDENCY_VERSIONS)
@@ -81,6 +90,9 @@ foreach(_dep Geant4 VecGeom HepMC3)
 endforeach()
 string(JOIN "\n" CELERITAS_DEPENDENCY_VERSIONS ${CELERITAS_DEPENDENCY_VERSIONS})
 celeritas_configure_file("celeritas_sys_config.h.in" "celeritas_sys_config.h" @ONLY)
+
+celeritas_configure_file("corecel/Config.hh.in" "corecel/Config.hh" @ONLY)
+celeritas_configure_file("corecel/sys/Config.hh.in" "corecel/sys/Config.hh" @ONLY)
 
 #----------------------------------------------------------------------------#
 # LIBRARIES

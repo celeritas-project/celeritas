@@ -32,9 +32,11 @@ set(_DOXYGEN_EXTRA_SOURCE
   "${PROJECT_SOURCE_DIR}/README.md"
   "${PROJECT_SOURCE_DIR}/scripts/README.md"
   "${PROJECT_BINARY_DIR}/include/celeritas_config.h"
-  "${PROJECT_BINARY_DIR}/include/celeritas_cmake_strings.hh"
+  "${PROJECT_BINARY_DIR}/include/celeritas_cmake_strings.h"
   "${PROJECT_BINARY_DIR}/include/celeritas_version.h"
   "${PROJECT_BINARY_DIR}/include/corecel/Version.hh"
+  "${PROJECT_BINARY_DIR}/include/corecel/Config.hh"
+  "${PROJECT_BINARY_DIR}/include/corecel/sys/Config.hh"
 )
 if((CELERITAS_DEBUG AND CELERITAS_BUILD_TESTS)
   OR CELERITAS_DOXYGEN_BUILD_TESTS)

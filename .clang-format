@@ -71,44 +71,48 @@ IncludeCategories:
   - Regex:           '^<.+>$'
     Priority:        1
     SortPriority:    2
+# Special group for config/version headers as they might be needed before other headers
   - Regex:           '^"celeritas_[a-z_]+\.h"'
+    Priority:        2
+    SortPriority:    3
+  - Regex:           '^"corecel/(sys/)?(Config|Version)\.hh"$'
     Priority:        2
     SortPriority:    3
   - Regex:           '^"corecel/device_runtime_api\.h"$'
     Priority:        2
     SortPriority:    3
   - Regex:           '^"corecel/'
-    Priority:        2
+    Priority:        3
     SortPriority:    5
     CaseSensitive:   true
   - Regex:           '^"geocel/'
-    Priority:        2
+    Priority:        3
     SortPriority:    6
     CaseSensitive:   true
   - Regex:           '^"orange/'
-    Priority:        2
+    Priority:        3
     SortPriority:    7
     CaseSensitive:   true
   - Regex:           '^"celeritas/'
-    Priority:        2
+    Priority:        3
     SortPriority:    8
     CaseSensitive:   true
   - Regex:           '^"accel/'
-    Priority:        2
+    Priority:        3
     SortPriority:    9
     CaseSensitive:   true
   - Regex:           '^"[^/]+"'
-    Priority:        5
+    Priority:        6
     SortPriority:    11
   - Regex:           '^"detail/'
-    Priority:        6
+    Priority:        7
     SortPriority:    13
   - Regex:           '"(^gtest/|TestBase|\.test\.hh|celeritas_test\.hh)'
-    Priority:        7
+    Priority:        8
     CaseSensitive:   true
     SortPriority:    14
   - Regex:           '.*'
-    Priority:        5
+    Priority:        6
     SortPriority:    12 # higher than detail, lower than no-slash
 IncludeIsMainRegex: '(\.[^.]+)?$'
 IncludeIsMainSourceRegex: '(\.cu|\.t\.hh)$' # Allow CU/template files as main

@@ -3,14 +3,21 @@
  * See the top-level COPYRIGHT file for details.
  * SPDX-License-Identifier: (Apache-2.0 OR MIT)
  *---------------------------------------------------------------------------*/
-/*! \file celeritas_sys_config.h
- * System-specific configuration options for Celeritas.
+/*!
+ * \file celeritas_sys_config.h
+ * \brief System-specific configuration options for Celeritas.
  *---------------------------------------------------------------------------*/
 #ifndef celeritas_sys_config_h
 #define celeritas_sys_config_h
 
+#ifdef __cplusplus
+#    pragma GCC warning __FILE__ \
+        " is deprecated and should be replaced by \"corecel/sys/Config.hh\""
+#   include "corecel/sys/Config.hh"
+#else
 #cmakedefine01 CELERITAS_HAVE_ROCTX
 
 @CELERITAS_DEPENDENCY_VERSIONS@
+#endif
 
 #endif /* celeritas_sys_config_h */
