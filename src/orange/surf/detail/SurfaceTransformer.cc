@@ -119,7 +119,7 @@ Sphere SurfaceTransformer::operator()(Sphere const& other) const
 /*!
  * Transform an Involute.
  */
-Involute SurfaceTransformer::operator()(Involute const& other) const
+Involute SurfaceTransformer::operator()(Involute const&) const
 {
     CELER_NOT_IMPLEMENTED("transformed involutes");
 }
