@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cmath>
+#include <iostream>
 #include <type_traits>
 
 #include "celeritas_config.h"
@@ -51,7 +52,7 @@ class RegulaFalsi
     real_type tol_;
 
     // Maximum amount of iterations
-    static constexpr inline int max_iters_ = 500;
+    static constexpr inline int max_iters_ = 1000;
 };
 
 //---------------------------------------------------------------------------//
@@ -107,6 +108,7 @@ CELER_FUNCTION real_type RegulaFalsi<F>::operator()(real_type left,
             right = root;
             f_right = f_root;
         }
+        std::cout << "f_root: " << f_root << std::endl;
     } while (std::fabs(f_root) > tol_ && --remaining_iters > 0);
 
     CELER_ENSURE(remaining_iters > 0);
