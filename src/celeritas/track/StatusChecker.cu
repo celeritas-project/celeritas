@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "StatusChecker.hh"
 
-#include "corecel/device_runtime_api.h"
+#include "corecel/device_runtime_api.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/sys/Stream.hh"
 #include "celeritas/global/ActionLauncher.device.hh"

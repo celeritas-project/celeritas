@@ -7,11 +7,12 @@
 //---------------------------------------------------------------------------//
 #include "SimpleCaloImpl.hh"
 
-#include "corecel/device_runtime_api.h"
-#include "corecel/Types.hh"
+#include "corecel/device_runtime_api.hh"
+
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Stream.hh"
+#include "corecel/Types.hh"
 
 #include "SimpleCaloExecutor.hh"  // IWYU pragma: associated
 

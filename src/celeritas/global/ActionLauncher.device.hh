@@ -9,21 +9,23 @@
 
 #include <type_traits>
 
-#include "corecel/device_runtime_api.h"
+#include "corecel/device_runtime_api.hh"
+
 #include "corecel/Assert.hh"
-#include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/Stream.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "corecel/Types.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "ActionInterface.hh"
 #include "CoreParams.hh"
 #include "CoreState.hh"
 #include "KernelContextException.hh"
+
 #include "detail/ActionLauncherKernel.device.hh"
 #include "detail/ApplierTraits.hh"
 

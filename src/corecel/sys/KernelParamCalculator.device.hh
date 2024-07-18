@@ -10,12 +10,13 @@
 #include <cstddef>
 #include <string_view>
 
-#include "corecel/device_runtime_api.h"
+#include "corecel/device_runtime_api.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
-#include "corecel/math/Algorithms.hh"
 
 #include "Device.hh"
 #include "KernelAttributes.hh"

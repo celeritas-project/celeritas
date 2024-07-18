@@ -18,7 +18,7 @@
 #include "Device.hh"
 
 #if CELER_DEVICE_SOURCE
-#    include "corecel/device_runtime_api.h"
+#    include "corecel/device_runtime_api.hh"
 #endif
 
 namespace celeritas

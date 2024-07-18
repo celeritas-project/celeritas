@@ -1,14 +1,13 @@
-/*-----------------------------------*-C-*-----------------------------------
+/*-----------------------------------*-C++-*-----------------------------------
  * Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
  * See the top-level COPYRIGHT file for details.
  * SPDX-License-Identifier: (Apache-2.0 OR MIT)
  *---------------------------------------------------------------------------*/
 /*!
- * \file corecel/device_runtime_api.h
+ * \file corecel/device_runtime_api.hh
  * Include CUDA or HIP runtime APIs for compiling with host/cc compiler.
  */
-#ifndef CELERITAS_DEVICE_RUNTIME_API_H
-#define CELERITAS_DEVICE_RUNTIME_API_H
+#pragma once
 
 #include "corecel/Config.hh"
 
@@ -63,5 +62,3 @@
  * won't include this file automatically.)
  */
 extern int celeritas_device_runtime_api_h_;
-
-#endif /* CELERITAS_DEVICE_RUNTIME_API_H */

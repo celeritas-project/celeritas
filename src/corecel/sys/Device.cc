@@ -19,7 +19,8 @@
 #    include <omp.h>
 #endif
 
-#include "corecel/device_runtime_api.h"
+#include "corecel/device_runtime_api.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
@@ -27,6 +28,7 @@
 #include "Environment.hh"
 #include "MpiCommunicator.hh"
 #include "Stream.hh"
+
 #include "detail/StreamStorage.hh"
 
 #if CELERITAS_USE_CUDA
@@ -215,7 +217,7 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
         mempool, CELER_DEVICE_PREFIX(MemPoolAttrReleaseThreshold), &threshold));
 #endif
 
-    // See device_runtime_api.h
+    // See device_runtime_api.hh
     eu_per_cu_ = CELER_EU_PER_CU;
 
     CELER_ENSURE(*this);

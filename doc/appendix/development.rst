@@ -276,7 +276,7 @@ such as
 ``cudaMalloc`` does *not* have to be compiled with NVCC. Instead, it only has to
 be linked against the CUDA runtime library and include ``cuda_runtime_api.h``.
 The platform-agnostic Celeritas include file to use is
-``corecel/device_runtime_api.h``.
+``corecel/device_runtime_api.hh``.
 Note that VecGeom compiles differently when run
 through NVCC (macro magic puts much of the code in a different namespace) so
 its inclusion must be very carefully managed.

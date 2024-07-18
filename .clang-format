@@ -78,7 +78,7 @@ IncludeCategories:
   - Regex:           '^"corecel/(sys/)?(Config|Version)\.hh"$'
     Priority:        2
     SortPriority:    3
-  - Regex:           '^"corecel/device_runtime_api\.h"$'
+  - Regex:           '^"corecel/device_runtime_api\.hh"$'
     Priority:        2
     SortPriority:    3
   - Regex:           '^"corecel/'
