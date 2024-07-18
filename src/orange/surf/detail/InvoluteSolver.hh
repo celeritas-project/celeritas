@@ -191,7 +191,8 @@ InvoluteSolver::operator()(Real3 const& pos,
     real_type t_upper = beta - a_;
 
     // Round t_upper to the first positive multiple of pi
-    t_upper += std::fmax(0, -std::floor(t_upper / pi)) * pi;
+    real_type floor_upper = -std::floor(t_upper / pi);
+    t_upper += std::fmax(0, floor_upper) * pi;
 
     // Parameters that will be used in loop
     int i = 1;

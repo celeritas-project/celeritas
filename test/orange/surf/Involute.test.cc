@@ -87,9 +87,9 @@ TEST(Involute, solve_intersect)
     {
         Involute invo{{1, 1}, 1.1, 1.5 * pi, 0, 1.99 * pi};
 
-        double u = 0.9933558377574788 * std::sin(1);
-        double v = -0.11508335932330707 * std::sin(1);
-        double w = std::cos(1);
+        real_type u = 0.9933558377574788 * std::sin(1);
+        real_type v = -0.11508335932330707 * std::sin(1);
+        real_type w = std::cos(1);
         real_type convert = 1 / std::sqrt(ipow<2>(v) + ipow<2>(u));
 
         auto dist = invo.calc_intersections(
@@ -106,9 +106,9 @@ TEST(Involute, solve_intersect)
     {
         Involute invo{{0.0, 0.0}, -0.5, 0.4 * pi, 2, 4};
 
-        double u = 0.894427191 * 0.5;
-        double v = -0.4472135955 * 0.5;
-        double w = std::sqrt(3) * 0.25;
+        real_type u = 0.894427191 * 0.5;
+        real_type v = -0.4472135955 * 0.5;
+        real_type w = std::sqrt(3) * 0.25;
         real_type convert = 2;
 
         auto dist = invo.calc_intersections(
@@ -123,10 +123,10 @@ TEST(Involute, solve_intersect)
     {
         Involute invo{{0, 0}, 1.0, 0.0, 0.5, 4};
 
-        double x = 0;
-        double y = -2;
-        double u = 1;
-        double v = 0;
+        real_type x = 0;
+        real_type y = -2;
+        real_type u = 1;
+        real_type v = 0;
 
         auto dist = invo.calc_intersections(
             Real3{x, y, 0}, Real3{u, v, 0.0}, SurfaceState::off);

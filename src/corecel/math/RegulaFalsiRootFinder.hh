@@ -44,7 +44,7 @@ class RegulaFalsi
     inline CELER_FUNCTION RegulaFalsi(F&& func, real_type tol);
 
     // Solve for a root between two points
-    inline real_type operator()(real_type left, real_type right);
+    inline real_type operator()(real_type left, real_type right) const;
 
   private:
     F func_;
@@ -80,7 +80,7 @@ CELER_FUNCTION RegulaFalsi<F>::RegulaFalsi(F&& func, real_type tol)
  */
 template<class F>
 CELER_FUNCTION real_type RegulaFalsi<F>::operator()(real_type left,
-                                                    real_type right)
+                                                    real_type right) const
 {
     // Initialize Iteration parameters
     real_type f_left = func_(left);

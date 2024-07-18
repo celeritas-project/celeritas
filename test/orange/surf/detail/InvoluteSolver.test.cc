@@ -29,17 +29,17 @@ TEST(SolveSurface, no_roots)
     // Point (0,-2) Direction (1,0)
     // tmin = 0.5 and tmax = 4
     {
-        double r_b = 3.0;
-        double a = 0;
+        real_type r_b = 3.0;
+        real_type a = 0;
         auto sign = InvoluteSolver::counterclockwise;
 
-        double x = 0;
-        double y = -2;
-        double u = 1;
-        double v = 0;
+        real_type x = 0;
+        real_type y = -2;
+        real_type u = 1;
+        real_type v = 0;
 
-        double tmin = 0.5;
-        double tmax = 4;
+        real_type tmin = 0.5;
+        real_type tmax = 4;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
         auto dist
@@ -54,17 +54,17 @@ TEST(SolveSurface, no_roots)
     // Point (-7,-1) Direction (0.894427191,-0.4472135955)
     // tmin = 2 and tmax = 4
     {
-        double r_b = 0.75;
-        double a = 0;
+        real_type r_b = 0.75;
+        real_type a = 0;
         auto sign = InvoluteSolver::counterclockwise;
 
-        double x = -7;
-        double y = -1;
-        double u = 0.894427191;
-        double v = -0.4472135955;
+        real_type x = -7;
+        real_type y = -1;
+        real_type u = 0.894427191;
+        real_type v = -0.4472135955;
 
-        double tmin = 2;
-        double tmax = 4;
+        real_type tmin = 2;
+        real_type tmax = 4;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
         auto dist
@@ -79,17 +79,17 @@ TEST(SolveSurface, no_roots)
     // Point (-2,1) Direction (0.4472135955,0.894427191)
     // tmin = 2 and tmax = 4
     {
-        double r_b = 0.75;
-        double a = 0;
+        real_type r_b = 0.75;
+        real_type a = 0;
         auto sign = InvoluteSolver::counterclockwise;
 
-        double x = -7;
-        double y = -1;
-        double u = 0.4472135955;
-        double v = -0.894427191;
+        real_type x = -7;
+        real_type y = -1;
+        real_type u = 0.4472135955;
+        real_type v = -0.894427191;
 
-        double tmin = 2;
-        double tmax = 4;
+        real_type tmin = 2;
+        real_type tmax = 4;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
         auto dist
@@ -107,17 +107,17 @@ TEST(SolveSurface, one_root)
     // Point (0,0) Direction (0,1)
     // tmin = 0 and tmax = 1.99*pi
     {
-        double r_b = 1.0;
-        double a = 0;
+        real_type r_b = 1.0;
+        real_type a = 0;
         auto sign = InvoluteSolver::counterclockwise;
 
-        double x = 0;
-        double y = 0;
-        double u = 0;
-        double v = 1;
+        real_type x = 0;
+        real_type y = 0;
+        real_type u = 0;
+        real_type v = 1;
 
-        double tmin = 0;
-        double tmax = 1.99 * pi;
+        real_type tmin = 0;
+        real_type tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
         auto dist
@@ -132,17 +132,17 @@ TEST(SolveSurface, one_root)
     // Point (-1.5,1) Direction (0.2,0.9797958971)
     // tmin = 0 and tmax = 1.99*pi
     {
-        double r_b = 1.5;
-        double a = 0;
+        real_type r_b = 1.5;
+        real_type a = 0;
         auto sign = InvoluteSolver::counterclockwise;
 
-        double x = -1.5;
-        double y = 1.0;
-        double u = 0.2;
-        double v = 0.9797958971;
+        real_type x = -1.5;
+        real_type y = 1.0;
+        real_type u = 0.2;
+        real_type v = 0.9797958971;
 
-        double tmin = 0;
-        double tmax = 1.99 * pi;
+        real_type tmin = 0;
+        real_type tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
         auto dist
@@ -157,17 +157,17 @@ TEST(SolveSurface, one_root)
     // Point (-4.101853006408607,-5.443541628262038) Direction (0.0,1.0)
     // tmin = 2 and tmax = 4
     {
-        double r_b = 3.0;
-        double a = pi;
+        real_type r_b = 3.0;
+        real_type a = pi;
         auto sign = InvoluteSolver::counterclockwise;
 
-        double x = -4.101853006408607;
-        double y = -5.443541628262038;
-        double u = 0.0;
-        double v = 1.0;
+        real_type x = -4.101853006408607;
+        real_type y = -5.443541628262038;
+        real_type u = 0.0;
+        real_type v = 1.0;
 
-        double tmin = 2;
-        double tmax = 4;
+        real_type tmin = 2;
+        real_type tmax = 4;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
         auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
@@ -181,17 +181,17 @@ TEST(SolveSurface, one_root)
     // Point (-4,2) Direction (0.894427191,-0.4472135955)
     // tmin = 2 and tmax = 4
     {
-        double r_b = 0.5;
-        double a = 0.6 * pi;
+        real_type r_b = 0.5;
+        real_type a = 0.6 * pi;
         auto sign = InvoluteSolver::clockwise;
 
-        double x = -4.0;
-        double y = 2.0;
-        double u = 0.894427191;
-        double v = -0.4472135955;
+        real_type x = -4.0;
+        real_type y = 2.0;
+        real_type u = 0.894427191;
+        real_type v = -0.4472135955;
 
-        double tmin = 2;
-        double tmax = 4;
+        real_type tmin = 2;
+        real_type tmax = 4;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
         auto dist
@@ -206,17 +206,17 @@ TEST(SolveSurface, one_root)
     // Point (-0.2,1.1) Direction (0,0)
     // tmin = 0 and tmax = 1.99*pi
     {
-        double r_b = 1.1;
-        double a = 0.5 * pi;
+        real_type r_b = 1.1;
+        real_type a = 0.5 * pi;
         auto sign = InvoluteSolver::clockwise;
 
-        double x = -0.2;
-        double y = 1.1;
-        double u = 0;
-        double v = 0;
+        real_type x = -0.2;
+        real_type y = 1.1;
+        real_type u = 0;
+        real_type v = 0;
 
-        double tmin = 0;
-        double tmax = 1.99 * pi;
+        real_type tmin = 0;
+        real_type tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
         auto dist
@@ -234,17 +234,17 @@ TEST(SolveSurface, two_roots)
     // Point (-0.2,1.1) Direction (1,0)
     // tmin = 0 and tmax = 1.99*pi
     {
-        double r_b = 1.1;
-        double a = 0.5 * pi;
+        real_type r_b = 1.1;
+        real_type a = 0.5 * pi;
         auto sign = InvoluteSolver::clockwise;
 
-        double x = -0.2;
-        double y = 1.1;
-        double u = 1;
-        double v = 0;
+        real_type x = -0.2;
+        real_type y = 1.1;
+        real_type u = 1;
+        real_type v = 0;
 
-        double tmin = 0;
-        double tmax = 1.99 * pi;
+        real_type tmin = 0;
+        real_type tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
         auto dist
@@ -259,17 +259,17 @@ TEST(SolveSurface, two_roots)
     // Point (-0.0001,-1.11) Direction (-0.1,0.9949874371)
     // tmin = 0 and tmax = 1.99*pi
     {
-        double r_b = 1.1;
-        double a = 1.5 * pi;
+        real_type r_b = 1.1;
+        real_type a = 1.5 * pi;
         auto sign = InvoluteSolver::clockwise;
 
-        double x = -0.0001;
-        double y = -1.11;
-        double u = -0.1;
-        double v = 0.9949874371;
+        real_type x = -0.0001;
+        real_type y = -1.11;
+        real_type u = -0.1;
+        real_type v = 0.9949874371;
 
-        double tmin = 0;
-        double tmax = 1.99 * pi;
+        real_type tmin = 0;
+        real_type tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
         auto dist
@@ -285,17 +285,17 @@ TEST(SolveSurface, two_roots)
     // Direction (0.7071067812,0.7071067812)
     // tmin = 0 and tmax = 1.99*pi
     {
-        double r_b = 1.1;
-        double a = 1.5 * pi;
+        real_type r_b = 1.1;
+        real_type a = 1.5 * pi;
         auto sign = InvoluteSolver::counterclockwise;
 
-        double x = 0.0058102462574510716;
-        double y = -1.1342955336941216;
-        double u = 0.7071067812;
-        double v = 0.7071067812;
+        real_type x = 0.0058102462574510716;
+        real_type y = -1.1342955336941216;
+        real_type u = 0.7071067812;
+        real_type v = 0.7071067812;
 
-        double tmin = 0;
-        double tmax = 1.99 * pi;
+        real_type tmin = 0;
+        real_type tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
         auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
@@ -312,17 +312,17 @@ TEST(SolveSurface, three_roots)
     // Direction (0.9933558377574788,-0.11508335932330707)
     // tmin = 0 and tmax = 1.99*pi
     {
-        double r_b = 1.1;
-        double a = 1.5 * pi;
+        real_type r_b = 1.1;
+        real_type a = 1.5 * pi;
         auto sign = InvoluteSolver::counterclockwise;
 
-        double x = -6.8653052986571326;
-        double y = -0.30468305643505367;
-        double u = 0.9933558377574788;
-        double v = -0.11508335932330707;
+        real_type x = -6.8653052986571326;
+        real_type y = -0.30468305643505367;
+        real_type u = 0.9933558377574788;
+        real_type v = -0.11508335932330707;
 
-        double tmin = 0;
-        double tmax = 1.99 * pi;
+        real_type tmin = 0;
+        real_type tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
         auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
@@ -337,8 +337,8 @@ TEST(Components, line_angle_param)
     // Direction (0,1)
     // beta = -pi*0.5
     {
-        double u = 0;
-        double v = 1;
+        real_type u = 0;
+        real_type v = 1;
 
         auto beta = InvoluteSolver::line_angle_param(u, v);
         EXPECT_SOFT_EQ(-pi * 0.5, beta);
@@ -347,8 +347,8 @@ TEST(Components, line_angle_param)
     // Direction (0,-1)
     // beta = pi*0.5
     {
-        double u = 0;
-        double v = -1;
+        real_type u = 0;
+        real_type v = -1;
 
         auto beta = InvoluteSolver::line_angle_param(u, v);
         EXPECT_SOFT_EQ(pi * 0.5, beta);
@@ -357,8 +357,8 @@ TEST(Components, line_angle_param)
     // Direction (0.5,sin(pi/3))
     // beta = -pi/3
     {
-        double u = 0.5;
-        double v = std::sin(pi / 3);
+        real_type u = 0.5;
+        real_type v = std::sin(pi / 3);
 
         auto beta = InvoluteSolver::line_angle_param(u, v);
         EXPECT_SOFT_EQ(-pi / 3, beta);
@@ -366,19 +366,19 @@ TEST(Components, line_angle_param)
 }
 TEST(Components, calc_dist)
 {
-    double r_b = 1.1;
-    double a = 0.5 * pi;
+    real_type r_b = 1.1;
+    real_type a = 0.5 * pi;
     auto sign = InvoluteSolver::clockwise;
 
-    double x = -0.2;
-    double y = 1.1;
-    double u = 1;
-    double v = 0;
+    real_type x = -0.2;
+    real_type y = 1.1;
+    real_type u = 1;
+    real_type v = 0;
 
-    double tmin = 0;
-    double tmax = 1.99 * pi;
+    real_type tmin = 0;
+    real_type tmax = 1.99 * pi;
 
-    double t_gamma = 0;
+    real_type t_gamma = 0;
 
     InvoluteSolver calc_dist(r_b, a, sign, tmin, tmax);
 
