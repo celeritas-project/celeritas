@@ -55,16 +55,6 @@ class InvoluteSolver
     static inline CELER_FUNCTION real_type line_angle_param(real_type u,
                                                             real_type v);
 
-    static inline CELER_FUNCTION real_type calc_dist(real_type x,
-                                                     real_type y,
-                                                     real_type u,
-                                                     real_type v,
-                                                     real_type t,
-                                                     real_type r_b,
-                                                     real_type a,
-                                                     real_type tmin,
-                                                     real_type tmax);
-
   public:
     // Construct Involute from parameters
     inline CELER_FUNCTION InvoluteSolver(
@@ -73,6 +63,10 @@ class InvoluteSolver
     // Solve fully general case
     inline CELER_FUNCTION Intersections operator()(
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
+
+    //// CALCULATION ////
+    inline CELER_FUNCTION real_type calc_dist(
+        real_type x, real_type y, real_type u, real_type v, real_type t) const;
 
     //// ACCESSORS ////
 
@@ -225,8 +219,7 @@ InvoluteSolver::operator()(Real3 const& pos,
             real_type t_gamma = find_root_between(t_lower, t_upper);
 
             // Convert root to distance and store if positive and in interval
-            real_type dist
-                = calc_dist(x, y, u, v, t_gamma, r_b_, a_, tmin_, tmax_);
+            real_type dist = calc_dist(x, y, u, v, t_gamma);
             if (dist > tol_point.abs)
             {
                 result[j] = convert * dist;
@@ -276,23 +269,16 @@ CELER_FUNCTION real_type InvoluteSolver::line_angle_param(real_type u,
  * Convert root to distance by calculating the point on the involute given by
  * the root and then taking the distance to that point from the particle.
  */
-CELER_FUNCTION real_type InvoluteSolver::calc_dist(real_type x,
-                                                   real_type y,
-                                                   real_type u,
-                                                   real_type v,
-                                                   real_type t,
-                                                   real_type r_b,
-                                                   real_type a,
-                                                   real_type tmin,
-                                                   real_type tmax)
+CELER_FUNCTION real_type InvoluteSolver::calc_dist(
+    real_type x, real_type y, real_type u, real_type v, real_type t) const
 {
-    real_type theta = t + a;
-    real_type x_inv = r_b * (std::cos(theta) + t * std::sin(theta));
-    real_type y_inv = r_b * (std::sin(theta) - t * std::cos(theta));
+    real_type theta = t + a_;
+    real_type x_inv = r_b_ * (std::cos(theta) + t * std::sin(theta));
+    real_type y_inv = r_b_ * (std::sin(theta) - t * std::cos(theta));
     real_type dist = 0;
 
     // Check if point is interval
-    if (t >= tmin && t <= tmax)
+    if (t >= tmin_ && t <= tmax_)
     {
         // Obatin direction to point on Involute
         real_type u_point = x_inv - x;

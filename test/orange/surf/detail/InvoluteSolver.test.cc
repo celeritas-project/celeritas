@@ -368,6 +368,7 @@ TEST(Components, calc_dist)
 {
     double r_b = 1.1;
     double a = 0.5 * pi;
+    auto sign = InvoluteSolver::clockwise;
 
     double x = -0.2;
     double y = 1.1;
@@ -379,8 +380,9 @@ TEST(Components, calc_dist)
 
     double t_gamma = 0;
 
-    auto dist
-        = InvoluteSolver::calc_dist(x, y, u, v, t_gamma, r_b, a, tmin, tmax);
+    InvoluteSolver calc_dist(r_b, a, sign, tmin, tmax);
+
+    auto dist = calc_dist.calc_dist(x, y, u, v, t_gamma);
     EXPECT_SOFT_EQ(0.2, dist);
 }
 }  // namespace test
