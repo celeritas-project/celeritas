@@ -19,14 +19,12 @@
 // CONFIG FILE
 //---------------------------------------------------------------------------//
 %{
+#include "corecel/Config.hh"
 #include "corecel/Version.hh"
-#include "corecel/Config.hh"
-#include "corecel/Config.hh"
 %}
 
+%include "corecel/Config.hh"
 %include "corecel/Version.hh"
-%include "corecel/Config.hh"
-%include "corecel/Config.hh"
 
 //---------------------------------------------------------------------------//
 // ASSERTIONS
