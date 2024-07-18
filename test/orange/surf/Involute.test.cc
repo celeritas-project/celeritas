@@ -39,7 +39,7 @@ TEST(InvoluteTest, sense)
 //! Python reference can be found in \file
 //! test/orange/surf/doc/involute-in-out.py
 {
-    Involute invo{{1, 0}, 1.0, 0.5 * pi, 1.732050808, 8.01536114};
+    Involute invo{{1, 0}, 1.0, 0.5 * pi, 1.732050808, 8.015361};
     EXPECT_EQ(SignedSense::outside, invo.calc_sense({0, 0, 1}));
     EXPECT_EQ(SignedSense::outside, invo.calc_sense({0, 1.0, 1}));
     EXPECT_EQ(SignedSense::outside, invo.calc_sense({5, 9.0, 1}));
@@ -48,7 +48,7 @@ TEST(InvoluteTest, sense)
     EXPECT_EQ(SignedSense::inside, invo.calc_sense({6, 2.5, 1}));
     EXPECT_EQ(SignedSense::outside, invo.calc_sense({-5, -5, 1}));
 
-    Involute invo2{{1, 0}, -1.0, 0.5 * pi, 1.732050808, 8.01536114};
+    Involute invo2{{1, 0}, -1.0, 0.5 * pi, 1.732050808, 8.015361};
     EXPECT_EQ(SignedSense::outside,
               invo2.calc_sense({
                   3.6284887559424783 + 1e-7,
