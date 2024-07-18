@@ -11,8 +11,9 @@
 #include <string>
 #include <unordered_set>
 
-#include "celeritas_config.h"
-#include "celeritas_sys_config.h"
+#include "corecel/Config.hh"
+#include "corecel/sys/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/cont/Span.hh"
 

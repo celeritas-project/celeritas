@@ -21,21 +21,22 @@
 #    include <omp.h>
 #endif
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
-#include "geocel/GeantUtils.hh"
 #include "geocel/g4/Convert.geant.hh"
-#include "celeritas/Quantities.hh"
+#include "geocel/GeantUtils.hh"
 #include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/global/detail/ActionSequence.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
-#include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
+#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/Quantities.hh"
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"

@@ -5,12 +5,13 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/geo/Geometry.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "geocel/GeoParamsOutput.hh"
 #include "celeritas/geo/GeoParams.hh"
 
-#include "HeuristicGeoTestBase.hh"
 #include "celeritas_test.hh"
+#include "HeuristicGeoTestBase.hh"
 
 namespace celeritas
 {

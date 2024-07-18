@@ -22,7 +22,8 @@
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
@@ -33,9 +34,8 @@
 #include "corecel/sys/KernelRegistry.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
-#include "geocel/GeantUtils.hh"
 #include "geocel/g4/GeantGeoParams.hh"
-#include "celeritas/Types.hh"
+#include "geocel/GeantUtils.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/RootExporter.hh"
@@ -55,6 +55,7 @@
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/user/StepCollector.hh"
 
 #include "AlongStepFactory.hh"

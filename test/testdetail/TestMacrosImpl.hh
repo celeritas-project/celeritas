@@ -12,9 +12,10 @@
 #include <vector>
 #include <gtest/gtest.h>
 
-#include "celeritas_config.h"
-#include "corecel/Macros.hh"
+#include "corecel/Config.hh"
+
 #include "corecel/io/Repr.hh"
+#include "corecel/Macros.hh"
 #include "corecel/math/SoftEqual.hh"
 
 namespace celeritas

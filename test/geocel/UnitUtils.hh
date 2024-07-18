@@ -7,9 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas_config.h"
-#include "corecel/Types.hh"
+#include "corecel/Config.hh"
+
 #include "corecel/cont/Array.hh"
+#include "corecel/Types.hh"
 #include "geocel/detail/LengthUnits.hh"
 
 namespace celeritas

@@ -7,12 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "orange/surf/ConeAligned.hh"
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 
-#include "SurfaceTestUtils.hh"
 #include "celeritas_test.hh"
+#include "SurfaceTestUtils.hh"
 
 namespace celeritas
 {

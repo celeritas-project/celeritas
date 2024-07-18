@@ -11,7 +11,8 @@
 #include <utility>
 #include <vector>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/cont/Range.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/em/executor/LivermorePEExecutor.hh"
@@ -24,9 +25,9 @@
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/InteractionApplier.hh"
-#include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
+#include "celeritas/phys/PDGNumber.hh"
 
 #include "detail/LivermoreXsInserter.hh"
 

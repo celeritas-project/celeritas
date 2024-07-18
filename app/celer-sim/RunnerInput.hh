@@ -7,17 +7,18 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas_config.h"
-#include "corecel/Macros.hh"
-#include "corecel/Types.hh"
+#include "corecel/Config.hh"
+
 #include "corecel/io/Label.hh"
+#include "corecel/Macros.hh"
 #include "corecel/sys/Environment.hh"
-#include "celeritas/Types.hh"
+#include "corecel/Types.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootFileManager.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/user/RootStepWriter.hh"
 
 #ifdef _WIN32

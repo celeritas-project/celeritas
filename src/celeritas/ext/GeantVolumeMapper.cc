@@ -9,11 +9,11 @@
 
 #include <G4LogicalVolume.hh>
 
+#include "corecel/Config.hh"
+
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/GeantGeoUtils.hh"
-
-#include "celeritas_cmake_strings.hh"
 
 namespace celeritas
 {

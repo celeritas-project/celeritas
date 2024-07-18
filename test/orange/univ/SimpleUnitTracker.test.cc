@@ -10,7 +10,8 @@
 #include <algorithm>
 #include <random>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/Ref.hh"
@@ -18,15 +19,15 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Stopwatch.hh"
+#include "orange/detail/UniverseIndexer.hh"
 #include "orange/OrangeGeoTestBase.hh"
 #include "orange/OrangeParams.hh"
-#include "orange/detail/UniverseIndexer.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
 #include "celeritas/random/distribution/UniformBoxDistribution.hh"
 
-#include "SimpleUnitTracker.test.hh"
 #include "celeritas_test.hh"
+#include "SimpleUnitTracker.test.hh"
 
 using celeritas::constants::sqrt_three;
 using celeritas::constants::sqrt_two;

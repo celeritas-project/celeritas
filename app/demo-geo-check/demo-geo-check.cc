@@ -17,19 +17,20 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
-#include "corecel/Types.hh"
 #include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/Types.hh"
 #include "geocel/Types.hh"
 #include "celeritas/geo/GeoFwd.hh"
 
 #include "GCheckRunner.hh"
-#include "celeritas_cmake_strings.hh"
 
 namespace celeritas
 {

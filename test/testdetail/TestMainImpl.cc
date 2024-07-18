@@ -10,7 +10,9 @@
 #include <stdexcept>
 #include <string_view>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+#include "corecel/Version.hh"
+
 #include "corecel/cont/Range.hh"
 #include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
@@ -20,7 +22,6 @@
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/MpiOperations.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
-#include "corecel/Version.hh"
 
 #include "NonMasterResultPrinter.hh"
 

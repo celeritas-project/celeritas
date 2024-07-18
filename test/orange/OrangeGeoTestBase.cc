@@ -11,15 +11,16 @@
 #include <sstream>
 #include <utility>
 
-#include "celeritas_config.h"
-#include "corecel/ScopedLogStorer.hh"
+#include "corecel/Config.hh"
+
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/ScopedLogStorer.hh"
 #include "geocel/Types.hh"
+#include "orange/detail/UniverseIndexer.hh"
 #include "orange/OrangeInput.hh"
 #include "orange/OrangeParams.hh"
-#include "orange/detail/UniverseIndexer.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 #include "orange/surf/Sphere.hh"
 #include "orange/surf/SurfaceIO.hh"

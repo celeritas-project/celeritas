@@ -16,7 +16,7 @@
 #include <cstddef>
 #include <string>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 
 #include "Macros.hh"
 

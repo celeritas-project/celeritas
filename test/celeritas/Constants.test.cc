@@ -9,7 +9,8 @@
 
 #include <cmath>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "celeritas/Units.hh"
 
 #include "celeritas_test.hh"

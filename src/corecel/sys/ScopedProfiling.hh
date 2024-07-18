@@ -10,9 +10,10 @@
 #include <cstdint>
 #include <string>
 
-#include "celeritas_config.h"
-#include "corecel/Macros.hh"
+#include "corecel/Config.hh"
+
 #include "corecel/io/Logger.hh"
+#include "corecel/Macros.hh"
 
 #include "Environment.hh"
 

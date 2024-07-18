@@ -22,8 +22,10 @@
 
 #include <nlohmann/json.hpp>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 #include "corecel/device_runtime_api.h"
+#include "corecel/Version.hh"
+
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/Logger.hh"
@@ -38,7 +40,6 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "corecel/sys/TracingSession.hh"
-#include "corecel/Version.hh"
 #include "celeritas/Types.hh"
 
 #include "Runner.hh"

@@ -7,12 +7,13 @@
 //---------------------------------------------------------------------------//
 #include <fstream>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "celeritas/io/EventReader.hh"
 #include "celeritas/io/EventWriter.hh"
 
-#include "EventIOTestBase.hh"
 #include "celeritas_test.hh"
+#include "EventIOTestBase.hh"
 
 #if CELERITAS_USE_HEPMC3
 #    include <HepMC3/GenEvent.h>

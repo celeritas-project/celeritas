@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "GenericGeoTestBase.hh"
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 #if CELERITAS_USE_GEANT4
 #    include <G4LogicalVolume.hh>
 #    include <G4LogicalVolumeStore.hh>

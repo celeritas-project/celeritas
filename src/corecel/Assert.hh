@@ -24,7 +24,7 @@
 #    include <sstream>  // IWYU pragma: keep
 #endif
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 
 #include "Macros.hh"
 

@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #include <string>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Constants.hh"
 #include "corecel/io/Label.hh"
 #include "orange/OrangeParams.hh"
@@ -15,9 +16,9 @@
 #include "orange/OrangeTypes.hh"
 #include "celeritas/Types.hh"
 
+#include "celeritas_test.hh"
 #include "OrangeGeoTestBase.hh"
 #include "TestMacros.hh"
-#include "celeritas_test.hh"
 
 using celeritas::constants::sqrt_two;
 

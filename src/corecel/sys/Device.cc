@@ -12,7 +12,8 @@
 #include <mutex>
 #include <utility>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Macros.hh"
 #if CELERITAS_USE_OPENMP
 #    include <omp.h>

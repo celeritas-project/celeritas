@@ -10,7 +10,7 @@
 #ifndef CELERITAS_DEVICE_RUNTIME_API_H
 #define CELERITAS_DEVICE_RUNTIME_API_H
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 
 #if CELERITAS_USE_HIP && !defined(__HIPCC__)
 /* Assume we're on an AMD system but not being invoked by the rocm compiler */

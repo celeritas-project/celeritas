@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "geocel/GeoParamsInterface.hh"
 #include "celeritas/Types.hh"
 

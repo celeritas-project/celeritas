@@ -9,13 +9,14 @@
 
 #include <random>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 #include "corecel/device_runtime_api.h"
+
 #include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
-#include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/Macros.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/Types.hh"
 
 /*!
  * \def CELER_RNG_PREFIX

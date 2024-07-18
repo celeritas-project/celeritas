@@ -38,24 +38,25 @@
 #include <G4ProductionCuts.hh>
 #include <G4ProductionCutsTable.hh>
 #include <G4PropagatorInField.hh>
+#include <G4Region.hh>
+#include <G4RegionStore.hh>
 #include <G4RToEConvForElectron.hh>
 #include <G4RToEConvForGamma.hh>
 #include <G4RToEConvForPositron.hh>
 #include <G4RToEConvForProton.hh>
-#include <G4Region.hh>
-#include <G4RegionStore.hh>
 #include <G4String.hh>
 #include <G4Transportation.hh>
 #include <G4TransportationManager.hh>
 #include <G4Types.hh>
 #include <G4VEnergyLossProcess.hh>
+#include <G4Version.hh>
 #include <G4VMultipleScattering.hh>
 #include <G4VPhysicalVolume.hh>
 #include <G4VProcess.hh>
 #include <G4VRangeToEnergyConverter.hh>
-#include <G4Version.hh>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
@@ -64,9 +65,9 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TypeDemangler.hh"
+#include "geocel/g4/VisitGeantVolumes.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
-#include "geocel/g4/VisitGeantVolumes.hh"
 #include "celeritas/io/AtomicRelaxationReader.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/LivermorePEReader.hh"

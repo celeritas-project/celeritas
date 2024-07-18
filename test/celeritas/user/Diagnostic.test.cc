@@ -5,21 +5,22 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/user/Diagnostic.test.cc
 //---------------------------------------------------------------------------//
+#include "corecel/Config.hh"
+
 #include "corecel/cont/Span.hh"
 #include "corecel/io/StringUtils.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/global/ActionRegistry.hh"
-#include "celeritas/global/Stepper.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
-#include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/global/Stepper.hh"
 #include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/Primary.hh"
 
-#include "DiagnosticTestBase.hh"
-#include "celeritas_cmake_strings.hh"
 #include "celeritas_test.hh"
+#include "DiagnosticTestBase.hh"
 #include "../SimpleTestBase.hh"
 #include "../TestEm3Base.hh"
 

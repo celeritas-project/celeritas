@@ -7,12 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/GeantImporter.hh"
 
-#include "celeritas_config.h"
-#include "corecel/ScopedLogStorer.hh"
+#include "corecel/Config.hh"
+#include "corecel/sys/Version.hh"
+
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/io/StringUtils.hh"
-#include "corecel/sys/Version.hh"
+#include "corecel/ScopedLogStorer.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/ext/GeantSetup.hh"
@@ -20,7 +21,6 @@
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
-#include "celeritas_cmake_strings.hh"
 #include "celeritas_test.hh"
 #include "../GeantTestBase.hh"
 

@@ -8,10 +8,11 @@
 //---------------------------------------------------------------------------//
 #include "ScopedProfiling.hh"
 
-#include "celeritas_config.h"
-#include "celeritas_sys_config.h"
-#include "corecel/Macros.hh"
+#include "corecel/Config.hh"
+#include "corecel/sys/Config.hh"
+
 #include "corecel/io/Logger.hh"
+#include "corecel/Macros.hh"
 
 #include "Environment.hh"
 

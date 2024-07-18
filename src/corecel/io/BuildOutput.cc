@@ -11,11 +11,11 @@
 #include <utility>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_config.h"
-#include "corecel/Macros.hh"
+#include "corecel/Config.hh"
 #include "corecel/Version.hh"
 
-#include "celeritas_cmake_strings.hh"
+#include "corecel/Macros.hh"
+
 #include "JsonPimpl.hh"
 
 namespace celeritas

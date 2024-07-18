@@ -7,12 +7,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas_config.h"
-#include "corecel/Types.hh"
+#include "corecel/Config.hh"
+
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "corecel/Types.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 
