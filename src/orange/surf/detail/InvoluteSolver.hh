@@ -89,6 +89,16 @@ class InvoluteSolver
     // Bounds
     real_type tmin_;
     real_type tmax_;
+
+    //! Tolerance function seperated
+    static CELER_CONSTEXPR_FUNCTION real_type tolerance(real_type rel,
+                                                        real_type length)
+    {
+        using Tolerance = celeritas::Tolerance<real_type>;
+        Tolerance tol = Tolerance::from_relative(rel, length);
+
+        return tol.abs;
+    }
 };
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -131,8 +141,6 @@ InvoluteSolver::operator()(Real3 const& pos,
                            Real3 const& dir,
                            SurfaceState on_surface) const -> Intersections
 {
-    using Tolerance = celeritas::Tolerance<>;
-
     // Flatten pos and dir in xyz and uv respectively
     real_type x = pos[0];
     real_type const y = pos[1];
@@ -153,8 +161,8 @@ InvoluteSolver::operator()(Real3 const& pos,
      * account for the floating point error when performing square roots.
      * tol_conv gives the tolerance for the Regular Falsi iteration.
      */
-    Tolerance tol_point = Tolerance::from_relative(5e-5, r_b_);
-    Tolerance tol_conv = Tolerance::from_relative(1e-5, r_b_);
+    real_type tol_point = tolerance(5e-5, r_b_);
+    real_type tol_conv = tolerance(1e-5, r_b_);
 
     // Results initalization and root counter
     Intersections result;
@@ -204,7 +212,7 @@ InvoluteSolver::operator()(Real3 const& pos,
         real_type gamma = r_b_ * (alpha - beta);
         return gamma + x * v - y * u;
     };
-    RegulaFalsi find_root_between{calc_t_intersect, tol_conv.abs};
+    RegulaFalsi find_root_between{calc_t_intersect, tol_conv};
 
     // Iterate on roots
     while (t_lower < tmax_)
@@ -214,14 +222,14 @@ InvoluteSolver::operator()(Real3 const& pos,
         real_type ft_upper = calc_t_intersect(t_upper);
 
         // Only iterate when roots have different signs
-        if (signum(ft_lower) != signum(ft_upper))
+        if (signum<real_type>(ft_lower) != signum<real_type>(ft_upper))
         {
             // Regular Falsi Iteration: Sometimes will slowly converge
             real_type t_gamma = find_root_between(t_lower, t_upper);
 
             // Convert root to distance and store if positive and in interval
             real_type dist = calc_dist(x, y, u, v, t_gamma);
-            if (dist > tol_point.abs)
+            if (dist > tol_point)
             {
                 result[j] = convert * dist;
                 j++;
@@ -287,7 +295,7 @@ CELER_FUNCTION real_type InvoluteSolver::calc_dist(
 
         // Dot with direction of particle
         real_type dot = u * u_point + v * v_point;
-        real_type dot_sign = signum(dot);
+        real_type dot_sign = signum<real_type>(dot);
         // Obtain distance to point
         dist = std::sqrt(ipow<2>(u_point) + ipow<2>(v_point)) * dot_sign;
     }
