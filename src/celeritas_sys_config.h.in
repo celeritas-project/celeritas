@@ -11,8 +11,10 @@
 #define celeritas_sys_config_h
 
 #ifdef __cplusplus
-#    pragma GCC warning __FILE__ \
-        " is deprecated and should be replaced by \"corecel/sys/Config.hh\""
+#    if __GNUC__ > 8 || __clang__
+#        pragma GCC warning __FILE__ \
+            " is deprecated and should be replaced by \"corecel/sys/Config.hh\""
+#    endif
 #   include "corecel/sys/Config.hh"
 #else
 #cmakedefine01 CELERITAS_HAVE_ROCTX

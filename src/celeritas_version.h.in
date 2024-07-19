@@ -11,8 +11,10 @@
 #define celeritas_version_h
 
 #if __cplusplus >= 201703L
-#    pragma GCC warning __FILE__ \
-        " is deprecated and should be replaced by \"corecel/Version.hh\""
+#    if __GNUC__ > 8 || __clang__
+#        pragma GCC warning __FILE__ \
+            " is deprecated and should be replaced by \"corecel/Version.hh\""
+#    endif
 // uses inline variables introduced in c++17
 #   include "corecel/Version.hh"
 #else

@@ -3,10 +3,8 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-/*!
- * \file corecel/Version.hh
- * \brief Celeritas version.
- */
+//! \file corecel/Version.hh
+//! \brief Celeritas version.
 //---------------------------------------------------------------------------//
 #pragma once
 /*! Celeritas version. Encoded as a big-endian hexidecimal with one byte per
