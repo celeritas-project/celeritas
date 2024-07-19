@@ -55,16 +55,6 @@ class InvoluteSolver
     static inline CELER_FUNCTION real_type line_angle_param(real_type u,
                                                             real_type v);
 
-    //! Tolerance function seperated
-    static CELER_CONSTEXPR_FUNCTION real_type tolerance(real_type rel,
-                                                        real_type length)
-    {
-        using Tolerance = celeritas::Tolerance<real_type>;
-        Tolerance tol = Tolerance::from_relative(rel, length);
-
-        return tol.abs;
-    }
-
   public:
     // Construct Involute from parameters
     inline CELER_FUNCTION InvoluteSolver(
@@ -99,6 +89,16 @@ class InvoluteSolver
     // Bounds
     real_type tmin_;
     real_type tmax_;
+
+    //! Tolerance function seperated
+    static CELER_CONSTEXPR_FUNCTION real_type tol_point()
+    {
+        return Tolerance<>::sqrt_quadratic();
+    }
+    static CELER_CONSTEXPR_FUNCTION real_type tol_conv()
+    {
+        return ipow<2>(Tolerance<>::sqrt_quadratic());
+    }
 };
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -161,8 +161,8 @@ InvoluteSolver::operator()(Real3 const& pos,
      * account for the floating point error when performing square roots.
      * tol_conv gives the tolerance for the Regular Falsi iteration.
      */
-    real_type tol_point = tolerance(5e-5, r_b_);
-    real_type tol_conv = tolerance(1e-5, r_b_);
+    real_type tol_point = InvoluteSolver::tol_point();
+    real_type tol_conv = InvoluteSolver::tol_conv();
 
     // Results initalization and root counter
     Intersections result;
