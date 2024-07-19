@@ -109,7 +109,7 @@ CascadeCollider::CascadeCollider(NeutronInelasticRef const& shared,
     // Initialize the boost velocity and momentum in the center of mass frame
     FourVector sum_four_vec = bullet_.four_vec + target_.four_vec;
     cm_velocity_ = boost_vector(sum_four_vec);
-    cm_p_ = calc_cm_p(sum_four_vec);
+    cm_p_ = this->calc_cm_p(sum_four_vec);
 
     // Calculate the kinetic energy in the target rest frame
     FourVector bullet_p = bullet_.four_vec;
@@ -123,7 +123,7 @@ CascadeCollider::CascadeCollider(NeutronInelasticRef const& shared,
  * nucleon-nucleon collision in the center of mass (c.m.) frame and return
  * them after converting momentum to the lab frame. This performs the same
  * sampling routine as in Geant4's G4ElementaryParticleCollider, mainly
- * implemented in collider and generateSCMfinalState methods. The cos\theta
+ * implemented in collide and generateSCMfinalState methods. The cos\theta
  * distribution in c.m. is inversely sampled using the tabulated cumulative
  * distribution function (c.d.f) data in the kinetic energy and cos\theta bins
  * which are implemented in G4CascadeFinalStateAlgorithm::GenerateTwoBody and
@@ -215,7 +215,7 @@ CELER_FUNCTION auto CascadeCollider::operator()(Engine& rng) -> FinalState
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the momentum magnitude of outgoing particles in the center of mass
- * (c.m.) frame. See Geant4's 4G4VHadDecayAlgorithm::TwoBodyMomentum method.
+ * (c.m.) frame. See Geant4's G4VHadDecayAlgorithm::TwoBodyMomentum method.
  */
 CELER_FUNCTION real_type CascadeCollider::calc_cm_p(FourVector const& v) const
 {
@@ -225,9 +225,9 @@ CELER_FUNCTION real_type CascadeCollider::calc_cm_p(FourVector const& v) const
     real_type m1 = value_as<MevMass>(bullet_.mass);
     real_type m2 = value_as<MevMass>(target_.mass);
 
-    real_type pc_squre = diffsq(m0, m1 - m2) * diffsq(m0, m1 + m2);
+    real_type pc_sq = diffsq(m0, m1 - m2) * diffsq(m0, m1 + m2);
 
-    return std::sqrt(clamp_to_nonneg(pc_squre)) / (2 * m0);
+    return std::sqrt(clamp_to_nonneg(pc_sq)) / (2 * m0);
 }
 
 //---------------------------------------------------------------------------//
