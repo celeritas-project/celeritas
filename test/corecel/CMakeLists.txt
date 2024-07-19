@@ -71,6 +71,7 @@ celeritas_add_device_test(math/NumericLimits)
 celeritas_add_test(math/Quantity.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(math/SoftEqual.test.cc)
+celeritas_add_test(math/RegulaFalsiRootFinder.test.cc)
 
 # Sys
 celeritas_add_test(sys/Environment.test.cc
