@@ -107,14 +107,14 @@ CascadeCollider::CascadeCollider(NeutronInelasticRef const& shared,
     , sample_phi_(0, 2 * constants::pi)
 {
     // Initialize the boost velocity and momentum in the center of mass frame
-    FourVector sum_vec4 = lorentz::add(bullet_.vec4, target_.vec4);
-    cm_velocity_ = lorentz::boost_vector(sum_vec4);
-    cm_p_ = calc_cm_p(sum_vec4);
+    FourVector sum_four_vec = bullet_.four_vec + target_.four_vec;
+    cm_velocity_ = boost_vector(sum_four_vec);
+    cm_p_ = calc_cm_p(sum_four_vec);
 
     // Calculate the kinetic energy in the target rest frame
-    FourVector bullet_p = bullet_.vec4;
-    lorentz::boost(-lorentz::boost_vector(target_.vec4), &bullet_p);
-    kin_energy_ = bullet_p.energy - lorentz::norm(bullet_p);
+    FourVector bullet_p = bullet_.four_vec;
+    boost(-boost_vector(target_.four_vec), &bullet_p);
+    kin_energy_ = bullet_p.energy - norm(bullet_p);
 }
 
 //---------------------------------------------------------------------------//
@@ -175,10 +175,10 @@ CELER_FUNCTION auto CascadeCollider::operator()(Engine& rng) -> FinalState
     // Find the final state of outgoing particles
     FinalState result = {bullet_, target_};
 
-    FourVector cm_vec4 = target_.vec4;
-    lorentz::boost(-cm_velocity_, &cm_vec4);
+    FourVector cm_momentum = target_.four_vec;
+    boost(-cm_velocity_, &cm_momentum);
 
-    Real3 cm_dir = make_unit_vector(-cm_vec4.mom);
+    Real3 cm_dir = make_unit_vector(-cm_momentum.mom);
     real_type vel_parallel = dot_product(cm_velocity_, cm_dir);
 
     // Degenerated if velocity perpendicular to the c.m. momentum is small
@@ -192,20 +192,21 @@ CELER_FUNCTION auto CascadeCollider::operator()(Engine& rng) -> FinalState
         Real3 vxcm = make_unit_vector(cross_product(cm_dir, cm_velocity_));
         if (norm(vscm) > this->epsilon() && norm(vxcm) > this->epsilon())
         {
-            result[0].vec4
+            result[0].four_vec
                 = {{fv.mom[0] * vscm + fv.mom[1] * vxcm + fv.mom[2] * cm_dir},
                    fv.energy};
         }
     }
 
-    result[1].vec4 = {{-result[0].vec4.mom},
-                      std::sqrt(dot_product(mom, mom)
-                                + ipow<2>(value_as<MevMass>(target_.mass)))};
+    result[1].four_vec
+        = {{-result[0].four_vec.mom},
+           std::sqrt(dot_product(mom, mom)
+                     + ipow<2>(value_as<MevMass>(target_.mass)))};
 
     // Convert the final state to the lab frame
     for (auto i : range(2))
     {
-        lorentz::boost(cm_velocity_, &result[i].vec4);
+        boost(cm_velocity_, &result[i].four_vec);
     }
 
     return result;
@@ -219,7 +220,7 @@ CELER_FUNCTION auto CascadeCollider::operator()(Engine& rng) -> FinalState
 CELER_FUNCTION real_type CascadeCollider::calc_cm_p(FourVector const& v) const
 {
     // The total energy in c.m.
-    real_type m0 = lorentz::norm(v);
+    real_type m0 = norm(v);
 
     real_type m1 = value_as<MevMass>(bullet_.mass);
     real_type m2 = value_as<MevMass>(target_.mass);

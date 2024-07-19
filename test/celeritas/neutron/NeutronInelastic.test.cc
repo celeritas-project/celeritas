@@ -455,10 +455,10 @@ TEST_F(NeutronInelasticTest, cascade_collider)
 
     for (auto i : range(2))
     {
-        EXPECT_SOFT_EQ(expected_nn_energy[i], nn_result[i].vec4.energy);
-        EXPECT_SOFT_EQ(expected_np_energy[i], np_result[i].vec4.energy);
-        EXPECT_VEC_SOFT_EQ(expected_nn_mom[i], nn_result[i].vec4.mom);
-        EXPECT_VEC_SOFT_EQ(expected_np_mom[i], np_result[i].vec4.mom);
+        EXPECT_SOFT_EQ(expected_nn_energy[i], nn_result[i].four_vec.energy);
+        EXPECT_SOFT_EQ(expected_np_energy[i], np_result[i].four_vec.energy);
+        EXPECT_VEC_SOFT_EQ(expected_nn_mom[i], nn_result[i].four_vec.mom);
+        EXPECT_VEC_SOFT_EQ(expected_np_mom[i], np_result[i].four_vec.mom);
     }
 }
 
