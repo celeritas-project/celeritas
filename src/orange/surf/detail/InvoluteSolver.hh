@@ -131,7 +131,7 @@ InvoluteSolver::operator()(Real3 const& pos,
                            Real3 const& dir,
                            SurfaceState on_surface) const -> Intersections
 {
-    using Tolerance = celeritas::Tolerance<real_type>;
+    using Tolerance = celeritas::Tolerance<>;
 
     // Flatten pos and dir in xyz and uv respectively
     real_type x = pos[0];
