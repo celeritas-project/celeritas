@@ -55,6 +55,16 @@ class InvoluteSolver
     static inline CELER_FUNCTION real_type line_angle_param(real_type u,
                                                             real_type v);
 
+    //! Tolerance function seperated
+    static CELER_CONSTEXPR_FUNCTION real_type tolerance(real_type rel,
+                                                        real_type length)
+    {
+        using Tolerance = celeritas::Tolerance<real_type>;
+        Tolerance tol = Tolerance::from_relative(rel, length);
+
+        return tol.abs;
+    }
+
   public:
     // Construct Involute from parameters
     inline CELER_FUNCTION InvoluteSolver(
@@ -89,16 +99,6 @@ class InvoluteSolver
     // Bounds
     real_type tmin_;
     real_type tmax_;
-
-    //! Tolerance function seperated
-    static CELER_CONSTEXPR_FUNCTION real_type tolerance(real_type rel,
-                                                        real_type length)
-    {
-        using Tolerance = celeritas::Tolerance<real_type>;
-        Tolerance tol = Tolerance::from_relative(rel, length);
-
-        return tol.abs;
-    }
 };
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
