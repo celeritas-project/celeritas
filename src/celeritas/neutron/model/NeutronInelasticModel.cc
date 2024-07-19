@@ -76,22 +76,22 @@ NeutronInelasticModel::NeutronInelasticModel(ActionId id,
     auto cdf_energy_bins = this->get_cdf_energy_bins();
     auto cos_theta_bins = this->get_cos_theta_bins();
 
+    GenericGridBuilder build_xs_grid{&data.reals};
+    TwodGridBuilder build_cdf_grid{&data.reals};
+    CollectionBuilder nucleon_xs{&data.nucleon_xs};
+    CollectionBuilder angular_cdf{&data.angular_cdf};
     for (auto channel_id : range(ChannelId{num_channels}))
     {
         // Add nucleon-nucleon cross section parameters and data
         ChannelData const& channel_data = this->get_channel_data(channel_id);
         CELER_ASSERT(channel_data.par.slope > 0);
         xs_params.push_back(channel_data.par);
-
-        GenericGridBuilder build_grid{&data.reals};
-        make_builder(&data.nucleon_xs)
-            .push_back(build_grid(xs_energy_bins, make_span(channel_data.xs)));
+        nucleon_xs.push_back(
+            build_xs_grid(xs_energy_bins, make_span(channel_data.xs)));
 
         // Add nucleon-nucleon two-body angular distribution data
-        TwodGridBuilder build_cdf_grid{&data.reals};
-        make_builder(&data.angular_cdf)
-            .push_back(build_cdf_grid(
-                cdf_energy_bins, cos_theta_bins, make_span(channel_data.cdf)));
+        angular_cdf.push_back(build_cdf_grid(
+            cdf_energy_bins, cos_theta_bins, make_span(channel_data.cdf)));
     }
     CELER_ASSERT(data.nucleon_xs.size() == num_channels);
     CELER_ASSERT(data.angular_cdf.size() == num_channels);
