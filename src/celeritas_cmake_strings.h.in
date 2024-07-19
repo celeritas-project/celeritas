@@ -12,8 +12,7 @@
 
 #if __cplusplus >= 201703L
 #    if __GNUC__ > 8 || __clang__
-#        pragma GCC warning __FILE__ \
-            " is deprecated and should be replaced by \"corecel/Config.hh\""
+#        pragma GCC warning "celeritas_cmake_strings.h is deprecated and should be replaced by \"corecel/Config.hh\""
 #    endif
 // uses inline variables introduced in c++17
 #    include "corecel/Config.hh"

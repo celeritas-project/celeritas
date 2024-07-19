@@ -12,8 +12,7 @@
 
 #ifdef __cplusplus
 #    if __GNUC__ > 8 || __clang__
-#        pragma GCC warning __FILE__ \
-            " is deprecated and should be replaced by \"corecel/sys/Config.hh\""
+#        pragma GCC warning "celeritas_sys_config.h is deprecated and should be replaced by \"corecel/sys/Config.hh\""
 #    endif
 #   include "corecel/sys/Config.hh"
 #else
