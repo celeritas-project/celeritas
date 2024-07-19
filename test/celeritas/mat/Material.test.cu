@@ -15,8 +15,8 @@
 #include "corecel/math/Quantity.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
-#include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/mat/MaterialTrackView.hh"
 
 using thrust::raw_pointer_cast;
 

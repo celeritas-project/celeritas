@@ -9,9 +9,12 @@
 
 #include "corecel/sys/Config.hh"
 
-#include "corecel/io/Logger.hh"
 #include "corecel/ScopedLogStorer.hh"
+#include "corecel/io/Logger.hh"
 #include "geocel/UnitUtils.hh"
+#include "celeritas/LeadBoxTestBase.hh"
+#include "celeritas/SimpleCmsTestBase.hh"
+#include "celeritas/TestEm3Base.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
@@ -19,11 +22,8 @@
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/alongstep/AlongStepRZMapFieldMscAction.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
-#include "celeritas/LeadBoxTestBase.hh"
-#include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
-#include "celeritas/SimpleCmsTestBase.hh"
-#include "celeritas/TestEm3Base.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
 #include "AlongStepTestBase.hh"
 #include "celeritas_test.hh"

@@ -11,9 +11,10 @@
 #include <iostream>
 #include <regex>
 
+#include "corecel/Version.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/io/Join.hh"
-#include "corecel/Version.hh"
 
 namespace celeritas
 {

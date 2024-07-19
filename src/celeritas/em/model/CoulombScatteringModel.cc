@@ -12,6 +12,7 @@
 #include "corecel/Config.hh"
 
 #include "celeritas/Constants.hh"
+#include "celeritas/Units.hh"
 #include "celeritas/em/data/CoulombScatteringData.hh"
 #include "celeritas/em/executor/CoulombScatteringExecutor.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
@@ -23,9 +24,8 @@
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/InteractionApplier.hh"
-#include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
-#include "celeritas/Units.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
 namespace celeritas
 {

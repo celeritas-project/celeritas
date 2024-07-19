@@ -18,15 +18,15 @@
 #include "corecel/io/Repr.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/Stopwatch.hh"
-#include "orange/detail/UniverseIndexer.hh"
 #include "orange/OrangeGeoTestBase.hh"
 #include "orange/OrangeParams.hh"
+#include "orange/detail/UniverseIndexer.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
 #include "celeritas/random/distribution/UniformBoxDistribution.hh"
 
-#include "celeritas_test.hh"
 #include "SimpleUnitTracker.test.hh"
+#include "celeritas_test.hh"
 
 namespace celeritas
 {

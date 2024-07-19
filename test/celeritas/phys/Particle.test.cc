@@ -11,6 +11,7 @@
 
 #include "corecel/cont/Array.hh"
 #include "corecel/data/CollectionStateStore.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/io/ImportData.hh"
@@ -18,7 +19,6 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleParamsOutput.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
-#include "celeritas/Quantities.hh"
 
 #include "celeritas_test.hh"
 

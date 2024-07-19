@@ -12,8 +12,8 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 
-#include "celeritas_test.hh"
 #include "SurfaceTestUtils.hh"
+#include "celeritas_test.hh"
 
 namespace celeritas
 {

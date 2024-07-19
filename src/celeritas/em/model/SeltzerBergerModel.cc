@@ -29,9 +29,9 @@
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/InteractionApplier.hh"  // IWYU pragma: associated
+#include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
-#include "celeritas/phys/PDGNumber.hh"
 
 namespace celeritas
 {

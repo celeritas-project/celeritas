@@ -16,11 +16,11 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/OpaqueIdIO.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/Macros.hh"
 #include "corecel/math/QuantityIO.hh"
-#include "corecel/OpaqueIdIO.hh"
 #include "corecel/sys/Environment.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"

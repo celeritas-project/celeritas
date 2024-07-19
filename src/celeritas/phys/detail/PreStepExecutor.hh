@@ -11,11 +11,11 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/math/Quantity.hh"
-#include "celeritas/global/CoreTrackView.hh"
-#include "celeritas/random/distribution/ExponentialDistribution.hh"
-#include "celeritas/random/RngEngine.hh"
-#include "celeritas/track/SimTrackView.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/global/CoreTrackView.hh"
+#include "celeritas/random/RngEngine.hh"
+#include "celeritas/random/distribution/ExponentialDistribution.hh"
+#include "celeritas/track/SimTrackView.hh"
 
 #include "../PhysicsStepUtils.hh"  // IWYU pragma: associated
 #include "../PhysicsStepView.hh"

@@ -11,18 +11,18 @@
 #include "corecel/Config.hh"
 #include "corecel/sys/Version.hh"
 
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
-#include "corecel/ScopedLogStorer.hh"
+#include "geocel/GeoParamsOutput.hh"
+#include "geocel/UnitUtils.hh"
 #include "geocel/g4/GeantGeoData.hh"
 #include "geocel/g4/GeantGeoParams.hh"
 #include "geocel/g4/GeantGeoTrackView.hh"
-#include "geocel/GeoParamsOutput.hh"
-#include "geocel/UnitUtils.hh"
 
-#include "celeritas_test.hh"
 #include "GeantGeoTestBase.hh"
+#include "celeritas_test.hh"
 
 namespace celeritas
 {

@@ -15,9 +15,9 @@
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/Logger.hh"
-#include "geocel/g4/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeantUtils.hh"
+#include "geocel/g4/GeantGeoParams.hh"
 
 #include "SharedParams.hh"
 

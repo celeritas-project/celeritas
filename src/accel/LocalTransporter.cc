@@ -28,15 +28,15 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
-#include "geocel/g4/Convert.geant.hh"
 #include "geocel/GeantUtils.hh"
+#include "geocel/g4/Convert.geant.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/global/detail/ActionSequence.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
-#include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/PDGNumber.hh"
-#include "celeritas/Quantities.hh"
+#include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"

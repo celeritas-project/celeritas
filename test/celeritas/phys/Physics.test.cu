@@ -11,9 +11,9 @@
 
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/phys/PhysicsStepView.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
-#include "celeritas/Quantities.hh"
 
 namespace celeritas
 {

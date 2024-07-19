@@ -20,10 +20,10 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
-#include "celeritas/Types.hh"
 
 #include "HitProcessor.hh"
 #include "SensDetInserter.hh"

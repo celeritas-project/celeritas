@@ -9,8 +9,8 @@
 
 #include "corecel/Config.hh"
 
-#include "corecel/cont/Array.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
 #include "geocel/detail/LengthUnits.hh"
 
 namespace celeritas

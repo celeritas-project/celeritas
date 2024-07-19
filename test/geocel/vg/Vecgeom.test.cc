@@ -12,11 +12,11 @@
 #include "corecel/Config.hh"
 #include "corecel/sys/Version.hh"
 
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
-#include "corecel/ScopedLogStorer.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "geocel/GeantGeoUtils.hh"
@@ -26,8 +26,8 @@
 #include "geocel/vg/VecgeomParams.hh"
 #include "geocel/vg/VecgeomTrackView.hh"
 
-#include "celeritas_test.hh"
 #include "VecgeomTestBase.hh"
+#include "celeritas_test.hh"
 
 namespace celeritas
 {

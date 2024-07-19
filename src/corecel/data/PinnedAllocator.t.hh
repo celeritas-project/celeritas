@@ -15,8 +15,8 @@
 #include "corecel/device_runtime_api.hh"
 
 #include "corecel/Assert.hh"
-#include "corecel/io/Logger.hh"
 #include "corecel/Macros.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 
 namespace celeritas

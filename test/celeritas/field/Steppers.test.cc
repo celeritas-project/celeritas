@@ -9,10 +9,12 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
-#include "corecel/cont/Range.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
 #include "celeritas/Constants.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Units.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/MagFieldEquation.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
@@ -20,11 +22,9 @@
 #include "celeritas/field/UniformField.hh"
 #include "celeritas/field/UniformZField.hh"
 #include "celeritas/field/ZHelixStepper.hh"
-#include "celeritas/Quantities.hh"
-#include "celeritas/Units.hh"
 
-#include "celeritas_test.hh"
 #include "FieldTestParams.hh"
+#include "celeritas_test.hh"
 
 namespace celeritas
 {

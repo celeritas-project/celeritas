@@ -12,15 +12,16 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "corecel/ScopedLogStorer.hh"
 #include "geocel/CheckedGeoTrackView.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/CoreGeoTestBase.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/field/DormandPrinceStepper.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
@@ -28,14 +29,13 @@
 #include "celeritas/geo/GeoData.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
-#include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
-#include "celeritas/Quantities.hh"
+#include "celeritas/phys/ParticleParams.hh"
 
-#include "celeritas_test.hh"
 #include "CMSParameterizedField.hh"
 #include "DiagnosticStepper.hh"
 #include "FieldTestBase.hh"
+#include "celeritas_test.hh"
 
 namespace celeritas
 {

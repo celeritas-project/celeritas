@@ -10,10 +10,10 @@
 #include "corecel/Config.hh"
 #include "corecel/sys/Version.hh"
 
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/io/StringUtils.hh"
-#include "corecel/ScopedLogStorer.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/ext/GeantSetup.hh"

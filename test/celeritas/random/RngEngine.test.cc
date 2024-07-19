@@ -15,14 +15,14 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
-#include "corecel/data/CollectionStateStore.hh"
 #include "corecel/Types.hh"
-#include "celeritas/random/distribution/GenerateCanonical.hh"
+#include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/random/RngParams.hh"
+#include "celeritas/random/distribution/GenerateCanonical.hh"
 
-#include "celeritas_test.hh"
 #include "DiagnosticRngEngine.hh"
 #include "SequenceEngine.hh"
+#include "celeritas_test.hh"
 
 namespace celeritas
 {

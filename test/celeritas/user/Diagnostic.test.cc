@@ -13,14 +13,14 @@
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/global/ActionRegistry.hh"
-#include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/global/Stepper.hh"
-#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 
-#include "celeritas_test.hh"
 #include "DiagnosticTestBase.hh"
+#include "celeritas_test.hh"
 #include "../SimpleTestBase.hh"
 #include "../TestEm3Base.hh"
 

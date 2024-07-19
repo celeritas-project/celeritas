@@ -14,9 +14,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/math/Algorithms.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/Algorithms.hh"
 
 #include "Device.hh"
 #include "KernelAttributes.hh"

@@ -12,9 +12,9 @@
 #include "corecel/device_runtime_api.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/Macros.hh"
 
 namespace celeritas
 {

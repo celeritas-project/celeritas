@@ -15,11 +15,11 @@
 
 #include "corecel/Config.hh"
 
-#include "corecel/io/Logger.hh"
 #include "corecel/ScopedLogStorer.hh"
+#include "corecel/io/Logger.hh"
 #include "geocel/GeantGeoUtils.hh"
-#include "celeritas/geo/GeoParams.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
+#include "celeritas/geo/GeoParams.hh"
 #include "accel/SDTestBase.hh"
 #include "accel/SetupOptions.hh"
 

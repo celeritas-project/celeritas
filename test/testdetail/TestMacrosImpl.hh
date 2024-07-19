@@ -14,8 +14,8 @@
 
 #include "corecel/Config.hh"
 
-#include "corecel/io/Repr.hh"
 #include "corecel/Macros.hh"
+#include "corecel/io/Repr.hh"
 #include "corecel/math/SoftEqual.hh"
 
 namespace celeritas

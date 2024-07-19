@@ -31,20 +31,20 @@
 #include "corecel/device_runtime_api.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
 #include "corecel/io/StringUtils.hh"
-#include "corecel/Macros.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedLimitSaver.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "geocel/GeantGeoUtils.hh"
 #include "geocel/detail/LengthUnits.hh"
 #include "geocel/g4vg/Converter.hh"
-#include "geocel/GeantGeoUtils.hh"
 
 #include "VecgeomData.hh"  // IWYU pragma: associated
 

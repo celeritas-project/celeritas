@@ -13,13 +13,13 @@
 
 #include "corecel/device_runtime_api.hh"
 
+#include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "corecel/sys/Stream.hh"
-#include "corecel/Types.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/track/StatusChecker.hh"
 

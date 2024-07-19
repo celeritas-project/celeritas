@@ -10,8 +10,8 @@
 #include "geocel/GeoParamsOutput.hh"
 #include "celeritas/geo/GeoParams.hh"
 
-#include "celeritas_test.hh"
 #include "HeuristicGeoTestBase.hh"
+#include "celeritas_test.hh"
 
 namespace celeritas
 {

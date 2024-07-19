@@ -18,8 +18,8 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
-#include "corecel/io/Logger.hh"
 #include "corecel/Macros.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "accel/ExceptionConverter.hh"

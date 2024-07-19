@@ -17,10 +17,10 @@
 #include "corecel/io/StringEnumMapper.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/EnvironmentIO.json.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/field/FieldDriverOptionsIO.json.hh"
 #include "celeritas/phys/PrimaryGeneratorOptionsIO.json.hh"
-#include "celeritas/Types.hh"
 #include "celeritas/user/RootStepWriterIO.json.hh"
 
 namespace celeritas

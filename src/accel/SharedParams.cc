@@ -34,8 +34,9 @@
 #include "corecel/sys/KernelRegistry.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
-#include "geocel/g4/GeantGeoParams.hh"
 #include "geocel/GeantUtils.hh"
+#include "geocel/g4/GeantGeoParams.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/RootExporter.hh"
@@ -55,7 +56,6 @@
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"
-#include "celeritas/Types.hh"
 #include "celeritas/user/StepCollector.hh"
 
 #include "AlongStepFactory.hh"
