@@ -44,7 +44,8 @@ class RegulaFalsi
     inline CELER_FUNCTION RegulaFalsi(F&& func, real_type tol);
 
     // Solve for a root between two points
-    inline real_type operator()(real_type left, real_type right) const;
+    inline CELER_FUNCTION real_type operator()(real_type left,
+                                               real_type right) const;
 
   private:
     F func_;
