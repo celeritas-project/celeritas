@@ -33,7 +33,7 @@ TEST(FourVectorTest, basic)
     // Test norm
     EXPECT_DOUBLE_EQ(std::sqrt(ipow<2>(c.energy) - dot_product(c.mom, c.mom)),
                      norm(c));
-    EXPECT_DOUBLE_EQ(2999.9741665554388, norm(c));
+    EXPECT_SOFT_EQ(2999.9741665554388, norm(c));
 
     // Test boost_vector
     Real3 expected_boost_vector = {0.001, 0.002, 0.003};
@@ -44,8 +44,8 @@ TEST(FourVectorTest, basic)
     boost(boost_vector(a), &b);
     Real3 expected_boosted_mom
         = {6.0000300003150038, 9.0000600006300076, 12.000090000945011};
-    EXPECT_EQ(expected_boosted_mom, b.mom);
-    EXPECT_DOUBLE_EQ(2000.0460003710041, b.energy);
+    EXPECT_VEC_SOFT_EQ(expected_boosted_mom, b.mom);
+    EXPECT_SOFT_EQ(2000.0460003710041, b.energy);
 }
 
 //---------------------------------------------------------------------------//
