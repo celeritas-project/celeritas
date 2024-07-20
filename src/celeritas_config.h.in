@@ -12,7 +12,9 @@
  * (e.g.) \c CELERITAS_CORE_RNG and \c CELERITAS_CORE_RNG_HIPRAND; options that
  * are *invalid* (e.g. for missing libraries such as HIP) will have a value of
  * zero.
- *---------------------------------------------------------------------------*/
+ * \deprecated This file should be replaced by "corecel/Config.hh".
+ */
+//---------------------------------------------------------------------------//
 #ifndef celeritas_config_h
 #define celeritas_config_h
 

@@ -19,9 +19,9 @@ constexpr`` and other C++ expressions. In addition, it defines static C strings
 with configuration options such as key dependent library versions.
 Finally, ``corecel/Version.hh`` defines version numbers as  preprocessor definition,
 a set of integers, and a descriptive string. ``celeritas_version.h``,
-``celeritas_cmake_strings.h``, ``celeritas_sys_config.h`` and ``celeritas_config.h``
-are deprecated and kept as aliases for backward-compatibility. They may be removed
-in an upcoming major version.
+``celeritas_cmake_strings.h``, ``celeritas_sys_config.h``, ``celeritas_config.h``
+and ``corecel/device_runtime_api.h`` are deprecated and kept as aliases for
+backward-compatibility. They may be removed in an upcoming major version.
 
 .. doxygendefine:: CELERITAS_VERSION
 .. doxygenvariable:: celeritas_version

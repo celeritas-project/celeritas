@@ -5,8 +5,10 @@
  *---------------------------------------------------------------------------*/
 /*!
  * \file corecel/device_runtime_api.h
- * Include CUDA or HIP runtime APIs for compiling with host/cc compiler.
+ * \brief Include CUDA or HIP runtime APIs for compiling with host/cc compiler.
+ * \deprecated This file should be replaced by "corecel/DeviceRuntimeApi.hh".
  */
+//---------------------------------------------------------------------------//
 #ifndef CELERITAS_DEVICE_RUNTIME_API_H
 #define CELERITAS_DEVICE_RUNTIME_API_H
 

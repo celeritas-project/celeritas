@@ -6,7 +6,9 @@
 /*!
  * \file celeritas_cmake_strings.h
  * \brief Detailed CMake configuration information.
- *---------------------------------------------------------------------------*/
+ * \deprecated This file should be replaced by "corecel/Config.hh".
+ */
+//---------------------------------------------------------------------------//
 #ifndef celeritas_cmake_strings_h
 #define celeritas_cmake_strings_h
 

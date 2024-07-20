@@ -6,7 +6,9 @@
 /*!
  * \file celeritas_version.h
  * \brief Version metadata for Celeritas.
- *---------------------------------------------------------------------------*/
+ * \deprecated This file should be replaced by "corecel/Version.hh".
+ */
+//---------------------------------------------------------------------------//
 #ifndef celeritas_version_h
 #define celeritas_version_h
 
