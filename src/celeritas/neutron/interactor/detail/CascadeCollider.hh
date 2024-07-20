@@ -183,10 +183,10 @@ CELER_FUNCTION auto CascadeCollider::operator()(Engine& rng) -> FinalState
 
     Real3 vscm = cm_velocity_;
     axpy(-vel_parallel, cm_dir, &vscm);
-    vscm = make_unit_vector(vscm);
 
     if (norm(vscm) > this->epsilon())
     {
+        vscm = make_unit_vector(vscm);
         Real3 vxcm = make_unit_vector(cross_product(cm_dir, cm_velocity_));
         if (norm(vxcm) > this->epsilon())
         {
