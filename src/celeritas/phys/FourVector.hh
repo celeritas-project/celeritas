@@ -47,7 +47,7 @@ inline CELER_FUNCTION FourVector operator+(FourVector const& lhs,
                                            FourVector const& rhs)
 {
     FourVector result = lhs;
-    return std::move(result += rhs);
+    return result += rhs;
 }
 
 //---------------------------------------------------------------------------//
