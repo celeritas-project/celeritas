@@ -37,8 +37,8 @@ TEST(FourVectorTest, basic)
 
     // Test boost_vector
     Real3 expected_boost_vector = {0.001, 0.002, 0.003};
-    EXPECT_EQ(a.mom / a.energy, boost_vector(a));
-    EXPECT_EQ(expected_boost_vector, boost_vector(a));
+    EXPECT_VEC_SOFT_EQ(a.mom / a.energy, boost_vector(a));
+    EXPECT_VEC_SOFT_EQ(expected_boost_vector, boost_vector(a));
 
     // Test boost
     boost(boost_vector(a), &b);
