@@ -11,7 +11,7 @@
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 
-#include "corecel/device_runtime_api.hh"
+#include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/data/StackAllocator.hh"
 #include "corecel/sys/Device.hh"

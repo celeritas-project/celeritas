@@ -9,7 +9,7 @@
 
 #include <cstring>
 
-#include "corecel/device_runtime_api.hh"
+#include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Macros.hh"
 #include "corecel/sys/Device.hh"

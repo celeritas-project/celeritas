@@ -11,7 +11,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "corecel/device_runtime_api.hh"
+#include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"

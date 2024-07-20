@@ -23,8 +23,8 @@
 #include <nlohmann/json.hpp>
 
 #include "corecel/Config.hh"
+#include "corecel/DeviceRuntimeApi.hh"
 #include "corecel/Version.hh"
-#include "corecel/device_runtime_api.hh"
 
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"

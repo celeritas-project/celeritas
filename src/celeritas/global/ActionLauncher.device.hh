@@ -9,7 +9,7 @@
 
 #include <type_traits>
 
-#include "corecel/device_runtime_api.hh"
+#include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"

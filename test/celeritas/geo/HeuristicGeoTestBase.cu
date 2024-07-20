@@ -5,7 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/geo/HeuristicGeoTestBase.cu
 //---------------------------------------------------------------------------//
-#include "corecel/device_runtime_api.hh"
+#include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Types.hh"
 #include "corecel/data/detail/Filler.device.t.hh"

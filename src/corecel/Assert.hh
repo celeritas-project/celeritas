@@ -259,7 +259,7 @@
  * \endcode
  *
  * \note A file that uses this macro must include \c
- * corecel/device_runtime_api.hh .
+ * corecel/DeviceRuntimeApi.hh .
  */
 #if CELERITAS_USE_CUDA
 #    define CELER_CUDA_CALL(STATEMENT)                                     \
@@ -296,7 +296,7 @@
  * \endcode
  *
  * \note A file that uses this macro must include \c
- * corecel/device_runtime_api.hh . The \c celeritas_device_runtime_api_h_
+ * corecel/DeviceRuntimeApi.hh . The \c celeritas_device_runtime_api_h_
  * declaration enforces this when HIP is disabled.
  */
 #if CELERITAS_USE_HIP
@@ -334,7 +334,7 @@
  * \endcode
  *
  * \note A file that uses this macro must include \c
- * corecel/device_runtime_api.hh . The \c celeritas_device_runtime_api_h_
+ * corecel/DeviceRuntimeApi.hh . The \c celeritas_device_runtime_api_h_
  * declaration enforces this when CUDA/HIP are disabled.
  */
 #if CELERITAS_USE_CUDA

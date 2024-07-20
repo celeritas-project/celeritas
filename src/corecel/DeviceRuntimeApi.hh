@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: (Apache-2.0 OR MIT)
  *---------------------------------------------------------------------------*/
 /*!
- * \file corecel/device_runtime_api.hh
+ * \file corecel/DeviceRuntimeApi.hh
  * Include CUDA or HIP runtime APIs for compiling with host/cc compiler.
  */
 #pragma once

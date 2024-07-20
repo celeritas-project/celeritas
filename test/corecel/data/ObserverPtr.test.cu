@@ -9,7 +9,7 @@
 
 #include <thrust/copy.h>
 
-#include "corecel/device_runtime_api.hh"
+#include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/data/ObserverPtr.device.hh"
 #include "corecel/sys/Device.hh"

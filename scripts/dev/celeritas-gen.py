@@ -240,7 +240,7 @@ inline void {lowabbr}_test(
 TEST_CODE_FILE = '''\
 #include "{name}.test.hh"
 
-#include "corecel/device_runtime_api.hh"
+#include "corecel/DeviceRuntimeApi.hh"
 #include "corecel/Types.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Device.hh"

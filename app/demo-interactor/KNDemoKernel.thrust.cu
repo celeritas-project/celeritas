@@ -10,7 +10,7 @@
 #include <thrust/device_ptr.h>
 #include <thrust/reduce.h>
 
-#include "corecel/device_runtime_api.hh"
+#include "corecel/DeviceRuntimeApi.hh"
 
 namespace celeritas
 {

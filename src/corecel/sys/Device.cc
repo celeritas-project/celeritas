@@ -19,7 +19,7 @@
 #    include <omp.h>
 #endif
 
-#include "corecel/device_runtime_api.hh"
+#include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
@@ -217,7 +217,7 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
         mempool, CELER_DEVICE_PREFIX(MemPoolAttrReleaseThreshold), &threshold));
 #endif
 
-    // See device_runtime_api.hh
+    // See DeviceRuntimeApi.hh
     eu_per_cu_ = CELER_EU_PER_CU;
 
     CELER_ENSURE(*this);

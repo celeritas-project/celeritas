@@ -10,7 +10,7 @@
 #include <random>
 
 #include "corecel/Config.hh"
-#include "corecel/device_runtime_api.hh"
+#include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
