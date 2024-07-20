@@ -79,7 +79,7 @@ class NeutronInelasticModel final : public Model, public ConcreteAction
     {
         StepanovParameters par;
         Array<double, 13> xs;
-        Array<double, 19 * 6> cdf;  //! c.d.f[cos_theta_bins][cdf_energy_bins]
+        Array<double, 6 * 19> cdf;  //! [energy][angle]
     };
 
     //// HELPER FUNCTIONS ////
