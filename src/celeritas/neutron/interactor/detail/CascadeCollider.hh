@@ -65,11 +65,11 @@ class CascadeCollider
 
     // Id for intra-nuclear channels
     ChannelId ch_id_;
-    // Booster vector in the center of mass frame
+    // Boost vector in the center of mass frame [1/c]
     Real3 cm_velocity_;
-    // Momentum magnitude in the center of mass frame
+    // Momentum magnitude in the center of mass frame [MeV/c]
     real_type cm_p_;
-    // Kinetic energy in the target rest frame
+    // Kinetic energy in the target rest frame [MeV]
     real_type kin_energy_;
 
     // Sampler
@@ -77,7 +77,7 @@ class CascadeCollider
 
     //// CONSTANTS ////
 
-    //! A criteria for coplanarity in the Lorentz transformation
+    //! A criteria [1/c] for coplanarity in the Lorentz transformation
     static CELER_CONSTEXPR_FUNCTION real_type epsilon()
     {
         return real_type{1e-10};
@@ -134,7 +134,7 @@ CELER_FUNCTION auto CascadeCollider::operator()(Engine& rng) -> FinalState
 {
     // Sample cos\theta of outgoing particles in the center of mass frame
     real_type cdf = generate_canonical(rng);
-    TwodGridData cdf_grid = shared_.angular_cdf[ch_id_];
+    TwodGridData const& cdf_grid = shared_.angular_cdf[ch_id_];
     Grid energy_grid(cdf_grid.x, shared_.reals);
     real_type cos_theta{0};
 
@@ -181,21 +181,28 @@ CELER_FUNCTION auto CascadeCollider::operator()(Engine& rng) -> FinalState
     Real3 cm_dir = make_unit_vector(-cm_momentum.mom);
     real_type vel_parallel = dot_product(cm_velocity_, cm_dir);
 
-    // Degenerated if velocity perpendicular to the c.m. momentum is small
-    bool degenerated
-        = (dot_product(cm_velocity_, cm_velocity_) - ipow<2>(vel_parallel)
-           < this->epsilon());
+    Real3 vscm = cm_velocity_;
+    axpy(-vel_parallel, cm_dir, &vscm);
+    vscm = make_unit_vector(vscm);
 
-    if (!degenerated)
+    if (norm(vscm) > this->epsilon())
     {
-        Real3 vscm = make_unit_vector(cm_velocity_ - vel_parallel * cm_dir);
         Real3 vxcm = make_unit_vector(cross_product(cm_dir, cm_velocity_));
-        if (norm(vscm) > this->epsilon() && norm(vxcm) > this->epsilon())
+        if (norm(vxcm) > this->epsilon())
         {
-            result[0].four_vec
-                = {{fv.mom[0] * vscm + fv.mom[1] * vxcm + fv.mom[2] * cm_dir},
-                   fv.energy};
+            for (int i = 0; i < 3; ++i)
+            {
+                result[0].four_vec.mom[i] = fv.mom[0] * vscm[i]
+                                            + fv.mom[1] * vxcm[i]
+                                            + fv.mom[2] * cm_dir[i];
+            }
+            result[0].four_vec.energy = fv.energy;
         }
+    }
+    else
+    {
+        // Degenerated if velocity perpendicular to the c.m. momentum is small
+        result[0].four_vec = fv;
     }
 
     result[1].four_vec
