@@ -14,10 +14,32 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Quantity.hh"
 
+#include "TypeTraits.hh"
+
 namespace celeritas
 {
 namespace detail
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Wrap the low-level CUDA/HIP "load global memory" function.
+ *
+ * This low-level capability allows improved caching because we're \em
+ * promising that no other thread can modify its value while the kernel is
+ * active.
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION T ldg(T const* ptr)
+{
+    static_assert(std::is_arithmetic_v<T>,
+                  "Only const arithmetic types are supported by __ldg");
+#if CELER_DEVICE_COMPILE
+    return __ldg(ptr);
+#else
+    return *ptr;
+#endif
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Reads a value T using __ldg builtin and return a copy of it
@@ -25,19 +47,13 @@ namespace detail
 template<class T, typename = void>
 struct LdgLoader
 {
-    static_assert(std::is_arithmetic_v<T> && std::is_const_v<T>,
-                  "Only const arithmetic types are supported by __ldg");
     using value_type = std::remove_const_t<T>;
     using pointer = std::add_pointer_t<value_type const>;
     using reference = value_type;
 
     CELER_CONSTEXPR_FUNCTION static reference read(pointer p)
     {
-#if CELER_DEVICE_COMPILE
-        return __ldg(p);
-#else
-        return *p;
-#endif
+        return ldg(p);
     }
 };
 
@@ -48,20 +64,13 @@ struct LdgLoader
 template<class I, class T>
 struct LdgLoader<OpaqueId<I, T> const, void>
 {
-    static_assert(std::is_arithmetic_v<T>,
-                  "OpaqueId needs to be indexed with a type supported by "
-                  "__ldg");
     using value_type = OpaqueId<I, T>;
     using pointer = std::add_pointer_t<value_type const>;
     using reference = value_type;
 
     CELER_CONSTEXPR_FUNCTION static reference read(pointer p)
     {
-#if CELER_DEVICE_COMPILE
-        return value_type{__ldg(&p->value_)};
-#else
-        return value_type{p->value_};
-#endif
+        return value_type{ldg(p->data())};
     }
 };
 
@@ -72,20 +81,13 @@ struct LdgLoader<OpaqueId<I, T> const, void>
 template<class I, class T>
 struct LdgLoader<Quantity<I, T> const, void>
 {
-    static_assert(std::is_arithmetic_v<T>,
-                  "Quantity needs to be represented by a type supported by "
-                  "__ldg");
     using value_type = Quantity<I, T>;
     using pointer = std::add_pointer_t<value_type const>;
     using reference = value_type;
 
     CELER_CONSTEXPR_FUNCTION static reference read(pointer p)
     {
-#if CELER_DEVICE_COMPILE
-        return value_type{__ldg(&p->value_)};
-#else
-        return value_type{p->value_};
-#endif
+        return ldg(p->data());
     }
 };
 
@@ -103,20 +105,12 @@ struct LdgLoader<T const, std::enable_if_t<std::is_enum_v<T>>>
         // Technically breaks aliasing rule but it's not an issue:
         // the compiler doesn't derive any optimization and the pointer doesn't
         // escape the function
-        return value_type{__ldg(reinterpret_cast<underlying_type const*>(p))};
+        return value_type{ldg(reinterpret_cast<underlying_type const*>(p))};
 #else
         return *p;
 #endif
     }
 };
-
-//---------------------------------------------------------------------------//
-//! True if T is supported by a LdgLoader specialization
-template<class T>
-inline constexpr bool is_ldg_supported_v
-    = std::is_const_v<T>
-      && (std::is_arithmetic_v<T> || is_opaque_id_v<T> || is_quantity_v<T>
-          || std::is_enum_v<T>);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
