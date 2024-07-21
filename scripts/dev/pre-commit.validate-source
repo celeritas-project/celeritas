@@ -1,0 +1,47 @@
+#!/bin/bash
+###############################################################################
+# File  : script/developer/pre-commit.validate-source
+#
+# Called by $SCALE/.git/hooks/pre-commit to apply various preliminary checks
+###############################################################################
+
+exit_with_message() {
+  printf "\r\e[0;31m$1\e[0m\n"
+  exit 1
+}
+
+check_corecel_dependencies() {
+  command -v rg >/dev/null
+  HAS_RG=$?
+  if [[ "$HAS_RG" ]]; then
+    cd "$(git rev-parse --show-toplevel)" || exit_with_message "Couldnt checkout to toplevel dir"
+    # list modified files in src/corecel
+    STAGED_FILES=
+    for f in $(git diff --name-only --cached src/corecel); do
+      STAGED_FILES="$STAGED_FILES $f"
+    done
+    # return if no file to check
+    [[ -z $STAGED_FILES ]] && return 0
+
+    # search for accel, celeritas, geocel, orange in corecel
+    CHECK_INCLUDES=$(rg --vimgrep -e '^#include ["<](accel|celeritas|geocel|orange)/.*[">]' $STAGED_FILES)
+    MATCH=${CHECK_INCLUDES:+x}
+
+    # print files:line if we found any match
+    if [[ "$MATCH" ]]; then
+      printf "\r\e[0;33mcorecel can't depend on accel, celeritas, geocel or orange:\n"
+      IFS=$'\n'
+      for e in $CHECK_INCLUDES; do
+        IFS=':' read -r -a fields <<<"$e"
+        printf '%s in %s:%s' "${fields[3]}" "${fields[0]}" "${fields[1]}"
+      done
+      printf "\e[0m\n"
+      return 1
+    fi
+  else
+    echo "ripgrep is not installed, can't perform corecel dependency check..."
+  fi
+  return 0
+}
+
+check_corecel_dependencies || exit_with_message "Precommit failed at check_corecel_dependencies"
