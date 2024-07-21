@@ -11,36 +11,40 @@ exit_with_message() {
 }
 
 check_corecel_dependencies() {
-  command -v rg >/dev/null
-  HAS_RG=$?
-  if [[ "$HAS_RG" ]]; then
-    cd "$(git rev-parse --show-toplevel)" || exit_with_message "Couldnt checkout to toplevel dir"
-    # list modified files in src/corecel
-    STAGED_FILES=
-    for f in $(git diff --name-only --cached --diff-filter=ACM src/corecel); do
-      # file should always exist because of diff-filter
-      [[ -f $f ]] && STAGED_FILES="$STAGED_FILES $f"
+  CMD="grep -n -E"
+  IDX_FILE=0
+  IDX_LINE_NO=1
+  IDX_LINE_TXT=2
+
+  # use ripgrep is available, it's faster
+  if command -v rg >/dev/null; then
+    CMD="rg --vimgrep -e"
+    IDX_LINE_TXT=3
+  fi
+
+  cd "$(git rev-parse --show-toplevel)" || exit_with_message "Couldnt checkout to toplevel dir"
+  # list modified files in src/corecel
+  STAGED_FILES=
+  for f in $(git diff --name-only --cached --diff-filter=ACM src/corecel); do
+    # file should always exist because of diff-filter
+    [[ -f $f ]] && STAGED_FILES="$STAGED_FILES $f"
+  done
+  # return if no file to check
+  [[ -z $STAGED_FILES ]] && return 0
+
+  # search for accel, celeritas, geocel, orange in corecel
+  CHECK_INCLUDES=$($CMD '^[ \t]*#[ \t]*include[ \t]*["<](accel|celeritas|geocel|orange)/.*[">]' $STAGED_FILES)
+
+  # print files:line if we found any match
+  if [[ "$CHECK_INCLUDES" ]]; then
+    printf "\r\e[0;33mcorecel can't depend on accel, celeritas, geocel or orange:\n"
+    IFS=$'\n'
+    for e in $CHECK_INCLUDES; do
+      IFS=':' read -r -a fields <<<"$e"
+      printf 'In %s:%s: %s\n' "${fields[IDX_FILE]}" "${fields[IDX_LINE_NO]}" "${fields[IDX_LINE_TXT]}"
     done
-    # return if no file to check
-    [[ -z $STAGED_FILES ]] && return 0
-
-    # search for accel, celeritas, geocel, orange in corecel
-    CHECK_INCLUDES=$(rg --vimgrep -e '^[ \t]*#[ \t]*include[ \t]*["<](accel|celeritas|geocel|orange)/.*[">]' $STAGED_FILES)
-    MATCH=${CHECK_INCLUDES:+x}
-
-    # print files:line if we found any match
-    if [[ "$MATCH" ]]; then
-      printf "\r\e[0;33mcorecel can't depend on accel, celeritas, geocel or orange:\n"
-      IFS=$'\n'
-      for e in $CHECK_INCLUDES; do
-        IFS=':' read -r -a fields <<<"$e"
-        printf 'In %s:%s: %s' "${fields[0]}" "${fields[1]}" "${fields[3]}"
-      done
-      printf "\e[0m\n"
-      return 1
-    fi
-  else
-    echo "ripgrep is not installed, can't perform corecel dependency check..."
+    printf "\e[0m"
+    return 1
   fi
   return 0
 }
