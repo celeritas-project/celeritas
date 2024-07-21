@@ -25,7 +25,7 @@ check_corecel_dependencies() {
     [[ -z $STAGED_FILES ]] && return 0
 
     # search for accel, celeritas, geocel, orange in corecel
-    CHECK_INCLUDES=$(rg --vimgrep -e '^#include ["<](accel|celeritas|geocel|orange)/.*[">]' $STAGED_FILES)
+    CHECK_INCLUDES=$(rg --vimgrep -e '^[ \t]*#[ \t]*include[ \t]*["<](accel|celeritas|geocel|orange)/.*[">]' $STAGED_FILES)
     MATCH=${CHECK_INCLUDES:+x}
 
     # print files:line if we found any match
