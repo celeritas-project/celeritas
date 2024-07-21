@@ -12,9 +12,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Environment.hh"
-#include "celeritas/Types.hh"
 
 #if CELERITAS_USE_CUDA
 #    define CELER_STREAM_SUPPORTS_ASYNC 1
