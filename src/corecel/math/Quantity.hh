@@ -115,7 +115,7 @@ class Quantity
     //!@}
 
     //! Access the underlying data for more efficient loading from memory
-    value_type const* data() const { return &value_; }
+    CELER_CONSTEXPR_FUNCTION value_type const* data() const { return &value_; }
 
   private:
     value_type value_{};

@@ -98,7 +98,7 @@ class OpaqueId
     CELER_CONSTEXPR_FUNCTION size_type unchecked_get() const { return value_; }
 
     //! Access the underlying data for more efficient loading from memory
-    size_type const* data() const { return &value_; }
+    CELER_CONSTEXPR_FUNCTION size_type const* data() const { return &value_; }
 
   private:
     size_type value_;

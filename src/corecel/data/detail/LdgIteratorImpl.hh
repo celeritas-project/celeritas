@@ -47,6 +47,8 @@ CELER_CONSTEXPR_FUNCTION T ldg(T const* ptr)
 template<class T, typename = void>
 struct LdgLoader
 {
+    static_assert(std::is_const_v<T>, "Only const data are supported by __ldg");
+
     using value_type = std::remove_const_t<T>;
     using pointer = std::add_pointer_t<value_type const>;
     using reference = value_type;
@@ -87,7 +89,7 @@ struct LdgLoader<Quantity<I, T> const, void>
 
     CELER_CONSTEXPR_FUNCTION static reference read(pointer p)
     {
-        return ldg(p->data());
+        return value_type{ldg(p->data())};
     }
 };
 
