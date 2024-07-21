@@ -6,7 +6,7 @@
 ###############################################################################
 
 exit_with_message() {
-  printf "\r\e[0;31m$1\e[0m\n"
+  printf "\r\e[0;31m%s\e[0m\n" "$1"
   exit 1
 }
 
@@ -33,7 +33,7 @@ check_corecel_dependencies() {
       IFS=$'\n'
       for e in $CHECK_INCLUDES; do
         IFS=':' read -r -a fields <<<"$e"
-        printf '%s in %s:%s' "${fields[3]}" "${fields[0]}" "${fields[1]}"
+        printf 'In %s:%s: %s' "${fields[0]}" "${fields[1]}" "${fields[3]}"
       done
       printf "\e[0m\n"
       return 1
