@@ -103,12 +103,6 @@ class Box final : public IntersectRegionInterface
 class Cone final : public IntersectRegionInterface
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using Real2 = Array<real_type, 2>;
-    //!@}
-
-  public:
     // Construct with Z half-height and lo, hi radii
     Cone(Real2 const& radii, real_type halfheight);
 
@@ -216,7 +210,6 @@ class GenTrap final : public IntersectRegionInterface
   public:
     //!@{
     //! \name Type aliases
-    using Real2 = Array<real_type, 2>;
     using VecReal2 = std::vector<Real2>;
     //!@}
 

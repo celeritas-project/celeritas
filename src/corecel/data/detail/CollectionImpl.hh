@@ -22,7 +22,7 @@
 #include "corecel/sys/Device.hh"
 
 #include "DisabledStorage.hh"
-#include "LdgIteratorImpl.hh"
+#include "TypeTraits.hh"
 #include "../Copier.hh"
 #include "../LdgIterator.hh"
 #include "../PinnedAllocator.hh"
