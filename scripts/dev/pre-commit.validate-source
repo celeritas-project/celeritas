@@ -17,8 +17,9 @@ check_corecel_dependencies() {
     cd "$(git rev-parse --show-toplevel)" || exit_with_message "Couldnt checkout to toplevel dir"
     # list modified files in src/corecel
     STAGED_FILES=
-    for f in $(git diff --name-only --cached src/corecel); do
-      STAGED_FILES="$STAGED_FILES $f"
+    for f in $(git diff --name-only --cached --diff-filter=ACM src/corecel); do
+      # file should always exist because of diff-filter
+      [[ -f $f ]] && STAGED_FILES="$STAGED_FILES $f"
     done
     # return if no file to check
     [[ -z $STAGED_FILES ]] && return 0
