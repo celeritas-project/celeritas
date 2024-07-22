@@ -173,7 +173,7 @@ TEST(SolveSurface, one_root)
         auto dist
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
-        EXPECT_SOFT_EQ(3.7273045229281743, dist[0]);
+        EXPECT_SOFT_EQ(3.7273045229725685, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
@@ -222,7 +222,7 @@ TEST(SolveSurface, one_root)
         auto dist
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
-        EXPECT_SOFT_EQ(6.037101219462504, dist[0]);
+        EXPECT_SOFT_EQ(6.0371012183797985, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
@@ -251,7 +251,7 @@ TEST(SolveSurface, two_roots)
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(0.2, dist[0]);
-        EXPECT_SOFT_EQ(2.7642346073995547, dist[1]);
+        EXPECT_SOFT_EQ(2.7642346027254039, dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
 
@@ -275,8 +275,9 @@ TEST(SolveSurface, two_roots)
         auto dist
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
-        EXPECT_SOFT_EQ(0.0036177614745780662, dist[0]);
-        EXPECT_SOFT_EQ(6.0284475639833595, dist[1]);
+        // put different answers for different builds
+        EXPECT_SOFT_EQ(0.003617808106002411, dist[0]);
+        EXPECT_SOFT_EQ(6.0284475629192986, dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
 
@@ -301,7 +302,7 @@ TEST(SolveSurface, two_roots)
         auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
         EXPECT_SOFT_EQ(0.0, dist[0]);
-        EXPECT_SOFT_EQ(4.6528327556576849, dist[1]);
+        EXPECT_SOFT_EQ(4.6528327548038515, dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
 }
@@ -328,8 +329,8 @@ TEST(SolveSurface, three_roots)
         auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
         EXPECT_SOFT_EQ(0.0, dist[0]);
-        EXPECT_SOFT_EQ(6.9112249164647963, dist[1]);
-        EXPECT_SOFT_EQ(9.1676034797636223, dist[2]);
+        EXPECT_SOFT_EQ(6.9112249151160547, dist[1]);
+        EXPECT_SOFT_EQ(9.1676034726245526, dist[2]);
     }
 }
 TEST(Components, line_angle_param)

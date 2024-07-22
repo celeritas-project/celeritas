@@ -76,7 +76,7 @@ class Involute:
         
         return False 
     
-    def Distance(self,x,y,u,v, rmin, rmax):
+    def Distance(self,x,y,u,v, rmin, rmax, onSurf):
         # Store to be used elsewhere
         self.x = x
         self.y = y
@@ -86,7 +86,7 @@ class Involute:
         distA = np.array([])
         
         # Test if Particle is on involute
-        if self.IsOn(x,y):
+        if onSurf:
             distA = np.append(distA, 0)
        
         # Line angle parameter
@@ -136,6 +136,7 @@ class Involute:
             tmax = -np.sqrt(rmax**2/self.rb**2-1)
         
         i = 1
+        distB = np.array([])
         while (tLower<=tmax and sign == 1) or \
               (tUpper>=tmax and sign == -1):
                   
@@ -194,8 +195,7 @@ class Involute:
                     
                     if np.dot(dir,dir2) >= 0:
                         newdist = np.sqrt((xInv-x)**2+(yInv-y)**2)
-                        if newdist >= self.tol*10:
-                            distA = np.append(distA, newdist)
+                        distB = np.append(distB, newdist)
             
                 if self.sign == 1:
                     tLower = copy.deepcopy(tUpper)
@@ -220,6 +220,22 @@ class Involute:
             if newdist <= distArray[-1]:
                 distArray = np.append(distArray, newdist)
         
+        if distB.size != 0:  
+            if onSurf:
+                mini = np.argmin(distB)
+                minDis = np.min(distB)
+                if minDis <= self.tol*10:
+                    for i in range(distB.size):
+                        if i != mini:
+                            distA = np.append(distA, distB[i])
+                else:
+                    for i in range(distB.size):
+                            distA = np.append(distA, distB[i])
+            else:
+                for i in range(distB.size):
+                        distA = np.append(distA, distB[i])
+            
+            
         return distA
                  
             
@@ -248,7 +264,7 @@ if False:
     tmax = 1.999*np.pi
     rmin = rb*np.sqrt(1+tmin**2)
     rmax = rb*np.sqrt(1+tmax**2)
-    dist  = involute.Distance(x, y, u, v, rmin, rmax)
+    dist  = involute.Distance(x, y, u, v, rmin, rmax, False)
     distTrue = np.array([2.9716938706909275])
     if math.isclose(dist[0],distTrue[0]):
         print("Test 1: Passed")
@@ -271,7 +287,7 @@ if False:
     tmax = 1.999*np.pi
     rmin = rb*np.sqrt(1+tmin**2)
     rmax = rb*np.sqrt(1+tmax**2)
-    dist  = involute.Distance(x, y, u, v, rmin, rmax)
+    dist  = involute.Distance(x, y, u, v, rmin, rmax, False)
     distTrue = np.array([3.7273045229241015])
     if math.isclose(dist[0],distTrue[0]):
         print("Test 2: Passed")
@@ -294,7 +310,7 @@ if False:
     tmax = 1.999*np.pi
     rmin = rb*np.sqrt(1+tmin**2)
     rmax = rb*np.sqrt(1+tmax**2)
-    dist  = involute.Distance(x, y, u, v, rmin, rmax)
+    dist  = involute.Distance(x, y, u, v, rmin, rmax, False)
     distTrue = np.array([0.2, 2.764234602725404])
     if math.isclose(dist[0],distTrue[0]) and math.isclose(dist[1],distTrue[1]):
         print("Test 3: Passed")
@@ -317,7 +333,7 @@ if False:
     tmax = 1.999*np.pi
     rmin = rb*np.sqrt(1+tmin**2)
     rmax = rb*np.sqrt(1+tmax**2)
-    dist  = involute.Distance(x, y, u, v, rmin, rmax)
+    dist  = involute.Distance(x, y, u, v, rmin, rmax, False)
     distTrue = np.array([0.0036178033243678843, 6.0284475628795926])
     if math.isclose(dist[0],distTrue[0],rel_tol=1e-7) and math.isclose(dist[1],distTrue[1]):
         print("Test 4: Passed")
@@ -341,7 +357,7 @@ if False:
     tmax = 1.999*np.pi
     rmin = rb*np.sqrt(1+tmin**2)
     rmax = rb*np.sqrt(1+tmax**2)
-    dist  = involute.Distance(x, y, u, v, rmin, rmax)
+    dist  = involute.Distance(x, y, u, v, rmin, rmax, True)
     distTrue = np.array([0, 4.652832754892369])
     if math.isclose(dist[0],distTrue[0]) and math.isclose(dist[1],distTrue[1]):
         print("Test 5: Passed")
@@ -365,7 +381,7 @@ if False:
     tmax = 1.999*np.pi
     rmin = rb*np.sqrt(1+tmin**2)
     rmax = rb*np.sqrt(1+tmax**2)
-    dist  = involute.Distance(x, y, u, v, rmin, rmax)
+    dist  = involute.Distance(x, y, u, v, rmin, rmax, True)
     distTrue = np.array([0, 6.911224915264738, 9.167603472624553])
     if math.isclose(dist[0],distTrue[0]) and math.isclose(dist[1],distTrue[1]) \
        and math.isclose(dist[2],distTrue[2]):
@@ -390,7 +406,7 @@ if False:
     tmax = 4
     rmin = rb*np.sqrt(1+tmin**2)
     rmax = rb*np.sqrt(1+tmax**2)
-    dist  = involute.Distance(x, y, u, v, rmin, rmax)
+    dist  = involute.Distance(x, y, u, v, rmin, rmax, False)
     if dist.size == 0:
         print("Test 7: Passed")
     else:
@@ -413,7 +429,7 @@ if False:
     tmax = 4
     rmin = rb*np.sqrt(1+tmin**2)
     rmax = rb*np.sqrt(1+tmax**2)
-    dist  = involute.Distance(x, y, u, v, rmin, rmax)
+    dist  = involute.Distance(x, y, u, v, rmin, rmax, True)
     distTrue = np.array([0])
     if math.isclose(dist[0],distTrue[0]):
         print("Test 8: Passed")
@@ -437,7 +453,7 @@ if False:
     tmax = 4
     rmin = rb*np.sqrt(1+tmin**2)
     rmax = rb*np.sqrt(1+tmax**2)
-    dist  = involute.Distance(x, y, u, v, rmin, rmax)
+    dist  = involute.Distance(x, y, u, v, rmin, rmax, False)
     distTrue = np.array([6.0371012183803652])
     if math.isclose(dist[0],distTrue[0]):
         print("Test 9: Passed")
@@ -461,7 +477,7 @@ if False:
     tmax = 4
     rmin = rb*np.sqrt(1+tmin**2)
     rmax = rb*np.sqrt(1+tmax**2)
-    dist  = involute.Distance(x, y, u, v, rmin, rmax)
+    dist  = involute.Distance(x, y, u, v, rmin, rmax, False)
     if dist.size == 0:
         print("Test 10: Passed")
     else:
@@ -473,9 +489,7 @@ if False:
     t = np.linspace(2.5*np.pi, 3.5*np.pi,500)
     sign = 1
     involute = Involute(rb, a0, t, sign)
-    
-    plt.plot(involute.involuteX, involute.involuteY)
-    
+        
     #Elventh Point (-2,1) 
     #      Direction (0.894427191,-0.4472135955)
     x = -2
@@ -486,12 +500,272 @@ if False:
     tmax = 4
     rmin = rb*np.sqrt(1+tmin**2)
     rmax = rb*np.sqrt(1+tmax**2)
-    dist  = involute.Distance(x, y, u, v, rmin, rmax)
+    dist  = involute.Distance(x, y, u, v, rmin, rmax, False)
     if dist.size == 0:
         print("Test 11: Passed")
     else:
         print("Test 11: Failed")       
         
+if True:
+    rb = 1
+    a0 = 0
+    t = np.linspace(np.pi*0.33, np.pi*0.67, 5000)
+    sign = 1
+    involute = Involute(rb, a0, t, sign)
+    
+    plt.figure(figsize=(10,10))
+    plt.plot(involute.involuteX,involute.involuteY)
+    plt.grid()
+    
+    tmin = np.pi*0.33
+    tmax = np.pi*0.67
+    rmin = rb*np.sqrt(1+tmin**2)
+    rmax = rb*np.sqrt(1+tmax**2)
+    
+    u = 0
+    v = 1
+    
+    # Tangent on Surface
+    t = np.pi * 0.5
+    involute_tan = Involute(rb, a0, t, sign)
+    x = involute_tan.involuteX
+    y = involute_tan.involuteY
+    
+    plt.plot([x],[y],'o')
+    
+    dist  = involute.Distance(x, y, u, v, rmin, rmax, True)
+    distTrue = np.array([0])
+    if math.isclose(dist[0], distTrue[0]):
+        print("Tangent On Surface Test: Passed")
+    else:
+        print("Tangent On Surface Test: Failed")
+    
+        
+    # Secant Tangent on Surface 
+    eps = -0.000001
+    x1 = involute_tan.involuteX + eps
+    y1 = involute_tan.involuteY
+    plt.plot([x1],[y1],'o')
+    plt.xlim(1.5707925, 1.5707975)
+    plt.ylim(0.995,1.005)
+    
+    dist  = involute.Distance(x1, y1, u, v, rmin, rmax, True)
+    distTrue = np.array([0, 0.0017637864815742603])
+    if math.isclose(dist[0], distTrue[0]) and math.isclose(dist[1], distTrue[1]):
+        print("Secant Tangent On Surface Test: Passed")
+    else:
+        print("Secant Tangent On Surface Test: Failed")
+        
+    # Secant Tangent off Surface 
+    dist  = involute.Distance(x1, y1, u, v, rmin, rmax, False)
+    distTrue = np.array([0.0017637864815742603])
+    if math.isclose(dist[0], distTrue[0]):
+        print("Secant Tangent Off Surface Test: Passed")
+    else:
+        print("Secant Tangent Off Surface Test: Failed")
+        
+    # Secant Tangent on Surface 2
+    eps = -0.0000001
+    x2 = involute_tan.involuteX + eps
+    y2 = involute_tan.involuteY
+    plt.plot([x2],[y2],'o')
+    
+    dist  = involute.Distance(x2, y2, u, v, rmin, rmax, True)
+    distTrue = np.array([0, 0.0005317562313742333])
+    if math.isclose(dist[0], distTrue[0]) and math.isclose(dist[1], distTrue[1]):
+        print("Secant Tangent On Surface Test 2: Passed")
+    else:
+        print("Secant Tangent On Surface Test 2: Failed")
+        
+    # Secant Tangent off Surface 2
+    dist  = involute.Distance(x2, y2, u, v, rmin, rmax, False)
+    distTrue = np.array([0.0005317562313742333])
+    if math.isclose(dist[0], distTrue[0]):
+        print("Secant Tangent Off Surface Test 2: Passed")
+    else:
+        print("Secant Tangent Off Surface Test 2: Failed")
+        
+    # Secant Tangent on Surface 3
+    eps = -0.00000001
+    x3 = involute_tan.involuteX + eps
+    y3 = involute_tan.involuteY
+    plt.plot([x3],[y3],'o')
+    
+    dist  = involute.Distance(x3, y3, u, v, rmin, rmax, True)
+    distTrue = np.array([0])
+    if math.isclose(dist[0], distTrue[0]):
+        print("Secant Tangent On Surface Test 3: Passed")
+    else:
+        print("Secant Tangent On Surface Test 3: Failed")
+        
+    # Secant Tangent off Surface 3
+    dist  = involute.Distance(x3, y3, u, v, rmin, rmax, False)
+    distTrue = np.array([1.2715542669661114e-08])
+    if math.isclose(dist[0], distTrue[0]):
+        print("Secant Tangent Off Surface Test 3: Passed")
+    else:
+        print("Secant Tangent Off Surface Test 3: Failed")
+        
+    # Parallel Tangent on Surface
+    eps = 0.00000001
+    x4 = involute_tan.involuteX + eps
+    y4 = involute_tan.involuteY
+    plt.plot([x4],[y4],'o')
+    
+    dist  = involute.Distance(x4, y4, u, v, rmin, rmax, True)
+    distTrue = np.array([0])
+    if math.isclose(dist[0], distTrue[0]):
+        print("Parallel Tangent On Surface Test: Passed")
+    else:
+        print("Parallel Tangent On Surface Test: Failed")
+        
+    # Parallel Tangent off Surface
+    dist  = involute.Distance(x4, y4, u, v, rmin, rmax, False)
+    if dist.size==0:
+        print("Parallel Tangent Off Surface Test: Passed")
+    else:
+        print("Parallel Tangent Off Surface Test: Failed")
+    
+    # Secant far ahead Surface
+    t = np.pi * 0.5002
+    eps = 0.001
+    involute_tan = Involute(rb, a0, t, sign)
+    x5 = involute_tan.involuteX
+    y5 = involute_tan.involuteY+eps
+    
+    plt.plot([x],[y],'o')
+    
+    plt.plot([x5],[y5],'o')
+    
+    dist  = involute.Distance(x5, y5, u, v, rmin, rmax, True)
+    distTrue = np.array([0])
+    if math.isclose(dist[0], distTrue[0]):
+        print("Seccant Far Ahead On Surface Test: Passed")
+    else:
+        print("Seccant Far Ahead On Surface Test: Failed")
+        
+    dist  = involute.Distance(x5, y5, u, v, rmin, rmax, False)
+    if dist.size==0:
+        print("Seccant Far Ahead Off Surface Test: Passed")
+    else:
+        print("Seccant Far Ahead Off Surface Test: Failed")
+        
+    # Secant ahead Surface
+    eps = 0.00000001
+    x6 = involute_tan.involuteX
+    y6 = involute_tan.involuteY+eps
+    
+    plt.plot([x],[y],'o')
+    
+    plt.plot([x6],[y6],'o')
+    
+    dist  = involute.Distance(x6, y6, u, v, rmin, rmax, True)
+    distTrue = np.array([0])
+    if math.isclose(dist[0], distTrue[0]):
+        print("Seccant Ahead On Surface Test: Passed")
+    else:
+        print("Seccant Ahead On Surface Test: Failed")
+        
+    dist  = involute.Distance(x6, y6, u, v, rmin, rmax, False)
+    if dist.size==0:
+        print("Seccant Ahead Off Surface Test: Passed")
+    else:
+        print("Seccant Ahead Off Surface Test: Failed")
+        
+    # Secant Just in Surface
+    eps = -0.00000001
+    x7 = involute_tan.involuteX
+    y7 = involute_tan.involuteY+eps
+    
+    plt.plot([x],[y],'o')
+    
+    plt.plot([x7],[y7],'o')
+    
+    dist  = involute.Distance(x7, y7, u, v, rmin, rmax, True)
+    distTrue = np.array([0])
+    if math.isclose(dist[0], distTrue[0] and dist.size==1):
+        print("Seccant On Surface Test: Passed")
+    else:
+        print("Seccant On Surface Test: Failed")
+        
+    dist  = involute.Distance(x7, y7, u, v, rmin, rmax, False)
+    if dist.size==0:
+        print("Seccant Off Surface Test: Passed")
+    else:
+        print("Seccant Off Surface Test: Failed")
+        
+    # Secant far behind Surface
+    t = np.pi * 0.4998
+    eps = -0.001
+    involute_tan = Involute(rb, a0, t, sign)
+    x8 = involute_tan.involuteX
+    y8 = involute_tan.involuteY+eps
+    
+    plt.plot([x],[y],'o')
+    
+    plt.plot([x8],[y8],'o')
+    
+    dist  = involute.Distance(x8, y8, u, v, rmin, rmax, True)
+    distTrue = np.array([0, 0.00101600547767689,0.0029576086257110663])
+    if math.isclose(dist[0], distTrue[0]) and math.isclose(dist[1], distTrue[1])\
+     and math.isclose(dist[2], distTrue[2]):
+        print("Seccant Far Behind On Surface Test: Passed")
+    else:
+        print("Seccant Far Behind On Surface Test: Failed")
+        
+    dist  = involute.Distance(x8, y8, u, v, rmin, rmax, False)
+    distTrue = np.array([0.00101600547767689,0.0029576086257110663])
+    if math.isclose(dist[0], distTrue[0]) and math.isclose(dist[1], distTrue[1]):
+        print("Seccant Far Behind Off Surface Test: Passed")
+    else:
+        print("Seccant Far Behind Off Surface Test: Failed")
+        
+    # Secant behind Surface
+    eps = 0.000016
+    x9 = involute_tan.involuteX
+    y9 = involute_tan.involuteY+eps
+    
+    plt.plot([x],[y],'o')
+    
+    plt.plot([x9],[y9],'o')
+    
+    dist  = involute.Distance(x9, y9, u, v, rmin, rmax, True)
+    distTrue = np.array([0,0.0019416086257198944])
+    if math.isclose(dist[0], distTrue[0]) and math.isclose(dist[1], distTrue[1]):
+        print("Seccant Behind On Surface Test: Passed")
+    else:
+        print("Seccant Behind On Surface Test: Failed")
+        
+    dist  = involute.Distance(x9, y9, u, v, rmin, rmax, False)
+    distTrue = np.array([1.1379996204178665e-08,0.0019416086257198944])
+    if math.isclose(dist[0], distTrue[0]) and math.isclose(dist[1], distTrue[1]):
+        print("Seccant Behind Off Surface Test: Passed")
+    else:
+        print("Seccant Behind Off Surface Test: Failed")
+        
+        
+    # Secant Surface
+    eps = 0.00001601
+    x10 = involute_tan.involuteX
+    y10 = involute_tan.involuteY+eps
+    
+    plt.plot([x],[y],'o')
+    
+    plt.plot([x10],[y10],'o')
+    
+    dist  = involute.Distance(x10, y10, u, v, rmin, rmax, True)
+    distTrue = np.array([0,0.0019415986257199553])
+    if math.isclose(dist[0], distTrue[0]) and math.isclose(dist[1], distTrue[1]):
+        print("Seccant Behind On Surface Test: Passed")
+    else:
+        print("Seccant Behind On Surface Test: Failed")
+        
+    dist  = involute.Distance(x10, y10, u, v, rmin, rmax, False)
+    distTrue = np.array([0.0019415986257199553])
+    if math.isclose(dist[0], distTrue[0]):
+        print("Seccant Behind Off Surface Test: Passed")
+    else:
+        print("Seccant Behind Off Surface Test: Failed")
                 
 # # Test Involute      
 # rb = 1.0

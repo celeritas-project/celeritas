@@ -68,6 +68,14 @@ class InvoluteSolver
     inline CELER_FUNCTION real_type calc_dist(
         real_type x, real_type y, real_type u, real_type v, real_type t) const;
 
+    static CELER_CONSTEXPR_FUNCTION real_type tol()
+    {
+        if constexpr (std::is_same_v<real_type, double>)
+            return 1e-8;
+        else if constexpr (std::is_same_v<real_type, float>)
+            return 1e-5;
+    }
+
     //// ACCESSORS ////
 
     //! Get involute parameters
@@ -89,16 +97,6 @@ class InvoluteSolver
     // Bounds
     real_type tmin_;
     real_type tmax_;
-
-    //! Tolerance function seperated
-    static CELER_CONSTEXPR_FUNCTION real_type tol_point()
-    {
-        return Tolerance<>::sqrt_quadratic();
-    }
-    static CELER_CONSTEXPR_FUNCTION real_type tol_conv()
-    {
-        return ipow<2>(Tolerance<>::sqrt_quadratic());
-    }
 };
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -161,8 +159,8 @@ InvoluteSolver::operator()(Real3 const& pos,
      * account for the floating point error when performing square roots.
      * tol_conv gives the tolerance for the Regular Falsi iteration.
      */
-    real_type tol_point = InvoluteSolver::tol_point();
-    real_type tol_conv = InvoluteSolver::tol_conv();
+    real_type tol_conv = r_b_ * tol();
+    real_type tol_point = r_b_ * tol() * 100;
 
     // Results initalization and root counter
     Intersections result;
