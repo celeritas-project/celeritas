@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh -e
 ###############################################################################
 # File  : script/developer/pre-commit.validate-source
 #
@@ -31,10 +31,11 @@ check_corecel_dependencies() {
   done
   # return if no file to check
   [[ -z $STAGED_FILES ]] && return 0
-
+  # grep, rg return 1 if no match, so we ignore it
+  set +e
   # search for accel, celeritas, geocel, orange in corecel
   CHECK_INCLUDES=$($CMD '^[ \t]*#[ \t]*include[ \t]*["<](accel|celeritas|geocel|orange)/.*[">]' $STAGED_FILES)
-
+  set -e
   # print files:line if we found any match
   if [[ "$CHECK_INCLUDES" ]]; then
     printf "\r\e[0;33mcorecel can't depend on accel, celeritas, geocel or orange:\n"
