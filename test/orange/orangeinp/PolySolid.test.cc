@@ -21,8 +21,6 @@ namespace orangeinp
 {
 namespace test
 {
-using Real2 = PolySegments::Real2;
-
 //---------------------------------------------------------------------------//
 TEST(PolySegmentsTest, errors)
 {

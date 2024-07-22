@@ -33,8 +33,6 @@ namespace celeritas
  */
 struct ImageParamsScalars
 {
-    using Size2 = Array<size_type, 2>;
-
     Real3 origin{};  //!< Upper left corner
     Real3 down{};  //!< Downward basis vector
     Real3 right{};  //!< Rightward basis vector (increasing i, track movement)
