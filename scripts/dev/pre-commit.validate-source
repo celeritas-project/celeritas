@@ -11,12 +11,12 @@ exit_with_message() {
 }
 
 check_corecel_dependencies() {
-  CMD="grep -n -E"
+  CMD="grep -nHE"
   IDX_FILE=0
   IDX_LINE_NO=1
   IDX_LINE_TXT=2
 
-  # use ripgrep is available, it's faster
+  # use ripgrep if available, it's faster
   if command -v rg >/dev/null; then
     CMD="rg --vimgrep -e"
     IDX_LINE_TXT=3
@@ -25,7 +25,7 @@ check_corecel_dependencies() {
   cd "$(git rev-parse --show-toplevel)" || exit_with_message "Couldnt checkout to toplevel dir"
   # list modified files in src/corecel
   STAGED_FILES=
-  for f in $(git diff --name-only --cached --diff-filter=ACM src/corecel); do
+  for f in $(git diff --name-only --cached --diff-filter=ACM src/corecel | grep -E '.*\.(cc|cu|hh)'); do
     # file should always exist because of diff-filter
     [[ -f $f ]] && STAGED_FILES="$STAGED_FILES $f"
   done
