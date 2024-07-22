@@ -198,7 +198,7 @@ InvoluteSolver::operator()(Real3 const& pos,
 
     // Round t_upper to the first positive multiple of pi
     real_type floor_upper = -std::floor(t_upper / pi);
-    t_upper += std::fmax(0, floor_upper) * pi;
+    t_upper += max<real_type>(0, floor_upper) * pi;
 
     // Parameters that will be used in loop
     int i = 1;
@@ -227,7 +227,8 @@ InvoluteSolver::operator()(Real3 const& pos,
 
             // Convert root to distance and store if positive and in interval
             real_type dist = calc_dist(x, y, u, v, t_gamma);
-            if (dist > tol_point)
+            if (dist > tol_point
+                || (!(on_surface == SurfaceState::on) && (dist > 0)))
             {
                 result[j] = convert * dist;
                 j++;
