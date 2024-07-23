@@ -430,8 +430,20 @@ GenPrism::GenPrism(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
     auto hi_orient = calc_orientation(hi_[0], hi_[1], hi_[2]);
     CELER_VALIDATE(is_same_orientation(lo_orient, hi_orient, allow_degen),
                    << "-z and +z polygons have different orientations");
-    CELER_VALIDATE(lo_orient != col || hi_orient != col,
-                   << "-z and +z polygons are both degenerate");
+
+    if (lo_orient == col && hi_orient != col)
+    {
+        degen_ = Degenerate::lo;
+    }
+    else if (lo_orient != col && hi_orient == col)
+    {
+        degen_ = Degenerate::hi;
+    }
+    else
+    {
+        CELER_VALIDATE(lo_orient != col || hi_orient != col,
+                       << "-z and +z polygons are both degenerate");
+    }
     if (lo_orient == cw || hi_orient == cw)
     {
         // Reverse point orders so it's counterclockwise, needed for vectors to
@@ -491,8 +503,14 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
     constexpr int Y = 1;
 
     // Build the bottom and top planes
-    insert_surface(Sense::outside, PlaneZ{-hz_});
-    insert_surface(Sense::inside, PlaneZ{hz_});
+    if (degen_ != Degenerate::lo)
+    {
+        insert_surface(Sense::outside, PlaneZ{-hz_});
+    }
+    if (degen_ != Degenerate::hi)
+    {
+        insert_surface(Sense::inside, PlaneZ{hz_});
+    }
 
     // TODO: use plane normal equality from SoftSurfaceEqual, or maybe soft
     // equivalence on twist angle cosine?

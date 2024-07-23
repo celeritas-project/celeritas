@@ -757,10 +757,9 @@ TEST_F(GenPrismTest, tetrahedron)
     EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(pri));
 
     auto result = this->test(pri);
-    static char const expected_node[] = "all(+0, -1, -2, -3, +4)";
+    static char const expected_node[] = "all(+0, -1, -2, +3)";
     static char const* const expected_surfaces[]
         = {"Plane: z=-3",
-           "Plane: z=3",
            "Plane: n={0.31449,-0.94346,0.10483}, d=0.31449",
            "Plane: n={0.31449,0.94346,0.10483}, d=0.31449",
            "Plane: n={0.98639,0,-0.1644}, d=-0.4932"};
@@ -774,6 +773,29 @@ TEST_F(GenPrismTest, tetrahedron)
     this->check_corners(result.node_id, pri, 0.01);
 }
 
+TEST_F(GenPrismTest, odd_tetrahedron)
+{
+    auto pri
+        = GenPrism(3, {{2, 0}, {2, 0}, {2, 0}}, {{-1, -1}, {2, 0}, {-1, 1}});
+
+    static real_type const expected_twist_angles[] = {0, 0, 0};
+    EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(pri));
+
+    auto result = this->test(pri);
+    static char const expected_node[] = "all(-0, -1, -2, +3)";
+    static char const* const expected_surfaces[]
+        = {"Plane: z=3",
+           "Plane: n={0.31623,-0.94868,0}, d=0.63246",
+           "Plane: n={0.31623,0.94868,0}, d=0.63246",
+           "Plane: n={0.89443,0,0.44721}, d=0.44721"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_FALSE(result.interior) << result.interior;
+    EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -3}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{2, 1, 3}), result.exterior.upper());
+}
+
 TEST_F(GenPrismTest, envelope)
 {
     GenPrism pri(2,
@@ -784,10 +806,9 @@ TEST_F(GenPrismTest, envelope)
     EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(pri));
 
     auto result = this->test(pri);
-    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const expected_node[] = "all(+0, +1, -2, -3, +4)";
     static char const* const expected_surfaces[]
         = {"Plane: z=-2",
-           "Plane: z=2",
            "Plane: n={0,0.89443,-0.44721}, d=-0.89443",
            "Plane: n={0.99228,-0,0.12403}, d=0.74421",
            "Plane: n={0,0.89443,0.44721}, d=0.89443",

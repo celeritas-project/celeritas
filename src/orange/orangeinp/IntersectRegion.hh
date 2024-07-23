@@ -269,9 +269,17 @@ class GenPrism final : public IntersectRegionInterface
     real_type calc_twist_cosine(size_type size_idx) const;
 
   private:
+    enum class Degenerate
+    {
+        none,
+        lo,
+        hi
+    };
+
     real_type hz_;  //!< half-height
     VecReal2 lo_;  //!< corners of the -z face
     VecReal2 hi_;  //!< corners of the +z face
+    Degenerate degen_{Degenerate::none};  //!< no plane on this z axis
 };
 
 //---------------------------------------------------------------------------//
