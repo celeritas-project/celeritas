@@ -83,7 +83,14 @@ real_type DiagnosticRealFunc<F>::operator()(real_type v)
     {
         CELER_DEBUG_FAIL("nan output returned from function", postcondition);
     }
-    CELER_LOG(debug) << count_ << ": f(" << v << ") -> " << result;
+    if (count_ < 20)
+    {
+        CELER_LOG(debug) << count_ << ": f(" << v << ") -> " << result;
+    }
+    else if (count_ == 20)
+    {
+        CELER_LOG(debug) << "Suppressing further log messages";
+    }
     return result;
 }
 
