@@ -80,6 +80,7 @@ CELER_ICRT a0_bohr = 5.29177210903e-11 * units::meter;
 CELER_ICRT alpha_fine_structure = 7.2973525693e-3;
 CELER_ICRT atomic_mass = 1.66053906660e-24 * units::gram;
 CELER_ICRT electron_mass = 9.1093837015e-28 * units::gram;
+CELER_ICRT proton_mass = 1.67262192369e-24 * units::gram;
 CELER_ICRT eps_electric = 8.8541878128e-12 * units::farad / units::meter;
 CELER_ICRT mu_magnetic = 1.25663706212e-6 * units::newton
                          / (units::ampere * units::ampere);

@@ -22,6 +22,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 class ActionRegistry;
 class CoreParams;
+class StatusChecker;
 
 namespace detail
 {
@@ -96,6 +97,7 @@ class ActionSequence
     VecBeginAction begin_run_;
     VecSpecializedExplicitAction actions_;
     VecDouble accum_time_;
+    std::shared_ptr<StatusChecker const> status_checker_;
 };
 
 //---------------------------------------------------------------------------//

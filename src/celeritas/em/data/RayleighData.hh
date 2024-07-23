@@ -36,35 +36,21 @@ struct RayleighParameters
 
 //---------------------------------------------------------------------------//
 /*!
- * Model and particles IDs.
- */
-struct RayleighIds
-{
-    ActionId action;
-    ParticleId gamma;
-
-    //! Check whether the data is assigned
-    explicit CELER_FUNCTION operator bool() const { return action && gamma; }
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Device data for creating an interactor.
  */
 template<Ownership W, MemSpace M>
 struct RayleighData
 {
-    //! Model and particle IDs
-    RayleighIds ids;
-
     template<class T>
     using ElementItems = celeritas::Collection<T, W, M, ElementId>;
+
+    ParticleId gamma;
     ElementItems<RayleighParameters> params;
 
     //! Check whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return ids && !params.empty();
+        return gamma && !params.empty();
     }
 
     //! Assign from another set of data
@@ -72,8 +58,7 @@ struct RayleighData
     RayleighData& operator=(RayleighData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        ids.action = other.ids.action;
-        ids.gamma = other.ids.gamma;
+        gamma = other.gamma;
         params = other.params;
         return *this;
     }

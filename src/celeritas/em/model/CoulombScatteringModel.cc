@@ -36,7 +36,9 @@ CoulombScatteringModel::CoulombScatteringModel(ActionId id,
                                                ParticleParams const& particles,
                                                MaterialParams const& materials,
                                                SPConstImported data)
-    : imported_(data,
+    : ConcreteAction(
+        id, "coulomb-wentzel", "interact by Coulomb scattering (Wentzel)")
+    , imported_(data,
                 particles,
                 ImportProcessClass::coulomb_scat,
                 ImportModelClass::e_coulomb_scattering,
@@ -44,7 +46,6 @@ CoulombScatteringModel::CoulombScatteringModel(ActionId id,
 {
     CELER_EXPECT(id);
 
-    data_.action = id;
     data_.ids.electron = particles.find(pdg::electron());
     data_.ids.positron = particles.find(pdg::positron());
 
@@ -126,15 +127,6 @@ void CoulombScatteringModel::execute(CoreParams const&, CoreStateDevice&) const
 }
 #endif
 //!@}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the action ID for this model.
- */
-ActionId CoulombScatteringModel::action_id() const
-{
-    return this->host_ref().action;
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -447,12 +447,11 @@ TEST_F(EllipsoidTest, standard)
 }
 
 //---------------------------------------------------------------------------//
-// GenPrism
+// GENPRISM
 //---------------------------------------------------------------------------//
 class GenPrismTest : public IntersectRegionTest
 {
   protected:
-    using Real2 = GenPrism::Real2;
     using VecReal = std::vector<real_type>;
 
     // NOTE: this only works for trapezoids centered on the z axis (a

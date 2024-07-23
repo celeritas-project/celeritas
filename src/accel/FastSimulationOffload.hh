@@ -40,17 +40,17 @@ class FastSimulationOffload final : public G4VFastSimulationModel
                           LocalTransporter* local);
 
     // Return true if model is applicable to the `G4ParticleDefinition`
-    G4bool IsApplicable(G4ParticleDefinition const& particle) override;
+    G4bool IsApplicable(G4ParticleDefinition const& particle) final;
 
     // Return true if model is applicable to dynamic state of `G4FastTrack`
-    G4bool ModelTrigger(G4FastTrack const& track) override;
+    G4bool ModelTrigger(G4FastTrack const& track) final;
 
     // Apply model
-    void DoIt(G4FastTrack const& track, G4FastStep& step) override;
+    void DoIt(G4FastTrack const& track, G4FastStep& step) final;
 
 #if G4VERSION_NUMBER >= 1110
     //! Complete processing of buffered tracks
-    void Flush() override;
+    void Flush() final;
 #endif
 
   private:

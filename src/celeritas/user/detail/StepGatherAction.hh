@@ -70,8 +70,8 @@ class StepGatherAction final : public ExplicitCoreActionInterface
     //! Dependency ordering of the action
     ActionOrder order() const final
     {
-        return P == StepPoint::pre    ? ActionOrder::pre
-               : P == StepPoint::post ? ActionOrder::post_post
+        return P == StepPoint::pre    ? ActionOrder::user_pre
+               : P == StepPoint::post ? ActionOrder::user_post
                                       : ActionOrder::size_;
     }
 

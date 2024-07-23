@@ -15,16 +15,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Get a string corresponding to an interpolation.
- */
-char const* to_cstring(Interp value)
-{
-    static EnumStringMapper<Interp> const to_cstring_impl{"linear", "log"};
-    return to_cstring_impl(value);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get a string corresponding to a state of matter.
  */
 char const* to_cstring(MatterState value)
@@ -40,21 +30,39 @@ char const* to_cstring(MatterState value)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get a string corresponding to a track status
+ */
+char const* to_cstring(TrackStatus value)
+{
+    static EnumStringMapper<TrackStatus> const to_cstring_impl{
+        "inactive",
+        "initializing",
+        "alive",
+        "errored",
+        "killed",
+    };
+    return to_cstring_impl(value);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get a string corresponding to an action order.
  */
 char const* to_cstring(ActionOrder value)
 {
     static EnumStringMapper<ActionOrder> const to_cstring_impl{
         "start",
+        "user_start",
         "sort_start",
         "pre",
+        "user_pre",
         "sort_pre",
         "along",
         "sort_along",
         "pre_post",
         "sort_pre_post",
         "post",
-        "post_post",
+        "user_post",
         "end",
     };
     return to_cstring_impl(value);
@@ -111,8 +119,9 @@ char const* to_cstring(NuclearFormFactorType value)
 //---------------------------------------------------------------------------//
 /*!
  * Checks that the TrackOrder will sort tracks by actions applied at the given
- * ActionOrder. This should match the mapping in the \c SortTracksAction
- * constructor.
+ * ActionOrder.
+ *
+ * This should match the mapping in the \c SortTracksAction constructor.
  *
  * TODO: Have a single source of truth for mapping TrackOrder to ActionOrder
  */

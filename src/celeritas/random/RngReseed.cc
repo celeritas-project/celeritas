@@ -26,12 +26,16 @@ void reseed_rng(HostCRef<RngParamsData> const& params,
                 HostRef<RngStateData> const& state,
                 size_type event_id)
 {
-    for (auto tid : range(TrackSlotId{state.size()}))
+    auto size = state.size();
+#if CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
+#    pragma omp parallel for
+#endif
+    for (TrackSlotId::size_type i = 0; i < size; ++i)
     {
         RngEngine::Initializer_t init;
         init.seed = params.seed;
-        init.subsequence = event_id * state.size() + tid.get();
-        RngEngine engine(params, state, tid);
+        init.subsequence = event_id * size + i;
+        RngEngine engine(params, state, TrackSlotId{i});
         engine = init;
     }
 }

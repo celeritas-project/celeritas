@@ -8,6 +8,7 @@
 #include "InputBuilder.hh"
 
 #include <fstream>
+#include <nlohmann/json.hpp>
 
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
@@ -21,11 +22,6 @@
 #include "detail/ProtoBuilder.hh"
 #include "detail/ProtoMap.hh"
 
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-
-#endif
-
 namespace celeritas
 {
 namespace orangeinp
@@ -35,15 +31,6 @@ namespace
 //---------------------------------------------------------------------------//
 void write_protos(detail::ProtoMap const& map, std::string const& filename)
 {
-    if (!CELERITAS_USE_JSON)
-    {
-        CELER_LOG(warning)
-            << "JSON support is not enabled: no proto output written to \""
-            << filename << '"';
-        CELER_DISCARD(map);
-    }
-
-#if CELERITAS_USE_JSON
     auto result = nlohmann::json(std::vector<std::nullptr_t>(map.size()));
     for (auto uid : range(UniverseId{map.size()}))
     {
@@ -58,7 +45,6 @@ void write_protos(detail::ProtoMap const& map, std::string const& filename)
     outf << result.dump();
 
     CELER_LOG(info) << "Wrote ORANGE protos to " << filename;
-#endif
 }
 
 //---------------------------------------------------------------------------//
@@ -72,33 +58,19 @@ class JsonProtoOutput
     explicit JsonProtoOutput(UniverseId::size_type size)
     {
         CELER_EXPECT(size > 0);
-#if CELERITAS_USE_JSON
         output_ = nlohmann::json(std::vector<std::nullptr_t>(size));
-#endif
     }
 
     //! Save JSON
     void operator()(UniverseId uid, JsonPimpl&& jpo)
     {
-#if CELERITAS_USE_JSON
         CELER_EXPECT(uid < output_.size());
         output_[uid.unchecked_get()] = std::move(jpo.obj);
-#else
-        CELER_DISCARD(uid);
-        CELER_DISCARD(jpo);
-#endif
     }
 
     //! Write debug information to a file
     void write(std::string const& filename) const
     {
-        if (!CELERITAS_USE_JSON)
-        {
-            CELER_LOG(warning)
-                << "JSON support is not enabled: no debug output written to \""
-                << filename << '"';
-        }
-#if CELERITAS_USE_JSON
         CELER_ASSERT(!output_.empty());
         std::ofstream outf(filename);
         CELER_VALIDATE(
@@ -106,13 +78,10 @@ class JsonProtoOutput
         outf << output_.dump();
 
         CELER_LOG(info) << "Wrote ORANGE debug info to " << filename;
-#endif
     }
 
   private:
-#if CELERITAS_USE_JSON
     nlohmann::json output_;
-#endif
 };
 
 //---------------------------------------------------------------------------//

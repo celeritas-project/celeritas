@@ -13,14 +13,20 @@
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
+#include "corecel/data/AuxParamsRegistry.hh"  // IWYU pragma: keep
 #include "corecel/data/Ref.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"  // IWYU pragma: keep
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/DeviceIO.json.hh"
 #include "corecel/sys/Environment.hh"
+#include "corecel/sys/EnvironmentIO.json.hh"
 #include "corecel/sys/KernelRegistry.hh"
+#include "corecel/sys/KernelRegistryIO.json.hh"
 #include "corecel/sys/MemRegistry.hh"
+#include "corecel/sys/MemRegistryIO.json.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
@@ -34,6 +40,7 @@
 #include "celeritas/phys/ParticleParamsOutput.hh"
 #include "celeritas/phys/PhysicsParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/PhysicsParamsOutput.hh"
+#include "celeritas/phys/detail/TrackingCutAction.hh"
 #include "celeritas/random/RngParams.hh"  // IWYU pragma: keep
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/ExtendFromSecondariesAction.hh"
@@ -46,14 +53,6 @@
 #include "ActionRegistry.hh"  // IWYU pragma: keep
 #include "ActionRegistryOutput.hh"
 #include "alongstep/AlongStepNeutralAction.hh"
-
-#if CELERITAS_USE_JSON
-#    include "corecel/io/OutputInterfaceAdapter.hh"
-#    include "corecel/sys/DeviceIO.json.hh"
-#    include "corecel/sys/EnvironmentIO.json.hh"
-#    include "corecel/sys/KernelRegistryIO.json.hh"
-#    include "corecel/sys/MemRegistryIO.json.hh"
-#endif
 
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
 #    include "orange/OrangeParams.hh"
@@ -131,18 +130,6 @@ class PropagationLimitAction final : public ConcreteAction
 };
 
 //---------------------------------------------------------------------------//
-class AbandonLoopingAction final : public ConcreteAction
-{
-  public:
-    //! Construct with ID
-    explicit AbandonLoopingAction(ActionId id)
-        : ConcreteAction(
-            id, "kill-looping", "kill due to too many field substeps")
-    {
-    }
-};
-
-//---------------------------------------------------------------------------//
 /*!
  * Construct always-required actions and set IDs.
  */
@@ -197,17 +184,19 @@ CoreScalars build_actions(ActionRegistry* reg)
     reg->insert(
         make_shared<PropagationLimitAction>(scalars.propagation_limit_action));
 
-    // Construct action for killed looping tracks
-    scalars.abandon_looping_action = reg->next_id();
-    reg->insert(
-        make_shared<AbandonLoopingAction>(scalars.abandon_looping_action));
-
     //// POST-STEP ACTIONS ////
 
-    // Construct geometry action
+    // Construct geometry boundary action
     scalars.boundary_action = reg->next_id();
     reg->insert(make_shared<celeritas::detail::BoundaryAction>(
         scalars.boundary_action));
+
+    // Construct action for killed looping tracks/error geometry
+    // NOTE: due to ordering by {start, ID}, TrackingCutAction *must*
+    // be after BoundaryAction
+    scalars.tracking_cut_action = reg->next_id();
+    reg->insert(
+        make_shared<detail::TrackingCutAction>(scalars.tracking_cut_action));
 
     //// END ACTIONS ////
 
@@ -257,6 +246,9 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     };
     switch (TrackOrder track_order = input_.init->host_ref().track_order)
     {
+        case TrackOrder::unsorted:
+        case TrackOrder::shuffled:
+            break;
         case TrackOrder::partition_status:
         case TrackOrder::sort_step_limit_action:
         case TrackOrder::sort_along_step_action:
@@ -269,10 +261,8 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
             insert_sort_tracks_action(TrackOrder::sort_step_limit_action);
             insert_sort_tracks_action(TrackOrder::sort_along_step_action);
             break;
-        case TrackOrder::unsorted:
-        case TrackOrder::shuffled:
         case TrackOrder::size_:
-            break;
+            CELER_ASSERT_UNREACHABLE();
     }
 
     // Save maximum number of streams
@@ -288,7 +278,6 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         device_ref_vec_.copy_to_device({&device_ref_, 1});
     }
 
-#if CELERITAS_USE_JSON
     // Save system diagnostic information
     input_.output_reg->insert(OutputInterfaceAdapter<Device>::from_const_ref(
         OutputInterface::Category::system, "device", celeritas::device()));
@@ -301,7 +290,6 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         OutputInterface::Category::system, "memory", celeritas::mem_registry()));
     input_.output_reg->insert(OutputInterfaceAdapter<Environment>::from_const_ref(
         OutputInterface::Category::system, "environ", celeritas::environment()));
-#endif
     input_.output_reg->insert(std::make_shared<BuildOutput>());
 
     // Save core diagnostic information
@@ -323,6 +311,8 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     input_.output_reg->insert(
         std::make_shared<VecgeomParamsOutput>(input_.geometry));
 #endif
+
+    // TODO: add output from auxiliary params/data
 
     CELER_LOG(status) << "Celeritas core setup complete";
 

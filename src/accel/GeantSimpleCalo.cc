@@ -7,22 +7,21 @@
 //---------------------------------------------------------------------------//
 #include "GeantSimpleCalo.hh"
 
+#include <nlohmann/json.hpp>
+
 #include "celeritas_config.h"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/JsonPimpl.hh"
+#include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/g4/GeantGeoParams.hh"
 
 #include "SharedParams.hh"
+
 #include "detail/GeantSimpleCaloSD.hh"
 #include "detail/GeantSimpleCaloStorage.hh"
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-
-#    include "corecel/io/JsonPimpl.hh"
-#    include "corecel/io/LabelIO.json.hh"
-#endif
 
 namespace celeritas
 {
@@ -183,7 +182,6 @@ std::string_view GeantSimpleCalo::label() const
  */
 void GeantSimpleCalo::output(JsonPimpl* j) const
 {
-#if CELERITAS_USE_JSON
     using json = nlohmann::json;
 
     auto obj = json::object();
@@ -213,9 +211,6 @@ void GeantSimpleCalo::output(JsonPimpl* j) const
     }
 
     j->obj = std::move(obj);
-#else
-    CELER_DISCARD(j);
-#endif
 }
 
 //---------------------------------------------------------------------------//

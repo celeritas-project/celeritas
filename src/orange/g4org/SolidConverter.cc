@@ -314,10 +314,10 @@ auto SolidConverter::cons(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Cons const&>(solid_base);
 
-    auto const outer_r = scale_.to<Cone::Real2>(solid.GetOuterRadiusMinusZ(),
-                                                solid.GetOuterRadiusPlusZ());
-    auto const inner_r = scale_.to<Cone::Real2>(solid.GetInnerRadiusMinusZ(),
-                                                solid.GetInnerRadiusPlusZ());
+    auto const outer_r = scale_.to<Real2>(solid.GetOuterRadiusMinusZ(),
+                                          solid.GetOuterRadiusPlusZ());
+    auto const inner_r = scale_.to<Real2>(solid.GetInnerRadiusMinusZ(),
+                                          solid.GetInnerRadiusPlusZ());
     auto hh = scale_(solid.GetZHalfLength());
 
     std::optional<Cone> inner;
@@ -409,11 +409,11 @@ auto SolidConverter::generictrap(arg_type solid_base) -> result_type
     auto const& vtx = solid.GetVertices();
     CELER_ASSERT(vtx.size() == 8);
 
-    std::vector<GenPrism::Real2> lower(4), upper(4);
+    std::vector<Real2> lower(4), upper(4);
     for (auto i : range(4))
     {
-        lower[i] = scale_.to<GenPrism::Real2>(vtx[i].x(), vtx[i].y());
-        upper[i] = scale_.to<GenPrism::Real2>(vtx[i + 4].x(), vtx[i + 4].y());
+        lower[i] = scale_.to<Real2>(vtx[i].x(), vtx[i].y());
+        upper[i] = scale_.to<Real2>(vtx[i + 4].x(), vtx[i + 4].y());
     }
     real_type hh = scale_(solid.GetZHalfLength());
 

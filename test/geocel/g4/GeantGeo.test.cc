@@ -375,7 +375,7 @@ TEST_F(SolidsTest, output)
     GeoParamsOutput out(this->geometry());
     EXPECT_EQ("geometry", out.label());
 
-    if (CELERITAS_USE_JSON && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
         EXPECT_JSON_EQ(
             R"json({"_category":"internal","_label":"geometry","bbox":[[-600.0,-300.0,-75.0],[600.0,300.0,75.0]],"supports_safety":true,"volumes":{"label":["","","","","box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","","trd3_refl","tube100","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","trd3_refl"]}})json",

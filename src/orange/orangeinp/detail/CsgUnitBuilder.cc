@@ -156,7 +156,7 @@ void CsgUnitBuilder::fill_exterior()
 /*!
  * Fill a volume node with a material.
  */
-void CsgUnitBuilder::fill_volume(LocalVolumeId v, MaterialId m)
+void CsgUnitBuilder::fill_volume(LocalVolumeId v, GeoMaterialId m)
 {
     CELER_EXPECT(v < unit_->fills.size());
     CELER_EXPECT(m);

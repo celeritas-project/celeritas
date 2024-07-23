@@ -9,6 +9,7 @@
 
 #include <string>
 #include <utility>
+#include <nlohmann/json.hpp>
 
 #include "celeritas_cmake_strings.h"
 #include "celeritas_config.h"
@@ -16,9 +17,6 @@
 #include "corecel/Macros.hh"
 
 #include "JsonPimpl.hh"
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-#endif
 
 namespace celeritas
 {
@@ -28,7 +26,6 @@ namespace celeritas
  */
 void BuildOutput::output(JsonPimpl* j) const
 {
-#if CELERITAS_USE_JSON
     auto obj = nlohmann::json::object();
 
     obj["version"] = std::string(celeritas_version);
@@ -40,7 +37,6 @@ void BuildOutput::output(JsonPimpl* j) const
         CO_SAVE_CFG(CELERITAS_USE_GEANT4);
         CO_SAVE_CFG(CELERITAS_USE_HEPMC3);
         CO_SAVE_CFG(CELERITAS_USE_HIP);
-        CO_SAVE_CFG(CELERITAS_USE_JSON);
         CO_SAVE_CFG(CELERITAS_USE_MPI);
         CO_SAVE_CFG(CELERITAS_USE_OPENMP);
         CO_SAVE_CFG(CELERITAS_USE_ROOT);
@@ -67,9 +63,6 @@ void BuildOutput::output(JsonPimpl* j) const
     }
 
     j->obj = std::move(obj);
-#else
-    CELER_DISCARD(j);
-#endif
 }
 
 //---------------------------------------------------------------------------//

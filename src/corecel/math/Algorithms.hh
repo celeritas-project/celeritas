@@ -416,6 +416,7 @@ CELER_FORCEINLINE_FUNCTION ForwardIt min_element(ForwardIt first,
 //---------------------------------------------------------------------------//
 // Replace/extend <cmath>
 //---------------------------------------------------------------------------//
+//!\cond
 //! Generate overloads for a single-argument math function
 #define CELER_WRAP_MATH_FLOAT_DBL_1(PREFIX, FUNC)        \
     CELER_FORCEINLINE_FUNCTION float FUNC(float value)   \
@@ -435,6 +436,7 @@ CELER_FORCEINLINE_FUNCTION ForwardIt min_element(ForwardIt first,
     {                                                                        \
         return ::PREFIX##FUNC(value, a, b);                                  \
     }
+//!\endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -602,6 +604,18 @@ CELER_CONSTEXPR_FUNCTION T eumod(T numer, T denom)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Calculate the sign of a number.
+ *
+ * \return -1 if negative, 0 if exactly zero (or NaN), 1 if positive
+ */
+template<class T>
+CELER_FORCEINLINE int signum(T x)
+{
+    return (0 < x) - (x < 0);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Double-precision math constant (POSIX derivative).
  *
  * These should be used in *host* or *type-dependent* circumstances because, if
@@ -628,6 +642,8 @@ CELER_WRAP_MATH_FLOAT_DBL_PTR_2(__, sincos)
 #else
 using ::celeritas::detail::cospi;
 using ::celeritas::detail::sinpi;
+//!@{
+//! Simultaneously evaluate the sine and cosine of a value
 CELER_FORCEINLINE void sincos(float a, float* s, float* c)
 {
     return detail::sincos(a, s, c);
@@ -644,6 +660,7 @@ CELER_FORCEINLINE void sincospi(double a, double* s, double* c)
 {
     return detail::sincospi(a, s, c);
 }
+//!@}
 #endif
 //!@}
 

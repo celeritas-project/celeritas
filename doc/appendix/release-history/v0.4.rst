@@ -2,6 +2,50 @@
 .. See the doc/COPYRIGHT file for details.
 .. SPDX-License-Identifier: CC-BY-4.0
 
+.. _release_v0.4.4:
+
+Version 0.4.4
+=============
+
+*Released 2024/07/14*
+
+Version 0.4.4 is a bugfix and minor feature update to Celeritas.
+
+- Correctly sets track weight when integrating with Geant4 SDs
+- Fix ARM build to support Grace Hopper architectures
+- Add a ``CELER_DEVICE_ASYNC`` environment variable to fix ROCm 5.7 multithread hang
+- Improve multi-universe support for ORANGE
+
+
+New features
+------------
+
+* Support safety and reentrant boundaries for multi-universe ORANGE *(@elliottbiondo, #1140)*
+
+Reviewers: @sethrj *(1)*
+
+Bug fixes
+---------
+
+* Fix ORANGE JSON reading and tests *(@sethrj, #1164)*
+* Set SD track weight and warn if offload weight is not unity *(@sethrj, #1270)*
+* Set step point weights in addition to track weight *(@drbenmorgan, #1281)*
+* Add environment variable to disable broken HIP asynchronous allocation *(@sethrj, #1318)*
+* Fix safety calculation at center of sphere/cyl *(@sethrj, #1166)*
+
+Reviewers: @elliottbiondo *(2)*, @drbenmorgan *(1)*, @sethrj *(1)*, @esseivaju *(1)*
+
+Documentation improvements
+--------------------------
+
+* Fix Spack CI *(@sethrj, #1241)*
+* Hotfix: work around ROCm failures due to Node20 incompatibility *(@sethrj, #1305)*
+* Fix aarch64 compilation and add Grace Hopper preset *(@ptheywood, #1277)*
+
+Reviewers: @amandalund *(1)*, @sethrj *(1)*
+
+**Full Changelog**: https://github.com/celeritas-project/celeritas/compare/v0.4.3...v0.4.4
+
 
 .. _release_v0.4.3:
 

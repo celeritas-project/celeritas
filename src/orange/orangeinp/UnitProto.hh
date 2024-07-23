@@ -80,7 +80,7 @@ class UnitProto : public ProtoInterface
     //! Optional "background" inside of exterior, outside of all mat/daughter
     struct BackgroundInput
     {
-        MaterialId fill{};
+        GeoMaterialId fill{};
         Label label;
 
         // True if fill or label is specified
@@ -91,7 +91,7 @@ class UnitProto : public ProtoInterface
     struct MaterialInput
     {
         SPConstObject interior;
-        MaterialId fill;
+        GeoMaterialId fill;
         Label label;
 
         // True if fully defined

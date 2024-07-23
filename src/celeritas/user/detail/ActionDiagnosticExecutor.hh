@@ -19,6 +19,21 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Tally tracks that are active, have errors, *or* are killed.
+ */
+struct ActionDiagnosticCondition
+{
+    CELER_FUNCTION bool operator()(SimTrackView const& sim) const
+    {
+        return sim.status() != TrackStatus::inactive;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Tally post-step actions by particle type.
+ */
 struct ActionDiagnosticExecutor
 {
     inline CELER_FUNCTION void
@@ -29,9 +44,6 @@ struct ActionDiagnosticExecutor
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Tally post-step actions by particle type.
- */
 CELER_FUNCTION void
 ActionDiagnosticExecutor::operator()(CoreTrackView const& track)
 {

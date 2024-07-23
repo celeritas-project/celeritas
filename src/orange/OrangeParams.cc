@@ -13,6 +13,7 @@
 #include <numeric>
 #include <utility>
 #include <vector>
+#include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
@@ -31,6 +32,7 @@
 
 #include "OrangeData.hh"  // IWYU pragma: associated
 #include "OrangeInput.hh"
+#include "OrangeInputIO.json.hh"
 #include "OrangeTypes.hh"
 #include "g4org/Converter.hh"
 #include "univ/detail/LogicStack.hh"
@@ -39,12 +41,6 @@
 #include "detail/RectArrayInserter.hh"
 #include "detail/UnitInserter.hh"
 #include "detail/UniverseInserter.hh"
-
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-
-#    include "OrangeInputIO.json.hh"
-#endif
 
 namespace celeritas
 {
@@ -56,21 +52,16 @@ namespace
  */
 OrangeInput input_from_json(std::string filename)
 {
-    CELER_VALIDATE(CELERITAS_USE_JSON,
-                   << "JSON is not enabled so geometry cannot be loaded");
-
     CELER_LOG(info) << "Loading ORANGE geometry from JSON at " << filename;
     ScopedTimeLog scoped_time;
 
     OrangeInput result;
 
-#if CELERITAS_USE_JSON
     std::ifstream infile(filename);
     CELER_VALIDATE(infile,
                    << "failed to open geometry at '" << filename << '\'');
     // Use the `from_json` defined in OrangeInputIO.json to read the JSON input
     nlohmann::json::parse(infile).get_to(result);
-#endif
 
     return result;
 }

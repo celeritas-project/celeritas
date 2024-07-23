@@ -20,8 +20,6 @@ namespace test
 class ImageTest : public ::celeritas::test::Test
 {
   protected:
-    using Size2 = ImageParamsScalars::Size2;
-
     void SetUp() override {}
 };
 

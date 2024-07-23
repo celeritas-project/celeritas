@@ -8,10 +8,12 @@
 //---------------------------------------------------------------------------//
 
 #include <cstdlib>
+#include <fstream>
 #include <initializer_list>
 #include <iostream>
 #include <string>
 #include <vector>
+#include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
@@ -20,16 +22,10 @@
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
+#include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootExporter.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
-
-#if CELERITAS_USE_JSON
-#    include <fstream>
-#    include <nlohmann/json.hpp>
-
-#    include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
-#endif
 
 namespace celeritas
 {
@@ -59,14 +55,6 @@ GeantPhysicsOptions load_options(std::string const& option_filename)
         // ... but add verbosity
         options.verbose = true;
     }
-    else if (!CELERITAS_USE_JSON)
-    {
-        CELER_LOG(critical) << "JSON is unavailable so only default Geant4 "
-                               "options are supported: use '' as the second "
-                               "argument";
-        CELER_NOT_CONFIGURED("JSON");
-    }
-#if CELERITAS_USE_JSON
     else if (option_filename == "-")
     {
         auto inp = nlohmann::json::parse(std::cin);
@@ -84,7 +72,6 @@ GeantPhysicsOptions load_options(std::string const& option_filename)
                         << option_filename << ": "
                         << nlohmann::json{options}.dump();
     }
-#endif
     return options;
 }
 
@@ -118,15 +105,10 @@ int main(int argc, char* argv[])
     }
     if (args.size() == 1 && args.front() == "--dump-default")
     {
-#if CELERITAS_USE_JSON
         GeantPhysicsOptions options;
         constexpr int indent = 1;
         std::cout << nlohmann::json{options}.dump(indent) << std::endl;
         return EXIT_SUCCESS;
-#else
-        CELER_LOG(error) << "JSON is unavailable: can't output geant options";
-        return EXIT_FAILURE;
-#endif
     }
     if (args.size() != 3)
     {

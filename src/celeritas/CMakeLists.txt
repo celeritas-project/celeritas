@@ -5,7 +5,7 @@
 #-----------------------------------------------------------------------------#
 
 set(SOURCES)
-set(PRIVATE_DEPS Celeritas::DeviceToolkit)
+set(PRIVATE_DEPS Celeritas::DeviceToolkit nlohmann_json::nlohmann_json)
 set(PUBLIC_DEPS Celeritas::corecel Celeritas::geocel)
 
 #-----------------------------------------------------------------------------#
@@ -30,7 +30,10 @@ list(APPEND SOURCES
   em/process/PhotoelectricProcess.cc
   em/process/RayleighProcess.cc
   ext/GeantPhysicsOptions.cc
+  ext/GeantPhysicsOptionsIO.json.cc
   field/FieldDriverOptions.cc
+  field/FieldDriverOptionsIO.json.cc
+  field/RZMapFieldInputIO.json.cc
   field/RZMapFieldParams.cc
   geo/GeoMaterialParams.cc
   global/ActionInterface.cc
@@ -39,11 +42,14 @@ list(APPEND SOURCES
   global/CoreParams.cc
   global/CoreState.cc
   global/CoreTrackData.cc
+  global/Debug.cc
+  global/DebugIO.json.cc
   global/KernelContextException.cc
   global/Stepper.cc
   global/detail/ActionSequence.cc
   global/detail/PinnedAllocator.cc
   grid/GenericGridBuilder.cc
+  grid/TwodGridBuilder.cc
   grid/ValueGridBuilder.cc
   grid/ValueGridInserter.cc
   grid/ValueGridType.cc
@@ -63,13 +69,15 @@ list(APPEND SOURCES
   mat/MaterialParamsOutput.cc
   mat/detail/Utils.cc
   neutron/model/CascadeOptions.cc
+  neutron/model/CascadeOptionsIO.json.cc
   neutron/process/NeutronElasticProcess.cc
   neutron/process/NeutronInelasticProcess.cc
   optical/CerenkovParams.cc
-  optical/ScintillationParams.cc
   optical/OpticalCollector.cc
   optical/OpticalPropertyParams.cc
   optical/OpticalTrackData.cc
+  optical/ScintillationParams.cc
+  optical/detail/OpticalGenParams.cc
   phys/CutoffParams.cc
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc
@@ -79,6 +87,7 @@ list(APPEND SOURCES
   phys/PhysicsParamsOutput.cc
   phys/PrimaryGenerator.cc
   phys/PrimaryGeneratorOptions.cc
+  phys/PrimaryGeneratorOptionsIO.json.cc
   phys/Process.cc
   phys/ProcessBuilder.cc
   random/CuHipRngData.cc
@@ -88,8 +97,9 @@ list(APPEND SOURCES
   track/SimParams.cc
   track/SortTracksAction.cc
   track/TrackInitParams.cc
-  user/ParticleTallyData.cc
   user/DetectorSteps.cc
+  user/ParticleTallyData.cc
+  user/RootStepWriterIO.json.cc
   user/SimpleCalo.cc
   user/SimpleCaloData.cc
   user/StepCollector.cc
@@ -145,18 +155,6 @@ if(CELERITAS_USE_HepMC3)
   )
   list(APPEND SOURCES $<TARGET_OBJECTS:celeritas_hepmc>)
   list(APPEND PRIVATE_DEPS celeritas_hepmc)
-endif()
-
-if(CELERITAS_USE_JSON)
-  list(APPEND SOURCES
-    ext/GeantPhysicsOptionsIO.json.cc
-    field/FieldDriverOptionsIO.json.cc
-    field/RZMapFieldInputIO.json.cc
-    neutron/model/CascadeOptionsIO.json.cc
-    phys/PrimaryGeneratorOptionsIO.json.cc
-    user/RootStepWriterIO.json.cc
-  )
-  list(APPEND PRIVATE_DEPS nlohmann_json::nlohmann_json)
 endif()
 
 if(CELERITAS_USE_OpenMP)
@@ -245,11 +243,14 @@ macro(celeritas_polysource filename_we)
 endmacro()
 
 celeritas_polysource(em/model/BetheHeitlerModel)
+celeritas_polysource(em/model/BraggModel)
 celeritas_polysource(em/model/CombinedBremModel)
 celeritas_polysource(em/model/EPlusGGModel)
+celeritas_polysource(em/model/ICRU73QOModel)
 celeritas_polysource(em/model/KleinNishinaModel)
 celeritas_polysource(em/model/LivermorePEModel)
 celeritas_polysource(em/model/MollerBhabhaModel)
+celeritas_polysource(em/model/MuBetheBlochModel)
 celeritas_polysource(em/model/MuBremsstrahlungModel)
 celeritas_polysource(em/model/RayleighModel)
 celeritas_polysource(em/model/RelativisticBremModel)
@@ -268,6 +269,7 @@ celeritas_polysource(optical/detail/PreGenGatherAction)
 celeritas_polysource(optical/detail/ScintPreGenAction)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)
+celeritas_polysource(phys/detail/TrackingCutAction)
 celeritas_polysource(random/RngReseed)
 celeritas_polysource(random/detail/CuHipRngStateInit)
 celeritas_polysource(track/detail/TrackInitAlgorithms)
@@ -275,6 +277,7 @@ celeritas_polysource(track/detail/TrackSortUtils)
 celeritas_polysource(track/ExtendFromPrimariesAction)
 celeritas_polysource(track/ExtendFromSecondariesAction)
 celeritas_polysource(track/InitializeTracksAction)
+celeritas_polysource(track/StatusChecker)
 celeritas_polysource(user/ActionDiagnostic)
 celeritas_polysource(user/DetectorSteps)
 celeritas_polysource(user/StepDiagnostic)

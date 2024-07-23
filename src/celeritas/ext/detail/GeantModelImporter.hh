@@ -31,7 +31,7 @@ class GeantModelImporter
   public:
     //!@{
     //! \name Type aliases
-    using VecMaterial = std::vector<ImportMaterial>;
+    using VecMaterial = std::vector<ImportPhysMaterial>;
     //!@}
 
   public:

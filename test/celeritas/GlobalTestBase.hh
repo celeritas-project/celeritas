@@ -31,6 +31,7 @@ class ParticleParams;
 class PhysicsParams;
 class SimParams;
 class TrackInitParams;
+class AuxParamsRegistry;
 class WentzelOKVIParams;
 
 class CoreParams;
@@ -73,6 +74,7 @@ class GlobalTestBase : public Test
 
     using SPActionRegistry = SP<ActionRegistry>;
     using SPOutputRegistry = SP<OutputRegistry>;
+    using SPUserRegistry = SP<AuxParamsRegistry>;
 
     using SPConstCerenkov = SP<CerenkovParams const>;
     using SPConstProperties = SP<OpticalPropertyParams const>;
@@ -101,6 +103,7 @@ class GlobalTestBase : public Test
     inline SPConstTrackInit const& init();
     inline SPConstWentzelOKVI const& wentzel();
     inline SPActionRegistry const& action_reg();
+    inline SPUserRegistry const& aux_reg();
     inline SPConstCore const& core();
     inline SPConstCerenkov const& cerenkov();
     inline SPConstProperties const& properties();
@@ -118,6 +121,7 @@ class GlobalTestBase : public Test
     inline SPConstTrackInit const& init() const;
     inline SPConstWentzelOKVI const& wentzel() const;
     inline SPActionRegistry const& action_reg() const;
+    inline SPUserRegistry const& aux_reg() const;
     inline SPConstCore const& core() const;
     inline SPConstCerenkov const& cerenkov() const;
     inline SPConstProperties const& properties() const;
@@ -130,8 +134,6 @@ class GlobalTestBase : public Test
     SPOutputRegistry const& output_reg() const { return output_reg_; }
     //! Write output to a debug text file
     void write_output();
-    //! Write output to a stream
-    void write_output(std::ostream& os) const;
 
   protected:
     [[nodiscard]] virtual SPConstGeo build_geometry() = 0;
@@ -148,9 +150,13 @@ class GlobalTestBase : public Test
     [[nodiscard]] virtual SPConstProperties build_properties() = 0;
     [[nodiscard]] virtual SPConstScintillation build_scintillation() = 0;
 
+    // Do not insert StatusChecker
+    void disable_status_checker();
+
   private:
     SPConstRng build_rng() const;
     SPActionRegistry build_action_reg() const;
+    SPUserRegistry build_aux_reg() const;
     SPConstCore build_core();
 
   private:
@@ -161,6 +167,7 @@ class GlobalTestBase : public Test
     SPConstCutoff cutoff_;
     SPConstPhysics physics_;
     SPActionRegistry action_reg_;
+    SPUserRegistry aux_reg_;
     SPConstAction along_step_;
     SPConstRng rng_;
     SPConstSim sim_;
@@ -171,6 +178,7 @@ class GlobalTestBase : public Test
     SPConstCerenkov cerenkov_;
     SPConstProperties properties_;
     SPConstScintillation scintillation_;
+    bool insert_status_checker_{true};
 };
 
 //---------------------------------------------------------------------------//
@@ -204,6 +212,7 @@ DEF_GTB_ACCESSORS(SPConstRng, rng)
 DEF_GTB_ACCESSORS(SPConstSim, sim)
 DEF_GTB_ACCESSORS(SPConstTrackInit, init)
 DEF_GTB_ACCESSORS(SPActionRegistry, action_reg)
+DEF_GTB_ACCESSORS(SPUserRegistry, aux_reg)
 DEF_GTB_ACCESSORS(SPConstCore, core)
 DEF_GTB_ACCESSORS(SPConstCerenkov, cerenkov)
 DEF_GTB_ACCESSORS(SPConstProperties, properties)

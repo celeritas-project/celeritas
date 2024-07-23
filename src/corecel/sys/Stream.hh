@@ -55,10 +55,10 @@ class AsyncMemoryResource final : public MockMemoryResource<Pointer>
     AsyncMemoryResource() = default;
 
     // Allocate device memory
-    pointer do_allocate(std::size_t bytes, std::size_t) override;
+    pointer do_allocate(std::size_t bytes, std::size_t) final;
 
     // Deallocate device memory
-    void do_deallocate(pointer p, std::size_t, std::size_t) override;
+    void do_deallocate(pointer p, std::size_t, std::size_t) final;
 
   private:
     StreamT stream_{nullptr};
@@ -86,6 +86,9 @@ class Stream
     //!@}
 
   public:
+    // Whether asynchronous operations are supported
+    static bool async();
+
     // Construct by creating a stream
     Stream();
 

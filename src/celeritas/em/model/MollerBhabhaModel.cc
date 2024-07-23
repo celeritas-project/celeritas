@@ -27,9 +27,10 @@ namespace celeritas
  */
 MollerBhabhaModel::MollerBhabhaModel(ActionId id,
                                      ParticleParams const& particles)
+    : ConcreteAction(
+        id, "ioni-moller-bhabha", "interact by Moller+Bhabha ionization")
 {
     CELER_EXPECT(id);
-    data_.ids.action = id;
     data_.ids.electron = particles.find(pdg::electron());
     data_.ids.positron = particles.find(pdg::positron());
 
@@ -99,15 +100,6 @@ void MollerBhabhaModel::execute(CoreParams const&, CoreStateDevice&) const
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the model ID for this model.
- */
-ActionId MollerBhabhaModel::action_id() const
-{
-    return data_.ids.action;
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -8,6 +8,7 @@
 #include "ParticleParamsOutput.hh"
 
 #include <utility>
+#include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
 #include "corecel/io/JsonPimpl.hh"
@@ -15,9 +16,6 @@
 
 #include "ParticleParams.hh"  // IWYU pragma: keep
 #include "Process.hh"
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-#endif
 
 namespace celeritas
 {
@@ -37,7 +35,6 @@ ParticleParamsOutput::ParticleParamsOutput(SPConstParticleParams particles)
  */
 void ParticleParamsOutput::output(JsonPimpl* j) const
 {
-#if CELERITAS_USE_JSON
     using json = nlohmann::json;
     auto units = json::object();
     auto label = json::array();
@@ -72,9 +69,6 @@ void ParticleParamsOutput::output(JsonPimpl* j) const
         {"decay_constant", std::move(decay_constant)},
         {"is_antiparticle", std::move(is_antiparticle)},
     };
-#else
-    CELER_DISCARD(j);
-#endif
 }
 
 //---------------------------------------------------------------------------//

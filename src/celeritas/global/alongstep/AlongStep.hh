@@ -30,7 +30,7 @@ namespace celeritas
 template<class MH, class MP, class EH>
 struct AlongStep
 {
-    inline CELER_FUNCTION void operator()(CoreTrackView const& track);
+    inline CELER_FUNCTION void operator()(CoreTrackView& track);
 
     MH msc;
     MP make_propagator;
@@ -47,8 +47,7 @@ CELER_FUNCTION AlongStep(MH&&, MP&&, EH&&) -> AlongStep<MH, MP, EH>;
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 template<class MH, class MP, class EH>
-CELER_FUNCTION void
-AlongStep<MH, MP, EH>::operator()(CoreTrackView const& track)
+CELER_FUNCTION void AlongStep<MH, MP, EH>::operator()(CoreTrackView& track)
 {
     detail::MscStepLimitApplier{msc}(track);
     detail::PropagationApplier{make_propagator}(track);

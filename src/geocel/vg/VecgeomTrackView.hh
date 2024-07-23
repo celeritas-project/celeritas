@@ -111,6 +111,8 @@ class VecgeomTrackView
     CELER_FORCEINLINE_FUNCTION bool is_outside() const;
     // Whether the track is exactly on a surface
     CELER_FORCEINLINE_FUNCTION bool is_on_boundary() const;
+    //! Whether the last operation resulted in an error
+    CELER_FORCEINLINE_FUNCTION bool failed() const { return false; }
 
     //// OPERATIONS ////
 

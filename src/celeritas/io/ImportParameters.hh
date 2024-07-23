@@ -53,7 +53,7 @@ struct ImportEmParameters
     double msc_safety_factor{0.6};
     //! MSC lambda limit [length]
     double msc_lambda_limit{1 * units::millimeter};
-    //! Polar angle limii between single and multiple Coulomb scattering
+    //! Polar angle limit between single and multiple Coulomb scattering
     double msc_theta_limit{constants::pi};
     //! Kill secondaries below production cut
     bool apply_cuts{false};

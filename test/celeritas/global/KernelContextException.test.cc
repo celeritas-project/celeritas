@@ -36,26 +36,18 @@ namespace
 {
 std::string get_json_str(KernelContextException const& e)
 {
-#if CELERITAS_USE_JSON
     JsonPimpl jp;
     e.output(&jp);
     return jp.obj.dump();
-#else
-    CELER_DISCARD(e);
-    return {};
-#endif
 }
 
 ThreadId find_thread(HostRef<CoreStateData> const& state, TrackSlotId track)
 {
-    Span track_slots{state.track_slots[AllItems<TrackSlotId::size_type>{}]};
-    auto idx = std::distance(
-        track_slots.begin(),
-        std::find(track_slots.begin(), track_slots.end(), track.get()));
-    EXPECT_NE(track_slots.size(), idx);
-    return ThreadId{static_cast<ThreadId::size_type>(idx)};
+    CELER_EXPECT(state.track_slots.empty());
+    return ThreadId{track.get()};
 }
 }  // namespace
+
 //---------------------------------------------------------------------------//
 
 class KernelContextExceptionTest : public SimpleTestBase, public StepperTestBase
@@ -145,7 +137,7 @@ TEST_F(KernelContextExceptionTest, typical)
             EXPECT_EQ(VolumeId{2}, e.volume());
             EXPECT_EQ(SurfaceId{11}, e.surface());
         }
-        if (CELERITAS_USE_JSON && CELERITAS_UNITS == CELERITAS_UNITS_CGS
+        if (CELERITAS_UNITS == CELERITAS_UNITS_CGS
             && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             std::stringstream ss;
@@ -184,7 +176,7 @@ TEST_F(KernelContextExceptionTest, uninitialized_track)
         EXPECT_EQ(TrackSlotId{1}, e.track_slot());
         EXPECT_EQ(EventId{}, e.event());
         EXPECT_EQ(TrackId{}, e.track());
-        if (CELERITAS_USE_JSON)
+
         {
             std::stringstream ss;
             ss << R"json({"label":"test-kernel","thread":)json"
@@ -216,11 +208,7 @@ TEST_F(KernelContextExceptionTest, bad_thread)
     this->check_kce = [](KernelContextException const& e) {
         EXPECT_STREQ("dumb-kernel (error processing track state)", e.what());
         EXPECT_EQ(TrackSlotId{}, e.track_slot());
-        if (CELERITAS_USE_JSON)
-        {
-            EXPECT_JSON_EQ(R"json({"label":"dumb-kernel"})json",
-                           get_json_str(e));
-        }
+        EXPECT_JSON_EQ(R"json({"label":"dumb-kernel"})json", get_json_str(e));
     };
     CELER_TRY_HANDLE_CONTEXT(
         throw DebugError({DebugErrorType::internal, "false", "test.cc", 0}),

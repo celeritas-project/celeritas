@@ -10,6 +10,7 @@
 #include <algorithm>
 
 #include "corecel/Assert.hh"
+#include "corecel/data/AuxStateVec.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -18,7 +19,7 @@
 #include "celeritas/optical/ScintillationParams.hh"
 
 #include "OpticalGenAlgorithms.hh"
-#include "OpticalGenStorage.hh"
+#include "OpticalGenParams.hh"
 #include "ScintPreGenExecutor.hh"
 
 namespace celeritas
@@ -27,18 +28,16 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with action ID, optical properties, and storage.
+ * Construct with action ID, data ID, optical properties.
  */
 ScintPreGenAction::ScintPreGenAction(ActionId id,
-                                     SPConstScintillation scintillation,
-                                     SPGenStorage storage)
-    : id_(id)
-    , scintillation_(std::move(scintillation))
-    , storage_(std::move(storage))
+                                     AuxId data_id,
+                                     SPConstScintillation scintillation)
+    : id_(id), data_id_{data_id}, scintillation_(std::move(scintillation))
 {
     CELER_EXPECT(id_);
+    CELER_EXPECT(data_id_);
     CELER_EXPECT(scintillation_);
-    CELER_EXPECT(storage_);
 }
 
 //---------------------------------------------------------------------------//
@@ -78,24 +77,22 @@ template<MemSpace M>
 void ScintPreGenAction::execute_impl(CoreParams const& core_params,
                                      CoreState<M>& core_state) const
 {
-    size_type state_size = core_state.size();
-    StreamId stream = core_state.stream_id();
-    auto& buffer_size = storage_->size[stream.get()];
-    auto const& state = storage_->obj.state<M>(stream, state_size);
+    auto& state = get<OpticalGenState<M>>(core_state.aux(), data_id_);
+    auto& buffer = state.store.ref().scintillation;
+    auto& buffer_size = state.buffer_size.scintillation;
 
-    CELER_VALIDATE(
-        buffer_size.scintillation + state_size <= state.scintillation.size(),
-        << "insufficient capacity (" << state.scintillation.size()
-        << ") for buffered scintillation distribution data (total "
-           "capacity requirement of "
-        << buffer_size.scintillation + state_size << ")");
+    CELER_VALIDATE(buffer_size + core_state.size() <= buffer.size(),
+                   << "insufficient capacity (" << buffer.size()
+                   << ") for buffered scintillation distribution data (total "
+                      "capacity requirement of "
+                   << buffer_size + core_state.size() << ")");
 
     // Generate the optical distribution data
     this->pre_generate(core_params, core_state);
 
     // Compact the buffer
-    buffer_size.scintillation = remove_if_invalid(
-        state.scintillation, buffer_size.scintillation, state_size, stream);
+    buffer_size = remove_if_invalid(
+        buffer, buffer_size, core_state.size(), core_state.stream_id());
 }
 
 //---------------------------------------------------------------------------//
@@ -105,13 +102,13 @@ void ScintPreGenAction::execute_impl(CoreParams const& core_params,
 void ScintPreGenAction::pre_generate(CoreParams const& core_params,
                                      CoreStateHost& core_state) const
 {
-    TrackExecutor execute{core_params.ptr<MemSpace::native>(),
-                          core_state.ptr(),
-                          detail::ScintPreGenExecutor{
-                              scintillation_->host_ref(),
-                              storage_->obj.state<MemSpace::native>(
-                                  core_state.stream_id(), core_state.size()),
-                              storage_->size[core_state.stream_id().get()]}};
+    auto& state
+        = get<OpticalGenState<MemSpace::native>>(core_state.aux(), data_id_);
+    TrackExecutor execute{
+        core_params.ptr<MemSpace::native>(),
+        core_state.ptr(),
+        detail::ScintPreGenExecutor{
+            scintillation_->host_ref(), state.store.ref(), state.buffer_size}};
     launch_action(*this, core_params, core_state, execute);
 }
 

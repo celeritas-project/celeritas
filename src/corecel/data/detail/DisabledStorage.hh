@@ -58,6 +58,10 @@ class DisabledStorage
         CELER_ASSERT_UNREACHABLE();
         return nullptr;
     }
+    CELER_FORCEINLINE_FUNCTION void assign(T const*, T const*)
+    {
+        CELER_ASSERT_UNREACHABLE();
+    }
     CELER_FORCEINLINE_FUNCTION void copy_to_device(SpanConstT)
     {
         CELER_ASSERT_UNREACHABLE();

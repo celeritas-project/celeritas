@@ -20,18 +20,25 @@ namespace celeritas
 /*!
  * Interrogate and extend environment variables.
  *
- * This makes it easier to generate reproducible runs or launch Celeritas
- * remotely: the environment variables may be encoded as JSON input to
- * supplement or override system environment variables. Later it can be
- * interrogated to find which environment variables were accessed.
+ * This makes it easier to generate reproducible runs, launch Celeritas
+ * remotely, or integrate with application drivers. The environment variables
+ * may be encoded as JSON input to supplement or override system environment
+ * variables, or set programmatically via this API call. Later the environment
+ * class can be interrogated to find which environment variables were accessed.
  *
  * Unlike the standard environment which returns a null pointer for an *unset*
- * variable, this returns an empty string. When we switch to C++17 we can
- * return a `std::optional<std::string>` if this behavior isn't appropriate.
+ * variable, this returns an empty string.
  *
  * \note This class is not thread-safe on its own. The \c celeritas::getenv
  * free function however is safe, although it should only be used in setup
  * (single-thread) steps.
+ *
+ * \note Once inserted into the environment map, values cannot be changed.
+ * Standard practice in the code is to evaluate the environment variable
+ * exactly \em once and cache the result as a static const variable. If you
+ * really wanted to, you could call <code> celeritas::environment() = {};
+ * </code> but that could result in the end-of-run diagnostic reporting
+ * different values than the ones actually used during the code's setup.
  */
 class Environment
 {
@@ -55,8 +62,8 @@ class Environment
     // Get an environment variable from current or system environments
     inline mapped_type const& operator[](key_type const&);
 
-    // Insert possibly new environment variables (not thread-safe)
-    void insert(value_type const& value);
+    // Insert possibly new environment variables
+    bool insert(value_type const& value);
 
     //! Get an ordered (by access) vector of key/value pairs
     VecKVRef const& ordered_environment() const { return ordered_; }
@@ -75,6 +82,14 @@ class Environment
 };
 
 //---------------------------------------------------------------------------//
+//! Return result from \c getenv_flag
+struct GetenvFlagResult
+{
+    bool value{};  //!< Determined by user or default
+    bool defaulted{};  //!< True if no valid user value was present
+};
+
+//---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
@@ -83,6 +98,9 @@ Environment& environment();
 
 // Thread-safe access to environment variables
 std::string const& getenv(std::string const& key);
+
+// Thread-safe flag access to environment variables
+GetenvFlagResult getenv_flag(std::string const& key, bool default_val);
 
 // Write the accessed environment variables to a stream
 std::ostream& operator<<(std::ostream&, Environment const&);

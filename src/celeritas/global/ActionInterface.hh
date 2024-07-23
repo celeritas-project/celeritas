@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/global/ActionInterface.hh
+//! \todo Move non-core-specific code to corecel
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -44,10 +45,11 @@ class OpticalState;
  * Using multiple inheritance, you can create an action that inherits from
  * multiple of these classes.
  *
- * The label should be a brief lowercase hyphen-separated string, with perhaps
- * some sort of category being the first token.
+ * The \c label should be a brief lowercase hyphen-separated string, usually a
+ * noun, with perhaps some sort of category being the first token.
  *
- * The description should be a verb phrase (lowercase start).
+ * The \c description should be a verb phrase (and not have a title-cased
+ * start).
  */
 class ActionInterface
 {
@@ -55,7 +57,7 @@ class ActionInterface
     // Default virtual destructor allows deletion by pointer-to-interface
     virtual ~ActionInterface();
 
-    //! ID of this action for verification
+    //! ID of this action for verification and ordering
     virtual ActionId action_id() const = 0;
 
     //! Short unique label of the action
@@ -102,6 +104,9 @@ class BeginRunActionInterface : public virtual ActionInterface
 //---------------------------------------------------------------------------//
 /*!
  * Interface for an action that launches a kernel or performs an action.
+ *
+ * TODO: rename to OrderedAction, SequenceAction, StepAction, ... ? since these
+ * are the actions that \em always are executed exactly once per step.
  */
 class ExplicitActionInterface : public virtual ActionInterface
 {

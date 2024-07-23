@@ -31,7 +31,7 @@ class ParticleParams;
  * Set up and launch a combined model of SeltzerBergerModel at the low energy
  * and RelativisticBremModel at the high energy for e+/e- Bremsstrahlung.
  */
-class CombinedBremModel final : public Model
+class CombinedBremModel final : public Model, public ConcreteAction
 {
   public:
     //@{
@@ -62,18 +62,6 @@ class CombinedBremModel final : public Model
 
     // Apply the interaction kernel to device data
     void execute(CoreParams const&, CoreStateDevice&) const final;
-
-    // ID of the model
-    ActionId action_id() const final;
-
-    //! Short name for the interaction kernel
-    std::string_view label() const final { return "brems-combined"; }
-
-    //! Short description of the post-step action
-    std::string_view description() const final
-    {
-        return "interact by bremsstrahlung (combined SB/relativistic, e+/-)";
-    }
 
     //! Access data on the host
     HostRef const& host_ref() const { return data_.host_ref(); }

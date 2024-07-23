@@ -33,7 +33,7 @@ CutoffParams::from_import(ImportData const& data,
                           SPConstParticles particle_params,
                           SPConstMaterials material_params)
 {
-    CELER_EXPECT(!data.materials.empty());
+    CELER_EXPECT(!data.phys_materials.empty());
     CELER_EXPECT(particle_params);
     CELER_EXPECT(material_params);
 
@@ -44,7 +44,7 @@ CutoffParams::from_import(ImportData const& data,
     for (auto const& pdg : CutoffParams::pdg_numbers())
     {
         CutoffParams::MaterialCutoffs mat_cutoffs;
-        for (auto const& material : data.materials)
+        for (auto const& material : data.phys_materials)
         {
             auto iter = material.pdg_cutoffs.find(pdg.get());
             if (iter != material.pdg_cutoffs.end())

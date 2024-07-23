@@ -20,8 +20,6 @@ namespace celeritas
  */
 struct BetheHeitlerIds
 {
-    //! Model ID
-    ActionId action;
     //! ID of an electron
     ParticleId electron;
     //! ID of an positron
@@ -32,7 +30,7 @@ struct BetheHeitlerIds
     //! Check whether the IDs are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return action && electron && positron && gamma;
+        return electron && positron && gamma;
     }
 };
 

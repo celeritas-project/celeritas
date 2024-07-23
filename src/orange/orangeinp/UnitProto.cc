@@ -9,9 +9,12 @@
 
 #include <algorithm>
 #include <numeric>
+#include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
 #include "corecel/io/Join.hh"
+#include "corecel/io/JsonPimpl.hh"
+#include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/Logger.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeInput.hh"
@@ -19,7 +22,9 @@
 
 #include "CsgObject.hh"
 #include "CsgTree.hh"
+#include "CsgTreeIO.json.hh"
 #include "CsgTreeUtils.hh"
+#include "ObjectIO.json.hh"
 #include "Transformed.hh"
 
 #include "detail/CsgUnit.hh"
@@ -28,16 +33,6 @@
 #include "detail/PostfixLogicBuilder.hh"
 #include "detail/ProtoBuilder.hh"
 #include "detail/VolumeBuilder.hh"
-
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-
-#    include "corecel/io/JsonPimpl.hh"
-#    include "corecel/io/LabelIO.json.hh"
-
-#    include "CsgTreeIO.json.hh"
-#    include "ObjectIO.json.hh"
-#endif
 
 namespace celeritas
 {
@@ -301,7 +296,6 @@ void UnitProto::build(ProtoBuilder& input) const
     }
     CELER_EXPECT(vol_iter == result.volumes.end());
 
-#if CELERITAS_USE_JSON
     if (input.save_json())
     {
         // Write debug information
@@ -348,7 +342,6 @@ void UnitProto::build(ProtoBuilder& input) const
 
         input.save_json(std::move(jp));
     }
-#endif
 
     // TODO: save material IDs as well
     input.insert(std::move(result));
@@ -466,7 +459,6 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
 //---------------------------------------------------------------------------//
 void UnitProto::output(JsonPimpl* j) const
 {
-#if CELERITAS_USE_JSON
     using json = nlohmann::json;
 
     auto obj = json::object({{"label", input_.label}});
@@ -511,10 +503,6 @@ void UnitProto::output(JsonPimpl* j) const
     };
 
     j->obj = std::move(obj);
-
-#else
-    CELER_DISCARD(j);
-#endif
 }
 
 //---------------------------------------------------------------------------//

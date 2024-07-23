@@ -127,10 +127,7 @@ void SolidConverterTest::build_and_test(G4VSolid const& solid,
     // Convert the object
     auto obj = convert(solid);
     CELER_ASSERT(obj);
-    if (CELERITAS_USE_JSON)
-    {
-        EXPECT_JSON_EQ(json_str, to_string(*obj));
-    }
+    EXPECT_JSON_EQ(json_str, to_string(*obj));
 
     // Construct a volume from it
     auto vol_id = this->build_volume(*obj);

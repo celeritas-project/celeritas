@@ -13,14 +13,11 @@
 #include "corecel/math/SoftEqual.hh"
 #include "orange/transform/Translation.hh"
 
+#include "ObjectIO.json.hh"
 #include "Transformed.hh"
 
 #include "detail/BuildIntersectRegion.hh"
 #include "detail/VolumeBuilder.hh"
-
-#if CELERITAS_USE_JSON
-#    include "ObjectIO.json.hh"
-#endif
 
 namespace celeritas
 {
@@ -220,7 +217,6 @@ PolyCone::PolyCone(std::string&& label,
  */
 NodeId PolyCone::build(VolumeBuilder& vb) const
 {
-    using Real2 = PolySegments::Real2;
     auto build_cone = [](Real2 const& radii, real_type hh) {
         return Cone{radii, hh};
     };
@@ -327,7 +323,6 @@ PolyPrism::PolyPrism(std::string&& label,
  */
 NodeId PolyPrism::build(VolumeBuilder& vb) const
 {
-    using Real2 = PolySegments::Real2;
     auto build_prism = [this](Real2 const& radii, real_type hh) {
         if (radii[0] != radii[1])
         {

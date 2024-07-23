@@ -712,7 +712,7 @@ TEST_F(SolidsTest, output)
     GeoParamsOutput out(this->geometry());
     EXPECT_EQ("geometry", out.label());
 
-    if (CELERITAS_USE_JSON && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
         auto out_str = this->genericize_pointers(to_string(out));
 
@@ -1267,7 +1267,7 @@ TEST_F(SolidsGeantTest, output)
     GeoParamsOutput out(this->geometry());
     EXPECT_EQ("geometry", out.label());
 
-    if (CELERITAS_USE_JSON && CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+    if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
     {
         auto out_str = this->genericize_pointers(to_string(out));
 

@@ -24,17 +24,39 @@ namespace test
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class MuBremsstrahlungInteractorTest : public InteractorHostTestBase
+class MuBremsstrahlungTest : public InteractorHostTestBase
 {
     using Base = InteractorHostTestBase;
 
   protected:
     void SetUp() override
     {
+        using namespace units;
+
+        // Set up shared material data
+        MaterialParams::Input mat_inp;
+        mat_inp.elements = {{AtomicNumber{29}, AmuMass{63.546}, {}, "Cu"}};
+        mat_inp.materials = {
+            {native_value_from(MolCcDensity{0.141}),
+             293.0,
+             MatterState::solid,
+             {{ElementId{0}, 1.0}},
+             "Cu"},
+        };
+        this->set_material_params(mat_inp);
+
+        // Set 1 keV gamma cutoff
+        CutoffParams::Input cut_inp;
+        cut_inp.materials = this->material_params();
+        cut_inp.particles = this->particle_params();
+        cut_inp.cutoffs = {{pdg::gamma(), {{MevEnergy{0.001}, 0.1234}}}};
+        this->set_cutoff_params(cut_inp);
+
+        // Set model data
         auto const& params = this->particle_params();
-        data_.ids.gamma = params->find(pdg::gamma());
-        data_.ids.mu_minus = params->find(pdg::mu_minus());
-        data_.ids.mu_plus = params->find(pdg::mu_plus());
+        data_.gamma = params->find(pdg::gamma());
+        data_.mu_minus = params->find(pdg::mu_minus());
+        data_.mu_plus = params->find(pdg::mu_plus());
         data_.electron_mass = params->get(params->find(pdg::electron())).mass();
 
         // Set default particle to muon with energy of 1100 MeV
@@ -57,7 +79,7 @@ class MuBremsstrahlungInteractorTest : public InteractorHostTestBase
 
         auto const& gamma = interaction.secondaries.front();
         EXPECT_TRUE(gamma);
-        EXPECT_EQ(data_.ids.gamma, gamma.particle_id);
+        EXPECT_EQ(data_.gamma, gamma.particle_id);
         EXPECT_GT(this->particle_track().energy().value(),
                   gamma.energy.value());
         EXPECT_LT(0, gamma.energy.value());
@@ -77,7 +99,41 @@ class MuBremsstrahlungInteractorTest : public InteractorHostTestBase
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(MuBremsstrahlungInteractorTest, basic)
+TEST_F(MuBremsstrahlungTest, dcs)
+{
+    auto particle = this->particle_track();
+    auto element
+        = this->material_track().make_material_view().make_element_view(
+            ElementComponentId{0});
+
+    MuBremsDiffXsCalculator calc_dcs(
+        element, particle.energy(), particle.mass(), data_.electron_mass);
+
+    std::vector<real_type> dcs;
+    for (real_type gamma_energy :
+         {1e-3, 5e-3, 1e-2, 5e-2, 0.1, 1.0, 10.0, 1e2, 1e3, 1e4})
+    {
+        dcs.push_back(calc_dcs(MevEnergy{gamma_energy})
+                      / ipow<2>(units::centimeter));
+    }
+
+    // Note: these are "gold" differential cross sections by the photon energy
+    static double const expected_dcs[] = {
+        0.004767766673037,
+        0.00095316629837454,
+        0.00047634214548039,
+        9.4889763823363e-05,
+        4.7216419355064e-05,
+        4.4118702152857e-06,
+        3.4059618626578e-07,
+        1.8880368752007e-08,
+        1.2292516852155e-10,
+        0,
+    };
+    EXPECT_VEC_SOFT_EQ(expected_dcs, dcs);
+}
+
+TEST_F(MuBremsstrahlungTest, basic)
 {
     // Reserve 4 secondaries
     int num_samples = 4;
@@ -86,12 +142,14 @@ TEST_F(MuBremsstrahlungInteractorTest, basic)
     auto material = this->material_track().make_material_view();
 
     // Create the interactor
-    MuBremsstrahlungInteractor interact(data_,
-                                        this->particle_track(),
-                                        this->direction(),
-                                        this->secondary_allocator(),
-                                        material,
-                                        ElementComponentId{0});
+    MuBremsstrahlungInteractor interact(
+        data_,
+        this->particle_track(),
+        this->direction(),
+        this->cutoff_params()->get(MaterialId{0}),
+        this->secondary_allocator(),
+        material,
+        ElementComponentId{0});
     RandomEngine& rng_engine = this->rng();
 
     std::vector<double> energy;
@@ -115,12 +173,18 @@ TEST_F(MuBremsstrahlungInteractorTest, basic)
     EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
 
     // Note: these are "gold" values based on the host RNG.
-    double const expected_energy[] = {
-        1012.99606184083, 1029.80705246907, 1010.52595539471, 1010.77666768483};
-    double const expected_costheta[] = {0.968418002240112,
-                                        0.999212413725981,
-                                        0.998550042495312,
-                                        0.983614606590488};
+    static double const expected_energy[] = {
+        0.0065836962047077,
+        0.072737465588407,
+        0.0046101810148469,
+        0.0047801585825437,
+    };
+    static double const expected_costheta[] = {
+        0.89331064584376,
+        0.99911225062766,
+        0.9983850611905,
+        0.97306765528221,
+    };
 
     EXPECT_VEC_SOFT_EQ(expected_energy, energy);
     EXPECT_VEC_SOFT_EQ(expected_costheta, costheta);
@@ -133,20 +197,24 @@ TEST_F(MuBremsstrahlungInteractorTest, basic)
     }
 }
 
-TEST_F(MuBremsstrahlungInteractorTest, stress_test)
+TEST_F(MuBremsstrahlungTest, stress_test)
 {
     unsigned int const num_samples = 10000;
-    std::vector<double> avg_engine_samples;
+    std::vector<real_type> avg_engine_samples;
+    std::vector<real_type> avg_energy;
+    std::vector<real_type> avg_costheta;
 
     for (auto particle : {pdg::mu_minus(), pdg::mu_plus()})
     {
-        for (real_type inc_e : {1.5e4, 5e4, 10e4, 50e4, 100e4})
+        for (real_type inc_e : {1e-2, 0.1, 1.0, 1e2, 1e4, 1e6, 1e8})
         {
             SCOPED_TRACE("Incident energy: " + std::to_string(inc_e));
             this->set_inc_particle(particle, MevEnergy{inc_e});
 
             RandomEngine& rng_engine = this->rng();
             RandomEngine::size_type num_particles_sampled = 0;
+            real_type energy = 0;
+            real_type costheta = 0;
 
             // Loop over several incident directions
             for (Real3 const& inc_dir : {Real3{0, 0, 1},
@@ -161,41 +229,88 @@ TEST_F(MuBremsstrahlungInteractorTest, stress_test)
                 auto material = this->material_track().make_material_view();
 
                 // Create interactor
-                MuBremsstrahlungInteractor interact(data_,
-                                                    this->particle_track(),
-                                                    this->direction(),
-                                                    this->secondary_allocator(),
-                                                    material,
-                                                    ElementComponentId{0});
+                MuBremsstrahlungInteractor interact(
+                    data_,
+                    this->particle_track(),
+                    this->direction(),
+                    this->cutoff_params()->get(MaterialId{0}),
+                    this->secondary_allocator(),
+                    material,
+                    ElementComponentId{0});
 
                 for (unsigned int i = 0; i < num_samples; i++)
                 {
                     Interaction result = interact(rng_engine);
-                    // SCOPED_TRACE(result);
                     this->sanity_check(result);
+
+                    energy += result.secondaries.front().energy.value();
+                    costheta += dot_product(
+                        result.direction, result.secondaries.front().direction);
                 }
                 EXPECT_EQ(num_samples,
                           this->secondary_allocator().get().size());
                 num_particles_sampled += num_samples;
             }
-            avg_engine_samples.push_back(double(rng_engine.count())
-                                         / double(num_particles_sampled));
+            avg_engine_samples.push_back(real_type(rng_engine.count())
+                                         / num_particles_sampled);
+            avg_energy.push_back(energy / num_particles_sampled);
+            avg_costheta.push_back(costheta / num_particles_sampled);
         }
     }
 
     // Gold values for average number of calls to RNG
-    double const expected_avg_engine_samples[] = {10.4316,
-                                                  9.7148,
-                                                  9.2378,
-                                                  8.6495,
-                                                  8.5108,
-                                                  10.4121,
-                                                  9.7221,
-                                                  9.2726,
-                                                  8.6439,
-                                                  8.5178};
+    static double const expected_avg_engine_samples[] = {
+        8.1181,
+        8.4645,
+        9.089,
+        10.2864,
+        8.6038,
+        8.1621,
+        8.1053,
+        8.1199,
+        8.4714,
+        9.0945,
+        10.259,
+        8.5959,
+        8.1658,
+        8.1053,
+    };
+    static double const expected_avg_energy[] = {
+        0.0038567895491616,
+        0.019186468482337,
+        0.098553972746449,
+        1.6852671846735,
+        229.53138001979,
+        33432.342774211,
+        3131579.3398501,
+        0.003867632996639,
+        0.018870518265507,
+        0.098670522149155,
+        1.670211265977,
+        229.71614742786,
+        33171.81427539,
+        2988310.0247441,
+    };
+    static double const expected_avg_costheta[] = {
+        0.66306119119239,
+        0.66271159718346,
+        0.66305830115835,
+        0.80473787144944,
+        0.9994439910641,
+        0.99999981472127,
+        0.99999999993925,
+        0.66247296093943,
+        0.6640155768717,
+        0.66170431997873,
+        0.80556733172333,
+        0.99942134970672,
+        0.99999965236971,
+        0.99999999995865,
+    };
 
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
+    EXPECT_VEC_SOFT_EQ(expected_avg_energy, avg_energy);
+    EXPECT_VEC_SOFT_EQ(expected_avg_costheta, avg_costheta);
 }
 
 //---------------------------------------------------------------------------//

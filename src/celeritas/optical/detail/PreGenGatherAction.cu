@@ -13,7 +13,7 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
-#include "OpticalGenStorage.hh"
+#include "OpticalGenParams.hh"
 #include "PreGenGatherExecutor.hh"
 
 namespace celeritas
@@ -27,11 +27,12 @@ namespace detail
 void PreGenGatherAction::execute(CoreParams const& params,
                                  CoreStateDevice& state) const
 {
+    auto& optical_state
+        = get<OpticalGenState<MemSpace::native>>(state.aux(), data_id_);
     auto execute = make_active_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
-        detail::PreGenGatherExecutor{storage_->obj.state<MemSpace::native>(
-            state.stream_id(), state.size())});
+        detail::PreGenGatherExecutor{optical_state.store.ref()});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 }

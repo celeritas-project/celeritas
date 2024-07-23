@@ -59,7 +59,7 @@ class StepDiagnostic final : public ExplicitCoreActionInterface,
     // Description of the action for user interaction
     std::string_view description() const final;
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::post_post; }
+    ActionOrder order() const final { return ActionOrder::user_post; }
     //!@}
 
     //!@{

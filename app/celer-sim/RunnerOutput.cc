@@ -8,18 +8,14 @@
 #include "RunnerOutput.hh"
 
 #include <utility>
+#include <nlohmann/json.hpp>
 
 #include "celeritas_config.h"
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/io/LabelIO.json.hh"
 #include "celeritas/Types.hh"
-
-#if CELERITAS_USE_JSON
-#    include <nlohmann/json.hpp>
-
-#    include "corecel/io/LabelIO.json.hh"
-#endif
 
 namespace celeritas
 {
@@ -40,7 +36,6 @@ RunnerOutput::RunnerOutput(SimulationResult result)
  */
 void RunnerOutput::output(JsonPimpl* j) const
 {
-#if CELERITAS_USE_JSON
     using json = nlohmann::json;
 
     auto active = json::array();
@@ -108,9 +103,6 @@ void RunnerOutput::output(JsonPimpl* j) const
          {"time", std::move(times)}});
 
     j->obj = std::move(obj);
-#else
-    CELER_DISCARD(j);
-#endif
 }
 
 //---------------------------------------------------------------------------//

@@ -25,9 +25,6 @@ namespace orangeinp
 namespace detail
 {
 //---------------------------------------------------------------------------//
-using Real2 = Array<real_type, 2>;
-
-//---------------------------------------------------------------------------//
 /*!
  *  Polygon orientation based on ordering of vertices.
  */

@@ -59,7 +59,7 @@ struct LogicalVolume
     //! Logical volume name
     std::string name;
     //! Filled material ID
-    MaterialId material_id;
+    GeoMaterialId material_id;
 
     //! "Unplaced" parent shape
     SPConstObject solid;

@@ -50,7 +50,6 @@ HostKNDemoRunner::HostKNDemoRunner(constSPParticleParams particles,
     CELER_EXPECT(xsparams_);
 
     // Set up KN interactor data;
-    kn_data_.ids.action = ActionId{0};  // Unused but needed for error check
     kn_data_.ids.electron = pparams_->find(pdg::electron());
     kn_data_.ids.gamma = pparams_->find(pdg::gamma());
     kn_data_.inv_electron_mass
