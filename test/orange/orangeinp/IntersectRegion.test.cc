@@ -529,6 +529,10 @@ TEST_F(GenPrismTest, construct)
                           {{-1, -2}, {1, -2}, {1, 2}, {-1, 2}},
                           {{-1, 2}, {1, 2}, {1, -2}, {-1, -2}}),
                  RuntimeError);  // different orientations
+    EXPECT_THROW(GenPrism(2,
+                          {{-0.5, 0}, {0.5, 0}, {0.5, 0}, {-0.5, 0}},
+                          {{-0.5, 0}, {0.5, 0}, {0.5, 0}, {-0.5, 0}}),
+                 RuntimeError);  // collinear top and bottom
 
     // Validate TRD-like construction parameters - 5 half-lengths
     EXPECT_THROW(GenPrism::from_trd(-3, {1, 1}, {2, 2}), RuntimeError);  // dZ<0

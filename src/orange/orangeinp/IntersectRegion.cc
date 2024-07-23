@@ -419,6 +419,7 @@ GenPrism::GenPrism(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
     // and be convex
     using detail::calc_orientation;
     constexpr auto cw = detail::Orientation::clockwise;
+    constexpr auto col = detail::Orientation::collinear;
     constexpr bool allow_degen = true;
     CELER_VALIDATE(detail::is_convex(make_span(lo_), allow_degen),
                    << "-z polygon is not convex");
@@ -429,6 +430,8 @@ GenPrism::GenPrism(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
     auto hi_orient = calc_orientation(hi_[0], hi_[1], hi_[2]);
     CELER_VALIDATE(is_same_orientation(lo_orient, hi_orient, allow_degen),
                    << "-z and +z polygons have different orientations");
+    CELER_VALIDATE(lo_orient != col || hi_orient != col,
+                   << "-z and +z polygons are both degenerate");
     if (lo_orient == cw || hi_orient == cw)
     {
         // Reverse point orders so it's counterclockwise, needed for vectors to
