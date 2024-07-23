@@ -195,13 +195,14 @@ class Ellipsoid final : public IntersectRegionInterface
 /*!
  * A generalized polygon with parallel flat faces along the z axis.
  *
- * A GenPrism, like VecGeom's GenPrism, ROOT's Arb8, and Geant4's
+ * A GenPrism, like VecGeom's GenTrap, ROOT's Arb8, and Geant4's
  * G4GenericTrap, represents a generalized volume with polyhedral faces on two
  * parallel planes perpendicular to the Z axis. Unlike those other codes, the
  * number of faces can be arbitrary in number.
  *
  * The faces have an orientation and ordering so that \em rotated faces,
- * hyperbolic paraboloids, can be constructed as sides in place of planes.
+ * hyperbolic paraboloids, can be constructed as sides in place of planes. The
+ * rotation cannot be more than a quarter turn.
  *
  * Trapezoids constructed from the helper functions will have sides that are
  * same ordering as a prism: the rightward face is first (normal is along the

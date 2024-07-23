@@ -537,9 +537,9 @@ TEST_F(GenPrismTest, construct)
     EXPECT_THROW(GenPrism::from_trd(3, {1, 1}, {-2, 2}), RuntimeError);  // hx2<0
     EXPECT_THROW(GenPrism::from_trd(3, {1, 1}, {2, -2}), RuntimeError);  // hy2<0
 
-    // pri angles are invalid (note that we do *not* have the restriction of
-    // Geant4 that the turns be the same: this just ends up creating a GenPrism
-    // (with twisted sides) instead of a pri
+    // Trap angles are invalid (note that we do *not* have the restriction of
+    // Geant4 that the turns be the same: this just ends up creating a GenTrap
+    // (with twisted sides) instead of a Trap
     EXPECT_THROW(
         GenPrism::from_trap(
             2, Turn{0}, Turn{0}, {2, 4, 4, Turn{-.26}}, {2, 4, 4, Turn{0.}}),
