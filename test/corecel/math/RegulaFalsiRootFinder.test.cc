@@ -78,10 +78,10 @@ TEST(RegulaFalsi, trigometric)
  */
 TEST(RegulaFalsi, exponential_intersect)
 {
-    double x = 0.0;
-    double y = 2.0;
-    double u = 0.0;
-    double v = -1.0;
+    real_type x = 0.0;
+    real_type y = 2.0;
+    real_type u = 0.0;
+    real_type v = -1.0;
 
     DiagnosticRealFunc f{
         [&](real_type t) { return u * std::exp(t) - v * t + v * x - u * y; }};
