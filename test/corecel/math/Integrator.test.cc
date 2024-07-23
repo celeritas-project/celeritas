@@ -21,7 +21,7 @@ namespace test
 //---------------------------------------------------------------------------//
 TEST(IntegratorTest, constant)
 {
-    DiagnosticRealFunc f{[](real_type) { return 10; }};
+    DiagnosticRealFunc f{[](real_type) { return real_type{10}; }};
     {
         Integrator integrate{f};
         EXPECT_SOFT_EQ(10.0, integrate(1, 2));

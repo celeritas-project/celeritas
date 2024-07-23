@@ -82,6 +82,8 @@ real_type DiagnosticRealFunc<F>::operator()(real_type v)
     // Increment the counter and evaluate the function
     ++count_;
     auto result = eval_(v);
+    static_assert(std::is_same_v<decltype(result), real_type>,
+                  "function should return real_type");
 
     // Log the result
     if (count_ < 20)
