@@ -13,6 +13,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/math/Algorithms.hh"
 
 #include "detail/LdgIteratorImpl.hh"
@@ -240,19 +241,13 @@ swap(LdgIterator<T>& lhs, LdgIterator<T>& rhs) noexcept
 }
 //!@}
 
-//!@{
-//! Helper
-template<class T>
-inline LdgIterator<T> make_ldg_iterator(T* ptr) noexcept
-{
-    return LdgIterator{ptr};
-}
-
+//---------------------------------------------------------------------------//
 /*!
- * Wrapper struct that containers can use to specialize on types supported by
- * LdgIterator, i.e. Span<LdgValue<T>> specialization can internally use
+ * Wrapper struct for specializing on types supported by LdgIterator.
+ *
+ * For example, Span<LdgValue<T>> specialization can internally use
  * LdgIterator. Specializations should refer to LdgValue<T>::value_type to
- * force the template instantiation of LdgValue and type-check T
+ * force the template instantiation of LdgValue and type-check T .
  */
 template<class T>
 struct LdgValue
@@ -262,7 +257,32 @@ struct LdgValue
                   "const arithmetic, OpaqueId or enum type "
                   "required");
 };
-//!@}
+
+//---------------------------------------------------------------------------//
+//! Alias for a Span iterating over values read using __ldg
+template<class T, std::size_t Extent = dynamic_extent>
+using LdgSpan = Span<LdgValue<T>, Extent>;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct an array from a fixed-size span, removing LdgValue marker.
+ *
+ * Note: \code make_array(Span<T,N> const&) \endcode is not reused because:
+ * 1. Using this overload reads input data using \c __ldg
+ * 2. \code return make_array<T, N>(s) \endcode results in segfault (gcc 11.3).
+ *    This might be a compiler bug because temporary lifetime should be
+ *    extended until the end of the expression and we return a copy...
+ */
+template<class T, std::size_t N>
+CELER_CONSTEXPR_FUNCTION auto make_array(LdgSpan<T, N> const& s)
+{
+    Array<std::remove_cv_t<T>, N> result{};
+    for (std::size_t i = 0; i < N; ++i)
+    {
+        result[i] = s[i];
+    }
+    return result;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

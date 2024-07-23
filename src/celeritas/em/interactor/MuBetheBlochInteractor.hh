@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <cmath>
-
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/StackAllocator.hh"
@@ -17,13 +15,13 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/MuBetheBlochData.hh"
+#include "celeritas/em/distribution/MuBBEnergyDistribution.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
+#include "detail/IoniFinalStateHelper.hh"
 #include "detail/PhysicsConstants.hh"
 
 namespace celeritas
@@ -65,59 +63,30 @@ class MuBetheBlochInteractor
   private:
     //// DATA ////
 
-    // Shared constant physics properties
-    MuBetheBlochData const& shared_;
     // Allocate space for the secondary particle
     StackAllocator<Secondary>& allocate_;
     // Incident direction
     Real3 const& inc_direction_;
     // Incident particle energy [MeV]
-    real_type inc_energy_;
+    Energy inc_energy_;
     // Incident particle momentum [MeV / c]
-    real_type inc_momentum_;
-    // Square of fractional speed of light
-    real_type beta_sq_;
+    Momentum inc_momentum_;
     // Muon mass
-    real_type mass_;
+    Mass inc_mass_;
     // Electron mass
-    real_type electron_mass_;
-    // Total energy of the incident particle [MeV]
-    real_type total_energy_;
+    Mass electron_mass_;
+    // Secondary electron ID
+    ParticleId electron_id_;
     // Secondary electron cutoff for current material [MeV]
-    real_type electron_cutoff_;
+    Energy electron_cutoff_;
     // Maximum energy of the secondary electron [MeV]
-    real_type max_secondary_energy_;
-    // Whether to apply the radiative correction
-    bool use_rad_correction_;
-    // Envelope distribution for rejection sampling
-    real_type envelope_dist_;
-
-    //// CONSTANTS ////
-
-    //! Incident energy above which the radiative correction is applied [MeV]
-    static CELER_CONSTEXPR_FUNCTION Energy rad_correction_limit()
-    {
-        return units::MevEnergy{250};  //!< 250 MeV
-    }
-
-    //! Lower limit of radiative correction integral [MeV]
-    static CELER_CONSTEXPR_FUNCTION Energy kin_energy_limit()
-    {
-        // This is the lower limit of the energy transfer from the incident
-        // muon to the delta ray and radiative gammas
-        return units::MevEnergy{0.1};  //!< 100 keV
-    }
-
-    //! Fine structure constant over two pi
-    static CELER_CONSTEXPR_FUNCTION real_type alpha_over_twopi()
-    {
-        return constants::alpha_fine_structure / (2 * constants::pi);
-    }
+    Energy max_secondary_energy_;
+    // Secondary electron energy distribution
+    MuBBEnergyDistribution sample_energy_;
 
     //// HELPER FUNCTIONS ////
 
-    inline CELER_FUNCTION real_type calc_max_secondary_energy() const;
-    inline CELER_FUNCTION real_type calc_envelope_distribution() const;
+    inline CELER_FUNCTION Energy calc_max_secondary_energy() const;
 };
 
 //---------------------------------------------------------------------------//
@@ -132,27 +101,26 @@ CELER_FUNCTION MuBetheBlochInteractor::MuBetheBlochInteractor(
     CutoffView const& cutoffs,
     Real3 const& inc_direction,
     StackAllocator<Secondary>& allocate)
-    : shared_(shared)
-    , allocate_(allocate)
+    : allocate_(allocate)
     , inc_direction_(inc_direction)
-    , inc_energy_(value_as<Energy>(particle.energy()))
-    , inc_momentum_(value_as<Momentum>(particle.momentum()))
-    , beta_sq_(particle.beta_sq())
-    , mass_(value_as<Mass>(particle.mass()))
-    , electron_mass_(value_as<Mass>(shared_.electron_mass))
-    , total_energy_(inc_energy_ + mass_)
-    , electron_cutoff_(value_as<Energy>(cutoffs.energy(shared_.electron)))
+    , inc_energy_(particle.energy())
+    , inc_momentum_(particle.momentum())
+    , inc_mass_(particle.mass())
+    , electron_mass_(shared.electron_mass)
+    , electron_id_(shared.electron)
+    , electron_cutoff_(cutoffs.energy(electron_id_))
     , max_secondary_energy_(this->calc_max_secondary_energy())
-    , use_rad_correction_(
-          inc_energy_ > value_as<Energy>(rad_correction_limit())
-          && max_secondary_energy_ > value_as<Energy>(kin_energy_limit()))
-    , envelope_dist_(this->calc_envelope_distribution())
+    , sample_energy_(MuBBEnergyDistribution(inc_energy_,
+                                            inc_mass_,
+                                            particle.beta_sq(),
+                                            electron_mass_,
+                                            electron_cutoff_,
+                                            max_secondary_energy_))
 {
-    CELER_EXPECT(particle.particle_id() == shared_.mu_minus
-                 || particle.particle_id() == shared_.mu_plus);
+    CELER_EXPECT(particle.particle_id() == shared.mu_minus
+                 || particle.particle_id() == shared.mu_plus);
     CELER_EXPECT(inc_energy_ > electron_cutoff_);
-    CELER_EXPECT(inc_energy_
-                 >= value_as<Energy>(detail::mu_bethe_bloch_lower_limit()));
+    CELER_EXPECT(inc_energy_ >= detail::mu_bethe_bloch_lower_limit());
 }
 
 //---------------------------------------------------------------------------//
@@ -176,83 +144,32 @@ CELER_FUNCTION Interaction MuBetheBlochInteractor::operator()(Engine& rng)
         return Interaction::from_failure();
     }
 
-    real_type secondary_energy;
-    real_type target_dist;
-    do
-    {
-        secondary_energy = electron_cutoff_ * max_secondary_energy_
-                           / UniformRealDistribution(
-                               electron_cutoff_, max_secondary_energy_)(rng);
-        target_dist = 1 - beta_sq_ * secondary_energy / max_secondary_energy_
-                      + ipow<2>(secondary_energy)
-                            / (2 * ipow<2>(total_energy_));
+    // Sample the delta ray energy to construct the final sampler
+    detail::IoniFinalStateHelper sample_interaction(inc_energy_,
+                                                    inc_direction_,
+                                                    inc_momentum_,
+                                                    inc_mass_,
+                                                    sample_energy_(rng),
+                                                    electron_mass_,
+                                                    electron_id_,
+                                                    secondary);
 
-        if (use_rad_correction_
-            && secondary_energy > value_as<Energy>(kin_energy_limit()))
-        {
-            real_type a1 = std::log(1 + 2 * secondary_energy / electron_mass_);
-            real_type a3 = std::log(4 * total_energy_
-                                    * (total_energy_ - secondary_energy)
-                                    / ipow<2>(mass_));
-            target_dist *= (1 + alpha_over_twopi() * a1 * (a3 - a1));
-        }
-    } while (!BernoulliDistribution(target_dist / envelope_dist_)(rng));
-
-    // TODO: If the \c UseAngularGeneratorFlag is set (false by default), use
-    // the angular generator interface to sample the secondary direction (see
-    // \c G4EmParameters::UseAngularGeneratorForIonisation())
-    real_type secondary_momentum = std::sqrt(
-        secondary_energy * (secondary_energy + 2 * electron_mass_));
-    real_type total_momentum = total_energy_ * std::sqrt(beta_sq_);
-    real_type costheta = secondary_energy * (total_energy_ + electron_mass_)
-                         / (secondary_momentum * total_momentum);
-    CELER_ASSERT(costheta <= 1);
-
-    // Sample and save outgoing secondary data
-    UniformRealDistribution<real_type> sample_phi(0, 2 * constants::pi);
-    secondary->direction
-        = rotate(from_spherical(costheta, sample_phi(rng)), inc_direction_);
-    secondary->energy = Energy{secondary_energy};
-    secondary->particle_id = shared_.electron;
-
-    Interaction result;
-    result.energy = Energy{inc_energy_ - secondary_energy};
-    for (int i = 0; i < 3; ++i)
-    {
-        result.direction[i] = inc_momentum_ * inc_direction_[i]
-                              - secondary_momentum * secondary->direction[i];
-    }
-    result.direction = make_unit_vector(result.direction);
-    result.secondaries = {secondary, 1};
-
-    return result;
+    // Update kinematics of the final state and return this interaction
+    return sample_interaction(rng);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Calculate maximum kinetic energy of the secondary electron.
  */
-CELER_FUNCTION real_type MuBetheBlochInteractor::calc_max_secondary_energy() const
+CELER_FUNCTION auto MuBetheBlochInteractor::calc_max_secondary_energy() const
+    -> Energy
 {
-    real_type mass_ratio = electron_mass_ / mass_;
-    real_type tau = inc_energy_ / mass_;
-    return 2 * electron_mass_ * tau * (tau + 2)
-           / (1 + 2 * (tau + 1) * mass_ratio + ipow<2>(mass_ratio));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate envelope distribution for rejection sampling of secondary energy.
- */
-CELER_FUNCTION real_type MuBetheBlochInteractor::calc_envelope_distribution() const
-{
-    if (use_rad_correction_)
-    {
-        return 1
-               + alpha_over_twopi()
-                     * ipow<2>(std::log(2 * total_energy_ / mass_));
-    }
-    return 1;
+    real_type mass_ratio = value_as<Mass>(electron_mass_)
+                           / value_as<Mass>(inc_mass_);
+    real_type tau = value_as<Energy>(inc_energy_) / value_as<Mass>(inc_mass_);
+    return Energy{2 * value_as<Mass>(electron_mass_) * tau * (tau + 2)
+                  / (1 + 2 * (tau + 1) * mass_ratio + ipow<2>(mass_ratio))};
 }
 
 //---------------------------------------------------------------------------//

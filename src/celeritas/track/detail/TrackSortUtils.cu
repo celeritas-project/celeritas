@@ -188,7 +188,7 @@ void sort_tracks(DeviceRef<CoreStateData> const& states, TrackOrder order)
     {
         case TrackOrder::partition_status:
             return partition_impl(states.track_slots,
-                                  AlivePredicate{states.sim.status.data()},
+                                  IsNotInactive{states.sim.status.data()},
                                   states.stream_id);
         case TrackOrder::sort_along_step_action:
         case TrackOrder::sort_step_limit_action:

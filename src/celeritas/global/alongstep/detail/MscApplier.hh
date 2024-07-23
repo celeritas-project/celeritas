@@ -43,9 +43,9 @@ CELER_FUNCTION MscApplier(MH&&) -> MscApplier<MH>;
 template<class MH>
 CELER_FUNCTION void MscApplier<MH>::operator()(CoreTrackView const& track)
 {
-    if (track.make_sim_view().status() == TrackStatus::killed)
+    if (track.make_sim_view().status() != TrackStatus::alive)
     {
-        // Active track killed during propagation: don't apply MSC
+        // Active track killed during propagation or erroneous: don't apply MSC
         return;
     }
 

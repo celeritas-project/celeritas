@@ -671,9 +671,9 @@ SimpleUnitTracker::make_local_volume(LocalVolumeId vid) const
 /*!
  * DaughterId of universe embedded in a given volume.
  */
-CELER_FORCEINLINE_FUNCTION DaughterId
-SimpleUnitTracker::daughter(LocalVolumeId vol) const
+CELER_FUNCTION DaughterId SimpleUnitTracker::daughter(LocalVolumeId vol) const
 {
+    CELER_EXPECT(vol < unit_record_.volumes.size());
     return params_.volume_records[unit_record_.volumes[vol]].daughter_id;
 }
 

@@ -65,12 +65,14 @@ celeritas_add_test_library(testcel_celeritas
   GlobalGeoTestBase.cc
   GlobalTestBase.cc
   ImportedDataTestBase.cc
+  InvalidOrangeTestBase.cc
   MockTestBase.cc
   RootTestBase.cc
   SimpleTestBase.cc
   em/MscTestBase.cc
   field/FieldTestBase.cc
   global/AlongStepTestBase.cc
+  global/DummyAction.cc
   global/StepperTestBase.cc
   grid/CalculatorTestBase.cc
   io/EventIOTestBase.cc
@@ -119,6 +121,7 @@ celeritas_add_test(em/TsaiUrbanDistribution.test.cc ${_needs_double})
 
 # Models
 celeritas_add_test(em/BetheHeitler.test.cc ${_needs_double})
+celeritas_add_test(em/BraggICRU73QO.test.cc ${_needs_double})
 celeritas_add_test(em/CombinedBrem.test.cc ${_needs_double})
 celeritas_add_test(em/EPlusGG.test.cc ${_needs_double})
 celeritas_add_test(em/KleinNishina.test.cc ${_needs_double})
@@ -210,13 +213,12 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
     "SimpleCmsRZFieldAlongStepTest.msc_rzfield_finegrid"
   )
   set(_stepper_filter
-    "-TestEm*:OneSteelSphere*"
+    "-TestEm*"
     "TestEm3Compton.*"
     "TestEm3NoMsc.*"
     "TestEm3Msc.*"
     "TestEm3MscNofluct.*"
     "TestEm15FieldMsc.*"
-    "OneSteelSphere.*"
   )
   if(Geant4_VERSION VERSION_LESS 11.0)
     list(REMOVE_ITEM _along_step_filter
@@ -232,7 +234,7 @@ elseif(CELERITAS_USE_Geant4)
     "LeadBox*"
   )
   set(_stepper_filter
-    "-TestEm*:OneSteelSphere*"
+    "-TestEm*"
     "TestEm3Compton.*"
     "TestEm3Msc.*"
     "TestEm3MscNofluct.*"
@@ -251,7 +253,11 @@ celeritas_add_test(global/KernelContextException.test.cc
   NT 1 LINK_LIBRARIES nlohmann_json::nlohmann_json
 )
 celeritas_add_test(global/Stepper.test.cc
-  GPU NT 4 ${_optional_geant4_env}
+  GPU NT 4
+)
+celeritas_add_test(global/StepperGeant.test.cc
+  ${_needs_geant4}
+  GPU NT 4
   FILTER ${_stepper_filter}
 )
 
@@ -296,8 +302,10 @@ celeritas_add_test(neutron/NeutronInelastic.test.cc ${_needs_double})
 #-----------------------------------------------------------------------------#
 # Phys
 celeritas_add_test(phys/CutoffParams.test.cc)
+celeritas_add_test(phys/FourVector.test.cc)
 celeritas_add_device_test(phys/Particle)
 celeritas_add_device_test(phys/Physics)
+celeritas_add_test(phys/InteractionUtils.test.cc)
 celeritas_add_test(phys/PhysicsStepUtils.test.cc)
 celeritas_add_test(phys/PrimaryGenerator.test.cc
   LINK_LIBRARIES nlohmann_json::nlohmann_json)
@@ -334,6 +342,7 @@ endif()
 #-----------------------------------------------------------------------------#
 # Track
 celeritas_add_test(track/Sim.test.cc ${_needs_geant4})
+celeritas_add_test(track/StatusChecker.test.cc GPU)
 celeritas_add_test(track/TrackSort.test.cc GPU ${_needs_geant4})
 
 set(_trackinit_sources

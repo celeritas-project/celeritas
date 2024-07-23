@@ -71,7 +71,7 @@ class TrackExecutor
     CELER_FUNCTION void operator()(ThreadId thread)
     {
         CELER_EXPECT(thread < state_->size());
-        CoreTrackView const track(*params_, *state_, thread);
+        CoreTrackView track(*params_, *state_, thread);
         return execute_track_(track);
     }
 
@@ -83,7 +83,7 @@ class TrackExecutor
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch the track only when a certain condition applies.
+ * Launch the track only when a certain condition applies to the sim state.
  *
  * The condition C must have the signature \code
  * <bool(SimTrackView const&)>
@@ -121,7 +121,7 @@ class ConditionalTrackExecutor
     CELER_FUNCTION void operator()(ThreadId thread)
     {
         CELER_EXPECT(thread < state_->size());
-        CoreTrackView const track(*params_, *state_, thread);
+        CoreTrackView track(*params_, *state_, thread);
         if (!applies_(track.make_sim_view()))
         {
             return;
@@ -155,7 +155,7 @@ CELER_FUNCTION ConditionalTrackExecutor(CoreParamsPtr<MemSpace::native>,
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Return a track executor that only applies to alive tracks.
+ * Return a track executor that only applies to active, non-errored tracks.
  */
 template<class T>
 inline CELER_FUNCTION decltype(auto)
@@ -165,7 +165,7 @@ make_active_track_executor(CoreParamsPtr<MemSpace::native> params,
 {
     return ConditionalTrackExecutor{params,
                                     state,
-                                    detail::AppliesActive{},
+                                    detail::AppliesValid{},
                                     celeritas::forward<T>(apply_track)};
 }
 

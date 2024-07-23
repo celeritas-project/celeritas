@@ -376,8 +376,8 @@ using StateCollection = Collection<T, W, M, TrackSlotId>;
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
 Collection<T, W, M, I>::Collection(Collection<T, W2, M2, I> const& other)
-    : storage_(detail::CollectionAssigner<W, M>()(other.storage_))
 {
+    detail::copy_collection(other.storage_, &storage_);
     detail::CollectionStorageValidator<W2>()(this->size(),
                                              other.storage().size());
 }
@@ -385,8 +385,8 @@ Collection<T, W, M, I>::Collection(Collection<T, W2, M2, I> const& other)
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
 Collection<T, W, M, I>::Collection(Collection<T, W2, M2, I>& other)
-    : storage_(detail::CollectionAssigner<W, M>()(other.storage_))
 {
+    detail::copy_collection(other.storage_, &storage_);
     detail::CollectionStorageValidator<W2>()(this->size(),
                                              other.storage().size());
 }
@@ -396,7 +396,7 @@ template<Ownership W2, MemSpace M2>
 Collection<T, W, M, I>&
 Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I> const& other)
 {
-    storage_ = detail::CollectionAssigner<W, M>()(other.storage_);
+    detail::copy_collection(other.storage_, &storage_);
     detail::CollectionStorageValidator<W2>()(this->size(),
                                              other.storage().size());
     return *this;
@@ -407,7 +407,7 @@ template<Ownership W2, MemSpace M2>
 Collection<T, W, M, I>&
 Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I>& other)
 {
-    storage_ = detail::CollectionAssigner<W, M>()(other.storage_);
+    detail::copy_collection(other.storage_, &storage_);
     detail::CollectionStorageValidator<W2>()(this->size(),
                                              other.storage().size());
     return *this;

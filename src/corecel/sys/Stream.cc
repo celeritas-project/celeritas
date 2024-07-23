@@ -12,8 +12,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 #include "corecel/io/Logger.hh"
-#include "celeritas/Types.hh"
+#include "corecel/sys/Environment.hh"
 
 #if CELERITAS_USE_CUDA
 #    define CELER_STREAM_SUPPORTS_ASYNC 1
@@ -34,13 +35,21 @@ namespace
 void* malloc_async_impl(std::size_t bytes, Stream::StreamT s)
 {
     void* ptr{};
+    if (Stream::async())
+    {
 #if CELER_STREAM_SUPPORTS_ASYNC
-    CELER_DEVICE_CALL_PREFIX(MallocAsync(&ptr, bytes, s));
+        CELER_DEVICE_CALL_PREFIX(MallocAsync(&ptr, bytes, s));
 #else
-    CELER_DISCARD(bytes);
-    CELER_DISCARD(s);
-    CELER_DEVICE_CALL_PREFIX(Malloc(&ptr, bytes));
+        CELER_DISCARD(ptr);
+        CELER_DISCARD(bytes);
+        CELER_DISCARD(s);
+        CELER_ASSERT_UNREACHABLE();
 #endif
+    }
+    else
+    {
+        CELER_DEVICE_CALL_PREFIX(Malloc(&ptr, bytes));
+    }
     return ptr;
 }
 
@@ -48,13 +57,20 @@ void* malloc_async_impl(std::size_t bytes, Stream::StreamT s)
 //! Free asynchronously for CUDA and newer HIP versions
 void free_async_impl(void* ptr, Stream::StreamT s)
 {
+    if (Stream::async())
+    {
 #if CELER_STREAM_SUPPORTS_ASYNC
-    CELER_DEVICE_CALL_PREFIX(FreeAsync(ptr, s));
+        CELER_DEVICE_CALL_PREFIX(FreeAsync(ptr, s));
 #else
-    CELER_DISCARD(ptr);
-    CELER_DISCARD(s);
-    CELER_DEVICE_CALL_PREFIX(Free(ptr));
+        CELER_DISCARD(ptr);
+        CELER_DISCARD(s);
+        CELER_ASSERT_UNREACHABLE();
 #endif
+    }
+    else
+    {
+        CELER_DEVICE_CALL_PREFIX(Free(ptr));
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -98,6 +114,42 @@ void AsyncMemoryResource<Pointer>::do_deallocate(pointer p,
         }
         ++warn_count;
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether asynchronous operations are supported.
+ *
+ * This is true by default if CUDA or HIP (5.2 <= HIP_VERSION < 5.7) is in use,
+ * and can be disabled by setting the \c CELER_DEVICE_ASYNC environment
+ * variable.
+ */
+bool Stream::async()
+{
+#if CELER_STREAM_SUPPORTS_ASYNC
+#    if CELERITAS_USE_CUDA
+    constexpr bool default_val{true};
+#    elif (HIP_VERSION_MAJOR > 5 \
+           || (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR >= 7))
+    constexpr bool default_val{false};
+#    else
+    constexpr bool default_val{true};
+#    endif
+    static bool const result = [] {
+        auto result = getenv_flag("CELER_DEVICE_ASYNC", default_val);
+        if (!result.defaulted && result.value != default_val)
+        {
+            CELER_LOG(info) << "Overriding asynchronous stream memory default "
+                               "with CELER_DEVICE_ASYNC="
+                            << result.value;
+            return false;
+        }
+        return result.value;
+    }();
+    return result;
+#else
+    return false;
+#endif
 }
 
 //---------------------------------------------------------------------------//

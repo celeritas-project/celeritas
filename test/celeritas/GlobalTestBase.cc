@@ -22,6 +22,7 @@
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/random/RngParams.hh"
+#include "celeritas/track/StatusChecker.hh"
 
 namespace celeritas
 {
@@ -55,6 +56,18 @@ GlobalTestBase::~GlobalTestBase()
             std::cerr << "Failed to write diagnostics: " << e.what();
         }
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Do not insert StatusChecker.
+ */
+void GlobalTestBase::disable_status_checker()
+{
+    CELER_VALIDATE(!core_,
+                   << "disable_status_checker cannot be called after core "
+                      "params have been created");
+    insert_status_checker_ = false;
 }
 
 //---------------------------------------------------------------------------//
@@ -97,6 +110,15 @@ auto GlobalTestBase::build_core() -> SPConstCore
     // Build along-step action to add to the stepping loop
     auto&& along_step = this->along_step();
     CELER_ASSERT(along_step);
+
+    if (insert_status_checker_)
+    {
+        // For unit testing, add status checker
+        auto status_checker = std::make_shared<StatusChecker>(
+            inp.action_reg->next_id(), inp.aux_reg->next_id());
+        inp.action_reg->insert(status_checker);
+        inp.aux_reg->insert(status_checker);
+    }
 
     return std::make_shared<CoreParams>(std::move(inp));
 }

@@ -17,17 +17,14 @@
 #include "../GeoMaterialView.hh"
 #include "../GeoTrackView.hh"
 
+#if !CELER_DEVICE_COMPILE
+#    include "corecel/io/Logger.hh"
+#endif
+
 namespace celeritas
 {
 namespace detail
 {
-//---------------------------------------------------------------------------//
-struct BoundaryExecutor
-{
-    inline CELER_FUNCTION void
-    operator()(celeritas::CoreTrackView const& track);
-};
-
 //---------------------------------------------------------------------------//
 /*!
  * Cross a geometry boundary.
@@ -35,8 +32,14 @@ struct BoundaryExecutor
  * \pre The track must have already been physically moved to the correct point
  * on the boundary.
  */
+struct BoundaryExecutor
+{
+    inline CELER_FUNCTION void operator()(celeritas::CoreTrackView& track);
+};
+
+//---------------------------------------------------------------------------//
 CELER_FUNCTION void
-BoundaryExecutor::operator()(celeritas::CoreTrackView const& track)
+BoundaryExecutor::operator()(celeritas::CoreTrackView& track)
 {
     CELER_EXPECT([track] {
         auto sim = track.make_sim_view();
@@ -49,12 +52,25 @@ BoundaryExecutor::operator()(celeritas::CoreTrackView const& track)
 
     // Particle entered a new volume before reaching the interaction point
     geo.cross_boundary();
-    if (!geo.is_outside())
+    if (CELER_UNLIKELY(geo.failed()))
+    {
+        track.apply_errored();
+        return;
+    }
+    else if (!geo.is_outside())
     {
         // Update the material in the new region
         auto geo_mat = track.make_geo_material_view();
         auto matid = geo_mat.material_id(geo.volume_id());
-        CELER_ASSERT(matid);
+        if (CELER_UNLIKELY(!matid))
+        {
+#if !CELER_DEVICE_COMPILE
+            CELER_LOG_LOCAL(error) << "Track entered a volume without an "
+                                      "associated material";
+#endif
+            track.apply_errored();
+            return;
+        }
         auto mat = track.make_material_view();
         mat = {matid};
 
