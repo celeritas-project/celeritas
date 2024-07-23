@@ -49,6 +49,7 @@ list(APPEND SOURCES
   global/detail/ActionSequence.cc
   global/detail/PinnedAllocator.cc
   grid/GenericGridBuilder.cc
+  grid/TwodGridBuilder.cc
   grid/ValueGridBuilder.cc
   grid/ValueGridInserter.cc
   grid/ValueGridType.cc
