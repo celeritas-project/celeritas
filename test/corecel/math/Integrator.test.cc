@@ -8,37 +8,20 @@
 #include "corecel/math/Integrator.hh"
 
 #include <cmath>
-#include <utility>
 
 #include "celeritas_config.h"
 
+#include "DiagnosticRealFunc.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-template<class F>
-struct DiagnosticFunc
+namespace test
 {
-    explicit DiagnosticFunc(F&& eval) : eval_{std::forward<F>(eval)} {}
-
-    //! Evaluate the underlying function and increment the counter
-    real_type operator()(real_type v)
-    {
-        ++count_;
-        return eval_(v);
-    }
-
-    //! Get and reset the counter
-    size_type exchange_count() { return std::exchange(count_, 0); }
-
-    F eval_;
-    size_type count_{0};
-};
-
+//---------------------------------------------------------------------------//
 TEST(IntegratorTest, constant)
 {
-    DiagnosticFunc f{[](real_type) { return 10; }};
+    DiagnosticRealFunc f{[](real_type) { return 10; }};
     {
         Integrator integrate{f};
         EXPECT_SOFT_EQ(10.0, integrate(1, 2));
@@ -50,7 +33,7 @@ TEST(IntegratorTest, constant)
 
 TEST(IntegratorTest, linear)
 {
-    DiagnosticFunc f{[](real_type x) { return 2 * x; }};
+    DiagnosticRealFunc f{[](real_type x) { return 2 * x; }};
     {
         Integrator integrate{f};
         EXPECT_SOFT_EQ(4 - 1, integrate(1, 2));
@@ -62,7 +45,7 @@ TEST(IntegratorTest, linear)
 
 TEST(IntegratorTest, quadratic)
 {
-    DiagnosticFunc f{[](real_type x) { return 3 * ipow<2>(x); }};
+    DiagnosticRealFunc f{[](real_type x) { return 3 * ipow<2>(x); }};
     {
         real_type const eps = IntegratorOptions{}.epsilon;
         Integrator integrate{f};
@@ -84,7 +67,7 @@ TEST(IntegratorTest, quadratic)
 
 TEST(IntegratorTest, gauss)
 {
-    DiagnosticFunc f{
+    DiagnosticRealFunc f{
         [](real_type r) { return ipow<2>(r) * std::exp(-ipow<2>(r)); }};
     {
         Integrator integrate{f};
@@ -126,7 +109,7 @@ TEST(IntegratorTest, gauss)
  */
 TEST(IntegratorTest, DISABLED_nasty)
 {
-    DiagnosticFunc f{[](real_type x) { return std::cos(std::exp(1 / x)); }};
+    DiagnosticRealFunc f{[](real_type x) { return std::cos(std::exp(1 / x)); }};
     {
         real_type const eps = IntegratorOptions{}.epsilon;
         Integrator integrate{f};
@@ -145,4 +128,5 @@ TEST(IntegratorTest, DISABLED_nasty)
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace test
 }  // namespace celeritas
