@@ -132,8 +132,10 @@ endfunction()
 celer_sim_test(cms
   simple-cms.gdml gamma-3evt-15prim.hepmc3 simple-cms-mctruth.root
 )
-celer_sim_test(lar
-  lar-sphere.gdml electron-3evt-15prim-iso.hepmc3 lar-mctruth.root
-)
+
+# TODO: enable celer-sim-lar[cpu:gpu] test when optical stepping loop is ready
+# celer_sim_test(lar
+#   lar-sphere.gdml gamma-3evt-15prim.hepmc3 lar-mctruth.root
+# )
 
 #-----------------------------------------------------------------------------#

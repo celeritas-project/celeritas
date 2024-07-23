@@ -419,8 +419,6 @@ void Runner::build_core_params(RunnerInput const& inp,
     }();
 
     core_params_ = std::make_shared<CoreParams>(std::move(params));
-
-    // TODO: if optical is enabled, construct from imported and core_params_
 }
 
 //---------------------------------------------------------------------------//
