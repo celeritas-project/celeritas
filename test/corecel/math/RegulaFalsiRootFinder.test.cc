@@ -65,36 +65,30 @@ TEST(RegulaFalsi, trigometric)
 }
 
 /*!
- * Solve Itersect
+ * Solve exponential intersect.
  *
  * x(t) = t
- * y(t) = exp(t)
+ * y(t) = exp(t-1)
  *
- * Point (0.5,0.5)
+ * Point (1.5,0.5)
  * Direction (-0.7071067812,0.7071067812)
  */
-TEST(RegulaFalsi, expomential_intersect)
+TEST(RegulaFalsi, exponential_intersect)
 {
-    double x = 0.5;
+    double x = 1.5;
     double y = 0.5;
     double u = -0.7071067812;
     double v = 0.7071067812;
 
-    auto root
-        = [&](real_type t) { return u * std::exp(t) - v * t + v * x - u * y; };
+    auto root = [&](real_type t) {
+        return u * std::exp(t - 1) - v * t + v * x - u * y;
+    };
 
     constexpr real_type tol = SoftEqual<>{}.rel();
 
     RegulaFalsi find_root{root, tol};
 
-    if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-    {
-        EXPECT_SOFT_EQ(-5.7942725725263657e-14, find_root(-0.3678794412, 0.1));
-    }
-    else
-    {
-        EXPECT_SOFT_EQ(0.0, find_root(-0.3678794412, 0.1));
-    }
+    EXPECT_SOFT_EQ(1.0, find_root(0.5, 1.5));
 }
 
 //---------------------------------------------------------------------------//

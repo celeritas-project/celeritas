@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/math/BisectionRootFinder.test.cc
+//! \file corecel/math/IllinoisRootFinder.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/math/BisectionRootFinder.hh"
+#include "corecel/math/IllinoisRootFinder.hh"
 
 #include <cmath>
 #include <functional>
@@ -25,39 +25,39 @@ namespace test
 {
 
 // Solve: (x-2)(x+2) = 0
-TEST(Bisection, root_two)
+TEST(Illinois, root_two)
 {
     auto root = [](real_type t) { return (t - 2) * (t + 2); };
 
     constexpr real_type tol = SoftEqual<>{}.rel();
 
-    Bisection find_root{root, tol};
+    Illinois find_root{root, tol};
 
     EXPECT_SOFT_EQ(2.0, find_root(1.75, 2.25));
     EXPECT_SOFT_EQ(-2.0, find_root(-2.25, -1.75));
 }
 
 // Solve: x^2 - x - 1 = 0
-TEST(Bisection, golden_ratio)
+TEST(Illinois, golden_ratio)
 {
     auto root = [](real_type t) { return ipow<2>(t) - t - 1; };
 
     constexpr real_type tol = SoftEqual<>{}.rel();
 
-    Bisection find_root{root, tol};
+    Illinois find_root{root, tol};
 
     EXPECT_SOFT_EQ(1.618033988749, find_root(1.5, 1.75));
     EXPECT_SOFT_EQ(-0.6180339887498, find_root(-0.75, -0.5));
 }
 
 // Solve first 3 roots: cos(x) = 0
-TEST(Bisection, trigometric)
+TEST(Illinois, trigometric)
 {
     auto root = [](real_type t) { return std::cos(t); };
 
     constexpr real_type tol = SoftEqual<>{}.rel();
 
-    Bisection find_root{root, tol};
+    Illinois find_root{root, tol};
 
     EXPECT_SOFT_EQ(pi * 0.5, find_root(0, pi));
     EXPECT_SOFT_EQ(pi * 1.5, find_root(pi, 2 * pi));
@@ -73,7 +73,7 @@ TEST(Bisection, trigometric)
  * Point (1.5,0.5)
  * Direction (-0.7071067812,0.7071067812)
  */
-TEST(Bisection, exponential_intersect)
+TEST(Illinois, exponential_intersect)
 {
     double x = 1.5;
     double y = 0.5;
@@ -86,7 +86,7 @@ TEST(Bisection, exponential_intersect)
 
     constexpr real_type tol = SoftEqual<>{}.rel();
 
-    Bisection find_root{root, tol};
+    Illinois find_root{root, tol};
 
     EXPECT_SOFT_EQ(1.0, find_root(0.5, 1.5));
 }

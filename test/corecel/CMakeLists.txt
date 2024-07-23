@@ -73,6 +73,7 @@ celeritas_add_test(math/Quantity.test.cc
 celeritas_add_test(math/SoftEqual.test.cc)
 celeritas_add_test(math/RegulaFalsiRootFinder.test.cc)
 celeritas_add_test(math/BisectionRootFinder.test.cc)
+celeritas_add_test(math/IllinoisRootFinder.test.cc)
 
 # Sys
 celeritas_add_test(sys/Environment.test.cc

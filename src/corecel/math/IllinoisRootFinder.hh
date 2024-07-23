@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/math/RegulaFalsiRootFinder.hh
+//! \file corecel/math/IllinoisRootFinder.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -22,26 +22,20 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Perform Regula Falsi iterations given a root function \em func and
- * tolerance \em tol .
+ * Perform Regula Falsi (see RegulaFalsi for more details) iterations given a
+ * root function \em func and tolerance \em tol using the Illinois method.
  *
- * Using a \em left and \em right bound a Regula Falsi approximates the \em
- * root as: \f[ root = (left * func(right) - right * func(left)) / (func(right)
- * - func(left)) \f]
- *
- * Then value of \em func at the root is calculated compared to values of
- * \em func at the bounds. The \em root is then used update the bounds based on
- * the sign of \em func(root) and whether it matches the sign of \em func(left)
- * or \em func(right) . Performing this update of the bounds allows for the
- * iteration on root, using the convergence criteria based on \em func(root)
- * proximity to 0.
+ * Illonois method modifies the standard approach by comparing the sign of
+ * \em func(root) approximation in the current iteration with the previous
+ * approximation. If both iterations are on the same side then the \em func at
+ * the bound on the other side is halved.
  */
 template<class F>
-class RegulaFalsi
+class Illinois
 {
   public:
     // Contruct with function to solve and solution tolerance
-    inline CELER_FUNCTION RegulaFalsi(F&& func, real_type tol);
+    inline CELER_FUNCTION Illinois(F&& func, real_type tol);
 
     // Solve for a root between two points
     inline real_type operator()(real_type left, real_type right);
@@ -59,7 +53,7 @@ class RegulaFalsi
 //---------------------------------------------------------------------------//
 
 template<class F, class... Args>
-RegulaFalsi(F&&, Args...) -> RegulaFalsi<F>;
+Illinois(F&&, Args...) -> Illinois<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -68,7 +62,7 @@ RegulaFalsi(F&&, Args...) -> RegulaFalsi<F>;
  * Construct from function.
  */
 template<class F>
-CELER_FUNCTION RegulaFalsi<F>::RegulaFalsi(F&& func, real_type tol)
+CELER_FUNCTION Illinois<F>::Illinois(F&& func, real_type tol)
     : func_{celeritas::forward<F>(func)}, tol_{tol}
 {
     CELER_EXPECT(tol_ > 0);
@@ -79,14 +73,15 @@ CELER_FUNCTION RegulaFalsi<F>::RegulaFalsi(F&& func, real_type tol)
  * Solve for a root between the two points.
  */
 template<class F>
-CELER_FUNCTION real_type RegulaFalsi<F>::operator()(real_type left,
-                                                    real_type right)
+CELER_FUNCTION real_type Illinois<F>::operator()(real_type left,
+                                                 real_type right)
 {
     // Initialize Iteration parameters
     real_type f_left = func_(left);
     real_type f_right = func_(right);
     real_type f_root = 1;
     real_type root = 0;
+    real_type side = 0;
     int remaining_iters = max_iters_;
 
     // Iterate on root
@@ -101,11 +96,21 @@ CELER_FUNCTION real_type RegulaFalsi<F>::operator()(real_type left,
         {
             left = root;
             f_left = f_root;
+            if (side == -1)
+            {
+                f_right *= 0.5;
+            }
+            side = -1;
         }
         else
         {
             right = root;
             f_right = f_root;
+            if (side == 1)
+            {
+                f_left *= 0.5;
+            }
+            side = 1;
         }
     } while (std::fabs(f_root) > tol_ && --remaining_iters > 0);
 
