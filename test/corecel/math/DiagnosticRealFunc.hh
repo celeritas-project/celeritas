@@ -12,6 +12,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/io/Logger.hh"
 
 namespace celeritas
 {
@@ -19,7 +20,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Wrap a numerical single-argument function with a counter.
+ * Wrap a numerical single-argument function with a counter and logger.
  *
  * This takes a function:
  * \f[ f\colon\mathbb{R^1}\to\mathbb{R^1} \f]
@@ -35,7 +36,8 @@ namespace test
     EXPECT_EQ(3, f.exchange_count());
  \endcode
  *
- * This wrapper also checks the input and output for NaN.
+ * This wrapper also checks the input and output for NaN, and it outputs the
+ * function counter and evaluation to the logger (export `CELER_LOG=debug`).
  */
 template<class F>
 class DiagnosticRealFunc
@@ -81,6 +83,7 @@ real_type DiagnosticRealFunc<F>::operator()(real_type v)
     {
         CELER_DEBUG_FAIL("nan output returned from function", postcondition);
     }
+    CELER_LOG(debug) << count_ << ": f(" << v << ") -> " << result;
     return result;
 }
 
