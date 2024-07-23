@@ -73,16 +73,17 @@ DiagnosticRealFunc(F&&, Args...) -> DiagnosticRealFunc<F>;
 template<class F>
 real_type DiagnosticRealFunc<F>::operator()(real_type v)
 {
+    // Always-on debug check for NaN input
     if (CELER_UNLIKELY(std::isnan(v)))
     {
         CELER_DEBUG_FAIL("nan input given to function", precondition);
     }
+
+    // Increment the counter and evaluate the function
     ++count_;
     auto result = eval_(v);
-    if (CELER_UNLIKELY(std::isnan(result)))
-    {
-        CELER_DEBUG_FAIL("nan output returned from function", postcondition);
-    }
+
+    // Log the result
     if (count_ < 20)
     {
         CELER_LOG(debug) << count_ << ": f(" << v << ") -> " << result;
@@ -90,6 +91,12 @@ real_type DiagnosticRealFunc<F>::operator()(real_type v)
     else if (count_ == 20)
     {
         CELER_LOG(debug) << "Suppressing further log messages";
+    }
+
+    // Always-on debug check for NaN output
+    if (CELER_UNLIKELY(std::isnan(result)))
+    {
+        CELER_DEBUG_FAIL("nan output returned from function", postcondition);
     }
     return result;
 }
