@@ -27,21 +27,6 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-template<class T>
-T if_double_else(T a, T b)
-{
-    if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-    {
-        return a;
-    }
-    else
-    {
-        return b;
-    }
-}
-
-//---------------------------------------------------------------------------//
-
 // Solve: (x-2)(x+2) = 0
 TEST(RegulaFalsi, root_two)
 {
@@ -103,6 +88,7 @@ TEST(RegulaFalsi, exponential_intersect)
     }};
     RegulaFalsiRootFinder find_root{f, tol};
 
+    // XXX this finds the root outside of the specified bounds!
     EXPECT_SOFT_EQ(1.0, find_root(-0.5, 0.5));
     EXPECT_EQ(if_double_else(12, 8), f.exchange_count());
     EXPECT_SOFT_EQ(1.0, find_root(0.5, 1.5));

@@ -58,6 +58,25 @@ class DiagnosticRealFunc
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Check the first value for double precision or second for single.
+ *
+ * This is useful for comparing the \c exchange_count result.
+ */
+template<class T>
+inline T if_double_else(T a, T b)
+{
+    if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        return a;
+    }
+    else
+    {
+        return b;
+    }
+}
+
+//---------------------------------------------------------------------------//
 // TEMPLATE DEDUCTION
 //---------------------------------------------------------------------------//
 
@@ -65,7 +84,7 @@ template<class F, class... Args>
 DiagnosticRealFunc(F&&, Args...) -> DiagnosticRealFunc<F>;
 
 //---------------------------------------------------------------------------//
-// TEMPLATE DEDUCTION
+// INLINE FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
  * Evaluate the underlying function and increment the counter.
