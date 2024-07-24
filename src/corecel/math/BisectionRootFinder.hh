@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/math/RegulaFalsiRootFinder.hh
+//! \file corecel/math/BisectionRootFinder.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -20,12 +20,11 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Perform Regula Falsi iterations given a root function \em func and
+ * Perform Bisection iterations given a root function \em func and
  * tolerance \em tol .
  *
- * Using a \em left and \em right bound a Regula Falsi approximates the \em
- * root as: \f[ root = (left * func(right) - right * func(left)) / (func(right)
- * - func(left)) \f]
+ * Using a \em left and \em right bound a Bisection approximates the \em
+ * root as: \f[ root = 0.5 * (left + right) \f]
  *
  * Then value of \em func at the root is calculated compared to values of
  * \em func at the bounds. The \em root is then used update the bounds based on
@@ -35,11 +34,11 @@ namespace celeritas
  * proximity to 0.
  */
 template<class F>
-class RegulaFalsiRootFinder
+class BisectionRootFinder
 {
   public:
     // Contruct with function to solve and solution tolerance
-    inline CELER_FUNCTION RegulaFalsiRootFinder(F&& func, real_type tol);
+    inline CELER_FUNCTION BisectionRootFinder(F&& func, real_type tol);
 
     // Solve for a root between two points
     inline CELER_FUNCTION real_type operator()(real_type left, real_type right);
@@ -57,7 +56,7 @@ class RegulaFalsiRootFinder
 //---------------------------------------------------------------------------//
 
 template<class F, class... Args>
-RegulaFalsiRootFinder(F&&, Args...) -> RegulaFalsiRootFinder<F>;
+BisectionRootFinder(F&&, Args...) -> BisectionRootFinder<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -67,7 +66,7 @@ RegulaFalsiRootFinder(F&&, Args...) -> RegulaFalsiRootFinder<F>;
  */
 template<class F>
 CELER_FUNCTION
-RegulaFalsiRootFinder<F>::RegulaFalsiRootFinder(F&& func, real_type tol)
+BisectionRootFinder<F>::BisectionRootFinder(F&& func, real_type tol)
     : func_{celeritas::forward<F>(func)}, tol_{tol}
 {
     CELER_EXPECT(tol_ > 0);
@@ -78,12 +77,11 @@ RegulaFalsiRootFinder<F>::RegulaFalsiRootFinder(F&& func, real_type tol)
  * Solve for a root between the two points.
  */
 template<class F>
-CELER_FUNCTION real_type RegulaFalsiRootFinder<F>::operator()(real_type left,
-                                                              real_type right)
+CELER_FUNCTION real_type BisectionRootFinder<F>::operator()(real_type left,
+                                                            real_type right)
 {
     // Initialize Iteration parameters
     real_type f_left = func_(left);
-    real_type f_right = func_(right);
     real_type f_root = 1;
     real_type root = 0;
     int remaining_iters = max_iters_;
@@ -92,7 +90,7 @@ CELER_FUNCTION real_type RegulaFalsiRootFinder<F>::operator()(real_type left,
     do
     {
         // Estimate root and update value
-        root = (left * f_right - right * f_left) / (f_right - f_left);
+        root = real_type(0.5) * (left + right);
         f_root = func_(root);
 
         // Update the bound which produces the same sign as the root
@@ -104,7 +102,6 @@ CELER_FUNCTION real_type RegulaFalsiRootFinder<F>::operator()(real_type left,
         else
         {
             right = root;
-            f_right = f_root;
         }
     } while (std::fabs(f_root) > tol_ && --remaining_iters > 0);
 
