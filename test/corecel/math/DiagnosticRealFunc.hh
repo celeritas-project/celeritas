@@ -68,10 +68,12 @@ inline T if_double_else(T a, T b)
 {
     if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
+        CELER_DISCARD(b);  // Need for old compilers
         return a;
     }
     else
     {
+        CELER_DISCARD(a);  // Need for old compilers
         return b;
     }
 }
