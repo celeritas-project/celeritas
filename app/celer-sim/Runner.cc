@@ -316,11 +316,8 @@ void Runner::build_core_params(RunnerInput const& inp,
     // Construct shared data for Coulomb scattering
     params.wentzel = WentzelOKVIParams::from_import(imported_, params.material);
 
-    // FIX ME: can't pass private member to lambda so I made a copy
-    auto const imported = imported_;
-
     // Load physics: create individual processes with make_shared
-    params.physics = [&params, &inp, &imported] {
+    params.physics = [&params, &inp, this] {
         PhysicsParams::Input input;
         input.particles = params.particle;
         input.materials = params.material;
@@ -328,20 +325,20 @@ void Runner::build_core_params(RunnerInput const& inp,
 
         input.options.fixed_step_limiter = inp.step_limiter;
         input.options.secondary_stack_factor = inp.secondary_stack_factor;
-        input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
+        input.options.linear_loss_limit = imported_.em_params.linear_loss_limit;
         input.options.lowest_electron_energy = PhysicsParamsOptions::Energy(
-            imported.em_params.lowest_electron_energy);
+            imported_.em_params.lowest_electron_energy);
 
-        input.processes = [&params, &inp, &imported] {
+        input.processes = [&params, &inp, this] {
             std::vector<std::shared_ptr<Process const>> result;
             ProcessBuilder::Options opts;
             opts.brem_combined = inp.brem_combined;
             opts.brems_selection = inp.physics_options.brems;
 
             ProcessBuilder build_process(
-                imported, params.particle, params.material, opts);
+                imported_, params.particle, params.material, opts);
             for (auto p :
-                 ProcessBuilder::get_all_process_classes(imported.processes))
+                 ProcessBuilder::get_all_process_classes(imported_.processes))
             {
                 result.push_back(build_process(p));
                 CELER_ASSERT(result.back());
@@ -352,9 +349,9 @@ void Runner::build_core_params(RunnerInput const& inp,
         return std::make_shared<PhysicsParams>(std::move(input));
     }();
 
-    bool eloss = imported.em_params.energy_loss_fluct;
+    bool eloss = imported_.em_params.energy_loss_fluct;
     auto msc = UrbanMscParams::from_import(
-        *params.particle, *params.material, imported);
+        *params.particle, *params.material, imported_);
     if (inp.field == RunnerInput::no_field())
     {
         // Create along-step action
@@ -394,7 +391,7 @@ void Runner::build_core_params(RunnerInput const& inp,
 
     // Construct simulation params
     params.sim = SimParams::from_import(
-        imported, params.particle, inp.field_options.max_substeps);
+        imported_, params.particle, inp.field_options.max_substeps);
 
     // Get the total number of events
     auto num_events = this->build_events(inp, params.particle);
@@ -585,7 +582,7 @@ void Runner::build_optical_collector(RunnerInput const& inp)
     CELER_ASSERT(oc_inp);
 
     optical_collector_
-        = std::make_shared<OpticalCollector>(core_params_, std::move(oc_inp));
+        = std::make_shared<OpticalCollector>(*core_params_, std::move(oc_inp));
 }
 
 //---------------------------------------------------------------------------//

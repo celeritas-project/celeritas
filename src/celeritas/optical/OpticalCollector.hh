@@ -52,7 +52,6 @@ class OpticalCollector
     //!@{
     //! \name Type aliases
     using SPConstCerenkov = std::shared_ptr<CerenkovParams const>;
-    using SPConstCore = std::shared_ptr<CoreParams const>;
     using SPConstProperties = std::shared_ptr<OpticalPropertyParams const>;
     using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
     //!@}
@@ -77,7 +76,7 @@ class OpticalCollector
 
   public:
     // Construct with core data and optical params
-    OpticalCollector(SPConstCore, Input&&);
+    OpticalCollector(CoreParams const&, Input&&);
 
     // Aux ID for optical generator data
     AuxId aux_id() const;

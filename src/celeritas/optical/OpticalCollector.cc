@@ -23,9 +23,8 @@ namespace celeritas
 /*!
  * Construct with core data and optical data.
  */
-OpticalCollector::OpticalCollector(SPConstCore core, Input&& inp)
+OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
 {
-    CELER_EXPECT(core);
     CELER_EXPECT(inp);
 
     OpticalGenSetup setup;
@@ -35,11 +34,11 @@ OpticalCollector::OpticalCollector(SPConstCore core, Input&& inp)
 
     // Create aux params and add to core
     gen_params_ = std::make_shared<detail::OpticalGenParams>(
-        core->aux_reg()->next_id(), setup);
-    core->aux_reg()->insert(gen_params_);
+        core.aux_reg()->next_id(), setup);
+    core.aux_reg()->insert(gen_params_);
 
     // Action to gather pre-step data needed to generate optical distributions
-    ActionRegistry& actions = *core->action_reg();
+    ActionRegistry& actions = *core.action_reg();
     gather_action_ = std::make_shared<detail::PreGenGatherAction>(
         actions.next_id(), gen_params_->aux_id());
     actions.insert(gather_action_);
