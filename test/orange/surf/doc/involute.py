@@ -23,7 +23,7 @@ class Involute:
         self.y = None
         self.u = None
         self.v = None
-        self.tol = tol
+        self.tol = tol*rb
         
         # Angle of Inolute
         angle = t + a0
@@ -165,15 +165,6 @@ class Involute:
                     
                     # Regula Falsi : Buggs out sometimes
                     tc = (ta*ftb-tb*fta)/(ftb-fta)
-                    
-                    # # Illinois Falsi
-                    # if sign == 1:
-                    #     tc = (ta*ftb*0.5-tb*fta)/(ftb*0.5-fta)
-                    # elif sign == -1:
-                    #     tc = (ta*ftb-tb*fta*0.5)/(ftb-fta*0.5)                    
-                    
-                    # # Secant : Starts to translate sometimes
-                    # tc = (fta*(tb-ta))/(fta-ftb)+ta
                                         
                     ftc = f(tc)
                     
@@ -184,7 +175,478 @@ class Involute:
                         ta  = copy.deepcopy(tc)
                         fta = f(ta)
 
+                t = tc
+                xInv,yInv = point(t)
+                
+                if xInv**2+yInv**2 >= rmin**2 -self.tol*10 and \
+                    xInv**2+yInv**2 < rmax**2 + self.tol*10:
+                
+                    dir2 = np.array([xInv-x,yInv-y])
                     
+                    if np.dot(dir,dir2) >= 0:
+                        newdist = np.sqrt((xInv-x)**2+(yInv-y)**2)
+                        distB = np.append(distB, newdist)
+            
+                if self.sign == 1:
+                    tLower = copy.deepcopy(tUpper)
+                    tUpper += np.pi
+                    # if tLower > tmax:
+                    #     newdist = 2*dist
+                elif self.sign == -1:
+                    tUpper = copy.deepcopy(tLower)
+                    tLower -= np.pi
+                    # if tUpper < tmin:
+                    #     newdist = 2 * dist
+            else:
+                if self.sign == 1:
+                    tLower = copy.deepcopy(tUpper)
+                    tUpper += np.pi*0.5/i
+                    i+=1
+                elif self.sign == -1:
+                    tUpper = copy.deepcopy(tLower)
+                    tLower -= np.pi*0.5/i
+                    i+=1
+                    
+            if newdist <= distArray[-1]:
+                distArray = np.append(distArray, newdist)
+        
+        if distB.size != 0:  
+            if onSurf:
+                mini = np.argmin(distB)
+                minDis = np.min(distB)
+                if minDis <= self.tol*10:
+                    for i in range(distB.size):
+                        if i != mini:
+                            distA = np.append(distA, distB[i])
+                else:
+                    for i in range(distB.size):
+                            distA = np.append(distA, distB[i])
+            else:
+                for i in range(distB.size):
+                        distA = np.append(distA, distB[i])
+            
+            
+        return distA
+    
+    def DistanceRegulaFalsi(self,x,y,u,v, rmin, rmax, onSurf):
+        # Store to be used elsewhere
+        self.x = x
+        self.y = y
+        self.u = u
+        self.v = v
+        dir = np.array([u,v])
+        distA = np.array([])
+        
+        # Test if Particle is on involute
+        if onSurf:
+            distA = np.append(distA, 0)
+       
+        # Line angle parameter
+        try:
+            beta = np.arctan(-v/u)
+        except:
+            beta = np.pi*0.5*np.sign(-v)
+        
+        # First Interval Bounds
+        if self.sign == 1:
+            tLower = 0
+            tUpper = beta - self.a0
+            while tUpper <= 0:
+                tUpper += np.pi
+        elif self.sign == -1:
+            tLower = beta - self.a0 + 2 * np.pi
+            while tLower >= 0:
+                tLower -= np.pi
+            tUpper = 0
+        
+        # Root Function
+        def f(t):
+            a = self.u * np.sin(t+self.a0) - self.v * np.cos(t+self.a0)
+            b = t * (self.u * np.cos(t+self.a0) + self.v * np.sin(t+self.a0))
+            c = self.rb * (a-b)
+            return c + self.x * self.v - self.y * self.u
+        
+        # Point Function
+        def point(t):
+            angle = t + self.a0
+            xInv = self.rb * (np.cos(angle)+t*np.sin(angle))
+            yInv = self.rb * (np.sin(angle)-t*np.cos(angle))
+            return xInv, yInv
+        
+        # Iterate on Roots until you find a root further from point
+        smalldist = np.inf
+        dist = np.inf
+        newdist = 1e9
+        distArray = np.array([1e9])
+        
+        # Find Absolute tmin and tmax
+        if sign == 1:
+            tmin = np.sqrt(rmin**2/self.rb**2-1)
+            tmax = np.sqrt(rmax**2/self.rb**2-1)
+        elif sign == -1:
+            tmin = -np.sqrt(rmin**2/self.rb**2-1)
+            tmax = -np.sqrt(rmax**2/self.rb**2-1)
+        
+        i = 1
+        distB = np.array([])
+        while (tLower<=tmax and sign == 1) or \
+              (tUpper>=tmax and sign == -1):
+                  
+            dist = copy.deepcopy(newdist)
+            
+            
+            ta = tLower
+            tb = tUpper
+            
+            fta = f(ta)
+            ftb = f(tb)
+            
+            xa, ya = point(ta)
+            xb, yb = point(tb)
+            
+            if (np.sqrt(xa**2+ya**2) > rmax and sign == 1) or \
+               (np.sqrt(xb**2+yb**2) > rmax and sign == -1):
+                   break
+            
+            
+            if np.sign(fta) != np.sign(ftb):
+                ftc = 1
+                it = 0
+            
+                # Iteration
+                while np.abs(ftc) >= self.tol:
+                    
+                    # Regula Falsi : Buggs out sometimes
+                    tc = (ta*ftb-tb*fta)/(ftb-fta)
+                                        
+                    ftc = f(tc)
+                    
+                    if np.sign(ftc) == np.sign(ftb):
+                        tb = copy.deepcopy(tc)
+                        ftb = f(tb)
+                    else:
+                        ta  = copy.deepcopy(tc)
+                        fta = f(ta)
+                    it+=1
+
+                print("Iterations: {}".format(it))
+                t = tc
+                xInv,yInv = point(t)
+                
+                if xInv**2+yInv**2 >= rmin**2 -self.tol*10 and \
+                    xInv**2+yInv**2 < rmax**2 + self.tol*10:
+                
+                    dir2 = np.array([xInv-x,yInv-y])
+                    
+                    if np.dot(dir,dir2) >= 0:
+                        newdist = np.sqrt((xInv-x)**2+(yInv-y)**2)
+                        distB = np.append(distB, newdist)
+            
+                if self.sign == 1:
+                    tLower = copy.deepcopy(tUpper)
+                    tUpper += np.pi
+                    # if tLower > tmax:
+                    #     newdist = 2*dist
+                elif self.sign == -1:
+                    tUpper = copy.deepcopy(tLower)
+                    tLower -= np.pi
+                    # if tUpper < tmin:
+                    #     newdist = 2 * dist
+            else:
+                if self.sign == 1:
+                    tLower = copy.deepcopy(tUpper)
+                    tUpper += np.pi*0.5/i
+                    i+=1
+                elif self.sign == -1:
+                    tUpper = copy.deepcopy(tLower)
+                    tLower -= np.pi*0.5/i
+                    i+=1
+                    
+            if newdist <= distArray[-1]:
+                distArray = np.append(distArray, newdist)
+        
+        if distB.size != 0:  
+            if onSurf:
+                mini = np.argmin(distB)
+                minDis = np.min(distB)
+                if minDis <= self.tol*10:
+                    for i in range(distB.size):
+                        if i != mini:
+                            distA = np.append(distA, distB[i])
+                else:
+                    for i in range(distB.size):
+                            distA = np.append(distA, distB[i])
+            else:
+                for i in range(distB.size):
+                        distA = np.append(distA, distB[i])
+            
+            
+        return distA
+    
+    def DistanceBisection(self,x,y,u,v, rmin, rmax, onSurf):
+        # Store to be used elsewhere
+        self.x = x
+        self.y = y
+        self.u = u
+        self.v = v
+        dir = np.array([u,v])
+        distA = np.array([])
+        
+        # Test if Particle is on involute
+        if onSurf:
+            distA = np.append(distA, 0)
+       
+        # Line angle parameter
+        try:
+            beta = np.arctan(-v/u)
+        except:
+            beta = np.pi*0.5*np.sign(-v)
+        
+        # First Interval Bounds
+        if self.sign == 1:
+            tLower = 0
+            tUpper = beta - self.a0
+            while tUpper <= 0:
+                tUpper += np.pi
+        elif self.sign == -1:
+            tLower = beta - self.a0 + 2 * np.pi
+            while tLower >= 0:
+                tLower -= np.pi
+            tUpper = 0
+        
+        # Root Function
+        def f(t):
+            a = self.u * np.sin(t+self.a0) - self.v * np.cos(t+self.a0)
+            b = t * (self.u * np.cos(t+self.a0) + self.v * np.sin(t+self.a0))
+            c = self.rb * (a-b)
+            return c + self.x * self.v - self.y * self.u
+        
+        # Point Function
+        def point(t):
+            angle = t + self.a0
+            xInv = self.rb * (np.cos(angle)+t*np.sin(angle))
+            yInv = self.rb * (np.sin(angle)-t*np.cos(angle))
+            return xInv, yInv
+        
+        # Iterate on Roots until you find a root further from point
+        smalldist = np.inf
+        dist = np.inf
+        newdist = 1e9
+        distArray = np.array([1e9])
+        
+        # Find Absolute tmin and tmax
+        if sign == 1:
+            tmin = np.sqrt(rmin**2/self.rb**2-1)
+            tmax = np.sqrt(rmax**2/self.rb**2-1)
+        elif sign == -1:
+            tmin = -np.sqrt(rmin**2/self.rb**2-1)
+            tmax = -np.sqrt(rmax**2/self.rb**2-1)
+        
+        i = 1
+        distB = np.array([])
+        while (tLower<=tmax and sign == 1) or \
+              (tUpper>=tmax and sign == -1):
+                  
+            dist = copy.deepcopy(newdist)
+            
+            
+            ta = tLower
+            tb = tUpper
+            
+            fta = f(ta)
+            ftb = f(tb)
+            
+            xa, ya = point(ta)
+            xb, yb = point(tb)
+            
+            if (np.sqrt(xa**2+ya**2) > rmax and sign == 1) or \
+               (np.sqrt(xb**2+yb**2) > rmax and sign == -1):
+                   break
+            
+            
+            if np.sign(fta) != np.sign(ftb):
+                ftc = 1
+                it = 0
+            
+                # Iteration
+                while np.abs(ftc) >= self.tol:
+                    
+                    # Regula Falsi : Buggs out sometimes
+                    tc = 0.5*(ta+tb)
+                                        
+                    ftc = f(tc)
+                    
+                    if np.sign(ftc) == np.sign(ftb):
+                        tb = copy.deepcopy(tc)
+                        ftb = f(tb)
+                    else:
+                        ta  = copy.deepcopy(tc)
+                        fta = f(ta)
+                    it+=1
+
+                print("Iterations: {}".format(it))
+                t = tc
+                xInv,yInv = point(t)
+                
+                if xInv**2+yInv**2 >= rmin**2 -self.tol*10 and \
+                    xInv**2+yInv**2 < rmax**2 + self.tol*10:
+                
+                    dir2 = np.array([xInv-x,yInv-y])
+                    
+                    if np.dot(dir,dir2) >= 0:
+                        newdist = np.sqrt((xInv-x)**2+(yInv-y)**2)
+                        distB = np.append(distB, newdist)
+            
+                if self.sign == 1:
+                    tLower = copy.deepcopy(tUpper)
+                    tUpper += np.pi
+                    # if tLower > tmax:
+                    #     newdist = 2*dist
+                elif self.sign == -1:
+                    tUpper = copy.deepcopy(tLower)
+                    tLower -= np.pi
+                    # if tUpper < tmin:
+                    #     newdist = 2 * dist
+            else:
+                if self.sign == 1:
+                    tLower = copy.deepcopy(tUpper)
+                    tUpper += np.pi*0.5/i
+                    i+=1
+                elif self.sign == -1:
+                    tUpper = copy.deepcopy(tLower)
+                    tLower -= np.pi*0.5/i
+                    i+=1
+                    
+            if newdist <= distArray[-1]:
+                distArray = np.append(distArray, newdist)
+        
+        if distB.size != 0:  
+            if onSurf:
+                mini = np.argmin(distB)
+                minDis = np.min(distB)
+                if minDis <= self.tol*10:
+                    for i in range(distB.size):
+                        if i != mini:
+                            distA = np.append(distA, distB[i])
+                else:
+                    for i in range(distB.size):
+                            distA = np.append(distA, distB[i])
+            else:
+                for i in range(distB.size):
+                        distA = np.append(distA, distB[i])
+            
+            
+        return distA
+    
+    def DistanceIllinois(self,x,y,u,v, rmin, rmax, onSurf):
+        # Store to be used elsewhere
+        self.x = x
+        self.y = y
+        self.u = u
+        self.v = v
+        dir = np.array([u,v])
+        distA = np.array([])
+        
+        # Test if Particle is on involute
+        if onSurf:
+            distA = np.append(distA, 0)
+       
+        # Line angle parameter
+        try:
+            beta = np.arctan(-v/u)
+        except:
+            beta = np.pi*0.5*np.sign(-v)
+        
+        # First Interval Bounds
+        if self.sign == 1:
+            tLower = 0
+            tUpper = beta - self.a0
+            while tUpper <= 0:
+                tUpper += np.pi
+        elif self.sign == -1:
+            tLower = beta - self.a0 + 2 * np.pi
+            while tLower >= 0:
+                tLower -= np.pi
+            tUpper = 0
+        
+        # Root Function
+        def f(t):
+            a = self.u * np.sin(t+self.a0) - self.v * np.cos(t+self.a0)
+            b = t * (self.u * np.cos(t+self.a0) + self.v * np.sin(t+self.a0))
+            c = self.rb * (a-b)
+            return c + self.x * self.v - self.y * self.u
+        
+        # Point Function
+        def point(t):
+            angle = t + self.a0
+            xInv = self.rb * (np.cos(angle)+t*np.sin(angle))
+            yInv = self.rb * (np.sin(angle)-t*np.cos(angle))
+            return xInv, yInv
+        
+        # Iterate on Roots until you find a root further from point
+        smalldist = np.inf
+        dist = np.inf
+        newdist = 1e9
+        distArray = np.array([1e9])
+        
+        # Find Absolute tmin and tmax
+        if sign == 1:
+            tmin = np.sqrt(rmin**2/self.rb**2-1)
+            tmax = np.sqrt(rmax**2/self.rb**2-1)
+        elif sign == -1:
+            tmin = -np.sqrt(rmin**2/self.rb**2-1)
+            tmax = -np.sqrt(rmax**2/self.rb**2-1)
+        
+        i = 1
+        distB = np.array([])
+        while (tLower<=tmax and sign == 1) or \
+              (tUpper>=tmax and sign == -1):
+                  
+            dist = copy.deepcopy(newdist)
+            
+            
+            ta = tLower
+            tb = tUpper
+            
+            fta = f(ta)
+            ftb = f(tb)
+            
+            xa, ya = point(ta)
+            xb, yb = point(tb)
+            
+            if (np.sqrt(xa**2+ya**2) > rmax and sign == 1) or \
+               (np.sqrt(xb**2+yb**2) > rmax and sign == -1):
+                   break
+            
+            
+            if np.sign(fta) != np.sign(ftb):
+                ftc = 1
+                it = 0
+                side = 0
+            
+                # Iteration
+                while np.abs(ftc) >= self.tol:
+                    
+                    # Regula Falsi : Buggs out sometimes
+                    tc = (ta*ftb-tb*fta)/(ftb-fta)
+                                        
+                    ftc = f(tc)
+                    
+                    if np.sign(ftc) == np.sign(ftb):
+                        tb = copy.deepcopy(tc)
+                        ftb = f(tb)
+                        if side == 1:
+                            fta *= 0.5
+                        side = 1
+                    else:
+                        ta  = copy.deepcopy(tc)
+                        fta = f(ta)
+                        if side == -1:
+                            ftb *= 0.5
+                        side = -1
+                    it+=1
+
+                print("Iterations: {}".format(it))
                 t = tc
                 xInv,yInv = point(t)
                 
@@ -246,7 +708,8 @@ class Involute:
         b = t * (self.u * np.cos(t+self.a0) + self.v * np.sin(t+self.a0))
         c = self.rb * (a-b)
         return c + self.x * self.v - self.y * self.u          
-        
+
+# Test Points        
 if False:                
     # First Test   
     rb = 1.0
@@ -506,7 +969,8 @@ if False:
     else:
         print("Test 11: Failed")       
         
-if True:
+# Tangent Cases
+if False:
     rb = 1
     a0 = 0
     t = np.linspace(np.pi*0.33, np.pi*0.67, 5000)
@@ -766,6 +1230,135 @@ if True:
         print("Seccant Behind Off Surface Test: Passed")
     else:
         print("Seccant Behind Off Surface Test: Failed")
+        
+# Iteration methods
+if True:
+    
+    print("Convergeence 1")
+    rb = 1
+    a0 = 0
+    t = np.linspace(np.pi*0.33, np.pi*0.67, 5000)
+    sign = 1
+    involute = Involute(rb, a0, t, sign)
+    
+    tmin = np.pi*0.33
+    tmax = np.pi*0.67
+    rmin = rb*np.sqrt(1+tmin**2)
+    rmax = rb*np.sqrt(1+tmax**2)
+    t = np.pi * 0.5002
+    involute_tan = Involute(rb, a0, t, sign)
+    
+    u = 0
+    v = 1
+    
+    eps = -0.00000001
+    x = involute_tan.involuteX
+    y = involute_tan.involuteY+eps
+    
+    
+    print("Regula Falsi Method")
+    dist  = involute.DistanceRegulaFalsi(x, y, u, v, rmin, rmax, True)
+    print("Illinois Method")
+    dist  = involute.DistanceIllinois(x, y, u, v, rmin, rmax, True)
+    print("Bisection Method")
+    dist  = involute.DistanceBisection(x, y, u, v, rmin, rmax, True)
+    
+    print("\n")
+    print("Convergence 2")
+    
+    rb = 3
+    a0 = np.pi
+    t = np.linspace(2, 4,500)
+    sign = 1
+    involute = Involute(rb, a0, t, sign)
+        
+    x = -4.101853006408607
+    y = -5.443541628262038
+    u = 0
+    v = 1
+    tmin = 2
+    tmax = 4
+    rmin = rb*np.sqrt(1+tmin**2)
+    rmax = rb*np.sqrt(1+tmax**2)
+    
+    print("Regula Falsi Method")
+    dist  = involute.DistanceRegulaFalsi(x, y, u, v, rmin, rmax, True)
+    print("Illinois Method")
+    dist  = involute.DistanceIllinois(x, y, u, v, rmin, rmax, True)
+    print("Bisection Method")
+    dist  = involute.DistanceBisection(x, y, u, v, rmin, rmax, True)
+    
+    print("\n")
+    print("Convergence 3")
+    
+    rb = 1.1
+    a0 = -np.pi*0.5
+    t = np.linspace(0,1.999*np.pi,500)
+    sign = 1
+    involute = Involute(rb, a0, t, sign)
+    
+    x = -6.865305298657132
+    y = -0.30468305643505367
+    u = 0.9933558377574788
+    v = -0.11508335932330707
+    tmin = 0
+    tmax = 1.999*np.pi
+    rmin = rb*np.sqrt(1+tmin**2)
+    rmax = rb*np.sqrt(1+tmax**2)
+    print("Regula Falsi Method")
+    dist  = involute.DistanceRegulaFalsi(x, y, u, v, rmin, rmax, True)
+    print("Illinois Method")
+    dist  = involute.DistanceIllinois(x, y, u, v, rmin, rmax, True)
+    print("Bisection Method")
+    dist  = involute.DistanceBisection(x, y, u, v, rmin, rmax, True)
+    
+    print("\n")
+    print("Convergence 4")
+    
+    rb = 1.0
+    a0 = 0
+    t = np.linspace(0,1.999*np.pi,500)
+    sign = 1
+    involute = Involute(rb, a0, t, sign)
+    
+    x = 0
+    y = 0
+    u = 0
+    v = 1
+    tmin = 0
+    tmax = 1.999*np.pi
+    rmin = rb*np.sqrt(1+tmin**2)
+    rmax = rb*np.sqrt(1+tmax**2)
+    print("Regula Falsi Method")
+    dist  = involute.DistanceRegulaFalsi(x, y, u, v, rmin, rmax, True)
+    print("Illinois Method")
+    dist  = involute.DistanceIllinois(x, y, u, v, rmin, rmax, True)
+    print("Bisection Method")
+    dist  = involute.DistanceBisection(x, y, u, v, rmin, rmax, True)
+    
+    print("\n")
+    print("Convergence 4")
+    
+    rb = 1.1
+    a0 = -np.pi*0.5
+    t = np.linspace(0,1.999*np.pi,500)
+    sign = -1
+    involute = Involute(rb, a0, t, sign)
+    
+    x = -0.0001
+    y = -1.11
+    u = -0.1
+    v = 0.9949874371
+    tmin = 0
+    tmax = 1.999*np.pi
+    rmin = rb*np.sqrt(1+tmin**2)
+    rmax = rb*np.sqrt(1+tmax**2)
+    print("Regula Falsi Method")
+    dist  = involute.DistanceRegulaFalsi(x, y, u, v, rmin, rmax, True)
+    print("Illinois Method")
+    dist  = involute.DistanceIllinois(x, y, u, v, rmin, rmax, True)
+    print("Bisection Method")
+    dist  = involute.DistanceBisection(x, y, u, v, rmin, rmax, True)
                 
 # # Test Involute      
 # rb = 1.0
