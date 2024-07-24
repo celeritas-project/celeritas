@@ -71,6 +71,20 @@ inline bool has_orientation(Span<Real2 const> corners, Orientation o)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether the orientation is the same or degenerate if allowed.
+ */
+inline bool
+is_same_orientation(Orientation a, Orientation b, bool degen_ok = false)
+{
+    if (a == Orientation::collinear || b == Orientation::collinear)
+    {
+        return degen_ok;
+    }
+    return (a == b);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Check if a 2D polygon is convex.
  *
  * \param corners the vertices of the polygon
@@ -90,8 +104,7 @@ inline bool is_convex(Span<Real2 const> corners, bool degen_ok = false)
             // First non-collinear point
             ref = cur;
         }
-        if ((!degen_ok && cur == Orientation::collinear)
-            || (!(degen_ok && cur == Orientation::collinear) && cur != ref))
+        if (!is_same_orientation(cur, ref, degen_ok))
         {
             // Prohibited collinear orientation, or different orientation from
             // reference
