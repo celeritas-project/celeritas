@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -15,8 +15,6 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
-
-#include "detail/MathImpl.hh"
 
 namespace celeritas
 {
@@ -36,11 +34,11 @@ namespace celeritas
  * proximity to 0.
  */
 template<class F>
-class Bisection
+class BisectionRootFinder
 {
   public:
     // Contruct with function to solve and solution tolerance
-    inline CELER_FUNCTION Bisection(F&& func, real_type tol);
+    inline CELER_FUNCTION BisectionRootFinder(F&& func, real_type tol);
 
     // Solve for a root between two points
     inline real_type operator()(real_type left, real_type right);
@@ -58,7 +56,7 @@ class Bisection
 //---------------------------------------------------------------------------//
 
 template<class F, class... Args>
-Bisection(F&&, Args...) -> Bisection<F>;
+BisectionRootFinder(F&&, Args...) -> BisectionRootFinder<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -67,7 +65,8 @@ Bisection(F&&, Args...) -> Bisection<F>;
  * Construct from function.
  */
 template<class F>
-CELER_FUNCTION Bisection<F>::Bisection(F&& func, real_type tol)
+CELER_FUNCTION
+BisectionRootFinder<F>::BisectionRootFinder(F&& func, real_type tol)
     : func_{celeritas::forward<F>(func)}, tol_{tol}
 {
     CELER_EXPECT(tol_ > 0);
@@ -78,8 +77,8 @@ CELER_FUNCTION Bisection<F>::Bisection(F&& func, real_type tol)
  * Solve for a root between the two points.
  */
 template<class F>
-CELER_FUNCTION real_type Bisection<F>::operator()(real_type left,
-                                                  real_type right)
+CELER_FUNCTION real_type BisectionRootFinder<F>::operator()(real_type left,
+                                                            real_type right)
 {
     // Initialize Iteration parameters
     real_type f_left = func_(left);
@@ -91,7 +90,7 @@ CELER_FUNCTION real_type Bisection<F>::operator()(real_type left,
     do
     {
         // Estimate root and update value
-        root = 0.5 * (left + right);
+        root = real_type(0.5) * (left + right);
         f_root = func_(root);
 
         // Update the bound which produces the same sign as the root

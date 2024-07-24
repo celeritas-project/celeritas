@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -16,8 +16,6 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 
-#include "detail/MathImpl.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -25,17 +23,26 @@ namespace celeritas
  * Perform Regula Falsi (see RegulaFalsi for more details) iterations given a
  * root function \em func and tolerance \em tol using the Illinois method.
  *
- * Illonois method modifies the standard approach by comparing the sign of
+ * Illinois method modifies the standard approach by comparing the sign of
  * \em func(root) approximation in the current iteration with the previous
  * approximation. If both iterations are on the same side then the \em func at
  * the bound on the other side is halved.
  */
 template<class F>
-class Illinois
+class IllinoisRootFinder
 {
   public:
+    //! Enum defining side of aproximated root to true root
+    enum class Side
+    {
+        left = -1,
+        init = 0,
+        right = 1
+    };
+
+  public:
     // Contruct with function to solve and solution tolerance
-    inline CELER_FUNCTION Illinois(F&& func, real_type tol);
+    inline CELER_FUNCTION IllinoisRootFinder(F&& func, real_type tol);
 
     // Solve for a root between two points
     inline real_type operator()(real_type left, real_type right);
@@ -53,7 +60,7 @@ class Illinois
 //---------------------------------------------------------------------------//
 
 template<class F, class... Args>
-Illinois(F&&, Args...) -> Illinois<F>;
+IllinoisRootFinder(F&&, Args...) -> IllinoisRootFinder<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -62,7 +69,8 @@ Illinois(F&&, Args...) -> Illinois<F>;
  * Construct from function.
  */
 template<class F>
-CELER_FUNCTION Illinois<F>::Illinois(F&& func, real_type tol)
+CELER_FUNCTION
+IllinoisRootFinder<F>::IllinoisRootFinder(F&& func, real_type tol)
     : func_{celeritas::forward<F>(func)}, tol_{tol}
 {
     CELER_EXPECT(tol_ > 0);
@@ -73,15 +81,15 @@ CELER_FUNCTION Illinois<F>::Illinois(F&& func, real_type tol)
  * Solve for a root between the two points.
  */
 template<class F>
-CELER_FUNCTION real_type Illinois<F>::operator()(real_type left,
-                                                 real_type right)
+CELER_FUNCTION real_type IllinoisRootFinder<F>::operator()(real_type left,
+                                                           real_type right)
 {
     // Initialize Iteration parameters
     real_type f_left = func_(left);
     real_type f_right = func_(right);
     real_type f_root = 1;
     real_type root = 0;
-    real_type side = 0;
+    Side side = Side::init;
     int remaining_iters = max_iters_;
 
     // Iterate on root
@@ -96,21 +104,21 @@ CELER_FUNCTION real_type Illinois<F>::operator()(real_type left,
         {
             left = root;
             f_left = f_root;
-            if (side == -1)
+            if (side == Side::left)
             {
-                f_right *= 0.5;
+                f_right *= real_type(0.5);
             }
-            side = -1;
+            side = Side::left;
         }
         else
         {
             right = root;
             f_right = f_root;
-            if (side == 1)
+            if (side == Side::right)
             {
-                f_left *= 0.5;
+                f_left *= real_type(0.5);
             }
-            side = 1;
+            side = Side::right;
         }
     } while (std::fabs(f_root) > tol_ && --remaining_iters > 0);
 

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -31,7 +31,7 @@ TEST(Bisection, root_two)
 
     constexpr real_type tol = SoftEqual<>{}.rel();
 
-    Bisection find_root{root, tol};
+    BisectionRootFinder find_root{root, tol};
 
     EXPECT_SOFT_EQ(2.0, find_root(1.75, 2.25));
     EXPECT_SOFT_EQ(-2.0, find_root(-2.25, -1.75));
@@ -44,7 +44,7 @@ TEST(Bisection, golden_ratio)
 
     constexpr real_type tol = SoftEqual<>{}.rel();
 
-    Bisection find_root{root, tol};
+    BisectionRootFinder find_root{root, tol};
 
     EXPECT_SOFT_EQ(1.618033988749, find_root(1.5, 1.75));
     EXPECT_SOFT_EQ(-0.6180339887498, find_root(-0.75, -0.5));
@@ -57,7 +57,7 @@ TEST(Bisection, trigometric)
 
     constexpr real_type tol = SoftEqual<>{}.rel();
 
-    Bisection find_root{root, tol};
+    BisectionRootFinder find_root{root, tol};
 
     EXPECT_SOFT_EQ(pi * 0.5, find_root(0, pi));
     EXPECT_SOFT_EQ(pi * 1.5, find_root(pi, 2 * pi));
@@ -75,10 +75,10 @@ TEST(Bisection, trigometric)
  */
 TEST(Bisection, exponential_intersect)
 {
-    double x = 1.5;
-    double y = 0.5;
-    double u = -0.7071067812;
-    double v = 0.7071067812;
+    real_type x = 1.5;
+    real_type y = 0.5;
+    real_type u = -0.7071067812;
+    real_type v = 0.7071067812;
 
     auto root = [&](real_type t) {
         return u * std::exp(t - 1) - v * t + v * x - u * y;
@@ -86,7 +86,7 @@ TEST(Bisection, exponential_intersect)
 
     constexpr real_type tol = SoftEqual<>{}.rel();
 
-    Bisection find_root{root, tol};
+    BisectionRootFinder find_root{root, tol};
 
     EXPECT_SOFT_EQ(1.0, find_root(0.5, 1.5));
 }
