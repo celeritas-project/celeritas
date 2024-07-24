@@ -43,7 +43,7 @@ class IllinoisRootFinder
     real_type tol_;
 
     // Maximum amount of iterations
-    static constexpr inline int max_iters_ = 30;
+    static constexpr inline int max_iters_ = 50;
 };
 
 //---------------------------------------------------------------------------//
