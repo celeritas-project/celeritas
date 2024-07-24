@@ -210,7 +210,7 @@ InvoluteSolver::operator()(Real3 const& pos,
         real_type gamma = r_b_ * (alpha - beta);
         return gamma + x * v - y * u;
     };
-    RegulaFalsi find_root_between{calc_t_intersect, tol_conv};
+    RegulaFalsiRootFinder find_root_between{calc_t_intersect, tol_conv};
 
     // Iterate on roots
     while (t_lower < tmax_)
