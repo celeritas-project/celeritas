@@ -105,6 +105,7 @@ CELER_FUNCTION real_type BisectionRootFinder<F>::operator()(real_type left,
         }
     } while (std::fabs(f_root) > tol_ && --remaining_iters > 0);
 
+    CELER_ENSURE(remaining_iters > 0);
     return root;
 }
 
