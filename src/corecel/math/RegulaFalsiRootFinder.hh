@@ -42,7 +42,7 @@ class RegulaFalsiRootFinder
     inline CELER_FUNCTION RegulaFalsiRootFinder(F&& func, real_type tol);
 
     // Solve for a root between two points
-    inline real_type operator()(real_type left, real_type right);
+    inline CELER_FUNCTION real_type operator()(real_type left, real_type right);
 
   private:
     F func_;

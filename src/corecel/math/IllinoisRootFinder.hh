@@ -32,20 +32,11 @@ template<class F>
 class IllinoisRootFinder
 {
   public:
-    //! Enum defining side of aproximated root to true root
-    enum class Side
-    {
-        left = -1,
-        init = 0,
-        right = 1
-    };
-
-  public:
     // Contruct with function to solve and solution tolerance
     inline CELER_FUNCTION IllinoisRootFinder(F&& func, real_type tol);
 
     // Solve for a root between two points
-    inline real_type operator()(real_type left, real_type right);
+    inline CELER_FUNCTION real_type operator()(real_type left, real_type right);
 
   private:
     F func_;
@@ -84,6 +75,14 @@ template<class F>
 CELER_FUNCTION real_type IllinoisRootFinder<F>::operator()(real_type left,
                                                            real_type right)
 {
+    //! Enum defining side of aproximated root to true root
+    enum class Side
+    {
+        left = -1,
+        init = 0,
+        right = 1
+    };
+
     // Initialize Iteration parameters
     real_type f_left = func_(left);
     real_type f_right = func_(right);
