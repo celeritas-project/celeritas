@@ -32,10 +32,10 @@ The easiest way to install Celeritas as a library/app is with Spack:
 To install a GPU-enabled Celeritas build, you might have to make sure that VecGeom is also built with CUDA
 support if installing `celeritas+vecgeom`, which is the default geometry.
 To do so, set the following configuration:
-```shell
+```console
 # Replace cuda_arch=80 with your target architecture
-spack config add packages:vecgeom:variants:"cxxstd=17 +cuda cuda_arch=80"
-spack install celeritas +cuda cuda_arch=80
+$ spack config add packages:vecgeom:variants:"cxxstd=17 +cuda cuda_arch=80"
+$ spack install celeritas +cuda cuda_arch=80
 ```
 
 Then see the "Downstream usage as a library" section of the [installation
@@ -56,25 +56,25 @@ As an example, if you have the [Spack][spack] package manager
 installed and want to do development on a CUDA system with Volta-class graphics
 cards, execute the following steps from within the cloned Celeritas source
 directory:
-```shell
+```console
 # Set up CUDA (optional)
-spack external find cuda
+$ spack external find cuda
 # Install celeritas dependencies
-spack env create celeritas scripts/spack.yaml
-spack env activate celeritas
-spack config add packages:all:variants:"cxxstd=17 +cuda cuda_arch=70"
-spack install
+$ spack env create celeritas scripts/spack.yaml
+$ spack env activate celeritas
+$ spack config add packages:all:variants:"cxxstd=17 +cuda cuda_arch=70"
+$ spack install
 # Configure, build, and test
-./build.sh base
+$ ./build.sh base
 ```
 
 If you don't use Spack but have all the dependencies you want (Geant4,
 googletest, VecGeom, etc.) in your `CMAKE_PREFIX_PATH`, you can configure and
 build Celeritas as you would any other project:
-```shell
-mkdir build && cd build
-cmake ..
-make && ctest
+```console
+$ mkdir build && cd build
+$ cmake ..
+$ make && ctest
 ```
 
 Celeritas guarantees full compatibility and correctness only on the
