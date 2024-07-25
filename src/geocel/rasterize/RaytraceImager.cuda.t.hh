@@ -16,7 +16,8 @@
 
 #include "geocel/rasterize/RaytraceImager.hh"
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Macros.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/ThreadId.hh"

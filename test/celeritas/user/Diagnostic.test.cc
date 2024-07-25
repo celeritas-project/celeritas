@@ -5,7 +5,8 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/user/Diagnostic.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas_cmake_strings.h"
+#include "corecel/Config.hh"
+
 #include "corecel/cont/Span.hh"
 #include "corecel/io/StringUtils.hh"
 #include "geocel/UnitUtils.hh"

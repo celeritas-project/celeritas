@@ -10,7 +10,8 @@
 #include <utility>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/math/Quantity.hh"
 

@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 
 // IWYU pragma: begin_exports
 // Alias core RNG type using on compile-time RNG selection

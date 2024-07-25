@@ -8,7 +8,7 @@ AlignEscapedNewlines: Left
 AlignOperands:   true
 AlignTrailingComments: false
 AllowAllParametersOfDeclarationOnNextLine: true
-AllowShortBlocksOnASingleLine: true
+AllowShortBlocksOnASingleLine: Always
 AllowShortCaseLabelsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: Inline
 AllowShortIfStatementsOnASingleLine: false
@@ -71,44 +71,42 @@ IncludeCategories:
   - Regex:           '^<.+>$'
     Priority:        1
     SortPriority:    2
-  - Regex:           '^"celeritas_[a-z_]+\.h"'
-    Priority:        2
-    SortPriority:    3
-  - Regex:           '^"corecel/device_runtime_api\.h"$'
+# Special group for config/version headers as they might be needed before other headers
+  - Regex:           '^"corecel/(Config|Version|DeviceRuntimeApi)\.hh"$'
     Priority:        2
     SortPriority:    3
   - Regex:           '^"corecel/'
-    Priority:        2
+    Priority:        3
     SortPriority:    5
     CaseSensitive:   true
   - Regex:           '^"geocel/'
-    Priority:        2
+    Priority:        3
     SortPriority:    6
     CaseSensitive:   true
   - Regex:           '^"orange/'
-    Priority:        2
+    Priority:        3
     SortPriority:    7
     CaseSensitive:   true
   - Regex:           '^"celeritas/'
-    Priority:        2
+    Priority:        3
     SortPriority:    8
     CaseSensitive:   true
   - Regex:           '^"accel/'
-    Priority:        2
+    Priority:        3
     SortPriority:    9
     CaseSensitive:   true
   - Regex:           '^"[^/]+"'
-    Priority:        5
+    Priority:        6
     SortPriority:    11
   - Regex:           '^"detail/'
-    Priority:        6
+    Priority:        7
     SortPriority:    13
   - Regex:           '"(^gtest/|TestBase|\.test\.hh|celeritas_test\.hh)'
-    Priority:        7
+    Priority:        8
     CaseSensitive:   true
     SortPriority:    14
   - Regex:           '.*'
-    Priority:        5
+    Priority:        6
     SortPriority:    12 # higher than detail, lower than no-slash
 IncludeIsMainRegex: '(\.[^.]+)?$'
 IncludeIsMainSourceRegex: '(\.cu|\.t\.hh)$' # Allow CU/template files as main
@@ -138,7 +136,7 @@ PenaltyReturnTypeOnItsOwnLine: 10
 PointerAlignment: Left
 QualifierAlignment: Right
 ReflowComments:  true
-SortIncludes:    true
+SortIncludes:    CaseSensitive
 SortUsingDeclarations: true
 SpaceAfterCStyleCast: false
 SpaceAfterTemplateKeyword: false
@@ -155,7 +153,7 @@ SpacesInContainerLiterals: false
 SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
-Standard:        Cpp11
+Standard:        c++17
 StatementMacros:
   - Q_UNUSED
   - QT_REQUIRE_VERSION

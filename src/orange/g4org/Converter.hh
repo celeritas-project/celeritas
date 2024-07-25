@@ -11,7 +11,8 @@
 #include <memory>
 #include <unordered_map>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "orange/OrangeInput.hh"
 #include "orange/OrangeTypes.hh"
 

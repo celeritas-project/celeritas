@@ -12,7 +12,8 @@
 #include <string>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/io/ColorUtils.hh"
 #include "corecel/io/JsonPimpl.hh"

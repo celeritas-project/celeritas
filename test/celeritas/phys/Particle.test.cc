@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "Particle.test.hh"
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/cont/Array.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/Quantities.hh"

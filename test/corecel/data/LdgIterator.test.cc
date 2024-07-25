@@ -37,8 +37,8 @@ TEST_F(LdgIteratorTest, arithmetic_t)
     auto n = some_data.size();
     auto start = some_data.begin();
     auto end = some_data.end();
-    auto ldg_start = make_ldg_iterator(some_data.data());
-    auto ldg_end = make_ldg_iterator(some_data.data() + n);
+    auto ldg_start = LdgIterator(some_data.data());
+    auto ldg_end = LdgIterator(some_data.data() + n);
     LdgIterator ctad_itr{some_data.data()};
     EXPECT_TRUE((std::is_same_v<decltype(ctad_itr), decltype(ldg_start)>));
     using ptr_type = typename decltype(ldg_start)::pointer;
@@ -82,8 +82,8 @@ TEST_F(LdgIteratorTest, opaqueid_t)
     using VecId = std::vector<TestId>;
     VecId const some_data = {TestId{1}, TestId{2}, TestId{3}, TestId{4}};
     auto n = some_data.size();
-    auto ldg_start = make_ldg_iterator(some_data.data());
-    auto ldg_end = make_ldg_iterator(some_data.data() + n);
+    auto ldg_start = LdgIterator(some_data.data());
+    auto ldg_end = LdgIterator(some_data.data() + n);
     LdgIterator ctad_itr{some_data.data()};
     EXPECT_TRUE((std::is_same_v<decltype(ctad_itr), decltype(ldg_start)>));
     using ptr_type = typename decltype(ldg_start)::pointer;
@@ -126,8 +126,8 @@ TEST_F(LdgIteratorTest, byte_t)
     VecByte const some_data
         = {std::byte{1}, std::byte{2}, std::byte{3}, std::byte{4}};
     auto n = some_data.size();
-    auto ldg_start = make_ldg_iterator(some_data.data());
-    auto ldg_end = make_ldg_iterator(some_data.data() + n);
+    auto ldg_start = LdgIterator(some_data.data());
+    auto ldg_end = LdgIterator(some_data.data() + n);
     LdgIterator ctad_itr{some_data.data()};
     EXPECT_TRUE((std::is_same_v<decltype(ctad_itr), decltype(ldg_start)>));
     using ptr_type = typename decltype(ldg_start)::pointer;

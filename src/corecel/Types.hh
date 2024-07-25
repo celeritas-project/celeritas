@@ -16,7 +16,7 @@
 #include <cstddef>
 #include <string>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 
 #include "Macros.hh"
 
@@ -77,6 +77,15 @@ enum class UnitSystem
     clhep,  //!< Geant4 native
     size_,
     native = CELERITAS_UNITS,  //!< Compile time selected system
+};
+
+//---------------------------------------------------------------------------//
+//! Interpolation type
+enum class Interp
+{
+    linear,
+    log,
+    size_
 };
 
 #if !defined(SWIG) || SWIG_VERSION > 0x050000

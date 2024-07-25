@@ -14,7 +14,8 @@
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 
-#include "celeritas_cmake_strings.h"
+#include "corecel/Config.hh"
+
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Join.hh"

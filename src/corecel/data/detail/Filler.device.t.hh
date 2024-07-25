@@ -14,7 +14,8 @@
 #include <thrust/execution_policy.h>
 #include <thrust/fill.h>
 
-#include "corecel/device_runtime_api.h"
+#include "corecel/DeviceRuntimeApi.hh"
+
 #include "corecel/sys/Thrust.device.hh"
 
 namespace celeritas

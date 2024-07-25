@@ -15,7 +15,8 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/MpiCommunicator.hh"

@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #include <string>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Constants.hh"
 #include "corecel/io/Label.hh"
 #include "orange/OrangeParams.hh"
