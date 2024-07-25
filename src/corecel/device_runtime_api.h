@@ -12,68 +12,15 @@
 #ifndef CELERITAS_DEVICE_RUNTIME_API_H
 #define CELERITAS_DEVICE_RUNTIME_API_H
 
-#ifdef __cplusplus
-#    if __GNUC__ > 8 || __clang__
-#        pragma GCC warning \
-            "corecel/device_runtime_api.h is deprecated and should be replaced by \"corecel/DeviceRuntimeApi.hh\""
-#    endif
-#    include "corecel/DeviceRuntimeApi.hh
-#else
-
-#    include "celeritas_config.h"
-
-#    if CELERITAS_USE_HIP && !defined(__HIPCC__)
-/* Assume we're on an AMD system but not being invoked by the rocm compiler */
-#        define __HIP_PLATFORM_AMD__ 1
-#        define __HIP_PLATFORM_HCC__ 1
-#    endif
-
-#    if CELERITAS_USE_CUDA
-#        include <cuda_runtime_api.h>
-#        define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CUDA
-#    elif CELERITAS_USE_HIP
-#        include <hip/hip_runtime.h>
-#        define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_HIP
-#    endif
-
-#    if CELERITAS_USE_CUDA || CELERITAS_USE_HIP
-#        include <thrust/mr/memory_resource.h>
-#    endif
-
-/*!
- * \def CELER_EU_PER_CU
- *
- * Execution units per compute unit.  AMD multiprocessors each have 4 SIMD
- * units per compute unit, but there is no device attribute or
- * compiler definition that provides this information.
- * For CUDA, each streaming multiprocessor (MP) is a single "execution unit"
- * and a "compute unit".
- */
-#    if CELERITAS_USE_CUDA
-#        define CELER_EU_PER_CU 1
-#    elif CELERITAS_USE_HIP
-#        if defined(__HIP_PLATFORM_AMD__) || defined(__HIP_PLATFORM_HCC__)
-#            define CELER_EU_PER_CU 4
-#        elif defined(__HIP_PLATFORM_NVIDIA__) \
-            || defined(__HIP_PLATFORM_NVCC__)
-#            define CELER_EU_PER_CU 1
-#        else
-#            warning "Unknown HIP device configuration"
-#            define CELER_EU_PER_CU 0
-#        endif
-#    else
-/* HIP and CUDA are disabled */
-#        define CELER_EU_PER_CU 0
-#    endif
-
-/*!
- * Declare a dummy variable to be referenced in disabled \c CELER_BLAH calls.
- *
- * With this declaration, the build will fail if this include is missing.
- * (Unfortunately, since the use of this symbol is embedded in a macro, IWYU
- * won't include this file automatically.)
- */
-extern int celeritas_device_runtime_api_h_;
+#if __cplusplus < 201703L
+#    error "Celeritas requires C++17 or greater and is not C compatible"
 #endif
+
+#if __GNUC__ > 8 || __clang__
+#    pragma GCC warning \
+        "corecel/device_runtime_api.h is deprecated and should be replaced by \"corecel/DeviceRuntimeApi.hh\""
+#endif
+
+#include "corecel/DeviceRuntimeApi.hh
 
 #endif /* CELERITAS_DEVICE_RUNTIME_API_H */
