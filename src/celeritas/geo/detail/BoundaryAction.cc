@@ -9,6 +9,7 @@
 
 #include <string>
 
+#include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"

@@ -40,6 +40,7 @@
 #include "celeritas/phys/ParticleParamsOutput.hh"
 #include "celeritas/phys/PhysicsParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/PhysicsParamsOutput.hh"
+#include "celeritas/phys/detail/TrackingCutAction.hh"
 #include "celeritas/random/RngParams.hh"  // IWYU pragma: keep
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/ExtendFromSecondariesAction.hh"
@@ -129,18 +130,6 @@ class PropagationLimitAction final : public ConcreteAction
 };
 
 //---------------------------------------------------------------------------//
-class AbandonLoopingAction final : public ConcreteAction
-{
-  public:
-    //! Construct with ID
-    explicit AbandonLoopingAction(ActionId id)
-        : ConcreteAction(
-            id, "kill-looping", "kill due to too many field substeps")
-    {
-    }
-};
-
-//---------------------------------------------------------------------------//
 /*!
  * Construct always-required actions and set IDs.
  */
@@ -195,17 +184,19 @@ CoreScalars build_actions(ActionRegistry* reg)
     reg->insert(
         make_shared<PropagationLimitAction>(scalars.propagation_limit_action));
 
-    // Construct action for killed looping tracks
-    scalars.abandon_looping_action = reg->next_id();
-    reg->insert(
-        make_shared<AbandonLoopingAction>(scalars.abandon_looping_action));
-
     //// POST-STEP ACTIONS ////
 
-    // Construct geometry action
+    // Construct geometry boundary action
     scalars.boundary_action = reg->next_id();
     reg->insert(make_shared<celeritas::detail::BoundaryAction>(
         scalars.boundary_action));
+
+    // Construct action for killed looping tracks/error geometry
+    // NOTE: due to ordering by {start, ID}, TrackingCutAction *must*
+    // be after BoundaryAction
+    scalars.tracking_cut_action = reg->next_id();
+    reg->insert(
+        make_shared<detail::TrackingCutAction>(scalars.tracking_cut_action));
 
     //// END ACTIONS ////
 

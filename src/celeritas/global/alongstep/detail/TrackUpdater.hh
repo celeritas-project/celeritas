@@ -38,11 +38,17 @@ CELER_FUNCTION void TrackUpdater::operator()(CoreTrackView const& track)
                      || track.make_particle_view().is_stopped());
         CELER_ASSERT(sim.post_step_action());
         auto phys = track.make_physics_view();
-        if (sim.post_step_action() != phys.scalars().discrete_action())
+        if (sim.post_step_action() != phys.scalars().discrete_action()
+            && (!CELERITAS_DEBUG
+                || sim.post_step_action() != track.tracking_cut_action()))
         {
             // Reduce remaining mean free paths to travel. The 'discrete
             // action' case is launched separately and resets the
-            // interaction MFP itself.
+            // interaction MFP itself. In the unlikely case that a track is
+            // about to be killed because it's looping (it's reached its
+            // collision point but has undergone too many steps), it's OK to
+            // set the interaction MFP to zero (but avoid during debug mode due
+            // to the additional error checking).
             auto step = track.make_physics_step_view();
             real_type mfp = phys.interaction_mfp()
                             - sim.step_length() * step.macro_xs();

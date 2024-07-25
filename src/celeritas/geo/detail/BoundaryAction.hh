@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
 #include "celeritas/global/ActionInterface.hh"
 
 namespace celeritas

@@ -65,6 +65,7 @@ celeritas_add_test_library(testcel_celeritas
   GlobalGeoTestBase.cc
   GlobalTestBase.cc
   ImportedDataTestBase.cc
+  InvalidOrangeTestBase.cc
   MockTestBase.cc
   RootTestBase.cc
   SimpleTestBase.cc
@@ -120,6 +121,7 @@ celeritas_add_test(em/TsaiUrbanDistribution.test.cc ${_needs_double})
 
 # Models
 celeritas_add_test(em/BetheHeitler.test.cc ${_needs_double})
+celeritas_add_test(em/BraggICRU73QO.test.cc ${_needs_double})
 celeritas_add_test(em/CombinedBrem.test.cc ${_needs_double})
 celeritas_add_test(em/EPlusGG.test.cc ${_needs_double})
 celeritas_add_test(em/KleinNishina.test.cc ${_needs_double})
@@ -300,6 +302,7 @@ celeritas_add_test(neutron/NeutronInelastic.test.cc ${_needs_double})
 #-----------------------------------------------------------------------------#
 # Phys
 celeritas_add_test(phys/CutoffParams.test.cc)
+celeritas_add_test(phys/FourVector.test.cc)
 celeritas_add_device_test(phys/Particle)
 celeritas_add_device_test(phys/Physics)
 celeritas_add_test(phys/InteractionUtils.test.cc)
