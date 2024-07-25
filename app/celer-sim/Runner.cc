@@ -121,15 +121,40 @@ size_type calc_num_streams(RunnerInput const& inp, size_type num_events)
  */
 Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
 {
+    using SPImporter = std::shared_ptr<ImporterInterface>;
+
     CELER_EXPECT(output);
 
     this->setup_globals(inp);
 
+    // Possible Geant4 world volume so we can reuse geometry
+    G4VPhysicalVolume const* g4world{nullptr};
+
+    // Import data and load geometry
+    auto import = [&inp, &g4world]() -> SPImporter {
+        if (ends_with(inp.physics_file, ".root"))
+        {
+            // Load from ROOT file
+            return std::make_shared<RootImporter>(inp.physics_file);
+        }
+
+        std::string const& filename
+            = !inp.physics_file.empty() ? inp.physics_file : inp.geometry_file;
+
+        // Load Geant4 and retain to use geometry
+        GeantSetup setup(filename, inp.physics_options);
+        g4world = setup.world();
+        return std::make_shared<GeantImporter>(std::move(setup));
+    }();
+
+    // Import physics
+    auto const imported = (*import)();
+
     ScopedRootErrorHandler scoped_root_error;
-    this->build_core_params(inp, std::move(output));
+    this->build_core_params(inp, std::move(output), g4world, imported);
     this->build_diagnostics(inp);
     this->build_step_collectors(inp);
-    this->build_optical_collector(inp);
+    this->build_optical_collector(inp, imported);
     this->build_transporter_input(inp);
     use_device_ = inp.use_device;
 
@@ -251,34 +276,14 @@ void Runner::setup_globals(RunnerInput const& inp) const
  * Construct core parameters.
  */
 void Runner::build_core_params(RunnerInput const& inp,
-                               SPOutputRegistry&& outreg)
+                               SPOutputRegistry&& outreg,
+                               G4VPhysicalVolume const* g4world,
+                               ImportData const& imported)
 {
-    using SPImporter = std::shared_ptr<ImporterInterface>;
-
     CELER_LOG(status) << "Loading input and initializing problem data";
     ScopedMem record_mem("Runner.build_core_params");
     ScopedProfiling profile_this{"construct-params"};
     CoreParams::Input params;
-
-    // Possible Geant4 world volume so we can reuse geometry
-    G4VPhysicalVolume const* g4world{nullptr};
-
-    // Import data and load geometry
-    auto import = [&inp, &g4world]() -> SPImporter {
-        if (ends_with(inp.physics_file, ".root"))
-        {
-            // Load from ROOT file
-            return std::make_shared<RootImporter>(inp.physics_file);
-        }
-
-        std::string const& filename
-            = !inp.physics_file.empty() ? inp.physics_file : inp.geometry_file;
-
-        // Load Geant4 and retain to use geometry
-        GeantSetup setup(filename, inp.physics_options);
-        g4world = setup.world();
-        return std::make_shared<GeantImporter>(std::move(setup));
-    }();
 
     // Create action manager
     params.action_reg = std::make_shared<ActionRegistry>();
@@ -296,28 +301,25 @@ void Runner::build_core_params(RunnerInput const& inp,
                               "result in arbitrarily small steps";
     }
 
-    // Import physics
-    imported_ = (*import)();
-
     // Load materials
-    params.material = MaterialParams::from_import(imported_);
+    params.material = MaterialParams::from_import(imported);
 
     // Create geometry/material coupling
     params.geomaterial = GeoMaterialParams::from_import(
-        imported_, params.geometry, params.material);
+        imported, params.geometry, params.material);
 
     // Construct particle params
-    params.particle = ParticleParams::from_import(imported_);
+    params.particle = ParticleParams::from_import(imported);
 
     // Construct cutoffs
     params.cutoff = CutoffParams::from_import(
-        imported_, params.particle, params.material);
+        imported, params.particle, params.material);
 
     // Construct shared data for Coulomb scattering
-    params.wentzel = WentzelOKVIParams::from_import(imported_, params.material);
+    params.wentzel = WentzelOKVIParams::from_import(imported, params.material);
 
     // Load physics: create individual processes with make_shared
-    params.physics = [&params, &inp, this] {
+    params.physics = [&params, &inp, &imported] {
         PhysicsParams::Input input;
         input.particles = params.particle;
         input.materials = params.material;
@@ -325,20 +327,20 @@ void Runner::build_core_params(RunnerInput const& inp,
 
         input.options.fixed_step_limiter = inp.step_limiter;
         input.options.secondary_stack_factor = inp.secondary_stack_factor;
-        input.options.linear_loss_limit = imported_.em_params.linear_loss_limit;
+        input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
         input.options.lowest_electron_energy = PhysicsParamsOptions::Energy(
-            imported_.em_params.lowest_electron_energy);
+            imported.em_params.lowest_electron_energy);
 
-        input.processes = [&params, &inp, this] {
+        input.processes = [&params, &inp, &imported] {
             std::vector<std::shared_ptr<Process const>> result;
             ProcessBuilder::Options opts;
             opts.brem_combined = inp.brem_combined;
             opts.brems_selection = inp.physics_options.brems;
 
             ProcessBuilder build_process(
-                imported_, params.particle, params.material, opts);
+                imported, params.particle, params.material, opts);
             for (auto p :
-                 ProcessBuilder::get_all_process_classes(imported_.processes))
+                 ProcessBuilder::get_all_process_classes(imported.processes))
             {
                 result.push_back(build_process(p));
                 CELER_ASSERT(result.back());
@@ -349,9 +351,9 @@ void Runner::build_core_params(RunnerInput const& inp,
         return std::make_shared<PhysicsParams>(std::move(input));
     }();
 
-    bool eloss = imported_.em_params.energy_loss_fluct;
+    bool eloss = imported.em_params.energy_loss_fluct;
     auto msc = UrbanMscParams::from_import(
-        *params.particle, *params.material, imported_);
+        *params.particle, *params.material, imported);
     if (inp.field == RunnerInput::no_field())
     {
         // Create along-step action
@@ -391,7 +393,7 @@ void Runner::build_core_params(RunnerInput const& inp,
 
     // Construct simulation params
     params.sim = SimParams::from_import(
-        imported_, params.particle, inp.field_options.max_substeps);
+        imported, params.particle, inp.field_options.max_substeps);
 
     // Get the total number of events
     auto num_events = this->build_events(inp, params.particle);
@@ -553,9 +555,10 @@ void Runner::build_step_collectors(RunnerInput const& inp)
  * Construct optical collector. This *MUST* be called *AFTER*
  * \c this->build_core_params , as it depends on it.
  */
-void Runner::build_optical_collector(RunnerInput const& inp)
+void Runner::build_optical_collector(RunnerInput const& inp,
+                                     ImportData const& imported)
 {
-    if (imported_.optical.empty())
+    if (imported.optical.empty())
     {
         // No optical data loaded
         return;
@@ -565,9 +568,9 @@ void Runner::build_optical_collector(RunnerInput const& inp)
     // to be moved
     CELER_EXPECT(core_params_);
     OpticalCollector::Input oc_inp;
-    if (static_cast<bool>(imported_.optical.begin()->second.properties))
+    if (static_cast<bool>(imported.optical.begin()->second.properties))
     {
-        oc_inp.properties = OpticalPropertyParams::from_import(imported_);
+        oc_inp.properties = OpticalPropertyParams::from_import(imported);
     }
     if (inp.physics_options.cerenkov)
     {
@@ -576,7 +579,7 @@ void Runner::build_optical_collector(RunnerInput const& inp)
     if (inp.physics_options.scintillation)
     {
         oc_inp.scintillation = ScintillationParams::from_import(
-            imported_, core_params_->particle());
+            imported, core_params_->particle());
     }
     oc_inp.buffer_capacity = inp.optical_buffer_capacity;
     CELER_ASSERT(oc_inp);
