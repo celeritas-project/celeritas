@@ -14,6 +14,8 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
+#include "corecel/math/BisectionRootFinder.hh"
+#include "corecel/math/IllinoisRootFinder.hh"
 #include "corecel/math/RegulaFalsiRootFinder.hh"
 #include "orange/OrangeTypes.hh"
 
@@ -210,7 +212,7 @@ InvoluteSolver::operator()(Real3 const& pos,
         real_type gamma = r_b_ * (alpha - beta);
         return gamma + x * v - y * u;
     };
-    RegulaFalsiRootFinder find_root_between{calc_t_intersect, tol_conv};
+    IllinoisRootFinder find_root_between{calc_t_intersect, tol_conv};
 
     // Iterate on roots
     while (t_lower < tmax_)

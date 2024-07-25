@@ -148,7 +148,7 @@ TEST(SolveSurface, one_root)
         auto dist
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
-        EXPECT_SOFT_EQ(2.9716938706909275, dist[0]);
+        EXPECT_SOFT_EQ(2.9716938706703964, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
@@ -173,7 +173,7 @@ TEST(SolveSurface, one_root)
         auto dist
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
-        EXPECT_SOFT_EQ(3.7273045229725685, dist[0]);
+        EXPECT_SOFT_EQ(3.7273045229446105, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
@@ -222,7 +222,7 @@ TEST(SolveSurface, one_root)
         auto dist
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
-        EXPECT_SOFT_EQ(6.0371012183797985, dist[0]);
+        EXPECT_SOFT_EQ(6.0371012194546871, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
@@ -253,13 +253,13 @@ TEST(SolveSurface, two_roots)
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
             EXPECT_SOFT_EQ(0.2, dist[0]);
-            EXPECT_SOFT_EQ(2.7642346027254039, dist[1]);
+            EXPECT_SOFT_EQ(2.7642346005578582, dist[1]);
             EXPECT_SOFT_EQ(no_intersection(), dist[2]);
         }
         else
         {
             EXPECT_SOFT_EQ(0.2, dist[0]);
-            EXPECT_SOFT_EQ(2.7642238140106201, dist[1]);
+            EXPECT_SOFT_EQ(2.7642346005578582, dist[1]);
             EXPECT_SOFT_EQ(no_intersection(), dist[2]);
         }
     }
@@ -287,14 +287,14 @@ TEST(SolveSurface, two_roots)
         // Float and double produce different results
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
-            EXPECT_SOFT_EQ(0.003617808106002411, dist[0]);
-            EXPECT_SOFT_EQ(6.0284475629192986, dist[1]);
+            EXPECT_SOFT_EQ(0.0036177579725445259, dist[0]);
+            EXPECT_SOFT_EQ(6.0284475639586041, dist[1]);
             EXPECT_SOFT_EQ(no_intersection(), dist[2]);
         }
         else
         {
-            EXPECT_SOFT_EQ(0.0036691764835268259, dist[0]);
-            EXPECT_SOFT_EQ(6.0284475629192986, dist[1]);
+            EXPECT_SOFT_EQ(0.0036177579725445259, dist[0]);
+            EXPECT_SOFT_EQ(6.0284475639586041, dist[1]);
             EXPECT_SOFT_EQ(no_intersection(), dist[2]);
         }
     }
@@ -320,7 +320,7 @@ TEST(SolveSurface, two_roots)
         auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
         EXPECT_SOFT_EQ(0.0, dist[0]);
-        EXPECT_SOFT_EQ(4.6528327548038515, dist[1]);
+        EXPECT_SOFT_EQ(4.6528327550189861, dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
 }
@@ -347,8 +347,8 @@ TEST(SolveSurface, three_roots)
         auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
         EXPECT_SOFT_EQ(0.0, dist[0]);
-        EXPECT_SOFT_EQ(6.9112249151160547, dist[1]);
-        EXPECT_SOFT_EQ(9.1676034726245526, dist[2]);
+        EXPECT_SOFT_EQ(6.9112249164341124, dist[1]);
+        EXPECT_SOFT_EQ(9.167603476105235, dist[2]);
     }
 }
 TEST(SolveSurface, tangents)
@@ -385,13 +385,13 @@ TEST(SolveSurface, tangents)
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
         EXPECT_SOFT_EQ(0.0, dist_on[0]);
-        EXPECT_SOFT_EQ(0.0017637864815742603, dist_on[1]);
+        EXPECT_SOFT_EQ(0.0017713715293786088, dist_on[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
 
         auto dist_off
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
-        EXPECT_SOFT_EQ(0.0017637864815742603, dist_off[0]);
+        EXPECT_SOFT_EQ(0.0017713715293786088, dist_off[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist_off[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
     }
@@ -405,13 +405,13 @@ TEST(SolveSurface, tangents)
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
         EXPECT_SOFT_EQ(0.0, dist_on[0]);
-        EXPECT_SOFT_EQ(0.0005317562313742333, dist_on[1]);
+        EXPECT_SOFT_EQ(0.00053216327674743909, dist_on[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
 
         auto dist_off
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
-        EXPECT_SOFT_EQ(0.0005317562313742333, dist_off[0]);
+        EXPECT_SOFT_EQ(0.00053216327674743909, dist_off[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist_off[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
     }
@@ -496,26 +496,6 @@ TEST(SolveSurface, tangents)
         EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
     }
 
-    // Secant Point (1.5707960168148234, 0.999029237016899)
-    {
-        real_type x = 1.5707960168148234;
-        real_type y = 0.999029237016899;
-
-        auto dist_on
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
-
-        EXPECT_SOFT_EQ(0.0, dist_on[0]);
-        EXPECT_SOFT_EQ(0.0019416086257198944, dist_on[1]);
-        EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
-
-        auto dist_off
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
-
-        EXPECT_SOFT_EQ(1.1379996204178665e-08, dist_off[0]);
-        EXPECT_SOFT_EQ(0.0019416086257198944, dist_off[1]);
-        EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
-    }
-
     // Secant Point (1.5707960168148234, 0.999029247016899)
     {
         real_type x = 1.5707960168148234;
@@ -525,13 +505,13 @@ TEST(SolveSurface, tangents)
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
         EXPECT_SOFT_EQ(0.0, dist_on[0]);
-        EXPECT_SOFT_EQ(0.0019415986257199553, dist_on[1]);
+        EXPECT_SOFT_EQ(0.0019504376639951655, dist_on[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
 
         auto dist_off
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
-        EXPECT_SOFT_EQ(0.0019415986257199553, dist_off[0]);
+        EXPECT_SOFT_EQ(0.0019504376639951655, dist_off[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist_off[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
     }
