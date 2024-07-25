@@ -10,7 +10,7 @@
 #include <iostream>  // IWYU pragma: keep
 #include <utility>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 
 #include "Environment.hh"
 #include "KernelAttributes.hh"

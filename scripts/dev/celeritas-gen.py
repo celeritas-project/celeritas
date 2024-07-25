@@ -110,8 +110,8 @@ TEST_F({name}Test, host)
 TEST_HEADER_FILE = '''
 #pragma once
 
-#include "celeritas_config.h"
 #include "corecel/Assert.hh"
+#include "corecel/Config.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 
@@ -240,8 +240,8 @@ inline void {lowabbr}_test(
 TEST_CODE_FILE = '''\
 #include "{name}.test.hh"
 
-#include "corecel/device_runtime_api.h"
-#include "corecel/Types.h"
+#include "corecel/DeviceRuntimeApi.hh"
+#include "corecel/Types.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Device.hh"
 

@@ -9,7 +9,8 @@
 
 #include <nlohmann/json.hpp>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 
 namespace celeritas

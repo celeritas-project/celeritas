@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "RngReseed.hh"
 
-#include "corecel/device_runtime_api.h"
+#include "corecel/DeviceRuntimeApi.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"

@@ -11,9 +11,9 @@
 #include <utility>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_cmake_strings.h"
-#include "celeritas_config.h"
-#include "celeritas_version.h"
+#include "corecel/Config.hh"
+#include "corecel/Version.hh"
+
 #include "corecel/Macros.hh"
 
 #include "JsonPimpl.hh"

@@ -11,7 +11,8 @@
 #include <sstream>
 #include <utility>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Join.hh"

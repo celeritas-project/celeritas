@@ -13,12 +13,15 @@ primarily pertaining to GPU abstractions.
 Configuration
 -------------
 
-The ``celeritas_config.h`` configure file contains all-caps definitions of the
+The ``corecel/Config.hh`` configure file contains all-caps definitions of the
 CMake configuration options as 0/1 defines so they can be used with ``if
-constexpr`` and other C++ expressions. The ``celeritas_cmake_strings.h``
-defines static C strings with configuration options such as key dependent
-library versions. Finally, ``celeritas_version.h`` defines version numbers as
-a preprocessor definition, a set of integers, and a descriptive string.
+constexpr`` and other C++ expressions. In addition, it defines static C strings
+with configuration options such as key dependent library versions.
+Finally, ``corecel/Version.hh`` defines version numbers as  preprocessor definition,
+a set of integers, and a descriptive string. ``celeritas_version.h``,
+``celeritas_cmake_strings.h``, ``celeritas_sys_config.h``, ``celeritas_config.h``
+and ``corecel/device_runtime_api.h`` are deprecated and kept as aliases for
+backward-compatibility. They may be removed in an upcoming major version.
 
 .. doxygendefine:: CELERITAS_VERSION
 .. doxygenvariable:: celeritas_version

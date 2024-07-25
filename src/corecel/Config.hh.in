@@ -1,0 +1,59 @@
+//-----------------------------------*-C++-*---------------------------------//
+// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
+// See the top-level COPYRIGHT file for details.
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
+//---------------------------------------------------------------------------//
+/*!
+ * \file corecel/Config.hh
+ * \brief Configuration-specific options for Celeritas.
+ *
+ * Note that the nonzero values for \c CELERITAS_CORE_RNG and \c
+ * CELERITAS_CORE_GEO values *must not* be used directly: only compare between
+ * (e.g.) \c CELERITAS_CORE_RNG and \c CELERITAS_CORE_RNG_HIPRAND; options that
+ * are *invalid* (e.g. for missing libraries such as HIP) will have a value of
+ * zero.
+ */
+//---------------------------------------------------------------------------//
+#pragma once
+
+//---------------------------------------------------------------------------//
+// Detailed CMake configuration information
+//---------------------------------------------------------------------------//
+
+@CELERITAS_CMAKE_STRINGS@
+
+//---------------------------------------------------------------------------//
+// Configuration-specific options for Celeritas
+//---------------------------------------------------------------------------//
+
+#cmakedefine01 CELERITAS_USE_CUDA
+#cmakedefine01 CELERITAS_USE_GEANT4
+#cmakedefine01 CELERITAS_USE_HEPMC3
+#cmakedefine01 CELERITAS_USE_HIP
+#cmakedefine01 CELERITAS_USE_MPI
+#cmakedefine01 CELERITAS_USE_OPENMP
+#cmakedefine01 CELERITAS_USE_PERFETTO
+#cmakedefine01 CELERITAS_USE_ROOT
+#cmakedefine01 CELERITAS_USE_VECGEOM
+
+#cmakedefine01 CELERITAS_DEBUG
+
+@CELERITAS_REAL_TYPE_CONFIG@
+
+@CELERITAS_UNITS_CONFIG@
+
+@CELERITAS_OPENMP_CONFIG@
+
+@CELERITAS_CORE_GEO_CONFIG@
+
+@CELERITAS_CORE_RNG_CONFIG@
+
+#define CELERITAS_MAX_BLOCK_SIZE @CELERITAS_MAX_BLOCK_SIZE@
+
+//---------------------------------------------------------------------------//
+// System-specific configuration options for Celeritas
+//---------------------------------------------------------------------------//
+
+#cmakedefine01 CELERITAS_HAVE_ROCTX
+
+@CELERITAS_DEPENDENCY_VERSIONS@

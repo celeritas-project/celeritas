@@ -9,7 +9,8 @@
 
 #include <G4LogicalVolume.hh>
 
-#include "celeritas_cmake_strings.h"
+#include "corecel/Config.hh"
+
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/GeantGeoUtils.hh"

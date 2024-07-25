@@ -21,7 +21,8 @@
 #    include <omp.h>
 #endif
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"

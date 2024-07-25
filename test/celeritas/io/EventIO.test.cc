@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #include <fstream>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "celeritas/io/EventReader.hh"
 #include "celeritas/io/EventWriter.hh"
 

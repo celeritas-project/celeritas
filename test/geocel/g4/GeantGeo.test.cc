@@ -8,7 +8,8 @@
 #include <string_view>
 #include <G4LogicalVolume.hh>
 
-#include "celeritas_cmake_strings.h"
+#include "corecel/Config.hh"
+
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"

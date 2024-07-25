@@ -12,7 +12,8 @@
 #include <thrust/mr/allocator.h>
 #include <thrust/version.h>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 
 #include "Device.hh"

@@ -9,7 +9,7 @@
 
 #include <gtest/gtest.h>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 
 #include "testdetail/TestMacrosImpl.hh"
 
