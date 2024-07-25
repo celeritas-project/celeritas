@@ -43,14 +43,14 @@ Color get_color(char c)
     // clang-format off
     switch (c)
     {
-        case ' ': return Color{};            // black transparent
+        case ' ': return Color{0xc0a08040u};
         case '+': return Color{0xff000080u}; // half-opacity red
         case '-': return Color{0x00ff0080u}; // half-opacity green
         case '|': return Color{0x0000ff80u}; // half-opacity blue
         case 'a': return Color{0xeeeeeeeeu}; // translucent near-white
         case 'b': return Color{0x000000ffu}; // black
         case 'c': return Color{0x10c030ffu}; // greenish
-        case 'd': return Color{0xe00830ffu}; // reddish
+        case 'd': return Color{0xa00830ffu}; // reddish
         case 'e': return Color{0x303030ffu}; // gray
         default: CELER_ASSERT_UNREACHABLE();
     }

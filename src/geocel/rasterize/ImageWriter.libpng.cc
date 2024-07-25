@@ -96,17 +96,19 @@ ImageWriter::ImageWriter(std::string const& filename, Size2 height_width)
     // Set the output handle
     png_init_io(impl_->png, impl_->file.get());
 
-    // Write header (8 bit colour depth)
+    // Write header (8 bit color depth with alpha)
     impl_->info = png_create_info_struct(impl_->png);
     png_set_IHDR(impl_->png,
                  impl_->info,
                  height_width[1],
                  height_width[0],
                  sizeof(Color::byte_type) * 8,
-                 PNG_COLOR_TYPE_RGB_ALPHA,
+                 PNG_COLOR_TYPE_RGB,
                  PNG_INTERLACE_NONE,
                  PNG_COMPRESSION_TYPE_DEFAULT,
                  PNG_FILTER_TYPE_DEFAULT);
+
+    row_buffer_.resize(3 * height_width[1]);
 
     // Create metadata
     {
@@ -138,9 +140,15 @@ void ImageWriter::operator()(Span<Color const> colors)
         CELER_RUNTIME_THROW("libpng", "Failed to write line", {});
     }
 
-    png_write_row(
-        impl_->png,
-        reinterpret_cast<png_byte*>(const_cast<Color*>(colors.data())));
+    auto iter = row_buffer_.begin();
+    for (Color c : colors)
+    {
+        *iter++ = c.channel(Color::Channel::red);
+        *iter++ = c.channel(Color::Channel::green);
+        *iter++ = c.channel(Color::Channel::blue);
+    }
+
+    png_write_row(impl_->png, reinterpret_cast<png_byte*>(row_buffer_.data()));
 
     ++rows_written_;
 }

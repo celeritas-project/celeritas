@@ -21,7 +21,8 @@ namespace celeritas
 /*!
  * Write a 2D array of colors as a PNG file.
  *
- * Each row can be written progressively.
+ * Each row is written progressively. All rows must be written. Currently alpha
+ * values are ignored due to my poor understanding of libpng.
  */
 class ImageWriter
 {
@@ -57,6 +58,7 @@ class ImageWriter
     std::unique_ptr<Impl, ImplDeleter> impl_;
     Size2 size_;
     size_type rows_written_{0};
+    std::vector<char> row_buffer_;
 
     void close_impl(bool validate);
 };
