@@ -48,17 +48,12 @@ if(NOT DEFINED CELERITAS_HOSTNAME)
 endif()
 
 set(CELERITAS_CMAKE_STRINGS)
-set(CELERITAS_CMAKE_STRINGS_COMPAT)
 set(CELERITAS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS OPENMP CORE_GEO CORE_RNG)
   set(_var "CELERITAS_${_var}")
   string(TOLOWER "${_var}" _lower)
-  set(_var_def "char ${_lower}[] = \"${${_var}}\";\n")
   string(APPEND CELERITAS_CMAKE_STRINGS
-    "inline constexpr ${_var_def}"
-  )
-  string(APPEND CELERITAS_CMAKE_STRINGS_COMPAT
-    "static const ${_var_def}"
+    "inline constexpr char ${_lower}[] = \"${${_var}}\";\n"
   )
 endforeach()
 
@@ -68,12 +63,8 @@ foreach(_var CLHEP_VERSION Geant4_VERSION VecGeom_VERSION)
     set(_var "${_var}_STRING")
   endif()
   set(_value "${${_var}}")
-  set(_var_def "char celeritas_${_lower}[] = \"${_value}\";\n")
   string(APPEND CELERITAS_CMAKE_STRINGS
-    "inline constexpr ${_var_def}"
-  )
-  string(APPEND CELERITAS_CMAKE_STRINGS_COMPAT
-    "static const ${_var_def}"
+    "inline constexpr char celeritas_${_lower}[] = \"${_value}\";\n"
   )
 endforeach()
 celeritas_configure_file("celeritas_cmake_strings.h.in" "celeritas_cmake_strings.h" @ONLY)
