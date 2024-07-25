@@ -72,9 +72,6 @@ IncludeCategories:
     Priority:        1
     SortPriority:    2
 # Special group for config/version headers as they might be needed before other headers
-  - Regex:           '^"celeritas_[a-z_]+\.h"'
-    Priority:        2
-    SortPriority:    3
   - Regex:           '^"corecel/(Config|Version|DeviceRuntimeApi)\.hh"$'
     Priority:        2
     SortPriority:    3
