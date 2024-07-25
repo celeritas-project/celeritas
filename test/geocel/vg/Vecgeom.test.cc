@@ -10,7 +10,6 @@
 #include <string_view>
 
 #include "corecel/Config.hh"
-#include "corecel/sys/Version.hh"
 
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/ArrayIO.hh"
@@ -19,6 +18,7 @@
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
+#include "corecel/sys/Version.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "geocel/UnitUtils.hh"
