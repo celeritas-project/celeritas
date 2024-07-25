@@ -22,6 +22,10 @@
 #    error "Celeritas requires C++17 or greater and is not C compatible"
 #endif
 
+#if __GNUC__ > 8 || __clang__
+#    pragma GCC warning "celeritas_config.h is deprecated and should be replaced by \"corecel/Config.hh\""
+#endif
+
 #include "corecel/Config.hh"
 
 #endif /* celeritas_config_h */
