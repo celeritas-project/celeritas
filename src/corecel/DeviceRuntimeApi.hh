@@ -61,4 +61,4 @@
  * (Unfortunately, since the use of this symbol is embedded in a macro, IWYU
  * won't include this file automatically.)
  */
-extern int celeritas_device_runtime_api_h_;
+extern int CorecelDeviceRuntimeApiHh;
