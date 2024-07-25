@@ -117,6 +117,7 @@ endif()
 # Rasterization
 
 
+celeritas_add_test(rasterize/Color.test.cc)
 celeritas_add_test(rasterize/Image.test.cc)
 celeritas_add_test(rasterize/Raytracer.test.cc)
 
