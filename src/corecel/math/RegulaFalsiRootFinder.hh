@@ -57,7 +57,7 @@ class RegulaFalsiRootFinder
 //---------------------------------------------------------------------------//
 
 template<class F, class... Args>
-RegulaFalsiRootFinder(F&&, Args...) -> RegulaFalsiRootFinder<F>;
+CELER_FUNCTION RegulaFalsiRootFinder(F&&, Args...) -> RegulaFalsiRootFinder<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
