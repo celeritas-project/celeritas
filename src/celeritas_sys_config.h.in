@@ -6,7 +6,7 @@
 /*!
  * \file celeritas_sys_config.h
  * \brief System-specific configuration options for Celeritas.
- * \deprecated This file should be replaced by "corecel/sys/Config.hh".
+ * \deprecated This file should be replaced by "corecel/Config.hh".
  */
 //---------------------------------------------------------------------------//
 #ifndef celeritas_sys_config_h
@@ -17,9 +17,9 @@
 #endif
 
 #if __GNUC__ > 8 || __clang__
-#    pragma GCC warning "celeritas_sys_config.h is deprecated and should be replaced by \"corecel/sys/Config.hh\""
+#    pragma GCC warning "celeritas_sys_config.h is deprecated and should be replaced by \"corecel/Config.hh\""
 #endif
 
-#include "corecel/sys/Config.hh"
+#include "corecel/Config.hh"
 
 #endif /* celeritas_sys_config_h */

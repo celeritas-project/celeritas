@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #include <fstream>
 
-#include "corecel/sys/Config.hh"
+#include "corecel/Config.hh"
 
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"

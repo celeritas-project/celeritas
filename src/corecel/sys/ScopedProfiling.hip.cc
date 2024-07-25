@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include "corecel/sys/Config.hh"
+#include "corecel/Config.hh"
 
 #include "corecel/io/Logger.hh"
 

@@ -36,7 +36,6 @@ set(_DOXYGEN_EXTRA_SOURCE
   "${PROJECT_BINARY_DIR}/include/celeritas_version.h"
   "${PROJECT_BINARY_DIR}/include/corecel/Version.hh"
   "${PROJECT_BINARY_DIR}/include/corecel/Config.hh"
-  "${PROJECT_BINARY_DIR}/include/corecel/sys/Config.hh"
 )
 if((CELERITAS_DEBUG AND CELERITAS_BUILD_TESTS)
   OR CELERITAS_DOXYGEN_BUILD_TESTS)

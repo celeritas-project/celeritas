@@ -9,7 +9,6 @@
 #include "ScopedProfiling.hh"
 
 #include "corecel/Config.hh"
-#include "corecel/sys/Config.hh"
 
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
