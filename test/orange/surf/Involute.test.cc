@@ -9,7 +9,6 @@
 
 #include <cmath>
 
-#include "celeritas_config.h"
 #include "corecel/Constants.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
