@@ -49,8 +49,8 @@ enum class RelaxationSelection
 /*!
  * Construction options for Geant physics.
  *
- * These options attempt to default to our closest match to
- * \c G4StandardEmPhysics and \c G4OpticalPhysics .
+ * These options attempt to default to our closest match to \c
+ * G4StandardEmPhysics.
  */
 struct GeantPhysicsOptions
 {
@@ -84,17 +84,6 @@ struct GeantPhysicsOptions
     MscModelSelection msc{MscModelSelection::urban};
     //! Enable atomic relaxation and select a model
     RelaxationSelection relaxation{RelaxationSelection::none};
-    //!@}
-
-    //!@{
-    //! \name Optical photon physics
-    //! Enable Cerenkov physics
-    bool cerenkov{true};
-    //! Enable scintillation
-    bool scintillation{true};
-    //! Enable optical Rayleigh scattering
-    bool optical_rayleigh{true};
-    //! TODO: Add surface processes
     //!@}
 
     //!@{

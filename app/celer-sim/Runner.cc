@@ -564,19 +564,19 @@ void Runner::build_optical_collector(RunnerInput const& inp,
         return;
     }
 
-    // TODO: if an optical process builder exists, GeantPhysicsOptions may have
-    // to be moved
+    // TODO: Rethink if statements after implementing CelerOpticalPhysicsList
     CELER_EXPECT(core_params_);
     OpticalCollector::Input oc_inp;
-    if (static_cast<bool>(imported.optical.begin()->second.properties))
+    auto const& optical_data = imported.optical.begin()->second;
+    if (static_cast<bool>(optical_data.properties))
     {
         oc_inp.properties = OpticalPropertyParams::from_import(imported);
     }
-    if (inp.physics_options.cerenkov)
+    if (static_cast<bool>(optical_data.properties))
     {
         oc_inp.cerenkov = std::make_shared<CerenkovParams>(oc_inp.properties);
     }
-    if (inp.physics_options.scintillation)
+    if (static_cast<bool>(optical_data.scintillation))
     {
         oc_inp.scintillation = ScintillationParams::from_import(
             imported, core_params_->particle());
