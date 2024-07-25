@@ -1337,7 +1337,7 @@ if True:
     dist  = involute.DistanceBisection(x, y, u, v, rmin, rmax, True)
     
     print("\n")
-    print("Convergence 4")
+    print("Convergence 5")
     
     rb = 1.1
     a0 = -np.pi*0.5
@@ -1359,6 +1359,112 @@ if True:
     dist  = involute.DistanceIllinois(x, y, u, v, rmin, rmax, True)
     print("Bisection Method")
     dist  = involute.DistanceBisection(x, y, u, v, rmin, rmax, True)
+    
+    print("\n")
+    print("Convergence 6")
+    
+    rb = 1
+    a0 = 0
+    t = np.linspace(np.pi*0.33, np.pi*0.67, 5000)
+    sign = 1
+    involute = Involute(rb, a0, t, sign)
+    u = 0
+    v = 1
+    t = np.pi * 0.4998
+    eps = -0.001
+    involute_tan = Involute(rb, a0, t, sign)
+    x = involute_tan.involuteX
+    y = involute_tan.involuteY+eps
+    
+    print("Regula Falsi Method")
+    dist  = involute.DistanceRegulaFalsi(x, y, u, v, rmin, rmax, True)
+    print("Illinois Method")
+    dist  = involute.DistanceIllinois(x, y, u, v, rmin, rmax, True)
+    print("Bisection Method")
+    dist  = involute.DistanceBisection(x, y, u, v, rmin, rmax, True)
+    
+    print("\n")
+    print("Convergence 7")
+    
+    eps = 0.00001601
+    x = involute_tan.involuteX
+    y = involute_tan.involuteY+eps
+    
+    print("Regula Falsi Method")
+    dist  = involute.DistanceRegulaFalsi(x, y, u, v, rmin, rmax, True)
+    print("Illinois Method")
+    dist  = involute.DistanceIllinois(x, y, u, v, rmin, rmax, True)
+    print("Bisection Method")
+    dist  = involute.DistanceBisection(x, y, u, v, rmin, rmax, True)
+    
+    print("\n")
+    print("Convergence 8")
+    
+    t = np.pi * 0.5
+    involute_tan = Involute(rb, a0, t, sign)
+    eps = -0.00000001
+    x = involute_tan.involuteX + eps
+    y = involute_tan.involuteY
+    
+    print("Regula Falsi Method")
+    dist  = involute.DistanceRegulaFalsi(x, y, u, v, rmin, rmax, True)
+    print("Illinois Method")
+    dist  = involute.DistanceIllinois(x, y, u, v, rmin, rmax, True)
+    print("Bisection Method")
+    dist  = involute.DistanceBisection(x, y, u, v, rmin, rmax, True)
+    
+    print("\n")
+    print("Convergence 9")
+    
+    rb = 20
+    t = np.linspace(np.pi*0.33, np.pi*0.67, 5000)
+    sign = 1
+    involute = Involute(rb, a0, t, sign)
+    t = np.pi * 0.5
+    tmin = 0
+    tmax = 1.999*np.pi
+    rmin = rb*np.sqrt(1+tmin**2)
+    rmax = rb*np.sqrt(1+tmax**2)
+    involute_tan = Involute(rb, a0, t, sign)
+    x = 31.4
+    y = 19
+    u=np.cos(np.pi*0.5)
+    v=np.sin(np.pi*0.5)
+    
+    print("Regula Falsi Method")
+    dist  = involute.DistanceRegulaFalsi(x, y, u, v, rmin, rmax, True)
+    print("Illinois Method")
+    dist  = involute.DistanceIllinois(x, y, u, v, rmin, rmax, True)
+    print("Bisection Method")
+    dist  = involute.DistanceBisection(x, y, u, v, rmin, rmax, True)
+    
+    print("\n")
+    print("Convergence 10")
+    
+    rb = 20
+    t = np.linspace(np.pi*0.33, np.pi*0.67, 5000)
+    sign = 1
+    involute = Involute(rb, a0, t, sign)
+    t = np.pi * 0.5
+    tmin = 0
+    tmax = 1.999*np.pi
+    rmin = rb*np.sqrt(1+tmin**2)
+    rmax = rb*np.sqrt(1+tmax**2)
+    involute_tan = Involute(rb, a0, t, sign)
+    x = 31.5
+    y = 20.2
+    u=-1
+    v=0
+    
+    print("Regula Falsi Method")
+    dist  = involute.DistanceRegulaFalsi(x, y, u, v, rmin, rmax, True)
+    print("Illinois Method")
+    dist  = involute.DistanceIllinois(x, y, u, v, rmin, rmax, True)
+    print("Bisection Method")
+    dist  = involute.DistanceBisection(x, y, u, v, rmin, rmax, True)
+    
+    
+    
                 
 # # Test Involute      
 # rb = 1.0
