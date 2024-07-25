@@ -45,17 +45,19 @@ include(CMakeFindDependencyMacro)
 if(CELERITAS_USE_CUDA)
   find_dependency(CUDAToolkit REQUIRED QUIET)
 
-  if(CELERITAS_USE_VecGeom AND NOT CMAKE_CUDA_COMPILER_LOADED)
+  if(NOT CMAKE_CUDA_COMPILER_LOADED)
+    # enable_language only really works in top-level CMake directory, not even subprojects
+    # https://discourse.cmake.org/t/is-it-appropriate-to-use-enable-language-in-a-cmake-package-file/4335
     if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
       enable_language(CUDA)
     else()
       include(CheckLanguage)
       check_language(CUDA)
       if(CMAKE_CUDA_COMPILER)
-        message(SEND_ERROR "CUDA compiler/linker are required when compiling with CUDA+VecGeom. "
+        message(SEND_ERROR "CUDA compiler/linker are required when compiling with CUDA. "
           "Enable CUDA language support in your CMake project.")
       else()
-        message(SEND_ERROR "CUDA compiler/linker are required when compiling with CUDA+VecGeom. "
+        message(SEND_ERROR "CUDA compiler/linker are required when compiling with CUDA. "
           "Couldn't find the nvcc compiler. Make sure the CUDA toolchain is installed "
           "and enable CUDA language support in your CMake project.")
       endif()
