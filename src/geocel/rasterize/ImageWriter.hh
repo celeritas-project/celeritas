@@ -39,7 +39,7 @@ class ImageWriter
     inline ~ImageWriter();
 
     // Write a row
-    void operator()(Span<Color>);
+    void operator()(Span<Color const>);
 
     //! Close the file early so that exceptions can be caught
     void close() { this->close_impl(/* validate = */ true); }

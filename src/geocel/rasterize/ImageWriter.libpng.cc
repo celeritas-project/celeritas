@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "ImageWriter.hh"
 
+#include <csetjmp>
 #include <cstdio>
 #include <cstring>
 #include <png.h>
@@ -23,13 +24,25 @@ struct FileDeleter
     void operator()(std::FILE* ptr)
     {
         auto result = std::fclose(ptr);
-        if (!result)
+        if (result)
         {
             CELER_LOG(error)
                 << "Failed to close PNG file: " << std::strerror(errno);
         }
     }
 };
+
+void log_png_warning(png_structp, png_const_charp msg)
+{
+    CELER_LOG(warning) << msg;
+}
+
+void log_png_error(png_structp png_ptr, png_const_charp msg)
+{
+    CELER_LOG(error) << msg;
+    std::longjmp(png_jmpbuf(png_ptr), 1);
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -55,7 +68,11 @@ void ImageWriter::ImplDeleter::operator()(Impl* ptr)
  * Dimensions are row-major like other C++ arrays.
  */
 ImageWriter::ImageWriter(std::string const& filename, Size2 height_width)
+    : size_{height_width}
 {
+    CELER_VALIDATE(height_width[0] > 0 && height_width[1] > 0,
+                   << "invalid image dimensions: " << height_width[1]
+                   << " (W) x " << height_width[0] << " (H)");
     // Create file before making impl in case file output goes wrong
     {
         std::FILE* f = std::fopen(filename.c_str(), "wb");
@@ -73,6 +90,9 @@ ImageWriter::ImageWriter(std::string const& filename, Size2 height_width)
         CELER_RUNTIME_THROW("libpng", "Failed initialization", {});
     }
 
+    // Set up a warning callback
+    png_set_error_fn(impl_->png, nullptr, log_png_error, log_png_warning);
+
     // Set the output handle
     png_init_io(impl_->png, impl_->file.get());
 
@@ -82,7 +102,7 @@ ImageWriter::ImageWriter(std::string const& filename, Size2 height_width)
                  impl_->info,
                  height_width[1],
                  height_width[0],
-                 sizeof(Color::byte_type),
+                 sizeof(Color::byte_type) * 8,
                  PNG_COLOR_TYPE_RGB_ALPHA,
                  PNG_INTERLACE_NONE,
                  PNG_COMPRESSION_TYPE_DEFAULT,
@@ -107,18 +127,20 @@ ImageWriter::ImageWriter(std::string const& filename, Size2 height_width)
 /*!
  * Write a row.
  */
-void ImageWriter::operator()(Span<Color> colors)
+void ImageWriter::operator()(Span<Color const> colors)
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(rows_written_ < size_[0]);
-    CELER_EXPECT(colors.size() == size_[0]);
+    CELER_EXPECT(colors.size() == size_[1]);
 
     if (setjmp(png_jmpbuf(impl_->png)))
     {
         CELER_RUNTIME_THROW("libpng", "Failed to write line", {});
     }
 
-    png_write_row(impl_->png, reinterpret_cast<png_byte*>(colors.data()));
+    png_write_row(
+        impl_->png,
+        reinterpret_cast<png_byte*>(const_cast<Color*>(colors.data())));
 
     ++rows_written_;
 }
@@ -132,8 +154,15 @@ void ImageWriter::close_impl(bool validate)
     if (impl_)
     {
         bool failed{false};
+
         if (!setjmp(png_jmpbuf(impl_->png)))
         {
+            if (rows_written_ != size_[0])
+            {
+                CELER_LOG(error) << "PNG file received only " << rows_written_
+                                 << " of " << size_[0] << " lines";
+                png_write_flush(impl_->png);
+            }
             png_write_end(impl_->png, impl_->info);
         }
         else
@@ -143,12 +172,12 @@ void ImageWriter::close_impl(bool validate)
 
         png_destroy_write_struct(&impl_->png, &impl_->info);
         impl_.reset();
-        if (validate)
+        if (failed)
         {
-            CELER_VALIDATE(!failed, << "libpng failed to write file");
-        }
-        else if (failed)
-        {
+            if (validate)
+            {
+                CELER_RUNTIME_THROW("libpng", "Failed to write file", {});
+            }
             CELER_LOG(error) << "libpng failed to write file";
         }
     }
