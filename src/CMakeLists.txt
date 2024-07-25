@@ -11,7 +11,6 @@
 
 celeritas_version_to_hex(CELERITAS_VERSION PROJECT_VERSION)
 celeritas_configure_file("celeritas_version.h.in" "celeritas_version.h" @ONLY)
-celeritas_configure_file("corecel/Version.hh.in" "corecel/Version.hh" @ONLY)
 
 #----------------------------------------------------------------------------#
 # Build configuration
@@ -90,9 +89,6 @@ foreach(_dep Geant4 VecGeom HepMC3)
 endforeach()
 string(JOIN "\n" CELERITAS_DEPENDENCY_VERSIONS ${CELERITAS_DEPENDENCY_VERSIONS})
 celeritas_configure_file("celeritas_sys_config.h.in" "celeritas_sys_config.h" @ONLY)
-
-celeritas_configure_file("corecel/Config.hh.in" "corecel/Config.hh" @ONLY)
-celeritas_configure_file("corecel/sys/Config.hh.in" "corecel/sys/Config.hh" @ONLY)
 
 #----------------------------------------------------------------------------#
 # LIBRARIES

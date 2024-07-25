@@ -57,6 +57,14 @@ list(APPEND SOURCES
   sys/Version.cc
 )
 
+#----------------------------------------------------------------------------#
+# CONFIGURE FILES
+#----------------------------------------------------------------------------#
+
+celeritas_configure_file("Version.hh.in" "corecel/Version.hh" @ONLY)
+celeritas_configure_file("Config.hh.in" "corecel/Config.hh" @ONLY)
+celeritas_configure_file("sys/Config.hh.in" "corecel/sys/Config.hh" @ONLY)
+
 #-----------------------------------------------------------------------------#
 # Configuration-dependent code/dependencies
 #-----------------------------------------------------------------------------#
