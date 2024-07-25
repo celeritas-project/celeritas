@@ -497,7 +497,7 @@ CELER_WRAP_MATH_FLOAT_DBL_1(, rsqrt)
 /*!
  * Calculate an inverse square root.
  */
-inline CELER_FUNCTION double rsqrt(double value)
+CELER_FORCEINLINE_FUNCTION double rsqrt(double value)
 {
     return 1.0 / std::sqrt(value);
 }
@@ -506,7 +506,7 @@ inline CELER_FUNCTION double rsqrt(double value)
 /*!
  * Calculate an inverse square root.
  */
-inline CELER_FUNCTION float rsqrt(float value)
+CELER_FORCEINLINE_FUNCTION float rsqrt(float value)
 {
     return 1.0f / std::sqrt(value);
 }
@@ -524,7 +524,7 @@ inline CELER_FUNCTION float rsqrt(float value)
  * std::fma directly in most cases.
  */
 template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
-inline CELER_FUNCTION T fma(T a, T b, T y)
+CELER_FORCEINLINE_FUNCTION T fma(T a, T b, T y)
 {
     return std::fma(a, b, y);
 }
@@ -610,7 +610,7 @@ CELER_CONSTEXPR_FUNCTION T eumod(T numer, T denom)
  * \return -1 if negative, 0 if exactly zero (or NaN), 1 if positive
  */
 template<class T>
-CELER_FORCEINLINE int signum(T x)
+CELER_CONSTEXPR_FUNCTION int signum(T x)
 {
     return (0 < x) - (x < 0);
 }

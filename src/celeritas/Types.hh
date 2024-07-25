@@ -82,15 +82,6 @@ using ChannelId = OpaqueId<struct Channel_>;
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
 //---------------------------------------------------------------------------//
-//! Interpolation type
-enum class Interp
-{
-    linear,
-    log,
-    size_
-};
-
-//---------------------------------------------------------------------------//
 //! Physical state of matter
 enum class MatterState
 {

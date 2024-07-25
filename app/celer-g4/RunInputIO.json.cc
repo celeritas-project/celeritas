@@ -27,7 +27,17 @@ void from_json(nlohmann::json const& j, PhysicsListSelection& value)
     static auto const from_string
         = StringEnumMapper<PhysicsListSelection>::from_cstring_func(
             to_cstring, "physics list");
-    value = from_string(j.get<std::string>());
+    auto const& s = j.get<std::string>();
+    if (CELER_UNLIKELY(s == "geant_physics_list"))
+    {
+        CELER_LOG(warning) << "Deprecated option value '" << s
+                           << "': use 'celer_em' instead";
+        value = PhysicsListSelection::celer_em;
+    }
+    else
+    {
+        value = from_string(j.get<std::string>());
+    }
 }
 
 void to_json(nlohmann::json& j, PhysicsListSelection const& value)
