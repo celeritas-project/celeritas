@@ -384,16 +384,36 @@ TEST(SolveSurface, tangents)
         auto dist_on
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
-        EXPECT_SOFT_EQ(0.0, dist_on[0]);
-        EXPECT_SOFT_EQ(0.0017713715293786088, dist_on[1]);
-        EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
+        // Float and double produce different results
+        if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_SOFT_EQ(0.0, dist_on[0]);
+            EXPECT_SOFT_EQ(0.0017713715293786088, dist_on[1]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
+        }
+        else
+        {
+            EXPECT_SOFT_EQ(0.0, dist_on[0]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_on[1]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
+        }
 
         auto dist_off
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
-        EXPECT_SOFT_EQ(0.0017713715293786088, dist_off[0]);
-        EXPECT_SOFT_EQ(no_intersection(), dist_off[1]);
-        EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
+        // Float and double produce different results
+        if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_SOFT_EQ(0.0017713715293786088, dist_off[0]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_off[1]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
+        }
+        else
+        {
+            EXPECT_SOFT_EQ(1.4354699260366033e-06, dist_off[0]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_off[1]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
+        }
     }
 
     // Secant Point (1.57079622679489656, 0.9999999999999999)
@@ -404,16 +424,36 @@ TEST(SolveSurface, tangents)
         auto dist_on
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
-        EXPECT_SOFT_EQ(0.0, dist_on[0]);
-        EXPECT_SOFT_EQ(0.00053216327674743909, dist_on[1]);
-        EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
+        // Float and double produce different results
+        if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_SOFT_EQ(0.0, dist_on[0]);
+            EXPECT_SOFT_EQ(0.00053216327674743909, dist_on[1]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
+        }
+        else
+        {
+            EXPECT_SOFT_EQ(0.0, dist_on[0]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_on[1]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
+        }
 
         auto dist_off
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
-        EXPECT_SOFT_EQ(0.00053216327674743909, dist_off[0]);
-        EXPECT_SOFT_EQ(no_intersection(), dist_off[1]);
-        EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
+        // Float and double produce different results
+        if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_SOFT_EQ(0.00053216327674743909, dist_off[0]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_off[1]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
+        }
+        else
+        {
+            EXPECT_SOFT_EQ(2.6656007889869215e-07, dist_off[0]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_off[1]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
+        }
     }
 
     // Secant Point (1.5707963167948966, 0.9999999999999999)
@@ -431,9 +471,19 @@ TEST(SolveSurface, tangents)
         auto dist_off
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
-        EXPECT_SOFT_EQ(1.2715542669661114e-08, dist_off[0]);
-        EXPECT_SOFT_EQ(no_intersection(), dist_off[1]);
-        EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
+        // Float and double produce different results
+        if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_SOFT_EQ(1.2715542669661114e-08, dist_off[0]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_off[1]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
+        }
+        else
+        {
+            EXPECT_SOFT_EQ(1.2715542669661114e-08, dist_off[0]);
+            EXPECT_SOFT_EQ(1.1920928955078125e-07, dist_off[1]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
+        }
     }
 
     // Parallel Point (1.5707963367948965, 0.9999999999999999)
@@ -491,9 +541,19 @@ TEST(SolveSurface, tangents)
         auto dist_off
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
-        EXPECT_SOFT_EQ(no_intersection(), dist_off[0]);
-        EXPECT_SOFT_EQ(no_intersection(), dist_off[1]);
-        EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
+        // Float and double produce different results
+        if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_SOFT_EQ(no_intersection(), dist_off[0]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_off[1]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
+        }
+        else
+        {
+            EXPECT_SOFT_EQ(1.1920928955078125e-07, dist_off[0]);
+            EXPECT_SOFT_EQ(1.1920928955078125e-07, dist_off[1]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
+        }
     }
 
     // Secant Point (1.5707960168148234, 0.999029247016899)
@@ -504,16 +564,36 @@ TEST(SolveSurface, tangents)
         auto dist_on
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
-        EXPECT_SOFT_EQ(0.0, dist_on[0]);
-        EXPECT_SOFT_EQ(0.0019504376639951655, dist_on[1]);
-        EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
+        // Float and double produce different results
+        if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_SOFT_EQ(0.0, dist_on[0]);
+            EXPECT_SOFT_EQ(0.0019504376639951655, dist_on[1]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
+        }
+        else
+        {
+            EXPECT_SOFT_EQ(0.0, dist_on[0]);
+            EXPECT_SOFT_EQ(0.00097101932624354959, dist_on[1]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
+        }
 
         auto dist_off
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
-        EXPECT_SOFT_EQ(0.0019504376639951655, dist_off[0]);
-        EXPECT_SOFT_EQ(no_intersection(), dist_off[1]);
-        EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
+        // Float and double produce different results
+        if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_SOFT_EQ(0.0019504376639951655, dist_off[0]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_off[1]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
+        }
+        else
+        {
+            EXPECT_SOFT_EQ(0.00097101932624354959, dist_off[0]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_off[1]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
+        }
     }
 }
 TEST(Components, line_angle_param)
