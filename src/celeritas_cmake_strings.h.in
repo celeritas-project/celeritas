@@ -12,13 +12,10 @@
 #ifndef celeritas_cmake_strings_h
 #define celeritas_cmake_strings_h
 
-#if __cplusplus >= 201703L
-#    if __GNUC__ > 8 || __clang__
-#        pragma GCC warning "celeritas_cmake_strings.h is deprecated and should be replaced by \"corecel/Config.hh\""
-#    endif
-// uses inline variables introduced in c++17
-#    include "corecel/Config.hh"
-#else
-@CELERITAS_CMAKE_STRINGS_COMPAT@
+#if __cplusplus < 201703L
+#    error "Celeritas requires C++17 or greater and is not C compatible"
 #endif
+
+#include "corecel/Config.hh"
+
 #endif /* celeritas_cmake_strings_h */

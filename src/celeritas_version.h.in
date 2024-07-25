@@ -12,24 +12,10 @@
 #ifndef celeritas_version_h
 #define celeritas_version_h
 
-#if __cplusplus >= 201703L
-#    if __GNUC__ > 8 || __clang__
-#        pragma GCC warning " celeritas_version.h is deprecated and should be replaced by \"corecel/Version.hh\""
-#    endif
-// uses inline variables introduced in c++17
-#   include "corecel/Version.hh"
-#else
-/*! Celeritas version. Encoded as a big-endian hexidecimal with one byte per
- * component: (major * 256 + minor) * 256 + patch. */
-#define CELERITAS_VERSION @CELERITAS_VERSION@
-//! Celeritas version string with git metadata
-static const char celeritas_version[]    = "@Celeritas_VERSION_STRING@";
-//! Celeritas major version
-static const int celeritas_version_major = @PROJECT_VERSION_MAJOR@;
-//! Celeritas minor version
-static const int celeritas_version_minor = @PROJECT_VERSION_MINOR@;
-//! Celeritas patch version
-static const int celeritas_version_patch = @PROJECT_VERSION_PATCH@;
+#if __cplusplus < 201703L
+#    error "Celeritas requires C++17 or greater and is not C compatible"
 #endif
+
+#include "corecel/Version.hh"
 
 #endif /* celeritas_version_h */

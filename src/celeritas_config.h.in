@@ -18,36 +18,10 @@
 #ifndef celeritas_config_h
 #define celeritas_config_h
 
-#if __cplusplus >= 201703L
-#    if __GNUC__ > 8 || __clang__
-#        pragma GCC warning " celeritas_config.h is deprecated and should be replaced by \"corecel/Config.hh\""
-#    endif
-// uses inline variables introduced in c++17
-#   include "corecel/Config.hh"
-#else
-#cmakedefine01 CELERITAS_USE_CUDA
-#cmakedefine01 CELERITAS_USE_GEANT4
-#cmakedefine01 CELERITAS_USE_HEPMC3
-#cmakedefine01 CELERITAS_USE_HIP
-#cmakedefine01 CELERITAS_USE_MPI
-#cmakedefine01 CELERITAS_USE_OPENMP
-#cmakedefine01 CELERITAS_USE_ROOT
-#cmakedefine01 CELERITAS_USE_VECGEOM
-#cmakedefine01 CELERITAS_USE_PERFETTO
-
-#cmakedefine01 CELERITAS_DEBUG
-
-@CELERITAS_REAL_TYPE_CONFIG@
-
-@CELERITAS_UNITS_CONFIG@
-
-@CELERITAS_OPENMP_CONFIG@
-
-@CELERITAS_CORE_GEO_CONFIG@
-
-@CELERITAS_CORE_RNG_CONFIG@
-
-#define CELERITAS_MAX_BLOCK_SIZE @CELERITAS_MAX_BLOCK_SIZE@
+#if __cplusplus < 201703L
+#    error "Celeritas requires C++17 or greater and is not C compatible"
 #endif
+
+#include "corecel/Config.hh"
 
 #endif /* celeritas_config_h */

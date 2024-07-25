@@ -12,15 +12,10 @@
 #ifndef celeritas_sys_config_h
 #define celeritas_sys_config_h
 
-#ifdef __cplusplus
-#    if __GNUC__ > 8 || __clang__
-#        pragma GCC warning "celeritas_sys_config.h is deprecated and should be replaced by \"corecel/sys/Config.hh\""
-#    endif
-#   include "corecel/sys/Config.hh"
-#else
-#cmakedefine01 CELERITAS_HAVE_ROCTX
-
-@CELERITAS_DEPENDENCY_VERSIONS@
+#if __cplusplus < 201703L
+#    error "Celeritas requires C++17 or greater and is not C compatible"
 #endif
+
+#include "corecel/sys/Config.hh"
 
 #endif /* celeritas_sys_config_h */
