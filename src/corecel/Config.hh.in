@@ -16,7 +16,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+//---------------------------------------------------------------------------//
+// Detailed CMake configuration information
+//---------------------------------------------------------------------------//
+
 @CELERITAS_CMAKE_STRINGS@
+
+//---------------------------------------------------------------------------//
+// Configuration-specific options for Celeritas
+//---------------------------------------------------------------------------//
 
 #cmakedefine01 CELERITAS_USE_CUDA
 #cmakedefine01 CELERITAS_USE_GEANT4
@@ -24,9 +32,9 @@
 #cmakedefine01 CELERITAS_USE_HIP
 #cmakedefine01 CELERITAS_USE_MPI
 #cmakedefine01 CELERITAS_USE_OPENMP
+#cmakedefine01 CELERITAS_USE_PERFETTO
 #cmakedefine01 CELERITAS_USE_ROOT
 #cmakedefine01 CELERITAS_USE_VECGEOM
-#cmakedefine01 CELERITAS_USE_PERFETTO
 
 #cmakedefine01 CELERITAS_DEBUG
 
@@ -41,6 +49,10 @@
 @CELERITAS_CORE_RNG_CONFIG@
 
 #define CELERITAS_MAX_BLOCK_SIZE @CELERITAS_MAX_BLOCK_SIZE@
+
+//---------------------------------------------------------------------------//
+// System-specific configuration options for Celeritas
+//---------------------------------------------------------------------------//
 
 #cmakedefine01 CELERITAS_HAVE_ROCTX
 

@@ -7,9 +7,15 @@
 //! \brief Celeritas version.
 //---------------------------------------------------------------------------//
 #pragma once
-/*! Celeritas version. Encoded as a big-endian hexidecimal with one byte per
- * component: (major * 256 + minor) * 256 + patch. */
+
+/*!
+* Celeritas version as a compile-time constant.
+*
+* Encoded as a big-endian hexadecimal with one byte per component:
+* (major * 256 + minor) * 256 + patch.
+*/
 #define CELERITAS_VERSION @CELERITAS_VERSION@
+
 //! Celeritas version string with git metadata
 inline constexpr char celeritas_version[]    = "@Celeritas_VERSION_STRING@";
 //! Celeritas major version
