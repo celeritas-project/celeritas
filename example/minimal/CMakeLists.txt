@@ -10,12 +10,6 @@ cmake_policy(VERSION 3.12...3.22)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/..")
 
-include(CheckLanguage)
-check_language(CUDA)
-if(CMAKE_CUDA_COMPILER)
-  enable_language(CUDA)
-endif()
-
 find_package(Celeritas 0.5 REQUIRED)
 
 add_executable(minimal minimal.cc)
