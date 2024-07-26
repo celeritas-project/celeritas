@@ -53,8 +53,6 @@ class SurfaceTransformer
 
     GeneralQuadric operator()(GeneralQuadric const&) const;
 
-    Involute operator()(Involute const&) const;
-
   private:
     Transformation tr_;
 };

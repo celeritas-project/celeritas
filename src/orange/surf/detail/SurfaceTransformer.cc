@@ -16,7 +16,6 @@
 #include "../CylAligned.hh"
 #include "../CylCentered.hh"
 #include "../GeneralQuadric.hh"
-#include "../Involute.hh"
 #include "../Plane.hh"
 #include "../PlaneAligned.hh"
 #include "../SimpleQuadric.hh"
@@ -113,15 +112,6 @@ Sphere SurfaceTransformer::operator()(Sphere const& other) const
     // Transform origin, keep the same radius
     return Sphere::from_radius_sq(tr_.transform_up(other.origin()),
                                   other.radius_sq());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Transform an Involute.
- */
-Involute SurfaceTransformer::operator()(Involute const&) const
-{
-    CELER_NOT_IMPLEMENTED("transformed involutes");
 }
 
 //---------------------------------------------------------------------------//

@@ -87,8 +87,6 @@ class FaceNamer
         std::string operator()(SimpleQuadric const&) const;
 
         std::string operator()(GeneralQuadric const&) const;
-
-        std::string operator()(Involute const&) const;
     };
 };
 

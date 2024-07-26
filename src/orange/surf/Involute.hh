@@ -65,9 +65,9 @@ class Involute
     //// CLASS ATTRIBUTES ////
 
     // Surface type identifier
-    static CELER_CONSTEXPR_FUNCTION SurfaceType surface_type()
+    static SurfaceType surface_type()
     {
-        return SurfaceType::inv;
+        CELER_NOT_IMPLEMENTED("runtime involute");
     }
 
     // Safety
