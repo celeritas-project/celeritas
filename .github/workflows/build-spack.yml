@@ -179,6 +179,11 @@ jobs:
           done
           ./bin/celer-sim --version
       - name: Build examples
+        # TODO: ASAN requires flags downstream
+        if: >-
+          ${{
+            (matrix.special != 'asanlite')
+          }}
         run: |
           . ${SPACK_VIEW}/rc
           ./scripts/ci/test-examples.sh
