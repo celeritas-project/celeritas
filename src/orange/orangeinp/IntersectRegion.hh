@@ -200,13 +200,16 @@ class Ellipsoid final : public IntersectRegionInterface
  * parallel planes perpendicular to the Z axis. Unlike those other codes, the
  * number of faces can be arbitrary in number.
  *
- * The faces have an orientation and ordering so that \em rotated faces,
- * hyperbolic paraboloids, can be constructed as sides in place of planes. The
- * rotation cannot be more than a quarter turn.
+ * The faces have an orientation and ordering so that \em twisted faces can be
+ * constructed by joining corresponding points using straight-line "vertical"
+ * edges, directly matching the G4GenericTrap definition, but using a generic
+ * quadric expression for each twisted face.
  *
  * Trapezoids constructed from the helper functions will have sides that are
  * same ordering as a prism: the rightward face is first (normal is along the
  * +x axis), then the others follow counterclockwise.
+ * TODO: is this last statement is correct? e.g. is the +x face always the
+ *       first face to be constructed?
  */
 class GenPrism final : public IntersectRegionInterface
 {

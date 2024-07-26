@@ -542,7 +542,7 @@ TEST_F(GenPrismTest, construct)
     EXPECT_THROW(GenPrism::from_trd(3, {1, 1}, {2, -2}), RuntimeError);  // hy2<0
 
     // Trap angles are invalid (note that we do *not* have the restriction of
-    // Geant4 that the turns be the same: this just ends up creating a GenTrap
+    // Geant4 that the turns be the same: this just ends up creating a GenPrism
     // (with twisted sides) instead of a Trap
     EXPECT_THROW(
         GenPrism::from_trap(
@@ -707,13 +707,13 @@ TEST_F(GenPrismTest, full)
     EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(pri));
 
     auto result = this->test(pri);
-    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const expected_node[] = "all(+0, -1, -2, -3, -4, +5)";
     static char const* const expected_surfaces[] = {
         "Plane: z=-4",
         "Plane: z=4",
-        "GQuadric: {0,0,0} {1,-1,0} {-28,-4,-4} 48",
+        "GQuadric: {0,0,0} {0,0.125,-0.125} {3.5,0.5,0.5} -6",
         "Plane: n={0,0.99228,0.12403}, d=1.4884",
-        "GQuadric: {0,0,0} {1,1,0} {-28,4,4} -48",
+        "GQuadric: {0,0,-0} {0,0.125,0.125} {-3.5,0.5,0.5} -6",
         "Plane: y=-2",
     };
 
@@ -722,6 +722,8 @@ TEST_F(GenPrismTest, full)
     EXPECT_FALSE(result.interior) << result.interior;
     EXPECT_VEC_SOFT_EQ((Real3{-2, -2, -4}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{2, 2, 4}), result.exterior.upper());
+
+    this->check_corners(result.node_id, pri, 0.01);
 }
 
 TEST_F(GenPrismTest, triang_prism)
@@ -794,6 +796,9 @@ TEST_F(GenPrismTest, odd_tetrahedron)
     EXPECT_FALSE(result.interior) << result.interior;
     EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -3}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{2, 1, 3}), result.exterior.upper());
+
+    GTEST_SKIP() << "GenPrism::odd_tetrahedron fails check_corners()test!";
+    this->check_corners(result.node_id, pri, 0.1);
 }
 
 TEST_F(GenPrismTest, envelope)
@@ -969,9 +974,9 @@ TEST_F(GenPrismTest, trap_full2)
     static char const* const expected_surfaces[] = {
         "Plane: z=-40",
         "Plane: z=40",
-        "GQuadric: {0,0,0} {0,7,0} {3200,-40,-3300} -36000",
+        "GQuadric: {0,0,0} {0,0.0875,0} {40,-0.5,-41.25} -450",
         "Plane: y=20",
-        "GQuadric: {0,0,0} {0,17,0} {3200,360,-3100} 36000",
+        "GQuadric: {0,0,0} {0,0.2125,0} {40,4.5,-38.75} 450",
         "Plane: y=-20",
     };
 
@@ -980,6 +985,8 @@ TEST_F(GenPrismTest, trap_full2)
     EXPECT_FALSE(result.interior) << result.interior;
     EXPECT_VEC_SOFT_EQ((Real3{-52, -20, -40}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{54, 20, 40}), result.exterior.upper());
+
+    this->check_corners(result.node_id, pri, 1.0);
 }
 
 TEST_F(GenPrismTest, trap_quarter_twist)
@@ -1000,9 +1007,9 @@ TEST_F(GenPrismTest, trap_quarter_twist)
     static char const* const expected_surfaces[] = {
         "Plane: z=-1",
         "Plane: z=1",
-        "GQuadric: {0,0,0} {0,4,0} {-4,0,0} 8",
+        "GQuadric: {0,0,0} {0,2,0} {-2,0,0} 4",
         "Plane: y=1",
-        "GQuadric: {0,0,0} {0,4,0} {-4,0,0} -8",
+        "GQuadric: {0,0,-0} {0,2,0} {-2,0,0} -4",
         "Plane: y=-1",
     };
 
@@ -1031,13 +1038,13 @@ TEST_F(GenPrismTest, trap_uneven_twist)
 
     auto result = this->test(pri);
 
-    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const expected_node[] = "all(+0, -1, +2, -3, +4, +5)";
     static char const* const expected_surfaces[] = {
         "Plane: z=-1",
         "Plane: z=1",
-        "GQuadric: {0,0,0} {1,1,0} {-3,1,-3} 5",
+        "GQuadric: {0,0,0.25} {0,0.5,0.5} {-1.5,0.5,-1.5} 2.25",
         "Plane: n={0,0.97014,0.24254}, d=0.72761",
-        "GQuadric: {0,0,0} {1,1,0} {-3,1,3} -5",
+        "GQuadric: {0,0,0.25} {0,-0.5,-0.5} {1.5,-0.5,-1.5} 2.25",
         "Plane: n={0,0.97014,-0.24254}, d=-0.72761",
     };
 
@@ -1047,25 +1054,38 @@ TEST_F(GenPrismTest, trap_uneven_twist)
     EXPECT_VEC_SOFT_EQ((Real3{-2, -1, -1}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{2, 1, 1}), result.exterior.upper());
 
-    GTEST_SKIP() << "twisty point sampling fails!";
     this->check_corners(result.node_id, pri, 0.1);
 }
 
-TEST_F(GenTrapTest, trap_even_twist)
+TEST_F(GenPrismTest, trap_even_twist)
 {
-    auto trap = GenTrap::from_trap(
-        1, Turn{0}, Turn{0}, {1, 2, 2, Turn{0}}, {1, 2, 2, Turn{0.125}});
+    auto pri = GenPrism::from_trap(
+        1, Turn{0}, Turn{0}, {1, 2, 2, Turn{0}}, {0.5, 1, 1, Turn{0.125}});
 
     static real_type const expected_twist_angles[] = {0.125, 0, 0.125, 0};
-    EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(trap));
+    EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(pri));
 
     static real_type const expected_lower[] = {2, -1, 2, 1, -2, 1, -2, -1};
     static real_type const expected_upper[]
         = {0.5, -0.5, 1.5, 0.5, -0.5, 0.5, -1.5, -0.5};
-    EXPECT_VEC_SOFT_EQ(expected_lower, to_vec(trap.lower()));
-    EXPECT_VEC_SOFT_EQ(expected_upper, to_vec(trap.upper()));
+    EXPECT_VEC_SOFT_EQ(expected_lower, to_vec(pri.lower()));
+    EXPECT_VEC_SOFT_EQ(expected_upper, to_vec(pri.upper()));
 
-    cout << repr(trap.lower()) << ',' << repr(trap.upper());
+    auto result = this->test(pri);
+
+    static char const expected_node[] = "all(+0, -1, +2, -3, +4, +5)";
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-1",
+        "Plane: z=1",
+        "GQuadric: {0,0,0.25} {0,0.5,0.5} {-1.5,0.5,-1.5} 2.25",
+        "Plane: n={0,0.97014,0.24254}, d=0.72761",
+        "GQuadric: {0,0,0.25} {0,-0.5,-0.5} {1.5,-0.5,-1.5} 2.25",
+        "Plane: n={0,0.97014,-0.24254}, d=-0.72761",
+    };
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+
+    this->check_corners(result.node_id, pri, 0.1);
 }
 
 /*!
@@ -1133,14 +1153,14 @@ TEST_F(GenPrismTest, adjacent_twisted)
         "Plane: z=-1",
         "Plane: z=1",
         "Plane: y=-1",
-        "GQuadric: {0,0,0} {0,1,0} {4,1,0} 0",
+        "GQuadric: {0,0,-0} {0,0.5,0} {2,0.5,0} 0",
         "Plane: y=1",
         "Plane: x=-1",
         "Plane: x=1",
         "Plane: y=-2",
         "Plane: x=2",
         "Plane: y=2",
-        "GQuadric: {0,0,0} {0,2,0} {8,2,0} 0",
+        "GQuadric: {0,0,0} {0,1,0} {4,1,0} 0",
     };
     EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
 
