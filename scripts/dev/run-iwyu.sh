@@ -25,7 +25,7 @@ fi
 OUTFILE=$(mktemp)
 iwyu_tool.py -p $1 -- \
   -Xiwyu --no_fwd_decls \
-  -Xiwyu --keep="*device_runtime_api*" \
+  -Xiwyu --keep="*DeviceRuntimeApi*" \
   -Xiwyu --keep="*.json.hh*" \
   -Xiwyu --transitive_includes_only \
   -Xiwyu --mapping_file="${SCRIPT_DIR}/iwyu-apple-clang.imp" \

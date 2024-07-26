@@ -10,7 +10,7 @@
 #include <cmath>
 #include <utility>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 
 #include "celeritas_test.hh"
 

@@ -31,8 +31,9 @@
 
 #include <nlohmann/json.hpp>
 
-#include "celeritas_config.h"
-#include "celeritas_version.h"
+#include "corecel/Config.hh"
+#include "corecel/Version.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/ExceptionOutput.hh"

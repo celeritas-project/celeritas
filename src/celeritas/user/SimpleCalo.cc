@@ -11,8 +11,8 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_cmake_strings.h"
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/JsonPimpl.hh"

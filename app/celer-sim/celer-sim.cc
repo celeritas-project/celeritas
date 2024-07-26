@@ -22,9 +22,10 @@
 
 #include <nlohmann/json.hpp>
 
-#include "celeritas_config.h"
-#include "celeritas_version.h"
-#include "corecel/device_runtime_api.h"
+#include "corecel/Config.hh"
+#include "corecel/DeviceRuntimeApi.hh"
+#include "corecel/Version.hh"
+
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/Logger.hh"
