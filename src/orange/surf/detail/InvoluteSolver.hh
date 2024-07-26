@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -23,7 +23,6 @@ namespace celeritas
 {
 namespace detail
 {
-using constants::pi;
 //---------------------------------------------------------------------------//
 /*!
  * Find positive, real, nonzero roots for involute intersection function.
@@ -67,6 +66,7 @@ class InvoluteSolver
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     //// CALCULATION ////
+
     inline CELER_FUNCTION real_type calc_dist(
         real_type x, real_type y, real_type u, real_type v, real_type t) const;
 
@@ -100,10 +100,9 @@ class InvoluteSolver
     real_type tmin_;
     real_type tmax_;
 };
+
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct from involute parameters.
@@ -116,7 +115,7 @@ CELER_FUNCTION InvoluteSolver::InvoluteSolver(
     CELER_EXPECT(a >= 0);
     CELER_EXPECT(tmax > 0);
     CELER_EXPECT(tmin >= 0);
-    CELER_EXPECT(tmax < 2 * pi + tmin);
+    CELER_EXPECT(tmax < 2 * constants::pi + tmin);
 }
 
 //---------------------------------------------------------------------------//
@@ -141,6 +140,7 @@ InvoluteSolver::operator()(Real3 const& pos,
                            Real3 const& dir,
                            SurfaceState on_surface) const -> Intersections
 {
+    using constants::pi;
     // Flatten pos and dir in xyz and uv respectively
     real_type x = pos[0];
     real_type const y = pos[1];
@@ -252,13 +252,17 @@ InvoluteSolver::operator()(Real3 const& pos,
     return result;
 }
 
+//---------------------------------------------------------------------------//
 /*!
  * Calculate the line-angle parameter \em beta used to find bounds of roots.
- * \f[ beta = arctan(-v/u) \f]
+ *
+ * \f[ \beta = \arctan(-v/u) \f]
  */
 CELER_FUNCTION real_type InvoluteSolver::line_angle_param(real_type u,
                                                           real_type v)
 {
+    using constants::pi;
+
     if (u != 0)
     {
         // Standard method
@@ -275,6 +279,7 @@ CELER_FUNCTION real_type InvoluteSolver::line_angle_param(real_type u,
     }
 }
 
+//---------------------------------------------------------------------------//
 /*!
  * Convert root to distance by calculating the point on the involute given by
  * the root and then taking the distance to that point from the particle.
@@ -282,15 +287,15 @@ CELER_FUNCTION real_type InvoluteSolver::line_angle_param(real_type u,
 CELER_FUNCTION real_type InvoluteSolver::calc_dist(
     real_type x, real_type y, real_type u, real_type v, real_type t) const
 {
-    real_type theta = t + a_;
-    real_type x_inv = r_b_ * (std::cos(theta) + t * std::sin(theta));
-    real_type y_inv = r_b_ * (std::sin(theta) - t * std::cos(theta));
+    real_type angle = t + a_;
+    real_type x_inv = r_b_ * (std::cos(angle) + t * std::sin(angle));
+    real_type y_inv = r_b_ * (std::sin(angle) - t * std::cos(angle));
     real_type dist = 0;
 
     // Check if point is interval
     if (t >= tmin_ && t <= tmax_)
     {
-        // Obatin direction to point on Involute
+        // Obtain direction to point on Involute
         real_type u_point = x_inv - x;
         real_type v_point = y_inv - y;
 
@@ -303,5 +308,6 @@ CELER_FUNCTION real_type InvoluteSolver::calc_dist(
     return dist;
 }
 
+//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

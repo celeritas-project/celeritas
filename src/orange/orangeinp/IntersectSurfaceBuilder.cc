@@ -245,7 +245,6 @@ CSB_INSTANTIATE(ConeAligned<Axis::y>);
 CSB_INSTANTIATE(ConeAligned<Axis::z>);
 CSB_INSTANTIATE(SimpleQuadric);
 CSB_INSTANTIATE(GeneralQuadric);
-CSB_INSTANTIATE(Involute);
 #undef CSB_INSTANTIATE
 //! \endcond
 
