@@ -13,6 +13,10 @@
 
 #include "Algorithms.hh"
 
+#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 600)
+#    error "Celeritas requires CUDA arch 6.0 (P100) or greater"
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -44,33 +48,6 @@ CELER_FORCEINLINE_FUNCTION T atomic_add(T* address, T value)
     return initial;
 #endif
 }
-
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 600)
-//---------------------------------------------------------------------------//
-/*!
- * Atomic addition specialization for double-precision on older platforms.
- *
- * From CUDA C Programming guide v10.1 p127
- */
-inline __device__ double atomic_add(double* address, double val)
-{
-    CELER_EXPECT(address);
-    ull_int* address_as_ull = reinterpret_cast<ull_int*>(address);
-    ull_int old = *address_as_ull;
-    ull_int assumed;
-    do
-    {
-        assumed = old;
-        old = atomicCAS(
-            address_as_ull,
-            assumed,
-            __double_as_longlong(val + __longlong_as_double(assumed)));
-        // Note: uses integer comparison to avoid hang in case of NaN (since
-        // NaN != NaN)
-    } while (assumed != old);
-    return __longlong_as_double(old);
-}
-#endif
 
 //---------------------------------------------------------------------------//
 /*!
@@ -117,29 +94,6 @@ CELER_FORCEINLINE_FUNCTION T atomic_max(T* address, T value)
     return initial;
 #endif
 }
-
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ <= 300)
-//---------------------------------------------------------------------------//
-/*!
- * Software emulation of atomic max for older systems.
- *
- * This is a modification of the "software double-precision add" algorithm.
- * TODO: combine this algorithm with the atomic_add and genericize on operation
- * if we ever need to implement the atomics for other types.
- */
-inline __device__ ull_int atomic_max(ull_int* address, ull_int val)
-{
-    CELER_EXPECT(address);
-    ull_int old = *address;
-    ull_int assumed;
-    do
-    {
-        assumed = old;
-        old = atomicCAS(address, assumed, celeritas::max(val, assumed));
-    } while (assumed != old);
-    return old;
-}
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
