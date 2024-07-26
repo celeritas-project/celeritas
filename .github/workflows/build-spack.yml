@@ -32,6 +32,9 @@ jobs:
           - geometry: "orange"
             special: "float"
             geant: "11.0"
+          - geometry: "orange"
+            special: "asanlite"
+            geant: null
           - geometry: "vecgeom"
             special: "clhep"
             geant: "11.0"
@@ -76,7 +79,7 @@ jobs:
           if [ "${{matrix.geometry}}" == "vecgeom" ]; then
             spack -e . add vecgeom
           fi
-          if [ "${{matrix.special}}" != "minimal" ]; then
+          if [ "${{matrix.special}}" != "minimal" ] && [  "${{matrix.special}}" != "asanlite" ] ; then
             spack -e . add root
           fi
           if [ "${{matrix.geant}}" != "" ]; then
