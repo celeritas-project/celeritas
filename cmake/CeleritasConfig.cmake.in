@@ -43,10 +43,28 @@ endif()
 include(CMakeFindDependencyMacro)
 
 if(CELERITAS_USE_CUDA)
-  enable_language(CUDA)
   find_dependency(CUDAToolkit REQUIRED QUIET)
+
+  if(NOT CMAKE_CUDA_COMPILER_LOADED)
+    # enable_language only really works in top-level CMake directory, not even subprojects
+    # https://discourse.cmake.org/t/is-it-appropriate-to-use-enable-language-in-a-cmake-package-file/4335
+    if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+      enable_language(CUDA)
+    else()
+      include(CheckLanguage)
+      check_language(CUDA)
+      if(CMAKE_CUDA_COMPILER)
+        message(SEND_ERROR "CUDA compiler/linker are required when compiling with CUDA. "
+          "Enable CUDA language support in your CMake project.")
+      else()
+        message(SEND_ERROR "CUDA compiler/linker are required when compiling with CUDA. "
+          "Couldn't find the nvcc compiler. Make sure the CUDA toolchain is installed "
+          "and enable CUDA language support in your CMake project.")
+      endif()
+    endif()
+  endif()
 elseif(CELERITAS_USE_HIP)
-  enable_language(HIP)
+  find_dependency(hip REQUIRED QUIET)
 endif()
 
 if(CELERITAS_USE_Geant4)
