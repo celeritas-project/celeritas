@@ -171,7 +171,8 @@ void ImageWriter::close_impl(bool validate)
 {
     if (impl_)
     {
-        bool failed{false};
+        // Modified local vars in setjmp scope must be volatile
+        bool volatile failed{false};
 
         if (!setjmp(png_jmpbuf(impl_->png)))
         {
