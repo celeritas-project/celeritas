@@ -284,6 +284,100 @@ class GenPrism final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
+ * Second version of a generalized polygon with parallel flat faces along Z.
+ *
+ * A GenTrap, like VecGeom's GenTrap, ROOT's Arb8, and Geant4's
+ * G4GenericTrap, represents a generalized volume with polyhedral faces on two
+ * parallel planes perpendicular to the Z axis. Unlike those other codes, the
+ * number of faces can be arbitrary in number.
+ *
+ * The faces have an orientation and ordering so that \em twisted faces can be
+ * constructed by joining corresponding points using straight-line vertical
+ * edges, directly matching the G4GenericTrap definition, but using an analytic
+ * expression for the twisted faces.
+ *
+ * Trapezoids constructed from the helper functions will have sides that are
+ * same ordering as a prism: the rightward face is first (normal is along the
+ * +x axis), then the others follow counterclockwise.
+ * TODO: is this last statement is correct? e.g. is the +x axis face always
+ * the first face to be constructed?
+ */
+class GenTrap final : public IntersectRegionInterface
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using VecReal2 = std::vector<Real2>;
+    //!@}
+
+    //! Regular trapezoidal top/bottom face
+    struct TrapFace
+    {
+        //! Half the vertical distance between horizontal edges
+        real_type hy{};
+        //! Top horizontal edge half-length
+        real_type hx_lo{};
+        //! Bottom horizontal edge half-length
+        real_type hx_hi{};
+        //! Shear angle, between horizontal line centers and Y axis
+        Turn alpha;
+    };
+
+  public:
+    // Helper function to construct a Trd shape from hz and two rectangles,
+    // one for each z-face
+    static GenTrap from_trd(real_type halfz, Real2 const& lo, Real2 const& hi);
+
+    // Helper function to construct a general trap from its half-height and
+    // the two trapezoids defining its lower and upper faces
+    static GenTrap from_trap(real_type hz,
+                             Turn theta,
+                             Turn phi,
+                             TrapFace const& lo,
+                             TrapFace const& hi);
+
+    // Construct from half Z height and 4 vertices for top and bottom planes
+    GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Half-height along Z
+    real_type halfheight() const { return hz_; }
+
+    //! Polygon on -z face
+    VecReal2 const& lower() const { return lo_; }
+
+    //! Polygon on +z face
+    VecReal2 const& upper() const { return hi_; }
+
+    //! Number of sides (points on the Z face)
+    size_type num_sides() const { return lo_.size(); }
+
+    // Calculate the cosine of the twist angle for a given side
+    real_type calc_twist_cosine(size_type size_idx) const;
+
+  private:
+    enum class Degenerate
+    {
+        none,
+        lo,
+        hi
+    };
+
+    real_type hz_;  //!< half-height
+    VecReal2 lo_;  //!< corners of the -z face
+    VecReal2 hi_;  //!< corners of the +z face
+    Degenerate degen_{Degenerate::none};  //!< no plane on this z axis
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * An open wedge shape from the Z axis.
  *
  * The wedge is defined by an interior angle that *must* be less than or equal

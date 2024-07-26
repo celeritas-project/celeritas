@@ -186,6 +186,13 @@ void to_json(nlohmann::json& j, GenPrism const& cr)
          SIO_ATTR_PAIR(cr, lower),
          SIO_ATTR_PAIR(cr, upper)};
 }
+void to_json(nlohmann::json& j, GenTrap const& cr)
+{
+    j = {{"_type", "gentrap"},
+         SIO_ATTR_PAIR(cr, halfheight),
+         SIO_ATTR_PAIR(cr, lower),
+         SIO_ATTR_PAIR(cr, upper)};
+}
 void to_json(nlohmann::json& j, InfWedge const& cr)
 {
     j = {{"_type", "infwedge"},
