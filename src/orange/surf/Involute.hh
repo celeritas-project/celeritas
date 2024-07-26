@@ -23,7 +23,6 @@
 
 namespace celeritas
 {
-using constants::pi;
 //---------------------------------------------------------------------------//
 /*!
  * Z-aligned circular involute.
@@ -77,9 +76,11 @@ class Involute
 
   public:
     //// CONSTRUCTORS ////
+
     explicit Involute(Real2 const& origin,
                       real_type radius,
-                      real_type a,
+                      real_type displacement,
+                      Sign sign,
                       real_type tmin,
                       real_type tmax);
 
@@ -89,13 +90,17 @@ class Involute
 
     //// ACCESSORS ////
 
-    //! Get the origin position
+    //! X-Y center of the circular base of the involute
     CELER_FUNCTION Real2 const& origin() const { return origin_; }
 
-    //! Get involute parameters
-    CELER_FUNCTION real_type r_b() const { return r_b_; }
+    //! Involute circle's radius
+    CELER_FUNCTION real_type r_b() const { return std::fabs(r_b_); }
+
+    //! Displacement angle
     CELER_FUNCTION real_type a() const { return a_; }
-    CELER_FUNCTION real_type sign() const { return sign_; }
+
+    // Orientation of the involute curve
+    inline CELER_FUNCTION Sign sign() const;
 
     //! Get bounds of the involute
     CELER_FUNCTION real_type tmin() const { return tmin_; }
@@ -121,9 +126,8 @@ class Involute
     Real2 origin_;
 
     // Involute parameters
-    real_type r_b_;
+    real_type r_b_;  // Radius, negative if "clockwise" (flipped)
     real_type a_;
-    Sign sign_;
 
     // Bounds
     real_type tmin_;
@@ -141,10 +145,18 @@ CELER_FUNCTION Involute::Involute(Span<R, StorageSpan::extent> data)
     : origin_{data[0], data[1]}
     , r_b_{data[2]}
     , a_{data[3]}
-    , sign_{static_cast<Sign>(data[2] < 0)}
     , tmin_{data[4]}
     , tmax_{data[5]}
 {
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Orientation of the involute curve.
+ */
+CELER_FUNCTION auto Involute::sign() const -> Sign
+{
+    return r_b_ > 0 ? Sign::counterclockwise : Sign::clockwise;
 }
 
 //---------------------------------------------------------------------------//
@@ -181,10 +193,12 @@ CELER_FUNCTION Involute::Involute(Span<R, StorageSpan::extent> data)
  */
 CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
 {
+    using constants::pi;
+
     real_type x = pos[0] - origin_[0];
     real_type const y = pos[1] - origin_[1];
 
-    if (sign_)
+    if (this->sign() == Sign::clockwise)
     {
         x = negate(x);
     }
@@ -192,15 +206,6 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     // Calculate distance to origin and obtain t value for distance.
     real_type const rxy_sq = ipow<2>(x) + ipow<2>(y);
     real_type const t_point_sq = (rxy_sq / ipow<2>(r_b_)) - 1;
-    real_type t_point;
-    if (t_point_sq >= 0)
-    {
-        t_point = std::sqrt(t_point_sq);
-    }
-    else
-    {
-        t_point = 0;
-    }
 
     // Check if point is in defined bounds.
     if (t_point_sq < ipow<2>(tmin_))
@@ -213,11 +218,10 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     }
 
     // Check if Point is on involute.
-    real_type const angle = t_point + a_;
-    real_type const x_inv = r_b_
-                            * (std::cos(angle) + t_point * std::sin(angle));
-    real_type const y_inv = r_b_
-                            * (std::sin(angle) - t_point * std::cos(angle));
+    real_type t = std::sqrt(t_point_sq);
+    real_type angle = t + a_;
+    real_type x_inv = std::fabs(r_b_) * (std::cos(angle) + t * std::sin(angle));
+    real_type y_inv = std::fabs(r_b_) * (std::sin(angle) - t * std::cos(angle));
 
     if (x == x_inv && y == y_inv)
     {
@@ -245,7 +249,7 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     {
         theta = 2 * pi - theta;
     }
-    real_type a1 = theta - t_point;
+    real_type a1 = theta - t;
     if (theta < tmax_ + a_ && a1 >= a_)
     {
         return SignedSense::inside;
@@ -254,7 +258,7 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     while (theta < tmax_ + a_)
     {
         theta += pi * 2;
-        a1 = theta - t_point;
+        a1 = theta - t;
         if (theta < tmax_ + a_ && a1 >= a_)
         {
             return SignedSense::inside;
@@ -278,7 +282,7 @@ Involute::calc_intersections(Real3 const& pos,
     rel_pos[0] -= origin_[0];
     rel_pos[1] -= origin_[1];
 
-    detail::InvoluteSolver solve(r_b_, a_, sign_, tmin_, tmax_);
+    detail::InvoluteSolver solve(this->r_b(), a_, this->sign(), tmin_, tmax_);
 
     return solve(rel_pos, dir, on_surface);
 }
@@ -304,7 +308,7 @@ CELER_FORCEINLINE_FUNCTION Real3 Involute::calc_normal(Real3 const& pos) const
     real_type const angle = t_point + a_;
     Real3 normal_ = {std::sin(angle), -std::cos(angle), 0};
 
-    if (sign_)
+    if (this->sign() == Sign::clockwise)
     {
         normal_[0] = negate(normal_[0]);
     }

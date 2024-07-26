@@ -18,27 +18,46 @@
 
 namespace celeritas
 {
+namespace test
+{
+//---------------------------------------------------------------------------//
+
 using constants::pi;
 using Sign = Involute::Sign;
 using Real2 = Involute::Real2;
-namespace test
-{
+
+constexpr auto ccw = Sign::counterclockwise;
+constexpr auto cw = Sign::clockwise;
+
+//---------------------------------------------------------------------------//
 TEST(InvoluteTest, construction)
 {
-    Involute invo{{1, 0}, -2.0, 0.2, 1.0, 3.0};
-    EXPECT_VEC_SOFT_EQ((Real2{1, 0}), invo.origin());
-    EXPECT_SOFT_EQ(2.0, invo.r_b());
-    EXPECT_SOFT_EQ(pi - 0.2, invo.a());
-    EXPECT_TRUE(detail::InvoluteSolver::clockwise == invo.sign());
-    EXPECT_SOFT_EQ(1.0, invo.tmin());
-    EXPECT_SOFT_EQ(3.0, invo.tmax());
+    auto check_props = [](Involute const& invo) {
+        EXPECT_VEC_SOFT_EQ((Real2{1, 0}), invo.origin());
+        EXPECT_SOFT_EQ(2.0, invo.r_b());
+        EXPECT_SOFT_EQ(pi - 0.2, invo.a());
+        EXPECT_EQ(invo.sign(), cw);
+        EXPECT_SOFT_EQ(1.0, invo.tmin());
+        EXPECT_SOFT_EQ(3.0, invo.tmax());
+    };
+
+    Involute invo{{1, 0}, 2.0, 0.2, cw, 1.0, 3.0};
+    check_props(invo);
+
+    {
+        // Construct from raw data and check
+        SCOPED_TRACE("reconstructed");
+        Involute recon{invo.data()};
+        check_props(recon);
+    }
 }
 
-TEST(InvoluteTest, sense)
 //! Python reference can be found in \file
 //! test/orange/surf/doc/involute-in-out.py
+TEST(InvoluteTest, sense)
 {
-    Involute invo{{1, 0}, 1.0, 0.5 * pi, 1.732050808, 1.732050808 + 1.99 * pi};
+    Involute invo{
+        {1, 0}, 1.0, 0.5 * pi, ccw, 1.732050808, 1.732050808 + 1.99 * pi};
     EXPECT_EQ(SignedSense::outside, invo.calc_sense({0, 0, 1}));
     EXPECT_EQ(SignedSense::outside, invo.calc_sense({0, 1.0, 1}));
     EXPECT_EQ(SignedSense::outside, invo.calc_sense({5, 9.0, 1}));
@@ -48,7 +67,7 @@ TEST(InvoluteTest, sense)
     EXPECT_EQ(SignedSense::outside, invo.calc_sense({-5, -5, 1}));
 
     Involute invo2{
-        {1, 0}, -1.0, 0.5 * pi, 1.732050808, 1.732050808 + 1.99 * pi};
+        {1, 0}, 1.0, 0.5 * pi, cw, 1.732050808, 1.732050808 + 1.99 * pi};
     EXPECT_EQ(SignedSense::outside,
               invo2.calc_sense({
                   3.6284887559424783 + 1e-5,
@@ -63,17 +82,17 @@ TEST(InvoluteTest, sense)
               }));
 }
 
-TEST(Involute, normal)
 //! Python reference can be found in \file
 //! test/orange/surf/doc/involute-normal.py
+TEST(Involute, normal)
 {
-    Involute invo{{0, 0}, -1.0, 0.5 * pi, 0, 3.28};
+    Involute invo{{0, 0}, 1.0, 0.5 * pi, cw, 0, 3.28};
 
     EXPECT_VEC_SOFT_EQ(
         make_unit_vector(Real3{-0.968457782598019, 0.249177694277252, 0}),
         invo.calc_normal({0.005289930339633125, 1.0312084690733585, 0}));
 
-    Involute invo2{{0, 0}, 1.0, 0.5 * pi, 0, 3.28};
+    Involute invo2{{0, 0}, 1.0, 0.5 * pi, ccw, 0, 3.28};
     EXPECT_VEC_SOFT_EQ(
         make_unit_vector(Real3{0.968457782598019, 0.249177694277252, 0}),
         invo2.calc_normal({-0.005289930339633125, 1.0312084690733585, 0}));
@@ -85,7 +104,7 @@ TEST(Involute, solve_intersect)
 
     // CCW Involute  Test
     {
-        Involute invo{{1, 1}, 1.1, 1.5 * pi, 0, 1.99 * pi};
+        Involute invo{{1, 1}, 1.1, 1.5 * pi, ccw, 0, 1.99 * pi};
 
         real_type u = 0.9933558377574788 * std::sin(1);
         real_type v = -0.11508335932330707 * std::sin(1);
@@ -104,7 +123,7 @@ TEST(Involute, solve_intersect)
 
     // CW Involute Test
     {
-        Involute invo{{0.0, 0.0}, -0.5, 0.4 * pi, 2, 4};
+        Involute invo{{0.0, 0.0}, 0.5, 0.4 * pi, cw, 2, 4};
 
         real_type u = 0.894427191 * 0.5;
         real_type v = -0.4472135955 * 0.5;
@@ -121,7 +140,7 @@ TEST(Involute, solve_intersect)
 
     // Standard Involute
     {
-        Involute invo{{0, 0}, 1.0, 0.0, 0.5, 4};
+        Involute invo{{0, 0}, 1.0, 0.0, ccw, 0.5, 4};
 
         real_type x = 0;
         real_type y = -2;

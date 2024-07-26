@@ -66,6 +66,7 @@ class InvoluteSolver
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     //// CALCULATION ////
+
     inline CELER_FUNCTION real_type calc_dist(
         real_type x, real_type y, real_type u, real_type v, real_type t) const;
 
@@ -286,15 +287,15 @@ CELER_FUNCTION real_type InvoluteSolver::line_angle_param(real_type u,
 CELER_FUNCTION real_type InvoluteSolver::calc_dist(
     real_type x, real_type y, real_type u, real_type v, real_type t) const
 {
-    real_type theta = t + a_;
-    real_type x_inv = r_b_ * (std::cos(theta) + t * std::sin(theta));
-    real_type y_inv = r_b_ * (std::sin(theta) - t * std::cos(theta));
+    real_type angle = t + a_;
+    real_type x_inv = r_b_ * (std::cos(angle) + t * std::sin(angle));
+    real_type y_inv = r_b_ * (std::sin(angle) - t * std::cos(angle));
     real_type dist = 0;
 
     // Check if point is interval
     if (t >= tmin_ && t <= tmax_)
     {
-        // Obatin direction to point on Involute
+        // Obtain direction to point on Involute
         real_type u_point = x_inv - x;
         real_type v_point = y_inv - y;
 

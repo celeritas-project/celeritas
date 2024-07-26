@@ -13,34 +13,35 @@ namespace celeritas
 /*!
  * Construct involute from parameters.
  *
- * \param radius: radius of the circle of involute
- * \param a: displacement angle of the involute
- * \param sign: chirality of involute
- * \param tmin: minimum tangent angle
- * \param tmax: maximum tangent angle
+ * \param radius radius of the circle of involute
+ * \param displacement displacement angle of the involute
+ * \param sign chirality of involute
+ * \param tmin minimum tangent angle
+ * \param tmax maximum tangent angle
  */
 
 Involute::Involute(Real2 const& origin,
                    real_type radius,
-                   real_type a,
+                   real_type displacement,
+                   Sign sign,
                    real_type tmin,
                    real_type tmax)
-    : origin_(origin)
-    , r_b_(std::fabs(radius))
-    , a_(a)
-    , sign_(static_cast<Sign>(radius < 0))
-    , tmin_(tmin)
-    , tmax_(tmax)
+    : origin_(origin), r_b_(radius), a_(displacement), tmin_(tmin), tmax_(tmax)
 {
-    CELER_EXPECT(a >= 0);
-    CELER_EXPECT(tmax > 0);
-    CELER_EXPECT(tmin >= 0);
-    CELER_EXPECT(tmax < 2 * pi + tmin);
+    CELER_EXPECT(r_b_ >= 0);
+    CELER_EXPECT(a_ >= 0);
+    CELER_EXPECT(tmin_ >= 0);
+    CELER_EXPECT(tmax_ > 0);
+    CELER_EXPECT(tmax_ < 2 * constants::pi + tmin_);
 
-    if (sign_)
+    if (sign)
     {
-        a_ = pi - a;
+        a_ = constants::pi - a_;
+        r_b_ = -r_b_;
     }
+
+    CELER_ENSURE(this->r_b() == radius);
+    CELER_ENSURE(this->sign() == sign);
 }
 
 //---------------------------------------------------------------------------//
