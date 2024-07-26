@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -14,6 +14,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "orange/OrangeTypes.hh"
@@ -25,12 +26,11 @@ namespace celeritas
 using constants::pi;
 //---------------------------------------------------------------------------//
 /*!
- * Involute:
+ * Z-aligned circular involute.
  *
- * Involutes are curves are created by unwinding a chord from a parent shape.
+ * An involute is a curve created by unwinding a chord from a shape.
  * The involute implemented here is constructed from a circle and can be made
-to
- * be clockwise (negative) or anti-clockwise (positive).
+ * to be clockwise (negative) or anti-clockwise (positive).
  * This involute is the same type of that found in HFIR, and is necessary for
  * building accurate models.
  *
@@ -42,13 +42,15 @@ to
  * Lastly the involute geometry is fixed to be z-aligned.
  *
  * \f[
- *   x = r_b * (cos(t+a) + tsin(t+a)) + x_0
- *   y = r_b * (sin(t+a) - tcos(t+a)) + y_0
+ *   x = r_b (\cos(t+a) + t \sin(t+a)) + x_0
+ * \f]
+ * \f[
+ *   y = r_b (\sin(t+a) - t \cos(t+a)) + y_0
  * \f]
  *
  * where \em t is the normal angle of the tangent to the circle of involute
-with
- * radius \em r_b from a starting angle of \em a (\f$r/h\f$ for a finite cone.
+ * with radius \em r_b from a starting angle of \em a (\f$r/h\f$ for a finite
+ * cone.
  */
 class Involute
 {
@@ -131,8 +133,6 @@ class Involute
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
 /*!
  * Construct from raw data.
  */
@@ -150,6 +150,7 @@ CELER_FUNCTION Involute::Involute(Span<R, StorageSpan::extent> data)
 //---------------------------------------------------------------------------//
 /*!
  * Determine the sense of the position relative to this surface.
+ *
  * This is performed by first checking if the particle is outside the bounding
  * circles given by tmin and tmax.
  *
@@ -185,7 +186,7 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
 
     if (sign_)
     {
-        x = -x;
+        x = negate(x);
     }
 
     // Calculate distance to origin and obtain t value for distance.
@@ -198,7 +199,7 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     }
     else
     {
-        t_point = 0.0;
+        t_point = 0;
     }
 
     // Check if point is in defined bounds.
@@ -285,8 +286,9 @@ Involute::calc_intersections(Real3 const& pos,
 //---------------------------------------------------------------------------//
 /*!
  * Calculate outward normal at a position on the surface.
+ *
  * This is done by taking the derivative of the involute equation : \f[
- * normal_vec = {sin(t+a) -cos(t+a), 0}
+ * n = {\sin(t+a) - \cos(t+a), 0}
  * \f]
  */
 CELER_FORCEINLINE_FUNCTION Real3 Involute::calc_normal(Real3 const& pos) const
@@ -294,9 +296,7 @@ CELER_FORCEINLINE_FUNCTION Real3 Involute::calc_normal(Real3 const& pos) const
     real_type const x = pos[0] - origin_[0];
     real_type const y = pos[1] - origin_[1];
 
-    /*
-     * Calculate distance to origin and obtain t value for distance.
-     */
+    // Calculate distance to origin and obtain t value for distance
     real_type const rxy_sq = ipow<2>(x) + ipow<2>(y);
     real_type const t_point = std::sqrt((rxy_sq / (ipow<2>(r_b_))) - 1);
 
@@ -306,9 +306,11 @@ CELER_FORCEINLINE_FUNCTION Real3 Involute::calc_normal(Real3 const& pos) const
 
     if (sign_)
     {
-        normal_[0] = -normal_[0];
+        normal_[0] = negate(normal_[0]);
     }
 
     return normal_;
 }
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -10,7 +10,9 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-/*
+/*!
+ * Construct involute from parameters.
+ *
  * \param radius: radius of the circle of involute
  * \param a: displacement angle of the involute
  * \param sign: chirality of involute
@@ -40,5 +42,6 @@ Involute::Involute(Real2 const& origin,
         a_ = pi - a;
     }
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

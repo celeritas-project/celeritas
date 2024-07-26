@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -102,8 +102,6 @@ class InvoluteSolver
 };
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct from involute parameters.
@@ -252,6 +250,7 @@ InvoluteSolver::operator()(Real3 const& pos,
     return result;
 }
 
+//---------------------------------------------------------------------------//
 /*!
  * Calculate the line-angle parameter \em beta used to find bounds of roots.
  * \f[ beta = arctan(-v/u) \f]
@@ -275,6 +274,7 @@ CELER_FUNCTION real_type InvoluteSolver::line_angle_param(real_type u,
     }
 }
 
+//---------------------------------------------------------------------------//
 /*!
  * Convert root to distance by calculating the point on the involute given by
  * the root and then taking the distance to that point from the particle.
@@ -303,5 +303,6 @@ CELER_FUNCTION real_type InvoluteSolver::calc_dist(
     return dist;
 }
 
+//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas
