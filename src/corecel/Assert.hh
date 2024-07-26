@@ -228,18 +228,20 @@
                 std::ostringstream celer_runtime_msg_;           \
                 celer_runtime_msg_ MSG;                          \
                 CELER_RUNTIME_THROW(                             \
-                    "runtime", celer_runtime_msg_.str(), #COND); \
+                    ::celeritas::RuntimeError::validate_err_str, \
+                    celer_runtime_msg_.str(),                    \
+                    #COND);                                      \
             }                                                    \
         } while (0)
 #else
-#    define CELER_VALIDATE(COND, MSG) \
-        CELER_RUNTIME_THROW("unreachable", "", #COND)
+#    define CELER_VALIDATE(COND, MSG) CELER_RUNTIME_THROW(nullptr, "", #COND)
 #endif
 
 #define CELER_NOT_CONFIGURED(WHAT) \
-    CELER_RUNTIME_THROW("configuration", WHAT, {})
+    CELER_RUNTIME_THROW(           \
+        ::celeritas::RuntimeError::not_config_err_str, WHAT, {})
 #define CELER_NOT_IMPLEMENTED(WHAT) \
-    CELER_RUNTIME_THROW("implementation", WHAT, {})
+    CELER_RUNTIME_THROW(::celeritas::RuntimeError::not_impl_err_str, WHAT, {})
 
 /*!
  * \def CELER_CUDA_CALL
@@ -417,7 +419,7 @@ struct DebugErrorDetails
 //! Detailed properties of a runtime error
 struct RuntimeErrorDetails
 {
-    std::string which{};  //!< Type of error (runtime, Geant4, MPI)
+    char const* which{nullptr};  //!< Type of error (runtime, Geant4, MPI)
     std::string what{};  //!< Descriptive message
     std::string condition{};  //!< Code/test that failed
     std::string file{};  //!< Source file
@@ -475,6 +477,13 @@ class RuntimeError : public std::runtime_error
 
     //! Access detailed information
     RuntimeErrorDetails const& details() const { return details_; }
+
+    //!@{
+    //! String constants for "which" error message
+    static char const validate_err_str[];
+    static char const not_config_err_str[];
+    static char const not_impl_err_str[];
+    //!@}
 
   private:
     RuntimeErrorDetails details_;
