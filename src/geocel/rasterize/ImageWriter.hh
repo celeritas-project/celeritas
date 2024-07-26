@@ -95,6 +95,7 @@ inline void ImageWriter::operator()(Span<Color const>)
     CELER_ASSERT_UNREACHABLE();
 }
 inline void ImageWriter::close_impl(bool) {}
+inline void ImageWriter::ImplDeleter::operator()(Impl*) {}
 #endif
 
 //---------------------------------------------------------------------------//
