@@ -351,7 +351,7 @@ GenPrism GenPrism::from_trd(real_type halfz, Real2 const& lo, Real2 const& hi)
  * \arg theta Polar angle of line between center of bases
  * \arg phi Azimuthal angle of line between center of bases
  * \arg lo Trapezoidal face at -hz
- * \arg hi Trapezoidal face at +hz
+ * \arg lo Trapezoidal face at +hz
  */
 GenPrism GenPrism::from_trap(
     real_type hz, Turn theta, Turn phi, TrapFace const& lo, TrapFace const& hi)
@@ -546,8 +546,6 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
         else
         {
             // Insert a "twisted" face (hyperbolic paraboloid)
-            // a,b,c (lo,hi) are coefficients of the line equations for the
-            // GenPrism edges in the -hz,+hz planes, e.g. ax + by + c = 0
             auto alo = jlo[Y] - ilo[Y];
             auto ahi = jhi[Y] - ihi[Y];
             auto blo = ilo[X] - jlo[X];
@@ -555,16 +553,16 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
             auto clo = jlo[X] * ilo[Y] - ilo[X] * jlo[Y];
             auto chi = jhi[X] * ihi[Y] - ihi[X] * jhi[Y];
 
-            real_type eyz = bhi - blo;
-            real_type fzx = ahi - alo;
-            real_type gx = hz_ * (ahi + alo);
-            real_type hy = hz_ * (bhi + blo);
-            real_type iz = chi - clo;
-            real_type js = hz_ * (clo + chi);
+            real_type xy = ahi - alo;
+            real_type yz = bhi - blo;
+            real_type x = hz_ * (ahi + alo);
+            real_type y = hz_ * (bhi + blo);
+            real_type z = chi - clo;
+            real_type s = hz_ * (clo + chi);
 
             insert_surface(
                 Sense::inside,
-                GeneralQuadric{Real3{0, 0, 0}, {0, eyz, fzx}, {gx, hy, iz}, js},
+                GeneralQuadric{Real3{0, 0, 0}, {xy, yz, 0}, {x, y, z}, s},
                 "t" + std::to_string(i));
         }
     }
@@ -591,290 +589,6 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
  * Write output to the given JSON object.
  */
 void GenPrism::output(JsonPimpl* j) const
-{
-    to_json_pimpl(j, *this);
-}
-
-//---------------------------------------------------------------------------//
-// GENTRAP
-//---------------------------------------------------------------------------//
-/*!
- * Construct from two simple, centered trapezoids.
- */
-GenTrap GenTrap::from_trd(real_type halfz, Real2 const& lo, Real2 const& hi)
-{
-    CELER_VALIDATE(lo[0] > 0, << "nonpositive lower x half-edge: " << lo[0]);
-    CELER_VALIDATE(hi[0] > 0, << "nonpositive upper x half-edge: " << hi[0]);
-    CELER_VALIDATE(lo[1] > 0, << "nonpositive lower y half-edge: " << lo[1]);
-    CELER_VALIDATE(hi[1] > 0, << "nonpositive upper y half-edge: " << hi[1]);
-    CELER_VALIDATE(halfz > 0, << "nonpositive half-height: " << halfz);
-
-    // Construct points like prism: lower right is first
-    VecReal2 lower
-        = {{lo[0], -lo[1]}, {lo[0], lo[1]}, {-lo[0], lo[1]}, {-lo[0], -lo[1]}};
-    VecReal2 upper
-        = {{hi[0], -hi[1]}, {hi[0], hi[1]}, {-hi[0], hi[1]}, {-hi[0], -hi[1]}};
-
-    return GenTrap{halfz, std::move(lower), std::move(upper)};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct from skewed trapezoids.
- *
- * For details on construction, see:
- * https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/Detector/Geometry/geomSolids.html#constructed-solid-geometry-csg-solids
- *
- * \arg hz Half the distance between the faces
- * \arg theta Polar angle of line between center of bases
- * \arg phi Azimuthal angle of line between center of bases
- * \arg lo Trapezoidal face at -hz
- * \arg hi Trapezoidal face at +hz
- */
-GenTrap GenTrap::from_trap(
-    real_type hz, Turn theta, Turn phi, TrapFace const& lo, TrapFace const& hi)
-{
-    CELER_VALIDATE(hz > 0, << "nonpositive half-height: " << hz);
-    CELER_VALIDATE(theta >= zero_quantity() && theta < Turn{0.25},
-                   << "invalid angle " << theta.value()
-                   << " [turns]: must be in the range [0, 0.25)");
-
-    // Calculate offset of faces from z axis
-    auto [dxdz_hz, dydz_hz] = [&]() -> std::pair<real_type, real_type> {
-        real_type cos_phi{}, sin_phi{};
-        sincos(phi, &sin_phi, &cos_phi);
-        real_type const tan_theta = std::tan(native_value_from(theta));
-        return {hz * tan_theta * cos_phi, hz * tan_theta * sin_phi};
-    }();
-
-    // Construct points on faces
-    TrapFace const* const faces[] = {&lo, &hi};
-    Array<VecReal2, 2> points;
-    for (auto i : range(2))
-    {
-        TrapFace const& face = *faces[i];
-        CELER_VALIDATE(face.hx_lo > 0,
-                       << "nonpositive lower x half-edge: " << face.hx_lo);
-        CELER_VALIDATE(face.hx_hi > 0,
-                       << "nonpositive upper x half-edge: " << face.hx_hi);
-        CELER_VALIDATE(face.hy > 0,
-                       << "nonpositive y half-distance: " << face.hy);
-        CELER_VALIDATE(face.alpha > Turn{-0.25} && face.alpha < Turn{0.25},
-                       << "invalid trapezoidal shear: " << face.alpha.value()
-                       << " [turns]: must be in the range (-0.25, -0.25)");
-
-        real_type const xoff = (i == 0 ? -dxdz_hz : dxdz_hz);
-        real_type const yoff = (i == 0 ? -dydz_hz : dydz_hz);
-        real_type const shear = std::tan(native_value_from(face.alpha))
-                                * face.hy;
-
-        // Construct points counterclockwise from lower right
-        points[i] = {{xoff - shear + face.hx_lo, yoff - face.hy},
-                     {xoff + shear + face.hx_hi, yoff + face.hy},
-                     {xoff + shear - face.hx_hi, yoff + face.hy},
-                     {xoff - shear - face.hx_lo, yoff - face.hy}};
-    }
-
-    return GenTrap{hz, std::move(points[0]), std::move(points[1])};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct from half Z height and 1-4 vertices for top and bottom planes.
- */
-GenTrap::GenTrap(real_type halfz, VecReal2 const& lo, VecReal2 const& hi)
-    : hz_{halfz}, lo_{std::move(lo)}, hi_{std::move(hi)}
-{
-    CELER_VALIDATE(hz_ > 0, << "nonpositive halfheight: " << hz_);
-    CELER_VALIDATE(lo_.size() >= 3,
-                   << "insufficient number of vertices (" << lo_.size()
-                   << ") for -z polygon");
-    CELER_VALIDATE(hi_.size() == lo_.size(),
-                   << "incompatible number of vertices (" << hi_.size()
-                   << ") for +z polygon: expected " << lo_.size());
-
-    // Input vertices must be arranged in the same counter/clockwise order
-    // and be convex
-    using detail::calc_orientation;
-    constexpr auto cw = detail::Orientation::clockwise;
-    constexpr auto col = detail::Orientation::collinear;
-    constexpr bool allow_degen = true;
-    CELER_VALIDATE(detail::is_convex(make_span(lo_), allow_degen),
-                   << "-z polygon is not convex");
-    CELER_VALIDATE(detail::is_convex(make_span(hi_), allow_degen),
-                   << "+z polygon is not convex");
-
-    auto lo_orient = calc_orientation(lo_[0], lo_[1], lo_[2]);
-    auto hi_orient = calc_orientation(hi_[0], hi_[1], hi_[2]);
-    CELER_VALIDATE(is_same_orientation(lo_orient, hi_orient, allow_degen),
-                   << "-z and +z polygons have different orientations");
-
-    if (lo_orient == col && hi_orient != col)
-    {
-        degen_ = Degenerate::lo;
-    }
-    else if (lo_orient != col && hi_orient == col)
-    {
-        degen_ = Degenerate::hi;
-    }
-    else
-    {
-        CELER_VALIDATE(lo_orient != col || hi_orient != col,
-                       << "-z and +z polygons are both degenerate");
-    }
-    if (lo_orient == cw || hi_orient == cw)
-    {
-        // Reverse point orders so it's counterclockwise, needed for vectors to
-        // point outward
-        std::reverse(lo_.begin(), lo_.end());
-        std::reverse(hi_.begin(), hi_.end());
-    }
-
-    // Check that sides aren't rotated more than 90 degrees
-    for (auto i : range<size_type>(lo_.size()))
-    {
-        real_type twist_angle_cosine = this->calc_twist_cosine(i);
-        auto j = (i + 1) % lo_.size();
-        CELER_VALIDATE(
-            twist_angle_cosine > 0,
-            << "twist angle between lo (" << lo_[i] << "->" << lo_[j]
-            << ") and hi (" << hi_[i] << "->" << hi_[j]
-            << ") is not less than a quarter turn (actual angle: "
-            << native_value_to<Turn>(std::acos(twist_angle_cosine)).value()
-            << " turns)");
-    }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate the cosine of the twist angle for a given side.
- *
- * The index \c i is the lower left point on the face when looking from the
- * outside. The result is the dot product between the
- * rightward direction vector of the lower and upper edges. If one edge is
- * degenerate, the twist angle is zero (cosine of 1).
- */
-real_type GenTrap::calc_twist_cosine(size_type i) const
-{
-    CELER_EXPECT(i < lo_.size());
-
-    auto j = (i + 1) % lo_.size();
-    if (lo_[i] == lo_[j] || hi_[i] == hi_[j])
-    {
-        // Degenerate face: top or bottom is a single point
-        return 1;
-    }
-
-    auto lo = make_unit_vector(lo_[j] - lo_[i]);
-    auto hi = make_unit_vector(hi_[j] - hi_[i]);
-
-    return dot_product(lo, hi);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Build surfaces.
- */
-void GenTrap::build(IntersectSurfaceBuilder& insert_surface) const
-{
-    constexpr int X = 0;
-    constexpr int Y = 1;
-
-    // Build the bottom and top planes
-    if (degen_ != Degenerate::lo)
-    {
-        insert_surface(Sense::outside, PlaneZ{-hz_});
-    }
-    if (degen_ != Degenerate::hi)
-    {
-        insert_surface(Sense::inside, PlaneZ{hz_});
-    }
-
-    // TODO: use plane normal equality from SoftSurfaceEqual, or maybe soft
-    // equivalence on twist angle cosine?
-    SoftEqual soft_equal{insert_surface.tol().rel};
-
-    // Build the side planes
-    for (auto i : range(lo_.size()))
-    {
-        auto j = (i + 1) % lo_.size();
-
-        Real3 const ilo{lo_[i][X], lo_[i][Y], -hz_};
-        Real3 const jlo{lo_[j][X], lo_[j][Y], -hz_};
-        Real3 const jhi{hi_[j][X], hi_[j][Y], hz_};
-        Real3 const ihi{hi_[i][X], hi_[i][Y], hz_};
-
-        // Calculate outward normal by taking the cross product of the edges
-        auto lo_normal = make_unit_vector(cross_product(jlo - ilo, ihi - ilo));
-        auto hi_normal = make_unit_vector(cross_product(ihi - jhi, jlo - jhi));
-
-        if (soft_equal(dot_product(lo_normal, hi_normal), real_type{1})
-            || ihi == jhi)
-        {
-            // Insert a planar face
-            insert_surface(
-                Sense::inside, Plane{lo_normal, ilo}, "p" + std::to_string(i));
-        }
-        else if (ilo == jlo)
-        {
-            // Insert a degenerate planar face
-            insert_surface(
-                Sense::inside, Plane{hi_normal, ihi}, "p" + std::to_string(i));
-        }
-        else
-        {
-            // Insert a "twisted" face
-            // x,y-'slopes' of i,j vertical edges in terms of z
-            auto aux = 0.5 / hz_;
-            auto txi = aux * (ihi[X] - ilo[X]);
-            auto tyi = aux * (ihi[Y] - ilo[Y]);
-            auto txj = aux * (jhi[X] - jlo[X]);
-            auto tyj = aux * (jhi[Y] - jlo[Y]);
-
-            // half-way coordinates of i,j vertical edges
-            auto mxi = 0.5 * (ilo[X] + ihi[X]);
-            auto myi = 0.5 * (ilo[Y] + ihi[Y]);
-            auto mxj = 0.5 * (jlo[X] + jhi[X]);
-            auto myj = 0.5 * (jlo[Y] + jhi[Y]);
-
-            // coefficients for the quadric
-            real_type czz = txj * tyi - txi * tyj;
-            real_type eyz = txi - txj;
-            real_type fzx = tyj - tyi;
-            real_type gx = myj - myi;
-            real_type hy = mxi - mxj;
-            real_type iz = txj * myi - txi * myj + tyi * mxj - tyj * mxi;
-            real_type js = mxj * myi - mxi * myj;
-
-            insert_surface(
-                Sense::inside,
-                GeneralQuadric{{0, 0, czz}, {0, eyz, fzx}, {gx, hy, iz}, js},
-                "t" + std::to_string(i));
-        }
-    }
-
-    // Construct exterior bounding box
-    BBox exterior_bbox;
-    for (VecReal2 const* p : {&lo_, &hi_})
-    {
-        for (Real2 const& xy : *p)
-        {
-            for (auto ax : {Axis::x, Axis::y})
-            {
-                exterior_bbox.grow(ax, xy[to_int(ax)]);
-            }
-        }
-    }
-    exterior_bbox.grow(Bound::lo, Axis::z, -hz_);
-    exterior_bbox.grow(Bound::hi, Axis::z, hz_);
-    insert_surface(Sense::inside, exterior_bbox);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Write output to the given JSON object.
- */
-void GenTrap::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
 }
