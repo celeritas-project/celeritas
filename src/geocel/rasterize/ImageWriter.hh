@@ -7,10 +7,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
 #include <string>
+#include <vector>
 
 #include "corecel/Config.hh"
 
+#include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "geocel/Types.hh"
 
@@ -70,6 +73,7 @@ inline ImageWriter::ImageWriter(std::string const&, Size2)
 {
     CELER_DISCARD(size_);
     CELER_DISCARD(rows_written_);
+    CELER_DISCARD(row_buffer_);
     CELER_NOT_CONFIGURED("PNG");
 }
 inline ImageWriter::~ImageWriter() = default;

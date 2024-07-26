@@ -19,6 +19,7 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
+//! Instead of deleting a managed FILE pointer, close it
 struct FileDeleter
 {
     void operator()(std::FILE* ptr)
@@ -32,11 +33,15 @@ struct FileDeleter
     }
 };
 
+//---------------------------------------------------------------------------//
+//! Log a warning when libpng emits one
 void log_png_warning(png_structp, png_const_charp msg)
 {
     CELER_LOG(warning) << msg;
 }
 
+//---------------------------------------------------------------------------//
+//! Log an error and jump to handler when libpng fails
 void log_png_error(png_structp png_ptr, png_const_charp msg)
 {
     CELER_LOG(error) << msg;
@@ -83,7 +88,7 @@ ImageWriter::ImageWriter(std::string const& filename, Size2 height_width)
         CELER_RUNTIME_THROW("libpng", "Failed initialization", {});
     }
 
-    // Set up a warning callback
+    // Set up warning/error callbacks
     png_set_error_fn(impl_->png, nullptr, log_png_error, log_png_warning);
 
     // Set the output handle
