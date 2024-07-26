@@ -60,6 +60,13 @@ struct ImageWriter::Impl
 };
 
 //---------------------------------------------------------------------------//
+//! Deleter for PIMPL idiom
+void ImageWriter::ImplDeleter::operator()(Impl* ptr)
+{
+    delete ptr;
+}
+
+//---------------------------------------------------------------------------//
 /*!
  * Construct with a filename and dimensions.
  *
@@ -121,18 +128,6 @@ ImageWriter::ImageWriter(std::string const& filename, Size2 height_width)
 
     // Save info
     png_write_info(impl_->png, impl_->info);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Close on destruction.
- */
-ImageWriter::~ImageWriter()
-{
-    if (*this)
-    {
-        this->close_impl(/* validate = */ false);
-    }
 }
 
 //---------------------------------------------------------------------------//
