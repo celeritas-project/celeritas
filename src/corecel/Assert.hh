@@ -512,15 +512,17 @@ class RichContextException : public std::exception
 // INLINE FUNCTION DEFINITIONS
 //---------------------------------------------------------------------------//
 
+#if (defined(__CUDA_ARCH__) && defined(NDEBUG)) || defined(__HIP__)
+inline constexpr char device_assertion_str[]
+    = "%s:%u:\nceleritas: internal assertion failed: %s\n";
+#endif
+
 #if defined(__CUDA_ARCH__) && defined(NDEBUG)
 //! Host+device definition for CUDA when \c assert is unavailable
 inline __attribute__((noinline)) __host__ __device__ void device_debug_error(
     DebugErrorType, char const* condition, char const* file, int line)
 {
-    printf("%s:%u:\nceleritas: internal assertion failed: %s\n",
-           file,
-           line,
-           condition);
+    printf(device_assertion_str, file, line, condition);
     __trap();
 }
 #elif defined(__HIP__)
@@ -538,10 +540,7 @@ inline __host__ void device_debug_error(DebugErrorType which,
 inline __attribute__((noinline)) __device__ void device_debug_error(
     DebugErrorType, char const* condition, char const* file, int line)
 {
-    printf("%s:%u:\nceleritas: internal assertion failed: %s\n",
-           file,
-           line,
-           condition);
+    printf(device_assertion_str, file, line, condition);
     abort();
 }
 #endif
