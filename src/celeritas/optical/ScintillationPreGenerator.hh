@@ -22,8 +22,6 @@
 
 namespace celeritas
 {
-namespace optical
-{
 //---------------------------------------------------------------------------//
 /*!
  * Sample the number of scintillation photons to be generated.
@@ -36,24 +34,25 @@ class ScintillationPreGenerator
 {
   public:
     // Construct with optical properties, scintillation, and step data
-    inline CELER_FUNCTION
-    ScintillationPreGenerator(ParticleTrackView const& particle,
-                              SimTrackView const& sim,
-                              Real3 const& pos,
-                              units::MevEnergy energy_deposition,
-                              NativeCRef<ScintillationData> const& shared,
-                              PreGenPreStepData const& step_data);
+    inline CELER_FUNCTION ScintillationPreGenerator(
+        ParticleTrackView const& particle,
+        SimTrackView const& sim,
+        Real3 const& pos,
+        units::MevEnergy energy_deposition,
+        NativeCRef<optical::ScintillationData> const& shared,
+        PreGenPreStepData const& step_data);
 
     // Populate an optical distribution data for the Scintillation Generator
     template<class Generator>
-    inline CELER_FUNCTION GeneratorDistributionData operator()(Generator& rng);
+    inline CELER_FUNCTION optical::GeneratorDistributionData
+    operator()(Generator& rng);
 
   private:
     units::ElementaryCharge charge_;
     real_type step_length_;
     PreGenPreStepData const& pre_step_;
-    PreGenStepData post_step_;
-    NativeCRef<ScintillationData> const& shared_;
+    optical::PreGenStepData post_step_;
+    NativeCRef<optical::ScintillationData> const& shared_;
     real_type mean_num_photons_;
 };
 
@@ -68,7 +67,7 @@ CELER_FUNCTION ScintillationPreGenerator::ScintillationPreGenerator(
     SimTrackView const& sim,
     Real3 const& pos,
     units::MevEnergy energy_deposition,
-    NativeCRef<ScintillationData> const& shared,
+    NativeCRef<optical::ScintillationData> const& shared,
     PreGenPreStepData const& step_data)
     : charge_(particle.charge())
     , step_length_(sim.step_length())
@@ -105,11 +104,11 @@ CELER_FUNCTION ScintillationPreGenerator::ScintillationPreGenerator(
  * empty object is returned and can be verified via its own operator bool.
  */
 template<class Generator>
-CELER_FUNCTION GeneratorDistributionData
+CELER_FUNCTION optical::GeneratorDistributionData
 ScintillationPreGenerator::operator()(Generator& rng)
 {
     // Material-only sampling
-    GeneratorDistributionData result;
+    optical::GeneratorDistributionData result;
     if (mean_num_photons_ > 10)
     {
         real_type sigma = shared_.resolution_scale[pre_step_.opt_mat]
@@ -139,5 +138,4 @@ ScintillationPreGenerator::operator()(Generator& rng)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace optical
 }  // namespace celeritas

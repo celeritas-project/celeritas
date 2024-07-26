@@ -21,8 +21,6 @@
 
 namespace celeritas
 {
-namespace optical
-{
 //---------------------------------------------------------------------------//
 /*!
  * Current sizes of the buffers of distribution data.
@@ -126,8 +124,8 @@ struct PreGenStateData
     StateItems<PreGenPreStepData> step;
 
     // Buffers of distribution data for generating optical primaries
-    Items<GeneratorDistributionData> cerenkov;
-    Items<GeneratorDistributionData> scintillation;
+    Items<optical::GeneratorDistributionData> cerenkov;
+    Items<optical::GeneratorDistributionData> scintillation;
 
     //// METHODS ////
 
@@ -180,5 +178,4 @@ void resize(PreGenStateData<Ownership::value, M>* state,
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace optical
 }  // namespace celeritas
