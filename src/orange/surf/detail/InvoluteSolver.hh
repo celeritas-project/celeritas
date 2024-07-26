@@ -23,7 +23,6 @@ namespace celeritas
 {
 namespace detail
 {
-using constants::pi;
 //---------------------------------------------------------------------------//
 /*!
  * Find positive, real, nonzero roots for involute intersection function.
@@ -100,6 +99,7 @@ class InvoluteSolver
     real_type tmin_;
     real_type tmax_;
 };
+
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
@@ -114,7 +114,7 @@ CELER_FUNCTION InvoluteSolver::InvoluteSolver(
     CELER_EXPECT(a >= 0);
     CELER_EXPECT(tmax > 0);
     CELER_EXPECT(tmin >= 0);
-    CELER_EXPECT(tmax < 2 * pi + tmin);
+    CELER_EXPECT(tmax < 2 * constants::pi + tmin);
 }
 
 //---------------------------------------------------------------------------//
@@ -139,6 +139,7 @@ InvoluteSolver::operator()(Real3 const& pos,
                            Real3 const& dir,
                            SurfaceState on_surface) const -> Intersections
 {
+    using constants::pi;
     // Flatten pos and dir in xyz and uv respectively
     real_type x = pos[0];
     real_type const y = pos[1];
@@ -253,11 +254,14 @@ InvoluteSolver::operator()(Real3 const& pos,
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the line-angle parameter \em beta used to find bounds of roots.
- * \f[ beta = arctan(-v/u) \f]
+ *
+ * \f[ \beta = \arctan(-v/u) \f]
  */
 CELER_FUNCTION real_type InvoluteSolver::line_angle_param(real_type u,
                                                           real_type v)
 {
+    using constants::pi;
+
     if (u != 0)
     {
         // Standard method
