@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include "GeantTestBase.hh"
 
+#include <cstring>
 #include <string>
 
 #include "corecel/Config.hh"
