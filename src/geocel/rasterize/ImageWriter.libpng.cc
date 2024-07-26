@@ -55,13 +55,6 @@ struct ImageWriter::Impl
 };
 
 //---------------------------------------------------------------------------//
-//! Deleter for PIMPL idiom
-void ImageWriter::ImplDeleter::operator()(Impl* ptr)
-{
-    delete ptr;
-}
-
-//---------------------------------------------------------------------------//
 /*!
  * Construct with a filename and dimensions.
  *
@@ -112,17 +105,28 @@ ImageWriter::ImageWriter(std::string const& filename, Size2 height_width)
 
     // Create metadata
     {
-        static char const software_str[] = "libpng (via Celeritas)";
+        static char software_key[] = "Software";
+        static char software_str[] = "libpng (via Celeritas)";
         png_text text[] = {{}};
         text[0].compression = PNG_TEXT_COMPRESSION_NONE;
-        text[0].key = const_cast<char*>("Software");
-        text[0].text = const_cast<char*>(software_str);
-        text[0].text_length = std::size(software_str);
-        png_set_text(impl_->png, impl_->info, text, std::size(text));
+        text[0].key = static_cast<char*>(software_key);
+        text[0].text = static_cast<char*>(software_str);
     }
 
     // Save info
     png_write_info(impl_->png, impl_->info);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Close on destruction.
+ */
+ImageWriter::~ImageWriter()
+{
+    if (*this)
+    {
+        this->close_impl(/* validate = */ false);
+    }
 }
 
 //---------------------------------------------------------------------------//

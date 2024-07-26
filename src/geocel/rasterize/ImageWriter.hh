@@ -9,11 +9,12 @@
 
 #include <string>
 
+#include "corecel/Config.hh"
+
 #include "corecel/cont/Span.hh"
 #include "geocel/Types.hh"
 
 #include "Color.hh"
-#include "celeritas_config.h"
 
 namespace celeritas
 {
@@ -36,8 +37,10 @@ class ImageWriter
     // Construct with a filename and dimensions
     ImageWriter(std::string const& filename, Size2 height_width);
 
+    CELER_DELETE_COPY_MOVE(ImageWriter);
+
     // Close on destruction
-    inline ~ImageWriter();
+    ~ImageWriter();
 
     // Write a row
     void operator()(Span<Color const>);
@@ -50,12 +53,8 @@ class ImageWriter
 
   private:
     struct Impl;
-    struct ImplDeleter
-    {
-        void operator()(Impl*);
-    };
 
-    std::unique_ptr<Impl, ImplDeleter> impl_;
+    std::unique_ptr<Impl> impl_;
     Size2 size_;
     size_type rows_written_{0};
     std::vector<char> row_buffer_;
@@ -66,24 +65,15 @@ class ImageWriter
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
-/*!
- * Close on destruction.
- */
-ImageWriter::~ImageWriter()
-{
-    if (*this)
-    {
-        this->close_impl(/* validate = */ false);
-    }
-}
-
-//---------------------------------------------------------------------------//
 #if !CELERITAS_USE_PNG
 inline ImageWriter::ImageWriter(std::string const&, Size2)
 {
+    CELER_DISCARD(size_);
+    CELER_DISCARD(rows_written_);
     CELER_NOT_CONFIGURED("PNG");
 }
-inline void ImageWriter::operator()(Span<Color>)
+inline ImageWriter::~ImageWriter() = default;
+inline void ImageWriter::operator()(Span<Color const>)
 {
     CELER_ASSERT_UNREACHABLE();
 }
