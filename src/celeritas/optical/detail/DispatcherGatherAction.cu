@@ -3,49 +3,40 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/ScintPreGenAction.cu
+//! \file celeritas/optical/detail/DispatcherGatherAction.cu
 //---------------------------------------------------------------------------//
-#include "ScintPreGenAction.hh"
+#include "DispatcherGatherAction.hh"
 
 #include "corecel/Assert.hh"
-#include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
-#include "celeritas/optical/ScintillationParams.hh"
 
-#include "OpticalGenAlgorithms.hh"
-#include "PreGenParams.hh"
-#include "ScintPreGenExecutor.hh"
+#include "DispatcherGatherExecutor.hh"
+#include "DispatcherParams.hh"
 
 namespace celeritas
-{
-namespace optical
 {
 namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Launch a kernel to generate optical distribution data post-step.
+ * Gather pre-step data.
  */
-void ScintPreGenAction::pre_generate(CoreParams const& core_params,
-                                     CoreStateDevice& core_state) const
+void DispatcherGatherAction::execute(CoreParams const& params,
+                                     CoreStateDevice& state) const
 {
-    auto& state
-        = get<OpticalGenState<MemSpace::native>>(core_state.aux(), data_id_);
-
-    TrackExecutor execute{
-        core_params.ptr<MemSpace::native>(),
-        core_state.ptr(),
-        detail::ScintPreGenExecutor{scintillation_->device_ref(),
-                                    state.store.ref(),
-                                    state.buffer_size}};
+    auto& optical_state
+        = get<OpticalGenState<MemSpace::native>>(state.aux(), data_id_);
+    auto execute = make_active_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        detail::DispatcherGatherExecutor{optical_state.store.ref()});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
-    launch_kernel(core_state, execute);
+    launch_kernel(state, execute);
 }
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
-}  // namespace optical
 }  // namespace celeritas

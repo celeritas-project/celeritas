@@ -22,7 +22,7 @@ namespace optical
 /*!
  * Pre- and post-step data for sampling optical photons.
  */
-struct PreGenStepData
+struct DispatcherStepData
 {
     units::LightSpeed speed;
     Real3 pos{};
@@ -45,7 +45,7 @@ struct GeneratorDistributionData
     real_type step_length{};
     units::ElementaryCharge charge;
     OpticalMaterialId material;
-    EnumArray<StepPoint, PreGenStepData> points;
+    EnumArray<StepPoint, DispatcherStepData> points;
 
     //! Check whether the data are assigned
     explicit CELER_FUNCTION operator bool() const

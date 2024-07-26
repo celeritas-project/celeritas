@@ -13,22 +13,22 @@
 
 namespace celeritas
 {
-namespace optical
-{
 namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
  * Remove all invalid distributions from the buffer.
  */
-size_type remove_if_invalid(Collection<GeneratorDistributionData,
-                                       Ownership::reference,
-                                       MemSpace::host> const& buffer,
-                            size_type offset,
-                            size_type size,
-                            StreamId)
+size_type
+remove_if_invalid(Collection<celeritas::optical::GeneratorDistributionData,
+                             Ownership::reference,
+                             MemSpace::host> const& buffer,
+                  size_type offset,
+                  size_type size,
+                  StreamId)
 {
-    auto* start = static_cast<GeneratorDistributionData*>(buffer.data());
+    auto* start = static_cast<celeritas::optical::GeneratorDistributionData*>(
+        buffer.data());
     auto* stop
         = std::remove_if(start + offset, start + offset + size, IsInvalid{});
     return stop - start;
@@ -36,5 +36,4 @@ size_type remove_if_invalid(Collection<GeneratorDistributionData,
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
-}  // namespace optical
 }  // namespace celeritas

@@ -11,15 +11,13 @@
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/optical/CerenkovParams.hh"
+#include "celeritas/optical/DispatcherData.hh"
 #include "celeritas/optical/MaterialPropertyParams.hh"
-#include "celeritas/optical/PreGenData.hh"
 #include "celeritas/optical/ScintillationParams.hh"
 
-#include "detail/PreGenParams.hh"
+#include "detail/DispatcherParams.hh"
 
 namespace celeritas
-{
-namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -29,19 +27,19 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
 {
     CELER_EXPECT(inp);
 
-    PreGenOptions setup;
+    DispatcherOptions setup;
     setup.cerenkov = inp.cerenkov && inp.properties;
     setup.scintillation = static_cast<bool>(inp.scintillation);
     setup.capacity = inp.buffer_capacity;
 
     // Create aux params and add to core
-    gen_params_ = std::make_shared<detail::PreGenParams>(
+    gen_params_ = std::make_shared<detail::DispatcherParams>(
         core.aux_reg()->next_id(), setup);
     core.aux_reg()->insert(gen_params_);
 
     // Action to gather pre-step data needed to generate optical distributions
     ActionRegistry& actions = *core.action_reg();
-    gather_action_ = std::make_shared<detail::PreGenGatherAction>(
+    gather_action_ = std::make_shared<detail::DispatcherGatherAction>(
         actions.next_id(), gen_params_->aux_id());
     actions.insert(gather_action_);
 
@@ -49,7 +47,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     {
         // Action to generate Cerenkov optical distributions
         cerenkov_pregen_action_
-            = std::make_shared<detail::CerenkovPreGenAction>(
+            = std::make_shared<detail::CerenkovDispatcherAction>(
                 actions.next_id(),
                 gen_params_->aux_id(),
                 std::move(inp.properties),
@@ -60,7 +58,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     if (setup.scintillation)
     {
         // Action to generate scintillation optical distributions
-        scint_pregen_action_ = std::make_shared<detail::ScintPreGenAction>(
+        scint_pregen_action_ = std::make_shared<detail::ScintDispatcherAction>(
             actions.next_id(),
             gen_params_->aux_id(),
             std::move(inp.scintillation));
@@ -80,5 +78,4 @@ AuxId OpticalCollector::aux_id() const
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace optical
 }  // namespace celeritas

@@ -12,11 +12,11 @@
 #include "corecel/data/AuxInterface.hh"
 #include "celeritas/Types.hh"
 
-#include "PreGenData.hh"
+#include "DispatcherData.hh"
 
-#include "detail/CerenkovPreGenAction.hh"
-#include "detail/PreGenGatherAction.hh"
-#include "detail/ScintPreGenAction.hh"
+#include "detail/CerenkovDispatcherAction.hh"
+#include "detail/DispatcherGatherAction.hh"
+#include "detail/ScintDispatcherAction.hh"
 
 namespace celeritas
 {
@@ -27,12 +27,9 @@ class MaterialPropertyParams;
 class ScintillationParams;
 class CoreParams;
 
-namespace optical
-{
-
 namespace detail
 {
-class PreGenParams;
+class DispatcherParams;
 }  // namespace detail
 
 //---------------------------------------------------------------------------//
@@ -54,10 +51,12 @@ class OpticalCollector
   public:
     //!@{
     //! \name Type aliases
-    using SPConstCerenkov = std::shared_ptr<CerenkovParams const>;
+    using SPConstCerenkov = std::shared_ptr<optical::CerenkovParams const>;
     using SPConstCore = std::shared_ptr<CoreParams const>;
-    using SPConstProperties = std::shared_ptr<MaterialPropertyParams const>;
-    using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
+    using SPConstProperties
+        = std::shared_ptr<optical::MaterialPropertyParams const>;
+    using SPConstScintillation
+        = std::shared_ptr<optical::ScintillationParams const>;
     using SPGenStorage = std::shared_ptr<detail::OpticalGenStorage>;
     //!@}
 
@@ -89,24 +88,24 @@ class OpticalCollector
   private:
     //// TYPES ////
 
-    using SPPreGenParams = std::shared_ptr<detail::PreGenParams>;
-    using SPCerenkovPreGenAction
-        = std::shared_ptr<detail::CerenkovPreGenAction>;
-    using SPScintPreGenAction = std::shared_ptr<detail::ScintPreGenAction>;
-    using SPGatherAction = std::shared_ptr<detail::PreGenGatherAction>;
+    using SPDispatcherParams = std::shared_ptr<detail::DispatcherParams>;
+    using SPCerenkovDispatcherAction
+        = std::shared_ptr<detail::CerenkovDispatcherAction>;
+    using SPScintDispatcherAction
+        = std::shared_ptr<detail::ScintDispatcherAction>;
+    using SPGatherAction = std::shared_ptr<detail::DispatcherGatherAction>;
 
     //// DATA ////
 
-    SPPreGenParams gen_params_;
+    SPDispatcherParams gen_params_;
 
     SPGatherAction gather_action_;
-    SPCerenkovPreGenAction cerenkov_pregen_action_;
-    SPScintPreGenAction scint_pregen_action_;
+    SPCerenkovDispatcherAction cerenkov_pregen_action_;
+    SPScintDispatcherAction scint_pregen_action_;
 
     // TODO: tracking loop launcher
     // TODO: store optical core params and state?
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace optical
 }  // namespace celeritas

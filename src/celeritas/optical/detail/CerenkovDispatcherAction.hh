@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/ScintPreGenAction.hh
+//! \file celeritas/optical/detail/CerenkovDispatcherAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -15,14 +15,15 @@
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/optical/GeneratorDistributionData.hh"
 
-#include "PreGenParams.hh"
+#include "DispatcherParams.hh"
 
 namespace celeritas
 {
 namespace optical
 {
-//---------------------------------------------------------------------------//
-class ScintillationParams;
+class CerenkovParams;
+class MaterialPropertyParams;
+}  // namespace optical
 
 namespace detail
 {
@@ -31,20 +32,24 @@ struct OpticalGenStorage;
 /*!
  * Generate optical distribution data.
  */
-class ScintPreGenAction final : public ExplicitCoreActionInterface
+class CerenkovDispatcherAction final : public ExplicitCoreActionInterface
 {
   public:
     //!@{
     //! \name Type aliases
-    using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
+    using SPConstCerenkov
+        = std::shared_ptr<celeritas::optical::CerenkovParams const>;
+    using SPConstProperties
+        = std::shared_ptr<celeritas::optical::MaterialPropertyParams const>;
     using SPGenStorage = std::shared_ptr<detail::OpticalGenStorage>;
     //!@}
 
   public:
     // Construct with action ID, optical properties, and storage
-    ScintPreGenAction(ActionId id,
-                      AuxId data_id,
-                      SPConstScintillation scintillation);
+    CerenkovDispatcherAction(ActionId id,
+                             AuxId data_id,
+                             SPConstProperties properties,
+                             SPConstCerenkov cerenkov);
 
     // Launch kernel with host data
     void execute(CoreParams const&, CoreStateHost&) const final;
@@ -56,10 +61,7 @@ class ScintPreGenAction final : public ExplicitCoreActionInterface
     ActionId action_id() const final { return id_; }
 
     //! Short name for the action
-    std::string_view label() const final
-    {
-        return "scintillation-pre-generator";
-    }
+    std::string_view label() const final { return "cerenkov-dispatcher"; }
 
     // Name of the action (for user output)
     std::string_view description() const final;
@@ -72,7 +74,8 @@ class ScintPreGenAction final : public ExplicitCoreActionInterface
 
     ActionId id_;
     AuxId data_id_;
-    SPConstScintillation scintillation_;
+    SPConstProperties properties_;
+    SPConstCerenkov cerenkov_;
 
     //// HELPER FUNCTIONS ////
 
@@ -85,5 +88,4 @@ class ScintPreGenAction final : public ExplicitCoreActionInterface
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
-}  // namespace optical
 }  // namespace celeritas

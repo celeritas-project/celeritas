@@ -3,13 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/PreGenParams.cc
+//! \file celeritas/optical/detail/DispatcherParams.cc
 //---------------------------------------------------------------------------//
-#include "PreGenParams.hh"
+#include "DispatcherParams.hh"
 
 namespace celeritas
-{
-namespace optical
 {
 namespace detail
 {
@@ -18,9 +16,9 @@ namespace
 //---------------------------------------------------------------------------//
 //! Construct a state
 template<MemSpace M>
-auto make_state(PreGenParams const& params, StreamId stream, size_type size)
+auto make_state(DispatcherParams const& params, StreamId stream, size_type size)
 {
-    using StoreT = CollectionStateStore<PreGenStateData, M>;
+    using StoreT = CollectionStateStore<DispatcherStateData, M>;
 
     auto result = std::make_unique<OpticalGenState<M>>();
     result->store = StoreT{params.host_ref(), stream, size};
@@ -38,13 +36,13 @@ auto make_state(PreGenParams const& params, StreamId stream, size_type size)
 /*!
  * Construct with aux ID and optical data.
  */
-PreGenParams::PreGenParams(AuxId aux_id, PreGenOptions const& setup)
+DispatcherParams::DispatcherParams(AuxId aux_id, DispatcherOptions const& setup)
     : aux_id_{aux_id}
 {
     CELER_EXPECT(aux_id_);
     CELER_EXPECT(setup);
 
-    data_ = CollectionMirror{HostVal<PreGenParamsData>{setup}};
+    data_ = CollectionMirror{HostVal<DispatcherParamsData>{setup}};
 
     CELER_ENSURE(data_);
 }
@@ -53,8 +51,9 @@ PreGenParams::PreGenParams(AuxId aux_id, PreGenOptions const& setup)
 /*!
  * Build state data for a stream.
  */
-auto PreGenParams::create_state(MemSpace m, StreamId sid, size_type size) const
-    -> UPState
+auto DispatcherParams::create_state(MemSpace m,
+                                    StreamId sid,
+                                    size_type size) const -> UPState
 {
     if (m == MemSpace::host)
     {
@@ -69,5 +68,4 @@ auto PreGenParams::create_state(MemSpace m, StreamId sid, size_type size) const
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
-}  // namespace optical
 }  // namespace celeritas

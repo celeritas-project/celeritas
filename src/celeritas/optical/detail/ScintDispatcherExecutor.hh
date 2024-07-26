@@ -3,19 +3,17 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/ScintPreGenExecutor.hh
+//! \file celeritas/optical/detail/ScintDispatcherExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "celeritas/global/CoreTrackView.hh"
-#include "celeritas/optical/PreGenData.hh"
-#include "celeritas/optical/ScintillationPreGenerator.hh"
+#include "celeritas/optical/DispatcherData.hh"
+#include "celeritas/optical/ScintillationDispatcher.hh"
 
 namespace celeritas
-{
-namespace optical
 {
 namespace detail
 {
@@ -29,14 +27,14 @@ namespace detail
  * action to clear distribution data rather than applying it to inactive tracks
  * at every step.
  */
-struct ScintPreGenExecutor
+struct ScintDispatcherExecutor
 {
     inline CELER_FUNCTION void
     operator()(celeritas::CoreTrackView const& track);
 
-    NativeCRef<ScintillationData> const scintillation;
-    NativeRef<PreGenStateData> const state;
-    PreGenBufferSize size;
+    NativeCRef<celeritas::optical::ScintillationData> const scintillation;
+    NativeRef<DispatcherStateData> const state;
+    DispatcherBufferSize size;
 };
 
 //---------------------------------------------------------------------------//
@@ -45,11 +43,12 @@ struct ScintPreGenExecutor
 /*!
  * Generate optical distribution data.
  */
-CELER_FUNCTION void ScintPreGenExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION void
+ScintDispatcherExecutor::operator()(CoreTrackView const& track)
 {
     CELER_EXPECT(state);
 
-    using DistId = ItemId<GeneratorDistributionData>;
+    using DistId = ItemId<celeritas::optical::GeneratorDistributionData>;
 
     auto tsid = track.track_slot_id();
     CELER_ASSERT(size.scintillation + tsid.get() < state.scintillation.size());
@@ -75,12 +74,11 @@ CELER_FUNCTION void ScintPreGenExecutor::operator()(CoreTrackView const& track)
     auto rng = track.make_rng_engine();
 
     // Get the distribution data used to generate scintillation optical photons
-    ScintillationPreGenerator generate(
+    ScintillationDispatcher generate(
         particle, sim, pos, edep, scintillation, step);
     scintillation_dist = generate(rng);
 }
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
-}  // namespace optical
 }  // namespace celeritas

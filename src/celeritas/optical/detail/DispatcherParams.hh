@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/PreGenParams.hh
+//! \file celeritas/optical/detail/DispatcherParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,11 +12,9 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 
-#include "../PreGenData.hh"
+#include "../DispatcherData.hh"
 
 namespace celeritas
-{
-namespace optical
 {
 namespace detail
 {
@@ -24,12 +22,12 @@ namespace detail
 /*!
  * Manage metadata about optical generation.
  */
-class PreGenParams final : public AuxParamsInterface,
-                           public ParamsDataInterface<PreGenParamsData>
+class DispatcherParams final : public AuxParamsInterface,
+                               public ParamsDataInterface<DispatcherParamsData>
 {
   public:
     // Construct with aux ID and optical data
-    PreGenParams(AuxId aux_id, PreGenOptions const& setup);
+    DispatcherParams(AuxId aux_id, DispatcherOptions const& setup);
 
     //!@{
     //! \name Aux interface
@@ -51,7 +49,7 @@ class PreGenParams final : public AuxParamsInterface,
 
   private:
     AuxId aux_id_;
-    CollectionMirror<PreGenParamsData> data_;
+    CollectionMirror<DispatcherParamsData> data_;
 };
 
 //---------------------------------------------------------------------------//
@@ -61,8 +59,8 @@ class PreGenParams final : public AuxParamsInterface,
 template<MemSpace M>
 struct OpticalGenState : public AuxStateInterface
 {
-    CollectionStateStore<PreGenStateData, M> store;
-    PreGenBufferSize buffer_size;
+    CollectionStateStore<DispatcherStateData, M> store;
+    DispatcherBufferSize buffer_size;
 
     //! True if states have been allocated
     explicit operator bool() const { return static_cast<bool>(store); }
@@ -70,5 +68,4 @@ struct OpticalGenState : public AuxStateInterface
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
-}  // namespace optical
 }  // namespace celeritas

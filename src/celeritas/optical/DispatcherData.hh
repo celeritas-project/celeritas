@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/PreGenData.hh
+//! \file celeritas/optical/DispatcherData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -27,7 +27,7 @@ namespace celeritas
  *
  * These sizes are updated by value on the host at each step.
  */
-struct PreGenBufferSize
+struct DispatcherBufferSize
 {
     size_type cerenkov{0};
     size_type scintillation{0};
@@ -39,7 +39,7 @@ struct PreGenBufferSize
  *
  * At least one of cerenkov and scintillation must be enabled.
  */
-struct PreGenOptions
+struct DispatcherOptions
 {
     bool cerenkov{false};  //!< Whether Cerenkov is enabled
     bool scintillation{false};  //!< Whether scintillation is enabled
@@ -57,11 +57,11 @@ struct PreGenOptions
  * Immutable problem data for generating optical photon distributions.
  */
 template<Ownership W, MemSpace M>
-struct PreGenParamsData
+struct DispatcherParamsData
 {
     //// DATA ////
 
-    PreGenOptions setup;
+    DispatcherOptions setup;
 
     //// METHODS ////
 
@@ -73,7 +73,7 @@ struct PreGenParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    PreGenParamsData& operator=(PreGenParamsData<W2, M2> const& other)
+    DispatcherParamsData& operator=(DispatcherParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         setup = other.setup;
@@ -85,7 +85,7 @@ struct PreGenParamsData
 /*!
  * Pre-step data needed to generate optical photon distributions.
  */
-struct PreGenPreStepData
+struct DispatcherPreStepData
 {
     units::LightSpeed speed;
     Real3 pos{};
@@ -109,7 +109,7 @@ struct PreGenPreStepData
  * order of the distributions in the buffers is guaranteed to be reproducible.
  */
 template<Ownership W, MemSpace M>
-struct PreGenStateData
+struct DispatcherStateData
 {
     //// TYPES ////
 
@@ -121,7 +121,7 @@ struct PreGenStateData
     //// DATA ////
 
     // Pre-step data for generating optical photon distributions
-    StateItems<PreGenPreStepData> step;
+    StateItems<DispatcherPreStepData> step;
 
     // Buffers of distribution data for generating optical primaries
     Items<optical::GeneratorDistributionData> cerenkov;
@@ -140,7 +140,7 @@ struct PreGenStateData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    PreGenStateData& operator=(PreGenStateData<W2, M2>& other)
+    DispatcherStateData& operator=(DispatcherStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
         step = other.step;
@@ -155,8 +155,8 @@ struct PreGenStateData
  * Resize optical states.
  */
 template<MemSpace M>
-void resize(PreGenStateData<Ownership::value, M>* state,
-            HostCRef<PreGenParamsData> const& params,
+void resize(DispatcherStateData<Ownership::value, M>* state,
+            HostCRef<DispatcherParamsData> const& params,
             StreamId,
             size_type size)
 {
@@ -164,7 +164,7 @@ void resize(PreGenStateData<Ownership::value, M>* state,
     CELER_EXPECT(size > 0);
 
     resize(&state->step, size);
-    PreGenOptions const& setup = params.setup;
+    DispatcherOptions const& setup = params.setup;
     if (setup.cerenkov)
     {
         resize(&state->cerenkov, setup.capacity);

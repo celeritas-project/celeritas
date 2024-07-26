@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/CerenkovPreGenerator.hh
+//! \file celeritas/optical/CerenkovDispatcher.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -15,9 +15,9 @@
 
 #include "CerenkovData.hh"
 #include "CerenkovDndxCalculator.hh"
+#include "DispatcherData.hh"
 #include "GeneratorDistributionData.hh"
 #include "MaterialPropertyData.hh"
-#include "PreGenData.hh"
 
 namespace celeritas
 {
@@ -29,17 +29,17 @@ namespace celeritas
  * CerenkovGenerator to generate optical photons using post-step and cached
  * pre-step data.
  */
-class CerenkovPreGenerator
+class CerenkovDispatcher
 {
   public:
     // Construct with optical properties, Cerenkov, and step data
-    inline CELER_FUNCTION CerenkovPreGenerator(
+    inline CELER_FUNCTION CerenkovDispatcher(
         ParticleTrackView const& particle,
         SimTrackView const& sim,
         Real3 const& pos,
         NativeCRef<optical::MaterialPropertyData> const& properties,
         NativeCRef<optical::CerenkovData> const& shared,
-        PreGenPreStepData const& step_data);
+        DispatcherPreStepData const& step_data);
 
     // Return a populated optical distribution data for the Cerenkov Generator
     template<class Generator>
@@ -49,8 +49,8 @@ class CerenkovPreGenerator
   private:
     units::ElementaryCharge charge_;
     real_type step_length_;
-    PreGenPreStepData const& pre_step_;
-    optical::PreGenStepData post_step_;
+    DispatcherPreStepData const& pre_step_;
+    optical::DispatcherStepData post_step_;
     real_type num_photons_per_len_;
 };
 
@@ -60,13 +60,13 @@ class CerenkovPreGenerator
 /*!
  * Construct with optical properties, Cerenkov, and step information.
  */
-CELER_FUNCTION CerenkovPreGenerator::CerenkovPreGenerator(
+CELER_FUNCTION CerenkovDispatcher::CerenkovDispatcher(
     ParticleTrackView const& particle,
     SimTrackView const& sim,
     Real3 const& pos,
     NativeCRef<optical::MaterialPropertyData> const& properties,
     NativeCRef<optical::CerenkovData> const& shared,
-    PreGenPreStepData const& step_data)
+    DispatcherPreStepData const& step_data)
     : charge_(particle.charge())
     , step_length_(sim.step_length())
     , pre_step_(step_data)
@@ -97,7 +97,7 @@ CELER_FUNCTION CerenkovPreGenerator::CerenkovPreGenerator(
  */
 template<class Generator>
 CELER_FUNCTION optical::GeneratorDistributionData
-CerenkovPreGenerator::operator()(Generator& rng)
+CerenkovDispatcher::operator()(Generator& rng)
 {
     if (num_photons_per_len_ == 0)
     {

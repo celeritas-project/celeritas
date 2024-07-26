@@ -20,7 +20,7 @@
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
-#include "celeritas/optical/detail/PreGenParams.hh"
+#include "celeritas/optical/detail/DispatcherParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
@@ -28,7 +28,7 @@
 #include "celeritas_test.hh"
 #include "../LArSphereBase.hh"
 
-using celeritas::optical::detail::OpticalGenState;
+using celeritas::detail::OpticalGenState;
 
 namespace celeritas
 {
@@ -40,12 +40,12 @@ using namespace celeritas::optical;
 // TEST FIXTURES
 //---------------------------------------------------------------------------//
 
-class LArSpherePreGenTest : public LArSphereBase
+class LArSphereDispatcherTest : public LArSphereBase
 {
   public:
     using VecPrimary = std::vector<Primary>;
 
-    struct PreGenResult
+    struct DispatcherResult
     {
         size_type total_num_photons{0};
         std::vector<size_type> num_photons;
@@ -54,8 +54,8 @@ class LArSpherePreGenTest : public LArSphereBase
 
     struct RunResult
     {
-        PreGenResult cerenkov;
-        PreGenResult scintillation;
+        DispatcherResult cerenkov;
+        DispatcherResult scintillation;
 
         void print_expected() const;
     };
@@ -85,7 +85,7 @@ class LArSpherePreGenTest : public LArSphereBase
 
 //---------------------------------------------------------------------------//
 //! Print the expected result
-void LArSpherePreGenTest::RunResult::print_expected() const
+void LArSphereDispatcherTest::RunResult::print_expected() const
 {
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "EXPECT_EQ("
@@ -127,7 +127,7 @@ void LArSpherePreGenTest::RunResult::print_expected() const
 /*!
  * Construct along-step action.
  */
-auto LArSpherePreGenTest::build_along_step() -> SPConstAction
+auto LArSphereDispatcherTest::build_along_step() -> SPConstAction
 {
     auto& action_reg = *this->action_reg();
     UniformFieldParams field_params;
@@ -147,7 +147,7 @@ auto LArSpherePreGenTest::build_along_step() -> SPConstAction
 /*!
  * Construct optical collector.
  */
-void LArSpherePreGenTest::build_optical_collector()
+void LArSphereDispatcherTest::build_optical_collector()
 {
     OpticalCollector::Input inp;
     if (use_cerenkov_)
@@ -169,7 +169,7 @@ void LArSpherePreGenTest::build_optical_collector()
 /*!
  * Generate a vector of primary particles.
  */
-auto LArSpherePreGenTest::make_primaries(size_type count) -> VecPrimary
+auto LArSphereDispatcherTest::make_primaries(size_type count) -> VecPrimary
 {
     Primary p;
     p.event_id = EventId{0};
@@ -201,7 +201,7 @@ auto LArSpherePreGenTest::make_primaries(size_type count) -> VecPrimary
  * Run a number of tracks.
  */
 template<MemSpace M>
-auto LArSpherePreGenTest::run(size_type num_tracks, size_type num_steps)
+auto LArSphereDispatcherTest::run(size_type num_tracks, size_type num_steps)
     -> RunResult
 {
     StepperInput step_inp;
@@ -225,7 +225,7 @@ auto LArSpherePreGenTest::run(size_type num_tracks, size_type num_steps)
     using ItemsRef
         = Collection<GeneratorDistributionData, Ownership::reference, M>;
 
-    auto get_result = [&](PreGenResult& result,
+    auto get_result = [&](DispatcherResult& result,
                           ItemsRef const& buffer,
                           size_type size) {
         // Copy buffer to host
@@ -268,16 +268,16 @@ auto LArSpherePreGenTest::run(size_type num_tracks, size_type num_steps)
 }
 
 //---------------------------------------------------------------------------//
-template LArSpherePreGenTest::RunResult
-    LArSpherePreGenTest::run<MemSpace::host>(size_type, size_type);
-template LArSpherePreGenTest::RunResult
-    LArSpherePreGenTest::run<MemSpace::device>(size_type, size_type);
+template LArSphereDispatcherTest::RunResult
+    LArSphereDispatcherTest::run<MemSpace::host>(size_type, size_type);
+template LArSphereDispatcherTest::RunResult
+    LArSphereDispatcherTest::run<MemSpace::device>(size_type, size_type);
 
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(LArSpherePreGenTest, host)
+TEST_F(LArSphereDispatcherTest, host)
 {
     this->build_optical_collector();
     auto result = this->run<MemSpace::host>(4, 64);
@@ -331,7 +331,7 @@ TEST_F(LArSpherePreGenTest, host)
     }
 }
 
-TEST_F(LArSpherePreGenTest, TEST_IF_CELER_DEVICE(device))
+TEST_F(LArSphereDispatcherTest, TEST_IF_CELER_DEVICE(device))
 {
     this->build_optical_collector();
     auto result = this->run<MemSpace::device>(8, 32);
@@ -400,7 +400,7 @@ TEST_F(LArSpherePreGenTest, TEST_IF_CELER_DEVICE(device))
     }
 }
 
-TEST_F(LArSpherePreGenTest, only_cerenkov)
+TEST_F(LArSphereDispatcherTest, only_cerenkov)
 {
     use_scintillation_ = false;
     this->build_optical_collector();
@@ -422,7 +422,7 @@ TEST_F(LArSpherePreGenTest, only_cerenkov)
     }
 }
 
-TEST_F(LArSpherePreGenTest, only_scintillation)
+TEST_F(LArSphereDispatcherTest, only_scintillation)
 {
     use_cerenkov_ = false;
     this->build_optical_collector();
