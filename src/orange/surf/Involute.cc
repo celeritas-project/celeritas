@@ -13,6 +13,7 @@ namespace celeritas
 /*!
  * Construct involute from parameters.
  *
+ * \param origin origin of the involute
  * \param radius radius of the circle of involute
  * \param displacement displacement angle of the involute
  * \param sign chirality of involute
