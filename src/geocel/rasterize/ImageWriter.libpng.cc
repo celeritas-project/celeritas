@@ -116,6 +116,7 @@ ImageWriter::ImageWriter(std::string const& filename, Size2 height_width)
         text[0].compression = PNG_TEXT_COMPRESSION_NONE;
         text[0].key = static_cast<char*>(software_key);
         text[0].text = static_cast<char*>(software_str);
+        png_set_text(impl_->png, impl_->info, text, std::size(text));
     }
 
     // Save info
