@@ -10,7 +10,8 @@
 
 #include <utility>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/math/UnitUtils.hh"
 
 #include "Constants.hh"

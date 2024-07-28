@@ -13,7 +13,8 @@
 #include <G4ThreadLocalSingleton.hh>
 #include <G4Types.hh>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "celeritas/io/EventData.hh"
 

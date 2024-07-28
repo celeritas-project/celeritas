@@ -28,7 +28,7 @@ namespace celeritas
  * Simple version comparison.
  *
  * This is intended to be constructed with version numbers from \c
- * celeritas_cmake_strings.h and used in unit tests. It can be used in `if
+ * celeritas_cmake_strings.hh and used in unit tests. It can be used in `if
  * constexpr` expressions with preprocessor macros. In the constructor
  * documentation, x/y/z correspond to major/minor/patch.
  *

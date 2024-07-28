@@ -55,7 +55,8 @@
 #include <G4VRangeToEnergyConverter.hh>
 #include <G4Version.hh>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"

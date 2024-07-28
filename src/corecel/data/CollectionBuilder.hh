@@ -10,9 +10,10 @@
 #include <initializer_list>
 #include <limits>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 
 #include "Collection.hh"
+
 #include "detail/FillInvalid.hh"
 
 namespace celeritas

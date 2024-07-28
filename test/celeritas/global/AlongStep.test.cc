@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #include <fstream>
 
-#include "celeritas_sys_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/UnitUtils.hh"

@@ -9,7 +9,7 @@
 
 #include <cmath>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 
 #include "DiagnosticRealFunc.hh"
 #include "celeritas_test.hh"
