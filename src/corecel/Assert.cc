@@ -13,6 +13,7 @@
 #    include <mpi.h>
 #endif
 
+#include <cstring>
 #include <sstream>
 #include <utility>
 
@@ -45,6 +46,18 @@ std::string build_debug_error_msg(DebugErrorDetails const& d)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Test C strings for equality allowing null pointers for LHS.
+ */
+bool cstring_equal(char const* lhs, char const* rhs)
+{
+    CELER_EXPECT(rhs);
+    if (!lhs)
+        return false;
+    return std::strcmp(lhs, rhs) == 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct a runtime assertion message for printing.
  */
 std::string build_runtime_error_msg(RuntimeErrorDetails const& d)
@@ -61,20 +74,20 @@ std::string build_runtime_error_msg(RuntimeErrorDetails const& d)
 
     std::ostringstream msg;
 
-    msg << "celeritas: " << color_code('R')
-        << (d.which.empty() ? "unknown" : d.which)
+    msg << "celeritas: " << color_code('R') << (d.which ? d.which : "unknown")
         << " error: " << color_code(' ');
-    if (d.which == "configuration")
+    if (cstring_equal(d.which, RuntimeError::not_config_err_str))
     {
         msg << "required dependency is disabled in this build: ";
     }
-    else if (d.which == "implementation")
+    else if (cstring_equal(d.which, RuntimeError::not_impl_err_str))
     {
         msg << "feature is not yet implemented: ";
     }
     msg << d.what;
 
-    if (verbose_message || d.what.empty() || d.which != "runtime")
+    if (verbose_message || d.what.empty()
+        || cstring_equal(d.which, RuntimeError::validate_err_str))
     {
         msg << '\n'
             << color_code(d.condition.empty() ? 'x' : 'W')
@@ -158,6 +171,12 @@ RuntimeError::RuntimeError(RuntimeErrorDetails&& d)
     : std::runtime_error(build_runtime_error_msg(d)), details_(std::move(d))
 {
 }
+
+//---------------------------------------------------------------------------//
+// String constants for throwing
+char const RuntimeError::validate_err_str[] = "runtime";
+char const RuntimeError::not_config_err_str[] = "configuration";
+char const RuntimeError::not_impl_err_str[] = "implementation";
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
