@@ -19,6 +19,8 @@
 #include "corecel/math/RegulaFalsiRootFinder.hh"
 #include "orange/OrangeTypes.hh"
 
+#include "InvolutePoint.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -279,17 +281,16 @@ CELER_FUNCTION real_type InvoluteSolver::line_angle_param(real_type u,
 CELER_FUNCTION real_type InvoluteSolver::calc_dist(
     real_type x, real_type y, real_type u, real_type v, real_type t) const
 {
-    real_type angle = t + a_;
-    real_type x_inv = r_b_ * (std::cos(angle) + t * std::sin(angle));
-    real_type y_inv = r_b_ * (std::sin(angle) - t * std::cos(angle));
+    detail::InvolutePoint calc_point{r_b_, a_};
+    Real2 point = calc_point(clamp_to_nonneg(t));
     real_type dist = 0;
 
     // Check if point is interval
     if (t >= tmin_ && t <= tmax_)
     {
         // Obtain direction to point on Involute
-        real_type u_point = x_inv - x;
-        real_type v_point = y_inv - y;
+        real_type u_point = point[0] - x;
+        real_type v_point = point[1] - y;
 
         // Dot with direction of particle
         real_type dot = u * u_point + v * v_point;

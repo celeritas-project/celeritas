@@ -53,7 +53,6 @@ TEST(InvoluteTest, construction)
 }
 
 //! Python reference can be found in \file
-//! test/orange/surf/doc/involute-in-out.py
 TEST(InvoluteTest, sense)
 {
     Involute invo{
@@ -83,7 +82,6 @@ TEST(InvoluteTest, sense)
 }
 
 //! Python reference can be found in \file
-//! test/orange/surf/doc/involute-normal.py
 TEST(Involute, normal)
 {
     Involute invo{{0, 0}, 1.0, 0.5 * pi, cw, 0, 3.28};

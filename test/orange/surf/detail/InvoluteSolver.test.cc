@@ -22,7 +22,6 @@ using constants::pi;
 using Sign = InvoluteSolver::Sign;
 using SurfaceSate = celeritas::SurfaceState;
 
-//! Python reference can be found in \file test/orange/surf/doc/involute.py
 TEST(SolveSurface, no_roots)
 {
     // Solve for rb = 3.0, a = 0, sign = CCW

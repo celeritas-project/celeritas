@@ -19,6 +19,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "orange/OrangeTypes.hh"
 
+#include "detail/InvolutePoint.hh"
 #include "detail/InvoluteSolver.hh"
 
 namespace celeritas
@@ -217,17 +218,10 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     }
 
     // Check if Point is on involute.
-    real_type angle = std::sqrt(clamp_to_nonneg(t_point_sq)) + a_;
-    real_type x_inv
-        = std::fabs(r_b_)
-          * (std::cos(angle)
-             + std::sqrt(clamp_to_nonneg(t_point_sq)) * std::sin(angle));
-    real_type y_inv
-        = std::fabs(r_b_)
-          * (std::sin(angle)
-             - std::sqrt(clamp_to_nonneg(t_point_sq)) * std::cos(angle));
+    detail::InvolutePoint calc_point{r_b_, a_};
+    Real2 point = calc_point(clamp_to_nonneg(t_point_sq));
 
-    if (x == x_inv && y == y_inv)
+    if (x == point[0] && y == point[1])
     {
         return SignedSense::on;
     }
@@ -238,7 +232,6 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     real_type x_prime = ipow<2>(r_b_) / std::sqrt(ipow<2>(x) + ipow<2>(y));
     real_type y_prime = std::sqrt(ipow<2>(r_b_) - ipow<2>(x_prime));
 
-    Array<real_type, 2> point;
     point[0] = (x_prime * x - y_prime * y) / std::sqrt(ipow<2>(x) + ipow<2>(y));
     point[1] = (y_prime * x + x_prime * y) / std::sqrt(ipow<2>(x) + ipow<2>(y));
 
