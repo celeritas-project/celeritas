@@ -41,6 +41,7 @@ internet if required but not available on the user's system.
    G4EMLOW_, Runtime, "EM physics model data"
    HepMC3_, Runtime, "Event input"
    HIP_, Runtime, "GPU computation"
+   libpng_, Runtime, "PNG output for raytracing"
    nljson_, Runtime*, "Simple text-based I/O for diagnostics and program setup"
    "`Open MPI`_", Runtime, "Shared-memory parallelism"
    ROOT_, Runtime, "Input and output"
@@ -63,6 +64,7 @@ internet if required but not available on the user's system.
 .. _Git: https://git-scm.com
 .. _GoogleTest: https://github.com/google/googletest
 .. _HepMC3: http://hepmc.web.cern.ch/hepmc/
+.. _libpng: http://www.libpng.org/
 .. _HIP: https://docs.amd.com
 .. _Open MPI: https://www.open-mpi.org
 .. _ROOT: https://root.cern

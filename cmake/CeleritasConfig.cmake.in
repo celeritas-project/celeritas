@@ -93,6 +93,10 @@ if(CELERITAS_USE_OpenMP)
   find_dependency(OpenMP REQUIRED)
 endif()
 
+if(CELERITAS_USE_PNG)
+  find_dependency(PNG REQUIRED)
+endif()
+
 if(CELERITAS_USE_Python)
   set(_components Interpreter)
   set(_version 3.6)
