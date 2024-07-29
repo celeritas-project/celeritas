@@ -143,14 +143,12 @@
       }
     },
     {
-      "name": "reldeb-orange-asanlite",
+      "name": "reldeb-orange-asan",
       "description": "Build with address sanitizer flags",
       "inherits": ["spack"],
       "cacheVariables": {
-        "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_HIP": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT": {"type": "BOOL", "value": "OFF"},
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fsanitize=address -fno-omit-frame-pointer"
       }

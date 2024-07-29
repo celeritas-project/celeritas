@@ -32,9 +32,6 @@ jobs:
           - geometry: "orange"
             special: "float"
             geant: "11.0"
-          - geometry: "orange"
-            special: "asanlite"
-            geant: null
           - geometry: "vecgeom"
             special: "clhep"
             geant: "11.0"
@@ -79,7 +76,7 @@ jobs:
           if [ "${{matrix.geometry}}" == "vecgeom" ]; then
             spack -e . add vecgeom
           fi
-          if [ "${{matrix.special}}" != "minimal" ] && [  "${{matrix.special}}" != "asanlite" ] ; then
+          if [ "${{matrix.special}}" != "minimal" ]; then
             spack -e . add root
           fi
           if [ "${{matrix.geant}}" != "" ]; then
@@ -163,11 +160,6 @@ jobs:
             build/Testing/Temporary/LastTest.log
             build/Testing/Temporary/LastTestsFailed.log
       - name: Check using build directory as install
-        # TODO: ASAN requires flags downstream
-        if: >-
-          ${{
-            (matrix.special != 'asanlite')
-          }}
         run: |
           . ${SPACK_VIEW}/rc
           CELER_INSTALL_DIR=${PWD}/build ./scripts/ci/test-examples.sh
@@ -184,11 +176,6 @@ jobs:
           done
           ./bin/celer-sim --version
       - name: Build examples
-        # TODO: ASAN requires flags downstream
-        if: >-
-          ${{
-            (matrix.special != 'asanlite')
-          }}
         run: |
           . ${SPACK_VIEW}/rc
           ./scripts/ci/test-examples.sh
