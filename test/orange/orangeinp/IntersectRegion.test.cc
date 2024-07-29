@@ -460,6 +460,17 @@ class GenPrismTest : public IntersectRegionTest
     {
         CELER_EXPECT(bump > 0);
 
+        // Account for the center of the prism not being at the origin
+        Real3 center{0, 0, 0};
+        auto factor = 0.5 / pri.num_sides();
+        for (auto i : range(pri.num_sides()))
+        {
+            auto const& lo = pri.lower()[i];
+            auto const& hi = pri.upper()[i];
+            center += factor * Real3{lo[0], lo[1], -pri.halfheight()};
+            center += factor * Real3{hi[0], hi[1], +pri.halfheight()};
+        }
+
         real_type const z[] = {-pri.halfheight(), pri.halfheight()};
 
         for (auto i : range(2))
@@ -468,7 +479,7 @@ class GenPrismTest : public IntersectRegionTest
             for (Real2 const& p : points)
             {
                 Real3 const corner{p[0], p[1], z[i]};
-                auto outward = make_unit_vector(corner);
+                auto outward = make_unit_vector(corner - center);
 
                 EXPECT_EQ(SignedSense::inside,
                           this->calc_sense(nid, corner - bump * outward))
@@ -797,8 +808,7 @@ TEST_F(GenPrismTest, odd_tetrahedron)
     EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -3}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{2, 1, 3}), result.exterior.upper());
 
-    GTEST_SKIP() << "GenPrism::odd_tetrahedron fails check_corners()test!";
-    this->check_corners(result.node_id, pri, 0.1);
+    this->check_corners(result.node_id, pri, 0.01);
 }
 
 TEST_F(GenPrismTest, envelope)

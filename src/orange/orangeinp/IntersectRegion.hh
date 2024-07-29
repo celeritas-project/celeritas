@@ -208,8 +208,6 @@ class Ellipsoid final : public IntersectRegionInterface
  * Trapezoids constructed from the helper functions will have sides that are
  * same ordering as a prism: the rightward face is first (normal is along the
  * +x axis), then the others follow counterclockwise.
- * TODO: is this last statement is correct? e.g. is the +x face always the
- *       first face to be constructed?
  */
 class GenPrism final : public IntersectRegionInterface
 {
