@@ -218,7 +218,7 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     }
 
     // Check if Point is on involute.
-    detail::InvolutePoint calc_point{r_b_, a_};
+    detail::InvolutePoint calc_point{this->r_b(), a_};
     Real2 point = calc_point(clamp_to_nonneg(t_point_sq));
 
     if (x == point[0] && y == point[1])
