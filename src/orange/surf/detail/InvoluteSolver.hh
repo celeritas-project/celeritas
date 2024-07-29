@@ -44,7 +44,8 @@ class InvoluteSolver
     //!@{
     //! \name Type aliases
     using Intersections = Array<real_type, 3>;
-    using SurfaceSate = celeritas::SurfaceState;
+    using SurfaceState = celeritas::SurfaceState;
+    using Real2 = Array<real_type, 2>;
 
     //! Enum defining chirality of involute
     enum Sign : bool
@@ -182,13 +183,6 @@ InvoluteSolver::operator()(Real3 const& pos,
     u *= convert;
     v *= convert;
 
-    // Remove 0 dist if particle is on surface
-    if (on_surface == SurfaceState::on)
-    {
-        result[j] = 0;
-        j++;
-    }
-
     // Line angle parameter
 
     real_type beta = line_angle_param(u, v);
@@ -199,18 +193,16 @@ InvoluteSolver::operator()(Real3 const& pos,
     real_type t_upper = beta - a_;
 
     // Round t_upper to the first positive multiple of pi
-    real_type floor_upper = -std::floor(t_upper / pi);
-    t_upper += max<real_type>(0, floor_upper) * pi;
+    t_upper += max<real_type>(0, -std::floor(t_upper / pi)) * pi;
 
-    // Parameters that will be used in loop
+    // Slow down factor to increment bounds when a root cannot be found
     int i = 1;
 
-    // Lambda used for calculating the roots using Regular Falsi Iteration
+    // Lambda used for calculating the roots using Regula Falsi Iteration
     auto calc_t_intersect = [&](real_type t) {
         real_type alpha = u * std::sin(t + a_) - v * std::cos(t + a_);
         real_type beta = t * (u * std::cos(t + a_) + v * std::sin(t + a_));
-        real_type gamma = r_b_ * (alpha - beta);
-        return gamma + x * v - y * u;
+        return r_b_ * (alpha - beta) + x * v - y * u;
     };
     IllinoisRootFinder find_root_between{calc_t_intersect, tol_conv};
 

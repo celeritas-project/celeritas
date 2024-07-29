@@ -204,8 +204,7 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     }
 
     // Calculate distance to origin and obtain t value for distance.
-    real_type const rxy_sq = ipow<2>(x) + ipow<2>(y);
-    real_type const t_point_sq = (rxy_sq / ipow<2>(r_b_)) - 1;
+    real_type const t_point_sq = (ipow<2>(x) + ipow<2>(y) / ipow<2>(r_b_)) - 1;
 
     // Check if point is in defined bounds.
     if (t_point_sq < ipow<2>(tmin_))
@@ -218,10 +217,15 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     }
 
     // Check if Point is on involute.
-    real_type t = std::sqrt(t_point_sq);
-    real_type angle = t + a_;
-    real_type x_inv = std::fabs(r_b_) * (std::cos(angle) + t * std::sin(angle));
-    real_type y_inv = std::fabs(r_b_) * (std::sin(angle) - t * std::cos(angle));
+    real_type angle = std::sqrt(clamp_to_nonneg(t_point_sq)) + a_;
+    real_type x_inv
+        = std::fabs(r_b_)
+          * (std::cos(angle)
+             + std::sqrt(clamp_to_nonneg(t_point_sq)) * std::sin(angle));
+    real_type y_inv
+        = std::fabs(r_b_)
+          * (std::sin(angle)
+             - std::sqrt(clamp_to_nonneg(t_point_sq)) * std::cos(angle));
 
     if (x == x_inv && y == y_inv)
     {
@@ -233,36 +237,27 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     // Calculate tangent point
     real_type x_prime = ipow<2>(r_b_) / std::sqrt(ipow<2>(x) + ipow<2>(y));
     real_type y_prime = std::sqrt(ipow<2>(r_b_) - ipow<2>(x_prime));
-    real_type theta = std::atan(y / x);
-    if (x < 0)
-    {
-        theta += pi;
-    }
 
     Array<real_type, 2> point;
-    point[0] = x_prime * std::cos(theta) - y_prime * std::sin(theta);
-    point[1] = y_prime * std::cos(theta) + x_prime * std::sin(theta);
+    point[0] = (x_prime * x - y_prime * y) / std::sqrt(ipow<2>(x) + ipow<2>(y));
+    point[1] = (y_prime * x + x_prime * y) / std::sqrt(ipow<2>(x) + ipow<2>(y));
 
     // Calculate angle of tangent
-    theta = std::acos(point[0] / norm(point));
+    real_type theta = std::acos(point[0] / norm(point));
     if (point[1] < 0)
     {
         theta = 2 * pi - theta;
     }
-    real_type a1 = theta - t;
+    theta += max<real_type>(0, std::floor((tmax_ + a_ - theta) / (2 * pi))) * 2
+             * pi;
+
+    // Calculate the displacement angle of the point
+    real_type a1 = theta - std::sqrt(clamp_to_nonneg(t_point_sq));
+
+    // Check if point is inside bounds
     if (theta < tmax_ + a_ && a1 >= a_)
     {
         return SignedSense::inside;
-    }
-
-    while (theta < tmax_ + a_)
-    {
-        theta += pi * 2;
-        a1 = theta - t;
-        if (theta < tmax_ + a_ && a1 >= a_)
-        {
-            return SignedSense::inside;
-        }
     }
 
     return SignedSense::outside;
@@ -300,12 +295,9 @@ CELER_FORCEINLINE_FUNCTION Real3 Involute::calc_normal(Real3 const& pos) const
     real_type const x = pos[0] - origin_[0];
     real_type const y = pos[1] - origin_[1];
 
-    // Calculate distance to origin and obtain t value for distance
-    real_type const rxy_sq = ipow<2>(x) + ipow<2>(y);
-    real_type const t_point = std::sqrt((rxy_sq / (ipow<2>(r_b_))) - 1);
-
     // Calculate normal
-    real_type const angle = t_point + a_;
+    real_type const angle
+        = std::sqrt((ipow<2>(x) + ipow<2>(y) / (ipow<2>(r_b_))) - 1) + a_;
     Real3 normal_ = {std::sin(angle), -std::cos(angle), 0};
 
     if (this->sign() == Sign::clockwise)

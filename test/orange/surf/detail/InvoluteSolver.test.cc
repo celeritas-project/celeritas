@@ -124,6 +124,30 @@ TEST(SolveSurface, no_roots)
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
+
+    // Solve for rb = 3.0, a = pi, sign = CCW
+    // Point (-4.101853006408607,-5.443541628262038) Direction (0.0,1.0)
+    // tmin = 2 and tmax = 4
+    {
+        real_type r_b = 3.0;
+        real_type a = pi;
+        auto sign = InvoluteSolver::counterclockwise;
+
+        real_type x = -4.101853006408607;
+        real_type y = -5.443541628262038;
+        real_type u = 0.0;
+        real_type v = 1.0;
+
+        real_type tmin = 2;
+        real_type tmax = 4;
+
+        InvoluteSolver solve(r_b, a, sign, tmin, tmax);
+        auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
+
+        EXPECT_SOFT_EQ(no_intersection(), dist[0]);
+        EXPECT_SOFT_EQ(no_intersection(), dist[1]);
+        EXPECT_SOFT_EQ(no_intersection(), dist[2]);
+    }
 }
 
 TEST(SolveSurface, one_root)
@@ -178,30 +202,6 @@ TEST(SolveSurface, one_root)
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
 
-    // Solve for rb = 3.0, a = pi, sign = CCW
-    // Point (-4.101853006408607,-5.443541628262038) Direction (0.0,1.0)
-    // tmin = 2 and tmax = 4
-    {
-        real_type r_b = 3.0;
-        real_type a = pi;
-        auto sign = InvoluteSolver::counterclockwise;
-
-        real_type x = -4.101853006408607;
-        real_type y = -5.443541628262038;
-        real_type u = 0.0;
-        real_type v = 1.0;
-
-        real_type tmin = 2;
-        real_type tmax = 4;
-
-        InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
-
-        EXPECT_SOFT_EQ(0, dist[0]);
-        EXPECT_SOFT_EQ(no_intersection(), dist[1]);
-        EXPECT_SOFT_EQ(no_intersection(), dist[2]);
-    }
-
     // Solve for rb = 0.5, a = 0.4*pi, sign = CW
     // Point (-4,2) Direction (0.894427191,-0.4472135955)
     // tmin = 2 and tmax = 4
@@ -223,6 +223,31 @@ TEST(SolveSurface, one_root)
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(6.0371012194546871, dist[0]);
+        EXPECT_SOFT_EQ(no_intersection(), dist[1]);
+        EXPECT_SOFT_EQ(no_intersection(), dist[2]);
+    }
+
+    // Solve for rb = 1.1, a = 1.5*pi, sign = CCW
+    // Point (0.0058102462574510716,-1.1342955336941216)
+    // Direction (0.7071067812,0.7071067812)
+    // tmin = 0 and tmax = 1.99*pi
+    {
+        real_type r_b = 1.1;
+        real_type a = 1.5 * pi;
+        auto sign = InvoluteSolver::counterclockwise;
+
+        real_type x = 0.0058102462574510716;
+        real_type y = -1.1342955336941216;
+        real_type u = 0.7071067812;
+        real_type v = 0.7071067812;
+
+        real_type tmin = 0;
+        real_type tmax = 1.99 * pi;
+
+        InvoluteSolver solve(r_b, a, sign, tmin, tmax);
+        auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
+
+        EXPECT_SOFT_EQ(4.6528327550189861, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
@@ -298,36 +323,11 @@ TEST(SolveSurface, two_roots)
             EXPECT_SOFT_EQ(no_intersection(), dist[2]);
         }
     }
-
-    // Solve for rb = 1.1, a = 1.5*pi, sign = CCW
-    // Point (0.0058102462574510716,-1.1342955336941216)
-    // Direction (0.7071067812,0.7071067812)
-    // tmin = 0 and tmax = 1.99*pi
-    {
-        real_type r_b = 1.1;
-        real_type a = 1.5 * pi;
-        auto sign = InvoluteSolver::counterclockwise;
-
-        real_type x = 0.0058102462574510716;
-        real_type y = -1.1342955336941216;
-        real_type u = 0.7071067812;
-        real_type v = 0.7071067812;
-
-        real_type tmin = 0;
-        real_type tmax = 1.99 * pi;
-
-        InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
-
-        EXPECT_SOFT_EQ(0.0, dist[0]);
-        EXPECT_SOFT_EQ(4.6528327550189861, dist[1]);
-        EXPECT_SOFT_EQ(no_intersection(), dist[2]);
-    }
 }
 TEST(SolveSurface, three_roots)
 {
     // Solve for rb = 1.1, a = 1.5*pi, sign = CCW
-    // Point (-6.865305298657132,-0.30468305643505367)
+    // Point (-6.8653259986571326,-0.30468105643505367)
     // Direction (0.9933558377574788,-0.11508335932330707)
     // tmin = 0 and tmax = 1.99*pi
     {
@@ -335,8 +335,8 @@ TEST(SolveSurface, three_roots)
         real_type a = 1.5 * pi;
         auto sign = InvoluteSolver::counterclockwise;
 
-        real_type x = -6.8653052986571326;
-        real_type y = -0.30468305643505367;
+        real_type x = -6.8653259986571326;
+        real_type y = -0.30468105643505367;
         real_type u = 0.9933558377574788;
         real_type v = -0.11508335932330707;
 
@@ -344,11 +344,12 @@ TEST(SolveSurface, three_roots)
         real_type tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
+        auto dist
+            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
-        EXPECT_SOFT_EQ(0.0, dist[0]);
-        EXPECT_SOFT_EQ(6.9112249164341124, dist[1]);
-        EXPECT_SOFT_EQ(9.167603476105235, dist[2]);
+        EXPECT_SOFT_EQ(6.9112457587355429, dist[0]);
+        EXPECT_SOFT_EQ(9.1676238065759748, dist[1]);
+        EXPECT_SOFT_EQ(2.0792209373995243e-05, dist[2]);
     }
 }
 TEST(SolveSurface, tangents)
@@ -371,7 +372,7 @@ TEST(SolveSurface, tangents)
 
         auto dist = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
-        EXPECT_SOFT_EQ(0.0, dist[0]);
+        EXPECT_SOFT_EQ(no_intersection(), dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist[2]);
     }
@@ -387,13 +388,13 @@ TEST(SolveSurface, tangents)
         // Float and double produce different results
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
-            EXPECT_SOFT_EQ(0.0, dist_on[0]);
-            EXPECT_SOFT_EQ(0.0017713715293786088, dist_on[1]);
+            EXPECT_SOFT_EQ(0.0017713715293786088, dist_on[0]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_on[1]);
             EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
         }
         else
         {
-            EXPECT_SOFT_EQ(0.0, dist_on[0]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_on[0]);
             EXPECT_SOFT_EQ(no_intersection(), dist_on[1]);
             EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
         }
@@ -427,13 +428,13 @@ TEST(SolveSurface, tangents)
         // Float and double produce different results
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
-            EXPECT_SOFT_EQ(0.0, dist_on[0]);
-            EXPECT_SOFT_EQ(0.00053216327674743909, dist_on[1]);
+            EXPECT_SOFT_EQ(0.00053216327674743909, dist_on[0]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_on[1]);
             EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
         }
         else
         {
-            EXPECT_SOFT_EQ(0.0, dist_on[0]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_on[0]);
             EXPECT_SOFT_EQ(no_intersection(), dist_on[1]);
             EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
         }
@@ -464,7 +465,7 @@ TEST(SolveSurface, tangents)
         auto dist_on
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
-        EXPECT_SOFT_EQ(0.0, dist_on[0]);
+        EXPECT_SOFT_EQ(no_intersection(), dist_on[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist_on[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
 
@@ -494,7 +495,7 @@ TEST(SolveSurface, tangents)
         auto dist_on
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
-        EXPECT_SOFT_EQ(0.0, dist_on[0]);
+        EXPECT_SOFT_EQ(no_intersection(), dist_on[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist_on[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
 
@@ -510,6 +511,7 @@ TEST(SolveSurface, tangents)
         }
         else
         {
+            // This test fails
             EXPECT_SOFT_EQ(1.1920928955078125e-07, dist_off[0]);
             EXPECT_SOFT_EQ(1.1920928955078125e-07, dist_off[1]);
             EXPECT_SOFT_EQ(no_intersection(), dist_off[2]);
@@ -524,7 +526,7 @@ TEST(SolveSurface, tangents)
         auto dist_on
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
-        EXPECT_SOFT_EQ(0.0, dist_on[0]);
+        EXPECT_SOFT_EQ(no_intersection(), dist_on[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist_on[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
 
@@ -544,7 +546,7 @@ TEST(SolveSurface, tangents)
         auto dist_on
             = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
-        EXPECT_SOFT_EQ(0.0, dist_on[0]);
+        EXPECT_SOFT_EQ(no_intersection(), dist_on[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist_on[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
 
@@ -567,13 +569,13 @@ TEST(SolveSurface, tangents)
         // Float and double produce different results
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
-            EXPECT_SOFT_EQ(0.0, dist_on[0]);
-            EXPECT_SOFT_EQ(0.0019504376639951655, dist_on[1]);
+            EXPECT_SOFT_EQ(0.0019504376639951655, dist_on[0]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_on[1]);
             EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
         }
         else
         {
-            EXPECT_SOFT_EQ(0.0, dist_on[0]);
+            EXPECT_SOFT_EQ(no_intersection(), dist_on[0]);
             EXPECT_SOFT_EQ(no_intersection(), dist_on[1]);
             EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
         }

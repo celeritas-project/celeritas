@@ -112,13 +112,13 @@ TEST(Involute, solve_intersect)
         real_type convert = 1 / std::sqrt(ipow<2>(v) + ipow<2>(u));
 
         auto dist = invo.calc_intersections(
-            Real3{-5.8653052986571326, -0.30468305643505367 + 1, 0},
+            Real3{-5.8653259986571326, -0.30468105643505367 + 1, 0},
             Real3{u, v, w},
             SurfaceState::on);
 
-        EXPECT_SOFT_EQ(0.0, dist[0]);
-        EXPECT_SOFT_EQ(6.9112249164341124 * convert, dist[1]);
-        EXPECT_SOFT_EQ(9.167603476105235 * convert, dist[2]);
+        EXPECT_SOFT_EQ(6.9112457587355429 * convert, dist[0]);
+        EXPECT_SOFT_EQ(9.1676238065759748 * convert, dist[1]);
+        EXPECT_SOFT_EQ(2.0792209373995243e-05 * convert, dist[2]);
     }
 
     // CW Involute Test
