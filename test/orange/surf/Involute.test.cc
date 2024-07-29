@@ -114,9 +114,18 @@ TEST(Involute, solve_intersect)
             Real3{u, v, w},
             SurfaceState::on);
 
-        EXPECT_SOFT_EQ(6.9112457587355429 * convert, dist[0]);
-        EXPECT_SOFT_EQ(9.1676238065759748 * convert, dist[1]);
-        EXPECT_SOFT_EQ(2.0792209373995243e-05 * convert, dist[2]);
+        if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_SOFT_EQ(6.9112457587355429 * convert, dist[0]);
+            EXPECT_SOFT_EQ(9.1676238065759748 * convert, dist[1]);
+            EXPECT_SOFT_EQ(2.0792209373995243e-05 * convert, dist[2]);
+        }
+        else
+        {
+            EXPECT_SOFT_EQ(6.9112457587355429 * convert, dist[0]);
+            EXPECT_SOFT_EQ(9.1676238065759748 * convert, dist[1]);
+            EXPECT_SOFT_EQ(no_intersection(), dist[2]);
+        }
     }
 
     // CW Involute Test
