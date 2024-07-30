@@ -138,10 +138,11 @@ OrangeParams::OrangeParams(OrangeInput&& input)
 {
     CELER_VALIDATE(input, << "input geometry is incomplete");
 
+    auto const use_device = static_cast<bool>(celeritas::device());
     ScopedProfiling profile_this{"finalize-orange-runtime"};
     ScopedMem record_mem("orange.finalize_runtime");
     CELER_LOG(debug) << "Merging runtime data"
-                     << (celeritas::device() ? " and copying to GPU" : "");
+                     << (use_device ? " and copying to GPU" : "");
     ScopedTimeLog scoped_time;
 
     // Save global bounding box
@@ -188,7 +189,7 @@ OrangeParams::OrangeParams(OrangeInput&& input)
               [](SimpleUnitRecord const& su) { return su.simple_safety; })
           && host_data.rect_arrays.empty();
 
-    // Update scalars *after* loading all units
+    // Verify scalars *after* loading all units
     CELER_VALIDATE(host_data.scalars.max_logic_depth
                        < detail::LogicStack::max_stack_depth(),
                    << "input geometry has at least one volume with a "
@@ -197,6 +198,16 @@ OrangeParams::OrangeParams(OrangeInput&& input)
                    << " (a volume's CSG tree is too deep); but the logic "
                       "stack is limited to a depth of "
                    << detail::LogicStack::max_stack_depth());
+
+    // Round up strides based on whether GPU is enabled
+    auto update_stride = [stride_bytes = use_device ? 32u : 8u](
+                             size_type* s, size_type scalar_bytes) {
+        auto item_width = stride_bytes / scalar_bytes;
+        *s = ceil_div(*s, item_width) * item_width;
+    };
+    update_stride(&host_data.scalars.max_faces, sizeof(Sense));
+    update_stride(&host_data.scalars.max_intersections,
+                  min(sizeof(size_type), sizeof(real_type)));
 
     // Construct device values and device/host references
     CELER_ASSERT(host_data);

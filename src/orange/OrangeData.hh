@@ -36,6 +36,10 @@ static inline constexpr UniverseId orange_global_universe{0};
 //---------------------------------------------------------------------------//
 /*!
  * Scalar values particular to an ORANGE geometry instance.
+ *
+ * Note that the maximum intersections and faces, because they are used as
+ * stride parameters per thread, are rounded up so that each state's data
+ * aligns with cache.
  */
 struct OrangeParamsScalars
 {
