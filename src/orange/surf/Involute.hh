@@ -9,6 +9,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <iostream>
 
 #include "corecel/Constants.hh"
 #include "corecel/Types.hh"
@@ -196,16 +197,17 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
 {
     using constants::pi;
 
-    real_type x = pos[0] - origin_[0];
-    real_type const y = pos[1] - origin_[1];
+    Real2 xy;
+    xy[0] = pos[0] - origin_[0];
+    xy[1] = pos[1] - origin_[1];
 
     if (this->sign() == Sign::clockwise)
     {
-        x = negate(x);
+        xy[0] = negate(xy[0]);
     }
 
     // Calculate distance to origin and obtain t value for distance.
-    real_type const t_point_sq = (ipow<2>(x) + ipow<2>(y) / ipow<2>(r_b_)) - 1;
+    real_type const t_point_sq = dot_product(xy, xy) / ipow<2>(r_b_) - 1;
 
     // Check if point is in defined bounds.
     if (t_point_sq < ipow<2>(tmin_))
@@ -221,7 +223,7 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     detail::InvolutePoint calc_point{this->r_b(), a_};
     Real2 point = calc_point(clamp_to_nonneg(t_point_sq));
 
-    if (x == point[0] && y == point[1])
+    if (xy[0] == point[0] && xy[1] == point[1])
     {
         return SignedSense::on;
     }
@@ -229,11 +231,13 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     // Check if point is in interval
 
     // Calculate tangent point
-    real_type x_prime = ipow<2>(r_b_) / std::sqrt(ipow<2>(x) + ipow<2>(y));
+    real_type x_prime = ipow<2>(r_b_) / std::sqrt(dot_product(xy, xy));
     real_type y_prime = std::sqrt(ipow<2>(r_b_) - ipow<2>(x_prime));
 
-    point[0] = (x_prime * x - y_prime * y) / std::sqrt(ipow<2>(x) + ipow<2>(y));
-    point[1] = (y_prime * x + x_prime * y) / std::sqrt(ipow<2>(x) + ipow<2>(y));
+    point[0] = (x_prime * xy[0] - y_prime * xy[1])
+               / std::sqrt(dot_product(xy, xy));
+    point[1] = (y_prime * xy[0] + x_prime * xy[1])
+               / std::sqrt(dot_product(xy, xy));
 
     // Calculate angle of tangent
     real_type theta = std::acos(point[0] / norm(point));
@@ -248,7 +252,7 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     real_type a1 = theta - std::sqrt(clamp_to_nonneg(t_point_sq));
 
     // Check if point is inside bounds
-    if (theta < tmax_ + a_ && a1 >= a_)
+    if (theta < tmax_ + a_ && a1 > a_)
     {
         return SignedSense::inside;
     }
@@ -285,12 +289,13 @@ Involute::calc_intersections(Real3 const& pos,
  */
 CELER_FORCEINLINE_FUNCTION Real3 Involute::calc_normal(Real3 const& pos) const
 {
-    real_type const x = pos[0] - origin_[0];
-    real_type const y = pos[1] - origin_[1];
+    Real2 xy;
+    xy[0] = pos[0] - origin_[0];
+    xy[1] = pos[1] - origin_[1];
 
     // Calculate normal
     real_type const angle
-        = std::sqrt((ipow<2>(x) + ipow<2>(y) / (ipow<2>(r_b_))) - 1) + a_;
+        = std::sqrt((dot_product(xy, xy) / ipow<2>(r_b_)) - 1) + a_;
     Real3 normal_ = {std::sin(angle), -std::cos(angle), 0};
 
     if (this->sign() == Sign::clockwise)

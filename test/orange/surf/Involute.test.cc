@@ -59,6 +59,8 @@ TEST(InvoluteTest, sense)
         {1, 0}, 1.0, 0.5 * pi, ccw, 1.732050808, 1.732050808 + 1.99 * pi};
     EXPECT_EQ(SignedSense::outside, invo.calc_sense({0, 0, 1}));
     EXPECT_EQ(SignedSense::outside, invo.calc_sense({0, 1.0, 1}));
+    EXPECT_EQ(SignedSense::outside, invo.calc_sense({2.999, 0, 1}));
+    EXPECT_EQ(SignedSense::inside, invo.calc_sense({3.001, 0, 1}));
     EXPECT_EQ(SignedSense::outside, invo.calc_sense({5, 9.0, 1}));
 
     EXPECT_EQ(SignedSense::inside, invo.calc_sense({-1.5, 0, 1}));
@@ -69,14 +71,14 @@ TEST(InvoluteTest, sense)
         {1, 0}, 1.0, 0.5 * pi, cw, 1.732050808, 1.732050808 + 1.99 * pi};
     EXPECT_EQ(SignedSense::outside,
               invo2.calc_sense({
-                  3.6284887559424783 + 1e-5,
-                  0.6579786205081274 + 1e-5,
+                  3.628488755942478 + 1e-5,
+                  0.6579786205081288 + 1e-5,
                   1,
               }));
     EXPECT_EQ(SignedSense::inside,
               invo2.calc_sense({
-                  3.6284887559424783 - 1e-5,
-                  0.6579786205081274 - 1e-5,
+                  3.628488755942478 - 1e-5,
+                  0.6579786205081288 - 1e-5,
                   1,
               }));
 }
