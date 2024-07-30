@@ -59,8 +59,6 @@ TEST(InvoluteTest, sense)
         {1, 0}, 1.0, 0.5 * pi, ccw, 1.732050808, 1.732050808 + 1.99 * pi};
     EXPECT_EQ(SignedSense::outside, invo.calc_sense({0, 0, 1}));
     EXPECT_EQ(SignedSense::outside, invo.calc_sense({0, 1.0, 1}));
-    EXPECT_EQ(SignedSense::outside, invo.calc_sense({2.999, 0, 1}));
-    EXPECT_EQ(SignedSense::inside, invo.calc_sense({3.001, 0, 1}));
     EXPECT_EQ(SignedSense::outside, invo.calc_sense({5, 9.0, 1}));
 
     EXPECT_EQ(SignedSense::inside, invo.calc_sense({-1.5, 0, 1}));
@@ -81,22 +79,26 @@ TEST(InvoluteTest, sense)
                   0.6579786205081288 - 1e-5,
                   1,
               }));
+    Involute invo3{
+        {1, 0}, 2.0, 0.5 * pi, ccw, 1.732050808, 1.732050808 + 1.99 * pi};
+    EXPECT_EQ(SignedSense::outside, invo3.calc_sense({4.999, 0, 1}));
+    EXPECT_EQ(SignedSense::inside, invo3.calc_sense({5.001, 0, 1}));
 }
 
 //! Python reference can be found in \file
 TEST(Involute, normal)
 {
-    Involute invo{{0, 0}, 1.0, 0.5 * pi, cw, 0, 3.28};
+    Involute invo{{0, 0}, 1.0, 0.5 * pi, cw, 0, 3.14};
     EXPECT_VEC_SOFT_EQ(
         make_unit_vector(Real3{-0.968457782598019, 0.249177694277252, 0}),
         invo.calc_normal({0.005289930339633125, 1.0312084690733585, 0}));
 
-    Involute invo2{{0, 0}, 1.0, 0.5 * pi, ccw, 0, 3.28};
+    Involute invo2{{0, 0}, 1.0, 0.5 * pi, ccw, 0, 3.14};
     EXPECT_VEC_SOFT_EQ(
         make_unit_vector(Real3{0.968457782598019, 0.249177694277252, 0}),
         invo2.calc_normal({-0.005289930339633125, 1.0312084690733585, 0}));
 
-    Involute invo3{{0, 0}, 2.0, 0, ccw, 0, 3.28};
+    Involute invo3{{0, 0}, 2.0, 0, ccw, 0, 3.14};
     EXPECT_VEC_SOFT_EQ(make_unit_vector(Real3{0, -1, 0}),
                        invo3.calc_normal({2, 0, 0}));
 }

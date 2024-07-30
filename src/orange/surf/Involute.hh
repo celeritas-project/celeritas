@@ -9,7 +9,6 @@
 
 #include <cassert>
 #include <cmath>
-#include <iostream>
 
 #include "corecel/Constants.hh"
 #include "corecel/Types.hh"
@@ -223,7 +222,7 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     detail::InvolutePoint calc_point{this->r_b(), a_};
     Real2 point = calc_point(clamp_to_nonneg(t_point_sq));
 
-    if (xy[0] == point[0] && xy[1] == point[1])
+    if (xy == point)
     {
         return SignedSense::on;
     }
@@ -231,14 +230,13 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     // Check if point is in interval
 
     // Calculate tangent point
-    // Efficient compiler check
-    real_type x_prime = ipow<2>(r_b_) / std::sqrt(dot_product(xy, xy));
+    // TODO: check that compiler avoids recomputing trig functions
+    real_type x_prime = ipow<2>(r_b_) / norm(xy);
     real_type y_prime = std::sqrt(ipow<2>(r_b_) - ipow<2>(x_prime));
 
-    point[0] = (x_prime * xy[0] - y_prime * xy[1])
-               / std::sqrt(dot_product(xy, xy));
-    point[1] = (y_prime * xy[0] + x_prime * xy[1])
-               / std::sqrt(dot_product(xy, xy));
+    // TODO: check that compiler avoids recomputing trig functions
+    point[0] = (x_prime * xy[0] - y_prime * xy[1]) / norm(xy);
+    point[1] = (y_prime * xy[0] + x_prime * xy[1]) / norm(xy);
 
     // Calculate angle of tangent
     real_type theta = std::acos(point[0] / norm(point));
@@ -298,7 +296,8 @@ CELER_FORCEINLINE_FUNCTION Real3 Involute::calc_normal(Real3 const& pos) const
 
     // Calculate normal
     real_type const angle
-        = std::sqrt((dot_product(xy, xy) / ipow<2>(r_b_)) - 1) + a_;
+        = std::sqrt(clamp_to_nonneg(dot_product(xy, xy) / ipow<2>(r_b_) - 1))
+          + a_;
     Real3 normal_ = {std::sin(angle), -std::cos(angle), 0};
 
     if (this->sign() == Sign::clockwise)

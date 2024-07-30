@@ -200,8 +200,9 @@ InvoluteSolver::operator()(Real3 const& pos,
 
     /*
      * Define tolerance.
-     * tol_point gives the tolerance level for a point,
-     * account for the floating point error when performing square roots.
+     * tol_point gives the tolerance level for a point when on the surface,
+     * to account for the floating point error when performing square roots and
+     * Regula Falsi iterations.
      */
     real_type tol_point
         = (on_surface == SurfaceState::on ? r_b_ * tol() * 100 : 0);
