@@ -76,6 +76,7 @@ CELER_FUNCTION Real2 InvolutePoint::operator()(real_type theta) const
 {
     real_type angle = theta + a_;
     Real2 point;
+    // Efficient compiler check
     point[0] = r_b_ * (std::cos(angle) + theta * std::sin(angle));
     point[1] = r_b_ * (std::sin(angle) - theta * std::cos(angle));
 

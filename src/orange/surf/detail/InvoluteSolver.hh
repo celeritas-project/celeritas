@@ -115,7 +115,7 @@ CELER_FUNCTION InvoluteSolver::InvoluteSolver(
     : r_b_(r_b), a_(a), sign_(sign), tmin_(tmin), tmax_(tmax)
 {
     CELER_EXPECT(r_b > 0);
-    CELER_EXPECT(a >= 0);
+    CELER_EXPECT(a >= -constants::pi && a_ <= 2 * constants::pi);
     CELER_EXPECT(tmax > 0);
     CELER_EXPECT(tmin >= 0);
     CELER_EXPECT(tmax < 2 * constants::pi + tmin);
@@ -158,15 +158,6 @@ InvoluteSolver::operator()(Real3 const& pos,
         u = -u;
     }
 
-    /*
-     * Define tolerances.
-     * tol_point gives the tolerance level for a point,
-     * account for the floating point error when performing square roots.
-     * tol_conv gives the tolerance for the Regular Falsi iteration.
-     */
-    real_type tol_conv = r_b_ * tol();
-    real_type tol_point = r_b_ * tol() * 100;
-
     // Results initalization and root counter
     Intersections result;
     int j = 0;
@@ -195,7 +186,7 @@ InvoluteSolver::operator()(Real3 const& pos,
     real_type t_upper = beta - a_;
 
     // Round t_upper to the first positive multiple of pi
-    t_upper += max<real_type>(0, -std::floor(t_upper / pi)) * pi;
+    t_upper += max<real_type>(real_type{0}, -std::floor(t_upper / pi)) * pi;
 
     // Slow down factor to increment bounds when a root cannot be found
     int i = 1;
@@ -206,7 +197,18 @@ InvoluteSolver::operator()(Real3 const& pos,
         real_type beta = t * (u * std::cos(t + a_) + v * std::sin(t + a_));
         return r_b_ * (alpha - beta) + x * v - y * u;
     };
-    IllinoisRootFinder find_root_between{calc_t_intersect, tol_conv};
+
+    /*
+     * Define tolerance.
+     * tol_point gives the tolerance level for a point,
+     * account for the floating point error when performing square roots.
+     */
+    real_type tol_point
+        = (on_surface == SurfaceState::on ? r_b_ * tol() * 100 : 0);
+
+    // Iteration method for finding roots with convergence tolerance of
+    // r_b_*tol
+    IllinoisRootFinder find_root_between{calc_t_intersect, r_b_ * tol()};
 
     // Iterate on roots
     while (t_lower < tmax_)
@@ -223,8 +225,7 @@ InvoluteSolver::operator()(Real3 const& pos,
 
             // Convert root to distance and store if positive and in interval
             real_type dist = calc_dist(x, y, u, v, t_gamma);
-            if (dist > tol_point
-                || (!(on_surface == SurfaceState::on) && (dist > 0)))
+            if (dist > tol_point)
             {
                 result[j] = convert * dist;
                 j++;

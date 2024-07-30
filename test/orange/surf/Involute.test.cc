@@ -87,7 +87,6 @@ TEST(InvoluteTest, sense)
 TEST(Involute, normal)
 {
     Involute invo{{0, 0}, 1.0, 0.5 * pi, cw, 0, 3.28};
-
     EXPECT_VEC_SOFT_EQ(
         make_unit_vector(Real3{-0.968457782598019, 0.249177694277252, 0}),
         invo.calc_normal({0.005289930339633125, 1.0312084690733585, 0}));
@@ -96,6 +95,10 @@ TEST(Involute, normal)
     EXPECT_VEC_SOFT_EQ(
         make_unit_vector(Real3{0.968457782598019, 0.249177694277252, 0}),
         invo2.calc_normal({-0.005289930339633125, 1.0312084690733585, 0}));
+
+    Involute invo3{{0, 0}, 2.0, 0, ccw, 0, 3.28};
+    EXPECT_VEC_SOFT_EQ(make_unit_vector(Real3{0, -1, 0}),
+                       invo3.calc_normal({2, 0, 0}));
 }
 
 TEST(Involute, solve_intersect)

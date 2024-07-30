@@ -231,6 +231,7 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     // Check if point is in interval
 
     // Calculate tangent point
+    // Efficient compiler check
     real_type x_prime = ipow<2>(r_b_) / std::sqrt(dot_product(xy, xy));
     real_type y_prime = std::sqrt(ipow<2>(r_b_) - ipow<2>(x_prime));
 
@@ -245,8 +246,10 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     {
         theta = 2 * pi - theta;
     }
-    theta += max<real_type>(0, std::floor((tmax_ + a_ - theta) / (2 * pi))) * 2
-             * pi;
+    // Count number of positive rotations around involute
+    theta += max<real_type>(real_type{0},
+                            std::floor((tmax_ + a_ - theta) / (2 * pi)))
+             * 2 * pi;
 
     // Calculate the displacement angle of the point
     real_type a1 = theta - std::sqrt(clamp_to_nonneg(t_point_sq));
