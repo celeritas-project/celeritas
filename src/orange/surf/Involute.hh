@@ -307,10 +307,6 @@ CELER_FORCEINLINE_FUNCTION Real3 Involute::calc_normal(Real3 const& pos) const
 
     return normal_;
 }
-<<<<<<< HEAD
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
-=======
-}  // namespace celeritas
->>>>>>> parent of e650130be (REVERTME: remove runtime support for involute)
