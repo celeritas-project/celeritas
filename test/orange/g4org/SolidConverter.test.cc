@@ -175,7 +175,7 @@ void SolidConverterTest::build_and_test(G4VSolid const& solid,
         for ([[maybe_unused]] auto i : range(this->num_samples_))
         {
             auto r = sample_box(rng);
-            ASSERT_EQ(calc_g4_sense(r), calc_org_sense(r))
+            EXPECT_EQ(calc_g4_sense(r), calc_org_sense(r))
                 << "at " << r << " [cm]";
         }
     }
@@ -257,24 +257,22 @@ TEST_F(SolidConverterTest, generictrap)
                 "label":"boxGenTrap"})json",
                          {{-1, -2, -3}, {1, 2, 3}, {1, 2, 4}});
 
-    this->build_and_test(G4GenericTrap("trdGenTrap",
-                                       3,
-                                       {{-10, -20},
-                                        {-10, 20},
-                                        {10, 20},
-                                        {10, -20},
-                                        {-5, -10},
-                                        {-5, 10},
-                                        {5, 10},
-                                        {5, -10}}),
-                         R"json({
-"_type":"shape","interior":{"_type":"genprism",
-"halfheight":0.3,
-"lower":[[1.0,-2.0],[1.0,2.0],[-1.0,2.0],[-1.0,-2.0]],
-"upper":[[0.5,-1.0],[0.5,1.0],[-0.5,1.0],[-0.5,-1.0]]},
-"label":"trdGenTrap"
-})json",
-                         {{-1, -2, -4}, {-1, -2, -3}, {0.5, 1, 3}, {1, 1, 3}});
+    this->build_and_test(
+        G4GenericTrap("trdGenTrap",
+                      3,
+                      {{-10, -20},
+                       {-10, 20},
+                       {10, 20},
+                       {10, -20},
+                       {-5, -10},
+                       {-5, 10},
+                       {5, 10},
+                       {5, -10}}),
+        R"json({"_type":"shape","interior":{"_type":"genprism","halfheight":0.3,
+            "lower":[[1.0,-2.0],[1.0,2.0],[-1.0,2.0],[-1.0,-2.0]],
+            "upper":[[0.5,-1.0],[0.5,1.0],[-0.5,1.0],[-0.5,-1.0]]},
+            "label":"trdGenTrap"})json",
+        {{-1, -2, -4}, {-1, -2, -3}, {0.5, 1, 3}, {1, 1, 3}});
 
     this->build_and_test(
         G4GenericTrap("trap_GenTrap",
@@ -287,18 +285,13 @@ TEST_F(SolidConverterTest, generictrap)
                        {-29, 40},
                        {31, 40},
                        {31, -40}}),
-        R"json({
-"_type":"shape","interior":{"_type":"genprism",
-"halfheight":4.0,
-"lower":[[1.1,-2.0],[1.1,2.0],[-0.9,2.0],[-0.9,-2.0]],
-"upper":[[3.1,-4.0],[3.1,4.0],[-2.9,4.0],[-2.9,-4.0]]},
-"label":"trap_GenTrap"
-})json",
+        R"json({"_type":"shape","interior":{"_type":"genprism","halfheight":4.0,
+            "lower":[[1.1,-2.0],[1.1,2.0],[-0.9,2.0],[-0.9,-2.0]],
+            "upper":[[3.1,-4.0],[3.1,4.0],[-2.9,4.0],[-2.9,-4.0]]},
+            "label":"trap_GenTrap"})json",
         {{-1, -2, -4 - 1.e-6}, {-1, -2, -3}, {0.5, 1, 3}, {1, 1, 3}});
 
-    GTEST_SKIP() << "LArEMECInnerWheelAbsorber02 point sampling fails!";
-
-    // Most general gentrap with twisted side faces
+    // Most general genprism with twisted side faces
     this->build_and_test(
         G4GenericTrap("LArEMECInnerWheelAbsorber02",
                       10.625,
@@ -314,6 +307,47 @@ TEST_F(SolidConverterTest, generictrap)
         {
             {51.2, 0.40, 7.76},
             {51.4, 0.51, 7.78},
+        });
+
+    // GenTrapTest, trap_uneven_twist
+    this->build_and_test(
+        G4GenericTrap("trap_uneven_twist",
+                      10,
+                      {
+                          {-20, -10},
+                          {-20, 10},
+                          {20, 10},
+                          {20, -10},
+                          {-15, -5},
+                          {-5, 5},
+                          {15, 5},
+                          {5, -5},
+                      }),
+        R"json({"_type":"shape","interior":{"_type":"genprism","halfheight":1.0,
+            "lower":[[2.0,-1.0],[2.0,1.0],[-2.0,1.0],[-2.0,-1.0]],
+            "upper":[[0.5,-0.5],[1.5,0.5],[-0.5,0.5],[-1.5,-0.5]]},
+            "label":"trap_uneven_twist"})json",
+        {
+            {1.99, -0.99, -0.99},
+            {0.49, -0.49, 0.99},
+        });
+
+    // GenTrapTest, trap_even_twist
+    this->build_and_test(
+        G4GenericTrap("trap_even_twist",
+                      1,
+                      {{-2, -1},
+                       {-2, 1},
+                       {2, 1},
+                       {2, -1},
+                       {-3, -1},
+                       {-1, 1},
+                       {3, 1},
+                       {1, -1}}),
+        R"json({"_type":"shape","interior":{"_type":"genprism","halfheight":0.1,"lower":[[0.2,-0.1],[0.2,0.1],[-0.2,0.1],[-0.2,-0.1]],"upper":[[0.1,-0.1],[0.3,0.1],[-0.1,0.1],[-0.3,-0.1]]},"label":"trap_even_twist"})json",
+        {
+            {1.99, -0.99, -0.99},
+            {0.49, -0.49, 0.99},
         });
 }
 

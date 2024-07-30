@@ -351,7 +351,7 @@ GenPrism GenPrism::from_trd(real_type halfz, Real2 const& lo, Real2 const& hi)
  * \arg theta Polar angle of line between center of bases
  * \arg phi Azimuthal angle of line between center of bases
  * \arg lo Trapezoidal face at -hz
- * \arg lo Trapezoidal face at +hz
+ * \arg hi Trapezoidal face at +hz
  */
 GenPrism GenPrism::from_trap(
     real_type hz, Turn theta, Turn phi, TrapFace const& lo, TrapFace const& hi)
@@ -545,24 +545,32 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
         }
         else
         {
-            // Insert a "twisted" face (hyperbolic paraboloid)
-            auto alo = jlo[Y] - ilo[Y];
-            auto ahi = jhi[Y] - ihi[Y];
-            auto blo = ilo[X] - jlo[X];
-            auto bhi = ihi[X] - jhi[X];
-            auto clo = jlo[X] * ilo[Y] - ilo[X] * jlo[Y];
-            auto chi = jhi[X] * ihi[Y] - ihi[X] * jhi[Y];
+            // Insert a "twisted" face
+            // x,y-'slopes' of i,j vertical edges in terms of z
+            auto aux = 0.5 / hz_;
+            auto txi = aux * (ihi[X] - ilo[X]);
+            auto tyi = aux * (ihi[Y] - ilo[Y]);
+            auto txj = aux * (jhi[X] - jlo[X]);
+            auto tyj = aux * (jhi[Y] - jlo[Y]);
 
-            real_type xy = ahi - alo;
-            real_type yz = bhi - blo;
-            real_type x = hz_ * (ahi + alo);
-            real_type y = hz_ * (bhi + blo);
-            real_type z = chi - clo;
-            real_type s = hz_ * (clo + chi);
+            // half-way coordinates of i,j vertical edges
+            auto mxi = 0.5 * (ilo[X] + ihi[X]);
+            auto myi = 0.5 * (ilo[Y] + ihi[Y]);
+            auto mxj = 0.5 * (jlo[X] + jhi[X]);
+            auto myj = 0.5 * (jlo[Y] + jhi[Y]);
+
+            // coefficients for the quadric
+            real_type czz = txj * tyi - txi * tyj;
+            real_type eyz = txi - txj;
+            real_type fzx = tyj - tyi;
+            real_type gx = myj - myi;
+            real_type hy = mxi - mxj;
+            real_type iz = txj * myi - txi * myj + tyi * mxj - tyj * mxi;
+            real_type js = mxj * myi - mxi * myj;
 
             insert_surface(
                 Sense::inside,
-                GeneralQuadric{Real3{0, 0, 0}, {xy, yz, 0}, {x, y, z}, s},
+                GeneralQuadric{{0, 0, czz}, {0, eyz, fzx}, {gx, hy, iz}, js},
                 "t" + std::to_string(i));
         }
     }
