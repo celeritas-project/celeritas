@@ -67,9 +67,9 @@ class Involute
     //// CLASS ATTRIBUTES ////
 
     // Surface type identifier
-    static SurfaceType surface_type()
+    static CELER_CONSTEXPR_FUNCTION SurfaceType surface_type()
     {
-        CELER_NOT_IMPLEMENTED("runtime involute");
+        return SurfaceType::inv;
     }
 
     // Safety
@@ -307,6 +307,10 @@ CELER_FORCEINLINE_FUNCTION Real3 Involute::calc_normal(Real3 const& pos) const
 
     return normal_;
 }
+<<<<<<< HEAD
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
+=======
+}  // namespace celeritas
+>>>>>>> parent of e650130be (REVERTME: remove runtime support for involute)

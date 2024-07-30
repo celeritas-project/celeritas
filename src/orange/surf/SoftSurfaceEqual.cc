@@ -70,6 +70,21 @@ bool SoftSurfaceEqual::operator()(SphereCentered const& a,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Compare two centered involutes for near equality.
+ */
+bool SoftSurfaceEqual::operator()(Involute const& a, Involute const& b) const
+{
+    return this->soft_eq_sq(a.r_b(), b.r_b()) && this->soft_eq_sq(a.a(), b.a())
+           && this->soft_eq_sq(a.sign(), b.sign())
+           && this->soft_eq_sq(a.tmin(), b.tmin())
+           && this->soft_eq_sq(a.tmax(), b.tmax())
+           && this->soft_eq_sq(a.origin()[0], b.origin()[0])
+           && this->soft_eq_sq(a.origin()[1], b.origin()[1])
+           && this->soft_eq_sq(a.origin()[2], b.origin()[2]);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Compare two aligned cylinders for near equality.
  */
 template<Axis T>

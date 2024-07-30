@@ -169,6 +169,16 @@ void SurfaceClipper::operator()(GeneralQuadric const&) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Clip the bounding boxes to an involute.
+ */
+void SurfaceClipper::operator()(Involute const&) const
+{
+    // We no longer can guarantee any point being inside the shape; reset it
+    *int_ = BoundingBox{};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Clip a variant surface.
  */
 void SurfaceClipper::operator()(VariantSurface const& surf) const
