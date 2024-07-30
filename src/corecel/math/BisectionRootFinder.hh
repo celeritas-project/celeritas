@@ -57,7 +57,7 @@ class BisectionRootFinder
 //---------------------------------------------------------------------------//
 
 template<class F, class... Args>
-BisectionRootFinder(F&&, Args...) -> BisectionRootFinder<F>;
+CELER_FUNCTION BisectionRootFinder(F&&, Args...) -> BisectionRootFinder<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
