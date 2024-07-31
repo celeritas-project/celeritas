@@ -8,7 +8,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Types.hh"
 #include "geocel/g4/GeantGeoTraits.hh"
 #include "geocel/vg/VecgeomGeoTraits.hh"

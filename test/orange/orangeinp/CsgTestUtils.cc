@@ -14,7 +14,8 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/io/Join.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/io/StreamableVariant.hh"

@@ -9,7 +9,8 @@
 
 #include <gtest/gtest.h>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/io/Logger.hh"
 
 namespace celeritas

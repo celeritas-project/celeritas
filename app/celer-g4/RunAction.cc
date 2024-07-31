@@ -15,7 +15,8 @@
 #include <G4RunManager.hh>
 #include <G4StateManager.hh>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"

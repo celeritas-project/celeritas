@@ -1,9 +1,9 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/math/RegulaRootFinder.test.cc
+//! \file corecel/math/RegulaFalsiRootFinder.test.cc
 //---------------------------------------------------------------------------//
 #include "corecel/math/RegulaFalsiRootFinder.hh"
 
@@ -15,79 +15,84 @@
 #include "corecel/math/SoftEqual.hh"
 #include "orange/OrangeTypes.hh"
 
+#include "DiagnosticRealFunc.hh"
 #include "celeritas_test.hh"
+
+using celeritas::constants::pi;
+inline constexpr auto tol = celeritas::SoftEqual<>{}.rel();
 
 namespace celeritas
 {
-using constants::pi;
-
 namespace test
 {
+//---------------------------------------------------------------------------//
 
 // Solve: (x-2)(x+2) = 0
 TEST(RegulaFalsi, root_two)
 {
-    auto root = [](real_type t) { return (t - 2) * (t + 2); };
+    DiagnosticRealFunc f{[](real_type t) { return (t - 2) * (t + 2); }};
+    RegulaFalsiRootFinder find_root{f, tol};
 
-    constexpr real_type tol = SoftEqual<>{}.rel();
-
-    RegulaFalsi find_root{root, tol};
-
-    EXPECT_SOFT_EQ(2.0, find_root(1.0, 3.0));
-    EXPECT_SOFT_EQ(-2.0, find_root(-3.0, -1.0));
+    EXPECT_SOFT_EQ(2.0, find_root(1.75, 2.25));
+    EXPECT_EQ(if_double_else(12, 7), f.exchange_count());
+    EXPECT_SOFT_EQ(-2.0, find_root(-2.25, -1.75));
+    EXPECT_EQ(if_double_else(12, 7), f.exchange_count());
 }
 
 // Solve: x^2 - x - 1 = 0
 TEST(RegulaFalsi, golden_ratio)
 {
-    auto root = [](real_type t) { return ipow<2>(t) - t - 1; };
+    DiagnosticRealFunc f{[](real_type t) { return ipow<2>(t) - t - 1; }};
+    RegulaFalsiRootFinder find_root{f, tol};
 
-    constexpr real_type tol = SoftEqual<>{}.rel();
-
-    RegulaFalsi find_root{root, tol};
-
-    EXPECT_SOFT_EQ(1.618033988749, find_root(1.0, 2.0));
-    EXPECT_SOFT_EQ(-0.6180339887498, find_root(-1.0, 0.0));
+    EXPECT_SOFT_EQ(1.618033988749, find_root(1.5, 1.75));
+    EXPECT_EQ(if_double_else(12, 7), f.exchange_count());
+    EXPECT_SOFT_EQ(-0.6180339887498, find_root(-0.75, -0.5));
+    EXPECT_EQ(if_double_else(12, 7), f.exchange_count());
 }
 
 // Solve first 3 roots: cos(x) = 0
 TEST(RegulaFalsi, trigometric)
 {
-    auto root = [](real_type t) { return std::cos(t); };
-
-    constexpr real_type tol = SoftEqual<>{}.rel();
-
-    RegulaFalsi find_root{root, tol};
+    DiagnosticRealFunc f{[](real_type t) { return std::cos(t); }};
+    RegulaFalsiRootFinder find_root{f, tol};
 
     EXPECT_SOFT_EQ(pi * 0.5, find_root(0, pi));
+    EXPECT_EQ(3, f.exchange_count());
+    EXPECT_SOFT_EQ(pi * 0.5, find_root(0.5, 3.0));
+    EXPECT_EQ(if_double_else(7, 6), f.exchange_count());
     EXPECT_SOFT_EQ(pi * 1.5, find_root(pi, 2 * pi));
+    EXPECT_EQ(3, f.exchange_count());
     EXPECT_SOFT_EQ(pi * 2.5, find_root(2 * pi, 3 * pi));
+    EXPECT_EQ(3, f.exchange_count());
 }
 
 /*!
- * Solve Itersect
+ * Solve exponential intersect.
  *
  * x(t) = t
- * y(t) = exp(t)
+ * y(t) = exp(t-1)
  *
- * Point (0,2)
- * Direction (0,-1)
+ * Point (1.5,0.5)
+ * Direction (-0.7071067812,0.7071067812)
  */
-TEST(RegulaFalsi, expomential_intersect)
+TEST(RegulaFalsi, exponential_intersect)
 {
-    double x = 0.0;
-    double y = 2.0;
-    double u = 0.0;
-    double v = -1.0;
+    real_type x = 1.5;
+    real_type y = 0.5;
+    real_type u = -0.7071067812;
+    real_type v = 0.7071067812;
 
-    auto root
-        = [&](real_type t) { return u * std::exp(t) - v * t + v * x - u * y; };
+    DiagnosticRealFunc f{[&](real_type t) {
+        return u * std::exp(t - 1) - v * t + v * x - u * y;
+    }};
+    RegulaFalsiRootFinder find_root{f, tol};
 
-    constexpr real_type tol = SoftEqual<>{}.rel();
-
-    RegulaFalsi find_root{root, tol};
-
-    EXPECT_SOFT_EQ(0.0, find_root(-0.5, 0.5));
+    // XXX this finds the root outside of the specified bounds!
+    EXPECT_SOFT_EQ(1.0, find_root(-0.5, 0.5));
+    EXPECT_EQ(if_double_else(12, 8), f.exchange_count());
+    EXPECT_SOFT_EQ(1.0, find_root(0.5, 1.5));
+    EXPECT_EQ(if_double_else(16, 9), f.exchange_count());
 }
 
 //---------------------------------------------------------------------------//

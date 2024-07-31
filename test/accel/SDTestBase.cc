@@ -10,7 +10,8 @@
 #include <G4LogicalVolumeStore.hh>
 #include <G4SDManager.hh>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/io/Join.hh"
 
 #include "SimpleSensitiveDetector.hh"

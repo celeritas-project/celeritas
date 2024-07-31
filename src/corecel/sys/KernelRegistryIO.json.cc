@@ -10,7 +10,8 @@
 #include <atomic>
 #include <string>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/cont/Range.hh"
 
 #include "KernelAttributes.hh"

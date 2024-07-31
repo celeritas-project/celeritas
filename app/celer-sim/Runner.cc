@@ -48,8 +48,8 @@
 #include "celeritas/io/RootEventReader.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/CerenkovParams.hh"
+#include "celeritas/optical/MaterialPropertyParams.hh"
 #include "celeritas/optical/OpticalCollector.hh"
-#include "celeritas/optical/OpticalPropertyParams.hh"
 #include "celeritas/optical/ScintillationParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
@@ -560,6 +560,10 @@ void Runner::build_step_collectors(RunnerInput const& inp)
 void Runner::build_optical_collector(RunnerInput const& inp,
                                      ImportData const& imported)
 {
+    using optical::CerenkovParams;
+    using optical::MaterialPropertyParams;
+    using optical::ScintillationParams;
+
     // TODO: Rethink if statements after implementing CelerOpticalPhysicsList
     if (imported.optical.empty())
     {
@@ -572,7 +576,7 @@ void Runner::build_optical_collector(RunnerInput const& inp,
     auto const& optical_data = imported.optical.begin()->second;
     if (optical_data.properties)
     {
-        oc_inp.properties = OpticalPropertyParams::from_import(imported);
+        oc_inp.properties = MaterialPropertyParams::from_import(imported);
         oc_inp.cerenkov = std::make_shared<CerenkovParams>(oc_inp.properties);
     }
     if (optical_data.scintillation)

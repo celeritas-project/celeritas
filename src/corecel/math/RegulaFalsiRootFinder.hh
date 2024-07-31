@@ -1,5 +1,5 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2020-2024 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
@@ -10,13 +10,12 @@
 #include <cmath>
 #include <type_traits>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
-
-#include "detail/MathImpl.hh"
 
 namespace celeritas
 {
@@ -37,21 +36,21 @@ namespace celeritas
  * proximity to 0.
  */
 template<class F>
-class RegulaFalsi
+class RegulaFalsiRootFinder
 {
   public:
     // Contruct with function to solve and solution tolerance
-    inline CELER_FUNCTION RegulaFalsi(F&& func, real_type tol);
+    inline CELER_FUNCTION RegulaFalsiRootFinder(F&& func, real_type tol);
 
     // Solve for a root between two points
-    inline real_type operator()(real_type left, real_type right);
+    inline CELER_FUNCTION real_type operator()(real_type left, real_type right);
 
   private:
     F func_;
     real_type tol_;
 
     // Maximum amount of iterations
-    static constexpr inline int max_iters_ = 100;
+    static constexpr inline int max_iters_ = 50;
 };
 
 //---------------------------------------------------------------------------//
@@ -59,7 +58,7 @@ class RegulaFalsi
 //---------------------------------------------------------------------------//
 
 template<class F, class... Args>
-RegulaFalsi(F&&, Args...) -> RegulaFalsi<F>;
+CELER_FUNCTION RegulaFalsiRootFinder(F&&, Args...) -> RegulaFalsiRootFinder<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -68,7 +67,8 @@ RegulaFalsi(F&&, Args...) -> RegulaFalsi<F>;
  * Construct from function.
  */
 template<class F>
-CELER_FUNCTION RegulaFalsi<F>::RegulaFalsi(F&& func, real_type tol)
+CELER_FUNCTION
+RegulaFalsiRootFinder<F>::RegulaFalsiRootFinder(F&& func, real_type tol)
     : func_{celeritas::forward<F>(func)}, tol_{tol}
 {
     CELER_EXPECT(tol_ > 0);
@@ -79,8 +79,8 @@ CELER_FUNCTION RegulaFalsi<F>::RegulaFalsi(F&& func, real_type tol)
  * Solve for a root between the two points.
  */
 template<class F>
-CELER_FUNCTION real_type RegulaFalsi<F>::operator()(real_type left,
-                                                    real_type right)
+CELER_FUNCTION real_type RegulaFalsiRootFinder<F>::operator()(real_type left,
+                                                              real_type right)
 {
     // Initialize Iteration parameters
     real_type f_left = func_(left);

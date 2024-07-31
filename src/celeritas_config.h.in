@@ -3,40 +3,29 @@
  * See the top-level COPYRIGHT file for details.
  * SPDX-License-Identifier: (Apache-2.0 OR MIT)
  *---------------------------------------------------------------------------*/
-/*! \file celeritas_config.h
- * Configuration-specific options for Celeritas.
+/*!
+ * \file celeritas_config.h
+ * \brief Configuration-specific options for Celeritas.
  *
  * Note that the nonzero values for \c CELERITAS_CORE_RNG and \c
  * CELERITAS_CORE_GEO values *must not* be used directly: only compare between
  * (e.g.) \c CELERITAS_CORE_RNG and \c CELERITAS_CORE_RNG_HIPRAND; options that
  * are *invalid* (e.g. for missing libraries such as HIP) will have a value of
  * zero.
- *---------------------------------------------------------------------------*/
+ * \deprecated This file should be replaced by "corecel/Config.hh".
+ */
+//---------------------------------------------------------------------------//
 #ifndef celeritas_config_h
 #define celeritas_config_h
 
-#cmakedefine01 CELERITAS_USE_CUDA
-#cmakedefine01 CELERITAS_USE_GEANT4
-#cmakedefine01 CELERITAS_USE_HEPMC3
-#cmakedefine01 CELERITAS_USE_HIP
-#cmakedefine01 CELERITAS_USE_MPI
-#cmakedefine01 CELERITAS_USE_OPENMP
-#cmakedefine01 CELERITAS_USE_ROOT
-#cmakedefine01 CELERITAS_USE_VECGEOM
-#cmakedefine01 CELERITAS_USE_PERFETTO
+#if __cplusplus < 201703L
+#    error "Celeritas requires C++17 or greater and is not C compatible"
+#endif
 
-#cmakedefine01 CELERITAS_DEBUG
+#if __GNUC__ > 8 || __clang__
+#    pragma GCC warning "celeritas_config.h is deprecated and should be replaced by \"corecel/Config.hh\""
+#endif
 
-@CELERITAS_REAL_TYPE_CONFIG@
-
-@CELERITAS_UNITS_CONFIG@
-
-@CELERITAS_OPENMP_CONFIG@
-
-@CELERITAS_CORE_GEO_CONFIG@
-
-@CELERITAS_CORE_RNG_CONFIG@
-
-#define CELERITAS_MAX_BLOCK_SIZE @CELERITAS_MAX_BLOCK_SIZE@
+#include "corecel/Config.hh"
 
 #endif /* celeritas_config_h */

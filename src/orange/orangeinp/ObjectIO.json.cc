@@ -179,9 +179,9 @@ void to_json(nlohmann::json& j, Ellipsoid const& cr)
 {
     j = {{"_type", "ellipsoid"}, SIO_ATTR_PAIR(cr, radii)};
 }
-void to_json(nlohmann::json& j, GenTrap const& cr)
+void to_json(nlohmann::json& j, GenPrism const& cr)
 {
-    j = {{"_type", "gentrap"},
+    j = {{"_type", "genprism"},
          SIO_ATTR_PAIR(cr, halfheight),
          SIO_ATTR_PAIR(cr, lower),
          SIO_ATTR_PAIR(cr, upper)};
