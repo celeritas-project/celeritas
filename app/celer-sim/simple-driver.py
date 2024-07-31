@@ -69,7 +69,7 @@ if core_geo == "orange-json":
     geometry_filename = re.sub(r"\.gdml$", ".org.json", geometry_filename)
 
 simple_calo = []
-if not rootout_filename and "cms" in rootout_filename:
+if not rootout_filename and "cms" in geometry_filename:
     simple_calo = ["si_tracker", "em_calorimeter"]
 
 num_tracks = 128*32 if use_device else 32
