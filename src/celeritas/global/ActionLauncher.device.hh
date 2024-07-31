@@ -63,7 +63,8 @@ namespace celeritas
 template<class F>
 class ActionLauncher
 {
-    static_assert((std::is_trivially_copyable_v<F> || CELERITAS_USE_HIP)
+    static_assert((std::is_trivially_copyable_v<F> || CELERITAS_USE_HIP
+                   || __clang__)
                       && !std::is_pointer_v<F> && !std::is_reference_v<F>,
                   "Launched action must be a trivially copyable function "
                   "object");
