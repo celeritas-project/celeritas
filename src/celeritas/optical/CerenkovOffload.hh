@@ -50,7 +50,7 @@ class CerenkovOffload
     units::ElementaryCharge charge_;
     real_type step_length_;
     OffloadPreStepData const& pre_step_;
-    optical::OffloadStepData post_step_;
+    optical::GeneratorStepData post_step_;
     real_type num_photons_per_len_;
 };
 

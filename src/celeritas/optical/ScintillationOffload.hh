@@ -51,7 +51,7 @@ class ScintillationOffload
     units::ElementaryCharge charge_;
     real_type step_length_;
     OffloadPreStepData const& pre_step_;
-    optical::OffloadStepData post_step_;
+    optical::GeneratorStepData post_step_;
     NativeCRef<optical::ScintillationData> const& shared_;
     real_type mean_num_photons_;
 };
