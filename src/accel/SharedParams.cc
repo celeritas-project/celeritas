@@ -22,7 +22,8 @@
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"

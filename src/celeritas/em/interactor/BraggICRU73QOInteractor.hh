@@ -115,6 +115,7 @@ BraggICRU73QOInteractor::BraggICRU73QOInteractor(
     , beta_sq_(particle.beta_sq())
     , electron_mass_(shared.electron_mass)
     , electron_id_(shared.electron)
+    // TODO: Use proton mass from imported data instead of constant
     , min_secondary_energy_(min(
           value_as<Energy>(cutoffs.energy(electron_id_)),
           value_as<Energy>(shared.lowest_kin_energy) * value_as<Mass>(inc_mass_)

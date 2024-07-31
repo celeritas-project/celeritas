@@ -7,10 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "GeantTestBase.hh"
 
+#include <cstring>
 #include <string>
 
-#include "celeritas_cmake_strings.h"
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/io/Logger.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"

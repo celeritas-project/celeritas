@@ -9,7 +9,8 @@
 
 #include <utility>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "celeritas/Constants.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/em/data/CoulombScatteringData.hh"

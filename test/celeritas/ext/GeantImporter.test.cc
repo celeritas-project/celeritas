@@ -7,8 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/GeantImporter.hh"
 
-#include "celeritas_cmake_strings.h"
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"

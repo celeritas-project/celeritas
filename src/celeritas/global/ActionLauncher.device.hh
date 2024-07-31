@@ -9,7 +9,8 @@
 
 #include <type_traits>
 
-#include "corecel/device_runtime_api.h"
+#include "corecel/DeviceRuntimeApi.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
@@ -24,6 +25,7 @@
 #include "CoreParams.hh"
 #include "CoreState.hh"
 #include "KernelContextException.hh"
+
 #include "detail/ActionLauncherKernel.device.hh"
 #include "detail/ApplierTraits.hh"
 

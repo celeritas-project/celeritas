@@ -11,7 +11,8 @@
 #include <type_traits>
 #include <utility>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/data/AuxParamsRegistry.hh"  // IWYU pragma: keep
 #include "corecel/data/Ref.hh"

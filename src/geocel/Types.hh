@@ -18,8 +18,14 @@ namespace celeritas
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
 
-//! Fixed-size array for 3D space
+//! Three-dimensional cartesian coordinates
 using Real3 = Array<real_type, 3>;
+
+//! Two-dimensional cartesian coordinates
+using Real2 = Array<real_type, 2>;
+
+//! Two-dimensional extents
+using Size2 = Array<size_type, 2>;
 
 //! Alias for a small square dense matrix
 template<class T, size_type N>
@@ -31,7 +37,6 @@ using SquareMatrixReal3 = SquareMatrix<real_type, 3>;
 //---------------------------------------------------------------------------//
 
 //! Identifier for a material fill
-// TODO: rename MaterialId, see celeritas/Types.hh
 using GeoMaterialId = OpaqueId<struct GeoMaterial_>;
 
 //! Identifier for a surface (for surface-based geometries)

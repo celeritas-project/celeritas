@@ -9,7 +9,8 @@
 
 #include <memory>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Macros.hh"
 
 class G4coutDestination;

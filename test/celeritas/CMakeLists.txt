@@ -305,6 +305,7 @@ celeritas_add_test(neutron/NeutronInelastic.test.cc ${_needs_double})
 #-----------------------------------------------------------------------------#
 # Phys
 celeritas_add_test(phys/CutoffParams.test.cc)
+celeritas_add_test(phys/FourVector.test.cc)
 celeritas_add_device_test(phys/Particle)
 celeritas_add_device_test(phys/Physics)
 celeritas_add_test(phys/InteractionUtils.test.cc)

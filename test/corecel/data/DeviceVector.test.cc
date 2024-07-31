@@ -25,7 +25,14 @@ TEST(DeviceVectorTest, all)
     if (!CELER_USE_DEVICE)
     {
         // Test that allocation fails
-        EXPECT_THROW(Vec_t(1234), DebugError);
+        if (CELERITAS_DEBUG)
+        {
+            EXPECT_THROW(Vec_t(1234), DebugError);
+        }
+        else
+        {
+            EXPECT_THROW(Vec_t(1234), RuntimeError);
+        }
         return;
     }
 

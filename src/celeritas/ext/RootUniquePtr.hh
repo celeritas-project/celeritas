@@ -10,7 +10,8 @@
 
 #include <memory>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 
 class TFile;

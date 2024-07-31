@@ -11,7 +11,8 @@
 #include <memory>
 #include <string_view>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Macros.hh"
 
 //---------------------------------------------------------------------------//

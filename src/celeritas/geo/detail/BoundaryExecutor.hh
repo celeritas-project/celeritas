@@ -52,7 +52,12 @@ BoundaryExecutor::operator()(celeritas::CoreTrackView& track)
 
     // Particle entered a new volume before reaching the interaction point
     geo.cross_boundary();
-    if (!geo.is_outside())
+    if (CELER_UNLIKELY(geo.failed()))
+    {
+        track.apply_errored();
+        return;
+    }
+    else if (!geo.is_outside())
     {
         // Update the material in the new region
         auto geo_mat = track.make_geo_material_view();

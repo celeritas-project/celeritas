@@ -16,6 +16,7 @@
 #include "CylAligned.hh"  // IWYU pragma: associated
 #include "CylCentered.hh"  // IWYU pragma: associated
 #include "GeneralQuadric.hh"  // IWYU pragma: associated
+#include "Involute.hh"  // IWYU pragma: associated
 #include "Plane.hh"  // IWYU pragma: associated
 #include "PlaneAligned.hh"  // IWYU pragma: associated
 #include "SimpleQuadric.hh"  // IWYU pragma: associated
@@ -105,6 +106,15 @@ std::ostream& operator<<(std::ostream& os, Sphere const& s)
 std::ostream& operator<<(std::ostream& os, SphereCentered const& s)
 {
     os << "Sphere: r=" << std::sqrt(s.radius_sq());
+    return os;
+}
+
+//---------------------------------------------------------------------------//
+std::ostream& operator<<(std::ostream& os, Involute const& s)
+{
+    os << "Involute: r, a, sign, tmin, tmax =" << s.r_b() << ' ' << s.a()
+       << ' ' << s.sign() << ' ' << s.tmin() << ' ' << s.tmax() << " at "
+       << s.origin();
     return os;
 }
 

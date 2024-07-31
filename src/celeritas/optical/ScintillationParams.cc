@@ -20,6 +20,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
  * Construct with imported data.
@@ -253,4 +255,5 @@ std::vector<ScintillationComponent> ScintillationParams::build_components(
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

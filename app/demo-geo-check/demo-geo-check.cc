@@ -17,7 +17,8 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_cmake_strings.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/ArrayIO.json.hh"

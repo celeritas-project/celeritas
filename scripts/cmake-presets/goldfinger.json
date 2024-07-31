@@ -86,7 +86,7 @@
       }
     },
     {
-      "name": "geant",
+      "name": "geant4",
       "displayName": "Using Geant4 navigation",
       "inherits": [".base", ".debug", "default"],
       "cacheVariables": {
@@ -105,7 +105,7 @@
       }
     },
     {
-      "name": "vecgeom-reldeb",
+      "name": "reldeb-vecgeom",
       "displayName": "With vecgeom in optimized+errcheck mode",
       "inherits": [".reldeb", "vecgeom"],
       "cacheVariables": {
@@ -122,14 +122,22 @@
       }
     },
     {
-      "name": "vecgeom-ndebug",
-      "displayName": "With vecgeom in optimized mode",
-      "inherits": [".base", ".ndebug"],
+      "name": "ndebug-vecgeom",
+      "displayName": "With vecgeom, clhep, dev g4 in optimized mode",
+      "inherits": [".base", ".ndebug", "vecgeom"],
       "cacheVariables": {
-        "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "ON"},
-        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"},
+        "CMAKE_CXX_COMPILER_LAUNCHER": "/opt/homebrew/bin/ccache",
+        "Geant4_DIR": "/Users/seth/Code/geant4-dev/build",
+        "CELERITAS_BUILD_DEMOS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_ROOT":    {"type": "BOOL",   "value": "ON"}
+        "CELERITAS_UNITS": "CLHEP"
+      },
+      "environment": {
+        "PATH": "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/Library/Apple/usr/bin",
+        "CMAKE_PREFIX_PATH": "/opt/spack/opt/spack/sonoma/googletest/1.14.0/wjvv2w2:/opt/spack/opt/spack/sonoma/vecgeom/1.2.8/t4hnxz2:/opt/spack/opt/spack/sonoma/xerces-c/3.2.4/umj37ov:/opt/spack/opt/spack/sonoma/curl/8.4.0/x4tl4tu:/opt/spack/opt/spack/sonoma/zlib-ng/2.1.3/udbedjf:/opt/spack/opt/spack/sonoma/nghttp2/1.52.0/dzvtf5b:/opt/spack/opt/spack/sonoma/veccore/0.8.1/ye5hcpf:/opt/spack/opt/spack/sonoma/libpng/1.6.39/wl4oyhp:/opt/spack/opt/spack/sonoma/zlib-ng/2.1.3/udbedjf"
       }
     }
   ],
