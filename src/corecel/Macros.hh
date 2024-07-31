@@ -47,7 +47,7 @@
 #define CELER_COMP_GCC 2
 #define CELER_COMP_INTEL 3
 #define CELER_COMP_MSVC 4
-#define CELER_COMP_NVCPP 4
+#define CELER_COMP_NVCPP 5
 
 /*!
  * \def CELER_COMP_HOST
