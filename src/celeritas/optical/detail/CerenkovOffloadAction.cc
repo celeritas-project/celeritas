@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/CerenkovDispatcherAction.cc
+//! \file celeritas/optical/detail/CerenkovOffloadAction.cc
 //---------------------------------------------------------------------------//
-#include "CerenkovDispatcherAction.hh"
+#include "CerenkovOffloadAction.hh"
 
 #include <algorithm>
 
@@ -19,8 +19,8 @@
 #include "celeritas/optical/CerenkovParams.hh"
 #include "celeritas/optical/MaterialPropertyParams.hh"
 
-#include "CerenkovDispatcherExecutor.hh"
-#include "DispatcherParams.hh"
+#include "CerenkovOffloadExecutor.hh"
+#include "OffloadParams.hh"
 #include "OpticalGenAlgorithms.hh"
 
 namespace celeritas
@@ -31,10 +31,10 @@ namespace detail
 /*!
  * Construct with action ID, data ID, optical properties.
  */
-CerenkovDispatcherAction::CerenkovDispatcherAction(ActionId id,
-                                                   AuxId data_id,
-                                                   SPConstProperties properties,
-                                                   SPConstCerenkov cerenkov)
+CerenkovOffloadAction::CerenkovOffloadAction(ActionId id,
+                                             AuxId data_id,
+                                             SPConstProperties properties,
+                                             SPConstCerenkov cerenkov)
     : id_(id)
     , data_id_{data_id}
     , properties_(std::move(properties))
@@ -49,7 +49,7 @@ CerenkovDispatcherAction::CerenkovDispatcherAction(ActionId id,
 /*!
  * Descriptive name of the action.
  */
-std::string_view CerenkovDispatcherAction::description() const
+std::string_view CerenkovOffloadAction::description() const
 {
     return "generate Cerenkov optical distribution data";
 }
@@ -58,8 +58,8 @@ std::string_view CerenkovDispatcherAction::description() const
 /*!
  * Execute the action with host data.
  */
-void CerenkovDispatcherAction::execute(CoreParams const& params,
-                                       CoreStateHost& state) const
+void CerenkovOffloadAction::execute(CoreParams const& params,
+                                    CoreStateHost& state) const
 {
     this->execute_impl(params, state);
 }
@@ -68,8 +68,8 @@ void CerenkovDispatcherAction::execute(CoreParams const& params,
 /*!
  * Execute the action with device data.
  */
-void CerenkovDispatcherAction::execute(CoreParams const& params,
-                                       CoreStateDevice& state) const
+void CerenkovOffloadAction::execute(CoreParams const& params,
+                                    CoreStateDevice& state) const
 {
     this->execute_impl(params, state);
 }
@@ -79,10 +79,10 @@ void CerenkovDispatcherAction::execute(CoreParams const& params,
  * Generate optical distribution data post-step.
  */
 template<MemSpace M>
-void CerenkovDispatcherAction::execute_impl(CoreParams const& core_params,
-                                            CoreState<M>& core_state) const
+void CerenkovOffloadAction::execute_impl(CoreParams const& core_params,
+                                         CoreState<M>& core_state) const
 {
-    auto& state = get<OpticalGenState<M>>(core_state.aux(), data_id_);
+    auto& state = get<OpticalOffloadState<M>>(core_state.aux(), data_id_);
     auto& buffer = state.store.ref().cerenkov;
     auto& buffer_size = state.buffer_size.cerenkov;
 
@@ -104,26 +104,26 @@ void CerenkovDispatcherAction::execute_impl(CoreParams const& core_params,
 /*!
  * Launch a (host) kernel to generate optical distribution data post-step.
  */
-void CerenkovDispatcherAction::pre_generate(CoreParams const& core_params,
-                                            CoreStateHost& core_state) const
+void CerenkovOffloadAction::pre_generate(CoreParams const& core_params,
+                                         CoreStateHost& core_state) const
 {
-    auto& state
-        = get<OpticalGenState<MemSpace::native>>(core_state.aux(), data_id_);
+    auto& state = get<OpticalOffloadState<MemSpace::native>>(core_state.aux(),
+                                                             data_id_);
 
     TrackExecutor execute{
         core_params.ptr<MemSpace::native>(),
         core_state.ptr(),
-        detail::CerenkovDispatcherExecutor{properties_->host_ref(),
-                                           cerenkov_->host_ref(),
-                                           state.store.ref(),
-                                           state.buffer_size}};
+        detail::CerenkovOffloadExecutor{properties_->host_ref(),
+                                        cerenkov_->host_ref(),
+                                        state.store.ref(),
+                                        state.buffer_size}};
     launch_action(*this, core_params, core_state, execute);
 }
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void CerenkovDispatcherAction::pre_generate(CoreParams const&,
-                                            CoreStateDevice&) const
+void CerenkovOffloadAction::pre_generate(CoreParams const&,
+                                         CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

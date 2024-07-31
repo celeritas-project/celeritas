@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/ScintillationDispatcher.hh
+//! \file celeritas/optical/ScintillationOffload.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -15,9 +15,9 @@
 #include "celeritas/random/distribution/PoissonDistribution.hh"
 #include "celeritas/track/SimTrackView.hh"
 
-#include "DispatcherData.hh"
 #include "GeneratorDistributionData.hh"
 #include "MaterialPropertyData.hh"
+#include "OffloadData.hh"
 #include "ScintillationData.hh"
 
 namespace celeritas
@@ -30,17 +30,17 @@ namespace celeritas
  * ScintillationGenerator to generate optical photons using post-step and
  * cached pre-step data.
  */
-class ScintillationDispatcher
+class ScintillationOffload
 {
   public:
     // Construct with optical properties, scintillation, and step data
     inline CELER_FUNCTION
-    ScintillationDispatcher(ParticleTrackView const& particle,
-                            SimTrackView const& sim,
-                            Real3 const& pos,
-                            units::MevEnergy energy_deposition,
-                            NativeCRef<optical::ScintillationData> const& shared,
-                            DispatcherPreStepData const& step_data);
+    ScintillationOffload(ParticleTrackView const& particle,
+                         SimTrackView const& sim,
+                         Real3 const& pos,
+                         units::MevEnergy energy_deposition,
+                         NativeCRef<optical::ScintillationData> const& shared,
+                         OffloadPreStepData const& step_data);
 
     // Populate an optical distribution data for the Scintillation Generator
     template<class Generator>
@@ -50,8 +50,8 @@ class ScintillationDispatcher
   private:
     units::ElementaryCharge charge_;
     real_type step_length_;
-    DispatcherPreStepData const& pre_step_;
-    optical::DispatcherStepData post_step_;
+    OffloadPreStepData const& pre_step_;
+    optical::OffloadStepData post_step_;
     NativeCRef<optical::ScintillationData> const& shared_;
     real_type mean_num_photons_;
 };
@@ -62,13 +62,13 @@ class ScintillationDispatcher
 /*!
  * Construct with input parameters.
  */
-CELER_FUNCTION ScintillationDispatcher::ScintillationDispatcher(
+CELER_FUNCTION ScintillationOffload::ScintillationOffload(
     ParticleTrackView const& particle,
     SimTrackView const& sim,
     Real3 const& pos,
     units::MevEnergy energy_deposition,
     NativeCRef<optical::ScintillationData> const& shared,
-    DispatcherPreStepData const& step_data)
+    OffloadPreStepData const& step_data)
     : charge_(particle.charge())
     , step_length_(sim.step_length())
     , pre_step_(step_data)
@@ -105,7 +105,7 @@ CELER_FUNCTION ScintillationDispatcher::ScintillationDispatcher(
  */
 template<class Generator>
 CELER_FUNCTION optical::GeneratorDistributionData
-ScintillationDispatcher::operator()(Generator& rng)
+ScintillationOffload::operator()(Generator& rng)
 {
     // Material-only sampling
     optical::GeneratorDistributionData result;

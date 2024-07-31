@@ -14,8 +14,8 @@
 #include "celeritas/optical/GeneratorDistributionData.hh"
 #include "celeritas/optical/Primary.hh"
 #include "celeritas/optical/ScintillationData.hh"
-#include "celeritas/optical/ScintillationDispatcher.hh"
 #include "celeritas/optical/ScintillationGenerator.hh"
+#include "celeritas/optical/ScintillationOffload.hh"
 #include "celeritas/optical/ScintillationParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -121,9 +121,9 @@ class ScintillationTest : public OpticalTestBase
     }
 
     //! Set up mock pre-generator step data
-    DispatcherPreStepData build_pre_step()
+    OffloadPreStepData build_pre_step()
     {
-        DispatcherPreStepData pre_step;
+        OffloadPreStepData pre_step;
         pre_step.speed = LightSpeed(0.99862874144970537);  // 10 MeV
         pre_step.pos = {0, 0, 0};
         pre_step.time = 0;
@@ -271,12 +271,12 @@ TEST_F(ScintillationTest, pre_generator)
         = this->make_particle_track_view(post_energy_, pdg::electron());
     auto const pre_step = this->build_pre_step();
 
-    ScintillationDispatcher generate(particle,
-                                     this->make_sim_track_view(step_length_),
-                                     post_pos_,
-                                     edep_,
-                                     data,
-                                     pre_step);
+    ScintillationOffload generate(particle,
+                                  this->make_sim_track_view(step_length_),
+                                  post_pos_,
+                                  edep_,
+                                  data,
+                                  pre_step);
 
     auto const result = generate(this->rng());
     CELER_ASSERT(result);
@@ -304,7 +304,7 @@ TEST_F(ScintillationTest, basic)
     auto const pre_step = this->build_pre_step();
 
     // Pre-generate optical distribution data
-    ScintillationDispatcher generate(
+    ScintillationOffload generate(
         this->make_particle_track_view(post_energy_, pdg::electron()),
         this->make_sim_track_view(step_length_),
         post_pos_,
@@ -375,7 +375,7 @@ TEST_F(ScintillationTest, stress_test)
     auto const& data = params->host_ref();
     auto const pre_step = this->build_pre_step();
 
-    ScintillationDispatcher generate(
+    ScintillationOffload generate(
         this->make_particle_track_view(post_energy_, pdg::electron()),
         this->make_sim_track_view(step_length_),
         post_pos_,

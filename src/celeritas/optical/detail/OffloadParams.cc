@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/DispatcherParams.cc
+//! \file celeritas/optical/detail/OffloadParams.cc
 //---------------------------------------------------------------------------//
-#include "DispatcherParams.hh"
+#include "OffloadParams.hh"
 
 namespace celeritas
 {
@@ -16,11 +16,11 @@ namespace
 //---------------------------------------------------------------------------//
 //! Construct a state
 template<MemSpace M>
-auto make_state(DispatcherParams const& params, StreamId stream, size_type size)
+auto make_state(OffloadParams const& params, StreamId stream, size_type size)
 {
-    using StoreT = CollectionStateStore<DispatcherStateData, M>;
+    using StoreT = CollectionStateStore<OffloadStateData, M>;
 
-    auto result = std::make_unique<OpticalGenState<M>>();
+    auto result = std::make_unique<OpticalOffloadState<M>>();
     result->store = StoreT{params.host_ref(), stream, size};
 
     CELER_ENSURE(*result);
@@ -36,13 +36,13 @@ auto make_state(DispatcherParams const& params, StreamId stream, size_type size)
 /*!
  * Construct with aux ID and optical data.
  */
-DispatcherParams::DispatcherParams(AuxId aux_id, DispatcherOptions const& setup)
+OffloadParams::OffloadParams(AuxId aux_id, OffloadOptions const& setup)
     : aux_id_{aux_id}
 {
     CELER_EXPECT(aux_id_);
     CELER_EXPECT(setup);
 
-    data_ = CollectionMirror{HostVal<DispatcherParamsData>{setup}};
+    data_ = CollectionMirror{HostVal<OffloadParamsData>{setup}};
 
     CELER_ENSURE(data_);
 }
@@ -51,9 +51,8 @@ DispatcherParams::DispatcherParams(AuxId aux_id, DispatcherOptions const& setup)
 /*!
  * Build state data for a stream.
  */
-auto DispatcherParams::create_state(MemSpace m,
-                                    StreamId sid,
-                                    size_type size) const -> UPState
+auto OffloadParams::create_state(MemSpace m, StreamId sid, size_type size) const
+    -> UPState
 {
     if (m == MemSpace::host)
     {

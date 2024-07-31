@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/CerenkovDispatcher.hh
+//! \file celeritas/optical/CerenkovOffload.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -15,9 +15,9 @@
 
 #include "CerenkovData.hh"
 #include "CerenkovDndxCalculator.hh"
-#include "DispatcherData.hh"
 #include "GeneratorDistributionData.hh"
 #include "MaterialPropertyData.hh"
+#include "OffloadData.hh"
 
 namespace celeritas
 {
@@ -29,17 +29,17 @@ namespace celeritas
  * CerenkovGenerator to generate optical photons using post-step and cached
  * pre-step data.
  */
-class CerenkovDispatcher
+class CerenkovOffload
 {
   public:
     // Construct with optical properties, Cerenkov, and step data
-    inline CELER_FUNCTION CerenkovDispatcher(
-        ParticleTrackView const& particle,
-        SimTrackView const& sim,
-        Real3 const& pos,
-        NativeCRef<optical::MaterialPropertyData> const& properties,
-        NativeCRef<optical::CerenkovData> const& shared,
-        DispatcherPreStepData const& step_data);
+    inline CELER_FUNCTION
+    CerenkovOffload(ParticleTrackView const& particle,
+                    SimTrackView const& sim,
+                    Real3 const& pos,
+                    NativeCRef<optical::MaterialPropertyData> const& properties,
+                    NativeCRef<optical::CerenkovData> const& shared,
+                    OffloadPreStepData const& step_data);
 
     // Return a populated optical distribution data for the Cerenkov Generator
     template<class Generator>
@@ -49,8 +49,8 @@ class CerenkovDispatcher
   private:
     units::ElementaryCharge charge_;
     real_type step_length_;
-    DispatcherPreStepData const& pre_step_;
-    optical::DispatcherStepData post_step_;
+    OffloadPreStepData const& pre_step_;
+    optical::OffloadStepData post_step_;
     real_type num_photons_per_len_;
 };
 
@@ -60,13 +60,13 @@ class CerenkovDispatcher
 /*!
  * Construct with optical properties, Cerenkov, and step information.
  */
-CELER_FUNCTION CerenkovDispatcher::CerenkovDispatcher(
+CELER_FUNCTION CerenkovOffload::CerenkovOffload(
     ParticleTrackView const& particle,
     SimTrackView const& sim,
     Real3 const& pos,
     NativeCRef<optical::MaterialPropertyData> const& properties,
     NativeCRef<optical::CerenkovData> const& shared,
-    DispatcherPreStepData const& step_data)
+    OffloadPreStepData const& step_data)
     : charge_(particle.charge())
     , step_length_(sim.step_length())
     , pre_step_(step_data)
@@ -97,7 +97,7 @@ CELER_FUNCTION CerenkovDispatcher::CerenkovDispatcher(
  */
 template<class Generator>
 CELER_FUNCTION optical::GeneratorDistributionData
-CerenkovDispatcher::operator()(Generator& rng)
+CerenkovOffload::operator()(Generator& rng)
 {
     if (num_photons_per_len_ == 0)
     {

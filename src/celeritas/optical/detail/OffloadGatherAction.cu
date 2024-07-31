@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/DispatcherGatherAction.cu
+//! \file celeritas/optical/detail/OffloadGatherAction.cu
 //---------------------------------------------------------------------------//
-#include "DispatcherGatherAction.hh"
+#include "OffloadGatherAction.hh"
 
 #include "corecel/Assert.hh"
 #include "celeritas/global/ActionLauncher.device.hh"
@@ -13,8 +13,8 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
-#include "DispatcherGatherExecutor.hh"
-#include "DispatcherParams.hh"
+#include "OffloadGatherExecutor.hh"
+#include "OffloadParams.hh"
 
 namespace celeritas
 {
@@ -24,15 +24,15 @@ namespace detail
 /*!
  * Gather pre-step data.
  */
-void DispatcherGatherAction::execute(CoreParams const& params,
-                                     CoreStateDevice& state) const
+void OffloadGatherAction::execute(CoreParams const& params,
+                                  CoreStateDevice& state) const
 {
     auto& optical_state
-        = get<OpticalGenState<MemSpace::native>>(state.aux(), data_id_);
+        = get<OpticalOffloadState<MemSpace::native>>(state.aux(), data_id_);
     auto execute = make_active_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
-        detail::DispatcherGatherExecutor{optical_state.store.ref()});
+        detail::OffloadGatherExecutor{optical_state.store.ref()});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 }

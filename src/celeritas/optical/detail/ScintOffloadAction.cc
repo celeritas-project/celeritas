@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/ScintDispatcherAction.cc
+//! \file celeritas/optical/detail/ScintOffloadAction.cc
 //---------------------------------------------------------------------------//
-#include "ScintDispatcherAction.hh"
+#include "ScintOffloadAction.hh"
 
 #include <algorithm>
 
@@ -18,9 +18,9 @@
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/optical/ScintillationParams.hh"
 
-#include "DispatcherParams.hh"
+#include "OffloadParams.hh"
 #include "OpticalGenAlgorithms.hh"
-#include "ScintDispatcherExecutor.hh"
+#include "ScintOffloadExecutor.hh"
 
 namespace celeritas
 {
@@ -30,9 +30,9 @@ namespace detail
 /*!
  * Construct with action ID, data ID, optical properties.
  */
-ScintDispatcherAction::ScintDispatcherAction(ActionId id,
-                                             AuxId data_id,
-                                             SPConstScintillation scintillation)
+ScintOffloadAction::ScintOffloadAction(ActionId id,
+                                       AuxId data_id,
+                                       SPConstScintillation scintillation)
     : id_(id), data_id_{data_id}, scintillation_(std::move(scintillation))
 {
     CELER_EXPECT(id_);
@@ -44,7 +44,7 @@ ScintDispatcherAction::ScintDispatcherAction(ActionId id,
 /*!
  * Descriptive name of the action.
  */
-std::string_view ScintDispatcherAction::description() const
+std::string_view ScintOffloadAction::description() const
 {
     return "generate scintillation optical distribution data";
 }
@@ -53,8 +53,8 @@ std::string_view ScintDispatcherAction::description() const
 /*!
  * Execute the action with host data.
  */
-void ScintDispatcherAction::execute(CoreParams const& params,
-                                    CoreStateHost& state) const
+void ScintOffloadAction::execute(CoreParams const& params,
+                                 CoreStateHost& state) const
 {
     this->execute_impl(params, state);
 }
@@ -63,8 +63,8 @@ void ScintDispatcherAction::execute(CoreParams const& params,
 /*!
  * Execute the action with device data.
  */
-void ScintDispatcherAction::execute(CoreParams const& params,
-                                    CoreStateDevice& state) const
+void ScintOffloadAction::execute(CoreParams const& params,
+                                 CoreStateDevice& state) const
 {
     this->execute_impl(params, state);
 }
@@ -74,10 +74,10 @@ void ScintDispatcherAction::execute(CoreParams const& params,
  * Generate optical distribution data post-step.
  */
 template<MemSpace M>
-void ScintDispatcherAction::execute_impl(CoreParams const& core_params,
-                                         CoreState<M>& core_state) const
+void ScintOffloadAction::execute_impl(CoreParams const& core_params,
+                                      CoreState<M>& core_state) const
 {
-    auto& state = get<OpticalGenState<M>>(core_state.aux(), data_id_);
+    auto& state = get<OpticalOffloadState<M>>(core_state.aux(), data_id_);
     auto& buffer = state.store.ref().scintillation;
     auto& buffer_size = state.buffer_size.scintillation;
 
@@ -99,23 +99,22 @@ void ScintDispatcherAction::execute_impl(CoreParams const& core_params,
 /*!
  * Launch a (host) kernel to generate optical distribution data post-step.
  */
-void ScintDispatcherAction::pre_generate(CoreParams const& core_params,
-                                         CoreStateHost& core_state) const
+void ScintOffloadAction::pre_generate(CoreParams const& core_params,
+                                      CoreStateHost& core_state) const
 {
-    auto& state
-        = get<OpticalGenState<MemSpace::native>>(core_state.aux(), data_id_);
+    auto& state = get<OpticalOffloadState<MemSpace::native>>(core_state.aux(),
+                                                             data_id_);
     TrackExecutor execute{
         core_params.ptr<MemSpace::native>(),
         core_state.ptr(),
-        detail::ScintDispatcherExecutor{
+        detail::ScintOffloadExecutor{
             scintillation_->host_ref(), state.store.ref(), state.buffer_size}};
     launch_action(*this, core_params, core_state, execute);
 }
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void ScintDispatcherAction::pre_generate(CoreParams const&,
-                                         CoreStateDevice&) const
+void ScintOffloadAction::pre_generate(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

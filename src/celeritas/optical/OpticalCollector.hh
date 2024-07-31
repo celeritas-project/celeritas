@@ -12,11 +12,11 @@
 #include "corecel/data/AuxInterface.hh"
 #include "celeritas/Types.hh"
 
-#include "DispatcherData.hh"
+#include "OffloadData.hh"
 
-#include "detail/CerenkovDispatcherAction.hh"
-#include "detail/DispatcherGatherAction.hh"
-#include "detail/ScintDispatcherAction.hh"
+#include "detail/CerenkovOffloadAction.hh"
+#include "detail/OffloadGatherAction.hh"
+#include "detail/ScintOffloadAction.hh"
 
 namespace celeritas
 {
@@ -29,7 +29,7 @@ class CoreParams;
 
 namespace detail
 {
-class DispatcherParams;
+class OffloadParams;
 }  // namespace detail
 
 //---------------------------------------------------------------------------//
@@ -88,20 +88,19 @@ class OpticalCollector
   private:
     //// TYPES ////
 
-    using SPDispatcherParams = std::shared_ptr<detail::DispatcherParams>;
-    using SPCerenkovDispatcherAction
-        = std::shared_ptr<detail::CerenkovDispatcherAction>;
-    using SPScintDispatcherAction
-        = std::shared_ptr<detail::ScintDispatcherAction>;
-    using SPGatherAction = std::shared_ptr<detail::DispatcherGatherAction>;
+    using SPOffloadParams = std::shared_ptr<detail::OffloadParams>;
+    using SPCerenkovOffloadAction
+        = std::shared_ptr<detail::CerenkovOffloadAction>;
+    using SPScintOffloadAction = std::shared_ptr<detail::ScintOffloadAction>;
+    using SPGatherAction = std::shared_ptr<detail::OffloadGatherAction>;
 
     //// DATA ////
 
-    SPDispatcherParams gen_params_;
+    SPOffloadParams gen_params_;
 
     SPGatherAction gather_action_;
-    SPCerenkovDispatcherAction cerenkov_pregen_action_;
-    SPScintDispatcherAction scint_pregen_action_;
+    SPCerenkovOffloadAction cerenkov_offload_action_;
+    SPScintOffloadAction scint_offload_action_;
 
     // TODO: tracking loop launcher
     // TODO: store optical core params and state?
