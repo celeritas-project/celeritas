@@ -42,31 +42,23 @@
 #    define CELER_FORCEINLINE inline
 #endif
 
-#define CELER_COMP_UNKNOWN 0
-#define CELER_COMP_CLANG 1
-#define CELER_COMP_GCC 2
-#define CELER_COMP_INTEL 3
-#define CELER_COMP_MSVC 4
-#define CELER_COMP_NVCPP 5
+//! Detection for the current compiler isn't supported yet
+#define CELER_COMPILER_UNKNOWN 0
+//! Compiling with clang, or a clang-based compiler defining __clang__ (hipcc)
+#define CELER_COMPILER_CLANG 1
 
 /*!
- * \def CELER_COMP_HOST
+ * \def CELER_COMPILER
  *
- * Set to the value of one of the CELER_COMP_<compiler> macros.
- * Allows checking if a specific compiler is used.
+ * Compare to on of the CELER_COMPILER_<compiler> macros to check
+ * which compiler is in use.
+ *
+ * TODO: add and test more compilers as needed.
  */
 #if defined(__clang__)
-#    define CELER_COMP_HOST CELER_COMP_CLANG
-#elif defined(__GNUC__)
-#    define CELER_COMP_HOST CELER_COMP_GCC
-#elif defined(__INTEL_COMPILER)
-#    define CELER_COMP_HOST CELER_COMP_INTEL
-#elif defined(_MSC_VER)
-#    define CELER_COMP_HOST CELER_COMP_MSVC
-#elif defined(__NVCOMPILER)
-#    define CELER_COMP_HOST CELER_COMP_NVCPP
+#    define CELER_COMPILER CELER_COMPILER_CLANG
 #else
-#    define CELER_COMP_HOST CELER_COMP_UNKNOWN
+#    define CELER_COMPILER CELER_COMPILER_UNKNOWN
 #endif
 
 /*!
