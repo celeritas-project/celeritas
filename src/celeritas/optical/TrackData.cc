@@ -18,8 +18,8 @@ namespace optical
  * Resize states in host code.
  */
 template<MemSpace M>
-void resize(OpticalStateData<Ownership::value, M>* state,
-            HostCRef<OpticalParamsData> const& params,
+void resize(CoreStateData<Ownership::value, M>* state,
+            HostCRef<CoreParamsData> const& params,
             StreamId stream_id,
             size_type size)
 {
@@ -47,14 +47,14 @@ void resize(OpticalStateData<Ownership::value, M>* state,
 
 //---------------------------------------------------------------------------//
 template void
-resize<MemSpace::host>(OpticalStateData<Ownership::value, MemSpace::host>*,
-                       HostCRef<OpticalParamsData> const&,
+resize<MemSpace::host>(CoreStateData<Ownership::value, MemSpace::host>*,
+                       HostCRef<CoreParamsData> const&,
                        StreamId,
                        size_type);
 
 template void
-resize<MemSpace::device>(OpticalStateData<Ownership::value, MemSpace::device>*,
-                         HostCRef<OpticalParamsData> const&,
+resize<MemSpace::device>(CoreStateData<Ownership::value, MemSpace::device>*,
+                         HostCRef<CoreParamsData> const&,
                          StreamId,
                          size_type);
 

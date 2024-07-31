@@ -21,9 +21,13 @@ namespace celeritas
 class CoreParams;
 template<MemSpace M>
 class CoreState;
-class OpticalParams;
+
+namespace optical
+{
+class CoreParams;
 template<MemSpace M>
-class OpticalState;
+class CoreState;
+}  // namespace optical
 
 //---------------------------------------------------------------------------//
 /*!
@@ -117,8 +121,8 @@ class ExplicitActionInterface : public virtual ActionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * Interface for an action that launches a kernel or performs an action
- * specialized for particles using CoreParams.
+ * Interface for kernel actions on the main tracking loop.
+ *
  * TODO: Template this on 'Core' and 'Optical' and ...
  */
 class ExplicitCoreActionInterface : public virtual ExplicitActionInterface
@@ -140,24 +144,24 @@ class ExplicitCoreActionInterface : public virtual ExplicitActionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * Interface for an action that launches a kernel or performs an action
- * specialized for particles using OpticalParams.
+ * Interface for kernel actions on the optical tracking loop.
  */
 class ExplicitOpticalActionInterface : public virtual ExplicitActionInterface
 {
   public:
     //@{
     //! \name Type aliases
-    using OpticalStateHost = OpticalState<MemSpace::host>;
-    using OpticalStateDevice = OpticalState<MemSpace::device>;
+    using CoreParams = optical::CoreParams;
+    using CoreStateHost = optical::CoreState<MemSpace::host>;
+    using CoreStateDevice = optical::CoreState<MemSpace::device>;
     //@}
 
   public:
     //! Execute the action with host data
-    virtual void execute(OpticalParams const&, OpticalStateHost&) const = 0;
+    virtual void execute(CoreParams const&, CoreStateHost&) const = 0;
 
     //! Execute the action with device data
-    virtual void execute(OpticalParams const&, OpticalStateDevice&) const = 0;
+    virtual void execute(CoreParams const&, CoreStateDevice&) const = 0;
 };
 
 //---------------------------------------------------------------------------//

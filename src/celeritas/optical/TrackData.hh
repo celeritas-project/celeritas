@@ -26,18 +26,18 @@ namespace optical
 // IMPLEMENT ME!
 
 template<Ownership W, MemSpace M>
-struct CoreParamsData
+struct PhysicsParamsData
 {
     explicit CELER_FUNCTION operator bool() const { return false; }
 };
 template<Ownership W, MemSpace M>
-struct CoreStateData
+struct PhysicsStateData
 {
 };
 template<MemSpace M>
-void resize(CoreStateData<Ownership::value, M>*,
-            HostCRef<CoreParamsData> const&,
-            size_type)
+inline void resize(PhysicsStateData<Ownership::value, M>*,
+                   HostCRef<PhysicsParamsData> const&,
+                   size_type)
 {
     CELER_NOT_IMPLEMENTED("optical physics state");
 }
@@ -66,14 +66,14 @@ struct CoreScalars
  * Immutable problem data.
  */
 template<Ownership W, MemSpace M>
-struct OpticalParamsData
+struct CoreParamsData
 {
     template<class T>
     using VolumeItems = celeritas::Collection<T, W, M, VolumeId>;
 
     GeoParamsData<W, M> geometry;
     VolumeItems<OpticalMaterialId> materials;
-    CoreParamsData<W, M> physics;
+    PhysicsParamsData<W, M> physics;
     RngParamsData<W, M> rng;
     TrackInitParamsData<W, M> init;  // TODO: don't need max events
 
@@ -88,7 +88,7 @@ struct OpticalParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    OpticalParamsData& operator=(OpticalParamsData<W2, M2> const& other)
+    CoreParamsData& operator=(CoreParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         geometry = other.geometry;
@@ -106,14 +106,14 @@ struct OpticalParamsData
  * Thread-local state data.
  */
 template<Ownership W, MemSpace M>
-struct OpticalStateData
+struct CoreStateData
 {
     template<class T>
     using Items = StateCollection<T, W, M>;
 
     GeoStateData<W, M> geometry;
     Items<OpticalMaterialId> materials;
-    CoreStateData<W, M> physics;
+    PhysicsStateData<W, M> physics;
     RngStateData<W, M> rng;
     SimStateData<W, M> sim;  // TODO: has a few things we don't need
     TrackInitStateData<W, M> init;  // Still need to track vacancies
@@ -133,7 +133,7 @@ struct OpticalStateData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    OpticalStateData& operator=(OpticalStateData<W2, M2>& other)
+    CoreStateData& operator=(CoreStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
         geometry = other.geometry;
@@ -155,8 +155,8 @@ struct OpticalStateData
  * Resize core states using parameter data, stream ID, and track slots.
  */
 template<MemSpace M>
-void resize(OpticalStateData<Ownership::value, M>* state,
-            HostCRef<OpticalParamsData> const& params,
+void resize(CoreStateData<Ownership::value, M>* state,
+            HostCRef<CoreParamsData> const& params,
             StreamId stream_id,
             size_type size);
 
