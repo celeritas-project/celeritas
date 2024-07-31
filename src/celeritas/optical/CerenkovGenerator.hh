@@ -21,11 +21,13 @@
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 #include "CerenkovDndxCalculator.hh"
-#include "OpticalDistributionData.hh"
-#include "OpticalPrimary.hh"
-#include "OpticalPropertyData.hh"
+#include "GeneratorDistributionData.hh"
+#include "MaterialPropertyData.hh"
+#include "Primary.hh"
 
 namespace celeritas
+{
+namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -50,14 +52,14 @@ class CerenkovGenerator
   public:
     // Construct from optical properties and distribution parameters
     inline CELER_FUNCTION
-    CerenkovGenerator(NativeCRef<OpticalPropertyData> const& properties,
+    CerenkovGenerator(NativeCRef<MaterialPropertyData> const& properties,
                       NativeCRef<CerenkovData> const& shared,
-                      OpticalDistributionData const& dist,
-                      Span<OpticalPrimary> photons);
+                      GeneratorDistributionData const& dist,
+                      Span<Primary> photons);
 
     // Sample Cerenkov photons from the distribution
     template<class Generator>
-    inline CELER_FUNCTION Span<OpticalPrimary> operator()(Generator& rng);
+    inline CELER_FUNCTION Span<Primary> operator()(Generator& rng);
 
   private:
     //// TYPES ////
@@ -66,8 +68,8 @@ class CerenkovGenerator
 
     //// DATA ////
 
-    OpticalDistributionData const& dist_;
-    Span<OpticalPrimary> photons_;
+    GeneratorDistributionData const& dist_;
+    Span<Primary> photons_;
     GenericCalculator calc_refractive_index_;
     UniformRealDist sample_phi_;
     UniformRealDist sample_energy_;
@@ -83,7 +85,7 @@ class CerenkovGenerator
     //// HELPER FUNCTIONS ////
 
     GenericCalculator
-    make_calculator(NativeCRef<OpticalPropertyData> const& properties,
+    make_calculator(NativeCRef<MaterialPropertyData> const& properties,
                     OpticalMaterialId material);
 };
 
@@ -95,10 +97,10 @@ class CerenkovGenerator
  */
 CELER_FUNCTION
 CerenkovGenerator::CerenkovGenerator(
-    NativeCRef<OpticalPropertyData> const& properties,
+    NativeCRef<MaterialPropertyData> const& properties,
     NativeCRef<CerenkovData> const& shared,
-    OpticalDistributionData const& dist,
-    Span<OpticalPrimary> photons)
+    GeneratorDistributionData const& dist,
+    Span<Primary> photons)
     : dist_(dist)
     , photons_(photons)
     , calc_refractive_index_(this->make_calculator(properties, dist_.material))
@@ -145,8 +147,7 @@ CerenkovGenerator::CerenkovGenerator(
  * Sample Cerenkov photons from the distribution.
  */
 template<class Generator>
-CELER_FUNCTION Span<OpticalPrimary>
-CerenkovGenerator::operator()(Generator& rng)
+CELER_FUNCTION Span<Primary> CerenkovGenerator::operator()(Generator& rng)
 {
     for (auto i : range(dist_.num_photons))
     {
@@ -192,7 +193,7 @@ CerenkovGenerator::operator()(Generator& rng)
  * Return a calculator to compute index of refraction.
  */
 CELER_FUNCTION GenericCalculator CerenkovGenerator::make_calculator(
-    NativeCRef<OpticalPropertyData> const& properties,
+    NativeCRef<MaterialPropertyData> const& properties,
     OpticalMaterialId material)
 {
     CELER_EXPECT(properties);
@@ -203,4 +204,5 @@ CELER_FUNCTION GenericCalculator CerenkovGenerator::make_calculator(
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

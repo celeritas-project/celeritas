@@ -3,25 +3,20 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/CerenkovPreGenAction.hh
+//! \file celeritas/optical/detail/OffloadGatherAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #include "corecel/Macros.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/Collection.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/optical/OpticalDistributionData.hh"
-
-#include "OpticalGenParams.hh"
 
 namespace celeritas
 {
-class CerenkovParams;
-class OpticalPropertyParams;
-
 namespace detail
 {
 struct OpticalGenStorage;
@@ -29,22 +24,17 @@ struct OpticalGenStorage;
 /*!
  * Generate optical distribution data.
  */
-class CerenkovPreGenAction final : public ExplicitCoreActionInterface
+class OffloadGatherAction final : public ExplicitCoreActionInterface
 {
   public:
     //!@{
     //! \name Type aliases
-    using SPConstCerenkov = std::shared_ptr<CerenkovParams const>;
-    using SPConstProperties = std::shared_ptr<OpticalPropertyParams const>;
     using SPGenStorage = std::shared_ptr<detail::OpticalGenStorage>;
     //!@}
 
   public:
-    // Construct with action ID, optical properties, and storage
-    CerenkovPreGenAction(ActionId id,
-                         AuxId data_id,
-                         SPConstProperties properties,
-                         SPConstCerenkov cerenkov);
+    // Construct with action ID and storage
+    OffloadGatherAction(ActionId id, AuxId data_id);
 
     // Launch kernel with host data
     void execute(CoreParams const&, CoreStateHost&) const final;
@@ -56,29 +46,20 @@ class CerenkovPreGenAction final : public ExplicitCoreActionInterface
     ActionId action_id() const final { return id_; }
 
     //! Short name for the action
-    std::string_view label() const final { return "cerenkov-pre-generator"; }
+    std::string_view label() const final { return "optical-offload-gather"; }
 
     // Name of the action (for user output)
     std::string_view description() const final;
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::user_post; }
+    ActionOrder order() const final { return ActionOrder::user_pre; }
 
   private:
     //// DATA ////
 
     ActionId id_;
     AuxId data_id_;
-    SPConstProperties properties_;
-    SPConstCerenkov cerenkov_;
-
-    //// HELPER FUNCTIONS ////
-
-    template<MemSpace M>
-    void execute_impl(CoreParams const&, CoreState<M>&) const;
-
-    void pre_generate(CoreParams const&, CoreStateHost&) const;
-    void pre_generate(CoreParams const&, CoreStateDevice&) const;
+    SPGenStorage storage_;
 };
 
 //---------------------------------------------------------------------------//

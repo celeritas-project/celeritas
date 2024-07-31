@@ -17,9 +17,11 @@
 #include "celeritas/grid/GenericCalculator.hh"
 
 #include "CerenkovData.hh"
-#include "OpticalPropertyData.hh"
+#include "MaterialPropertyData.hh"
 
 namespace celeritas
+{
+namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -51,7 +53,7 @@ class CerenkovDndxCalculator
   public:
     // Construct from optical properties and Cerenkov angle integrals
     inline CELER_FUNCTION
-    CerenkovDndxCalculator(NativeCRef<OpticalPropertyData> const& properties,
+    CerenkovDndxCalculator(NativeCRef<MaterialPropertyData> const& properties,
                            NativeCRef<CerenkovData> const& shared,
                            OpticalMaterialId material,
                            units::ElementaryCharge charge);
@@ -60,7 +62,7 @@ class CerenkovDndxCalculator
     inline CELER_FUNCTION real_type operator()(units::LightSpeed beta);
 
   private:
-    NativeCRef<OpticalPropertyData> const& properties_;
+    NativeCRef<MaterialPropertyData> const& properties_;
     NativeCRef<CerenkovData> const& shared_;
     OpticalMaterialId material_;
     real_type zsq_;
@@ -74,7 +76,7 @@ class CerenkovDndxCalculator
  */
 CELER_FUNCTION
 CerenkovDndxCalculator::CerenkovDndxCalculator(
-    NativeCRef<OpticalPropertyData> const& properties,
+    NativeCRef<MaterialPropertyData> const& properties,
     NativeCRef<CerenkovData> const& shared,
     OpticalMaterialId material,
     units::ElementaryCharge charge)
@@ -152,4 +154,5 @@ CerenkovDndxCalculator::operator()(units::LightSpeed beta)
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

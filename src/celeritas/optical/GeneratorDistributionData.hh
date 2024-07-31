@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/OpticalDistributionData.hh
+//! \file celeritas/optical/GeneratorDistributionData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,11 +16,13 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
  * Pre- and post-step data for sampling optical photons.
  */
-struct OpticalStepData
+struct GeneratorStepData
 {
     units::LightSpeed speed;
     Real3 pos{};
@@ -36,14 +38,14 @@ struct OpticalStepData
 /*!
  * Input data for sampling optical photons.
  */
-struct OpticalDistributionData
+struct GeneratorDistributionData
 {
     size_type num_photons{};  //!< Sampled number of photons to generate
     real_type time{};  //!< Pre-step time
     real_type step_length{};
     units::ElementaryCharge charge;
     OpticalMaterialId material;
-    EnumArray<StepPoint, OpticalStepData> points;
+    EnumArray<StepPoint, GeneratorStepData> points;
 
     //! Check whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
@@ -53,4 +55,5 @@ struct OpticalDistributionData
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

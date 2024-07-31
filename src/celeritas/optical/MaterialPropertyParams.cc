@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/OpticalPropertyParams.cc
+//! \file celeritas/optical/MaterialPropertyParams.cc
 //---------------------------------------------------------------------------//
-#include "OpticalPropertyParams.hh"
+#include "MaterialPropertyParams.hh"
 
 #include <algorithm>
 #include <utility>
@@ -22,12 +22,14 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
  * Construct with imported data.
  */
-std::shared_ptr<OpticalPropertyParams>
-OpticalPropertyParams::from_import(ImportData const& data)
+std::shared_ptr<MaterialPropertyParams>
+MaterialPropertyParams::from_import(ImportData const& data)
 {
     CELER_EXPECT(!data.optical.empty());
 
@@ -45,16 +47,16 @@ OpticalPropertyParams::from_import(ImportData const& data)
     {
         input.data.push_back(mat.second.properties);
     }
-    return std::make_shared<OpticalPropertyParams>(std::move(input));
+    return std::make_shared<MaterialPropertyParams>(std::move(input));
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with optical property data.
  */
-OpticalPropertyParams::OpticalPropertyParams(Input const& inp)
+MaterialPropertyParams::MaterialPropertyParams(Input const& inp)
 {
-    HostVal<OpticalPropertyData> data;
+    HostVal<MaterialPropertyData> data;
     CollectionBuilder refractive_index{&data.refractive_index};
     GenericGridBuilder build_grid(&data.reals);
     for (auto const& mat : inp.data)
@@ -81,9 +83,10 @@ OpticalPropertyParams::OpticalPropertyParams(Input const& inp)
     }
     CELER_ASSERT(refractive_index.size() == inp.data.size());
 
-    data_ = CollectionMirror<OpticalPropertyData>{std::move(data)};
+    data_ = CollectionMirror<MaterialPropertyData>{std::move(data)};
     CELER_ENSURE(data_ || inp.data.empty());
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

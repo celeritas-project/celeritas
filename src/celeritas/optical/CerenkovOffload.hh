@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/CerenkovPreGenerator.hh
+//! \file celeritas/optical/CerenkovOffload.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -15,9 +15,9 @@
 
 #include "CerenkovData.hh"
 #include "CerenkovDndxCalculator.hh"
-#include "OpticalDistributionData.hh"
-#include "OpticalGenData.hh"
-#include "OpticalPropertyData.hh"
+#include "GeneratorDistributionData.hh"
+#include "MaterialPropertyData.hh"
+#include "OffloadData.hh"
 
 namespace celeritas
 {
@@ -25,31 +25,32 @@ namespace celeritas
 /*!
  * Sample the number of Cerenkov photons to be generated.
  *
- * This populates the \c OpticalDistributionData used by the \c
+ * This populates the \c GeneratorDistributionData used by the \c
  * CerenkovGenerator to generate optical photons using post-step and cached
  * pre-step data.
  */
-class CerenkovPreGenerator
+class CerenkovOffload
 {
   public:
     // Construct with optical properties, Cerenkov, and step data
     inline CELER_FUNCTION
-    CerenkovPreGenerator(ParticleTrackView const& particle,
-                         SimTrackView const& sim,
-                         Real3 const& pos,
-                         NativeCRef<OpticalPropertyData> const& properties,
-                         NativeCRef<CerenkovData> const& shared,
-                         OpticalPreStepData const& step_data);
+    CerenkovOffload(ParticleTrackView const& particle,
+                    SimTrackView const& sim,
+                    Real3 const& pos,
+                    NativeCRef<optical::MaterialPropertyData> const& properties,
+                    NativeCRef<optical::CerenkovData> const& shared,
+                    OffloadPreStepData const& step_data);
 
     // Return a populated optical distribution data for the Cerenkov Generator
     template<class Generator>
-    inline CELER_FUNCTION OpticalDistributionData operator()(Generator& rng);
+    inline CELER_FUNCTION optical::GeneratorDistributionData
+    operator()(Generator& rng);
 
   private:
     units::ElementaryCharge charge_;
     real_type step_length_;
-    OpticalPreStepData const& pre_step_;
-    OpticalStepData post_step_;
+    OffloadPreStepData const& pre_step_;
+    optical::GeneratorStepData post_step_;
     real_type num_photons_per_len_;
 };
 
@@ -59,13 +60,13 @@ class CerenkovPreGenerator
 /*!
  * Construct with optical properties, Cerenkov, and step information.
  */
-CELER_FUNCTION CerenkovPreGenerator::CerenkovPreGenerator(
+CELER_FUNCTION CerenkovOffload::CerenkovOffload(
     ParticleTrackView const& particle,
     SimTrackView const& sim,
     Real3 const& pos,
-    NativeCRef<OpticalPropertyData> const& properties,
-    NativeCRef<CerenkovData> const& shared,
-    OpticalPreStepData const& step_data)
+    NativeCRef<optical::MaterialPropertyData> const& properties,
+    NativeCRef<optical::CerenkovData> const& shared,
+    OffloadPreStepData const& step_data)
     : charge_(particle.charge())
     , step_length_(sim.step_length())
     , pre_step_(step_data)
@@ -78,14 +79,14 @@ CELER_FUNCTION CerenkovPreGenerator::CerenkovPreGenerator(
     units::LightSpeed beta(
         real_type{0.5} * (pre_step_.speed.value() + post_step_.speed.value()));
 
-    CerenkovDndxCalculator calculate_dndx(
+    optical::CerenkovDndxCalculator calculate_dndx(
         properties, shared, pre_step_.opt_mat, charge_);
     num_photons_per_len_ = calculate_dndx(beta);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Return an \c OpticalDistributionData object. If no photons are sampled, an
+ * Return an \c GeneratorDistributionData object. If no photons are sampled, an
  * empty object is returned and can be verified via its own operator bool.
  *
  * The number of photons is sampled from a Poisson distribution with a mean
@@ -95,15 +96,15 @@ CELER_FUNCTION CerenkovPreGenerator::CerenkovPreGenerator(
  * where \f$ \ell_\text{step} \f$ is the step length.
  */
 template<class Generator>
-CELER_FUNCTION OpticalDistributionData
-CerenkovPreGenerator::operator()(Generator& rng)
+CELER_FUNCTION optical::GeneratorDistributionData
+CerenkovOffload::operator()(Generator& rng)
 {
     if (num_photons_per_len_ == 0)
     {
         return {};
     }
 
-    OpticalDistributionData data;
+    optical::GeneratorDistributionData data;
     data.num_photons = PoissonDistribution<real_type>(num_photons_per_len_
                                                       * step_length_)(rng);
     if (data.num_photons > 0)

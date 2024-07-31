@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/OpticalGenParams.hh
+//! \file celeritas/optical/detail/OffloadParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,7 +12,7 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 
-#include "../OpticalGenData.hh"
+#include "../OffloadData.hh"
 
 namespace celeritas
 {
@@ -20,19 +20,19 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Manage metadata about optical generation.
+ * Manage metadata about optical offloading.
  */
-class OpticalGenParams final : public AuxParamsInterface,
-                               public ParamsDataInterface<OpticalGenParamsData>
+class OffloadParams final : public AuxParamsInterface,
+                            public ParamsDataInterface<OffloadParamsData>
 {
   public:
     // Construct with aux ID and optical data
-    OpticalGenParams(AuxId aux_id, OpticalGenSetup const& setup);
+    OffloadParams(AuxId aux_id, OffloadOptions const& setup);
 
     //!@{
     //! \name Aux interface
     //! Short name for the action
-    std::string_view label() const final { return "optical-gen"; }
+    std::string_view label() const final { return "optical-offload"; }
     //! Index of this class instance in its registry
     AuxId aux_id() const final { return aux_id_; }
     // Build state data for a stream
@@ -49,7 +49,7 @@ class OpticalGenParams final : public AuxParamsInterface,
 
   private:
     AuxId aux_id_;
-    CollectionMirror<OpticalGenParamsData> data_;
+    CollectionMirror<OffloadParamsData> data_;
 };
 
 //---------------------------------------------------------------------------//
@@ -57,10 +57,10 @@ class OpticalGenParams final : public AuxParamsInterface,
  * Manage optical generation states.
  */
 template<MemSpace M>
-struct OpticalGenState : public AuxStateInterface
+struct OpticalOffloadState : public AuxStateInterface
 {
-    CollectionStateStore<OpticalGenStateData, M> store;
-    OpticalBufferSize buffer_size;
+    CollectionStateStore<OffloadStateData, M> store;
+    OffloadBufferSize buffer_size;
 
     //! True if states have been allocated
     explicit operator bool() const { return static_cast<bool>(store); }

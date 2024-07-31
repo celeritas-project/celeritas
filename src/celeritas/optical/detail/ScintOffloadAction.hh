@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/ScintPreGenAction.hh
+//! \file celeritas/optical/detail/ScintOffloadAction.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -13,14 +13,16 @@
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/Collection.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/optical/OpticalDistributionData.hh"
+#include "celeritas/optical/GeneratorDistributionData.hh"
 
-#include "OpticalGenParams.hh"
+#include "OffloadParams.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
+namespace optical
+{
 class ScintillationParams;
+}  // namespace optical
 
 namespace detail
 {
@@ -29,20 +31,21 @@ struct OpticalGenStorage;
 /*!
  * Generate optical distribution data.
  */
-class ScintPreGenAction final : public ExplicitCoreActionInterface
+class ScintOffloadAction final : public ExplicitCoreActionInterface
 {
   public:
     //!@{
     //! \name Type aliases
-    using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
+    using SPConstScintillation
+        = std::shared_ptr<celeritas::optical::ScintillationParams const>;
     using SPGenStorage = std::shared_ptr<detail::OpticalGenStorage>;
     //!@}
 
   public:
     // Construct with action ID, optical properties, and storage
-    ScintPreGenAction(ActionId id,
-                      AuxId data_id,
-                      SPConstScintillation scintillation);
+    ScintOffloadAction(ActionId id,
+                       AuxId data_id,
+                       SPConstScintillation scintillation);
 
     // Launch kernel with host data
     void execute(CoreParams const&, CoreStateHost&) const final;
@@ -54,10 +57,7 @@ class ScintPreGenAction final : public ExplicitCoreActionInterface
     ActionId action_id() const final { return id_; }
 
     //! Short name for the action
-    std::string_view label() const final
-    {
-        return "scintillation-pre-generator";
-    }
+    std::string_view label() const final { return "scintillation-offload"; }
 
     // Name of the action (for user output)
     std::string_view description() const final;
