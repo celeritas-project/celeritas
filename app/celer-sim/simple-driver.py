@@ -47,9 +47,6 @@ physics_options = {
     'msc': "urban" if core_geo == "vecgeom" else "none",
     'eloss_fluctuation': True,
     'lpm': True,
-    'cerenkov': True,
-    'scintillation': True,
-    'optical_rayleigh': True,
 }
 
 if geant_exp_exe:
@@ -94,7 +91,7 @@ inp = {
     'num_track_slots': num_tracks,
     'max_steps': max_steps,
     'initializer_capacity': 100 * max([num_tracks, num_primaries]),
-    'optical_buffer_capacity': 100 * max([num_tracks, num_primaries]),
+    'optical_buffer_capacity': 3 * max_steps * num_tracks,
     'secondary_stack_factor': 3,
     'action_diagnostic': True,
     'step_diagnostic': True,

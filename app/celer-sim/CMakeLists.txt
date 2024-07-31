@@ -133,11 +133,10 @@ celer_sim_test(cms
   simple-cms.gdml gamma-3evt-15prim.hepmc3 simple-cms-mctruth.root
 )
 
-# TODO: enable celer-sim-lar[cpu:gpu] test when optical stepping loop is
-#       available. Decide if lar-sphere.gdml should be copied from
-#       test/geocel/data to app/data (as simple-cms.gdml)
-# celer_sim_test(lar
-#   lar-sphere.gdml gamma-3evt-15prim.hepmc3 lar-mctruth.root
-# )
+# TODO: Currently simple-driver.py uses the same Runner input parameters on
+#       both celer-sim-cms and celer-sim-lar tests. Some may need to be updated.
+celer_sim_test(lar
+  lar-sphere.gdml gamma-3evt-15prim.hepmc3 lar-mctruth.root
+)
 
 #-----------------------------------------------------------------------------#

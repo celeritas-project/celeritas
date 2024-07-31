@@ -131,6 +131,7 @@ Runner::Runner(RunnerInput const& inp, SPOutputRegistry output)
     G4VPhysicalVolume const* g4world{nullptr};
 
     // Import data and load geometry
+    // If Geant4 is initialized, its data is scoped by the GeantImporter
     auto import = [&inp, &g4world]() -> SPImporter {
         if (ends_with(inp.physics_file, ".root"))
         {
@@ -552,31 +553,29 @@ void Runner::build_step_collectors(RunnerInput const& inp)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct optical collector. This *MUST* be called *AFTER*
- * \c this->build_core_params , as it depends on it.
+ * Construct optical collector.
+ *
+ * \pre Must be called after \c build_core_params .
  */
 void Runner::build_optical_collector(RunnerInput const& inp,
                                      ImportData const& imported)
 {
+    // TODO: Rethink if statements after implementing CelerOpticalPhysicsList
     if (imported.optical.empty())
     {
         // No optical data loaded
         return;
     }
 
-    // TODO: Rethink if statements after implementing CelerOpticalPhysicsList
     CELER_EXPECT(core_params_);
     OpticalCollector::Input oc_inp;
     auto const& optical_data = imported.optical.begin()->second;
-    if (static_cast<bool>(optical_data.properties))
+    if (optical_data.properties)
     {
         oc_inp.properties = OpticalPropertyParams::from_import(imported);
-    }
-    if (static_cast<bool>(optical_data.properties))
-    {
         oc_inp.cerenkov = std::make_shared<CerenkovParams>(oc_inp.properties);
     }
-    if (static_cast<bool>(optical_data.scintillation))
+    if (optical_data.scintillation)
     {
         oc_inp.scintillation = ScintillationParams::from_import(
             imported, core_params_->particle());
