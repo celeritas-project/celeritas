@@ -128,6 +128,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/CelerEmPhysicsList.cc
     ext/detail/CelerEmStandardPhysics.cc
     ext/detail/CelerFTFPBert.cc
+    ext/detail/CelerOpticalPhysics.cc
     ext/detail/GeantBremsstrahlungProcess.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
