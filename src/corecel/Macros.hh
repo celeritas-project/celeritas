@@ -42,6 +42,33 @@
 #    define CELER_FORCEINLINE inline
 #endif
 
+#define CELER_COMP_UNKNOWN 0
+#define CELER_COMP_CLANG 1
+#define CELER_COMP_GCC 2
+#define CELER_COMP_INTEL 3
+#define CELER_COMP_MSVC 4
+#define CELER_COMP_NVCPP 4
+
+/*!
+ * \def CELER_COMP_HOST
+ *
+ * Set to the value of one of the CELER_COMP_<compiler> macros.
+ * Allows checking if a specific compiler is used.
+ */
+#if defined(__clang__)
+#    define CELER_COMP_HOST CELER_COMP_CLANG
+#elif defined(__GNUC__)
+#    define CELER_COMP_HOST CELER_COMP_GCC
+#elif defined(__INTEL_COMPILER)
+#    define CELER_COMP_HOST CELER_COMP_INTEL
+#elif defined(_MSC_VER)
+#    define CELER_COMP_HOST CELER_COMP_MSVC
+#elif defined(__NVCOMPILER)
+#    define CELER_COMP_HOST CELER_COMP_NVCPP
+#else
+#    define CELER_COMP_HOST CELER_COMP_UNKNOWN
+#endif
+
 /*!
  * \def CELER_FORCEINLINE_FUNCTION
  *

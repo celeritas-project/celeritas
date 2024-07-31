@@ -12,6 +12,7 @@
 #include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/Device.hh"
@@ -64,7 +65,7 @@ template<class F>
 class ActionLauncher
 {
     static_assert((std::is_trivially_copyable_v<F> || CELERITAS_USE_HIP
-                   || __clang__)
+                   || CELER_COMP_HOST == CELER_COMP_CLANG)
                       && !std::is_pointer_v<F> && !std::is_reference_v<F>,
                   "Launched action must be a trivially copyable function "
                   "object");
