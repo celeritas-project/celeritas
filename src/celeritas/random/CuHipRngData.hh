@@ -9,8 +9,9 @@
 
 #include <random>
 
-#include "celeritas_config.h"
-#include "corecel/device_runtime_api.h"
+#include "corecel/Config.hh"
+#include "corecel/DeviceRuntimeApi.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"

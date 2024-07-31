@@ -18,6 +18,7 @@
         "CELERITAS_USE_HIP":     {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
@@ -29,15 +30,6 @@
         "CMAKE_HIP_COMPILER": "/opt/rocm/llvm/bin/clang++",
         "CMAKE_HIP_FLAGS": "-munsafe-fp-atomics -Wno-#warnings -Werror",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install"
-      }
-    },
-    {
-      "name": "reldeb-orange-asan",
-      "description": "Build with address sanitizer flags without hip",
-      "inherits": ["base", ".reldeb"],
-      "cacheVariables": {
-        "CELERITAS_USE_HIP": {"type": "BOOL", "value": "OFF"},
-        "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fsanitize=address -fno-omit-frame-pointer"
       }
     },
     {

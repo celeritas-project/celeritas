@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #include <fstream>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "celeritas/io/EventReader.hh"
 #include "celeritas/io/EventWriter.hh"
 
@@ -129,8 +130,9 @@ TEST_P(EventIOTest, no_vertex_rwr)
         1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000};
     EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
     static real_type const expected_pos[] = {0, 0, 50, 0, 0, 50, 0, 0, 50, 0, 0,
-        50, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        50, 0, 0, 50, 0, 0, 50, 0, 0, 50, 0, 0, 50, 0, 0,
+        50, 0, 0, 50, 0, 0, 50, 0, 0, 50, 0, 0, 50, 0, 0,
+        50, 0, 0, 50};
     EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
     static real_type const expected_dir[] = {0.51986662883182, -0.42922054653912,
         -0.7385854118893, 0.73395459362461, 0.18726575230281, 0.65287226354916,
@@ -149,7 +151,11 @@ TEST_P(EventIOTest, no_vertex_rwr)
     EXPECT_VEC_NEAR(expected_dir, result.dir, coarse_eps);
     static real_type const expected_time[] = {4.1028383709373e-09,
         4.1028383709373e-09, 4.1028383709373e-09, 4.1028383709373e-09,
-        4.1028383709373e-09, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        4.1028383709373e-09, 4.1028383709373e-09,
+        4.1028383709373e-09, 4.1028383709373e-09, 4.1028383709373e-09,
+        4.1028383709373e-09, 4.1028383709373e-09,
+        4.1028383709373e-09, 4.1028383709373e-09, 4.1028383709373e-09,
+        4.1028383709373e-09};
     EXPECT_VEC_SOFT_EQ(expected_time, result.time);
     static int const expected_event[] = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2,
         2, 2};

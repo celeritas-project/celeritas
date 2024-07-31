@@ -39,6 +39,7 @@ endif()
 # Optional dependencies
 celeritas_optional_package(Geant4 "Enable Geant4 adapter tools")
 celeritas_optional_package(HepMC3 "Enable HepMC3 event record reader")
+celeritas_optional_package(PNG "Enable PNG output with libpng")
 celeritas_optional_package(MPI "Enable distributed memory parallelism")
 celeritas_optional_package(OpenMP "Enable CPU shared-memory parallelism")
 celeritas_optional_package(Python "Use Python to generate and preprocess")
@@ -322,6 +323,11 @@ if(CELERITAS_USE_Perfetto)
   else()
     celeritas_find_or_external_package(Perfetto)
   endif()
+endif()
+
+if(CELERITAS_USE_PNG)
+  # This will find libpng
+  find_package(PNG REQUIRED)
 endif()
 
 if(CELERITAS_USE_Python)

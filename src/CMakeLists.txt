@@ -53,7 +53,7 @@ foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS OPENMP CORE_GEO CORE_RNG)
   set(_var "CELERITAS_${_var}")
   string(TOLOWER "${_var}" _lower)
   string(APPEND CELERITAS_CMAKE_STRINGS
-    "static const char ${_lower}[] = \"${${_var}}\";\n"
+    "inline constexpr char ${_lower}[] = \"${${_var}}\";\n"
   )
 endforeach()
 
@@ -64,7 +64,7 @@ foreach(_var CLHEP_VERSION Geant4_VERSION VecGeom_VERSION)
   endif()
   set(_value "${${_var}}")
   string(APPEND CELERITAS_CMAKE_STRINGS
-    "static const char celeritas_${_lower}[] = \"${_value}\";\n"
+    "inline constexpr char celeritas_${_lower}[] = \"${_value}\";\n"
   )
 endforeach()
 celeritas_configure_file("celeritas_cmake_strings.h.in" "celeritas_cmake_strings.h" @ONLY)

@@ -10,8 +10,9 @@
 #include <stdexcept>
 #include <string_view>
 
-#include "celeritas_config.h"
-#include "celeritas_version.h"
+#include "corecel/Config.hh"
+#include "corecel/Version.hh"
+
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/ColorUtils.hh"

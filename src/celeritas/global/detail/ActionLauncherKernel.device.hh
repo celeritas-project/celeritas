@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"

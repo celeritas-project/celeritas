@@ -10,7 +10,8 @@
 #include <cstddef>
 #include <string_view>
 
-#include "corecel/device_runtime_api.h"
+#include "corecel/DeviceRuntimeApi.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/OpaqueId.hh"

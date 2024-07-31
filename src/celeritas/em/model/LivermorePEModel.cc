@@ -11,7 +11,8 @@
 #include <utility>
 #include <vector>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/cont/Range.hh"
 #include "celeritas/em/data/LivermorePEData.hh"
 #include "celeritas/em/executor/LivermorePEExecutor.hh"

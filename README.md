@@ -9,20 +9,18 @@ requirements of the [HL-LHC upgrade][HLLHC].
 # Documentation
 
 Most of the Celeritas documentation is readable through the codebase through a
-combination of [static RST documentation](doc/index.rst) and Doxygen-markup
+combination of [static RST documentation][inline-docs] and Doxygen-markup
 comments in the source code itself. The full [Celeritas user
 documentation][user-docs] (including selected code documentation incorporated
 by Breathe) and the [Celeritas code documentation][dev-docs] are mirrored on
 our GitHub pages site. You can generate these yourself (if the necessary
 prerequisites are installed) by
 setting the `CELERITAS_BUILD_DOCS=ON` configuration option and running `ninja
-doc` (user) or `ninja doxygen` (developer). A continuously updated version of
-the [static Celeritas user documentation][rtd] (without API documentation) is
-hosted on `readthedocs.io`.
+doc` (user) or `ninja doxygen` (developer).
 
+[inline-docs]: doc/index.rst
 [user-docs]: https://celeritas-project.github.io/celeritas/user/index.html
 [dev-docs]: https://celeritas-project.github.io/celeritas/dev/index.html
-[rtd]: https://celeritas.readthedocs.io/en/latest/
 
 # Installation for applications
 
@@ -31,11 +29,20 @@ The easiest way to install Celeritas as a library/app is with Spack:
 - Install Celeritas with `spack install celeritas`
 - Use `spack load celeritas` to add the installation to your `PATH`.
 
+To install a GPU-enabled Celeritas build, you might have to make sure that VecGeom is also built with CUDA
+support if installing `celeritas+vecgeom`, which is the default geometry.
+To do so, set the following configuration:
+```console
+# Replace cuda_arch=80 with your target architecture
+$ spack config add packages:vecgeom:variants:"cxxstd=17 +cuda cuda_arch=80"
+$ spack install celeritas +cuda cuda_arch=80
+```
+
 Then see the "Downstream usage as a library" section of the [installation
 documentation][install] for how to use Celeritas in your application or framework.
 
 [spack-start]: https://spack.readthedocs.io/en/latest/getting_started.html
-[install]: doc/main/installation.rst
+[install]: https://celeritas-project.github.io/celeritas/user/main/installation.html
 
 # Installation for developers
 
@@ -94,24 +101,29 @@ The full set of configurations is viewable on CI platforms ([Jenkins][jenkins] a
 Compatibility fixes that do not cause newer versions to fail are welcome.
 
 [spack]: https://github.com/spack/spack
-[install]: doc/main/installation.rst
+[install]: https://celeritas-project.github.io/celeritas/user/main/installation.html
 [jenkins]: https://cloud.cees.ornl.gov/jenkins-ci/job/celeritas/job/develop
 [gha]: https://github.com/celeritas-project/celeritas/actions
 
 # Development
 
-See the [contribution guide](CONTRIBUTING.rst) for the contribution process,
-[the development guidelines](doc/appendix/development.rst) for further
-details on coding in Celeritas, and [the administration guidelines](doc/appendix/administration.rst) for community standards and roles.
+See the [contribution guide][contributing-guidelines] for the contribution process,
+[the development guidelines][development-guidelines] for further
+details on coding in Celeritas, and [the administration guidelines][administration-guidelines] for community standards and roles.
+
+[contributing-guidelines]: https://celeritas-project.github.io/celeritas/user/appendix/development.html#contributing-to-celeritas
+[development-guidelines]: https://celeritas-project.github.io/celeritas/user/appendix/development.html#code-development-guidelines
+[administration-guidelines]: https://celeritas-project.github.io/celeritas/user/appendix/administration.html
 
 # Directory structure
 
 | **Directory** | **Description**                                       |
-| ------------- | ---------------                                       |
+|---------------|-------------------------------------------------------|
 | **app**       | Source code for installed executable applications     |
 | **cmake**     | Implementation code for CMake build configuration     |
 | **doc**       | Code documentation and manual                         |
 | **example**   | Example applications and input files                  |
+| **external**  | Automatically fetched external CMake dependencies     |
 | **interface** | Wrapper interfaces to Celeritas library functions     |
 | **scripts**   | Development and continuous integration helper scripts |
 | **src**       | Library source code                                   |

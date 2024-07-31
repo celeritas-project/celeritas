@@ -9,7 +9,8 @@
 
 #include <memory>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImporterInterface.hh"
 
