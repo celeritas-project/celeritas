@@ -11,12 +11,12 @@
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/optical/OpticalDistributionData.hh"
-#include "celeritas/optical/OpticalPrimary.hh"
+#include "celeritas/optical/GeneratorDistributionData.hh"
+#include "celeritas/optical/Primary.hh"
 #include "celeritas/optical/ScintillationData.hh"
 #include "celeritas/optical/ScintillationGenerator.hh"
+#include "celeritas/optical/ScintillationOffload.hh"
 #include "celeritas/optical/ScintillationParams.hh"
-#include "celeritas/optical/ScintillationPreGenerator.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
 #include "DiagnosticRngEngine.hh"
@@ -27,6 +27,7 @@ namespace celeritas
 {
 namespace test
 {
+using namespace celeritas::optical;
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -120,9 +121,9 @@ class ScintillationTest : public OpticalTestBase
     }
 
     //! Set up mock pre-generator step data
-    OpticalPreStepData build_pre_step()
+    OffloadPreStepData build_pre_step()
     {
-        OpticalPreStepData pre_step;
+        OffloadPreStepData pre_step;
         pre_step.speed = LightSpeed(0.99862874144970537);  // 10 MeV
         pre_step.pos = {0, 0, 0};
         pre_step.time = 0;
@@ -270,12 +271,12 @@ TEST_F(ScintillationTest, pre_generator)
         = this->make_particle_track_view(post_energy_, pdg::electron());
     auto const pre_step = this->build_pre_step();
 
-    ScintillationPreGenerator generate(particle,
-                                       this->make_sim_track_view(step_length_),
-                                       post_pos_,
-                                       edep_,
-                                       data,
-                                       pre_step);
+    ScintillationOffload generate(particle,
+                                  this->make_sim_track_view(step_length_),
+                                  post_pos_,
+                                  edep_,
+                                  data,
+                                  pre_step);
 
     auto const result = generate(this->rng());
     CELER_ASSERT(result);
@@ -303,7 +304,7 @@ TEST_F(ScintillationTest, basic)
     auto const pre_step = this->build_pre_step();
 
     // Pre-generate optical distribution data
-    ScintillationPreGenerator generate(
+    ScintillationOffload generate(
         this->make_particle_track_view(post_energy_, pdg::electron()),
         this->make_sim_track_view(step_length_),
         post_pos_,
@@ -314,7 +315,7 @@ TEST_F(ScintillationTest, basic)
     auto const result = generate(this->rng());
 
     // Output data
-    std::vector<OpticalPrimary> storage(result.num_photons);
+    std::vector<Primary> storage(result.num_photons);
 
     // Create the generator
     ScintillationGenerator generate_photons(
@@ -374,7 +375,7 @@ TEST_F(ScintillationTest, stress_test)
     auto const& data = params->host_ref();
     auto const pre_step = this->build_pre_step();
 
-    ScintillationPreGenerator generate(
+    ScintillationOffload generate(
         this->make_particle_track_view(post_energy_, pdg::electron()),
         this->make_sim_track_view(step_length_),
         post_pos_,
@@ -388,7 +389,7 @@ TEST_F(ScintillationTest, stress_test)
     result.num_photons = 123456;
 
     // Output data
-    std::vector<OpticalPrimary> storage(result.num_photons);
+    std::vector<Primary> storage(result.num_photons);
 
     // Create the generator
     ScintillationGenerator generate_photons(result, data, make_span(storage));

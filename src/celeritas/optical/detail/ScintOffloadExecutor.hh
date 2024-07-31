@@ -3,15 +3,15 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/detail/CerenkovPreGenExecutor.hh
+//! \file celeritas/optical/detail/ScintOffloadExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "celeritas/global/CoreTrackView.hh"
-#include "celeritas/optical/CerenkovPreGenerator.hh"
-#include "celeritas/optical/OpticalGenData.hh"
+#include "celeritas/optical/OffloadData.hh"
+#include "celeritas/optical/ScintillationOffload.hh"
 
 namespace celeritas
 {
@@ -22,16 +22,19 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Generate optical distribution data.
+ *
+ * Note that the track may be inactive! TODO: we could add a `user_start`
+ * action to clear distribution data rather than applying it to inactive tracks
+ * at every step.
  */
-struct CerenkovPreGenExecutor
+struct ScintOffloadExecutor
 {
     inline CELER_FUNCTION void
     operator()(celeritas::CoreTrackView const& track);
 
-    NativeCRef<OpticalPropertyData> const properties;
-    NativeCRef<CerenkovData> const cerenkov;
-    NativeRef<OpticalGenStateData> const state;
-    OpticalBufferSize size;
+    NativeCRef<celeritas::optical::ScintillationData> const scintillation;
+    NativeRef<OffloadStateData> const state;
+    OffloadBufferSize size;
 };
 
 //---------------------------------------------------------------------------//
@@ -40,21 +43,19 @@ struct CerenkovPreGenExecutor
 /*!
  * Generate optical distribution data.
  */
-CELER_FUNCTION void
-CerenkovPreGenExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION void ScintOffloadExecutor::operator()(CoreTrackView const& track)
 {
     CELER_EXPECT(state);
-    CELER_EXPECT(cerenkov);
-    CELER_EXPECT(properties);
 
-    using DistId = ItemId<OpticalDistributionData>;
+    using DistId = ItemId<celeritas::optical::GeneratorDistributionData>;
 
     auto tsid = track.track_slot_id();
-    CELER_ASSERT(size.cerenkov + tsid.get() < state.cerenkov.size());
-    auto& cerenkov_dist = state.cerenkov[DistId(size.cerenkov + tsid.get())];
+    CELER_ASSERT(size.scintillation + tsid.get() < state.scintillation.size());
+    auto& scintillation_dist
+        = state.scintillation[DistId(size.scintillation + tsid.get())];
 
     // Clear distribution data
-    cerenkov_dist = {};
+    scintillation_dist = {};
 
     auto sim = track.make_sim_view();
     auto const& step = state.step[tsid];
@@ -66,18 +67,15 @@ CerenkovPreGenExecutor::operator()(CoreTrackView const& track)
         return;
     }
 
+    Real3 const& pos = track.make_geo_view().pos();
+    auto edep = track.make_physics_step_view().energy_deposition();
     auto particle = track.make_particle_view();
+    auto rng = track.make_rng_engine();
 
-    // Get the distribution data used to generate Cerenkov optical photons
-    if (particle.charge() != zero_quantity())
-    {
-        Real3 const& pos = track.make_geo_view().pos();
-        auto rng = track.make_rng_engine();
-
-        CerenkovPreGenerator generate(
-            particle, sim, pos, properties, cerenkov, step);
-        cerenkov_dist = generate(rng);
-    }
+    // Get the distribution data used to generate scintillation optical photons
+    ScintillationOffload generate(
+        particle, sim, pos, edep, scintillation, step);
+    scintillation_dist = generate(rng);
 }
 
 //---------------------------------------------------------------------------//

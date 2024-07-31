@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/ScintillationPreGenerator.hh
+//! \file celeritas/optical/ScintillationOffload.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -15,9 +15,9 @@
 #include "celeritas/random/distribution/PoissonDistribution.hh"
 #include "celeritas/track/SimTrackView.hh"
 
-#include "OpticalDistributionData.hh"
-#include "OpticalGenData.hh"
-#include "OpticalPropertyData.hh"
+#include "GeneratorDistributionData.hh"
+#include "MaterialPropertyData.hh"
+#include "OffloadData.hh"
 #include "ScintillationData.hh"
 
 namespace celeritas
@@ -26,32 +26,33 @@ namespace celeritas
 /*!
  * Sample the number of scintillation photons to be generated.
  *
- * This populates the \c OpticalDistributionData used by the \c
+ * This populates the \c GeneratorDistributionData used by the \c
  * ScintillationGenerator to generate optical photons using post-step and
  * cached pre-step data.
  */
-class ScintillationPreGenerator
+class ScintillationOffload
 {
   public:
     // Construct with optical properties, scintillation, and step data
     inline CELER_FUNCTION
-    ScintillationPreGenerator(ParticleTrackView const& particle,
-                              SimTrackView const& sim,
-                              Real3 const& pos,
-                              units::MevEnergy energy_deposition,
-                              NativeCRef<ScintillationData> const& shared,
-                              OpticalPreStepData const& step_data);
+    ScintillationOffload(ParticleTrackView const& particle,
+                         SimTrackView const& sim,
+                         Real3 const& pos,
+                         units::MevEnergy energy_deposition,
+                         NativeCRef<optical::ScintillationData> const& shared,
+                         OffloadPreStepData const& step_data);
 
     // Populate an optical distribution data for the Scintillation Generator
     template<class Generator>
-    inline CELER_FUNCTION OpticalDistributionData operator()(Generator& rng);
+    inline CELER_FUNCTION optical::GeneratorDistributionData
+    operator()(Generator& rng);
 
   private:
     units::ElementaryCharge charge_;
     real_type step_length_;
-    OpticalPreStepData const& pre_step_;
-    OpticalStepData post_step_;
-    NativeCRef<ScintillationData> const& shared_;
+    OffloadPreStepData const& pre_step_;
+    optical::GeneratorStepData post_step_;
+    NativeCRef<optical::ScintillationData> const& shared_;
     real_type mean_num_photons_;
 };
 
@@ -61,13 +62,13 @@ class ScintillationPreGenerator
 /*!
  * Construct with input parameters.
  */
-CELER_FUNCTION ScintillationPreGenerator::ScintillationPreGenerator(
+CELER_FUNCTION ScintillationOffload::ScintillationOffload(
     ParticleTrackView const& particle,
     SimTrackView const& sim,
     Real3 const& pos,
     units::MevEnergy energy_deposition,
-    NativeCRef<ScintillationData> const& shared,
-    OpticalPreStepData const& step_data)
+    NativeCRef<optical::ScintillationData> const& shared,
+    OffloadPreStepData const& step_data)
     : charge_(particle.charge())
     , step_length_(sim.step_length())
     , pre_step_(step_data)
@@ -99,15 +100,15 @@ CELER_FUNCTION ScintillationPreGenerator::ScintillationPreGenerator(
 
 //---------------------------------------------------------------------------//
 /*!
- * Return an \c OpticalDistributionData object. If no photons are sampled, an
+ * Return an \c GeneratorDistributionData object. If no photons are sampled, an
  * empty object is returned and can be verified via its own operator bool.
  */
 template<class Generator>
-CELER_FUNCTION OpticalDistributionData
-ScintillationPreGenerator::operator()(Generator& rng)
+CELER_FUNCTION optical::GeneratorDistributionData
+ScintillationOffload::operator()(Generator& rng)
 {
     // Material-only sampling
-    OpticalDistributionData result;
+    optical::GeneratorDistributionData result;
     if (mean_num_photons_ > 10)
     {
         real_type sigma = shared_.resolution_scale[pre_step_.opt_mat]

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/OpticalPropertyParams.hh
+//! \file celeritas/optical/MaterialPropertyParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,18 +14,21 @@
 #include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 
-#include "OpticalPropertyData.hh"
+#include "MaterialPropertyData.hh"
 
 namespace celeritas
 {
 struct ImportData;
 
+namespace optical
+{
+
 //---------------------------------------------------------------------------//
 /*!
  * Build and manage optical property data for materials.
  */
-class OpticalPropertyParams final
-    : public ParamsDataInterface<OpticalPropertyData>
+class MaterialPropertyParams final
+    : public ParamsDataInterface<MaterialPropertyData>
 {
   public:
     // Shared optical properties, indexed by \c OpticalMaterialId
@@ -36,11 +39,11 @@ class OpticalPropertyParams final
 
   public:
     // Construct with imported data
-    static std::shared_ptr<OpticalPropertyParams>
+    static std::shared_ptr<MaterialPropertyParams>
     from_import(ImportData const& data);
 
     // Construct with optical property data
-    explicit OpticalPropertyParams(Input const& inp);
+    explicit MaterialPropertyParams(Input const& inp);
 
     //! Access optical properties on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }
@@ -49,8 +52,9 @@ class OpticalPropertyParams final
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
-    CollectionMirror<OpticalPropertyData> data_;
+    CollectionMirror<MaterialPropertyData> data_;
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

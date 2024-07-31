@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/OpticalPropertyData.hh
+//! \file celeritas/optical/MaterialPropertyData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,6 +16,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
  * Shared optical properties data.
@@ -23,7 +25,7 @@ namespace celeritas
  * TODO: Placeholder for optical property data; modify or replace as needed.
  */
 template<Ownership W, MemSpace M>
-struct OpticalPropertyData
+struct MaterialPropertyData
 {
     template<class T>
     using Items = Collection<T, W, M>;
@@ -47,7 +49,7 @@ struct OpticalPropertyData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    OpticalPropertyData& operator=(OpticalPropertyData<W2, M2> const& other)
+    MaterialPropertyData& operator=(MaterialPropertyData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         refractive_index = other.refractive_index;
@@ -57,4 +59,5 @@ struct OpticalPropertyData
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas
