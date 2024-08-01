@@ -160,7 +160,6 @@ TestOutput curand_test<curandStateMtgp32>(TestParams params)
 template TestOutput curand_test<curandState>(TestParams);
 template TestOutput curand_test<curandStateMRG32k3a>(TestParams);
 template TestOutput curand_test<curandStatePhilox4_32_10_t>(TestParams);
-template TestOutput curand_test<curandStateMtgp32>(TestParams);
 
 //---------------------------------------------------------------------------//
 }  // namespace test
