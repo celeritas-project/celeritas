@@ -98,6 +98,4 @@ jobs:
           overwrite: true
           retention-days: 7
 
-#TODO: deploy with actions/deploy-pages@v2 ?
-
 # vim: set nowrap tw=100:
