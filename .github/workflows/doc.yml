@@ -98,30 +98,6 @@ jobs:
           overwrite: true
           retention-days: 7
 
-  deploy:
-    runs-on: ubuntu-latest
-    if: ${{github.ref_name == 'develop'}}
-    needs: [user, dev]
-    permissions:
-      contents: write
-    steps:
-      - name: Check out Celeritas docs
-        uses: actions/checkout@v4
-        with:
-          ref: doc/gh-pages
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-      - name: Replace and update
-        run: |
-          rm -rf dev user
-          mv doc-dev dev
-          mv doc-user user
-          git config --global user.name 'Celeritas Github Action'
-          git config --global user.email 'celeritas-project@users.noreply.github.com'
-          git add -A .
-          git commit -am "Update documentation from ${{github.ref}}"
-          git push
-
 #TODO: deploy with actions/deploy-pages@v2 ?
 
 # vim: set nowrap tw=100:
