@@ -54,7 +54,7 @@ jobs:
           name: doc-dev
           if-no-files-found: error
           overwrite: true
-          retention-days: 7
+          retention-days: 1
 
   user:
     runs-on: ubuntu-latest
