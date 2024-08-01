@@ -35,7 +35,7 @@ namespace detail
 namespace
 {
 //---------------------------------------------------------------------------//
-bool process_is_active(std::string const& process_name)
+bool process_is_active([[maybe_unused]] std::string const& process_name)
 {
 #if G4VERSION_NUMBER >= 1070
     auto* params = G4OpticalParameters::Instance();
