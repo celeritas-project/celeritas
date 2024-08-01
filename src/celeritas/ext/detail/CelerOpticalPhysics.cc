@@ -16,11 +16,14 @@
 #include <G4OpMieHG.hh>
 #include <G4OpRayleigh.hh>
 #include <G4OpWLS.hh>
-#include <G4OpWLS2.hh>
 #include <G4OpticalParameters.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ProcessManager.hh>
 #include <G4Scintillation.hh>
+#include <G4Version.hh>
+#if G4VERSION_NUMBER >= 1070
+#    include <G4OpWLS2.hh>
+#endif
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
@@ -109,6 +112,7 @@ void CelerOpticalPhysics::ConstructProcess()
                             "process";
     }
 
+#if G4VERSION_NUMBER >= 1070
     auto wls2 = std::make_unique<G4OpWLS2>();
     if (params->GetProcessActivation("OpWLS2"))
     {
@@ -118,6 +122,7 @@ void CelerOpticalPhysics::ConstructProcess()
             << "Loaded Optical wavelength shifting V2 with G4OpWLS2 "
                "process";
     }
+#endif
 
     // Add photon-generating processes to all particles they apply to
     // TODO: Eventually replace with Celeritas step collector processes
