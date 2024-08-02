@@ -154,7 +154,7 @@ void CelerOpticalPhysics::ConstructProcess()
 
     auto wls = std::make_unique<G4OpWLS>();
 #if G4VERSION_NUMBER < 1070
-    wls->UseTimeProfile(to_cstring(options_.wavelength_shifting);
+    wls->UseTimeProfile(to_cstring(options_.wavelength_shifting));
 #endif
     if (process_is_active("OpWLS"))
     {
@@ -268,7 +268,7 @@ bool CelerOpticalPhysics::process_is_active(
     else if (process_name == "OpWLS")
         return options_.wavelength_shifting != WLSTimeProfileSelection::none;
 
-    CELER_UNREACHABLE();
+    CELER_ASSERT_UNREACHABLE();
     return false;
 #endif
 }
