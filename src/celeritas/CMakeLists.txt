@@ -30,6 +30,7 @@ list(APPEND SOURCES
   em/process/PhotoelectricProcess.cc
   em/process/RayleighProcess.cc
   ext/GeantOpticalPhysicsOptions.cc
+  ext/GeantOpticalPhysicsOptionsIO.json.cc
   ext/GeantPhysicsOptions.cc
   ext/GeantPhysicsOptionsIO.json.cc
   field/FieldDriverOptions.cc
