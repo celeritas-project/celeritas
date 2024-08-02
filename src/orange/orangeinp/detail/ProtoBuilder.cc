@@ -33,7 +33,7 @@ ProtoBuilder::ProtoBuilder(OrangeInput* inp,
     CELER_EXPECT(inp_);
     CELER_EXPECT(opts.tol);
 
-    inp_->tol = opts.tol;
+    inp_->tol = std::move(opts).tol;
     inp_->universes.reserve(protos_.size());
 }
 

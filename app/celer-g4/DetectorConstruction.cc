@@ -319,7 +319,7 @@ void DetectorConstruction::foreach_detector(F&& apply_to_range) const
             ++stop;
         } while (stop != detectors_.end() && start->first == stop->first);
 
-        apply_to_range(start, stop);
+        std::forward<F>(apply_to_range)(start, stop);
         start = stop;
     }
 }

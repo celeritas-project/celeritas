@@ -113,7 +113,7 @@ class GeantLoggerAdapter : public G4coutDestination
   public:
     // Assign to Geant handlers on construction
     GeantLoggerAdapter();
-    ~GeantLoggerAdapter();
+    ~GeantLoggerAdapter() override;
 
     // Handle error messages
     G4int ReceiveG4cout(G4String const& str) final;

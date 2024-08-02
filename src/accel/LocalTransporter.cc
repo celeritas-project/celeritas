@@ -105,6 +105,9 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     inp.num_track_slots = options.max_num_tracks;
     inp.action_times = options.action_times;
 
+    // Set stream ID for finalizing
+    hit_manager_.finalizer(HMFinalizer{inp.stream_id});
+
     if (celeritas::device())
     {
         step_ = std::make_shared<Stepper<MemSpace::device>>(std::move(inp));
@@ -113,9 +116,6 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     {
         step_ = std::make_shared<Stepper<MemSpace::host>>(std::move(inp));
     }
-
-    // Set stream ID for finalizing
-    hit_manager_.finalizer(HMFinalizer{inp.stream_id});
 }
 
 //---------------------------------------------------------------------------//
