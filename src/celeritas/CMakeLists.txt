@@ -29,6 +29,7 @@ list(APPEND SOURCES
   em/process/GammaConversionProcess.cc
   em/process/PhotoelectricProcess.cc
   em/process/RayleighProcess.cc
+  ext/GeantOpticalPhysicsOptions.cc
   ext/GeantPhysicsOptions.cc
   ext/GeantPhysicsOptionsIO.json.cc
   field/FieldDriverOptions.cc
