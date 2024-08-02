@@ -307,7 +307,7 @@ void DetectorConstruction::ConstructSDandField()
  * Apply a function to the range of volumes for each detector.
  */
 template<class F>
-void DetectorConstruction::foreach_detector(F const& apply_to_range) const
+void DetectorConstruction::foreach_detector(F&& apply_to_range) const
 {
     auto start = detectors_.begin();
     while (start != detectors_.end())

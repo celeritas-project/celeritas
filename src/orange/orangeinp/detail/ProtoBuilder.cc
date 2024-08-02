@@ -24,16 +24,16 @@ namespace detail
  */
 ProtoBuilder::ProtoBuilder(OrangeInput* inp,
                            ProtoMap const& protos,
-                           Options&& opts)
+                           Options const& opts)
     : inp_{inp}
     , protos_{protos}
-    , save_json_{std::move(opts.save_json)}
+    , save_json_{opts.save_json}
     , bboxes_{protos_.size()}
 {
     CELER_EXPECT(inp_);
     CELER_EXPECT(opts.tol);
 
-    inp_->tol = std::move(opts).tol;
+    inp_->tol = opts.tol;
     inp_->universes.reserve(protos_.size());
 }
 
