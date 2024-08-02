@@ -14,21 +14,22 @@
 
 #include "corecel/Types.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/Primary.hh"
 
 #include "Transporter.hh"
 
+class G4VPhysicalVolume;  // IWYU pragma: keep
+
 namespace celeritas
 {
 class CoreParams;
+class OpticalCollector;
 class OutputRegistry;
 class ParticleParams;
 class RootFileManager;
 class StepCollector;
-}  // namespace celeritas
 
-namespace celeritas
-{
 namespace app
 {
 //---------------------------------------------------------------------------//
@@ -87,6 +88,7 @@ class Runner
     std::shared_ptr<CoreParams> core_params_;
     std::shared_ptr<RootFileManager> root_manager_;
     std::shared_ptr<StepCollector> step_collector_;
+    std::shared_ptr<OpticalCollector> optical_collector_;
 
     // Transporter inputs and stream-local transporters
     bool use_device_{};
@@ -97,8 +99,12 @@ class Runner
     //// HELPER FUNCTIONS ////
 
     void setup_globals(RunnerInput const&) const;
-    void build_core_params(RunnerInput const&, SPOutputRegistry&&);
+    void build_core_params(RunnerInput const&,
+                           SPOutputRegistry&&,
+                           G4VPhysicalVolume const*,
+                           ImportData const&);
     void build_step_collectors(RunnerInput const&);
+    void build_optical_collector(RunnerInput const&, ImportData const&);
     void build_diagnostics(RunnerInput const&);
     void build_transporter_input(RunnerInput const&);
     size_type build_events(RunnerInput const&, SPConstParticles);

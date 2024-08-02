@@ -52,12 +52,10 @@ class OpticalCollector
     //!@{
     //! \name Type aliases
     using SPConstCerenkov = std::shared_ptr<optical::CerenkovParams const>;
-    using SPConstCore = std::shared_ptr<CoreParams const>;
     using SPConstProperties
         = std::shared_ptr<optical::MaterialPropertyParams const>;
     using SPConstScintillation
         = std::shared_ptr<optical::ScintillationParams const>;
-    using SPGenStorage = std::shared_ptr<detail::OpticalGenStorage>;
     //!@}
 
     struct Input
