@@ -68,7 +68,7 @@ struct GeantOpticalPhysicsOptions
     bool cerenkov_track_secondaries_first{true};
     //! Maximum number of photons that can be generated before limiting step
     int cerenkov_max_photons{100};
-    //! Maximum percentage change in particle \beta before limiting step
+    //! Maximum percentage change in particle \f$\beta\f$  before limiting step
     double cerenkov_max_beta_change{10.0};
     //!@}
 
