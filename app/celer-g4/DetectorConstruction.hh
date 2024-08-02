@@ -77,7 +77,7 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
     FieldData construct_field() const;
 
     template<class F>
-    void foreach_detector(F&&) const;
+    void foreach_detector(F const&) const;
 };
 
 //---------------------------------------------------------------------------//
