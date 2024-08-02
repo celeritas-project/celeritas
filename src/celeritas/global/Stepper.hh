@@ -156,11 +156,12 @@ class Stepper final : public StepperInterface
     CoreStateInterface const& state() const final { return state_; }
 
   private:
-    // Call sequence and Params
-    std::shared_ptr<ActionSequence> actions_;
+    // Params data
     std::shared_ptr<CoreParams const> params_;
     // State data
     CoreState<M> state_;
+    // Call sequence
+    std::shared_ptr<ActionSequence> actions_;
 };
 
 //---------------------------------------------------------------------------//

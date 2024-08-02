@@ -29,13 +29,13 @@ namespace celeritas
  */
 template<MemSpace M>
 Stepper<M>::Stepper(Input input)
-    : actions_{[&] {
+    : params_(std::move(input.params))
+    , state_(*params_, input.stream_id, input.num_track_slots)
+    , actions_{[&] {
         ActionSequence::Options opts;
         opts.action_times = input.action_times;
         return std::make_shared<ActionSequence>(*params_->action_reg(), opts);
     }()}
-    , params_(std::move(input.params))
-    , state_(*params_, input.stream_id, input.num_track_slots)
 {
     // Execute beginning-of-run action
     ScopedProfiling profile_this{"begin-run"};
