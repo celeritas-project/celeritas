@@ -45,7 +45,6 @@ struct ProcessSecondariesExecutor
     ParamsPtr params;
     StatePtr state;
     CoreStateCounters counters;
-    bool copy_geo_state;
 
     //// FUNCTIONS ////
 
@@ -124,8 +123,8 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
             ti.particle.energy = secondary.energy;
             CELER_ASSERT(ti);
 
-            if (copy_geo_state && !initialized
-                && sim.status() != TrackStatus::alive)
+            if (!initialized && sim.status() != TrackStatus::alive
+                && params->init.track_order != TrackOrder::partition_charge)
             {
                 ParticleTrackView particle(
                     params->particles, state->particles, tid);
@@ -157,7 +156,8 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
 
                 // Store the thread ID of the secondary's parent if the
                 // secondary could be initialized in the next step
-                if (offset <= data.parents.size())
+                if (offset <= data.parents.size()
+                    && params->init.track_order != TrackOrder::partition_charge)
                 {
                     data.parents[TrackSlotId(data.parents.size() - offset)]
                         = tid;

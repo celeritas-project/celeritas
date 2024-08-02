@@ -65,7 +65,7 @@ void InitializeTracksAction::execute_impl(CoreParams const& core_params,
     {
         size_type partition_index{};
         if (core_params.init()->host_ref().track_order
-            == TrackOrder::partition_data)
+            == TrackOrder::partition_charge)
         {
             // Partition tracks by whether they are charged or neutral
             partition_index = detail::partition_initializers(

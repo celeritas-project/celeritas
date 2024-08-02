@@ -254,6 +254,7 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     switch (TrackOrder track_order = input_.init->host_ref().track_order)
     {
         case TrackOrder::unsorted:
+        case TrackOrder::partition_charge:
         case TrackOrder::shuffled:
             break;
         case TrackOrder::partition_status:
@@ -267,8 +268,6 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
             // Sort twice
             insert_sort_tracks_action(TrackOrder::sort_step_limit_action);
             insert_sort_tracks_action(TrackOrder::sort_along_step_action);
-            break;
-        case TrackOrder::partition_data:
             break;
         case TrackOrder::size_:
             CELER_ASSERT_UNREACHABLE();

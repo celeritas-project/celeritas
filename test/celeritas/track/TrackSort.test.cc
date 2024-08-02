@@ -178,7 +178,7 @@ class PartitionDataTest : public TestEm3NoMsc, public TrackSortTestBase
         TrackInitParams::Input input;
         input.capacity = 4096;
         input.max_events = 128;
-        input.track_order = TrackOrder::partition_data;
+        input.track_order = TrackOrder::partition_charge;
         return std::make_shared<TrackInitParams>(input);
     }
 

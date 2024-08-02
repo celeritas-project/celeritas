@@ -123,8 +123,9 @@ struct TrackInitStateData
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !parents.empty() && secondary_counts.size() == parents.size() + 1
-               && !track_counters.empty() && vacancies.size() == parents.size()
+        return secondary_counts.size() == vacancies.size() + 1
+               && !track_counters.empty()
+               && (vacancies.size() == parents.size() || parents.empty())
                && !initializers.empty();
     }
 
@@ -169,7 +170,12 @@ void resize(TrackInitStateData<Ownership::value, M>* data,
     CELER_EXPECT(M == MemSpace::host || celeritas::device());
 
     // Allocate device data
-    resize(&data->parents, size);
+    if (params.track_order != TrackOrder::partition_charge)
+    {
+        // The parent's geometry states are not currently reused when
+        // partitioning the track slot data layout
+        resize(&data->parents, size);
+    }
     resize(&data->secondary_counts, size + 1);
     resize(&data->track_counters, params.max_events);
 

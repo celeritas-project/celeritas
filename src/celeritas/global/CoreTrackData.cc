@@ -42,7 +42,7 @@ void resize(CoreStateData<Ownership::value, M>* state,
     state->stream_id = stream_id;
 
     if (params.init.track_order != TrackOrder::unsorted
-        && params.init.track_order != TrackOrder::partition_data)
+        && params.init.track_order != TrackOrder::partition_charge)
     {
         resize(&state->track_slots, size);
         Span track_slots{

@@ -99,7 +99,8 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
     // Initialize the geometry
     {
         auto geo = vacancy.make_geo_view();
-        if (partition_index == 0 && tid < counters.num_secondaries)
+        if (tid < counters.num_secondaries
+            && params->init.track_order != TrackOrder::partition_charge)
         {
             // Copy the geometry state from the parent for improved
             // performance, unless the track initializers have been
