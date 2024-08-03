@@ -52,7 +52,6 @@ struct InitTracksExecutor
     ParamsPtr params;
     StatePtr state;
     size_type num_new_tracks;
-    size_type partition_index;
     CoreStateCounters counters;
 
     //// FUNCTIONS ////
@@ -72,7 +71,6 @@ struct InitTracksExecutor
 CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
 {
     CELER_EXPECT(tid < num_new_tracks);
-    CELER_EXPECT(partition_index <= num_new_tracks);
 
     // Get the track initializer from the back of the vector. Since new
     // initializers are pushed to the back of the vector, these will be the
@@ -80,19 +78,24 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
     // parent they can copy the geometry state from.
     auto const& data = state->init;
     ItemId<TrackInitializer> idx{index_before(counters.num_initializers, tid)};
+    TrackInitializer const& init = data.initializers[idx];
 
     // View to the new track to be initialized
     CoreTrackView vacancy{
         *params, *state, [&] {
-            TrackSlotId idx{index_partitioned(num_new_tracks,
-                                              counters.num_vacancies,
-                                              num_new_tracks - partition_index,
-                                              tid)};
-            return data.vacancies[idx];
+            if (params->init.track_order == TrackOrder::partition_charge)
+            {
+                return data.vacancies[TrackSlotId(
+                    index_partitioned(num_new_tracks,
+                                      counters.num_vacancies,
+                                      IsNeutral{params}(init),
+                                      tid))];
+            }
+            return data.vacancies[TrackSlotId(
+                index_before(counters.num_vacancies, tid))];
         }()};
 
     // Initialize the simulation state and particle attributes
-    TrackInitializer const& init = data.initializers[idx];
     vacancy.make_sim_view() = init.sim;
     vacancy.make_particle_view() = init.particle;
 

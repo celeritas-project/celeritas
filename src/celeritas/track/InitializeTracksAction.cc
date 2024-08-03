@@ -63,22 +63,19 @@ void InitializeTracksAction::execute_impl(CoreParams const& core_params,
         = std::min(counters.num_vacancies, counters.num_initializers);
     if (num_new_tracks > 0 || core_state.warming_up())
     {
-        size_type partition_index{};
         if (core_params.init()->host_ref().track_order
             == TrackOrder::partition_charge)
         {
             // Partition tracks by whether they are charged or neutral
-            partition_index = detail::partition_initializers(
-                core_params,
-                core_state.ref().init.initializers,
-                counters,
-                num_new_tracks,
-                core_state.stream_id());
+            detail::partition_initializers(core_params,
+                                           core_state.ref().init.initializers,
+                                           counters,
+                                           num_new_tracks,
+                                           core_state.stream_id());
         }
 
         // Launch a kernel to initialize tracks
-        this->execute_impl(
-            core_params, core_state, num_new_tracks, partition_index);
+        this->execute_impl(core_params, core_state, num_new_tracks);
 
         // Update initializers/vacancies
         counters.num_initializers -= num_new_tracks;
@@ -98,15 +95,13 @@ void InitializeTracksAction::execute_impl(CoreParams const& core_params,
  */
 void InitializeTracksAction::execute_impl(CoreParams const& core_params,
                                           CoreStateHost& core_state,
-                                          size_type num_new_tracks,
-                                          size_type partition_index) const
+                                          size_type num_new_tracks) const
 {
     MultiExceptionHandler capture_exception;
     detail::InitTracksExecutor execute_thread{
         core_params.ptr<MemSpace::native>(),
         core_state.ptr(),
         num_new_tracks,
-        partition_index,
         core_state.counters()};
 #if defined(_OPENMP) && CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
 #    pragma omp parallel for
@@ -122,7 +117,6 @@ void InitializeTracksAction::execute_impl(CoreParams const& core_params,
 #if !CELER_USE_DEVICE
 void InitializeTracksAction::execute_impl(CoreParams const&,
                                           CoreStateDevice&,
-                                          size_type,
                                           size_type) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");

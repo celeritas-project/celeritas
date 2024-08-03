@@ -9,9 +9,9 @@
 
 #include <thrust/device_ptr.h>
 #include <thrust/execution_policy.h>
-#include <thrust/partition.h>
 #include <thrust/remove.h>
 #include <thrust/scan.h>
+#include <thrust/sort.h>
 
 #include "corecel/Macros.hh"
 #include "corecel/data/ObserverPtr.device.hh"
@@ -81,9 +81,10 @@ size_type exclusive_scan_counts(
 /*!
  * Sort the tracks that will be initialized in this step by charged/neutral.
  *
- * The return value is the partition point between neutral and charged tracks.
+ * \note This implementaion uses sort rather than partition to avoid the
+ * blocking device-to-host copy.
  */
-size_type partition_initializers(
+void partition_initializers(
     CoreParams const& params,
     Collection<TrackInitializer, Ownership::reference, MemSpace::device> const&
         init,
@@ -94,15 +95,11 @@ size_type partition_initializers(
     ScopedProfiling profile_this{"partition-initializers"};
     auto end = device_pointer_cast(init.data()) + counters.num_initializers;
     auto start = end - count;
-    auto partition_index
-        = thrust::stable_partition(thrust_execute_on(stream_id),
-                                   start,
-                                   end,
-                                   IsNeutral{params.ptr<MemSpace::native>()});
+    thrust::stable_sort(thrust_execute_on(stream_id),
+                        start,
+                        end,
+                        IsNeutralFirst{params.ptr<MemSpace::native>()});
     CELER_DEVICE_CHECK_ERROR();
-
-    // Number of neutral tracks
-    return partition_index - start;
 }
 
 //---------------------------------------------------------------------------//
