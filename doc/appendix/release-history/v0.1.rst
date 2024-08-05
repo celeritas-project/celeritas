@@ -2,10 +2,13 @@
 .. See the doc/COPYRIGHT file for details.
 .. SPDX-License-Identifier: CC-BY-4.0
 
+Series 0.1
+==========
+
 .. _release_v0.1.5:
 
 Version 0.1.5
-=============
+-------------
 
 *Release date: 2023/02/19*
 
@@ -41,14 +44,14 @@ Bug fixes
 Reviewers: @sethrj *(4)*, @whokion *(4)*, @amandalund *(2)*, @paulromano *(1)*, @elliottbiondo *(1)*
 
 Documentation improvements
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Characterize and remove field driver convergence assertions *(@sethrj, #650)*
 
 Reviewers: @whokion *(1)*
 
 Minor internal changes
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 * CI: use Geant4 11, C++17, VecGeom 1.2, CUDA 11.8, GCC 11 *(@sethrj, #566)*
 * CI: add no-debug HIP (ROCM 5.4) build *(@sethrj, #569)*
@@ -58,7 +61,7 @@ Reviewers: @pcanal *(1)*
 .. _release_v0.1.4:
 
 Version 0.1.4
-=============
+-------------
 
 *Released 2023/01/10*
 
@@ -78,7 +81,7 @@ Bug fixes
 .. _release_v0.1.3:
 
 Version 0.1.3
-=============
+-------------
 
 *Release date:  2023/01/11*
 
@@ -94,7 +97,7 @@ Bug fixes
 * Escape rather than segfault on boundary crossing failure in release mode in ORANGE *(@sethrj, #516)*
 
 Version 0.1.2
-=============
+-------------
 
 *Released 2022/09/07*
 
@@ -102,7 +105,7 @@ This is a bug-fixing patch that addresses a few outstanding build issues,
 targeted at making it easier to run and debug the regression problem suite.
 
 New features
-------------
+^^^^^^^^^^^^
 
 * Save JSON exception output if demo loop fails by *(@sethrj, #507)*
 
@@ -113,7 +116,7 @@ Bug fixes
 * Fix no-ROOT demo loop for 0.1.x and other summit changes by *(@sethrj, #508)*
 
 Version 0.1.1
-=============
+-------------
 
 *Released 2022/08/26*
 
@@ -121,7 +124,7 @@ This is a bug-fixing patch that addresses numerous outstanding issues with the
 transport loop.
 
 New features
-------------
+^^^^^^^^^^^^
 
 * Filter imported data from Geant4 based on user options by *(@sethrj, #482)*
 * Add contributing guide and development docs by *(@sethrj, #502)*
@@ -147,7 +150,7 @@ Bug fixes
 * Fix ORANGE reentrant boundary crossings by *(@sethrj, #501)*
 
 Internal changes
-----------------
+^^^^^^^^^^^^----
 
 * Rewrite field tests by *(@sethrj, #471)*
 * Add range-to-step tests and remove min by *(@sethrj, #479)*
@@ -158,7 +161,7 @@ Internal changes
 * Infrastructure changes for geo heuristic test by *(@sethrj, #498)*
 
 Version 0.1.0
-=============
+-------------
 
 *Released 2022/07/31*
 
@@ -169,7 +172,7 @@ step distributions for simple problems such as TestEM3) are promising, but the
 code is far from validated.
 
 New features
-------------
+^^^^^^^^^^^^
 
 - Standard EM physics including multiple scattering and energy loss
   fluctuations
@@ -185,7 +188,7 @@ Known bugs
 - Multiple scattering requires more steps than expected compared to Geant4.
 
 Contributors
-------------
+^^^^^^^^^^^^
 
 Thanks to the contributors at Argonne National Lab, Lawrence Berkeley Lab,
 Fermilab, Oak Ridge National Laboratory, and other collaborating institutions.
