@@ -177,6 +177,14 @@ three-vectors (such as sampling an isotropic direction).
 .. doxygenclass:: celeritas::UniformBoxDistribution
 .. doxygenclass:: celeritas::UniformRealDistribution
 
+Additionally we define a few helper classes for common physics sampling
+routines.
+
+.. doxygenclass:: celeritas::RejectionSampler
+.. doxygenclass:: celeritas::ElementSelector
+.. doxygenclass:: celeritas::IsotopeSelector
+.. doxygenclass:: celeritas::TabulatedElementSelector
+
 .. _api_em_physics:
 
 EM physics

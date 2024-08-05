@@ -11,7 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
+#include "celeritas/random/distribution/RejectionSampler.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
@@ -96,14 +96,11 @@ CELER_FUNCTION real_type MollerEnergyDistribution::operator()(Engine& rng)
         1 / this->max_energy_fraction(), 1 / min_energy_fraction_);
 
     // Sample epsilon
-    real_type g_numerator;
     real_type epsilon;
     do
     {
         epsilon = 1 / sample_inverse_epsilon(rng);
-        g_numerator = calc_g_fraction(epsilon);
-
-    } while (!BernoulliDistribution(g_numerator / g_denominator)(rng));
+    } while (RejectionSampler(calc_g_fraction(epsilon), g_denominator)(rng));
 
     return epsilon;
 }

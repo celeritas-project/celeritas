@@ -18,8 +18,8 @@
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/ReciprocalDistribution.hh"
+#include "celeritas/random/distribution/RejectionSampler.hh"
 
 #include "PhysicsConstants.hh"
 
@@ -106,7 +106,7 @@ CELER_FUNCTION auto RBEnergySampler::operator()(Engine& rng) -> Energy
     {
         gamma_energy = std::sqrt(sample_exit_esq(rng) - density_corr);
         dsigma = calc_dxsec_(Energy{gamma_energy});
-    } while (!BernoulliDistribution(dsigma / calc_dxsec_.maximum_value())(rng));
+    } while (RejectionSampler(dsigma, calc_dxsec_.maximum_value())(rng));
 
     return Energy{gamma_energy};
 }

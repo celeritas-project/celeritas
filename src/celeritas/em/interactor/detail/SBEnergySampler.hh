@@ -19,7 +19,6 @@
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
 
 #include "PhysicsConstants.hh"
 #include "SBPositronXsCorrector.hh"
