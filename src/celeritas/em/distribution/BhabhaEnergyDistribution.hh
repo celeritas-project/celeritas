@@ -103,8 +103,8 @@ CELER_FUNCTION real_type BhabhaEnergyDistribution::operator()(Engine& rng)
     do
     {
         epsilon = 1 / sample_inverse_epsilon(rng);
-    } while (RejectionSampler(this->calc_g_fraction(epsilon, epsilon),
-                              g_denominator)(rng));
+    } while (RejectionSampler<>(this->calc_g_fraction(epsilon, epsilon),
+                                g_denominator)(rng));
 
     return epsilon;
 }
