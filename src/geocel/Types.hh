@@ -36,14 +36,20 @@ using SquareMatrixReal3 = SquareMatrix<real_type, 3>;
 
 //---------------------------------------------------------------------------//
 
+//! Type-safe "level", i.e., depth of embedded unit/scene/volume
+using LevelId = OpaqueId<struct Level_>;
+
 //! Identifier for a material fill
 using GeoMaterialId = OpaqueId<struct GeoMaterial_>;
 
 //! Identifier for a surface (for surface-based geometries)
 using SurfaceId = OpaqueId<struct Surface_>;
 
-//! Identifier for a geometry volume
+//! Identifier for a geometry volume that may be repeated
 using VolumeId = OpaqueId<struct Volume_>;
+
+//! Identifier for an instance of a geometry volume (aka Phys/Placed)
+using VolumeInstanceId = OpaqueId<struct VolumeInstance_>;
 
 //---------------------------------------------------------------------------//
 // ENUMERATIONS
