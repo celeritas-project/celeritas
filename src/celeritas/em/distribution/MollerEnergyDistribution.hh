@@ -109,8 +109,8 @@ CELER_FUNCTION real_type MollerEnergyDistribution::operator()(Engine& rng)
 }
 
 //---------------------------------------------------------------------------//
-/*
- * Helper function for calculating rejection function g.
+/*!
+ * Evaluate the rejection function g.
  */
 CELER_FUNCTION real_type
 MollerEnergyDistribution::calc_g_fraction(real_type epsilon)
