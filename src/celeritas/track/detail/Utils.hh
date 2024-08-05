@@ -43,21 +43,6 @@ struct IsNeutral
 };
 
 //---------------------------------------------------------------------------//
-//! Comparator for sorting charged from neutral tracks
-struct IsNeutralFirst
-{
-    using ParamsPtr = CRefPtr<CoreParamsData, MemSpace::native>;
-
-    ParamsPtr params;
-
-    CELER_FUNCTION bool
-    operator()(TrackInitializer const& a, TrackInitializer const&) const
-    {
-        return IsNeutral{params}(a);
-    }
-};
-
-//---------------------------------------------------------------------------//
 //! Indicate that a track slot is occupied by a still-alive track
 CELER_CONSTEXPR_FUNCTION TrackSlotId occupied()
 {

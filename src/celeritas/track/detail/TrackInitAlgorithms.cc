@@ -73,9 +73,6 @@ size_type exclusive_scan_counts(
 //---------------------------------------------------------------------------//
 /*!
  * Sort the tracks that will be initialized in this step by charged/neutral.
- *
- * \note This implementaion uses sort rather than partition to avoid the
- * blocking device-to-host copy.
  */
 void partition_initializers(
     CoreParams const& params,
@@ -87,8 +84,8 @@ void partition_initializers(
     auto* end = static_cast<TrackInitializer*>(init.data())
                 + counters.num_initializers;
     auto* start = end - count;
-    std::stable_sort(
-        start, end, IsNeutralFirst{params.ptr<MemSpace::native>()});
+    std::stable_partition(
+        start, end, IsNeutral{params.ptr<MemSpace::native>()});
 }
 
 //---------------------------------------------------------------------------//
