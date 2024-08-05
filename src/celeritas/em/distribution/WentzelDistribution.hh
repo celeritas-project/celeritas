@@ -153,7 +153,8 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
 {
     real_type cos_theta = 1;
     if (BernoulliDistribution(
-            helper_.calc_xs_ratio(cos_thetamin_, cos_thetamax_))(rng))
+            helper_.calc_xs_electron(cos_thetamin_, cos_thetamax_),
+            helper_.calc_xs_nuclear(cos_thetamin_, cos_thetamax_))(rng))
     {
         // Scattered off of electrons
         real_type const cos_thetamax_elec = helper_.cos_thetamax_electron();

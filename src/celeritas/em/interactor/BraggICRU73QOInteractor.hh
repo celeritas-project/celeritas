@@ -149,15 +149,14 @@ CELER_FUNCTION Interaction BraggICRU73QOInteractor::operator()(Engine& rng)
     }
 
     // Sample the delta ray energy
+    real_type const acceptance = beta_sq_ / max_secondary_energy_;
     real_type energy;
-    real_type target;
     do
     {
         energy = min_secondary_energy_ * max_secondary_energy_
                  / UniformRealDistribution(min_secondary_energy_,
                                            max_secondary_energy_)(rng);
-        target = 1 - beta_sq_ * energy / max_secondary_energy_;
-    } while (!BernoulliDistribution(target)(rng));
+    } while (BernoulliDistribution(energy * acceptance)(rng));
 
     // Update kinematics of the final state and return the interaction
     return detail::IoniFinalStateHelper(inc_energy_,

@@ -279,17 +279,21 @@ TEST_F(BraggICRU73QOTest, stress_test)
         sample();
 
         static double const expected_avg_engine_samples[]
-            = {6.0027, 6.0021, 6.003, 6.0034, 6.0047};
-        static double const expected_avg_energy[] = {0.00056893310178363,
-                                                     0.00072492000606412,
-                                                     0.00097487866369081,
-                                                     0.0011443155397256,
-                                                     0.0012633301124393};
-        static double const expected_avg_costheta[] = {0.99472414540371,
-                                                       0.86537547828047,
-                                                       0.69947394093299,
-                                                       0.6113577317816,
-                                                       0.55099275303428};
+            = {6.0028, 6.0031, 6.0051, 6.004, 6.0046};
+        static double const expected_avg_energy[] = {
+            0.00056891718030029,
+            0.00072480461656938,
+            0.00097881567291799,
+            0.0011429649550991,
+            0.0012665402552435,
+        };
+        static double const expected_avg_costheta[] = {
+            0.9947099341355,
+            0.86530217061326,
+            0.70092813183552,
+            0.61105002669776,
+            0.55165523312788,
+        };
         EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
         EXPECT_VEC_SOFT_EQ(expected_avg_energy, avg_energy);
         EXPECT_VEC_SOFT_EQ(expected_avg_costheta, avg_costheta);
@@ -300,17 +304,21 @@ TEST_F(BraggICRU73QOTest, stress_test)
         sample();
 
         static double const expected_avg_engine_samples[]
-            = {6.0004, 6.0004, 6.0006, 6.0003, 6.0005};
-        static double const expected_avg_energy[] = {8.8601911130921e-05,
-                                                     0.00010210349779604,
-                                                     0.00012023485252326,
-                                                     0.00013103967324893,
-                                                     0.00013806656798748};
-        static double const expected_avg_costheta[] = {0.35858206068691,
-                                                       0.29003901277676,
-                                                       0.21408617527108,
-                                                       0.17851819065736,
-                                                       0.15626495143414};
+            = {6.0002, 6.0001, 6.0005, 6.0004, 6.0011};
+        static double const expected_avg_energy[] = {
+            8.984386567958e-05,
+            0.00010269287286593,
+            0.00012026561040643,
+            0.00013159959970544,
+            0.00013937871171076,
+        };
+        static double const expected_avg_costheta[] = {
+            0.36083298484259,
+            0.29123580183204,
+            0.21440637278088,
+            0.17897165744167,
+            0.15650500234158,
+        };
 
         EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
         EXPECT_VEC_SOFT_EQ(expected_avg_energy, avg_energy);
