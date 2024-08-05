@@ -12,24 +12,24 @@
 #include "corecel/data/AuxInterface.hh"
 #include "celeritas/Types.hh"
 
-#include "OpticalGenData.hh"
+#include "OffloadData.hh"
 
-#include "detail/CerenkovPreGenAction.hh"
-#include "detail/PreGenGatherAction.hh"
-#include "detail/ScintPreGenAction.hh"
+#include "detail/CerenkovOffloadAction.hh"
+#include "detail/OffloadGatherAction.hh"
+#include "detail/ScintOffloadAction.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ActionRegistry;
 class CerenkovParams;
-class OpticalPropertyParams;
+class MaterialPropertyParams;
 class ScintillationParams;
 class CoreParams;
 
 namespace detail
 {
-class OpticalGenParams;
+class OffloadParams;
 }  // namespace detail
 
 //---------------------------------------------------------------------------//
@@ -51,11 +51,11 @@ class OpticalCollector
   public:
     //!@{
     //! \name Type aliases
-    using SPConstCerenkov = std::shared_ptr<CerenkovParams const>;
-    using SPConstCore = std::shared_ptr<CoreParams const>;
-    using SPConstProperties = std::shared_ptr<OpticalPropertyParams const>;
-    using SPConstScintillation = std::shared_ptr<ScintillationParams const>;
-    using SPGenStorage = std::shared_ptr<detail::OpticalGenStorage>;
+    using SPConstCerenkov = std::shared_ptr<optical::CerenkovParams const>;
+    using SPConstProperties
+        = std::shared_ptr<optical::MaterialPropertyParams const>;
+    using SPConstScintillation
+        = std::shared_ptr<optical::ScintillationParams const>;
     //!@}
 
     struct Input
@@ -86,19 +86,19 @@ class OpticalCollector
   private:
     //// TYPES ////
 
-    using SPOpticalGenParams = std::shared_ptr<detail::OpticalGenParams>;
-    using SPCerenkovPreGenAction
-        = std::shared_ptr<detail::CerenkovPreGenAction>;
-    using SPScintPreGenAction = std::shared_ptr<detail::ScintPreGenAction>;
-    using SPGatherAction = std::shared_ptr<detail::PreGenGatherAction>;
+    using SPOffloadParams = std::shared_ptr<detail::OffloadParams>;
+    using SPCerenkovOffloadAction
+        = std::shared_ptr<detail::CerenkovOffloadAction>;
+    using SPScintOffloadAction = std::shared_ptr<detail::ScintOffloadAction>;
+    using SPGatherAction = std::shared_ptr<detail::OffloadGatherAction>;
 
     //// DATA ////
 
-    SPOpticalGenParams gen_params_;
+    SPOffloadParams gen_params_;
 
     SPGatherAction gather_action_;
-    SPCerenkovPreGenAction cerenkov_pregen_action_;
-    SPScintPreGenAction scint_pregen_action_;
+    SPCerenkovOffloadAction cerenkov_offload_action_;
+    SPScintOffloadAction scint_offload_action_;
 
     // TODO: tracking loop launcher
     // TODO: store optical core params and state?

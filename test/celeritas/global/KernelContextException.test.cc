@@ -43,14 +43,11 @@ std::string get_json_str(KernelContextException const& e)
 
 ThreadId find_thread(HostRef<CoreStateData> const& state, TrackSlotId track)
 {
-    Span track_slots{state.track_slots[AllItems<TrackSlotId::size_type>{}]};
-    auto idx = std::distance(
-        track_slots.begin(),
-        std::find(track_slots.begin(), track_slots.end(), track.get()));
-    EXPECT_NE(track_slots.size(), idx);
-    return ThreadId{static_cast<ThreadId::size_type>(idx)};
+    CELER_EXPECT(state.track_slots.empty());
+    return ThreadId{track.get()};
 }
 }  // namespace
+
 //---------------------------------------------------------------------------//
 
 class KernelContextExceptionTest : public SimpleTestBase, public StepperTestBase

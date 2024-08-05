@@ -31,15 +31,10 @@ jobs:
           - buildtype: "debug"
             image: "centos-rocm" # Debug builds don't work with HIP
         include:
-          - special: "asan"
-            geometry: "orange"
-            buildtype: "reldeb"
-            image: "centos-rocm"
           - geometry: "vecgeom"
             buildtype: "reldeb"
             image: "ubuntu-cuda"
     env:
-      ASAN_OPTIONS: "detect_leaks=0"
       CELER_TEST_STRICT: 1
       CELER_DISABLE_DEVICE: 1 # IMPORTANT
       CMAKE_PRESET: >-
@@ -48,6 +43,7 @@ jobs:
                 matrix.geometry,
                 matrix.special && '-' || '',
                 matrix.special)}}
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true # TODO: DELETEME, see #1305
     runs-on: ubuntu-latest
     container:
       image: >-
@@ -80,6 +76,15 @@ jobs:
         working-directory: build
         run: |
           ninja
+      - name: Regenerate ROOT test data
+        working-directory: build
+        # NOTE: we have to do this for now because the ROOT version on the CI image is too old:
+        # see https://github.com/root-project/root/pull/12845
+        # Revert when we update the CI images
+        run: |
+          if [ -e test ]; then
+            ninja -v -k0 update-root-test-data
+          fi
       - name: Test Celeritas
         working-directory: build
         run: |
@@ -99,11 +104,9 @@ jobs:
           ./bin/celer-sim --version
       - name: Build examples
         # TODO: rocm+ndebug fails to propagate HIP library link
-        # TODO: ASAN requires flags downstream
         if: >-
           ${{
             !(matrix.image == 'centos-rocm' && matrix.buildtype == 'ndebug')
-            && (matrix.special != 'asan')
           }}
         run: |
           . /etc/profile

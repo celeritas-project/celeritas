@@ -28,7 +28,7 @@ class ParticleParams;
 /*!
  * Set up and launch the neutron inelastic model interaction.
  */
-class NeutronInelasticModel final : public Model
+class NeutronInelasticModel final : public Model, public ConcreteAction
 {
   public:
     //!@{
@@ -59,21 +59,6 @@ class NeutronInelasticModel final : public Model
     // Apply the interaction kernel to device data
     void execute(CoreParams const&, CoreStateDevice&) const final;
 
-    // ID of the model
-    ActionId action_id() const final;
-
-    //! Short name for the interaction kernel
-    std::string_view label() const final
-    {
-        return "neutron-inelastic-bertini";
-    }
-
-    //! Short description of the post-step action
-    std::string_view description() const final
-    {
-        return "interact by neutron inelastic (Bertini)";
-    }
-
     //!@{
     //! Access model data
     HostRef const& host_ref() const { return data_.host_ref(); }
@@ -89,18 +74,21 @@ class NeutronInelasticModel final : public Model
     //// TYPES ////
 
     using HostXsData = HostVal<NeutronInelasticData>;
-    using ChannelArray = Array<double, 13>;
 
-    struct ChannelXsData
+    struct ChannelData
     {
         StepanovParameters par;
-        ChannelArray xs;
+        Array<double, 13> xs;
+        Array<double, 6 * 19> cdf;  //! [energy][angle]
     };
 
     //// HELPER FUNCTIONS ////
 
-    Span<double const> get_channel_bins() const;
-    static ChannelXsData const& get_channel_xs(ChannelId id);
+    Span<double const> get_xs_energy_bins() const;
+    static ChannelData const& get_channel_data(ChannelId id);
+
+    Span<double const> get_cdf_energy_bins() const;
+    Span<double const> get_cos_theta_bins() const;
 };
 
 //---------------------------------------------------------------------------//

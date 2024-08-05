@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
@@ -52,8 +53,7 @@ struct Interaction
     static inline CELER_FUNCTION Interaction from_absorption();
 
     // Return an interaction with no change in the track state
-    static inline CELER_FUNCTION Interaction
-    from_unchanged(units::MevEnergy energy, Real3 const& direction);
+    static inline CELER_FUNCTION Interaction from_unchanged();
 
     //! Whether the state changed but did not fail
     CELER_FUNCTION bool changed() const
@@ -164,8 +164,7 @@ CELER_FUNCTION Interaction Interaction::from_absorption()
 /*!
  * Construct an interaction for edge cases where there is no state change.
  */
-CELER_FUNCTION Interaction Interaction::from_unchanged(units::MevEnergy,
-                                                       Real3 const&)
+CELER_FUNCTION Interaction Interaction::from_unchanged()
 {
     Interaction result;
     result.action = Action::unchanged;

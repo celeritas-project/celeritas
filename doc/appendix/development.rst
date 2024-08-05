@@ -37,6 +37,9 @@ be multiplied by units in the native Celeritas unit system if applicable, or
 defined as ``Quantity`` instances. The numerical value of the constant must
 also be documented with a paper citation or other comment.
 
+Class documentation through Doxygen (see :ref:`formatting`) can be injected
+semi-automatically into this user manual via the Breathe tool integrated
+into the Celeritas build system (see :ref:`dependencies`).
 
 Test thoroughly
 ---------------
@@ -189,7 +192,9 @@ etc.) are standard throughout the code. Use the :file:`celeritas-gen.py` script
 (in the :file:`scripts/dev` directory) to generate skeletons for new files, and
 use existing source code as a guide to how to structure the decorations.
 Doxygen comments should be provided next to the *definition* of functions (both
-member and free) and classes.
+member and free) and classes. For function-like and physics classes, try to put
+the bulk of the comments into the main class description, because these are
+easier to inject into the :ref:`api` documentation.
 
 .. _East const: https://hackingcpp.com/cpp/design/east_vs_west_const.html
 
@@ -271,7 +276,7 @@ such as
 ``cudaMalloc`` does *not* have to be compiled with NVCC. Instead, it only has to
 be linked against the CUDA runtime library and include ``cuda_runtime_api.h``.
 The platform-agnostic Celeritas include file to use is
-``corecel/device_runtime_api.h``.
+``corecel/DeviceRuntimeApi.hh``.
 Note that VecGeom compiles differently when run
 through NVCC (macro magic puts much of the code in a different namespace) so
 its inclusion must be very carefully managed.

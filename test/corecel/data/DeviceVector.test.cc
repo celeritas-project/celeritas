@@ -25,7 +25,14 @@ TEST(DeviceVectorTest, all)
     if (!CELER_USE_DEVICE)
     {
         // Test that allocation fails
-        EXPECT_THROW(Vec_t(1234), DebugError);
+        if (CELERITAS_DEBUG)
+        {
+            EXPECT_THROW(Vec_t(1234), DebugError);
+        }
+        else
+        {
+            EXPECT_THROW(Vec_t(1234), RuntimeError);
+        }
         return;
     }
 
@@ -61,6 +68,31 @@ TEST(DeviceVectorTest, all)
         EXPECT_EQ(0, vec.size());
         EXPECT_EQ(orig_vec, other.device_ref().data());
     }
+}
+
+TEST(DeviceVectorTest, TEST_IF_CELER_DEVICE(assign))
+{
+    using Vec_t = DeviceVector<int>;
+    Vec_t vec;
+
+    static int const mydata[] = {1, 3, 5, 8};
+    vec.assign(std::begin(mydata), std::end(mydata));
+    EXPECT_EQ(4, vec.size());
+
+    // Shouldn't reallocate
+    vec.assign(std::begin(mydata) + 2, std::end(mydata));
+    std::vector<int> out(vec.size());
+    vec.copy_to_host(make_span(out));
+
+    EXPECT_VEC_EQ((std::vector<int>{5, 8}), out);
+
+    // Should reallocate
+    static int const mylongdata[] = {1, 3, 5, 8, 13, 21};
+    vec.assign(std::begin(mylongdata), std::end(mylongdata));
+
+    out.resize(vec.size());
+    vec.copy_to_host(make_span(out));
+    EXPECT_VEC_EQ(mylongdata, out);
 }
 
 /*!

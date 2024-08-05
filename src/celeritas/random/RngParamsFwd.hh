@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 
 namespace celeritas
 {

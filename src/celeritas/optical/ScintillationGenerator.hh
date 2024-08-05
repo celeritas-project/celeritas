@@ -18,11 +18,13 @@
 #include "celeritas/random/distribution/NormalDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
-#include "OpticalDistributionData.hh"
-#include "OpticalPrimary.hh"
+#include "GeneratorDistributionData.hh"
+#include "Primary.hh"
 #include "ScintillationData.hh"
 
 namespace celeritas
+{
+namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -42,13 +44,13 @@ class ScintillationGenerator
   public:
     // Construct from scintillation data and distribution parameters
     inline CELER_FUNCTION
-    ScintillationGenerator(OpticalDistributionData const& dist,
+    ScintillationGenerator(GeneratorDistributionData const& dist,
                            NativeCRef<ScintillationData> const& shared,
-                           Span<OpticalPrimary> photons);
+                           Span<Primary> photons);
 
     // Sample Scintillation photons from the distribution
     template<class Generator>
-    inline CELER_FUNCTION Span<OpticalPrimary> operator()(Generator& rng);
+    inline CELER_FUNCTION Span<Primary> operator()(Generator& rng);
 
   private:
     //// TYPES ////
@@ -58,9 +60,9 @@ class ScintillationGenerator
 
     //// DATA ////
 
-    OpticalDistributionData const& dist_;
+    GeneratorDistributionData const& dist_;
     NativeCRef<ScintillationData> const& shared_;
-    Span<OpticalPrimary> photons_;
+    Span<Primary> photons_;
 
     UniformRealDist sample_cost_;
     UniformRealDist sample_phi_;
@@ -78,9 +80,9 @@ class ScintillationGenerator
  */
 CELER_FUNCTION
 ScintillationGenerator::ScintillationGenerator(
-    OpticalDistributionData const& dist,
+    GeneratorDistributionData const& dist,
     NativeCRef<ScintillationData> const& shared,
-    Span<OpticalPrimary> photons)
+    Span<Primary> photons)
     : dist_(dist)
     , shared_(shared)
     , photons_(photons)
@@ -121,8 +123,7 @@ ScintillationGenerator::ScintillationGenerator(
  * scintillation time structure with one or double exponentials.
  */
 template<class Generator>
-CELER_FUNCTION Span<OpticalPrimary>
-ScintillationGenerator::operator()(Generator& rng)
+CELER_FUNCTION Span<Primary> ScintillationGenerator::operator()(Generator& rng)
 {
     size_type num_generated{0};
     auto const& mat_spectrum = shared_.materials[dist_.material];
@@ -211,4 +212,5 @@ ScintillationGenerator::operator()(Generator& rng)
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

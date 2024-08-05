@@ -22,7 +22,8 @@
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
@@ -476,7 +477,8 @@ void SharedParams::initialize_core(SetupOptions const& options)
         return std::make_shared<ImportData>(load_geant_data(import_opts));
     }();
     CELER_ASSERT(imported && !imported->particles.empty()
-                 && !imported->materials.empty()
+                 && !imported->geo_materials.empty()
+                 && !imported->phys_materials.empty()
                  && !imported->processes.empty() && !imported->volumes.empty());
 
     if (!options.physics_output_file.empty())

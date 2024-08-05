@@ -10,7 +10,8 @@
 #include <cmath>
 #include <type_traits>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 
@@ -416,6 +417,7 @@ CELER_FORCEINLINE_FUNCTION ForwardIt min_element(ForwardIt first,
 //---------------------------------------------------------------------------//
 // Replace/extend <cmath>
 //---------------------------------------------------------------------------//
+//!\cond
 //! Generate overloads for a single-argument math function
 #define CELER_WRAP_MATH_FLOAT_DBL_1(PREFIX, FUNC)        \
     CELER_FORCEINLINE_FUNCTION float FUNC(float value)   \
@@ -435,6 +437,7 @@ CELER_FORCEINLINE_FUNCTION ForwardIt min_element(ForwardIt first,
     {                                                                        \
         return ::PREFIX##FUNC(value, a, b);                                  \
     }
+//!\endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -494,7 +497,7 @@ CELER_WRAP_MATH_FLOAT_DBL_1(, rsqrt)
 /*!
  * Calculate an inverse square root.
  */
-inline CELER_FUNCTION double rsqrt(double value)
+CELER_FORCEINLINE_FUNCTION double rsqrt(double value)
 {
     return 1.0 / std::sqrt(value);
 }
@@ -503,7 +506,7 @@ inline CELER_FUNCTION double rsqrt(double value)
 /*!
  * Calculate an inverse square root.
  */
-inline CELER_FUNCTION float rsqrt(float value)
+CELER_FORCEINLINE_FUNCTION float rsqrt(float value)
 {
     return 1.0f / std::sqrt(value);
 }
@@ -521,7 +524,7 @@ inline CELER_FUNCTION float rsqrt(float value)
  * std::fma directly in most cases.
  */
 template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
-inline CELER_FUNCTION T fma(T a, T b, T y)
+CELER_FORCEINLINE_FUNCTION T fma(T a, T b, T y)
 {
     return std::fma(a, b, y);
 }
@@ -602,6 +605,18 @@ CELER_CONSTEXPR_FUNCTION T eumod(T numer, T denom)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Calculate the sign of a number.
+ *
+ * \return -1 if negative, 0 if exactly zero (or NaN), 1 if positive
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION int signum(T x)
+{
+    return (0 < x) - (x < 0);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Double-precision math constant (POSIX derivative).
  *
  * These should be used in *host* or *type-dependent* circumstances because, if
@@ -628,6 +643,8 @@ CELER_WRAP_MATH_FLOAT_DBL_PTR_2(__, sincos)
 #else
 using ::celeritas::detail::cospi;
 using ::celeritas::detail::sinpi;
+//!@{
+//! Simultaneously evaluate the sine and cosine of a value
 CELER_FORCEINLINE void sincos(float a, float* s, float* c)
 {
     return detail::sincos(a, s, c);
@@ -644,6 +661,7 @@ CELER_FORCEINLINE void sincospi(double a, double* s, double* c)
 {
     return detail::sincospi(a, s, c);
 }
+//!@}
 #endif
 //!@}
 

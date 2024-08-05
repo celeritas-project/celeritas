@@ -69,7 +69,7 @@ if core_geo == "orange-json":
     geometry_filename = re.sub(r"\.gdml$", ".org.json", geometry_filename)
 
 simple_calo = []
-if not rootout_filename:
+if not rootout_filename and "cms" in geometry_filename:
     simple_calo = ["si_tracker", "em_calorimeter"]
 
 num_tracks = 128*32 if use_device else 32
@@ -91,6 +91,7 @@ inp = {
     'num_track_slots': num_tracks,
     'max_steps': max_steps,
     'initializer_capacity': 100 * max([num_tracks, num_primaries]),
+    'optical_buffer_capacity': 3 * max_steps * num_tracks,
     'secondary_stack_factor': 3,
     'action_diagnostic': True,
     'step_diagnostic': True,

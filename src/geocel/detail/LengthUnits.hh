@@ -8,7 +8,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Types.hh"
 
 #define CELER_ICRT inline constexpr real_type

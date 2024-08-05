@@ -59,15 +59,33 @@ CELER_CONSTEXPR_FUNCTION MevPerLen lpm_constant()
 //---------------------------------------------------------------------------//
 
 //! Maximum energy for the SeltzerBerger model - TODO: make this configurable
-CELER_CONSTEXPR_FUNCTION units::MevEnergy seltzer_berger_limit()
+CELER_CONSTEXPR_FUNCTION units::MevEnergy seltzer_berger_upper_limit()
 {
     return units::MevEnergy{1e3};  //! 1 GeV
+}
+
+//! Energy threshold between muon ionization models. TODO: make configurable
+CELER_CONSTEXPR_FUNCTION units::MevEnergy mu_bethe_bloch_lower_limit()
+{
+    return units::MevEnergy{0.2};  //! 200 keV
 }
 
 //! Maximum energy for EM models to be valid
 CELER_CONSTEXPR_FUNCTION units::MevEnergy high_energy_limit()
 {
     return units::MevEnergy{1e8};  //! 100 TeV
+}
+
+//! Used in Bragg model to calculate minimum energy transfer to delta ray
+CELER_CONSTEXPR_FUNCTION units::MevEnergy bragg_lowest_kin_energy()
+{
+    return units::MevEnergy{2.5e-4};  //! 0.25 keV
+}
+
+//! Used in ICRU73QO model to calculate minimum energy transfer to delta ray
+CELER_CONSTEXPR_FUNCTION units::MevEnergy icru73qo_lowest_kin_energy()
+{
+    return units::MevEnergy{5e-3};  //! 5 keV
 }
 
 //---------------------------------------------------------------------------//

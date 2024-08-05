@@ -10,7 +10,8 @@
 #include <cmath>
 #include <regex>
 
-#include "celeritas_cmake_strings.h"
+#include "corecel/Config.hh"
+
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/Logger.hh"

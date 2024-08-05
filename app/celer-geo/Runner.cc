@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "Runner.hh"
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Stopwatch.hh"

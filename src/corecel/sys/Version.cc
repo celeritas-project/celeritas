@@ -11,7 +11,8 @@
 #include <iostream>
 #include <regex>
 
-#include "celeritas_version.h"
+#include "corecel/Version.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/io/Join.hh"
 

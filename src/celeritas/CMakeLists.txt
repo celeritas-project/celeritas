@@ -42,11 +42,14 @@ list(APPEND SOURCES
   global/CoreParams.cc
   global/CoreState.cc
   global/CoreTrackData.cc
+  global/Debug.cc
+  global/DebugIO.json.cc
   global/KernelContextException.cc
   global/Stepper.cc
   global/detail/ActionSequence.cc
   global/detail/PinnedAllocator.cc
   grid/GenericGridBuilder.cc
+  grid/TwodGridBuilder.cc
   grid/ValueGridBuilder.cc
   grid/ValueGridInserter.cc
   grid/ValueGridType.cc
@@ -71,10 +74,10 @@ list(APPEND SOURCES
   neutron/process/NeutronInelasticProcess.cc
   optical/CerenkovParams.cc
   optical/OpticalCollector.cc
-  optical/OpticalPropertyParams.cc
-  optical/OpticalTrackData.cc
+  optical/MaterialPropertyParams.cc
+  optical/TrackData.cc
   optical/ScintillationParams.cc
-  optical/detail/OpticalGenParams.cc
+  optical/detail/OffloadParams.cc
   phys/CutoffParams.cc
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc
@@ -240,11 +243,14 @@ macro(celeritas_polysource filename_we)
 endmacro()
 
 celeritas_polysource(em/model/BetheHeitlerModel)
+celeritas_polysource(em/model/BraggModel)
 celeritas_polysource(em/model/CombinedBremModel)
 celeritas_polysource(em/model/EPlusGGModel)
+celeritas_polysource(em/model/ICRU73QOModel)
 celeritas_polysource(em/model/KleinNishinaModel)
 celeritas_polysource(em/model/LivermorePEModel)
 celeritas_polysource(em/model/MollerBhabhaModel)
+celeritas_polysource(em/model/MuBetheBlochModel)
 celeritas_polysource(em/model/MuBremsstrahlungModel)
 celeritas_polysource(em/model/RayleighModel)
 celeritas_polysource(em/model/RelativisticBremModel)
@@ -257,12 +263,13 @@ celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
 celeritas_polysource(global/alongstep/AlongStepRZMapFieldMscAction)
 celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
 celeritas_polysource(neutron/model/NeutronInelasticModel)
-celeritas_polysource(optical/detail/CerenkovPreGenAction)
+celeritas_polysource(optical/detail/CerenkovOffloadAction)
 celeritas_polysource(optical/detail/OpticalGenAlgorithms)
-celeritas_polysource(optical/detail/PreGenGatherAction)
-celeritas_polysource(optical/detail/ScintPreGenAction)
+celeritas_polysource(optical/detail/OffloadGatherAction)
+celeritas_polysource(optical/detail/ScintOffloadAction)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)
+celeritas_polysource(phys/detail/TrackingCutAction)
 celeritas_polysource(random/RngReseed)
 celeritas_polysource(random/detail/CuHipRngStateInit)
 celeritas_polysource(track/detail/TrackInitAlgorithms)
@@ -270,6 +277,7 @@ celeritas_polysource(track/detail/TrackSortUtils)
 celeritas_polysource(track/ExtendFromPrimariesAction)
 celeritas_polysource(track/ExtendFromSecondariesAction)
 celeritas_polysource(track/InitializeTracksAction)
+celeritas_polysource(track/StatusChecker)
 celeritas_polysource(user/ActionDiagnostic)
 celeritas_polysource(user/DetectorSteps)
 celeritas_polysource(user/StepDiagnostic)

@@ -27,7 +27,7 @@ class ParticleParams;
  * Set up and launch the relativistic Bremsstrahlung model for high-energy
  * electrons and positrons with the Landau-Pomeranchuk-Migdal (LPM) effect
  */
-class RelativisticBremModel final : public Model
+class RelativisticBremModel final : public Model, public ConcreteAction
 {
   public:
     //@{
@@ -56,18 +56,6 @@ class RelativisticBremModel final : public Model
 
     // Apply the interaction kernel to device data
     void execute(CoreParams const&, CoreStateDevice&) const final;
-
-    // ID of the model
-    ActionId action_id() const final;
-
-    //! Short name for the interaction kernel
-    std::string_view label() const final { return "brems-rel"; }
-
-    //! Short description of the post-step action
-    std::string_view description() const final
-    {
-        return "interact by relativistic bremsstrahlung";
-    }
 
     //! Access data on the host
     HostRef const& host_ref() const { return data_.host_ref(); }

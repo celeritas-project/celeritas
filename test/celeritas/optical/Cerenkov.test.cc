@@ -22,10 +22,10 @@
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/CerenkovDndxCalculator.hh"
 #include "celeritas/optical/CerenkovGenerator.hh"
+#include "celeritas/optical/CerenkovOffload.hh"
 #include "celeritas/optical/CerenkovParams.hh"
-#include "celeritas/optical/CerenkovPreGenerator.hh"
-#include "celeritas/optical/OpticalDistributionData.hh"
-#include "celeritas/optical/OpticalPropertyParams.hh"
+#include "celeritas/optical/GeneratorDistributionData.hh"
+#include "celeritas/optical/MaterialPropertyParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/random/distribution/PoissonDistribution.hh"
 
@@ -37,6 +37,8 @@ namespace celeritas
 {
 namespace test
 {
+using namespace celeritas::optical;
+
 struct InvCentimeter
 {
     static CELER_CONSTEXPR_FUNCTION real_type value()
@@ -135,9 +137,9 @@ class CerenkovTest : public OpticalTestBase
             = {get_refractive_index().begin(), get_refractive_index().end()};
         water.refractive_index.vector_type = ImportPhysicsVectorType::free;
 
-        OpticalPropertyParams::Input input;
+        MaterialPropertyParams::Input input;
         input.data.push_back(std::move(water));
-        properties = std::make_shared<OpticalPropertyParams>(std::move(input));
+        properties = std::make_shared<MaterialPropertyParams>(std::move(input));
 
         // Build Cerenkov data
         params = std::make_shared<CerenkovParams>(properties);
@@ -145,9 +147,9 @@ class CerenkovTest : public OpticalTestBase
 
     static constexpr double micrometer = 1e-4 * units::centimeter;
 
-    std::shared_ptr<OpticalPropertyParams const> properties;
+    std::shared_ptr<MaterialPropertyParams const> properties;
     std::shared_ptr<CerenkovParams const> params;
-    OpticalMaterialId material{0};
+    OpticalMaterialId opt_mat{0};
 };
 
 //---------------------------------------------------------------------------//
@@ -159,7 +161,7 @@ TEST_F(CerenkovTest, angle_integral)
     // Check conversion: 1 μm wavelength is approximately 1.2398 eV
     EXPECT_SOFT_EQ(1.2398419843320026e-6, convert_to_energy(1 * micrometer));
 
-    auto const& grid = params->host_ref().angle_integral[material];
+    auto const& grid = params->host_ref().angle_integral[opt_mat];
     EXPECT_TRUE(grid);
 
     auto const& energy = params->host_ref().reals[grid.grid];
@@ -186,7 +188,7 @@ TEST_F(CerenkovTest, dndx)
     CerenkovDndxCalculator calc_dndx(
         properties->host_ref(),
         params->host_ref(),
-        material,
+        opt_mat,
         this->particle_params()->get(ParticleId{0}).charge());
 
     for (real_type beta :
@@ -221,10 +223,11 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
     // 500 keV e-
     {
         // Pre-step values
-        OpticalPreStepData pre_step;
+        OffloadPreStepData pre_step;
         pre_step.pos = {0, 0, 0};
         pre_step.speed = units::LightSpeed{0.63431981443206786};
         pre_step.time = 0;
+        pre_step.opt_mat = opt_mat;
 
         // Post-step values
         auto particle
@@ -232,13 +235,12 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
         auto sim = this->make_sim_track_view(0.15);
         Real3 pos = {sim.step_length(), 0, 0};
 
-        CerenkovPreGenerator pre_generate(particle,
-                                          sim,
-                                          pos,
-                                          material,
-                                          properties->host_ref(),
-                                          params->host_ref(),
-                                          pre_step);
+        CerenkovOffload pre_generate(particle,
+                                     sim,
+                                     pos,
+                                     properties->host_ref(),
+                                     params->host_ref(),
+                                     pre_step);
 
         size_type num_samples = 10;
         std::vector<size_type> sampled_num_photons;
@@ -251,7 +253,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
             // Remaining values are assigned to result from input data
             EXPECT_EQ(pre_step.time, result.time);
             EXPECT_EQ(particle.charge().value(), result.charge.value());
-            EXPECT_EQ(material, result.material);
+            EXPECT_EQ(opt_mat, result.material);
             EXPECT_EQ(sim.step_length(), result.step_length);
             EXPECT_EQ(pre_step.speed.value(),
                       result.points[StepPoint::pre].speed.value());
@@ -270,10 +272,11 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
     // Below Cerenkov threshold
     {
         // Pre-step values
-        OpticalPreStepData pre_step;
+        OffloadPreStepData pre_step;
         pre_step.pos = {0, 0, 0};
         pre_step.speed = units::LightSpeed{0.55};
         pre_step.time = 0;
+        pre_step.opt_mat = opt_mat;
 
         // Post-step values
         auto particle
@@ -281,13 +284,12 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
         auto sim = this->make_sim_track_view(0.1);
         Real3 pos = {sim.step_length(), 0, 0};
 
-        CerenkovPreGenerator pre_generate(particle,
-                                          sim,
-                                          pos,
-                                          material,
-                                          properties->host_ref(),
-                                          params->host_ref(),
-                                          pre_step);
+        CerenkovOffload pre_generate(particle,
+                                     sim,
+                                     pos,
+                                     properties->host_ref(),
+                                     params->host_ref(),
+                                     pre_step);
         auto const result = pre_generate(rng);
 
         EXPECT_FALSE(result);
@@ -319,7 +321,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
     real_type emax = convert_to_energy(get_wavelength().back() * micrometer);
     real_type edel = (emax - emin) / num_bins;
 
-    auto sample = [&](OpticalPreStepData& pre_step,
+    auto sample = [&](OffloadPreStepData& pre_step,
                       ParticleTrackView const& particle,
                       SimTrackView const& sim,
                       Real3 const& pos,
@@ -337,13 +339,12 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
         real_type ddel = (dmax - dmin) / num_bins;
 
         // Calculate the average number of photons produced per unit length
-        CerenkovPreGenerator pre_generate(particle,
-                                          sim,
-                                          pos,
-                                          material,
-                                          properties->host_ref(),
-                                          params->host_ref(),
-                                          pre_step);
+        CerenkovOffload pre_generate(particle,
+                                     sim,
+                                     pos,
+                                     properties->host_ref(),
+                                     params->host_ref(),
+                                     pre_step);
 
         Real3 inc_dir = make_unit_vector(pos - pre_step.pos);
         for (size_type i = 0; i < num_samples; ++i)
@@ -352,7 +353,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
             CELER_ASSERT(dist);
 
             // Sample the optical photons
-            std::vector<OpticalPrimary> storage(dist.num_photons);
+            std::vector<Primary> storage(dist.num_photons);
             CerenkovGenerator generate_photons(properties->host_ref(),
                                                params->host_ref(),
                                                dist,
@@ -411,10 +412,11 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
     // 10 GeV e-
     {
         // Pre-step values
-        OpticalPreStepData pre_step;
+        OffloadPreStepData pre_step;
         pre_step.pos = {0, 0, 0};
         pre_step.speed = units::LightSpeed{0.99999999869453382};  // 10 GeV
         pre_step.time = 0;
+        pre_step.opt_mat = opt_mat;
 
         // Post-step values
         auto particle
@@ -448,10 +450,11 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
     // 500 keV e-
     {
         // Pre-step values
-        OpticalPreStepData pre_step;
+        OffloadPreStepData pre_step;
         pre_step.pos = {0, 0, 0};
         pre_step.speed = units::LightSpeed(0.86286196322132458);  // 500 keV
         pre_step.time = 0;
+        pre_step.opt_mat = opt_mat;
 
         // Post-step values
         auto particle

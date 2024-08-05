@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/io/Label.hh"
@@ -84,6 +85,8 @@ struct RunnerInput
     // Control
     unsigned int seed{};
     size_type num_track_slots{};  //!< Divided among streams
+    size_type optical_buffer_capacity{};  //!< Number of steps that created
+                                          //!< optical photons
     size_type max_steps{unspecified};
     size_type initializer_capacity{};  //!< Divided among streams
     real_type secondary_stack_factor{};

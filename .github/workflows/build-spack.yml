@@ -32,6 +32,9 @@ jobs:
           - geometry: "orange"
             special: "float"
             geant: "11.0"
+          - geometry: "orange"
+            special: "asanlite"
+            geant: null
           - geometry: "vecgeom"
             special: "clhep"
             geant: "11.0"
@@ -76,7 +79,7 @@ jobs:
           if [ "${{matrix.geometry}}" == "vecgeom" ]; then
             spack -e . add vecgeom
           fi
-          if [ "${{matrix.special}}" != "minimal" ]; then
+          if [ "${{matrix.special}}" != "minimal" ] && [  "${{matrix.special}}" != "asanlite" ] ; then
             spack -e . add root
           fi
           if [ "${{matrix.geant}}" != "" ]; then
@@ -147,8 +150,7 @@ jobs:
             # Note this is ignored for geant4, float, clhep
             export CELER_TEST_STRICT=1
           fi
-          ctest --parallel $(nproc) --timeout 15 --output-on-failure \
-            --test-output-size-passed=32768 --test-output-size-failed=1048576
+          ctest --parallel $(nproc) --timeout 15 --output-on-failure
       - name: Upload failed tests
         if: ${{steps.test.outcome == 'failure'}}
         uses: actions/upload-artifact@v4
@@ -161,6 +163,11 @@ jobs:
             build/Testing/Temporary/LastTest.log
             build/Testing/Temporary/LastTestsFailed.log
       - name: Check using build directory as install
+        # TODO: ASAN requires flags downstream
+        if: >-
+          ${{
+            (matrix.special != 'asanlite')
+          }}
         run: |
           . ${SPACK_VIEW}/rc
           CELER_INSTALL_DIR=${PWD}/build ./scripts/ci/test-examples.sh
@@ -177,6 +184,11 @@ jobs:
           done
           ./bin/celer-sim --version
       - name: Build examples
+        # TODO: ASAN requires flags downstream
+        if: >-
+          ${{
+            (matrix.special != 'asanlite')
+          }}
         run: |
           . ${SPACK_VIEW}/rc
           ./scripts/ci/test-examples.sh

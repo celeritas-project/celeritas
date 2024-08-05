@@ -8,11 +8,11 @@
 #include "ActionSequence.hh"
 
 #include <algorithm>
-#include <tuple>
 #include <type_traits>
 #include <utility>
 
-#include "corecel/device_runtime_api.h"
+#include "corecel/DeviceRuntimeApi.hh"
+
 #include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
@@ -21,10 +21,12 @@
 #include "corecel/sys/Stopwatch.hh"
 #include "corecel/sys/Stream.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/track/StatusChecker.hh"
 
 #include "../ActionInterface.hh"
 #include "../ActionRegistry.hh"
 #include "../CoreState.hh"
+#include "../Debug.hh"
 
 namespace celeritas
 {
@@ -60,7 +62,7 @@ ActionSequence<Params>::ActionSequence(ActionRegistry const& reg,
         if (auto brun = std::dynamic_pointer_cast<BeginRunActionInterface>(base))
         {
             // Add beginning-of-run to the array
-            begin_run_.push_back(std::move(brun));
+            begin_run_.emplace_back(std::move(brun));
         }
     }
 
@@ -69,12 +71,25 @@ ActionSequence<Params>::ActionSequence(ActionRegistry const& reg,
               actions_.end(),
               [](SPConstSpecializedExplicit const& a,
                  SPConstSpecializedExplicit const& b) {
-                  return std::make_tuple(a->order(), a->action_id())
-                         < std::make_tuple(b->order(), b->action_id());
+                  return OrderedAction{a->order(), a->action_id()}
+                         < OrderedAction{b->order(), b->action_id()};
               });
 
     // Initialize timing
     accum_time_.resize(actions_.size());
+
+    // Get status checker if available
+    for (auto const& brun_sp : begin_run_)
+    {
+        if (auto sc = std::dynamic_pointer_cast<StatusChecker>(brun_sp))
+        {
+            // Add status checker
+            status_checker_ = std::move(sc);
+            CELER_LOG(info) << "Executing actions with additional debug "
+                               "checking";
+            break;
+        }
+    }
 
     CELER_ENSURE(actions_.size() == accum_time_.size());
 }
@@ -108,6 +123,14 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
         stream = celeritas::device().stream(state.stream_id()).get();
     }
 
+    if constexpr (M == MemSpace::host && std::is_same_v<CoreParams, Params>)
+    {
+        if (status_checker_)
+        {
+            g_debug_executing_params = &params;
+        }
+    }
+
     // Running a single track slot on host:
     // Skip inapplicable post-step action
     auto const skip_post_action = [&](auto const& action) {
@@ -135,6 +158,10 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
                     CELER_DEVICE_CALL_PREFIX(StreamSynchronize(stream));
                 }
                 accum_time_[i] += get_time();
+                if (CELER_UNLIKELY(status_checker_))
+                {
+                    status_checker_->execute(action.action_id(), params, state);
+                }
             }
         }
     }
@@ -147,8 +174,18 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
             {
                 ScopedProfiling profile_this{action.label()};
                 action.execute(params, state);
+                if (CELER_UNLIKELY(status_checker_))
+                {
+                    status_checker_->execute(action.action_id(), params, state);
+                }
             }
         }
+    }
+
+    if (M == MemSpace::host
+        && std::is_same_v<CoreParams, Params> && status_checker_)
+    {
+        g_debug_executing_params = nullptr;
     }
 }
 

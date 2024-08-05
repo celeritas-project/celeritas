@@ -21,9 +21,13 @@ namespace celeritas
 class CoreParams;
 template<MemSpace M>
 class CoreState;
-class OpticalParams;
+
+namespace optical
+{
+class CoreParams;
 template<MemSpace M>
-class OpticalState;
+class CoreState;
+}  // namespace optical
 
 //---------------------------------------------------------------------------//
 /*!
@@ -45,10 +49,11 @@ class OpticalState;
  * Using multiple inheritance, you can create an action that inherits from
  * multiple of these classes.
  *
- * The label should be a brief lowercase hyphen-separated string, with perhaps
- * some sort of category being the first token.
+ * The \c label should be a brief lowercase hyphen-separated string, usually a
+ * noun, with perhaps some sort of category being the first token.
  *
- * The description should be a verb phrase (lowercase start).
+ * The \c description should be a verb phrase (and not have a title-cased
+ * start).
  */
 class ActionInterface
 {
@@ -56,7 +61,7 @@ class ActionInterface
     // Default virtual destructor allows deletion by pointer-to-interface
     virtual ~ActionInterface();
 
-    //! ID of this action for verification
+    //! ID of this action for verification and ordering
     virtual ActionId action_id() const = 0;
 
     //! Short unique label of the action
@@ -103,6 +108,9 @@ class BeginRunActionInterface : public virtual ActionInterface
 //---------------------------------------------------------------------------//
 /*!
  * Interface for an action that launches a kernel or performs an action.
+ *
+ * TODO: rename to OrderedAction, SequenceAction, StepAction, ... ? since these
+ * are the actions that \em always are executed exactly once per step.
  */
 class ExplicitActionInterface : public virtual ActionInterface
 {
@@ -113,8 +121,8 @@ class ExplicitActionInterface : public virtual ActionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * Interface for an action that launches a kernel or performs an action
- * specialized for particles using CoreParams.
+ * Interface for kernel actions on the main tracking loop.
+ *
  * TODO: Template this on 'Core' and 'Optical' and ...
  */
 class ExplicitCoreActionInterface : public virtual ExplicitActionInterface
@@ -136,24 +144,24 @@ class ExplicitCoreActionInterface : public virtual ExplicitActionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * Interface for an action that launches a kernel or performs an action
- * specialized for particles using OpticalParams.
+ * Interface for kernel actions on the optical tracking loop.
  */
 class ExplicitOpticalActionInterface : public virtual ExplicitActionInterface
 {
   public:
     //@{
     //! \name Type aliases
-    using OpticalStateHost = OpticalState<MemSpace::host>;
-    using OpticalStateDevice = OpticalState<MemSpace::device>;
+    using CoreParams = optical::CoreParams;
+    using CoreStateHost = optical::CoreState<MemSpace::host>;
+    using CoreStateDevice = optical::CoreState<MemSpace::device>;
     //@}
 
   public:
     //! Execute the action with host data
-    virtual void execute(OpticalParams const&, OpticalStateHost&) const = 0;
+    virtual void execute(CoreParams const&, CoreStateHost&) const = 0;
 
     //! Execute the action with device data
-    virtual void execute(OpticalParams const&, OpticalStateDevice&) const = 0;
+    virtual void execute(CoreParams const&, CoreStateDevice&) const = 0;
 };
 
 //---------------------------------------------------------------------------//

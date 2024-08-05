@@ -21,19 +21,25 @@ namespace detail
 /*!
  * Construct with a unit system.
  */
-ImportDataConverter::ImportDataConverter(UnitSystem usys) : usys_{usys}
+ImportDataConverter::ImportDataConverter(UnitSystem usys)
+    : usys_{usys}
+    , len_(native_value_from(usys_, ImportUnits::len))
+    , numdens_(native_value_from(usys_, ImportUnits::inv_len_cb))
+    , time_(native_value_from(usys_, ImportUnits::time))
+    , xs_(native_value_from(usys_, ImportModelMaterial::xs_units))
+    , inv_pressure_(native_value_from(usys_, ImportUnits::len_time_sq_per_mass))
 {
-    len_ = native_value_from(usys_, ImportUnits::len);
-    numdens_ = native_value_from(usys_, ImportUnits::inv_len_cb);
-    time_ = native_value_from(usys_, ImportUnits::time);
-    xs_ = native_value_from(usys_, ImportModelMaterial::xs_units);
-    inv_pressure_ = native_value_from(usys_, ImportUnits::len_time_sq_per_mass);
 }
 
 //---------------------------------------------------------------------------//
 void ImportDataConverter::operator()(ImportData* data)
 {
-    for (auto& m : data->materials)
+    for (auto& m : data->geo_materials)
+    {
+        (*this)(&m);
+    }
+
+    for (auto& m : data->phys_materials)
     {
         (*this)(&m);
     }
@@ -72,11 +78,17 @@ void ImportDataConverter::operator()(ImportEmParameters* data)
 }
 
 //---------------------------------------------------------------------------//
-void ImportDataConverter::operator()(ImportMaterial* data)
+void ImportDataConverter::operator()(ImportGeoMaterial* data)
 {
     CELER_EXPECT(data);
 
     data->number_density *= numdens_;
+}
+
+//---------------------------------------------------------------------------//
+void ImportDataConverter::operator()(ImportPhysMaterial* data)
+{
+    CELER_EXPECT(data);
 
     for (auto& [pdg, cut] : data->pdg_cutoffs)
     {

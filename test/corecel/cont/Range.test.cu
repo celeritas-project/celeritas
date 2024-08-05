@@ -9,7 +9,8 @@
 
 #include <thrust/device_vector.h>
 
-#include "corecel/device_runtime_api.h"
+#include "corecel/DeviceRuntimeApi.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/Device.hh"

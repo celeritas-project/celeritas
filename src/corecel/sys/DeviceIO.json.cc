@@ -9,12 +9,14 @@
 
 #include <map>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 
 #include "Device.hh"
+#include "Stream.hh"
 
 namespace celeritas
 {
+#define CELER_DIO_PAIR(ATTR) {#ATTR, d.ATTR()}
 //---------------------------------------------------------------------------//
 /*!
  * Write device diagnostics out to JSON.
@@ -24,22 +26,24 @@ void to_json(nlohmann::json& j, Device const& d)
     if (d)
     {
         j = nlohmann::json{
-            {"device_id", d.device_id()},
-            {"name", d.name()},
-            {"total_global_mem", d.total_global_mem()},
-            {"max_threads_per_block", d.max_threads_per_block()},
-            {"max_blocks_per_grid", d.max_blocks_per_grid()},
-            {"max_threads_per_cu", d.max_threads_per_cu()},
-            {"threads_per_warp", d.threads_per_warp()},
-            {"eu_per_cu", d.eu_per_cu()},
-            {"can_map_host_memory", d.can_map_host_memory()},
+            CELER_DIO_PAIR(device_id),
+            CELER_DIO_PAIR(name),
+            CELER_DIO_PAIR(total_global_mem),
+            CELER_DIO_PAIR(max_threads_per_block),
+            CELER_DIO_PAIR(max_blocks_per_grid),
+            CELER_DIO_PAIR(max_threads_per_cu),
+            CELER_DIO_PAIR(threads_per_warp),
+            CELER_DIO_PAIR(eu_per_cu),
+            CELER_DIO_PAIR(can_map_host_memory),
+            // Static data
+            CELER_DIO_PAIR(debug),
+            CELER_DIO_PAIR(num_devices),
         };
 
-#if CELERITAS_USE_CUDA
-        j["platform"] = "cuda";
-#elif CELERITAS_USE_HIP
-        j["platform"] = "hip";
-#endif
+        j["platform"] = CELERITAS_USE_CUDA  ? "cuda"
+                        : CELERITAS_USE_HIP ? "hip"
+                                            : "none";
+        j["stream_async"] = Stream::async();
 
         for (auto const& kv : d.extra())
         {
@@ -51,6 +55,8 @@ void to_json(nlohmann::json& j, Device const& d)
         j = nlohmann::json{};
     }
 }
+
+#undef CELER_DIO_PAIR
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

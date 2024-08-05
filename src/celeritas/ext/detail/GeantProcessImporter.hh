@@ -82,7 +82,7 @@ class GeantProcessImporter
   public:
     // Construct with selected list of tables
     GeantProcessImporter(TableSelection which_tables,
-                         std::vector<ImportMaterial> const& materials,
+                         std::vector<ImportPhysMaterial> const& materials,
                          std::vector<ImportElement> const& elements);
 
     // Import processes
@@ -107,7 +107,7 @@ class GeantProcessImporter
     //// DATA ////
 
     // Store material and element information for the element selector tables
-    std::vector<ImportMaterial> const& materials_;
+    std::vector<ImportPhysMaterial> const& materials_;
     std::vector<ImportElement> const& elements_;
 };
 

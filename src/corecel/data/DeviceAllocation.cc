@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "DeviceAllocation.hh"
 
-#include "corecel/device_runtime_api.h"
+#include "corecel/DeviceRuntimeApi.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
@@ -19,13 +20,14 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct in unallocated state
+ * Construct in unallocated state.
  */
 DeviceAllocation::DeviceAllocation(StreamId stream)
     : size_{0}, stream_{stream}, data_{nullptr, {stream}}
 {
 }
 
+//---------------------------------------------------------------------------//
 /*!
  * Allocate a buffer with the given number of bytes.
  */
@@ -56,7 +58,7 @@ DeviceAllocation::DeviceAllocation(size_type bytes, StreamId stream)
  */
 void DeviceAllocation::copy_to_device(SpanConstBytes bytes)
 {
-    CELER_EXPECT(bytes.size() == this->size());
+    CELER_EXPECT(bytes.size() <= this->size());
     if (stream_)
     {
         CELER_DEVICE_CALL_PREFIX(
@@ -82,7 +84,7 @@ void DeviceAllocation::copy_to_device(SpanConstBytes bytes)
  */
 void DeviceAllocation::copy_to_host(SpanBytes bytes) const
 {
-    CELER_EXPECT(bytes.size() == this->size());
+    CELER_EXPECT(bytes.size() <= this->size());
     if (stream_)
     {
         CELER_DEVICE_CALL_PREFIX(

@@ -37,9 +37,12 @@ class WentzelOKVIParams;
 class CoreParams;
 class OutputRegistry;
 
+namespace optical
+{
 class CerenkovParams;
-class OpticalPropertyParams;
+class MaterialPropertyParams;
 class ScintillationParams;
+}  // namespace optical
 
 namespace test
 {
@@ -76,9 +79,9 @@ class GlobalTestBase : public Test
     using SPOutputRegistry = SP<OutputRegistry>;
     using SPUserRegistry = SP<AuxParamsRegistry>;
 
-    using SPConstCerenkov = SP<CerenkovParams const>;
-    using SPConstProperties = SP<OpticalPropertyParams const>;
-    using SPConstScintillation = SP<ScintillationParams const>;
+    using SPConstCerenkov = SP<optical::CerenkovParams const>;
+    using SPConstProperties = SP<optical::MaterialPropertyParams const>;
+    using SPConstScintillation = SP<optical::ScintillationParams const>;
     //!@}
 
   public:
@@ -150,6 +153,9 @@ class GlobalTestBase : public Test
     [[nodiscard]] virtual SPConstProperties build_properties() = 0;
     [[nodiscard]] virtual SPConstScintillation build_scintillation() = 0;
 
+    // Do not insert StatusChecker
+    void disable_status_checker();
+
   private:
     SPConstRng build_rng() const;
     SPActionRegistry build_action_reg() const;
@@ -175,6 +181,7 @@ class GlobalTestBase : public Test
     SPConstCerenkov cerenkov_;
     SPConstProperties properties_;
     SPConstScintillation scintillation_;
+    bool insert_status_checker_{true};
 };
 
 //---------------------------------------------------------------------------//

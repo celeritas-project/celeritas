@@ -11,12 +11,12 @@
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/optical/OpticalDistributionData.hh"
-#include "celeritas/optical/OpticalPrimary.hh"
+#include "celeritas/optical/GeneratorDistributionData.hh"
+#include "celeritas/optical/Primary.hh"
 #include "celeritas/optical/ScintillationData.hh"
 #include "celeritas/optical/ScintillationGenerator.hh"
+#include "celeritas/optical/ScintillationOffload.hh"
 #include "celeritas/optical/ScintillationParams.hh"
-#include "celeritas/optical/ScintillationPreGenerator.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
 #include "DiagnosticRngEngine.hh"
@@ -27,6 +27,7 @@ namespace celeritas
 {
 namespace test
 {
+using namespace celeritas::optical;
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -120,18 +121,19 @@ class ScintillationTest : public OpticalTestBase
     }
 
     //! Set up mock pre-generator step data
-    OpticalPreStepData build_pre_step()
+    OffloadPreStepData build_pre_step()
     {
-        OpticalPreStepData pre_step;
+        OffloadPreStepData pre_step;
         pre_step.speed = LightSpeed(0.99862874144970537);  // 10 MeV
         pre_step.pos = {0, 0, 0};
         pre_step.time = 0;
+        pre_step.opt_mat = opt_mat_;
         return pre_step;
     }
 
   protected:
     RandomEngine rng_;
-    OpticalMaterialId opt_matid_{0};
+    OpticalMaterialId opt_mat_{0};
 
     // Post-step values
     Real3 post_pos_{0, 0, from_cm(1)};
@@ -152,9 +154,9 @@ TEST_F(ScintillationTest, material_scint_params)
     EXPECT_EQ(0, data.num_scint_particles);
     EXPECT_EQ(1, data.materials.size());
 
-    auto const& material = data.materials[opt_matid_];
+    auto const& material = data.materials[opt_mat_];
     EXPECT_REAL_EQ(5, material.yield_per_energy);
-    EXPECT_REAL_EQ(1, data.resolution_scale[opt_matid_]);
+    EXPECT_REAL_EQ(1, data.resolution_scale[opt_mat_]);
     EXPECT_EQ(3, data.components.size());
 
     std::vector<real_type> yield_fracs, lambda_means, lambda_sigmas,
@@ -203,11 +205,11 @@ TEST_F(ScintillationTest, particle_scint_params)
     auto const scint_pid = data.pid_to_scintpid[ParticleId{0}];
     EXPECT_EQ(1, data.pid_to_scintpid.size());
     EXPECT_EQ(1, data.num_scint_particles);
-    EXPECT_REAL_EQ(1, data.resolution_scale[opt_matid_]);
+    EXPECT_REAL_EQ(1, data.resolution_scale[opt_mat_]);
 
     // Get correct spectrum index given opticals particle and material ids
     auto const part_scint_spectrum_id
-        = data.spectrum_index(scint_pid, opt_matid_);
+        = data.spectrum_index(scint_pid, opt_mat_);
     EXPECT_EQ(0, part_scint_spectrum_id.get());
 
     auto const& particle = data.particles[part_scint_spectrum_id];
@@ -269,13 +271,12 @@ TEST_F(ScintillationTest, pre_generator)
         = this->make_particle_track_view(post_energy_, pdg::electron());
     auto const pre_step = this->build_pre_step();
 
-    ScintillationPreGenerator generate(particle,
-                                       this->make_sim_track_view(step_length_),
-                                       post_pos_,
-                                       opt_matid_,
-                                       edep_,
-                                       data,
-                                       pre_step);
+    ScintillationOffload generate(particle,
+                                  this->make_sim_track_view(step_length_),
+                                  post_pos_,
+                                  edep_,
+                                  data,
+                                  pre_step);
 
     auto const result = generate(this->rng());
     CELER_ASSERT(result);
@@ -300,20 +301,21 @@ TEST_F(ScintillationTest, basic)
     auto const& data = params->host_ref();
     EXPECT_FALSE(data.scintillation_by_particle());
 
+    auto const pre_step = this->build_pre_step();
+
     // Pre-generate optical distribution data
-    ScintillationPreGenerator generate(
+    ScintillationOffload generate(
         this->make_particle_track_view(post_energy_, pdg::electron()),
         this->make_sim_track_view(step_length_),
         post_pos_,
-        opt_matid_,
         edep_,
         data,
-        this->build_pre_step());
+        pre_step);
 
     auto const result = generate(this->rng());
 
     // Output data
-    std::vector<OpticalPrimary> storage(result.num_photons);
+    std::vector<Primary> storage(result.num_photons);
 
     // Create the generator
     ScintillationGenerator generate_photons(
@@ -371,15 +373,15 @@ TEST_F(ScintillationTest, stress_test)
 {
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
+    auto const pre_step = this->build_pre_step();
 
-    ScintillationPreGenerator generate(
+    ScintillationOffload generate(
         this->make_particle_track_view(post_energy_, pdg::electron()),
         this->make_sim_track_view(step_length_),
         post_pos_,
-        opt_matid_,
         edep_,
         data,
-        this->build_pre_step());
+        pre_step);
 
     auto result = generate(this->rng());
 
@@ -387,7 +389,7 @@ TEST_F(ScintillationTest, stress_test)
     result.num_photons = 123456;
 
     // Output data
-    std::vector<OpticalPrimary> storage(result.num_photons);
+    std::vector<Primary> storage(result.num_photons);
 
     // Create the generator
     ScintillationGenerator generate_photons(result, data, make_span(storage));

@@ -13,8 +13,6 @@
 #include "corecel/Types.hh"
 #include "celeritas/GlobalTestBase.hh"
 
-#include "DummyAction.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -85,9 +83,6 @@ class StepperTestBase : virtual public GlobalTestBase
     };
 
   public:
-    // Add dummy action at construction
-    StepperTestBase();
-
     // Construct the setup values for Stepper
     StepperInput make_stepper_input(size_type tracks);
 
@@ -102,12 +97,6 @@ class StepperTestBase : virtual public GlobalTestBase
 
     // Run a bunch of primaries to completion
     RunResult run(StepperInterface& step, size_type num_primaries) const;
-
-    //! Access the dummy action
-    DummyAction const& dummy_action() const { return *dummy_action_; }
-
-  protected:
-    std::shared_ptr<DummyAction> dummy_action_;
 };
 
 //---------------------------------------------------------------------------//

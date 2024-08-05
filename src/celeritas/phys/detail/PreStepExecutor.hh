@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Macros.hh"
 #include "corecel/math/Quantity.hh"
 #include "celeritas/Types.hh"
@@ -25,6 +26,15 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Set up the beginning of a physics step.
+ *
+ * - Reset track properties (todo: move to track initialization?)
+ * - Sample the mean free path and calculate the physics step limits.
+ *
+ * \note This executor applies to *all* tracks, including inactive ones. It
+ *   \em must be run on all thread IDs to properly initialize secondaries.
+ */
 struct PreStepExecutor
 {
     inline CELER_FUNCTION void
@@ -32,12 +42,6 @@ struct PreStepExecutor
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Set up the beginning of a physics step.
- *
- * - Reset track properties (todo: move to track initialization?)
- * - Sample the mean free path and calculate the physics step limits.
- */
 CELER_FUNCTION void
 PreStepExecutor::operator()(celeritas::CoreTrackView const& track)
 {
@@ -62,6 +66,8 @@ PreStepExecutor::operator()(celeritas::CoreTrackView const& track)
         return;
     }
 
+    // Complete the "initializing" stage of tracks, since pre-step happens
+    // after user initialization
     auto step = track.make_physics_step_view();
     {
         // Clear out energy deposition, secondary pointers, and sampled element
@@ -69,6 +75,16 @@ PreStepExecutor::operator()(celeritas::CoreTrackView const& track)
         step.secondaries({});
         step.element({});
     }
+
+    if (CELER_UNLIKELY(sim.status() == TrackStatus::errored))
+    {
+        // Failed during initialization: don't calculate step limits
+        return;
+    }
+
+    CELER_ASSERT(sim.status() == TrackStatus::initializing
+                 || sim.status() == TrackStatus::alive);
+    sim.status(TrackStatus::alive);
 
     auto phys = track.make_physics_view();
     if (!phys.has_interaction_mfp())

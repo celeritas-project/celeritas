@@ -20,15 +20,11 @@ namespace celeritas
  */
 struct KleinNishinaIds
 {
-    ActionId action;
     ParticleId electron;
     ParticleId gamma;
 
     //! Check whether the data is assigned
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return action && electron && gamma;
-    }
+    explicit CELER_FUNCTION operator bool() const { return electron && gamma; }
 };
 
 //---------------------------------------------------------------------------//

@@ -9,8 +9,10 @@
 
 #include <type_traits>
 
-#include "corecel/device_runtime_api.h"
+#include "corecel/DeviceRuntimeApi.hh"
+
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/Device.hh"
@@ -24,6 +26,7 @@
 #include "CoreParams.hh"
 #include "CoreState.hh"
 #include "KernelContextException.hh"
+
 #include "detail/ActionLauncherKernel.device.hh"
 #include "detail/ApplierTraits.hh"
 
@@ -31,7 +34,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Profile and launch Celeritas kernels from inside an action.
+ * Profile and launch Celeritas kernels.
  *
  * The template argument \c F may define a member type named \c Applier.
  * \c F::Applier should have up to two static constexpr int variables named
@@ -61,12 +64,19 @@ namespace celeritas
 template<class F>
 class ActionLauncher
 {
-    static_assert((std::is_trivially_copyable_v<F> || CELERITAS_USE_HIP)
+    static_assert((std::is_trivially_copyable_v<F> || CELERITAS_USE_HIP
+                   || CELER_COMPILER == CELER_COMPILER_CLANG)
                       && !std::is_pointer_v<F> && !std::is_reference_v<F>,
                   "Launched action must be a trivially copyable function "
                   "object");
 
   public:
+    //! Create a launcher from a label
+    explicit ActionLauncher(std::string_view name)
+        : calc_launch_params_{name, &detail::launch_action_impl<F>}
+    {
+    }
+
     //! Create a launcher from an action
     explicit ActionLauncher(ExplicitActionInterface const& action)
         : ActionLauncher{action.label()}
@@ -114,7 +124,6 @@ class ActionLauncher
     }
 
     //! Launch with reduced grid size for when tracks are sorted
-    // TODO: Reuse ActionLauncher order/ID from constructor argument
     void operator()(CoreParams const& params,
                     CoreState<MemSpace::device> const& state,
                     ExplicitActionInterface const& action,
@@ -137,12 +146,6 @@ class ActionLauncher
 
   private:
     KernelParamCalculator calc_launch_params_;
-
-    //// PRIVATE CONSTRUCTORS ////
-    explicit ActionLauncher(std::string_view name)
-        : calc_launch_params_{name, &detail::launch_action_impl<F>}
-    {
-    }
 };
 
 //---------------------------------------------------------------------------//

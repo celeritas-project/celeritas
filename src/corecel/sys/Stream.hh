@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/device_runtime_api.h"
+#include "corecel/DeviceRuntimeApi.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
@@ -86,6 +87,9 @@ class Stream
     //!@}
 
   public:
+    // Whether asynchronous operations are supported
+    static bool async();
+
     // Construct by creating a stream
     Stream();
 

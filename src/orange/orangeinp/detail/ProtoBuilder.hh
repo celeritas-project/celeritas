@@ -59,7 +59,7 @@ class ProtoBuilder
 
   public:
     // Construct with output pointer, geometry construction options, and protos
-    ProtoBuilder(OrangeInput* inp, ProtoMap const& protos, Options&& opts);
+    ProtoBuilder(OrangeInput* inp, ProtoMap const& protos, Options const& opts);
 
     //! Get the tolerance to use when constructing geometry
     Tol const& tol() const { return inp_->tol; }

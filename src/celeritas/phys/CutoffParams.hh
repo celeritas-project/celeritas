@@ -34,9 +34,10 @@ struct ImportData;
  * Geant4 provides accessors to its production cuts from its
  * \c G4MaterialCutsCouple class, which couples cutoff and material data.
  * During import, for simplicity, G4's production cuts are stored alongside
- * the material information, in \c ImportMaterial . Since this is a direct
- * import, the cutoff map in \c ImportMaterial stores only the cuts available
- * in Geant4, i.e. only values for gammas, electrons, positrons, and protons.
+ * the material information, in \c ImportPhysMaterial . Since this is a direct
+ * import, the cutoff map in \c ImportPhysMaterial stores only the cuts
+ * available in Geant4, i.e. only values for gammas, electrons, positrons, and
+ * protons.
  *
  * In Celeritas, particle cutoff is stored contiguously in a single vector
  * of size num_particles * num_materials, which stores all particle cutoffs

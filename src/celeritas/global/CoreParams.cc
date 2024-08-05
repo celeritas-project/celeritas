@@ -11,7 +11,8 @@
 #include <type_traits>
 #include <utility>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/data/AuxParamsRegistry.hh"  // IWYU pragma: keep
 #include "corecel/data/Ref.hh"
@@ -40,6 +41,7 @@
 #include "celeritas/phys/ParticleParamsOutput.hh"
 #include "celeritas/phys/PhysicsParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/PhysicsParamsOutput.hh"
+#include "celeritas/phys/detail/TrackingCutAction.hh"
 #include "celeritas/random/RngParams.hh"  // IWYU pragma: keep
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/ExtendFromSecondariesAction.hh"
@@ -122,20 +124,9 @@ class PropagationLimitAction final : public ConcreteAction
   public:
     //! Construct with ID
     explicit PropagationLimitAction(ActionId id)
-        : ConcreteAction(
-            id, "geo-propagation-limit", "pause due to propagation misbehavior")
-    {
-    }
-};
-
-//---------------------------------------------------------------------------//
-class AbandonLoopingAction final : public ConcreteAction
-{
-  public:
-    //! Construct with ID
-    explicit AbandonLoopingAction(ActionId id)
-        : ConcreteAction(
-            id, "kill-looping", "kill due to too many field substeps")
+        : ConcreteAction(id,
+                         "geo-propagation-limit",
+                         "pause due to propagation misbehavior")
     {
     }
 };
@@ -195,17 +186,19 @@ CoreScalars build_actions(ActionRegistry* reg)
     reg->insert(
         make_shared<PropagationLimitAction>(scalars.propagation_limit_action));
 
-    // Construct action for killed looping tracks
-    scalars.abandon_looping_action = reg->next_id();
-    reg->insert(
-        make_shared<AbandonLoopingAction>(scalars.abandon_looping_action));
-
     //// POST-STEP ACTIONS ////
 
-    // Construct geometry action
+    // Construct geometry boundary action
     scalars.boundary_action = reg->next_id();
     reg->insert(make_shared<celeritas::detail::BoundaryAction>(
         scalars.boundary_action));
+
+    // Construct action for killed looping tracks/error geometry
+    // NOTE: due to ordering by {start, ID}, TrackingCutAction *must*
+    // be after BoundaryAction
+    scalars.tracking_cut_action = reg->next_id();
+    reg->insert(
+        make_shared<detail::TrackingCutAction>(scalars.tracking_cut_action));
 
     //// END ACTIONS ////
 
@@ -242,6 +235,11 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
 #undef CP_VALIDATE_INPUT
 
     CELER_EXPECT(input_);
+
+    if (!input_.aux_reg)
+    {
+        input_.aux_reg = std::make_shared<AuxParamsRegistry>();
+    }
 
     ScopedMem record_mem("CoreParams.construct");
 

@@ -11,7 +11,8 @@
 #include <string>
 #include <vector>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "geocel/GeantGeoUtils.hh"
 #include "celeritas/geo/GeoParams.hh"
 

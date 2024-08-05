@@ -9,7 +9,8 @@
 
 #include <string>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/LabelIO.json.hh"
@@ -101,6 +102,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
 
     LDIO_LOAD_OPTION(seed);
     LDIO_LOAD_OPTION(num_track_slots);
+    LDIO_LOAD_OPTION(optical_buffer_capacity);
     LDIO_LOAD_OPTION(max_steps);
     LDIO_LOAD_REQUIRED(initializer_capacity);
     LDIO_LOAD_REQUIRED(secondary_stack_factor);
@@ -179,6 +181,7 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
 
     LDIO_SAVE(seed);
     LDIO_SAVE(num_track_slots);
+    LDIO_SAVE(optical_buffer_capacity);
     LDIO_SAVE_OPTION(max_steps);
     LDIO_SAVE(initializer_capacity);
     LDIO_SAVE(secondary_stack_factor);

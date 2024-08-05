@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 
 // IWYU pragma: begin_exports
 #if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_CURAND) \
