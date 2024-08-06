@@ -130,7 +130,7 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
     real_type epsilon;
     real_type one_minus_costheta;
     // Temporary sample values used in rejection
-    real_type acceptance_prob;
+    real_type reject_prob;
     do
     {
         // Sample epsilon and square
@@ -154,8 +154,8 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
         one_minus_costheta = (1 - epsilon) / (epsilon * inc_energy_per_mecsq);
         CELER_ASSERT(one_minus_costheta >= 0 && one_minus_costheta <= 2);
         real_type sintheta_sq = one_minus_costheta * (2 - one_minus_costheta);
-        acceptance_prob = epsilon * sintheta_sq / (1 + epsilon_sq);
-    } while (BernoulliDistribution(acceptance_prob)(rng));
+        reject_prob = epsilon * sintheta_sq / (1 + epsilon_sq);
+    } while (BernoulliDistribution(reject_prob)(rng));
 
     // Construct interaction for change to primary (incident) particle
     Interaction result;
