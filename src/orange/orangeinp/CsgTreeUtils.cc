@@ -198,6 +198,7 @@ CsgTree transform_negated_joins(CsgTree const& tree)
     // node. Parents need to point to the new Joined{} node. The old Joined{}
     // node needs to be kept if it had parents other than the Negated node.
     std::unordered_set<NodeId> orphaned_join_nodes;
+    std::unordered_set<NodeId> orphaned_negate_nodes;
 
     // Recursive lambda. Negated{node_id} should be added to the new tree.
     // if node_id is a Joined node, recusively add its children as negated
@@ -217,6 +218,13 @@ CsgTree transform_negated_joins(CsgTree const& tree)
                         // so we need to transform that Joined node as well
                         self(self, join_operand);
                         negated_join_nodes[join_operand] = joined_join_operand;
+                    }
+                    else if (std::get_if<orangeinp::Negated>(
+                                 &tree[join_operand]))
+                    {
+                        // double negation, this simplifies unless it has
+                        // another parent
+                        orphaned_negate_nodes.insert(join_operand);
                     }
                     // per DeMorgran's law, negate each operand of the Joined
                     // node.
@@ -287,6 +295,22 @@ CsgTree transform_negated_joins(CsgTree const& tree)
     // tree
     std::unordered_map<NodeId, NodeId> original_new_nodes;
 
+    // Utility to check the two maps for the new id of a node.
+    // maybe we can coalesce them in a single map<NodeId, vector<NodeId>>
+    auto replace_node_id = [&](NodeId n) {
+        if (auto new_id = inserted_nodes.find(n);
+            new_id != inserted_nodes.end())
+        {
+            return new_id->second;
+        }
+        if (auto new_id = original_new_nodes.find(n);
+            new_id != inserted_nodes.end())
+        {
+            return new_id->second;
+        }
+        return n;
+    };
+
     // We can now build the new tree.
     for (auto node_id : range(NodeId{tree.size()}))
     {
@@ -325,6 +349,18 @@ CsgTree transform_negated_joins(CsgTree const& tree)
             orphaned_join_nodes.erase(iter);
             continue;
         }
+        // This Negated{} node is orphaned, most likely because of
+        // a double negation so we don't need to insert it.
+        // It still needs to be added in inserted_nodes so that when adding
+        // a Joined node, we correctly redirect the operand looking for it to
+        // the children
+        if (auto iter = orphaned_negate_nodes.find(node_id);
+            iter != orphaned_negate_nodes.end())
+        {
+            inserted_nodes[node_id] = replace_node_id(*iter);
+            orphaned_negate_nodes.erase(iter);
+            continue;
+        }
 
         // this node is a Negated{Join} node, we have already inserted the
         // opposite Joined node
@@ -332,28 +368,13 @@ CsgTree transform_negated_joins(CsgTree const& tree)
             negated_node != transformed_negated_nodes.end())
         {
             // we don't need to insert the original Negated{Join} node
-            transformed_negated_nodes.erase(negated_node);
             // redirect parents looking for this node to the new Joined node.
             inserted_nodes[node_id]
                 = inserted_nodes.find(negated_node->second->node)->second;
+            transformed_negated_nodes.erase(negated_node);
             continue;
         }
 
-        // Utility to check the two maps for the new id of a node.
-        // maybe we can coalesce them in a single map<NodeId, vector<NodeId>>
-        auto replace_node_id = [&](NodeId n) {
-            if (auto new_id = inserted_nodes.find(n);
-                new_id != inserted_nodes.end())
-            {
-                return new_id->second;
-            }
-            if (auto new_id = original_new_nodes.find(n);
-                new_id != inserted_nodes.end())
-            {
-                return new_id->second;
-            }
-            return n;
-        };
         // this node isn't a transformed Join or Negated node, so we can insert
         // it.
         Node new_node = tree[node_id];
