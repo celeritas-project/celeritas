@@ -144,7 +144,7 @@ Solid<T>::Solid(std::string&& label,
     , exclusion_{std::move(excluded)}
     , enclosed_{std::move(enclosed)}
 {
-    CELER_VALIDATE(exclusion_ || enclosed,
+    CELER_VALIDATE(exclusion_ || enclosed_,
                    << "solid requires either an excluded region or a shape");
     CELER_VALIDATE(!exclusion_ || interior_.encloses(*exclusion_),
                    << "solid '" << this->label()

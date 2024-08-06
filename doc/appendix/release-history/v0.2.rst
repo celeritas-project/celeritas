@@ -2,11 +2,13 @@
 .. See the doc/COPYRIGHT file for details.
 .. SPDX-License-Identifier: CC-BY-4.0
 
+Series 0.2
+==========
 
 .. _release_v0.2.2:
 
 Version 0.2.2
-=============
+-------------
 
 *Released 2023/05/16*
 
@@ -25,14 +27,14 @@ Bug fixes
 Reviewers: @stognini *(1)*, @amandalund *(1)*, @sethrj *(1)*
 
 Documentation improvements
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Reenable and patch up HIP tests *(@sethrj, #711)*
 
 Reviewers: @amandalund *(1)*
 
 Minor internal changes
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 * Update CI VecGeom to 1.2.2 *(@sethrj, #682)*
 
@@ -43,7 +45,7 @@ Reviewers: @pcanal *(1)*
 .. _release_v0.2.1:
 
 Version 0.2.1
-=============
+-------------
 
 *Released 2023/02/24*
 
@@ -68,7 +70,7 @@ Note that many of the changes are the same as those in :ref:`release_v0.1.5`.
 
 
 New features
-------------
+^^^^^^^^^^^^
 
 * Add an example of I/O writing sensitive hits to a ROOT file *(@whokion, #606)*
 * Write particle params to diagnostic output *(@sethrj, #612)*
@@ -99,7 +101,7 @@ Bug fixes
 Reviewers: @sethrj *(6)*, @whokion *(4)*, @amandalund *(3)*, @stognini *(2)*, @elliottbiondo *(1)*, @mrguilima *(1)*
 
 Documentation improvements
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Add new examples and flesh out user documentation *(@sethrj, #605)*
 * Minor documentation updates *(@sethrj, #622)*
@@ -110,7 +112,7 @@ Documentation improvements
 Reviewers: @amandalund *(3)*, @whokion *(1)*, @sethrj *(1)*
 
 Minor internal changes
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 * Remove MSC data from core physics class *(@sethrj, #604)*
 * Update crusher environment to use AMD LLVM compilers *(@sethrj, #609)*
@@ -124,7 +126,7 @@ Reviewers: @amandalund *(3)*, @whokion *(1)*, @sethrj *(1)*, @stognini *(1)*
 .. _release_v0.2.0:
 
 Version 0.2.0
-=============
+-------------
 
 *Release date: 2023/01/11*
 
@@ -134,7 +136,7 @@ including MC truth output, a set of high-level API classes for integrating
 into existing Geant4 toolkit-based apps, and better support for multithreaded use.
 
 New features
-------------
+^^^^^^^^^^^^
 
 * Export SB, Livermore PE, and atomic relaxation data to ROOT file *(@stognini, #481)*
 * Refactor ORANGE input to be more extensible *(@sethrj, #510)*
@@ -193,7 +195,7 @@ Bug fixes
 Reviewers: @amandalund *(6)*, @pcanal *(4)*, @sethrj *(2)*, @whokion *(2)*, @elliottbiondo *(1)*, @tmdelellis *(1)*, @paulromano *(1)*
 
 Documentation improvements
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Add release procedure, roles, and 0.1.x release notes *(@sethrj, #519)*
 * Add DOE DOI and improve PR process documentation *(@sethrj, #533)*
@@ -205,7 +207,7 @@ Documentation improvements
 Reviewers: @paulromano *(2)*, @amandalund *(2)*, @tmdelellis *(1)*, @pcanal *(1)*, @sethrj *(1)*, @whokion *(1)*
 
 Minor internal changes
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 * Add granularity to Geant setup *(@sethrj, #485)*
 * Format code base (clang-format version 14.0.6) *(@sethrj, #506)*

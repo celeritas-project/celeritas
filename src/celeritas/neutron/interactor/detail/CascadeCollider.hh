@@ -28,7 +28,18 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Helper class for the nucleon-nucleon intra-nucleus cascade collision.
+ * Sample final state for a nucleon-nucleon intra-nucleus cascade collision.
+ *
+ * This samples the final state of outgoing particles from the two-body
+ * intra-nucleus nucleon-nucleon collision in the center of mass (c.m.) frame
+ * and returns them after converting momentum to the lab frame. It performs the
+ * same sampling routine as in Geant4's \c G4ElementaryParticleCollider, mainly
+ * implemented in collide and generateSCMfinalState methods. The
+ * \f$ \cos\theta \f$ distribution in c.m. is inversely sampled using the
+ * tabulated cumulative distribution function (c.d.f) data in the kinetic
+ * energy and the cosine bins which are implemented in \c
+ * G4CascadeFinalStateAlgorithm::GenerateTwoBody and
+ * \c  G4NumIntTwoBodyAngDst::GetCosTheta methods.
  */
 class CascadeCollider
 {
@@ -119,15 +130,7 @@ CascadeCollider::CascadeCollider(NeutronInelasticRef const& shared,
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample the final state of outgoing particles from the two-body intra-nucleus
- * nucleon-nucleon collision in the center of mass (c.m.) frame and return
- * them after converting momentum to the lab frame. This performs the same
- * sampling routine as in Geant4's G4ElementaryParticleCollider, mainly
- * implemented in collide and generateSCMfinalState methods. The cos\theta
- * distribution in c.m. is inversely sampled using the tabulated cumulative
- * distribution function (c.d.f) data in the kinetic energy and cos\theta bins
- * which are implemented in G4CascadeFinalStateAlgorithm::GenerateTwoBody and
- * G4NumIntTwoBodyAngDst::GetCosTheta methods.
+ * Sample using the given RNG.
  */
 template<class Engine>
 CELER_FUNCTION auto CascadeCollider::operator()(Engine& rng) -> FinalState

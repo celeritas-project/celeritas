@@ -54,7 +54,8 @@ jobs:
           name: doc-dev
           if-no-files-found: error
           overwrite: true
-          retention-days: 7
+          retention-days: 1 # developer docs can be large
+
   user:
     runs-on: ubuntu-latest
     steps:
@@ -95,8 +96,6 @@ jobs:
           name: doc-user
           if-no-files-found: error
           overwrite: true
-          retention-days: 7
-
-#TODO: deploy with actions/deploy-pages@v2 ?
+          retention-days: 7 # user docs might need review
 
 # vim: set nowrap tw=100:

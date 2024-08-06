@@ -2,10 +2,13 @@
 .. See the doc/COPYRIGHT file for details.
 .. SPDX-License-Identifier: CC-BY-4.0
 
+Series 0.4
+==========
+
 .. _release_v0.4.4:
 
 Version 0.4.4
-=============
+-------------
 
 *Released 2024/07/14*
 
@@ -18,14 +21,14 @@ Version 0.4.4 is a bugfix and minor feature update to Celeritas.
 
 
 New features
-------------
+^^^^^^^^^^^^
 
 * Support safety and reentrant boundaries for multi-universe ORANGE *(@elliottbiondo, #1140)*
 
 Reviewers: @sethrj *(1)*
 
 Bug fixes
----------
+^^^^^^^^^
 
 * Fix ORANGE JSON reading and tests *(@sethrj, #1164)*
 * Set SD track weight and warn if offload weight is not unity *(@sethrj, #1270)*
@@ -36,7 +39,7 @@ Bug fixes
 Reviewers: @elliottbiondo *(2)*, @drbenmorgan *(1)*, @sethrj *(1)*, @esseivaju *(1)*
 
 Documentation improvements
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Fix Spack CI *(@sethrj, #1241)*
 * Hotfix: work around ROCm failures due to Node20 incompatibility *(@sethrj, #1305)*
@@ -50,7 +53,7 @@ Reviewers: @amandalund *(1)*, @sethrj *(1)*
 .. _release_v0.4.3:
 
 Version 0.4.3
-=============
+-------------
 
 *Released 2024/05/01*
 
@@ -63,7 +66,7 @@ Version 0.4.3 is a bugfix and minor feature update to Celeritas.
 
 
 New features
-------------
+^^^^^^^^^^^^
 
 * Add JSON test comparator to improve testing reliability *(@sethrj, #1115)*
 * Add spack-based workflow to add all supported Geant4 versions to CI *(@sethrj, #1149)*
@@ -72,7 +75,7 @@ New features
 Reviewers: @amandalund *(1)*, @drbenmorgan *(1)*, @sethrj *(1)*
 
 Bug fixes
----------
+^^^^^^^^^
 
 * Fix Moller-Bhahba energy distribution *(@amandalund, #1138)*
 * Fix Geant4 build from 10.5–10.7 and example build for 11.1 onward *(@sethrj, #1152)*
@@ -82,7 +85,7 @@ Bug fixes
 Reviewers: @sethrj *(2)*, @whokion *(1)*, @drbenmorgan *(1)*, @amandalund *(1)*
 
 Documentation improvements
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Update Frontier installation *(@sethrj, #1208)*
 
@@ -94,7 +97,7 @@ Reviewers: @esseivaju *(1)*
 .. _release_v0.4.2:
 
 Version 0.4.2
-=============
+-------------
 
 *Released 2024/02/15*
 
@@ -114,7 +117,7 @@ Important bug fixes:
 
 
 New features
-------------
+^^^^^^^^^^^^
 
 * Warn and set default threads when OpenMP and Geant4 MT might collide *(@sethrj, #1056)*
 * Add environment variable to kill Celeritas-supported tracks in Geant4 *(@amandalund, #1060)*
@@ -126,7 +129,7 @@ New features
 Reviewers: @amandalund *(4)*, @sethrj *(2)*, @esseivaju *(1)*, @sawenzel *(1)*
 
 Bug fixes
----------
+^^^^^^^^^
 
 * Fix celer-g4 primary generator MT reproducibility *(@amandalund, #1057)*
 * Insert SortTrackAction when sorting by particle type *(@esseivaju, #1059)*
@@ -140,7 +143,7 @@ Bug fixes
 Reviewers: @sethrj *(6)*, @pcanal *(1)*, @amandalund *(1)*
 
 Documentation improvements
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Include documentation as mandatory CI *(@sethrj, #1053)*
 * Remove deprecated code from v0.4 *(@sethrj, #1063)*
@@ -150,7 +153,7 @@ Documentation improvements
 Reviewers: @pcanal *(3)*, @amandalund *(2)*
 
 Minor internal changes
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 * Remove extra constructor templates in device ActionLauncher *(@esseivaju, #1062)*
 * Rename ``GenericXsCalculator`` *(@amandalund, #1081)*
@@ -169,7 +172,7 @@ Reviewers: @amandalund *(4)*, @sethrj *(3)*, @pcanal *(1)*
 .. _release_v0.4.1:
 
 Version 0.4.1
-=============
+-------------
 
 *Released 2023/12/07*
 
@@ -189,7 +192,7 @@ Important bug fixes:
 
 
 New features
-------------
+^^^^^^^^^^^^
 
 * Write celer-g4 input to output file or screen *(@sethrj, #1034)*
 * Support sorting tracks by particle types *(@esseivaju, #1044)*
@@ -202,7 +205,7 @@ New features
 Reviewers: @amandalund *(3)*, @sethrj *(3)*, @whokion *(1)*
 
 Bug fixes
----------
+^^^^^^^^^
 
 * Fix GeantSimpleCalo output when Celeritas is enabled *(@sethrj, #1040)*
 * Uniquify ROOT file name when output is directed to stdout *(@pcanal, #1051)*
@@ -211,14 +214,14 @@ Bug fixes
 Reviewers: @sethrj *(2)*, @amandalund *(1)*
 
 Documentation improvements
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Update tests to pass with cuRAND *(@amandalund, #1052)*
 
 Reviewers: @sethrj *(1)*
 
 Minor internal changes
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 * Fix Jenkins CI build and ccache use *(@sethrj, #1036)*
 * Update Perlmutter CMake profile and env script *(@esseivaju, #1041)*
@@ -234,7 +237,7 @@ Reviewers: @sethrj *(3)*, @pcanal *(2)*
 .. _release_v0.4.0:
 
 Version 0.4.0
-=============
+-------------
 
 *Released 2023/11/27*
 
@@ -267,7 +270,7 @@ Key changes are:
 
 
 New features
-------------
+^^^^^^^^^^^^
 
 * Launch kernels only with active tracks using "action range" *(@esseivaju, #765)*
 * Add utility for constructing SD "force_volumes" option *(@sethrj, #825)*
@@ -350,7 +353,7 @@ New features
 Reviewers: @sethrj *(38)*, @elliottbiondo *(19)*, @amandalund *(16)*, @whokion *(5)*, @stognini *(2)*, @hhollenb *(1)*, @drbenmorgan *(1)*, @esseivaju *(1)*, @pcanal *(1)*
 
 Bug fixes
----------
+^^^^^^^^^
 
 * Fix errors when building and loading Celeritas through CMSSW *(@sethrj, #821)*
 * Divide initializer capacity by number of streams in celer-sim *(@amandalund, #824)*
@@ -385,7 +388,7 @@ Bug fixes
 Reviewers: @sethrj *(15)*, @amandalund *(9)*, @esseivaju *(4)*, @whokion *(2)*, @mrguilima *(1)*, @stognini *(1)*, @tmdelellis *(1)*
 
 Documentation improvements
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Document how to link loadable shared libraries with Celeritas *(@drbenmorgan, #842)*
 * Extend geometry robustness testing *(@sethrj, #858)*
@@ -403,7 +406,7 @@ Documentation improvements
 Reviewers: @sethrj *(7)*, @amandalund *(4)*, @paulromano *(1)*, @pcanal *(1)*, @stognini *(1)*
 
 Minor internal changes
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 * Add field template deduction and parameterized test *(@sethrj, #820)*
 * Update CI to VecGeom 1.2.3 *(@sethrj, #819)*

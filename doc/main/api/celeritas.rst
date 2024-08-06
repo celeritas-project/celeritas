@@ -227,7 +227,7 @@ The sampled result contains the updated particle direction and energy, as well
 as properties of any secondary particles produced.
 
 .. doxygenclass:: celeritas::BetheHeitlerInteractor
-.. doxygenclass:: celeritas::BraggICRU73QOInteractor.hh
+.. doxygenclass:: celeritas::BraggICRU73QOInteractor
 .. doxygenclass:: celeritas::CoulombScatteringInteractor
 .. doxygenclass:: celeritas::EPlusGGInteractor
 .. doxygenclass:: celeritas::KleinNishinaInteractor
