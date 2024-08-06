@@ -13,8 +13,8 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/random/distribution/InverseSquareDistribution.hh"
 #include "celeritas/random/distribution/RejectionSampler.hh"
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
 {
@@ -57,10 +57,10 @@ class MuBBEnergyDistribution
     real_type beta_sq_;
     // Secondary electron mass
     real_type electron_mass_;
-    // Secondary electron cutoff energy [MeV]
-    real_type electron_cutoff_;
     // Maximum energy of the secondary electron [MeV]
     real_type max_secondary_energy_;
+    // Sample from electron cutoff to max secondary energy
+    InverseSquareDistribution<> sample_energy_;
     // Whether to apply the radiative correction
     bool use_rad_correction_;
     // Envelope distribution for rejection sampling
@@ -111,8 +111,8 @@ MuBBEnergyDistribution::MuBBEnergyDistribution(Energy inc_energy,
     , total_energy_(inc_energy_ + inc_mass_)
     , beta_sq_(beta_sq)
     , electron_mass_(value_as<Mass>(electron_mass))
-    , electron_cutoff_(value_as<Energy>(electron_cutoff))
     , max_secondary_energy_(value_as<Energy>(max_secondary_energy))
+    , sample_energy_{value_as<Energy>(electron_cutoff), max_secondary_energy_}
     , use_rad_correction_(
           inc_energy_ > value_as<Energy>(rad_correction_limit())
           && max_secondary_energy_ > value_as<Energy>(kin_energy_limit()))
@@ -131,9 +131,7 @@ CELER_FUNCTION auto MuBBEnergyDistribution::operator()(Engine& rng) -> Energy
     real_type target;
     do
     {
-        energy = electron_cutoff_ * max_secondary_energy_
-                 / UniformRealDistribution(electron_cutoff_,
-                                           max_secondary_energy_)(rng);
+        energy = sample_energy_(rng);
         target = 1 - beta_sq_ * energy / max_secondary_energy_
                  + real_type(0.5) * ipow<2>(energy / total_energy_);
 

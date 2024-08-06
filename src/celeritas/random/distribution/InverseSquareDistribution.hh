@@ -1,39 +1,36 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2021-2024 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/random/distribution/ReciprocalDistribution.hh
+//! \file celeritas/random/distribution/InverseSquareDistribution.hh
 //---------------------------------------------------------------------------//
 #pragma once
-
-#include <cmath>
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 
-#include "GenerateCanonical.hh"
+#include "UniformRealDistribution.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Reciprocal or log-uniform distribution.
+ * Sample \f$ 1/x^2 \f$ over a givendomain.
  *
  * This distribution is defined on a positive range \f$ [a, b) \f$ and has the
  * normalized PDF:
  * \f[
-   f(x; a, b) = \frac{1}{x (\ln b - \ln a)} \quad \mathrm{for} a \le x < b
+   f(x; a, b) = \frac{a * b}{x^2 (b - a)} \quad \mathrm{for} a \le x < b
    \f]
  * which integrated into a CDF and inverted gives a sample:
  * \f[
-  x = a \left( \frac{b}{a} \right)^{\xi}
-    = a \exp\!\left(\xi \log \frac{b}{a} \right)
+  x = \frac{a * b}{(b - a) * xi + a}
    \f]
  */
 template<class RealType = ::celeritas::real_type>
-class ReciprocalDistribution
+class InverseSquareDistribution
 {
   public:
     //!@{
@@ -43,54 +40,35 @@ class ReciprocalDistribution
     //!@}
 
   public:
-    // Construct on an the interval [a, 1]
-    explicit inline CELER_FUNCTION ReciprocalDistribution(real_type a);
-
-    // Construct on an arbitrary interval
-    inline CELER_FUNCTION ReciprocalDistribution(real_type a, real_type b);
+    // Construct on an interval
+    inline CELER_FUNCTION InverseSquareDistribution(real_type a, real_type b);
 
     // Sample a random number according to the distribution
     template<class Generator>
     inline CELER_FUNCTION result_type operator()(Generator& rng) const;
 
   private:
-    RealType a_;
-    RealType logratio_;
+    RealType product_;
+    UniformRealDistribution<RealType> sample_denom_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct on the interval [a, 1).
- *
- * The distribution is equivalent to switching a and b, and using
- * \f$ \xi' = 1 - \xi \f$.
- */
-template<class RealType>
-CELER_FUNCTION
-ReciprocalDistribution<RealType>::ReciprocalDistribution(real_type a)
-    : ReciprocalDistribution(1, a)
-{
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct on the interval [a, b).
  *
- * It is allowable for the two bounds to be out of order.
- *
- * Note that writing as \code (1/a) * b \endcode allows the compiler to
- * optimize better for the constexpr case a=1.
+ * As with UniformRealDistribution, it is allowable for the two bounds to be
+ * out of order.
  */
 template<class RealType>
 CELER_FUNCTION
-ReciprocalDistribution<RealType>::ReciprocalDistribution(real_type a,
-                                                         real_type b)
-    : a_(a), logratio_(std::log((1 / a) * b))
+InverseSquareDistribution<RealType>::InverseSquareDistribution(real_type a,
+                                                               real_type b)
+    : product_{a * b}, sample_denom_{a, b}
 {
     CELER_EXPECT(a > 0);
-    CELER_EXPECT(b > 0);
+    CELER_EXPECT(b >= a);
 }
 
 //---------------------------------------------------------------------------//
@@ -100,10 +78,9 @@ ReciprocalDistribution<RealType>::ReciprocalDistribution(real_type a,
 template<class RealType>
 template<class Generator>
 CELER_FUNCTION auto
-ReciprocalDistribution<RealType>::operator()(Generator& rng) const
-    -> result_type
+InverseSquareDistribution<RealType>::operator()(Generator& rng) const -> result_type
 {
-    return a_ * std::exp(logratio_ * generate_canonical<RealType>(rng));
+    return product_ / sample_denom_(rng);
 }
 
 //---------------------------------------------------------------------------//

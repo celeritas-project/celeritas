@@ -110,12 +110,12 @@ CELER_FUNCTION MuBetheBlochInteractor::MuBetheBlochInteractor(
     , electron_id_(shared.electron)
     , electron_cutoff_(cutoffs.energy(electron_id_))
     , max_secondary_energy_(this->calc_max_secondary_energy())
-    , sample_energy_(MuBBEnergyDistribution(inc_energy_,
-                                            inc_mass_,
-                                            particle.beta_sq(),
-                                            electron_mass_,
-                                            electron_cutoff_,
-                                            max_secondary_energy_))
+    , sample_energy_(inc_energy_,
+                     inc_mass_,
+                     particle.beta_sq(),
+                     electron_mass_,
+                     electron_cutoff_,
+                     max_secondary_energy_)
 {
     CELER_EXPECT(particle.particle_id() == shared.mu_minus
                  || particle.particle_id() == shared.mu_plus);
