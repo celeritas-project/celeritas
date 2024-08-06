@@ -249,6 +249,11 @@ CsgTree transform_negated_joins(CsgTree const& tree)
         {
             orphaned_join_nodes.erase(item);
         }
+        else if (auto item = orphaned_negate_nodes.find(node_id);
+                 item != orphaned_negate_nodes.end())
+        {
+            orphaned_negate_nodes.erase(item);
+        }
     };
 
     // First pass through all nodes to find all nand / nor
@@ -304,7 +309,7 @@ CsgTree transform_negated_joins(CsgTree const& tree)
             return new_id->second;
         }
         if (auto new_id = original_new_nodes.find(n);
-            new_id != inserted_nodes.end())
+            new_id != original_new_nodes.end())
         {
             return new_id->second;
         }
@@ -391,7 +396,13 @@ CsgTree transform_negated_joins(CsgTree const& tree)
         {
             for (auto& op : joined->nodes)
             {
-                op = replace_node_id(op);
+                // do not search into inserted_nodes because this maps to
+                // negated node_id in the new tree
+                if (auto new_id = original_new_nodes.find(op);
+                    new_id != original_new_nodes.end())
+                {
+                    op = new_id->second;
+                }
             }
         }
         auto [new_id, inserted] = result.insert(std::move(new_node));
