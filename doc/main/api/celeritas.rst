@@ -247,6 +247,63 @@ as properties of any secondary particles produced.
 .. doxygenclass:: celeritas::SBEnergyDistribution
 .. doxygenclass:: celeritas::detail::SBPositronXsCorrector
 
+.. _api_optical_physics:
+
+Optical physics
+---------------
+
+As with EM physics, the optical physics models in Celeritas are closely related
+to those in Geant4. Unlike Geant4, optical photon generation and stepping in
+Celeritas takes place in a drastically different manner.
+
+Optical materials
+~~~~~~~~~~~~~~~~~
+
+Optical volume and surface properties are imported from Geant4 (see below).
+
+Offloading
+~~~~~~~~~~
+
+During the main :ref:`stepping loop <api_stepping>`, the ``OpticalCollector``
+class adds a pre-step hook to store each track's speed, position, time, and
+material; at the end of the step, the track's updated properties and
+within-step energy distribution are used to "offload" optical photons by
+generating *distribution parameters* to be sampled in the stepping loop.
+
+.. doxygenclass:: celeritas::CerenkovOffload
+.. doxygenclass:: celeritas::ScintillationOffload
+.. doxygenstruct:: celeritas::optical::GeneratorDistributionData
+
+Generating
+~~~~~~~~~~
+
+Depending on the process that emitted a photon, the "generator" classes
+sample from the distribution of photons specified by the
+``GeneratorDistributionData`` to create optical photon *primaries*.
+
+.. doxygenclass:: celeritas::CerenkovGenerator
+.. doxygenclass:: celeritas::ScintillationGenerator
+
+Volumetric processes
+~~~~~~~~~~~~~~~~~~~~
+
+Like other particles, optical photons undergo stochastic interactions inside
+optical materials.
+
+.. todo:: Add this section once rayleigh scattering, absorption, etc. are
+   completed.
+
+Surface processes
+~~~~~~~~~~~~~~~~~
+
+Optical photons also have special interactions at material boundaries. These
+boundaries are imported from Geant4 using the "skin" definitions that specify
+properties of a volume's outer surface or of the surface between two specific
+volumes.
+
+.. todo:: Add this section once surface models are implemented.
+
+
 .. _api_importdata:
 
 Physics data
