@@ -28,12 +28,6 @@ namespace celeritas
  * This populates the \c GeneratorDistributionData used by the \c
  * CerenkovGenerator to generate optical photons using post-step and cached
  * pre-step data.
- *
- * The number of photons is sampled from a Poisson distribution with a mean
- * \f[
-   \langle n \rangle = \ell_\text{step} \frac{\dif N}{\dif x}
- * \f]
- * where \f$ \ell_\text{step} \f$ is the step length.
  */
 class CerenkovOffload
 {
@@ -92,10 +86,14 @@ CELER_FUNCTION CerenkovOffload::CerenkovOffload(
 
 //---------------------------------------------------------------------------//
 /*!
- * Return an \c GeneratorDistributionData object.
+ * Return an \c GeneratorDistributionData object. If no photons are sampled, an
+ * empty object is returned and can be verified via its own operator bool.
  *
- * If no photons are sampled, an empty object is returned and can be verified
- * via its own operator bool.
+ * The number of photons is sampled from a Poisson distribution with a mean
+ * \f[
+   \langle n \rangle = \ell_\text{step} \frac{dN}{dx}
+ * \f]
+ * where \f$ \ell_\text{step} \f$ is the step length.
  */
 template<class Generator>
 CELER_FUNCTION optical::GeneratorDistributionData

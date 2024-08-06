@@ -28,20 +28,8 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample scintillation photons from optical property data and step data.
+ * Sample Scintillation photons.
  *
- * The optical photons are generated evenly along the step and are emitted
- * uniformly over the entire solid angle with a random linear polarization.
- * The photon energy is calculated by the scintillation emission wavelength
- * \f[
-   E = \frac{hc}{\lambda},
- * \f]
- * where \f$ h \f$ is the Planck constant and \f$ c \f$ is the speed of light,
- * and \f$ \lambda \f$ is sampled by the normal distribution with the mean of
- * scintillation emission spectrum and the standard deviation. The emitted time
- * is simulated according to empirical shapes of the material-dependent
- * scintillation time structure with one or double exponentials.
-
  * \note This performs the same sampling routine as in G4Scintillation class
  * of the Geant4 release 11.2 with some modifications.
  */
@@ -120,7 +108,19 @@ ScintillationGenerator::ScintillationGenerator(
 
 //---------------------------------------------------------------------------//
 /*!
- * Perform the sample.
+ * Sample scintillation photons from optical property data and step data.
+ *
+ * The optical photons are generated evenly along the step and are emitted
+ * uniformly over the entire solid angle with a random linear polarization.
+ * The photon energy is calculated by the scintillation emission wavelength
+ * \f[
+   E = \frac{hc}{\lambda},
+ * \f]
+ * where \f$ h \f$ is the Planck constant and \f$ c \f$ is the speed of light,
+ * and \f$ \lambda \f$ is sampled by the normal distribution with the mean of
+ * scintillation emission spectrum and the standard deviation. The emitted time
+ * is simulated according to empirical shapes of the material-dependent
+ * scintillation time structure with one or double exponentials.
  */
 template<class Generator>
 CELER_FUNCTION Span<Primary> ScintillationGenerator::operator()(Generator& rng)

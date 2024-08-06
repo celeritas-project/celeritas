@@ -29,13 +29,6 @@ namespace celeritas
  * This populates the \c GeneratorDistributionData used by the \c
  * ScintillationGenerator to generate optical photons using post-step and
  * cached pre-step data.
- *
- * The mean number of photons is a product of the energy deposition and a
- * material-dependent yield fraction (photons per MeV). The actual number of
- * photons sampled is determined by sampling:
- * - for large (n > 10) mean yield, from a Gaussian distribution with a
- *   material-dependent spread, or
- * - for small yields, from a Poisson distribution.
  */
 class ScintillationOffload
 {
@@ -61,11 +54,6 @@ class ScintillationOffload
     optical::GeneratorStepData post_step_;
     NativeCRef<optical::ScintillationData> const& shared_;
     real_type mean_num_photons_;
-
-    static CELER_CONSTEXPR_FUNCTION real_type poisson_threshold()
-    {
-        return 10;
-    }
 };
 
 //---------------------------------------------------------------------------//
@@ -121,7 +109,7 @@ ScintillationOffload::operator()(Generator& rng)
 {
     // Material-only sampling
     optical::GeneratorDistributionData result;
-    if (mean_num_photons_ > poisson_threshold())
+    if (mean_num_photons_ > 10)
     {
         real_type sigma = shared_.resolution_scale[pre_step_.opt_mat]
                           * std::sqrt(mean_num_photons_);
