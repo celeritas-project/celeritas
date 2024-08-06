@@ -19,16 +19,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample from an exponential distribution.
- *
- * Sample from a probability distribution function with the normalized PDF:
- * \f[
-   f(x; \lambda) = \lambda e^{-\lambda x} \quad \mathrm{for} x >= 0
-   \f]
- * which integrated into a CDF and inverted gives a sample:
- * \f[
-  x = -\frac{\log \xi}{ \lambda}
-   \f]
+ * Sample from an exponential distribution: -log(xi) / lambda.
  *
  * This is simply an implementation of std::exponential_distribution that uses
  * the Celeritas canonical generator and is independent of library
@@ -36,7 +27,8 @@ namespace celeritas
  *
  * Note (for performance-critical sections of code) that if this class is
  * constructed locally with the default value of lambda = 1.0, the
- * inversion and multiplication will be optimized out.
+ * inversion and multiplication will be optimized out (and the code will be
+ * exactly identical to `-std::log(rng.ran())`.
  */
 template<class RealType = ::celeritas::real_type>
 class ExponentialDistribution

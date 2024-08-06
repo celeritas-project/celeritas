@@ -26,7 +26,7 @@ namespace celeritas
    \f]
  * which integrated into a CDF and inverted gives a sample:
  * \f[
-  x = \frac{a b}{(b - a) \xi + a}
+  x = \frac{a * b}{(b - a) * xi + a}
    \f]
  */
 template<class RealType = ::celeritas::real_type>
