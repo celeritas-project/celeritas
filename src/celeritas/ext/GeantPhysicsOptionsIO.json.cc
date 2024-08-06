@@ -13,6 +13,7 @@
 #include "corecel/io/StringEnumMapper.hh"
 #include "corecel/math/QuantityIO.json.hh"
 
+#include "GeantOpticalPhysicsOptionsIO.json.hh"
 #include "GeantPhysicsOptions.hh"
 
 namespace celeritas
@@ -86,6 +87,24 @@ void to_json(nlohmann::json& j, NuclearFormFactorType const& value)
     j = std::string{to_cstring(value)};
 }
 
+void from_json(nlohmann::json const& j,
+               std::optional<GeantOpticalPhysicsOptions>& v)
+{
+    if (j.is_null())
+        v = std::nullopt;
+    else
+        v = j.get<GeantOpticalPhysicsOptions>();
+}
+
+void to_json(nlohmann::json& j,
+             std::optional<GeantOpticalPhysicsOptions> const& v)
+{
+    if (v.has_value())
+        j = *v;
+    else
+        j = nullptr;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Read options from JSON.
@@ -130,6 +149,8 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
     GPO_LOAD_OPTION(form_factor);
 
     GPO_LOAD_OPTION(verbose);
+
+    GPO_LOAD_OPTION(optical_options);
 #undef GPO_LOAD_OPTION
 }
 
@@ -174,6 +195,8 @@ void to_json(nlohmann::json& j, GeantPhysicsOptions const& inp)
         CELER_JSON_PAIR(inp, form_factor),
 
         CELER_JSON_PAIR(inp, verbose),
+
+        CELER_JSON_PAIR(inp, optical_options),
     };
 
     save_format(j, format_str);

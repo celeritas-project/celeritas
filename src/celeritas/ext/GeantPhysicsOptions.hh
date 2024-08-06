@@ -7,9 +7,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <optional>
+
 #include "corecel/Types.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
+
+#include "GeantOpticalPhysicsOptions.hh"
 
 namespace celeritas
 {
@@ -134,6 +138,9 @@ struct GeantPhysicsOptions
 
     //! Print detailed Geant4 output
     bool verbose{false};
+
+    //! Optical physics options
+    std::optional<GeantOpticalPhysicsOptions> optical_options{std::nullopt};
 };
 
 //! Equality operator, mainly for test harness
@@ -169,7 +176,8 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.angle_limit_factor == b.angle_limit_factor
            && a.msc_step_algorithm == b.msc_step_algorithm
            && a.form_factor == b.form_factor
-           && a.verbose == b.verbose;
+           && a.verbose == b.verbose
+           && a.optical_options == b.optical_options;
     // clang-format on
 }
 
