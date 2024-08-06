@@ -392,30 +392,77 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
     auto n0 = this->insert(Negated{s1});
     auto j0 = this->insert(Joined{op_and, {s0, n0}});
     auto simplified = transform_negated_joins(tree_);
+
+    // check well-formed tree
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
         "all{2,4}, }",
         to_string(tree_));
+
+    // check that we have a noop
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
+        "all{2,4}, }",
+        to_string(simplified));
+
     this->insert(Negated{j0});
+
+    // check well-formed tree
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
         "all{2,4}, 6: not{5}, }",
         to_string(tree_));
+
+    // check an easy case with just a single negated operand
     simplified = transform_negated_joins(tree_);
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
         "any{3,4}, }",
         to_string(simplified));
-    this->insert(Joined{op_or, {s0, n0}});
+
+    // check well-formed tree
+    auto j1 = this->insert(Joined{op_or, {s0, n0}});
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
         "all{2,4}, 6: not{5}, 7: any{2,4}, }",
         to_string(tree_));
+
+    // check that the non-negated operand maps to correct new node_ids and
+    // that not{2} is not deleted
     simplified = transform_negated_joins(tree_);
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
-        "not{4}, 6: "
-        "any{3,4}, 7: any{2,5}, }",
+        "not{4}, 6: any{3,4}, 7: any{2,5}, }",
+        to_string(simplified));
+
+    // check well-formed tree
+    this->insert(Negated{j1});
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
+        "all{2,4}, 6: not{5}, 7: any{2,4}, 8: not{7}, }",
+        to_string(tree_));
+
+    // check that the two operands are transformed, removing dangling operators
+    simplified = transform_negated_joins(tree_);
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
+        "any{3,4}, 6: all{3,4}, }",
+        to_string(simplified));
+
+    // check well-formed tree
+    auto s2 = this->insert(Surface{S{2}});
+    this->insert(Negated{s2});
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
+        "all{2,4}, 6: not{5}, 7: any{2,4}, 8: not{7}, 9: surface 2, 10: "
+        "not{9}, }",
+        to_string(tree_));
+
+    // check that a disjoint trees are correctly handled
+    simplified = transform_negated_joins(tree_);
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
+        "any{3,4}, 6: all{3,4}, 7: surface 2, 8: not{7}, }",
         to_string(simplified));
 }
 
