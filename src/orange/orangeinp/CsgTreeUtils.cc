@@ -247,6 +247,20 @@ CsgTree transform_negated_joins(CsgTree const& tree)
         if (auto item = orphaned_join_nodes.find(node_id);
             item != orphaned_join_nodes.end())
         {
+            // we need to also remove Negate node that were potentially marked
+            // as orphans since we just discovered that this node needs to be
+            // kept
+            if (auto* join_node = std::get_if<orangeinp::Joined>(&tree[*item]))
+            {
+                for (auto join_operand : join_node->nodes)
+                {
+                    if (auto item = orphaned_negate_nodes.find(join_operand);
+                        item != orphaned_negate_nodes.end())
+                    {
+                        orphaned_negate_nodes.erase(item);
+                    }
+                }
+            }
             orphaned_join_nodes.erase(item);
         }
         else if (auto item = orphaned_negate_nodes.find(node_id);

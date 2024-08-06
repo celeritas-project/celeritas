@@ -458,11 +458,27 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         "not{9}, }",
         to_string(tree_));
 
-    // check that a disjoint trees are correctly handled
+    // check that disjoint trees are correctly handled
     simplified = transform_negated_joins(tree_);
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
         "any{3,4}, 6: all{3,4}, 7: surface 2, 8: not{7}, }",
+        to_string(simplified));
+
+    // check well-formed tree
+    this->insert(Joined{op_and, {j0, j1}});
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
+        "all{2,4}, 6: not{5}, 7: any{2,4}, 8: not{7}, 9: surface 2, 10: "
+        "not{9}, 11: all{5,7}, }",
+        to_string(tree_));
+
+    // Add an non-transformed operand with suboperands.
+    simplified = transform_negated_joins(tree_);
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
+        "not{4}, 6: any{3,4}, 7: all{2,5}, 8: all{3,4}, 9: any{2,5}, 10: "
+        "surface 2, 11: not{10}, 12: all{7,9}, }",
         to_string(simplified));
 }
 
