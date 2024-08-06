@@ -77,10 +77,6 @@ class WentzelHelper
         return cos_thetamax_nuc_;
     }
 
-    // The ratio of electron to total cross section for Coulomb scattering
-    inline CELER_FUNCTION real_type calc_xs_ratio(real_type cos_thetamin,
-                                                  real_type cos_thetamax) const;
-
     // Calculate the electron cross section for Coulomb scattering
     inline CELER_FUNCTION real_type
     calc_xs_electron(real_type cos_thetamin, real_type cos_thetamax) const;
@@ -155,18 +151,6 @@ WentzelHelper::WentzelHelper(ParticleTrackView const& particle,
     CELER_EXPECT(screening_coefficient_ > 0);
     CELER_EXPECT(cos_thetamax_elec_ >= -1 && cos_thetamax_elec_ <= 1);
     CELER_EXPECT(cos_thetamax_nuc_ >= -1 && cos_thetamax_nuc_ <= 1);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Ratio of electron cross section to total (nuclear + electron) cross section.
- */
-CELER_FUNCTION real_type WentzelHelper::calc_xs_ratio(
-    real_type cos_thetamin, real_type cos_thetamax) const
-{
-    real_type xs_elec = this->calc_xs_electron(cos_thetamin, cos_thetamax);
-    return xs_elec
-           / (xs_elec + this->calc_xs_nuclear(cos_thetamin, cos_thetamax));
 }
 
 //---------------------------------------------------------------------------//

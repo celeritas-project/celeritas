@@ -19,6 +19,7 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/GenerateCanonical.hh"
+#include "celeritas/random/distribution/RejectionSampler.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
@@ -153,7 +154,8 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
 {
     real_type cos_theta = 1;
     if (BernoulliDistribution(
-            helper_.calc_xs_ratio(cos_thetamin_, cos_thetamax_))(rng))
+            helper_.calc_xs_electron(cos_thetamin_, cos_thetamax_),
+            helper_.calc_xs_nuclear(cos_thetamin_, cos_thetamax_))(rng))
     {
         // Scattered off of electrons
         real_type const cos_thetamax_elec = helper_.cos_thetamax_electron();
@@ -171,11 +173,9 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
         // TODO: Reference?
         MottRatioCalculator mott_xsec(wentzel_.elem_data[el_id_],
                                       std::sqrt(particle_.beta_sq()));
-        real_type g_rej = mott_xsec(cos_theta)
-                          * ipow<2>(this->calculate_form_factor(cos_theta))
-                          / helper_.mott_factor();
-
-        if (!BernoulliDistribution(g_rej)(rng))
+        real_type xs = mott_xsec(cos_theta)
+                       * ipow<2>(this->calculate_form_factor(cos_theta));
+        if (RejectionSampler(xs, helper_.mott_factor())(rng))
         {
             // Reject scattering event: no change in direction
             cos_theta = 1;

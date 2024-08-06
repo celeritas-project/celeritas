@@ -19,7 +19,7 @@
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
+#include "celeritas/random/distribution/RejectionSampler.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 #include "detail/IoniFinalStateHelper.hh"
@@ -150,14 +150,14 @@ CELER_FUNCTION Interaction BraggICRU73QOInteractor::operator()(Engine& rng)
 
     // Sample the delta ray energy
     real_type energy;
-    real_type target;
     do
     {
+        // Sample 1/E^2 from Emin to Emax
         energy = min_secondary_energy_ * max_secondary_energy_
                  / UniformRealDistribution(min_secondary_energy_,
                                            max_secondary_energy_)(rng);
-        target = 1 - beta_sq_ * energy / max_secondary_energy_;
-    } while (!BernoulliDistribution(target)(rng));
+    } while (RejectionSampler<>(
+        1 - (beta_sq_ / max_secondary_energy_) * energy, 1)(rng));
 
     // Update kinematics of the final state and return the interaction
     return detail::IoniFinalStateHelper(inc_energy_,

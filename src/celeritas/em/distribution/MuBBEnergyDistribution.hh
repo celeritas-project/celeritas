@@ -13,7 +13,7 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
+#include "celeritas/random/distribution/RejectionSampler.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
@@ -145,7 +145,7 @@ CELER_FUNCTION auto MuBBEnergyDistribution::operator()(Engine& rng) -> Energy
                                     / ipow<2>(inc_mass_));
             target *= (1 + alpha_over_twopi() * a1 * (a3 - a1));
         }
-    } while (!BernoulliDistribution(target / envelope_)(rng));
+    } while (RejectionSampler<>(target, envelope_)(rng));
 
     return Energy{energy};
 }

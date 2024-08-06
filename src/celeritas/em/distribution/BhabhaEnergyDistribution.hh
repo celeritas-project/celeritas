@@ -11,7 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
+#include "celeritas/random/distribution/RejectionSampler.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
@@ -99,36 +99,34 @@ CELER_FUNCTION real_type BhabhaEnergyDistribution::operator()(Engine& rng)
         1 / this->max_energy_fraction(), 1 / min_energy_fraction_);
 
     // Sample epsilon
-    real_type g_numerator;
     real_type epsilon;
     do
     {
         epsilon = 1 / sample_inverse_epsilon(rng);
-        g_numerator = this->calc_g_fraction(epsilon, epsilon);
-
-    } while (!BernoulliDistribution(g_numerator / g_denominator)(rng));
+    } while (RejectionSampler<>(this->calc_g_fraction(epsilon, epsilon),
+                                g_denominator)(rng));
 
     return epsilon;
 }
 
 //---------------------------------------------------------------------------//
-/*
- * Helper function for calculating rejection function g.
+/*!
+ * Evaluate the rejection function g.
  */
 CELER_FUNCTION real_type BhabhaEnergyDistribution::calc_g_fraction(
     real_type epsilon_min, real_type epsilon_max)
 {
-    real_type const y = 1.0 / (1.0 + gamma_);
+    real_type const y = 1 / (1 + gamma_);
     real_type const y_sq = ipow<2>(y);
-    real_type const one_minus_2y = 1.0 - 2.0 * y;
+    real_type const one_minus_2y = 1 - 2 * y;
 
-    real_type const b1 = 2.0 - y_sq;
-    real_type const b2 = one_minus_2y * (3.0 + y_sq);
+    real_type const b1 = 2 - y_sq;
+    real_type const b2 = one_minus_2y * (3 + y_sq);
     real_type const b4 = ipow<3>(one_minus_2y);
     real_type const b3 = ipow<2>(one_minus_2y) + b4;
-    real_type const beta_sq = 1.0 - (1.0 / ipow<2>(gamma_));
+    real_type const beta_sq = 1 - (1 / ipow<2>(gamma_));
 
-    return 1.0
+    return 1
            + (ipow<4>(epsilon_max) * b4 - ipow<3>(epsilon_min) * b3
               + ipow<2>(epsilon_max) * b2 - epsilon_min * b1)
                  * beta_sq;
