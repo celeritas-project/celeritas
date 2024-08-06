@@ -326,11 +326,12 @@ CsgTree transform_negated_joins(CsgTree const& tree)
                                             : logic::OperatorToken::land;
             // Lookup the new id of each operand
             std::vector<NodeId> operands;
-            operands.reserve(join.nodes.size());
-            for (auto operand : join.nodes)
-            {
-                operands.push_back(replace_node_id(operand));
-            }
+            operands.resize(join.nodes.size());
+            std::transform(join.nodes.cbegin(),
+                           join.nodes.cend(),
+                           operands.begin(),
+                           replace_node_id);
+
             auto [new_id, inserted]
                 = result.insert(Joined{opposite_op, std::move(operands)});
             inserted_nodes[node_id] = new_id;
