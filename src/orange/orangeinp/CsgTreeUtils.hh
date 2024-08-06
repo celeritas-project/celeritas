@@ -33,7 +33,7 @@ orangeinp::NodeId simplify_up(CsgTree* tree, orangeinp::NodeId start);
 void simplify(CsgTree* tree, orangeinp::NodeId start);
 
 // Replace ~&(xs...) with |(~xs...) and ~|(xs...) with &(~xs...)
-void transform_negated_joins(CsgTree* tree);
+[[nodiscard]] CsgTree transform_negated_joins(CsgTree const& tree);
 
 // Transform a CSG node into a string expression
 [[nodiscard]] std::string

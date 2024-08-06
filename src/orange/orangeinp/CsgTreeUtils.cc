@@ -8,11 +8,17 @@
 #include "CsgTreeUtils.hh"
 
 #include <algorithm>
+#include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <variant>
 #include <vector>
 
+#include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
+#include "orange/OrangeTypes.hh"
+#include "orange/orangeinp/CsgTree.hh"
+#include "orange/orangeinp/CsgTypes.hh"
 
 #include "detail/InfixStringBuilder.hh"
 #include "detail/NodeReplacer.hh"
@@ -172,57 +178,187 @@ void simplify(CsgTree* tree, NodeId start)
  * This is required if the tree's logic expression is used with
  * \c InfixEvaluator as negated joins are not supported.
  */
-void transform_negated_joins(CsgTree* tree)
+CsgTree transform_negated_joins(CsgTree const& tree)
 {
-    // Vector of node_id of Negated node pointing to a Joined node
-    std::vector<std::tuple<NodeId, Joined const*>> stack;
-    stack.reserve(tree->size());
-    auto const& tree_ref = *tree;
+    // For each node_id in that set, we'll create a Negated{node_id} node in
+    // the new tree.
+    std::unordered_set<NodeId> new_negated_nodes;
+
+    // We need to insert a negated version of these Joined nodes.
+    // The value is the Node referred to by the key as to avoid an extra
+    // get_if.
+    std::unordered_map<NodeId, Joined const*> negated_join_nodes;
+
+    // Contains the node_id of Negated{Joined}. These don't need to be inserted
+    // in the new tree and its parent can directly point to the transformed
+    // Joined node.
+    std::unordered_map<NodeId, Negated const*> transformed_negated_nodes;
+
+    // A Negated{Joined{}} nodes needs to be mapped to the opposite Joined{}
+    // node. Parents need to point to the new Joined{} node. The old Joined{}
+    // node needs to be kept if it had parents other than the Negated node.
+    std::unordered_set<NodeId> orphaned_join_nodes;
+
+    // Recursive lambda. Negated{node_id} should be added to the new tree.
+    // if node_id is a Joined node, recusively add its children as negated
+    // nodes.
+    // TODO: extract the lambda to a free function
+    auto add_new_negated_nodes = [&](NodeId node_id) {
+        auto impl = [&](auto const& self, NodeId node_id) -> void {
+            CELER_EXPECT(std::get_if<orangeinp::Joined>(&tree[node_id]));
+            if (auto* join_node = std::get_if<orangeinp::Joined>(&tree[node_id]))
+            {
+                for (auto const& join_operand : join_node->nodes)
+                {
+                    if (auto* joined_join_operand
+                        = std::get_if<orangeinp::Joined>(&tree[join_operand]))
+                    {
+                        // the new Negated node will point to a Joined node
+                        // so we need to transform that Joined node as well
+                        self(self, join_operand);
+                        negated_join_nodes[join_operand] = joined_join_operand;
+                    }
+                    // per DeMorgran's law, negate each operand of the Joined
+                    // node.
+                    new_negated_nodes.insert(join_operand);
+                }
+                // assume that the Joined node doesn't have other parents and
+                // mark it for deletion. This is done after recusive calls as
+                // parents can only have a higher node_id and the recursive
+                // calls explore childrens with lower node_id. This can be
+                // unmarked later as we process potential parents
+                orphaned_join_nodes.insert(node_id);
+            }
+        };
+
+        impl(impl, std::move(node_id));
+    };
+
+    // check if we can unmark a node marked for deletion
+    auto remove_orphaned = [&](NodeId node_id) {
+        if (auto item = orphaned_join_nodes.find(node_id);
+            item != orphaned_join_nodes.end())
+        {
+            orphaned_join_nodes.erase(item);
+        }
+    };
 
     // First pass through all nodes to find all nand / nor
-    for (auto node_id : range(NodeId{tree->size()}))
+    for (auto node_id : range(NodeId{tree.size()}))
     {
-        if (auto* negated = std::get_if<orangeinp::Negated>(&tree_ref[node_id]))
+        // TODO: visitor
+        if (auto* node_ptr = &tree[node_id];
+            auto* negated = std::get_if<orangeinp::Negated>(node_ptr))
         {
-            if (auto* join
-                = std::get_if<orangeinp::Joined>(&tree_ref[negated->node]))
+            // we don't need to check if this is a potential parent of a
+            // Joined{} node marked as orphan as this node will also get
+            // simplified.
+            if (auto* joined
+                = std::get_if<orangeinp::Joined>(&tree[negated->node]))
             {
-                // Current node is Negated{Joined{...}}
-                stack.emplace_back(node_id, join);
+                // This is a Negated{Joined{...}}
+                // we'll need to add a Negated{} for each of its children.
+                add_new_negated_nodes(negated->node);
+                negated_join_nodes[negated->node] = joined;
+                transformed_negated_nodes[node_id] = negated;
+            }
+        }
+        else if (auto* aliased = std::get_if<orangeinp::Aliased>(node_ptr))
+        {
+            remove_orphaned(aliased->node);  // TODO: handle alias pointing to
+                                             // an alias (pointing to an
+                                             // alias)...
+        }
+        else if (auto* joined = std::get_if<orangeinp::Joined>(node_ptr))
+        {
+            for (auto const& join_operand : joined->nodes)
+            {
+                remove_orphaned(join_operand);
             }
         }
     }
 
-    while (!stack.empty())
+    CsgTree result{};
+
+    // for a given node_id in the original tree, map to it's id in the new tree
+    std::unordered_map<NodeId, NodeId> inserted_nodes;
+
+    std::unordered_map<NodeId, NodeId> original_new_nodes;
+
+    // We can now build the new tree.
+    for (auto node_id : range(NodeId{tree.size()}))
     {
-        // Get one node
-        auto [negated_id, joined] = stack.back();
-        stack.pop_back();
-
-        Joined transformed;
-        transformed.op = joined->op == op_and ? op_or : op_and;
-        transformed.nodes.reserve(joined->nodes.size());
-
-        // Negate all the join operands
-        for (auto const& join_operand : joined->nodes)
+        // The current node is a Joined{} and we need to inserted a Negated
+        // version of it.
+        if (auto iter = negated_join_nodes.find(node_id);
+            iter != negated_join_nodes.end())
         {
-            // Try to insert the negated operand
-            if (auto [new_node, inserted] = tree->insert(Negated{join_operand});
-                inserted)
+            // Insert the opposite join instead, updating the children ids.
+            Joined const& join = *iter->second;
+            OperatorToken opposite_op = (join.op == logic::land)
+                                            ? logic::lor
+                                            : logic::OperatorToken::land;
+            // Lookup the new id of each operand
+            std::vector<NodeId> operands;
+            operands.reserve(join.nodes.size());
+            for (auto operand : join.nodes)
             {
-                // Update the new join node with the negated operand
-                transformed.nodes.push_back(new_node);
-                if (auto* join
-                    = std::get_if<orangeinp::Joined>(&tree_ref[join_operand]))
+                if (auto new_id = inserted_nodes.find(operand);
+                    new_id != inserted_nodes.end())
                 {
-                    // we just inserted a Negated{Join{...}}, need to simplify
-                    stack.emplace_back(new_node, join);
+                    operands.push_back(new_id->second);
                 }
             }
+            auto [new_id, inserted]
+                = result.insert(Joined{opposite_op, std::move(operands)});
+            inserted_nodes[node_id] = new_id;
+            negated_join_nodes.erase(iter);
         }
-        // Override the old negated join node with the new join
-        tree->exchange(negated_id, std::move(transformed));
+
+        // this Negated{Join} node doesn't have any other parents, so we don't
+        // need to insert it original version
+        if (auto iter = orphaned_join_nodes.find(node_id);
+            iter != orphaned_join_nodes.end())
+        {
+            orphaned_join_nodes.erase(iter);
+            continue;
+        }
+
+        // this node is a Negated{Join} node, we have already inserted the
+        // opposite Joined node
+        if (auto negated_node = transformed_negated_nodes.find(node_id);
+            negated_node != transformed_negated_nodes.end())
+        {
+            // we don't need to insert the original Negated{Join} node
+            transformed_negated_nodes.erase(negated_node);
+            // redirect parents looking for this node to the new Joined node.
+            inserted_nodes[node_id]
+                = inserted_nodes.find(negated_node->second->node)->second;
+            continue;
+        }
+
+        // this node isn't a transformed Join or Negated node, so we can insert
+        // it as is.
+        Node new_node = tree[node_id];
+        // TODO: before inserting we need to update the children ids by
+        // searching inserted_nodes and original_new_nodes
+        auto [new_id, inserted] = result.insert(std::move(new_node));
+        // this is recorded in a different map as a node in the original tree
+        // can be inserted multiple times in the new tree e.g. a
+        // Negated{Joined}, if that Joined node has another parent.
+        original_new_nodes[node_id] = new_id;
+
+        // We might have to insert a negated version of that node
+        if (auto iter = new_negated_nodes.find(node_id);
+            iter != new_negated_nodes.end())
+        {
+            auto [new_negated_node_id, negated_inserted]
+                = result.insert(Negated{new_id});
+            inserted_nodes[node_id] = new_negated_node_id;
+            new_negated_nodes.erase(iter);
+        }
     }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
