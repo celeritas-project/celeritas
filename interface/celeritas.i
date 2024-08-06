@@ -199,6 +199,7 @@ class ImporterInterface
 %{
 #include "celeritas/ext/RootImporter.hh"
 #include "celeritas/ext/RootExporter.hh"
+#include "celeritas/ext/GeantOpticalPhysicsOptions.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/GeantImporter.hh"
@@ -215,6 +216,7 @@ namespace celeritas
 
 %include "celeritas/ext/RootImporter.hh"
 %include "celeritas/ext/RootExporter.hh"
+%include "celeritas/ext/GeantOpticalPhysicsOptions.hh"
 %include "celeritas/ext/GeantPhysicsOptions.hh"
 %include "celeritas/ext/GeantSetup.hh"
 %include "celeritas/ext/GeantImporter.hh"
