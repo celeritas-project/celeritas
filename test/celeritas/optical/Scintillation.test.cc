@@ -32,7 +32,7 @@ using namespace celeritas::optical;
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ScintillationTest : public OpticalTestBase
+class ScintillationTestBase : public OpticalTestBase
 {
   public:
     //!@{
@@ -41,11 +41,11 @@ class ScintillationTest : public OpticalTestBase
     using HostValue = HostVal<ScintillationData>;
     using MevEnergy = units::MevEnergy;
     using LightSpeed = units::LightSpeed;
+    using SPParams = std::shared_ptr<ScintillationParams>;
+    using VecScintComponents = std::vector<ImportScintComponent>;
     //!@}
 
   protected:
-    void SetUp() override {}
-
     //! Get random number generator with clean counter
     RandomEngine& rng()
     {
@@ -53,71 +53,16 @@ class ScintillationTest : public OpticalTestBase
         return rng_;
     }
 
-    //! Create scintillation params
-    std::shared_ptr<ScintillationParams>
-    build_scintillation_params(bool scint_by_particle = false)
-    {
-        ScintillationParams::Input inp;
-        inp.resolution_scale.push_back(1);
-
-        // One material, three components
-        if (!scint_by_particle)
-        {
-            ImportMaterialScintSpectrum mat_spec;
-            mat_spec.yield_per_energy = 5;
-            mat_spec.components = this->build_material_components();
-            inp.materials.push_back(std::move(mat_spec));
-        }
-        else
-        {
-            // One particle, one component (based on lar-sphere.gdml)
-            inp.pid_to_scintpid.push_back(ScintillationParticleId(0));
-            ImportParticleScintSpectrum ipss;
-            ipss.yield_vector = this->build_particle_yield();
-            ipss.components = this->build_particle_components();
-            inp.particles.push_back(std::move(ipss));
-        }
-
-        return std::make_shared<ScintillationParams>(std::move(inp));
-    }
-
-    //! Create material components
-    std::vector<ImportScintComponent> build_material_components()
-    {
-        static constexpr real_type nm = units::meter * 1e-9;
-        static constexpr real_type ns = units::nanosecond;
-
-        std::vector<ImportScintComponent> comps;
-        comps.push_back({0.65713, 128 * nm, 10 * nm, 10 * ns, 6 * ns});
-        comps.push_back({0.31987, 128 * nm, 10 * nm, 10 * ns, 1500 * ns});
-        comps.push_back({0.023, 200 * nm, 20 * nm, 10 * ns, 3000 * ns});
-        return comps;
-    }
+    virtual SPParams build_scintillation_params() = 0;
 
     //! Create particle yield vector
     ImportPhysicsVector build_particle_yield()
     {
         ImportPhysicsVector vec;
         vec.vector_type = ImportPhysicsVectorType::free;
-        vec.x.push_back(1e-6);
-        vec.x.push_back(6);
-        vec.y.push_back(3750);
-        vec.y.push_back(5000);
+        vec.x = {1e-6, 6};
+        vec.y = {3750, 5000};
         return vec;
-    }
-
-    //! Create particle components
-    std::vector<ImportScintComponent> build_particle_components()
-    {
-        std::vector<ImportScintComponent> vec_comps;
-        ImportScintComponent comp;
-        comp.yield_per_energy = 4000;
-        comp.lambda_mean = 1e-5;
-        comp.lambda_sigma = 1e-6;
-        comp.rise_time = 15e-9;
-        comp.fall_time = 5e-9;
-        vec_comps.push_back(std::move(comp));
-        return vec_comps;
     }
 
     //! Set up mock pre-generator step data
@@ -142,11 +87,81 @@ class ScintillationTest : public OpticalTestBase
     real_type step_length_{2.5};  // [cm]
 };
 
+class MaterialScintillationTest : public ScintillationTestBase
+{
+  public:
+    //! Create scintillation params
+    SPParams build_scintillation_params() override
+    {
+        ScintillationParams::Input inp;
+        inp.resolution_scale.push_back(1);
+
+        // One material, three components
+        ImportMaterialScintSpectrum mat_spec;
+        mat_spec.yield_per_energy = 5;
+        mat_spec.components = this->build_material_components();
+        inp.materials.push_back(std::move(mat_spec));
+
+        return std::make_shared<ScintillationParams>(std::move(inp));
+    }
+
+    //! Create material components
+    std::vector<ImportScintComponent> build_material_components()
+    {
+        static constexpr real_type nm = units::meter * 1e-9;
+        static constexpr real_type ns = units::nanosecond;
+
+        // Note second component has zero rise time
+        std::vector<ImportScintComponent> comps;
+        comps.push_back({0.65713, 128 * nm, 10 * nm, 10 * ns, 6 * ns});
+        comps.push_back({0.31987, 128 * nm, 10 * nm, 0, 1500 * ns});
+        comps.push_back({0.023, 200 * nm, 20 * nm, 10 * ns, 3000 * ns});
+        return comps;
+    }
+};
+
+class ParticleScintillationTest : public ScintillationTestBase
+{
+  public:
+    //! Create scintillation params
+    SPParams build_scintillation_params() override
+    {
+        ScintillationParams::Input inp;
+        inp.resolution_scale.push_back(1);
+
+        // One particle, one component (based on lar-sphere.gdml)
+        inp.pid_to_scintpid.push_back(ScintillationParticleId(0));
+        ImportParticleScintSpectrum ipss;
+        ipss.yield_vector = this->build_particle_yield();
+        ipss.components = this->build_particle_components();
+        inp.particles.push_back(std::move(ipss));
+
+        return std::make_shared<ScintillationParams>(std::move(inp));
+    }
+
+    //! Create particle components
+    VecScintComponents build_particle_components()
+    {
+        constexpr auto cm = units::centimeter;
+        constexpr auto sec = units::second;
+
+        std::vector<ImportScintComponent> vec_comps;
+        ImportScintComponent comp;
+        comp.yield_per_energy = 4000;
+        comp.lambda_mean = 1e-5 * cm;
+        comp.lambda_sigma = 1e-6 * cm;
+        comp.rise_time = 15e-9 * sec;
+        comp.fall_time = 5e-9 * sec;
+        vec_comps.push_back(std::move(comp));
+        return vec_comps;
+    }
+};
+
 //---------------------------------------------------------------------------//
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST_F(ScintillationTest, material_scint_params)
+TEST_F(MaterialScintillationTest, data)
 {
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
@@ -195,10 +210,9 @@ TEST_F(ScintillationTest, material_scint_params)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(ScintillationTest, particle_scint_params)
+TEST_F(ParticleScintillationTest, data)
 {
-    auto const params = this->build_scintillation_params(
-        /* scint_by_particle = */ true);
+    auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
     EXPECT_TRUE(data.scintillation_by_particle());
 
@@ -259,7 +273,7 @@ TEST_F(ScintillationTest, particle_scint_params)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(ScintillationTest, pre_generator)
+TEST_F(MaterialScintillationTest, pre_generator)
 {
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
@@ -295,7 +309,7 @@ TEST_F(ScintillationTest, pre_generator)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(ScintillationTest, basic)
+TEST_F(MaterialScintillationTest, basic)
 {
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
@@ -312,64 +326,95 @@ TEST_F(ScintillationTest, basic)
         data,
         pre_step);
 
-    auto const result = generate(this->rng());
+    auto const generated_dist = generate(this->rng());
+    auto const inc_dir
+        = make_unit_vector(generated_dist.points[StepPoint::post].pos
+                           - generated_dist.points[StepPoint::pre].pos);
 
-    // Output data
-    std::vector<Primary> storage(result.num_photons);
-
-    // Create the generator
+    // Create the generator and output vectors
+    std::vector<Primary> primary_storage(generated_dist.num_photons);
     ScintillationGenerator generate_photons(
-        result, params->host_ref(), make_span(storage));
+        generated_dist, params->host_ref(), make_span(primary_storage));
+    std::vector<real_type> energy;
+    std::vector<real_type> time;
+    std::vector<real_type> cos_theta;
+    std::vector<real_type> polarization_x;
 
-    // Generate optical photons for a given input
-    auto photons = generate_photons(this->rng());
-
-    // Check results
-    std::vector<real_type> energy, time, cos_theta, polarization_x, cos_polar;
-    for (auto i : range(result.num_photons))
+    // Generate 2 batches of optical photons from the given input
+    for ([[maybe_unused]] auto i : range(2))
     {
-        energy.push_back(photons[i].energy.value());
-        time.push_back(photons[i].time / units::second);
-        cos_theta.push_back(dot_product(
-            photons[i].direction,
-            make_unit_vector(result.points[StepPoint::post].pos
-                             - result.points[StepPoint::pre].pos)));
+        auto photons = generate_photons(this->rng());
+        ASSERT_EQ(photons.size(), generated_dist.num_photons);
 
-        polarization_x.push_back(photons[i].polarization[0]);
-        cos_polar.push_back(
-            dot_product(photons[i].polarization, photons[i].direction));
+        for (Primary const& p : photons)
+        {
+            energy.push_back(p.energy.value());
+            time.push_back(p.time / units::second);
+            cos_theta.push_back(dot_product(p.direction, inc_dir));
+
+            polarization_x.push_back(p.polarization[0]);
+            EXPECT_SOFT_EQ(0, dot_product(p.polarization, p.direction));
+        }
     }
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        static double const expected_energy[] = {1.0108118605375e-05,
-                                                 1.1217590386333e-05,
-                                                 1.0717754890017e-05,
-                                                 5.9167264717999e-06};
-        static double const expected_time[] = {3.211612780853e-08,
-                                               6.1750109166679e-09,
-                                               1.7964384622073e-06,
-                                               8.0855470955892e-07};
-        static double const expected_cos_theta[] = {0.98576260383561,
-                                                    0.27952671419631,
-                                                    0.48129448935284,
-                                                    -0.70177204718526};
-        static double const expected_polarization_x[] = {-0.97819537168632,
-                                                         0.68933315879807,
-                                                         -0.26839376593079,
-                                                         -0.57457399792055};
-        static double const expected_cos_polar[] = {0, 0, 0, 0};
+        static double const expected_energy[] = {
+            1.0108118605375e-05,
+            1.1217590386333e-05,
+            1.0717754890017e-05,
+            7.2508084886886e-06,
+            9.645934625422e-06,
+            1.0422369961991e-05,
+            1.0134774090994e-05,
+            7.4773995536571e-06,
+        };
+        static double const expected_time[] = {
+            3.211612780853e-08,
+            6.1750109166679e-09,
+            1.7964384622073e-06,
+            6.2340101132549e-06,
+            2.0938021428725e-09,
+            1.3424826808147e-09,
+            2.7672422928171e-06,
+            1.29065395794e-05,
+        };
+        static double const expected_cos_theta[] = {
+            0.98576260383561,
+            0.27952671419631,
+            0.48129448935284,
+            0.7448576401346,
+            -0.748206733056,
+            0.42140775018143,
+            0.88014805759581,
+            0.6194690974697,
+        };
+        static double const expected_polarization_x[] = {
+            -0.97819537168632,
+            0.68933315879807,
+            -0.26839376593079,
+            -0.45610110755268,
+            0.027501392904077,
+            0.74278820887819,
+            -0.68599121517934,
+            0.37271993746494,
+        };
 
         EXPECT_VEC_SOFT_EQ(expected_energy, energy);
         EXPECT_VEC_SOFT_EQ(expected_time, time);
         EXPECT_VEC_SOFT_EQ(expected_cos_theta, cos_theta);
         EXPECT_VEC_SOFT_EQ(expected_polarization_x, polarization_x);
-        EXPECT_VEC_SOFT_EQ(expected_cos_polar, cos_polar);
     }
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(ScintillationTest, stress_test)
+TEST_F(ParticleScintillationTest, basic)
+{
+    GTEST_SKIP() << "particle scintillation is not yet implemented";
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(MaterialScintillationTest, stress_test)
 {
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
