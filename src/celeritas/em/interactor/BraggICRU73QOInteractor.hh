@@ -158,7 +158,7 @@ CELER_FUNCTION Interaction BraggICRU73QOInteractor::operator()(Engine& rng)
         // Sample 1/E^2 from Emin to Emax
         energy = sample_energy(rng);
     } while (RejectionSampler<>(
-        1 - (beta_sq_ / max_secondary_energy_) * energy, 1)(rng));
+        1 - (beta_sq_ / max_secondary_energy_) * energy)(rng));
 
     // Update kinematics of the final state and return the interaction
     return detail::IoniFinalStateHelper(inc_energy_,
