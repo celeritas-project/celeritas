@@ -187,7 +187,7 @@ ScintillationParams::ScintillationParams(Input const& input)
         GenericGridBuilder build_grid(&host_data.reals);
         CollectionBuilder build_particles(&host_data.particles);
 
-        for (auto spec : input.particles)
+        for (auto const& spec : input.particles)
         {
             CELER_VALIDATE(spec.yield_vector,
                            << "particle yield vector is not assigned "
