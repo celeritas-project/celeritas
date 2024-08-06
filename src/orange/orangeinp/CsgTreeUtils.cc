@@ -280,15 +280,17 @@ CsgTree transform_negated_joins(CsgTree const& tree)
 
     CsgTree result{};
 
-    // for a given node_id in the original tree, map to it's id in the new tree
+    // for a given node_id in the original tree, map to its id in the new tree
     std::unordered_map<NodeId, NodeId> inserted_nodes;
 
+    // A node in the original tree can map to more than one node in the new
+    // tree
     std::unordered_map<NodeId, NodeId> original_new_nodes;
 
     // We can now build the new tree.
     for (auto node_id : range(NodeId{tree.size()}))
     {
-        // The current node is a Joined{} and we need to inserted a Negated
+        // The current node is a Joined{} and we need to insert a Negated
         // version of it.
         if (auto iter = negated_join_nodes.find(node_id);
             iter != negated_join_nodes.end())
@@ -316,7 +318,7 @@ CsgTree transform_negated_joins(CsgTree const& tree)
         }
 
         // this Negated{Join} node doesn't have any other parents, so we don't
-        // need to insert it original version
+        // need to insert its original version
         if (auto iter = orphaned_join_nodes.find(node_id);
             iter != orphaned_join_nodes.end())
         {
@@ -337,11 +339,43 @@ CsgTree transform_negated_joins(CsgTree const& tree)
             continue;
         }
 
+        // Utility to check the two maps for the new id of a node.
+        // maybe we can coalesce them in a single map<NodeId, vector<NodeId>>
+        auto replace_node_id = [&](NodeId n) {
+            if (auto new_id = inserted_nodes.find(n);
+                new_id != inserted_nodes.end())
+            {
+                return new_id->second;
+            }
+            if (auto new_id = original_new_nodes.find(n);
+                new_id != inserted_nodes.end())
+            {
+                return new_id->second;
+            }
+            return n;
+        };
         // this node isn't a transformed Join or Negated node, so we can insert
-        // it as is.
+        // it.
         Node new_node = tree[node_id];
-        // TODO: before inserting we need to update the children ids by
-        // searching inserted_nodes and original_new_nodes
+
+        // We need to update the childrens' ids in the new tree.
+        // TODO: visitor
+        if (auto* node_ptr = &new_node;
+            auto* negated = std::get_if<orangeinp::Negated>(node_ptr))
+        {
+            negated->node = replace_node_id(negated->node);
+        }
+        else if (auto* aliased = std::get_if<orangeinp::Aliased>(node_ptr))
+        {
+            aliased->node = replace_node_id(aliased->node);
+        }
+        else if (auto* joined = std::get_if<orangeinp::Joined>(node_ptr))
+        {
+            for (auto& op : joined->nodes)
+            {
+                op = replace_node_id(op);
+            }
+        }
         auto [new_id, inserted] = result.insert(std::move(new_node));
         // this is recorded in a different map as a node in the original tree
         // can be inserted multiple times in the new tree e.g. a
