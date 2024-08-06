@@ -385,6 +385,24 @@ TEST_F(CsgTreeUtilsTest, calc_surfaces)
     EXPECT_EQ((std::vector<S>{S{1}, S{3}}), calc_surfaces(tree_));
 }
 
+TEST_F(CsgTreeUtilsTest, transform_negated_joins)
+{
+    auto s0 = this->insert(Surface{S{0}});
+    auto s1 = this->insert(Surface{S{1}});
+    auto n0 = this->insert(Negated{s1});
+    auto j0 = this->insert(Joined{op_and, {s0, n0}});
+    this->insert(Negated{j0});
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
+        "all{2,4}, 6: not{5}, }",
+        to_string(tree_));
+    auto simplified = transform_negated_joins(tree_);
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
+        "any{3,4}, }",
+        to_string(simplified));
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace orangeinp
