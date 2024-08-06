@@ -12,11 +12,11 @@
 #include "corecel/Types.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/ExponentialDistribution.hh"
 #include "celeritas/random/distribution/GenerateCanonical.hh"
 #include "celeritas/random/distribution/NormalDistribution.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
+#include "celeritas/random/distribution/RejectionSampler.hh"
 
 #include "GeneratorDistributionData.hh"
 #include "Primary.hh"
@@ -140,7 +140,7 @@ CELER_FUNCTION Span<Primary> ScintillationGenerator::operator()(Generator& rng)
                   : static_cast<size_type>(dist_.num_photons
                                            * component.yield_frac);
 
-        CELER_EXPECT(num_generated + num_photons <= dist_.num_photons);
+        CELER_ASSERT(num_generated + num_photons <= dist_.num_photons);
 
         // Sample photons for each scintillation component
         NormalDistribution<real_type> sample_lambda(component.lambda_mean,
@@ -150,10 +150,10 @@ CELER_FUNCTION Span<Primary> ScintillationGenerator::operator()(Generator& rng)
         for (size_type i : range(num_generated, num_generated + num_photons))
         {
             // Sample wavelength and convert to energy
-            real_type wave_length = sample_lambda(rng);
-            CELER_EXPECT(wave_length > 0);
+            real_type wavelength = sample_lambda(rng);
+            CELER_ASSERT(wavelength > 0);
             photons_[i].energy = native_value_to<Energy>(
-                constants::h_planck * constants::c_light / wave_length);
+                constants::h_planck * constants::c_light / wavelength);
 
             // Sample direction
             real_type cost = sample_cost_(rng);
@@ -187,18 +187,20 @@ CELER_FUNCTION Span<Primary> ScintillationGenerator::operator()(Generator& rng)
 
             if (component.rise_time == 0)
             {
-                delta_time -= component.fall_time
-                              * std::log(generate_canonical(rng));
+                // Sample exponentially from fall time
+                delta_time += sample_time(rng);
             }
             else
             {
                 real_type scint_time{};
-                real_type envelop{};
+                real_type target;
                 do
                 {
+                    // Sample time exponentially by fall time, then
+                    // accept with 1 - e^{-t/rise}
                     scint_time = sample_time(rng);
-                    envelop = -std::expm1(-scint_time / component.rise_time);
-                } while (!BernoulliDistribution(envelop)(rng));
+                    target = -std::expm1(-scint_time / component.rise_time);
+                } while (RejectionSampler(target)(rng));
                 delta_time += scint_time;
             }
             CELER_ASSERT(delta_time >= 0);
@@ -206,8 +208,8 @@ CELER_FUNCTION Span<Primary> ScintillationGenerator::operator()(Generator& rng)
         }
         num_generated += num_photons;
     }
-    CELER_ASSERT(num_generated == dist_.num_photons);
 
+    CELER_ENSURE(num_generated == dist_.num_photons);
     return photons_;
 }
 
