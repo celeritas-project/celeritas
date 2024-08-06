@@ -19,7 +19,7 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-// Target PDF with maximum 1.5
+// Target PDF with domain [0, 2] and range [0.5, 2]
 double target_distribution(double x)
 {
     CELER_EXPECT(x >= 0 && x <= 2);
@@ -32,7 +32,7 @@ double target_distribution(double x)
 
 struct TargetSampler
 {
-    UniformRealDistribution<double> sample_range{0, 2};
+    UniformRealDistribution<double> sample_domain{0, 2};
 
     template<class Engine>
     real_type operator()(Engine& rng)
@@ -40,7 +40,7 @@ struct TargetSampler
         real_type x;
         do
         {
-            x = this->sample_range(rng);
+            x = this->sample_domain(rng);
         } while (RejectionSampler<double>{target_distribution(x), 2.0}(rng));
         return x;
     }

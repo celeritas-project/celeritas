@@ -56,8 +56,8 @@ class RejectionSampler
     //!@}
 
   public:
-    // Construct on an arbitrary interval
-    inline CELER_FUNCTION RejectionSampler(real_type a, real_type b);
+    // Construct with acceptance probability
+    inline CELER_FUNCTION RejectionSampler(real_type f, real_type fmax);
 
     // Sample a random number according to the distribution
     template<class Generator>
@@ -72,12 +72,12 @@ class RejectionSampler
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with a probability f/fmax of returning false.
+ * Construct with acceptance probability and maximum probability.
  */
 template<class RealType>
 CELER_FUNCTION
 RejectionSampler<RealType>::RejectionSampler(real_type f, real_type fmax)
-    : f_(f), fmax_(fmax)
+    : f_{f}, fmax_{fmax}
 {
     CELER_EXPECT(f_ >= 0);
     CELER_EXPECT(fmax_ >= f_);
