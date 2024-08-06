@@ -329,11 +329,7 @@ CsgTree transform_negated_joins(CsgTree const& tree)
             operands.reserve(join.nodes.size());
             for (auto operand : join.nodes)
             {
-                if (auto new_id = inserted_nodes.find(operand);
-                    new_id != inserted_nodes.end())
-                {
-                    operands.push_back(new_id->second);
-                }
+                operands.push_back(replace_node_id(operand));
             }
             auto [new_id, inserted]
                 = result.insert(Joined{opposite_op, std::move(operands)});
