@@ -20,7 +20,7 @@ namespace celeritas
 /*!
  * Helper class for \c MollerBhabhaInteractor .
  *
- * Sample the exiting energy for Moller scattering.
+ * Sample the exiting energy fraction for Moller scattering.
  */
 class MollerEnergyDistribution
 {
@@ -37,18 +37,14 @@ class MollerEnergyDistribution
                                                    Energy min_valid_energy,
                                                    Energy inc_energy);
 
-    // Sample the exiting energy
+    // Sample the exiting energy fraction
     template<class Engine>
     inline CELER_FUNCTION real_type operator()(Engine& rng);
 
   private:
     //// DATA ////
 
-    // Electron incident energy [MeV]
-    real_type inc_energy_;
-    // Total energy of the incident particle [MeV]
-    real_type total_energy_;
-    // Minimum energy fraction transferred to free electron [MeV]
+    // Minimum energy fraction transferred to free electron
     real_type min_energy_fraction_;
     // Sampling parameter
     real_type gamma_;
@@ -74,12 +70,12 @@ CELER_FUNCTION
 MollerEnergyDistribution::MollerEnergyDistribution(Mass electron_mass,
                                                    Energy min_valid_energy,
                                                    Energy inc_energy)
-    : inc_energy_(value_as<Energy>(inc_energy))
-    , total_energy_(inc_energy_ + value_as<Mass>(electron_mass))
-    , min_energy_fraction_(value_as<Energy>(min_valid_energy) / inc_energy_)
-    , gamma_(total_energy_ / value_as<Mass>(electron_mass))
+    : min_energy_fraction_(value_as<Energy>(min_valid_energy)
+                           / value_as<Energy>(inc_energy))
+    , gamma_(1 + value_as<Energy>(inc_energy) / value_as<Mass>(electron_mass))
 {
-    CELER_EXPECT(electron_mass > zero_quantity() && inc_energy_ > 0);
+    CELER_EXPECT(electron_mass > zero_quantity()
+                 && inc_energy > zero_quantity());
 }
 
 //---------------------------------------------------------------------------//
@@ -95,7 +91,7 @@ CELER_FUNCTION real_type MollerEnergyDistribution::operator()(Engine& rng)
     UniformRealDistribution<> sample_inverse_epsilon(
         1 / this->max_energy_fraction(), 1 / min_energy_fraction_);
 
-    // Sample epsilon
+    // Sample fraction of exiting energy
     real_type epsilon;
     do
     {

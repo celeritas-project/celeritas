@@ -169,6 +169,7 @@ three-vectors (such as sampling an isotropic direction).
 .. doxygenclass:: celeritas::DeltaDistribution
 .. doxygenclass:: celeritas::ExponentialDistribution
 .. doxygenclass:: celeritas::GammaDistribution
+.. doxygenclass:: celeritas::InverseSquareDistribution
 .. doxygenclass:: celeritas::IsotropicDistribution
 .. doxygenclass:: celeritas::NormalDistribution
 .. doxygenclass:: celeritas::PoissonDistribution

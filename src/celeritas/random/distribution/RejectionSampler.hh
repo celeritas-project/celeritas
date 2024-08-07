@@ -59,6 +59,10 @@ class RejectionSampler
     // Construct with acceptance probability
     inline CELER_FUNCTION RejectionSampler(real_type f, real_type fmax);
 
+    //! Construct when the distribution's maximum is normalized
+    explicit CELER_FUNCTION RejectionSampler(real_type f)
+        : RejectionSampler{f, 1} {}
+
     // Sample a random number according to the distribution
     template<class Generator>
     inline CELER_FUNCTION result_type operator()(Generator& rng);

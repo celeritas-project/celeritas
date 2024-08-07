@@ -18,9 +18,7 @@
 #include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
-#include "celeritas/random/distribution/GenerateCanonical.hh"
 #include "celeritas/random/distribution/RejectionSampler.hh"
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
 {

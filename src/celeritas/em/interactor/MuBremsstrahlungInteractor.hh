@@ -23,7 +23,8 @@
 #include "celeritas/phys/InteractionUtils.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
+#include "celeritas/random/distribution/ReciprocalDistribution.hh"
+#include "celeritas/random/distribution/RejectionSampler.hh"
 
 #include "detail/BremFinalStateHelper.hh"
 
@@ -80,20 +81,12 @@ class MuBremsstrahlungInteractor
     ParticleTrackView const& particle_;
     // Differential cross section calculator
     MuBremsDiffXsCalculator calc_dcs_;
-    // Ratio of gamma production cutoff to minimum energy cutoff
-    real_type xmin_;
-    // Ratio of incident energy to gamma production cutoff
-    real_type xmax_;
+    // Distribution to sample energy
+    ReciprocalDistribution<> sample_energy_;
     // Envelope distribution for rejection sampling of gamma energy
     real_type envelope_;
 
     //// CONSTANTS ////
-
-    //! Minimum allowed secondary cutoff energy [MeV]
-    static CELER_CONSTEXPR_FUNCTION Energy min_cutoff_energy()
-    {
-        return units::MevEnergy{9e-4};  //!< 0.9 keV
-    }
 
     //// HELPER FUNCTIONS ////
 
@@ -123,17 +116,17 @@ CELER_FUNCTION MuBremsstrahlungInteractor::MuBremsstrahlungInteractor(
     , particle_(particle)
     , calc_dcs_(
           element_, particle.energy(), particle.mass(), shared.electron_mass)
-    , xmin_(std::log(value_as<Energy>(cutoffs.energy(shared.gamma))
-                     / value_as<Energy>(min_cutoff_energy())))
-    , xmax_(std::log(value_as<Energy>(particle_.energy())
-                     / value_as<Energy>(cutoffs.energy(shared.gamma))))
-    , envelope_(value_as<Energy>(cutoffs.energy(shared.gamma))
-                * calc_dcs_(cutoffs.energy(shared.gamma)))
+    , sample_energy_{value_as<Energy>(cutoffs.energy(shared.gamma)),
+                     value_as<Energy>(particle_.energy())}
 {
     CELER_EXPECT(particle.particle_id() == shared_.mu_minus
                  || particle.particle_id() == shared_.mu_plus);
-    CELER_EXPECT(cutoffs.energy(shared.gamma) >= min_cutoff_energy());
     CELER_EXPECT(particle_.energy() > cutoffs.energy(shared.gamma));
+
+    // Calculate rejection envelope: *assume* the highest cross section
+    // is at its lowerst value
+    real_type gamma_cutoff = value_as<Energy>(cutoffs.energy(shared.gamma));
+    envelope_ = gamma_cutoff * calc_dcs_(Energy{gamma_cutoff});
 }
 
 //---------------------------------------------------------------------------//
@@ -155,10 +148,9 @@ CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
     real_type gamma_energy;
     do
     {
-        gamma_energy = value_as<Energy>(min_cutoff_energy())
-                       * std::exp(xmin_ + xmax_ * generate_canonical(rng));
-    } while (!BernoulliDistribution(
-        gamma_energy * calc_dcs_(Energy{gamma_energy}) / envelope_)(rng));
+        gamma_energy = sample_energy_(rng);
+    } while (RejectionSampler{gamma_energy * calc_dcs_(Energy{gamma_energy}),
+                              envelope_}(rng));
 
     // Update kinematics of the final state and return this interaction
     return detail::BremFinalStateHelper(
