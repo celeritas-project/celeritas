@@ -21,7 +21,6 @@
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/random/Selector.hh"
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/GenerateCanonical.hh"
 
 #include "ParticleTrackView.hh"

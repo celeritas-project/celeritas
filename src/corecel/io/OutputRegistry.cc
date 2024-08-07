@@ -65,14 +65,12 @@ void OutputRegistry::output(JsonPimpl* j) const
             if (is_global)
             {
                 json_wrap.obj = std::move(cat_result);
-            }
-            kv.second->output(&json_wrap);
-            if (is_global)
-            {
+                kv.second->output(&json_wrap);
                 cat_result = std::move(json_wrap.obj);
             }
             else
             {
+                kv.second->output(&json_wrap);
                 cat_result[kv.first] = std::move(json_wrap.obj);
             }
         }

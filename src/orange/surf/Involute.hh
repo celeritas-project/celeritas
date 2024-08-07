@@ -66,13 +66,13 @@ class Involute
   public:
     //// CLASS ATTRIBUTES ////
 
-    // Surface type identifier
+    //! Surface type identifier
     static SurfaceType surface_type()
     {
         CELER_NOT_IMPLEMENTED("runtime involute");
     }
 
-    // Safety
+    //! Safety cannot be trivially calculated
     static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return false; }
 
   public:

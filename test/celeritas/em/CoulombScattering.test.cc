@@ -167,7 +167,6 @@ TEST_F(CoulombScatteringTest, helper)
         VecReal cos_thetamax_nuc;
         VecReal xs_elec;
         VecReal xs_nuc;
-        VecReal xs_ratio;
     };
 
     auto const material = this->material_track().make_material_view();
@@ -206,8 +205,6 @@ TEST_F(CoulombScatteringTest, helper)
         result.xs_nuc.push_back(
             helper.calc_xs_nuclear(cos_thetamax_nuc, cos_thetamax)
             / units::barn);
-        result.xs_ratio.push_back(
-            helper.calc_xs_ratio(cos_thetamax_nuc, cos_thetamax));
     }
 
     static double const expected_screen_z[] = {2.1181757502465e-08,
@@ -236,18 +233,12 @@ TEST_F(CoulombScatteringTest, helper)
                                              1179263.0534548,
                                              1177812.2021574,
                                              1177473.1955599};
-    static double const expected_xs_ratio[] = {0.033319844069031,
-                                               0.033319738720425,
-                                               0.033319684608429,
-                                               0.033319640583261,
-                                               0.03331963032739};
     EXPECT_VEC_SOFT_EQ(expected_screen_z, result.screen_z);
     EXPECT_VEC_SOFT_EQ(expected_scaled_kin_factor, result.scaled_kin_factor);
     EXPECT_VEC_SOFT_EQ(expected_cos_thetamax_elec, result.cos_thetamax_elec);
     EXPECT_VEC_SOFT_EQ(expected_cos_thetamax_nuc, result.cos_thetamax_nuc);
     EXPECT_VEC_SOFT_EQ(expected_xs_elec, result.xs_elec);
     EXPECT_VEC_SOFT_EQ(expected_xs_nuc, result.xs_nuc);
-    EXPECT_VEC_SOFT_EQ(expected_xs_ratio, result.xs_ratio);
 }
 
 TEST_F(CoulombScatteringTest, mott_xs)
