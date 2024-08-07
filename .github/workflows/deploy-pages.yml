@@ -37,8 +37,10 @@ jobs:
           ZOTERO_GROUP: 2380941
         run: |
           python scripts/generate-pubs.py -g $ZOTERO_GROUP -o publications.md
+          echo "DIFF_COUNT=$(git diff -- publications.md | wc -l)" >> $GITHUB_OUTPUT
       - name: Push updated publications
-        if: ${{steps.update.outcome != 'failure'}}
+        if: ${{steps.update.outcome != 'failure'
+          && fromJSON(steps.update.outputs.DIFF_COUNT) > 0}}
         continue-on-error: true
         run: |
           git config --global user.name "Github Actions"
