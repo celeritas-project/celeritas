@@ -1,0 +1,2 @@
+pyzotero >= 1.5
+python-dateutil >= 2

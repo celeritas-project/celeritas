@@ -1,6 +1,8 @@
-title: Celeritas documentation
-description: User and developer documentation for the Celeritas code
-remote_theme: pages-themes/slate@v0.2.0
+title: "Celeritas: accelerated High Energy Physics Monte Carlo simulation"
+description: >-
+  User and developer documentation for the Celeritas code
+remote_theme: pages-themes/minimal@v0.2.0
+show_downloads: true
 plugins:
 - jekyll-remote-theme
 include:
