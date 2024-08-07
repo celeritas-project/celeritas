@@ -35,10 +35,6 @@ namespace detail
  * DeMorgan's law on a \c CsgTree so that all negations of a set operator are
  * removed and transformed into their equivalent operation.
  *
- * The purpose of this class is to hold the data structures necessary for the
- * simplification and validate operations applied on them. The steering is done
- * by the user.
- *
  * Instances of this class shouldn't outlive the \c CsgTree used to construct
  * it as we keep a reference to it. Do not modify the original tree during the
  * simplification.
@@ -46,6 +42,13 @@ namespace detail
 class DeMorganSimplifier
 {
   public:
+    //! Construct a simplifier for the given tree
+    explicit DeMorganSimplifier(CsgTree const& tree) : tree_(tree) {}
+
+    // Simplify
+    inline CsgTree operator()();
+
+  private:
     //!@{
     //! \name Set of NodeId
     using NodeIdSet = std::unordered_set<NodeId>;
@@ -54,9 +57,6 @@ class DeMorganSimplifier
     template<class T>
     using CachedNodeMap = std::unordered_map<NodeId, T const*>;
     //!@}
-
-    //! Construct a simplifier for the given tree
-    explicit DeMorganSimplifier(CsgTree const& tree) : tree_(tree) {}
 
     // Unmark and node and its descendents
     inline void remove_orphaned(NodeId);
@@ -81,9 +81,14 @@ class DeMorganSimplifier
     inline CachedNodeMap<Negated>::mapped_type
         process_transformed_negate_node(NodeId);
 
-  private:
     // Add negated nodes for operands of a Joined node
     inline void add_new_negated_nodes(NodeId);
+
+    // First pass through the tree to find negated set operations
+    inline void find_negated_joins();
+
+    // Second pass through the tree to build the simplified tree
+    inline CsgTree build_simplified_tree();
 
     //! the tree to simplify
     CsgTree const& tree_;
@@ -110,6 +115,14 @@ class DeMorganSimplifier
     //! Similar to orphaned_join_nodes_, kept in a separate collection are
     //! these require a different handling.
     NodeIdSet orphaned_negate_nodes_;
+
+    //! Used during construction of the simplified tree to map replaced nodes
+    //! in the original tree to their new id in the simplified tree
+    std::unordered_map<NodeId, NodeId> inserted_nodes_;
+
+    //! Used during construction of the simplified tree to map unmodified nodes
+    //! to their new id in the simplified tree
+    std::unordered_map<NodeId, NodeId> original_new_nodes_;
 };
 
 //---------------------------------------------------------------------------//
@@ -261,6 +274,18 @@ inline auto DeMorganSimplifier::process_transformed_negate_node(NodeId node_id)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Simplify
+ */
+inline CsgTree DeMorganSimplifier::operator()()
+{
+    // TODO: pass the tree here instead of ctor and clear the state for
+    // multi-use
+    find_negated_joins();
+    return build_simplified_tree();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Recusively record that we need to insert \c Negated node for operands of a
  * \c Joined node. This handles cas
  *
@@ -307,6 +332,176 @@ inline void DeMorganSimplifier::add_new_negated_nodes(NodeId node_id)
         // unmarked later as we process potential parents
         orphaned_join_nodes_.insert(node_id);
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * First pass through the tree to find negated set operations
+ */
+inline void DeMorganSimplifier::find_negated_joins()
+{
+    for (auto node_id : range(NodeId{tree_.size()}))
+    {
+        // TODO: visitor
+        if (auto* node_ptr = &tree_[node_id];
+            auto* negated = std::get_if<orangeinp::Negated>(node_ptr))
+        {
+            // we don't need to check if this is a potential parent of a
+            // Joined{} node marked as orphan as this node will also get
+            // simplified.
+
+            if (std::get_if<orangeinp::Joined>(&tree_[negated->node]))
+            {
+                // This is a Negated{Joined{...}}
+                mark_negated_operator(node_id);
+            }
+        }
+        else if (auto* aliased = std::get_if<orangeinp::Aliased>(node_ptr))
+        {
+            remove_orphaned(aliased->node);  // TODO: handle alias
+            // pointing to an alias
+            // (pointing to an
+            // alias)...
+        }
+        else if (auto* joined = std::get_if<orangeinp::Joined>(node_ptr))
+        {
+            for (auto const& join_operand : joined->nodes)
+            {
+                remove_orphaned(join_operand);
+            }
+        }
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Second pass through the tree to build the simplified tree.
+ *
+ * \return the simplified tree
+ */
+inline CsgTree DeMorganSimplifier::build_simplified_tree()
+{
+    CsgTree result{};
+
+    // Utility to check the two maps for the new id of a node.
+    // maybe we can coalesce them in a single map<NodeId, vector<NodeId>>
+    auto replace_node_id = [&](NodeId n) {
+        if (auto new_id = inserted_nodes_.find(n);
+            new_id != inserted_nodes_.end())
+        {
+            return new_id->second;
+        }
+        if (auto new_id = original_new_nodes_.find(n);
+            new_id != original_new_nodes_.end())
+        {
+            return new_id->second;
+        }
+        return n;
+    };
+
+    // We can now build the new tree.
+    for (auto node_id : range(NodeId{tree_.size()}))
+    {
+        // The current node is a Joined{} and we need to insert a Negated
+        // version of it.
+        if (auto negated_node = process_negated_node(node_id))
+        {
+            // Insert the opposite join instead, updating the children ids.
+            Joined const& join = *negated_node;
+            OperatorToken opposite_op = (join.op == logic::land)
+                                            ? logic::lor
+                                            : logic::OperatorToken::land;
+            // Lookup the new id of each operand
+            std::vector<NodeId> operands;
+            operands.resize(join.nodes.size());
+            std::transform(join.nodes.cbegin(),
+                           join.nodes.cend(),
+                           operands.begin(),
+                           replace_node_id);
+
+            auto [new_id, inserted]
+                = result.insert(Joined{opposite_op, std::move(operands)});
+            inserted_nodes_[node_id] = new_id;
+        }
+
+        // this Negated{Join} node doesn't have any other parents, so we don't
+        // need to insert its original version
+        if (process_orphaned_join_node(node_id))
+        {
+            continue;
+        }
+        // This Negated{} node is orphaned, most likely because of
+        // a double negation so we don't need to insert it.
+        // It still needs to be added in inserted_nodes so that when adding
+        // a Joined node, we correctly redirect the operand looking for it to
+        // the children
+        if (auto orphan_node = process_orphaned_negate_node(node_id))
+        {
+            inserted_nodes_[node_id] = replace_node_id(std::move(orphan_node));
+            continue;
+        }
+
+        // this node is a Negated{Join} node, we have already inserted the
+        // opposite Joined node
+        if (auto negated_node = process_transformed_negate_node(node_id))
+        {
+            // we don't need to insert the original Negated{Join} node
+            // redirect parents looking for this node to the new Joined node.
+            inserted_nodes_[node_id]
+                = inserted_nodes_.find(negated_node->node)->second;
+            continue;
+        }
+
+        // this node isn't a transformed Join or Negated node, so we can insert
+        // it.
+        Node new_node = tree_[node_id];
+
+        // We need to update the childrens' ids in the new tree.
+        // TODO: visitor
+        if (auto* node_ptr = &new_node;
+            auto* negated = std::get_if<orangeinp::Negated>(node_ptr))
+        {
+            negated->node = replace_node_id(negated->node);
+        }
+        else if (auto* aliased = std::get_if<orangeinp::Aliased>(node_ptr))
+        {
+            aliased->node = replace_node_id(aliased->node);
+        }
+        else if (auto* joined = std::get_if<orangeinp::Joined>(node_ptr))
+        {
+            for (auto& op : joined->nodes)
+            {
+                // if the node is a Negated{Joined}, we need to match to a
+                // newly inserted node
+                if (auto* negated = std::get_if<orangeinp::Negated>(&tree_[op]);
+                    negated
+                    && std::get_if<orangeinp::Joined>(&tree_[negated->node]))
+                {
+                    op = replace_node_id(op);
+                }
+                // otherwise, only search unmodified nodes
+                else if (auto new_id = original_new_nodes_.find(op);
+                         new_id != original_new_nodes_.end())
+                {
+                    op = new_id->second;
+                }
+            }
+        }
+        auto [new_id, inserted] = result.insert(std::move(new_node));
+        // this is recorded in a different map as a node in the original tree
+        // can be inserted multiple times in the new tree e.g. a
+        // Negated{Joined}, if that Joined node has another parent.
+        original_new_nodes_[node_id] = new_id;
+
+        // We might have to insert a negated version of that node
+        if (process_new_negated_node(node_id))
+        {
+            auto [new_negated_node_id, negated_inserted]
+                = result.insert(Negated{new_id});
+            inserted_nodes_[node_id] = new_negated_node_id;
+        }
+    }
+    return result;
 }
 
 //---------------------------------------------------------------------------//
