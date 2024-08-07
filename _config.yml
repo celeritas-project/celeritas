@@ -1,8 +1,8 @@
-title: "Celeritas: accelerated High Energy Physics Monte Carlo simulation"
+title: Celeritas
 description: >-
-  User and developer documentation for the Celeritas code
+  GPU-accelerated High Energy Physics Monte Carlo simulation
 remote_theme: pages-themes/minimal@v0.2.0
-show_downloads: true
+show_downloads: false # URLs are wrong, we want release anyway
 logo: _includes/full-logo.png
 plugins:
 - jekyll-remote-theme

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 # See the top-level COPYRIGHT file for details.
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -74,7 +74,9 @@ def format_presentation(e):
     bits.append(format_names(e['creators'], limit=3))
     if not (last := bits[-1]).endswith('.'):
         bits[-1] = last + '.'
-    bits.append("\"{title}\". *{meetingName}*,".format(**e))
+    bits.append("\"{title}\".".format(**e))
+    if (meeting := e.get('meetingName')):
+        bits.append(f"*{meeting}*,")
     date = parse_date(e['date'])
     bits.append(date.strftime("%d %b %Y."))
     if (url := e.get('url')):
