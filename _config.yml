@@ -3,7 +3,7 @@ description: >-
   User and developer documentation for the Celeritas code
 remote_theme: pages-themes/minimal@v0.2.0
 show_downloads: true
-logo: _include/full-logo.png
+logo: _includes/full-logo.png
 plugins:
 - jekyll-remote-theme
 include:

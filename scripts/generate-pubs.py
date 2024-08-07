@@ -26,6 +26,7 @@ def data_from(iterable):
     for entry in iterable:
         yield entry['data']
 
+
 def cached_collections(zot):
     try:
         ckeys = zot._collection_keys
@@ -90,6 +91,19 @@ def format_paper(e):
     return " ".join(bits)
 
 
+def format_software(e):
+    bits = []
+    bits.append(format_names(e['creators'], limit=100))
+    if not (last := bits[-1]).endswith('.'):
+        bits[-1] = last + '.'
+    bits.append("\"{title}\".".format(**e))
+    date = parse_date(e['date'])
+    bits.append(date.strftime("%b %Y.").lstrip())
+    if (doi := e.get('DOI')):
+        bits.append(f"[{doi}](https://doi.org/{doi})")
+    return " ".join(bits)
+
+
 def sorted_collection(zot, name):
     entries = data_from(collection_items(zot, name))
     entries = (e for e in entries if e.get('date'))
@@ -109,6 +123,12 @@ on {today}.
 """, file=out)
     for e in sorted_collection(zot, "Conference papers"):
         print("-", format_paper(e), file=out)
+
+    print(f"""
+## Code
+""", file=out)
+    for e in sorted_collection(zot, "Code objects"):
+        print("-",format_software(e), file=out)
 
     print(f"""
 ## Journal articles

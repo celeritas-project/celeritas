@@ -4,16 +4,15 @@ problems.
 
 # For users
 
-- [User documentation](./celeritas/user/index.html)
+- [User documentation](user/index.html)
+- [Releases](https://github.com/celeritas-project/celeritas/releases/)
 - [Experiment integration tracking](https://github.com/celeritas-project/celeritas/issues?q=is%3Aissue+label%3Aexternal+integration+in%3Atitle+)
-- [Code citation](https://doi.org/10.11578/dc.20221011.1)
-- [Recent peer-reviewed article](https://doi.org/10.1051/epjconf/202429511005)
-- [README](https://github.com/celeritas-project/celeritas)
+- [README](https://github.com/celeritas-project/celeritas/blob/develop/README.md)
 
 # For developers
 
-- [Code](https://github.com/celeritas-project/celeritas)
-- [Developer documentation](./celeritas/dev/index.html)
+- [Development guide](user/appendix/development.html)
+- [Detailed Doxygen code documentation](dev/index.html)
 
 {% include_relative publications.md %}
 
