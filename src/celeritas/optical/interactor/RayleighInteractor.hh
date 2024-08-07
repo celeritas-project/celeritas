@@ -17,6 +17,7 @@
 #include "celeritas/phys/InteractionUtils.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/IsotropicDistribution.hh"
+#include "celeritas/random/distribution/RejectionSampler.hh"
 
 namespace celeritas
 {
@@ -75,9 +76,10 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng) const
     Real3& new_dir = result.direction;
     Real3& new_pol = result.polarization;
 
+    IsotropicDistribution sample_direction{};
     do
     {
-        new_dir = IsotropicDistribution{}(rng);
+        new_dir = sample_direction(rng);
 
         auto projected_pol = dot_product(new_dir, inc_pol_);
 
@@ -94,10 +96,9 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng) const
             new_pol *= BernoulliDistribution{real_type{0.5}}(rng) ? 1 : -1;
         }
 
-        // Perform rejection sampling for with the probability of the
-        // scattered polarization overlap squared
-    } while (
-        BernoulliDistribution{ipow<2>(dot_product(new_pol, inc_pol_))}(rng));
+        // Accept with the probability of the scattered polarization overlap
+        // squared
+    } while (RejectionSampler{ipow<2>(dot_product(new_pol, inc_pol_))}(rng));
 
     CELER_ENSURE(is_soft_unit_vector(new_dir));
     CELER_ENSURE(is_soft_unit_vector(new_pol));

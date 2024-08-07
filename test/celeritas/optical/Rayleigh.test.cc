@@ -60,19 +60,19 @@ TEST_F(RayleighInteractorTest, basic)
     }
 
     static real_type const expected_dir_angle[] = {
-        -0.38366589898599,
-        -0.18253767807648,
-        0.42140775018143,
-        -0.15366976713254,
+        -0.72904599140644,
+        0.99292265109602,
+        -0.78027649831159,
+        -0.77507096788764,
     };
     static real_type const expected_pol_angle[] = {
-        0.46914077892327,
-        0.31484033374691,
-        0.82815845476385,
-        0.50516788333603,
+        -0.93732637186049,
+        -0.99321124082734,
+        0.98251616641497,
+        -0.9149817471032,
     };
 
-    EXPECT_EQ(136, rng_engine.count());
+    EXPECT_EQ(40, rng_engine.count());
     EXPECT_VEC_SOFT_EQ(expected_dir_angle, dir_angle);
     EXPECT_VEC_SOFT_EQ(expected_pol_angle, pol_angle);
 }
@@ -106,17 +106,14 @@ TEST_F(RayleighInteractorTest, stress_test)
     dir_moment /= num_samples;
     pol_moment /= num_samples;
 
-    PRINT_EXPECTED(dir_moment);
-    PRINT_EXPECTED(pol_moment);
-
     static real_type const expected_dir_moment[]
-        = {-0.0037666175399340422, 0.19865973173404519};
+        = {-0.016961118324494, 0.39183211598064};
     static real_type const expected_pol_moment[]
-        = {-0.020707206147726396, 0.40045856568225996};
+        = {-0.034297422127708, 0.79634723763554};
 
     EXPECT_VEC_SOFT_EQ(expected_dir_moment, dir_moment);
     EXPECT_VEC_SOFT_EQ(expected_pol_moment, pol_moment);
-    EXPECT_EQ(24400, rng_engine.count());
+    EXPECT_EQ(12200, rng_engine.count());
 }
 
 //---------------------------------------------------------------------------//
