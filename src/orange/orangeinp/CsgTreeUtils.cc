@@ -200,48 +200,6 @@ CsgTree transform_negated_joins(CsgTree const& tree)
     std::unordered_set<NodeId> orphaned_join_nodes;
     std::unordered_set<NodeId> orphaned_negate_nodes;
 
-    // Recursive lambda. Negated{node_id} should be added to the new tree.
-    // if node_id is a Joined node, recusively add its children as negated
-    // nodes.
-    // TODO: extract the lambda to a free function
-    auto add_new_negated_nodes = [&](NodeId node_id) {
-        auto impl = [&](auto const& self, NodeId node_id) -> void {
-            CELER_EXPECT(std::get_if<orangeinp::Joined>(&tree[node_id]));
-            if (auto* join_node = std::get_if<orangeinp::Joined>(&tree[node_id]))
-            {
-                for (auto const& join_operand : join_node->nodes)
-                {
-                    if (auto* joined_join_operand
-                        = std::get_if<orangeinp::Joined>(&tree[join_operand]))
-                    {
-                        // the new Negated node will point to a Joined node
-                        // so we need to transform that Joined node as well
-                        self(self, join_operand);
-                        negated_join_nodes[join_operand] = joined_join_operand;
-                    }
-                    else if (std::get_if<orangeinp::Negated>(
-                                 &tree[join_operand]))
-                    {
-                        // double negation, this simplifies unless it has
-                        // another parent
-                        orphaned_negate_nodes.insert(join_operand);
-                    }
-                    // per DeMorgran's law, negate each operand of the Joined
-                    // node.
-                    new_negated_nodes.insert(join_operand);
-                }
-                // assume that the Joined node doesn't have other parents and
-                // mark it for deletion. This is done after recusive calls as
-                // parents can only have a higher node_id and the recursive
-                // calls explore childrens with lower node_id. This can be
-                // unmarked later as we process potential parents
-                orphaned_join_nodes.insert(node_id);
-            }
-        };
-
-        impl(impl, std::move(node_id));
-    };
-
     // check if we can unmark a node marked for deletion
     auto remove_orphaned = [&](NodeId node_id) {
         auto impl = [&](auto const& self, NodeId node_id) -> void {
@@ -274,6 +232,57 @@ CsgTree transform_negated_joins(CsgTree const& tree)
                 }
             }
         };
+        impl(impl, std::move(node_id));
+    };
+
+    // Recursive lambda. Negated{node_id} should be added to the new tree.
+    // if node_id is a Joined node, recusively add its children as negated
+    // nodes.
+    // TODO: extract the lambda to a free function
+    auto add_new_negated_nodes = [&](NodeId node_id) {
+        auto impl = [&](auto const& self, NodeId node_id) -> void {
+            CELER_EXPECT(std::get_if<orangeinp::Joined>(&tree[node_id]));
+            if (auto* join_node = std::get_if<orangeinp::Joined>(&tree[node_id]))
+            {
+                for (auto const& join_operand : join_node->nodes)
+                {
+                    if (auto node_ptr = &tree[join_operand];
+                        auto* joined_join_operand
+                        = std::get_if<orangeinp::Joined>(node_ptr))
+                    {
+                        // the new Negated node will point to a Joined node
+                        // so we need to transform that Joined node as well
+                        self(self, join_operand);
+                        negated_join_nodes[join_operand] = joined_join_operand;
+                    }
+                    else if (auto* negated
+                             = std::get_if<orangeinp::Negated>(node_ptr))
+                    {
+                        // double negation, this simplifies unless it has
+                        // another parent
+                        orphaned_negate_nodes.insert(join_operand);
+                        // however, we need to make sure that we're keeping
+                        // the target of the double negation around because
+                        // someone might need it
+                        remove_orphaned(negated->node);
+                    }
+
+                    // per DeMorgran's law, negate each operand of the Joined
+                    // node if we're not inserting a Negated{Joined{}}.
+                    if (!std::get_if<orangeinp::Joined>(&tree[join_operand]))
+                    {
+                        new_negated_nodes.insert(join_operand);
+                    }
+                }
+                // assume that the Joined node doesn't have other parents and
+                // mark it for deletion. This is done after recusive calls as
+                // parents can only have a higher node_id and the recursive
+                // calls explore childrens with lower node_id. This can be
+                // unmarked later as we process potential parents
+                orphaned_join_nodes.insert(node_id);
+            }
+        };
+
         impl(impl, std::move(node_id));
     };
 
