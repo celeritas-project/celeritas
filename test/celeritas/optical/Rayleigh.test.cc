@@ -59,13 +59,20 @@ TEST_F(RayleighInteractorTest, basic)
                                         this->photon_track().polarization()));
     }
 
-    static real_type const expected_dir_angle[] = {-0.38366589898599,
-                                                   -0.18253767807648,
-                                                   0.42140775018143,
-                                                   -0.15366976713254};
+    static real_type const expected_dir_angle[] = {
+        -0.38366589898599,
+        -0.18253767807648,
+        0.42140775018143,
+        -0.15366976713254,
+    };
     static real_type const expected_pol_angle[] = {
-        0.46914077892327, 0.31484033374691, 0.82815845476385, 0.50516788333603};
+        0.46914077892327,
+        0.31484033374691,
+        0.82815845476385,
+        0.50516788333603,
+    };
 
+    EXPECT_EQ(136, rng_engine.count());
     EXPECT_VEC_SOFT_EQ(expected_dir_angle, dir_angle);
     EXPECT_VEC_SOFT_EQ(expected_pol_angle, pol_angle);
 }
@@ -78,11 +85,8 @@ TEST_F(RayleighInteractorTest, stress_test)
 
     auto& rng_engine = this->rng();
 
-    real_type dir_angle_1st_moment = 0;
-    real_type dir_angle_2nd_moment = 0;
-
-    real_type pol_angle_1st_moment = 0;
-    real_type pol_angle_2nd_moment = 0;
+    Array<real_type, 2> dir_moment = {0, 0};
+    Array<real_type, 2> pol_moment = {0, 0};
 
     for ([[maybe_unused]] int i : range(num_samples))
     {
@@ -90,31 +94,29 @@ TEST_F(RayleighInteractorTest, stress_test)
         this->sanity_check(result);
 
         real_type dir_angle = dot_product(result.direction, this->direction());
-        dir_angle_1st_moment += dir_angle;
-        dir_angle_2nd_moment += dir_angle * dir_angle;
+        dir_moment[0] += dir_angle;
+        dir_moment[1] += ipow<2>(dir_angle);
 
         real_type pol_angle = dot_product(result.polarization,
                                           this->photon_track().polarization());
-        pol_angle_1st_moment += pol_angle;
-        pol_angle_2nd_moment += pol_angle * pol_angle;
+        pol_moment[0] += pol_angle;
+        pol_moment[1] += ipow<2>(pol_angle);
     }
 
-    dir_angle_1st_moment /= num_samples;
-    dir_angle_2nd_moment /= num_samples;
-    pol_angle_1st_moment /= num_samples;
-    pol_angle_2nd_moment /= num_samples;
+    dir_moment /= num_samples;
+    pol_moment /= num_samples;
 
-    static real_type const expected_dir_angle_1st_moment
-        = -0.0037666175399340422;
-    static real_type const expected_dir_angle_2nd_moment = 0.19865973173404519;
-    static real_type const expected_pol_angle_1st_moment
-        = -0.020707206147726396;
-    static real_type const expected_pol_angle_2nd_moment = 0.40045856568225996;
+    PRINT_EXPECTED(dir_moment);
+    PRINT_EXPECTED(pol_moment);
 
-    EXPECT_SOFT_EQ(expected_dir_angle_1st_moment, dir_angle_1st_moment);
-    EXPECT_SOFT_EQ(expected_dir_angle_2nd_moment, dir_angle_2nd_moment);
-    EXPECT_SOFT_EQ(expected_pol_angle_1st_moment, pol_angle_1st_moment);
-    EXPECT_SOFT_EQ(expected_pol_angle_2nd_moment, pol_angle_2nd_moment);
+    static real_type const expected_dir_moment[]
+        = {-0.0037666175399340422, 0.19865973173404519};
+    static real_type const expected_pol_moment[]
+        = {-0.020707206147726396, 0.40045856568225996};
+
+    EXPECT_VEC_SOFT_EQ(expected_dir_moment, dir_moment);
+    EXPECT_VEC_SOFT_EQ(expected_pol_moment, pol_moment);
+    EXPECT_EQ(24400, rng_engine.count());
 }
 
 //---------------------------------------------------------------------------//
