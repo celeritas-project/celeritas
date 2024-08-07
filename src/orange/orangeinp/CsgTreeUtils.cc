@@ -244,30 +244,37 @@ CsgTree transform_negated_joins(CsgTree const& tree)
 
     // check if we can unmark a node marked for deletion
     auto remove_orphaned = [&](NodeId node_id) {
-        if (auto item = orphaned_join_nodes.find(node_id);
-            item != orphaned_join_nodes.end())
-        {
-            // we need to also remove Negate node that were potentially marked
-            // as orphans since we just discovered that this node needs to be
-            // kept
-            if (auto* join_node = std::get_if<orangeinp::Joined>(&tree[*item]))
+        auto impl = [&](auto const& self, NodeId node_id) -> void {
+            // we need to recursively unmark orphaned nodes and unmark ourself
+            if (auto* node_ptr = &tree[node_id];
+                auto* join_node = std::get_if<orangeinp::Joined>(node_ptr))
             {
                 for (auto join_operand : join_node->nodes)
                 {
-                    if (auto item = orphaned_negate_nodes.find(join_operand);
-                        item != orphaned_negate_nodes.end())
-                    {
-                        orphaned_negate_nodes.erase(item);
-                    }
+                    self(self, join_operand);
+                }
+                if (auto item = orphaned_join_nodes.find(node_id);
+                    item != orphaned_join_nodes.end())
+                {
+                    orphaned_join_nodes.erase(item);
                 }
             }
-            orphaned_join_nodes.erase(item);
-        }
-        else if (auto item = orphaned_negate_nodes.find(node_id);
-                 item != orphaned_negate_nodes.end())
-        {
-            orphaned_negate_nodes.erase(item);
-        }
+            else if (auto* negate_node
+                     = std::get_if<orangeinp::Negated>(node_ptr))
+            {
+                // Negated{Joined{}} should be simplified, so don't unmark them
+                if (!std::get_if<orangeinp::Joined>(&tree[negate_node->node]))
+                {
+                    self(self, negate_node->node);
+                }
+                if (auto item = orphaned_negate_nodes.find(node_id);
+                    item != orphaned_negate_nodes.end())
+                {
+                    orphaned_negate_nodes.erase(item);
+                }
+            }
+        };
+        impl(impl, std::move(node_id));
     };
 
     // First pass through all nodes to find all nand / nor
@@ -410,10 +417,17 @@ CsgTree transform_negated_joins(CsgTree const& tree)
         {
             for (auto& op : joined->nodes)
             {
-                // do not search into inserted_nodes because this maps to
-                // negated node_id in the new tree
-                if (auto new_id = original_new_nodes.find(op);
-                    new_id != original_new_nodes.end())
+                // if the node is a Negated{Joined}, we need to match to a
+                // newly inserted node
+                if (auto* negated = std::get_if<orangeinp::Negated>(&tree[op]);
+                    negated
+                    && std::get_if<orangeinp::Joined>(&tree[negated->node]))
+                {
+                    op = replace_node_id(op);
+                }
+                // otherwise, only search unmodified nodes
+                else if (auto new_id = original_new_nodes.find(op);
+                         new_id != original_new_nodes.end())
                 {
                     op = new_id->second;
                 }

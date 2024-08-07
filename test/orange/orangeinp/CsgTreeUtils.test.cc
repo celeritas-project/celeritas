@@ -405,7 +405,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         "all{2,4}, }",
         to_string(simplified));
 
-    this->insert(Negated{j0});
+    auto n1 = this->insert(Negated{j0});
 
     // check well-formed tree
     EXPECT_EQ(
@@ -436,7 +436,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         to_string(simplified));
 
     // check well-formed tree
-    this->insert(Negated{j1});
+    auto n2 = this->insert(Negated{j1});
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
         "all{2,4}, 6: not{5}, 7: any{2,4}, 8: not{7}, }",
@@ -482,7 +482,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         to_string(simplified));
 
     // check well-formed tree
-    this->insert(Negated{j2});
+    auto n3 = this->insert(Negated{j2});
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
         "all{2,4}, 6: not{5}, 7: any{2,4}, 8: not{7}, 9: surface 2, 10: "
@@ -495,6 +495,22 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
         "any{3,4}, 6: all{3,4}, 7: surface 2, 8: not{7}, 9: any{5,6}, }",
+        to_string(simplified));
+
+    // check well-formed tree
+    this->insert(Joined{op_and, {n1, n2, n3}});
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
+        "all{2,4}, 6: not{5}, 7: any{2,4}, 8: not{7}, 9: surface 2, 10: "
+        "not{9}, 11: all{5,7}, 12: not{11}, 13: all{6,8,12}, }",
+        to_string(tree_));
+
+    // top-level joined has Negated{Joined{}} chldrens
+    simplified = transform_negated_joins(tree_);
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
+        "any{3,4}, 6: all{3,4}, 7: surface 2, 8: not{7}, 9: any{5,6}, 10: "
+        "all{5,6,9}, }",
         to_string(simplified));
 }
 
