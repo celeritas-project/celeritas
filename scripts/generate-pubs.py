@@ -125,7 +125,12 @@ def run(group_id, out):
     zot = zotero.Zotero(group_id, "group", API_KEY)
 
     today = datetime.today().strftime("%d %b %Y")
-    print(f"""# Publications
+    print(f"""\
+<!--
+NOTE: this page is generated automatically from
+https://github.com/celeritas-project/celeritas/tree/doc/gh-pages-base/scripts/generate-pubs.py
+-->
+# Publications
 
 These publications were extracted from the Celeritas team's Zotero database
 on {today}.
