@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #include <string>
 #include <vector>
+#include <iostream>
 
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Label.hh"
@@ -844,6 +845,16 @@ TEST_F(InputBuilderTest, DISABLED_universe_union_boundary)
         SCOPED_TRACE("mz");
         auto result = this->track({0, 0, 15}, {0, 0, -1});
         result.print_expected();
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(InputBuilderTest, involute)
+{
+    {
+        SCOPED_TRACE("involute");
+        auto result = this->track({-2, -2, 0}, {1, 0, 0});
+        std::cout << result.volumes.size() << std::endl;
     }
 }
 

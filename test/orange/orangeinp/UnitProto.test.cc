@@ -36,6 +36,10 @@ namespace test
 //---------------------------------------------------------------------------//
 using SPConstObject = std::shared_ptr<ObjectInterface const>;
 using SPConstProto = std::shared_ptr<ProtoInterface const>;
+//! Enum defining chirality of involute
+using Sign = Involute::Sign;
+constexpr auto ccw = Sign::counterclockwise;
+constexpr auto cw = Sign::clockwise;
 
 //---------------------------------------------------------------------------//
 // Construction helper functions
@@ -76,6 +80,13 @@ SPConstObject make_box(std::string&& label, Real3 const& lo, Real3 const& hi)
         result = make_translated(std::move(result), center);
     }
     return result;
+}
+
+SPConstObject make_inv(std::string&& label, Real3 const& radii,  
+                       Real2 const& displacement, Sign sign,real_type halfheight)
+{
+    return make_shape<Involute>(std::move(label), radii, displacement, 
+                                sign, halfheight);
 }
 
 SPConstProto make_daughter(std::string label)
@@ -740,6 +751,54 @@ TEST_F(InputBuilderTest, universe_union_boundary)
     }());
 
     this->run_test(*outer);
+}
+
+/*!
+ * Generate input for a universe with two involutes and two cylinders
+ */
+TEST_F(InputBuilderTest, involute)
+{
+    auto involute = std::make_shared<UnitProto>([] {
+        auto invo = make_inv("blade",{1.0,2.0,4.0},{0, constants::pi},
+                                       ccw, 1.0);
+        auto cyl = make_cyl("bound", 4.0, 1.0);
+        auto inner = make_cyl("center", 2.0, 1.0);
+        UnitProto::Input inp;
+        inp.boundary.interior = cyl;
+        inp.boundary.zorder = ZOrder::media;
+        inp.label = "involute";
+
+        inp.materials.push_back(make_material(SPConstObject{inner}, 1));
+        inp.materials.push_back(make_material(SPConstObject{invo}, 2));
+        inp.background.fill = GeoMaterialId{3};
+        return inp;
+    }());
+
+    auto global = std::make_shared<UnitProto>([&] {
+        auto outer = make_cyl("outside", 6.0, 1.0);
+        auto system = make_cyl("system", 4.0, 1.0);
+        UnitProto::Input inp;
+        inp.boundary.interior = std::make_shared<AnyObjects>(
+            "union", AnyObjects::VecObject{outer, system});
+        inp.boundary.zorder = ZOrder::media;
+        inp.label = "global";
+
+        inp.materials.push_back(make_material(SPConstObject{outer}, 4));
+        inp.materials.push_back(
+            make_material(make_subtraction("bite", system, outer), 1));
+
+        inp.daughters.push_back({involute, Translation{{0, 0, 0}}});
+
+        inp.materials.push_back(make_material(
+            make_rdv("inside",
+            {{Sense::inside, inp.daughters.front().make_interior()},
+             {Sense::outside, inp.boundary.interior}}), 1
+        ));
+
+        return inp;
+    }());
+
+    this->run_test(*global);
 }
 
 //---------------------------------------------------------------------------//

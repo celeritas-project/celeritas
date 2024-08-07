@@ -23,6 +23,7 @@
 #include "orange/surf/PlaneAligned.hh"
 #include "orange/surf/SimpleQuadric.hh"
 #include "orange/surf/SphereCentered.hh"
+#include "orange/surf/Involute.hh"
 
 #include "IntersectSurfaceBuilder.hh"
 #include "ObjectIO.json.hh"
@@ -86,6 +87,67 @@ void Box::build(IntersectSurfaceBuilder& insert_surface) const
  * Write output to the given JSON object.
  */
 void Box::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+// Involute
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with prarameters and half height.
+ */
+Involute::Involute(Real3 const& radii, Real2 const& displacement, 
+                   Sign sign, real_type halfheight) : 
+radii_(radii), a_(displacement), tmin_(), tmax_(), sign_(sign), hh_{halfheight}
+{
+    for (auto i : range(3))
+    {
+        CELER_VALIDATE(radii_[i] >= 0, << "negative radius: " << radii_[i]);
+    }
+
+    tmin_ = std::sqrt(clamp_to_nonneg(ipow<2>(radii_[1]/radii_[0]) - 1));
+    tmax_ = std::sqrt(clamp_to_nonneg(ipow<2>(radii_[2]/radii_[0]) - 1));
+
+    for (auto i : range(2))
+    {
+        CELER_VALIDATE(a_[i] >= 0, << "negative displacment angle: " << a_[i]);
+    }
+    CELER_VALIDATE(a_[1] >= a_[0], 
+                   << "negative delta displacment: " << a_[1]-a_[0]);
+    CELER_VALIDATE(hh_ > 0, << "nonpositive half-height: " << hh_); 
+
+    CELER_VALIDATE(tmin_ > 0, << "nonpositive inner radius: " << tmin_); 
+    CELER_VALIDATE(tmax_ > 0, << "nonpositive outer radius: " << tmax_); 
+    CELER_VALIDATE(tmax_ > 2*constants::pi - (a_[1]-a_[0]) - tmin_,
+                   << "radial bounds result in angular overlaped: " 
+                   << (2*constants::pi - (a_[1]-a_[0]) - tmin_) - tmax_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void Involute::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    insert_surface(Sense::inside, celeritas::Involute{{0,0}, radii_[0], 
+                                                  eumod(a_[0], 2*constants::pi), 
+                                                      sign_, tmin_, 
+                                                      tmax_+a_[1]-a_[0]});
+    insert_surface(Sense::outside, celeritas::Involute{{0,0}, radii_[0], 
+                                                  eumod(a_[1], 2*constants::pi),
+                                                       sign_, tmin_, tmax_});
+    insert_surface(Sense::outside, PlaneZ{-hh_});
+    insert_surface(Sense::inside, PlaneZ{hh_});
+    insert_surface(Sense::inside, CCylZ{radii_[1]});
+    insert_surface(Sense::outside, CCylZ{radii_[2]});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Involute::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
 }

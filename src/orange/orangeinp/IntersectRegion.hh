@@ -13,6 +13,8 @@
 #include "corecel/math/Turn.hh"
 #include "orange/OrangeTypes.hh"
 
+#include "../surf/detail/InvoluteSolver.hh"
+
 namespace celeritas
 {
 struct JsonPimpl;
@@ -82,6 +84,49 @@ class Box final : public IntersectRegionInterface
 
   private:
     Real3 hw_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * An involute centered on the origin.
+ *
+ * \note Be aware there's also an involute *surface* at orange/surf/Involute.hh 
+ * in a different namespace.
+ */
+class Involute final : public IntersectRegionInterface
+{
+  public:
+    //! Enum defining chirality of involute
+    using Sign = celeritas::detail::InvoluteSolver::Sign;
+
+
+    // Construct with radius
+    explicit Involute(Real3 const& radii, Real2 const& displacement, 
+                      Sign sign, real_type halfheight);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Radius
+    Real3 radii() const { return radii_; }
+    Real2 a() const { return a_; }
+    real_type tmin() const { return tmin_; }
+    real_type tmax() const { return tmax_; }
+    Sign sign() const { return sign_; }
+    real_type hh() const { return hh_; }
+
+  private:
+    Real3 radii_;
+    Real2 a_;
+    real_type tmin_;
+    real_type tmax_;
+    Sign sign_;
+    real_type hh_;
 };
 
 //---------------------------------------------------------------------------//

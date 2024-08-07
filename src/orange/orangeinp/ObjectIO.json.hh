@@ -43,6 +43,7 @@ class InfWedge;
 class Parallelepiped;
 class Prism;
 class Sphere;
+class Involute;
 
 //---------------------------------------------------------------------------//
 
@@ -74,6 +75,7 @@ void to_json(nlohmann::json& j, InfWedge const& cr);
 void to_json(nlohmann::json& j, Parallelepiped const& cr);
 void to_json(nlohmann::json& j, Prism const& cr);
 void to_json(nlohmann::json& j, Sphere const& cr);
+void to_json(nlohmann::json& j, Involute const& cr);
 
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp

@@ -212,6 +212,16 @@ void to_json(nlohmann::json& j, Sphere const& cr)
 {
     j = {{"_type", "sphere"}, SIO_ATTR_PAIR(cr, radius)};
 }
+void to_json(nlohmann::json& j, Involute const& cr)
+{
+    j = {{"_type", "involute"}, 
+         SIO_ATTR_PAIR(cr, radii),
+         SIO_ATTR_PAIR(cr, a),
+         SIO_ATTR_PAIR(cr, tmin),
+         SIO_ATTR_PAIR(cr, tmax),
+         SIO_ATTR_PAIR(cr, sign),
+         SIO_ATTR_PAIR(cr, hh)};
+}
 //!@}
 
 //---------------------------------------------------------------------------//
