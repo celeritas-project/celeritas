@@ -107,11 +107,12 @@ def format_software(e):
     bits.append(format_names(e['creators'], limit=100))
     if not (last := bits[-1]).endswith('.'):
         bits[-1] = last + '.'
-    bits.append("\"{title}\".".format(**e))
+    title = e['title']
+    if (url := e.get('url')):
+        title = f"[{title}]({url})"
+    bits.append(f"\"{title}\".")
     date = parse_date(e['date'])
     bits.append(date.strftime("%b %Y.").lstrip())
-    if (doi := e.get('DOI')):
-        bits.append(f"[{doi}](https://doi.org/{doi})")
     return " ".join(bits)
 
 
