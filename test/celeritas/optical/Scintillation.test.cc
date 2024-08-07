@@ -259,11 +259,14 @@ TEST_F(ParticleScintillationTest, data)
     EXPECT_VEC_SOFT_EQ(expected_yield_value, yield_value);
 
     // Particle components
+    constexpr auto cm = units::centimeter;
+    constexpr auto sec = units::second;
+
     static double const expected_yield_fracs[] = {1};
-    static double const expected_lambda_means[] = {1e-05};
-    static double const expected_lambda_sigmas[] = {1e-06};
-    static double const expected_rise_times[] = {1.5e-08};
-    static double const expected_fall_times[] = {5e-09};
+    static double const expected_lambda_means[] = {1e-05 * cm};
+    static double const expected_lambda_sigmas[] = {1e-06 * cm};
+    static double const expected_rise_times[] = {1.5e-08 * sec};
+    static double const expected_fall_times[] = {5e-09 * sec};
 
     EXPECT_VEC_SOFT_EQ(expected_yield_fracs, yield_fracs);
     EXPECT_VEC_SOFT_EQ(expected_lambda_means, lambda_means);
