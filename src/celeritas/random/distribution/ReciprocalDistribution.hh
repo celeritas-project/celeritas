@@ -24,7 +24,7 @@ namespace celeritas
  * This distribution is defined on a positive range \f$ [a, b) \f$ and has the
  * normalized PDF:
  * \f[
-   f(x; a, b) = \frac{1}{x (\ln b - \ln a)} \quad \mathrm{for} a \le x < b
+   f(x; a, b) = \frac{1}{x (\ln b - \ln a)} \quad \mathrm{for} \ a \le x < b
    \f]
  * which integrated into a CDF and inverted gives a sample:
  * \f[

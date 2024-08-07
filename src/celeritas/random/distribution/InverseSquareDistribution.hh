@@ -17,16 +17,16 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample \f$ 1/x^2 \f$ over a givendomain.
+ * Sample \f$ 1/x^2 \f$ over a given domain.
  *
  * This distribution is defined on a positive range \f$ [a, b) \f$ and has the
  * normalized PDF:
  * \f[
-   f(x; a, b) = \frac{a * b}{x^2 (b - a)} \quad \mathrm{for} a \le x < b
+   f(x; a, b) = \frac{a b}{x^2 (b - a)} \quad \mathrm{for} \  a \le x < b
    \f]
  * which integrated into a CDF and inverted gives a sample:
  * \f[
-  x = \frac{a b}{(b - a) \xi + a}
+  x = \frac{a b}{a + \xi (b - a)}
    \f]
  */
 template<class RealType = ::celeritas::real_type>

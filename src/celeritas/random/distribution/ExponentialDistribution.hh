@@ -23,7 +23,7 @@ namespace celeritas
  *
  * Sample from a probability distribution function with the normalized PDF:
  * \f[
-   f(x; \lambda) = \lambda e^{-\lambda x} \quad \mathrm{for} x >= 0
+   f(x; \lambda) = \lambda e^{-\lambda x} \quad \mathrm{for} \  x >= 0
    \f]
  * which integrated into a CDF and inverted gives a sample:
  * \f[
