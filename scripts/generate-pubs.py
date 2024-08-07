@@ -22,6 +22,10 @@ except KeyError as e:
     sys.exit(1)
 
 
+def log(text):
+    sys.stderr.write(text)
+    sys.stderr.flush()
+
 def data_from(iterable):
     for entry in iterable:
         yield entry['data']
@@ -39,8 +43,13 @@ def cached_collections(zot):
 def collection_items(zot, name, *, limit=8):
     """Return a generator for items in a given collection name."""
     ck = cached_collections(zot)[name]
+    log(f"Loading {name}")
     items = zot.collection_items_top(ck, limit=limit)
-    yield from chain.from_iterable(zot.makeiter(items))
+    log(".")
+    for group in zot.makeiter(items):
+        log("." * len(group))
+        yield from group
+    log("✔\n")
 
 
 def format_name(c):
