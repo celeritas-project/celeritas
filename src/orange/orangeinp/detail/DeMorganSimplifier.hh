@@ -136,33 +136,35 @@ class DeMorganSimplifier
  */
 inline void DeMorganSimplifier::remove_orphaned(NodeId node_id)
 {
-    // we need to recursively unmark orphaned nodes and unmark ourself
-    if (auto* node_ptr = &tree_[node_id];
-        auto* join_node = std::get_if<orangeinp::Joined>(node_ptr))
-    {
-        for (auto join_operand : join_node->nodes)
-        {
-            remove_orphaned(join_operand);
-        }
-        if (auto item = orphaned_join_nodes_.find(node_id);
-            item != orphaned_join_nodes_.end())
-        {
-            orphaned_join_nodes_.erase(item);
-        }
-    }
-    else if (auto* negate_node = std::get_if<orangeinp::Negated>(node_ptr))
-    {
-        // Negated{Joined{}} should be simplified, so don't unmark them
-        if (!std::get_if<orangeinp::Joined>(&tree_[negate_node->node]))
-        {
-            remove_orphaned(negate_node->node);
-        }
-        if (auto item = orphaned_negate_nodes_.find(node_id);
-            item != orphaned_negate_nodes_.end())
-        {
-            orphaned_negate_nodes_.erase(item);
-        }
-    }
+    std::visit(
+        Overload{[&](Joined const& joined) {
+                     // we need to recursively unmark orphaned nodes and unmark
+                     // ourself
+                     for (auto join_operand : joined.nodes)
+                     {
+                         remove_orphaned(join_operand);
+                     }
+                     if (auto item = orphaned_join_nodes_.find(node_id);
+                         item != orphaned_join_nodes_.end())
+                     {
+                         orphaned_join_nodes_.erase(item);
+                     }
+                 },
+                 [&](Negated const& negated) {
+                     // Negated{Joined{}} should be simplified, so don't unmark
+                     // them
+                     if (!std::get_if<orangeinp::Joined>(&tree_[negated.node]))
+                     {
+                         remove_orphaned(negated.node);
+                     }
+                     if (auto item = orphaned_negate_nodes_.find(node_id);
+                         item != orphaned_negate_nodes_.end())
+                     {
+                         orphaned_negate_nodes_.erase(item);
+                     }
+                 },
+                 [](auto&&) {}},
+        tree_[node_id]);
 }
 
 //---------------------------------------------------------------------------//
@@ -199,7 +201,7 @@ inline auto DeMorganSimplifier::process_negated_node(NodeId node_id)
         negated_join_nodes_.erase(iter);
         return result;
     }
-    return nullptr;
+    return {};
 }
 
 //---------------------------------------------------------------------------//
@@ -216,7 +218,7 @@ inline auto DeMorganSimplifier::process_orphaned_join_node(NodeId node_id)
         orphaned_join_nodes_.erase(iter);
         return result;
     }
-    return NodeId{};
+    return {};
 }
 
 //---------------------------------------------------------------------------//
@@ -233,7 +235,7 @@ inline auto DeMorganSimplifier::process_orphaned_negate_node(NodeId node_id)
         orphaned_negate_nodes_.erase(iter);
         return result;
     }
-    return NodeId{};
+    return {};
 }
 
 //---------------------------------------------------------------------------//
@@ -251,7 +253,7 @@ inline auto DeMorganSimplifier::process_new_negated_node(NodeId node_id)
         new_negated_nodes_.erase(iter);
         return result;
     }
-    return NodeId{};
+    return {};
 }
 
 //---------------------------------------------------------------------------//
@@ -269,7 +271,7 @@ inline auto DeMorganSimplifier::process_transformed_negate_node(NodeId node_id)
         transformed_negated_nodes_.erase(iter);
         return result;
     }
-    return nullptr;
+    return {};
 }
 
 //---------------------------------------------------------------------------//
@@ -342,34 +344,29 @@ inline void DeMorganSimplifier::find_negated_joins()
 {
     for (auto node_id : range(NodeId{tree_.size()}))
     {
-        // TODO: visitor
-        if (auto* node_ptr = &tree_[node_id];
-            auto* negated = std::get_if<orangeinp::Negated>(node_ptr))
-        {
-            // we don't need to check if this is a potential parent of a
-            // Joined{} node marked as orphan as this node will also get
-            // simplified.
+        std::visit(
+            Overload{
+                [&](Negated const& negated) {
+                    // we don't need to check if this is a potential parent of
+                    // a Joined{} node marked as orphan as this node will also
+                    // get simplified.
 
-            if (std::get_if<orangeinp::Joined>(&tree_[negated->node]))
-            {
-                // This is a Negated{Joined{...}}
-                mark_negated_operator(node_id);
-            }
-        }
-        else if (auto* aliased = std::get_if<orangeinp::Aliased>(node_ptr))
-        {
-            remove_orphaned(aliased->node);  // TODO: handle alias
-            // pointing to an alias
-            // (pointing to an
-            // alias)...
-        }
-        else if (auto* joined = std::get_if<orangeinp::Joined>(node_ptr))
-        {
-            for (auto const& join_operand : joined->nodes)
-            {
-                remove_orphaned(join_operand);
-            }
-        }
+                    if (std::get_if<orangeinp::Joined>(&tree_[negated.node]))
+                    {
+                        // This is a Negated{Joined{...}}
+                        mark_negated_operator(node_id);
+                    }
+                },
+                [&](Joined const& joined) {
+                    for (auto const& join_operand : joined.nodes)
+                    {
+                        remove_orphaned(join_operand);
+                    }
+                },
+                [&](Aliased const& aliased) { remove_orphaned(aliased.node); },
+                [](auto&&) {},
+            },
+            tree_[node_id]);
     }
 }
 
