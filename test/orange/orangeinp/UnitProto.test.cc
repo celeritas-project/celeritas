@@ -759,9 +759,13 @@ TEST_F(InputBuilderTest, universe_union_boundary)
 TEST_F(InputBuilderTest, involute)
 {
     auto involute = std::make_shared<UnitProto>([] {
-        auto invo = make_inv("blade",{1.0,2.0,4.0},{0, constants::pi},
+        auto invo1 = make_inv("blade",{1.0,2.0,4.0},{0, constants::pi},
                                        ccw, 1.0);
-        auto cyl = make_cyl("bound", 4.0, 1.0);
+        auto invo2 = make_inv("channel",{1.0,2.0,4.0},
+                                     {constants::pi, 2*constants::pi},
+                                       ccw, 1.0);
+        auto cyl = make_cyl("bound", 5.0, 1.0);
+        auto system = make_cyl("system", 4.0, 1.0);
         auto inner = make_cyl("center", 2.0, 1.0);
         UnitProto::Input inp;
         inp.boundary.interior = cyl;
@@ -769,36 +773,18 @@ TEST_F(InputBuilderTest, involute)
         inp.label = "involute";
 
         inp.materials.push_back(make_material(SPConstObject{inner}, 1));
-        inp.materials.push_back(make_material(SPConstObject{invo}, 2));
-        inp.background.fill = GeoMaterialId{3};
-        return inp;
-    }());
-
-    auto global = std::make_shared<UnitProto>([&] {
-        auto outer = make_cyl("outside", 6.0, 1.0);
-        auto system = make_cyl("system", 4.0, 1.0);
-        UnitProto::Input inp;
-        inp.boundary.interior = std::make_shared<AnyObjects>(
-            "union", AnyObjects::VecObject{outer, system});
-        inp.boundary.zorder = ZOrder::media;
-        inp.label = "global";
-
-        inp.materials.push_back(make_material(SPConstObject{outer}, 4));
-        inp.materials.push_back(
-            make_material(make_subtraction("bite", system, outer), 1));
-
-        inp.daughters.push_back({involute, Translation{{0, 0, 0}}});
-
+        inp.materials.push_back(make_material(SPConstObject{invo1}, 2));
+        inp.materials.push_back(make_material(SPConstObject{invo2}, 3));
         inp.materials.push_back(make_material(
-            make_rdv("inside",
-            {{Sense::inside, inp.daughters.front().make_interior()},
-             {Sense::outside, inp.boundary.interior}}), 1
-        ));
+            make_rdv("shell",
+                     {{Sense::inside, inp.boundary.interior},
+                      {Sense::outside, system}}),
+            4));
 
         return inp;
     }());
 
-    this->run_test(*global);
+    this->run_test(*involute);
 }
 
 //---------------------------------------------------------------------------//

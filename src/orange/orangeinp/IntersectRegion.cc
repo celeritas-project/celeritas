@@ -139,8 +139,8 @@ void Involute::build(IntersectSurfaceBuilder& insert_surface) const
                                                        sign_, tmin_, tmax_});
     insert_surface(Sense::outside, PlaneZ{-hh_});
     insert_surface(Sense::inside, PlaneZ{hh_});
-    insert_surface(Sense::inside, CCylZ{radii_[1]});
-    insert_surface(Sense::outside, CCylZ{radii_[2]});
+    insert_surface(Sense::inside, CCylZ{radii_[2]});
+    insert_surface(Sense::outside, CCylZ{radii_[1]});
 }
 
 //---------------------------------------------------------------------------//

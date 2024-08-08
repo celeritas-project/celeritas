@@ -854,7 +854,9 @@ TEST_F(InputBuilderTest, involute)
     {
         SCOPED_TRACE("involute");
         auto result = this->track({-2, -2, 0}, {1, 0, 0});
-        std::cout << result.volumes.size() << std::endl;
+        static char const* const expected_volumes[]
+            = {"blade", "channel"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
     }
 }
 

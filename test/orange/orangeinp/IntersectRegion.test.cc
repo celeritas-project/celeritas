@@ -35,6 +35,10 @@ namespace orangeinp
 {
 namespace test
 {
+//! Enum defining chirality of involute
+using Sign = Involute::Sign;
+constexpr auto ccw = Sign::counterclockwise;
+constexpr auto cw = Sign::clockwise;
 //---------------------------------------------------------------------------//
 class IntersectRegionTest : public ::celeritas::test::Test
 {
@@ -1197,6 +1201,117 @@ TEST_F(GenPrismTest, adjacent_twisted)
         "scaled@p2",
         "",
         "scaled@t3",
+        "",
+    };
+    EXPECT_VEC_EQ(expected_node_strings, node_strings);
+}
+
+//---------------------------------------------------------------------------//
+// Involute
+//---------------------------------------------------------------------------//
+using InvoluteTest = IntersectRegionTest;
+
+TEST_F(InvoluteTest, single)
+{
+    {
+        // involute
+        auto result
+            = this->test("invo",
+                         Involute({1.0,2.0,4.0},{0, constants::pi}, ccw, 1.0));
+
+        static char const expected_node[] = "all(-0, +1, +2, -3, -4, +5)";
+
+        EXPECT_EQ(expected_node, result.node);
+        EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{4, 4, 1}), result.exterior.upper());
+    }
+
+    static char const* const expected_surfaces[] = {
+        "Involute: r, a, sign, tmin, tmax =1 0 0 1.7321 7.0146 at {0,0}",
+        "Involute: r, a, sign, tmin, tmax =1 3.1416 0 1.7321 3.873 at {0,0}",
+        "Plane: z=-1",
+        "Plane: z=1",
+        "Cyl z: r=4",
+        "Cyl z: r=2"
+    };
+    EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
+
+    auto node_strings = md_strings(this->unit());
+    static char const* const expected_node_strings[] = {
+        "",
+        "",
+        "invo@inv",
+        "",
+        "invo@inv",
+        "invo@mz",
+        "invo@pz",
+        "",
+        "invo@cz",
+        "",
+        "invo@cz",
+        "",
+
+    };
+    EXPECT_VEC_EQ(expected_node_strings, node_strings);
+}
+
+TEST_F(InvoluteTest, two)
+{
+    {
+        // involute
+        auto result
+            = this->test("top",
+                         Involute({1.0,2.0,4.0},{0, constants::pi}, ccw, 1.0));
+
+        static char const expected_node[] = "all(-0, +1, +2, -3, -4, +5)";
+
+        EXPECT_EQ(expected_node, result.node);
+        EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{4, 4, 1}), result.exterior.upper());
+    }
+    {
+        // bottom
+        auto result
+            = this->test("bottom",
+                         Involute({1.0,2.0,4.0},
+                         {constants::pi, 2*constants::pi}, ccw, 1.0));
+
+        static char const expected_node[] = "all(+2, -3, -4, +5, -6, +7)";
+
+        EXPECT_EQ(expected_node, result.node);
+        EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{4, 4, 1}), result.exterior.upper());
+    }
+
+    static char const* const expected_surfaces[] = {
+        "Involute: r, a, sign, tmin, tmax =1 0 0 1.7321 7.0146 at {0,0}",
+        "Involute: r, a, sign, tmin, tmax =1 3.1416 0 1.7321 3.873 at {0,0}",
+        "Plane: z=-1",
+        "Plane: z=1",
+        "Cyl z: r=4",
+        "Cyl z: r=2",
+        "Involute: r, a, sign, tmin, tmax =1 3.1416 0 1.7321 7.0146 at {0,0}",
+        "Involute: r, a, sign, tmin, tmax =1 0 0 1.7321 3.873 at {0,0}"
+    };
+    EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
+
+    auto node_strings = md_strings(this->unit());
+    static char const* const expected_node_strings[] = {
+        "",
+        "",
+        "top@inv",
+        "",
+        "top@inv",
+        "bottom@mz,top@mz",
+        "bottom@pz,top@pz",
+        "",
+        "bottom@cz,top@cz",
+        "",
+        "bottom@cz,top@cz",
+        "",
+        "bottom@inv",
+        "",
+        "bottom@inv",
         "",
     };
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
