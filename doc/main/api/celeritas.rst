@@ -16,14 +16,14 @@ Fundamentals
 
 .. _api_units:
 
-.. doxygennamespace:: units
+.. doxygennamespace:: celeritas::units
 
 .. doxygenfile:: celeritas/Units.hh
    :sections: user-defined var innernamespace
 
 .. _api_constants:
 
-.. doxygennamespace:: constants
+.. doxygennamespace:: celeritas::constants
 
 .. doxygenfile:: celeritas/Constants.hh
    :sections: user-defined var innernamespace

@@ -80,10 +80,7 @@ inline constexpr bool operator<(PDGNumber lhs, PDGNumber rhs)
     return lhs.unchecked_get() < rhs.unchecked_get();
 }
 
-//---------------------------------------------------------------------------//
 /*!
- * \namespace pdg
- *
  * Unique standard model particle identifiers by the Particle Data Group.
  *
  * This namespace acts an enumeration for PDG codes that are used by the
@@ -101,14 +98,14 @@ inline constexpr bool operator<(PDGNumber lhs, PDGNumber rhs)
 namespace pdg
 {
 //---------------------------------------------------------------------------//
-//!@{
-//! Particle Data Group Monte Carlo number codes.
 #define CELER_DEFINE_PDGNUMBER(NAME, VALUE) \
     inline constexpr PDGNumber NAME()       \
     {                                       \
         return PDGNumber{VALUE};            \
     }
 
+//!@{
+//! Particle Data Group Monte Carlo number codes.
 // Sorted by (abs(val), val < 0)
 CELER_DEFINE_PDGNUMBER(electron, 11)
 CELER_DEFINE_PDGNUMBER(positron, -11)
@@ -132,9 +129,9 @@ CELER_DEFINE_PDGNUMBER(deuteron, 1000010020)
 CELER_DEFINE_PDGNUMBER(anti_deuteron, -1000010020)
 CELER_DEFINE_PDGNUMBER(triton, 1000010030)
 CELER_DEFINE_PDGNUMBER(anti_triton, -1000010030)
+//!@}
 
 #undef CELER_DEFINE_PDGNUMBER
-//!@}
 //---------------------------------------------------------------------------//
 }  // namespace pdg
 }  // namespace celeritas

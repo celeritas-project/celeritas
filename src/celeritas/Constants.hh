@@ -15,13 +15,11 @@
 
 namespace celeritas
 {
-namespace constants
-{
-//---------------------------------------------------------------------------//
+
 /*!
- * \namespace constants
+ * Mathematical, numerical, and physical constants.
  *
- * Mathematical, numerical, and physical constants. Some of the physical
+ * Some of the physical
  * constants listed here are *exact* numerical values: see the International
  * System of Units, 9th ed. (2019), for definition of constants and how they
  * relate to the different units.
@@ -54,6 +52,9 @@ namespace constants
  * (ususally two) imprecise digits; their precision is usually on the order of
  * \f$ 10^{-11} \f$.
  */
+namespace constants
+{
+//---------------------------------------------------------------------------//
 
 #define CELER_ICRT inline constexpr real_type
 

@@ -14,11 +14,8 @@
 
 namespace celeritas
 {
-namespace units
-{
-//---------------------------------------------------------------------------//
+
 /*!
- * \namespace units
  * Units in Celeritas for macro-scale quantities.
  *
  * The following units have numerical values of 1 in the default Celeritas
@@ -51,6 +48,9 @@ namespace units
  * Otherwise, if \c real_type is single-precision, then we lose accuracy in
  * places like the GeantImporter where everything is double precision.
  */
+namespace units
+{
+//---------------------------------------------------------------------------//
 
 #define CELER_ICRT inline constexpr real_type
 
