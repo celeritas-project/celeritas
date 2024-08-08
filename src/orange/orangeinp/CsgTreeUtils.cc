@@ -8,17 +8,11 @@
 #include "CsgTreeUtils.hh"
 
 #include <algorithm>
-#include <unordered_map>
-#include <unordered_set>
 #include <utility>
 #include <variant>
 #include <vector>
 
-#include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
-#include "orange/OrangeTypes.hh"
-#include "orange/orangeinp/CsgTree.hh"
-#include "orange/orangeinp/CsgTypes.hh"
 
 #include "detail/DeMorganSimplifier.hh"
 #include "detail/InfixStringBuilder.hh"
