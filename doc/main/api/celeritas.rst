@@ -11,25 +11,16 @@ The ``celeritas`` directory focuses on the physics and transport loop
 implementation for the Celeritas codebase, using components from the
 ``corecel`` and ``orange`` dependencies.
 
-Fundamentals
-------------
+Unit system and constants
+-------------------------
 
 .. _api_units:
 
 .. doxygennamespace:: celeritas::units
 
-.. doxygenfile:: celeritas/Units.hh
-   :sections: user-defined var innernamespace
-
 .. _api_constants:
 
 .. doxygennamespace:: celeritas::constants
-
-.. doxygenfile:: celeritas/Constants.hh
-   :sections: user-defined var innernamespace
-
-.. doxygenfile:: celeritas/Quantities.hh
-   :sections: user-defined var innernamespace
 
 Problem definition
 ------------------

@@ -62,13 +62,18 @@ namespace constants
 //! \name Physical constants with *exact* value as defined by SI
 CELER_ICRT c_light = 299792458. * units::meter / units::second;
 CELER_ICRT h_planck = 6.62607015e-34 * units::joule * units::second;
-CELER_ICRT e_electron = (CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
-                             ? 1
-                             : 1.602176634e-19 * units::coulomb);
+#if CELERITAS_UNITS != CELERITAS_UNITS_CLHEP
+CELER_ICRT e_electron = 1.602176634e-19 * units::coulomb;
+#endif
 CELER_ICRT k_boltzmann = 1.380649e-23 * units::joule / units::kelvin;
 CELER_ICRT na_avogadro = 6.02214076e23;
 CELER_ICRT kcd_luminous = 683;
 //!@}
+
+#if CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
+//! Special case for CLHEP: electron energy is defined to be unity
+CELER_ICRT e_electron = 1;
+#endif
 
 //!@{
 //! \name Exact derivative constants

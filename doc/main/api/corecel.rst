@@ -116,6 +116,14 @@ Math, numerics, and algorithms
 
 .. _api_quantity:
 
+Quantity
+--------
+
+Celeritas supports multiple simultaneous unit systems (e.g., atomic
+scale/natural units working with a macro-scale but consistent unit system)
+using the Quantity class and helper functions. See :ref:`the unit
+subsystem <api_units>` for more details.
+
 .. doxygenclass:: celeritas::Quantity
 .. doxygenfunction:: celeritas::native_value_to
 .. doxygenfunction:: celeritas::native_value_from(Quantity<UnitT, ValueT> quant)

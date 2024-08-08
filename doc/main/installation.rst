@@ -88,6 +88,54 @@ will error out in the configure if their required
 dependencies are missing, but they will update the CMake cache variable so that
 the next configure will succeed (with that component disabled).
 
+Configuration options
+---------------------
+
+The interactive ``ccmake`` tool is highly recommended for exploring the
+Celeritas configuration options, since it provides both documentation *and* an
+easy way to toggle through all the valid options.
+
+``CELERITAS_USE_{package}``
+  Enable features of the given dependency. The configuration will fail if the
+  dependent package is not found.
+
+``CELERITAS_BUILD_{DEMOS|DOCS|TESTS}``
+  Build demo apps, documentation, and/or tests.
+
+``CELERITAS_CORE_GEO``
+  Select the geometry package used by the Celeritas stepping loop. Valid
+  options include VecGeom, Geant4, and ORANGE. There are limits on
+  compatibility: Geant4 is not compatible with GPU-enabled or OpenMP builds,
+  and VecGeom is not compatible with HIP.
+
+``CELERITAS_CORE_RNG``
+  Select the pseudorandom number generator. Current options are
+  platform-dependent implementations of XORWOW.
+
+``CELERITAS_DEBUG``
+  Enable detailed runtime assertions. These *will* slow down the code
+  considerably, especially on GPU builds.
+
+``CELERITAS_OPENMP``
+  Choose between no multithreaded OpenMP parallelism (``disabled``),
+  ``event``-level parallelism for the ``celer-sim`` app, and ``track``-level
+  parallelism. OpenMP *should* be disabled with multithreaded Geant4 but *will*
+  work correctly with single-threaded applications.
+
+``CELERITAS_REAL_TYPE``
+  Choose between ``double`` and ``float`` real numbers across the codebase.
+  This is currently experimental.
+
+``CELERITAS_UNITS``
+  Choose the native Celeritas unit system: see :ref:`the unit
+  documentation <api_units>`.
+
+Celeritas libraries (generally) use CMake-provided default properties. These
+can be changed with standard `CMake variables`_ such as ``BUILD_SHARED_LIBS`` to
+enable shared libraries, ``CMAKE_POSITION_INDEPENDENT_CODE``, etc.
+
+.. _CMake variables: https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html
+
 Toolchain installation
 ======================
 
