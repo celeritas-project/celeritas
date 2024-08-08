@@ -79,9 +79,12 @@ set(DOXYGEN_HTML_OUTPUT "doxygen-html")
 set(DOXYGEN_CREATE_SUBDIRS YES)
 set(DOXYGEN_REFERENCES_LINK_SOURCE YES)
 
-celeritas_set_default(DOXYGEN_VERBATIM_HEADERS NO)
+celeritas_set_default(DOXYGEN_COLLABORATION_GRAPH NO)
+celeritas_set_default(DOXYGEN_DOT_GRAPH_MAX_NODES 32)
+celeritas_set_default(DOXYGEN_GRAPHICAL_HIERARCHY NO)
+celeritas_set_default(DOXYGEN_INCLUDE_GRAPH NO)
 celeritas_set_default(DOXYGEN_MAX_DOT_GRAPH_DEPTH 2)
-celeritas_set_default(DOXYGEN_DOT_GRAPH_MAX_NODES 50)
+celeritas_set_default(DOXYGEN_VERBATIM_HEADERS NO)
 
 doxygen_add_docs(doxygen
   "${PROJECT_SOURCE_DIR}/src"
