@@ -1,21 +1,17 @@
+<!--
+NOTE: this page is generated automatically from
+https://github.com/celeritas-project/celeritas/tree/doc/gh-pages-base/scripts/generate-pubs.py
+-->
 # Publications
 
 These publications were extracted from the Celeritas team's Zotero database
-on 07 Aug 2024.
+on 8 Aug 2024.
 
 ## Conference papers
 
 - S. R. Johnson, J. Esseiva, E. Biondo, P. Canal, M. Demarteau, *et al*. "Celeritas: Accelerating Geant4 with GPUs". *EPJ Web of Conferences*, Aug 2024. [10.1051/epjconf/202429511005](https://doi.org/10.1051/epjconf/202429511005)
 - S. C. Tognini, P. Canal, T. M. Evans, G. Lima, A. L. Lund, *et al*. "Celeritas: GPU-accelerated particle transport for detector simulation in High Energy Physics experiments". in *Snowmass white papers*, Mar 2022. [10.48550/arXiv.2203.09467](https://doi.org/10.48550/arXiv.2203.09467)
 - S. R. Johnson, S. C. Tognini, P. Canal, T. Evans, S. Y. Jun, *et al*. "Novel features and GPU performance analysis for EM particle transport in the Celeritas code". *EPJ Web of Conferences*, Aug 2021. [10.1051/epjconf/202125103030](https://doi.org/10.1051/epjconf/202125103030)
-
-## Code
-
-- S. R. Johnson, A. Lund, S. Y. Jun, S. Tognini, G. Lima, P. Romano, P. Canal, B. Morgan, T. Evans. "Celeritas". Jul 2022.
-
-## Journal articles
-
-- J. Apostolakis, M. Bandieramonte, S. Banerjee, N. Bartosik, G. Corti, *et al*. "Detector Simulation Challenges for Future Accelerator Experiments". *Frontiers in Physics*, Jun 2022. [10.3389/fphy.2022.913510](https://doi.org/10.3389/fphy.2022.913510)
 
 ## Presentations
 
@@ -71,8 +67,8 @@ on 07 Aug 2024.
 - S. R. Johnson. "Celeritas project and code overview". *HSF Detector Simulation on GPU Community Meeting*, 03 May 2022. [presentation](https://indico.cern.ch/event/1123314/)
 - A. Lund. "Celeritas performance". *HSF Detector Simulation on GPU Community Meeting*, 03 May 2022. [presentation](https://indico.cern.ch/event/1123314/)
 - T. Evans. "HEP-CCE: Celeritas". *HEP-CCE All Hands Meeting*, 21 Apr 2022. [presentation](https://indico.fnal.gov/event/53750/contributions/239772/)
+- W. Pokorski. "2022 Work-plan for R&D". *Geant4 Technical Forum R&D update*, 24 Mar 2022. [presentation](https://indico.cern.ch/event/1139613/contributions/4788825/)
 - S. Tognini. "Celeritas: Bringing Exascale computing to HEP detector simulation". *Physics and Astronomy Colloquium*, 22 Mar 2022.
-- W. Pokorski. "2022 Work-plan for R&D". *Geant4 Technical Forum R&D update*, 07 Mar 2022. [presentation](https://indico.cern.ch/event/1139613/contributions/4788825/)
 - S. R. Johnson. "HEP HPC at LHC, MC on GPU, WTF BBQ LOL?". *UTK HEP-Astro Seminar*, 02 Mar 2022.
 - S. R. Johnson. "Novel features and GPU performance analysis for EM particle transport in the Celeritas code [presentation]". *vCHEP 2021*, 19 May 2021. [presentation](https://indico.cern.ch/event/948465/contributions/4324114/)
 - S. R. Johnson. "Celeritas: Status and Plans". *HSF Detector Simulation Working Group Meeting*, 12 Apr 2021. [presentation](https://indico.cern.ch/event/1019940/#4-celeritas-status-plans)
@@ -81,6 +77,15 @@ on 07 Aug 2024.
 - T. Evans. "Monte Carlo neutron transport in the ECP Coupled Monte Carlo Neutronics and Fluid Flow Simulation of Small Modular Reactor (ExaSMR) project". *Geant4 R&D Task Force Meeting*, 14 Apr 2020.
 - T. Evans. "Celeritas: toward GPU-based particle transport for detector simulations in HEP experiments". *Geant4 R&D Task Force Meeting*, 14 Apr 2020.
 
+## Journal articles
+
+- P. K. Romano, P. A. Myers, S. R. Johnson, A. Kolšek, P. C. Shriwise, *et al*. "Point containment algorithms for constructive solid geometry with unbounded primitives". Jun 2024. [10.48550/arXiv.2406.13030](https://doi.org/10.48550/arXiv.2406.13030)
+- J. Apostolakis, M. Bandieramonte, S. Banerjee, N. Bartosik, G. Corti, *et al*. "Detector Simulation Challenges for Future Accelerator Experiments". *Frontiers in Physics*, Jun 2022. [10.3389/fphy.2022.913510](https://doi.org/10.3389/fphy.2022.913510)
+
 ## Technical reports
 
 - S. Johnson, S. Castro Tognini, E. Biondo, T. Evans, J. Esseiva, *et al*. "Celeritas R&D Report: Accelerating Geant4". Jan 2024.
+
+## Code
+
+- S. R. Johnson, A. Lund, S. Y. Jun, S. Tognini, G. Lima, P. Canal, B. Morgan, T. Evans, J. Esseiva. "[Celeritas *v889*](https://doi.org/10.11578/dc.20221011.1)". Jul 2022.
