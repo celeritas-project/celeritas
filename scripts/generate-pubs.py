@@ -108,6 +108,8 @@ def format_software(e):
     if not (last := bits[-1]).endswith('.'):
         bits[-1] = last + '.'
     title = e['title']
+    if (version := e.get('version')):
+        title = f"{title} *v{version}*"
     if (url := e.get('url')):
         title = f"[{title}]({url})"
     bits.append(f"\"{title}\".")
@@ -125,7 +127,7 @@ def sorted_collection(zot, name):
 def run(group_id, out):
     zot = zotero.Zotero(group_id, "group", API_KEY)
 
-    today = datetime.today().strftime("%d %b %Y")
+    today = datetime.today().strftime("%d %b %Y").lstrip('0 ')
     print(f"""\
 <!--
 NOTE: this page is generated automatically from
@@ -134,36 +136,30 @@ https://github.com/celeritas-project/celeritas/tree/doc/gh-pages-base/scripts/ge
 # Publications
 
 These publications were extracted from the Celeritas team's Zotero database
-on {today}.
+on {today}.""", file=out)
 
-## Conference papers
-""", file=out)
+    def print_subheader(name):
+        print(f"\n## {name}\n", file=out)
+
+    print_subheader("Conference papers")
     for e in sorted_collection(zot, "Conference papers"):
         print("-", format_paper(e), file=out)
 
-    print(f"""
-## Code
-""", file=out)
-    for e in sorted_collection(zot, "Code objects"):
-        print("-",format_software(e), file=out)
-
-    print(f"""
-## Journal articles
-""", file=out)
-    for e in sorted_collection(zot, "Journal articles"):
-        print("-",format_paper(e), file=out)
-
-    print(f"""
-## Presentations
-""", file=out)
+    print_subheader("Presentations")
     for e in sorted_collection(zot, "Presentations"):
         print("-",format_presentation(e), file=out)
 
-    print(f"""
-## Technical reports
-""", file=out)
+    print_subheader("Journal articles")
+    for e in sorted_collection(zot, "Journal articles"):
+        print("-",format_paper(e), file=out)
+
+    print_subheader("Technical reports")
     for e in sorted_collection(zot, "Reports"):
         print("-",format_paper(e), file=out)
+
+    print_subheader("Code")
+    for e in sorted_collection(zot, "Code objects"):
+        print("-",format_software(e), file=out)
 
 
 def main():
