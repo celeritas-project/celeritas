@@ -22,7 +22,7 @@ namespace celeritas
 {
 namespace units
 {
-//! \cond CELERITAS_DOC_DEV
+//! \cond (CELERITAS_DOC_DEV)
 //---------------------------------------------------------------------------//
 //!@{
 //! \name Natural units
@@ -273,7 +273,7 @@ struct LogMev
 template<UnitSystem>
 struct UnitSystemTraits;
 
-//! \cond breathe_fails_to_parse
+//! \cond (BREATHE_FAILS_TO_PARSE)
 
 //! CGS unit traits
 template<>
