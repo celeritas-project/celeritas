@@ -306,21 +306,18 @@ inline bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                 {
                     // Insert the opposite join instead, updating the
                     // children ids.
-                    Joined const& join = *negated_node;
-                    OperatorToken opposite_op
-                        = (join.op == logic::land)
-                              ? logic::lor
-                              : logic::OperatorToken::land;
+                    auto const& [op, nodes] = *negated_node;
                     // Lookup the new id of each operand
                     std::vector<NodeId> operands;
-                    operands.reserve(join.nodes.size());
-                    for (auto op : join.nodes)
+                    operands.reserve(nodes.size());
+                    for (auto n : nodes)
                     {
-                        operands.push_back(replace_node_id(std::move(op)));
+                        operands.push_back(replace_node_id(std::move(n)));
                     }
 
                     auto [new_id, inserted] = result.insert(
-                        Joined{opposite_op, std::move(operands)});
+                        Joined{(op == logic::land) ? logic::lor : logic::land,
+                               std::move(operands)});
                     inserted_nodes_[node_id] = new_id;
                 }
                 // this Negated{Join} node doesn't have any other
