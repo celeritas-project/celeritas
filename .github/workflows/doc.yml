@@ -46,6 +46,7 @@ jobs:
         working-directory: build
         run: |
           ninja doxygen
+          find doc/doxygen-html -name '*.md5' -exec rm {} +
       - name: Upload artifacts
         if: ${{env.celer_upload_doc}}
         uses: actions/upload-artifact@v4
@@ -88,6 +89,7 @@ jobs:
         working-directory: build
         run: |
           ninja doc
+          find doc/html -name '*.md5' -exec rm {} +
       - name: Upload artifacts
         if: ${{env.celer_upload_doc}}
         uses: actions/upload-artifact@v4
