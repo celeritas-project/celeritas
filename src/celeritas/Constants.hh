@@ -71,7 +71,7 @@ CELER_ICRT kcd_luminous = 683;
 //!@}
 
 #if CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
-//! Special case for CLHEP: electron energy is defined to be unity
+//! Special case for CLHEP: electron charged is unity by definition
 CELER_ICRT e_electron = 1;
 #endif
 
