@@ -296,44 +296,52 @@ inline CsgTree DeMorganSimplifier::operator()()
 inline void DeMorganSimplifier::add_new_negated_nodes(NodeId node_id)
 {
     CELER_EXPECT(std::get_if<orangeinp::Joined>(&tree_[node_id]));
-    if (auto* join_node = std::get_if<orangeinp::Joined>(&tree_[node_id]))
+    auto* join_node = std::get_if<orangeinp::Joined>(&tree_[node_id]);
+    if (!join_node)
     {
-        for (auto const& join_operand : join_node->nodes)
-        {
-            if (auto node_ptr = &tree_[join_operand];
-                auto* joined_join_operand
-                = std::get_if<orangeinp::Joined>(node_ptr))
-            {
-                // the new Negated node will point to a Joined node
-                // so we need to transform that Joined node as well
-                add_new_negated_nodes(join_operand);
-                negated_join_nodes_[join_operand] = joined_join_operand;
-            }
-            else if (auto* negated = std::get_if<orangeinp::Negated>(node_ptr))
-            {
-                // double negation, this simplifies unless it has
-                // another parent
-                orphaned_negate_nodes_.insert(join_operand);
-                // however, we need to make sure that we're keeping
-                // the target of the double negation around because
-                // someone might need it
-                remove_orphaned(negated->node);
-            }
-
-            // per DeMorgran's law, negate each operand of the Joined
-            // node if we're not inserting a Negated{Joined{}}.
-            if (!std::get_if<orangeinp::Joined>(&tree_[join_operand]))
-            {
-                new_negated_nodes_.insert(join_operand);
-            }
-        }
-        // assume that the Joined node doesn't have other parents and
-        // mark it for deletion. This is done after recusive calls as
-        // parents can only have a higher node_id and the recursive
-        // calls explore childrens with lower node_id. This can be
-        // unmarked later as we process potential parents
-        orphaned_join_nodes_.insert(node_id);
+        CELER_ASSERT_UNREACHABLE();
     }
+    for (auto const& join_operand : join_node->nodes)
+    {
+        std::visit(Overload{[&](Joined const& joined) {
+                                // the new Negated node will point to a
+                                // Joined node
+                                // so we need to transform that Joined node
+                                // as well
+                                add_new_negated_nodes(join_operand);
+                                negated_join_nodes_[join_operand] = &joined;
+                            },
+                            [&](Negated const& negated) {
+                                // double negation, this simplifies unless
+                                // it has
+                                // another parent
+                                orphaned_negate_nodes_.insert(join_operand);
+                                // however, we need to make sure that we're
+                                // keeping the target of the double
+                                // negation around because someone might
+                                // need it
+                                remove_orphaned(negated.node);
+                                // per DeMorgran's law, negate each operand
+                                // of the Joined
+                                // node if we're not inserting a
+                                // Negated{Joined{}}.
+                                new_negated_nodes_.insert(join_operand);
+                            },
+                            [&](auto const&) {
+                                // per DeMorgran's law, negate each operand
+                                // of the Joined
+                                // node if we're not inserting a
+                                // Negated{Joined{}}.
+                                new_negated_nodes_.insert(join_operand);
+                            }},
+                   tree_[join_operand]);
+    }
+    // assume that the Joined node doesn't have other parents and
+    // mark it for deletion. This is done after recusive calls as
+    // parents can only have a higher node_id and the recursive
+    // calls explore childrens with lower node_id. This can be
+    // unmarked later as we process potential parents
+    orphaned_join_nodes_.insert(node_id);
 }
 
 //---------------------------------------------------------------------------//
