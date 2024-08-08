@@ -160,7 +160,6 @@ real_type WentzelOKVIParams::calc_nuclear_form_prefactor(IsotopeView const& iso)
 {
     if (iso.atomic_number().get() == 1)
     {
-        // TODO: Geant4 hardcodes a different prefactor for hydrogen
         return real_type{1.5485e-6};
     }
 
