@@ -52,7 +52,7 @@ struct RunnerInput
     };
 
     static constexpr Real3 no_field() { return Real3{0, 0, 0}; }
-    static constexpr size_type unspecified{static_cast<size_type>(-1)};
+    static constexpr size_type unspecified{0};
 
     // Global environment
     size_type cuda_heap_size{unspecified};
@@ -87,7 +87,7 @@ struct RunnerInput
     size_type num_track_slots{};  //!< Divided among streams
     size_type optical_buffer_capacity{};  //!< Number of steps that created
                                           //!< optical photons
-    size_type max_steps{unspecified};
+    size_type max_steps = static_cast<size_type>(-1);
     size_type initializer_capacity{};  //!< Divided among streams
     real_type secondary_stack_factor{};
     bool use_device{};
