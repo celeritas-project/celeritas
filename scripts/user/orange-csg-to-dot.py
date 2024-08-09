@@ -8,7 +8,7 @@ Convert an ORANGE CSG JSON representation to a GraphViz input.
 from itertools import count, repeat
 import json
 
-class DoxygenGenerator:
+class DotGenerator:
     def __init__(self, f):
         self.f = f
         self.write = f.write
@@ -26,10 +26,14 @@ rankdir=TB;
     def write_node(self, i, value):
         self.write(f"{i:02d} [label=\"{value}\"];\n")
 
+    def write_volume(self, i, value):
+        self.write(f"volume{i:02d} [label=\"{value}\", shape=box];\n")
+        self.write(f"volume{i:02d} -> {i:02d} [color=gray, dir=both];\n")
+
     def write_edge(self, i, e):
         self.write(f"{i:02d} -> {e:02d};\n")
 
-def process(gen, tree, labels):
+def write_tree(gen, tree, labels):
     for (i, node, labs) in zip(count(), tree, labels or repeat(None)):
         if isinstance(node, str):
             # True (or false??)
@@ -56,17 +60,24 @@ def process(gen, tree, labels):
             # Aliased/negated
             gen.write_edge(i, value)
 
+def write_volumes(gen, volumes):
+    for v in volumes:
+        gen.write_volume(v["csg_node"], v["label"])
+
 def run(infile, outfile, universe):
     tree = json.load(infile)
     metadata = None
+    volumes = []
     if universe is not None:
         # Load from a 'proto' debug file
         csg_unit = tree[universe]
         tree = csg_unit["tree"]
         metadata = csg_unit["metadata"]
+        volumes = csg_unit["volumes"]
 
-    with DoxygenGenerator(outfile) as gen:
-        process(gen, tree, metadata)
+    with DotGenerator(outfile) as gen:
+        write_tree(gen, tree, metadata)
+        write_volumes(gen, volumes)
 
 def main():
     import argparse
@@ -77,7 +88,7 @@ def main():
         "input",
         help="Input filename (- for stdin)")
     parser.add_argument('-u', '--universe', type=int, default=None,
-                        help="Universe ID if a 'proto' debug file")
+                        help="Universe ID if a 'csg.json' debug file")
     parser.add_argument(
         "-o", "--output",
         default=None,
