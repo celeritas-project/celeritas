@@ -853,10 +853,38 @@ TEST_F(InputBuilderTest, involute)
 {
     {
         SCOPED_TRACE("involute");
-        auto result = this->track({-2, -2, 0}, {1, 0, 0});
+        auto result = this->track({0, 2.1, 0}, {1, 0, 0});
         static char const* const expected_volumes[]
-            = {"blade", "channel"};
+            = {"channel", "blade" ,"rest", "shell"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] 
+            = {0.531630657850489, 0.660884355302089, 
+               2.21189389295726, 1.13321161570553};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+
+    {
+        SCOPED_TRACE("involute");
+        auto result = this->track({-2, 2, 0}, {1, 0, 0});
+        static char const* const expected_volumes[]
+            = {"channel", "rest", "channel", "blade", "rest", "shell"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] 
+            = {0.16792681644055, 1.6137203912609, 0.85397578734658, 
+               0.62524920901033, 2.2032294110794, 1.1184740798181};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+
+    {
+        SCOPED_TRACE("involute");
+        auto result = this->track({0, 3.5, 0}, {0, -1, 0});
+        static char const* const expected_volumes[]
+            = {"rest", "blade", "channel", "inner", "rest", "shell"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] 
+            = { 0.528306129329604, 0.530097149547556, 0.441596721122841, 
+               4, 2, 1};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
 }
 

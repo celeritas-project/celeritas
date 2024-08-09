@@ -759,10 +759,10 @@ TEST_F(InputBuilderTest, universe_union_boundary)
 TEST_F(InputBuilderTest, involute)
 {
     auto involute = std::make_shared<UnitProto>([] {
-        auto invo1 = make_inv("blade",{1.0,2.0,4.0},{0, constants::pi},
+        auto invo1 = make_inv("blade",{1.0,2.0,4.0},{0, 0.15667*constants::pi},
                                        ccw, 1.0);
         auto invo2 = make_inv("channel",{1.0,2.0,4.0},
-                                     {constants::pi, 2*constants::pi},
+                                {0.15667*constants::pi, 0.31334*constants::pi},
                                        ccw, 1.0);
         auto cyl = make_cyl("bound", 5.0, 1.0);
         auto system = make_cyl("system", 4.0, 1.0);
@@ -776,10 +776,18 @@ TEST_F(InputBuilderTest, involute)
         inp.materials.push_back(make_material(SPConstObject{invo1}, 2));
         inp.materials.push_back(make_material(SPConstObject{invo2}, 3));
         inp.materials.push_back(make_material(
+            make_rdv("rest",
+                     {{Sense::inside, system},
+                      {Sense::outside, inner},
+                      {Sense::outside, invo1},
+                      {Sense::outside, invo2}
+                    }),
+            5));
+        inp.materials.push_back(make_material(
             make_rdv("shell",
                      {{Sense::inside, inp.boundary.interior},
                       {Sense::outside, system}}),
-            4));
+            5));
 
         return inp;
     }());

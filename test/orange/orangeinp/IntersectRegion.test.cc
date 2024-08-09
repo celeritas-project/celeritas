@@ -1217,7 +1217,8 @@ TEST_F(InvoluteTest, single)
         // involute
         auto result
             = this->test("invo",
-                         Involute({1.0,2.0,4.0},{0, constants::pi}, ccw, 1.0));
+                         Involute({1.0,2.0,4.0},{0, 0.15667*constants::pi}, 
+                         ccw, 1.0));
 
         static char const expected_node[] = "all(-0, +1, +2, -3, -4, +5)";
 
@@ -1227,8 +1228,8 @@ TEST_F(InvoluteTest, single)
     }
 
     static char const* const expected_surfaces[] = {
-        "Involute: r, a, sign, tmin, tmax =1 0 0 1.7321 7.0146 at {0,0}",
-        "Involute: r, a, sign, tmin, tmax =1 3.1416 0 1.7321 7.0146 at {0,0}",
+        "Involute: r, a, sign, tmin, tmax =1 0 0 1.7321 4.3652 at {0,0}",
+        "Involute: r, a, sign, tmin, tmax =1 0.49219 0 1.7321 4.3652 at {0,0}",
         "Plane: z=-1",
         "Plane: z=1",
         "Cyl z: r=4",
@@ -1261,7 +1262,8 @@ TEST_F(InvoluteTest, two)
         // involute
         auto result
             = this->test("top",
-                         Involute({1.0,2.0,4.0},{0, constants::pi}, ccw, 1.0));
+                         Involute({1.0,2.0,4.0},{0, 0.15667*constants::pi}, 
+                         ccw, 1.0));
 
         static char const expected_node[] = "all(-0, +1, +2, -3, -4, +5)";
 
@@ -1274,9 +1276,10 @@ TEST_F(InvoluteTest, two)
         auto result
             = this->test("bottom",
                          Involute({1.0,2.0,4.0},
-                         {constants::pi, 2*constants::pi}, ccw, 1.0));
+                         {0.15667*constants::pi, 0.31334*constants::pi}, 
+                         ccw, 1.0));
 
-        static char const expected_node[] = "all(+0, +2, -3, -4, +5, -1)";
+        static char const expected_node[] = "all(+2, -3, -4, +5, -1, +6)";
 
         EXPECT_EQ(expected_node, result.node);
         EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
@@ -1284,30 +1287,32 @@ TEST_F(InvoluteTest, two)
     }
 
     static char const* const expected_surfaces[] = {
-        "Involute: r, a, sign, tmin, tmax =1 0 0 1.7321 7.0146 at {0,0}",
-        "Involute: r, a, sign, tmin, tmax =1 3.1416 0 1.7321 7.0146 at {0,0}",
+        "Involute: r, a, sign, tmin, tmax =1 0 0 1.7321 4.3652 at {0,0}",
+        "Involute: r, a, sign, tmin, tmax =1 0.49219 0 1.7321 4.3652 at {0,0}",
         "Plane: z=-1",
         "Plane: z=1",
         "Cyl z: r=4",
         "Cyl z: r=2",
+        "Involute: r, a, sign, tmin, tmax =1 0.98439 0 1.7321 4.3652 at {0,0}",
     };
     EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
 
     auto node_strings = md_strings(this->unit());
     static char const* const expected_node_strings[] = {
-        "",
-        "",
-        "bottom@inv,top@inv",
-        "",
-        "bottom@inv,top@inv",
-        "bottom@mz,top@mz",
-        "bottom@pz,top@pz",
-        "",
-        "bottom@cz,top@cz",
-        "",
-        "bottom@cz,top@cz",
         "", 
         "", 
+        "top@inv", 
+        "", 
+        "bottom@inv,top@inv", 
+        "bottom@mz,top@mz", 
+        "bottom@pz,top@pz", 
+        "", 
+        "bottom@cz,top@cz", 
+        "", 
+        "bottom@cz,top@cz", 
+        "", 
+        "", 
+        "bottom@inv", 
         ""
     };
     EXPECT_VEC_EQ(expected_node_strings, node_strings);

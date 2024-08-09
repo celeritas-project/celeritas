@@ -120,7 +120,7 @@ radii_(radii), a_(displacement), tmin_(), tmax_(), sign_(sign), hh_{halfheight}
     CELER_VALIDATE(tmin_ > 0, << "nonpositive inner radius: " << tmin_); 
     CELER_VALIDATE(tmax_ > tmin_, << "outer radius smaller than inner radius: " 
                                   << tmax_); 
-    CELER_VALIDATE(tmax_ < tmin_ + 2 * constants::pi - (a_[1]-a_[0]),
+    CELER_VALIDATE(tmax_ <  tmin_ + 2 * constants::pi - (a_[1]-a_[0]),
                    << "radial bounds result in angular overlaped: " 
                    << tmin_ + 2 * constants::pi - (a_[1]-a_[0]) - tmax_);
 }
