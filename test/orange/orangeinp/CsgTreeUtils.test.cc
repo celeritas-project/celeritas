@@ -529,6 +529,31 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         "surface 2, 11: not{10}, 12: any{6,8}, 13: all{7,9}, 14: any{6,8,12}, "
         "}",
         to_string(simplified));
+
+    tree_ = {};
+
+    s0 = this->insert(S{0});
+    s1 = this->insert(S{1});
+    n0 = this->insert(Negated{s0});
+    n1 = this->insert(Negated{s1});
+    j0 = this->insert(Joined{op_or, {n0, n1}});
+    n3 = this->insert(Negated{j0});
+    s2 = this->insert(S{2});
+    auto n4 = this->insert(Negated{s2});
+    this->insert(Joined{op_and, {n3, n4}});
+    // Check a well-formed tree
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{2}, 5: "
+        "not{3}, 6: any{4,5}, 7: not{6}, 8: surface 2, 9: not{8}, 10: "
+        "all{7,9}, }",
+        to_string(tree_));
+
+    // Complex case with a negated join with negated children
+    simplified = transform_negated_joins(tree_);
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: all{2,3}, 5: "
+        "surface 2, 6: not{5}, 7: all{4,6}, }",
+        to_string(simplified));
 }
 
 //---------------------------------------------------------------------------//

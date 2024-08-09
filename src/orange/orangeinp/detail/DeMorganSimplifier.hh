@@ -279,10 +279,16 @@ inline bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                 // It still needs to be added in inserted_nodes so that
                 // when adding a Joined node, we correctly redirect the
                 // operand looking for it to the children
-                if (auto orphan_node = process_orphaned_negate_node(node_id))
+                if (auto orphan_node_id = process_orphaned_negate_node(node_id))
                 {
+                    auto orphan_node = std::get_if<orangeinp::Negated>(
+                        &tree_[orphan_node_id]);
+                    if (!orphan_node)
+                    {
+                        CELER_ASSERT_UNREACHABLE();
+                    }
                     inserted_nodes_[node_id]
-                        = replace_node_id(std::move(orphan_node));
+                        = replace_node_id(orphan_node->node);
                     return false;
                 }
                 // this node is a Negated{Join} node, we have already
