@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <optional>
-
 #include "corecel/Types.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
@@ -140,7 +138,8 @@ struct GeantPhysicsOptions
     bool verbose{false};
 
     //! Optical physics options
-    std::optional<GeantOpticalPhysicsOptions> optical_options{std::nullopt};
+    GeantOpticalPhysicsOptions optical_options{
+        GeantOpticalPhysicsOptions::deactivated()};
 };
 
 //! Equality operator, mainly for test harness

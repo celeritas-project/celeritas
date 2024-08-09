@@ -37,8 +37,8 @@ CelerEmPhysicsList::CelerEmPhysicsList(Options const& options)
     // Celeritas-supported Optical Physics
     if (options.optical_options)
     {
-        auto optical_physics = std::make_unique<CelerOpticalPhysics>(
-            options.optical_options.value());
+        auto optical_physics
+            = std::make_unique<CelerOpticalPhysics>(options.optical_options);
         RegisterPhysics(optical_physics.release());
     }
 }

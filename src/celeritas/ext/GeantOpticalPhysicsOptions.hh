@@ -90,6 +90,31 @@ struct GeantOpticalPhysicsOptions
 
     //! Print detailed Geant4 output
     bool verbose{false};
+
+    //! True if any process is activated
+    explicit operator bool() const
+    {
+        return cerenkov_radiation || scintillation
+               || (wavelength_shifting != WLSTimeProfileSelection::none)
+               || (wavelength_shifting2 != WLSTimeProfileSelection::none)
+               || boundary || absorption || rayleigh_scattering
+               || mie_scattering;
+    }
+
+    //! Return instance with all processes deactivated
+    static GeantOpticalPhysicsOptions deactivated()
+    {
+        GeantOpticalPhysicsOptions opts;
+        opts.cerenkov_radiation = false;
+        opts.scintillation = false;
+        opts.wavelength_shifting = WLSTimeProfileSelection::none;
+        opts.wavelength_shifting2 = WLSTimeProfileSelection::none;
+        opts.boundary = false;
+        opts.absorption = false;
+        opts.rayleigh_scattering = false;
+        opts.mie_scattering = false;
+        return opts;
+    }
 };
 
 //! Equality operator, mainly for test harness

@@ -87,24 +87,6 @@ void to_json(nlohmann::json& j, NuclearFormFactorType const& value)
     j = std::string{to_cstring(value)};
 }
 
-void from_json(nlohmann::json const& j,
-               std::optional<GeantOpticalPhysicsOptions>& v)
-{
-    if (j.is_null())
-        v = std::nullopt;
-    else
-        v = j.get<GeantOpticalPhysicsOptions>();
-}
-
-void to_json(nlohmann::json& j,
-             std::optional<GeantOpticalPhysicsOptions> const& v)
-{
-    if (v.has_value())
-        j = *v;
-    else
-        j = nullptr;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Read options from JSON.

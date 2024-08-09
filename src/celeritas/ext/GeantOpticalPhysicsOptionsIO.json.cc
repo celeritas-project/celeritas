@@ -39,6 +39,13 @@ void to_json(nlohmann::json& j, WLSTimeProfileSelection const& value)
  */
 void from_json(nlohmann::json const& j, GeantOpticalPhysicsOptions& options)
 {
+    if (j.is_null())
+    {
+        // Null json means deactivated options
+        options = GeantOpticalPhysicsOptions::deactivated();
+        return;
+    }
+
 #define GOPO_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, options, NAME)
     check_format(j, format_str);
     GOPO_LOAD_OPTION(cerenkov_radiation);
@@ -73,6 +80,13 @@ void from_json(nlohmann::json const& j, GeantOpticalPhysicsOptions& options)
  */
 void to_json(nlohmann::json& j, GeantOpticalPhysicsOptions const& inp)
 {
+    if (!inp)
+    {
+        // Special case for all processes being inactivated
+        j = nullptr;
+        return;
+    }
+
     j = {
         CELER_JSON_PAIR(inp, cerenkov_radiation),
         CELER_JSON_PAIR(inp, scintillation),
