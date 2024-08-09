@@ -31,10 +31,6 @@ enum class WLSTimeProfileSelection
 struct GeantOpticalPhysicsOptions
 {
     //!@{
-    //! \name Optical photon physics
-    //!@}
-
-    //!@{
     //! \name Optical photon creation physics
     //! Enable Cerenkov radiation
     bool cerenkov_radiation{true};
