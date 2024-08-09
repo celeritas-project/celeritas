@@ -888,6 +888,23 @@ TEST_F(InputBuilderTest, involute)
     }
 }
 
+TEST_F(InputBuilderTest, involute_fuel)
+{
+    {
+        SCOPED_TRACE("involute");
+        auto result = this->track({1.45, 0.85, 0}, {0, 1, 0});
+        static char const* const expected_volumes[]
+            = {"rest", "cladding" ,"rest", "shell"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] 
+            = {0.531630657850489, 0.660884355302089, 
+               2.21189389295726, 1.13321161570553};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+
+   
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

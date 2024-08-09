@@ -1218,7 +1218,7 @@ TEST_F(InvoluteTest, single)
         auto result
             = this->test("invo",
                          Involute({1.0,2.0,4.0},{0, 0.15667*constants::pi}, 
-                         ccw, 1.0));
+                         cw, 1.0));
 
         static char const expected_node[] = "all(-0, +1, +2, -3, -4, +5)";
 
@@ -1228,8 +1228,8 @@ TEST_F(InvoluteTest, single)
     }
 
     static char const* const expected_surfaces[] = {
-        "Involute: r, a, sign, tmin, tmax =1 0 0 1.7321 4.3652 at {0,0}",
-        "Involute: r, a, sign, tmin, tmax =1 0.49219 0 1.7321 4.3652 at {0,0}",
+        "Involute: r, a, sign, tmin, tmax =1 3.1416 1 1.7321 4.3652 at {0,0}",
+        "Involute: r, a, sign, tmin, tmax =1 2.6494 1 1.7321 4.3652 at {0,0}",
         "Plane: z=-1",
         "Plane: z=1",
         "Cyl z: r=4",

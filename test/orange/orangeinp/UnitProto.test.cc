@@ -795,6 +795,52 @@ TEST_F(InputBuilderTest, involute)
     this->run_test(*involute);
 }
 
+/*!
+ * Fuel Blade
+ */
+TEST_F(InputBuilderTest, involute_fuel)
+{
+    auto involute = std::make_shared<UnitProto>([] {
+        auto invo1 = make_inv("blade",{1.0,1.5,2},{0, 0.1*constants::pi},
+                                      cw, 1.0);
+        auto invo2 = make_inv("fuel",{1.0,1.7,1.8},
+                                      {0.03*constants::pi, 0.07*constants::pi},
+                                      cw, 1.0);
+        auto cyl = make_cyl("bound", 2.5, 1.0);
+        auto system = make_cyl("system", 2.0, 1.0);
+        auto inner = make_cyl("center", 1.5, 1.0);
+        UnitProto::Input inp;
+        inp.boundary.interior = cyl;
+        inp.boundary.zorder = ZOrder::media;
+        inp.label = "involute";
+
+        inp.materials.push_back(make_material(SPConstObject{inner}, 1));
+        inp.materials.push_back(make_material(SPConstObject{invo2}, 2));
+        inp.materials.push_back(make_material(
+            make_rdv("cladding",
+                     {{Sense::inside, invo1},
+                      {Sense::outside, invo2}
+                    }),
+            3));;
+        inp.materials.push_back(make_material(
+            make_rdv("rest",
+                     {{Sense::inside, system},
+                      {Sense::outside, inner},
+                      {Sense::outside, invo1}
+                    }),
+            4));
+        inp.materials.push_back(make_material(
+            make_rdv("shell",
+                     {{Sense::inside, inp.boundary.interior},
+                      {Sense::outside, system}}),
+            5));
+
+        return inp;
+    }());
+
+    this->run_test(*involute);
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace orangeinp
