@@ -6,53 +6,85 @@
 Convert an ORANGE CSG JSON representation to a GraphViz input.
 """
 from itertools import count, repeat
+from contextlib import contextmanager
 import json
+import sys
 
 class DotGenerator:
     def __init__(self, f):
         self.f = f
         self.write = f.write
-        self.write("""\
-strict digraph  {
-rankdir=TB;
-""")
+        self.vol_edges = []
 
     def __enter__(self):
+        self.write("""\
+strict digraph {
+rankdir=TB
+node [shape=box]
+""")
         return self
 
     def __exit__(self, type, value, traceback):
-        self.write("}\n")
+        self.write("""\
+subgraph volume_edges {
+edge [color=gray, dir=both]
+""")
+        for i in self.vol_edges:
+            self.write(f"volume{i:02d} -> {i:02d}\n")
+        self.write("}\n}\n")
 
     def write_node(self, i, value):
-        self.write(f"{i:02d} [label=\"{value}\"];\n")
+        self.write(f"{i:02d} [label=\"{value}\"]\n")
+
+    @contextmanager
+    def write_volumes(self):
+        self.write("""\
+subgraph volumes {
+rank = same
+cluster=true
+label = \"Volumes\"
+node [style=rounded, shape=box]
+""")
+        yield self.write_volume
+        self.write("}\n")
+
 
     def write_volume(self, i, value):
-        self.write(f"volume{i:02d} [label=\"{value}\", shape=box];\n")
-        self.write(f"volume{i:02d} -> {i:02d} [color=gray, dir=both];\n")
+        self.write(f"volume{i:02d} [label=\"{value}\"]\n")
+        self.vol_edges.append(i)
 
     def write_edge(self, i, e):
         self.write(f"{i:02d} -> {e:02d};\n")
-
 
 
 class MermaidGenerator:
     def __init__(self, f):
         self.f = f
         self.write = f.write
-        self.write("flowchart TB\n")
+        self.vol_edges = []
 
     def __enter__(self):
+        self.write("flowchart TB\n")
         return self
 
     def __exit__(self, type, value, traceback):
-        self.write("")
+        for i in self.vol_edges:
+            self.write(f"  v{i:02d} <--> n{i:02d}\n")
 
     def write_node(self, i, value):
         self.write(f"  n{i:02d}[\"{value}\"]\n")
 
+    @contextmanager
+    def write_volumes(self):
+        self.write("""\
+subgraph Volumes
+""")
+        yield self.write_volume
+        self.write("end\n")
+
     def write_volume(self, i, value):
         self.write(f"  v{i:02d}([\"{value}\"])\n")
-        self.write(f"  v{i:02d} <--> n{i:02d}\n")
+        self.vol_edges.append(i)
 
     def write_edge(self, i, e):
         self.write(f"  n{i:02d} --> n{e:02d}\n")
@@ -88,8 +120,12 @@ def write_tree(gen, csg_unit):
             gen.write_edge(i, value)
 
 def write_volumes(gen, volumes):
-    for v in volumes:
-        gen.write_volume(v["csg_node"], v["label"])
+    if not volumes:
+        return
+
+    with gen.write_volumes() as write_volume:
+        for v in volumes:
+            write_volume(v["csg_node"], v["label"])
 
 def run(infile, outfile, gencls, universe):
     tree = json.load(infile)
@@ -97,6 +133,13 @@ def run(infile, outfile, gencls, universe):
         # Load from a .csg.json debug file
         csg_unit = tree[universe]
     else:
+        if isinstance(tree, list):
+            num_univ = len(tree)
+            print("Input tree is a CSG listing: please rerun with -u N "
+                  f"where 0 ≤ N < {num_univ}",
+                  file=sys.stderr)
+            sys.exit(1)
+
         csg_unit = {
             "tree": tree,
             "metadata": None,
@@ -110,7 +153,6 @@ def run(infile, outfile, gencls, universe):
 
 def main():
     import argparse
-    import sys
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -147,6 +189,7 @@ def main():
             valid = ",".join(gencls_dict)
             print(f"invalid type {args.type}: valid types are {valid}",
                   file=sys.stderr)
+            sys.exit(1)
 
 
     if not args.output:
