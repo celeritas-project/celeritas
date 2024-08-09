@@ -892,7 +892,7 @@ TEST_F(InputBuilderTest, involute_fuel)
 {
     {
         SCOPED_TRACE("involute");
-        auto result = this->track({1.45, 0.85, 0}, {0, 1, 0});
+        auto result = this->track({1.5, -0.85, 0}, {0, 1, 0});
         static char const* const expected_volumes[]
             = {"rest", "cladding" ,"rest", "shell"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
