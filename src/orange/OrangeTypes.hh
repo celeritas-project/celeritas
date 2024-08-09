@@ -75,6 +75,9 @@ using RectArrayId = OpaqueId<struct RectArrayRecord>;
 //! Identifier for a translation of a single embedded universe
 using TransformId = OpaqueId<struct TransformRecord>;
 
+//! Identifier for a Real3
+using Real3Id = OpaqueId<Real3>;
+
 //! Identifier for a relocatable set of volumes
 using UniverseId = OpaqueId<struct Universe_>;
 

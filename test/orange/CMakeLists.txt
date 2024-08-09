@@ -63,6 +63,9 @@ celeritas_add_test(detail/BIHBuilder.test.cc)
 celeritas_add_test(detail/BIHTraverser.test.cc)
 celeritas_add_test(detail/BIHUtils.test.cc)
 
+# Oriented Bounding Zone
+celeritas_add_test(detail/OrientedBoundingZone.test.cc)
+
 #-----------------------------------------------------------------------------#
 # Input construction
 celeritas_add_test(orangeinp/CsgObject.test.cc)

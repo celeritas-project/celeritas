@@ -23,6 +23,7 @@ list(APPEND SOURCES
   detail/BIHPartitioner.cc
   detail/DepthCalculator.cc
   detail/OrangeInputIOImpl.json.cc
+  detail/OrientedBoundingZone.cc
   detail/RectArrayInserter.cc
   detail/SurfacesRecordBuilder.cc
   detail/UnitInserter.cc
