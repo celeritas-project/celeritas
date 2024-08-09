@@ -118,10 +118,11 @@ radii_(radii), a_(displacement), tmin_(), tmax_(), sign_(sign), hh_{halfheight}
     CELER_VALIDATE(hh_ > 0, << "nonpositive half-height: " << hh_); 
 
     CELER_VALIDATE(tmin_ > 0, << "nonpositive inner radius: " << tmin_); 
-    CELER_VALIDATE(tmax_ > 0, << "nonpositive outer radius: " << tmax_); 
-    CELER_VALIDATE(tmax_ > 2*constants::pi - (a_[1]-a_[0]) - tmin_,
+    CELER_VALIDATE(tmax_ > tmin_, << "outer radius smaller than inner radius: " 
+                                  << tmax_); 
+    CELER_VALIDATE(tmax_ < tmin_ + 2 * constants::pi - (a_[1]-a_[0]),
                    << "radial bounds result in angular overlaped: " 
-                   << (2*constants::pi - (a_[1]-a_[0]) - tmin_) - tmax_);
+                   << tmin_ + 2 * constants::pi - (a_[1]-a_[0]) - tmax_);
 }
 
 //---------------------------------------------------------------------------//
@@ -136,7 +137,8 @@ void Involute::build(IntersectSurfaceBuilder& insert_surface) const
                                                       tmax_+a_[1]-a_[0]});
     insert_surface(Sense::outside, celeritas::Involute{{0,0}, radii_[0], 
                                                   eumod(a_[1], 2*constants::pi),
-                                                       sign_, tmin_, tmax_});
+                                                       sign_, tmin_, 
+                                                       tmax_+a_[1]-a_[0]});
     insert_surface(Sense::outside, PlaneZ{-hh_});
     insert_surface(Sense::inside, PlaneZ{hh_});
     insert_surface(Sense::inside, CCylZ{radii_[2]});

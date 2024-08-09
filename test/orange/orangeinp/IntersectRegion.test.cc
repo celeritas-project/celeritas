@@ -1228,7 +1228,7 @@ TEST_F(InvoluteTest, single)
 
     static char const* const expected_surfaces[] = {
         "Involute: r, a, sign, tmin, tmax =1 0 0 1.7321 7.0146 at {0,0}",
-        "Involute: r, a, sign, tmin, tmax =1 3.1416 0 1.7321 3.873 at {0,0}",
+        "Involute: r, a, sign, tmin, tmax =1 3.1416 0 1.7321 7.0146 at {0,0}",
         "Plane: z=-1",
         "Plane: z=1",
         "Cyl z: r=4",
@@ -1276,7 +1276,7 @@ TEST_F(InvoluteTest, two)
                          Involute({1.0,2.0,4.0},
                          {constants::pi, 2*constants::pi}, ccw, 1.0));
 
-        static char const expected_node[] = "all(+2, -3, -4, +5, -6, +7)";
+        static char const expected_node[] = "all(+0, +2, -3, -4, +5, -1)";
 
         EXPECT_EQ(expected_node, result.node);
         EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
@@ -1285,13 +1285,11 @@ TEST_F(InvoluteTest, two)
 
     static char const* const expected_surfaces[] = {
         "Involute: r, a, sign, tmin, tmax =1 0 0 1.7321 7.0146 at {0,0}",
-        "Involute: r, a, sign, tmin, tmax =1 3.1416 0 1.7321 3.873 at {0,0}",
+        "Involute: r, a, sign, tmin, tmax =1 3.1416 0 1.7321 7.0146 at {0,0}",
         "Plane: z=-1",
         "Plane: z=1",
         "Cyl z: r=4",
         "Cyl z: r=2",
-        "Involute: r, a, sign, tmin, tmax =1 3.1416 0 1.7321 7.0146 at {0,0}",
-        "Involute: r, a, sign, tmin, tmax =1 0 0 1.7321 3.873 at {0,0}"
     };
     EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
 
@@ -1299,20 +1297,18 @@ TEST_F(InvoluteTest, two)
     static char const* const expected_node_strings[] = {
         "",
         "",
-        "top@inv",
+        "bottom@inv,top@inv",
         "",
-        "top@inv",
+        "bottom@inv,top@inv",
         "bottom@mz,top@mz",
         "bottom@pz,top@pz",
         "",
         "bottom@cz,top@cz",
         "",
         "bottom@cz,top@cz",
-        "",
-        "bottom@inv",
-        "",
-        "bottom@inv",
-        "",
+        "", 
+        "", 
+        ""
     };
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
 }
