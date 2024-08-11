@@ -64,6 +64,7 @@ jobs:
     needs: build-site
     permissions:
       contents: read
+      deployments: write
       pages: write
       id-token: write
     environment:

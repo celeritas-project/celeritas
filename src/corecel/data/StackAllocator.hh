@@ -215,9 +215,11 @@ CELER_FUNCTION auto StackAllocator<T>::operator()(size_type count)
             data_.size[this->size_id()] = start;
         }
 
-        // TODO It might be useful to set an "out of memory" flag to make it
-        // easier for host code to detect whether a failure occurred, rather
-        // than looping through primaries and testing for failure.
+        /*!
+         * \todo It might be useful to set an "out of memory" flag to make it
+         * easier for host code to detect whether a failure occurred, rather
+         * than looping through primaries and testing for failure.
+         */
 
         // Return null pointer, indicating failure to allocate.
         return nullptr;
@@ -228,8 +230,6 @@ CELER_FUNCTION auto StackAllocator<T>::operator()(size_type count)
     for (size_type i = 1; i < count; ++i)
     {
         // Initialize remaining values
-        // XXX see #639: something is causing \c start to change unexpectedly,
-        // which leads to values being initialized at the wrong memory location
         CELER_ASSERT(&data_.storage[StorageId{start + i}] == result + i);
         new (&data_.storage[StorageId{start + i}]) value_type;
     }

@@ -122,7 +122,7 @@ class CelerParamCommand final : public CelerCommand
     {
         auto converted = CmdTraits::from_string(value_str);
 
-        // TODO: validation for non-matching types, i.e. int to unsigned
+        //! \todo Add validation for non-matching types, i.e. int to unsigned
         *this->dest_ = static_cast<T>(converted);
     }
 

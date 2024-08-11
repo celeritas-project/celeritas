@@ -144,7 +144,7 @@ CELER_FUNCTION real_type
 SBPositronXsCorrector::calc_invbeta(real_type gamma_energy) const
 {
     CELER_EXPECT(gamma_energy > 0 && gamma_energy < inc_energy_);
-    // TODO: use local data ParticleTrackView
+    //! \todo Use local-data ParticleTrackView
     // Positron has all the energy except what it gave to the gamma
     real_type energy = inc_energy_ - gamma_energy;
     return (energy + positron_mass_)

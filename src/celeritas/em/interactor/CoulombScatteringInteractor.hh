@@ -96,6 +96,9 @@ class CoulombScatteringInteractor
 //---------------------------------------------------------------------------//
 /*!
  * Construct from shared and state data.
+ *
+ * \todo Use the proton production cutoff when the recoiled nucleus production
+ * is supported.
  */
 CELER_FUNCTION
 CoulombScatteringInteractor::CoulombScatteringInteractor(
@@ -115,8 +118,6 @@ CoulombScatteringInteractor::CoulombScatteringInteractor(
               target.atomic_number(),
               wentzel,
               shared.ids,
-              // TODO: Use the proton production cutoff when the recoiled
-              // nucleus production is supported
               cutoffs.energy(shared.ids.electron))
     , sample_angle_(wentzel,
                     helper_,
@@ -152,7 +153,7 @@ CELER_FUNCTION Interaction CoulombScatteringInteractor::operator()(Engine& rng)
     CELER_EXPECT(0 <= recoil_energy && recoil_energy <= inc_energy);
     result.energy = Energy{inc_energy - recoil_energy};
 
-    // TODO: For high enough recoil energies, ions are produced
+    //! \todo For high enough recoil energies, ions are produced
 
     result.energy_deposition = Energy{recoil_energy};
 

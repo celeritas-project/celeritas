@@ -76,8 +76,9 @@ void ExtendFromSecondariesAction::execute_impl(CoreParams const& core_params,
     counters.num_secondaries = detail::exclusive_scan_counts(
         init.secondary_counts, core_state.stream_id());
 
-    // TODO: if we don't have space for all the secondaries, we will need to
-    // buffer the current track initializers to create room
+    /*! \todo If we don't have space for all the secondaries, we will need to
+     * buffer the current track initializers to create room.
+     */
     counters.num_initializers += counters.num_secondaries;
     CELER_VALIDATE(counters.num_initializers <= init.initializers.size(),
                    << "insufficient capacity (" << init.initializers.size()
@@ -112,7 +113,7 @@ void ExtendFromSecondariesAction::locate_alive(CoreParams const& core_params,
 void ExtendFromSecondariesAction::process_secondaries(
     CoreParams const& core_params, CoreStateHost& core_state) const
 {
-    // TODO: wrap with a regular track executor but without remapping slots?
+    //! \todo Wrap with a regular track executor but without remapping slots?
     detail::ProcessSecondariesExecutor execute{
         core_params.ptr<MemSpace::native>(),
         core_state.ptr(),

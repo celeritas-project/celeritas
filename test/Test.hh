@@ -16,12 +16,12 @@
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
+
 /*!
- * \namespace test
- *
  * This sub-namespace should enclose all Celeritas unit tests and test harness
- * code. By being a sub-namspace, no \c using declarations are needed to access
+ * code.
+ *
+ * By being a sub-namspace, no \c using declarations are needed to access
  * Celeritas functionality, and no symbol conflicts with main Celeritas code
  * will accidentally occur.
  */

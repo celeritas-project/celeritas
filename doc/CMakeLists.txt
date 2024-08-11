@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
+celeritas_version_to_hex(_doxy_version_hex DOXYGEN_VERSION)
+
 #-----------------------------------------------------------------------------#
 # DEVELOPER MANUAL (Doxygen)
 #-----------------------------------------------------------------------------#
@@ -50,20 +52,19 @@ else()
   set(_DOXYGEN_TEST_SOURCE)
 endif()
 
-celeritas_version_to_hex(_doxy_version_hex DOXYGEN_VERSION)
-
 # Documentation usage
-set(DOXYGEN_FULL_PATH_NAMES NO)
-set(DOXYGEN_MACRO_EXPANSION YES)
-set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
-set(DOXYGEN_QT_AUTOBRIEF YES)
 set(DOXYGEN_DISTRIBUTE_GROUP_DOC YES)
-set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${PROJECT_SOURCE_DIR}/README.md")
-set(DOXYGEN_FORMULA_MACROFILE "${CMAKE_CURRENT_SOURCE_DIR}/_static/macros.tex")
-set(DOXYGEN_IMAGE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/_static")
+set(DOXYGEN_ENABLED_SECTIONS "CELERITAS_DOC_DEV")
 set(DOXYGEN_EXTRA_PACKAGES "amsmath")
+set(DOXYGEN_FORMULA_MACROFILE "${CMAKE_CURRENT_SOURCE_DIR}/_static/macros.tex")
+set(DOXYGEN_FULL_PATH_NAMES NO)
+set(DOXYGEN_IMAGE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/_static")
+set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
+set(DOXYGEN_MACRO_EXPANSION YES)
 set(DOXYGEN_PREDEFINED "__DOXYGEN__=${_doxy_version_hex}")
+set(DOXYGEN_QT_AUTOBRIEF YES)
 set(DOXYGEN_USE_MATHJAX YES)
+set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${PROJECT_SOURCE_DIR}/README.md")
 
 # Verbosity/warning levels
 celeritas_set_default(DOXYGEN_QUIET YES)
@@ -79,9 +80,12 @@ set(DOXYGEN_HTML_OUTPUT "doxygen-html")
 set(DOXYGEN_CREATE_SUBDIRS YES)
 set(DOXYGEN_REFERENCES_LINK_SOURCE YES)
 
-celeritas_set_default(DOXYGEN_VERBATIM_HEADERS NO)
+celeritas_set_default(DOXYGEN_COLLABORATION_GRAPH NO)
+celeritas_set_default(DOXYGEN_DOT_GRAPH_MAX_NODES 32)
+celeritas_set_default(DOXYGEN_GRAPHICAL_HIERARCHY NO)
+celeritas_set_default(DOXYGEN_INCLUDE_GRAPH NO)
 celeritas_set_default(DOXYGEN_MAX_DOT_GRAPH_DEPTH 2)
-celeritas_set_default(DOXYGEN_DOT_GRAPH_MAX_NODES 50)
+celeritas_set_default(DOXYGEN_VERBATIM_HEADERS NO)
 
 doxygen_add_docs(doxygen
   "${PROJECT_SOURCE_DIR}/src"
@@ -181,11 +185,12 @@ else()
 endif()
 configure_file("config.json.in" "config.json" @ONLY)
 
+set(DOXYGEN_ENABLED_SECTIONS "CELERITAS_DOC_DEV")
 set(DOXYGEN_GENERATE_HTML NO)
 set(DOXYGEN_GENERATE_XML YES)
-set(DOXYGEN_XML_PROGRAMLISTING NO)
-set(DOXYGEN_INCLUDE_GRAPH NO)
 set(DOXYGEN_INCLUDED_BY_GRAPH NO)
+set(DOXYGEN_INCLUDE_GRAPH NO)
+set(DOXYGEN_XML_PROGRAMLISTING NO)
 
 # Annotations break breathe parsing
 foreach(_var
@@ -193,6 +198,7 @@ foreach(_var
   [[maybe_unused]] CFIF_)
   list(APPEND DOXYGEN_PREDEFINED "${_var}=")
 endforeach()
+
 # Only process top two levels (mostly no detail, generated)
 file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/*/*.hh"

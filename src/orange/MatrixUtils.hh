@@ -18,16 +18,15 @@
 
 namespace celeritas
 {
+//! Policy tags for matrix operations
 namespace matrix
 {
 //---------------------------------------------------------------------------//
-//!@{
-//! Policy tags
 struct TransposePolicy
 {
 };
+//! Indicate that the input matrix is transposed
 inline constexpr TransposePolicy transpose{};
-//!@}
 }  // namespace matrix
 
 //---------------------------------------------------------------------------//
