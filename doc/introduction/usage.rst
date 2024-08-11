@@ -17,7 +17,7 @@ Software library
 ================
 
 The most stable part of Celeritas is, at the present time, the high-level
-program interface to the :ref:`accel` code library. However, many other
+:ref:`api_g4_interface`. However, many other
 components of the API are stable and documented in the :code:`api` section.
 
 CMake integration

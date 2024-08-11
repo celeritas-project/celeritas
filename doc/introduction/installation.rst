@@ -88,6 +88,9 @@ will error out in the configure if their required
 dependencies are missing, but they will update the CMake cache variable so that
 the next configure will succeed (with that component disabled).
 
+
+.. _configuration:
+
 Configuration options
 ---------------------
 

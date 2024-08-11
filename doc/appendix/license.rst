@@ -56,4 +56,3 @@ with portions distributed under the following license::
    limitations under the License.
 
 .. _AdePT: https://github.com/apt-sim/AdePT
-.. _VecGeomG4Solid: https://gitlab.cern.ch/VecGeom/g4vecgeomnav/-/raw/ce4a0bb2f777a6728e59dee96c764fd61fa8b785/include/VecGeomG4Solid.h

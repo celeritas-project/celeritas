@@ -2,15 +2,16 @@
 .. See the doc/COPYRIGHT file for details.
 .. SPDX-License-Identifier: CC-BY-4.0
 
-.. _accel:
+.. _api_g4_interface:
 
-Acceleritas
-===========
+Geant4 interface
+================
 
 The ``accel`` directory contains components exclusive to coupling Celeritas
 with Geant4 for user-oriented integration. A simple interface for multithreaded
 or serial applications is demonstrated in :ref:`example_geant`, and the more
 advanced implementation can be inspected in the :ref:`celer-g4` app.
+
 
 .. _api_accel_high_level:
 
@@ -85,4 +86,35 @@ written to be usable both by the ``celer-g4`` app and potential other users.
 .. doxygenclass:: celeritas::HepMC3PrimaryGenerator
 
 .. doxygenclass:: celeritas::RZMapMagneticField
+
+
+Low-level Celeritas integration
+-------------------------------
+
+This subsection contains details of importing Geant4 data into Celeritas.
+
+Geant4 geometry utilities
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doxygenfunction:: celeritas::load_geant_geometry
+.. doxygenfunction:: celeritas::find_geant_volumes
+
+.. doxygenclass:: celeritas::g4vg::Converter
+
+Geant4 physics interfaces
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doxygenclass:: celeritas::GeantImporter
+
+.. doxygenclass:: celeritas::GeantSetup
+
+
+.. _api_geant4_physics_options:
+
+Geant4 physics options
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. doxygenstruct:: celeritas::GeantPhysicsOptions
+   :members:
+
 
