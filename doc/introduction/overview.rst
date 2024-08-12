@@ -4,15 +4,38 @@
 
 .. _overview:
 
-********
 Overview
 ********
 
 This section summarizes key usage patterns and implementation details from
 Celeritas, especially those that differ from Geant4.
 
+GPU usage
+=========
+
+Celeritas automatically copies data to device when constructing objects as long
+as the GPU is enabled. See :ref:`api_system` for details on initializing and
+accessing the device.
+
+Geometry
+========
+
+Celeritas has two choices of geometry implementation. VecGeom_ is a
+CUDA-compatible library for navigation on Geant4 detector geometries.
+:ref:`api_orange` is a work in progress for surface-based geometry navigation
+that is "platform portable", i.e. able to run on GPUs from multiple vendors.
+
+Celeritas wraps both geometry packages with a uniform interface for changing
+and querying the geometry state.
+
+.. _VecGeom: https://gitlab.cern.ch/VecGeom/VecGeom
+
+Physics
+=======
+
+
 Units
-=====
+-----
 
 The Celeritas default unit system is Gaussian CGS_, but it can be
 :ref:`configured <configuration>` to use SI or CLHEP unit systems as well. A
@@ -23,7 +46,7 @@ and atomic-scale values such as MeV. For more details, see the
 .. _CGS: https://en.wikipedia.org/wiki/Gaussian_units
 
 EM Physics
-==========
+----------
 
 Celeritas implements physics processes and models for transporting electron,
 positron, and gamma particles as shown in the accompanying table. Initial
@@ -152,7 +175,7 @@ The implemented physics models are meant to match the defaults constructed in
   Celeritas.
 
 Coulomb scattering
-------------------
+^^^^^^^^^^^^^^^^^^
 
 Elastic scattering of charged particles can be simulated in three ways:
 
@@ -176,78 +199,29 @@ simulation algorithm. It is the default model in Geant4 above 100 MeV and
 currently under development in Celeritas.
 
 Optical Physics
-===============
+---------------
 
-TODO:
-
-- Describe integration into the main stepping loop
-- Add mermaid plot of optical stepping loop
-- Describe pre-generation, generation
-- Add optical models
-
-Geometry
-========
-
-Celeritas has two choices of geometry implementation. VecGeom_ is a
-CUDA-compatible library for navigation on Geant4 detector geometries.
-:ref:`api_orange` is a work in progress for surface-based geometry navigation
-that is "platform portable", i.e. able to run on GPUs from multiple vendors.
-
-Celeritas wraps both geometry packages with a uniform interface for changing
-and querying the geometry state.
-
-.. _VecGeom: https://gitlab.cern.ch/VecGeom/VecGeom
+Optical physics are being added to Celeritas to support various high energy
+physics and nuclear physics experiments including LZ, Calvision, DUNE, and
+ePIC. See the :ref:`api_optical_physics` section of the implementation details.
 
 Stepping loop
 =============
 
-The core algorithm in Celeritas is to perform a *loop interchange*
-:cite:`allen_automatic_1984` between particle tracks and steps. The classical
-(serial) way of simulating an event is to have an outer loop over tracks and an
-inner loop over steps, and inside each step are the various actions applied to
-a track such as evaluating cross sections, calculating the distance to the
-nearest geometry boundary, and undergoing an interaction to produce
-secondaries. In Python pseudocode this looks like:
+In Celeritas, the core algorithm is a loop interchange between particle
+tracks and steps. Traditionally,
+in a CPU-based simulation, the outer loop iterates over particle tracks, while
+the inner loop handles steps. Each step includes actions such as evaluating cross sections,
+calculating distances to geometry boundaries, and managing interactions that
+produce secondaries.
 
-.. code-block:: python
-
-   track_queue = primaries
-   while track_queue:
-      track = track_queue.pop()
-      while track.alive:
-         for apply_action in [pre, along, post]:
-            apply_action(track)
-         track_queue += track.secondaries
-
-There is effectively a data dependency between the track at step *i* and step
-*i + 1* that prevents vectorization. The approach Celeritas takes to
-"vectorize" the stepping loop on GPU is to have an outer loop over "step
-iterations" and an inner loop over "track slots", which are elements in a
-fixed-size vector of tracks that may be in flight:
-
-.. code-block:: python
-
-   initializers = primaries
-   track_slots = [None] * num_track_slots
-   while initializers or any(track_slots):
-      fill_track_slots(track_slots, initializers)
-      for apply_action in [pre, along, post]:
-         for (i, track) in enumerate(track_slots):
-            apply_action(track)
-            track_queue += track.secondaries
-      if not track.alive:
-         track_slots[i] = None
-
-
-The stepping loop in Celeritas is therefore a sorted loop over "actions", each
-of which is usually a kernel launch (or an inner loop over tracks if running on
-CPU).
+Celeritas vectorizes this process by reversing the loop structure on the GPU.
+The outer loop is over *step iterations*, and the inner loop processes *track
+slots*, which are elements in a fixed-size vector of active tracks. The
+stepping loop in Celeritas is thus a sorted loop over *actions*, with each
+action typically corresponding to a kernel launch on the GPU (or an inner loop
+over tracks when running on the CPU).
 
 See :ref:`api_stepping` for implementation details on the ordering of actions
 and the status of a track slot during iteration.
 
-GPU usage
-=========
-
-Celeritas automatically copies data to device when constructing objects as long
-as the GPU is enabled.

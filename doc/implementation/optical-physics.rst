@@ -8,11 +8,6 @@
 Optical physics
 ***************
 
-Text with a link to `Sphinx primer`_ and `RST`_ docs.
-
-.. _Sphinx primer : https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html
-.. _RST : https://docutils.sourceforge.io/docs/user/rst/quickref.html
-
 As with EM physics, the optical physics models in Celeritas are closely related
 to those in Geant4. Unlike Geant4, optical photon generation and stepping in
 Celeritas takes place in a drastically different manner.
@@ -113,35 +108,15 @@ In addition to the core :ref:`api_importdata`, these import parameters are used
 to provide cross sections, setup options, and other data to the optical physics.
 
 .. doxygenstruct:: celeritas::ImportOpticalAbsorption
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportOpticalMaterial
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportOpticalParameters
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportOpticalProperty
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportOpticalRayleigh
-   :members:
-   :undoc-members:
 
 .. doxygenstruct:: celeritas::ImportScintComponent
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportScintData
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportParticleScintSpectrum
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportMaterialScintSpectrum
-   :members:
-   :undoc-members:
 
 .. doxygenstruct:: celeritas::ImportWavelengthShift
-   :members:
-   :undoc-members:
 

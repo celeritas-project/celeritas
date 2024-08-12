@@ -141,12 +141,12 @@ configuration attributes.
 
    implementation/corecel.rst
    implementation/data-model.rst
+   implementation/orange.rst
    implementation/units-constants.rst
    implementation/core-physics.rst
    implementation/em-physics.rst
    implementation/optical-physics.rst
    implementation/geant4-interface.rst
-   implementation/orange.rst
 
 .. ***************************************************************************
 
