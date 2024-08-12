@@ -77,8 +77,8 @@ class CsgTree
     // Simplify a single node in-place [O(1)]
     Simplification simplify(NodeId);
 
-    //! Insert a new volume which root is the node id
-    void insert_volume(NodeId node) { volumes_.push_back(std::move(node)); }
+    // Insert a new volume which root is the node id
+    void insert_volume(NodeId);
 
     //! List of volumes defined in this tree
     std::vector<NodeId> const& volumes() const { return volumes_; }
@@ -121,6 +121,16 @@ std::ostream& operator<<(std::ostream& os, CsgTree const&);
 auto CsgTree::insert(LocalSurfaceId s) -> Insertion
 {
     return this->insert(orangeinp::Surface{s});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Insert a new volume which root is the node id.
+ */
+inline void CsgTree::insert_volume(NodeId node_id)
+{
+    CELER_EXPECT(node_id < nodes_.size());
+    volumes_.push_back(std::move(node_id));
 }
 
 //---------------------------------------------------------------------------//
