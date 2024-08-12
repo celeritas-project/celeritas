@@ -131,14 +131,28 @@ radii_(radii), a_(displacement), tmin_(), tmax_(), sign_(sign), hh_{halfheight}
  */
 void Involute::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    insert_surface(Sense::inside, celeritas::Involute{{0,0}, radii_[0], 
-                                                  eumod(a_[0], 2*constants::pi), 
-                                                      sign_, tmin_, 
-                                                      tmax_+a_[1]-a_[0]});
-    insert_surface(Sense::outside, celeritas::Involute{{0,0}, radii_[0], 
-                                                  eumod(a_[1], 2*constants::pi),
-                                                       sign_, tmin_, 
-                                                       tmax_+a_[1]-a_[0]});
+    if (sign_)
+    {
+        insert_surface(Sense::outside, celeritas::Involute{{0,0}, radii_[0], 
+                                                eumod(a_[0], 2*constants::pi), 
+                                                        sign_, tmin_, 
+                                                        tmax_+a_[1]-a_[0]});
+        insert_surface(Sense::inside, celeritas::Involute{{0,0}, radii_[0], 
+                                                eumod(a_[1], 2*constants::pi),
+                                                        sign_, tmin_, 
+                                                        tmax_+a_[1]-a_[0]});
+    } 
+    else
+    {
+        insert_surface(Sense::inside, celeritas::Involute{{0,0}, radii_[0], 
+                                                eumod(a_[0], 2*constants::pi), 
+                                                        sign_, tmin_, 
+                                                        tmax_+a_[1]-a_[0]});
+        insert_surface(Sense::outside, celeritas::Involute{{0,0}, radii_[0], 
+                                                eumod(a_[1], 2*constants::pi),
+                                                        sign_, tmin_, 
+                                                        tmax_+a_[1]-a_[0]});
+    }
     insert_surface(Sense::outside, PlaneZ{-hh_});
     insert_surface(Sense::inside, PlaneZ{hh_});
     insert_surface(Sense::inside, CCylZ{radii_[2]});

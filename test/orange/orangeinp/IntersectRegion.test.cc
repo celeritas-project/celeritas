@@ -1220,7 +1220,7 @@ TEST_F(InvoluteTest, single)
                          Involute({1.0,2.0,4.0},{0, 0.15667*constants::pi}, 
                          cw, 1.0));
 
-        static char const expected_node[] = "all(-0, +1, +2, -3, -4, +5)";
+        static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
 
         EXPECT_EQ(expected_node, result.node);
         EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
@@ -1242,8 +1242,8 @@ TEST_F(InvoluteTest, single)
         "",
         "",
         "invo@inv",
-        "",
         "invo@inv",
+        "",
         "invo@mz",
         "invo@pz",
         "",
@@ -1256,7 +1256,8 @@ TEST_F(InvoluteTest, single)
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
 }
 
-TEST_F(InvoluteTest, two)
+// Counterclockwise adjacent involutes
+TEST_F(InvoluteTest, two_ccw)
 {
     {
         // involute
@@ -1294,6 +1295,69 @@ TEST_F(InvoluteTest, two)
         "Cyl z: r=4",
         "Cyl z: r=2",
         "Involute: r, a, sign, tmin, tmax =1 0.98439 0 1.7321 4.3652 at {0,0}",
+    };
+    EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
+
+    auto node_strings = md_strings(this->unit());
+    static char const* const expected_node_strings[] = {
+        "", 
+        "", 
+        "top@inv", 
+        "", 
+        "bottom@inv,top@inv", 
+        "bottom@mz,top@mz", 
+        "bottom@pz,top@pz", 
+        "", 
+        "bottom@cz,top@cz", 
+        "", 
+        "bottom@cz,top@cz", 
+        "", 
+        "", 
+        "bottom@inv", 
+        ""
+    };
+    EXPECT_VEC_EQ(expected_node_strings, node_strings);
+}
+
+// Clockwise varient of previous
+TEST_F(InvoluteTest, two_cw)
+{
+    {
+        // involute
+        auto result
+            = this->test("top",
+                         Involute({1.0,2.0,4.0},{0, 0.15667*constants::pi}, 
+                         cw, 1.0));
+
+        static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+
+        EXPECT_EQ(expected_node, result.node);
+        EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{4, 4, 1}), result.exterior.upper());
+    }
+    {
+        // bottom
+        auto result
+            = this->test("bottom",
+                         Involute({1.0,2.0,4.0},
+                         {0.15667*constants::pi, 0.31334*constants::pi}, 
+                         cw, 1.0));
+
+        static char const expected_node[] = "all(+2, -3, -4, +5, +1, -6)";
+
+        EXPECT_EQ(expected_node, result.node);
+        EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{4, 4, 1}), result.exterior.upper());
+    }
+
+    static char const* const expected_surfaces[] = {
+        "Involute: r, a, sign, tmin, tmax =1 3.1416 1 1.7321 4.3652 at {0,0}",
+        "Involute: r, a, sign, tmin, tmax =1 2.6494 1 1.7321 4.3652 at {0,0}",
+        "Plane: z=-1",
+        "Plane: z=1",
+        "Cyl z: r=4",
+        "Cyl z: r=2",
+        "Involute: r, a, sign, tmin, tmax =1 2.1572 1 1.7321 4.3652 at {0,0}",
     };
     EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
 
