@@ -78,7 +78,7 @@ class CsgTree
     Simplification simplify(NodeId);
 
     // Insert a new volume which root is the node id
-    void insert_volume(NodeId);
+    inline void insert_volume(NodeId);
 
     //! List of volumes defined in this tree
     std::vector<NodeId> const& volumes() const { return volumes_; }
