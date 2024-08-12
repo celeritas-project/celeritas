@@ -894,11 +894,14 @@ TEST_F(InputBuilderTest, involute_cw)
         SCOPED_TRACE("involute");
         auto result = this->track({-2, -1.5, 0}, {1, 0, 0});
         static char const* const expected_volumes[]
-            = {"rest", "center" ,"rest", "shell"};
+            = {"rest", "center", "rest", "blade", "rest", "shell"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] 
-            = {0.531630657850489, 0.660884355302089, 
-               2.21189389295726, 1.13321161570553};
+        static real_type const expected_distances[] = {0.6771243444677,
+                                                       2.6457513110646,
+                                                       0.17135844958615,
+                                                       0.50955324797963,
+                                                       1.7043118904498,
+                                                       1.0615967635369};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
 
