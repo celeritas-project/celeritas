@@ -329,11 +329,7 @@ inline bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                 // this Negated{Join} node doesn't have any other
                 // parents, so we don't need to insert its original
                 // version
-                if (process_orphaned_join_node(node_id))
-                {
-                    return false;
-                }
-                return true;
+                return !static_cast<bool>(process_orphaned_join_node(node_id));
             },
             [](auto&&) { return true; },
         },
