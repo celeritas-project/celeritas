@@ -1,6 +1,7 @@
 .. Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 .. See the doc/COPYRIGHT file for details.
 .. SPDX-License-Identifier: CC-BY-4.0
+
 .. _celeritas_random:
 
 Random number generation
@@ -25,6 +26,8 @@ statistically correlated values.
 .. doxygenfunction:: celeritas::initialize_xorwow
 
 .. doxygenclass:: celeritas::XorwowRngEngine
+
+.. _celeritas_random_distributions:
 
 Distributions
 -------------
@@ -61,4 +64,5 @@ routines.
 .. doxygenclass:: celeritas::IsotopeSelector
 .. doxygenclass:: celeritas::TabulatedElementSelector
 
-
+The physics model implementations are built on top of these helper
+distributions.

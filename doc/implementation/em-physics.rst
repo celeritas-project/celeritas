@@ -10,39 +10,130 @@ EM Physics
 
 The physics models in Celeritas are primarily derived from references cited by
 Geant4, including the Geant4 physics reference manual. Undocumented adjustments
-to those models in Geant4 may also be implemented, and hopefully, explained in
-our documentation.
-
-Distributions
-=============
-
-At a higher level, Celeritas expresses many physics operations as
-distributions of *updated* track states based on *original* track states. For
-example, the Tsai-Urban distribution used for sampling exiting angles of
-bremsstrahlung and pair production has parameters of incident particle energy
-and mass, and it samples the exiting polar angle cosine.
-
-.. doxygenclass:: celeritas::BhabhaEnergyDistribution
-
-.. doxygenclass:: celeritas::EnergyLossGammaDistribution
-
-.. doxygenclass:: celeritas::EnergyLossGaussianDistribution
-
-.. doxygenclass:: celeritas::EnergyLossUrbanDistribution
-
-.. doxygenclass:: celeritas::MollerEnergyDistribution
-
-.. doxygenclass:: celeritas::TsaiUrbanDistribution
-
+to those models in Geant4 may also be implemented.
 
 Processes and models
 ====================
 
-Additional distributions are built on top of the helper distributions above.
-All discrete interactions (in Geant4 parlance, "post-step do-it"s) use
-distributions to sample an *Interaction* based on incident particle properties.
-The sampled result contains the updated particle direction and energy, as well
-as properties of any secondary particles produced.
+.. only:: html
+
+   .. table:: Electromagnetic physics processes and models available in Celeritas.
+
+      +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      | **Particle**   | **Processes**       |  **Models**                 | **Celeritas Implementation**                        | **Applicability**        |
+      +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      | :math:`e^-`    | Ionization          |  Møller                     | :cpp:class:`celeritas::MollerBhabhaInteractor`      |       0--100 TeV         |
+      |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      |                | Bremsstrahlung      |  Seltzer--Berger            | :cpp:class:`celeritas::SeltzerBergerInteractor`     |       0--1 GeV           |
+      |                |                     +-----------------------------+-----------------------------------------------------+--------------------------+
+      |                |                     |  Relativistic               | :cpp:class:`celeritas::RelativisticBremInteractor`  |   1 GeV -- 100 TeV       |
+      |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      |                | Coulomb scattering  |  Urban                      | :cpp:class:`celeritas::UrbanMscScatter`             |   100 eV -- 100 TeV      |
+      |                |                     +-----------------------------+-----------------------------------------------------+--------------------------+
+      |                |                     |  Coulomb                    | :cpp:class:`celeritas::CoulombScatteringInteractor` |       0--100 TeV         |
+      +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      | :math:`e^+`    | Ionization          |  Bhabha                     | :cpp:class:`celeritas::MollerBhabhaInteractor`      |       0--100 TeV         |
+      |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      |                | Bremsstrahlung      |  Seltzer-Berger             | :cpp:class:`celeritas::SeltzerBergerInteractor`     |       0--1 GeV           |
+      |                |                     +-----------------------------+-----------------------------------------------------+--------------------------+
+      |                |                     |  Relativistic               | :cpp:class:`celeritas::RelativisticBremInteractor`  |   1 GeV -- 100 TeV       |
+      |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      |                | Coulomb scattering  |  Urban                      | :cpp:class:`celeritas::UrbanMscScatter`             |   100 eV -- 100 TeV      |
+      |                |                     +-----------------------------+-----------------------------------------------------+--------------------------+
+      |                |                     |  Coulomb                    | :cpp:class:`celeritas::CoulombScatteringInteractor` |       0--100 TeV         |
+      |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      |                | Annihilation        | :math:`e^+,e^- \to 2\gamma` | :cpp:class:`celeritas::EPlusGGInteractor`           |       0--100 TeV         |
+      +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      | :math:`\gamma` | Photoelectric       |  Livermore                  | :cpp:class:`celeritas::LivermorePEInteractor`       |       0--100 TeV         |
+      |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      |                | Compton scattering  |  Klein--Nishina             | :cpp:class:`celeritas::KleinNishinaInteractor`      |       0--100 TeV         |
+      |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      |                | Pair production     |  Bethe--Heitler             | :cpp:class:`celeritas::BetheHeitlerInteractor`      |       0--100 TeV         |
+      |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      |                | Rayleigh scattering |  Livermore                  | :cpp:class:`celeritas::RayleighInteractor`          |       0--100 TeV         |
+      +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      | :math:`\mu^-`  | Ionization          |  ICRU73QO                   | :cpp:class:`celeritas::BraggICRU73QOInteractor`     |       0--200 keV         |
+      |                +                     +-----------------------------+-----------------------------------------------------+--------------------------+
+      |                |                     |  Bethe--Bloch               | :cpp:class:`celeritas::MuBetheBlochInteractor`      |   200 keV--100 TeV       |
+      |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      |                | Bremsstrahlung      |  Mu bremsstrahlung          | :cpp:class:`celeritas::MuBremsstrahlungInteractor`  |       0--100 TeV         |
+      +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      | :math:`\mu^+`  | Ionization          |  Bragg                      | :cpp:class:`celeritas::BraggICRU73QOInteractor`     |       0--200 keV         |
+      |                +                     +-----------------------------+-----------------------------------------------------+--------------------------+
+      |                |                     |  Bethe--Bloch               | :cpp:class:`celeritas::MuBetheBlochInteractor`      |   200 keV--100 TeV       |
+      |                +---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+      |                | Bremsstrahlung      |  Mu bremsstrahlung          | :cpp:class:`celeritas::MuBremsstrahlungInteractor`  |       0--100 TeV         |
+      +----------------+---------------------+-----------------------------+-----------------------------------------------------+--------------------------+
+
+.. only:: latex
+
+   .. raw:: latex
+
+      \begin{table}[h]
+        \caption{Electromagnetic physics processes and models available in Celeritas.}
+        \begin{threeparttable}
+        \begin{tabular}{| l | l | l | l | r | }
+          \hline
+          \textbf{Particle}         & \textbf{Processes}                  & \textbf{Models}      & \textbf{Celeritas Implementation}                           & \textbf{Applicability} \\
+          \hline
+          \multirow{4}{*}{$e^-$}    & Ionization                          & Møller               & \texttt{\scriptsize celeritas::MollerBhabhaInteractor}      & 0--100 TeV \\
+                                    \cline{2-5}
+                                    & \multirow{2}{*}{Bremsstrahlung}     & Seltzer--Berger      & \texttt{\scriptsize celeritas::SeltzerBergerInteractor}     & 0--1 GeV \\
+                                                                          \cline{3-5}
+                                    &                                     & Relativistic         & \texttt{\scriptsize celeritas::RelativisticBremInteractor}  & 1 GeV -- 100 TeV \\
+                                    \cline{2-5}
+                                    & \multirow{2}{*}{Coulomb scattering} & Urban                & \texttt{\scriptsize celeritas::UrbanMscScatter}             & 100 eV -- 100 TeV \\
+                                                                          \cline{3-5}
+                                    &                                     & Coulomb              & \texttt{\scriptsize celeritas::CoulombScatteringInteractor} & 0--100 TeV \\
+                                    \cline{2-5}
+          \hline
+          \multirow{5}{*}{$e^+$}    & Ionization                          & Bhabha               & \texttt{\scriptsize celeritas::MollerBhabhaInteractor}      & 0--100 TeV \\
+                                    \cline{2-5}
+                                    & \multirow{2}{*}{Bremsstrahlung}     & Seltzer--Berger      & \texttt{\scriptsize celeritas::SeltzerBergerInteractor}     & 0--1 GeV \\
+                                                                          \cline{3-5}
+                                    &                                     & Relativistic         & \texttt{\scriptsize celeritas::RelativisticBremInteractor}  & 1 GeV -- 100 TeV \\
+                                    \cline{2-5}
+                                    & \multirow{2}{*}{Coulomb scattering} & Urban                & \texttt{\scriptsize celeritas::UrbanMscScatter}             & 100 eV -- 100 TeV \\
+                                                                          \cline{3-5}
+                                    &                                     & Coulomb              & \texttt{\scriptsize celeritas::CoulombScatteringInteractor} & 0--100 TeV \\
+                                    \cline{2-5}
+                                    & Annihilation                        & $e^+,e^-\to 2\gamma$ & \texttt{\scriptsize celeritas::EPlusGGInteractor}           & 0--100 TeV \\
+          \hline
+          \multirow{4}{*}{$\gamma$} & Photoelectric                       & Livermore            & \texttt{\scriptsize celeritas::LivermorePEInteractor}       & 0--100 TeV \\
+                                    \cline{2-5}
+                                    & Compton scattering                  & Klein--Nishina       & \texttt{\scriptsize celeritas::KleinNishinaInteractor}      & 0--100 TeV \\
+                                    \cline{2-5}
+                                    & Pair production                     & Bethe--Heitler       & \texttt{\scriptsize celeritas::BetheHeitlerInteractor}      & 0--100 TeV \\
+                                    \cline{2-5}
+                                    & Rayleigh scattering                 & Livermore            & \texttt{\scriptsize celeritas::RayleighInteractor}          & 0--100 TeV \\
+          \hline
+          \multirow{3}{*}{$\mu^-$}  & \multirow{2}{*}{Ionization}         & ICRU73QO             & \texttt{\scriptsize celeritas::BraggICRU73QOInteractor}     & 0--200 keV \\
+                                                                          \cline{3-5}
+                                    &                                     & Bethe--Bloch         & \texttt{\scriptsize celeritas::MuBetheBlochInteractor}      & 200 keV -- 100 TeV \\
+                                    \cline{2-5}
+                                    & Bremsstrahlung                      & Mu bremsstrahlung    & \texttt{\scriptsize celeritas::MuBremsstrahlungInteractor}  & 0--100 TeV \\
+          \hline
+          \multirow{3}{*}{$\mu^+$}  & \multirow{2}{*}{Ionization}         & Bragg                & \texttt{\scriptsize celeritas::BraggICRU73QOInteractor}     & 0--200 keV \\
+                                                                          \cline{3-5}
+                                    &                                     & Bethe--Bloch         & \texttt{\scriptsize celeritas::MuBetheBlochInteractor}      & 200 keV -- 100 TeV \\
+                                    \cline{2-5}
+                                    & Bremsstrahlung                      & Mu bremsstrahlung    & \texttt{\scriptsize celeritas::MuBremsstrahlungInteractor}  & 0--100 TeV \\
+          \hline
+        \end{tabular}
+        \end{threeparttable}
+      \end{table}
+
+The implemented physics models are meant to match the defaults constructed in
+``G4EmStandardPhysics``.  Known differences are:
+
+* Particles other than electrons, positrons, and gammas are not currently
+  supported.
+* As with the AdePT project, Celeritas currently extends the range of Urban MSC
+  to higher energies rather than implementing the Wentzel-VI and discrete
+  Coulomb scattering.
+* Celeritas imports tracking cutoffs and other parameters from
+  ``G4EmParameters``, but some custom model cutoffs are not accessible to
+  Celeritas.
 
 Ionization
 ----------
@@ -65,9 +156,29 @@ distribution and cross section correction:
 .. doxygenclass:: celeritas::SBEnergyDistribution
 .. doxygenclass:: celeritas::detail::SBPositronXsCorrector
 
-
 Scattering
 ----------
+
+Elastic scattering of charged particles can be simulated in three ways:
+
+* A detailed single scattering model in which each scattering interaction is
+  sampled
+* A multiple scattering approach which calculates global effects from many
+  collisions
+* A combination of the two
+
+Though it is the most accurate, the single Coulomb scattering model is too
+computationally expensive to be used in most applications as the number of
+collisions can be extremely large. Instead, a "condensed" simulation algorithm
+is typically used to determine the net energy loss, displacement, and direction
+change from many collisions after a given path length. The Urban model is the
+default multiple scattering model in Celeritas for all energies and in Geant4
+below 100 MeV. A third "mixed" simulation approach uses multiple scattering to
+simulate interactions with scattering angles below a given polar angle limit
+and single scattering for large angles. The Wentzel VI model, used together
+with the single Coulomb scattering model, is an implementation of the mixed
+simulation algorithm. It is the default model in Geant4 above 100 MeV and
+currently under development in Celeritas.
 
 .. doxygenclass:: celeritas::CoulombScatteringInteractor
 .. doxygenclass:: celeritas::KleinNishinaInteractor
@@ -100,6 +211,36 @@ models are implemented to adjust the loss per step with stochastic sampling for
 improved accuracy.
 
 .. doxygenclass:: celeritas::EnergyLossHelper
+
+Distributions
+=============
+
+As extension to the various :ref:`random distributions
+<celeritas_random_distributions>`, Celeritas expresses many physics operations
+as
+distributions of *updated* track states based on *original* track states. For
+example, the Tsai-Urban distribution used for sampling exiting angles of
+bremsstrahlung and pair production has parameters of incident particle energy
+and mass, and it samples the exiting polar angle cosine. These distributions
+underpin the EM models above.
+
+All discrete interactions (in Geant4 parlance, "post-step do-it"s) use
+distributions to sample an *Interaction* based on incident particle properties.
+The sampled result contains the updated particle direction and energy, as well
+as properties of any secondary particles produced.
+
+
+.. doxygenclass:: celeritas::BhabhaEnergyDistribution
+
+.. doxygenclass:: celeritas::EnergyLossGammaDistribution
+
+.. doxygenclass:: celeritas::EnergyLossGaussianDistribution
+
+.. doxygenclass:: celeritas::EnergyLossUrbanDistribution
+
+.. doxygenclass:: celeritas::MollerEnergyDistribution
+
+.. doxygenclass:: celeritas::TsaiUrbanDistribution
 
 Imported data
 =============
