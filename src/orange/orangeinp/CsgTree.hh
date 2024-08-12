@@ -77,6 +77,12 @@ class CsgTree
     // Simplify a single node in-place [O(1)]
     Simplification simplify(NodeId);
 
+    //! Insert a new volume which root is the node id
+    void insert_volume(NodeId node) { volumes_.push_back(std::move(node)); }
+
+    //! List of volumes defined in this tree
+    std::vector<NodeId> const& volumes() const { return volumes_; }
+
     //// STATIC HELPERS ////
 
     //! Special ID of a node that's always 'true'
@@ -90,6 +96,9 @@ class CsgTree
 
     // Hashed nodes, both original and simplified
     std::unordered_map<Node, NodeId> ids_;
+
+    // CSG node of each volume
+    std::vector<NodeId> volumes_;
 
     //// HELPER FUNCTIONS ////
 
