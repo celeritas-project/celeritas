@@ -60,6 +60,7 @@ Units
 -----
 
 .. doxygennamespace:: celeritas::units
+   :no-link:
 
 .. _api_constants:
 
@@ -67,4 +68,4 @@ Constants
 ---------
 
 .. doxygennamespace:: celeritas::constants
-
+   :no-link:

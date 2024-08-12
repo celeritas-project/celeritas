@@ -63,7 +63,9 @@ Storage
 .. doxygenpage:: collections
 
 .. doxygenenum:: celeritas::MemSpace
+   :no-link:
 .. doxygenenum:: celeritas::Ownership
+   :no-link:
 
 .. doxygenclass:: celeritas::OpaqueId
 

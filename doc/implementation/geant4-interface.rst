@@ -27,6 +27,7 @@ provided.
 
 .. doxygenclass:: celeritas::SimpleOffload
    :members:
+   :no-link:
 
 The SetupOptionsMessenger can be instantiated with a reference to a global
 SetupOptions instance in order to provide a Geant4 "UI" macro interface to an
@@ -44,9 +45,11 @@ settings.
 
 .. doxygenstruct:: celeritas::SetupOptions
    :members:
+   :no-link:
 
 .. doxygenstruct:: celeritas::SDSetupOptions
    :members:
+   :no-link:
 
 .. doxygenclass:: celeritas::UniformAlongStepFactory
 
@@ -61,9 +64,11 @@ applications you can choose to use these classes directly instead of it.
 
 .. doxygenclass:: celeritas::SharedParams
    :members:
+   :no-link:
 
 .. doxygenclass:: celeritas::LocalTransporter
    :members:
+   :no-link:
 
 Interface utilities
 -------------------
@@ -116,5 +121,6 @@ Geant4 physics options
 
 .. doxygenstruct:: celeritas::GeantPhysicsOptions
    :members:
+   :no-link:
 
 

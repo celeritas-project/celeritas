@@ -108,25 +108,11 @@ In addition to the core :ref:`api_importdata`, these import parameters are used
 to provide cross sections, setup options, and other data to the EM physics.
 
 .. doxygenstruct:: celeritas::ImportEmParameters
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportAtomicTransition
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportAtomicSubshell
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportAtomicRelaxation
-   :members:
-   :undoc-members:
 
 .. doxygenstruct:: celeritas::ImportLivermoreSubshell
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportLivermorePE
-   :members:
-   :undoc-members:
 
 .. doxygenstruct:: celeritas::ImportSBTable
-   :members:
-   :undoc-members:

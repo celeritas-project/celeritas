@@ -38,8 +38,10 @@ Stepping mechanics
 ==================
 
 .. doxygenenum:: celeritas::TrackStatus
+   :no-link:
 
 .. doxygenenum:: celeritas::ActionOrder
+   :no-link:
 
 .. doxygenclass:: celeritas::Stepper
 
@@ -81,20 +83,22 @@ Propagation
 Field data input and options
 ----------------------------
 
-.. doxygenstruct:: celeritas::FieldDriverOptions
-   :members:
-
-Field data
-----------
-
 These classes correspond to JSON input files to the field setup.
 
 .. doxygenstruct:: celeritas::UniformFieldParams
    :members:
+   :no-link:
 
 .. doxygenstruct:: celeritas::RZMapFieldInput
    :members:
+   :no-link:
 
+
+The field driver options are not yet a stable part of the API:
+
+.. doxygenstruct:: celeritas::FieldDriverOptions
+   :members:
+   :no-link:
 
 .. _celeritas_random:
 
@@ -171,66 +175,35 @@ The following classes enumerate the core data loaded at runtime.
 .. doxygenstruct:: celeritas::ImportData
    :members:
    :undoc-members:
+   :no-link:
 
 Material and geometry properties
 --------------------------------
 
 .. doxygenstruct:: celeritas::ImportIsotope
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportElement
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportMatElemComponent
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportGeoMaterial
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportProductionCut
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportPhysMaterial
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportRegion
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportVolume
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportTransParameters
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportLoopingThreshold
-   :members:
-   :undoc-members:
 
 .. doxygenenum:: ImportMaterialState
+   :no-link:
 
 Physics properties
 ------------------
 
 .. doxygenstruct:: celeritas::ImportParticle
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportProcess
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportModel
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportMscModel
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportModelMaterial
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportPhysicsTable
-   :members:
-   :undoc-members:
 .. doxygenstruct:: celeritas::ImportPhysicsVector
-   :members:
-   :undoc-members:
 
 .. doxygenenum:: ImportUnits
+   :no-link:

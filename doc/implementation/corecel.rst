@@ -99,10 +99,13 @@ Math, numerics, and algorithms
 ------------------------------
 
 .. doxygenfile:: corecel/math/Algorithms.hh
+   :no-link:
 
 .. doxygenfile:: corecel/math/ArrayUtils.hh
+   :no-link:
 
 .. doxygenfile:: corecel/math/Atomics.hh
+   :no-link:
 
 .. doxygenstruct:: celeritas::numeric_limits
    :members:
@@ -120,4 +123,5 @@ These functions and classes are for communicating helpfully with the user.
 .. doxygendefine:: CELER_LOG
 .. doxygendefine:: CELER_LOG_LOCAL
 .. doxygenenum:: celeritas::LogLevel
+   :no-link:
 
