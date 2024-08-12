@@ -94,6 +94,7 @@ inline G4ThreeVector convert_to_geant(Array<T, 3> const& arr, double units)
     return {arr[0] * units, arr[1] * units, arr[2] * units};
 }
 
+//! \cond (CELERITAS_DOC_DEV)
 //---------------------------------------------------------------------------//
 /*!
  * Set y += a * x .
@@ -106,6 +107,7 @@ inline void axpy(double a, G4ThreeVector const& x, G4ThreeVector* y)
         (*y)[i] = a * x[i] + (*y)[i];
     }
 }
+//! \endcond
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

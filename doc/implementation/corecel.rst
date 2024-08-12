@@ -94,23 +94,93 @@ System
 .. doxygenfunction:: celeritas::getenv
 .. doxygenfunction:: celeritas::getenv_flag
 
+Utility functions
+-----------------
 
-Math, numerics, and algorithms
-------------------------------
+These functions replace or extend those in the C++ standard library
+``<utility>`` header.
 
-.. doxygenfile:: corecel/math/Algorithms.hh
-   :no-link:
+.. doxygenfunction:: celeritas::forward
+.. doxygenfunction:: celeritas::move
+.. doxygenfunction:: celeritas::trivial_swap
+.. doxygenfunction:: celeritas::exchange
 
-.. doxygenfile:: corecel/math/ArrayUtils.hh
-   :no-link:
+Algorithms
+----------
 
-.. doxygenfile:: corecel/math/Atomics.hh
-   :no-link:
+These functions replace or extend those in the C++ standard library
+``<algorithm>`` header. The implementations of ``sort`` and other partitioning
+elements are derived from LLVM's ``libc++``.
+
+.. doxygenfunction:: celeritas::all_of
+.. doxygenfunction:: celeritas::any_of
+.. doxygenfunction:: celeritas::all_adjacent
+.. doxygenfunction:: celeritas::lower_bound
+.. doxygenfunction:: celeritas::upper_bound
+.. doxygenfunction:: celeritas::find_sorted
+.. doxygenfunction:: celeritas::partition
+.. doxygenfunction:: celeritas::sort
+.. doxygenfunction:: celeritas::max
+.. doxygenfunction:: celeritas::min
+.. doxygenfunction:: celeritas::min_element
+
+Numerics
+--------
+
+These functions replace or extend those in the C++ standard library
+``<cmath>`` and ``<numeric>`` headers.
+
+.. doxygenfunction:: celeritas::clamp
+.. doxygenfunction:: celeritas::clamp_to_nonneg
+.. doxygenfunction:: celeritas::ipow
+.. doxygenfunction:: celeritas::fastpow
+.. doxygenfunction:: celeritas::rsqrt(double)
+.. doxygenfunction:: celeritas::fma
+.. doxygenfunction:: celeritas::ceil_div
+.. doxygenfunction:: celeritas::negate
+.. doxygenfunction:: celeritas::eumod
+.. doxygenfunction:: celeritas::signum
+.. doxygenfunction:: celeritas::sincos(double a, double* s, double* c)
 
 .. doxygenstruct:: celeritas::numeric_limits
-   :members:
+
+Atomics
+--------
+
+These atomic functions are for use in kernel code (CUDA/HIP/OpenMP) that use
+track-level parallelism.
+
+.. doxygenfunction:: celeritas::atomic_add
+.. doxygenfunction:: celeritas::atomic_min
+.. doxygenfunction:: celeritas::atomic_max
+
+Array utilities
+---------------
+
+These operate on fixed-size arrays of data (see :ref:`api_containers`), usually ``Real3`` as a
+Cartesian spatial coordinate.
+
+.. doxygentypedef:: celeritas::Real3
+
+.. doxygenfunction:: celeritas::axpy
+.. doxygenfunction:: celeritas::dot_product
+.. doxygenfunction:: celeritas::cross_product
+.. doxygenfunction:: celeritas::norm(Array<T, N> const &v)
+.. doxygenfunction:: celeritas::make_unit_vector
+.. doxygenfunction:: celeritas::distance
+.. doxygenfunction:: celeritas::from_spherical
+.. doxygenfunction:: celeritas::rotate
+
+
+Soft equivalence
+----------------
+
+These utilities are used for comparing real-valued numbers to a given
+tolerance.
 
 .. doxygenclass:: celeritas::SoftEqual
+.. doxygenclass:: celeritas::SoftZero
+.. doxygenclass:: celeritas::ArraySoftUnit
 
 
 .. _api_io:

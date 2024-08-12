@@ -53,6 +53,12 @@ using the Quantity class and helper functions.
 .. doxygenfunction:: celeritas::max_quantity
 .. doxygenfunction:: celeritas::neg_max_quantity
 
+An example quantity uses :math:`2\pi` as the unit type to allow integral values
+for turns. Using a Quantity also allows us to override the ``sincos`` function
+to use ``sincospi`` under the hood for improved precision.
+
+.. doxygentypedef:: celeritas::Turn
+.. doxygenfunction:: celeritas::sincos(Turn r, real_type* sinv, real_type* cosv)
 
 .. _api_units:
 
