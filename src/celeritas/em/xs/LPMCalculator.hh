@@ -33,7 +33,14 @@ namespace celeritas
  * expressed in terms of the LPM suppression functions \f$ xi(s) \f$, \f$ G(s)
  * \f$, and \f$ \phi(s) \f$.
  *
- * See section 10.2.2 of the Geant4 Physics Reference Manual (Release 10.7).
+ * Here \f$ \epsilon \f$ is the ratio of the  electron (or positron) energy to
+ * the photon energy, \f$ \epsilon = E / k \f$.
+ *
+ * See section 10.2.2 of the Geant4 Physics Reference Manual and
+ * ComputeLPMfunctions and GetLPMFunctions in G4eBremsstrahlungRelModel and
+ * G4PairProductionRelModel. Also see T. Stanev, Ch. Vankov, Development of
+ * ultrahigh-energy electromagnetic cascades in water and lead including the
+ * Landau-Pomeranchuk-Migdal effect, Phys. Rev. D, 25 (1982), p. 1291.
  */
 class LPMCalculator
 {
@@ -41,8 +48,8 @@ class LPMCalculator
     //! LPM suppression functions
     struct LPMFunctions
     {
-        real_type xi;
-        real_type g;
+        real_type xi;  //!< Near-unity logarithmic factor
+        real_type g;  //!< Pair production factor
         real_type phi;
     };
 
@@ -100,15 +107,6 @@ LPMCalculator::LPMCalculator(MaterialView const& material,
 //---------------------------------------------------------------------------//
 /*!
  * Compute the LPM suppression functions.
- *
- * Here \f$ \epsilon \f$ is the ratio of the  electron (or positron) energy to
- * the photon energy, \f$ \epsilon = E / k \f$.
- *
- * See section 10.2.2 of the Geant4 Physics Reference Manual and
- * ComputeLPMfunctions and GetLPMFunctions in G4eBremsstrahlungRelModel and
- * G4PairProductionRelModel. Also see T. Stanev, Ch. Vankov, Development of
- * ultrahigh-energy electromagnetic cascades in water and lead including the
- * Landau-Pomeranchuk-Migdal effect, Phys. Rev. D, 25 (1982), p. 1291.
  */
 CELER_FUNCTION auto LPMCalculator::operator()(real_type epsilon) -> LPMFunctions
 {
@@ -185,6 +183,8 @@ CELER_FUNCTION auto LPMCalculator::operator()(real_type epsilon) -> LPMFunctions
  * See section 10.2.2 of the Geant4 Physics Reference Manual and
  * ComputeLPMGsPhis in G4eBremsstrahlungRelModel and G4PairProductionRelModel.
  * Note that in Geant4 these are precomputed and tabulated at initialization.
+ *
+ * See Eqs 14 in Stanev et al.
  */
 CELER_FUNCTION real_type LPMCalculator::calc_phi(real_type s) const
 {

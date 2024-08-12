@@ -33,7 +33,9 @@ namespace celeritas
  *
  * The energies of the secondary electron and positron are sampled using the
  * Bethe-Heitler cross sections with a Coulomb correction. The LPM effect is
- * taken into account for incident gamma energies above 100 GeV.
+ * taken into account for incident gamma energies above 100 GeV. Exiting
+ * particle directions are sampled with the \c TsaiUrbanDistribution . Note
+ * that energy is not exactly conserved.
  *
  * \note This performs the same sampling routine as in Geant4's
  * G4PairProductionRelModel, as documented in sections 6.5 (gamma conversion)
@@ -157,9 +159,7 @@ CELER_FUNCTION BetheHeitlerInteractor::BetheHeitlerInteractor(
 
 //---------------------------------------------------------------------------//
 /*!
- * Pair production using the Bethe-Heitler model.
- *
- * See section 6.5 of the Geant4 Physics Reference Manual (Release 10.7).
+ * Sample the distribution.
  */
 template<class Engine>
 CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
@@ -240,7 +240,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                     auto lpm = calc_lpm_functions_(epsilon);
                     g = lpm.xi
                         * ((2 * lpm.phi + lpm.g) * screening.phi1
-                           - lpm.g * screening.phi2 - lpm.phi * f_z)
+                           - lpm.g * screening.phi2 - (0 + lpm.phi) * f_z)
                         / f10;
                 }
                 else
@@ -267,10 +267,9 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                     auto screening = screening_phi1_phi2(delta);
                     auto lpm = calc_lpm_functions_(epsilon);
                     g = lpm.xi
-                        * ((lpm.phi + half * lpm.g) * screening.phi1
-                           + half * lpm.g * screening.phi2
-                           - half * (lpm.g + lpm.phi) * f_z)
-                        / f20;
+                        * ((2 * lpm.phi + lpm.g) * screening.phi1
+                           + lpm.g * screening.phi2 - (lpm.g + lpm.phi) * f_z)
+                        / (2 * f20);
                 }
                 else
                 {
@@ -300,8 +299,8 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         trivial_swap(secondaries[0].energy, secondaries[1].energy);
     }
 
-    // Sample secondary directions.
-    // Note that momentum is not exactly conserved.
+    // Sample secondary directions.  Note that momentum is not exactly
+    // conserved.
     real_type phi
         = UniformRealDistribution<real_type>(0, 2 * constants::pi)(rng);
 

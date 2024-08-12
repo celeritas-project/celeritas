@@ -14,7 +14,6 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/MuBremsstrahlungData.hh"
-#include "celeritas/em/distribution/TsaiUrbanDistribution.hh"
 #include "celeritas/em/xs/MuBremsDiffXsCalculator.hh"
 #include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialView.hh"

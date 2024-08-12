@@ -15,6 +15,8 @@ to those models in Geant4 may also be implemented.
 Processes and models
 ====================
 
+The following table summarizes the EM processes and models in Celeritas.
+
 .. only:: html
 
    .. table:: Electromagnetic physics processes and models available in Celeritas.
@@ -135,12 +137,34 @@ The implemented physics models are meant to match the defaults constructed in
   ``G4EmParameters``, but some custom model cutoffs are not accessible to
   Celeritas.
 
+As extension to the various :ref:`random distributions
+<celeritas_random_distributions>`, Celeritas expresses many physics operations
+as
+distributions of *updated* track states based on *original* track states. For
+example, the Tsai-Urban distribution used for sampling exiting angles of
+bremsstrahlung and pair production has parameters of incident particle energy
+and mass, and it samples the exiting polar angle cosine.
+
+All discrete interactions (in Geant4 parlance, "post-step do-it"s) use
+distributions to sample an *Interaction* based on incident particle
+properties.
+The sampled result contains the updated particle direction and energy, as well
+as properties of any secondary particles produced.
+
 Ionization
 ----------
 
 .. doxygenclass:: celeritas::BraggICRU73QOInteractor
 .. doxygenclass:: celeritas::MollerBhabhaInteractor
 .. doxygenclass:: celeritas::MuBetheBlochInteractor
+
+The exiting energy distribution from most of these ionization models
+are sampled using external helper distributions.
+
+.. doxygenclass:: celeritas::BhabhaEnergyDistribution
+.. doxygenclass:: celeritas::MollerEnergyDistribution
+.. doxygenclass:: celeritas::MuBBEnergyDistribution
+
 
 Bremsstrahlung
 --------------
@@ -155,6 +179,21 @@ distribution and cross section correction:
 
 .. doxygenclass:: celeritas::SBEnergyDistribution
 .. doxygenclass:: celeritas::detail::SBPositronXsCorrector
+
+A simple distribution is used to sample exiting polar angles from electron
+bremsstrahlung (and gamma conversion).
+
+.. doxygenclass:: celeritas::TsaiUrbanDistribution
+
+Relativistic bremsstrahlung and relativistic Bethe-Heitler sampling both use a
+helper class to calculate LPM factors.
+
+.. doxygenclass:: celeritas::LPMCalculator
+
+Muon bremsstrahlung calculates the differential cross section as part of
+rejection sampling.
+
+.. doxygenclass:: celeritas::MuBremsDiffXsCalculator
 
 Scattering
 ----------
@@ -184,6 +223,9 @@ currently under development in Celeritas.
 .. doxygenclass:: celeritas::KleinNishinaInteractor
 .. doxygenclass:: celeritas::RayleighInteractor
 
+.. doxygenclass:: celeritas::WentzelDistribution
+.. doxygenclass:: celeritas::MottRatioCalculator
+
 Conversion/annihilation/photoelectric
 -------------------------------------
 
@@ -192,6 +234,12 @@ Conversion/annihilation/photoelectric
 .. doxygenclass:: celeritas::LivermorePEInteractor
 
 .. doxygenclass:: celeritas::AtomicRelaxation
+
+Positron annihilation and Livermore photoelectric cross sections are calculated
+on the fly (as opposed to pretabulated cross sections).
+
+.. doxygenclass:: celeritas::EPlusGGMacroXsCalculator
+.. doxygenclass:: celeritas::LivermorePEMicroXsCalculator
 
 Multiple scattering
 -------------------
@@ -212,35 +260,11 @@ improved accuracy.
 
 .. doxygenclass:: celeritas::EnergyLossHelper
 
-Distributions
-=============
-
-As extension to the various :ref:`random distributions
-<celeritas_random_distributions>`, Celeritas expresses many physics operations
-as
-distributions of *updated* track states based on *original* track states. For
-example, the Tsai-Urban distribution used for sampling exiting angles of
-bremsstrahlung and pair production has parameters of incident particle energy
-and mass, and it samples the exiting polar angle cosine. These distributions
-underpin the EM models above.
-
-All discrete interactions (in Geant4 parlance, "post-step do-it"s) use
-distributions to sample an *Interaction* based on incident particle properties.
-The sampled result contains the updated particle direction and energy, as well
-as properties of any secondary particles produced.
-
-
-.. doxygenclass:: celeritas::BhabhaEnergyDistribution
-
 .. doxygenclass:: celeritas::EnergyLossGammaDistribution
 
 .. doxygenclass:: celeritas::EnergyLossGaussianDistribution
 
 .. doxygenclass:: celeritas::EnergyLossUrbanDistribution
-
-.. doxygenclass:: celeritas::MollerEnergyDistribution
-
-.. doxygenclass:: celeritas::TsaiUrbanDistribution
 
 Imported data
 =============
