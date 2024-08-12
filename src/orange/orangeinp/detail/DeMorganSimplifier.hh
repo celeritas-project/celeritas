@@ -368,6 +368,25 @@ inline void DeMorganSimplifier::find_negated_joins()
             },
             tree_[node_id]);
     }
+
+    // volume nodes act as tags on a NodeId indicating that it is the root of a
+    // volume they need to be kept
+    std::unordered_set<NodeId> volume_roots{tree_.volumes().cbegin(),
+                                            tree_.volumes().cend()};
+    for (auto node_id : orphaned_join_nodes_)
+    {
+        if (auto iter = volume_roots.find(node_id); iter != volume_roots.end())
+        {
+            remove_orphaned(*iter);
+        }
+    }
+    for (auto node_id : orphaned_negate_nodes_)
+    {
+        if (auto iter = volume_roots.find(node_id); iter != volume_roots.end())
+        {
+            remove_orphaned(*iter);
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -440,6 +459,17 @@ inline CsgTree DeMorganSimplifier::build_simplified_tree()
             inserted_nodes_[node_id] = new_negated_node_id;
         }
     }
+
+    // set the volumes in the simplified tree
+    for (auto volume : tree_.volumes())
+    {
+        // volumes should be kept, so we must have a equivalent node in the new
+        // tree
+        CELER_EXPECT(original_new_nodes_.find(volume)
+                     != original_new_nodes_.end());
+        result.insert_volume(original_new_nodes_.find(volume)->second);
+    }
+
     return result;
 }
 
