@@ -105,7 +105,8 @@ real_type OrientedBoundingZone::safety_distance_outside(Real3 pos)
                    maxes.begin(),
                    [&](auto ax) {
                        return std::max(
-                           0., trans_pos[to_int(ax)] - inner_hw[to_int(ax)]);
+                           real_type{0},
+                           trans_pos[to_int(ax)] - inner_hw[to_int(ax)]);
                    });
 
     return std::sqrt(
