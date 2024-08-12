@@ -131,7 +131,7 @@ radii_(radii), a_(displacement), tmin_(), tmax_(), sign_(sign), hh_{halfheight}
  */
 void Involute::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    if (sign_)
+    if (sign_ == Sign::clockwise)
     {
         insert_surface(Sense::outside, celeritas::Involute{{0,0}, radii_[0], 
                                                 eumod(a_[0], 2*constants::pi), 

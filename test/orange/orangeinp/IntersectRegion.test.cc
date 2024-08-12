@@ -1343,7 +1343,7 @@ TEST_F(InvoluteTest, two_cw)
                          {0.15667*constants::pi, 0.31334*constants::pi}, 
                          cw, 1.0));
 
-        static char const expected_node[] = "all(+2, -3, -4, +5, +1, -6)";
+        static char const expected_node[] = "all(+1, +2, -3, -4, +5, -6)";
 
         EXPECT_EQ(expected_node, result.node);
         EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
@@ -1366,8 +1366,8 @@ TEST_F(InvoluteTest, two_cw)
         "", 
         "", 
         "top@inv", 
-        "", 
         "bottom@inv,top@inv", 
+        "", 
         "bottom@mz,top@mz", 
         "bottom@pz,top@pz", 
         "", 
@@ -1375,8 +1375,8 @@ TEST_F(InvoluteTest, two_cw)
         "", 
         "bottom@cz,top@cz", 
         "", 
-        "", 
         "bottom@inv", 
+        "", 
         ""
     };
     EXPECT_VEC_EQ(expected_node_strings, node_strings);

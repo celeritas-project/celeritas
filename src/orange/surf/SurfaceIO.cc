@@ -113,7 +113,8 @@ std::ostream& operator<<(std::ostream& os, SphereCentered const& s)
 std::ostream& operator<<(std::ostream& os, Involute const& s)
 {
     os << "Involute: r, a, sign, tmin, tmax =" << s.r_b() << ' ' << s.a()
-       << ' ' << s.sign() << ' ' << s.tmin() << ' ' << s.tmax() << " at "
+       << ' ' << (s.sign() == Involute::Sign::clockwise) << ' ' << s.tmin() 
+       << ' ' << s.tmax() << " at "
        << s.origin();
     return os;
 }

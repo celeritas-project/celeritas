@@ -34,7 +34,7 @@ Involute::Involute(Real2 const& origin,
     CELER_EXPECT(tmin_ >= 0);
     CELER_EXPECT(tmax_ > tmin_ && tmax_ < 2 * constants::pi + tmin_);
 
-    if (sign)
+    if (sign == Sign::clockwise)
     {
         a_ = constants::pi - a_;
         r_b_ = -r_b_;

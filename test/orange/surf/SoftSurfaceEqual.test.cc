@@ -192,6 +192,64 @@ TEST_F(SoftSurfaceEqualTest, general_quadric)
         softeq_(ref, SurfaceTranslator(Translation{{large, 0, 0}})(ref)));
 }
 
+TEST_F(SoftSurfaceEqualTest, involute)
+{
+    Involute ref_ccw{{1.0,0.0},1.0, 2.0, Involute::Sign::counterclockwise, 1.0, 2.0};
+    Involute ref_cw{{1.0,0.0}, 1.0 , 2.0, Involute::Sign::clockwise, 1.0, 2.0};
+
+    // Counterclockwise
+    EXPECT_TRUE(
+        softeq_(ref_ccw, Involute{{1.0,0.0}, 1.0+small , 2.0, 
+                Involute::Sign::counterclockwise, 1.0, 2.0}));
+    EXPECT_FALSE(
+        softeq_(ref_ccw, Involute{{1.0,0.0}, 1.0+large , 2.0, 
+                Involute::Sign::counterclockwise, 1.0, 2.0}));
+    
+    EXPECT_TRUE(
+        softeq_(ref_ccw, Involute{{1.0,0.0}, 1.0 , 2.0+small, 
+                Involute::Sign::counterclockwise, 1.0, 2.0}));
+    EXPECT_FALSE(
+        softeq_(ref_ccw, Involute{{1.0,0.0}, 1.0 , 2.0+large, 
+                Involute::Sign::counterclockwise, 1.0, 2.0}));
+    
+    EXPECT_TRUE(
+        softeq_(ref_ccw, Involute{{1.0,0.0}, 1.0 , 2.0, 
+                Involute::Sign::counterclockwise, 1.0+small, 2.0}));
+    EXPECT_FALSE(
+        softeq_(ref_ccw, Involute{{1.0,0.0}, 1.0 , 2.0, 
+                Involute::Sign::counterclockwise, 1.0+large, 2.0}));
+
+    EXPECT_TRUE(
+        softeq_(ref_ccw, Involute{{1.0,0.0}, 1.0 , 2.0, 
+                Involute::Sign::counterclockwise, 1.0, 2.0+small}));
+    EXPECT_FALSE(
+        softeq_(ref_ccw, Involute{{1.0,0.0}, 1.0 , 2.0, 
+                Involute::Sign::counterclockwise, 1.0, 2.0+large}));
+
+    EXPECT_TRUE(
+        softeq_(ref_ccw, Involute{{1.0+small,0.0}, 1.0 , 2.0, 
+                Involute::Sign::counterclockwise, 1.0, 2.0}));
+    EXPECT_FALSE(
+        softeq_(ref_ccw, Involute{{1.0+large,0.0}, 1.0 , 2.0, 
+                Involute::Sign::counterclockwise, 1.0, 2.0}));
+
+    
+    // Clockwise
+    EXPECT_TRUE(
+        softeq_(ref_cw, Involute{{1.0,0.0}, 1.0+small , 2.0, 
+                Involute::Sign::clockwise, 1.0, 2.0}));
+    EXPECT_FALSE(
+        softeq_(ref_cw, Involute{{1.0,0.0}, 1.0+large , 2.0, 
+                Involute::Sign::clockwise, 1.0, 2.0}));
+    
+    EXPECT_TRUE(
+        softeq_(ref_cw, Involute{{1.0,0.0}, 1.0 , 2.0+small, 
+                Involute::Sign::clockwise, 1.0+small, 2.0}));
+    EXPECT_FALSE(
+        softeq_(ref_cw, Involute{{1.0,0.0}, 1.0 , 2.0+large, 
+                Involute::Sign::clockwise, 1.0+large, 2.0}));
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

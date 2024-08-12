@@ -50,7 +50,7 @@ class InvoluteSolver
     using Real2 = Array<real_type, 2>;
 
     //! Enum defining chirality of involute
-    enum Sign : bool
+    enum class Sign : bool
     {
         counterclockwise = 0,
         clockwise,  //!< Apply symmetry when solving
@@ -152,7 +152,7 @@ InvoluteSolver::operator()(Real3 const& pos,
     real_type v = dir[1];
 
     // Mirror systemm for counterclockwise involutes
-    if (sign_)
+    if (sign_==Sign::clockwise)
     {
         x = -x;
         u = -u;
