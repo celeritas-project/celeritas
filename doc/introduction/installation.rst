@@ -54,6 +54,7 @@ internet if required but not available on the user's system.
    CMake_, Development, "Build system"
    Git_, Development, "Repository management"
    GoogleTest_, Development*, "Test harness"
+   Perfetto_, Development*, "CPU profiling"
 
 .. _CMake: https://cmake.org
 .. _CUDA: https://developer.nvidia.com/cuda-toolkit
@@ -74,6 +75,7 @@ internet if required but not available on the user's system.
 .. _clang-format: https://clang.llvm.org/docs/ClangFormat.html
 .. _nljson: https://github.com/nlohmann/json
 .. _sphinxbib: https://pypi.org/project/sphinxcontrib-bibtex/
+.. _Perfetto: https://perfetto.dev/
 
 
 Ideally you will build Celeritas with all dependencies to gain the full

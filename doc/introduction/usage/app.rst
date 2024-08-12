@@ -39,7 +39,7 @@ In addition to these input parameters, :ref:`environment` can be specified to
 change the program behavior.
 
 Output
-^^^^^-
+^^^^^^
 
 The primary output from ``celer-sim`` is a JSON object that includes several
 levels of diagnostic and result data (see :ref:`api_io`). The JSON

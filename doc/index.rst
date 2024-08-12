@@ -162,27 +162,15 @@ Geant4-integrated context.
    examples/geant4.rst
 
 .. ***************************************************************************
-
-.. toctree::
-   :maxdepth: 2
-
-   backmatter/acknowledgments.rst
-   backmatter/references.rst
-
-.. ***************************************************************************
 .. APPENDICES
 .. ***************************************************************************
-
-----
-
-.. raw:: latex
-
-   \appendix
 
 .. toctree::
    :maxdepth: 2
    :caption: Appendices
 
+   backmatter/acknowledgments.rst
+   backmatter/references.rst
    appendix/release-history.rst
    appendix/development.rst
    appendix/administration.rst
