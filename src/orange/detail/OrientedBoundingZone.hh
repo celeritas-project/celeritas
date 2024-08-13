@@ -142,10 +142,12 @@ real_type OrientedBoundingZone::safety_distance_inside(Real3 pos)
  * the safety distance is the minimum distance from the given point to any
  * point on the inner box. This can be calculated as:
  *
- * d = sqrt(max(0, px - hx)^2 + max(0, py - hy)^2 + max(0, pz - hz)^2)
+ * \f[
+ * d = \sqrt(\max(0, p_x - h_x)^2 + max(0, p_y - h_y)^2 + max(0, p_z - h_z)^2)
+ * \f]
  *
- * for a point in quadrant zero at (px, py, pz) and a box with half-widths (hx,
- * hy, hz).
+ * for a point in quadrant zero at (\em p_x, \em p_y, \em p_z) and a box with
+ * half-widths (\em h_x, \em h_y, \em h_z).
  */
 real_type OrientedBoundingZone::safety_distance_outside(Real3 pos)
 {
