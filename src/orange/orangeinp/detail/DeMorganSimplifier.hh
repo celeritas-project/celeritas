@@ -49,6 +49,17 @@ class DeMorganSimplifier
     inline CsgTree operator()();
 
   private:
+    struct MatchingNodes
+    {
+        std::optional<NodeId> unmodified;
+        std::optional<NodeId> modified;
+
+        explicit operator bool() const noexcept
+        {
+            return modified || unmodified;
+        }
+    };
+
     //!@{
     //! \name Set of NodeId
     using NodeIdSet = std::unordered_set<NodeId>;
@@ -124,11 +135,7 @@ class DeMorganSimplifier
 
     //! Used during construction of the simplified tree to map replaced nodes
     //! in the original tree to their new id in the simplified tree
-    std::unordered_map<NodeId, NodeId> inserted_nodes_;
-
-    //! Used during construction of the simplified tree to map unmodified nodes
-    //! to their new id in the simplified tree
-    std::unordered_map<NodeId, NodeId> original_new_nodes_;
+    std::unordered_map<NodeId, MatchingNodes> node_ids_translation;
 };
 
 //---------------------------------------------------------------------------//
@@ -287,7 +294,8 @@ inline bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                     {
                         CELER_ASSERT_UNREACHABLE();
                     }
-                    inserted_nodes_[node_id]
+                    auto& matching_nodes = node_ids_translation[node_id];
+                    matching_nodes.modified
                         = replace_node_id(orphan_node->node);
                     return false;
                 }
@@ -299,8 +307,9 @@ inline bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                     // we don't need to insert the original
                     // Negated{Join} node redirect parents looking for
                     // this node to the new Joined node.
-                    inserted_nodes_[node_id]
-                        = inserted_nodes_.find(negated_node->node)->second;
+                    auto& matching_nodes = node_ids_translation[node_id];
+                    matching_nodes.modified
+                        = replace_node_id(negated_node->node);
                     return false;
                 }
                 return true;
@@ -324,12 +333,14 @@ inline bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                     auto [new_id, inserted] = result.insert(
                         Joined{(op == logic::land) ? logic::lor : logic::land,
                                std::move(operands)});
-                    inserted_nodes_[node_id] = new_id;
+                    auto& matching_nodes = node_ids_translation[node_id];
+                    matching_nodes.modified = std::move(new_id);
                 }
                 // this Negated{Join} node doesn't have any other
                 // parents, so we don't need to insert its original
                 // version
-                return !static_cast<bool>(process_orphaned_join_node(node_id));
+                return !static_cast<bool>(
+                    process_orphaned_join_node(std::move(node_id)));
             },
             [](auto&&) { return true; },
         },
@@ -433,10 +444,10 @@ inline CsgTree DeMorganSimplifier::build_simplified_tree()
                             op = replace_node_id(op);
                         }
                         // otherwise, only search unmodified nodes
-                        else if (auto new_id = original_new_nodes_.find(op);
-                                 new_id != original_new_nodes_.end())
+                        else if (auto& new_id = node_ids_translation[op];
+                                 new_id.unmodified)
                         {
-                            op = new_id->second;
+                            op = *new_id.unmodified;
                         }
                     }
                 },
@@ -448,14 +459,14 @@ inline CsgTree DeMorganSimplifier::build_simplified_tree()
         // this is recorded in a different map as a node in the original tree
         // can be inserted multiple times in the new tree e.g. a
         // Negated{Joined}, if that Joined node has another parent.
-        original_new_nodes_[node_id] = new_id;
+        node_ids_translation[node_id].unmodified = new_id;
 
         // We might have to insert a negated version of that node
         if (process_new_negated_node(node_id))
         {
             auto [new_negated_node_id, negated_inserted]
                 = result.insert(Negated{new_id});
-            inserted_nodes_[node_id] = new_negated_node_id;
+            node_ids_translation[node_id].modified = new_negated_node_id;
         }
     }
 
@@ -465,21 +476,18 @@ inline CsgTree DeMorganSimplifier::build_simplified_tree()
         // volumes should be kept, so we must have a equivalent node in the new
         // tree or in the replaced tree (if the volume was pointing to a
         // negated Join)
-        CELER_EXPECT(original_new_nodes_.find(volume)
-                         != original_new_nodes_.end()
-                     || inserted_nodes_.find(volume) != inserted_nodes_.end());
+        CELER_EXPECT(node_ids_translation[volume]);
 
         // not using replace_node_id because we need to lookup
         // original_new_nodes_ first...
-        if (auto new_id = original_new_nodes_.find(volume);
-            new_id != original_new_nodes_.end())
+        if (auto& matching_nodes = node_ids_translation[volume];
+            matching_nodes.unmodified)
         {
-            result.insert_volume(new_id->second);
+            result.insert_volume(*matching_nodes.unmodified);
         }
-        else if (auto new_id = inserted_nodes_.find(volume);
-                 new_id != inserted_nodes_.end())
+        else if (matching_nodes.modified)
         {
-            result.insert_volume(new_id->second);
+            result.insert_volume(*matching_nodes.modified);
         }
         else
         {
@@ -584,15 +592,14 @@ inline auto DeMorganSimplifier::process_transformed_negate_node(NodeId node_id)
  */
 inline NodeId DeMorganSimplifier::replace_node_id(NodeId node_id)
 {
-    if (auto new_id = inserted_nodes_.find(node_id);
-        new_id != inserted_nodes_.end())
+    if (auto& matching_nodes = node_ids_translation[node_id];
+        matching_nodes.modified)
     {
-        return new_id->second;
+        return *matching_nodes.modified;
     }
-    if (auto new_id = original_new_nodes_.find(node_id);
-        new_id != original_new_nodes_.end())
+    else if (matching_nodes.unmodified)
     {
-        return new_id->second;
+        return *matching_nodes.unmodified;
     }
     return node_id;
 }
