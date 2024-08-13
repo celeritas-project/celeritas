@@ -41,15 +41,29 @@ class DeMorganSimplifier
     CsgTree operator()();
 
   private:
+    //! Helper struct to translate ids from the original tree to ids in the
+    //! simplified tree
     struct MatchingNodes
     {
+        //! Set if a node as the exact same node in the simplified tree
         std::optional<NodeId> unmodified;
+
+        //! Set if a node redirect to a different node, e.g. A Negated node
+        //! pointing to a Join now redirects to the opposite join, or a double
+        //! Negated node redirects to the non-negated child
         std::optional<NodeId> modified;
 
+        //! Whether any node id is set
         explicit operator bool() const noexcept
         {
             return modified || unmodified;
         }
+
+        // Check unmodified, then modified or default
+        NodeId unmod_mod_or(NodeId default_id) const noexcept;
+
+        // Check modified, then unmodified or default
+        NodeId mod_unmod_or(NodeId default_id) const noexcept;
     };
 
     //!@{
@@ -91,9 +105,6 @@ class DeMorganSimplifier
 
     // Handle a Negated node with a Joined child
     CachedNodeMap<Negated>::mapped_type process_transformed_negate_node(NodeId);
-
-    // Utility to check the two maps for the new id of a node.
-    NodeId replace_node_id(NodeId);
 
     //! the tree to simplify
     CsgTree const& tree_;

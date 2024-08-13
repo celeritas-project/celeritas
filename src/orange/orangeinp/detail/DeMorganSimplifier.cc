@@ -26,6 +26,35 @@ namespace orangeinp
 {
 namespace detail
 {
+
+//---------------------------------------------------------------------------//
+/*!
+ * Check unmodified, then modified, or default
+ */
+NodeId
+DeMorganSimplifier::MatchingNodes::unmod_mod_or(NodeId default_id) const noexcept
+{
+    if (unmodified)
+        return *unmodified;
+    if (modified)
+        return *modified;
+    return default_id;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Check modified, then unmodified, or default
+ */
+NodeId
+DeMorganSimplifier::MatchingNodes::mod_unmod_or(NodeId default_id) const noexcept
+{
+    if (modified)
+        return *modified;
+    if (unmodified)
+        return *unmodified;
+    return default_id;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Simplify
@@ -187,7 +216,8 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                     }
                     auto& matching_nodes = node_ids_translation_[node_id];
                     matching_nodes.modified
-                        = replace_node_id(orphan_node->node);
+                        = node_ids_translation_[orphan_node->node].mod_unmod_or(
+                            orphan_node->node);
                     return false;
                 }
                 // this node is a Negated{Join} node, we have already
@@ -200,7 +230,8 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                     // this node to the new Joined node.
                     auto& matching_nodes = node_ids_translation_[node_id];
                     matching_nodes.modified
-                        = replace_node_id(negated_node->node);
+                        = node_ids_translation_[negated_node->node].mod_unmod_or(
+                            negated_node->node);
                     return false;
                 }
                 return true;
@@ -218,7 +249,8 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                     operands.reserve(nodes.size());
                     for (auto n : nodes)
                     {
-                        operands.push_back(replace_node_id(std::move(n)));
+                        operands.push_back(
+                            node_ids_translation_[n].mod_unmod_or(n));
                     }
 
                     auto [new_id, inserted] = result.insert(
@@ -311,10 +343,14 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
         std::visit(
             Overload{
                 [&](Negated& negated) {
-                    negated.node = replace_node_id(negated.node);
+                    negated.node
+                        = node_ids_translation_[negated.node].mod_unmod_or(
+                            negated.node);
                 },
                 [&](Aliased& aliased) {
-                    aliased.node = replace_node_id(aliased.node);
+                    aliased.node
+                        = node_ids_translation_[aliased.node].mod_unmod_or(
+                            aliased.node);
                 },
                 [&](Joined& joined) {
                     for (auto& op : joined.nodes)
@@ -327,7 +363,7 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
                             && std::get_if<orangeinp::Joined>(
                                 &tree_[negated->node]))
                         {
-                            op = replace_node_id(op);
+                            op = node_ids_translation_[op].mod_unmod_or(op);
                         }
                         // otherwise, only search unmodified nodes
                         else if (auto& new_id = node_ids_translation_[op];
@@ -364,21 +400,8 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
         // negated Join)
         CELER_EXPECT(node_ids_translation_[volume]);
 
-        // not using replace_node_id because we need to lookup
-        // original_new_nodes_ first...
-        if (auto& matching_nodes = node_ids_translation_[volume];
-            matching_nodes.unmodified)
-        {
-            result.insert_volume(*matching_nodes.unmodified);
-        }
-        else if (matching_nodes.modified)
-        {
-            result.insert_volume(*matching_nodes.modified);
-        }
-        else
-        {
-            CELER_ASSERT_UNREACHABLE();
-        }
+        result.insert_volume(
+            node_ids_translation_[volume].unmod_mod_or(volume));
     }
 
     return result;
@@ -452,25 +475,6 @@ auto DeMorganSimplifier::process_transformed_negate_node(NodeId node_id)
         return result;
     }
     return {};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Utility to check the two maps for the new id of a node.
- * maybe we can coalesce them in a single map<NodeId, vector<NodeId>>
- */
-NodeId DeMorganSimplifier::replace_node_id(NodeId node_id)
-{
-    if (auto& matching_nodes = node_ids_translation_[node_id];
-        matching_nodes.modified)
-    {
-        return *matching_nodes.modified;
-    }
-    else if (matching_nodes.unmodified)
-    {
-        return *matching_nodes.unmodified;
-    }
-    return node_id;
 }
 
 //---------------------------------------------------------------------------//
