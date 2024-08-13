@@ -66,10 +66,10 @@ class SoftSurfaceEqual
 
     bool operator()(Sphere const&, Sphere const&) const;
 
-    bool operator()(Involute const&, Involute const&) const;
-
     template<Axis T>
     bool operator()(ConeAligned<T> const&, ConeAligned<T> const&) const;
+
+    bool operator()(Involute const&, Involute const&) const;
 
     bool operator()(SimpleQuadric const&, SimpleQuadric const&) const;
 

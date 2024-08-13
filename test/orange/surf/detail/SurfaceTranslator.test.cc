@@ -80,6 +80,40 @@ TEST_F(SurfaceTranslatorTest, cone_aligned)
     EXPECT_SOFT_EQ(ipow<2>(0.5), kx.tangent_sq());
 }
 
+TEST_F(SurfaceTranslatorTest, involute)
+{
+    using Real2 = Involute::Real2;
+    // See Involute.tst.cc
+    // Cocklwise involute
+    {
+        auto invo = translate(Involute{
+            {1, 0}, 2.0, 0.2, detail::InvoluteSolver::Sign::clockwise, 1.0, 3.0});
+        EXPECT_VEC_SOFT_EQ((Real2{3, 3}), invo.origin());
+        EXPECT_SOFT_EQ(2.0, invo.r_b());
+        EXPECT_SOFT_EQ(0.2, invo.displacement_angle());
+        EXPECT_TRUE(detail::InvoluteSolver::Sign::clockwise == invo.sign());
+        EXPECT_SOFT_EQ(1.0, invo.tmin());
+        EXPECT_SOFT_EQ(3.0, invo.tmax());
+    }
+    // Counterclockwise involute
+    {
+        auto invo = translate(
+            Involute{{1, 0},
+                     2.0,
+                     0.2,
+                     detail::InvoluteSolver::Sign::counterclockwise,
+                     1.0,
+                     3.0});
+        EXPECT_VEC_SOFT_EQ((Real2{3, 3}), invo.origin());
+        EXPECT_SOFT_EQ(2.0, invo.r_b());
+        EXPECT_SOFT_EQ(0.2, invo.displacement_angle());
+        EXPECT_TRUE(detail::InvoluteSolver::Sign::counterclockwise
+                    == invo.sign());
+        EXPECT_SOFT_EQ(1.0, invo.tmin());
+        EXPECT_SOFT_EQ(3.0, invo.tmax());
+    }
+}
+
 TEST_F(SurfaceTranslatorTest, simple_quadric)
 {
     // Ellipsoid at origin
@@ -118,34 +152,6 @@ TEST_F(SurfaceTranslatorTest, general_quadric)
     distances = gq.calc_intersections(pos, outward, SurfaceState::off);
     EXPECT_SOFT_NEAR(1.0, distances[0], SoftEqual<>{}.rel() * 10);
     EXPECT_SOFT_EQ(7.0, distances[1]);
-}
-
-TEST_F(SurfaceTranslatorTest, involute)
-{
-    using Real2 = Involute::Real2;
-    // See Involute.tst.cc
-    // Cocklwise involute
-    {
-        auto invo = translate(Involute{
-            {1, 0}, 2.0, 0.2, detail::InvoluteSolver::Sign::clockwise, 1.0, 3.0});
-        EXPECT_VEC_SOFT_EQ((Real2{3, 3}), invo.origin());
-        EXPECT_SOFT_EQ(2.0, invo.r_b());
-        EXPECT_SOFT_EQ(0.2, invo.displacement_angle());
-        EXPECT_TRUE(detail::InvoluteSolver::Sign::clockwise == invo.sign());
-        EXPECT_SOFT_EQ(1.0, invo.tmin());
-        EXPECT_SOFT_EQ(3.0, invo.tmax());
-    }
-    // Counterclockwise involute
-    {
-        auto invo = translate(Involute{
-            {1, 0}, 2.0, 0.2, detail::InvoluteSolver::Sign::counterclockwise, 1.0, 3.0});
-        EXPECT_VEC_SOFT_EQ((Real2{3, 3}), invo.origin());
-        EXPECT_SOFT_EQ(2.0, invo.r_b());
-        EXPECT_SOFT_EQ(0.2, invo.displacement_angle());
-        EXPECT_TRUE(detail::InvoluteSolver::Sign::counterclockwise == invo.sign());
-        EXPECT_SOFT_EQ(1.0, invo.tmin());
-        EXPECT_SOFT_EQ(3.0, invo.tmax());
-    }
 }
 
 //---------------------------------------------------------------------------//

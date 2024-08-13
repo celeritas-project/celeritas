@@ -50,11 +50,11 @@ class SurfaceTranslator
     template<Axis T>
     ConeAligned<T> operator()(ConeAligned<T> const&) const;
 
+    Involute operator()(Involute const&) const;
+
     SimpleQuadric operator()(SimpleQuadric const&) const;
 
     GeneralQuadric operator()(GeneralQuadric const&) const;
-
-    Involute operator()(Involute const&) const;
 
   private:
     Translation tr_;

@@ -72,6 +72,24 @@ std::ostream& operator<<(std::ostream& os, GeneralQuadric const& s)
 }
 
 //---------------------------------------------------------------------------//
+std::ostream& operator<<(std::ostream& os, Involute const& s)
+{
+    if (s.sign() == Involute::Sign::clockwise)
+    {
+        os << "Involute cw: r=" << s.r_b()
+           << ", a=" << constants::pi - s.displacement_angle() << ", t={"
+           << s.tmin() << ',' << s.tmax() << '}' << " at " << s.origin();
+    }
+    else
+    {
+        os << "Involute ccw: r=" << s.r_b() << ", a=" << s.displacement_angle()
+           << ", t={" << s.tmin() << ',' << s.tmax() << '}' << " at "
+           << s.origin();
+    }
+    return os;
+}
+
+//---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, Plane const& s)
 {
     os << "Plane: n=" << s.normal() << ", d=" << s.displacement();
@@ -106,24 +124,6 @@ std::ostream& operator<<(std::ostream& os, Sphere const& s)
 std::ostream& operator<<(std::ostream& os, SphereCentered const& s)
 {
     os << "Sphere: r=" << std::sqrt(s.radius_sq());
-    return os;
-}
-
-//---------------------------------------------------------------------------//
-std::ostream& operator<<(std::ostream& os, Involute const& s)
-{
-    if (s.sign() == Involute::Sign::clockwise)
-    {
-        os << "Involute cw: r=" << s.r_b()
-           << ", a=" << constants::pi - s.displacement_angle() << ", t={"
-           << s.tmin() << ',' << s.tmax() << '}' << " at " << s.origin();
-    }
-    else
-    {
-        os << "Involute ccw: r=" << s.r_b() << ", a=" << s.displacement_angle()
-           << ", t={" << s.tmin() << ',' << s.tmax() << '}' << " at "
-           << s.origin();
-    }
     return os;
 }
 

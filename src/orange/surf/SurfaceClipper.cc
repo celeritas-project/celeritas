@@ -149,6 +149,16 @@ ORANGE_INSTANTIATE_OP(ConeAligned);
 
 //---------------------------------------------------------------------------//
 /*!
+ * Clip the bounding boxes to an involute.
+ */
+void SurfaceClipper::operator()(Involute const&) const
+{
+    // We no longer can guarantee any point being inside the shape; reset it
+    *int_ = BoundingBox{};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Clip the bounding boxes to a simple quadric.
  */
 void SurfaceClipper::operator()(SimpleQuadric const&) const
@@ -162,16 +172,6 @@ void SurfaceClipper::operator()(SimpleQuadric const&) const
  * Clip the bounding boxes to a general quadric.
  */
 void SurfaceClipper::operator()(GeneralQuadric const&) const
-{
-    // We no longer can guarantee any point being inside the shape; reset it
-    *int_ = BoundingBox{};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Clip the bounding boxes to an involute.
- */
-void SurfaceClipper::operator()(Involute const&) const
 {
     // We no longer can guarantee any point being inside the shape; reset it
     *int_ = BoundingBox{};

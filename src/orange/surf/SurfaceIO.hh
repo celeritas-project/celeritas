@@ -29,6 +29,8 @@ std::ostream& operator<<(std::ostream&, CylCentered<T> const&);
 
 std::ostream& operator<<(std::ostream&, GeneralQuadric const&);
 
+std::ostream& operator<<(std::ostream&, Involute const&);
+
 std::ostream& operator<<(std::ostream&, Plane const&);
 
 template<Axis T>
@@ -39,8 +41,6 @@ std::ostream& operator<<(std::ostream&, SimpleQuadric const&);
 std::ostream& operator<<(std::ostream&, Sphere const&);
 
 std::ostream& operator<<(std::ostream&, SphereCentered const&);
-
-std::ostream& operator<<(std::ostream&, Involute const&);
 //!@}
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

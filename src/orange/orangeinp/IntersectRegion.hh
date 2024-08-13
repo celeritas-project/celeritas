@@ -287,6 +287,40 @@ class GenPrism final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
+ * An open wedge shape from the Z axis.
+ *
+ * The wedge is defined by an interior angle that *must* be less than or equal
+ * to 180 degrees (half a turn) and *must* be more than zero. It can be
+ * subtracted, or its negation can be subtracted. The start angle is mapped
+ * onto [0, 1) on construction.
+ */
+class InfWedge final : public IntersectRegionInterface
+{
+  public:
+    // Construct from a starting angle and interior angle
+    InfWedge(Turn start, Turn interior);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Starting angle
+    Turn start() const { return start_; }
+
+    //! Interior angle
+    Turn interior() const { return interior_; }
+
+  private:
+    Turn start_;
+    Turn interior_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * An involute centered on the origin.
  *
  * \note Be aware there's also an involute *surface* at orange/surf/Involute.hh
@@ -329,40 +363,6 @@ class Involute final : public IntersectRegionInterface
     Real2 t_bounds_;
     Sign sign_;
     real_type hh_;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * An open wedge shape from the Z axis.
- *
- * The wedge is defined by an interior angle that *must* be less than or equal
- * to 180 degrees (half a turn) and *must* be more than zero. It can be
- * subtracted, or its negation can be subtracted. The start angle is mapped
- * onto [0, 1) on construction.
- */
-class InfWedge final : public IntersectRegionInterface
-{
-  public:
-    // Construct from a starting angle and interior angle
-    InfWedge(Turn start, Turn interior);
-
-    // Build surfaces
-    void build(IntersectSurfaceBuilder&) const final;
-
-    // Output to JSON
-    void output(JsonPimpl*) const final;
-
-    //// ACCESSORS ////
-
-    //! Starting angle
-    Turn start() const { return start_; }
-
-    //! Interior angle
-    Turn interior() const { return interior_; }
-
-  private:
-    Turn start_;
-    Turn interior_;
 };
 
 //---------------------------------------------------------------------------//

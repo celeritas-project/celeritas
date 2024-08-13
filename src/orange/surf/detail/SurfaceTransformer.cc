@@ -117,15 +117,6 @@ Sphere SurfaceTransformer::operator()(Sphere const& other) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Transform an Involute.
- */
-Involute SurfaceTransformer::operator()(Involute const&) const
-{
-    CELER_NOT_IMPLEMENTED("transformed involutes");
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Transform a cone.
  */
 template<Axis T>
@@ -137,6 +128,15 @@ GeneralQuadric SurfaceTransformer::operator()(ConeAligned<T> const& other) const
 //! \cond
 ORANGE_INSTANTIATE_OP(GeneralQuadric, ConeAligned);
 //! \endcond
+
+//---------------------------------------------------------------------------//
+/*!
+ * Transform an Involute.
+ */
+Involute SurfaceTransformer::operator()(Involute const&) const
+{
+    CELER_NOT_IMPLEMENTED("transformed involutes");
+}
 
 //---------------------------------------------------------------------------//
 /*!

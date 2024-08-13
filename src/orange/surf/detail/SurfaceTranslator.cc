@@ -109,6 +109,21 @@ Sphere SurfaceTranslator::operator()(Sphere const& other) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct a translated cone.
+ */
+template<Axis T>
+ConeAligned<T> SurfaceTranslator::operator()(ConeAligned<T> const& other) const
+{
+    return ConeAligned<T>::from_tangent_sq(tr_.transform_up(other.origin()),
+                                           other.tangent_sq());
+}
+
+//! \cond
+ORANGE_INSTANTIATE_OP(ConeAligned, ConeAligned);
+//! \endcond
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct a translated Involute.
  */
 Involute SurfaceTranslator::operator()(Involute const& other) const
@@ -124,21 +139,6 @@ Involute SurfaceTranslator::operator()(Involute const& other) const
                   other.tmax()};
     return invo;
 }
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct a translated cone.
- */
-template<Axis T>
-ConeAligned<T> SurfaceTranslator::operator()(ConeAligned<T> const& other) const
-{
-    return ConeAligned<T>::from_tangent_sq(tr_.transform_up(other.origin()),
-                                           other.tangent_sq());
-}
-
-//! \cond
-ORANGE_INSTANTIATE_OP(ConeAligned, ConeAligned);
-//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!
