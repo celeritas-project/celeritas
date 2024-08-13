@@ -91,11 +91,8 @@ class DeMorganSimplifier
     // Handle a negated Joined node
     inline CachedNodeMap<Joined>::mapped_type process_negated_node(NodeId);
 
-    // Handle an orphaned Joined node
-    inline NodeIdSet::value_type process_orphaned_join_node(NodeId);
-
-    // Handle a Negated node
-    inline NodeIdSet::value_type process_orphaned_negate_node(NodeId);
+    // Handle an orphaned node
+    inline NodeIdSet::value_type process_orphaned_node(NodeId);
 
     // Check if a new Negated node must be inserted
     inline NodeIdSet::value_type process_new_negated_node(NodeId);
@@ -124,14 +121,9 @@ class DeMorganSimplifier
     //! transformed Joined node.
     CachedNodeMap<Negated> transformed_negated_nodes_;
 
-    //! A Negated{Joined{}} nodes needs to be mapped to the opposite Joined{}
-    //! node. Parents need to point to the new Joined{} node. The old Joined{}
-    //! node needs to be kept if it had parents other than the Negated node.
-    NodeIdSet orphaned_join_nodes_;
-
-    //! Similar to orphaned_join_nodes_, kept in a separate collection are
-    //! these require a different handling.
-    NodeIdSet orphaned_negate_nodes_;
+    //! An orphan node should not be present in the final simplified tree.
+    //! The node id  can be only refert to a Negated or a Joined Node
+    NodeIdSet orphaned_nodes_;
 
     //! Used during construction of the simplified tree to map replaced nodes
     //! in the original tree to their new id in the simplified tree
@@ -169,10 +161,12 @@ inline void DeMorganSimplifier::remove_orphaned(NodeId node_id)
                      {
                          remove_orphaned(join_operand);
                      }
-                     if (auto item = orphaned_join_nodes_.find(node_id);
-                         item != orphaned_join_nodes_.end())
+                     if (auto item = orphaned_nodes_.find(node_id);
+                         item != orphaned_nodes_.end())
                      {
-                         orphaned_join_nodes_.erase(item);
+                         CELER_EXPECT(
+                             std::holds_alternative<Joined>(tree_[*item]));
+                         orphaned_nodes_.erase(item);
                      }
                  },
                  [&](Negated const& negated) {
@@ -182,10 +176,12 @@ inline void DeMorganSimplifier::remove_orphaned(NodeId node_id)
                      {
                          remove_orphaned(negated.node);
                      }
-                     if (auto item = orphaned_negate_nodes_.find(node_id);
-                         item != orphaned_negate_nodes_.end())
+                     if (auto item = orphaned_nodes_.find(node_id);
+                         item != orphaned_nodes_.end())
                      {
-                         orphaned_negate_nodes_.erase(item);
+                         CELER_EXPECT(
+                             std::holds_alternative<Negated>(tree_[*item]));
+                         orphaned_nodes_.erase(item);
                      }
                  },
                  [](auto&&) {}},
@@ -239,7 +235,7 @@ inline void DeMorganSimplifier::add_new_negated_nodes(NodeId node_id)
                             [&](Negated const& negated) {
                                 // double negation, this simplifies unless it
                                 // has another parent
-                                orphaned_negate_nodes_.insert(join_operand);
+                                orphaned_nodes_.insert(join_operand);
                                 // however, we need to make sure that we're
                                 // keeping the target of the double negation
                                 // around because someone might need it
@@ -262,7 +258,7 @@ inline void DeMorganSimplifier::add_new_negated_nodes(NodeId node_id)
     // parents can only have a higher node_id and the recursive
     // calls explore childrens with lower node_id. This can be
     // unmarked later as we process potential parents
-    orphaned_join_nodes_.insert(node_id);
+    orphaned_nodes_.insert(node_id);
 }
 
 //---------------------------------------------------------------------------//
@@ -286,7 +282,7 @@ inline bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                 // It still needs to be added in inserted_nodes so that
                 // when adding a Joined node, we correctly redirect the
                 // operand looking for it to the children
-                if (auto orphan_node_id = process_orphaned_negate_node(node_id))
+                if (auto orphan_node_id = process_orphaned_node(node_id))
                 {
                     auto orphan_node = std::get_if<orangeinp::Negated>(
                         &tree_[orphan_node_id]);
@@ -340,7 +336,7 @@ inline bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                 // parents, so we don't need to insert its original
                 // version
                 return !static_cast<bool>(
-                    process_orphaned_join_node(std::move(node_id)));
+                    process_orphaned_node(std::move(node_id)));
             },
             [](auto&&) { return true; },
         },
@@ -386,13 +382,8 @@ inline void DeMorganSimplifier::find_negated_joins()
                                             tree_.volumes().cend()};
     for (auto node_id : volume_roots)
     {
-        if (auto iter = orphaned_join_nodes_.find(node_id);
-            iter != orphaned_join_nodes_.end())
-        {
-            remove_orphaned(*iter);
-        }
-        else if (auto iter = orphaned_negate_nodes_.find(node_id);
-                 iter != orphaned_negate_nodes_.end())
+        if (auto iter = orphaned_nodes_.find(node_id);
+            iter != orphaned_nodes_.end())
         {
             remove_orphaned(*iter);
         }
@@ -519,31 +510,14 @@ inline auto DeMorganSimplifier::process_negated_node(NodeId node_id)
 /*!
  * Handle an orphaned \c Joined node during simplified tree construction.
  */
-inline auto DeMorganSimplifier::process_orphaned_join_node(NodeId node_id)
-    -> NodeIdSet::value_type
+inline auto
+DeMorganSimplifier::process_orphaned_node(NodeId node_id) -> NodeIdSet::value_type
 {
-    if (auto iter = orphaned_join_nodes_.find(node_id);
-        iter != orphaned_join_nodes_.end())
+    if (auto iter = orphaned_nodes_.find(node_id);
+        iter != orphaned_nodes_.end())
     {
         auto result = *iter;
-        orphaned_join_nodes_.erase(iter);
-        return result;
-    }
-    return {};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Handle a \c Negated node during simplified tree construction.
- */
-inline auto DeMorganSimplifier::process_orphaned_negate_node(NodeId node_id)
-    -> NodeIdSet::value_type
-{
-    if (auto iter = orphaned_negate_nodes_.find(node_id);
-        iter != orphaned_negate_nodes_.end())
-    {
-        auto result = *iter;
-        orphaned_negate_nodes_.erase(iter);
+        orphaned_nodes_.erase(iter);
         return result;
     }
     return {};
