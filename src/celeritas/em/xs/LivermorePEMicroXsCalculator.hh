@@ -62,7 +62,7 @@ CELER_FUNCTION LivermorePEMicroXsCalculator::LivermorePEMicroXsCalculator(
 
 //---------------------------------------------------------------------------//
 /*!
- * Compute cross section
+ * Compute cross section.
  */
 CELER_FUNCTION
 auto LivermorePEMicroXsCalculator::operator()(ElementId el_id) const -> BarnXs

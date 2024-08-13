@@ -50,6 +50,7 @@ struct DriverResult
     real_type step;  //!< Actual curved step
 };
 
+//! \cond (CELERITAS_DOC_DEV)
 //---------------------------------------------------------------------------//
 // FUNCTIONS
 //---------------------------------------------------------------------------//
@@ -61,5 +62,6 @@ inline CELER_FUNCTION void axpy(real_type a, OdeState const& x, OdeState* y)
     axpy(a, x.pos, &y->pos);
     axpy(a, x.mom, &y->mom);
 }
+//! \endcond
 
 }  // namespace celeritas

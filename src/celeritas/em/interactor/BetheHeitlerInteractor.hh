@@ -33,7 +33,9 @@ namespace celeritas
  *
  * The energies of the secondary electron and positron are sampled using the
  * Bethe-Heitler cross sections with a Coulomb correction. The LPM effect is
- * taken into account for incident gamma energies above 100 GeV.
+ * taken into account for incident gamma energies above 100 GeV. Exiting
+ * particle directions are sampled with the \c TsaiUrbanDistribution . Note
+ * that energy is not exactly conserved.
  *
  * \note This performs the same sampling routine as in Geant4's
  * G4PairProductionRelModel, as documented in sections 6.5 (gamma conversion)
@@ -157,9 +159,7 @@ CELER_FUNCTION BetheHeitlerInteractor::BetheHeitlerInteractor(
 
 //---------------------------------------------------------------------------//
 /*!
- * Pair production using the Bethe-Heitler model.
- *
- * See section 6.5 of the Geant4 Physics Reference Manual (Release 10.7).
+ * Sample the distribution.
  */
 template<class Engine>
 CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
@@ -300,8 +300,8 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         trivial_swap(secondaries[0].energy, secondaries[1].energy);
     }
 
-    // Sample secondary directions.
-    // Note that momentum is not exactly conserved.
+    // Sample secondary directions.  Note that momentum is not exactly
+    // conserved.
     real_type phi
         = UniformRealDistribution<real_type>(0, 2 * constants::pi)(rng);
 
@@ -361,11 +361,12 @@ BetheHeitlerInteractor::screening_phi1_phi2(real_type delta) const
 /*!
  * Auxiliary screening functions \f$ F_1(\delta) \f$ and \f$ F_2(\delta) \f$.
  *
- * The functions \f$ F_1 = 3\Phi_1(\delta) - \Phi_2(\delta) \f$ and \f$ F_2 =
- * 1.5\Phi_1(\delta) - 0.5\Phi_2(\delta) \f$ are decreasing functions of \f$
- * \delta \f$ for all \f$ \delta \f$ in \f$ [\delta_\textrm{min},
- * \delta_\textrm{max}] \f$. They reach their maximum value at \f$
- * \delta_\textrm{min} = \delta(\epsilon = 1/2)\f$. They are used in the
+ * The functions \f$ F_1 = 3 \Phi_1(\delta) - \Phi_2(\delta) \f$
+ * and \f$ F_2 = 1.5\Phi_1(\delta) - 0.5\Phi_2(\delta) \f$
+ * are decreasing functions of \f$ \delta \f$ for all \f$ \delta \f$
+ * in \f$ [\delta_\textrm{min}, \delta_\textrm{max}] \f$.
+ * They reach their maximum value at
+ * \f$ \delta_\textrm{min} = \delta(\epsilon = 1/2)\f$. They are used in the
  * composition + rejection technique for sampling \f$ \epsilon \f$.
  */
 CELER_FUNCTION real_type BetheHeitlerInteractor::screening_f1(real_type delta) const

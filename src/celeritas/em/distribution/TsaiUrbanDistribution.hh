@@ -19,7 +19,7 @@ namespace celeritas
 /*!
  * Polar angular distribution for pair-production and bremsstrahlung processes.
  *
- * For pair-production, the polar angle of the electron (or positron) is
+ * For pair production, the polar angle of the electron (or positron) is
  * defined with respect to the direction of the parent photon. The energy-
  * angle distribution given by Tsai is quite complicated to
  * sample and can be approximated by a density function suggested by Urban.

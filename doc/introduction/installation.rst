@@ -6,16 +6,15 @@
 
 .. _infrastructure:
 
-************
 Installation
-************
+============
 
 Celeritas is designed to be easy to install for a multitude of use cases.
 
 .. _dependencies:
 
 Dependencies
-============
+------------
 
 Celeritas is built using modern CMake_. It has multiple dependencies to operate
 as a full-featured code, but each dependency can be individually disabled as
@@ -55,6 +54,7 @@ internet if required but not available on the user's system.
    CMake_, Development, "Build system"
    Git_, Development, "Repository management"
    GoogleTest_, Development*, "Test harness"
+   Perfetto_, Development*, "CPU profiling"
 
 .. _CMake: https://cmake.org
 .. _CUDA: https://developer.nvidia.com/cuda-toolkit
@@ -75,6 +75,7 @@ internet if required but not available on the user's system.
 .. _clang-format: https://clang.llvm.org/docs/ClangFormat.html
 .. _nljson: https://github.com/nlohmann/json
 .. _sphinxbib: https://pypi.org/project/sphinxcontrib-bibtex/
+.. _Perfetto: https://perfetto.dev/
 
 
 Ideally you will build Celeritas with all dependencies to gain the full
@@ -88,8 +89,11 @@ will error out in the configure if their required
 dependencies are missing, but they will update the CMake cache variable so that
 the next configure will succeed (with that component disabled).
 
+
+.. _configuration:
+
 Configuration options
----------------------
+^^^^^^^^^^^^^^^^^^^^^
 
 The interactive ``ccmake`` tool is highly recommended for exploring the
 Celeritas configuration options, since it provides both documentation *and* an
@@ -137,7 +141,7 @@ enable shared libraries, ``CMAKE_POSITION_INDEPENDENT_CODE``, etc.
 .. _CMake variables: https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html
 
 Toolchain installation
-======================
+----------------------
 
 The recommended way to install dependencies is with ``Spack``,
 an HPC-oriented package manager that includes numerous scientific packages,
@@ -174,7 +178,7 @@ incompatible on GPU with new CMS detector descriptions.
 .. _Spack: https://github.com/spack/spack
 
 Building Celeritas
-==================
+------------------
 
 Once the Celeritas Spack environment has been installed, set your shell's environment
 variables (``PATH``, ``CMAKE_PREFIX_PATH``, ...) by activating it.
@@ -208,7 +212,7 @@ or manually with:
 .. _zip file: https://github.com/celeritas-project/celeritas/archive/refs/heads/develop.zip
 
 CMake Presets
-=============
+-------------
 
 To manage multiple builds with different
 configure options (debug or release, VecGeom or ORANGE), you can use the

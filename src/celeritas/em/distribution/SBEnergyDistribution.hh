@@ -45,7 +45,7 @@ struct SBElectronXsCorrector
  * distribution is the differential cross section, which is stored as a scaled
  * tabulated value. The reconstructed cross section gives the pdf
  * \f[
- *   p(\kappa) \propto \frac{\dif \sigma}{\dif k}s
+ *   p(\kappa) \propto \difd{\sigma}{k} s
                \propto \frac{1}{\kappa} \chi_Z(E, \kappa)
  * \f]
  * where \f$ \kappa = k / E \f$ is the ratio of the emitted photon energy to

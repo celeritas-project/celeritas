@@ -32,7 +32,7 @@ class MuBBEnergyDistribution
     //!@}
 
   public:
-    // Construct with data from MollerBhabhaInteractor
+    // Construct with data from MuBetheBlochInteractor
     inline CELER_FUNCTION MuBBEnergyDistribution(Energy inc_energy,
                                                  Mass inc_mass,
                                                  real_type beta_sq,

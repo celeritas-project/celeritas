@@ -48,7 +48,7 @@ class MuBetheBlochInteractor
     //!@}
 
   public:
-    //! Construct with shared and state data
+    // Construct with shared and state data
     inline CELER_FUNCTION
     MuBetheBlochInteractor(MuBetheBlochData const& shared,
                            ParticleTrackView const& particle,
@@ -161,6 +161,9 @@ CELER_FUNCTION Interaction MuBetheBlochInteractor::operator()(Engine& rng)
 //---------------------------------------------------------------------------//
 /*!
  * Calculate maximum kinetic energy of the secondary electron.
+ *
+ * TODO this should be precomputed and used as part of the "applicability" per
+ * particle type, not included in the interactor. See celeritas#907 .
  */
 CELER_FUNCTION auto MuBetheBlochInteractor::calc_max_secondary_energy() const
     -> Energy
