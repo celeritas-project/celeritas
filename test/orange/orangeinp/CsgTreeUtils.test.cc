@@ -566,8 +566,9 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
     auto n3 = this->insert(Negated{j0});
     auto s2 = this->insert(S{2});
     auto n4 = this->insert(Negated{s2});
-    this->insert(Joined{op_and, {n3, n4}});
+    auto j1 = this->insert(Joined{op_and, {n3, n4}});
     tree_.insert_volume(j0);
+    tree_.insert_volume(j1);
     // Check a well-formed tree
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{2}, 5: "
@@ -583,8 +584,9 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
         "all{6,9}, }",
         to_string(simplified));
     // Check that the the new volumes map to the correct node
-    EXPECT_EQ(simplified.volumes().size(), 1);
+    EXPECT_EQ(simplified.volumes().size(), 2);
     EXPECT_EQ(simplified.volumes()[0], NodeId{7});
+    EXPECT_EQ(simplified.volumes()[1], NodeId{10});
 }
 
 //---------------------------------------------------------------------------//
