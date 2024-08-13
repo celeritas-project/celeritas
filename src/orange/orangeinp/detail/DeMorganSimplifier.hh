@@ -373,16 +373,15 @@ inline void DeMorganSimplifier::find_negated_joins()
     // volume they need to be kept
     std::unordered_set<NodeId> volume_roots{tree_.volumes().cbegin(),
                                             tree_.volumes().cend()};
-    for (auto node_id : orphaned_join_nodes_)
+    for (auto node_id : volume_roots)
     {
-        if (auto iter = volume_roots.find(node_id); iter != volume_roots.end())
+        if (auto iter = orphaned_join_nodes_.find(node_id);
+            iter != orphaned_join_nodes_.end())
         {
             remove_orphaned(*iter);
         }
-    }
-    for (auto node_id : orphaned_negate_nodes_)
-    {
-        if (auto iter = volume_roots.find(node_id); iter != volume_roots.end())
+        else if (auto iter = orphaned_negate_nodes_.find(node_id);
+                 iter != orphaned_negate_nodes_.end())
         {
             remove_orphaned(*iter);
         }
