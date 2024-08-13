@@ -5,7 +5,7 @@ https://github.com/celeritas-project/celeritas/tree/doc/gh-pages-base/scripts/ge
 # Publications
 
 These publications were extracted from the Celeritas team's Zotero database
-on 8 Aug 2024.
+on 13 Aug 2024.
 
 ## Conference papers
 
@@ -25,7 +25,7 @@ on 8 Aug 2024.
 - J. Esseiva. "Celeritas: Efficient detector simulation on GPUs for Geant4". *LBNL ATLAS annual meeting*, 08 Jan 2024.
 - S. R. Johnson. "Celeritas R&D Summary". *Geant4 R&D Assessment*, 13 Dec 2023.
 - S. R. Johnson. "Celeritas: efficient detector simulation on GPUs for Geant4". *Compute Accelerator Forum*, 11 Dec 2023. [presentation](https://indico.cern.ch/event/1264303/contributions/5309868/attachments/2768764/4824731/caf-seminar.pdf)
-- S. R. Johnson. "Celeritas v0.4: we’re ready!". *CMS Simulation Group Meeting*, 10 Nov 2023.
+- S. R. Johnson. "Celeritas v0.4: we’re ready!". *CMS Simulation Group Meeting*, 10 Nov 2023. [presentation](https://indico.cern.ch/event/1344583/contributions/5666830/attachments/2750423/4787039/Celeritas-update.pdf)
 - S. R. Johnson. "Celeritas: computational challenges and possible FASTMath solutions". *FASTMath All Hands*, 02 Nov 2023.
 - S. R. Johnson. "High Energy Physics  Monte Carlo on GPU: Celeritas". *Monte Carlo Computational Summit*, 25 Oct 2023.
 - S. R. Johnson. "Celeritas v0.3: EM offloading for Geant4". *28th Geant4 Collaboration Meeting*, 28 Sep 2023. [presentation](https://indico.cern.ch/event/1307331/contributions/5579735/)
@@ -79,6 +79,7 @@ on 8 Aug 2024.
 
 ## Journal articles
 
+- E. Biondo, T. Evans, S. Johnson, S. Hamilton. "Comparison of Nested Geometry Treatments within GPU-Based Monte Carlo Neutron Transport Simulations of Fission Reactors". Jun 2024.
 - P. K. Romano, P. A. Myers, S. R. Johnson, A. Kolšek, P. C. Shriwise, *et al*. "Point containment algorithms for constructive solid geometry with unbounded primitives". Jun 2024. [10.48550/arXiv.2406.13030](https://doi.org/10.48550/arXiv.2406.13030)
 - J. Apostolakis, M. Bandieramonte, S. Banerjee, N. Bartosik, G. Corti, *et al*. "Detector Simulation Challenges for Future Accelerator Experiments". *Frontiers in Physics*, Jun 2022. [10.3389/fphy.2022.913510](https://doi.org/10.3389/fphy.2022.913510)
 
