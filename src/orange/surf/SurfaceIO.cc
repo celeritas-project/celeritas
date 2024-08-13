@@ -112,10 +112,17 @@ std::ostream& operator<<(std::ostream& os, SphereCentered const& s)
 //---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, Involute const& s)
 {
-    os << "Involute: r, a, sign, tmin, tmax =" << s.r_b() << ' ' << s.a()
-       << ' ' << (s.sign() == Involute::Sign::clockwise) << ' ' << s.tmin() 
-       << ' ' << s.tmax() << " at "
-       << s.origin();
+    if (s.sign() == Involute::Sign::clockwise)
+    {
+        os << "Involute cw: r=" << s.r_b() << ", a=" << constants::pi - s.a()
+           << ", t={" << s.tmin() << ',' << s.tmax() << '}' << " at "
+           << s.origin();
+    }
+    else
+    {
+        os << "Involute ccw: r=" << s.r_b() << ", a=" << s.a() << ", t={"
+           << s.tmin() << ',' << s.tmax() << '}' << " at " << s.origin();
+    }
     return os;
 }
 

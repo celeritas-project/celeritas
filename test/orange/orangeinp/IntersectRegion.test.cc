@@ -1227,14 +1227,13 @@ TEST_F(InvoluteTest, single)
         EXPECT_VEC_SOFT_EQ((Real3{4, 4, 1}), result.exterior.upper());
     }
 
-    static char const* const expected_surfaces[] = {
-        "Involute: r, a, sign, tmin, tmax =1 3.1416 1 1.7321 4.3652 at {0,0}",
-        "Involute: r, a, sign, tmin, tmax =1 2.6494 1 1.7321 4.3652 at {0,0}",
-        "Plane: z=-1",
-        "Plane: z=1",
-        "Cyl z: r=4",
-        "Cyl z: r=2"
-    };
+    static char const* const expected_surfaces[]
+        = {"Involute cw: r=1, a=0, t={1.7321,4.3652} at {0,0}",
+           "Involute cw: r=1, a=0.49219, t={1.7321,4.3652} at {0,0}",
+           "Plane: z=-1",
+           "Plane: z=1",
+           "Cyl z: r=4",
+           "Cyl z: r=2"};
     EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
 
     auto node_strings = md_strings(this->unit());
@@ -1288,13 +1287,13 @@ TEST_F(InvoluteTest, two_ccw)
     }
 
     static char const* const expected_surfaces[] = {
-        "Involute: r, a, sign, tmin, tmax =1 0 0 1.7321 4.3652 at {0,0}",
-        "Involute: r, a, sign, tmin, tmax =1 0.49219 0 1.7321 4.3652 at {0,0}",
+        "Involute ccw: r=1, a=0, t={1.7321,4.3652} at {0,0}",
+        "Involute ccw: r=1, a=0.49219, t={1.7321,4.3652} at {0,0}",
         "Plane: z=-1",
         "Plane: z=1",
         "Cyl z: r=4",
         "Cyl z: r=2",
-        "Involute: r, a, sign, tmin, tmax =1 0.98439 0 1.7321 4.3652 at {0,0}",
+        "Involute ccw: r=1, a=0.98439, t={1.7321,4.3652} at {0,0}",
     };
     EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
 
@@ -1351,13 +1350,13 @@ TEST_F(InvoluteTest, two_cw)
     }
 
     static char const* const expected_surfaces[] = {
-        "Involute: r, a, sign, tmin, tmax =1 3.1416 1 1.7321 4.3652 at {0,0}",
-        "Involute: r, a, sign, tmin, tmax =1 2.6494 1 1.7321 4.3652 at {0,0}",
+        "Involute cw: r=1, a=0, t={1.7321,4.3652} at {0,0}",
+        "Involute cw: r=1, a=0.49219, t={1.7321,4.3652} at {0,0}",
         "Plane: z=-1",
         "Plane: z=1",
         "Cyl z: r=4",
         "Cyl z: r=2",
-        "Involute: r, a, sign, tmin, tmax =1 2.1572 1 1.7321 4.3652 at {0,0}",
+        "Involute cw: r=1, a=0.98439, t={1.7321,4.3652} at {0,0}",
     };
     EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
 
