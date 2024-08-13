@@ -221,7 +221,7 @@ InvoluteSolver::operator()(Real3 const& pos,
         // Only iterate when roots have different signs
         if (signum<real_type>(ft_lower) != signum<real_type>(ft_upper))
         {
-            // Regular Falsi Iteration: Sometimes will slowly converge
+            // Regular Falsi Iteration
             real_type t_gamma = find_root_between(t_lower, t_upper);
 
             // Convert root to distance and store if positive and in interval
