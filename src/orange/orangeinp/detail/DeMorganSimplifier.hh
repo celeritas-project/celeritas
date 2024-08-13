@@ -94,18 +94,6 @@ class DeMorganSimplifier
     // Second pass through the tree to build the simplified tree
     CsgTree build_simplified_tree();
 
-    // Handle a negated Joined node
-    CachedNodeMap<Joined>::mapped_type process_negated_node(NodeId);
-
-    // Handle an orphaned node
-    NodeIdSet::value_type process_orphaned_node(NodeId);
-
-    // Check if a new Negated node must be inserted
-    NodeIdSet::value_type process_new_negated_node(NodeId);
-
-    // Handle a Negated node with a Joined child
-    CachedNodeMap<Negated>::mapped_type process_transformed_negate_node(NodeId);
-
     //! the tree to simplify
     CsgTree const& tree_;
 

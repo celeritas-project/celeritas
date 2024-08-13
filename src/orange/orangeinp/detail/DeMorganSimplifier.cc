@@ -10,7 +10,6 @@
 
 #include <unordered_map>
 #include <unordered_set>
-#include <utility>
 #include <variant>
 
 #include "corecel/Assert.hh"
@@ -26,7 +25,6 @@ namespace orangeinp
 {
 namespace detail
 {
-
 //---------------------------------------------------------------------------//
 /*!
  * Check unmodified, then modified, or default
@@ -206,10 +204,10 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                 // It still needs to be added in inserted_nodes so that
                 // when adding a Joined node, we correctly redirect the
                 // operand looking for it to the children
-                if (auto orphan_node_id = process_orphaned_node(node_id))
+                if (orphaned_nodes_.extract(node_id))
                 {
-                    auto orphan_node = std::get_if<orangeinp::Negated>(
-                        &tree_[orphan_node_id]);
+                    auto orphan_node
+                        = std::get_if<orangeinp::Negated>(&tree_[node_id]);
                     if (!orphan_node)
                     {
                         CELER_ASSERT_UNREACHABLE();
@@ -223,15 +221,17 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                 // this node is a Negated{Join} node, we have already
                 // inserted the
                 // opposite Joined node
-                if (auto negated_node = process_transformed_negate_node(node_id))
+                if (auto node_handle
+                    = transformed_negated_nodes_.extract(node_id))
                 {
+                    auto& negated_node_child = node_handle.mapped()->node;
                     // we don't need to insert the original
                     // Negated{Join} node redirect parents looking for
                     // this node to the new Joined node.
                     auto& matching_nodes = node_ids_translation_[node_id];
                     matching_nodes.modified
-                        = node_ids_translation_[negated_node->node].mod_unmod_or(
-                            negated_node->node);
+                        = node_ids_translation_[negated_node_child].mod_unmod_or(
+                            negated_node_child);
                     return false;
                 }
                 return true;
@@ -239,11 +239,11 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
             [&](Joined const&) {
                 // The current node is a Joined{} and we need to insert
                 // a Negated version of it.
-                if (auto negated_node = process_negated_node(node_id))
+                if (auto node_handle = negated_join_nodes_.extract(node_id))
                 {
                     // Insert the opposite join instead, updating the
                     // children ids.
-                    auto const& [op, nodes] = *negated_node;
+                    auto const& [op, nodes] = *node_handle.mapped();
                     // Lookup the new id of each operand
                     std::vector<NodeId> operands;
                     operands.reserve(nodes.size());
@@ -256,14 +256,13 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                     auto [new_id, inserted] = result.insert(
                         Joined{(op == logic::land) ? logic::lor : logic::land,
                                std::move(operands)});
-                    auto& matching_nodes = node_ids_translation_[node_id];
-                    matching_nodes.modified = std::move(new_id);
+                    node_ids_translation_[node_id].modified = std::move(new_id);
                 }
                 // this Negated{Join} node doesn't have any other
                 // parents, so we don't need to insert its original
-                // version
-                return !static_cast<bool>(
-                    process_orphaned_node(std::move(node_id)));
+                // version if its an orphaned node
+                auto node_handle = orphaned_nodes_.extract(node_id);
+                return !(node_handle && node_handle.value());
             },
             [](auto&&) { return true; },
         },
@@ -384,7 +383,7 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
         node_ids_translation_[node_id].unmodified = new_id;
 
         // We might have to insert a negated version of that node
-        if (process_new_negated_node(node_id))
+        if (new_negated_nodes_.extract(node_id))
         {
             auto [new_negated_node_id, negated_inserted]
                 = result.insert(Negated{new_id});
@@ -405,76 +404,6 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
     }
 
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Handle a negated Joined node during simplified tree construction.
- */
-auto DeMorganSimplifier::process_negated_node(NodeId node_id)
-    -> CachedNodeMap<Joined>::mapped_type
-{
-    if (auto iter = negated_join_nodes_.find(node_id);
-        iter != negated_join_nodes_.end())
-    {
-        auto result = iter->second;
-        negated_join_nodes_.erase(iter);
-        return result;
-    }
-    return {};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Handle an orphaned \c Joined node during simplified tree construction.
- */
-auto DeMorganSimplifier::process_orphaned_node(NodeId node_id)
-    -> NodeIdSet::value_type
-{
-    if (auto iter = orphaned_nodes_.find(node_id);
-        iter != orphaned_nodes_.end())
-    {
-        auto result = *iter;
-        orphaned_nodes_.erase(iter);
-        return result;
-    }
-    return {};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Check if a \c Negated node pointing to node_id must be inserted in the
- * simplified tree.
- */
-auto DeMorganSimplifier::process_new_negated_node(NodeId node_id)
-    -> NodeIdSet::value_type
-{
-    if (auto iter = new_negated_nodes_.find(node_id);
-        iter != new_negated_nodes_.end())
-    {
-        auto result = *iter;
-        new_negated_nodes_.erase(iter);
-        return result;
-    }
-    return {};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Handle a \c Negated node with a \c Joined child during simplified tree
- * construction.
- */
-auto DeMorganSimplifier::process_transformed_negate_node(NodeId node_id)
-    -> CachedNodeMap<Negated>::mapped_type
-{
-    if (auto iter = transformed_negated_nodes_.find(node_id);
-        iter != transformed_negated_nodes_.end())
-    {
-        auto result = iter->second;
-        transformed_negated_nodes_.erase(iter);
-        return result;
-    }
-    return {};
 }
 
 //---------------------------------------------------------------------------//
