@@ -74,13 +74,11 @@ bool SoftSurfaceEqual::operator()(SphereCentered const& a,
  */
 bool SoftSurfaceEqual::operator()(Involute const& a, Involute const& b) const
 {
-    return this->soft_eq_sq(a.r_b(), b.r_b()) && this->soft_eq_sq(a.a(), b.a())
-           && this->soft_eq_sq(a.sign() == Involute::Sign::clockwise, 
-                               b.sign() == Involute::Sign::clockwise)
-           && this->soft_eq_sq(a.tmin(), b.tmin())
-           && this->soft_eq_sq(a.tmax(), b.tmax())
-           && this->soft_eq_sq(a.origin()[0], b.origin()[0])
-           && this->soft_eq_sq(a.origin()[1], b.origin()[1]);
+    return this->soft_eq_(a.r_b(), b.r_b()) && this->soft_eq_(a.a(), b.a())
+           && a.sign() == b.sign() && this->soft_eq_(a.tmin(), b.tmin())
+           && this->soft_eq_(a.tmax(), b.tmax())
+           && this->soft_eq_distance({a.origin()[0], a.origin()[1], 0},
+                                     {b.origin()[0], b.origin()[1], 0});
 }
 
 //---------------------------------------------------------------------------//

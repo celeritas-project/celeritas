@@ -152,7 +152,7 @@ InvoluteSolver::operator()(Real3 const& pos,
     real_type v = dir[1];
 
     // Mirror systemm for counterclockwise involutes
-    if (sign_==Sign::clockwise)
+    if (sign_ == Sign::clockwise)
     {
         x = -x;
         u = -u;
