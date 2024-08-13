@@ -189,9 +189,9 @@ void UnitProto::build(ProtoBuilder& input) const
         auto region_iter = csg_unit.regions.find(node_id);
         CELER_ASSERT(region_iter != csg_unit.regions.end());
         vi.bbox = get_exterior_bbox(region_iter->second.bounds);
-        /* TODO: "simple safety" flag is set inside
-         * "unit inserter" (move here once we stop importing from SCALE via
-         * OrangeInput)
+        /*!
+         * \todo "simple safety" flag is set inside "unit inserter": move here
+         * once we stop importing from SCALE via OrangeInput.
          */
         if (has_internal_surfaces(node_id))
         {
@@ -213,8 +213,9 @@ void UnitProto::build(ProtoBuilder& input) const
         vi.logic = {logic::ltrue, logic::lnot};
         vi.bbox = {};  // XXX: input converter changes to infinite bbox
         vi.zorder = ZOrder::background;
-        // XXX the nearest internal surface is probably *not* the safety
-        // distance, but it's better than nothing
+        /*! \todo The nearest internal surface is probably *not* the safety
+         * distance, but it's better than nothing
+         */
         vi.flags = VolumeRecord::implicit_vol | VolumeRecord::simple_safety;
         result.volumes.emplace_back(std::move(vi));
     }
@@ -344,7 +345,7 @@ void UnitProto::build(ProtoBuilder& input) const
         input.save_json(std::move(jp));
     }
 
-    // TODO: save material IDs as well
+    //! \todo Save material IDs as well
     input.insert(std::move(result));
 }
 
@@ -450,8 +451,9 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
                                write_node_labels);
         }
 
-        // TODO: we can sometimes eliminate CSG surfaces and nodes that aren't
-        // used by the actual volumes
+        /*! \todo We can sometimes eliminate CSG surfaces and nodes that aren't
+         * used by the actual volumes>
+         */
     }
 
     return result;

@@ -20,7 +20,6 @@ namespace celeritas
  * \param tmin minimum tangent angle
  * \param tmax maximum tangent angle
  */
-
 Involute::Involute(Real2 const& origin,
                    real_type radius,
                    real_type displacement,

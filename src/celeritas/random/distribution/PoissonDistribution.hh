@@ -27,7 +27,7 @@ namespace celeritas
  * occuring in a fixed interval given a mean rate of occurance \f$ \lambda \f$
  * and has the PMF:
  * \f[
-   f(k; \lambda) = \frac{\lambda^k e^{-\lambda}}{k!}.
+   f(k; \lambda) = \frac{\lambda^k e^{-\lambda}}{k!} \:.
    \f]
  * For small \f$ \lambda \f$, a direct method described in Knuth, Donald E.,
  * Seminumerical Algorithms, The Art of Computer Programming, Volume 2 can be
@@ -42,8 +42,8 @@ namespace celeritas
  * used for large \f$ \lambda \f$.
  *
  * Geant4 uses Knuth's algorithm for \f$ \lambda \le 16 \f$ and a Gaussian
- * approximation for \f$ \lambda > 16 \f$ (see G4Poisson), which is faster but
- * less accurate than other methods. The same approach is used here.
+ * approximation for \f$ \lambda > 16 \f$ (see \c G4Poisson), which is faster
+ * but less accurate than other methods. The same approach is used here.
  */
 template<class RealType = ::celeritas::real_type>
 class PoissonDistribution

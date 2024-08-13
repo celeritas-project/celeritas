@@ -74,7 +74,7 @@ struct VolumeRecord
     logic_int flags{0};
     DaughterId daughter_id;
 
-    // TODO (KENO geometry): zorder
+    //! \todo For KENO geometry we will need zorder
 
     //! Flag values (bit field)
     enum Flags : logic_int

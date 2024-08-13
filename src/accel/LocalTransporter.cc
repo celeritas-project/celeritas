@@ -167,24 +167,28 @@ void LocalTransporter::Push(G4Track const& g4track)
 
     if (CELER_UNLIKELY(g4track.GetWeight() != 1.0))
     {
-        // TODO: see issue #1268
+        //! \todo Non-unit weights: see issue #1268
         CELER_LOG(error) << "incoming track (PDG " << pdg.get()
                          << ", track ID " << g4track.GetTrackID()
                          << ") has non-unit weight " << g4track.GetWeight();
     }
 
-    // TODO: Celeritas track IDs are independent from Geant4 track IDs, since
-    // they must be sequential from zero for a given event. We may need to save
-    // (and share with sensitive detectors!) a map of track IDs for calling
-    // back to Geant4.
+    /*!
+     * \todo Celeritas track IDs are independent from Geant4 track IDs, since
+     * they must be sequential from zero for a given event. We may need to save
+     * (and share with sensitive detectors!) a map of track IDs for calling
+     * back to Geant4.
+     */
     track.track_id = TrackId{track_counter_++};
     track.event_id = event_id_;
 
     buffer_.push_back(track);
     if (buffer_.size() >= auto_flush_)
     {
-        // TODO: maybe only run one iteration? But then make sure that Flush
-        // still transports active tracks to completion.
+        /*!
+         * \todo Maybe only run one iteration? But then make sure that Flush
+         * still transports active tracks to completion.
+         */
         this->Flush();
     }
 }

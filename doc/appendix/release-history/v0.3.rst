@@ -2,11 +2,13 @@
 .. See the doc/COPYRIGHT file for details.
 .. SPDX-License-Identifier: CC-BY-4.0
 
+Series 0.3
+==========
 
 .. _release_v0.3.2:
 
 Version 0.3.2
-=============
+-------------
 
 *Released 2023/09/07*
 
@@ -27,7 +29,7 @@ Bug fixes
 Reviewers: @sethrj *(4)*, @mrguilima *(1)*, @stognini *(1)*, @amandalund *(1)*
 
 Documentation improvements
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Release v0.3.1 *(@sethrj, #876)*
 * Fix density correction calculation in Seltzer-Berger test *(@amandalund, #921)*
@@ -40,7 +42,7 @@ Reviewers: @amandalund *(1)*, @sethrj *(1)*
 .. _release_v0.3.1:
 
 Version 0.3.1
-=============
+-------------
 
 *Released 2023/08/05*
 
@@ -65,7 +67,7 @@ Key fixes:
 
 
 New features
-------------
+^^^^^^^^^^^^
 
 * Launch kernels only with active tracks using "action range" *(@esseivaju, #765)*
 * Add utility for constructing SD "force_volumes" option *(@sethrj, #825)*
@@ -105,7 +107,7 @@ Bug fixes
 Reviewers: @amandalund *(5)*, @sethrj *(4)*, @whokion *(2)*, @esseivaju *(1)*
 
 Documentation improvements
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Update CI to VecGeom 1.2.3 *(@sethrj, #819)*
 * Document how to link loadable shared libraries with Celeritas *(@drbenmorgan, #842)*
@@ -114,7 +116,7 @@ Documentation improvements
 Reviewers: @pcanal *(1)*, @sethrj *(1)*, @amandalund *(1)*
 
 Minor internal changes
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 * Add field template deduction and parameterized test *(@sethrj, #820)*
 * Improve logger construction and add test helper class *(@sethrj, #826)*
@@ -143,7 +145,7 @@ Reviewers: @sethrj *(6)*, @amandalund *(5)*, @drbenmorgan *(3)*, @pcanal *(2)*, 
 .. _release_v0.3.0:
 
 Version 0.3.0
-=============
+-------------
 
 *Released 2023/06/15*
 
@@ -164,7 +166,7 @@ Key changes:
 - Building with the C++17 standard or later is required.
 
 New features
-------------
+^^^^^^^^^^^^
 
 * Add filtering to `RootStepWriter` *(@stognini, #630)*
 * Add math operators to Quantity *(@sethrj, #658)*
@@ -256,7 +258,7 @@ Bug fixes
 Reviewers: @amandalund *(12)*, @sethrj *(8)*, @whokion *(4)*, @pcanal *(3)*, @stognini *(1)*, @drbenmorgan *(1)*, @elliottbiondo *(1)*, @mrguilima *(1)*
 
 Documentation improvements
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Add minimal failing test for #620 *(@amandalund, #655)*
 * Fix documentation links and update celeritas logo *(@sethrj, #686)*
@@ -274,7 +276,7 @@ Documentation improvements
 Reviewers: @amandalund *(6)*, @sethrj *(3)*, @mrguilima *(1)*, @paulromano *(1)*, @stognini *(1)*
 
 Minor internal changes
-----------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 * Remove multiple scattering from Processes *(@sethrj, #631)*
 * Require C++17 and use a few C++17 features *(@sethrj, #633)*

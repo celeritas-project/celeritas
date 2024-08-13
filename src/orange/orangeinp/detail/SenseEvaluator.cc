@@ -34,8 +34,11 @@ SignedSense SenseEvaluator::operator()(Surface const& s) const
         [&pos = this->pos_](auto const& surf) { return surf.calc_sense(pos); },
         surfaces_[s.id.get()]);
 
-    // TODO: "inside" wrt a surface (i.e. negative quadric) is "false", so we
-    // have to flip the result
+    /*!
+     * \todo "inside" wrt a surface (i.e. negative quadric) is "false", so we
+     * have to flip the result. We should change the value of \c Sense::inside
+     * to \c true.
+     */
     static_assert(Sense::inside == to_sense(false));
     return flip_sense(result);
 }

@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/Constants.hh
-//! \todo move to corecel/
+//! \brief Mathematical constants. See \c celeritas/Constants.hh for physical.
 //---------------------------------------------------------------------------//
 #pragma once
 

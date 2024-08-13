@@ -47,7 +47,7 @@ class UniformRealDistribution
 
     // Sample a random number according to the distribution
     template<class Generator>
-    inline CELER_FUNCTION result_type operator()(Generator& rng);
+    inline CELER_FUNCTION result_type operator()(Generator& rng) const;
 
     //// ACCESSORS ////
 
@@ -98,7 +98,7 @@ UniformRealDistribution<RealType>::UniformRealDistribution(real_type a,
 template<class RealType>
 template<class Generator>
 CELER_FUNCTION auto
-UniformRealDistribution<RealType>::operator()(Generator& rng) -> result_type
+UniformRealDistribution<RealType>::operator()(Generator& rng) const -> result_type
 {
     return std::fma(delta_, generate_canonical<RealType>(rng), a_);
 }

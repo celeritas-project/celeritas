@@ -39,11 +39,11 @@ namespace celeritas
  * \code
     ElementSelector select_element(mat, calc_micro, storage);
     real_type total_macro_xs
-        = select_element.material_micro_xs() *  mat.number_density();
+        = select_element.material_micro_xs() * mat.number_density();
     ElementComponentId id = select_element(rng);
-    real_type selected_micro_xs =
- select_element.elemental_micro_xs()[el.get()]; ElementView el =
- mat.make_element_view(id);
+    real_type selected_micro_xs
+        = select_element.elemental_micro_xs()[el.get()];
+    ElementView el = mat.make_element_view(id);
     // use el.Z(), etc.
    \endcode
  *

@@ -25,4 +25,15 @@ using ScintillationParticleId = OpaqueId<struct ScintillationParticle_>;
 using ParticleScintSpectrumId = OpaqueId<struct ParticleScintillationSpectrum>;
 
 //---------------------------------------------------------------------------//
+/*!
+ * Physics classes used inside the optical physics loop.
+ *
+ * Interface classes that integrate with the main Celeritas stepping loop are
+ * in the main namespace.
+ */
+namespace optical
+{
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

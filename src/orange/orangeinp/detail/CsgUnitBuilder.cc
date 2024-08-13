@@ -92,11 +92,12 @@ void CsgUnitBuilder::insert_region(NodeId n,
                      == static_cast<bool>(existing.bounds.exterior));
         if (trans_id != existing.transform_id)
         {
-            // TODO: we should implement transform soft equivalence
-            // TODO: transformed shapes that are later defined as volumes (in
-            // an RDV or single-item Join function) may result in the same node
-            // with two different transforms. These transforms don't usually
-            // matter though?
+            /*! \todo We should implement transform soft equivalence.
+             *  \todo Transformed shapes that are later defined as volumes (in
+             * an RDV or single-item Join function) may result in the same node
+             * with two different transforms. These transforms don't (yet?)
+             * matter though?
+             */
             auto const& md = unit_->metadata[n.get()];
             CELER_LOG(debug)
                 << "While re-inserting logically equivalent region '"
@@ -147,8 +148,10 @@ void CsgUnitBuilder::fill_exterior()
     CELER_VALIDATE(!iter->second.bounds.negated,
                    << "exterior volume is inside out");
 
-    // TODO handle edge case where exterior is the composite of two volumes and
-    // we need to adjust those volumes' bboxes?
+    /*!
+     * \todo Handle edge case where exterior is the composite of two volumes
+     * and we need to adjust those volumes' bboxes?
+     */
     bbox_ = calc_intersection(bbox_, iter->second.bounds.exterior);
 }
 

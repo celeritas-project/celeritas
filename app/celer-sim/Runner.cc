@@ -260,7 +260,6 @@ auto Runner::get_action_times() const -> MapStrDouble
 //---------------------------------------------------------------------------//
 void Runner::setup_globals(RunnerInput const& inp) const
 {
-    // TODO: just use 0 instead of unspecified
     if (inp.cuda_heap_size != RunnerInput::unspecified)
     {
         set_cuda_heap_size(inp.cuda_heap_size);
@@ -564,7 +563,7 @@ void Runner::build_optical_collector(RunnerInput const& inp,
     using optical::MaterialPropertyParams;
     using optical::ScintillationParams;
 
-    // TODO: Rethink if statements after implementing CelerOpticalPhysicsList
+    //! \todo Update conditionals after implementing CelerOpticalPhysicsList
     if (imported.optical.empty())
     {
         // No optical data loaded

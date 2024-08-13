@@ -191,10 +191,17 @@ Certain decorations (separators, Doxygen comment structure,
 etc.) are standard throughout the code. Use the :file:`celeritas-gen.py` script
 (in the :file:`scripts/dev` directory) to generate skeletons for new files, and
 use existing source code as a guide to how to structure the decorations.
+
+Documentation
+-------------
+
 Doxygen comments should be provided next to the *definition* of functions (both
-member and free) and classes. For function-like and physics classes, try to put
-the bulk of the comments into the main class description, because these are
-easier to inject into the :ref:`api` documentation.
+member and free) and classes. This means adding a one-line Doxygen comment for
+member functions defined inside the class's definition or multi-line Doxygen
+comments if a function is defined externally.
+Document the effect of a function-like class's "call" operator``()`` in the class's main definition rather than the operator
+itself, since this makes it easier and cleaner to document the class's behavior
+in the :ref:`api` documentation. Do the same for physics classes.
 
 .. _East const: https://hackingcpp.com/cpp/design/east_vs_west_const.html
 

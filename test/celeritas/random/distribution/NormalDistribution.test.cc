@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/random/distribution/NormalDistribution.hh"
 
+#include <random>
+
 #include "corecel/cont/Range.hh"
 
 #include "DiagnosticRngEngine.hh"

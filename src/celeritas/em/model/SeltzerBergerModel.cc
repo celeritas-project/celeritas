@@ -95,9 +95,11 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
  */
 auto SeltzerBergerModel::applicability() const -> SetApplicability
 {
-    // TODO: potentially set lower energy bound based on (material-dependent)
-    // BremsstrahlungProcess lambda table energy grid to avoid invoking the
-    // interactor for tracks with energy below the interaction threshold
+    /*!
+     * \todo Set lower energy bound based on (material-dependent)
+     * BremsstrahlungProcess lambda table energy grid to avoid invoking the
+     * interactor for tracks with energy below the interaction threshold.
+     */
 
     Applicability electron_applic;
     electron_applic.particle = this->host_ref().ids.electron;
@@ -163,8 +165,7 @@ void SeltzerBergerModel::append_table(ImportSBTable const& imported,
 
     SBElementTableData table;
 
-    // TODO: hash the energy grid for reuse, because only Z = 100 has a
-    // different energy grid.
+    //! \todo Refactor as a builder helper using DedupeCollectionBuilder
 
     // Incident charged particle log energy grid
     table.grid.x = reals.insert_back(imported.x.begin(), imported.x.end());
