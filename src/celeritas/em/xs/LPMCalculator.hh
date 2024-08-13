@@ -36,6 +36,8 @@ namespace celeritas
  * Here \f$ \epsilon \f$ is the ratio of the  electron (or positron) energy to
  * the photon energy, \f$ \epsilon = E / k \f$.
  *
+ * For small energies, the suppression factors all approach unity.
+ *
  * See section 10.2.2 of the Geant4 Physics Reference Manual and
  * ComputeLPMfunctions and GetLPMFunctions in G4eBremsstrahlungRelModel and
  * G4PairProductionRelModel. Also see T. Stanev, Ch. Vankov, Development of
@@ -45,7 +47,7 @@ namespace celeritas
 class LPMCalculator
 {
   public:
-    //! LPM suppression functions
+    //! Evaluated LPM suppression functions
     struct LPMFunctions
     {
         real_type xi;  //!< Near-unity logarithmic factor

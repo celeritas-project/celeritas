@@ -240,7 +240,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                     auto lpm = calc_lpm_functions_(epsilon);
                     g = lpm.xi
                         * ((2 * lpm.phi + lpm.g) * screening.phi1
-                           - lpm.g * screening.phi2 - (0 + lpm.phi) * f_z)
+                           - lpm.g * screening.phi2 - lpm.phi * f_z)
                         / f10;
                 }
                 else
@@ -267,9 +267,10 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                     auto screening = screening_phi1_phi2(delta);
                     auto lpm = calc_lpm_functions_(epsilon);
                     g = lpm.xi
-                        * ((2 * lpm.phi + lpm.g) * screening.phi1
-                           + lpm.g * screening.phi2 - (lpm.g + lpm.phi) * f_z)
-                        / (2 * f20);
+                        * ((lpm.phi + half * lpm.g) * screening.phi1
+                           + half * lpm.g * screening.phi2
+                           - half * (lpm.g + lpm.phi) * f_z)
+                        / f20;
                 }
                 else
                 {
@@ -360,11 +361,12 @@ BetheHeitlerInteractor::screening_phi1_phi2(real_type delta) const
 /*!
  * Auxiliary screening functions \f$ F_1(\delta) \f$ and \f$ F_2(\delta) \f$.
  *
- * The functions \f$ F_1 = 3\Phi_1(\delta) - \Phi_2(\delta) \f$ and \f$ F_2 =
- * 1.5\Phi_1(\delta) - 0.5\Phi_2(\delta) \f$ are decreasing functions of \f$
- * \delta \f$ for all \f$ \delta \f$ in \f$ [\delta_\textrm{min},
- * \delta_\textrm{max}] \f$. They reach their maximum value at \f$
- * \delta_\textrm{min} = \delta(\epsilon = 1/2)\f$. They are used in the
+ * The functions \f$ F_1 = 3 \Phi_1(\delta) - \Phi_2(\delta) \f$
+ * and \f$ F_2 = 1.5\Phi_1(\delta) - 0.5\Phi_2(\delta) \f$
+ * are decreasing functions of \f$ \delta \f$ for all \f$ \delta \f$
+ * in \f$ [\delta_\textrm{min}, \delta_\textrm{max}] \f$.
+ * They reach their maximum value at
+ * \f$ \delta_\textrm{min} = \delta(\epsilon = 1/2)\f$. They are used in the
  * composition + rejection technique for sampling \f$ \epsilon \f$.
  */
 CELER_FUNCTION real_type BetheHeitlerInteractor::screening_f1(real_type delta) const
