@@ -585,10 +585,11 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
         "all{6,9}, }",
         to_string(simplified));
     // Check that the the new volumes map to the correct node
-    EXPECT_EQ(simplified.volumes().size(), 3);
-    EXPECT_EQ(simplified.volumes()[0], NodeId{7});
-    EXPECT_EQ(simplified.volumes()[1], NodeId{10});
-    EXPECT_EQ(simplified.volumes()[2], NodeId{6});
+    auto& volumes = simplified.volumes();
+    EXPECT_EQ(volumes.size(), 3);
+    EXPECT_EQ(volumes[0], NodeId{7});
+    EXPECT_EQ(volumes[1], NodeId{10});
+    EXPECT_EQ(volumes[2], NodeId{6});
 }
 
 //---------------------------------------------------------------------------//
