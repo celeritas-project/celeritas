@@ -98,7 +98,10 @@ class Involute
     CELER_FUNCTION real_type r_b() const { return std::fabs(r_b_); }
 
     //! Displacement angle
-    CELER_FUNCTION real_type a() const { return a_; }
+    CELER_FUNCTION real_type displacement_angle() const
+    {
+        return displacement_angle_;
+    }
 
     // Orientation of the involute curve
     inline CELER_FUNCTION Sign sign() const;
@@ -128,7 +131,7 @@ class Involute
 
     // Involute parameters
     real_type r_b_;  // Radius, negative if "clockwise" (flipped)
-    real_type a_;
+    real_type displacement_angle_;
 
     // Bounds
     real_type tmin_;
@@ -145,7 +148,7 @@ template<class R>
 CELER_FUNCTION Involute::Involute(Span<R, StorageSpan::extent> data)
     : origin_{data[0], data[1]}
     , r_b_{data[2]}
-    , a_{data[3]}
+    , displacement_angle_{data[3]}
     , tmin_{data[4]}
     , tmax_{data[5]}
 {
@@ -219,7 +222,7 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     }
 
     // Check if Point is on involute.
-    detail::InvolutePoint calc_point{this->r_b(), a_};
+    detail::InvolutePoint calc_point{this->r_b(), displacement_angle_};
     Real2 point = calc_point(clamp_to_nonneg(t_point_sq));
 
     if (xy == point)
@@ -245,15 +248,16 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
         theta = 2 * pi - theta;
     }
     // Count number of positive rotations around involute
-    theta += max<real_type>(real_type{0},
-                            std::floor((tmax_ + a_ - theta) / (2 * pi)))
+    theta += max<real_type>(
+                 real_type{0},
+                 std::floor((tmax_ + displacement_angle_ - theta) / (2 * pi)))
              * 2 * pi;
 
     // Calculate the displacement angle of the point
     real_type a1 = theta - std::sqrt(clamp_to_nonneg(t_point_sq));
 
     // Check if point is inside bounds
-    if (theta < tmax_ + a_ && a1 > a_)
+    if (theta < tmax_ + displacement_angle_ && a1 > displacement_angle_)
     {
         return SignedSense::inside;
     }
@@ -275,7 +279,8 @@ Involute::calc_intersections(Real3 const& pos,
     rel_pos[0] -= origin_[0];
     rel_pos[1] -= origin_[1];
 
-    detail::InvoluteSolver solve(this->r_b(), a_, this->sign(), tmin_, tmax_);
+    detail::InvoluteSolver solve(
+        this->r_b(), displacement_angle_, this->sign(), tmin_, tmax_);
 
     return solve(rel_pos, dir, on_surface);
 }
@@ -297,7 +302,7 @@ CELER_FORCEINLINE_FUNCTION Real3 Involute::calc_normal(Real3 const& pos) const
     // Calculate normal
     real_type const angle
         = std::sqrt(clamp_to_nonneg(dot_product(xy, xy) / ipow<2>(r_b_) - 1))
-          + a_;
+          + displacement_angle_;
     Real3 normal_ = {std::sin(angle), -std::cos(angle), 0};
 
     if (this->sign() == Sign::clockwise)

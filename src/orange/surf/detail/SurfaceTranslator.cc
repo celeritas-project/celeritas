@@ -118,7 +118,7 @@ Involute SurfaceTranslator::operator()(Involute const& other) const
 
     Involute invo{{origin[0], origin[1]},
                   other.r_b(),
-                  other.a(),
+                  other.displacement_angle(),
                   other.sign(),
                   other.tmin(),
                   other.tmax()};

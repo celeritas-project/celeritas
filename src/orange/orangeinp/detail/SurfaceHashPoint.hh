@@ -66,7 +66,10 @@ struct SurfaceHashPoint
         return norm(s.origin());
     }
 
-    real_type operator()(Involute const& s) const { return s.a(); }
+    real_type operator()(Involute const& s) const
+    {
+        return s.displacement_angle();
+    }
 
     real_type operator()(SimpleQuadric const& s) const
     {

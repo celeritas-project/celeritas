@@ -130,7 +130,7 @@ TEST_F(SurfaceTranslatorTest, involute)
             {1, 0}, 2.0, 0.2, detail::InvoluteSolver::Sign::clockwise, 1.0, 3.0});
         EXPECT_VEC_SOFT_EQ((Real2{3, 3}), invo.origin());
         EXPECT_SOFT_EQ(2.0, invo.r_b());
-        EXPECT_SOFT_EQ(0.2, invo.a());
+        EXPECT_SOFT_EQ(0.2, invo.displacement_angle());
         EXPECT_TRUE(detail::InvoluteSolver::Sign::clockwise == invo.sign());
         EXPECT_SOFT_EQ(1.0, invo.tmin());
         EXPECT_SOFT_EQ(3.0, invo.tmax());
@@ -141,7 +141,7 @@ TEST_F(SurfaceTranslatorTest, involute)
             {1, 0}, 2.0, 0.2, detail::InvoluteSolver::Sign::counterclockwise, 1.0, 3.0});
         EXPECT_VEC_SOFT_EQ((Real2{3, 3}), invo.origin());
         EXPECT_SOFT_EQ(2.0, invo.r_b());
-        EXPECT_SOFT_EQ(0.2, invo.a());
+        EXPECT_SOFT_EQ(0.2, invo.displacement_angle());
         EXPECT_TRUE(detail::InvoluteSolver::Sign::counterclockwise == invo.sign());
         EXPECT_SOFT_EQ(1.0, invo.tmin());
         EXPECT_SOFT_EQ(3.0, invo.tmax());

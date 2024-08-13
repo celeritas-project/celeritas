@@ -74,7 +74,8 @@ bool SoftSurfaceEqual::operator()(SphereCentered const& a,
  */
 bool SoftSurfaceEqual::operator()(Involute const& a, Involute const& b) const
 {
-    return this->soft_eq_(a.r_b(), b.r_b()) && this->soft_eq_(a.a(), b.a())
+    return this->soft_eq_(a.r_b(), b.r_b())
+           && this->soft_eq_(a.displacement_angle(), b.displacement_angle())
            && a.sign() == b.sign() && this->soft_eq_(a.tmin(), b.tmin())
            && this->soft_eq_(a.tmax(), b.tmax())
            && this->soft_eq_distance({a.origin()[0], a.origin()[1], 0},

@@ -88,49 +88,6 @@ class Box final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * An involute centered on the origin.
- *
- * \note Be aware there's also an involute *surface* at orange/surf/Involute.hh 
- * in a different namespace.
- */
-class Involute final : public IntersectRegionInterface
-{
-  public:
-    //! Enum defining chirality of involute
-    using Sign = celeritas::detail::InvoluteSolver::Sign;
-
-
-    // Construct with radius
-    explicit Involute(Real3 const& radii, Real2 const& displacement, 
-                      Sign sign, real_type halfheight);
-
-    // Build surfaces
-    void build(IntersectSurfaceBuilder&) const final;
-
-    // Output to JSON
-    void output(JsonPimpl*) const final;
-
-    //// ACCESSORS ////
-
-    //! Radius
-    Real3 radii() const { return radii_; }
-    Real2 a() const { return a_; }
-    real_type tmin() const { return tmin_; }
-    real_type tmax() const { return tmax_; }
-    Sign sign() const { return sign_; }
-    real_type hh() const { return hh_; }
-
-  private:
-    Real3 radii_;
-    Real2 a_;
-    real_type tmin_;
-    real_type tmax_;
-    Sign sign_;
-    real_type hh_;
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * A closed cone along the Z axis centered on the origin.
  *
  * A quadric cone technically defines two opposing cones that touch at a single
@@ -326,6 +283,52 @@ class GenPrism final : public IntersectRegionInterface
     VecReal2 lo_;  //!< corners of the -z face
     VecReal2 hi_;  //!< corners of the +z face
     Degenerate degen_{Degenerate::none};  //!< no plane on this z axis
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * An involute centered on the origin.
+ *
+ * \note Be aware there's also an involute *surface* at orange/surf/Involute.hh
+ * in a different namespace.
+ */
+class Involute final : public IntersectRegionInterface
+{
+  public:
+    //! Enum defining chirality of involute
+    using Sign = celeritas::detail::InvoluteSolver::Sign;
+
+    // Construct with radius
+    explicit Involute(Real3 const& radii,
+                      Real2 const& displacement,
+                      Sign sign,
+                      real_type halfheight);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Radii: Rdius of involute, minimum radius, maximum radius
+    Real3 radii() const { return radii_; }
+    //! Displacement angle
+    Real2 displacement_angle() const { return displacement_angle_; }
+    //!  Angular bounds of involute
+    Real2 t_bounds() const { return t_bounds_; }
+    //! Sign of involute
+    Sign sign() const { return sign_; }
+    //! Halfheight
+    real_type halfheight() const { return hh_; }
+
+  private:
+    Real3 radii_;
+    Real2 displacement_angle_;
+    Real2 t_bounds_;
+    Sign sign_;
+    real_type hh_;
 };
 
 //---------------------------------------------------------------------------//

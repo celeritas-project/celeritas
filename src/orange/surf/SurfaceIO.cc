@@ -114,14 +114,15 @@ std::ostream& operator<<(std::ostream& os, Involute const& s)
 {
     if (s.sign() == Involute::Sign::clockwise)
     {
-        os << "Involute cw: r=" << s.r_b() << ", a=" << constants::pi - s.a()
-           << ", t={" << s.tmin() << ',' << s.tmax() << '}' << " at "
-           << s.origin();
+        os << "Involute cw: r=" << s.r_b()
+           << ", a=" << constants::pi - s.displacement_angle() << ", t={"
+           << s.tmin() << ',' << s.tmax() << '}' << " at " << s.origin();
     }
     else
     {
-        os << "Involute ccw: r=" << s.r_b() << ", a=" << s.a() << ", t={"
-           << s.tmin() << ',' << s.tmax() << '}' << " at " << s.origin();
+        os << "Involute ccw: r=" << s.r_b() << ", a=" << s.displacement_angle()
+           << ", t={" << s.tmin() << ',' << s.tmax() << '}' << " at "
+           << s.origin();
     }
     return os;
 }

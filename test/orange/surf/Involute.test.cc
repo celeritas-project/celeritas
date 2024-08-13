@@ -35,7 +35,7 @@ TEST(InvoluteTest, construction)
     auto check_props = [](Involute const& invo) {
         EXPECT_VEC_SOFT_EQ((Real2{1, 0}), invo.origin());
         EXPECT_SOFT_EQ(2.0, invo.r_b());
-        EXPECT_SOFT_EQ(pi - 0.2, invo.a());
+        EXPECT_SOFT_EQ(pi - 0.2, invo.displacement_angle());
         EXPECT_EQ(invo.sign(), cw);
         EXPECT_SOFT_EQ(1.0, invo.tmin());
         EXPECT_SOFT_EQ(3.0, invo.tmax());
