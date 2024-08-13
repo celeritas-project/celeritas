@@ -1240,8 +1240,8 @@ TEST_F(InvoluteTest, single)
     static char const* const expected_node_strings[] = {
         "",
         "",
-        "invo@inv",
-        "invo@inv",
+        "invo@inv0",
+        "invo@inv1",
         "",
         "invo@mz",
         "invo@pz",
@@ -1301,9 +1301,9 @@ TEST_F(InvoluteTest, two_ccw)
     static char const* const expected_node_strings[] = {
         "", 
         "", 
-        "top@inv", 
+        "top@inv0", 
         "", 
-        "bottom@inv,top@inv", 
+        "bottom@inv0,top@inv1", 
         "bottom@mz,top@mz", 
         "bottom@pz,top@pz", 
         "", 
@@ -1312,7 +1312,7 @@ TEST_F(InvoluteTest, two_ccw)
         "bottom@cz,top@cz", 
         "", 
         "", 
-        "bottom@inv", 
+        "bottom@inv1", 
         ""
     };
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
@@ -1364,8 +1364,8 @@ TEST_F(InvoluteTest, two_cw)
     static char const* const expected_node_strings[] = {
         "", 
         "", 
-        "top@inv", 
-        "bottom@inv,top@inv", 
+        "top@inv0", 
+        "bottom@inv0,top@inv1", 
         "", 
         "bottom@mz,top@mz", 
         "bottom@pz,top@pz", 
@@ -1374,7 +1374,7 @@ TEST_F(InvoluteTest, two_cw)
         "", 
         "bottom@cz,top@cz", 
         "", 
-        "bottom@inv", 
+        "bottom@inv1", 
         "", 
         ""
     };

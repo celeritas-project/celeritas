@@ -117,7 +117,7 @@ std::string FaceNamer::Impl::operator()(Sphere const&) const
  */
 std::string FaceNamer::Impl::operator()(Involute const&) const
 {
-    return "inv";
+    return "inv" + std::to_string(state_->num_inv++);
 }
 
 //---------------------------------------------------------------------------//
