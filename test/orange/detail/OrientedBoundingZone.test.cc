@@ -47,14 +47,14 @@ TEST_F(OrientedBoundingZoneTest, basic)
     OrientedBoundingZone obz(inner_id, outer_id, transform_id, &ref_storage_);
 
     // Test is_inside functions
-    ASSERT_EQ(true, obz.is_inside_inner({10.5, 20.5, 30.5}));
-    ASSERT_EQ(true, obz.is_inside_outer({10.5, 20.5, 30.5}));
+    EXPECT_TRUE(obz.is_inside_inner({10.5, 20.5, 30.5}));
+    EXPECT_TRUE(obz.is_inside_outer({10.5, 20.5, 30.5}));
 
-    ASSERT_EQ(false, obz.is_inside_inner({11.5, 21.5, 31.5}));
-    ASSERT_EQ(true, obz.is_inside_outer({11.5, 21.5, 31.5}));
+    EXPECT_FALSE(obz.is_inside_inner({11.5, 21.5, 31.5}));
+    EXPECT_TRUE(obz.is_inside_outer({11.5, 21.5, 31.5}));
 
-    ASSERT_EQ(false, obz.is_inside_inner({12.5, 22.5, 32.5}));
-    ASSERT_EQ(false, obz.is_inside_outer({12.5, 22.5, 32.5}));
+    EXPECT_FALSE(obz.is_inside_inner({12.5, 22.5, 32.5}));
+    EXPECT_FALSE(obz.is_inside_outer({12.5, 22.5, 32.5}));
 
     // Test safety distance functions
     EXPECT_SOFT_EQ(1.43, obz.safety_distance_inside({10.12, 20.09, 30.57}));
