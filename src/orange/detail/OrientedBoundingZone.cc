@@ -54,7 +54,7 @@ real_type OrientedBoundingZone::safety_distance_inside(Real3 pos)
 
     if (!this->is_inside(trans_pos, inner_hw))
     {
-        return 0.;
+        return 0;
     }
 
     auto outer_hw = storage_->half_widths[outer_hw_id_];
@@ -95,7 +95,7 @@ real_type OrientedBoundingZone::safety_distance_outside(Real3 pos)
 
     if (this->is_inside(trans_pos, outer_hw))
     {
-        return 0.;
+        return 0;
     }
 
     auto inner_hw = storage_->half_widths[inner_hw_id_];
@@ -110,7 +110,7 @@ real_type OrientedBoundingZone::safety_distance_outside(Real3 pos)
                    });
 
     return std::sqrt(
-        std::inner_product(maxes.begin(), maxes.end(), maxes.begin(), 0.0));
+        std::inner_product(maxes.begin(), maxes.end(), maxes.begin(), 0.));
 }
 
 //---------------------------------------------------------------------------//
