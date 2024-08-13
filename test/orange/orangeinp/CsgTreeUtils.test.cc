@@ -556,6 +556,37 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         to_string(simplified));
 }
 
+TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
+{
+    auto s0 = this->insert(S{0});
+    auto s1 = this->insert(S{1});
+    auto n0 = this->insert(Negated{s0});
+    auto n1 = this->insert(Negated{s1});
+    auto j0 = this->insert(Joined{op_or, {n0, n1}});
+    auto n3 = this->insert(Negated{j0});
+    auto s2 = this->insert(S{2});
+    auto n4 = this->insert(Negated{s2});
+    this->insert(Joined{op_and, {n3, n4}});
+    tree_.insert_volume(j0);
+    // Check a well-formed tree
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{2}, 5: "
+        "not{3}, 6: any{4,5}, 7: not{6}, 8: surface 2, 9: not{8}, 10: "
+        "all{7,9}, }",
+        to_string(tree_));
+
+    // Complex case with a negated join with negated children
+    auto simplified = transform_negated_joins(tree_);
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{2}, 5: "
+        "not{3}, 6: all{2,3}, 7: any{4,5}, 8: surface 2, 9: not{8}, 10: "
+        "all{6,9}, }",
+        to_string(simplified));
+    // Check that the the new volumes map to the correct node
+    EXPECT_EQ(simplified.volumes().size(), 1);
+    EXPECT_EQ(simplified.volumes()[0], NodeId{7});
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace orangeinp
