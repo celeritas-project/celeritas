@@ -113,8 +113,8 @@ radii_(radii), a_(displacement), tmin_(), tmax_(), sign_(sign), hh_{halfheight}
     {
         CELER_VALIDATE(a_[i] >= 0, << "negative displacment angle: " << a_[i]);
     }
-    CELER_VALIDATE(a_[1] >= a_[0], 
-                   << "negative delta displacment: " << a_[1]-a_[0]);
+    CELER_VALIDATE(a_[1] > a_[0], 
+                   << "nonpositive delta displacment: " << a_[1]-a_[0]);
     CELER_VALIDATE(hh_ > 0, << "nonpositive half-height: " << hh_); 
 
     CELER_VALIDATE(tmin_ > 0, << "nonpositive inner radius: " << tmin_); 

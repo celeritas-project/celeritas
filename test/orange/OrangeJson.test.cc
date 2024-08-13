@@ -908,6 +908,34 @@ TEST_F(InputBuilderTest, involute_cw)
    
 }
 
+TEST_F(InputBuilderTest, involute_fuel)
+{
+    {
+        SCOPED_TRACE("involute");
+        auto result = this->track({1.75, 3.5, 0}, {0, -1, 0});
+        static char const* const expected_volumes[]
+            = {"clad2", "fuel2", "clad2", "rest2", "middle", "rest1",
+               "clad1", "fuel1", "clad1", "rest1", "middle", "rest2", "shell"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {0.12694500489541, 
+                                                       0.16591646127344, 
+                                                       0.46300647647806, 
+                                                       0.30743347115084, 
+                                                       0.65134147906653, 
+                                                       2.1115149489926, 
+                                                       0.30217303181663, 
+                                                       0.70489828892381, 
+                                                       0.39023902667286, 
+                                                       0.06188891786551, 
+                                                       0.65134147906653, 
+                                                       1.1601750562823, 
+                                                       1.0868748563143};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+
+   
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
