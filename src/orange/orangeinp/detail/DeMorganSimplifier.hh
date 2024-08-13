@@ -463,10 +463,28 @@ inline CsgTree DeMorganSimplifier::build_simplified_tree()
     for (auto volume : tree_.volumes())
     {
         // volumes should be kept, so we must have a equivalent node in the new
-        // tree
+        // tree or in the replaced tree (if the volume was pointing to a
+        // negated Join)
         CELER_EXPECT(original_new_nodes_.find(volume)
-                     != original_new_nodes_.end());
-        result.insert_volume(original_new_nodes_.find(volume)->second);
+                         != original_new_nodes_.end()
+                     || inserted_nodes_.find(volume) != inserted_nodes_.end());
+
+        // not using replace_node_id because we need to lookup
+        // original_new_nodes_ first...
+        if (auto new_id = original_new_nodes_.find(volume);
+            new_id != original_new_nodes_.end())
+        {
+            result.insert_volume(new_id->second);
+        }
+        else if (auto new_id = inserted_nodes_.find(volume);
+                 new_id != inserted_nodes_.end())
+        {
+            result.insert_volume(new_id->second);
+        }
+        else
+        {
+            CELER_ASSERT_UNREACHABLE();
+        }
     }
 
     return result;
