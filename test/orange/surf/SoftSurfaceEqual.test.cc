@@ -194,60 +194,50 @@ TEST_F(SoftSurfaceEqualTest, general_quadric)
 
 TEST_F(SoftSurfaceEqualTest, involute)
 {
-    Involute ref_ccw{{1.0,0.0},1.0, 2.0, Involute::Sign::counterclockwise, 1.0, 2.0};
-    Involute ref_cw{{1.0,0.0}, 1.0 , 2.0, Involute::Sign::clockwise, 1.0, 2.0};
+    constexpr auto ccw = Involute::Sign::counterclockwise;
+    constexpr auto cw = Involute::Sign::clockwise;
+
+    Involute ref_ccw{{1.0, 0.0}, 1.0, 2.0, ccw, 1.0, 2.0};
+    Involute ref_cw{{1.0, 0.0}, 1.0, 2.0, cw, 1.0, 2.0};
 
     // Counterclockwise
-    EXPECT_TRUE(
-        softeq_(ref_ccw, Involute{{1.0,0.0}, 1.0+small , 2.0, 
-                Involute::Sign::counterclockwise, 1.0, 2.0}));
-    EXPECT_FALSE(
-        softeq_(ref_ccw, Involute{{1.0,0.0}, 1.0+large , 2.0, 
-                Involute::Sign::counterclockwise, 1.0, 2.0}));
-    
-    EXPECT_TRUE(
-        softeq_(ref_ccw, Involute{{1.0,0.0}, 1.0 , 2.0+small, 
-                Involute::Sign::counterclockwise, 1.0, 2.0}));
-    EXPECT_FALSE(
-        softeq_(ref_ccw, Involute{{1.0,0.0}, 1.0 , 2.0+large, 
-                Involute::Sign::counterclockwise, 1.0, 2.0}));
-    
-    EXPECT_TRUE(
-        softeq_(ref_ccw, Involute{{1.0,0.0}, 1.0 , 2.0, 
-                Involute::Sign::counterclockwise, 1.0+small, 2.0}));
-    EXPECT_FALSE(
-        softeq_(ref_ccw, Involute{{1.0,0.0}, 1.0 , 2.0, 
-                Involute::Sign::counterclockwise, 1.0+large, 2.0}));
+    EXPECT_TRUE(softeq_(
+        ref_ccw, Involute{{1.0, 0.0}, 1.0 + small, 2.0, ccw, 1.0, 2.0}));
+    EXPECT_FALSE(softeq_(
+        ref_ccw, Involute{{1.0, 0.0}, 1.0 + large, 2.0, ccw, 1.0, 2.0}));
 
-    EXPECT_TRUE(
-        softeq_(ref_ccw, Involute{{1.0,0.0}, 1.0 , 2.0, 
-                Involute::Sign::counterclockwise, 1.0, 2.0+small}));
-    EXPECT_FALSE(
-        softeq_(ref_ccw, Involute{{1.0,0.0}, 1.0 , 2.0, 
-                Involute::Sign::counterclockwise, 1.0, 2.0+large}));
+    EXPECT_TRUE(softeq_(
+        ref_ccw, Involute{{1.0, 0.0}, 1.0, 2.0 + small, ccw, 1.0, 2.0}));
+    EXPECT_FALSE(softeq_(
+        ref_ccw, Involute{{1.0, 0.0}, 1.0, 2.0 + large, ccw, 1.0, 2.0}));
 
-    EXPECT_TRUE(
-        softeq_(ref_ccw, Involute{{1.0+small,0.0}, 1.0 , 2.0, 
-                Involute::Sign::counterclockwise, 1.0, 2.0}));
-    EXPECT_FALSE(
-        softeq_(ref_ccw, Involute{{1.0+large,0.0}, 1.0 , 2.0, 
-                Involute::Sign::counterclockwise, 1.0, 2.0}));
+    EXPECT_TRUE(softeq_(
+        ref_ccw, Involute{{1.0, 0.0}, 1.0, 2.0, ccw, 1.0 + small, 2.0}));
+    EXPECT_FALSE(softeq_(
+        ref_ccw, Involute{{1.0, 0.0}, 1.0, 2.0, ccw, 1.0 + large, 2.0}));
 
-    
+    EXPECT_TRUE(softeq_(
+        ref_ccw, Involute{{1.0, 0.0}, 1.0, 2.0, ccw, 1.0, 2.0 + small}));
+    EXPECT_FALSE(softeq_(
+        ref_ccw, Involute{{1.0, 0.0}, 1.0, 2.0, ccw, 1.0, 2.0 + large}));
+
+    EXPECT_TRUE(softeq_(
+        ref_ccw, Involute{{1.0 + small, 0.0}, 1.0, 2.0, ccw, 1.0, 2.0}));
+    EXPECT_FALSE(softeq_(
+        ref_ccw, Involute{{1.0 + large, 0.0}, 1.0, 2.0, ccw, 1.0, 2.0}));
+
+    EXPECT_FALSE(softeq_(ref_ccw, ref_cw));
+
     // Clockwise
     EXPECT_TRUE(
-        softeq_(ref_cw, Involute{{1.0,0.0}, 1.0+small , 2.0, 
-                Involute::Sign::clockwise, 1.0, 2.0}));
+        softeq_(ref_cw, Involute{{1.0, 0.0}, 1.0 + small, 2.0, cw, 1.0, 2.0}));
     EXPECT_FALSE(
-        softeq_(ref_cw, Involute{{1.0,0.0}, 1.0+large , 2.0, 
-                Involute::Sign::clockwise, 1.0, 2.0}));
-    
-    EXPECT_TRUE(
-        softeq_(ref_cw, Involute{{1.0,0.0}, 1.0 , 2.0+small, 
-                Involute::Sign::clockwise, 1.0+small, 2.0}));
-    EXPECT_FALSE(
-        softeq_(ref_cw, Involute{{1.0,0.0}, 1.0 , 2.0+large, 
-                Involute::Sign::clockwise, 1.0+large, 2.0}));
+        softeq_(ref_cw, Involute{{1.0, 0.0}, 1.0 + large, 2.0, cw, 1.0, 2.0}));
+
+    EXPECT_TRUE(softeq_(
+        ref_cw, Involute{{1.0, 0.0}, 1.0, 2.0 + small, cw, 1.0 + small, 2.0}));
+    EXPECT_FALSE(softeq_(
+        ref_cw, Involute{{1.0, 0.0}, 1.0, 2.0 + large, cw, 1.0 + large, 2.0}));
 }
 
 //---------------------------------------------------------------------------//
