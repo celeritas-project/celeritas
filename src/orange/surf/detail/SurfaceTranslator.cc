@@ -114,12 +114,9 @@ Sphere SurfaceTranslator::operator()(Sphere const& other) const
 Involute SurfaceTranslator::operator()(Involute const& other) const
 {
     using constants::pi;
-    using Real2 = Involute::Real2;
-    Real3 other_origin = {other.origin()[0], other.origin()[1], 0};
-    Real3 other_origin_tr_3 = tr_.transform_up(other_origin);
-    Real2 other_origin_tr = {other_origin_tr_3[0], other_origin_tr_3[1]};
+    Real3 origin = tr_.transform_up({other.origin()[0], other.origin()[1], 0});
 
-    Involute invo{other_origin_tr,
+    Involute invo{{origin[0], origin[1]},
                   other.r_b(),
                   other.a(),
                   other.sign(),
