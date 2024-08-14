@@ -156,10 +156,7 @@ void DeMorganSimplifier::add_negation_for_operands(NodeId node_id)
 {
     CELER_EXPECT(std::holds_alternative<Joined>(tree_[node_id]));
     auto* join_node = std::get_if<Joined>(&tree_[node_id]);
-    if (!join_node)
-    {
-        CELER_ASSERT_UNREACHABLE();
-    }
+
     for (auto const& join_operand : join_node->nodes)
     {
         std::visit(Overload{[&](Joined const&) {
@@ -231,11 +228,10 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                 // children
                 if (orphaned_nodes_[node_id.get()])
                 {
-                    auto orphan_node = std::get_if<Negated>(&tree_[node_id]);
-                    if (!orphan_node)
-                    {
-                        CELER_ASSERT_UNREACHABLE();
-                    }
+                    CELER_EXPECT(
+                        std::holds_alternative<Negated>(tree_[node_id]));
+                    auto* orphan_node = std::get_if<Negated>(&tree_[node_id]);
+
                     node_ids_translation_[node_id].modified
                         = node_ids_translation_[orphan_node->node].mod_unmod_or(
                             orphan_node->node);
