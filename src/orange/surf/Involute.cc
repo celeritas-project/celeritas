@@ -29,19 +29,19 @@ Involute::Involute(Real2 const& origin,
                    real_type tmax)
     : origin_(origin)
     , r_b_(radius)
-    , displacement_angle_(displacement)
+    , a_(displacement)
     , tmin_(tmin)
     , tmax_(tmax)
 {
     CELER_EXPECT(r_b_ >= 0);
-    CELER_EXPECT(displacement_angle_ >= 0
-                 && displacement_angle_ <= 2 * constants::pi);
+    CELER_EXPECT(a_ >= 0
+                 && a_ <= 2 * constants::pi);
     CELER_EXPECT(tmin_ >= 0);
     CELER_EXPECT(tmax_ > tmin_ && tmax_ < 2 * constants::pi + tmin_);
 
-    if (sign == Sign::clockwise)
+    if (sign == cw)
     {
-        displacement_angle_ = constants::pi - displacement_angle_;
+        a_ = constants::pi - a_;
         r_b_ = -r_b_;
     }
 

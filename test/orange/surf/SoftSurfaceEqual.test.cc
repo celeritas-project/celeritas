@@ -133,8 +133,9 @@ TEST_F(SoftSurfaceEqualTest, cone_aligned)
 
 TEST_F(SoftSurfaceEqualTest, involute)
 {
-    constexpr auto ccw = Involute::Sign::counterclockwise;
-    constexpr auto cw = Involute::Sign::clockwise;
+    using Sign = Chirality;
+    Sign ccw = Chirality::left;
+    Sign cw = Chirality::right;
 
     Involute ref_ccw{{1.0, 0.0}, 1.0, 2.0, ccw, 1.0, 2.0};
     Involute ref_cw{{1.0, 0.0}, 1.0, 2.0, cw, 1.0, 2.0};

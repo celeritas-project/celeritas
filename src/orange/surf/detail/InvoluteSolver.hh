@@ -50,11 +50,9 @@ class InvoluteSolver
     using Real2 = Array<real_type, 2>;
 
     //! Enum defining chirality of involute
-    enum class Sign : bool
-    {
-        counterclockwise = 0,
-        clockwise,  //!< Apply symmetry when solving
-    };
+    using Sign = Chirality;
+    Sign ccw = Chirality::left;
+    Sign cw = Chirality::right;
 
     static inline CELER_FUNCTION real_type line_angle_param(real_type u,
                                                             real_type v);
@@ -85,7 +83,7 @@ class InvoluteSolver
 
     //! Get involute parameters
     CELER_FUNCTION real_type r_b() const { return r_b_; }
-    CELER_FUNCTION real_type a() const { return displacement_angle_; }
+    CELER_FUNCTION real_type a() const { return a_; }
     CELER_FUNCTION Sign sign() const { return sign_; }
 
     //! Get bounds of the involute
@@ -96,7 +94,7 @@ class InvoluteSolver
     //// DATA ////
     // Involute parameters
     real_type r_b_;
-    real_type displacement_angle_;
+    real_type a_;
     Sign sign_;
 
     // Bounds
@@ -112,11 +110,11 @@ class InvoluteSolver
  */
 CELER_FUNCTION InvoluteSolver::InvoluteSolver(
     real_type r_b, real_type a, Sign sign, real_type tmin, real_type tmax)
-    : r_b_(r_b), displacement_angle_(a), sign_(sign), tmin_(tmin), tmax_(tmax)
+    : r_b_(r_b), a_(a), sign_(sign), tmin_(tmin), tmax_(tmax)
 {
     CELER_EXPECT(r_b > 0);
     CELER_EXPECT(a >= -constants::pi
-                 && displacement_angle_ <= 2 * constants::pi);
+                 && a_ <= 2 * constants::pi);
     CELER_EXPECT(tmax > 0);
     CELER_EXPECT(tmin >= 0);
     CELER_EXPECT(tmax < 2 * constants::pi + tmin);
@@ -153,7 +151,7 @@ InvoluteSolver::operator()(Real3 const& pos,
     real_type v = dir[1];
 
     // Mirror systemm for counterclockwise involutes
-    if (sign_ == Sign::clockwise)
+    if (sign_ == cw)
     {
         x = -x;
         u = -u;
@@ -184,7 +182,7 @@ InvoluteSolver::operator()(Real3 const& pos,
     // Setting first interval bounds, needs to be done to ensure roots are
     // found
     real_type t_lower = 0;
-    real_type t_upper = beta - displacement_angle_;
+    real_type t_upper = beta - a_;
 
     // Round t_upper to the first positive multiple of pi
     t_upper += max<real_type>(real_type{0}, -std::floor(t_upper / pi)) * pi;
@@ -194,11 +192,11 @@ InvoluteSolver::operator()(Real3 const& pos,
 
     // Lambda used for calculating the roots using Regula Falsi Iteration
     auto calc_t_intersect = [&](real_type t) {
-        real_type alpha = u * std::sin(t + displacement_angle_)
-                          - v * std::cos(t + displacement_angle_);
+        real_type alpha = u * std::sin(t + a_)
+                          - v * std::cos(t + a_);
         real_type beta = t
-                         * (u * std::cos(t + displacement_angle_)
-                            + v * std::sin(t + displacement_angle_));
+                         * (u * std::cos(t + a_)
+                            + v * std::sin(t + a_));
         return r_b_ * (alpha - beta) + x * v - y * u;
     };
 
@@ -287,7 +285,7 @@ CELER_FUNCTION real_type InvoluteSolver::line_angle_param(real_type u,
 CELER_FUNCTION real_type InvoluteSolver::calc_dist(
     real_type x, real_type y, real_type u, real_type v, real_type t) const
 {
-    detail::InvolutePoint calc_point{r_b_, displacement_angle_};
+    detail::InvolutePoint calc_point{r_b_, a_};
     Real2 point = calc_point(clamp_to_nonneg(t));
     real_type dist = 0;
 

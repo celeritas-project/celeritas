@@ -13,8 +13,6 @@
 #include "corecel/math/Turn.hh"
 #include "orange/OrangeTypes.hh"
 
-#include "../surf/detail/InvoluteSolver.hh"
-
 namespace celeritas
 {
 struct JsonPimpl;
@@ -321,7 +319,11 @@ class InfWedge final : public IntersectRegionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * An involute centered on the origin.
+ * An involute "blade" centered on the origin.
+ *
+ * This is the intersection of two parallel involutes with a cylindrical shell.
+ * The three radii, which must be in ascending order, are that of the involute,
+ * the inner cylinder, and the outer cylinder.
  *
  * \note Be aware there's also an involute *surface* at orange/surf/Involute.hh
  * in a different namespace.
@@ -329,8 +331,7 @@ class InfWedge final : public IntersectRegionInterface
 class Involute final : public IntersectRegionInterface
 {
   public:
-    //! Enum defining chirality of involute
-    using Sign = celeritas::detail::InvoluteSolver::Sign;
+    using Sign = Chirality;
 
     // Construct with radius
     explicit Involute(Real3 const& radii,
@@ -349,7 +350,7 @@ class Involute final : public IntersectRegionInterface
     //! Radii: Rdius of involute, minimum radius, maximum radius
     Real3 radii() const { return radii_; }
     //! Displacement angle
-    Real2 displacement_angle() const { return displacement_angle_; }
+    Real2 displacement_angle() const { return a_; }
     //!  Angular bounds of involute
     Real2 t_bounds() const { return t_bounds_; }
     //! Sign of involute
@@ -359,7 +360,7 @@ class Involute final : public IntersectRegionInterface
 
   private:
     Real3 radii_;
-    Real2 displacement_angle_;
+    Real2 a_;
     Real2 t_bounds_;
     Sign sign_;
     real_type hh_;

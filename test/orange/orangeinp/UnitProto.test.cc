@@ -15,6 +15,7 @@
 #include "corecel/io/Join.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "orange/OrangeTypes.hh"
 #include "orange/OrangeInputIO.json.hh"
 #include "orange/orangeinp/CsgObject.hh"
 #include "orange/orangeinp/InputBuilder.hh"
@@ -36,10 +37,10 @@ namespace test
 //---------------------------------------------------------------------------//
 using SPConstObject = std::shared_ptr<ObjectInterface const>;
 using SPConstProto = std::shared_ptr<ProtoInterface const>;
-//! Enum defining chirality of involute
-using Sign = Involute::Sign;
-constexpr auto ccw = Sign::counterclockwise;
-constexpr auto cw = Sign::clockwise;
+//! Enum defining chirality
+using Sign = celeritas::Chirality;
+Sign ccw = celeritas::Chirality::left;
+Sign cw = celeritas::Chirality::right;
 
 //---------------------------------------------------------------------------//
 // Construction helper functions

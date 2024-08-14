@@ -214,6 +214,16 @@ enum class BoundaryResult : bool
 
 //---------------------------------------------------------------------------//
 /*!
+ * Chirality of a twirly object (currently only Involute).
+ */
+enum class Chirality : bool
+{
+    left, //!< Sinistral, spiraling counterclockwise
+    right, //!< Dextral, spiraling clockwise
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Volume logic encoding.
  *
  * This uses an *unscoped* enum inside a *namespace* so that its values can be

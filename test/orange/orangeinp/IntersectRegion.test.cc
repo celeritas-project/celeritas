@@ -9,6 +9,7 @@
 
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/MatrixUtils.hh"
+#include "orange/OrangeTypes.hh"
 #include "orange/orangeinp/CsgTreeUtils.hh"
 #include "orange/orangeinp/IntersectSurfaceBuilder.hh"
 #include "orange/orangeinp/detail/CsgUnitBuilder.hh"
@@ -35,10 +36,10 @@ namespace orangeinp
 {
 namespace test
 {
-//! Enum defining chirality of involute
-using Sign = Involute::Sign;
-constexpr auto ccw = Sign::counterclockwise;
-constexpr auto cw = Sign::clockwise;
+//! Enum defining chirality
+using Sign = celeritas::Chirality;
+Sign ccw = celeritas::Chirality::left;
+Sign cw = celeritas::Chirality::right;
 //---------------------------------------------------------------------------//
 class IntersectRegionTest : public ::celeritas::test::Test
 {
@@ -1303,6 +1304,181 @@ TEST_F(InfWedgeTest, half_turn)
         EXPECT_EQ(expected_node, result.node);
         EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     }
+}
+
+//---------------------------------------------------------------------------//
+// Involute
+//---------------------------------------------------------------------------//
+using InvoluteTest = IntersectRegionTest;
+
+TEST_F(InvoluteTest, single)
+{
+    {
+        // involute
+        auto result
+            = this->test("invo",
+                         Involute({1.0,2.0,4.0},{0, 0.15667*constants::pi}, 
+                         cw, 1.0));
+
+        static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
+
+        EXPECT_EQ(expected_node, result.node);
+        EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{4, 4, 1}), result.exterior.upper());
+    }
+
+    static char const* const expected_surfaces[]
+        = {"Plane: z=-1",
+           "Plane: z=1",
+           "Cyl z: r=2",
+           "Cyl z: r=4",
+           "Involute cw: r=1, a=0, t={1.7321,4.3652} at x=0, y=0",
+           "Involute cw: r=1, a=0.49219, t={1.7321,4.3652} at x=0, y=0"};
+    EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
+
+    auto node_strings = md_strings(this->unit());
+    static char const* const expected_node_strings[] = {
+        "",
+        "",
+        "invo@mz",
+        "invo@pz",
+        "",
+        "invo@cz",
+        "invo@cz",
+        "",
+        "invo@inv0",
+        "invo@inv1",
+        "",
+        "",
+
+    };
+    EXPECT_VEC_EQ(expected_node_strings, node_strings);
+}
+
+// Counterclockwise adjacent involutes
+TEST_F(InvoluteTest, two_ccw)
+{
+    {
+        // involute
+        auto result
+            = this->test("top",
+                         Involute({1.0,2.0,4.0},{0, 0.15667*constants::pi}, 
+                         ccw, 1.0));
+
+        static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+
+        EXPECT_EQ(expected_node, result.node);
+        EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{4, 4, 1}), result.exterior.upper());
+    }
+    {
+        // bottom
+        auto result
+            = this->test("bottom",
+                         Involute({1.0,2.0,4.0},
+                         {0.15667*constants::pi, 0.31334*constants::pi}, 
+                         ccw, 1.0));
+
+        static char const expected_node[] = "all(+0, -1, +2, -3, -5, +6)";
+
+        EXPECT_EQ(expected_node, result.node);
+        EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{4, 4, 1}), result.exterior.upper());
+    }
+
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-1",
+        "Plane: z=1",
+        "Cyl z: r=2",
+        "Cyl z: r=4",
+        "Involute ccw: r=1, a=0, t={1.7321,4.3652} at x=0, y=0",
+        "Involute ccw: r=1, a=0.49219, t={1.7321,4.3652} at x=0, y=0",
+        "Involute ccw: r=1, a=0.98439, t={1.7321,4.3652} at x=0, y=0",
+    };
+    EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
+
+    auto node_strings = md_strings(this->unit());
+    static char const* const expected_node_strings[] = {
+        "", 
+        "", 
+        "bottom@mz,top@mz", 
+        "bottom@pz,top@pz", 
+        "", 
+        "bottom@cz,top@cz", 
+        "bottom@cz,top@cz", 
+        "", 
+        "top@inv0",
+        "", 
+        "bottom@inv0,top@inv1", 
+        "", 
+        "",
+        "bottom@inv1", 
+        ""
+    };
+    EXPECT_VEC_EQ(expected_node_strings, node_strings);
+}
+
+// Clockwise varient of previous
+TEST_F(InvoluteTest, two_cw)
+{
+    {
+        // involute
+        auto result
+            = this->test("top",
+                         Involute({1.0,2.0,4.0},{0, 0.15667*constants::pi}, 
+                         cw, 1.0));
+
+        static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
+
+        EXPECT_EQ(expected_node, result.node);
+        EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{4, 4, 1}), result.exterior.upper());
+    }
+    {
+        // bottom
+        auto result
+            = this->test("bottom",
+                         Involute({1.0,2.0,4.0},
+                         {0.15667*constants::pi, 0.31334*constants::pi}, 
+                         cw, 1.0));
+
+        static char const expected_node[] = "all(+0, -1, +2, -3, +5, -6)";
+
+        EXPECT_EQ(expected_node, result.node);
+        EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{4, 4, 1}), result.exterior.upper());
+    }
+
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-1",
+        "Plane: z=1",
+        "Cyl z: r=2",
+        "Cyl z: r=4",
+        "Involute cw: r=1, a=0, t={1.7321,4.3652} at x=0, y=0",
+        "Involute cw: r=1, a=0.49219, t={1.7321,4.3652} at x=0, y=0",
+        "Involute cw: r=1, a=0.98439, t={1.7321,4.3652} at x=0, y=0",
+    };
+    EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
+
+    auto node_strings = md_strings(this->unit());
+    static char const* const expected_node_strings[] = {
+        "", 
+        "", 
+        "bottom@mz,top@mz", 
+        "bottom@pz,top@pz", 
+        "", 
+        "bottom@cz,top@cz", 
+        "bottom@cz,top@cz", 
+        "", 
+        "top@inv0", 
+        "bottom@inv0,top@inv1", 
+        "", 
+        "", 
+        "bottom@inv1",
+        "",  
+        ""
+    };
+    EXPECT_VEC_EQ(expected_node_strings, node_strings);
 }
 
 //---------------------------------------------------------------------------//

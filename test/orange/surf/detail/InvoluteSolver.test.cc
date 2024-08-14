@@ -19,9 +19,9 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 using constants::pi;
-using Sign = celeritas::detail::InvoluteSolver::Sign;
-constexpr auto ccw = Sign::counterclockwise;
-constexpr auto cw = Sign::clockwise;
+using Sign = Chirality;
+Sign ccw = Chirality::left;
+Sign cw = Chirality::right;
 using SurfaceSate = celeritas::SurfaceState;
 
 TEST(SolveSurface, no_roots)
@@ -32,7 +32,7 @@ TEST(SolveSurface, no_roots)
     {
         real_type r_b = 3.0;
         real_type a = 0;
-        auto sign = Sign::counterclockwise;
+        auto sign = ccw;
 
         real_type x = 0;
         real_type y = -2;

@@ -23,11 +23,10 @@ namespace test
 //---------------------------------------------------------------------------//
 
 using constants::pi;
-using Sign = Involute::Sign;
+using Sign = Chirality;
+Sign ccw = Chirality::left;
+Sign cw = Chirality::right;
 using Real2 = Involute::Real2;
-
-constexpr auto ccw = Sign::counterclockwise;
-constexpr auto cw = Sign::clockwise;
 
 //---------------------------------------------------------------------------//
 TEST(InvoluteTest, construction)

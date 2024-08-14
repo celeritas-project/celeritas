@@ -47,13 +47,13 @@ class InvolutePoint
 
     //! Get involute parameters
     CELER_FUNCTION real_type r_b() const { return r_b_; }
-    CELER_FUNCTION real_type a() const { return displacement_angle_; }
+    CELER_FUNCTION real_type a() const { return a_; }
 
   private:
     //// DATA ////
     // Involute parameters
     real_type r_b_;
-    real_type displacement_angle_;
+    real_type a_;
 };
 
 //---------------------------------------------------------------------------//
@@ -63,7 +63,7 @@ class InvolutePoint
  * Construct from involute parameters.
  */
 CELER_FUNCTION InvolutePoint::InvolutePoint(real_type r_b, real_type a)
-    : r_b_(r_b), displacement_angle_(a)
+    : r_b_(r_b), a_(a)
 {
     CELER_EXPECT(r_b > 0);
     CELER_EXPECT(a >= 0);
@@ -74,7 +74,7 @@ CELER_FUNCTION InvolutePoint::InvolutePoint(real_type r_b, real_type a)
  */
 CELER_FUNCTION Real2 InvolutePoint::operator()(real_type theta) const
 {
-    real_type angle = theta + displacement_angle_;
+    real_type angle = theta + a_;
     Real2 point;
     // TODO: check that compiler avoids recomputing trig functions
     point[0] = r_b_ * (std::cos(angle) + theta * std::sin(angle));

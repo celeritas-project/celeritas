@@ -11,6 +11,7 @@
 #include <ostream>
 
 #include "corecel/cont/ArrayIO.hh"
+#include "orange/OrangeTypes.hh"
 
 #include "ConeAligned.hh"  // IWYU pragma: associated
 #include "CylAligned.hh"  // IWYU pragma: associated
@@ -74,19 +75,20 @@ std::ostream& operator<<(std::ostream& os, GeneralQuadric const& s)
 //---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, Involute const& s)
 {
-    if (s.sign() == Involute::Sign::clockwise)
+    real_type a = s.displacement_angle();
+    os << "Involute ";
+    if (s.sign() == Chirality::right)
     {
-        os << "Involute cw: r=" << s.r_b()
-           << ", a=" << constants::pi - s.displacement_angle() << ", t={"
-           << s.tmin() << ',' << s.tmax() << '}' << " at " << s.origin();
+        os << "cw: r=" << s.r_b();
+        a = constants::pi - s.displacement_angle();
     }
     else
     {
-        os << "Involute ccw: r=" << s.r_b() << ", a=" << s.displacement_angle()
-           << ", t={" << s.tmin() << ',' << s.tmax() << '}' << " at "
-           << s.origin();
+        os << "ccw: r=" << s.r_b();
+        a = s.displacement_angle();
     }
-    return os;
+    return os << ", a=" << a << ", t={" << s.tmin() << ',' << s.tmax() 
+              << "} at x=" << s.origin()[0] << ", y=" << s.origin()[1];
 }
 
 //---------------------------------------------------------------------------//
