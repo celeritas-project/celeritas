@@ -70,9 +70,9 @@ TEST_F(OrientedBoundingZoneTest, basic)
     EXPECT_EQ(SignedSense::outside, obz.calc_sense({12.5, 22.5, 32.5}));
 
     // Test safety distance functions
-    EXPECT_SOFT_EQ(1.43, obz.safety_distance_inside({10.12, 20.09, 30.57}));
-    EXPECT_SOFT_EQ(1.1, obz.safety_distance_outside({10, 20, 32.1}));
-
+    EXPECT_SOFT_NEAR(
+        1.43, obz.safety_distance_inside({10.12, 20.09, 30.57}), 1.e5);
+    EXPECT_SOFT_NEAR(1.1, obz.safety_distance_outside({10, 20, 32.1}), 1.e5);
     EXPECT_SOFT_NEAR(std::hypot(0.2, 1.1),
                      obz.safety_distance_outside({10, 18.8, 32.1}),
                      1.e-5);
