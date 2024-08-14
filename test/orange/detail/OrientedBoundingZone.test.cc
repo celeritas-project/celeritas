@@ -55,9 +55,12 @@ TEST_F(OrientedBoundingZoneTest, basic)
     transforms_ref_ = transforms_;
     reals_ref_ = reals_;
 
+    OrientedBoundingZoneRecord obz_record{inner_id, outer_id, transform_id};
+
     OrientedBoundingZone::Storage storage{
         &half_widths_ref_, &transforms_ref_, &reals_ref_};
-    OrientedBoundingZone obz(inner_id, outer_id, transform_id, &storage);
+
+    OrientedBoundingZone obz(&obz_record, &storage);
 
     // Test senses
     EXPECT_EQ(SignedSense::inside, obz.calc_sense({10.5, 20.5, 30.5}));

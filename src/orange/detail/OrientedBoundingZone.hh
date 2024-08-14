@@ -48,10 +48,9 @@ class OrientedBoundingZone
 
   public:
     // Construct from inner/outer half-widths and a corresponding transform
-    inline CELER_FUNCTION OrientedBoundingZone(Real3Id inner_hw_id,
-                                               Real3Id outer_hw_id,
-                                               TransformId transform_id,
-                                               Storage* storage);
+    inline CELER_FUNCTION
+    OrientedBoundingZone(OrientedBoundingZoneRecord const* obz_record,
+                         Storage const* storage);
 
     // Calculate the safety distance for any position inside the outer box
     inline CELER_FUNCTION real_type safety_distance_inside(Real3 pos);
@@ -64,10 +63,8 @@ class OrientedBoundingZone
 
   private:
     // >> DATA
-    Real3Id inner_hw_id_;
-    Real3Id outer_hw_id_;
-    TransformId transform_id_;
-    Storage* storage_;
+    OrientedBoundingZoneRecord const* obz_record_;
+    Storage const* storage_;
 
     //// HELPER METHODS ////
 
@@ -90,15 +87,11 @@ class OrientedBoundingZone
  * Construct from inner/outer half-widths and a corresponding transform.
  */
 CELER_FUNCTION
-OrientedBoundingZone::OrientedBoundingZone(Real3Id inner_hw_id,
-                                           Real3Id outer_hw_id,
-                                           TransformId transform_id,
-                                           Storage* storage)
-    : inner_hw_id_(inner_hw_id)
-    , outer_hw_id_(outer_hw_id)
-    , transform_id_(transform_id)
-    , storage_(storage)
+OrientedBoundingZone::OrientedBoundingZone(
+    OrientedBoundingZoneRecord const* obz_record, Storage const* storage)
+    : obz_record_(obz_record), storage_(storage)
 {
+    CELER_EXPECT(*obz_record);
     CELER_EXPECT(storage_);
 }
 
@@ -122,12 +115,12 @@ CELER_FUNCTION real_type OrientedBoundingZone::safety_distance_inside(Real3 pos)
 
     auto trans_pos = this->quadrant_zero(this->translate(pos));
 
-    if (!this->is_inside(trans_pos, this->get_hw(inner_hw_id_)))
+    if (!this->is_inside(trans_pos, this->get_hw(obz_record_->inner_hw_id)))
     {
         return 0;
     }
 
-    auto outer_hw = this->get_hw(outer_hw_id_);
+    auto outer_hw = this->get_hw(obz_record_->outer_hw_id);
 
     real_type min_dist = numeric_limits<real_type>::infinity();
     for (auto ax : range(Axis::size_))
@@ -164,14 +157,14 @@ CELER_FUNCTION real_type OrientedBoundingZone::safety_distance_outside(Real3 pos
     CELER_EXPECT(this->calc_sense(pos) != SignedSense::inside);
 
     auto trans_pos = this->quadrant_zero(this->translate(pos));
-    auto outer_hw = this->get_hw(outer_hw_id_);
+    auto outer_hw = this->get_hw(obz_record_->outer_hw_id);
 
     if (this->is_inside(trans_pos, outer_hw))
     {
         return 0;
     }
 
-    auto inner_hw = this->get_hw(inner_hw_id_);
+    auto inner_hw = this->get_hw(obz_record_->inner_hw_id);
 
     real_type min_squared = 0;
     for (auto ax : range(Axis::size_))
@@ -195,11 +188,11 @@ CELER_FUNCTION SignedSense OrientedBoundingZone::calc_sense(Real3 const& pos)
 {
     auto trans_pos = this->translate(pos);
 
-    if (this->is_inside(trans_pos, this->get_hw(inner_hw_id_)))
+    if (this->is_inside(trans_pos, this->get_hw(obz_record_->inner_hw_id)))
     {
         return SignedSense::inside;
     }
-    else if (this->is_inside(trans_pos, this->get_hw(outer_hw_id_)))
+    else if (this->is_inside(trans_pos, this->get_hw(obz_record_->outer_hw_id)))
     {
         return SignedSense::on;
     }
@@ -222,7 +215,7 @@ CELER_FUNCTION Real3 OrientedBoundingZone::translate(Real3 const& pos)
     auto transform_down
         = [&pos, &trans_pos](auto&& t) { trans_pos = t.transform_down(pos); };
 
-    apply_transform(transform_down, transform_id_);
+    apply_transform(transform_down, obz_record_->transform_id);
     return trans_pos;
 }
 
@@ -246,8 +239,8 @@ CELER_FUNCTION Real3 OrientedBoundingZone::quadrant_zero(Real3 const& pos)
 /*!
  * Determine if a translated position is inside a translated box.
  *
- * The box is assumed to have the translation of transform_id_ with the given
- * half-widths.
+ * The box is assumed to have the translation of obz_record_->transform_id with
+ * the given half-widths.
  *
  * This function takes a position that has already been translated into the
  * local coordinate system of the OBZ to prevent cases where translations

@@ -136,6 +136,23 @@ struct ConnectivityRecord
 
 //---------------------------------------------------------------------------//
 /*!
+ * Data for an a single OrientedBoundingZone.
+ */
+struct OrientedBoundingZoneRecord
+{
+    Real3Id inner_hw_id;
+    Real3Id outer_hw_id;
+    TransformId transform_id;
+
+    //! True if assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return inner_hw_id && outer_hw_id && transform_id;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Class for storing offset data for RaggedRightIndexer.
  */
 template<size_type N>
