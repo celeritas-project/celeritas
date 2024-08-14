@@ -7,7 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 #include <unordered_map>
-#include <unordered_set>
+#include <vector>
 
 #include "orange/orangeinp/CsgTree.hh"
 #include "orange/orangeinp/CsgTypes.hh"
@@ -39,7 +39,7 @@ class DeMorganSimplifier
 {
   public:
     //! Construct a simplifier for the given tree
-    explicit DeMorganSimplifier(CsgTree const& tree) : tree_(tree) {}
+    explicit DeMorganSimplifier(CsgTree const&);
 
     // Perform the simplification
     CsgTree operator()();
@@ -70,15 +70,6 @@ class DeMorganSimplifier
         NodeId mod_unmod_or(NodeId default_id) const noexcept;
     };
 
-    //!@{
-    //! \name Set of NodeId
-    using NodeIdSet = std::unordered_set<NodeId>;
-    //! \name Map of NodeId, caching a pointer to the concrete type of a Node
-    //! in the tree
-    template<class T>
-    using CachedNodeMap = std::unordered_map<NodeId, T const*>;
-    //!@}
-
     // Unflag a node an its descendent previously marked as orphan
     void record_parent_for(NodeId);
 
@@ -100,24 +91,22 @@ class DeMorganSimplifier
     //! the tree to simplify
     CsgTree const& tree_;
 
-    //! For each node_id of these node ids, we must create a \c Negated parent
-    NodeIdSet new_negated_nodes_;
+    //! Set when we must insert a \c Negated parent for the given index
+    std::vector<bool> new_negated_nodes_;
 
-    //! These \c Joined nodes have a \c Negated parent, so we need to insert an
-    //! opposite join node with negated operands. The value is the node
-    //! in tree_ referred to by the key
-    CachedNodeMap<Joined> negated_join_nodes_;
+    //! Set when \c Joined nodes have a \c Negated parent, so we need to insert
+    //! an opposite join node with negated operands
+    std::vector<bool> negated_join_nodes_;
 
-    //! Contains the node_id of \c Negated nodes with a \c Joined child. These
+    //! Set at node_id of \c Negated nodes with a \c Joined child. These
     //! nodes don't need to be inserted in the new tree and their parent can be
-    //! redirected to the newly inserted opposite join. The value is the node
-    //! in tree_ referred to by the key
-    CachedNodeMap<Negated> simplified_negated_nodes_;
+    //! redirected to the newly inserted opposite join
+    std::vector<bool> simplified_negated_nodes_;
 
-    //! An orphan node should not be present in the final simplified tree.
-    //! The node id can only be referring to a Negated or a Joined Node
-    //! Other nodes should never become Orphans
-    NodeIdSet orphaned_nodes_;
+    //! Set for orphan nodes which should not be present in the final
+    //! simplified tree. The node id can only be set for a Negated or a Joined
+    //! Node, other nodes should never become Orphans
+    std::vector<bool> orphaned_nodes_;
 
     //! Used during construction of the simplified tree to map replaced nodes
     //! in the original tree to their new id in the simplified tree
