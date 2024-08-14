@@ -366,20 +366,7 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
                     // have be inserted in process_negated_joined_nodes
                     for (auto& op : joined.nodes)
                     {
-                        // if the operand is a Negated{Joined}, we should have
-                        // a simplified version already inserted
-                        if (auto* negated = std::get_if<Negated>(&tree_[op]);
-                            negated
-                            && std::get_if<Joined>(&tree_[negated->node]))
-                        {
-                            op = node_ids_translation_[op].mod_unmod_or(op);
-                        }
-                        // otherwise, only search unmodified nodes
-                        else if (auto& new_id = node_ids_translation_[op];
-                                 new_id.unmodified)
-                        {
-                            op = *new_id.unmodified;
-                        }
+                        op = node_ids_translation_[op].unmod_mod_or(op);
                     }
                 },
                 [](auto&&) {},
