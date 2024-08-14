@@ -12,6 +12,7 @@
 #include <thrust/partition.h>
 #include <thrust/remove.h>
 #include <thrust/scan.h>
+#include <thrust/sequence.h>
 
 #include "corecel/Macros.hh"
 #include "corecel/data/ObserverPtr.device.hh"
@@ -80,22 +81,32 @@ size_type exclusive_scan_counts(
 //---------------------------------------------------------------------------//
 /*!
  * Sort the tracks that will be initialized in this step by charged/neutral.
+ *
+ * This partitions an array of indices used to access the track initializers
+ * and the thread IDs of the initializers' parent tracks.
  */
 void partition_initializers(
     CoreParams const& params,
-    Collection<TrackInitializer, Ownership::reference, MemSpace::device> const&
-        init,
+    TrackInitStateData<Ownership::reference, MemSpace::device> const& init,
     CoreStateCounters const& counters,
     size_type count,
     StreamId stream_id)
 {
     ScopedProfiling profile_this{"partition-initializers"};
-    auto end = device_pointer_cast(init.data()) + counters.num_initializers;
-    auto start = end - count;
-    thrust::stable_partition(thrust_execute_on(stream_id),
-                             start,
-                             end,
-                             IsNeutral{params.ptr<MemSpace::native>()});
+
+    // Reset the indices
+    auto start = device_pointer_cast(init.indices.data());
+    auto end = start + count;
+    thrust::sequence(thrust_execute_on(stream_id), start, end, 0);
+
+    // Partition the indices based on the track initializer charge
+    auto stencil = static_cast<TrackInitializer*>(init.initializers.data())
+                   + counters.num_initializers - count;
+    thrust::stable_partition(
+        thrust_execute_on(stream_id),
+        start,
+        end,
+        IsNeutralStencil{params.ptr<MemSpace::native>(), stencil});
     CELER_DEVICE_CHECK_ERROR();
 }
 

@@ -77,7 +77,11 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
     // most recently added and therefore the ones that still might have a
     // parent they can copy the geometry state from.
     auto const& data = state->init;
-    ItemId<TrackInitializer> idx{index_before(counters.num_initializers, tid)};
+    ItemId<TrackInitializer> idx{
+        params->init.track_order == TrackOrder::partition_charge
+            ? data.indices[TrackSlotId(index_before(num_new_tracks, tid))]
+                  + counters.num_initializers - num_new_tracks
+            : index_before(counters.num_initializers, tid)};
     TrackInitializer const& init = data.initializers[idx];
 
     // View to the new track to be initialized
@@ -102,18 +106,28 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
     // Initialize the geometry
     {
         auto geo = vacancy.make_geo_view();
-        if (tid < counters.num_secondaries
-            && params->init.track_order != TrackOrder::partition_charge)
+        auto parent_id = [&] {
+            if (!(tid < counters.num_secondaries))
+            {
+                return TrackSlotId{};
+            }
+            if (params->init.track_order == TrackOrder::partition_charge)
+            {
+                return data.parents[TrackSlotId(
+                    data.indices[TrackSlotId(index_before(num_new_tracks, tid))]
+                    + data.parents.size() - num_new_tracks)];
+            }
+            return data
+                .parents[TrackSlotId(index_before(data.parents.size(), tid))];
+        }();
+
+        if (parent_id)
         {
-            // Copy the geometry state from the parent for improved
-            // performance, unless the track initializers have been
-            // partitioned by charge
-            TrackSlotId parent_id = data.parents[TrackSlotId{
-                index_before(data.parents.size(), tid)}];
+            // Copy the geometry state from the parent for improved performance
             GeoTrackView const parent_geo(
                 params->geometry, state->geometry, parent_id);
+            CELER_ASSERT(parent_geo.pos() == init.geo.pos);
             geo = GeoTrackView::DetailedInitializer{parent_geo, init.geo.dir};
-            CELER_ASSERT(!geo.is_outside());
         }
         else
         {

@@ -68,7 +68,7 @@ void InitializeTracksAction::execute_impl(CoreParams const& core_params,
         {
             // Partition tracks by whether they are charged or neutral
             detail::partition_initializers(core_params,
-                                           core_state.ref().init.initializers,
+                                           core_state.ref().init,
                                            counters,
                                            num_new_tracks,
                                            core_state.stream_id());

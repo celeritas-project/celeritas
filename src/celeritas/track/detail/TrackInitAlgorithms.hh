@@ -43,13 +43,13 @@ size_type exclusive_scan_counts(
 // Sort the tracks that will be initialized in this step by charged/neutral
 void partition_initializers(
     CoreParams const&,
-    Collection<TrackInitializer, Ownership::reference, MemSpace::host> const&,
+    TrackInitStateData<Ownership::reference, MemSpace::host> const&,
     CoreStateCounters const&,
     size_type,
     StreamId);
 void partition_initializers(
     CoreParams const&,
-    Collection<TrackInitializer, Ownership::reference, MemSpace::device> const&,
+    TrackInitStateData<Ownership::reference, MemSpace::device> const&,
     CoreStateCounters const&,
     size_type,
     StreamId);
@@ -74,7 +74,7 @@ inline size_type exclusive_scan_counts(
 
 inline void partition_initializers(
     CoreParams const&,
-    Collection<TrackInitializer, Ownership::reference, MemSpace::device> const&,
+    TrackInitStateData<Ownership::reference, MemSpace::device> const&,
     CoreStateCounters const&,
     size_type,
     StreamId)

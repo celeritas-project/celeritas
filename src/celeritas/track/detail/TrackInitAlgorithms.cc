@@ -73,19 +73,27 @@ size_type exclusive_scan_counts(
 //---------------------------------------------------------------------------//
 /*!
  * Sort the tracks that will be initialized in this step by charged/neutral.
+ *
+ * This partitions an array of indices used to access the track initializers
+ * and the thread IDs of the initializers' parent tracks.
  */
 void partition_initializers(
     CoreParams const& params,
-    Collection<TrackInitializer, Ownership::reference, MemSpace::host> const& init,
+    TrackInitStateData<Ownership::reference, MemSpace::host> const& init,
     CoreStateCounters const& counters,
     size_type count,
     StreamId)
 {
-    auto* end = static_cast<TrackInitializer*>(init.data())
-                + counters.num_initializers;
-    auto* start = end - count;
+    // Reset the indices
+    auto start = static_cast<size_type*>(init.indices.data());
+    auto end = start + count;
+    std::iota(start, end, 0);
+
+    // Partition the indices based on the track initializer charge
+    auto stencil = static_cast<TrackInitializer*>(init.initializers.data())
+                   + counters.num_initializers - count;
     std::stable_partition(
-        start, end, IsNeutral{params.ptr<MemSpace::native>()});
+        start, end, IsNeutralStencil{params.ptr<MemSpace::native>(), stencil});
 }
 
 //---------------------------------------------------------------------------//
