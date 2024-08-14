@@ -57,17 +57,18 @@ tracking loop:
 Optical materials
 =================
 
-Optical volume and surface properties are imported from Geant4 (see below).
+.. doxygenclass:: celeritas::optical::MaterialParams
 
 Offloading
 ==========
 
-During the main :ref:`stepping loop <api_stepping>`, the ``OpticalCollector``
+During the main :ref:`stepping loop <api_stepping>`, the :cpp:class:`celeritas::OpticalCollector`
 class adds a pre-step hook to store each track's speed, position, time, and
 material; at the end of the step, the track's updated properties and
 within-step energy distribution are used to "offload" optical photons by
 generating *distribution parameters* to be sampled in the stepping loop.
 
+.. doxygenclass:: celeritas::OpticalCollector
 .. doxygenclass:: celeritas::CerenkovOffload
 .. doxygenclass:: celeritas::ScintillationOffload
 .. doxygenstruct:: celeritas::optical::GeneratorDistributionData
