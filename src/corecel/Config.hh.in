@@ -17,13 +17,7 @@
 #pragma once
 
 //---------------------------------------------------------------------------//
-// Detailed CMake configuration information
-//---------------------------------------------------------------------------//
-
-@CELERITAS_CMAKE_STRINGS@
-
-//---------------------------------------------------------------------------//
-// Configuration-specific options for Celeritas
+// User-configurable options for Celeritas
 //---------------------------------------------------------------------------//
 
 #cmakedefine01 CELERITAS_USE_CUDA
@@ -52,7 +46,13 @@
 #define CELERITAS_MAX_BLOCK_SIZE @CELERITAS_MAX_BLOCK_SIZE@
 
 //---------------------------------------------------------------------------//
-// System-specific configuration options for Celeritas
+// Detailed CMake configuration information
+//---------------------------------------------------------------------------//
+
+@CELERITAS_CMAKE_STRINGS@
+
+//---------------------------------------------------------------------------//
+// System-specific properties for Celeritas
 //---------------------------------------------------------------------------//
 
 #cmakedefine01 CELERITAS_HAVE_ROCTX
