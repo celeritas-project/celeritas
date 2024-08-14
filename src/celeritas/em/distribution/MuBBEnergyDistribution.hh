@@ -13,8 +13,8 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
+#include "celeritas/random/distribution/InverseSquareDistribution.hh"
+#include "celeritas/random/distribution/RejectionSampler.hh"
 
 namespace celeritas
 {
@@ -32,7 +32,7 @@ class MuBBEnergyDistribution
     //!@}
 
   public:
-    // Construct with data from MollerBhabhaInteractor
+    // Construct with data from MuBetheBlochInteractor
     inline CELER_FUNCTION MuBBEnergyDistribution(Energy inc_energy,
                                                  Mass inc_mass,
                                                  real_type beta_sq,
@@ -127,14 +127,16 @@ MuBBEnergyDistribution::MuBBEnergyDistribution(Energy inc_energy,
 template<class Engine>
 CELER_FUNCTION auto MuBBEnergyDistribution::operator()(Engine& rng) -> Energy
 {
+    // Sample from electron cutoff to max secondary energy
+    InverseSquareDistribution sample_energy{electron_cutoff_,
+                                            max_secondary_energy_};
+
     real_type energy;
     real_type target;
     do
     {
-        energy = electron_cutoff_ * max_secondary_energy_
-                 / UniformRealDistribution(electron_cutoff_,
-                                           max_secondary_energy_)(rng);
-        target = 1 - beta_sq_ * energy / max_secondary_energy_
+        energy = sample_energy(rng);
+        target = 1 - (beta_sq_ / max_secondary_energy_) * energy
                  + real_type(0.5) * ipow<2>(energy / total_energy_);
 
         if (use_rad_correction_
@@ -145,14 +147,14 @@ CELER_FUNCTION auto MuBBEnergyDistribution::operator()(Engine& rng) -> Energy
                                     / ipow<2>(inc_mass_));
             target *= (1 + alpha_over_twopi() * a1 * (a3 - a1));
         }
-    } while (!BernoulliDistribution(target / envelope_)(rng));
+    } while (RejectionSampler<>(target, envelope_)(rng));
 
     return Energy{energy};
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate envelope distribution for rejection sampling of secondary energy.
+ * Calculate envelope maximum for rejection sampling of secondary energy.
  */
 CELER_FUNCTION real_type MuBBEnergyDistribution::calc_envelope_distribution() const
 {

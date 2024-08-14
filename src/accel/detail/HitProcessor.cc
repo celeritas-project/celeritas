@@ -201,8 +201,10 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
                    out.points[sp].energy,
                    CLHEP::MeV);
             HP_SET(points[sp]->SetMomentumDirection, out.points[sp].dir, 1);
-            // TODO: Celeritas currently ignores incoming particle weight and
-            // does not perform any variance reduction. See issue #1268.
+            /*!
+             * \todo Celeritas currently ignores incoming particle weight and
+             * does not perform any variance reduction. See issue #1268.
+             */
             points[sp]->SetWeight(1.0);
         }
 #undef HP_SET

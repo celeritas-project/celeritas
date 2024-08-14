@@ -16,6 +16,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
  * Material dependent scintillation property.
@@ -183,4 +185,5 @@ struct ScintillationData
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

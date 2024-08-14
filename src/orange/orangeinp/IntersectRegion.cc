@@ -514,8 +514,9 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
         insert_surface(Sense::inside, PlaneZ{hz_});
     }
 
-    // TODO: use plane normal equality from SoftSurfaceEqual, or maybe soft
-    // equivalence on twist angle cosine?
+    /*! \todo Use plane normal equality from SoftSurfaceEqual, or maybe soft
+     * equivalence on twist angle cosine?
+     */
     SoftEqual soft_equal{insert_surface.tol().rel};
 
     // Build the side planes
@@ -636,7 +637,7 @@ void InfWedge::build(IntersectSurfaceBuilder& insert_surface) const
     insert_surface(Sense::inside, Plane{Real3{sinstart, -cosstart, 0}, 0.0});
     insert_surface(Sense::outside, Plane{Real3{sinend, -cosend, 0}, 0.0});
 
-    // TODO: restrict bounding boxes, at least eliminating two quadrants...
+    //! \todo Restrict bounding boxes, at least eliminating two quadrants...
 }
 
 //---------------------------------------------------------------------------//

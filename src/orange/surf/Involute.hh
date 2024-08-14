@@ -70,11 +70,12 @@ class Involute
 
     // Surface type identifier
     static CELER_CONSTEXPR_FUNCTION SurfaceType surface_type()
+
     {
         return SurfaceType::inv;
     }
 
-    // Safety
+    //! Safety cannot be trivially calculated
     static CELER_CONSTEXPR_FUNCTION bool simple_safety() { return false; }
 
   public:

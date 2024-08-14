@@ -108,12 +108,12 @@ G4int log_impl(G4String const& str, LogLevel level)
 /*!
  * Send Geant4 log messages to Celeritas' world logger.
  */
-class GeantLoggerAdapter : public G4coutDestination
+class GeantLoggerAdapter final : public G4coutDestination
 {
   public:
     // Assign to Geant handlers on construction
     GeantLoggerAdapter();
-    ~GeantLoggerAdapter();
+    ~GeantLoggerAdapter() final;
 
     // Handle error messages
     G4int ReceiveG4cout(G4String const& str) final;

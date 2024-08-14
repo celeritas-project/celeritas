@@ -31,12 +31,12 @@ class ParticleParams;
  * The total scaled bremsstrahlung differential cross section for an element Z
  * is defined as
  * \f[
- *   \chi(Z,E,\kappa) = \frac{\beta^2}{Z^2} k \frac{\dif \sigma}{\dif k},
+ *   \chi(Z,E,\kappa) = \frac{\beta^2}{Z^2} k \difd{\sigma}{k},
  * \f]
  * where \f$ \kappa = k / E \f$ is the ratio of the emitted photon energy to
  * the incident charged particle energy, \f$ \beta \f$ is the ratio of the
  * charged particle velocity to the speed of light, and
- * \f$ \frac{\dif \sigma}{\dif k} \f$ is the bremsstrahlung differential cross
+ * \f$ \difd{\sigma}{k} \f$ is the bremsstrahlung differential cross
  * section.
  *
  * Seltzer and Berger have tabulated the scaled DCS (in mb) for elements Z = 1

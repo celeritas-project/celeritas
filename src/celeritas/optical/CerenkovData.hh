@@ -16,6 +16,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
  * Cerenkov angle integrals tablulated as a function of photon energy.
@@ -55,4 +57,5 @@ struct CerenkovData
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

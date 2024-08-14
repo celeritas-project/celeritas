@@ -22,9 +22,13 @@ constexpr std::size_t dynamic_extent = detail::dynamic_extent;
 
 //---------------------------------------------------------------------------//
 /*!
- * Modified backport of C++20 span.
+ * Non-owning reference to a contiguous span of data.
  * \tparam T value type
  * \tparam Extent fixed size; defaults to dynamic.
+ *
+ * This Span class is a modified backport of the C++20 \c std::span . In
+ * Celeritas, it is often used as a return value from accessing elements in a
+ * \c Collection.
  *
  * Like the \ref celeritas::Array , this class isn't 100% compatible
  * with the \c std::span class (partly of course because language features

@@ -60,8 +60,10 @@ BIHTree BIHBuilder::operator()(VecBBox&& bboxes)
         else if (is_infinite(temp_.bboxes[i]))
         {
             // Infinite in *every* direction
-            // TODO: make an exception for "EXTERIOR" volume and remove the
-            // "infinite volume" exceptions?
+            /*!
+             * \todo make an exception for "EXTERIOR" volume and remove the
+             * "infinite volume" exceptions?
+             */
             inf_volids.push_back(id);
         }
         else

@@ -21,6 +21,10 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Interface class for accessing host geometry metadata.
+ *
+ * This class is implemented by \c OrangeParams to allow navigation with the
+ * ORANGE geometry implementation, \c VecgeomParams for using VecGeom, and \c
+ * GeantGeoParams for testing with the Geant4-provided navigator.
  */
 class GeoParamsInterface
 {

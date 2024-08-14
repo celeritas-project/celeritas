@@ -155,7 +155,7 @@ SimpleUnitTracker::SimpleUnitTracker(ParamsRef const& params, SimpleUnitId suid)
  * To avoid edge cases and inconsistent logical/physical states, it is
  * prohibited to initialize from an arbitrary point directly onto a surface.
  *
- * \todo this prohibition currently also extends to *internal* surfaces, even
+ * \todo This prohibition currently also extends to *internal* surfaces, even
  * if both sides of that surface are "in" the current cell. We may need to
  * relax that.
  */
@@ -618,7 +618,7 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
         axpy(state.temp_next.distance[isect] + bump_dist, state.dir, &pos);
 
         // Loop over volumes connected to this surface.
-        // TODO: intersection of this with BVH/acceleration grid
+        //! \todo Accelerate by intersecting neighbors with BVH grid
         for (LocalVolumeId vid : this->get_neighbors(surface))
         {
             CELER_ASSERT(vid != state.volume);

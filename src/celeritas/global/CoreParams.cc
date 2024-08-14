@@ -124,8 +124,9 @@ class PropagationLimitAction final : public ConcreteAction
   public:
     //! Construct with ID
     explicit PropagationLimitAction(ActionId id)
-        : ConcreteAction(
-            id, "geo-propagation-limit", "pause due to propagation misbehavior")
+        : ConcreteAction(id,
+                         "geo-propagation-limit",
+                         "pause due to propagation misbehavior")
     {
     }
 };
@@ -234,6 +235,11 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
 #undef CP_VALIDATE_INPUT
 
     CELER_EXPECT(input_);
+
+    if (!input_.aux_reg)
+    {
+        input_.aux_reg = std::make_shared<AuxParamsRegistry>();
+    }
 
     ScopedMem record_mem("CoreParams.construct");
 

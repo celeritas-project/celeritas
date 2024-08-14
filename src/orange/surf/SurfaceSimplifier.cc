@@ -112,7 +112,7 @@ S negate_coefficients(S const& orig)
         v = negate(v);
     }
 
-    // TODO: make_span doesn't use the correct overload and creates a
+    //! \todo make_span doesn't use the correct overload and creates a
     // dynamic extent span
     using SpanT = decltype(orig.data());
     return S{SpanT{arr.data(), arr.size()}};
