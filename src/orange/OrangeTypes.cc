@@ -123,9 +123,10 @@ char const* to_cstring(SurfaceType value)
         "kx",
         "ky",
         "kz",
+        "inv",
         "sq",
-        "gq",
-        "inv"
+        "gq"
+
         // clang-format on
     };
     return to_cstring_impl(value);
