@@ -27,7 +27,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Check unmodified, then modified, or default
+ * Check unmodified, then modified, or default.
  */
 NodeId
 DeMorganSimplifier::MatchingNodes::unmod_mod_or(NodeId default_id) const noexcept
@@ -41,7 +41,7 @@ DeMorganSimplifier::MatchingNodes::unmod_mod_or(NodeId default_id) const noexcep
 
 //---------------------------------------------------------------------------//
 /*!
- * Check modified, then unmodified, or default
+ * Check modified, then unmodified, or default.
  */
 NodeId
 DeMorganSimplifier::MatchingNodes::mod_unmod_or(NodeId default_id) const noexcept
@@ -70,6 +70,8 @@ CsgTree DeMorganSimplifier::operator()()
  * removal during the construction of the simplified tree. If we later discover
  * another parent that needs to keep the \c Joined node this function remove
  * the \c Joined node and its descendents from the list of orphans.
+ *
+ * \param node_id the node to keep and its descendents.
  */
 void DeMorganSimplifier::record_parent_for(NodeId node_id)
 {
@@ -134,7 +136,7 @@ void DeMorganSimplifier::record_join_negation(NodeId negated_id)
  * Recusively record that we need to insert \c Negated node for operands of a
  * \c Joined node.
  *
- * \param node_id a \c Joined node_id with a \c Negated parent
+ * \param node_id a \c Joined node_id with a \c Negated parent.
  */
 void DeMorganSimplifier::add_negation_for_operands(NodeId node_id)
 {
@@ -193,10 +195,13 @@ void DeMorganSimplifier::add_negation_for_operands(NodeId node_id)
  * Special handling for a \c Joined or \c Negated node. A Joined node can be
  * duplicated if it has multiple parents, e.g. a Negated and a Joined{Negated}
  * parent. Similarly, a Negated node might have to be skipped because it'd only
- * be used in a double negation
+ * be used in a double negation.
+ *
+ * \param node_id the \c Negated or \c Joined node to process.
+ * \param result the simplified tree being built.
  *
  * \return true if an unmodified version of node_id should be inserted in the
- * simplified tree
+ * simplified tree.
  */
 bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                                                       CsgTree& result)
@@ -277,7 +282,7 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
 
 //---------------------------------------------------------------------------//
 /*!
- * First pass through the tree to find negated set operations
+ * First pass through the tree to find negated set operations.
  */
 void DeMorganSimplifier::find_join_negations()
 {
@@ -329,7 +334,7 @@ void DeMorganSimplifier::find_join_negations()
 /*!
  * Second pass through the tree to build the simplified tree.
  *
- * \return the simplified tree
+ * \return the simplified tree.
  */
 CsgTree DeMorganSimplifier::build_simplified_tree()
 {

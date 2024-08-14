@@ -49,10 +49,10 @@ class DeMorganSimplifier
     //! simplified tree
     struct MatchingNodes
     {
-        //! Set if a node as the exact same node in the simplified tree
+        //! Set if a node has the exact same node in the simplified tree
         std::optional<NodeId> unmodified;
 
-        //! Set if a node redirect to a different node, e.g. A Negated node
+        //! Set if a node redirects to a different node, e.g. A Negated node
         //! pointing to a Join now redirects to the opposite join, or a double
         //! Negated node redirects to the non-negated child
         std::optional<NodeId> modified;
@@ -100,23 +100,23 @@ class DeMorganSimplifier
     //! the tree to simplify
     CsgTree const& tree_;
 
-    //! For each node_id of these node ids, we must create a parent \c Negated
+    //! For each node_id of these node ids, we must create a \c Negated parent
     NodeIdSet new_negated_nodes_;
 
     //! These \c Joined nodes have a \c Negated parent, so we need to insert an
     //! opposite join node with negated operands. The value is the node
-    //! in tree_ referred to by the key.
+    //! in tree_ referred to by the key
     CachedNodeMap<Joined> negated_join_nodes_;
 
     //! Contains the node_id of \c Negated nodes with a \c Joined child. These
     //! nodes don't need to be inserted in the new tree and their parent can be
     //! redirected to the newly inserted opposite join. The value is the node
-    //! in tree_ referred to by the key.
+    //! in tree_ referred to by the key
     CachedNodeMap<Negated> simplified_negated_nodes_;
 
     //! An orphan node should not be present in the final simplified tree.
     //! The node id can only be referring to a Negated or a Joined Node
-    //! Other nodes should never become Orphanes
+    //! Other nodes should never become Orphans
     NodeIdSet orphaned_nodes_;
 
     //! Used during construction of the simplified tree to map replaced nodes
