@@ -1463,7 +1463,6 @@ TEST_F(InvoluteTest, two_cw)
             EXPECT_EQ(expected_node, result.node);
         }
 
-        EXPECT_EQ(expected_node, result.node);
         EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
         EXPECT_VEC_SOFT_EQ((Real3{4, 4, 1}), result.exterior.upper());
     }
