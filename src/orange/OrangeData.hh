@@ -308,40 +308,6 @@ struct BIHTreeData
 
 //---------------------------------------------------------------------------//
 /*!
- * Persistent data for all oriented bounding zones. Used for safety distance.
- */
-template<Ownership W, MemSpace M>
-struct OrientedBoundingZoneData
-{
-    template<class T>
-    using Items = Collection<T, W, M>;
-
-    // Low-level storage
-    Items<Real3> half_widths;
-    Items<TransformRecord> transforms;
-    Items<real_type> reals;
-
-    //! True if assigned
-    explicit CELER_FUNCTION operator bool() const
-    {
-        return !half_widths.empty() && !transforms.empty() && !reals.empty();
-    }
-
-    //! Assign from another set of data
-    template<Ownership W2, MemSpace M2>
-    OrientedBoundingZoneData&
-    operator=(OrientedBoundingZoneData<W2, M2> const& other)
-    {
-        half_widths = other.half_widths;
-        transforms = other.transforms;
-        reals = other.reals;
-        CELER_ENSURE(static_cast<bool>(*this) == static_cast<bool>(other));
-        return *this;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Persistent data used by ORANGE implementation.
  *
  * Most data will be accessed through the invidual units, which reference data
@@ -375,9 +341,6 @@ struct OrangeParamsData
 
     // BIH tree storage
     BIHTreeData<W, M> bih_tree_data;
-
-    // OrientedBoundingZone storage
-    OrientedBoundingZoneData<W, M> obz_data;
 
     // Low-level storage
     Items<LocalSurfaceId> local_surface_ids;
@@ -419,7 +382,6 @@ struct OrangeParamsData
         transforms = other.transforms;
 
         bih_tree_data = other.bih_tree_data;
-        obz_data = other.obz_data;
 
         local_surface_ids = other.local_surface_ids;
         local_volume_ids = other.local_volume_ids;
