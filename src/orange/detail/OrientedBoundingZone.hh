@@ -237,7 +237,7 @@ CELER_FUNCTION Real3 OrientedBoundingZone::quadrant_zero(Real3 const& pos)
     Real3 temp;
     for (auto ax : range(Axis::size_))
     {
-        temp[to_int(ax)] = abs(pos[to_int(ax)]);
+        temp[to_int(ax)] = fabs(pos[to_int(ax)]);
     }
 
     return temp;
