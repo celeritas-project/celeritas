@@ -27,23 +27,25 @@ namespace test
 class OrientedBoundingZoneTest : public ::celeritas::test::Test
 {
   protected:
+    using ObzReal3 = OrientedBoundingZone::ObzReal3;
+
     template<class T>
     using Items = Collection<T, Ownership::value, MemSpace::host>;
     template<class T>
     using ItemsRef = Collection<T, Ownership::const_reference, MemSpace::host>;
 
-    Items<Real3> half_widths_;
+    Items<ObzReal3> half_widths_;
     Items<TransformRecord> transforms_;
     Items<real_type> reals_;
 
-    ItemsRef<Real3> half_widths_ref_;
+    ItemsRef<ObzReal3> half_widths_ref_;
     ItemsRef<TransformRecord> transforms_ref_;
     ItemsRef<real_type> reals_ref_;
 };
 
 TEST_F(OrientedBoundingZoneTest, basic)
 {
-    CollectionBuilder<Real3> all_half_widths(&half_widths_);
+    CollectionBuilder<ObzReal3> all_half_widths(&half_widths_);
     auto inner_id = all_half_widths.push_back({1., 1., 1.});
     auto outer_id = all_half_widths.push_back({2., 2., 2.});
 

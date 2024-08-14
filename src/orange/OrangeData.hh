@@ -140,6 +140,9 @@ struct ConnectivityRecord
  */
 struct OrientedBoundingZoneRecord
 {
+    using Real3 = Array<fast_real_type, 3>;
+    using Real3Id = OpaqueId<Real3>;
+
     Real3Id inner_hw_id;
     Real3Id outer_hw_id;
     TransformId transform_id;
