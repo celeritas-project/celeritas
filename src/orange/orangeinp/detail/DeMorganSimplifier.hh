@@ -23,13 +23,17 @@ namespace detail
  * Implement DeMorgan transformations on a \c CsgTree.
  *
  * This class serves as an helper for \c
- * celeritas::orangeinp::transform_negated_joins implementation. It applied
+ * celeritas::orangeinp::transform_negated_joins implementation. It applies
  * DeMorgan's law on a \c CsgTree so that all negations of a set operator are
  * removed and transformed into their equivalent operation.
  *
+ * The simplification preserves subtrees referred to by \c CsgTree::volumes
+ *
  * Instances of this class shouldn't outlive the \c CsgTree used to construct
- * it as we keep a reference to it. Do not modify the original tree during the
- * simplification.
+ * it as we keep a reference to it.
+ *
+ * It is currently single-use: calling operator() twice on the same instance
+ * isn't supported.
  */
 class DeMorganSimplifier
 {
@@ -37,7 +41,7 @@ class DeMorganSimplifier
     //! Construct a simplifier for the given tree
     explicit DeMorganSimplifier(CsgTree const& tree) : tree_(tree) {}
 
-    // Simplify
+    // Perform the simplification
     CsgTree operator()();
 
   private:
@@ -75,44 +79,44 @@ class DeMorganSimplifier
     using CachedNodeMap = std::unordered_map<NodeId, T const*>;
     //!@}
 
-    // Unmark and node and its descendents
-    void remove_orphaned(NodeId);
+    // Unflag a node an its descendent previously marked as orphan
+    void record_parent_for(NodeId);
 
-    // Signal that this node is a negated operation and that it should be
-    // simplified
-    void mark_negated_operator(NodeId);
+    // Declare a Negated node with a Joined child
+    void record_join_negation(NodeId);
 
-    // Add negated nodes for operands of a Joined node
-    void add_new_negated_nodes(NodeId);
+    // Declare negated nodes to add in the simplified tree
+    void add_negation_for_operands(NodeId);
 
     // Special handling for a Joined or Negated node
     bool process_negated_joined_nodes(NodeId, CsgTree&);
 
-    // First pass through the tree to find negated set operations
-    void find_negated_joins();
+    // First pass to find negated set operations
+    void find_join_negations();
 
-    // Second pass through the tree to build the simplified tree
+    // Second pass to build the simplified tree
     CsgTree build_simplified_tree();
 
     //! the tree to simplify
     CsgTree const& tree_;
 
-    //! For each node_id in that set, we'll create a Negated{node_id} node in
-    //! the new tree.
+    //! For each node_id of these node ids, we must create a parent \c Negated
     NodeIdSet new_negated_nodes_;
 
-    //! We need to insert a negated version of these Joined nodes.
-    //! The value is the Node referred to by the key as to avoid an extra
-    //! get_if.
+    //! These \c Joined nodes have a \c Negated parent, so we need to insert an
+    //! opposite join node with negated operands. The value is the node
+    //! in tree_ referred to by the key.
     CachedNodeMap<Joined> negated_join_nodes_;
 
-    //! Contains the node_id of Negated{Joined}. These don't need to be
-    //! inserted in the new tree and its parent can directly point to the
-    //! transformed Joined node.
-    CachedNodeMap<Negated> transformed_negated_nodes_;
+    //! Contains the node_id of \c Negated nodes with a \c Joined child. These
+    //! nodes don't need to be inserted in the new tree and their parent can be
+    //! redirected to the newly inserted opposite join. The value is the node
+    //! in tree_ referred to by the key.
+    CachedNodeMap<Negated> simplified_negated_nodes_;
 
     //! An orphan node should not be present in the final simplified tree.
-    //! The node id  can be only refert to a Negated or a Joined Node
+    //! The node id can only be referring to a Negated or a Joined Node
+    //! Other nodes should never become Orphanes
     NodeIdSet orphaned_nodes_;
 
     //! Used during construction of the simplified tree to map replaced nodes
