@@ -108,7 +108,7 @@ OrientedBoundingZone::OrientedBoundingZone(
  *
  * Case 2: the point is inside both the inner and outer boxes, in which case
  * the safety distance is the minimum distance from the given point to any
- * point on the outer box. This is calculated by finding in the minimum of the
+ * point on the outer box. This is calculated by finding the minimum of the
  * distances to each half width.
  */
 CELER_FUNCTION real_type OrientedBoundingZone::safety_distance_inside(Real3 pos)
@@ -117,11 +117,13 @@ CELER_FUNCTION real_type OrientedBoundingZone::safety_distance_inside(Real3 pos)
 
     auto trans_pos = this->quadrant_zero(this->translate(pos));
 
+    // Case 1
     if (!this->is_inside(trans_pos, this->get_hw(obz_record_->inner_hw_id)))
     {
         return 0;
     }
 
+    // Case 2
     auto outer_hw = this->get_hw(obz_record_->outer_hw_id);
 
     real_type min_dist = numeric_limits<real_type>::infinity();
@@ -162,11 +164,13 @@ CELER_FUNCTION real_type OrientedBoundingZone::safety_distance_outside(Real3 pos
     auto trans_pos = this->quadrant_zero(this->translate(pos));
     auto outer_hw = this->get_hw(obz_record_->outer_hw_id);
 
+    // Case 1
     if (this->is_inside(trans_pos, outer_hw))
     {
         return 0;
     }
 
+    // Case 2
     auto inner_hw = this->get_hw(obz_record_->inner_hw_id);
 
     real_type min_squared = 0;
@@ -184,7 +188,7 @@ CELER_FUNCTION real_type OrientedBoundingZone::safety_distance_outside(Real3 pos
 
 //---------------------------------------------------------------------------//
 /*!
- * Determine the sense of position with respect to the bounding zone.
+ * Determine the sense of position with respect to the OBZ.
  *
  * If the position is between the inner and outer bounding box its sense is
  * SignedSense::on.
@@ -219,8 +223,8 @@ CELER_FUNCTION Real3 OrientedBoundingZone::translate(Real3 const& pos)
     TransformVisitor apply_transform(*storage_->transforms, *storage_->reals);
     auto transform_down
         = [&pos, &trans_pos](auto&& t) { trans_pos = t.transform_down(pos); };
-
     apply_transform(transform_down, obz_record_->transform_id);
+
     return trans_pos;
 }
 
@@ -231,7 +235,6 @@ CELER_FUNCTION Real3 OrientedBoundingZone::translate(Real3 const& pos)
 CELER_FUNCTION Real3 OrientedBoundingZone::quadrant_zero(Real3 const& pos)
 {
     Real3 temp;
-
     for (auto ax : range(Axis::size_))
     {
         temp[to_int(ax)] = abs(pos[to_int(ax)]);

@@ -136,7 +136,7 @@ struct ConnectivityRecord
 
 //---------------------------------------------------------------------------//
 /*!
- * Data for an a single OrientedBoundingZone.
+ * Data for a single OrientedBoundingZone.
  */
 struct OrientedBoundingZoneRecord
 {
