@@ -237,7 +237,7 @@ CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) co
     if (Energy{inc_energy_} < el.thresh_lo)
     {
         // Accumulate discrete PDF for tabulated shell cross sections
-        // TODO: use Selector-with-remainder
+        //! \todo Rewrite using Selector with a remainder
         real_type xs = 0;
         real_type const inv_cube_energy = ipow<3>(inv_energy_);
         for (; shell_id < shells.size(); ++shell_id)

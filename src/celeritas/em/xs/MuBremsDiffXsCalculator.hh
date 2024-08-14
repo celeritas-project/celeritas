@@ -26,7 +26,7 @@ namespace celeritas
  *
  * The differential cross section can be written as
  * \f[
-   \frac{\dif \sigma}{\dif \epsilon} = \frac{16}{3} \alpha N_A (\frac{m}{\mu}
+   \difd{\sigma}{\epsilon} = \frac{16}{3} \alpha N_A (\frac{m}{\mu}
    r_e)^2 \frac{1}{\epsilon A} Z(Z \Phi_n + \Phi_e) (1 - v + \frac{3}{4} v^2),
  * \f]
  * where \f$ \epsilon \f$ is the photon energy, \f$ \alpha \f$ is the fine

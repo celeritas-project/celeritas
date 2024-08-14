@@ -14,15 +14,20 @@
 
 namespace celeritas
 {
-namespace units
-{
-//---------------------------------------------------------------------------//
+
 /*!
- * \namespace units
  * Units in Celeritas for macro-scale quantities.
  *
+ * Celeritas can be configured at build time to use different unit systems for
+ * better compatibility with external libraries and applications. The
+ * \c CELERITAS_UNITS CMake variable can be set to one of the following:
+ * - `CELERITAS_UNITS_CGS` (default): use Gaussian CGS units
+ * - `CELERITAS_UNITS_SI`: use SI units
+ * - `CELERITAS_UNITS_CLHEP`: use the Geant4 high energy physics system (a mix
+ *   of macro-scale and atomic-scale units)
+ *
  * The following units have numerical values of 1 in the default Celeritas
- * system (Gaussian CGS):
+ * system (Gaussian CGS) and are often seen in unit tests:
  * - cm for standard unit of length
  * - s for standard unit of time
  * - g for standard unit of mass
@@ -45,18 +50,21 @@ namespace units
  * - radians are used for measures of angle (unitless)
  * - steradians are used for measures of solid angle (unitless)
  *
- * TODO: if we're serious about supporting single-precision arithmetic, we
+ * \todo If we're serious about supporting single-precision arithmetic, we
  * should define a helper class that stores the constant as full precision but
  * when multiplied by a single/double is truncated to that precision.
  * Otherwise, if \c real_type is single-precision, then we lose accuracy in
  * places like the GeantImporter where everything is double precision.
  */
+namespace units
+{
+//---------------------------------------------------------------------------//
 
 #define CELER_ICRT inline constexpr real_type
 
 #if CELERITAS_UNITS == CELERITAS_UNITS_CGS
 //!@{
-//! \name Units with numerical value defined to be 1
+//! \name Units with numerical value defined to be 1 for CGS
 CELER_ICRT centimeter = 1;  //!< Length
 CELER_ICRT gram = 1;  //!< Mass
 CELER_ICRT second = 1;  //!< Time
@@ -89,7 +97,7 @@ CELER_ICRT nanosecond = real_type(1e-9) * second;
 
 #elif CELERITAS_UNITS == CELERITAS_UNITS_SI
 //!@{
-//! \name Units with numerical value defined to be 1
+//! \name Units with numerical value defined to be 1 for SI
 CELER_ICRT second = 1;  //!< Time
 CELER_ICRT meter = 1;  //!< Length
 CELER_ICRT kilogram = 1;  //!< Mass
@@ -122,11 +130,14 @@ CELER_ICRT nanosecond = real_type(1e-9) * second;
 
 #elif CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
 
+//!@{
+//! \name Units with numerical value defined to be 1 for CLHEP
 CELER_ICRT millimeter = 1;  //!< Length
 CELER_ICRT megaelectronvolt = 1;  //!< Energy
 CELER_ICRT nanosecond = 1;  //!< Time
 CELER_ICRT e_electron = 1;  //!< Charge
 CELER_ICRT kelvin = 1;  //!< Temperature
+//!@}
 
 CELER_ICRT coulomb = e_electron / 1.602176634e-19;  //! Value from SI 2019
 CELER_ICRT volt = real_type(1e-6) * (megaelectronvolt / e_electron);

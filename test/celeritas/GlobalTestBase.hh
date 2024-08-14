@@ -37,9 +37,12 @@ class WentzelOKVIParams;
 class CoreParams;
 class OutputRegistry;
 
+namespace optical
+{
 class CerenkovParams;
-class OpticalPropertyParams;
+class MaterialPropertyParams;
 class ScintillationParams;
+}  // namespace optical
 
 namespace test
 {
@@ -76,9 +79,9 @@ class GlobalTestBase : public Test
     using SPOutputRegistry = SP<OutputRegistry>;
     using SPUserRegistry = SP<AuxParamsRegistry>;
 
-    using SPConstCerenkov = SP<CerenkovParams const>;
-    using SPConstProperties = SP<OpticalPropertyParams const>;
-    using SPConstScintillation = SP<ScintillationParams const>;
+    using SPConstCerenkov = SP<optical::CerenkovParams const>;
+    using SPConstProperties = SP<optical::MaterialPropertyParams const>;
+    using SPConstScintillation = SP<optical::ScintillationParams const>;
     //!@}
 
   public:

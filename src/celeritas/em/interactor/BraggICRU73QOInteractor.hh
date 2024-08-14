@@ -19,8 +19,8 @@
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/phys/Secondary.hh"
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
-#include "celeritas/random/distribution/UniformRealDistribution.hh"
+#include "celeritas/random/distribution/InverseSquareDistribution.hh"
+#include "celeritas/random/distribution/RejectionSampler.hh"
 
 #include "detail/IoniFinalStateHelper.hh"
 #include "detail/PhysicsConstants.hh"
@@ -99,6 +99,8 @@ class BraggICRU73QOInteractor
 //---------------------------------------------------------------------------//
 /*!
  * Construct with shared and state data.
+ *
+ * \todo Use proton mass from imported data instead of a constant.
  */
 CELER_FUNCTION
 BraggICRU73QOInteractor::BraggICRU73QOInteractor(
@@ -115,7 +117,6 @@ BraggICRU73QOInteractor::BraggICRU73QOInteractor(
     , beta_sq_(particle.beta_sq())
     , electron_mass_(shared.electron_mass)
     , electron_id_(shared.electron)
-    // TODO: Use proton mass from imported data instead of constant
     , min_secondary_energy_(min(
           value_as<Energy>(cutoffs.energy(electron_id_)),
           value_as<Energy>(shared.lowest_kin_energy) * value_as<Mass>(inc_mass_)
@@ -149,15 +150,16 @@ CELER_FUNCTION Interaction BraggICRU73QOInteractor::operator()(Engine& rng)
     }
 
     // Sample the delta ray energy
+    InverseSquareDistribution sample_energy{min_secondary_energy_,
+                                            max_secondary_energy_};
+
     real_type energy;
-    real_type target;
     do
     {
-        energy = min_secondary_energy_ * max_secondary_energy_
-                 / UniformRealDistribution(min_secondary_energy_,
-                                           max_secondary_energy_)(rng);
-        target = 1 - beta_sq_ * energy / max_secondary_energy_;
-    } while (!BernoulliDistribution(target)(rng));
+        // Sample 1/E^2 from Emin to Emax
+        energy = sample_energy(rng);
+    } while (RejectionSampler<>(
+        1 - (beta_sq_ / max_secondary_energy_) * energy)(rng));
 
     // Update kinematics of the final state and return the interaction
     return detail::IoniFinalStateHelper(inc_energy_,

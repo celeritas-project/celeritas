@@ -143,7 +143,7 @@ void RootIO::WriteObject(EventData* event_data)
 {
     if (!event_branch_)
     {
-        // TODO: expose as environment variable if needed
+        //! \todo Expose root buffer size as environment variable if needed
         int const root_buffer_size{128000};
 
         event_branch_ = tree_->Branch(

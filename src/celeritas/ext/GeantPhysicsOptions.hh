@@ -50,7 +50,9 @@ enum class RelaxationSelection
  * Construction options for Geant physics.
  *
  * These options attempt to default to our closest match to \c
- * G4StandardEmPhysics.
+ * G4StandardEmPhysics. They are passed to the \c detail::CelerEmPhysicsList
+ * and \c detail::CelerFTFPBert physics lists to provide an easy way to set up
+ * physics options.
  */
 struct GeantPhysicsOptions
 {

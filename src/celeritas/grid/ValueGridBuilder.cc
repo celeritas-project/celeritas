@@ -156,7 +156,7 @@ ValueGridXsBuilder::ValueGridXsBuilder(double emin,
     CELER_EXPECT(xs_.size() >= 2);
     CELER_EXPECT(
         is_on_grid_point(log_eprime_, log_emin_, log_emax_, xs_.size() - 1));
-    CELER_EXPECT(is_nonnegative(make_span(xs)));
+    CELER_EXPECT(is_nonnegative(make_span(xs_)));
 }
 
 //---------------------------------------------------------------------------//

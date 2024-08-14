@@ -212,7 +212,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
             --remaining_substeps;
         }
         else if (CELER_UNLIKELY(result.boundary
-                                && linear_step.distance < this->bump_distance()))
+                                && (linear_step.distance)
+                                       < this->bump_distance()))
         {
             // Likely heading back into the old volume when starting on a
             // surface (this can happen when tracking through a volume at a

@@ -19,7 +19,7 @@ namespace units
 {
 //---------------------------------------------------------------------------//
 //!@{
-//! \name Units for particle quantities
+//! \name Quantities for atomic scale/natural units
 using ElementaryCharge = Quantity<EElectron>;
 using MevEnergy = Quantity<Mev>;
 using LogMevEnergy = Quantity<LogMev>;
@@ -32,7 +32,7 @@ using AmuMass = Quantity<Amu>;
 
 //---------------------------------------------------------------------------//
 //!@{
-//! \name Units for manual input and/or test harnesses
+//! \name Quantities for manual input and/or test harnesses
 using BarnXs = Quantity<Barn>;
 using CmLength = Quantity<Centimeter>;
 using InvCmXs = Quantity<UnitInverse<Centimeter>>;

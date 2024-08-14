@@ -24,7 +24,7 @@ namespace celeritas
  * This distribution is defined on a positive range \f$ [a, b) \f$ and has the
  * normalized PDF:
  * \f[
-   f(x; a, b) = \frac{1}{x (\ln b - \ln a)} \quad \mathrm{for} a \le x < b
+   f(x; a, b) = \frac{1}{x (\ln b - \ln a)} \quad \mathrm{for} \ a \le x < b
    \f]
  * which integrated into a CDF and inverted gives a sample:
  * \f[
@@ -78,8 +78,7 @@ ReciprocalDistribution<RealType>::ReciprocalDistribution(real_type a)
 /*!
  * Construct on the interval [a, b).
  *
- * As with UniformRealDistribution, it is allowable for the two bounds to be
- * out of order.
+ * It is allowable for the two bounds to be out of order.
  *
  * Note that writing as \code (1/a) * b \endcode allows the compiler to
  * optimize better for the constexpr case a=1.

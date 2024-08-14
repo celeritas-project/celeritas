@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/track/detail/OpticalGenAlgorithms.cc
+//! \file celeritas/optical/detail/OpticalGenAlgorithms.cc
 //---------------------------------------------------------------------------//
 #include "OpticalGenAlgorithms.hh"
 
@@ -19,14 +19,16 @@ namespace detail
 /*!
  * Remove all invalid distributions from the buffer.
  */
-size_type remove_if_invalid(Collection<OpticalDistributionData,
-                                       Ownership::reference,
-                                       MemSpace::host> const& buffer,
-                            size_type offset,
-                            size_type size,
-                            StreamId)
+size_type
+remove_if_invalid(Collection<celeritas::optical::GeneratorDistributionData,
+                             Ownership::reference,
+                             MemSpace::host> const& buffer,
+                  size_type offset,
+                  size_type size,
+                  StreamId)
 {
-    auto* start = static_cast<OpticalDistributionData*>(buffer.data());
+    auto* start = static_cast<celeritas::optical::GeneratorDistributionData*>(
+        buffer.data());
     auto* stop
         = std::remove_if(start + offset, start + offset + size, IsInvalid{});
     return stop - start;

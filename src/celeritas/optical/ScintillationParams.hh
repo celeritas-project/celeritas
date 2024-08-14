@@ -19,6 +19,9 @@ namespace celeritas
 class ParticleParams;
 struct ImportData;
 
+namespace optical
+{
+
 //---------------------------------------------------------------------------//
 /*!
  * Build and manage scintillation data.
@@ -87,4 +90,5 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

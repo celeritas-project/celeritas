@@ -21,7 +21,6 @@
 #include "celeritas/grid/XsCalculator.hh"
 #include "celeritas/mat/MaterialTrackView.hh"
 #include "celeritas/random/Selector.hh"
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/GenerateCanonical.hh"
 
 #include "ParticleTrackView.hh"
@@ -44,9 +43,10 @@ calc_physics_step_limit(MaterialTrackView const& material,
 
     using VGT = ValueGridType;
 
-    // TODO: for particles with decay, macro XS calculation will incorporate
-    // decay probability, dividing decay constant by speed to become 1/len to
-    // compete with interactions
+    /*! \todo For particles with decay, macro XS calculation will incorporate
+     * decay probability, dividing decay constant by speed to become 1/len to
+     * compete with interactions.
+     */
 
     // Loop over all processes that apply to this track (based on particle
     // type) and calculate cross section and particle range.

@@ -67,8 +67,6 @@ struct ImportGeoMaterial
 //---------------------------------------------------------------------------//
 /*!
  * Store information for distinct material regions modified by physics.
- *
- * TODO: update names Material -> PhysMaterial ; GeoMaterial -> Material
  */
 struct ImportPhysMaterial
 {

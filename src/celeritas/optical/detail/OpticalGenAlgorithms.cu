@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/track/detail/OpticalGenAlgorithms.cu
+//! \file celeritas/optical/detail/OpticalGenAlgorithms.cu
 //---------------------------------------------------------------------------//
 #include "OpticalGenAlgorithms.hh"
 
@@ -25,12 +25,13 @@ namespace detail
 /*!
  * Remove all invalid distributions from the buffer.
  */
-size_type remove_if_invalid(Collection<OpticalDistributionData,
-                                       Ownership::reference,
-                                       MemSpace::device> const& buffer,
-                            size_type offset,
-                            size_type size,
-                            StreamId stream)
+size_type
+remove_if_invalid(Collection<celeritas::optical::GeneratorDistributionData,
+                             Ownership::reference,
+                             MemSpace::device> const& buffer,
+                  size_type offset,
+                  size_type size,
+                  StreamId stream)
 {
     ScopedProfiling profile_this{"remove-if-invalid"};
     auto start = thrust::device_pointer_cast(buffer.data().get());
