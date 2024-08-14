@@ -1379,9 +1379,18 @@ TEST_F(InvoluteTest, two_ccw)
                          {0.15667*constants::pi, 0.31334*constants::pi}, 
                          ccw, 1.0));
 
-        static char const expected_node[] = "all(+0, -1, +2, -3, -5, +6)";
+        // Float and double produce different results
+        if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            static char const expected_node[] = "all(+0, -1, +2, -3, -5, +6)";
+            EXPECT_EQ(expected_node, result.node);
+        }
+        else
+        {
+            static char const expected_node[] = "all(+0, -1, +2, -3, -5, +7)";
+            EXPECT_EQ(expected_node, result.node);
+        }
 
-        EXPECT_EQ(expected_node, result.node);
         EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
         EXPECT_VEC_SOFT_EQ((Real3{4, 4, 1}), result.exterior.upper());
     }
@@ -1442,7 +1451,17 @@ TEST_F(InvoluteTest, two_cw)
                          {0.15667*constants::pi, 0.31334*constants::pi}, 
                          cw, 1.0));
 
-        static char const expected_node[] = "all(+0, -1, +2, -3, +5, -6)";
+        // Float and double produce different results
+        if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            static char const expected_node[] = "all(+0, -1, +2, -3, +5, -6)";
+            EXPECT_EQ(expected_node, result.node);
+        }
+        else
+        {
+            static char const expected_node[] = "all(+0, -1, +2, -3, +5, -7)";
+            EXPECT_EQ(expected_node, result.node);
+        }
 
         EXPECT_EQ(expected_node, result.node);
         EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
