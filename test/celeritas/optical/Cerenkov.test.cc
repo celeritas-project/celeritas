@@ -307,7 +307,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
     real_type avg_costheta;
     real_type avg_energy;
     real_type avg_displacement;
-    real_type avg_engine_samples;
+    real_type avg_engine_samples;  // !< per photon!
     real_type total_num_photons;
 
     // Distributions
@@ -369,7 +369,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
                     avg_costheta += costheta;
                     // Remap from [-1,1] to [0,1]
                     int bin = static_cast<int>((1 + costheta) / 2 * num_bins);
-                    CELER_ASSERT(bin < num_bins);
+                    CELER_ASSERT(bin >= 0 && bin < num_bins);
                     ++costheta_dist[bin];
                 }
                 // Bin photon energy
@@ -377,7 +377,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
                     real_type energy = photon.energy.value();
                     avg_energy += energy;
                     int bin = static_cast<int>((energy - emin) / edel);
-                    CELER_ASSERT(bin < num_bins);
+                    CELER_ASSERT(bin >= 0 && bin < num_bins);
                     ++energy_dist[bin];
                 }
                 // Bin photon displacement
@@ -386,7 +386,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
                         = distance(pre_step.pos, photon.position);
                     avg_displacement += displacement;
                     int bin = static_cast<int>((displacement - dmin) / ddel);
-                    CELER_ASSERT(bin < num_bins);
+                    CELER_ASSERT(bin >= 0 && bin < num_bins);
                     ++displacement_dist[bin];
                 }
 
@@ -399,7 +399,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
         avg_costheta /= total_num_photons;
         avg_energy /= total_num_photons;
         avg_displacement /= (from_cm(1) * total_num_photons);
-        avg_engine_samples = real_type(rng.count()) / num_samples;
+        avg_engine_samples = real_type(rng.count()) / total_num_photons;
     };
 
     size_type num_samples = 64;
@@ -444,10 +444,10 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
         EXPECT_SOFT_EQ(4.0497726102182314e-06, avg_energy);
         EXPECT_SOFT_EQ(0.50020101984474064, avg_displacement);
         EXPECT_SOFT_EQ(983.734375, total_num_photons / num_samples);
-        EXPECT_SOFT_EQ(10437.03125, avg_engine_samples);
+        EXPECT_SOFT_EQ(10.609603075017075, avg_engine_samples);
     }
 
-    // 500 keV e-
+    // 500 keV e-: 1/beta ~ 1.336
     {
         // Pre-step values
         OffloadPreStepData pre_step;
@@ -459,6 +459,8 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
         // Post-step values
         auto particle
             = this->make_particle_track_view(Energy(0.15), pdg::electron());
+        EXPECT_SOFT_EQ(0.63431981443206786,
+                       value_as<units::LightSpeed>(particle.speed()));
         auto sim = this->make_sim_track_view(0.15);
         Real3 pos = {sim.step_length(), 0, 0};
 
@@ -478,7 +480,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
         EXPECT_SOFT_EQ(5.5675610907221099e-06, avg_energy);
         EXPECT_SOFT_EQ(0.049432369852608751, avg_displacement);
         EXPECT_SOFT_EQ(14.78125, total_num_photons / num_samples);
-        EXPECT_SOFT_EQ(401.5, avg_engine_samples);
+        EXPECT_SOFT_EQ(27.162790697674417, avg_engine_samples);
     }
 }
 
