@@ -27,20 +27,6 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Check unmodified, then modified, or default.
- */
-NodeId
-DeMorganSimplifier::MatchingNodes::unmod_mod_or(NodeId default_id) const noexcept
-{
-    if (unmodified)
-        return *unmodified;
-    if (modified)
-        return *modified;
-    return default_id;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Check modified, then unmodified, or default.
  */
 NodeId
@@ -402,7 +388,19 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
                     // process_negated_joined_nodes
                     for (auto& op : joined.nodes)
                     {
-                        op = node_ids_translation_[op].unmod_mod_or(op);
+                        // if the node has been simplified, insert the
+                        // simplification, otherwise retrieve the new id of the
+                        // same node
+                        if (simplified_negated_nodes_[op.get()])
+                        {
+                            CELER_EXPECT(node_ids_translation_[op].modified);
+                            op = *node_ids_translation_[op].modified;
+                        }
+                        else
+                        {
+                            CELER_EXPECT(node_ids_translation_[op].unmodified);
+                            op = *node_ids_translation_[op].unmodified;
+                        }
                     }
                 },
                 [](auto&&) {},
@@ -433,8 +431,18 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
         // points to a negated join, it will still be simplified
         CELER_EXPECT(node_ids_translation_[volume]);
 
-        result.insert_volume(
-            node_ids_translation_[volume].unmod_mod_or(volume));
+        // if the node has been simplified, insert the simplification,
+        // otherwise retrieve the new id of the same node
+        if (simplified_negated_nodes_[volume.get()])
+        {
+            CELER_EXPECT(node_ids_translation_[volume].modified);
+            result.insert_volume(*node_ids_translation_[volume].modified);
+        }
+        else
+        {
+            CELER_EXPECT(node_ids_translation_[volume].unmodified);
+            result.insert_volume(*node_ids_translation_[volume].unmodified);
+        }
     }
 
     return result;

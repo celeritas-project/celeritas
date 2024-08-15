@@ -63,9 +63,6 @@ class DeMorganSimplifier
             return modified || unmodified;
         }
 
-        // Check unmodified, then modified or default
-        NodeId unmod_mod_or(NodeId default_id) const noexcept;
-
         // Check modified, then unmodified or default
         NodeId mod_unmod_or(NodeId default_id) const noexcept;
     };
