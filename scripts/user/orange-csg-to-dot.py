@@ -72,7 +72,7 @@ class MermaidGenerator:
             self.write(f"  v{i:02d} <--> n{i:02d}\n")
 
     def write_node(self, i, value):
-        self.write(f"  n{i:02d}[\"{value}\"]\n")
+        self.write(f"  n{i:02d}[\"{i:02d}:{value}\"]\n")
 
     @contextmanager
     def write_volumes(self):
