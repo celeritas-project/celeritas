@@ -42,7 +42,12 @@ struct ImportProductionCut
  */
 struct ImportMatElemComponent
 {
-    unsigned int element_id{};  //!< Index of element in ImportElement
+    //!@{
+    //! \name Type aliases
+    using ElIndex = unsigned int;
+    //!@}
+
+    ElIndex element_id{};  //!< Index of element in ImportElement
     double number_fraction{};  //!< [unitless]
 };
 
@@ -72,10 +77,12 @@ struct ImportPhysMaterial
 {
     //!@{
     //! \name Type aliases
-    using MapIntCutoff = std::map<int, ImportProductionCut>;
+    using GeoMatIndex = unsigned int;
+    using PdgInt = int;
+    using MapIntCutoff = std::map<PdgInt, ImportProductionCut>;
     //!@}
 
-    unsigned int geo_material_id{};  //!< Index in geo_materials list
+    GeoMatIndex geo_material_id{};  //!< Index in geo_materials list
     MapIntCutoff pdg_cutoffs;  //!< Cutoff per PDG
 };
 

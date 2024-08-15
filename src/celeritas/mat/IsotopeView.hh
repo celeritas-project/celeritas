@@ -18,9 +18,9 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Access amalgamated data for an isotope.
+ * Access amalgamated data for a nuclide (isotope of an element).
  *
- * This encapsulates general data specific to an isotope instance.
+ * This encapsulates general data specific to a single nuclide.
  */
 class IsotopeView
 {

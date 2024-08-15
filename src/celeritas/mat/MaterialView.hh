@@ -26,13 +26,6 @@ namespace celeritas
  * the returned span corresponds to an \c ElementComponentId for this material.
  * The \c get_element_density and \c element_view helper functions can be used
  * to calculate elemental densities and properties.
- *
- * \note Units listed are for the native Celeritas [CGS] system. Quantities
- * will differ if using CLHEP.
- *
- * \note The material -> nuclide mapping will be implemented when we add
- * hadronic physics. A separate NuclideComponentId and NuclideView will operate
- * analogously to the element access.
  */
 class MaterialView
 {
