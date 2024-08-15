@@ -276,8 +276,23 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                     operands.reserve(nodes.size());
                     for (auto n : nodes)
                     {
-                        operands.push_back(
-                            node_ids_translation_[n].mod_unmod_or(n));
+                        // we're adding a negated join with a negated children,
+                        // simplify by pointing to the children of the negation
+                        if (auto neg = std::get_if<Negated>(&tree_[n]))
+                        {
+                            CELER_EXPECT(
+                                node_ids_translation_[neg->node].unmodified);
+                            operands.push_back(
+                                *node_ids_translation_[neg->node].unmodified);
+                        }
+                        else
+                        {
+                            // otherwise we should have inserted a negated
+                            // parent for that node
+                            CELER_EXPECT(node_ids_translation_[n].modified);
+                            operands.push_back(
+                                *node_ids_translation_[n].modified);
+                        }
                     }
 
                     auto [new_id, inserted] = result.insert(

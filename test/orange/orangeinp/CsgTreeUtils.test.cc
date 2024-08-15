@@ -526,7 +526,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
         "not{4}, 6: any{3,4}, 7: all{2,5}, 8: all{3,4}, 9: any{2,5}, 10: "
-        "surface 2, 11: not{10}, 12: any{6,8}, 13: all{7,9}, 14: any{6,8,12}, "
+        "surface 2, 11: not{10}, 12: any{6,8}, 13: all{7,9}, 14: any{7,9,13}, "
         "}",
         to_string(simplified));
 
@@ -590,6 +590,99 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
     EXPECT_EQ(volumes[0], NodeId{7});
     EXPECT_EQ(volumes[1], NodeId{10});
     EXPECT_EQ(volumes[2], NodeId{6});
+
+    tree_ = {};
+    auto mz = this->insert_surface(PlaneZ{-1.0});
+    auto pz = this->insert_surface(PlaneZ{1.0});
+    auto below_pz = this->insert(Negated{pz});
+    auto r_inner = this->insert_surface(CCylZ{0.5});
+    auto inside_inner = this->insert(Negated{r_inner});
+    auto inner_cyl = this->insert(Joined{op_and, {mz, below_pz, inside_inner}});
+    auto r_outer = this->insert_surface(CCylZ{1.0});
+    auto inside_outer = this->insert(Negated{r_outer});
+    auto outer_cyl = this->insert(Joined{op_and, {mz, below_pz, inside_outer}});
+    auto not_inner = this->insert(Negated{inner_cyl});
+    this->insert(Joined{op_and, {not_inner, outer_cyl}});
+    auto bdy_outer = this->insert_surface(CCylZ{4.0});
+    this->insert(Joined{op_and, {bdy_outer, mz, below_pz}});
+    this->insert(Joined{op_and, {mz, below_pz}});
+    tree_.insert_volume(inner_cyl);
+    simplified = transform_negated_joins(tree_);
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
+        "not{4}, 6: surface 2, 7: not{6}, 8: any{3,4,6}, 9: all{2,5,7}, 10: "
+        "surface 3, 11: not{10}, 12: all{2,5,11}, 13: all{8,12}, 14: surface "
+        "4, 15: all{2,5,14}, 16: all{2,5}, }",
+        to_string(simplified));
+    EXPECT_EQ(volumes.size(), 1);
+    EXPECT_EQ(volumes[0], NodeId{9});
+
+    tree_ = {};
+    EXPECT_EQ(N{2}, this->insert(Surface{S{0}}));  // mz
+    EXPECT_EQ(N{3}, this->insert(Surface{S{1}}));  // pz
+    EXPECT_EQ(N{4}, this->insert(Negated{N{3}}));
+    EXPECT_EQ(N{5}, this->insert(Surface{S{2}}));  // interior.cz
+    EXPECT_EQ(N{6}, this->insert(Negated{N{5}}));
+    EXPECT_EQ(N{7},
+              this->insert(
+                  Joined{op_and, {N{2}, N{4}, N{6}}}));  // TileTBEnv.interior
+    EXPECT_EQ(N{8}, this->insert(Surface{S{3}}));  // excluded.cz
+    EXPECT_EQ(N{9}, this->insert(Negated{N{8}}));
+    EXPECT_EQ(N{10},
+              this->insert(
+                  Joined{op_and, {N{2}, N{4}, N{9}}}));  // TileTBEnv.excluded
+    EXPECT_EQ(N{11}, this->insert(Negated{N{10}}));
+    EXPECT_EQ(N{12}, this->insert(Surface{S{4}}));
+    EXPECT_EQ(N{13}, this->insert(Surface{S{5}}));
+    EXPECT_EQ(N{14},
+              this->insert(Joined{op_and, {N{12}, N{13}}}));  // TileTBEnv.angle
+    EXPECT_EQ(N{15},
+              this->insert(Joined{op_and, {N{7}, N{11}, N{14}}}));  // TileTBEnv
+    EXPECT_EQ(N{16}, this->insert(Negated{N{15}}));  // [EXTERIOR]
+    EXPECT_EQ(N{17}, this->insert(Surface{S{6}}));  // Barrel.angle.p0
+    EXPECT_EQ(N{18}, this->insert(Surface{S{7}}));  // Barrel.angle.p1
+    EXPECT_EQ(N{19}, this->insert(Negated{N{18}}));
+    EXPECT_EQ(
+        N{20},
+        this->insert(Joined{op_and, {N{6}, N{17}, N{19}}}));  // Barrel.interior
+    EXPECT_EQ(
+        N{21},
+        this->insert(Joined{op_and, {N{9}, N{17}, N{19}}}));  // Barrel.excluded
+    EXPECT_EQ(N{22}, this->insert(Negated{N{21}}));
+    EXPECT_EQ(N{23}, this->insert(Surface{S{8}}));  // Barrel.angle.p0
+    EXPECT_EQ(N{24}, this->insert(Surface{S{9}}));  // Barrel.angle.p1
+    EXPECT_EQ(N{25},
+              this->insert(Joined{op_and, {N{23}, N{24}}}));  // Barrel.angle
+    EXPECT_EQ(N{26},
+              this->insert(Joined{op_and, {N{20}, N{22}, N{25}}}));  // Barrel
+    EXPECT_EQ(N{27}, this->insert(Negated{N{26}}));
+    EXPECT_EQ(N{28}, this->insert(Joined{op_and, {N{15}, N{27}}}));
+
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{3}, 5: "
+        "surface 2, 6: not{5}, 7: all{2,4,6}, 8: surface 3, 9: not{8}, 10: "
+        "all{2,4,9}, 11: not{10}, 12: surface 4, 13: surface 5, 14: "
+        "all{12,13}, 15: all{7,11,14}, 16: not{15}, 17: surface 6, 18: "
+        "surface 7, 19: not{18}, 20: all{6,17,19}, 21: all{9,17,19}, 22: "
+        "not{21}, 23: surface 8, 24: surface 9, 25: all{23,24}, 26: "
+        "all{20,22,25}, 27: not{26}, 28: all{15,27}, }",
+        to_string(tree_));
+
+    tree_.insert_volume(N{16});
+    simplified = transform_negated_joins(tree_);
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
+        "not{4}, 6: surface 2, 7: not{6}, 8: any{3,4,6}, 9: all{2,5,7}, 10: "
+        "surface 3, 11: not{10}, 12: any{3,4,10}, 13: all{2,5,11}, 14: "
+        "surface 4, 15: not{14}, 16: surface 5, 17: not{16}, 18: any{15,17}, "
+        "19: all{14,16}, 20: any{8,13,18}, 21: all{9,12,19}, 22: surface 6, "
+        "23: not{22}, 24: surface 7, 25: not{24}, 26: any{6,23,24}, 27: "
+        "any{10,23,24}, 28: all{11,22,25}, 29: surface 8, 30: not{29}, 31: "
+        "surface 9, 32: not{31}, 33: any{30,32}, 34: any{26,28,33}, 35: "
+        "all{21,34}, }",
+        to_string(simplified));
+    EXPECT_EQ(volumes.size(), 1);
+    EXPECT_EQ(volumes[0], NodeId{20});
 }
 
 //---------------------------------------------------------------------------//
