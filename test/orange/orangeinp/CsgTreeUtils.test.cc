@@ -473,7 +473,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         "not{9}, 11: all{5,7}, }",
         to_string(tree_));
 
-    // Add an non-transformed operand with suboperands
+    // Add a non-transformed operand with suboperands
     simplified = transform_negated_joins(tree_);
     EXPECT_EQ(
         "{0: true, 1: not{0}, 2: surface 0, 3: not{2}, 4: surface 1, 5: "
@@ -584,7 +584,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
         "not{3}, 6: all{2,3}, 7: any{4,5}, 8: surface 2, 9: not{8}, 10: "
         "all{6,9}, }",
         to_string(simplified));
-    // Check that the the new volumes map to the correct node
+    // Check that the new volumes map to the correct node
     auto& volumes = simplified.volumes();
     EXPECT_EQ(volumes.size(), 3);
     EXPECT_EQ(volumes[0], NodeId{7});

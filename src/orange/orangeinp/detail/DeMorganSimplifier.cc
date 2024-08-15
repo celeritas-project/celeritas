@@ -383,7 +383,7 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
                 },
                 [&](Joined& joined) {
                     // update each operand of the joined node, it can't have a
-                    // negation as parent or th it would have been inserted in
+                    // negation as parent, or it would have been inserted in
                     // process_negated_joined_nodes
                     for (auto& op : joined.nodes)
                     {
