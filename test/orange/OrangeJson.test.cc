@@ -873,6 +873,7 @@ TEST_F(InputBuilderTest, involute)
             EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         }
     }
+    std::cout << "pass 1" << std::endl;
 
     {
         SCOPED_TRACE("involute");
@@ -885,6 +886,7 @@ TEST_F(InputBuilderTest, involute)
                0.62524920901033, 2.2032294110794, 1.1184740798181};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
+    std::cout << "pass 2" << std::endl;
 
     {
         SCOPED_TRACE("involute");
@@ -897,6 +899,7 @@ TEST_F(InputBuilderTest, involute)
                4, 2, 1};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
+    std::cout << "pass 3" << std::endl;
 }
 
 TEST_F(InputBuilderTest, involute_cw)
