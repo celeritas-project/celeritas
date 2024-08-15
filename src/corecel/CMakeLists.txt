@@ -72,6 +72,10 @@ foreach(_var CLHEP_VERSION Geant4_VERSION VecGeom_VERSION)
   )
 endforeach()
 
+# NOTE: some values are defined in top-level CMakeLists
+# - CELERITAS_HAVE_ROCTX
+# - CELERITAS_SINCOSPI_PREFIX
+
 # Save dependency versions as hex
 set(CELERITAS_DEPENDENCY_VERSIONS)
 foreach(_dep Geant4 VecGeom HepMC3)
