@@ -22,7 +22,7 @@ namespace detail
 /*!
  * Implement DeMorgan transformations on a \c CsgTree.
  *
- * This class serves as an helper for \c
+ * This class serves as a helper for \c
  * celeritas::orangeinp::transform_negated_joins implementation. It applies
  * DeMorgan's law on a \c CsgTree so that all negations of a set operator are
  * removed and transformed into their equivalent operation.
@@ -52,7 +52,7 @@ class DeMorganSimplifier
         //! Set if a node has the exact same node in the simplified tree
         std::optional<NodeId> unmodified;
 
-        //! Set if a node redirects to a different node, e.g. A Negated node
+        //! Set if a node redirects to a different node, e.g., A Negated node
         //! pointing to a Join now redirects to the opposite join, or a double
         //! Negated node redirects to the non-negated child
         std::optional<NodeId> modified;
@@ -70,7 +70,7 @@ class DeMorganSimplifier
         NodeId mod_unmod_or(NodeId default_id) const noexcept;
     };
 
-    // Unflag a node an its descendent previously marked as orphan
+    // Unflag a node and its descendent previously marked as orphan
     void record_parent_for(NodeId);
 
     // Declare a Negated node with a Joined child
@@ -99,8 +99,8 @@ class DeMorganSimplifier
     std::vector<bool> negated_join_nodes_;
 
     //! Set at node_id of \c Negated nodes with a \c Joined child. These
-    //! nodes don't need to be inserted in the new tree and their parent can be
-    //! redirected to the newly inserted opposite join
+    //! nodes don't need to be inserted in the new tree, and their parent can
+    //! be redirected to the newly inserted opposite join
     std::vector<bool> simplified_negated_nodes_;
 
     //! Set for orphan nodes which should not be present in the final
