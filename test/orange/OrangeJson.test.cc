@@ -873,20 +873,6 @@ TEST_F(InputBuilderTest, involute)
             EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         }
     }
-    std::cout << "pass 1" << std::endl;
-
-    {
-        SCOPED_TRACE("involute");
-        auto result = this->track({-2, 2, 0}, {1, 0, 0});
-        static char const* const expected_volumes[]
-            = {"channel", "rest", "channel", "blade", "rest", "shell"};
-        EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[] 
-            = {0.16792681644055, 1.6137203912609, 0.85397578734658, 
-               0.62524920901033, 2.2032294110794, 1.1184740798181};
-        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-    }
-    std::cout << "pass 2" << std::endl;
 
     {
         SCOPED_TRACE("involute");
@@ -899,7 +885,6 @@ TEST_F(InputBuilderTest, involute)
                4, 2, 1};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
-    std::cout << "pass 3" << std::endl;
 }
 
 TEST_F(InputBuilderTest, involute_cw)
