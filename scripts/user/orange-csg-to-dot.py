@@ -133,7 +133,7 @@ def run(infile, outfile, gencls, universe):
         # Load from a .csg.json debug file
         csg_unit = tree[universe]
     else:
-        if isinstance(tree, list):
+        if isinstance(tree, list) and infile is not sys.stdin:
             num_univ = len(tree)
             print("Input tree is a CSG listing: please rerun with -u N "
                   f"where 0 ≤ N < {num_univ}",
