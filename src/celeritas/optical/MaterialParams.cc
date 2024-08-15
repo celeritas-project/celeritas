@@ -13,6 +13,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/grid/VectorUtils.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -80,6 +81,10 @@ MaterialParams::MaterialParams(Input const& inp)
         CELER_VALIDATE(is_monotonic_increasing(make_span(ri_vec.y)),
                        << "refractive index values are not monotonically "
                           "increasing");
+        if (ri_vec.y.front() < 1)
+        {
+            CELER_LOG(warning) << "Encountered refractive index below unity";
+        }
 
         refractive_index.push_back(build_grid(ri_vec));
     }

@@ -17,7 +17,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "celeritas/grid/GenericCalculator.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
-#include "celeritas/random/distribution/GenerateCanonical.hh"
+#include "celeritas/random/distribution/RejectionSampler.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 #include "CerenkovDndxCalculator.hh"
@@ -42,8 +42,8 @@ namespace optical
  *
  * An incident charged particle with speed \f$ \beta \f$ will emit photons at
  * an angle \f$ \theta \f$ given by \f$ \cos\theta = 1 / (\beta n) \f$ where
- * \f$ n \f$ is the index of refraction of the matarial. The photon energy \f$
- * \epsilon \f$ is sampled from the PDF \f[
+ * \f$ n \f$ is the index of refraction of the matarial. The photon energy
+ * \f$ \epsilon \f$ is sampled from the PDF \f[
    f(\epsilon) = \left[1 - \frac{1}{n^2(\epsilon)\beta^2}\right]
  * \f]
  */
@@ -113,8 +113,7 @@ CerenkovGenerator::CerenkovGenerator(
     CELER_EXPECT(dist_);
     CELER_EXPECT(photons_.size() == dist_.num_photons);
 
-    auto const& energy_grid = calc_refractive_index_.grid();
-    sample_energy_ = UniformRealDist(energy_grid.front(), energy_grid.back());
+    using LS = units::LightSpeed;
 
     // Calculate the mean number of photons produced per unit length at the
     // pre- and post-step energies
@@ -128,8 +127,14 @@ CerenkovGenerator::CerenkovGenerator(
     // Helper used to sample the displacement
     sample_num_photons_ = UniformRealDist(0, max(dndx_pre_, dndx_post));
 
+    // Helper to sample exiting photon energies
+    auto const& energy_grid = calc_refractive_index_.grid();
+    sample_energy_ = UniformRealDist(energy_grid.front(), energy_grid.back());
+
     // Calculate 1 / beta and the max sin^2 theta
-    inv_beta_ = 2 / (pre_step.speed.value() + post_step.speed.value());
+    inv_beta_
+        = 2 / (value_as<LS>(pre_step.speed) + value_as<LS>(post_step.speed));
+    CELER_ASSERT(inv_beta_ > 1);
     real_type cos_max = inv_beta_ / calc_refractive_index_(energy_grid.back());
     sin_max_sq_ = diffsq(real_type(1), cos_max);
 
@@ -157,12 +162,24 @@ CELER_FUNCTION Span<Primary> CerenkovGenerator::operator()(Generator& rng)
         real_type sin_theta_sq;
         do
         {
-            // Sample an energy uniformly within the grid bounds
-            energy = sample_energy_(rng);
-            // Note that cos(theta) can be slightly larger than 1
-            cos_theta = inv_beta_ / calc_refractive_index_(energy);
-            sin_theta_sq = diffsq(real_type(1), cos_theta);
-        } while (generate_canonical(rng) * sin_max_sq_ > sin_theta_sq);
+            // Sample an energy uniformly within the grid bounds, rejecting
+            // if the refractive index at the sampled energy is such that the
+            // incident particle's average speed is subluminal at that photon
+            // wavelength.
+            // We could improve sampling efficiency for this edge case by
+            // reducing the maximum energy (searching `energy_grid` with
+            // `lower_bound`) to where the refractive index satisfies this
+            // condition, but fewer photons are emitted at lower energies so
+            // it should take a relatively small fraction of time.
+            do
+            {
+                energy = sample_energy_(rng);
+                cos_theta = inv_beta_ / calc_refractive_index_(energy);
+            } while (cos_theta > 1);
+            sin_theta_sq = 1 - ipow<2>(cos_theta);
+        } while (RejectionSampler{sin_theta_sq, sin_max_sq_}(rng));
+
+        // Sample azimuthal photon direction
         real_type phi = sample_phi_(rng);
         photons_[i].direction = rotate(from_spherical(cos_theta, phi), dir_);
         photons_[i].energy = units::MevEnergy(energy);
@@ -171,11 +188,12 @@ CELER_FUNCTION Span<Primary> CerenkovGenerator::operator()(Generator& rng)
         photons_[i].polarization
             = rotate(from_spherical(-std::sqrt(sin_theta_sq), phi), dir_);
 
-        // Sample position and time
+        // Sample position and time uniformly along the step
+        UniformRealDistribution sample_step_fraction;
         real_type u;
         do
         {
-            u = generate_canonical(rng);
+            u = sample_step_fraction(rng);
         } while (sample_num_photons_(rng) > dndx_pre_ + u * delta_num_photons_);
         real_type delta_time
             = u * dist_.step_length
