@@ -121,7 +121,7 @@ MaterialView::MaterialView(MaterialParamsRef const& params, MaterialId id)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get material id
+ * Get the material id being viewed.
  */
 CELER_FUNCTION MaterialId MaterialView::material_id() const
 {
