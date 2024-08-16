@@ -183,35 +183,37 @@ void DeMorganSimplifier::add_negation_for_operands(NodeId node_id)
 
     for (auto const& join_operand : operands)
     {
-        std::visit(Overload{[&](Joined const&) {
-                                // The operand is a Joined node, and we're
-                                // about to insert a new Negated node pointing
-                                // to a Joined node.
-                                // So we transform that Joined node as well,
-                                // and we skip the insertion of a Negated node
-                                // pointing to that operand
-                                negated_join_nodes_[join_operand.get()] = true;
-                                // we still have to recursively check
-                                // descendent
-                                this->add_negation_for_operands(join_operand);
-                            },
-                            [&](Negated const& negated) {
-                                // this would be a double negation, they
-                                // self-destruct so mark the operand as an
-                                // orphan to remove it
-                                orphaned_nodes_[join_operand.get()] = true;
-                                // however, we need to make sure that we're
-                                // keeping the target of the double negation
-                                // because the join operation will need it
-                                this->record_parent_for(negated.node);
-                            },
-                            [&](auto const&) {
-                                // per DeMorgran's law, negate each operand of
-                                // the Joined node if we're not inserting a
-                                // Negated{Joined{}}.
-                                new_negated_nodes_[join_operand.get()] = true;
-                            }},
-                   tree_[join_operand]);
+        if (std::get_if<Joined>(&tree_[join_operand]))
+        {
+            // The operand is a Joined node, and we're
+            // about to insert a new Negated node pointing
+            // to a Joined node.
+            // So we transform that Joined node as well,
+            // and we skip the insertion of a Negated node
+            // pointing to that operand
+            negated_join_nodes_[join_operand.get()] = true;
+            // we still have to recursively check
+            // descendent
+            this->add_negation_for_operands(join_operand);
+        }
+        else if (auto negated = std::get_if<Negated>(&tree_[join_operand]))
+        {
+            // this would be a double negation, they
+            // self-destruct so mark the operand as an
+            // orphan to remove it
+            orphaned_nodes_[join_operand.get()] = true;
+            // however, we need to make sure that we're
+            // keeping the target of the double negation
+            // because the join operation will need it
+            this->record_parent_for(negated->node);
+        }
+        else
+        {
+            // per DeMorgran's law, negate each operand of
+            // the Joined node if we're not inserting a
+            // Negated{Joined{}}.
+            new_negated_nodes_[join_operand.get()] = true;
+        }
     }
     // assume that the Joined node doesn't have other parents and mark it for
     // deletion.
