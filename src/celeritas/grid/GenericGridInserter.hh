@@ -45,7 +45,7 @@ class GenericGridInserter
     using RealCollection
         = Collection<real_type, Ownership::value, MemSpace::host>;
     using GenericGridCollection
-        = Collection<GenericGridData, Ownership::value, MemSpace::host, Index>;
+        = Collection<GenericGridRecord, Ownership::value, MemSpace::host, Index>;
     //!@}
 
   public:
@@ -66,7 +66,7 @@ class GenericGridInserter
 
   private:
     GenericGridBuilder grid_builder_;
-    CollectionBuilder<GenericGridData, MemSpace::host, Index> grids_;
+    CollectionBuilder<GenericGridRecord, MemSpace::host, Index> grids_;
 };
 
 //---------------------------------------------------------------------------//

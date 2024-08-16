@@ -71,7 +71,7 @@ auto NeutronInelasticMicroXsCalculator::operator()(ElementId el_id) const
     CELER_EXPECT(el_id < shared_.micro_xs.size());
 
     // Get element cross section data
-    GenericGridData grid = shared_.micro_xs[el_id];
+    GenericGridRecord grid = shared_.micro_xs[el_id];
 
     // Calculate micro cross section at the given energy
     GenericCalculator calc_xs(grid, shared_.reals);

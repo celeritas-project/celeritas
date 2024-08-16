@@ -38,12 +38,12 @@ class GenericGridInserterTest : public ::celeritas::test::Test
     template<size_t N>
     std::array<real_type, N> build_random_array(real_type start)
     {
-        UniformRealDistribution dist(0.5, 1.5);
+        UniformRealDistribution sample_uniform(0.5, 1.5);
         std::array<real_type, N> xs;
         xs[0] = start;
-        for (size_t i = 1; i < N; i++)
+        for (auto i : range(1, xs.size()))
         {
-            xs[i] = xs[i - 1] + dist(rng_);
+            xs[i] = xs[i - 1] + sample_uniform(rng_);
         }
         return xs;
     }
@@ -57,7 +57,7 @@ class GenericGridInserterTest : public ::celeritas::test::Test
         ASSERT_TRUE(id);
         ASSERT_LT(id.get(), grids_.size());
 
-        GenericGridData const& grid = grids_[id];
+        GenericGridRecord const& grid = grids_[id];
         ASSERT_EQ(N, grid.grid.size());
         ASSERT_EQ(N, grid.value.size());
 
@@ -66,7 +66,7 @@ class GenericGridInserterTest : public ::celeritas::test::Test
     }
 
     Collection<real_type, Ownership::value, MemSpace::host> scalars_;
-    Collection<GenericGridData, Ownership::value, MemSpace::host, GridIndexType>
+    Collection<GenericGridRecord, Ownership::value, MemSpace::host, GridIndexType>
         grids_;
 
     RandomEngine rng_;
@@ -99,8 +99,8 @@ TEST_F(GenericGridInserterTest, many_no_repeats)
     size_t const num_grids = 20;
     for (size_t i = 0; i < num_grids; i++)
     {
-        raw_xs.push_back(build_random_array<count>(-100.0 * i));
-        raw_ys.push_back(build_random_array<count>(300.0 * i));
+        raw_xs.push_back(build_random_array<count>(-100 * i));
+        raw_ys.push_back(build_random_array<count>(300 * i));
 
         auto const& xs = raw_xs.back();
         auto const& ys = raw_ys.back();
@@ -125,13 +125,13 @@ TEST_F(GenericGridInserterTest, many_with_repeats)
     auto inserter = make_inserter();
 
     std::vector<GridIndexType> grid_ids;
-    std::array<real_type, count> xs = build_random_array<count>(-100.0);
+    std::array<real_type, count> xs = build_random_array<count>(-100);
     std::vector<std::array<real_type, count>> raw_ys;
 
     size_t const num_grids = 20;
     for (size_t i = 0; i < num_grids; i++)
     {
-        raw_ys.push_back(build_random_array<count>(300.0 * i));
+        raw_ys.push_back(build_random_array<count>(300 * i));
 
         auto const& ys = raw_ys.back();
 

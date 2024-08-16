@@ -41,7 +41,7 @@ class GenericCalculatorTest : public Test
         CELER_ENSURE(grid_);
     }
 
-    GenericGridData grid_;
+    GenericGridRecord grid_;
     Items<real_type> reals_;
 };
 
