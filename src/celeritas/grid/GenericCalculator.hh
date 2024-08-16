@@ -21,23 +21,28 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Find and interpolate values on a nonuniform grid.
+ * Find and interpolate real numbers on a nonuniform grid.
  *
- * Out-of-bounds values are snapped to the closest grid points.
+ * The end points of the grid are extrapolated outward as constant values.
  */
 class GenericCalculator
 {
   public:
     //@{
     //! Type aliases
-    using Values
+    using Reals
         = Collection<real_type, Ownership::const_reference, MemSpace::native>;
+    using Grid = NonuniformGrid<real_type>;
     //@}
 
   public:
-    // Construct from grid data and backend values
+    // Construct by *inverting* a monotonicially increasing generic grid
+    static inline CELER_FUNCTION GenericCalculator
+    from_inverse(GenericGridRecord const& grid, Reals const& storage);
+
+    // Construct from grid data and backend storage
     inline CELER_FUNCTION
-    GenericCalculator(GenericGridRecord const& grid, Values const& values);
+    GenericCalculator(GenericGridRecord const& grid, Reals const& storage);
 
     // Find and interpolate the y value from the given x value
     inline CELER_FUNCTION real_type operator()(real_type x) const;
@@ -45,27 +50,49 @@ class GenericCalculator
     // Get the tabulated y value at a particular index.
     inline CELER_FUNCTION real_type operator[](size_type index) const;
 
-    // Get the tabulated x values
-    inline CELER_FUNCTION NonuniformGrid<real_type> const& grid() const;
+    // Get the tabulated x grid
+    inline CELER_FUNCTION Grid const& grid() const;
 
   private:
-    Values const& reals_;
-    NonuniformGrid<real_type> x_grid_;
-    ItemRange<real_type> value_index_;
+    //// TYPES ////
+
+    using RealIds = ItemRange<real_type>;
+
+    //// DATA ////
+
+    Reals const& reals_;
+    Grid x_grid_;
+    RealIds y_offset_;
+
+    //// HELPERS ////
+
+    // Private constructor implementation
+    inline CELER_FUNCTION
+    GenericCalculator(Reals const& storage, RealIds x_grid, RealIds y_grid);
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct from grid data and backend values.
+ * Construct by \em inverting a monotonicially increasing generic grid.
+ */
+CELER_FUNCTION GenericCalculator GenericCalculator::from_inverse(
+    GenericGridRecord const& grid, Reals const& storage)
+{
+    return GenericCalculator{storage, grid.value, grid.grid};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from grid data and backend storage.
  */
 CELER_FUNCTION
 GenericCalculator::GenericCalculator(GenericGridRecord const& grid,
-                                     Values const& values)
-    : reals_{values}, x_grid_{grid.grid, reals_}, value_index_{grid.value}
+                                     Reals const& storage)
+    : GenericCalculator{storage, grid.grid, grid.value}
 {
-    CELER_EXPECT(data);
+    CELER_EXPECT(grid);
 }
 
 //---------------------------------------------------------------------------//
@@ -109,8 +136,8 @@ CELER_FUNCTION real_type GenericCalculator::operator()(real_type x) const
  */
 CELER_FUNCTION real_type GenericCalculator::operator[](size_type index) const
 {
-    CELER_EXPECT(index < value_index_.size());
-    return reals_[value_index_[index]];
+    CELER_EXPECT(index < y_offset_.size());
+    return reals_[y_offset_[index]];
 }
 
 //---------------------------------------------------------------------------//
@@ -121,6 +148,23 @@ CELER_FORCEINLINE_FUNCTION NonuniformGrid<real_type> const&
 GenericCalculator::grid() const
 {
     return x_grid_;
+}
+
+//---------------------------------------------------------------------------//
+// PRIVATE HELPERS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from grid data and backend storage.
+ */
+CELER_FUNCTION
+GenericCalculator::GenericCalculator(Reals const& storage,
+                                     RealIds x_grid,
+                                     RealIds y_grid)
+    : reals_{storage}, x_grid_{x_grid, reals_}, y_offset_{y_grid}
+{
+    CELER_EXPECT(!x_grid.empty() && x_grid.size() == y_grid.size());
+    CELER_EXPECT(*x_grid.end() <= reals_.size()
+                 && *y_grid.end() <= reals_.size());
 }
 
 //---------------------------------------------------------------------------//
