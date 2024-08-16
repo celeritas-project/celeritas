@@ -9,6 +9,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -58,6 +59,12 @@ void ExtendFromPrimariesAction::execute_impl(CoreParams const& params,
 
     // Mark that the primaries have been processed
     state.clear_primaries();
+
+    // Clear the track slot IDs of the track initializers' parent tracks. This
+    // is necessary when new primaries are inserted in the middle of a
+    // simulation and the parent IDs of secondaries produced in the previous
+    // step have been stored.
+    fill(TrackSlotId{}, &state.ref().init.parents);
 }
 
 //---------------------------------------------------------------------------//
