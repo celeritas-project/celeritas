@@ -236,9 +236,22 @@ class range_iter
         return !(*this == other);
     }
 
+    // Access the underlying value
+    value_type value() const { return value_; }
+
   protected:
     value_type value_;
 };
+
+// Subtract two range iterators
+template<class T>
+CELER_CONSTEXPR_FUNCTION auto operator-(range_iter<T> a, range_iter<T> b)
+{
+    using TraitsT = RangeTypeTraits<T>;
+    using DT = typename TraitsT::difference_type;
+    return static_cast<DT>(TraitsT::to_counter(a.value()))
+           - static_cast<DT>(TraitsT::to_counter(b.value()));
+}
 
 //---------------------------------------------------------------------------//
 template<class T>
