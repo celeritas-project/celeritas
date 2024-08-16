@@ -166,15 +166,6 @@ void DeMorganSimplifier::add_negation_for_operands(NodeId node_id)
                                 // keeping the target of the double negation
                                 // because the join operation will need it
                                 record_parent_for(negated.node);
-                                // Per DeMorgran's law, negate each operand of
-                                // the Joined node if we're not inserting a
-                                // Negated{Joined{}}.
-                                // We still need to try to insert the double
-                                // negation.
-                                // It will get simplified during
-                                // construction of the simplified tree to
-                                // redirect to the new node id
-                                new_negated_nodes_[join_operand.get()] = true;
                             },
                             [&](auto const&) {
                                 // per DeMorgran's law, negate each operand of
