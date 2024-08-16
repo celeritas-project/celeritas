@@ -114,7 +114,7 @@ CerenkovOffload::operator()(Generator& rng)
         data.time = pre_step_.time;
         data.step_length = step_length_;
         data.charge = charge_;
-        data.material = pre_step_.opt_mat;
+        data.material = pre_step_.material;
         data.points[StepPoint::pre].speed = pre_step_.speed;
         data.points[StepPoint::pre].pos = pre_step_.pos;
         data.points[StepPoint::post] = post_step_;

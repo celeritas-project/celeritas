@@ -91,12 +91,12 @@ struct OffloadPreStepData
     units::LightSpeed speed;
     Real3 pos{};
     real_type time{};
-    OpticalMaterialId opt_mat;
+    OpticalMaterialId material;
 
     //! Check whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return opt_mat && speed > zero_quantity();
+        return material && speed > zero_quantity();
     }
 };
 

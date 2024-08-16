@@ -149,7 +149,7 @@ class CerenkovTest : public OpticalTestBase
 
     std::shared_ptr<MaterialParams const> material;
     std::shared_ptr<CerenkovParams const> params;
-    OpticalMaterialId opt_mat{0};
+    OpticalMaterialId material_id{0};
 };
 
 //---------------------------------------------------------------------------//
@@ -227,7 +227,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
         pre_step.pos = {0, 0, 0};
         pre_step.speed = units::LightSpeed{0.63431981443206786};
         pre_step.time = 0;
-        pre_step.opt_mat = opt_mat;
+        pre_step.material = material_id;
 
         // Post-step values
         auto particle
@@ -253,7 +253,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
             // Remaining values are assigned to result from input data
             EXPECT_EQ(pre_step.time, result.time);
             EXPECT_EQ(particle.charge().value(), result.charge.value());
-            EXPECT_EQ(opt_mat, result.material);
+            EXPECT_EQ(material_id, result.material);
             EXPECT_EQ(sim.step_length(), result.step_length);
             EXPECT_EQ(pre_step.speed.value(),
                       result.points[StepPoint::pre].speed.value());
@@ -276,7 +276,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
         pre_step.pos = {0, 0, 0};
         pre_step.speed = units::LightSpeed{0.55};
         pre_step.time = 0;
-        pre_step.opt_mat = opt_mat;
+        pre_step.material = material_id;
 
         // Post-step values
         auto particle
@@ -416,7 +416,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
         pre_step.pos = {0, 0, 0};
         pre_step.speed = units::LightSpeed{0.99999999869453382};  // 10 GeV
         pre_step.time = 0;
-        pre_step.opt_mat = opt_mat;
+        pre_step.material = material_id;
 
         // Post-step values
         auto particle
@@ -454,7 +454,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
         pre_step.pos = {0, 0, 0};
         pre_step.speed = units::LightSpeed(0.86286196322132458);  // 500 keV
         pre_step.time = 0;
-        pre_step.opt_mat = opt_mat;
+        pre_step.material = material_id;
 
         // Post-step values (150 keV)
         auto particle

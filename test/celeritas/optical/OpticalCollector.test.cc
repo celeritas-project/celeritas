@@ -34,6 +34,7 @@ namespace celeritas
 {
 namespace test
 {
+// TODO: replace this with explicit namespace importing
 using namespace celeritas::optical;
 
 //---------------------------------------------------------------------------//

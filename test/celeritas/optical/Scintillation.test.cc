@@ -72,7 +72,7 @@ class ScintillationTestBase : public OpticalTestBase
         pre_step.speed = LightSpeed(0.99862874144970537);  // 10 MeV
         pre_step.pos = {0, 0, 0};
         pre_step.time = 0;
-        pre_step.opt_mat = opt_mat_;
+        pre_step.material = opt_mat_;
         return pre_step;
     }
 
