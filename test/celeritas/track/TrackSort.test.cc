@@ -259,8 +259,8 @@ TEST_F(TestEm3NoMsc, host_is_sorting)
     execute("pre-step");
     execute("sort-tracks-post-step");
     auto track_slots = state.ref().track_slots.data();
-    auto actions = detail::get_action_ptr(
-        state.ref(), this->core()->init()->host_ref().track_order);
+    auto actions = detail::get_action_ptr(state.ref(),
+                                          this->core()->init()->track_order());
     detail::ActionAccessor action_accessor{actions, track_slots};
     for (std::uint32_t i = 1; i < state.size(); ++i)
     {

@@ -64,8 +64,7 @@ void InitializeTracksAction::execute_impl(CoreParams const& core_params,
         = std::min(counters.num_vacancies, counters.num_initializers);
     if (num_new_tracks > 0 || core_state.warming_up())
     {
-        if (core_params.init()->host_ref().track_order
-            == TrackOrder::partition_charge)
+        if (core_params.init()->track_order() == TrackOrder::partition_charge)
         {
             // Reset the indices
             fill_sequence(&core_state.ref().init.indices,

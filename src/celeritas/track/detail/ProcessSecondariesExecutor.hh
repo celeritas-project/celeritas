@@ -130,6 +130,14 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
             if (!initialized && sim.status() != TrackStatus::alive
                 && params->init.track_order != TrackOrder::partition_charge)
             {
+                /*!
+                 * Skip in-place initialization when tracks are partitioned by
+                 * charge to reduce the amount of mixing
+                 *
+                 * \todo Consider allowing this if the parent's charge is the
+                 * same as the secondary's
+                 */
+
                 ParticleTrackView particle(
                     params->particles, state->particles, tid);
                 PhysicsTrackView phys(

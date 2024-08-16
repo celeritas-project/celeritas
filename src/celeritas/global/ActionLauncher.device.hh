@@ -130,8 +130,7 @@ class ActionLauncher
                     F const& call_thread) const
     {
         CELER_EXPECT(state.stream_id());
-        if (is_action_sorted(action.order(),
-                             params.init()->host_ref().track_order))
+        if (is_action_sorted(action.order(), params.init()->track_order()))
         {
             return (*this)(state.get_action_range(action.action_id()),
                            state.stream_id(),
