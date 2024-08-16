@@ -11,6 +11,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -66,7 +67,12 @@ void InitializeTracksAction::execute_impl(CoreParams const& core_params,
         if (core_params.init()->host_ref().track_order
             == TrackOrder::partition_charge)
         {
-            // Partition tracks by whether they are charged or neutral
+            // Reset the indices
+            fill_sequence(&core_state.ref().init.indices,
+                          core_state.stream_id());
+
+            // Partition the track indices by whether the tracks are charged or
+            // neutral
             detail::partition_initializers(core_params,
                                            core_state.ref().init,
                                            counters,

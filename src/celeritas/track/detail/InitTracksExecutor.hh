@@ -72,17 +72,23 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
 {
     CELER_EXPECT(tid < num_new_tracks);
 
+    using InitId = ItemId<TrackInitializer>;
+
     // Get the track initializer from the back of the vector. Since new
     // initializers are pushed to the back of the vector, these will be the
     // most recently added and therefore the ones that still might have a
     // parent they can copy the geometry state from.
     auto const& data = state->init;
-    ItemId<TrackInitializer> idx{
-        params->init.track_order == TrackOrder::partition_charge
-            ? data.indices[TrackSlotId(index_before(num_new_tracks, tid))]
-                  + counters.num_initializers - num_new_tracks
-            : index_before(counters.num_initializers, tid)};
-    TrackInitializer const& init = data.initializers[idx];
+    TrackInitializer const& init = [&] {
+        if (params->init.track_order == TrackOrder::partition_charge)
+        {
+            return data.initializers[InitId(
+                data.indices[TrackSlotId(index_before(num_new_tracks, tid))]
+                + counters.num_initializers - num_new_tracks)];
+        }
+        return data
+            .initializers[InitId(index_before(counters.num_initializers, tid))];
+    }();
 
     // View to the new track to be initialized
     CoreTrackView vacancy{
@@ -128,6 +134,7 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
                 params->geometry, state->geometry, parent_id);
             CELER_ASSERT(parent_geo.pos() == init.geo.pos);
             geo = GeoTrackView::DetailedInitializer{parent_geo, init.geo.dir};
+            CELER_ASSERT(!geo.is_outside());
         }
         else
         {

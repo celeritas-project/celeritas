@@ -84,12 +84,9 @@ void partition_initializers(
     size_type count,
     StreamId)
 {
-    // Reset the indices
+    // Partition the indices based on the track initializer charge
     auto start = static_cast<size_type*>(init.indices.data());
     auto end = start + count;
-    std::iota(start, end, 0);
-
-    // Partition the indices based on the track initializer charge
     auto stencil = static_cast<TrackInitializer*>(init.initializers.data())
                    + counters.num_initializers - count;
     std::stable_partition(

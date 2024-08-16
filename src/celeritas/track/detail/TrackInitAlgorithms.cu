@@ -12,7 +12,6 @@
 #include <thrust/partition.h>
 #include <thrust/remove.h>
 #include <thrust/scan.h>
-#include <thrust/sequence.h>
 
 #include "corecel/Macros.hh"
 #include "corecel/data/ObserverPtr.device.hh"
@@ -94,12 +93,9 @@ void partition_initializers(
 {
     ScopedProfiling profile_this{"partition-initializers"};
 
-    // Reset the indices
+    // Partition the indices based on the track initializer charge
     auto start = device_pointer_cast(init.indices.data());
     auto end = start + count;
-    thrust::sequence(thrust_execute_on(stream_id), start, end, 0);
-
-    // Partition the indices based on the track initializer charge
     auto stencil = static_cast<TrackInitializer*>(init.initializers.data())
                    + counters.num_initializers - count;
     thrust::stable_partition(
