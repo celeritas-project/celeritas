@@ -22,7 +22,7 @@
 
 #include "CerenkovDndxCalculator.hh"
 #include "GeneratorDistributionData.hh"
-#include "MaterialPropertyData.hh"
+#include "MaterialData.hh"
 #include "Primary.hh"
 
 namespace celeritas
@@ -50,9 +50,9 @@ namespace optical
 class CerenkovGenerator
 {
   public:
-    // Construct from optical properties and distribution parameters
+    // Construct from optical materials and distribution parameters
     inline CELER_FUNCTION
-    CerenkovGenerator(NativeCRef<MaterialPropertyData> const& properties,
+    CerenkovGenerator(NativeCRef<MaterialParamsData> const& materials,
                       NativeCRef<CerenkovData> const& shared,
                       GeneratorDistributionData const& dist,
                       Span<Primary> photons);
@@ -85,31 +85,31 @@ class CerenkovGenerator
     //// HELPER FUNCTIONS ////
 
     GenericCalculator
-    make_calculator(NativeCRef<MaterialPropertyData> const& properties,
-                    OpticalMaterialId material);
+    make_calculator(NativeCRef<MaterialParamsData> const& material,
+                    OpticalMaterialId mat_id);
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct from optical properties and distribution parameters.
+ * Construct from optical materials and distribution parameters.
  */
 CELER_FUNCTION
 CerenkovGenerator::CerenkovGenerator(
-    NativeCRef<MaterialPropertyData> const& properties,
+    NativeCRef<MaterialParamsData> const& material,
     NativeCRef<CerenkovData> const& shared,
     GeneratorDistributionData const& dist,
     Span<Primary> photons)
     : dist_(dist)
     , photons_(photons)
-    , calc_refractive_index_(this->make_calculator(properties, dist_.material))
+    , calc_refractive_index_(this->make_calculator(material, dist_.material))
     , sample_phi_(0, 2 * constants::pi)
 
 {
-    CELER_EXPECT(properties);
+    CELER_EXPECT(material);
     CELER_EXPECT(shared);
-    CELER_EXPECT(dist_.material < properties.refractive_index.size());
+    CELER_EXPECT(dist_.material < material.refractive_index.size());
     CELER_EXPECT(dist_);
     CELER_EXPECT(photons_.size() == dist_.num_photons);
 
@@ -121,7 +121,7 @@ CerenkovGenerator::CerenkovGenerator(
     auto const& pre_step = dist_.points[StepPoint::pre];
     auto const& post_step = dist_.points[StepPoint::post];
     CerenkovDndxCalculator calc_dndx(
-        properties, shared, dist_.material, dist_.charge);
+        material, shared, dist_.material, dist_.charge);
     dndx_pre_ = calc_dndx(pre_step.speed);
     real_type dndx_post = calc_dndx(post_step.speed);
 
@@ -193,14 +193,12 @@ CELER_FUNCTION Span<Primary> CerenkovGenerator::operator()(Generator& rng)
  * Return a calculator to compute index of refraction.
  */
 CELER_FUNCTION GenericCalculator CerenkovGenerator::make_calculator(
-    NativeCRef<MaterialPropertyData> const& properties,
-    OpticalMaterialId material)
+    NativeCRef<MaterialParamsData> const& material, OpticalMaterialId mat_id)
 {
-    CELER_EXPECT(properties);
-    CELER_EXPECT(material < properties.refractive_index.size());
+    CELER_EXPECT(material);
+    CELER_EXPECT(mat_id < material.refractive_index.size());
 
-    return GenericCalculator(properties.refractive_index[material],
-                             properties.reals);
+    return GenericCalculator(material.refractive_index[mat_id], material.reals);
 }
 
 //---------------------------------------------------------------------------//

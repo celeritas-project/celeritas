@@ -16,7 +16,6 @@
 #include "celeritas/track/SimTrackView.hh"
 
 #include "GeneratorDistributionData.hh"
-#include "MaterialPropertyData.hh"
 #include "OffloadData.hh"
 #include "ScintillationData.hh"
 

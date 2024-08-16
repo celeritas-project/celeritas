@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/MaterialPropertyParams.cc
+//! \file celeritas/optical/MaterialParams.cc
 //---------------------------------------------------------------------------//
-#include "MaterialPropertyParams.hh"
+#include "MaterialParams.hh"
 
 #include <algorithm>
 #include <utility>
@@ -28,8 +28,8 @@ namespace optical
 /*!
  * Construct with imported data.
  */
-std::shared_ptr<MaterialPropertyParams>
-MaterialPropertyParams::from_import(ImportData const& data)
+std::shared_ptr<MaterialParams>
+MaterialParams::from_import(ImportData const& data)
 {
     CELER_EXPECT(!data.optical.empty());
 
@@ -45,21 +45,23 @@ MaterialPropertyParams::from_import(ImportData const& data)
     Input input;
     for (auto const& mat : data.optical)
     {
-        input.data.push_back(mat.second.properties);
+        input.properties.push_back(mat.second.properties);
     }
-    return std::make_shared<MaterialPropertyParams>(std::move(input));
+    return std::make_shared<MaterialParams>(std::move(input));
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with optical property data.
  */
-MaterialPropertyParams::MaterialPropertyParams(Input const& inp)
+MaterialParams::MaterialParams(Input const& inp)
 {
-    HostVal<MaterialPropertyData> data;
+    CELER_EXPECT(!inp.properties.empty());
+
+    HostVal<MaterialParamsData> data;
     CollectionBuilder refractive_index{&data.refractive_index};
     GenericGridBuilder build_grid(&data.reals);
-    for (auto const& mat : inp.data)
+    for (auto const& mat : inp.properties)
     {
         // Store refractive index tabulated as a function of photon energy
         auto const& ri_vec = mat.refractive_index;
@@ -81,10 +83,10 @@ MaterialPropertyParams::MaterialPropertyParams(Input const& inp)
 
         refractive_index.push_back(build_grid(ri_vec));
     }
-    CELER_ASSERT(refractive_index.size() == inp.data.size());
+    CELER_ASSERT(refractive_index.size() == inp.properties.size());
 
-    data_ = CollectionMirror<MaterialPropertyData>{std::move(data)};
-    CELER_ENSURE(data_ || inp.data.empty());
+    data_ = CollectionMirror<MaterialParamsData>{std::move(data)};
+    CELER_ENSURE(data_);
 }
 
 //---------------------------------------------------------------------------//

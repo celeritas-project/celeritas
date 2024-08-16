@@ -28,7 +28,7 @@ struct CerenkovOffloadExecutor
     inline CELER_FUNCTION void
     operator()(celeritas::CoreTrackView const& track);
 
-    NativeCRef<celeritas::optical::MaterialPropertyData> const properties;
+    NativeCRef<celeritas::optical::MaterialParamsData> const properties;
     NativeCRef<celeritas::optical::CerenkovData> const cerenkov;
     NativeRef<OffloadStateData> const state;
     OffloadBufferSize size;

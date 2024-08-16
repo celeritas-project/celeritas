@@ -16,7 +16,6 @@
 
 #include "CerenkovData.hh"
 #include "GeneratorDistributionData.hh"
-#include "MaterialPropertyData.hh"
 #include "ScintillationData.hh"
 
 namespace celeritas

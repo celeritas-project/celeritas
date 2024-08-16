@@ -18,7 +18,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/grid/GenericGridInserter.hh"
 
-#include "MaterialPropertyParams.hh"
+#include "MaterialParams.hh"
 
 namespace celeritas
 {
@@ -28,10 +28,10 @@ namespace optical
 /*!
  * Construct with optical property data.
  */
-CerenkovParams::CerenkovParams(SPConstProperties properties)
+CerenkovParams::CerenkovParams(SPConstMaterial material)
 {
-    CELER_EXPECT(properties);
-    auto const& host_ref = properties->host_ref();
+    CELER_EXPECT(material);
+    auto const& host_ref = material->host_ref();
 
     HostVal<CerenkovData> data;
     GenericGridInserter insert_angle_integral(&data.reals,

@@ -25,7 +25,7 @@
 #include "celeritas/optical/CerenkovOffload.hh"
 #include "celeritas/optical/CerenkovParams.hh"
 #include "celeritas/optical/GeneratorDistributionData.hh"
-#include "celeritas/optical/MaterialPropertyParams.hh"
+#include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/random/distribution/PoissonDistribution.hh"
 
@@ -126,7 +126,7 @@ class CerenkovTest : public OpticalTestBase
 
     void SetUp() override
     {
-        // Build optical properties: only one material (water)
+        // Build optical material: only one material (water)
         ImportOpticalProperty water;
         for (double wl : get_wavelength())
         {
@@ -137,17 +137,17 @@ class CerenkovTest : public OpticalTestBase
             = {get_refractive_index().begin(), get_refractive_index().end()};
         water.refractive_index.vector_type = ImportPhysicsVectorType::free;
 
-        MaterialPropertyParams::Input input;
-        input.data.push_back(std::move(water));
-        properties = std::make_shared<MaterialPropertyParams>(std::move(input));
+        MaterialParams::Input input;
+        input.properties.push_back(std::move(water));
+        material = std::make_shared<MaterialParams>(std::move(input));
 
         // Build Cerenkov data
-        params = std::make_shared<CerenkovParams>(properties);
+        params = std::make_shared<CerenkovParams>(material);
     }
 
     static constexpr double micrometer = 1e-4 * units::centimeter;
 
-    std::shared_ptr<MaterialPropertyParams const> properties;
+    std::shared_ptr<MaterialParams const> material;
     std::shared_ptr<CerenkovParams const> params;
     OpticalMaterialId opt_mat{0};
 };
@@ -186,7 +186,7 @@ TEST_F(CerenkovTest, dndx)
 
     std::vector<real_type> dndx;
     CerenkovDndxCalculator calc_dndx(
-        properties->host_ref(),
+        material->host_ref(),
         params->host_ref(),
         opt_mat,
         this->particle_params()->get(ParticleId{0}).charge());
@@ -238,7 +238,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
         CerenkovOffload pre_generate(particle,
                                      sim,
                                      pos,
-                                     properties->host_ref(),
+                                     material->host_ref(),
                                      params->host_ref(),
                                      pre_step);
 
@@ -287,7 +287,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
         CerenkovOffload pre_generate(particle,
                                      sim,
                                      pos,
-                                     properties->host_ref(),
+                                     material->host_ref(),
                                      params->host_ref(),
                                      pre_step);
         auto const result = pre_generate(rng);
@@ -342,7 +342,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
         CerenkovOffload pre_generate(particle,
                                      sim,
                                      pos,
-                                     properties->host_ref(),
+                                     material->host_ref(),
                                      params->host_ref(),
                                      pre_step);
 
@@ -354,7 +354,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
 
             // Sample the optical photons
             std::vector<Primary> storage(dist.num_photons);
-            CerenkovGenerator generate_photons(properties->host_ref(),
+            CerenkovGenerator generate_photons(material->host_ref(),
                                                params->host_ref(),
                                                dist,
                                                make_span(storage));

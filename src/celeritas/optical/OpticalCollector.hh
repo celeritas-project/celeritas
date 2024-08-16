@@ -23,9 +23,13 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 class ActionRegistry;
 class CerenkovParams;
-class MaterialPropertyParams;
 class ScintillationParams;
 class CoreParams;
+
+namespace optical
+{
+class MaterialParams;
+}
 
 namespace detail
 {
@@ -52,16 +56,15 @@ class OpticalCollector
     //!@{
     //! \name Type aliases
     using SPConstCerenkov = std::shared_ptr<optical::CerenkovParams const>;
-    using SPConstProperties
-        = std::shared_ptr<optical::MaterialPropertyParams const>;
+    using SPConstMaterial = std::shared_ptr<optical::MaterialParams const>;
     using SPConstScintillation
         = std::shared_ptr<optical::ScintillationParams const>;
     //!@}
 
     struct Input
     {
-        //! Optical physics properties for materials
-        SPConstProperties properties;
+        //! Optical physics material for materials
+        SPConstMaterial material;
         SPConstCerenkov cerenkov;
         SPConstScintillation scintillation;
 
@@ -71,7 +74,7 @@ class OpticalCollector
         //! True if all input is assigned and valid
         explicit operator bool() const
         {
-            return (scintillation || (cerenkov && properties))
+            return (scintillation || (cerenkov && material))
                    && buffer_capacity > 0;
         }
     };

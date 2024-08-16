@@ -17,7 +17,7 @@
 #include "celeritas/grid/GenericCalculator.hh"
 
 #include "CerenkovData.hh"
-#include "MaterialPropertyData.hh"
+#include "MaterialData.hh"
 
 namespace celeritas
 {
@@ -52,9 +52,9 @@ namespace optical
 class CerenkovDndxCalculator
 {
   public:
-    // Construct from optical properties and Cerenkov angle integrals
+    // Construct from optical materials and Cerenkov angle integrals
     inline CELER_FUNCTION
-    CerenkovDndxCalculator(NativeCRef<MaterialPropertyData> const& properties,
+    CerenkovDndxCalculator(NativeCRef<MaterialParamsData> const& materials,
                            NativeCRef<CerenkovData> const& shared,
                            OpticalMaterialId material,
                            units::ElementaryCharge charge);
@@ -63,9 +63,9 @@ class CerenkovDndxCalculator
     inline CELER_FUNCTION real_type operator()(units::LightSpeed beta);
 
   private:
-    NativeCRef<MaterialPropertyData> const& properties_;
+    NativeCRef<MaterialParamsData> const& material_;
     NativeCRef<CerenkovData> const& shared_;
-    OpticalMaterialId material_;
+    OpticalMaterialId matid_;
     real_type zsq_;
 };
 
@@ -73,22 +73,22 @@ class CerenkovDndxCalculator
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct from optical properties and Cerenkov angle integrals.
+ * Construct from optical materials and Cerenkov angle integrals.
  */
 CELER_FUNCTION
 CerenkovDndxCalculator::CerenkovDndxCalculator(
-    NativeCRef<MaterialPropertyData> const& properties,
+    NativeCRef<MaterialParamsData> const& materials,
     NativeCRef<CerenkovData> const& shared,
     OpticalMaterialId material,
     units::ElementaryCharge charge)
-    : properties_(properties)
+    : material_(materials)
     , shared_(shared)
-    , material_(material)
+    , matid_(material)
     , zsq_(ipow<2>(charge.value()))
 {
-    CELER_EXPECT(properties_);
+    CELER_EXPECT(material_);
     CELER_EXPECT(shared_);
-    CELER_EXPECT(material_ < shared_.angle_integral.size());
+    CELER_EXPECT(matid_ < shared_.angle_integral.size());
     CELER_EXPECT(charge != zero_quantity());
 }
 
@@ -101,16 +101,16 @@ CerenkovDndxCalculator::operator()(units::LightSpeed beta)
 {
     CELER_EXPECT(beta.value() > 0 && beta.value() <= 1);
 
-    if (!shared_.angle_integral[material_])
+    if (!shared_.angle_integral[matid_])
     {
-        // No optical properties for this material
+        // No optical materials for this material
         return 0;
     }
 
-    CELER_ASSERT(material_ < properties_.refractive_index.size());
+    CELER_ASSERT(matid_ < material_.refractive_index.size());
     real_type inv_beta = 1 / beta.value();
-    GenericCalculator calc_refractive_index(
-        properties_.refractive_index[material_], properties_.reals);
+    GenericCalculator calc_refractive_index(material_.refractive_index[matid_],
+                                            material_.reals);
     real_type energy_max = calc_refractive_index.grid().back();
     if (inv_beta > calc_refractive_index(energy_max))
     {
@@ -120,7 +120,7 @@ CerenkovDndxCalculator::operator()(units::LightSpeed beta)
     }
 
     // Calculate the Cerenkov angle integral [MeV]
-    GenericCalculator calc_integral(shared_.angle_integral[material_],
+    GenericCalculator calc_integral(shared_.angle_integral[matid_],
                                     shared_.reals);
 
     // Calculate \f$ \int_{\epsilon_\text{min}}^{\epsilon_\text{max}}
