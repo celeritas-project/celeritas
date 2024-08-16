@@ -21,6 +21,8 @@ namespace celeritas
  * Access amalgamated data for a nuclide (isotope of an element).
  *
  * This encapsulates general data specific to a single nuclide.
+ *
+ * \todo This will be renamed to NuclideView.
  */
 class IsotopeView
 {

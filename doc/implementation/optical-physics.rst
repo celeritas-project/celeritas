@@ -57,7 +57,7 @@ tracking loop:
 Optical materials
 =================
 
-.. doxygenclass:: celeritas::optical::MaterialParams
+.. doxygenclass:: celeritas::optical::MaterialPropertyParams
 
 Offloading
 ==========

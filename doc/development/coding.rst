@@ -37,20 +37,18 @@ Test thoroughly
 Functions should use programmatic assertions whenever assumptions are made.
 Celeritas provides three assertions
 
-- Use the ``CELER_EXPECT(x)`` assertion macro to test preconditions about
+- Use the :c:macro:`CELER_EXPECT` assertion macro to test preconditions about
   incoming data or initial internal states.
-- Use ``CELER_ASSERT(x)`` to express an assumption internal to a function (e.g.,
+- Use :c:macro:`CELER_ASSERT` to express an assumption internal to a function (e.g.,
   "this index is not out of range of the array").
-- Use ``CELER_ENSURE(x)`` to mark expectations about data being returned from a
+- Use :c:macro:`CELER_ENSURE` to mark expectations about data being returned from a
   function and side effects resulting from the function.
 
 These assertions are enabled only when the ``CELERITAS_DEBUG`` CMake option is
 set.
-
 Additionally, user-provided data and potentially volatile runtime conditions
 (such as the presence of an environment variable) should be checked with
-the always-on assertion ``CELER_VALIDATE(x, << "streamable message")`` macro. See
-:ref:`api_corecel` for more details about these macros.
+the always-on assertion :c:macro`CELER_VALIDATE` macro.
 
 Each class must be thoroughly tested with an independent unit test in the
 `test` directory.  For complete coverage, each function of the class must have

@@ -136,11 +136,12 @@ Params data) are unintelligible::
      }
    }
 
-You can add execute these commands (note that this assumes the working
+You can execute these commands (note that this assumes the working
 directory is one below the source, as it would if running in ``build``)::
 
    command script import ../scripts/dev/celerlldb.py --allow-reload
    type synthetic add -x "^celeritas::Span<.+>$" --python-class celerlldb.SpanSynthetic
+   type synthetic add -x "^celeritas::ItemRange<.+>$" --python-class celerlldb.ItemRangeSynthetic
 
 Then the "spans" of data will print their actual contents::
 

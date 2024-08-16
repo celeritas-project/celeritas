@@ -4,7 +4,7 @@
 
 .. _example_celer_sim:
 
-Celeritas EM for profiling
-==========================
+Celeritas for standalone profiling
+==================================
 
 This section to be completed later.
