@@ -35,10 +35,12 @@
 
 namespace celeritas
 {
+namespace optical
+{
 namespace test
 {
-using namespace celeritas::optical;
-
+//---------------------------------------------------------------------------//
+//
 struct InvCentimeter
 {
     static CELER_CONSTEXPR_FUNCTION real_type value()
@@ -48,7 +50,9 @@ struct InvCentimeter
     static char const* label() { return "1/cm"; }
 };
 
-using InvCmDnDx = Quantity<InvCentimeter>;
+using InvCmLength = Quantity<InvCentimeter>;
+using celeritas::test::from_cm;
+
 //---------------------------------------------------------------------------//
 /*!
  * Tabulated refractive index in water as a function of photon wavelength [μm].
@@ -119,10 +123,11 @@ double convert_to_energy(double wavelength)
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class CerenkovTest : public OpticalTestBase
+class CerenkovTest : public ::celeritas::test::OpticalTestBase
 {
   protected:
     using Energy = units::MevEnergy;
+    using Rng = ::celeritas::test::DiagnosticRngEngine<std::mt19937>;
 
     void SetUp() override
     {
@@ -161,7 +166,7 @@ TEST_F(CerenkovTest, angle_integral)
     // Check conversion: 1 μm wavelength is approximately 1.2398 eV
     EXPECT_SOFT_EQ(1.2398419843320026e-6, convert_to_energy(1 * micrometer));
 
-    auto const& grid = params->host_ref().angle_integral[opt_mat];
+    auto const& grid = params->host_ref().angle_integral[material_id];
     EXPECT_TRUE(grid);
 
     auto const& energy = params->host_ref().reals[grid.grid];
@@ -184,18 +189,18 @@ TEST_F(CerenkovTest, dndx)
                          / (constants::hbar_planck * constants::c_light),
                      1e-6);
 
-    std::vector<real_type> dndx;
+    MaterialView mat_view{material->host_ref(), material_id};
     CerenkovDndxCalculator calc_dndx(
-        material->host_ref(),
+        mat_view,
         params->host_ref(),
-        opt_mat,
         this->particle_params()->get(ParticleId{0}).charge());
 
+    std::vector<real_type> dndx;
     for (real_type beta :
          {0.5, 0.6813, 0.69, 0.71, 0.73, 0.752, 0.756, 0.8, 0.9, 0.999})
     {
         dndx.push_back(
-            native_value_to<InvCmDnDx>(calc_dndx(units::LightSpeed(beta)))
+            native_value_to<InvCmLength>(calc_dndx(units::LightSpeed(beta)))
                 .value());
     }
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
@@ -218,7 +223,8 @@ TEST_F(CerenkovTest, dndx)
 
 TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
 {
-    DiagnosticRngEngine<std::mt19937> rng;
+    Rng rng;
+    MaterialView const mat_view{material->host_ref(), material_id};
 
     // 500 keV e-
     {
@@ -235,12 +241,8 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
         auto sim = this->make_sim_track_view(0.15);
         Real3 pos = {sim.step_length(), 0, 0};
 
-        CerenkovOffload pre_generate(particle,
-                                     sim,
-                                     pos,
-                                     material->host_ref(),
-                                     params->host_ref(),
-                                     pre_step);
+        CerenkovOffload pre_generate(
+            particle, sim, mat_view, pos, params->host_ref(), pre_step);
 
         size_type num_samples = 10;
         std::vector<size_type> sampled_num_photons;
@@ -284,12 +286,8 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
         auto sim = this->make_sim_track_view(0.1);
         Real3 pos = {sim.step_length(), 0, 0};
 
-        CerenkovOffload pre_generate(particle,
-                                     sim,
-                                     pos,
-                                     material->host_ref(),
-                                     params->host_ref(),
-                                     pre_step);
+        CerenkovOffload pre_generate(
+            particle, sim, mat_view, pos, params->host_ref(), pre_step);
         auto const result = pre_generate(rng);
 
         EXPECT_FALSE(result);
@@ -301,7 +299,8 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(pre_generator))
 
 TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
 {
-    DiagnosticRngEngine<std::mt19937> rng;
+    Rng rng;
+    MaterialView mat_view{material->host_ref(), material_id};
 
     // Mean values
     real_type avg_costheta;
@@ -339,12 +338,8 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
         real_type ddel = (dmax - dmin) / num_bins;
 
         // Calculate the average number of photons produced per unit length
-        CerenkovOffload pre_generate(particle,
-                                     sim,
-                                     pos,
-                                     material->host_ref(),
-                                     params->host_ref(),
-                                     pre_step);
+        CerenkovOffload pre_generate(
+            particle, sim, mat_view, pos, params->host_ref(), pre_step);
 
         Real3 inc_dir = make_unit_vector(pos - pre_step.pos);
         for (size_type i = 0; i < num_samples; ++i)
@@ -354,10 +349,8 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
 
             // Sample the optical photons
             std::vector<Primary> storage(dist.num_photons);
-            CerenkovGenerator generate_photons(material->host_ref(),
-                                               params->host_ref(),
-                                               dist,
-                                               make_span(storage));
+            CerenkovGenerator generate_photons(
+                mat_view, params->host_ref(), dist, make_span(storage));
             auto photons = generate_photons(rng);
 
             for (auto const& photon : photons)
@@ -486,4 +479,5 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
 
 //---------------------------------------------------------------------------//
 }  // namespace test
+}  // namespace optical
 }  // namespace celeritas

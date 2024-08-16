@@ -72,10 +72,10 @@ CerenkovOffloadExecutor::operator()(CoreTrackView const& track)
     if (particle.charge() != zero_quantity())
     {
         Real3 const& pos = track.make_geo_view().pos();
+        optical::MaterialView opt_mat{material, step.material};
         auto rng = track.make_rng_engine();
 
-        CerenkovOffload generate(
-            particle, sim, pos, properties, cerenkov, step);
+        CerenkovOffload generate(particle, sim, opt_mat, pos, cerenkov, step);
         cerenkov_dist = generate(rng);
     }
 }

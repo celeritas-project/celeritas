@@ -16,7 +16,7 @@
 #include "CerenkovData.hh"
 #include "CerenkovDndxCalculator.hh"
 #include "GeneratorDistributionData.hh"
-#include "MaterialData.hh"
+#include "MaterialView.hh"
 #include "OffloadData.hh"
 
 namespace celeritas
@@ -42,8 +42,8 @@ class CerenkovOffload
     inline CELER_FUNCTION
     CerenkovOffload(ParticleTrackView const& particle,
                     SimTrackView const& sim,
+                    optical::MaterialView const& mat,
                     Real3 const& pos,
-                    NativeCRef<optical::MaterialParamsData> const& material,
                     NativeCRef<optical::CerenkovData> const& shared,
                     OffloadPreStepData const& step_data);
 
@@ -66,13 +66,13 @@ class CerenkovOffload
 /*!
  * Construct with optical material, Cerenkov, and step information.
  */
-CELER_FUNCTION CerenkovOffload::CerenkovOffload(
-    ParticleTrackView const& particle,
-    SimTrackView const& sim,
-    Real3 const& pos,
-    NativeCRef<optical::MaterialParamsData> const& material,
-    NativeCRef<optical::CerenkovData> const& shared,
-    OffloadPreStepData const& step_data)
+CELER_FUNCTION
+CerenkovOffload::CerenkovOffload(ParticleTrackView const& particle,
+                                 SimTrackView const& sim,
+                                 optical::MaterialView const& mat,
+                                 Real3 const& pos,
+                                 NativeCRef<optical::CerenkovData> const& shared,
+                                 OffloadPreStepData const& step_data)
     : charge_(particle.charge())
     , step_length_(sim.step_length())
     , pre_step_(step_data)
@@ -85,8 +85,7 @@ CELER_FUNCTION CerenkovOffload::CerenkovOffload(
     units::LightSpeed beta(
         real_type{0.5} * (pre_step_.speed.value() + post_step_.speed.value()));
 
-    optical::CerenkovDndxCalculator calculate_dndx(
-        material, shared, pre_step_.opt_mat, charge_);
+    optical::CerenkovDndxCalculator calculate_dndx(mat, shared, charge_);
     num_photons_per_len_ = calculate_dndx(beta);
 }
 

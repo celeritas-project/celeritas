@@ -17,7 +17,7 @@
 #include "celeritas/grid/GenericCalculator.hh"
 
 #include "CerenkovData.hh"
-#include "MaterialData.hh"
+#include "MaterialView.hh"
 
 namespace celeritas
 {
@@ -54,18 +54,21 @@ class CerenkovDndxCalculator
   public:
     // Construct from optical materials and Cerenkov angle integrals
     inline CELER_FUNCTION
-    CerenkovDndxCalculator(NativeCRef<MaterialParamsData> const& materials,
+    CerenkovDndxCalculator(MaterialView const& material,
                            NativeCRef<CerenkovData> const& shared,
-                           OpticalMaterialId material,
                            units::ElementaryCharge charge);
 
     // Calculate the mean number of Cerenkov photons produced per unit length
     inline CELER_FUNCTION real_type operator()(units::LightSpeed beta);
 
   private:
-    NativeCRef<MaterialParamsData> const& material_;
-    NativeCRef<CerenkovData> const& shared_;
-    OpticalMaterialId matid_;
+    // Calcaulte refractive index [MeV -> unitless]
+    GenericCalculator calc_refractive_index_;
+
+    // Calculate the Cerenkov angle integral [MeV -> unitless]
+    GenericCalculator calc_integral_;
+
+    // Square of particle charge
     real_type zsq_;
 };
 
@@ -77,59 +80,46 @@ class CerenkovDndxCalculator
  */
 CELER_FUNCTION
 CerenkovDndxCalculator::CerenkovDndxCalculator(
-    NativeCRef<MaterialParamsData> const& materials,
+    MaterialView const& material,
     NativeCRef<CerenkovData> const& shared,
-    OpticalMaterialId material,
     units::ElementaryCharge charge)
-    : material_(materials)
-    , shared_(shared)
-    , matid_(material)
+    : calc_refractive_index_(material.make_refractive_index_calculator())
+    , calc_integral_{shared.angle_integral[material.material_id()],
+                     shared.reals}
     , zsq_(ipow<2>(charge.value()))
 {
-    CELER_EXPECT(material_);
-    CELER_EXPECT(shared_);
-    CELER_EXPECT(matid_ < shared_.angle_integral.size());
     CELER_EXPECT(charge != zero_quantity());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the mean number of Cerenkov photons produced per unit length.
+ *
+ * \todo define a "generic grid extents" class for finding the lower/upper x/y
+ * coordinates on grid data. In the future we could cache these if the memory
+ * lookups result in too much indirection.
  */
 CELER_FUNCTION real_type
 CerenkovDndxCalculator::operator()(units::LightSpeed beta)
 {
     CELER_EXPECT(beta.value() > 0 && beta.value() <= 1);
 
-    if (!shared_.angle_integral[matid_])
-    {
-        // No optical materials for this material
-        return 0;
-    }
-
-    CELER_ASSERT(matid_ < material_.refractive_index.size());
     real_type inv_beta = 1 / beta.value();
-    GenericCalculator calc_refractive_index(material_.refractive_index[matid_],
-                                            material_.reals);
-    real_type energy_max = calc_refractive_index.grid().back();
-    if (inv_beta > calc_refractive_index(energy_max))
+    real_type energy_max = calc_refractive_index_.grid().back();
+    if (inv_beta > calc_refractive_index_(energy_max))
     {
         // Incident particle energy is below the threshold for Cerenkov
         // emission (i.e., beta < 1 / n_max)
         return 0;
     }
 
-    // Calculate the Cerenkov angle integral [MeV]
-    GenericCalculator calc_integral(shared_.angle_integral[matid_],
-                                    shared_.reals);
-
     // Calculate \f$ \int_{\epsilon_\text{min}}^{\epsilon_\text{max}}
     // \dif\epsilon \left(1 - \frac{1}{n^2\beta^2}\right) \f$
     real_type energy;
-    if (inv_beta < calc_refractive_index[0])
+    if (inv_beta < calc_refractive_index_[0])
     {
-        energy = energy_max - calc_refractive_index.grid().front()
-                 - calc_integral(energy_max) * ipow<2>(inv_beta);
+        energy = energy_max - calc_refractive_index_.grid().front()
+                 - calc_integral_(energy_max) * ipow<2>(inv_beta);
     }
     else
     {
@@ -137,9 +127,9 @@ CerenkovDndxCalculator::operator()(units::LightSpeed beta)
         // Both energy and refractive index are monotonically increasing, so
         // the grid and values can be swapped and the energy can be calculated
         // from a given index of refraction
-        real_type energy_min = calc_refractive_index.make_inverse()(inv_beta);
+        real_type energy_min = calc_refractive_index_.make_inverse()(inv_beta);
         energy = energy_max - energy_min
-                 - (calc_integral(energy_max) - calc_integral(energy_min))
+                 - (calc_integral_(energy_max) - calc_integral_(energy_min))
                        * ipow<2>(inv_beta);
     }
 

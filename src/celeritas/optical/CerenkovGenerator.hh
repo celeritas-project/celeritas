@@ -22,7 +22,7 @@
 
 #include "CerenkovDndxCalculator.hh"
 #include "GeneratorDistributionData.hh"
-#include "MaterialData.hh"
+#include "MaterialView.hh"
 #include "Primary.hh"
 
 namespace celeritas
@@ -52,7 +52,7 @@ class CerenkovGenerator
   public:
     // Construct from optical materials and distribution parameters
     inline CELER_FUNCTION
-    CerenkovGenerator(NativeCRef<MaterialParamsData> const& materials,
+    CerenkovGenerator(MaterialView const& material,
                       NativeCRef<CerenkovData> const& shared,
                       GeneratorDistributionData const& dist,
                       Span<Primary> photons);
@@ -72,8 +72,8 @@ class CerenkovGenerator
     Span<Primary> photons_;
     GenericCalculator calc_refractive_index_;
     UniformRealDist sample_phi_;
-    UniformRealDist sample_energy_;
     UniformRealDist sample_num_photons_;
+    UniformRealDist sample_energy_;
     Real3 dir_;
     Real3 delta_pos_;
     units::LightSpeed delta_speed_;
@@ -81,12 +81,6 @@ class CerenkovGenerator
     real_type dndx_pre_;
     real_type sin_max_sq_;
     real_type inv_beta_;
-
-    //// HELPER FUNCTIONS ////
-
-    GenericCalculator
-    make_calculator(NativeCRef<MaterialParamsData> const& material,
-                    OpticalMaterialId mat_id);
 };
 
 //---------------------------------------------------------------------------//
@@ -96,22 +90,19 @@ class CerenkovGenerator
  * Construct from optical materials and distribution parameters.
  */
 CELER_FUNCTION
-CerenkovGenerator::CerenkovGenerator(
-    NativeCRef<MaterialParamsData> const& material,
-    NativeCRef<CerenkovData> const& shared,
-    GeneratorDistributionData const& dist,
-    Span<Primary> photons)
+CerenkovGenerator::CerenkovGenerator(MaterialView const& material,
+                                     NativeCRef<CerenkovData> const& shared,
+                                     GeneratorDistributionData const& dist,
+                                     Span<Primary> photons)
     : dist_(dist)
     , photons_(photons)
-    , calc_refractive_index_(this->make_calculator(material, dist_.material))
+    , calc_refractive_index_(material.make_refractive_index_calculator())
     , sample_phi_(0, 2 * constants::pi)
-
 {
-    CELER_EXPECT(material);
     CELER_EXPECT(shared);
-    CELER_EXPECT(dist_.material < material.refractive_index.size());
     CELER_EXPECT(dist_);
     CELER_EXPECT(photons_.size() == dist_.num_photons);
+    CELER_EXPECT(material.material_id() == dist_.material);
 
     using LS = units::LightSpeed;
 
@@ -119,8 +110,7 @@ CerenkovGenerator::CerenkovGenerator(
     // pre- and post-step energies
     auto const& pre_step = dist_.points[StepPoint::pre];
     auto const& post_step = dist_.points[StepPoint::post];
-    CerenkovDndxCalculator calc_dndx(
-        material, shared, dist_.material, dist_.charge);
+    CerenkovDndxCalculator calc_dndx(material, shared, dist_.charge);
     dndx_pre_ = calc_dndx(pre_step.speed);
     real_type dndx_post = calc_dndx(post_step.speed);
 
@@ -136,7 +126,7 @@ CerenkovGenerator::CerenkovGenerator(
         = 2 / (value_as<LS>(pre_step.speed) + value_as<LS>(post_step.speed));
     CELER_ASSERT(inv_beta_ > 1);
     real_type cos_max = inv_beta_ / calc_refractive_index_(energy_grid.back());
-    sin_max_sq_ = diffsq(real_type(1), cos_max);
+    sin_max_sq_ = 1 - ipow<2>(cos_max);
 
     // Calculate changes over the step
     delta_pos_ = post_step.pos - pre_step.pos;
@@ -204,19 +194,6 @@ CELER_FUNCTION Span<Primary> CerenkovGenerator::operator()(Generator& rng)
         axpy(u, delta_pos_, &photons_[i].position);
     }
     return photons_;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return a calculator to compute index of refraction.
- */
-CELER_FUNCTION GenericCalculator CerenkovGenerator::make_calculator(
-    NativeCRef<MaterialParamsData> const& material, OpticalMaterialId mat_id)
-{
-    CELER_EXPECT(material);
-    CELER_EXPECT(mat_id < material.refractive_index.size());
-
-    return GenericCalculator(material.refractive_index[mat_id], material.reals);
 }
 
 //---------------------------------------------------------------------------//
