@@ -75,6 +75,9 @@ class DeMorganSimplifier
         NodeId mod_unmod_or(NodeId default_id) const noexcept;
     };
 
+    // First pass to find negated set operations
+    void find_join_negations();
+
     // Unflag a node and its descendent previously marked as orphan
     void record_parent_for(NodeId);
 
@@ -84,14 +87,11 @@ class DeMorganSimplifier
     // Declare negated nodes to add in the simplified tree
     void add_negation_for_operands(NodeId);
 
-    // Special handling for a Joined or Negated node
-    bool process_negated_joined_nodes(NodeId, CsgTree&);
-
-    // First pass to find negated set operations
-    void find_join_negations();
-
     // Second pass to build the simplified tree
     CsgTree build_simplified_tree();
+
+    // Special handling for a Joined or Negated node
+    bool process_negated_joined_nodes(NodeId, CsgTree&);
 
     //! the tree to simplify
     CsgTree const& tree_;
