@@ -52,9 +52,17 @@ class DeMorganSimplifier
         //! Set if a node has the exact same node in the simplified tree
         std::optional<NodeId> unmodified;
 
-        //! Set if a node redirects to a different node, e.g., A Negated node
-        //! pointing to a Join now redirects to the opposite join, or a double
-        //! Negated node redirects to the non-negated child
+        //! Set if a node from the original tree redirects to a different node
+        //! in the simplified tree. There are 3 possible redirections:
+        //! 1. If the original node is a Joined node with a negated parent,
+        //! redirect to the opposite join.
+        //! 2. If the original node is a Negated node that should not be
+        //! inserted in the simplified tree (happens when the only parent would
+        //! be another Negated node) redirect to its children.
+        //! 3. If the original node is a Negated node with a Joined child,
+        //! redirect to the equivalent Join node in the simplified tree.
+        //! If 2 and 3 are true, follows redirection in 2.
+        //! If none of the above is true, this souldn't be set.
         std::optional<NodeId> modified;
 
         //! Whether any node id is set
