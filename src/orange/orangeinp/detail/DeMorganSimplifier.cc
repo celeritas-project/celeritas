@@ -73,38 +73,34 @@ CsgTree DeMorganSimplifier::operator()()
  */
 void DeMorganSimplifier::record_parent_for(NodeId node_id)
 {
-    std::visit(Overload{[&](Joined const& joined) {
-                            // each operand of the Joined node also needs to be
-                            // kept
-                            for (auto join_operand : joined.nodes)
-                            {
-                                record_parent_for(join_operand);
-                            }
-                            // and the Joined node itself needs to be kept
-                            if (auto ref = orphaned_nodes_[node_id.get()])
-                            {
-                                CELER_EXPECT(std::holds_alternative<Joined>(
-                                    tree_[node_id]));
-                                ref = false;
-                            }
-                        },
-                        [&](Negated const& negated) {
-                            // Negated{Joined{}} should be simplified, so don't
-                            // unmark them
-                            if (!std::get_if<Joined>(&tree_[negated.node]))
-                            {
-                                record_parent_for(negated.node);
-                            }
-
-                            if (auto ref = orphaned_nodes_[node_id.get()])
-                            {
-                                CELER_EXPECT(std::holds_alternative<Negated>(
-                                    tree_[node_id]));
-                                ref = false;
-                            }
-                        },
-                        [](auto&&) {}},
-               tree_[node_id]);
+    std::visit(
+        Overload{
+            [&](Joined const& joined) {
+                // each operand of the Joined node also needs to be
+                // kept
+                for (auto join_operand : joined.nodes)
+                {
+                    record_parent_for(join_operand);
+                }
+                // and the Joined node itself needs to be kept
+                CELER_EXPECT(std::holds_alternative<Joined>(tree_[node_id]));
+                orphaned_nodes_[node_id.get()] = false;
+            },
+            [&](Negated const& negated) {
+                // A Negated node with a Joined child will get removed
+                // regardless of being flagged as an orphan so don't unflag its
+                // child.
+                CELER_EXPECT(std::holds_alternative<Negated>(tree_[node_id]));
+                if (!std::get_if<Joined>(&tree_[negated.node]))
+                {
+                    record_parent_for(negated.node);
+                    orphaned_nodes_[node_id.get()] = false;
+                }
+            },
+            // other nodes don't have children and can never be flagged as
+            // orphan
+            [](auto&&) {}},
+        tree_[node_id]);
 }
 
 //---------------------------------------------------------------------------//
@@ -160,7 +156,7 @@ void DeMorganSimplifier::add_negation_for_operands(NodeId node_id)
                             [&](Negated const& negated) {
                                 // this would be a double negation, they
                                 // self-destruct so mark the operand as an
-                                // orphan so that it gets removed
+                                // orphan to remove it
                                 orphaned_nodes_[join_operand.get()] = true;
                                 // however, we need to make sure that we're
                                 // keeping the target of the double negation
@@ -319,6 +315,7 @@ void DeMorganSimplifier::find_join_negations()
                        [&](Aliased const& aliased) {
                            record_parent_for(aliased.node);
                        },
+                       // nothing to do for leaf node types
                        [](auto&&) {},
                    },
                    tree_[node_id]);
@@ -394,6 +391,7 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
                         }
                     }
                 },
+                // other nodes don't have children
                 [](auto&&) {},
             },
             new_node);
