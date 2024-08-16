@@ -122,9 +122,10 @@ void UnitProto::build(ProtoBuilder& input) const
     UnitInput result;
     result.label = input_.label;
 
+    auto& unit_volumes = csg_unit.tree.volumes();
     // Save unit's bounding box
     {
-        NodeId node_id = csg_unit.tree.volumes()[orange_exterior_volume.get()];
+        NodeId node_id = unit_volumes[orange_exterior_volume.get()];
         auto region_iter = csg_unit.regions.find(node_id);
         CELER_ASSERT(region_iter != csg_unit.regions.end());
         auto const& bz = region_iter->second.bounds;
@@ -172,12 +173,12 @@ void UnitProto::build(ProtoBuilder& input) const
     detail::PostfixLogicBuilder build_logic{csg_unit.tree,
                                             sorted_local_surfaces};
     detail::InternalSurfaceFlagger has_internal_surfaces{csg_unit.tree};
-    result.volumes.reserve(csg_unit.tree.volumes().size()
+    result.volumes.reserve(unit_volumes.size()
                            + static_cast<bool>(csg_unit.background));
 
-    for (auto vol_idx : range(csg_unit.tree.volumes().size()))
+    for (auto vol_idx : range(unit_volumes.size()))
     {
-        NodeId node_id = csg_unit.tree.volumes()[vol_idx];
+        NodeId node_id = unit_volumes[vol_idx];
         VolumeInput vi;
 
         // Construct logic and faces with remapped surfaces
@@ -220,7 +221,7 @@ void UnitProto::build(ProtoBuilder& input) const
         result.volumes.emplace_back(std::move(vi));
     }
     CELER_ASSERT(result.volumes.size()
-                 == csg_unit.tree.volumes().size()
+                 == unit_volumes.size()
                         + static_cast<bool>(csg_unit.background));
 
     // Set labels and other attributes.
@@ -315,11 +316,11 @@ void UnitProto::build(ProtoBuilder& input) const
         // Save label volumes
         CELER_ASSERT(jp.obj.contains("volumes"));
         auto& jv = jp.obj["volumes"];
-        CELER_VALIDATE(jv.size() == csg_unit.tree.volumes().size(),
+        CELER_VALIDATE(jv.size() == unit_volumes.size(),
                        << "jv = " << jv.size()
-                       << " csg = " << csg_unit.tree.volumes().size());
-        CELER_ASSERT(csg_unit.tree.volumes().size() <= result.volumes.size());
-        for (auto vol_idx : range(csg_unit.tree.volumes().size()))
+                       << " csg = " << unit_volumes.size());
+        CELER_ASSERT(unit_volumes.size() <= result.volumes.size());
+        for (auto vol_idx : range(unit_volumes.size()))
         {
             jv[vol_idx]["label"] = result.volumes[vol_idx].label;
         }

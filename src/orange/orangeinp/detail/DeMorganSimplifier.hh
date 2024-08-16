@@ -50,7 +50,7 @@ class DeMorganSimplifier
     struct MatchingNodes
     {
         //! Set if a node has the exact same node in the simplified tree
-        std::optional<NodeId> unmodified;
+        NodeId unmodified;
 
         //! Set if a node from the original tree redirects to a different node
         //! in the simplified tree. There are 3 possible redirections:
@@ -63,7 +63,7 @@ class DeMorganSimplifier
         //! redirect to the equivalent Join node in the simplified tree.
         //! If 2 and 3 are true, follows redirection in 2.
         //! If none of the above is true, this souldn't be set.
-        std::optional<NodeId> modified;
+        NodeId modified;
 
         //! Whether any node id is set
         explicit operator bool() const noexcept

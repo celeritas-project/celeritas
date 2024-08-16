@@ -586,7 +586,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
         to_string(simplified));
     // Check that the new volumes map to the correct node
     auto& volumes = simplified.volumes();
-    EXPECT_EQ(volumes.size(), 3);
+    ASSERT_EQ(volumes.size(), 3);
     EXPECT_EQ(volumes[0], NodeId{7});
     EXPECT_EQ(volumes[1], NodeId{10});
     EXPECT_EQ(volumes[2], NodeId{6});
@@ -614,7 +614,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
         "surface 3, 11: not{10}, 12: all{2,5,11}, 13: all{8,12}, 14: surface "
         "4, 15: all{2,5,14}, 16: all{2,5}, }",
         to_string(simplified));
-    EXPECT_EQ(volumes.size(), 1);
+    ASSERT_EQ(volumes.size(), 1);
     EXPECT_EQ(volumes[0], NodeId{9});
 
     tree_ = {};
@@ -681,7 +681,7 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
         "surface 9, 32: not{31}, 33: any{30,32}, 34: any{26,28,33}, 35: "
         "all{21,34}, }",
         to_string(simplified));
-    EXPECT_EQ(volumes.size(), 1);
+    ASSERT_EQ(volumes.size(), 1);
     EXPECT_EQ(volumes[0], NodeId{20});
 }
 
