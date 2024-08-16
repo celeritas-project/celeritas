@@ -8,12 +8,15 @@ jobs:
   clear-cache:
     uses: ./.github/workflows/clear-cache.yml
   build-fast:
+    if: github.repository == 'celeritas-project/celeritas'
     needs: [clear-cache]
     uses: ./.github/workflows/build-fast.yml
   build-ultralite:
+    if: github.repository == 'celeritas-project/celeritas'
     needs: [clear-cache]
     uses: ./.github/workflows/build-ultralite.yml
   build-spack:
+    if: github.repository == 'celeritas-project/celeritas'
     needs: [clear-cache]
     uses: ./.github/workflows/build-spack.yml
 

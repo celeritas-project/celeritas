@@ -40,12 +40,13 @@ namespace optical
  * is an inreasing function of photon energy. The mean number of photons per
  * unit length is given by
  * \f[
-   \dif N/\dif x = \frac{\alpha z^2}{\hbar c}
-   \int_{\epsilon_\text{min}}^{\epsilon_\text{max}} \dif\epsilon \left(1 -
-   \frac{1}{n^2\beta^2} \right) = \frac{\alpha z^2}{\hbar c}
+   \difd{N}{x} = \frac{\alpha z^2}{\hbar c}
+   \int_{\epsilon_\text{min}}^{\epsilon_\text{max}} \left(1 -
+   \frac{1}{n^2\beta^2} \right) \dif\epsilon
+   = \frac{\alpha z^2}{\hbar c}
    \left[\epsilon_\text{max} - \epsilon_\text{min} - \frac{1}{\beta^2}
    \int_{\epsilon_\text{min}}^{\epsilon_\text{max}}
-   \frac{\dif\epsilon}{n^2(\epsilon)} \right].
+   \frac{1}{n^2(\epsilon)}\dif\epsilon \right].
  * \f]
  */
 class CerenkovDndxCalculator

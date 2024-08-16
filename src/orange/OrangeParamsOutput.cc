@@ -88,7 +88,7 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         return sizes;
     }();
 
-    // TODO: make universe metadata accessible from ORANGE, and write it
+    //! \todo Make universe metadata accessible from ORANGE, and write it
 
     j->obj = std::move(obj);
 }

@@ -20,7 +20,10 @@ namespace detail
 // LAUNCHER
 //---------------------------------------------------------------------------//
 /*!
- * Generate optical distribution data.
+ * Gather pre-step data needed to generate optical distributions.
+ *
+ * TODO: check optical material first, skip storing if it's false. Also maybe
+ * skip storing for tracks that can't lose energy over the step?
  */
 struct OffloadGatherExecutor
 {
@@ -34,7 +37,6 @@ struct OffloadGatherExecutor
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Gather pre-step data needed to generate optical distributions.
  */
 CELER_FUNCTION void
 OffloadGatherExecutor::operator()(CoreTrackView const& track)

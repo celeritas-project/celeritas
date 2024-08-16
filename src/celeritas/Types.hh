@@ -96,6 +96,8 @@ enum class MatterState
 /*!
  * Whether a track slot is alive, inactive, or dying inside a step iteration.
  *
+ * Each track slot has a state marking its transition between death and life.
+ *
  * - A track slot starts as \c inactive . If not filled with a new track, it is
  *   inactive for the rest of the step iteration.
  * - When it is populated with a new particle, it is \c initializing . If an

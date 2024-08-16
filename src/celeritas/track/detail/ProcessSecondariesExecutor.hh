@@ -104,10 +104,13 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
             GeoTrackView geo(params->geometry, state->geometry, tid);
             CELER_ASSERT(!geo.is_on_boundary());
 
-            // Increment the total number of tracks created for this event and
-            // calculate the track ID of the secondary
-            // TODO: This is nondeterministic; we need to calculate the
-            // track ID in a reproducible way.
+            /*!
+             * Increment the total number of tracks created for this event and
+             * calculate the track ID of the secondary.
+             *
+             * \todo This is nondeterministic; we need to calculate the track
+             * ID in a reproducible way.
+             */
             CELER_ASSERT(sim.event_id() < data.track_counters.size());
             TrackId::size_type track_id = atomic_add(
                 &data.track_counters[sim.event_id()], size_type{1});
@@ -144,8 +147,10 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
                 phys = {};
                 initialized = true;
 
-                // TODO: make it easier to determine what states need to be
-                // reset: the physics MFP, for example, is OK to preserve
+                /*!
+                 * \todo make it easier to determine what states need to be
+                 * reset: the physics MFP, for example, is OK to preserve
+                 */
             }
             else
             {

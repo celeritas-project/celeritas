@@ -92,10 +92,12 @@ CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
 
     if (sim.step_length() != numeric_limits<real_type>::infinity())
     {
-        // It's allowable to have *no* post step action if there are no physics
-        // processes for the current particle type.
-        // TODO: change this behavior to be a *tracking cut* rather than
-        // lost energy
+        /*!
+         * It's allowable to have *no* post step action if there are no physics
+         * processes for the current particle type.
+         * \todo Change this behavior to be a *tracking cut* rather than lost
+         * energy.
+         */
         CELER_FAIL_IF(sim.post_step_action(), "missing post-step action");
     }
 

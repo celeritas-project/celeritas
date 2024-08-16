@@ -155,12 +155,16 @@ class Stepper final : public StepperInterface
     //! Get the core state interface for diagnostic output
     CoreStateInterface const& state() const final { return state_; }
 
+    //! Reset the core state counters and data so it can be reused
+    void reset_state() { state_.reset(); }
+
   private:
-    // Params and call sequence
+    // Params data
     std::shared_ptr<CoreParams const> params_;
-    std::shared_ptr<ActionSequence> actions_;
     // State data
     CoreState<M> state_;
+    // Call sequence
+    std::shared_ptr<ActionSequence> actions_;
 };
 
 //---------------------------------------------------------------------------//
