@@ -154,6 +154,15 @@ GenericCalculator::grid() const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Make a calculator with x and y flipped.
+ */
+CELER_FUNCTION GenericCalculator GenericCalculator::make_inverse() const
+{
+    return GenericCalculator{reals_, y_offset_, x_grid_.offset()};
+}
+
+//---------------------------------------------------------------------------//
 // PRIVATE HELPERS
 //---------------------------------------------------------------------------//
 /*!

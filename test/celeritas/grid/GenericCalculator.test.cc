@@ -92,6 +92,12 @@ TEST_F(GenericCalculatorTest, inverse)
     EXPECT_SOFT_EQ(3, calc(1.5));
     EXPECT_SOFT_EQ(4, calc(2));
     EXPECT_SOFT_EQ(4, calc(3));
+
+    auto uninverted_calc = calc.make_inverse();
+    for (auto x : grid)
+    {
+        EXPECT_SOFT_EQ(x, calc(uninverted_calc(x)));
+    }
 }
 
 //---------------------------------------------------------------------------//

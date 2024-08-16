@@ -66,6 +66,9 @@ class NonuniformGrid
     // Find the index of the given value (*must* be in bounds)
     inline CELER_FUNCTION size_type find(value_type value) const;
 
+    //! Low-level access to offsets for downstream utilities
+    CELER_FORCEINLINE_FUNCTION ItemRangeT offset() const { return offset_; }
+
   private:
     Values const& values_;
     ItemRangeT offset_;
