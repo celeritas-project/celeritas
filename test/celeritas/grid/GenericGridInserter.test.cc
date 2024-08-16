@@ -41,7 +41,7 @@ class GenericGridInserterTest : public ::celeritas::test::Test
         UniformRealDistribution sample_uniform(0.5, 1.5);
         std::array<real_type, N> xs;
         xs[0] = start;
-        for (auto i : range(1, xs.size()))
+        for (auto i : range(size_type{1}, xs.size()))
         {
             xs[i] = xs[i - 1] + sample_uniform(rng_);
         }
