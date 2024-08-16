@@ -53,6 +53,9 @@ class GenericCalculator
     // Get the tabulated x grid
     inline CELER_FUNCTION Grid const& grid() const;
 
+    // Make a calculator with x and y flipped
+    inline CELER_FUNCTION GenericCalculator make_inverse() const;
+
   private:
     //// TYPES ////
 
