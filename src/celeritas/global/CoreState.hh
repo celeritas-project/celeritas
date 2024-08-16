@@ -115,6 +115,9 @@ class CoreState final : public CoreStateInterface
     //! Get a native-memspace pointer to the mutable state data
     Ptr ptr() { return ptr_; }
 
+    //! Reset the state data
+    void reset();
+
     //// COUNTERS ////
 
     //! Track initialization counters

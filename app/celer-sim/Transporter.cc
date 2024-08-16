@@ -160,6 +160,14 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
 
     result.num_aborted = track_counts.alive + track_counts.queued;
     result.num_track_slots = stepper_->state().size();
+
+    if (result.num_aborted > 0)
+    {
+        // Reset the state data for the next event if the stepping loop was
+        // aborted early
+        step.reset_state();
+    }
+
     return result;
 }
 
