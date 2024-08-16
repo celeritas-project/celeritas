@@ -440,7 +440,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
         EXPECT_SOFT_EQ(10.609603075017075, avg_engine_samples);
     }
 
-    // 500 keV e-: 1/beta_avg ~ 1.336
+    // 500 keV e-: 1/beta ~ 1.336
     {
         // Pre-step values
         OffloadPreStepData pre_step;
@@ -449,7 +449,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
         pre_step.time = 0;
         pre_step.material = material_id;
 
-        // Post-step values (150 keV)
+        // Post-step values
         auto particle
             = this->make_particle_track_view(Energy(0.15), pdg::electron());
         EXPECT_SOFT_EQ(0.63431981443206786,
@@ -458,22 +458,22 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
         Real3 pos = {sim.step_length(), 0, 0};
 
         static double const expected_costheta_dist[]
-            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 991};
+            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 946};
         static double const expected_energy_dist[]
-            = {0, 0, 0, 0, 4, 14, 29, 26, 48, 51, 77, 103, 129, 132, 174, 204};
+            = {0, 0, 0, 0, 10, 13, 24, 29, 47, 54, 81, 85, 120, 119, 176, 188};
         static double const expected_displacement_dist[] = {
-            123, 114, 103, 102, 83, 81, 80, 57, 60, 59, 31, 29, 36, 14, 16, 3};
+            108, 108, 90, 105, 83, 88, 85, 65, 49, 43, 31, 29, 31, 16, 13, 2};
 
         sample(pre_step, particle, sim, pos, num_samples);
 
         EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
         EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
         EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
-        EXPECT_SOFT_EQ(0.95045221539598979, avg_costheta);
-        EXPECT_SOFT_EQ(5.5902203966702514e-06, avg_energy);
-        EXPECT_SOFT_EQ(0.049715603846029896, avg_displacement);
-        EXPECT_SOFT_EQ(15.484375, total_num_photons / num_samples);
-        EXPECT_SOFT_EQ(25.077699293642784, avg_engine_samples);
+        EXPECT_SOFT_EQ(0.95069574770853793, avg_costheta);
+        EXPECT_SOFT_EQ(5.5675610907221099e-06, avg_energy);
+        EXPECT_SOFT_EQ(0.049432369852608751, avg_displacement);
+        EXPECT_SOFT_EQ(14.78125, total_num_photons / num_samples);
+        EXPECT_SOFT_EQ(27.162790697674417, avg_engine_samples);
     }
 }
 
