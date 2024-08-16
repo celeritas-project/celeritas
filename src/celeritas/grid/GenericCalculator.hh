@@ -105,32 +105,24 @@ GenericCalculator::GenericCalculator(GenericGridRecord const& grid,
 CELER_FUNCTION real_type GenericCalculator::operator()(real_type x) const
 {
     // Snap out-of-bounds values to closest grid points
-    size_type lower_idx;
-    real_type result;
     if (x <= x_grid_.front())
     {
-        lower_idx = 0;
-        result = (*this)[lower_idx];
+        return (*this)[0];
     }
-    else if (x >= x_grid_.back())
+    if (x >= x_grid_.back())
     {
-        lower_idx = x_grid_.size() - 1;
-        result = (*this)[lower_idx];
-    }
-    else
-    {
-        // Locate the x bin
-        lower_idx = x_grid_.find(x);
-        CELER_ASSERT(lower_idx + 1 < x_grid_.size());
-
-        // Interpolate *linearly* on x using the bin data.
-        LinearInterpolator<real_type> interpolate_xs(
-            {x_grid_[lower_idx], (*this)[lower_idx]},
-            {x_grid_[lower_idx + 1], (*this)[lower_idx + 1]});
-        result = interpolate_xs(x);
+        return (*this)[x_grid_.size() - 1];
     }
 
-    return result;
+    // Locate the x bin
+    size_type lower_idx = x_grid_.find(x);
+    CELER_ASSERT(lower_idx + 1 < x_grid_.size());
+
+    // Interpolate *linearly* on x using the bin data.
+    LinearInterpolator<real_type> interpolate_xs(
+        {x_grid_[lower_idx], (*this)[lower_idx]},
+        {x_grid_[lower_idx + 1], (*this)[lower_idx + 1]});
+    return interpolate_xs(x);
 }
 
 //---------------------------------------------------------------------------//
@@ -156,6 +148,8 @@ GenericCalculator::grid() const
 //---------------------------------------------------------------------------//
 /*!
  * Make a calculator with x and y flipped.
+ *
+ * \pre The y values must be monotonic increasing.
  */
 CELER_FUNCTION GenericCalculator GenericCalculator::make_inverse() const
 {

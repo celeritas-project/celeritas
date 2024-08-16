@@ -237,7 +237,7 @@ class range_iter
     }
 
     // Access the underlying value
-    value_type value() const { return value_; }
+    CELER_CONSTEXPR_FUNCTION value_type value() const { return value_; }
 
   protected:
     value_type value_;

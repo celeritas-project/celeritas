@@ -29,18 +29,15 @@ class NonuniformGrid
     //!@{
     //! \name Type aliases
     using value_type = T;
-    using Values
+    using Storage
         = Collection<value_type, Ownership::const_reference, MemSpace::native>;
     using ItemRangeT = ItemRange<value_type>;
     //!@}
 
   public:
-    // Construct with data
+    // Construct with storage
     inline CELER_FUNCTION
-    NonuniformGrid(ItemRangeT const& values, Values const& data);
-
-    // Construct with data (all values)
-    explicit inline CELER_FUNCTION NonuniformGrid(Values const& data);
+    NonuniformGrid(ItemRangeT const& values, Storage const& storage);
 
     //! Number of grid points
     CELER_FORCEINLINE_FUNCTION size_type size() const
@@ -51,13 +48,13 @@ class NonuniformGrid
     //! Minimum/first value
     CELER_FORCEINLINE_FUNCTION value_type front() const
     {
-        return values_[*offset_.begin()];
+        return storage_[*offset_.begin()];
     }
 
     //! Maximum/last value
     CELER_FORCEINLINE_FUNCTION value_type back() const
     {
-        return values_[*(offset_.end() - 1)];
+        return storage_[*(offset_.end() - 1)];
     }
 
     // Calculate the value at the given grid point
@@ -70,7 +67,7 @@ class NonuniformGrid
     CELER_FORCEINLINE_FUNCTION ItemRangeT offset() const { return offset_; }
 
   private:
-    Values const& values_;
+    Storage const& storage_;
     ItemRangeT offset_;
 };
 
@@ -78,26 +75,16 @@ class NonuniformGrid
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with data.
+ * Construct with a range indexing into backend storage.
  */
 template<class T>
-CELER_FUNCTION
-NonuniformGrid<T>::NonuniformGrid(ItemRangeT const& values, Values const& data)
-    : values_{data}, offset_{values}
+CELER_FUNCTION NonuniformGrid<T>::NonuniformGrid(ItemRangeT const& values,
+                                                 Storage const& storage)
+    : storage_{storage}, offset_{values}
 {
     CELER_EXPECT(offset_.size() >= 2);
-    CELER_EXPECT(*offset_.end() <= data.size());
+    CELER_EXPECT(*offset_.end() <= storage.size());
     CELER_EXPECT(this->front() <= this->back());  // Approximation for "sorted"
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct with data (all values).
- */
-template<class T>
-CELER_FUNCTION NonuniformGrid<T>::NonuniformGrid(Values const& data)
-    : NonuniformGrid{ItemRangeT{0, data.size()}, data}
-{
 }
 
 //---------------------------------------------------------------------------//
@@ -109,12 +96,12 @@ CELER_FUNCTION auto NonuniformGrid<T>::operator[](size_type i) const
     -> value_type
 {
     CELER_EXPECT(i < offset_.size());
-    return values_[offset_[i]];
+    return storage_[offset_[i]];
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the value bin such that data[result] <= value < data[result + 1].
+ * Find the value bin such that storage[result] <= value < data[result + 1].
  *
  * The given value *must* be in range, because out-of-bounds values usually
  * require different treatment (e.g. clipping to the boundary values rather
@@ -131,10 +118,10 @@ CELER_FUNCTION size_type NonuniformGrid<T>::find(value_type value) const
         offset_.begin(),
         offset_.end(),
         value,
-        [&v = values_](ItemIdT i, T value) { return v[i] < value; });
+        [&v = storage_](ItemIdT i, T value) { return v[i] < value; });
     CELER_ASSERT(iter != offset_.end());
 
-    if (value != values_[*iter])
+    if (value != storage_[*iter])
     {
         // Exactly on end grid point, or not on a grid point at all: move to
         // previous bin
