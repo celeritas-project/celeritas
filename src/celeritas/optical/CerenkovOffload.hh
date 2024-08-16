@@ -31,7 +31,7 @@ namespace celeritas
  *
  * The number of photons is sampled from a Poisson distribution with a mean
  * \f[
-   \langle n \rangle = \ell_\text{step} \frac{\dif N}{\dif x}
+   \langle n \rangle = \ell_\text{step} \difd{N}{x}
  * \f]
  * where \f$ \ell_\text{step} \f$ is the step length.
  */

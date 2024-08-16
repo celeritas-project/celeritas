@@ -1,55 +1,21 @@
-.. Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
+.. Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 .. See the doc/COPYRIGHT file for details.
 .. SPDX-License-Identifier: CC-BY-4.0
 
-.. _overview:
+.. _api_em_physics:
 
-********
-Overview
-********
-
-This section summarizes key usage patterns and implementation details from
-Celeritas, especially those that differ from Geant4.
-
-Units
-=====
-
-The unit system in Celeritas is CGS with centimeter (cm), gram (g), second (s),
-gauss (Ga?), and kelvin (K) all having a value of unity. With these definitions,
-densities can be defined in natural units of :math:`\mathrm{g}/\mathrm{cm}^3`,
-and macroscopic cross sections are in units of :math:`\mathrm{cm}^{-1}`. See
-the :ref:`units documentation <api_units>` for more descriptions of the core
-unit system and the exactly defined values for SI units such as tesla.
-
-Celeritas defines :ref:`constants <api_constants>` from a few different sources.
-Mathematical constants are defined as truncated floating point values. Some
-physical constants such as the speed of light, Planck's constant, and the
-electron charge, have exact numerical values as specified by the SI unit system
-:cite:`SI`. Other physical constants such as the atomic mass unit and electron
-radius are derived from experimental measurements in CODATA 2018. Because the
-reported constants are derived from regression fits to experimental data
-points, some exactly defined physical relationships (such as the fine structure
-:math:`\alpha = \frac{e^2}{2 \epsilon_0 h c}` are only approximate.
-
-Unlike Geant4 and the CLHEP unit systems, Celeritas avoids using "natural"
-units in its definitions. Although a natural unit system makes some
-expressions easier to evaluate, it can lead to errors in the definition of
-derivative constants and is fundamentally in conflict with consistent unit
-systems such as SI. To enable special unit systems in harmony with the
-native Celeritas unit system, the :ref:`Quantity <api_quantity>` class
-stores quantities in another unit system with a compile-time constant that
-allows their conversion back to native units. This allows, for example,
-particles to represent their energy as MeV and charge as fractions of e but
-work seamlessly with a field definition in native (macro-scale quantity) units.
-
+**********
 EM Physics
-==========
+**********
 
-Celeritas implements physics processes and models for transporting electron,
-positron, and gamma particles as shown in the accompanying table. Initial
-support is being added for muon physics and is not shown below.
-Implementation details of these models
-and their corresponding Geant4 classes are documented in :ref:`api_em_physics`.
+The physics models in Celeritas are primarily derived from references cited by
+Geant4, including the Geant4 physics reference manual. Undocumented adjustments
+to those models in Geant4 may also be implemented.
+
+Processes and models
+====================
+
+The following table summarizes the EM processes and models in Celeritas.
 
 .. only:: html
 
@@ -171,8 +137,66 @@ The implemented physics models are meant to match the defaults constructed in
   ``G4EmParameters``, but some custom model cutoffs are not accessible to
   Celeritas.
 
-Coulomb scattering
-------------------
+As extension to the various :ref:`random distributions
+<celeritas_random_distributions>`, Celeritas expresses many physics operations
+as
+distributions of *updated* track states based on *original* track states. For
+example, the Tsai-Urban distribution used for sampling exiting angles of
+bremsstrahlung and pair production has parameters of incident particle energy
+and mass, and it samples the exiting polar angle cosine.
+
+All discrete interactions (in Geant4 parlance, "post-step do-it"s) use
+distributions to sample an *Interaction* based on incident particle
+properties.
+The sampled result contains the updated particle direction and energy, as well
+as properties of any secondary particles produced.
+
+Ionization
+----------
+
+.. doxygenclass:: celeritas::BraggICRU73QOInteractor
+.. doxygenclass:: celeritas::MollerBhabhaInteractor
+.. doxygenclass:: celeritas::MuBetheBlochInteractor
+
+The exiting energy distribution from most of these ionization models
+are sampled using external helper distributions.
+
+.. doxygenclass:: celeritas::BhabhaEnergyDistribution
+.. doxygenclass:: celeritas::MollerEnergyDistribution
+.. doxygenclass:: celeritas::MuBBEnergyDistribution
+
+
+Bremsstrahlung
+--------------
+
+.. doxygenclass:: celeritas::RelativisticBremInteractor
+.. doxygenclass:: celeritas::SeltzerBergerInteractor
+.. doxygenclass:: celeritas::MuBremsstrahlungInteractor
+
+
+The Seltzer--Berger interactions are sampled with the help of an energy
+distribution and cross section correction:
+
+.. doxygenclass:: celeritas::SBEnergyDistribution
+.. doxygenclass:: celeritas::detail::SBPositronXsCorrector
+
+A simple distribution is used to sample exiting polar angles from electron
+bremsstrahlung (and gamma conversion).
+
+.. doxygenclass:: celeritas::TsaiUrbanDistribution
+
+Relativistic bremsstrahlung and relativistic Bethe-Heitler sampling both use a
+helper class to calculate LPM factors.
+
+.. doxygenclass:: celeritas::LPMCalculator
+
+Muon bremsstrahlung calculates the differential cross section as part of
+rejection sampling.
+
+.. doxygenclass:: celeritas::MuBremsDiffXsCalculator
+
+Scattering
+----------
 
 Elastic scattering of charged particles can be simulated in three ways:
 
@@ -195,79 +219,65 @@ with the single Coulomb scattering model, is an implementation of the mixed
 simulation algorithm. It is the default model in Geant4 above 100 MeV and
 currently under development in Celeritas.
 
-Optical Physics
-===============
+.. doxygenclass:: celeritas::CoulombScatteringInteractor
+.. doxygenclass:: celeritas::KleinNishinaInteractor
+.. doxygenclass:: celeritas::RayleighInteractor
 
-TODO:
+.. doxygenclass:: celeritas::WentzelDistribution
+.. doxygenclass:: celeritas::MottRatioCalculator
 
-- Describe integration into the main stepping loop
-- Add mermaid plot of optical stepping loop
-- Describe pre-generation, generation
-- Add optical models
+Conversion/annihilation/photoelectric
+-------------------------------------
 
-Geometry
-========
+.. doxygenclass:: celeritas::BetheHeitlerInteractor
+.. doxygenclass:: celeritas::EPlusGGInteractor
+.. doxygenclass:: celeritas::LivermorePEInteractor
 
-Celeritas has two choices of geometry implementation. VecGeom_ is a
-CUDA-compatible library for navigation on Geant4 detector geometries.
-:ref:`api_orange` is a work in progress for surface-based geometry navigation
-that is "platform portable", i.e. able to run on GPUs from multiple vendors.
+.. doxygenclass:: celeritas::AtomicRelaxation
 
-Celeritas wraps both geometry packages with a uniform interface for changing
-and querying the geometry state.
+Positron annihilation and Livermore photoelectric cross sections are calculated
+on the fly (as opposed to pretabulated cross sections).
 
-.. _VecGeom: https://gitlab.cern.ch/VecGeom/VecGeom
+.. doxygenclass:: celeritas::EPlusGGMacroXsCalculator
+.. doxygenclass:: celeritas::LivermorePEMicroXsCalculator
 
-Stepping loop
+Multiple scattering
+-------------------
+
+.. doxygenclass:: celeritas::detail::UrbanMscSafetyStepLimit
+.. doxygenclass:: celeritas::detail::UrbanMscScatter
+
+Continuous slowing down
+=======================
+
+Most charged interactions emit one or more low-energy particles during their
+interaction. Instead of creating explicit daughter tracks that are
+immediately killed due to low energy, part of the interaction cross section is
+lumped into a "slowing down" term that continuously deposits energy locally
+over the step. This mean energy loss term is an approximation; additional
+models are implemented to adjust the loss per step with stochastic sampling for
+improved accuracy.
+
+.. doxygenclass:: celeritas::EnergyLossHelper
+
+.. doxygenclass:: celeritas::EnergyLossGammaDistribution
+
+.. doxygenclass:: celeritas::EnergyLossGaussianDistribution
+
+.. doxygenclass:: celeritas::EnergyLossUrbanDistribution
+
+Imported data
 =============
 
-The core algorithm in Celeritas is to perform a *loop interchange*
-:cite:`allen_automatic_1984` between particle tracks and steps. The classical
-(serial) way of simulating an event is to have an outer loop over tracks and an
-inner loop over steps, and inside each step are the various actions applied to
-a track such as evaluating cross sections, calculating the distance to the
-nearest geometry boundary, and undergoing an interaction to produce
-secondaries. In Python pseudocode this looks like:
+In addition to the core :ref:`api_importdata`, these import parameters are used
+to provide cross sections, setup options, and other data to the EM physics.
 
-.. code-block:: python
+.. doxygenstruct:: celeritas::ImportEmParameters
+.. doxygenstruct:: celeritas::ImportAtomicTransition
+.. doxygenstruct:: celeritas::ImportAtomicSubshell
+.. doxygenstruct:: celeritas::ImportAtomicRelaxation
 
-   track_queue = primaries
-   while track_queue:
-      track = track_queue.pop()
-      while track.alive:
-         for apply_action in [pre, along, post]:
-            apply_action(track)
-         track_queue += track.secondaries
+.. doxygenstruct:: celeritas::ImportLivermoreSubshell
+.. doxygenstruct:: celeritas::ImportLivermorePE
 
-There is effectively a data dependency between the track at step *i* and step
-*i + 1* that prevents vectorization. The approach Celeritas takes to
-"vectorize" the stepping loop on GPU is to have an outer loop over "step
-iterations" and an inner loop over "track slots", which are elements in a
-fixed-size vector of tracks that may be in flight:
-
-.. code-block:: python
-
-   initializers = primaries
-   track_slots = [None] * num_track_slots
-   while initializers or any(track_slots):
-      fill_track_slots(track_slots, initializers)
-      for apply_action in [pre, along, post]:
-         for (i, track) in enumerate(track_slots):
-            apply_action(track)
-            track_queue += track.secondaries
-      if not track.alive:
-         track_slots[i] = None
-
-
-The stepping loop in Celeritas is therefore a sorted loop over "actions", each
-of which is usually a kernel launch (or an inner loop over tracks if running on
-CPU).
-
-See :ref:`api_stepping` for implementation details on the ordering of actions
-and the status of a track slot during iteration.
-
-GPU usage
-=========
-
-Celeritas automatically copies data to device when constructing objects as long
-as the GPU is enabled.
+.. doxygenstruct:: celeritas::ImportSBTable

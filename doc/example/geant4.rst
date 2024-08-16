@@ -4,7 +4,7 @@
 
 .. _example_geant:
 
-Minimal Geant4 integration
+Geant4 integration example
 ==========================
 
 These small examples demonstrate how to offload tracks to Celeritas in a serial
@@ -14,7 +14,7 @@ or multithreaded environment using:
 #. A concrete G4VFastSimulationModel
 #. A concrete G4VTrackingManager
 
-The :ref:`accel` library is the only part of Celeritas that needs to be understood.
+The :ref:`api_g4_interface` is the only relevant part of Celeritas here.
 The key components are global SetupOptions and SharedParams, coupled to thread-local
 SimpleOffload and LocalTransporter. The SimpleOffload provides all of the core
 methods needed to integrate into a Geant4 application's UserActions or other user classes.
@@ -24,7 +24,7 @@ methods needed to integrate into a Geant4 application's UserActions or other use
 CMake infrastructure
 --------------------
 
-.. literalinclude:: ../../../example/accel/CMakeLists.txt
+.. literalinclude:: ../../example/accel/CMakeLists.txt
    :language: cmake
    :start-at: project(
    :end-before: END EXAMPLE CODE
@@ -39,17 +39,17 @@ frameworks or other apps that use a task-based runner.
 Offload using a concrete G4UserTrackingAction
 ---------------------------------------------
 
-.. literalinclude:: ../../../example/accel/simple-offload.cc
+.. literalinclude:: ../../example/accel/simple-offload.cc
    :start-at: #include
 
 Offload using a concrete G4VFastSimulationModel
 -----------------------------------------------
 
-.. literalinclude:: ../../../example/accel/fastsim-offload.cc
+.. literalinclude:: ../../example/accel/fastsim-offload.cc
    :start-at: #include
 
 Offload using a concrete G4VTrackingManager
 --------------------------------------------
 
-.. literalinclude:: ../../../example/accel/trackingmanager-offload.cc
+.. literalinclude:: ../../example/accel/trackingmanager-offload.cc
    :start-at: #include

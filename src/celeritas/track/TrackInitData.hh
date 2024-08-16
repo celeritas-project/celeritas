@@ -10,6 +10,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ThreadId.hh"
@@ -145,9 +146,6 @@ struct TrackInitStateData
     }
 };
 
-using TrackInitStateDeviceRef = DeviceRef<TrackInitStateData>;
-using TrackInitStateHostRef = HostRef<TrackInitStateData>;
-
 //---------------------------------------------------------------------------//
 /*!
  * Resize and initialize track initializer data.
@@ -162,6 +160,7 @@ using TrackInitStateHostRef = HostRef<TrackInitStateData>;
 template<MemSpace M>
 void resize(TrackInitStateData<Ownership::value, M>* data,
             HostCRef<TrackInitParamsData> const& params,
+            StreamId stream,
             size_type size)
 {
     CELER_EXPECT(params);
@@ -177,13 +176,8 @@ void resize(TrackInitStateData<Ownership::value, M>* data,
     fill(size_type(0), &data->track_counters);
 
     // Initialize vacancies to mark all track slots as empty
-    StateCollection<TrackSlotId, Ownership::value, MemSpace::host> vacancies;
-    resize(&vacancies, size);
-    for (auto i : range(size))
-    {
-        vacancies[TrackSlotId{i}] = TrackSlotId{i};
-    }
-    data->vacancies = std::move(vacancies);
+    resize(&data->vacancies, size);
+    fill_sequence(&data->vacancies, stream);
 
     // Reserve space for initializers
     resize(&data->initializers, params.capacity);

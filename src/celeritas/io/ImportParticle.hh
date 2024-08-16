@@ -17,8 +17,13 @@ namespace celeritas
  */
 struct ImportParticle
 {
+    //!@{
+    //! \name Type aliases
+    using PdgInt = int;
+    //!@}
+
     std::string name;
-    int pdg{0};
+    PdgInt pdg{0};
     double mass{0};  //!< [MeV]
     double charge{0};  //!< [Multiple of electron charge value]
     double spin{0};  //!< [Multiple of hbar]

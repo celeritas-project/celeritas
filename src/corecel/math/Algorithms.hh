@@ -31,7 +31,7 @@ forward(typename std::remove_reference<T>::type& v) noexcept
     return static_cast<T&&>(v);
 }
 
-//! \cond
+//! \cond (CELERITAS_DOC_DEV)
 template<class T>
 CELER_CONSTEXPR_FUNCTION T&&
 forward(typename std::remove_reference<T>::type&& v) noexcept
@@ -210,6 +210,7 @@ lower_bound(ForwardIt first, ForwardIt last, T const& value, Compare comp)
         first, last, value, comp);
 }
 
+//! \cond (CELERITAS_DOC_DEV)
 //---------------------------------------------------------------------------//
 /*!
  * Find the insertion point for a value in a sorted list using a binary search.
@@ -221,6 +222,7 @@ CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound(ForwardIt first,
 {
     return ::celeritas::lower_bound(first, last, value, Less<>{});
 }
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -262,6 +264,7 @@ upper_bound(ForwardIt first, ForwardIt last, T const& value, Compare comp)
         first, last, value, comp);
 }
 
+//! \cond (CELERITAS_DOC_DEV)
 //---------------------------------------------------------------------------//
 /*!
  * Find the first element which is greater than <value>
@@ -273,6 +276,7 @@ CELER_FORCEINLINE_FUNCTION ForwardIt upper_bound(ForwardIt first,
 {
     return ::celeritas::upper_bound(first, last, value, Less<>{});
 }
+//!\endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -291,6 +295,7 @@ find_sorted(ForwardIt first, ForwardIt last, T const& value, Compare comp)
     return iter;
 }
 
+//!\cond (CELERITAS_DOC_DEV)
 //---------------------------------------------------------------------------//
 /*!
  * Find the given element in a sorted range.
@@ -302,6 +307,7 @@ CELER_FORCEINLINE_FUNCTION ForwardIt find_sorted(ForwardIt first,
 {
     return ::celeritas::find_sorted(first, last, value, Less<>{});
 }
+//!\endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -333,6 +339,7 @@ sort(RandomAccessIt first, RandomAccessIt last, Compare comp)
     return ::celeritas::detail::heapsort_impl<CompareRef>(first, last, comp);
 }
 
+//! \cond (CELERITAS_DOC_DEV)
 //---------------------------------------------------------------------------//
 /*!
  * Sort an array on a single thread.
@@ -342,6 +349,7 @@ CELER_FORCEINLINE_FUNCTION void sort(RandomAccessIt first, RandomAccessIt last)
 {
     ::celeritas::sort(first, last, Less<>{});
 }
+//! \endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -356,11 +364,13 @@ CELER_CONSTEXPR_FUNCTION T const& max(T const& a, T const& b) noexcept
     return (b > a) ? b : a;
 }
 
+//!\cond (CELERITAS_DOC_DEV)
 template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
 CELER_CONSTEXPR_FUNCTION T max(T a, T b) noexcept
 {
     return std::fmax(a, b);
 }
+//!\endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -375,11 +385,13 @@ CELER_CONSTEXPR_FUNCTION T const& min(T const& a, T const& b) noexcept
     return (b < a) ? b : a;
 }
 
+//!\cond (CELERITAS_DOC_DEV)
 template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
 CELER_CONSTEXPR_FUNCTION T min(T a, T b) noexcept
 {
     return std::fmin(a, b);
 }
+//!\endcond
 
 //---------------------------------------------------------------------------//
 /*!
@@ -403,6 +415,7 @@ inline CELER_FUNCTION ForwardIt min_element(ForwardIt iter,
     return result;
 }
 
+//!\cond (CELERITAS_DOC_DEV)
 //---------------------------------------------------------------------------//
 /*!
  * Return an iterator to the lowest value in the range.
@@ -413,11 +426,12 @@ CELER_FORCEINLINE_FUNCTION ForwardIt min_element(ForwardIt first,
 {
     return ::celeritas::min_element(first, last, Less<decltype(*first)>{});
 }
+//!\endcond
 
 //---------------------------------------------------------------------------//
 // Replace/extend <cmath>
 //---------------------------------------------------------------------------//
-//!\cond
+//!\cond (CELERITAS_DOC_DEV)
 //! Generate overloads for a single-argument math function
 #define CELER_WRAP_MATH_FLOAT_DBL_1(PREFIX, FUNC)        \
     CELER_FORCEINLINE_FUNCTION float FUNC(float value)   \

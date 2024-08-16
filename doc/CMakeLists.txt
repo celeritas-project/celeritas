@@ -117,7 +117,6 @@ if(NOT Sphinx_FOUND)
         "${CMAKE_BINARY_DIR}"
       BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/${type}"
       COMMENT "Rerunning CMake because Sphinx was not found"
-      ${ARGN}
     )
   endfunction()
 else()
@@ -131,12 +130,12 @@ else()
         "$<TARGET_FILE:Python::Interpreter>" -m sphinx.cmd.build -q
           -d "${CMAKE_CURRENT_BINARY_DIR}/doctrees"
           -b ${type}
+          ${ARGN}
           "${CMAKE_CURRENT_SOURCE_DIR}"
           "${CMAKE_CURRENT_BINARY_DIR}/${type}"
       COMMENT "Building ${type} documentation with Sphinx"
       DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/conf.py"
       WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-      ${ARGN}
     )
   endfunction()
 endif()
@@ -185,7 +184,7 @@ else()
 endif()
 configure_file("config.json.in" "config.json" @ONLY)
 
-set(DOXYGEN_ENABLED_SECTIONS "CELERITAS_DOC_DEV")
+set(DOXYGEN_ENABLED_SECTIONS "CELERITAS_DOC_USER")
 set(DOXYGEN_GENERATE_HTML NO)
 set(DOXYGEN_GENERATE_XML YES)
 set(DOXYGEN_INCLUDED_BY_GRAPH NO)
@@ -218,6 +217,8 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/xs/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/random/distribution/*.hh"
+  "${PROJECT_SOURCE_DIR}/test/*.hh"
+  "${PROJECT_SOURCE_DIR}/test/*.cc"
 )
 doxygen_add_docs(doxygen_xml
   ${_DOXYGEN_SOURCE}
@@ -229,9 +230,12 @@ doxygen_add_docs(doxygen_xml
 
 #-----------------------------------------------------------------------------#
 # HTML
+set(CELERITAS_SPHINX_USER_HTML_ARGS "" CACHE STRING
+  "Additional arguments to pass to Sphinx to build HTML user docs")
+mark_as_advanced(CELERITAS_SPHINX_USER_HTML_ARGS)
 
 set(_doc_html "${CMAKE_CURRENT_BINARY_DIR}/html/index.html")
-celeritas_build_sphinx(html "${_doc_html}")
+celeritas_build_sphinx(html "${_doc_html}" ${CELERITAS_SPHINX_USER_HTML_ARGS})
 add_custom_target(doc DEPENDS "${_doc_html}")
 if(CELERITAS_USE_BREATHE)
   add_dependencies(doc doxygen_xml)

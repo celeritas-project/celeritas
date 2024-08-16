@@ -29,7 +29,7 @@ namespace celeritas
  * time and spin. For N-variables (\em i = 1, ... N), the right hand side of
  * the equation
  * \f[
- *  \frac{\dif y_{i}}{\dif s} = f_i (s, y_{i})
+ *  \difd{y_{i}}{s} = f_i (s, y_{i})
  * \f]
  * and the fouth order Runge-Kutta solution for a given step size, \em h is
  * \f[

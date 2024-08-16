@@ -2,6 +2,10 @@
 .. See the doc/COPYRIGHT file for details.
 .. SPDX-License-Identifier: CC-BY-4.0
 
+.. raw:: latex
+
+   \appendix
+
 .. _release_history:
 
 ***************

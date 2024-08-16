@@ -183,15 +183,9 @@ void resize(SimStateData<Ownership::value, M>* data, size_type size)
     resize(&data->track_ids, size);
     resize(&data->parent_ids, size);
     resize(&data->event_ids, size);
-
     resize(&data->num_steps, size);
-    fill(size_type{0}, &data->num_steps);
-
     resize(&data->num_looping_steps, size);
-    fill(size_type{0}, &data->num_looping_steps);
-
     resize(&data->time, size);
-    fill(real_type{0}, &data->time);
 
     resize(&data->status, size);
     fill(TrackStatus::inactive, &data->status);

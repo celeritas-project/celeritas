@@ -566,7 +566,7 @@ void Runner::build_optical_collector(RunnerInput const& inp,
     //! \todo Update conditionals after implementing CelerOpticalPhysicsList
     if (imported.optical.empty())
     {
-        // No optical data loaded
+        // No optical materials are present
         return;
     }
 

@@ -1,0 +1,23 @@
+.. Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
+.. See the doc/COPYRIGHT file for details.
+.. SPDX-License-Identifier: CC-BY-4.0
+
+Problem definition
+==================
+
+Celeritas contains several high-level "parameter" classes that allow setup-time
+access to problem data. These classes all correspond directly to "TrackView"
+classes (see the `developer documentation`_ for details).
+
+.. _developer documentation: https://celeritas-project.github.io/celeritas/dev/classes.html
+
+.. doxygenclass:: celeritas::GeoParamsInterface
+
+.. doxygenclass:: celeritas::MaterialParams
+
+.. doxygenclass:: celeritas::ParticleParams
+
+.. doxygenclass:: celeritas::PhysicsParams
+
+.. doxygenclass:: celeritas::CutoffParams
+

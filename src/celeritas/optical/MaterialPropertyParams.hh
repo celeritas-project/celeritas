@@ -25,7 +25,15 @@ namespace optical
 
 //---------------------------------------------------------------------------//
 /*!
- * Build and manage optical property data for materials.
+ * Manage properties for optical materials.
+ *
+ * More than one "geometry material" (i.e. \c G4Material or material defined in
+ * the geometry model input) can point to a single optical material.
+ *
+ * Optical volume and surface properties are imported from Geant4 into the \c
+ * ImportData container. The \c celeritas::MaterialParams class loads the
+ * mapping of \c GeoMaterialId to \c OpticalMaterialId and makes it accessible
+ * via the main loop's material view.
  */
 class MaterialPropertyParams final
     : public ParamsDataInterface<MaterialPropertyData>
