@@ -31,7 +31,8 @@ namespace test
 /*!
  * Googletest test harness for Celeritas codes.
  *
- * The test harness is constructed and destroyed once per subtest.
+ * The test harness is constructed and destroyed once per subtest. It contains
+ * helper functions and data commonly needed in Celeritas tests.
  */
 class Test : public ::testing::Test
 {

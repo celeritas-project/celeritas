@@ -12,12 +12,13 @@
 
 namespace celeritas
 {
-
 //---------------------------------------------------------------------------//
 /*!
- * Store isotope data.
+ * Store nuclide data.
  *
  * For nuclear mass, see `G4NucleiProperties::GetNuclearMass(int A, int Z)`.
+ *
+ * \todo Rename ImportNuclide
  */
 struct ImportIsotope
 {

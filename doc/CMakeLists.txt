@@ -217,6 +217,8 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/xs/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/random/distribution/*.hh"
+  "${PROJECT_SOURCE_DIR}/test/*.hh"
+  "${PROJECT_SOURCE_DIR}/test/*.cc"
 )
 doxygen_add_docs(doxygen_xml
   ${_DOXYGEN_SOURCE}

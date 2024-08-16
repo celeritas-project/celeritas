@@ -84,6 +84,8 @@ struct OffloadParamsData
 //---------------------------------------------------------------------------//
 /*!
  * Pre-step data needed to generate optical photon distributions.
+ *
+ * If the optical material is not set, the other properties are invalid.
  */
 struct OffloadPreStepData
 {
