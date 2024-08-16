@@ -41,12 +41,7 @@ CerenkovParams::CerenkovParams(SPConstMaterial material)
          range(OpticalMaterialId(host_ref.refractive_index.size())))
     {
         auto const& ri_grid = host_ref.refractive_index[mat_id];
-        if (!ri_grid)
-        {
-            // No refractive index data stored for this material
-            insert_angle_integral();
-            continue;
-        }
+        CELER_ASSERT(ri_grid);
 
         // Calculate the Cerenkov angle integral
         auto const&& refractive_index = host_ref.reals[ri_grid.value];

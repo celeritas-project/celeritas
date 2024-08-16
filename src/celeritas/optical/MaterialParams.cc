@@ -62,19 +62,18 @@ MaterialParams::MaterialParams(Input const& inp)
     HostVal<MaterialParamsData> data;
     CollectionBuilder refractive_index{&data.refractive_index};
     GenericGridBuilder build_grid(&data.reals);
-    for (auto const& mat : inp.properties)
+    for (auto opt_mat_idx : range(inp.properties.size()))
     {
-        // Store refractive index tabulated as a function of photon energy
-        auto const& ri_vec = mat.refractive_index;
-        if (ri_vec.x.empty())
-        {
-            // No refractive index data for this material
-            refractive_index.push_back({});
-            continue;
-        }
+        auto const& mat = inp.properties[opt_mat_idx];
 
-        // In a dispersive medium the index of refraction is an increasing
+        // Store refractive index tabulated as a function of photon energy.
+        // In a dispersive medium, the index of refraction is an increasing
         // function of photon energy
+        auto const& ri_vec = mat.refractive_index;
+        CELER_VALIDATE(ri_vec,
+                       << "no refractive index data is defined for optical "
+                          "material "
+                       << opt_mat_idx);
         CELER_VALIDATE(is_monotonic_increasing(make_span(ri_vec.x)),
                        << "refractive index energy grid values are not "
                           "monotonically increasing");
@@ -83,7 +82,9 @@ MaterialParams::MaterialParams(Input const& inp)
                           "increasing");
         if (ri_vec.y.front() < 1)
         {
-            CELER_LOG(warning) << "Encountered refractive index below unity";
+            CELER_LOG(warning) << "Encountered refractive index below unity "
+                                  "for optical material "
+                               << opt_mat_idx;
         }
 
         refractive_index.push_back(build_grid(ri_vec));
