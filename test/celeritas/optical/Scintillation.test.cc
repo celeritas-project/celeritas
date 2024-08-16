@@ -170,13 +170,13 @@ TEST_F(MaterialScintillationTest, data)
     auto const& material = data.materials[opt_mat_];
     EXPECT_REAL_EQ(5, material.yield_per_energy);
     EXPECT_REAL_EQ(1, data.resolution_scale[opt_mat_]);
-    EXPECT_EQ(3, data.components.size());
+    EXPECT_EQ(3, data.scint_records.size());
 
     std::vector<real_type> yield_fracs, lambda_means, lambda_sigmas,
         rise_times, fall_times;
     for (auto idx : material.components)
     {
-        auto const& comp = data.components[idx];
+        auto const& comp = data.scint_records[idx];
         yield_fracs.push_back(comp.yield_frac);
         lambda_means.push_back(comp.lambda_mean);
         lambda_sigmas.push_back(comp.lambda_sigma);
@@ -242,11 +242,11 @@ TEST_F(ParticleScintillationTest, data)
     for (auto i : range(particle.components.size()))
     {
         auto comp_idx = particle.components[i];
-        yield_fracs.push_back(data.components[comp_idx].yield_frac);
-        lambda_means.push_back(data.components[comp_idx].lambda_mean);
-        lambda_sigmas.push_back(data.components[comp_idx].lambda_sigma);
-        rise_times.push_back(data.components[comp_idx].rise_time);
-        fall_times.push_back(data.components[comp_idx].fall_time);
+        yield_fracs.push_back(data.scint_records[comp_idx].yield_frac);
+        lambda_means.push_back(data.scint_records[comp_idx].lambda_mean);
+        lambda_sigmas.push_back(data.scint_records[comp_idx].lambda_sigma);
+        rise_times.push_back(data.scint_records[comp_idx].rise_time);
+        fall_times.push_back(data.scint_records[comp_idx].fall_time);
     }
 
     // Particle yield vector
@@ -481,10 +481,10 @@ TEST_F(MaterialScintillationTest, stress_test)
 
     for (auto i : data.materials[result.material].components)
     {
-        expected_lambda += data.components[i].lambda_mean
-                           * data.components[i].yield_frac;
-        expected_error += data.components[i].lambda_sigma
-                          * data.components[i].yield_frac;
+        expected_lambda += data.scint_records[i].lambda_mean
+                           * data.scint_records[i].yield_frac;
+        expected_error += data.scint_records[i].lambda_sigma
+                          * data.scint_records[i].yield_frac;
     }
     EXPECT_SOFT_NEAR(avg_lambda, expected_lambda, expected_error);
 }

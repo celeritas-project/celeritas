@@ -22,7 +22,7 @@ using OpticalMaterialId = OpaqueId<struct OpticalMaterial_>;
 using ScintillationParticleId = OpaqueId<struct ScintillationParticle_>;
 
 //! Opaque index to a scintillation spectrum
-using ParticleScintSpectrumId = OpaqueId<struct ParticleScintillationSpectrum>;
+using ParticleScintSpectrumId = OpaqueId<struct ParScintSpectrumRecord>;
 
 //---------------------------------------------------------------------------//
 /*!

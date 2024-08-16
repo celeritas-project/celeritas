@@ -125,7 +125,7 @@ ScintillationParams::ScintillationParams(Input const& input)
 
     HostVal<ScintillationData> host_data;
     CollectionBuilder build_resolutionscale(&host_data.resolution_scale);
-    CollectionBuilder build_components(&host_data.components);
+    CollectionBuilder build_components(&host_data.scint_records);
 
     // Store resolution scale
     for (auto const& val : input.resolution_scale)
@@ -148,7 +148,7 @@ ScintillationParams::ScintillationParams(Input const& input)
             // Check validity of input scintillation data
             CELER_ASSERT(mat);
             // Material-only data
-            MaterialScintillationSpectrum mat_spec;
+            MatScintSpectrumRecord mat_spec;
             CELER_VALIDATE(mat.yield_per_energy > 0,
                            << "invalid yield=" << mat.yield_per_energy
                            << " for scintillation (should be positive)");
@@ -192,7 +192,7 @@ ScintillationParams::ScintillationParams(Input const& input)
             CELER_VALIDATE(spec.yield_vector,
                            << "particle yield vector is not assigned "
                               "correctly");
-            ParticleScintillationSpectrum part_spec;
+            ParScintSpectrumRecord part_spec;
             part_spec.yield_vector = build_grid(spec.yield_vector);
             auto comps = this->build_components(spec.components);
             part_spec.components
@@ -211,12 +211,12 @@ ScintillationParams::ScintillationParams(Input const& input)
 
 //---------------------------------------------------------------------------//
 /*!
- * Return a \c ScintillationComponent from a \c ImportScintComponent .
+ * Return a \c ScintRecord from a \c ImportScintComponent .
  */
-std::vector<ScintillationComponent> ScintillationParams::build_components(
+std::vector<ScintRecord> ScintillationParams::build_components(
     std::vector<ImportScintComponent> const& input_comp)
 {
-    std::vector<ScintillationComponent> comp(input_comp.size());
+    std::vector<ScintRecord> comp(input_comp.size());
     real_type norm{0};
     for (auto i : range(comp.size()))
     {

@@ -131,7 +131,7 @@ CELER_FUNCTION Span<Primary> ScintillationGenerator::operator()(Generator& rng)
     // Material sampling
     for (auto sid : mat_spectrum.components)
     {
-        auto const& component = shared_.components[sid];
+        auto const& component = shared_.scint_records[sid];
 
         // Calculate the number of photons to generate for this component
         size_type num_photons

@@ -20,13 +20,13 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Material dependent scintillation property.
+ * Material dependent scintillation component properties.
  *
- * Components represent different scintillation emissions, such as
- * prompt/fast, intermediate, and slow. They can be material-only or depend on
- * the incident particle type.
+ * This component represents one type of scintillation emissions, such as
+ * prompt/fast, intermediate, or slow. It can be specific to a material or
+ * depend on the incident particle type.
  */
-struct ScintillationComponent
+struct ScintRecord
 {
     real_type yield_frac{};  //!< Fraction of total yield (yield/sum(yields))
     real_type lambda_mean{};  //!< Mean wavelength
@@ -50,15 +50,14 @@ struct ScintillationComponent
  *   [1/MeV] units. The total light yield per step is then
  *   `yield_per_energy * energy_dep`, which results in a (unitless) number of
  *   photons.
- * - \c resolution_scale scales the standard deviation of the distribution of
- *   the number of photons generated.
+ * - \c yield_pdf is the probability of choosing from a given component.
  * - \c components stores the different scintillation components
  *   (fast/slow/etc) for this material.
  */
-struct MaterialScintillationSpectrum
+struct MatScintSpectrumRecord
 {
     real_type yield_per_energy{};  //!< [1/MeV]
-    ItemRange<ScintillationComponent> components;
+    ItemRange<ScintRecord> components;
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
@@ -76,10 +75,10 @@ struct MaterialScintillationSpectrum
  * \c components stores the fast/slow/etc scintillation components for this
  * particle type.
  */
-struct ParticleScintillationSpectrum
+struct ParScintSpectrumRecord
 {
     GenericGridRecord yield_vector;
-    ItemRange<ScintillationComponent> components;
+    ItemRange<ScintRecord> components;
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
@@ -116,28 +115,28 @@ struct ScintillationData
     using Items = Collection<T, W, M>;
     template<class T>
     using OpticalMaterialItems = Collection<T, W, M, OpticalMaterialId>;
-    using ParticleScintillationSpectra
-        = Collection<ParticleScintillationSpectrum, W, M, ParticleScintSpectrumId>;
+    template<class T>
+    using ScintPidItems = Collection<T, W, M, ParticleScintSpectrumId>;
 
     //// MEMBER DATA ////
 
+    //! Number of scintillation particles, used by this->spectrum_index
+    size_type num_scint_particles{};
+
     //! Resolution scale for each material [OpticalMaterialid]
     OpticalMaterialItems<real_type> resolution_scale;
-
-    //! Material-only scintillation spectrum data [OpticalMaterialid]
-    OpticalMaterialItems<MaterialScintillationSpectrum> materials;
+    //! Material-dependent scintillation spectrum data [OpticalMaterialid]
+    OpticalMaterialItems<MatScintSpectrumRecord> materials;
 
     //! Index between ScintillationParticleId and ParticleId
     Collection<ScintillationParticleId, W, M, ParticleId> pid_to_scintpid;
-    //! Cache number of scintillation particles; Used by this->spectrum_index
-    size_type num_scint_particles{};
     //! Particle/material scintillation spectrum data [ParticleScintSpectrumId]
-    ParticleScintillationSpectra particles;
-    //! Backend storage for ParticleScintillationSpectrum::yield_vector
-    Items<real_type> reals;
+    ScintPidItems<ParScintSpectrumRecord> particles;
 
-    //! Components for either material or particle items
-    Items<ScintillationComponent> components;
+    //! Backend storage for real values
+    Items<real_type> reals;
+    //! Backend storage for scintillation components
+    Items<ScintRecord> scint_records;
 
     //// MEMBER FUNCTIONS ////
 
@@ -179,7 +178,7 @@ struct ScintillationData
         num_scint_particles = other.num_scint_particles;
         particles = other.particles;
         reals = other.reals;
-        components = other.components;
+        scint_records = other.scint_records;
         return *this;
     }
 };
