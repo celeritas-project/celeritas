@@ -11,8 +11,9 @@ import json
 import sys
 
 class DotGenerator:
-    def __init__(self, f):
+    def __init__(self, f, args):
         self.f = f
+        self.print_ids = args.print_ids
         self.write = f.write
         self.vol_edges = []
 
@@ -34,7 +35,11 @@ edge [color=gray, dir=both]
         self.write("}\n}\n")
 
     def write_node(self, i, value):
-        self.write(f"{i:02d} [label=\"{value}\"]\n")
+        if self.print_ids:
+            id_format = f"{i:02d}:"
+        else:
+            id_format = ""
+        self.write(f"{i:02d} [label=\"{id_format}{value}\"]\n")
 
     @contextmanager
     def write_volumes(self):
@@ -58,8 +63,9 @@ node [style=rounded, shape=box]
 
 
 class MermaidGenerator:
-    def __init__(self, f):
+    def __init__(self, f, args):
         self.f = f
+        self.print_ids = args.print_ids
         self.write = f.write
         self.vol_edges = []
 
@@ -72,7 +78,11 @@ class MermaidGenerator:
             self.write(f"  v{i:02d} <--> n{i:02d}\n")
 
     def write_node(self, i, value):
-        self.write(f"  n{i:02d}[\"{value}\"]\n")
+        if self.print_ids:
+            id_format = f"{i:02d}:"
+        else:
+            id_format = ""
+        self.write(f"  n{i:02d}[\"{id_format}{value}\"]\n")
 
     @contextmanager
     def write_volumes(self):
@@ -127,13 +137,14 @@ def write_volumes(gen, volumes):
         for v in volumes:
             write_volume(v["csg_node"], v["label"])
 
-def run(infile, outfile, gencls, universe):
+def run(infile, outfile, gencls, args):
     tree = json.load(infile)
+    universe = args.universe
     if universe is not None:
         # Load from a .csg.json debug file
         csg_unit = tree[universe]
     else:
-        if isinstance(tree, list):
+        if isinstance(tree, list) and isinstance(tree[0], dict) and "tree" in tree[0]:
             num_univ = len(tree)
             print("Input tree is a CSG listing: please rerun with -u N "
                   f"where 0 ≤ N < {num_univ}",
@@ -146,7 +157,7 @@ def run(infile, outfile, gencls, universe):
             "label": "CSG tree",
         }
 
-    with gencls(outfile) as gen:
+    with gencls(outfile, args) as gen:
         write_tree(gen, csg_unit)
         if (vols := csg_unit.get("volumes")):
             write_volumes(gen, vols)
@@ -162,6 +173,7 @@ def main():
                         help="Output type: 'dot' or 'mermaid'")
     parser.add_argument('-u', '--universe', type=int, default=None,
                         help="Universe ID if a 'csg.json' debug file")
+    parser.add_argument('--print-ids', action='store_true', help="print CsgTree node ids")
     parser.add_argument(
         "-o", "--output",
         default=None,
@@ -197,7 +209,7 @@ def main():
     else:
         outfile = open(args.output, 'w')
 
-    run(infile, outfile, gencls, args.universe)
+    run(infile, outfile, gencls, args)
 
 if __name__ == "__main__":
     main()

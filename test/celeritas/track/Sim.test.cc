@@ -84,6 +84,7 @@ TEST_F(SimTest, looping)
 
     // Check looping threshold parameters for each particle
     SimTrackView sim(this->sim()->host_ref(), sim_state_.ref(), TrackSlotId{0});
+    sim = SimTrackInitializer{TrackId{0}, TrackId{}, EventId{0}, 0};
     for (auto pid : range(ParticleId{this->particle()->size()}))
     {
         auto const& looping = sim.looping_threshold(pid);

@@ -15,6 +15,7 @@ namespace detail
 template struct Filler<real_type, MemSpace::device>;
 template struct Filler<size_type, MemSpace::device>;
 template struct Filler<int, MemSpace::device>;
+template struct Filler<TrackSlotId, MemSpace::device>;
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

@@ -25,31 +25,6 @@ namespace detail
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 
-// Initialize default threads to track_slots mapping, track_slots[i] = i
-// TODO: move to global/detail and overload using ObserverPtr
-template<MemSpace M>
-void fill_track_slots(Span<TrackSlotId::size_type> track_slots, StreamId);
-
-template<>
-void fill_track_slots<MemSpace::host>(Span<TrackSlotId::size_type> track_slots,
-                                      StreamId);
-template<>
-void fill_track_slots<MemSpace::device>(Span<TrackSlotId::size_type> track_slots,
-                                        StreamId);
-
-//---------------------------------------------------------------------------//
-// Shuffle tracks
-// TODO: move to global/detail and overload using ObserverPtr
-template<MemSpace M>
-void shuffle_track_slots(Span<TrackSlotId::size_type> track_slots, StreamId);
-
-template<>
-void shuffle_track_slots<MemSpace::host>(
-    Span<TrackSlotId::size_type> track_slots, StreamId);
-template<>
-void shuffle_track_slots<MemSpace::device>(
-    Span<TrackSlotId::size_type> track_slots, StreamId);
-
 //---------------------------------------------------------------------------//
 // Sort or partition tracks
 void sort_tracks(HostRef<CoreStateData> const&, TrackOrder);
@@ -120,20 +95,6 @@ get_action_ptr(CoreStateData<W, M> const& states, TrackOrder order)
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-template<>
-inline void
-fill_track_slots<MemSpace::device>(Span<TrackSlotId::size_type>, StreamId)
-{
-    CELER_NOT_CONFIGURED("CUDA or HIP");
-}
-
-template<>
-inline void
-shuffle_track_slots<MemSpace::device>(Span<TrackSlotId::size_type>, StreamId)
-{
-    CELER_NOT_CONFIGURED("CUDA or HIP");
-}
-
 inline void sort_tracks(DeviceRef<CoreStateData> const&, TrackOrder)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
