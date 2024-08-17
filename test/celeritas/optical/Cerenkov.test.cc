@@ -348,13 +348,12 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
             CELER_ASSERT(dist);
 
             // Sample the optical photons
-            std::vector<Primary> storage(dist.num_photons);
-            CerenkovGenerator generate_photons(
-                mat_view, params->host_ref(), dist, make_span(storage));
-            auto photons = generate_photons(rng);
+            CerenkovGenerator generate_photon(
+                mat_view, params->host_ref(), dist);
 
-            for (auto const& photon : photons)
+            for (size_type j = 0; j < dist.num_photons; ++j)
             {
+                auto photon = generate_photon(rng);
                 // Bin cos(theta) of the photon relative to the incident
                 // particle direction
                 {
@@ -387,7 +386,7 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
                 EXPECT_SOFT_EQ(
                     0, dot_product(photon.direction, photon.polarization));
             }
-            total_num_photons += photons.size();
+            total_num_photons += dist.num_photons;
         }
         avg_costheta /= total_num_photons;
         avg_energy /= total_num_photons;

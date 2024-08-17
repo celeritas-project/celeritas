@@ -54,12 +54,11 @@ class CerenkovGenerator
     inline CELER_FUNCTION
     CerenkovGenerator(MaterialView const& material,
                       NativeCRef<CerenkovData> const& shared,
-                      GeneratorDistributionData const& dist,
-                      Span<Primary> photons);
+                      GeneratorDistributionData const& dist);
 
     // Sample Cerenkov photons from the distribution
     template<class Generator>
-    inline CELER_FUNCTION Span<Primary> operator()(Generator& rng);
+    inline CELER_FUNCTION Primary operator()(Generator& rng);
 
   private:
     //// TYPES ////
@@ -69,7 +68,6 @@ class CerenkovGenerator
     //// DATA ////
 
     GeneratorDistributionData const& dist_;
-    Span<Primary> photons_;
     GenericCalculator calc_refractive_index_;
     UniformRealDist sample_phi_;
     UniformRealDist sample_num_photons_;
@@ -92,16 +90,13 @@ class CerenkovGenerator
 CELER_FUNCTION
 CerenkovGenerator::CerenkovGenerator(MaterialView const& material,
                                      NativeCRef<CerenkovData> const& shared,
-                                     GeneratorDistributionData const& dist,
-                                     Span<Primary> photons)
+                                     GeneratorDistributionData const& dist)
     : dist_(dist)
-    , photons_(photons)
     , calc_refractive_index_(material.make_refractive_index_calculator())
     , sample_phi_(0, 2 * constants::pi)
 {
     CELER_EXPECT(shared);
     CELER_EXPECT(dist_);
-    CELER_EXPECT(photons_.size() == dist_.num_photons);
     CELER_EXPECT(material.material_id() == dist_.material);
 
     using LS = units::LightSpeed;
@@ -142,59 +137,58 @@ CerenkovGenerator::CerenkovGenerator(MaterialView const& material,
  * Sample Cerenkov photons from the distribution.
  */
 template<class Generator>
-CELER_FUNCTION Span<Primary> CerenkovGenerator::operator()(Generator& rng)
+CELER_FUNCTION Primary CerenkovGenerator::operator()(Generator& rng)
 {
-    for (auto i : range(dist_.num_photons))
+    // Sample energy and direction
+    real_type energy;
+    real_type cos_theta;
+    real_type sin_theta_sq;
+    do
     {
-        // Sample energy and direction
-        real_type energy;
-        real_type cos_theta;
-        real_type sin_theta_sq;
+        // Sample an energy uniformly within the grid bounds, rejecting
+        // if the refractive index at the sampled energy is such that the
+        // incident particle's average speed is subluminal at that photon
+        // wavelength.
+        // We could improve sampling efficiency for this edge case by
+        // increasing the minimum energy (as is done in
+        // CerenkovDndxCalculator) to where the refractive index satisfies
+        // this condition, but since fewer photons are emitted at lower
+        // energies in general, relatively few rejections will take place
+        // here.
         do
         {
-            // Sample an energy uniformly within the grid bounds, rejecting
-            // if the refractive index at the sampled energy is such that the
-            // incident particle's average speed is subluminal at that photon
-            // wavelength.
-            // We could improve sampling efficiency for this edge case by
-            // increasing the minimum energy (as is done in
-            // CerenkovDndxCalculator) to where the refractive index satisfies
-            // this condition, but since fewer photons are emitted at lower
-            // energies in general, relatively few rejections will take place
-            // here.
-            do
-            {
-                energy = sample_energy_(rng);
-                cos_theta = inv_beta_ / calc_refractive_index_(energy);
-            } while (cos_theta > 1);
-            sin_theta_sq = 1 - ipow<2>(cos_theta);
-        } while (RejectionSampler{sin_theta_sq, sin_max_sq_}(rng));
+            energy = sample_energy_(rng);
+            cos_theta = inv_beta_ / calc_refractive_index_(energy);
+        } while (cos_theta > 1);
+        sin_theta_sq = 1 - ipow<2>(cos_theta);
+    } while (RejectionSampler{sin_theta_sq, sin_max_sq_}(rng));
 
-        // Sample azimuthal photon direction
-        real_type phi = sample_phi_(rng);
-        photons_[i].direction = rotate(from_spherical(cos_theta, phi), dir_);
-        photons_[i].energy = units::MevEnergy(energy);
+    // Sample azimuthal photon direction
+    real_type phi = sample_phi_(rng);
+    Primary photon;
+    photon.direction = rotate(from_spherical(cos_theta, phi), dir_);
+    photon.energy = units::MevEnergy(energy);
 
-        // Photon polarization is perpendicular to the cone's surface
-        photons_[i].polarization
-            = rotate(from_spherical(-std::sqrt(sin_theta_sq), phi), dir_);
+    // Photon polarization is perpendicular to the cone's surface
+    photon.polarization
+        = rotate(from_spherical(-std::sqrt(sin_theta_sq), phi), dir_);
 
-        // Sample position and time uniformly along the step
-        UniformRealDistribution sample_step_fraction;
-        real_type u;
-        do
-        {
-            u = sample_step_fraction(rng);
-        } while (sample_num_photons_(rng) > dndx_pre_ + u * delta_num_photons_);
-        real_type delta_time
-            = u * dist_.step_length
-              / (native_value_from(dist_.points[StepPoint::pre].speed)
-                 + u * real_type(0.5) * native_value_from(delta_speed_));
-        photons_[i].time = dist_.time + delta_time;
-        photons_[i].position = dist_.points[StepPoint::pre].pos;
-        axpy(u, delta_pos_, &photons_[i].position);
-    }
-    return photons_;
+    // Sample fraction along the step
+    UniformRealDistribution sample_step_fraction;
+    real_type u;
+    do
+    {
+        u = sample_step_fraction(rng);
+    } while (sample_num_photons_(rng) > dndx_pre_ + u * delta_num_photons_);
+
+    real_type delta_time
+        = u * dist_.step_length
+          / (native_value_from(dist_.points[StepPoint::pre].speed)
+             + u * real_type(0.5) * native_value_from(delta_speed_));
+    photon.time = dist_.time + delta_time;
+    photon.position = dist_.points[StepPoint::pre].pos;
+    axpy(u, delta_pos_, &photon.position);
+    return photon;
 }
 
 //---------------------------------------------------------------------------//
