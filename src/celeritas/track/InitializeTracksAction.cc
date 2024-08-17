@@ -66,12 +66,11 @@ void InitializeTracksAction::execute_impl(CoreParams const& core_params,
     {
         if (core_params.init()->track_order() == TrackOrder::partition_charge)
         {
-            // Reset the indices
+            // Reset track initializer indices
             fill_sequence(&core_state.ref().init.indices,
                           core_state.stream_id());
 
-            // Partition the track indices by whether the tracks are charged or
-            // neutral
+            // Partition indices by whether tracks are charged or neutral
             detail::partition_initializers(core_params,
                                            core_state.ref().init,
                                            counters,
@@ -85,6 +84,12 @@ void InitializeTracksAction::execute_impl(CoreParams const& core_params,
         // Update initializers/vacancies
         counters.num_initializers -= num_new_tracks;
         counters.num_vacancies -= num_new_tracks;
+
+        if (core_params.init()->track_order() == TrackOrder::partition_charge)
+        {
+            // Clear stale parent track IDs
+            fill(TrackSlotId{}, &core_state.ref().init.parents);
+        }
     }
 
     // Store number of active tracks at the start of the loop

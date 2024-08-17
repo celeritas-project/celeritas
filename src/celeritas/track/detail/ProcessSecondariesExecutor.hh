@@ -168,7 +168,9 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
                     counters.num_initializers - offset}]
                     = ti;
 
-                if (offset <= data.parents.size())
+                if (offset <= data.parents.size()
+                    && (params->init.track_order != TrackOrder::partition_charge
+                        || sim.status() == TrackStatus::alive))
                 {
                     // Store the thread ID of the secondary's parent if the
                     // secondary could be initialized in the next step. If the
@@ -177,11 +179,7 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
                     // must still be alive to ensure the state isn't
                     // overwritten
                     data.parents[TrackSlotId(data.parents.size() - offset)]
-                        = params->init.track_order
-                                      == TrackOrder::partition_charge
-                                  && sim.status() != TrackStatus::alive
-                              ? TrackSlotId{}
-                              : tid;
+                        = tid;
                 }
                 --offset;
             }
