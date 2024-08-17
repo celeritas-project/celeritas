@@ -17,6 +17,7 @@
 #include "celeritas/optical/ScintillationGenerator.hh"
 #include "celeritas/optical/ScintillationOffload.hh"
 #include "celeritas/optical/ScintillationParams.hh"
+#include "celeritas/optical/detail/OpticalUtils.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
 #include "DiagnosticRngEngine.hh"
@@ -25,19 +26,24 @@
 
 namespace celeritas
 {
+namespace optical
+{
 namespace test
 {
-using namespace celeritas::optical;
+//---------------------------------------------------------------------------//
+
+using celeritas::test::from_cm;
+
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class ScintillationTestBase : public OpticalTestBase
+class ScintillationTestBase : public ::celeritas::test::OpticalTestBase
 {
   public:
     //!@{
     //! \name Type aliases
-    using RandomEngine = DiagnosticRngEngine<std::mt19937>;
+    using Rng = ::celeritas::test::DiagnosticRngEngine<std::mt19937>;
     using HostValue = HostVal<ScintillationData>;
     using MevEnergy = units::MevEnergy;
     using LightSpeed = units::LightSpeed;
@@ -46,13 +52,6 @@ class ScintillationTestBase : public OpticalTestBase
     //!@}
 
   protected:
-    //! Get random number generator with clean counter
-    RandomEngine& rng()
-    {
-        rng_.reset_count();
-        return rng_;
-    }
-
     virtual SPParams build_scintillation_params() = 0;
 
     //! Create particle yield vector
@@ -77,7 +76,6 @@ class ScintillationTestBase : public OpticalTestBase
     }
 
   protected:
-    RandomEngine rng_;
     OpticalMaterialId opt_mat_{0};
 
     // Post-step values
@@ -295,8 +293,10 @@ TEST_F(MaterialScintillationTest, pre_generator)
                                   data,
                                   pre_step);
 
-    auto const result = generate(this->rng());
-    CELER_ASSERT(result);
+    Rng rng;
+    auto const result = generate(rng);
+    ASSERT_TRUE(result);
+    EXPECT_EQ(10, rng.exchange_count());
 
     EXPECT_EQ(4, result.num_photons);
     EXPECT_REAL_EQ(0, result.time);
@@ -329,7 +329,9 @@ TEST_F(MaterialScintillationTest, basic)
         data,
         pre_step);
 
-    auto const generated_dist = generate(this->rng());
+    Rng rng;
+    auto const generated_dist = generate(rng);
+    EXPECT_EQ(10, rng.exchange_count());
     auto const inc_dir
         = make_unit_vector(generated_dist.points[StepPoint::post].pos
                            - generated_dist.points[StepPoint::pre].pos);
@@ -346,7 +348,7 @@ TEST_F(MaterialScintillationTest, basic)
     // Generate 2 batches of optical photons from the given input
     for ([[maybe_unused]] auto i : range(2))
     {
-        auto photons = generate_photons(this->rng());
+        auto photons = generate_photons(rng);
         ASSERT_EQ(photons.size(), generated_dist.num_photons);
 
         for (Primary const& p : photons)
@@ -362,6 +364,8 @@ TEST_F(MaterialScintillationTest, basic)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
+        EXPECT_EQ(140, rng.exchange_count());
+
         static double const expected_energy[] = {
             1.0108118605375e-05,
             1.1217590386333e-05,
@@ -431,7 +435,9 @@ TEST_F(MaterialScintillationTest, stress_test)
         data,
         pre_step);
 
-    auto result = generate(this->rng());
+    Rng rng;
+    auto result = generate(rng);
+    EXPECT_EQ(10, rng.exchange_count());
 
     // Overwrite result to force a large number of optical photons
     result.num_photons = 123456;
@@ -443,7 +449,7 @@ TEST_F(MaterialScintillationTest, stress_test)
     ScintillationGenerator generate_photons(result, data, make_span(storage));
 
     // Generate optical photons for a given input
-    auto photons = generate_photons(this->rng());
+    auto photons = generate_photons(rng);
 
     // Check results
     double avg_lambda{0};
@@ -453,6 +459,10 @@ TEST_F(MaterialScintillationTest, stress_test)
         avg_lambda += hc / photons[i].energy.value();
     }
     avg_lambda /= static_cast<double>(result.num_photons);
+    EXPECT_SOFT_NEAR(
+        17.74,
+        rng.exchange_count() / static_cast<double>(result.num_photons),
+        1e-2);
 
     double expected_lambda{0};
     double expected_error{0};
@@ -469,4 +479,5 @@ TEST_F(MaterialScintillationTest, stress_test)
 
 //---------------------------------------------------------------------------//
 }  // namespace test
+}  // namespace optical
 }  // namespace celeritas

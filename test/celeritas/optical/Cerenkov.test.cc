@@ -26,6 +26,7 @@
 #include "celeritas/optical/CerenkovParams.hh"
 #include "celeritas/optical/GeneratorDistributionData.hh"
 #include "celeritas/optical/MaterialParams.hh"
+#include "celeritas/optical/detail/OpticalUtils.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/random/distribution/PoissonDistribution.hh"
 
@@ -115,8 +116,7 @@ Span<double const> get_refractive_index()
 
 double convert_to_energy(double wavelength)
 {
-    return constants::h_planck * constants::c_light / units::Mev::value()
-           / wavelength;
+    return value_as<units::MevEnergy>(detail::wavelength_to_energy(wavelength));
 }
 
 //---------------------------------------------------------------------------//
