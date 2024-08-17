@@ -17,6 +17,7 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 
 #include "Types.hh"
+
 #include "detail/FieldUtils.hh"
 
 namespace celeritas
@@ -87,8 +88,9 @@ class FieldPropagator
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class DriverT, class GTV>
-CELER_FUNCTION FieldPropagator(DriverT&&, ParticleTrackView const&, GTV&&)
-    -> FieldPropagator<DriverT, GTV>;
+CELER_FUNCTION FieldPropagator(DriverT&&,
+                               ParticleTrackView const&,
+                               GTV&&) -> FieldPropagator<DriverT, GTV>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -145,8 +147,8 @@ CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()() -> result_type
  *   physical distance travelled.
  */
 template<class DriverT, class GTV>
-CELER_FUNCTION auto FieldPropagator<DriverT, GTV>::operator()(real_type step)
-    -> result_type
+CELER_FUNCTION auto
+FieldPropagator<DriverT, GTV>::operator()(real_type step) -> result_type
 {
     CELER_EXPECT(step > 0);
     result_type result;

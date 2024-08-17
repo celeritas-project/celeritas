@@ -70,12 +70,12 @@ inline CELER_FUNCTION Real3 boost_vector(FourVector const& p)
  */
 inline CELER_FUNCTION void boost(Real3 const& v, FourVector* p)
 {
-    const real_type v_sq = dot_product(v, v);
+    real_type const v_sq = dot_product(v, v);
     CELER_EXPECT(v_sq < real_type{1});
 
-    const real_type vp = dot_product(v, p->mom);
-    const real_type gamma = real_type{1} / std::sqrt(1 - v_sq);
-    const real_type lambda = (v_sq > 0 ? (gamma - 1) * vp / v_sq : 0)
+    real_type const vp = dot_product(v, p->mom);
+    real_type const gamma = real_type{1} / std::sqrt(1 - v_sq);
+    real_type const lambda = (v_sq > 0 ? (gamma - 1) * vp / v_sq : 0)
                              + gamma * p->energy;
 
     axpy(lambda, v, &(p->mom));

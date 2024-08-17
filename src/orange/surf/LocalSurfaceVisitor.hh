@@ -11,6 +11,7 @@
 #include "orange/OrangeData.hh"
 
 #include "SurfaceTypeTraits.hh"
+
 #include "detail/AllSurfaces.hh"
 
 namespace celeritas

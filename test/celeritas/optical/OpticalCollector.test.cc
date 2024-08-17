@@ -201,8 +201,8 @@ auto LArSphereOffloadTest::make_primaries(size_type count) -> VecPrimary
  * Run a number of tracks.
  */
 template<MemSpace M>
-auto LArSphereOffloadTest::run(size_type num_tracks, size_type num_steps)
-    -> RunResult
+auto LArSphereOffloadTest::run(size_type num_tracks,
+                               size_type num_steps) -> RunResult
 {
     StepperInput step_inp;
     step_inp.params = this->core();
@@ -225,35 +225,35 @@ auto LArSphereOffloadTest::run(size_type num_tracks, size_type num_steps)
     using ItemsRef
         = Collection<GeneratorDistributionData, Ownership::reference, M>;
 
-    auto get_result = [&](OffloadResult& result,
-                          ItemsRef const& buffer,
-                          size_type size) {
-        // Copy buffer to host
-        std::vector<GeneratorDistributionData> data(size);
-        Copier<GeneratorDistributionData, MemSpace::host> copy_data{
-            make_span(data)};
-        copy_data(M, buffer[BufferRange(BufferId(0), BufferId(size))]);
+    auto get_result
+        = [&](OffloadResult& result, ItemsRef const& buffer, size_type size) {
+              // Copy buffer to host
+              std::vector<GeneratorDistributionData> data(size);
+              Copier<GeneratorDistributionData, MemSpace::host> copy_data{
+                  make_span(data)};
+              copy_data(M, buffer[BufferRange(BufferId(0), BufferId(size))]);
 
-        std::set<real_type> charge;
-        for (auto const& dist : data)
-        {
-            result.total_num_photons += dist.num_photons;
-            result.num_photons.push_back(dist.num_photons);
-            if (!dist)
-            {
-                continue;
-            }
-            charge.insert(dist.charge.value());
+              std::set<real_type> charge;
+              for (auto const& dist : data)
+              {
+                  result.total_num_photons += dist.num_photons;
+                  result.num_photons.push_back(dist.num_photons);
+                  if (!dist)
+                  {
+                      continue;
+                  }
+                  charge.insert(dist.charge.value());
 
-            auto const& pre = dist.points[StepPoint::pre];
-            auto const& post = dist.points[StepPoint::post];
-            EXPECT_GT(pre.speed, zero_quantity());
-            EXPECT_NE(post.pos, pre.pos);
-            EXPECT_GT(dist.step_length, 0);
-            EXPECT_EQ(0, dist.material.get());
-        }
-        result.charge.insert(result.charge.end(), charge.begin(), charge.end());
-    };
+                  auto const& pre = dist.points[StepPoint::pre];
+                  auto const& post = dist.points[StepPoint::post];
+                  EXPECT_GT(pre.speed, zero_quantity());
+                  EXPECT_NE(post.pos, pre.pos);
+                  EXPECT_GT(dist.step_length, 0);
+                  EXPECT_EQ(0, dist.material.get());
+              }
+              result.charge.insert(
+                  result.charge.end(), charge.begin(), charge.end());
+          };
 
     RunResult result;
     auto& optical_state = get<OpticalOffloadState<M>>(step.state().aux(),

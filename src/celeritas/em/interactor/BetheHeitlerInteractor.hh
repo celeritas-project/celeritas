@@ -337,9 +337,8 @@ BetheHeitlerInteractor::impact_parameter(real_type eps) const
 /*!
  * Screening functions \f$ \Phi_1(\delta) \f$ and \f$ \Phi_2(\delta) \f$.
  */
-CELER_FUNCTION auto
-BetheHeitlerInteractor::screening_phi1_phi2(real_type delta) const
-    -> ScreeningFunctions
+CELER_FUNCTION auto BetheHeitlerInteractor::screening_phi1_phi2(
+    real_type delta) const -> ScreeningFunctions
 {
     using R = real_type;
 

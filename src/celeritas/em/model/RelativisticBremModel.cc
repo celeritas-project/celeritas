@@ -93,8 +93,7 @@ auto RelativisticBremModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto RelativisticBremModel::micro_xs(Applicability applic) const
-    -> MicroXsBuilders
+auto RelativisticBremModel::micro_xs(Applicability applic) const -> MicroXsBuilders
 {
     return imported_.micro_xs(std::move(applic));
 }
@@ -150,9 +149,8 @@ void RelativisticBremModel::build_data(HostValue* data,
  *
  * See \c G4eBremsstrahlungRelModel::InitialiseElementData() in Geant4.
  */
-auto RelativisticBremModel::compute_element_data(ElementView const& elem,
-                                                 real_type electron_mass)
-    -> ElementData
+auto RelativisticBremModel::compute_element_data(
+    ElementView const& elem, real_type electron_mass) -> ElementData
 {
     ElementData data;
 

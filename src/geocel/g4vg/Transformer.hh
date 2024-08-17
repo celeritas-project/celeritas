@@ -116,8 +116,7 @@ auto Transformer::operator()(G4ThreeVector const& t,
 /*!
  * Create a transform from an affine transform.
  */
-auto Transformer::operator()(G4AffineTransform const& affine) const
-    -> result_type
+auto Transformer::operator()(G4AffineTransform const& affine) const -> result_type
 {
     return (*this)(affine.NetTranslation(), affine.NetRotation());
 }

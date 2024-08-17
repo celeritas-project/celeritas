@@ -13,6 +13,7 @@
 #include "orange/OrangeTypes.hh"
 
 #include "VariantSurface.hh"
+
 #include "detail/AllSurfaces.hh"
 #include "detail/RecursiveSimplifierImpl.hh"
 

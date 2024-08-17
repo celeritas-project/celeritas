@@ -105,8 +105,8 @@ CELER_FUNCTION ZHelixStepper(EquationT&&) -> ZHelixStepper<EquationT>;
  */
 template<class E>
 CELER_FUNCTION auto
-ZHelixStepper<E>::operator()(real_type step, OdeState const& beg_state) const
-    -> result_type
+ZHelixStepper<E>::operator()(real_type step,
+                             OdeState const& beg_state) const -> result_type
 {
     result_type result;
 
