@@ -72,23 +72,25 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
 {
     CELER_EXPECT(tid < num_new_tracks);
 
-    using InitId = ItemId<TrackInitializer>;
+    auto const& data = state->init;
+
+    auto get_idx = [&](size_type size) {
+        if (params->init.track_order == TrackOrder::partition_charge)
+        {
+            // Get the index into the track initializer or parent track slot ID
+            // array from the sorted indices
+            return data.indices[TrackSlotId(index_before(num_new_tracks, tid))]
+                   + size - num_new_tracks;
+        }
+        return index_before(size, tid);
+    };
 
     // Get the track initializer from the back of the vector. Since new
     // initializers are pushed to the back of the vector, these will be the
     // most recently added and therefore the ones that still might have a
     // parent they can copy the geometry state from.
-    auto const& data = state->init;
-    TrackInitializer const& init = [&] {
-        if (params->init.track_order == TrackOrder::partition_charge)
-        {
-            return data.initializers[InitId(
-                data.indices[TrackSlotId(index_before(num_new_tracks, tid))]
-                + counters.num_initializers - num_new_tracks)];
-        }
-        return data
-            .initializers[InitId(index_before(counters.num_initializers, tid))];
-    }();
+    TrackInitializer const& init = data.initializers[ItemId<TrackInitializer>(
+        get_idx(counters.num_initializers))];
 
     // View to the new track to be initialized
     CoreTrackView vacancy{
@@ -117,14 +119,7 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
             {
                 return TrackSlotId{};
             }
-            if (params->init.track_order == TrackOrder::partition_charge)
-            {
-                return data.parents[TrackSlotId(
-                    data.indices[TrackSlotId(index_before(num_new_tracks, tid))]
-                    + data.parents.size() - num_new_tracks)];
-            }
-            return data
-                .parents[TrackSlotId(index_before(data.parents.size(), tid))];
+            return data.parents[TrackSlotId(get_idx(data.parents.size()))];
         }();
 
         if (parent_id)
