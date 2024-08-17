@@ -82,8 +82,7 @@ char const* to_cstring(ImportUnits value)
         "len^2",
         "time",
         "1/len^3",
-        "len-time^2/"
-        "mass",
+        "len-time^2/mass",
         "1/MeV",
     };
     return to_cstring_impl(value);
