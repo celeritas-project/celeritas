@@ -37,7 +37,7 @@ struct LivermoreSubshell
     Energy binding_energy;
 
     // Tabulated subshell photoionization cross section (used below 5 keV)
-    GenericGridData xs;
+    GenericGridRecord xs;
 
     // Fit parameters for the integrated subshell photoionization cross
     // sections in the two different energy ranges (used above 5 keV)
@@ -61,12 +61,12 @@ struct LivermoreElement
     // TOTAL CROSS SECTIONS
 
     // Total cross section below the K-shell energy. Uses linear interpolation.
-    GenericGridData xs_lo;
+    GenericGridRecord xs_lo;
 
     // Total cross section above the K-shell energy but below the energy
     // threshold for the parameterized cross sections. Uses spline
     // interpolation.
-    GenericGridData xs_hi;
+    GenericGridRecord xs_hi;
 
     // SUBSHELL CROSS SECTIONS
 

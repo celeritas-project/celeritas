@@ -137,10 +137,7 @@ CerenkovDndxCalculator::operator()(units::LightSpeed beta)
         // Both energy and refractive index are monotonically increasing, so
         // the grid and values can be swapped and the energy can be calculated
         // from a given index of refraction
-        auto grid_data = properties_.refractive_index[material_];
-        trivial_swap(grid_data.grid, grid_data.value);
-        real_type energy_min
-            = GenericCalculator(grid_data, properties_.reals)(inv_beta);
+        real_type energy_min = calc_refractive_index.make_inverse()(inv_beta);
         energy = energy_max - energy_min
                  - (calc_integral(energy_max) - calc_integral(energy_min))
                        * ipow<2>(inv_beta);
@@ -149,8 +146,9 @@ CerenkovDndxCalculator::operator()(units::LightSpeed beta)
     // Calculate number of photons. This may be negative if the incident
     // particle energy is very close to (just above) the Cerenkov production
     // threshold
-    return clamp_to_nonneg(zsq_ * constants::alpha_fine_structure
-                           / (constants::hbar_planck * constants::c_light)
+    return clamp_to_nonneg(zsq_
+                           * (constants::alpha_fine_structure
+                              / (constants::hbar_planck * constants::c_light))
                            * native_value_from(units::MevEnergy(energy)));
 }
 

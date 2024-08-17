@@ -66,6 +66,12 @@ namespace celeritas
  * \code
    void resize(
        StateData<Ownership::value, M>* data,
+       HostCRef<ParamsData> const&     params,
+       StreamId                        stream,
+       size_type                       size);
+   // or...
+   void resize(
+       StateData<Ownership::value, M>* data,
        const HostCRef<ParamsData>&     params,
        size_type                       size);
    // or...

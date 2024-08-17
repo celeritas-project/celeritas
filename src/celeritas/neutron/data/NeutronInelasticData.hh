@@ -145,10 +145,10 @@ struct NeutronInelasticData
     NeutronInelasticScalars scalars;
 
     // Microscopic (element) cross section data (G4PARTICLEXS/neutron/inelZ)
-    ElementItems<GenericGridData> micro_xs;
+    ElementItems<GenericGridRecord> micro_xs;
 
     // Tabulated nucleon-nucleon cross section data
-    ChannelItems<GenericGridData> nucleon_xs;
+    ChannelItems<GenericGridRecord> nucleon_xs;
 
     // Parameters of necleon-nucleon cross sections below 10 MeV
     ChannelItems<StepanovParameters> xs_params;

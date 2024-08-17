@@ -16,10 +16,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * A grid of increasing, sorted 1D data with linear-linear interpolation.
- *
- * \todo Rename to GenericGridRecord
  */
-struct GenericGridData
+struct GenericGridRecord
 {
     ItemRange<real_type> grid;  //!< x grid
     ItemRange<real_type> value;  //!< f(x) value
