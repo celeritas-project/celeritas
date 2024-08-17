@@ -50,8 +50,7 @@ BremsstrahlungProcess::BremsstrahlungProcess(SPConstParticles particles,
 /*!
  * Construct the models associated with this process.
  */
-auto BremsstrahlungProcess::build_models(ActionIdIter start_id) const
-    -> VecModel
+auto BremsstrahlungProcess::build_models(ActionIdIter start_id) const -> VecModel
 {
     switch (options_.selection)
     {

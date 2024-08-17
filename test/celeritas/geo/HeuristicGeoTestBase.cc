@@ -121,9 +121,8 @@ auto HeuristicGeoTestBase::build_test_params()
 //---------------------------------------------------------------------------//
 
 template<MemSpace M>
-auto HeuristicGeoTestBase::get_avg_path(PathLengthRef<M> path,
-                                        size_type num_states) const
-    -> std::vector<real_type>
+auto HeuristicGeoTestBase::get_avg_path(
+    PathLengthRef<M> path, size_type num_states) const -> std::vector<real_type>
 {
     std::vector<real_type> result(path.size());
     copy_to_host(path, make_span(result));
@@ -133,9 +132,9 @@ auto HeuristicGeoTestBase::get_avg_path(PathLengthRef<M> path,
 
 //---------------------------------------------------------------------------//
 
-auto HeuristicGeoTestBase::get_avg_path_impl(std::vector<real_type> const& path,
-                                             size_type num_states) const
-    -> std::vector<real_type>
+auto HeuristicGeoTestBase::get_avg_path_impl(
+    std::vector<real_type> const& path,
+    size_type num_states) const -> std::vector<real_type>
 {
     CELER_EXPECT(path.size() == this->geometry()->num_volumes());
 

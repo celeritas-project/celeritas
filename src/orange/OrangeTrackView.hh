@@ -1122,8 +1122,8 @@ CELER_FORCEINLINE_FUNCTION auto OrangeTrackView::make_lsa() const -> LSA
 /*!
  * Make a LevelStateAccessor for the current thread and a given level.
  */
-CELER_FORCEINLINE_FUNCTION auto OrangeTrackView::make_lsa(LevelId level) const
-    -> LSA
+CELER_FORCEINLINE_FUNCTION auto
+OrangeTrackView::make_lsa(LevelId level) const -> LSA
 {
     return LSA(&states_, track_slot_, level);
 }

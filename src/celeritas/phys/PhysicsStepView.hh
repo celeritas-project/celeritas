@@ -293,8 +293,8 @@ real_type PhysicsStepView::per_process_xs(ParticleProcessId ppid) const
 /*!
  * Return a secondary stack allocator view.
  */
-CELER_FUNCTION auto PhysicsStepView::make_secondary_allocator() const
-    -> SecondaryAllocator
+CELER_FUNCTION auto
+PhysicsStepView::make_secondary_allocator() const -> SecondaryAllocator
 {
     return SecondaryAllocator{states_.secondaries};
 }
@@ -303,9 +303,8 @@ CELER_FUNCTION auto PhysicsStepView::make_secondary_allocator() const
 /*!
  * Make an atomic relaxation helper for the given element.
  */
-CELER_FUNCTION auto
-PhysicsStepView::make_relaxation_helper(ElementId el_id) const
-    -> AtomicRelaxationHelper
+CELER_FUNCTION auto PhysicsStepView::make_relaxation_helper(
+    ElementId el_id) const -> AtomicRelaxationHelper
 {
     CELER_ASSERT(el_id);
     return AtomicRelaxationHelper{params_.hardwired.relaxation_data,

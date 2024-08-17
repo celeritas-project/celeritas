@@ -38,7 +38,7 @@ CoulombScatteringModel::CoulombScatteringModel(ActionId id,
                                                MaterialParams const& materials,
                                                SPConstImported data)
     : ConcreteAction(
-        id, "coulomb-wentzel", "interact by Coulomb scattering (Wentzel)")
+          id, "coulomb-wentzel", "interact by Coulomb scattering (Wentzel)")
     , imported_(data,
                 particles,
                 ImportProcessClass::coulomb_scat,
@@ -95,8 +95,7 @@ auto CoulombScatteringModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto CoulombScatteringModel::micro_xs(Applicability applic) const
-    -> MicroXsBuilders
+auto CoulombScatteringModel::micro_xs(Applicability applic) const -> MicroXsBuilders
 {
     return imported_.micro_xs(std::move(applic));
 }

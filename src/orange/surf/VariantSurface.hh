@@ -13,6 +13,7 @@
 #include "orange/transform/VariantTransform.hh"
 
 #include "SurfaceTypeTraits.hh"
+
 #include "detail/AllSurfaces.hh"
 
 namespace celeritas

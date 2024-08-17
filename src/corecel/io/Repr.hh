@@ -21,6 +21,7 @@
 #include "corecel/math/Quantity.hh"
 
 #include "Join.hh"
+
 #include "detail/ReprImpl.hh"
 
 namespace celeritas
