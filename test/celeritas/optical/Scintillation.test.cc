@@ -54,16 +54,6 @@ class ScintillationTestBase : public ::celeritas::test::OpticalTestBase
   protected:
     virtual SPParams build_scintillation_params() = 0;
 
-    //! Create particle yield vector
-    ImportPhysicsVector build_particle_yield()
-    {
-        ImportPhysicsVector vec;
-        vec.vector_type = ImportPhysicsVectorType::free;
-        vec.x = {1e-6, 6};
-        vec.y = {3750, 5000};
-        return vec;
-    }
-
     //! Set up mock pre-generator step data
     OffloadPreStepData build_pre_step()
     {
@@ -137,6 +127,16 @@ class ParticleScintillationTest : public ScintillationTestBase
         return std::make_shared<ScintillationParams>(std::move(inp));
     }
 
+    //! Create particle yield vector
+    ImportPhysicsVector build_particle_yield()
+    {
+        ImportPhysicsVector vec;
+        vec.vector_type = ImportPhysicsVectorType::free;
+        vec.x = {1e-6, 6};
+        vec.y = {3750, 5000};
+        return vec;
+    }
+
     //! Create particle components
     VecScintComponents build_particle_components()
     {
@@ -145,7 +145,7 @@ class ParticleScintillationTest : public ScintillationTestBase
 
         std::vector<ImportScintComponent> vec_comps;
         ImportScintComponent comp;
-        comp.yield_per_energy = 4000;
+        comp.yield_frac = 1;
         comp.lambda_mean = 1e-5 * cm;
         comp.lambda_sigma = 1e-6 * cm;
         comp.rise_time = 15e-9 * sec;
@@ -167,17 +167,18 @@ TEST_F(MaterialScintillationTest, data)
     EXPECT_EQ(0, data.num_scint_particles);
     EXPECT_EQ(1, data.materials.size());
 
-    auto const& material = data.materials[opt_mat_];
-    EXPECT_REAL_EQ(5, material.yield_per_energy);
+    auto const& mat_record = data.materials[opt_mat_];
+    EXPECT_REAL_EQ(5, mat_record.yield_per_energy);
     EXPECT_REAL_EQ(1, data.resolution_scale[opt_mat_]);
     EXPECT_EQ(3, data.scint_records.size());
 
     std::vector<real_type> yield_fracs, lambda_means, lambda_sigmas,
         rise_times, fall_times;
-    for (auto idx : material.components)
+    for (auto comp_idx : range(mat_record.components.size()))
     {
-        auto const& comp = data.scint_records[idx];
-        yield_fracs.push_back(comp.yield_frac);
+        ScintRecord const& comp
+            = data.scint_records[mat_record.components[comp_idx]];
+        yield_fracs.push_back(data.reals[mat_record.yield_pdf[comp_idx]]);
         lambda_means.push_back(comp.lambda_mean);
         lambda_sigmas.push_back(comp.lambda_sigma);
         rise_times.push_back(comp.rise_time);
@@ -187,13 +188,13 @@ TEST_F(MaterialScintillationTest, data)
     real_type norm{0};
     for (auto const& comp : this->build_material_components())
     {
-        norm += comp.yield_per_energy;
+        norm += comp.yield_frac;
     }
     std::vector<real_type> expected_yield_fracs, expected_lambda_means,
         expected_lambda_sigmas, expected_rise_times, expected_fall_times;
     for (auto const& comp : this->build_material_components())
     {
-        expected_yield_fracs.push_back(comp.yield_per_energy / norm);
+        expected_yield_fracs.push_back(comp.yield_frac / norm);
         expected_lambda_means.push_back(comp.lambda_mean);
         expected_lambda_sigmas.push_back(comp.lambda_sigma);
         expected_rise_times.push_back(comp.rise_time);
@@ -205,72 +206,6 @@ TEST_F(MaterialScintillationTest, data)
     EXPECT_VEC_EQ(expected_lambda_sigmas, lambda_sigmas);
     EXPECT_VEC_EQ(expected_rise_times, rise_times);
     EXPECT_VEC_EQ(expected_fall_times, fall_times);
-}
-
-//---------------------------------------------------------------------------//
-TEST_F(ParticleScintillationTest, data)
-{
-    auto const params = this->build_scintillation_params();
-    auto const& data = params->host_ref();
-    EXPECT_TRUE(data.scintillation_by_particle());
-
-    auto const scint_pid = data.pid_to_scintpid[ParticleId{0}];
-    EXPECT_EQ(1, data.pid_to_scintpid.size());
-    EXPECT_EQ(1, data.num_scint_particles);
-    EXPECT_REAL_EQ(1, data.resolution_scale[opt_mat_]);
-
-    // Get correct spectrum index given opticals particle and material ids
-    auto const part_scint_spectrum_id
-        = data.spectrum_index(scint_pid, opt_mat_);
-    EXPECT_EQ(0, part_scint_spectrum_id.get());
-
-    auto const& particle = data.particles[part_scint_spectrum_id];
-    EXPECT_EQ(particle.yield_vector.grid.size(),
-              particle.yield_vector.value.size());
-
-    std::vector<real_type> yield_grid, yield_value;
-    for (auto i : range(particle.yield_vector.grid.size()))
-    {
-        auto grid_idx = particle.yield_vector.grid[i];
-        auto val_idx = particle.yield_vector.value[i];
-        yield_grid.push_back(data.reals[grid_idx]);
-        yield_value.push_back(data.reals[val_idx]);
-    }
-
-    std::vector<real_type> yield_fracs, lambda_means, lambda_sigmas,
-        rise_times, fall_times;
-    for (auto i : range(particle.components.size()))
-    {
-        auto comp_idx = particle.components[i];
-        yield_fracs.push_back(data.scint_records[comp_idx].yield_frac);
-        lambda_means.push_back(data.scint_records[comp_idx].lambda_mean);
-        lambda_sigmas.push_back(data.scint_records[comp_idx].lambda_sigma);
-        rise_times.push_back(data.scint_records[comp_idx].rise_time);
-        fall_times.push_back(data.scint_records[comp_idx].fall_time);
-    }
-
-    // Particle yield vector
-    static double const expected_yield_grid[] = {1e-06, 6};
-    static double const expected_yield_value[] = {3750, 5000};
-
-    EXPECT_VEC_SOFT_EQ(expected_yield_grid, yield_grid);
-    EXPECT_VEC_SOFT_EQ(expected_yield_value, yield_value);
-
-    // Particle components
-    constexpr auto cm = units::centimeter;
-    constexpr auto sec = units::second;
-
-    static double const expected_yield_fracs[] = {1};
-    static double const expected_lambda_means[] = {1e-05 * cm};
-    static double const expected_lambda_sigmas[] = {1e-06 * cm};
-    static double const expected_rise_times[] = {1.5e-08 * sec};
-    static double const expected_fall_times[] = {5e-09 * sec};
-
-    EXPECT_VEC_SOFT_EQ(expected_yield_fracs, yield_fracs);
-    EXPECT_VEC_SOFT_EQ(expected_lambda_means, lambda_means);
-    EXPECT_VEC_SOFT_EQ(expected_lambda_sigmas, lambda_sigmas);
-    EXPECT_VEC_SOFT_EQ(expected_rise_times, rise_times);
-    EXPECT_VEC_SOFT_EQ(expected_fall_times, fall_times);
 }
 
 //---------------------------------------------------------------------------//
@@ -479,12 +414,14 @@ TEST_F(MaterialScintillationTest, stress_test)
     double expected_lambda{0};
     double expected_error{0};
 
-    for (auto i : data.materials[result.material].components)
+    auto const& mat_record = data.materials[result.material];
+    for (auto comp_idx : range(mat_record.components.size()))
     {
-        expected_lambda += data.scint_records[i].lambda_mean
-                           * data.scint_records[i].yield_frac;
-        expected_error += data.scint_records[i].lambda_sigma
-                          * data.scint_records[i].yield_frac;
+        ScintRecord const& component
+            = data.scint_records[mat_record.components[comp_idx]];
+        real_type yield = data.reals[mat_record.yield_pdf[comp_idx]];
+        expected_lambda += component.lambda_mean * yield;
+        expected_error += component.lambda_sigma * yield;
     }
     EXPECT_SOFT_NEAR(avg_lambda, expected_lambda, expected_error);
 }

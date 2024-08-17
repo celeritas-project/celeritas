@@ -81,12 +81,6 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
   private:
     // Host/device storage and reference
     CollectionMirror<ScintillationData> mirror_;
-
-    //// HELPER FUNCTIONS ////
-
-    // Convert imported scintillation components to Celeritas' components
-    std::vector<ScintRecord>
-    build_components(std::vector<ImportScintComponent> const& input_comp);
 };
 
 //---------------------------------------------------------------------------//

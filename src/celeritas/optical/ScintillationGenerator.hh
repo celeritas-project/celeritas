@@ -129,16 +129,18 @@ CELER_FUNCTION Span<Primary> ScintillationGenerator::operator()(Generator& rng)
     auto const& mat_spectrum = shared_.materials[dist_.material];
 
     // Material sampling
-    for (auto sid : mat_spectrum.components)
+    for (auto component_idx : range(mat_spectrum.components.size()))
     {
-        auto const& component = shared_.scint_records[sid];
+        ScintRecord const& component
+            = shared_.scint_records[mat_spectrum.components[component_idx]];
 
         // Calculate the number of photons to generate for this component
         size_type num_photons
-            = (sid.get() + 1 == mat_spectrum.components.size())
+            = (component_idx + 1 == mat_spectrum.components.size())
                   ? dist_.num_photons - num_generated
-                  : static_cast<size_type>(dist_.num_photons
-                                           * component.yield_frac);
+                  : static_cast<size_type>(
+                        dist_.num_photons
+                        * shared_.reals[mat_spectrum.yield_pdf[component_idx]]);
 
         CELER_ASSERT(num_generated + num_photons <= dist_.num_photons);
 

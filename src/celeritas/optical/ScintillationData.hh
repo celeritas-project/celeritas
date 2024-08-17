@@ -20,7 +20,7 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Material dependent scintillation component properties.
+ * Parameterized scintillation properties.
  *
  * This component represents one type of scintillation emissions, such as
  * prompt/fast, intermediate, or slow. It can be specific to a material or
@@ -28,23 +28,22 @@ namespace optical
  */
 struct ScintRecord
 {
-    real_type yield_frac{};  //!< Fraction of total yield (yield/sum(yields))
     real_type lambda_mean{};  //!< Mean wavelength
-    real_type lambda_sigma{};  //!< Standard dev. of wavelength
+    real_type lambda_sigma{};  //!< Standard deviation of wavelength
     real_type rise_time{};  //!< Rise time
     real_type fall_time{};  //!< Decay time
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return yield_frac > 0 && yield_frac <= 1 && lambda_mean > 0
-               && lambda_sigma > 0 && rise_time >= 0 && fall_time > 0;
+        return lambda_mean > 0 && lambda_sigma >= 0 && rise_time >= 0
+               && fall_time > 0;
     }
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Data characterizing material-only scintillation spectrum information.
+ * Material-dependent scintillation spectrum.
  *
  * - \c yield_per_energy is the characteristic light yield of the material in
  *   [1/MeV] units. The total light yield per step is then
@@ -57,33 +56,37 @@ struct ScintRecord
 struct MatScintSpectrumRecord
 {
     real_type yield_per_energy{};  //!< [1/MeV]
+    ItemRange<real_type> yield_pdf;
     ItemRange<ScintRecord> components;
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return yield_per_energy > 0 && !components.empty();
+        return yield_per_energy > 0 && !yield_pdf.empty()
+               && yield_pdf.size() == components.size();
     }
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Data characterizing the scintillation spectrum for a given particle in a
- * given material.
+ * Particle- and material-dependent scintillation spectrum.
  *
- * \c yield_vector is the characteristic light yield for different energies.
- * \c components stores the fast/slow/etc scintillation components for this
+ * - \c yield_vector is the characteristic light yield for different energies.
+ * - \c yield_pdf is the probability of choosing from a given component.
+ * - \c components stores the fast/slow/etc scintillation components for this
  * particle type.
  */
 struct ParScintSpectrumRecord
 {
-    GenericGridRecord yield_vector;
+    GenericGridRecord yield_per_energy;  //! [MeV] -> [1/MeV]
+    ItemRange<real_type> yield_pdf;
     ItemRange<ScintRecord> components;
 
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return static_cast<bool>(yield_vector);
+        return yield_per_energy && !yield_pdf.empty()
+               && yield_pdf.size() == components.size();
     }
 };
 
