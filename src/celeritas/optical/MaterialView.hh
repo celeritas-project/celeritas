@@ -43,7 +43,8 @@ class MaterialView
     //// PARAMETER DATA ////
 
     // Access energy-dependent refractive index
-    GenericCalculator make_refractive_index_calculator() const;
+    inline CELER_FUNCTION GenericCalculator
+    make_refractive_index_calculator() const;
 
   private:
     //// DATA ////
