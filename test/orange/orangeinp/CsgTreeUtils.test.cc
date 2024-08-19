@@ -554,6 +554,24 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins)
         "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: all{2,3}, 5: "
         "surface 2, 6: not{5}, 7: all{4,6}, }",
         to_string(simplified));
+
+    tree_ = {};
+    s0 = this->insert(S{0});
+    s1 = this->insert(S{1});
+    n0 = this->insert(Negated{s0});
+    n1 = this->insert(Negated{s1});
+    this->insert(Joined{op_and, {n0, n1}});
+    j0 = this->insert(Joined{op_or, {n0, n1}});
+    this->insert(Negated{j0});
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{2}, 5: "
+        "not{3}, 6: all{4,5}, 7: any{4,5}, 8: not{7}, }",
+        to_string(tree_));
+    simplified = transform_negated_joins(tree_);
+    EXPECT_EQ(
+        "{0: true, 1: not{0}, 2: surface 0, 3: surface 1, 4: not{2}, 5: "
+        "not{3}, 6: all{4,5}, 7: all{2,3}, }",
+        to_string(simplified));
 }
 
 TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
