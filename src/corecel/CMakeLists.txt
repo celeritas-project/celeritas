@@ -95,8 +95,8 @@ string(JOIN "\n" CELERITAS_DEPENDENCY_VERSIONS ${CELERITAS_DEPENDENCY_VERSIONS})
 
 #-----------------------------------------------------------------------------#
 
-celeritas_configure_file("Version.hh.in" "Version.hh" @ONLY)
-celeritas_configure_file("Config.hh.in" "Config.hh" @ONLY)
+celeritas_configure_file("Version.hh.in" "corecel/Version.hh" @ONLY)
+celeritas_configure_file("Config.hh.in" "corecel/Config.hh" @ONLY)
 
 #-----------------------------------------------------------------------------#
 # Main code
