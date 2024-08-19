@@ -12,6 +12,7 @@
 #include "corecel/Types.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "celeritas/random/Selector.hh"
 #include "celeritas/random/distribution/ExponentialDistribution.hh"
 #include "celeritas/random/distribution/GenerateCanonical.hh"
 #include "celeritas/random/distribution/NormalDistribution.hh"
@@ -125,93 +126,82 @@ ScintillationGenerator::ScintillationGenerator(
 template<class Generator>
 CELER_FUNCTION Span<Primary> ScintillationGenerator::operator()(Generator& rng)
 {
-    size_type num_generated{0};
-    auto const& mat_spectrum = shared_.materials[dist_.material];
+    auto const& mat = shared_.materials[dist_.material];
 
-    // Material sampling
-    for (auto component_idx : range(mat_spectrum.components.size()))
+    NormalDistribution<real_type> sample_lambda;
+
+    for (size_type i : range(dist_.num_photons))
     {
-        ScintRecord const& component
-            = shared_.scint_records[mat_spectrum.components[component_idx]];
-
-        // Calculate the number of photons to generate for this component
-        size_type num_photons
-            = (component_idx + 1 == mat_spectrum.components.size())
-                  ? dist_.num_photons - num_generated
-                  : static_cast<size_type>(
-                        dist_.num_photons
-                        * shared_.reals[mat_spectrum.yield_pdf[component_idx]]);
-
-        CELER_ASSERT(num_generated + num_photons <= dist_.num_photons);
+        // Sample a component
+        ScintRecord const& component = [&] {
+            auto pdf = shared_.reals[mat.yield_pdf];
+            auto select_idx = make_selector(
+                [&pdf](size_type i) { return pdf[i]; }, mat.yield_pdf.size());
+            size_type component_idx = select_idx(rng);
+            CELER_ASSERT(component_idx < mat.components.size());
+            return shared_.scint_records[mat.components[component_idx]];
+        }();
 
         // Sample photons for each scintillation component
-        NormalDistribution<real_type> sample_lambda(component.lambda_mean,
-                                                    component.lambda_sigma);
+        sample_lambda = {component.lambda_mean, component.lambda_sigma};
         ExponentialDist sample_time(real_type{1} / component.fall_time);
 
-        for (size_type i : range(num_generated, num_generated + num_photons))
+        // Sample wavelength and convert to energy
+        real_type wavelength = sample_lambda(rng);
+        CELER_ASSERT(wavelength > 0);
+        photons_[i].energy = native_value_to<Energy>(
+            constants::h_planck * constants::c_light / wavelength);
+
+        // Sample direction
+        real_type cost = sample_cost_(rng);
+        real_type phi = sample_phi_(rng);
+        photons_[i].direction = from_spherical(cost, phi);
+
+        // Sample polarization perpendicular to the photon direction
+        Real3 temp = from_spherical(
+            (cost > 0 ? -1 : 1) * std::sqrt(1 - ipow<2>(cost)), phi);
+        Real3 perp = {-std::sin(phi), std::cos(phi), 0};
+        real_type sinphi, cosphi;
+        sincospi(UniformRealDist{0, 1}(rng), &sinphi, &cosphi);
+        for (auto j : range(3))
         {
-            // Sample wavelength and convert to energy
-            real_type wavelength = sample_lambda(rng);
-            CELER_ASSERT(wavelength > 0);
-            photons_[i].energy = native_value_to<Energy>(
-                constants::h_planck * constants::c_light / wavelength);
-
-            // Sample direction
-            real_type cost = sample_cost_(rng);
-            real_type phi = sample_phi_(rng);
-            photons_[i].direction = from_spherical(cost, phi);
-
-            // Sample polarization perpendicular to the photon direction
-            Real3 temp = from_spherical(
-                (cost > 0 ? -1 : 1) * std::sqrt(1 - ipow<2>(cost)), phi);
-            Real3 perp = {-std::sin(phi), std::cos(phi), 0};
-            real_type sinphi, cosphi;
-            sincospi(UniformRealDist{0, 1}(rng), &sinphi, &cosphi);
-            for (auto j : range(3))
-            {
-                photons_[i].polarization[j] = cosphi * temp[j]
-                                              + sinphi * perp[j];
-            }
-            photons_[i].polarization
-                = make_unit_vector(photons_[i].polarization);
-
-            // Sample position
-            real_type u = (is_neutral_) ? 1 : generate_canonical(rng);
-            photons_[i].position = dist_.points[StepPoint::pre].pos
-                                   + u * delta_pos_;
-
-            // Sample time
-            real_type delta_time
-                = u * dist_.step_length
-                  / (native_value_from(dist_.points[StepPoint::pre].speed)
-                     + u * real_type(0.5) * native_value_from(delta_speed_));
-
-            if (component.rise_time == 0)
-            {
-                // Sample exponentially from fall time
-                delta_time += sample_time(rng);
-            }
-            else
-            {
-                real_type scint_time{};
-                real_type target;
-                do
-                {
-                    // Sample time exponentially by fall time, then
-                    // accept with 1 - e^{-t/rise}
-                    scint_time = sample_time(rng);
-                    target = -std::expm1(-scint_time / component.rise_time);
-                } while (RejectionSampler(target)(rng));
-                delta_time += scint_time;
-            }
-            CELER_ASSERT(delta_time >= 0);
-            photons_[i].time = dist_.time + delta_time;
+            photons_[i].polarization[j] = cosphi * temp[j] + sinphi * perp[j];
         }
-        num_generated += num_photons;
+        photons_[i].polarization = make_unit_vector(photons_[i].polarization);
+
+        // Sample position
+        real_type u = (is_neutral_) ? 1 : generate_canonical(rng);
+        photons_[i].position = dist_.points[StepPoint::pre].pos
+                               + u * delta_pos_;
+
+        // Sample time
+        real_type delta_time
+            = u * dist_.step_length
+              / (native_value_from(dist_.points[StepPoint::pre].speed)
+                 + u * real_type(0.5) * native_value_from(delta_speed_));
+
+        if (component.rise_time == 0)
+        {
+            // Sample exponentially from fall time
+            delta_time += sample_time(rng);
+        }
+        else
+        {
+            real_type scint_time{};
+            real_type target;
+            do
+            {
+                // Sample time exponentially by fall time, then
+                // accept with 1 - e^{-t/rise}
+                scint_time = sample_time(rng);
+                target = -std::expm1(-scint_time / component.rise_time);
+            } while (RejectionSampler(target)(rng));
+            delta_time += scint_time;
+        }
+        CELER_ASSERT(delta_time >= 0);
+        photons_[i].time = dist_.time + delta_time;
     }
 
-    CELER_ENSURE(num_generated == dist_.num_photons);
     return photons_;
 }
 
