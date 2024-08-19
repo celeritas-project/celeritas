@@ -609,7 +609,9 @@ CELER_FORCEINLINE_FUNCTION float rsqrt(float value)
 #ifdef __CUDACC__
     return ::rsqrtf(value);
 #else
-    return 1.0f / std::sqrtf(value);
+    // NOTE: some C++ library implementations (GCC?) don't define
+    // single-precision functions in std namespace
+    return 1.0f / sqrtf(value);
 #endif
 }
 

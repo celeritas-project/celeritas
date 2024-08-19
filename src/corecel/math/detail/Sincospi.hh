@@ -2,7 +2,6 @@
 // Copyright 2023-2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
-//
 //---------------------------------------------------------------------------//
 //! \file corecel/math/detail/Sincospi.hh
 //---------------------------------------------------------------------------//
@@ -84,29 +83,33 @@ inline void sincospi_impl(double a, double* sptr, double* cptr)
  */
 inline void sincospi_impl(float a, float* sptr, float* cptr)
 {
+    // NOTE: some C++ library implementations (GCC?) don't define
+    // single-precision functions in std namespace
+    using namespace std;
+
     float az, t, c, r, s;
-    std::int32_t i;
+    int32_t i;
 
     az = a * 0.0f;  // Must be evaluated with IEEE-754 semantics
     // For |a| > 2**24, cospi(a) = 1.0f, but cospi(Inf) = NaN
-    a = (std::fabsf(a) < 0x1.0p24f) ? a : az;
-    r = std::nearbyintf(a + a);  // Must use IEEE-754 "to nearest" rounding
-    i = static_cast<std::int32_t>(r);
-    t = std::fmaf(-0.5f, r, a);
+    a = (fabsf(a) < 0x1.0p24f) ? a : az;
+    r = nearbyintf(a + a);  // Must use IEEE-754 "to nearest" rounding
+    i = static_cast<int32_t>(r);
+    t = fmaf(-0.5f, r, a);
     // Compute core approximations
     s = t * t;
     // Approximate cos(pi*x) for x in [-0.25,0.25] */
     r = 0x1.d9e000p-3f;
-    r = std::fmaf(r, s, -0x1.55c400p+0f);
-    r = std::fmaf(r, s, 0x1.03c1cep+2f);
-    r = std::fmaf(r, s, -0x1.3bd3ccp+2f);
-    c = std::fmaf(r, s, 0x1.000000p+0f);
+    r = fmaf(r, s, -0x1.55c400p+0f);
+    r = fmaf(r, s, 0x1.03c1cep+2f);
+    r = fmaf(r, s, -0x1.3bd3ccp+2f);
+    c = fmaf(r, s, 0x1.000000p+0f);
     // Approximate sin(pi*x) for x in [-0.25,0.25] */
     r = -0x1.310000p-1f;
-    r = std::fmaf(r, s, 0x1.46737ep+1f);
-    r = std::fmaf(r, s, -0x1.4abbfep+2f);
+    r = fmaf(r, s, 0x1.46737ep+1f);
+    r = fmaf(r, s, -0x1.4abbfep+2f);
     r = (t * s) * r;
-    s = std::fmaf(t, 0x1.921fb6p+1f, r);
+    s = fmaf(t, 0x1.921fb6p+1f, r);
     if (i & 2)
     {
         s = 0.0f - s;  // Must be evaluated with IEEE-754 semantics
@@ -119,7 +122,7 @@ inline void sincospi_impl(float a, float* sptr, float* cptr)
         c = t;
     }
     // IEEE-754: sinPi(+n) is +0 and sinPi(-n) is -0 for positive integers n
-    if (a == std::floorf(a))
+    if (a == floorf(a))
         s = az;
     *sptr = s;
     *cptr = c;
