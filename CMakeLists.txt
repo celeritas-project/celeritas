@@ -511,16 +511,22 @@ install(TARGETS celeritas_device_toolkit
 )
 
 #----------------------------------------------------------------------------#
-foreach(_prefix "__" "_" "")
-  try_compile(CELERITAS_TRY_${_prefix}SINCOSPI #${CMAKE_BINARY_DIR}
-    SOURCES "${PROJECT_SOURCE_DIR}/cmake/try-sincospi.cc"
-    COMPILE_DEFINITIONS "-DCELERITAS_SINCOSPI_PREFIX=${_prefix}"
-  )
-  if(CELERITAS_TRY_${_prefix}SINCOSPI)
-    set(CELERITAS_SINCOSPI_PREFIX "${_prefix}")
-    break()
-  endif()
-endforeach()
+if(NOT DEFINED CELERITAS_SINCOSPI_PREFIX)
+  foreach(_prefix "__" "_" "")
+    try_compile(CELERITAS_TRY_${_prefix}SINCOSPI
+      # NOTE: the line below is required for CMake < 3.25
+      "${CMAKE_BINARY_DIR}/CMakeFiles/CMakeScratch/sincospi${_prefix}"
+      SOURCES "${PROJECT_SOURCE_DIR}/cmake/try-sincospi.cc"
+      COMPILE_DEFINITIONS "-DCELERITAS_SINCOSPI_PREFIX=${_prefix}"
+    )
+    if(CELERITAS_TRY_${_prefix}SINCOSPI)
+      set(CELERITAS_SINCOSPI_PREFIX "${_prefix}" CACHE INTERNAL
+        "Prefix for compiler-provided sincospi and related functions"
+      )
+      break()
+    endif()
+  endforeach()
+endif()
 
 #----------------------------------------------------------------------------#
 # Add the main libraries
