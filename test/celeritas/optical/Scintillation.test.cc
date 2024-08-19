@@ -277,9 +277,7 @@ TEST_F(MaterialScintillationTest, basic)
                            - generated_dist.points[StepPoint::pre].pos);
 
     // Create the generator and output vectors
-    std::vector<Primary> primary_storage(generated_dist.num_photons);
-    ScintillationGenerator generate_photons(
-        generated_dist, params->host_ref(), make_span(primary_storage));
+    ScintillationGenerator generate_photon(generated_dist, params->host_ref());
     std::vector<real_type> energy;
     std::vector<real_type> time;
     std::vector<real_type> cos_theta;
@@ -292,22 +290,18 @@ TEST_F(MaterialScintillationTest, basic)
     // Generate 2 batches of optical photons from the given input, keep 2
     for ([[maybe_unused]] auto i : range(100))
     {
-        auto photons = generate_photons(rng);
-        ASSERT_EQ(photons.size(), generated_dist.num_photons);
-
-        // Accumulate averages
-        for (Primary const& p : photons)
+        for ([[maybe_unused]] auto j : range(generated_dist.num_photons))
         {
+            auto p = generate_photon(rng);
+
+            // Accumulate averages
             avg_lambda += detail::energy_to_wavelength(p.energy);
             avg_time += p.time;
             avg_cosine += dot_product(p.direction, inc_dir);
-        }
 
-        if (i < 2)
-        {
-            // Store individual results
-            for (Primary const& p : photons)
+            if (i < 2)
             {
+                // Store individual results
                 energy.push_back(p.energy.value());
                 time.push_back(native_value_to<TimeSecond>(p.time).value());
                 cos_theta.push_back(dot_product(p.direction, inc_dir));
@@ -400,6 +394,7 @@ TEST_F(MaterialScintillationTest, stress_test)
         data,
         pre_step);
 
+    // Generate optical photons for a given input
     Rng rng;
     auto result = generate(rng);
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
@@ -407,31 +402,23 @@ TEST_F(MaterialScintillationTest, stress_test)
         EXPECT_EQ(10, rng.exchange_count());
     }
 
-    // Overwrite result to force a large number of optical photons
-    result.num_photons = 123456;
-
-    // Output data
-    std::vector<Primary> storage(result.num_photons);
-
     // Create the generator
-    ScintillationGenerator generate_photons(result, data, make_span(storage));
-
-    // Generate optical photons for a given input
-    auto photons = generate_photons(rng);
+    ScintillationGenerator generate_photon(result, data);
 
     // Check results
     double avg_lambda{0};
-    double hc = constants::h_planck * constants::c_light / units::Mev::value();
-    for (auto i : range(result.num_photons))
+    int const num_photons{123456};
+    for ([[maybe_unused]] auto i : range(num_photons))
     {
-        avg_lambda += hc / photons[i].energy.value();
+        auto p = generate_photon(rng);
+        avg_lambda += detail::energy_to_wavelength(p.energy);
     }
-    avg_lambda /= static_cast<double>(result.num_photons);
+    avg_lambda /= static_cast<double>(num_photons);
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_SOFT_NEAR(
             18.724841238983931,
-            rng.exchange_count() / static_cast<double>(result.num_photons),
+            rng.exchange_count() / static_cast<double>(num_photons),
             1e-2);
     }
 
