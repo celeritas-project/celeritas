@@ -16,7 +16,10 @@
 #include "corecel/Macros.hh"
 
 #include "detail/AlgorithmsImpl.hh"
-#include "detail/MathImpl.hh"
+
+#if !defined(CELER_DEVICE_SOURCE) && !defined(CELERITAS_SINCOSPI_PREFIX)
+#    include "detail/Sincospi.hh"
+#endif
 
 namespace celeritas
 {
@@ -431,29 +434,6 @@ CELER_FORCEINLINE_FUNCTION ForwardIt min_element(ForwardIt first,
 //---------------------------------------------------------------------------//
 // Replace/extend <cmath>
 //---------------------------------------------------------------------------//
-//!\cond (CELERITAS_DOC_DEV)
-//! Generate overloads for a single-argument math function
-#define CELER_WRAP_MATH_FLOAT_DBL_1(PREFIX, FUNC)        \
-    CELER_FORCEINLINE_FUNCTION float FUNC(float value)   \
-    {                                                    \
-        return ::PREFIX##FUNC##f(value);                 \
-    }                                                    \
-    CELER_FORCEINLINE_FUNCTION double FUNC(double value) \
-    {                                                    \
-        return ::PREFIX##FUNC(value);                    \
-    }
-#define CELER_WRAP_MATH_FLOAT_DBL_PTR_2(PREFIX, FUNC)                        \
-    CELER_FORCEINLINE_FUNCTION void FUNC(float value, float* a, float* b)    \
-    {                                                                        \
-        return ::PREFIX##FUNC##f(value, a, b);                               \
-    }                                                                        \
-    CELER_FORCEINLINE_FUNCTION void FUNC(double value, double* a, double* b) \
-    {                                                                        \
-        return ::PREFIX##FUNC(value, a, b);                                  \
-    }
-//!\endcond
-
-//---------------------------------------------------------------------------//
 /*!
  * Return an integer power of the input value.
  *
@@ -503,28 +483,6 @@ inline CELER_FUNCTION T fastpow(T a, T b)
     CELER_EXPECT(a > 0 || (a == 0 && b != 0));
     return std::exp(b * std::log(a));
 }
-
-#ifdef __CUDACC__
-CELER_WRAP_MATH_FLOAT_DBL_1(, rsqrt)
-#else
-//---------------------------------------------------------------------------//
-/*!
- * Calculate an inverse square root.
- */
-CELER_FORCEINLINE_FUNCTION double rsqrt(double value)
-{
-    return 1.0 / std::sqrt(value);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate an inverse square root.
- */
-CELER_FORCEINLINE_FUNCTION float rsqrt(float value)
-{
-    return 1.0f / std::sqrt(value);
-}
-#endif
 
 //---------------------------------------------------------------------------//
 /*!
@@ -637,46 +595,95 @@ CELER_CONSTEXPR_FUNCTION int signum(T x)
  * using \c CELERITAS_REAL_TYPE=float, this could have more accuracy than
  * \c celeritas::constants::pi .
  */
-inline constexpr double m_pi = detail::m_pi;
+inline constexpr double m_pi{3.14159265358979323846};
 
 //---------------------------------------------------------------------------//
 //!@{
-//! CUDA/HIP equivalent routines
-#if CELER_DEVICE_SOURCE
-// CUDA and HIP define sinpi and sinpif, and sincospi, sincosf
-CELER_WRAP_MATH_FLOAT_DBL_1(, sinpi)
-CELER_WRAP_MATH_FLOAT_DBL_1(, cospi)
-CELER_WRAP_MATH_FLOAT_DBL_PTR_2(, sincospi)
-CELER_WRAP_MATH_FLOAT_DBL_PTR_2(, sincos)
-#elif __APPLE__ && !defined(__CLING__)
-// Apple defines __sinpi, __sinpif, __sincospi, ...
-CELER_WRAP_MATH_FLOAT_DBL_1(__, sinpi)
-CELER_WRAP_MATH_FLOAT_DBL_1(__, cospi)
-CELER_WRAP_MATH_FLOAT_DBL_PTR_2(__, sincospi)
-CELER_WRAP_MATH_FLOAT_DBL_PTR_2(__, sincos)
+//! \name CUDA/HIP equivalent routines
+
+/*!
+ * Calculate an inverse square root.
+ */
+CELER_FORCEINLINE_FUNCTION float rsqrt(float value)
+{
+#ifdef __CUDACC__
+    return ::rsqrtf(value);
 #else
-using ::celeritas::detail::cospi;
-using ::celeritas::detail::sinpi;
+    // NOTE: some C++ library implementations (GCC?) don't define
+    // single-precision functions in std namespace
+    return 1.0f / sqrtf(value);
+#endif
+}
+
+/*!
+ * Calculate an inverse square root.
+ */
+CELER_FORCEINLINE_FUNCTION double rsqrt(double value)
+{
+#ifdef __CUDACC__
+    return ::rsqrt(value);
+#else
+    return 1.0 / std::sqrt(value);
+#endif
+}
+
+#if CELER_DEVICE_SOURCE
+// CUDA/HIP define sinpi, cospi, sinpif, cospif, ...
+#    undef CELERITAS_SINCOSPI_PREFIX
+#    define CELERITAS_SINCOSPI_PREFIX
+#endif
+
+#ifdef CELERITAS_SINCOSPI_PREFIX
+// Apple-supplied headers define __sinpi, __sinpif, __sincospi, ...
+#    define CELER_CONCAT_IMPL(PREFIX, FUNC) PREFIX##FUNC
+#    define CELER_CONCAT(PREFIX, FUNC) CELER_CONCAT_IMPL(PREFIX, FUNC)
+#    define CELER_SINCOS_MANGLED(FUNC) \
+        CELER_CONCAT(CELERITAS_SINCOSPI_PREFIX, FUNC)
+#else
+// Use implementations from detail/MathImpl.hh
+#    define CELERITAS_SINCOSPI_PREFIX ::celeritas::detail::
+#    define CELER_SINCOS_MANGLED(FUNC) ::celeritas::detail::FUNC
+#endif
+
 //!@{
-//! Simultaneously evaluate the sine and cosine of a value
-CELER_FORCEINLINE void sincos(float a, float* s, float* c)
+//! Get the sine or cosine of a value multiplied by pi for increased precision
+CELER_FORCEINLINE_FUNCTION float sinpi(float a)
 {
-    return detail::sincos(a, s, c);
+    return CELER_SINCOS_MANGLED(sinpif)(a);
 }
-CELER_FORCEINLINE void sincos(double a, double* s, double* c)
+CELER_FORCEINLINE_FUNCTION double sinpi(double a)
 {
-    return detail::sincos(a, s, c);
+    return CELER_SINCOS_MANGLED(sinpi)(a);
 }
-CELER_FORCEINLINE void sincospi(float a, float* s, float* c)
+CELER_FORCEINLINE_FUNCTION float cospi(float a)
 {
-    return detail::sincospi(a, s, c);
+    return CELER_SINCOS_MANGLED(cospif)(a);
 }
-CELER_FORCEINLINE void sincospi(double a, double* s, double* c)
+CELER_FORCEINLINE_FUNCTION double cospi(double a)
 {
-    return detail::sincospi(a, s, c);
+    return CELER_SINCOS_MANGLED(cospi)(a);
 }
 //!@}
-#endif
+
+//!@{
+//! Simultaneously evaluate the sine and cosine of a value
+CELER_FORCEINLINE_FUNCTION void sincos(float a, float* s, float* c)
+{
+    return CELER_SINCOS_MANGLED(sincosf)(a, s, c);
+}
+CELER_FORCEINLINE_FUNCTION void sincos(double a, double* s, double* c)
+{
+    return CELER_SINCOS_MANGLED(sincos)(a, s, c);
+}
+CELER_FORCEINLINE_FUNCTION void sincospi(float a, float* s, float* c)
+{
+    return CELER_SINCOS_MANGLED(sincospif)(a, s, c);
+}
+CELER_FORCEINLINE_FUNCTION void sincospi(double a, double* s, double* c)
+{
+    return CELER_SINCOS_MANGLED(sincospi)(a, s, c);
+}
+//!@}
 //!@}
 
 //---------------------------------------------------------------------------//

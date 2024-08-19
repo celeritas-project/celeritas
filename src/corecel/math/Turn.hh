@@ -35,7 +35,13 @@ struct HalfPi
 };
 
 //---------------------------------------------------------------------------//
-//! Quantity denoting a full turn
+/*!
+ * Quantity denoting a full turn.
+ *
+ * Turns are a useful way of representing angles without the historical
+ * arbitrariness of degrees or the roundoff errors of radians. See, for
+ * example, https://www.computerenhance.com/p/turns-are-better-than-radians .
+ */
 using Turn = Quantity<TwoPi, real_type>;
 
 //---------------------------------------------------------------------------//
