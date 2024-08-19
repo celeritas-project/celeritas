@@ -41,7 +41,7 @@ namespace optical
 namespace test
 {
 //---------------------------------------------------------------------------//
-//
+
 struct InvCentimeter
 {
     static CELER_CONSTEXPR_FUNCTION real_type value()
