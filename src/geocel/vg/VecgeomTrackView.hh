@@ -22,6 +22,7 @@
 #include "geocel/Types.hh"
 
 #include "VecgeomData.hh"
+
 #include "detail/VecgeomCompatibility.hh"
 
 #if VECGEOM_VERSION < 0x020000

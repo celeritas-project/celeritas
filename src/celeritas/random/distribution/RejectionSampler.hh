@@ -62,7 +62,9 @@ class RejectionSampler
 
     //! Construct when the distribution's maximum is normalized
     explicit CELER_FUNCTION RejectionSampler(real_type f)
-        : RejectionSampler{f, 1} {}
+        : RejectionSampler{f, 1}
+    {
+    }
 
     // Sample a random number according to the distribution
     template<class Generator>

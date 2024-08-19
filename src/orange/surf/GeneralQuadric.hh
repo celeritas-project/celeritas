@@ -156,8 +156,7 @@ CELER_FUNCTION SignedSense GeneralQuadric::calc_sense(Real3 const& pos) const
 CELER_FUNCTION auto
 GeneralQuadric::calc_intersections(Real3 const& pos,
                                    Real3 const& dir,
-                                   SurfaceState on_surface) const
-    -> Intersections
+                                   SurfaceState on_surface) const -> Intersections
 {
     real_type const x = pos[0];
     real_type const y = pos[1];

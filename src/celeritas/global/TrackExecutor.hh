@@ -16,6 +16,7 @@
 #include "CoreTrackData.hh"
 #include "CoreTrackDataFwd.hh"
 #include "CoreTrackView.hh"
+
 #include "detail/TrackExecutorImpl.hh"
 
 namespace celeritas

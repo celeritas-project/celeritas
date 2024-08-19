@@ -20,6 +20,7 @@
 #include "celeritas/global/ActionRegistry.hh"
 
 #include "StepInterface.hh"
+
 #include "detail/StepGatherAction.hh"
 #include "detail/StepStorage.hh"
 

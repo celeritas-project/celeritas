@@ -104,7 +104,7 @@ class CelerParamCommand final : public CelerCommand
                       G4UImessenger* mess,
                       T* dest)
         : CelerCommand(
-            (parent.GetCommandPath() + std::string(cmd_path)).c_str(), mess)
+              (parent.GetCommandPath() + std::string(cmd_path)).c_str(), mess)
         , dest_(dest)
     {
         // NOTE: Geant4 takes ownership of the parameter

@@ -30,8 +30,9 @@ BetheHeitlerModel::BetheHeitlerModel(ActionId id,
                                      ParticleParams const& particles,
                                      SPConstImported data,
                                      bool enable_lpm)
-    : ConcreteAction(
-        id, "conv-bethe-heitler", "interact by Bethe-Heitler gamma conversion")
+    : ConcreteAction(id,
+                     "conv-bethe-heitler",
+                     "interact by Bethe-Heitler gamma conversion")
     , imported_(data,
                 particles,
                 ImportProcessClass::conversion,

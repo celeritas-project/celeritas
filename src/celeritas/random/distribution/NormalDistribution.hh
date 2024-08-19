@@ -82,8 +82,8 @@ NormalDistribution<RealType>::NormalDistribution(real_type mean,
  */
 template<class RealType>
 template<class Generator>
-CELER_FUNCTION auto NormalDistribution<RealType>::operator()(Generator& rng)
-    -> result_type
+CELER_FUNCTION auto
+NormalDistribution<RealType>::operator()(Generator& rng) -> result_type
 {
     if (has_spare_)
     {

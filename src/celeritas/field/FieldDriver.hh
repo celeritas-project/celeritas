@@ -17,6 +17,7 @@
 
 #include "FieldDriverOptions.hh"
 #include "Types.hh"
+
 #include "detail/FieldUtils.hh"
 
 namespace celeritas
@@ -142,8 +143,8 @@ class FieldDriver
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class StepperT>
-CELER_FUNCTION FieldDriver(FieldDriverOptions const&, StepperT&&)
-    -> FieldDriver<StepperT>;
+CELER_FUNCTION
+FieldDriver(FieldDriverOptions const&, StepperT&&) -> FieldDriver<StepperT>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -218,10 +219,8 @@ FieldDriver<StepperT>::advance(real_type step, OdeState const& state)
  * Find the maximum step length that satisfies a maximum "miss distance".
  */
 template<class StepperT>
-CELER_FUNCTION auto
-FieldDriver<StepperT>::find_next_chord(real_type step,
-                                       OdeState const& state) const
-    -> ChordSearch
+CELER_FUNCTION auto FieldDriver<StepperT>::find_next_chord(
+    real_type step, OdeState const& state) const -> ChordSearch
 {
     // Output with a step control error
     ChordSearch output;
@@ -334,8 +333,7 @@ CELER_FUNCTION DriverResult FieldDriver<StepperT>::accurate_advance(
 template<class StepperT>
 CELER_FUNCTION auto
 FieldDriver<StepperT>::integrate_step(real_type step,
-                                      OdeState const& state) const
-    -> Integration
+                                      OdeState const& state) const -> Integration
 {
     CELER_EXPECT(step > 0);
 
@@ -371,8 +369,8 @@ FieldDriver<StepperT>::integrate_step(real_type step,
  */
 template<class StepperT>
 CELER_FUNCTION auto
-FieldDriver<StepperT>::one_good_step(real_type step, OdeState const& state) const
-    -> Integration
+FieldDriver<StepperT>::one_good_step(real_type step,
+                                     OdeState const& state) const -> Integration
 {
     // Output with a proposed next step
     Integration output;
