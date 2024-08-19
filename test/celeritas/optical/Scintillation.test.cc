@@ -33,6 +33,8 @@ namespace test
 //---------------------------------------------------------------------------//
 
 using celeritas::test::from_cm;
+using celeritas::test::to_cm;
+using TimeSecond = celeritas::Quantity<celeritas::units::Second>;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -101,9 +103,9 @@ class MaterialScintillationTest : public ScintillationTestBase
 
         // Note second component has zero rise time
         std::vector<ImportScintComponent> comps;
-        comps.push_back({0.65713, 128 * nm, 10 * nm, 10 * ns, 6 * ns});
-        comps.push_back({0.31987, 128 * nm, 10 * nm, 0, 1500 * ns});
-        comps.push_back({0.023, 200 * nm, 20 * nm, 10 * ns, 3000 * ns});
+        comps.push_back({0.5, 100 * nm, 5 * nm, 10 * ns, 6 * ns});
+        comps.push_back({0.3, 200 * nm, 10 * nm, 0, 1500 * ns});
+        comps.push_back({0.2, 400 * nm, 20 * nm, 10 * ns, 3000 * ns});
         return comps;
     }
 };
@@ -140,16 +142,13 @@ class ParticleScintillationTest : public ScintillationTestBase
     //! Create particle components
     VecScintComponents build_particle_components()
     {
-        constexpr auto cm = units::centimeter;
-        constexpr auto sec = units::second;
-
         std::vector<ImportScintComponent> vec_comps;
         ImportScintComponent comp;
         comp.yield_frac = 1;
-        comp.lambda_mean = 1e-5 * cm;
-        comp.lambda_sigma = 1e-6 * cm;
-        comp.rise_time = 15e-9 * sec;
-        comp.fall_time = 5e-9 * sec;
+        comp.lambda_mean = from_cm(1e-5);
+        comp.lambda_sigma = from_cm(1e-6);
+        comp.rise_time = native_value_from(TimeSecond(15e-9));
+        comp.fall_time = native_value_from(TimeSecond(5e-9));
         vec_comps.push_back(std::move(comp));
         return vec_comps;
     }
@@ -285,37 +284,62 @@ TEST_F(MaterialScintillationTest, basic)
     std::vector<real_type> time;
     std::vector<real_type> cos_theta;
     std::vector<real_type> polarization_x;
+    real_type avg_lambda{};
+    real_type avg_time{};
+    real_type avg_cosine{};
+    size_type num_photons{};
 
-    // Generate 2 batches of optical photons from the given input
-    for ([[maybe_unused]] auto i : range(2))
+    // Generate 2 batches of optical photons from the given input, keep 2
+    for ([[maybe_unused]] auto i : range(100))
     {
         auto photons = generate_photons(rng);
         ASSERT_EQ(photons.size(), generated_dist.num_photons);
 
+        // Accumulate averages
         for (Primary const& p : photons)
         {
-            energy.push_back(p.energy.value());
-            time.push_back(p.time / units::second);
-            cos_theta.push_back(dot_product(p.direction, inc_dir));
-
-            polarization_x.push_back(p.polarization[0]);
-            EXPECT_SOFT_EQ(0, dot_product(p.polarization, p.direction));
+            avg_lambda += detail::energy_to_wavelength(p.energy);
+            avg_time += p.time;
+            avg_cosine += dot_product(p.direction, inc_dir);
         }
+
+        if (i < 2)
+        {
+            // Store individual results
+            for (Primary const& p : photons)
+            {
+                energy.push_back(p.energy.value());
+                time.push_back(native_value_to<TimeSecond>(p.time).value());
+                cos_theta.push_back(dot_product(p.direction, inc_dir));
+
+                polarization_x.push_back(p.polarization[0]);
+                EXPECT_SOFT_EQ(0, dot_product(p.polarization, p.direction));
+            }
+        }
+
+        num_photons += generated_dist.num_photons;
     }
+
+    avg_lambda = to_cm(avg_lambda / num_photons);
+    avg_time = native_value_to<TimeSecond>(avg_time / num_photons).value();
+    avg_cosine /= num_photons;
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_EQ(140, rng.exchange_count());
+        EXPECT_SOFT_EQ(1.9986123389070948e-05, avg_lambda);
+        EXPECT_SOFT_EQ(1.13945074214778e-06, avg_time);
+        EXPECT_SOFT_EQ(-0.031526689677727655, avg_cosine);
+        EXPECT_EQ(7168, rng.exchange_count());
 
         static double const expected_energy[] = {
-            1.0108118605375e-05,
-            1.1217590386333e-05,
-            1.0717754890017e-05,
-            7.2508084886886e-06,
-            9.645934625422e-06,
-            1.0422369961991e-05,
-            1.0134774090994e-05,
-            7.4773995536571e-06,
+            1.2738667300123e-05,
+            1.3585330246347e-05,
+            6.6061089464883e-06,
+            3.3419496205708e-06,
+            1.2365331190888e-05,
+            1.2985378554366e-05,
+            6.3799069497392e-06,
+            3.3892880823207e-06,
         };
         static double const expected_time[] = {
             3.211612780853e-08,
@@ -406,7 +430,7 @@ TEST_F(MaterialScintillationTest, stress_test)
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_SOFT_NEAR(
-            17.74,
+            16.742580352514256,
             rng.exchange_count() / static_cast<double>(result.num_photons),
             1e-2);
     }
