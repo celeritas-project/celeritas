@@ -34,6 +34,7 @@ namespace celeritas
 {
 namespace test
 {
+// TODO: replace this with explicit namespace importing
 using namespace celeritas::optical;
 
 //---------------------------------------------------------------------------//
@@ -152,7 +153,7 @@ void LArSphereOffloadTest::build_optical_collector()
     OpticalCollector::Input inp;
     if (use_cerenkov_)
     {
-        inp.properties = this->properties();
+        inp.material = this->optical_material();
         inp.cerenkov = this->cerenkov();
     }
     if (use_scintillation_)

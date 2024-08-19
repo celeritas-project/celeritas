@@ -74,7 +74,7 @@ list(APPEND SOURCES
   neutron/process/NeutronInelasticProcess.cc
   optical/CerenkovParams.cc
   optical/OpticalCollector.cc
-  optical/MaterialPropertyParams.cc
+  optical/MaterialParams.cc
   optical/TrackData.cc
   optical/ScintillationParams.cc
   optical/detail/OffloadParams.cc

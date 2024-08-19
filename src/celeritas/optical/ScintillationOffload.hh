@@ -16,7 +16,6 @@
 #include "celeritas/track/SimTrackView.hh"
 
 #include "GeneratorDistributionData.hh"
-#include "MaterialPropertyData.hh"
 #include "OffloadData.hh"
 #include "ScintillationData.hh"
 
@@ -60,7 +59,7 @@ class ScintillationOffload
     OffloadPreStepData const& pre_step_;
     optical::GeneratorStepData post_step_;
     NativeCRef<optical::ScintillationData> const& shared_;
-    real_type mean_num_photons_;
+    real_type mean_num_photons_{0};
 
     static CELER_CONSTEXPR_FUNCTION real_type poisson_threshold()
     {
@@ -100,13 +99,15 @@ CELER_FUNCTION ScintillationOffload::ScintillationOffload(
     else
     {
         // Scintillation will be performed on materials only
-        CELER_ASSERT(pre_step_.opt_mat < shared_.materials.size());
-        auto const& material = shared_.materials[pre_step_.opt_mat];
+        CELER_ASSERT(pre_step_.material < shared_.materials.size());
+        auto const& material = shared_.materials[pre_step_.material];
 
         // TODO: Use visible energy deposition when Birks law is implemented
-        mean_num_photons_ = material ? material.yield_per_energy
-                                           * energy_deposition.value()
-                                     : 0;
+        if (material)
+        {
+            mean_num_photons_ = material.yield_per_energy
+                                * energy_deposition.value();
+        }
     }
 }
 
@@ -123,7 +124,7 @@ ScintillationOffload::operator()(Generator& rng)
     optical::GeneratorDistributionData result;
     if (mean_num_photons_ > poisson_threshold())
     {
-        real_type sigma = shared_.resolution_scale[pre_step_.opt_mat]
+        real_type sigma = shared_.resolution_scale[pre_step_.material]
                           * std::sqrt(mean_num_photons_);
         result.num_photons = static_cast<size_type>(clamp_to_nonneg(
             NormalDistribution<real_type>(mean_num_photons_, sigma)(rng)
@@ -141,7 +142,7 @@ ScintillationOffload::operator()(Generator& rng)
         result.time = pre_step_.time;
         result.step_length = step_length_;
         result.charge = charge_;
-        result.material = pre_step_.opt_mat;
+        result.material = pre_step_.material;
         result.points[StepPoint::pre].speed = pre_step_.speed;
         result.points[StepPoint::pre].pos = pre_step_.pos;
         result.points[StepPoint::post] = post_step_;
