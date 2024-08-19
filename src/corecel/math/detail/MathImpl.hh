@@ -27,7 +27,7 @@ inline constexpr double m_pi{3.14159265358979323846};
  * signed zeros, and it's not going to be efficient.
  */
 template<class T>
-inline void sincospi(T x, T* sptr, T* cptr)
+inline void sincospi_impl(T x, T* sptr, T* cptr)
 {
     // Note: fmod returns value in (-2, 2)
     x = std::fmod(x, T{2}) + (x < 0 ? T{2} : 0);
@@ -66,32 +66,74 @@ inline void sincospi(T x, T* sptr, T* cptr)
 //---------------------------------------------------------------------------//
 //! Lazy implementation of sin(x * pi)
 template<class T>
-inline T sinpi(T v)
+inline T sinpi_impl(T v)
 {
     T result;
     T unused;
-    sincospi(v, &result, &unused);
+    sincospi_impl(v, &result, &unused);
     return result;
 }
 
 //---------------------------------------------------------------------------//
 //! Lazy implementation of cos(x * pi)
 template<class T>
-inline T cospi(T v)
+inline T cospi_impl(T v)
 {
     T unused;
     T result;
-    sincospi(v, &unused, &result);
+    sincospi_impl(v, &unused, &result);
     return result;
 }
 
 //---------------------------------------------------------------------------//
 //! Lazy implementation of sincos
 template<class T>
-inline void sincos(T x, T* sptr, T* cptr)
+inline void sincos_impl(T x, T* sptr, T* cptr)
 {
     *sptr = std::sin(x);
     *cptr = std::cos(x);
+}
+
+//---------------------------------------------------------------------------//
+
+CELER_FORCEINLINE void sincospif(float x, float* sptr, float* cptr)
+{
+    return sincospi_impl(x, sptr, cptr);
+}
+
+CELER_FORCEINLINE void sincosf(float x, float* sptr, float* cptr)
+{
+    return sincos_impl(x, sptr, cptr);
+}
+
+CELER_FORCEINLINE float sinpif(float x)
+{
+    return sinpi_impl(x);
+}
+
+CELER_FORCEINLINE float cospif(float x)
+{
+    return cospi_impl(x);
+}
+
+CELER_FORCEINLINE void sincospi(double x, double* sptr, double* cptr)
+{
+    return sincospi_impl(x, sptr, cptr);
+}
+
+CELER_FORCEINLINE void sincos(double x, double* sptr, double* cptr)
+{
+    return sincos_impl(x, sptr, cptr);
+}
+
+CELER_FORCEINLINE double sinpi(double x)
+{
+    return sinpi_impl(x);
+}
+
+CELER_FORCEINLINE double cospi(double x)
+{
+    return cospi_impl(x);
 }
 
 //---------------------------------------------------------------------------//

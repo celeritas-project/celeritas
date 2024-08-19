@@ -56,5 +56,6 @@
 //---------------------------------------------------------------------------//
 
 #cmakedefine01 CELERITAS_HAVE_ROCTX
+@CELERITAS_SINCOSPI_PREFIX_DEF@
 
 @CELERITAS_DEPENDENCY_VERSIONS@
