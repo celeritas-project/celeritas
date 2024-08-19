@@ -11,6 +11,7 @@
 #include <utility>
 
 #include "LoggerTypes.hh"
+
 #include "detail/LoggerMessage.hh"  // IWYU pragma: export
 
 //---------------------------------------------------------------------------//

@@ -38,9 +38,9 @@ class OffloadParams;
  *
  * This class is the interface between the main stepping loop and the photon
  * stepping loop and constructs kernel actions for:
- * - gathering the pre-step data needed to generate the optical distributions
- * - generating the optical distributions at the end of the step
- * - launching the photon stepping loop
+ * - gathering the pre-step data needed to generate the optical distributions,
+ * - generating the optical distributions at the end of the step, and
+ * - launching the photon stepping loop.
  *
  * The "collector" (TODO: rename?) will "own" the optical state data and
  * optical params since it's the only thing that launches the optical stepping

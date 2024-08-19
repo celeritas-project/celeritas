@@ -87,8 +87,8 @@ BernoulliDistribution::BernoulliDistribution(real_type scaled_true,
  * Construct with the probability of returning true.
  */
 template<class Generator>
-CELER_FUNCTION auto BernoulliDistribution::operator()(Generator& rng)
-    -> result_type
+CELER_FUNCTION auto
+BernoulliDistribution::operator()(Generator& rng) -> result_type
 {
     return generate_canonical<real_type>(rng) < p_true_;
 }

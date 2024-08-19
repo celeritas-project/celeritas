@@ -54,12 +54,12 @@ struct ImportData
     //!@{
     //! \name Type aliases
     using ZInt = int;
-    using GeoMatIdx = int;
+    using GeoMatIndex = unsigned int;
     using ImportSBMap = std::map<ZInt, ImportSBTable>;
     using ImportLivermorePEMap = std::map<ZInt, ImportLivermorePE>;
     using ImportAtomicRelaxationMap = std::map<ZInt, ImportAtomicRelaxation>;
     using ImportNeutronElasticMap = std::map<ZInt, ImportPhysicsVector>;
-    using ImportOpticalMap = std::map<GeoMatIdx, ImportOpticalMaterial>;
+    using ImportOpticalMap = std::map<GeoMatIndex, ImportOpticalMaterial>;
     //!@}
 
     std::vector<ImportParticle> particles;

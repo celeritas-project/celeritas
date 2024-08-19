@@ -61,8 +61,7 @@ HostKNDemoRunner::HostKNDemoRunner(constSPParticleParams particles,
 /*!
  * Run given number of particles each for max steps.
  */
-auto HostKNDemoRunner::operator()(celeritas::app::KNDemoRunArgs args)
-    -> result_type
+auto HostKNDemoRunner::operator()(celeritas::app::KNDemoRunArgs args) -> result_type
 {
     CELER_EXPECT(args.energy > 0);
     CELER_EXPECT(args.num_tracks > 0);

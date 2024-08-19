@@ -157,7 +157,7 @@ TEST_F(RootImporterTest, processes)
     auto find_process = [&processes](PDGNumber pdg, ImportProcessClass ipc) {
         return std::find_if(processes.begin(),
                             processes.end(),
-                            [&pdg, &ipc](const ImportProcess& proc) {
+                            [&pdg, &ipc](ImportProcess const& proc) {
                                 return PDGNumber{proc.particle_pdg} == pdg
                                        && proc.process_class == ipc;
                             });

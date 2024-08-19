@@ -238,7 +238,7 @@ TEST_F(BetheHeitlerInteractorTest, distributions)
             Interaction out = interact(rng_engine);
             // Bin the electron reduced energy \epsilon = (E_e + m_e c^2 /
             // E_{\gamma}
-            const auto electron = out.secondaries.front();
+            auto const electron = out.secondaries.front();
             double eps = (electron.energy.value() + data_.electron_mass.value())
                          / inc_energy;
             auto eps_bin = static_cast<int>(eps * nbins);

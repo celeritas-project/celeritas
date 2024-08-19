@@ -94,13 +94,21 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
     // Initialize the geometry
     {
         auto geo = vacancy.make_geo_view();
-        if (tid < counters.num_secondaries)
+        auto parent_id = [&] {
+            if (!(tid < counters.num_secondaries))
+            {
+                return TrackSlotId{};
+            }
+            return data
+                .parents[TrackSlotId(index_before(data.parents.size(), tid))];
+        }();
+
+        if (parent_id)
         {
             // Copy the geometry state from the parent for improved performance
-            TrackSlotId parent_id = data.parents[TrackSlotId{
-                index_before(data.parents.size(), tid)}];
             GeoTrackView const parent_geo(
                 params->geometry, state->geometry, parent_id);
+            CELER_ASSERT(parent_geo.pos() == init.geo.pos);
             geo = GeoTrackView::DetailedInitializer{parent_geo, init.geo.dir};
             CELER_ASSERT(!geo.is_outside());
         }

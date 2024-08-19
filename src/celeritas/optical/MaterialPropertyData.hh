@@ -34,7 +34,7 @@ struct MaterialPropertyData
 
     //// MEMBER DATA ////
 
-    OpticalMaterialItems<GenericGridData> refractive_index;
+    OpticalMaterialItems<GenericGridRecord> refractive_index;
 
     // Backend data
     Items<real_type> reals;

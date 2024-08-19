@@ -279,8 +279,7 @@ VolumeId VecgeomParams::find_volume(G4LogicalVolume const* volume) const
  * This is useful for volumes that are repeated in the geometry with different
  * uniquifying 'extensions' from Geant4.
  */
-auto VecgeomParams::find_volumes(std::string const& name) const
-    -> SpanConstVolumeId
+auto VecgeomParams::find_volumes(std::string const& name) const -> SpanConstVolumeId
 {
     return vol_labels_.find_all(name);
 }

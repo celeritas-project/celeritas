@@ -62,7 +62,7 @@ simulation, without substantial research and development improvements.
 Celeritas [#celeritas_vers]_ is a new MC particle transport code designed for
 high performance simulation of complex HEP detectors on GPU-accelerated
 hardware.  Its immediate goal is to simulate electromagnetic (EM) physics for
-LHC-HL detectors with no loss in fidelity, acting as a plugin to accelerate
+HL-LHC detectors with no loss in fidelity, acting as a plugin to accelerate
 existing Geant4 :cite:`Geant4` workflows by "offloading" selected particles to
 Celeritas to transport on GPU.
 
@@ -80,9 +80,9 @@ Celeritas to transport on GPU.
 
 .. _api:
 
-***********
-Library API
-***********
+**************
+Implementation
+**************
 
 .. only:: nobreathe
 
@@ -143,6 +143,28 @@ configuration attributes.
    implementation/optical-physics.rst
    implementation/geant4-interface.rst
 
+
+.. ***************************************************************************
+
+.. _development:
+
+*****************
+Development Guide
+*****************
+
+The agility, extensibility, and performance of Celeritas depend strongly on
+software infrastructure and best practices. This section describes how to
+modify and extend the codebase.
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Development
+
+   development/contributing.rst
+   development/coding.rst
+   development/style.rst
+   development/testing.rst
+
 .. ***************************************************************************
 
 .. _examples:
@@ -151,15 +173,21 @@ configuration attributes.
 Examples
 ********
 
-A few standalone codes demonstrate how to use Celeritas in an independent and
-Geant4-integrated context.
+A few standalone codes demonstrate how to use Celeritas as an app and as a
+library, in independent and Geant4-integrated contexts.
+
+.. todo::
+   This section is not yet complete.
 
 .. toctree::
    :maxdepth: 2
    :caption: Examples
 
-   examples/minimal.rst
-   examples/geant4.rst
+   example/minimal.rst
+   example/geant4.rst
+   example/celer-sim.rst
+   example/celer-g4.rst
+   example/celer-geo.rst
 
 .. ***************************************************************************
 .. APPENDICES
@@ -172,6 +200,5 @@ Geant4-integrated context.
    backmatter/acknowledgments.rst
    backmatter/references.rst
    appendix/release-history.rst
-   appendix/development.rst
    appendix/administration.rst
    appendix/license.rst

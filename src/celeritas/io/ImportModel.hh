@@ -112,7 +112,12 @@ struct ImportModel
  */
 struct ImportMscModel
 {
-    int particle_pdg{0};
+    //!@{
+    //! \name Type aliases
+    using PdgInt = int;
+    //!@}
+
+    PdgInt particle_pdg{0};
     ImportModelClass model_class{ImportModelClass::size_};
     ImportPhysicsTable xs_table;
 

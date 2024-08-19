@@ -11,9 +11,6 @@
 #include <thrust/device_ptr.h>
 #include <thrust/execution_policy.h>
 #include <thrust/partition.h>
-#include <thrust/random.h>
-#include <thrust/sequence.h>
-#include <thrust/shuffle.h>
 #include <thrust/sort.h>
 
 #include "corecel/Macros.hh"
@@ -140,43 +137,6 @@ tracks_per_action_kernel(ObserverPtr<ActionId const> actions,
 
 //---------------------------------------------------------------------------//
 }  // namespace
-
-//---------------------------------------------------------------------------//
-/*!
- * Initialize default threads to track_slots mapping, track_slots[i] = i.
- *
- * TODO: move to global/detail
- */
-template<>
-void fill_track_slots<MemSpace::device>(Span<TrackSlotId::size_type> track_slots,
-                                        StreamId stream_id)
-{
-    thrust::sequence(
-        thrust_execute_on(stream_id),
-        thrust::device_pointer_cast(track_slots.data()),
-        thrust::device_pointer_cast(track_slots.data() + track_slots.size()),
-        0);
-    CELER_DEVICE_CHECK_ERROR();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Shuffle track slots.
- *
- * TODO: move to global/detail
- */
-template<>
-void shuffle_track_slots<MemSpace::device>(
-    Span<TrackSlotId::size_type> track_slots, StreamId stream_id)
-{
-    using result_type = thrust::default_random_engine::result_type;
-    thrust::default_random_engine g{
-        static_cast<result_type>(track_slots.size())};
-    auto start = thrust::device_pointer_cast(track_slots.data());
-    thrust::shuffle(
-        thrust_execute_on(stream_id), start, start + track_slots.size(), g);
-    CELER_DEVICE_CHECK_ERROR();
-}
 
 //---------------------------------------------------------------------------//
 /*!

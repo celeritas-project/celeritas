@@ -78,7 +78,7 @@ struct MaterialScintillationSpectrum
  */
 struct ParticleScintillationSpectrum
 {
-    GenericGridData yield_vector;
+    GenericGridRecord yield_vector;
     ItemRange<ScintillationComponent> components;
 
     //! Whether all data are assigned and valid

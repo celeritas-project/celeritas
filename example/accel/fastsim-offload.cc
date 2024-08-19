@@ -70,7 +70,7 @@ class DetectorConstruction final : public G4VUserDetectorConstruction
   public:
     DetectorConstruction()
         : aluminum_{new G4Material{
-            "Aluminium", 13., 26.98 * g / mole, 2.700 * g / cm3}}
+              "Aluminium", 13., 26.98 * g / mole, 2.700 * g / cm3}}
     {
         setup_options.make_along_step = celeritas::UniformAlongStepFactory();
     }
