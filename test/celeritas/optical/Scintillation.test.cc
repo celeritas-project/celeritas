@@ -296,7 +296,10 @@ TEST_F(MaterialScintillationTest, pre_generator)
     Rng rng;
     auto const result = generate(rng);
     ASSERT_TRUE(result);
-    EXPECT_EQ(10, rng.exchange_count());
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_EQ(10, rng.exchange_count());
+    }
 
     EXPECT_EQ(4, result.num_photons);
     EXPECT_REAL_EQ(0, result.time);
@@ -331,7 +334,10 @@ TEST_F(MaterialScintillationTest, basic)
 
     Rng rng;
     auto const generated_dist = generate(rng);
-    EXPECT_EQ(10, rng.exchange_count());
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_EQ(10, rng.exchange_count());
+    }
     auto const inc_dir
         = make_unit_vector(generated_dist.points[StepPoint::post].pos
                            - generated_dist.points[StepPoint::pre].pos);
@@ -459,10 +465,13 @@ TEST_F(MaterialScintillationTest, stress_test)
         avg_lambda += hc / photons[i].energy.value();
     }
     avg_lambda /= static_cast<double>(result.num_photons);
-    EXPECT_SOFT_NEAR(
-        17.74,
-        rng.exchange_count() / static_cast<double>(result.num_photons),
-        1e-2);
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_SOFT_NEAR(
+            17.74,
+            rng.exchange_count() / static_cast<double>(result.num_photons),
+            1e-2);
+    }
 
     double expected_lambda{0};
     double expected_error{0};

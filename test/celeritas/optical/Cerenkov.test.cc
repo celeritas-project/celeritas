@@ -114,7 +114,7 @@ Span<double const> get_refractive_index()
     return make_span(refractive_index);
 }
 
-double convert_to_energy(double wavelength)
+real_type convert_to_energy(real_type wavelength)
 {
     return value_as<units::MevEnergy>(detail::wavelength_to_energy(wavelength));
 }
