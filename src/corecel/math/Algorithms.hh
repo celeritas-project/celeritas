@@ -647,19 +647,19 @@ CELER_FORCEINLINE_FUNCTION double rsqrt(double value)
 
 //!@{
 //! Get the sine or cosine of a value multiplied by pi for increased precision
-CELER_FORCEINLINE float sinpi(float a)
+CELER_FORCEINLINE_FUNCTION float sinpi(float a)
 {
     return CELER_SINCOS_MANGLED(sinpif)(a);
 }
-CELER_FORCEINLINE double sinpi(double a)
+CELER_FORCEINLINE_FUNCTION double sinpi(double a)
 {
     return CELER_SINCOS_MANGLED(sinpi)(a);
 }
-CELER_FORCEINLINE float cospi(float a)
+CELER_FORCEINLINE_FUNCTION float cospi(float a)
 {
     return CELER_SINCOS_MANGLED(cospif)(a);
 }
-CELER_FORCEINLINE double cospi(double a)
+CELER_FORCEINLINE_FUNCTION double cospi(double a)
 {
     return CELER_SINCOS_MANGLED(cospi)(a);
 }
@@ -667,19 +667,19 @@ CELER_FORCEINLINE double cospi(double a)
 
 //!@{
 //! Simultaneously evaluate the sine and cosine of a value
-CELER_FORCEINLINE void sincos(float a, float* s, float* c)
+CELER_FORCEINLINE_FUNCTION void sincos(float a, float* s, float* c)
 {
     return CELER_SINCOS_MANGLED(sincosf)(a, s, c);
 }
-CELER_FORCEINLINE void sincos(double a, double* s, double* c)
+CELER_FORCEINLINE_FUNCTION void sincos(double a, double* s, double* c)
 {
     return CELER_SINCOS_MANGLED(sincos)(a, s, c);
 }
-CELER_FORCEINLINE void sincospi(float a, float* s, float* c)
+CELER_FORCEINLINE_FUNCTION void sincospi(float a, float* s, float* c)
 {
     return CELER_SINCOS_MANGLED(sincospif)(a, s, c);
 }
-CELER_FORCEINLINE void sincospi(double a, double* s, double* c)
+CELER_FORCEINLINE_FUNCTION void sincospi(double a, double* s, double* c)
 {
     return CELER_SINCOS_MANGLED(sincospi)(a, s, c);
 }
