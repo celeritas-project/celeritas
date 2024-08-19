@@ -443,7 +443,10 @@ TEST_F(MaterialScintillationTest, stress_test)
 
     Rng rng;
     auto result = generate(rng);
-    EXPECT_EQ(10, rng.exchange_count());
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_EQ(10, rng.exchange_count());
+    }
 
     // Overwrite result to force a large number of optical photons
     result.num_photons = 123456;

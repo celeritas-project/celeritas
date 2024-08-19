@@ -64,9 +64,9 @@ using celeritas::test::from_cm;
  *
  * See G4OpticalMaterialProperties.hh.
  */
-Span<double const> get_wavelength()
+Span<real_type const> get_wavelength()
 {
-    static Array<double, 101> const wavelength = {
+    static real_type const wavelength[] = {
         1.129,  1.12,   1.11,   1.101,  1.091,  1.082,  1.072,  1.063,  1.053,
         1.044,  1.034,  1.025,  1.015,  1.006,  0.9964, 0.987,  0.9775, 0.968,
         0.9585, 0.9491, 0.9396, 0.9301, 0.9207, 0.9112, 0.9017, 0.8923, 0.8828,
@@ -82,9 +82,9 @@ Span<double const> get_wavelength()
     return make_span(wavelength);
 }
 
-Span<double const> get_refractive_index()
+Span<real_type const> get_refractive_index()
 {
-    static Array<double, 101> const refractive_index
+    static real_type const refractive_index[]
         = {1.3235601610672, 1.3236962786529, 1.3238469492274, 1.3239820826015,
            1.3241317601229, 1.3242660923031, 1.3244149850321, 1.3245487081924,
            1.3246970353146, 1.3248303521764, 1.3249783454392, 1.3251114708334,
@@ -114,9 +114,11 @@ Span<double const> get_refractive_index()
     return make_span(refractive_index);
 }
 
-real_type convert_to_energy(real_type wavelength)
+// Convert a wavelength in [micrometer] to a photon energy in [MeV]
+real_type um_to_mev(real_type wavelength_um)
 {
-    return value_as<units::MevEnergy>(detail::wavelength_to_energy(wavelength));
+    return value_as<units::MevEnergy>(detail::wavelength_to_energy(
+        1e-3 * units::millimeter * wavelength_um));
 }
 
 //---------------------------------------------------------------------------//
@@ -135,8 +137,7 @@ class CerenkovTest : public ::celeritas::test::OpticalTestBase
         ImportOpticalProperty water;
         for (double wl : get_wavelength())
         {
-            water.refractive_index.x.push_back(
-                convert_to_energy(wl * micrometer));
+            water.refractive_index.x.push_back(um_to_mev(wl));
         }
         water.refractive_index.y
             = {get_refractive_index().begin(), get_refractive_index().end()};
@@ -150,8 +151,6 @@ class CerenkovTest : public ::celeritas::test::OpticalTestBase
         params = std::make_shared<CerenkovParams>(material);
     }
 
-    static constexpr double micrometer = 1e-4 * units::centimeter;
-
     std::shared_ptr<MaterialParams const> material;
     std::shared_ptr<CerenkovParams const> params;
     OpticalMaterialId material_id{0};
@@ -164,7 +163,7 @@ class CerenkovTest : public ::celeritas::test::OpticalTestBase
 TEST_F(CerenkovTest, angle_integral)
 {
     // Check conversion: 1 μm wavelength is approximately 1.2398 eV
-    EXPECT_SOFT_EQ(1.2398419843320026e-6, convert_to_energy(1 * micrometer));
+    EXPECT_SOFT_EQ(1.2398419843320026e-6, um_to_mev(1));
 
     auto const& grid = params->host_ref().angle_integral[material_id];
     EXPECT_TRUE(grid);
@@ -316,8 +315,8 @@ TEST_F(CerenkovTest, TEST_IF_CELERITAS_DOUBLE(generator))
     std::vector<real_type> displacement_dist(num_bins);
 
     // Energy distribution binning
-    real_type emin = convert_to_energy(get_wavelength().front() * micrometer);
-    real_type emax = convert_to_energy(get_wavelength().back() * micrometer);
+    real_type emin = um_to_mev(get_wavelength().front());
+    real_type emax = um_to_mev(get_wavelength().back());
     real_type edel = (emax - emin) / num_bins;
 
     auto sample = [&](OffloadPreStepData& pre_step,

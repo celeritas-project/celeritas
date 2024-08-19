@@ -56,7 +56,7 @@ class CerenkovGenerator
                       NativeCRef<CerenkovData> const& shared,
                       GeneratorDistributionData const& dist);
 
-    // Sample Cerenkov photons from the distribution
+    // Sample a Cerenkov photon from the distribution
     template<class Generator>
     inline CELER_FUNCTION Primary operator()(Generator& rng);
 
