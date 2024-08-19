@@ -801,7 +801,7 @@ void print_optical_material_data(ImportData::ImportOpticalMap const& iom)
             {
                 auto const& comp = scint.material.components[i];
                 cout << POM_STREAM_SCALAR_COMP(
-                    mid, comp, yield_per_energy, IU::inv_mev, comp_str[i]);
+                    mid, comp, yield_frac, IU::inv_mev, comp_str[i]);
                 cout << POM_STREAM_SCALAR_COMP(
                     mid, comp, lambda_mean, IU::len, comp_str[i]);
                 cout << POM_STREAM_SCALAR_COMP(
