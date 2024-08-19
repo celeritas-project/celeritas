@@ -16,7 +16,10 @@
 #include "corecel/Macros.hh"
 
 #include "detail/AlgorithmsImpl.hh"
-#include "detail/MathImpl.hh"
+
+#if !defined(CELER_DEVICE_SOURCE) && !defined(CELERITAS_SINCOSPI_PREFIX)
+#    include "detail/Sincospi.hh"
+#endif
 
 namespace celeritas
 {
@@ -592,7 +595,7 @@ CELER_CONSTEXPR_FUNCTION int signum(T x)
  * using \c CELERITAS_REAL_TYPE=float, this could have more accuracy than
  * \c celeritas::constants::pi .
  */
-inline constexpr double m_pi = detail::m_pi;
+inline constexpr double m_pi{3.14159265358979323846};
 
 //---------------------------------------------------------------------------//
 //!@{
