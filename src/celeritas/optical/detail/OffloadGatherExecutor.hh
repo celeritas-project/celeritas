@@ -48,7 +48,7 @@ OffloadGatherExecutor::operator()(CoreTrackView const& track)
     step.speed = track.make_particle_view().speed();
     step.pos = track.make_geo_view().pos();
     step.time = track.make_sim_view().time();
-    step.opt_mat
+    step.material
         = track.make_material_view().make_material_view().optical_material_id();
 }
 

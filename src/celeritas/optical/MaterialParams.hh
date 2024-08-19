@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/MaterialPropertyParams.hh
+//! \file celeritas/optical/MaterialParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,7 +14,7 @@
 #include "corecel/data/ParamsDataInterface.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 
-#include "MaterialPropertyData.hh"
+#include "MaterialData.hh"
 
 namespace celeritas
 {
@@ -27,40 +27,42 @@ namespace optical
 /*!
  * Manage properties for optical materials.
  *
- * More than one "geometry material" (i.e. \c G4Material or material defined in
- * the geometry model input) can point to a single optical material.
+ * Each "geometry material" (i.e. \c G4Material or material defined in
+ * the geometry model input) can map to a single optical material. (In the
+ * future we might broaden this to allow \c regions to define different
+ * materials as well.) Many "geometry materials"---especially those in
+ * mechanical structures and components not optically connected to the
+ * detector---may have no optical properties at all.
  *
  * Optical volume and surface properties are imported from Geant4 into the \c
  * ImportData container. The \c celeritas::MaterialParams class loads the
  * mapping of \c GeoMaterialId to \c OpticalMaterialId and makes it accessible
  * via the main loop's material view.
  */
-class MaterialPropertyParams final
-    : public ParamsDataInterface<MaterialPropertyData>
+class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 {
   public:
-    // Shared optical properties, indexed by \c OpticalMaterialId
     struct Input
     {
-        std::vector<ImportOpticalProperty> data;
+        //! Shared optical material, indexed by \c OpticalMaterialId
+        std::vector<ImportOpticalProperty> properties;
     };
 
   public:
     // Construct with imported data
-    static std::shared_ptr<MaterialPropertyParams>
-    from_import(ImportData const& data);
+    static std::shared_ptr<MaterialParams> from_import(ImportData const& data);
 
     // Construct with optical property data
-    explicit MaterialPropertyParams(Input const& inp);
+    explicit MaterialParams(Input const& inp);
 
-    //! Access optical properties on the host
+    //! Access optical material on the host
     HostRef const& host_ref() const final { return data_.host_ref(); }
 
-    //! Access optical properties on the device
+    //! Access optical material on the device
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
   private:
-    CollectionMirror<MaterialPropertyData> data_;
+    CollectionMirror<MaterialParamsData> data_;
 };
 
 //---------------------------------------------------------------------------//
