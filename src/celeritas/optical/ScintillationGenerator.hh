@@ -124,10 +124,10 @@ ScintillationGenerator::ScintillationGenerator(
 template<class Generator>
 CELER_FUNCTION Primary ScintillationGenerator::operator()(Generator& rng)
 {
-    auto const& mat = shared_.materials[dist_.material];
-
     // Sample a component
     ScintRecord const& component = [&] {
+        auto const& mat = shared_.materials[dist_.material];
+
         auto pdf = shared_.reals[mat.yield_pdf];
         auto select_idx = make_selector([&pdf](size_type i) { return pdf[i]; },
                                         mat.yield_pdf.size());
@@ -136,7 +136,8 @@ CELER_FUNCTION Primary ScintillationGenerator::operator()(Generator& rng)
         return shared_.scint_records[mat.components[component_idx]];
     }();
 
-    // Sample photons for each scintillation component
+    // Sample photons for each scintillation component, reusing the "spare"
+    // value that the lambda sampler has
     sample_lambda_
         = NormalDistribution{component.lambda_mean, component.lambda_sigma};
     ExponentialDist sample_time(real_type{1} / component.fall_time);
