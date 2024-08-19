@@ -62,7 +62,7 @@ class CerenkovDndxCalculator
     inline CELER_FUNCTION real_type operator()(units::LightSpeed beta);
 
   private:
-    // Calcaulte refractive index [MeV -> unitless]
+    // Calculate refractive index [MeV -> unitless]
     GenericCalculator calc_refractive_index_;
 
     // Calculate the Cerenkov angle integral [MeV -> unitless]
