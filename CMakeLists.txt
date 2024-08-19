@@ -511,16 +511,16 @@ install(TARGETS celeritas_device_toolkit
 )
 
 #----------------------------------------------------------------------------#
-if(APPLE)
-  set(_prefix "__")
+foreach(_prefix "__" "_" "")
   try_compile(CELERITAS_TRY_${_prefix}SINCOSPI #${CMAKE_BINARY_DIR}
     SOURCES "${PROJECT_SOURCE_DIR}/cmake/try-sincospi.cc"
     COMPILE_DEFINITIONS "-DCELERITAS_SINCOSPI_PREFIX=${_prefix}"
   )
   if(CELERITAS_TRY_${_prefix}SINCOSPI)
     set(CELERITAS_SINCOSPI_PREFIX "${_prefix}")
+    break()
   endif()
-endif()
+endforeach()
 
 #----------------------------------------------------------------------------#
 # Add the main libraries
