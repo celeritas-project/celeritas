@@ -25,6 +25,37 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Create the matrix view with the given extent size.
+ */
+DeMorganSimplifier::Matrix2D::Matrix2D(size_type extent) noexcept
+    : extent_(extent)
+{
+    data_.resize(extent_ * extent_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access the element at the given index.
+ */
+std::vector<bool>::reference
+DeMorganSimplifier::Matrix2D::operator[](indices index)
+{
+    auto [row, col] = index;
+    CELER_EXPECT(row.get() * extent_ + col.get() < data_.size());
+    return data_[row.get() * extent_ + col.get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * The extent along one dimension.
+ */
+size_type DeMorganSimplifier::Matrix2D::extent() const noexcept
+{
+    return extent_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * For node_id in the original tree, find the equivalent node in the simplified
  * tree, i.e., either the DeMorgan simplification or the same node, return an
  * invalid id if there are no equivalent.
@@ -37,24 +68,14 @@ NodeId DeMorganSimplifier::MatchingNodes::equivalent_node() const
         return unmodified;
     return {};
 }
-//---------------------------------------------------------------------------//
-/*!
- * Poor man's mdspan, row offset for the given node. Because vector<bool>
- * elements don't have a unique address, we can't return a pointer to the row
- * for tha node, return the offset instead.
- */
-NodeId::size_type DeMorganSimplifier::node_offset(NodeId node_id) const
-{
-    return node_id.get() * tree_.size();
-}
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct and fix bitset size.
  */
-DeMorganSimplifier::DeMorganSimplifier(CsgTree const& tree) : tree_(tree)
+DeMorganSimplifier::DeMorganSimplifier(CsgTree const& tree)
+    : tree_(tree), parents_of(tree_.size())
 {
-    parents_of.resize(tree_.size() * tree_.size());
     new_negated_nodes_.resize(tree_.size());
     negated_join_nodes_.resize(tree_.size());
     node_ids_translation_.resize(tree_.size());
@@ -82,8 +103,8 @@ void DeMorganSimplifier::find_join_negations()
         std::visit(
             Overload{
                 [&](Negated const& negated) {
-                    parents_of[node_offset(negated.node) + node_id.get()]
-                        = true;
+                    parents_of[{negated.node, node_id}] = true;
+                    parents_of[{negated.node, has_parents_index}] = true;
                     if (std::holds_alternative<Joined>(tree_[negated.node]))
                     {
                         // This is a Negated{Joined{...}}
@@ -95,8 +116,8 @@ void DeMorganSimplifier::find_join_negations()
                     // we found a new parent for each operand
                     for (auto const& join_operand : joined.nodes)
                     {
-                        parents_of[node_offset(join_operand) + node_id.get()]
-                            = true;
+                        parents_of[{join_operand, node_id}] = true;
+                        parents_of[{join_operand, has_parents_index}] = true;
                     }
                 },
                 [&](Aliased const&) {
@@ -117,7 +138,7 @@ void DeMorganSimplifier::find_join_negations()
     // that the given node is referred to by a volume
     for (auto node_id : tree_.volumes())
     {
-        parents_of[node_offset(node_id)] = true;
+        parents_of[{node_id, is_volume_index}] = true;
     }
 }
 
@@ -275,15 +296,13 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                     return false;
                 }
 
-                auto const offset = node_offset(node_id);
-
-                // check if a volume points to that node,
+                // check if a volume points to that node or a root node,
                 // if this is the case, the node must be inserted
-                if (parents_of[offset])
+                if (parents_of[{node_id, is_volume_index}]
+                    || !parents_of[{node_id, has_parents_index}])
                 {
                     return true;
                 }
-
                 // if the only parents of this node are
                 // 1. Negated node
                 // 2. Join node that have a negated parent, i.e., the Joined
@@ -292,11 +311,10 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                 // opposite join is enough
                 // --> if this node has at least one volume or non-negated join
                 // parent, we need to insert is
-                bool has_parent = false;
                 for (auto p : range(NodeId{2}, NodeId{tree_.size()}))
                 {
                     // not a parent
-                    if (!parents_of[offset + p.get()])
+                    if (!parents_of[{node_id, p}])
                         continue;
 
                     // !NodeId{} is used when a volume is a parent, we need to
@@ -306,11 +324,8 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                     {
                         return true;
                     }
-                    has_parent |= parents_of[offset + p.get()];
                 }
-
-                // root node, we must insert it
-                return !has_parent;
+                return false;
             },
             [&](Joined const& joined) {
                 // The current node is a Joined node, and we need to insert
@@ -388,15 +403,15 @@ bool DeMorganSimplifier::should_insert_join(NodeId node_id)
 {
     CELER_EXPECT(std::holds_alternative<Joined>(tree_[node_id]));
 
-    auto const offset = node_offset(node_id);
-
     // this join node is referred by a volume, we must insert it
-    if (parents_of[offset])
+    if (parents_of[{node_id, is_volume_index}])
     {
         return true;
     }
 
-    // root node, we must insert it
+    // this is a root node, so we need to insert it
+    if (!parents_of[{node_id, has_parents_index}])
+        return true;
 
     // We must insert the original join node if one of the following is true
     // 1. It is pointed to directly by a volume
@@ -406,17 +421,16 @@ bool DeMorganSimplifier::should_insert_join(NodeId node_id)
     auto has_negated_join_parent = [&](NodeId n) {
         for (auto p : range(NodeId{2}, NodeId{tree_.size()}))
         {
-            if (parents_of[node_offset(n) + p.get()]
-                && negated_join_nodes_[p.get()])
+            if (parents_of[{n, p}] && negated_join_nodes_[p.get()])
                 return true;
         }
         return false;
     };
-    bool has_parents = false;
+
     for (auto p : range(NodeId{2}, NodeId{tree_.size()}))
     {
         // not a parent
-        if (!parents_of[offset + p.get()])
+        if (!parents_of[{node_id, p}])
             continue;
 
         // !NodeId{} is used when a volume is a parent, we need to insert that
@@ -429,10 +443,9 @@ bool DeMorganSimplifier::should_insert_join(NodeId node_id)
         {
             return true;
         }
-        has_parents |= parents_of[offset + p.get()];
     }
 
-    return !has_parents;
+    return false;
 }
 
 //---------------------------------------------------------------------------//

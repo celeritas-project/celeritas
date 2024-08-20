@@ -44,6 +44,14 @@ class DeMorganSimplifier
     CsgTree operator()();
 
   private:
+    //! CsgTree node 0 is always True{} and can't be the parent of any node
+    //! so reuse that bit to tell that a given node is a volume
+    static inline auto is_volume_index{NodeId{0}};
+    //! CsgTree node 1 is always a Negated node parent of node 0, so we can
+    //! reuse that bit to tell if a node has a parent as it's never set for
+    //! node id >= 2
+    static inline auto has_parents_index{NodeId{1}};
+
     //! Helper struct to translate ids from the original tree to ids in the
     //! simplified tree
     struct MatchingNodes
@@ -78,7 +86,26 @@ class DeMorganSimplifier
             return simplified_to || opposite_join || new_negation || unmodified;
         }
 
+        // Lookup a node an equal node in the simplified tree
         NodeId equivalent_node() const;
+    };
+
+    //! Rudimentary 2D square matrix view of a vector<bool>
+    class Matrix2D
+    {
+      public:
+        using indices = std::pair<NodeId, NodeId>;
+
+        // Create the matrix view with the given extent size
+        explicit Matrix2D(size_type extent) noexcept;
+        //  Access the element at the given index
+        std::vector<bool>::reference operator[](indices index);
+        // The extent along one dimension
+        size_type extent() const noexcept;
+
+      private:
+        std::vector<bool> data_;
+        size_type extent_;
     };
 
     // Row offset for the node in the parents_of matrix
@@ -111,7 +138,7 @@ class DeMorganSimplifier
 
     //! Parents matrix. For nodes n1, n2, if n1 * tree_.size() + n2 is set, it
     //! means that n2 is a parent of n1
-    std::vector<bool> parents_of;
+    Matrix2D parents_of;
 
     //! Used during construction of the simplified tree to map replaced nodes
     //! in the original tree to their new id in the simplified tree
