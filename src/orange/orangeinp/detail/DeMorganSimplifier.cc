@@ -8,7 +8,6 @@
 
 #include "DeMorganSimplifier.hh"
 
-#include <unordered_map>
 #include <variant>
 
 #include "corecel/Assert.hh"
@@ -33,6 +32,7 @@ DeMorganSimplifier::DeMorganSimplifier(CsgTree const& tree) : tree_(tree)
     parents_of.resize(tree_.size());
     new_negated_nodes_.resize(tree_.size());
     negated_join_nodes_.resize(tree_.size());
+    node_ids_translation_.resize(tree_.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -155,8 +155,12 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
                        [&](Negated& negated) {
                             // we're inserting a Negated node, it has to point to a unmodified node
                             // negated join would have been simplified and double negation are not inserted
-                            CELER_EXPECT(node_ids_translation_[negated.node].unmodified); 
-                            negated.node = node_ids_translation_[negated.node].unmodified;
+                            CELER_EXPECT(
+                                node_ids_translation_[negated.node.get()]
+                                    .unmodified);
+                            negated.node
+                                = node_ids_translation_[negated.node.get()]
+                                      .unmodified;
                        },
                        [&](Joined& joined) {
                            // update each operand of the joined node, it can't
@@ -167,7 +171,7 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
                                // if the node has been simplified, insert the
                                // simplification, otherwise retrieve the new id
                                // of the same node
-                               auto& trans = node_ids_translation_[op];
+                               auto& trans = node_ids_translation_[op.get()];
                                if (trans.simplified_to)
                                {
                                    op = trans.simplified_to;
@@ -186,7 +190,7 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
 
         auto [new_id, inserted] = result.insert(std::move(new_node));
         // Record the new node id
-        auto& trans = node_ids_translation_[node_id];
+        auto& trans = node_ids_translation_[node_id.get()];
         CELER_EXPECT(!trans.unmodified);
         trans.unmodified = new_id;
 
@@ -207,7 +211,7 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
         // new tree.
         // This is not always the exact same node, e.g., if the volume
         // points to a negated join, it will still be simplified
-        auto& trans = node_ids_translation_[volume];
+        auto& trans = node_ids_translation_[volume.get()];
 
         // if the node has been simplified, insert the simplification,
         // otherwise retrieve the new id of the same node
@@ -250,9 +254,10 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                 {
                     // redirect parents looking for this node to the new Joined
                     // node.
-                    CELER_EXPECT(node_ids_translation_[negated.node].opposite_join);
-                    node_ids_translation_[node_id].simplified_to
-                        = node_ids_translation_[negated.node].opposite_join;
+                    CELER_EXPECT(
+                        node_ids_translation_[negated.node.get()].opposite_join);
+                    node_ids_translation_[node_id.get()].simplified_to
+                        = node_ids_translation_[negated.node.get()].opposite_join;
                     return false;
                 }
 
@@ -284,9 +289,10 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                 // this node isn't inserted in the simplified tree because
                 // it would only have negated parents, redirect them to
                 // the target of the double negation
-                CELER_EXPECT(node_ids_translation_[negated.node].unmodified);
-                node_ids_translation_[node_id].double_negation_target
-                    = node_ids_translation_[negated.node].unmodified;
+                CELER_EXPECT(
+                    node_ids_translation_[negated.node.get()].unmodified);
+                node_ids_translation_[node_id.get()].double_negation_target
+                    = node_ids_translation_[negated.node.get()].unmodified;
                 return false;
             },
             [&](Joined const& joined) {
@@ -308,19 +314,23 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                         {
                             operands.push_back([&] {
                                 CELER_EXPECT(
-                                    node_ids_translation_[n].double_negation_target
-                                    || node_ids_translation_[neg->node].unmodified);
+                                    node_ids_translation_[n.get()]
+                                        .double_negation_target
+                                    || node_ids_translation_[neg->node.get()]
+                                           .unmodified);
                                 // the negated node only has double negation,
                                 // so it no longer exists in the result tree
                                 // get the target of the double negation
-                                if (node_ids_translation_[n]
+                                if (node_ids_translation_[n.get()]
                                         .double_negation_target)
-                                    return node_ids_translation_[n].double_negation_target;
+                                    return node_ids_translation_[n.get()]
+                                        .double_negation_target;
 
                                 // the negated node still exists because
                                 // another node refers to it, redirect to its
                                 // child.
-                                return node_ids_translation_[neg->node].unmodified;
+                                return node_ids_translation_[neg->node.get()]
+                                    .unmodified;
                             }());
                         }
                         else
@@ -328,7 +338,7 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                             // otherwise, we should have inserted a negated
                             // version of it or simplified it with DeMorgan
                             operands.push_back([&] {
-                                auto& trans = node_ids_translation_[n];
+                                auto& trans = node_ids_translation_[n.get()];
                                 CELER_EXPECT(trans.new_negation
                                              || trans.opposite_join);
                                 if (trans.new_negation)
@@ -341,7 +351,7 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                     auto [new_id, inserted] = result.insert(
                         Joined{(op == logic::land) ? logic::lor : logic::land,
                                std::move(operands)});
-                    node_ids_translation_[node_id].opposite_join
+                    node_ids_translation_[node_id.get()].opposite_join
                         = std::move(new_id);
                 }
                 return this->should_insert_join(node_id);

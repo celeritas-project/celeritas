@@ -6,7 +6,6 @@
 //! \file orange/orangeinp/detail/DeMorganSimplifier.hh
 //---------------------------------------------------------------------------//
 #pragma once
-#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -116,7 +115,7 @@ class DeMorganSimplifier
 
     //! Used during construction of the simplified tree to map replaced nodes
     //! in the original tree to their new id in the simplified tree
-    std::unordered_map<NodeId, MatchingNodes> node_ids_translation_;
+    std::vector<MatchingNodes> node_ids_translation_;
 };
 
 //---------------------------------------------------------------------------//
