@@ -234,10 +234,10 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
         if (new_negated_nodes_[node_id.get()])
         {
             CELER_EXPECT(!std::holds_alternative<Negated>(tree_[node_id])
-                         && !std::holds_alternative<Joined>(tree_[node_id]));
+                         && !std::holds_alternative<Joined>(tree_[node_id])
+                         && !trans.new_negation);
             auto [new_negated_node_id, negated_inserted]
                 = result.insert(Negated{new_id});
-            CELER_EXPECT(!trans.new_negation);
             trans.new_negation = new_negated_node_id;
         }
     }
