@@ -108,9 +108,6 @@ class DeMorganSimplifier
         size_type extent_;
     };
 
-    // Row offset for the node in the parents_of matrix
-    NodeId::size_type node_offset(NodeId) const;
-
     // First pass to find negated set operations
     void find_join_negations();
 
