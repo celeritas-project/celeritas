@@ -155,7 +155,7 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
                        [&](Negated& negated) {
                             // we're inserting a Negated node, it has to point to a unmodified node
                             // negated join would have been simplified and double negation are not inserted
-                            CELER_EXPECT(node_ids_translation_[negated.node]); 
+                            CELER_EXPECT(node_ids_translation_[negated.node].unmodified); 
                             negated.node = node_ids_translation_[negated.node].unmodified;
                        },
                        [&](Joined& joined) {
@@ -208,7 +208,6 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
         // This is not always the exact same node, e.g., if the volume
         // points to a negated join, it will still be simplified
         auto& trans = node_ids_translation_[volume];
-        CELER_EXPECT(trans);
 
         // if the node has been simplified, insert the simplification,
         // otherwise retrieve the new id of the same node
@@ -251,6 +250,7 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                 {
                     // redirect parents looking for this node to the new Joined
                     // node.
+                    CELER_EXPECT(node_ids_translation_[negated.node].opposite_join);
                     node_ids_translation_[node_id].simplified_to
                         = node_ids_translation_[negated.node].opposite_join;
                     return false;
@@ -309,8 +309,7 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                             operands.push_back([&] {
                                 CELER_EXPECT(
                                     node_ids_translation_[n].double_negation_target
-                                    || node_ids_translation_[neg->node].unmodified
-                                    || node_ids_translation_[n].unmodified);
+                                    || node_ids_translation_[neg->node].unmodified);
                                 // the negated node only has double negation,
                                 // so it no longer exists in the result tree
                                 // get the target of the double negation
@@ -321,12 +320,8 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                                 // the negated node still exists because
                                 // another node refers to it, redirect to its
                                 // child.
-                                CELER_EXPECT(node_ids_translation_[neg->node].unmodified);
                                 return node_ids_translation_[neg->node].unmodified;
                             }());
-                            // either it has been simplified and no longer
-                            // exist or it still exist and we need to check its
-                            // child
                         }
                         else
                         {
