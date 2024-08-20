@@ -6,7 +6,6 @@
 //! \file orange/orangeinp/detail/DeMorganSimplifier.hh
 //---------------------------------------------------------------------------//
 #pragma once
-#include <unordered_set>
 #include <vector>
 
 #include "orange/orangeinp/CsgTree.hh"
@@ -83,6 +82,9 @@ class DeMorganSimplifier
         }
     };
 
+    // Row offset for the node in the parents_of matrix
+    NodeId::size_type node_offset(NodeId) const;
+
     // First pass to find negated set operations
     void find_join_negations();
 
@@ -108,10 +110,9 @@ class DeMorganSimplifier
     //! an opposite join node with negated operands
     std::vector<bool> negated_join_nodes_;
 
-    //! Set for orphan nodes which should not be present in the final
-    //! simplified tree. The node id can only be set for a Negated or a Joined
-    //! Node, other nodes should never become Orphans
-    std::vector<std::unordered_set<NodeId>> parents_of;
+    //! Parent matrix. For nodes n1, n2, if n1 * tree_.size() + n2 is set, it
+    //! means that n2 is a parent of n1
+    std::vector<bool> parents_of;
 
     //! Used during construction of the simplified tree to map replaced nodes
     //! in the original tree to their new id in the simplified tree

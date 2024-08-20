@@ -25,11 +25,22 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Poor man's mdspan, row offset for the given node. Because vector<bool>
+ * elements don't have a unique address, we can't return a pointer to the row
+ * for tha node, return the offset instead.
+ */
+NodeId::size_type DeMorganSimplifier::node_offset(NodeId node_id) const
+{
+    return node_id.get() * tree_.size();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct and fix bitset size.
  */
 DeMorganSimplifier::DeMorganSimplifier(CsgTree const& tree) : tree_(tree)
 {
-    parents_of.resize(tree_.size());
+    parents_of.resize(tree_.size() * tree_.size());
     new_negated_nodes_.resize(tree_.size());
     negated_join_nodes_.resize(tree_.size());
     node_ids_translation_.resize(tree_.size());
@@ -57,7 +68,8 @@ void DeMorganSimplifier::find_join_negations()
         std::visit(
             Overload{
                 [&](Negated const& negated) {
-                    parents_of[negated.node.get()].insert(node_id);
+                    parents_of[node_offset(negated.node) + node_id.get()]
+                        = true;
                     if (std::holds_alternative<Joined>(tree_[negated.node]))
                     {
                         // This is a Negated{Joined{...}}
@@ -69,7 +81,8 @@ void DeMorganSimplifier::find_join_negations()
                     // we found a new parent for each operand
                     for (auto const& join_operand : joined.nodes)
                     {
-                        parents_of[join_operand.get()].insert(node_id);
+                        parents_of[node_offset(join_operand) + node_id.get()]
+                            = true;
                     }
                 },
                 [&](Aliased const&) {
@@ -84,10 +97,13 @@ void DeMorganSimplifier::find_join_negations()
 
     // Volume nodes act as tags on a NodeId indicating that it is the root of a
     // volume, so these subtrees need to be preserved.
-    // Consider a "virtual" parent for these nodes
+    // Consider a "virtual" parent for these nodes.
+    // In CsgTree, the node 0 is always a true node and can therefore never be
+    // the parent of any node, so we reuse that bit in parents_of to indicate
+    // that the given node is referred to by a volume
     for (auto node_id : tree_.volumes())
     {
-        parents_of[node_id.get()].insert(NodeId{});
+        parents_of[node_offset(node_id)] = true;
     }
 }
 
@@ -262,12 +278,15 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                     return false;
                 }
 
-                auto& parents = parents_of[node_id.get()];
-                // root node, we must insert it
-                if (parents.empty())
+                auto const offset = node_offset(node_id);
+
+                // check if a volume points to that node,
+                // if this is the case, the node must be inserted
+                if (parents_of[offset])
                 {
                     return true;
                 }
+
                 // if the only parents of this node are
                 // 1. Negated node
                 // 2. Join node that have a negated parent, i.e., the Joined
@@ -276,25 +295,37 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                 // opposite join is enough
                 // --> if this node has at least one volume or non-negated join
                 // parent, we need to insert is
-                for (auto p : parents)
+                bool has_parent = false;
+                for (auto p : range(NodeId{2}, NodeId{tree_.size()}))
                 {
+                    // not a parent
+                    if (!parents_of[offset + p.get()])
+                        continue;
+
                     // !NodeId{} is used when a volume is a parent, we need to
                     // insert that node
-                    if (!p
-                        || (std::holds_alternative<Joined>(tree_[p])
-                            && this->should_insert_join(std::move(p))))
+                    if (std::holds_alternative<Joined>(tree_[p])
+                        && this->should_insert_join(p))
                     {
                         return true;
                     }
+                    has_parent |= parents_of[offset + p.get()];
                 }
-                // this node isn't inserted in the simplified tree because
-                // it would only have negated parents, redirect them to
-                // the target of the double negation
-                CELER_EXPECT(
-                    node_ids_translation_[negated.node.get()].unmodified);
-                node_ids_translation_[node_id.get()].double_negation_target
-                    = node_ids_translation_[negated.node.get()].unmodified;
-                return false;
+
+                if (has_parent)
+                {
+                    // this node isn't inserted in the simplified tree because
+                    // it would only have negated parents, redirect them to
+                    // the target of the double negation
+
+                    node_ids_translation_[node_id.get()].double_negation_target
+                        = node_ids_translation_[negated.node.get()].unmodified;
+                }
+
+                // root node, we must insert it
+                return !has_parent;
+
+
             },
             [&](Joined const& joined) {
                 // The current node is a Joined node, and we need to insert
@@ -375,40 +406,52 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
 bool DeMorganSimplifier::should_insert_join(NodeId node_id)
 {
     CELER_EXPECT(std::holds_alternative<Joined>(tree_[node_id]));
-    auto& parents = parents_of[node_id.get()];
-    // root node, we must insert it
-    if (parents.empty())
+
+    auto const offset = node_offset(node_id);
+
+    // this join node is referred by a volume, we must insert it
+    if (parents_of[offset])
     {
         return true;
     }
+
+    // root node, we must insert it
+
     // We must insert the original join node if one of the following is true
     // 1. It is pointed to directly by a volume
     // 2. It has a Join ancestor that is not negated
     // 3. It has a negated parent and that negated node has a negated join
     // parent (double negation of that join)
     auto has_negated_join_parent = [&](NodeId n) {
-        for (auto p : parents_of[n.get()])
+        for (auto p : range(NodeId{2}, NodeId{tree_.size()}))
         {
-            if (p && negated_join_nodes_[p.get()])
+            if (parents_of[node_offset(n) + p.get()]
+                && negated_join_nodes_[p.get()])
                 return true;
         }
         return false;
     };
-    for (auto p : parents)
+    bool has_parents = false;
+    for (auto p : range(NodeId{2}, NodeId{tree_.size()}))
     {
+        // not a parent
+        if (!parents_of[offset + p.get()])
+            continue;
+
         // !NodeId{} is used when a volume is a parent, we need to insert that
         // node
         // TODO: Is it really correct in all cases...
-        if (!p
-            || (std::holds_alternative<Joined>(tree_[p])
-                && this->should_insert_join(p))
+        if ((std::holds_alternative<Joined>(tree_[p])
+             && this->should_insert_join(p))
             || (std::holds_alternative<Negated>(tree_[p])
                 && has_negated_join_parent(p)))
         {
             return true;
         }
+        has_parents |= parents_of[offset + p.get()];
     }
-    return false;
+
+    return !has_parents;
 }
 
 //---------------------------------------------------------------------------//
