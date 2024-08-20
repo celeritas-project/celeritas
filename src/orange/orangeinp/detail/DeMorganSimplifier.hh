@@ -68,17 +68,14 @@ class DeMorganSimplifier
         NodeId simplified_to;
         // if a join node has been negated, this points to the opposite join
         NodeId opposite_join;
-        // if this is deleted because of a double negation, point to the node
-        // the double negation would simplify to
-        NodeId double_negation_target;
+
         // if we inserted a new negation of that node
         NodeId new_negation;
 
         //! Whether any node id is set
         explicit operator bool() const noexcept
         {
-            return simplified_to || opposite_join || double_negation_target
-                   || new_negation || unmodified;
+            return simplified_to || opposite_join || new_negation || unmodified;
         }
     };
 

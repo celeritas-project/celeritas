@@ -312,16 +312,6 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                     has_parent |= parents_of[offset + p.get()];
                 }
 
-                if (has_parent)
-                {
-                    // this node isn't inserted in the simplified tree because
-                    // it would only have negated parents, redirect them to
-                    // the target of the double negation
-
-                    node_ids_translation_[node_id.get()].double_negation_target
-                        = node_ids_translation_[negated.node.get()].unmodified;
-                }
-
                 // root node, we must insert it
                 return !has_parent;
             },
@@ -349,17 +339,8 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                         operands.push_back(
                             [&] {
                                 CELER_EXPECT(
-                                    node_ids_translation_[n.get()]
-                                        .double_negation_target
-                                    || node_ids_translation_[neg->node.get()]
-                                           .unmodified);
-                                // the negated node only has double negation,
-                                // so it no longer exists in the result tree
-                                // get the target of the double negation
-                                if (node_ids_translation_[n.get()]
-                                        .double_negation_target)
-                                    return node_ids_translation_[n.get()]
-                                        .double_negation_target;
+                                    node_ids_translation_[neg->node.get()]
+                                        .unmodified);
 
                                 // the negated node still exists because
                                 // another node refers to it, redirect to its
