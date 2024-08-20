@@ -37,36 +37,39 @@ class OrientedBoundingZone
     using StorageItems
         = Collection<T, Ownership::const_reference, MemSpace::native>;
 
-    using ObzReal3 = OrientedBoundingZoneRecord::Real3;
-    using ObzReal3Id = OrientedBoundingZoneRecord::Real3Id;
+    using FastReal3 = OrientedBoundingZoneRecord::Real3;
+    using FastReal3Id = OrientedBoundingZoneRecord::Real3Id;
+    using fast_real_3 = FastReal3::value_type;
 
-    struct Storage
+    struct StoragePointers
     {
-        StorageItems<ObzReal3> const* half_widths;
+        StorageItems<FastReal3> const* half_widths;
         StorageItems<TransformRecord> const* transforms;
         StorageItems<real_type> const* reals;
+
+        operator bool() const { return half_widths && transforms && reals; }
     };
     //!@}
 
   public:
     // Construct from inner/outer half-widths and a corresponding transform
     inline CELER_FUNCTION
-    OrientedBoundingZone(OrientedBoundingZoneRecord const* obz_record,
-                         Storage const* storage);
+    OrientedBoundingZone(OrientedBoundingZoneRecord const& obz_record,
+                         StoragePointers const& sp);
 
     // Calculate the safety distance for any position inside the outer box
-    inline CELER_FUNCTION real_type safety_distance_inside(Real3 pos);
+    inline CELER_FUNCTION real_type find_safety_inside(Real3 const& pos);
 
     // Calculate the safety distance for any position outside the inner box
-    inline CELER_FUNCTION real_type safety_distance_outside(Real3 pos);
+    inline CELER_FUNCTION real_type find_safety_outside(Real3 const& pos);
 
     // Determine the sense of position with respect to the bounding zone
     inline CELER_FUNCTION SignedSense calc_sense(Real3 const& pos);
 
   private:
     // >> DATA
-    OrientedBoundingZoneRecord const* obz_record_;
-    Storage const* storage_;
+    OrientedBoundingZoneRecord const& obz_record_;
+    StoragePointers const& sp_;
 
     //// HELPER METHODS ////
 
@@ -78,10 +81,10 @@ class OrientedBoundingZone
 
     // Determine if a translated position is inside a translated box
     inline CELER_FUNCTION bool
-    is_inside(Real3 const& trans_pos, ObzReal3 const& half_widths);
+    is_inside(Real3 const& trans_pos, FastReal3 const& half_widths);
 
     // Get half-widths for a given index
-    inline CELER_FUNCTION ObzReal3 get_hw(ObzReal3Id hw_id);
+    inline CELER_FUNCTION FastReal3 get_hw(FastReal3Id hw_id);
 };
 
 //---------------------------------------------------------------------------//
@@ -90,11 +93,11 @@ class OrientedBoundingZone
  */
 CELER_FUNCTION
 OrientedBoundingZone::OrientedBoundingZone(
-    OrientedBoundingZoneRecord const* obz_record, Storage const* storage)
-    : obz_record_(obz_record), storage_(storage)
+    OrientedBoundingZoneRecord const& obz_record, StoragePointers const& sp)
+    : obz_record_(obz_record), sp_(sp)
 {
-    CELER_EXPECT(*obz_record);
-    CELER_EXPECT(storage_);
+    CELER_EXPECT(obz_record_);
+    CELER_EXPECT(sp_);
 }
 
 //---------------------------------------------------------------------------//
@@ -111,30 +114,32 @@ OrientedBoundingZone::OrientedBoundingZone(
  * point on the outer box. This is calculated by finding the minimum of the
  * distances to each half width.
  */
-CELER_FUNCTION real_type OrientedBoundingZone::safety_distance_inside(Real3 pos)
+CELER_FUNCTION real_type
+OrientedBoundingZone::find_safety_inside(Real3 const& pos)
 {
     CELER_EXPECT(this->calc_sense(pos) != SignedSense::outside);
 
     auto trans_pos = this->quadrant_zero(this->translate(pos));
 
-    // Case 1
-    if (!this->is_inside(trans_pos, this->get_hw(obz_record_->inner_hw_id)))
+    if (!this->is_inside(trans_pos, this->get_hw(obz_record_.inner_hw_id)))
     {
+        // Case 1: between inner and outer boxes
         return 0;
     }
 
-    // Case 2
-    auto outer_hw = this->get_hw(obz_record_->outer_hw_id);
+    // Case 2: outside outer box
+    auto outer_hw = this->get_hw(obz_record_.outer_hw_id);
 
-    real_type min_dist = numeric_limits<real_type>::infinity();
+    fast_real_type min_dist = numeric_limits<real_type>::infinity();
     for (auto ax : range(Axis::size_))
     {
         min_dist = celeritas::min(
             min_dist,
-            static_cast<real_type>(outer_hw[int(ax)]) - trans_pos[to_int(ax)]);
+            outer_hw[int(ax)]
+                - static_cast<fast_real_type>(trans_pos[to_int(ax)]));
     }
 
-    return min_dist;
+    return static_cast<real_type>(min_dist);
 }
 
 //---------------------------------------------------------------------------//
@@ -157,30 +162,31 @@ CELER_FUNCTION real_type OrientedBoundingZone::safety_distance_inside(Real3 pos)
  * for a point in quadrant zero at (\em p_x, \em p_y, \em p_z) and a box with
  * half-widths (\em h_x, \em h_y, \em h_z).
  */
-CELER_FUNCTION real_type OrientedBoundingZone::safety_distance_outside(Real3 pos)
+CELER_FUNCTION real_type
+OrientedBoundingZone::find_safety_outside(Real3 const& pos)
 {
     CELER_EXPECT(this->calc_sense(pos) != SignedSense::inside);
 
     auto trans_pos = this->quadrant_zero(this->translate(pos));
-    auto outer_hw = this->get_hw(obz_record_->outer_hw_id);
+    auto outer_hw = this->get_hw(obz_record_.outer_hw_id);
 
-    // Case 1
     if (this->is_inside(trans_pos, outer_hw))
     {
+        // Case 1: between inner and outer boxes
         return 0;
     }
 
-    // Case 2
-    auto inner_hw = this->get_hw(obz_record_->inner_hw_id);
+    // Case 2: outside outer box
+    auto inner_hw = this->get_hw(obz_record_.inner_hw_id);
 
-    real_type min_squared = 0;
+    fast_real_type min_squared = 0;
     for (auto ax : range(Axis::size_))
     {
-        auto temp = celeritas::max(
-            real_type{0},
-            trans_pos[to_int(ax)]
-                - static_cast<real_type>(inner_hw[to_int(ax)]));
-        min_squared += temp * temp;
+        auto temp
+            = celeritas::max(fast_real_type{0},
+                             static_cast<fast_real_type>(trans_pos[to_int(ax)])
+                                 - inner_hw[to_int(ax)]);
+        min_squared += ipow<2>(temp);
     }
 
     return sqrt(min_squared);
@@ -197,11 +203,11 @@ CELER_FUNCTION SignedSense OrientedBoundingZone::calc_sense(Real3 const& pos)
 {
     auto trans_pos = this->translate(pos);
 
-    if (this->is_inside(trans_pos, this->get_hw(obz_record_->inner_hw_id)))
+    if (this->is_inside(trans_pos, this->get_hw(obz_record_.inner_hw_id)))
     {
         return SignedSense::inside;
     }
-    else if (this->is_inside(trans_pos, this->get_hw(obz_record_->outer_hw_id)))
+    else if (this->is_inside(trans_pos, this->get_hw(obz_record_.outer_hw_id)))
     {
         return SignedSense::on;
     }
@@ -220,10 +226,10 @@ CELER_FUNCTION SignedSense OrientedBoundingZone::calc_sense(Real3 const& pos)
 CELER_FUNCTION Real3 OrientedBoundingZone::translate(Real3 const& pos)
 {
     Real3 trans_pos;
-    TransformVisitor apply_transform(*storage_->transforms, *storage_->reals);
+    TransformVisitor apply_transform(*sp_.transforms, *sp_.reals);
     auto transform_down
         = [&pos, &trans_pos](auto&& t) { trans_pos = t.transform_down(pos); };
-    apply_transform(transform_down, obz_record_->transform_id);
+    apply_transform(transform_down, obz_record_.transform_id);
 
     return trans_pos;
 }
@@ -237,7 +243,7 @@ CELER_FUNCTION Real3 OrientedBoundingZone::quadrant_zero(Real3 const& pos)
     Real3 temp;
     for (auto ax : range(Axis::size_))
     {
-        temp[to_int(ax)] = fabs(pos[to_int(ax)]);
+        temp[to_int(ax)] = std::fabs(pos[to_int(ax)]);
     }
 
     return temp;
@@ -247,15 +253,16 @@ CELER_FUNCTION Real3 OrientedBoundingZone::quadrant_zero(Real3 const& pos)
 /*!
  * Determine if a translated position is inside a translated box.
  *
- * The box is assumed to have the translation of obz_record_->transform_id with
+ * The box is assumed to have the translation of obz_record_.transform_id with
  * the given half-widths.
  *
  * This function takes a position that has already been translated into the
  * local coordinate system of the OBZ to prevent cases where translations
  * are performed multiple times for the same given point.
  */
-CELER_FUNCTION bool OrientedBoundingZone::is_inside(Real3 const& trans_pos,
-                                                    ObzReal3 const& half_widths)
+CELER_FUNCTION bool
+OrientedBoundingZone::is_inside(Real3 const& trans_pos,
+                                FastReal3 const& half_widths)
 {
     for (auto ax : range(Axis::size_))
     {
@@ -272,10 +279,11 @@ CELER_FUNCTION bool OrientedBoundingZone::is_inside(Real3 const& trans_pos,
 /*!
  * Get half-widths for a given index.
  */
-CELER_FUNCTION OrientedBoundingZone::ObzReal3
-OrientedBoundingZone::get_hw(ObzReal3Id hw_id)
+CELER_FUNCTION OrientedBoundingZone::FastReal3
+OrientedBoundingZone::get_hw(FastReal3Id hw_id)
 {
-    return (*storage_->half_widths)[hw_id];
+    CELER_EXPECT(hw_id < sp_.half_widths->size());
+    return (*sp_.half_widths)[hw_id];
 }
 
 //---------------------------------------------------------------------------//
