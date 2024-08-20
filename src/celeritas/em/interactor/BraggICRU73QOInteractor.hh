@@ -178,8 +178,8 @@ CELER_FUNCTION Interaction BraggICRU73QOInteractor::operator()(Engine& rng)
  *
  * TODO: Duplicated in \c MuBetheBlochInteractor.
  */
-CELER_FUNCTION auto BraggICRU73QOInteractor::calc_max_secondary_energy() const
-    -> Energy
+CELER_FUNCTION auto
+BraggICRU73QOInteractor::calc_max_secondary_energy() const -> Energy
 {
     real_type mass_ratio = value_as<Mass>(electron_mass_)
                            / value_as<Mass>(inc_mass_);

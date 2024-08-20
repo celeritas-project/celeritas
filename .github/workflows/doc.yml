@@ -83,7 +83,9 @@ jobs:
           cmake \
             -DCELERITAS_BUILD_DOCS=ON \
             -DDOXYGEN_HAVE_DOT="NO" \
-            -DDOXYGEN_WARN_AS_ERROR="YES" \
+            ${{ github.workflow == 'pr'
+             && '-DDOXYGEN_WARN_AS_ERROR="YES" -DCELERITAS_SPHINX_USER_HTML_ARGS="-W;--keep-going"'
+             || ''}} \
             -GNinja ..
       - name: Build user documentation
         working-directory: build

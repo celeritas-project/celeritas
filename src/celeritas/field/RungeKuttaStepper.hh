@@ -11,6 +11,7 @@
 #include "corecel/math/Algorithms.hh"
 
 #include "Types.hh"
+
 #include "detail/FieldUtils.hh"
 
 namespace celeritas
@@ -29,7 +30,7 @@ namespace celeritas
  * time and spin. For N-variables (\em i = 1, ... N), the right hand side of
  * the equation
  * \f[
- *  \frac{\dif y_{i}}{\dif s} = f_i (s, y_{i})
+ *  \difd{y_{i}}{s} = f_i (s, y_{i})
  * \f]
  * and the fouth order Runge-Kutta solution for a given step size, \em h is
  * \f[
@@ -89,8 +90,8 @@ CELER_FUNCTION RungeKuttaStepper(EquationT&&) -> RungeKuttaStepper<EquationT>;
  */
 template<class E>
 CELER_FUNCTION auto
-RungeKuttaStepper<E>::operator()(real_type step, OdeState const& beg_state) const
-    -> result_type
+RungeKuttaStepper<E>::operator()(real_type step,
+                                 OdeState const& beg_state) const -> result_type
 {
     using celeritas::axpy;
     real_type half_step = step / real_type(2);

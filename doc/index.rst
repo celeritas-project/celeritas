@@ -40,32 +40,165 @@ simulations of the CMS and ATLAS detectors.
    :Release: |release|
    :Date: |today|
 
+.. ***************************************************************************
+
+.. _introduction:
+
+************
+Introduction
+************
+
+New projects in High Energy Physics (HEP) and upgrades to existing ones promise
+new discoveries but at the cost of increased hardware complexity and data
+readout rates. Deducing new physics from detector readouts requires a
+proportional increase in computational resources. The High Luminosity Large
+Hadron Collider (HL-LHC) detectors will require more computational resources
+than are available with traditional CPU-based computing grids. For example, the
+CMS collaboration forecasts :cite:`2021-CMS-Offline` that when the upgrade is
+brought online, computational resource requirements will exceed availability by
+more than a factor of two, about 40% of which is Monte Carlo (MC) detector
+simulation, without substantial research and development improvements.
+
+Celeritas [#celeritas_vers]_ is a new MC particle transport code designed for
+high performance simulation of complex HEP detectors on GPU-accelerated
+hardware.  Its immediate goal is to simulate electromagnetic (EM) physics for
+HL-LHC detectors with no loss in fidelity, acting as a plugin to accelerate
+existing Geant4 :cite:`Geant4` workflows by "offloading" selected particles to
+Celeritas to transport on GPU.
+
+.. [#celeritas_vers] This documentation is generated from Celeritas |release|.
+
 .. toctree::
    :maxdepth: 2
-   :caption: Contents
+   :caption: Getting started
 
-   main/introduction.rst
-   main/overview.rst
-   main/installation.rst
-   main/usage.rst
-   main/api.rst
-   main/examples.rst
-   main/references.rst
-   main/acknowledgments.rst
+   introduction/overview.rst
+   introduction/installation.rst
+   introduction/usage.rst
+
+.. ***************************************************************************
+
+.. _api:
+
+**************
+Implementation
+**************
+
+.. only:: nobreathe
+
+   .. note:: The breathe_ extension was not used when building this version of
+      the documentation. The API documentation will not be rendered below.
+
+   .. _breathe: https://github.com/michaeljones/breathe#readme
+
+The bulk of Celeritas' code is in several code libraries to be used by external
+users and application developers.  Currently, the most stable and user-ready
+component of Celeritas is its :ref:`api_g4_interface` for offloading. This
+section has two audiences:
+
+- high-level developers, particularly those who might want to write a new
+  physics code; and
+- external users of Celeritas as a library for integration into a Geant4
+  application.
+
+Cursory documentation for many of the classes and other data constructs are
+described in this user manual, but further details for developers can be found
+in the full Doxygen-generated `developer documentation`_.
+
+.. _developer documentation: https://celeritas-project.github.io/celeritas/dev/index.html
+
+The Celeritas codebase lives under the ``src/`` directory and is partitioned
+into several libraries of increasing complexity:
+``corecel`` for GPU/CPU abstractions,
+``geocel`` for geometry interfaces and wrappers to external libraries,
+``orange`` for the ORANGE platform-portable geometry implementation,
+``celeritas`` for the GPU implementation of physics and MC particle tracking,
+and
+``accel`` for the Geant4 integration library.
+
+Additional top-level files provide access to version and
+configuration attributes.
+
+.. note::
+   When building Celeritas, regardless of the configured :ref:`dependencies
+   <Dependencies>`, all of the documented API code in ``corecel``, ``orange``,
+   and ``celeritas`` (except possibly headers ending in ``.json.hh``,
+   ``.device.hh``, etc.) will compile and can link to downstream code. However,
+   some classes will throw ``celeritas::RuntimeError`` if they lack the required
+   functionality.
+
+   If Geant4 is disabled, the ``accel`` library will not be built or installed,
+   because every component of that library requires Geant4.
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Implementation details
+
+   implementation/corecel.rst
+   implementation/data-model.rst
+   implementation/orange.rst
+   implementation/units-constants.rst
+   implementation/core-physics.rst
+   implementation/em-physics.rst
+   implementation/optical-physics.rst
+   implementation/geant4-interface.rst
+
+
+.. ***************************************************************************
+
+.. _development:
+
+*****************
+Development Guide
+*****************
+
+The agility, extensibility, and performance of Celeritas depend strongly on
+software infrastructure and best practices. This section describes how to
+modify and extend the codebase.
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Development
+
+   development/contributing.rst
+   development/coding.rst
+   development/style.rst
+   development/testing.rst
+
+.. ***************************************************************************
+
+.. _examples:
+
+********
+Examples
+********
+
+A few standalone codes demonstrate how to use Celeritas as an app and as a
+library, in independent and Geant4-integrated contexts.
+
+.. todo::
+   This section is not yet complete.
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Examples
+
+   example/minimal.rst
+   example/geant4.rst
+   example/celer-sim.rst
+   example/celer-g4.rst
+   example/celer-geo.rst
 
 .. ***************************************************************************
 .. APPENDICES
 .. ***************************************************************************
 
-.. raw:: latex
-
-   \appendix
-
 .. toctree::
    :maxdepth: 2
    :caption: Appendices
 
+   backmatter/acknowledgments.rst
+   backmatter/references.rst
    appendix/release-history.rst
-   appendix/development.rst
    appendix/administration.rst
    appendix/license.rst

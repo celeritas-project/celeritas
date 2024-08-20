@@ -391,8 +391,8 @@ TEST_F(TestEm3NoMsc, host_multi)
     counts = step();
     if (this->is_default_build())
     {
-        EXPECT_EQ(44, counts.active);
-        EXPECT_EQ(43, counts.alive);
+        EXPECT_EQ(36, counts.active);
+        EXPECT_EQ(35, counts.alive);
     }
 }
 

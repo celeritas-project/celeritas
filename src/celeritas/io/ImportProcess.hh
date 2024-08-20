@@ -80,17 +80,24 @@ enum class ImportProcessClass
 /*!
  * Store physics process data.
  *
- * \note
- * \c ImportPhysicsTable is process and type (lambda, dedx, and so
+ * \note \c ImportPhysicsTable is process and type (lambda, dedx, and so
  * on) dependent, with each table type including physics vectors for all
  * materials. Therefore, the physics vector of a given material is retrieved
  * by finding the appropriate \c table_type in the \c tables vector and
  * selecting the material: \c table.physics_vectors.at(material_id) .
+ *
+ * \todo remove \c secondary_pdg , rename \c particle_pdg to just \c pdg, also
+ * in \c ImportMscModel
  */
 struct ImportProcess
 {
-    int particle_pdg{0};
-    int secondary_pdg{0};
+    //!@{
+    //! \name Type aliases
+    using PdgInt = int;
+    //!@}
+
+    PdgInt particle_pdg{0};
+    PdgInt secondary_pdg{0};
     ImportProcessType process_type{ImportProcessType::size_};
     ImportProcessClass process_class{ImportProcessClass::size_};
     std::vector<ImportModel> models;

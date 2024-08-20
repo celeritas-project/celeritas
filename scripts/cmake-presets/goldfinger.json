@@ -14,6 +14,7 @@
         "CELERITAS_USE_HIP":     {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_MPI":     {"type": "BOOL",   "value": "OFF"},
+        "CELERITAS_USE_OpenMP":  {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_USE_ROOT":    {"type": "BOOL",   "value": "ON"},
         "CELERITAS_USE_SWIG":    {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "OFF"},
@@ -25,7 +26,7 @@
         "CMAKE_FIND_FRAMEWORK": {"type": "STRING", "value": "LAST"},
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-${presetName}",
         "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fno-inline -fno-omit-frame-pointer",
-        "CMAKE_CXX_FLAGS": "-Wall -Wextra -Werror -Wno-error=deprecated -pedantic -fdiagnostics-color=always"
+        "CMAKE_CXX_FLAGS": "-Wall -Wextra -Werror -Wno-error=deprecated -pedantic -fdiagnostics-color=always -ffile-prefix-map=${sourceDir}/=./"
       }
     },
     {
@@ -44,7 +45,8 @@
       "inherits": [".base", ".debug", "default"],
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
-        "CELERITAS_USE_SWIG":    {"type": "BOOL",   "value": "ON"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL",   "value": "OFF"},
+        "CMAKE_CXX_COMPILER_LAUNCHER": "/opt/homebrew/bin/ccache",
         "CMAKE_SWIG_CXX_FLAGS": "-Wno-unused-parameter;-Wno-deprecated-declarations",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install"
       }

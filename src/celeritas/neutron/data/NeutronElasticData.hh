@@ -70,7 +70,7 @@ struct NeutronElasticData
     units::MevMass neutron_mass;
 
     //! Microscopic (element) cross section data (G4PARTICLEXS/neutron/elZ)
-    ElementItems<GenericGridData> micro_xs;
+    ElementItems<GenericGridRecord> micro_xs;
 
     //! A-dependent coefficients for the momentum transfer of the CHIPS model
     IsotopeItems<ChipsDiffXsCoefficients> coeffs;

@@ -25,15 +25,20 @@ namespace celeritas
  *   235-245
  * and described in the Geant Physics Reference Manual [PRM] (Release 1.11)
  * section 8.4.
+ *
+ * The parameter cos_theta is the cosine of the
+ * scattered angle in the z-aligned momentum frame.
+ *
+ * For 1 <= Z <= 92, an interpolated expression is used [PRM 8.48].
  */
 class MottRatioCalculator
 {
   public:
-    //! Construct with state data
+    // Construct with state data
     inline CELER_FUNCTION
     MottRatioCalculator(MottElementData const& element_data, real_type beta);
 
-    //! Ratio of Mott and Rutherford cross sections
+    // Ratio of Mott and Rutherford cross sections
     inline CELER_FUNCTION real_type operator()(real_type cos_t) const;
 
   private:
@@ -58,11 +63,6 @@ MottRatioCalculator::MottRatioCalculator(MottElementData const& element_data,
 //---------------------------------------------------------------------------//
 /*!
  * Compute the ratio of Mott to Rutherford cross sections.
- *
- * The parameter cos_theta is the cosine of the
- * scattered angle in the z-aligned momentum frame.
- *
- * For 1 <= Z <= 92, an interpolated expression is used [PRM 8.48].
  */
 CELER_FUNCTION
 real_type MottRatioCalculator::operator()(real_type cos_theta) const

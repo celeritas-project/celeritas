@@ -86,6 +86,7 @@ if celer_config['options']['breathe']:
         breathe_default_project: build_dir / 'xml'
     }
     breathe_default_members = ()
+    breathe_show_include = False
     breathe_domain_by_extension = {
         "h": "cpp",
         "hh": "cpp",
@@ -145,9 +146,11 @@ if html_theme == 'alabaster':
     }
 
 mathjax3_config = {
+    # See _static/macros.tex
     "tex": {
         "macros": {
             "dif": r"\;\mathrm{d}",
+            "difd": [r"\frac{\mathrm{d}#1}{\mathrm{d}#2}", 2],
         },
     },
     "loader": {"load": ["ui/lazy", "output/svg"]},

@@ -7,8 +7,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <numeric>
+#include <vector>
+
 #include "Collection.hh"
 #include "Copier.hh"
+
 #include "detail/Filler.hh"
 
 namespace celeritas
@@ -25,6 +29,23 @@ void fill(T&& value, Collection<T, W, M, I>* col)
     CELER_EXPECT(col);
     detail::Filler<T, M> fill_impl{value};
     fill_impl((*col)[AllItems<T, M>{}]);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Fill the collection with sequentially increasing values starting from zero.
+ */
+template<class T, Ownership W, MemSpace M, class I>
+void fill_sequence(Collection<T, W, M, I>* dst, StreamId stream)
+{
+    static_assert(W != Ownership::const_reference,
+                  "const references cannot be filled");
+    CELER_EXPECT(dst);
+
+    std::vector<T> src(dst->size());
+    std::iota(src.begin(), src.end(), T{0});
+    Copier<T, M> copy{(*dst)[AllItems<T, M>{}], stream};
+    copy(MemSpace::host, make_span(src));
 }
 
 //---------------------------------------------------------------------------//

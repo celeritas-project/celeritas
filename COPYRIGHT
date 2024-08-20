@@ -20,3 +20,12 @@ Files that are dual-licensed as Apache-2.0 OR MIT contain the following
 text in the license header:
 
     SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+
+Software derived from external sources used in Celeritas
+--------------------------------------------------------
+
+Certain files in Celeritas are derived from external projects. The top of each
+such file contains the attribution, the license's SPDX identifier, and a link
+to the license. Full copies of the licenses are included in the online user
+documentation.

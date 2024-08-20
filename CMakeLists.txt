@@ -490,7 +490,7 @@ elseif(CELERITAS_USE_HIP)
   find_library(ROCTX_LIBRARY roctx64)
   if(ROCTX_LIBRARY)
     set(CELERITAS_HAVE_ROCTX ON)
-    target_link_libraries(celeritas_device_toolkit INTERFACE ${ROCTX_LIBRARY})
+    target_link_libraries(celeritas_device_toolkit INTERFACE "${ROCTX_LIBRARY}")
   endif()
   if(NOT BUILD_SHARED_LIBS)
     # Downstream libs don't link against correct HIP dependencies when using
@@ -509,6 +509,24 @@ endif()
 install(TARGETS celeritas_device_toolkit
   EXPORT celeritas-targets
 )
+
+#----------------------------------------------------------------------------#
+if(NOT DEFINED CELERITAS_SINCOSPI_PREFIX)
+  foreach(_prefix "__" "_" "")
+    try_compile(CELERITAS_TRY_${_prefix}SINCOSPI
+      # NOTE: the line below is required for CMake < 3.25
+      "${CMAKE_BINARY_DIR}/CMakeFiles/CMakeScratch/sincospi${_prefix}"
+      SOURCES "${PROJECT_SOURCE_DIR}/cmake/try-sincospi.cc"
+      COMPILE_DEFINITIONS "-DCELERITAS_SINCOSPI_PREFIX=${_prefix}"
+    )
+    if(CELERITAS_TRY_${_prefix}SINCOSPI)
+      set(CELERITAS_SINCOSPI_PREFIX "${_prefix}" CACHE INTERNAL
+        "Prefix for compiler-provided sincospi and related functions"
+      )
+      break()
+    endif()
+  endforeach()
+endif()
 
 #----------------------------------------------------------------------------#
 # Add the main libraries
