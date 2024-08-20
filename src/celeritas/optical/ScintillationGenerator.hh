@@ -62,7 +62,7 @@ class ScintillationGenerator
     ScintillationGenerator(GeneratorDistributionData const& dist,
                            NativeCRef<ScintillationData> const& shared);
 
-    // Sample Scintillation photons from the distribution
+    // Sample a single photon from the distribution
     template<class Generator>
     inline CELER_FUNCTION Primary operator()(Generator& rng);
 
@@ -119,7 +119,7 @@ ScintillationGenerator::ScintillationGenerator(
 
 //---------------------------------------------------------------------------//
 /*!
- * Perform the sample.
+ * Sample a single scintillation photon.
  */
 template<class Generator>
 CELER_FUNCTION Primary ScintillationGenerator::operator()(Generator& rng)
@@ -136,8 +136,8 @@ CELER_FUNCTION Primary ScintillationGenerator::operator()(Generator& rng)
         return shared_.scint_records[mat.components[component_idx]];
     }();
 
-    // Sample photons for each scintillation component, reusing the "spare"
-    // value that the lambda sampler has
+    // Sample a photon for a single scintillation component, reusing the
+    // "spare" value that the wavelength sampler might have stored
     sample_lambda_
         = NormalDistribution{component.lambda_mean, component.lambda_sigma};
     ExponentialDist sample_time(real_type{1} / component.fall_time);
