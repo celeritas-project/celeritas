@@ -39,7 +39,7 @@ class OrientedBoundingZone
 
     using FastReal3 = OrientedBoundingZoneRecord::Real3;
     using FastReal3Id = OrientedBoundingZoneRecord::Real3Id;
-    using fast_real_3 = FastReal3::value_type;
+    using fast_real_type = FastReal3::value_type;
 
     struct StoragePointers
     {
@@ -58,10 +58,10 @@ class OrientedBoundingZone
                          StoragePointers const& sp);
 
     // Calculate the safety distance for any position inside the outer box
-    inline CELER_FUNCTION real_type find_safety_inside(Real3 const& pos);
+    inline CELER_FUNCTION real_type calc_safety_inside(Real3 const& pos);
 
     // Calculate the safety distance for any position outside the inner box
-    inline CELER_FUNCTION real_type find_safety_outside(Real3 const& pos);
+    inline CELER_FUNCTION real_type calc_safety_outside(Real3 const& pos);
 
     // Determine the sense of position with respect to the bounding zone
     inline CELER_FUNCTION SignedSense calc_sense(Real3 const& pos);
@@ -69,7 +69,7 @@ class OrientedBoundingZone
   private:
     // >> DATA
     OrientedBoundingZoneRecord const& obz_record_;
-    StoragePointers const& sp_;
+    StoragePointers sp_;
 
     //// HELPER METHODS ////
 
@@ -115,7 +115,7 @@ OrientedBoundingZone::OrientedBoundingZone(
  * distances to each half width.
  */
 CELER_FUNCTION real_type
-OrientedBoundingZone::find_safety_inside(Real3 const& pos)
+OrientedBoundingZone::calc_safety_inside(Real3 const& pos)
 {
     CELER_EXPECT(this->calc_sense(pos) != SignedSense::outside);
 
@@ -163,7 +163,7 @@ OrientedBoundingZone::find_safety_inside(Real3 const& pos)
  * half-widths (\em h_x, \em h_y, \em h_z).
  */
 CELER_FUNCTION real_type
-OrientedBoundingZone::find_safety_outside(Real3 const& pos)
+OrientedBoundingZone::calc_safety_outside(Real3 const& pos)
 {
     CELER_EXPECT(this->calc_sense(pos) != SignedSense::inside);
 
