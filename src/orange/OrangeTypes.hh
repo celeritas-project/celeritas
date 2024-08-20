@@ -102,8 +102,13 @@ enum class Sense : bool
 /*!
  * Enumeration for mapping surface classes to integers.
  *
- * These are ordered by number of coefficients needed for their representation:
- * 1 for `p.|sc|c.c`, 3 for `c.`, 4 for `[ps]|k.`, 7 for `sq`, and 10 for `gq`.
+ * These are ordered roughly by complexity. The storage requirement for
+ * corresponding surfaces are:
+ * - 1 for `p.|sc|c.c`,
+ * - 3 for `c.`,
+ * - 4 for `[ps]|k.`,
+ * - 7 for `sq`, and
+ * - 10 for `gq`.
  *
  * See \c orange/surf/SurfaceTypeTraits.hh for how these map to classes.
  */
@@ -124,9 +129,9 @@ enum class SurfaceType : unsigned char
     kx,  //!< Cone parallel to X axis
     ky,  //!< Cone parallel to Y axis
     kz,  //!< Cone parallel to Z axis
-    inv,  //!< Involute
     sq,  //!< Simple quadric
     gq,  //!< General quadric
+    inv,  //!< Involute
     size_  //!< Sentinel value for number of surface types
 };
 

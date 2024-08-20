@@ -131,15 +131,6 @@ ORANGE_INSTANTIATE_OP(GeneralQuadric, ConeAligned);
 
 //---------------------------------------------------------------------------//
 /*!
- * Transform an Involute.
- */
-Involute SurfaceTransformer::operator()(Involute const&) const
-{
-    CELER_NOT_IMPLEMENTED("transformed involutes");
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Transform a simple quadric.
  */
 GeneralQuadric SurfaceTransformer::operator()(SimpleQuadric const& other) const
@@ -224,6 +215,15 @@ GeneralQuadric SurfaceTransformer::operator()(GeneralQuadric const& other) const
         {2 * qprime[1][2], 2 * qprime[2][3], 2 * qprime[1][3]},
         {2 * qprime[0][1], 2 * qprime[0][2], 2 * qprime[0][3]},
         qprime[0][0]);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Transform an Involute.
+ */
+Involute SurfaceTransformer::operator()(Involute const&) const
+{
+    CELER_NOT_IMPLEMENTED("transformed involutes");
 }
 
 //---------------------------------------------------------------------------//

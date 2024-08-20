@@ -66,11 +66,11 @@ class SurfaceClipper
     template<Axis T>
     void operator()(ConeAligned<T> const&) const;
 
-    void operator()(Involute const&) const;
-
     void operator()(SimpleQuadric const&) const;
 
     void operator()(GeneralQuadric const&) const;
+
+    void operator()(Involute const&) const;
 
     // Apply to a surface with unknown type
     void operator()(VariantSurface const& surf) const;

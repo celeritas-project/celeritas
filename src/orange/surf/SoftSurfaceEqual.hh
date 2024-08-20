@@ -69,11 +69,11 @@ class SoftSurfaceEqual
     template<Axis T>
     bool operator()(ConeAligned<T> const&, ConeAligned<T> const&) const;
 
-    bool operator()(Involute const&, Involute const&) const;
-
     bool operator()(SimpleQuadric const&, SimpleQuadric const&) const;
 
     bool operator()(GeneralQuadric const&, GeneralQuadric const&) const;
+
+    bool operator()(Involute const&, Involute const&) const;
 
   private:
     SoftEqual<> soft_eq_;

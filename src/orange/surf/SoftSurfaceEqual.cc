@@ -86,20 +86,6 @@ ORANGE_INSTANTIATE_OP(CylAligned);
 
 //---------------------------------------------------------------------------//
 /*!
- * Compare two centered involutes for near equality.
- */
-bool SoftSurfaceEqual::operator()(Involute const& a, Involute const& b) const
-{
-    return this->soft_eq_(a.r_b(), b.r_b())
-           && this->soft_eq_(a.displacement_angle(), b.displacement_angle())
-           && a.sign() == b.sign() && this->soft_eq_(a.tmin(), b.tmin())
-           && this->soft_eq_(a.tmax(), b.tmax())
-           && this->soft_eq_distance({a.origin()[0], a.origin()[1], 0},
-                                     {b.origin()[0], b.origin()[1], 0});
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Compare two planes for near equality.
  *
  * Consider two planes with normals \em a and \em b , without loss of
@@ -211,6 +197,20 @@ bool SoftSurfaceEqual::operator()(GeneralQuadric const& a,
            && this->soft_eq_distance(make_array(a.first()),
                                      make_array(b.first()))
            && soft_eq_(a.zeroth(), b.zeroth());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Compare two centered involutes for near equality.
+ */
+bool SoftSurfaceEqual::operator()(Involute const& a, Involute const& b) const
+{
+    return this->soft_eq_(a.r_b(), b.r_b())
+           && this->soft_eq_(a.displacement_angle(), b.displacement_angle())
+           && a.sign() == b.sign() && this->soft_eq_(a.tmin(), b.tmin())
+           && this->soft_eq_(a.tmax(), b.tmax())
+           && this->soft_eq_distance({a.origin()[0], a.origin()[1], 0},
+                                     {b.origin()[0], b.origin()[1], 0});
 }
 
 //---------------------------------------------------------------------------//

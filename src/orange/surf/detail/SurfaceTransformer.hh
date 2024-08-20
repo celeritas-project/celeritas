@@ -49,11 +49,11 @@ class SurfaceTransformer
     template<Axis T>
     GeneralQuadric operator()(ConeAligned<T> const&) const;
 
-    Involute operator()(Involute const&) const;
-
     GeneralQuadric operator()(SimpleQuadric const&) const;
 
     GeneralQuadric operator()(GeneralQuadric const&) const;
+
+    Involute operator()(Involute const&) const;
 
   private:
     Transformation tr_;
