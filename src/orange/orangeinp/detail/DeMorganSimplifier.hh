@@ -77,6 +77,8 @@ class DeMorganSimplifier
         {
             return simplified_to || opposite_join || new_negation || unmodified;
         }
+
+        NodeId equivalent_node() const;
     };
 
     // Row offset for the node in the parents_of matrix

@@ -25,6 +25,20 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
+ * For node_id in the original tree, find the equivalent node in the simplified
+ * tree, i.e., either the DeMorgan simplification or the same node, return an
+ * invalid id if there are no equivalent.
+ */
+NodeId DeMorganSimplifier::MatchingNodes::equivalent_node() const
+{
+    if (simplified_to)
+        return simplified_to;
+    if (unmodified)
+        return unmodified;
+    return {};
+}
+//---------------------------------------------------------------------------//
+/*!
  * Poor man's mdspan, row offset for the given node. Because vector<bool>
  * elements don't have a unique address, we can't return a pointer to the row
  * for tha node, return the offset instead.
@@ -188,16 +202,9 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
                         // if the node has been simplified, insert the
                         // simplification, otherwise retrieve the new id
                         // of the same node
-                        auto& trans = node_ids_translation_[op.get()];
-                        if (trans.simplified_to)
-                        {
-                            op = trans.simplified_to;
-                        }
-                        else
-                        {
-                            CELER_EXPECT(trans.unmodified);
-                            op = trans.unmodified;
-                        }
+                        CELER_EXPECT(
+                            node_ids_translation_[op.get()].equivalent_node());
+                        op = node_ids_translation_[op.get()].equivalent_node();
                     }
                 },
                 // other nodes don't have children
@@ -228,19 +235,9 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
         // new tree.
         // This is not always the exact same node, e.g., if the volume
         // points to a negated join, it will still be simplified
-        auto& trans = node_ids_translation_[volume.get()];
-
-        // if the node has been simplified, insert the simplification,
-        // otherwise retrieve the new id of the same node
-        if (trans.simplified_to)
-        {
-            result.insert_volume(trans.simplified_to);
-        }
-        else
-        {
-            CELER_EXPECT(trans.unmodified);
-            result.insert_volume(trans.unmodified);
-        }
+        CELER_EXPECT(node_ids_translation_[volume.get()].equivalent_node());
+        result.insert_volume(
+            node_ids_translation_[volume.get()].equivalent_node());
     }
 
     return result;
