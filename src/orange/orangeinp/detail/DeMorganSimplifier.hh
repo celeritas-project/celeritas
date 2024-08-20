@@ -87,9 +87,6 @@ class DeMorganSimplifier
     // First pass to find negated set operations
     void find_join_negations();
 
-    // Declare a Negated node with a Joined child
-    void record_join_negation(NodeId);
-
     // Declare negated nodes to add in the simplified tree
     void add_negation_for_operands(NodeId);
 
