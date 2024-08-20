@@ -46,11 +46,11 @@ class DeMorganSimplifier
   private:
     //! CsgTree node 0 is always True{} and can't be the parent of any node
     //! so reuse that bit to tell that a given node is a volume
-    static inline auto is_volume_index{NodeId{0}};
+    static constexpr auto is_volume_index{NodeId{0}};
     //! CsgTree node 1 is always a Negated node parent of node 0, so we can
     //! reuse that bit to tell if a node has a parent as it's never set for
     //! node id >= 2
-    static inline auto has_parents_index{NodeId{1}};
+    static constexpr auto has_parents_index{NodeId{1}};
 
     //! Helper struct to translate ids from the original tree to ids in the
     //! simplified tree
