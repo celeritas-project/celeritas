@@ -6,6 +6,8 @@
 //! \file orange/orangeinp/detail/DeMorganSimplifier.hh
 //---------------------------------------------------------------------------//
 #pragma once
+
+#include <utility>
 #include <vector>
 
 #include "orange/orangeinp/CsgTree.hh"
@@ -33,11 +35,14 @@ namespace detail
  *
  * It is currently single-use: calling operator() twice on the same instance
  * isn't supported.
+ *
+ * The \c CsgTree being simplified shouldn't contain alias nodes or double
+ * negations.
  */
 class DeMorganSimplifier
 {
   public:
-    //! Construct a simplifier for the given tree
+    // Construct a simplifier for the given tree
     explicit DeMorganSimplifier(CsgTree const&);
 
     // Perform the simplification
@@ -59,31 +64,21 @@ class DeMorganSimplifier
         //! Set if a node has the exact same node in the simplified tree
         NodeId unmodified;
 
-        //! Set if a node from the original tree redirects to a different node
-        //! in the simplified tree. There are 3 possible redirections:
-        //! 1. If the original node is a Joined node with a negated parent,
-        //! redirect to the opposite join.
-        //! 2. If the original node is a Negated node that should not be
-        //! inserted in the simplified tree (happens when the only parent would
-        //! be another Negated node) redirect to its children.
-        //! 3. If the original node is a Negated node with a Joined child,
-        //! redirect to the equivalent Join node in the simplified tree.
-        //! If 2 and 3 are true, follows redirection in 2.
-        //! If none of the above is true, this souldn't be set.
-
-        // Indirections to new nodes
-        // the negated node had a join child and now simplifies to that node
+        //! Indirections to new simplified join following DeMorgan's law
+        //! Set iif the original node is a negated node.
         NodeId simplified_to;
-        // if a join node has been negated, this points to the opposite join
+        //! If a join node has been negated, this points to the opposite join
+        //! Set iif the original node is a joined node.
         NodeId opposite_join;
 
-        // if we inserted a new negation of that node
+        //! Set if we need to insert a new negation of that node
+        //! Set iif the original node is a leaf node.
         NodeId new_negation;
 
-        //! Whether any node id is set
+        //! Whether any matching node id is set
         explicit operator bool() const noexcept
         {
-            return simplified_to || opposite_join || new_negation || unmodified;
+            return unmodified || simplified_to || opposite_join || new_negation;
         }
 
         // Lookup a node an equal node in the simplified tree
@@ -97,9 +92,9 @@ class DeMorganSimplifier
         using indices = std::pair<NodeId, NodeId>;
 
         // Create the matrix view with the given extent size
-        explicit Matrix2D(size_type extent) noexcept;
-        //  Access the element at the given index
-        std::vector<bool>::reference operator[](indices index);
+        explicit Matrix2D(size_type) noexcept;
+        // Access the element at the given index
+        std::vector<bool>::reference operator[](indices);
         // The extent along one dimension
         size_type extent() const noexcept;
 
@@ -135,7 +130,7 @@ class DeMorganSimplifier
 
     //! Parents matrix. For nodes n1, n2, if n1 * tree_.size() + n2 is set, it
     //! means that n2 is a parent of n1
-    Matrix2D parents_of;
+    Matrix2D parents_;
 
     //! Used during construction of the simplified tree to map replaced nodes
     //! in the original tree to their new id in the simplified tree
