@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "orange/orangeinp/CsgTree.hh"
@@ -63,23 +64,28 @@ class DeMorganSimplifier
         //! redirect to the equivalent Join node in the simplified tree.
         //! If 2 and 3 are true, follows redirection in 2.
         //! If none of the above is true, this souldn't be set.
-        NodeId modified;
+
+        // Indirections to new nodes
+        // the negated node had a join child and now simplifies to that node
+        NodeId simplified_to;
+        // if a join node has been negated, this points to the opposite join
+        NodeId opposite_join;
+        // if this is deleted because of a double negation, point to the node
+        // the double negation would simplify to
+        NodeId double_negation_target;
+        // if we inserted a new negation of that node
+        NodeId new_negation;
 
         //! Whether any node id is set
         explicit operator bool() const noexcept
         {
-            return modified || unmodified;
+            return simplified_to || opposite_join || double_negation_target
+                   || new_negation || unmodified;
         }
-
-        // Check modified, then unmodified or default
-        NodeId mod_unmod_or(NodeId default_id) const noexcept;
     };
 
     // First pass to find negated set operations
     void find_join_negations();
-
-    // Unflag a node and its descendent previously marked as orphan
-    void record_parent_for(NodeId);
 
     // Declare a Negated node with a Joined child
     void record_join_negation(NodeId);
@@ -93,6 +99,9 @@ class DeMorganSimplifier
     // Special handling for a Joined or Negated node
     bool process_negated_joined_nodes(NodeId, CsgTree&);
 
+    // Check if this join node should be inserted in the simplified tree
+    bool should_insert_join(NodeId);
+
     //! the tree to simplify
     CsgTree const& tree_;
 
@@ -103,15 +112,10 @@ class DeMorganSimplifier
     //! an opposite join node with negated operands
     std::vector<bool> negated_join_nodes_;
 
-    //! Set at node_id of \c Negated nodes with a \c Joined child. These
-    //! nodes don't need to be inserted in the new tree, and their parent can
-    //! be redirected to the newly inserted opposite join
-    std::vector<bool> simplified_negated_nodes_;
-
     //! Set for orphan nodes which should not be present in the final
     //! simplified tree. The node id can only be set for a Negated or a Joined
     //! Node, other nodes should never become Orphans
-    std::vector<bool> orphaned_nodes_;
+    std::vector<std::unordered_set<NodeId>> parents_of;
 
     //! Used during construction of the simplified tree to map replaced nodes
     //! in the original tree to their new id in the simplified tree
