@@ -40,8 +40,8 @@ DeMorganSimplifier::Matrix2D::Matrix2D(size_type extent) noexcept
 std::vector<bool>::reference
 DeMorganSimplifier::Matrix2D::operator[](indices index)
 {
-    auto [row, col] = index;
-    CELER_EXPECT(row.get() * extent_ + col.get() < data_.size());
+    auto& [row, col] = index;
+    CELER_EXPECT(row < extent_ && col < extent_);
     return data_[row.get() * extent_ + col.get()];
 }
 
@@ -94,7 +94,8 @@ CsgTree DeMorganSimplifier::operator()()
 
 //---------------------------------------------------------------------------//
 /*!
- * First pass through the tree to find negated set operations.
+ * First pass through the tree to find negated set operations and parents of
+ * each node.
  */
 void DeMorganSimplifier::find_join_negations()
 {
@@ -403,15 +404,12 @@ bool DeMorganSimplifier::should_insert_join(NodeId node_id)
 {
     CELER_EXPECT(std::holds_alternative<Joined>(tree_[node_id]));
 
-    // this join node is referred by a volume, we must insert it
-    if (parents_of[{node_id, is_volume_index}])
+    // this join node is referred by a volume or a root node, we must insert it
+    if (parents_of[{node_id, is_volume_index}]
+        || !parents_of[{node_id, has_parents_index}])
     {
         return true;
     }
-
-    // this is a root node, so we need to insert it
-    if (!parents_of[{node_id, has_parents_index}])
-        return true;
 
     // We must insert the original join node if one of the following is true
     // 1. It is pointed to directly by a volume
