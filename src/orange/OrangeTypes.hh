@@ -223,8 +223,8 @@ enum class BoundaryResult : bool
  */
 enum class Chirality : bool
 {
-    left, //!< Sinistral, spiraling counterclockwise
-    right, //!< Dextral, spiraling clockwise
+    left,  //!< Sinistral, spiraling counterclockwise
+    right,  //!< Dextral, spiraling clockwise
 };
 
 //---------------------------------------------------------------------------//

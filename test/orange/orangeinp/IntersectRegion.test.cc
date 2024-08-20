@@ -1315,10 +1315,9 @@ TEST_F(InvoluteTest, single)
 {
     {
         // involute
-        auto result
-            = this->test("invo",
-                         Involute({1.0,2.0,4.0},{0, 0.15667*constants::pi}, 
-                         cw, 1.0));
+        auto result = this->test(
+            "invo",
+            Involute({1.0, 2.0, 4.0}, {0, 0.15667 * constants::pi}, cw, 1.0));
 
         static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
 
@@ -1360,10 +1359,9 @@ TEST_F(InvoluteTest, two_ccw)
 {
     {
         // involute
-        auto result
-            = this->test("top",
-                         Involute({1.0,2.0,4.0},{0, 0.15667*constants::pi}, 
-                         ccw, 1.0));
+        auto result = this->test(
+            "top",
+            Involute({1.0, 2.0, 4.0}, {0, 0.15667 * constants::pi}, ccw, 1.0));
 
         static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
 
@@ -1373,11 +1371,12 @@ TEST_F(InvoluteTest, two_ccw)
     }
     {
         // bottom
-        auto result
-            = this->test("bottom",
-                         Involute({1.0,2.0,4.0},
-                         {0.15667*constants::pi, 0.31334*constants::pi}, 
-                         ccw, 1.0));
+        auto result = this->test(
+            "bottom",
+            Involute({1.0, 2.0, 4.0},
+                     {0.15667 * constants::pi, 0.31334 * constants::pi},
+                     ccw,
+                     1.0));
 
         // Float and double produce different results
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
@@ -1407,23 +1406,21 @@ TEST_F(InvoluteTest, two_ccw)
     EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
 
     auto node_strings = md_strings(this->unit());
-    static char const* const expected_node_strings[] = {
-        "", 
-        "", 
-        "bottom@mz,top@mz", 
-        "bottom@pz,top@pz", 
-        "", 
-        "bottom@cz,top@cz", 
-        "bottom@cz,top@cz", 
-        "", 
-        "top@inv0",
-        "", 
-        "bottom@inv0,top@inv1", 
-        "", 
-        "",
-        "bottom@inv1", 
-        ""
-    };
+    static char const* const expected_node_strings[] = {"",
+                                                        "",
+                                                        "bottom@mz,top@mz",
+                                                        "bottom@pz,top@pz",
+                                                        "",
+                                                        "bottom@cz,top@cz",
+                                                        "bottom@cz,top@cz",
+                                                        "",
+                                                        "top@inv0",
+                                                        "",
+                                                        "bottom@inv0,top@inv1",
+                                                        "",
+                                                        "",
+                                                        "bottom@inv1",
+                                                        ""};
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
 }
 
@@ -1432,10 +1429,9 @@ TEST_F(InvoluteTest, two_cw)
 {
     {
         // involute
-        auto result
-            = this->test("top",
-                         Involute({1.0,2.0,4.0},{0, 0.15667*constants::pi}, 
-                         cw, 1.0));
+        auto result = this->test(
+            "top",
+            Involute({1.0, 2.0, 4.0}, {0, 0.15667 * constants::pi}, cw, 1.0));
 
         static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
 
@@ -1445,11 +1441,12 @@ TEST_F(InvoluteTest, two_cw)
     }
     {
         // bottom
-        auto result
-            = this->test("bottom",
-                         Involute({1.0,2.0,4.0},
-                         {0.15667*constants::pi, 0.31334*constants::pi}, 
-                         cw, 1.0));
+        auto result = this->test(
+            "bottom",
+            Involute({1.0, 2.0, 4.0},
+                     {0.15667 * constants::pi, 0.31334 * constants::pi},
+                     cw,
+                     1.0));
 
         // Float and double produce different results
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
@@ -1479,23 +1476,21 @@ TEST_F(InvoluteTest, two_cw)
     EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
 
     auto node_strings = md_strings(this->unit());
-    static char const* const expected_node_strings[] = {
-        "", 
-        "", 
-        "bottom@mz,top@mz", 
-        "bottom@pz,top@pz", 
-        "", 
-        "bottom@cz,top@cz", 
-        "bottom@cz,top@cz", 
-        "", 
-        "top@inv0", 
-        "bottom@inv0,top@inv1", 
-        "", 
-        "", 
-        "bottom@inv1",
-        "",  
-        ""
-    };
+    static char const* const expected_node_strings[] = {"",
+                                                        "",
+                                                        "bottom@mz,top@mz",
+                                                        "bottom@pz,top@pz",
+                                                        "",
+                                                        "bottom@cz,top@cz",
+                                                        "bottom@cz,top@cz",
+                                                        "",
+                                                        "top@inv0",
+                                                        "bottom@inv0,top@inv1",
+                                                        "",
+                                                        "",
+                                                        "bottom@inv1",
+                                                        "",
+                                                        ""};
     EXPECT_VEC_EQ(expected_node_strings, node_strings);
 }
 

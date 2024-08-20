@@ -113,8 +113,7 @@ CELER_FUNCTION InvoluteSolver::InvoluteSolver(
     : r_b_(r_b), a_(a), sign_(sign), tmin_(tmin), tmax_(tmax)
 {
     CELER_EXPECT(r_b > 0);
-    CELER_EXPECT(a >= -constants::pi
-                 && a_ <= 2 * constants::pi);
+    CELER_EXPECT(a >= -constants::pi && a_ <= 2 * constants::pi);
     CELER_EXPECT(tmax > 0);
     CELER_EXPECT(tmin >= 0);
     CELER_EXPECT(tmax < 2 * constants::pi + tmin);
@@ -192,11 +191,8 @@ InvoluteSolver::operator()(Real3 const& pos,
 
     // Lambda used for calculating the roots using Regula Falsi Iteration
     auto calc_t_intersect = [&](real_type t) {
-        real_type alpha = u * std::sin(t + a_)
-                          - v * std::cos(t + a_);
-        real_type beta = t
-                         * (u * std::cos(t + a_)
-                            + v * std::sin(t + a_));
+        real_type alpha = u * std::sin(t + a_) - v * std::cos(t + a_);
+        real_type beta = t * (u * std::cos(t + a_) + v * std::sin(t + a_));
         return r_b_ * (alpha - beta) + x * v - y * u;
     };
 

@@ -101,7 +101,7 @@ class Involute
     CELER_FUNCTION real_type r_b() const { return std::fabs(r_b_); }
 
     //! Displacement angle
-    CELER_FUNCTION real_type displacement_angle() const { return a_;  }
+    CELER_FUNCTION real_type displacement_angle() const { return a_; }
 
     // Orientation of the involute curve
     inline CELER_FUNCTION Sign sign() const;
@@ -248,9 +248,8 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
         theta = 2 * pi - theta;
     }
     // Count number of positive rotations around involute
-    theta += max<real_type>(
-                 real_type{0},
-                 std::floor((tmax_ + a_ - theta) / (2 * pi)))
+    theta += max<real_type>(real_type{0},
+                            std::floor((tmax_ + a_ - theta) / (2 * pi)))
              * 2 * pi;
 
     // Calculate the displacement angle of the point
@@ -279,8 +278,7 @@ Involute::calc_intersections(Real3 const& pos,
     rel_pos[0] -= origin_[0];
     rel_pos[1] -= origin_[1];
 
-    detail::InvoluteSolver solve(
-        this->r_b(), a_, this->sign(), tmin_, tmax_);
+    detail::InvoluteSolver solve(this->r_b(), a_, this->sign(), tmin_, tmax_);
 
     return solve(rel_pos, dir, on_surface);
 }

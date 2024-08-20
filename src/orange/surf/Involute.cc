@@ -26,15 +26,10 @@ Involute::Involute(Real2 const& origin,
                    Sign sign,
                    real_type tmin,
                    real_type tmax)
-    : origin_(origin)
-    , r_b_(radius)
-    , a_(displacement)
-    , tmin_(tmin)
-    , tmax_(tmax)
+    : origin_(origin), r_b_(radius), a_(displacement), tmin_(tmin), tmax_(tmax)
 {
     CELER_EXPECT(r_b_ >= 0);
-    CELER_EXPECT(a_ >= 0
-                 && a_ <= 2 * constants::pi);
+    CELER_EXPECT(a_ >= 0 && a_ <= 2 * constants::pi);
     CELER_EXPECT(tmin_ >= 0);
     CELER_EXPECT(tmax_ > tmin_ && tmax_ < 2 * constants::pi + tmin_);
 

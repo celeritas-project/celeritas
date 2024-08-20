@@ -21,10 +21,10 @@
 #include "orange/orangeinp/detail/PolygonUtils.hh"
 #include "orange/surf/ConeAligned.hh"
 #include "orange/surf/CylCentered.hh"
+#include "orange/surf/Involute.hh"
 #include "orange/surf/PlaneAligned.hh"
 #include "orange/surf/SimpleQuadric.hh"
 #include "orange/surf/SphereCentered.hh"
-#include "orange/surf/Involute.hh"
 
 #include "IntersectSurfaceBuilder.hh"
 #include "ObjectIO.json.hh"
@@ -659,11 +659,7 @@ Involute::Involute(Real3 const& radii,
                    Real2 const& displacement,
                    Sign sign,
                    real_type halfheight)
-    : radii_(radii)
-    , a_(displacement)
-    , t_bounds_()
-    , sign_(sign)
-    , hh_{halfheight}
+    : radii_(radii), a_(displacement), t_bounds_(), sign_(sign), hh_{halfheight}
 {
     for (auto i : range(3))
     {
@@ -677,13 +673,10 @@ Involute::Involute(Real3 const& radii,
 
     for (auto i : range(2))
     {
-        CELER_VALIDATE(a_[i] >= 0,
-                       << "negative displacment angle: "
-                       << a_[i]);
+        CELER_VALIDATE(a_[i] >= 0, << "negative displacment angle: " << a_[i]);
     }
     CELER_VALIDATE(a_[1] > a_[0],
-                   << "nonpositive delta displacment: "
-                   << a_[1] - a_[0]);
+                   << "nonpositive delta displacment: " << a_[1] - a_[0]);
     CELER_VALIDATE(hh_ > 0, << "nonpositive half-height: " << hh_);
 
     CELER_VALIDATE(t_bounds_[0] > 0,
@@ -692,12 +685,9 @@ Involute::Involute(Real3 const& radii,
                    << "outer radius smaller than inner radius: "
                    << t_bounds_[1]);
     CELER_VALIDATE(
-        t_bounds_[1] < t_bounds_[0] + 2 * constants::pi
-                           - (a_[1] - a_[0]),
+        t_bounds_[1] < t_bounds_[0] + 2 * constants::pi - (a_[1] - a_[0]),
         << "radial bounds result in angular overlaped: "
-        << t_bounds_[0] + 2 * constants::pi
-                   - (a_[1] - a_[0])
-                   - t_bounds_[1]);
+        << t_bounds_[0] + 2 * constants::pi - (a_[1] - a_[0]) - t_bounds_[1]);
 }
 //---------------------------------------------------------------------------//
 /*!
@@ -714,14 +704,12 @@ void Involute::build(IntersectSurfaceBuilder& insert_surface) const
     for (auto i : range(2))
     {
         insert_surface(sense,
-                       celeritas::Involute{
-                           {0, 0},
-                           radii_[0],
-                           eumod(a_[i], 2 * constants::pi),
-                           sign_,
-                           t_bounds_[0],
-                           t_bounds_[1] + a_[1]
-                               - a_[0]});
+                       celeritas::Involute{{0, 0},
+                                           radii_[0],
+                                           eumod(a_[i], 2 * constants::pi),
+                                           sign_,
+                                           t_bounds_[0],
+                                           t_bounds_[1] + a_[1] - a_[0]});
         sense = flip_sense(sense);
     }
 }

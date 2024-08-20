@@ -87,7 +87,7 @@ std::ostream& operator<<(std::ostream& os, Involute const& s)
         os << "ccw: r=" << s.r_b();
         a = s.displacement_angle();
     }
-    return os << ", a=" << a << ", t={" << s.tmin() << ',' << s.tmax() 
+    return os << ", a=" << a << ", t={" << s.tmin() << ',' << s.tmax()
               << "} at x=" << s.origin()[0] << ", y=" << s.origin()[1];
 }
 
