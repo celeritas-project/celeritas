@@ -406,24 +406,24 @@ TEST_F(MaterialScintillationTest, stress_test)
     ScintillationGenerator generate_photon(result, data);
 
     // Check results
-    double avg_lambda{0};
+    real_type avg_lambda{0};
     int const num_photons{123456};
     for ([[maybe_unused]] auto i : range(num_photons))
     {
         auto p = generate_photon(rng);
         avg_lambda += detail::energy_to_wavelength(p.energy);
     }
-    avg_lambda /= static_cast<double>(num_photons);
+    avg_lambda /= static_cast<real_type>(num_photons);
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_SOFT_NEAR(
             18.724841238983931,
-            rng.exchange_count() / static_cast<double>(num_photons),
+            rng.exchange_count() / static_cast<real_type>(num_photons),
             1e-2);
     }
 
-    double expected_lambda{0};
-    double expected_error{0};
+    real_type expected_lambda{0};
+    real_type expected_error{0};
 
     auto const& mat_record = data.materials[result.material];
     for (auto comp_idx : range(mat_record.components.size()))
