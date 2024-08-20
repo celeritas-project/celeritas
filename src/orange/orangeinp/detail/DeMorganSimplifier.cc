@@ -150,11 +150,12 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
         // We need to insert that node in the simplified tree so make a copy
         Node new_node = tree_[node_id];
         // We need to update the children's ids in the new tree.
+
         std::visit(Overload{
                        [&](Negated& negated) {
                            negated.node = [&] {
                                // if that node had a join child, check what it
-                               // simplified to, otherwise we should have
+                               // simplified to
                                auto& new_nodes
                                    = node_ids_translation_[negated.node];
                                if (new_nodes.simplified_to)
@@ -291,8 +292,6 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                 CELER_EXPECT(node_ids_translation_[negated.node].unmodified);
                 node_ids_translation_[node_id].double_negation_target
                     = node_ids_translation_[negated.node].unmodified;
-                // not a double negation, not a join negation, so we must
-                // insert that node
                 return false;
             },
             [&](Joined const& joined) {
@@ -322,21 +321,13 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                                 // get the target of the double negation
                                 if (node_ids_translation_[n]
                                         .double_negation_target)
-                                    return node_ids_translation_[n]
-                                        .double_negation_target;
+                                    return node_ids_translation_[n].double_negation_target;
 
                                 // the negated node still exists because
                                 // another node refers to it, redirect to its
                                 // child.
-                                if (node_ids_translation_[neg->node].unmodified)
-                                    return node_ids_translation_[neg->node]
-                                        .unmodified;
-
-                                //
-                                return std::get<Negated>(
-                                           result[node_ids_translation_[n]
-                                                      .unmodified])
-                                    .node;
+                                CELER_EXPECT(node_ids_translation_[neg->node].unmodified);
+                                return node_ids_translation_[neg->node].unmodified;
                             }());
                             // either it has been simplified and no longer
                             // exist or it still exist and we need to check its
@@ -406,9 +397,10 @@ bool DeMorganSimplifier::should_insert_join(NodeId node_id)
     {
         // !NodeId{} is used when a volume is a parent, we need to insert that
         // node
+        // TODO: Is it really correct in all cases...
         if (!p
             || (std::holds_alternative<Joined>(tree_[p])
-                && this->should_insert_join(p))
+                && this->should_insert_join(p)) 
             || (std::holds_alternative<Negated>(tree_[p])
                 && has_negated_join_parent(p)))
         {
