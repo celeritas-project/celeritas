@@ -153,15 +153,10 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
 
         std::visit(Overload{
                        [&](Negated& negated) {
-                           negated.node = [&] {
-                               // if that node had a join child, check what it
-                               // simplified to
-                               auto& new_nodes
-                                   = node_ids_translation_[negated.node];
-                               if (new_nodes.simplified_to)
-                                   return new_nodes.simplified_to;
-                               return new_nodes.unmodified;
-                           }();
+                            // we're inserting a Negated node, it has to point to a unmodified node
+                            // negated join would have been simplified and double negation are not inserted
+                            CELER_EXPECT(node_ids_translation_[negated.node]); 
+                            negated.node = node_ids_translation_[negated.node].unmodified;
                        },
                        [&](Joined& joined) {
                            // update each operand of the joined node, it can't
