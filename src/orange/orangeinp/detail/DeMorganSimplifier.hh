@@ -110,7 +110,7 @@ class DeMorganSimplifier
     //! an opposite join node with negated operands
     std::vector<bool> negated_join_nodes_;
 
-    //! Parent matrix. For nodes n1, n2, if n1 * tree_.size() + n2 is set, it
+    //! Parents matrix. For nodes n1, n2, if n1 * tree_.size() + n2 is set, it
     //! means that n2 is a parent of n1
     std::vector<bool> parents_of;
 

@@ -324,27 +324,30 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
 
                 // root node, we must insert it
                 return !has_parent;
-
-
             },
             [&](Joined const& joined) {
                 // The current node is a Joined node, and we need to insert
                 // a Negated version of it.
-                if (negated_join_nodes_[node_id.get()])
+                bool const insert_unmodified_join
+                    = this->should_insert_join(node_id);
+                if (!negated_join_nodes_[node_id.get()])
                 {
-                    // Insert the opposite join instead, updating the
-                    // children ids.
-                    auto const& [op, nodes] = joined;
-                    // Lookup the new id of each operand
-                    std::vector<NodeId> operands;
-                    operands.reserve(nodes.size());
-                    for (auto n : nodes)
+                    return insert_unmodified_join;
+                }
+                // Insert the opposite join instead, updating the
+                // children ids.
+                auto const& [op, nodes] = joined;
+                // Lookup the new id of each operand
+                std::vector<NodeId> operands;
+                operands.reserve(nodes.size());
+                for (auto n : nodes)
+                {
+                    // we're adding a negated join with a negated children,
+                    // simplify by pointing to the children of the negation
+                    if (auto* neg = std::get_if<Negated>(&tree_[n]))
                     {
-                        // we're adding a negated join with a negated children,
-                        // simplify by pointing to the children of the negation
-                        if (auto* neg = std::get_if<Negated>(&tree_[n]))
-                        {
-                            operands.push_back([&] {
+                        operands.push_back(
+                            [&] {
                                 CELER_EXPECT(
                                     node_ids_translation_[n.get()]
                                         .double_negation_target
@@ -364,29 +367,29 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
                                 return node_ids_translation_[neg->node.get()]
                                     .unmodified;
                             }());
-                        }
-                        else
-                        {
-                            // otherwise, we should have inserted a negated
-                            // version of it or simplified it with DeMorgan
-                            operands.push_back([&] {
-                                auto& trans = node_ids_translation_[n.get()];
-                                CELER_EXPECT(trans.new_negation
-                                             || trans.opposite_join);
-                                if (trans.new_negation)
-                                    return trans.new_negation;
-                                return trans.opposite_join;
-                            }());
-                        }
                     }
-
-                    auto [new_id, inserted] = result.insert(
-                        Joined{(op == logic::land) ? logic::lor : logic::land,
-                               std::move(operands)});
-                    node_ids_translation_[node_id.get()].opposite_join
-                        = std::move(new_id);
+                    else
+                    {
+                        // otherwise, we should have inserted a negated
+                        // version of it or simplified it with DeMorgan
+                        operands.push_back([&] {
+                            auto& trans = node_ids_translation_[n.get()];
+                            CELER_EXPECT(trans.new_negation
+                                         || trans.opposite_join);
+                            if (trans.new_negation)
+                                return trans.new_negation;
+                            return trans.opposite_join;
+                        }());
+                    }
                 }
-                return this->should_insert_join(node_id);
+
+                auto [new_id, inserted] = result.insert(
+                    Joined{(op == logic::land) ? logic::lor : logic::land,
+                           std::move(operands)});
+                node_ids_translation_[node_id.get()].opposite_join
+                    = std::move(new_id);
+
+                return insert_unmodified_join;
             },
             // other nodes need to be inserted
             [](auto&&) { return true; },
