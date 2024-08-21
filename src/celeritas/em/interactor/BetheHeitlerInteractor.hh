@@ -85,14 +85,15 @@ class BetheHeitlerInteractor
     Real3 const& inc_direction_;
     // Allocate space for a secondary particle
     StackAllocator<Secondary>& allocate_;
-    // Element properties for calculating screening functions and variables
-    ElementView const& element_;
     // Whether LPM supression is applied
     bool const enable_lpm_;
     // Used to calculate the LPM suppression functions
     LPMCalculator calc_lpm_functions_;
-    // Cached minimum epsilon, m_e*c^2/E_gamma; kinematical limit for Y -> e+e-
+    // Minimum epsilon, m_e*c^2/E_gamma; kinematical limit for Y -> e+e-
     real_type epsilon0_;
+    // 136/Z^1/3 factor on the screening variable, or zero for low energy
+    real_type screening_;
+    real_type f_z_;
 
     //// CONSTANTS ////
 
@@ -143,11 +144,10 @@ CELER_FUNCTION BetheHeitlerInteractor::BetheHeitlerInteractor(
     , inc_energy_(value_as<Energy>(particle.energy()))
     , inc_direction_(inc_direction)
     , allocate_(allocate)
-    , element_(element)
     , enable_lpm_(shared.enable_lpm
                   && inc_energy_ > value_as<Energy>(lpm_threshold()))
     , calc_lpm_functions_(material,
-                          element_,
+                          element,
                           shared_.dielectric_suppression(),
                           Energy{inc_energy_})
 {
@@ -155,6 +155,23 @@ CELER_FUNCTION BetheHeitlerInteractor::BetheHeitlerInteractor(
     CELER_EXPECT(inc_energy_ >= 2 * value_as<Mass>(shared_.electron_mass));
 
     epsilon0_ = value_as<Mass>(shared_.electron_mass) / inc_energy_;
+
+    if (inc_energy_ < value_as<Energy>(units::MevEnergy{2}))
+    {
+        // Don't reject: just sample uniformly
+        screening_ = 0;
+        f_z_ = 0;
+    }
+    else
+    {
+        screening_ = epsilon0_ * 136 / element.cbrt_z();
+        f_z_ = real_type(8) / real_type(3) * element.log_z();
+        if (inc_energy_ > value_as<Energy>(coulomb_corr_threshold()))
+        {
+            // Apply Coulomg correction function
+            f_z_ += 8 * element.coulomb_correction();
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -176,7 +193,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
 
     // If E_gamma < 2 MeV, rejection not needed -- just sample uniformly
     real_type epsilon;
-    if (inc_energy_ < value_as<Energy>(units::MevEnergy{2}))
+    if (screening_ == 0)
     {
         UniformRealDistribution<real_type> sample_eps(epsilon0_, half);
         epsilon = sample_eps(rng);
@@ -186,14 +203,9 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         // Calculate the minimum (when \epsilon = 1/2) and maximum (when
         // \epsilon = \epsilon_1) values of screening variable, \delta. Above
         // 50 MeV, a Coulomb correction function is introduced.
-        real_type const delta_min = 4 * 136 / element_.cbrt_z() * epsilon0_;
-        real_type f_z = real_type(8) / real_type(3) * element_.log_z();
-        if (inc_energy_ > value_as<Energy>(coulomb_corr_threshold()))
-        {
-            f_z += 8 * element_.coulomb_correction();
-        }
+        real_type const delta_min = 4 * screening_;
         real_type const delta_max
-            = std::exp((real_type(42.038) - f_z) / real_type(8.29))
+            = std::exp((real_type(42.038) - f_z_) / real_type(8.29))
               - real_type(0.958);
         CELER_ASSERT(delta_min <= delta_max);
 
@@ -210,8 +222,8 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         // Decide to choose f1, g1 or f2, g2 based on N1, N2 (factors from
         // corrected Bethe-Heitler cross section; c.f. Eq. 6.6 of Geant4
         // Physics Reference 10.6)
-        real_type const f10 = this->screening_f1(delta_min) - f_z;
-        real_type const f20 = this->screening_f2(delta_min) - f_z;
+        real_type const f10 = this->screening_f1(delta_min) - f_z_;
+        real_type const f20 = this->screening_f2(delta_min) - f_z_;
         BernoulliDistribution choose_f1g1(ipow<2>(half - epsilon_min) * f10,
                                           real_type(1.5) * f20);
 
@@ -240,13 +252,13 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                     auto lpm = calc_lpm_functions_(epsilon);
                     g = lpm.xi
                         * ((2 * lpm.phi + lpm.g) * screening.phi1
-                           - lpm.g * screening.phi2 - lpm.phi * f_z)
-                        / f10;
+                           - lpm.g * screening.phi2 - lpm.phi * f_z_);
                 }
                 else
                 {
-                    g = (this->screening_f1(delta) - f_z) / f10;
+                    g = this->screening_f1(delta) - f_z_;
                 }
+                g /= f10;
                 CELER_ASSERT(g > 0);
             }
             else
@@ -266,18 +278,18 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
                 {
                     auto screening = screening_phi1_phi2(delta);
                     auto lpm = calc_lpm_functions_(epsilon);
-                    g = lpm.xi
-                        * ((lpm.phi + half * lpm.g) * screening.phi1
-                           + half * lpm.g * screening.phi2
-                           - half * (lpm.g + lpm.phi) * f_z)
-                        / f20;
+                    g = half * lpm.xi
+                        * ((2 * lpm.phi + lpm.g) * screening.phi1
+                           + lpm.g * screening.phi2 - (lpm.g + lpm.phi) * f_z_);
                 }
                 else
                 {
-                    g = (this->screening_f2(delta) - f_z) / f20;
+                    g = this->screening_f2(delta) - f_z_;
                 }
+                g /= f20;
                 CELER_ASSERT(g > 0);
             }
+            // TODO: use rejection
         } while (g < generate_canonical(rng));
     }
 
@@ -330,7 +342,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
 CELER_FUNCTION real_type
 BetheHeitlerInteractor::impact_parameter(real_type eps) const
 {
-    return 136 / element_.cbrt_z() * epsilon0_ / (eps * (1 - eps));
+    return screening_ / (eps * (1 - eps));
 }
 
 //---------------------------------------------------------------------------//
