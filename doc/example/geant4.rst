@@ -4,7 +4,7 @@
 
 .. _example_geant:
 
-Minimal Geant4 integration
+Geant4 integration example
 ==========================
 
 These small examples demonstrate how to offload tracks to Celeritas in a serial

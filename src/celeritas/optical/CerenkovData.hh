@@ -32,7 +32,7 @@ struct CerenkovData
 
     //// MEMBER DATA ////
 
-    OpticalMaterialItems<GenericGridData> angle_integral;
+    OpticalMaterialItems<GenericGridRecord> angle_integral;
 
     // Backend data
     Items<real_type> reals;

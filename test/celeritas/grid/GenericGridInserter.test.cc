@@ -26,6 +26,7 @@ class GenericGridInserterTest : public ::celeritas::test::Test
   protected:
     using GridIndexType = OpaqueId<struct GenericIndexTag_>;
     using RandomEngine = DiagnosticRngEngine<std::mt19937>;
+    using VecReal = std::vector<real_type>;
 
     void SetUp() override { rng_.reset_count(); }
 
@@ -35,38 +36,34 @@ class GenericGridInserterTest : public ::celeritas::test::Test
     }
 
     //! Construct an array of random, increasing data to test on
-    template<size_t N>
-    std::array<real_type, N> build_random_array(real_type start)
+    VecReal build_random_array(size_type count, real_type start)
     {
-        UniformRealDistribution dist(0.5, 1.5);
-        std::array<real_type, N> xs;
+        UniformRealDistribution sample_uniform(0.5, 1.5);
+        VecReal xs(count);
         xs[0] = start;
-        for (size_t i = 1; i < N; i++)
+        for (auto i : range<size_type>(1, xs.size()))
         {
-            xs[i] = xs[i - 1] + dist(rng_);
+            xs[i] = xs[i - 1] + sample_uniform(rng_);
         }
         return xs;
     }
 
     //! Check that an inserted grid has been constructed correctly
-    template<size_t N>
     void check_grid(GridIndexType id,
-                    std::array<real_type, N> const& xs,
-                    std::array<real_type, N> const& ys) const
+                    std::vector<real_type> const& xs,
+                    std::vector<real_type> const& ys) const
     {
+        ASSERT_EQ(xs.size(), ys.size());
         ASSERT_TRUE(id);
         ASSERT_LT(id.get(), grids_.size());
 
-        GenericGridData const& grid = grids_[id];
-        ASSERT_EQ(N, grid.grid.size());
-        ASSERT_EQ(N, grid.value.size());
-
+        GenericGridRecord const& grid = grids_[id];
         EXPECT_VEC_EQ(xs, scalars_[grid.grid]);
         EXPECT_VEC_EQ(ys, scalars_[grid.value]);
     }
 
     Collection<real_type, Ownership::value, MemSpace::host> scalars_;
-    Collection<GenericGridData, Ownership::value, MemSpace::host, GridIndexType>
+    Collection<GenericGridRecord, Ownership::value, MemSpace::host, GridIndexType>
         grids_;
 
     RandomEngine rng_;
@@ -75,8 +72,8 @@ class GenericGridInserterTest : public ::celeritas::test::Test
 TEST_F(GenericGridInserterTest, simple)
 {
     constexpr size_t count = 105;
-    auto const xs = build_random_array<count>(-100.0);
-    auto const ys = build_random_array<count>(300.0);
+    auto const xs = build_random_array(count, -100.0);
+    auto const ys = build_random_array(count, 300.0);
 
     auto inserter = make_inserter();
 
@@ -85,7 +82,7 @@ TEST_F(GenericGridInserterTest, simple)
     ASSERT_EQ(1, grids_.size());
     ASSERT_EQ(2 * count, scalars_.size());
 
-    check_grid<count>(grid_index, xs, ys);
+    check_grid(grid_index, xs, ys);
 }
 
 TEST_F(GenericGridInserterTest, many_no_repeats)
@@ -94,13 +91,13 @@ TEST_F(GenericGridInserterTest, many_no_repeats)
     auto inserter = make_inserter();
 
     std::vector<GridIndexType> grid_ids;
-    std::vector<std::array<real_type, count>> raw_xs, raw_ys;
+    std::vector<VecReal> raw_xs, raw_ys;
 
     size_t const num_grids = 20;
     for (size_t i = 0; i < num_grids; i++)
     {
-        raw_xs.push_back(build_random_array<count>(-100.0 * i));
-        raw_ys.push_back(build_random_array<count>(300.0 * i));
+        raw_xs.push_back(build_random_array(count, real_type{-100} * i));
+        raw_ys.push_back(build_random_array(count, real_type{300} * i));
 
         auto const& xs = raw_xs.back();
         auto const& ys = raw_ys.back();
@@ -125,13 +122,13 @@ TEST_F(GenericGridInserterTest, many_with_repeats)
     auto inserter = make_inserter();
 
     std::vector<GridIndexType> grid_ids;
-    std::array<real_type, count> xs = build_random_array<count>(-100.0);
-    std::vector<std::array<real_type, count>> raw_ys;
+    VecReal xs = build_random_array(count, -100);
+    std::vector<VecReal> raw_ys;
 
     size_t const num_grids = 20;
     for (size_t i = 0; i < num_grids; i++)
     {
-        raw_ys.push_back(build_random_array<count>(300.0 * i));
+        raw_ys.push_back(build_random_array(count, real_type{300} * i));
 
         auto const& ys = raw_ys.back();
 

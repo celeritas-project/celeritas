@@ -220,8 +220,8 @@ real_type RBDiffXsCalculator::dxsec_per_atom_lpm(real_type gamma_energy)
  * by using the Thomas-Fermi model: Y.-S.Tsai, Rev. Mod. Phys. 49 (1977) 421.
  */
 CELER_FUNCTION auto
-RBDiffXsCalculator::compute_screen_functions(real_type gam, real_type eps)
-    -> ScreenFunctions
+RBDiffXsCalculator::compute_screen_functions(real_type gam,
+                                             real_type eps) -> ScreenFunctions
 {
     ScreenFunctions func;
     real_type gam2 = ipow<2>(gam);

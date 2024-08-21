@@ -10,7 +10,8 @@ Standalone simulation app (celer-sim)
 -------------------------------------
 
 The ``celer-sim`` application is the primary means of running EM test problems
-for independent validation and performance analysis.
+for independent validation and performance analysis. See
+:ref:`example_celer_sim` for an example.
 
 Usage::
 
@@ -58,7 +59,7 @@ The ``celer-g4`` app is a Geant4 application that offloads EM tracks to
 Celeritas. It takes as input a GDML file with the detector description and
 sensitive detectors marked via an ``auxiliary`` annotation. The input particles
 must be specified with a HepMC3-compatible file or with a JSON-specified
-"particle gun."
+"particle gun." See :ref:`example_celer_g4` for an example.
 
 Usage::
 
@@ -119,6 +120,7 @@ Visualization application (celer-geo)
 
 The ``celer-geo`` app is a server-like front end to the Celeritas geometry
 interfaces that can generate exact images of a user geometry model.
+See :ref:`example_celer_geo` for an example.
 
 Usage::
 

@@ -22,7 +22,11 @@ namespace celeritas
 // PARAMS
 //---------------------------------------------------------------------------//
 /*!
- * Fundamental, invariant properties of an isotope.
+ * Fundamental, invariant properties of a nuclide.
+ *
+ * A nuclide is a single isotope of an element.
+ *
+ * \todo Rename NuclideRecord?
  */
 struct IsotopeRecord
 {

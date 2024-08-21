@@ -81,8 +81,8 @@ void free_async_impl(void* ptr, Stream::StreamT s)
  * Allocate device memory.
  */
 template<class Pointer>
-auto AsyncMemoryResource<Pointer>::do_allocate(std::size_t bytes, std::size_t)
-    -> pointer
+auto AsyncMemoryResource<Pointer>::do_allocate(std::size_t bytes,
+                                               std::size_t) -> pointer
 {
     return static_cast<pointer>(malloc_async_impl(bytes, stream_));
 }

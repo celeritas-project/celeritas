@@ -37,6 +37,11 @@ namespace celeritas
  * Each entity's id is defined by its vector position. An \c ImportElement with
  * id = 3 is stored at \c elements[3] . Same for materials and volumes.
  *
+ * The \c processes field may be empty for testing applications.
+ *
+ * Optical material is optionally loaded into the \c optical field for each
+ * \c geo_material_id .
+ *
  * Seltzer-Berger, Livermore PE, and atomic relaxation data are loaded based on
  * atomic numbers, and thus are stored in maps. To retrieve specific data use
  * \c find(atomic_number) .
@@ -46,20 +51,18 @@ namespace celeritas
  * "CLHEP" the units are CLHEP. The \c convert_to_native function will
  * convert a data structure in place and update the units label. Refer to \c
  * base/Units.hh for further information on unit systems.
- *
- * The "processes" field may be empty for testing applications.
  */
 struct ImportData
 {
     //!@{
     //! \name Type aliases
     using ZInt = int;
-    using GeoMatIdx = int;
+    using GeoMatIndex = unsigned int;
     using ImportSBMap = std::map<ZInt, ImportSBTable>;
     using ImportLivermorePEMap = std::map<ZInt, ImportLivermorePE>;
     using ImportAtomicRelaxationMap = std::map<ZInt, ImportAtomicRelaxation>;
     using ImportNeutronElasticMap = std::map<ZInt, ImportPhysicsVector>;
-    using ImportOpticalMap = std::map<GeoMatIdx, ImportOpticalMaterial>;
+    using ImportOpticalMap = std::map<GeoMatIndex, ImportOpticalMaterial>;
     //!@}
 
     std::vector<ImportParticle> particles;

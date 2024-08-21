@@ -134,10 +134,10 @@ TEST_F(SoftSurfaceEqualTest, cone_aligned)
 TEST_F(SoftSurfaceEqualTest, simple_quadric)
 {
     auto ellipsoid = [](Real3 const& radii) {
-        const Real3 second{ipow<2>(radii[1]) * ipow<2>(radii[2]),
+        Real3 const second{ipow<2>(radii[1]) * ipow<2>(radii[2]),
                            ipow<2>(radii[2]) * ipow<2>(radii[0]),
                            ipow<2>(radii[0]) * ipow<2>(radii[1])};
-        const real_type zeroth = -ipow<2>(radii[0]) * ipow<2>(radii[1])
+        real_type const zeroth = -ipow<2>(radii[0]) * ipow<2>(radii[1])
                                  * ipow<2>(radii[2]);
         return SimpleQuadric{second, Real3{0, 0, 0}, zeroth};
     };

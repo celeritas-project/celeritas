@@ -17,7 +17,8 @@
 #endif
 
 #if __GNUC__ > 8 || __clang__
-#    pragma GCC warning "celeritas_version.h is deprecated and should be replaced by \"corecel/Version.hh\""
+#    pragma GCC warning \
+        "celeritas_version.h is deprecated and should be replaced by \"corecel/Version.hh\""
 #endif
 
 #include "corecel/Version.hh"

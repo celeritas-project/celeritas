@@ -382,7 +382,7 @@ TYPED_TEST(TrackInitTest, extend_from_secondaries)
     EXPECT_EQ(num_primaries, this->state().counters().num_initializers);
 
     auto apply_actions = [&actions, this] {
-        for (const auto& ea_interface : actions)
+        for (auto const& ea_interface : actions)
         {
             ea_interface->execute(*this->core(), this->state());
         }

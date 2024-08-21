@@ -23,6 +23,12 @@ struct OpticalGenStorage;
 //---------------------------------------------------------------------------//
 /*!
  * Generate optical distribution data.
+ *
+ * This pre-step action stores the optical material ID and other
+ * beginning-of-step properties so that optical photons can be generated
+ * between the start and end points of the step.
+ *
+ * \sa OffloadGatherExecutor
  */
 class OffloadGatherAction final : public ExplicitCoreActionInterface
 {

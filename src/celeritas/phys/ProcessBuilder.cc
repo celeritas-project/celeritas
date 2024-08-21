@@ -98,8 +98,11 @@ ProcessBuilder::ProcessBuilder(ImportData const& data,
                                SPConstParticle particle,
                                SPConstMaterial material,
                                Options options)
-    : ProcessBuilder(
-        data, std::move(particle), std::move(material), UserBuildMap{}, options)
+    : ProcessBuilder(data,
+                     std::move(particle),
+                     std::move(material),
+                     UserBuildMap{},
+                     options)
 {
 }
 

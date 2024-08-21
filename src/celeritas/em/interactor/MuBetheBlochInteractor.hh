@@ -165,8 +165,8 @@ CELER_FUNCTION Interaction MuBetheBlochInteractor::operator()(Engine& rng)
  * TODO this should be precomputed and used as part of the "applicability" per
  * particle type, not included in the interactor. See celeritas#907 .
  */
-CELER_FUNCTION auto MuBetheBlochInteractor::calc_max_secondary_energy() const
-    -> Energy
+CELER_FUNCTION auto
+MuBetheBlochInteractor::calc_max_secondary_energy() const -> Energy
 {
     real_type mass_ratio = value_as<Mass>(electron_mass_)
                            / value_as<Mass>(inc_mass_);

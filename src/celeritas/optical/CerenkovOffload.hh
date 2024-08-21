@@ -16,7 +16,7 @@
 #include "CerenkovData.hh"
 #include "CerenkovDndxCalculator.hh"
 #include "GeneratorDistributionData.hh"
-#include "MaterialPropertyData.hh"
+#include "MaterialView.hh"
 #include "OffloadData.hh"
 
 namespace celeritas
@@ -38,12 +38,12 @@ namespace celeritas
 class CerenkovOffload
 {
   public:
-    // Construct with optical properties, Cerenkov, and step data
+    // Construct with optical material, Cerenkov, and step data
     inline CELER_FUNCTION
     CerenkovOffload(ParticleTrackView const& particle,
                     SimTrackView const& sim,
+                    optical::MaterialView const& mat,
                     Real3 const& pos,
-                    NativeCRef<optical::MaterialPropertyData> const& properties,
                     NativeCRef<optical::CerenkovData> const& shared,
                     OffloadPreStepData const& step_data);
 
@@ -64,15 +64,15 @@ class CerenkovOffload
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with optical properties, Cerenkov, and step information.
+ * Construct with optical material, Cerenkov, and step information.
  */
-CELER_FUNCTION CerenkovOffload::CerenkovOffload(
-    ParticleTrackView const& particle,
-    SimTrackView const& sim,
-    Real3 const& pos,
-    NativeCRef<optical::MaterialPropertyData> const& properties,
-    NativeCRef<optical::CerenkovData> const& shared,
-    OffloadPreStepData const& step_data)
+CELER_FUNCTION
+CerenkovOffload::CerenkovOffload(ParticleTrackView const& particle,
+                                 SimTrackView const& sim,
+                                 optical::MaterialView const& mat,
+                                 Real3 const& pos,
+                                 NativeCRef<optical::CerenkovData> const& shared,
+                                 OffloadPreStepData const& step_data)
     : charge_(particle.charge())
     , step_length_(sim.step_length())
     , pre_step_(step_data)
@@ -85,8 +85,7 @@ CELER_FUNCTION CerenkovOffload::CerenkovOffload(
     units::LightSpeed beta(
         real_type{0.5} * (pre_step_.speed.value() + post_step_.speed.value()));
 
-    optical::CerenkovDndxCalculator calculate_dndx(
-        properties, shared, pre_step_.opt_mat, charge_);
+    optical::CerenkovDndxCalculator calculate_dndx(mat, shared, charge_);
     num_photons_per_len_ = calculate_dndx(beta);
 }
 
@@ -114,7 +113,7 @@ CerenkovOffload::operator()(Generator& rng)
         data.time = pre_step_.time;
         data.step_length = step_length_;
         data.charge = charge_;
-        data.material = pre_step_.opt_mat;
+        data.material = pre_step_.material;
         data.points[StepPoint::pre].speed = pre_step_.speed;
         data.points[StepPoint::pre].pos = pre_step_.pos;
         data.points[StepPoint::post] = post_step_;
