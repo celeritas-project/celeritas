@@ -59,9 +59,7 @@ class Involute
     //! \name Type aliases
     using Intersections = Array<real_type, 3>;
     using StorageSpan = Span<real_type const, 6>;
-    using Sign = Chirality;
-    Sign ccw = Chirality::left;
-    Sign cw = Chirality::right;
+    using Chirality = Chirality;
     using Real2 = Array<real_type, 2>;
     //@}
 
@@ -84,7 +82,7 @@ class Involute
     explicit Involute(Real2 const& origin,
                       real_type radius,
                       real_type displacement,
-                      Sign sign,
+                      Chirality sign,
                       real_type tmin,
                       real_type tmax);
 
@@ -104,7 +102,7 @@ class Involute
     CELER_FUNCTION real_type displacement_angle() const { return a_; }
 
     // Orientation of the involute curve
-    inline CELER_FUNCTION Sign sign() const;
+    inline CELER_FUNCTION Chirality sign() const;
 
     //! Get bounds of the involute
     CELER_FUNCTION real_type tmin() const { return tmin_; }
@@ -158,9 +156,9 @@ CELER_FUNCTION Involute::Involute(Span<R, StorageSpan::extent> data)
 /*!
  * Orientation of the involute curve.
  */
-CELER_FUNCTION auto Involute::sign() const -> Sign
+CELER_FUNCTION auto Involute::sign() const -> Chirality
 {
-    return r_b_ > 0 ? ccw : cw;
+    return r_b_ > 0 ? Chirality::left : Chirality::right;
 }
 
 //---------------------------------------------------------------------------//
@@ -203,7 +201,7 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
     xy[0] = pos[0] - origin_[0];
     xy[1] = pos[1] - origin_[1];
 
-    if (this->sign() == cw)
+    if (this->sign() == Chirality::right)
     {
         xy[0] = negate(xy[0]);
     }
@@ -303,7 +301,7 @@ CELER_FORCEINLINE_FUNCTION Real3 Involute::calc_normal(Real3 const& pos) const
           + a_;
     Real3 normal_ = {std::sin(angle), -std::cos(angle), 0};
 
-    if (this->sign() == cw)
+    if (this->sign() == Chirality::right)
     {
         normal_[0] = negate(normal_[0]);
     }

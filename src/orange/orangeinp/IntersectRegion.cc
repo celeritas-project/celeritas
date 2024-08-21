@@ -657,59 +657,61 @@ void InfWedge::output(JsonPimpl* j) const
  */
 Involute::Involute(Real3 const& radii,
                    Real2 const& displacement,
-                   Sign sign,
+                   Chirality sign,
                    real_type halfheight)
     : radii_(radii), a_(displacement), t_bounds_(), sign_(sign), hh_{halfheight}
 {
-    for (auto i : range(3))
-    {
-        CELER_VALIDATE(radii_[i] >= 0, << "negative radius: " << radii_[i]);
-    }
+    CELER_VALIDATE(radii_[0] > 0,
+                   << "nonpositive involute radius: " << radii_[0]);
+    CELER_VALIDATE(radii_[1] > radii_[0],
+                   << "inner cylinder radius " << radii_[1]
+                   << " is not greater than involute radius " << radii_[0]);
+    CELER_VALIDATE(radii_[2] > radii_[1],
+                   << "outer cylinder radius " << radii_[2]
+                   << " is not greater than inner cyl radius " << radii_[1]);
 
-    t_bounds_[0]
-        = std::sqrt(clamp_to_nonneg(ipow<2>(radii_[1] / radii_[0]) - 1));
-    t_bounds_[1]
-        = std::sqrt(clamp_to_nonneg(ipow<2>(radii_[2] / radii_[0]) - 1));
-
-    for (auto i : range(2))
-    {
-        CELER_VALIDATE(a_[i] >= 0, << "negative displacment angle: " << a_[i]);
-    }
     CELER_VALIDATE(a_[1] > a_[0],
                    << "nonpositive delta displacment: " << a_[1] - a_[0]);
     CELER_VALIDATE(hh_ > 0, << "nonpositive half-height: " << hh_);
 
-    CELER_VALIDATE(t_bounds_[0] > 0,
-                   << "nonpositive inner radius: " << t_bounds_[0]);
-    CELER_VALIDATE(t_bounds_[1] > t_bounds_[0],
-                   << "outer radius smaller than inner radius: "
-                   << t_bounds_[1]);
-    CELER_VALIDATE(
-        t_bounds_[1] < t_bounds_[0] + 2 * constants::pi - (a_[1] - a_[0]),
-        << "radial bounds result in angular overlaped: "
-        << t_bounds_[0] + 2 * constants::pi - (a_[1] - a_[0]) - t_bounds_[1]);
+    for (auto i : range(2))
+    {
+        t_bounds_[i] = std::sqrt(
+            clamp_to_nonneg(ipow<2>(radii_[i + 1] / radii_[0]) - 1));
+    }
+    auto outer_isect = t_bounds_[0] + 2 * constants::pi - (a_[1] - a_[0]);
+    CELER_VALIDATE(t_bounds_[1] < outer_isect,
+                   << "radial bounds result in angular overlap: "
+                   << outer_isect - t_bounds_[1]);
 }
+
 //---------------------------------------------------------------------------//
 /*!
  * Build surfaces.
  */
 void Involute::build(IntersectSurfaceBuilder& insert_surface) const
 {
+    using InvSurf = ::celeritas::Involute;
+
     insert_surface(Sense::outside, PlaneZ{-hh_});
     insert_surface(Sense::inside, PlaneZ{hh_});
     insert_surface(Sense::outside, CCylZ{radii_[1]});
     insert_surface(Sense::inside, CCylZ{radii_[2]});
     // Make an inside and outside involute
+    Real2 const xy{0, 0};
     auto sense = (sign_ == Chirality::right ? Sense::outside : Sense::inside);
+    static char const* names[] = {"invl", "invr"};
+
     for (auto i : range(2))
     {
         insert_surface(sense,
-                       celeritas::Involute{{0, 0},
-                                           radii_[0],
-                                           eumod(a_[i], 2 * constants::pi),
-                                           sign_,
-                                           t_bounds_[0],
-                                           t_bounds_[1] + a_[1] - a_[0]});
+                       InvSurf{xy,
+                               radii_[0],
+                               eumod(a_[i], 2 * constants::pi),
+                               sign_,
+                               t_bounds_[0],
+                               t_bounds_[1] + a_[1] - a_[0]},
+                       std::string{names[i]});
         sense = flip_sense(sense);
     }
 }
@@ -763,18 +765,18 @@ void Parallelepiped::build(IntersectSurfaceBuilder& insert_surface) const
     constexpr auto Y = to_int(Axis::y);
     constexpr auto Z = to_int(Axis::z);
 
-    // cache trigonometric values
+    // Cache trigonometric values
     real_type sinth, costh, sinphi, cosphi, sinal, cosal;
     sincos(theta_, &sinth, &costh);
     sincos(phi_, &sinphi, &cosphi);
     sincos(alpha_, &sinal, &cosal);
 
-    // base vectors
+    // Base vectors
     auto a = hpr_[X] * Real3{1, 0, 0};
     auto b = hpr_[Y] * Real3{sinal, cosal, 0};
     auto c = hpr_[Z] * Real3{sinth * cosphi, sinth * sinphi, costh};
 
-    // positioning the planes
+    // Position the planes
     auto xnorm = make_unit_vector(cross_product(b, c));
     auto ynorm = make_unit_vector(cross_product(c, a));
     auto xoffset = dot_product(a, xnorm);

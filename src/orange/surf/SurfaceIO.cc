@@ -75,19 +75,16 @@ std::ostream& operator<<(std::ostream& os, GeneralQuadric const& s)
 //---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, Involute const& s)
 {
+    std::string sign{"ccw"};
     real_type a = s.displacement_angle();
-    os << "Involute ";
     if (s.sign() == Chirality::right)
     {
-        os << "cw: r=" << s.r_b();
-        a = constants::pi - s.displacement_angle();
+        sign = "cw";
+        a = constants::pi - a;
     }
-    else
-    {
-        os << "ccw: r=" << s.r_b();
-        a = s.displacement_angle();
-    }
-    return os << ", a=" << a << ", t={" << s.tmin() << ',' << s.tmax()
+
+    return os << "Involute " << sign << ": r=" << s.r_b() << ", a=" << a
+              << ", t={" << s.tmin() << ',' << s.tmax()
               << "} at x=" << s.origin()[0] << ", y=" << s.origin()[1];
 }
 

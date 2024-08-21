@@ -30,19 +30,19 @@
 "blade1@cz",
 "fuel1@cz",
 "fuel1@cz",
-"fuel1@inv0",
-"fuel1@inv1",
+"fuel1@invl",
+"fuel1@invr",
 "blade1@cz",
-"blade1@inv0",
-"blade1@inv1",
+"blade1@invl",
+"blade1@invr",
 "blade2@cz",
 "fuel2@cz",
 "fuel2@cz",
-"fuel2@inv0",
-"fuel2@inv1",
+"fuel2@invl",
+"fuel2@invr",
 "blade2@cz",
-"blade2@inv0",
-"blade2@inv1"
+"blade2@invl",
+"blade2@invr"
 ],
 "surfaces": {
 "data": [

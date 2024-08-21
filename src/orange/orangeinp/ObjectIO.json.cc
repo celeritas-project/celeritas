@@ -218,7 +218,7 @@ void to_json(nlohmann::json& j, Involute const& cr)
          SIO_ATTR_PAIR(cr, radii),
          SIO_ATTR_PAIR(cr, displacement_angle),
          SIO_ATTR_PAIR(cr, t_bounds),
-         SIO_ATTR_PAIR(cr, sign),
+         SIO_ATTR_PAIR(cr, chirality),
          SIO_ATTR_PAIR(cr, halfheight)};
 }
 //!@}
