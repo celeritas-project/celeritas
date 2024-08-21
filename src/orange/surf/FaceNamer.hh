@@ -50,7 +50,6 @@ class FaceNamer
     {
         int num_plane{0};
         int num_gq{0};
-        int num_inv{0};
     };
 
     // String prefix
