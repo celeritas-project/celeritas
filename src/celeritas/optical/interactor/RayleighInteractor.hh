@@ -36,11 +36,11 @@ namespace optical
 class RayleighInteractor
 {
   public:
-    //! Construct interactor from an optical track
+    // Construct interactor from an optical track
     inline CELER_FUNCTION
     RayleighInteractor(TrackView const& particle, Real3 const& direction);
 
-    //! Sample an interaction with the given RNG
+    // Sample an interaction with the given RNG
     template<class Engine>
     inline CELER_FUNCTION Interaction operator()(Engine& rng) const;
 
@@ -83,7 +83,7 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng) const
 
         auto projected_pol = dot_product(new_dir, inc_pol_);
 
-        if (projected_pol == 0)
+        if (soft_zero(projected_pol))
         {
             // If new direction is parallel to incident polarization, then
             // randomly sample azimuthal direction

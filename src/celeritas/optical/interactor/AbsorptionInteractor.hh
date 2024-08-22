@@ -25,7 +25,7 @@ namespace optical
 class AbsorptionInteractor
 {
   public:
-    //! Sample an interaction (no RNG needed)
+    // Sample an interaction (no RNG needed)
     inline CELER_FUNCTION Interaction operator()() const;
 };
 
