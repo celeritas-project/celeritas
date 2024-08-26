@@ -21,7 +21,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Generate optical distribution data.
+ * Collect pre-step data needed to generate optical distribution data.
  *
  * This pre-step action stores the optical material ID and other
  * beginning-of-step properties so that optical photons can be generated

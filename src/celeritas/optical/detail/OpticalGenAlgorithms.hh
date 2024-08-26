@@ -45,11 +45,39 @@ remove_if_invalid(Collection<celeritas::optical::GeneratorDistributionData,
                   StreamId);
 
 //---------------------------------------------------------------------------//
+// Count the number of optical photons in the distributions.
+size_type
+count_num_photons(Collection<celeritas::optical::GeneratorDistributionData,
+                             Ownership::reference,
+                             MemSpace::host> const&,
+                  size_type,
+                  size_type,
+                  StreamId);
+size_type
+count_num_photons(Collection<celeritas::optical::GeneratorDistributionData,
+                             Ownership::reference,
+                             MemSpace::device> const&,
+                  size_type,
+                  size_type,
+                  StreamId);
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 inline size_type
 remove_if_invalid(Collection<celeritas::optical::GeneratorDistributionData,
+                             Ownership::reference,
+                             MemSpace::device> const&,
+                  size_type,
+                  size_type,
+                  StreamId)
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+
+inline size_type
+count_num_photons(Collection<celeritas::optical::GeneratorDistributionData,
                              Ownership::reference,
                              MemSpace::device> const&,
                   size_type,

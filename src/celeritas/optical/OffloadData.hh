@@ -30,6 +30,7 @@ struct OffloadBufferSize
 {
     size_type cerenkov{0};
     size_type scintillation{0};
+    size_type num_primaries{0};
 };
 
 //---------------------------------------------------------------------------//
