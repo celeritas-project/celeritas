@@ -19,7 +19,6 @@ namespace celeritas
 {
 namespace detail
 {
-struct OpticalGenStorage;
 //---------------------------------------------------------------------------//
 /*!
  * Generate optical distribution data.
@@ -32,12 +31,6 @@ struct OpticalGenStorage;
  */
 class OffloadGatherAction final : public ExplicitCoreActionInterface
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    using SPGenStorage = std::shared_ptr<detail::OpticalGenStorage>;
-    //!@}
-
   public:
     // Construct with action ID and storage
     OffloadGatherAction(ActionId id, AuxId data_id);
@@ -65,7 +58,6 @@ class OffloadGatherAction final : public ExplicitCoreActionInterface
 
     ActionId id_;
     AuxId data_id_;
-    SPGenStorage storage_;
 };
 
 //---------------------------------------------------------------------------//
