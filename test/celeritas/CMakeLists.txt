@@ -78,6 +78,7 @@ celeritas_add_test_library(testcel_celeritas
   io/EventIOTestBase.cc
   neutron/NeutronTestBase.cc
   optical/OpticalTestBase.cc
+  optical/InteractorHostTestBase.cc
   phys/InteractionIO.cc
   phys/InteractorHostTestBase.cc
   phys/MockModel.cc
@@ -287,6 +288,8 @@ celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 celeritas_add_test(optical/Cerenkov.test.cc)
 celeritas_add_test(optical/OpticalCollector.test.cc ${_needs_geant4})
 celeritas_add_test(optical/Scintillation.test.cc)
+celeritas_add_test(optical/Rayleigh.test.cc ${_needs_double})
+celeritas_add_test(optical/Absorption.test.cc ${_needs_double})
 
 #-----------------------------------------------------------------------------#
 # Mat
