@@ -43,20 +43,20 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
     // Save param scalars
     obj["scalars"] = [&sdata = data.scalars] {
         auto scalars = json::object();
-#    define OPO_SAVE_SCALAR(NAME) scalars[#NAME] = sdata.NAME;
+#define OPO_SAVE_SCALAR(NAME) scalars[#NAME] = sdata.NAME;
         OPO_SAVE_SCALAR(max_depth);
         OPO_SAVE_SCALAR(max_faces);
         OPO_SAVE_SCALAR(max_intersections);
         OPO_SAVE_SCALAR(max_logic_depth);
         OPO_SAVE_SCALAR(tol);
-#    undef OPO_SAVE_SCALAR
+#undef OPO_SAVE_SCALAR
         return scalars;
     }();
 
     // Save sizes
     obj["sizes"] = [&data] {
         auto sizes = json::object();
-#    define OPO_SAVE_SIZE(NAME) sizes[#NAME] = data.NAME.size()
+#define OPO_SAVE_SIZE(NAME) sizes[#NAME] = data.NAME.size()
         OPO_SAVE_SIZE(universe_types);
         OPO_SAVE_SIZE(universe_indices);
         OPO_SAVE_SIZE(simple_units);
@@ -71,24 +71,24 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         OPO_SAVE_SIZE(connectivity_records);
         OPO_SAVE_SIZE(volume_records);
         OPO_SAVE_SIZE(daughters);
-#    undef OPO_SAVE_SIZE
+#undef OPO_SAVE_SIZE
 
         // Save BIH sizes
         sizes["bih"] = [&bihdata = data.bih_tree_data] {
             auto bih = json::object();
-#    define OPO_SAVE_BIH_SIZE(NAME) bih[#NAME] = bihdata.NAME.size()
+#define OPO_SAVE_BIH_SIZE(NAME) bih[#NAME] = bihdata.NAME.size()
             OPO_SAVE_BIH_SIZE(bboxes);
             OPO_SAVE_BIH_SIZE(local_volume_ids);
             OPO_SAVE_BIH_SIZE(inner_nodes);
             OPO_SAVE_BIH_SIZE(leaf_nodes);
-#    undef OPO_SAVE_BIH_SIZE
+#undef OPO_SAVE_BIH_SIZE
             return bih;
         }();
 
         return sizes;
     }();
 
-    // TODO: make universe metadata accessible from ORANGE, and write it
+    //! \todo Make universe metadata accessible from ORANGE, and write it
 
     j->obj = std::move(obj);
 }

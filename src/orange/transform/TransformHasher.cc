@@ -37,8 +37,7 @@ auto TransformHasher::operator()(NoTransformation const&) const -> result_type
 /*!
  * Special hash for "signed permutation".
  */
-auto TransformHasher::operator()(SignedPermutation const& t) const
-    -> result_type
+auto TransformHasher::operator()(SignedPermutation const& t) const -> result_type
 {
     auto v = t.value();
     return std::hash<decltype(v)>{}(v);

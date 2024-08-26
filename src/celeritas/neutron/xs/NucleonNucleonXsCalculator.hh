@@ -107,7 +107,7 @@ auto NucleonNucleonXsCalculator::operator()(ChannelId ch_id,
     else
     {
         // Get tabulated NN cross section data for the given channel
-        GenericGridData grid = shared_.nucleon_xs[ch_id];
+        GenericGridRecord grid = shared_.nucleon_xs[ch_id];
 
         // Calculate NN cross section at the given energy
         GenericCalculator calc_xs(grid, shared_.reals);

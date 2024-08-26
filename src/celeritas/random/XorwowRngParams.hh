@@ -26,7 +26,7 @@ class XorwowRngParams final : public ParamsDataInterface<XorwowRngParamsData>
     // Construct with a low-entropy seed
     explicit XorwowRngParams(unsigned int seed);
 
-    // TODO: Construct with a seed of 256 bytes (16-byte hex) or shasum string
+    //! \todo Construct with a seed of 256 bytes (16-byte hex) or shasum string
     // explicit XorwowRngParams(const std::string& hexstring);
 
     //! Access material properties on the host

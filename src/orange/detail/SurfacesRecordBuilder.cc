@@ -28,8 +28,7 @@ SurfacesRecordBuilder::SurfacesRecordBuilder(Items<SurfaceType>* types,
 /*!
  * Construct a record of all the given surfaces.
  */
-auto SurfacesRecordBuilder::operator()(VecSurface const& surfaces)
-    -> result_type
+auto SurfacesRecordBuilder::operator()(VecSurface const& surfaces) -> result_type
 {
     types_.reserve(types_.size() + surfaces.size());
     real_ids_.reserve(real_ids_.size() + surfaces.size());

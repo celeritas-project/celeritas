@@ -99,6 +99,8 @@ class BraggICRU73QOInteractor
 //---------------------------------------------------------------------------//
 /*!
  * Construct with shared and state data.
+ *
+ * \todo Use proton mass from imported data instead of a constant.
  */
 CELER_FUNCTION
 BraggICRU73QOInteractor::BraggICRU73QOInteractor(
@@ -115,7 +117,6 @@ BraggICRU73QOInteractor::BraggICRU73QOInteractor(
     , beta_sq_(particle.beta_sq())
     , electron_mass_(shared.electron_mass)
     , electron_id_(shared.electron)
-    // TODO: Use proton mass from imported data instead of constant
     , min_secondary_energy_(min(
           value_as<Energy>(cutoffs.energy(electron_id_)),
           value_as<Energy>(shared.lowest_kin_energy) * value_as<Mass>(inc_mass_)
@@ -177,8 +178,8 @@ CELER_FUNCTION Interaction BraggICRU73QOInteractor::operator()(Engine& rng)
  *
  * TODO: Duplicated in \c MuBetheBlochInteractor.
  */
-CELER_FUNCTION auto BraggICRU73QOInteractor::calc_max_secondary_energy() const
-    -> Energy
+CELER_FUNCTION auto
+BraggICRU73QOInteractor::calc_max_secondary_energy() const -> Energy
 {
     real_type mass_ratio = value_as<Mass>(electron_mass_)
                            / value_as<Mass>(inc_mass_);

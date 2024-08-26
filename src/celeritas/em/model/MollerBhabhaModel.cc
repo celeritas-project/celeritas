@@ -28,7 +28,7 @@ namespace celeritas
 MollerBhabhaModel::MollerBhabhaModel(ActionId id,
                                      ParticleParams const& particles)
     : ConcreteAction(
-        id, "ioni-moller-bhabha", "interact by Moller+Bhabha ionization")
+          id, "ioni-moller-bhabha", "interact by Moller+Bhabha ionization")
 {
     CELER_EXPECT(id);
     data_.ids.electron = particles.find(pdg::electron());
@@ -50,9 +50,11 @@ MollerBhabhaModel::MollerBhabhaModel(ActionId id,
  */
 auto MollerBhabhaModel::applicability() const -> SetApplicability
 {
-    // TODO: potentially set lower energy bound based on (material-dependent)
-    // IonizationProcess lambda table energy grid to avoid invoking the
-    // interactor for tracks with energy below the interaction threshold
+    /*!
+     * \todo Set lower energy bound based on (material-dependent)
+     * IonizationProcess lambda table energy grid to avoid invoking the
+     * interactor for tracks with energy below the interaction threshold.
+     */
 
     Applicability electron_applic, positron_applic;
 

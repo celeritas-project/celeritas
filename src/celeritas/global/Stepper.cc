@@ -19,6 +19,7 @@
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "CoreParams.hh"
+
 #include "detail/ActionSequence.hh"
 
 namespace celeritas

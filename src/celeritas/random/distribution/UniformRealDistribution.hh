@@ -23,8 +23,17 @@ namespace celeritas
  * Sample from a uniform distribution.
  *
  * This distribution is defined between two arbitrary real numbers \em a and
- * \em b , and has a flat PDF between the two values. It *is* allowable for the
+ * \em b , and has a flat PDF between the two values. It \em is allowable for
+ the
  * two numbers to have reversed order.
+ * The normalized PDF is:
+ * \f[
+   f(x; a, b) = \frac{1}{b - a} \quad \mathrm{for} \ a \le x < b
+   \f]
+ * which integrated into a CDF and inverted gives a sample:
+ * \f[
+  x = (b - a) \xi + a
+   \f]
  */
 template<class RealType = ::celeritas::real_type>
 class UniformRealDistribution

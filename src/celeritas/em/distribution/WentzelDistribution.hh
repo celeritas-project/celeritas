@@ -28,6 +28,12 @@ namespace celeritas
  *
  * Samples the polar scattering angle for the Wentzel Coulomb scattering model.
  *
+ * This chooses between sampling scattering off an electron or nucleus based on
+ * the relative cross sections. Electron scattering angle imposes a maximum
+ * scattering angle (see WentzelHelper::cos_thetamax_electron), and nuclear
+ * sattering rejects an angular change based on the Mott cross section (see
+ * MottRatioCalculator).
+ *
  * References:
  * [Fern] J.M. Fernandez-Varea, R. Mayol and F. Salvat. On the theory
  *        and simulation of multiple elastic scattering of electrons. Nucl.
@@ -168,7 +174,6 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
         cos_theta = this->sample_costheta(cos_thetamin_, cos_thetamax_, rng);
 
         // Calculate rejection for fake scattering
-        // TODO: Reference?
         MottRatioCalculator mott_xsec(wentzel_.elem_data[el_id_],
                                       std::sqrt(particle_.beta_sq()));
         real_type xs = mott_xsec(cos_theta)

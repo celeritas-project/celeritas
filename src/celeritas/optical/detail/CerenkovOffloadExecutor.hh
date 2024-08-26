@@ -28,7 +28,7 @@ struct CerenkovOffloadExecutor
     inline CELER_FUNCTION void
     operator()(celeritas::CoreTrackView const& track);
 
-    NativeCRef<celeritas::optical::MaterialPropertyData> const properties;
+    NativeCRef<celeritas::optical::MaterialParamsData> const material;
     NativeCRef<celeritas::optical::CerenkovData> const cerenkov;
     NativeRef<OffloadStateData> const state;
     OffloadBufferSize size;
@@ -45,7 +45,7 @@ CerenkovOffloadExecutor::operator()(CoreTrackView const& track)
 {
     CELER_EXPECT(state);
     CELER_EXPECT(cerenkov);
-    CELER_EXPECT(properties);
+    CELER_EXPECT(material);
 
     using DistId = ItemId<celeritas::optical::GeneratorDistributionData>;
 
@@ -72,10 +72,10 @@ CerenkovOffloadExecutor::operator()(CoreTrackView const& track)
     if (particle.charge() != zero_quantity())
     {
         Real3 const& pos = track.make_geo_view().pos();
+        optical::MaterialView opt_mat{material, step.material};
         auto rng = track.make_rng_engine();
 
-        CerenkovOffload generate(
-            particle, sim, pos, properties, cerenkov, step);
+        CerenkovOffload generate(particle, sim, opt_mat, pos, cerenkov, step);
         cerenkov_dist = generate(rng);
     }
 }

@@ -75,6 +75,9 @@ IncludeCategories:
   - Regex:           '^"corecel/(Config|Version|DeviceRuntimeApi)\.hh"$'
     Priority:        2
     SortPriority:    3
+  - Regex:           '^"celeritas_test_config.h"$'
+    Priority:        2
+    SortPriority:    3
   - Regex:           '^"corecel/'
     Priority:        3
     SortPriority:    5

@@ -46,6 +46,7 @@ jobs:
         working-directory: build
         run: |
           ninja doxygen
+          find doc/doxygen-html -name '*.md5' -exec rm {} +
       - name: Upload artifacts
         if: ${{env.celer_upload_doc}}
         uses: actions/upload-artifact@v4
@@ -82,12 +83,15 @@ jobs:
           cmake \
             -DCELERITAS_BUILD_DOCS=ON \
             -DDOXYGEN_HAVE_DOT="NO" \
-            -DDOXYGEN_WARN_AS_ERROR="YES" \
+            ${{ github.workflow == 'pr'
+             && '-DDOXYGEN_WARN_AS_ERROR="YES" -DCELERITAS_SPHINX_USER_HTML_ARGS="-W;--keep-going"'
+             || ''}} \
             -GNinja ..
       - name: Build user documentation
         working-directory: build
         run: |
           ninja doc
+          find doc/html -name '*.md5' -exec rm {} +
       - name: Upload artifacts
         if: ${{env.celer_upload_doc}}
         uses: actions/upload-artifact@v4

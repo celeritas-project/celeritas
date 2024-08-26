@@ -14,7 +14,7 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/optical/CerenkovParams.hh"
-#include "celeritas/optical/MaterialPropertyParams.hh"
+#include "celeritas/optical/MaterialParams.hh"
 
 #include "CerenkovOffloadExecutor.hh"
 #include "OffloadParams.hh"
@@ -36,7 +36,7 @@ void CerenkovOffloadAction::pre_generate(CoreParams const& core_params,
     TrackExecutor execute{
         core_params.ptr<MemSpace::native>(),
         core_state.ptr(),
-        detail::CerenkovOffloadExecutor{properties_->device_ref(),
+        detail::CerenkovOffloadExecutor{material_->device_ref(),
                                         cerenkov_->device_ref(),
                                         state.store.ref(),
                                         state.buffer_size}};

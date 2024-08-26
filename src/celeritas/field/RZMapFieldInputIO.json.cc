@@ -67,7 +67,7 @@ void from_json(nlohmann::json const& j, RZMapFieldInput& inp)
         }
         else if (ustr == "gauss" || ustr == Gauss::label() || ustr == "native")
         {
-            // TODO: Remove in 1.0
+            //! \todo Remove in 1.0
             CELER_LOG(warning) << "Deprecated RZ field input units '" << ustr
                                << "': replace with 'cgs' (Gauss + cm)";
             field_units = UnitSystem::cgs;

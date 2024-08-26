@@ -7,7 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "CoreTrackData.hh"
 
-#include "celeritas/track/detail/TrackSortUtils.hh"
+#include "corecel/data/CollectionAlgorithms.hh"
+
+#include "detail/TrackSlotUtils.hh"
 
 namespace celeritas
 {
@@ -38,18 +40,16 @@ void resize(CoreStateData<Ownership::value, M>* state,
     resize(&state->physics, params.physics, size);
     resize(&state->rng, params.rng, stream_id, size);
     resize(&state->sim, size);
-    resize(&state->init, params.init, size);
+    resize(&state->init, params.init, stream_id, size);
     state->stream_id = stream_id;
 
     if (params.init.track_order != TrackOrder::unsorted)
     {
         resize(&state->track_slots, size);
-        Span track_slots{
-            state->track_slots[AllItems<TrackSlotId::size_type, M>{}]};
-        detail::fill_track_slots<M>(track_slots, stream_id);
+        fill_sequence(&state->track_slots, stream_id);
         if (params.init.track_order == TrackOrder::shuffled)
         {
-            detail::shuffle_track_slots<M>(track_slots, stream_id);
+            detail::shuffle_track_slots(&state->track_slots, stream_id);
         }
     }
 

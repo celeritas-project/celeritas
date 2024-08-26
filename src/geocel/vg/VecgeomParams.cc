@@ -279,8 +279,7 @@ VolumeId VecgeomParams::find_volume(G4LogicalVolume const* volume) const
  * This is useful for volumes that are repeated in the geometry with different
  * uniquifying 'extensions' from Geant4.
  */
-auto VecgeomParams::find_volumes(std::string const& name) const
-    -> SpanConstVolumeId
+auto VecgeomParams::find_volumes(std::string const& name) const -> SpanConstVolumeId
 {
     return vol_labels_.find_all(name);
 }
@@ -350,9 +349,11 @@ void VecgeomParams::build_tracking()
         this->build_volume_tracking();
     }
 
-    // TODO: we stil lneed to make volume tracking information when using CUDA,
-    // because we need a GPU world device pointer. We could probably just make
-    // a single world physical/logical volume that have the correct IDs.
+    /*!
+     * \todo we still need to make volume tracking information when using CUDA,
+     * because we need a GPU world device pointer. We could probably just make
+     * a single world physical/logical volume that have the correct IDs.
+     */
     if (CELERITAS_USE_CUDA && VecgeomParams::use_surface_tracking())
     {
         this->build_volume_tracking();

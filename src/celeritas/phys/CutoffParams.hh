@@ -29,7 +29,7 @@ struct ImportData;
 
 //---------------------------------------------------------------------------//
 /*!
- * Data management for particle and material cutoff values.
+ * Management particle and material cutoffs.
  *
  * Geant4 provides accessors to its production cuts from its
  * \c G4MaterialCutsCouple class, which couples cutoff and material data.

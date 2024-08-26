@@ -52,11 +52,7 @@ class Selector
     //!@{
     //! \name Type aliases
     using value_type = T;
-#if __cplusplus < 201703L
-    using real_type = typename std::result_of<F(value_type)>::type;
-#else
     using real_type = typename std::invoke_result<F, value_type>::type;
-#endif
     //!@}
 
   public:
@@ -136,8 +132,7 @@ CELER_FUNCTION T Selector<F, T>::operator()(Engine& rng) const
  * This should *only* be used in the constructor before last_ is decremented.
  */
 template<class F, class T>
-CELER_FUNCTION auto Selector<F, T>::debug_accumulated_total() const
-    -> real_type
+CELER_FUNCTION auto Selector<F, T>::debug_accumulated_total() const -> real_type
 {
     real_type accum = 0;
     for (IterT iter{}; iter != last_; ++iter)

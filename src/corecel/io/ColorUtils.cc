@@ -31,7 +31,7 @@ bool use_color()
         {
             // Don't use celeritas getenv to check gtest variable, to avoid
             // adding it to the list of exposed variables
-            if (const char* color_cstr = std::getenv("GTEST_COLOR"))
+            if (char const* color_cstr = std::getenv("GTEST_COLOR"))
             {
                 color_str = std::string(color_cstr);
             }
@@ -53,7 +53,7 @@ bool use_color()
             return false;
         }
 #endif
-        if (const char* term_str = std::getenv("TERM"))
+        if (char const* term_str = std::getenv("TERM"))
         {
             if (std::string{term_str}.find("xterm") != std::string::npos)
             {

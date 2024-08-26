@@ -153,10 +153,13 @@ CELER_FUNCTION Interaction ChipsNeutronElasticInteractor::operator()(Engine& rng
     real_type recoil_energy = clamp_to_nonneg(lv.energy - target_mass);
     result.energy_deposition = Energy{recoil_energy};
 
-    // TODO: create a secondary ion(Z, N) if recoil_energy > recoil_threshold
-    // with energy = recoil_energy and direction = lv.mom - nlv1.mom
-    // Note: the tracking of the secondary ion is only needed when there is
-    // a detail simulation of radiative decay for the recoiled nucleus.
+    /*!
+     * \todo Create a secondary ion(Z, N) if recoil_energy > recoil_threshold
+     * with energy = recoil_energy and direction = lv.mom - nlv1.mom
+     *
+     * Note: the tracking of the secondary ion is only needed when there is
+     * a detail simulation of radiative decay for the recoiled nucleus.
+     */
 
     CELER_ENSURE(result.action == Interaction::Action::scattered);
 
