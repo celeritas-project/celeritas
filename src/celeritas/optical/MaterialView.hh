@@ -112,6 +112,7 @@ CELER_FUNCTION auto MaterialView::material_id() const -> MaterialId
 CELER_FUNCTION GenericCalculator
 MaterialView::make_refractive_index_calculator() const
 {
+    CELER_EXPECT(*this);
     return GenericCalculator(params_.refractive_index[mat_id_], params_.reals);
 }
 
