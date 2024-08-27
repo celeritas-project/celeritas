@@ -214,7 +214,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
     "SimpleCmsRZFieldAlongStepTest.msc_rzfield_finegrid"
   )
   set(_stepper_filter
-    "-TestEm*"
+    "-TestEm*:LeadBox*"
     "TestEm3Compton.*"
     "TestEm3NoMsc.*"
     "TestEm3Msc.*"
@@ -235,7 +235,7 @@ elseif(CELERITAS_USE_Geant4)
     "LeadBox*"
   )
   set(_stepper_filter
-    "-TestEm*"
+    "-TestEm*:LeadBox*"
     "TestEm3Compton.*"
     "TestEm3Msc.*"
     "TestEm3MscNofluct.*"
