@@ -29,18 +29,20 @@ namespace optical
 /*!
  * Manage properties for optical materials.
  *
- * Each "geometry material" (i.e. \c G4Material or material defined in
- * the geometry model input) can map to a single optical material. (In the
- * future we might broaden this to allow \c regions to define different
- * materials as well.) Many "geometry materials"---especially those in
- * mechanical structures and components not optically connected to the
- * detector---may have no optical properties at all.
+ * Each "physics material" (the combination of a geometry-specified material
+ * and a user-specified region) can map to a single optical material. Many
+ * materials---especially those in mechanical structures and components not
+ * optically connected to the detector---may have no optical properties at all.
  *
- * Optical volume and surface properties are imported from Geant4 into the \c
+ * Optical volume properties are imported from Geant4 into the \c
  * ImportData container. The \c celeritas::MaterialParams class loads the
- * mapping of \c GeoMaterialId to \c OpticalMaterialId and makes it accessible
- * via the main loop's material view. This class maps the geometry volumes to
- * optical materials for use during tracking. When surface models are
+ * mapping of \c MaterialId to \c OpticalMaterialId and makes it accessible
+ * via the main loop's material view. By combining that with the \c
+ * GeoMaterialParams which maps volumes to \c MaterialId, this class maps the
+ * geometry volumes to optical materials for use in the optical tracking loop.
+ *
+ * When surface models are implemented, surface properties will also be added
+ * to this class.
  */
 class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 {
