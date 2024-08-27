@@ -391,14 +391,13 @@ TEST_F(MaterialParamsImportTest, optical_materials)
 {
     ImportData data;
     data.units = "cgs";
-    data.elements.push_back(
-        [] {
-            ImportElement el;
-            el.name = "Ar";
-            el.atomic_number = 18;
-            el.atomic_mass = 39.95;
-            return el;
-        }());
+    data.elements.push_back([] {
+        ImportElement el;
+        el.name = "Ar";
+        el.atomic_number = 18;
+        el.atomic_mass = 39.95;
+        return el;
+    }());
     data.geo_materials.push_back([] {
         ImportGeoMaterial gm;
         gm.name = "vacuum";
@@ -491,7 +490,6 @@ TEST_F(MaterialDeviceTest, TEST_IF_CELER_DEVICE(all))
     EXPECT_VEC_SOFT_EQ(expected_rad_len, result.rad_len);
     EXPECT_VEC_SOFT_EQ(expected_tot_z, result.tot_z);
 }
-
 
 //---------------------------------------------------------------------------//
 }  // namespace test

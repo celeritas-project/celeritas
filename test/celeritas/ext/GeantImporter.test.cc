@@ -1373,7 +1373,6 @@ TEST_F(LarSphere, optical)
     ASSERT_FALSE(lar_iter == imported.optical.end());
     auto const& optical = lar_iter->second;
 
-
     real_type const tol = this->comparison_tolerance();
 
     // Most optical properties in the geometry are pulled from the Geant4
