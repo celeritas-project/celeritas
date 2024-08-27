@@ -17,9 +17,11 @@
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/grid/GenericGridBuilder.hh"
 #include "celeritas/grid/GenericGridData.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/mat/MaterialParams.hh"
 
 namespace celeritas
 {
@@ -27,28 +29,59 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with imported data.
+ * Construct with imported data and material/volume data.
  */
 std::shared_ptr<MaterialParams>
-MaterialParams::from_import(ImportData const& data)
+MaterialParams::from_import(ImportData const& data,
+                            ::celeritas::GeoMaterialParams const& geo_mat,
+                            ::celeritas::MaterialParams const& mat)
 {
     CELER_EXPECT(!data.optical.empty());
+    CELER_EXPECT(geo_mat.num_volumes() > 0);
 
     if (!std::any_of(
             data.optical.begin(), data.optical.end(), [](auto const& iter) {
                 return static_cast<bool>(iter.second.properties);
             }))
     {
-        // No optical property data present
+        CELER_LOG(debug) << "No optical property data is present";
         return nullptr;
     }
 
-    Input input;
+    Input inp;
+
+    // Extract optical material properties
+    inp.properties.reserve(data.optical.size());
     for (auto const& mat : data.optical)
     {
-        input.properties.push_back(mat.second.properties);
+        inp.properties.push_back(mat.second.properties);
     }
-    return std::make_shared<MaterialParams>(std::move(input));
+
+    // Construct volume-to-optical mapping
+    inp.volume_to_mat.reserve(geo_mat.num_volumes());
+    bool has_opt_mat{false};
+    for (auto vid : range(VolumeId{geo_mat.num_volumes()}))
+    {
+        OpticalMaterialId optmat;
+        if (auto matid = geo_mat.material_id(vid))
+        {
+            auto mat_view = mat.get(matid);
+            optmat = mat_view.optical_material_id();
+            if (optmat)
+            {
+                has_opt_mat = true;
+            }
+        }
+        inp.volume_to_mat.push_back(optmat);
+    }
+    if (!has_opt_mat)
+    {
+        CELER_LOG(debug) << "No optical property materials are present";
+        return nullptr;
+    }
+
+    CELER_ENSURE(inp.volume_to_mat.size() == geo_mat.num_volumes());
+    return std::make_shared<MaterialParams>(std::move(inp));
 }
 
 //---------------------------------------------------------------------------//
@@ -58,6 +91,7 @@ MaterialParams::from_import(ImportData const& data)
 MaterialParams::MaterialParams(Input const& inp)
 {
     CELER_EXPECT(!inp.properties.empty());
+    CELER_EXPECT(!inp.volume_to_mat.empty());
 
     HostVal<MaterialParamsData> data;
     CollectionBuilder refractive_index{&data.refractive_index};
@@ -90,6 +124,15 @@ MaterialParams::MaterialParams(Input const& inp)
         refractive_index.push_back(build_grid(ri_vec));
     }
     CELER_ASSERT(refractive_index.size() == inp.properties.size());
+
+    for (auto optmat : inp.volume_to_mat)
+    {
+        CELER_VALIDATE(optmat < inp.properties.size(),
+                       << "optical material ID " << optmat.unchecked_get()
+                       << " provided to material params is out of range");
+    }
+    CollectionBuilder{&data.optical_id}.insert_back(inp.volume_to_mat.begin(),
+                                                    inp.volume_to_mat.end());
 
     data_ = CollectionMirror<MaterialParamsData>{std::move(data)};
     CELER_ENSURE(data_);

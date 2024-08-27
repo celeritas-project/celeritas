@@ -138,7 +138,8 @@ auto ImportedDataTestBase::build_cerenkov() -> SPConstCerenkov
 //---------------------------------------------------------------------------//
 auto ImportedDataTestBase::build_optical_material() -> SPConstOpticalMaterial
 {
-    return optical::MaterialParams::from_import(this->imported_data());
+    return optical::MaterialParams::from_import(
+        this->imported_data(), *this->geomaterial(), *this->material());
 }
 
 //---------------------------------------------------------------------------//

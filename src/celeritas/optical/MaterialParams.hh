@@ -19,6 +19,8 @@
 namespace celeritas
 {
 struct ImportData;
+class MaterialParams;
+class GeoMaterialParams;
 
 namespace optical
 {
@@ -37,7 +39,8 @@ namespace optical
  * Optical volume and surface properties are imported from Geant4 into the \c
  * ImportData container. The \c celeritas::MaterialParams class loads the
  * mapping of \c GeoMaterialId to \c OpticalMaterialId and makes it accessible
- * via the main loop's material view.
+ * via the main loop's material view. This class maps the geometry volumes to
+ * optical materials for use during tracking. When surface models are
  */
 class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 {
@@ -46,11 +49,16 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     {
         //! Shared optical material, indexed by \c OpticalMaterialId
         std::vector<ImportOpticalProperty> properties;
+        //! Map logical volume ID to optical material ID
+        std::vector<OpticalMaterialId> volume_to_mat;
     };
 
   public:
-    // Construct with imported data
-    static std::shared_ptr<MaterialParams> from_import(ImportData const& data);
+    // Construct with imported data, materials
+    static std::shared_ptr<MaterialParams>
+    from_import(ImportData const& data,
+                ::celeritas::GeoMaterialParams const& geo_mat,
+                ::celeritas::MaterialParams const& mat);
 
     // Construct with optical property data
     explicit MaterialParams(Input const& inp);
