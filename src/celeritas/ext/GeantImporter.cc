@@ -224,44 +224,40 @@ auto& optical_particles_map()
  */
 std::vector<ImportScintComponent>
 fill_vec_import_scint_comp(MatPropGetter& get_property,
-                           std::string particle_name = {})
+                           std::string prefix = {})
 {
-    CELER_EXPECT(particle_name.empty()
-                 || optical_particles_map().count(particle_name));
+    CELER_EXPECT(prefix.empty()
+                 || optical_particles_map().count(prefix));
+
+    // All the components below are "SCINTILLATIONYIELD",
+    // "ELECTRONSCINTILLATIONYIELD", etc.
+    prefix += "SCINTILLATION";
 
     std::vector<ImportScintComponent> components;
     for (int comp_idx : range(1, 4))
     {
+        bool any_found = false;
+        auto get_scalar = [&](double* dst, std::string const& ext, ImportUnits u) {
+            any_found = get_property.scalar(dst, prefix + ext, comp_idx, u);
+        };
+
         ImportScintComponent comp;
-        get_property.scalar(&comp.yield_frac,
-                            particle_name + "SCINTILLATIONYIELD",
-                            comp_idx,
-                            ImportUnits::inv_mev);
+        get_scalar(&comp.yield_frac, "YIELD", ImportUnits::inv_mev);
 
         // Custom-defined properties not available in G4MaterialPropertyIndex
-        get_property.scalar(&comp.lambda_mean,
-                            particle_name + "SCINTILLATIONLAMBDAMEAN",
-                            comp_idx,
-                            ImportUnits::len);
-        get_property.scalar(&comp.lambda_sigma,
-                            particle_name + "SCINTILLATIONLAMBDASIGMA",
-                            comp_idx,
-                            ImportUnits::len);
+        get_scalar(&comp.lambda_mean, "LAMBDAMEAN", ImportUnits::len);
+        get_scalar(&comp.lambda_sigma, "LAMBDASIGMA", ImportUnits::len);
 
         // Rise time is not defined for particle type in Geant4
-        get_property.scalar(&comp.rise_time,
-                            particle_name + "SCINTILLATIONRISETIME",
-                            comp_idx,
-                            ImportUnits::time);
+        get_scalar(&comp.rise_time, "RISETIME", ImportUnits::time);
 
-        get_property.scalar(&comp.fall_time,
-                            particle_name + "SCINTILLATIONTIMECONSTANT",
-                            comp_idx,
-                            ImportUnits::time);
-        if (comp)
+        get_scalar(&comp.fall_time, "TIMECONSTANT", ImportUnits::time);
+
+        if (any_found)
         {
-            // TODO: should we error if the user defines some but not all
-            // components?
+            // Note that the user may be missing some properties: in that case
+            // (if Geant4 didn't warn/error/die already) then we will rely on
+            // the downstream code to validate.
             components.push_back(std::move(comp));
         }
     }

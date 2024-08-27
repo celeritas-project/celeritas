@@ -54,7 +54,9 @@ struct GeantImportDataSelection
  * Load problem data directly from Geant4.
  *
  * This can be used to circumvent ROOT as a serialization tool, whether to
- * simplify the toolchain or to integrate better with Acceleritas.
+ * simplify the toolchain or to integrate better with user frameworks. As much
+ * data as possible is imported (subject to the data selection); downstream
+ * Celeritas classes will validate the imported data as needed.
  *
  * \code
     GeantImporter import(GeantSetup("blah.gdml"));
