@@ -184,6 +184,8 @@ struct ImportWavelengthShift
 //---------------------------------------------------------------------------//
 /*!
  * Store optical material properties.
+ *
+ * \todo boolean for enabling cerenkov in the material??
  */
 struct ImportOpticalMaterial
 {
@@ -200,5 +202,6 @@ struct ImportOpticalMaterial
     //! Whether minimal useful data is stored
     explicit operator bool() const { return static_cast<bool>(properties); }
 };
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

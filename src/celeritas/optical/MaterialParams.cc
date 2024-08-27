@@ -37,11 +37,14 @@ MaterialParams::from_import(ImportData const& data,
                             ::celeritas::MaterialParams const& mat)
 {
     CELER_EXPECT(!data.optical_materials.empty());
-    CELER_EXPECT(std::all_of(
-        data.optical_materials.begin(),
-        data.optical_materials.end(),
-        [](ImportOpticalMaterial const& m) { return static_cast<bool>(m); }));
     CELER_EXPECT(geo_mat.num_volumes() > 0);
+
+    CELER_VALIDATE(std::all_of(data.optical_materials.begin(),
+                               data.optical_materials.end(),
+                               [](ImportOpticalMaterial const& m) {
+                                   return static_cast<bool>(m);
+                               }),
+                   << "one or more optical materials lack required data");
 
     Input inp;
 
