@@ -122,7 +122,7 @@ MaterialParams::MaterialParams(Input const& inp)
 
     for (auto optmat : inp.volume_to_mat)
     {
-        CELER_VALIDATE(optmat < inp.properties.size(),
+        CELER_VALIDATE(!optmat || optmat < inp.properties.size(),
                        << "optical material ID " << optmat.unchecked_get()
                        << " provided to material params is out of range");
     }
