@@ -171,7 +171,7 @@ struct MatPropGetter
 
     MPT const& mpt;
 
-    bool scalar(double* dst, char const* name, ImportUnits q)
+    bool operator()(double* dst, char const* name, ImportUnits q)
     {
         if (!mpt.ConstPropertyExists(name))
         {
@@ -181,15 +181,15 @@ struct MatPropGetter
         return true;
     }
 
-    bool scalar(double* dst, std::string name, int comp, ImportUnits q)
+    bool operator()(double* dst, std::string name, int comp, ImportUnits q)
     {
         // Geant4 10.6 and earlier require a const char* argument
         name += std::to_string(comp);
-        return this->scalar(dst, name.c_str(), q);
+        return (*this)(dst, name.c_str(), q);
     }
 
     bool
-    vector(ImportPhysicsVector* dst, std::string const& name, ImportUnits q)
+    operator()(ImportPhysicsVector* dst, std::string const& name, ImportUnits q)
     {
         // Geant4@10.7: G4MaterialPropertiesTable.GetProperty is not const
         // and <=10.6 require const char*
@@ -237,21 +237,21 @@ fill_vec_import_scint_comp(MatPropGetter& get_property,
     for (int comp_idx : range(1, 4))
     {
         bool any_found = false;
-        auto get_scalar = [&](double* dst, std::string const& ext, ImportUnits u) {
-            any_found = get_property.scalar(dst, prefix + ext, comp_idx, u);
+        auto get = [&](double* dst, std::string const& ext, ImportUnits u) {
+            any_found = get_property(dst, prefix + ext, comp_idx, u);
         };
 
         ImportScintComponent comp;
-        get_scalar(&comp.yield_frac, "YIELD", ImportUnits::inv_mev);
+        get(&comp.yield_frac, "YIELD", ImportUnits::inv_mev);
 
         // Custom-defined properties not available in G4MaterialPropertyIndex
-        get_scalar(&comp.lambda_mean, "LAMBDAMEAN", ImportUnits::len);
-        get_scalar(&comp.lambda_sigma, "LAMBDASIGMA", ImportUnits::len);
+        get(&comp.lambda_mean, "LAMBDAMEAN", ImportUnits::len);
+        get(&comp.lambda_sigma, "LAMBDASIGMA", ImportUnits::len);
 
         // Rise time is not defined for particle type in Geant4
-        get_scalar(&comp.rise_time, "RISETIME", ImportUnits::time);
+        get(&comp.rise_time, "RISETIME", ImportUnits::time);
 
-        get_scalar(&comp.fall_time, "TIMECONSTANT", ImportUnits::time);
+        get(&comp.fall_time, "TIMECONSTANT", ImportUnits::time);
 
         if (any_found)
         {
@@ -527,8 +527,6 @@ import_optical()
     auto const& mt = *G4Material::GetMaterialTable();
     CELER_ASSERT(mt.size() > 0);
 
-    auto const& particle_map = optical_particles_map();
-
     std::vector<OpticalMaterialId> geo_to_opt(mt.size());
     std::vector<ImportOpticalMaterial> result;
 
@@ -550,10 +548,9 @@ import_optical()
         MatPropGetter get_property{*mpt};
 
         // Save common properties
-        bool has_rindex
-            = get_property.vector(&optical.properties.refractive_index,
-                                  "RINDEX",
-                                  ImportUnits::unitless);
+        bool has_rindex = get_property(&optical.properties.refractive_index,
+                                       "RINDEX",
+                                       ImportUnits::unitless);
         if (!has_rindex)
         {
             // Refractive index is required: assume the material isn't optical
@@ -561,58 +558,55 @@ import_optical()
         }
 
         // Save scintillation properties
-        get_property.scalar(&optical.scintillation.material.yield_per_energy,
-                            "SCINTILLATIONYIELD",
-                            ImportUnits::inv_mev);
-        get_property.scalar(&optical.scintillation.resolution_scale,
-                            "RESOLUTIONSCALE",
-                            ImportUnits::unitless);
+        get_property(&optical.scintillation.material.yield_per_energy,
+                     "SCINTILLATIONYIELD",
+                     ImportUnits::inv_mev);
+        get_property(&optical.scintillation.resolution_scale,
+                     "RESOLUTIONSCALE",
+                     ImportUnits::unitless);
         optical.scintillation.material.components
             = fill_vec_import_scint_comp(get_property);
 
         // Particle scintillation properties
-        for (auto const& iter : particle_map)
+        for (auto&& [prefix, pdg] : optical_particles_map())
         {
-            auto const& particle_name = iter.first;
-
             ImportScintData::IPSS scint_part_spec;
-            get_property.vector(&scint_part_spec.yield_vector,
-                                particle_name + "SCINTILLATIONYIELD",
-                                ImportUnits::inv_mev);
+            get_property(&scint_part_spec.yield_vector,
+                         prefix + "SCINTILLATIONYIELD",
+                         ImportUnits::inv_mev);
             scint_part_spec.components
-                = fill_vec_import_scint_comp(get_property, particle_name);
+                = fill_vec_import_scint_comp(get_property, prefix);
 
             if (scint_part_spec)
             {
                 optical.scintillation.particles.insert(
-                    {iter.second.get(), std::move(scint_part_spec)});
+                    {pdg.get(), std::move(scint_part_spec)});
             }
         }
 
         // Save Rayleigh properties
-        get_property.vector(
-            &optical.rayleigh.mfp, "RAYLEIGH", ImportUnits::len);
-        get_property.scalar(&optical.rayleigh.scale_factor,
-                            "RS_SCALE_FACTOR",
-                            ImportUnits::unitless);
-        get_property.scalar(&optical.rayleigh.compressibility,
-                            "ISOTHERMAL_COMPRESSIBILITY",
-                            ImportUnits::len_time_sq_per_mass);
+        get_property(&optical.rayleigh.mfp, "RAYLEIGH", ImportUnits::len);
+        get_property(&optical.rayleigh.scale_factor,
+                     "RS_SCALE_FACTOR",
+                     ImportUnits::unitless);
+        get_property(&optical.rayleigh.compressibility,
+                     "ISOTHERMAL_COMPRESSIBILITY",
+                     ImportUnits::len_time_sq_per_mass);
 
         // Save absorption properties
-        get_property.vector(&optical.absorption.absorption_length,
-                            "ABSLENGTH",
-                            ImportUnits::len);
+        get_property(&optical.absorption.absorption_length,
+                     "ABSLENGTH",
+                     ImportUnits::len);
 
         // Save WLS properties
-        get_property.scalar(&optical.wls.mean_num_photons,
-                            "WLSMEANNUMBERPHOTONS",
-                            ImportUnits::unitless);
-        get_property.scalar(
+        get_property(&optical.wls.mean_num_photons,
+                     "WLSMEANNUMBERPHOTONS",
+                     ImportUnits::unitless);
+        get_property(
             &optical.wls.time_constant, "WLSTIMECONSTANT", ImportUnits::time);
-        get_property.vector(
+        get_property(
             &optical.wls.absorption_length, "WLSABSLENGTH", ImportUnits::len);
-        get_property.vector(
+        get_property(
             &optical.wls.component, "WLSCOMPONENT", ImportUnits::unitless);
 
         // Save optical material ID and data
