@@ -121,8 +121,6 @@ namespace celeritas
 %rename(xs_hi) ImportTableType::lambda_prim;
 }
 
-%include "celeritas/io/ImportParameters.hh"
-
 %include "celeritas/io/ImportPhysicsVector.hh"
 %template(VecImportPhysicsVector) std::vector<celeritas::ImportPhysicsVector>;
 
@@ -131,6 +129,26 @@ namespace celeritas
 %include "celeritas/io/ImportPhysicsTable.hh"
 %template(VecImportPhysicsTable) std::vector<celeritas::ImportPhysicsTable>;
 
+// Material data
+%include "celeritas/io/ImportElement.hh"
+%template(VecImportIsotope) std::vector<celeritas::ImportIsotope>;
+%template(VecImportElement) std::vector<celeritas::ImportElement>;
+
+%include "celeritas/io/ImportMaterial.hh"
+%template(VecImportGeoMaterial) std::vector<celeritas::ImportGeoMaterial>;
+%template(VecImportPhysMaterial) std::vector<celeritas::ImportPhysMaterial>;
+
+%include "celeritas/io/ImportOpticalMaterial.hh"
+%template(VecImportOptMaterial) std::vector<celeritas::ImportOpticalMaterial>;
+
+// Spatial region data
+%include "celeritas/io/ImportVolume.hh"
+%template(VecImportRegion) std::vector<celeritas::ImportRegion>;
+%template(VecImportVolume) std::vector<celeritas::ImportVolume>;
+
+%include "celeritas/io/ImportParticle.hh"
+%template(VecImportParticle) std::vector<celeritas::ImportParticle>;
+
 %include "celeritas/io/ImportModel.hh"
 %template(VecImportModel) std::vector<celeritas::ImportModel>;
 %template(VecImportMscModel) std::vector<celeritas::ImportMscModel>;
@@ -138,31 +156,19 @@ namespace celeritas
 %include "celeritas/io/ImportProcess.hh"
 %template(VecImportProcess) std::vector<celeritas::ImportProcess>;
 
-%include "celeritas/io/ImportParticle.hh"
-%template(VecImportParticle) std::vector<celeritas::ImportParticle>;
-
-%include "celeritas/io/ImportElement.hh"
-%template(VecImportElement) std::vector<celeritas::ImportElement>;
-
-%include "celeritas/io/ImportMaterial.hh"
-%template(VecImportGeoMaterial) std::vector<celeritas::ImportGeoMaterial>;
-%template(VecImportPhysMaterial) std::vector<celeritas::ImportPhysMaterial>;
-
-%include "celeritas/io/ImportVolume.hh"
-%template(VecImportRegion) std::vector<celeritas::ImportRegion>;
-%template(VecImportVolume) std::vector<celeritas::ImportVolume>;
-
 %include "celeritas/io/ImportAtomicRelaxation.hh"
 %template(VecImportAtomicTransition) std::vector<celeritas::ImportAtomicTransition>;
-
-%include "celeritas/io/ImportSBTable.hh"
+%template(MapIAR) std::map<int, celeritas::ImportAtomicRelaxation>;
 
 %include "celeritas/io/ImportLivermorePE.hh"
 %template(VecImportLivermoreSubshell) std::vector<celeritas::ImportLivermoreSubshell>;
-
-%template(MapIAR) std::map<int, celeritas::ImportAtomicRelaxation>;
 %template(MapLivermorePE) std::map<int, celeritas::ImportLivermorePE>;
+
+%include "celeritas/io/ImportSBTable.hh"
 %template(MapImportSB) std::map<int, celeritas::ImportSBTable>;
+
+%include "celeritas/io/ImportParameters.hh"
+
 %include "celeritas/io/ImportData.hh"
 
 //---------------------------------------------------------------------------//
