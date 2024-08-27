@@ -18,7 +18,6 @@
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/ImportData.hh"
-#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "celeritas_test.hh"
@@ -1374,13 +1373,6 @@ TEST_F(LarSphere, optical)
     ASSERT_FALSE(lar_iter == imported.optical.end());
     auto const& optical = lar_iter->second;
 
-    // Check optical material ID
-    auto materials = MaterialParams::from_import(imported);
-    ASSERT_TRUE(materials);
-    EXPECT_EQ(OpticalMaterialId{},
-              materials->get(vacuum_id).optical_material_id());
-    EXPECT_EQ(OpticalMaterialId{0},
-              materials->get(lar_id).optical_material_id());
 
     real_type const tol = this->comparison_tolerance();
 

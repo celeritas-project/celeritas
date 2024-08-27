@@ -331,23 +331,21 @@ TEST_F(MaterialTest, output)
 
 class MaterialParamsImportTest : public Test
 {
-  protected:
-    void SetUp() override
-    {
-        root_filename_
-            = this->test_data_path("celeritas", "four-steel-slabs.root");
-        RootImporter import_from_root(root_filename_.c_str());
-        data_ = import_from_root();
-    }
-    std::string root_filename_;
-    ImportData data_;
-
-    ScopedRootErrorHandler scoped_root_error_;
 };
 
-TEST_F(MaterialParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(import_materials))
+TEST_F(MaterialParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(root_materials))
 {
-    auto const material_params = MaterialParams::from_import(data_);
+    ImportData data = [this] {
+        ScopedRootErrorHandler scoped_root_error_;
+
+        auto filename
+            = this->test_data_path("celeritas", "four-steel-slabs.root");
+        RootImporter import_from_root(filename.c_str());
+        return import_from_root();
+    }();
+
+    auto const material_params = MaterialParams::from_import(data);
+    ASSERT_TRUE(material_params);
     // Material labels
     EXPECT_EQ("G4_Galactic", material_params->id_to_label(MaterialId{0}).name);
     EXPECT_EQ("G4_STAINLESS-STEEL",
@@ -387,6 +385,64 @@ TEST_F(MaterialParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(import_materials))
     static real_type expected_fracs[] = {0.74, 0.18, 0.08};
     EXPECT_VEC_EQ(expected_els, els);
     EXPECT_VEC_SOFT_EQ(expected_fracs, fracs);
+}
+
+TEST_F(MaterialParamsImportTest, optical_materials)
+{
+    ImportData data;
+    data.units = "cgs";
+    data.elements.push_back(
+        [] {
+            ImportElement el;
+            el.name = "Ar";
+            el.atomic_number = 18;
+            el.atomic_mass = 39.95;
+            return el;
+        }());
+    data.geo_materials.push_back([] {
+        ImportGeoMaterial gm;
+        gm.name = "vacuum";
+        return gm;
+    }());
+    data.geo_materials.push_back([] {
+        ImportGeoMaterial gm;
+        gm.name = "lAr";
+        gm.number_density = 1.396;  // g/cm^3
+        gm.elements.push_back({0, 1.0});
+        return gm;
+    }());
+    data.phys_materials.push_back([] {
+        ImportPhysMaterial pm;
+        pm.geo_material_id = 0;
+        return pm;
+    }());
+    data.phys_materials.push_back([] {
+        ImportPhysMaterial pm;
+        pm.geo_material_id = 1;
+        pm.optical_material_id = 0;
+        return pm;
+    }());
+    data.optical_materials.push_back([] {
+        ImportPhysicsVector pv;
+        pv.vector_type = ImportPhysicsVectorType::free;
+        pv.x = {1.8785e-6, 1.0597e-5};
+        pv.y = {1.222, 1.617};
+
+        ImportOpticalMaterial om;
+        om.properties.refractive_index = std::move(pv);
+        return om;
+    }());
+
+    constexpr MaterialId vacuum_id{0};
+    constexpr MaterialId lar_id{1};
+
+    // Check optical material ID
+    auto materials = MaterialParams::from_import(data);
+    ASSERT_TRUE(materials);
+    EXPECT_EQ(OpticalMaterialId{},
+              materials->get(vacuum_id).optical_material_id());
+    EXPECT_EQ(OpticalMaterialId{0},
+              materials->get(lar_id).optical_material_id());
 }
 
 //---------------------------------------------------------------------------//
@@ -435,6 +491,8 @@ TEST_F(MaterialDeviceTest, TEST_IF_CELER_DEVICE(all))
     EXPECT_VEC_SOFT_EQ(expected_rad_len, result.rad_len);
     EXPECT_VEC_SOFT_EQ(expected_tot_z, result.tot_z);
 }
+
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

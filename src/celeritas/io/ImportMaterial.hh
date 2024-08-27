@@ -63,9 +63,9 @@ struct ImportGeoMaterial
     //!@}
 
     std::string name{};
-    ImportMaterialState state{ImportMaterialState::size_};
-    double temperature;  //!< [K]
-    double number_density;  //!< [1/length^3]
+    ImportMaterialState state{ImportMaterialState::other};
+    double temperature{};  //!< [K]
+    double number_density{};  //!< [1/length^3]
     VecComponent elements;
 };
 
