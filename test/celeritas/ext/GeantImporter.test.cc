@@ -1352,26 +1352,20 @@ TEST_F(OneSteelSphereGG, physics)
 TEST_F(LarSphere, optical)
 {
     auto&& imported = this->imported_data();
-    EXPECT_EQ(1, imported.optical.size());
+    ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(2, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
 
     // First material is vacuum, no optical properties
-    MaterialId vacuum_id{0};
-    ASSERT_EQ(vacuum_id.get(),
-              imported.phys_materials[vacuum_id.get()].geo_material_id);
-    EXPECT_EQ("vacuum", imported.geo_materials[vacuum_id.get()].name);
-    auto const vacuum_iter = imported.optical.find(vacuum_id.get());
-    EXPECT_TRUE(vacuum_iter == imported.optical.end());
+    ASSERT_EQ(0, imported.phys_materials[0].geo_material_id);
+    EXPECT_EQ("vacuum", imported.geo_materials[0].name);
+    EXPECT_EQ(ImportPhysMaterial::unspecified,
+              imported.phys_materials[0].optical_material_id);
 
     // Second material is liquid argon
-    MaterialId lar_id{1};
-    ASSERT_EQ(lar_id.get(),
-              imported.phys_materials[lar_id.get()].geo_material_id);
-    EXPECT_EQ("lAr", imported.geo_materials[lar_id.get()].name);
-    auto const lar_iter = imported.optical.find(lar_id.get());
-    ASSERT_FALSE(lar_iter == imported.optical.end());
-    auto const& optical = lar_iter->second;
+    ASSERT_EQ(1, imported.phys_materials[1].geo_material_id);
+    EXPECT_EQ("lAr", imported.geo_materials[1].name);
+    ASSERT_EQ(0, imported.phys_materials[1].optical_material_id);
 
     real_type const tol = this->comparison_tolerance();
 
@@ -1379,6 +1373,7 @@ TEST_F(LarSphere, optical)
     // example examples/advanced/CaTS/gdml/LArTPC.gdml
 
     // Check scintillation optical properties
+    auto const& optical = imported.optical_materials[0];
     auto const& scint = optical.scintillation;
     EXPECT_TRUE(scint);
     // Material scintillation

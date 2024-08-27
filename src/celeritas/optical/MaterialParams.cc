@@ -36,25 +36,20 @@ MaterialParams::from_import(ImportData const& data,
                             ::celeritas::GeoMaterialParams const& geo_mat,
                             ::celeritas::MaterialParams const& mat)
 {
-    CELER_EXPECT(!data.optical.empty());
+    CELER_EXPECT(!data.optical_materials.empty());
+    CELER_EXPECT(std::all_of(
+        data.optical_materials.begin(),
+        data.optical_materials.end(),
+        [](ImportOpticalMaterial const& m) { return static_cast<bool>(m); }));
     CELER_EXPECT(geo_mat.num_volumes() > 0);
-
-    if (!std::any_of(
-            data.optical.begin(), data.optical.end(), [](auto const& iter) {
-                return static_cast<bool>(iter.second.properties);
-            }))
-    {
-        CELER_LOG(debug) << "No optical property data is present";
-        return nullptr;
-    }
 
     Input inp;
 
     // Extract optical material properties
-    inp.properties.reserve(data.optical.size());
-    for (auto const& mat : data.optical)
+    inp.properties.reserve(data.optical_materials.size());
+    for (ImportOpticalMaterial const& opt_mat : data.optical_materials)
     {
-        inp.properties.push_back(mat.second.properties);
+        inp.properties.push_back(opt_mat.properties);
     }
 
     // Construct volume-to-optical mapping
@@ -74,11 +69,8 @@ MaterialParams::from_import(ImportData const& data,
         }
         inp.volume_to_mat.push_back(optmat);
     }
-    if (!has_opt_mat)
-    {
-        CELER_LOG(debug) << "No optical property materials are present";
-        return nullptr;
-    }
+    CELER_VALIDATE(has_opt_mat,
+                   << "no volumes have associated optical materials");
 
     CELER_ENSURE(inp.volume_to_mat.size() == geo_mat.num_volumes());
     return std::make_shared<MaterialParams>(std::move(inp));

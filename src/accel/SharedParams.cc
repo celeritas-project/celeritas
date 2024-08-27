@@ -470,6 +470,7 @@ void SharedParams::initialize_core(SetupOptions const& options)
         celeritas::GeantImporter load_geant_data(
             GeantImporter::get_world_volume());
         // Convert ImportVolume names to GDML versions if we're exporting
+        // TODO: optical particle/process import
         GeantImportDataSelection import_opts;
         import_opts.particles = GeantImportDataSelection::em_basic;
         import_opts.processes = import_opts.particles;

@@ -33,13 +33,14 @@ struct GeantImportDataSelection
         dummy = 0x1,  //!< Dummy particles+processes
         em_basic = 0x2,  //!< Electron, positron, gamma
         em_ex = 0x4,  //!< Extended EM particles
+        optical = 0x8,  //!< Optical particles and processes
         em = em_basic | em_ex,  //!< Any EM
-        hadron = 0x8,  //!< Hadronic particles and processes
+        hadron = 0x10,  //!< Hadronic particles and processes
     };
 
-    Flags particles = em;
+    Flags particles = em | optical;
     bool materials = true;
-    Flags processes = em;
+    Flags processes = em | optical;
 
     //! Change volume names to match exported GDML file
     bool unique_volumes = false;

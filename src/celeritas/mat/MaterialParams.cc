@@ -107,9 +107,7 @@ MaterialParams::from_import(ImportData const& data)
         input.elements.push_back(std::move(element_params));
     }
 
-    // Prepare for optical
-    OpticalMaterialId::size_type optical_id{0};
-    if (!data.optical.empty())
+    if (!data.optical_materials.empty())
     {
         // Initialize optical material array with "not an optical material"
         input.mat_to_optical.assign(data.phys_materials.size(),
@@ -120,7 +118,9 @@ MaterialParams::from_import(ImportData const& data)
     // material data* (possibly duplicating it)
     for (auto mat_idx : range(data.phys_materials.size()))
     {
-        auto geo_mat_idx = data.phys_materials[mat_idx].geo_material_id;
+        ImportPhysMaterial const& phys_mat = data.phys_materials[mat_idx];
+
+        auto geo_mat_idx = phys_mat.geo_material_id;
         CELER_VALIDATE(geo_mat_idx < data.geo_materials.size(),
                        << "geo material id " << geo_mat_idx
                        << " is out of range");
@@ -140,11 +140,14 @@ MaterialParams::from_import(ImportData const& data)
         }
         input.materials.push_back(std::move(material_params));
 
-        // Check for optical data
-        if (auto iter = data.optical.find(geo_mat_idx);
-            iter != data.optical.end())
+        auto opt_mat_idx = phys_mat.optical_material_id;
+        if (opt_mat_idx != ImportPhysMaterial::unspecified)
         {
-            input.mat_to_optical[mat_idx] = OpticalMaterialId{optical_id++};
+            // Save optical material ID
+            CELER_VALIDATE(opt_mat_idx < data.optical_materials.size(),
+                           << "optical material id " << opt_mat_idx
+                           << " is out of range");
+            input.mat_to_optical[mat_idx] = OpticalMaterialId{opt_mat_idx};
         }
     }
 
