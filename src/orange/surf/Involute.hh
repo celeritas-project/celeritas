@@ -59,7 +59,6 @@ class Involute
     //! \name Type aliases
     using Intersections = Array<real_type, 3>;
     using StorageSpan = Span<real_type const, 6>;
-    using Chirality = Chirality;
     using Real2 = Array<real_type, 2>;
     //@}
 
