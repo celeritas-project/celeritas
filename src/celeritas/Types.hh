@@ -45,6 +45,9 @@ using MaterialId = OpaqueId<class Material_>;
 //! Opaque index of model in the list of physics processes
 using ModelId = OpaqueId<class Model>;
 
+//! Opaque index to a material with optical properties
+using OpticalMaterialId = OpaqueId<struct OpticalMaterial_>;
+
 //! Opaque index to ParticleRecord in a vector: represents a particle type
 using ParticleId = OpaqueId<struct Particle_>;
 
