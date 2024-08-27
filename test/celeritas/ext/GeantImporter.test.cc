@@ -213,8 +213,8 @@ auto GeantImporterTest::summarize(VecModelMaterial const& materials) const
         for (auto const& xs_vec : mat_iter->micro_xs)
         {
             EXPECT_EQ(mat_iter->energy.size(), xs_vec.size());
-            result.xs.push_back(xs_vec.front() / units::barn);
-            result.xs.push_back(xs_vec.back() / units::barn);
+            result.xs.push_back(xs_vec.front() / barn);
+            result.xs.push_back(xs_vec.back() / barn);
         }
     }
     return result;
@@ -1457,9 +1457,8 @@ TEST_F(LarSphere, optical)
     auto const& rayleigh = optical.rayleigh;
     EXPECT_TRUE(rayleigh);
     EXPECT_EQ(1, rayleigh.scale_factor);
-    EXPECT_REAL_EQ(0.024673059861887867,
-                   rayleigh.compressibility * units::gram
-                       / (units::centimeter * units::second * units::second));
+    EXPECT_REAL_EQ(0.024673059861887867 * centimeter * ipow<2>(second) / gram,
+                   rayleigh.compressibility);
     EXPECT_EQ(11, rayleigh.mfp.x.size());
     EXPECT_DOUBLE_EQ(1.55e-06, rayleigh.mfp.x.front());
     EXPECT_DOUBLE_EQ(1.55e-05, rayleigh.mfp.x.back());
@@ -1479,7 +1478,7 @@ TEST_F(LarSphere, optical)
     auto const& wls = optical.wls;
     EXPECT_TRUE(wls);
     EXPECT_REAL_EQ(3, wls.mean_num_photons);
-    EXPECT_REAL_EQ(6e-9, wls.time_constant);
+    EXPECT_REAL_EQ(6 * nanosecond, wls.time_constant);
     EXPECT_EQ(2, wls.absorption_length.x.size());
     EXPECT_EQ(wls.absorption_length.x.size(), wls.absorption_length.y.size());
     EXPECT_EQ(ImportPhysicsVectorType::free, wls.absorption_length.vector_type);
@@ -1489,12 +1488,12 @@ TEST_F(LarSphere, optical)
     for (auto i : range(wls.absorption_length.x.size()))
     {
         abslen_grid.push_back(wls.absorption_length.x[i]);
-        abslen_grid.push_back(wls.absorption_length.y[i]);
+        abslen_grid.push_back(to_cm(wls.absorption_length.y[i]));
         comp_grid.push_back(wls.component.x[i]);
         comp_grid.push_back(wls.component.y[i]);
     }
 
-    static double const expected_abslen_grid[]
+    static real_type const expected_abslen_grid[]
         = {1.3778e-06, 86.4473, 1.55e-05, 0.000296154};
     static double const expected_comp_grid[] = {1.3778e-06, 10, 1.55e-05, 20};
     EXPECT_VEC_SOFT_EQ(expected_abslen_grid, abslen_grid);
