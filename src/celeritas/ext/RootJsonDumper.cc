@@ -21,7 +21,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from path to ROOT file.
+ * Construct with an output stream.
  */
 RootJsonDumper::RootJsonDumper(std::ostream* os) : os_{os}
 {
@@ -33,7 +33,7 @@ RootJsonDumper::RootJsonDumper(std::ostream* os) : os_{os}
 
 //---------------------------------------------------------------------------//
 /*!
- * Write data to the ROOT file.
+ * Write JSON-formatted data to the stream.
  */
 void RootJsonDumper::operator()(ImportData const& import_data)
 {

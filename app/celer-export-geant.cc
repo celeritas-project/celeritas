@@ -108,15 +108,15 @@ void run(std::string const& gdml_filename,
         // Write JSON to file
         CELER_LOG(info) << "Opening JSON output at " << out_filename;
         std::ofstream os(out_filename);
-        RootJsonDumper dump_root(&os);
-        dump_root(imported);
+        RootJsonDumper dump_json(&os);
+        dump_json(imported);
     }
     else if (out_filename == "-")
     {
         // Write JSON to stdout
         CELER_LOG(info) << "Writing JSON to stdout";
-        RootJsonDumper dump_root(&std::cout);
-        dump_root(imported);
+        RootJsonDumper dump_json(&std::cout);
+        dump_json(imported);
     }
     else
     {
