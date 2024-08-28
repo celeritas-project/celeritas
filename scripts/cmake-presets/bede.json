@@ -61,7 +61,6 @@
         "CELERITAS_USE_HepMC3":          {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_MPI":             {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_ROOT":            {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_SWIG":            {"type": "BOOL", "value": "OFF"},
         "CMAKE_CXX_STANDARD":            {"type": "STRING", "value": "17"},
         "CMAKE_CXX_EXTENSIONS":          {"type": "BOOL", "value": "OFF"},
         "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"},

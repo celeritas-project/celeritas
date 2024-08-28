@@ -66,10 +66,8 @@ struct ImportMaterialScintSpectrum
  */
 struct ImportParticleScintSpectrum
 {
-#ifndef SWIG
     static constexpr auto x_units{ImportUnits::mev};
     static constexpr auto y_units{ImportUnits::unitless};
-#endif
 
     ImportPhysicsVector yield_vector;  //!< Particle yield per energy bin
     std::vector<ImportScintComponent> components;  //!< Scintillation
