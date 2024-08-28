@@ -23,7 +23,10 @@ namespace celeritas
 {
 namespace detail
 {
+namespace
+{
 //---------------------------------------------------------------------------//
+
 struct GetNumPhotons
 {
     // Return the number of photons to generate
@@ -35,15 +38,16 @@ struct GetNumPhotons
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace
+
+//---------------------------------------------------------------------------//
 /*!
  * Remove all invalid distributions from the buffer.
  *
- * This returns the total number of valid distributions in the buffer.
+ * \return Total number of valid distributions in the buffer
  */
 size_type
-remove_if_invalid(Collection<celeritas::optical::GeneratorDistributionData,
-                             Ownership::reference,
-                             MemSpace::device> const& buffer,
+remove_if_invalid(GeneratorDistributionRef<MemSpace::device> const& buffer,
                   size_type offset,
                   size_type size,
                   StreamId stream)
@@ -61,9 +65,7 @@ remove_if_invalid(Collection<celeritas::optical::GeneratorDistributionData,
  * Count the number of optical photons in the distributions.
  */
 size_type
-count_num_photons(Collection<celeritas::optical::GeneratorDistributionData,
-                             Ownership::reference,
-                             MemSpace::device> const& buffer,
+count_num_photons(GeneratorDistributionRef<MemSpace::device> const& buffer,
                   size_type offset,
                   size_type size,
                   StreamId stream)

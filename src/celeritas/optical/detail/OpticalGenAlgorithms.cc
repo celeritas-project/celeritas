@@ -16,11 +16,14 @@ namespace celeritas
 {
 namespace detail
 {
+namespace
+{
 //---------------------------------------------------------------------------//
+
 struct AccumNumPhotons
 {
     // Accumulate the number of optical photons from the distribution data
-    CELER_FUNCTION size_type
+    size_type
     operator()(size_type count,
                celeritas::optical::GeneratorDistributionData const& data) const
     {
@@ -29,15 +32,16 @@ struct AccumNumPhotons
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace
+
+//---------------------------------------------------------------------------//
 /*!
  * Remove all invalid distributions from the buffer.
  *
- * This returns the total number of valid distributions in the buffer.
+ * \return Total number of valid distributions in the buffer
  */
 size_type
-remove_if_invalid(Collection<celeritas::optical::GeneratorDistributionData,
-                             Ownership::reference,
-                             MemSpace::host> const& buffer,
+remove_if_invalid(GeneratorDistributionRef<MemSpace::host> const& buffer,
                   size_type offset,
                   size_type size,
                   StreamId)
@@ -53,9 +57,7 @@ remove_if_invalid(Collection<celeritas::optical::GeneratorDistributionData,
  * Count the number of optical photons in the distributions.
  */
 size_type
-count_num_photons(Collection<celeritas::optical::GeneratorDistributionData,
-                             Ownership::reference,
-                             MemSpace::host> const& buffer,
+count_num_photons(GeneratorDistributionRef<MemSpace::host> const& buffer,
                   size_type offset,
                   size_type size,
                   StreamId)
