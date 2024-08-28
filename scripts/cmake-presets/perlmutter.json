@@ -18,7 +18,6 @@
         "CELERITAS_USE_HIP":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_MPI":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"},
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -Wno-psabi -pedantic -pedantic-errors",
         "CMAKE_CUDA_FLAGS": "-lineinfo -Xptxas=-v -Xcompiler -Wno-psabi",
