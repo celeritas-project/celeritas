@@ -340,6 +340,7 @@ CELER_FUNCTION void CoreTrackView::apply_errored()
     auto sim = this->make_sim_view();
     CELER_EXPECT(is_track_valid(sim.status()));
     sim.status(TrackStatus::errored);
+    sim.along_step_action({});
     sim.post_step_action(this->tracking_cut_action());
 }
 

@@ -48,6 +48,11 @@ class MeanELoss
  */
 CELER_FUNCTION bool MeanELoss::is_applicable(CoreTrackView const& track) const
 {
+    // The track can be marked as `errored` *within* the along-step kernel,
+    // during propagation
+    if (track.make_sim_view().status() == TrackStatus::errored)
+        return false;
+
     // Energy loss grid ID will be 'false' if inapplicable
     auto ppid = track.make_physics_view().eloss_ppid();
     return static_cast<bool>(ppid);
