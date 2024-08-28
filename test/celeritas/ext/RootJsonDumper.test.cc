@@ -141,25 +141,6 @@ TEST_F(RootJsonDumperTest, all)
         EXPECT_JSON_EQ(
             R"json({
 "_typename" : "celeritas::ImportData",
-"particles" : [{
-  "_typename" : "celeritas::ImportParticle",
-  "name" : "e+",
-  "pdg" : -11,
-  "mass" : 0.51099891,
-  "charge" : 1,
-  "spin" : 0.5,
-  "lifetime" : -1,
-  "is_stable" : true
-}, {
-  "_typename" : "celeritas::ImportParticle",
-  "name" : "gamma",
-  "pdg" : 22,
-  "mass" : 0,
-  "charge" : 0,
-  "spin" : 1,
-  "lifetime" : -1,
-  "is_stable" : true
-}],
 "isotopes" : [{
   "_typename" : "celeritas::ImportIsotope",
   "name" : "Fe54",
@@ -250,6 +231,7 @@ TEST_F(RootJsonDumperTest, all)
 "phys_materials" : [{
   "_typename" : "celeritas::ImportPhysMaterial",
   "geo_material_id" : 1,
+  "optical_material_id" : 4294967295,
   "pdg_cutoffs" : [{"$pair" : "pair<int,celeritas::ImportProductionCut>", "first" : -11, "second" : {
     "_typename" : "celeritas::ImportProductionCut",
     "energy" : 9.9e-4,
@@ -266,6 +248,7 @@ TEST_F(RootJsonDumperTest, all)
 }, {
   "_typename" : "celeritas::ImportPhysMaterial",
   "geo_material_id" : 0,
+  "optical_material_id" : 4294967295,
   "pdg_cutoffs" : [{"$pair" : "pair<int,celeritas::ImportProductionCut>", "first" : -11, "second" : {
     "_typename" : "celeritas::ImportProductionCut",
     "energy" : 1.23589307919354,
@@ -279,6 +262,54 @@ TEST_F(RootJsonDumperTest, all)
     "energy" : 0.0208224420866223,
     "range" : 0.1
   }}]
+}],
+"optical_materials" : [],
+"regions" : [{
+  "_typename" : "celeritas::ImportRegion",
+  "name" : "DefaultRegionForTheWorld",
+  "field_manager" : false,
+  "production_cuts" : true,
+  "user_limits" : false
+}, {
+  "_typename" : "celeritas::ImportRegion",
+  "name" : "DefaultRegionForParallelWorld",
+  "field_manager" : false,
+  "production_cuts" : true,
+  "user_limits" : false
+}],
+"volumes" : [{
+  "_typename" : "celeritas::ImportVolume",
+  "geo_material_id" : 0,
+  "region_id" : 0,
+  "phys_material_id" : 1,
+  "name" : "box0x125555be0",
+  "solid_name" : "box0x125555b70"
+}, {
+  "_typename" : "celeritas::ImportVolume",
+  "geo_material_id" : 1,
+  "region_id" : 0,
+  "phys_material_id" : 0,
+  "name" : "World0x125555f10",
+  "solid_name" : "World0x125555ea0"
+}],
+"particles" : [{
+  "_typename" : "celeritas::ImportParticle",
+  "name" : "e+",
+  "pdg" : -11,
+  "mass" : 0.51099891,
+  "charge" : 1,
+  "spin" : 0.5,
+  "lifetime" : -1,
+  "is_stable" : true
+}, {
+  "_typename" : "celeritas::ImportParticle",
+  "name" : "gamma",
+  "pdg" : 22,
+  "mass" : 0,
+  "charge" : 0,
+  "spin" : 1,
+  "lifetime" : -1,
+  "is_stable" : true
 }],
 "processes" : [{
   "_typename" : "celeritas::ImportProcess",
@@ -380,35 +411,10 @@ TEST_F(RootJsonDumperTest, all)
     }]
   }
 }],
-"regions" : [{
-  "_typename" : "celeritas::ImportRegion",
-  "name" : "DefaultRegionForTheWorld",
-  "field_manager" : false,
-  "production_cuts" : true,
-  "user_limits" : false
-}, {
-  "_typename" : "celeritas::ImportRegion",
-  "name" : "DefaultRegionForParallelWorld",
-  "field_manager" : false,
-  "production_cuts" : true,
-  "user_limits" : false
-}],
-"volumes" : [{
-  "_typename" : "celeritas::ImportVolume",
-  "geo_material_id" : 0,
-  "region_id" : 0,
-  "phys_material_id" : 1,
-  "name" : "box0x125555be0",
-  "solid_name" : "box0x125555b70"
-}, {
-  "_typename" : "celeritas::ImportVolume",
-  "geo_material_id" : 1,
-  "region_id" : 0,
-  "phys_material_id" : 0,
-  "name" : "World0x125555f10",
-  "solid_name" : "World0x125555ea0"
-}],
-"optical" : [],
+"sb_data" : [],
+"livermore_pe_data" : [],
+"neutron_elastic_data" : [],
+"atomic_relaxation_data" : [],
 "em_params" : {
   "_typename" : "celeritas::ImportEmParameters",
   "energy_loss_fluct" : true,
@@ -448,10 +454,6 @@ TEST_F(RootJsonDumperTest, all)
   "_typename" : "celeritas::ImportOpticalParameters",
   "scintillation_by_particle" : false
 },
-"sb_data" : [],
-"livermore_pe_data" : [],
-"neutron_elastic_data" : [],
-"atomic_relaxation_data" : [],
 "units" : "cgs"
 })json",
             os.str());
