@@ -12,7 +12,6 @@ import sys
 
 from itertools import chain
 from pyzotero import zotero
-from datetime import datetime
 from dateutil.parser import parse as parse_date
 
 try:
@@ -127,7 +126,6 @@ def sorted_collection(zot, name):
 def run(group_id, out):
     zot = zotero.Zotero(group_id, "group", API_KEY)
 
-    today = datetime.today().strftime("%d %b %Y").lstrip('0 ')
     print(f"""\
 <!--
 NOTE: this page is generated automatically from
@@ -135,8 +133,7 @@ https://github.com/celeritas-project/celeritas/tree/doc/gh-pages-base/scripts/ge
 -->
 # Publications
 
-These publications were extracted from the Celeritas team's Zotero database
-on {today}.""", file=out)
+These publications are extracted from the Celeritas team's Zotero database.""", file=out)
 
     def print_subheader(name):
         print(f"\n## {name}\n", file=out)

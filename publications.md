@@ -5,7 +5,7 @@ https://github.com/celeritas-project/celeritas/tree/doc/gh-pages-base/scripts/ge
 # Publications
 
 These publications were extracted from the Celeritas team's Zotero database
-on 13 Aug 2024.
+on 28 Aug 2024.
 
 ## Conference papers
 
