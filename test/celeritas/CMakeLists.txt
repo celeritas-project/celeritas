@@ -164,6 +164,7 @@ celeritas_add_test(ext/GeantImporter.test.cc
 celeritas_add_test(ext/GeantVolumeMapper.test.cc ${_needs_geant4}
   LINK_LIBRARIES ${Geant4_LIBRARIES} Celeritas::orange)
 celeritas_add_test(ext/RootImporter.test.cc ${_needs_root})
+celeritas_add_test(ext/RootJsonDumper.test.cc ${_needs_root})
 
 #-----------------------------------------------------------------------------#
 # Field
@@ -215,7 +216,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
     "SimpleCmsRZFieldAlongStepTest.msc_rzfield_finegrid"
   )
   set(_stepper_filter
-    "-TestEm*"
+    "-TestEm*:LeadBox*"
     "TestEm3Compton.*"
     "TestEm3NoMsc.*"
     "TestEm3Msc.*"
@@ -236,7 +237,7 @@ elseif(CELERITAS_USE_Geant4)
     "LeadBox*"
   )
   set(_stepper_filter
-    "-TestEm*"
+    "-TestEm*:LeadBox*"
     "TestEm3Compton.*"
     "TestEm3Msc.*"
     "TestEm3MscNofluct.*"

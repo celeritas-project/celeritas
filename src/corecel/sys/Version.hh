@@ -88,7 +88,7 @@ class Version
 /*!
  * Construct from an 0xXXYYZZ integer.
  *
- * This version scheme is used by SWIG and Celeritas. (The leading 0x prevents
+ * This version scheme is used by Celeritas. (The leading 0x prevents
  * version `01` from turning the expression into an octal.)
  */
 constexpr Version Version::from_hex_xxyyzz(size_type value)

@@ -648,7 +648,7 @@ TEST_F(LeadBoxAlongStepTest, position_change)
         }
         EXPECT_SOFT_NEAR(expected_step_length, result.step, 1e-13);
         EXPECT_EQ(0, result.displacement);
-        EXPECT_EQ("eloss-range", result.action);
+        EXPECT_EQ("tracking-cut", result.action);
     }
     {
         SCOPED_TRACE("Electron changes position");
