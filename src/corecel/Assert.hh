@@ -189,7 +189,7 @@
         ::celeritas::unreachable();     \
     } while (0)
 
-#if !CELER_DEVICE_COMPILE || defined(__HIP__)
+#if !CELER_DEVICE_COMPILE
 #    define CELER_RUNTIME_THROW(WHICH, WHAT, COND) \
         throw ::celeritas::RuntimeError({          \
             WHICH,                                 \
@@ -222,7 +222,7 @@
 #    define CELER_ASSERT_UNREACHABLE() ::celeritas::unreachable()
 #endif
 
-#if !CELER_DEVICE_COMPILE || defined(__HIP__)
+#if !CELER_DEVICE_COMPILE
 #    define CELER_VALIDATE(COND, MSG)                            \
         do                                                       \
         {                                                        \
