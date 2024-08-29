@@ -157,7 +157,7 @@ struct TrackInitStateData
  * maximum number of track initializers (inactive/pending tracks) that we can
  * hold.
  *
- * \warning It's likely that for GPU runs, the capacity should be greater than
+ * \note It's likely that for GPU runs, the capacity should be greater than
  * the size, but that might not be the case universally, so it is not asserted.
  */
 template<MemSpace M>
