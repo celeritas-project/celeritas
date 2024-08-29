@@ -51,11 +51,11 @@ class DeMorganSimplifier
   private:
     //! CsgTree node 0 is always True{} and can't be the parent of any node
     //! so reuse that bit to tell that a given node is a volume
-    static constexpr auto is_volume_index{NodeId{0}};
+    static constexpr auto is_volume_index_{NodeId{0}};
     //! CsgTree node 1 is always a Negated node parent of node 0, so we can
     //! reuse that bit to tell if a node has a parent as it's never set for
     //! node id >= 2
-    static constexpr auto has_parents_index{NodeId{1}};
+    static constexpr auto has_parents_index_{NodeId{1}};
 
     //! Helper struct to translate ids from the original tree to ids in the
     //! simplified tree
@@ -65,14 +65,14 @@ class DeMorganSimplifier
         NodeId unmodified;
 
         //! Indirections to new simplified join following DeMorgan's law
-        //! Set iif the original node is a negated node.
+        //! Set if the original node is a negated node.
         NodeId simplified_to;
         //! If a join node has been negated, this points to the opposite join
-        //! Set iif the original node is a joined node.
+        //! Set if the original node is a joined node.
         NodeId opposite_join;
 
         //! Set if we need to insert a new negation of that node
-        //! Set iif the original node is a leaf node.
+        //! Set if the original node is a leaf node.
         NodeId new_negation;
 
         //! Whether any matching node id is set
@@ -114,6 +114,9 @@ class DeMorganSimplifier
 
     // Special handling for a Joined or Negated node
     bool process_negated_joined_nodes(NodeId, CsgTree&);
+
+    // Create an opposite Joined node
+    Joined build_negated_node(Joined const&) const;
 
     // Check if this join node should be inserted in the simplified tree
     bool should_insert_join(NodeId);
