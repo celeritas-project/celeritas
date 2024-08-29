@@ -79,7 +79,7 @@ SimParams::SimParams(Input const& input)
 {
     CELER_EXPECT(input.particles);
 
-    HostValue host_data;
+    HostVal<SimParamsData> host_data;
 
     // Initialize with the default threshold values
     std::vector<LoopingThreshold> looping(input.particles->size());
@@ -96,6 +96,16 @@ SimParams::SimParams(Input const& input)
     make_builder(&host_data.looping).insert_back(looping.begin(), looping.end());
 
     data_ = CollectionMirror<SimParamsData>{std::move(host_data)};
+    CELER_ENSURE(data_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct without looping counters.
+ */
+SimParams::SimParams()
+{
+    data_ = CollectionMirror<SimParamsData>{{}};
     CELER_ENSURE(data_);
 }
 

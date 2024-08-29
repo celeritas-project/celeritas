@@ -75,7 +75,7 @@ struct SimParamsData
     //// METHODS ////
 
     //! Whether the data are assigned
-    explicit CELER_FUNCTION operator bool() const { return !looping.empty(); }
+    explicit CELER_FUNCTION operator bool() const { return true; }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
@@ -176,7 +176,9 @@ struct SimStateData
  * Resize simulation states and set \c alive to be false.
  */
 template<MemSpace M>
-void resize(SimStateData<Ownership::value, M>* data, size_type size)
+void resize(SimStateData<Ownership::value, M>* data,
+            HostCRef<SimParamsData> const& params,
+            size_type size)
 {
     CELER_EXPECT(size > 0);
 
@@ -184,7 +186,10 @@ void resize(SimStateData<Ownership::value, M>* data, size_type size)
     resize(&data->parent_ids, size);
     resize(&data->event_ids, size);
     resize(&data->num_steps, size);
-    resize(&data->num_looping_steps, size);
+    if (!params.looping.empty())
+    {
+        resize(&data->num_looping_steps, size);
+    }
     resize(&data->time, size);
 
     resize(&data->status, size);

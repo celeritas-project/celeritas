@@ -53,7 +53,7 @@ class SimTrackView
     inline CELER_FUNCTION void add_time(real_type delta);
 
     // Increment the total number of steps
-    CELER_FORCEINLINE_FUNCTION void increment_num_steps();
+    inline CELER_FUNCTION void increment_num_steps();
 
     // Update the number of steps this track has been looping
     inline CELER_FUNCTION void update_looping(bool);
@@ -76,31 +76,31 @@ class SimTrackView
     //// DYNAMIC PROPERTIES ////
 
     // Unique track identifier
-    CELER_FORCEINLINE_FUNCTION TrackId track_id() const;
+    inline CELER_FUNCTION TrackId track_id() const;
 
     // Track ID of parent
-    CELER_FORCEINLINE_FUNCTION TrackId parent_id() const;
+    inline CELER_FUNCTION TrackId parent_id() const;
 
     // Event ID
-    CELER_FORCEINLINE_FUNCTION EventId event_id() const;
+    inline CELER_FUNCTION EventId event_id() const;
 
     // Total number of steps taken by the track
-    CELER_FORCEINLINE_FUNCTION size_type num_steps() const;
+    inline CELER_FUNCTION size_type num_steps() const;
 
     // Number of steps taken by the track since it was flagged as looping
-    CELER_FORCEINLINE_FUNCTION size_type num_looping_steps() const;
+    inline CELER_FUNCTION size_type num_looping_steps() const;
 
     // Time elapsed in the lab frame since the start of the event
-    CELER_FORCEINLINE_FUNCTION real_type time() const;
+    inline CELER_FUNCTION real_type time() const;
 
     // Whether the track is alive or inactive or dying
-    CELER_FORCEINLINE_FUNCTION TrackStatus status() const;
+    inline CELER_FUNCTION TrackStatus status() const;
 
     // Limiting step
-    CELER_FORCEINLINE_FUNCTION real_type step_length() const;
+    inline CELER_FUNCTION real_type step_length() const;
 
     // Update limiting step
-    CELER_FORCEINLINE_FUNCTION void step_length(real_type length);
+    inline CELER_FUNCTION void step_length(real_type length);
 
     // Access post-step action to take
     inline CELER_FUNCTION ActionId post_step_action() const;
@@ -117,8 +117,8 @@ class SimTrackView
     //// PARAMETER DATA ////
 
     // Particle-dependent parameters for killing looping tracks
-    CELER_FORCEINLINE_FUNCTION
-    LoopingThreshold const& looping_threshold(ParticleId) const;
+    inline CELER_FUNCTION LoopingThreshold const&
+        looping_threshold(ParticleId) const;
 
   private:
     SimParamsRef const& params_;
@@ -174,7 +174,7 @@ CELER_FUNCTION void SimTrackView::add_time(real_type delta)
 /*!
  * Increment the total number of steps.
  */
-CELER_FUNCTION void SimTrackView::increment_num_steps()
+CELER_FORCEINLINE_FUNCTION void SimTrackView::increment_num_steps()
 {
     ++states_.num_steps[track_slot_];
 }
@@ -185,6 +185,7 @@ CELER_FUNCTION void SimTrackView::increment_num_steps()
  */
 CELER_FUNCTION void SimTrackView::update_looping(bool is_looping)
 {
+    CELER_EXPECT(!params_.looping.empty());
     if (is_looping)
     {
         ++states_.num_looping_steps[track_slot_];
@@ -201,6 +202,7 @@ CELER_FUNCTION void SimTrackView::update_looping(bool is_looping)
  */
 CELER_FUNCTION bool SimTrackView::is_looping(ParticleId pid, Energy energy)
 {
+    CELER_EXPECT(!params_.looping.empty());
     auto const& looping = this->looping_threshold(pid);
     if (energy < looping.threshold_energy)
     {
@@ -280,7 +282,7 @@ CELER_FUNCTION bool SimTrackView::step_limit(StepLimit const& sl)
 /*!
  * Access post-step action to take.
  */
-CELER_FUNCTION ActionId SimTrackView::post_step_action() const
+CELER_FORCEINLINE_FUNCTION ActionId SimTrackView::post_step_action() const
 {
     return states_.post_step_action[track_slot_];
 }
@@ -289,7 +291,7 @@ CELER_FUNCTION ActionId SimTrackView::post_step_action() const
 /*!
  * Access along-step action to take.
  */
-CELER_FUNCTION ActionId SimTrackView::along_step_action() const
+CELER_FORCEINLINE_FUNCTION ActionId SimTrackView::along_step_action() const
 {
     return states_.along_step_action[track_slot_];
 }
@@ -298,7 +300,7 @@ CELER_FUNCTION ActionId SimTrackView::along_step_action() const
 /*!
  * Update along-step action to take.
  */
-CELER_FUNCTION void SimTrackView::along_step_action(ActionId action)
+CELER_FORCEINLINE_FUNCTION void SimTrackView::along_step_action(ActionId action)
 {
     states_.along_step_action[track_slot_] = action;
 }
@@ -319,7 +321,7 @@ CELER_FUNCTION void SimTrackView::status(TrackStatus status)
 /*!
  * Unique track identifier.
  */
-CELER_FUNCTION TrackId SimTrackView::track_id() const
+CELER_FORCEINLINE_FUNCTION TrackId SimTrackView::track_id() const
 {
     return states_.track_ids[track_slot_];
 }
@@ -328,7 +330,7 @@ CELER_FUNCTION TrackId SimTrackView::track_id() const
 /*!
  * Track ID of parent.
  */
-CELER_FUNCTION TrackId SimTrackView::parent_id() const
+CELER_FORCEINLINE_FUNCTION TrackId SimTrackView::parent_id() const
 {
     return states_.parent_ids[track_slot_];
 }
@@ -337,7 +339,7 @@ CELER_FUNCTION TrackId SimTrackView::parent_id() const
 /*!
  * Event ID.
  */
-CELER_FUNCTION EventId SimTrackView::event_id() const
+CELER_FORCEINLINE_FUNCTION EventId SimTrackView::event_id() const
 {
     return states_.event_ids[track_slot_];
 }
@@ -346,7 +348,7 @@ CELER_FUNCTION EventId SimTrackView::event_id() const
 /*!
  * Total number of steps taken by the track.
  */
-CELER_FUNCTION size_type SimTrackView::num_steps() const
+CELER_FORCEINLINE_FUNCTION size_type SimTrackView::num_steps() const
 {
     return states_.num_steps[track_slot_];
 }
@@ -355,7 +357,7 @@ CELER_FUNCTION size_type SimTrackView::num_steps() const
 /*!
  * Number of steps taken by the track since it was flagged as looping.
  */
-CELER_FUNCTION size_type SimTrackView::num_looping_steps() const
+CELER_FORCEINLINE_FUNCTION size_type SimTrackView::num_looping_steps() const
 {
     return states_.num_looping_steps[track_slot_];
 }
@@ -364,7 +366,7 @@ CELER_FUNCTION size_type SimTrackView::num_looping_steps() const
 /*!
  * Time elapsed in the lab frame since the start of the event [s].
  */
-CELER_FUNCTION real_type SimTrackView::time() const
+CELER_FORCEINLINE_FUNCTION real_type SimTrackView::time() const
 {
     return states_.time[track_slot_];
 }
@@ -373,7 +375,7 @@ CELER_FUNCTION real_type SimTrackView::time() const
 /*!
  * Whether the track is inactive, alive, or being killed.
  */
-CELER_FUNCTION TrackStatus SimTrackView::status() const
+CELER_FORCEINLINE_FUNCTION TrackStatus SimTrackView::status() const
 {
     return states_.status[track_slot_];
 }
@@ -382,7 +384,7 @@ CELER_FUNCTION TrackStatus SimTrackView::status() const
 /*!
  * Get the current limiting step.
  */
-CELER_FUNCTION real_type SimTrackView::step_length() const
+CELER_FORCEINLINE_FUNCTION real_type SimTrackView::step_length() const
 {
     return states_.step_length[track_slot_];
 }

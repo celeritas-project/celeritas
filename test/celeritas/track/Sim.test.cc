@@ -43,7 +43,7 @@ class SimTest : public GeantTestBase
         auto state_size = 1;
         particle_state_
             = ParticleStateStore(this->particle()->host_ref(), state_size);
-        sim_state_ = SimStateStore(state_size);
+        sim_state_ = SimStateStore(this->sim()->host_ref(), state_size);
     }
 
     SPConstTrackInit build_init() override { CELER_ASSERT_UNREACHABLE(); }

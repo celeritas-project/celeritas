@@ -53,6 +53,9 @@ class SimParams final : public ParamsDataInterface<SimParamsData>
     // Construct with simulation input data
     explicit SimParams(Input const&);
 
+    // Construct without loop counters (for neutral-only simulations)
+    SimParams();
+
     //! Access data on host
     HostRef const& host_ref() const final { return data_.host_ref(); }
 
@@ -62,7 +65,6 @@ class SimParams final : public ParamsDataInterface<SimParamsData>
   private:
     // Host/device storage and reference
     CollectionMirror<SimParamsData> data_;
-    using HostValue = HostVal<SimParamsData>;
 };
 
 //---------------------------------------------------------------------------//
