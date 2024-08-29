@@ -110,7 +110,10 @@ struct SimTrackInitializer
  * Data storage/access for simulation states.
  *
  * Unless otherwise specified, units are in the native system (time = s for
- * CGS).
+ * CGS, step length = cm).
+ *
+ * \c num_looping_steps will be empty if params doesn't specify any looping
+ * threshold.
  */
 template<Ownership W, MemSpace M>
 struct SimStateData
@@ -141,9 +144,9 @@ struct SimStateData
     explicit CELER_FUNCTION operator bool() const
     {
         return !track_ids.empty() && !parent_ids.empty() && !event_ids.empty()
-               && !num_steps.empty() && !num_looping_steps.empty()
-               && !time.empty() && !status.empty() && !step_length.empty()
-               && !post_step_action.empty() && !along_step_action.empty();
+               && !num_steps.empty() && !time.empty() && !status.empty()
+               && !step_length.empty() && !post_step_action.empty()
+               && !along_step_action.empty();
     }
 
     //! State size

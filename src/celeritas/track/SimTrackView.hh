@@ -151,7 +151,10 @@ CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer_t const& other)
     states_.parent_ids[track_slot_] = other.parent_id;
     states_.event_ids[track_slot_] = other.event_id;
     states_.num_steps[track_slot_] = 0;
-    states_.num_looping_steps[track_slot_] = 0;
+    if (!states_.num_looping_steps.empty())
+    {
+        states_.num_looping_steps[track_slot_] = 0;
+    }
     states_.time[track_slot_] = other.time;
     states_.status[track_slot_] = TrackStatus::initializing;
     states_.step_length[track_slot_] = {};
