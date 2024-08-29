@@ -31,12 +31,20 @@
 
 #    define CELER_RNG_PREFIX(TOK) cu##TOK
 #elif CELERITAS_USE_HIP
+#    if (HIP_VERSION_MAJOR > 5 \
+         || (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR >= 3))
 // Override an undocumented hipRAND API definition to enable usage in host
 // code.
-#    define FQUALIFIERS __forceinline__ __host__ __device__
+#        define QUALIFIERS __forceinline__ __host__ __device__
+#    else
+// Override an older version of that macro
+#        define FQUALIFIERS __forceinline__ __host__ __device__
+#    endif
 #    pragma clang diagnostic push
 // "Disabled inline asm, because the build target does not support it."
 #    pragma clang diagnostic ignored "-W#warnings"
+// "ignoring return value of function declared with 'nodiscard' attribute"
+#    pragma clang diagnostic ignored "-Wunused-result"
 #    include <hiprand/hiprand_kernel.h>
 #    pragma clang diagnostic pop
 #    define CELER_RNG_PREFIX(TOK) hip##TOK
