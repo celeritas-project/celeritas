@@ -121,10 +121,10 @@ LocalVolumeId CsgUnitBuilder::insert_volume(NodeId n)
 {
     CELER_EXPECT(n < unit_->tree.size());
 
-    LocalVolumeId result{static_cast<size_type>(unit_->volumes.size())};
+    LocalVolumeId result{static_cast<size_type>(unit_->tree.volumes().size())};
 
-    unit_->volumes.push_back(n);
-    unit_->fills.resize(unit_->volumes.size());
+    unit_->tree.insert_volume(std::move(n));
+    unit_->fills.resize(unit_->tree.volumes().size());
 
     CELER_ENSURE(*unit_);
     return result;
@@ -139,10 +139,10 @@ LocalVolumeId CsgUnitBuilder::insert_volume(NodeId n)
  */
 void CsgUnitBuilder::fill_exterior()
 {
-    CELER_EXPECT(unit_->volumes.size() == 1);
+    CELER_EXPECT(unit_->tree.volumes().size() == 1);
     static_assert(orange_exterior_volume == LocalVolumeId{0});
 
-    NodeId n = unit_->volumes[orange_exterior_volume.get()];
+    NodeId n = unit_->tree.volumes()[orange_exterior_volume.get()];
     auto iter = unit_->regions.find(n);
     CELER_ASSERT(iter != unit_->regions.end());
     CELER_VALIDATE(!iter->second.bounds.negated,

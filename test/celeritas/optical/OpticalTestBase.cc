@@ -40,7 +40,9 @@ OpticalTestBase::OpticalTestBase()
 
     particle_state_
         = StateStore<ParticleStateData>(particle_params_->host_ref(), 1);
-    sim_state_ = StateStore<SimStateData>(1);
+
+    sim_params_ = std::make_shared<SimParams>();
+    sim_state_ = StateStore<SimStateData>(sim_params_->host_ref(), 1);
 }
 
 //---------------------------------------------------------------------------//
