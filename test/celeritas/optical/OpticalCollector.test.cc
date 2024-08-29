@@ -55,6 +55,7 @@ class LArSphereOffloadTest : public LArSphereBase
 
     struct RunResult
     {
+        size_type num_primaries{0};
         OffloadResult cerenkov;
         OffloadResult scintillation;
 
@@ -89,6 +90,9 @@ class LArSphereOffloadTest : public LArSphereBase
 void LArSphereOffloadTest::RunResult::print_expected() const
 {
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+            "EXPECT_EQ("
+         << this->num_primaries
+         << ", result.num_primaries);\n"
             "EXPECT_EQ("
          << this->cerenkov.total_num_photons
          << ", result.cerenkov.total_num_photons);\n"
@@ -264,6 +268,7 @@ auto LArSphereOffloadTest::run(size_type num_tracks,
     auto const& sizes = optical_state.buffer_size;
     get_result(result.cerenkov, state.cerenkov, sizes.cerenkov);
     get_result(result.scintillation, state.scintillation, sizes.scintillation);
+    result.num_primaries = sizes.num_primaries;
 
     return result;
 }
@@ -282,6 +287,10 @@ TEST_F(LArSphereOffloadTest, host)
 {
     this->build_optical_collector();
     auto result = this->run<MemSpace::host>(4, 64);
+
+    EXPECT_EQ(result.cerenkov.total_num_photons
+                  + result.scintillation.total_num_photons,
+              result.num_primaries);
 
     static real_type const expected_cerenkov_charge[] = {-1, 1};
     EXPECT_VEC_EQ(expected_cerenkov_charge, result.cerenkov.charge);
@@ -336,6 +345,10 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device))
 {
     this->build_optical_collector();
     auto result = this->run<MemSpace::device>(8, 32);
+
+    EXPECT_EQ(result.cerenkov.total_num_photons
+                  + result.scintillation.total_num_photons,
+              result.num_primaries);
 
     static real_type const expected_cerenkov_charge[] = {-1, 1};
     EXPECT_VEC_EQ(expected_cerenkov_charge, result.cerenkov.charge);

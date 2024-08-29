@@ -76,6 +76,7 @@ char const* to_cstring(TrackOrder value)
 {
     static EnumStringMapper<TrackOrder> const to_cstring_impl{
         "unsorted",
+        "partition_charge",
         "shuffled",
         "partition_status",
         "sort_along_step_action",

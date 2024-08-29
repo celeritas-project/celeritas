@@ -800,7 +800,6 @@ TEST_F(LeadBox, host)
     // tracking cut
     EXPECT_EQ(1, result.calc_avg_steps_per_primary());
     EXPECT_EQ(1, result.num_step_iters());
-    EXPECT_SOFT_EQ(1, result.calc_avg_steps_per_primary());
     EXPECT_EQ(0, result.calc_emptying_step());
     EXPECT_EQ(RunResult::StepCount({0, 0}), result.calc_queue_hwm());
 }

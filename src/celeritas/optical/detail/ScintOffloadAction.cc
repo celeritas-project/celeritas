@@ -90,9 +90,15 @@ void ScintOffloadAction::execute_impl(CoreParams const& core_params,
     // Generate the optical distribution data
     this->pre_generate(core_params, core_state);
 
-    // Compact the buffer
+    // Compact the buffer, returning the total number of valid distributions
+    size_type start = buffer_size;
     buffer_size = remove_if_invalid(
-        buffer, buffer_size, core_state.size(), core_state.stream_id());
+        buffer, start, start + core_state.size(), core_state.stream_id());
+
+    // Count the number of optical photons that would be generated from the
+    // distributions created in this step
+    state.buffer_size.num_primaries += count_num_photons(
+        buffer, start, buffer_size, core_state.stream_id());
 }
 
 //---------------------------------------------------------------------------//

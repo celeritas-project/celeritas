@@ -27,7 +27,6 @@ class MaterialParams;
 
 namespace detail
 {
-struct OpticalGenStorage;
 //---------------------------------------------------------------------------//
 /*!
  * Generate optical distribution data.
@@ -41,7 +40,6 @@ class CerenkovOffloadAction final : public ExplicitCoreActionInterface
         = std::shared_ptr<celeritas::optical::CerenkovParams const>;
     using SPConstMaterial
         = std::shared_ptr<celeritas::optical::MaterialParams const>;
-    using SPGenStorage = std::shared_ptr<detail::OpticalGenStorage>;
     //!@}
 
   public:

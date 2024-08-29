@@ -43,7 +43,8 @@ void resize(CoreStateData<Ownership::value, M>* state,
     resize(&state->init, params.init, stream_id, size);
     state->stream_id = stream_id;
 
-    if (params.init.track_order != TrackOrder::unsorted)
+    if (params.init.track_order != TrackOrder::unsorted
+        && params.init.track_order != TrackOrder::partition_charge)
     {
         resize(&state->track_slots, size);
         fill_sequence(&state->track_slots, stream_id);
