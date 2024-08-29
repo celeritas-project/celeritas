@@ -88,7 +88,8 @@ void run(std::string const& gdml_filename,
         GeantImporter import(
             GeantSetup(gdml_filename, load_options(opts_filename)));
         GeantImporter::DataSelection selection;
-        selection.particles = GeantImporter::DataSelection::em;
+        selection.particles = GeantImporter::DataSelection::em
+                              | GeantImporter::DataSelection::optical;
         selection.processes = selection.particles;
         selection.reader_data = true;
         return import(selection);

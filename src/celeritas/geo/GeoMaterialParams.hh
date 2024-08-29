@@ -77,11 +77,41 @@ class GeoMaterialParams final
     //! Access material properties on the device
     DeviceRef const& device_ref() const final { return data_.device_ref(); }
 
+    // Get the total number of volumes
+    inline VolumeId::size_type num_volumes() const;
+
+    // Get the material ID corresponding to a volume ID
+    inline MaterialId material_id(VolumeId v) const;
+
   private:
     CollectionMirror<GeoMaterialParamsData> data_;
 
     using HostValue = HostVal<GeoMaterialParamsData>;
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Get the total number of volumes.
+ */
+VolumeId::size_type GeoMaterialParams::num_volumes() const
+{
+    return this->host_ref().materials.size();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the material ID corresponding to a volume ID.
+ *
+ * Some "virtual" volumes may have a null ID.
+ */
+MaterialId GeoMaterialParams::material_id(VolumeId v) const
+{
+    CELER_EXPECT(v < this->num_volumes());
+
+    return this->host_ref().materials[v];
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
