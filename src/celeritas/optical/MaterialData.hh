@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/MaterialPropertyData.hh
+//! \file celeritas/optical/MaterialData.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,7 +12,8 @@
 #include "corecel/data/Collection.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/GenericGridData.hh"
-#include "celeritas/optical/Types.hh"
+
+#include "Types.hh"
 
 namespace celeritas
 {
@@ -20,21 +21,22 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Shared optical properties data.
- *
- * TODO: Placeholder for optical property data; modify or replace as needed.
+ * Shared optical material properties.
  */
 template<Ownership W, MemSpace M>
-struct MaterialPropertyData
+struct MaterialParamsData
 {
     template<class T>
     using Items = Collection<T, W, M>;
     template<class T>
     using OpticalMaterialItems = Collection<T, W, M, OpticalMaterialId>;
+    template<class T>
+    using VolumeItems = celeritas::Collection<T, W, M, VolumeId>;
 
     //// MEMBER DATA ////
 
-    OpticalMaterialItems<GenericGridData> refractive_index;
+    OpticalMaterialItems<GenericGridRecord> refractive_index;
+    VolumeItems<OpticalMaterialId> optical_id;
 
     // Backend data
     Items<real_type> reals;
@@ -44,15 +46,17 @@ struct MaterialPropertyData
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !refractive_index.empty() && !reals.empty();
+        return !refractive_index.empty() && !optical_id.empty()
+               && !reals.empty();
     }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    MaterialPropertyData& operator=(MaterialPropertyData<W2, M2> const& other)
+    MaterialParamsData& operator=(MaterialParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         refractive_index = other.refractive_index;
+        optical_id = other.optical_id;
         reals = other.reals;
         return *this;
     }

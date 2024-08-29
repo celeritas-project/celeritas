@@ -23,7 +23,7 @@ namespace celeritas
  */
 struct ImportScintComponent
 {
-    double yield_per_energy{};  //!< Yield for this material component [1/MeV]
+    double yield_frac{};  //!< Fraction of total scintillation yield
     double lambda_mean{};  //!< Mean wavelength [len]
     double lambda_sigma{};  //!< Standard deviation of wavelength
     double rise_time{};  //!< Rise time [time]
@@ -32,7 +32,7 @@ struct ImportScintComponent
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
-        return yield_per_energy > 0 && lambda_mean > 0 && lambda_sigma > 0
+        return yield_frac > 0 && lambda_mean > 0 && lambda_sigma > 0
                && rise_time >= 0 && fall_time > 0;
     }
 };
@@ -66,10 +66,8 @@ struct ImportMaterialScintSpectrum
  */
 struct ImportParticleScintSpectrum
 {
-#ifndef SWIG
     static constexpr auto x_units{ImportUnits::mev};
     static constexpr auto y_units{ImportUnits::unitless};
-#endif
 
     ImportPhysicsVector yield_vector;  //!< Particle yield per energy bin
     std::vector<ImportScintComponent> components;  //!< Scintillation
@@ -165,8 +163,8 @@ struct ImportOpticalProperty
  */
 struct ImportWavelengthShift
 {
-    double mean_num_photons;  //!< Mean number of re-emitted photons
-    double time_constant;  //!< Time delay between absorption and re-emission
+    double mean_num_photons{};  //!< Mean number of re-emitted photons
+    double time_constant{};  //!< Time delay between absorption and re-emission
     ImportPhysicsVector absorption_length;  //!< Absorption length [MeV, len]
     ImportPhysicsVector component;  //!< Re-emission population [MeV, unitless]
 
@@ -184,22 +182,24 @@ struct ImportWavelengthShift
 //---------------------------------------------------------------------------//
 /*!
  * Store optical material properties.
+ *
+ * \todo boolean for enabling cerenkov in the material??
  */
 struct ImportOpticalMaterial
 {
+    ImportOpticalProperty properties;
     ImportScintData scintillation;
+
+    //!@{
+    //! \name Optical process data
     ImportOpticalRayleigh rayleigh;
     ImportOpticalAbsorption absorption;
-    ImportOpticalProperty properties;
     ImportWavelengthShift wls;
+    //!@}
 
-    //! Whether all data are assigned and valid
-    explicit operator bool() const
-    {
-        return static_cast<bool>(scintillation) || static_cast<bool>(rayleigh)
-               || static_cast<bool>(absorption)
-               || static_cast<bool>(properties) || static_cast<bool>(wls);
-    }
+    //! Whether minimal useful data is stored
+    explicit operator bool() const { return static_cast<bool>(properties); }
 };
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -22,6 +22,7 @@
 #include "corecel/cont/Span.hh"
 
 #include "MpiCommunicator.hh"
+
 #include "detail/MpiType.hh"
 
 namespace celeritas

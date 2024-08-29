@@ -13,7 +13,6 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/optical/Types.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 
 namespace celeritas

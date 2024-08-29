@@ -71,6 +71,7 @@ CELER_FUNCTION void
 ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
 {
     CELER_EXPECT(tid < state->size());
+
     SimTrackView sim(params->sim, state->sim, tid);
     if (sim.status() == TrackStatus::inactive)
     {
@@ -126,8 +127,17 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
             ti.particle.energy = secondary.energy;
             CELER_ASSERT(ti);
 
-            if (!initialized && sim.status() != TrackStatus::alive)
+            if (!initialized && sim.status() != TrackStatus::alive
+                && params->init.track_order != TrackOrder::partition_charge)
             {
+                /*!
+                 * Skip in-place initialization when tracks are partitioned by
+                 * charge to reduce the amount of mixing
+                 *
+                 * \todo Consider allowing this if the parent's charge is the
+                 * same as the secondary's
+                 */
+
                 ParticleTrackView particle(
                     params->particles, state->particles, tid);
                 PhysicsTrackView phys(
@@ -158,10 +168,16 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
                     counters.num_initializers - offset}]
                     = ti;
 
-                // Store the thread ID of the secondary's parent if the
-                // secondary could be initialized in the next step
-                if (offset <= data.parents.size())
+                if (offset <= data.parents.size()
+                    && (params->init.track_order != TrackOrder::partition_charge
+                        || sim.status() == TrackStatus::alive))
                 {
+                    // Store the thread ID of the secondary's parent if the
+                    // secondary could be initialized in the next step. If the
+                    // tracks are partitioned by charge we skip in-place
+                    // initialization of the secondary, so the parent track
+                    // must still be alive to ensure the state isn't
+                    // overwritten
                     data.parents[TrackSlotId(data.parents.size() - offset)]
                         = tid;
                 }

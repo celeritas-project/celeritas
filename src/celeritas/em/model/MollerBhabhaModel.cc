@@ -28,7 +28,7 @@ namespace celeritas
 MollerBhabhaModel::MollerBhabhaModel(ActionId id,
                                      ParticleParams const& particles)
     : ConcreteAction(
-        id, "ioni-moller-bhabha", "interact by Moller+Bhabha ionization")
+          id, "ioni-moller-bhabha", "interact by Moller+Bhabha ionization")
 {
     CELER_EXPECT(id);
     data_.ids.electron = particles.find(pdg::electron());

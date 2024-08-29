@@ -22,12 +22,11 @@ namespace celeritas
 namespace optical
 {
 class CerenkovParams;
-class MaterialPropertyParams;
+class MaterialParams;
 }  // namespace optical
 
 namespace detail
 {
-struct OpticalGenStorage;
 //---------------------------------------------------------------------------//
 /*!
  * Generate optical distribution data.
@@ -39,16 +38,15 @@ class CerenkovOffloadAction final : public ExplicitCoreActionInterface
     //! \name Type aliases
     using SPConstCerenkov
         = std::shared_ptr<celeritas::optical::CerenkovParams const>;
-    using SPConstProperties
-        = std::shared_ptr<celeritas::optical::MaterialPropertyParams const>;
-    using SPGenStorage = std::shared_ptr<detail::OpticalGenStorage>;
+    using SPConstMaterial
+        = std::shared_ptr<celeritas::optical::MaterialParams const>;
     //!@}
 
   public:
-    // Construct with action ID, optical properties, and storage
+    // Construct with action ID, optical material, and storage
     CerenkovOffloadAction(ActionId id,
                           AuxId data_id,
-                          SPConstProperties properties,
+                          SPConstMaterial material,
                           SPConstCerenkov cerenkov);
 
     // Launch kernel with host data
@@ -74,7 +72,7 @@ class CerenkovOffloadAction final : public ExplicitCoreActionInterface
 
     ActionId id_;
     AuxId data_id_;
-    SPConstProperties properties_;
+    SPConstMaterial material_;
     SPConstCerenkov cerenkov_;
 
     //// HELPER FUNCTIONS ////

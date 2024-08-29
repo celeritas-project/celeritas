@@ -62,11 +62,12 @@ auto RootImporterTest::imported_data() const -> ImportData const&
         ScopedRootErrorHandler scoped_root_error;
 
         i.geometry_basename = geo_basename;
-        std::string root_inp = this->test_data_path(
-            "celeritas", (i.geometry_basename + ".root").c_str());
+        std::string root_inp
+            = this->test_data_path("celeritas", i.geometry_basename + ".root");
 
         RootImporter import(root_inp.c_str());
         i.imported = import();
+        scoped_root_error.throw_if_errors();
     }
     CELER_ENSURE(!i.imported.particles.empty());
     return i.imported;
@@ -157,7 +158,7 @@ TEST_F(RootImporterTest, processes)
     auto find_process = [&processes](PDGNumber pdg, ImportProcessClass ipc) {
         return std::find_if(processes.begin(),
                             processes.end(),
-                            [&pdg, &ipc](const ImportProcess& proc) {
+                            [&pdg, &ipc](ImportProcess const& proc) {
                                 return PDGNumber{proc.particle_pdg} == pdg
                                        && proc.process_class == ipc;
                             });

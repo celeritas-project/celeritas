@@ -80,7 +80,7 @@ TEST_F(NeutronInelasticTest, micro_xs)
     // Check the size of the element cross section data (G4PARTICLEXS4.0)
     // The neutron/inelZ data are pruned by a factor of 5 for this test
     NeutronInelasticRef shared = model_->host_ref();
-    GenericGridData grid = shared.micro_xs[el_id];
+    GenericGridRecord grid = shared.micro_xs[el_id];
     EXPECT_EQ(grid.grid.size(), 61);
 
     // Microscopic cross section (units::BarnXs) in [1e-04:1e+4] (MeV)

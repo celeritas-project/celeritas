@@ -139,7 +139,6 @@ CELER_DEFINE_PDGNUMBER(anti_triton, -1000010030)
 //---------------------------------------------------------------------------//
 // STD::HASH SPECIALIZATION FOR HOST CODE
 //---------------------------------------------------------------------------//
-#ifndef SWIG
 //! \cond
 namespace std
 {
@@ -156,4 +155,3 @@ struct hash<celeritas::PDGNumber>
 };
 }  // namespace std
 //! \endcond
-#endif

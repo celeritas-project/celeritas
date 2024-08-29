@@ -43,7 +43,7 @@ RootImporter::RootImporter(char const* filename)
 
 //---------------------------------------------------------------------------//
 /*!
- * Load data from the ROOT input file.
+ * Load data from the ROOT input file in native units.
  */
 ImportData RootImporter::operator()()
 {

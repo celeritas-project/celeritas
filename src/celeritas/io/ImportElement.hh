@@ -47,8 +47,8 @@ struct ImportElement
     //!@}
 
     std::string name;
-    int atomic_number;
-    double atomic_mass;  //!< [amu]
+    int atomic_number{};
+    double atomic_mass{};  //!< [amu]
     VecIsotopeFrac isotopes_fractions;  //!< Isotopic fractional abundance
 };
 

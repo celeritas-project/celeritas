@@ -17,7 +17,7 @@
 #include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/optical/CerenkovParams.hh"
-#include "celeritas/optical/MaterialPropertyParams.hh"
+#include "celeritas/optical/MaterialParams.hh"
 
 #include "CerenkovOffloadExecutor.hh"
 #include "OffloadParams.hh"
@@ -29,20 +29,20 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with action ID, data ID, optical properties.
+ * Construct with action ID, data ID, optical material.
  */
 CerenkovOffloadAction::CerenkovOffloadAction(ActionId id,
                                              AuxId data_id,
-                                             SPConstProperties properties,
+                                             SPConstMaterial material,
                                              SPConstCerenkov cerenkov)
     : id_(id)
     , data_id_{data_id}
-    , properties_(std::move(properties))
+    , material_(std::move(material))
     , cerenkov_(std::move(cerenkov))
 {
     CELER_EXPECT(id_);
     CELER_EXPECT(data_id_);
-    CELER_EXPECT(cerenkov_ && properties_);
+    CELER_EXPECT(cerenkov_ && material_);
 }
 
 //---------------------------------------------------------------------------//
@@ -95,9 +95,15 @@ void CerenkovOffloadAction::execute_impl(CoreParams const& core_params,
     // Generate the optical distribution data
     this->pre_generate(core_params, core_state);
 
-    // Compact the buffer
+    // Compact the buffer, returning the total number of valid distributions
+    size_type start = buffer_size;
     buffer_size = remove_if_invalid(
-        buffer, buffer_size, core_state.size(), core_state.stream_id());
+        buffer, start, start + core_state.size(), core_state.stream_id());
+
+    // Count the number of optical photons that would be generated from the
+    // distributions created in this step
+    state.buffer_size.num_primaries += count_num_photons(
+        buffer, start, buffer_size, core_state.stream_id());
 }
 
 //---------------------------------------------------------------------------//
@@ -110,13 +116,12 @@ void CerenkovOffloadAction::pre_generate(CoreParams const& core_params,
     auto& state = get<OpticalOffloadState<MemSpace::native>>(core_state.aux(),
                                                              data_id_);
 
-    TrackExecutor execute{
-        core_params.ptr<MemSpace::native>(),
-        core_state.ptr(),
-        detail::CerenkovOffloadExecutor{properties_->host_ref(),
-                                        cerenkov_->host_ref(),
-                                        state.store.ref(),
-                                        state.buffer_size}};
+    TrackExecutor execute{core_params.ptr<MemSpace::native>(),
+                          core_state.ptr(),
+                          detail::CerenkovOffloadExecutor{material_->host_ref(),
+                                                          cerenkov_->host_ref(),
+                                                          state.store.ref(),
+                                                          state.buffer_size}};
     launch_action(*this, core_params, core_state, execute);
 }
 

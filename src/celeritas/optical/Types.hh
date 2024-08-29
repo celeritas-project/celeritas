@@ -15,14 +15,11 @@ namespace celeritas
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
 
-//! Opaque index to a material with optical properties
-using OpticalMaterialId = OpaqueId<struct OpticalMaterial_>;
-
 //! Opaque index to a scintillation particle id
 using ScintillationParticleId = OpaqueId<struct ScintillationParticle_>;
 
 //! Opaque index to a scintillation spectrum
-using ParticleScintSpectrumId = OpaqueId<struct ParticleScintillationSpectrum>;
+using ParticleScintSpectrumId = OpaqueId<struct ParScintSpectrumRecord>;
 
 //---------------------------------------------------------------------------//
 /*!

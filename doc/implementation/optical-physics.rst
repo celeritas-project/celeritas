@@ -57,7 +57,14 @@ tracking loop:
 Optical materials
 =================
 
-.. doxygenclass:: celeritas::optical::MaterialPropertyParams
+Each "physics material" (see :cpp:class:`celeritas::ImportPhysMaterial`) can
+have an associated "optical material." When importing from Geant4, each optical
+material corresponds to a single "geometry material" (see
+:cpp:class:`celeritas::ImportGeoMaterial`) that has a ``RINDEX`` material
+property, and all physical materials that use the geometry material share
+the same optical material.
+
+.. doxygenclass:: celeritas::optical::MaterialParams
 
 Offloading
 ==========

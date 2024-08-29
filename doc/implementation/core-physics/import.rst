@@ -32,7 +32,7 @@ Material and geometry properties
 .. doxygenstruct:: celeritas::ImportTransParameters
 .. doxygenstruct:: celeritas::ImportLoopingThreshold
 
-.. doxygenenum:: ImportMaterialState
+.. doxygenenum:: celeritas::ImportMaterialState
    :no-link:
 
 Physics properties
@@ -46,5 +46,5 @@ Physics properties
 .. doxygenstruct:: celeritas::ImportPhysicsTable
 .. doxygenstruct:: celeritas::ImportPhysicsVector
 
-.. doxygenenum:: ImportUnits
+.. doxygenenum:: celeritas::ImportUnits
    :no-link:

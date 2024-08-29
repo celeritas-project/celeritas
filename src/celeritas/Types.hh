@@ -45,6 +45,9 @@ using MaterialId = OpaqueId<class Material_>;
 //! Opaque index of model in the list of physics processes
 using ModelId = OpaqueId<class Model>;
 
+//! Opaque index to a material with optical properties
+using OpticalMaterialId = OpaqueId<struct OpticalMaterial_>;
+
 //! Opaque index to ParticleRecord in a vector: represents a particle type
 using ParticleId = OpaqueId<struct Particle_>;
 
@@ -160,8 +163,10 @@ enum class StepPoint
 enum class TrackOrder
 {
     unsorted,  //!< Don't do any sorting: tracks are in an arbitrary order
+    // Reorder track data layout
+    partition_charge,  //!< Partition data layout of tracks by charged/neutral
+    // Reorder track slot indices
     shuffled,  //!< Shuffle at the start of the simulation
-
     partition_status,  //!< Partition by status at the start of each step
     sort_along_step_action,  //!< Sort only by the along-step action id
     sort_step_limit_action,  //!< Sort only by the step limit action id

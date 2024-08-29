@@ -48,7 +48,7 @@
 #include "celeritas/io/RootEventReader.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/CerenkovParams.hh"
-#include "celeritas/optical/MaterialPropertyParams.hh"
+#include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/optical/ScintillationParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
@@ -559,33 +559,28 @@ void Runner::build_step_collectors(RunnerInput const& inp)
 void Runner::build_optical_collector(RunnerInput const& inp,
                                      ImportData const& imported)
 {
+    CELER_EXPECT(core_params_);
+
     using optical::CerenkovParams;
-    using optical::MaterialPropertyParams;
+    using optical::MaterialParams;
     using optical::ScintillationParams;
 
     //! \todo Update conditionals after implementing CelerOpticalPhysicsList
-    if (imported.optical.empty())
+    if (imported.optical_materials.empty())
     {
         // No optical materials are present
         return;
     }
 
-    CELER_EXPECT(core_params_);
     OpticalCollector::Input oc_inp;
-    auto const& optical_data = imported.optical.begin()->second;
-    if (optical_data.properties)
-    {
-        oc_inp.properties = MaterialPropertyParams::from_import(imported);
-        oc_inp.cerenkov = std::make_shared<CerenkovParams>(oc_inp.properties);
-    }
-    if (optical_data.scintillation)
-    {
-        oc_inp.scintillation = ScintillationParams::from_import(
-            imported, core_params_->particle());
-    }
+    oc_inp.material = MaterialParams::from_import(
+        imported, *core_params_->geomaterial(), *core_params_->material());
+    oc_inp.cerenkov = std::make_shared<CerenkovParams>(oc_inp.material);
+    oc_inp.scintillation
+        = ScintillationParams::from_import(imported, core_params_->particle());
     oc_inp.buffer_capacity = inp.optical_buffer_capacity;
-    CELER_ASSERT(oc_inp);
 
+    CELER_ASSERT(oc_inp);
     optical_collector_
         = std::make_shared<OpticalCollector>(*core_params_, std::move(oc_inp));
 }

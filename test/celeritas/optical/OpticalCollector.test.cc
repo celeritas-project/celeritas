@@ -34,6 +34,7 @@ namespace celeritas
 {
 namespace test
 {
+// TODO: replace this with explicit namespace importing
 using namespace celeritas::optical;
 
 //---------------------------------------------------------------------------//
@@ -54,6 +55,7 @@ class LArSphereOffloadTest : public LArSphereBase
 
     struct RunResult
     {
+        size_type num_primaries{0};
         OffloadResult cerenkov;
         OffloadResult scintillation;
 
@@ -88,6 +90,9 @@ class LArSphereOffloadTest : public LArSphereBase
 void LArSphereOffloadTest::RunResult::print_expected() const
 {
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
+            "EXPECT_EQ("
+         << this->num_primaries
+         << ", result.num_primaries);\n"
             "EXPECT_EQ("
          << this->cerenkov.total_num_photons
          << ", result.cerenkov.total_num_photons);\n"
@@ -152,7 +157,7 @@ void LArSphereOffloadTest::build_optical_collector()
     OpticalCollector::Input inp;
     if (use_cerenkov_)
     {
-        inp.properties = this->properties();
+        inp.material = this->optical_material();
         inp.cerenkov = this->cerenkov();
     }
     if (use_scintillation_)
@@ -201,8 +206,8 @@ auto LArSphereOffloadTest::make_primaries(size_type count) -> VecPrimary
  * Run a number of tracks.
  */
 template<MemSpace M>
-auto LArSphereOffloadTest::run(size_type num_tracks, size_type num_steps)
-    -> RunResult
+auto LArSphereOffloadTest::run(size_type num_tracks,
+                               size_type num_steps) -> RunResult
 {
     StepperInput step_inp;
     step_inp.params = this->core();
@@ -225,35 +230,35 @@ auto LArSphereOffloadTest::run(size_type num_tracks, size_type num_steps)
     using ItemsRef
         = Collection<GeneratorDistributionData, Ownership::reference, M>;
 
-    auto get_result = [&](OffloadResult& result,
-                          ItemsRef const& buffer,
-                          size_type size) {
-        // Copy buffer to host
-        std::vector<GeneratorDistributionData> data(size);
-        Copier<GeneratorDistributionData, MemSpace::host> copy_data{
-            make_span(data)};
-        copy_data(M, buffer[BufferRange(BufferId(0), BufferId(size))]);
+    auto get_result
+        = [&](OffloadResult& result, ItemsRef const& buffer, size_type size) {
+              // Copy buffer to host
+              std::vector<GeneratorDistributionData> data(size);
+              Copier<GeneratorDistributionData, MemSpace::host> copy_data{
+                  make_span(data)};
+              copy_data(M, buffer[BufferRange(BufferId(0), BufferId(size))]);
 
-        std::set<real_type> charge;
-        for (auto const& dist : data)
-        {
-            result.total_num_photons += dist.num_photons;
-            result.num_photons.push_back(dist.num_photons);
-            if (!dist)
-            {
-                continue;
-            }
-            charge.insert(dist.charge.value());
+              std::set<real_type> charge;
+              for (auto const& dist : data)
+              {
+                  result.total_num_photons += dist.num_photons;
+                  result.num_photons.push_back(dist.num_photons);
+                  if (!dist)
+                  {
+                      continue;
+                  }
+                  charge.insert(dist.charge.value());
 
-            auto const& pre = dist.points[StepPoint::pre];
-            auto const& post = dist.points[StepPoint::post];
-            EXPECT_GT(pre.speed, zero_quantity());
-            EXPECT_NE(post.pos, pre.pos);
-            EXPECT_GT(dist.step_length, 0);
-            EXPECT_EQ(0, dist.material.get());
-        }
-        result.charge.insert(result.charge.end(), charge.begin(), charge.end());
-    };
+                  auto const& pre = dist.points[StepPoint::pre];
+                  auto const& post = dist.points[StepPoint::post];
+                  EXPECT_GT(pre.speed, zero_quantity());
+                  EXPECT_NE(post.pos, pre.pos);
+                  EXPECT_GT(dist.step_length, 0);
+                  EXPECT_EQ(0, dist.material.get());
+              }
+              result.charge.insert(
+                  result.charge.end(), charge.begin(), charge.end());
+          };
 
     RunResult result;
     auto& optical_state = get<OpticalOffloadState<M>>(step.state().aux(),
@@ -263,6 +268,7 @@ auto LArSphereOffloadTest::run(size_type num_tracks, size_type num_steps)
     auto const& sizes = optical_state.buffer_size;
     get_result(result.cerenkov, state.cerenkov, sizes.cerenkov);
     get_result(result.scintillation, state.scintillation, sizes.scintillation);
+    result.num_primaries = sizes.num_primaries;
 
     return result;
 }
@@ -281,6 +287,10 @@ TEST_F(LArSphereOffloadTest, host)
 {
     this->build_optical_collector();
     auto result = this->run<MemSpace::host>(4, 64);
+
+    EXPECT_EQ(result.cerenkov.total_num_photons
+                  + result.scintillation.total_num_photons,
+              result.num_primaries);
 
     static real_type const expected_cerenkov_charge[] = {-1, 1};
     EXPECT_VEC_EQ(expected_cerenkov_charge, result.cerenkov.charge);
@@ -335,6 +345,10 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device))
 {
     this->build_optical_collector();
     auto result = this->run<MemSpace::device>(8, 32);
+
+    EXPECT_EQ(result.cerenkov.total_num_photons
+                  + result.scintillation.total_num_photons,
+              result.num_primaries);
 
     static real_type const expected_cerenkov_charge[] = {-1, 1};
     EXPECT_VEC_EQ(expected_cerenkov_charge, result.cerenkov.charge);

@@ -19,10 +19,9 @@ namespace celeritas
 {
 namespace detail
 {
-struct OpticalGenStorage;
 //---------------------------------------------------------------------------//
 /*!
- * Generate optical distribution data.
+ * Collect pre-step data needed to generate optical distribution data.
  *
  * This pre-step action stores the optical material ID and other
  * beginning-of-step properties so that optical photons can be generated
@@ -32,12 +31,6 @@ struct OpticalGenStorage;
  */
 class OffloadGatherAction final : public ExplicitCoreActionInterface
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    using SPGenStorage = std::shared_ptr<detail::OpticalGenStorage>;
-    //!@}
-
   public:
     // Construct with action ID and storage
     OffloadGatherAction(ActionId id, AuxId data_id);
@@ -65,7 +58,6 @@ class OffloadGatherAction final : public ExplicitCoreActionInterface
 
     ActionId id_;
     AuxId data_id_;
-    SPGenStorage storage_;
 };
 
 //---------------------------------------------------------------------------//

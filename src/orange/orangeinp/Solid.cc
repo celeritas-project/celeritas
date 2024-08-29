@@ -171,8 +171,10 @@ Solid<T>::Solid(std::string&& label, T&& interior, T&& excluded)
  */
 template<class T>
 Solid<T>::Solid(std::string&& label, T&& interior, SolidEnclosedAngle&& enclosed)
-    : Solid{
-        std::move(label), std::move(interior), std::nullopt, std::move(enclosed)}
+    : Solid{std::move(label),
+            std::move(interior),
+            std::nullopt,
+            std::move(enclosed)}
 {
     CELER_VALIDATE(enclosed_,
                    << "solid '" << this->label()

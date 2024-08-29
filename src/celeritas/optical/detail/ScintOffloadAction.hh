@@ -26,7 +26,6 @@ class ScintillationParams;
 
 namespace detail
 {
-struct OpticalGenStorage;
 //---------------------------------------------------------------------------//
 /*!
  * Generate optical distribution data.
@@ -38,7 +37,6 @@ class ScintOffloadAction final : public ExplicitCoreActionInterface
     //! \name Type aliases
     using SPConstScintillation
         = std::shared_ptr<celeritas::optical::ScintillationParams const>;
-    using SPGenStorage = std::shared_ptr<detail::OpticalGenStorage>;
     //!@}
 
   public:

@@ -35,19 +35,20 @@ namespace celeritas
  * geant4_data and \e ImportData in \c RootImporter .
  *
  * Each entity's id is defined by its vector position. An \c ImportElement with
- * id = 3 is stored at \c elements[3] . Same for materials and volumes.
+ * id = 3 is stored at \c elements[3] . The same is true for
+ * geometry/physics/materials (all of which have an independent index!) and
+ * volumes.
  *
  * Seltzer-Berger, Livermore PE, and atomic relaxation data are loaded based on
  * atomic numbers, and thus are stored in maps. To retrieve specific data use
  * \c find(atomic_number) .
  *
  * The unit system of the data is stored in the "units" string. If empty
- * (backward compatibility) or "CGS" the embedded contents are in CGS. If
- * "CLHEP" the units are CLHEP. The \c convert_to_native function will
- * convert a data structure in place and update the units label. Refer to \c
- * base/Units.hh for further information on unit systems.
- *
- * The "processes" field may be empty for testing applications.
+ * (backward compatibility) or "cgs" the embedded contents are in CGS. If
+ * "clhep" the units are CLHEP (the native Geant4 unit system). The \c
+ * convert_to_native function will convert a data structure in place and update
+ * the units label. Refer to \c base/Units.hh for further information on unit
+ * systems.
  */
 struct ImportData
 {
@@ -59,28 +60,43 @@ struct ImportData
     using ImportLivermorePEMap = std::map<ZInt, ImportLivermorePE>;
     using ImportAtomicRelaxationMap = std::map<ZInt, ImportAtomicRelaxation>;
     using ImportNeutronElasticMap = std::map<ZInt, ImportPhysicsVector>;
-    using ImportOpticalMap = std::map<GeoMatIndex, ImportOpticalMaterial>;
     //!@}
 
-    std::vector<ImportParticle> particles;
+    //!@{
+    //! \name Material data
     std::vector<ImportIsotope> isotopes;
     std::vector<ImportElement> elements;
     std::vector<ImportGeoMaterial> geo_materials;
     std::vector<ImportPhysMaterial> phys_materials;
-    std::vector<ImportProcess> processes;
-    std::vector<ImportMscModel> msc_models;
+    std::vector<ImportOpticalMaterial> optical_materials;
+    //!@}
+
+    //!@{
+    //! \name Spatial region data
     std::vector<ImportRegion> regions;
     std::vector<ImportVolume> volumes;
-    ImportOpticalMap optical;
-    ImportEmParameters em_params;
-    ImportTransParameters trans_params;
-    ImportOpticalParameters optical_params;
+    //!@}
+
+    //!@{
+    //! \name Physics data
+    std::vector<ImportParticle> particles;
+    std::vector<ImportProcess> processes;
+    std::vector<ImportMscModel> msc_models;
     ImportSBMap sb_data;
     ImportLivermorePEMap livermore_pe_data;
     ImportNeutronElasticMap neutron_elastic_data;
     ImportAtomicRelaxationMap atomic_relaxation_data;
+    //!@}
 
-    std::string units;  //!< "cgs", "clhep", or "si"
+    //!@{
+    //! \name Physics configuration options
+    ImportEmParameters em_params;
+    ImportTransParameters trans_params;
+    ImportOpticalParameters optical_params;
+    //!@}
+
+    //! Unit system of the stored data: "cgs", "clhep", or "si"
+    std::string units;
 };
 
 //---------------------------------------------------------------------------//

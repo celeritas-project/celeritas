@@ -44,8 +44,8 @@ UniformAlongStepFactory::UniformAlongStepFactory(FieldFunction f)
  * The action will embed the linear propagator if the magnetic field strength
  * is zero (or the accessor is unset).
  */
-auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) const
-    -> result_type
+auto UniformAlongStepFactory::operator()(
+    AlongStepFactoryInput const& input) const -> result_type
 {
     // Get the field strength in tesla (or zero if accessor is undefined)
     auto field_params = get_field_ ? get_field_() : UniformFieldParams{};

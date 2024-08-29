@@ -47,10 +47,6 @@ celeritas_optional_package(ROOT "Enable ROOT I/O")
 celeritas_optional_package(VecGeom "Use VecGeom geometry")
 option(CELERITAS_USE_Perfetto "Perfetto tracing library" OFF)
 
-if(CELERITAS_USE_Python)
-  celeritas_optional_package(SWIG SWIG@4.1 "Build SWIG Python bindings")
-endif()
-
 # Components
 option(CELERITAS_BUILD_DOCS "Build Celeritas documentation" OFF)
 option(CELERITAS_BUILD_DEMOS "Build Celeritas demonstration mini-apps" OFF)
@@ -331,12 +327,8 @@ if(CELERITAS_USE_PNG)
 endif()
 
 if(CELERITAS_USE_Python)
-  set(_components Interpreter)
-  if(CELERITAS_USE_SWIG)
-    list(APPEND _components Development)
-  endif()
   if(NOT Python_FOUND)
-    find_package(Python 3.6 REQUIRED COMPONENTS ${_components})
+    find_package(Python 3.6 REQUIRED COMPONENTS Interpreter)
   endif()
   set(CELERITAS_PYTHONPATH "$ENV{PYTHONPATH}" CACHE STRING
     "Python path used for finding modules and generating documentation"
@@ -353,20 +345,6 @@ if(CELERITAS_USE_ROOT)
   endif()
   # Older ROOT versions are missing CMake macros
   find_package(ROOT 6.24 REQUIRED)
-endif()
-
-if(CELERITAS_USE_SWIG)
-  if(CELERITAS_REAL_TYPE STREQUAL "float")
-    celeritas_error_incompatible_option(
-      "Single-precision runtime is not compatible with SWIG"
-      CELERITAS_USE_SWIG
-      OFF
-    )
-  endif()
-  if(NOT SWIG_FOUND)
-    # Note: 4.1 is required for C++17 parsing
-    find_package(SWIG 4.1 REQUIRED)
-  endif()
 endif()
 
 if(CELERITAS_USE_VecGeom)
@@ -490,7 +468,7 @@ elseif(CELERITAS_USE_HIP)
   find_library(ROCTX_LIBRARY roctx64)
   if(ROCTX_LIBRARY)
     set(CELERITAS_HAVE_ROCTX ON)
-    target_link_libraries(celeritas_device_toolkit INTERFACE ${ROCTX_LIBRARY})
+    target_link_libraries(celeritas_device_toolkit INTERFACE "${ROCTX_LIBRARY}")
   endif()
   if(NOT BUILD_SHARED_LIBS)
     # Downstream libs don't link against correct HIP dependencies when using
@@ -511,16 +489,26 @@ install(TARGETS celeritas_device_toolkit
 )
 
 #----------------------------------------------------------------------------#
+if(NOT DEFINED CELERITAS_SINCOSPI_PREFIX)
+  foreach(_prefix "__" "_" "")
+    try_compile(CELERITAS_TRY_${_prefix}SINCOSPI
+      # NOTE: the line below is required for CMake < 3.25
+      "${CMAKE_BINARY_DIR}/CMakeFiles/CMakeScratch/sincospi${_prefix}"
+      SOURCES "${PROJECT_SOURCE_DIR}/cmake/try-sincospi.cc"
+      COMPILE_DEFINITIONS "-DCELERITAS_SINCOSPI_PREFIX=${_prefix}"
+    )
+    if(CELERITAS_TRY_${_prefix}SINCOSPI)
+      set(CELERITAS_SINCOSPI_PREFIX "${_prefix}" CACHE INTERNAL
+        "Prefix for compiler-provided sincospi and related functions"
+      )
+      break()
+    endif()
+  endforeach()
+endif()
+
+#----------------------------------------------------------------------------#
 # Add the main libraries
 add_subdirectory(src)
-
-#----------------------------------------------------------------------------#
-# SWIG INTERFACE
-#----------------------------------------------------------------------------#
-
-if(CELERITAS_USE_SWIG)
-  add_subdirectory(interface)
-endif()
 
 #----------------------------------------------------------------------------#
 # UNIT TESTS

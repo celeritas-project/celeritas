@@ -8,6 +8,7 @@
 #include "OpticalGenAlgorithms.hh"
 
 #include <algorithm>
+#include <numeric>
 
 #include "corecel/Assert.hh"
 
@@ -15,23 +16,57 @@ namespace celeritas
 {
 namespace detail
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+
+struct AccumNumPhotons
+{
+    // Accumulate the number of optical photons from the distribution data
+    size_type
+    operator()(size_type count,
+               celeritas::optical::GeneratorDistributionData const& data) const
+    {
+        return count + data.num_photons;
+    }
+};
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Remove all invalid distributions from the buffer.
+ *
+ * \return Total number of valid distributions in the buffer
  */
 size_type
-remove_if_invalid(Collection<celeritas::optical::GeneratorDistributionData,
-                             Ownership::reference,
-                             MemSpace::host> const& buffer,
+remove_if_invalid(GeneratorDistributionRef<MemSpace::host> const& buffer,
                   size_type offset,
                   size_type size,
                   StreamId)
 {
     auto* start = static_cast<celeritas::optical::GeneratorDistributionData*>(
         buffer.data());
-    auto* stop
-        = std::remove_if(start + offset, start + offset + size, IsInvalid{});
+    auto* stop = std::remove_if(start + offset, start + size, IsInvalid{});
     return stop - start;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Count the number of optical photons in the distributions.
+ */
+size_type
+count_num_photons(GeneratorDistributionRef<MemSpace::host> const& buffer,
+                  size_type offset,
+                  size_type size,
+                  StreamId)
+{
+    auto* start = static_cast<celeritas::optical::GeneratorDistributionData*>(
+        buffer.data());
+    size_type count = std::accumulate(
+        start + offset, start + size, size_type(0), AccumNumPhotons{});
+    return count;
 }
 
 //---------------------------------------------------------------------------//

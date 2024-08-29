@@ -11,12 +11,15 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/track/TrackInitParams.hh"
 
 #include "detail/InitTracksExecutor.hh"  // IWYU pragma: associated
+#include "detail/TrackInitAlgorithms.hh"
 
 namespace celeritas
 {
@@ -61,12 +64,32 @@ void InitializeTracksAction::execute_impl(CoreParams const& core_params,
         = std::min(counters.num_vacancies, counters.num_initializers);
     if (num_new_tracks > 0 || core_state.warming_up())
     {
+        if (core_params.init()->track_order() == TrackOrder::partition_charge)
+        {
+            // Reset track initializer indices
+            fill_sequence(&core_state.ref().init.indices,
+                          core_state.stream_id());
+
+            // Partition indices by whether tracks are charged or neutral
+            detail::partition_initializers(core_params,
+                                           core_state.ref().init,
+                                           counters,
+                                           num_new_tracks,
+                                           core_state.stream_id());
+        }
+
         // Launch a kernel to initialize tracks
         this->execute_impl(core_params, core_state, num_new_tracks);
 
         // Update initializers/vacancies
         counters.num_initializers -= num_new_tracks;
         counters.num_vacancies -= num_new_tracks;
+
+        if (core_params.init()->track_order() == TrackOrder::partition_charge)
+        {
+            // Clear stale parent track IDs
+            fill(TrackSlotId{}, &core_state.ref().init.parents);
+        }
     }
 
     // Store number of active tracks at the start of the loop

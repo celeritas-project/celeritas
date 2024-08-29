@@ -62,7 +62,9 @@ class RejectionSampler
 
     //! Construct when the distribution's maximum is normalized
     explicit CELER_FUNCTION RejectionSampler(real_type f)
-        : RejectionSampler{f, 1} {}
+        : RejectionSampler{f, 1}
+    {
+    }
 
     // Sample a random number according to the distribution
     template<class Generator>
@@ -94,8 +96,8 @@ RejectionSampler<RealType>::RejectionSampler(real_type f, real_type fmax)
  */
 template<class RealType>
 template<class Generator>
-CELER_FUNCTION auto
-RejectionSampler<RealType>::operator()(Generator& rng) -> result_type
+CELER_FUNCTION auto RejectionSampler<RealType>::operator()(Generator& rng)
+    -> result_type
 {
     return f_ < fmax_ * generate_canonical<RealType>(rng);
 }

@@ -26,7 +26,7 @@ namespace detail
  */
 DiscreteSelectAction::DiscreteSelectAction(ActionId aid)
     : ConcreteAction(
-        aid, "physics-discrete-select", "select a discrete interaction")
+          aid, "physics-discrete-select", "select a discrete interaction")
 {
 }
 

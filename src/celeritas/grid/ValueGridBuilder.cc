@@ -191,8 +191,8 @@ auto ValueGridXsBuilder::build(ValueGridInserter insert) const -> ValueGridId
 /*!
  * Construct arrays from log-spaced geant data.
  */
-auto ValueGridLogBuilder::from_geant(SpanConstDbl energy, SpanConstDbl value)
-    -> UPLogBuilder
+auto ValueGridLogBuilder::from_geant(SpanConstDbl energy,
+                                     SpanConstDbl value) -> UPLogBuilder
 {
     CELER_EXPECT(!energy.empty());
     CELER_EXPECT(has_log_spacing(energy));
@@ -210,8 +210,8 @@ auto ValueGridLogBuilder::from_geant(SpanConstDbl energy, SpanConstDbl value)
  * (always nonnegative) stopping power -dE/dx . If not monotonic then the
  * inverse range cannot be calculated.
  */
-auto ValueGridLogBuilder::from_range(SpanConstDbl energy, SpanConstDbl value)
-    -> UPLogBuilder
+auto ValueGridLogBuilder::from_range(SpanConstDbl energy,
+                                     SpanConstDbl value) -> UPLogBuilder
 {
     CELER_EXPECT(!energy.empty());
     CELER_EXPECT(is_monotonic_increasing(value));
