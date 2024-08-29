@@ -17,6 +17,13 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
+template<MemSpace M>
+using GeneratorDistributionRef
+    = Collection<::celeritas::optical::GeneratorDistributionData,
+                 Ownership::reference,
+                 M>;
+
+//---------------------------------------------------------------------------//
 struct IsInvalid
 {
     // Check if the distribution data is valid
@@ -29,29 +36,41 @@ struct IsInvalid
 
 //---------------------------------------------------------------------------//
 // Remove all invalid distributions from the buffer.
-size_type
-remove_if_invalid(Collection<celeritas::optical::GeneratorDistributionData,
-                             Ownership::reference,
-                             MemSpace::host> const&,
-                  size_type,
-                  size_type,
-                  StreamId);
-size_type
-remove_if_invalid(Collection<celeritas::optical::GeneratorDistributionData,
-                             Ownership::reference,
-                             MemSpace::device> const&,
-                  size_type,
-                  size_type,
-                  StreamId);
+size_type remove_if_invalid(GeneratorDistributionRef<MemSpace::host> const&,
+                            size_type,
+                            size_type,
+                            StreamId);
+size_type remove_if_invalid(GeneratorDistributionRef<MemSpace::device> const&,
+                            size_type,
+                            size_type,
+                            StreamId);
+
+//---------------------------------------------------------------------------//
+// Count the number of optical photons in the distributions.
+size_type count_num_photons(GeneratorDistributionRef<MemSpace::host> const&,
+                            size_type,
+                            size_type,
+                            StreamId);
+size_type count_num_photons(GeneratorDistributionRef<MemSpace::device> const&,
+                            size_type,
+                            size_type,
+                            StreamId);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 inline size_type
-remove_if_invalid(Collection<celeritas::optical::GeneratorDistributionData,
-                             Ownership::reference,
-                             MemSpace::device> const&,
+remove_if_invalid(GeneratorDistributionRef<MemSpace::device> const&,
+                  size_type,
+                  size_type,
+                  StreamId)
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+
+inline size_type
+count_num_photons(GeneratorDistributionRef<MemSpace::device> const&,
                   size_type,
                   size_type,
                   StreamId)
