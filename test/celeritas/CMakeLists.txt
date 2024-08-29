@@ -147,6 +147,7 @@ set(_import_filter
   "TestEm3*"
   "OneSteelSphere.*"
   "OneSteelSphereGG.*"
+  "LarSphere.*"
   "Solids.*"
 )
 if(Geant4_VERSION VERSION_LESS 11.0)
@@ -163,6 +164,7 @@ celeritas_add_test(ext/GeantImporter.test.cc
 celeritas_add_test(ext/GeantVolumeMapper.test.cc ${_needs_geant4}
   LINK_LIBRARIES ${Geant4_LIBRARIES} Celeritas::orange)
 celeritas_add_test(ext/RootImporter.test.cc ${_needs_root})
+celeritas_add_test(ext/RootJsonDumper.test.cc ${_needs_root})
 
 #-----------------------------------------------------------------------------#
 # Field

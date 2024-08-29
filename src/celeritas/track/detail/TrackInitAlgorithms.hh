@@ -12,6 +12,10 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/global/CoreParams.hh"
+#include "celeritas/track/CoreStateCounters.hh"
+
+#include "Utils.hh"
 
 namespace celeritas
 {
@@ -36,6 +40,21 @@ size_type exclusive_scan_counts(
     StreamId);
 
 //---------------------------------------------------------------------------//
+// Sort the tracks that will be initialized in this step by charged/neutral
+void partition_initializers(
+    CoreParams const&,
+    TrackInitStateData<Ownership::reference, MemSpace::host> const&,
+    CoreStateCounters const&,
+    size_type,
+    StreamId);
+void partition_initializers(
+    CoreParams const&,
+    TrackInitStateData<Ownership::reference, MemSpace::device> const&,
+    CoreStateCounters const&,
+    size_type,
+    StreamId);
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
@@ -48,6 +67,16 @@ inline size_type remove_if_alive(
 
 inline size_type exclusive_scan_counts(
     StateCollection<size_type, Ownership::reference, MemSpace::device> const&,
+    StreamId)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+
+inline void partition_initializers(
+    CoreParams const&,
+    TrackInitStateData<Ownership::reference, MemSpace::device> const&,
+    CoreStateCounters const&,
+    size_type,
     StreamId)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");

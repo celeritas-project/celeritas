@@ -186,17 +186,22 @@ celer-export-geant
 
 .. highlight:: none
 
-This utility exports the physics and geometry data needed to run Celeritas
-without directly calling Geant4 for an independent run. Since it isolates
-Celeritas from any existing Geant4 installation it can also be a means of
-debugging whether a behavior change is due to a code change in Celeritas or
-(for example) a change in cross sections from Geant4.
+This utility exports the physics and geometry data used to run Celeritas. It
+can be used in one of two modes:
+
+1. Export serialized data as a ROOT file to be used on a subsequent run
+   of Celeritas. Since it isolates Celeritas from any existing Geant4
+   installation it can also be a means of debugging whether a behavior change
+   is due to a code change in Celeritas or (for example) a change in cross
+   sections from Geant4.
+2. Export serialized data as a JSON file for data exploration. This is a means
+   to verify or plot the cross sections, volumes, etc. used by Celeritas.
 
 ----
 
 Usage::
 
-   celer-export-geant {input}.gdml [{options}.json, -, ''] {output}.root
+   celer-export-geant {input}.gdml [{options}.json, -, ''] {output}.[root, json]
    celer-export-geant --dump-default
 
 input
@@ -207,7 +212,7 @@ options
   corresponding to the :ref:`api_geant4_physics_options` struct.
 
 output
-  A ROOT output file with the exported :ref:`api_importdata`.
+  A ROOT/JSON output file with the exported :ref:`api_importdata`.
 
 
 The ``--dump-default`` usage renders the default options.

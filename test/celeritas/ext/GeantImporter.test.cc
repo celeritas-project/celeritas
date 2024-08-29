@@ -18,7 +18,6 @@
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/io/ImportData.hh"
-#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "celeritas_test.hh"
@@ -214,8 +213,8 @@ auto GeantImporterTest::summarize(VecModelMaterial const& materials) const
         for (auto const& xs_vec : mat_iter->micro_xs)
         {
             EXPECT_EQ(mat_iter->energy.size(), xs_vec.size());
-            result.xs.push_back(xs_vec.front() / units::barn);
-            result.xs.push_back(xs_vec.back() / units::barn);
+            result.xs.push_back(xs_vec.front() / barn);
+            result.xs.push_back(xs_vec.back() / barn);
         }
     }
     return result;
@@ -1353,34 +1352,20 @@ TEST_F(OneSteelSphereGG, physics)
 TEST_F(LarSphere, optical)
 {
     auto&& imported = this->imported_data();
-    EXPECT_EQ(1, imported.optical.size());
+    ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(2, imported.geo_materials.size());
     ASSERT_EQ(2, imported.phys_materials.size());
 
     // First material is vacuum, no optical properties
-    MaterialId vacuum_id{0};
-    ASSERT_EQ(vacuum_id.get(),
-              imported.phys_materials[vacuum_id.get()].geo_material_id);
-    EXPECT_EQ("vacuum", imported.geo_materials[vacuum_id.get()].name);
-    auto const vacuum_iter = imported.optical.find(vacuum_id.get());
-    EXPECT_TRUE(vacuum_iter == imported.optical.end());
+    ASSERT_EQ(0, imported.phys_materials[0].geo_material_id);
+    EXPECT_EQ("vacuum", imported.geo_materials[0].name);
+    EXPECT_EQ(ImportPhysMaterial::unspecified,
+              imported.phys_materials[0].optical_material_id);
 
     // Second material is liquid argon
-    MaterialId lar_id{1};
-    ASSERT_EQ(lar_id.get(),
-              imported.phys_materials[lar_id.get()].geo_material_id);
-    EXPECT_EQ("lAr", imported.geo_materials[lar_id.get()].name);
-    auto const lar_iter = imported.optical.find(lar_id.get());
-    ASSERT_FALSE(lar_iter == imported.optical.end());
-    auto const& optical = lar_iter->second;
-
-    // Check optical material ID
-    auto materials = MaterialParams::from_import(imported);
-    ASSERT_TRUE(materials);
-    EXPECT_EQ(OpticalMaterialId{},
-              materials->get(vacuum_id).optical_material_id());
-    EXPECT_EQ(OpticalMaterialId{0},
-              materials->get(lar_id).optical_material_id());
+    ASSERT_EQ(1, imported.phys_materials[1].geo_material_id);
+    EXPECT_EQ("lAr", imported.geo_materials[1].name);
+    ASSERT_EQ(0, imported.phys_materials[1].optical_material_id);
 
     real_type const tol = this->comparison_tolerance();
 
@@ -1388,6 +1373,7 @@ TEST_F(LarSphere, optical)
     // example examples/advanced/CaTS/gdml/LArTPC.gdml
 
     // Check scintillation optical properties
+    auto const& optical = imported.optical_materials[0];
     auto const& scint = optical.scintillation;
     EXPECT_TRUE(scint);
     // Material scintillation
@@ -1471,9 +1457,8 @@ TEST_F(LarSphere, optical)
     auto const& rayleigh = optical.rayleigh;
     EXPECT_TRUE(rayleigh);
     EXPECT_EQ(1, rayleigh.scale_factor);
-    EXPECT_REAL_EQ(0.024673059861887867,
-                   rayleigh.compressibility * units::gram
-                       / (units::centimeter * units::second * units::second));
+    EXPECT_REAL_EQ(0.024673059861887867 * centimeter * ipow<2>(second) / gram,
+                   rayleigh.compressibility);
     EXPECT_EQ(11, rayleigh.mfp.x.size());
     EXPECT_DOUBLE_EQ(1.55e-06, rayleigh.mfp.x.front());
     EXPECT_DOUBLE_EQ(1.55e-05, rayleigh.mfp.x.back());
@@ -1493,7 +1478,7 @@ TEST_F(LarSphere, optical)
     auto const& wls = optical.wls;
     EXPECT_TRUE(wls);
     EXPECT_REAL_EQ(3, wls.mean_num_photons);
-    EXPECT_REAL_EQ(6e-9, wls.time_constant);
+    EXPECT_REAL_EQ(6 * nanosecond, wls.time_constant);
     EXPECT_EQ(2, wls.absorption_length.x.size());
     EXPECT_EQ(wls.absorption_length.x.size(), wls.absorption_length.y.size());
     EXPECT_EQ(ImportPhysicsVectorType::free, wls.absorption_length.vector_type);
@@ -1503,12 +1488,12 @@ TEST_F(LarSphere, optical)
     for (auto i : range(wls.absorption_length.x.size()))
     {
         abslen_grid.push_back(wls.absorption_length.x[i]);
-        abslen_grid.push_back(wls.absorption_length.y[i]);
+        abslen_grid.push_back(to_cm(wls.absorption_length.y[i]));
         comp_grid.push_back(wls.component.x[i]);
         comp_grid.push_back(wls.component.y[i]);
     }
 
-    static double const expected_abslen_grid[]
+    static real_type const expected_abslen_grid[]
         = {1.3778e-06, 86.4473, 1.55e-05, 0.000296154};
     static double const expected_comp_grid[] = {1.3778e-06, 10, 1.55e-05, 20};
     EXPECT_VEC_SOFT_EQ(expected_abslen_grid, abslen_grid);

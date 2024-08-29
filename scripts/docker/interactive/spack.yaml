@@ -5,7 +5,6 @@ spack:
     - hepmc3
     - nlohmann-json
     - "root@6.24:"
-    - "swig@4.1:"
     - "vecgeom@1.2.4: +gdml"
   view: true
   concretizer:

@@ -30,18 +30,19 @@ std::shared_ptr<ScintillationParams>
 ScintillationParams::from_import(ImportData const& data,
                                  SPConstParticles particle_params)
 {
-    CELER_EXPECT(!data.optical.empty());
+    CELER_EXPECT(!data.optical_materials.empty());
 
-    if (!std::any_of(
-            data.optical.begin(), data.optical.end(), [](auto const& iter) {
-                return static_cast<bool>(iter.second.scintillation);
-            }))
+    if (!std::any_of(data.optical_materials.begin(),
+                     data.optical_materials.end(),
+                     [](auto const& iter) {
+                         return static_cast<bool>(iter.scintillation);
+                     }))
     {
         // No scintillation data present
         return nullptr;
     }
 
-    auto const& num_optmats = data.optical.size();
+    size_type const num_optmats = data.optical_materials.size();
 
     Input input;
     input.resolution_scale.resize(num_optmats);
@@ -49,22 +50,22 @@ ScintillationParams::from_import(ImportData const& data,
     {
         // Collect ScintillationParticleIds
         input.pid_to_scintpid.resize(data.particles.size());
-        ScintillationParticleId scintpid{0};
-        for (auto const& [matid, iom] : data.optical)
+        ScintillationParticleId::size_type scintpid{0};
+        for (auto const& opt_mat : data.optical_materials)
         {
-            auto const& iomsp = iom.scintillation.particles;
+            auto const& iomsp = opt_mat.scintillation.particles;
             for (auto const& [pdg, ipss] : iomsp)
             {
                 if (auto const pid = particle_params->find(PDGNumber{pdg}))
                 {
                     // Add new ScintillationParticleId
-                    input.pid_to_scintpid[pid.get()] = scintpid++;
+                    input.pid_to_scintpid[pid.get()]
+                        = ScintillationParticleId{scintpid++};
                 }
             }
         }
         // Resize particle- and material-dependent spectra
-        auto const num_scint_particles = scintpid.get();
-        input.particles.resize(num_scint_particles * num_optmats);
+        input.particles.resize(scintpid * num_optmats);
     }
     else
     {
@@ -72,24 +73,25 @@ ScintillationParams::from_import(ImportData const& data,
         input.materials.resize(num_optmats);
     }
 
-    size_type optmatidx{0};
-    for (auto const& [matid, iom] : data.optical)
+    for (auto opt_idx : range(num_optmats))
     {
-        input.resolution_scale[optmatidx] = iom.scintillation.resolution_scale;
+        ImportOpticalMaterial const& opt_mat = data.optical_materials[opt_idx];
+        input.resolution_scale[opt_idx]
+            = opt_mat.scintillation.resolution_scale;
 
         if (!data.optical_params.scintillation_by_particle)
         {
             // Material spectrum
-            auto const& iomsm = iom.scintillation.material;
+            auto const& iomsm = opt_mat.scintillation.material;
             ImportMaterialScintSpectrum mat_spec;
             mat_spec.yield_per_energy = iomsm.yield_per_energy;
             mat_spec.components = iomsm.components;
-            input.materials[optmatidx] = std::move(mat_spec);
+            input.materials[opt_idx] = std::move(mat_spec);
         }
         else
         {
             // Particle and material spectrum
-            auto const& iomsp = iom.scintillation.particles;
+            auto const& iomsp = opt_mat.scintillation.particles;
 
             for (auto const& [pdg, ipss] : iomsp)
             {
@@ -100,12 +102,11 @@ ScintillationParams::from_import(ImportData const& data,
                     ImportParticleScintSpectrum part_spec;
                     part_spec.yield_vector = ipss.yield_vector;
                     part_spec.components = ipss.components;
-                    input.particles[num_optmats * scintpid.get() + optmatidx]
+                    input.particles[num_optmats * scintpid.get() + opt_idx]
                         = std::move(part_spec);
                 }
             }
         }
-        optmatidx++;
     }
 
     return std::make_shared<ScintillationParams>(std::move(input));

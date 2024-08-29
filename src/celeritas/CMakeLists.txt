@@ -195,6 +195,7 @@ if(CELERITAS_USE_ROOT)
   celeritas_add_object_library(celeritas_root
     ext/RootExporter.cc
     ext/RootImporter.cc
+    ext/RootJsonDumper.cc
     ext/ScopedRootErrorHandler.cc
     ext/RootUniquePtr.root.cc
     ext/RootFileManager.cc
@@ -206,7 +207,7 @@ if(CELERITAS_USE_ROOT)
   )
 
   target_link_libraries(celeritas_root
-    PRIVATE Celeritas::corecel ROOT::Core ROOT::Tree
+    PRIVATE Celeritas::corecel ROOT::Core ROOT::Tree ROOT::RIO
   )
 
   # Install the rootmap/pcm files needed for users or downstream apps to use

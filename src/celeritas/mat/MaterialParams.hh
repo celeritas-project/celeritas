@@ -35,7 +35,11 @@ struct ImportData;
 
 //---------------------------------------------------------------------------//
 /*!
- * Data management for material, element, and nuclide properties.
+ * Manage material, element, and nuclide properties.
+ *
+ * Materials in Celeritas currently correspond to "material cut couples" in
+ * Geant4, i.e. the outer product of geometry model-defined materials and
+ * user-defined physics regions.
  */
 class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 {

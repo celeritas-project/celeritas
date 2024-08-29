@@ -19,6 +19,8 @@
 namespace celeritas
 {
 struct ImportData;
+class MaterialParams;
+class GeoMaterialParams;
 
 namespace optical
 {
@@ -27,17 +29,20 @@ namespace optical
 /*!
  * Manage properties for optical materials.
  *
- * Each "geometry material" (i.e. \c G4Material or material defined in
- * the geometry model input) can map to a single optical material. (In the
- * future we might broaden this to allow \c regions to define different
- * materials as well.) Many "geometry materials"---especially those in
- * mechanical structures and components not optically connected to the
- * detector---may have no optical properties at all.
+ * Each "physics material" (the combination of a geometry-specified material
+ * and a user-specified region) can map to a single optical material. Many
+ * materials---especially those in mechanical structures and components not
+ * optically connected to the detector---may have no optical properties at all.
  *
- * Optical volume and surface properties are imported from Geant4 into the \c
+ * Optical volume properties are imported from Geant4 into the \c
  * ImportData container. The \c celeritas::MaterialParams class loads the
- * mapping of \c GeoMaterialId to \c OpticalMaterialId and makes it accessible
- * via the main loop's material view.
+ * mapping of \c MaterialId to \c OpticalMaterialId and makes it accessible
+ * via the main loop's material view. By combining that with the \c
+ * GeoMaterialParams which maps volumes to \c MaterialId, this class maps the
+ * geometry volumes to optical materials for use in the optical tracking loop.
+ *
+ * When surface models are implemented, surface properties will also be added
+ * to this class.
  */
 class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 {
@@ -46,11 +51,16 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     {
         //! Shared optical material, indexed by \c OpticalMaterialId
         std::vector<ImportOpticalProperty> properties;
+        //! Map logical volume ID to optical material ID
+        std::vector<OpticalMaterialId> volume_to_mat;
     };
 
   public:
-    // Construct with imported data
-    static std::shared_ptr<MaterialParams> from_import(ImportData const& data);
+    // Construct with imported data, materials
+    static std::shared_ptr<MaterialParams>
+    from_import(ImportData const& data,
+                ::celeritas::GeoMaterialParams const& geo_mat,
+                ::celeritas::MaterialParams const& mat);
 
     // Construct with optical property data
     explicit MaterialParams(Input const& inp);

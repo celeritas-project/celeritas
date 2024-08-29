@@ -74,10 +74,8 @@ struct ImportModelMaterial
     using MicroXs = std::vector<double>;
     //!@}
 
-#ifndef SWIG
     static constexpr auto energy_units{ImportUnits::mev};
     static constexpr auto xs_units{ImportUnits::len_sq};
-#endif
 
     std::vector<double> energy;  //!< Energy grid for the material
     std::vector<MicroXs> micro_xs;  //!< Cross sections for each element
