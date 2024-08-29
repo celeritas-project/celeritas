@@ -111,6 +111,7 @@ struct TrackInitStateData
     //// DATA ////
 
     StateItems<TrackSlotId> parents;
+    StateItems<size_type> indices;
     StateItems<size_type> secondary_counts;
     StateItems<TrackSlotId> vacancies;
     EventItems<TrackId::size_type> track_counters;
@@ -124,9 +125,10 @@ struct TrackInitStateData
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !parents.empty() && secondary_counts.size() == parents.size() + 1
-               && !track_counters.empty() && vacancies.size() == parents.size()
-               && !initializers.empty();
+        return parents.size() == vacancies.size()
+               && (indices.size() == vacancies.size() || indices.empty())
+               && secondary_counts.size() == vacancies.size() + 1
+               && !track_counters.empty() && !initializers.empty();
     }
 
     //! Assign from another set of data
@@ -136,6 +138,7 @@ struct TrackInitStateData
         CELER_EXPECT(other);
 
         parents = other.parents;
+        indices = other.indices;
         secondary_counts = other.secondary_counts;
         track_counters = other.track_counters;
 
@@ -171,6 +174,10 @@ void resize(TrackInitStateData<Ownership::value, M>* data,
     resize(&data->parents, size);
     resize(&data->secondary_counts, size + 1);
     resize(&data->track_counters, params.max_events);
+    if (params.track_order == TrackOrder::partition_charge)
+    {
+        resize(&data->indices, size);
+    }
 
     // Initialize the track counter for each event to zero
     fill(size_type(0), &data->track_counters);

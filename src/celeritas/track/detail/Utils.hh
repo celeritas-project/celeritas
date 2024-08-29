@@ -12,6 +12,8 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/phys/ParticleView.hh"
 
 namespace celeritas
 {
@@ -23,6 +25,37 @@ struct IsEqual
     TrackSlotId value;
 
     CELER_FUNCTION bool operator()(TrackSlotId x) const { return x == value; }
+};
+
+//---------------------------------------------------------------------------//
+//! Predicate for sorting charged from neutral tracks
+struct IsNeutral
+{
+    using ParamsPtr = CRefPtr<CoreParamsData, MemSpace::native>;
+
+    ParamsPtr params;
+
+    CELER_FUNCTION bool operator()(TrackInitializer const& ti) const
+    {
+        return ParticleView(params->particles, ti.particle.particle_id).charge()
+               == zero_quantity();
+    }
+};
+
+//---------------------------------------------------------------------------//
+//! Predicate for sorting charged from neutral tracks with a stencil
+struct IsNeutralStencil
+{
+    using ParamsPtr = CRefPtr<CoreParamsData, MemSpace::native>;
+
+    ParamsPtr params;
+    TrackInitializer const* initializers;
+
+    CELER_FUNCTION bool operator()(size_type i) const
+    {
+        CELER_EXPECT(initializers);
+        return IsNeutral{params}(initializers[i]);
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -46,6 +79,20 @@ CELER_FORCEINLINE_FUNCTION size_type index_after(size_type size, ThreadId tid)
 {
     CELER_EXPECT(tid);
     return size + tid.unchecked_get();
+}
+
+//---------------------------------------------------------------------------//
+//! Get an initializer index starting from one end or the other
+CELER_FORCEINLINE_FUNCTION size_type index_partitioned(size_type num_new_tracks,
+                                                       size_type num_vacancies,
+                                                       bool get_from_front,
+                                                       ThreadId tid)
+{
+    CELER_EXPECT(tid.get() < num_new_tracks);
+    CELER_EXPECT(num_new_tracks <= num_vacancies);
+
+    return get_from_front ? index_before(num_new_tracks, tid)
+                          : index_before(num_vacancies, tid);
 }
 
 //---------------------------------------------------------------------------//

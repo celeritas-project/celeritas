@@ -37,6 +37,9 @@ class TrackInitParams final : public ParamsDataInterface<TrackInitParamsData>
     //! Event number cannot exceed this value
     size_type max_events() const { return host_ref().max_events; }
 
+    //! Track sorting strategy
+    TrackOrder track_order() const { return host_ref().track_order; }
+
     //! Access primaries for contructing track initializer states
     HostRef const& host_ref() const final { return data_.host_ref(); }
 

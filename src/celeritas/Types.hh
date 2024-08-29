@@ -160,8 +160,10 @@ enum class StepPoint
 enum class TrackOrder
 {
     unsorted,  //!< Don't do any sorting: tracks are in an arbitrary order
+    // Reorder track data layout
+    partition_charge,  //!< Partition data layout of tracks by charged/neutral
+    // Reorder track slot indices
     shuffled,  //!< Shuffle at the start of the simulation
-
     partition_status,  //!< Partition by status at the start of each step
     sort_along_step_action,  //!< Sort only by the along-step action id
     sort_step_limit_action,  //!< Sort only by the step limit action id

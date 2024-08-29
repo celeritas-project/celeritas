@@ -83,7 +83,8 @@ CELER_FUNCTION void LocateAliveExecutor::operator()(TrackSlotId tid) const
             // The track is alive: mark this track slot as occupied
             return occupied();
         }
-        else if (num_secondaries > 0)
+        else if (num_secondaries > 0
+                 && params->init.track_order != TrackOrder::partition_charge)
         {
             // The track was killed and produced secondaries: in this case, the
             // empty track slot will be filled with the first secondary. Mark
