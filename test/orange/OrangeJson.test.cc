@@ -849,7 +849,8 @@ TEST_F(InputBuilderTest, DISABLED_universe_union_boundary)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(InputBuilderTest, involute)
+// TODO: see celeritas-project/celeritas#1342
+TEST_F(InputBuilderTest, DISABLED_involute)
 {
     {
         SCOPED_TRACE("involute");
@@ -888,7 +889,7 @@ TEST_F(InputBuilderTest, involute)
     }
 }
 
-TEST_F(InputBuilderTest, involute_cw)
+TEST_F(InputBuilderTest, DISABLED_involute_cw)
 {
     {
         SCOPED_TRACE("involute");
@@ -908,7 +909,7 @@ TEST_F(InputBuilderTest, involute_cw)
     }
 }
 
-TEST_F(InputBuilderTest, involute_fuel)
+TEST_F(InputBuilderTest, DISABLED_involute_fuel)
 {
     {
         SCOPED_TRACE("involute");
