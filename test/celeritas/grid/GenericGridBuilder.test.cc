@@ -47,7 +47,7 @@ TEST_F(GenericGridBuilderTest, build_span)
 {
     auto builder = make_builder();
 
-    GenericGridData grid_data = builder(span_grid(), span_values());
+    GenericGridRecord grid_data = builder(span_grid(), span_values());
 
     ASSERT_TRUE(grid_data);
     ASSERT_EQ(8, scalars_.size());
@@ -67,7 +67,7 @@ TEST_F(GenericGridBuilderTest, TEST_IF_CELERITAS_DOUBLE(build_vec))
 
     auto builder = make_builder();
 
-    GenericGridData grid_data = builder(vect);
+    GenericGridRecord grid_data = builder(vect);
 
     ASSERT_TRUE(grid_data);
     ASSERT_EQ(8, scalars_.size());

@@ -11,6 +11,7 @@
 #include "corecel/math/Algorithms.hh"
 
 #include "Types.hh"
+
 #include "detail/FieldUtils.hh"
 
 namespace celeritas
@@ -89,8 +90,8 @@ CELER_FUNCTION RungeKuttaStepper(EquationT&&) -> RungeKuttaStepper<EquationT>;
  */
 template<class E>
 CELER_FUNCTION auto
-RungeKuttaStepper<E>::operator()(real_type step, OdeState const& beg_state) const
-    -> result_type
+RungeKuttaStepper<E>::operator()(real_type step,
+                                 OdeState const& beg_state) const -> result_type
 {
     using celeritas::axpy;
     real_type half_step = step / real_type(2);

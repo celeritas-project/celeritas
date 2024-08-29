@@ -216,8 +216,8 @@ auto ImportedProcessAdapter::step_limits(Applicability const& applic) const
 /*!
  * Get the interaction cross sections for the given material and particle.
  */
-auto ImportedProcessAdapter::step_limits_impl(Applicability const& applic) const
-    -> StepLimitBuilders
+auto ImportedProcessAdapter::step_limits_impl(
+    Applicability const& applic) const -> StepLimitBuilders
 {
     CELER_EXPECT(ids_.count(applic.particle));
     CELER_EXPECT(applic.material);
@@ -228,7 +228,7 @@ auto ImportedProcessAdapter::step_limits_impl(Applicability const& applic) const
 
     auto get_vector = [&applic, &import_process](ImportTableId table_id) {
         CELER_ASSERT(table_id < import_process.tables.size());
-        const ImportPhysicsTable& tab = import_process.tables[table_id.get()];
+        ImportPhysicsTable const& tab = import_process.tables[table_id.get()];
         CELER_ASSERT(applic.material < tab.physics_vectors.size());
         return tab.physics_vectors[applic.material.get()];
     };

@@ -13,8 +13,9 @@
 #include "corecel/sys/ThreadId.hh"
 
 #include "XorwowRngData.hh"
-#include "detail/GenerateCanonical32.hh"
 #include "distribution/GenerateCanonical.hh"
+
+#include "detail/GenerateCanonical32.hh"
 
 namespace celeritas
 {

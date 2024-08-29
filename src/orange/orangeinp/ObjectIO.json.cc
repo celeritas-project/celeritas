@@ -21,10 +21,7 @@
 #include "Solid.hh"
 #include "Transformed.hh"
 
-#define SIO_ATTR_PAIR(OBJ, ATTR) \
-    {                            \
-        #ATTR, OBJ.ATTR()        \
-    }
+#define SIO_ATTR_PAIR(OBJ, ATTR) {#ATTR, OBJ.ATTR()}
 
 namespace celeritas
 {

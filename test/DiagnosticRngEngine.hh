@@ -42,14 +42,16 @@ class DiagnosticRngEngine
     //! Get a random number and increment the sample counter
     result_type operator()()
     {
-        ++num_samples_;
+        ++count_;
         return engine_();
     }
 
-    //! Get the number of samples
-    size_type count() const { return num_samples_; }
-    //! Reset the sample counter
-    void reset_count() { num_samples_ = 0; }
+    //! Get the number of samples (DEPRECATED: use exchange_count)
+    size_type count() const { return count_; }
+    //! Reset the sample counter (DEPRECATED: use exchange_count)
+    void reset_count() { count_ = 0; }
+    //! Get and reset the counter
+    size_type exchange_count() { return std::exchange(count_, 0); }
 
     //!@{
     //! Forwarded functions
@@ -59,7 +61,7 @@ class DiagnosticRngEngine
 
   private:
     Engine engine_;
-    size_type num_samples_ = 0;
+    size_type count_ = 0;
 };
 
 //---------------------------------------------------------------------------//

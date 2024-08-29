@@ -11,7 +11,6 @@ spack:
   - libpng
   - ninja
   - nlohmann-json
-  - swig
   config:
     install_tree:
       root: /opt/spack

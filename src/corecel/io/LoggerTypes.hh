@@ -10,6 +10,7 @@
 
 #include <cstdlib>  // IWYU pragma: keep
 #include <functional>
+#include <string>
 #include <string_view>
 
 namespace celeritas

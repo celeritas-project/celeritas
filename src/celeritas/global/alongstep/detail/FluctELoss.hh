@@ -76,6 +76,11 @@ CELER_FUNCTION FluctELoss::FluctELoss(ParamsRef const& params)
  */
 CELER_FUNCTION bool FluctELoss::is_applicable(CoreTrackView const& track) const
 {
+    // The track can be marked as `errored` *within* the along-step kernel,
+    // during propagation
+    if (track.make_sim_view().status() == TrackStatus::errored)
+        return false;
+
     // Energy loss grid ID will be 'false' if inapplicable
     auto ppid = track.make_physics_view().eloss_ppid();
     return static_cast<bool>(ppid);
@@ -175,8 +180,8 @@ CELER_FUNCTION auto FluctELoss::calc_eloss(CoreTrackView const& track,
 //---------------------------------------------------------------------------//
 template<EnergyLossFluctuationModel M>
 CELER_FUNCTION auto
-FluctELoss::sample_energy_loss(EnergyLossHelper const& helper, RngEngine& rng)
-    -> Energy
+FluctELoss::sample_energy_loss(EnergyLossHelper const& helper,
+                               RngEngine& rng) -> Energy
 {
     CELER_EXPECT(helper.model() == M);
 

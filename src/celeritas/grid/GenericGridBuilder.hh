@@ -29,7 +29,7 @@ class GenericGridBuilder
     //! \name Type aliases
     template<class T>
     using Items = Collection<T, Ownership::value, MemSpace::host>;
-    using Grid = GenericGridData;
+    using Grid = GenericGridRecord;
     using SpanConstFlt = Span<float const>;
     using SpanConstDbl = Span<double const>;
     //!@}

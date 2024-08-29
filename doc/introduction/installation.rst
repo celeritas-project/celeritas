@@ -44,7 +44,6 @@ internet if required but not available on the user's system.
    nljson_, Runtime*, "Simple text-based I/O for diagnostics and program setup"
    "`Open MPI`_", Runtime, "Shared-memory parallelism"
    ROOT_, Runtime, "Input and output"
-   SWIG_, Runtime, "Low-level Python wrappers"
    VecGeom_, Runtime, "On-device navigation of GDML-defined detector geometry"
    Breathe_, Docs, "Generating code documentation inside user docs"
    Doxygen_, Docs, "Code documentation"
@@ -68,7 +67,6 @@ internet if required but not available on the user's system.
 .. _HIP: https://docs.amd.com
 .. _Open MPI: https://www.open-mpi.org
 .. _ROOT: https://root.cern
-.. _SWIG: http://swig.org
 .. _Sphinx: https://www.sphinx-doc.org/
 .. _VecGeom: https://gitlab.cern.ch/VecGeom/VecGeom
 .. _breathe: https://github.com/michaeljones/breathe#readme

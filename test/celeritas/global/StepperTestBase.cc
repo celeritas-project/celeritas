@@ -84,7 +84,7 @@ auto StepperTestBase::run(StepperInterface& step,
     CELER_TRY_HANDLE(counts = step(make_span(primaries)),
                      LogContextException{this->output_reg().get()});
     EXPECT_EQ(num_primaries, counts.active);
-    EXPECT_EQ(num_primaries, counts.alive);
+    EXPECT_GE(num_primaries, counts.alive);
 
     if (this->HasFailure())
     {

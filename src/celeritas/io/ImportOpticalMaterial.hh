@@ -23,7 +23,7 @@ namespace celeritas
  */
 struct ImportScintComponent
 {
-    double yield_per_energy{};  //!< Yield for this material component [1/MeV]
+    double yield_frac{};  //!< Fraction of total scintillation yield
     double lambda_mean{};  //!< Mean wavelength [len]
     double lambda_sigma{};  //!< Standard deviation of wavelength
     double rise_time{};  //!< Rise time [time]
@@ -32,7 +32,7 @@ struct ImportScintComponent
     //! Whether all data are assigned and valid
     explicit operator bool() const
     {
-        return yield_per_energy > 0 && lambda_mean > 0 && lambda_sigma > 0
+        return yield_frac > 0 && lambda_mean > 0 && lambda_sigma > 0
                && rise_time >= 0 && fall_time > 0;
     }
 };
@@ -66,10 +66,8 @@ struct ImportMaterialScintSpectrum
  */
 struct ImportParticleScintSpectrum
 {
-#ifndef SWIG
     static constexpr auto x_units{ImportUnits::mev};
     static constexpr auto y_units{ImportUnits::unitless};
-#endif
 
     ImportPhysicsVector yield_vector;  //!< Particle yield per energy bin
     std::vector<ImportScintComponent> components;  //!< Scintillation

@@ -32,6 +32,11 @@ struct TrackUpdater
 CELER_FUNCTION void TrackUpdater::operator()(CoreTrackView const& track)
 {
     auto sim = track.make_sim_view();
+
+    // The track errored within the along-step kernel
+    if (sim.status() == TrackStatus::errored)
+        return;
+
     if (sim.status() == TrackStatus::alive)
     {
         CELER_ASSERT(sim.step_length() > 0

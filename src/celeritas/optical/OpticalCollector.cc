@@ -11,7 +11,7 @@
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/optical/CerenkovParams.hh"
-#include "celeritas/optical/MaterialPropertyParams.hh"
+#include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/OffloadData.hh"
 #include "celeritas/optical/ScintillationParams.hh"
 
@@ -28,7 +28,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     CELER_EXPECT(inp);
 
     OffloadOptions setup;
-    setup.cerenkov = inp.cerenkov && inp.properties;
+    setup.cerenkov = inp.cerenkov && inp.material;
     setup.scintillation = static_cast<bool>(inp.scintillation);
     setup.capacity = inp.buffer_capacity;
 
@@ -50,7 +50,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
             = std::make_shared<detail::CerenkovOffloadAction>(
                 actions.next_id(),
                 gen_params_->aux_id(),
-                std::move(inp.properties),
+                std::move(inp.material),
                 std::move(inp.cerenkov));
         actions.insert(cerenkov_offload_action_);
     }

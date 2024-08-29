@@ -20,7 +20,6 @@
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_TEST_VERBOSE": {"type": "BOOL", "value": "OFF"},
         "CMAKE_CXX_COMPILER": "/opt/rocm/llvm/bin/clang++",

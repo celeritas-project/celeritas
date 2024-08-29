@@ -89,8 +89,8 @@ class DormandPrinceStepper
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class EquationT>
-CELER_FUNCTION DormandPrinceStepper(EquationT&&)
-    -> DormandPrinceStepper<EquationT>;
+CELER_FUNCTION
+DormandPrinceStepper(EquationT&&) -> DormandPrinceStepper<EquationT>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -99,10 +99,8 @@ CELER_FUNCTION DormandPrinceStepper(EquationT&&)
  * Numerically integrate using the DormandPrince RK5(4)7M method.
  */
 template<class E>
-CELER_FUNCTION auto
-DormandPrinceStepper<E>::operator()(real_type step,
-                                    OdeState const& beg_state) const
-    -> result_type
+CELER_FUNCTION auto DormandPrinceStepper<E>::operator()(
+    real_type step, OdeState const& beg_state) const -> result_type
 {
     using celeritas::axpy;
     using R = real_type;

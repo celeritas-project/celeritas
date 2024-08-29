@@ -55,8 +55,8 @@ struct NoELoss
     }
 
     //! No energy loss
-    CELER_FUNCTION auto calc_eloss(CoreTrackView const&, real_type, bool) const
-        -> decltype(auto)
+    CELER_FUNCTION auto
+    calc_eloss(CoreTrackView const&, real_type, bool) const -> decltype(auto)
     {
         return zero_quantity();
     }

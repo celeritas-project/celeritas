@@ -19,6 +19,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StringUtils.hh"
 #include "corecel/sys/MpiCommunicator.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "celeritas/ext/GeantImporter.hh"
@@ -26,6 +27,7 @@
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/ext/RootExporter.hh"
+#include "celeritas/ext/RootJsonDumper.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 
 namespace celeritas
@@ -40,7 +42,7 @@ void print_usage(char const* exec_name)
     // clang-format off
     std::cerr
         << "usage: " << exec_name << " {input}.gdml "
-                                     "[{options}.json, -, ''] {output}.root\n"
+                                     "[{options}.json, -, ''] {output}.[root, json]\n"
            "       " << exec_name << " --dump-default\n";
     // clang-format on
 }
@@ -74,6 +76,54 @@ GeantPhysicsOptions load_options(std::string const& option_filename)
                         << nlohmann::json{options}.dump();
     }
     return options;
+}
+
+//---------------------------------------------------------------------------//
+void run(std::string const& gdml_filename,
+         std::string const& opts_filename,
+         std::string const& out_filename)
+{
+    // Construct options, set up Geant4, read data
+    auto imported = [&] {
+        GeantImporter import(
+            GeantSetup(gdml_filename, load_options(opts_filename)));
+        GeantImporter::DataSelection selection;
+        selection.particles = GeantImporter::DataSelection::em;
+        selection.processes = selection.particles;
+        selection.reader_data = true;
+        return import(selection);
+    }();
+
+    ScopedRootErrorHandler scoped_root_error;
+
+    if (ends_with(out_filename, ".root"))
+    {
+        // Write ROOT file
+        RootExporter export_root(out_filename.c_str());
+        export_root(imported);
+    }
+    else if (ends_with(out_filename, ".json"))
+    {
+        // Write JSON to file
+        CELER_LOG(info) << "Opening JSON output at " << out_filename;
+        std::ofstream os(out_filename);
+        RootJsonDumper dump_json(&os);
+        dump_json(imported);
+    }
+    else if (out_filename == "-")
+    {
+        // Write JSON to stdout
+        CELER_LOG(info) << "Writing JSON to stdout";
+        RootJsonDumper dump_json(&std::cout);
+        dump_json(imported);
+    }
+    else
+    {
+        CELER_VALIDATE(false,
+                       << "invalid output filename '" << out_filename << "'");
+    }
+
+    scoped_root_error.throw_if_errors();
 }
 
 //---------------------------------------------------------------------------//
@@ -120,21 +170,7 @@ int main(int argc, char* argv[])
 
     try
     {
-        // Construct options, set up Geant4, read data
-        auto imported = [&args] {
-            GeantImporter import(GeantSetup(args[0], load_options(args[1])));
-            GeantImporter::DataSelection selection;
-            selection.particles = GeantImporter::DataSelection::em;
-            selection.processes = GeantImporter::DataSelection::em;
-            selection.reader_data = true;
-            return import(selection);
-        }();
-
-        // Open ROOT file, write
-        ScopedRootErrorHandler scoped_root_error;
-        RootExporter export_root(args[2].c_str());
-        export_root(imported);
-        scoped_root_error.throw_if_errors();
+        run(args[0], args[1], args[2]);
     }
     catch (RuntimeError const& e)
     {

@@ -223,7 +223,7 @@ fill_vec_import_scint_comp(MatPropGetter& get_property,
     for (int comp_idx : range(1, 4))
     {
         ImportScintComponent comp;
-        get_property.scalar(&comp.yield_per_energy,
+        get_property.scalar(&comp.yield_frac,
                             particle_name + "SCINTILLATIONYIELD",
                             comp_idx,
                             ImportUnits::inv_mev);
@@ -1123,7 +1123,7 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
         auto have_process = [&imported](ImportProcessClass ipc) {
             return std::any_of(imported.processes.begin(),
                                imported.processes.end(),
-                               [ipc](const ImportProcess& ip) {
+                               [ipc](ImportProcess const& ip) {
                                    return ip.process_class == ipc;
                                });
         };
