@@ -77,6 +77,7 @@ struct CoreParamsData
     VolumeItems<OpticalMaterialId> materials;
     PhysicsParamsData<W, M> physics;
     RngParamsData<W, M> rng;
+    SimParamsData<W, M> sim;
     TrackInitParamsData<W, M> init;  // TODO: don't need max events
 
     CoreScalars scalars;
@@ -84,7 +85,7 @@ struct CoreParamsData
     //! True if all params are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && !materials.empty() && physics && rng && init
+        return geometry && !materials.empty() && physics && rng && sim && init
                && scalars;
     }
 
@@ -97,6 +98,7 @@ struct CoreParamsData
         materials = other.materials;
         physics = other.physics;
         rng = other.rng;
+        sim = other.sim;
         init = other.init;
         scalars = other.scalars;
         return *this;
