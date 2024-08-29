@@ -66,7 +66,7 @@ void copy_to_host(Collection<T, W, M, I> const& src, Span<T, E> dst)
  *
  * This is useful for debugging.
  */
-template<class T, Ownership W, MemSpace M, class I, std::size_t E>
+template<class T, Ownership W, MemSpace M, class I>
 auto copy_to_host(Collection<T, W, M, I> const& src)
 {
     Collection<T, Ownership::value, MemSpace::host, I> result;

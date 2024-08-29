@@ -44,6 +44,7 @@ void RunnerOutput::output(JsonPimpl* j) const
     auto initializers = json::array();
     auto num_track_slots = json::array();
     auto num_step_iterations = json::array();
+    auto num_tracks = json::array();
     auto num_steps = json::array();
     auto num_aborted = json::array();
     auto max_queued = json::array();
@@ -59,6 +60,7 @@ void RunnerOutput::output(JsonPimpl* j) const
         }
         num_track_slots.push_back(event.num_track_slots);
         num_step_iterations.push_back(event.num_step_iterations);
+        num_tracks.push_back(event.num_tracks);
         num_steps.push_back(event.num_steps);
         num_aborted.push_back(event.num_aborted);
         max_queued.push_back(event.max_queued);
@@ -97,6 +99,7 @@ void RunnerOutput::output(JsonPimpl* j) const
          {"initializers", std::move(initializers)},
          {"num_track_slots", std::move(num_track_slots)},
          {"num_step_iterations", std::move(num_step_iterations)},
+         {"num_tracks", std::move(num_tracks)},
          {"num_steps", std::move(num_steps)},
          {"num_aborted", std::move(num_aborted)},
          {"max_queued", std::move(max_queued)},
