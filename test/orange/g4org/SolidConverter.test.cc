@@ -132,10 +132,10 @@ void SolidConverterTest::build_and_test(G4VSolid const& solid,
     // Construct a volume from it
     auto vol_id = this->build_volume(*obj);
     auto const& u = this->unit();
-    auto node = u.volumes[vol_id.get()];
+    auto node = u.tree.volumes()[vol_id.get()];
 
     // Set up functions to calculate in/on/out
-    CELER_ASSERT(vol_id < u.volumes.size());
+    CELER_ASSERT(vol_id < u.tree.volumes().size());
     auto calc_org_sense = [&u, node](Real3 const& pos) {
         SenseEvaluator eval_sense(u.tree, u.surfaces, pos);
         return eval_sense(node);

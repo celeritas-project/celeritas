@@ -129,11 +129,12 @@ void to_json(nlohmann::json& j, CsgUnit const& unit)
     }();
 
     j["volumes"] = [&unit] {
-        CELER_ASSERT(unit.volumes.size() == unit.fills.size());
+        CELER_ASSERT(unit.tree.volumes().size() == unit.fills.size());
         json result = json::array();
-        for (auto i : range(unit.volumes.size()))
+        for (auto i : range(unit.tree.volumes().size()))
         {
-            auto entry = nlohmann::json{{"csg_node", unit.volumes[i].get()}};
+            auto entry
+                = nlohmann::json{{"csg_node", unit.tree.volumes()[i].get()}};
             if (auto* m = std::get_if<GeoMaterialId>(&unit.fills[i]))
             {
                 entry["material"] = m->unchecked_get();
@@ -148,7 +149,7 @@ void to_json(nlohmann::json& j, CsgUnit const& unit)
         return result;
     }();
 
-    j["fills"] = [&volumes = unit.volumes] {
+    j["fills"] = [&volumes = unit.tree.volumes()] {
         json result = json::array();
         for (auto const& v : volumes)
         {

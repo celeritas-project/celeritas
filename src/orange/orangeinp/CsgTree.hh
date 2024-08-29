@@ -53,6 +53,7 @@ class CsgTree
     using size_type = NodeId::size_type;
     using Insertion = std::pair<NodeId, bool>;
     using Simplification = std::optional<Node>;
+    using VecNodeId = std::vector<NodeId>;
     //!@}
 
   public:
@@ -77,6 +78,12 @@ class CsgTree
     // Simplify a single node in-place [O(1)]
     Simplification simplify(NodeId);
 
+    // Insert a new volume which root is the node id
+    inline void insert_volume(NodeId);
+
+    //! List of volumes defined in this tree
+    VecNodeId const& volumes() const { return volumes_; }
+
     //// STATIC HELPERS ////
 
     //! Special ID of a node that's always 'true'
@@ -90,6 +97,9 @@ class CsgTree
 
     // Hashed nodes, both original and simplified
     std::unordered_map<Node, NodeId> ids_;
+
+    // CSG node of each volume
+    VecNodeId volumes_;
 
     //// HELPER FUNCTIONS ////
 
@@ -112,6 +122,16 @@ std::ostream& operator<<(std::ostream& os, CsgTree const&);
 auto CsgTree::insert(LocalSurfaceId s) -> Insertion
 {
     return this->insert(orangeinp::Surface{s});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Insert a new volume which root is the node id.
+ */
+void CsgTree::insert_volume(NodeId node_id)
+{
+    CELER_EXPECT(node_id < nodes_.size());
+    volumes_.push_back(std::move(node_id));
 }
 
 //---------------------------------------------------------------------------//

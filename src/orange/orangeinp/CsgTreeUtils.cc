@@ -14,6 +14,7 @@
 
 #include "corecel/cont/Range.hh"
 
+#include "detail/DeMorganSimplifier.hh"
 #include "detail/InfixStringBuilder.hh"
 #include "detail/NodeReplacer.hh"
 
@@ -163,6 +164,18 @@ void simplify(CsgTree* tree, NodeId start)
         CELER_ASSERT(!next_start || next_start > start);
         start = next_start;
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Simplify negated joins using De Morgan's law.
+ *
+ * This is required if the tree's logic expression is used with
+ * \c InfixEvaluator as negated joins are not supported.
+ */
+CsgTree transform_negated_joins(CsgTree const& tree)
+{
+    return detail::DeMorganSimplifier{tree}();
 }
 
 //---------------------------------------------------------------------------//
