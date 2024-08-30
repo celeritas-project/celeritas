@@ -1257,6 +1257,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
 {
     UniformZField field(1 * units::tesla);
     FieldDriverOptions driver_options;
+    driver_options.max_substeps = 100;
 
     auto geo = this->make_geo_track_view({1.23254142755319734e+02,
                                           -2.08186543568394598e+01,
