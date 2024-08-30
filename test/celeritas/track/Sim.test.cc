@@ -43,7 +43,7 @@ class SimTest : public GeantTestBase
         auto state_size = 1;
         particle_state_
             = ParticleStateStore(this->particle()->host_ref(), state_size);
-        sim_state_ = SimStateStore(state_size);
+        sim_state_ = SimStateStore(this->sim()->host_ref(), state_size);
     }
 
     SPConstTrackInit build_init() override { CELER_ASSERT_UNREACHABLE(); }
@@ -84,6 +84,7 @@ TEST_F(SimTest, looping)
 
     // Check looping threshold parameters for each particle
     SimTrackView sim(this->sim()->host_ref(), sim_state_.ref(), TrackSlotId{0});
+    sim = SimTrackInitializer{TrackId{0}, TrackId{}, EventId{0}, 0};
     for (auto pid : range(ParticleId{this->particle()->size()}))
     {
         auto const& looping = sim.looping_threshold(pid);

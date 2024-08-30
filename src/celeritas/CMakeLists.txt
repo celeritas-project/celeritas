@@ -76,10 +76,10 @@ list(APPEND SOURCES
   neutron/process/NeutronInelasticProcess.cc
   optical/CerenkovParams.cc
   optical/OpticalCollector.cc
-  optical/OpticalPropertyParams.cc
-  optical/OpticalTrackData.cc
+  optical/MaterialParams.cc
+  optical/TrackData.cc
   optical/ScintillationParams.cc
-  optical/detail/OpticalGenParams.cc
+  optical/detail/OffloadParams.cc
   phys/CutoffParams.cc
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc
@@ -198,6 +198,7 @@ if(CELERITAS_USE_ROOT)
   celeritas_add_object_library(celeritas_root
     ext/RootExporter.cc
     ext/RootImporter.cc
+    ext/RootJsonDumper.cc
     ext/ScopedRootErrorHandler.cc
     ext/RootUniquePtr.root.cc
     ext/RootFileManager.cc
@@ -209,7 +210,7 @@ if(CELERITAS_USE_ROOT)
   )
 
   target_link_libraries(celeritas_root
-    PRIVATE Celeritas::corecel ROOT::Core ROOT::Tree
+    PRIVATE Celeritas::corecel ROOT::Core ROOT::Tree ROOT::RIO
   )
 
   # Install the rootmap/pcm files needed for users or downstream apps to use
@@ -264,12 +265,13 @@ celeritas_polysource(global/alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(global/alongstep/AlongStepNeutralAction)
 celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
 celeritas_polysource(global/alongstep/AlongStepRZMapFieldMscAction)
+celeritas_polysource(global/detail/TrackSlotUtils)
 celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
 celeritas_polysource(neutron/model/NeutronInelasticModel)
-celeritas_polysource(optical/detail/CerenkovPreGenAction)
+celeritas_polysource(optical/detail/CerenkovOffloadAction)
 celeritas_polysource(optical/detail/OpticalGenAlgorithms)
-celeritas_polysource(optical/detail/PreGenGatherAction)
-celeritas_polysource(optical/detail/ScintPreGenAction)
+celeritas_polysource(optical/detail/OffloadGatherAction)
+celeritas_polysource(optical/detail/ScintOffloadAction)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)
 celeritas_polysource(phys/detail/TrackingCutAction)

@@ -101,11 +101,13 @@ TEST(RangeTest, ints)
 
 TEST(RangeTest, chars)
 {
+    std::string s;
     for (auto i : range('A', 'Z'))
     {
-        cout << i;
+        s.push_back(i);
     }
-    cout << endl;
+    ASSERT_EQ(25, s.size());
+    EXPECT_EQ('Y', s.back());
 }
 
 TEST(RangeTest, uint)
@@ -230,11 +232,14 @@ TEST(RangeTest, enum_step)
 TEST(RangeTest, enum_classes)
 {
     int ctr = 0;
-    for (Color c : range(Color::red, Color::size_))
+    auto erange = range(Color::red, Color::size_);
+    for (Color c : erange)
     {
         EXPECT_EQ(c, static_cast<Color>(ctr));
         ++ctr;
     }
+    EXPECT_EQ(3, erange.end() - erange.begin());
+    EXPECT_EQ(-3, erange.begin() - erange.end());
 
     auto srange = range(Color::red, Color::size_).step(2u);
     EXPECT_EQ(Color::red, *srange.begin());

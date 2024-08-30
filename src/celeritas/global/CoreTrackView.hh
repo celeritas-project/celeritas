@@ -167,8 +167,8 @@ CELER_FUNCTION auto CoreTrackView::make_geo_view() const -> GeoTrackView
 /*!
  * Return a geometry-material view.
  */
-CELER_FUNCTION auto CoreTrackView::make_geo_material_view() const
-    -> GeoMaterialView
+CELER_FUNCTION auto
+CoreTrackView::make_geo_material_view() const -> GeoMaterialView
 {
     return GeoMaterialView{params_.geo_mats};
 }
@@ -177,8 +177,8 @@ CELER_FUNCTION auto CoreTrackView::make_geo_material_view() const
 /*!
  * Return a material view.
  */
-CELER_FUNCTION auto CoreTrackView::make_material_view() const
-    -> MaterialTrackView
+CELER_FUNCTION auto
+CoreTrackView::make_material_view() const -> MaterialTrackView
 {
     return MaterialTrackView{
         params_.materials, states_.materials, this->track_slot_id()};
@@ -188,8 +188,8 @@ CELER_FUNCTION auto CoreTrackView::make_material_view() const
 /*!
  * Return a particle view.
  */
-CELER_FUNCTION auto CoreTrackView::make_particle_view() const
-    -> ParticleTrackView
+CELER_FUNCTION auto
+CoreTrackView::make_particle_view() const -> ParticleTrackView
 {
     return ParticleTrackView{
         params_.particles, states_.particles, this->track_slot_id()};
@@ -199,8 +199,8 @@ CELER_FUNCTION auto CoreTrackView::make_particle_view() const
 /*!
  * Return a particle view of another particle type.
  */
-CELER_FUNCTION auto CoreTrackView::make_particle_view(ParticleId pid) const
-    -> ParticleView
+CELER_FUNCTION auto
+CoreTrackView::make_particle_view(ParticleId pid) const -> ParticleView
 {
     return ParticleView{params_.particles, pid};
 }
@@ -234,8 +234,8 @@ CELER_FUNCTION auto CoreTrackView::make_physics_view() const -> PhysicsTrackView
 /*!
  * Return a physics view.
  */
-CELER_FUNCTION auto CoreTrackView::make_physics_step_view() const
-    -> PhysicsStepView
+CELER_FUNCTION auto
+CoreTrackView::make_physics_step_view() const -> PhysicsStepView
 {
     return PhysicsStepView{
         params_.physics, states_.physics, this->track_slot_id()};
@@ -340,6 +340,7 @@ CELER_FUNCTION void CoreTrackView::apply_errored()
     auto sim = this->make_sim_view();
     CELER_EXPECT(is_track_valid(sim.status()));
     sim.status(TrackStatus::errored);
+    sim.along_step_action({});
     sim.post_step_action(this->tracking_cut_action());
 }
 

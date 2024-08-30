@@ -73,6 +73,7 @@ struct TransporterResult
     size_type num_track_slots{};  //!< Number of total track slots
     size_type num_step_iterations{};  //!< Total number of step iterations
     size_type num_steps{};  //!< Total number of steps
+    size_type num_tracks{};  //!< Total number of tracks
     size_type num_aborted{};  //!< Number of unconverged tracks
     size_type max_queued{};  //!< Maximum track initializer count
 };

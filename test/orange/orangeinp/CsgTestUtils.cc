@@ -84,7 +84,7 @@ std::vector<std::string> volume_strings(CsgUnit const& u)
 {
     std::vector<std::string> result;
 
-    for (auto const& nid : u.volumes)
+    for (auto const& nid : u.tree.volumes())
     {
         if (nid < u.tree.size())
         {
@@ -202,7 +202,7 @@ std::vector<std::string> transform_strings(CsgUnit const& u)
 std::vector<int> volume_nodes(CsgUnit const& u)
 {
     std::vector<int> result;
-    for (auto nid : u.volumes)
+    for (auto nid : u.tree.volumes())
     {
         result.push_back(nid ? nid.unchecked_get() : -1);
     }

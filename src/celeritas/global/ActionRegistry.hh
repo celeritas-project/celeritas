@@ -19,6 +19,7 @@
 #include "celeritas/Types.hh"
 
 #include "ActionInterface.hh"
+
 #include "detail/ActionRegistryImpl.hh"
 
 namespace celeritas

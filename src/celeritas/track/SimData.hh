@@ -75,7 +75,7 @@ struct SimParamsData
     //// METHODS ////
 
     //! Whether the data are assigned
-    explicit CELER_FUNCTION operator bool() const { return !looping.empty(); }
+    explicit CELER_FUNCTION operator bool() const { return true; }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
@@ -110,7 +110,10 @@ struct SimTrackInitializer
  * Data storage/access for simulation states.
  *
  * Unless otherwise specified, units are in the native system (time = s for
- * CGS).
+ * CGS, step length = cm).
+ *
+ * \c num_looping_steps will be empty if params doesn't specify any looping
+ * threshold.
  */
 template<Ownership W, MemSpace M>
 struct SimStateData
@@ -141,9 +144,9 @@ struct SimStateData
     explicit CELER_FUNCTION operator bool() const
     {
         return !track_ids.empty() && !parent_ids.empty() && !event_ids.empty()
-               && !num_steps.empty() && !num_looping_steps.empty()
-               && !time.empty() && !status.empty() && !step_length.empty()
-               && !post_step_action.empty() && !along_step_action.empty();
+               && !num_steps.empty() && !time.empty() && !status.empty()
+               && !step_length.empty() && !post_step_action.empty()
+               && !along_step_action.empty();
     }
 
     //! State size
@@ -176,22 +179,21 @@ struct SimStateData
  * Resize simulation states and set \c alive to be false.
  */
 template<MemSpace M>
-void resize(SimStateData<Ownership::value, M>* data, size_type size)
+void resize(SimStateData<Ownership::value, M>* data,
+            HostCRef<SimParamsData> const& params,
+            size_type size)
 {
     CELER_EXPECT(size > 0);
 
     resize(&data->track_ids, size);
     resize(&data->parent_ids, size);
     resize(&data->event_ids, size);
-
     resize(&data->num_steps, size);
-    fill(size_type{0}, &data->num_steps);
-
-    resize(&data->num_looping_steps, size);
-    fill(size_type{0}, &data->num_looping_steps);
-
+    if (!params.looping.empty())
+    {
+        resize(&data->num_looping_steps, size);
+    }
     resize(&data->time, size);
-    fill(real_type{0}, &data->time);
 
     resize(&data->status, size);
     fill(TrackStatus::inactive, &data->status);

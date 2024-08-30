@@ -11,7 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/random/distribution/BernoulliDistribution.hh"
+#include "celeritas/random/distribution/RejectionSampler.hh"
 #include "celeritas/random/distribution/UniformRealDistribution.hh"
 
 namespace celeritas
@@ -20,7 +20,7 @@ namespace celeritas
 /*!
  * Helper class for \c MollerBhabhaInteractor .
  *
- * Sample the exiting energy for Moller scattering.
+ * Sample the exiting energy fraction for Moller scattering.
  */
 class MollerEnergyDistribution
 {
@@ -37,18 +37,14 @@ class MollerEnergyDistribution
                                                    Energy min_valid_energy,
                                                    Energy inc_energy);
 
-    // Sample the exiting energy
+    // Sample the exiting energy fraction
     template<class Engine>
     inline CELER_FUNCTION real_type operator()(Engine& rng);
 
   private:
     //// DATA ////
 
-    // Electron incident energy [MeV]
-    real_type inc_energy_;
-    // Total energy of the incident particle [MeV]
-    real_type total_energy_;
-    // Minimum energy fraction transferred to free electron [MeV]
+    // Minimum energy fraction transferred to free electron
     real_type min_energy_fraction_;
     // Sampling parameter
     real_type gamma_;
@@ -74,12 +70,12 @@ CELER_FUNCTION
 MollerEnergyDistribution::MollerEnergyDistribution(Mass electron_mass,
                                                    Energy min_valid_energy,
                                                    Energy inc_energy)
-    : inc_energy_(value_as<Energy>(inc_energy))
-    , total_energy_(inc_energy_ + value_as<Mass>(electron_mass))
-    , min_energy_fraction_(value_as<Energy>(min_valid_energy) / inc_energy_)
-    , gamma_(total_energy_ / value_as<Mass>(electron_mass))
+    : min_energy_fraction_(value_as<Energy>(min_valid_energy)
+                           / value_as<Energy>(inc_energy))
+    , gamma_(1 + value_as<Energy>(inc_energy) / value_as<Mass>(electron_mass))
 {
-    CELER_EXPECT(electron_mass > zero_quantity() && inc_energy_ > 0);
+    CELER_EXPECT(electron_mass > zero_quantity()
+                 && inc_energy > zero_quantity());
 }
 
 //---------------------------------------------------------------------------//
@@ -95,22 +91,19 @@ CELER_FUNCTION real_type MollerEnergyDistribution::operator()(Engine& rng)
     UniformRealDistribution<> sample_inverse_epsilon(
         1 / this->max_energy_fraction(), 1 / min_energy_fraction_);
 
-    // Sample epsilon
-    real_type g_numerator;
+    // Sample fraction of exiting energy
     real_type epsilon;
     do
     {
         epsilon = 1 / sample_inverse_epsilon(rng);
-        g_numerator = calc_g_fraction(epsilon);
-
-    } while (!BernoulliDistribution(g_numerator / g_denominator)(rng));
+    } while (RejectionSampler<>(calc_g_fraction(epsilon), g_denominator)(rng));
 
     return epsilon;
 }
 
 //---------------------------------------------------------------------------//
-/*
- * Helper function for calculating rejection function g.
+/*!
+ * Evaluate the rejection function g.
  */
 CELER_FUNCTION real_type
 MollerEnergyDistribution::calc_g_fraction(real_type epsilon)

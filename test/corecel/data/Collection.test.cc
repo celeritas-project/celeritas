@@ -328,11 +328,21 @@ TEST_F(SimpleCollectionTest, algo_host)
     fill(123, &src);
     EXPECT_EQ(123, src[IntId{0}]);
     EXPECT_EQ(123, src[IntId{3}]);
-    src[IntId{1}] = 2;
+
+    // Test 'fill_sequence'
+    fill_sequence(&src, StreamId{});
+    for (size_type i = 0; i < src.size(); ++i)
+    {
+        EXPECT_EQ(i, src[IntId{i}]);
+    }
 
     // Test 'copy_to_host'
     std::vector<int> dst(src.size());
     copy_to_host(src, make_span(dst));
+    for (size_type i = 0; i < src.size(); ++i)
+    {
+        EXPECT_EQ(i, dst[i]);
+    }
 }
 
 TEST_F(SimpleCollectionTest, TEST_IF_CELER_DEVICE(algo_device))
@@ -349,11 +359,16 @@ TEST_F(SimpleCollectionTest, TEST_IF_CELER_DEVICE(algo_device))
     EXPECT_TRUE((std::is_same_v<decltype(device_cref[AllInts<device>{}]),
                                 LdgSpan<int const>>));
 
+    // Test 'fill_sequence'
+    fill_sequence(&src, StreamId{});
+
     // Test 'copy_to_host'
     std::vector<int> dst(src.size());
     copy_to_host(src, make_span(dst));
-    EXPECT_EQ(123, dst.front());
-    EXPECT_EQ(123, dst.back());
+    for (size_type i = 0; i < src.size(); ++i)
+    {
+        EXPECT_EQ(i, dst[i]);
+    }
 }
 
 //---------------------------------------------------------------------------//

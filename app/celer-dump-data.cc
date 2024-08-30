@@ -483,7 +483,7 @@ void print_regions(std::vector<ImportRegion> const& regions)
 | -------------------------------------------- | -- | -- | -- |
 )gfm";
 
-    auto to_yn = [](bool v) { return v ? 'Y': 'N'; };
+    auto to_yn = [](bool v) { return v ? 'Y' : 'N'; };
 
     for (auto region_id : range(regions.size()))
     {
@@ -741,7 +741,7 @@ void print_atomic_relaxation_data(
 /*!
  * Print optical material properties map.
  */
-void print_optical_material_data(ImportData::ImportOpticalMap const& iom)
+void print_optical_materials(std::vector<ImportOpticalMaterial> const& iom)
 {
     if (iom.empty())
     {
@@ -779,18 +779,22 @@ void print_optical_material_data(ImportData::ImportOpticalMap const& iom)
     cout << "\n# Optical properties\n";
     cout << "\n## Common properties";
     cout << header;
-    for (auto const& [mid, val] : iom)
+    for (auto mid : range(iom.size()))
     {
-        auto const& prop = val.properties;
+        auto const& prop = iom[mid].properties;
         cout << POM_STREAM_VECTOR(mid, prop, refractive_index, IU::unitless);
     }
 
     cout << "\n## Scintillation";
     cout << header;
-    char const* comp_str[] = {"(fast)", " (mid)", "(slow)"};
-    for (auto const& [mid, val] : iom)
+    static char const* comp_str[] = {"(fast)", " (mid)", "(slow)"};
+    for (auto mid : range(iom.size()))
     {
-        auto const& scint = val.scintillation;
+        auto const& scint = iom[mid].scintillation;
+        if (!scint)
+        {
+            continue;
+        }
         cout << POM_STREAM_SCALAR(
             mid, scint, material.yield_per_energy, IU::inv_mev);
         cout << POM_STREAM_SCALAR(mid, scint, resolution_scale, IU::unitless);
@@ -798,7 +802,7 @@ void print_optical_material_data(ImportData::ImportOpticalMap const& iom)
         {
             auto const& comp = scint.material.components[i];
             cout << POM_STREAM_SCALAR_COMP(
-                mid, comp, yield_per_energy, IU::inv_mev, comp_str[i]);
+                mid, comp, yield_frac, IU::inv_mev, comp_str[i]);
             cout << POM_STREAM_SCALAR_COMP(
                 mid, comp, lambda_mean, IU::len, comp_str[i]);
             cout << POM_STREAM_SCALAR_COMP(
@@ -812,9 +816,13 @@ void print_optical_material_data(ImportData::ImportOpticalMap const& iom)
 
     cout << "\n## Rayleigh";
     cout << header;
-    for (auto const& [mid, val] : iom)
+    for (auto mid : range(iom.size()))
     {
-        auto const& rayl = val.rayleigh;
+        auto const& rayl = iom[mid].rayleigh;
+        if (!rayl)
+        {
+            continue;
+        }
         cout << POM_STREAM_SCALAR(mid, rayl, scale_factor, IU::unitless);
         cout << POM_STREAM_SCALAR(
             mid, rayl, compressibility, IU::len_time_sq_per_mass);
@@ -823,18 +831,18 @@ void print_optical_material_data(ImportData::ImportOpticalMap const& iom)
 
     cout << "\n## Absorption";
     cout << header;
-    for (auto const& [mid, val] : iom)
+    for (auto mid : range(iom.size()))
     {
-        auto const& abs = val.absorption;
+        auto const& abs = iom[mid].absorption;
         cout << POM_STREAM_VECTOR(mid, abs, absorption_length, IU::len);
     }
     cout << endl;
 
     cout << "\n## WLS";
     cout << header;
-    for (auto const& [mid, val] : iom)
+    for (auto mid : range(iom.size()))
     {
-        auto const& wls = val.wls;
+        auto const& wls = iom[mid].wls;
         cout << POM_STREAM_SCALAR(mid, wls, mean_num_photons, IU::unitless);
         cout << POM_STREAM_SCALAR(mid, wls, time_constant, IU::time);
         cout << POM_STREAM_VECTOR(mid, wls, absorption_length, IU::len);
@@ -896,22 +904,28 @@ int main(int argc, char* argv[])
 
     auto const&& particle_params = ParticleParams::from_import(data);
 
-    print_particles(*particle_params);
     print_elements(data.elements, data.isotopes);
     print_isotopes(data.isotopes);
+
     print_geo_materials(data.geo_materials, data.elements);
     print_phys_materials(
         data.phys_materials, data.geo_materials, *particle_params);
-    print_processes(data, *particle_params);
-    print_msc_models(data, *particle_params);
+    print_optical_materials(data.optical_materials);
+
     print_regions(data.regions);
     print_volumes(data.volumes, data.geo_materials, data.regions);
-    print_em_params(data.em_params);
-    print_trans_params(data.trans_params, *particle_params);
+
+    print_particles(*particle_params);
+    print_processes(data, *particle_params);
+    print_msc_models(data, *particle_params);
+
     print_sb_data(data.sb_data);
     print_livermore_pe_data(data.livermore_pe_data);
     print_atomic_relaxation_data(data.atomic_relaxation_data);
-    print_optical_material_data(data.optical);
+
+    print_em_params(data.em_params);
+    print_trans_params(data.trans_params, *particle_params);
+    // TODO: print optical params?
 
     return EXIT_SUCCESS;
 }

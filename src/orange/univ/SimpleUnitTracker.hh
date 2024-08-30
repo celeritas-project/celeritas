@@ -155,7 +155,7 @@ SimpleUnitTracker::SimpleUnitTracker(ParamsRef const& params, SimpleUnitId suid)
  * To avoid edge cases and inconsistent logical/physical states, it is
  * prohibited to initialize from an arbitrary point directly onto a surface.
  *
- * \todo this prohibition currently also extends to *internal* surfaces, even
+ * \todo This prohibition currently also extends to *internal* surfaces, even
  * if both sides of that surface are "in" the current cell. We may need to
  * relax that.
  */
@@ -199,8 +199,7 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
  * Find the local volume on the opposite side of a surface.
  */
 CELER_FUNCTION auto
-SimpleUnitTracker::cross_boundary(LocalState const& state) const
-    -> Initialization
+SimpleUnitTracker::cross_boundary(LocalState const& state) const -> Initialization
 {
     CELER_EXPECT(state.surface && state.volume);
     detail::SenseCalculator calc_senses(
@@ -257,8 +256,8 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const
 /*!
  * Calculate distance-to-intercept for the next surface.
  */
-CELER_FUNCTION auto SimpleUnitTracker::intersect(LocalState const& state) const
-    -> Intersection
+CELER_FUNCTION auto
+SimpleUnitTracker::intersect(LocalState const& state) const -> Intersection
 {
     Intersection result = this->intersect_impl(state, detail::IsFinite{});
     return result;
@@ -269,8 +268,8 @@ CELER_FUNCTION auto SimpleUnitTracker::intersect(LocalState const& state) const
  * Calculate distance-to-intercept for the next surface.
  */
 CELER_FUNCTION auto
-SimpleUnitTracker::intersect(LocalState const& state, real_type max_dist) const
-    -> Intersection
+SimpleUnitTracker::intersect(LocalState const& state,
+                             real_type max_dist) const -> Intersection
 {
     CELER_EXPECT(max_dist > 0);
     Intersection result
@@ -390,8 +389,8 @@ SimpleUnitTracker::find_volume_where(Real3 const& pos, F&& predicate) const
  */
 template<class F>
 CELER_FUNCTION auto
-SimpleUnitTracker::intersect_impl(LocalState const& state, F&& is_valid) const
-    -> Intersection
+SimpleUnitTracker::intersect_impl(LocalState const& state,
+                                  F&& is_valid) const -> Intersection
 {
     CELER_EXPECT(state.volume && !state.temp_sense.empty());
 
@@ -591,10 +590,8 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
  * volume (alternatively we could introduce a mapping between Face and
  * LocalSurfaceId).
  */
-CELER_FUNCTION auto
-SimpleUnitTracker::background_intersect(LocalState const& state,
-                                        size_type num_isect) const
-    -> Intersection
+CELER_FUNCTION auto SimpleUnitTracker::background_intersect(
+    LocalState const& state, size_type num_isect) const -> Intersection
 {
     // Calculate bump distance
     real_type const bump_dist
@@ -618,7 +615,7 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
         axpy(state.temp_next.distance[isect] + bump_dist, state.dir, &pos);
 
         // Loop over volumes connected to this surface.
-        // TODO: intersection of this with BVH/acceleration grid
+        //! \todo Accelerate by intersecting neighbors with BVH grid
         for (LocalVolumeId vid : this->get_neighbors(surface))
         {
             CELER_ASSERT(vid != state.volume);

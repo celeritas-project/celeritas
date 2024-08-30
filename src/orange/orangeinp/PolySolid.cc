@@ -217,16 +217,17 @@ PolyCone::PolyCone(std::string&& label,
  */
 NodeId PolyCone::build(VolumeBuilder& vb) const
 {
-    auto build_cone = [](Real2 const& radii, real_type hh) {
-        return Cone{radii, hh};
-    };
+    auto build_cone
+        = [](Real2 const& radii, real_type hh) { return Cone{radii, hh}; };
 
     // Construct union of all cone segments
     NodeId result = construct_segments(*this, build_cone, vb);
 
-    // TODO: after adding short-circuit logic to evaluator, add "acceleration"
-    // structures here, e.g. "inside(inner cylinder) || [inside(outer cylinder)
-    // && (original union)]"
+    /*!
+     * \todo After adding short-circuit logic to evaluator, add "acceleration"
+     * structures here, e.g. "inside(inner cylinder) || [inside(outer cylinder)
+     * && (original union)]"
+     */
 
     // Construct azimuthal truncation if applicable
     result = construct_enclosed_angle(*this, vb, result);
@@ -334,9 +335,11 @@ NodeId PolyPrism::build(VolumeBuilder& vb) const
     // Construct union of all cone segments
     NodeId result = construct_segments(*this, build_prism, vb);
 
-    // TODO: after adding short-circuit logic to evaluator, add "acceleration"
-    // structures here, e.g. "inside(inner cylinder) || [inside(outer cylinder)
-    // && (original union)]"
+    /*!
+     *\todo After adding short-circuit logic to evaluator, add "acceleration"
+     * structures here, e.g. "inside(inner cylinder) || [inside(outer cylinder)
+     * && (original union)]"
+     */
 
     // Construct azimuthal truncation if applicable
     result = construct_enclosed_angle(*this, vb, result);

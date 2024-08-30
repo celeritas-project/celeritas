@@ -10,6 +10,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ThreadId.hh"
@@ -110,6 +111,7 @@ struct TrackInitStateData
     //// DATA ////
 
     StateItems<TrackSlotId> parents;
+    StateItems<size_type> indices;
     StateItems<size_type> secondary_counts;
     StateItems<TrackSlotId> vacancies;
     EventItems<TrackId::size_type> track_counters;
@@ -123,9 +125,10 @@ struct TrackInitStateData
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !parents.empty() && secondary_counts.size() == parents.size() + 1
-               && !track_counters.empty() && vacancies.size() == parents.size()
-               && !initializers.empty();
+        return parents.size() == vacancies.size()
+               && (indices.size() == vacancies.size() || indices.empty())
+               && secondary_counts.size() == vacancies.size() + 1
+               && !track_counters.empty() && !initializers.empty();
     }
 
     //! Assign from another set of data
@@ -135,6 +138,7 @@ struct TrackInitStateData
         CELER_EXPECT(other);
 
         parents = other.parents;
+        indices = other.indices;
         secondary_counts = other.secondary_counts;
         track_counters = other.track_counters;
 
@@ -145,9 +149,6 @@ struct TrackInitStateData
     }
 };
 
-using TrackInitStateDeviceRef = DeviceRef<TrackInitStateData>;
-using TrackInitStateHostRef = HostRef<TrackInitStateData>;
-
 //---------------------------------------------------------------------------//
 /*!
  * Resize and initialize track initializer data.
@@ -156,12 +157,13 @@ using TrackInitStateHostRef = HostRef<TrackInitStateData>;
  * maximum number of track initializers (inactive/pending tracks) that we can
  * hold.
  *
- * \warning It's likely that for GPU runs, the capacity should be greater than
+ * \note It's likely that for GPU runs, the capacity should be greater than
  * the size, but that might not be the case universally, so it is not asserted.
  */
 template<MemSpace M>
 void resize(TrackInitStateData<Ownership::value, M>* data,
             HostCRef<TrackInitParamsData> const& params,
+            StreamId stream,
             size_type size)
 {
     CELER_EXPECT(params);
@@ -172,18 +174,17 @@ void resize(TrackInitStateData<Ownership::value, M>* data,
     resize(&data->parents, size);
     resize(&data->secondary_counts, size + 1);
     resize(&data->track_counters, params.max_events);
+    if (params.track_order == TrackOrder::partition_charge)
+    {
+        resize(&data->indices, size);
+    }
 
     // Initialize the track counter for each event to zero
     fill(size_type(0), &data->track_counters);
 
     // Initialize vacancies to mark all track slots as empty
-    StateCollection<TrackSlotId, Ownership::value, MemSpace::host> vacancies;
-    resize(&vacancies, size);
-    for (auto i : range(size))
-    {
-        vacancies[TrackSlotId{i}] = TrackSlotId{i};
-    }
-    data->vacancies = std::move(vacancies);
+    resize(&data->vacancies, size);
+    fill_sequence(&data->vacancies, stream);
 
     // Reserve space for initializers
     resize(&data->initializers, params.capacity);

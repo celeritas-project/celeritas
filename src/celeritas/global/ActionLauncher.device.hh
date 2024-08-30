@@ -12,6 +12,7 @@
 #include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/Device.hh"
@@ -63,7 +64,8 @@ namespace celeritas
 template<class F>
 class ActionLauncher
 {
-    static_assert((std::is_trivially_copyable_v<F> || CELERITAS_USE_HIP)
+    static_assert((std::is_trivially_copyable_v<F> || CELERITAS_USE_HIP
+                   || CELER_COMPILER == CELER_COMPILER_CLANG)
                       && !std::is_pointer_v<F> && !std::is_reference_v<F>,
                   "Launched action must be a trivially copyable function "
                   "object");
@@ -128,8 +130,7 @@ class ActionLauncher
                     F const& call_thread) const
     {
         CELER_EXPECT(state.stream_id());
-        if (is_action_sorted(action.order(),
-                             params.init()->host_ref().track_order))
+        if (is_action_sorted(action.order(), params.init()->track_order()))
         {
             return (*this)(state.get_action_range(action.action_id()),
                            state.stream_id(),

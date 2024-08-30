@@ -13,8 +13,9 @@
 #include "corecel/sys/ThreadId.hh"
 
 #include "XorwowRngData.hh"
-#include "detail/GenerateCanonical32.hh"
 #include "distribution/GenerateCanonical.hh"
+
+#include "detail/GenerateCanonical32.hh"
 
 namespace celeritas
 {
@@ -43,8 +44,9 @@ namespace celeritas
  * The jump polynomials were precomputed using
  * https://github.com/celeritas-project/utils/blob/main/prng/xorwow-jump.py.
  * For a more detailed description of how to calculate the jump polynomials
- * using Knuth's square-and-multiply algorithm in O(k^2 log d) time (where k is
- * the number of bits in the state and d is the number of steps to skip ahead),
+ * using Knuth's square-and-multiply algorithm in \f$ O(k^2 log d) \f$ time
+ * (where \em k is the number of bits in the state and \em d is the number of
+ * steps to skip ahead),
  * see: Collins, J. 2008. "Testing, Selection, and Implementation of Random
  * Number Generators". ARL-TR-4498.
  * https://apps.dtic.mil/sti/pdfs/ADA486637.pdf.

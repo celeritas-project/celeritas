@@ -79,7 +79,7 @@ char const* KernelContextException::type() const
 void KernelContextException::output(JsonPimpl* json) const
 {
     nlohmann::json j;
-#    define KCE_INSERT_IF_VALID(ATTR) insert_if_valid(#ATTR, ATTR##_, &j)
+#define KCE_INSERT_IF_VALID(ATTR) insert_if_valid(#ATTR, ATTR##_, &j)
 
     KCE_INSERT_IF_VALID(thread);
     KCE_INSERT_IF_VALID(track_slot);
@@ -100,7 +100,7 @@ void KernelContextException::output(JsonPimpl* json) const
     {
         j["label"] = label_;
     }
-#    undef KCE_INSERT_IF_VALID
+#undef KCE_INSERT_IF_VALID
     json->obj = std::move(j);
 }
 

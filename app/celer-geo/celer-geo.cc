@@ -50,7 +50,7 @@ nlohmann::json get_json_line(std::istream& is)
 {
     static std::string jsonline;
 
-    // TODO: separate thread for cin to check periodically for interrupts
+    //! \todo Add separate thread for cin to check periodically for interrupts
     if (!std::getline(is, jsonline))
     {
         CELER_LOG(debug) << "Reached end of file";
@@ -281,8 +281,11 @@ int main(int argc, char* argv[])
         return EXIT_SUCCESS;
     }
 
-    // TODO: make a helper class that implicitly casts to std::istream&, has
-    // operator bool, and retains a file or creates with '-'
+    /*!
+     * \todo Make a helper class that implicitly casts to std::istream&, has
+     * operator bool, and retains a file or creates with '-'. We reuse this
+     * paradigm in multiple classes.
+     */
     std::ifstream infile;
     std::istream* instream = nullptr;
     if (filename == "-")

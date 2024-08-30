@@ -83,8 +83,10 @@ TransformId TransformRecordInserter::operator()(VariantTransform const& tr)
 template<class T>
 TransformId TransformRecordInserter::operator()(T const& tr)
 {
-    // TODO: add equality and hash for TransformRecord and replace this with
-    // just a dedupe collection builder
+    /*!
+     * \todo Add equality and hash for TransformRecord and replace this with
+     * just a dedupe collection builder.
+     */
     if constexpr (std::is_same_v<T, NoTransformation>)
     {
         // Reuse the same null transform ID everywhere

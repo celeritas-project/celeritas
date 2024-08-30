@@ -102,8 +102,7 @@ std::string GenericGeoTestBase<HP>::surface_name(GeoTrackView const& geo) const
 
 //---------------------------------------------------------------------------//
 template<class HP>
-auto GenericGeoTestBase<HP>::make_geo_track_view(TrackSlotId tsid)
-    -> GeoTrackView
+auto GenericGeoTestBase<HP>::make_geo_track_view(TrackSlotId tsid) -> GeoTrackView
 {
     if (!host_state_)
     {
@@ -117,8 +116,8 @@ auto GenericGeoTestBase<HP>::make_geo_track_view(TrackSlotId tsid)
 //---------------------------------------------------------------------------//
 // Get and initialize a single-thread host track view
 template<class HP>
-auto GenericGeoTestBase<HP>::make_geo_track_view(Real3 const& pos, Real3 dir)
-    -> GeoTrackView
+auto GenericGeoTestBase<HP>::make_geo_track_view(Real3 const& pos,
+                                                 Real3 dir) -> GeoTrackView
 {
     auto geo = this->make_geo_track_view();
     GeoTrackInitializer init{pos, make_unit_vector(dir)};
@@ -129,8 +128,8 @@ auto GenericGeoTestBase<HP>::make_geo_track_view(Real3 const& pos, Real3 dir)
 
 //---------------------------------------------------------------------------//
 template<class HP>
-auto GenericGeoTestBase<HP>::track(Real3 const& pos, Real3 const& dir)
-    -> TrackingResult
+auto GenericGeoTestBase<HP>::track(Real3 const& pos,
+                                   Real3 const& dir) -> TrackingResult
 {
     return this->track(pos, dir, std::numeric_limits<int>::max());
 }

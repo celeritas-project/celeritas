@@ -16,6 +16,8 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
  * Cerenkov angle integrals tablulated as a function of photon energy.
@@ -30,7 +32,7 @@ struct CerenkovData
 
     //// MEMBER DATA ////
 
-    OpticalMaterialItems<GenericGridData> angle_integral;
+    OpticalMaterialItems<GenericGridRecord> angle_integral;
 
     // Backend data
     Items<real_type> reals;
@@ -55,4 +57,5 @@ struct CerenkovData
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

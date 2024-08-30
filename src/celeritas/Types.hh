@@ -45,6 +45,9 @@ using MaterialId = OpaqueId<class Material_>;
 //! Opaque index of model in the list of physics processes
 using ModelId = OpaqueId<class Model>;
 
+//! Opaque index to a material with optical properties
+using OpticalMaterialId = OpaqueId<struct OpticalMaterial_>;
+
 //! Opaque index to ParticleRecord in a vector: represents a particle type
 using ParticleId = OpaqueId<struct Particle_>;
 
@@ -95,6 +98,8 @@ enum class MatterState
 //---------------------------------------------------------------------------//
 /*!
  * Whether a track slot is alive, inactive, or dying inside a step iteration.
+ *
+ * Each track slot has a state marking its transition between death and life.
  *
  * - A track slot starts as \c inactive . If not filled with a new track, it is
  *   inactive for the rest of the step iteration.
@@ -158,8 +163,10 @@ enum class StepPoint
 enum class TrackOrder
 {
     unsorted,  //!< Don't do any sorting: tracks are in an arbitrary order
+    // Reorder track data layout
+    partition_charge,  //!< Partition data layout of tracks by charged/neutral
+    // Reorder track slot indices
     shuffled,  //!< Shuffle at the start of the simulation
-
     partition_status,  //!< Partition by status at the start of each step
     sort_along_step_action,  //!< Sort only by the along-step action id
     sort_step_limit_action,  //!< Sort only by the step limit action id

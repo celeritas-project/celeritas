@@ -59,6 +59,7 @@ void Filler<T, MemSpace::device>::operator()(Span<T>) const
 extern template struct Filler<real_type, MemSpace::device>;
 extern template struct Filler<size_type, MemSpace::device>;
 extern template struct Filler<int, MemSpace::device>;
+extern template struct Filler<TrackSlotId, MemSpace::device>;
 #endif
 
 //---------------------------------------------------------------------------//

@@ -142,8 +142,8 @@ MomentumTransferSampler::MomentumTransferSampler(NeutronElasticRef const& shared
  *
  */
 template<class Engine>
-CELER_FUNCTION auto MomentumTransferSampler::operator()(Engine& rng)
-    -> real_type
+CELER_FUNCTION auto
+MomentumTransferSampler::operator()(Engine& rng) -> real_type
 {
     // Sample \f$ Q^{2} \f$ below S-wave limit
     if (neutron_p_ < this->s_wave_limit())
@@ -165,7 +165,7 @@ CELER_FUNCTION auto MomentumTransferSampler::operator()(Engine& rng)
                r[1] * par_q_sq_.expnt[1] / par_q_sq_.slope[1]};
 
         // Sample by t-channel and u-channel (charge exchange)
-        q_sq = (BernoulliDistribution(mi[0] / (mi[0] + mi[1]))(rng))
+        q_sq = (BernoulliDistribution(mi[0], mi[1])(rng))
                    ? sample_q_sq(r[0], rng) / par_q_sq_.slope[0]
                    : max_q_sq_ - sample_q_sq(r[1], rng) / par_q_sq_.slope[1];
     }

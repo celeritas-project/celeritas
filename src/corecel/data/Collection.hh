@@ -14,6 +14,7 @@
 #include "corecel/sys/ThreadId.hh"
 
 #include "ObserverPtr.hh"
+
 #include "detail/CollectionImpl.hh"
 
 namespace celeritas
@@ -64,6 +65,12 @@ namespace celeritas
  *   of threads)
  * - A free function \c resize with one of two signatures:
  * \code
+   void resize(
+       StateData<Ownership::value, M>* data,
+       HostCRef<ParamsData> const&     params,
+       StreamId                        stream,
+       size_type                       size);
+   // or...
    void resize(
        StateData<Ownership::value, M>* data,
        const HostCRef<ParamsData>&     params,
@@ -419,8 +426,8 @@ Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I>& other)
  * Access a single element.
  */
 template<class T, Ownership W, MemSpace M, class I>
-CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemIdT i)
-    -> reference_type
+CELER_FUNCTION auto
+Collection<T, W, M, I>::operator[](ItemIdT i) -> reference_type
 {
     CELER_EXPECT(i < this->size());
     return this->storage()[i.unchecked_get()];
@@ -431,8 +438,8 @@ CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemIdT i)
  * Access a single element (const).
  */
 template<class T, Ownership W, MemSpace M, class I>
-CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemIdT i) const
-    -> const_reference_type
+CELER_FUNCTION auto
+Collection<T, W, M, I>::operator[](ItemIdT i) const -> const_reference_type
 {
     CELER_EXPECT(i < this->size());
     return this->storage()[i.unchecked_get()];
@@ -457,8 +464,8 @@ CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemRangeT ps) -> SpanT
  * Access a subset of the data as a Span (const).
  */
 template<class T, Ownership W, MemSpace M, class I>
-CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemRangeT ps) const
-    -> SpanConstT
+CELER_FUNCTION auto
+Collection<T, W, M, I>::operator[](ItemRangeT ps) const -> SpanConstT
 {
     CELER_EXPECT(*ps.begin() <= *ps.end());
     CELER_EXPECT(*ps.end() < this->size() + 1);
@@ -482,8 +489,8 @@ CELER_FUNCTION auto Collection<T, W, M, I>::operator[](AllItemsT) -> SpanT
  * Access all of the data as a Span (const).
  */
 template<class T, Ownership W, MemSpace M, class I>
-CELER_FUNCTION auto Collection<T, W, M, I>::operator[](AllItemsT) const
-    -> SpanConstT
+CELER_FUNCTION auto
+Collection<T, W, M, I>::operator[](AllItemsT) const -> SpanConstT
 {
     return {this->storage().data(), this->storage().size()};
 }

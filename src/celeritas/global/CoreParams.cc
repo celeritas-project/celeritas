@@ -124,8 +124,9 @@ class PropagationLimitAction final : public ConcreteAction
   public:
     //! Construct with ID
     explicit PropagationLimitAction(ActionId id)
-        : ConcreteAction(
-            id, "geo-propagation-limit", "pause due to propagation misbehavior")
+        : ConcreteAction(id,
+                         "geo-propagation-limit",
+                         "pause due to propagation misbehavior")
     {
     }
 };
@@ -235,6 +236,11 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
 
     CELER_EXPECT(input_);
 
+    if (!input_.aux_reg)
+    {
+        input_.aux_reg = std::make_shared<AuxParamsRegistry>();
+    }
+
     ScopedMem record_mem("CoreParams.construct");
 
     // Construct always-on actions and save their IDs
@@ -245,9 +251,10 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         input_.action_reg->insert(std::make_shared<SortTracksAction>(
             input_.action_reg->next_id(), track_order));
     };
-    switch (TrackOrder track_order = input_.init->host_ref().track_order)
+    switch (TrackOrder track_order = input_.init->track_order())
     {
         case TrackOrder::unsorted:
+        case TrackOrder::partition_charge:
         case TrackOrder::shuffled:
             break;
         case TrackOrder::partition_status:

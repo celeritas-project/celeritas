@@ -98,13 +98,8 @@ if(CELERITAS_USE_PNG)
 endif()
 
 if(CELERITAS_USE_Python)
-  set(_components Interpreter)
   set(_version 3.6)
-  if(CELERITAS_USE_SWIG)
-    list(APPEND _components Development)
-    set(_version @Python_VERSION@)
-  endif()
-  find_dependency(Python ${_version} REQUIRED COMPONENTS ${_components})
+  find_dependency(Python ${_version} REQUIRED COMPONENTS Interpreter)
   unset(_components)
   unset(_version)
 endif()
@@ -148,7 +143,7 @@ endif()
 
 foreach(_dep
     CUDA HIP # Languages
-    Geant4 HepMC3 JSON MPI OpenMP ROOT VecGeom SWIG # Packages
+    Geant4 HepMC3 JSON MPI OpenMP ROOT VecGeom # Packages
   )
   set(@PROJECT_NAME@_${_dep}_FOUND ${CELERITAS_USE_${_dep}})
 endforeach()

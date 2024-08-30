@@ -24,7 +24,7 @@ MscTestBase::MscTestBase()
         this->particle()->host_ref(), state_size);
     geo_state_
         = StateStore<GeoStateData>(this->geometry()->host_ref(), state_size);
-    sim_state_ = StateStore<SimStateData>(state_size);
+    sim_state_ = StateStore<SimStateData>(this->sim()->host_ref(), state_size);
 }
 
 //---------------------------------------------------------------------------//

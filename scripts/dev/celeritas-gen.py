@@ -411,7 +411,6 @@ RST_TOP = '''\
 
 RST_FILE = '''
 .. _{name}:
-
 ****************
 {name}
 ****************
@@ -463,7 +462,6 @@ LANG = {
     'cc': "C++",
     'cu': "CUDA",
     'cmake': "CMake",
-    'i': "SWIG",
     'CMakeLists.txt': "CMake",
     'py': "Python",
     'sh': "Shell",
@@ -475,7 +473,6 @@ TOPS = {
     'C': CXX_TOP,
     'C++': CXX_TOP,
     'CUDA': CXX_TOP,
-    'SWIG': CXX_TOP,
     'CMake': CMAKE_TOP,
     'Python': PYTHON_TOP,
     'Shell': SHELL_TOP,
@@ -487,7 +484,6 @@ HEXT = {
     'C': "h",
     'C++': "hh",
     'CUDA': "hh",
-    'SWIG': "hh",
 }
 
 
