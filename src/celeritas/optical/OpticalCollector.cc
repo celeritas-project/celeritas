@@ -10,10 +10,14 @@
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
-#include "celeritas/optical/CerenkovParams.hh"
-#include "celeritas/optical/MaterialParams.hh"
-#include "celeritas/optical/OffloadData.hh"
-#include "celeritas/optical/ScintillationParams.hh"
+#include "celeritas/track/SimParams.hh"
+#include "celeritas/track/TrackInitParams.hh"
+
+#include "CerenkovParams.hh"
+#include "CoreParams.hh"
+#include "MaterialParams.hh"
+#include "OffloadData.hh"
+#include "ScintillationParams.hh"
 
 #include "detail/OffloadParams.hh"
 
@@ -32,9 +36,21 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     setup.scintillation = static_cast<bool>(inp.scintillation);
     setup.capacity = inp.buffer_capacity;
 
-    // Create aux params and add to core
+    // Create offload params
     gen_params_ = std::make_shared<detail::OffloadParams>(
         core.aux_reg()->next_id(), setup);
+    core.aux_reg()->insert(gen_params_);
+
+    // Create optical params
+    optical_params_ = std::make_shared<optical::CoreParams>(
+        core.aux_reg()->next_id(), [&inp, &core] {
+            optical::CoreParams::Input oinp;
+            oinp.geometry = core.geometry();
+            oinp.material = inp.material;
+            oinp.rng = {};  // TODO: need independent streams
+            oinp.sim = std::make_shared<SimParams>();
+            return oinp;
+        }());
     core.aux_reg()->insert(gen_params_);
 
     // Action to gather pre-step data needed to generate optical distributions
@@ -50,7 +66,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
             = std::make_shared<detail::CerenkovOffloadAction>(
                 actions.next_id(),
                 gen_params_->aux_id(),
-                std::move(inp.material),
+                inp.material,
                 std::move(inp.cerenkov));
         actions.insert(cerenkov_offload_action_);
     }
@@ -70,11 +86,20 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
 
 //---------------------------------------------------------------------------//
 /*!
- * Aux ID for optical generator data.
+ * Aux ID for optical generator data used for offloading.
  */
-AuxId OpticalCollector::aux_id() const
+AuxId OpticalCollector::offload_aux_id() const
 {
     return gen_params_->aux_id();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Aux ID for optical core data used for the optical loop.
+ */
+AuxId OpticalCollector::optical_aux_id() const
+{
+    return optical_params_->aux_id();
 }
 
 //---------------------------------------------------------------------------//

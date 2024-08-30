@@ -29,6 +29,7 @@ class CoreParams;
 namespace optical
 {
 class MaterialParams;
+class CoreParams;
 }
 
 namespace detail
@@ -38,17 +39,22 @@ class OffloadParams;
 
 //---------------------------------------------------------------------------//
 /*!
- * Generate scintillation and Cerenkov optical distribution data at each step.
+ * Generate and track optical photons.
  *
  * This class is the interface between the main stepping loop and the photon
  * stepping loop and constructs kernel actions for:
  * - gathering the pre-step data needed to generate the optical distributions,
- * - generating the optical distributions at the end of the step, and
+ * - generating the scintillation and Cerenkov optical distributions at the
+ *   end of the step, and
  * - launching the photon stepping loop.
+ *
+ * The photon stepping loop will then generate optical primaries.
  *
  * The "collector" (TODO: rename?) will "own" the optical state data and
  * optical params since it's the only thing that launches the optical stepping
  * loop.
+ *
+ * \todo Rename to OpticalOffload
  */
 class OpticalCollector
 {
@@ -83,8 +89,11 @@ class OpticalCollector
     // Construct with core data and optical params
     OpticalCollector(CoreParams const&, Input&&);
 
-    // Aux ID for optical generator data
-    AuxId aux_id() const;
+    // Aux ID for optical offload data
+    AuxId offload_aux_id() const;
+
+    // Aux ID for optical params data
+    AuxId optical_aux_id() const;
 
   private:
     //// TYPES ////
@@ -94,17 +103,18 @@ class OpticalCollector
         = std::shared_ptr<detail::CerenkovOffloadAction>;
     using SPScintOffloadAction = std::shared_ptr<detail::ScintOffloadAction>;
     using SPGatherAction = std::shared_ptr<detail::OffloadGatherAction>;
+    using SPOpticalParams = std::shared_ptr<optical::CoreParams>;
 
     //// DATA ////
 
     SPOffloadParams gen_params_;
+    SPOpticalParams optical_params_;
 
     SPGatherAction gather_action_;
     SPCerenkovOffloadAction cerenkov_offload_action_;
     SPScintOffloadAction scint_offload_action_;
 
-    // TODO: tracking loop launcher
-    // TODO: store optical core params and state?
+    // TODO: tracking loop launch action
 };
 
 //---------------------------------------------------------------------------//

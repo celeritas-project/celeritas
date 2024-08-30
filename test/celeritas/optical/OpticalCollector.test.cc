@@ -261,8 +261,8 @@ auto LArSphereOffloadTest::run(size_type num_tracks,
           };
 
     RunResult result;
-    auto& optical_state = get<OpticalOffloadState<M>>(step.state().aux(),
-                                                      collector_->aux_id());
+    auto& optical_state = get<OpticalOffloadState<M>>(
+        step.state().aux(), collector_->offload_aux_id());
 
     auto const& state = optical_state.store.ref();
     auto const& sizes = optical_state.buffer_size;
