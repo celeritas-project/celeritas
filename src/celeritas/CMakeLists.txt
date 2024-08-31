@@ -80,6 +80,7 @@ list(APPEND SOURCES
   optical/TrackData.cc
   optical/ScintillationParams.cc
   optical/detail/OffloadParams.cc
+  optical/detail/OpticalLaunchAction.cc
   phys/CutoffParams.cc
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc

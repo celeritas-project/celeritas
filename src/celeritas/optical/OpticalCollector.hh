@@ -14,27 +14,26 @@
 
 #include "OffloadData.hh"
 
-#include "detail/CerenkovOffloadAction.hh"
-#include "detail/OffloadGatherAction.hh"
-#include "detail/ScintOffloadAction.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ActionRegistry;
-class CerenkovParams;
-class ScintillationParams;
 class CoreParams;
 
 namespace optical
 {
+class CerenkovParams;
 class MaterialParams;
-class CoreParams;
+class ScintillationParams;
 }
 
 namespace detail
 {
+class CerenkovOffloadAction;
+class OffloadGatherAction;
+class OpticalLaunchAction;
 class OffloadParams;
+class ScintOffloadAction;
 }  // namespace detail
 
 //---------------------------------------------------------------------------//
@@ -92,27 +91,23 @@ class OpticalCollector
     // Aux ID for optical offload data
     AuxId offload_aux_id() const;
 
-    // Aux ID for optical params data
-    AuxId optical_aux_id() const;
-
   private:
     //// TYPES ////
 
     using SPOffloadParams = std::shared_ptr<detail::OffloadParams>;
-    using SPCerenkovOffloadAction
-        = std::shared_ptr<detail::CerenkovOffloadAction>;
-    using SPScintOffloadAction = std::shared_ptr<detail::ScintOffloadAction>;
+    using SPCerenkovAction = std::shared_ptr<detail::CerenkovOffloadAction>;
+    using SPScintAction = std::shared_ptr<detail::ScintOffloadAction>;
     using SPGatherAction = std::shared_ptr<detail::OffloadGatherAction>;
-    using SPOpticalParams = std::shared_ptr<optical::CoreParams>;
+    using SPLaunchAction = std::shared_ptr<detail::OpticalLaunchAction>;
 
     //// DATA ////
 
     SPOffloadParams gen_params_;
-    SPOpticalParams optical_params_;
 
     SPGatherAction gather_action_;
-    SPCerenkovOffloadAction cerenkov_offload_action_;
-    SPScintOffloadAction scint_offload_action_;
+    SPCerenkovAction cerenkov_action_;
+    SPScintAction scint_action_;
+    SPLaunchAction launch_action_;
 
     // TODO: tracking loop launch action
 };

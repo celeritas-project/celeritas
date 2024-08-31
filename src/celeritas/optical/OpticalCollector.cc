@@ -19,13 +19,19 @@
 #include "OffloadData.hh"
 #include "ScintillationParams.hh"
 
+#include "detail/CerenkovOffloadAction.hh"
+#include "detail/OffloadGatherAction.hh"
 #include "detail/OffloadParams.hh"
+#include "detail/OpticalLaunchAction.hh"
+#include "detail/ScintOffloadAction.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct with core data and optical data.
+ *
+ * This adds several actions and auxiliary data to the registry.
  */
 OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
 {
@@ -37,21 +43,9 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     setup.capacity = inp.buffer_capacity;
 
     // Create offload params
-    gen_params_ = std::make_shared<detail::OffloadParams>(
-        core.aux_reg()->next_id(), setup);
-    core.aux_reg()->insert(gen_params_);
-
-    // Create optical params
-    optical_params_ = std::make_shared<optical::CoreParams>(
-        core.aux_reg()->next_id(), [&inp, &core] {
-            optical::CoreParams::Input oinp;
-            oinp.geometry = core.geometry();
-            oinp.material = inp.material;
-            oinp.rng = {};  // TODO: need independent streams
-            oinp.sim = std::make_shared<SimParams>();
-            return oinp;
-        }());
-    core.aux_reg()->insert(gen_params_);
+    AuxParamsRegistry& aux = *core.aux_reg();
+    gen_params_ = std::make_shared<detail::OffloadParams>(aux.next_id(), setup);
+    aux.insert(gen_params_);
 
     // Action to gather pre-step data needed to generate optical distributions
     ActionRegistry& actions = *core.action_reg();
@@ -62,26 +56,34 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     if (setup.cerenkov)
     {
         // Action to generate Cerenkov optical distributions
-        cerenkov_offload_action_
-            = std::make_shared<detail::CerenkovOffloadAction>(
-                actions.next_id(),
-                gen_params_->aux_id(),
-                inp.material,
-                std::move(inp.cerenkov));
-        actions.insert(cerenkov_offload_action_);
+        cerenkov_action_ = std::make_shared<detail::CerenkovOffloadAction>(
+            actions.next_id(),
+            gen_params_->aux_id(),
+            inp.material,
+            std::move(inp.cerenkov));
+        actions.insert(cerenkov_action_);
     }
 
     if (setup.scintillation)
     {
         // Action to generate scintillation optical distributions
-        scint_offload_action_ = std::make_shared<detail::ScintOffloadAction>(
+        scint_action_ = std::make_shared<detail::ScintOffloadAction>(
             actions.next_id(),
             gen_params_->aux_id(),
             std::move(inp.scintillation));
-        actions.insert(scint_offload_action_);
+        actions.insert(scint_action_);
     }
 
-    // TODO: add an action to launch optical tracking loop
+    // Create launch action with optical params+state and access to gen data
+    launch_action_ = detail::OpticalLaunchAction::make_and_insert(
+        core, inp.material, gen_params_);
+
+    // Launch action must be *after* generator actions
+    CELER_ENSURE(!cerenkov_action_
+                 || launch_action_->action_id()
+                        > cerenkov_action_->action_id());
+    CELER_ENSURE(!scint_action_
+                 || launch_action_->action_id() > scint_action_->action_id());
 }
 
 //---------------------------------------------------------------------------//
@@ -91,15 +93,6 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
 AuxId OpticalCollector::offload_aux_id() const
 {
     return gen_params_->aux_id();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Aux ID for optical core data used for the optical loop.
- */
-AuxId OpticalCollector::optical_aux_id() const
-{
-    return optical_params_->aux_id();
 }
 
 //---------------------------------------------------------------------------//

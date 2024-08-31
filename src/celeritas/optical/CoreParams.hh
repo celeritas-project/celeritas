@@ -8,7 +8,6 @@
 #pragma once
 
 #include "corecel/Assert.hh"
-#include "corecel/data/AuxInterface.hh"
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ObserverPtr.hh"
 #include "corecel/data/ParamsDataInterface.hh"
@@ -34,12 +33,8 @@ class MaterialParams;
 //---------------------------------------------------------------------------//
 /*!
  * Shared parameters for the optical photon loop.
- *
- * Because a copy of the core params can be stored in the main tracking loop,
- * this class conforms to the "aux params" interface.
  */
-class CoreParams final : public AuxParamsInterface,
-                         public ParamsDataInterface<CoreParamsData>
+class CoreParams final : public ParamsDataInterface<CoreParamsData>
 {
   public:
     //!@{
@@ -81,20 +76,7 @@ class CoreParams final : public AuxParamsInterface,
 
   public:
     // Construct with all problem data, creating some actions too
-    CoreParams(AuxId aux_id, Input&& inp);
-
-    //! Construct for execution in a standalone loop (no aux ID)
-    explicit CoreParams(Input&& inp) : CoreParams{{}, std::move(inp)} {}
-
-    //!@{
-    //! \name Aux interface
-    //! Short name for the action
-    std::string_view label() const final { return "optical-offload"; }
-    //! Index of this class instance in its registry
-    AuxId aux_id() const final { return aux_id_; }
-    // Build state data for a stream
-    UPState create_state(MemSpace, StreamId, size_type) const final;
-    //!@}
+    CoreParams(Input&& inp);
 
     //!@{
     //! \name Data interface
@@ -124,7 +106,6 @@ class CoreParams final : public AuxParamsInterface,
     size_type max_streams() const { return input_.max_streams; }
 
   private:
-    AuxId aux_id_;
     Input input_;
     HostRef host_ref_;
     DeviceRef device_ref_;

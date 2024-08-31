@@ -94,8 +94,7 @@ CoreScalars build_actions(ActionRegistry* reg)
 /*!
  * Construct with all problem data, creating some actions too.
  */
-CoreParams::CoreParams(AuxId aux_id, Input&& input)
-    : aux_id_{aux_id}, input_(std::move(input))
+CoreParams::CoreParams(Input&& input) : input_(std::move(input))
 {
 #define CP_VALIDATE_INPUT(MEMBER) \
     CELER_VALIDATE(input_.MEMBER, \
@@ -134,27 +133,6 @@ CoreParams::CoreParams(AuxId aux_id, Input&& input)
 
     CELER_ENSURE(host_ref_);
     CELER_ENSURE(host_ref_.scalars.max_streams == this->max_streams());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Build state data for a stream.
- */
-auto CoreParams::create_state(MemSpace m,
-                              StreamId sid,
-                              size_type size) const -> UPState
-{
-    if (m == MemSpace::host)
-    {
-        return UPState{
-            std::make_unique<CoreState<MemSpace::host>>(*this, sid, size)};
-    }
-    else if (m == MemSpace::device)
-    {
-        return UPState{
-            std::make_unique<CoreState<MemSpace::device>>(*this, sid, size)};
-    }
-    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
