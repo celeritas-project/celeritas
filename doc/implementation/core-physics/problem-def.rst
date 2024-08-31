@@ -2,6 +2,9 @@
 .. See the doc/COPYRIGHT file for details.
 .. SPDX-License-Identifier: CC-BY-4.0
 
+
+.. _api_problem_def:
+
 Problem definition
 ==================
 

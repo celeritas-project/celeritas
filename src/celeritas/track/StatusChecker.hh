@@ -37,8 +37,8 @@ class CoreState;
  * \em not an "explicit" action. It's meant to be used inside the \c
  * ActionSequence itself, called after every action.
  */
-class StatusChecker final : public BeginRunActionInterface,
-                            public AuxParamsInterface,
+class StatusChecker final : public AuxParamsInterface,
+                            public BeginRunActionInterface,
                             public ParamsDataInterface<StatusCheckParamsData>
 {
   public:
@@ -46,26 +46,29 @@ class StatusChecker final : public BeginRunActionInterface,
     StatusChecker(ActionId action_id, AuxId aux_id);
 
     //!@{
-    //! \name Begin run interface
-    //! Index of this class instance in its registry
-    ActionId action_id() const final { return action_id_; }
+    //! \name Aux/action metadata interface
     //! Label for the auxiliary data and action
     std::string_view label() const final { return "status-check"; }
     // Description of the action
     std::string_view description() const final;
-    // Set host data at the beginning of a run
-    void begin_run(CoreParams const&, CoreStateHost&) final;
-    // Set device data at the beginning of a run
-    void begin_run(CoreParams const&, CoreStateDevice&) final;
     //!@}
 
     //!@{
     //! \name Aux params interface
     //! Index of this class instance in its registry
     AuxId aux_id() const final { return aux_id_; }
-
     // Build state data for a stream
     UPState create_state(MemSpace m, StreamId id, size_type size) const final;
+    //!@}
+
+    //!@{
+    //! \name Begin run interface
+    //! Index of this class instance in its registry
+    ActionId action_id() const final { return action_id_; }
+    // Set host data at the beginning of a run
+    void begin_run(CoreParams const&, CoreStateHost&) final;
+    // Set device data at the beginning of a run
+    void begin_run(CoreParams const&, CoreStateDevice&) final;
     //!@}
 
     //!@{

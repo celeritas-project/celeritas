@@ -45,24 +45,50 @@ fixed-size vector of tracks that may be in flight:
          track_slots[i] = None
 
 
-The stepping loop in Celeritas is therefore a sorted loop over "actions", each
-of which is usually a kernel launch (or an inner loop over tracks if running on
-CPU).
+The stepping loop in Celeritas is therefore a sorted loop over "step actions",
+each of which is usually a kernel launch (or an inner loop over tracks if
+running on CPU).
 
-Particle states
----------------
+Actions
+-------
 
-.. doxygenenum:: celeritas::TrackStatus
-   :no-link:
+Actions can operate on shared parameters and thread-local state collections.
+All actions inherit from a :cpp:class:`celeritas::ActionInterface` abstract
+base class, and the hierarchy of actions allows multiple inheritance so that a
+single "action" class can, for example, allocate states at the beginning of the
+run and execute once per step.
 
-Action sequence
----------------
+There are currently two different actions that act as extension points to the
+stepping loop: :cpp:class:`BeginRunActionInterface` is called once per event
+(or set of simultaneously initialized events), and :cpp:class:`ExplicitActionInterface` is called once per step, ordered using :cpp:enum:`celeritas::ActionOrder`.
+
+.. doxygenclass:: celeritas::ActionInterface
+.. doxygenclass:: celeritas::BeginRunActionInterface
+.. doxygenclass:: celeritas::ExplicitActionInterface
 
 .. doxygenenum:: celeritas::ActionOrder
    :no-link:
 
-Execution
----------
+
+Initialization and execution
+----------------------------
+
+- The front end constructs the :ref:`api_problem_def` classes and allows user
+  actions and :ref:`api_auxiliary_data` to be set up
+- "Core params", which reference these classes, are constructed; in the
+  process, certain required implementation actions (e.g., managing primaries
+  and secondaries, initializing tracks, crossing boundaries) are added to the
+  action
+- Additional user actions and data can be added
+- The "core state" is created on each CPU thread (or task), simultaneously
+  constructing a vector of auxiliary state data
+- The :cpp:class:`celeritas::Stepper` constructs a final ordered runtime vector
+  of actions
+- The Stepper immediately calls the "begin run" actions
+- Each step calls all the "step" actions
+
+.. doxygenenum:: celeritas::TrackStatus
+   :no-link:
 
 .. doxygenclass:: celeritas::Stepper
 

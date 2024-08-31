@@ -123,7 +123,7 @@ void StatusChecker::execute(ActionId prev_action,
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct host/device data
+ * Construct host/device data.
  */
 void StatusChecker::begin_run_impl(CoreParams const& params)
 {
