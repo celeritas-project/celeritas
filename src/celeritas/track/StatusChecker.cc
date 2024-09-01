@@ -9,9 +9,9 @@
 
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/data/Copier.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/ActionLauncher.hh"
-#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"

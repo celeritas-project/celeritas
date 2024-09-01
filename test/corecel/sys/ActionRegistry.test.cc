@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/ActionRegistry.test.cc
+//! \file corecel/sys/ActionRegistry.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/global/ActionRegistry.hh"
+#include "corecel/sys/ActionRegistry.hh"
 
-#include "celeritas/global/ActionRegistryOutput.hh"
+#include "corecel/sys/ActionRegistryOutput.hh"
 
 #include "celeritas_test.hh"
 
@@ -16,15 +16,29 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+struct MockParams
+{
+};
 
-class MyExplicitAction final : public CoreStepActionInterface,
-                               public CoreBeginRunActionInterface
+template<MemSpace M>
+struct MockState
+{
+};
+
+using MockBeginRunActionInterface
+    = BeginRunActionInterface<MockParams, MockState>;
+using MockStepActionInterface = StepActionInterface<MockParams, MockState>;
+
+//---------------------------------------------------------------------------//
+
+class MyExplicitAction final : public MockStepActionInterface,
+                               public MockBeginRunActionInterface
 {
   public:
     //@{
     //! \name Type aliases
-    using CoreStepActionInterface::CoreStateDevice;
-    using CoreStepActionInterface::CoreStateHost;
+    using MockStepActionInterface::CoreStateDevice;
+    using MockStepActionInterface::CoreStateHost;
     //@}
 
   public:

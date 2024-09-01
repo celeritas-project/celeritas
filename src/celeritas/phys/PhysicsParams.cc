@@ -24,6 +24,7 @@
 #include "corecel/grid/UniformGrid.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/AtomicRelaxationData.hh"
@@ -34,7 +35,6 @@
 #include "celeritas/em/model/LivermorePEModel.hh"
 #include "celeritas/em/params/AtomicRelaxationParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
 #include "celeritas/grid/ValueGridInserter.hh"
 #include "celeritas/grid/ValueGridType.hh"

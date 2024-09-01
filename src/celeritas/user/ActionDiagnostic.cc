@@ -20,8 +20,8 @@
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ActionRegistry.hh"  // IWYU pragma: keep
 #include "celeritas/global/ActionLauncher.hh"
-#include "celeritas/global/ActionRegistry.hh"  // IWYU pragma: keep
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"

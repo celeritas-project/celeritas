@@ -9,7 +9,7 @@
 
 #include <algorithm>
 
-#include "celeritas/global/ActionRegistry.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/grid/ValueGridBuilder.hh"
 
 #include "MockModel.hh"

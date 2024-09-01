@@ -20,6 +20,8 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"  // IWYU pragma: keep
+#include "corecel/sys/ActionRegistry.hh"  // IWYU pragma: keep
+#include "corecel/sys/ActionRegistryOutput.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/DeviceIO.json.hh"
 #include "corecel/sys/Environment.hh"
@@ -51,8 +53,6 @@
 #include "celeritas/track/TrackInitParams.hh"  // IWYU pragma: keep
 
 #include "ActionInterface.hh"
-#include "ActionRegistry.hh"  // IWYU pragma: keep
-#include "ActionRegistryOutput.hh"
 #include "alongstep/AlongStepNeutralAction.hh"
 
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE

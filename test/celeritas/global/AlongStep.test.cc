@@ -11,6 +11,7 @@
 
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/LeadBoxTestBase.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
@@ -19,7 +20,6 @@
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"
-#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/alongstep/AlongStepRZMapFieldMscAction.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/phys/PDGNumber.hh"

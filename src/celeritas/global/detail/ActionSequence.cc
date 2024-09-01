@@ -16,6 +16,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stopwatch.hh"
@@ -24,7 +25,6 @@
 #include "celeritas/track/StatusChecker.hh"
 
 #include "../ActionInterface.hh"
-#include "../ActionRegistry.hh"
 #include "../CoreState.hh"
 #include "../Debug.hh"
 

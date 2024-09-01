@@ -129,6 +129,9 @@ list(APPEND SOURCES
   io/detail/EnumStringMapperImpl.cc
   io/detail/LoggerMessage.cc
   io/detail/ReprImpl.cc
+  sys/ActionInterface.cc
+  sys/ActionRegistry.cc
+  sys/ActionRegistryOutput.cc
   sys/Device.cc
   sys/DeviceIO.json.cc
   sys/Environment.cc
