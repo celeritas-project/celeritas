@@ -78,6 +78,18 @@ class ActionInterface
 
 //---------------------------------------------------------------------------//
 /*!
+ * Interface that can modify the action's state.
+ *
+ * Most actions can modify \em only the local "state" being passed as an
+ * argument. This one allows data to be allocated or initialized at the
+ * beginning of the run.
+ */
+class MutableActionInterface : public virtual ActionInterface
+{
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Interface for updating states at the beginning of the simulation.
  *
  * This is necessary for some classes that require deferred initialization
@@ -88,7 +100,7 @@ class ActionInterface
  * initialize in the constructor and avoid using this interface if possible.
  */
 template<class P, template<MemSpace M> class S>
-class BeginRunActionInterface : public virtual ActionInterface
+class BeginRunActionInterface : public MutableActionInterface
 {
   public:
     //@{

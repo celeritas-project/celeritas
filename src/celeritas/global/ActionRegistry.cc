@@ -22,7 +22,7 @@ namespace celeritas
 void ActionRegistry::insert_mutable_impl(SPAction&& action)
 {
     CELER_EXPECT(action);
-    if (dynamic_cast<CoreBeginRunActionInterface*>(action.get()))
+    if (dynamic_cast<MutableActionInterface*>(action.get()))
     {
         mutable_actions_.push_back(action);
     }
@@ -36,11 +36,10 @@ void ActionRegistry::insert_mutable_impl(SPAction&& action)
 void ActionRegistry::insert_const_impl(SPConstAction&& action)
 {
     CELER_EXPECT(action);
-    CELER_VALIDATE(
-        !dynamic_cast<CoreBeginRunActionInterface const*>(action.get()),
-        << "begin-run action '" << action->label()
-        << "' (ID=" << action->action_id().unchecked_get()
-        << ") cannot be registered as const");
+    CELER_VALIDATE(!dynamic_cast<MutableActionInterface const*>(action.get()),
+                   << "mutable action '" << action->label()
+                   << "' (ID=" << action->action_id().unchecked_get()
+                   << ") cannot be registered as const");
     return this->insert_impl(std::move(action));
 }
 
