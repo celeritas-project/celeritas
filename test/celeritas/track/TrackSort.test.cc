@@ -189,7 +189,7 @@ class PartitionDataTest : public TestEm3NoMsc, public TrackSortTestBase
             ActionId action_id = this->action_reg()->find_action(label);
             CELER_ASSERT(action_id);
 
-            auto action = dynamic_cast<ExplicitCoreActionInterface const*>(
+            auto action = dynamic_cast<CoreStepActionInterface const*>(
                 this->action_reg()->action(action_id).get());
             CELER_ASSERT(action);
 
@@ -245,7 +245,7 @@ TEST_F(TestEm3NoMsc, host_is_sorting)
     auto execute = [&](std::string const& label) {
         ActionId action_id = this->action_reg()->find_action(label);
         CELER_VALIDATE(action_id, << "no '" << label << "' action found");
-        auto action = dynamic_cast<ExplicitCoreActionInterface const*>(
+        auto action = dynamic_cast<CoreStepActionInterface const*>(
             this->action_reg()->action(action_id).get());
         CELER_VALIDATE(action, << "action '" << label << "' cannot execute");
         CELER_TRY_HANDLE(action->execute(*this->core(), state),

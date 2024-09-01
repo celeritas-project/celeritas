@@ -97,7 +97,7 @@ class StatusCheckerTest : public SimpleTestBase
         CELER_EXPECT(id);
 
         // Execute the action
-        dynamic_cast<ExplicitCoreActionInterface const&>(
+        dynamic_cast<CoreStepActionInterface const&>(
             *this->action_reg()->action(id))
             .execute(*this->core(), state);
 

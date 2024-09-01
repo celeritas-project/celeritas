@@ -138,7 +138,7 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
         {
             return false;
         }
-        return state.size() == 1 && action.order() == ActionOrder::post
+        return state.size() == 1 && action.order() == StepActionOrder::post
                && action.action_id()
                       != state.ref().sim.post_step_action[TrackSlotId{0}];
     };

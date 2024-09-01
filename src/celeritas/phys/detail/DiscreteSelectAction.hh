@@ -19,7 +19,7 @@ namespace detail
 /*!
  * Select a model for tracks undergoing a discrete interaction.
  */
-class DiscreteSelectAction final : public ExplicitCoreActionInterface,
+class DiscreteSelectAction final : public CoreStepActionInterface,
                                    public ConcreteAction
 {
   public:
@@ -33,7 +33,7 @@ class DiscreteSelectAction final : public ExplicitCoreActionInterface,
     void execute(CoreParams const&, CoreStateDevice&) const final;
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::pre_post; }
+    StepActionOrder order() const final { return StepActionOrder::pre_post; }
 };
 
 //---------------------------------------------------------------------------//

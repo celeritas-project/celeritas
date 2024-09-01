@@ -28,15 +28,15 @@ class ActionRegistry;
 /*!
  * Tally post-step actions for each particle type.
  */
-class ActionDiagnostic final : public ExplicitCoreActionInterface,
+class ActionDiagnostic final : public CoreStepActionInterface,
                                public BeginRunActionInterface,
                                public OutputInterface
 {
   public:
     //@{
     //! \name Type aliases
-    using ExplicitCoreActionInterface::CoreStateDevice;
-    using ExplicitCoreActionInterface::CoreStateHost;
+    using CoreStepActionInterface::CoreStateDevice;
+    using CoreStepActionInterface::CoreStateHost;
     //@}
 
   public:
@@ -65,7 +65,7 @@ class ActionDiagnostic final : public ExplicitCoreActionInterface,
     // Description of the action for user interaction
     std::string_view description() const final;
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::post; }
+    StepActionOrder order() const final { return StepActionOrder::post; }
     //!@}
 
     //!@{

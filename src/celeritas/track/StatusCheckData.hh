@@ -23,9 +23,10 @@ struct StatusCheckParamsData
 {
     //// DATA ////
 
-    celeritas::Collection<ActionOrder, W, M, ActionId> orders;
+    celeritas::Collection<StepActionOrder, W, M, ActionId> orders;
 
-    static inline constexpr ActionOrder implicit_order = ActionOrder::size_;
+    static inline constexpr StepActionOrder implicit_order
+        = StepActionOrder::size_;
 
     //// METHODS ////
 
@@ -57,7 +58,7 @@ struct StatusCheckStateData
     //// DATA ////
 
     ActionId action;
-    ActionOrder order{ActionOrder::size_};
+    StepActionOrder order{StepActionOrder::size_};
 
     Items<TrackStatus> status;
     Items<ActionId> post_step_action;

@@ -30,7 +30,7 @@ namespace detail
 /*!
  * Generate optical distribution data.
  */
-class ScintOffloadAction final : public ExplicitCoreActionInterface
+class ScintOffloadAction final : public CoreStepActionInterface
 {
   public:
     //!@{
@@ -61,7 +61,7 @@ class ScintOffloadAction final : public ExplicitCoreActionInterface
     std::string_view description() const final;
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::user_post; }
+    StepActionOrder order() const final { return StepActionOrder::user_post; }
 
   private:
     //// DATA ////

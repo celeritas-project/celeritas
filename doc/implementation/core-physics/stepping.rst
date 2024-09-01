@@ -60,13 +60,13 @@ run and execute once per step.
 
 There are currently two different actions that act as extension points to the
 stepping loop: :cpp:class:`BeginRunActionInterface` is called once per event
-(or set of simultaneously initialized events), and :cpp:class:`ExplicitActionInterface` is called once per step, ordered using :cpp:enum:`celeritas::ActionOrder`.
+(or set of simultaneously initialized events), and :cpp:class:`StepActionInterface` is called once per step, ordered using :cpp:enum:`celeritas::StepActionOrder`.
 
 .. doxygenclass:: celeritas::ActionInterface
 .. doxygenclass:: celeritas::BeginRunActionInterface
-.. doxygenclass:: celeritas::ExplicitActionInterface
+.. doxygenclass:: celeritas::StepActionInterface
 
-.. doxygenenum:: celeritas::ActionOrder
+.. doxygenenum:: celeritas::StepActionOrder
    :no-link:
 
 

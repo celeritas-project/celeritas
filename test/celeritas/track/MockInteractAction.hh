@@ -23,7 +23,7 @@ namespace test
 /*!
  * Change the track state and allocate secondaries.
  */
-class MockInteractAction final : public ExplicitCoreActionInterface
+class MockInteractAction final : public CoreStepActionInterface
 {
   public:
     // Construct with number of secondaries and post-interact state
@@ -42,7 +42,7 @@ class MockInteractAction final : public ExplicitCoreActionInterface
     {
         return "mock interact kernel";
     }
-    ActionOrder order() const final { return ActionOrder::post; }
+    StepActionOrder order() const final { return StepActionOrder::post; }
 
     // Get the number of secondaries
     Span<size_type const> num_secondaries() const;

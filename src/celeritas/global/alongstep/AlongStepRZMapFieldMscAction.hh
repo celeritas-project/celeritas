@@ -32,7 +32,7 @@ struct RZMapFieldInput;
 /*!
  * Along-step kernel with MSC, energy loss fluctuations, and a RZMapField.
  */
-class AlongStepRZMapFieldMscAction final : public ExplicitCoreActionInterface
+class AlongStepRZMapFieldMscAction final : public CoreStepActionInterface
 {
   public:
     //!@{
@@ -76,7 +76,7 @@ class AlongStepRZMapFieldMscAction final : public ExplicitCoreActionInterface
     }
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::along; }
+    StepActionOrder order() const final { return StepActionOrder::along; }
 
     //// ACCESSORS ////
 

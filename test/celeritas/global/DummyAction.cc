@@ -33,7 +33,7 @@ auto DummyParams::create_state(MemSpace m,
 //---------------------------------------------------------------------------//
 
 DummyAction::DummyAction(ActionId id,
-                         ActionOrder order,
+                         StepActionOrder order,
                          std::string&& label,
                          AuxId aux)
     : ConcreteAction{id, std::move(label)}, order_{order}, aux_id_{aux}

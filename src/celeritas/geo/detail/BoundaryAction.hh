@@ -17,7 +17,7 @@ namespace detail
 /*!
  * Move a track across a boundary.
  */
-class BoundaryAction final : public ExplicitCoreActionInterface,
+class BoundaryAction final : public CoreStepActionInterface,
                              public ConcreteAction
 {
   public:
@@ -31,7 +31,7 @@ class BoundaryAction final : public ExplicitCoreActionInterface,
     void execute(CoreParams const&, CoreStateDevice&) const final;
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::post; }
+    StepActionOrder order() const final { return StepActionOrder::post; }
 };
 
 //---------------------------------------------------------------------------//

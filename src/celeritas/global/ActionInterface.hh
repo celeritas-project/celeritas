@@ -34,14 +34,14 @@ class CoreState;
  * Pure abstract interface for an action that could happen to a track.
  *
  * An action represents a possible state point or state change for a track.
- * Explicit actions (see \c ExplicitActionInterface ) call kernels that change
+ * Explicit actions (see \c StepActionInterface ) call kernels that change
  * the state (discrete processes, geometry boundary), and *implicit* actions
  * (which do not inherit from the explicit interface) are placeholders for
  * different reasons to pause the state or mark it for future modification
  * (range limitation, propagation loop limit).
  *
  * The \c ActionInterface provides a no-overhead virtual interface for
- * gathering metadata. The \c ExplicitActionInterface provides additional
+ * gathering metadata. The \c StepActionInterface provides additional
  * interfaces for launching kernels. The \c BeginRunActionInterface allows
  * actions to modify the state (or the class instance itself) at the beginning
  * of a stepping loop.
@@ -112,11 +112,11 @@ class BeginRunActionInterface : public virtual ActionInterface
  * TODO: rename to OrderedAction, SequenceAction, StepAction, ... ? since these
  * are the actions that \em always are executed exactly once per step.
  */
-class ExplicitActionInterface : public virtual ActionInterface
+class StepActionInterface : public virtual ActionInterface
 {
   public:
     //! Dependency ordering of the action
-    virtual ActionOrder order() const = 0;
+    virtual StepActionOrder order() const = 0;
 };
 
 //---------------------------------------------------------------------------//
@@ -125,7 +125,7 @@ class ExplicitActionInterface : public virtual ActionInterface
  *
  * TODO: Template this on 'Core' and 'Optical' and ...
  */
-class ExplicitCoreActionInterface : public virtual ExplicitActionInterface
+class CoreStepActionInterface : public virtual StepActionInterface
 {
   public:
     //@{
@@ -146,7 +146,7 @@ class ExplicitCoreActionInterface : public virtual ExplicitActionInterface
 /*!
  * Interface for kernel actions on the optical tracking loop.
  */
-class ExplicitOpticalActionInterface : public virtual ExplicitActionInterface
+class OpticalStepActionInterface : public virtual StepActionInterface
 {
   public:
     //@{
@@ -170,7 +170,7 @@ class ExplicitOpticalActionInterface : public virtual ExplicitActionInterface
  *
  * Example:
  * \code
-  class KernellyPhysicsAction final : public ExplicitCoreActionInterface,
+  class KernellyPhysicsAction final : public CoreStepActionInterface,
                                       public ConcreteAction
   {
     public:
@@ -180,7 +180,7 @@ class ExplicitOpticalActionInterface : public virtual ExplicitActionInterface
       void execute(CoreParams const&, CoreStateHost&) const final;
       void execute(CoreParams const&, CoreStateDevice&) const final;
 
-      ActionOrder order() const final { return ActionOrder::post; }
+      StepActionOrder order() const final { return StepActionOrder::post; }
   };
 
   class PlaceholderPhysicsAction final : public ConcreteAction

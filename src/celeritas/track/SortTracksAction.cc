@@ -70,17 +70,17 @@ SortTracksAction::SortTracksAction(ActionId id, TrackOrder track_order)
         {
             case TrackOrder::partition_status:
                 // Sort *after* setting status
-                return ActionOrder::sort_start;
+                return StepActionOrder::sort_start;
             case TrackOrder::sort_along_step_action:
                 // Sort *before* along-step action, i.e. *after* pre-step
-                return ActionOrder::sort_pre;
+                return StepActionOrder::sort_pre;
             case TrackOrder::sort_step_limit_action:
                 // Sort *before* post-step action, i.e. *after* pre-post and
                 // along-step
-                return ActionOrder::sort_pre_post;
+                return StepActionOrder::sort_pre_post;
             case TrackOrder::sort_particle_type:
                 // Sorth at the beginning of the step
-                return ActionOrder::sort_start;
+                return StepActionOrder::sort_start;
             default:
                 CELER_ASSERT_UNREACHABLE();
         }

@@ -78,13 +78,13 @@ class ActionLauncher
     }
 
     //! Create a launcher from an action
-    explicit ActionLauncher(ExplicitActionInterface const& action)
+    explicit ActionLauncher(StepActionInterface const& action)
         : ActionLauncher{action.label()}
     {
     }
 
     //! Create a launcher with a string extension
-    ActionLauncher(ExplicitActionInterface const& action, std::string_view ext)
+    ActionLauncher(StepActionInterface const& action, std::string_view ext)
         : ActionLauncher{std::string(action.label()) + "-" + std::string(ext)}
     {
     }
@@ -126,7 +126,7 @@ class ActionLauncher
     //! Launch with reduced grid size for when tracks are sorted
     void operator()(CoreParams const& params,
                     CoreState<MemSpace::device> const& state,
-                    ExplicitActionInterface const& action,
+                    StepActionInterface const& action,
                     F const& call_thread) const
     {
         CELER_EXPECT(state.stream_id());

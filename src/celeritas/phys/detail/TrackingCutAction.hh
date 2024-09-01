@@ -19,7 +19,7 @@ namespace detail
  *
  * \sa CoreTrackView::tracking_cut_action
  */
-class TrackingCutAction final : public ExplicitCoreActionInterface,
+class TrackingCutAction final : public CoreStepActionInterface,
                                 public ConcreteAction
 {
   public:
@@ -33,7 +33,7 @@ class TrackingCutAction final : public ExplicitCoreActionInterface,
     void execute(CoreParams const&, CoreStateDevice&) const final;
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::post; }
+    StepActionOrder order() const final { return StepActionOrder::post; }
 };
 
 //---------------------------------------------------------------------------//

@@ -21,7 +21,7 @@ namespace detail
  * - Reset track properties (todo: move to track initialization?)
  * - Sample the mean free path and calculate the physics step limits.
  */
-class PreStepAction final : public ExplicitCoreActionInterface,
+class PreStepAction final : public CoreStepActionInterface,
                             public ConcreteAction
 {
   public:
@@ -35,7 +35,7 @@ class PreStepAction final : public ExplicitCoreActionInterface,
     void execute(CoreParams const&, CoreStateDevice&) const final;
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::pre; }
+    StepActionOrder order() const final { return StepActionOrder::pre; }
 };
 
 //---------------------------------------------------------------------------//

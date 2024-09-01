@@ -33,7 +33,7 @@ namespace detail
  * This implementation class is constructed by the StepCollector.
  */
 template<StepPoint P>
-class StepGatherAction final : public ExplicitCoreActionInterface
+class StepGatherAction final : public CoreStepActionInterface
 {
   public:
     //!@{
@@ -68,11 +68,11 @@ class StepGatherAction final : public ExplicitCoreActionInterface
     std::string_view description() const final { return description_; }
 
     //! Dependency ordering of the action
-    ActionOrder order() const final
+    StepActionOrder order() const final
     {
-        return P == StepPoint::pre    ? ActionOrder::user_pre
-               : P == StepPoint::post ? ActionOrder::user_post
-                                      : ActionOrder::size_;
+        return P == StepPoint::pre    ? StepActionOrder::user_pre
+               : P == StepPoint::post ? StepActionOrder::user_post
+                                      : StepActionOrder::size_;
     }
 
   private:

@@ -29,7 +29,7 @@ class ParticleParams;
 /*!
  * Along-step kernel with optional MSC and uniform magnetic field.
  */
-class AlongStepUniformMscAction final : public ExplicitCoreActionInterface
+class AlongStepUniformMscAction final : public CoreStepActionInterface
 {
   public:
     //!@{
@@ -76,7 +76,7 @@ class AlongStepUniformMscAction final : public ExplicitCoreActionInterface
     }
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::along; }
+    StepActionOrder order() const final { return StepActionOrder::along; }
 
     //// ACCESSORS ////
 

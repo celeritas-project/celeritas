@@ -111,7 +111,7 @@ void StatusChecker::execute(ActionId prev_action,
     aux_state.action = prev_action;
     aux_state.order = this->host_ref().orders[prev_action];
 
-    CELER_ASSERT(aux_state.order != ActionOrder::size_);
+    CELER_ASSERT(aux_state.order != StepActionOrder::size_);
     this->launch_impl(params, state, aux_state);
 
     // Save the status and limiting action IDs
@@ -138,7 +138,7 @@ void StatusChecker::begin_run_impl(CoreParams const& params)
         // Get abstract action shared pointer and see if it's explicit
         auto const& base = reg.action(ActionId{aidx});
         if (auto const* expl
-            = dynamic_cast<ExplicitActionInterface const*>(base.get()))
+            = dynamic_cast<StepActionInterface const*>(base.get()))
         {
             build_orders.push_back(expl->order());
         }

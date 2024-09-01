@@ -31,7 +31,7 @@ namespace detail
 /*!
  * Generate optical distribution data.
  */
-class CerenkovOffloadAction final : public ExplicitCoreActionInterface
+class CerenkovOffloadAction final : public CoreStepActionInterface
 {
   public:
     //!@{
@@ -65,7 +65,7 @@ class CerenkovOffloadAction final : public ExplicitCoreActionInterface
     std::string_view description() const final;
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::user_post; }
+    StepActionOrder order() const final { return StepActionOrder::user_post; }
 
   private:
     //// DATA ////

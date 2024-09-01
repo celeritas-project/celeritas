@@ -19,14 +19,14 @@ namespace celeritas
  * automatically determined by TrackOrder. This should not have any impact on
  * simulation output: it is only useful for accelerator optimizations.
  */
-class SortTracksAction final : public ExplicitCoreActionInterface,
+class SortTracksAction final : public CoreStepActionInterface,
                                public BeginRunActionInterface
 {
   public:
     //@{
     //! \name Type aliases
-    using ExplicitCoreActionInterface::CoreStateDevice;
-    using ExplicitCoreActionInterface::CoreStateHost;
+    using CoreStepActionInterface::CoreStateDevice;
+    using CoreStepActionInterface::CoreStateHost;
     //@}
 
   public:
@@ -58,11 +58,11 @@ class SortTracksAction final : public ExplicitCoreActionInterface,
     std::string_view description() const final { return "sort tracks states"; }
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return action_order_; }
+    StepActionOrder order() const final { return action_order_; }
 
   private:
     ActionId id_;
-    ActionOrder action_order_{ActionOrder::size_};
+    StepActionOrder action_order_{StepActionOrder::size_};
     TrackOrder track_order_;
 };
 

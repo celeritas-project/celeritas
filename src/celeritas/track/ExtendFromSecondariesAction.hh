@@ -68,14 +68,14 @@ namespace celeritas
 
    \endverbatim
  */
-class ExtendFromSecondariesAction final : public ExplicitCoreActionInterface,
+class ExtendFromSecondariesAction final : public CoreStepActionInterface,
                                           public BeginRunActionInterface
 {
   public:
     //@{
     //! \name Type aliases
-    using ExplicitCoreActionInterface::CoreStateDevice;
-    using ExplicitCoreActionInterface::CoreStateHost;
+    using CoreStepActionInterface::CoreStateDevice;
+    using CoreStepActionInterface::CoreStateHost;
     //@}
 
   public:
@@ -91,7 +91,7 @@ class ExtendFromSecondariesAction final : public ExplicitCoreActionInterface,
     // Description of the action for user interaction
     std::string_view description() const final;
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::end; }
+    StepActionOrder order() const final { return StepActionOrder::end; }
     //!@}
 
     //!@{

@@ -33,7 +33,7 @@ class ParticleParams;
  * have (but do not *need* to have) along-step energy loss, optional energy
  * fluctuation, and optional multiple scattering.
  */
-class AlongStepGeneralLinearAction final : public ExplicitCoreActionInterface
+class AlongStepGeneralLinearAction final : public CoreStepActionInterface
 {
   public:
     //!@{
@@ -80,7 +80,7 @@ class AlongStepGeneralLinearAction final : public ExplicitCoreActionInterface
     }
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::along; }
+    StepActionOrder order() const final { return StepActionOrder::along; }
 
     //// ACCESSORS ////
 

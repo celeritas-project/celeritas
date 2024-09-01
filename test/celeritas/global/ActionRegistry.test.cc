@@ -17,18 +17,19 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-class MyExplicitAction final : public ExplicitCoreActionInterface,
+class MyExplicitAction final : public CoreStepActionInterface,
                                public BeginRunActionInterface
 {
   public:
     //@{
     //! \name Type aliases
-    using ExplicitCoreActionInterface::CoreStateDevice;
-    using ExplicitCoreActionInterface::CoreStateHost;
+    using CoreStepActionInterface::CoreStateDevice;
+    using CoreStepActionInterface::CoreStateHost;
     //@}
 
   public:
-    MyExplicitAction(ActionId ai, ActionOrder ao) : action_id_(ai), order_{ao}
+    MyExplicitAction(ActionId ai, StepActionOrder ao)
+        : action_id_(ai), order_{ao}
     {
     }
 
@@ -60,11 +61,11 @@ class MyExplicitAction final : public ExplicitCoreActionInterface,
     int host_count() const { return host_count_; }
     int device_count() const { return device_count_; }
 
-    ActionOrder order() const final { return order_; }
+    StepActionOrder order() const final { return order_; }
 
   private:
     ActionId action_id_;
-    ActionOrder order_;
+    StepActionOrder order_;
     mutable int host_count_{-100};
     mutable int device_count_{-100};
 };
@@ -94,7 +95,7 @@ class ActionRegistryTest : public Test
         mgr.insert(impl1);
 
         expl_action = std::make_shared<MyExplicitAction>(mgr.next_id(),
-                                                         ActionOrder::pre);
+                                                         StepActionOrder::pre);
         mgr.insert(expl_action);
 
         auto impl2 = std::make_shared<MyImplicitAction>(

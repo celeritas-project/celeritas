@@ -43,7 +43,7 @@ namespace detail
  * The status, post-step, and along-step action are from *before* the last
  * executed action.
  *
- * See \c ActionOrder, \c TrackStatus .
+ * See \c StepActionOrder, \c TrackStatus .
  */
 struct StatusCheckExecutor
 {
@@ -58,19 +58,21 @@ struct StatusCheckExecutor
 //---------------------------------------------------------------------------//
 CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
 {
-    CELER_EXPECT(state.order != ActionOrder::size_);
+    CELER_EXPECT(state.order != StepActionOrder::size_);
     CELER_EXPECT(state.action);
 
     auto tsid = track.track_slot_id();
     auto sim = track.make_sim_view();
 
-    if (state.order > ActionOrder::start && state.order < ActionOrder::end)
+    if (state.order > StepActionOrder::start
+        && state.order < StepActionOrder::end)
     {
         auto prev_status = state.status[tsid];
         CELER_FAIL_IF(sim.status() >= prev_status,
                       "status was improperly reverted");
     }
-    if (state.order >= ActionOrder::pre && state.order < ActionOrder::end)
+    if (state.order >= StepActionOrder::pre
+        && state.order < StepActionOrder::end)
     {
         // Initializing takes place *either* at the very beginning of the
         // stepping loop *or* at the very end (in the case where a track is
@@ -84,7 +86,8 @@ CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
         // Remaining tests only apply to active tracks
         return;
     }
-    if (state.order < ActionOrder::pre || state.order == ActionOrder::end)
+    if (state.order < StepActionOrder::pre
+        || state.order == StepActionOrder::end)
     {
         // Skip remaining tests since step actions get reset in "pre-step"
         return;
@@ -110,7 +113,7 @@ CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
 
     ActionId const prev_along_step = state.along_step_action[tsid];
     ActionId const next_along_step = sim.along_step_action();
-    if (state.order > ActionOrder::pre && next_along_step)
+    if (state.order > StepActionOrder::pre && next_along_step)
     {
         CELER_FAIL_IF(prev_along_step == next_along_step,
                       "along-step action cannot yet change");
@@ -118,7 +121,7 @@ CELER_FUNCTION void StatusCheckExecutor::operator()(CoreTrackView const& track)
 
     ActionId const prev_post_step = state.post_step_action[tsid];
     ActionId const next_post_step = sim.post_step_action();
-    if (state.order > ActionOrder::pre && prev_post_step
+    if (state.order > StepActionOrder::pre && prev_post_step
         && prev_post_step != next_post_step)
     {
         // Check that order is increasing if not an "implicit" action

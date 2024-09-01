@@ -54,9 +54,9 @@ class ActionSequence
 
     // Verify that we have a valid explicit action type for the given Params
     static_assert(
-        std::is_base_of_v<ExplicitActionInterface, SpecializedExplicitAction>,
+        std::is_base_of_v<StepActionInterface, SpecializedExplicitAction>,
         "ParamTraits<Params> explicit action must be derived from "
-        "ExplicitActionInterface");
+        "StepActionInterface");
 
     //! Construction/execution options
     struct Options

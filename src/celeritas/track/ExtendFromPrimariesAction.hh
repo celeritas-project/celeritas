@@ -22,7 +22,7 @@ struct Primary;
  * This will append to the queued TrackInitializer vector any primaries added
  * with \c CoreState::insert_primaries .
  */
-class ExtendFromPrimariesAction final : public ExplicitCoreActionInterface
+class ExtendFromPrimariesAction final : public CoreStepActionInterface
 {
   public:
     //! Construct with explicit Id
@@ -47,7 +47,7 @@ class ExtendFromPrimariesAction final : public ExplicitCoreActionInterface
     }
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::start; }
+    StepActionOrder order() const final { return StepActionOrder::start; }
 
   private:
     ActionId id_;

@@ -26,7 +26,7 @@ class ParticleParams;
 /*!
  * Tally post-step actions for each particle type.
  */
-class StepDiagnostic final : public ExplicitCoreActionInterface,
+class StepDiagnostic final : public CoreStepActionInterface,
                              public OutputInterface
 {
   public:
@@ -59,7 +59,7 @@ class StepDiagnostic final : public ExplicitCoreActionInterface,
     // Description of the action for user interaction
     std::string_view description() const final;
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::user_post; }
+    StepActionOrder order() const final { return StepActionOrder::user_post; }
     //!@}
 
     //!@{

@@ -21,7 +21,7 @@ namespace celeritas
  * filled by any track initializers remaining from previous steps using the
  * position.
  */
-class InitializeTracksAction final : public ExplicitCoreActionInterface
+class InitializeTracksAction final : public CoreStepActionInterface
 {
   public:
     //! Construct with explicit Id
@@ -46,7 +46,7 @@ class InitializeTracksAction final : public ExplicitCoreActionInterface
     }
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::start; }
+    StepActionOrder order() const final { return StepActionOrder::start; }
 
   private:
     ActionId id_;

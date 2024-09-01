@@ -29,7 +29,7 @@ namespace detail
  *
  * \sa OffloadGatherExecutor
  */
-class OffloadGatherAction final : public ExplicitCoreActionInterface
+class OffloadGatherAction final : public CoreStepActionInterface
 {
   public:
     // Construct with action ID and storage
@@ -51,7 +51,7 @@ class OffloadGatherAction final : public ExplicitCoreActionInterface
     std::string_view description() const final;
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::user_pre; }
+    StepActionOrder order() const final { return StepActionOrder::user_pre; }
 
   private:
     //// DATA ////

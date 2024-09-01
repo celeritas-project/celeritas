@@ -129,9 +129,9 @@ enum class TrackStatus : std::uint_least8_t
  * parallel, consists of an ordered series of actions. An action with an
  * earlier order always precedes an action with a later order.
  *
- * \sa ExplicitActionInterface
+ * \sa StepActionInterface
  */
-enum class ActionOrder
+enum class StepActionOrder
 {
     start,  //!< Initialize tracks
     user_start,  //!< User initialization of new tracks
@@ -218,7 +218,7 @@ struct StepLimit
 //! Action order/ID tuple for comparison in sorting
 struct OrderedAction
 {
-    ActionOrder order;
+    StepActionOrder order;
     ActionId id;
 
     //! Ordering comparison for an action/ID
@@ -256,7 +256,7 @@ char const* to_cstring(MatterState);
 char const* to_cstring(TrackStatus);
 
 // Get a string corresponding to a surface type
-char const* to_cstring(ActionOrder);
+char const* to_cstring(StepActionOrder);
 
 // Get a string corresponding to a track ordering policy
 char const* to_cstring(TrackOrder);
@@ -268,8 +268,8 @@ char const* to_cstring(MscStepLimitAlgorithm value);
 char const* to_cstring(NuclearFormFactorType value);
 
 // Whether the TrackOrder will sort tracks by actions with the given
-// ActionOrder
-bool is_action_sorted(ActionOrder action, TrackOrder track);
+// StepActionOrder
+bool is_action_sorted(StepActionOrder action, TrackOrder track);
 
 //! Whether track sorting is enabled
 inline constexpr bool is_action_sorted(TrackOrder track)

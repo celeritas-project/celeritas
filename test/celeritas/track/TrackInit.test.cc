@@ -147,11 +147,11 @@ class TrackInitTest : public TrackInitTestBase
         ExtendFromPrimariesAction(ActionId{1}).execute(*this->core(), *state_);
     }
 
-    std::shared_ptr<ExplicitCoreActionInterface const> pre_step_action() const
+    std::shared_ptr<CoreStepActionInterface const> pre_step_action() const
     {
         auto aid = this->action_reg()->find_action("pre-step");
         CELER_ASSERT(aid);
-        return std::dynamic_pointer_cast<ExplicitCoreActionInterface const>(
+        return std::dynamic_pointer_cast<CoreStepActionInterface const>(
             this->action_reg()->action(aid));
     }
     void init_tracks()
@@ -369,7 +369,7 @@ TYPED_TEST(TrackInitTest, extend_from_secondaries)
     this->build_states(num_tracks);
 
     // Create actions
-    std::vector<std::shared_ptr<ExplicitCoreActionInterface const>> actions = {
+    std::vector<std::shared_ptr<CoreStepActionInterface const>> actions = {
         std::make_shared<InitializeTracksAction>(ActionId{0}),
         this->pre_step_action(),
         std::make_shared<MockInteractAction>(
