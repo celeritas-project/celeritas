@@ -69,6 +69,7 @@ class ActionLauncher
                       && !std::is_pointer_v<F> && !std::is_reference_v<F>,
                   "Launched action must be a trivially copyable function "
                   "object");
+    using ActionInterfaceT = CoreStepActionInterface;
 
   public:
     //! Create a launcher from a label
@@ -78,13 +79,13 @@ class ActionLauncher
     }
 
     //! Create a launcher from an action
-    explicit ActionLauncher(StepActionInterface const& action)
+    explicit ActionLauncher(ActionInterfaceT const& action)
         : ActionLauncher{action.label()}
     {
     }
 
     //! Create a launcher with a string extension
-    ActionLauncher(StepActionInterface const& action, std::string_view ext)
+    ActionLauncher(ActionInterfaceT const& action, std::string_view ext)
         : ActionLauncher{std::string(action.label()) + "-" + std::string(ext)}
     {
     }
@@ -126,7 +127,7 @@ class ActionLauncher
     //! Launch with reduced grid size for when tracks are sorted
     void operator()(CoreParams const& params,
                     CoreState<MemSpace::device> const& state,
-                    StepActionInterface const& action,
+                    ActionInterfaceT const& action,
                     F const& call_thread) const
     {
         CELER_EXPECT(state.stream_id());

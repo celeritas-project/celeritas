@@ -45,12 +45,11 @@ ActionSequence<Params>::ActionSequence(ActionRegistry const& reg,
     // Loop over all action IDs
     for (auto aidx : range(reg.num_actions()))
     {
-        // Get abstract action shared pointer and see if it's explicit
+        // Get abstract action shared pointer to determine type
         auto const& base = reg.action(ActionId{aidx});
-        using element_type = typename SPConstSpecializedExplicit::element_type;
-        if (auto expl = std::dynamic_pointer_cast<element_type>(base))
+        if (auto expl = std::dynamic_pointer_cast<StepActionT const>(base))
         {
-            // Add explicit action to our array
+            // Add stepping action to our array
             actions_.push_back(std::move(expl));
         }
     }
@@ -69,8 +68,7 @@ ActionSequence<Params>::ActionSequence(ActionRegistry const& reg,
     // Sort actions by increasing order (and secondarily, increasing IDs)
     std::sort(actions_.begin(),
               actions_.end(),
-              [](SPConstSpecializedExplicit const& a,
-                 SPConstSpecializedExplicit const& b) {
+              [](SPConstStepAction const& a, SPConstStepAction const& b) {
                   return OrderedAction{a->order(), a->action_id()}
                          < OrderedAction{b->order(), b->action_id()};
               });

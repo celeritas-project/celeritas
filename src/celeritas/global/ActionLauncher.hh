@@ -69,7 +69,7 @@ void launch_core(std::string_view label,
  * \endcode
  */
 template<class F>
-void launch_action(StepActionInterface const& action,
+void launch_action(CoreStepActionInterface const& action,
                    celeritas::CoreParams const& params,
                    celeritas::CoreState<MemSpace::host>& state,
                    F&& execute_thread)

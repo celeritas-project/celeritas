@@ -28,7 +28,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sequence of explicit actions to invoke as part of a single step.
+ * Sequence of step actions to invoke as part of a single step.
  *
  * TODO accessors here are used by diagnostic output from celer-sim etc.;
  * perhaps make this public or add a diagnostic output for it?
@@ -41,22 +41,13 @@ class ActionSequence
     //! \name Type aliases
     template<MemSpace M>
     using State = typename ParamsTraits<Params>::template State<M>;
-    using SpecializedExplicitAction =
-        typename ParamsTraits<Params>::ExplicitAction;
+    using StepActionT = StepActionInterface<Params, State>;
     using SPBegin = std::shared_ptr<BeginRunActionInterface>;
-    using SPConstSpecializedExplicit
-        = std::shared_ptr<SpecializedExplicitAction const>;
+    using SPConstStepAction = std::shared_ptr<StepActionT const>;
     using VecBeginAction = std::vector<SPBegin>;
-    using VecSpecializedExplicitAction
-        = std::vector<SPConstSpecializedExplicit>;
+    using VecStepAction = std::vector<SPConstStepAction>;
     using VecDouble = std::vector<double>;
     //!@}
-
-    // Verify that we have a valid explicit action type for the given Params
-    static_assert(
-        std::is_base_of_v<StepActionInterface, SpecializedExplicitAction>,
-        "ParamTraits<Params> explicit action must be derived from "
-        "StepActionInterface");
 
     //! Construction/execution options
     struct Options
@@ -87,7 +78,7 @@ class ActionSequence
     VecBeginAction const& begin_run_actions() const { return begin_run_; }
 
     //! Get the ordered vector of actions in the sequence
-    VecSpecializedExplicitAction const& actions() const { return actions_; }
+    VecStepAction const& actions() const { return actions_; }
 
     //! Get the corresponding accumulated time, if 'sync' or host called
     VecDouble const& accum_time() const { return accum_time_; }
@@ -95,7 +86,7 @@ class ActionSequence
   private:
     Options options_;
     VecBeginAction begin_run_;
-    VecSpecializedExplicitAction actions_;
+    VecStepAction actions_;
     VecDouble accum_time_;
     std::shared_ptr<StatusChecker const> status_checker_;
 };

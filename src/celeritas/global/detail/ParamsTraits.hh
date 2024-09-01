@@ -13,7 +13,6 @@ namespace celeritas
 class CoreParams;
 template<MemSpace M>
 class CoreState;
-class CoreStepActionInterface;
 
 // TODO: Add optical params and state
 
@@ -31,8 +30,6 @@ struct ParamsTraits<CoreParams>
 {
     template<MemSpace M>
     using State = CoreState<M>;
-
-    using ExplicitAction = CoreStepActionInterface;
 };
 
 // TODO: add explicit template instantiation of ParamsTraits for optical data

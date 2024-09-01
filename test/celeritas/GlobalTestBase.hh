@@ -21,10 +21,12 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 
+template<class P, template<MemSpace M> class S>
+class StepActionInterface;
+
 class ActionRegistry;
 class AtomicRelaxationParams;
 class CutoffParams;
-class CoreStepActionInterface;
 class GeoMaterialParams;
 class MaterialParams;
 class ParticleParams;
@@ -35,6 +37,8 @@ class AuxParamsRegistry;
 class WentzelOKVIParams;
 
 class CoreParams;
+template<MemSpace M>
+class CoreState;
 class OutputRegistry;
 
 namespace optical
@@ -61,6 +65,7 @@ class GlobalTestBase : public Test
     //! \name Type aliases
     template<class T>
     using SP = std::shared_ptr<T>;
+    using CoreStepActionInterface = StepActionInterface<CoreParams, CoreState>;
 
     using SPConstGeo = SP<GeoParams const>;
     using SPConstMaterial = SP<MaterialParams const>;

@@ -107,7 +107,7 @@ ActionId find_along_step_id(ActionRegistry const& reg)
         // Get abstract action shared pointer and see if it's explicit
         auto const& base = reg.action(ActionId{aidx});
         if (auto expl
-            = std::dynamic_pointer_cast<StepActionInterface const>(base))
+            = std::dynamic_pointer_cast<CoreStepActionInterface const>(base))
         {
             if (expl->order() == StepActionOrder::along)
             {

@@ -107,25 +107,13 @@ class BeginRunActionInterface : public virtual ActionInterface
 
 //---------------------------------------------------------------------------//
 /*!
- * Interface for an action that launches a kernel or performs an action.
+ * Interface for kernel actions in a stepping loop.
  *
- * TODO: rename to OrderedAction, SequenceAction, StepAction, ... ? since these
- * are the actions that \em always are executed exactly once per step.
+ * \tparam P Core param class
+ * \tparam S Core state class
  */
+template<class P, template<MemSpace M> class S>
 class StepActionInterface : public virtual ActionInterface
-{
-  public:
-    //! Dependency ordering of the action
-    virtual StepActionOrder order() const = 0;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Interface for kernel actions on the main tracking loop.
- *
- * TODO: Template this on 'Core' and 'Optical' and ...
- */
-class CoreStepActionInterface : public virtual StepActionInterface
 {
   public:
     //@{
@@ -135,6 +123,9 @@ class CoreStepActionInterface : public virtual StepActionInterface
     //@}
 
   public:
+    //! Dependency ordering of the action
+    virtual StepActionOrder order() const = 0;
+
     //! Execute the action with host data
     virtual void execute(CoreParams const&, CoreStateHost&) const = 0;
 
@@ -142,27 +133,12 @@ class CoreStepActionInterface : public virtual StepActionInterface
     virtual void execute(CoreParams const&, CoreStateDevice&) const = 0;
 };
 
-//---------------------------------------------------------------------------//
-/*!
- * Interface for kernel actions on the optical tracking loop.
- */
-class OpticalStepActionInterface : public virtual StepActionInterface
-{
-  public:
-    //@{
-    //! \name Type aliases
-    using CoreParams = optical::CoreParams;
-    using CoreStateHost = optical::CoreState<MemSpace::host>;
-    using CoreStateDevice = optical::CoreState<MemSpace::device>;
-    //@}
+//! Action interface for core stepping loop
+using CoreStepActionInterface = StepActionInterface<CoreParams, CoreState>;
 
-  public:
-    //! Execute the action with host data
-    virtual void execute(CoreParams const&, CoreStateHost&) const = 0;
-
-    //! Execute the action with device data
-    virtual void execute(CoreParams const&, CoreStateDevice&) const = 0;
-};
+//! Action interface for optical stepping loop
+using OpticalStepActionInterface
+    = StepActionInterface<optical::CoreParams, optical::CoreState>;
 
 //---------------------------------------------------------------------------//
 /*!

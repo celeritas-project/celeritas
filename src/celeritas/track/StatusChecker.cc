@@ -138,7 +138,7 @@ void StatusChecker::begin_run_impl(CoreParams const& params)
         // Get abstract action shared pointer and see if it's explicit
         auto const& base = reg.action(ActionId{aidx});
         if (auto const* expl
-            = dynamic_cast<StepActionInterface const*>(base.get()))
+            = dynamic_cast<CoreStepActionInterface const*>(base.get()))
         {
             build_orders.push_back(expl->order());
         }
