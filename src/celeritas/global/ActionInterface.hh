@@ -27,6 +27,10 @@ using CoreBeginRunActionInterface
 //! Action interface for core stepping loop
 using CoreStepActionInterface = StepActionInterface<CoreParams, CoreState>;
 
+// TODO: Remove in v0.6
+using ActionOrder [[deprecated]] = StepActionOrder;
+using ExplicitCoreActionInterface [[deprecated]] = CoreStepActionInterface;
+
 //---------------------------------------------------------------------------//
 // HELPER STRUCTS
 //---------------------------------------------------------------------------//
