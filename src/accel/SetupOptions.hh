@@ -14,13 +14,13 @@
 #include <vector>
 
 #include "celeritas/Types.hh"
+#include "celeritas/global/ActionInterface.hh"
 
 class G4LogicalVolume;
 
 namespace celeritas
 {
 struct AlongStepFactoryInput;
-class CoreStepActionInterface;
 //---------------------------------------------------------------------------//
 /*!
  * Control options for initializing Celeritas SD callbacks.

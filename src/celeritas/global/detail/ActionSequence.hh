@@ -42,7 +42,7 @@ class ActionSequence
     template<MemSpace M>
     using State = typename ParamsTraits<Params>::template State<M>;
     using StepActionT = StepActionInterface<Params, State>;
-    using SPBegin = std::shared_ptr<BeginRunActionInterface>;
+    using SPBegin = std::shared_ptr<CoreBeginRunActionInterface>;
     using SPConstStepAction = std::shared_ptr<StepActionT const>;
     using VecBeginAction = std::vector<SPBegin>;
     using VecStepAction = std::vector<SPConstStepAction>;

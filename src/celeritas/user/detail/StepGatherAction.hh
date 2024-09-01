@@ -17,6 +17,7 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/global/CoreTrackDataFwd.hh"
 
 #include "StepStorage.hh"
 #include "../StepData.hh"

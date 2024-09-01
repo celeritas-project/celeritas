@@ -20,7 +20,7 @@ namespace celeritas
  * simulation output: it is only useful for accelerator optimizations.
  */
 class SortTracksAction final : public CoreStepActionInterface,
-                               public BeginRunActionInterface
+                               public CoreBeginRunActionInterface
 {
   public:
     //@{

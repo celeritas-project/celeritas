@@ -13,8 +13,6 @@
 
 #include "celeritas/Types.hh"  // IWYU pragma: export
 
-#include "CoreTrackDataFwd.hh"  // IWYU pragma: export
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -89,6 +87,7 @@ class ActionInterface
  * If the class itself--rather than the state--needs initialization, try to
  * initialize in the constructor and avoid using this interface if possible.
  */
+template<class P, template<MemSpace M> class S>
 class BeginRunActionInterface : public virtual ActionInterface
 {
   public:
@@ -105,6 +104,10 @@ class BeginRunActionInterface : public virtual ActionInterface
     virtual void begin_run(CoreParams const&, CoreStateDevice&) = 0;
 };
 
+//! Action interface for core stepping loop
+using CoreBeginRunActionInterface
+    = BeginRunActionInterface<CoreParams, CoreState>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Interface for kernel actions in a stepping loop.
@@ -118,12 +121,13 @@ class StepActionInterface : public virtual ActionInterface
   public:
     //@{
     //! \name Type aliases
-    using CoreStateHost = CoreState<MemSpace::host>;
-    using CoreStateDevice = CoreState<MemSpace::device>;
+    using CoreParams = P;
+    using CoreStateHost = S<MemSpace::host>;
+    using CoreStateDevice = S<MemSpace::device>;
     //@}
 
   public:
-    //! Dependency ordering of the action
+    //! Dependency ordering of the action inside the step
     virtual StepActionOrder order() const = 0;
 
     //! Execute the action with host data

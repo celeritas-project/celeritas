@@ -18,7 +18,7 @@ namespace test
 //---------------------------------------------------------------------------//
 
 class MyExplicitAction final : public CoreStepActionInterface,
-                               public BeginRunActionInterface
+                               public CoreBeginRunActionInterface
 {
   public:
     //@{

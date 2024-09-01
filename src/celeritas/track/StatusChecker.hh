@@ -38,7 +38,7 @@ class CoreState;
  * ActionSequence itself, called after every action.
  */
 class StatusChecker final : public AuxParamsInterface,
-                            public BeginRunActionInterface,
+                            public CoreBeginRunActionInterface,
                             public ParamsDataInterface<StatusCheckParamsData>
 {
   public:

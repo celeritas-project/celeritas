@@ -58,7 +58,8 @@ ActionSequence<Params>::ActionSequence(ActionRegistry const& reg,
     // Loop over all mutable actions
     for (auto const& base : reg.mutable_actions())
     {
-        if (auto brun = std::dynamic_pointer_cast<BeginRunActionInterface>(base))
+        if (auto brun
+            = std::dynamic_pointer_cast<CoreBeginRunActionInterface>(base))
         {
             // Add beginning-of-run to the array
             begin_run_.emplace_back(std::move(brun));
