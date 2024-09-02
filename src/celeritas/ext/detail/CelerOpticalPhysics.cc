@@ -100,9 +100,9 @@ bool process_is_active(
     switch (process)
     {
         case OpticalProcessType::cerenkov:
-            return options.cerenkov;
+            return bool(options.cerenkov);
         case OpticalProcessType::scintillation:
-            return options.scintillation;
+            return bool(options.scintillation);
         case OpticalProcessType::absorption:
             return options.absorption;
         case OpticalProcessType::rayleigh:
@@ -110,7 +110,7 @@ bool process_is_active(
         case OpticalProcessType::mie_hg:
             return options.mie_scattering;
         case OpticalProcessType::boundary:
-            return options.boundary;
+            return bool(options.boundary);
         case OpticalProcessType::wavelength_shifting:
             return options.wavelength_shifting != WLSTimeProfileSelection::none;
         case OpticalProcessType::wavelength_shifting_2:
