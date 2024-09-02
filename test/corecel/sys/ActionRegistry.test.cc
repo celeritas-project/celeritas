@@ -35,13 +35,6 @@ class MyExplicitAction final : public MockStepActionInterface,
                                public MockBeginRunActionInterface
 {
   public:
-    //@{
-    //! \name Type aliases
-    using MockStepActionInterface::CoreStateDevice;
-    using MockStepActionInterface::CoreStateHost;
-    //@}
-
-  public:
     MyExplicitAction(ActionId ai, StepActionOrder ao)
         : action_id_(ai), order_{ao}
     {

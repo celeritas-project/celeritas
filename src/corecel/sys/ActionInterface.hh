@@ -105,6 +105,25 @@ class MutableActionInterface : public virtual ActionInterface
 
 //---------------------------------------------------------------------------//
 /*!
+ * Traits class for actions that modify or access params/state.
+ *
+ * Using a single base class's typedefs is necessary for some compilers to
+ * avoid an "ambiguous type alias" failure: "member 'CoreParams' found in
+ * multiple base classes of different types".
+ */
+template<class P, template<MemSpace M> class S>
+struct ActionTypeTraits
+{
+    //@{
+    //! \name Type aliases
+    using CoreParams = P;
+    using CoreStateHost = S<MemSpace::host>;
+    using CoreStateDevice = S<MemSpace::device>;
+    //@}
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Interface for updating states at the beginning of the simulation.
  *
  * This is necessary for some classes that require deferred initialization
@@ -115,17 +134,14 @@ class MutableActionInterface : public virtual ActionInterface
  * initialize in the constructor and avoid using this interface if possible.
  */
 template<class P, template<MemSpace M> class S>
-class BeginRunActionInterface : public MutableActionInterface
+class BeginRunActionInterface : public ActionTypeTraits<P, S>,
+                                public MutableActionInterface
 {
   public:
-    //@{
-    //! \name Type aliases
-    using CoreParams = P;
-    using CoreStateHost = S<MemSpace::host>;
-    using CoreStateDevice = S<MemSpace::device>;
-    //@}
+    using typename ActionTypeTraits<P, S>::CoreParams;
+    using typename ActionTypeTraits<P, S>::CoreStateHost;
+    using typename ActionTypeTraits<P, S>::CoreStateDevice;
 
-  public:
     //! Set host data at the beginning of a run
     virtual void begin_run(CoreParams const&, CoreStateHost&) = 0;
     //! Set device data at the beginning of a run
@@ -140,17 +156,14 @@ class BeginRunActionInterface : public MutableActionInterface
  * \tparam S Core state class
  */
 template<class P, template<MemSpace M> class S>
-class StepActionInterface : public virtual ActionInterface
+class StepActionInterface : public ActionTypeTraits<P, S>,
+                            public virtual ActionInterface
 {
   public:
-    //@{
-    //! \name Type aliases
-    using CoreParams = P;
-    using CoreStateHost = S<MemSpace::host>;
-    using CoreStateDevice = S<MemSpace::device>;
-    //@}
+    using typename ActionTypeTraits<P, S>::CoreParams;
+    using typename ActionTypeTraits<P, S>::CoreStateHost;
+    using typename ActionTypeTraits<P, S>::CoreStateDevice;
 
-  public:
     //! Dependency ordering of the action inside the step
     virtual StepActionOrder order() const = 0;
 

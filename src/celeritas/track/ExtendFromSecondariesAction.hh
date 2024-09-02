@@ -72,14 +72,6 @@ class ExtendFromSecondariesAction final : public CoreStepActionInterface,
                                           public CoreBeginRunActionInterface
 {
   public:
-    //@{
-    //! \name Type aliases
-    using CoreStepActionInterface::CoreParams;
-    using CoreStepActionInterface::CoreStateDevice;
-    using CoreStepActionInterface::CoreStateHost;
-    //@}
-
-  public:
     //! Construct with explicit Id
     explicit ExtendFromSecondariesAction(ActionId id) : id_(id) {}
 
