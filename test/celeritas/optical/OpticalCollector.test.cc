@@ -155,9 +155,9 @@ auto LArSphereOffloadTest::build_along_step() -> SPConstAction
 void LArSphereOffloadTest::build_optical_collector()
 {
     OpticalCollector::Input inp;
+    inp.material = this->optical_material();
     if (use_cerenkov_)
     {
-        inp.material = this->optical_material();
         inp.cerenkov = this->cerenkov();
     }
     if (use_scintillation_)

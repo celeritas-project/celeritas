@@ -73,9 +73,9 @@ CoreScalars build_actions(ActionRegistry* reg)
 
     //// POST-STEP ACTIONS ////
 
-#if 0
     // Construct geometry boundary action
     scalars.boundary_action = reg->next_id();
+#if 0
     reg->insert(make_shared<detail::BoundaryAction>(
         scalars.boundary_action));
 #endif

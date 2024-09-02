@@ -79,7 +79,7 @@ class OpticalCollector
         //! True if all input is assigned and valid
         explicit operator bool() const
         {
-            return (scintillation || (cerenkov && material))
+            return material && (scintillation || cerenkov)
                    && buffer_capacity > 0;
         }
     };

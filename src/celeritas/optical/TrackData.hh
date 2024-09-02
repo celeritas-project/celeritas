@@ -34,13 +34,13 @@ struct PhysicsParamsData
 template<Ownership W, MemSpace M>
 struct PhysicsStateData
 {
-    explicit CELER_FUNCTION operator bool() const { return false; }
+    explicit CELER_FUNCTION operator bool() const { return true; }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
     PhysicsStateData& operator=(PhysicsStateData<W2, M2>&)
     {
-        CELER_ASSERT_UNREACHABLE();
+        return *this;
     }
 };
 
@@ -49,7 +49,6 @@ inline void resize(PhysicsStateData<Ownership::value, M>*,
                    HostCRef<PhysicsParamsData> const&,
                    size_type)
 {
-    CELER_NOT_IMPLEMENTED("optical physics state");
 }
 
 // XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX
@@ -136,7 +135,7 @@ struct CoreStateData
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && materials.empty() && physics && rng && sim && init
+        return geometry && !materials.empty() && physics && rng && sim && init
                && stream_id;
     }
 

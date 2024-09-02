@@ -115,6 +115,7 @@ CollectionStateStore<S, M>::CollectionStateStore(HostCRef<P> const& p,
     CELER_EXPECT(sid);
     CELER_EXPECT(size > 0);
     resize(&val_, p, sid, size);
+    CELER_ASSERT(val_);
 
     // Save reference
     ref_ = val_;
@@ -134,6 +135,7 @@ CollectionStateStore<S, M>::CollectionStateStore(HostCRef<P> const& p,
 {
     CELER_EXPECT(size > 0);
     resize(&val_, p, size);
+    CELER_ASSERT(val_);
 
     // Save reference
     ref_ = val_;
@@ -151,6 +153,7 @@ CollectionStateStore<S, M>::CollectionStateStore(size_type size)
 {
     CELER_EXPECT(size > 0);
     resize(&val_, size);
+    CELER_ASSERT(val_);
 
     // Save reference
     ref_ = val_;
@@ -181,6 +184,7 @@ CollectionStateStore<S, M>::CollectionStateStore(S<W2, M2> const& other)
     // Assign using const-cast because state copy operators have to be mutable
     // even when they're just copying...
     val_ = const_cast<S<W2, M2>&>(other);
+    CELER_ASSERT(val_);
     // Save reference
     ref_ = val_;
 }
@@ -197,6 +201,7 @@ auto CollectionStateStore<S, M>::operator=(S<W2, M2> const& other)
     CELER_EXPECT(other);
     // Assign
     val_ = const_cast<S<W2, M2>&>(other);
+    CELER_ASSERT(val_);
     // Save reference
     ref_ = val_;
     return *this;
