@@ -74,6 +74,7 @@ class ExtendFromSecondariesAction final : public CoreStepActionInterface,
   public:
     //@{
     //! \name Type aliases
+    using CoreStepActionInterface::CoreParams;
     using CoreStepActionInterface::CoreStateDevice;
     using CoreStepActionInterface::CoreStateHost;
     //@}
