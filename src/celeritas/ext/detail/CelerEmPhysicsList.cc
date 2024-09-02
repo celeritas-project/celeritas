@@ -34,9 +34,9 @@ CelerEmPhysicsList::CelerEmPhysicsList(Options const& options)
     auto em_standard = std::make_unique<CelerEmStandardPhysics>(options);
     RegisterPhysics(em_standard.release());
 
-    // Celeritas-supported Optical Physics
     if (options.optical)
     {
+        // Celeritas-supported Optical Physics
         auto optical_physics
             = std::make_unique<CelerOpticalPhysics>(options.optical);
         RegisterPhysics(optical_physics.release());
