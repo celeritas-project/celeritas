@@ -30,7 +30,7 @@ struct Primary;
 
 namespace detail
 {
-template<class Params>
+template<class P, template<MemSpace M> class S>
 class ActionSequence;
 }
 
@@ -79,7 +79,7 @@ class StepperInterface
     //!@{
     //! \name Type aliases
     using Input = StepperInput;
-    using ActionSequence = detail::ActionSequence<CoreParams>;
+    using ActionSequence = detail::ActionSequence<CoreParams, CoreState>;
     using SpanConstPrimary = Span<Primary const>;
     using result_type = StepperResult;
     //!@}

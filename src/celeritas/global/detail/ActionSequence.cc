@@ -22,6 +22,7 @@
 #include "corecel/sys/Stopwatch.hh"
 #include "corecel/sys/Stream.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/track/StatusChecker.hh"
 
 #include "../ActionInterface.hh"
@@ -36,9 +37,8 @@ namespace detail
 /*!
  * Construct from an action registry and sequence options.
  */
-template<class Params>
-ActionSequence<Params>::ActionSequence(ActionRegistry const& reg,
-                                       Options options)
+template<class P, template<MemSpace M> class S>
+ActionSequence<P, S>::ActionSequence(ActionRegistry const& reg, Options options)
     : options_(std::move(options))
 {
     actions_.reserve(reg.num_actions());
@@ -47,10 +47,11 @@ ActionSequence<Params>::ActionSequence(ActionRegistry const& reg,
     {
         // Get abstract action shared pointer to determine type
         auto const& base = reg.action(ActionId{aidx});
-        if (auto expl = std::dynamic_pointer_cast<StepActionT const>(base))
+        static_assert(std::is_same_v<StepActionT, CoreStepActionInterface>);
+        if (auto step_act = std::dynamic_pointer_cast<StepActionT const>(base))
         {
             // Add stepping action to our array
-            actions_.push_back(std::move(expl));
+            actions_.push_back(std::move(step_act));
         }
     }
 
@@ -97,9 +98,9 @@ ActionSequence<Params>::ActionSequence(ActionRegistry const& reg,
 /*!
  * Initialize actions and states.
  */
-template<class Params>
+template<class P, template<MemSpace M> class S>
 template<MemSpace M>
-void ActionSequence<Params>::begin_run(Params const& params, State<M>& state)
+void ActionSequence<P, S>::begin_run(P const& params, S<M>& state)
 {
     for (auto const& sp_action : begin_run_)
     {
@@ -112,9 +113,9 @@ void ActionSequence<Params>::begin_run(Params const& params, State<M>& state)
 /*!
  * Call all explicit actions with host or device data.
  */
-template<class Params>
+template<class P, template<MemSpace M> class S>
 template<MemSpace M>
-void ActionSequence<Params>::step(Params const& params, State<M>& state)
+void ActionSequence<P, S>::step(P const& params, S<M>& state)
 {
     [[maybe_unused]] Stream::StreamT stream = nullptr;
     if (M == MemSpace::device && options_.action_times)
@@ -122,7 +123,7 @@ void ActionSequence<Params>::step(Params const& params, State<M>& state)
         stream = celeritas::device().stream(state.stream_id()).get();
     }
 
-    if constexpr (M == MemSpace::host && std::is_same_v<CoreParams, Params>)
+    if constexpr (M == MemSpace::host && std::is_same_v<CoreParams, P>)
     {
         if (status_checker_)
         {
@@ -181,8 +182,7 @@ void ActionSequence<Params>::step(Params const& params, State<M>& state)
         }
     }
 
-    if (M == MemSpace::host
-        && std::is_same_v<CoreParams, Params> && status_checker_)
+    if (M == MemSpace::host && std::is_same_v<CoreParams, P> && status_checker_)
     {
         g_debug_executing_params = nullptr;
     }
@@ -192,17 +192,21 @@ void ActionSequence<Params>::step(Params const& params, State<M>& state)
 // Explicit template instantiation
 //---------------------------------------------------------------------------//
 
-template class ActionSequence<CoreParams>;
-
-template void ActionSequence<CoreParams>::begin_run(CoreParams const&,
-                                                    State<MemSpace::host>&);
-template void ActionSequence<CoreParams>::begin_run(CoreParams const&,
-                                                    State<MemSpace::device>&);
+template class ActionSequence<CoreParams, CoreState>;
 
 template void
-ActionSequence<CoreParams>::step(CoreParams const&, State<MemSpace::host>&);
+ActionSequence<CoreParams, CoreState>::begin_run(CoreParams const&,
+                                                 CoreState<MemSpace::host>&);
 template void
-ActionSequence<CoreParams>::step(CoreParams const&, State<MemSpace::device>&);
+ActionSequence<CoreParams, CoreState>::begin_run(CoreParams const&,
+                                                 CoreState<MemSpace::device>&);
+
+template void
+ActionSequence<CoreParams, CoreState>::step(CoreParams const&,
+                                            CoreState<MemSpace::host>&);
+template void
+ActionSequence<CoreParams, CoreState>::step(CoreParams const&,
+                                            CoreState<MemSpace::device>&);
 
 // TODO: add explicit template instantiation of execute for optical data
 

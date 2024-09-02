@@ -13,7 +13,6 @@
 
 #include "corecel/Types.hh"
 
-#include "ParamsTraits.hh"
 #include "../ActionInterface.hh"
 #include "../CoreTrackDataFwd.hh"
 
@@ -33,16 +32,15 @@ namespace detail
  * TODO accessors here are used by diagnostic output from celer-sim etc.;
  * perhaps make this public or add a diagnostic output for it?
  */
-template<class Params>
+template<class P, template<MemSpace M> class S>
 class ActionSequence
 {
   public:
     //!@{
     //! \name Type aliases
-    template<MemSpace M>
-    using State = typename ParamsTraits<Params>::template State<M>;
-    using StepActionT = StepActionInterface<Params, State>;
-    using SPBegin = std::shared_ptr<CoreBeginRunActionInterface>;
+    using BeginRunActionT = BeginRunActionInterface<P, S>;
+    using StepActionT = StepActionInterface<P, S>;
+    using SPBegin = std::shared_ptr<BeginRunActionT>;
     using SPConstStepAction = std::shared_ptr<StepActionT const>;
     using VecBeginAction = std::vector<SPBegin>;
     using VecStepAction = std::vector<SPConstStepAction>;
@@ -63,11 +61,11 @@ class ActionSequence
 
     // Launch all actions with the given memory space.
     template<MemSpace M>
-    void begin_run(Params const& params, State<M>& state);
+    void begin_run(P const& params, S<M>& state);
 
     // Launch all actions with the given memory space.
     template<MemSpace M>
-    void step(Params const&, State<M>& state);
+    void step(P const&, S<M>& state);
 
     //// ACCESSORS ////
 
