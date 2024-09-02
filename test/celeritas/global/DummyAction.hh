@@ -56,8 +56,8 @@ class DummyAction final : public CoreStepActionInterface, public ConcreteAction
                 std::string&& label,
                 AuxId aux);
 
-    void execute(CoreParams const&, CoreStateHost& state) const final;
-    void execute(CoreParams const&, CoreStateDevice& state) const final;
+    void step(CoreParams const&, CoreStateHost& state) const final;
+    void step(CoreParams const&, CoreStateDevice& state) const final;
 
     StepActionOrder order() const final { return order_; }
 
@@ -66,7 +66,7 @@ class DummyAction final : public CoreStepActionInterface, public ConcreteAction
     AuxId aux_id_;
 
     // Add the action order
-    void execute_impl(DummyState& state) const;
+    void step_impl(DummyState& state) const;
 };
 
 //---------------------------------------------------------------------------//

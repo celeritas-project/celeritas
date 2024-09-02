@@ -99,10 +99,10 @@ class StatusCheckerTest : public SimpleTestBase
         // Execute the action
         dynamic_cast<CoreStepActionInterface const&>(
             *this->action_reg()->action(id))
-            .execute(*this->core(), state);
+            .step(*this->core(), state);
 
         // Run the status checker
-        status_checker_->execute(id, *this->core(), state);
+        status_checker_->step(id, *this->core(), state);
     }
 
     template<MemSpace M>
@@ -115,7 +115,7 @@ class StatusCheckerTest : public SimpleTestBase
         std::string actual_message;
         try
         {
-            status_checker_->execute(id, *this->core(), state);
+            status_checker_->step(id, *this->core(), state);
         }
         catch (RichContextException const& e)
         {
@@ -228,10 +228,10 @@ TEST_F(StatusCheckerTest, TEST_IF_CELER_DEVICE(device))
         GTEST_SKIP() << "HIP debug calls 'abort' rather than asserting";
     }
 
-    EXPECT_THROW(
-        status_checker_->execute(
-            this->find_action("scat-klein-nishina"), *this->core(), state),
-        RuntimeError);
+    EXPECT_THROW(status_checker_->step(this->find_action("scat-klein-nishina"),
+                                       *this->core(),
+                                       state),
+                 RuntimeError);
 }
 
 //---------------------------------------------------------------------------//

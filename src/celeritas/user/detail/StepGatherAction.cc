@@ -52,8 +52,8 @@ StepGatherAction<P>::StepGatherAction(ActionId id,
  * Gather step attributes from host data, and execute callbacks at end of step.
  */
 template<StepPoint P>
-void StepGatherAction<P>::execute(CoreParams const& params,
-                                  CoreStateHost& state) const
+void StepGatherAction<P>::step(CoreParams const& params,
+                               CoreStateHost& state) const
 {
     auto const& step_state = storage_->obj.state<MemSpace::native>(
         state.stream_id(), state.size());
@@ -77,7 +77,7 @@ void StepGatherAction<P>::execute(CoreParams const& params,
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 template<StepPoint P>
-void StepGatherAction<P>::execute(CoreParams const&, CoreStateDevice&) const
+void StepGatherAction<P>::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

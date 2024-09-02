@@ -193,7 +193,7 @@ class PartitionDataTest : public TestEm3NoMsc, public TrackSortTestBase
                 this->action_reg()->action(action_id).get());
             CELER_ASSERT(action);
 
-            action->execute(*this->core(), state);
+            action->step(*this->core(), state);
         };
 
         auto primaries = this->make_primaries(num_primaries);
@@ -248,7 +248,7 @@ TEST_F(TestEm3NoMsc, host_is_sorting)
         auto action = dynamic_cast<CoreStepActionInterface const*>(
             this->action_reg()->action(action_id).get());
         CELER_VALIDATE(action, << "action '" << label << "' cannot execute");
-        CELER_TRY_HANDLE(action->execute(*this->core(), state),
+        CELER_TRY_HANDLE(action->step(*this->core(), state),
                          LogContextException{this->output_reg().get()});
     };
 

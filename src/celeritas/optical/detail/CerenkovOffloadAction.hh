@@ -50,10 +50,10 @@ class CerenkovOffloadAction final : public CoreStepActionInterface
                           SPConstCerenkov cerenkov);
 
     // Launch kernel with host data
-    void execute(CoreParams const&, CoreStateHost&) const final;
+    void step(CoreParams const&, CoreStateHost&) const final;
 
     // Launch kernel with device data
-    void execute(CoreParams const&, CoreStateDevice&) const final;
+    void step(CoreParams const&, CoreStateDevice&) const final;
 
     //! ID of the model
     ActionId action_id() const final { return id_; }
@@ -78,7 +78,7 @@ class CerenkovOffloadAction final : public CoreStepActionInterface
     //// HELPER FUNCTIONS ////
 
     template<MemSpace M>
-    void execute_impl(CoreParams const&, CoreState<M>&) const;
+    void step_impl(CoreParams const&, CoreState<M>&) const;
 
     void pre_generate(CoreParams const&, CoreStateHost&) const;
     void pre_generate(CoreParams const&, CoreStateDevice&) const;

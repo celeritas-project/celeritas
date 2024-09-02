@@ -27,20 +27,20 @@ namespace celeritas
 /*!
  * Execute the action with host data.
  */
-void InitializeTracksAction::execute(CoreParams const& params,
-                                     CoreStateHost& state) const
+void InitializeTracksAction::step(CoreParams const& params,
+                                  CoreStateHost& state) const
 {
-    return this->execute_impl(params, state);
+    return this->step_impl(params, state);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Execute the action with device data.
  */
-void InitializeTracksAction::execute(CoreParams const& params,
-                                     CoreStateDevice& state) const
+void InitializeTracksAction::step(CoreParams const& params,
+                                  CoreStateDevice& state) const
 {
-    return this->execute_impl(params, state);
+    return this->step_impl(params, state);
 }
 
 //---------------------------------------------------------------------------//
@@ -53,8 +53,8 @@ void InitializeTracksAction::execute(CoreParams const& params,
  * any track initializers remaining from previous steps using the position.
  */
 template<MemSpace M>
-void InitializeTracksAction::execute_impl(CoreParams const& core_params,
-                                          CoreState<M>& core_state) const
+void InitializeTracksAction::step_impl(CoreParams const& core_params,
+                                       CoreState<M>& core_state) const
 {
     auto& counters = core_state.counters();
 
@@ -79,7 +79,7 @@ void InitializeTracksAction::execute_impl(CoreParams const& core_params,
         }
 
         // Launch a kernel to initialize tracks
-        this->execute_impl(core_params, core_state, num_new_tracks);
+        this->step_impl(core_params, core_state, num_new_tracks);
 
         // Update initializers/vacancies
         counters.num_initializers -= num_new_tracks;
@@ -103,9 +103,9 @@ void InitializeTracksAction::execute_impl(CoreParams const& core_params,
  * The thread index here corresponds to initializer indices, not track slots
  * (or indicies into the track slot indirection array).
  */
-void InitializeTracksAction::execute_impl(CoreParams const& core_params,
-                                          CoreStateHost& core_state,
-                                          size_type num_new_tracks) const
+void InitializeTracksAction::step_impl(CoreParams const& core_params,
+                                       CoreStateHost& core_state,
+                                       size_type num_new_tracks) const
 {
     MultiExceptionHandler capture_exception;
     detail::InitTracksExecutor execute_thread{
@@ -125,9 +125,9 @@ void InitializeTracksAction::execute_impl(CoreParams const& core_params,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void InitializeTracksAction::execute_impl(CoreParams const&,
-                                          CoreStateDevice&,
-                                          size_type) const
+void InitializeTracksAction::step_impl(CoreParams const&,
+                                       CoreStateDevice&,
+                                       size_type) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

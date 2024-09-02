@@ -20,8 +20,7 @@ namespace celeritas
 /*!
  * Interact with device data.
  */
-void ICRU73QOModel::execute(CoreParams const& params,
-                            CoreStateDevice& state) const
+void ICRU73QOModel::step(CoreParams const& params, CoreStateDevice& state) const
 {
     auto execute = make_action_track_executor(
         params.ptr<MemSpace::native>(),

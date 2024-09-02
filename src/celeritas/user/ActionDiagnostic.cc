@@ -76,8 +76,7 @@ void ActionDiagnostic::begin_run(CoreParams const& params, CoreStateDevice&)
 /*!
  * Execute action with host data.
  */
-void ActionDiagnostic::execute(CoreParams const& params,
-                               CoreStateHost& state) const
+void ActionDiagnostic::step(CoreParams const& params, CoreStateHost& state) const
 {
     auto execute = make_active_track_executor(
         params.ptr<MemSpace::native>(),
@@ -234,7 +233,7 @@ void ActionDiagnostic::begin_run_impl(CoreParams const& params)
 //---------------------------------------------------------------------------//
 
 #if !CELER_USE_DEVICE
-void ActionDiagnostic::execute(CoreParams const&, CoreStateDevice&) const
+void ActionDiagnostic::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

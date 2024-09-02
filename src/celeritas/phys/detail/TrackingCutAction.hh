@@ -27,10 +27,10 @@ class TrackingCutAction final : public CoreStepActionInterface,
     explicit TrackingCutAction(ActionId);
 
     // Launch kernel with host data
-    void execute(CoreParams const&, CoreStateHost&) const final;
+    void step(CoreParams const&, CoreStateHost&) const final;
 
     // Launch kernel with device data
-    void execute(CoreParams const&, CoreStateDevice&) const final;
+    void step(CoreParams const&, CoreStateDevice&) const final;
 
     //! Dependency ordering of the action
     StepActionOrder order() const final { return StepActionOrder::post; }

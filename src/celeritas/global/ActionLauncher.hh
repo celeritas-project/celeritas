@@ -27,7 +27,7 @@ namespace celeritas
  *
  * Example:
  * \code
- void FooHelper::execute(CoreParams const& params,
+ void FooHelper::step(CoreParams const& params,
                          CoreStateHost& state) const
  {
     launch_core(params, state, "foo-helper", make_blah_executor(blah));
@@ -61,7 +61,7 @@ void launch_core(std::string_view label,
  *
  * Example:
  * \code
- void FooAction::execute(CoreParams const& params,
+ void FooAction::step(CoreParams const& params,
                          CoreStateHost& state) const
  {
     launch_action(*this, params, state, make_blah_executor(blah));

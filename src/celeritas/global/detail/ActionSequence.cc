@@ -114,7 +114,7 @@ void ActionSequence<Params>::begin_run(Params const& params, State<M>& state)
  */
 template<class Params>
 template<MemSpace M>
-void ActionSequence<Params>::execute(Params const& params, State<M>& state)
+void ActionSequence<Params>::step(Params const& params, State<M>& state)
 {
     [[maybe_unused]] Stream::StreamT stream = nullptr;
     if (M == MemSpace::device && options_.action_times)
@@ -151,7 +151,7 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
             {
                 ScopedProfiling profile_this{action.label()};
                 Stopwatch get_time;
-                action.execute(params, state);
+                action.step(params, state);
                 if constexpr (M == MemSpace::device)
                 {
                     CELER_DEVICE_CALL_PREFIX(StreamSynchronize(stream));
@@ -159,7 +159,7 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
                 accum_time_[i] += get_time();
                 if (CELER_UNLIKELY(status_checker_))
                 {
-                    status_checker_->execute(action.action_id(), params, state);
+                    status_checker_->step(action.action_id(), params, state);
                 }
             }
         }
@@ -172,10 +172,10 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
             if (auto const& action = *sp_action; !skip_post_action(action))
             {
                 ScopedProfiling profile_this{action.label()};
-                action.execute(params, state);
+                action.step(params, state);
                 if (CELER_UNLIKELY(status_checker_))
                 {
-                    status_checker_->execute(action.action_id(), params, state);
+                    status_checker_->step(action.action_id(), params, state);
                 }
             }
         }
@@ -200,9 +200,9 @@ template void ActionSequence<CoreParams>::begin_run(CoreParams const&,
                                                     State<MemSpace::device>&);
 
 template void
-ActionSequence<CoreParams>::execute(CoreParams const&, State<MemSpace::host>&);
-template void ActionSequence<CoreParams>::execute(CoreParams const&,
-                                                  State<MemSpace::device>&);
+ActionSequence<CoreParams>::step(CoreParams const&, State<MemSpace::host>&);
+template void
+ActionSequence<CoreParams>::step(CoreParams const&, State<MemSpace::device>&);
 
 // TODO: add explicit template instantiation of execute for optical data
 

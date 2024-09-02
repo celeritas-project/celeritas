@@ -168,10 +168,10 @@ class StepActionInterface : public ActionTypeTraits<P, S>,
     virtual StepActionOrder order() const = 0;
 
     //! Execute the action with host data
-    virtual void execute(CoreParams const&, CoreStateHost&) const = 0;
+    virtual void step(CoreParams const&, CoreStateHost&) const = 0;
 
     //! Execute the action with device data
-    virtual void execute(CoreParams const&, CoreStateDevice&) const = 0;
+    virtual void step(CoreParams const&, CoreStateDevice&) const = 0;
 };
 
 //---------------------------------------------------------------------------//
@@ -187,8 +187,8 @@ class StepActionInterface : public ActionTypeTraits<P, S>,
       // Construct with ID and label
       using ConcreteAction::ConcreteAction;
 
-      void execute(CoreParams const&, CoreStateHost&) const final;
-      void execute(CoreParams const&, CoreStateDevice&) const final;
+      void step(CoreParams const&, CoreStateHost&) const final;
+      void step(CoreParams const&, CoreStateDevice&) const final;
 
       StepActionOrder order() const final { return StepActionOrder::post; }
   };

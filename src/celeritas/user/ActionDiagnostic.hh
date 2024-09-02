@@ -79,9 +79,9 @@ class ActionDiagnostic final : public CoreStepActionInterface,
     //!@{
     //! \name ExplicitAction interface
     // Launch kernel with host data
-    void execute(CoreParams const&, CoreStateHost&) const final;
+    void step(CoreParams const&, CoreStateHost&) const final;
     // Launch kernel with device data
-    void execute(CoreParams const&, CoreStateDevice&) const final;
+    void step(CoreParams const&, CoreStateDevice&) const final;
     //!@}
 
     //!@{

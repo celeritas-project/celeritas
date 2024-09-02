@@ -32,20 +32,20 @@ std::string_view ExtendFromSecondariesAction::description() const
 /*!
  * Execute the action with host data.
  */
-void ExtendFromSecondariesAction::execute(CoreParams const& params,
-                                          CoreStateHost& state) const
+void ExtendFromSecondariesAction::step(CoreParams const& params,
+                                       CoreStateHost& state) const
 {
-    return this->execute_impl(params, state);
+    return this->step_impl(params, state);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Execute the action with device data.
  */
-void ExtendFromSecondariesAction::execute(CoreParams const& params,
-                                          CoreStateDevice& state) const
+void ExtendFromSecondariesAction::step(CoreParams const& params,
+                                       CoreStateDevice& state) const
 {
-    return this->execute_impl(params, state);
+    return this->step_impl(params, state);
 }
 
 //---------------------------------------------------------------------------//
@@ -53,8 +53,8 @@ void ExtendFromSecondariesAction::execute(CoreParams const& params,
  * Initialize track states.
  */
 template<MemSpace M>
-void ExtendFromSecondariesAction::execute_impl(CoreParams const& core_params,
-                                               CoreState<M>& core_state) const
+void ExtendFromSecondariesAction::step_impl(CoreParams const& core_params,
+                                            CoreState<M>& core_state) const
 {
     TrackInitStateData<Ownership::reference, M>& init = core_state.ref().init;
     CoreStateCounters& counters = core_state.counters();

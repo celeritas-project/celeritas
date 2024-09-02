@@ -105,8 +105,8 @@ auto ChipsNeutronElasticModel::micro_xs(Applicability) const -> MicroXsBuilders
 /*!
  * Apply the interaction kernel.
  */
-void ChipsNeutronElasticModel::execute(CoreParams const& params,
-                                       CoreStateHost& state) const
+void ChipsNeutronElasticModel::step(CoreParams const& params,
+                                    CoreStateHost& state) const
 {
     auto execute = make_action_track_executor(
         params.ptr<MemSpace::native>(),
@@ -118,7 +118,7 @@ void ChipsNeutronElasticModel::execute(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void ChipsNeutronElasticModel::execute(CoreParams const&, CoreStateDevice&) const
+void ChipsNeutronElasticModel::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

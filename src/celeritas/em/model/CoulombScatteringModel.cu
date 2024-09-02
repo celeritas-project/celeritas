@@ -21,8 +21,8 @@ namespace celeritas
 /*!
  * Interact with device data.
  */
-void CoulombScatteringModel::execute(CoreParams const& params,
-                                     CoreStateDevice& state) const
+void CoulombScatteringModel::step(CoreParams const& params,
+                                  CoreStateDevice& state) const
 {
     CELER_EXPECT(params.wentzel());
 

@@ -52,7 +52,7 @@ namespace celeritas
  *
  * Example:
  * \code
- void FooAction::execute(CoreParams const& params,
+ void FooAction::step(CoreParams const& params,
                          CoreStateDevice& state) const
  {
     auto execute_thread = make_blah_executor(blah);

@@ -20,8 +20,8 @@ namespace celeritas
 /*!
  * Interact with device data.
  */
-void MuBetheBlochModel::execute(CoreParams const& params,
-                                CoreStateDevice& state) const
+void MuBetheBlochModel::step(CoreParams const& params,
+                             CoreStateDevice& state) const
 {
     auto execute = make_action_track_executor(
         params.ptr<MemSpace::native>(),

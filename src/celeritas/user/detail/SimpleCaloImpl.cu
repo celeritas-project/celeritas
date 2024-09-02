@@ -36,7 +36,7 @@ __global__ void simple_calo_accum_kernel(DeviceRef<StepStateData> const step,
         return;
 
     SimpleCaloExecutor execute{step, calo};
-    execute(tid);
+    step(tid);
 }
 
 //---------------------------------------------------------------------------//

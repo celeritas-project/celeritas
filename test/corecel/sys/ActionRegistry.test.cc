@@ -56,11 +56,8 @@ class MyExplicitAction final : public MockStepActionInterface,
         device_count_ = 0;
     }
 
-    void execute(CoreParams const&, CoreStateHost&) const final
-    {
-        ++host_count_;
-    }
-    void execute(CoreParams const&, CoreStateDevice&) const final
+    void step(CoreParams const&, CoreStateHost&) const final { ++host_count_; }
+    void step(CoreParams const&, CoreStateDevice&) const final
     {
         ++device_count_;
     }

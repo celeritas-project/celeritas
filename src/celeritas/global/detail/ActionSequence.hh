@@ -67,7 +67,7 @@ class ActionSequence
 
     // Launch all actions with the given memory space.
     template<MemSpace M>
-    void execute(Params const&, State<M>& state);
+    void step(Params const&, State<M>& state);
 
     //// ACCESSORS ////
 

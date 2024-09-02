@@ -29,10 +29,10 @@ class ExtendFromPrimariesAction final : public CoreStepActionInterface
     explicit ExtendFromPrimariesAction(ActionId id) : id_(id) {}
 
     // Execute the action with host data
-    void execute(CoreParams const& params, CoreStateHost& state) const final;
+    void step(CoreParams const& params, CoreStateHost& state) const final;
 
     // Execute the action with device data
-    void execute(CoreParams const& params, CoreStateDevice& state) const final;
+    void step(CoreParams const& params, CoreStateDevice& state) const final;
 
     //! ID of the action
     ActionId action_id() const final { return id_; }
@@ -53,7 +53,7 @@ class ExtendFromPrimariesAction final : public CoreStepActionInterface
     ActionId id_;
 
     template<MemSpace M>
-    void execute_impl(CoreParams const&, CoreState<M>&) const;
+    void step_impl(CoreParams const&, CoreState<M>&) const;
 
     void process_primaries(CoreParams const&,
                            CoreStateHost&,

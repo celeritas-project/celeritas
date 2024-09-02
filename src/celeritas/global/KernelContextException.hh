@@ -32,7 +32,7 @@ struct JsonPimpl;
  *
  * \code
     CELER_TRY_HANDLE_CONTEXT(
-        execute(ThreadId{i}),
+        step(ThreadId{i}),
         capture_exception,
         KernelContextException(data.params, data.states, ThreadId{i},
  this->label())

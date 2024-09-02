@@ -53,20 +53,20 @@ std::string_view ScintOffloadAction::description() const
 /*!
  * Execute the action with host data.
  */
-void ScintOffloadAction::execute(CoreParams const& params,
-                                 CoreStateHost& state) const
+void ScintOffloadAction::step(CoreParams const& params,
+                              CoreStateHost& state) const
 {
-    this->execute_impl(params, state);
+    this->step_impl(params, state);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Execute the action with device data.
  */
-void ScintOffloadAction::execute(CoreParams const& params,
-                                 CoreStateDevice& state) const
+void ScintOffloadAction::step(CoreParams const& params,
+                              CoreStateDevice& state) const
 {
-    this->execute_impl(params, state);
+    this->step_impl(params, state);
 }
 
 //---------------------------------------------------------------------------//
@@ -74,8 +74,8 @@ void ScintOffloadAction::execute(CoreParams const& params,
  * Generate optical distribution data post-step.
  */
 template<MemSpace M>
-void ScintOffloadAction::execute_impl(CoreParams const& core_params,
-                                      CoreState<M>& core_state) const
+void ScintOffloadAction::step_impl(CoreParams const& core_params,
+                                   CoreState<M>& core_state) const
 {
     auto& state = get<OpticalOffloadState<M>>(core_state.aux(), data_id_);
     auto& buffer = state.store.ref().scintillation;

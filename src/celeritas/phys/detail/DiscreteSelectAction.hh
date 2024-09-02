@@ -27,10 +27,10 @@ class DiscreteSelectAction final : public CoreStepActionInterface,
     explicit DiscreteSelectAction(ActionId);
 
     // Launch kernel with host data
-    void execute(CoreParams const&, CoreStateHost&) const final;
+    void step(CoreParams const&, CoreStateHost&) const final;
 
     // Launch kernel with device data
-    void execute(CoreParams const&, CoreStateDevice&) const final;
+    void step(CoreParams const&, CoreStateDevice&) const final;
 
     //! Dependency ordering of the action
     StepActionOrder order() const final { return StepActionOrder::pre_post; }
@@ -42,7 +42,7 @@ class DiscreteSelectAction final : public CoreStepActionInterface,
 
 #if !CELER_USE_DEVICE
 inline void
-DiscreteSelectAction::execute(CoreParams const&, CoreStateDevice&) const
+DiscreteSelectAction::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

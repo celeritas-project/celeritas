@@ -22,8 +22,7 @@ namespace detail
 /*!
  * Launch the pre-step action on device.
  */
-void PreStepAction::execute(CoreParams const& params,
-                            CoreStateDevice& state) const
+void PreStepAction::step(CoreParams const& params, CoreStateDevice& state) const
 {
     TrackExecutor execute{
         params.ptr<MemSpace::native>(), state.ptr(), PreStepExecutor{}};

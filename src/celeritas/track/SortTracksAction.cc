@@ -111,7 +111,7 @@ std::string_view SortTracksAction::label() const
 /*!
  * Execute the action with host data.
  */
-void SortTracksAction::execute(CoreParams const&, CoreStateHost& state) const
+void SortTracksAction::step(CoreParams const&, CoreStateHost& state) const
 {
     detail::sort_tracks(state.ref(), track_order_);
     if (is_sort_by_action(track_order_))
@@ -128,7 +128,7 @@ void SortTracksAction::execute(CoreParams const&, CoreStateHost& state) const
 /*!
  * Execute the action with device data.
  */
-void SortTracksAction::execute(CoreParams const&, CoreStateDevice& state) const
+void SortTracksAction::step(CoreParams const&, CoreStateDevice& state) const
 {
     detail::sort_tracks(state.ref(), track_order_);
     if (is_sort_by_action(track_order_))

@@ -82,7 +82,7 @@ class StatusChecker final : public AuxParamsInterface,
     // Execute *manually* with the last action's ID and the state
     template<MemSpace M>
     void
-    execute(ActionId prev_action, CoreParams const&, CoreState<M>& state) const;
+    step(ActionId prev_action, CoreParams const&, CoreState<M>& state) const;
 
   private:
     template<MemSpace M>

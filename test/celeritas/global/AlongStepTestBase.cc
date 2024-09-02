@@ -82,7 +82,7 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
 
     // Call along-step action
     auto const& along_step = *this->along_step();
-    CELER_TRY_HANDLE(along_step.execute(*this->core(), state),
+    CELER_TRY_HANDLE(along_step.step(*this->core(), state),
                      LogContextException{this->output_reg().get()});
 
     // Process output
@@ -189,7 +189,7 @@ void AlongStepTestBase::execute_action(std::string const& label,
     auto const* expl_action = dynamic_cast<CoreStepActionInterface const*>(
         areg.action(action_id).get());
     CELER_VALIDATE(expl_action, << "action '" << label << "' cannot execute");
-    CELER_TRY_HANDLE(expl_action->execute(*this->core(), *state),
+    CELER_TRY_HANDLE(expl_action->step(*this->core(), *state),
                      LogContextException{this->output_reg().get()});
 }
 

@@ -84,8 +84,8 @@ auto MollerBhabhaModel::micro_xs(Applicability) const -> MicroXsBuilders
 /*!
  * Interact with host data.
  */
-void MollerBhabhaModel::execute(CoreParams const& params,
-                                CoreStateHost& state) const
+void MollerBhabhaModel::step(CoreParams const& params,
+                             CoreStateHost& state) const
 {
     auto execute = make_action_track_executor(
         params.ptr<MemSpace::native>(),
@@ -97,7 +97,7 @@ void MollerBhabhaModel::execute(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void MollerBhabhaModel::execute(CoreParams const&, CoreStateDevice&) const
+void MollerBhabhaModel::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

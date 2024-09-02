@@ -29,10 +29,10 @@ class PreStepAction final : public CoreStepActionInterface,
     explicit PreStepAction(ActionId);
 
     // Launch kernel with host data
-    void execute(CoreParams const&, CoreStateHost&) const final;
+    void step(CoreParams const&, CoreStateHost&) const final;
 
     // Launch kernel with device data
-    void execute(CoreParams const&, CoreStateDevice&) const final;
+    void step(CoreParams const&, CoreStateDevice&) const final;
 
     //! Dependency ordering of the action
     StepActionOrder order() const final { return StepActionOrder::pre; }
@@ -43,7 +43,7 @@ class PreStepAction final : public CoreStepActionInterface,
 //---------------------------------------------------------------------------//
 
 #if !CELER_USE_DEVICE
-inline void PreStepAction::execute(CoreParams const&, CoreStateDevice&) const
+inline void PreStepAction::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

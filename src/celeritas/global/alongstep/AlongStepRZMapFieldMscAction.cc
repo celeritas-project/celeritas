@@ -76,8 +76,8 @@ AlongStepRZMapFieldMscAction::AlongStepRZMapFieldMscAction(
 /*!
  * Launch the along-step action on host.
  */
-void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
-                                           CoreStateHost& state) const
+void AlongStepRZMapFieldMscAction::step(CoreParams const& params,
+                                        CoreStateHost& state) const
 {
     using namespace ::celeritas::detail;
 
@@ -119,8 +119,8 @@ void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void AlongStepRZMapFieldMscAction::execute(CoreParams const&,
-                                           CoreStateDevice&) const
+void AlongStepRZMapFieldMscAction::step(CoreParams const&,
+                                        CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
