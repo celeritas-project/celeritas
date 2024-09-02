@@ -22,6 +22,103 @@ enum class WLSTimeProfileSelection
 };
 
 //---------------------------------------------------------------------------//
+//! Cerenkov process options
+struct CerenkovPhysicsOptions
+{
+    //! Enable the process
+    bool enable{true};
+    //! Enable generation of Cerenkov photons
+    bool stack_photons{true};
+    //! Track generated photons before parent
+    bool track_secondaries_first{true};
+    //! Maximum number of photons that can be generated before limiting step
+    int max_photons{100};
+    //! Maximum percentage change in particle \f$\beta\f$  before limiting step
+    double max_beta_change{10.0};
+
+    //! True if the process is activated
+    explicit operator bool() const { return enable; }
+};
+
+//! Equality operator, mainly for test harness
+// TODO: when we require C++20, use `friend bool operator==(...) =
+// default;`
+constexpr bool
+operator==(CerenkovPhysicsOptions const& a, CerenkovPhysicsOptions const& b)
+{
+    // clang-format off
+    return a.enable == b.enable 
+           && a.stack_photons == b.stack_photons
+           && a.track_secondaries_first == b.track_secondaries_first
+           && a.max_photons == b.max_photons
+           && a.max_beta_change == b.max_beta_change;
+    // clang-format on
+}
+
+//---------------------------------------------------------------------------//
+//! Scintillation process options
+struct ScintillationPhysicsOptions
+{
+    //! Enable the process
+    bool enable{true};
+
+    //! Enable generation of scintillation photons
+    bool stack_photons{true};
+    //! Track generated photons before parent
+    bool track_secondaries_first{true};
+    //! Use per-particle yield and time constants for photon generation
+    bool by_particle_type{false};
+    //! Use material properties for sampling photon generation time
+    bool finite_rise_time{false};
+    //! Attach scintillation interaction information to generated photon
+    bool track_info{false};
+
+    //! True if the process is activated
+    explicit operator bool() const { return enable; }
+};
+
+//! Equality operator, mainly for test harness
+// TODO: when we require C++20, use `friend bool operator==(...) =
+// default;`
+constexpr bool operator==(ScintillationPhysicsOptions const& a,
+                          ScintillationPhysicsOptions const& b)
+{
+    // clang-format off
+    return a.enable == b.enable 
+           && a.stack_photons == b.stack_photons
+           && a.track_secondaries_first == b.track_secondaries_first
+           && a.by_particle_type == b.by_particle_type
+           && a.finite_rise_time == b.finite_rise_time
+           && a.track_info == b.track_info;
+    // clang-format on
+}
+
+//---------------------------------------------------------------------------//
+//! Optical Bounrary process options
+struct BoundaryPhysicsOptions
+{
+    //! Enable the process
+    bool enable{true};
+    //! Invoke Geant4 SD at post step point if photon deposits energy
+    bool invoke_sd{false};
+
+    //! True if the process is activated
+    explicit operator bool() const { return enable; }
+};
+
+//! Equality operator, mainly for test harness
+// TODO: when we require C++20, use `friend bool operator==(...) =
+// default;`
+constexpr bool
+operator==(BoundaryPhysicsOptions const& a, BoundaryPhysicsOptions const& b)
+{
+    // clang-format off
+    return a.enable == b.enable 
+           && a.invoke_sd == b.invoke_sd;
+    // clang-format on
+}
+
+//---------------------------------------------------------------------------//
 /*!
  * Construction options for Geant optical physics.
  *
@@ -32,10 +129,10 @@ struct GeantOpticalPhysicsOptions
 {
     //!@{
     //! \name Optical photon creation physics
-    //! Enable Cerenkov radiation
-    bool cerenkov_radiation{true};
-    //! Enable scintillation
-    bool scintillation{true};
+    //! Cerenkov radiation options
+    CerenkovPhysicsOptions cerenkov;
+    //! Scintillation options
+    ScintillationPhysicsOptions scintillation;
     //!@}
 
     //!@{
@@ -47,7 +144,7 @@ struct GeantOpticalPhysicsOptions
     WLSTimeProfileSelection wavelength_shifting2{
         WLSTimeProfileSelection::delta};
     //! Enable boundary effects
-    bool boundary{true};
+    BoundaryPhysicsOptions boundary;
     //! Enable absorption
     bool absorption{true};
     //! Enable Rayleigh scattering
@@ -56,45 +153,13 @@ struct GeantOpticalPhysicsOptions
     bool mie_scattering{true};
     //!@}
 
-    //!@{
-    //! \name Cerenkov physics options
-    //! Enable generation of Cerenkov photons
-    bool cerenkov_stack_photons{true};
-    //! Track generated photons before parent
-    bool cerenkov_track_secondaries_first{true};
-    //! Maximum number of photons that can be generated before limiting step
-    int cerenkov_max_photons{100};
-    //! Maximum percentage change in particle \f$\beta\f$  before limiting step
-    double cerenkov_max_beta_change{10.0};
-    //!@}
-
-    //!@{
-    //! \name Scintillation physics options
-    //! Enable generation of scintillation photons
-    bool scint_stack_photons{true};
-    //! Track generated photons before parent
-    bool scint_track_secondaries_first{true};
-    //! Use per-particle yield and time constants for photon generation
-    bool scint_by_particle_type{false};
-    //! Use material properties for sampling photon generation time
-    bool scint_finite_rise_time{false};
-    //! Attach scintillation interaction information to generated photon
-    bool scint_track_info{false};
-    //!@}
-
-    //!@{
-    //! \name Boundary physics options
-    //! Invoke Geant4 SD at post step point if photon deposits energy
-    bool invoke_sd{false};
-    //!@}
-
     //! Print detailed Geant4 output
     bool verbose{false};
 
     //! True if any process is activated
     explicit operator bool() const
     {
-        return cerenkov_radiation || scintillation
+        return cerenkov || scintillation
                || (wavelength_shifting != WLSTimeProfileSelection::none)
                || (wavelength_shifting2 != WLSTimeProfileSelection::none)
                || boundary || absorption || rayleigh_scattering
@@ -105,11 +170,11 @@ struct GeantOpticalPhysicsOptions
     static GeantOpticalPhysicsOptions deactivated()
     {
         GeantOpticalPhysicsOptions opts;
-        opts.cerenkov_radiation = false;
-        opts.scintillation = false;
+        opts.cerenkov.enable = false;
+        opts.scintillation.enable = false;
         opts.wavelength_shifting = WLSTimeProfileSelection::none;
         opts.wavelength_shifting2 = WLSTimeProfileSelection::none;
-        opts.boundary = false;
+        opts.boundary.enable = false;
         opts.absorption = false;
         opts.rayleigh_scattering = false;
         opts.mie_scattering = false;
@@ -124,7 +189,7 @@ constexpr bool operator==(GeantOpticalPhysicsOptions const& a,
                           GeantOpticalPhysicsOptions const& b)
 {
     // clang-format off
-    return a.cerenkov_radiation == b.cerenkov_radiation
+    return a.cerenkov == b.cerenkov
            && a.scintillation == b.scintillation
            && a.wavelength_shifting == b.wavelength_shifting 
            && a.wavelength_shifting2 == b.wavelength_shifting2 
@@ -132,16 +197,6 @@ constexpr bool operator==(GeantOpticalPhysicsOptions const& a,
            && a.absorption == b.absorption 
            && a.rayleigh_scattering == b.rayleigh_scattering 
            && a.mie_scattering == b.mie_scattering 
-           && a.cerenkov_stack_photons == b.cerenkov_stack_photons 
-           && a.cerenkov_track_secondaries_first == b.cerenkov_track_secondaries_first 
-           && a.cerenkov_max_photons == b.cerenkov_max_photons 
-           && a.cerenkov_max_beta_change == b.cerenkov_max_beta_change
-           && a.scint_stack_photons == b.scint_stack_photons
-           && a.scint_track_secondaries_first == b.scint_track_secondaries_first 
-           && a.scint_by_particle_type == b.scint_by_particle_type
-           && a.scint_finite_rise_time == b.scint_finite_rise_time
-           && a.scint_track_info == b.scint_track_info
-           && a.invoke_sd == b.invoke_sd
            && a.verbose == b.verbose;
     // clang-format on
 }
