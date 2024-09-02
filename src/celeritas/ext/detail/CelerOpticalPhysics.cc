@@ -32,6 +32,97 @@ namespace celeritas
 {
 namespace detail
 {
+namespace
+{
+enum class OpticalProcessType
+{
+    cerenkov,
+    scintillation,
+    absorption,
+    rayleigh,
+    mie_hg,
+    boundary,
+    wavelength_shifting,
+    wavelength_shifting_2,
+    size_,
+};
+
+#if G4VERSION_NUMBER >= 1070
+G4OpticalProcessIndex
+optical_process_type_to_geant_index(OpticalProcessType value)
+{
+    switch (value)
+    {
+        case OpticalProcessType::cerenkov:
+            return kCerenkov;
+        case OpticalProcessType::scintillation:
+            return kScintillation;
+        case OpticalProcessType::absorption:
+            return kAbsorption;
+        case OpticalProcessType::rayleigh:
+            return kRayleigh;
+        case OpticalProcessType::mie_hg:
+            return kMieHG;
+        case OpticalProcessType::boundary:
+            return kBoundary;
+        case OpticalProcessType::wavelength_shifting:
+            return kWLS;
+        case OpticalProcessType::wavelength_shifting_2:
+            return kWLS2;
+        default:
+            return kNoProcess;
+    }
+}
+
+G4String optical_process_type_to_geant_name(OpticalProcessType value)
+{
+    return G4OpticalProcessName(optical_process_type_to_geant_index(value));
+}
+#endif
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return true if a given process is active
+ *
+ * Use `G4OpticalParameters` when available, otherwise use hardcoded
+ * checks.
+ */
+bool process_is_active(
+    OpticalProcessType process,
+    [[maybe_unused]] CelerOpticalPhysics::Options const& options)
+{
+#if G4VERSION_NUMBER >= 1070
+    auto* params = G4OpticalParameters::Instance();
+    CELER_ASSERT(params);
+    return params->GetProcessActivation(
+        optical_process_type_to_geant_name(process));
+#else
+    switch (process)
+    {
+        case OpticalProcessType::cerenkov:
+            return options_.cerenkov_radiation;
+        case OpticalProcessType::scintillation:
+            return options_.scintillation;
+        case OpticalProcessType::absorption:
+            return options_.absorption;
+        case OpticalProcessType::rayleigh:
+            return options_.rayleigh_scattering;
+        case OpticalProcessType::mie_hg:
+            return options_.mie_scattering;
+        case OpticalProcessType::boundary:
+            return options_.boundary;
+        case OpticalProcessType::wavelength_shifting:
+            return options_.wavelength_shifting
+                   != WLSTimeProfileSelection::none;
+        case OpticalProcessType::wavelength_shifting_2:
+            // Not supported pre 10.7
+        default:
+            return false;
+    }
+#endif
+}
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with physics options.
@@ -83,7 +174,8 @@ CelerOpticalPhysics::CelerOpticalPhysics(Options const& options)
     // boundary
     params->SetBoundaryInvokeSD(options_.invoke_sd);
 
-    // Only set a global verbosity with same level for all optical processes
+    // Only set a global verbosity with same level for all optical
+    // processes
     params->SetVerboseLevel(options_.verbose);
 #endif
 }
@@ -113,7 +205,7 @@ void CelerOpticalPhysics::ConstructProcess()
     // TODO: Celeritas will eventually implement these directly (no
     // G4OpticalPhotons) so how to set up on "Celeritas-side"
     auto absorption = std::make_unique<G4OpAbsorption>();
-    if (process_is_active("OpAbsorption"))
+    if (process_is_active(OpticalProcessType::absorption, options_))
     {
         process_manager->AddDiscreteProcess(absorption.release());
         CELER_LOG(debug) << "Loaded Optical absorption with G4OpAbsorption "
@@ -121,7 +213,7 @@ void CelerOpticalPhysics::ConstructProcess()
     }
 
     auto rayleigh = std::make_unique<G4OpRayleigh>();
-    if (process_is_active("OpRayleigh"))
+    if (process_is_active(OpticalProcessType::rayleigh, options_))
     {
         process_manager->AddDiscreteProcess(rayleigh.release());
         CELER_LOG(debug)
@@ -130,7 +222,7 @@ void CelerOpticalPhysics::ConstructProcess()
     }
 
     auto mie = std::make_unique<G4OpMieHG>();
-    if (process_is_active("OpMieHG"))
+    if (process_is_active(OpticalProcessType::mie_hg, options_))
     {
         process_manager->AddDiscreteProcess(mie.release());
         CELER_LOG(debug) << "Loaded Optical Mie (Henyey-Greenstein phase "
@@ -144,7 +236,7 @@ void CelerOpticalPhysics::ConstructProcess()
 #if G4VERSION_NUMBER < 1070
     boundary->SetInvokeSD(options_.invoke_sd);
 #endif
-    if (process_is_active("OpBoundary"))
+    if (process_is_active(OpticalProcessType::boundary, options_))
     {
         process_manager->AddDiscreteProcess(boundary.get());
         CELER_LOG(debug)
@@ -156,7 +248,7 @@ void CelerOpticalPhysics::ConstructProcess()
 #if G4VERSION_NUMBER < 1070
     wls->UseTimeProfile(to_cstring(options_.wavelength_shifting));
 #endif
-    if (process_is_active("OpWLS"))
+    if (process_is_active(OpticalProcessType::wavelength_shifting, options_))
     {
         process_manager->AddDiscreteProcess(wls.release());
         CELER_LOG(debug) << "Loaded Optical wavelength shifting with G4OpWLS "
@@ -165,7 +257,7 @@ void CelerOpticalPhysics::ConstructProcess()
 
 #if G4VERSION_NUMBER >= 1070
     auto wls2 = std::make_unique<G4OpWLS2>();
-    if (process_is_active("OpWLS2"))
+    if (process_is_active(OpticalProcessType::wavelength_shifting_2, options_))
     {
         process_manager->AddDiscreteProcess(wls2.release());
         // I need to check how this differs from G4OpWLS...
@@ -184,9 +276,8 @@ void CelerOpticalPhysics::ConstructProcess()
     scint->SetScintillationByParticleType(options_.scint_by_particle_type);
     scint->SetFiniteRiseTime(options_.scint_finite_rise_time);
     scint->SetScintillationTrackInfo(options_.scint_track_info);
-    // These two are not in 10.7 and newer, but defaults should be sufficient
-    // for now
-    // scint->SetScintillationYieldFactor(fYieldFactor);
+    // These two are not in 10.7 and newer, but defaults should be
+    // sufficient for now scint->SetScintillationYieldFactor(fYieldFactor);
     // scint->SetScintillationExcitationRatio(fExcitationRatio);
 #endif
     scint->AddSaturation(G4LossTableManager::Instance()->EmSaturation());
@@ -194,7 +285,8 @@ void CelerOpticalPhysics::ConstructProcess()
     auto cerenkov = std::make_unique<G4Cerenkov>();
 #if G4VERSION_NUMBER < 1070
     cerenkov->SetStackPhotons(options_.cerenkov_stack_photons);
-    cerenkov->SetTrackSecondariesFirst(options_.cerenkov_track_secondaries_first);
+    cerenkov->SetTrackSecondariesFirst(
+        options_.cerenkov_track_secondaries_first);
     cerenkov->SetMaxNumPhotonsPerStep(options_.cerenkov_max_photons);
     cerenkov->SetMaxBetaChangePerStep(options_.cerenkov_max_beta_change);
 #endif
@@ -208,7 +300,8 @@ void CelerOpticalPhysics::ConstructProcess()
         process_manager = p->GetProcessManager();
         CELER_ASSERT(process_manager);
 
-        if (cerenkov->IsApplicable(*p) && process_is_active("Cerenkov"))
+        if (cerenkov->IsApplicable(*p)
+            && process_is_active(OpticalProcessType::cerenkov, options_))
         {
             process_manager->AddProcess(cerenkov.get());
             process_manager->SetProcessOrdering(cerenkov.get(), idxPostStep);
@@ -216,7 +309,8 @@ void CelerOpticalPhysics::ConstructProcess()
                                 "process for particle "
                              << p->GetParticleName();
         }
-        if (scint->IsApplicable(*p) && process_is_active("Scintillation"))
+        if (scint->IsApplicable(*p)
+            && process_is_active(OpticalProcessType::scintillation, options_))
         {
             process_manager->AddProcess(scint.get());
             process_manager->SetProcessOrderingToLast(scint.get(), idxAtRest);
@@ -226,7 +320,8 @@ void CelerOpticalPhysics::ConstructProcess()
                    "process for particle "
                 << p->GetParticleName();
         }
-        if (boundary->IsApplicable(*p) && process_is_active("OpBoundary"))
+        if (boundary->IsApplicable(*p)
+            && process_is_active(OpticalProcessType::boundary, options_))
         {
             process_manager->SetProcessOrderingToLast(boundary.get(),
                                                       idxPostStep);
@@ -237,41 +332,5 @@ void CelerOpticalPhysics::ConstructProcess()
     scint.release();
 }
 
-//---------------------------------------------------------------------------//
-// PRIVATE
-//---------------------------------------------------------------------------//
-/*!
- * Return true if a given process is active
- *
- * Use `G4OpticalParameters` when available, otherwise use hardcoded checks.
- */
-bool CelerOpticalPhysics::process_is_active(
-    [[maybe_unused]] std::string const& process_name)
-{
-#if G4VERSION_NUMBER >= 1070
-    auto* params = G4OpticalParameters::Instance();
-    CELER_ASSERT(params);
-    return params->GetProcessActivation(process_name);
-#else
-    if (process_name == "Cerenkov")
-        return options_.cerenkov_radiation;
-    else if (process_name == "Scintillation")
-        return options_.scintillation;
-    else if (process_name == "OpAbsorption")
-        return options_.absorption;
-    else if (process_name == "OpBoundary")
-        return options_.boundary;
-    else if (process_name == "OpMieHG")
-        return options_.mie_scattering;
-    else if (process_name == "OpRayleigh")
-        return options_.rayleigh_scattering;
-    else if (process_name == "OpWLS")
-        return options_.wavelength_shifting != WLSTimeProfileSelection::none;
-
-    CELER_ASSERT_UNREACHABLE();
-    return false;
-#endif
-}
-//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

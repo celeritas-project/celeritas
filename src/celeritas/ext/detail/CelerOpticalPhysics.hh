@@ -38,9 +38,6 @@ class CelerOpticalPhysics : public G4VPhysicsConstructor
 
   private:
     Options options_;
-
-    // Return true if process is activated
-    bool process_is_active(std::string const& process);
 };
 }  // namespace detail
 }  // namespace celeritas
