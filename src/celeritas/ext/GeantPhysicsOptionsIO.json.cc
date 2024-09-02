@@ -132,7 +132,7 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
 
     GPO_LOAD_OPTION(verbose);
 
-    GPO_LOAD_OPTION(optical_options);
+    GPO_LOAD_OPTION(optical);
 #undef GPO_LOAD_OPTION
 }
 
@@ -178,7 +178,7 @@ void to_json(nlohmann::json& j, GeantPhysicsOptions const& inp)
 
         CELER_JSON_PAIR(inp, verbose),
 
-        CELER_JSON_PAIR(inp, optical_options),
+        CELER_JSON_PAIR(inp, optical),
     };
 
     save_format(j, format_str);

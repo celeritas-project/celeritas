@@ -46,10 +46,10 @@ CelerFTFPBert::CelerFTFPBert(Options const& options)
     RegisterPhysics(celer_em.release());
 
     // Celeritas-supported Optical Physics
-    if (options.optical_options)
+    if (options.optical)
     {
         auto optical_physics
-            = std::make_unique<CelerOpticalPhysics>(options.optical_options);
+            = std::make_unique<CelerOpticalPhysics>(options.optical);
         RegisterPhysics(optical_physics.release());
     }
 

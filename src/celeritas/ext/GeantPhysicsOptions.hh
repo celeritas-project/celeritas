@@ -140,7 +140,7 @@ struct GeantPhysicsOptions
     bool verbose{false};
 
     //! Optical physics options
-    GeantOpticalPhysicsOptions optical_options{
+    GeantOpticalPhysicsOptions optical{
         GeantOpticalPhysicsOptions::deactivated()};
 };
 
@@ -178,7 +178,7 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.msc_step_algorithm == b.msc_step_algorithm
            && a.form_factor == b.form_factor
            && a.verbose == b.verbose
-           && a.optical_options == b.optical_options;
+           && a.optical == b.optical;
     // clang-format on
 }
 
