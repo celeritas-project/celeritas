@@ -75,7 +75,7 @@ auto ICRU73QOModel::micro_xs(Applicability) const -> MicroXsBuilders
 /*!
  * Interact with host data.
  */
-void ICRU73QOModel::execute(CoreParams const& params, CoreStateHost& state) const
+void ICRU73QOModel::step(CoreParams const& params, CoreStateHost& state) const
 {
     auto execute = make_action_track_executor(
         params.ptr<MemSpace::native>(),
@@ -87,7 +87,7 @@ void ICRU73QOModel::execute(CoreParams const& params, CoreStateHost& state) cons
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void ICRU73QOModel::execute(CoreParams const&, CoreStateDevice&) const
+void ICRU73QOModel::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

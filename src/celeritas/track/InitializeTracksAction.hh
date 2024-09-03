@@ -21,17 +21,17 @@ namespace celeritas
  * filled by any track initializers remaining from previous steps using the
  * position.
  */
-class InitializeTracksAction final : public ExplicitCoreActionInterface
+class InitializeTracksAction final : public CoreStepActionInterface
 {
   public:
     //! Construct with explicit Id
     explicit InitializeTracksAction(ActionId id) : id_(id) {}
 
     //! Execute the action with host data
-    void execute(CoreParams const& params, CoreStateHost& state) const final;
+    void step(CoreParams const& params, CoreStateHost& state) const final;
 
     //! Execute the action with device data
-    void execute(CoreParams const& params, CoreStateDevice& state) const final;
+    void step(CoreParams const& params, CoreStateDevice& state) const final;
 
     //! ID of the action
     ActionId action_id() const final { return id_; }
@@ -46,16 +46,16 @@ class InitializeTracksAction final : public ExplicitCoreActionInterface
     }
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::start; }
+    StepActionOrder order() const final { return StepActionOrder::start; }
 
   private:
     ActionId id_;
 
     template<MemSpace M>
-    void execute_impl(CoreParams const&, CoreState<M>&) const;
+    void step_impl(CoreParams const&, CoreState<M>&) const;
 
-    void execute_impl(CoreParams const&, CoreStateHost&, size_type) const;
-    void execute_impl(CoreParams const&, CoreStateDevice&, size_type) const;
+    void step_impl(CoreParams const&, CoreStateHost&, size_type) const;
+    void step_impl(CoreParams const&, CoreStateDevice&, size_type) const;
 };
 
 //---------------------------------------------------------------------------//

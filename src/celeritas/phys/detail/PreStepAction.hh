@@ -21,7 +21,7 @@ namespace detail
  * - Reset track properties (todo: move to track initialization?)
  * - Sample the mean free path and calculate the physics step limits.
  */
-class PreStepAction final : public ExplicitCoreActionInterface,
+class PreStepAction final : public CoreStepActionInterface,
                             public ConcreteAction
 {
   public:
@@ -29,13 +29,13 @@ class PreStepAction final : public ExplicitCoreActionInterface,
     explicit PreStepAction(ActionId);
 
     // Launch kernel with host data
-    void execute(CoreParams const&, CoreStateHost&) const final;
+    void step(CoreParams const&, CoreStateHost&) const final;
 
     // Launch kernel with device data
-    void execute(CoreParams const&, CoreStateDevice&) const final;
+    void step(CoreParams const&, CoreStateDevice&) const final;
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::pre; }
+    StepActionOrder order() const final { return StepActionOrder::pre; }
 };
 
 //---------------------------------------------------------------------------//
@@ -43,7 +43,7 @@ class PreStepAction final : public ExplicitCoreActionInterface,
 //---------------------------------------------------------------------------//
 
 #if !CELER_USE_DEVICE
-inline void PreStepAction::execute(CoreParams const&, CoreStateDevice&) const
+inline void PreStepAction::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

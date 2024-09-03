@@ -33,7 +33,7 @@ class ParticleParams;
  * have (but do not *need* to have) along-step energy loss, optional energy
  * fluctuation, and optional multiple scattering.
  */
-class AlongStepGeneralLinearAction final : public ExplicitCoreActionInterface
+class AlongStepGeneralLinearAction final : public CoreStepActionInterface
 {
   public:
     //!@{
@@ -59,10 +59,10 @@ class AlongStepGeneralLinearAction final : public ExplicitCoreActionInterface
     ~AlongStepGeneralLinearAction();
 
     // Launch kernel with host data
-    void execute(CoreParams const&, CoreStateHost&) const final;
+    void step(CoreParams const&, CoreStateHost&) const final;
 
     // Launch kernel with device data
-    void execute(CoreParams const&, CoreStateDevice&) const final;
+    void step(CoreParams const&, CoreStateDevice&) const final;
 
     //! ID of the model
     ActionId action_id() const final { return id_; }
@@ -80,7 +80,7 @@ class AlongStepGeneralLinearAction final : public ExplicitCoreActionInterface
     }
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::along; }
+    StepActionOrder order() const final { return StepActionOrder::along; }
 
     //// ACCESSORS ////
 
@@ -101,8 +101,8 @@ class AlongStepGeneralLinearAction final : public ExplicitCoreActionInterface
 //---------------------------------------------------------------------------//
 
 #if !CELER_USE_DEVICE
-inline void AlongStepGeneralLinearAction::execute(CoreParams const&,
-                                                  CoreStateDevice&) const
+inline void
+AlongStepGeneralLinearAction::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

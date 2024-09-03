@@ -58,20 +58,20 @@ std::string_view CerenkovOffloadAction::description() const
 /*!
  * Execute the action with host data.
  */
-void CerenkovOffloadAction::execute(CoreParams const& params,
-                                    CoreStateHost& state) const
+void CerenkovOffloadAction::step(CoreParams const& params,
+                                 CoreStateHost& state) const
 {
-    this->execute_impl(params, state);
+    this->step_impl(params, state);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Execute the action with device data.
  */
-void CerenkovOffloadAction::execute(CoreParams const& params,
-                                    CoreStateDevice& state) const
+void CerenkovOffloadAction::step(CoreParams const& params,
+                                 CoreStateDevice& state) const
 {
-    this->execute_impl(params, state);
+    this->step_impl(params, state);
 }
 
 //---------------------------------------------------------------------------//
@@ -79,8 +79,8 @@ void CerenkovOffloadAction::execute(CoreParams const& params,
  * Generate optical distribution data post-step.
  */
 template<MemSpace M>
-void CerenkovOffloadAction::execute_impl(CoreParams const& core_params,
-                                         CoreState<M>& core_state) const
+void CerenkovOffloadAction::step_impl(CoreParams const& core_params,
+                                      CoreState<M>& core_state) const
 {
     auto& state = get<OpticalOffloadState<M>>(core_state.aux(), data_id_);
     auto& buffer = state.store.ref().cerenkov;

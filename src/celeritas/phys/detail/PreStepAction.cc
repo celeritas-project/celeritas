@@ -34,7 +34,7 @@ PreStepAction::PreStepAction(ActionId aid)
 /*!
  * Launch the pre-step action on host.
  */
-void PreStepAction::execute(CoreParams const& params, CoreStateHost& state) const
+void PreStepAction::step(CoreParams const& params, CoreStateHost& state) const
 {
     TrackExecutor execute{
         params.ptr<MemSpace::native>(), state.ptr(), PreStepExecutor{}};

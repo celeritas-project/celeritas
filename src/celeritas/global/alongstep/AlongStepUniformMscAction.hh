@@ -29,7 +29,7 @@ class ParticleParams;
 /*!
  * Along-step kernel with optional MSC and uniform magnetic field.
  */
-class AlongStepUniformMscAction final : public ExplicitCoreActionInterface
+class AlongStepUniformMscAction final : public CoreStepActionInterface
 {
   public:
     //!@{
@@ -58,10 +58,10 @@ class AlongStepUniformMscAction final : public ExplicitCoreActionInterface
     ~AlongStepUniformMscAction();
 
     // Launch kernel with host data
-    void execute(CoreParams const&, CoreStateHost&) const final;
+    void step(CoreParams const&, CoreStateHost&) const final;
 
     // Launch kernel with device data
-    void execute(CoreParams const&, CoreStateDevice&) const final;
+    void step(CoreParams const&, CoreStateDevice&) const final;
 
     //! ID of the model
     ActionId action_id() const final { return id_; }
@@ -76,7 +76,7 @@ class AlongStepUniformMscAction final : public ExplicitCoreActionInterface
     }
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::along; }
+    StepActionOrder order() const final { return StepActionOrder::along; }
 
     //// ACCESSORS ////
 

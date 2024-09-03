@@ -13,6 +13,7 @@
 
 #include "corecel/Assert.hh"
 #include "celeritas/geo/GeoFwd.hh"
+#include "celeritas/global/ActionInterface.hh"
 #include "celeritas/random/RngParamsFwd.hh"
 
 #include "Test.hh"
@@ -24,7 +25,6 @@ namespace celeritas
 class ActionRegistry;
 class AtomicRelaxationParams;
 class CutoffParams;
-class ExplicitCoreActionInterface;
 class GeoMaterialParams;
 class MaterialParams;
 class ParticleParams;
@@ -35,6 +35,8 @@ class AuxParamsRegistry;
 class WentzelOKVIParams;
 
 class CoreParams;
+template<MemSpace M>
+class CoreState;
 class OutputRegistry;
 
 namespace optical
@@ -68,7 +70,7 @@ class GlobalTestBase : public Test
     using SPConstParticle = SP<ParticleParams const>;
     using SPConstCutoff = SP<CutoffParams const>;
     using SPConstPhysics = SP<PhysicsParams const>;
-    using SPConstAction = SP<ExplicitCoreActionInterface const>;
+    using SPConstAction = SP<CoreStepActionInterface const>;
     using SPConstRng = SP<RngParams const>;
     using SPConstSim = SP<SimParams const>;
     using SPConstTrackInit = SP<TrackInitParams const>;

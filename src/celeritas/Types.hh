@@ -26,9 +26,6 @@ namespace celeritas
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
 
-//! End-of-step (or perhaps someday within-step?) action to take
-using ActionId = OpaqueId<class ActionInterface>;
-
 //! Opaque index to ElementRecord in the global vector of elements
 using ElementId = OpaqueId<struct ElementRecord>;
 
@@ -122,34 +119,6 @@ enum class TrackStatus : std::uint_least8_t
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Within-step ordering of explicit actions.
- *
- * Each "step iteration", wherein many tracks undergo a single step in
- * parallel, consists of an ordered series of actions. An action with an
- * earlier order always precedes an action with a later order.
- *
- * \sa ExplicitActionInterface
- */
-enum class ActionOrder
-{
-    start,  //!< Initialize tracks
-    user_start,  //!< User initialization of new tracks
-    sort_start,  //!< Sort track slots after initialization
-    pre,  //!< Pre-step physics and setup
-    user_pre,  //!< User actions for querying pre-step data
-    sort_pre,  //!< Sort track slots after setting pre-step
-    along,  //!< Along-step
-    sort_along,  //!< Sort track slots after determining first step action
-    pre_post,  //!< Discrete selection kernel
-    sort_pre_post,  //! Sort track slots after selecting discrete interaction
-    post,  //!< After step
-    user_post,  //!< User actions after boundary crossing, collision
-    end,  //!< Processing secondaries, including replacing primaries
-    size_
-};
-
-//---------------------------------------------------------------------------//
 //! Differentiate between result data at the beginning and end of a step.
 enum class StepPoint
 {
@@ -215,24 +184,6 @@ struct StepLimit
 };
 
 //---------------------------------------------------------------------------//
-//! Action order/ID tuple for comparison in sorting
-struct OrderedAction
-{
-    ActionOrder order;
-    ActionId id;
-
-    //! Ordering comparison for an action/ID
-    CELER_CONSTEXPR_FUNCTION bool operator<(OrderedAction const& other) const
-    {
-        if (this->order < other.order)
-            return true;
-        if (this->order > other.order)
-            return false;
-        return this->id < other.id;
-    }
-};
-
-//---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 
@@ -255,9 +206,6 @@ char const* to_cstring(MatterState);
 // Get a string corresponding to a track stats
 char const* to_cstring(TrackStatus);
 
-// Get a string corresponding to a surface type
-char const* to_cstring(ActionOrder);
-
 // Get a string corresponding to a track ordering policy
 char const* to_cstring(TrackOrder);
 
@@ -266,16 +214,6 @@ char const* to_cstring(MscStepLimitAlgorithm value);
 
 // Get a string corresponding to the nuclear form factor model
 char const* to_cstring(NuclearFormFactorType value);
-
-// Whether the TrackOrder will sort tracks by actions with the given
-// ActionOrder
-bool is_action_sorted(ActionOrder action, TrackOrder track);
-
-//! Whether track sorting is enabled
-inline constexpr bool is_action_sorted(TrackOrder track)
-{
-    return static_cast<int>(track) > static_cast<int>(TrackOrder::shuffled);
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

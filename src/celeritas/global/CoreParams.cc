@@ -20,6 +20,8 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"  // IWYU pragma: keep
+#include "corecel/sys/ActionRegistry.hh"  // IWYU pragma: keep
+#include "corecel/sys/ActionRegistryOutput.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/DeviceIO.json.hh"
 #include "corecel/sys/Environment.hh"
@@ -51,8 +53,6 @@
 #include "celeritas/track/TrackInitParams.hh"  // IWYU pragma: keep
 
 #include "ActionInterface.hh"
-#include "ActionRegistry.hh"  // IWYU pragma: keep
-#include "ActionRegistryOutput.hh"
 #include "alongstep/AlongStepNeutralAction.hh"
 
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
@@ -107,9 +107,9 @@ ActionId find_along_step_id(ActionRegistry const& reg)
         // Get abstract action shared pointer and see if it's explicit
         auto const& base = reg.action(ActionId{aidx});
         if (auto expl
-            = std::dynamic_pointer_cast<ExplicitActionInterface const>(base))
+            = std::dynamic_pointer_cast<CoreStepActionInterface const>(base))
         {
-            if (expl->order() == ActionOrder::along)
+            if (expl->order() == StepActionOrder::along)
             {
                 return expl->action_id();
             }

@@ -19,16 +19,9 @@ namespace celeritas
  * automatically determined by TrackOrder. This should not have any impact on
  * simulation output: it is only useful for accelerator optimizations.
  */
-class SortTracksAction final : public ExplicitCoreActionInterface,
-                               public BeginRunActionInterface
+class SortTracksAction final : public CoreStepActionInterface,
+                               public CoreBeginRunActionInterface
 {
-  public:
-    //@{
-    //! \name Type aliases
-    using ExplicitCoreActionInterface::CoreStateDevice;
-    using ExplicitCoreActionInterface::CoreStateHost;
-    //@}
-
   public:
     // Construct with action ID and sort criteria
     SortTracksAction(ActionId id, TrackOrder track_order);
@@ -37,10 +30,10 @@ class SortTracksAction final : public ExplicitCoreActionInterface,
     ~SortTracksAction() = default;
 
     //! Execute the action with host data
-    void execute(CoreParams const& params, CoreStateHost& state) const final;
+    void step(CoreParams const& params, CoreStateHost& state) const final;
 
     //! Execute the action with device data
-    void execute(CoreParams const& params, CoreStateDevice& state) const final;
+    void step(CoreParams const& params, CoreStateDevice& state) const final;
 
     //! Set host data at the beginning of a run
     void begin_run(CoreParams const&, CoreStateHost&) final;
@@ -58,11 +51,11 @@ class SortTracksAction final : public ExplicitCoreActionInterface,
     std::string_view description() const final { return "sort tracks states"; }
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return action_order_; }
+    StepActionOrder order() const final { return action_order_; }
 
   private:
     ActionId id_;
-    ActionOrder action_order_{ActionOrder::size_};
+    StepActionOrder action_order_{StepActionOrder::size_};
     TrackOrder track_order_;
 };
 

@@ -22,17 +22,17 @@ struct Primary;
  * This will append to the queued TrackInitializer vector any primaries added
  * with \c CoreState::insert_primaries .
  */
-class ExtendFromPrimariesAction final : public ExplicitCoreActionInterface
+class ExtendFromPrimariesAction final : public CoreStepActionInterface
 {
   public:
     //! Construct with explicit Id
     explicit ExtendFromPrimariesAction(ActionId id) : id_(id) {}
 
     // Execute the action with host data
-    void execute(CoreParams const& params, CoreStateHost& state) const final;
+    void step(CoreParams const& params, CoreStateHost& state) const final;
 
     // Execute the action with device data
-    void execute(CoreParams const& params, CoreStateDevice& state) const final;
+    void step(CoreParams const& params, CoreStateDevice& state) const final;
 
     //! ID of the action
     ActionId action_id() const final { return id_; }
@@ -47,13 +47,13 @@ class ExtendFromPrimariesAction final : public ExplicitCoreActionInterface
     }
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::start; }
+    StepActionOrder order() const final { return StepActionOrder::start; }
 
   private:
     ActionId id_;
 
     template<MemSpace M>
-    void execute_impl(CoreParams const&, CoreState<M>&) const;
+    void step_impl(CoreParams const&, CoreState<M>&) const;
 
     void process_primaries(CoreParams const&,
                            CoreStateHost&,

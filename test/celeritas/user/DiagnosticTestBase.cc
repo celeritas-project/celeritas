@@ -11,7 +11,7 @@
 
 #include "corecel/cont/Span.hh"
 #include "corecel/io/OutputRegistry.hh"
-#include "celeritas/global/ActionRegistry.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/user/ActionDiagnostic.hh"
 #include "celeritas/user/StepDiagnostic.hh"

@@ -87,6 +87,8 @@ Containers
 .. doxygenclass:: celeritas::Span
 
 
+.. _api_auxiliary_data:
+
 Auxiliary user data
 -------------------
 

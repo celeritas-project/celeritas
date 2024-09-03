@@ -47,8 +47,8 @@ std::string_view OffloadGatherAction::description() const
 /*!
  * Gather pre-step data.
  */
-void OffloadGatherAction::execute(CoreParams const& params,
-                                  CoreStateHost& state) const
+void OffloadGatherAction::step(CoreParams const& params,
+                               CoreStateHost& state) const
 {
     auto& optical_state
         = get<OpticalOffloadState<MemSpace::native>>(state.aux(), data_id_);
@@ -62,7 +62,7 @@ void OffloadGatherAction::execute(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void OffloadGatherAction::execute(CoreParams const&, CoreStateDevice&) const
+void OffloadGatherAction::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

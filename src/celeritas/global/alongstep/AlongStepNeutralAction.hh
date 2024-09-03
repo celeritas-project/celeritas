@@ -22,17 +22,17 @@ namespace celeritas
  * This should only be used for testing and demonstration purposes because real
  * EM physics always has continuous energy loss for charged particles.
  */
-class AlongStepNeutralAction final : public ExplicitCoreActionInterface
+class AlongStepNeutralAction final : public CoreStepActionInterface
 {
   public:
     // Construct with next action ID
     explicit AlongStepNeutralAction(ActionId id);
 
     // Launch kernel with host data
-    void execute(CoreParams const&, CoreStateHost&) const final;
+    void step(CoreParams const&, CoreStateHost&) const final;
 
     // Launch kernel with device data
-    void execute(CoreParams const&, CoreStateDevice&) const final;
+    void step(CoreParams const&, CoreStateDevice&) const final;
 
     //! ID of the model
     ActionId action_id() const final { return id_; }
@@ -47,7 +47,7 @@ class AlongStepNeutralAction final : public ExplicitCoreActionInterface
     }
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::along; }
+    StepActionOrder order() const final { return StepActionOrder::along; }
 
   private:
     ActionId id_;
