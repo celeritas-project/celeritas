@@ -109,7 +109,9 @@ class MutableActionInterface : public virtual ActionInterface
  *
  * Using a single base class's typedefs is necessary for some compilers to
  * avoid an "ambiguous type alias" failure: "member 'CoreParams' found in
- * multiple base classes of different types".
+ * multiple base classes of different types". Note that adding this class to
+ * the inheritance hierarchy (even multiple times) has no additional storage or
+ * access cost.
  */
 template<class P, template<MemSpace M> class S>
 struct ActionTypeTraits
@@ -138,14 +140,10 @@ class BeginRunActionInterface : public ActionTypeTraits<P, S>,
                                 public MutableActionInterface
 {
   public:
-    using typename ActionTypeTraits<P, S>::CoreParams;
-    using typename ActionTypeTraits<P, S>::CoreStateHost;
-    using typename ActionTypeTraits<P, S>::CoreStateDevice;
-
     //! Set host data at the beginning of a run
-    virtual void begin_run(CoreParams const&, CoreStateHost&) = 0;
+    virtual void begin_run(P const&, S<MemSpace::host>&) = 0;
     //! Set device data at the beginning of a run
-    virtual void begin_run(CoreParams const&, CoreStateDevice&) = 0;
+    virtual void begin_run(P const&, S<MemSpace::device>&) = 0;
 };
 
 //---------------------------------------------------------------------------//
@@ -160,18 +158,14 @@ class StepActionInterface : public ActionTypeTraits<P, S>,
                             public virtual ActionInterface
 {
   public:
-    using typename ActionTypeTraits<P, S>::CoreParams;
-    using typename ActionTypeTraits<P, S>::CoreStateHost;
-    using typename ActionTypeTraits<P, S>::CoreStateDevice;
-
     //! Dependency ordering of the action inside the step
     virtual StepActionOrder order() const = 0;
 
     //! Execute the action with host data
-    virtual void step(CoreParams const&, CoreStateHost&) const = 0;
+    virtual void step(P const&, S<MemSpace::host>&) const = 0;
 
     //! Execute the action with device data
-    virtual void step(CoreParams const&, CoreStateDevice&) const = 0;
+    virtual void step(P const&, S<MemSpace::device>&) const = 0;
 };
 
 //---------------------------------------------------------------------------//
