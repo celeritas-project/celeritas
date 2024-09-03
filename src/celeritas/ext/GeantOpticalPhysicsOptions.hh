@@ -94,7 +94,7 @@ constexpr bool operator==(ScintillationPhysicsOptions const& a,
 }
 
 //---------------------------------------------------------------------------//
-//! Optical Bounrary process options
+//! Optical Boundary process options
 struct BoundaryPhysicsOptions
 {
     //! Enable the process
