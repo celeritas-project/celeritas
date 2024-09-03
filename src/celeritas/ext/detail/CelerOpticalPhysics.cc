@@ -34,6 +34,13 @@ namespace detail
 {
 namespace
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Optical physics process type.
+ *
+ * See Geant4's \c G4OpticalProcessIndex in G4OpticalParameters.hh for the
+ * equivalent enum.
+ */
 enum class OpticalProcessType
 {
     cerenkov,
@@ -114,7 +121,8 @@ bool process_is_active(
         case OpticalProcessType::wavelength_shifting:
             return options.wavelength_shifting != WLSTimeProfileSelection::none;
         case OpticalProcessType::wavelength_shifting_2:
-            // Not supported pre 10.7
+            // Technically reachable, but practically not supported pre 10.7
+            CELER_ASSERT_UNREACHABLE();
         default:
             return false;
     }
@@ -260,9 +268,8 @@ void CelerOpticalPhysics::ConstructProcess()
     {
         process_manager->AddDiscreteProcess(wls2.release());
         // I need to check how this differs from G4OpWLS...
-        CELER_LOG(debug)
-            << "Loaded Optical wavelength shifting V2 with G4OpWLS2 "
-               "process";
+        CELER_LOG(debug) << "Loaded second optical wavelength shifting with "
+                            "G4OpWLS2 process ";
     }
 #endif
 
