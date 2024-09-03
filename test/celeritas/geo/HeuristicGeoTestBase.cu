@@ -32,7 +32,7 @@ heuristic_test_kernel(DeviceCRef<HeuristicGeoParamsData> const params,
         return;
 
     HeuristicGeoExecutor execute{params, state};
-    step(tid);
+    execute(tid);
 }
 }  // namespace
 
