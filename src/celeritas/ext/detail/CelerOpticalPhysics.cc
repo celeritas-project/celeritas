@@ -121,7 +121,8 @@ bool process_is_active(
         case OpticalProcessType::wavelength_shifting:
             return options.wavelength_shifting != WLSTimeProfileSelection::none;
         case OpticalProcessType::wavelength_shifting_2:
-            // Not supported pre 10.7
+            // Technically reachable, but practically not supported pre 10.7
+            CELER_ASSERT_UNREACHABLE();
         default:
             return false;
     }
