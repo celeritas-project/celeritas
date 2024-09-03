@@ -79,8 +79,8 @@ TEST_F(SimTest, looping)
 {
     LoopingThreshold expected;
     expected.threshold_energy = MevEnergy{250};
-    expected.max_steps = 100;
-    expected.max_subthreshold_steps = 10;
+    expected.max_steps = 1000;
+    expected.max_subthreshold_steps = 100;
 
     // Check looping threshold parameters for each particle
     SimTrackView sim(this->sim()->host_ref(), sim_state_.ref(), TrackSlotId{0});
