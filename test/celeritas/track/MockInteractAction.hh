@@ -23,7 +23,7 @@ namespace test
 /*!
  * Change the track state and allocate secondaries.
  */
-class MockInteractAction final : public ExplicitCoreActionInterface
+class MockInteractAction final : public CoreStepActionInterface
 {
   public:
     // Construct with number of secondaries and post-interact state
@@ -32,9 +32,9 @@ class MockInteractAction final : public ExplicitCoreActionInterface
                        std::vector<bool> const& alive);
 
     // Run on host
-    void execute(CoreParams const&, CoreStateHost&) const final;
+    void step(CoreParams const&, CoreStateHost&) const final;
     // Run on device
-    void execute(CoreParams const&, CoreStateDevice&) const final;
+    void step(CoreParams const&, CoreStateDevice&) const final;
 
     ActionId action_id() const final { return id_; }
     std::string_view label() const final { return "mock-interact"; }
@@ -42,7 +42,7 @@ class MockInteractAction final : public ExplicitCoreActionInterface
     {
         return "mock interact kernel";
     }
-    ActionOrder order() const final { return ActionOrder::post; }
+    StepActionOrder order() const final { return StepActionOrder::post; }
 
     // Get the number of secondaries
     Span<size_type const> num_secondaries() const;
@@ -55,8 +55,7 @@ class MockInteractAction final : public ExplicitCoreActionInterface
 };
 
 #if !CELER_USE_DEVICE
-inline void
-MockInteractAction::execute(CoreParams const&, CoreStateDevice&) const
+inline void MockInteractAction::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

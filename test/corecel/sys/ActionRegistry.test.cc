@@ -3,11 +3,11 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/ActionRegistry.test.cc
+//! \file corecel/sys/ActionRegistry.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/global/ActionRegistry.hh"
+#include "corecel/sys/ActionRegistry.hh"
 
-#include "celeritas/global/ActionRegistryOutput.hh"
+#include "corecel/sys/ActionRegistryOutput.hh"
 
 #include "celeritas_test.hh"
 
@@ -16,19 +16,27 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+struct MockParams
+{
+};
 
-class MyExplicitAction final : public ExplicitCoreActionInterface,
-                               public BeginRunActionInterface
+template<MemSpace M>
+struct MockState
+{
+};
+
+using MockBeginRunActionInterface
+    = BeginRunActionInterface<MockParams, MockState>;
+using MockStepActionInterface = StepActionInterface<MockParams, MockState>;
+
+//---------------------------------------------------------------------------//
+
+class MyExplicitAction final : public MockStepActionInterface,
+                               public MockBeginRunActionInterface
 {
   public:
-    //@{
-    //! \name Type aliases
-    using ExplicitCoreActionInterface::CoreStateDevice;
-    using ExplicitCoreActionInterface::CoreStateHost;
-    //@}
-
-  public:
-    MyExplicitAction(ActionId ai, ActionOrder ao) : action_id_(ai), order_{ao}
+    MyExplicitAction(ActionId ai, StepActionOrder ao)
+        : action_id_(ai), order_{ao}
     {
     }
 
@@ -48,11 +56,8 @@ class MyExplicitAction final : public ExplicitCoreActionInterface,
         device_count_ = 0;
     }
 
-    void execute(CoreParams const&, CoreStateHost&) const final
-    {
-        ++host_count_;
-    }
-    void execute(CoreParams const&, CoreStateDevice&) const final
+    void step(CoreParams const&, CoreStateHost&) const final { ++host_count_; }
+    void step(CoreParams const&, CoreStateDevice&) const final
     {
         ++device_count_;
     }
@@ -60,11 +65,11 @@ class MyExplicitAction final : public ExplicitCoreActionInterface,
     int host_count() const { return host_count_; }
     int device_count() const { return device_count_; }
 
-    ActionOrder order() const final { return order_; }
+    StepActionOrder order() const final { return order_; }
 
   private:
     ActionId action_id_;
-    ActionOrder order_;
+    StepActionOrder order_;
     mutable int host_count_{-100};
     mutable int device_count_{-100};
 };
@@ -94,7 +99,7 @@ class ActionRegistryTest : public Test
         mgr.insert(impl1);
 
         expl_action = std::make_shared<MyExplicitAction>(mgr.next_id(),
-                                                         ActionOrder::pre);
+                                                         StepActionOrder::pre);
         mgr.insert(expl_action);
 
         auto impl2 = std::make_shared<MyImplicitAction>(

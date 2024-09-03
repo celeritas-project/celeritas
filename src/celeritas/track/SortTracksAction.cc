@@ -12,8 +12,8 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 
@@ -70,17 +70,17 @@ SortTracksAction::SortTracksAction(ActionId id, TrackOrder track_order)
         {
             case TrackOrder::partition_status:
                 // Sort *after* setting status
-                return ActionOrder::sort_start;
+                return StepActionOrder::sort_start;
             case TrackOrder::sort_along_step_action:
                 // Sort *before* along-step action, i.e. *after* pre-step
-                return ActionOrder::sort_pre;
+                return StepActionOrder::sort_pre;
             case TrackOrder::sort_step_limit_action:
                 // Sort *before* post-step action, i.e. *after* pre-post and
                 // along-step
-                return ActionOrder::sort_pre_post;
+                return StepActionOrder::sort_pre_post;
             case TrackOrder::sort_particle_type:
                 // Sorth at the beginning of the step
-                return ActionOrder::sort_start;
+                return StepActionOrder::sort_start;
             default:
                 CELER_ASSERT_UNREACHABLE();
         }
@@ -111,7 +111,7 @@ std::string_view SortTracksAction::label() const
 /*!
  * Execute the action with host data.
  */
-void SortTracksAction::execute(CoreParams const&, CoreStateHost& state) const
+void SortTracksAction::step(CoreParams const&, CoreStateHost& state) const
 {
     detail::sort_tracks(state.ref(), track_order_);
     if (is_sort_by_action(track_order_))
@@ -128,7 +128,7 @@ void SortTracksAction::execute(CoreParams const&, CoreStateHost& state) const
 /*!
  * Execute the action with device data.
  */
-void SortTracksAction::execute(CoreParams const&, CoreStateDevice& state) const
+void SortTracksAction::step(CoreParams const&, CoreStateDevice& state) const
 {
     detail::sort_tracks(state.ref(), track_order_);
     if (is_sort_by_action(track_order_))

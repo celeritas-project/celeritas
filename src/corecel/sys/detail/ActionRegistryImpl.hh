@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/detail/ActionRegistryImpl.hh
+//! \file corecel/sys/detail/ActionRegistryImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

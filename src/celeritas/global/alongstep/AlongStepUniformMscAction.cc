@@ -87,8 +87,8 @@ AlongStepUniformMscAction::~AlongStepUniformMscAction() = default;
 /*!
  * Launch the along-step action on host.
  */
-void AlongStepUniformMscAction::execute(CoreParams const& params,
-                                        CoreStateHost& state) const
+void AlongStepUniformMscAction::step(CoreParams const& params,
+                                     CoreStateHost& state) const
 {
     using namespace ::celeritas::detail;
 
@@ -129,8 +129,7 @@ void AlongStepUniformMscAction::execute(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void AlongStepUniformMscAction::execute(CoreParams const&,
-                                        CoreStateDevice&) const
+void AlongStepUniformMscAction::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

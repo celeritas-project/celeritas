@@ -13,8 +13,8 @@
 #include "corecel/io/LogContextException.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "geocel/UnitUtils.hh"
-#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/CoreTrackData.hh"
@@ -82,7 +82,7 @@ auto AlongStepTestBase::run(Input const& inp, size_type num_tracks) -> RunResult
 
     // Call along-step action
     auto const& along_step = *this->along_step();
-    CELER_TRY_HANDLE(along_step.execute(*this->core(), state),
+    CELER_TRY_HANDLE(along_step.step(*this->core(), state),
                      LogContextException{this->output_reg().get()});
 
     // Process output
@@ -186,10 +186,10 @@ void AlongStepTestBase::execute_action(std::string const& label,
 
     auto action_id = areg.find_action(label);
     CELER_VALIDATE(action_id, << "no '" << label << "' action found");
-    auto const* expl_action = dynamic_cast<ExplicitCoreActionInterface const*>(
+    auto const* expl_action = dynamic_cast<CoreStepActionInterface const*>(
         areg.action(action_id).get());
     CELER_VALIDATE(expl_action, << "action '" << label << "' cannot execute");
-    CELER_TRY_HANDLE(expl_action->execute(*this->core(), *state),
+    CELER_TRY_HANDLE(expl_action->step(*this->core(), *state),
                      LogContextException{this->output_reg().get()});
 }
 

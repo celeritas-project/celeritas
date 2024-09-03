@@ -20,8 +20,8 @@ namespace celeritas
 /*!
  * Interact with device data.
  */
-void CombinedBremModel::execute(CoreParams const& params,
-                                CoreStateDevice& state) const
+void CombinedBremModel::step(CoreParams const& params,
+                             CoreStateDevice& state) const
 {
     auto execute = make_action_track_executor(
         params.ptr<MemSpace::native>(),

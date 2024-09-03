@@ -49,10 +49,10 @@ class RayleighModel final : public Model, public ConcreteAction
     MicroXsBuilders micro_xs(Applicability) const final;
 
     // Apply the interaction kernel to host data
-    void execute(CoreParams const&, CoreStateHost&) const final;
+    void step(CoreParams const&, CoreStateHost&) const final;
 
     // Apply the interaction kernel to device data
-    void execute(CoreParams const&, CoreStateDevice&) const final;
+    void step(CoreParams const&, CoreStateDevice&) const final;
 
     //! Access Rayleigh data on the host
     HostRef const& host_ref() const { return mirror_.host_ref(); }

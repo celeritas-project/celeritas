@@ -8,7 +8,7 @@
 #include "OpticalCollector.hh"
 
 #include "corecel/data/AuxParamsRegistry.hh"
-#include "celeritas/global/ActionRegistry.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/TrackInitParams.hh"

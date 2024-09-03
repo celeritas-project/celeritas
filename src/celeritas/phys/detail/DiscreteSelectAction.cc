@@ -34,8 +34,8 @@ DiscreteSelectAction::DiscreteSelectAction(ActionId aid)
 /*!
  * Launch the discrete-select action on host.
  */
-void DiscreteSelectAction::execute(CoreParams const& params,
-                                   CoreStateHost& state) const
+void DiscreteSelectAction::step(CoreParams const& params,
+                                CoreStateHost& state) const
 {
     auto execute = make_action_track_executor(params.ptr<MemSpace::native>(),
                                               state.ptr(),

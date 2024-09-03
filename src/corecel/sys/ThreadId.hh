@@ -4,6 +4,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/sys/ThreadId.hh
+//! \todo Rename to corecel/Id.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -20,6 +21,9 @@ using ThreadId = OpaqueId<struct Thread_>;
 
 //! Index of a state inside the vector of all states
 using TrackSlotId = OpaqueId<struct TrackSlot_>;
+
+//! Within-step action to apply to a track
+using ActionId = OpaqueId<class ActionInterface>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

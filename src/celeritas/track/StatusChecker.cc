@@ -9,9 +9,9 @@
 
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/data/Copier.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/ActionLauncher.hh"
-#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
@@ -94,9 +94,9 @@ void StatusChecker::begin_run(CoreParams const& params, CoreStateDevice&)
  * This must be called after both \c create_state and \c begin_run .
  */
 template<MemSpace M>
-void StatusChecker::execute(ActionId prev_action,
-                            CoreParams const& params,
-                            CoreState<M>& state) const
+void StatusChecker::step(ActionId prev_action,
+                         CoreParams const& params,
+                         CoreState<M>& state) const
 {
     CELER_EXPECT(data_);
     CELER_EXPECT(prev_action);
@@ -111,7 +111,7 @@ void StatusChecker::execute(ActionId prev_action,
     aux_state.action = prev_action;
     aux_state.order = this->host_ref().orders[prev_action];
 
-    CELER_ASSERT(aux_state.order != ActionOrder::size_);
+    CELER_ASSERT(aux_state.order != StepActionOrder::size_);
     this->launch_impl(params, state, aux_state);
 
     // Save the status and limiting action IDs
@@ -123,7 +123,7 @@ void StatusChecker::execute(ActionId prev_action,
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct host/device data
+ * Construct host/device data.
  */
 void StatusChecker::begin_run_impl(CoreParams const& params)
 {
@@ -138,7 +138,7 @@ void StatusChecker::begin_run_impl(CoreParams const& params)
         // Get abstract action shared pointer and see if it's explicit
         auto const& base = reg.action(ActionId{aidx});
         if (auto const* expl
-            = dynamic_cast<ExplicitActionInterface const*>(base.get()))
+            = dynamic_cast<CoreStepActionInterface const*>(base.get()))
         {
             build_orders.push_back(expl->order());
         }
@@ -188,12 +188,12 @@ void StatusChecker::launch_impl(CoreParams const&,
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
-template void StatusChecker::execute(ActionId,
-                                     CoreParams const&,
-                                     CoreState<MemSpace::host>&) const;
-template void StatusChecker::execute(ActionId,
-                                     CoreParams const&,
-                                     CoreState<MemSpace::device>&) const;
+template void StatusChecker::step(ActionId,
+                                  CoreParams const&,
+                                  CoreState<MemSpace::host>&) const;
+template void StatusChecker::step(ActionId,
+                                  CoreParams const&,
+                                  CoreState<MemSpace::device>&) const;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

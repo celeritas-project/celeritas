@@ -201,8 +201,6 @@ celeritas_add_test(geo/GeoMaterial.test.cc
 
 #-----------------------------------------------------------------------------#
 # Global
-celeritas_add_test(global/ActionRegistry.test.cc)
-
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   set(_along_step_filter
     "-Em3*:SimpleCms*:LeadBox*"

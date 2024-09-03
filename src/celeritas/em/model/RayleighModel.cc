@@ -85,7 +85,7 @@ auto RayleighModel::micro_xs(Applicability applic) const -> MicroXsBuilders
 /*!
  * Interact with host data.
  */
-void RayleighModel::execute(CoreParams const& params, CoreStateHost& state) const
+void RayleighModel::step(CoreParams const& params, CoreStateHost& state) const
 {
     auto execute = make_action_track_executor(
         params.ptr<MemSpace::native>(),
@@ -97,7 +97,7 @@ void RayleighModel::execute(CoreParams const& params, CoreStateHost& state) cons
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void RayleighModel::execute(CoreParams const&, CoreStateDevice&) const
+void RayleighModel::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

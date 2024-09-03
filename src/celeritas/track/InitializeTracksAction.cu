@@ -19,9 +19,9 @@ namespace celeritas
 /*!
  * Launch a kernel to initialize tracks.
  */
-void InitializeTracksAction::execute_impl(CoreParams const& params,
-                                          CoreStateDevice& state,
-                                          size_type num_new_tracks) const
+void InitializeTracksAction::step_impl(CoreParams const& params,
+                                       CoreStateDevice& state,
+                                       size_type num_new_tracks) const
 {
     detail::InitTracksExecutor execute_thread{params.ptr<MemSpace::native>(),
                                               state.ptr(),

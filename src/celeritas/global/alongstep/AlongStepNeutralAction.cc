@@ -34,8 +34,8 @@ AlongStepNeutralAction::AlongStepNeutralAction(ActionId id) : id_(id)
 /*!
  * Launch the along-step action on host.
  */
-void AlongStepNeutralAction::execute(CoreParams const& params,
-                                     CoreStateHost& state) const
+void AlongStepNeutralAction::step(CoreParams const& params,
+                                  CoreStateHost& state) const
 {
     auto execute = make_along_step_track_executor(
         params.ptr<MemSpace::native>(),
@@ -49,7 +49,7 @@ void AlongStepNeutralAction::execute(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void AlongStepNeutralAction::execute(CoreParams const&, CoreStateDevice&) const
+void AlongStepNeutralAction::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

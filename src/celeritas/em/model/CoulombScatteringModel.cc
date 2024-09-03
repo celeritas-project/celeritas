@@ -105,8 +105,8 @@ auto CoulombScatteringModel::micro_xs(Applicability applic) const -> MicroXsBuil
 /*!
  * Apply the interaction kernel.
  */
-void CoulombScatteringModel::execute(CoreParams const& params,
-                                     CoreStateHost& state) const
+void CoulombScatteringModel::step(CoreParams const& params,
+                                  CoreStateHost& state) const
 {
     CELER_EXPECT(params.wentzel());
 
@@ -121,7 +121,7 @@ void CoulombScatteringModel::execute(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void CoulombScatteringModel::execute(CoreParams const&, CoreStateDevice&) const
+void CoulombScatteringModel::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

@@ -23,6 +23,7 @@
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedMem.hh"
@@ -40,7 +41,6 @@
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"  // IWYU pragma: keep
-#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"

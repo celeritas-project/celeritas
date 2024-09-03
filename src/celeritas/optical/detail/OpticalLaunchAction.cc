@@ -9,7 +9,7 @@
 
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
-#include "celeritas/global/ActionRegistry.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/optical/CoreParams.hh"
@@ -112,8 +112,8 @@ auto OpticalLaunchAction::create_state(MemSpace m,
 /*!
  * Perform a step action with host data.
  */
-void OpticalLaunchAction::execute(CoreParams const& params,
-                                  CoreStateHost& state) const
+void OpticalLaunchAction::step(CoreParams const& params,
+                               CoreStateHost& state) const
 {
     return this->execute_impl(params, state);
 }
@@ -122,8 +122,8 @@ void OpticalLaunchAction::execute(CoreParams const& params,
 /*!
  * Perform a step action with device data.
  */
-void OpticalLaunchAction::execute(CoreParams const& params,
-                                  CoreStateDevice& state) const
+void OpticalLaunchAction::step(CoreParams const& params,
+                               CoreStateDevice& state) const
 {
     return this->execute_impl(params, state);
 }

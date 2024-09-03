@@ -22,8 +22,8 @@ namespace detail
 /*!
  * Launch the action on device.
  */
-void TrackingCutAction::execute(CoreParams const& params,
-                                CoreStateDevice& state) const
+void TrackingCutAction::step(CoreParams const& params,
+                             CoreStateDevice& state) const
 {
     auto execute = make_action_track_executor(params.ptr<MemSpace::native>(),
                                               state.ptr(),

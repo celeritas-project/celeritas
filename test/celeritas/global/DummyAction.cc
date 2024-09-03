@@ -33,24 +33,24 @@ auto DummyParams::create_state(MemSpace m,
 //---------------------------------------------------------------------------//
 
 DummyAction::DummyAction(ActionId id,
-                         ActionOrder order,
+                         StepActionOrder order,
                          std::string&& label,
                          AuxId aux)
     : ConcreteAction{id, std::move(label)}, order_{order}, aux_id_{aux}
 {
 }
 
-void DummyAction::execute(CoreParams const&, CoreStateHost& state) const
+void DummyAction::step(CoreParams const&, CoreStateHost& state) const
 {
-    return this->execute_impl(get<DummyState>(state.aux(), aux_id_));
+    return this->step_impl(get<DummyState>(state.aux(), aux_id_));
 }
 
-void DummyAction::execute(CoreParams const&, CoreStateDevice& state) const
+void DummyAction::step(CoreParams const&, CoreStateDevice& state) const
 {
-    return this->execute_impl(get<DummyState>(state.aux(), aux_id_));
+    return this->step_impl(get<DummyState>(state.aux(), aux_id_));
 }
 
-void DummyAction::execute_impl(DummyState& state) const
+void DummyAction::step_impl(DummyState& state) const
 {
     state.action_order.emplace_back(to_cstring(order_));
 }
