@@ -30,6 +30,7 @@ class ScintillationParams;
 namespace detail
 {
 class CerenkovOffloadAction;
+class CerenkovGeneratorAction;
 class OffloadGatherAction;
 class OpticalLaunchAction;
 class OffloadParams;
@@ -98,15 +99,18 @@ class OpticalCollector
     using SPCerenkovAction = std::shared_ptr<detail::CerenkovOffloadAction>;
     using SPScintAction = std::shared_ptr<detail::ScintOffloadAction>;
     using SPGatherAction = std::shared_ptr<detail::OffloadGatherAction>;
+    using SPCerenkovGenAction
+        = std::shared_ptr<detail::CerenkovGeneratorAction>;
     using SPLaunchAction = std::shared_ptr<detail::OpticalLaunchAction>;
 
     //// DATA ////
 
-    SPOffloadParams gen_params_;
+    SPOffloadParams offload_params_;
 
     SPGatherAction gather_action_;
     SPCerenkovAction cerenkov_action_;
     SPScintAction scint_action_;
+    SPCerenkovGenAction cerenkov_gen_action_;
     SPLaunchAction launch_action_;
 
     // TODO: tracking loop launch action

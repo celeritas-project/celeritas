@@ -70,5 +70,37 @@ count_num_photons(GeneratorDistributionRef<MemSpace::host> const& buffer,
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Calculate the exclusive prefix sum of the number of optical primaries.
+ *
+ * \return Total accumulated value
+ */
+size_type exclusive_scan_primaries(
+    GeneratorDistributionRef<MemSpace::host> const& buffer,
+    Collection<size_type, Ownership::reference, MemSpace::host> const& offsets,
+    size_type size,
+    StreamId)
+{
+    CELER_EXPECT(!buffer.empty());
+    CELER_EXPECT(size > 0 && size <= buffer.size());
+    CELER_EXPECT(offsets.size() == buffer.size() + 1);
+
+    auto* data = static_cast<celeritas::optical::GeneratorDistributionData*>(
+        buffer.data());
+    auto* result = static_cast<size_type*>(offsets.data());
+
+    size_type acc = 0;
+    auto* const stop = data + size;
+    for (; data != stop; ++data)
+    {
+        *result++ = acc;
+        acc += data->num_photons;
+    }
+
+    // Return the final value
+    return acc;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

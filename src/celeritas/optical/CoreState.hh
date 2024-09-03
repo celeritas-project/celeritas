@@ -34,8 +34,7 @@ struct CoreStateCounters
 {
     // Initialization input
     size_type num_vacancies{};  //!< Number of unused track slots
-    size_type num_primaries{};  //!< Number of primaries to be converted
-    size_type num_initializers{};  //!< Number of track initializers
+    size_type num_primaries{};  //!< Number of primaries
 
     // Diagnostic output
     size_type num_secondaries{};  //!< Number of secondaries produced in a step

@@ -63,7 +63,7 @@ size_type exclusive_scan_counts(
         counts,
     StreamId stream_id)
 {
-    ScopedProfiling profile_this{"exclusive-scan-conts"};
+    ScopedProfiling profile_this{"exclusive-scan-counts"};
     // Exclusive scan:
     auto data = device_pointer_cast(counts.data());
     auto stop = thrust::exclusive_scan(thrust_execute_on(stream_id),

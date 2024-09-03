@@ -12,6 +12,7 @@
 #include <thrust/functional.h>
 #include <thrust/remove.h>
 #include <thrust/transform_reduce.h>
+#include <thrust/transform_scan.h>
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
@@ -80,6 +81,39 @@ count_num_photons(GeneratorDistributionRef<MemSpace::device> const& buffer,
                                                thrust::plus<size_type>());
     CELER_DEVICE_CHECK_ERROR();
     return count;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the exclusive prefix sum of the number of optical primaries.
+ *
+ * \return Total accumulated value
+ */
+size_type exclusive_scan_primaries(
+    GeneratorDistributionRef<MemSpace::device> const& buffer,
+    Collection<size_type, Ownership::reference, MemSpace::device> const& offsets,
+    size_type size,
+    StreamId stream)
+{
+    CELER_EXPECT(!buffer.empty());
+    CELER_EXPECT(size > 0 && size <= buffer.size());
+    CELER_EXPECT(offsets.size() == buffer.size() + 1);
+
+    ScopedProfiling profile_this{"exclusive-scan-primaries"};
+    auto data = thrust::device_pointer_cast(buffer.data().get());
+    auto result = thrust::device_pointer_cast(offsets.data().get());
+    auto stop = thrust::transform_exclusive_scan(thrust_execute_on(stream),
+                                                 data,
+                                                 // Bad, fix me
+                                                 data + size + 1,
+                                                 result,
+                                                 GetNumPhotons{},
+                                                 size_type(0),
+                                                 thrust::plus<size_type>());
+    CELER_DEVICE_CHECK_ERROR();
+
+    // Copy the last element (accumulated total) back to host
+    return *(stop - 1);
 }
 
 //---------------------------------------------------------------------------//

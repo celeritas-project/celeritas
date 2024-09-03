@@ -57,6 +57,19 @@ size_type count_num_photons(GeneratorDistributionRef<MemSpace::device> const&,
                             StreamId);
 
 //---------------------------------------------------------------------------//
+// Calculate the exclusive prefix sum of the number of optical primaries
+size_type exclusive_scan_primaries(
+    GeneratorDistributionRef<MemSpace::host> const&,
+    Collection<size_type, Ownership::reference, MemSpace::host> const&,
+    size_type,
+    StreamId);
+size_type exclusive_scan_primaries(
+    GeneratorDistributionRef<MemSpace::device> const&,
+    Collection<size_type, Ownership::reference, MemSpace::device> const&,
+    size_type,
+    StreamId);
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
@@ -74,6 +87,15 @@ count_num_photons(GeneratorDistributionRef<MemSpace::device> const&,
                   size_type,
                   size_type,
                   StreamId)
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+
+inline size_type exclusive_scan_primaries(
+    GeneratorDistributionRef<MemSpace::device> const&,
+    Collection<size_type, Ownership::reference, MemSpace::device> const&,
+    size_type,
+    StreamId)
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

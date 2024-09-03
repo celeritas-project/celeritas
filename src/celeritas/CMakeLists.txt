@@ -77,6 +77,7 @@ list(APPEND SOURCES
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
   optical/TrackData.cc
+  optical/TrackInitParams.cc
   optical/ScintillationParams.cc
   optical/detail/OffloadParams.cc
   optical/detail/OpticalLaunchAction.cc
@@ -268,6 +269,7 @@ celeritas_polysource(global/alongstep/AlongStepRZMapFieldMscAction)
 celeritas_polysource(global/detail/TrackSlotUtils)
 celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
 celeritas_polysource(neutron/model/NeutronInelasticModel)
+celeritas_polysource(optical/detail/CerenkovGeneratorAction)
 celeritas_polysource(optical/detail/CerenkovOffloadAction)
 celeritas_polysource(optical/detail/OpticalGenAlgorithms)
 celeritas_polysource(optical/detail/OffloadGatherAction)
