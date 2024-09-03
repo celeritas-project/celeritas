@@ -217,6 +217,14 @@ if(WIN32)
     )
   endif()
 endif()
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+    AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 13)
+  # GCC 13 and 14 have *lots* of false positives, and not just on our project
+  # see: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=107532
+  celeritas_target_compile_options(corecel
+    PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:-Wno-dangling-reference>"
+  )
+endif()
 
 
 celeritas_target_include_directories(corecel
