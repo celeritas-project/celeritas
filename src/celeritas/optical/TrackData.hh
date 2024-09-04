@@ -15,6 +15,7 @@
 #include "celeritas/track/SimData.hh"
 #include "celeritas/track/TrackInitData.hh"
 
+#include "MaterialData.hh"
 #include "Types.hh"
 
 namespace celeritas
@@ -28,18 +29,26 @@ namespace optical
 template<Ownership W, MemSpace M>
 struct PhysicsParamsData
 {
-    explicit CELER_FUNCTION operator bool() const { return false; }
+    explicit CELER_FUNCTION operator bool() const { return true; }
 };
 template<Ownership W, MemSpace M>
 struct PhysicsStateData
 {
+    explicit CELER_FUNCTION operator bool() const { return true; }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    PhysicsStateData& operator=(PhysicsStateData<W2, M2>&)
+    {
+        return *this;
+    }
 };
+
 template<MemSpace M>
 inline void resize(PhysicsStateData<Ownership::value, M>*,
                    HostCRef<PhysicsParamsData> const&,
                    size_type)
 {
-    CELER_NOT_IMPLEMENTED("optical physics state");
 }
 
 // XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX  XXX
@@ -54,12 +63,11 @@ struct CoreScalars
     ActionId boundary_action;
 
     StreamId::size_type max_streams{0};
-    OpticalMaterialId::size_type num_materials{0};
 
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return boundary_action && max_streams > 0 && num_materials > 0;
+        return boundary_action && max_streams > 0;
     }
 };
 
@@ -70,11 +78,8 @@ struct CoreScalars
 template<Ownership W, MemSpace M>
 struct CoreParamsData
 {
-    template<class T>
-    using VolumeItems = celeritas::Collection<T, W, M, VolumeId>;
-
     GeoParamsData<W, M> geometry;
-    VolumeItems<OpticalMaterialId> materials;
+    MaterialParamsData<W, M> material;
     PhysicsParamsData<W, M> physics;
     RngParamsData<W, M> rng;
     SimParamsData<W, M> sim;
@@ -85,8 +90,7 @@ struct CoreParamsData
     //! True if all params are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && !materials.empty() && physics && rng && sim && init
-               && scalars;
+        return geometry && material && physics && rng && sim && init && scalars;
     }
 
     //! Assign from another set of data
@@ -95,7 +99,7 @@ struct CoreParamsData
     {
         CELER_EXPECT(other);
         geometry = other.geometry;
-        materials = other.materials;
+        material = other.material;
         physics = other.physics;
         rng = other.rng;
         sim = other.sim;
@@ -131,7 +135,7 @@ struct CoreStateData
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return geometry && materials && physics && rng && sim && init
+        return geometry && !materials.empty() && physics && rng && sim && init
                && stream_id;
     }
 

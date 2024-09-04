@@ -42,7 +42,7 @@ void resize(CoreStateData<Ownership::value, M>* state,
     resize(&state->init, params.init, stream_id, size);
     state->stream_id = stream_id;
 
-    CELER_ENSURE(state);
+    CELER_ENSURE(*state);
 }
 
 //---------------------------------------------------------------------------//
