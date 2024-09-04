@@ -37,7 +37,10 @@ class Copier
                   "Data is not trivially copyable");
 
   public:
+    //! Construct with the destination and the class's memspace
     explicit Copier(Span<T> dst) : dst_{dst} {};
+
+    //! Also construct with a stream ID to use for async copy
     Copier(Span<T> dst, StreamId stream) : dst_{dst}, stream_{stream} {};
 
     inline void operator()(MemSpace srcmem, Span<T const> src) const;

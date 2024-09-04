@@ -11,11 +11,13 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "orange/OrangeData.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/random/RngReseed.hh"
+#include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "CoreParams.hh"
@@ -38,6 +40,23 @@ Stepper<M>::Stepper(Input input)
         return std::make_shared<ActionSequence>(*params_->action_reg(), opts);
     }()}
 {
+    // Save primary action: TODO this is a hack and should be refactored so
+    // that we pass generators into the stepper and eliminate the call
+    // signature with primaries
+    if (auto aid = params_->action_reg()->find_action("extend-from-primaries"))
+    {
+        auto action
+            = std::dynamic_pointer_cast<ExtendFromPrimariesAction const>(
+                params_->action_reg()->action(aid));
+        CELER_VALIDATE(action,
+                       << "incorrect type for 'extend-from-primaries' action");
+        primaries_action_ = std::move(action);
+    }
+    else
+    {
+        CELER_NOT_IMPLEMENTED("stepping loop without primary generator");
+    }
+
     // Execute beginning-of-run action
     ScopedProfiling profile_this{"begin-run"};
     actions_->begin_run(*params_, state_);
@@ -78,14 +97,7 @@ template<MemSpace M>
 auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
 {
     CELER_EXPECT(!primaries.empty());
-
-    // Check initializer capacity
-    size_type num_initializers = state_.counters().num_initializers;
-    size_type init_capacity = this->state_ref().init.initializers.size();
-    CELER_VALIDATE(primaries.size() + num_initializers <= init_capacity,
-                   << "insufficient initializer capacity (" << init_capacity
-                   << ") with size (" << num_initializers
-                   << ") for primaries (" << primaries.size() << ")");
+    CELER_EXPECT(primaries_action_);
 
     // Check that events are consistent with our 'max events'
     auto max_id
@@ -98,8 +110,7 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
                    << "event number " << max_id->event_id.unchecked_get()
                    << " exceeds max_events=" << params_->init()->max_events());
 
-    CELER_ASSERT(state_.primary_range().empty());
-    state_.insert_primaries(primaries);
+    primaries_action_->insert(*params_, state_, primaries);
 
     return (*this)();
 }

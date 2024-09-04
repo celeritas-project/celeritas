@@ -27,6 +27,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 class CoreParams;
 struct Primary;
+class ExtendFromPrimariesAction;
 
 namespace detail
 {
@@ -161,6 +162,8 @@ class Stepper final : public StepperInterface
   private:
     // Params data
     std::shared_ptr<CoreParams const> params_;
+    // Primary initialization
+    std::shared_ptr<ExtendFromPrimariesAction const> primaries_action_;
     // State data
     CoreState<M> state_;
     // Call sequence

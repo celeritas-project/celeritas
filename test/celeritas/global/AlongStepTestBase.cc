@@ -186,20 +186,54 @@ void AlongStepTestBase::execute_action(std::string const& label,
 
     auto action_id = areg.find_action(label);
     CELER_VALIDATE(action_id, << "no '" << label << "' action found");
-    auto const* expl_action = dynamic_cast<CoreStepActionInterface const*>(
+    auto const* step_action = dynamic_cast<CoreStepActionInterface const*>(
         areg.action(action_id).get());
-    CELER_VALIDATE(expl_action, << "action '" << label << "' cannot execute");
-    CELER_TRY_HANDLE(expl_action->step(*this->core(), *state),
+    CELER_VALIDATE(step_action, << "action '" << label << "' cannot execute");
+    return this->execute_action(*step_action, state);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Look up the given action and apply it to the state.
+ */
+void AlongStepTestBase::execute_action(CoreStepActionInterface const& action,
+                                       CoreState<MemSpace::host>* state) const
+{
+    CELER_EXPECT(state);
+    CELER_TRY_HANDLE(action.step(*this->core(), *state),
                      LogContextException{this->output_reg().get()});
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Inject primaries into the state.
+ */
 void AlongStepTestBase::extend_from_primaries(Span<Primary const> primaries,
                                               CoreState<MemSpace::host>* state)
 {
     CELER_EXPECT(state);
-    state->insert_primaries(primaries);
-    this->execute_action("extend-from-primaries", state);
+
+    if (!primaries_action_)
+    {
+        // Save primary action: TODO this is a hack and should be refactored so
+        // that we pass generators into the stepper and eliminate the call
+        // signature with primaries
+        if (auto aid = this->action_reg()->find_action("extend-from-"
+                                                       "primaries"))
+        {
+            auto action
+                = std::dynamic_pointer_cast<ExtendFromPrimariesAction const>(
+                    this->action_reg()->action(aid));
+            CELER_VALIDATE(action,
+                           << "incorrect type for 'extend-from-primaries' "
+                              "action");
+            primaries_action_ = std::move(action);
+        }
+    }
+    CELER_ASSERT(primaries_action_);
+
+    primaries_action_->insert(*this->core(), *state, primaries);
+    this->execute_action(*primaries_action_, state);
 }
 
 //---------------------------------------------------------------------------//

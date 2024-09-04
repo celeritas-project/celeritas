@@ -26,6 +26,7 @@ namespace celeritas
  */
 enum class StepActionOrder
 {
+    generate,  //!< Fill new track initializers
     start,  //!< Initialize tracks
     user_start,  //!< User initialization of new tracks
     sort_start,  //!< Sort track slots after initialization
