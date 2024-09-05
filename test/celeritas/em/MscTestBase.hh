@@ -50,7 +50,7 @@ class MscTestBase : public RootTestBase
     //!@{
     //! Initialize and destroy
     MscTestBase();
-    ~MscTestBase();
+    virtual ~MscTestBase();
     //!@}
 
     std::string_view geometry_basename() const final
