@@ -18,7 +18,6 @@
 #include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
-#include "celeritas/random/distribution/RejectionSampler.hh"
 
 namespace celeritas
 {
@@ -178,9 +177,10 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
                                       std::sqrt(particle_.beta_sq()));
         real_type xs = mott_xsec(cos_theta)
                        * ipow<2>(this->calculate_form_factor(cos_theta));
-        if (RejectionSampler(xs, helper_.mott_factor())(rng))
+        if (xs < helper_.mott_factor() * generate_canonical(rng))
         {
-            // Reject scattering event: no change in direction
+            // Reject scattering event: no change in direction. Note that the
+            // cross section can be larger than the Mott factor
             cos_theta = 1;
         }
     }
