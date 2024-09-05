@@ -26,6 +26,34 @@
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Call a function when this object is destroyed (at end of scope).
+ */
+template<class F>
+class ScopeExit
+{
+  public:
+    //! Construct with functor
+    ScopeExit(F func) : func_{std::forward<F>(func)} {}
+
+    //! Call functor on destruction
+    ~ScopeExit() { func_(); }
+
+    CELER_DELETE_COPY_MOVE(ScopeExit);
+
+  private:
+    F func_;
+};
+
+template<class F>
+ScopeExit(F&& func) -> ScopeExit<F>;
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with problem parameters and setup options.
@@ -56,6 +84,29 @@ Stepper<M>::Stepper(Input input)
 //! Default destructor
 template<MemSpace M>
 Stepper<M>::~Stepper() = default;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Run all step actions with no active particles.
+ *
+ * The warmup stage is useful for profiling and debugging since the first
+ * step iteration can do the following:
+ * - Initialize asynchronous memory pools
+ * - Interrogate kernel functions for properties to be output later
+ * - Allocate "lazy" auxiliary data (e.g. action diagnostics)
+ */
+template<MemSpace M>
+void Stepper<M>::warm_up()
+{
+    CELER_VALIDATE(state_.counters().num_active == 0,
+                   << "cannot warm up when state has active tracks");
+
+    ScopedProfiling profile_this{"warmup"};
+    state_.warming_up(true);
+    ScopeExit on_exit_{[this] { state_.warming_up(false); }};
+    actions_->step(*params_, state_);
+    CELER_ENSURE(state_.counters().num_active == 0);
+}
 
 //---------------------------------------------------------------------------//
 /*!

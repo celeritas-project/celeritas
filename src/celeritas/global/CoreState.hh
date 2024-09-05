@@ -95,8 +95,11 @@ class CoreState final : public CoreStateInterface
     //! Number of track slots
     size_type size() const final { return states_.size(); }
 
-    // Whether the state is being transported with no active particles
-    bool warming_up() const;
+    // Set a warmup flag
+    void warming_up(bool);
+
+    //! Whether the state is being transported with no active particles
+    bool warming_up() const { return warming_up_; }
 
     //// CORE DATA ////
 
@@ -164,6 +167,9 @@ class CoreState final : public CoreStateInterface
 
     // Indices of first thread assigned to a given action
     detail::CoreStateThreadOffsets<M> offsets_;
+
+    // Whether no primaries should be generated
+    bool warming_up_{false};
 };
 
 //---------------------------------------------------------------------------//

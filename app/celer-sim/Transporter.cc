@@ -73,8 +73,7 @@ void Transporter<M>::operator()()
 {
     CELER_LOG(status) << "Warming up";
     ScopedTimeLog scoped_time;
-    StepperResult step_counts = (*stepper_)();
-    CELER_ENSURE(step_counts.alive == 0);
+    stepper_->warm_up();
 }
 
 //---------------------------------------------------------------------------//

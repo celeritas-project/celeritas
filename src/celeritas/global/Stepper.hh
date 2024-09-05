@@ -86,6 +86,9 @@ class StepperInterface
     //!@}
 
   public:
+    // Warm up before stepping
+    virtual void warm_up() = 0;
+
     // Transport existing states
     virtual StepperResult operator()() = 0;
 
@@ -137,6 +140,9 @@ class Stepper final : public StepperInterface
 
     // Default destructor
     ~Stepper();
+
+    // Warm up before stepping
+    void warm_up() final;
 
     // Transport existing states
     StepperResult operator()() final;

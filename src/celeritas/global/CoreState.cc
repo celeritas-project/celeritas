@@ -72,19 +72,18 @@ CoreState<M>::CoreState(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether the state is being transported with no active particles.
+ * Whether the state should be transported with no active particles.
  *
- * The warmup stage is useful for profiling and debugging since the first
- * step iteration can do the following:
- * - Initialize asynchronous memory pools
- * - Interrogate kernel functions for properties to be output later
- * - Allocate "lazy" auxiliary data (e.g. action diagnostics)
+ * This can only be called when there are no active tracks. It should be
+ * immediately cleared after a step.
+ *
+ * \sa Stepper::warm_up
  */
 template<MemSpace M>
-bool CoreState<M>::warming_up() const
+void CoreState<M>::warming_up(bool new_state)
 {
-    CELER_NOT_IMPLEMENTED("warming up");
-    return counters_.num_active == 0;
+    CELER_EXPECT(!new_state || counters_.num_active == 0);
+    warming_up_ = new_state;
 }
 
 //---------------------------------------------------------------------------//
