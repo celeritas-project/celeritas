@@ -92,7 +92,9 @@ visit_surface_type(F&& func, SurfaceType st)
         ORANGE_ST_VISIT_CASE(sq);
         ORANGE_ST_VISIT_CASE(gq);
         case SurfaceType::inv:
-            CELER_NOT_IMPLEMENTED("runtime support for involutes");
+            // Prevented by input reader: see
+            // orange/detail/SurfacesRecordBuilder.cc
+            CELER_ASSERT_UNREACHABLE();
         default:
             CELER_ASSERT_UNREACHABLE();
     }
