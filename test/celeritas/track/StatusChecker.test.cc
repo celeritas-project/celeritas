@@ -154,7 +154,7 @@ TEST_F(StatusCheckerTest, host)
 {
     CoreState<MemSpace::host> state{*this->core(), StreamId{0}, 16};
     this->begin_run(state);
-    state.insert_primaries(make_span(this->make_primaries(8)));
+    this->insert_primaries(state, make_span(this->make_primaries(8)));
 
     // Keep a persistent view to the last track slot
     SimTrackView sim(
@@ -200,7 +200,7 @@ TEST_F(StatusCheckerTest, TEST_IF_CELER_DEVICE(device))
 {
     CoreState<MemSpace::device> state{*this->core(), StreamId{0}, 128};
     this->begin_run(state);
-    state.insert_primaries(make_span(this->make_primaries(64)));
+    this->insert_primaries(state, make_span(this->make_primaries(8)));
 
     // Check that the first half of a stepping loop is fine
     for (auto label : {"extend-from-primaries",

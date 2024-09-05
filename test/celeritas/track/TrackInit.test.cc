@@ -143,8 +143,8 @@ class TrackInitTest : public TrackInitTestBase
     void extend_from_primaries(Span<Primary const> primaries)
     {
         CELER_EXPECT(state_);
-        state_->insert_primaries(primaries);
-        ExtendFromPrimariesAction(ActionId{1}).step(*this->core(), *state_);
+        this->insert_primaries(*state_, primaries);
+        this->primaries_action()->step(*this->core(), *state_);
     }
 
     std::shared_ptr<CoreStepActionInterface const> pre_step_action() const

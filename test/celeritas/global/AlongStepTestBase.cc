@@ -213,27 +213,8 @@ void AlongStepTestBase::extend_from_primaries(Span<Primary const> primaries,
 {
     CELER_EXPECT(state);
 
-    if (!primaries_action_)
-    {
-        // Save primary action: TODO this is a hack and should be refactored so
-        // that we pass generators into the stepper and eliminate the call
-        // signature with primaries
-        if (auto aid = this->action_reg()->find_action("extend-from-"
-                                                       "primaries"))
-        {
-            auto action
-                = std::dynamic_pointer_cast<ExtendFromPrimariesAction const>(
-                    this->action_reg()->action(aid));
-            CELER_VALIDATE(action,
-                           << "incorrect type for 'extend-from-primaries' "
-                              "action");
-            primaries_action_ = std::move(action);
-        }
-    }
-    CELER_ASSERT(primaries_action_);
-
-    primaries_action_->insert(*this->core(), *state, primaries);
-    this->execute_action(*primaries_action_, state);
+    this->insert_primaries(*state, primaries);
+    this->execute_action(*this->primaries_action(), state);
 }
 
 //---------------------------------------------------------------------------//

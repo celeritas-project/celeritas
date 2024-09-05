@@ -50,8 +50,8 @@ ExtendFromPrimariesAction::make_and_insert(CoreParams const& core)
  *
  * \return action if
  */
-    std::shared_ptr<ExtendFromPrimariesAction const>
-ExtendFromPrimariesAction:: find_action(CoreParams const& core)
+std::shared_ptr<ExtendFromPrimariesAction const>
+ExtendFromPrimariesAction::find_action(CoreParams const& core)
 {
     if (auto aid = core.action_reg()->find_action(efp_label))
     {
