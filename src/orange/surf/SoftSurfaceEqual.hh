@@ -73,6 +73,8 @@ class SoftSurfaceEqual
 
     bool operator()(GeneralQuadric const&, GeneralQuadric const&) const;
 
+    bool operator()(Involute const&, Involute const&) const;
+
   private:
     SoftEqual<> soft_eq_;
 

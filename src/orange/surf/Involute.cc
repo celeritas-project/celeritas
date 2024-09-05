@@ -23,7 +23,7 @@ namespace celeritas
 Involute::Involute(Real2 const& origin,
                    real_type radius,
                    real_type displacement,
-                   Sign sign,
+                   Chirality sign,
                    real_type tmin,
                    real_type tmax)
     : origin_(origin), r_b_(radius), a_(displacement), tmin_(tmin), tmax_(tmax)
@@ -33,7 +33,7 @@ Involute::Involute(Real2 const& origin,
     CELER_EXPECT(tmin_ >= 0);
     CELER_EXPECT(tmax_ > tmin_ && tmax_ < 2 * constants::pi + tmin_);
 
-    if (sign)
+    if (sign == Chirality::right)
     {
         a_ = constants::pi - a_;
         r_b_ = -r_b_;

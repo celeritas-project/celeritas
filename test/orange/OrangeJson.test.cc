@@ -5,6 +5,7 @@
 //---------------------------------------------------------------------------//
 //! \file orange/OrangeJson.test.cc
 //---------------------------------------------------------------------------//
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -844,6 +845,130 @@ TEST_F(InputBuilderTest, DISABLED_universe_union_boundary)
         SCOPED_TRACE("mz");
         auto result = this->track({0, 0, 15}, {0, 0, -1});
         result.print_expected();
+    }
+}
+
+//---------------------------------------------------------------------------//
+// TODO: see celeritas-project/celeritas#1342
+TEST_F(InputBuilderTest, DISABLED_involute)
+{
+    {
+        SCOPED_TRACE("involute");
+        auto result = this->track({0, 2.1, 0}, {1, 0, 0});
+        static char const* const expected_volumes[]
+            = {"channel", "blade", "rest", "shell"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        // Float and double produce different results
+        if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            static real_type const expected_distances[] = {
+                0.531630657850489,
+                0.660884355302089,
+                2.21189389295726,
+                1.13321161570553,
+            };
+            EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        }
+        else
+        {
+            static real_type const expected_distances[]
+                = {0.531625, 0.66089, 2.21189389295726, 1.13321161570553};
+            EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        }
+    }
+
+    {
+        SCOPED_TRACE("involute");
+        auto result = this->track({0, 3.5, 0}, {0, -1, 0});
+        static char const* const expected_volumes[]
+            = {"rest", "blade", "channel", "center", "rest", "shell"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {
+            0.528306129329604, 0.530097149547556, 0.441596721122841, 4, 2, 1};
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+}
+
+TEST_F(InputBuilderTest, DISABLED_involute_cw)
+{
+    {
+        SCOPED_TRACE("involute");
+        auto result = this->track({-2, -1.5, 0}, {1, 0, 0});
+        static char const* const expected_volumes[]
+            = {"rest", "center", "rest", "blade", "rest", "shell"};
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
+        static real_type const expected_distances[] = {
+            0.6771243444677,
+            2.6457513110646,
+            0.17135844958615,
+            0.50955324797963,
+            1.7043118904498,
+            1.0615967635369,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+    }
+}
+
+TEST_F(InputBuilderTest, DISABLED_involute_fuel)
+{
+    {
+        SCOPED_TRACE("involute");
+        auto result = this->track({1.75, 3.5, 0}, {0, -1, 0});
+        static char const* const expected_volumes[] = {
+            "clad2",
+            "fuel2",
+            "clad2",
+            "rest2",
+            "middle",
+            "rest1",
+            "clad1",
+            "fuel1",
+            "clad1",
+            "rest1",
+            "middle",
+            "rest2",
+            "shell",
+        };
+        // Float and double produce different results
+        if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            static real_type const expected_distances[] = {
+                0.12694500489541,
+                0.16591646127344,
+                0.46300647647806,
+                0.30743347115084,
+                0.65134147906653,
+                2.1115149489926,
+                0.30217303181663,
+                0.70489828892381,
+                0.39023902667286,
+                0.06188891786551,
+                0.65134147906653,
+                1.1601750562823,
+                1.0868748563143,
+            };
+            EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        }
+        else
+        {
+            static real_type const expected_distances[] = {
+                0.12694500489541,
+                0.16591646127344,
+                0.46300647647806,
+                0.30743347115084,
+                0.65134147906653,
+                2.1115149489926,
+                0.30217303181663,
+                0.70489828892381,
+                0.390229,
+                0.0618988,
+                0.65134147906653,
+                1.1601750562823,
+                1.0868748563143,
+            };
+            EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
+        }
+        EXPECT_VEC_EQ(expected_volumes, result.volumes);
     }
 }
 

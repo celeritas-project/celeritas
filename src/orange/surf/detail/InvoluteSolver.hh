@@ -48,21 +48,18 @@ class InvoluteSolver
     using Intersections = Array<real_type, 3>;
     using SurfaceState = celeritas::SurfaceState;
     using Real2 = Array<real_type, 2>;
-
-    //! Enum defining chirality of involute
-    enum Sign : bool
-    {
-        counterclockwise = 0,
-        clockwise,  //!< Apply symmetry when solving
-    };
+    //@}
 
     static inline CELER_FUNCTION real_type line_angle_param(real_type u,
                                                             real_type v);
 
   public:
     // Construct Involute from parameters
-    inline CELER_FUNCTION InvoluteSolver(
-        real_type r_b, real_type a, Sign sign, real_type tmin, real_type tmax);
+    inline CELER_FUNCTION InvoluteSolver(real_type r_b,
+                                         real_type a,
+                                         Chirality sign,
+                                         real_type tmin,
+                                         real_type tmax);
 
     // Solve fully general case
     inline CELER_FUNCTION Intersections operator()(
@@ -86,7 +83,7 @@ class InvoluteSolver
     //! Get involute parameters
     CELER_FUNCTION real_type r_b() const { return r_b_; }
     CELER_FUNCTION real_type a() const { return a_; }
-    CELER_FUNCTION Sign sign() const { return sign_; }
+    CELER_FUNCTION Chirality sign() const { return sign_; }
 
     //! Get bounds of the involute
     CELER_FUNCTION real_type tmin() const { return tmin_; }
@@ -97,7 +94,7 @@ class InvoluteSolver
     // Involute parameters
     real_type r_b_;
     real_type a_;
-    Sign sign_;
+    Chirality sign_;
 
     // Bounds
     real_type tmin_;
@@ -111,7 +108,7 @@ class InvoluteSolver
  * Construct from involute parameters.
  */
 CELER_FUNCTION InvoluteSolver::InvoluteSolver(
-    real_type r_b, real_type a, Sign sign, real_type tmin, real_type tmax)
+    real_type r_b, real_type a, Chirality sign, real_type tmin, real_type tmax)
     : r_b_(r_b), a_(a), sign_(sign), tmin_(tmin), tmax_(tmax)
 {
     CELER_EXPECT(r_b > 0);
@@ -122,14 +119,15 @@ CELER_FUNCTION InvoluteSolver::InvoluteSolver(
 }
 
 //---------------------------------------------------------------------------//
-
 /*!
  * Find all roots for involute surfaces that are within the bounds and result
- * in positive distances. Performed by doing a Regular Falsi Iteration on the
+ * in positive distances.
+ *
+ * Performed by doing a Regula Falsi Iteration on the
  * root function, \f[
  * f(t) = r_b * [v{cos(a+t) + tsin(a+t)} + u{sin(a+t) - tcos(a+t)}] + xv - yu
  * \f]
- * where the Regular Falsi Iteration is given by: \f[
+ * where the Regula Falsi Iteration is given by: \f[
  * t_c = [t_a*f(t_b) - t_b*f(t_a)] / [f(t_b) - f(t_a)]
  * \f]
  * where \em t_c replaces the bound with the same sign (e.g. \em t_a and \em
@@ -152,7 +150,7 @@ InvoluteSolver::operator()(Real3 const& pos,
     real_type v = dir[1];
 
     // Mirror systemm for counterclockwise involutes
-    if (sign_)
+    if (sign_ == Chirality::right)
     {
         x = -x;
         u = -u;
@@ -221,7 +219,7 @@ InvoluteSolver::operator()(Real3 const& pos,
         // Only iterate when roots have different signs
         if (signum<real_type>(ft_lower) != signum<real_type>(ft_upper))
         {
-            // Regular Falsi Iteration: Sometimes will slowly converge
+            // Regula Falsi Iteration
             real_type t_gamma = find_root_between(t_lower, t_upper);
 
             // Convert root to distance and store if positive and in interval

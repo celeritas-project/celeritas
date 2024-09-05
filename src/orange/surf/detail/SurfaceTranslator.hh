@@ -54,6 +54,8 @@ class SurfaceTranslator
 
     GeneralQuadric operator()(GeneralQuadric const&) const;
 
+    Involute operator()(Involute const&) const;
+
   private:
     Translation tr_;
 };

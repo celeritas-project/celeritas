@@ -19,7 +19,9 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 using constants::pi;
-using Sign = InvoluteSolver::Sign;
+using Sign = Chirality;
+Sign ccw = Chirality::left;
+Sign cw = Chirality::right;
 using SurfaceSate = celeritas::SurfaceState;
 
 TEST(SolveSurface, no_roots)
@@ -30,7 +32,7 @@ TEST(SolveSurface, no_roots)
     {
         real_type r_b = 3.0;
         real_type a = 0;
-        auto sign = InvoluteSolver::counterclockwise;
+        auto sign = ccw;
 
         real_type x = 0;
         real_type y = -2;
@@ -55,7 +57,7 @@ TEST(SolveSurface, no_roots)
     {
         real_type r_b = 0.75;
         real_type a = 0;
-        auto sign = InvoluteSolver::counterclockwise;
+        auto sign = ccw;
 
         real_type x = -7;
         real_type y = -1;
@@ -80,7 +82,7 @@ TEST(SolveSurface, no_roots)
     {
         real_type r_b = 0.75;
         real_type a = 0;
-        auto sign = InvoluteSolver::counterclockwise;
+        auto sign = ccw;
 
         real_type x = -7;
         real_type y = -1;
@@ -105,7 +107,7 @@ TEST(SolveSurface, no_roots)
     {
         real_type r_b = 1.1;
         real_type a = 0.5 * pi;
-        auto sign = InvoluteSolver::clockwise;
+        auto sign = cw;
 
         real_type x = -0.2;
         real_type y = 1.1;
@@ -130,7 +132,7 @@ TEST(SolveSurface, no_roots)
     {
         real_type r_b = 3.0;
         real_type a = pi;
-        auto sign = InvoluteSolver::counterclockwise;
+        auto sign = ccw;
 
         real_type x = -4.101853006408607;
         real_type y = -5.443541628262038;
@@ -157,7 +159,7 @@ TEST(SolveSurface, one_root)
     {
         real_type r_b = 1.0;
         real_type a = 0;
-        auto sign = InvoluteSolver::counterclockwise;
+        auto sign = ccw;
 
         real_type x = 0;
         real_type y = 0;
@@ -182,7 +184,7 @@ TEST(SolveSurface, one_root)
     {
         real_type r_b = 1.5;
         real_type a = 0;
-        auto sign = InvoluteSolver::counterclockwise;
+        auto sign = ccw;
 
         real_type x = -1.5;
         real_type y = 1.0;
@@ -207,7 +209,7 @@ TEST(SolveSurface, one_root)
     {
         real_type r_b = 0.5;
         real_type a = 0.6 * pi;
-        auto sign = InvoluteSolver::clockwise;
+        auto sign = cw;
 
         real_type x = -4.0;
         real_type y = 2.0;
@@ -233,7 +235,7 @@ TEST(SolveSurface, one_root)
     {
         real_type r_b = 1.1;
         real_type a = 1.5 * pi;
-        auto sign = InvoluteSolver::counterclockwise;
+        auto sign = ccw;
 
         real_type x = 0.0058102462574510716;
         real_type y = -1.1342955336941216;
@@ -260,7 +262,7 @@ TEST(SolveSurface, two_roots)
     {
         real_type r_b = 1.1;
         real_type a = 0.5 * pi;
-        auto sign = InvoluteSolver::clockwise;
+        auto sign = cw;
 
         real_type x = -0.2;
         real_type y = 1.1;
@@ -294,7 +296,7 @@ TEST(SolveSurface, two_roots)
     {
         real_type r_b = 1.1;
         real_type a = 1.5 * pi;
-        auto sign = InvoluteSolver::clockwise;
+        auto sign = cw;
 
         real_type x = -0.0001;
         real_type y = -1.11;
@@ -332,7 +334,7 @@ TEST(SolveSurface, three_roots)
     {
         real_type r_b = 1.1;
         real_type a = 1.5 * pi;
-        auto sign = InvoluteSolver::counterclockwise;
+        auto sign = ccw;
 
         real_type x = -6.8653259986571326;
         real_type y = -0.30468105643505367;
@@ -357,7 +359,7 @@ TEST(SolveSurface, tangents)
     // Direction (0,1)
     real_type r_b = 1.0;
     real_type a = 0;
-    auto sign = InvoluteSolver::counterclockwise;
+    auto sign = ccw;
     real_type tmin = 0.33 * pi;
     real_type tmax = 0.67 * pi;
     InvoluteSolver solve(r_b, a, sign, tmin, tmax);
@@ -633,7 +635,7 @@ TEST(Components, calc_dist)
 {
     real_type r_b = 1.1;
     real_type a = 0.5 * pi;
-    auto sign = InvoluteSolver::clockwise;
+    auto sign = cw;
 
     real_type x = -0.2;
     real_type y = 1.1;

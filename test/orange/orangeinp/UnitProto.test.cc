@@ -16,6 +16,7 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "orange/OrangeInputIO.json.hh"
+#include "orange/OrangeTypes.hh"
 #include "orange/orangeinp/CsgObject.hh"
 #include "orange/orangeinp/InputBuilder.hh"
 #include "orange/orangeinp/Shape.hh"
@@ -36,6 +37,10 @@ namespace test
 //---------------------------------------------------------------------------//
 using SPConstObject = std::shared_ptr<ObjectInterface const>;
 using SPConstProto = std::shared_ptr<ProtoInterface const>;
+//! Enum defining chirality
+using Sign = celeritas::Chirality;
+Sign ccw = celeritas::Chirality::left;
+Sign cw = celeritas::Chirality::right;
 
 //---------------------------------------------------------------------------//
 // Construction helper functions
@@ -76,6 +81,16 @@ SPConstObject make_box(std::string&& label, Real3 const& lo, Real3 const& hi)
         result = make_translated(std::move(result), center);
     }
     return result;
+}
+
+SPConstObject make_inv(std::string&& label,
+                       Real3 const& radii,
+                       Real2 const& displacement,
+                       Sign sign,
+                       real_type halfheight)
+{
+    return make_shape<Involute>(
+        std::move(label), radii, displacement, sign, halfheight);
 }
 
 SPConstProto make_daughter(std::string label)
@@ -740,6 +755,157 @@ TEST_F(InputBuilderTest, universe_union_boundary)
     }());
 
     this->run_test(*outer);
+}
+
+/*!
+ * Generate input for a universe with two involutes and two cylinders
+ */
+TEST_F(InputBuilderTest, involute)
+{
+    auto involute = std::make_shared<UnitProto>([] {
+        auto invo1 = make_inv(
+            "blade", {1.0, 2.0, 4.0}, {0, 0.15667 * constants::pi}, ccw, 1.0);
+        auto invo2
+            = make_inv("channel",
+                       {1.0, 2.0, 4.0},
+                       {0.15667 * constants::pi, 0.31334 * constants::pi},
+                       ccw,
+                       1.0);
+        auto cyl = make_cyl("bound", 5.0, 1.0);
+        auto system = make_cyl("system", 4.0, 1.0);
+        auto inner = make_cyl("center", 2.0, 1.0);
+        UnitProto::Input inp;
+        inp.boundary.interior = cyl;
+        inp.boundary.zorder = ZOrder::media;
+        inp.label = "involute";
+
+        inp.materials.push_back(make_material(SPConstObject{inner}, 1));
+        inp.materials.push_back(make_material(SPConstObject{invo1}, 2));
+        inp.materials.push_back(make_material(SPConstObject{invo2}, 3));
+        inp.materials.push_back(
+            make_material(make_rdv("rest",
+                                   {{Sense::inside, system},
+                                    {Sense::outside, inner},
+                                    {Sense::outside, invo1},
+                                    {Sense::outside, invo2}}),
+                          5));
+        inp.materials.push_back(
+            make_material(make_rdv("shell",
+                                   {{Sense::inside, inp.boundary.interior},
+                                    {Sense::outside, system}}),
+                          5));
+
+        return inp;
+    }());
+
+    this->run_test(*involute);
+}
+
+/*!
+ * Involute Blade
+ */
+TEST_F(InputBuilderTest, involute_cw)
+{
+    auto involute = std::make_shared<UnitProto>([] {
+        auto invo1 = make_inv(
+            "blade", {1.0, 2.0, 4.0}, {0, 0.15667 * constants::pi}, cw, 1.0);
+        auto cyl = make_cyl("bound", 5.0, 1.0);
+        auto system = make_cyl("system", 4.0, 1.0);
+        auto inner = make_cyl("center", 2.0, 1.0);
+        UnitProto::Input inp;
+        inp.boundary.interior = cyl;
+        inp.boundary.zorder = ZOrder::media;
+        inp.label = "involute";
+
+        inp.materials.push_back(make_material(SPConstObject{inner}, 1));
+        inp.materials.push_back(make_material(SPConstObject{invo1}, 2));
+        inp.materials.push_back(
+            make_material(make_rdv("rest",
+                                   {{Sense::inside, system},
+                                    {Sense::outside, inner},
+                                    {Sense::outside, invo1}}),
+                          4));
+        inp.materials.push_back(
+            make_material(make_rdv("shell",
+                                   {{Sense::inside, inp.boundary.interior},
+                                    {Sense::outside, system}}),
+                          5));
+
+        return inp;
+    }());
+
+    this->run_test(*involute);
+}
+
+/*!
+ * Clockwise and Counterclockwise fuel blade
+ */
+TEST_F(InputBuilderTest, involute_fuel)
+{
+    auto involute = std::make_shared<UnitProto>([] {
+        auto inner1 = make_cyl("center", 1.5, 1.0);
+        auto cyl = make_cyl("bound", 5.0, 1.0);
+        auto invo1 = make_inv(
+            "blade1", {1.0, 1.5, 2.5}, {0, 0.1 * constants::pi}, cw, 1.0);
+        auto invo2 = make_inv("fuel1",
+                              {1.0, 1.8, 2.2},
+                              {0.03 * constants::pi, 0.07 * constants::pi},
+                              cw,
+                              1.0);
+        auto outer1 = make_cyl("middle_1", 2.5, 1.0);
+        auto inner2 = make_cyl("middle_2", 3.0, 1.0);
+        auto invo3 = make_inv("blade2",
+                              {2.0, 3.0, 4.0},
+                              {0.1 * constants::pi, 0.2 * constants::pi},
+                              ccw,
+                              1.0);
+        auto invo4 = make_inv("fuel2",
+                              {2.0, 3.2, 3.8},
+                              {0.13 * constants::pi, 0.17 * constants::pi},
+                              ccw,
+                              1.0);
+        auto outer2 = make_cyl("outer", 4.0, 1.0);
+
+        UnitProto::Input inp;
+        inp.boundary.interior = cyl;
+        inp.boundary.zorder = ZOrder::media;
+        inp.label = "involute";
+
+        inp.materials.push_back(make_material(SPConstObject{inner1}, 1));
+        inp.materials.push_back(make_material(SPConstObject{invo2}, 2));
+        inp.materials.push_back(make_material(
+            make_rdv("clad1", {{Sense::inside, invo1}, {Sense::outside, invo2}}),
+            3));
+        inp.materials.push_back(
+            make_material(make_rdv("rest1",
+                                   {{Sense::inside, outer1},
+                                    {Sense::outside, invo1},
+                                    {Sense::outside, inner1}}),
+                          4));
+        inp.materials.push_back(make_material(
+            make_rdv("middle",
+                     {{Sense::inside, inner2}, {Sense::outside, outer1}}),
+            5));
+        inp.materials.push_back(make_material(SPConstObject{invo4}, 6));
+        inp.materials.push_back(make_material(
+            make_rdv("clad2", {{Sense::inside, invo3}, {Sense::outside, invo4}}),
+            7));
+        inp.materials.push_back(
+            make_material(make_rdv("rest2",
+                                   {{Sense::inside, outer2},
+                                    {Sense::outside, invo3},
+                                    {Sense::outside, inner2}}),
+                          8));
+        inp.materials.push_back(
+            make_material(make_rdv("shell",
+                                   {{Sense::inside, inp.boundary.interior},
+                                    {Sense::outside, outer2}}),
+                          9));
+
+        return inp;
+    }());
+
+    this->run_test(*involute);
 }
 
 //---------------------------------------------------------------------------//
