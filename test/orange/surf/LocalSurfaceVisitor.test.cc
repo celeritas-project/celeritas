@@ -175,9 +175,12 @@ TEST_F(SurfaceActionTest, surface_traits_visitor)
     {
         if (st == SurfaceType::inv)
         {
-            // TODO: see celeritas-project/celeritas#1342
-            EXPECT_THROW(visit_surface_type(get_surface_type, st),
-                         RuntimeError);
+            if (CELERITAS_DEBUG)
+            {
+                // TODO: see celeritas-project/celeritas#1342
+                EXPECT_THROW(visit_surface_type(get_surface_type, st),
+                             DebugError);
+            }
             continue;
         }
 
