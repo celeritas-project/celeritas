@@ -19,7 +19,7 @@ namespace detail
  *
  * \sa CoreTrackView::tracking_cut_action
  */
-class TrackingCutAction final : public ExplicitCoreActionInterface,
+class TrackingCutAction final : public CoreStepActionInterface,
                                 public ConcreteAction
 {
   public:
@@ -27,13 +27,13 @@ class TrackingCutAction final : public ExplicitCoreActionInterface,
     explicit TrackingCutAction(ActionId);
 
     // Launch kernel with host data
-    void execute(CoreParams const&, CoreStateHost&) const final;
+    void step(CoreParams const&, CoreStateHost&) const final;
 
     // Launch kernel with device data
-    void execute(CoreParams const&, CoreStateDevice&) const final;
+    void step(CoreParams const&, CoreStateDevice&) const final;
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::post; }
+    StepActionOrder order() const final { return StepActionOrder::post; }
 };
 
 //---------------------------------------------------------------------------//

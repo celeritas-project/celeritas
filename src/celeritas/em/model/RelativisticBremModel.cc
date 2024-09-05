@@ -103,8 +103,8 @@ auto RelativisticBremModel::micro_xs(Applicability applic) const -> MicroXsBuild
 /*!
  * Interact with host data.
  */
-void RelativisticBremModel::execute(CoreParams const& params,
-                                    CoreStateHost& state) const
+void RelativisticBremModel::step(CoreParams const& params,
+                                 CoreStateHost& state) const
 {
     auto execute = make_action_track_executor(
         params.ptr<MemSpace::native>(),
@@ -116,7 +116,7 @@ void RelativisticBremModel::execute(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void RelativisticBremModel::execute(CoreParams const&, CoreStateDevice&) const
+void RelativisticBremModel::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

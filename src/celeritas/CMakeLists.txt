@@ -29,6 +29,8 @@ list(APPEND SOURCES
   em/process/GammaConversionProcess.cc
   em/process/PhotoelectricProcess.cc
   em/process/RayleighProcess.cc
+  ext/GeantOpticalPhysicsOptions.cc
+  ext/GeantOpticalPhysicsOptionsIO.json.cc
   ext/GeantPhysicsOptions.cc
   ext/GeantPhysicsOptionsIO.json.cc
   field/FieldDriverOptions.cc
@@ -36,9 +38,6 @@ list(APPEND SOURCES
   field/RZMapFieldInputIO.json.cc
   field/RZMapFieldParams.cc
   geo/GeoMaterialParams.cc
-  global/ActionInterface.cc
-  global/ActionRegistry.cc
-  global/ActionRegistryOutput.cc
   global/CoreParams.cc
   global/CoreState.cc
   global/CoreTrackData.cc
@@ -73,11 +72,14 @@ list(APPEND SOURCES
   neutron/process/NeutronElasticProcess.cc
   neutron/process/NeutronInelasticProcess.cc
   optical/CerenkovParams.cc
+  optical/CoreParams.cc
+  optical/CoreState.cc
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
   optical/TrackData.cc
   optical/ScintillationParams.cc
   optical/detail/OffloadParams.cc
+  optical/detail/OpticalLaunchAction.cc
   phys/CutoffParams.cc
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc
@@ -128,6 +130,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/CelerEmPhysicsList.cc
     ext/detail/CelerEmStandardPhysics.cc
     ext/detail/CelerFTFPBert.cc
+    ext/detail/CelerOpticalPhysics.cc
     ext/detail/GeantBremsstrahlungProcess.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
@@ -296,7 +299,7 @@ if(NOT CELERITAS_USE_OpenMP
     AND (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
          OR CMAKE_CXX_COMPILER_ID MATCHES "Clang$"))
   celeritas_target_compile_options(celeritas
-    PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-unknown-pragmas>
+    PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:-Wno-unknown-pragmas>"
   )
 endif()
 if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
@@ -305,7 +308,6 @@ if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:/wd4267$<SEMICOLON>/wd4250>"
   )
 endif()
-
 
 celeritas_target_link_libraries(celeritas
   PRIVATE ${PRIVATE_DEPS}

@@ -47,7 +47,7 @@ namespace celeritas
  * This class is similar to Geant4's G4VContinuousDiscrete process, but more
  * limited.
  */
-class Model : public ExplicitCoreActionInterface
+class Model : public CoreStepActionInterface
 {
   public:
     //@{
@@ -65,7 +65,7 @@ class Model : public ExplicitCoreActionInterface
     virtual MicroXsBuilders micro_xs(Applicability range) const = 0;
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::post; }
+    StepActionOrder order() const final { return StepActionOrder::post; }
 };
 
 //---------------------------------------------------------------------------//

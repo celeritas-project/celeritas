@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/ActionRegistry.cc
+//! \file corecel/sys/ActionRegistry.cc
 //---------------------------------------------------------------------------//
 #include "ActionRegistry.hh"
 
@@ -22,7 +22,7 @@ namespace celeritas
 void ActionRegistry::insert_mutable_impl(SPAction&& action)
 {
     CELER_EXPECT(action);
-    if (dynamic_cast<BeginRunActionInterface*>(action.get()))
+    if (dynamic_cast<MutableActionInterface*>(action.get()))
     {
         mutable_actions_.push_back(action);
     }
@@ -36,8 +36,8 @@ void ActionRegistry::insert_mutable_impl(SPAction&& action)
 void ActionRegistry::insert_const_impl(SPConstAction&& action)
 {
     CELER_EXPECT(action);
-    CELER_VALIDATE(!dynamic_cast<BeginRunActionInterface const*>(action.get()),
-                   << "begin-run action '" << action->label()
+    CELER_VALIDATE(!dynamic_cast<MutableActionInterface const*>(action.get()),
+                   << "mutable action '" << action->label()
                    << "' (ID=" << action->action_id().unchecked_get()
                    << ") cannot be registered as const");
     return this->insert_impl(std::move(action));

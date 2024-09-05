@@ -25,8 +25,8 @@ namespace detail
  * Gather step attributes from GPU data, and execute callbacks at end of step.
  */
 template<StepPoint P>
-void StepGatherAction<P>::execute(CoreParams const& params,
-                                  CoreStateDevice& state) const
+void StepGatherAction<P>::step(CoreParams const& params,
+                               CoreStateDevice& state) const
 {
     auto& step_state = storage_->obj.state<MemSpace::native>(state.stream_id(),
                                                              state.size());

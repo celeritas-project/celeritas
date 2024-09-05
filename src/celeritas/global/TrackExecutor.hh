@@ -42,7 +42,7 @@ void foo_kernel(CoreParamsPtr const params,
 
     for (auto tid : range(ThreadID{123}))
     {
-        execute(tid);
+        step(tid);
     }
 }
 \endcode

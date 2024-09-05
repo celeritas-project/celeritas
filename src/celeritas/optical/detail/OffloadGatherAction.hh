@@ -29,17 +29,17 @@ namespace detail
  *
  * \sa OffloadGatherExecutor
  */
-class OffloadGatherAction final : public ExplicitCoreActionInterface
+class OffloadGatherAction final : public CoreStepActionInterface
 {
   public:
     // Construct with action ID and storage
     OffloadGatherAction(ActionId id, AuxId data_id);
 
     // Launch kernel with host data
-    void execute(CoreParams const&, CoreStateHost&) const final;
+    void step(CoreParams const&, CoreStateHost&) const final;
 
     // Launch kernel with device data
-    void execute(CoreParams const&, CoreStateDevice&) const final;
+    void step(CoreParams const&, CoreStateDevice&) const final;
 
     //! ID of the model
     ActionId action_id() const final { return id_; }
@@ -51,7 +51,7 @@ class OffloadGatherAction final : public ExplicitCoreActionInterface
     std::string_view description() const final;
 
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::user_pre; }
+    StepActionOrder order() const final { return StepActionOrder::user_pre; }
 
   private:
     //// DATA ////

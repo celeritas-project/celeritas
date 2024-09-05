@@ -62,7 +62,7 @@ struct FieldDriverOptions
     short int max_nsteps = 100;
 
     //! Maximum number of substeps in the field propagator
-    short int max_substeps = 100;
+    short int max_substeps = 10;
 
     //! Initial step tolerance
     static constexpr inline real_type initial_step_tol = 1e-6;

@@ -20,8 +20,8 @@ namespace celeritas
  *
  * The six kernels should correspons to the six function calls in \c AlongStep.
  */
-void AlongStepGeneralLinearAction::execute(CoreParams const& params,
-                                           CoreStateDevice& state) const
+void AlongStepGeneralLinearAction::step(CoreParams const& params,
+                                        CoreStateDevice& state) const
 {
     if (this->has_msc())
     {

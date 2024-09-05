@@ -68,16 +68,9 @@ namespace celeritas
 
    \endverbatim
  */
-class ExtendFromSecondariesAction final : public ExplicitCoreActionInterface,
-                                          public BeginRunActionInterface
+class ExtendFromSecondariesAction final : public CoreStepActionInterface,
+                                          public CoreBeginRunActionInterface
 {
-  public:
-    //@{
-    //! \name Type aliases
-    using ExplicitCoreActionInterface::CoreStateDevice;
-    using ExplicitCoreActionInterface::CoreStateHost;
-    //@}
-
   public:
     //! Construct with explicit Id
     explicit ExtendFromSecondariesAction(ActionId id) : id_(id) {}
@@ -91,15 +84,15 @@ class ExtendFromSecondariesAction final : public ExplicitCoreActionInterface,
     // Description of the action for user interaction
     std::string_view description() const final;
     //! Dependency ordering of the action
-    ActionOrder order() const final { return ActionOrder::end; }
+    StepActionOrder order() const final { return StepActionOrder::end; }
     //!@}
 
     //!@{
     //! \name ExplicitAction interface
     // Launch kernel with host data
-    void execute(CoreParams const&, CoreStateHost&) const final;
+    void step(CoreParams const&, CoreStateHost&) const final;
     // Launch kernel with device data
-    void execute(CoreParams const&, CoreStateDevice&) const final;
+    void step(CoreParams const&, CoreStateDevice&) const final;
     //!@}
 
     //!@{
@@ -114,7 +107,7 @@ class ExtendFromSecondariesAction final : public ExplicitCoreActionInterface,
     ActionId id_;
 
     template<MemSpace M>
-    void execute_impl(CoreParams const&, CoreState<M>&) const;
+    void step_impl(CoreParams const&, CoreState<M>&) const;
 
     void locate_alive(CoreParams const&, CoreStateHost&) const;
     void locate_alive(CoreParams const&, CoreStateDevice&) const;

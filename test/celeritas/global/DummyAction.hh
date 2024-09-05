@@ -48,23 +48,25 @@ class DummyParams final : public AuxParamsInterface
 };
 
 //---------------------------------------------------------------------------//
-class DummyAction final : public ExplicitCoreActionInterface,
-                          public ConcreteAction
+class DummyAction final : public CoreStepActionInterface, public ConcreteAction
 {
   public:
-    DummyAction(ActionId id, ActionOrder order, std::string&& label, AuxId aux);
+    DummyAction(ActionId id,
+                StepActionOrder order,
+                std::string&& label,
+                AuxId aux);
 
-    void execute(CoreParams const&, CoreStateHost& state) const final;
-    void execute(CoreParams const&, CoreStateDevice& state) const final;
+    void step(CoreParams const&, CoreStateHost& state) const final;
+    void step(CoreParams const&, CoreStateDevice& state) const final;
 
-    ActionOrder order() const final { return order_; }
+    StepActionOrder order() const final { return order_; }
 
   private:
-    ActionOrder order_;
+    StepActionOrder order_;
     AuxId aux_id_;
 
     // Add the action order
-    void execute_impl(DummyState& state) const;
+    void step_impl(DummyState& state) const;
 };
 
 //---------------------------------------------------------------------------//

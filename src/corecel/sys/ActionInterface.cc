@@ -1,13 +1,15 @@
 //----------------------------------*-C++-*----------------------------------//
-// Copyright 2022-2024 UT-Battelle, LLC, and other Celeritas developers.
+// Copyright 2024 UT-Battelle, LLC, and other Celeritas developers.
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/ActionInterface.cc
+//! \file corecel/sys/ActionInterface.cc
 //---------------------------------------------------------------------------//
 #include "ActionInterface.hh"
 
 #include <utility>
+
+#include "corecel/io/EnumStringMapper.hh"
 
 namespace celeritas
 {
@@ -37,6 +39,30 @@ ConcreteAction::ConcreteAction(ActionId id,
 {
     CELER_ASSERT(id_);
     CELER_ASSERT(!label_.empty());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a string corresponding to an action order.
+ */
+char const* to_cstring(StepActionOrder value)
+{
+    static EnumStringMapper<StepActionOrder> const to_cstring_impl{
+        "start",
+        "user_start",
+        "sort_start",
+        "pre",
+        "user_pre",
+        "sort_pre",
+        "along",
+        "sort_along",
+        "pre_post",
+        "sort_pre_post",
+        "post",
+        "user_post",
+        "end",
+    };
+    return to_cstring_impl(value);
 }
 
 //---------------------------------------------------------------------------//

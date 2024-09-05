@@ -241,7 +241,12 @@ TEST_F(TwoBoxesTest, electron_interior)
         SCOPED_TRACE("Half turn");
         stepper.reset_count();
         result = propagate(pi * radius);
-        EXPECT_SOFT_EQ(pi * radius, result.distance);
+        // The maximum substep limit in the field propagator was reached before
+        // traveling the full distance; propagate again to reach the end
+        real_type partial_distance = 8.7323805094658429;
+        EXPECT_SOFT_EQ(partial_distance, result.distance);
+        result = propagate(pi * radius - partial_distance);
+        EXPECT_SOFT_EQ(pi * radius - partial_distance, result.distance);
         EXPECT_LT(distance(Real3({radius, 0, 0}), geo.pos()), 1e-5);
         EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, 1, 0}), geo.dir()));
         EXPECT_EQ(40, stepper.count());
@@ -675,6 +680,8 @@ TEST_F(TwoBoxesTest, electron_cross)
     {
         SCOPED_TRACE("Return to start (2/3 turn)");
 
+        FieldDriverOptions driver_options;
+        driver_options.max_substeps = 100;
         auto geo = this->make_geo_track_view();
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
             field, driver_options, particle, geo);
@@ -730,6 +737,8 @@ TEST_F(TwoBoxesTest, electron_tangent_cross)
 
         real_type dy = 0.9 * driver_options.delta_chord;
 
+        FieldDriverOptions driver_options;
+        driver_options.max_substeps = 100;
         auto geo = this->make_geo_track_view({1, 4 + dy, 0}, {0, 1, 0});
         auto propagate = make_mag_field_propagator<DormandPrinceStepper>(
             field, driver_options, particle, geo);
@@ -1016,6 +1025,7 @@ TEST_F(TwoBoxesTest,
         auto stepper = make_mag_field_stepper<DiagnosticDPStepper>(
             field, particle.charge());
         FieldDriverOptions driver_options;
+        driver_options.max_substeps = 100;
         auto propagate
             = make_field_propagator(stepper, driver_options, particle, geo);
         for (int i : range(2))
@@ -1247,6 +1257,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
 {
     UniformZField field(1 * units::tesla);
     FieldDriverOptions driver_options;
+    driver_options.max_substeps = 100;
 
     auto geo = this->make_geo_track_view({1.23254142755319734e+02,
                                           -2.08186543568394598e+01,
@@ -1386,6 +1397,7 @@ TEST_F(CmseTest, coarse)
     FieldDriverOptions driver_options;
     driver_options.delta_intersection = 0.001;
     driver_options.delta_chord = 0.1;
+    driver_options.max_substeps = 100;
 
     std::vector<int> num_boundary;
     std::vector<int> num_step;

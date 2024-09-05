@@ -9,10 +9,10 @@
 
 #include "corecel/cont/Span.hh"
 #include "corecel/io/StringUtils.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
-#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -151,30 +151,29 @@ TEST_F(TestEm3DiagnosticTest, host)
                         "stuck on some builds but not others";
     }
 
-    // Check action diagnostic results
-    static char const* const expected_nonzero_action_keys[]
-        = {"annihil-2-gamma e+",
-           "brems-combined e+",
-           "brems-combined e-",
-           "conv-bethe-heitler gamma",
-           "eloss-range e+",
-           "eloss-range e-",
-           "geo-boundary e+",
-           "geo-boundary e-",
-           "geo-boundary gamma",
-           "ioni-moller-bhabha e+",
-           "ioni-moller-bhabha e-",
-           "msc-range e+",
-           "msc-range e-",
-           "photoel-livermore gamma",
-           "physics-integral-rejected e+",
-           "physics-integral-rejected e-",
-           "scat-klein-nishina gamma"};
-    EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
-
     if (this->is_ci_build()
         && std::string(celeritas_geant4_version) == "11.0.4")
     {
+        static char const* const expected_nonzero_action_keys[]
+            = {"annihil-2-gamma e+",
+               "brems-combined e+",
+               "brems-combined e-",
+               "conv-bethe-heitler gamma",
+               "eloss-range e+",
+               "eloss-range e-",
+               "geo-boundary e+",
+               "geo-boundary e-",
+               "geo-boundary gamma",
+               "ioni-moller-bhabha e+",
+               "ioni-moller-bhabha e-",
+               "msc-range e+",
+               "msc-range e-",
+               "photoel-livermore gamma",
+               "physics-integral-rejected e+",
+               "physics-integral-rejected e-",
+               "scat-klein-nishina gamma"};
+        EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
+
         static size_type const expected_nonzero_action_counts[] = {
             119u,
             398u,

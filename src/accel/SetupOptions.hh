@@ -14,13 +14,13 @@
 #include <vector>
 
 #include "celeritas/Types.hh"
+#include "celeritas/global/ActionInterface.hh"
 
 class G4LogicalVolume;
 
 namespace celeritas
 {
 struct AlongStepFactoryInput;
-class ExplicitCoreActionInterface;
 //---------------------------------------------------------------------------//
 /*!
  * Control options for initializing Celeritas SD callbacks.
@@ -89,7 +89,7 @@ struct SetupOptions
     using size_type = unsigned int;
     using real_type = double;
 
-    using SPConstAction = std::shared_ptr<ExplicitCoreActionInterface const>;
+    using SPConstAction = std::shared_ptr<CoreStepActionInterface const>;
     using AlongStepFactory
         = std::function<SPConstAction(AlongStepFactoryInput const&)>;
     using IntAccessor = std::function<int()>;

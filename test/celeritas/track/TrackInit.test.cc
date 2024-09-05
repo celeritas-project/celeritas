@@ -14,8 +14,8 @@
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/io/LogContextException.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/SimpleTestBase.hh"
-#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/CoreTrackData.hh"
@@ -144,24 +144,23 @@ class TrackInitTest : public TrackInitTestBase
     {
         CELER_EXPECT(state_);
         state_->insert_primaries(primaries);
-        ExtendFromPrimariesAction(ActionId{1}).execute(*this->core(), *state_);
+        ExtendFromPrimariesAction(ActionId{1}).step(*this->core(), *state_);
     }
 
-    std::shared_ptr<ExplicitCoreActionInterface const> pre_step_action() const
+    std::shared_ptr<CoreStepActionInterface const> pre_step_action() const
     {
         auto aid = this->action_reg()->find_action("pre-step");
         CELER_ASSERT(aid);
-        return std::dynamic_pointer_cast<ExplicitCoreActionInterface const>(
+        return std::dynamic_pointer_cast<CoreStepActionInterface const>(
             this->action_reg()->action(aid));
     }
     void init_tracks()
     {
         // Initialize tracks
-        InitializeTracksAction{ActionId{0}}.execute(*this->core(),
-                                                    this->state());
+        InitializeTracksAction{ActionId{0}}.step(*this->core(), this->state());
 
         // Reset physics state before interacting
-        this->pre_step_action()->execute(*this->core(), *state_);
+        this->pre_step_action()->step(*this->core(), *state_);
     }
 
   private:
@@ -243,11 +242,10 @@ TYPED_TEST(TrackInitTest, run)
             false, true, false, true, false, true, false, true, false, false};
         return MockInteractAction{ActionId{1}, alloc, alive};
     }();
-    interact.execute(*this->core(), this->state());
+    interact.step(*this->core(), this->state());
 
     // Launch a kernel to create track initializers from secondaries
-    ExtendFromSecondariesAction{ActionId{2}}.execute(*this->core(),
-                                                     this->state());
+    ExtendFromSecondariesAction{ActionId{2}}.step(*this->core(), this->state());
 
     // Check the vacancies
     {
@@ -331,10 +329,10 @@ TYPED_TEST(TrackInitTest, primaries)
         this->init_tracks();
 
         // Launch kernel that will kill half the tracks
-        interact.execute(*this->core(), this->state());
+        interact.step(*this->core(), this->state());
 
         // Find vacancies and create track initializers from secondaries
-        extend_from_secondaries.execute(*this->core(), this->state());
+        extend_from_secondaries.step(*this->core(), this->state());
         EXPECT_EQ(i * num_tracks / 2,
                   this->state().counters().num_initializers);
         EXPECT_EQ(num_tracks / 2, this->state().counters().num_vacancies);
@@ -369,7 +367,7 @@ TYPED_TEST(TrackInitTest, extend_from_secondaries)
     this->build_states(num_tracks);
 
     // Create actions
-    std::vector<std::shared_ptr<ExplicitCoreActionInterface const>> actions = {
+    std::vector<std::shared_ptr<CoreStepActionInterface const>> actions = {
         std::make_shared<InitializeTracksAction>(ActionId{0}),
         this->pre_step_action(),
         std::make_shared<MockInteractAction>(
@@ -384,7 +382,7 @@ TYPED_TEST(TrackInitTest, extend_from_secondaries)
     auto apply_actions = [&actions, this] {
         for (auto const& ea_interface : actions)
         {
-            ea_interface->execute(*this->core(), this->state());
+            ea_interface->step(*this->core(), this->state());
         }
     };
 

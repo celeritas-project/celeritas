@@ -14,41 +14,46 @@
 
 #include "OffloadData.hh"
 
-#include "detail/CerenkovOffloadAction.hh"
-#include "detail/OffloadGatherAction.hh"
-#include "detail/ScintOffloadAction.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class ActionRegistry;
-class CerenkovParams;
-class ScintillationParams;
 class CoreParams;
 
 namespace optical
 {
+class CerenkovParams;
 class MaterialParams;
+class ScintillationParams;
 }
 
 namespace detail
 {
+class CerenkovOffloadAction;
+class OffloadGatherAction;
+class OpticalLaunchAction;
 class OffloadParams;
+class ScintOffloadAction;
 }  // namespace detail
 
 //---------------------------------------------------------------------------//
 /*!
- * Generate scintillation and Cerenkov optical distribution data at each step.
+ * Generate and track optical photons.
  *
  * This class is the interface between the main stepping loop and the photon
  * stepping loop and constructs kernel actions for:
  * - gathering the pre-step data needed to generate the optical distributions,
- * - generating the optical distributions at the end of the step, and
+ * - generating the scintillation and Cerenkov optical distributions at the
+ *   end of the step, and
  * - launching the photon stepping loop.
+ *
+ * The photon stepping loop will then generate optical primaries.
  *
  * The "collector" (TODO: rename?) will "own" the optical state data and
  * optical params since it's the only thing that launches the optical stepping
  * loop.
+ *
+ * \todo Rename to OpticalOffload
  */
 class OpticalCollector
 {
@@ -74,7 +79,7 @@ class OpticalCollector
         //! True if all input is assigned and valid
         explicit operator bool() const
         {
-            return (scintillation || (cerenkov && material))
+            return material && (scintillation || cerenkov)
                    && buffer_capacity > 0;
         }
     };
@@ -83,28 +88,28 @@ class OpticalCollector
     // Construct with core data and optical params
     OpticalCollector(CoreParams const&, Input&&);
 
-    // Aux ID for optical generator data
-    AuxId aux_id() const;
+    // Aux ID for optical offload data
+    AuxId offload_aux_id() const;
 
   private:
     //// TYPES ////
 
     using SPOffloadParams = std::shared_ptr<detail::OffloadParams>;
-    using SPCerenkovOffloadAction
-        = std::shared_ptr<detail::CerenkovOffloadAction>;
-    using SPScintOffloadAction = std::shared_ptr<detail::ScintOffloadAction>;
+    using SPCerenkovAction = std::shared_ptr<detail::CerenkovOffloadAction>;
+    using SPScintAction = std::shared_ptr<detail::ScintOffloadAction>;
     using SPGatherAction = std::shared_ptr<detail::OffloadGatherAction>;
+    using SPLaunchAction = std::shared_ptr<detail::OpticalLaunchAction>;
 
     //// DATA ////
 
     SPOffloadParams gen_params_;
 
     SPGatherAction gather_action_;
-    SPCerenkovOffloadAction cerenkov_offload_action_;
-    SPScintOffloadAction scint_offload_action_;
+    SPCerenkovAction cerenkov_action_;
+    SPScintAction scint_action_;
+    SPLaunchAction launch_action_;
 
-    // TODO: tracking loop launcher
-    // TODO: store optical core params and state?
+    // TODO: tracking loop launch action
 };
 
 //---------------------------------------------------------------------------//

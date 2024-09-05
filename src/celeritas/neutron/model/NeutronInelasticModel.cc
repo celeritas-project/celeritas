@@ -141,14 +141,14 @@ auto NeutronInelasticModel::micro_xs(Applicability) const -> MicroXsBuilders
 /*!
  * Apply the interaction kernel.
  */
-void NeutronInelasticModel::execute(CoreParams const&, CoreStateHost&) const
+void NeutronInelasticModel::step(CoreParams const&, CoreStateHost&) const
 {
     CELER_NOT_IMPLEMENTED("Neutron inelastic interaction");
 }
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void NeutronInelasticModel::execute(CoreParams const&, CoreStateDevice&) const
+void NeutronInelasticModel::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

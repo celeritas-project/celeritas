@@ -24,8 +24,8 @@ namespace detail
 /*!
  * Gather pre-step data.
  */
-void OffloadGatherAction::execute(CoreParams const& params,
-                                  CoreStateDevice& state) const
+void OffloadGatherAction::step(CoreParams const& params,
+                               CoreStateDevice& state) const
 {
     auto& optical_state
         = get<OpticalOffloadState<MemSpace::native>>(state.aux(), data_id_);

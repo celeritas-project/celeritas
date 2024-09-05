@@ -17,8 +17,8 @@
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/io/LogContextException.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "geocel/UnitUtils.hh"
-#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
@@ -81,9 +81,9 @@ class StepperOrderTest : public SimpleComptonTest
 
         // Note that order shouldn't matter; we deliberately add these out of
         // order.
-        for (auto action_order : {ActionOrder::user_post,
-                                  ActionOrder::user_start,
-                                  ActionOrder::user_pre})
+        for (auto action_order : {StepActionOrder::user_post,
+                                  StepActionOrder::user_start,
+                                  StepActionOrder::user_pre})
         {
             // Create a new action that can read data from the dummy params
             action_reg->insert(std::make_shared<DummyAction>(

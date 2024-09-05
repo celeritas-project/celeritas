@@ -20,7 +20,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Manage metadata about optical offloading.
+ * Manage metadata for optical offload generation.
  */
 class OffloadParams final : public AuxParamsInterface,
                             public ParamsDataInterface<OffloadParamsData>

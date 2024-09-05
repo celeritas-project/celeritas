@@ -9,10 +9,10 @@
 
 #include "corecel/cont/Span.hh"
 #include "corecel/io/LogContextException.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/geo/GeoParams.hh"
-#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/phys/PDGNumber.hh"

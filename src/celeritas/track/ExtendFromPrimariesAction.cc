@@ -23,20 +23,20 @@ namespace celeritas
 /*!
  * Execute the action with host data.
  */
-void ExtendFromPrimariesAction::execute(CoreParams const& params,
-                                        CoreStateHost& state) const
+void ExtendFromPrimariesAction::step(CoreParams const& params,
+                                     CoreStateHost& state) const
 {
-    return this->execute_impl(params, state);
+    return this->step_impl(params, state);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Execute the action with device data.
  */
-void ExtendFromPrimariesAction::execute(CoreParams const& params,
-                                        CoreStateDevice& state) const
+void ExtendFromPrimariesAction::step(CoreParams const& params,
+                                     CoreStateDevice& state) const
 {
-    return this->execute_impl(params, state);
+    return this->step_impl(params, state);
 }
 
 //---------------------------------------------------------------------------//
@@ -44,8 +44,8 @@ void ExtendFromPrimariesAction::execute(CoreParams const& params,
  * Construct primaries.
  */
 template<MemSpace M>
-void ExtendFromPrimariesAction::execute_impl(CoreParams const& params,
-                                             CoreState<M>& state) const
+void ExtendFromPrimariesAction::step_impl(CoreParams const& params,
+                                          CoreState<M>& state) const
 {
     auto primary_range = state.primary_range();
     if (primary_range.empty() && !state.warming_up())
