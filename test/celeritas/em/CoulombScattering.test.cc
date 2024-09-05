@@ -438,46 +438,88 @@ TEST_F(CoulombScatteringTest, distribution)
         = this->cutoff_params()->get(mat_id_).energy(ParticleId{0});
 
     std::vector<real_type> avg_angles;
+    std::vector<real_type> avg_engine_samples;
 
-    for (real_type energy : {1, 50, 100, 200, 1000, 13000})
-    {
-        this->set_inc_particle(pdg::electron(), MevEnergy{energy});
+    auto sample = [&](PDGNumber pdg) {
+        avg_angles.clear();
+        avg_engine_samples.clear();
 
-        WentzelHelper helper(this->particle_track(),
-                             material,
-                             isotope.atomic_number(),
-                             wentzel_->host_ref(),
-                             model_->host_ref().ids,
-                             cutoff);
-        WentzelDistribution sample_angle(wentzel_->host_ref(),
-                                         helper,
-                                         this->particle_track(),
-                                         isotope,
-                                         el_id_,
-                                         helper.cos_thetamax_nuclear(),
-                                         model_->host_ref().cos_thetamax());
-
-        RandomEngine& rng_engine = this->rng();
-
-        real_type avg_angle = 0;
-
-        int const num_samples = 4096;
-        for ([[maybe_unused]] int i : range(num_samples))
+        for (real_type energy : {1, 50, 100, 200, 1000, 13000})
         {
-            avg_angle += sample_angle(rng_engine);
+            this->set_inc_particle(pdg, MevEnergy{energy});
+
+            WentzelHelper helper(this->particle_track(),
+                                 material,
+                                 isotope.atomic_number(),
+                                 wentzel_->host_ref(),
+                                 model_->host_ref().ids,
+                                 cutoff);
+            WentzelDistribution sample_angle(wentzel_->host_ref(),
+                                             helper,
+                                             this->particle_track(),
+                                             isotope,
+                                             el_id_,
+                                             helper.cos_thetamax_nuclear(),
+                                             model_->host_ref().cos_thetamax());
+
+            RandomEngine& rng = this->rng();
+
+            real_type avg_angle = 0;
+
+            int const num_samples = 4096;
+            for ([[maybe_unused]] int i : range(num_samples))
+            {
+                avg_angle += sample_angle(rng);
+            }
+
+            avg_angle /= num_samples;
+            avg_angles.push_back(avg_angle);
+            avg_engine_samples.push_back(real_type(rng.count()) / num_samples);
         }
+    };
 
-        avg_angle /= num_samples;
-        avg_angles.push_back(avg_angle);
+    {
+        sample(pdg::electron());
+        static double const expected_avg_angles[] = {
+            0.99957853627426,
+            0.99999954645904,
+            0.99999989882947,
+            0.99999996985799,
+            0.99999999945722,
+            0.99999999999487,
+        };
+        static double const expected_avg_engine_samples[] = {
+            5.9287109375,
+            5.93359375,
+            5.9287109375,
+            5.943359375,
+            5.927734375,
+            5.927734375,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_avg_angles, avg_angles);
+        EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
     }
-
-    static double const expected_avg_angles[] = {0.99957853627426,
-                                                 0.99999954645904,
-                                                 0.99999989882947,
-                                                 0.99999996985799,
-                                                 0.99999999945722,
-                                                 0.99999999999487};
-    EXPECT_VEC_SOFT_EQ(expected_avg_angles, avg_angles);
+    {
+        sample(pdg::positron());
+        static double const expected_avg_angles[] = {
+            0.99960786019912,
+            0.99999969317473,
+            0.99999989582094,
+            0.99999998024112,
+            0.99999999932915,
+            0.99999999996876,
+        };
+        static double const expected_avg_engine_samples[] = {
+            5.93701171875,
+            5.9306640625,
+            5.9345703125,
+            5.92431640625,
+            5.9345703125,
+            5.9267578125,
+        };
+        EXPECT_VEC_SOFT_EQ(expected_avg_angles, avg_angles);
+        EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
+    }
 }
 
 //---------------------------------------------------------------------------//
