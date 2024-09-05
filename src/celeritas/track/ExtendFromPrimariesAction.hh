@@ -34,6 +34,11 @@ class ExtendFromPrimariesAction final : public AuxParamsInterface,
     static std::shared_ptr<ExtendFromPrimariesAction>
     make_and_insert(CoreParams const& core);
 
+    // Hacky helper function (DEPRECATED) to get the primary action from core
+    // params
+    static std::shared_ptr<ExtendFromPrimariesAction const>
+    find_action(CoreParams const& core);
+
     // Construct with explicit ids
     ExtendFromPrimariesAction(ActionId action_id, AuxId aux_id);
 
@@ -44,8 +49,8 @@ class ExtendFromPrimariesAction final : public AuxParamsInterface,
 
     //!@{
     //! \name Aux/action metadata interface
-    //! Short name for the action
-    std::string_view label() const final { return "extend-from-primaries"; }
+    // Short name for the action
+    std::string_view label() const final;
     // Description of the action for user interaction
     std::string_view description() const final;
     //!@}

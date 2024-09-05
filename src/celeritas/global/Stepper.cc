@@ -43,19 +43,9 @@ Stepper<M>::Stepper(Input input)
     // Save primary action: TODO this is a hack and should be refactored so
     // that we pass generators into the stepper and eliminate the call
     // signature with primaries
-    if (auto aid = params_->action_reg()->find_action("extend-from-primaries"))
-    {
-        auto action
-            = std::dynamic_pointer_cast<ExtendFromPrimariesAction const>(
-                params_->action_reg()->action(aid));
-        CELER_VALIDATE(action,
-                       << "incorrect type for 'extend-from-primaries' action");
-        primaries_action_ = std::move(action);
-    }
-    else
-    {
-        CELER_NOT_IMPLEMENTED("stepping loop without primary generator");
-    }
+    primaries_action_ = ExtendFromPrimariesAction::find_action(*params_);
+    CELER_VALIDATE(primaries_action_,
+                   << "primary generator was not added to the stepping loop");
 
     // Execute beginning-of-run action
     ScopedProfiling profile_this{"begin-run"};

@@ -23,6 +23,8 @@
 
 namespace celeritas
 {
+static char const efp_label[] = "extend-from-primaries";
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct and add to core params.
@@ -41,6 +43,30 @@ ExtendFromPrimariesAction::make_and_insert(CoreParams const& core)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Hacky helper function to get the primary action from core params.
+ *
+ * This is intended only as a transitional helper function and SHOULD NOT BE
+ * USED.
+ *
+ * \return action if
+ */
+    std::shared_ptr<ExtendFromPrimariesAction const>
+ExtendFromPrimariesAction:: find_action(CoreParams const& core)
+{
+    if (auto aid = core.action_reg()->find_action(efp_label))
+    {
+        auto action
+            = std::dynamic_pointer_cast<ExtendFromPrimariesAction const>(
+                core.action_reg()->action(aid));
+        CELER_VALIDATE(action,
+                       << "incorrect type for '" << efp_label << "' action");
+        return action;
+    }
+    return nullptr;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct with ids.
  */
 ExtendFromPrimariesAction::ExtendFromPrimariesAction(ActionId action_id,
@@ -48,6 +74,15 @@ ExtendFromPrimariesAction::ExtendFromPrimariesAction(ActionId action_id,
     : id_{action_id}, aux_id_{aux_id}
 {
     CELER_EXPECT(id_ && aux_id_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Short name for the action.
+ */
+std::string_view ExtendFromPrimariesAction::label() const
+{
+    return efp_label;
 }
 
 //---------------------------------------------------------------------------//
