@@ -108,7 +108,7 @@ auto ExtendFromPrimariesAction::create_state(MemSpace m,
     }
     else if (m == MemSpace::device)
     {
-        return std::make_unique<PrimaryStateData<MemSpace::host>>();
+        return std::make_unique<PrimaryStateData<MemSpace::device>>();
     }
     CELER_ASSERT_UNREACHABLE();
 }
