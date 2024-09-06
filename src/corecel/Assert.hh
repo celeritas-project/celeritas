@@ -189,7 +189,7 @@
         ::celeritas::unreachable();     \
     } while (0)
 
-#if !CELER_DEVICE_COMPILE || defined(__HIP__)
+#if !CELER_DEVICE_COMPILE
 #    define CELER_RUNTIME_THROW(WHICH, WHAT, COND) \
         throw ::celeritas::RuntimeError({          \
             WHICH,                                 \
@@ -198,10 +198,13 @@
             __FILE__,                              \
             __LINE__,                              \
         })
-#else
+#elif CELERITAS_DEBUG
 #    define CELER_RUNTIME_THROW(WHICH, WHAT, COND)                           \
         CELER_DEBUG_FAIL("Runtime errors cannot be thrown from device code", \
                          unreachable);
+#else
+// Avoid printf statements which can add substantially to local memory
+#    define CELER_RUNTIME_THROW(WHICH, WHAT, COND) ::celeritas::unreachable()
 #endif
 
 #if CELERITAS_DEBUG
@@ -219,7 +222,7 @@
 #    define CELER_ASSERT_UNREACHABLE() ::celeritas::unreachable()
 #endif
 
-#if !CELER_DEVICE_COMPILE || defined(__HIP__)
+#if !CELER_DEVICE_COMPILE
 #    define CELER_VALIDATE(COND, MSG)                            \
         do                                                       \
         {                                                        \
