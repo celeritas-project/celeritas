@@ -64,6 +64,7 @@ struct TransporterResult
     using VecCount = std::vector<size_type>;
 
     // Per-step diagnostics
+    VecCount generated;  //!< Num primaries generated
     VecCount initializers;  //!< Num starting track initializers
     VecCount active;  //!< Num tracks active at beginning of step
     VecCount alive;  //!< Num living tracks at end of step

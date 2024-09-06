@@ -64,6 +64,7 @@ struct StepperInput
  */
 struct StepperResult
 {
+    size_type generated{};  //!< New primaries added
     size_type queued{};  //!< Pending track initializers at end of step
     size_type active{};  //!< Active tracks at start of step
     size_type alive{};  //!< Active and alive at end of step

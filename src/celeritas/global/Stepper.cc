@@ -119,10 +119,12 @@ template<MemSpace M>
 auto Stepper<M>::operator()() -> result_type
 {
     ScopedProfiling profile_this{"step"};
+    state_.counters().num_generated = 0;
     actions_->step(*params_, state_);
 
     // Get the number of track initializers and active tracks
     result_type result;
+    result.generated = state_.counters().num_generated;
     result.active = state_.counters().num_active;
     result.alive = state_.counters().num_alive;
     result.queued = state_.counters().num_initializers;

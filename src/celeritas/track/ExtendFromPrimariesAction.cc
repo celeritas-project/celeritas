@@ -207,8 +207,8 @@ void ExtendFromPrimariesAction::step_impl(CoreParams const& params,
     this->process_primaries(params, state, primaries);
 
     // Mark that the primaries have been processed
-    primaries.count = 0;
     state.counters().num_generated += primaries.count;
+    primaries.count = 0;
 
     // Clear the track slot IDs of the track initializers' parent tracks. This
     // is necessary when new primaries are inserted in the middle of a
