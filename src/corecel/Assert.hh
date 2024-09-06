@@ -8,7 +8,7 @@
  * \brief Macros, exceptions, and helpers for assertions and error handling.
  *
  * This defines host- and device-compatible assertion macros that are toggled
- * on the \c CELERITAS_DEBUG configure macro.
+ * on the \c CELERITAS_DEBUG and \c CELERITAS_DEVICE_DEBUG configure macros.
  */
 //---------------------------------------------------------------------------//
 #pragma once
@@ -207,7 +207,8 @@
 #    define CELER_RUNTIME_THROW(WHICH, WHAT, COND) ::celeritas::unreachable()
 #endif
 
-#if CELERITAS_DEBUG
+#if (CELERITAS_DEBUG && !CELER_DEVICE_COMPILE) \
+    || (CELERITAS_DEVICE_DEBUG && CELER_DEVICE_COMPILE)
 #    define CELER_EXPECT(COND) CELER_DEBUG_ASSERT_(COND, precondition)
 #    define CELER_ASSERT(COND) CELER_DEBUG_ASSERT_(COND, internal)
 #    define CELER_ENSURE(COND) CELER_DEBUG_ASSERT_(COND, postcondition)
