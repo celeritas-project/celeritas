@@ -52,8 +52,11 @@ struct CoulombParameters
  *
  * The matrix of coefficients used to approximate the ratio of the Mott to
  * Rutherford cross sections was developed in T. Lijian, H. Quing and L.
- * Zhengming, Radiat. Phys. Chem. 45 (1995), 235-245 and M. J. Boschini et al.
- * arXiv:1111.4042
+ * Zhengming, Radiat. Phys. Chem. 45 (1995), 235-245. Using the same procedure
+ * as in Lijian, the coefficients were extended in M.J. Boschini et al, Radiat.
+ * Phys. Chem. 90 (2013), 39-66 (doi.org/10.1016/j.radphyschem.2013.04.020) to
+ * include positrons and the interaction of electrons and positrons with higher
+ * Z nuclei (1 <= Z <= 118).
  */
 struct MottElementData
 {
@@ -61,7 +64,7 @@ struct MottElementData
     //! \name Dimensions for Mott coefficient matrices
     static constexpr size_type num_mott_beta_bins = 6;
     static constexpr size_type num_mott_theta_bins = 5;
-    static constexpr size_type num_mott_elements = 92;
+    static constexpr size_type num_mott_elements = 118;
     //!@}
 
     using BetaArray = Array<real_type, num_mott_beta_bins>;

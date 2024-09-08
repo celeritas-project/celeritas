@@ -75,7 +75,7 @@ class WentzelOKVIParams final : public ParamsDataInterface<WentzelOKVIData>
 
     // Retrieve matrix of interpolated Mott coefficients
     static MottElementData::MottCoeffMatrix
-    get_mott_coeff_matrix(AtomicNumber z);
+    get_electron_mott_coeffs(AtomicNumber z);
 
     // Calculate the nuclear form prefactor
     static real_type calc_nuclear_form_prefactor(IsotopeView const& iso);
