@@ -241,33 +241,62 @@ TEST_F(CoulombScatteringTest, helper)
     EXPECT_VEC_SOFT_EQ(expected_xs_nuc, result.xs_nuc);
 }
 
-TEST_F(CoulombScatteringTest, mott_xs)
+TEST_F(CoulombScatteringTest, mott_ratio)
 {
-    MottElementData const& element_data
-        = wentzel_->host_ref().elem_data[el_id_];
-    MottRatioCalculator xsec(element_data,
-                             sqrt(this->particle_track().beta_sq()));
-
-    static real_type const cos_ts[]
+    static real_type const cos_theta[]
         = {1, 0.9, 0.5, 0.21, 0, -0.1, -0.6, -0.7, -0.9, -1};
-    static real_type const expected_xsecs[] = {0.99997507022045,
-                                               1.090740570075,
-                                               0.98638178782896,
-                                               0.83702240402998,
-                                               0.71099171311683,
-                                               0.64712379625713,
-                                               0.30071752615308,
-                                               0.22722448378001,
-                                               0.07702815350459,
-                                               0.00051427465924958};
-
-    std::vector<real_type> xsecs;
-    for (real_type cos_t : cos_ts)
     {
-        xsecs.push_back(xsec(cos_t));
-    }
+        // Test Mott ratios for electrons
+        MottElementData::MottCoeffMatrix const& coeffs
+            = wentzel_->host_ref().mott_coeffs[el_id_].electron;
+        MottRatioCalculator calc_mott_ratio(
+            coeffs, sqrt(this->particle_track().beta_sq()));
 
-    EXPECT_VEC_SOFT_EQ(xsecs, expected_xsecs);
+        std::vector<real_type> ratios;
+        for (real_type cos_t : cos_theta)
+        {
+            ratios.push_back(calc_mott_ratio(cos_t));
+        }
+        static real_type const expected_ratios[] = {
+            0.99997507022045,
+            1.090740570075,
+            0.98638178782896,
+            0.83702240402998,
+            0.71099171311683,
+            0.64712379625713,
+            0.30071752615308,
+            0.22722448378001,
+            0.07702815350459,
+            0.00051427465924958,
+        };
+        EXPECT_VEC_SOFT_EQ(ratios, expected_ratios);
+    }
+    {
+        // Test Mott ratios for positrons
+        MottElementData::MottCoeffMatrix const& coeffs
+            = wentzel_->host_ref().mott_coeffs[el_id_].positron;
+        MottRatioCalculator calc_mott_ratio(
+            coeffs, sqrt(this->particle_track().beta_sq()));
+
+        std::vector<real_type> ratios;
+        for (real_type cos_t : cos_theta)
+        {
+            ratios.push_back(calc_mott_ratio(cos_t));
+        }
+        static double const expected_ratios[] = {
+            0.99999249638442,
+            0.86228266918504,
+            0.63153899926215,
+            0.49679913349546,
+            0.40508196203984,
+            0.36255112618068,
+            0.15753302403326,
+            0.11771390807236,
+            0.039017331954949,
+            0.00010139510205454,
+        };
+        EXPECT_VEC_SOFT_EQ(ratios, expected_ratios);
+    }
 }
 
 TEST_F(CoulombScatteringTest, wokvi_transport_xs)
@@ -483,7 +512,7 @@ TEST_F(CoulombScatteringTest, distribution)
         0.99999996985799,
         0.99999999945722,
         0.99999999999487,
-        0.99960786019912,
+        0.99970212785622,
         0.99999969317473,
         0.99999989582094,
         0.99999998024112,

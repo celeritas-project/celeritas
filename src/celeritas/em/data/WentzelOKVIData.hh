@@ -62,17 +62,18 @@ struct MottElementData
 {
     //!@{
     //! \name Dimensions for Mott coefficient matrices
-    static constexpr size_type num_mott_beta_bins = 6;
-    static constexpr size_type num_mott_theta_bins = 5;
-    static constexpr size_type num_mott_elements = 118;
+    static constexpr size_type num_beta = 6;
+    static constexpr size_type num_theta = 5;
+    static constexpr size_type num_elements = 118;
     //!@}
 
-    using BetaArray = Array<real_type, num_mott_beta_bins>;
-    using ThetaArray = Array<real_type, num_mott_theta_bins>;
-    using MottCoeffMatrix = Array<BetaArray, num_mott_theta_bins>;
+    using BetaArray = Array<real_type, num_beta>;
+    using ThetaArray = Array<real_type, num_theta>;
+    using MottCoeffMatrix = Array<BetaArray, num_theta>;
 
     //! Matrix of Mott coefficients [theta][beta]
-    MottCoeffMatrix mott_coeff;
+    MottCoeffMatrix electron;
+    MottCoeffMatrix positron;
 };
 
 //---------------------------------------------------------------------------//
@@ -96,7 +97,7 @@ struct WentzelOKVIData
     IsotopeItems<real_type> nuclear_form_prefactor;
 
     // Per element form factors
-    ElementItems<MottElementData> elem_data;
+    ElementItems<MottElementData> mott_coeffs;
 
     // Inverse effective A^2/3 [1/mass^2/3]
     MaterialItems<real_type> inv_mass_cbrt_sq;
@@ -104,7 +105,7 @@ struct WentzelOKVIData
     // Check if the data is initialized
     explicit CELER_FUNCTION operator bool() const
     {
-        return params && !elem_data.empty()
+        return params && !mott_coeffs.empty()
                && params.is_combined == !inv_mass_cbrt_sq.empty();
     }
 
@@ -114,7 +115,7 @@ struct WentzelOKVIData
         CELER_EXPECT(other);
         params = other.params;
         nuclear_form_prefactor = other.nuclear_form_prefactor;
-        elem_data = other.elem_data;
+        mott_coeffs = other.mott_coeffs;
         inv_mass_cbrt_sq = other.inv_mass_cbrt_sq;
         return *this;
     }
