@@ -13,10 +13,16 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/OpaqueId.hh"
-#include "corecel/data/LdgIterator.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+template<class T>
+struct LdgValue;
+template<class T>
+class LdgIterator;
+
+//---------------------------------------------------------------------------//
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -58,7 +64,7 @@ struct SpanTraits<LdgValue<T>>
 
 //---------------------------------------------------------------------------//
 //! Sentinel value for span of dynamic type
-constexpr std::size_t dynamic_extent = std::size_t(-1);
+inline constexpr std::size_t dynamic_extent = std::size_t(-1);
 
 //---------------------------------------------------------------------------//
 //! Calculate the return type for a subspan

@@ -10,6 +10,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/data/LdgIterator.hh"
 #include "corecel/math/Algorithms.hh"
 
 namespace celeritas

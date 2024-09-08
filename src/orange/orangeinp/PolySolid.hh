@@ -33,7 +33,6 @@ class PolySegments
     //!@{
     //! \name Type aliases
     using VecReal = std::vector<real_type>;
-    using Real2 = celeritas::Array<real_type, 2>;
     //!@}
 
   public:

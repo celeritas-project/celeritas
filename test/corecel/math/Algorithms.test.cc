@@ -468,5 +468,14 @@ TEST(MathTest, sincospi)
 }
 
 //---------------------------------------------------------------------------//
+
+TEST(MathTest, signum)
+{
+    EXPECT_EQ(1, signum(2.0));
+    EXPECT_EQ(-1, signum(-2.0));
+    EXPECT_EQ(0, signum(0));
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

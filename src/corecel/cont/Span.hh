@@ -10,9 +10,8 @@
 #include <cstddef>
 #include <type_traits>
 
-#include "corecel/data/LdgIterator.hh"
-
 #include "Array.hh"
+
 #include "detail/SpanImpl.hh"
 
 namespace celeritas
@@ -189,10 +188,6 @@ class Span
 template<class T, std::size_t N>
 constexpr std::size_t Span<T, N>::extent;
 
-//! Alias for a Span iterating over values read using __ldg
-template<class T, std::size_t Extent = dynamic_extent>
-using LdgSpan = Span<LdgValue<T>, Extent>;
-
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
@@ -239,27 +234,6 @@ CELER_FUNCTION Span<typename T::value_type const> make_span(T const& cont)
 //! Construct an array from a fixed-size span
 template<class T, std::size_t N>
 CELER_CONSTEXPR_FUNCTION auto make_array(Span<T, N> const& s)
-{
-    Array<std::remove_cv_t<T>, N> result{};
-    for (std::size_t i = 0; i < N; ++i)
-    {
-        result[i] = s[i];
-    }
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct an array from a fixed-size span, removing LdgValue marker.
- *
- * Note: \code make_array(Span<T,N> const&) \endcode is not reused because:
- * 1. Using this overload reads input data using \c __ldg
- * 2. \code return make_array<T, N>(s) \endcode results in segfault (gcc 11.3).
- *    This might be a compiler bug because temporary lifetime should be
- *    extended until the end of the expression and we return a copy...
- */
-template<class T, std::size_t N>
-CELER_CONSTEXPR_FUNCTION auto make_array(LdgSpan<T, N> const& s)
 {
     Array<std::remove_cv_t<T>, N> result{};
     for (std::size_t i = 0; i < N; ++i)

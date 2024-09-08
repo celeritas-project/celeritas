@@ -10,6 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/grid/TwodGridData.hh"
 #include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -32,7 +33,7 @@ struct NeutronInelasticScalars
     units::MevMass proton_mass;
 
     //! Number of nucleon-nucleon channels
-    static CELER_CONSTEXPR_FUNCTION size_type num_channels() { return 3; }
+    static CELER_CONSTEXPR_FUNCTION size_type num_channels() { return 2; }
 
     //! Model's maximum energy limit [MeV]
     static CELER_CONSTEXPR_FUNCTION units::MevEnergy max_valid_energy()
@@ -152,6 +153,9 @@ struct NeutronInelasticData
     // Parameters of necleon-nucleon cross sections below 10 MeV
     ChannelItems<StepanovParameters> xs_params;
 
+    // Tabulated nucleon-nucleon angular distribution data
+    ChannelItems<TwodGridData> angular_cdf;
+
     // Backend data
     Items<real_type> reals;
 
@@ -162,7 +166,8 @@ struct NeutronInelasticData
     explicit CELER_FUNCTION operator bool() const
     {
         return scalars && !micro_xs.empty() && !nucleon_xs.empty()
-               && !xs_params.empty() && !reals.empty() && nuclear_zones;
+               && !xs_params.empty() && !reals.empty() && nuclear_zones
+               && !angular_cdf.empty();
     }
 
     //! Assign from another set of data
@@ -176,6 +181,8 @@ struct NeutronInelasticData
         xs_params = other.xs_params;
         reals = other.reals;
         nuclear_zones = other.nuclear_zones;
+        angular_cdf = other.angular_cdf;
+
         return *this;
     }
 };

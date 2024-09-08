@@ -1,21 +1,32 @@
 #!/bin/sh -e
 
+fail_missing_var() {
+  printf "\e[0;31m%s\e[0m\n" "Inconsistent environment: missing variable '$1'"
+  exit 1
+}
+
+fail_bad_path() {
+  printf "\e[0;31m%s\e[0m\n" "Invalid path: '$1'"
+  exit 1
+}
+
+
 PROJID=hep143
 _worldwork=${WORLDWORK}/${PROJID}
 _ccsproj=/ccs/proj/${PROJID}
 
-module load PrgEnv-amd/8.5.0 cpe/23.12 amd/5.7.1 craype-x86-trento \
+module load PrgEnv-amd/8.5.0 cpe/23.12 amd/5.7.1 rocm/5.7.1 craype-x86-trento \
   libfabric/1.15.2.0 miniforge3/23.11.0
 # Disable warning "Using generic mem* routines instead of tuned routines"
 export RFE_811452_DISABLE=1
 
 # Avoid linking multiple different libsci (one with openmp, one without)
-module unload cray-libsci
+module unload cray-libsci || true
 # Avoid libraries interfering with I/O
-module unload darshan-runtime
+module unload darshan-runtime || true
 
 # Set up compilers
-test -n "${CRAYPE_DIR}"
+test -n "${CRAYPE_DIR}" || fail_missing_var CRAYPE_DIR
 export CXX=${CRAYPE_DIR}/bin/CC
 export CC=${CRAYPE_DIR}/bin/cc
 
@@ -33,9 +44,9 @@ export MODULEPATH=${_worldwork}/share/lmod/linux-sles15-x86_64/Core:${MODULEPATH
 
 # Set up Geant4 data 
 module load geant4-data/11.0
-test -n "${G4ENSDFSTATEDATA}"
-test -e "${G4ENSDFSTATEDATA}"
+test -n "${G4ENSDFSTATEDATA}" || fail_missing_var G4ENSDFSTATEDATA
+test -e "${G4ENSDFSTATEDATA}" || fail_bad_path G4ENSDFSTATEDATA
 
 # Make llvm available
-test -n "${ROCM_PATH}"
+test -n "${ROCM_PATH}" || fail_missing_var ROCM_PATH
 export PATH=$PATH:${ROCM_PATH}/llvm/bin

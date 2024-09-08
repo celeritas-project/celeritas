@@ -44,7 +44,7 @@ template class Shape<Box>;
 template class Shape<Cone>;
 template class Shape<Cylinder>;
 template class Shape<Ellipsoid>;
-template class Shape<GenTrap>;
+template class Shape<GenPrism>;
 template class Shape<Parallelepiped>;
 template class Shape<Prism>;
 template class Shape<Sphere>;

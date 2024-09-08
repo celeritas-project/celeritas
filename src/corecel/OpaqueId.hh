@@ -17,12 +17,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
-template<class, class>
-struct LdgLoader;
-}  // namespace detail
-
 //---------------------------------------------------------------------------//
 /*!
  * Type-safe index for accessing an array or collection of data.
@@ -103,6 +97,9 @@ class OpaqueId
     //! Get the value without checking for validity (atypical)
     CELER_CONSTEXPR_FUNCTION size_type unchecked_get() const { return value_; }
 
+    //! Access the underlying data for more efficient loading from memory
+    CELER_CONSTEXPR_FUNCTION size_type const* data() const { return &value_; }
+
   private:
     size_type value_;
 
@@ -113,7 +110,6 @@ class OpaqueId
     {
         return static_cast<size_type>(-1);
     }
-    friend detail::LdgLoader<OpaqueId<value_type, size_type> const, void>;
 };
 
 //---------------------------------------------------------------------------//
@@ -139,6 +135,7 @@ CELER_DEFINE_OPAQUEID_CMP(>=)
 
 #undef CELER_DEFINE_OPAQUEID_CMP
 
+//---------------------------------------------------------------------------//
 //! Allow less-than comparison with *integer* for container comparison
 template<class V, class S, class U>
 CELER_CONSTEXPR_FUNCTION bool operator<(OpaqueId<V, S> lhs, U rhs)
@@ -147,6 +144,7 @@ CELER_CONSTEXPR_FUNCTION bool operator<(OpaqueId<V, S> lhs, U rhs)
     return lhs && (U(lhs.unchecked_get()) < rhs);
 }
 
+//---------------------------------------------------------------------------//
 //! Allow less-than-equal comparison with *integer* for container comparison
 template<class V, class S, class U>
 CELER_CONSTEXPR_FUNCTION bool operator<=(OpaqueId<V, S> lhs, U rhs)
@@ -155,6 +153,7 @@ CELER_CONSTEXPR_FUNCTION bool operator<=(OpaqueId<V, S> lhs, U rhs)
     return lhs && (U(lhs.unchecked_get()) <= rhs);
 }
 
+//---------------------------------------------------------------------------//
 //! Get the distance between two opaque IDs
 template<class V, class S>
 inline CELER_FUNCTION S operator-(OpaqueId<V, S> self, OpaqueId<V, S> other)
@@ -164,6 +163,7 @@ inline CELER_FUNCTION S operator-(OpaqueId<V, S> self, OpaqueId<V, S> other)
     return self.unchecked_get() - other.unchecked_get();
 }
 
+//---------------------------------------------------------------------------//
 //! Increment an opaque ID by an offset
 template<class V, class S>
 inline CELER_FUNCTION OpaqueId<V, S>
@@ -174,6 +174,7 @@ operator+(OpaqueId<V, S> id, std::make_signed_t<S> offset)
     return OpaqueId<V, S>{id.unchecked_get() + static_cast<S>(offset)};
 }
 
+//---------------------------------------------------------------------------//
 //! Decrement an opaque ID by an offset
 template<class V, class S>
 inline CELER_FUNCTION OpaqueId<V, S>
@@ -184,25 +185,7 @@ operator-(OpaqueId<V, S> id, std::make_signed_t<S> offset)
     return OpaqueId<V, S>{id.unchecked_get() - static_cast<S>(offset)};
 }
 
-namespace detail
-{
-//! Template matching to determine if T is an OpaqueId
-template<class T>
-struct IsOpaqueId : std::false_type
-{
-};
-template<class V, class S>
-struct IsOpaqueId<OpaqueId<V, S>> : std::true_type
-{
-};
-template<class V, class S>
-struct IsOpaqueId<OpaqueId<V, S> const> : std::true_type
-{
-};
-template<class T>
-inline constexpr bool is_opaque_id_v = IsOpaqueId<T>::value;
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas
 
 //---------------------------------------------------------------------------//

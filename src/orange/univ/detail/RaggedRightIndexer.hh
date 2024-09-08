@@ -11,6 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
+#include "geocel/Types.hh"
 #include "orange/OrangeData.hh"
 
 namespace celeritas
@@ -19,7 +20,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Index into flattened, ragged-right, 2D data, from index to coords
+ * Index into flattened, ragged-right, 2D data, from index to coords.
  *
  * For example, consider three arrays of different sizes:
  *  A = [a1, a2]
@@ -38,7 +39,7 @@ class RaggedRightIndexer
   public:
     //!@{
     //! \name Type aliases
-    using Coords = Array<size_type, 2>;
+    using Coords = Size2;
     //!@}
 
   public:
@@ -59,7 +60,7 @@ class RaggedRightIndexer
 
 //---------------------------------------------------------------------------//
 /*!
- * Index into flattened, ragged-right, 2D data, from coords to index
+ * Index into flattened, ragged-right, 2D data, from coords to index.
  *
  * For example, consider three arrays of different sizes:
  *  A = [a1, a2]
@@ -86,14 +87,10 @@ class RaggedRightInverseIndexer
     explicit inline CELER_FUNCTION
     RaggedRightInverseIndexer(RaggedRightIndexerData<N> const& rrd);
 
-    //// METHODS ////
-
     // Convert a flattened index into ragged indices
     inline CELER_FUNCTION Coords operator()(size_type index) const;
 
   private:
-    //// DATA ////
-
     RaggedRightIndexerData<N> const& rrd_;
 };
 
@@ -101,7 +98,7 @@ class RaggedRightInverseIndexer
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct fom RaggedRightIndexerData
+ * Construct fom RaggedRightIndexerData.
  */
 template<size_type N>
 CELER_FUNCTION
@@ -126,7 +123,7 @@ CELER_FUNCTION size_type RaggedRightIndexer<N>::operator()(Coords coords) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct fom RaggedRightIndexerData
+ * Construct fom RaggedRightIndexerData.
  */
 template<size_type N>
 CELER_FUNCTION RaggedRightInverseIndexer<N>::RaggedRightInverseIndexer(

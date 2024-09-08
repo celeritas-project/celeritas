@@ -314,10 +314,10 @@ auto SolidConverter::cons(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Cons const&>(solid_base);
 
-    auto const outer_r = scale_.to<Cone::Real2>(solid.GetOuterRadiusMinusZ(),
-                                                solid.GetOuterRadiusPlusZ());
-    auto const inner_r = scale_.to<Cone::Real2>(solid.GetInnerRadiusMinusZ(),
-                                                solid.GetInnerRadiusPlusZ());
+    auto const outer_r = scale_.to<Real2>(solid.GetOuterRadiusMinusZ(),
+                                          solid.GetOuterRadiusPlusZ());
+    auto const inner_r = scale_.to<Real2>(solid.GetInnerRadiusMinusZ(),
+                                          solid.GetInnerRadiusPlusZ());
     auto hh = scale_(solid.GetZHalfLength());
 
     std::optional<Cone> inner;
@@ -409,15 +409,15 @@ auto SolidConverter::generictrap(arg_type solid_base) -> result_type
     auto const& vtx = solid.GetVertices();
     CELER_ASSERT(vtx.size() == 8);
 
-    std::vector<GenTrap::Real2> lower(4), upper(4);
+    std::vector<Real2> lower(4), upper(4);
     for (auto i : range(4))
     {
-        lower[i] = scale_.to<GenTrap::Real2>(vtx[i].x(), vtx[i].y());
-        upper[i] = scale_.to<GenTrap::Real2>(vtx[i + 4].x(), vtx[i + 4].y());
+        lower[i] = scale_.to<Real2>(vtx[i].x(), vtx[i].y());
+        upper[i] = scale_.to<Real2>(vtx[i + 4].x(), vtx[i + 4].y());
     }
     real_type hh = scale_(solid.GetZHalfLength());
 
-    return make_shape<GenTrap>(solid, hh, std::move(lower), std::move(upper));
+    return make_shape<GenPrism>(solid, hh, std::move(lower), std::move(upper));
 }
 
 //---------------------------------------------------------------------------//
@@ -636,20 +636,20 @@ auto SolidConverter::trap(arg_type solid_base) -> result_type
 
     auto hz = scale_(solid.GetZHalfLength());
 
-    GenTrap::TrapFace lo;
+    GenPrism::TrapFace lo;
     lo.hy = scale_(solid.GetYHalfLength1());
     lo.hx_lo = scale_(solid.GetXHalfLength1());
     lo.hx_hi = scale_(solid.GetXHalfLength2());
     lo.alpha = native_value_to<Turn>(alpha_1);
 
-    GenTrap::TrapFace hi;
+    GenPrism::TrapFace hi;
     hi.hy = scale_(solid.GetYHalfLength2());
     hi.hx_lo = scale_(solid.GetXHalfLength3());
     hi.hx_hi = scale_(solid.GetXHalfLength4());
     hi.alpha = native_value_to<Turn>(alpha_2);
 
-    return make_shape<GenTrap>(solid,
-                               GenTrap::from_trap(hz, theta, phi, lo, hi));
+    return make_shape<GenPrism>(solid,
+                                GenPrism::from_trap(hz, theta, phi, lo, hi));
 }
 
 //---------------------------------------------------------------------------//
@@ -664,8 +664,8 @@ auto SolidConverter::trd(arg_type solid_base) -> result_type
     auto hx1 = scale_(solid.GetXHalfLength1());
     auto hx2 = scale_(solid.GetXHalfLength2());
 
-    return make_shape<GenTrap>(solid,
-                               GenTrap::from_trd(hz, {hx1, hy1}, {hx2, hy2}));
+    return make_shape<GenPrism>(
+        solid, GenPrism::from_trd(hz, {hx1, hy1}, {hx2, hy2}));
 }
 
 //---------------------------------------------------------------------------//

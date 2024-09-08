@@ -79,6 +79,15 @@ enum class UnitSystem
     native = CELERITAS_UNITS,  //!< Compile time selected system
 };
 
+//---------------------------------------------------------------------------//
+//! Interpolation type
+enum class Interp
+{
+    linear,
+    log,
+    size_
+};
+
 #if !defined(SWIG) || SWIG_VERSION > 0x050000
 //---------------------------------------------------------------------------//
 //!@{
