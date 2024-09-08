@@ -69,13 +69,17 @@
       "description": "Build tests in debug with vecgeom",
       "inherits": [".vecgeom", "base"],
       "cacheVariables": {
-        "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_DEVICE_DEBUG": {"type": "BOOL", "value": "ON"}
       }
     },
     {
       "name": "reldeb-vecgeom",
       "description": "Build with RelWithDebInfo, assertions, and VecGeom",
-      "inherits": [".reldeb", ".vecgeom", "base"]
+      "inherits": [".reldeb", ".vecgeom", "base"],
+      "cacheVariables": {
+        "CELERITAS_DEVICE_DEBUG": {"type": "BOOL", "value": "ON"}
+      }
     },
     {
       "name": "ndebug-vecgeom",
