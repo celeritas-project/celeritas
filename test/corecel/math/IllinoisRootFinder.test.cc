@@ -15,23 +15,24 @@
 #include "corecel/math/SoftEqual.hh"
 #include "orange/OrangeTypes.hh"
 
+#include "DiagnosticRealFunc.hh"
 #include "celeritas_test.hh"
+
+using celeritas::constants::pi;
+inline constexpr auto tol = celeritas::SoftEqual<>{}.rel();
 
 namespace celeritas
 {
-using constants::pi;
-
 namespace test
 {
+//---------------------------------------------------------------------------//
 
 // Solve: (x-2)(x+2) = 0
 TEST(Illinois, root_two)
 {
-    auto root = [](real_type t) { return (t - 2) * (t + 2); };
+    DiagnosticRealFunc f{[](real_type t) { return (t - 2) * (t + 2); }};
 
-    constexpr real_type tol = SoftEqual<>{}.rel();
-
-    IllinoisRootFinder find_root{root, tol};
+    IllinoisRootFinder find_root{f, tol};
 
     EXPECT_SOFT_EQ(2.0, find_root(1.75, 2.25));
     EXPECT_SOFT_EQ(-2.0, find_root(-2.25, -1.75));
@@ -40,24 +41,21 @@ TEST(Illinois, root_two)
 // Solve: x^2 - x - 1 = 0
 TEST(Illinois, golden_ratio)
 {
-    auto root = [](real_type t) { return ipow<2>(t) - t - 1; };
+    DiagnosticRealFunc f{[](real_type t) { return ipow<2>(t) - t - 1; }};
 
-    constexpr real_type tol = SoftEqual<>{}.rel();
-
-    IllinoisRootFinder find_root{root, tol};
+    IllinoisRootFinder find_root{f, tol};
 
     EXPECT_SOFT_EQ(1.618033988749, find_root(1.5, 1.75));
     EXPECT_SOFT_EQ(-0.6180339887498, find_root(-0.75, -0.5));
+    EXPECT_EQ(if_double_else(18, 12), f.exchange_count());
 }
 
 // Solve first 3 roots: cos(x) = 0
 TEST(Illinois, trigometric)
 {
-    auto root = [](real_type t) { return std::cos(t); };
+    DiagnosticRealFunc f{[](real_type t) { return std::cos(t); }};
 
-    constexpr real_type tol = SoftEqual<>{}.rel();
-
-    IllinoisRootFinder find_root{root, tol};
+    IllinoisRootFinder find_root{f, tol};
 
     EXPECT_SOFT_EQ(pi * 0.5, find_root(0, pi));
     EXPECT_SOFT_EQ(pi * 1.5, find_root(pi, 2 * pi));
@@ -80,15 +78,16 @@ TEST(Illinois, exponential_intersect)
     real_type u = -0.7071067812;
     real_type v = 0.7071067812;
 
-    auto root = [&](real_type t) {
+    DiagnosticRealFunc f{[&](real_type t) {
         return u * std::exp(t - 1) - v * t + v * x - u * y;
-    };
+    }};
 
-    constexpr real_type tol = SoftEqual<>{}.rel();
+    IllinoisRootFinder find_root{f, tol};
 
-    IllinoisRootFinder find_root{root, tol};
-
+    EXPECT_SOFT_EQ(1.0, find_root(-0.5, 0.5));
+    EXPECT_EQ(if_double_else(10, 7), f.exchange_count());
     EXPECT_SOFT_EQ(1.0, find_root(0.5, 1.5));
+    EXPECT_EQ(if_double_else(9, 7), f.exchange_count());
 }
 
 //---------------------------------------------------------------------------//

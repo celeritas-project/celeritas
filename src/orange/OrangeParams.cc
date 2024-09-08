@@ -15,7 +15,8 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Range.hh"
@@ -251,8 +252,7 @@ VolumeId OrangeParams::find_volume(Label const& label) const
  * This is useful for volumes that are repeated in the geometry with different
  * uniquifying 'extensions'.
  */
-auto OrangeParams::find_volumes(std::string const& name) const
-    -> SpanConstVolumeId
+auto OrangeParams::find_volumes(std::string const& name) const -> SpanConstVolumeId
 {
     return vol_labels_.find_all(name);
 }

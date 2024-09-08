@@ -10,7 +10,8 @@
 #include <string>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/AssertIO.json.hh"
 #include "corecel/sys/TypeDemangler.hh"

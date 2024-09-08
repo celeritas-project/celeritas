@@ -28,7 +28,7 @@ namespace celeritas
 MollerBhabhaModel::MollerBhabhaModel(ActionId id,
                                      ParticleParams const& particles)
     : ConcreteAction(
-        id, "ioni-moller-bhabha", "interact by Moller+Bhabha ionization")
+          id, "ioni-moller-bhabha", "interact by Moller+Bhabha ionization")
 {
     CELER_EXPECT(id);
     data_.ids.electron = particles.find(pdg::electron());
@@ -50,9 +50,11 @@ MollerBhabhaModel::MollerBhabhaModel(ActionId id,
  */
 auto MollerBhabhaModel::applicability() const -> SetApplicability
 {
-    // TODO: potentially set lower energy bound based on (material-dependent)
-    // IonizationProcess lambda table energy grid to avoid invoking the
-    // interactor for tracks with energy below the interaction threshold
+    /*!
+     * \todo Set lower energy bound based on (material-dependent)
+     * IonizationProcess lambda table energy grid to avoid invoking the
+     * interactor for tracks with energy below the interaction threshold.
+     */
 
     Applicability electron_applic, positron_applic;
 
@@ -82,8 +84,8 @@ auto MollerBhabhaModel::micro_xs(Applicability) const -> MicroXsBuilders
 /*!
  * Interact with host data.
  */
-void MollerBhabhaModel::execute(CoreParams const& params,
-                                CoreStateHost& state) const
+void MollerBhabhaModel::step(CoreParams const& params,
+                             CoreStateHost& state) const
 {
     auto execute = make_action_track_executor(
         params.ptr<MemSpace::native>(),
@@ -95,7 +97,7 @@ void MollerBhabhaModel::execute(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void MollerBhabhaModel::execute(CoreParams const&, CoreStateDevice&) const
+void MollerBhabhaModel::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

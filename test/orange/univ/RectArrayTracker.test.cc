@@ -10,7 +10,8 @@
 #include <algorithm>
 #include <random>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "corecel/data/Ref.hh"

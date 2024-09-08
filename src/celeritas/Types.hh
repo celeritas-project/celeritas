@@ -10,7 +10,7 @@
 
 #include <cstdint>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 // IWYU pragma: begin_exports
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
@@ -25,9 +25,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
-
-//! End-of-step (or perhaps someday within-step?) action to take
-using ActionId = OpaqueId<class ActionInterface>;
 
 //! Opaque index to ElementRecord in the global vector of elements
 using ElementId = OpaqueId<struct ElementRecord>;
@@ -44,6 +41,9 @@ using MaterialId = OpaqueId<class Material_>;
 
 //! Opaque index of model in the list of physics processes
 using ModelId = OpaqueId<class Model>;
+
+//! Opaque index to a material with optical properties
+using OpticalMaterialId = OpaqueId<struct OpticalMaterial_>;
 
 //! Opaque index to ParticleRecord in a vector: represents a particle type
 using ParticleId = OpaqueId<struct Particle_>;
@@ -96,6 +96,8 @@ enum class MatterState
 /*!
  * Whether a track slot is alive, inactive, or dying inside a step iteration.
  *
+ * Each track slot has a state marking its transition between death and life.
+ *
  * - A track slot starts as \c inactive . If not filled with a new track, it is
  *   inactive for the rest of the step iteration.
  * - When it is populated with a new particle, it is \c initializing . If an
@@ -117,34 +119,6 @@ enum class TrackStatus : std::uint_least8_t
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Within-step ordering of explicit actions.
- *
- * Each "step iteration", wherein many tracks undergo a single step in
- * parallel, consists of an ordered series of actions. An action with an
- * earlier order always precedes an action with a later order.
- *
- * \sa ExplicitActionInterface
- */
-enum class ActionOrder
-{
-    start,  //!< Initialize tracks
-    user_start,  //!< User initialization of new tracks
-    sort_start,  //!< Sort track slots after initialization
-    pre,  //!< Pre-step physics and setup
-    user_pre,  //!< User actions for querying pre-step data
-    sort_pre,  //!< Sort track slots after setting pre-step
-    along,  //!< Along-step
-    sort_along,  //!< Sort track slots after determining first step action
-    pre_post,  //!< Discrete selection kernel
-    sort_pre_post,  //! Sort track slots after selecting discrete interaction
-    post,  //!< After step
-    user_post,  //!< User actions after boundary crossing, collision
-    end,  //!< Processing secondaries, including replacing primaries
-    size_
-};
-
-//---------------------------------------------------------------------------//
 //! Differentiate between result data at the beginning and end of a step.
 enum class StepPoint
 {
@@ -158,8 +132,10 @@ enum class StepPoint
 enum class TrackOrder
 {
     unsorted,  //!< Don't do any sorting: tracks are in an arbitrary order
+    // Reorder track data layout
+    partition_charge,  //!< Partition data layout of tracks by charged/neutral
+    // Reorder track slot indices
     shuffled,  //!< Shuffle at the start of the simulation
-
     partition_status,  //!< Partition by status at the start of each step
     sort_along_step_action,  //!< Sort only by the along-step action id
     sort_step_limit_action,  //!< Sort only by the step limit action id
@@ -208,24 +184,6 @@ struct StepLimit
 };
 
 //---------------------------------------------------------------------------//
-//! Action order/ID tuple for comparison in sorting
-struct OrderedAction
-{
-    ActionOrder order;
-    ActionId id;
-
-    //! Ordering comparison for an action/ID
-    CELER_CONSTEXPR_FUNCTION bool operator<(OrderedAction const& other) const
-    {
-        if (this->order < other.order)
-            return true;
-        if (this->order > other.order)
-            return false;
-        return this->id < other.id;
-    }
-};
-
-//---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 
@@ -248,9 +206,6 @@ char const* to_cstring(MatterState);
 // Get a string corresponding to a track stats
 char const* to_cstring(TrackStatus);
 
-// Get a string corresponding to a surface type
-char const* to_cstring(ActionOrder);
-
 // Get a string corresponding to a track ordering policy
 char const* to_cstring(TrackOrder);
 
@@ -259,16 +214,6 @@ char const* to_cstring(MscStepLimitAlgorithm value);
 
 // Get a string corresponding to the nuclear form factor model
 char const* to_cstring(NuclearFormFactorType value);
-
-// Whether the TrackOrder will sort tracks by actions with the given
-// ActionOrder
-bool is_action_sorted(ActionOrder action, TrackOrder track);
-
-//! Whether track sorting is enabled
-inline constexpr bool is_action_sorted(TrackOrder track)
-{
-    return static_cast<int>(track) > static_cast<int>(TrackOrder::shuffled);
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

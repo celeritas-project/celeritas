@@ -4,16 +4,11 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/global/ActionInterface.hh
-//! \todo Move non-core-specific code to corecel
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <string>
-#include <string_view>
-
-#include "celeritas/Types.hh"  // IWYU pragma: export
-
-#include "CoreTrackDataFwd.hh"  // IWYU pragma: export
+#include "corecel/sys/ActionInterface.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {
@@ -21,116 +16,36 @@ namespace celeritas
 class CoreParams;
 template<MemSpace M>
 class CoreState;
-class OpticalParams;
-template<MemSpace M>
-class OpticalState;
 
 //---------------------------------------------------------------------------//
-/*!
- * Pure abstract interface for an action that could happen to a track.
- *
- * An action represents a possible state point or state change for a track.
- * Explicit actions (see \c ExplicitActionInterface ) call kernels that change
- * the state (discrete processes, geometry boundary), and *implicit* actions
- * (which do not inherit from the explicit interface) are placeholders for
- * different reasons to pause the state or mark it for future modification
- * (range limitation, propagation loop limit).
- *
- * The \c ActionInterface provides a no-overhead virtual interface for
- * gathering metadata. The \c ExplicitActionInterface provides additional
- * interfaces for launching kernels. The \c BeginRunActionInterface allows
- * actions to modify the state (or the class instance itself) at the beginning
- * of a stepping loop.
- *
- * Using multiple inheritance, you can create an action that inherits from
- * multiple of these classes.
- *
- * The \c label should be a brief lowercase hyphen-separated string, usually a
- * noun, with perhaps some sort of category being the first token.
- *
- * The \c description should be a verb phrase (and not have a title-cased
- * start).
- */
-class ActionInterface
-{
-  public:
-    // Default virtual destructor allows deletion by pointer-to-interface
-    virtual ~ActionInterface();
-
-    //! ID of this action for verification and ordering
-    virtual ActionId action_id() const = 0;
-
-    //! Short unique label of the action
-    virtual std::string_view label() const = 0;
-
-    //! Description of the action
-    virtual std::string_view description() const = 0;
-
-  protected:
-    //!@{
-    //! Allow construction and assignment only through daughter classes
-    ActionInterface() = default;
-    CELER_DEFAULT_COPY_MOVE(ActionInterface);
-    //!@}
-};
-
+// TYPE ALIASES
 //---------------------------------------------------------------------------//
-/*!
- * Interface for updating states at the beginning of the simulation.
- *
- * This is necessary for some classes that require deferred initialization
- * (either to the class itself or the state), for example because it needs the
- * number of total actions being run.
- *
- * If the class itself--rather than the state--needs initialization, try to
- * initialize in the constructor and avoid using this interface if possible.
- */
-class BeginRunActionInterface : public virtual ActionInterface
+//! Action interface for core stepping loop
+using CoreBeginRunActionInterface
+    = BeginRunActionInterface<CoreParams, CoreState>;
+
+//! Action interface for core stepping loop
+using CoreStepActionInterface = StepActionInterface<CoreParams, CoreState>;
+
+// TODO: Remove in v0.6
+using ActionOrder [[deprecated]] = StepActionOrder;
+
+// TODO: Remove in v0.6
+class [[deprecated]] ExplicitCoreActionInterface
+    : public CoreStepActionInterface
 {
-  public:
-    //@{
-    //! \name Type aliases
-    using CoreStateHost = CoreState<MemSpace::host>;
-    using CoreStateDevice = CoreState<MemSpace::device>;
-    //@}
+    //! Execute the action with host data
+    void step(CoreParams const& params, CoreStateHost& state) const final
+    {
+        return this->execute(params, state);
+    }
 
-  public:
-    //! Set host data at the beginning of a run
-    virtual void begin_run(CoreParams const&, CoreStateHost&) = 0;
-    //! Set device data at the beginning of a run
-    virtual void begin_run(CoreParams const&, CoreStateDevice&) = 0;
-};
+    //! Execute the action with device data
+    void step(CoreParams const& params, CoreStateDevice& state) const final
+    {
+        return this->execute(params, state);
+    }
 
-//---------------------------------------------------------------------------//
-/*!
- * Interface for an action that launches a kernel or performs an action.
- *
- * TODO: rename to OrderedAction, SequenceAction, StepAction, ... ? since these
- * are the actions that \em always are executed exactly once per step.
- */
-class ExplicitActionInterface : public virtual ActionInterface
-{
-  public:
-    //! Dependency ordering of the action
-    virtual ActionOrder order() const = 0;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Interface for an action that launches a kernel or performs an action
- * specialized for particles using CoreParams.
- * TODO: Template this on 'Core' and 'Optical' and ...
- */
-class ExplicitCoreActionInterface : public virtual ExplicitActionInterface
-{
-  public:
-    //@{
-    //! \name Type aliases
-    using CoreStateHost = CoreState<MemSpace::host>;
-    using CoreStateDevice = CoreState<MemSpace::device>;
-    //@}
-
-  public:
     //! Execute the action with host data
     virtual void execute(CoreParams const&, CoreStateHost&) const = 0;
 
@@ -139,77 +54,56 @@ class ExplicitCoreActionInterface : public virtual ExplicitActionInterface
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Interface for an action that launches a kernel or performs an action
- * specialized for particles using OpticalParams.
- */
-class ExplicitOpticalActionInterface : public virtual ExplicitActionInterface
+// HELPER STRUCTS
+//---------------------------------------------------------------------------//
+//! Action order/ID tuple for comparison in sorting
+struct OrderedAction
 {
-  public:
-    //@{
-    //! \name Type aliases
-    using OpticalStateHost = OpticalState<MemSpace::host>;
-    using OpticalStateDevice = OpticalState<MemSpace::device>;
-    //@}
+    StepActionOrder order;
+    ActionId id;
 
-  public:
-    //! Execute the action with host data
-    virtual void execute(OpticalParams const&, OpticalStateHost&) const = 0;
-
-    //! Execute the action with device data
-    virtual void execute(OpticalParams const&, OpticalStateDevice&) const = 0;
+    //! Ordering comparison for an action/ID
+    CELER_CONSTEXPR_FUNCTION bool operator<(OrderedAction const& other) const
+    {
+        if (this->order < other.order)
+            return true;
+        if (this->order > other.order)
+            return false;
+        return this->id < other.id;
+    }
 };
 
 //---------------------------------------------------------------------------//
+// HELPER FUNCTIONS
+//---------------------------------------------------------------------------//
 /*!
- * Concrete mixin utility class for managing an action.
+ * Checks that the TrackOrder will sort tracks by actions applied at the given
+ * StepActionOrder.
  *
- * Example:
- * \code
-  class KernellyPhysicsAction final : public ExplicitCoreActionInterface,
-                                      public ConcreteAction
-  {
-    public:
-      // Construct with ID and label
-      using ConcreteAction::ConcreteAction;
-
-      void execute(CoreParams const&, CoreStateHost&) const final;
-      void execute(CoreParams const&, CoreStateDevice&) const final;
-
-      ActionOrder order() const final { return ActionOrder::post; }
-  };
-
-  class PlaceholderPhysicsAction final : public ConcreteAction
-  {
-    public:
-      // Construct with ID and label
-      using ConcreteAction::ConcreteAction;
-  };
- * \endcode
+ * This should match the mapping in the \c SortTracksAction constructor.
+ *
+ * \todo Have a single source of truth for mapping TrackOrder to
+ * StepActionOrder.
  */
-class ConcreteAction : public virtual ActionInterface
+inline bool is_action_sorted(StepActionOrder action, TrackOrder track)
 {
-  public:
-    // Construct from ID, unique label
-    ConcreteAction(ActionId id, std::string label);
+    return (action == StepActionOrder::post
+            && track == TrackOrder::sort_step_limit_action)
+           || (action == StepActionOrder::along
+               && track == TrackOrder::sort_along_step_action)
+           || (track == TrackOrder::sort_action
+               && (action == StepActionOrder::post
+                   || action == StepActionOrder::along));
+}
 
-    // Construct from ID, unique label, and description
-    ConcreteAction(ActionId id, std::string label, std::string description);
-
-    //! ID of this action for verification
-    ActionId action_id() const final { return id_; }
-
-    //! Short label
-    std::string_view label() const final { return label_; }
-
-    //! Descriptive label
-    std::string_view description() const final { return description_; }
-
-  private:
-    ActionId id_;
-    std::string label_;
-    std::string description_;
-};
+//---------------------------------------------------------------------------//
+/*!
+ * Whether track sorting is enabled.
+ */
+inline constexpr bool is_action_sorted(TrackOrder track)
+{
+    return static_cast<int>(track) > static_cast<int>(TrackOrder::shuffled);
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

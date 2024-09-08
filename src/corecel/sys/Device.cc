@@ -12,13 +12,15 @@
 #include <mutex>
 #include <utility>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Macros.hh"
 #if CELERITAS_USE_OPENMP
 #    include <omp.h>
 #endif
 
-#include "corecel/device_runtime_api.h"
+#include "corecel/DeviceRuntimeApi.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeLog.hh"
@@ -26,6 +28,7 @@
 #include "Environment.hh"
 #include "MpiCommunicator.hh"
 #include "Stream.hh"
+
 #include "detail/StreamStorage.hh"
 
 #if CELERITAS_USE_CUDA
@@ -214,7 +217,7 @@ Device::Device(int id) : id_{id}, streams_{new detail::StreamStorage{}}
         mempool, CELER_DEVICE_PREFIX(MemPoolAttrReleaseThreshold), &threshold));
 #endif
 
-    // See device_runtime_api.h
+    // See DeviceRuntimeApi.hh
     eu_per_cu_ = CELER_EU_PER_CU;
 
     CELER_ENSURE(*this);

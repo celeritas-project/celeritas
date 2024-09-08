@@ -17,6 +17,7 @@
 #include "corecel/data/CollectionMirror.hh"
 #include "corecel/data/CollectionStateStore.hh"
 #include "celeritas/global/ActionInterface.hh"
+#include "celeritas/global/CoreTrackDataFwd.hh"
 
 #include "StepStorage.hh"
 #include "../StepData.hh"
@@ -33,7 +34,7 @@ namespace detail
  * This implementation class is constructed by the StepCollector.
  */
 template<StepPoint P>
-class StepGatherAction final : public ExplicitCoreActionInterface
+class StepGatherAction final : public CoreStepActionInterface
 {
   public:
     //!@{
@@ -48,10 +49,10 @@ class StepGatherAction final : public ExplicitCoreActionInterface
     StepGatherAction(ActionId id, SPStepStorage storage, VecInterface callbacks);
 
     // Launch kernel with host data
-    void execute(CoreParams const&, CoreStateHost&) const final;
+    void step(CoreParams const&, CoreStateHost&) const final;
 
     // Launch kernel with device data
-    void execute(CoreParams const&, CoreStateDevice&) const final;
+    void step(CoreParams const&, CoreStateDevice&) const final;
 
     //! ID of the model
     ActionId action_id() const final { return id_; }
@@ -68,11 +69,11 @@ class StepGatherAction final : public ExplicitCoreActionInterface
     std::string_view description() const final { return description_; }
 
     //! Dependency ordering of the action
-    ActionOrder order() const final
+    StepActionOrder order() const final
     {
-        return P == StepPoint::pre    ? ActionOrder::user_pre
-               : P == StepPoint::post ? ActionOrder::user_post
-                                      : ActionOrder::size_;
+        return P == StepPoint::pre    ? StepActionOrder::user_pre
+               : P == StepPoint::post ? StepActionOrder::user_post
+                                      : StepActionOrder::size_;
     }
 
   private:

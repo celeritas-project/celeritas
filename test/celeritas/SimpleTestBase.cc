@@ -7,11 +7,11 @@
 //---------------------------------------------------------------------------//
 #include "SimpleTestBase.hh"
 
+#include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/em/process/ComptonProcess.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
-#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/alongstep/AlongStepNeutralAction.hh"
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/io/detail/ImportDataConverter.hh"

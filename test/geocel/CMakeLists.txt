@@ -18,6 +18,10 @@ else()
   set(_fixme_cgs DISABLE)
 endif()
 
+if(NOT CELERITAS_USE_PNG)
+  set(_needs_png DISABLE)
+endif()
+
 #-----------------------------------------------------------------------------#
 # LIBRARY
 #-----------------------------------------------------------------------------#
@@ -117,7 +121,9 @@ endif()
 # Rasterization
 
 
+celeritas_add_test(rasterize/Color.test.cc)
 celeritas_add_test(rasterize/Image.test.cc)
 celeritas_add_test(rasterize/Raytracer.test.cc)
+celeritas_add_test(rasterize/ImageWriter.test.cc ${_needs_png})
 
 #-----------------------------------------------------------------------------#

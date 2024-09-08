@@ -11,19 +11,21 @@
 #include <type_traits>
 #include <utility>
 
-#include "corecel/device_runtime_api.h"
+#include "corecel/DeviceRuntimeApi.hh"
+
 #include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "corecel/sys/Stream.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreState.hh"
 #include "celeritas/track/StatusChecker.hh"
 
 #include "../ActionInterface.hh"
-#include "../ActionRegistry.hh"
 #include "../CoreState.hh"
 #include "../Debug.hh"
 
@@ -35,22 +37,21 @@ namespace detail
 /*!
  * Construct from an action registry and sequence options.
  */
-template<class Params>
-ActionSequence<Params>::ActionSequence(ActionRegistry const& reg,
-                                       Options options)
+template<class P, template<MemSpace M> class S>
+ActionSequence<P, S>::ActionSequence(ActionRegistry const& reg, Options options)
     : options_(std::move(options))
 {
     actions_.reserve(reg.num_actions());
     // Loop over all action IDs
     for (auto aidx : range(reg.num_actions()))
     {
-        // Get abstract action shared pointer and see if it's explicit
+        // Get abstract action shared pointer to determine type
         auto const& base = reg.action(ActionId{aidx});
-        using element_type = typename SPConstSpecializedExplicit::element_type;
-        if (auto expl = std::dynamic_pointer_cast<element_type>(base))
+        static_assert(std::is_same_v<StepActionT, CoreStepActionInterface>);
+        if (auto step_act = std::dynamic_pointer_cast<StepActionT const>(base))
         {
-            // Add explicit action to our array
-            actions_.push_back(std::move(expl));
+            // Add stepping action to our array
+            actions_.push_back(std::move(step_act));
         }
     }
 
@@ -58,7 +59,8 @@ ActionSequence<Params>::ActionSequence(ActionRegistry const& reg,
     // Loop over all mutable actions
     for (auto const& base : reg.mutable_actions())
     {
-        if (auto brun = std::dynamic_pointer_cast<BeginRunActionInterface>(base))
+        if (auto brun
+            = std::dynamic_pointer_cast<CoreBeginRunActionInterface>(base))
         {
             // Add beginning-of-run to the array
             begin_run_.emplace_back(std::move(brun));
@@ -68,8 +70,7 @@ ActionSequence<Params>::ActionSequence(ActionRegistry const& reg,
     // Sort actions by increasing order (and secondarily, increasing IDs)
     std::sort(actions_.begin(),
               actions_.end(),
-              [](SPConstSpecializedExplicit const& a,
-                 SPConstSpecializedExplicit const& b) {
+              [](SPConstStepAction const& a, SPConstStepAction const& b) {
                   return OrderedAction{a->order(), a->action_id()}
                          < OrderedAction{b->order(), b->action_id()};
               });
@@ -97,9 +98,9 @@ ActionSequence<Params>::ActionSequence(ActionRegistry const& reg,
 /*!
  * Initialize actions and states.
  */
-template<class Params>
+template<class P, template<MemSpace M> class S>
 template<MemSpace M>
-void ActionSequence<Params>::begin_run(Params const& params, State<M>& state)
+void ActionSequence<P, S>::begin_run(P const& params, S<M>& state)
 {
     for (auto const& sp_action : begin_run_)
     {
@@ -112,9 +113,9 @@ void ActionSequence<Params>::begin_run(Params const& params, State<M>& state)
 /*!
  * Call all explicit actions with host or device data.
  */
-template<class Params>
+template<class P, template<MemSpace M> class S>
 template<MemSpace M>
-void ActionSequence<Params>::execute(Params const& params, State<M>& state)
+void ActionSequence<P, S>::step(P const& params, S<M>& state)
 {
     [[maybe_unused]] Stream::StreamT stream = nullptr;
     if (M == MemSpace::device && options_.action_times)
@@ -122,7 +123,7 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
         stream = celeritas::device().stream(state.stream_id()).get();
     }
 
-    if constexpr (M == MemSpace::host && std::is_same_v<CoreParams, Params>)
+    if constexpr (M == MemSpace::host && std::is_same_v<CoreParams, P>)
     {
         if (status_checker_)
         {
@@ -137,7 +138,7 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
         {
             return false;
         }
-        return state.size() == 1 && action.order() == ActionOrder::post
+        return state.size() == 1 && action.order() == StepActionOrder::post
                && action.action_id()
                       != state.ref().sim.post_step_action[TrackSlotId{0}];
     };
@@ -151,7 +152,7 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
             {
                 ScopedProfiling profile_this{action.label()};
                 Stopwatch get_time;
-                action.execute(params, state);
+                action.step(params, state);
                 if constexpr (M == MemSpace::device)
                 {
                     CELER_DEVICE_CALL_PREFIX(StreamSynchronize(stream));
@@ -159,7 +160,7 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
                 accum_time_[i] += get_time();
                 if (CELER_UNLIKELY(status_checker_))
                 {
-                    status_checker_->execute(action.action_id(), params, state);
+                    status_checker_->step(action.action_id(), params, state);
                 }
             }
         }
@@ -172,17 +173,16 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
             if (auto const& action = *sp_action; !skip_post_action(action))
             {
                 ScopedProfiling profile_this{action.label()};
-                action.execute(params, state);
+                action.step(params, state);
                 if (CELER_UNLIKELY(status_checker_))
                 {
-                    status_checker_->execute(action.action_id(), params, state);
+                    status_checker_->step(action.action_id(), params, state);
                 }
             }
         }
     }
 
-    if (M == MemSpace::host
-        && std::is_same_v<CoreParams, Params> && status_checker_)
+    if (M == MemSpace::host && std::is_same_v<CoreParams, P> && status_checker_)
     {
         g_debug_executing_params = nullptr;
     }
@@ -192,17 +192,21 @@ void ActionSequence<Params>::execute(Params const& params, State<M>& state)
 // Explicit template instantiation
 //---------------------------------------------------------------------------//
 
-template class ActionSequence<CoreParams>;
-
-template void ActionSequence<CoreParams>::begin_run(CoreParams const&,
-                                                    State<MemSpace::host>&);
-template void ActionSequence<CoreParams>::begin_run(CoreParams const&,
-                                                    State<MemSpace::device>&);
+template class ActionSequence<CoreParams, CoreState>;
 
 template void
-ActionSequence<CoreParams>::execute(CoreParams const&, State<MemSpace::host>&);
-template void ActionSequence<CoreParams>::execute(CoreParams const&,
-                                                  State<MemSpace::device>&);
+ActionSequence<CoreParams, CoreState>::begin_run(CoreParams const&,
+                                                 CoreState<MemSpace::host>&);
+template void
+ActionSequence<CoreParams, CoreState>::begin_run(CoreParams const&,
+                                                 CoreState<MemSpace::device>&);
+
+template void
+ActionSequence<CoreParams, CoreState>::step(CoreParams const&,
+                                            CoreState<MemSpace::host>&);
+template void
+ActionSequence<CoreParams, CoreState>::step(CoreParams const&,
+                                            CoreState<MemSpace::device>&);
 
 // TODO: add explicit template instantiation of execute for optical data
 

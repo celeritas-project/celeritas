@@ -20,6 +20,7 @@ class CylAligned;
 template<Axis T>
 class CylCentered;
 class GeneralQuadric;
+class Involute;
 class Plane;
 template<Axis T>
 class PlaneAligned;

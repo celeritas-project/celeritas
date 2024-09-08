@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "SimpleCaloImpl.hh"
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Types.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ThreadId.hh"

@@ -48,8 +48,8 @@
   </materials>
 
   <solids>
-    <box lunit="mm" name="box" x="1e11" y="1e11" z="1e11"/>
-    <box lunit="mm" name="world" x="1e11" y="1e11" z="1e11"/>
+    <box lunit="mm" name="box" x="1e22" y="1e22" z="1e22"/>
+    <box lunit="mm" name="world" x="1e22" y="1e22" z="1e22"/>
   </solids>
 
   <structure>

@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
+celeritas_version_to_hex(_doxy_version_hex DOXYGEN_VERSION)
+
 #-----------------------------------------------------------------------------#
 # DEVELOPER MANUAL (Doxygen)
 #-----------------------------------------------------------------------------#
@@ -31,9 +33,8 @@ set(DOXYGEN_EXTENSION_MAPPING "cu=C++")
 set(_DOXYGEN_EXTRA_SOURCE
   "${PROJECT_SOURCE_DIR}/README.md"
   "${PROJECT_SOURCE_DIR}/scripts/README.md"
-  "${PROJECT_BINARY_DIR}/include/celeritas_config.h"
-  "${PROJECT_BINARY_DIR}/include/celeritas_cmake_strings.h"
-  "${PROJECT_BINARY_DIR}/include/celeritas_version.h"
+  "${PROJECT_BINARY_DIR}/include/corecel/Version.hh"
+  "${PROJECT_BINARY_DIR}/include/corecel/Config.hh"
 )
 if((CELERITAS_DEBUG AND CELERITAS_BUILD_TESTS)
   OR CELERITAS_DOXYGEN_BUILD_TESTS)
@@ -48,20 +49,19 @@ else()
   set(_DOXYGEN_TEST_SOURCE)
 endif()
 
-celeritas_version_to_hex(_doxy_version_hex DOXYGEN_VERSION)
-
 # Documentation usage
-set(DOXYGEN_FULL_PATH_NAMES NO)
-set(DOXYGEN_MACRO_EXPANSION YES)
-set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
-set(DOXYGEN_QT_AUTOBRIEF YES)
 set(DOXYGEN_DISTRIBUTE_GROUP_DOC YES)
-set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${PROJECT_SOURCE_DIR}/README.md")
-set(DOXYGEN_FORMULA_MACROFILE "${CMAKE_CURRENT_SOURCE_DIR}/_static/macros.tex")
-set(DOXYGEN_IMAGE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/_static")
+set(DOXYGEN_ENABLED_SECTIONS "CELERITAS_DOC_DEV")
 set(DOXYGEN_EXTRA_PACKAGES "amsmath")
+set(DOXYGEN_FORMULA_MACROFILE "${CMAKE_CURRENT_SOURCE_DIR}/_static/macros.tex")
+set(DOXYGEN_FULL_PATH_NAMES NO)
+set(DOXYGEN_IMAGE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/_static")
+set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
+set(DOXYGEN_MACRO_EXPANSION YES)
 set(DOXYGEN_PREDEFINED "__DOXYGEN__=${_doxy_version_hex}")
+set(DOXYGEN_QT_AUTOBRIEF YES)
 set(DOXYGEN_USE_MATHJAX YES)
+set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${PROJECT_SOURCE_DIR}/README.md")
 
 # Verbosity/warning levels
 celeritas_set_default(DOXYGEN_QUIET YES)
@@ -77,9 +77,12 @@ set(DOXYGEN_HTML_OUTPUT "doxygen-html")
 set(DOXYGEN_CREATE_SUBDIRS YES)
 set(DOXYGEN_REFERENCES_LINK_SOURCE YES)
 
-celeritas_set_default(DOXYGEN_VERBATIM_HEADERS NO)
+celeritas_set_default(DOXYGEN_COLLABORATION_GRAPH NO)
+celeritas_set_default(DOXYGEN_DOT_GRAPH_MAX_NODES 32)
+celeritas_set_default(DOXYGEN_GRAPHICAL_HIERARCHY NO)
+celeritas_set_default(DOXYGEN_INCLUDE_GRAPH NO)
 celeritas_set_default(DOXYGEN_MAX_DOT_GRAPH_DEPTH 2)
-celeritas_set_default(DOXYGEN_DOT_GRAPH_MAX_NODES 50)
+celeritas_set_default(DOXYGEN_VERBATIM_HEADERS NO)
 
 doxygen_add_docs(doxygen
   "${PROJECT_SOURCE_DIR}/src"
@@ -111,7 +114,6 @@ if(NOT Sphinx_FOUND)
         "${CMAKE_BINARY_DIR}"
       BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/${type}"
       COMMENT "Rerunning CMake because Sphinx was not found"
-      ${ARGN}
     )
   endfunction()
 else()
@@ -125,12 +127,12 @@ else()
         "$<TARGET_FILE:Python::Interpreter>" -m sphinx.cmd.build -q
           -d "${CMAKE_CURRENT_BINARY_DIR}/doctrees"
           -b ${type}
+          ${ARGN}
           "${CMAKE_CURRENT_SOURCE_DIR}"
           "${CMAKE_CURRENT_BINARY_DIR}/${type}"
       COMMENT "Building ${type} documentation with Sphinx"
       DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/conf.py"
       WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
-      ${ARGN}
     )
   endfunction()
 endif()
@@ -179,11 +181,12 @@ else()
 endif()
 configure_file("config.json.in" "config.json" @ONLY)
 
+set(DOXYGEN_ENABLED_SECTIONS "CELERITAS_DOC_USER")
 set(DOXYGEN_GENERATE_HTML NO)
 set(DOXYGEN_GENERATE_XML YES)
-set(DOXYGEN_XML_PROGRAMLISTING NO)
-set(DOXYGEN_INCLUDE_GRAPH NO)
 set(DOXYGEN_INCLUDED_BY_GRAPH NO)
+set(DOXYGEN_INCLUDE_GRAPH NO)
+set(DOXYGEN_XML_PROGRAMLISTING NO)
 
 # Annotations break breathe parsing
 foreach(_var
@@ -191,6 +194,7 @@ foreach(_var
   [[maybe_unused]] CFIF_)
   list(APPEND DOXYGEN_PREDEFINED "${_var}=")
 endforeach()
+
 # Only process top two levels (mostly no detail, generated)
 file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/*/*.hh"
@@ -210,6 +214,8 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/process/*.cc"
   "${PROJECT_SOURCE_DIR}/src/celeritas/em/xs/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/random/distribution/*.hh"
+  "${PROJECT_SOURCE_DIR}/test/*.hh"
+  "${PROJECT_SOURCE_DIR}/test/*.cc"
 )
 doxygen_add_docs(doxygen_xml
   ${_DOXYGEN_SOURCE}
@@ -221,9 +227,12 @@ doxygen_add_docs(doxygen_xml
 
 #-----------------------------------------------------------------------------#
 # HTML
+set(CELERITAS_SPHINX_USER_HTML_ARGS "" CACHE STRING
+  "Additional arguments to pass to Sphinx to build HTML user docs")
+mark_as_advanced(CELERITAS_SPHINX_USER_HTML_ARGS)
 
 set(_doc_html "${CMAKE_CURRENT_BINARY_DIR}/html/index.html")
-celeritas_build_sphinx(html "${_doc_html}")
+celeritas_build_sphinx(html "${_doc_html}" ${CELERITAS_SPHINX_USER_HTML_ARGS})
 add_custom_target(doc DEPENDS "${_doc_html}")
 if(CELERITAS_USE_BREATHE)
   add_dependencies(doc doxygen_xml)

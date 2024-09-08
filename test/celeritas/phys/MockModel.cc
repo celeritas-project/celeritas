@@ -64,12 +64,12 @@ auto MockModel::micro_xs(Applicability range) const -> MicroXsBuilders
     return builders;
 }
 
-void MockModel::execute(CoreParams const&, CoreStateHost&) const
+void MockModel::step(CoreParams const&, CoreStateHost&) const
 {
     // Shouldn't be called?
 }
 
-void MockModel::execute(CoreParams const&, CoreStateDevice&) const
+void MockModel::step(CoreParams const&, CoreStateDevice&) const
 {
     // Inform calling test code that we've been executed
     data_.cb(this->action_id());

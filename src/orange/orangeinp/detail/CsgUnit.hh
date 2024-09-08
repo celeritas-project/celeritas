@@ -75,8 +75,7 @@ struct CsgUnit
 
     //!@{
     //! \name Volumes
-    //! Vectors are indexed by LocalVolumeId.
-    std::vector<NodeId> volumes;  //!< CSG node of each volume
+    //! Vector is indexed by LocalVolumeId.
     std::vector<Fill> fills;  //!< Content of each volume
     GeoMaterialId background;  //!< Optional background fill
     //!@}
@@ -113,8 +112,10 @@ inline constexpr bool is_filled(CsgUnit::Fill const& fill)
  */
 CsgUnit::operator bool() const
 {
-    return this->metadata.size() == this->tree.size() && !this->volumes.empty()
-           && this->volumes.size() == this->fills.size();
+    return this->metadata.size() == this->tree.size()
+           && !this->tree.volumes().empty()
+           && this->tree.volumes().size() == this->fills.size();
+    ;
 }
 
 //---------------------------------------------------------------------------//
@@ -124,7 +125,7 @@ CsgUnit::operator bool() const
 bool CsgUnit::empty() const
 {
     return this->surfaces.empty() && this->metadata.empty()
-           && this->regions.empty() && this->volumes.empty()
+           && this->regions.empty() && this->tree.volumes().empty()
            && this->fills.empty() && this->transforms.empty();
 }
 

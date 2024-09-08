@@ -13,7 +13,6 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/optical/Types.hh"
 #include "celeritas/phys/AtomicNumber.hh"
 
 namespace celeritas
@@ -22,7 +21,11 @@ namespace celeritas
 // PARAMS
 //---------------------------------------------------------------------------//
 /*!
- * Fundamental, invariant properties of an isotope.
+ * Fundamental, invariant properties of a nuclide.
+ *
+ * A nuclide is a single isotope of an element.
+ *
+ * \todo Rename NuclideRecord?
  */
 struct IsotopeRecord
 {

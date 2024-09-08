@@ -12,16 +12,16 @@
 #include <string_view>
 #include <gtest/gtest.h>  // IWYU pragma: export
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
+
 /*!
- * \namespace test
- *
  * This sub-namespace should enclose all Celeritas unit tests and test harness
- * code. By being a sub-namspace, no \c using declarations are needed to access
+ * code.
+ *
+ * By being a sub-namspace, no \c using declarations are needed to access
  * Celeritas functionality, and no symbol conflicts with main Celeritas code
  * will accidentally occur.
  */
@@ -31,7 +31,8 @@ namespace test
 /*!
  * Googletest test harness for Celeritas codes.
  *
- * The test harness is constructed and destroyed once per subtest.
+ * The test harness is constructed and destroyed once per subtest. It contains
+ * helper functions and data commonly needed in Celeritas tests.
  */
 class Test : public ::testing::Test
 {

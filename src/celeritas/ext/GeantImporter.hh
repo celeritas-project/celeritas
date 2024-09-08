@@ -9,7 +9,8 @@
 
 #include <memory>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImporterInterface.hh"
 
@@ -32,13 +33,14 @@ struct GeantImportDataSelection
         dummy = 0x1,  //!< Dummy particles+processes
         em_basic = 0x2,  //!< Electron, positron, gamma
         em_ex = 0x4,  //!< Extended EM particles
+        optical = 0x8,  //!< Optical particles and processes
         em = em_basic | em_ex,  //!< Any EM
-        hadron = 0x8,  //!< Hadronic particles and processes
+        hadron = 0x10,  //!< Hadronic particles and processes
     };
 
-    Flags particles = em;
+    Flags particles = em | optical;
     bool materials = true;
-    Flags processes = em;
+    Flags processes = em | optical;
 
     //! Change volume names to match exported GDML file
     bool unique_volumes = false;
@@ -52,7 +54,9 @@ struct GeantImportDataSelection
  * Load problem data directly from Geant4.
  *
  * This can be used to circumvent ROOT as a serialization tool, whether to
- * simplify the toolchain or to integrate better with Acceleritas.
+ * simplify the toolchain or to integrate better with user frameworks. As much
+ * data as possible is imported (subject to the data selection); downstream
+ * Celeritas classes will validate the imported data as needed.
  *
  * \code
     GeantImporter import(GeantSetup("blah.gdml"));

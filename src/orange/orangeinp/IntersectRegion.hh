@@ -200,9 +200,10 @@ class Ellipsoid final : public IntersectRegionInterface
  * parallel planes perpendicular to the Z axis. Unlike those other codes, the
  * number of faces can be arbitrary in number.
  *
- * The faces have an orientation and ordering so that \em rotated faces,
- * hyperbolic paraboloids, can be constructed as sides in place of planes. The
- * rotation cannot be more than a quarter turn.
+ * The faces have an orientation and ordering so that \em twisted faces can be
+ * constructed by joining corresponding points using straight-line "vertical"
+ * edges, directly matching the G4GenericTrap definition, but using a generic
+ * quadric expression for each twisted face.
  *
  * Trapezoids constructed from the helper functions will have sides that are
  * same ordering as a prism: the rightward face is first (normal is along the
@@ -314,6 +315,53 @@ class InfWedge final : public IntersectRegionInterface
   private:
     Turn start_;
     Turn interior_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * An involute "blade" centered on the origin.
+ *
+ * This is the intersection of two parallel involutes with a cylindrical shell.
+ * The three radii, which must be in ascending order, are that of the involute,
+ * the inner cylinder, and the outer cylinder.
+ *
+ * The "chirality" of the involute is viewed from the \em +z axis looking down:
+ * whether it spirals to the right or left.
+ */
+class Involute final : public IntersectRegionInterface
+{
+  public:
+    // Construct with radius
+    explicit Involute(Real3 const& radii,
+                      Real2 const& displacement,
+                      Chirality chirality,
+                      real_type halfheight);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Radii: Rdius of involute, minimum radius, maximum radius
+    Real3 const& radii() const { return radii_; }
+    //! Displacement angle
+    Real2 const& displacement_angle() const { return a_; }
+    //!  Angular bounds of involute
+    Real2 const& t_bounds() const { return t_bounds_; }
+    //! Chirality of involute: turning left or right
+    Chirality chirality() const { return sign_; }
+    //! Halfheight
+    real_type halfheight() const { return hh_; }
+
+  private:
+    Real3 radii_;
+    Real2 a_;
+    Real2 t_bounds_;
+    Chirality sign_;
+    real_type hh_;
 };
 
 //---------------------------------------------------------------------------//

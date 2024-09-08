@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
@@ -26,7 +27,7 @@ namespace celeritas
  *
  * Example:
  * \code
- void FooHelper::execute(CoreParams const& params,
+ void FooHelper::step(CoreParams const& params,
                          CoreStateHost& state) const
  {
     launch_core(params, state, "foo-helper", make_blah_executor(blah));
@@ -60,7 +61,7 @@ void launch_core(std::string_view label,
  *
  * Example:
  * \code
- void FooAction::execute(CoreParams const& params,
+ void FooAction::step(CoreParams const& params,
                          CoreStateHost& state) const
  {
     launch_action(*this, params, state, make_blah_executor(blah));
@@ -68,7 +69,7 @@ void launch_core(std::string_view label,
  * \endcode
  */
 template<class F>
-void launch_action(ExplicitActionInterface const& action,
+void launch_action(CoreStepActionInterface const& action,
                    celeritas::CoreParams const& params,
                    celeritas::CoreState<MemSpace::host>& state,
                    F&& execute_thread)

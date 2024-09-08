@@ -12,7 +12,6 @@ spack:
   - openmpi
   - python
   - root
-  - "swig@4.1:"
   concretizer:
     unify: true
   packages:

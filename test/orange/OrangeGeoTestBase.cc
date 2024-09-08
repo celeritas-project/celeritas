@@ -11,7 +11,8 @@
 #include <sstream>
 #include <utility>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Join.hh"
@@ -123,9 +124,10 @@ void OrangeGeoTestBase::build_geometry(OneVolInput inp)
     input.volumes = {[&inp] {
         VolumeInput vi;
         vi.logic = {logic::ltrue};
-        vi.flags = (inp.complex_tracking ? static_cast<logic_int>(
-                        VolumeInput::Flags::internal_surfaces)
-                                         : 0);
+        vi.flags = (inp.complex_tracking
+                        ? static_cast<logic_int>(
+                              VolumeInput::Flags::internal_surfaces)
+                        : 0);
         vi.zorder = ZOrder::media;
         vi.label = "infinite";
         return vi;

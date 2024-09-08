@@ -10,7 +10,8 @@
 
 #include <utility>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/math/UnitUtils.hh"
 
 #include "Constants.hh"
@@ -21,10 +22,12 @@ namespace celeritas
 {
 namespace units
 {
+//! \cond (CELERITAS_DOC_DEV)
 //---------------------------------------------------------------------------//
 //!@{
 //! \name Natural units
 
+//! Natural unit of speed
 struct CLight
 {
     static CELER_CONSTEXPR_FUNCTION real_type value()
@@ -34,7 +37,23 @@ struct CLight
     static char const* label() { return "c"; }
 };
 
-//! "Natural units" for energy
+//! Natural unit of charge (positive electron)
+struct EElectron
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        return constants::e_electron;
+    }
+    static char const* label() { return "e"; }
+};
+
+//!@}
+
+//---------------------------------------------------------------------------//
+//!@{
+//! \name Atomic units
+
+//! Nucleus-scale energy
 struct Mev
 {
     static CELER_CONSTEXPR_FUNCTION real_type value()
@@ -48,29 +67,46 @@ struct Mev
     static char const* label() { return "MeV"; }
 };
 
-//! "Natural units" for mass
+//! Nucleus-scale mass
 struct MevPerCsq : UnitDivide<Mev, UnitProduct<CLight, CLight>>
 {
     static char const* label() { return "MeV/c^2"; }
 };
 
-//! "Natural units" for momentum
+//! Nucleus-scale momentum
 struct MevPerC : UnitDivide<Mev, CLight>
 {
     static char const* label() { return "MeV/c"; }
 };
 
-//! Magnitude of electron charge (positive sign)
-struct EElectron
+//! Atomic mass units [amu]
+struct Amu
 {
     static CELER_CONSTEXPR_FUNCTION real_type value()
     {
-        return constants::e_electron;
+        return constants::atomic_mass;
     }
-    static char const* label() { return "e"; }
+    static char const* label() { return "amu"; }
 };
 
-//! Quantity of substance
+//! Barn cross section [b]
+struct Barn
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value() { return units::barn; }
+    static char const* label() { return "b"; }
+};
+
+//! Millibarn cross section [mb]
+struct Millibarn
+{
+    static CELER_CONSTEXPR_FUNCTION real_type value()
+    {
+        return real_type(1e-3) * units::barn;
+    }
+    static char const* label() { return "mb"; }
+};
+
+//! Amount of substance \f$N_a\f$
 struct Mol
 {
     static CELER_CONSTEXPR_FUNCTION real_type value()
@@ -81,38 +117,10 @@ struct Mol
 };
 
 //!@}
+
 //---------------------------------------------------------------------------//
 //!@{
-//! \name Atomic units
-
-struct Amu
-{
-    static CELER_CONSTEXPR_FUNCTION real_type value()
-    {
-        return constants::atomic_mass;
-    }
-    static char const* label() { return "amu"; }
-};
-
-struct Barn
-{
-    static CELER_CONSTEXPR_FUNCTION real_type value() { return units::barn; }
-    static char const* label() { return "b"; }
-};
-
-struct Millibarn
-{
-    static CELER_CONSTEXPR_FUNCTION real_type value()
-    {
-        return real_type(1e-3) * units::barn;
-    }
-    static char const* label() { return "mb"; }
-};
-
-//!@}
-//---------------------------------------------------------------------------//
-//!@{
-//! \name Gaussian units
+//! \name Gaussian units for unit tests
 
 struct Centimeter
 {
@@ -190,6 +198,7 @@ struct Tesla
 };
 
 //!@}
+
 //---------------------------------------------------------------------------//
 //!@{
 //! \name CLHEP units
@@ -239,6 +248,7 @@ struct ClhepUnitBField
 };
 
 //!@}
+
 //---------------------------------------------------------------------------//
 //!@{
 //! \name Annotation-only units
@@ -262,6 +272,8 @@ struct LogMev
 //! Traits class for units
 template<UnitSystem>
 struct UnitSystemTraits;
+
+//! \cond (BREATHE_FAILS_TO_PARSE)
 
 //! CGS unit traits
 template<>
@@ -298,18 +310,23 @@ struct UnitSystemTraits<UnitSystem::clhep>
 
     static char const* label() { return "clhep"; }
 };
+//! \endcond
 
+//!@{
+//! \name Type aliases for unit system traits
 using CgsTraits = UnitSystemTraits<UnitSystem::cgs>;
 using SiTraits = UnitSystemTraits<UnitSystem::si>;
 using ClhepTraits = UnitSystemTraits<UnitSystem::clhep>;
 using NativeTraits = UnitSystemTraits<UnitSystem::native>;
+//!@}
 
 //---------------------------------------------------------------------------//
 /*!
  * Expand a macro to a switch statement over all possible unit system types.
  *
- * This is *not* a \c CELER_FUNCTION because unit conversion should be done
- * only during preprocessing on the CPU.
+ * This helper function is meant for processing user input to convert values to
+ * the native unit system. It is *not* a \c CELER_FUNCTION because unit
+ * conversion should be done only during preprocessing on the CPU.
  */
 template<class F>
 constexpr decltype(auto) visit_unit_system(F&& func, UnitSystem sys)
@@ -330,6 +347,7 @@ constexpr decltype(auto) visit_unit_system(F&& func, UnitSystem sys)
 #undef CELER_US_VISIT_CASE
 }
 
+//! \endcond
 //---------------------------------------------------------------------------//
 }  // namespace units
 }  // namespace celeritas

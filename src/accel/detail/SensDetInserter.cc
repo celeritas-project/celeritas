@@ -9,7 +9,8 @@
 
 #include <G4VSensitiveDetector.hh>
 
-#include "celeritas_cmake_strings.h"
+#include "corecel/Config.hh"
+
 #include "corecel/io/Logger.hh"
 #include "geocel/GeantGeoUtils.hh"
 

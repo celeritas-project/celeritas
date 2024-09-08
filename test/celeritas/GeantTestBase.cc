@@ -7,18 +7,19 @@
 //---------------------------------------------------------------------------//
 #include "GeantTestBase.hh"
 
+#include <cstring>
 #include <string>
 
-#include "celeritas_cmake_strings.h"
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantSetup.hh"
 #include "celeritas/geo/GeoParams.hh"
-#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/track/TrackInitParams.hh"
@@ -152,8 +153,7 @@ auto GeantTestBase::build_along_step() -> SPConstAction
 }
 
 //---------------------------------------------------------------------------//
-auto GeantTestBase::build_fresh_geometry(std::string_view filename)
-    -> SPConstGeoI
+auto GeantTestBase::build_fresh_geometry(std::string_view filename) -> SPConstGeoI
 {
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE \
     && CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE

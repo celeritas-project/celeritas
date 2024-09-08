@@ -144,7 +144,7 @@ Solid<T>::Solid(std::string&& label,
     , exclusion_{std::move(excluded)}
     , enclosed_{std::move(enclosed)}
 {
-    CELER_VALIDATE(exclusion_ || enclosed,
+    CELER_VALIDATE(exclusion_ || enclosed_,
                    << "solid requires either an excluded region or a shape");
     CELER_VALIDATE(!exclusion_ || interior_.encloses(*exclusion_),
                    << "solid '" << this->label()
@@ -171,8 +171,10 @@ Solid<T>::Solid(std::string&& label, T&& interior, T&& excluded)
  */
 template<class T>
 Solid<T>::Solid(std::string&& label, T&& interior, SolidEnclosedAngle&& enclosed)
-    : Solid{
-        std::move(label), std::move(interior), std::nullopt, std::move(enclosed)}
+    : Solid{std::move(label),
+            std::move(interior),
+            std::nullopt,
+            std::move(enclosed)}
 {
     CELER_VALIDATE(enclosed_,
                    << "solid '" << this->label()

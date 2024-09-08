@@ -26,8 +26,8 @@ namespace celeritas
 /*!
  * Launch the along-step action on device.
  */
-void AlongStepRZMapFieldMscAction::execute(CoreParams const& params,
-                                           CoreStateDevice& state) const
+void AlongStepRZMapFieldMscAction::step(CoreParams const& params,
+                                        CoreStateDevice& state) const
 {
     if (this->has_msc())
     {

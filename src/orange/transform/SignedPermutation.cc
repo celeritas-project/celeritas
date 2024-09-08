@@ -17,7 +17,7 @@ namespace celeritas
  */
 SignedPermutation::SignedPermutation()
     : SignedPermutation{
-        SignedAxes{{{'+', Axis::x}, {'+', Axis::y}, {'+', Axis::z}}}}
+          SignedAxes{{{'+', Axis::x}, {'+', Axis::y}, {'+', Axis::z}}}}
 {
 }
 

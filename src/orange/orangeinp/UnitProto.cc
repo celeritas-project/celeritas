@@ -11,7 +11,8 @@
 #include <numeric>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/io/Join.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/LabelIO.json.hh"
@@ -121,9 +122,10 @@ void UnitProto::build(ProtoBuilder& input) const
     UnitInput result;
     result.label = input_.label;
 
+    auto& unit_volumes = csg_unit.tree.volumes();
     // Save unit's bounding box
     {
-        NodeId node_id = csg_unit.volumes[orange_exterior_volume.get()];
+        NodeId node_id = unit_volumes[orange_exterior_volume.get()];
         auto region_iter = csg_unit.regions.find(node_id);
         CELER_ASSERT(region_iter != csg_unit.regions.end());
         auto const& bz = region_iter->second.bounds;
@@ -171,12 +173,12 @@ void UnitProto::build(ProtoBuilder& input) const
     detail::PostfixLogicBuilder build_logic{csg_unit.tree,
                                             sorted_local_surfaces};
     detail::InternalSurfaceFlagger has_internal_surfaces{csg_unit.tree};
-    result.volumes.reserve(csg_unit.volumes.size()
+    result.volumes.reserve(unit_volumes.size()
                            + static_cast<bool>(csg_unit.background));
 
-    for (auto vol_idx : range(csg_unit.volumes.size()))
+    for (auto vol_idx : range(unit_volumes.size()))
     {
-        NodeId node_id = csg_unit.volumes[vol_idx];
+        NodeId node_id = unit_volumes[vol_idx];
         VolumeInput vi;
 
         // Construct logic and faces with remapped surfaces
@@ -188,9 +190,9 @@ void UnitProto::build(ProtoBuilder& input) const
         auto region_iter = csg_unit.regions.find(node_id);
         CELER_ASSERT(region_iter != csg_unit.regions.end());
         vi.bbox = get_exterior_bbox(region_iter->second.bounds);
-        /* TODO: "simple safety" flag is set inside
-         * "unit inserter" (move here once we stop importing from SCALE via
-         * OrangeInput)
+        /*!
+         * \todo "simple safety" flag is set inside "unit inserter": move here
+         * once we stop importing from SCALE via OrangeInput.
          */
         if (has_internal_surfaces(node_id))
         {
@@ -212,13 +214,14 @@ void UnitProto::build(ProtoBuilder& input) const
         vi.logic = {logic::ltrue, logic::lnot};
         vi.bbox = {};  // XXX: input converter changes to infinite bbox
         vi.zorder = ZOrder::background;
-        // XXX the nearest internal surface is probably *not* the safety
-        // distance, but it's better than nothing
+        /*! \todo The nearest internal surface is probably *not* the safety
+         * distance, but it's better than nothing
+         */
         vi.flags = VolumeRecord::implicit_vol | VolumeRecord::simple_safety;
         result.volumes.emplace_back(std::move(vi));
     }
     CELER_ASSERT(result.volumes.size()
-                 == csg_unit.volumes.size()
+                 == unit_volumes.size()
                         + static_cast<bool>(csg_unit.background));
 
     // Set labels and other attributes.
@@ -313,11 +316,11 @@ void UnitProto::build(ProtoBuilder& input) const
         // Save label volumes
         CELER_ASSERT(jp.obj.contains("volumes"));
         auto& jv = jp.obj["volumes"];
-        CELER_VALIDATE(jv.size() == csg_unit.volumes.size(),
+        CELER_VALIDATE(jv.size() == unit_volumes.size(),
                        << "jv = " << jv.size()
-                       << " csg = " << csg_unit.volumes.size());
-        CELER_ASSERT(csg_unit.volumes.size() <= result.volumes.size());
-        for (auto vol_idx : range(csg_unit.volumes.size()))
+                       << " csg = " << unit_volumes.size());
+        CELER_ASSERT(unit_volumes.size() <= result.volumes.size());
+        for (auto vol_idx : range(unit_volumes.size()))
         {
             jv[vol_idx]["label"] = result.volumes[vol_idx].label;
         }
@@ -343,7 +346,7 @@ void UnitProto::build(ProtoBuilder& input) const
         input.save_json(std::move(jp));
     }
 
-    // TODO: save material IDs as well
+    //! \todo Save material IDs as well
     input.insert(std::move(result));
 }
 
@@ -429,7 +432,7 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
     if (!is_global_universe)
     {
         // Replace "exterior" with "False" (i.e. interior with true)
-        NodeId ext_node = result.volumes[ext_vol.unchecked_get()];
+        NodeId ext_node = result.tree.volumes()[ext_vol.unchecked_get()];
         auto unknowns = replace_and_simplify(&result.tree, ext_node, False{});
         if (!unknowns.empty())
         {
@@ -449,8 +452,9 @@ auto UnitProto::build(Tol const& tol, BBox const& bbox) const -> Unit
                                write_node_labels);
         }
 
-        // TODO: we can sometimes eliminate CSG surfaces and nodes that aren't
-        // used by the actual volumes
+        /*! \todo We can sometimes eliminate CSG surfaces and nodes that aren't
+         * used by the actual volumes>
+         */
     }
 
     return result;

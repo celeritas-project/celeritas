@@ -34,7 +34,14 @@ TEST(ConstructionTest, DISABLED_nodevice)
 #endif
 {
     // Can't allocate
-    EXPECT_THROW(DeviceAllocation(1234), DebugError);
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(DeviceAllocation(1234), DebugError);
+    }
+    else
+    {
+        EXPECT_THROW(DeviceAllocation(1234), RuntimeError);
+    }
 }
 
 TEST(DeviceAllocationTest, TEST_IF_CELER_DEVICE(device))

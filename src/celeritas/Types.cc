@@ -46,36 +46,13 @@ char const* to_cstring(TrackStatus value)
 
 //---------------------------------------------------------------------------//
 /*!
- * Get a string corresponding to an action order.
- */
-char const* to_cstring(ActionOrder value)
-{
-    static EnumStringMapper<ActionOrder> const to_cstring_impl{
-        "start",
-        "user_start",
-        "sort_start",
-        "pre",
-        "user_pre",
-        "sort_pre",
-        "along",
-        "sort_along",
-        "pre_post",
-        "sort_pre_post",
-        "post",
-        "user_post",
-        "end",
-    };
-    return to_cstring_impl(value);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Get a string corresponding to a track ordering policy.
  */
 char const* to_cstring(TrackOrder value)
 {
     static EnumStringMapper<TrackOrder> const to_cstring_impl{
         "unsorted",
+        "partition_charge",
         "shuffled",
         "partition_status",
         "sort_along_step_action",
@@ -114,25 +91,6 @@ char const* to_cstring(NuclearFormFactorType value)
         "gaussian",
     };
     return to_cstring_impl(value);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Checks that the TrackOrder will sort tracks by actions applied at the given
- * ActionOrder.
- *
- * This should match the mapping in the \c SortTracksAction constructor.
- *
- * TODO: Have a single source of truth for mapping TrackOrder to ActionOrder
- */
-bool is_action_sorted(ActionOrder action, TrackOrder track)
-{
-    return (action == ActionOrder::post
-            && track == TrackOrder::sort_step_limit_action)
-           || (action == ActionOrder::along
-               && track == TrackOrder::sort_along_step_action)
-           || (track == TrackOrder::sort_action
-               && (action == ActionOrder::post || action == ActionOrder::along));
 }
 
 //---------------------------------------------------------------------------//

@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
@@ -336,9 +337,9 @@ CELER_FUNCTION ProcessId PhysicsTrackView::process(ParticleProcessId ppid) const
  * associated value (e.g. if the table type is "energy_loss" and the process is
  * not a slowing-down process).
  */
-CELER_FUNCTION auto PhysicsTrackView::value_grid(ValueGridType table_type,
-                                                 ParticleProcessId ppid) const
-    -> ValueGridId
+CELER_FUNCTION auto
+PhysicsTrackView::value_grid(ValueGridType table_type,
+                             ParticleProcessId ppid) const -> ValueGridId
 {
     CELER_EXPECT(int(table_type) < int(ValueGridType::size_));
     CELER_EXPECT(ppid < this->num_particle_processes());
@@ -384,9 +385,8 @@ CELER_FUNCTION auto PhysicsTrackView::value_grid(ValueGridType table_type,
  *
  * See section 7.4 of the Geant4 Physics Reference (release 10.6) for details.
  */
-CELER_FUNCTION auto
-PhysicsTrackView::integral_xs_process(ParticleProcessId ppid) const
-    -> IntegralXsProcess const&
+CELER_FUNCTION auto PhysicsTrackView::integral_xs_process(
+    ParticleProcessId ppid) const -> IntegralXsProcess const&
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
     return params_.integral_xs[this->process_group().integral_xs[ppid.get()]];
@@ -508,8 +508,7 @@ CELER_FUNCTION ParticleProcessId PhysicsTrackView::eloss_ppid() const
  * Models that apply to the given process ID.
  */
 CELER_FUNCTION auto
-PhysicsTrackView::make_model_finder(ParticleProcessId ppid) const
-    -> ModelFinder
+PhysicsTrackView::make_model_finder(ParticleProcessId ppid) const -> ModelFinder
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
     ModelGroup const& md

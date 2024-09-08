@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "orange/univ/VolumeView.hh"
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/cont/Range.hh"
 #include "orange/OrangeGeoTestBase.hh"
 

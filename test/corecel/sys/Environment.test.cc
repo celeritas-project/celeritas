@@ -9,7 +9,8 @@
 
 #include <vector>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/sys/EnvironmentIO.json.hh"
 
 #include "celeritas_test.hh"

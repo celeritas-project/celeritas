@@ -35,8 +35,7 @@ BoundaryAction::BoundaryAction(ActionId aid)
 /*!
  * Launch the boundary action on host.
  */
-void BoundaryAction::execute(CoreParams const& params,
-                             CoreStateHost& state) const
+void BoundaryAction::step(CoreParams const& params, CoreStateHost& state) const
 {
     auto execute = make_action_track_executor(params.ptr<MemSpace::native>(),
                                               state.ptr(),
@@ -46,7 +45,7 @@ void BoundaryAction::execute(CoreParams const& params,
 }
 
 #if !CELER_USE_DEVICE
-void BoundaryAction::execute(CoreParams const&, CoreStateDevice&) const
+void BoundaryAction::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

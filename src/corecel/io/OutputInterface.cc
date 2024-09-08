@@ -10,7 +10,7 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 
 #include "EnumStringMapper.hh"
 #include "JsonPimpl.hh"

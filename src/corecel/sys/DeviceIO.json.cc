@@ -9,7 +9,7 @@
 
 #include <map>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 
 #include "Device.hh"
 #include "Stream.hh"

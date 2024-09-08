@@ -12,7 +12,7 @@
 #include <string_view>
 
 // IWYU pragma: begin_exports
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 
 #include "Test.hh"
 #include "TestMacros.hh"

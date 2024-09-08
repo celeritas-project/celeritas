@@ -15,7 +15,8 @@
 #include <G4RunManager.hh>
 #include <G4StateManager.hh>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
@@ -55,6 +56,9 @@ RunAction::RunAction(SPConstOptions options,
 //---------------------------------------------------------------------------//
 /*!
  * Initialize Celeritas.
+ *
+ * \todo Reusing the existing output registry is a hack needed to preserve the
+ * GeantSimpleCalo output. See the \c SharedParams constructor documentation.
  */
 void RunAction::BeginOfRunAction(G4Run const* run)
 {
@@ -68,8 +72,6 @@ void RunAction::BeginOfRunAction(G4Run const* run)
         {
             // This worker (or master thread) is responsible for initializing
             // celeritas: initialize shared data and setup GPU on all threads
-            // TODO: reusing the existing output registry is a hack needed to
-            // preserve the GeantSimpleCalo output. This will be fixed in 0.5
             CELER_TRY_HANDLE(
                 params_->Initialize(*options_, params_->output_reg()),
                 call_g4exception);

@@ -11,8 +11,8 @@
 #include <vector>
 #include <TTree.h>
 
+#include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
-#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 
 #include "RunnerInput.hh"

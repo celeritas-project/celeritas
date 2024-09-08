@@ -16,7 +16,7 @@
 #include <VecGeom/management/GeoManager.h>
 #include <VecGeom/volumes/PlacedVolume.h>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 #if CELERITAS_USE_CUDA
 #    include <VecGeom/management/CudaManager.h>
 #    include <cuda_runtime_api.h>
@@ -28,7 +28,8 @@
 #    include <VecGeom/gdml/Frontend.h>
 #endif
 
-#include "corecel/device_runtime_api.h"
+#include "corecel/DeviceRuntimeApi.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
@@ -46,6 +47,7 @@
 #include "geocel/g4vg/Converter.hh"
 
 #include "VecgeomData.hh"  // IWYU pragma: associated
+
 #include "detail/VecgeomCompatibility.hh"
 
 #ifdef VECGEOM_USE_SURF
@@ -277,8 +279,7 @@ VolumeId VecgeomParams::find_volume(G4LogicalVolume const* volume) const
  * This is useful for volumes that are repeated in the geometry with different
  * uniquifying 'extensions' from Geant4.
  */
-auto VecgeomParams::find_volumes(std::string const& name) const
-    -> SpanConstVolumeId
+auto VecgeomParams::find_volumes(std::string const& name) const -> SpanConstVolumeId
 {
     return vol_labels_.find_all(name);
 }
@@ -348,9 +349,11 @@ void VecgeomParams::build_tracking()
         this->build_volume_tracking();
     }
 
-    // TODO: we stil lneed to make volume tracking information when using CUDA,
-    // because we need a GPU world device pointer. We could probably just make
-    // a single world physical/logical volume that have the correct IDs.
+    /*!
+     * \todo we still need to make volume tracking information when using CUDA,
+     * because we need a GPU world device pointer. We could probably just make
+     * a single world physical/logical volume that have the correct IDs.
+     */
     if (CELERITAS_USE_CUDA && VecgeomParams::use_surface_tracking())
     {
         this->build_volume_tracking();

@@ -11,7 +11,8 @@
 #include <type_traits>
 #include <utility>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/data/AuxParamsRegistry.hh"  // IWYU pragma: keep
 #include "corecel/data/Ref.hh"
@@ -19,6 +20,8 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"  // IWYU pragma: keep
+#include "corecel/sys/ActionRegistry.hh"  // IWYU pragma: keep
+#include "corecel/sys/ActionRegistryOutput.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/DeviceIO.json.hh"
 #include "corecel/sys/Environment.hh"
@@ -50,8 +53,6 @@
 #include "celeritas/track/TrackInitParams.hh"  // IWYU pragma: keep
 
 #include "ActionInterface.hh"
-#include "ActionRegistry.hh"  // IWYU pragma: keep
-#include "ActionRegistryOutput.hh"
 #include "alongstep/AlongStepNeutralAction.hh"
 
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
@@ -106,9 +107,9 @@ ActionId find_along_step_id(ActionRegistry const& reg)
         // Get abstract action shared pointer and see if it's explicit
         auto const& base = reg.action(ActionId{aidx});
         if (auto expl
-            = std::dynamic_pointer_cast<ExplicitActionInterface const>(base))
+            = std::dynamic_pointer_cast<CoreStepActionInterface const>(base))
         {
-            if (expl->order() == ActionOrder::along)
+            if (expl->order() == StepActionOrder::along)
             {
                 return expl->action_id();
             }
@@ -123,8 +124,9 @@ class PropagationLimitAction final : public ConcreteAction
   public:
     //! Construct with ID
     explicit PropagationLimitAction(ActionId id)
-        : ConcreteAction(
-            id, "geo-propagation-limit", "pause due to propagation misbehavior")
+        : ConcreteAction(id,
+                         "geo-propagation-limit",
+                         "pause due to propagation misbehavior")
     {
     }
 };
@@ -234,6 +236,11 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
 
     CELER_EXPECT(input_);
 
+    if (!input_.aux_reg)
+    {
+        input_.aux_reg = std::make_shared<AuxParamsRegistry>();
+    }
+
     ScopedMem record_mem("CoreParams.construct");
 
     // Construct always-on actions and save their IDs
@@ -244,9 +251,10 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         input_.action_reg->insert(std::make_shared<SortTracksAction>(
             input_.action_reg->next_id(), track_order));
     };
-    switch (TrackOrder track_order = input_.init->host_ref().track_order)
+    switch (TrackOrder track_order = input_.init->track_order())
     {
         case TrackOrder::unsorted:
+        case TrackOrder::partition_charge:
         case TrackOrder::shuffled:
             break;
         case TrackOrder::partition_status:

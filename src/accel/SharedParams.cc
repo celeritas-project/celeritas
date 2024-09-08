@@ -22,12 +22,14 @@
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/KernelRegistry.hh"
@@ -41,7 +43,6 @@
 #include "celeritas/ext/RootExporter.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/geo/GeoParams.hh"
-#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/ImportData.hh"
@@ -469,6 +470,7 @@ void SharedParams::initialize_core(SetupOptions const& options)
         celeritas::GeantImporter load_geant_data(
             GeantImporter::get_world_volume());
         // Convert ImportVolume names to GDML versions if we're exporting
+        // TODO: optical particle/process import
         GeantImportDataSelection import_opts;
         import_opts.particles = GeantImportDataSelection::em_basic;
         import_opts.processes = import_opts.particles;

@@ -11,7 +11,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "geocel/Types.hh"
 
 //---------------------------------------------------------------------------//

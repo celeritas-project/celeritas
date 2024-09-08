@@ -12,7 +12,8 @@
 #include <utility>
 #include <vector>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
@@ -44,7 +45,7 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
                                        SPConstImported data,
                                        ReadData load_sb_table)
     : ConcreteAction(
-        id, "brems-sb", "interact by Seltzer-Berger bremsstrahlung")
+          id, "brems-sb", "interact by Seltzer-Berger bremsstrahlung")
     , imported_(data,
                 particles,
                 ImportProcessClass::e_brems,
@@ -94,9 +95,11 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
  */
 auto SeltzerBergerModel::applicability() const -> SetApplicability
 {
-    // TODO: potentially set lower energy bound based on (material-dependent)
-    // BremsstrahlungProcess lambda table energy grid to avoid invoking the
-    // interactor for tracks with energy below the interaction threshold
+    /*!
+     * \todo Set lower energy bound based on (material-dependent)
+     * BremsstrahlungProcess lambda table energy grid to avoid invoking the
+     * interactor for tracks with energy below the interaction threshold.
+     */
 
     Applicability electron_applic;
     electron_applic.particle = this->host_ref().ids.electron;
@@ -122,8 +125,8 @@ auto SeltzerBergerModel::micro_xs(Applicability applic) const -> MicroXsBuilders
 /*!
  * Interact with host data.
  */
-void SeltzerBergerModel::execute(CoreParams const& params,
-                                 CoreStateHost& state) const
+void SeltzerBergerModel::step(CoreParams const& params,
+                              CoreStateHost& state) const
 {
     auto execute = make_action_track_executor(
         params.ptr<MemSpace::native>(),
@@ -135,7 +138,7 @@ void SeltzerBergerModel::execute(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void SeltzerBergerModel::execute(CoreParams const&, CoreStateDevice&) const
+void SeltzerBergerModel::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
@@ -162,8 +165,7 @@ void SeltzerBergerModel::append_table(ImportSBTable const& imported,
 
     SBElementTableData table;
 
-    // TODO: hash the energy grid for reuse, because only Z = 100 has a
-    // different energy grid.
+    //! \todo Refactor as a builder helper using DedupeCollectionBuilder
 
     // Incident charged particle log energy grid
     table.grid.x = reals.insert_back(imported.x.begin(), imported.x.end());

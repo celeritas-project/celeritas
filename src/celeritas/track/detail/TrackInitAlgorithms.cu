@@ -9,6 +9,7 @@
 
 #include <thrust/device_ptr.h>
 #include <thrust/execution_policy.h>
+#include <thrust/partition.h>
 #include <thrust/remove.h>
 #include <thrust/scan.h>
 
@@ -74,6 +75,35 @@ size_type exclusive_scan_counts(
 
     // Copy the last element (accumulated total) back to host
     return *(stop - 1);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sort the tracks that will be initialized in this step by charged/neutral.
+ *
+ * This partitions an array of indices used to access the track initializers
+ * and the thread IDs of the initializers' parent tracks.
+ */
+void partition_initializers(
+    CoreParams const& params,
+    TrackInitStateData<Ownership::reference, MemSpace::device> const& init,
+    CoreStateCounters const& counters,
+    size_type count,
+    StreamId stream_id)
+{
+    ScopedProfiling profile_this{"partition-initializers"};
+
+    // Partition the indices based on the track initializer charge
+    auto start = device_pointer_cast(init.indices.data());
+    auto end = start + count;
+    auto stencil = static_cast<TrackInitializer*>(init.initializers.data())
+                   + counters.num_initializers - count;
+    thrust::stable_partition(
+        thrust_execute_on(stream_id),
+        start,
+        end,
+        IsNeutralStencil{params.ptr<MemSpace::native>(), stencil});
+    CELER_DEVICE_CHECK_ERROR();
 }
 
 //---------------------------------------------------------------------------//

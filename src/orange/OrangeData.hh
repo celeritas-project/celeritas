@@ -74,7 +74,7 @@ struct VolumeRecord
     logic_int flags{0};
     DaughterId daughter_id;
 
-    // TODO (KENO geometry): zorder
+    //! \todo For KENO geometry we will need zorder
 
     //! Flag values (bit field)
     enum Flags : logic_int
@@ -132,6 +132,26 @@ struct SurfacesRecord
 struct ConnectivityRecord
 {
     ItemRange<LocalVolumeId> neighbors;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Data for a single OrientedBoundingZone.
+ */
+struct OrientedBoundingZoneRecord
+{
+    using Real3 = Array<fast_real_type, 3>;
+    using Real3Id = OpaqueId<Real3>;
+
+    Real3Id inner_hw_id;
+    Real3Id outer_hw_id;
+    TransformId transform_id;
+
+    //! True if assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        return inner_hw_id && outer_hw_id && transform_id;
+    }
 };
 
 //---------------------------------------------------------------------------//

@@ -10,7 +10,6 @@
 #include <algorithm>
 #include <iterator>
 #include <numeric>
-#include <random>
 
 #include "corecel/data/Collection.hh"
 
@@ -64,32 +63,6 @@ IdLess(ObserverPtr<Id>) -> IdLess<Id>;
 
 //---------------------------------------------------------------------------//
 }  // namespace
-
-//---------------------------------------------------------------------------//
-/*!
- * Initialize default threads to track_slots mapping.
- *
- * This sets \code track_slots[i] = i \endcode .
- */
-template<>
-void fill_track_slots<MemSpace::host>(Span<TrackSlotId::size_type> track_slots,
-                                      StreamId)
-{
-    std::iota(track_slots.data(), track_slots.data() + track_slots.size(), 0);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Shuffle track slots.
- */
-template<>
-void shuffle_track_slots<MemSpace::host>(
-    Span<TrackSlotId::size_type> track_slots, StreamId)
-{
-    auto seed = static_cast<unsigned int>(track_slots.size());
-    std::mt19937 g{seed};
-    std::shuffle(track_slots.begin(), track_slots.end(), g);
-}
 
 //---------------------------------------------------------------------------//
 /*!

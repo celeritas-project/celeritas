@@ -80,7 +80,7 @@ class AlongStepFactoryInterface
     //!@{
     //! \name Type aliases
     using argument_type = AlongStepFactoryInput const&;
-    using result_type = std::shared_ptr<ExplicitCoreActionInterface const>;
+    using result_type = std::shared_ptr<CoreStepActionInterface const>;
     //!@}
 
   public:

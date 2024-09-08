@@ -10,7 +10,8 @@
 #include <cmath>
 #include <type_traits>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
@@ -57,7 +58,7 @@ class RegulaFalsiRootFinder
 //---------------------------------------------------------------------------//
 
 template<class F, class... Args>
-RegulaFalsiRootFinder(F&&, Args...) -> RegulaFalsiRootFinder<F>;
+CELER_FUNCTION RegulaFalsiRootFinder(F&&, Args...) -> RegulaFalsiRootFinder<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

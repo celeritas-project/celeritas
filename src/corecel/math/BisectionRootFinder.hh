@@ -10,7 +10,8 @@
 #include <cmath>
 #include <type_traits>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
@@ -56,7 +57,7 @@ class BisectionRootFinder
 //---------------------------------------------------------------------------//
 
 template<class F, class... Args>
-BisectionRootFinder(F&&, Args...) -> BisectionRootFinder<F>;
+CELER_FUNCTION BisectionRootFinder(F&&, Args...) -> BisectionRootFinder<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

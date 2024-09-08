@@ -9,6 +9,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -22,20 +23,20 @@ namespace celeritas
 /*!
  * Execute the action with host data.
  */
-void ExtendFromPrimariesAction::execute(CoreParams const& params,
-                                        CoreStateHost& state) const
+void ExtendFromPrimariesAction::step(CoreParams const& params,
+                                     CoreStateHost& state) const
 {
-    return this->execute_impl(params, state);
+    return this->step_impl(params, state);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Execute the action with device data.
  */
-void ExtendFromPrimariesAction::execute(CoreParams const& params,
-                                        CoreStateDevice& state) const
+void ExtendFromPrimariesAction::step(CoreParams const& params,
+                                     CoreStateDevice& state) const
 {
-    return this->execute_impl(params, state);
+    return this->step_impl(params, state);
 }
 
 //---------------------------------------------------------------------------//
@@ -43,8 +44,8 @@ void ExtendFromPrimariesAction::execute(CoreParams const& params,
  * Construct primaries.
  */
 template<MemSpace M>
-void ExtendFromPrimariesAction::execute_impl(CoreParams const& params,
-                                             CoreState<M>& state) const
+void ExtendFromPrimariesAction::step_impl(CoreParams const& params,
+                                          CoreState<M>& state) const
 {
     auto primary_range = state.primary_range();
     if (primary_range.empty() && !state.warming_up())
@@ -58,6 +59,12 @@ void ExtendFromPrimariesAction::execute_impl(CoreParams const& params,
 
     // Mark that the primaries have been processed
     state.clear_primaries();
+
+    // Clear the track slot IDs of the track initializers' parent tracks. This
+    // is necessary when new primaries are inserted in the middle of a
+    // simulation and the parent IDs of secondaries produced in the previous
+    // step have been stored.
+    fill(TrackSlotId{}, &state.ref().init.parents);
 }
 
 //---------------------------------------------------------------------------//

@@ -9,7 +9,8 @@
 
 #include <type_traits>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/math/QuantityIO.json.hh"
 #include "corecel/math/Turn.hh"
 

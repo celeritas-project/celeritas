@@ -10,10 +10,12 @@
 #include <algorithm>
 #include <csignal>
 #include <memory>
+#include <numeric>
 #include <utility>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/grid/VectorUtils.hh"
 #include "corecel/io/Logger.hh"
@@ -158,8 +160,20 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
         record_step_time();
     }
 
+    auto counters = copy_to_host(stepper_->state_ref().init.track_counters);
+    result.num_tracks = std::accumulate(counters.data().get(),
+                                        counters.data().get() + counters.size(),
+                                        size_type(0));
     result.num_aborted = track_counts.alive + track_counts.queued;
     result.num_track_slots = stepper_->state().size();
+
+    if (result.num_aborted > 0)
+    {
+        // Reset the state data for the next event if the stepping loop was
+        // aborted early
+        step.reset_state();
+    }
+
     return result;
 }
 

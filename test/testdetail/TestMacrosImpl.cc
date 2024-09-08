@@ -11,7 +11,8 @@
 #include <cstring>
 #include <string>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/io/ColorUtils.hh"
 

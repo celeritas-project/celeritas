@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #include <string>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Types.hh"
 #include "geocel/detail/LengthUnits.hh"
 

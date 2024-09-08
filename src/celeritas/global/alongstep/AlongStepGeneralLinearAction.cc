@@ -74,8 +74,8 @@ AlongStepGeneralLinearAction::~AlongStepGeneralLinearAction() = default;
 /*!
  * Launch the along-step action on host.
  */
-void AlongStepGeneralLinearAction::execute(CoreParams const& params,
-                                           CoreStateHost& state) const
+void AlongStepGeneralLinearAction::step(CoreParams const& params,
+                                        CoreStateHost& state) const
 {
     using namespace ::celeritas::detail;
 

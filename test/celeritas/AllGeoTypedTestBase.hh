@@ -10,7 +10,8 @@
 #include <string>
 #include <gtest/gtest.h>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "orange/OrangeTestBase.hh"
 #if CELERITAS_USE_VECGEOM
 #    include "geocel/vg/VecgeomTestBase.hh"

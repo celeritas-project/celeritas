@@ -16,8 +16,8 @@ namespace celeritas
 /*!
  * Interact with device data.
  */
-void NeutronInelasticModel::execute(CoreParams const& params,
-                                    CoreStateDevice& state) const
+void NeutronInelasticModel::step(CoreParams const& params,
+                                 CoreStateDevice& state) const
 {
     CELER_NOT_IMPLEMENTED("Neutron inelastic interaction");
 }

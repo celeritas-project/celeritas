@@ -21,13 +21,14 @@ namespace detail
 /*!
  * Construct with a unit system.
  */
-ImportDataConverter::ImportDataConverter(UnitSystem usys) : usys_{usys}
+ImportDataConverter::ImportDataConverter(UnitSystem usys)
+    : usys_{usys}
+    , len_(native_value_from(usys_, ImportUnits::len))
+    , numdens_(native_value_from(usys_, ImportUnits::inv_len_cb))
+    , time_(native_value_from(usys_, ImportUnits::time))
+    , xs_(native_value_from(usys_, ImportModelMaterial::xs_units))
+    , inv_pressure_(native_value_from(usys_, ImportUnits::len_time_sq_per_mass))
 {
-    len_ = native_value_from(usys_, ImportUnits::len);
-    numdens_ = native_value_from(usys_, ImportUnits::inv_len_cb);
-    time_ = native_value_from(usys_, ImportUnits::time);
-    xs_ = native_value_from(usys_, ImportModelMaterial::xs_units);
-    inv_pressure_ = native_value_from(usys_, ImportUnits::len_time_sq_per_mass);
 }
 
 //---------------------------------------------------------------------------//
@@ -43,7 +44,7 @@ void ImportDataConverter::operator()(ImportData* data)
         (*this)(&m);
     }
 
-    for (auto& m : data->opt_materials)
+    for (auto& m : data->optical_materials)
     {
         (*this)(&m);
     }

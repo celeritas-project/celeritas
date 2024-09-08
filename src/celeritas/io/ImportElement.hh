@@ -12,12 +12,13 @@
 
 namespace celeritas
 {
-
 //---------------------------------------------------------------------------//
 /*!
- * Store isotope data.
+ * Store nuclide data.
  *
  * For nuclear mass, see `G4NucleiProperties::GetNuclearMass(int A, int Z)`.
+ *
+ * \todo Rename ImportNuclide
  */
 struct ImportIsotope
 {
@@ -46,8 +47,8 @@ struct ImportElement
     //!@}
 
     std::string name;
-    int atomic_number;
-    double atomic_mass;  //!< [amu]
+    int atomic_number{};
+    double atomic_mass{};  //!< [amu]
     VecIsotopeFrac isotopes_fractions;  //!< Isotopic fractional abundance
 };
 

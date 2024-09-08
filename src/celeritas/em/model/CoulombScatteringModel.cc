@@ -9,7 +9,8 @@
 
 #include <utility>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "celeritas/Constants.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/em/data/CoulombScatteringData.hh"
@@ -37,7 +38,7 @@ CoulombScatteringModel::CoulombScatteringModel(ActionId id,
                                                MaterialParams const& materials,
                                                SPConstImported data)
     : ConcreteAction(
-        id, "coulomb-wentzel", "interact by Coulomb scattering (Wentzel)")
+          id, "coulomb-wentzel", "interact by Coulomb scattering (Wentzel)")
     , imported_(data,
                 particles,
                 ImportProcessClass::coulomb_scat,
@@ -94,8 +95,7 @@ auto CoulombScatteringModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto CoulombScatteringModel::micro_xs(Applicability applic) const
-    -> MicroXsBuilders
+auto CoulombScatteringModel::micro_xs(Applicability applic) const -> MicroXsBuilders
 {
     return imported_.micro_xs(std::move(applic));
 }
@@ -105,8 +105,8 @@ auto CoulombScatteringModel::micro_xs(Applicability applic) const
 /*!
  * Apply the interaction kernel.
  */
-void CoulombScatteringModel::execute(CoreParams const& params,
-                                     CoreStateHost& state) const
+void CoulombScatteringModel::step(CoreParams const& params,
+                                  CoreStateHost& state) const
 {
     CELER_EXPECT(params.wentzel());
 
@@ -121,7 +121,7 @@ void CoulombScatteringModel::execute(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void CoulombScatteringModel::execute(CoreParams const&, CoreStateDevice&) const
+void CoulombScatteringModel::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

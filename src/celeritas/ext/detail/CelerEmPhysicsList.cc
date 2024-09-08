@@ -12,6 +12,7 @@
 #include "celeritas/Quantities.hh"
 
 #include "CelerEmStandardPhysics.hh"
+#include "CelerOpticalPhysics.hh"
 
 namespace celeritas
 {
@@ -32,6 +33,14 @@ CelerEmPhysicsList::CelerEmPhysicsList(Options const& options)
     // Celeritas-supported EM Physics
     auto em_standard = std::make_unique<CelerEmStandardPhysics>(options);
     RegisterPhysics(em_standard.release());
+
+    if (options.optical)
+    {
+        // Celeritas-supported Optical Physics
+        auto optical_physics
+            = std::make_unique<CelerOpticalPhysics>(options.optical);
+        RegisterPhysics(optical_physics.release());
+    }
 }
 
 //---------------------------------------------------------------------------//

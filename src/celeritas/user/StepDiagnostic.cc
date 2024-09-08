@@ -11,7 +11,8 @@
 #include <utility>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
@@ -61,8 +62,7 @@ StepDiagnostic::~StepDiagnostic() = default;
 /*!
  * Execute action with host data.
  */
-void StepDiagnostic::execute(CoreParams const& params,
-                             CoreStateHost& state) const
+void StepDiagnostic::step(CoreParams const& params, CoreStateHost& state) const
 {
     auto execute = make_active_track_executor(
         params.ptr<MemSpace::native>(),
@@ -76,7 +76,7 @@ void StepDiagnostic::execute(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void StepDiagnostic::execute(CoreParams const&, CoreStateDevice&) const
+void StepDiagnostic::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

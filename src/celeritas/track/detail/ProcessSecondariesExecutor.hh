@@ -71,6 +71,7 @@ CELER_FUNCTION void
 ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
 {
     CELER_EXPECT(tid < state->size());
+
     SimTrackView sim(params->sim, state->sim, tid);
     if (sim.status() == TrackStatus::inactive)
     {
@@ -103,10 +104,13 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
             GeoTrackView geo(params->geometry, state->geometry, tid);
             CELER_ASSERT(!geo.is_on_boundary());
 
-            // Increment the total number of tracks created for this event and
-            // calculate the track ID of the secondary
-            // TODO: This is nondeterministic; we need to calculate the
-            // track ID in a reproducible way.
+            /*!
+             * Increment the total number of tracks created for this event and
+             * calculate the track ID of the secondary.
+             *
+             * \todo This is nondeterministic; we need to calculate the track
+             * ID in a reproducible way.
+             */
             CELER_ASSERT(sim.event_id() < data.track_counters.size());
             TrackId::size_type track_id = atomic_add(
                 &data.track_counters[sim.event_id()], size_type{1});
@@ -123,8 +127,17 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
             ti.particle.energy = secondary.energy;
             CELER_ASSERT(ti);
 
-            if (!initialized && sim.status() != TrackStatus::alive)
+            if (!initialized && sim.status() != TrackStatus::alive
+                && params->init.track_order != TrackOrder::partition_charge)
             {
+                /*!
+                 * Skip in-place initialization when tracks are partitioned by
+                 * charge to reduce the amount of mixing
+                 *
+                 * \todo Consider allowing this if the parent's charge is the
+                 * same as the secondary's
+                 */
+
                 ParticleTrackView particle(
                     params->particles, state->particles, tid);
                 PhysicsTrackView phys(
@@ -142,8 +155,10 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
                 phys = {};
                 initialized = true;
 
-                // TODO: make it easier to determine what states need to be
-                // reset: the physics MFP, for example, is OK to preserve
+                /*!
+                 * \todo make it easier to determine what states need to be
+                 * reset: the physics MFP, for example, is OK to preserve
+                 */
             }
             else
             {
@@ -153,10 +168,16 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
                     counters.num_initializers - offset}]
                     = ti;
 
-                // Store the thread ID of the secondary's parent if the
-                // secondary could be initialized in the next step
-                if (offset <= data.parents.size())
+                if (offset <= data.parents.size()
+                    && (params->init.track_order != TrackOrder::partition_charge
+                        || sim.status() == TrackStatus::alive))
                 {
+                    // Store the thread ID of the secondary's parent if the
+                    // secondary could be initialized in the next step. If the
+                    // tracks are partitioned by charge we skip in-place
+                    // initialization of the secondary, so the parent track
+                    // must still be alive to ensure the state isn't
+                    // overwritten
                     data.parents[TrackSlotId(data.parents.size() - offset)]
                         = tid;
                 }

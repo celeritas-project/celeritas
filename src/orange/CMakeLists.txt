@@ -45,6 +45,7 @@ list(APPEND SOURCES
   orangeinp/detail/BoundingZone.cc
   orangeinp/detail/BuildIntersectRegion.cc
   orangeinp/detail/CsgUnitBuilder.cc
+  orangeinp/detail/DeMorganSimplifier.cc
   orangeinp/detail/InternalSurfaceFlagger.cc
   orangeinp/detail/IntersectSurfaceState.cc
   orangeinp/detail/LocalSurfaceInserter.cc
@@ -60,6 +61,7 @@ list(APPEND SOURCES
   surf/CylAligned.cc
   surf/FaceNamer.cc
   surf/GeneralQuadric.cc
+  surf/Involute.cc
   surf/Plane.cc
   surf/PlaneAligned.cc
   surf/SimpleQuadric.cc

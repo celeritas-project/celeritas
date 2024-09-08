@@ -11,7 +11,8 @@
 #include <utility>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/math/QuantityIO.json.hh"
@@ -77,14 +78,14 @@ void PhysicsParamsOutput::output(JsonPimpl* j) const
         auto const& scalars = physics_->host_ref().scalars;
 
         auto options = json::object();
-#    define PPO_SAVE_OPTION(NAME) options[#NAME] = scalars.NAME
+#define PPO_SAVE_OPTION(NAME) options[#NAME] = scalars.NAME
         PPO_SAVE_OPTION(min_range);
         PPO_SAVE_OPTION(max_step_over_range);
         PPO_SAVE_OPTION(min_eprime_over_e);
         PPO_SAVE_OPTION(lowest_electron_energy);
         PPO_SAVE_OPTION(linear_loss_limit);
         PPO_SAVE_OPTION(fixed_step_limiter);
-#    undef PPO_SAVE_OPTION
+#undef PPO_SAVE_OPTION
         obj["options"] = std::move(options);
     }
 
@@ -93,7 +94,7 @@ void PhysicsParamsOutput::output(JsonPimpl* j) const
         auto const& data = physics_->host_ref();
 
         auto sizes = json::object();
-#    define PPO_SAVE_SIZE(NAME) sizes[#NAME] = data.NAME.size()
+#define PPO_SAVE_SIZE(NAME) sizes[#NAME] = data.NAME.size()
         PPO_SAVE_SIZE(reals);
         PPO_SAVE_SIZE(model_ids);
         PPO_SAVE_SIZE(value_grids);
@@ -103,7 +104,7 @@ void PhysicsParamsOutput::output(JsonPimpl* j) const
         PPO_SAVE_SIZE(integral_xs);
         PPO_SAVE_SIZE(model_groups);
         PPO_SAVE_SIZE(process_groups);
-#    undef PPO_SAVE_SIZE
+#undef PPO_SAVE_SIZE
         obj["sizes"] = std::move(sizes);
     }
 

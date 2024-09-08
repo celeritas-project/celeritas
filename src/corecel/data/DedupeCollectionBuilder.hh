@@ -126,8 +126,7 @@ void DedupeCollectionBuilder<T, I>::reserve(std::size_t count)
 template<class T, class I>
 template<class InputIterator>
 auto DedupeCollectionBuilder<T, I>::insert_back(InputIterator first,
-                                                InputIterator last)
-    -> ItemRangeT
+                                                InputIterator last) -> ItemRangeT
 {
     auto& s = this->storage();
 

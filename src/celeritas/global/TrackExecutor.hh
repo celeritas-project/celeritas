@@ -16,6 +16,7 @@
 #include "CoreTrackData.hh"
 #include "CoreTrackDataFwd.hh"
 #include "CoreTrackView.hh"
+
 #include "detail/TrackExecutorImpl.hh"
 
 namespace celeritas
@@ -41,7 +42,7 @@ void foo_kernel(CoreParamsPtr const params,
 
     for (auto tid : range(ThreadID{123}))
     {
-        execute(tid);
+        step(tid);
     }
 }
 \endcode

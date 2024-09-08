@@ -12,7 +12,8 @@
 #include <vector>
 #include <gtest/gtest.h>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Macros.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/math/SoftEqual.hh"
@@ -39,8 +40,8 @@ trunc_string(unsigned int digits, char const* str, char const* trunc);
 template<class T1, class T2>
 constexpr bool can_soft_equiv()
 {
-    return (std::is_floating_point_v<T1>
-            || std::is_floating_point_v<T2>)&&std::is_convertible_v<T1, T2>;
+    return (std::is_floating_point_v<T1> || std::is_floating_point_v<T2>)
+           && std::is_convertible_v<T1, T2>;
 }
 
 //---------------------------------------------------------------------------//

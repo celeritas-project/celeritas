@@ -12,14 +12,15 @@
 #include <string>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/io/ColorUtils.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
-#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/random/RngParams.hh"
 #include "celeritas/track/StatusChecker.hh"

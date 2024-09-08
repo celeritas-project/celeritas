@@ -19,6 +19,9 @@ namespace celeritas
 class ParticleParams;
 struct ImportData;
 
+namespace optical
+{
+
 //---------------------------------------------------------------------------//
 /*!
  * Build and manage scintillation data.
@@ -78,13 +81,8 @@ class ScintillationParams final : public ParamsDataInterface<ScintillationData>
   private:
     // Host/device storage and reference
     CollectionMirror<ScintillationData> mirror_;
-
-    //// HELPER FUNCTIONS ////
-
-    // Convert imported scintillation components to Celeritas' components
-    std::vector<ScintillationComponent>
-    build_components(std::vector<ImportScintComponent> const& input_comp);
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

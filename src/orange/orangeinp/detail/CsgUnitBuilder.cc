@@ -92,11 +92,12 @@ void CsgUnitBuilder::insert_region(NodeId n,
                      == static_cast<bool>(existing.bounds.exterior));
         if (trans_id != existing.transform_id)
         {
-            // TODO: we should implement transform soft equivalence
-            // TODO: transformed shapes that are later defined as volumes (in
-            // an RDV or single-item Join function) may result in the same node
-            // with two different transforms. These transforms don't usually
-            // matter though?
+            /*! \todo We should implement transform soft equivalence.
+             *  \todo Transformed shapes that are later defined as volumes (in
+             * an RDV or single-item Join function) may result in the same node
+             * with two different transforms. These transforms don't (yet?)
+             * matter though?
+             */
             auto const& md = unit_->metadata[n.get()];
             CELER_LOG(debug)
                 << "While re-inserting logically equivalent region '"
@@ -120,10 +121,10 @@ LocalVolumeId CsgUnitBuilder::insert_volume(NodeId n)
 {
     CELER_EXPECT(n < unit_->tree.size());
 
-    LocalVolumeId result{static_cast<size_type>(unit_->volumes.size())};
+    LocalVolumeId result{static_cast<size_type>(unit_->tree.volumes().size())};
 
-    unit_->volumes.push_back(n);
-    unit_->fills.resize(unit_->volumes.size());
+    unit_->tree.insert_volume(std::move(n));
+    unit_->fills.resize(unit_->tree.volumes().size());
 
     CELER_ENSURE(*unit_);
     return result;
@@ -138,17 +139,19 @@ LocalVolumeId CsgUnitBuilder::insert_volume(NodeId n)
  */
 void CsgUnitBuilder::fill_exterior()
 {
-    CELER_EXPECT(unit_->volumes.size() == 1);
+    CELER_EXPECT(unit_->tree.volumes().size() == 1);
     static_assert(orange_exterior_volume == LocalVolumeId{0});
 
-    NodeId n = unit_->volumes[orange_exterior_volume.get()];
+    NodeId n = unit_->tree.volumes()[orange_exterior_volume.get()];
     auto iter = unit_->regions.find(n);
     CELER_ASSERT(iter != unit_->regions.end());
     CELER_VALIDATE(!iter->second.bounds.negated,
                    << "exterior volume is inside out");
 
-    // TODO handle edge case where exterior is the composite of two volumes and
-    // we need to adjust those volumes' bboxes?
+    /*!
+     * \todo Handle edge case where exterior is the composite of two volumes
+     * and we need to adjust those volumes' bboxes?
+     */
     bbox_ = calc_intersection(bbox_, iter->second.bounds.exterior);
 }
 

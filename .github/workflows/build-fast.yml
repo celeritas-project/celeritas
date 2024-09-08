@@ -20,12 +20,18 @@ jobs:
           - runner: jammy
             compiler: gcc
             version: 12
+          - runner: noble
+            compiler: gcc
+            version: 14
           - runner: focal
             compiler: clang
             version: 10
           - runner: jammy
             compiler: clang
             version: 15
+          - runner: noble
+            compiler: clang
+            version: 18
     env:
       GHA_JOB_NAME: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}"
       CCACHE_DIR: "${{github.workspace}}/.ccache"
@@ -36,6 +42,7 @@ jobs:
     runs-on: >-
       ${{  matrix.runner == 'focal' && 'ubuntu-20.04'
         || matrix.runner == 'jammy' && 'ubuntu-22.04'
+        || matrix.runner == 'noble' && 'ubuntu-24.04'
       }}
     steps:
       - name: Install dependencies
@@ -43,7 +50,7 @@ jobs:
           sudo apt-get -q -y update
           sudo apt-get -q -y install \
             ccache cmake ninja-build python3 \
-            nlohmann-json3-dev libgtest-dev libhepmc3-dev \
+            nlohmann-json3-dev libgtest-dev libhepmc3-dev libpng-dev \
             ${{matrix.compiler}}-${{matrix.version}} \
             ${{matrix.compiler == 'gcc' && format('g++-{0}', matrix.version) || ''}}
           echo "Installed toolchain:"

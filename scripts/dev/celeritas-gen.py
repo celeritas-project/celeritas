@@ -110,8 +110,8 @@ TEST_F({name}Test, host)
 TEST_HEADER_FILE = '''
 #pragma once
 
-#include "celeritas_config.h"
 #include "corecel/Assert.hh"
+#include "corecel/Config.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 
@@ -240,8 +240,8 @@ inline void {lowabbr}_test(
 TEST_CODE_FILE = '''\
 #include "{name}.test.hh"
 
-#include "corecel/device_runtime_api.h"
-#include "corecel/Types.h"
+#include "corecel/DeviceRuntimeApi.hh"
+#include "corecel/Types.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "corecel/sys/Device.hh"
 
@@ -411,7 +411,6 @@ RST_TOP = '''\
 
 RST_FILE = '''
 .. _{name}:
-
 ****************
 {name}
 ****************
@@ -463,7 +462,6 @@ LANG = {
     'cc': "C++",
     'cu': "CUDA",
     'cmake': "CMake",
-    'i': "SWIG",
     'CMakeLists.txt': "CMake",
     'py': "Python",
     'sh': "Shell",
@@ -475,7 +473,6 @@ TOPS = {
     'C': CXX_TOP,
     'C++': CXX_TOP,
     'CUDA': CXX_TOP,
-    'SWIG': CXX_TOP,
     'CMake': CMAKE_TOP,
     'Python': PYTHON_TOP,
     'Shell': SHELL_TOP,
@@ -487,7 +484,6 @@ HEXT = {
     'C': "h",
     'C++': "hh",
     'CUDA': "hh",
-    'SWIG': "hh",
 }
 
 

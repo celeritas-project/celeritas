@@ -28,7 +28,7 @@ namespace celeritas
  * Simple version comparison.
  *
  * This is intended to be constructed with version numbers from \c
- * celeritas_cmake_strings.h and used in unit tests. It can be used in `if
+ * celeritas_cmake_strings.hh and used in unit tests. It can be used in `if
  * constexpr` expressions with preprocessor macros. In the constructor
  * documentation, x/y/z correspond to major/minor/patch.
  *
@@ -88,7 +88,7 @@ class Version
 /*!
  * Construct from an 0xXXYYZZ integer.
  *
- * This version scheme is used by SWIG and Celeritas. (The leading 0x prevents
+ * This version scheme is used by Celeritas. (The leading 0x prevents
  * version `01` from turning the expression into an octal.)
  */
 constexpr Version Version::from_hex_xxyyzz(size_type value)

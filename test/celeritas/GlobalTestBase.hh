@@ -13,6 +13,7 @@
 
 #include "corecel/Assert.hh"
 #include "celeritas/geo/GeoFwd.hh"
+#include "celeritas/global/ActionInterface.hh"
 #include "celeritas/random/RngParamsFwd.hh"
 
 #include "Test.hh"
@@ -24,7 +25,6 @@ namespace celeritas
 class ActionRegistry;
 class AtomicRelaxationParams;
 class CutoffParams;
-class ExplicitCoreActionInterface;
 class GeoMaterialParams;
 class MaterialParams;
 class ParticleParams;
@@ -35,11 +35,16 @@ class AuxParamsRegistry;
 class WentzelOKVIParams;
 
 class CoreParams;
+template<MemSpace M>
+class CoreState;
 class OutputRegistry;
 
+namespace optical
+{
 class CerenkovParams;
-class OpticalPropertyParams;
+class MaterialParams;
 class ScintillationParams;
+}  // namespace optical
 
 namespace test
 {
@@ -65,7 +70,7 @@ class GlobalTestBase : public Test
     using SPConstParticle = SP<ParticleParams const>;
     using SPConstCutoff = SP<CutoffParams const>;
     using SPConstPhysics = SP<PhysicsParams const>;
-    using SPConstAction = SP<ExplicitCoreActionInterface const>;
+    using SPConstAction = SP<CoreStepActionInterface const>;
     using SPConstRng = SP<RngParams const>;
     using SPConstSim = SP<SimParams const>;
     using SPConstTrackInit = SP<TrackInitParams const>;
@@ -76,9 +81,9 @@ class GlobalTestBase : public Test
     using SPOutputRegistry = SP<OutputRegistry>;
     using SPUserRegistry = SP<AuxParamsRegistry>;
 
-    using SPConstCerenkov = SP<CerenkovParams const>;
-    using SPConstProperties = SP<OpticalPropertyParams const>;
-    using SPConstScintillation = SP<ScintillationParams const>;
+    using SPConstCerenkov = SP<optical::CerenkovParams const>;
+    using SPConstOpticalMaterial = SP<optical::MaterialParams const>;
+    using SPConstScintillation = SP<optical::ScintillationParams const>;
     //!@}
 
   public:
@@ -106,7 +111,7 @@ class GlobalTestBase : public Test
     inline SPUserRegistry const& aux_reg();
     inline SPConstCore const& core();
     inline SPConstCerenkov const& cerenkov();
-    inline SPConstProperties const& properties();
+    inline SPConstOpticalMaterial const& optical_material();
     inline SPConstScintillation const& scintillation();
 
     inline SPConstGeo const& geometry() const;
@@ -124,7 +129,7 @@ class GlobalTestBase : public Test
     inline SPUserRegistry const& aux_reg() const;
     inline SPConstCore const& core() const;
     inline SPConstCerenkov const& cerenkov() const;
-    inline SPConstProperties const& properties() const;
+    inline SPConstOpticalMaterial const& optical_material() const;
     inline SPConstScintillation const& scintillation() const;
     //!@}
 
@@ -147,7 +152,7 @@ class GlobalTestBase : public Test
     [[nodiscard]] virtual SPConstWentzelOKVI build_wentzel() = 0;
     [[nodiscard]] virtual SPConstAction build_along_step() = 0;
     [[nodiscard]] virtual SPConstCerenkov build_cerenkov() = 0;
-    [[nodiscard]] virtual SPConstProperties build_properties() = 0;
+    [[nodiscard]] virtual SPConstOpticalMaterial build_optical_material() = 0;
     [[nodiscard]] virtual SPConstScintillation build_scintillation() = 0;
 
     // Do not insert StatusChecker
@@ -176,7 +181,7 @@ class GlobalTestBase : public Test
     SPConstCore core_;
     SPOutputRegistry output_reg_;
     SPConstCerenkov cerenkov_;
-    SPConstProperties properties_;
+    SPConstOpticalMaterial optical_material_;
     SPConstScintillation scintillation_;
     bool insert_status_checker_{true};
 };
@@ -215,7 +220,7 @@ DEF_GTB_ACCESSORS(SPActionRegistry, action_reg)
 DEF_GTB_ACCESSORS(SPUserRegistry, aux_reg)
 DEF_GTB_ACCESSORS(SPConstCore, core)
 DEF_GTB_ACCESSORS(SPConstCerenkov, cerenkov)
-DEF_GTB_ACCESSORS(SPConstProperties, properties)
+DEF_GTB_ACCESSORS(SPConstOpticalMaterial, optical_material)
 DEF_GTB_ACCESSORS(SPConstScintillation, scintillation)
 auto GlobalTestBase::wentzel() -> SPConstWentzelOKVI const&
 {

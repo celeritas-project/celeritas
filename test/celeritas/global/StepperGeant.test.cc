@@ -10,12 +10,12 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/global/ActionInterface.hh"
-#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/global/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -25,6 +25,7 @@
 
 #include "StepperTestBase.hh"
 #include "celeritas_test.hh"
+#include "../LeadBoxTestBase.hh"
 #include "../OneSteelSphereBase.hh"
 #include "../TestEm15Base.hh"
 #include "../TestEm3Base.hh"
@@ -254,6 +255,32 @@ class OneSteelSphere : public OneSteelSphereBase, public StepperTestBase
 };
 
 //---------------------------------------------------------------------------//
+#define LeadBox TEST_IF_CELERITAS_GEANT(LeadBox)
+class LeadBox : public LeadBoxTestBase, public StepperTestBase
+{
+    //! Make electron that fails to change position after propagation
+    std::vector<Primary> make_primaries(size_type count) const override
+    {
+        Primary p;
+        p.particle_id = this->particle()->find(pdg::electron());
+        p.energy = MevEnergy{1};
+        p.position = {1e20, 0, 0};
+        p.direction = {-1, 0, 0};
+        p.time = 0;
+        p.event_id = EventId{0};
+
+        std::vector<Primary> result(count, p);
+        for (auto i : range(count))
+        {
+            result[i].track_id = TrackId{i};
+        }
+        return result;
+    }
+
+    size_type max_average_steps() const override { return 500; }
+};
+
+//---------------------------------------------------------------------------//
 // TESTEM3 - Compton process only
 //---------------------------------------------------------------------------//
 
@@ -391,8 +418,8 @@ TEST_F(TestEm3NoMsc, host_multi)
     counts = step();
     if (this->is_default_build())
     {
-        EXPECT_EQ(44, counts.active);
-        EXPECT_EQ(43, counts.alive);
+        EXPECT_EQ(36, counts.active);
+        EXPECT_EQ(35, counts.alive);
     }
 }
 
@@ -759,6 +786,22 @@ TEST_F(OneSteelSphere, host)
             FAIL() << "Updated stepper results are required for CI tests";
         }
     }
+}
+
+TEST_F(LeadBox, host)
+{
+    size_type num_primaries = 1;
+    size_type num_tracks = 8;
+
+    Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
+    auto result = this->run(step, num_primaries);
+
+    // Electron fails to change position in first step and is killed by
+    // tracking cut
+    EXPECT_EQ(1, result.calc_avg_steps_per_primary());
+    EXPECT_EQ(1, result.num_step_iters());
+    EXPECT_EQ(0, result.calc_emptying_step());
+    EXPECT_EQ(RunResult::StepCount({0, 0}), result.calc_queue_hwm());
 }
 
 //---------------------------------------------------------------------------//

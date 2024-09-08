@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <type_traits>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 
 #if CELERITAS_USE_MPI
 #    include <mpi.h>
@@ -22,6 +22,7 @@
 #include "corecel/cont/Span.hh"
 
 #include "MpiCommunicator.hh"
+
 #include "detail/MpiType.hh"
 
 namespace celeritas

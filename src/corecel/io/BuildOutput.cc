@@ -11,9 +11,9 @@
 #include <utility>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_cmake_strings.h"
-#include "celeritas_config.h"
-#include "celeritas_version.h"
+#include "corecel/Config.hh"
+#include "corecel/Version.hh"
+
 #include "corecel/Macros.hh"
 
 #include "JsonPimpl.hh"
@@ -32,7 +32,7 @@ void BuildOutput::output(JsonPimpl* j) const
 
     {
         auto cfg = nlohmann::json::object();
-#    define CO_SAVE_CFG(NAME) cfg[#NAME] = bool(NAME)
+#define CO_SAVE_CFG(NAME) cfg[#NAME] = bool(NAME)
         CO_SAVE_CFG(CELERITAS_USE_CUDA);
         CO_SAVE_CFG(CELERITAS_USE_GEANT4);
         CO_SAVE_CFG(CELERITAS_USE_HEPMC3);
@@ -42,7 +42,7 @@ void BuildOutput::output(JsonPimpl* j) const
         CO_SAVE_CFG(CELERITAS_USE_ROOT);
         CO_SAVE_CFG(CELERITAS_USE_VECGEOM);
         CO_SAVE_CFG(CELERITAS_DEBUG);
-#    undef CO_SAVE_CFG
+#undef CO_SAVE_CFG
         cfg["CELERITAS_BUILD_TYPE"] = celeritas_build_type;
         cfg["CELERITAS_HOSTNAME"] = celeritas_hostname;
         cfg["CELERITAS_REAL_TYPE"] = celeritas_real_type;

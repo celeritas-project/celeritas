@@ -10,14 +10,15 @@
 #include <cstddef>
 #include <type_traits>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 
 #include "Device.hh"
 
 #if CELER_DEVICE_SOURCE
-#    include "corecel/device_runtime_api.h"
+#    include "corecel/DeviceRuntimeApi.hh"
 #endif
 
 namespace celeritas

@@ -78,6 +78,7 @@ celeritas_add_test_library(testcel_celeritas
   io/EventIOTestBase.cc
   neutron/NeutronTestBase.cc
   optical/OpticalTestBase.cc
+  optical/InteractorHostTestBase.cc
   phys/InteractionIO.cc
   phys/InteractorHostTestBase.cc
   phys/MockModel.cc
@@ -146,6 +147,7 @@ set(_import_filter
   "TestEm3*"
   "OneSteelSphere.*"
   "OneSteelSphereGG.*"
+  "LarSphere.*"
   "Solids.*"
 )
 if(Geant4_VERSION VERSION_LESS 11.0)
@@ -162,6 +164,7 @@ celeritas_add_test(ext/GeantImporter.test.cc
 celeritas_add_test(ext/GeantVolumeMapper.test.cc ${_needs_geant4}
   LINK_LIBRARIES ${Geant4_LIBRARIES} Celeritas::orange)
 celeritas_add_test(ext/RootImporter.test.cc ${_needs_root})
+celeritas_add_test(ext/RootJsonDumper.test.cc ${_needs_root})
 
 #-----------------------------------------------------------------------------#
 # Field
@@ -198,8 +201,6 @@ celeritas_add_test(geo/GeoMaterial.test.cc
 
 #-----------------------------------------------------------------------------#
 # Global
-celeritas_add_test(global/ActionRegistry.test.cc)
-
 if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
   set(_along_step_filter
     "-Em3*:SimpleCms*:LeadBox*"
@@ -213,7 +214,7 @@ if(CELERITAS_USE_Geant4 AND CELERITAS_REAL_TYPE STREQUAL "double")
     "SimpleCmsRZFieldAlongStepTest.msc_rzfield_finegrid"
   )
   set(_stepper_filter
-    "-TestEm*"
+    "-TestEm*:LeadBox*"
     "TestEm3Compton.*"
     "TestEm3NoMsc.*"
     "TestEm3Msc.*"
@@ -234,7 +235,7 @@ elseif(CELERITAS_USE_Geant4)
     "LeadBox*"
   )
   set(_stepper_filter
-    "-TestEm*"
+    "-TestEm*:LeadBox*"
     "TestEm3Compton.*"
     "TestEm3Msc.*"
     "TestEm3MscNofluct.*"
@@ -287,8 +288,8 @@ celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 celeritas_add_test(optical/Cerenkov.test.cc)
 celeritas_add_test(optical/OpticalCollector.test.cc ${_needs_geant4})
 celeritas_add_test(optical/Scintillation.test.cc)
-celeritas_add_test(optical/OpticalModelBuilder.test.cc)
-celeritas_add_test(optical/OpticalRayleigh.test.cc)
+celeritas_add_test(optical/Rayleigh.test.cc ${_needs_double})
+celeritas_add_test(optical/Absorption.test.cc ${_needs_double})
 
 #-----------------------------------------------------------------------------#
 # Mat
@@ -325,11 +326,13 @@ celeritas_add_test(random/XorwowRngEngine.test.cc GPU)
 celeritas_add_test(random/distribution/BernoulliDistribution.test.cc)
 celeritas_add_test(random/distribution/ExponentialDistribution.test.cc)
 celeritas_add_test(random/distribution/GammaDistribution.test.cc)
+celeritas_add_test(random/distribution/InverseSquareDistribution.test.cc)
 celeritas_add_test(random/distribution/IsotropicDistribution.test.cc)
 celeritas_add_test(random/distribution/NormalDistribution.test.cc)
 celeritas_add_test(random/distribution/PoissonDistribution.test.cc)
 celeritas_add_test(random/distribution/RadialDistribution.test.cc)
 celeritas_add_test(random/distribution/ReciprocalDistribution.test.cc)
+celeritas_add_test(random/distribution/RejectionSampler.test.cc)
 celeritas_add_test(random/distribution/UniformBoxDistribution.test.cc)
 celeritas_add_test(random/distribution/UniformRealDistribution.test.cc)
 

@@ -22,8 +22,8 @@ namespace detail
 /*!
  * Launch the discrete-select action on device.
  */
-void DiscreteSelectAction::execute(CoreParams const& params,
-                                   CoreStateDevice& state) const
+void DiscreteSelectAction::step(CoreParams const& params,
+                                CoreStateDevice& state) const
 {
     auto execute = make_action_track_executor(params.ptr<MemSpace::native>(),
                                               state.ptr(),

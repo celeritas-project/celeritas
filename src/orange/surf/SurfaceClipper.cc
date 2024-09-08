@@ -106,13 +106,14 @@ ORANGE_INSTANTIATE_OP(CylAligned);
 //---------------------------------------------------------------------------//
 /*!
  * Clip the bounding boxes to a plane.
+ *
+ * \todo Check for being in an axial plane and leave the orthogonal plane's
+ * extents intact.
  */
 void SurfaceClipper::operator()(Plane const&) const
 {
     // We no longer can guarantee any point being inside the shape; reset it
     *int_ = BoundingBox{};
-    // TODO: check for being in an axial plane and leave the orthogonal plane's
-    // extents intact
 }
 
 //---------------------------------------------------------------------------//
@@ -162,6 +163,16 @@ void SurfaceClipper::operator()(SimpleQuadric const&) const
  * Clip the bounding boxes to a general quadric.
  */
 void SurfaceClipper::operator()(GeneralQuadric const&) const
+{
+    // We no longer can guarantee any point being inside the shape; reset it
+    *int_ = BoundingBox{};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Clip the bounding boxes to an involute.
+ */
+void SurfaceClipper::operator()(Involute const&) const
 {
     // We no longer can guarantee any point being inside the shape; reset it
     *int_ = BoundingBox{};

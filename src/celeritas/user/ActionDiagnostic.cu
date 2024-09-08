@@ -20,8 +20,8 @@ namespace celeritas
 /*!
  * Execute action with device data.
  */
-void ActionDiagnostic::execute(CoreParams const& params,
-                               CoreStateDevice& state) const
+void ActionDiagnostic::step(CoreParams const& params,
+                            CoreStateDevice& state) const
 {
     auto execute = make_active_track_executor(
         params.ptr<MemSpace::native>(),

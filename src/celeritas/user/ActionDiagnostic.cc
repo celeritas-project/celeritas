@@ -12,15 +12,16 @@
 #include <utility>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ActionRegistry.hh"  // IWYU pragma: keep
 #include "celeritas/global/ActionLauncher.hh"
-#include "celeritas/global/ActionRegistry.hh"  // IWYU pragma: keep
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
@@ -75,8 +76,7 @@ void ActionDiagnostic::begin_run(CoreParams const& params, CoreStateDevice&)
 /*!
  * Execute action with host data.
  */
-void ActionDiagnostic::execute(CoreParams const& params,
-                               CoreStateHost& state) const
+void ActionDiagnostic::step(CoreParams const& params, CoreStateHost& state) const
 {
     auto execute = make_active_track_executor(
         params.ptr<MemSpace::native>(),
@@ -233,7 +233,7 @@ void ActionDiagnostic::begin_run_impl(CoreParams const& params)
 //---------------------------------------------------------------------------//
 
 #if !CELER_USE_DEVICE
-void ActionDiagnostic::execute(CoreParams const&, CoreStateDevice&) const
+void ActionDiagnostic::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

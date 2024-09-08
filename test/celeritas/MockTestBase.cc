@@ -8,8 +8,8 @@
 #include "MockTestBase.hh"
 
 #include "corecel/math/Algorithms.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
-#include "celeritas/global/ActionRegistry.hh"
 #include "celeritas/global/alongstep/AlongStepGeneralLinearAction.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/CutoffParams.hh"
@@ -29,8 +29,7 @@ namespace test
 //---------------------------------------------------------------------------//
 auto MockTestBase::make_applicability(char const* name,
                                       real_type lo_energy,
-                                      real_type hi_energy) const
-    -> Applicability
+                                      real_type hi_energy) const -> Applicability
 {
     CELER_EXPECT(name);
     CELER_EXPECT(lo_energy <= hi_energy);

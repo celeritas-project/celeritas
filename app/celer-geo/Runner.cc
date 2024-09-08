@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "Runner.hh"
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Stopwatch.hh"
@@ -57,8 +58,8 @@ Runner::Runner(ModelSetup const& input) : input_{input}
 /*!
  * Perform a raytrace.
  */
-auto Runner::operator()(TraceSetup const& trace, ImageInput const& image_inp)
-    -> SPImage
+auto Runner::operator()(TraceSetup const& trace,
+                        ImageInput const& image_inp) -> SPImage
 {
     // Create image params
     last_image_ = std::make_shared<ImageParams>(image_inp);
@@ -200,8 +201,8 @@ auto Runner::make_imager() -> SPImager
 /*!
  * Allocate and perform a raytrace using an enumeration.
  */
-auto Runner::make_traced_image(MemSpace m, ImagerInterface& generate_image)
-    -> SPImage
+auto Runner::make_traced_image(MemSpace m,
+                               ImagerInterface& generate_image) -> SPImage
 {
     switch (m)
     {

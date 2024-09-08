@@ -13,7 +13,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 
 //---------------------------------------------------------------------------//
 // MACROS
@@ -40,6 +40,25 @@
 #    define CELER_FORCEINLINE inline __attribute__((always_inline))
 #else
 #    define CELER_FORCEINLINE inline
+#endif
+
+//! Detection for the current compiler isn't supported yet
+#define CELER_COMPILER_UNKNOWN 0
+//! Compiling with clang, or a clang-based compiler defining __clang__ (hipcc)
+#define CELER_COMPILER_CLANG 1
+
+/*!
+ * \def CELER_COMPILER
+ *
+ * Compare to on of the CELER_COMPILER_<compiler> macros to check
+ * which compiler is in use.
+ *
+ * TODO: add and test more compilers as needed.
+ */
+#if defined(__clang__)
+#    define CELER_COMPILER CELER_COMPILER_CLANG
+#else
+#    define CELER_COMPILER CELER_COMPILER_UNKNOWN
 #endif
 
 /*!

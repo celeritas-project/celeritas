@@ -14,7 +14,8 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 
-#include "celeritas_version.h"
+#include "corecel/Version.hh"
+
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/DeviceIO.json.hh"

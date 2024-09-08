@@ -19,6 +19,7 @@
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "CoreParams.hh"
+
 #include "detail/ActionSequence.hh"
 
 namespace celeritas
@@ -31,14 +32,12 @@ template<MemSpace M>
 Stepper<M>::Stepper(Input input)
     : params_(std::move(input.params))
     , state_(*params_, input.stream_id, input.num_track_slots)
-{
-    // Create action sequence
-    actions_ = [&] {
+    , actions_{[&] {
         ActionSequence::Options opts;
         opts.action_times = input.action_times;
         return std::make_shared<ActionSequence>(*params_->action_reg(), opts);
-    }();
-
+    }()}
+{
     // Execute beginning-of-run action
     ScopedProfiling profile_this{"begin-run"};
     actions_->begin_run(*params_, state_);
@@ -60,7 +59,7 @@ template<MemSpace M>
 auto Stepper<M>::operator()() -> result_type
 {
     ScopedProfiling profile_this{"step"};
-    actions_->execute(*params_, state_);
+    actions_->step(*params_, state_);
 
     // Get the number of track initializers and active tracks
     result_type result;

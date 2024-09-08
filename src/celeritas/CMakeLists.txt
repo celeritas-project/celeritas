@@ -29,6 +29,8 @@ list(APPEND SOURCES
   em/process/GammaConversionProcess.cc
   em/process/PhotoelectricProcess.cc
   em/process/RayleighProcess.cc
+  ext/GeantOpticalPhysicsOptions.cc
+  ext/GeantOpticalPhysicsOptionsIO.json.cc
   ext/GeantPhysicsOptions.cc
   ext/GeantPhysicsOptionsIO.json.cc
   field/FieldDriverOptions.cc
@@ -36,9 +38,6 @@ list(APPEND SOURCES
   field/RZMapFieldInputIO.json.cc
   field/RZMapFieldParams.cc
   geo/GeoMaterialParams.cc
-  global/ActionInterface.cc
-  global/ActionRegistry.cc
-  global/ActionRegistryOutput.cc
   global/CoreParams.cc
   global/CoreState.cc
   global/CoreTrackData.cc
@@ -73,14 +72,14 @@ list(APPEND SOURCES
   neutron/process/NeutronElasticProcess.cc
   neutron/process/NeutronInelasticProcess.cc
   optical/CerenkovParams.cc
+  optical/CoreParams.cc
+  optical/CoreState.cc
   optical/OpticalCollector.cc
-  optical/OpticalPropertyParams.cc
-  optical/OpticalTrackData.cc
+  optical/MaterialParams.cc
+  optical/TrackData.cc
   optical/ScintillationParams.cc
-  optical/detail/OpticalGenParams.cc
-  optical/OpticalMfpBuilder.cc
-  optical/OpticalModelBuilder.cc
-  optical/OpticalPhysicsParams.cc
+  optical/detail/OffloadParams.cc
+  optical/detail/OpticalLaunchAction.cc
   phys/CutoffParams.cc
   phys/ImportedModelAdapter.cc
   phys/ImportedProcessAdapter.cc
@@ -131,6 +130,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/CelerEmPhysicsList.cc
     ext/detail/CelerEmStandardPhysics.cc
     ext/detail/CelerFTFPBert.cc
+    ext/detail/CelerOpticalPhysics.cc
     ext/detail/GeantBremsstrahlungProcess.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
@@ -198,6 +198,7 @@ if(CELERITAS_USE_ROOT)
   celeritas_add_object_library(celeritas_root
     ext/RootExporter.cc
     ext/RootImporter.cc
+    ext/RootJsonDumper.cc
     ext/ScopedRootErrorHandler.cc
     ext/RootUniquePtr.root.cc
     ext/RootFileManager.cc
@@ -209,7 +210,7 @@ if(CELERITAS_USE_ROOT)
   )
 
   target_link_libraries(celeritas_root
-    PRIVATE Celeritas::corecel ROOT::Core ROOT::Tree
+    PRIVATE Celeritas::corecel ROOT::Core ROOT::Tree ROOT::RIO
   )
 
   # Install the rootmap/pcm files needed for users or downstream apps to use
@@ -264,14 +265,13 @@ celeritas_polysource(global/alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(global/alongstep/AlongStepNeutralAction)
 celeritas_polysource(global/alongstep/AlongStepUniformMscAction)
 celeritas_polysource(global/alongstep/AlongStepRZMapFieldMscAction)
+celeritas_polysource(global/detail/TrackSlotUtils)
 celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
 celeritas_polysource(neutron/model/NeutronInelasticModel)
-celeritas_polysource(optical/detail/CerenkovPreGenAction)
+celeritas_polysource(optical/detail/CerenkovOffloadAction)
 celeritas_polysource(optical/detail/OpticalGenAlgorithms)
-celeritas_polysource(optical/detail/PreGenGatherAction)
-celeritas_polysource(optical/detail/ScintPreGenAction)
-celeritas_polysource(optical/model/AbsorptionModel)
-celeritas_polysource(optical/model/OpticalRayleighModel)
+celeritas_polysource(optical/detail/OffloadGatherAction)
+celeritas_polysource(optical/detail/ScintOffloadAction)
 celeritas_polysource(phys/detail/DiscreteSelectAction)
 celeritas_polysource(phys/detail/PreStepAction)
 celeritas_polysource(phys/detail/TrackingCutAction)
@@ -299,7 +299,7 @@ if(NOT CELERITAS_USE_OpenMP
     AND (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
          OR CMAKE_CXX_COMPILER_ID MATCHES "Clang$"))
   celeritas_target_compile_options(celeritas
-    PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-Wno-unknown-pragmas>
+    PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:-Wno-unknown-pragmas>"
   )
 endif()
 if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
@@ -308,7 +308,6 @@ if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:/wd4267$<SEMICOLON>/wd4250>"
   )
 endif()
-
 
 celeritas_target_link_libraries(celeritas
   PRIVATE ${PRIVATE_DEPS}

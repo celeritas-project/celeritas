@@ -17,9 +17,11 @@
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/Types.hh"
+#include "orange/OrangeTypes.hh"
 #include "orange/orangeinp/detail/PolygonUtils.hh"
 #include "orange/surf/ConeAligned.hh"
 #include "orange/surf/CylCentered.hh"
+#include "orange/surf/Involute.hh"
 #include "orange/surf/PlaneAligned.hh"
 #include "orange/surf/SimpleQuadric.hh"
 #include "orange/surf/SphereCentered.hh"
@@ -351,7 +353,7 @@ GenPrism GenPrism::from_trd(real_type halfz, Real2 const& lo, Real2 const& hi)
  * \arg theta Polar angle of line between center of bases
  * \arg phi Azimuthal angle of line between center of bases
  * \arg lo Trapezoidal face at -hz
- * \arg lo Trapezoidal face at +hz
+ * \arg hi Trapezoidal face at +hz
  */
 GenPrism GenPrism::from_trap(
     real_type hz, Turn theta, Turn phi, TrapFace const& lo, TrapFace const& hi)
@@ -512,8 +514,9 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
         insert_surface(Sense::inside, PlaneZ{hz_});
     }
 
-    // TODO: use plane normal equality from SoftSurfaceEqual, or maybe soft
-    // equivalence on twist angle cosine?
+    /*! \todo Use plane normal equality from SoftSurfaceEqual, or maybe soft
+     * equivalence on twist angle cosine?
+     */
     SoftEqual soft_equal{insert_surface.tol().rel};
 
     // Build the side planes
@@ -545,24 +548,32 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
         }
         else
         {
-            // Insert a "twisted" face (hyperbolic paraboloid)
-            auto alo = jlo[Y] - ilo[Y];
-            auto ahi = jhi[Y] - ihi[Y];
-            auto blo = ilo[X] - jlo[X];
-            auto bhi = ihi[X] - jhi[X];
-            auto clo = jlo[X] * ilo[Y] - ilo[X] * jlo[Y];
-            auto chi = jhi[X] * ihi[Y] - ihi[X] * jhi[Y];
+            // Insert a "twisted" face
+            // x,y-'slopes' of i,j vertical edges in terms of z
+            auto aux = 0.5 / hz_;
+            auto txi = aux * (ihi[X] - ilo[X]);
+            auto tyi = aux * (ihi[Y] - ilo[Y]);
+            auto txj = aux * (jhi[X] - jlo[X]);
+            auto tyj = aux * (jhi[Y] - jlo[Y]);
 
-            real_type xy = ahi - alo;
-            real_type yz = bhi - blo;
-            real_type x = hz_ * (ahi + alo);
-            real_type y = hz_ * (bhi + blo);
-            real_type z = chi - clo;
-            real_type s = hz_ * (clo + chi);
+            // half-way coordinates of i,j vertical edges
+            auto mxi = 0.5 * (ilo[X] + ihi[X]);
+            auto myi = 0.5 * (ilo[Y] + ihi[Y]);
+            auto mxj = 0.5 * (jlo[X] + jhi[X]);
+            auto myj = 0.5 * (jlo[Y] + jhi[Y]);
+
+            // coefficients for the quadric
+            real_type czz = txj * tyi - txi * tyj;
+            real_type eyz = txi - txj;
+            real_type fzx = tyj - tyi;
+            real_type gx = myj - myi;
+            real_type hy = mxi - mxj;
+            real_type iz = txj * myi - txi * myj + tyi * mxj - tyj * mxi;
+            real_type js = mxj * myi - mxi * myj;
 
             insert_surface(
                 Sense::inside,
-                GeneralQuadric{Real3{0, 0, 0}, {xy, yz, 0}, {x, y, z}, s},
+                GeneralQuadric{{0, 0, czz}, {0, eyz, fzx}, {gx, hy, iz}, js},
                 "t" + std::to_string(i));
         }
     }
@@ -626,7 +637,7 @@ void InfWedge::build(IntersectSurfaceBuilder& insert_surface) const
     insert_surface(Sense::inside, Plane{Real3{sinstart, -cosstart, 0}, 0.0});
     insert_surface(Sense::outside, Plane{Real3{sinend, -cosend, 0}, 0.0});
 
-    // TODO: restrict bounding boxes, at least eliminating two quadrants...
+    //! \todo Restrict bounding boxes, at least eliminating two quadrants...
 }
 
 //---------------------------------------------------------------------------//
@@ -634,6 +645,82 @@ void InfWedge::build(IntersectSurfaceBuilder& insert_surface) const
  * Write output to the given JSON object.
  */
 void InfWedge::output(JsonPimpl* j) const
+{
+    to_json_pimpl(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+// Involute
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with prarameters and half height.
+ */
+Involute::Involute(Real3 const& radii,
+                   Real2 const& displacement,
+                   Chirality sign,
+                   real_type halfheight)
+    : radii_(radii), a_(displacement), t_bounds_(), sign_(sign), hh_{halfheight}
+{
+    CELER_VALIDATE(radii_[0] > 0,
+                   << "nonpositive involute radius: " << radii_[0]);
+    CELER_VALIDATE(radii_[1] > radii_[0],
+                   << "inner cylinder radius " << radii_[1]
+                   << " is not greater than involute radius " << radii_[0]);
+    CELER_VALIDATE(radii_[2] > radii_[1],
+                   << "outer cylinder radius " << radii_[2]
+                   << " is not greater than inner cyl radius " << radii_[1]);
+
+    CELER_VALIDATE(a_[1] > a_[0],
+                   << "nonpositive delta displacment: " << a_[1] - a_[0]);
+    CELER_VALIDATE(hh_ > 0, << "nonpositive half-height: " << hh_);
+
+    for (auto i : range(2))
+    {
+        t_bounds_[i] = std::sqrt(
+            clamp_to_nonneg(ipow<2>(radii_[i + 1] / radii_[0]) - 1));
+    }
+    auto outer_isect = t_bounds_[0] + 2 * constants::pi - (a_[1] - a_[0]);
+    CELER_VALIDATE(t_bounds_[1] < outer_isect,
+                   << "radial bounds result in angular overlap: "
+                   << outer_isect - t_bounds_[1]);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void Involute::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    using InvSurf = ::celeritas::Involute;
+
+    insert_surface(Sense::outside, PlaneZ{-hh_});
+    insert_surface(Sense::inside, PlaneZ{hh_});
+    insert_surface(Sense::outside, CCylZ{radii_[1]});
+    insert_surface(Sense::inside, CCylZ{radii_[2]});
+    // Make an inside and outside involute
+    Real2 const xy{0, 0};
+    auto sense = (sign_ == Chirality::right ? Sense::outside : Sense::inside);
+    static char const* names[] = {"invl", "invr"};
+
+    for (auto i : range(2))
+    {
+        insert_surface(sense,
+                       InvSurf{xy,
+                               radii_[0],
+                               eumod(a_[i], 2 * constants::pi),
+                               sign_,
+                               t_bounds_[0],
+                               t_bounds_[1] + a_[1] - a_[0]},
+                       std::string{names[i]});
+        sense = flip_sense(sense);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Involute::output(JsonPimpl* j) const
 {
     to_json_pimpl(j, *this);
 }
@@ -678,18 +765,18 @@ void Parallelepiped::build(IntersectSurfaceBuilder& insert_surface) const
     constexpr auto Y = to_int(Axis::y);
     constexpr auto Z = to_int(Axis::z);
 
-    // cache trigonometric values
+    // Cache trigonometric values
     real_type sinth, costh, sinphi, cosphi, sinal, cosal;
     sincos(theta_, &sinth, &costh);
     sincos(phi_, &sinphi, &cosphi);
     sincos(alpha_, &sinal, &cosal);
 
-    // base vectors
+    // Base vectors
     auto a = hpr_[X] * Real3{1, 0, 0};
     auto b = hpr_[Y] * Real3{sinal, cosal, 0};
     auto c = hpr_[Z] * Real3{sinth * cosphi, sinth * sinphi, costh};
 
-    // positioning the planes
+    // Position the planes
     auto xnorm = make_unit_vector(cross_product(b, c));
     auto ynorm = make_unit_vector(cross_product(c, a));
     auto xoffset = dot_product(a, xnorm);

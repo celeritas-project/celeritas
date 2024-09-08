@@ -9,7 +9,8 @@
 
 #include <limits>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/cont/ArrayIO.hh"
 #include "geocel/BoundingBoxIO.json.hh"
 

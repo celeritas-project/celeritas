@@ -10,7 +10,8 @@
 
 #include <string>
 
-#include "celeritas_sys_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/io/Logger.hh"
 
 #include "Environment.hh"

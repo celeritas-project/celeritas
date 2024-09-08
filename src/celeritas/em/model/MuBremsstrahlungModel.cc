@@ -72,8 +72,7 @@ auto MuBremsstrahlungModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto MuBremsstrahlungModel::micro_xs(Applicability applic) const
-    -> MicroXsBuilders
+auto MuBremsstrahlungModel::micro_xs(Applicability applic) const -> MicroXsBuilders
 {
     return imported_.micro_xs(std::move(applic));
 }
@@ -83,8 +82,8 @@ auto MuBremsstrahlungModel::micro_xs(Applicability applic) const
 /*!
  * Interact with host data.
  */
-void MuBremsstrahlungModel::execute(CoreParams const& params,
-                                    CoreStateHost& state) const
+void MuBremsstrahlungModel::step(CoreParams const& params,
+                                 CoreStateHost& state) const
 {
     auto execute = make_action_track_executor(
         params.ptr<MemSpace::native>(),
@@ -96,7 +95,7 @@ void MuBremsstrahlungModel::execute(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void MuBremsstrahlungModel::execute(CoreParams const&, CoreStateDevice&) const
+void MuBremsstrahlungModel::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

@@ -7,7 +7,8 @@
 //---------------------------------------------------------------------------//
 #include "NumericLimits.test.hh"
 
-#include "corecel/device_runtime_api.h"
+#include "corecel/DeviceRuntimeApi.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/Device.hh"

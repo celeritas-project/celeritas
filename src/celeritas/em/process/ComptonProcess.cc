@@ -43,8 +43,7 @@ auto ComptonProcess::build_models(ActionIdIter start_id) const -> VecModel
 /*!
  * Get the interaction cross sections for the given energy range.
  */
-auto ComptonProcess::step_limits(Applicability applic) const
-    -> StepLimitBuilders
+auto ComptonProcess::step_limits(Applicability applic) const -> StepLimitBuilders
 {
     return imported_.step_limits(std::move(applic));
 }

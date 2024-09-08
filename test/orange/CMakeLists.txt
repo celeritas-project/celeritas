@@ -63,6 +63,9 @@ celeritas_add_test(detail/BIHBuilder.test.cc)
 celeritas_add_test(detail/BIHTraverser.test.cc)
 celeritas_add_test(detail/BIHUtils.test.cc)
 
+# Oriented Bounding Zone
+celeritas_add_test(detail/OrientedBoundingZone.test.cc)
+
 #-----------------------------------------------------------------------------#
 # Input construction
 celeritas_add_test(orangeinp/CsgObject.test.cc)
@@ -103,6 +106,7 @@ celeritas_add_test(surf/PlaneAligned.test.cc)
 celeritas_add_test(surf/SimpleQuadric.test.cc)
 celeritas_add_test(surf/Sphere.test.cc)
 celeritas_add_test(surf/SphereCentered.test.cc)
+celeritas_add_test(surf/Involute.test.cc)
 
 # Surface utilities
 celeritas_add_test(surf/FaceNamer.test.cc)
@@ -116,6 +120,8 @@ celeritas_add_device_test(surf/LocalSurfaceVisitor)
 celeritas_add_test(surf/detail/QuadraticSolver.test.cc)
 celeritas_add_test(surf/detail/SurfaceTranslator.test.cc)
 celeritas_add_test(surf/detail/SurfaceTransformer.test.cc)
+celeritas_add_test(surf/detail/InvoluteSolver.test.cc)
+celeritas_add_test(surf/detail/InvolutePoint.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Universe

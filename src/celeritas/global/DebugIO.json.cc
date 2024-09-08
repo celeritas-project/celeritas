@@ -10,6 +10,7 @@
 #include "corecel/cont/ArrayIO.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/math/QuantityIO.json.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/geo/GeoParams.hh"
 #include "celeritas/geo/GeoTrackView.hh"
 #include "celeritas/global/CoreTrackView.hh"
@@ -17,7 +18,6 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/track/SimTrackView.hh"
 
-#include "ActionRegistry.hh"
 #include "CoreParams.hh"
 #include "Debug.hh"
 

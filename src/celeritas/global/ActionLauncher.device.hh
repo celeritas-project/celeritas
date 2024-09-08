@@ -9,8 +9,10 @@
 
 #include <type_traits>
 
-#include "corecel/device_runtime_api.h"
+#include "corecel/DeviceRuntimeApi.hh"
+
 #include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/Device.hh"
@@ -24,6 +26,7 @@
 #include "CoreParams.hh"
 #include "CoreState.hh"
 #include "KernelContextException.hh"
+
 #include "detail/ActionLauncherKernel.device.hh"
 #include "detail/ApplierTraits.hh"
 
@@ -49,7 +52,7 @@ namespace celeritas
  *
  * Example:
  * \code
- void FooAction::execute(CoreParams const& params,
+ void FooAction::step(CoreParams const& params,
                          CoreStateDevice& state) const
  {
     auto execute_thread = make_blah_executor(blah);
@@ -61,10 +64,12 @@ namespace celeritas
 template<class F>
 class ActionLauncher
 {
-    static_assert((std::is_trivially_copyable_v<F> || CELERITAS_USE_HIP)
+    static_assert((std::is_trivially_copyable_v<F> || CELERITAS_USE_HIP
+                   || CELER_COMPILER == CELER_COMPILER_CLANG)
                       && !std::is_pointer_v<F> && !std::is_reference_v<F>,
                   "Launched action must be a trivially copyable function "
                   "object");
+    using ActionInterfaceT = CoreStepActionInterface;
 
   public:
     //! Create a launcher from a label
@@ -74,13 +79,13 @@ class ActionLauncher
     }
 
     //! Create a launcher from an action
-    explicit ActionLauncher(ExplicitActionInterface const& action)
+    explicit ActionLauncher(ActionInterfaceT const& action)
         : ActionLauncher{action.label()}
     {
     }
 
     //! Create a launcher with a string extension
-    ActionLauncher(ExplicitActionInterface const& action, std::string_view ext)
+    ActionLauncher(ActionInterfaceT const& action, std::string_view ext)
         : ActionLauncher{std::string(action.label()) + "-" + std::string(ext)}
     {
     }
@@ -122,12 +127,11 @@ class ActionLauncher
     //! Launch with reduced grid size for when tracks are sorted
     void operator()(CoreParams const& params,
                     CoreState<MemSpace::device> const& state,
-                    ExplicitActionInterface const& action,
+                    ActionInterfaceT const& action,
                     F const& call_thread) const
     {
         CELER_EXPECT(state.stream_id());
-        if (is_action_sorted(action.order(),
-                             params.init()->host_ref().track_order))
+        if (is_action_sorted(action.order(), params.init()->track_order()))
         {
             return (*this)(state.get_action_range(action.action_id()),
                            state.stream_id(),

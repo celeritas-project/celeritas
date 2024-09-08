@@ -38,8 +38,8 @@ struct XorwowRngParamsData
 
     //// DATA ////
 
-    // TODO: 256-bit seed used to generate initial states for the RNGs
-    // For now, just 4 bytes (same as our existing cuda/hip interface)
+    //! \todo Use full 256-bit seed to generate initial states for the RNGs
+    //! For now, just 4 bytes (same as our existing cuda/hip interface)
     XorwowSeed seed;
 
     // Jump polynomials

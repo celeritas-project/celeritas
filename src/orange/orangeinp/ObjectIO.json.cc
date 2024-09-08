@@ -21,10 +21,7 @@
 #include "Solid.hh"
 #include "Transformed.hh"
 
-#define SIO_ATTR_PAIR(OBJ, ATTR) \
-    {                            \
-        #ATTR, OBJ.ATTR()        \
-    }
+#define SIO_ATTR_PAIR(OBJ, ATTR) {#ATTR, OBJ.ATTR()}
 
 namespace celeritas
 {
@@ -211,6 +208,15 @@ void to_json(nlohmann::json& j, Prism const& cr)
 void to_json(nlohmann::json& j, Sphere const& cr)
 {
     j = {{"_type", "sphere"}, SIO_ATTR_PAIR(cr, radius)};
+}
+void to_json(nlohmann::json& j, Involute const& cr)
+{
+    j = {{"_type", "involute"},
+         SIO_ATTR_PAIR(cr, radii),
+         SIO_ATTR_PAIR(cr, displacement_angle),
+         SIO_ATTR_PAIR(cr, t_bounds),
+         SIO_ATTR_PAIR(cr, chirality),
+         SIO_ATTR_PAIR(cr, halfheight)};
 }
 //!@}
 

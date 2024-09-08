@@ -8,7 +8,7 @@
  * \brief Macros, exceptions, and helpers for assertions and error handling.
  *
  * This defines host- and device-compatible assertion macros that are toggled
- * on the \c CELERITAS_DEBUG configure macro.
+ * on the \c CELERITAS_DEBUG and \c CELERITAS_DEVICE_DEBUG configure macros.
  */
 //---------------------------------------------------------------------------//
 #pragma once
@@ -24,7 +24,7 @@
 #    include <sstream>  // IWYU pragma: keep
 #endif
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 
 #include "Macros.hh"
 
@@ -189,7 +189,7 @@
         ::celeritas::unreachable();     \
     } while (0)
 
-#if !CELER_DEVICE_COMPILE || defined(__HIP__)
+#if !CELER_DEVICE_COMPILE
 #    define CELER_RUNTIME_THROW(WHICH, WHAT, COND) \
         throw ::celeritas::RuntimeError({          \
             WHICH,                                 \
@@ -198,13 +198,17 @@
             __FILE__,                              \
             __LINE__,                              \
         })
-#else
+#elif CELERITAS_DEBUG
 #    define CELER_RUNTIME_THROW(WHICH, WHAT, COND)                           \
         CELER_DEBUG_FAIL("Runtime errors cannot be thrown from device code", \
                          unreachable);
+#else
+// Avoid printf statements which can add substantially to local memory
+#    define CELER_RUNTIME_THROW(WHICH, WHAT, COND) ::celeritas::unreachable()
 #endif
 
-#if CELERITAS_DEBUG
+#if (CELERITAS_DEBUG && !CELER_DEVICE_COMPILE) \
+    || (CELERITAS_DEVICE_DEBUG && CELER_DEVICE_COMPILE)
 #    define CELER_EXPECT(COND) CELER_DEBUG_ASSERT_(COND, precondition)
 #    define CELER_ASSERT(COND) CELER_DEBUG_ASSERT_(COND, internal)
 #    define CELER_ENSURE(COND) CELER_DEBUG_ASSERT_(COND, postcondition)
@@ -219,7 +223,7 @@
 #    define CELER_ASSERT_UNREACHABLE() ::celeritas::unreachable()
 #endif
 
-#if !CELER_DEVICE_COMPILE || defined(__HIP__)
+#if !CELER_DEVICE_COMPILE
 #    define CELER_VALIDATE(COND, MSG)                            \
         do                                                       \
         {                                                        \
@@ -228,18 +232,20 @@
                 std::ostringstream celer_runtime_msg_;           \
                 celer_runtime_msg_ MSG;                          \
                 CELER_RUNTIME_THROW(                             \
-                    "runtime", celer_runtime_msg_.str(), #COND); \
+                    ::celeritas::RuntimeError::validate_err_str, \
+                    celer_runtime_msg_.str(),                    \
+                    #COND);                                      \
             }                                                    \
         } while (0)
 #else
-#    define CELER_VALIDATE(COND, MSG) \
-        CELER_RUNTIME_THROW("unreachable", "", #COND)
+#    define CELER_VALIDATE(COND, MSG) CELER_RUNTIME_THROW(nullptr, "", #COND)
 #endif
 
 #define CELER_NOT_CONFIGURED(WHAT) \
-    CELER_RUNTIME_THROW("configuration", WHAT, {})
+    CELER_RUNTIME_THROW(           \
+        ::celeritas::RuntimeError::not_config_err_str, WHAT, {})
 #define CELER_NOT_IMPLEMENTED(WHAT) \
-    CELER_RUNTIME_THROW("implementation", WHAT, {})
+    CELER_RUNTIME_THROW(::celeritas::RuntimeError::not_impl_err_str, WHAT, {})
 
 /*!
  * \def CELER_CUDA_CALL
@@ -259,7 +265,7 @@
  * \endcode
  *
  * \note A file that uses this macro must include \c
- * corecel/device_runtime_api.h .
+ * corecel/DeviceRuntimeApi.hh .
  */
 #if CELERITAS_USE_CUDA
 #    define CELER_CUDA_CALL(STATEMENT)                                     \
@@ -273,11 +279,11 @@
             }                                                              \
         } while (0)
 #else
-#    define CELER_CUDA_CALL(STATEMENT)                     \
-        do                                                 \
-        {                                                  \
-            CELER_NOT_CONFIGURED("CUDA");                  \
-            CELER_DISCARD(celeritas_device_runtime_api_h_) \
+#    define CELER_CUDA_CALL(STATEMENT)               \
+        do                                           \
+        {                                            \
+            CELER_NOT_CONFIGURED("CUDA");            \
+            CELER_DISCARD(CorecelDeviceRuntimeApiHh) \
         } while (0)
 #endif
 
@@ -296,7 +302,7 @@
  * \endcode
  *
  * \note A file that uses this macro must include \c
- * corecel/device_runtime_api.h . The \c celeritas_device_runtime_api_h_
+ * corecel/DeviceRuntimeApi.hh . The \c CorecelDeviceRuntimeApiHh
  * declaration enforces this when HIP is disabled.
  */
 #if CELERITAS_USE_HIP
@@ -312,11 +318,11 @@
             }                                                           \
         } while (0)
 #else
-#    define CELER_HIP_CALL(STATEMENT)                      \
-        do                                                 \
-        {                                                  \
-            CELER_NOT_CONFIGURED("HIP");                   \
-            CELER_DISCARD(celeritas_device_runtime_api_h_) \
+#    define CELER_HIP_CALL(STATEMENT)                \
+        do                                           \
+        {                                            \
+            CELER_NOT_CONFIGURED("HIP");             \
+            CELER_DISCARD(CorecelDeviceRuntimeApiHh) \
         } while (0)
 #endif
 
@@ -334,7 +340,7 @@
  * \endcode
  *
  * \note A file that uses this macro must include \c
- * corecel/device_runtime_api.h . The \c celeritas_device_runtime_api_h_
+ * corecel/DeviceRuntimeApi.hh . The \c CorecelDeviceRuntimeApiHh
  * declaration enforces this when CUDA/HIP are disabled.
  */
 #if CELERITAS_USE_CUDA
@@ -342,11 +348,11 @@
 #elif CELERITAS_USE_HIP
 #    define CELER_DEVICE_CALL_PREFIX(STMT) CELER_HIP_CALL(hip##STMT)
 #else
-#    define CELER_DEVICE_CALL_PREFIX(STMT)                 \
-        do                                                 \
-        {                                                  \
-            CELER_NOT_CONFIGURED("CUDA or HIP");           \
-            CELER_DISCARD(celeritas_device_runtime_api_h_) \
+#    define CELER_DEVICE_CALL_PREFIX(STMT)           \
+        do                                           \
+        {                                            \
+            CELER_NOT_CONFIGURED("CUDA or HIP");     \
+            CELER_DISCARD(CorecelDeviceRuntimeApiHh) \
         } while (0)
 #endif
 
@@ -417,7 +423,7 @@ struct DebugErrorDetails
 //! Detailed properties of a runtime error
 struct RuntimeErrorDetails
 {
-    std::string which{};  //!< Type of error (runtime, Geant4, MPI)
+    char const* which{nullptr};  //!< Type of error (runtime, Geant4, MPI)
     std::string what{};  //!< Descriptive message
     std::string condition{};  //!< Code/test that failed
     std::string file{};  //!< Source file
@@ -475,6 +481,13 @@ class RuntimeError : public std::runtime_error
 
     //! Access detailed information
     RuntimeErrorDetails const& details() const { return details_; }
+
+    //!@{
+    //! String constants for "which" error message
+    static char const validate_err_str[];
+    static char const not_config_err_str[];
+    static char const not_impl_err_str[];
+    //!@}
 
   private:
     RuntimeErrorDetails details_;

@@ -93,8 +93,7 @@ auto RelativisticBremModel::applicability() const -> SetApplicability
 /*!
  * Get the microscopic cross sections for the given particle and material.
  */
-auto RelativisticBremModel::micro_xs(Applicability applic) const
-    -> MicroXsBuilders
+auto RelativisticBremModel::micro_xs(Applicability applic) const -> MicroXsBuilders
 {
     return imported_.micro_xs(std::move(applic));
 }
@@ -104,8 +103,8 @@ auto RelativisticBremModel::micro_xs(Applicability applic) const
 /*!
  * Interact with host data.
  */
-void RelativisticBremModel::execute(CoreParams const& params,
-                                    CoreStateHost& state) const
+void RelativisticBremModel::step(CoreParams const& params,
+                                 CoreStateHost& state) const
 {
     auto execute = make_action_track_executor(
         params.ptr<MemSpace::native>(),
@@ -117,7 +116,7 @@ void RelativisticBremModel::execute(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void RelativisticBremModel::execute(CoreParams const&, CoreStateDevice&) const
+void RelativisticBremModel::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
@@ -150,9 +149,8 @@ void RelativisticBremModel::build_data(HostValue* data,
  *
  * See \c G4eBremsstrahlungRelModel::InitialiseElementData() in Geant4.
  */
-auto RelativisticBremModel::compute_element_data(ElementView const& elem,
-                                                 real_type electron_mass)
-    -> ElementData
+auto RelativisticBremModel::compute_element_data(
+    ElementView const& elem, real_type electron_mass) -> ElementData
 {
     ElementData data;
 

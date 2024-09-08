@@ -30,8 +30,9 @@ BetheHeitlerModel::BetheHeitlerModel(ActionId id,
                                      ParticleParams const& particles,
                                      SPConstImported data,
                                      bool enable_lpm)
-    : ConcreteAction(
-        id, "conv-bethe-heitler", "interact by Bethe-Heitler gamma conversion")
+    : ConcreteAction(id,
+                     "conv-bethe-heitler",
+                     "interact by Bethe-Heitler gamma conversion")
     , imported_(data,
                 particles,
                 ImportProcessClass::conversion,
@@ -81,8 +82,8 @@ auto BetheHeitlerModel::micro_xs(Applicability applic) const -> MicroXsBuilders
 /*!
  * Interact with host data.
  */
-void BetheHeitlerModel::execute(CoreParams const& params,
-                                CoreStateHost& state) const
+void BetheHeitlerModel::step(CoreParams const& params,
+                             CoreStateHost& state) const
 {
     auto execute = make_action_track_executor(
         params.ptr<MemSpace::native>(),
@@ -94,7 +95,7 @@ void BetheHeitlerModel::execute(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void BetheHeitlerModel::execute(CoreParams const&, CoreStateDevice&) const
+void BetheHeitlerModel::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

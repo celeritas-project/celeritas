@@ -11,11 +11,13 @@
 #include <ostream>
 
 #include "corecel/cont/ArrayIO.hh"
+#include "orange/OrangeTypes.hh"
 
 #include "ConeAligned.hh"  // IWYU pragma: associated
 #include "CylAligned.hh"  // IWYU pragma: associated
 #include "CylCentered.hh"  // IWYU pragma: associated
 #include "GeneralQuadric.hh"  // IWYU pragma: associated
+#include "Involute.hh"  // IWYU pragma: associated
 #include "Plane.hh"  // IWYU pragma: associated
 #include "PlaneAligned.hh"  // IWYU pragma: associated
 #include "SimpleQuadric.hh"  // IWYU pragma: associated
@@ -68,6 +70,22 @@ std::ostream& operator<<(std::ostream& os, GeneralQuadric const& s)
        << ' ' << s.zeroth();
 
     return os;
+}
+
+//---------------------------------------------------------------------------//
+std::ostream& operator<<(std::ostream& os, Involute const& s)
+{
+    std::string sign{"ccw"};
+    real_type a = s.displacement_angle();
+    if (s.sign() == Chirality::right)
+    {
+        sign = "cw";
+        a = constants::pi - a;
+    }
+
+    return os << "Involute " << sign << ": r=" << s.r_b() << ", a=" << a
+              << ", t={" << s.tmin() << ',' << s.tmax()
+              << "} at x=" << s.origin()[0] << ", y=" << s.origin()[1];
 }
 
 //---------------------------------------------------------------------------//

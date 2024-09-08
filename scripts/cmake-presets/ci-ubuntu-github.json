@@ -21,8 +21,9 @@
         "CELERITAS_USE_HIP":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_Python":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_HOSTNAME": "ubuntu-github",
         "CMAKE_BUILD_TYPE":      "Release",
@@ -41,10 +42,7 @@
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
-        "CMAKE_SWIG_CXX_FLAGS": "-Wno-unused-parameter;-Wno-deprecated-declarations",
-        "SWIG_EXECUTABLE": {"type": "PATH", "value": "/opt/spack-view/bin/swig"}
+        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
       }
     },
     {
@@ -103,10 +101,9 @@
     },
     {
       "name": "reldeb-vecgeom",
-      "description": "Build with release, assertions, VecGeom, SWIG",
+      "description": "Build with release, assertions, VecGeom",
       "inherits": [".vecgeom", "spack"],
       "cacheVariables": {
-        "CELERITAS_USE_SWIG": {"type": "BOOL", "value": "ON"}
       }
     },
     {
@@ -135,17 +132,20 @@
         "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_SWIG":    {"type": "BOOL", "value": "OFF"}
       }
     },
     {
-      "name": "reldeb-orange-asan",
+      "name": "reldeb-orange-asanlite",
       "description": "Build with address sanitizer flags",
       "inherits": ["spack"],
       "cacheVariables": {
-        "CELERITAS_USE_HIP": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_ROOT": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_DEBUG":       {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "OFF"},
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fsanitize=address -fno-omit-frame-pointer"
       }

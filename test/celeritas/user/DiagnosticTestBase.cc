@@ -11,7 +11,7 @@
 
 #include "corecel/cont/Span.hh"
 #include "corecel/io/OutputRegistry.hh"
-#include "celeritas/global/ActionRegistry.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/user/ActionDiagnostic.hh"
 #include "celeritas/user/StepDiagnostic.hh"
@@ -89,8 +89,8 @@ void DiagnosticTestBase::print_expected() const
  * Run a number of tracks.
  */
 template<MemSpace M>
-auto DiagnosticTestBase::run(size_type num_tracks, size_type num_steps)
-    -> RunResult
+auto DiagnosticTestBase::run(size_type num_tracks,
+                             size_type num_steps) -> RunResult
 {
     this->run_impl<M>(num_tracks, num_steps);
 

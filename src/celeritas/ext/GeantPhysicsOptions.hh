@@ -11,6 +11,8 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 
+#include "GeantOpticalPhysicsOptions.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -50,7 +52,9 @@ enum class RelaxationSelection
  * Construction options for Geant physics.
  *
  * These options attempt to default to our closest match to \c
- * G4StandardEmPhysics.
+ * G4StandardEmPhysics. They are passed to the \c detail::CelerEmPhysicsList
+ * and \c detail::CelerFTFPBert physics lists to provide an easy way to set up
+ * physics options.
  */
 struct GeantPhysicsOptions
 {
@@ -134,6 +138,10 @@ struct GeantPhysicsOptions
 
     //! Print detailed Geant4 output
     bool verbose{false};
+
+    //! Optical physics options
+    GeantOpticalPhysicsOptions optical{
+        GeantOpticalPhysicsOptions::deactivated()};
 };
 
 //! Equality operator, mainly for test harness
@@ -169,7 +177,8 @@ operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
            && a.angle_limit_factor == b.angle_limit_factor
            && a.msc_step_algorithm == b.msc_step_algorithm
            && a.form_factor == b.form_factor
-           && a.verbose == b.verbose;
+           && a.verbose == b.verbose
+           && a.optical == b.optical;
     // clang-format on
 }
 

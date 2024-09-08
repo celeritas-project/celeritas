@@ -73,7 +73,7 @@ make_field_propagator(StepperT&& stepper,
 /*!
  * Create a magnetic field propagator.
  *
- * \example
+ * Example:
  * \code
  * FieldDriverOptions driver_options,
  * auto propagate = make_mag_field_propagator<DormandPrinceStepper>(

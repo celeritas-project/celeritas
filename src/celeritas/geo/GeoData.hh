@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
 #    include "geocel/vg/VecgeomData.hh"
 #elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE

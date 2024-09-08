@@ -13,7 +13,8 @@
 #include <G4Orb.hh>
 #include <G4ParticleDefinition.hh>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/GeantGeoUtils.hh"

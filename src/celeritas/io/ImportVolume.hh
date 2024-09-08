@@ -35,13 +35,18 @@ struct ImportRegion
  */
 struct ImportVolume
 {
-    static inline constexpr unsigned int unspecified = -1;
+    //!@{
+    //! \name Type aliases
+    using Index = unsigned int;
+    //!@}
 
-    unsigned int geo_material_id{unspecified};  //!< Material defined by
-                                                //!< geometry
-    unsigned int region_id{unspecified};  //!< Optional region associated
-    unsigned int phys_material_id{unspecified};  //!< Material modified by
-                                                 //!< physics
+#ifndef SWIG
+    static inline constexpr Index unspecified = -1;
+#endif
+
+    Index geo_material_id{unspecified};  //!< Material defined by geometry
+    Index region_id{unspecified};  //!< Optional region associated
+    Index phys_material_id{unspecified};  //!< Material modified by physics
     std::string name;
     std::string solid_name;
 

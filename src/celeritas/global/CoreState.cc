@@ -7,13 +7,13 @@
 //---------------------------------------------------------------------------//
 #include "CoreState.hh"
 
+#include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/Copier.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/track/TrackInitParams.hh"
-#include "celeritas/track/detail/TrackSortUtils.hh"
 
-#include "ActionRegistry.hh"
 #include "CoreParams.hh"
 
 namespace celeritas
@@ -43,8 +43,6 @@ CoreState<M>::CoreState(CoreParams const& params,
         params.host_ref(), stream_id, num_track_slots);
 
     counters_.num_vacancies = num_track_slots;
-    counters_.num_primaries = 0;
-    counters_.num_initializers = 0;
 
     if constexpr (M == MemSpace::device)
     {
@@ -108,6 +106,27 @@ Range<ThreadId> CoreState<M>::get_action_range(ActionId action_id) const
     auto const& thread_offsets = offsets_.host_action_thread_offsets();
     CELER_EXPECT((action_id + 1) < thread_offsets.size());
     return {thread_offsets[action_id], thread_offsets[action_id + 1]};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reset the state data.
+ *
+ * This clears the state counters and initializes the necessary state data so
+ * the state can be reused for a new event. This should only be necessary if
+ * the previous event aborted early.
+ */
+template<MemSpace M>
+void CoreState<M>::reset()
+{
+    counters_ = CoreStateCounters{};
+    counters_.num_vacancies = this->size();
+
+    // Reset all the track slots to inactive
+    fill(TrackStatus::inactive, &this->ref().sim.status);
+
+    // Mark all the track slots as empty
+    fill_sequence(&this->ref().init.vacancies, this->stream_id());
 }
 
 //---------------------------------------------------------------------------//

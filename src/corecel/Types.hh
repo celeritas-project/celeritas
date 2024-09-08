@@ -16,7 +16,7 @@
 #include <cstddef>
 #include <string>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
 
 #include "Macros.hh"
 
@@ -88,7 +88,6 @@ enum class Interp
     size_
 };
 
-#if !defined(SWIG) || SWIG_VERSION > 0x050000
 //---------------------------------------------------------------------------//
 //!@{
 //! \name Convenience typedefs for params and states.
@@ -128,7 +127,6 @@ template<template<Ownership, MemSpace> class S, MemSpace M>
 using RefPtr = ObserverPtr<S<Ownership::reference, M>, M>;
 
 //!@}
-#endif
 
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST)

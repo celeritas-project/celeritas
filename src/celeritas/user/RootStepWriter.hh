@@ -9,7 +9,8 @@
 
 #include <array>
 
-#include "celeritas_config.h"
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "celeritas/ext/RootUniquePtr.hh"
 

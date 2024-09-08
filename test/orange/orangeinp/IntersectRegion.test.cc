@@ -9,6 +9,7 @@
 
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/MatrixUtils.hh"
+#include "orange/OrangeTypes.hh"
 #include "orange/orangeinp/CsgTreeUtils.hh"
 #include "orange/orangeinp/IntersectSurfaceBuilder.hh"
 #include "orange/orangeinp/detail/CsgUnitBuilder.hh"
@@ -460,6 +461,17 @@ class GenPrismTest : public IntersectRegionTest
     {
         CELER_EXPECT(bump > 0);
 
+        // Account for the center of the prism not being at the origin
+        Real3 center{0, 0, 0};
+        auto factor = 0.5 / pri.num_sides();
+        for (auto i : range(pri.num_sides()))
+        {
+            auto const& lo = pri.lower()[i];
+            auto const& hi = pri.upper()[i];
+            center += factor * Real3{lo[0], lo[1], -pri.halfheight()};
+            center += factor * Real3{hi[0], hi[1], +pri.halfheight()};
+        }
+
         real_type const z[] = {-pri.halfheight(), pri.halfheight()};
 
         for (auto i : range(2))
@@ -468,7 +480,7 @@ class GenPrismTest : public IntersectRegionTest
             for (Real2 const& p : points)
             {
                 Real3 const corner{p[0], p[1], z[i]};
-                auto outward = make_unit_vector(corner);
+                auto outward = make_unit_vector(corner - center);
 
                 EXPECT_EQ(SignedSense::inside,
                           this->calc_sense(nid, corner - bump * outward))
@@ -542,7 +554,7 @@ TEST_F(GenPrismTest, construct)
     EXPECT_THROW(GenPrism::from_trd(3, {1, 1}, {2, -2}), RuntimeError);  // hy2<0
 
     // Trap angles are invalid (note that we do *not* have the restriction of
-    // Geant4 that the turns be the same: this just ends up creating a GenTrap
+    // Geant4 that the turns be the same: this just ends up creating a GenPrism
     // (with twisted sides) instead of a Trap
     EXPECT_THROW(
         GenPrism::from_trap(
@@ -707,13 +719,13 @@ TEST_F(GenPrismTest, full)
     EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(pri));
 
     auto result = this->test(pri);
-    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const expected_node[] = "all(+0, -1, -2, -3, -4, +5)";
     static char const* const expected_surfaces[] = {
         "Plane: z=-4",
         "Plane: z=4",
-        "GQuadric: {0,0,0} {1,-1,0} {-28,-4,-4} 48",
+        "GQuadric: {0,0,0} {0,0.125,-0.125} {3.5,0.5,0.5} -6",
         "Plane: n={0,0.99228,0.12403}, d=1.4884",
-        "GQuadric: {0,0,0} {1,1,0} {-28,4,4} -48",
+        "GQuadric: {0,0,-0} {0,0.125,0.125} {-3.5,0.5,0.5} -6",
         "Plane: y=-2",
     };
 
@@ -722,6 +734,8 @@ TEST_F(GenPrismTest, full)
     EXPECT_FALSE(result.interior) << result.interior;
     EXPECT_VEC_SOFT_EQ((Real3{-2, -2, -4}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{2, 2, 4}), result.exterior.upper());
+
+    this->check_corners(result.node_id, pri, 0.01);
 }
 
 TEST_F(GenPrismTest, triang_prism)
@@ -794,6 +808,8 @@ TEST_F(GenPrismTest, odd_tetrahedron)
     EXPECT_FALSE(result.interior) << result.interior;
     EXPECT_VEC_SOFT_EQ((Real3{-1, -1, -3}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{2, 1, 3}), result.exterior.upper());
+
+    this->check_corners(result.node_id, pri, 0.01);
 }
 
 TEST_F(GenPrismTest, envelope)
@@ -969,9 +985,9 @@ TEST_F(GenPrismTest, trap_full2)
     static char const* const expected_surfaces[] = {
         "Plane: z=-40",
         "Plane: z=40",
-        "GQuadric: {0,0,0} {0,7,0} {3200,-40,-3300} -36000",
+        "GQuadric: {0,0,0} {0,0.0875,0} {40,-0.5,-41.25} -450",
         "Plane: y=20",
-        "GQuadric: {0,0,0} {0,17,0} {3200,360,-3100} 36000",
+        "GQuadric: {0,0,0} {0,0.2125,0} {40,4.5,-38.75} 450",
         "Plane: y=-20",
     };
 
@@ -980,6 +996,8 @@ TEST_F(GenPrismTest, trap_full2)
     EXPECT_FALSE(result.interior) << result.interior;
     EXPECT_VEC_SOFT_EQ((Real3{-52, -20, -40}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{54, 20, 40}), result.exterior.upper());
+
+    this->check_corners(result.node_id, pri, 1.0);
 }
 
 TEST_F(GenPrismTest, trap_quarter_twist)
@@ -1000,9 +1018,9 @@ TEST_F(GenPrismTest, trap_quarter_twist)
     static char const* const expected_surfaces[] = {
         "Plane: z=-1",
         "Plane: z=1",
-        "GQuadric: {0,0,0} {0,4,0} {-4,0,0} 8",
+        "GQuadric: {0,0,0} {0,2,0} {-2,0,0} 4",
         "Plane: y=1",
-        "GQuadric: {0,0,0} {0,4,0} {-4,0,0} -8",
+        "GQuadric: {0,0,-0} {0,2,0} {-2,0,0} -4",
         "Plane: y=-1",
     };
 
@@ -1031,13 +1049,13 @@ TEST_F(GenPrismTest, trap_uneven_twist)
 
     auto result = this->test(pri);
 
-    static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+    static char const expected_node[] = "all(+0, -1, +2, -3, +4, +5)";
     static char const* const expected_surfaces[] = {
         "Plane: z=-1",
         "Plane: z=1",
-        "GQuadric: {0,0,0} {1,1,0} {-3,1,-3} 5",
+        "GQuadric: {0,0,0.25} {0,0.5,0.5} {-1.5,0.5,-1.5} 2.25",
         "Plane: n={0,0.97014,0.24254}, d=0.72761",
-        "GQuadric: {0,0,0} {1,1,0} {-3,1,3} -5",
+        "GQuadric: {0,0,0.25} {0,-0.5,-0.5} {1.5,-0.5,-1.5} 2.25",
         "Plane: n={0,0.97014,-0.24254}, d=-0.72761",
     };
 
@@ -1047,7 +1065,37 @@ TEST_F(GenPrismTest, trap_uneven_twist)
     EXPECT_VEC_SOFT_EQ((Real3{-2, -1, -1}), result.exterior.lower());
     EXPECT_VEC_SOFT_EQ((Real3{2, 1, 1}), result.exterior.upper());
 
-    GTEST_SKIP() << "twisty point sampling fails!";
+    this->check_corners(result.node_id, pri, 0.1);
+}
+
+TEST_F(GenPrismTest, trap_even_twist)
+{
+    auto pri = GenPrism::from_trap(
+        1, Turn{0}, Turn{0}, {1, 2, 2, Turn{0}}, {0.5, 1, 1, Turn{0.125}});
+
+    static real_type const expected_twist_angles[] = {0.125, 0, 0.125, 0};
+    EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(pri));
+
+    static real_type const expected_lower[] = {2, -1, 2, 1, -2, 1, -2, -1};
+    static real_type const expected_upper[]
+        = {0.5, -0.5, 1.5, 0.5, -0.5, 0.5, -1.5, -0.5};
+    EXPECT_VEC_SOFT_EQ(expected_lower, to_vec(pri.lower()));
+    EXPECT_VEC_SOFT_EQ(expected_upper, to_vec(pri.upper()));
+
+    auto result = this->test(pri);
+
+    static char const expected_node[] = "all(+0, -1, +2, -3, +4, +5)";
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-1",
+        "Plane: z=1",
+        "GQuadric: {0,0,0.25} {0,0.5,0.5} {-1.5,0.5,-1.5} 2.25",
+        "Plane: n={0,0.97014,0.24254}, d=0.72761",
+        "GQuadric: {0,0,0.25} {0,-0.5,-0.5} {1.5,-0.5,-1.5} 2.25",
+        "Plane: n={0,0.97014,-0.24254}, d=-0.72761",
+    };
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+
     this->check_corners(result.node_id, pri, 0.1);
 }
 
@@ -1116,14 +1164,14 @@ TEST_F(GenPrismTest, adjacent_twisted)
         "Plane: z=-1",
         "Plane: z=1",
         "Plane: y=-1",
-        "GQuadric: {0,0,0} {0,1,0} {4,1,0} 0",
+        "GQuadric: {0,0,-0} {0,0.5,0} {2,0.5,0} 0",
         "Plane: y=1",
         "Plane: x=-1",
         "Plane: x=1",
         "Plane: y=-2",
         "Plane: x=2",
         "Plane: y=2",
-        "GQuadric: {0,0,0} {0,2,0} {8,2,0} 0",
+        "GQuadric: {0,0,0} {0,1,0} {4,1,0} 0",
     };
     EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
 
@@ -1252,6 +1300,203 @@ TEST_F(InfWedgeTest, half_turn)
         EXPECT_EQ(expected_node, result.node);
         EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
     }
+}
+
+//---------------------------------------------------------------------------//
+// Involute
+//---------------------------------------------------------------------------//
+class InvoluteTest : public IntersectRegionTest
+{
+  public:
+    inline static constexpr auto ccw = Chirality::left;
+    inline static constexpr auto cw = Chirality::right;
+};
+
+TEST_F(InvoluteTest, single)
+{
+    {
+        // involute
+        auto result = this->test(
+            "invo",
+            Involute({1.0, 2.0, 4.0}, {0, 0.15667 * constants::pi}, cw, 1.0));
+
+        static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
+
+        EXPECT_EQ(expected_node, result.node);
+        EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{4, 4, 1}), result.exterior.upper());
+    }
+
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-1",
+        "Plane: z=1",
+        "Cyl z: r=2",
+        "Cyl z: r=4",
+        "Involute cw: r=1, a=0, t={1.7321,4.3652} at x=0, y=0",
+        "Involute cw: r=1, a=0.49219, t={1.7321,4.3652} at x=0, y=0",
+    };
+    EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
+
+    auto node_strings = md_strings(this->unit());
+    static char const* const expected_node_strings[] = {
+        "",
+        "",
+        "invo@mz",
+        "invo@pz",
+        "",
+        "invo@cz",
+        "invo@cz",
+        "",
+        "invo@invl",
+        "invo@invr",
+        "",
+        "",
+    };
+    EXPECT_VEC_EQ(expected_node_strings, node_strings);
+}
+
+// Counterclockwise adjacent involutes
+TEST_F(InvoluteTest, two_ccw)
+{
+    {
+        // involute
+        auto result = this->test(
+            "top",
+            Involute({1.0, 2.0, 4.0}, {0, 0.15667 * constants::pi}, ccw, 1.0));
+
+        static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
+
+        EXPECT_EQ(expected_node, result.node);
+        EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{4, 4, 1}), result.exterior.upper());
+    }
+    {
+        // bottom
+        auto result = this->test(
+            "bottom",
+            Involute({1.0, 2.0, 4.0},
+                     {0.15667 * constants::pi, 0.31334 * constants::pi},
+                     ccw,
+                     1.0));
+
+        // Float and double produce different results
+        if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            static char const expected_node[] = "all(+0, -1, +2, -3, -5, +6)";
+            EXPECT_EQ(expected_node, result.node);
+        }
+        else
+        {
+            static char const expected_node[] = "all(+0, -1, +2, -3, -5, +7)";
+            EXPECT_EQ(expected_node, result.node);
+        }
+
+        EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{4, 4, 1}), result.exterior.upper());
+    }
+
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-1",
+        "Plane: z=1",
+        "Cyl z: r=2",
+        "Cyl z: r=4",
+        "Involute ccw: r=1, a=0, t={1.7321,4.3652} at x=0, y=0",
+        "Involute ccw: r=1, a=0.49219, t={1.7321,4.3652} at x=0, y=0",
+        "Involute ccw: r=1, a=0.98439, t={1.7321,4.3652} at x=0, y=0",
+    };
+    EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
+
+    auto node_strings = md_strings(this->unit());
+    static char const* const expected_node_strings[] = {
+        "",
+        "",
+        "bottom@mz,top@mz",
+        "bottom@pz,top@pz",
+        "",
+        "bottom@cz,top@cz",
+        "bottom@cz,top@cz",
+        "",
+        "top@invl",
+        "",
+        "bottom@invl,top@invr",
+        "",
+        "",
+        "bottom@invr",
+        "",
+    };
+    EXPECT_VEC_EQ(expected_node_strings, node_strings);
+}
+
+// Clockwise varient of previous
+TEST_F(InvoluteTest, two_cw)
+{
+    {
+        // involute
+        auto result = this->test(
+            "top",
+            Involute({1.0, 2.0, 4.0}, {0, 0.15667 * constants::pi}, cw, 1.0));
+
+        static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
+
+        EXPECT_EQ(expected_node, result.node);
+        EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{4, 4, 1}), result.exterior.upper());
+    }
+    {
+        // bottom
+        auto result = this->test(
+            "bottom",
+            Involute({1.0, 2.0, 4.0},
+                     {0.15667 * constants::pi, 0.31334 * constants::pi},
+                     cw,
+                     1.0));
+
+        // Float and double produce different results
+        if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            static char const expected_node[] = "all(+0, -1, +2, -3, +5, -6)";
+            EXPECT_EQ(expected_node, result.node);
+        }
+        else
+        {
+            static char const expected_node[] = "all(+0, -1, +2, -3, +5, -7)";
+            EXPECT_EQ(expected_node, result.node);
+        }
+
+        EXPECT_VEC_SOFT_EQ((Real3{-4, -4, -1}), result.exterior.lower());
+        EXPECT_VEC_SOFT_EQ((Real3{4, 4, 1}), result.exterior.upper());
+    }
+
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-1",
+        "Plane: z=1",
+        "Cyl z: r=2",
+        "Cyl z: r=4",
+        "Involute cw: r=1, a=0, t={1.7321,4.3652} at x=0, y=0",
+        "Involute cw: r=1, a=0.49219, t={1.7321,4.3652} at x=0, y=0",
+        "Involute cw: r=1, a=0.98439, t={1.7321,4.3652} at x=0, y=0",
+    };
+    EXPECT_VEC_EQ(expected_surfaces, surface_strings(this->unit()));
+
+    auto node_strings = md_strings(this->unit());
+    static char const* const expected_node_strings[] = {
+        "",
+        "",
+        "bottom@mz,top@mz",
+        "bottom@pz,top@pz",
+        "",
+        "bottom@cz,top@cz",
+        "bottom@cz,top@cz",
+        "",
+        "top@invl",
+        "bottom@invl,top@invr",
+        "",
+        "",
+        "bottom@invr",
+        "",
+        "",
+    };
+    EXPECT_VEC_EQ(expected_node_strings, node_strings);
 }
 
 //---------------------------------------------------------------------------//
