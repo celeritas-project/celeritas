@@ -241,33 +241,62 @@ TEST_F(CoulombScatteringTest, helper)
     EXPECT_VEC_SOFT_EQ(expected_xs_nuc, result.xs_nuc);
 }
 
-TEST_F(CoulombScatteringTest, mott_xs)
+TEST_F(CoulombScatteringTest, mott_ratio)
 {
-    MottElementData const& element_data
-        = wentzel_->host_ref().elem_data[el_id_];
-    MottRatioCalculator xsec(element_data,
-                             sqrt(this->particle_track().beta_sq()));
-
-    static real_type const cos_ts[]
+    static real_type const cos_theta[]
         = {1, 0.9, 0.5, 0.21, 0, -0.1, -0.6, -0.7, -0.9, -1};
-    static real_type const expected_xsecs[] = {0.99997507022045,
-                                               1.090740570075,
-                                               0.98638178782896,
-                                               0.83702240402998,
-                                               0.71099171311683,
-                                               0.64712379625713,
-                                               0.30071752615308,
-                                               0.22722448378001,
-                                               0.07702815350459,
-                                               0.00051427465924958};
-
-    std::vector<real_type> xsecs;
-    for (real_type cos_t : cos_ts)
     {
-        xsecs.push_back(xsec(cos_t));
-    }
+        // Test Mott ratios for electrons
+        MottElementData::MottCoeffMatrix const& coeffs
+            = wentzel_->host_ref().mott_coeffs[el_id_].electron;
+        MottRatioCalculator calc_mott_ratio(
+            coeffs, sqrt(this->particle_track().beta_sq()));
 
-    EXPECT_VEC_SOFT_EQ(xsecs, expected_xsecs);
+        std::vector<real_type> ratios;
+        for (real_type cos_t : cos_theta)
+        {
+            ratios.push_back(calc_mott_ratio(cos_t));
+        }
+        static real_type const expected_ratios[] = {
+            0.99997507022045,
+            1.090740570075,
+            0.98638178782896,
+            0.83702240402998,
+            0.71099171311683,
+            0.64712379625713,
+            0.30071752615308,
+            0.22722448378001,
+            0.07702815350459,
+            0.00051427465924958,
+        };
+        EXPECT_VEC_SOFT_EQ(ratios, expected_ratios);
+    }
+    {
+        // Test Mott ratios for positrons
+        MottElementData::MottCoeffMatrix const& coeffs
+            = wentzel_->host_ref().mott_coeffs[el_id_].positron;
+        MottRatioCalculator calc_mott_ratio(
+            coeffs, sqrt(this->particle_track().beta_sq()));
+
+        std::vector<real_type> ratios;
+        for (real_type cos_t : cos_theta)
+        {
+            ratios.push_back(calc_mott_ratio(cos_t));
+        }
+        static double const expected_ratios[] = {
+            0.99999249638442,
+            0.86228266918504,
+            0.63153899926215,
+            0.49679913349546,
+            0.40508196203984,
+            0.36255112618068,
+            0.15753302403326,
+            0.11771390807236,
+            0.039017331954949,
+            0.00010139510205454,
+        };
+        EXPECT_VEC_SOFT_EQ(ratios, expected_ratios);
+    }
 }
 
 TEST_F(CoulombScatteringTest, wokvi_transport_xs)
@@ -438,46 +467,74 @@ TEST_F(CoulombScatteringTest, distribution)
         = this->cutoff_params()->get(mat_id_).energy(ParticleId{0});
 
     std::vector<real_type> avg_angles;
+    std::vector<real_type> avg_engine_samples;
 
-    for (real_type energy : {1, 50, 100, 200, 1000, 13000})
+    for (auto pdg : {pdg::electron(), pdg::positron()})
     {
-        this->set_inc_particle(pdg::electron(), MevEnergy{energy});
-
-        WentzelHelper helper(this->particle_track(),
-                             material,
-                             isotope.atomic_number(),
-                             wentzel_->host_ref(),
-                             model_->host_ref().ids,
-                             cutoff);
-        WentzelDistribution sample_angle(wentzel_->host_ref(),
-                                         helper,
-                                         this->particle_track(),
-                                         isotope,
-                                         el_id_,
-                                         helper.cos_thetamax_nuclear(),
-                                         model_->host_ref().cos_thetamax());
-
-        RandomEngine& rng_engine = this->rng();
-
-        real_type avg_angle = 0;
-
-        int const num_samples = 4096;
-        for ([[maybe_unused]] int i : range(num_samples))
+        for (real_type energy : {1, 50, 100, 200, 1000, 13000})
         {
-            avg_angle += sample_angle(rng_engine);
-        }
+            this->set_inc_particle(pdg, MevEnergy{energy});
 
-        avg_angle /= num_samples;
-        avg_angles.push_back(avg_angle);
+            WentzelHelper helper(this->particle_track(),
+                                 material,
+                                 isotope.atomic_number(),
+                                 wentzel_->host_ref(),
+                                 model_->host_ref().ids,
+                                 cutoff);
+            WentzelDistribution sample_angle(wentzel_->host_ref(),
+                                             helper,
+                                             this->particle_track(),
+                                             isotope,
+                                             el_id_,
+                                             helper.cos_thetamax_nuclear(),
+                                             model_->host_ref().cos_thetamax());
+
+            RandomEngine& rng = this->rng();
+
+            real_type avg_angle = 0;
+
+            int const num_samples = 4096;
+            for ([[maybe_unused]] int i : range(num_samples))
+            {
+                avg_angle += sample_angle(rng);
+            }
+
+            avg_angle /= num_samples;
+            avg_angles.push_back(avg_angle);
+            avg_engine_samples.push_back(real_type(rng.count()) / num_samples);
+        }
     }
 
-    static double const expected_avg_angles[] = {0.99957853627426,
-                                                 0.99999954645904,
-                                                 0.99999989882947,
-                                                 0.99999996985799,
-                                                 0.99999999945722,
-                                                 0.99999999999487};
+    static double const expected_avg_angles[] = {
+        0.99957853627426,
+        0.99999954645904,
+        0.99999989882947,
+        0.99999996985799,
+        0.99999999945722,
+        0.99999999999487,
+        0.99970212785622,
+        0.99999969317473,
+        0.99999989582094,
+        0.99999998024112,
+        0.99999999932915,
+        0.99999999996876,
+    };
+    static double const expected_avg_engine_samples[] = {
+        5.9287109375,
+        5.93359375,
+        5.9287109375,
+        5.943359375,
+        5.927734375,
+        5.927734375,
+        5.93701171875,
+        5.9306640625,
+        5.9345703125,
+        5.92431640625,
+        5.9345703125,
+        5.9267578125,
+    };
     EXPECT_VEC_SOFT_EQ(expected_avg_angles, avg_angles);
+    EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
 
 //---------------------------------------------------------------------------//

@@ -34,15 +34,21 @@ namespace celeritas
 class MottRatioCalculator
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using MottCoeffMatrix = MottElementData::MottCoeffMatrix;
+    //!@}
+
+  public:
     // Construct with state data
     inline CELER_FUNCTION
-    MottRatioCalculator(MottElementData const& element_data, real_type beta);
+    MottRatioCalculator(MottCoeffMatrix const& coeffs, real_type beta);
 
     // Ratio of Mott and Rutherford cross sections
     inline CELER_FUNCTION real_type operator()(real_type cos_t) const;
 
   private:
-    MottElementData const& element_data_;
+    MottCoeffMatrix const& coeffs_;
     real_type beta_;
 };
 
@@ -53,9 +59,9 @@ class MottRatioCalculator
  * Construct with state data.
  */
 CELER_FUNCTION
-MottRatioCalculator::MottRatioCalculator(MottElementData const& element_data,
+MottRatioCalculator::MottRatioCalculator(MottCoeffMatrix const& coeffs,
                                          real_type beta)
-    : element_data_(element_data), beta_(beta)
+    : coeffs_(coeffs), beta_(beta)
 {
     CELER_EXPECT(0 <= beta_ && beta_ < 1);
 }
@@ -82,7 +88,7 @@ real_type MottRatioCalculator::operator()(real_type cos_theta) const
     MottElementData::ThetaArray theta_coeffs;
     for (auto i : range(theta_coeffs.size()))
     {
-        theta_coeffs[i] = PolyEvaluator(element_data_.mott_coeff[i])(beta0);
+        theta_coeffs[i] = PolyEvaluator(coeffs_[i])(beta0);
     }
     real_type result = PolyEvaluator(theta_coeffs)(fcos_t);
     CELER_ENSURE(result >= 0);
