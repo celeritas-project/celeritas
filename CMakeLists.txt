@@ -55,6 +55,16 @@ option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" OFF)
 # Assertion handling
 option(CELERITAS_DEBUG "Enable runtime assertions" OFF)
 
+if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
+  set(_celeritas_use_device TRUE)
+else()
+  set(_celeritas_use_device FALSE)
+endif()
+cmake_dependent_option(CELERITAS_DEVICE_DEBUG
+  "Use verbose debug assertions in device code" "OFF"
+  "_celeritas_use_device" OFF
+)
+
 # Secondary testing options (only applies to CTest)
 if(NOT CELERITAS_DEBUG OR CELERITAS_USE_VecGeom)
   set(_default_lock ON)
