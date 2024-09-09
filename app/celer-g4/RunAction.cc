@@ -116,6 +116,10 @@ void RunAction::BeginOfRunAction(G4Run const* run)
 //---------------------------------------------------------------------------//
 /*!
  * Finalize Celeritas.
+ *
+ * \todo In the event of a failure during the stepping loop, it looks like the
+ * exception manager might be unregistered by Geant4 at this point, leading to
+ * a hard G4Exception crash.
  */
 void RunAction::EndOfRunAction(G4Run const*)
 {
@@ -137,8 +141,6 @@ void RunAction::EndOfRunAction(G4Run const*)
     if (init_shared_)
     {
         diagnostics_->timer()->RecordTotalTime(get_transport_time_());
-
-        CELER_TRY_HANDLE(diagnostics_->Finalize(), call_g4exception);
     }
 
     if (!SharedParams::CeleritasDisabled())
@@ -156,6 +158,9 @@ void RunAction::EndOfRunAction(G4Run const*)
 
     if (init_shared_)
     {
+        // Finalize diagnostics (clearing exception handler) after most other
+        // stuff can go wrong
+        CELER_TRY_HANDLE(diagnostics_->Finalize(), call_g4exception);
         // Clear shared data (if any) and write output (if any)
         CELER_TRY_HANDLE(params_->Finalize(), call_g4exception);
     }
