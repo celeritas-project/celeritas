@@ -48,7 +48,7 @@ ExtendFromPrimariesAction::make_and_insert(CoreParams const& core)
  * This is intended only as a transitional helper function and SHOULD NOT BE
  * USED.
  *
- * \return action if
+ * \return action if it exists, nullptr if not
  */
 std::shared_ptr<ExtendFromPrimariesAction const>
 ExtendFromPrimariesAction::find_action(CoreParams const& core)

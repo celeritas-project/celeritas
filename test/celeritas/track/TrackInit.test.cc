@@ -191,6 +191,19 @@ TYPED_TEST_SUITE(TrackInitTest, MemspaceTypes, MemspaceTypeString);
 // TESTS
 //---------------------------------------------------------------------------//
 
+//! Test that we can add more primaries than the first allocation
+TYPED_TEST(TrackInitTest, append_primaries)
+{
+    this->build_states(128);
+
+    auto primaries = this->make_primaries(16);
+    this->extend_from_primaries(make_span(primaries));
+    this->init_tracks();
+
+    primaries = this->make_primaries(32);
+    this->extend_from_primaries(make_span(primaries));
+}
+
 TYPED_TEST(TrackInitTest, run)
 {
     size_type const num_primaries = 12;
