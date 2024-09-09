@@ -184,6 +184,7 @@ void ExtendFromPrimariesAction::insert_impl(
     if (pstate.storage.size() < host_primaries.size())
     {
         // Reallocate with enough capacity
+        pstate.storage = {};
         resize(&pstate.storage, host_primaries.size());
     }
     pstate.count = host_primaries.size();
