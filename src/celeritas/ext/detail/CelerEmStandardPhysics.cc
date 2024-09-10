@@ -155,7 +155,7 @@ void CelerEmStandardPhysics::ConstructParticle()
     G4Gamma::GammaDefinition();
     G4Electron::ElectronDefinition();
     G4Positron::PositronDefinition();
-    if (options_.msc != MscModelSelection::none)
+    if (options_.msc != MscModelSelection::none || options_.coulomb_scattering)
     {
         G4Proton::ProtonDefinition();
     }
@@ -371,13 +371,16 @@ void CelerEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
         else
         {
             auto process = std::make_unique<G4CoulombScattering>();
-            auto model = std::make_unique<G4eCoulombScatteringModel>(
-                /* isCombined = */ options_.msc != MMS::none);
+            auto model = std::make_unique<G4eCoulombScatteringModel>();
             if (set_energy_limit)
             {
                 process->SetMinKinEnergy(msc_energy_limit);
                 model->SetLowEnergyLimit(msc_energy_limit);
                 model->SetActivationLowEnergyLimit(msc_energy_limit);
+            }
+            if (options_.msc == MMS::none)
+            {
+                G4EmParameters::Instance()->SetMscThetaLimit(0);
             }
 
             CELER_LOG(debug) << "Loaded single Coulomb scattering with "
