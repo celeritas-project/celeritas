@@ -193,7 +193,7 @@ void UnitProto::build(ProtoBuilder& input) const
 
         // Set bounding zone
         vi.obz.inner = region_iter->second.bounds.interior;
-        vi.obz.outer = get_exterior_bbox(region_iter->second.bounds);
+        vi.obz.outer = region_iter->second.bounds.exterior;
         vi.obz.transform_id = region_iter->second.transform_id;
 
         /*!

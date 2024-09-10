@@ -58,9 +58,11 @@ class UnitInserter
     DedupeCollectionBuilder<OpaqueId<real_type>> real_ids_;
     DedupeCollectionBuilder<logic_int> logic_ints_;
     DedupeCollectionBuilder<real_type> reals_;
+    DedupeCollectionBuilder<FastReal3> fast_real3s_;
     DedupeCollectionBuilder<SurfaceType> surface_types_;
     CollectionBuilder<ConnectivityRecord> connectivity_records_;
     CollectionBuilder<VolumeRecord> volume_records_;
+    CollectionBuilder<OrientedBoundingZoneRecord> obz_records_;
     CollectionBuilder<Daughter> daughters_;
 
     //// HELPER METHODS ////
@@ -70,6 +72,9 @@ class UnitInserter
 
     void process_daughter(VolumeRecord* vol_record,
                           DaughterInput const& daughter_input);
+
+    void process_obz_record(VolumeRecord* vol_record,
+                            OrientedBoundingZoneInput const& obz_input);
 };
 
 //---------------------------------------------------------------------------//

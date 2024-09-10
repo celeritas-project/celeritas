@@ -180,9 +180,11 @@ UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
     , real_ids_{&orange_data_->real_ids}
     , logic_ints_{&orange_data_->logic_ints}
     , reals_{&orange_data_->reals}
+    , fast_real3s_{&orange_data_->fast_real3s}
     , surface_types_{&orange_data_->surface_types}
     , connectivity_records_{&orange_data_->connectivity_records}
     , volume_records_{&orange_data_->volume_records}
+    , obz_records_{&orange_data_->obz_records}
     , daughters_{&orange_data_->daughters}
 {
     CELER_EXPECT(orange_data);
@@ -240,11 +242,18 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
             bboxes.push_back(BoundingBox<fast_real_type>::from_infinite());
         }
 
+        // Add oriented bounding zone record
+
+        if (inp.volumes[i].obz)
+        {
+            this->process_obz_record(&(vol_records[i]), inp.volumes[i].obz);
+        }
+
         // Add embedded universes
         if (inp.daughter_map.find(LocalVolumeId(i)) != inp.daughter_map.end())
         {
-            process_daughter(&(vol_records[i]),
-                             inp.daughter_map.at(LocalVolumeId(i)));
+            this->process_daughter(&(vol_records[i]),
+                                   inp.daughter_map.at(LocalVolumeId(i)));
         }
 
         // Add connectivity for explicitly connected volumes
@@ -341,6 +350,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
                                 std::begin(nowhere_logic),
                                 std::end(nowhere_logic)));
         CELER_EXPECT(!v.bbox);
+        CELER_EXPECT(!v.obz);
         CELER_EXPECT(v.flags & VolumeRecord::implicit_vol);
         // Rely on incoming flags for "simple_safety": false from .org.json,
         // maybe true if built from GDML
@@ -371,6 +381,45 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     inplace_max<size_type>(&scalars.max_logic_depth, max_depth);
 
     return output;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Process a single oriented bounding zone record.
+ */
+void UnitInserter::process_obz_record(VolumeRecord* vol_record,
+                                      OrientedBoundingZoneInput const& obz_input)
+{
+    CELER_EXPECT(obz_input);
+
+    // Functor for converting Real3 to FastReal3
+    auto to_fast_real3 = [](Real3 input) {
+        FastReal3 output;
+        std::transform(input.begin(), input.end(), output.begin(), [](double x) {
+            return static_cast<float>(x);
+        });
+        return output;
+    };
+
+    OrientedBoundingZoneRecord obz_record;
+
+    // Set half widths
+    obz_record.inner_hw_id = fast_real3s_.push_back(
+        to_fast_real3(calc_half_widths(obz_input.inner)));
+    obz_record.outer_hw_id = fast_real3s_.push_back(
+        to_fast_real3(calc_half_widths(obz_input.outer)));
+
+    // Set offsets
+    obz_record.inner_offset_id = insert_transform_(VariantTransform{
+        std::in_place_type<Translation>, calc_center(obz_input.inner)});
+    obz_record.outer_offset_id = insert_transform_(VariantTransform{
+        std::in_place_type<Translation>, calc_center(obz_input.outer)});
+
+    // Set transformation
+    obz_record.transform_id = obz_input.transform_id;
+
+    // Save the OBZ record to the volume record
+    vol_record->obz_id = obz_records_.push_back(obz_record);
 }
 
 //---------------------------------------------------------------------------//

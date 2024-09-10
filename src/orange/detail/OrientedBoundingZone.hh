@@ -19,7 +19,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Oriented bounding zone for saftey distance calculations.
+ * Oriented bounding zone for safety distance calculations.
  *
  * Here, the bounding zone is defined by an inner and outer bounding box
  * (specified via half-widths) transformed by the same transformation;

@@ -50,6 +50,10 @@ TEST_F(OrientedBoundingZoneTest, basic)
     auto outer_id = all_half_widths.push_back({2., 2., 2.});
 
     TransformRecordInserter tri(&transforms_, &reals_);
+    auto inner_offset_id = tri(VariantTransform{
+        std::in_place_type<Translation>, Real3{0.1, 0.2, 0.3}});
+    auto outer_offset_id = tri(VariantTransform{
+        std::in_place_type<Translation>, Real3{0.2, 0.4, 0.6}});
     auto transform_id = tri(
         VariantTransform{std::in_place_type<Translation>, Real3{10, 20, 30}});
 
@@ -57,7 +61,8 @@ TEST_F(OrientedBoundingZoneTest, basic)
     transforms_ref_ = transforms_;
     reals_ref_ = reals_;
 
-    OrientedBoundingZoneRecord obz_record{inner_id, outer_id, transform_id};
+    OrientedBoundingZoneRecord obz_record{
+        inner_id, outer_id, inner_offset_id, outer_offset_id, transform_id};
 
     OrientedBoundingZone::StoragePointers sp{
         &half_widths_ref_, &transforms_ref_, &reals_ref_};
