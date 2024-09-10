@@ -234,6 +234,8 @@ size_type Runner::num_events() const
  * Get the accumulated action times.
  *
  * This is a *mean* value over all streams.
+ *
+ * \todo Refactor action times gathering: see detail::ActionSequence .
  */
 auto Runner::get_action_times() const -> MapStrDouble
 {

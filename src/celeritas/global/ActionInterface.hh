@@ -20,12 +20,16 @@ class CoreState;
 //---------------------------------------------------------------------------//
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
-//! Action interface for core stepping loop
+//! Interface called at beginning of the core stepping loop
 using CoreBeginRunActionInterface
     = BeginRunActionInterface<CoreParams, CoreState>;
 
 //! Action interface for core stepping loop
 using CoreStepActionInterface = StepActionInterface<CoreParams, CoreState>;
+
+//! Interface called at end of the core stepping loop
+using CoreEndRunGatherActionInterface
+    = EndRunGatherActionInterface<CoreParams, CoreState>;
 
 // TODO: Remove in v0.6
 using ActionOrder [[deprecated]] = StepActionOrder;

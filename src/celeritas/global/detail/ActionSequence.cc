@@ -55,7 +55,6 @@ ActionSequence<P, S>::ActionSequence(ActionRegistry const& reg, Options options)
         }
     }
 
-    begin_run_.reserve(reg.mutable_actions().size());
     // Loop over all mutable actions
     for (auto const& base : reg.mutable_actions())
     {
@@ -64,6 +63,12 @@ ActionSequence<P, S>::ActionSequence(ActionRegistry const& reg, Options options)
         {
             // Add beginning-of-run to the array
             begin_run_.emplace_back(std::move(brun));
+        }
+        if (auto erun
+            = std::dynamic_pointer_cast<CoreEndRunGatherActionInterface>(base))
+        {
+            // Add end-of-run to the array
+            end_run_.emplace_back(std::move(erun));
         }
     }
 
@@ -106,6 +111,25 @@ void ActionSequence<P, S>::begin_run(P const& params, S<M>& state)
     {
         ScopedProfiling profile_this{sp_action->label()};
         sp_action->begin_run(params, state);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Merge states at the end of the run
+ */
+template<class P, template<MemSpace M> class S>
+template<MemSpace M>
+void ActionSequence<P, S>::end_run_gather(P const& params,
+                                          Span<S<M>* const> states)
+{
+    CELER_EXPECT(std::all_of(states.begin(), states.end(), [](auto* s) {
+        return static_cast<bool>(s);
+    }));
+    for (auto const& sp_action : end_run_)
+    {
+        ScopedProfiling profile_this{sp_action->label()};
+        sp_action->end_run_gather(params, states);
     }
 }
 

@@ -180,7 +180,7 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries) -> TransporterResult
 
 //---------------------------------------------------------------------------//
 /*!
- * Transport the input primaries and all secondaries produced.
+ * Merge times across all threads.
  */
 template<MemSpace M>
 void Transporter<M>::accum_action_times(MapStrDouble* result) const
