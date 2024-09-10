@@ -19,6 +19,7 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/RejectionSampler.hh"
+#include "NuclearFormFactors.hh"
 
 namespace celeritas
 {
@@ -209,7 +210,7 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
 CELER_FUNCTION real_type
 WentzelDistribution::calculate_form_factor(real_type cos_t) const
 {
-    CELER_EXPECT(cos_theta >= -1 && cos_theta <= 1);
+    CELER_EXPECT(cos_t >= -1 && cos_t <= 1);
 
     using MomSq = NuclearFormFactorTraits::MomentumSq;
 
@@ -232,26 +233,6 @@ WentzelDistribution::calculate_form_factor(real_type cos_t) const
         case NuclearFormFactorType::gaussian:
             return GaussianNuclearFormFactor{this->nuclear_form_prefactor()}(
                 mt_sq);
-        default:
-            CELER_ASSERT_UNREACHABLE();
-    }
-
-    real_type mt_sq = this->mom_transfer_sq(cos_t);
-    switch (wentzel_.params.form_factor_type)
-    {
-        case NuclearFormFactorType::none:
-            return 1;
-        case NuclearFormFactorType::flat: {
-            real_type x1 = this->flat_coeff() * std::sqrt(mt_sq);
-            real_type x0 = real_type{0.6} * x1
-                           * fastpow(value_as<Mass>(target_.nuclear_mass()),
-                                     real_type{1} / 3);
-            return this->flat_form_factor(x0) * this->flat_form_factor(x1);
-        }
-        case NuclearFormFactorType::exponential:
-            return 1 / ipow<2>(1 + this->nuclear_form_prefactor() * mt_sq);
-        case NuclearFormFactorType::gaussian:
-            return std::exp(-2 * this->nuclear_form_prefactor() * mt_sq);
         default:
             CELER_ASSERT_UNREACHABLE();
     }

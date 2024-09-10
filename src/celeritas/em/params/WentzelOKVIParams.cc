@@ -14,6 +14,8 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/mat/IsotopeView.hh"
+#include "celeritas/em/distribution/NuclearFormFactors.hh"
 
 namespace celeritas
 {
@@ -119,8 +121,11 @@ void WentzelOKVIParams::build_data(HostVal<WentzelOKVIData>& host_data,
     prefactors.reserve(materials.num_isotopes());
     for (auto iso_id : range(IsotopeId{materials.num_isotopes()}))
     {
-        prefactors.push_back(
-            this->calc_nuclear_form_prefactor(materials.get(iso_id)));
+        using InvMomSq = Quantity<UnitInverse<units::MevMomentumSq::unit_type>>;
+
+        auto&& iso_view = materials.get(iso_id);
+        prefactors.push_back(value_as<InvMomSq>(
+            ExpNuclearFormFactor{iso_view.atomic_mass_number()}.prefactor()));
     }
     CELER_ENSURE(host_data.nuclear_form_prefactor.size()
                  == materials.num_isotopes());
@@ -145,38 +150,6 @@ void WentzelOKVIParams::build_data(HostVal<WentzelOKVIData>& host_data,
         make_builder(&host_data.inv_mass_cbrt_sq)
             .insert_back(inv_mass_cbrt_sq.begin(), inv_mass_cbrt_sq.end());
     }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate the constant prefactors of the squared momentum transfer.
- *
- * This factor is used in the exponential and Gaussian nuclear form factor
- * types: see Eqs. 2.262--2.264 of [LR15].
- *
- * Specifically, it calculates \f$ (r_n/\bar h)^2 / 12 \f$, where \f$ r_n =
- * 1.27 A^{0.27} \f$ [fm] is the nuclear radius. A special case is inherited
- * from Geant for hydrogen targets.
- */
-real_type WentzelOKVIParams::calc_nuclear_form_prefactor(IsotopeView const& iso)
-{
-    if (iso.atomic_number().get() == 1)
-    {
-        return real_type{1.5485e-6};
-    }
-
-    // The ratio has units of (MeV/c)^-2, so it's easier to convert the
-    // inverse which has units of MomentumSq, then invert afterwards
-    constexpr real_type ratio
-        = 1
-          / native_value_to<units::MevMomentumSq>(
-                *ipow<2>(constants::hbar_planck
-                         / (real_type(1) * units::femtometer)))
-                .value();
-    real_type radius_fm
-        = fastpow(real_type(iso.atomic_mass_number().get()), real_type(0.27));
-
-    return ratio * ipow<2>(radius_fm) / 12;
 }
 
 //---------------------------------------------------------------------------//
