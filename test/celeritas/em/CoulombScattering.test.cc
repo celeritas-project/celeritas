@@ -405,11 +405,9 @@ TEST_F(CoulombScatteringTest, simple_scattering)
     {
         for (auto energy : {0.05, 0.1, 0.5, 1.0, 10.0})
         {
-            cout << "==== p=" << particle.get() << ", E=" << energy << "====\n";
             this->set_inc_particle(particle, MevEnergy{energy});
             for (auto i : range(all_wentzel.size()))
             {
-                cout << "---- " << ff_str[i] << " ----\n";
                 CoulombScatteringInteractor interact(model_->host_ref(),
                                                      all_wentzel[i]->host_ref(),
                                                      this->particle_track(),
@@ -432,18 +430,14 @@ TEST_F(CoulombScatteringTest, simple_scattering)
                     real_type eloss = 1 - result.energy.value() / energy;
                     accum_costheta += ct;
                     accum_eloss += eloss;
-                    cout << eloss << ';' << ct << ' ';
                 }
                 cos_theta.push_back(accum_costheta
                                     * (real_type{1} / num_samples));
                 eloss_frac.push_back(accum_eloss
                                      * (real_type{1} / num_samples));
-                cout << endl;
             }
         }
     }
-    PRINT_EXPECTED(cos_theta);
-    PRINT_EXPECTED(eloss_frac);
 
     static double const expected_cos_theta[] = {
         0.99085547184471, 0.99582869481847, 0.99297651186022, 0.96857083475692,
