@@ -122,7 +122,7 @@ class GaussianNuclearFormFactor : public ExpNuclearFormFactor
  * F(q) = F'(x(R_0, q)) F'(x(R_1, q))
  * \f]
  * where \f$ x \equiv q R / \hbar \f$ uses the effective nuclear radius \f$
- * R_0 = 1.2 A^{1/3} \,\mathrm{fm} \f$ and nuclear surface skin \f$  R_1 = 2.0
+ * R_0 = 1.2 A^{1/3} \,\mathrm{fm} \f$ and nuclear surface skin \f$ R_1 = 2.0
  * \,\mathrm{fm} \f$,
  * and
  * \f[
@@ -163,7 +163,7 @@ class UUNuclearFormFactor : public NuclearFormFactorTraits
     real_type nucl_radius_fm_;
 
     // Effective nuclear skin radius: 2 fm
-    static CELER_CONSTEXPR_FUNCTION real_type skin_radius_fm() { return 2.0; }
+    static CELER_CONSTEXPR_FUNCTION real_type skin_radius_fm() { return 2; }
 };
 
 //---------------------------------------------------------------------------//
@@ -275,7 +275,7 @@ CELER_FUNCTION real_type UUNuclearFormFactor::operator()(Momentum target_mom) co
         // r units: fm
         real_type x = value_as<Momentum>(target_mom)
                       * (r * value_as<InvMomentum>(fm_par_hbar()));
-        return (3 / ipow<3>(x)) * (std::sin(x) - x * std::cos(x));
+        return (3 / ipow<3>(x)) * std::fma(-x, std::cos(x), std::sin(x));
     };
 
     return sphere_ff(nucl_radius_fm_)
