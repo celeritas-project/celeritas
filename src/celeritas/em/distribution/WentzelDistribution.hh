@@ -211,9 +211,10 @@ WentzelDistribution::calculate_form_factor(real_type cos_t) const
             return 1;
         case NuclearFormFactorType::flat: {
             real_type x1 = this->flat_coeff() * std::sqrt(mt_sq);
-            real_type x0 = real_type{0.6} * x1
-                           * fastpow(value_as<Mass>(target_.nuclear_mass()),
-                                     real_type{1} / 3);
+            real_type x0
+                = real_type{0.6} * x1
+                  * fastpow(real_type(target_.atomic_mass_number().get()),
+                            real_type{1} / 3);
             return this->flat_form_factor(x0) * this->flat_form_factor(x1);
         }
         case NuclearFormFactorType::exponential:
