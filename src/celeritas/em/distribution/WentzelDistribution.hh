@@ -52,6 +52,7 @@ class WentzelDistribution
     using MomentumSq = units::MevMomentumSq;
     using Energy = units::MevEnergy;
     using Mass = units::MevMass;
+    using MottCoeffMatrix = MottElementData::MottCoeffMatrix;
     //!@}
 
   public:
@@ -84,8 +85,8 @@ class WentzelDistribution
     // Target isotope
     IsotopeView const& target_;
 
-    // Target element
-    ElementId el_id_;
+    // Matrix of Mott coefficients for the target element
+    MottCoeffMatrix const& mott_coeffs_;
 
     // Cosine of the minimum scattering angle
     real_type cos_thetamin_;
@@ -139,11 +140,13 @@ WentzelDistribution::WentzelDistribution(
     , helper_(helper)
     , particle_(particle)
     , target_(target)
-    , el_id_(el_id)
+    , mott_coeffs_(particle_.charge() < zero_quantity()
+                       ? wentzel_.mott_coeffs[el_id].electron
+                       : wentzel_.mott_coeffs[el_id].positron)
     , cos_thetamin_(cos_thetamin)
     , cos_thetamax_(cos_thetamax)
 {
-    CELER_EXPECT(el_id_ < wentzel_.elem_data.size());
+    CELER_EXPECT(el_id < wentzel_.mott_coeffs.size());
     CELER_EXPECT(cos_thetamin_ >= -1 && cos_thetamin_ <= 1);
     CELER_EXPECT(cos_thetamax_ >= -1 && cos_thetamax_ <= 1);
     CELER_EXPECT(cos_thetamax_ <= cos_thetamin_);
@@ -174,9 +177,9 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
         cos_theta = this->sample_costheta(cos_thetamin_, cos_thetamax_, rng);
 
         // Calculate rejection for fake scattering
-        MottRatioCalculator mott_xsec(wentzel_.elem_data[el_id_],
-                                      std::sqrt(particle_.beta_sq()));
-        real_type xs = mott_xsec(cos_theta)
+        MottRatioCalculator calc_mott_ratio(mott_coeffs_,
+                                            std::sqrt(particle_.beta_sq()));
+        real_type xs = calc_mott_ratio(cos_theta)
                        * ipow<2>(this->calculate_form_factor(cos_theta));
         if (RejectionSampler(xs, helper_.mott_factor())(rng))
         {
