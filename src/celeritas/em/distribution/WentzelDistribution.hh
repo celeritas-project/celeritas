@@ -245,9 +245,10 @@ CELER_FUNCTION real_type WentzelDistribution::flat_form_factor(real_type x)
  */
 CELER_CONSTEXPR_FUNCTION real_type WentzelDistribution::flat_coeff()
 {
-    return native_value_to<units::MevMomentum>(2 * units::femtometer
-                                               / constants::hbar_planck)
-        .value();
+    return 1
+           / native_value_to<units::MevMomentum>(constants::hbar_planck
+                                                 / (2 * units::femtometer))
+                 .value();
 }
 
 //---------------------------------------------------------------------------//
