@@ -13,8 +13,8 @@
 
 #include "corecel/Types.hh"
 
-#include "../ActionInterface.hh"
-#include "../CoreTrackDataFwd.hh"
+#include "ActionInterface.hh"
+#include "CoreTrackDataFwd.hh"
 
 namespace celeritas
 {
@@ -23,8 +23,6 @@ class ActionRegistry;
 class CoreParams;
 class StatusChecker;
 
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Sequence of step actions to invoke as part of a single step.
@@ -105,5 +103,4 @@ class ActionSequence
 };
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

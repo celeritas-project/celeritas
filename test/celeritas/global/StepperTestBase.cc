@@ -15,8 +15,8 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/io/LogContextException.hh"
 #include "corecel/io/Repr.hh"
+#include "celeritas/global/ActionSequence.hh"
 #include "celeritas/global/Stepper.hh"
-#include "celeritas/global/detail/ActionSequence.hh"
 #include "celeritas/phys/PhysicsParams.hh"
 
 using std::cout;

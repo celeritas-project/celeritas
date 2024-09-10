@@ -38,6 +38,7 @@ list(APPEND SOURCES
   field/RZMapFieldInputIO.json.cc
   field/RZMapFieldParams.cc
   geo/GeoMaterialParams.cc
+  global/ActionSequence.cc
   global/CoreParams.cc
   global/CoreState.cc
   global/CoreTrackData.cc
@@ -45,7 +46,6 @@ list(APPEND SOURCES
   global/DebugIO.json.cc
   global/KernelContextException.cc
   global/Stepper.cc
-  global/detail/ActionSequence.cc
   global/detail/PinnedAllocator.cc
   grid/GenericGridBuilder.cc
   grid/TwodGridBuilder.cc

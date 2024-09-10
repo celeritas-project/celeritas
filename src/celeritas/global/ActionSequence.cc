@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/detail/ActionSequence.cc
+//! \file celeritas/global/ActionSequence.cc
 //---------------------------------------------------------------------------//
 #include "ActionSequence.hh"
 
@@ -21,17 +21,14 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "corecel/sys/Stream.hh"
-#include "celeritas/global/CoreParams.hh"
-#include "celeritas/global/CoreState.hh"
 #include "celeritas/track/StatusChecker.hh"
 
-#include "../ActionInterface.hh"
-#include "../CoreState.hh"
-#include "../Debug.hh"
+#include "ActionInterface.hh"
+#include "CoreParams.hh"
+#include "CoreState.hh"
+#include "Debug.hh"
 
 namespace celeritas
-{
-namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -235,5 +232,4 @@ ActionSequence<CoreParams, CoreState>::step(CoreParams const&,
 // TODO: add explicit template instantiation of execute for optical data
 
 //---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

@@ -23,9 +23,9 @@
 #include "corecel/sys/Counter.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/global/ActionSequence.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/Stepper.hh"
-#include "celeritas/global/detail/ActionSequence.hh"
 #include "celeritas/phys/Model.hh"
 
 #include "StepTimer.hh"

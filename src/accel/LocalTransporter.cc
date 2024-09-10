@@ -32,7 +32,7 @@
 #include "geocel/g4/Convert.geant.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/ext/GeantUnits.hh"
-#include "celeritas/global/detail/ActionSequence.hh"
+#include "celeritas/global/ActionSequence.hh"
 #include "celeritas/io/EventWriter.hh"
 #include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/phys/PDGNumber.hh"

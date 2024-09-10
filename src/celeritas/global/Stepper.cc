@@ -20,9 +20,8 @@
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
+#include "ActionSequence.hh"
 #include "CoreParams.hh"
-
-#include "detail/ActionSequence.hh"
 
 namespace celeritas
 {
@@ -63,9 +62,9 @@ Stepper<M>::Stepper(Input input)
     : params_(std::move(input.params))
     , state_(*params_, input.stream_id, input.num_track_slots)
     , actions_{[&] {
-        ActionSequence::Options opts;
+        ActionSequenceT::Options opts;
         opts.action_times = input.action_times;
-        return std::make_shared<ActionSequence>(*params_->action_reg(), opts);
+        return std::make_shared<ActionSequenceT>(*params_->action_reg(), opts);
     }()}
 {
     // Save primary action: TODO this is a hack and should be refactored so

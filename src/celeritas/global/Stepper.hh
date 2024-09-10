@@ -29,11 +29,8 @@ class CoreParams;
 struct Primary;
 class ExtendFromPrimariesAction;
 
-namespace detail
-{
 template<class P, template<MemSpace M> class S>
 class ActionSequence;
-}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -81,7 +78,7 @@ class StepperInterface
     //!@{
     //! \name Type aliases
     using Input = StepperInput;
-    using ActionSequence = detail::ActionSequence<CoreParams, CoreState>;
+    using ActionSequenceT = ActionSequence<CoreParams, CoreState>;
     using SpanConstPrimary = Span<Primary const>;
     using result_type = StepperResult;
     //!@}
@@ -100,7 +97,7 @@ class StepperInterface
     virtual void reseed(EventId event_id) = 0;
 
     //! Get action sequence for timing diagnostics
-    virtual ActionSequence const& actions() const = 0;
+    virtual ActionSequenceT const& actions() const = 0;
 
     //! Get the core state interface
     virtual CoreStateInterface const& state() const = 0;
@@ -155,7 +152,7 @@ class Stepper final : public StepperInterface
     void reseed(EventId event_id) final;
 
     //! Get action sequence for timing diagnostics
-    ActionSequence const& actions() const final { return *actions_; }
+    ActionSequenceT const& actions() const final { return *actions_; }
 
     //! Access core data, primarily for debugging
     StateRef const& state_ref() const { return state_.ref(); }
@@ -174,7 +171,7 @@ class Stepper final : public StepperInterface
     // State data
     CoreState<M> state_;
     // Call sequence
-    std::shared_ptr<ActionSequence> actions_;
+    std::shared_ptr<ActionSequenceT> actions_;
 };
 
 //---------------------------------------------------------------------------//
