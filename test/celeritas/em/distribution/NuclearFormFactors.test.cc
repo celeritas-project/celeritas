@@ -50,7 +50,7 @@ TEST_F(NuclearFormFactorsTest, exponential)
     auto result = this->evaluate_all<ExpNuclearFormFactor>();
     // clang-format off
     static double const expected_result[] = {
-        0.99999999110248, 0.99999996101251, 0.99999820646964, 0.99998733811169, 0.96341191180923,
+        0.99999999111533, 0.99999996106881, 0.99999820905938, 0.99998735639443, 0.96346328587772,
         0.99999993503162, 0.99999971531919, 0.99998690401855, 0.99990755030365, 0.77304182886306,
         0.9999998800842 , 0.99999947454867, 0.99997582820929, 0.99982937038808, 0.63639467627637,
         0.99999981419604, 0.99999918583774, 0.99996254730628, 0.99973563593242, 0.51546164592414,
@@ -59,7 +59,7 @@ TEST_F(NuclearFormFactorsTest, exponential)
     EXPECT_VEC_SOFT_EQ(expected_result, result);
 
     // Test prefactor value for special case and iron
-    EXPECT_SOFT_EQ(1.5485e-6,
+    EXPECT_SOFT_EQ(1.5462640713992254e-06,
                    ExpNuclearFormFactor{AtomicNumber{1}}.prefactor().value());
     EXPECT_SOFT_EQ(3.0344136960050336e-05,
                    ExpNuclearFormFactor{AtomicNumber{56}}.prefactor().value());
@@ -70,7 +70,7 @@ TEST_F(NuclearFormFactorsTest, gaussian)
     auto result = this->evaluate_all<GaussianNuclearFormFactor>();
     // clang-format off
     static double const expected_result[] = {
-        0.99999999110248, 0.99999996101251, 0.99999820646884, 0.99998733807161, 0.9630752487545,
+        0.99999999111533, 0.99999996106881, 0.99999820905857, 0.99998735635446, 0.96312757030345,
         0.99999993503162, 0.99999971531917, 0.99998690397568, 0.99990754816688, 0.75978263411599,
         0.99999988008419, 0.9999994745486 , 0.99997582806322, 0.99982936310926, 0.60225668401895,
         0.99999981419603, 0.99999918583758, 0.9999625469556 , 0.99973561845956, 0.45580791667755,

@@ -42,11 +42,22 @@ struct NuclearFormFactorTraits
  * Exponential nuclear form factor.
  *
  * This nuclear form factor corresponds \c NuclearFormFactorType::exponential
- * and assumes the nuclear charge decays exponentially from its center.
+ * and assumes the nuclear charge decays exponentially from its center. This
+ * assumes a parameterization of the atomic nucleus valid for light and medium
+ * atomic nuclei (Eq. 7 of [BKM2002]): \f[
+ * R_N = 1.27A^{0.27} \,\mathrm{fm}
+ * \f]
+ * with a special case for the proton radius, \f$ R_p = 0.85 \f$ fm.
  *
- * [LR16] C. Leroy and P.G. Rancoita. Principles of Radiation Interaction in
- *        Matter and Detection. World Scientific (Singapore), 4th edition,
- *        2016.
+ * [BKM2002] A.V. Butkevich, R.P. Kokoulin, G.V. Matushko, S.P. Mikheyev,
+ *      Comments on multiple scattering of high-energy muons in thick layers,
+ *      Nuclear Instruments and Methods in Physics Research Section A:
+ *      Accelerators, Spectrometers, Detectors and Associated Equipment 488
+ *      (2002) 282–294. https://doi.org/10.1016/S0168-9002(02)00478-3.
+ *
+ * \todo Instead of using this coarse parameterization, we should add nuclear
+ * radius to the isotope properties for a more accurate treatment, and
+ * construct these classes directly from the atomic radius.
  */
 class ExpNuclearFormFactor : public NuclearFormFactorTraits
 {
@@ -161,23 +172,21 @@ class UUNuclearFormFactor : public NuclearFormFactorTraits
 /*!
  * Construct from atomic mass number.
  */
-CELER_FUNCTION ExpNuclearFormFactor::ExpNuclearFormFactor(AtomicMassNumber a_mass)
+CELER_FUNCTION
+ExpNuclearFormFactor::ExpNuclearFormFactor(AtomicMassNumber a_mass)
 {
     CELER_EXPECT(a_mass);
-    if (CELER_UNLIKELY(a_mass == AtomicMassNumber{1}))
-    {
-        // Special case from Geant4
-        prefactor_ = real_type{1.5485e-6};
-    }
-    else
-    {
-        real_type nucl_radius_fm
-            = real_type{1.27}
-              * fastpow(real_type(a_mass.get()), real_type{0.27});
-        prefactor_
-            = ipow<2>(nucl_radius_fm * value_as<InvMomentum>(fm_par_hbar()))
-              * (real_type{1} / 12);
-    }
+    real_type nucl_radius_fm = [a_mass] {
+        if (CELER_UNLIKELY(a_mass == AtomicMassNumber{1}))
+        {
+            // Special case for proton radius
+            return real_type{0.85};
+        }
+        return real_type{1.27}
+               * fastpow(real_type(a_mass.get()), real_type{0.27});
+    }();
+    prefactor_ = ipow<2>(nucl_radius_fm * value_as<InvMomentum>(fm_par_hbar()))
+                 * (real_type{1} / 12);
     CELER_ENSURE(prefactor_ > 0);
 }
 
