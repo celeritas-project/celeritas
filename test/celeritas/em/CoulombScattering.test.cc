@@ -29,6 +29,8 @@ namespace test
 class CoulombScatteringTest : public InteractorHostTestBase
 {
   protected:
+    using SPWentzel = std::shared_ptr<WentzelOKVIParams>;
+
     void SetUp() override
     {
         using namespace celeritas::units;
@@ -97,13 +99,6 @@ class CoulombScatteringTest : public InteractorHostTestBase
                 {std::move(ip_electron), std::move(ip_positron)});
         }
 
-        // Default to single scattering
-        WentzelOKVIParams::Options options;
-        options.is_combined = false;
-        options.polar_angle_limit = 0;
-        wentzel_ = std::make_shared<WentzelOKVIParams>(this->material_params(),
-                                                       options);
-
         model_ = std::make_shared<CoulombScatteringModel>(
             ActionId{0},
             *this->particle_params(),
@@ -128,6 +123,18 @@ class CoulombScatteringTest : public InteractorHostTestBase
         this->set_material("Cu");
     }
 
+    SPWentzel make_wentzel_params(NuclearFormFactorType ff
+                                  = NuclearFormFactorType::exponential)
+    {
+        // Default to single scattering
+        WentzelOKVIParams::Options options;
+        options.is_combined = false;
+        options.polar_angle_limit = 0;
+        options.form_factor = ff;
+        return std::make_shared<WentzelOKVIParams>(this->material_params(),
+                                                   options);
+    }
+
     void sanity_check(Interaction const& interaction) const
     {
         SCOPED_TRACE(interaction);
@@ -147,7 +154,6 @@ class CoulombScatteringTest : public InteractorHostTestBase
     }
 
   protected:
-    std::shared_ptr<WentzelOKVIParams> wentzel_;
     std::shared_ptr<CoulombScatteringModel> model_;
     IsotopeComponentId isocomp_id_{0};
     ElementComponentId elcomp_id_{0};
@@ -169,6 +175,8 @@ TEST_F(CoulombScatteringTest, helper)
         VecReal xs_nuc;
     };
 
+    auto wentzel = this->make_wentzel_params();
+
     auto const material = this->material_track().make_material_view();
     AtomicNumber const target_z
         = this->material_params()->get(el_id_).atomic_number();
@@ -186,7 +194,7 @@ TEST_F(CoulombScatteringTest, helper)
         WentzelHelper helper(this->particle_track(),
                              material,
                              target_z,
-                             wentzel_->host_ref(),
+                             wentzel->host_ref(),
                              model_->host_ref().ids,
                              cutoff);
 
@@ -243,12 +251,14 @@ TEST_F(CoulombScatteringTest, helper)
 
 TEST_F(CoulombScatteringTest, mott_ratio)
 {
+    auto wentzel = this->make_wentzel_params();
+
     static real_type const cos_theta[]
         = {1, 0.9, 0.5, 0.21, 0, -0.1, -0.6, -0.7, -0.9, -1};
     {
         // Test Mott ratios for electrons
         MottElementData::MottCoeffMatrix const& coeffs
-            = wentzel_->host_ref().mott_coeffs[el_id_].electron;
+            = wentzel->host_ref().mott_coeffs[el_id_].electron;
         MottRatioCalculator calc_mott_ratio(
             coeffs, sqrt(this->particle_track().beta_sq()));
 
@@ -274,7 +284,7 @@ TEST_F(CoulombScatteringTest, mott_ratio)
     {
         // Test Mott ratios for positrons
         MottElementData::MottCoeffMatrix const& coeffs
-            = wentzel_->host_ref().mott_coeffs[el_id_].positron;
+            = wentzel->host_ref().mott_coeffs[el_id_].positron;
         MottRatioCalculator calc_mott_ratio(
             coeffs, sqrt(this->particle_track().beta_sq()));
 
@@ -301,6 +311,8 @@ TEST_F(CoulombScatteringTest, mott_ratio)
 
 TEST_F(CoulombScatteringTest, wokvi_transport_xs)
 {
+    auto wentzel = this->make_wentzel_params();
+
     auto const material = this->material_track().make_material_view();
     AtomicNumber const z = this->material_params()->get(el_id_).atomic_number();
 
@@ -317,7 +329,7 @@ TEST_F(CoulombScatteringTest, wokvi_transport_xs)
         WentzelHelper helper(particle,
                              material,
                              z,
-                             wentzel_->host_ref(),
+                             wentzel->host_ref(),
                              model_->host_ref().ids,
                              cutoff);
         WentzelTransportXsCalculator calc_transport_xs(particle, helper);
@@ -368,96 +380,117 @@ TEST_F(CoulombScatteringTest, wokvi_transport_xs)
 
 TEST_F(CoulombScatteringTest, simple_scattering)
 {
-    int const num_samples = 4;
+    int const num_samples = 8;
 
     auto const material = this->material_track().make_material_view();
     IsotopeView const isotope
         = material.make_element_view(elcomp_id_).make_isotope_view(isocomp_id_);
     auto cutoffs = this->cutoff_params()->get(mat_id_);
 
-    RandomEngine& rng_engine = this->rng();
+    auto& rng_engine = this->rng();
+
+    // Create one params for each form factor
+    std::vector<SPWentzel> all_wentzel;
+    std::vector<std::string> ff_str;
+    for (auto ff : range(NuclearFormFactorType::size_))
+    {
+        all_wentzel.push_back(this->make_wentzel_params(ff));
+        ff_str.push_back(to_cstring(ff));
+    }
 
     std::vector<real_type> cos_theta;
-    std::vector<real_type> delta_energy;
+    std::vector<real_type> eloss_frac;
 
-    std::vector<real_type> energies{0.2, 1, 10, 100, 1000, 100000};
-    for (auto energy : energies)
+    for (auto particle : {pdg::electron(), pdg::positron()})
     {
-        this->set_inc_particle(pdg::electron(), MevEnergy{energy});
-        CoulombScatteringInteractor interact(model_->host_ref(),
-                                             wentzel_->host_ref(),
-                                             this->particle_track(),
-                                             this->direction(),
-                                             material,
-                                             isotope,
-                                             el_id_,
-                                             cutoffs);
-
-        for ([[maybe_unused]] int i : range(num_samples))
+        for (auto log_energy_mev : range(-2, 2))
         {
-            Interaction result = interact(rng_engine);
-            SCOPED_TRACE(result);
-            this->sanity_check(result);
+            real_type energy
+                = std::pow(real_type{10}, real_type(log_energy_mev));
+            cout << "==== p=" << particle.get() << ", E=" << energy << "====\n";
+            this->set_inc_particle(pdg::electron(), MevEnergy{energy});
+            for (auto i : range(all_wentzel.size()))
+            {
+                cout << "---- " << ff_str[i] << " ----\n";
+                CoulombScatteringInteractor interact(model_->host_ref(),
+                                                     all_wentzel[i]->host_ref(),
+                                                     this->particle_track(),
+                                                     this->direction(),
+                                                     material,
+                                                     isotope,
+                                                     el_id_,
+                                                     cutoffs);
 
-            cos_theta.push_back(
-                dot_product(this->direction(), result.direction));
-            delta_energy.push_back(energy - result.energy.value());
+                real_type accum_costheta{0};
+                real_type accum_eloss{0};
+                for ([[maybe_unused]] int i : range(num_samples))
+                {
+                    Interaction result = interact(rng_engine);
+                    SCOPED_TRACE(result);
+                    this->sanity_check(result);
+
+                    real_type ct
+                        = dot_product(this->direction(), result.direction);
+                    real_type eloss = 1 - result.energy.value() / energy;
+                    accum_costheta += ct;
+                    accum_eloss += eloss;
+                    cout << eloss << ';' << ct << ' ';
+                }
+                cos_theta.push_back(accum_costheta
+                                    * (real_type{1} / num_samples));
+                eloss_frac.push_back(accum_eloss
+                                     * (real_type{1} / num_samples));
+                cout << endl;
+            }
         }
     }
-    static double const expected_cos_theta[] = {1,
-                                                0.99950360343422,
-                                                0.98776892641281,
-                                                0.99837727448607,
-                                                1,
-                                                0.9999716884097,
-                                                0.99985707764428,
-                                                0.99997835395879,
-                                                1,
-                                                0.99999688465904,
-                                                0.99999974351257,
-                                                0.99999918571981,
-                                                0.99999995498814,
-                                                0.99999998059604,
-                                                0.99999992367847,
-                                                1,
-                                                0.99999999984949,
-                                                1,
-                                                0.99999999999851,
-                                                0.99999999769513,
-                                                0.99999999999996,
-                                                0.99999999999998,
-                                                0.99999999999999,
-                                                1};
-    static double const expected_delta_energy[] = {0,
-                                                   2.069638599389e-09,
-                                                   5.0995313499724e-08,
-                                                   6.7656699409557e-09,
-                                                   0,
-                                                   9.7658547915103e-10,
-                                                   4.9299914151035e-09,
-                                                   7.4666273164326e-10,
-                                                   0,
-                                                   5.8577551698136e-09,
-                                                   4.8227200011297e-10,
-                                                   1.5310863688001e-09,
-                                                   7.7572508416779e-09,
-                                                   3.3440414881625e-09,
-                                                   1.315311237704e-08,
-                                                   0,
-                                                   2.5702320272103e-09,
-                                                   0,
-                                                   2.5465851649642e-11,
-                                                   3.9359974834952e-08,
-                                                   7.1158865466714e-09,
-                                                   3.9435690268874e-09,
-                                                   2.0663719624281e-09,
-                                                   0};
+    PRINT_EXPECTED(cos_theta);
+    PRINT_EXPECTED(eloss_frac);
+
+    static double const expected_cos_theta[] = {
+        0.95342195359813, 1,
+        0.96317162120917, 0.8620336095332,
+        0.99906508938769, 1,
+        0.99874182275461, 0.99967220230996,
+        0.99982647327527, 1,
+        0.99968599755255, 0.99993562163221,
+        0.99999377260371, 1,
+        0.99999920944645, 0.9999784285417,
+        0.98179604422863, 1,
+        0.85544801080361, 0.95038714550945,
+        0.97988323932245, 0.99990820120471,
+        0.96605703693157, 0.99120241208292,
+        0.99988839329428, 1,
+        0.99970075726786, 0.99997011275966,
+        0.9999947086834,  1,
+        0.99999870429029, 0.99999804065813,
+    };
+    static double const expected_eloss_frac[] = {
+        8.2002020365679e-07, 0,
+        6.4837480222291e-07, 2.4289324039167e-06,
+        1.7894823539644e-08, 0,
+        2.4082365740474e-08, 6.274270297757e-09,
+        5.9856643114253e-09, 0,
+        1.0831260888189e-08, 2.2206798760971e-09,
+        1.1709332115029e-09, 0,
+        1.486472611667e-10,  4.0560669961609e-09,
+        3.2048644954541e-07, 0,
+        2.5448615737084e-06, 8.7344959999458e-07,
+        3.8504783446414e-07, 1.757091264154e-09,
+        6.4968962240619e-07, 1.68391692007e-07,
+        3.8497832838269e-09, 0,
+        1.0322136173579e-08, 1.0309362669103e-09,
+        9.94922755293e-10,   0,
+        2.4363147610451e-10, 3.6841378558972e-10,
+    };
     EXPECT_VEC_SOFT_EQ(expected_cos_theta, cos_theta);
-    EXPECT_VEC_SOFT_EQ(expected_delta_energy, delta_energy);
+    EXPECT_VEC_SOFT_EQ(expected_eloss_frac, eloss_frac);
 }
 
 TEST_F(CoulombScatteringTest, distribution)
 {
+    auto wentzel = this->make_wentzel_params();
+
     auto const material = this->material_track().make_material_view();
     IsotopeView const isotope
         = material.make_element_view(elcomp_id_).make_isotope_view(isocomp_id_);
@@ -478,10 +511,10 @@ TEST_F(CoulombScatteringTest, distribution)
             WentzelHelper helper(this->particle_track(),
                                  material,
                                  isotope.atomic_number(),
-                                 wentzel_->host_ref(),
+                                 wentzel->host_ref(),
                                  model_->host_ref().ids,
                                  cutoff);
-            WentzelDistribution sample_angle(wentzel_->host_ref(),
+            WentzelDistribution sample_angle(wentzel->host_ref(),
                                              helper,
                                              this->particle_track(),
                                              isotope,
