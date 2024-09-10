@@ -170,13 +170,13 @@ real_type WentzelOKVIParams::calc_nuclear_form_prefactor(IsotopeView const& iso)
     constexpr real_type ratio
         = 1
           / native_value_to<units::MevMomentumSq>(
-                12
-                * ipow<2>(constants::hbar_planck
-                          / (real_type(1.27) * units::femtometer)))
+                *ipow<2>(constants::hbar_planck
+                         / (real_type(1) * units::femtometer)))
                 .value();
-    return ratio
-           * fastpow(real_type(iso.atomic_mass_number().get()),
-                     2 * real_type(0.27));
+    real_type radius_fm
+        = fastpow(real_type(iso.atomic_mass_number().get()), real_type(0.27));
+
+    return ratio * ipow<2>(radius_fm) / 12;
 }
 
 //---------------------------------------------------------------------------//

@@ -32,16 +32,17 @@ namespace celeritas
  * the relative cross sections. Electron scattering angle imposes a maximum
  * scattering angle (see WentzelHelper::cos_thetamax_electron), and nuclear
  * sattering rejects an angular change based on the Mott cross section (see
- * MottRatioCalculator).
+ * MottRatioCalculator). Nuclear scattering depends on the electronic and
+ * nuclear cross sections (calculated by \c WentzelHelper) and nuclear form
+ * factors (see \c ExpNuclearFormFactor, \c GaussianNuclearFormFactor, and \c
+ * UUNuclearFormFactor ) that describe an approximate spatial charge
+ * distribution of the nucleus.
  *
  * References:
  * [Fern] J.M. Fernandez-Varea, R. Mayol and F. Salvat. On the theory
  *        and simulation of multiple elastic scattering of electrons. Nucl.
  *        Instrum. and Method. in Phys. Research B, 73:447-473, Apr 1993.
  *        doi:10.1016/0168-583X(93)95827-R
- * [LR15] C. Leroy and P.G. Rancoita. Principles of Radiation Interaction in
- *        Matter and Detection. World Scientific (Singapore), 4rd edition,
- *        2015.
  * [PRM]  Geant4 Physics Reference Manual (Release 11.1) sections 8.2 and 8.5
  */
 class WentzelDistribution
@@ -94,6 +95,10 @@ class WentzelDistribution
     // Cosine of the maximum scattering angle
     real_type cos_thetamax_;
 
+    //// TYPES ////
+
+    using InvMomSq = Quantity<UnitInverse<units::MevMomentumSq::unit_type>>;
+
     //// HELPER FUNCTIONS ////
 
     // Calculates the form factor from the scattered polar angle
@@ -106,7 +111,7 @@ class WentzelDistribution
     inline CELER_FUNCTION real_type mom_transfer_sq(real_type cos_t) const;
 
     // Momentum prefactor used in exponential and gaussian form factors
-    inline CELER_FUNCTION real_type nuclear_form_prefactor() const;
+    inline CELER_FUNCTION InvMomSq nuclear_form_prefactor() const;
 
     // Sample the scattered polar angle
     template<class Engine>
@@ -194,16 +199,43 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
 /*!
  * Calculate the form factor based on the form factor model.
  *
- * The models are described in [LR15] section 2.4.2.1 and parameterize the
+ * The models are described in [LR16] section 2.4.2.1 and parameterize the
  * charge distribution inside a nucleus. The same models are used as in
  * Geant4, and are:
- *      Exponential: [LR15] eqn 2.262
- *      Gaussian: [LR15] eqn 2.264
- *      Flat (uniform-uniform folded): [LR15] 2.265
+ *      Exponential: [LR16] eqn 2.262
+ *      Gaussian: [LR16] eqn 2.264
+ *      Flat (uniform-uniform folded): [LR16] 2.265
  */
 CELER_FUNCTION real_type
 WentzelDistribution::calculate_form_factor(real_type cos_t) const
 {
+    CELER_EXPECT(cos_theta >= -1 && cos_theta <= 1);
+
+    using MomSq = NuclearFormFactorTraits::MomentumSq;
+
+    if (wentzel_.params.form_factor_type == NuclearFormFactorType::none)
+    {
+        return 1;
+    }
+
+    // Approximate squared momentum transfer to the target (assuming heavy
+    // target and light projectile)
+    auto mt_sq
+        = MomSq{2 * value_as<MomSq>(particle_.momentum_sq()) * (1 - cos_t)};
+
+    switch (wentzel_.params.form_factor_type)
+    {
+        case NuclearFormFactorType::flat:
+            return UUNuclearFormFactor{target_.atomic_mass_number()}(mt_sq);
+        case NuclearFormFactorType::exponential:
+            return ExpNuclearFormFactor{this->nuclear_form_prefactor()}(mt_sq);
+        case NuclearFormFactorType::gaussian:
+            return GaussianNuclearFormFactor{this->nuclear_form_prefactor()}(
+                mt_sq);
+        default:
+            CELER_ASSERT_UNREACHABLE();
+    }
+
     real_type mt_sq = this->mom_transfer_sq(cos_t);
     switch (wentzel_.params.form_factor_type)
     {
@@ -211,10 +243,9 @@ WentzelDistribution::calculate_form_factor(real_type cos_t) const
             return 1;
         case NuclearFormFactorType::flat: {
             real_type x1 = this->flat_coeff() * std::sqrt(mt_sq);
-            real_type x0
-                = real_type{0.6} * x1
-                  * fastpow(real_type(target_.atomic_mass_number().get()),
-                            real_type{1} / 3);
+            real_type x0 = real_type{0.6} * x1
+                           * fastpow(value_as<Mass>(target_.nuclear_mass()),
+                                     real_type{1} / 3);
             return this->flat_form_factor(x0) * this->flat_form_factor(x1);
         }
         case NuclearFormFactorType::exponential:
@@ -230,7 +261,7 @@ WentzelDistribution::calculate_form_factor(real_type cos_t) const
 /*!
  * Calculate the flat form factor.
  *
- * See [LR15] eqn 2.265.
+ * See [LR16] eqn 2.265.
  */
 CELER_FUNCTION real_type WentzelDistribution::flat_form_factor(real_type x)
 {
@@ -242,43 +273,31 @@ CELER_FUNCTION real_type WentzelDistribution::flat_form_factor(real_type x)
  * Momentum coefficient used in the flat model for the nuclear form factors.
  *
  * This is the ratio of \f$ r_1 / \hbar \f$ where \f$ r_1 \f$ is defined in
- * eqn 2.265 of [LR15].
+ * eqn 2.265 of [LR16].
  */
 CELER_CONSTEXPR_FUNCTION real_type WentzelDistribution::flat_coeff()
 {
-    return 1
-           / native_value_to<units::MevMomentum>(constants::hbar_planck
-                                                 / (2 * units::femtometer))
-                 .value();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate the squared momentum transfer to the target for the given
- * deflection angle \f$\cos\theta\f$ of the incident particle.
- *
- * This is an approximation for small recoil energies.
- */
-CELER_FUNCTION real_type WentzelDistribution::mom_transfer_sq(real_type cos_t) const
-{
-    return 2 * value_as<MomentumSq>(particle_.momentum_sq()) * (1 - cos_t);
+    return native_value_to<units::MevMomentum>(2 * units::femtometer
+                                               / constants::hbar_planck)
+        .value();
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Get the constant prefactor of the squared momentum transfer.
  */
-CELER_FUNCTION real_type WentzelDistribution::nuclear_form_prefactor() const
+CELER_FUNCTION auto
+WentzelDistribution::nuclear_form_prefactor() const -> InvMomSq
 {
     CELER_EXPECT(target_.isotope_id() < wentzel_.nuclear_form_prefactor.size());
-    return wentzel_.nuclear_form_prefactor[target_.isotope_id()];
+    return InvMomSq{wentzel_.nuclear_form_prefactor[target_.isotope_id()]};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Sample the scattering polar angle of the incident particle.
  *
- * The probability is given in [Fern] eqn 88 and is nomalized on the interval
+ * The probability is given in [Fern] eqn 88 and is normalized on the interval
  * \f$ cos\theta \in [\cos\theta_{min}, \cos\theta_{max}] \f$. The sampling
  * function for \f$ \mu = \frac{1}{2}(1 - \cos\theta) \f$ is
  * \f[
