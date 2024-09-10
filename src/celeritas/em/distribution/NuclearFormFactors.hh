@@ -130,6 +130,10 @@ class GaussianNuclearFormFactor : public ExpNuclearFormFactor
  * \f]
  * is the form factor for a uniformly charged sphere.
  *
+ * \warning This form factor suffers from catastrophic numerical cancellation
+ * for small radii and momenta so should only be used for large nuclei or large
+ * momentum transfers.
+ *
  * [LR16] C. Leroy and P.G. Rancoita. Principles of Radiation Interaction in
  *        Matter and Detection. World Scientific (Singapore), 4th edition,
  *        2016.

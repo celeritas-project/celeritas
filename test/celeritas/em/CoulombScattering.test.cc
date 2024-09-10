@@ -403,7 +403,7 @@ TEST_F(CoulombScatteringTest, simple_scattering)
 
     for (auto particle : {pdg::electron(), pdg::positron()})
     {
-        for (auto energy : {0.05, 0.1, 0.5, 1.0, 10.0})
+        for (real_type energy : {0.05, 0.1, 0.5, 1.0, 10.0})
         {
             this->set_inc_particle(particle, MevEnergy{energy});
             for (auto i : range(all_wentzel.size()))
