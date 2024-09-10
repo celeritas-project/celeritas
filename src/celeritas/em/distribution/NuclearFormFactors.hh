@@ -121,7 +121,7 @@ class GaussianNuclearFormFactor : public ExpNuclearFormFactor
  * charge at the surface. This leads to a form factor: \f[
  * F(q) = F'(x(R_0, q)) F'(x(R_1, q))
  * \f]
- * where \f$ x \equiv q R / \bar h \f$ uses the effective nuclear radius \f$
+ * where \f$ x \equiv q R / \hbar \f$ uses the effective nuclear radius \f$
  * R_0 = 1.2 A^{1/3} \,\mathrm{fm} \f$ and nuclear surface skin \f$  R_1 = 2.0
  * \,\mathrm{fm} \f$,
  * and
