@@ -117,8 +117,10 @@ celeritas_add_test(Units.test.cc)
 
 #-----------------------------------------------------------------------------#
 # EM
-celeritas_add_test(em/Fluctuation.test.cc ${_fixme_single})
-celeritas_add_test(em/TsaiUrbanDistribution.test.cc ${_needs_double})
+
+# Distributions
+celeritas_add_test(em/distribution/EnergyLossHelper.test.cc ${_fixme_single})
+celeritas_add_test(em/distribution/TsaiUrbanDistribution.test.cc ${_needs_double})
 
 # Models
 celeritas_add_test(em/BetheHeitler.test.cc ${_needs_double})
