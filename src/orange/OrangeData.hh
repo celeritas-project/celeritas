@@ -73,6 +73,7 @@ struct VolumeRecord
     logic_int max_intersections{0};
     logic_int flags{0};
     DaughterId daughter_id;
+    OrientedBoundingZoneId obz_id;
 
     //! \todo For KENO geometry we will need zorder
 
@@ -143,8 +144,20 @@ struct OrientedBoundingZoneRecord
     using Real3 = Array<fast_real_type, 3>;
     using Real3Id = OpaqueId<Real3>;
 
+    //! Half-widths of the inner box
     Real3Id inner_hw_id;
+
+    //! Half-widths of the outer box
     Real3Id outer_hw_id;
+
+    //! Offset from to center of inner box to center of OBZ coordinate system
+    TransformId inner_offset_id;
+
+    //! Offset from to center of outer box to center of OBZ coordinate system
+    TransformId outer_offset_id;
+
+    // Transformation from the OBZ coordinate system to the global coordinate
+    // system
     TransformId transform_id;
 
     //! True if assigned
@@ -368,10 +381,12 @@ struct OrangeParamsData
     Items<RealId> real_ids;
     Items<logic_int> logic_ints;
     Items<real_type> reals;
+    Items<FastReal3> fast_real3s;
     Items<SurfaceType> surface_types;
     Items<ConnectivityRecord> connectivity_records;
     Items<VolumeRecord> volume_records;
     Items<Daughter> daughters;
+    Items<OrientedBoundingZoneRecord> obz_records;
 
     UniverseIndexerData<W, M> universe_indexer_data;
 
@@ -408,6 +423,7 @@ struct OrangeParamsData
         real_ids = other.real_ids;
         logic_ints = other.logic_ints;
         reals = other.reals;
+        fast_real3s = other.fast_real3s;
         surface_types = other.surface_types;
         connectivity_records = other.connectivity_records;
         volume_records = other.volume_records;
