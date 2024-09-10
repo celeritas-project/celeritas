@@ -76,12 +76,9 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
         actions.insert(scint_action_);
     }
 
-    // TODO: get from input
-    size_type auto_flush = 2 << 19;
-
     if (setup.cerenkov)
     {
-        // Action to generate Cerenkov optical distributions
+        // Action to generate Cerenkov primaries
         cerenkov_gen_action_
             = std::make_shared<detail::CerenkovGeneratorAction>(
                 actions.next_id(),
@@ -89,15 +86,15 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
                 // TODO: Hack: generator action must be before launch action
                 // but needs optical state aux ID
                 core.aux_reg()->next_id(),
-                auto_flush,
                 inp.material,
-                std::move(inp.cerenkov));
+                std::move(inp.cerenkov),
+                inp.auto_flush);
         actions.insert(cerenkov_gen_action_);
     }
 
     // Create launch action with optical params+state and access to gen data
     launch_action_ = detail::OpticalLaunchAction::make_and_insert(
-        core, inp.material, offload_params_);
+        core, inp.material, offload_params_, inp.primary_capacity);
 
     // Launch action must be *after* offload and generator actions
     CELER_ENSURE(!cerenkov_action_
@@ -117,6 +114,15 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
 AuxId OpticalCollector::offload_aux_id() const
 {
     return offload_params_->aux_id();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Aux ID for optical core state data.
+ */
+AuxId OpticalCollector::optical_aux_id() const
+{
+    return launch_action_->aux_id();
 }
 
 //---------------------------------------------------------------------------//

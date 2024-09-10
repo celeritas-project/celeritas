@@ -44,8 +44,7 @@ void CerenkovGeneratorAction::generate(CoreParams const& core_params,
                                           cerenkov_->device_ref(),
                                           offload_state.store.ref(),
                                           optical_state.ptr(),
-                                          offload_state.buffer_size,
-                                          optical_state.counters()}};
+                                          offload_state.buffer_size}};
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(core_state, execute);
 }

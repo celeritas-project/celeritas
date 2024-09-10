@@ -31,7 +31,8 @@ namespace detail
 std::shared_ptr<OpticalLaunchAction>
 OpticalLaunchAction::make_and_insert(CoreParams const& core,
                                      SPConstMaterial material,
-                                     SPOffloadParams offload)
+                                     SPOffloadParams offload,
+                                     size_type primary_capacity)
 {
     CELER_EXPECT(material);
     CELER_EXPECT(offload);
@@ -41,7 +42,8 @@ OpticalLaunchAction::make_and_insert(CoreParams const& core,
                                                         aux.next_id(),
                                                         core,
                                                         std::move(material),
-                                                        std::move(offload));
+                                                        std::move(offload),
+                                                        primary_capacity);
 
     actions.insert(result);
     aux.insert(result);
@@ -56,13 +58,15 @@ OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
                                          AuxId data_id,
                                          CoreParams const& core,
                                          SPConstMaterial material,
-                                         SPOffloadParams offload)
+                                         SPOffloadParams offload,
+                                         size_type primary_capacity)
     : action_id_{action_id}
     , aux_id_{data_id}
     , offload_params_{std::move(offload)}
 {
     CELER_EXPECT(material);
     CELER_EXPECT(offload_params_);
+    CELER_EXPECT(primary_capacity > 0);
 
     // Create optical core params
     optical_params_ = std::make_shared<optical::CoreParams>([&] {
@@ -72,9 +76,7 @@ OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
         // TODO: unique RNG streams for optical loop
         inp.rng = core.rng();
         inp.sim = std::make_shared<SimParams>();
-        // TODO: get capacity from input
-        inp.init = std::make_shared<optical::TrackInitParams>(
-            core.init()->host_ref().capacity);
+        inp.init = std::make_shared<optical::TrackInitParams>(primary_capacity);
         inp.action_reg = std::make_shared<ActionRegistry>();
         inp.max_streams = core.max_streams();
         CELER_ENSURE(inp);

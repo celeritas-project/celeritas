@@ -29,6 +29,11 @@ class OffloadParams;
 //---------------------------------------------------------------------------//
 /*!
  * Generate Cerenkov photons from optical distribution data.
+ *
+ * This samples and buffers new optical primaries in a reproducible way. Rather
+ * than let each thread generate all primaries from one distribution, the work
+ * is split as evenly as possible among threads: multiple threads may generate
+ * primaries from a single distribution.
  */
 class CerenkovGeneratorAction final : public CoreStepActionInterface
 {
@@ -47,9 +52,9 @@ class CerenkovGeneratorAction final : public CoreStepActionInterface
     CerenkovGeneratorAction(ActionId id,
                             AuxId offload_id,
                             AuxId optical_id,
-                            size_type auto_flush,
                             SPConstMaterial material,
-                            SPConstCerenkov cerenkov);
+                            SPConstCerenkov cerenkov,
+                            size_type auto_flush);
 
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;
@@ -78,9 +83,9 @@ class CerenkovGeneratorAction final : public CoreStepActionInterface
     ActionId id_;
     AuxId offload_id_;
     AuxId optical_id_;
-    size_type auto_flush_;
     SPConstMaterial material_;
     SPConstCerenkov cerenkov_;
+    size_type auto_flush_;
 
     //// HELPER FUNCTIONS ////
 

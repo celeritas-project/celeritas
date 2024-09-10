@@ -129,7 +129,7 @@ struct OffloadStateData
     Items<optical::GeneratorDistributionData> cerenkov;
     Items<optical::GeneratorDistributionData> scintillation;
 
-    // Starting indices in primary buffer for threads to store new primaries
+    // Determines which distribution a thread will generate a primary from
     Items<size_type> offsets;
 
     //// METHODS ////
@@ -180,7 +180,7 @@ void resize(OffloadStateData<Ownership::value, M>* state,
     {
         resize(&state->scintillation, setup.capacity);
     }
-    resize(&state->offsets, setup.capacity + 1);
+    resize(&state->offsets, setup.capacity);
 
     CELER_ENSURE(*state);
 }

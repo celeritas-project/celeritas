@@ -14,6 +14,8 @@
 #include "celeritas/optical/CerenkovGenerator.hh"
 #include "celeritas/optical/OffloadData.hh"
 
+#include "OpticalUtils.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -26,21 +28,14 @@ namespace detail
  */
 struct CerenkovGeneratorExecutor
 {
-    //// TYPES ////
-
-    using ParamsPtr = CRefPtr<CoreParamsData, MemSpace::native>;
-    using StatePtr = RefPtr<CoreStateData, MemSpace::native>;
-
     //// DATA ////
 
-    StatePtr state;
-    // TODO: get material from optical params?
+    RefPtr<CoreStateData, MemSpace::native> state;
     NativeCRef<celeritas::optical::MaterialParamsData> const material;
     NativeCRef<celeritas::optical::CerenkovData> const cerenkov;
     NativeRef<OffloadStateData> const offload_state;
     RefPtr<celeritas::optical::CoreStateData, MemSpace::native> optical_state;
     OffloadBufferSize size;
-    celeritas::optical::CoreStateCounters counters;
 
     //// FUNCTIONS ////
 
@@ -67,31 +62,37 @@ CerenkovGeneratorExecutor::operator()(CoreTrackView const& track) const
     using DistId = ItemId<celeritas::optical::GeneratorDistributionData>;
     using PrimaryId = ItemId<celeritas::optical::Primary>;
 
-    // Threads may generate primaries from more than one distribution
-    size_type dist_per_thread = ceil_div(size.cerenkov, state->size());
-    for (auto i : range(dist_per_thread))
-    {
-        size_type dist_idx = i * state->size() + track.thread_id().get();
-        if (dist_idx >= size.cerenkov)
-            continue;
+    // Get the cumulative sum of the number of photons in the distributions.
+    // Each bin gives the range of thread IDs that will generate from the
+    // corresponding distribution
+    auto offsets = offload_state.offsets[ItemRange<size_type>(
+        ItemId<size_type>(0), ItemId<size_type>(size.cerenkov))];
 
+    // Get the total number of primaries to generate
+    size_type total_work = offsets.back();
+
+    // Calculate the number of primaries for the thread to generate
+    size_type local_work
+        = calc_local_work(track.thread_id(), state->size(), total_work);
+
+    auto rng = track.make_rng_engine();
+
+    for (auto i : range(local_work))
+    {
+        // Calculate the index in the primary buffer this thread will write to
+        size_type primary_idx = i * state->size() + track.thread_id().get();
+        CELER_ASSERT(primary_idx < optical_state->init.primaries.size());
+
+        // Find the distribution this thread will generate from
+        size_type dist_idx = find_distribution_index(offsets, primary_idx);
+        CELER_ASSERT(dist_idx < size.cerenkov);
         auto const& dist = offload_state.cerenkov[DistId(dist_idx)];
         CELER_ASSERT(dist);
 
-        // Get the offset in the primary buffer to start generating photons
-        CELER_ASSERT(dist_idx < offload_state.offsets.size());
-        auto start = counters.num_primaries
-                     + offload_state.offsets[ItemId<size_type>(dist_idx)];
-
+        // Generate one primary from the distribution
         optical::MaterialView opt_mat{material, dist.material};
-        auto rng = track.make_rng_engine();
-
         celeritas::optical::CerenkovGenerator generate(opt_mat, cerenkov, dist);
-        for (auto pid : range(PrimaryId(start), PrimaryId(dist.num_photons)))
-        {
-            CELER_ASSERT(pid < optical_state->init.primaries.size());
-            optical_state->init.primaries[pid] = generate(rng);
-        }
+        optical_state->init.primaries[PrimaryId(primary_idx)] = generate(rng);
     }
 }
 

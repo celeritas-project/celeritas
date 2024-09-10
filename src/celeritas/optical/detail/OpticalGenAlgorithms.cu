@@ -85,11 +85,11 @@ count_num_photons(GeneratorDistributionRef<MemSpace::device> const& buffer,
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the exclusive prefix sum of the number of optical primaries.
+ * Calculate the inclusive prefix sum of the number of optical primaries.
  *
  * \return Total accumulated value
  */
-size_type exclusive_scan_primaries(
+size_type inclusive_scan_primaries(
     GeneratorDistributionRef<MemSpace::device> const& buffer,
     Collection<size_type, Ownership::reference, MemSpace::device> const& offsets,
     size_type size,
@@ -97,18 +97,16 @@ size_type exclusive_scan_primaries(
 {
     CELER_EXPECT(!buffer.empty());
     CELER_EXPECT(size > 0 && size <= buffer.size());
-    CELER_EXPECT(offsets.size() == buffer.size() + 1);
+    CELER_EXPECT(offsets.size() == buffer.size());
 
-    ScopedProfiling profile_this{"exclusive-scan-primaries"};
+    ScopedProfiling profile_this{"inclusive-scan-primaries"};
     auto data = thrust::device_pointer_cast(buffer.data().get());
     auto result = thrust::device_pointer_cast(offsets.data().get());
-    auto stop = thrust::transform_exclusive_scan(thrust_execute_on(stream),
+    auto stop = thrust::transform_inclusive_scan(thrust_execute_on(stream),
                                                  data,
-                                                 // Bad, fix me
-                                                 data + size + 1,
+                                                 data + size,
                                                  result,
                                                  GetNumPhotons{},
-                                                 size_type(0),
                                                  thrust::plus<size_type>());
     CELER_DEVICE_CHECK_ERROR();
 

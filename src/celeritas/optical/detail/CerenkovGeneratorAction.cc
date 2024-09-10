@@ -36,22 +36,22 @@ namespace detail
 CerenkovGeneratorAction::CerenkovGeneratorAction(ActionId id,
                                                  AuxId offload_id,
                                                  AuxId optical_id,
-                                                 size_type auto_flush,
                                                  SPConstMaterial material,
-                                                 SPConstCerenkov cerenkov)
+                                                 SPConstCerenkov cerenkov,
+                                                 size_type auto_flush)
     : id_(id)
     , offload_id_{offload_id}
     , optical_id_{optical_id}
-    , auto_flush_(auto_flush)
     , material_(std::move(material))
     , cerenkov_(std::move(cerenkov))
+    , auto_flush_(auto_flush)
 {
     CELER_EXPECT(id_);
-    CELER_EXPECT(auto_flush_ > 0);
     CELER_EXPECT(offload_id_);
     CELER_EXPECT(optical_id_);
     CELER_EXPECT(cerenkov_);
     CELER_EXPECT(material_);
+    CELER_EXPECT(auto_flush_ > 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -111,10 +111,12 @@ void CerenkovGeneratorAction::step_impl(CoreParams const& core_params,
 
     auto& offload = offload_state.store.ref();
     auto& buffer_size = offload_state.buffer_size.cerenkov;
+    CELER_ASSERT(buffer_size > 0);
 
-    // Calculate the starting indices in the primary buffer for each thread to
-    // generate optical photons
-    auto count = exclusive_scan_primaries(
+    // Calculate the cumulative sum of the number of photons in the buffered
+    // distributions. These values are used to determine which thread will
+    // generate primaries from which distribution
+    auto count = inclusive_scan_primaries(
         offload.cerenkov, offload.offsets, buffer_size, core_state.stream_id());
 
     // Generate the optical primaries from the distribution data
@@ -145,8 +147,7 @@ void CerenkovGeneratorAction::generate(CoreParams const& core_params,
                                           cerenkov_->host_ref(),
                                           offload_state.store.ref(),
                                           optical_state.ptr(),
-                                          offload_state.buffer_size,
-                                          optical_state.counters()}};
+                                          offload_state.buffer_size}};
     launch_action(*this, core_params, core_state, execute);
 }
 

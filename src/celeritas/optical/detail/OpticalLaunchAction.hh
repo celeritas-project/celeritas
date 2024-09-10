@@ -54,14 +54,16 @@ class OpticalLaunchAction : public AuxParamsInterface,
     static std::shared_ptr<OpticalLaunchAction>
     make_and_insert(CoreParams const& core,
                     SPConstMaterial material,
-                    SPOffloadParams offload);
+                    SPOffloadParams offload,
+                    size_type primary_capacity);
 
     // Construct with IDs, core for copying params, offload gen data
     OpticalLaunchAction(ActionId id,
                         AuxId data_id,
                         CoreParams const& core,
                         SPConstMaterial material,
-                        SPOffloadParams offload);
+                        SPOffloadParams offload,
+                        size_type primary_capacity);
 
     //!@{
     //! \name Aux/action metadata interface
