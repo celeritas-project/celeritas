@@ -30,6 +30,21 @@ using ParticleScintSpectrumId = OpaqueId<struct ParScintSpectrumRecord>;
  */
 namespace optical
 {
+
+using ModelId = OpaqueId<class Model>;
+
+enum class ImportModelClass
+{
+    other,
+    // Optical
+    absorption,
+    rayleigh,
+    wls,
+    //
+    size_
+};
+
+char const* to_cstring(ImportModelClass imc);
 }
 
 //---------------------------------------------------------------------------//
