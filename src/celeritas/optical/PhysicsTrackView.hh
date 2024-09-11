@@ -7,6 +7,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
+#include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/grid/GenericCalculator.hh"
+
+#include "PhysicsData.hh"
+
 namespace celeritas
 {
 namespace optical
@@ -26,30 +35,66 @@ class PhysicsTrackView
     //!@{
     //! \name Type aliases
     using PhysicsParamsRef = NativeCRef<PhysicsParamsData>;
+    using PhysicsStateRef = NativeRef<PhysicsStateData>;
+    using Initializer_t = PhysicsTrackInitializer;
+    using Energy = units::MevEnergy;
     //!@}
 
   public:
+    // Construct from params, state, and material ID for the given track
     inline CELER_FUNCTION PhysicsTrackView(PhysicsParamsRef const& params,
                                            PhysicsStateRef const& states,
                                            OpticalMaterialId opt_material,
                                            TrackSlotId tid);
 
-    CELER_FORCEINLINE_FUNCTION OpticalMaterialId optical_material_id() const
-    {
-        return opt_material_;
-    }
+    //// MUTATORS ////
 
-    CELER_FORCEINLINE_FUNCTION PhysicsParamsScalars const& scalars() const
-    {
-        return params_.scalars;
-    }
+    // Initialize the view
+    CELER_FORCEINLINE_FUNCTION PhysicsTrackView&
+    operator=(Initializer_t const&);
 
-    CELER_FORCEINLINE_FUNCTION size_type num_optical_models() const
-    {
-        return params_.model_tables.size();
-    }
+    // Set the remaining interaction MFP distance
+    inline CELER_FUNCTION void interaction_mfp(real_type);
 
-    inline CELER_FUNCTION ValueGridId mfp_grid(OpticalModelId) const;
+    // Unassign the remaining interaction MFP distance
+    inline CELER_FUNCTION void reset_interaction_mfp();
+
+    //// FREE ACCESSORS ////
+
+    // Whether the remaining interaction MFP has been calculated
+    CELER_FORCEINLINE_FUNCTION bool has_interaction_mfp() const;
+
+    // Remaining interaction MFP distance
+    CELER_FORCEINLINE_FUNCTION real_type interaction_mfp() const;
+
+    // Current material ID
+    CELER_FORCEINLINE_FUNCTION OpticalMaterialId optical_material_id() const;
+
+    // Number of active optical models
+    CELER_FORCEINLINE_FUNCTION size_type num_optical_models() const;
+
+    //// CALCULATORS ////
+
+    // Calculate the macroscopic cross section for the given model and energy
+    inline CELER_FUNCTION real_type calc_xs(ModelId, Energy) const;
+
+    // Retrieve the energy grid ID for the given model
+    inline CELER_FUNCTION ValueGridId mfp_grid(ModelId) const;
+
+    // Construct a calculator for the given grid ID
+    template<class Calc>
+    inline CELER_FUNCTION Calc make_calculator(ValueGridId id) const;
+
+    //// PARAMETER DATA ////
+
+    // Map an action ID to a model ID
+    inline CELER_FUNCTION ModelId action_to_model(ActionId) const;
+
+    // Map a model ID to an action ID
+    inline CELER_FUNCTION ActionId model_to_action(ModelId) const;
+
+    // Physics scalar parameters
+    CELER_FORCEINLINE_FUNCTION PhysicsParamsScalars const& scalars() const;
 
   private:
     PhysicsParamsRef const& params_;
@@ -82,12 +127,106 @@ PhysicsTrackView::PhysicsTrackView(PhysicsParamsRef const& params,
     CELER_EXPECT(track_slot_);
 }
 
-CELER_FUNCTION auto PhysicsTrackView::mfp_grid(OpticalModelId mid) const
-    -> ValueGridId
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize the track view.
+ */
+CELER_FUNCTION PhysicsTrackView&
+PhysicsTrackView::operator=(Initializer_t const&)
+{
+    this->state().interaction_mfp = 0;
+    return *this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set the remaining interaction MFP distance.
+ *
+ * This value is decremented every step the photon moves.
+ */
+CELER_FUNCTION void PhysicsTrackView::interaction_mfp(real_type mfp)
+{
+    CELER_EXPECT(mfp > 0);
+    this->state().interaction_mfp = mfp;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reset the remaining interaction MFP distance.
+ *
+ * This value is decremented every step the photon moves.
+ */
+CELER_FUNCTION void PhysicsTrackView::reset_interaction_mfp()
+{
+    this->state().interaction_mfp = 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the remaining interaction MFP distance has been calculated.
+ */
+CELER_FUNCTION bool PhysicsTrackView::has_interaction_mfp() const
+{
+    return this->state().interaction_mfp > 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * The remaining interaction MFP distance.
+ */
+CELER_FUNCTION real_type PhysicsTrackView::interaction_mfp() const
+{
+    return this->state().interaction_mfp;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * The current optical material identifier.
+ */
+CELER_FUNCTION OpticalMaterialId PhysicsTrackView::optical_material_id() const
+{
+    return opt_material_;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * The number of active optical models.
+ */
+CELER_FUNCTION size_type PhysicsTrackView::num_optical_models() const
+{
+    return params_.scalars.num_models;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the macroscopic cross section for the given model and energy.
+ */
+CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ModelId mid,
+                                                   Energy energy) const
+{
+    real_type result = 0;
+
+    if (auto grid_id = this->mfp_grid(mid))
+    {
+        // TODO: this isn't the correct calculator for the XS!
+        auto calc = this->make_calculator<GenericCalculator>(grid_id);
+        result = calc(value_as<Energy>(energy));
+    }
+
+    CELER_ENSURE(result >= 0);
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Retrieve the MFP grid identifier for the given model in the current
+ * material.
+ */
+CELER_FUNCTION auto PhysicsTrackView::mfp_grid(ModelId mid) const -> ValueGridId
 {
     CELER_EXPECT(mid < this->num_optical_models());
 
-    ValueTableId table_id = params_.models[mid.get()].mfp_table;
+    auto table_id = params_.model_tables[mid].mfp_table;
     CELER_ASSERT(table_id);
 
     ValueTable const& table = params_.tables[table_id];
@@ -103,18 +242,66 @@ CELER_FUNCTION auto PhysicsTrackView::mfp_grid(OpticalModelId mid) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Construct a calculator for the given grid identifier.
+ */
+template<class Calc>
+CELER_FUNCTION Calc PhysicsTrackView::make_calculator(ValueGridId id) const
+{
+    CELER_ASSERT(id < params_.grids.size());
+    return Calc{params_.grids[id], params_.reals};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Map a model ID to an action ID.
+ */
+CELER_FUNCTION ModelId PhysicsTrackView::action_to_model(ActionId aid) const
+{
+    if (!aid)
+        return ModelId{};
+
+    // Rely on unsigned rollover if action ID is less than the first model
+    ModelId::size_type result = aid.unchecked_get()
+                                - this->scalars().model_to_action;
+    if (result >= this->num_optical_models())
+        return ModelId{};
+
+    return ModelId{result};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Map a model ID to an action ID.
+ */
+CELER_FUNCTION ActionId PhysicsTrackView::model_to_action(ModelId mid) const
+{
+    CELER_ASSERT(mid < this->num_optical_models());
+    return ActionId{mid.unchecked_get() + this->scalars().model_to_action};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Retrieve the physics scalar parameters.
+ */
+CELER_FUNCTION PhysicsParamsScalars const& PhysicsTrackView::scalars() const
+{
+    return params_.scalars;
+}
+
+//---------------------------------------------------------------------------//
 // IMPLEMENTATION HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 //! Get the thread-local state (mutable)
 CELER_FUNCTION PhysicsTrackState& PhysicsTrackView::state()
 {
-    return state_.state[track_slot_];
+    return states_.states[track_slot_];
 }
 
 //! Get the thread-local state (const)
 CELER_FUNCTION PhysicsTrackState const& PhysicsTrackView::state() const
 {
-    return state_.state[track_slot_];
+    return states_.states[track_slot_];
 }
 
 //---------------------------------------------------------------------------//

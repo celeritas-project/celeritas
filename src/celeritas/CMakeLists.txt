@@ -71,6 +71,7 @@ list(APPEND SOURCES
   neutron/model/CascadeOptionsIO.json.cc
   neutron/process/NeutronElasticProcess.cc
   neutron/process/NeutronInelasticProcess.cc
+  optical/dummy.cc
   optical/CerenkovParams.cc
   optical/CoreParams.cc
   optical/CoreState.cc

@@ -92,7 +92,7 @@ struct PhysicsParamsData
     template<class T>
     using Items = Collection<T, W, M>;
     template<class T>
-    using OpticalMaterialItems = Collection<T, W, M, OpticalMaterialId>;
+    using ModelItems = Collection<T, W, M, ModelId>;
     //!@}
 
     //// MEMBER DATA ////
@@ -100,7 +100,7 @@ struct PhysicsParamsData
     Items<ValueGrid> grids;
     Items<ValueGridId> grid_ids;
     Items<ValueTable> tables;
-    Items<ModelTables> model_tables;
+    ModelItems<ModelTables> model_tables;
 
     // Backend data
     Items<real_type> reals;
@@ -144,6 +144,8 @@ struct PhysicsTrackState
     real_type interaction_mfp;
 
     // TEMPORARY STATE
+    real_type macro_xs;  //!< Total macroscopic cross section [len^-1]
+    real_type energy_deposition;  //!< local energy deposition in a step
 };
 
 //---------------------------------------------------------------------------//
@@ -171,22 +173,22 @@ struct PhysicsStateData
 
     //// DATA ////
 
-    StateItems<PhysicsTrackState> state;
+    StateItems<PhysicsTrackState> states;
 
     //// METHODS ////
 
     //! Whether all data are assigned and valid
-    explicit CELER_FUNCTION operator bool() const { return !state.empty(); }
+    explicit CELER_FUNCTION operator bool() const { return !states.empty(); }
 
     //! State size
-    CELER_FUNCTION size_type size() const { return state.size(); }
+    CELER_FUNCTION size_type size() const { return states.size(); }
 
     //! Assign from another set of states
     template<Ownership W2, MemSpace M2>
     PhysicsStateData<W, M>& operator=(PhysicsStateData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
-        state = other.state;
+        states = other.states;
         return *this;
     }
 };
@@ -201,7 +203,7 @@ inline void resize(PhysicsStateData<Ownership::value, M>* state, size_type size)
     CELER_ASSERT(state);
     CELER_EXPECT(size > 0);
 
-    resize(&state->state, size);
+    resize(&state->states, size);
 }
 
 //---------------------------------------------------------------------------//
