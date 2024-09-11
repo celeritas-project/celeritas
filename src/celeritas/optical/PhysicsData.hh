@@ -174,6 +174,7 @@ struct PhysicsStateData
     //// DATA ////
 
     StateItems<PhysicsTrackState> states;
+    Items<real_type> per_model_xs;  //!< XS [track][model]
 
     //// METHODS ////
 
@@ -185,10 +186,11 @@ struct PhysicsStateData
 
     //! Assign from another set of states
     template<Ownership W2, MemSpace M2>
-    PhysicsStateData<W, M>& operator=(PhysicsStateData<W2, M2> const& other)
+    PhysicsStateData<W, M>& operator=(PhysicsStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
         states = other.states;
+        per_model_xs = other.per_model_xs;
         return *this;
     }
 };
@@ -198,12 +200,15 @@ struct PhysicsStateData
  * Resize the state in host code.
  */
 template<MemSpace M>
-inline void resize(PhysicsStateData<Ownership::value, M>* state, size_type size)
+inline void resize(PhysicsStateData<Ownership::value, M>* state,
+                   HostCRef<PhysicsParamsData> const& params,
+                   size_type size)
 {
     CELER_ASSERT(state);
     CELER_EXPECT(size > 0);
 
     resize(&state->states, size);
+    resize(&state->per_model_xs, params.scalars.num_models * size);
 }
 
 //---------------------------------------------------------------------------//

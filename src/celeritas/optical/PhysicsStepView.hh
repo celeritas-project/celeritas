@@ -47,9 +47,9 @@ class PhysicsStepView
     // Total macroscopic xs [len^-1]
     inline CELER_FUNCTION real_type macro_xs() const;
 
-    // // Access per model scratch space for calculating cross sections
-    // inline CELER_FUNCTION real_type& per_model_xs(ModelId);
-    // inline CELER_FUNCTION real_type per_model_xs(ModelId) const;
+    // Access per model scratch space for calculating cross sections
+    inline CELER_FUNCTION real_type& per_model_xs(ModelId);
+    inline CELER_FUNCTION real_type per_model_xs(ModelId) const;
 
     //// ENERGY DEPOSITION ////
 
@@ -106,18 +106,33 @@ CELER_FUNCTION real_type PhysicsStepView::macro_xs() const
     return this->state().macro_xs;
 }
 
-// //---------------------------------------------------------------------------//
-// /*!
-//  * Access scratch space used for per-model cross section calculations.
-//  */
-// CELER_FUNCTION real_type& PhysicsStepView::per_model_xs(ModelId)
-// {
-// }
-//
-// //---------------------------------------------------------------------------//
-// /*!
-//  */
-// CELER_FUNCTION real_type PhysicsStepView::per_model_xs(ModelId) const;
+//---------------------------------------------------------------------------//
+/*!
+ * Access scratch space used for per-model cross section calculations.
+ */
+CELER_FUNCTION real_type& PhysicsStepView::per_model_xs(ModelId mid)
+{
+    CELER_EXPECT(mid && mid < params_.scalars.num_models);
+    auto idx = track_slot_.unchecked_get() * params_.scalars.num_models
+               + mid.unchecked_get();
+
+    CELER_EXPECT(idx < states_.per_model_xs.size());
+    return states_.per_model_xs[ItemId<real_type>(idx)];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access scratch space used for per-model cross section calculations.
+ */
+CELER_FUNCTION real_type PhysicsStepView::per_model_xs(ModelId mid) const
+{
+    CELER_EXPECT(mid && mid < params_.scalars.num_models);
+    auto idx = track_slot_.unchecked_get() * params_.scalars.num_models
+               + mid.unchecked_get();
+
+    CELER_EXPECT(idx < states_.per_model_xs.size());
+    return states_.per_model_xs[ItemId<real_type>(idx)];
+}
 
 //---------------------------------------------------------------------------//
 /*!
