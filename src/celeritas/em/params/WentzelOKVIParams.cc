@@ -12,10 +12,10 @@
 
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMem.hh"
+#include "celeritas/em/xs/NuclearFormFactors.hh"
 #include "celeritas/io/ImportData.hh"
-#include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/mat/IsotopeView.hh"
-#include "celeritas/em/distribution/NuclearFormFactors.hh"
+#include "celeritas/mat/MaterialParams.hh"
 
 namespace celeritas
 {

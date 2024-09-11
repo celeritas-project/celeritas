@@ -14,13 +14,12 @@
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/em/xs/MottRatioCalculator.hh"
+#include "celeritas/em/xs/NuclearFormFactors.hh"
 #include "celeritas/em/xs/WentzelHelper.hh"
 #include "celeritas/mat/IsotopeView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/RejectionSampler.hh"
-
-#include "NuclearFormFactors.hh"
 
 namespace celeritas
 {
@@ -196,7 +195,7 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
         // Scattered off of nucleus
         cos_theta = this->sample_costheta(cos_thetamin_, cos_thetamax_, rng);
 
-        // Calculate rejection for fake scattering
+        // Calculate rejection for false scattering
         MottRatioCalculator calc_mott_ratio(mott_coeffs_,
                                             std::sqrt(particle_.beta_sq()));
         real_type xs = calc_mott_ratio(cos_theta)

@@ -3,7 +3,7 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/em/distribution/NuclearFormFactors.hh
+//! \file celeritas/em/xs/NuclearFormFactors.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
