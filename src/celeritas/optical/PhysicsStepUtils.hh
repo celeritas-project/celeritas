@@ -30,7 +30,7 @@ inline CELER_FUNCTION StepLimit calc_physics_step_limit(
     real_type total_macro_xs = 0;
     for (auto mid : range(ModelId{physics.num_optical_models()}))
     {
-        real_type model_xs = physics.calc_xs(mid, particle.energy());
+        real_type model_xs = 1 / physics.calc_mfp(mid, particle.energy());
         total_macro_xs += model_xs;
         pstep.per_model_xs(mid) = model_xs;
     }

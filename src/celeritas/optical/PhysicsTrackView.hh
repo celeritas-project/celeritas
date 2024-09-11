@@ -75,8 +75,8 @@ class PhysicsTrackView
 
     //// CALCULATORS ////
 
-    // Calculate the macroscopic cross section for the given model and energy
-    inline CELER_FUNCTION real_type calc_xs(ModelId, Energy) const;
+    // Calculate the MFP for the given model and energy
+    inline CELER_FUNCTION real_type calc_mfp(ModelId, Energy) const;
 
     // Retrieve the energy grid ID for the given model
     inline CELER_FUNCTION ValueGridId mfp_grid(ModelId) const;
@@ -201,14 +201,13 @@ CELER_FUNCTION size_type PhysicsTrackView::num_optical_models() const
 /*!
  * Calculate the macroscopic cross section for the given model and energy.
  */
-CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ModelId mid,
-                                                   Energy energy) const
+CELER_FUNCTION real_type PhysicsTrackView::calc_mfp(ModelId mid,
+                                                    Energy energy) const
 {
     real_type result = 0;
 
     if (auto grid_id = this->mfp_grid(mid))
     {
-        // TODO: this isn't the correct calculator for the XS!
         auto calc = this->make_calculator<GenericCalculator>(grid_id);
         result = calc(value_as<Energy>(energy));
     }

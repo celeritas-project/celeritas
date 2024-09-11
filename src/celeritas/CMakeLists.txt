@@ -73,6 +73,7 @@ list(APPEND SOURCES
   neutron/process/NeutronInelasticProcess.cc
   optical/dummy.cc
   optical/CerenkovParams.cc
+  optical/CoreData.cc
   optical/CoreParams.cc
   optical/CoreState.cc
   optical/ImportMaterialAdapter.cc
@@ -81,7 +82,6 @@ list(APPEND SOURCES
   optical/OpticalCollector.cc
   optical/PhysicsParams.cc
   optical/Types.cc
-  optical/TrackData.cc
   optical/ScintillationParams.cc
   optical/detail/OffloadParams.cc
   optical/detail/OpticalLaunchAction.cc

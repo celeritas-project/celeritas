@@ -15,7 +15,7 @@
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/random/RngParamsFwd.hh"
 
-#include "TrackData.hh"
+#include "CoreData.hh"
 
 namespace celeritas
 {

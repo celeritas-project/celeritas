@@ -13,8 +13,8 @@
 #include "corecel/data/ObserverPtr.hh"
 #include "celeritas/Types.hh"
 
+#include "CoreData.hh"
 #include "Primary.hh"
-#include "TrackData.hh"
 
 namespace celeritas
 {

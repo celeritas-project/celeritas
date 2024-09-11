@@ -13,9 +13,9 @@
 #include "celeritas/track/SimTrackView.hh"
 
 // #include "MaterialTrackView.hh"
+#include "CoreData.hh"
 #include "PhysicsStepView.hh"
 #include "PhysicsTrackView.hh"
-#include "TrackData.hh"
 #include "TrackView.hh"
 
 namespace celeritas
