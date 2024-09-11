@@ -24,9 +24,10 @@ class G4Track;
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 namespace detail
 {
-class HitManager;
+class HitProcessor;
 class OffloadWriter;
 }  // namespace detail
 
@@ -43,6 +44,8 @@ class SharedParams;
  * - an event action (to set the event ID and flush offloaded tracks at the end
  *   of the event)
  * - a tracking action (to try offloading every track)
+ *
+ * \todo Rename \c LocalOffload or something?
  */
 class LocalTransporter
 {
@@ -88,18 +91,12 @@ class LocalTransporter
     explicit operator bool() const { return static_cast<bool>(step_); }
 
   private:
-    using SPHitManger = std::shared_ptr<detail::HitManager>;
     using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
-
-    struct HMFinalizer
-    {
-        StreamId sid;
-        void operator()(SPHitManger& hm) const;
-    };
 
     std::shared_ptr<ParticleParams const> particles_;
     std::shared_ptr<StepperInterface> step_;
     std::vector<Primary> buffer_;
+    std::shared_ptr<detail::HitProcessor> hit_processor_;
 
     EventId event_id_;
     TrackId::size_type track_counter_{};
@@ -109,8 +106,6 @@ class LocalTransporter
 
     // Shared across threads to write flushed particles
     SPOffloadWriter dump_primaries_;
-    // Shared pointer across threads, "finalize" called when clearing
-    InitializedValue<SPHitManger, HMFinalizer> hit_manager_;
 };
 
 //---------------------------------------------------------------------------//

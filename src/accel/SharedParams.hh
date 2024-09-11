@@ -100,13 +100,12 @@ class SharedParams
     //!@{
     //! \name Internal use only
 
-    using SPHitManager = std::shared_ptr<detail::HitManager>;
     using SPOffloadWriter = std::shared_ptr<detail::OffloadWriter>;
     using SPOutputRegistry = std::shared_ptr<OutputRegistry>;
     using SPConstGeantGeoParams = std::shared_ptr<GeantGeoParams const>;
 
     // Hit manager, to be used only by LocalTransporter
-    inline SPHitManager const& hit_manager() const;
+    inline detail::HitManager& hit_manager() const;
 
     // Optional offload writer, only for use by LocalTransporter
     inline SPOffloadWriter const& offload_writer() const;
@@ -137,7 +136,7 @@ class SharedParams
 
     // Created during initialization
     std::shared_ptr<CoreParams> params_;
-    SPHitManager hit_manager_;
+    std::shared_ptr<detail::HitManager> hit_manager_;
     std::shared_ptr<StepCollector> step_collector_;
     VecG4ParticleDef particles_;
     std::string output_filename_;
@@ -179,10 +178,11 @@ auto SharedParams::Params() const -> SPConstParams
 /*!
  * Hit manager, to be used only by LocalTransporter.
  */
-auto SharedParams::hit_manager() const -> SPHitManager const&
+detail::HitManager& SharedParams::hit_manager() const
 {
     CELER_EXPECT(*this);
-    return hit_manager_;
+    CELER_ENSURE(hit_manager_);
+    return *hit_manager_;
 }
 
 //---------------------------------------------------------------------------//

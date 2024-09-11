@@ -56,7 +56,6 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
                                      : options.max_num_tracks)
     , max_steps_(options.max_steps)
     , dump_primaries_{params.offload_writer()}
-    , hit_manager_{params.hit_manager()}
 {
     CELER_VALIDATE(params,
                    << "Celeritas SharedParams was not initialized before "
@@ -99,14 +98,17 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
         }
     }
 
+    // Create hit processor on the local thread so that it's deallocated at the
+    // same time
+    StreamId stream_id{static_cast<size_type>(thread_id)};
+    hit_processor_ = params.hit_manager().make_local_processor(stream_id);
+
+    // Create stepper
     StepperInput inp;
     inp.params = params.Params();
-    inp.stream_id = StreamId{static_cast<size_type>(thread_id)};
+    inp.stream_id = stream_id;
     inp.num_track_slots = options.max_num_tracks;
     inp.action_times = options.action_times;
-
-    // Set stream ID for finalizing
-    hit_manager_.finalizer(HMFinalizer{inp.stream_id});
 
     if (celeritas::device())
     {
@@ -251,7 +253,8 @@ void LocalTransporter::Finalize()
 {
     CELER_EXPECT(*this);
     CELER_VALIDATE(buffer_.empty(),
-                   << "some offloaded tracks were not flushed");
+                   << "offloaded tracks (" << buffer_.size()
+                   << " in buffer) were not flushed");
 
     // Reset all data
     CELER_LOG_LOCAL(debug) << "Resetting local transporter";
@@ -283,26 +286,6 @@ auto LocalTransporter::GetActionTime() const -> MapStrReal
         }
     }
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Clear thread-local hit manager on destruction.
- */
-void LocalTransporter::HMFinalizer::operator()(SPHitManger& hm) const
-{
-    if (hm)
-    {
-        if (this->sid)
-        {
-            hm->finalize(this->sid);
-        }
-        else
-        {
-            CELER_LOG_LOCAL(warning) << "Not finalizing hit manager because "
-                                        "stream ID is unset";
-        }
-    }
 }
 
 //---------------------------------------------------------------------------//
