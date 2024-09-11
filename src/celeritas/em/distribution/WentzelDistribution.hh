@@ -19,6 +19,7 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 #include "celeritas/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/random/distribution/RejectionSampler.hh"
+
 #include "NuclearFormFactors.hh"
 
 namespace celeritas
@@ -237,8 +238,7 @@ WentzelDistribution::calculate_form_factor(real_type cos_t) const
     auto mt_sq
         = MomSq{2 * value_as<MomSq>(particle_.momentum_sq()) * (1 - cos_t)};
 
-    auto calc_ff = [mt_sq](auto&& calc_form_factor)
-    {
+    auto calc_ff = [mt_sq](auto&& calc_form_factor) {
         real_type result = calc_form_factor(mt_sq);
         CELER_ENSURE(result >= 0 && result <= 1);
         return result;

@@ -291,7 +291,8 @@ CELER_FUNCTION real_type UUNuclearFormFactor::operator()(Momentum target_mom) co
 
     // Due to catastrophic error for small x, clamp the result to 1
     return min(sphere_ff(nucl_radius_fm_)
-           * sphere_ff(UUNuclearFormFactor::skin_radius_fm()), real_type{1});
+                   * sphere_ff(UUNuclearFormFactor::skin_radius_fm()),
+               real_type{1});
 }
 
 //---------------------------------------------------------------------------//
