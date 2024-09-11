@@ -39,6 +39,19 @@ namespace celeritas
  * UUNuclearFormFactor ) that describe an approximate spatial charge
  * distribution of the nucleus.
  *
+ * The polar angle distribution is given in [Fern] eqn 88 and is normalized on
+ the interval
+ * \f$ cos\theta \in [\cos\theta_\mathrm{min}, \cos\theta_\mathrm{max}] \f$.
+ * The sampling function for \f$ \mu = \frac{1}{2}(1 - \cos\theta) \f$ is
+ * \f[
+   \mu = \mu_1 + \frac{(A + \mu_1) \xi (\mu_2 - \mu_1)}{A + \mu_2 - \xi (\mu_2
+   - \mu_1)},
+ * \f]
+ * where \f$ \mu_1 = \frac{1}{2}(1 - \cos\theta_\mathrm{min}) \f$,
+ * \f$ \mu_2 = \frac{1}{2}(1 - \cos\theta_\mathrm{max}) \f$,
+ * \f$ A \f$ is the screening coefficient, and
+ * \f$ \xi \sim U(0,1) \f$.
+ *
  * References:
  * [Fern] J.M. Fernandez-Varea, R. Mayol and F. Salvat. On the theory
  *        and simulation of multiple elastic scattering of electrons. Nucl.
@@ -285,17 +298,6 @@ WentzelDistribution::nuclear_form_prefactor() const -> InvMomSq
 //---------------------------------------------------------------------------//
 /*!
  * Sample the scattering polar angle of the incident particle.
- *
- * The probability is given in [Fern] eqn 88 and is normalized on the interval
- * \f$ cos\theta \in [\cos\theta_{min}, \cos\theta_{max}] \f$. The sampling
- * function for \f$ \mu = \frac{1}{2}(1 - \cos\theta) \f$ is
- * \f[
-   \mu = \mu_1 + \frac{(A + \mu_1) \xi (\mu_2 - \mu_1)}{A + \mu_2 - \xi (\mu_2
-   - \mu_1)},
- * \f]
- * where \f$ \mu_1 = \frac{1}{2}(1 - \cos\theta_{min}) \f$, \f$ \mu_2 =
- * \frac{1}{2}(1 - \cos\theta_{max}) \f$, \f$ A \f$ is the screening
- * coefficient, and \f$ \xi \sim U(0,1) \f$.
  */
 template<class Engine>
 CELER_FUNCTION real_type WentzelDistribution::sample_costheta(
