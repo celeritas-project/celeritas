@@ -63,7 +63,10 @@ class ExpNuclearFormFactor : public NuclearFormFactorTraits
 {
   public:
     //! Form factor type corresponding to this distribution
-    static CELER_CONSTEXPR_FUNCTION FFType ff_type() { return FFType::exponential; }
+    static CELER_CONSTEXPR_FUNCTION FFType ff_type()
+    {
+        return FFType::exponential;
+    }
 
     // Construct with atomic mass number
     explicit inline CELER_FUNCTION
@@ -94,14 +97,17 @@ class ExpNuclearFormFactor : public NuclearFormFactorTraits
  * Gaussian nuclear form factor.
  *
  * This nuclear form factor corresponds \c NuclearFormFactorType::gaussian and
- * assumes the nuclear charge decays exponentially from its center. Its
+ * assumes a Gaussian distribution of nuclear charge. Its
  * prefactor has the same value as the exponential.
  */
 class GaussianNuclearFormFactor : public ExpNuclearFormFactor
 {
   public:
     //! Form factor type corresponding to this distribution
-    static CELER_CONSTEXPR_FUNCTION FFType ff_type() { return FFType::gaussian; }
+    static CELER_CONSTEXPR_FUNCTION FFType ff_type()
+    {
+        return FFType::gaussian;
+    }
 
     using ExpNuclearFormFactor::ExpNuclearFormFactor;
 
@@ -233,7 +239,8 @@ CELER_FUNCTION real_type
 GaussianNuclearFormFactor::operator()(MomentumSq target_momsq) const
 {
     CELER_EXPECT(target_momsq >= zero_quantity());
-    return std::exp(-2 * value_as<InvMomentumSq>(this->prefactor()) * target_momsq.value());
+    return std::exp(-2 * value_as<InvMomentumSq>(this->prefactor())
+                    * target_momsq.value());
 }
 
 //---------------------------------------------------------------------------//
