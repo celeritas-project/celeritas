@@ -3,9 +3,9 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/model/AbsorptionModel.cc
+//! \file celeritas/optical/model/RayleighModel.cc
 //---------------------------------------------------------------------------//
-#include "AbsorptionModel.hh"
+#include "RayleighModel.hh"
 
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/detail/MfpBuilder.hh"
@@ -18,8 +18,8 @@ namespace optical
 /*!
  * Construct the model from imported data.
  */
-AbsorptionModel::AbsorptionModel(ActionId id, SPConstImported imported)
-    : Model(id, "absorption", "interact by optical absorption")
+RayleighModel::RayleighModel(ActionId id, SPConstImported imported)
+    : Model(id, "rayleigh", "interact by optical rayleigh")
     , imported_(std::move(imported))
 {
 }
@@ -28,17 +28,17 @@ AbsorptionModel::AbsorptionModel(ActionId id, SPConstImported imported)
 /*!
  * Build the mean free paths for the model.
  */
-void AbsorptionModel::build_mfp(OpticalMaterialId id,
-                                detail::MfpBuilder build) const
+void RayleighModel::build_mfp(OpticalMaterialId id,
+                              detail::MfpBuilder build) const
 {
-    build(imported_.get(id).absorption_length);
+    build(imported_.get(id).mfp);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Execute the model on the host.
  */
-void AbsorptionModel::step(CoreParams const& params, CoreStateHost& state) const
+void RayleighModel::step(CoreParams const&, CoreStateHost&) const
 {
     // TODO: implement
 }
@@ -48,7 +48,7 @@ void AbsorptionModel::step(CoreParams const& params, CoreStateHost& state) const
  * Execute the model on the device.
  */
 #if !CELER_USE_DEVICE
-void AbsorptionModel::step(CoreParams const&, CoreStateDevice&) const
+void RayleighModel::step(CoreParams const&, CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

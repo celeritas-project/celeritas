@@ -3,12 +3,12 @@
 // See the top-level COPYRIGHT file for details.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/model/AbsorptionModel.hh
+//! \file celeritas/optical/model/RayleighModel.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/optical/ImportMaterialAdapter.hh"
-#include "celeritas/optical/Model.hh"
+#include "../ImportMaterialAdapter.hh"
+#include "../Model.hh"
 
 namespace celeritas
 {
@@ -16,20 +16,20 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Set up and launch the optical absorption model interaction.
+ * Set up and launch the optical Rayleigh model interaction.
  */
-class AbsorptionModel : public Model
+class RayleighModel : public Model
 {
   public:
     //!@{
     //! \name Type aliases
     using SPConstImported = std::shared_ptr<ImportedMaterials const>;
-    using ImportedAdapter = ImportMaterialAdapter<ImportModelClass::absorption>;
+    using ImportedAdapter = ImportMaterialAdapter<ImportModelClass::rayleigh>;
     //!@}
 
   public:
     // Construct with imported data
-    AbsorptionModel(ActionId id, SPConstImported imported);
+    RayleighModel(ActionId id, SPConstImported imported);
 
     // Build the mean free paths for this model
     void build_mfp(OpticalMaterialId, detail::MfpBuilder) const override final;
