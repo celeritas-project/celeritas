@@ -282,8 +282,9 @@ CELER_FUNCTION real_type UUNuclearFormFactor::operator()(Momentum target_mom) co
         return (3 / ipow<3>(x)) * std::fma(-x, std::cos(x), std::sin(x));
     };
 
-    return sphere_ff(nucl_radius_fm_)
-           * sphere_ff(UUNuclearFormFactor::skin_radius_fm());
+    // Due to catastrophic error for small x, clamp the result to 1
+    return min(sphere_ff(nucl_radius_fm_)
+           * sphere_ff(UUNuclearFormFactor::skin_radius_fm()), real_type{1});
 }
 
 //---------------------------------------------------------------------------//

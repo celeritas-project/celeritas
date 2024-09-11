@@ -224,15 +224,23 @@ WentzelDistribution::calculate_form_factor(real_type cos_t) const
     auto mt_sq
         = MomSq{2 * value_as<MomSq>(particle_.momentum_sq()) * (1 - cos_t)};
 
+    auto calc_ff = [mt_sq](auto&& calc_form_factor)
+    {
+        real_type result = calc_form_factor(mt_sq);
+        CELER_ENSURE(result >= 0 && result <= 1);
+        return result;
+    };
+
     switch (wentzel_.params.form_factor_type)
     {
         case NuclearFormFactorType::flat:
-            return UUNuclearFormFactor{target_.atomic_mass_number()}(mt_sq);
+            return calc_ff(UUNuclearFormFactor{target_.atomic_mass_number()});
         case NuclearFormFactorType::exponential:
-            return ExpNuclearFormFactor{this->nuclear_form_prefactor()}(mt_sq);
+            return calc_ff(
+                ExpNuclearFormFactor{this->nuclear_form_prefactor()});
         case NuclearFormFactorType::gaussian:
-            return GaussianNuclearFormFactor{this->nuclear_form_prefactor()}(
-                mt_sq);
+            return calc_ff(
+                GaussianNuclearFormFactor{this->nuclear_form_prefactor()});
         default:
             CELER_ASSERT_UNREACHABLE();
     }
