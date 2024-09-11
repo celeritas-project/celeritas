@@ -491,7 +491,14 @@ TEST_F(LArSphereOffloadTest, host_generate)
 
     auto result = this->run<MemSpace::host>(4, 16);
 
-    EXPECT_EQ(7, result.optical_launch_step);
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_EQ(7, result.optical_launch_step);
+    }
+    else
+    {
+        EXPECT_EQ(8, result.optical_launch_step);
+    }
 
     EXPECT_EQ(0, result.scintillation.total_num_photons);
     EXPECT_EQ(0, result.cerenkov.total_num_photons);
