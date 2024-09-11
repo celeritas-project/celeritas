@@ -144,26 +144,21 @@ struct OrientedBoundingZoneRecord
     using Real3 = Array<fast_real_type, 3>;
     using Real3Id = OpaqueId<Real3>;
 
-    //! Half-widths of the inner box
-    Real3Id inner_hw_id;
+    //! Half-widths of the inner and outer boxes
+    Array<Real3Id, 2> hw_ids;
 
-    //! Half-widths of the outer box
-    Real3Id outer_hw_id;
+    //! Offset from to center of inner and outer boxes to center of OBZ
+    //! coordinate system
+    Array<TransformId, 2> offset_ids;
 
-    //! Offset from to center of inner box to center of OBZ coordinate system
-    TransformId inner_offset_id;
-
-    //! Offset from to center of outer box to center of OBZ coordinate system
-    TransformId outer_offset_id;
-
-    // Transformation from the OBZ coordinate system to the global coordinate
+    // Transformation from the OBZ coordinate system to the unit coordinate
     // system
     TransformId transform_id;
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return inner_hw_id && outer_hw_id && transform_id;
+        return !hw_ids.empty() && !hw_ids.empty() && transform_id;
     }
 };
 

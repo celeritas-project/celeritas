@@ -51,18 +51,18 @@ TEST_F(OrientedBoundingZoneTest, basic)
 
     TransformRecordInserter tri(&transforms_, &reals_);
     auto inner_offset_id = tri(VariantTransform{
-        std::in_place_type<Translation>, Real3{0.1, 0.2, 0.3}});
+        std::in_place_type<Translation>, Real3{1.0, 2.0, 3.0}});
     auto outer_offset_id = tri(VariantTransform{
-        std::in_place_type<Translation>, Real3{0.2, 0.4, 0.6}});
+        std::in_place_type<Translation>, Real3{1.1, 2.1, 3.1}});
     auto transform_id = tri(
-        VariantTransform{std::in_place_type<Translation>, Real3{10, 20, 30}});
+        VariantTransform{std::in_place_type<Translation>, Real3{9, 18, 27}});
 
     half_widths_ref_ = half_widths_;
     transforms_ref_ = transforms_;
     reals_ref_ = reals_;
 
     OrientedBoundingZoneRecord obz_record{
-        inner_id, outer_id, inner_offset_id, outer_offset_id, transform_id};
+        {inner_id, outer_id}, {inner_offset_id, outer_offset_id}, transform_id};
 
     OrientedBoundingZone::StoragePointers sp{
         &half_widths_ref_, &transforms_ref_, &reals_ref_};
@@ -75,10 +75,12 @@ TEST_F(OrientedBoundingZoneTest, basic)
     EXPECT_EQ(SignedSense::outside, obz.calc_sense({12.5, 22.5, 32.5}));
 
     // Test safety distance functions
-    EXPECT_SOFT_NEAR(1.43, obz.calc_safety_inside({10.12, 20.09, 30.57}), 1.e5);
-    EXPECT_SOFT_NEAR(1.1, obz.calc_safety_outside({10, 20, 32.1}), 1.e5);
     EXPECT_SOFT_NEAR(
-        std::hypot(0.2, 1.1), obz.calc_safety_outside({10, 18.8, 32.1}), 1.e-5);
+        1.53, obz.calc_safety_inside({10.12, 20.09, 30.57}), 1.e-5);
+    EXPECT_SOFT_NEAR(1.1, obz.calc_safety_outside({10.1, 20.1, 32.1}), 1.e-5);
+    EXPECT_SOFT_NEAR(std::hypot(0.2, 1.1),
+                     obz.calc_safety_outside({10.1, 18.8, 32.1}),
+                     1.e-5);
     EXPECT_SOFT_NEAR(std::hypot(0.3, 0.2, 1.1),
                      obz.calc_safety_outside({11.3, 18.8, 32.1}),
                      1.e-5);

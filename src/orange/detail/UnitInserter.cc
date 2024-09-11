@@ -404,16 +404,18 @@ void UnitInserter::process_obz_record(VolumeRecord* vol_record,
     OrientedBoundingZoneRecord obz_record;
 
     // Set half widths
-    obz_record.inner_hw_id = fast_real3s_.push_back(
+    auto inner_hw_id = fast_real3s_.push_back(
         to_fast_real3(calc_half_widths(obz_input.inner)));
-    obz_record.outer_hw_id = fast_real3s_.push_back(
+    auto outer_hw_id = fast_real3s_.push_back(
         to_fast_real3(calc_half_widths(obz_input.outer)));
+    obz_record.hw_ids = {inner_hw_id, outer_hw_id};
 
     // Set offsets
-    obz_record.inner_offset_id = insert_transform_(VariantTransform{
+    auto inner_offset_id = insert_transform_(VariantTransform{
         std::in_place_type<Translation>, calc_center(obz_input.inner)});
-    obz_record.outer_offset_id = insert_transform_(VariantTransform{
+    auto outer_offset_id = insert_transform_(VariantTransform{
         std::in_place_type<Translation>, calc_center(obz_input.outer)});
+    obz_record.offset_ids = {inner_offset_id, outer_offset_id};
 
     // Set transformation
     obz_record.transform_id = obz_input.transform_id;
