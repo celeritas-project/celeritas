@@ -99,6 +99,8 @@ struct GeantGeoStateData
         nav_state = other.nav_state;
         return *this;
     }
+
+    void reset() { nav_state.reset(); }
 };
 
 //---------------------------------------------------------------------------//

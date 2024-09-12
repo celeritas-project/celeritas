@@ -13,7 +13,6 @@
 #include <vector>
 
 #include "corecel/Types.hh"
-#include "corecel/cont/InitializedValue.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -38,12 +37,15 @@ class SharedParams;
 /*!
  * Manage offloading of tracks to Celeritas.
  *
- * This class must be constructed locally on each worker thread/task/stream,
- * usually as a shared pointer that's accessible to:
+ * This class \em must be constructed locally on each worker
+ * thread/task/stream, usually as a shared pointer that's accessible to:
  * - a run action (for initialization),
  * - an event action (to set the event ID and flush offloaded tracks at the end
  *   of the event)
  * - a tracking action (to try offloading every track)
+ *
+ * \warning Due to Geant4 thread-local allocators, this class \em must be
+ * finalized or destroyed on the same CPU thread in which is created and used!
  *
  * \todo Rename \c LocalOffload or something?
  */

@@ -98,8 +98,19 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
         }
     }
 
-    // Create hit processor on the local thread so that it's deallocated at the
-    // same time
+    if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
+    {
+        /*!
+         * \todo Add support for Geant4 navigation wrapper, which requires
+         * calling \c state.ref().geometry.reset() on the local transporter
+         * thread due to thread-allocated navigator data.
+         */
+        CELER_NOT_IMPLEMENTED(
+            "offloading when using Celeritas Geant4 navigation wrapper");
+    }
+
+    // Create hit processor on the local thread so that it's deallocated when
+    // this object is destroyed
     StreamId stream_id{static_cast<size_type>(thread_id)};
     hit_processor_ = params.hit_manager().make_local_processor(stream_id);
 
@@ -219,7 +230,13 @@ void LocalTransporter::Flush()
         (*dump_primaries_)(buffer_);
     }
 
-    // Abort cleanly for interrupt and user-defined signals
+    /*!
+     * Abort cleanly for interrupt and user-defined (i.e., job manager)
+     * signals.
+     *
+     * \todo The signal handler is \em not thread safe. We may need to set an
+     * atomic/volatile bit so all local transporters abort.
+     */
     ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
 
     // Copy buffered tracks to device and transport the first step
