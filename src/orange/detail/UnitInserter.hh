@@ -14,6 +14,7 @@
 #include "BIHBuilder.hh"
 #include "SurfacesRecordBuilder.hh"
 #include "TransformRecordInserter.hh"
+#include "../BoundingBoxUtils.hh"
 #include "../OrangeData.hh"
 #include "../OrangeInput.hh"
 #include "../OrangeTypes.hh"
@@ -50,6 +51,7 @@ class UnitInserter
     TransformRecordInserter insert_transform_;
     SurfacesRecordBuilder build_surfaces_;
     UniverseInserter* insert_universe_;
+    BoundingBoxBumper<fast_real_type, real_type> calc_bumped_;
 
     CollectionBuilder<SimpleUnitRecord> simple_units_;
 

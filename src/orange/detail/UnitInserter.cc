@@ -22,7 +22,6 @@
 #include "corecel/math/Algorithms.hh"
 
 #include "UniverseInserter.hh"
-#include "../BoundingBoxUtils.hh"
 #include "../OrangeInput.hh"
 #include "../surf/LocalSurfaceVisitor.hh"
 
@@ -193,6 +192,19 @@ UnitInserter::UnitInserter(UniverseInserter* insert_universe, Data* orange_data)
     // Initialize scalars
     orange_data_->scalars.max_faces = 1;
     orange_data_->scalars.max_intersections = 1;
+
+    // Bounding box bumper and converter *to* fast real type *from* regular
+    // real type: conservatively expand to twice the potential bump distance
+    // from a boundary so that the bbox will enclose the point even after a
+    // potential bump
+    calc_bumped_ = BoundingBoxBumper<fast_real_type, real_type>(
+        [&tol = orange_data_->scalars.tol] {
+            Tolerance<real_type> bbox_tol;
+            bbox_tol.rel = 2 * tol.rel;
+            bbox_tol.abs = 2 * tol.abs;
+            CELER_ENSURE(bbox_tol);
+            return bbox_tol;
+        }());
 }
 
 //---------------------------------------------------------------------------//
@@ -210,19 +222,6 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
     // Insert surfaces
     unit.surfaces = this->build_surfaces_(inp.surfaces);
 
-    // Bounding box bumper and converter *to* fast real type *from* regular
-    // real type: conservatively expand to twice the potential bump distance
-    // from a boundary so that the bbox will enclose the point even after a
-    // potential bump
-    BoundingBoxBumper<fast_real_type, real_type> calc_bumped{
-        [&tol = orange_data_->scalars.tol] {
-            Tolerance<real_type> bbox_tol;
-            bbox_tol.rel = 2 * tol.rel;
-            bbox_tol.abs = 2 * tol.abs;
-            CELER_ENSURE(bbox_tol);
-            return bbox_tol;
-        }()};
-
     // Define volumes
     std::vector<VolumeRecord> vol_records(inp.volumes.size());
     std::vector<std::set<LocalVolumeId>> connectivity(inp.surfaces.size());
@@ -235,7 +234,7 @@ UniverseId UnitInserter::operator()(UnitInput&& inp)
         // Store the bbox or an infinite bbox placeholder
         if (inp.volumes[i].bbox)
         {
-            bboxes.push_back(calc_bumped(inp.volumes[i].bbox));
+            bboxes.push_back(calc_bumped_(inp.volumes[i].bbox));
         }
         else
         {
@@ -392,22 +391,13 @@ void UnitInserter::process_obz_record(VolumeRecord* vol_record,
 {
     CELER_EXPECT(obz_input);
 
-    // Functor for converting Real3 to FastReal3
-    auto to_fast_real3 = [](Real3 input) {
-        FastReal3 output;
-        std::transform(input.begin(), input.end(), output.begin(), [](double x) {
-            return static_cast<float>(x);
-        });
-        return output;
-    };
-
     OrientedBoundingZoneRecord obz_record;
 
     // Set half widths
     auto inner_hw_id = fast_real3s_.push_back(
-        to_fast_real3(calc_half_widths(obz_input.inner)));
+        calc_half_widths(calc_bumped_(obz_input.inner)));
     auto outer_hw_id = fast_real3s_.push_back(
-        to_fast_real3(calc_half_widths(obz_input.outer)));
+        calc_half_widths(calc_bumped_(obz_input.outer)));
     obz_record.hw_ids = {inner_hw_id, outer_hw_id};
 
     // Set offsets
