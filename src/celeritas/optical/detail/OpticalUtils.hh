@@ -50,7 +50,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the number of primaries to generate for the given thread.
+ * Calculate the number of initializers to generate for the given thread.
  */
 inline CELER_FUNCTION size_type calc_local_work(ThreadId tid,
                                                 size_type num_threads,

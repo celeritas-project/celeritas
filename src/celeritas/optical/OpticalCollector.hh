@@ -77,10 +77,10 @@ class OpticalCollector
         //! Number of steps that have created optical particles
         size_type buffer_capacity{};
 
-        //! Maximum number of buffered primaries in optical tracking loop
+        //! Maximum number of buffered initializers in optical tracking loop
         size_type primary_capacity{};
 
-        //! Threshold number of primaries for launching optical tracking loop
+        //! Threshold number of initializers for launching optical loop
         size_type auto_flush{};
 
         //! True if all input is assigned and valid

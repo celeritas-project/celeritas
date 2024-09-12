@@ -27,7 +27,7 @@ class TrackInitParams final : public ParamsDataInterface<TrackInitParamsData>
     // Construct with capacity
     explicit TrackInitParams(size_type capacity);
 
-    //! Access primaries for contructing track initializer states
+    //! Access data on host
     HostRef const& host_ref() const final { return data_.host_ref(); }
 
     //! Access data on device

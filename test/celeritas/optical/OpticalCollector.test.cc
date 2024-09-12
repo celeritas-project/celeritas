@@ -57,7 +57,7 @@ class LArSphereOffloadTest : public LArSphereBase
     struct RunResult
     {
         // Optical distribution data
-        size_type num_primaries{0};
+        size_type num_photons{0};
         OffloadResult cerenkov;
         OffloadResult scintillation;
 
@@ -100,8 +100,8 @@ void LArSphereOffloadTest::RunResult::print_expected() const
 {
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "EXPECT_EQ("
-         << this->num_primaries
-         << ", result.num_primaries);\n"
+         << this->num_photons
+         << ", result.num_photons);\n"
             "EXPECT_EQ("
          << this->cerenkov.total_num_photons
          << ", result.cerenkov.total_num_photons);\n"
@@ -245,7 +245,7 @@ auto LArSphereOffloadTest::run(size_type num_tracks,
     size_type step_iter = 1;
     while (count && step_iter++ < num_steps)
     {
-        if (!offload_state.buffer_size.num_primaries)
+        if (!offload_state.buffer_size.num_photons)
         {
             result.optical_launch_step = step_iter;
 
@@ -286,7 +286,7 @@ auto LArSphereOffloadTest::run(size_type num_tracks,
     auto const& sizes = offload_state.buffer_size;
     get_result(result.cerenkov, state.cerenkov, sizes.cerenkov);
     get_result(result.scintillation, state.scintillation, sizes.scintillation);
-    result.num_primaries = sizes.num_primaries;
+    result.num_photons = sizes.num_photons;
 
     return result;
 }
@@ -310,7 +310,7 @@ TEST_F(LArSphereOffloadTest, host_distributions)
 
     EXPECT_EQ(result.cerenkov.total_num_photons
                   + result.scintillation.total_num_photons,
-              result.num_primaries);
+              result.num_photons);
 
     static real_type const expected_cerenkov_charge[] = {-1, 1};
     EXPECT_VEC_EQ(expected_cerenkov_charge, result.cerenkov.charge);
@@ -370,7 +370,7 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
 
     EXPECT_EQ(result.cerenkov.total_num_photons
                   + result.scintillation.total_num_photons,
-              result.num_primaries);
+              result.num_photons);
 
     static real_type const expected_cerenkov_charge[] = {-1, 1};
     EXPECT_VEC_EQ(expected_cerenkov_charge, result.cerenkov.charge);

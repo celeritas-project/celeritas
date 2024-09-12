@@ -30,7 +30,7 @@ struct OffloadBufferSize
 {
     size_type cerenkov{0};
     size_type scintillation{0};
-    size_type num_primaries{0};
+    size_type num_photons{0};
 };
 
 //---------------------------------------------------------------------------//
@@ -125,7 +125,7 @@ struct OffloadStateData
     // Pre-step data for generating optical photon distributions
     StateItems<OffloadPreStepData> step;
 
-    // Buffers of distribution data for generating optical primaries
+    // Buffers of distribution data for generating optical photons
     Items<optical::GeneratorDistributionData> cerenkov;
     Items<optical::GeneratorDistributionData> scintillation;
 

@@ -15,7 +15,7 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/optical/Primary.hh"
+#include "celeritas/optical/TrackInitializer.hh"
 
 namespace celeritas
 {
@@ -49,8 +49,9 @@ struct TrackInitParamsData
 /*!
  * Storage for dynamic data used to initialize new optical photon tracks.
  *
- * - \c primaries stores the data for primaries and secondaries waiting to be
- *   turned into new tracks and can be any size up to \c capacity.
+ * - \c initializers stores the data for track initializers and secondaries
+ *   waiting to be turned into new tracks and can be any size up to \c
+ *   capacity.
  * - \c vacancies stores the \c TrackSlotid of the tracks that have been
  *   killed; the size will be <= the number of track states.
  */
@@ -66,7 +67,7 @@ struct TrackInitStateData
 
     //// DATA ////
 
-    Items<Primary> primaries;
+    Items<TrackInitializer> initializers;
     StateItems<TrackSlotId> vacancies;
 
     //// METHODS ////
@@ -74,7 +75,7 @@ struct TrackInitStateData
     //! Whether the data are assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return !primaries.empty() && !vacancies.empty();
+        return !initializers.empty() && !vacancies.empty();
     }
 
     //! Assign from another set of data
@@ -83,7 +84,7 @@ struct TrackInitStateData
     {
         CELER_EXPECT(other);
 
-        primaries = other.primaries;
+        initializers = other.initializers;
         vacancies = other.vacancies;
 
         return *this;
@@ -95,7 +96,7 @@ struct TrackInitStateData
  * Resize and initialize data.
  *
  * Here \c size is the number of track states, and the "capacity" is the
- * maximum number of primaries that can be buffered.
+ * maximum number of initializers that can be buffered.
  */
 template<MemSpace M>
 void resize(TrackInitStateData<Ownership::value, M>* data,
@@ -106,7 +107,7 @@ void resize(TrackInitStateData<Ownership::value, M>* data,
     CELER_EXPECT(params);
     CELER_EXPECT(size > 0);
 
-    resize(&data->primaries, params.capacity);
+    resize(&data->initializers, params.capacity);
     resize(&data->vacancies, size);
 
     // Initialize vacancies to mark all track slots as empty

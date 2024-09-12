@@ -71,11 +71,11 @@ count_num_photons(GeneratorDistributionRef<MemSpace::host> const& buffer,
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the inclusive prefix sum of the number of optical primaries.
+ * Calculate the inclusive prefix sum of the number of optical photons.
  *
  * \return Total accumulated value
  */
-size_type inclusive_scan_primaries(
+size_type inclusive_scan_photons(
     GeneratorDistributionRef<MemSpace::host> const& buffer,
     Collection<size_type, Ownership::reference, MemSpace::host> const& offsets,
     size_type size,

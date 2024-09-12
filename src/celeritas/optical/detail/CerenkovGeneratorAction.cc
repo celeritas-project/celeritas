@@ -85,7 +85,7 @@ void CerenkovGeneratorAction::step(CoreParams const& params,
 
 //---------------------------------------------------------------------------//
 /*!
- * Generate optical photon primaries from Cerenkov distribution data.
+ * Generate optical track initializers from Cerenkov distribution data.
  */
 template<MemSpace M>
 void CerenkovGeneratorAction::step_impl(CoreParams const& core_params,
@@ -96,18 +96,18 @@ void CerenkovGeneratorAction::step_impl(CoreParams const& core_params,
     auto& optical_state
         = get<optical::CoreState<M>>(core_state.aux(), optical_id_);
 
-    auto& num_primaries = optical_state.counters().num_primaries;
-    auto& num_new_primaries = offload_state.buffer_size.num_primaries;
+    auto& num_photons = optical_state.counters().num_initializers;
+    auto& num_new_photons = offload_state.buffer_size.num_photons;
 
-    if (num_primaries + num_new_primaries < auto_flush_)
+    if (num_photons + num_new_photons < auto_flush_)
         return;
 
-    auto primaries_size = optical_state.ref().init.primaries.size();
-    CELER_VALIDATE(num_primaries + num_new_primaries <= primaries_size,
-                   << "insufficient capacity (" << primaries_size
-                   << ") for optical photon primaries (total capacity "
+    auto initializers_size = optical_state.ref().init.initializers.size();
+    CELER_VALIDATE(num_photons + num_new_photons <= initializers_size,
+                   << "insufficient capacity (" << initializers_size
+                   << ") for optical photon initializers (total capacity "
                       "requirement of "
-                   << num_primaries + num_new_primaries << ")");
+                   << num_photons + num_new_photons << ")");
 
     auto& offload = offload_state.store.ref();
     auto& buffer_size = offload_state.buffer_size.cerenkov;
@@ -115,21 +115,21 @@ void CerenkovGeneratorAction::step_impl(CoreParams const& core_params,
 
     // Calculate the cumulative sum of the number of photons in the buffered
     // distributions. These values are used to determine which thread will
-    // generate primaries from which distribution
-    auto count = inclusive_scan_primaries(
+    // generate initializers from which distribution
+    auto count = inclusive_scan_photons(
         offload.cerenkov, offload.offsets, buffer_size, core_state.stream_id());
 
-    // Generate the optical primaries from the distribution data
+    // Generate the optical photon initializers from the distribution data
     this->generate(core_params, core_state);
 
-    num_primaries += count;
-    num_new_primaries -= count;
+    num_photons += count;
+    num_new_photons -= count;
     buffer_size = 0;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch a (host) kernel to generate optical photon primaries.
+ * Launch a (host) kernel to generate optical photon initializers.
  */
 void CerenkovGeneratorAction::generate(CoreParams const& core_params,
                                        CoreStateHost& core_state) const

@@ -26,7 +26,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Launch a kernel to generate optical photon primaries.
+ * Launch a kernel to generate optical photon initializers.
  */
 void CerenkovGeneratorAction::generate(CoreParams const& core_params,
                                        CoreStateDevice& core_state) const

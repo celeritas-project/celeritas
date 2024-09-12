@@ -85,11 +85,11 @@ count_num_photons(GeneratorDistributionRef<MemSpace::device> const& buffer,
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the inclusive prefix sum of the number of optical primaries.
+ * Calculate the inclusive prefix sum of the number of optical photons.
  *
  * \return Total accumulated value
  */
-size_type inclusive_scan_primaries(
+size_type inclusive_scan_photons(
     GeneratorDistributionRef<MemSpace::device> const& buffer,
     Collection<size_type, Ownership::reference, MemSpace::device> const& offsets,
     size_type size,
@@ -99,7 +99,7 @@ size_type inclusive_scan_primaries(
     CELER_EXPECT(size > 0 && size <= buffer.size());
     CELER_EXPECT(offsets.size() == buffer.size());
 
-    ScopedProfiling profile_this{"inclusive-scan-primaries"};
+    ScopedProfiling profile_this{"inclusive-scan-photons"};
     auto data = thrust::device_pointer_cast(buffer.data().get());
     auto result = thrust::device_pointer_cast(offsets.data().get());
     auto stop = thrust::transform_inclusive_scan(thrust_execute_on(stream),

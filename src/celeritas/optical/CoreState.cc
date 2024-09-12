@@ -68,7 +68,7 @@ CoreState<M>::CoreState(CoreParams const& params,
  * These will be converted by the ProcessPrimaries action.
  */
 template<MemSpace M>
-void CoreState<M>::insert_primaries(Span<Primary const>)
+void CoreState<M>::insert_primaries(Span<TrackInitializer const>)
 {
     CELER_NOT_IMPLEMENTED("primary insertion");
 }

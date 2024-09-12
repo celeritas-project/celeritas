@@ -57,13 +57,13 @@ size_type count_num_photons(GeneratorDistributionRef<MemSpace::device> const&,
                             StreamId);
 
 //---------------------------------------------------------------------------//
-// Calculate the inclusive prefix sum of the number of optical primaries
-size_type inclusive_scan_primaries(
+// Calculate the inclusive prefix sum of the number of optical photons
+size_type inclusive_scan_photons(
     GeneratorDistributionRef<MemSpace::host> const&,
     Collection<size_type, Ownership::reference, MemSpace::host> const&,
     size_type,
     StreamId);
-size_type inclusive_scan_primaries(
+size_type inclusive_scan_photons(
     GeneratorDistributionRef<MemSpace::device> const&,
     Collection<size_type, Ownership::reference, MemSpace::device> const&,
     size_type,
@@ -91,7 +91,7 @@ count_num_photons(GeneratorDistributionRef<MemSpace::device> const&,
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 
-inline size_type inclusive_scan_primaries(
+inline size_type inclusive_scan_photons(
     GeneratorDistributionRef<MemSpace::device> const&,
     Collection<size_type, Ownership::reference, MemSpace::device> const&,
     size_type,

@@ -30,10 +30,10 @@ class OffloadParams;
 /*!
  * Generate Cerenkov photons from optical distribution data.
  *
- * This samples and buffers new optical primaries in a reproducible way. Rather
- * than let each thread generate all primaries from one distribution, the work
- * is split as evenly as possible among threads: multiple threads may generate
- * primaries from a single distribution.
+ * This samples and buffers new optical track initializers in a reproducible
+ * way. Rather than let each thread generate all initializers from one
+ * distribution, the work is split as evenly as possible among threads:
+ * multiple threads may generate initializers from a single distribution.
  */
 class CerenkovGeneratorAction final : public CoreStepActionInterface
 {

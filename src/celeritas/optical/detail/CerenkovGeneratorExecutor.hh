@@ -39,7 +39,7 @@ struct CerenkovGeneratorExecutor
 
     //// FUNCTIONS ////
 
-    // Generate optical primaries
+    // Generate optical track initializers
     inline CELER_FUNCTION void operator()(CoreTrackView const& track) const;
 };
 
@@ -60,7 +60,7 @@ CerenkovGeneratorExecutor::operator()(CoreTrackView const& track) const
     CELER_EXPECT(size.cerenkov <= offload_state.cerenkov.size());
 
     using DistId = ItemId<celeritas::optical::GeneratorDistributionData>;
-    using PrimaryId = ItemId<celeritas::optical::Primary>;
+    using InitId = ItemId<celeritas::optical::TrackInitializer>;
 
     // Get the cumulative sum of the number of photons in the distributions.
     // Each bin gives the range of thread IDs that will generate from the
@@ -68,10 +68,10 @@ CerenkovGeneratorExecutor::operator()(CoreTrackView const& track) const
     auto offsets = offload_state.offsets[ItemRange<size_type>(
         ItemId<size_type>(0), ItemId<size_type>(size.cerenkov))];
 
-    // Get the total number of primaries to generate
+    // Get the total number of initializers to generate
     size_type total_work = offsets.back();
 
-    // Calculate the number of primaries for the thread to generate
+    // Calculate the number of initializers for the thread to generate
     size_type local_work
         = calc_local_work(track.thread_id(), state->size(), total_work);
 
@@ -81,7 +81,7 @@ CerenkovGeneratorExecutor::operator()(CoreTrackView const& track) const
     {
         // Calculate the index in the primary buffer this thread will write to
         size_type primary_idx = i * state->size() + track.thread_id().get();
-        CELER_ASSERT(primary_idx < optical_state->init.primaries.size());
+        CELER_ASSERT(primary_idx < optical_state->init.initializers.size());
 
         // Find the distribution this thread will generate from
         size_type dist_idx = find_distribution_index(offsets, primary_idx);
@@ -92,7 +92,7 @@ CerenkovGeneratorExecutor::operator()(CoreTrackView const& track) const
         // Generate one primary from the distribution
         optical::MaterialView opt_mat{material, dist.material};
         celeritas::optical::CerenkovGenerator generate(opt_mat, cerenkov, dist);
-        optical_state->init.primaries[PrimaryId(primary_idx)] = generate(rng);
+        optical_state->init.initializers[InitId(primary_idx)] = generate(rng);
     }
 }
 
